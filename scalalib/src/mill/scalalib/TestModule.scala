@@ -6,6 +6,7 @@ import mill.api.{Ctx, PathRef, Result}
 import mill.util.Jvm
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.testrunner.{Framework, TestArgs, TestResult, TestRunner}
+import unroll.Unroll
 
 trait TestModule extends TaskModule with TestModule.JavaModuleBase {
 
@@ -259,16 +260,10 @@ object TestModule {
     override def testFramework: T[String] = "zio.test.sbt.ZTestFramework"
   }
 
-  @deprecated("Use other overload instead", "Mill after 0.10.2")
-  def handleResults(
-      doneMsg: String,
-      results: Seq[TestResult]
-  ): Result[(String, Seq[TestResult])] = handleResults(doneMsg, results, None)
-
   def handleResults(
       doneMsg: String,
       results: Seq[TestResult],
-      ctx: Option[Ctx.Env]
+      @Unroll ctx: Option[Ctx.Env] = None
   ): Result[(String, Seq[TestResult])] = {
 
     val badTests: Seq[TestResult] =

@@ -1,26 +1,16 @@
 package mill.contrib.scoverage.api
 
 import mill.api.Ctx
+import unroll.Unroll
 
 trait ScoverageReportWorkerApi {
   import ScoverageReportWorkerApi._
-
-  @deprecated("Use other overload instead.", "Mill after 0.10.7")
-  def report(
-      reportType: ReportType,
-      sources: Seq[os.Path],
-      dataDirs: Seq[os.Path]
-  )(implicit
-      ctx: Ctx
-  ): Unit = {
-    report(reportType, sources, dataDirs, ctx.workspace)
-  }
 
   def report(
       reportType: ReportType,
       sources: Seq[os.Path],
       dataDirs: Seq[os.Path],
-      sourceRoot: os.Path
+      @Unroll sourceRoot: os.Path
   )(implicit
       ctx: Ctx
   ): Unit = {
