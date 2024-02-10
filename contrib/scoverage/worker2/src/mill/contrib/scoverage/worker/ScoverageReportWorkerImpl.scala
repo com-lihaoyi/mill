@@ -15,7 +15,7 @@ class ScoverageReportWorkerImpl extends ScoverageReportWorkerApi {
       reportType: ReportType,
       sources: Seq[os.Path],
       dataDirs: Seq[os.Path],
-      @Unroll sourceRoot0: os.Path = null
+      sourceRoot0: os.Path = null
   )(implicit ctx: Ctx): Unit = {
     val sourceRoot = Option(sourceRoot0).getOrElse(ctx.workspace)
     try {
