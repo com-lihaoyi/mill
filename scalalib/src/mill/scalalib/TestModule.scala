@@ -25,13 +25,21 @@ trait TestModule extends TaskModule with TestModule.JavaModuleBase {
   def testFramework: T[String]
 
   /**
+   * Arguments to be used by [[test()]], when no arguments are provided when running test command.
+   */ 
+  def testArgs: T[Seq[String]] = T { Seq[String]() }
+
+  /**
    * Discovers and runs the module's tests in a subprocess, reporting the
    * results to the console.
+   *
+   * Passed in <code>args</code>, when provided, will be prioritize over value set in [[testArgs]]
+   *
    * @see [[testCached]]
    */
   def test(args: String*): Command[(String, Seq[TestResult])] =
     T.command {
-      testTask(T.task { args }, T.task { Seq.empty[String] })()
+      testTask(T.task { if (args.nonEmpty) args else testArgs() }, T.task { Seq.empty[String] })()
     }
 
   /**
