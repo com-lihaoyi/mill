@@ -1,6 +1,5 @@
 package mill.scalalib.dependency.versions
 
-import coursier.Dependency
 import mill.define.{BaseModule, Task}
 import mill.eval.Evaluator
 import mill.scalalib.dependency.metadata.{MetadataLoader, MetadataLoaderFactory}
