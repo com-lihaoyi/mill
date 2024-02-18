@@ -301,7 +301,8 @@ trait JavaModule
   def bspTransitiveCompileClasspath: T[Agg[UnresolvedPath]] = T {
     T.traverse(transitiveModuleCompileModuleDeps)(m =>
       T.task {
-        m.bspCompileClasspath() ++ Agg(m.bspCompileClassesPath())
+        m.localCompileClasspath().map(p => UnresolvedPath.ResolvedPath(p.path)) ++
+          Agg(m.bspCompileClassesPath())
       }
     )()
       .flatten
@@ -468,9 +469,9 @@ trait JavaModule
   // Keep in sync with [[compileClasspath]]
   @internal
   def bspCompileClasspath: T[Agg[UnresolvedPath]] = T {
-    bspTransitiveCompileClasspath() ++
-      (localCompileClasspath() ++ resolvedIvyDeps())
-        .map(p => UnresolvedPath.ResolvedPath(p.path))
+    resolvedIvyDeps().map(p => UnresolvedPath.ResolvedPath(p.path)) ++
+      bspTransitiveCompileClasspath() ++
+      localCompileClasspath().map(p => UnresolvedPath.ResolvedPath(p.path))
   }
 
   /**
