@@ -433,6 +433,7 @@ trait JavaModule
   /**
    * The *output* classfiles/resources from this module, used for execution,
    * excluding upstream modules and third-party dependencies
+   * Keep in sync with [[bspLocalClasspath]]
    */
   def localClasspath: T[Seq[PathRef]] = T {
     localCompileClasspath().toSeq ++ resources() ++ Agg(compile().classes)
@@ -440,11 +441,11 @@ trait JavaModule
 
   /**
    * The local classpath without forcing to compile the module.
-   * Keep in sync with [[compile]]
+   * Keep in sync with [[localClasspath]]
    */
   @internal
   def bspLocalClasspath: T[Agg[UnresolvedPath]] = T {
-    (compileResources() ++ resources()).map(p => UnresolvedPath.ResolvedPath(p.path)) ++
+    (localCompileClasspath() ++ resources()).map(p => UnresolvedPath.ResolvedPath(p.path)) ++
       Agg(bspCompileClassesPath())
   }
 
@@ -457,14 +458,6 @@ trait JavaModule
     resolvedIvyDeps() ++ transitiveCompileClasspath() ++ localCompileClasspath()
   }
 
-  /**
-   * The *input* classfiles/resources from this module, used during compilation,
-   * excluding upstream modules and third-party dependencies
-   */
-  def localCompileClasspath: T[Agg[PathRef]] = T {
-    compileResources() ++ unmanagedClasspath()
-  }
-
   /** Same as [[compileClasspath]], but does not trigger compilation targets, if possible. */
   // Keep in sync with [[compileClasspath]]
   @internal
@@ -472,6 +465,14 @@ trait JavaModule
     resolvedIvyDeps().map(p => UnresolvedPath.ResolvedPath(p.path)) ++
       bspTransitiveCompileClasspath() ++
       localCompileClasspath().map(p => UnresolvedPath.ResolvedPath(p.path))
+  }
+
+  /**
+   * The *input* classfiles/resources from this module, used during compilation,
+   * excluding upstream modules and third-party dependencies
+   */
+  def localCompileClasspath: T[Agg[PathRef]] = T {
+    compileResources() ++ unmanagedClasspath()
   }
 
   /**
