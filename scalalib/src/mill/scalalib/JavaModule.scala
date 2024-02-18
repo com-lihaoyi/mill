@@ -276,9 +276,11 @@ trait JavaModule
   }
 
   /**
-   * The transitive version of `bspLocalClasspath`
+   * Same as [[transitiveLocalClasspath]], but with all dependencies on [[compile]]
+   * replaced by their non-compiling [[bspCompileClassesPath]] variants.
+   *
+   * Keep in sync with [[transitiveLocalClasspath]]
    */
-  // Keep in sync with [[transitiveLocalClasspath]]
   @internal
   def bspTransitiveLocalClasspath: T[Agg[UnresolvedPath]] = T {
     T.traverse(transitiveModuleCompileModuleDeps)(_.bspLocalClasspath)().flatten
@@ -294,9 +296,11 @@ trait JavaModule
   }
 
   /**
-   * The transitive version of `bspCompileClasspath`
+   * Same as [[transitiveCompileClasspath]], but with all dependencies on [[compile]]
+   * replaced by their non-compiling [[bspCompileClassesPath]] variants.
+   *
+   * Keep in sync with [[transitiveCompileClasspath]]
    */
-  // Keep in sync with [[transitiveCompileClasspath]]
   @internal
   def bspTransitiveCompileClasspath: T[Agg[UnresolvedPath]] = T {
     T.traverse(transitiveModuleCompileModuleDeps)(m =>
@@ -393,9 +397,11 @@ trait JavaModule
   /**
    * Compiles the current module to generate compiled classfiles/bytecode.
    *
-   * When you override this, you probably also want to override [[bspCompileClassesPath]].
+   * When you override this, you probably also want/need to override [[bspCompileClassesPath]],
+   * as that needs to point to the same compilation output path.
+   *
+   * Keep in sync with [[bspCompileClassesPath]]
    */
-  // Keep in sync with [[bspCompileClassesPath]]
   def compile: T[mill.scalalib.api.CompilationResult] = T.persistent {
     zincWorker()
       .worker()
@@ -410,8 +416,13 @@ trait JavaModule
       )
   }
 
-  /** The path to the compiled classes without forcing to actually run the target. */
-  // Keep in sync with [[compile]]
+  /**
+   * The path to the compiled classes by [[compile]] without forcing to actually run the compilation.
+   * This is safe in an BSP context, as the compilation done later will use the
+   * exact same compilation settings, so we can safely use the same path.
+   *
+   * Keep in sync with [[compile]]
+   */
   @internal
   def bspCompileClassesPath: T[UnresolvedPath] =
     if (compile.ctx.enclosing == s"${classOf[JavaModule].getName}#compile") {
@@ -432,7 +443,8 @@ trait JavaModule
 
   /**
    * The *output* classfiles/resources from this module, used for execution,
-   * excluding upstream modules and third-party dependencies
+   * excluding upstream modules and third-party dependencies, but including unmanaged dependencies.
+   *
    * Keep in sync with [[bspLocalClasspath]]
    */
   def localClasspath: T[Seq[PathRef]] = T {
@@ -440,7 +452,9 @@ trait JavaModule
   }
 
   /**
-   * The local classpath without forcing to compile the module.
+   * Same as [[localClasspath]], but with all dependencies on [[compile]]
+   * replaced by their non-compiling [[bspCompileClassesPath]] variants.
+   *
    * Keep in sync with [[localClasspath]]
    */
   @internal
@@ -451,15 +465,19 @@ trait JavaModule
 
   /**
    * All classfiles and resources from upstream modules and dependencies
-   * necessary to compile this module
+   * necessary to compile this module.
+   *
+   * Keep in sync with [[bspCompileClasspath]]
    */
-  // Keep in sync with [[bspCompileClasspath]]
   def compileClasspath: T[Agg[PathRef]] = T {
     resolvedIvyDeps() ++ transitiveCompileClasspath() ++ localCompileClasspath()
   }
 
-  /** Same as [[compileClasspath]], but does not trigger compilation targets, if possible. */
-  // Keep in sync with [[compileClasspath]]
+  /**
+   * Same as [[compileClasspath]], but does not trigger compilation targets, if possible.
+   *
+   * Keep in sync with [[compileClasspath]]
+   */
   @internal
   def bspCompileClasspath: T[Agg[UnresolvedPath]] = T {
     resolvedIvyDeps().map(p => UnresolvedPath.ResolvedPath(p.path)) ++
