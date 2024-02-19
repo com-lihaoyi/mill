@@ -90,7 +90,7 @@ object Deps {
     def playVersion: String
     def playBinVersion: String = playVersion.split("[.]").take(2).mkString(".")
     def routesCompiler = playBinVersion match {
-      case "2.6" | "2.7" | "2.8" => ivy"com.typesafe.play::routes-compiler::$playVersion"
+      case "2.6" | "2.7" | "2.8" => ivy"com.typesafe.play::play-routes-compiler::$playVersion"
       case "2.9" => ivy"com.typesafe.play::play-routes-compiler::$playVersion"
       case _ => ivy"org.playframework::play-routes-compiler::$playVersion"
     }
@@ -104,7 +104,7 @@ object Deps {
     val playVersion = "2.7.9"
   }
   object Play_2_8 extends Play {
-    val playVersion = "2.8.21"
+    val playVersion = "2.9.1"
   }
   object Play_2_9 extends Play {
     val playVersion = "2.9.1"
