@@ -223,15 +223,6 @@ you explicitly choose Mill. When in a Mill workspace use the "Switch Build
 Server" command from Metals which will allow you to switch to using Mill as
 your build server. If no `.bsp/mill-bsp.json` file exists, Metals will
 automatically create it for you and then connect to Mill.
-
-Metals is relying on SemanticDB to enable many of its features.
-Mill BSP now also supports to provide this SemanticDB data, when the BSP client
-(like Metals) requests it.
-
-As of writing this, Metals 0.11.8 is the latest available version, which is not
-able to detect the fact, that Mill _is_ already providing SemanticDB data. As a
-consequence, it reports missing SemanticDB data, although some SemanticDB-based
-features are already working. This may be fixed eventually in a future release of Metals.
 --
 
 [CAUTION]
