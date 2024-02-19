@@ -77,7 +77,7 @@ import scala.reflect.ClassTag
 import scala.util.{Failure, Success, Try}
 import Utils.sanitizeUri
 import mill.bsp.BspServerResult
-import mill.eval.Evaluator.{Results, TaskResult}
+import mill.eval.Evaluator.TaskResult
 
 import scala.util.chaining.scalaUtilChainingOps
 import scala.util.control.NonFatal
