@@ -1,5 +1,5 @@
 package foo
-object Foo{
+object Foo {
   def main(args: Array[String]): Unit = {
     println("foo.BuildInfo.scalaVersion: " + foo.BuildInfo.scalaVersion)
   }

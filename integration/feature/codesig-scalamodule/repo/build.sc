@@ -3,7 +3,7 @@ import mill._, scalalib._
 object foo extends ScalaModule {
   def scalaVersion = "2.13.8"
 
-  def sources = T{
+  def sources = T {
     println("Foo generating sources...")
     os.write(
       T.dest / "Foo.scala",

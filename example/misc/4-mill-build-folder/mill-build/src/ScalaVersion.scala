@@ -1,4 +1,4 @@
 package millbuild
-object ScalaVersion{
+object ScalaVersion {
   def myScalaVersion = "2.13.10"
 }

@@ -4,4 +4,3 @@ import mill.scalalib._
 object foo extends ScalaModule {
   def scalaVersion = bar.myScalaVersion
 }
-

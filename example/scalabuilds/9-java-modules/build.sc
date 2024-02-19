@@ -1,10 +1,10 @@
 import mill._, scalalib._
 
-trait MyJavaModule extends JavaModule{
+trait MyJavaModule extends JavaModule {
   object test extends JavaModuleTests with TestModule.Junit4
 }
 
-object foo extends MyJavaModule{
+object foo extends MyJavaModule {
   def moduleDeps = Seq(bar)
 }
 
@@ -15,22 +15,22 @@ object bar extends JavaModule
 // `compile`, `run`, etc., and can similarly depend on each other and have
 // their own test suites.
 
-/** Usage
-
-> mill resolve __.run
-foo.run
-bar.run
-
-> mill foo.compile
-compiling 1 Java source...
-
-> mill foo.run
-Foo.value: 31337
-Bar.value: 271828
-
-> mill foo.test
-Test run started
-...
-Test run finished: 0 failed, 0 ignored, 2 total...
-
-*/
+/**
+ * Usage
+ *
+ * > mill resolve __.run
+ * foo.run
+ * bar.run
+ *
+ * > mill foo.compile
+ * compiling 1 Java source...
+ *
+ * > mill foo.run
+ * Foo.value: 31337
+ * Bar.value: 271828
+ *
+ * > mill foo.test
+ * Test run started
+ * ...
+ * Test run finished: 0 failed, 0 ignored, 2 total...
+ */

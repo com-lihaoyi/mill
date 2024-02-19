@@ -17,14 +17,14 @@ object foo extends RootModule with ScalaModule {
 // version (eg. 2.13.8 instead of just 2.13), so when including them make sure to
 // use the  `:::` syntax shown above in the example.
 
-/** Usage
-
-> ./mill compile
-...
-error: Unwanted cyclic dependency
-error: ...src/Foo.scala...
-error:   def y = Bar.z
-error: ...src/Bar.scala...
-error:   def x = Foo.y
-
-*/
+/**
+ * Usage
+ *
+ * > ./mill compile
+ * ...
+ * error: Unwanted cyclic dependency
+ * error: ...src/Foo.scala...
+ * error:   def y = Bar.z
+ * error: ...src/Bar.scala...
+ * error:   def x = Foo.y
+ */

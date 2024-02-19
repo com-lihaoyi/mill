@@ -12,10 +12,10 @@ object foo extends RootModule with ScalaModule {
 // filesystem, e.g. in the above snippet any jars that happen to live in the
 // `lib/` folder.
 
-/** Usage
-
-> ./mill run '{"name":"John","age":30}'     # mac/linux
-Key: name, Value: John
-Key: age, Value: 30
-
-*/
+/**
+ * Usage
+ *
+ * > ./mill run '{"name":"John","age":30}'     # mac/linux
+ * Key: name, Value: John
+ * Key: age, Value: 30
+ */

@@ -19,27 +19,27 @@ def myInput = T.input {
 
 def gitStatusTarget = T {
   "v-" +
-  os.proc("git", "log", "-1", "--pretty=format:%h-%B ")
-    .call(cwd = T.workspace)
-    .out
-    .text()
-    .trim()
+    os.proc("git", "log", "-1", "--pretty=format:%h-%B ")
+      .call(cwd = T.workspace)
+      .out
+      .text()
+      .trim()
 }
 
-/** Usage
-
-> git init .
-> git commit --allow-empty -m "Initial-Commit"
-
-> ./mill show gitStatusTarget
-"v-...-Initial-Commit"
-
-> git commit --allow-empty -m "Second-Commit"
-
-> ./mill show gitStatusTarget # Mill didn't pick up the git change!
-"v-...-Initial-Commit"
-
-*/
+/**
+ * Usage
+ *
+ * > git init .
+ * > git commit --allow-empty -m "Initial-Commit"
+ *
+ * > ./mill show gitStatusTarget
+ * "v-...-Initial-Commit"
+ *
+ * > git commit --allow-empty -m "Second-Commit"
+ *
+ * > ./mill show gitStatusTarget # Mill didn't pick up the git change!
+ * "v-...-Initial-Commit"
+ */
 
 // `gitStatusTarget` will not know that `git rev-parse` can change, and will
 // not know to re-evaluate when your `git log` _does_ change. This means
@@ -60,19 +60,19 @@ def gitStatusTarget2 = T { "v-" + gitStatusInput() }
 // This makes `gitStatusInput` to always re-evaluate every build, and only if
 // the output of `gitStatusInput` changes will `gitStatusTarget2` re-compute
 
-/** Usage
-
-> git commit --allow-empty -m "Initial-Commit"
-
-> ./mill show gitStatusTarget2
-"v-...-Initial-Commit"
-
-> git commit --allow-empty -m "Second-Commit"
-
-> ./mill show gitStatusTarget2 # Mill picked up git change
-"v-...-Second-Commit"
-
-*/
+/**
+ * Usage
+ *
+ * > git commit --allow-empty -m "Initial-Commit"
+ *
+ * > ./mill show gitStatusTarget2
+ * "v-...-Initial-Commit"
+ *
+ * > git commit --allow-empty -m "Second-Commit"
+ *
+ * > ./mill show gitStatusTarget2 # Mill picked up git change
+ * "v-...-Second-Commit"
+ */
 
 // Note that because ``T.input``s re-evaluate every time, you should ensure that the
 // code you put in `T.input` runs quickly. Ideally it should just be a simple check

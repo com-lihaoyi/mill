@@ -1,6 +1,6 @@
 import mill._
 
-def invalidTarget = T{ "..." }
+def invalidTarget = T { "..." }
 
 object invalidModule extends Module
 

@@ -26,20 +26,20 @@ def bar = T { s"hello ${foo("2.10", "jvm").suffix()}" }
 // In this example we assigned `crossValue` and `crossValue2` to the names
 // `crossVersion` and `platform` for readability.
 
-/** Usage
-
-> mill show foo[2.10,jvm].suffix
-"_2.10_jvm"
-
-> mill showNamed foo[__].suffix
-{
-  "foo[2.10,jvm].suffix": "_2.10_jvm",
-  "foo[2.10,js].suffix": "_2.10_js",
-  "foo[2.11,jvm].suffix": "_2.11_jvm",
-  "foo[2.11,js].suffix": "_2.11_js",
-  "foo[2.12,jvm].suffix": "_2.12_jvm",
-  "foo[2.12,js].suffix": "_2.12_js",
-  "foo[2.12,native].suffix": "_2.12_native"
-}
-
-*/
+/**
+ * Usage
+ *
+ * > mill show foo[2.10,jvm].suffix
+ * "_2.10_jvm"
+ *
+ * > mill showNamed foo[__].suffix
+ * {
+ *  "foo[2.10,jvm].suffix": "_2.10_jvm",
+ *  "foo[2.10,js].suffix": "_2.10_js",
+ *  "foo[2.11,jvm].suffix": "_2.11_jvm",
+ *  "foo[2.11,js].suffix": "_2.11_js",
+ *  "foo[2.12,jvm].suffix": "_2.12_jvm",
+ *  "foo[2.12,js].suffix": "_2.12_js",
+ *  "foo[2.12,native].suffix": "_2.12_native"
+ * }
+ */

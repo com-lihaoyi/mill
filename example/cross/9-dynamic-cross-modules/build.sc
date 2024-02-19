@@ -3,7 +3,7 @@ import mill._, scalalib._
 val moduleNames = interp.watchValue(os.list(millSourcePath / "modules").map(_.last))
 
 object modules extends Cross[FolderModule](moduleNames)
-trait FolderModule extends ScalaModule with Cross.Module[String]{
+trait FolderModule extends ScalaModule with Cross.Module[String] {
   def millSourcePath = super.millSourcePath / crossValue
   def scalaVersion = "2.13.8"
 }
@@ -18,33 +18,33 @@ trait FolderModule extends ScalaModule with Cross.Module[String]{
 // that Mill is aware that the module structure depends on that value, and will
 // re-compute the value and re-create the module structure if the value changes.
 
-/** Usage
-
-> mill resolve modules[_]
-modules[bar]
-modules[foo]
-modules[qux]
-
-> mill modules[bar].run
-Hello World Bar
-
-> mill modules[new].run
-error: Cannot resolve modules[new]...
-
-> cp -r modules/bar modules/new
-
-> sed -i 's/Bar/New/g' modules/new/src/Example.scala
-
-> mill resolve modules[_]
-modules[bar]
-modules[foo]
-modules[qux]
-modules[new]
-
-> mill modules[new].run
-Hello World New
-
-*/
+/**
+ * Usage
+ *
+ * > mill resolve modules[_]
+ * modules[bar]
+ * modules[foo]
+ * modules[qux]
+ *
+ * > mill modules[bar].run
+ * Hello World Bar
+ *
+ * > mill modules[new].run
+ * error: Cannot resolve modules[new]...
+ *
+ * > cp -r modules/bar modules/new
+ *
+ * > sed -i 's/Bar/New/g' modules/new/src/Example.scala
+ *
+ * > mill resolve modules[_]
+ * modules[bar]
+ * modules[foo]
+ * modules[qux]
+ * modules[new]
+ *
+ * > mill modules[new].run
+ * Hello World New
+ */
 
 // Note that because the inputs to the `Cross` constructor affects the number
 // of cross-modules that are generated, it has to be a raw value e.g.

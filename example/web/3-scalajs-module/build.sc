@@ -28,27 +28,27 @@ object foo extends ScalaJSModule {
 // that compile the module into a single Javascript file, which you can then
 // distribute or deploy with your web application
 
-/** Usage
-
-> ./mill foo.run
-<h1>Hello World</h1>
-stringifiedJsObject: ["hello","world","!"]
-
-> ./mill foo.test
-+ foo.FooTests.hello...
-
-> ./mill show foo.fullLinkJS # mac/linux
-{
-...
-..."jsFileName": "main.js",
-  "dest": ".../out/foo/fullLinkJS.dest"
-}
-
-> node out/foo/fullLinkJS.dest/main.js # mac/linux
-<h1>Hello World</h1>
-stringifiedJsObject: ["hello","world","!"]
-
-*/
+/**
+ * Usage
+ *
+ * > ./mill foo.run
+ * <h1>Hello World</h1>
+ * stringifiedJsObject: ["hello","world","!"]
+ *
+ * > ./mill foo.test
+ * + foo.FooTests.hello...
+ *
+ * > ./mill show foo.fullLinkJS # mac/linux
+ * {
+ * ...
+ * ..."jsFileName": "main.js",
+ *  "dest": ".../out/foo/fullLinkJS.dest"
+ * }
+ *
+ * > node out/foo/fullLinkJS.dest/main.js # mac/linux
+ * <h1>Hello World</h1>
+ * stringifiedJsObject: ["hello","world","!"]
+ */
 
 // Note that running Scala.js modules locally requires the `node` Javascript
 // runtime to be installed on your machine.

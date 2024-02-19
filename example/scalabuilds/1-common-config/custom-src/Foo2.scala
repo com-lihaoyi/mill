@@ -18,4 +18,3 @@ object Foo2 {
     if (sys.env.contains("MY_CUSTOM_ENV")) println("MY_CUSTOM_ENV: " + sys.env("MY_CUSTOM_ENV"))
   }
 }
-

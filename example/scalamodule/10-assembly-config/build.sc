@@ -30,17 +30,17 @@ object bar extends ScalaModule {
 // `META-INF/MANIFEST.MF` files from assembly, and concatenates all
 // `reference.conf` files. You can also define your own merge/exclude rules.
 
-/** Usage
-
-> ./mill foo.assembly
-
-> unzip -p ./out/foo/assembly.dest/out.jar application.conf
-Bar Application Conf
-Foo Application Conf
-
-> java -jar ./out/foo/assembly.dest/out.jar\
-Loaded application.conf from resources:...
-...Foo Application Conf
-...Bar Application Conf
-
-*/
+/**
+ * Usage
+ *
+ * > ./mill foo.assembly
+ *
+ * > unzip -p ./out/foo/assembly.dest/out.jar application.conf
+ * Bar Application Conf
+ * Foo Application Conf
+ *
+ * > java -jar ./out/foo/assembly.dest/out.jar\
+ * Loaded application.conf from resources:...
+ * ...Foo Application Conf
+ * ...Bar Application Conf
+ */

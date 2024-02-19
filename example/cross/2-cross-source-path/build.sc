@@ -15,24 +15,24 @@ trait FooModule extends Cross.Module[String] {
 // to use a cross module to build different folders with the same config, you
 // can do so by overriding `millSourcePath` as shown above.
 
-/** Usage
-
-> mill show foo[2.10].sources
-[
-  ".../foo/2.10"
-]
-
-> mill show foo[2.11].sources
-[
-  ".../foo/2.11"
-]
-
-> mill show foo[2.12].sources
-[
-  ".../foo/2.12"
-]
-
-*/
+/**
+ * Usage
+ *
+ * > mill show foo[2.10].sources
+ * [
+ *  ".../foo/2.10"
+ * ]
+ *
+ * > mill show foo[2.11].sources
+ * [
+ *  ".../foo/2.11"
+ * ]
+ *
+ * > mill show foo[2.12].sources
+ * [
+ *  ".../foo/2.12"
+ * ]
+ */
 
 // [NOTE]
 // --

@@ -28,10 +28,10 @@ object foo extends RootModule with ScalaModule {
 //
 // Please consult the xref:Library_Dependencies.adoc[] section for even more details.
 
-/** Usage
-
-> ./mill run i am cow
-pretty-printed using PPrint: Array("i", "am", "cow")
-serialized using uPickle: ["i","am","cow"]
-
-*/
+/**
+ * Usage
+ *
+ * > ./mill run i am cow
+ * pretty-printed using PPrint: Array("i", "am", "cow")
+ * serialized using uPickle: ["i","am","cow"]
+ */

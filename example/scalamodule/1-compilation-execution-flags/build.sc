@@ -1,6 +1,6 @@
 import mill._, scalalib._
 
-object foo extends RootModule with ScalaModule{
+object foo extends RootModule with ScalaModule {
   def scalaVersion = "2.13.8"
   def scalacOptions = Seq("-Ydelambdafy:inline")
   def forkArgs = Seq("-Xmx4g", "-Dmy.jvm.property=hello")
@@ -30,9 +30,9 @@ object foo extends RootModule with ScalaModule{
 // mill foo.runLocal arg1 arg2 arg3
 // ----
 
-/** Usage
-
-> ./mill run
-hello WORLD
-
-*/
+/**
+ * Usage
+ *
+ * > ./mill run
+ * hello WORLD
+ */

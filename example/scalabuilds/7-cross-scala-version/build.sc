@@ -3,7 +3,7 @@ import mill._, scalalib._
 val scalaVersions = Seq("2.12.17", "2.13.8")
 
 object foo extends Cross[FooModule](scalaVersions)
-trait FooModule extends CrossScalaModule{
+trait FooModule extends CrossScalaModule {
   def moduleDeps = Seq(bar())
 }
 
@@ -21,39 +21,38 @@ trait BarModule extends CrossScalaModule
 // apply to the cross-module with that version prefix.
 //
 
-/** Usage
-
-> mill resolve __.run
-foo[2.12.17].run
-foo[2.13.8].run
-bar[2.12.17].run
-bar[2.13.8].run
-
-> mill foo[2.12.17].run
-Foo.value: Hello World Scala library version 2.12.17...
-Bar.value: bar-value
-Specific code for Scala 2.x
-Specific code for Scala 2.12.x
-
-> mill foo[2.13.8].run
-Foo.value: Hello World Scala library version 2.13.8...
-Bar.value: bar-value
-Specific code for Scala 2.x
-Specific code for Scala 2.13.x
-
-> mill bar[2.13.8].run
-Bar.value: bar-value
-
-*/
+/**
+ * Usage
+ *
+ * > mill resolve __.run
+ * foo[2.12.17].run
+ * foo[2.13.8].run
+ * bar[2.12.17].run
+ * bar[2.13.8].run
+ *
+ * > mill foo[2.12.17].run
+ * Foo.value: Hello World Scala library version 2.12.17...
+ * Bar.value: bar-value
+ * Specific code for Scala 2.x
+ * Specific code for Scala 2.12.x
+ *
+ * > mill foo[2.13.8].run
+ * Foo.value: Hello World Scala library version 2.13.8...
+ * Bar.value: bar-value
+ * Specific code for Scala 2.x
+ * Specific code for Scala 2.13.x
+ *
+ * > mill bar[2.13.8].run
+ * Bar.value: bar-value
+ */
 
 // ``CrossScalaModule``s can depend on each other using `moduleDeps`, but require
 // the `()` suffix in `moduleDeps` to select the appropriate instance of the
 // cross-module to depend on. You can also pass the `crossScalaVersion`
 // explicitly to select the right version of the cross-module:
 
-
 object foo2 extends Cross[Foo2Module](scalaVersions)
-trait Foo2Module extends CrossScalaModule{
+trait Foo2Module extends CrossScalaModule {
   def moduleDeps = Seq(bar(crossScalaVersion))
 }
 

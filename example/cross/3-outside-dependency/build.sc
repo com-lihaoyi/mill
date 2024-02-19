@@ -16,15 +16,15 @@ def qux = T { s"hello ${foo("2.10").suffix()} world ${foo("2.12").suffix()}" }
 // even using multiple versions of the cross-module in the same target as we do
 // in `def qux`.
 
-/** Usage
-
-> mill show foo[2.10].suffix
-"_2.10"
-
-> mill show bar
-"hello _2.10"
-
-> mill show qux
-"hello _2.10 world _2.12"
-
-*/
+/**
+ * Usage
+ *
+ * > mill show foo[2.10].suffix
+ * "_2.10"
+ *
+ * > mill show bar
+ * "hello _2.10"
+ *
+ * > mill show qux
+ * "hello _2.10 world _2.12"
+ */

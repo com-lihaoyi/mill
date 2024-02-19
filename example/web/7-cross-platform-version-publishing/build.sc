@@ -63,50 +63,50 @@ object qux extends Module {
 // different sets of Scala versions, as it allows you to specify the
 // `scalaVersions` passed to each individual cross module separately.
 
-/** Usage
-
-> ./mill show qux.js[3.2.2].sources
-[
-  ".../qux/src",
-  ".../qux/src-js",
-  ".../qux/src-3.2.2",
-  ".../qux/src-3.2.2-js",
-  ".../qux/src-3.2",
-  ".../qux/src-3.2-js",
-  ".../qux/src-3",
-  ".../qux/src-3-js"
-]
-
-> ./mill show qux.js[3.2.2].test.sources
-[
-  ".../qux/test/src",
-  ".../qux/test/src-js",
-  ".../qux/test/src-3.2.2",
-  ".../qux/test/src-3.2.2-js",
-  ".../qux/test/src-3.2",
-  ".../qux/test/src-3.2-js",
-  ".../qux/test/src-3",
-  ".../qux/test/src-3-js"
-]
-
-> ./mill qux.jvm[2.13.8].run
-Bar.value: <p>world Specific code for Scala 2.x</p>
-Parsing JSON with ujson.read
-Qux.main: Set(<p>i</p>, <p>cow</p>, <p>me</p>)
-
-> ./mill __.js[3.2.2].test
-+ bar.BarTests.test ...  <p>world Specific code for Scala 3.x</p>
-+ qux.QuxTests.parseJsonGetKeys ...  Set(i, cow, me)
-
-> ./mill __.publishLocal
-...
-Publishing Artifact(com.lihaoyi,bar_sjs1_2.13,0.0.1) to ivy repo...
-Publishing Artifact(com.lihaoyi,bar_2.13,0.0.1) to ivy repo...
-Publishing Artifact(com.lihaoyi,qux_sjs1_2.13,0.0.1) to ivy repo...
-Publishing Artifact(com.lihaoyi,qux_2.13,0.0.1) to ivy repo...
-Publishing Artifact(com.lihaoyi,bar_sjs1_3,0.0.1) to ivy repo...
-Publishing Artifact(com.lihaoyi,bar_3,0.0.1) to ivy repo...
-Publishing Artifact(com.lihaoyi,qux_sjs1_3,0.0.1) to ivy repo...
-Publishing Artifact(com.lihaoyi,qux_3,0.0.1) to ivy repo...
-
-*/
+/**
+ * Usage
+ *
+ * > ./mill show qux.js[3.2.2].sources
+ * [
+ *  ".../qux/src",
+ *  ".../qux/src-js",
+ *  ".../qux/src-3.2.2",
+ *  ".../qux/src-3.2.2-js",
+ *  ".../qux/src-3.2",
+ *  ".../qux/src-3.2-js",
+ *  ".../qux/src-3",
+ *  ".../qux/src-3-js"
+ * ]
+ *
+ * > ./mill show qux.js[3.2.2].test.sources
+ * [
+ *  ".../qux/test/src",
+ *  ".../qux/test/src-js",
+ *  ".../qux/test/src-3.2.2",
+ *  ".../qux/test/src-3.2.2-js",
+ *  ".../qux/test/src-3.2",
+ *  ".../qux/test/src-3.2-js",
+ *  ".../qux/test/src-3",
+ *  ".../qux/test/src-3-js"
+ * ]
+ *
+ * > ./mill qux.jvm[2.13.8].run
+ * Bar.value: <p>world Specific code for Scala 2.x</p>
+ * Parsing JSON with ujson.read
+ * Qux.main: Set(<p>i</p>, <p>cow</p>, <p>me</p>)
+ *
+ * > ./mill __.js[3.2.2].test
+ * + bar.BarTests.test ...  <p>world Specific code for Scala 3.x</p>
+ * + qux.QuxTests.parseJsonGetKeys ...  Set(i, cow, me)
+ *
+ * > ./mill __.publishLocal
+ * ...
+ * Publishing Artifact(com.lihaoyi,bar_sjs1_2.13,0.0.1) to ivy repo...
+ * Publishing Artifact(com.lihaoyi,bar_2.13,0.0.1) to ivy repo...
+ * Publishing Artifact(com.lihaoyi,qux_sjs1_2.13,0.0.1) to ivy repo...
+ * Publishing Artifact(com.lihaoyi,qux_2.13,0.0.1) to ivy repo...
+ * Publishing Artifact(com.lihaoyi,bar_sjs1_3,0.0.1) to ivy repo...
+ * Publishing Artifact(com.lihaoyi,bar_3,0.0.1) to ivy repo...
+ * Publishing Artifact(com.lihaoyi,qux_sjs1_3,0.0.1) to ivy repo...
+ * Publishing Artifact(com.lihaoyi,qux_3,0.0.1) to ivy repo...
+ */

@@ -12,7 +12,7 @@ object root extends RootModule with ScalaModule {
 
     def ivyDeps = Agg(
       ivy"com.lihaoyi::utest::0.7.10",
-      ivy"com.lihaoyi::requests::0.6.9",
+      ivy"com.lihaoyi::requests::0.6.9"
     )
   }
 }
@@ -21,17 +21,17 @@ object root extends RootModule with ScalaModule {
 // implementing the popular Todo-MVC demo application. It includes a test suite
 // that spins up the web server locally and makes HTTP requests against it.
 
-/** Usage
-
-> ./mill test
-+ webapp.WebAppTests.simpleRequest...
-
-> ./mill runBackground
-
-> curl http://localhost:8080
-...What needs to be done...
-...
-
-> ./mill clean runBackground
-
-*/
+/**
+ * Usage
+ *
+ * > ./mill test
+ * + webapp.WebAppTests.simpleRequest...
+ *
+ * > ./mill runBackground
+ *
+ * > curl http://localhost:8080
+ * ...What needs to be done...
+ * ...
+ *
+ * > ./mill clean runBackground
+ */

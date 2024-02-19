@@ -10,17 +10,15 @@ object foo extends ScalaModule {
   def scalaDocOptions = Seq("-siteroot", "mydocs", "-no-link-warnings")
 }
 
-
-/** Usage
-
-> ./mill show foo.docJar
-
-> unzip -p out/foo/docJar.dest/out.jar foo/Foo.html
-...
-...<p>My Awesome Scaladoc for class Foo</p>...
-
-
-*/
+/**
+ * Usage
+ *
+ * > ./mill show foo.docJar
+ *
+ * > unzip -p out/foo/docJar.dest/out.jar foo/Foo.html
+ * ...
+ * ...<p>My Awesome Scaladoc for class Foo</p>...
+ */
 
 // When using Scala 3 you're also able to use Scaladoc to generate a full static
 // site next to your API documention. This can include general documenation for
@@ -64,13 +62,12 @@ object bar extends ScalaModule {
 // have a full static site including your API docs, your blog, and your
 // documentation.
 
-
-/** Usage
-
-> ./mill show bar.docJar
-
-> unzip -p out/bar/docJar.dest/out.jar bar/Bar.html
-...
-...<p>My Awesome Scaladoc for class Bar</p>...
-
-*/
+/**
+ * Usage
+ *
+ * > ./mill show bar.docJar
+ *
+ * > unzip -p out/bar/docJar.dest/out.jar bar/Bar.html
+ * ...
+ * ...<p>My Awesome Scaladoc for class Bar</p>...
+ */

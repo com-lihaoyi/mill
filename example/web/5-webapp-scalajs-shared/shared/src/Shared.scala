@@ -8,7 +8,7 @@ object Todo {
   implicit def todoRW: upickle.default.ReadWriter[Todo] = upickle.default.macroRW[Todo]
 }
 
-object Shared{
+object Shared {
   def renderBody(todos: Seq[Todo], state: String) = {
     val filteredTodos = state match {
       case "all" => todos.zipWithIndex

@@ -24,53 +24,52 @@ object bar extends MyModule {
 // before you run them, or to explore what modules or tasks are available
 // from the command line using `+resolve _+`, `+resolve foo._+`, etc.
 
-/** Usage
-
-> mill resolve _
-foo
-bar
-clean
-inspect
-path
-plan
-resolve
-show
-shutdown
-version
-visualize
-visualizePlan
-
-> mill resolve _.compile
-foo.compile
-
-> mill resolve foo._
-foo.allSourceFiles
-foo.allSources
-foo.ammoniteReplClasspath
-foo.ammoniteVersion
-foo.artifactId
-foo.artifactName
-...
-
-*/
+/**
+ * Usage
+ *
+ * > mill resolve _
+ * foo
+ * bar
+ * clean
+ * inspect
+ * path
+ * plan
+ * resolve
+ * show
+ * shutdown
+ * version
+ * visualize
+ * visualizePlan
+ *
+ * > mill resolve _.compile
+ * foo.compile
+ *
+ * > mill resolve foo._
+ * foo.allSourceFiles
+ * foo.allSources
+ * foo.ammoniteReplClasspath
+ * foo.ammoniteVersion
+ * foo.artifactId
+ * foo.artifactName
+ * ...
+ */
 
 // You can also use the special wildcards `+_+` as a placeholder for a single segment
 // and `+__+` as a placeholder for many segments.
 // Lists within curly braces (`{`, `}`) are also supported.
 
-
-/** Usage
-
-> mill resolve foo.{compile,run}
-> mill resolve "foo.{compile,run}"
-> mill resolve foo.compile foo.run
-> mill resolve _.compile  # list the compile tasks for every top-level module
-> mill resolve __.compile # list the compile tasks for every module
-> mill resolve _          # list every top level module and task
-> mill resolve foo._      # list every task directly within the foo module
-> mill resolve __         # list every module and task recursively
-
-*/
+/**
+ * Usage
+ *
+ * > mill resolve foo.{compile,run}
+ * > mill resolve "foo.{compile,run}"
+ * > mill resolve foo.compile foo.run
+ * > mill resolve _.compile  # list the compile tasks for every top-level module
+ * > mill resolve __.compile # list the compile tasks for every module
+ * > mill resolve _          # list every top level module and task
+ * > mill resolve foo._      # list every task directly within the foo module
+ * > mill resolve __         # list every module and task recursively
+ */
 
 // == inspect
 
@@ -79,19 +78,19 @@ foo.artifactName
 // list of input tasks. This is very useful for debugging and interactively
 // exploring the structure of your build from the command line.
 
-/** Usage
-
-> mill inspect foo.run
-foo.run(JavaModule.scala:...)
-    Runs this module's code in a subprocess and waits for it to finish
-Inputs:
-    foo.finalMainClass
-    foo.runClasspath
-    foo.forkArgs
-    foo.forkWorkingDir
-    foo.runUseArgsFile
-
-*/
+/**
+ * Usage
+ *
+ * > mill inspect foo.run
+ * foo.run(JavaModule.scala:...)
+ *    Runs this module's code in a subprocess and waits for it to finish
+ * Inputs:
+ *    foo.finalMainClass
+ *    foo.runClasspath
+ *    foo.forkArgs
+ *    foo.forkWorkingDir
+ *    foo.runUseArgsFile
+ */
 
 // While `inspect` also works with the same `+_+`/`+__+` wildcard/query syntax
 // that <<_resolve>> do, the most common use case is to inspect one task at a
@@ -105,44 +104,45 @@ Inputs:
 // want to inspect the build to debug problems, you can make Mill show you the
 // metadata output for a task using the `show` command:
 
-/** Usage
-
-> mill show foo.scalaVersion
-"2.13.11"
-
-*/
+/**
+ * Usage
+ *
+ * > mill show foo.scalaVersion
+ * "2.13.11"
+ */
 
 // `show` is not just for showing configuration values. All tasks return values
 // that can be shown with `show`.
 // E.g. `compile` returns the paths to the `classes` folder and `analysisFile`
 // file produced by the compilation:
 
-/** Usage
-
-> mill show foo.compile
-{
-  "analysisFile": ".../out/foo/compile.dest/zinc",
-  "classes": ".../out/foo/compile.dest/classes"
-}
-*/
+/**
+ * Usage
+ *
+ * > mill show foo.compile
+ * {
+ *  "analysisFile": ".../out/foo/compile.dest/zinc",
+ *  "classes": ".../out/foo/compile.dest/classes"
+ * }
+ */
 
 // `show` is generally useful as a debugging tool, to see what is going on in your build:
 
-/** Usage
-
-> mill show foo.sources
-[
-  ".../foo/src"
-]
-
-> mill show foo.compileClasspath
-[
-  ".../org/scala-lang/scala-library/2.13.11/scala-library-2.13.11.jar",
-  ...
-  ".../foo/compile-resources"
-]
-
-*/
+/**
+ * Usage
+ *
+ * > mill show foo.sources
+ * [
+ *  ".../foo/src"
+ * ]
+ *
+ * > mill show foo.compileClasspath
+ * [
+ *  ".../org/scala-lang/scala-library/2.13.11/scala-library-2.13.11.jar",
+ *  ...
+ *  ".../foo/compile-resources"
+ * ]
+ */
 
 // `show` is also useful for interacting with Mill from external tools, since the
 // JSON it outputs is structured and easily parsed and manipulated.
@@ -150,42 +150,42 @@ Inputs:
 // When `show` is used with multiple targets, its output will slightly change to a
 // JSON array, containing all the results of the given targets.
 
-/** Usage
-
-> mill show "foo.{sources,compileClasspath}"
-{
-  "foo.sources": [
-    ".../foo/src"
-  ],
-  "foo.compileClasspath": [
-    ".../org/scala-lang/scala-library/2.13.11/scala-library-2.13.11.jar",
-    ...
-    ".../foo/compile-resources"
-  ]
-}
-
-*/
+/**
+ * Usage
+ *
+ * > mill show "foo.{sources,compileClasspath}"
+ * {
+ *  "foo.sources": [
+ *    ".../foo/src"
+ *  ],
+ *  "foo.compileClasspath": [
+ *    ".../org/scala-lang/scala-library/2.13.11/scala-library-2.13.11.jar",
+ *    ...
+ *    ".../foo/compile-resources"
+ *  ]
+ * }
+ */
 
 // == showNamed
 
 // Same as `show`, but the output will always be structured in a JSON
 // dictionary, whether there is one or more targets in the selection
 
-/** Usage
-
-> mill showNamed "foo.{sources,compileClasspath}"
-{
-  "foo.sources": [
-    ".../foo/src"
-  ],
-  "foo.compileClasspath": [
-    ".../org/scala-lang/scala-library/2.13.11/scala-library-2.13.11.jar",
-    ...
-    ".../foo/compile-resources"
-  ]
-}
-
-*/
+/**
+ * Usage
+ *
+ * > mill showNamed "foo.{sources,compileClasspath}"
+ * {
+ *  "foo.sources": [
+ *    ".../foo/src"
+ *  ],
+ *  "foo.compileClasspath": [
+ *    ".../org/scala-lang/scala-library/2.13.11/scala-library-2.13.11.jar",
+ *    ...
+ *    ".../foo/compile-resources"
+ *  ]
+ * }
+ */
 
 // == path
 
@@ -195,17 +195,17 @@ Inputs:
 // running `mill foo` ends up running another task `bar` that you didn't
 // expect it to.
 
-/** Usage
-
-> mill path foo.assembly foo.sources
-foo.sources
-foo.allSources
-foo.allSourceFiles
-foo.compile
-foo.localClasspath
-foo.assembly
-
-*/
+/**
+ * Usage
+ *
+ * > mill path foo.assembly foo.sources
+ * foo.sources
+ * foo.allSources
+ * foo.allSourceFiles
+ * foo.compile
+ * foo.localClasspath
+ * foo.assembly
+ */
 
 // If there are multiple possible dependency chains, one of them is picked
 // arbitrarily.
@@ -219,48 +219,48 @@ foo.assembly
 // tasks that `foo` needs to run, and you can then follow up with `mill path` on
 // any individual upstream task to see exactly how `foo` depends on it.
 
-/** Usage
-
-> mill plan foo.compileClasspath
-foo.transitiveCompileClasspath
-foo.compileResources
-foo.unmanagedClasspath
-foo.scalaVersion
-foo.platformSuffix
-foo.compileIvyDeps
-foo.scalaOrganization
-foo.scalaLibraryIvyDeps
-foo.ivyDeps
-foo.transitiveIvyDeps
-foo.compileClasspath
-
-*/
+/**
+ * Usage
+ *
+ * > mill plan foo.compileClasspath
+ * foo.transitiveCompileClasspath
+ * foo.compileResources
+ * foo.unmanagedClasspath
+ * foo.scalaVersion
+ * foo.platformSuffix
+ * foo.compileIvyDeps
+ * foo.scalaOrganization
+ * foo.scalaLibraryIvyDeps
+ * foo.ivyDeps
+ * foo.transitiveIvyDeps
+ * foo.compileClasspath
+ */
 
 // == clean
 
 // `clean` deletes all the cached outputs of previously executed tasks.
 
-/** Usage
-
-> mill clean
-
-*/
+/**
+ * Usage
+ *
+ * > mill clean
+ */
 
 // `clean` without arguments cleans the entire project.
 // It also accepts arguments to clean entire modules, or specific tasks.
 
-/** Usage
-
-> mill clean             # clean all outputs
-> mill clean foo         # clean all outputs for module 'foo' (including nested modules)
-> mill clean foo.compile # only clean outputs for task 'compile' in module 'foo'
-> mill clean foo.{compile,run}
-> mill clean "foo.{compile,run}"
-> mill clean foo.compile foo.run
-> mill clean _.compile
-> mill clean __.compile
-
-*/
+/**
+ * Usage
+ *
+ * > mill clean             # clean all outputs
+ * > mill clean foo         # clean all outputs for module 'foo' (including nested modules)
+ * > mill clean foo.compile # only clean outputs for task 'compile' in module 'foo'
+ * > mill clean foo.{compile,run}
+ * > mill clean "foo.{compile,run}"
+ * > mill clean foo.compile foo.run
+ * > mill clean _.compile
+ * > mill clean __.compile
+ */
 
 // == Search for dependency updates
 
@@ -269,13 +269,13 @@ foo.compileClasspath
 // heuristics based on common versioning schemes, so it may not work as expected for
 // dependencies with particularly weird version numbers.
 
-/** Usage
-
-> mill mill.scalalib.Dependency/showUpdates
-
-> mill mill.scalalib.Dependency/showUpdates --allowPreRelease true # also show pre-release versions
-
-*/
+/**
+ * Usage
+ *
+ * > mill mill.scalalib.Dependency/showUpdates
+ *
+ * > mill mill.scalalib.Dependency/showUpdates --allowPreRelease true # also show pre-release versions
+ */
 
 // Current limitations:
 //

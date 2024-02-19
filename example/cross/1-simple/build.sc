@@ -21,28 +21,28 @@ trait FooModule extends Cross.Module[String] {
 // cross module, assuming you want to build the same sources for each. This can
 // be overridden.
 
-/** Usage
-
-> mill show foo[2.10].suffix
-"_2.10"
-
-> mill show foo[2.10].bigSuffix
-"[[[_2.10]]]"
-
-> mill show foo[2.10].sources
-[
-  ".../foo"
-]
-
-> mill show foo[2.12].suffix
-"_2.12"
-
-> mill show foo[2.12].bigSuffix
-"[[[_2.12]]]"
-
-> mill show foo[2.12].sources
-[
-  ".../foo"
-]
-
-*/
+/**
+ * Usage
+ *
+ * > mill show foo[2.10].suffix
+ * "_2.10"
+ *
+ * > mill show foo[2.10].bigSuffix
+ * "[[[_2.10]]]"
+ *
+ * > mill show foo[2.10].sources
+ * [
+ *  ".../foo"
+ * ]
+ *
+ * > mill show foo[2.12].suffix
+ * "_2.12"
+ *
+ * > mill show foo[2.12].bigSuffix
+ * "[[[_2.12]]]"
+ *
+ * > mill show foo[2.12].sources
+ * [
+ *  ".../foo"
+ * ]
+ */

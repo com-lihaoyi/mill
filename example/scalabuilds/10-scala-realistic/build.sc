@@ -77,53 +77,53 @@ object qux extends JavaModule with MyModule
 // own configuration. This is a very useful technique for managing the often
 // repetitive module structure in a typical project
 
-/** Usage
-
-> mill resolve __.run
-bar[2.13.8].run
-bar[2.13.8].test.run
-bar[3.2.2].run
-bar[3.2.2].test.run
-foo[2.13.8].run
-foo[2.13.8].test.run
-foo[3.2.2].run
-foo[3.2.2].test.run
-qux.run
-
-> mill foo[2.13.8].run
-foo version 0.0.1
-Foo.value: <h1>hello</h1>
-Bar.value: <p>world Specific code for Scala 2.x</p>
-Qux.value: 31337
-
-> mill bar[3.2.2].test
-+ bar.BarTests.test ... <p>world Specific code for Scala 3.x</p>
-
-> mill qux.run
-Qux.value: 31337
-
-> mill __.compile
-
-> mill __.test
-+ bar.BarTests.test ... <p>world Specific code for Scala 2.x</p>
-+ bar.BarTests.test ... <p>world Specific code for Scala 3.x</p>
-+ foo.FooTests.test ... <h1>hello</h1>
-+ foo.FooTests.test ... <h1>hello</h1>
-
-> mill __.publishLocal
-Publishing Artifact(com.lihaoyi,foo_2.13,0.0.1) to ivy repo...
-Publishing Artifact(com.lihaoyi,bar_2.13,0.0.1) to ivy repo...
-Publishing Artifact(com.lihaoyi,foo_3,0.0.1) to ivy repo...
-Publishing Artifact(com.lihaoyi,bar_3,0.0.1) to ivy repo...
-Publishing Artifact(com.lihaoyi,qux,0.0.1) to ivy repo...
-
-> mill show foo[2.13.8].assembly # mac/linux
-".../out/foo/2.13.8/assembly.dest/out.jar"
-
-> ./out/foo/2.13.8/assembly.dest/out.jar # mac/linux
-foo version 0.0.1
-Foo.value: <h1>hello</h1>
-Bar.value: <p>world Specific code for Scala 2.x</p>
-Qux.value: 31337
-
-*/
+/**
+ * Usage
+ *
+ * > mill resolve __.run
+ * bar[2.13.8].run
+ * bar[2.13.8].test.run
+ * bar[3.2.2].run
+ * bar[3.2.2].test.run
+ * foo[2.13.8].run
+ * foo[2.13.8].test.run
+ * foo[3.2.2].run
+ * foo[3.2.2].test.run
+ * qux.run
+ *
+ * > mill foo[2.13.8].run
+ * foo version 0.0.1
+ * Foo.value: <h1>hello</h1>
+ * Bar.value: <p>world Specific code for Scala 2.x</p>
+ * Qux.value: 31337
+ *
+ * > mill bar[3.2.2].test
+ * + bar.BarTests.test ... <p>world Specific code for Scala 3.x</p>
+ *
+ * > mill qux.run
+ * Qux.value: 31337
+ *
+ * > mill __.compile
+ *
+ * > mill __.test
+ * + bar.BarTests.test ... <p>world Specific code for Scala 2.x</p>
+ * + bar.BarTests.test ... <p>world Specific code for Scala 3.x</p>
+ * + foo.FooTests.test ... <h1>hello</h1>
+ * + foo.FooTests.test ... <h1>hello</h1>
+ *
+ * > mill __.publishLocal
+ * Publishing Artifact(com.lihaoyi,foo_2.13,0.0.1) to ivy repo...
+ * Publishing Artifact(com.lihaoyi,bar_2.13,0.0.1) to ivy repo...
+ * Publishing Artifact(com.lihaoyi,foo_3,0.0.1) to ivy repo...
+ * Publishing Artifact(com.lihaoyi,bar_3,0.0.1) to ivy repo...
+ * Publishing Artifact(com.lihaoyi,qux,0.0.1) to ivy repo...
+ *
+ * > mill show foo[2.13.8].assembly # mac/linux
+ * ".../out/foo/2.13.8/assembly.dest/out.jar"
+ *
+ * > ./out/foo/2.13.8/assembly.dest/out.jar # mac/linux
+ * foo version 0.0.1
+ * Foo.value: <h1>hello</h1>
+ * Bar.value: <p>world Specific code for Scala 2.x</p>
+ * Qux.value: 31337
+ */

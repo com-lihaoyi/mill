@@ -1,4 +1,5 @@
 package bar
+
 /**
  * My Awesome Scaladoc for class Bar
  */

@@ -1,6 +1,6 @@
 import mill._
 
-trait MyModule extends Module{
+trait MyModule extends Module {
   def crossValue: String
   def name: T[String]
   def param = T { name() + " Param Value: " + crossValue }
@@ -8,10 +8,10 @@ trait MyModule extends Module{
 
 object foo extends Cross[FooModule]("a", "b")
 trait FooModule extends Cross.Module[String] {
-  object bar extends MyModule with CrossValue{
+  object bar extends MyModule with CrossValue {
     def name = "Bar"
   }
-  object qux extends MyModule with CrossValue{
+  object qux extends MyModule with CrossValue {
     def name = "Qux"
   }
 }
@@ -29,15 +29,15 @@ def baz = T { s"hello ${foo("a").bar.param()}" }
 // You can reference the modules and tasks defined within such a
 // `CrossValue` as is done in `def qux` above
 
-/** Usage
-
-> mill show foo[a].bar.param
-"Bar Param Value: a"
-
-> mill show foo[b].qux.param
-"Qux Param Value: b"
-
-> mill show baz
-"hello Bar Param Value: a"
-
-*/
+/**
+ * Usage
+ *
+ * > mill show foo[a].bar.param
+ * "Bar Param Value: a"
+ *
+ * > mill show foo[b].qux.param
+ * "Qux Param Value: b"
+ *
+ * > mill show baz
+ * "hello Bar Param Value: a"
+ */

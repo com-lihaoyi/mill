@@ -2,7 +2,7 @@
 import mill._, scalalib._
 
 object millbuild extends MillBuildRootModule {
-  def generatedSources = T{
+  def generatedSources = T {
     os.write(
       T.dest / "MetaConstant.scala",
       """package constant

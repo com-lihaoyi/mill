@@ -12,12 +12,12 @@ import java.util.zip.GZIPOutputStream
 
 def data = T.source(millSourcePath / "data")
 
-def compressedData = T.persistent{
+def compressedData = T.persistent {
   println("Evaluating compressedData")
   os.makeDir.all(T.dest / "cache")
   os.remove.all(T.dest / "compressed")
 
-  for(p <- os.list(data().path)){
+  for (p <- os.list(data().path)) {
     val compressedPath = T.dest / "compressed" / s"${p.last}.gz"
     val bytes = os.read.bytes(p)
     val hash = Arrays.hashCode(bytes)
@@ -55,30 +55,30 @@ def compressBytes(input: Array[Byte]) = {
 // is eventually consistent. You can also use `mill clean` to manually purge
 // the disk contents to start fresh.
 
-/** Usage
-
-> ./mill show compressedData
-Evaluating compressedData
-Compressing: hello.txt
-Compressing: world.txt
-[
-  ".../hello.txt.gz",
-  ".../world.txt.gz"
-]
-
-> ./mill compressedData # when no input changes, compressedData does not evaluate at all
-
-> sed -i 's/Hello/HELLO/g' data/hello.txt
-
-> ./mill compressedData # when one input file changes, only that file is re-compressed
-Compressing: hello.txt
-Reading Cached from disk: world.txt
-
-> ./mill clean compressedData
-
-> ./mill compressedData
-Evaluating compressedData
-Compressing: hello.txt
-Compressing: world.txt
-
-*/
+/**
+ * Usage
+ *
+ * > ./mill show compressedData
+ * Evaluating compressedData
+ * Compressing: hello.txt
+ * Compressing: world.txt
+ * [
+ *  ".../hello.txt.gz",
+ *  ".../world.txt.gz"
+ * ]
+ *
+ * > ./mill compressedData # when no input changes, compressedData does not evaluate at all
+ *
+ * > sed -i 's/Hello/HELLO/g' data/hello.txt
+ *
+ * > ./mill compressedData # when one input file changes, only that file is re-compressed
+ * Compressing: hello.txt
+ * Reading Cached from disk: world.txt
+ *
+ * > ./mill clean compressedData
+ *
+ * > ./mill compressedData
+ * Evaluating compressedData
+ * Compressing: hello.txt
+ * Compressing: world.txt
+ */

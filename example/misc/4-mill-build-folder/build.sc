@@ -6,8 +6,8 @@ object foo extends RootModule with ScalaModule {
   def scalaVersion = millbuild.ScalaVersion.myScalaVersion
   def ivyDeps = Agg(ivy"com.lihaoyi::os-lib:0.9.1")
 
-  def htmlSnippet = T{ h1("hello").toString }
-  def resources = T.sources{
+  def htmlSnippet = T { h1("hello").toString }
+  def resources = T.sources {
     os.write(T.dest / "snippet.txt", htmlSnippet())
     super.resources() ++ Seq(PathRef(T.dest))
   }
@@ -44,38 +44,37 @@ object foo extends RootModule with ScalaModule {
 // This is useful for large projects where the build itself is a non-trivial
 // module which requires its own non-trivial customization.
 
-/** Usage
-
-> mill compile
-compiling 1 Scala source...
-...
-
-> mill run
-Foo.value: <h1>hello</h1>
-scalatagsVersion: 0.12.0
-
-> mill show assembly
-".../out/assembly.dest/out.jar"
-
-> ./out/assembly.dest/out.jar # mac/linux
-Foo.value: <h1>hello</h1>
-scalatagsVersion: 0.12.0
-
-*/
+/**
+ * Usage
+ *
+ * > mill compile
+ * compiling 1 Scala source...
+ * ...
+ *
+ * > mill run
+ * Foo.value: <h1>hello</h1>
+ * scalatagsVersion: 0.12.0
+ *
+ * > mill show assembly
+ * ".../out/assembly.dest/out.jar"
+ *
+ * > ./out/assembly.dest/out.jar # mac/linux
+ * Foo.value: <h1>hello</h1>
+ * scalatagsVersion: 0.12.0
+ */
 
 // You can also run tasks on the meta-build by using the `--meta-level`
 // cli option.
 
-/** Usage
-
-> mill --meta-level 1 show sources
-[
-.../build.sc",
-.../mill-build/src"
-]
-
-> mill --meta-level 2 show sources
-.../mill-build/build.sc"
-
-
-*/
+/**
+ * Usage
+ *
+ * > mill --meta-level 1 show sources
+ * [
+ * .../build.sc",
+ * .../mill-build/src"
+ * ]
+ *
+ * > mill --meta-level 2 show sources
+ * .../mill-build/build.sc"
+ */

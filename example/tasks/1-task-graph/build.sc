@@ -14,7 +14,7 @@ def compile = T {
 }
 
 def assembly = T {
-  for(p <- Seq(compile(), resources())) os.copy(p.path, T.dest, mergeFolders = true)
+  for (p <- Seq(compile(), resources())) os.copy(p.path, T.dest, mergeFolders = true)
 
   val mainFlags = mainClass().toSeq.flatMap(Seq("-e", _))
   os.proc("jar", "-c", mainFlags, "-f", T.dest / s"assembly.jar", ".")
@@ -28,19 +28,19 @@ def assembly = T {
 // tasks and `javac`/`jar`/`java` subprocesses. We define `T.source` folders,
 // plain `T{...}` targets that depend on them, and a `T.command`.
 
-/** Usage
-
-> ./mill show assembly
-".../out/assembly.dest/assembly.jar"
-
-> java -jar out/assembly.dest/assembly.jar i am cow
-Foo.value: 31337
-args: i am cow
-
-> unzip -p out/assembly.dest/assembly.jar foo.txt
-My Example Text
-
-*/
+/**
+ * Usage
+ *
+ * > ./mill show assembly
+ * ".../out/assembly.dest/assembly.jar"
+ *
+ * > java -jar out/assembly.dest/assembly.jar i am cow
+ * Foo.value: 31337
+ * args: i am cow
+ *
+ * > unzip -p out/assembly.dest/assembly.jar foo.txt
+ * My Example Text
+ */
 
 // When you first evaluate `assembly` (e.g. via `mill assembly` at the command
 // line), it will evaluate all the defined targets: `mainClass`, `sources`,

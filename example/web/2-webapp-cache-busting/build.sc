@@ -28,7 +28,7 @@ object root extends RootModule with ScalaModule {
     def testFramework = "utest.runner.Framework"
     def ivyDeps = Agg(
       ivy"com.lihaoyi::utest::0.7.10",
-      ivy"com.lihaoyi::requests::0.6.9",
+      ivy"com.lihaoyi::requests::0.6.9"
     )
   }
 }
@@ -58,20 +58,20 @@ def hashFile(path: os.Path, src: os.Path, dest: os.Path) = {
 // and uses it to serve HTML referencing the hashed paths, but without paying
 // the cost of hashing the static resource files at runtime.
 
-/** Usage
-
-> ./mill test
-+ webapp.WebAppTests.simpleRequest ...
-
-> ./mill runBackground
-
-> curl http://localhost:8081
-...What needs to be done...
-...
-
-> curl http://localhost:8081/static/main-6da98e99.js # mac/linux
-initListeners()
-
-> ./mill clean runBackground
-
-*/
+/**
+ * Usage
+ *
+ * > ./mill test
+ * + webapp.WebAppTests.simpleRequest ...
+ *
+ * > ./mill runBackground
+ *
+ * > curl http://localhost:8081
+ * ...What needs to be done...
+ * ...
+ *
+ * > curl http://localhost:8081/static/main-6da98e99.js # mac/linux
+ * initListeners()
+ *
+ * > ./mill clean runBackground
+ */

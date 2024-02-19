@@ -3,7 +3,7 @@ import mill._, scalalib._
 object foo extends ScalaModule {
   def scalaVersion = "2.13.8"
 
-  def sources = T{
+  def sources = T {
     os.write(
       T.dest / "Foo.scala",
       """package foo
@@ -41,7 +41,7 @@ object foo extends ScalaModule {
 object foo2 extends ScalaModule {
   def scalaVersion = "2.13.8"
 
-  def generatedSources = T{
+  def generatedSources = T {
     os.write(T.dest / "Foo.scala", """...""")
     Seq(PathRef(T.dest))
   }
@@ -50,7 +50,7 @@ object foo2 extends ScalaModule {
 object foo3 extends ScalaModule {
   def scalaVersion = "2.13.8"
 
-  def sources = T{
+  def sources = T {
     os.write(T.dest / "Foo.scala", """...""")
     super.sources() ++ Seq(PathRef(T.dest))
   }
@@ -58,11 +58,11 @@ object foo3 extends ScalaModule {
 
 // In Mill builds the `override` keyword is optional.
 
-/** Usage
-
-> mill foo.run
-Compiling...
-Running...
-Hello World
-
-*/
+/**
+ * Usage
+ *
+ * > mill foo.run
+ * Compiling...
+ * Running...
+ * Hello World
+ */

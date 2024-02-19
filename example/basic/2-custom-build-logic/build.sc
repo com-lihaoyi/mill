@@ -9,32 +9,33 @@ object foo extends RootModule with ScalaModule {
   def scalaVersion = "2.13.11"
 
   /** Total number of lines in module's source files */
-  def lineCount = T{
+  def lineCount = T {
     allSourceFiles().map(f => os.read.lines(f.path).size).sum
   }
 
   /** Generate resources using lineCount of sources */
-  override def resources = T{
+  override def resources = T {
     os.write(T.dest / "line-count.txt", "" + lineCount())
     Seq(PathRef(T.dest))
   }
 }
 
-/** Usage
-
-> mill run
-...
-Line Count: 11
-
-> mill show lineCount
-11
-
-> mill inspect lineCount
-lineCount(build.sc:12)
-    Total number of lines in module's source files
-Inputs:
-    allSourceFiles
-*/
+/**
+ * Usage
+ *
+ * > mill run
+ * ...
+ * Line Count: 11
+ *
+ * > mill show lineCount
+ * 11
+ *
+ * > mill inspect lineCount
+ * lineCount(build.sc:12)
+ *    Total number of lines in module's source files
+ * Inputs:
+ *    allSourceFiles
+ */
 
 // Above, `def lineCount` is a new build target we define, which makes use of
 // `allSourceFiles` (an existing target) and is in-turn used in our override of

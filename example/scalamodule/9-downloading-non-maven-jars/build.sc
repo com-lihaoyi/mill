@@ -17,11 +17,11 @@ object foo extends RootModule with ScalaModule {
 // download from arbitrary URLs. Note that targets like `unmanagedClasspath` are
 // cached, so your jar is downloaded only once and re-used indefinitely after that.
 
-/** Usage
-
-> ./mill run "textfile.txt" # mac/linux
-I am cow
-hear me moo
-I weigh twice as much as you
-
-*/
+/**
+ * Usage
+ *
+ * > ./mill run "textfile.txt" # mac/linux
+ * I am cow
+ * hear me moo
+ * I weigh twice as much as you
+ */

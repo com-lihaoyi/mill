@@ -1,2 +1,2 @@
- def sayHelloWorld() =
-println("Hello World")
+def sayHelloWorld() =
+  println("Hello World")

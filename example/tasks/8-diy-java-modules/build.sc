@@ -4,11 +4,11 @@
 
 import mill._
 
-trait DiyJavaModule extends Module{
+trait DiyJavaModule extends Module {
   def moduleDeps: Seq[DiyJavaModule] = Nil
   def mainClass: T[Option[String]] = None
 
-  def upstream: T[Seq[PathRef]] = T{ T.traverse(moduleDeps)(_.classPath)().flatten }
+  def upstream: T[Seq[PathRef]] = T { T.traverse(moduleDeps)(_.classPath)().flatten }
   def sources = T.source(millSourcePath / "src")
 
   def compile = T {
@@ -18,10 +18,10 @@ trait DiyJavaModule extends Module{
     PathRef(T.dest)
   }
 
-  def classPath = T{ Seq(compile()) ++ upstream() }
+  def classPath = T { Seq(compile()) ++ upstream() }
 
   def assembly = T {
-    for(cp <- classPath()) os.copy(cp.path, T.dest, mergeFolders = true)
+    for (cp <- classPath()) os.copy(cp.path, T.dest, mergeFolders = true)
 
     val mainFlags = mainClass().toSeq.flatMap(Seq("-e", _))
     os.proc("jar", "-c", mainFlags, "-f", T.dest / s"assembly.jar", ".")
@@ -61,31 +61,31 @@ object qux extends DiyJavaModule {
 //
 // This simple set of `DiyJavaModule` can be used as follows:
 
-/** Usage
-
-> ./mill showNamed __.sources
-{
-  "foo.sources": ".../foo/src",
-  "foo.bar.sources": ".../foo/bar/src",
-  "qux.sources": ".../qux/src"
-}
-
-> ./mill show qux.assembly
-".../out/qux/assembly.dest/assembly.jar"
-
-> java -jar out/qux/assembly.dest/assembly.jar
-Foo.value: 31337
-Bar.value: 271828
-Qux.value: 9000
-
-> ./mill show foo.assembly
-".../out/foo/assembly.dest/assembly.jar"
-
-> java -jar out/foo/assembly.dest/assembly.jar
-Foo.value: 31337
-Bar.value: 271828
-
-*/
+/**
+ * Usage
+ *
+ * > ./mill showNamed __.sources
+ * {
+ *  "foo.sources": ".../foo/src",
+ *  "foo.bar.sources": ".../foo/bar/src",
+ *  "qux.sources": ".../qux/src"
+ * }
+ *
+ * > ./mill show qux.assembly
+ * ".../out/qux/assembly.dest/assembly.jar"
+ *
+ * > java -jar out/qux/assembly.dest/assembly.jar
+ * Foo.value: 31337
+ * Bar.value: 271828
+ * Qux.value: 9000
+ *
+ * > ./mill show foo.assembly
+ * ".../out/foo/assembly.dest/assembly.jar"
+ *
+ * > java -jar out/foo/assembly.dest/assembly.jar
+ * Foo.value: 31337
+ * Bar.value: 271828
+ */
 
 // Like any other ``Target``s, the compilation and packaging of the Java code
 // is incremental: if you change a file in `foo/src/` and run `qux.assembly`,
@@ -99,4 +99,3 @@ Bar.value: 271828
 // complicated to provide additional flexibility and performance. Nevertheless,
 // this example should give you a good idea of how Mill ``module``s can be
 // developed, so you can define your own custom modules when the need arises.
-

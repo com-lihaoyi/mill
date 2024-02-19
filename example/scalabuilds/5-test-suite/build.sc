@@ -15,23 +15,23 @@ object foo extends ScalaModule {
 // that runs the tests. You can also run the test suite directly, in which case
 // it will run the `.test` task as the default task for that module.
 
-/** Usage
-
-> mill foo.compile
-compiling 1 Scala source...
-
-> mill foo.test.compile
-compiling 1 Scala source...
-
-> mill foo.test.test
-+ foo.FooTests.hello ...
-+ foo.FooTests.world ...
-
-> mill foo.test
-+ foo.FooTests.hello ...
-+ foo.FooTests.world ...
-
-*/
+/**
+ * Usage
+ *
+ * > mill foo.compile
+ * compiling 1 Scala source...
+ *
+ * > mill foo.test.compile
+ * compiling 1 Scala source...
+ *
+ * > mill foo.test.test
+ * + foo.FooTests.hello ...
+ * + foo.FooTests.world ...
+ *
+ * > mill foo.test
+ * + foo.FooTests.hello ...
+ * + foo.FooTests.world ...
+ */
 
 // For convenience, you can also use one of the predefined test frameworks:
 //
@@ -52,13 +52,13 @@ object bar extends ScalaModule {
   }
 }
 
-/** Usage
-
-> mill bar.test
-+ bar.BarTests.hello ...
-+ bar.BarTests.world ...
-
-*/
+/**
+ * Usage
+ *
+ * > mill bar.test
+ * + bar.BarTests.hello ...
+ * + bar.BarTests.world ...
+ */
 
 // By default, tests are run in a subprocess, and `forkArg` and `forkEnv` can be
 // overridden to pass JVM flags &amp; environment variables. You can also use
@@ -74,13 +74,12 @@ object bar extends ScalaModule {
 // `foo.test` in the command line. e.g. {utest-github-url}[uTest]
 // lets you pass in a selector to decide which test to run, which in Mill would be:
 
-
-/** Usage
-
-> mill bar.test bar.BarTests.hello
-+ bar.BarTests.hello ...
-
-*/
+/**
+ * Usage
+ *
+ * > mill bar.test bar.BarTests.hello
+ * + bar.BarTests.hello ...
+ */
 
 // You can also define multiple test suites if you want, e.g.:
 
@@ -98,18 +97,18 @@ object qux extends ScalaModule {
 // Each of which will expect their sources to be in their respective `foo/test` and
 // `foo/integration` folder.
 
-/** Usage
-
-> mill qux.test
-+ qux.QuxTests.hello ...
-+ qux.QuxTests.world ...
-
-> mill qux.integration
-+ qux.QuxIntegrationTests.helloworld ...
-
-> mill qux.{test,integration}
-+ qux.QuxTests.hello ...
-+ qux.QuxTests.world ...
-+ qux.QuxIntegrationTests.helloworld ...
-
-*/
+/**
+ * Usage
+ *
+ * > mill qux.test
+ * + qux.QuxTests.hello ...
+ * + qux.QuxTests.world ...
+ *
+ * > mill qux.integration
+ * + qux.QuxIntegrationTests.helloworld ...
+ *
+ * > mill qux.{test,integration}
+ * + qux.QuxTests.hello ...
+ * + qux.QuxTests.world ...
+ * + qux.QuxIntegrationTests.helloworld ...
+ */

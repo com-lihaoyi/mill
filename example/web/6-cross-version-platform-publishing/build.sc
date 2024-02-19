@@ -2,7 +2,8 @@ import mill._, scalalib._, scalajslib._, publish._
 
 object foo extends Cross[FooModule]("2.13.8", "3.2.2")
 trait FooModule extends Cross.Module[String] {
-  trait Shared extends CrossScalaModule with CrossValue with PlatformScalaModule with PublishModule {
+  trait Shared extends CrossScalaModule with CrossValue with PlatformScalaModule
+      with PublishModule {
     def publishVersion = "0.0.1"
 
     def pomSettings = PomSettings(
@@ -27,7 +28,7 @@ trait FooModule extends Cross.Module[String] {
   }
 
   object bar extends Module {
-    object jvm extends Shared{
+    object jvm extends Shared {
       object test extends ScalaTests with FooTestModule
     }
     object js extends SharedJS {
@@ -55,54 +56,54 @@ trait FooModule extends Cross.Module[String] {
 // cross-version and cross-platform: running on both Scala 2.13.8/3.2.2 as
 // well as Scala-JVM/JS.
 
-/** Usage
-
-> ./mill show foo[2.13.8].bar.jvm.sources
-[
-  ".../foo/bar/src",
-  ".../foo/bar/src-jvm",
-  ".../foo/bar/src-2.13.8",
-  ".../foo/bar/src-2.13.8-jvm",
-  ".../foo/bar/src-2.13",
-  ".../foo/bar/src-2.13-jvm",
-  ".../foo/bar/src-2",
-  ".../foo/bar/src-2-jvm"
-]
-
-> ./mill show foo[3.2.2].qux.js.sources
-[
-  ".../foo/qux/src",
-  ".../foo/qux/src-js",
-  ".../foo/qux/src-3.2.2",
-  ".../foo/qux/src-3.2.2-js",
-  ".../foo/qux/src-3.2",
-  ".../foo/qux/src-3.2-js",
-  ".../foo/qux/src-3",
-  ".../foo/qux/src-3-js"
-]
-
-> ./mill foo[2.13.8].qux.jvm.run
-Bar.value: <p>world Specific code for Scala 2.x</p>
-Parsing JSON with ujson.read
-Qux.main: Set(<p>i</p>, <p>cow</p>, <p>me</p>)
-
-> ./mill foo[3.2.2].qux.js.run
-Bar.value: <p>world Specific code for Scala 3.x</p>
-Parsing JSON with js.JSON.parse
-Qux.main: Set(<p>i</p>, <p>cow</p>, <p>me</p>)
-
-> ./mill foo[3.2.2].__.js.test
-+ bar.BarTests.test ...  <p>world Specific code for Scala 3.x</p>
-+ qux.QuxTests.parseJsonGetKeys ...  Set(i, cow, me)
-
-> ./mill __.publishLocal
-Publishing Artifact(com.lihaoyi,foo-bar_sjs1_2.13,0.0.1) to ivy repo...
-Publishing Artifact(com.lihaoyi,foo-bar_2.13,0.0.1) to ivy repo...
-Publishing Artifact(com.lihaoyi,foo-qux_sjs1_2.13,0.0.1) to ivy repo...
-Publishing Artifact(com.lihaoyi,foo-qux_2.13,0.0.1) to ivy repo...
-Publishing Artifact(com.lihaoyi,foo-bar_sjs1_3,0.0.1) to ivy repo...
-Publishing Artifact(com.lihaoyi,foo-bar_3,0.0.1) to ivy repo...
-Publishing Artifact(com.lihaoyi,foo-qux_sjs1_3,0.0.1) to ivy repo...
-Publishing Artifact(com.lihaoyi,foo-qux_3,0.0.1) to ivy repo...
-
-*/
+/**
+ * Usage
+ *
+ * > ./mill show foo[2.13.8].bar.jvm.sources
+ * [
+ *  ".../foo/bar/src",
+ *  ".../foo/bar/src-jvm",
+ *  ".../foo/bar/src-2.13.8",
+ *  ".../foo/bar/src-2.13.8-jvm",
+ *  ".../foo/bar/src-2.13",
+ *  ".../foo/bar/src-2.13-jvm",
+ *  ".../foo/bar/src-2",
+ *  ".../foo/bar/src-2-jvm"
+ * ]
+ *
+ * > ./mill show foo[3.2.2].qux.js.sources
+ * [
+ *  ".../foo/qux/src",
+ *  ".../foo/qux/src-js",
+ *  ".../foo/qux/src-3.2.2",
+ *  ".../foo/qux/src-3.2.2-js",
+ *  ".../foo/qux/src-3.2",
+ *  ".../foo/qux/src-3.2-js",
+ *  ".../foo/qux/src-3",
+ *  ".../foo/qux/src-3-js"
+ * ]
+ *
+ * > ./mill foo[2.13.8].qux.jvm.run
+ * Bar.value: <p>world Specific code for Scala 2.x</p>
+ * Parsing JSON with ujson.read
+ * Qux.main: Set(<p>i</p>, <p>cow</p>, <p>me</p>)
+ *
+ * > ./mill foo[3.2.2].qux.js.run
+ * Bar.value: <p>world Specific code for Scala 3.x</p>
+ * Parsing JSON with js.JSON.parse
+ * Qux.main: Set(<p>i</p>, <p>cow</p>, <p>me</p>)
+ *
+ * > ./mill foo[3.2.2].__.js.test
+ * + bar.BarTests.test ...  <p>world Specific code for Scala 3.x</p>
+ * + qux.QuxTests.parseJsonGetKeys ...  Set(i, cow, me)
+ *
+ * > ./mill __.publishLocal
+ * Publishing Artifact(com.lihaoyi,foo-bar_sjs1_2.13,0.0.1) to ivy repo...
+ * Publishing Artifact(com.lihaoyi,foo-bar_2.13,0.0.1) to ivy repo...
+ * Publishing Artifact(com.lihaoyi,foo-qux_sjs1_2.13,0.0.1) to ivy repo...
+ * Publishing Artifact(com.lihaoyi,foo-qux_2.13,0.0.1) to ivy repo...
+ * Publishing Artifact(com.lihaoyi,foo-bar_sjs1_3,0.0.1) to ivy repo...
+ * Publishing Artifact(com.lihaoyi,foo-bar_3,0.0.1) to ivy repo...
+ * Publishing Artifact(com.lihaoyi,foo-qux_sjs1_3,0.0.1) to ivy repo...
+ * Publishing Artifact(com.lihaoyi,foo-qux_3,0.0.1) to ivy repo...
+ */

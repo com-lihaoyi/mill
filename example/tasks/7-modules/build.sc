@@ -20,24 +20,24 @@ object foo extends Module {
 // `./out/foo/bar.{json,dest}` and `./out/foo/baz/qux.{json,dest}`
 // respectively.
 
-/** Usage
-
-> ./mill foo.bar
-> ./mill foo.qux.baz
-
-> ./mill show foo.bar
-"hello"
-
-> ./mill show foo.qux.baz
-"world"
-
-> cat ./out/foo/bar.json # task output path follows module hierarchy
-..."value": "hello"...
-
-> cat ./out/foo/qux/baz.json
-..."value": "world"...
-
-*/
+/**
+ * Usage
+ *
+ * > ./mill foo.bar
+ * > ./mill foo.qux.baz
+ *
+ * > ./mill show foo.bar
+ * "hello"
+ *
+ * > ./mill show foo.qux.baz
+ * "world"
+ *
+ * > cat ./out/foo/bar.json # task output path follows module hierarchy
+ * ..."value": "hello"...
+ *
+ * > cat ./out/foo/qux/baz.json
+ * ..."value": "world"...
+ */
 
 // == Trait Modules
 //
@@ -51,7 +51,7 @@ trait FooModule extends Module {
   def qux = T { bar() + " world" }
 }
 
-object foo1 extends FooModule{
+object foo1 extends FooModule {
   def bar = "hello"
   def qux = super.qux().toUpperCase // refer to overriden value via super
 }
@@ -62,25 +62,24 @@ object foo2 extends FooModule {
 
 // Note that the `override` keyword is implicit in mill, as is `T{...}` wrapper.
 
-/** Usage
-
-> ./mill show foo1.bar
-"hello"
-
-> ./mill show foo1.qux
-"HELLO WORLD"
-
-> ./mill show foo2.bar
-"hi"
-
-> ./mill show foo2.qux
-"hi world"
-
-> ./mill show foo2.baz
-"hi world I am Cow"
-
-*/
-
+/**
+ * Usage
+ *
+ * > ./mill show foo1.bar
+ * "hello"
+ *
+ * > ./mill show foo1.qux
+ * "HELLO WORLD"
+ *
+ * > ./mill show foo2.bar
+ * "hi"
+ *
+ * > ./mill show foo2.qux
+ * "hi world"
+ *
+ * > ./mill show foo2.baz
+ * "hi world I am Cow"
+ */
 
 // The built-in `mill.scalalib` package uses this to define `ScalaModule`,
 // `SbtModule` and `TestScalaModule`, etc. which contain a set of "standard"
@@ -95,7 +94,7 @@ object foo2 extends FooModule {
 // Each Module has a `millSourcePath` field that corresponds to the path that
 // module expects its input files to be on disk.
 
-trait MyModule extends Module{
+trait MyModule extends Module {
   def sources = T.source(millSourcePath / "sources")
   def target = T { "hello " + os.list(sources().path).map(os.read(_)).mkString(" ") }
 }
@@ -110,15 +109,15 @@ object outer extends MyModule {
 // * The `inner` module has a `millSourcePath` of `outer/inner/`, and thus a
 //   `outer.inner.sources` referencing `outer/inner/sources/`
 
-/** Usage
-
-> ./mill show outer.target
-"hello contents of file inside outer/sources/"
-
-> ./mill show outer.inner.target
-"hello contents of file inside outer/inner/sources/"
-
-*/
+/**
+ * Usage
+ *
+ * > ./mill show outer.target
+ * "hello contents of file inside outer/sources/"
+ *
+ * > ./mill show outer.inner.target
+ * "hello contents of file inside outer/inner/sources/"
+ */
 
 // You can use `millSourcePath` to automatically set the source folders of your
 // modules to match the build structure. You are not forced to rigidly use
@@ -137,15 +136,15 @@ object outer2 extends MyModule {
   object inner extends MyModule
 }
 
-/** Usage
-
-> ./mill show outer2.target
-"hello contents of file inside outer2/nested/sources/"
-
-> ./mill show outer2.inner.target
-"hello contents of file inside outer2/nested/inner/sources/"
-
-*/
+/**
+ * Usage
+ *
+ * > ./mill show outer2.target
+ * "hello contents of file inside outer2/nested/sources/"
+ *
+ * > ./mill show outer2.inner.target
+ * "hello contents of file inside outer2/nested/inner/sources/"
+ */
 
 // Any overrides propagate down to the module's children: in the above example,
 // `outer2` would have its `millSourcePath` be `outer2/nested/` while
@@ -157,12 +156,12 @@ object outer2 extends MyModule {
 // `millSourcePath` the output paths are still the default `./out/outer2` and
 // `./out/outer2/inner` folders:
 
-/** Usage
-
-> cat ./out/outer2/target.json
-..."value": "hello contents of file inside outer2/nested/sources/"...
-
-> cat ./out/outer2/inner/target.json
-..."value": "hello contents of file inside outer2/nested/inner/sources/"...
-
-*/
+/**
+ * Usage
+ *
+ * > cat ./out/outer2/target.json
+ * ..."value": "hello contents of file inside outer2/nested/sources/"...
+ *
+ * > cat ./out/outer2/inner/target.json
+ * ..."value": "hello contents of file inside outer2/nested/inner/sources/"...
+ */

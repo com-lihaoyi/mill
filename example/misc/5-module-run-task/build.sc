@@ -5,14 +5,14 @@ object foo extends ScalaModule {
   def moduleDeps = Seq(bar)
   def ivyDeps = Agg(ivy"com.lihaoyi::mainargs:0.4.0")
 
-  def barWorkingDir = T{ T.dest }
-  def sources = T{
+  def barWorkingDir = T { T.dest }
+  def sources = T {
     bar.run(T.task(Args(barWorkingDir(), super.sources().map(_.path))))()
     Seq(PathRef(barWorkingDir()))
   }
 }
 
-object bar extends ScalaModule{
+object bar extends ScalaModule {
   def scalaVersion = "2.13.8"
   def ivyDeps = Agg(ivy"com.lihaoyi::os-lib:0.9.1")
 }
@@ -25,13 +25,13 @@ object bar extends ScalaModule{
 // with a `barWorkingDir`, and returning a `PathRef(barWorkingDir())` as the
 // new `foo.sources`.
 
-/** Usage
-
-> mill foo.run
-...
-Foo.value: HELLO
-
-*/
+/**
+ * Usage
+ *
+ * > mill foo.run
+ * ...
+ * Foo.value: HELLO
+ */
 
 // This example does a trivial string-replace of "hello" with "HELLO", but is
 // enough to demonstrate how you can use Mill ``ScalaModule``s to implement your

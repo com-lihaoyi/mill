@@ -34,7 +34,6 @@ object foo extends ScalaModule {
 //
 // You can also set the environment variable `COURSIER_MIRRORS` or the jvm property `coursier.mirrors` to specify config file location.
 
-
 // To add custom resolvers to the initial bootstrap of the build, you can create a
 // custom `ZincWorkerModule`, and override the `zincWorker` method in your
 // `ScalaModule` by pointing it to that custom object:
@@ -48,11 +47,11 @@ object bar extends ScalaModule {
   def zincWorker = ModuleRef(CustomZincWorkerModule)
   // ... rest of your build definitions
 
-  def repositoriesTask = T.task {super.repositoriesTask() ++ sonatypeReleases}
+  def repositoriesTask = T.task { super.repositoriesTask() ++ sonatypeReleases }
 }
 
-/** Usage
-
-> ./mill bar.compile
-
-*/
+/**
+ * Usage
+ *
+ * > ./mill bar.compile
+ */

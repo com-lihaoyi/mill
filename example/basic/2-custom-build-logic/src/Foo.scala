@@ -1,6 +1,6 @@
 package foo
 
-object Foo{
+object Foo {
   def main(args: Array[String]): Unit = {
     val lineCount = scala.io.Source
       .fromResource("line-count.txt")

@@ -11,25 +11,25 @@ object foo extends RootModule with ScalaModule {
   // You can have arbitrary numbers of third-party dependencies
   def ivyDeps = Agg(
     ivy"com.lihaoyi::scalatags:0.8.2",
-    ivy"com.lihaoyi::os-lib:0.9.1",
+    ivy"com.lihaoyi::os-lib:0.9.1"
   )
 
   // Choose a main class to use for `.run` if there are multiple present
   def mainClass: T[Option[String]] = Some("foo.Foo2")
 
   // Add (or replace) source folders for the module to use
-  def sources = T.sources{
+  def sources = T.sources {
     super.sources() ++ Seq(PathRef(millSourcePath / "custom-src"))
   }
 
   // Add (or replace) resource folders for the module to use
-  def resources = T.sources{
+  def resources = T.sources {
     super.resources() ++ Seq(PathRef(millSourcePath / "custom-resources"))
   }
 
   // Generate sources at build time
   def generatedSources: T[Seq[PathRef]] = T {
-    for(name <- Seq("A", "B", "C")) os.write(
+    for (name <- Seq("A", "B", "C")) os.write(
       T.dest / s"$name.scala",
       s"""package foo
          |object Foo${name} {
@@ -72,36 +72,37 @@ object foo extends RootModule with ScalaModule {
 //    properly invalidate when the contents changes even when the path stays
 //    the same
 
-/** Usage
-
-> mill run
-Foo2.value: <h1>hello2</h1>
-Foo.value: <h1>hello</h1>
-FooA.value: hello A
-FooB.value: hello B
-FooC.value: hello C
-MyResource: My Resource Contents
-MyOtherResource: My Other Resource Contents
-my.custom.property: my-prop-value
-MY_CUSTOM_ENV: my-env-value
-
-> mill show assembly
-".../out/assembly.dest/out.jar"
-
-> ./out/assembly.dest/out.jar # mac/linux
-Foo2.value: <h1>hello2</h1>
-Foo.value: <h1>hello</h1>
-FooA.value: hello A
-FooB.value: hello B
-FooC.value: hello C
-MyResource: My Resource Contents
-MyOtherResource: My Other Resource Contents
-my.custom.property: my-prop-value
-
-> sed -i 's/Foo2 {/Foo2 { println(this + "hello")/g' custom-src/Foo2.scala
-
-> mill compile # demonstrate -deprecation/-Xfatal-warnings flags
-error: object Foo2 { println(this + "hello")
-error:                       ^
-error: ...Implicit injection of + is deprecated. Convert to String to call +...
-*/
+/**
+ * Usage
+ *
+ * > mill run
+ * Foo2.value: <h1>hello2</h1>
+ * Foo.value: <h1>hello</h1>
+ * FooA.value: hello A
+ * FooB.value: hello B
+ * FooC.value: hello C
+ * MyResource: My Resource Contents
+ * MyOtherResource: My Other Resource Contents
+ * my.custom.property: my-prop-value
+ * MY_CUSTOM_ENV: my-env-value
+ *
+ * > mill show assembly
+ * ".../out/assembly.dest/out.jar"
+ *
+ * > ./out/assembly.dest/out.jar # mac/linux
+ * Foo2.value: <h1>hello2</h1>
+ * Foo.value: <h1>hello</h1>
+ * FooA.value: hello A
+ * FooB.value: hello B
+ * FooC.value: hello C
+ * MyResource: My Resource Contents
+ * MyOtherResource: My Other Resource Contents
+ * my.custom.property: my-prop-value
+ *
+ * > sed -i 's/Foo2 {/Foo2 { println(this + "hello")/g' custom-src/Foo2.scala
+ *
+ * > mill compile # demonstrate -deprecation/-Xfatal-warnings flags
+ * error: object Foo2 { println(this + "hello")
+ * error:                       ^
+ * error: ...Implicit injection of + is deprecated. Convert to String to call +...
+ */

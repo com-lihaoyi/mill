@@ -3,7 +3,7 @@ package hello
 // Taken from https://github.com/handsonscala/handsonscala/blob/ebc0367144513fc181281a024f8071a6153be424/examples/13.7%20-%20ParallelMergeSort/MergeSort.sc
 import mainargs.main
 
-object Main{
+object Main {
 
   import scala.concurrent._, duration.Duration.Inf, java.util.concurrent.Executors
 
@@ -89,4 +89,4 @@ object Main{
         "hello.Main$#mergeSortSequential(scala.collection.immutable.IndexedSeq,scala.math.Ordering)scala.collection.immutable.IndexedSeq"
     ]
 }
-*/
+ */

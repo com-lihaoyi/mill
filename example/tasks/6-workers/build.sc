@@ -13,11 +13,11 @@ import java.util.zip.GZIPOutputStream
 
 def data = T.source(millSourcePath / "data")
 
-def compressWorker = T.worker{ new CompressWorker(T.dest) }
+def compressWorker = T.worker { new CompressWorker(T.dest) }
 
-def compressedData = T{
+def compressedData = T {
   println("Evaluating compressedData")
-  for(p <- os.list(data().path)){
+  for (p <- os.list(data().path)) {
     os.write(
       T.dest / s"${p.last}.gz",
       compressWorker().compress(p.last, os.read.bytes(p))
@@ -26,7 +26,7 @@ def compressedData = T{
   os.list(T.dest).map(PathRef(_))
 }
 
-class CompressWorker(dest: os.Path){
+class CompressWorker(dest: os.Path) {
   val cache = collection.mutable.Map.empty[Int, Array[Byte]]
   def compress(name: String, bytes: Array[Byte]): Array[Byte] = {
     val hash = Arrays.hashCode(bytes)
@@ -36,11 +36,11 @@ class CompressWorker(dest: os.Path){
         println("Compressing: " + name)
         cache(hash) = compressBytes(bytes)
         os.write(cachedPath, cache(hash))
-      }else{
+      } else {
         println("Cached from disk: " + name)
         cache(hash) = os.read.bytes(cachedPath)
       }
-    }else {
+    } else {
       println("Cached from memory: " + name)
     }
     cache(hash)
@@ -75,30 +75,30 @@ def compressBytes(input: Array[Byte]) = {
 // read from its disk cache, where it would have normally read from its
 // in-memory cache
 
-/** Usage
-
-> ./mill show compressedData
-Evaluating compressedData
-Compressing: hello.txt
-Compressing: world.txt
-[
-  ".../hello.txt.gz",
-  "...world.txt.gz"
-]
-
-> ./mill compressedData # when no input changes, compressedData does not evaluate at all
-
-> sed -i 's/Hello/HELLO/g' data/hello.txt
-
-> ./mill compressedData # not --no-server, we read the data from memory
-Compressing: hello.txt
-Cached from memory: world.txt
-
-> ./mill compressedData # --no-server, we read the data from disk
-Compressing: hello.txt
-Cached from disk: world.txt
-
-*/
+/**
+ * Usage
+ *
+ * > ./mill show compressedData
+ * Evaluating compressedData
+ * Compressing: hello.txt
+ * Compressing: world.txt
+ * [
+ *  ".../hello.txt.gz",
+ *  "...world.txt.gz"
+ * ]
+ *
+ * > ./mill compressedData # when no input changes, compressedData does not evaluate at all
+ *
+ * > sed -i 's/Hello/HELLO/g' data/hello.txt
+ *
+ * > ./mill compressedData # not --no-server, we read the data from memory
+ * Compressing: hello.txt
+ * Cached from memory: world.txt
+ *
+ * > ./mill compressedData # --no-server, we read the data from disk
+ * Compressing: hello.txt
+ * Cached from disk: world.txt
+ */
 
 // Mill uses workers to manage long-lived instances of the
 // https://github.com/sbt/zinc[Zinc Incremental Scala Compiler] and the

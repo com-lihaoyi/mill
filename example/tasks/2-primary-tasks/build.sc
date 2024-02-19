@@ -31,16 +31,16 @@ def lineCount: T[Int] = T {
 // downstream targets do not re-evaluate. This is determined using the
 // `.hashCode` of the Target's return value.
 
-/** Usage
-
-> ./mill show lineCount
-Computing line count
-16
-
-> ./mill show lineCount # line count already cached, doesn't need to be computed
-16
-
-*/
+/**
+ * Usage
+ *
+ * > ./mill show lineCount
+ * Computing line count
+ * 16
+ *
+ * > ./mill show lineCount # line count already cached, doesn't need to be computed
+ * 16
+ */
 
 // The return-value of targets has to be JSON-serializable via
 // {upickle-github-url}[uPickle]. You can run targets directly from the command
@@ -74,16 +74,16 @@ def jar = T {
   PathRef(T.dest / "foo.jar")
 }
 
-/** Usage
-
-> ./mill jar
-Generating classfiles
-Generating jar
-
-> ./mill show jar
-".../out/jar.dest/foo.jar"
-
-*/
+/**
+ * Usage
+ *
+ * > ./mill jar
+ * Generating classfiles
+ * Generating jar
+ *
+ * > ./mill show jar
+ * ".../out/jar.dest/foo.jar"
+ */
 
 // Targets can depend on other targets via the `foo()` syntax.
 // The graph of inter-dependent targets is evaluated in topological order; that
@@ -104,21 +104,21 @@ def largeFile = T {
     .maxBy(os.read.lines(_).size)
 }
 
-def hugeFileName = T{
+def hugeFileName = T {
   if (lineCount() > 999) largeFile().last
   else "<no-huge-file>"
 }
 
-/** Usage
-
-> ./mill show lineCount
-16
-
-> ./mill show hugeFileName # This still runs `largestFile` even though `lineCount() < 999`
-Finding Largest File
-"<no-huge-file>"
-
-*/
+/**
+ * Usage
+ *
+ * > ./mill show lineCount
+ * 16
+ *
+ * > ./mill show hugeFileName # This still runs `largestFile` even though `lineCount() < 999`
+ * Finding Largest File
+ * "<no-huge-file>"
+ */
 
 // uPickle comes with built-in support for most Scala primitive types and
 // builtin data structures: tuples, collections, ``PathRef``s, etc. can be
@@ -132,7 +132,7 @@ object ClassFileData {
   implicit val rw: upickle.default.ReadWriter[ClassFileData] = upickle.default.macroRW
 }
 
-def summarizeClassFileStats = T{
+def summarizeClassFileStats = T {
   val files = os.walk(classFiles().path)
   ClassFileData(
     totalFileSize = files.map(os.size(_)).sum,
@@ -140,15 +140,15 @@ def summarizeClassFileStats = T{
   )
 }
 
-/** Usage
-
-> ./mill show summarizeClassFileStats
-{
-  "totalFileSize": ...,
-  "largestFile": "..."
-}
-
-*/
+/**
+ * Usage
+ *
+ * > ./mill show summarizeClassFileStats
+ * {
+ *  "totalFileSize": ...,
+ *  "largestFile": "..."
+ * }
+ */
 
 // === Sources
 
@@ -168,16 +168,16 @@ def resources = T.source { millSourcePath / "resources" }
 // Note that even though a source file changed, that does not necessarily cause
 // all transitive downstream targets to re-compute:
 
-/** Usage
-
-> ./mill jar # Cached from earlier
-
-> printf "\n" >> src/Foo.java # Add a newline to the end of Foo.java
-
-> ./mill jar # Classfiles recompiled but output unchanged, jar was not rebuilt
-Generating classfiles
-
-*/
+/**
+ * Usage
+ *
+ * > ./mill jar # Cached from earlier
+ *
+ * > printf "\n" >> src/Foo.java # Add a newline to the end of Foo.java
+ *
+ * > ./mill jar # Classfiles recompiled but output unchanged, jar was not rebuilt
+ * Generating classfiles
+ */
 
 // `T.sources` can be overriden with `super`, to let you
 // override-and-extend source lists the same way you would any other target
@@ -186,7 +186,7 @@ Generating classfiles
 
 trait Foo extends Module {
   def sourceRoots = T.sources(millSourcePath / "src")
-  def sourceContents = T{
+  def sourceContents = T {
     sourceRoots()
       .flatMap(pref => os.walk(pref.path))
       .filter(_.ext == "txt")
@@ -202,26 +202,27 @@ trait Bar extends Foo {
 
 object bar extends Bar
 
-/** Usage
-
-> ./mill show bar.sourceContents # includes both source folders
-[
-  "File Data From src/",
-  "File Data From src2/"
-]
-
-*/
+/**
+ * Usage
+ *
+ * > ./mill show bar.sourceContents # includes both source folders
+ * [
+ *  "File Data From src/",
+ *  "File Data From src2/"
+ * ]
+ */
 
 // [#commands]
 // === Commands
 
 def run(args: String*) = T.command {
   os.proc(
-      "java",
-      "-cp", s"${classFiles().path}:${resources().path}",
-      "foo.Foo",
-      args
-    )
+    "java",
+    "-cp",
+    s"${classFiles().path}:${resources().path}",
+    "foo.Foo",
+    args
+  )
     .call(stdout = os.Inherit)
 }
 

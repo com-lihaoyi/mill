@@ -20,22 +20,21 @@ def printFileData(fileName: String) = T.command {
 // Unlike <<_targets>> or <<_commands>>, anonymous tasks can be defined
 // anywhere and passed around any way you want, until you finally make use of them
 // within a downstream target or command.
-// 
+//
 // While an anonymous task ``foo``'s own output is not cached, if it is used in a
 // downstream target `baz` and the upstream target `bar` hasn't changed,
 // ``baz``'s cached output will be used and ``foo``'s evaluation will be skipped
 // altogether.
 
-
-/** Usage
-
-> ./mill show helloFileData
-"Hello"
-
-> ./mill printFileData hello.txt
-Hello
-
-> ./mill printFileData world.txt
-World!
-
-*/
+/**
+ * Usage
+ *
+ * > ./mill show helloFileData
+ * "Hello"
+ *
+ * > ./mill printFileData hello.txt
+ * Hello
+ *
+ * > ./mill printFileData world.txt
+ * World!
+ */

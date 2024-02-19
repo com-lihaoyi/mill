@@ -53,20 +53,20 @@ object bar extends MyModule {
 // hierarchy, so e.g. input to the `foo` module lives in `foo/src/` and
 // compiled output files live in `out/foo/compile.dest`.
 
-/** Usage
-
-> mill resolve __.run
-foo.run
-bar.run
-
-> mill foo.run --foo-text hello --bar-text world
-Foo.value: hello
-Bar.value: <p>world</p>
-
-> mill bar.run world
-Bar.value: <p>world</p>
-
-*/
+/**
+ * Usage
+ *
+ * > mill resolve __.run
+ * foo.run
+ * bar.run
+ *
+ * > mill foo.run --foo-text hello --bar-text world
+ * Foo.value: hello
+ * Bar.value: <p>world</p>
+ *
+ * > mill bar.run world
+ * Bar.value: <p>world</p>
+ */
 
 // Mill's evaluator will ensure that the modules are compiled in the right
 // order, and recompiled as necessary when source code in each module changes.

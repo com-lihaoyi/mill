@@ -5,7 +5,7 @@ sealed trait Phrase
 class Word(s: String) extends Phrase
 class Pair(lhs: Phrase, rhs: Phrase) extends Phrase
 
-object Parser{
+object Parser {
   def prefix[_: P] = P("hello" | "goodbye").!.map(new Word(_))
 
   def suffix[_: P] = P("world" | "seattle").!.map(new Word(_))
@@ -58,4 +58,4 @@ object Parser{
         "hello.Parser$#ws(fastparse.ParsingRun)fastparse.ParsingRun"
     ]
 }
-*/
+ */

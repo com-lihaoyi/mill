@@ -2,7 +2,7 @@ package webapp
 import scalatags.Text.all._
 import scalatags.Text.tags2
 
-object WebApp extends cask.MainRoutes{
+object WebApp extends cask.MainRoutes {
   case class Todo(checked: Boolean, text: String)
 
   object Todo {
@@ -48,29 +48,33 @@ object WebApp extends cask.MainRoutes{
     renderBody(state)
   }
 
-  def renderBody(state: String)/*: scalatags.Text.TypedTag[String] */= {
-    val filteredTodos = state match{
+  def renderBody(state: String) /*: scalatags.Text.TypedTag[String] */ = {
+    val filteredTodos = state match {
       case "all" => todos.zipWithIndex
       case "active" => todos.zipWithIndex.filter(!_._1.checked)
       case "completed" => todos.zipWithIndex.filter(_._1.checked)
     }
     div(
-      header(cls := "header",
+      header(
+        cls := "header",
         h1("todos"),
         input(cls := "new-todo", placeholder := "What needs to be done?", autofocus := "")
       ),
-      tags2.section(cls := "main",
+      tags2.section(
+        cls := "main",
         input(
           id := "toggle-all",
           cls := "toggle-all",
           `type` := "checkbox",
           if (todos.filter(_.checked).size != 0) checked else ()
         ),
-        label(`for` := "toggle-all","Mark all as complete"),
-        ul(cls := "todo-list",
-          for((todo, index) <- filteredTodos) yield li(
+        label(`for` := "toggle-all", "Mark all as complete"),
+        ul(
+          cls := "todo-list",
+          for ((todo, index) <- filteredTodos) yield li(
             if (todo.checked) cls := "completed" else (),
-            div(cls := "view",
+            div(
+              cls := "view",
               input(
                 cls := "toggle",
                 `type` := "checkbox",
@@ -84,23 +88,19 @@ object WebApp extends cask.MainRoutes{
           )
         )
       ),
-      footer(cls := "footer",
-        span(cls := "todo-count",
-          strong(todos.filter(!_.checked).size),
-          " items left"
-        ),
-        ul(cls := "filters",
-          li(cls := "todo-all",
-            a(if (state == "all") cls := "selected" else (), "All")
-          ),
-          li(cls := "todo-active",
-            a(if (state == "active") cls := "selected" else (), "Active")
-          ),
-          li(cls := "todo-completed",
+      footer(
+        cls := "footer",
+        span(cls := "todo-count", strong(todos.filter(!_.checked).size), " items left"),
+        ul(
+          cls := "filters",
+          li(cls := "todo-all", a(if (state == "all") cls := "selected" else (), "All")),
+          li(cls := "todo-active", a(if (state == "active") cls := "selected" else (), "Active")),
+          li(
+            cls := "todo-completed",
             a(if (state == "completed") cls := "selected" else (), "Completed")
           )
         ),
-        button(cls := "clear-completed","Clear completed")
+        button(cls := "clear-completed", "Clear completed")
       )
     )
   }
@@ -108,7 +108,8 @@ object WebApp extends cask.MainRoutes{
   @cask.get("/")
   def index() = {
     doctype("html")(
-      html(lang := "en",
+      html(
+        lang := "en",
         head(
           meta(charset := "utf-8"),
           meta(name := "viewport", content := "width=device-width, initial-scale=1"),
@@ -117,14 +118,11 @@ object WebApp extends cask.MainRoutes{
         ),
         body(
           tags2.section(cls := "todoapp", renderBody("all")),
-          footer(cls := "info",
+          footer(
+            cls := "info",
             p("Double-click to edit a todo"),
-            p("Created by ",
-              a(href := "http://todomvc.com","Li Haoyi")
-            ),
-            p("Part of ",
-              a(href := "http://todomvc.com","TodoMVC")
-            )
+            p("Created by ", a(href := "http://todomvc.com", "Li Haoyi")),
+            p("Part of ", a(href := "http://todomvc.com", "TodoMVC"))
           ),
           script(src := "/static/main.js")
         )

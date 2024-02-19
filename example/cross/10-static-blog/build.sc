@@ -25,9 +25,9 @@ val posts = interp.watchValue {
 }
 
 object post extends Cross[PostModule](posts)
-trait PostModule extends Cross.Module[String]{
+trait PostModule extends Cross.Module[String] {
   def source = T.source(millSourcePath / crossValue)
-  def render = T{
+  def render = T {
     val doc = Parser.builder().build().parse(os.read(source().path))
     val title = mdNameToTitle(crossValue)
     val rendered = doctype("html")(
@@ -39,7 +39,7 @@ trait PostModule extends Cross.Module[String]{
       )
     )
 
-    os.write(T.dest /  mdNameToHtml(crossValue), rendered)
+    os.write(T.dest / mdNameToHtml(crossValue), rendered)
     PathRef(T.dest / mdNameToHtml(crossValue))
   }
 }
@@ -50,13 +50,13 @@ trait PostModule extends Cross.Module[String]{
 // what `os.list` finds on disk. After that, it's straightforward to render the
 // `index.html` file we want:
 
-def postsInput = T.input{ posts }
+def postsInput = T.input { posts }
 
 def renderIndexEntry(mdName: String) = {
   h2(a(mdNameToTitle(mdName), href := ("post/" + mdNameToHtml(mdName))))
 }
 
-def index = T{
+def index = T {
   val rendered = doctype("html")(
     html(body(h1("Blog"), postsInput().map(renderIndexEntry)))
   )
@@ -77,21 +77,21 @@ def dist = T {
 
 // Now, you can run `mill dist` to generate the blog:
 
-/** Usage
-
-> mill dist
-
-> cat out/dist.dest/index.html                    # root index page
-...
-...<a href="post/1-my-first-post.html">My First Post</a>...
-...<a href="post/2-my-second-post.html">My Second Post</a>...
-...<a href="post/3-my-third-post.html">My Third Post</a>...
-
-> cat out/dist.dest/post/1-my-first-post.html     # blog post page
-...
-...<p>Text contents of My First Post</p>...
-
-*/
+/**
+ * Usage
+ *
+ * > mill dist
+ *
+ * > cat out/dist.dest/index.html                    # root index page
+ * ...
+ * ...<a href="post/1-my-first-post.html">My First Post</a>...
+ * ...<a href="post/2-my-second-post.html">My Second Post</a>...
+ * ...<a href="post/3-my-third-post.html">My Third Post</a>...
+ *
+ * > cat out/dist.dest/post/1-my-first-post.html     # blog post page
+ * ...
+ * ...<p>Text contents of My First Post</p>...
+ */
 
 // image::BlogIndex.png[BlogIndex.png]
 // image::BlogPost.png[BlogPost.png]
@@ -105,16 +105,16 @@ def dist = T {
 //
 // You can also build each individual post directly:
 
-/** Usage
-
-> mill show "post[1-My-First-Post.md].render"
-".../out/post/1-My-First-Post.md/render.dest/1-my-first-post.html"
-
-> cat out/post/1-My-First-Post.md/render.dest/1-my-first-post.html
-...
-...<p>Text contents of My First Post</p>...
-
-*/
+/**
+ * Usage
+ *
+ * > mill show "post[1-My-First-Post.md].render"
+ * ".../out/post/1-My-First-Post.md/render.dest/1-my-first-post.html"
+ *
+ * > cat out/post/1-My-First-Post.md/render.dest/1-my-first-post.html
+ * ...
+ * ...<p>Text contents of My First Post</p>...
+ */
 
 // All caching, incremental re-computation, and parallelism is done using the
 // Mill target graph. For this simple example, the graph is as follows

@@ -15,7 +15,7 @@ trait FooModule2 extends Cross.Module2[String, Int] {
 
 object foo3 extends Cross[FooModule3](("a", 1, true), ("b", 2, false))
 trait FooModule3 extends FooModule2 with Cross.Module3[String, Int, Boolean] {
-  def param3 = T{ "Param Value: " + crossValue3 }
+  def param3 = T { "Param Value: " + crossValue3 }
 }
 
 // Starting from an existing cross module with `Cross.Module{N-1}`,
@@ -32,29 +32,30 @@ trait FooModule3 extends FooModule2 with Cross.Module3[String, Int, Boolean] {
 // `String`, `Int`, and `Boolean`. You can define additional `ToPathSegments`
 // for your own user-defined types that you wish to use in a Cross module
 
-/** Usage
-
-> mill show foo[a].param1
-"Param Value: a"
-
-> mill show foo[b].param1
-"Param Value: b"
-
-> mill show foo2[a,1].param1
-"Param Value: a"
-
-> mill show foo2[b,2].param2
-"Param Value: 2"
-
-> mill show foo3[b,2,false].param3
-"Param Value: false"
-
-> sed -i 's/, true//g' build.sc
-
-> sed -i 's/, false//g' build.sc
-
-> mill show foo3[b,2,false].param3
-error: ...object foo3 extends Cross[FooModule3](("a", 1), ("b", 2))
-error: ...                                      ^
-error: ...value _3 is not a member of (String, Int)
-*/
+/**
+ * Usage
+ *
+ * > mill show foo[a].param1
+ * "Param Value: a"
+ *
+ * > mill show foo[b].param1
+ * "Param Value: b"
+ *
+ * > mill show foo2[a,1].param1
+ * "Param Value: a"
+ *
+ * > mill show foo2[b,2].param2
+ * "Param Value: 2"
+ *
+ * > mill show foo3[b,2,false].param3
+ * "Param Value: false"
+ *
+ * > sed -i 's/, true//g' build.sc
+ *
+ * > sed -i 's/, false//g' build.sc
+ *
+ * > mill show foo3[b,2,false].param3
+ * error: ...object foo3 extends Cross[FooModule3](("a", 1), ("b", 2))
+ * error: ...                                      ^
+ * error: ...value _3 is not a member of (String, Int)
+ */

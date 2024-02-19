@@ -34,15 +34,14 @@ object bar extends ScalaModule {
 // dependencies, and `foo` then depends on `bar` and includes the runtime
 // dependencies. That is why we can run `foo` as show below:
 
-/** Usage
-
-> ./mill foo.runBackground
-
-> curl http://localhost:8079
-<html><body>Hello World!</body></html>
-
-*/
-
+/**
+ * Usage
+ *
+ * > ./mill foo.runBackground
+ *
+ * > curl http://localhost:8079
+ * <html><body>Hello World!</body></html>
+ */
 
 // NOTE: Compile-time dependencies are translated to `provided`-scoped
 // dependencies when publish to Maven or Ivy-Repositories.
@@ -58,5 +57,3 @@ object bar extends ScalaModule {
 //
 // TIP: Scala Steward can also keep your
 // xref:Installation.adoc#_automatic_mill_updates[Mill version up-to-date].
-
-

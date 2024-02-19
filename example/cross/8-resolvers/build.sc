@@ -27,13 +27,13 @@ trait BarModule extends MyModule {
 // `scalaVersion` is binary compatible (e.g. 2.10.5 is compatible with 2.10.3)
 // with the current cross-module.
 
-/** Usage
-
-> mill show bar[2.10].bigSuffix
-...
-"[[[_2.10]]]"
-
-*/
+/**
+ * Usage
+ *
+ * > mill show bar[2.10].bigSuffix
+ * ...
+ * "[[[_2.10]]]"
+ */
 
 // [NOTE]
 // --
@@ -64,4 +64,4 @@ trait BarModule extends MyModule {
 // │         ├── bigSuffix.json
 // │         └── suffix.json
 // ----
-// 
+//

@@ -15,7 +15,7 @@ object foo extends RootModule with ScalaModule {
   def ivyDeps = Agg(ivy"com.lihaoyi::mainargs:0.4.0")
 
   def generatedSources: T[Seq[PathRef]] = T {
-    val prettyIvyDeps = for(ivyDep <- ivyDeps()) yield {
+    val prettyIvyDeps = for (ivyDep <- ivyDeps()) yield {
       val org = ivyDep.dep.module.organization.value
       val name = ivyDep.dep.module.name.value
       val version = ivyDep.dep.version
@@ -64,19 +64,20 @@ object foo extends RootModule with ScalaModule {
 //
 // This example can be run as follows:
 
-/** Usage
-
-> mill run --text hello
-text: hello
-MyDeps.value: List((com.lihaoyi,mainargs,0.4.0))
-my.line.count: 12
-
-> mill show lineCount
-12
-
-> mill printLineCount
-12
-*/
+/**
+ * Usage
+ *
+ * > mill run --text hello
+ * text: hello
+ * MyDeps.value: List((com.lihaoyi,mainargs,0.4.0))
+ * my.line.count: 12
+ *
+ * > mill show lineCount
+ * 12
+ *
+ * > mill printLineCount
+ * 12
+ */
 
 // Custom targets and commands can contain arbitrary code. Whether you want to
 // download files using `requests.get`, shell-out to Webpack

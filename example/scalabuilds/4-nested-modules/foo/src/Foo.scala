@@ -4,9 +4,11 @@ import mainargs.{main, ParserForMethods, arg}
 
 object Foo {
   @main
-  def main(@arg(name = "bar-text") barText: String,
-           @arg(name = "qux-text") quxText: String,
-           @arg(name = "foo-text") fooText: String): Unit = {
+  def main(
+      @arg(name = "bar-text") barText: String,
+      @arg(name = "qux-text") quxText: String,
+      @arg(name = "foo-text") fooText: String
+  ): Unit = {
     foo.qux.Qux.main(barText, quxText)
 
     val value = p(fooText)

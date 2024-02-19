@@ -22,7 +22,6 @@ object qux extends ScalaModule {
   }
 }
 
-
 object baz extends ScalaModule {
   def scalaVersion = "2.13.8"
 
@@ -37,16 +36,16 @@ object baz extends ScalaModule {
 // `BazTestUtils` class that `baz.test` defines, allowing us to re-use this
 // test helper throughout multiple modules' test suites
 
-/** Usage
-
-> ./mill qux.test
--------------------------------- Running Tests --------------------------------
-Using BazTestUtils.bazAssertEquals
-+ qux.QuxTests.simple ...
-
-> ./mill baz.test
--------------------------------- Running Tests --------------------------------
-Using BazTestUtils.bazAssertEquals
-+ baz.BazTests.simple ...
-
-*/
+/**
+ * Usage
+ *
+ * > ./mill qux.test
+ * -------------------------------- Running Tests --------------------------------
+ * Using BazTestUtils.bazAssertEquals
+ * + qux.QuxTests.simple ...
+ *
+ * > ./mill baz.test
+ * -------------------------------- Running Tests --------------------------------
+ * Using BazTestUtils.bazAssertEquals
+ * + baz.BazTests.simple ...
+ */

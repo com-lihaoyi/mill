@@ -53,44 +53,44 @@ object fansi extends Module {
 //
 // Project home: https://github.com/com-lihaoyi/fansi
 
-/** Usage
-
-> ./mill resolve __.compile
-fansi.js[2.11.12].test.compile
-fansi.js[2.12.17].compile
-fansi.js[2.12.17].test.compile
-fansi.js[2.13.8].compile
-fansi.js[2.13.8].test.compile
-fansi.js[3.1.3].compile
-fansi.js[3.1.3].test.compile
-fansi.jvm[2.11.12].compile
-fansi.jvm[2.11.12].test.compile
-fansi.jvm[2.12.17].compile
-fansi.jvm[2.12.17].test.compile
-fansi.jvm[2.13.8].compile
-fansi.jvm[2.13.8].test.compile
-fansi.jvm[3.1.3].compile
-fansi.jvm[3.1.3].test.compile
-fansi.native[2.11.12].compile
-fansi.native[2.11.12].test.compile
-fansi.native[2.12.17].compile
-fansi.native[2.12.17].test.compile
-fansi.native[2.13.8].compile
-fansi.native[2.13.8].test.compile
-fansi.native[3.1.3].compile
-fansi.native[3.1.3].test.compile
-
-> ./mill fansi.jvm[2.12.17].compile
-compiling 1 Scala source...
-...
-
-> ./mill fansi.js[2.13.8].test
-Starting process: node
--------------------------------- Running Tests --------------------------------
-...
-
-> ./mill fansi.native[3.1.3].publishLocal
-Publishing Artifact(com.lihaoyi,fansi_native0.4_3,1.3.3.7) to ivy repo...
-...
-
-*/
+/**
+ * Usage
+ *
+ * > ./mill resolve __.compile
+ * fansi.js[2.11.12].test.compile
+ * fansi.js[2.12.17].compile
+ * fansi.js[2.12.17].test.compile
+ * fansi.js[2.13.8].compile
+ * fansi.js[2.13.8].test.compile
+ * fansi.js[3.1.3].compile
+ * fansi.js[3.1.3].test.compile
+ * fansi.jvm[2.11.12].compile
+ * fansi.jvm[2.11.12].test.compile
+ * fansi.jvm[2.12.17].compile
+ * fansi.jvm[2.12.17].test.compile
+ * fansi.jvm[2.13.8].compile
+ * fansi.jvm[2.13.8].test.compile
+ * fansi.jvm[3.1.3].compile
+ * fansi.jvm[3.1.3].test.compile
+ * fansi.native[2.11.12].compile
+ * fansi.native[2.11.12].test.compile
+ * fansi.native[2.12.17].compile
+ * fansi.native[2.12.17].test.compile
+ * fansi.native[2.13.8].compile
+ * fansi.native[2.13.8].test.compile
+ * fansi.native[3.1.3].compile
+ * fansi.native[3.1.3].test.compile
+ *
+ * > ./mill fansi.jvm[2.12.17].compile
+ * compiling 1 Scala source...
+ * ...
+ *
+ * > ./mill fansi.js[2.13.8].test
+ * Starting process: node
+ * -------------------------------- Running Tests --------------------------------
+ * ...
+ *
+ * > ./mill fansi.native[3.1.3].publishLocal
+ * Publishing Artifact(com.lihaoyi,fansi_native0.4_3,1.3.3.7) to ivy repo...
+ * ...
+ */

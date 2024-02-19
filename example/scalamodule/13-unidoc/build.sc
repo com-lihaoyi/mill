@@ -1,10 +1,10 @@
 import mill._, scalalib._
 
-object foo extends ScalaModule with UnidocModule{
+object foo extends ScalaModule with UnidocModule {
   def scalaVersion = "2.13.8"
   def moduleDeps = Seq(bar, qux)
 
-  object bar extends ScalaModule{
+  object bar extends ScalaModule {
     def scalaVersion = "2.13.8"
   }
 
@@ -29,23 +29,23 @@ object foo extends ScalaModule with UnidocModule{
 //   unidocSourceUrl is provided, the scaladoc provides links back to the
 //   sources as browsable from the `unidocSourceUrl` base (e.g. on Github)
 
-/** Usage
-
-> ./mill show foo.unidocLocal
-".../out/foo/unidocLocal.dest"
-
-> cat out/foo/unidocLocal.dest/foo/Foo.html
-...
-...My Eloquent Scaladoc for Foo...
-
-> cat out/foo/unidocLocal.dest/foo/qux/Qux.html
-...
-...My Excellent Scaladoc for Qux...
-
-> cat out/foo/unidocLocal.dest/foo/bar/Bar.html
-...
-...My Lucid Scaladoc for Bar...
-
-> ./mill show foo.unidocSite
-
-*/
+/**
+ * Usage
+ *
+ * > ./mill show foo.unidocLocal
+ * ".../out/foo/unidocLocal.dest"
+ *
+ * > cat out/foo/unidocLocal.dest/foo/Foo.html
+ * ...
+ * ...My Eloquent Scaladoc for Foo...
+ *
+ * > cat out/foo/unidocLocal.dest/foo/qux/Qux.html
+ * ...
+ * ...My Excellent Scaladoc for Qux...
+ *
+ * > cat out/foo/unidocLocal.dest/foo/bar/Bar.html
+ * ...
+ * ...My Lucid Scaladoc for Bar...
+ *
+ * > ./mill show foo.unidocSite
+ */

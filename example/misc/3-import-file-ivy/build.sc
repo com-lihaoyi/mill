@@ -6,8 +6,8 @@ object foo extends RootModule with ScalaModule {
   def scalaVersion = myScalaVersion
 
   def ivyDeps = Agg(ivy"com.lihaoyi::os-lib:0.9.1")
-  def htmlSnippet = T{ div(h1("hello"), p("world")).toString }
-  def resources = T.sources{
+  def htmlSnippet = T { div(h1("hello"), p("world")).toString }
+  def resources = T.sources {
     os.write(T.dest / "snippet.txt", htmlSnippet())
     super.resources() ++ Seq(PathRef(T.dest))
   }
@@ -30,20 +30,19 @@ object foo extends RootModule with ScalaModule {
 //    Scalatags rendering logic to build time, so the application code gets a
 //    pre-rendere string it can directly print without further work.
 
-
-/** Usage
-
-> mill compile
-compiling 1 Scala source...
-...
-
-> mill run
-generated snippet.txt resource: <div><h1>hello</h1><p>world</p></div>
-
-> mill show assembly
-".../out/assembly.dest/out.jar"
-
-> ./out/assembly.dest/out.jar # mac/linux
-generated snippet.txt resource: <div><h1>hello</h1><p>world</p></div>
-
-*/
+/**
+ * Usage
+ *
+ * > mill compile
+ * compiling 1 Scala source...
+ * ...
+ *
+ * > mill run
+ * generated snippet.txt resource: <div><h1>hello</h1><p>world</p></div>
+ *
+ * > mill show assembly
+ * ".../out/assembly.dest/out.jar"
+ *
+ * > ./out/assembly.dest/out.jar # mac/linux
+ * generated snippet.txt resource: <div><h1>hello</h1><p>world</p></div>
+ */
