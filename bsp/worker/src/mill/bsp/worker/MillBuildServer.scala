@@ -670,11 +670,15 @@ private class MillBuildServer(
             case (_, TaskResult(res: Result.Failing[_], _)) => res
           }
 
-          if (failures.nonEmpty) {
-            // somehow report failures to the build client
-            val msg = s"Request '$prefix' failed for ${id.getUri}: ${failures.mkString(", ")}"
+          def logError(errorMsg: String) = {
+            val msg = s"Request '$prefix' failed for ${id.getUri}: ${errorMsg}"
             debug(msg)
             client.onBuildLogMessage(new LogMessageParams(MessageType.ERROR, msg))
+          }
+
+          if (failures.nonEmpty) {
+            // somehow report failures to the build client
+            logError(failures.mkString(", "))
           }
 
           // only the successful results
@@ -685,9 +689,7 @@ private class MillBuildServer(
                 Seq(f(ev, state, id, state.bspModulesById(id)._1, v))
               } catch {
                 case NonFatal(e) =>
-                  val msg = s"Request '$prefix' failed for ${id.getUri}: ${failures.mkString(", ")}"
-                  debug(msg)
-                  client.onBuildLogMessage(new LogMessageParams(MessageType.ERROR, msg))
+                  logError(e.toString)
                   Seq()
               }
             }
