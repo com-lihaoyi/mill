@@ -677,7 +677,6 @@ private class MillBuildServer(
           }
 
           if (failures.nonEmpty) {
-            // somehow report failures to the build client
             logError(failures.mkString(", "))
           }
 
