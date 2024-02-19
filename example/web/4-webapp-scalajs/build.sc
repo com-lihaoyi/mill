@@ -4,7 +4,7 @@ object root extends RootModule with ScalaModule {
 
   def scalaVersion = "2.13.8"
   def ivyDeps = Agg(
-    ivy"com.lihaoyi::cask:0.9.1",
+    ivy"com.lihaoyi::cask:0.9.2",
     ivy"com.lihaoyi::scalatags:0.12.0"
   )
 
@@ -23,7 +23,7 @@ object root extends RootModule with ScalaModule {
 
     def ivyDeps = Agg(
       ivy"com.lihaoyi::utest::0.7.10",
-      ivy"com.lihaoyi::requests::0.6.9",
+      ivy"com.lihaoyi::requests::0.6.9"
     )
   }
 
@@ -45,21 +45,21 @@ object root extends RootModule with ScalaModule {
 // Javascript or Scala UI frameworks to manage the UI, but those are beyond the
 // scope of this example.
 
-/** Usage
-
-> ./mill test
-+ webapp.WebAppTests.simpleRequest ...
-
-> ./mill runBackground
-
-> curl http://localhost:8082
-...What needs to be done...
-...
-
-> curl http://localhost:8082/static/main.js
-...Scala.js...
-...
-
-> ./mill clean runBackground
-
-*/
+/**
+ * Usage
+ *
+ * > ./mill test
+ * + webapp.WebAppTests.simpleRequest ...
+ *
+ * > ./mill runBackground
+ *
+ * > curl http://localhost:8082
+ * ...What needs to be done...
+ * ...
+ *
+ * > curl http://localhost:8082/static/main.js
+ * ...Scala.js...
+ * ...
+ *
+ * > ./mill clean runBackground
+ */

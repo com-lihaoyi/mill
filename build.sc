@@ -123,7 +123,7 @@ object Deps {
   val coursier = ivy"io.get-coursier::coursier:2.1.9"
   val coursierInterface = ivy"io.get-coursier:interface:1.0.19"
 
-  val cask = ivy"com.lihaoyi::cask:0.9.1"
+  val cask = ivy"com.lihaoyi::cask:0.9.2"
   val castor = ivy"com.lihaoyi::castor:0.3.0"
   val fastparse = ivy"com.lihaoyi::fastparse:3.0.2"
   val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
