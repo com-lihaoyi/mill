@@ -68,7 +68,8 @@ private[mill] class BspContext(
         streams,
         logStream.getOrElse(streams.err),
         home / Constants.bspDir,
-        canReload
+        canReload,
+        os.pwd
       )
     }
   }

@@ -11,13 +11,20 @@ import ch.epfl.scala.bsp4j.{
   JvmTestEnvironmentResult
 }
 import mill.T
-import mill.bsp.worker.Utils.sanitizeUri
+import mill.bsp.spi.MillBuildServerBase
 import mill.scalalib.JavaModule
+import mill.scalalib.bsp.BspUri
 
 import java.util.concurrent.CompletableFuture
 import scala.jdk.CollectionConverters._
 
-private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer =>
+class MillJvmBuildServer(base: MillBuildServerBase)
+    extends MillBspExtension
+    with JvmBuildServer {
+
+  override def extensionCapabilities: ExtensionCapabilities = ExtensionCapabilities(
+    languages = Seq()
+  )
 
   override def buildTargetJvmRunEnvironment(params: JvmRunEnvironmentParams)
       : CompletableFuture[JvmRunEnvironmentResult] = {
@@ -41,10 +48,10 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
       name: String,
       targetIds: Seq[BuildTargetIdentifier],
       agg: java.util.List[JvmEnvironmentItem] => V
-  ) = {
-    completableTasks(
-      name,
-      targetIds = _ => targetIds,
+  ): CompletableFuture[V] = {
+    base.completableTasks(
+      hint = name,
+      targetIds = _ => targetIds.map(_.bspUri),
       tasks = {
         case m: JavaModule =>
           T.task {
@@ -68,9 +75,9 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
             m: JavaModule,
             (runClasspath, forkArgs, forkWorkingDir, forkEnv, mainClass, zincWorker, compile)
           ) =>
-        val classpath = runClasspath.map(_.path).map(sanitizeUri)
+        val classpath = runClasspath.map(_.path).map(BspUri.sanitizeUri)
         val item = new JvmEnvironmentItem(
-          id,
+          id.buildTargetIdentifier,
           classpath.iterator.toSeq.asJava,
           forkArgs.asJava,
           forkWorkingDir.toString(),

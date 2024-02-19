@@ -1,6 +1,6 @@
 package mill.scalalib.bsp
 
-import mill.api.internal
+import mill.api.{experimental, internal}
 import mill.define.Task
 import mill.scalalib.internal.ModuleUtils
 import mill._
@@ -38,6 +38,13 @@ trait BspModule extends Module {
   @internal
   def bspBuildTargetData: Task[Option[(String, AnyRef)]] = T.task { None }
 
+  /**
+   * Extensions to load when BSP is used.
+   */
+  @internal
+  @experimental
+  def bspExtensions: Seq[BspExtension] = Seq()
+
 }
 
 object BspModule {
@@ -58,4 +65,5 @@ object BspModule {
     val NoIDE = "no-ide"
     val Manual = "manual"
   }
+
 }

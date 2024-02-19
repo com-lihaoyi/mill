@@ -1,13 +1,14 @@
-package mill.bsp.worker
+package mill.bsp.spi
 
-import ch.epfl.scala.bsp4j.BuildTargetIdentifier
-import mill.scalalib.bsp.BspModule
-import mill.scalalib.internal.JavaModuleUtils
 import mill.define.Module
 import mill.eval.Evaluator
+import mill.scalalib.bsp.{BspModule, BspUri}
+import mill.scalalib.internal.JavaModuleUtils
 
-private class State(evaluators: Seq[Evaluator], debug: String => Unit) {
-  lazy val bspModulesById: Map[BuildTargetIdentifier, (BspModule, Evaluator)] = {
+class State private[bsp] (evaluators: Seq[Evaluator], debug: String => Unit) {
+
+  /** Mapping of BSP target identifier to the Mill module and evaluator. */
+  lazy val bspModulesById: Map[BspUri, (BspModule, Evaluator)] = {
     val modules: Seq[(Module, Seq[Module], Evaluator)] = evaluators
       .map(ev => (ev.rootModule, JavaModuleUtils.transitiveModules(ev.rootModule), ev))
 
@@ -15,11 +16,11 @@ private class State(evaluators: Seq[Evaluator], debug: String => Unit) {
       .flatMap { case (rootModule, otherModules, eval) =>
         (Seq(rootModule) ++ otherModules).collect {
           case m: BspModule =>
-            val uri = Utils.sanitizeUri(
+            val uri = BspUri(
               rootModule.millSourcePath / m.millModuleSegments.parts
             )
 
-            (new BuildTargetIdentifier(uri), (m, eval))
+            (uri, (m, eval))
         }
       }
       .toMap
@@ -28,8 +29,10 @@ private class State(evaluators: Seq[Evaluator], debug: String => Unit) {
     map
   }
 
+  /** All root modules (at different meta-levels) of the project. */
   lazy val rootModules: Seq[mill.define.BaseModule] = evaluators.map(_.rootModule)
 
-  lazy val bspIdByModule: Map[BspModule, BuildTargetIdentifier] =
+  /** Mapping of Mill Modules to BSP target identifiers. */
+  lazy val bspIdByModule: Map[BspModule, BspUri] =
     bspModulesById.view.mapValues(_._1).map(_.swap).toMap
 }
