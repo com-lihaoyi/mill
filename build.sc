@@ -192,7 +192,7 @@ object Deps {
   /** Used in tests. */
   object TestDeps {
     // tests framework (test)
-    val scalaTest = ivy"org.scalatest::scalatest:3.2.17"
+    val scalaTest = ivy"org.scalatest::scalatest:3.2.18"
     val zioTest = ivy"dev.zio::zio-test:2.0.21"
   }
 
