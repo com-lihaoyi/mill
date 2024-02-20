@@ -26,6 +26,8 @@ import ch.epfl.scala.bsp4j.{
   InitializeBuildResult,
   InverseSourcesParams,
   InverseSourcesResult,
+  LogMessageParams,
+  MessageType,
   OutputPathItem,
   OutputPathItemKind,
   OutputPathsItem,
@@ -78,6 +80,7 @@ import mill.bsp.BspServerResult
 import mill.eval.Evaluator.TaskResult
 
 import scala.util.chaining.scalaUtilChainingOps
+import scala.util.control.NonFatal
 private class MillBuildServer(
     bspVersion: String,
     serverVersion: String,
@@ -649,7 +652,8 @@ private class MillBuildServer(
       targetIds: State => Seq[BuildTargetIdentifier],
       tasks: BspModule => Task[W]
   )(f: (Evaluator, State, BuildTargetIdentifier, BspModule, W) => T)(agg: java.util.List[T] => V)
-      : CompletableFuture[V] =
+      : CompletableFuture[V] = {
+    val prefix = hint.split(" ").head
     completable(hint) { state: State =>
       val ids = targetIds(state)
       val tasksSeq = ids.map { id =>
@@ -658,14 +662,41 @@ private class MillBuildServer(
       }
 
       val evaluated = tasksSeq
+        // group by evaluator (different root module)
         .groupMap(_._2)(_._1)
         .map { case ((ev, id), ts) =>
-          ev.evalOrThrow()(ts)
-            .map { v => f(ev, state, id, state.bspModulesById(id)._1, v) }
+          val results = ev.evaluate(ts)
+          val failures = results.results.collect {
+            case (_, TaskResult(res: Result.Failing[_], _)) => res
+          }
+
+          def logError(errorMsg: String) = {
+            val msg = s"Request '$prefix' failed for ${id.getUri}: ${errorMsg}"
+            debug(msg)
+            client.onBuildLogMessage(new LogMessageParams(MessageType.ERROR, msg))
+          }
+
+          if (failures.nonEmpty) {
+            logError(failures.mkString(", "))
+          }
+
+          // only the successful results
+          val successes = results.values.map(_.value).asInstanceOf[Seq[W]]
+          successes
+            .flatMap { v =>
+              try {
+                Seq(f(ev, state, id, state.bspModulesById(id)._1, v))
+              } catch {
+                case NonFatal(e) =>
+                  logError(e.toString)
+                  Seq()
+              }
+            }
         }
 
       agg(evaluated.flatten.toSeq.asJava)
     }
+  }
 
   /**
    * Given a function that take input of type T and return output of type V,

@@ -128,11 +128,11 @@ object Deps {
   val fastparse = ivy"com.lihaoyi::fastparse:3.0.2"
   val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
   val graphvizJava = ivy"guru.nidi:graphviz-java-all-j2v8:0.18.1"
-  val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.8.3"
+  val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.9.0"
 
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.4.0" // 1.5.0+ dont support JDK8
 
-  val jline = ivy"org.jline:jline:3.25.0"
+  val jline = ivy"org.jline:jline:3.25.1"
   val jnaVersion = "5.14.0"
   val jna = ivy"net.java.dev.jna:jna:${jnaVersion}"
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:${jnaVersion}"
@@ -167,7 +167,7 @@ object Deps {
   val scalatags = ivy"com.lihaoyi::scalatags:0.12.0"
   // keep in sync with doc/antora/antory.yml
   val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.9.0"
-  val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.9.8"
+  val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.9.9"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.1"
   val upickle = ivy"com.lihaoyi::upickle:3.2.0"
   val utest = ivy"com.lihaoyi::utest:0.8.2"
@@ -184,7 +184,7 @@ object Deps {
     ivy"org.apache.ant:ant:1.10.14",
     ivy"commons-io:commons-io:2.15.1",
     ivy"com.google.code.gson:gson:2.10.1",
-    ivy"com.google.protobuf:protobuf-java:3.25.1",
+    ivy"com.google.protobuf:protobuf-java:3.25.3",
     ivy"com.google.guava:guava:33.0.0-jre",
     ivy"org.yaml:snakeyaml:2.2"
   )
@@ -192,7 +192,7 @@ object Deps {
   /** Used in tests. */
   object TestDeps {
     // tests framework (test)
-    val scalaTest = ivy"org.scalatest::scalatest:3.2.17"
+    val scalaTest = ivy"org.scalatest::scalatest:3.2.18"
     val zioTest = ivy"dev.zio::zio-test:2.0.21"
   }
 
