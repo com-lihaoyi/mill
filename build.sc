@@ -79,7 +79,7 @@ object Deps {
   }
 
   object Scalanative_0_4 {
-    val scalanativeVersion = "0.4.16"
+    val scalanativeVersion = "0.4.17"
     val scalanativeTools = ivy"org.scala-native::tools:${scalanativeVersion}"
     val scalanativeUtil = ivy"org.scala-native::util:${scalanativeVersion}"
     val scalanativeNir = ivy"org.scala-native::nir:${scalanativeVersion}"
@@ -139,7 +139,7 @@ object Deps {
 
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.3"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.8.0"
-  val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.22.1"
+  val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.23.0"
   val osLib = ivy"com.lihaoyi::os-lib:0.9.3"
   val pprint = ivy"com.lihaoyi::pprint:0.8.1"
   val mainargs = ivy"com.lihaoyi::mainargs:0.6.2"
