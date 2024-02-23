@@ -120,7 +120,13 @@ object Deps {
   val asmTree = ivy"org.ow2.asm:asm-tree:9.6"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
 
-  val coursier = ivy"io.get-coursier::coursier:2.1.9"
+  // When updating coursier check if the commons-compress override can be removed
+  // CVE: https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-25710
+  // Loop with Unreachable Exit Condition ('Infinite Loop') vulnerability in Apache Commons Compress.
+  // This issue affects Apache Commons Compress: from 1.3 through 1.25.0.
+  // Users are recommended to upgrade to version 1.26.0 which fixes the issue.
+  val apacheCommonsCompress = ivy"org.apache.commons:commons-compress:1.26.0"
+  val coursier = ivy"io.get-coursier::coursier:2.1.9".exclude("org.apache.commons" -> "commons-compress")
   val coursierInterface = ivy"io.get-coursier:interface:1.0.19"
 
   val cask = ivy"com.lihaoyi::cask:0.9.1"
@@ -541,7 +547,11 @@ object main extends MillStableScalaModule with BuildInfo {
 
   object util extends MillStableScalaModule {
     def moduleDeps = Seq(api, client)
-    def ivyDeps = Agg(Deps.coursier, Deps.jline)
+    def ivyDeps = Agg(
+      Deps.apacheCommonsCompress,
+      Deps.coursier,
+      Deps.jline
+    )
   }
 
   object codesig extends MillPublishScalaModule {
