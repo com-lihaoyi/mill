@@ -186,7 +186,8 @@ object Deps {
     ivy"com.google.code.gson:gson:2.10.1",
     ivy"com.google.protobuf:protobuf-java:3.25.3",
     ivy"com.google.guava:guava:33.0.0-jre",
-    ivy"org.yaml:snakeyaml:2.2"
+    ivy"org.yaml:snakeyaml:2.2",
+    ivy"org.apache.commons:commons-compress:1.26.0"
   )
 
   /** Used in tests. */
