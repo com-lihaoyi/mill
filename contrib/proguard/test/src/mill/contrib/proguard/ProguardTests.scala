@@ -54,10 +54,8 @@ object ProguardTests extends TestSuite {
       }
 
       test("should create a proguarded jar") - workspaceTest(proguard) { eval =>
-        try {
-          val Right((path, _)) = eval.apply(proguard.proguard)
-          assert(os.exists(path.path))
-        }
+        val Right((path, _)) = eval.apply(proguard.proguard)
+        assert(os.exists(path.path))
       }
     }
   }

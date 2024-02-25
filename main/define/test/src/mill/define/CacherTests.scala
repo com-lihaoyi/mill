@@ -25,9 +25,8 @@ object CacherTests extends TestSuite {
   val tests = Tests {
     def eval[T <: TestUtil.BaseModule, V](mapping: T, v: Task[V])(implicit tp: TestPath) = {
       val evaluator = new TestEvaluator(mapping)
-      evaluator(v).right.get._1
+      evaluator(v).toOption.get._1
     }
-    def check(x: Any, y: Any) = assert(x == y)
 
     "simpleDefIsCached" - {
       Predef.assert(Base.value eq Base.value)

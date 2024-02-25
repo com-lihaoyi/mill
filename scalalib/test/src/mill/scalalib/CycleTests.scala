@@ -3,7 +3,7 @@ package mill.scalalib
 import mill.api.BuildScriptException
 import mill.util.{TestEvaluator, TestUtil}
 import utest.framework.TestPath
-import utest.{TestSuite, Tests, compileError, intercept, test, assert}
+import utest.{TestSuite, Tests, intercept, test, assert}
 
 object CycleTests extends TestSuite {
 

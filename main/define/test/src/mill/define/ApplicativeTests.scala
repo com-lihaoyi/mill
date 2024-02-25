@@ -5,6 +5,7 @@ import utest._
 
 import scala.annotation.compileTimeOnly
 import scala.language.experimental.macros
+import scala.language.implicitConversions
 
 object ApplicativeTests extends TestSuite {
   implicit def optionToOpt[T](o: Option[T]): Opt[T] = new Opt(o)
@@ -129,7 +130,7 @@ object ApplicativeTests extends TestSuite {
       // apply() call is identical. It's up to the downstream zipMap()
       // implementation to decide if it wants to dedup them or do other things.
       val counter = new Counter()
-      def up = Opt { "hello" + counter() }
+      def up = Opt { s"hello${counter()}" }
       val down = Opt { Seq(1, 2, 3).map(n => n + up() + up()) }
       assert(down == Some(Seq("1hello1hello2", "2hello1hello2", "3hello1hello2")))
     }
