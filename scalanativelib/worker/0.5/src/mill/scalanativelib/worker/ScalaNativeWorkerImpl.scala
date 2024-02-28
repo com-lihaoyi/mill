@@ -24,7 +24,7 @@ import scala.util.{Success, Try}
 
 class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWorkerApi {
   private def patchIsGreaterThanOrEqual(number: Int) = {
-    val patch = Versions.current.stripPrefix("0.4.")
+    val patch = Versions.current.stripPrefix("0.5.")
     Try(patch.toInt) match {
       case Success(n) if n < number => false
       case _ => true
@@ -66,7 +66,7 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWo
       logLevel: NativeLogLevel,
       buildTarget: BuildTarget
   ): Either[String, Config] = {
-    var nativeConfig =
+    val nativeConfig =
       ScalaNativeNativeConfig.empty
         .withClang(nativeClang.toPath)
         .withClangPP(nativeClangPP.toPath)
@@ -79,24 +79,14 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWo
         .withOptimize(nativeOptimize)
         .withLTO(LTO(nativeLTO))
         .withDump(nativeDump)
-    if (patchIsGreaterThanOrEqual(8)) {
-      val nativeBuildTarget = buildTarget match {
-        case BuildTarget.Application => ScalaNativeBuildTarget.application
-        case BuildTarget.LibraryDynamic => ScalaNativeBuildTarget.libraryDynamic
-        case BuildTarget.LibraryStatic => ScalaNativeBuildTarget.libraryStatic
-      }
-      nativeConfig = nativeConfig.withBuildTarget(nativeBuildTarget)
-    } else {
-      if (buildTarget != BuildTarget.Application) {
-        return Left("nativeBuildTarget not supported. Please update to Scala Native 0.4.8+")
-      }
-    }
-    if (patchIsGreaterThanOrEqual(4)) {
-      nativeConfig = nativeConfig.withEmbedResources(nativeEmbedResources)
-    }
-    if (patchIsGreaterThanOrEqual(9)) {
-      nativeConfig = nativeConfig.withIncrementalCompilation(nativeIncrementalCompilation)
-    }
+        .withBuildTarget(buildTarget match {
+          case BuildTarget.Application => ScalaNativeBuildTarget.application
+          case BuildTarget.LibraryDynamic => ScalaNativeBuildTarget.libraryDynamic
+          case BuildTarget.LibraryStatic => ScalaNativeBuildTarget.libraryStatic
+        })
+        .withEmbedResources(nativeEmbedResources)
+        .withIncrementalCompilation(nativeIncrementalCompilation)
+
     var config = Config.empty
       .withClassPath(classpath.map(_.toPath))
       .withWorkdir(nativeWorkdir.toPath)
@@ -106,9 +96,7 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWo
     if (buildTarget == BuildTarget.Application) {
       mainClass match {
         case Left(error) => return Left(error)
-        case Right(mainClass) =>
-          val entry = if (patchIsGreaterThanOrEqual(3)) mainClass else mainClass + "$"
-          config = config.withMainClass(entry)
+        case Right(mainClass) => config = config.withMainClass(mainClass)
       }
     }
 
@@ -119,7 +107,7 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWo
     val config = nativeConfig.asInstanceOf[Config]
     val compilerConfig = config.compilerConfig
 
-    val name = if (patchIsGreaterThanOrEqual(8)) {
+    val name = {
       val isWindows = MillUtils.targetsWindows(config)
       val isMac = MillUtils.targetsMac(config)
 
@@ -141,7 +129,7 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWo
         if (isWindows) "" else "lib"
       }
       s"${namePrefix}out${ext}"
-    } else "out"
+    }
 
     val outPath = new File(outDirectory, name)
     Build.build(config, outPath.toPath)(Scope.unsafe())
