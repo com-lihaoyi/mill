@@ -135,7 +135,7 @@ object HelloNativeWorldTests extends TestSuite {
         val Right((result, evalCount)) =
           helloWorldEvaluator(HelloNativeWorld.helloNativeWorld(
             scala213,
-            scalaNative04,
+            scalaNative04Old,
             ReleaseMode.Debug
           ).jar)
         val jar = result.path
@@ -161,7 +161,7 @@ object HelloNativeWorldTests extends TestSuite {
       }
       "artifactId_040" - testArtifactId(
         scala213,
-        scalaNative04,
+        scalaNative04Old,
         ReleaseMode.Debug,
         "hello-native-world_native0.4_2.13"
       )
@@ -268,7 +268,7 @@ object HelloNativeWorldTests extends TestSuite {
       )
 
     val scalaNativeVersionSpecific =
-      if (scalaNativeVersion == scalaNative04) Set.empty
+      if (scalaNativeVersion == scalaNative04Old) Set.empty
       else Set("Main.nir", "ArgsParser.nir")
 
     common ++ scalaVersionSpecific ++ scalaNativeVersionSpecific
