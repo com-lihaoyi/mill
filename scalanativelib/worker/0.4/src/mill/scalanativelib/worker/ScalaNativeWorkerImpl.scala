@@ -20,15 +20,10 @@ import scala.scalanative.build.{
 import scala.scalanative.nir.Versions
 import scala.scalanative.testinterface.adapter.TestAdapter
 
-import scala.util.{Success, Try}
-
 class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWorkerApi {
-  private def patchIsGreaterThanOrEqual(number: Int) = {
-    val patch = Versions.current.stripPrefix("0.4.")
-    Try(patch.toInt) match {
-      case Success(n) if n < number => false
-      case _ => true
-    }
+  private def patchIsGreaterThanOrEqual(number: Int) = Versions.current match {
+    case s"0.4.$n" if n.toIntOption.exists(_ < number) => false
+    case _ => true
   }
 
   def logger(level: NativeLogLevel): Logger =

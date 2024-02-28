@@ -30,18 +30,24 @@ object HelloNativeWorldTests extends TestSuite {
     override def mainClass = Some("hello.Main")
   }
 
-  val scala213 = "2.13.6"
-  val scalaNative04 = "0.4.2"
+  val scala213 = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
+  val scala31 = sys.props.getOrElse("TEST_SCALA_3_1_VERSION", ???)
+  val scala33 = sys.props.getOrElse("TEST_SCALA_3_3_VERSION", ???)
+  val scalaNative04Old = "0.4.2"
+  val scalaNative04 = sys.props.getOrElse("TEST_SCALANATIVE_0_4_VERSION", ???)
+  val scalaNative05 = sys.props.getOrElse("TEST_SCALANATIVE_0_5_VERSION", ???)
 
   object HelloNativeWorld extends TestUtil.BaseModule {
     implicit object ReleaseModeToSegments
         extends Cross.ToSegments[ReleaseMode](v => List(v.toString))
 
     val matrix = for {
-      scala <- Seq("3.2.1", "3.1.3", scala213, "2.12.13", "2.11.12")
-      scalaNative <- Seq(scalaNative04, "0.4.9")
+      scala <- Seq(scala33, scala31, scala213, "2.12.13", "2.11.12")
+      scalaNative <- Seq(scalaNative04Old, scalaNative04, scalaNative05)
       mode <- List(ReleaseMode.Debug, ReleaseMode.ReleaseFast)
-      if !(ZincWorkerUtil.isScala3(scala) && scalaNative == scalaNative04)
+      if !(ZincWorkerUtil.isScala3(scala) && scalaNative == scalaNative04Old)
+      if !(scala.startsWith("2.11") && scalaNative == scalaNative05)
+      if !(scala.startsWith("2.12") && scalaNative == scalaNative05)
     } yield (scala, scalaNative, mode)
 
     object helloNativeWorld extends Cross[RootModule](matrix)

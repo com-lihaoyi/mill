@@ -86,6 +86,14 @@ object Deps {
     val scalanativeTestRunner = ivy"org.scala-native::test-runner:${scalanativeVersion}"
   }
 
+  object Scalanative_0_5 {
+    val scalanativeVersion = "0.5.0-RC1"
+    val scalanativeTools = ivy"org.scala-native::tools:${scalanativeVersion}"
+    val scalanativeUtil = ivy"org.scala-native::util:${scalanativeVersion}"
+    val scalanativeNir = ivy"org.scala-native::nir:${scalanativeVersion}"
+    val scalanativeTestRunner = ivy"org.scala-native::test-runner:${scalanativeVersion}"
+  }
+
   trait Play {
     def playVersion: String
     def playBinVersion: String = playVersion.split("[.]").take(2).mkString(".")
@@ -395,7 +403,8 @@ trait MillBaseTestsModule extends MillJavaModule with TestModule {
       s"-DTEST_SCALA_3_2_VERSION=${Deps.testScala32Version}",
       s"-DTEST_SCALA_3_3_VERSION=${Deps.testScala33Version}",
       s"-DTEST_SCALAJS_VERSION=${Deps.Scalajs_1.scalaJsVersion}",
-      s"-DTEST_SCALANATIVE_VERSION=${Deps.Scalanative_0_4.scalanativeVersion}",
+      s"-DTEST_SCALANATIVE_0_4_VERSION=${Deps.Scalanative_0_4.scalanativeVersion}",
+      s"-DTEST_SCALANATIVE_0_5_VERSION=${Deps.Scalanative_0_5.scalanativeVersion}",
       s"-DTEST_UTEST_VERSION=${Deps.utest.dep.version}",
       s"-DTEST_SCALATEST_VERSION=${Deps.TestDeps.scalaTest.dep.version}",
       s"-DTEST_TEST_INTERFACE_VERSION=${Deps.sbtTestInterface.dep.version}",
@@ -954,7 +963,7 @@ object scalanativelib extends MillStableScalaModule {
     def ivyDeps = Agg(Deps.sbtTestInterface)
   }
 
-  object worker extends Cross[WorkerModule]("0.4")
+  object worker extends Cross[WorkerModule]("0.4", "0.5")
 
   trait WorkerModule extends MillPublishScalaModule with Cross.Module[String] {
     def scalaNativeWorkerVersion = crossValue
@@ -962,6 +971,14 @@ object scalanativelib extends MillStableScalaModule {
     def testDepPaths = T { Seq(compile().classes) }
     def moduleDeps = Seq(scalanativelib.`worker-api`)
     def ivyDeps = scalaNativeWorkerVersion match {
+      case "0.5" =>
+        Agg(
+          Deps.osLib,
+          Deps.Scalanative_0_5.scalanativeTools,
+          Deps.Scalanative_0_5.scalanativeUtil,
+          Deps.Scalanative_0_5.scalanativeNir,
+          Deps.Scalanative_0_5.scalanativeTestRunner
+        )
       case "0.4" =>
         Agg(
           Deps.osLib,
