@@ -65,13 +65,15 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   }
 
   def nativeIvyDeps: T[Agg[Dep]] = T {
-    val scalaVersionSpecific =
-      if (ZincWorkerUtil.isScala3(scalaVersion())) {
-        if (scalaNativeVersion().startsWith("0.4"))
-          Agg(ivy"org.scala-native::scala3lib::${scalaNativeVersion()}")
-        else
-          Agg(ivy"org.scala-native::scala3lib::${scalaVersion()}+${scalaNativeVersion()}")
-      } else Agg(ivy"org.scala-native::scalalib::${scalaNativeVersion()}")
+    val scalaVersionSpecific = {
+      val version =
+        if(scalaNativeVersion().startsWith("0.4")) scalaNativeVersion()
+        else s"${scalaVersion()}+${scalaNativeVersion()}"
+
+      if (ZincWorkerUtil.isScala3(scalaVersion()))
+        Agg(ivy"org.scala-native::scala3lib::$version")
+      else Agg(ivy"org.scala-native::scalalib::$version")
+    }
 
     Agg(
       ivy"org.scala-native::nativelib::${scalaNativeVersion()}",
