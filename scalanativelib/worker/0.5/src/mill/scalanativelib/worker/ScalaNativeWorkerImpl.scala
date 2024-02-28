@@ -20,9 +20,15 @@ import scala.scalanative.build.{
 import scala.scalanative.nir.Versions
 import scala.scalanative.testinterface.adapter.TestAdapter
 
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Success, Try}
+import java.nio.file.Files
 
 class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWorkerApi {
+  implicit val scope: Scope = Scope.forever
+
   private def patchIsGreaterThanOrEqual(number: Int) = {
     val patch = Versions.current.stripPrefix("0.5.")
     Try(patch.toInt) match {
@@ -86,54 +92,34 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWo
         })
         .withEmbedResources(nativeEmbedResources)
         .withIncrementalCompilation(nativeIncrementalCompilation)
+        .withBaseName("out")
 
-    var config = Config.empty
+    val config = Config.empty
       .withClassPath(classpath.map(_.toPath))
-      .withWorkdir(nativeWorkdir.toPath)
+      .withBaseDir(nativeWorkdir.toPath)
       .withCompilerConfig(nativeConfig)
       .withLogger(logger(logLevel))
 
     if (buildTarget == BuildTarget.Application) {
       mainClass match {
-        case Left(error) => return Left(error)
-        case Right(mainClass) => config = config.withMainClass(mainClass)
+        case Left(error) =>
+          Left(error)
+        case Right(mainClass) =>
+          Right(config.withMainClass(Some(mainClass)))
       }
-    }
-
-    Right(config)
+    } else Right(config)
   }
 
   def nativeLink(nativeConfig: Object, outDirectory: File): File = {
     val config = nativeConfig.asInstanceOf[Config]
     val compilerConfig = config.compilerConfig
 
-    val name = {
-      val isWindows = MillUtils.targetsWindows(config)
-      val isMac = MillUtils.targetsMac(config)
+    val result = Await.result(Build.buildCached(config), Duration.Inf)
 
-      val ext = if (compilerConfig.buildTarget == ScalaNativeBuildTarget.application) {
-        if (MillUtils.targetsWindows(config)) ".exe" else ""
-      } else if (compilerConfig.buildTarget == ScalaNativeBuildTarget.libraryDynamic) {
-        if (isWindows) ".dll"
-        else if (isMac) ".dylib"
-        else ".so"
-      } else if (compilerConfig.buildTarget == ScalaNativeBuildTarget.libraryStatic) {
-        if (isWindows) ".lib"
-        else ".a"
-      } else {
-        throw new RuntimeException(s"Unknown buildTarget ${compilerConfig.buildTarget}")
-      }
+    val resultInOutDirectory =
+      Files.move(result, outDirectory.toPath().resolve(result.getFileName()))
 
-      val namePrefix = if (compilerConfig.buildTarget == ScalaNativeBuildTarget.application) ""
-      else {
-        if (isWindows) "" else "lib"
-      }
-      s"${namePrefix}out${ext}"
-    }
-
-    val outPath = new File(outDirectory, name)
-    Build.build(config, outPath.toPath)(Scope.unsafe())
-    outPath
+    resultInOutDirectory.toFile()
   }
 
   def getFramework(
