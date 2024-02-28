@@ -957,7 +957,7 @@ object contrib extends Module {
 
 object scalanativelib extends MillStableScalaModule {
   def moduleDeps = Seq(scalalib, scalanativelib.`worker-api`)
-  def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(worker("0.4").testDep())
+  def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(worker("0.4").testDep(), worker("0.5").testDep())
 
   object `worker-api` extends MillPublishScalaModule {
     def ivyDeps = Agg(Deps.sbtTestInterface)
