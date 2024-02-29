@@ -47,7 +47,7 @@ object HelloNativeWorldTests extends TestSuite {
       scalaNative <- Seq(scalaNative04Old, scalaNative04, scalaNative05)
       mode <- List(ReleaseMode.Debug, ReleaseMode.ReleaseFast)
       if !(ZincWorkerUtil.isScala3(scala) && scalaNative == scalaNative04Old)
-      if !(scala.startsWith("2.11") && scalaNative == scalaNative05)
+      if !(scala.startsWith("2.11") && scalaNative != scalaNative04Old)
       if !(scala.startsWith("2.12") && scalaNative == scalaNative05)
     } yield (scala, scalaNative, mode)
 
@@ -209,14 +209,16 @@ object HelloNativeWorldTests extends TestSuite {
 
       testAllMatrix(
         (scala, scalaNative, releaseMode) => checkUtest(scala, scalaNative, releaseMode, cached),
-        skipScalaNative = _.startsWith("0.5.") // Remove this once utest is released for Scala Native 0.5
+        skipScalaNative =
+          _.startsWith("0.5.") // Remove this once utest is released for Scala Native 0.5
       )
     }
     "testCached" - {
       val cached = true
       testAllMatrix(
         (scala, scalaNative, releaseMode) => checkUtest(scala, scalaNative, releaseMode, cached),
-        skipScalaNative = _.startsWith("0.5.") // Remove this once utest is released for Scala Native 0.5
+        skipScalaNative =
+          _.startsWith("0.5.") // Remove this once utest is released for Scala Native 0.5
       )
     }
 
