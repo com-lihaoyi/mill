@@ -6,13 +6,13 @@ import utest._
 object MainTests extends TestSuite {
 
   val tests: Tests = Tests {
-    'vmName - {
-      'containNative - {
+    "vmName" - {
+      "containNative" - {
         assert(
           Main.vmName.contains("Native")
         )
       }
-      'containScala - {
+      "containScala" - {
         assert(
           Main.vmName.contains("Scala")
         )
