@@ -67,7 +67,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   def nativeIvyDeps: T[Agg[Dep]] = T {
     val scalaVersionSpecific = {
       val version =
-        if(scalaNativeVersion().startsWith("0.4")) scalaNativeVersion()
+        if (scalaNativeVersion().startsWith("0.4")) scalaNativeVersion()
         else s"${scalaVersion()}+${scalaNativeVersion()}"
 
       if (ZincWorkerUtil.isScala3(scalaVersion()))

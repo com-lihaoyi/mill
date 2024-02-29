@@ -14,8 +14,7 @@ import scala.scalanative.build.{
   Logger,
   LTO,
   Mode,
-  NativeConfig => ScalaNativeNativeConfig,
-  MillUtils
+  NativeConfig => ScalaNativeNativeConfig
 }
 import scala.scalanative.nir.Versions
 import scala.scalanative.testinterface.adapter.TestAdapter
@@ -28,14 +27,6 @@ import java.nio.file.Files
 
 class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWorkerApi {
   implicit val scope: Scope = Scope.forever
-
-  private def patchIsGreaterThanOrEqual(number: Int) = {
-    val patch = Versions.current.stripPrefix("0.5.")
-    Try(patch.toInt) match {
-      case Success(n) if n < number => false
-      case _ => true
-    }
-  }
 
   def logger(level: NativeLogLevel): Logger =
     Logger(
@@ -112,7 +103,6 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWo
 
   def nativeLink(nativeConfig: Object, outDirectory: File): File = {
     val config = nativeConfig.asInstanceOf[Config]
-    val compilerConfig = config.compilerConfig
 
     val result = Await.result(Build.buildCached(config), Duration.Inf)
 
