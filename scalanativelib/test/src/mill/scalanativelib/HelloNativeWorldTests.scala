@@ -211,7 +211,7 @@ object HelloNativeWorldTests extends TestSuite {
         (scala, scalaNative, releaseMode) => checkUtest(scala, scalaNative, releaseMode, cached),
         skipScalaNative = v =>
           v == scalaNative04Old ||
-          v.startsWith("0.5.") // Remove this once utest is released for Scala Native 0.5
+            v.startsWith("0.5.") // Remove this once utest is released for Scala Native 0.5
       )
     }
     "testCached" - {
@@ -220,7 +220,7 @@ object HelloNativeWorldTests extends TestSuite {
         (scala, scalaNative, releaseMode) => checkUtest(scala, scalaNative, releaseMode, cached),
         skipScalaNative = v =>
           v == scalaNative04Old ||
-          v.startsWith("0.5.") // Remove this once utest is released for Scala Native 0.5
+            v.startsWith("0.5.") // Remove this once utest is released for Scala Native 0.5
       )
     }
 
