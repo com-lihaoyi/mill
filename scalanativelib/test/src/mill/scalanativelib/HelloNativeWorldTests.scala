@@ -209,16 +209,18 @@ object HelloNativeWorldTests extends TestSuite {
 
       testAllMatrix(
         (scala, scalaNative, releaseMode) => checkUtest(scala, scalaNative, releaseMode, cached),
-        skipScalaNative =
-          _.startsWith("0.5.") // Remove this once utest is released for Scala Native 0.5
+        skipScalaNative = v =>
+          v == scalaNative04Old ||
+          v.startsWith("0.5.") // Remove this once utest is released for Scala Native 0.5
       )
     }
     "testCached" - {
       val cached = true
       testAllMatrix(
         (scala, scalaNative, releaseMode) => checkUtest(scala, scalaNative, releaseMode, cached),
-        skipScalaNative =
-          _.startsWith("0.5.") // Remove this once utest is released for Scala Native 0.5
+        skipScalaNative = v =>
+          v == scalaNative04Old ||
+          v.startsWith("0.5.") // Remove this once utest is released for Scala Native 0.5
       )
     }
 
