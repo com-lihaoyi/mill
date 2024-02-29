@@ -36,6 +36,7 @@ object HelloNativeWorldTests extends TestSuite {
   val scalaNative04Old = "0.4.2"
   val scalaNative04 = sys.props.getOrElse("TEST_SCALANATIVE_0_4_VERSION", ???)
   val scalaNative05 = sys.props.getOrElse("TEST_SCALANATIVE_0_5_VERSION", ???)
+  val utestVersion = sys.props.getOrElse("TEST_UTEST_VERSION", ???)
 
   object HelloNativeWorld extends TestUtil.BaseModule {
     implicit object ReleaseModeToSegments
@@ -70,7 +71,7 @@ object HelloNativeWorldTests extends TestSuite {
       object test extends ScalaNativeTests with TestModule.Utest {
         override def sources = T.sources { millSourcePath / "src" / "utest" }
         override def ivyDeps = super.ivyDeps() ++ Agg(
-          ivy"com.lihaoyi::utest::0.7.6"
+          ivy"com.lihaoyi::utest::$utestVersion"
         )
       }
     }
@@ -208,14 +209,14 @@ object HelloNativeWorldTests extends TestSuite {
 
       testAllMatrix(
         (scala, scalaNative, releaseMode) => checkUtest(scala, scalaNative, releaseMode, cached),
-        skipScala = ZincWorkerUtil.isScala3 // Remove this once utest is released for Scala 3
+        skipScalaNative = _.startsWith("0.5.") // Remove this once utest is released for Scala Native 0.5
       )
     }
     "testCached" - {
       val cached = true
       testAllMatrix(
         (scala, scalaNative, releaseMode) => checkUtest(scala, scalaNative, releaseMode, cached),
-        skipScala = ZincWorkerUtil.isScala3 // Remove this once utest is released for Scala 3
+        skipScalaNative = _.startsWith("0.5.") // Remove this once utest is released for Scala Native 0.5
       )
     }
 
