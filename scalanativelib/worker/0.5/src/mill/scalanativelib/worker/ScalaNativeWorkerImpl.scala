@@ -16,13 +16,11 @@ import scala.scalanative.build.{
   Mode,
   NativeConfig => ScalaNativeNativeConfig
 }
-import scala.scalanative.nir.Versions
 import scala.scalanative.testinterface.adapter.TestAdapter
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.{Success, Try}
 import java.nio.file.Files
 
 class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWorkerApi {
