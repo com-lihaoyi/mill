@@ -58,7 +58,9 @@ object Deps {
   // The Scala 2.12.x version to use for some workers
   val workerScalaVersion212 = "2.12.18"
 
-  val testScala213Version = "2.13.8"
+  val testScala213Version = "2.13.10"
+  // Scala Native 4.2 will not get releases for new Scala version
+  val testScala213VersionForScalaNative42 = "2.13.8"
   val testScala212Version = "2.12.6"
   val testScala211Version = "2.11.12"
   val testScala210Version = "2.10.6"
@@ -165,7 +167,7 @@ object Deps {
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.7.15" // scala-steward:off
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   val scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
-  val scoverage2Version = "2.0.11"
+  val scoverage2Version = "2.1.0"
   val scalacScoverage2Plugin = ivy"org.scoverage:::scalac-scoverage-plugin:${scoverage2Version}"
   val scalacScoverage2Reporter = ivy"org.scoverage::scalac-scoverage-reporter:${scoverage2Version}"
   val scalacScoverage2Domain = ivy"org.scoverage::scalac-scoverage-domain:${scoverage2Version}"
@@ -395,6 +397,7 @@ trait MillBaseTestsModule extends MillJavaModule with TestModule {
       s"-DMILL_SCALA_2_13_VERSION=${Deps.scalaVersion}",
       s"-DMILL_SCALA_2_12_VERSION=${Deps.workerScalaVersion212}",
       s"-DTEST_SCALA_2_13_VERSION=${Deps.testScala213Version}",
+      s"-DTEST_SCALA_2_13_VERSION_FOR_SCALANATIVE_4_2=${Deps.testScala213VersionForScalaNative42}",
       s"-DTEST_SCALA_2_12_VERSION=${Deps.testScala212Version}",
       s"-DTEST_SCALA_2_11_VERSION=${Deps.testScala211Version}",
       s"-DTEST_SCALA_2_10_VERSION=${Deps.testScala210Version}",
@@ -850,6 +853,7 @@ object contrib extends Module {
         Seq(
           s"-DMILL_SCOVERAGE_VERSION=${Deps.scalacScoveragePlugin.dep.version}",
           s"-DMILL_SCOVERAGE2_VERSION=${Deps.scalacScoverage2Plugin.dep.version}",
+          s"-DTEST_SCALA_2_13_VERSION_FOR_SCOVERAGE_1=${Deps.scalaVersionForScoverageWorker1}",
           s"-DTEST_SCALA_2_12_VERSION=2.12.15" // last supported 2.12 version for Scoverage 1.x
         )
     }

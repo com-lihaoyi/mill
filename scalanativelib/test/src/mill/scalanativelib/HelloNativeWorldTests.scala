@@ -30,7 +30,7 @@ object HelloNativeWorldTests extends TestSuite {
     override def mainClass = Some("hello.Main")
   }
 
-  val scala213 = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
+  val scala213 = sys.props.getOrElse("TEST_SCALA_2_13_VERSION_FOR_SCALANATIVE_4_2", ???)
   val scala31 = sys.props.getOrElse("TEST_SCALA_3_1_VERSION", ???)
   val scala33 = sys.props.getOrElse("TEST_SCALA_3_3_VERSION", ???)
   val scalaNative04Old = "0.4.2"

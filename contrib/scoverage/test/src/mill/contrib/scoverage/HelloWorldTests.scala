@@ -310,7 +310,9 @@ object Scoverage1Tests_2_12 extends HelloWorldTests {
 }
 
 object Scoverage1Tests_2_13 extends HelloWorldTests {
-  override def testScalaVersion: String = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
+  // scaoverage 1.x was only released for Scala up to 2.13.8
+  override def testScalaVersion: String =
+    sys.props.getOrElse("TEST_SCALA_2_13_VERSION_FOR_SCOVERAGE_1", ???)
   override def testScoverageVersion = sys.props.getOrElse("MILL_SCOVERAGE_VERSION", ???)
 }
 
