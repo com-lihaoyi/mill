@@ -848,7 +848,7 @@ object contrib extends Module {
 
     def testTransitiveDeps = T.input {
       super.testTransitiveDeps() ++
-        (if (scoverage.enableScoverage1) Seq(worker("1").testDep()) else Seq()) ++
+        Option.when(scoverage.enableScoverage1)(worker("1").testDep()).toSeq ++
         Seq(worker("2").testDep())
     }
 
