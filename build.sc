@@ -59,6 +59,8 @@ object Deps {
   val workerScalaVersion212 = "2.12.18"
 
   val testScala213Version = "2.13.10"
+  // Scala Native 4.2 will not get releases for new Scala version
+  val testScala213VersionForScalaNative42 = "2.13.8"
   val testScala212Version = "2.12.6"
   val testScala211Version = "2.11.12"
   val testScala210Version = "2.10.6"
@@ -395,6 +397,7 @@ trait MillBaseTestsModule extends MillJavaModule with TestModule {
       s"-DMILL_SCALA_2_13_VERSION=${Deps.scalaVersion}",
       s"-DMILL_SCALA_2_12_VERSION=${Deps.workerScalaVersion212}",
       s"-DTEST_SCALA_2_13_VERSION=${Deps.testScala213Version}",
+      s"-DTEST_SCALA_2_13_VERSION_FOR_SCALANATIVE_4_2=${Deps.testScala213VersionForScalaNative42}",
       s"-DTEST_SCALA_2_12_VERSION=${Deps.testScala212Version}",
       s"-DTEST_SCALA_2_11_VERSION=${Deps.testScala211Version}",
       s"-DTEST_SCALA_2_10_VERSION=${Deps.testScala210Version}",
