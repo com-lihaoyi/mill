@@ -58,7 +58,7 @@ object Deps {
   // The Scala 2.12.x version to use for some workers
   val workerScalaVersion212 = "2.12.18"
 
-  val testScala213Version = "2.13.8"
+  val testScala213Version = "2.13.10"
   val testScala212Version = "2.12.6"
   val testScala211Version = "2.11.12"
   val testScala210Version = "2.10.6"
@@ -841,6 +841,7 @@ object contrib extends Module {
         Seq(
           s"-DMILL_SCOVERAGE_VERSION=${Deps.scalacScoveragePlugin.dep.version}",
           s"-DMILL_SCOVERAGE2_VERSION=${Deps.scalacScoverage2Plugin.dep.version}",
+          s"-DTEST_SCALA_2_13_VERSION_FOR_SCOVERAGE_1=${Deps.scalaVersionForScoverageWorker1}",
           s"-DTEST_SCALA_2_12_VERSION=2.12.15" // last supported 2.12 version for Scoverage 1.x
         )
     }
