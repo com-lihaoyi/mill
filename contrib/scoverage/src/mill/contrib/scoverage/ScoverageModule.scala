@@ -108,45 +108,42 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     }
   }
 
+  private def scoverageReporterIvyDeps() = T {
+    // we need to resolve with same Scala version used for Mill, not the project Scala version
+    val scalaBinVersion = ZincWorkerUtil.scalaBinaryVersion(BuildInfo.scalaVersion)
+    val sv = scoverageVersion()
+
+    if (sv.startsWith("1.x")) {
+      // In Scoverage 1.x, the reporting API is included in the plugin jar
+      val scalaVersion = BuildInfo.scalaVersion.split("[.]").toList match {
+        // Scoverage 1 is not released for Scala > 2.13.8, but we don't need to compiler specific code,
+        // only the reporter API, which does not depend on the Compiler API, so using another full Scala version
+        // should be safe
+        case "2" :: "13" :: c :: _ if sv.startsWith("1.") && Try(c.toInt).getOrElse(0) > 8 =>
+          val v = "2.13.8"
+          T.log.outputStream.println(
+            s"Detected an unsupported Scala version (${BuildInfo.scalaVersion}). Using Scala version ${v} to resolve scoverage ${sv} reporting API."
+          )
+          v
+        case _ => BuildInfo.scalaVersion
+      }
+      Agg(ivy"org.scoverage:scalac-scoverage-plugin_${scalaVersion}:${sv}")
+    } else {
+      // In Scoverage 2.x, the reporting API is no longer bundled in the plugin jar
+      Agg(
+        ivy"org.scoverage:scalac-scoverage-domain_${scalaBinVersion}:${sv}",
+        ivy"org.scoverage:scalac-scoverage-serializer_${scalaBinVersion}:${sv}",
+        ivy"org.scoverage:scalac-scoverage-reporter_${scalaBinVersion}:${sv}"
+      )
+    }
+  }
+
   def scoverageToolsClasspath: T[Agg[PathRef]] = T {
     checkVersions()
 
     scoverageReportWorkerClasspath() ++
       resolveDeps(T.task {
-        // we need to resolve with same Scala version used for Mill, not the project Scala version
-        val scalaBinVersion = ZincWorkerUtil.scalaBinaryVersion(BuildInfo.scalaVersion)
-        val sv = scoverageVersion()
-
-        val baseDeps = Agg(
-          ivy"org.scoverage:scalac-scoverage-domain_${scalaBinVersion}:${sv}",
-          ivy"org.scoverage:scalac-scoverage-serializer_${scalaBinVersion}:${sv}",
-          ivy"org.scoverage:scalac-scoverage-reporter_${scalaBinVersion}:${sv}"
-        )
-
-        val scalaVersion = BuildInfo.scalaVersion.split("[.]").toList match {
-          // Scoverage 1 is not released for Scala > 2.13.8, but we don't need to compiler specific code,
-          // only the reporter API, which does not depend on the Compiler API, so using another full Scala version
-          // should be safe
-          case "2" :: "13" :: c :: _ if sv.startsWith("1.") && Try(c.toInt).getOrElse(0) > 8 =>
-            val v = "2.13.8"
-            T.log.outputStream.println(
-              s"Detected an unsupported Scala version (${BuildInfo.scalaVersion}). Using Scala version ${v} to resolve scoverage ${sv} reporting API."
-            )
-            v
-          case _ => BuildInfo.scalaVersion
-        }
-
-        val pluginDep =
-          Agg(ivy"org.scoverage:scalac-scoverage-plugin_${scalaVersion}:${sv}")
-
-        val deps = if (isScala3() && isScoverage2()) {
-          baseDeps
-        } else if (isScoverage2()) {
-          baseDeps ++ pluginDep
-        } else {
-          pluginDep
-        }
-        deps.map(bindDependency())
+        scoverageReporterIvyDeps().map(bindDependency())
       })()
   }
 
