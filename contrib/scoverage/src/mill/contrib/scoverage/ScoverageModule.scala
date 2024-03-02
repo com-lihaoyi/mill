@@ -2,12 +2,11 @@ package mill.contrib.scoverage
 
 import coursier.Repository
 import mill._
-import mill.api.{Loose, PathRef}
+import mill.api.{Loose, PathRef, Result}
 import mill.main.BuildInfo
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi.ReportType
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.{Dep, DepSyntax, JavaModule, ScalaModule}
-import mill.api.Result
 import mill.util.Util.millProjectModule
 
 import scala.util.Try
@@ -108,45 +107,43 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     }
   }
 
-  def scoverageToolsClasspath: T[Agg[PathRef]] = T {
+  private def scoverageReporterIvyDeps: T[Agg[Dep]] = T {
     checkVersions()
 
+    val sv = scoverageVersion()
+    val millScalaVersion = BuildInfo.scalaVersion
+
+    if (sv.startsWith("1.")) {
+      // In Scoverage 1.x, the reporting API is included in the plugin jar
+      val scalaVersion = millScalaVersion.split("[.]", 4).toList.take(3) match {
+        // Scoverage 1 is not released for Scala > 2.13.8, but we don't need to compiler specific code,
+        // only the reporter API, which does not depend on the Compiler API, so using another full Scala version
+        // should be safe
+        case "2" :: "13" :: c :: _ if Try(c.toInt).getOrElse(0) > 8 =>
+          val v = "2.13.8"
+          T.log.outputStream.println(
+            s"Detected an unsupported Scala version (${millScalaVersion}). Using Scala version ${v} to resolve scoverage ${sv} reporting API."
+          )
+          v
+        case _ => millScalaVersion
+      }
+      Agg(ivy"org.scoverage:scalac-scoverage-plugin_${scalaVersion}:${sv}")
+    } else {
+      // we need to resolve with same Scala version used for Mill, not the project Scala version
+      val scalaBinVersion = ZincWorkerUtil.scalaBinaryVersion(millScalaVersion)
+      // In Scoverage 2.x, the reporting API is no longer bundled in the plugin jar
+      Agg(
+        ivy"org.scoverage:scalac-scoverage-domain_${scalaBinVersion}:${sv}",
+        ivy"org.scoverage:scalac-scoverage-serializer_${scalaBinVersion}:${sv}",
+        ivy"org.scoverage:scalac-scoverage-reporter_${scalaBinVersion}:${sv}"
+      )
+    }
+  }
+
+  def scoverageToolsClasspath: T[Agg[PathRef]] = T {
     scoverageReportWorkerClasspath() ++
       resolveDeps(T.task {
-        // we need to resolve with same Scala version used for Mill, not the project Scala version
-        val scalaBinVersion = ZincWorkerUtil.scalaBinaryVersion(BuildInfo.scalaVersion)
-        val sv = scoverageVersion()
-
-        val baseDeps = Agg(
-          ivy"org.scoverage:scalac-scoverage-domain_${scalaBinVersion}:${sv}",
-          ivy"org.scoverage:scalac-scoverage-serializer_${scalaBinVersion}:${sv}",
-          ivy"org.scoverage:scalac-scoverage-reporter_${scalaBinVersion}:${sv}"
-        )
-
-        val scalaVersion = BuildInfo.scalaVersion.split("[.]").toList match {
-          // Scoverage 1 is not released for Scala > 2.13.8, but we don't need to compiler specific code,
-          // only the reporter API, which does not depend on the Compiler API, so using another full Scala version
-          // should be safe
-          case "2" :: "13" :: c :: _ if sv.startsWith("1.") && Try(c.toInt).getOrElse(0) > 8 =>
-            val v = "2.13.8"
-            T.log.outputStream.println(
-              s"Detected an unsupported Scala version (${BuildInfo.scalaVersion}). Using Scala version ${v} to resolve scoverage ${sv} reporting API."
-            )
-            v
-          case _ => BuildInfo.scalaVersion
-        }
-
-        val pluginDep =
-          Agg(ivy"org.scoverage:scalac-scoverage-plugin_${scalaVersion}:${sv}")
-
-        val deps = if (isScala3() && isScoverage2()) {
-          baseDeps
-        } else if (isScoverage2()) {
-          baseDeps ++ pluginDep
-        } else {
-          pluginDep
-        }
-        deps.map(bindDependency())
+        scoverageReporterIvyDeps().map(bindDependency())
       })()
   }
 
