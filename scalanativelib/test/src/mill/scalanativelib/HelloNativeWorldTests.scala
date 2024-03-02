@@ -30,18 +30,25 @@ object HelloNativeWorldTests extends TestSuite {
     override def mainClass = Some("hello.Main")
   }
 
-  val scala213 = "2.13.6"
-  val scalaNative04 = "0.4.2"
+  val scala213 = sys.props.getOrElse("TEST_SCALA_2_13_VERSION_FOR_SCALANATIVE_4_2", ???)
+  val scala31 = sys.props.getOrElse("TEST_SCALA_3_1_VERSION", ???)
+  val scala33 = sys.props.getOrElse("TEST_SCALA_3_3_VERSION", ???)
+  val scalaNative04Old = "0.4.2"
+  val scalaNative04 = sys.props.getOrElse("TEST_SCALANATIVE_0_4_VERSION", ???)
+  val scalaNative05 = sys.props.getOrElse("TEST_SCALANATIVE_0_5_VERSION", ???)
+  val utestVersion = sys.props.getOrElse("TEST_UTEST_VERSION", ???)
 
   object HelloNativeWorld extends TestUtil.BaseModule {
     implicit object ReleaseModeToSegments
         extends Cross.ToSegments[ReleaseMode](v => List(v.toString))
 
     val matrix = for {
-      scala <- Seq("3.2.1", "3.1.3", scala213, "2.12.13", "2.11.12")
-      scalaNative <- Seq(scalaNative04, "0.4.9")
+      scala <- Seq(scala33, scala31, scala213, "2.12.13", "2.11.12")
+      scalaNative <- Seq(scalaNative04Old, scalaNative04, scalaNative05)
       mode <- List(ReleaseMode.Debug, ReleaseMode.ReleaseFast)
-      if !(ZincWorkerUtil.isScala3(scala) && scalaNative == scalaNative04)
+      if !(ZincWorkerUtil.isScala3(scala) && scalaNative == scalaNative04Old)
+      if !(scala.startsWith("2.11") && scalaNative != scalaNative04Old)
+      if !(scala.startsWith("2.12") && scalaNative == scalaNative05)
     } yield (scala, scalaNative, mode)
 
     object helloNativeWorld extends Cross[RootModule](matrix)
@@ -64,7 +71,7 @@ object HelloNativeWorldTests extends TestSuite {
       object test extends ScalaNativeTests with TestModule.Utest {
         override def sources = T.sources { millSourcePath / "src" / "utest" }
         override def ivyDeps = super.ivyDeps() ++ Agg(
-          ivy"com.lihaoyi::utest::0.7.6"
+          ivy"com.lihaoyi::utest::$utestVersion"
         )
       }
     }
@@ -129,7 +136,7 @@ object HelloNativeWorldTests extends TestSuite {
         val Right((result, evalCount)) =
           helloWorldEvaluator(HelloNativeWorld.helloNativeWorld(
             scala213,
-            scalaNative04,
+            scalaNative04Old,
             ReleaseMode.Debug
           ).jar)
         val jar = result.path
@@ -155,7 +162,7 @@ object HelloNativeWorldTests extends TestSuite {
       }
       "artifactId_040" - testArtifactId(
         scala213,
-        scalaNative04,
+        scalaNative04Old,
         ReleaseMode.Debug,
         "hello-native-world_native0.4_2.13"
       )
@@ -202,14 +209,18 @@ object HelloNativeWorldTests extends TestSuite {
 
       testAllMatrix(
         (scala, scalaNative, releaseMode) => checkUtest(scala, scalaNative, releaseMode, cached),
-        skipScala = ZincWorkerUtil.isScala3 // Remove this once utest is released for Scala 3
+        skipScalaNative = v =>
+          v == scalaNative04Old ||
+            v.startsWith("0.5.") // Remove this once utest is released for Scala Native 0.5
       )
     }
     "testCached" - {
       val cached = true
       testAllMatrix(
         (scala, scalaNative, releaseMode) => checkUtest(scala, scalaNative, releaseMode, cached),
-        skipScala = ZincWorkerUtil.isScala3 // Remove this once utest is released for Scala 3
+        skipScalaNative = v =>
+          v == scalaNative04Old ||
+            v.startsWith("0.5.") // Remove this once utest is released for Scala Native 0.5
       )
     }
 
@@ -262,7 +273,7 @@ object HelloNativeWorldTests extends TestSuite {
       )
 
     val scalaNativeVersionSpecific =
-      if (scalaNativeVersion == scalaNative04) Set.empty
+      if (scalaNativeVersion == scalaNative04Old) Set.empty
       else Set("Main.nir", "ArgsParser.nir")
 
     common ++ scalaVersionSpecific ++ scalaNativeVersionSpecific

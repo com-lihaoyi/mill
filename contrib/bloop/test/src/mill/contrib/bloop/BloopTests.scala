@@ -63,7 +63,7 @@ object BloopTests extends TestSuite {
       val sv = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
       override def skipBloop: Boolean = isWin
       override def scalaVersion = sv
-      override def scalaNativeVersion = sys.props.getOrElse("TEST_SCALANATIVE_VERSION", ???)
+      override def scalaNativeVersion = sys.props.getOrElse("TEST_SCALANATIVE_0_4_VERSION", ???)
       override def releaseMode = T(ReleaseMode.Debug)
     }
 

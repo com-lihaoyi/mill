@@ -10,7 +10,7 @@ object ScalaTestsErrorTests extends TestSuite {
   object ScalaTestsError extends TestUtil.BaseModule {
     object scalaTestsError extends ScalaNativeModule {
       def scalaVersion = sys.props.getOrElse("TEST_SCALA_3_3_VERSION", ???)
-      def scalaNativeVersion = sys.props.getOrElse("TEST_SCALANATIVE_VERSION", ???)
+      def scalaNativeVersion = sys.props.getOrElse("TEST_SCALANATIVE_0_4_VERSION", ???)
       object test extends ScalaTests with TestModule.Utest
       object testDisabledError extends ScalaTests with TestModule.Utest {
         override def hierarchyChecks(): Unit = {}

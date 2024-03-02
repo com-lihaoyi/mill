@@ -58,7 +58,9 @@ object Deps {
   // The Scala 2.12.x version to use for some workers
   val workerScalaVersion212 = "2.12.18"
 
-  val testScala213Version = "2.13.8"
+  val testScala213Version = "2.13.10"
+  // Scala Native 4.2 will not get releases for new Scala version
+  val testScala213VersionForScalaNative42 = "2.13.8"
   val testScala212Version = "2.12.6"
   val testScala211Version = "2.11.12"
   val testScala210Version = "2.10.6"
@@ -80,6 +82,14 @@ object Deps {
 
   object Scalanative_0_4 {
     val scalanativeVersion = "0.4.17"
+    val scalanativeTools = ivy"org.scala-native::tools:${scalanativeVersion}"
+    val scalanativeUtil = ivy"org.scala-native::util:${scalanativeVersion}"
+    val scalanativeNir = ivy"org.scala-native::nir:${scalanativeVersion}"
+    val scalanativeTestRunner = ivy"org.scala-native::test-runner:${scalanativeVersion}"
+  }
+
+  object Scalanative_0_5 {
+    val scalanativeVersion = "0.5.0-RC1"
     val scalanativeTools = ivy"org.scala-native::tools:${scalanativeVersion}"
     val scalanativeUtil = ivy"org.scala-native::util:${scalanativeVersion}"
     val scalanativeNir = ivy"org.scala-native::nir:${scalanativeVersion}"
@@ -157,7 +167,7 @@ object Deps {
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.7.15" // scala-steward:off
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   val scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
-  val scoverage2Version = "2.0.11"
+  val scoverage2Version = "2.1.0"
   val scalacScoverage2Plugin = ivy"org.scoverage:::scalac-scoverage-plugin:${scoverage2Version}"
   val scalacScoverage2Reporter = ivy"org.scoverage::scalac-scoverage-reporter:${scoverage2Version}"
   val scalacScoverage2Domain = ivy"org.scoverage::scalac-scoverage-domain:${scoverage2Version}"
@@ -387,6 +397,7 @@ trait MillBaseTestsModule extends MillJavaModule with TestModule {
       s"-DMILL_SCALA_2_13_VERSION=${Deps.scalaVersion}",
       s"-DMILL_SCALA_2_12_VERSION=${Deps.workerScalaVersion212}",
       s"-DTEST_SCALA_2_13_VERSION=${Deps.testScala213Version}",
+      s"-DTEST_SCALA_2_13_VERSION_FOR_SCALANATIVE_4_2=${Deps.testScala213VersionForScalaNative42}",
       s"-DTEST_SCALA_2_12_VERSION=${Deps.testScala212Version}",
       s"-DTEST_SCALA_2_11_VERSION=${Deps.testScala211Version}",
       s"-DTEST_SCALA_2_10_VERSION=${Deps.testScala210Version}",
@@ -395,7 +406,8 @@ trait MillBaseTestsModule extends MillJavaModule with TestModule {
       s"-DTEST_SCALA_3_2_VERSION=${Deps.testScala32Version}",
       s"-DTEST_SCALA_3_3_VERSION=${Deps.testScala33Version}",
       s"-DTEST_SCALAJS_VERSION=${Deps.Scalajs_1.scalaJsVersion}",
-      s"-DTEST_SCALANATIVE_VERSION=${Deps.Scalanative_0_4.scalanativeVersion}",
+      s"-DTEST_SCALANATIVE_0_4_VERSION=${Deps.Scalanative_0_4.scalanativeVersion}",
+      s"-DTEST_SCALANATIVE_0_5_VERSION=${Deps.Scalanative_0_5.scalanativeVersion}",
       s"-DTEST_UTEST_VERSION=${Deps.utest.dep.version}",
       s"-DTEST_SCALATEST_VERSION=${Deps.TestDeps.scalaTest.dep.version}",
       s"-DTEST_TEST_INTERFACE_VERSION=${Deps.sbtTestInterface.dep.version}",
@@ -841,6 +853,7 @@ object contrib extends Module {
         Seq(
           s"-DMILL_SCOVERAGE_VERSION=${Deps.scalacScoveragePlugin.dep.version}",
           s"-DMILL_SCOVERAGE2_VERSION=${Deps.scalacScoverage2Plugin.dep.version}",
+          s"-DTEST_SCALA_2_13_VERSION_FOR_SCOVERAGE_1=${Deps.scalaVersionForScoverageWorker1}",
           s"-DTEST_SCALA_2_12_VERSION=2.12.15" // last supported 2.12 version for Scoverage 1.x
         )
     }
@@ -948,13 +961,13 @@ object contrib extends Module {
 
 object scalanativelib extends MillStableScalaModule {
   def moduleDeps = Seq(scalalib, scalanativelib.`worker-api`)
-  def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(worker("0.4").testDep())
+  def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(worker("0.4").testDep(), worker("0.5").testDep())
 
   object `worker-api` extends MillPublishScalaModule {
     def ivyDeps = Agg(Deps.sbtTestInterface)
   }
 
-  object worker extends Cross[WorkerModule]("0.4")
+  object worker extends Cross[WorkerModule]("0.4", "0.5")
 
   trait WorkerModule extends MillPublishScalaModule with Cross.Module[String] {
     def scalaNativeWorkerVersion = crossValue
@@ -962,6 +975,14 @@ object scalanativelib extends MillStableScalaModule {
     def testDepPaths = T { Seq(compile().classes) }
     def moduleDeps = Seq(scalanativelib.`worker-api`)
     def ivyDeps = scalaNativeWorkerVersion match {
+      case "0.5" =>
+        Agg(
+          Deps.osLib,
+          Deps.Scalanative_0_5.scalanativeTools,
+          Deps.Scalanative_0_5.scalanativeUtil,
+          Deps.Scalanative_0_5.scalanativeNir,
+          Deps.Scalanative_0_5.scalanativeTestRunner
+        )
       case "0.4" =>
         Agg(
           Deps.osLib,
