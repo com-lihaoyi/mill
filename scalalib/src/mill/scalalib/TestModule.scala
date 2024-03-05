@@ -12,12 +12,27 @@ trait TestModule extends TaskModule with TestModule.JavaModuleBase {
   def forkArgs: T[Seq[String]]
   def runClasspath: T[Seq[PathRef]]
   def forkEnv: T[Map[String, String]]
+  // FIXME: This is no longer needed, but we keep it for binary compatibility reasons
   def compile: T[mill.scalalib.api.CompilationResult]
   def forkWorkingDir: T[os.Path]
   def zincWorker: ModuleRef[ZincWorkerModule]
   def runUseArgsFile: T[Boolean]
 
   override def defaultCommandName() = "test"
+
+  /**
+   * The classpath containing the tests. This is most likely the output of the compilation target.
+   */
+  def testClasspath: T[Seq[PathRef]] = {
+    this match {
+      case m: JavaModule => T {
+          Seq(m.compile().classes)
+        }
+      case _ => T {
+          Seq.empty[PathRef]
+        }
+    }
+  }
 
   /**
    * The test framework to use.
@@ -109,7 +124,7 @@ trait TestModule extends TaskModule with TestModule.JavaModuleBase {
         sysProps = props,
         outputPath = outputPath,
         colored = T.log.colored,
-        testCp = compile().classes.path,
+        testCp = testClasspath().map(_.path),
         home = T.home,
         globSelectors = globSelectors()
       )
@@ -153,7 +168,7 @@ trait TestModule extends TaskModule with TestModule.JavaModuleBase {
     val (doneMsg, results) = TestRunner.runTestFramework(
       Framework.framework(testFramework()),
       runClasspath().map(_.path),
-      Agg(compile().classes.path),
+      Agg.from(testClasspath().map(_.path)),
       args,
       T.testReporter
     )
