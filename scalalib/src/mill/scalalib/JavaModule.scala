@@ -23,19 +23,18 @@ import os.{Path, ProcessOutput}
  */
 trait JavaModule
     extends mill.Module
+    with TestModule.JavaModuleBase
     with TaskModule
     with RunBaseModule
     with GenIdeaModule
     with CoursierModule
     with OfflineSupportModule
     with BspModule
-    with SemanticDbJavaModule
-    with TestModule.JavaModuleBase { outer =>
+    with SemanticDbJavaModule { outer =>
 
   def zincWorker: ModuleRef[ZincWorkerModule] = ModuleRef(mill.scalalib.ZincWorkerModule)
 
   trait JavaModuleTests extends JavaModule with TestModule {
-    override def testRunModule: ModuleRef[_ <: RunBaseModule] = ModuleRef(this)
     // Run some consistence checks
     hierarchyChecks()
 

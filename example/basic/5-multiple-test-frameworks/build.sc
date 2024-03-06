@@ -1,5 +1,6 @@
 import mill._
 import mill.define.ModuleRef
+import mill.scalalib.api.CompilationResult
 import scalalib._
 
 object foo extends RootModule with ScalaModule {
@@ -16,12 +17,14 @@ object foo extends RootModule with ScalaModule {
     )
     def testFramework = "utest.runner.Framework"
   }
-  object test2 extends TestModule with TestModule.ScalaTest {
-    def testRunModule = ModuleRef(foo.test)
+  object test2 extends RunModule with TestModule with TestModule.ScalaTest {
+    override def compile: T[CompilationResult] = ???
+    override def runClasspath: T[Seq[PathRef]] = foo.test.runClasspath()
     override def testClasspath = foo.test.testClasspath()
   }
 }
 
+// format: off
 /** Usage
 
 > mill resolve __:TestModule.test
@@ -46,3 +49,4 @@ Suites: completed 1, aborted 0
 Tests: succeeded 2, failed 0, canceled 0, ignored 0, pending 0
 
 */
+// format: on

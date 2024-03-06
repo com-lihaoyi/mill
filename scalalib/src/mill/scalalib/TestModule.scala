@@ -1,15 +1,13 @@
 package mill.scalalib
 
 import mill.{Agg, T}
-import mill.define.{Command, ModuleRef, Task, TaskModule}
+import mill.define.{Command, Task, TaskModule}
 import mill.api.{Ctx, PathRef, Result}
 import mill.util.Jvm
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.testrunner.{Framework, TestArgs, TestResult, TestRunner}
 
 trait TestModule extends TaskModule with TestModule.JavaModuleBase with RunBaseModule {
-  // This is a TestModule for now, since everything about `run` is not in a separate trait yet
-  def testRunModule: ModuleRef[_ <: RunBaseModule] = ModuleRef(this)
 
   // FIXME: These are no longer needed, but we keep it for binary compatibility reasons
   def compile: T[mill.scalalib.api.CompilationResult]
@@ -80,7 +78,7 @@ trait TestModule extends TaskModule with TestModule.JavaModuleBase with RunBaseM
    * Defaults to `true` on Windows, as Windows has a rather short parameter length limit.
    */
   def testUseArgsFile: T[Boolean] =
-    T { testRunModule().runUseArgsFile() || scala.util.Properties.isWin }
+    T { runUseArgsFile() || scala.util.Properties.isWin }
 
   protected def testTask(
       args: Task[Seq[String]],
@@ -92,7 +90,7 @@ trait TestModule extends TaskModule with TestModule.JavaModuleBase with RunBaseM
 
       val (jvmArgs, props: Map[String, String]) =
         if (useArgsFile) {
-          val (props, jvmArgs) = testRunModule().forkArgs().partition(_.startsWith("-D"))
+          val (props, jvmArgs) = forkArgs().partition(_.startsWith("-D"))
           val sysProps =
             props
               .map(_.drop(2).split("[=]", 2))
@@ -104,12 +102,12 @@ trait TestModule extends TaskModule with TestModule.JavaModuleBase with RunBaseM
 
           jvmArgs -> sysProps
         } else {
-          testRunModule().forkArgs() -> Map()
+          forkArgs() -> Map()
         }
 
       val testArgs = TestArgs(
         framework = testFramework(),
-        classpath = testRunModule().runClasspath().map(_.path),
+        classpath = runClasspath().map(_.path),
         arguments = args(),
         sysProps = props,
         outputPath = outputPath,
@@ -119,7 +117,7 @@ trait TestModule extends TaskModule with TestModule.JavaModuleBase with RunBaseM
         globSelectors = globSelectors()
       )
 
-      val testRunnerClasspathArg = testRunModule().zincWorker().scalalibClasspath()
+      val testRunnerClasspathArg = zincWorker().scalalibClasspath()
         .map(_.path.toNIO.toUri.toURL)
         .mkString(",")
 
@@ -130,13 +128,13 @@ trait TestModule extends TaskModule with TestModule.JavaModuleBase with RunBaseM
       Jvm.runSubprocess(
         mainClass = "mill.testrunner.entrypoint.TestRunnerMain",
         classPath =
-          (testRunModule().runClasspath() ++ testRunModule().zincWorker().testrunnerEntrypointClasspath()).map(
+          (runClasspath() ++ zincWorker().testrunnerEntrypointClasspath()).map(
             _.path
           ),
         jvmArgs = jvmArgs,
-        envArgs = testRunModule().forkEnv(),
+        envArgs = forkEnv(),
         mainArgs = mainArgs,
-        workingDir = testRunModule().forkWorkingDir(),
+        workingDir = forkWorkingDir(),
         useCpPassingJar = useArgsFile
       )
 
@@ -160,7 +158,7 @@ trait TestModule extends TaskModule with TestModule.JavaModuleBase with RunBaseM
   def testLocal(args: String*): Command[(String, Seq[TestResult])] = T.command {
     val (doneMsg, results) = TestRunner.runTestFramework(
       Framework.framework(testFramework()),
-      testRunModule().runClasspath().map(_.path),
+      runClasspath().map(_.path),
       Agg.from(testClasspath().map(_.path)),
       args,
       T.testReporter
