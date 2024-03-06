@@ -7,31 +7,20 @@ import mill.util.Jvm
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.testrunner.{Framework, TestArgs, TestResult, TestRunner}
 
-trait TestModule extends TaskModule with TestModule.JavaModuleBase {
+trait TestModule extends TaskModule with TestModule.JavaModuleBase with RunBaseModule {
+  // This is a TestModule for now, since everything about `run` is not in a separate trait yet
+  def testRunModule: ModuleRef[_ <: RunBaseModule] = ModuleRef(this)
 
-  def forkArgs: T[Seq[String]]
-  def runClasspath: T[Seq[PathRef]]
-  def forkEnv: T[Map[String, String]]
-  // FIXME: This is no longer needed, but we keep it for binary compatibility reasons
+  // FIXME: These are no longer needed, but we keep it for binary compatibility reasons
   def compile: T[mill.scalalib.api.CompilationResult]
-  def forkWorkingDir: T[os.Path]
-  def zincWorker: ModuleRef[ZincWorkerModule]
-  def runUseArgsFile: T[Boolean]
 
   override def defaultCommandName() = "test"
 
   /**
    * The classpath containing the tests. This is most likely the output of the compilation target.
    */
-  def testClasspath: T[Seq[PathRef]] = {
-    this match {
-      case m: JavaModule => T {
-          Seq(m.compile().classes)
-        }
-      case _ => T {
-          Seq.empty[PathRef]
-        }
-    }
+  def testClasspath: T[Seq[PathRef]] = T {
+    Seq(compile().classes)
   }
 
   /**
@@ -90,7 +79,8 @@ trait TestModule extends TaskModule with TestModule.JavaModuleBase {
    * Controls whether the TestRunner should receive it's arguments via an args-file instead of a as long parameter list.
    * Defaults to `true` on Windows, as Windows has a rather short parameter length limit.
    */
-  def testUseArgsFile: T[Boolean] = T { runUseArgsFile() || scala.util.Properties.isWin }
+  def testUseArgsFile: T[Boolean] =
+    T { testRunModule().runUseArgsFile() || scala.util.Properties.isWin }
 
   protected def testTask(
       args: Task[Seq[String]],
@@ -102,7 +92,7 @@ trait TestModule extends TaskModule with TestModule.JavaModuleBase {
 
       val (jvmArgs, props: Map[String, String]) =
         if (useArgsFile) {
-          val (props, jvmArgs) = forkArgs().partition(_.startsWith("-D"))
+          val (props, jvmArgs) = testRunModule().forkArgs().partition(_.startsWith("-D"))
           val sysProps =
             props
               .map(_.drop(2).split("[=]", 2))
@@ -114,12 +104,12 @@ trait TestModule extends TaskModule with TestModule.JavaModuleBase {
 
           jvmArgs -> sysProps
         } else {
-          forkArgs() -> Map()
+          testRunModule().forkArgs() -> Map()
         }
 
       val testArgs = TestArgs(
         framework = testFramework(),
-        classpath = runClasspath().map(_.path),
+        classpath = testRunModule().runClasspath().map(_.path),
         arguments = args(),
         sysProps = props,
         outputPath = outputPath,
@@ -129,7 +119,7 @@ trait TestModule extends TaskModule with TestModule.JavaModuleBase {
         globSelectors = globSelectors()
       )
 
-      val testRunnerClasspathArg = zincWorker().scalalibClasspath()
+      val testRunnerClasspathArg = testRunModule().zincWorker().scalalibClasspath()
         .map(_.path.toNIO.toUri.toURL)
         .mkString(",")
 
@@ -139,11 +129,14 @@ trait TestModule extends TaskModule with TestModule.JavaModuleBase {
 
       Jvm.runSubprocess(
         mainClass = "mill.testrunner.entrypoint.TestRunnerMain",
-        classPath = (runClasspath() ++ zincWorker().testrunnerEntrypointClasspath()).map(_.path),
+        classPath =
+          (testRunModule().runClasspath() ++ testRunModule().zincWorker().testrunnerEntrypointClasspath()).map(
+            _.path
+          ),
         jvmArgs = jvmArgs,
-        envArgs = forkEnv(),
+        envArgs = testRunModule().forkEnv(),
         mainArgs = mainArgs,
-        workingDir = forkWorkingDir(),
+        workingDir = testRunModule().forkWorkingDir(),
         useCpPassingJar = useArgsFile
       )
 
@@ -167,7 +160,7 @@ trait TestModule extends TaskModule with TestModule.JavaModuleBase {
   def testLocal(args: String*): Command[(String, Seq[TestResult])] = T.command {
     val (doneMsg, results) = TestRunner.runTestFramework(
       Framework.framework(testFramework()),
-      runClasspath().map(_.path),
+      testRunModule().runClasspath().map(_.path),
       Agg.from(testClasspath().map(_.path)),
       args,
       T.testReporter

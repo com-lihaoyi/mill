@@ -112,7 +112,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
       targetIds = _ => p.getTargets.asScala.toSeq,
       tasks = {
         case m: TestModule =>
-          T.task(Some((m.runClasspath(), m.testFramework(), m.testClasspath())))
+          T.task(Some((m.testRunModule().runClasspath(), m.testFramework(), m.testClasspath())))
         case _ =>
           T.task(None)
       }

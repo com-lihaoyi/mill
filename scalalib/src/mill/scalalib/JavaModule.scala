@@ -24,6 +24,7 @@ import os.{Path, ProcessOutput}
 trait JavaModule
     extends mill.Module
     with TaskModule
+    with RunBaseModule
     with GenIdeaModule
     with CoursierModule
     with OfflineSupportModule
@@ -34,6 +35,7 @@ trait JavaModule
   def zincWorker: ModuleRef[ZincWorkerModule] = ModuleRef(mill.scalalib.ZincWorkerModule)
 
   trait JavaModuleTests extends JavaModule with TestModule {
+    override def testRunModule: ModuleRef[_ <: RunBaseModule] = ModuleRef(this)
     // Run some consistence checks
     hierarchyChecks()
 
@@ -49,6 +51,13 @@ trait JavaModule
       for (src <- outer.sources()) yield {
         PathRef(this.millSourcePath / src.path.relativeTo(outer.millSourcePath))
       }
+    }
+
+    /**
+     * The classpath containing the tests. This defaults to the compilation output.
+     */
+    def testClasspath: T[Seq[PathRef]] = T {
+      Seq(compile().classes)
     }
 
     /**
