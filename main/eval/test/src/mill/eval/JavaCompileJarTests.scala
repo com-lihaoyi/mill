@@ -157,14 +157,14 @@ object JavaCompileJarTests extends TestSuite {
         evaluator.outPath / "jar.dest" / "out.jar",
         "test.Foo"
       ).call(evaluator.outPath).out.text()
-      assert(executed == (31337 + 271828) + System.lineSeparator)
+      assert(executed == s"${31337 + 271828}${System.lineSeparator}")
 
       for (i <- 0 until 3) {
         // Build.run is not cached, so every time we eval it it has to
         // re-evaluate
         val Right((runOutput, evalCount)) = eval(Build.run("test.Foo"))
         assert(
-          runOutput.out.text() == (31337 + 271828) + System.lineSeparator,
+          runOutput.out.text() == s"${31337 + 271828}${System.lineSeparator}",
           evalCount == 1
         )
       }

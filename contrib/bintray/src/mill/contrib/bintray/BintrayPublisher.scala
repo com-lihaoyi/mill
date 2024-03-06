@@ -89,7 +89,7 @@ class BintrayPublisher(
         if !response.is2xx
       } yield artifact -> s"Code: ${response.statusCode}, message: ${response.text()}"
 
-    val errorsByArtifact = errors.groupBy(_._1).mapValues(_.map(_._2)).toSeq
+    val errorsByArtifact = errors.groupBy(_._1).view.mapValues(_.map(_._2)).toSeq
 
     if (errorsByArtifact.nonEmpty) {
       throw new RuntimeException(

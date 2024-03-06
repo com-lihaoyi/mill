@@ -196,7 +196,7 @@ object ResolvedCalls {
       seen.add(current)
       seenList.append(current)
 
-      for (next <- edges(current)) {
+      for (next <- edges(current).iterator) {
         if (!seen.contains(next)) queued.enqueue(next)
       }
     }

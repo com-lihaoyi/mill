@@ -27,7 +27,7 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
    * under pwd/.bloop.
    */
   def install() = T.command {
-    val res = T.traverse(computeModules)(_.bloop.writeConfig)()
+    val res = T.traverse(computeModules)(_.bloop.writeConfigFile())()
     val written = res.map(_._2).map(_.path)
     // Make bloopDir if it doesn't exists
     if (!os.exists(bloopDir)) {

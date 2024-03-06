@@ -3,6 +3,7 @@ import scala.collection.mutable.LinkedHashMap
 import upickle.default.{ReadWriter, readwriter, stringKeyRW}
 
 import scala.annotation.switch
+import scala.collection.immutable.ArraySeq
 
 // This file contains typed data structures representing the types and values
 // found in the JVM bytecode: various kinds of types, method signatures, method
@@ -223,7 +224,10 @@ object JvmModel {
         args.addOne(JType.read(s.substring(index, split + 1)))
         index = split + 1
       }
-      new Desc(args.result(), JType.read(s.substring(closeParenIndex + 1)))
+      new Desc(
+        ArraySeq.unsafeWrapArray(args.result()),
+        JType.read(s.substring(closeParenIndex + 1))
+      )
     }
 
     implicit val ordering: Ordering[Desc] = Ordering.by(_.pretty)

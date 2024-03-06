@@ -36,7 +36,6 @@ object SmallModulesForTests extends TestSuite {
       test("it should have a single publicModule") {
         assert(publicModules.size == 1)
       }
-      val mainModule = publicModules.head
       val modulesLength = os.list(report.dest.path).length
       test("my.Foo should not have its own file since it is in a separate package") {
         assert(!os.exists(report.dest.path / "otherpackage.Foo.js"))
