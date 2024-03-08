@@ -1896,7 +1896,8 @@ val dummyDeps: Seq[Dep] = Seq(
   Deps.TestDeps.scalaTest,
   Deps.TestDeps.zioTest,
   Deps.acyclic,
-  Deps.scalacScoverage2Plugin
+  Deps.scalacScoverage2Plugin,
+  ivy"com.lihaoyi:::ammonite:${Deps.ammoniteVersion}"
 ) ++ Deps.transitiveDeps
 
 implicit object DepSegment extends Cross.ToSegments[Dep]({ dep =>
