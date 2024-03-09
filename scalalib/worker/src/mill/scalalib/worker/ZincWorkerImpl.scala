@@ -20,6 +20,7 @@ import sbt.internal.util.{ConsoleAppender, ConsoleOut}
 import sbt.mill.SbtLoggerUtils
 import xsbti.compile.{
   AnalysisContents,
+  AuxiliaryClassFiles,
   ClasspathOptions,
   CompileAnalysis,
   CompileOrder,
@@ -27,7 +28,10 @@ import xsbti.compile.{
   IncOptions,
   JavaTools,
   MiniSetup,
-  PreviousResult
+  PreviousResult,
+  ScalaJSFiles,
+  ScalaNativeFiles,
+  TastyFiles
 }
 import xsbti.{PathBasedFile, VirtualFile}
 
@@ -303,6 +307,7 @@ class ZincWorkerImpl(
       compileClasspath = compileClasspath,
       javacOptions = javacOptions,
       scalacOptions = Nil,
+      platformSuffix = "",
       compilers = javaOnlyCompilers(javacOptions),
       reporter = reporter,
       reportCachedProblems = reportCachedProblems,
@@ -316,6 +321,7 @@ class ZincWorkerImpl(
       compileClasspath: Agg[os.Path],
       javacOptions: Seq[String],
       scalaVersion: String,
+      platformSuffix: String,
       scalaOrganization: String,
       scalacOptions: Seq[String],
       compilerClasspath: Agg[PathRef],
@@ -337,6 +343,7 @@ class ZincWorkerImpl(
         compileClasspath = compileClasspath,
         javacOptions = javacOptions,
         scalacOptions = scalacOptions,
+        platformSuffix = platformSuffix,
         compilers = compilers,
         reporter = reporter,
         reportCachedProblems: Boolean,
@@ -420,6 +427,7 @@ class ZincWorkerImpl(
       compileClasspath: Agg[os.Path],
       javacOptions: Seq[String],
       scalacOptions: Seq[String],
+      platformSuffix: String,
       compilers: Compilers,
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
@@ -496,6 +504,25 @@ class ZincWorkerImpl(
       .map(path => converter.toVirtualFile(path.toNIO))
       .toArray
 
+    val incOptions = {
+      val platformSpecificFiles: Array[AuxiliaryClassFiles] = platformSuffix match {
+        case s"_sjs$_" => Array(ScalaJSFiles.instance())
+        case s"_native$_" => Array(ScalaNativeFiles.instance())
+        case _ => Array.empty[AuxiliaryClassFiles]
+      }
+
+      val scalaVersionSpecificFiles: Array[AuxiliaryClassFiles] =
+        if (ZincWorkerUtil.isDottyOrScala3(compilers.scalac().scalaInstance().version()))
+          Array(TastyFiles.instance())
+        else
+          Array.empty[AuxiliaryClassFiles]
+
+      val auxiliaryClassFiles: Array[AuxiliaryClassFiles] =
+        platformSpecificFiles ++ scalaVersionSpecificFiles
+
+      IncOptions.of().withAuxiliaryClassFiles(auxiliaryClassFiles)
+    }
+
     val inputs = ic.inputs(
       classpath = classpath,
       sources = virtualSources,
@@ -512,7 +539,7 @@ class ZincWorkerImpl(
         skip = false,
         cacheFile = zincFile.toNIO,
         cache = new FreshCompilerCache,
-        incOptions = IncOptions.of(),
+        incOptions = incOptions,
         reporter = newReporter,
         progress = None,
         earlyAnalysisStore = None,
