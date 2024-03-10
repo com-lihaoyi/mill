@@ -139,8 +139,8 @@ object BuildInfo {
          |public class $buildInfoObjectName {
          |  $bindingsCode
          |
-         |  public static java.util.Map<String, String> toMap() {
-         |    Map<String, String> map = new HashMap<String, String>();
+         |  public static java.util.Map<java.lang.String, java.lang.String> toMap() {
+         |    java.util.Map<java.lang.String, java.lang.String> map = new java.util.HashMap<java.lang.String, java.lang.String>();
          |    $mapEntries
          |    return map;
          |  }
