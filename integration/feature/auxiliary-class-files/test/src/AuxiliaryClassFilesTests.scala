@@ -39,7 +39,14 @@ object AuxiliaryClassFilesTests extends IntegrationTestSuite {
 
       val secondRun = os.list(classes).map(_.last)
 
-      assert(firstRun == Seq("bar$.class", "bar.class", "bar.tasty", "foo$.class", "foo.class", "foo.tasty"))
+      assert(firstRun == Seq(
+        "bar$.class",
+        "bar.class",
+        "bar.tasty",
+        "foo$.class",
+        "foo.class",
+        "foo.tasty"
+      ))
       assert(secondRun == Seq.empty)
     }
 
