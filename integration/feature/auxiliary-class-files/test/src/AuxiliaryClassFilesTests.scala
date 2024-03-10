@@ -7,14 +7,14 @@ object AuxiliaryClassFilesTests extends IntegrationTestSuite {
   val tests: Tests = Tests {
     test("tasty files are deleted together with companion class files") {
       initWorkspace()
-      eval("app.jvm.compile")
+      assert(eval("app.jvm.compile"))
 
       val classes = wd / "out" / "app" / "jvm" / "compile.dest" / "classes"
       val firstRun = os.list(classes).map(_.last)
 
       os.remove(wd / "app" / "src" / "foo.scala")
 
-      eval("app.jvm.compile")
+      assert(eval("app.jvm.compile"))
 
       val secondRun = os.list(classes).map(_.last)
 
@@ -45,14 +45,14 @@ object AuxiliaryClassFilesTests extends IntegrationTestSuite {
 
     test("nir files are deleted together with companion class files") {
       initWorkspace()
-      eval("app.native.compile")
+      assert(eval("app.native.compile"))
 
       val classes = wd / "out" / "app" / "native" / "compile.dest" / "classes"
       val firstRun = os.list(classes).map(_.last)
 
       os.remove(wd / "app" / "src" / "foo.scala")
 
-      eval("app.native.compile")
+      assert(eval("app.native.compile"))
 
       val secondRun = os.list(classes).map(_.last)
 
@@ -62,14 +62,14 @@ object AuxiliaryClassFilesTests extends IntegrationTestSuite {
 
     test("sjsir files are deleted together with companion class files") {
       initWorkspace()
-      eval("app.js.compile")
+      assert(eval("app.js.compile"))
 
       val classes = wd / "out" / "app" / "js" / "compile.dest" / "classes"
       val firstRun = os.list(classes).map(_.last)
 
       os.remove(wd / "app" / "src" / "foo.scala")
 
-      eval("app.js.compile")
+      assert(eval("app.js.compile"))
 
       val secondRun = os.list(classes).map(_.last)
 
