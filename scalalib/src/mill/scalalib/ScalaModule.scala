@@ -550,8 +550,10 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   }
 
   override def auxiliaryClassFileExtensions: T[Seq[String]] = T {
-    if (ZincWorkerUtil.isScala3(scalaVersion())) Seq("tasty")
-    else Seq.empty[String]
+    super.auxiliaryClassFileExtensions() ++ (
+      if (ZincWorkerUtil.isScala3(scalaVersion())) Seq("tasty")
+      else Seq.empty[String]
+    )
   }
 
   override def artifactSuffix: T[String] = s"${platformSuffix()}_${artifactScalaVersion()}"

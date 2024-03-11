@@ -441,6 +441,10 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
     ),
     // See https://github.com/com-lihaoyi/mill/pull/3072
     ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.scalalib.ScalaModule.mill$scalalib$ScalaModule$$super$auxiliaryClassFileExtensions"
+    ),
+    // See https://github.com/com-lihaoyi/mill/pull/3072
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
       "mill.scalajslib.ScalaJSModule.mill$scalajslib$ScalaJSModule$$super$auxiliaryClassFileExtensions"
     ),
     // See https://github.com/com-lihaoyi/mill/pull/3072
