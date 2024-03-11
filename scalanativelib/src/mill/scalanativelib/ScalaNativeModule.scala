@@ -335,7 +335,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     }
   }
 
-  override protected def auxiliaryClassFileExtensions: T[Seq[String]] =
+  override def auxiliaryClassFileExtensions: T[Seq[String]] =
     super.auxiliaryClassFileExtensions() :+ "nir"
 
 }

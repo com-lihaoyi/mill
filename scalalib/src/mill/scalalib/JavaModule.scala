@@ -1007,6 +1007,11 @@ trait JavaModule
   def forkWorkingDir: T[Path] = T { T.workspace }
 
   /**
+   * Files extensions that need to be managed by Zinc together with class files
+   */
+  def auxiliaryClassFileExtensions: T[Seq[String]] = T { Seq.empty[String] }
+
+  /**
    * @param all If `true` fetches also source dependencies
    */
   override def prepareOffline(all: Flag): Command[Unit] = {

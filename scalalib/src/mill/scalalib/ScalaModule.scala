@@ -549,10 +549,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     else ZincWorkerUtil.scalaBinaryVersion(scalaVersion())
   }
 
-  /**
-   * Files extensions that need to be managed by Zinc together with class files
-   */
-  protected def auxiliaryClassFileExtensions: T[Seq[String]] = T {
+  override def auxiliaryClassFileExtensions: T[Seq[String]] = T {
     if (ZincWorkerUtil.isScala3(scalaVersion())) Seq("tasty")
     else Seq.empty[String]
   }
