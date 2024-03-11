@@ -26,7 +26,7 @@ trait JavaModule
     with ZincWorkerAware
     with TestModule.JavaModuleBase
     with TaskModule
-    with RunBaseModule
+    with RunModule
     with GenIdeaModule
     with CoursierModule
     with OfflineSupportModule
@@ -524,7 +524,10 @@ trait JavaModule
    * necessary to run this module's code after compilation
    */
   def runClasspath: T[Seq[PathRef]] = T {
-    resolvedRunIvyDeps().toSeq ++ transitiveLocalClasspath() ++ localClasspath()
+    super.runClasspath() ++
+      resolvedRunIvyDeps().toSeq ++
+      transitiveLocalClasspath() ++
+      localClasspath()
   }
 
   /**
@@ -795,9 +798,6 @@ trait JavaModule
       }
     }
   }
-
-  /** Control whether `run*`-targets should use an args file to pass command line args, if possible. */
-  def runUseArgsFile: T[Boolean] = T { scala.util.Properties.isWin }
 
   /**
    * Runs this module's code in-process within an isolated classloader. This is

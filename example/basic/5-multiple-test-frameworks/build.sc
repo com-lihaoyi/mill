@@ -17,7 +17,7 @@ object foo extends RootModule with ScalaModule {
     )
     def testFramework = "utest.runner.Framework"
   }
-  object test2 extends RunModule with TestModule with TestModule.ScalaTest {
+  object test2 extends TestModule with TestModule.ScalaTest {
     override def compile: T[CompilationResult] = ???
     override def runClasspath: T[Seq[PathRef]] = foo.test.runClasspath()
     override def testClasspath = foo.test.testClasspath()

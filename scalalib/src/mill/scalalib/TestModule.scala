@@ -7,8 +7,11 @@ import mill.util.Jvm
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.testrunner.{Framework, TestArgs, TestResult, TestRunner}
 
-trait TestModule extends TaskModule with TestModule.JavaModuleBase with RunBaseModule {
-
+trait TestModule
+    extends TestModule.JavaModuleBase
+    with ZincWorkerAware
+    with RunModule
+    with TaskModule {
   // FIXME: These are no longer needed, but we keep it for binary compatibility reasons
   def compile: T[mill.scalalib.api.CompilationResult]
 
@@ -17,9 +20,11 @@ trait TestModule extends TaskModule with TestModule.JavaModuleBase with RunBaseM
   /**
    * The classpath containing the tests. This is most likely the output of the compilation target.
    */
-  def testClasspath: T[Seq[PathRef]] = T {
-    Seq(compile().classes)
-  }
+  def testClasspath: T[Seq[PathRef]]
+//  =
+//    T {
+//    Seq(compile().classes)
+//  }
 
   /**
    * The test framework to use.
