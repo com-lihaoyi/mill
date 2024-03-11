@@ -12,6 +12,7 @@ trait TestModule
     with ZincWorkerAware
     with RunModule
     with TaskModule {
+
   // FIXME: These are no longer needed, but we keep it for binary compatibility reasons
   def compile: T[mill.scalalib.api.CompilationResult]
 
