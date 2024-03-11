@@ -1,7 +1,6 @@
 import mill._
-import mill.define.ModuleRef
+import mill.scalalib._
 import mill.scalalib.api.CompilationResult
-import scalalib._
 
 object foo extends RootModule with ScalaModule {
   def scalaVersion = "2.13.11"
