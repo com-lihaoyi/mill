@@ -18,7 +18,7 @@ trait DockerModule { outer: JavaModule =>
     def labels: T[Map[String, String]] = Map.empty[String, String]
     def baseImage: T[String] = "gcr.io/distroless/java:latest"
     def pullBaseImage: T[Boolean] = T(baseImage().endsWith(":latest"))
-    def jvmArgs: T[Seq[String]] = Seq.empty[String]
+    def jvmOptions: T[Seq[String]] = Seq.empty[String]
 
     /**
      * TCP Ports the container will listen to at runtime.
@@ -114,7 +114,7 @@ trait DockerModule { outer: JavaModule =>
         if (user().isEmpty) "" else s"USER ${user()}"
       ).filter(_.nonEmpty).mkString(sys.props("line.separator"))
 
-      val quotedEntryPointArgs = (Seq("java") ++ jvmArgs() ++ Seq("-jar", s"/$jarName"))
+      val quotedEntryPointArgs = (Seq("java") ++ jvmOptions() ++ Seq("-jar", s"/$jarName"))
         .map(arg => s"\"$arg\"").mkString(", ")
 
       s"""

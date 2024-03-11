@@ -37,9 +37,9 @@ object DockerModuleTest extends TestSuite {
       override def executable = testExecutable
     }
 
-    object dockerJvmArgs extends DockerConfig {
+    object dockerJvmOptions extends DockerConfig {
       override def executable = testExecutable
-      override def jvmArgs = Seq("-Xmx1024M")
+      override def jvmOptions = Seq("-Xmx1024M")
     }
   }
 
@@ -138,9 +138,9 @@ object DockerModuleTest extends TestSuite {
         assert(dockerfileStringRefined == expected)
       }
 
-      "extra jvm args" - {
+      "extra jvm options" - {
         val eval = new TestEvaluator(Docker)
-        val Right((dockerfileString, _)) = eval(Docker.dockerJvmArgs.dockerfile)
+        val Right((dockerfileString, _)) = eval(Docker.dockerJvmOptions.dockerfile)
         val expected = multineRegex.replaceAllIn(
           """
             |FROM gcr.io/distroless/java:latest
