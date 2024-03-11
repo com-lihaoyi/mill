@@ -36,6 +36,11 @@ object DockerModuleTest extends TestSuite {
       override def user = "user1"
       override def executable = testExecutable
     }
+
+    object dockerJvmOptions extends DockerConfig {
+      override def executable = testExecutable
+      override def jvmOptions = Seq("-Xmx1024M")
+    }
   }
 
   val testArtifactName = "mill-docker-contrib-test"
@@ -124,6 +129,23 @@ object DockerModuleTest extends TestSuite {
             |USER user1
             |COPY out.jar /out.jar
             |ENTRYPOINT ["java", "-jar", "/out.jar"]""".stripMargin,
+          sys.props("line.separator")
+        )
+        val dockerfileStringRefined = multineRegex.replaceAllIn(
+          dockerfileString,
+          sys.props("line.separator")
+        )
+        assert(dockerfileStringRefined == expected)
+      }
+
+      "extra jvm options" - {
+        val eval = new TestEvaluator(Docker)
+        val Right((dockerfileString, _)) = eval(Docker.dockerJvmOptions.dockerfile)
+        val expected = multineRegex.replaceAllIn(
+          """
+            |FROM gcr.io/distroless/java:latest
+            |COPY out.jar /out.jar
+            |ENTRYPOINT ["java", "-Xmx1024M", "-jar", "/out.jar"]""".stripMargin,
           sys.props("line.separator")
         )
         val dockerfileStringRefined = multineRegex.replaceAllIn(

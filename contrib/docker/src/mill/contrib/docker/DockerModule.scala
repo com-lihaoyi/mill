@@ -20,6 +20,16 @@ trait DockerModule { outer: JavaModule =>
     def pullBaseImage: T[Boolean] = T(baseImage().endsWith(":latest"))
 
     /**
+     * JVM runtime options. Each item of the Seq should consist of an option and its desired value, like
+     * {{{
+     * def jvmOptions = Seq("-Xmx1024M", "-agentlib:jdwp=transport=dt_socket,server=y,address=8000", …)
+     * }}}
+     * For a full list of options consult the official documentation at
+     * [[https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html#overview-of-java-options]]
+     */
+    def jvmOptions: T[Seq[String]] = Seq.empty[String]
+
+    /**
      * TCP Ports the container will listen to at runtime.
      *
      * See also the Docker docs on
@@ -113,11 +123,14 @@ trait DockerModule { outer: JavaModule =>
         if (user().isEmpty) "" else s"USER ${user()}"
       ).filter(_.nonEmpty).mkString(sys.props("line.separator"))
 
+      val quotedEntryPointArgs = (Seq("java") ++ jvmOptions() ++ Seq("-jar", s"/$jarName"))
+        .map(arg => s"\"$arg\"").mkString(", ")
+
       s"""
          |FROM ${baseImage()}
          |$lines
          |COPY $jarName /$jarName
-         |ENTRYPOINT ["java", "-jar", "/$jarName"]""".stripMargin
+         |ENTRYPOINT [$quotedEntryPointArgs]""".stripMargin
     }
 
     final def build = T {
