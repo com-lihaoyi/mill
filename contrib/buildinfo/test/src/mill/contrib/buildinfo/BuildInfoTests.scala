@@ -207,6 +207,19 @@ object BuildInfoTests extends TestSuite {
       )
     }
 
+    "java-static" - workspaceTest(BuildInfoJavaStatic, "java") { eval =>
+      val runResult = eval.outPath / "hello-mill"
+      val generatedSrc = eval.outPath / "buildInfoSources.dest" / "foo" / "BuildInfo.java"
+      val Right((result, evalCount)) =
+        eval.apply(BuildInfoJavaStatic.run(T.task(Args(runResult.toString))))
+
+      assert(
+        os.exists(runResult),
+        os.exists(generatedSrc),
+        os.read(runResult) == "not-provided-for-java-modules"
+      )
+    }
+
     "generatedSources must be a folder" - workspaceTest(BuildInfoPlain, "scala") { eval =>
       val buildInfoGeneratedSourcesFolder = eval.outPath / "buildInfoSources.dest"
       val Right((result, evalCount)) = eval.apply(BuildInfoPlain.generatedSources)
