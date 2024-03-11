@@ -18,6 +18,15 @@ trait DockerModule { outer: JavaModule =>
     def labels: T[Map[String, String]] = Map.empty[String, String]
     def baseImage: T[String] = "gcr.io/distroless/java:latest"
     def pullBaseImage: T[Boolean] = T(baseImage().endsWith(":latest"))
+
+    /**
+     * JVM runtime options. Each item of the Seq should consist of an option and its desired value, like
+     * {{{
+     * def jvmOptions = Seq("-Xmx1024M", "-agentlib:jdwp=transport=dt_socket,server=y,address=8000", …)
+     * }}}
+     * For a full list of options consult the official documentation at
+     * [[https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html#overview-of-java-options]]
+     */
     def jvmOptions: T[Seq[String]] = Seq.empty[String]
 
     /**

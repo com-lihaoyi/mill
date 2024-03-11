@@ -53,6 +53,8 @@ object docker extends DockerConfig {
   def volumes = Seq("/v1", "/v2")
   // Environment variables to be set in the container (ENV instructions)
   def envVars = Map("foo" -> "bar", "foobar" -> "barfoo")
+  // JVM runtime options such as heap size settings
+  def jvmOptions = Seq("-Xmx1024M", "-XX:+HeapDumpOnOutOfMemoryError")
   // Add RUN instructions
   def run = Seq(
     "/bin/bash -c 'echo Hello World!'",
