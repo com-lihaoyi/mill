@@ -56,14 +56,14 @@ trait ZincWorkerApi {
       compileClasspath: Agg[os.Path],
       javacOptions: Seq[String],
       scalaVersion: String,
-      platformSuffix: String,
       scalaOrganization: String,
       scalacOptions: Seq[String],
       compilerClasspath: Agg[PathRef],
       scalacPluginClasspath: Agg[PathRef],
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
-      incrementalCompilation: Boolean
+      incrementalCompilation: Boolean,
+      auxiliaryClassFileExtensions: Seq[String]
   )(implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult] =
     compileMixed(
       upstreamCompileOutput = upstreamCompileOutput,
@@ -71,14 +71,14 @@ trait ZincWorkerApi {
       compileClasspath = compileClasspath,
       javacOptions = javacOptions,
       scalaVersion = scalaVersion,
-      platformSuffix = platformSuffix,
       scalaOrganization = scalaOrganization,
       scalacOptions = scalacOptions,
       compilerClasspath = compilerClasspath,
       scalacPluginClasspath = scalacPluginClasspath,
       reporter = reporter,
       reportCachedProblems = reportCachedProblems,
-      incrementalCompilation = incrementalCompilation
+      incrementalCompilation = incrementalCompilation,
+      auxiliaryClassFileExtensions = auxiliaryClassFileExtensions
     )
 
   /** Compile a mixed Scala/Java or Scala-only project */
@@ -102,14 +102,14 @@ trait ZincWorkerApi {
       compileClasspath = compileClasspath,
       javacOptions = javacOptions,
       scalaVersion = scalaVersion,
-      platformSuffix = "",
       scalaOrganization = scalaOrganization,
       scalacOptions = scalacOptions,
       compilerClasspath = compilerClasspath,
       scalacPluginClasspath = scalacPluginClasspath,
       reporter = reporter,
       reportCachedProblems = reportCachedProblems,
-      incrementalCompilation = true
+      incrementalCompilation = true,
+      auxiliaryClassFileExtensions = Seq.empty[String]
     )
 
   /** Compile a mixed Scala/Java or Scala-only project */
@@ -134,14 +134,14 @@ trait ZincWorkerApi {
       compileClasspath = compileClasspath,
       javacOptions = javacOptions,
       scalaVersion = scalaVersion,
-      platformSuffix = "",
       scalaOrganization = scalaOrganization,
       scalacOptions = scalacOptions,
       compilerClasspath = compilerClasspath,
       scalacPluginClasspath = scalacPluginClasspath,
       reporter = reporter,
       reportCachedProblems = reportCachedProblems,
-      incrementalCompilation = incrementalCompilation
+      incrementalCompilation = incrementalCompilation,
+      auxiliaryClassFileExtensions = Seq.empty[String]
     )
 
   def discoverMainClasses(compilationResult: CompilationResult): Seq[String]

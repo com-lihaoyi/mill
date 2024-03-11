@@ -292,14 +292,14 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         compileClasspath = compileClasspath().map(_.path),
         javacOptions = javacOptions(),
         scalaVersion = sv,
-        platformSuffix = platformSuffix(),
         scalaOrganization = scalaOrganization(),
         scalacOptions = allScalacOptions(),
         compilerClasspath = scalaCompilerClasspath(),
         scalacPluginClasspath = scalacPluginClasspath(),
         reporter = T.reporter.apply(hashCode),
         reportCachedProblems = zincReportCachedProblems(),
-        incrementalCompilation = zincIncrementalCompilation()
+        incrementalCompilation = zincIncrementalCompilation(),
+        auxiliaryClassFileExtensions = auxiliaryClassFileExtensions()
       )
   }
 
@@ -549,6 +549,14 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     else ZincWorkerUtil.scalaBinaryVersion(scalaVersion())
   }
 
+  /**
+   * Files extensions that need to be managed by Zinc together with class files
+   */
+  protected def auxiliaryClassFileExtensions: T[Seq[String]] = T {
+    if (ZincWorkerUtil.isScala3(scalaVersion())) Seq("tasty")
+    else Seq.empty[String]
+  }
+
   override def artifactSuffix: T[String] = s"${platformSuffix()}_${artifactScalaVersion()}"
 
   override def artifactId: T[String] = artifactName() + artifactSuffix()
@@ -660,14 +668,14 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
           (compileClasspath() ++ resolvedSemanticDbJavaPluginIvyDeps()).map(_.path),
         javacOptions = javacOpts,
         scalaVersion = sv,
-        platformSuffix = platformSuffix(),
         scalaOrganization = scalaOrganization(),
         scalacOptions = scalacOptions,
         compilerClasspath = scalaCompilerClasspath(),
         scalacPluginClasspath = semanticDbPluginClasspath(),
         reporter = None,
         reportCachedProblems = zincReportCachedProblems(),
-        incrementalCompilation = zincIncrementalCompilation()
+        incrementalCompilation = zincIncrementalCompilation(),
+        auxiliaryClassFileExtensions = auxiliaryClassFileExtensions()
       )
       .map(r =>
         SemanticDbJavaModule.copySemanticdbFiles(r.classes.path, T.workspace, T.dest / "data")
