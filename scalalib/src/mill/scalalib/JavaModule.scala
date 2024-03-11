@@ -23,6 +23,7 @@ import os.{Path, ProcessOutput}
  */
 trait JavaModule
     extends mill.Module
+    with ZincWorkerAware
     with TestModule.JavaModuleBase
     with TaskModule
     with RunBaseModule
@@ -31,8 +32,6 @@ trait JavaModule
     with OfflineSupportModule
     with BspModule
     with SemanticDbJavaModule { outer =>
-
-  def zincWorker: ModuleRef[ZincWorkerModule] = ModuleRef(mill.scalalib.ZincWorkerModule)
 
   trait JavaModuleTests extends JavaModule with TestModule {
     // Run some consistence checks
