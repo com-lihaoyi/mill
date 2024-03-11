@@ -113,7 +113,7 @@ trait ZincWorkerApi {
     )
 
   /** Compile a mixed Scala/Java or Scala-only project */
-  @deprecated("Use override with `platformSuffix` parameter", "Mill 0.11.8")
+  @deprecated("Use override with `auxiliaryClassFileExtensions` parameter", "Mill 0.11.8")
   def compileMixed(
       upstreamCompileOutput: Seq[CompilationResult],
       sources: Agg[os.Path],
