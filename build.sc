@@ -441,15 +441,15 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
     ),
     // See https://github.com/com-lihaoyi/mill/pull/3072
     ProblemFilter.exclude[ReversedMissingMethodProblem](
-      "mill.scalalib.ScalaModule.mill$scalalib$ScalaModule$$super$auxiliaryClassFileExtensions"
+      "mill.scalalib.ScalaModule.mill$scalalib$ScalaModule$$super$zincAuxiliaryClassFileExtensions"
     ),
     // See https://github.com/com-lihaoyi/mill/pull/3072
     ProblemFilter.exclude[ReversedMissingMethodProblem](
-      "mill.scalajslib.ScalaJSModule.mill$scalajslib$ScalaJSModule$$super$auxiliaryClassFileExtensions"
+      "mill.scalajslib.ScalaJSModule.mill$scalajslib$ScalaJSModule$$super$zincAuxiliaryClassFileExtensions"
     ),
     // See https://github.com/com-lihaoyi/mill/pull/3072
     ProblemFilter.exclude[ReversedMissingMethodProblem](
-      "mill.scalanativelib.ScalaNativeModule.mill$scalanativelib$ScalaNativeModule$$super$auxiliaryClassFileExtensions"
+      "mill.scalanativelib.ScalaNativeModule.mill$scalanativelib$ScalaNativeModule$$super$zincAuxiliaryClassFileExtensions"
     )
   )
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions

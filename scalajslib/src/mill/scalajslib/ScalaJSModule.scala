@@ -295,8 +295,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     ))
   }
 
-  override def auxiliaryClassFileExtensions: T[Seq[String]] =
-    super.auxiliaryClassFileExtensions() :+ "sjsir"
+  override def zincAuxiliaryClassFileExtensions: T[Seq[String]] =
+    super.zincAuxiliaryClassFileExtensions() :+ "sjsir"
 
 }
 

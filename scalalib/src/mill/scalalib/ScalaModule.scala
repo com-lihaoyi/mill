@@ -299,7 +299,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         reporter = T.reporter.apply(hashCode),
         reportCachedProblems = zincReportCachedProblems(),
         incrementalCompilation = zincIncrementalCompilation(),
-        auxiliaryClassFileExtensions = auxiliaryClassFileExtensions()
+        auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
       )
   }
 
@@ -549,8 +549,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     else ZincWorkerUtil.scalaBinaryVersion(scalaVersion())
   }
 
-  override def auxiliaryClassFileExtensions: T[Seq[String]] = T {
-    super.auxiliaryClassFileExtensions() ++ (
+  override def zincAuxiliaryClassFileExtensions: T[Seq[String]] = T {
+    super.zincAuxiliaryClassFileExtensions() ++ (
       if (ZincWorkerUtil.isScala3(scalaVersion())) Seq("tasty")
       else Seq.empty[String]
     )
@@ -674,7 +674,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         reporter = None,
         reportCachedProblems = zincReportCachedProblems(),
         incrementalCompilation = zincIncrementalCompilation(),
-        auxiliaryClassFileExtensions = auxiliaryClassFileExtensions()
+        auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
       )
       .map(r =>
         SemanticDbJavaModule.copySemanticdbFiles(r.classes.path, T.workspace, T.dest / "data")
