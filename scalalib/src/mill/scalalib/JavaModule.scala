@@ -33,6 +33,8 @@ trait JavaModule
     with BspModule
     with SemanticDbJavaModule { outer =>
 
+  def zincWorker: ModuleRef[ZincWorkerModule] = super.zincWorker
+
   trait JavaModuleTests extends JavaModule with TestModule {
     // Run some consistence checks
     hierarchyChecks()
@@ -680,13 +682,13 @@ trait JavaModule
    * Any command-line parameters you want to pass to the forked JVM under `run`,
    * `test` or `repl`
    */
-  def forkArgs: T[Seq[String]] = T { Seq.empty[String] }
+  def forkArgs: T[Seq[String]] = T { super.forkArgs() }
 
   /**
    * Any environment variables you want to pass to the forked JVM under `run`,
    * `test` or `repl`
    */
-  def forkEnv: T[Map[String, String]] = T.input { T.env }
+  def forkEnv: T[Map[String, String]] = T { super.forkEnv() }
 
   /**
    * Builds a command-line "launcher" file that can be used to run this module's
@@ -800,6 +802,8 @@ trait JavaModule
       }
     }
   }
+
+  def runUseArgsFile: T[Boolean] = super.runUseArgsFile
 
   /**
    * Runs this module's code in-process within an isolated classloader. This is
@@ -1013,7 +1017,7 @@ trait JavaModule
    */
   def artifactSuffix: T[String] = platformSuffix()
 
-  def forkWorkingDir: T[Path] = T { T.workspace }
+  def forkWorkingDir: T[Path] = T { super.forkWorkingDir() }
 
   /**
    * Files extensions that need to be managed by Zinc together with class files.
