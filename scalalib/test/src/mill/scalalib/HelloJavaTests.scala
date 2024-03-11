@@ -55,24 +55,84 @@ object HelloJavaTests extends TestSuite {
       )
     }
     "semanticDbData" - {
-      val eval = init()
-      val Right((result, evalCount)) = eval.apply(HelloJava.core.semanticDbData)
+      val expectedFile1 =
+        os.rel / "META-INF" / "semanticdb" / "core" / "src" / "Core.java.semanticdb"
 
-      val outputFiles = os.walk(result.path).filter(os.isFile)
-      val dataPath = eval.outPath / "core" / "semanticDbData.dest" / "data"
+      "fromScratch" - {
+        val eval = init()
+        val Right((result, evalCount)) = eval.apply(HelloJava.core.semanticDbData)
 
-      val expectedSemFiles =
-        Seq(dataPath / "META-INF" / "semanticdb" / "core" / "src" / "Core.java.semanticdb")
-      assert(
-        result.path == dataPath,
-        outputFiles.nonEmpty,
-        outputFiles.forall(expectedSemFiles.contains),
-        evalCount > 0
-      )
+        val outputFiles = os.walk(result.path).filter(os.isFile).map(_.relativeTo(result.path))
+        val dataPath = eval.outPath / "core" / "semanticDbData.dest" / "data"
 
-      // don't recompile if nothing changed
-      val Right((_, unchangedEvalCount)) = eval.apply(HelloJava.core.semanticDbData)
-      assert(unchangedEvalCount == 0)
+        assert(
+          result.path == dataPath,
+          outputFiles.nonEmpty,
+          outputFiles == Seq(expectedFile1),
+          evalCount > 0
+        )
+
+        // don't recompile if nothing changed
+        val Right((_, unchangedEvalCount)) = eval.apply(HelloJava.core.semanticDbData)
+        assert(unchangedEvalCount == 0)
+      }
+      "incrementally" - {
+        val eval = init()
+
+        // create a second source file
+        val secondFile = eval.evaluator.workspace / "core" / "src" / "hello" / "Second.java"
+        os.write(
+          secondFile,
+          """package hello;
+            |
+            |public class Second {
+            |    public static String msg() {
+            |        return "Hello World";
+            |    }
+            |}
+            |""".stripMargin,
+          createFolders = true
+        )
+        val thirdFile = eval.evaluator.workspace / "core" / "src" / "hello" / "Third.java"
+        os.write(
+          thirdFile,
+          """package hello;
+            |
+            |public class Third {
+            |    public static String msg() {
+            |        return "Hello World";
+            |    }
+            |}
+            |""".stripMargin,
+          createFolders = true
+        )
+        val Right((result, evalCount)) = eval.apply(HelloJava.core.semanticDbData)
+
+        val dataPath = eval.outPath / "core" / "semanticDbData.dest" / "data"
+        val outputFiles = os.walk(result.path).filter(os.isFile).map(_.relativeTo(result.path))
+
+        val expectedFile2 =
+          os.rel / "META-INF" / "semanticdb" / "core" / "src" / "hello" / "Second.java.semanticdb"
+        val expectedFile3 =
+          os.rel / "META-INF" / "semanticdb" / "core" / "src" / "hello" / "Third.java.semanticdb"
+        assert(
+          result.path == dataPath,
+          outputFiles.nonEmpty,
+          outputFiles.toSet == Set(expectedFile1, expectedFile2, expectedFile3),
+          evalCount > 0
+        )
+
+        // delete one, keep one, change one
+        os.remove(secondFile)
+        os.write.append(thirdFile, "  ")
+
+        val Right((result2, changedEvalCount)) = eval.apply(HelloJava.core.semanticDbData)
+        val files2 = os.walk(result2.path).filter(os.isFile).map(_.relativeTo(result2.path))
+        assert(
+          files2.toSet == Set(expectedFile1, expectedFile3),
+          changedEvalCount > 0
+        )
+      }
     }
     "docJar" - {
       "withoutArgsFile" - {
