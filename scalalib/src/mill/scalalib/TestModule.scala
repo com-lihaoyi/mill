@@ -9,7 +9,7 @@ import mill.testrunner.{Framework, TestArgs, TestResult, TestRunner}
 
 trait TestModule
     extends TestModule.JavaModuleBase
-    with ZincWorkerAware
+    with WithZincWorker
     with RunModule
     with TaskModule {
 

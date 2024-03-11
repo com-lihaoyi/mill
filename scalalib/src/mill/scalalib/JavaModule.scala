@@ -23,7 +23,7 @@ import os.{Path, ProcessOutput}
  */
 trait JavaModule
     extends mill.Module
-    with ZincWorkerAware
+    with WithZincWorker
     with TestModule.JavaModuleBase
     with TaskModule
     with RunModule
