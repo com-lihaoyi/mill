@@ -9,6 +9,7 @@ import mill.scalalib.dependency.updates.{
   UpdatesFinder
 }
 import mill.scalalib.dependency.versions.{ModuleDependenciesVersions, VersionsFinder}
+import unroll.Unroll
 
 object DependencyUpdatesImpl {
 
@@ -33,13 +34,9 @@ object DependencyUpdatesImpl {
     allUpdates
   }
 
-  @deprecated("Use other overload instead", "Mill after 0.11.6")
-  def showAllUpdates(updates: Seq[ModuleDependenciesUpdates]): Unit =
-    showAllUpdates(updates, format = Format.PerModule)
-
   def showAllUpdates(
       updates: Seq[ModuleDependenciesUpdates],
-      format: Format = Format.PerModule
+      @Unroll format: Format = Format.PerModule
   ): Unit = {
     val theUpdates =
       updates.map(u => if (u.modulePath.isEmpty) u.copy(modulePath = "root module") else u)
