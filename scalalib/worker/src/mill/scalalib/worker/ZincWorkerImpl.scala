@@ -501,8 +501,9 @@ class ZincWorkerImpl(
       .map(path => converter.toVirtualFile(path.toNIO))
       .toArray
 
-    val incOptions = 
-      IncOptions.of().withAuxiliaryClassFiles(auxiliaryClassFileExtensions.map(new AuxiliaryClassFileExtension(_)).toArray)
+    val incOptions = IncOptions.of().withAuxiliaryClassFiles(
+      auxiliaryClassFileExtensions.map(new AuxiliaryClassFileExtension(_)).toArray
+    )
 
     val inputs = ic.inputs(
       classpath = classpath,
