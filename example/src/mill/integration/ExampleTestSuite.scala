@@ -91,7 +91,9 @@ object ExampleTestSuite extends IntegrationTestSuite {
       .tap { cmd =>
         Console.err.println(
           s"""$workspaceRoot> ${cmd.mkString("'", "' '", "'")}
-             |${expectedSnippets.mkString("\n")}""".stripMargin
+             |--- Expected output --------
+             |${expectedSnippets.mkString("\n")}
+             |----------------------------""".stripMargin
         )
       } match {
       case Seq("cp", "-r", from, to) =>
