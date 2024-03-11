@@ -21,9 +21,7 @@ trait TestModule
   /**
    * The classpath containing the tests. This is most likely the output of the compilation target.
    */
-  def testClasspath: T[Seq[PathRef]] = T {
-    Seq(compile().classes)
-  }
+  def testClasspath: T[Seq[PathRef]] = T { Seq.empty[PathRef] }
 
   /**
    * The test framework to use.

@@ -55,6 +55,8 @@ trait JavaModule
      * The classpath containing the tests. This defaults to the compilation output.
      */
     def testClasspath: T[Seq[PathRef]] = T {
+      // bin-compat-shim: keep the super.call in the classfile
+      super.testClasspath
       Seq(compile().classes)
     }
 
