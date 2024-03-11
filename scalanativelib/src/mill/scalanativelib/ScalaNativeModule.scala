@@ -335,6 +335,9 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     }
   }
 
+  override def zincAuxiliaryClassFileExtensions: T[Seq[String]] =
+    super.zincAuxiliaryClassFileExtensions() :+ "nir"
+
 }
 
 trait TestScalaNativeModule extends ScalaNativeModule with TestModule {

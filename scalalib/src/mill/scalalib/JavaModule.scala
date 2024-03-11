@@ -1007,6 +1007,13 @@ trait JavaModule
   def forkWorkingDir: T[Path] = T { T.workspace }
 
   /**
+   * Files extensions that need to be managed by Zinc together with class files.
+   * This means, if zinc needs to remove a class file, it will also remove files
+   * which match the class file basename and a listed file extension.
+   */
+  def zincAuxiliaryClassFileExtensions: T[Seq[String]] = T { Seq.empty[String] }
+
+  /**
    * @param all If `true` fetches also source dependencies
    */
   override def prepareOffline(all: Flag): Command[Unit] = {

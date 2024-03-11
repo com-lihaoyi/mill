@@ -20,6 +20,7 @@ import sbt.internal.util.{ConsoleAppender, ConsoleOut}
 import sbt.mill.SbtLoggerUtils
 import xsbti.compile.{
   AnalysisContents,
+  AuxiliaryClassFileExtension,
   ClasspathOptions,
   CompileAnalysis,
   CompileOrder,
@@ -306,7 +307,8 @@ class ZincWorkerImpl(
       compilers = javaOnlyCompilers(javacOptions),
       reporter = reporter,
       reportCachedProblems = reportCachedProblems,
-      incrementalCompilation = incrementalCompilation
+      incrementalCompilation = incrementalCompilation,
+      auxiliaryClassFileExtensions = Seq.empty[String]
     )
   }
 
@@ -322,7 +324,8 @@ class ZincWorkerImpl(
       scalacPluginClasspath: Agg[PathRef],
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
-      incrementalCompilation: Boolean
+      incrementalCompilation: Boolean,
+      auxiliaryClassFileExtensions: Seq[String]
   )(implicit ctx: ZincWorkerApi.Ctx): Result[CompilationResult] = {
     withCompilers(
       scalaVersion = scalaVersion,
@@ -340,7 +343,8 @@ class ZincWorkerImpl(
         compilers = compilers,
         reporter = reporter,
         reportCachedProblems: Boolean,
-        incrementalCompilation
+        incrementalCompilation,
+        auxiliaryClassFileExtensions
       )
     }
   }
@@ -423,7 +427,8 @@ class ZincWorkerImpl(
       compilers: Compilers,
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
-      incrementalCompilation: Boolean
+      incrementalCompilation: Boolean,
+      auxiliaryClassFileExtensions: Seq[String]
   )(implicit ctx: ZincWorkerApi.Ctx): Result[CompilationResult] = {
     os.makeDir.all(ctx.dest)
 
@@ -496,6 +501,10 @@ class ZincWorkerImpl(
       .map(path => converter.toVirtualFile(path.toNIO))
       .toArray
 
+    val incOptions = IncOptions.of().withAuxiliaryClassFiles(
+      auxiliaryClassFileExtensions.map(new AuxiliaryClassFileExtension(_)).toArray
+    )
+
     val inputs = ic.inputs(
       classpath = classpath,
       sources = virtualSources,
@@ -512,7 +521,7 @@ class ZincWorkerImpl(
         skip = false,
         cacheFile = zincFile.toNIO,
         cache = new FreshCompilerCache,
-        incOptions = IncOptions.of(),
+        incOptions = incOptions,
         reporter = newReporter,
         progress = None,
         earlyAnalysisStore = None,

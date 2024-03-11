@@ -298,7 +298,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         scalacPluginClasspath = scalacPluginClasspath(),
         reporter = T.reporter.apply(hashCode),
         reportCachedProblems = zincReportCachedProblems(),
-        incrementalCompilation = zincIncrementalCompilation()
+        incrementalCompilation = zincIncrementalCompilation(),
+        auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
       )
   }
 
@@ -548,6 +549,13 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     else ZincWorkerUtil.scalaBinaryVersion(scalaVersion())
   }
 
+  override def zincAuxiliaryClassFileExtensions: T[Seq[String]] = T {
+    super.zincAuxiliaryClassFileExtensions() ++ (
+      if (ZincWorkerUtil.isScala3(scalaVersion())) Seq("tasty")
+      else Seq.empty[String]
+    )
+  }
+
   override def artifactSuffix: T[String] = s"${platformSuffix()}_${artifactScalaVersion()}"
 
   override def artifactId: T[String] = artifactName() + artifactSuffix()
@@ -665,7 +673,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         scalacPluginClasspath = semanticDbPluginClasspath(),
         reporter = None,
         reportCachedProblems = zincReportCachedProblems(),
-        incrementalCompilation = zincIncrementalCompilation()
+        incrementalCompilation = zincIncrementalCompilation(),
+        auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
       )
       .map(r =>
         SemanticDbJavaModule.copySemanticdbFiles(r.classes.path, T.workspace, T.dest / "data")

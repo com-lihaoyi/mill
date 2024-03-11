@@ -62,7 +62,8 @@ trait ZincWorkerApi {
       scalacPluginClasspath: Agg[PathRef],
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
-      incrementalCompilation: Boolean
+      incrementalCompilation: Boolean,
+      auxiliaryClassFileExtensions: Seq[String]
   )(implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult] =
     compileMixed(
       upstreamCompileOutput = upstreamCompileOutput,
@@ -75,8 +76,10 @@ trait ZincWorkerApi {
       compilerClasspath = compilerClasspath,
       scalacPluginClasspath = scalacPluginClasspath,
       reporter = reporter,
-      reportCachedProblems = reportCachedProblems
-    ): @nowarn("cat=deprecation")
+      reportCachedProblems = reportCachedProblems,
+      incrementalCompilation = incrementalCompilation,
+      auxiliaryClassFileExtensions = auxiliaryClassFileExtensions
+    )
 
   /** Compile a mixed Scala/Java or Scala-only project */
   @deprecated("Use override with `incrementalCompilation` parameter", "Mill 0.11.6")
@@ -105,7 +108,40 @@ trait ZincWorkerApi {
       scalacPluginClasspath = scalacPluginClasspath,
       reporter = reporter,
       reportCachedProblems = reportCachedProblems,
-      incrementalCompilation = true
+      incrementalCompilation = true,
+      auxiliaryClassFileExtensions = Seq.empty[String]
+    )
+
+  /** Compile a mixed Scala/Java or Scala-only project */
+  @deprecated("Use override with `auxiliaryClassFileExtensions` parameter", "Mill 0.11.8")
+  def compileMixed(
+      upstreamCompileOutput: Seq[CompilationResult],
+      sources: Agg[os.Path],
+      compileClasspath: Agg[os.Path],
+      javacOptions: Seq[String],
+      scalaVersion: String,
+      scalaOrganization: String,
+      scalacOptions: Seq[String],
+      compilerClasspath: Agg[PathRef],
+      scalacPluginClasspath: Agg[PathRef],
+      reporter: Option[CompileProblemReporter],
+      reportCachedProblems: Boolean,
+      incrementalCompilation: Boolean
+  )(implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult] =
+    compileMixed(
+      upstreamCompileOutput = upstreamCompileOutput,
+      sources = sources,
+      compileClasspath = compileClasspath,
+      javacOptions = javacOptions,
+      scalaVersion = scalaVersion,
+      scalaOrganization = scalaOrganization,
+      scalacOptions = scalacOptions,
+      compilerClasspath = compilerClasspath,
+      scalacPluginClasspath = scalacPluginClasspath,
+      reporter = reporter,
+      reportCachedProblems = reportCachedProblems,
+      incrementalCompilation = incrementalCompilation,
+      auxiliaryClassFileExtensions = Seq.empty[String]
     )
 
   def discoverMainClasses(compilationResult: CompilationResult): Seq[String]
