@@ -76,7 +76,7 @@ object HelloJavaTests extends TestSuite {
         val Right((_, unchangedEvalCount)) = eval.apply(HelloJava.core.semanticDbData)
         assert(unchangedEvalCount == 0)
       }
-      "incrementally" - {
+      "incremental" - {
         val eval = init()
 
         // create a second source file

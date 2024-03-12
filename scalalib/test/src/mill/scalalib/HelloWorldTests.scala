@@ -9,7 +9,6 @@ import mill._
 import mill.api.Result
 import mill.define.NamedTask
 import mill.eval.{Evaluator, EvaluatorPaths}
-import mill.scalalib.Assembly
 import mill.scalalib.publish.{VersionControl, _}
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
@@ -38,13 +37,18 @@ object HelloWorldTests extends TestSuite {
       "4.1.9"
     }
   }
-
+  trait SemanticModule extends scalalib.ScalaModule {
+    def scalaVersion = scala213Version
+  }
   trait HelloWorldModuleWithMain extends HelloWorldModule {
     override def mainClass: T[Option[String]] = Some("Main")
   }
 
   object HelloWorld extends HelloBase {
     object core extends HelloWorldModule
+  }
+  object SemanticWorld extends HelloBase {
+    object core extends SemanticModule
   }
   object HelloWorldNonPrecompiledBridge extends HelloBase {
     object core extends HelloWorldModule {
@@ -661,64 +665,94 @@ object HelloWorldTests extends TestSuite {
         os.sub / "META-INF" / "semanticdb" / "core" / "src" / "Result.scala.semanticdb"
       )
 
-      "fromScratch" - workspaceTest(HelloWorld) { eval =>
-        val Right((result, evalCount)) = eval.apply(HelloWorld.core.semanticDbData)
+      "fromScratch" - workspaceTest(SemanticWorld, debug = true) { eval =>
+        {
+          println("second - expected full compile")
+          val Right((result, evalCount)) = eval.apply(SemanticWorld.core.semanticDbData)
 
-        val dataPath = eval.outPath / "core" / "semanticDbData.dest" / "data"
-        val outputFiles = os.walk(result.path).filter(os.isFile).map(_.relativeTo(result.path))
+          val dataPath = eval.outPath / "core" / "semanticDbData.dest" / "data"
+          val outputFiles = os.walk(result.path).filter(os.isFile).map(_.relativeTo(result.path))
 
-        val expectedSemFiles = semanticDbFiles
-        assert(
-          result.path == dataPath,
-          outputFiles.nonEmpty,
-          outputFiles.toSet == expectedSemFiles,
-          evalCount > 0
-        )
-
-        // don't recompile if nothing changed
-        val Right((_, unchangedEvalCount)) = eval.apply(HelloWorld.core.semanticDbData)
-        assert(unchangedEvalCount == 0)
+          val expectedSemFiles = semanticDbFiles
+          assert(
+            result.path == dataPath,
+            outputFiles.nonEmpty,
+            outputFiles.toSet == expectedSemFiles,
+            evalCount > 0,
+            os.exists(dataPath / os.up / "zinc")
+          )
+        }
+        {
+          println("first - expected no compile")
+          // don't recompile if nothing changed
+          val Right((_, unchangedEvalCount)) = eval.apply(HelloWorld.core.semanticDbData)
+          assert(unchangedEvalCount == 0)
+        }
       }
-      "incrementally" - workspaceTest(HelloWorld) { eval =>
-        // create a second source file
-        val secondFile = eval.evaluator.workspace / "core" / "src" / "hello" / "Second.scala"
-        os.write(
-          secondFile,
-          """package hello
-            |class Second
-            |""".stripMargin,
-          createFolders = true
-        )
-        val resultFile = eval.evaluator.workspace / "core" / "src" / "Result.scala"
+      "incremental" - workspaceTest(SemanticWorld, debug = true) { eval =>
+        // create some mroe source file
+        val extraFiles = Seq("Second", "Third", "Fourth").map { f =>
+          val file = eval.evaluator.workspace / "core" / "src" / "hello" / s"${f}.scala"
+          os.write(
+            file,
+            s"""package hello
+               |class ${f}
+               |""".stripMargin,
+            createFolders = true
+          )
+          val sem =
+            os.sub / "META-INF" / "semanticdb" / "core" / "src" / "hello" / s"${f}.scala.semanticdb"
+          (file, sem)
+        }
+//        val resultFile = eval.evaluator.workspace / "core" / "src" / "Result.scala"
 
-        val Right((result, evalCount)) = eval.apply(HelloWorld.core.semanticDbData)
+        {
+          println("first - expected full compile")
+          val Right((result, evalCount)) = eval.apply(SemanticWorld.core.semanticDbData)
 
-        val dataPath = eval.outPath / "core" / "semanticDbData.dest" / "data"
-        val outputFiles = os.walk(result.path).filter(os.isFile).map(_.relativeTo(result.path))
+          val dataPath = eval.outPath / "core" / "semanticDbData.dest" / "data"
+          val outputFiles = os.walk(result.path).filter(os.isFile).map(_.relativeTo(result.path))
 
-        val expectedSemFiles = semanticDbFiles ++ Set(
-          os.sub / "META-INF" / "semanticdb" / "core" / "src" / "hello" / "Second.scala.semanticdb",
-        )
-        assert(
-          result.path == dataPath,
-          outputFiles.toSet == expectedSemFiles,
-          evalCount > 0
-        )
+          val expectedSemFiles = semanticDbFiles ++ extraFiles.map(_._2)
+          assert(
+            result.path == dataPath,
+            outputFiles.toSet == expectedSemFiles,
+            evalCount > 0
+          )
+        }
+        // change nothing
+        {
+          println("second - expect no compile")
+          val Right((_, evalCount)) = eval.apply(SemanticWorld.core.semanticDbData)
+          assert(evalCount == 0)
+        }
 
-        // delete one, keep one, change one
-        os.remove(secondFile)
-        os.write.append(resultFile, "  ")
+        // change one
+        {
+          println("\nthird - expect inc compile of one file\n")
+          os.write.append(extraFiles.head._1, "  ")
 
-        val Right((result2, changedEvalCount)) = eval.apply(HelloWorld.core.semanticDbData)
-        val outputFiles2 = os.walk(result2.path).filter(os.isFile).map(_.relativeTo(result2.path))
-        val expectedSecondFiles = Set(
-          os.sub / "META-INF" / "semanticdb" / "core" / "src" / "Main.scala.semanticdb",
-          os.sub / "META-INF" / "semanticdb" / "core" / "src" / "Result.scala.semanticdb"
-        )
-        assert(
-          outputFiles2.toSet == expectedSecondFiles,
-          changedEvalCount > 0
-        )
+          val Right((result, evalCount)) = eval.apply(SemanticWorld.core.semanticDbData)
+          val outputFiles = os.walk(result.path).filter(os.isFile).map(_.relativeTo(result.path))
+          val expectedFiles = semanticDbFiles ++ extraFiles.map(_._2)
+          assert(
+            outputFiles.toSet == expectedFiles,
+            evalCount > 0
+          )
+        }
+        // remove one
+        {
+          println("fourth - expect inc compile with one deleted file")
+          os.remove(extraFiles.head._1)
+
+          val Right((result, evalCount)) = eval.apply(SemanticWorld.core.semanticDbData)
+          val outputFiles = os.walk(result.path).filter(os.isFile).map(_.relativeTo(result.path))
+          val expectedFiles = semanticDbFiles ++ extraFiles.map(_._2).drop(1)
+          assert(
+            outputFiles.toSet == expectedFiles,
+            evalCount > 0
+          )
+        }
       }
     }
 
