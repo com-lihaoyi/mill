@@ -133,7 +133,7 @@ object Assembly {
       if (shadeRules.isEmpty)
         (name: String, inputStream: UnopenedInputStream) => Some(name -> inputStream)
       else {
-        val shader = Shader.bytecodeShader(shadeRules, verbose = false)
+        val shader = Shader.bytecodeShader(shadeRules, verbose = false, skipManifest = true)
         (name: String, inputStream: UnopenedInputStream) => {
           val is = inputStream()
           shader(Streamable.bytes(is), name).map {
