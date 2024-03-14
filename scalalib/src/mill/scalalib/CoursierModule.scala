@@ -48,7 +48,8 @@ trait CoursierModule extends mill.Module {
         mapDependencies = Some(mapDependencies()),
         customizer = resolutionCustomizer(),
         coursierCacheCustomizer = coursierCacheCustomizer(),
-        ctx = Some(T.ctx())
+        ctx = Some(T.ctx()),
+        sameDependencyVersions = enforceSameDependencyVersions()
       )
     }
 
@@ -107,4 +108,10 @@ trait CoursierModule extends mill.Module {
       : Task[Option[FileCache[coursier.util.Task] => FileCache[coursier.util.Task]]] =
     T.task { None }
 
+  /**
+   * Enforce the same version for all modules (organization-artifactId-pairs) in the same set.
+   * This is for example needed to make sure verison of `scala-library` and `scala-reflect` is used.
+   */
+  def enforceSameDependencyVersions: Task[Seq[Set[(String, String)]]] =
+    T.task { Seq.empty[Set[(String, String)]] }
 }

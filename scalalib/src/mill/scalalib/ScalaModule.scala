@@ -81,6 +81,15 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     }
   }
 
+  override def enforceSameDependencyVersions: Task[Seq[Set[(String, String)]]] = T.task {
+    Seq(
+      // scala 2.x
+      Set("scala-library", "scala-compiler", "scala-reflect", "scalap").map(("org.scala-lang", _)),
+      // Dotty (early Scala 3)
+      Set("dotty-library", "dotty-compiler").map(("ch.epfl.lamp", _))
+    )
+  }
+
   override def resolveCoursierDependency: Task[Dep => coursier.Dependency] =
     T.task {
       Lib.depToDependency(_: Dep, scalaVersion(), platformSuffix())
