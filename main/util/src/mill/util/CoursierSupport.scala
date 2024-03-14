@@ -1,19 +1,26 @@
 package mill.util
 
-import coursier.cache.ArtifactError
+import coursier.cache.{ArtifactError, Cache, FileCache}
+import coursier.core.{Dependency, Module, Repository, Resolution}
+import coursier.params.ResolutionParams
 import coursier.parse.RepositoryParser
 import coursier.util.{Gather, Task}
-import coursier.{Dependency, Repository, Resolution}
+import coursier.{Artifacts, Fetch, Resolve}
 import mill.api.{Ctx, PathRef, Result}
 import mill.api.Loose.Agg
+import mill.api.PathRef.Revalidate
+
 import java.io.File
 import java.nio.file.NoSuchFileException
 import scala.annotation.tailrec
 import scala.collection.mutable
+import scala.util.chaining.scalaUtilChainingOps
 import scala.util.{Failure, Success, Try}
 
 trait CoursierSupport {
   import CoursierSupport._
+
+  private val useNewCoursierApi = true
 
   private val CoursierRetryCount = 5
   private val CoursierRetryWait = 100
@@ -41,7 +48,7 @@ trait CoursierSupport {
       case Failure(e: NoSuchFileException)
           if retryCount > 0 && e.getMessage.contains("__sha1.computed") =>
         // this one is not detected by coursier itself, so we try-catch handle it
-        // I assume, this happens when another coursier thread already moved or rename dthe temporary file
+        // I assume, this happens when another coursier thread already moved or renamed the temporary file
         ctx.foreach(_.log.debug(
           s"Detected a concurrent download issue in coursier. Attempting a retry (${retryCount} left)"
         ))
@@ -210,56 +217,92 @@ trait CoursierSupport {
 
   def resolveDependenciesMetadata(
       repositories: Seq[Repository],
-      deps: IterableOnce[coursier.Dependency],
-      force: IterableOnce[coursier.Dependency],
+      deps: IterableOnce[Dependency],
+      force: IterableOnce[Dependency],
       mapDependencies: Option[Dependency => Dependency] = None,
-      customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
+      customizer: Option[Resolution => Resolution] = None,
       ctx: Option[mill.api.Ctx.Log] = None,
       coursierCacheCustomizer: Option[
         coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
       ] = None
   ): (Seq[Dependency], Resolution) = {
 
-    val cachePolicies = coursier.cache.CacheDefaults.cachePolicies
+    val rootDeps = deps.iterator
+      .map(mapDependencies.getOrElse(identity[Dependency](_)))
+      .toSeq
 
-    val forceVersions = force.iterator
+    val forceVersions: Map[Module, String] = force.iterator
       .map(mapDependencies.getOrElse(identity[Dependency](_)))
       .map { d => d.module -> d.version }
       .toMap
 
-    val start0 = Resolution()
-      .withRootDependencies(
-        deps.iterator.map(mapDependencies.getOrElse(identity[Dependency](_))).toSeq
-      )
-      .withForceVersions(forceVersions)
-      .withMapDependencies(mapDependencies)
-
-    val start = customizer.getOrElse(identity[Resolution](_)).apply(start0)
-
-    val resolutionLogger = ctx.map(c => new TickerResolutionLogger(c))
-    val coursierCache0 = resolutionLogger match {
-      case None => coursier.cache.FileCache[Task]().withCachePolicies(cachePolicies)
-      case Some(l) =>
-        coursier.cache.FileCache[Task]()
-          .withCachePolicies(cachePolicies)
-          .withLogger(l)
-    }
-    val coursierCache = coursierCacheCustomizer.getOrElse(
-      identity[coursier.cache.FileCache[Task]](_)
-    ).apply(coursierCache0)
-
-    val fetches = coursierCache.fetchs
-
-    val fetch = coursier.core.ResolutionProcess.fetch(repositories, fetches.head, fetches.tail)
-
-    import scala.concurrent.ExecutionContext.Implicits.global
-
-    val resolution =
-      retry(ctx = ctx, errorMsgExtractor = (r: Resolution) => r.errors.flatMap(_._2)) {
-        () => start.process.run(fetch).unsafeRun()
+    val coursierCache: FileCache[Task] = FileCache[Task]()
+      .noCredentials
+      .pipe { cache =>
+        coursierCacheCustomizer.fold(cache)(c => c.apply(cache))
+      }.pipe { cache =>
+        ctx.fold(cache)(c => cache.withLogger(new TickerResolutionLogger(c)))
       }
 
-    (deps.iterator.to(Seq), resolution)
+    ctx.foreach {
+      _.log.debug(s"Resolving root dependencies: ${rootDeps}, forced versions: ${forceVersions}")
+    }
+
+    if (useNewCoursierApi) {
+      ctx.foreach { _.log.info("Using new coursier API") }
+
+      val resolutionParams = ResolutionParams()
+        .withForceVersion(forceVersions)
+
+      val resolve = Resolve()
+        .withCache(coursierCache)
+        .withDependencies(rootDeps)
+        .withRepositories(repositories)
+        .withResolutionParams(resolutionParams)
+
+      val resolution = resolve.run()
+        .withMapDependencies(mapDependencies)
+
+      (deps.iterator.to(Seq), resolution)
+
+    } else {
+
+//      val cachePolicies = coursier.cache.CacheDefaults.cachePolicies
+
+      val start0 = Resolution()
+        .withRootDependencies(rootDeps)
+        .withForceVersions(forceVersions)
+        .withMapDependencies(mapDependencies)
+
+      val start = customizer.getOrElse(identity[Resolution](_)).apply(start0)
+
+//      val resolutionLogger = ctx.map(c => new TickerResolutionLogger(c))
+//      val coursierCache0 = resolutionLogger match {
+//        case None => coursier.cache.FileCache[Task]().withCachePolicies(cachePolicies)
+//        case Some(l) =>
+//          coursier.cache.FileCache[Task]()
+//            .withCachePolicies(cachePolicies)
+//            .withLogger(l)
+//      }
+//      val coursierCache = coursierCacheCustomizer.getOrElse(
+//        identity[coursier.cache.FileCache[Task]](_)
+//      ).apply(coursierCache0)
+
+      val fetches = coursierCache.fetchs
+
+      val fetch = coursier.core.ResolutionProcess.fetch(repositories, fetches.head, fetches.tail)
+
+      import scala.concurrent.ExecutionContext.Implicits.global
+
+      val resolution =
+        retry(ctx = ctx, errorMsgExtractor = (r: Resolution) => r.errors.flatMap(_._2)) {
+          () => start.process.run(fetch).unsafeRun()
+        }
+
+      Resolve.validate(resolution)
+
+      (deps.iterator.to(Seq), resolution)
+    }
   }
 
 }

@@ -61,7 +61,7 @@ private[dependency] object VersionsFinder {
           mapDependencies = Some(mapDeps),
           customizer = custom,
           coursierCacheCustomizer = cacheCustom,
-          ctx = Some(T.log)
+          ctx = Some(T.ctx())
         )
 
       (javaModule, metadataLoaders, dependencies)
