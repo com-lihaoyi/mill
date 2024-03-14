@@ -69,7 +69,8 @@ trait MillTestKit {
       inStream: InputStream = DummyInputStream,
       debugEnabled: Boolean = false,
       extraPathEnd: Seq[String] = Seq.empty,
-      env: Map[String, String] = Evaluator.defaultEnv
+      env: Map[String, String] = Evaluator.defaultEnv,
+      enableTicker: Boolean = false
   )(implicit fullName: sourcecode.FullName) {
     val outPath: Path = getOutPath(testPath) / extraPathEnd
 
@@ -77,7 +78,7 @@ trait MillTestKit {
     val logger: logger = new logger
     class logger extends mill.util.PrintLogger(
           colored = true,
-          enableTicker = true,
+          enableTicker = enableTicker,
           mill.util.Colors.Default.info,
           mill.util.Colors.Default.error,
           new SystemStreams(out = outStream, err = errStream, in = inStream),

@@ -28,16 +28,18 @@ class TestEvaluator(
     inStream: InputStream = DummyInputStream,
     debugEnabled: Boolean = false,
     extraPathEnd: Seq[String] = Seq.empty,
-    env: Map[String, String] = Evaluator.defaultEnv
+    env: Map[String, String] = Evaluator.defaultEnv,
+    enableTicker: Boolean = false
 )(implicit fullName: sourcecode.FullName, tp: TestPath) extends TestUtil.TestEvaluator(
-      module,
-      tp.value,
-      failFast,
-      threads,
-      outStream,
-      errStream,
-      inStream,
-      debugEnabled,
-      extraPathEnd,
-      env
+      module = module,
+      testPath = tp.value,
+      failFast = failFast,
+      threads = threads,
+      outStream = outStream,
+      errStream = errStream,
+      inStream = inStream,
+      debugEnabled = debugEnabled,
+      extraPathEnd = extraPathEnd,
+      env = env,
+      enableTicker = enableTicker
     )
