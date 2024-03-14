@@ -807,7 +807,8 @@ trait JavaModule
         additionalDeps() ++ transitiveIvyDeps(),
         Some(mapDependencies()),
         customizer = resolutionCustomizer(),
-        coursierCacheCustomizer = coursierCacheCustomizer()
+        coursierCacheCustomizer = coursierCacheCustomizer(),
+        ctx = Option(T.ctx())
       )
 
       val roots = whatDependsOn match {
