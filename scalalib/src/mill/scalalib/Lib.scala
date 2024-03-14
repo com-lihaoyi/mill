@@ -62,7 +62,8 @@ object Lib {
       ctx: Option[Ctx.Log] = None,
       coursierCacheCustomizer: Option[
         coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
-      ] = None
+      ] = None,
+      sameDependencyVersions: Seq[Set[(String, String)]] = Seq()
   ): Result[Agg[PathRef]] = {
     val depSeq = deps.iterator.toSeq
     mill.util.Jvm.resolveDependencies(
@@ -73,7 +74,8 @@ object Lib {
       mapDependencies = mapDependencies,
       customizer = customizer,
       ctx = ctx,
-      coursierCacheCustomizer = coursierCacheCustomizer
+      coursierCacheCustomizer = coursierCacheCustomizer,
+      sameDependencyVersions = sameDependencyVersions
     ).map(_.map(_.withRevalidateOnce))
   }
 
