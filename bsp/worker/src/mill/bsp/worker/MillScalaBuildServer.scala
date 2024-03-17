@@ -33,7 +33,6 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
       targetIds = _ => p.getTargets.asScala.toSeq,
       tasks = {
         case m: JavaModule =>
-
           val scalacOptionsTask = m match {
             case m: ScalaModule => m.allScalacOptions
             case _ => T.task { Seq.empty[String] }
