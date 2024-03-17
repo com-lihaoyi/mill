@@ -138,13 +138,13 @@ private class MillBuildServer(
       capabilities.setDependencyModulesProvider(true)
       capabilities.setDependencySourcesProvider(true)
       capabilities.setInverseSourcesProvider(true)
+      capabilities.setJvmCompileClasspathProvider(enableJvmCompileClasspathProvider)
       capabilities.setJvmRunEnvironmentProvider(true)
       capabilities.setJvmTestEnvironmentProvider(true)
       capabilities.setOutputPathsProvider(true)
       capabilities.setResourcesProvider(true)
       capabilities.setRunProvider(new RunProvider(supportedLangs))
       capabilities.setTestProvider(new TestProvider(supportedLangs))
-      capabilities.setJvmCompileClasspathProvider(enableJvmCompileClasspathProvider)
 
       // IJ is currently not able to handle files as source paths, only dirs
       // TODO: Rumor has it, that newer version may handle it, so we need to better detect that
