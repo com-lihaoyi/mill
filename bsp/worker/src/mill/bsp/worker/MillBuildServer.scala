@@ -100,6 +100,9 @@ private class MillBuildServer(
   protected var clientWantsSemanticDb = false
   protected var clientIsIntelliJ = false
 
+  /** `true` when client and server support the `JvmCompileClasspathProvider`` request. */
+  protected var enableJvmCompileClasspathProvider = false
+
   private[this] var statePromise: Promise[State] = Promise[State]()
 
   def updateEvaluator(evaluatorsOpt: Option[Seq[Evaluator]]): Unit = {
@@ -120,6 +123,9 @@ private class MillBuildServer(
       : CompletableFuture[InitializeBuildResult] =
     completableNoState(s"buildInitialize ${request}", checkInitialized = false) {
 
+      val clientCapabilities = request.getCapabilities()
+      enableJvmCompileClasspathProvider = clientCapabilities.getJvmCompileClasspathReceiver
+
       // TODO: scan BspModules and infer their capabilities
 
       val supportedLangs = Seq("java", "scala").asJava
@@ -138,6 +144,7 @@ private class MillBuildServer(
       capabilities.setResourcesProvider(true)
       capabilities.setRunProvider(new RunProvider(supportedLangs))
       capabilities.setTestProvider(new TestProvider(supportedLangs))
+      capabilities.setJvmCompileClasspathProvider(enableJvmCompileClasspathProvider)
 
       // IJ is currently not able to handle files as source paths, only dirs
       // TODO: Rumor has it, that newer version may handle it, so we need to better detect that
