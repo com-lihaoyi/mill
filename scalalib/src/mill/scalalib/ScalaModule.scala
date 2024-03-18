@@ -61,23 +61,44 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    */
   def scalaVersion: T[String]
 
-  override def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = T.task {
-    super.mapDependencies().andThen { d: coursier.Dependency =>
+  /**
+   * Historically, all Scala versions supported by Mill where forward and backward compatible within the same minor version.
+   * As a consequence, we pinned/freezed their version in the transitive dependencies.
+   * In newer Scala versions, this is no longer true.
+   */
+  private def scalaVersionPinning: Task[Boolean] = T {
+    val sv = scalaVersion()
+    // Scala 2.12-
+    sv.startsWith("2.") && sv.drop(2).takeWhile(_.isDigit).toIntOption.exists(_ < 13)
+  }
+
+  override def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = {
+    val correctOrgAndMaybePinVersionTask = T.task { d: coursier.Dependency =>
+      val sv = scalaVersion()
       val artifacts =
-        if (ZincWorkerUtil.isDotty(scalaVersion()))
+        if (ZincWorkerUtil.isDotty(sv))
           Set("dotty-library", "dotty-compiler")
-        else if (ZincWorkerUtil.isScala3(scalaVersion()))
+        else if (ZincWorkerUtil.isScala3(sv))
           Set("scala3-library", "scala3-compiler")
         else
           Set("scala-library", "scala-compiler", "scala-reflect")
       if (!artifacts(d.module.name.value)) d
-      else
+      else {
         d.withModule(
           d.module.withOrganization(
+            // align organization (required for dotty / version early Scala 3)
             coursier.Organization(scalaOrganization())
           )
         )
-          .withVersion(scalaVersion())
+          .withVersion(
+            // pin (override) scala version
+            if (scalaVersionPinning()) sv else d.version
+          )
+      }
+    }
+
+    T.task {
+      super.mapDependencies().andThen(correctOrgAndMaybePinVersionTask())
     }
   }
 
@@ -248,7 +269,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     resolveDeps(
       T.task {
         val bind = bindDependency()
-        Lib.scalaDocIvyDeps(scalaOrganization(), scalaVersion()).map(bind)
+        Lib.scalaDocIvyDeps(scalaOrganization(), scalaVersion(), scalaVersionPinning()).map(bind)
       }
     )()
   }
@@ -264,7 +285,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   }
 
   def scalaLibraryIvyDeps: T[Agg[Dep]] = T {
-    Lib.scalaRuntimeIvyDeps(scalaOrganization(), scalaVersion())
+    Lib.scalaRuntimeIvyDeps(scalaOrganization(), scalaVersion(), force = scalaVersionPinning())
   }
 
   /** Adds the Scala Library is a mandatory dependency. */
@@ -279,7 +300,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     resolveDeps(
       T.task {
         val bind = bindDependency()
-        (Lib.scalaCompilerIvyDeps(scalaOrganization(), scalaVersion()) ++
+        (Lib.scalaCompilerIvyDeps(scalaOrganization(), scalaVersion(), scalaVersionPinning()) ++
           scalaLibraryIvyDeps()).map(bind)
       }
     )()

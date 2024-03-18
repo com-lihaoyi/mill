@@ -3,7 +3,7 @@ package scalalib
 
 import coursier.util.Task
 import coursier.{Dependency, Repository, Resolution}
-import mill.api.{Ctx, Loose, PathRef, Result}
+import mill.api.{Ctx, PathRef, Result}
 import mill.main.BuildInfo
 import mill.util.Util
 import mill.scalalib.api.ZincWorkerUtil
@@ -79,53 +79,83 @@ object Lib {
     ).map(_.map(_.withRevalidateOnce))
   }
 
-  def scalaCompilerIvyDeps(scalaOrganization: String, scalaVersion: String): Loose.Agg[Dep] =
+  // bin-compat shim (0.11.x)
+  def scalaCompilerIvyDeps(scalaOrganization: String, scalaVersion: String): Agg[Dep] =
+    scalaCompilerIvyDeps(scalaOrganization, scalaVersion, true)
+
+  def scalaCompilerIvyDeps(
+      scalaOrganization: String,
+      scalaVersion: String,
+      force: Boolean
+  ): Agg[Dep] = {
+    val version = if (force) scalaVersion else s"[${scalaVersion}]"
     if (ZincWorkerUtil.isDotty(scalaVersion))
       Agg(
-        ivy"$scalaOrganization::dotty-compiler:$scalaVersion".forceVersion()
+        ivy"$scalaOrganization::dotty-compiler:$version".copy(force = force)
       )
     else if (ZincWorkerUtil.isScala3(scalaVersion))
       Agg(
-        ivy"$scalaOrganization::scala3-compiler:$scalaVersion".forceVersion()
+        ivy"$scalaOrganization::scala3-compiler:$version".copy(force = force)
       )
     else
       Agg(
-        ivy"$scalaOrganization:scala-compiler:$scalaVersion".forceVersion(),
-        ivy"$scalaOrganization:scala-reflect:$scalaVersion".forceVersion()
+        ivy"$scalaOrganization:scala-compiler:$version".copy(force = force),
+        ivy"$scalaOrganization:scala-reflect:$version".copy(force = force)
       )
+  }
 
-  def scalaDocIvyDeps(scalaOrganization: String, scalaVersion: String): Loose.Agg[Dep] =
+  // bin-compat shim (0.11.x)
+  def scalaDocIvyDeps(scalaOrganization: String, scalaVersion: String): Agg[Dep] =
+    scalaDocIvyDeps(scalaOrganization, scalaVersion, force = true)
+
+  def scalaDocIvyDeps(
+      scalaOrganization: String,
+      scalaVersion: String,
+      force: Boolean
+  ): Agg[Dep] = {
+    val version = if (force) scalaVersion else s"[${scalaVersion}]"
     if (ZincWorkerUtil.isDotty(scalaVersion))
       Agg(
-        ivy"$scalaOrganization::dotty-doc:$scalaVersion".forceVersion()
+        ivy"$scalaOrganization::dotty-doc:$version".copy(force = force)
       )
     else if (ZincWorkerUtil.isScala3Milestone(scalaVersion))
       Agg(
         // 3.0.0-RC1 > scalaVersion >= 3.0.0-M1 still uses dotty-doc, but under a different artifact name
-        ivy"$scalaOrganization::scala3-doc:$scalaVersion".forceVersion()
+        ivy"$scalaOrganization::scala3-doc:$version".copy(force = force)
       )
     else if (ZincWorkerUtil.isScala3(scalaVersion))
       Agg(
         // scalaVersion >= 3.0.0-RC1 uses scaladoc
-        ivy"$scalaOrganization::scaladoc:$scalaVersion".forceVersion()
+        ivy"$scalaOrganization::scaladoc:$version".copy(force = force)
       )
     else
       // in Scala <= 2.13, the scaladoc tool is included in the compiler
-      scalaCompilerIvyDeps(scalaOrganization, scalaVersion)
+      scalaCompilerIvyDeps(scalaOrganization, version, force)
+  }
 
-  def scalaRuntimeIvyDeps(scalaOrganization: String, scalaVersion: String): Loose.Agg[Dep] =
+  // bin-compat shim (0.11.x)
+  def scalaRuntimeIvyDeps(scalaOrganization: String, scalaVersion: String): Agg[Dep] =
+    scalaRuntimeIvyDeps(scalaOrganization, scalaVersion, force = true)
+
+  def scalaRuntimeIvyDeps(
+      scalaOrganization: String,
+      scalaVersion: String,
+      force: Boolean
+  ): Agg[Dep] = {
+    val version = if (force) scalaVersion else s"[${scalaVersion}]"
     if (ZincWorkerUtil.isDotty(scalaVersion)) {
       Agg(
-        ivy"$scalaOrganization::dotty-library:$scalaVersion".forceVersion()
+        ivy"$scalaOrganization::dotty-library:$version".copy(force = force)
       )
     } else if (ZincWorkerUtil.isScala3(scalaVersion))
       Agg(
-        ivy"$scalaOrganization::scala3-library:$scalaVersion".forceVersion()
+        ivy"$scalaOrganization::scala3-library:$version".copy(force = force)
       )
     else
       Agg(
-        ivy"$scalaOrganization:scala-library:$scalaVersion".forceVersion()
+        ivy"$scalaOrganization:scala-library:$version".copy(force = force)
       )
+  }
 
   def findSourceFiles(sources: Seq[PathRef], extensions: Seq[String]): Seq[os.Path] = {
     def isHiddenFile(path: os.Path) = path.last.startsWith(".")
