@@ -130,7 +130,7 @@ object Lib {
       )
     else
       // in Scala <= 2.13, the scaladoc tool is included in the compiler
-      scalaCompilerIvyDeps(scalaOrganization, version, force)
+      scalaCompilerIvyDeps(scalaOrganization, scalaVersion, force)
   }
 
   // bin-compat shim (0.11.x)
