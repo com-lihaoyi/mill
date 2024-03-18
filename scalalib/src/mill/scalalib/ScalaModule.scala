@@ -298,8 +298,9 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   def scalaCompilerClasspath: T[Agg[PathRef]] = T {
     resolveDeps(
       T.task {
+        val pin = scalaVersionPinning()
         val bind = bindDependency()
-        (Lib.scalaCompilerIvyDeps(scalaOrganization(), scalaVersion(), scalaVersionPinning()) ++
+        (Lib.scalaCompilerIvyDeps(scalaOrganization(), scalaVersion(), force = pin, asRange = !pin) ++
           scalaLibraryIvyDeps()).map(bind)
       }
     )()

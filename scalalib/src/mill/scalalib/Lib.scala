@@ -81,14 +81,15 @@ object Lib {
 
   // bin-compat shim (0.11.x)
   def scalaCompilerIvyDeps(scalaOrganization: String, scalaVersion: String): Agg[Dep] =
-    scalaCompilerIvyDeps(scalaOrganization, scalaVersion, true)
+    scalaCompilerIvyDeps(scalaOrganization, scalaVersion, force = false, asRange = false)
 
   def scalaCompilerIvyDeps(
       scalaOrganization: String,
       scalaVersion: String,
-      force: Boolean
+      force: Boolean,
+      asRange: Boolean
   ): Agg[Dep] = {
-    val version = if (force) scalaVersion else s"[${scalaVersion}]"
+    val version = if (asRange) s"[${scalaVersion}]" else scalaVersion
     if (ZincWorkerUtil.isDotty(scalaVersion))
       Agg(
         ivy"$scalaOrganization::dotty-compiler:$version".copy(force = force)
@@ -106,7 +107,7 @@ object Lib {
 
   // bin-compat shim (0.11.x)
   def scalaDocIvyDeps(scalaOrganization: String, scalaVersion: String): Agg[Dep] =
-    scalaDocIvyDeps(scalaOrganization, scalaVersion, force = true)
+    scalaDocIvyDeps(scalaOrganization, scalaVersion, force = false)
 
   def scalaDocIvyDeps(
       scalaOrganization: String,
@@ -130,12 +131,12 @@ object Lib {
       )
     else
       // in Scala <= 2.13, the scaladoc tool is included in the compiler
-      scalaCompilerIvyDeps(scalaOrganization, scalaVersion, force)
+      scalaCompilerIvyDeps(scalaOrganization, scalaVersion, force, asRange = false)
   }
 
   // bin-compat shim (0.11.x)
   def scalaRuntimeIvyDeps(scalaOrganization: String, scalaVersion: String): Agg[Dep] =
-    scalaRuntimeIvyDeps(scalaOrganization, scalaVersion, force = true, asRange = false)
+    scalaRuntimeIvyDeps(scalaOrganization, scalaVersion, force = false, asRange = false)
 
   def scalaRuntimeIvyDeps(
       scalaOrganization: String,
