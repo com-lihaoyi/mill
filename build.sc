@@ -449,7 +449,7 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
     ProblemFilter.exclude[ReversedMissingMethodProblem](
       "mill.scalanativelib.ScalaNativeModule.mill$scalanativelib$ScalaNativeModule$$super$zincAuxiliaryClassFileExtensions"
     ),
-    // (7x) See https://github.com/com-lihaoyi/mill/pull/3064
+    // (6x) See https://github.com/com-lihaoyi/mill/pull/3064
     // Moved targets up in trait hierarchy, but also call them via super, which I think is safe
     ProblemFilter.exclude[ReversedMissingMethodProblem](
       "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$zincWorker"
@@ -460,9 +460,9 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
     ProblemFilter.exclude[ReversedMissingMethodProblem](
       "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$runUseArgsFile"
     ),
-    ProblemFilter.exclude[ReversedMissingMethodProblem](
-      "mill.scalalib.JavaModule#JavaModuleTests.mill$scalalib$JavaModule$JavaModuleTests$$super$testClasspath"
-    ),
+//    ProblemFilter.exclude[ReversedMissingMethodProblem](
+//      "mill.scalalib.JavaModule#JavaModuleTests.mill$scalalib$JavaModule$JavaModuleTests$$super$testClasspath"
+//    ),
     ProblemFilter.exclude[ReversedMissingMethodProblem](
       "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$forkArgs"
     ),
