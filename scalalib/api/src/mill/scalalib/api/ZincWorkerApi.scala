@@ -144,6 +144,9 @@ trait ZincWorkerApi {
       auxiliaryClassFileExtensions = Seq.empty[String]
     )
 
+  /**
+   * Find main classes by inspecting the Zinc compilation analysis file.
+   */
   def discoverMainClasses(compilationResult: CompilationResult): Seq[String]
 
   def docJar(
@@ -153,4 +156,9 @@ trait ZincWorkerApi {
       scalacPluginClasspath: Agg[PathRef],
       args: Seq[String]
   )(implicit ctx: ZincWorkerApi.Ctx): Boolean
+
+  /**
+   * Find main classes by inspecting the classpath.
+   */
+  def discoverMainClasses(classpath: Seq[os.Path]): Seq[String]
 }
