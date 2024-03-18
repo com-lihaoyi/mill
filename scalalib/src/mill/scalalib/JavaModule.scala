@@ -459,13 +459,37 @@ trait JavaModule
     }
 
   /**
+   * The part of the [[localClasspath]] which is available "after compilation".
+   *
+   * Keep in sync with [[bspLocalRunClasspath]]
+   */
+  override def localRunClasspath: T[Seq[PathRef]] = T {
+    super.localRunClasspath() ++ resources() ++
+      Agg(compile().classes)
+  }
+
+  /**
+   * Same as [[localRunClasspath]] but for use in BSP server.
+   *
+   * Keep in sync with [[localRunClasspath]]
+   */
+  def bspLocalRunClasspath: T[Agg[UnresolvedPath]] = T {
+    Agg.from(super.localRunClasspath() ++ resources())
+      .map(p => UnresolvedPath.ResolvedPath(p.path)) ++
+      Agg(bspCompileClassesPath())
+  }
+
+  /**
    * The *output* classfiles/resources from this module, used for execution,
    * excluding upstream modules and third-party dependencies, but including unmanaged dependencies.
+   *
+   * This is build from [[localCompileClasspath]] and [[localRunClasspath]]
+   * as the parts available "before compilation" and "after compiliation".
    *
    * Keep in sync with [[bspLocalClasspath]]
    */
   def localClasspath: T[Seq[PathRef]] = T {
-    localCompileClasspath().toSeq ++ resources() ++ Agg(compile().classes)
+    localCompileClasspath().toSeq ++ localRunClasspath()
   }
 
   /**
@@ -476,8 +500,8 @@ trait JavaModule
    */
   @internal
   def bspLocalClasspath: T[Agg[UnresolvedPath]] = T {
-    (localCompileClasspath() ++ resources()).map(p => UnresolvedPath.ResolvedPath(p.path)) ++
-      Agg(bspCompileClassesPath())
+    (localCompileClasspath()).map(p => UnresolvedPath.ResolvedPath(p.path)) ++
+      bspLocalRunClasspath()
   }
 
   /**
@@ -533,7 +557,7 @@ trait JavaModule
    * All classfiles and resources from upstream modules and dependencies
    * necessary to run this module's code after compilation
    */
-  def runClasspath: T[Seq[PathRef]] = T {
+  override def runClasspath: T[Seq[PathRef]] = T {
     super.runClasspath() ++
       resolvedRunIvyDeps().toSeq ++
       transitiveLocalClasspath() ++
@@ -688,7 +712,7 @@ trait JavaModule
    * Any command-line parameters you want to pass to the forked JVM under `run`,
    * `test` or `repl`
    */
-  def forkArgs: T[Seq[String]] = T {
+  override def forkArgs: T[Seq[String]] = T {
     // overridden here for binary compatibility (0.11.x)
     super.forkArgs()
   }
@@ -697,7 +721,7 @@ trait JavaModule
    * Any environment variables you want to pass to the forked JVM under `run`,
    * `test` or `repl`
    */
-  def forkEnv: T[Map[String, String]] = T {
+  override def forkEnv: T[Map[String, String]] = T {
     // overridden here for binary compatibility (0.11.x)
     super.forkEnv()
   }
@@ -815,80 +839,22 @@ trait JavaModule
     }
   }
 
-  def runUseArgsFile: T[Boolean] = T {
+  override def runUseArgsFile: T[Boolean] = T {
     // overridden here for binary compatibility (0.11.x)
     super.runUseArgsFile()
   }
 
-  /**
-   * Runs this module's code in-process within an isolated classloader. This is
-   * faster than `run`, but in exchange you have less isolation between runs
-   * since the code can dirty the parent Mill process and potentially leave it
-   * in a bad state.
-   */
-  def runLocal(args: Task[Args] = T.task(Args())): Command[Unit] = T.command {
-    Jvm.runLocal(
-      finalMainClass(),
-      runClasspath().map(_.path),
-      args().value
-    )
+  override def runLocal(args: Task[Args] = T.task(Args())): Command[Unit] = {
+    // overridden here for binary compatibility (0.11.x)
+    super.runLocal(args)
   }
 
-  /**
-   * Runs this module's code in a subprocess and waits for it to finish
-   */
-  def run(args: Task[Args] = T.task(Args())): Command[Unit] = T.command {
-    try Result.Success(
-        Jvm.runSubprocess(
-          finalMainClass(),
-          runClasspath().map(_.path),
-          forkArgs(),
-          forkEnv(),
-          args().value,
-          workingDir = forkWorkingDir(),
-          useCpPassingJar = runUseArgsFile()
-        )
-      )
-    catch {
-      case e: Exception =>
-        Result.Failure("subprocess failed")
-    }
+  override def run(args: Task[Args] = T.task(Args())): Command[Unit] = {
+    // overridden here for binary compatibility (0.11.x)
+    super.run(args)
   }
 
-  private[this] def backgroundSetup(dest: os.Path): (Path, Path, String) = {
-    val token = java.util.UUID.randomUUID().toString
-    val procId = dest / ".mill-background-process-id"
-    val procTombstone = dest / ".mill-background-process-tombstone"
-    // The backgrounded subprocesses poll the procId file, and kill themselves
-    // when the procId file is deleted. This deletion happens immediately before
-    // the body of these commands run, but we cannot be sure the subprocess has
-    // had time to notice.
-    //
-    // To make sure we wait for the previous subprocess to
-    // die, we make the subprocess write a tombstone file out when it kills
-    // itself due to procId being deleted, and we wait a short time on task-start
-    // to see if such a tombstone appears. If a tombstone appears, we can be sure
-    // the subprocess has killed itself, and can continue. If a tombstone doesn't
-    // appear in a short amount of time, we assume the subprocess exited or was
-    // killed via some other means, and continue anyway.
-    val start = System.currentTimeMillis()
-    while ({
-      if (os.exists(procTombstone)) {
-        Thread.sleep(10)
-        os.remove.all(procTombstone)
-        true
-      } else {
-        Thread.sleep(10)
-        System.currentTimeMillis() - start < 100
-      }
-    }) ()
-
-    os.write(procId, token)
-    os.write(procTombstone, token)
-    (procId, procTombstone, token)
-  }
-
-  protected def doRunBackground(
+  override protected def doRunBackground(
       taskDest: Path,
       runClasspath: Seq[PathRef],
       zwBackgroundWrapperClasspath: Agg[PathRef],
@@ -898,39 +864,25 @@ trait JavaModule
       forkWorkingDir: Path,
       runUseArgsFile: Boolean,
       backgroundOutputs: Option[Tuple2[ProcessOutput, ProcessOutput]]
-  )(args: String*): Ctx => Result[Unit] = ctx => {
-    val (procId, procTombstone, token) = backgroundSetup(taskDest)
-    try Result.Success(
-        Jvm.runSubprocessWithBackgroundOutputs(
-          "mill.scalalib.backgroundwrapper.BackgroundWrapper",
-          (runClasspath ++ zwBackgroundWrapperClasspath).map(_.path),
-          forkArgs,
-          forkEnv,
-          Seq(procId.toString, procTombstone.toString, token, finalMainClass) ++ args,
-          workingDir = forkWorkingDir,
-          backgroundOutputs,
-          useCpPassingJar = runUseArgsFile
-        )(ctx)
-      )
-    catch {
-      case e: Exception =>
-        Result.Failure("subprocess failed")
-    }
+  )(args: String*): Ctx => Result[Unit] = {
+    // overridden here for binary compatibility (0.11.x)
+    super.doRunBackground(
+      taskDest,
+      runClasspath,
+      zwBackgroundWrapperClasspath,
+      forkArgs,
+      forkEnv,
+      finalMainClass,
+      forkWorkingDir,
+      runUseArgsFile,
+      backgroundOutputs
+    )(args: _*)
   }
 
-  /**
-   * If true, stdout and stderr of the process executed by `runBackground`
-   * or `runMainBackground` is sent to mill's stdout/stderr (which usualy
-   * flow to the console).
-   *
-   * If false, output will be directed to files `stdout.log` and `stderr.log`
-   * in `runBackground.dest` (or `runMainBackground.dest`)
-   */
-  def runBackgroundLogToConsole: Boolean = true
-
-  private def backgroundOutputs(dest: os.Path) =
-    if (runBackgroundLogToConsole) Some((os.Inherit, os.Inherit))
-    else Jvm.defaultBackgroundOutputs(dest)
+  override def runBackgroundLogToConsole: Boolean = {
+    // overridden here for binary compatibility (0.11.x)
+    super.runBackgroundLogToConsole
+  }
 
   /**
    * Runs this module's code in a background process, until it dies or
@@ -943,72 +895,33 @@ trait JavaModule
    * when ready. This is useful when working on long-running server processes
    * that would otherwise run forever
    */
-  def runBackground(args: String*): Command[Unit] = T.command {
-    val ctx = implicitly[Ctx]
-
-    doRunBackground(
-      taskDest = T.dest,
-      runClasspath = runClasspath(),
-      zwBackgroundWrapperClasspath = zincWorker().backgroundWrapperClasspath(),
-      forkArgs = forkArgs(),
-      forkEnv = forkEnv(),
-      finalMainClass = finalMainClass(),
-      forkWorkingDir = forkWorkingDir(),
-      runUseArgsFile = runUseArgsFile(),
-      backgroundOutputs = backgroundOutputs(T.dest)
-    )(args: _*)(ctx)
+  def runBackground(args: String*): Command[Unit] = {
+    val task = runBackgroundTask(finalMainClass, T.task { Args(args) })
+    T.command { task }
   }
 
   /**
    * Same as `runBackground`, but lets you specify a main class to run
    */
-  def runMainBackground(mainClass: String, args: String*): Command[Unit] = T.command {
-    val ctx = implicitly[Ctx]
-
-    doRunBackground(
-      taskDest = T.dest,
-      runClasspath = runClasspath(),
-      zwBackgroundWrapperClasspath = zincWorker().backgroundWrapperClasspath(),
-      forkArgs = forkArgs(),
-      forkEnv = forkEnv(),
-      finalMainClass = mainClass,
-      forkWorkingDir = forkWorkingDir(),
-      runUseArgsFile = runUseArgsFile(),
-      backgroundOutputs = backgroundOutputs(T.dest)
-    )(args: _*)(ctx)
+  override def runMainBackground(mainClass: String, args: String*): Command[Unit] = {
+    // overridden here for binary compatibility (0.11.x)
+    super.runMainBackground(mainClass, args: _*)
   }
 
   /**
    * Same as `runLocal`, but lets you specify a main class to run
    */
-  def runMainLocal(mainClass: String, args: String*): Command[Unit] =
-    T.command {
-      Jvm.runLocal(
-        mainClass,
-        runClasspath().map(_.path),
-        args
-      )
-    }
+  override def runMainLocal(mainClass: String, args: String*): Command[Unit] = {
+    // overridden here for binary compatibility (0.11.x)
+    super.runMainLocal(mainClass, args: _*)
+  }
 
   /**
    * Same as `run`, but lets you specify a main class to run
    */
-  def runMain(mainClass: String, args: String*): Command[Unit] = T.command {
-    try Result.Success(
-        Jvm.runSubprocess(
-          mainClass,
-          runClasspath().map(_.path),
-          forkArgs(),
-          forkEnv(),
-          args,
-          workingDir = forkWorkingDir(),
-          useCpPassingJar = runUseArgsFile()
-        )
-      )
-    catch {
-      case e: Exception =>
-        Result.Failure("subprocess failed")
-    }
+  override def runMain(mainClass: String, args: String*): Command[Unit] = {
+    // overridden here for binary compatibility (0.11.x)
+    super.runMain(mainClass, args: _*)
   }
 
   /**
@@ -1032,7 +945,7 @@ trait JavaModule
    */
   def artifactSuffix: T[String] = platformSuffix()
 
-  def forkWorkingDir: T[Path] = T {
+  override def forkWorkingDir: T[Path] = T {
     // overridden here for binary compatibility (0.11.x)
     super.forkWorkingDir()
   }

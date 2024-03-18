@@ -20,9 +20,9 @@ trait TestModule
 
   /**
    * The classpath containing the tests. This is most likely the output of the compilation target.
-   * Return by default the empty `Seq` for compatibility (0.11.x).
+   * By default this uses the result of [[localRunClasspath]], which is most likely the result of a local compilation.
    */
-  def testClasspath: T[Seq[PathRef]] = T { Seq.empty[PathRef] }
+  def testClasspath: T[Seq[PathRef]] = T { localRunClasspath() }
 
   /**
    * The test framework to use.
