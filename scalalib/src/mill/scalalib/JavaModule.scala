@@ -166,11 +166,17 @@ trait JavaModule
 
   /**
    *  The direct dependencies of this module.
+   *  This is meant to be overridden to add dependencies.
+   *  To read the value, you should use [[moduleDepsChecked]] instead,
+   *  which uses a cached result which is also checked to be free of cycle.
    *  @see [[moduleDepschecked]]
    */
   def moduleDeps: Seq[JavaModule] = Seq.empty
 
-  /** Same as [[moduleDeps]] but checked to not contain cycles. */
+  /**
+   * Same as [[moduleDeps]] but checked to not contain cycles.
+   * Prefer this over using [[moduleDeps]] directly.
+   */
   final def moduleDepsChecked: Seq[JavaModule] = {
     // trigger initialization to check for cycles
     recModuleDeps
@@ -682,13 +688,19 @@ trait JavaModule
    * Any command-line parameters you want to pass to the forked JVM under `run`,
    * `test` or `repl`
    */
-  def forkArgs: T[Seq[String]] = T { super.forkArgs() }
+  def forkArgs: T[Seq[String]] = T {
+    // overridden here for binary compatibility (0.11.x)
+    super.forkArgs()
+  }
 
   /**
    * Any environment variables you want to pass to the forked JVM under `run`,
    * `test` or `repl`
    */
-  def forkEnv: T[Map[String, String]] = T { super.forkEnv() }
+  def forkEnv: T[Map[String, String]] = T {
+    // overridden here for binary compatibility (0.11.x)
+    super.forkEnv()
+  }
 
   /**
    * Builds a command-line "launcher" file that can be used to run this module's
@@ -803,7 +815,10 @@ trait JavaModule
     }
   }
 
-  def runUseArgsFile: T[Boolean] = super.runUseArgsFile
+  def runUseArgsFile: T[Boolean] = T {
+    // overridden here for binary compatibility (0.11.x)
+    super.runUseArgsFile()
+  }
 
   /**
    * Runs this module's code in-process within an isolated classloader. This is
@@ -1017,7 +1032,10 @@ trait JavaModule
    */
   def artifactSuffix: T[String] = platformSuffix()
 
-  def forkWorkingDir: T[Path] = T { super.forkWorkingDir() }
+  def forkWorkingDir: T[Path] = T {
+    // overridden here for binary compatibility (0.11.x)
+    super.forkWorkingDir()
+  }
 
   /**
    * Files extensions that need to be managed by Zinc together with class files.

@@ -13,18 +13,30 @@ trait TestModule
     with RunModule
     with TaskModule {
 
-  // FIXME: These are no longer needed, but we keep it for binary compatibility reasons
+  // FIXME: The `compile` is no longer needed, but we keep it for binary compatibility (0.11.x)
   def compile: T[mill.scalalib.api.CompilationResult]
 
   override def defaultCommandName() = "test"
 
   /**
    * The classpath containing the tests. This is most likely the output of the compilation target.
+   * Return by default the empty `Seq` for compatibility (0.11.x).
    */
   def testClasspath: T[Seq[PathRef]] = T { Seq.empty[PathRef] }
 
   /**
    * The test framework to use.
+   *
+   * For convenience, you can also mix-in one of these predefined traits:
+   * - [[TestModule.Junit4]]
+   * - [[TestModule.Junit5]]
+   * - [[TestModule.Munit]]
+   * - [[TestModule.ScalaTest]]
+   * - [[TestModule.Specs2]]
+   * - [[TestModule.TestNg]]
+   * - [[TestModule.Utest]]
+   * - [[TestModule.Weaver]]
+   * - [[TestModule.ZioTest]]
    */
   def testFramework: T[String]
 
@@ -77,11 +89,13 @@ trait TestModule
 
   /**
    * Controls whether the TestRunner should receive it's arguments via an args-file instead of a as long parameter list.
-   * Defaults to `true` on Windows, as Windows has a rather short parameter length limit.
+   * Defaults to what `runUseArgsFile` return.
    */
-  def testUseArgsFile: T[Boolean] =
-    T { runUseArgsFile() || scala.util.Properties.isWin }
+  def testUseArgsFile: T[Boolean] = T { runUseArgsFile() || scala.util.Properties.isWin }
 
+  /**
+   * The actual task shared by `test`-tasks that runs test in a forked JVM.
+   */
   protected def testTask(
       args: Task[Seq[String]],
       globSelectors: Task[Seq[String]]
