@@ -287,7 +287,7 @@ class ZincWorkerImpl(
 
   }
 
-  def discoverMainClasses(classpath: Seq[os.Path]): Seq[String] = {
+  override def discoverMainClasses(classpath: Seq[os.Path]): Seq[String] = {
     val cpRoots = classpath.map(_.toNIO.toString())
     val cp = cpRoots.mkString(":")
 
