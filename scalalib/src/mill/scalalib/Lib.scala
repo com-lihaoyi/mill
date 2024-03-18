@@ -135,14 +135,15 @@ object Lib {
 
   // bin-compat shim (0.11.x)
   def scalaRuntimeIvyDeps(scalaOrganization: String, scalaVersion: String): Agg[Dep] =
-    scalaRuntimeIvyDeps(scalaOrganization, scalaVersion, force = true)
+    scalaRuntimeIvyDeps(scalaOrganization, scalaVersion, force = true, asRange = false)
 
   def scalaRuntimeIvyDeps(
       scalaOrganization: String,
       scalaVersion: String,
-      force: Boolean
+      force: Boolean,
+      asRange: Boolean
   ): Agg[Dep] = {
-    val version = if (force) scalaVersion else s"[${scalaVersion}]"
+    val version = if (asRange) s"[${scalaVersion}]" else scalaVersion
     if (ZincWorkerUtil.isDotty(scalaVersion)) {
       Agg(
         ivy"$scalaOrganization::dotty-library:$version".copy(force = force)

@@ -8,18 +8,12 @@ import mill.util.Jvm.createJar
 import mill.api.Loose.Agg
 import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerUtil}
 import mainargs.Flag
-import mill.scalalib.bsp.{
-  BspBuildTarget,
-  BspModule,
-  BspUri,
-  JvmBuildTarget,
-  ScalaBuildTarget,
-  ScalaPlatform
-}
+import mill.scalalib.bsp.{BspBuildTarget, BspModule, BspUri, JvmBuildTarget, ScalaBuildTarget, ScalaPlatform}
 import mill.scalalib.dependency.versions.{ValidVersion, Version}
 
 import scala.reflect.internal.util.ScalaClassLoader
 import scala.util.Using
+import scala.util.chaining.scalaUtilChainingOps
 
 /**
  * Core configuration required to compile a single Scala compilation target
@@ -86,14 +80,14 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
       else {
         d.withModule(
           d.module.withOrganization(
-            // align organization (required for dotty / version early Scala 3)
+            // always align organization (required for dotty / version early Scala 3)
             coursier.Organization(scalaOrganization())
           )
-        )
-          .withVersion(
-            // pin (override) scala version
-            if (scalaVersionPinning()) sv else d.version
-          )
+        ).pipe { d =>
+          // pin (override) scala version if appropriate
+          if (scalaVersionPinning()) d.withVersion(sv) else d
+        }
+
       }
     }
 
@@ -285,7 +279,12 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   }
 
   def scalaLibraryIvyDeps: T[Agg[Dep]] = T {
-    Lib.scalaRuntimeIvyDeps(scalaOrganization(), scalaVersion(), force = scalaVersionPinning())
+    Lib.scalaRuntimeIvyDeps(
+      scalaOrganization(),
+      scalaVersion(),
+      force = scalaVersionPinning(),
+      asRange = false
+    )
   }
 
   /** Adds the Scala Library is a mandatory dependency. */
@@ -304,6 +303,22 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
           scalaLibraryIvyDeps()).map(bind)
       }
     )()
+  }
+
+  override def resolvedIvyDeps: T[mill.Agg[PathRef]] = T {
+    // Same as super, but we want to enforce the used scala library version by making it a range
+    resolveDeps(T.task {
+      transitiveCompileIvyDeps() ++
+        transitiveIvyDeps() ++ (
+          if (scalaVersionPinning()) Agg.empty[BoundDep]
+          else Lib.scalaRuntimeIvyDeps(
+            scalaOrganization(),
+            scalaVersion(),
+            force = false,
+            asRange = true
+          ).map(bindDependency())
+        )
+    })()
   }
 
   // Keep in sync with [[bspCompileClassesPath]]
