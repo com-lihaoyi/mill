@@ -287,6 +287,16 @@ class ZincWorkerImpl(
 
   }
 
+  /**
+   * Discover main classes by inspecting the classpath.
+   *
+   * This implementation used the Scala API of `scalap` to inspect the classfiles for `public static main` methods.
+   *
+   * In contrast to [[discoverMainClasses()]], this version does not need a successful zinc compilation,
+   * which makes it independent of the actual used compiler.
+   *
+   * This implementation is only in this "zinc"-specific module, because this module is already shared between all `JavaModule`s.
+   */
   override def discoverMainClasses(classpath: Seq[os.Path]): Seq[String] = {
     val cpRoots = classpath.map(_.toNIO.toString())
     val cp = cpRoots.mkString(":")
