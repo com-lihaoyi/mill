@@ -64,10 +64,11 @@ This provides you with various reporting functions:
 
 [source,bash]
 ----
-mill __.test                     # run tests for all modules
-mill scoverage.htmlReportAll     # generates report in html format for all modules
-mill scoverage.xmlReportAll      # generates report in xml format for all modules
-mill scoverage.consoleReportAll  # reports to the console for all modules
+mill __.test                          # run tests for all modules
+mill scoverage.htmlReportAll          # generates report in html format for all modules
+mill scoverage.xmlReportAll           # generates report in xml format for all modules
+mill scoverage.xmlCoberturaReportAll  # generates report in Cobertura's xml format for all modules
+mill scoverage.consoleReportAll       # reports to the console for all modules
 ----
 
 The aggregated report will be available at either `out/scoverage/htmlReportAll.dest/`

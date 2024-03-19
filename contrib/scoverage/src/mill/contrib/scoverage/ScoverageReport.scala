@@ -65,6 +65,15 @@ trait ScoverageReport extends Module {
     reportTask(evaluator, ReportType.Xml, sources, dataTargets)()
   }
 
+  /** Generates report in Cobertura's xml format for all modules */
+  def xmlCoberturaReportAll(
+                    evaluator: Evaluator,
+                    sources: String = "__.allSources",
+                    dataTargets: String = "__.scoverage.data"
+                  ): Command[PathRef] = T.command {
+    reportTask(evaluator, ReportType.XmlCobertura, sources, dataTargets)()
+  }
+
   /** Reports to the console for all modules */
   def consoleReportAll(
       evaluator: Evaluator,

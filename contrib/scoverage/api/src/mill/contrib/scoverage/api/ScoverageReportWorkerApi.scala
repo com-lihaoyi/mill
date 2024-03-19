@@ -38,6 +38,7 @@ object ScoverageReportWorkerApi {
   object ReportType {
     final case object Html extends FileReportType { val folderName: String = "htmlReport" }
     final case object Xml extends FileReportType { val folderName: String = "xmlReport" }
+    final case object XmlCobertura extends FileReportType { val folderName: String = "xmlCoberturaReport" }
     final case object Console extends ReportType
   }
 }
