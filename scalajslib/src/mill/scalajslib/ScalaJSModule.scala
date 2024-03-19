@@ -272,7 +272,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   /** Name patterns for output. */
   def scalaJSOutputPatterns: Target[OutputPatterns] = T { OutputPatterns.Defaults }
 
-  /** Apply Scala.js-specific minification of the produced .js files.
+  /**
+   * Apply Scala.js-specific minification of the produced .js files.
    *
    *  When enabled, the linker more aggressively reduces the size of the
    *  generated code, at the cost of readability and debuggability. It does
