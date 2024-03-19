@@ -267,14 +267,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.7-42-f3bdb6</span>
+    <span class="version">0.11.7-43-75a73f</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="../index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="../index.html">0.11.7-42-f3bdb6</a>
+          <a href="../index.html">0.11.7-43-75a73f</a>
         </li>
         <li class="version">
           <a href="../0.11.0-M7/index.html">0.11.0-M7</a>
@@ -311,9 +311,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.7-42-f3bdb6</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.7-43-75a73f</button>
   <div class="version-menu">
-    <a class="version is-current" href="scoverage.html">0.11.7-42-f3bdb6</a>
+    <a class="version is-current" href="scoverage.html">0.11.7-43-75a73f</a>
     <a class="version" href="../0.11.0-M7/Plugin_Scoverage.html">0.11.0-M7</a>
     <a class="version" href="../0.10.15/Plugin_Scoverage.html">0.10.15</a>
     <a class="version" href="../0.10.12/Plugin_Scoverage.html">0.10.12</a>
@@ -364,12 +364,13 @@ modules introduce a few new tasks and changes the behavior of an existing one.</
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill foo.scoverage.compile      # compiles your module with test instrumentation
-                                # (you don't have to run this manually, running the test task will force its invocation)
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill foo.scoverage.compile                 # compiles your module with test instrumentation
+                                           # (you don't have to run this manually, running the test task will force its invocation)
 
-mill foo.test                   # tests your project and collects metrics on code coverage
-mill foo.scoverage.htmlReport   # uses the metrics collected by a previous test run to generate a coverage report in html format
-mill foo.scoverage.xmlReport    # uses the metrics collected by a previous test run to generate a coverage report in xml format</code></pre>
+mill foo.test                              # tests your project and collects metrics on code coverage
+mill foo.scoverage.htmlReport              # uses the metrics collected by a previous test run to generate a coverage report in html format
+mill foo.scoverage.xmlReport               # uses the metrics collected by a previous test run to generate a coverage report in xml format
+mill foo.scoverage.xmlCoberturaReportAll   # uses the metrics collected by a previous test run to generate a coverage report in Cobertura's xml format</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -403,10 +404,11 @@ module, <code>ScoverageReport</code>, is available to help aggregate the reports
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill __.test                     # run tests for all modules
-mill scoverage.htmlReportAll     # generates report in html format for all modules
-mill scoverage.xmlReportAll      # generates report in xml format for all modules
-mill scoverage.consoleReportAll  # reports to the console for all modules</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill __.test                                 # run tests for all modules
+mill scoverage.htmlReportAll                 # generates report in html format for all modules
+mill scoverage.xmlReportAll                  # generates report in xml format for all modules
+mill scoverage.xmlCoberturaReportAll         # generates report in Cobertura's xml format for all modules
+mill scoverage.consoleReportAll              # reports to the console for all modules</code></pre>
 </div>
 </div>
 <div class="paragraph">
