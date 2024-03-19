@@ -1,7 +1,12 @@
 package mill.contrib.scoverage.worker
 
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi
-import _root_.scoverage.report.{CoberturaXmlWriter, CoverageAggregator, ScoverageHtmlWriter, ScoverageXmlWriter}
+import _root_.scoverage.report.{
+  CoberturaXmlWriter,
+  CoverageAggregator,
+  ScoverageHtmlWriter,
+  ScoverageXmlWriter
+}
 import mill.api.Ctx
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi.ReportType
 
