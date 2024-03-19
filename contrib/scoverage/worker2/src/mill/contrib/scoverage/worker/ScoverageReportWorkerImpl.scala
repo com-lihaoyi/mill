@@ -1,7 +1,12 @@
 package mill.contrib.scoverage.worker
 
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi
-import _root_.scoverage.reporter.{CoverageAggregator, ScoverageHtmlWriter, ScoverageXmlWriter}
+import _root_.scoverage.reporter.{
+  CoberturaXmlWriter,
+  CoverageAggregator,
+  ScoverageHtmlWriter,
+  ScoverageXmlWriter
+}
 import mill.api.Ctx
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi.ReportType
 
@@ -29,6 +34,9 @@ class ScoverageReportWorkerImpl extends ScoverageReportWorkerApi {
                 .write(coverage)
             case ReportType.Xml =>
               new ScoverageXmlWriter(sourceFolders, folder.toIO, false, None)
+                .write(coverage)
+            case ReportType.XmlCobertura =>
+              new CoberturaXmlWriter(sourceFolders, folder.toIO, None)
                 .write(coverage)
             case ReportType.Console =>
               ctx.log.info(s"Statement coverage.: ${coverage.statementCoverageFormatted}%")

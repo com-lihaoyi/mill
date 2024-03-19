@@ -27,6 +27,7 @@ import os.Path
  * - mill __.test                     # run tests for all modules
  * - mill scoverage.htmlReportAll     # generates report in html format for all modules
  * - mill scoverage.xmlReportAll      # generates report in xml format for all modules
+ * - mill scoverage.xmlCoberturaReportAll  # generates report in Cobertura's xml format for all modules
  * - mill scoverage.consoleReportAll  # reports to the console for all modules
  *
  * The aggregated report will be available at either `out/scoverage/htmlReportAll.dest/`
@@ -63,6 +64,15 @@ trait ScoverageReport extends Module {
       dataTargets: String = "__.scoverage.data"
   ): Command[PathRef] = T.command {
     reportTask(evaluator, ReportType.Xml, sources, dataTargets)()
+  }
+
+  /** Generates report in Cobertura's xml format for all modules */
+  def xmlCoberturaReportAll(
+      evaluator: Evaluator,
+      sources: String = "__.allSources",
+      dataTargets: String = "__.scoverage.data"
+  ): Command[PathRef] = T.command {
+    reportTask(evaluator, ReportType.XmlCobertura, sources, dataTargets)()
   }
 
   /** Reports to the console for all modules */
