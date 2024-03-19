@@ -299,18 +299,7 @@ class ZincWorkerImpl(
    * This implementation is only in this "zinc"-specific module, because this module is already shared between all `JavaModule`s.
    */
   override def discoverMainClasses(classpath: Seq[os.Path]): Seq[String] = {
-    val cpRoots = classpath.map(_.toNIO.toString())
-    val cp = cpRoots.mkString(":")
-
-    val files = for {
-      p <- classpath
-      if os.exists(p)
-      f <- os.walk(p)
-      if os.isFile(f) && f.ext == "class"
-    } yield f.relativeTo(p).toString().dropRight(".class".size).replaceAll("/", ".")
-
-    val args = Array("-verbose", "-classpath", cp) ++ files.toArray
-    println("args: " + args)
+    val cp = classpath.map(_.toNIO.toString()).mkString(File.pathSeparator)
 
     val settings = new Settings()
     Using.resource(new CloseableRegistry) { registry =>
