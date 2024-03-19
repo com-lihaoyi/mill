@@ -129,7 +129,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       moduleKind = moduleKind(),
       esFeatures = esFeatures(),
       moduleSplitStyle = moduleSplitStyle(),
-      outputPatterns = scalaJSOutputPatterns()
+      outputPatterns = scalaJSOutputPatterns(),
+      minify = scalaJSMinify()
     )
   }
 
@@ -170,7 +171,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       moduleKind: ModuleKind,
       esFeatures: ESFeatures,
       moduleSplitStyle: ModuleSplitStyle,
-      outputPatterns: OutputPatterns
+      outputPatterns: OutputPatterns,
+      minify: Boolean
   )(implicit ctx: mill.api.Ctx): Result[Report] = {
     val outputPath = ctx.dest
 
@@ -189,7 +191,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       moduleKind = moduleKind,
       esFeatures = esFeatures,
       moduleSplitStyle = moduleSplitStyle,
-      outputPatterns = outputPatterns
+      outputPatterns = outputPatterns,
+      minify = minify
     )
   }
 
@@ -269,6 +272,20 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   /** Name patterns for output. */
   def scalaJSOutputPatterns: Target[OutputPatterns] = T { OutputPatterns.Defaults }
 
+  /** Apply Scala.js-specific minification of the produced .js files.
+   *
+   *  When enabled, the linker more aggressively reduces the size of the
+   *  generated code, at the cost of readability and debuggability. It does
+   *  not perform size optimizations that would negatively impact run-time
+   *  performance.
+   *
+   *  The focus is on optimizations that general-purpose JavaScript minifiers
+   *  cannot do on their own. For the best results, we expect the Scala.js
+   *  minifier to be used in conjunction with a general-purpose JavaScript
+   *  minifier.
+   */
+  def scalaJSMinify: Target[Boolean] = T { true }
+
   override def prepareOffline(all: Flag): Command[Unit] = {
     val tasks =
       if (all.value) Seq(scalaJSToolsClasspath)
@@ -327,7 +344,8 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       moduleKind = moduleKind(),
       esFeatures = esFeatures(),
       moduleSplitStyle = moduleSplitStyle(),
-      outputPatterns = scalaJSOutputPatterns()
+      outputPatterns = scalaJSOutputPatterns(),
+      minify = scalaJSMinify()
     )
   }
 
