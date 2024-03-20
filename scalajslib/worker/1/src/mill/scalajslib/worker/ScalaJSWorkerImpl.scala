@@ -34,6 +34,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       esFeatures: ESFeatures,
       moduleSplitStyle: ModuleSplitStyle,
       outputPatterns: OutputPatterns,
+      minify: Boolean,
       dest: File
   )
   private def minorIsGreaterThanOrEqual(number: Int) = ScalaJSVersions.current match {
@@ -146,7 +147,11 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
             )
         else withModuleSplitStyle
 
-      val linker = StandardImpl.clearableLinker(withOutputPatterns)
+      val withMinify =
+        if (minorIsGreaterThanOrEqual(16)) withOutputPatterns.withMinify(input.minify)
+        else withOutputPatterns
+
+      val linker = StandardImpl.clearableLinker(withMinify)
       val irFileCacheCache = irFileCache.newCache
       (linker, irFileCacheCache)
     }
@@ -163,7 +168,8 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       moduleKind: ModuleKind,
       esFeatures: ESFeatures,
       moduleSplitStyle: ModuleSplitStyle,
-      outputPatterns: OutputPatterns
+      outputPatterns: OutputPatterns,
+      minify: Boolean
   ): Either[String, Report] = {
     // On Scala.js 1.2- we want to use the legacy mode either way since
     // the new mode is not supported and in tests we always use legacy = false
@@ -177,6 +183,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       esFeatures = esFeatures,
       moduleSplitStyle = moduleSplitStyle,
       outputPatterns = outputPatterns,
+      minify = minify,
       dest = dest
     ))
     val irContainersAndPathsFuture = PathIRContainer.fromClasspath(runClasspath)
