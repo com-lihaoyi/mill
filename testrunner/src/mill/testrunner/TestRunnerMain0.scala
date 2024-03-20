@@ -30,7 +30,7 @@ import mill.util.PrintLogger
 
       val result = TestRunnerUtils.runTestFramework0(
         frameworkInstances = Framework.framework(testArgs.framework),
-        testClassfilePath = Agg(testArgs.testCp),
+        testClassfilePath = Agg.from(testArgs.testCp),
         args = testArgs.arguments,
         classFilter = filter,
         cl = classLoader,

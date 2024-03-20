@@ -10,7 +10,7 @@ import mill.api.internal
     sysProps: Map[String, String],
     outputPath: os.Path,
     colored: Boolean,
-    testCp: os.Path,
+    testCp: Seq[os.Path],
     home: os.Path,
     globSelectors: Seq[String]
 )

@@ -428,28 +428,48 @@ trait MillPublishScalaModule extends MillScalaModule with MillPublishJavaModule
 trait MillStableScalaModule extends MillPublishScalaModule with Mima {
   import com.github.lolgab.mill.mima._
   override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] = Seq(
-    // MIMA doesn't properly ignore things which are nested inside other private things
+    // (5x) MIMA doesn't properly ignore things which are nested inside other private things
     // so we have to put explicit ignores here (https://github.com/lightbend/mima/issues/771)
     ProblemFilter.exclude[Problem]("mill.eval.ProfileLogger*"),
     ProblemFilter.exclude[Problem]("mill.eval.GroupEvaluator*"),
     ProblemFilter.exclude[Problem]("mill.eval.Tarjans*"),
     ProblemFilter.exclude[Problem]("mill.define.Ctx#Impl*"),
     ProblemFilter.exclude[Problem]("mill.resolve.ResolveNotFoundHandler*"),
-    // See https://github.com/com-lihaoyi/mill/pull/2739
+    // (4x) See https://github.com/com-lihaoyi/mill/pull/2739
     ProblemFilter.exclude[ReversedMissingMethodProblem](
       "mill.scalajslib.ScalaJSModule.mill$scalajslib$ScalaJSModule$$super$scalaLibraryIvyDeps"
     ),
-    // See https://github.com/com-lihaoyi/mill/pull/3072
     ProblemFilter.exclude[ReversedMissingMethodProblem](
       "mill.scalalib.ScalaModule.mill$scalalib$ScalaModule$$super$zincAuxiliaryClassFileExtensions"
     ),
-    // See https://github.com/com-lihaoyi/mill/pull/3072
     ProblemFilter.exclude[ReversedMissingMethodProblem](
       "mill.scalajslib.ScalaJSModule.mill$scalajslib$ScalaJSModule$$super$zincAuxiliaryClassFileExtensions"
     ),
-    // See https://github.com/com-lihaoyi/mill/pull/3072
     ProblemFilter.exclude[ReversedMissingMethodProblem](
       "mill.scalanativelib.ScalaNativeModule.mill$scalanativelib$ScalaNativeModule$$super$zincAuxiliaryClassFileExtensions"
+    ),
+    // (7x) See https://github.com/com-lihaoyi/mill/pull/3064
+    // Moved targets up in trait hierarchy, but also call them via super, which I think is safe
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$zincWorker"
+    ),
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$runClasspath"
+    ),
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$runUseArgsFile"
+    ),
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.scalalib.JavaModule#JavaModuleTests.mill$scalalib$JavaModule$JavaModuleTests$$super$testClasspath"
+    ),
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$forkArgs"
+    ),
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$forkEnv"
+    ),
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$forkWorkingDir"
     )
   )
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
@@ -975,7 +995,8 @@ object contrib extends Module {
 
 object scalanativelib extends MillStableScalaModule {
   def moduleDeps = Seq(scalalib, scalanativelib.`worker-api`)
-  def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(worker("0.4").testDep(), worker("0.5").testDep())
+  def testTransitiveDeps =
+    super.testTransitiveDeps() ++ Seq(worker("0.4").testDep(), worker("0.5").testDep())
 
   object `worker-api` extends MillPublishScalaModule {
     def ivyDeps = Agg(Deps.sbtTestInterface)

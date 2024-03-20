@@ -112,12 +112,12 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
       targetIds = _ => p.getTargets.asScala.toSeq,
       tasks = {
         case m: TestModule =>
-          T.task(Some((m.runClasspath(), m.testFramework(), m.compile())))
+          T.task(Some((m.runClasspath(), m.testFramework(), m.testClasspath())))
         case _ =>
           T.task(None)
       }
     ) {
-      case (ev, state, id, m: TestModule, Some((classpath, testFramework, compResult))) =>
+      case (ev, state, id, m: TestModule, Some((classpath, testFramework, testClasspath))) =>
         val (frameworkName, classFingerprint): (String, Agg[(Class[_], Fingerprint)]) =
           Jvm.inprocess(
             classpath.map(_.path),
@@ -129,7 +129,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
               val discoveredTests = TestRunnerUtils.discoverTests(
                 cl,
                 framework,
-                Agg(compResult.classes.path)
+                Agg.from(testClasspath.map(_.path))
               )
               (framework.name(), discoveredTests)
             }

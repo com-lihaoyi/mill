@@ -1,26 +1,42 @@
 package mill.scalalib
 
 import mill.{Agg, T}
-import mill.define.{Command, ModuleRef, Task, TaskModule}
+import mill.define.{Command, Task, TaskModule}
 import mill.api.{Ctx, PathRef, Result}
 import mill.util.Jvm
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.testrunner.{Framework, TestArgs, TestResult, TestRunner}
 
-trait TestModule extends TaskModule with TestModule.JavaModuleBase {
+trait TestModule
+    extends TestModule.JavaModuleBase
+    with WithZincWorker
+    with RunModule
+    with TaskModule {
 
-  def forkArgs: T[Seq[String]]
-  def runClasspath: T[Seq[PathRef]]
-  def forkEnv: T[Map[String, String]]
+  // FIXME: The `compile` is no longer needed, but we keep it for binary compatibility (0.11.x)
   def compile: T[mill.scalalib.api.CompilationResult]
-  def forkWorkingDir: T[os.Path]
-  def zincWorker: ModuleRef[ZincWorkerModule]
-  def runUseArgsFile: T[Boolean]
 
   override def defaultCommandName() = "test"
 
   /**
+   * The classpath containing the tests. This is most likely the output of the compilation target.
+   * Return by default the empty `Seq` for compatibility (0.11.x).
+   */
+  def testClasspath: T[Seq[PathRef]] = T { Seq.empty[PathRef] }
+
+  /**
    * The test framework to use.
+   *
+   * For convenience, you can also mix-in one of these predefined traits:
+   * - [[TestModule.Junit4]]
+   * - [[TestModule.Junit5]]
+   * - [[TestModule.Munit]]
+   * - [[TestModule.ScalaTest]]
+   * - [[TestModule.Specs2]]
+   * - [[TestModule.TestNg]]
+   * - [[TestModule.Utest]]
+   * - [[TestModule.Weaver]]
+   * - [[TestModule.ZioTest]]
    */
   def testFramework: T[String]
 
@@ -73,10 +89,13 @@ trait TestModule extends TaskModule with TestModule.JavaModuleBase {
 
   /**
    * Controls whether the TestRunner should receive it's arguments via an args-file instead of a as long parameter list.
-   * Defaults to `true` on Windows, as Windows has a rather short parameter length limit.
+   * Defaults to what `runUseArgsFile` return.
    */
   def testUseArgsFile: T[Boolean] = T { runUseArgsFile() || scala.util.Properties.isWin }
 
+  /**
+   * The actual task shared by `test`-tasks that runs test in a forked JVM.
+   */
   protected def testTask(
       args: Task[Seq[String]],
       globSelectors: Task[Seq[String]]
@@ -109,7 +128,7 @@ trait TestModule extends TaskModule with TestModule.JavaModuleBase {
         sysProps = props,
         outputPath = outputPath,
         colored = T.log.colored,
-        testCp = compile().classes.path,
+        testCp = testClasspath().map(_.path),
         home = T.home,
         globSelectors = globSelectors()
       )
@@ -124,7 +143,10 @@ trait TestModule extends TaskModule with TestModule.JavaModuleBase {
 
       Jvm.runSubprocess(
         mainClass = "mill.testrunner.entrypoint.TestRunnerMain",
-        classPath = (runClasspath() ++ zincWorker().testrunnerEntrypointClasspath()).map(_.path),
+        classPath =
+          (runClasspath() ++ zincWorker().testrunnerEntrypointClasspath()).map(
+            _.path
+          ),
         jvmArgs = jvmArgs,
         envArgs = forkEnv(),
         mainArgs = mainArgs,
@@ -153,7 +175,7 @@ trait TestModule extends TaskModule with TestModule.JavaModuleBase {
     val (doneMsg, results) = TestRunner.runTestFramework(
       Framework.framework(testFramework()),
       runClasspath().map(_.path),
-      Agg(compile().classes.path),
+      Agg.from(testClasspath().map(_.path)),
       args,
       T.testReporter
     )

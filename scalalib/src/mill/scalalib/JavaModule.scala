@@ -23,15 +23,17 @@ import os.{Path, ProcessOutput}
  */
 trait JavaModule
     extends mill.Module
+    with WithZincWorker
+    with TestModule.JavaModuleBase
     with TaskModule
+    with RunModule
     with GenIdeaModule
     with CoursierModule
     with OfflineSupportModule
     with BspModule
-    with SemanticDbJavaModule
-    with TestModule.JavaModuleBase { outer =>
+    with SemanticDbJavaModule { outer =>
 
-  def zincWorker: ModuleRef[ZincWorkerModule] = ModuleRef(mill.scalalib.ZincWorkerModule)
+  def zincWorker: ModuleRef[ZincWorkerModule] = super.zincWorker
 
   trait JavaModuleTests extends JavaModule with TestModule {
     // Run some consistence checks
@@ -49,6 +51,15 @@ trait JavaModule
       for (src <- outer.sources()) yield {
         PathRef(this.millSourcePath / src.path.relativeTo(outer.millSourcePath))
       }
+    }
+
+    /**
+     * The classpath containing the tests. This defaults to the compilation output.
+     */
+    def testClasspath: T[Seq[PathRef]] = T {
+      // bin-compat-shim: keep the super.call in the classfile
+      super.testClasspath
+      Seq(compile().classes)
     }
 
     /**
@@ -155,11 +166,17 @@ trait JavaModule
 
   /**
    *  The direct dependencies of this module.
+   *  This is meant to be overridden to add dependencies.
+   *  To read the value, you should use [[moduleDepsChecked]] instead,
+   *  which uses a cached result which is also checked to be free of cycle.
    *  @see [[moduleDepschecked]]
    */
   def moduleDeps: Seq[JavaModule] = Seq.empty
 
-  /** Same as [[moduleDeps]] but checked to not contain cycles. */
+  /**
+   * Same as [[moduleDeps]] but checked to not contain cycles.
+   * Prefer this over using [[moduleDeps]] directly.
+   */
   final def moduleDepsChecked: Seq[JavaModule] = {
     // trigger initialization to check for cycles
     recModuleDeps
@@ -517,7 +534,10 @@ trait JavaModule
    * necessary to run this module's code after compilation
    */
   def runClasspath: T[Seq[PathRef]] = T {
-    resolvedRunIvyDeps().toSeq ++ transitiveLocalClasspath() ++ localClasspath()
+    super.runClasspath() ++
+      resolvedRunIvyDeps().toSeq ++
+      transitiveLocalClasspath() ++
+      localClasspath()
   }
 
   /**
@@ -668,13 +688,19 @@ trait JavaModule
    * Any command-line parameters you want to pass to the forked JVM under `run`,
    * `test` or `repl`
    */
-  def forkArgs: T[Seq[String]] = T { Seq.empty[String] }
+  def forkArgs: T[Seq[String]] = T {
+    // overridden here for binary compatibility (0.11.x)
+    super.forkArgs()
+  }
 
   /**
    * Any environment variables you want to pass to the forked JVM under `run`,
    * `test` or `repl`
    */
-  def forkEnv: T[Map[String, String]] = T.input { T.env }
+  def forkEnv: T[Map[String, String]] = T {
+    // overridden here for binary compatibility (0.11.x)
+    super.forkEnv()
+  }
 
   /**
    * Builds a command-line "launcher" file that can be used to run this module's
@@ -789,8 +815,10 @@ trait JavaModule
     }
   }
 
-  /** Control whether `run*`-targets should use an args file to pass command line args, if possible. */
-  def runUseArgsFile: T[Boolean] = T { scala.util.Properties.isWin }
+  def runUseArgsFile: T[Boolean] = T {
+    // overridden here for binary compatibility (0.11.x)
+    super.runUseArgsFile()
+  }
 
   /**
    * Runs this module's code in-process within an isolated classloader. This is
@@ -1004,7 +1032,10 @@ trait JavaModule
    */
   def artifactSuffix: T[String] = platformSuffix()
 
-  def forkWorkingDir: T[Path] = T { T.workspace }
+  def forkWorkingDir: T[Path] = T {
+    // overridden here for binary compatibility (0.11.x)
+    super.forkWorkingDir()
+  }
 
   /**
    * Files extensions that need to be managed by Zinc together with class files.
