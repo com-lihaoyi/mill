@@ -4,7 +4,7 @@ import mill.api.{CompileProblemReporter, PathRef}
 import mill.api.Loose.Agg
 
 import scala.annotation.nowarn
-import unroll.Unroll
+import scala.annotation.unroll
 
 object ZincWorkerApi {
   type Ctx = mill.api.Ctx.Dest with mill.api.Ctx.Log with mill.api.Ctx.Home
@@ -19,7 +19,7 @@ trait ZincWorkerApi {
       javacOptions: Seq[String],
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
-      @Unroll incrementalCompilation: Boolean = true
+      @unroll incrementalCompilation: Boolean = true
   )(implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult] = ???
 
 
@@ -36,7 +36,7 @@ trait ZincWorkerApi {
       scalacPluginClasspath: Agg[PathRef],
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
-      @Unroll incrementalCompilation: Boolean = true
+      @unroll incrementalCompilation: Boolean = true
   )(implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult] = ???
 
   def discoverMainClasses(compilationResult: CompilationResult): Seq[String]

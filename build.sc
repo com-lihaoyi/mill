@@ -364,12 +364,12 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
   def scalacPluginIvyDeps =
     super.scalacPluginIvyDeps() ++
       Agg(Deps.acyclic) ++
-      Agg(ivy"com.lihaoyi::unroll-plugin:0.1.9") ++
+      Agg(ivy"com.lihaoyi::unroll-plugin:0.1.12") ++
       Agg.when(scalaVersion().startsWith("2.13."))(Deps.millModuledefsPlugin)
 
   def mandatoryIvyDeps =
     super.mandatoryIvyDeps() ++
-    Seq(ivy"com.lihaoyi::unroll-annotation:0.1.9") ++
+    Seq(ivy"com.lihaoyi::unroll-annotation:0.1.12") ++
     Agg.when(scalaVersion().startsWith("2.13."))(Deps.millModuledefs)
 
   /** Default tests module. */

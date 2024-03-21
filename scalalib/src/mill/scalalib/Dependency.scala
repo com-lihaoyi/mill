@@ -5,7 +5,7 @@ import mill.define.{Command, Discover, ExternalModule}
 import mill.eval.Evaluator
 import mill.scalalib.dependency.{DependencyUpdatesImpl, Format}
 import mill.scalalib.dependency.updates.ModuleDependenciesUpdates
-import unroll.Unroll
+import scala.annotation.unroll
 
 object Dependency extends ExternalModule {
 
@@ -28,7 +28,7 @@ object Dependency extends ExternalModule {
   def showUpdates(
       ev: Evaluator,
       allowPreRelease: Boolean = false,
-      @Unroll format: Format = Format.PerModule
+      @unroll format: Format = Format.PerModule
   ): Command[Unit] = T.command {
     DependencyUpdatesImpl.showAllUpdates(updates(ev, allowPreRelease)(), format)
   }

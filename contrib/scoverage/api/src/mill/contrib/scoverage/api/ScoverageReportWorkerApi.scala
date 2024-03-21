@@ -1,7 +1,7 @@
 package mill.contrib.scoverage.api
 
 import mill.api.Ctx
-import unroll.Unroll
+import scala.annotation.unroll
 
 trait ScoverageReportWorkerApi {
   import ScoverageReportWorkerApi._
@@ -10,7 +10,7 @@ trait ScoverageReportWorkerApi {
       reportType: ReportType,
       sources: Seq[os.Path],
       dataDirs: Seq[os.Path],
-      @Unroll sourceRoot: os.Path = null
+      @unroll sourceRoot: os.Path = null
   )(implicit
       ctx: Ctx
   ): Unit

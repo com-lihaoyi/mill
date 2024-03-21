@@ -4,7 +4,7 @@ import mill.contrib.scoverage.api.ScoverageReportWorkerApi
 import _root_.scoverage.reporter.{CoverageAggregator, ScoverageHtmlWriter, ScoverageXmlWriter}
 import mill.api.Ctx
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi.ReportType
-import unroll.Unroll
+import scala.annotation.unroll
 
 /**
  * Scoverage Worker for Scoverage 2.x

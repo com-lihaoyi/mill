@@ -9,7 +9,7 @@ import mill.scalalib.dependency.updates.{
   UpdatesFinder
 }
 import mill.scalalib.dependency.versions.{ModuleDependenciesVersions, VersionsFinder}
-import unroll.Unroll
+import scala.annotation.unroll
 
 object DependencyUpdatesImpl {
 
@@ -36,7 +36,7 @@ object DependencyUpdatesImpl {
 
   def showAllUpdates(
       updates: Seq[ModuleDependenciesUpdates],
-      @Unroll format: Format = Format.PerModule
+      @unroll format: Format = Format.PerModule
   ): Unit = {
     val theUpdates =
       updates.map(u => if (u.modulePath.isEmpty) u.copy(modulePath = "root module") else u)

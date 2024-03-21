@@ -1,0 +1,67 @@
+#!/usr/bin/env sh
+
+# This is a wrapper script, that automatically download mill from GitHub release pages
+# You can give the required mill version with MILL_VERSION env variable
+# If no version is given, it falls back to the value of DEFAULT_MILL_VERSION
+
+set -e
+
+if [ -z "${DEFAULT_MILL_VERSION}" ] ; then
+  DEFAULT_MILL_VERSION=0.11.7
+fi
+
+if [ -z "$MILL_VERSION" ] ; then
+  if [ -f ".mill-version" ] ; then
+    MILL_VERSION="$(head -n 1 .mill-version 2> /dev/null)"
+  elif [ -f ".config/mill-version" ] ; then
+    MILL_VERSION="$(head -n 1 .config/mill-version 2> /dev/null)"
+  elif [ -f "mill" ] && [ "$0" != "mill" ] ; then
+    MILL_VERSION=$(grep -F "DEFAULT_MILL_VERSION=" "mill" | head -n 1 | cut -d= -f2)
+  else
+    MILL_VERSION=$DEFAULT_MILL_VERSION
+  fi
+fi
+
+if [ "x${XDG_CACHE_HOME}" != "x" ] ; then
+  MILL_DOWNLOAD_PATH="${XDG_CACHE_HOME}/mill/download"
+else
+  MILL_DOWNLOAD_PATH="${HOME}/.cache/mill/download"
+fi
+MILL_EXEC_PATH="${MILL_DOWNLOAD_PATH}/${MILL_VERSION}"
+
+version_remainder="$MILL_VERSION"
+MILL_MAJOR_VERSION="${version_remainder%%.*}"; version_remainder="${version_remainder#*.}"
+MILL_MINOR_VERSION="${version_remainder%%.*}"; version_remainder="${version_remainder#*.}"
+
+if [ ! -s "$MILL_EXEC_PATH" ] ; then
+  mkdir -p "$MILL_DOWNLOAD_PATH"
+  if [ "$MILL_MAJOR_VERSION" -gt 0 ] || [ "$MILL_MINOR_VERSION" -ge 5 ] ; then
+    ASSEMBLY="-assembly"
+  fi
+  DOWNLOAD_FILE=$MILL_EXEC_PATH-tmp-download
+  MILL_VERSION_TAG=$(echo $MILL_VERSION | sed -E 's/([^-]+)(-M[0-9]+)?(-.*)?/\1\2/')
+  MILL_DOWNLOAD_URL="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/$MILL_VERSION/mill-dist-$MILL_VERSION.jar"
+  curl --fail -L -o "$DOWNLOAD_FILE" "$MILL_DOWNLOAD_URL"
+  chmod +x "$DOWNLOAD_FILE"
+  mv "$DOWNLOAD_FILE" "$MILL_EXEC_PATH"
+  unset DOWNLOAD_FILE
+  unset MILL_DOWNLOAD_URL
+fi
+
+if [ -z "$MILL_MAIN_CLI" ] ; then
+  MILL_MAIN_CLI="${0}"
+fi
+
+MILL_FIRST_ARG=""
+
+ # first arg is a long flag for "--interactive" or starts with "-i"
+if [ "$1" = "--bsp" ] || [ "${1%"-i"*}" != "$1" ] || [ "$1" = "--interactive" ] || [ "$1" = "--no-server" ] || [ "$1" = "--repl" ] || [ "$1" = "--help" ] ; then
+  # Need to preserve the first position of those listed options
+  MILL_FIRST_ARG=$1
+  shift
+fi
+
+unset MILL_DOWNLOAD_PATH
+unset MILL_VERSION
+
+exec $MILL_EXEC_PATH $MILL_FIRST_ARG -D "mill.main.cli=${MILL_MAIN_CLI}" "$@"

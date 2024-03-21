@@ -6,7 +6,7 @@ import mill.api.{Ctx, PathRef, Result}
 import mill.util.Jvm
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.testrunner.{Framework, TestArgs, TestResult, TestRunner}
-import unroll.Unroll
+import scala.annotation.unroll
 
 trait TestModule extends TaskModule with TestModule.JavaModuleBase {
 
@@ -263,7 +263,7 @@ object TestModule {
   def handleResults(
       doneMsg: String,
       results: Seq[TestResult],
-      @Unroll ctx: Option[Ctx.Env] = None
+      @unroll ctx: Option[Ctx.Env] = None
   ): Result[(String, Seq[TestResult])] = {
 
     val badTests: Seq[TestResult] =
