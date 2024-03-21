@@ -254,9 +254,7 @@ You can increase the verbosity of that log file, when you run Mill with
 mill --debug mill.bsp.BSP/install
 ----
 
-=== BSP Gotcha
-
-==== Mismatching JVM versions
+=== BSP Gotchas: Mismatching JVM versions
 
 A common issue for poor performance can be a mismatch of the JVMs.
 In such a case the Mill BSP server started by a BSP client like Metals is using a _different_ JVM than `mill` is using when started from the command line.
