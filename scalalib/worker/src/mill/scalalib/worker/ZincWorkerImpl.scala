@@ -428,7 +428,8 @@ class ZincWorkerImpl(
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean,
-      auxiliaryClassFileExtensions: Seq[String]
+      auxiliaryClassFileExtensions: Seq[String],
+      zincFile: os.SubPath = os.sub / "zinc"
   )(implicit ctx: ZincWorkerApi.Ctx): Result[CompilationResult] = {
     os.makeDir.all(ctx.dest)
 
@@ -485,12 +486,11 @@ class ZincWorkerImpl(
 
     val lookup = MockedLookup(analysisMap)
 
-    val zincFile = ctx.dest / "zinc"
     val classesDir =
       if (compileToJar) ctx.dest / "classes.jar"
       else ctx.dest / "classes"
 
-    val store = FileAnalysisStore.binary(zincFile.toIO)
+    val store = FileAnalysisStore.binary((ctx.dest / zincFile).toIO)
 
     // Fix jdk classes marked as binary dependencies, see https://github.com/com-lihaoyi/mill/pull/1904
     val converter = MappedFileConverter.empty
@@ -563,7 +563,7 @@ class ZincWorkerImpl(
           newResult.setup()
         )
       )
-      Result.Success(CompilationResult(zincFile, PathRef(classesDir)))
+      Result.Success(CompilationResult((ctx.dest / zincFile), PathRef(classesDir)))
     } catch {
       case e: CompileFailed =>
         Result.Failure(e.toString)
