@@ -267,14 +267,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.7-46-5e062a</span>
+    <span class="version">0.11.7-49-7f2089</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.7-46-5e062a</a>
+          <a href="index.html">0.11.7-49-7f2089</a>
         </li>
         <li class="version">
           <a href="0.11.0-M7/index.html">0.11.0-M7</a>
@@ -310,9 +310,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.7-46-5e062a</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.7-49-7f2089</button>
   <div class="version-menu">
-    <a class="version is-current" href="Installation_IDE_Support.html">0.11.7-46-5e062a</a>
+    <a class="version is-current" href="Installation_IDE_Support.html">0.11.7-49-7f2089</a>
     <a class="version" href="0.11.0-M7/Installation.html">0.11.0-M7</a>
     <a class="version" href="0.10.15/Installation.html">0.10.15</a>
     <a class="version" href="0.10.12/Installation.html">0.10.12</a>
@@ -692,6 +692,58 @@ output accompanied by additional BSP client-server communication details.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill --debug mill.bsp.BSP/install</code></pre>
 </div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_bsp_gotchas_mismatching_jvm_versions"><a class="anchor" href="#_bsp_gotchas_mismatching_jvm_versions"></a>BSP Gotchas: Mismatching JVM versions</h3>
+<div class="paragraph">
+<p>A common issue for poor performance can be a mismatch of the JVMs.
+In such a case the Mill BSP server started by a BSP client like Metals is using a <em>different</em> JVM than <code>mill</code> is using when started from the command line.
+In such a scenario, every Mill invocation using the other JVM will inadvertently invalidate Mills  target caches.
+This effectively leads to full reevaluation of all invoked Mill targets and appears as &quot;bad performance&quot;.</p>
+</div>
+<div class="paragraph">
+<p>To detect if this is the case,</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>import the project in the BSP client.</p>
+</li>
+<li>
+<p>Wait until the BSP import process has finished.</p>
+</li>
+<li>
+<p>Then run <code>mill __.compile</code> in the terminal.</p>
+</li>
+<li>
+<p>Now watch the IDE, to see if the compile command invoked in the terminal has triggered compilation on the build server.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>If this happens, you’re using different JVMs.
+Unfortunately, this is rather difficult to &quot;defend&quot; programmatically in Mill itself.
+It is an explicit design goal of Mill, that it should work in different environments.
+It is evident and likely unintentional that you have two conflicting local environments.</p>
+</div>
+<div class="paragraph">
+<p>To fix this it’s required to find where this difference stems from.
+As a starting point,</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Find out which JVM is used for Mill on the CLi. <code>mill --version</code> reports its JVM.</p>
+</li>
+<li>
+<p>Search the <code>.bsp/mill-bsp.stderr</code> file for a line starting with <code>&quot;Updating Evaluator&quot;</code>.
+It should contain all env variables (particularly <code>JAVA_HOME</code>) used by the BSP server.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Once you found and fixed that and the environments are the same, <code>clean</code> and restarting BSP should work as expected.</p>
 </div>
 </div>
 <div class="sect2">
