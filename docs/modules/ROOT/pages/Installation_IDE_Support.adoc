@@ -254,6 +254,35 @@ You can increase the verbosity of that log file, when you run Mill with
 mill --debug mill.bsp.BSP/install
 ----
 
+=== BSP Gotchas: Mismatching JVM versions
+
+A common issue for poor performance can be a mismatch of the JVMs.
+In such a case the Mill BSP server started by a BSP client like Metals is using a _different_ JVM than `mill` is using when started from the command line.
+In such a scenario, every Mill invocation using the other JVM will inadvertently invalidate Mills  target caches.
+This effectively leads to full reevaluation of all invoked Mill targets and appears as "bad performance".
+
+To detect if this is the case,
+
+1. import the project in the BSP client.
+2. Wait until the BSP import process has finished.
+3. Then run `mill __.compile` in the terminal.
+4. Now watch the IDE, to see if the compile command invoked in the terminal has triggered compilation on the build server.
+
+If this happens, you're using different JVMs.
+Unfortunately, this is rather difficult to "defend" programmatically in Mill itself.
+It is an explicit design goal of Mill, that it should work in different environments.
+It is evident and likely unintentional that you have two conflicting local environments.
+
+To fix this it's required to find where this difference stems from.
+As a starting point,
+
+* Find out which JVM is used for Mill on the CLi. `mill --version` reports its JVM.
+
+* Search the `.bsp/mill-bsp.stderr` file for a line starting with `"Updating Evaluator"`.
+It should contain all env variables (particularly `JAVA_HOME`) used by the BSP server.
+
+Once you found and fixed that and the environments are the same, `clean` and restarting BSP should work as expected.
+
 
 === Using Bloop (standalone BSP server)
 
