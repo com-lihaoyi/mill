@@ -175,6 +175,7 @@ object Deps {
     ivy"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
   val scalaparse = ivy"com.lihaoyi::scalaparse:${fastparse.version}"
   val scalatags = ivy"com.lihaoyi::scalatags:0.12.0"
+  def scalaXml = ivy"org.scala-lang.modules::scala-xml:2.2.0"
   // keep in sync with doc/antora/antory.yml
   val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.9.2"
   val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.9.9"
@@ -704,7 +705,7 @@ def formatDep(dep: Dep) = {
 
 object scalalib extends MillStableScalaModule {
   def moduleDeps = Seq(main, scalalib.api, testrunner)
-  def ivyDeps = Agg(Deps.scalafmtDynamic)
+  def ivyDeps = Agg(Deps.scalafmtDynamic, Deps.scalaXml)
   def testIvyDeps = super.testIvyDeps() ++ Agg(Deps.scalaCheck)
   def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(worker.testDep())
 
