@@ -53,7 +53,6 @@ trait JavaModule
       }
     }
 
-
     /**
      * JavaModule and its derivates define inner test modules.
      * To avoid unexpected misbehavior due to the use of the wrong inner test trait
