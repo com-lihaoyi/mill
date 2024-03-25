@@ -69,8 +69,6 @@ trait RunModule extends WithZincWorker {
     }
   }
 
-//  def detectedMainClasses: T[Seq[String]] = T{ }
-
   /**
    * Control whether `run*`-targets should use an args file to pass command line args, if possible.
    */
