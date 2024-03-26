@@ -165,6 +165,7 @@ object Deps {
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   // last scalafmt release supporting Java 8 is 3.7.15
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.7.15" // scala-steward:off
+  def scalap(scalaVersion: String) = ivy"org.scala-lang:scalap:${scalaVersion}"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   val scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
   val scoverage2Version = "2.1.0"
@@ -448,7 +449,7 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
     ProblemFilter.exclude[ReversedMissingMethodProblem](
       "mill.scalanativelib.ScalaNativeModule.mill$scalanativelib$ScalaNativeModule$$super$zincAuxiliaryClassFileExtensions"
     ),
-    // (7x) See https://github.com/com-lihaoyi/mill/pull/3064
+    // (6x) See https://github.com/com-lihaoyi/mill/pull/3064
     // Moved targets up in trait hierarchy, but also call them via super, which I think is safe
     ProblemFilter.exclude[ReversedMissingMethodProblem](
       "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$zincWorker"
@@ -460,9 +461,6 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
       "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$runUseArgsFile"
     ),
     ProblemFilter.exclude[ReversedMissingMethodProblem](
-      "mill.scalalib.JavaModule#JavaModuleTests.mill$scalalib$JavaModule$JavaModuleTests$$super$testClasspath"
-    ),
-    ProblemFilter.exclude[ReversedMissingMethodProblem](
       "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$forkArgs"
     ),
     ProblemFilter.exclude[ReversedMissingMethodProblem](
@@ -470,6 +468,32 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
     ),
     ProblemFilter.exclude[ReversedMissingMethodProblem](
       "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$forkWorkingDir"
+    ),
+    // (8x)
+    // Moved targets up in trait hierarchy, but also call them via super, which I think is safe
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$localRunClasspath"
+    ),
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$runLocal"
+    ),
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$run"
+    ),
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$doRunBackground"
+    ),
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$runBackgroundLogToConsole"
+    ),
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$runMainBackground"
+    ),
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$runMainLocal"
+    ),
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$runMain"
     )
   )
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
@@ -740,7 +764,7 @@ object scalalib extends MillStableScalaModule {
 
   object worker extends MillPublishScalaModule with BuildInfo {
     def moduleDeps = Seq(scalalib.api)
-    def ivyDeps = Agg(Deps.zinc, Deps.log4j2Core)
+    def ivyDeps = Agg(Deps.zinc, Deps.log4j2Core, Deps.scalap(scalaVersion()))
     def buildInfoPackageName = "mill.scalalib.worker"
     def buildInfoObjectName = "Versions"
     def buildInfoMembers = Seq(

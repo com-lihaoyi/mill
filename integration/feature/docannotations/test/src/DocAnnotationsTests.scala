@@ -67,7 +67,7 @@ object DocAnnotationsTests extends IntegrationTestSuite {
 
       assert(
         globMatches(
-          """core.run(JavaModule.scala:...)
+          """core.run(RunModule.scala:...)
             |    Runs this module's code in a subprocess and waits for it to finish
             |
             |    args <str>...

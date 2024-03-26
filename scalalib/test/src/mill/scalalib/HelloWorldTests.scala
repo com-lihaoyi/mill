@@ -760,7 +760,7 @@ object HelloWorldTests extends TestSuite {
       }
 
       "notRunInvalidMainObject" - workspaceTest(HelloWorld) { eval =>
-        val Left(Result.Failure("subprocess failed", _)) =
+        val Left(Result.Failure("Subprocess failed", _)) =
           eval.apply(HelloWorld.core.runMain("Invalid"))
       }
       "notRunWhenCompileFailed" - workspaceTest(HelloWorld) { eval =>
