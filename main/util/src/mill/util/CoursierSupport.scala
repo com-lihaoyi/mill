@@ -1,15 +1,21 @@
 package mill.util
 
-import coursier.cache.ArtifactError
+import coursier.cache.{ArtifactError, FileCache}
+import coursier.core._
+import coursier.error.ResolutionError
+import coursier.params.ResolutionParams
+import coursier.params.rule.{RuleResolution, SameVersion}
 import coursier.parse.RepositoryParser
-import coursier.util.{Gather, Task}
-import coursier.{Dependency, Repository, Resolution}
-import mill.api.{Ctx, PathRef, Result}
+import coursier.util.{Gather, ModuleMatcher, Task}
+import coursier.{Organization, Resolve}
 import mill.api.Loose.Agg
+import mill.api.{Ctx, PathRef, Result}
+
 import java.io.File
 import java.nio.file.NoSuchFileException
 import scala.annotation.tailrec
 import scala.collection.mutable
+import scala.util.chaining.scalaUtilChainingOps
 import scala.util.{Failure, Success, Try}
 
 trait CoursierSupport {
@@ -41,7 +47,7 @@ trait CoursierSupport {
       case Failure(e: NoSuchFileException)
           if retryCount > 0 && e.getMessage.contains("__sha1.computed") =>
         // this one is not detected by coursier itself, so we try-catch handle it
-        // I assume, this happens when another coursier thread already moved or rename dthe temporary file
+        // I assume, this happens when another coursier thread already moved or renamed the temporary file
         ctx.foreach(_.log.debug(
           s"Detected a concurrent download issue in coursier. Attempting a retry (${retryCount} left)"
         ))
@@ -90,7 +96,8 @@ trait CoursierSupport {
       coursierCacheCustomizer: Option[
         coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
       ] = None,
-      resolveFilter: os.Path => Boolean = _ => true
+      resolveFilter: os.Path => Boolean = _ => true,
+      sameDependencyVersions: Seq[Set[(String, String)]] = Seq()
   ): Result[Agg[PathRef]] = {
     def isLocalTestDep(dep: coursier.Dependency): Option[Seq[PathRef]] = {
       val org = dep.module.organization.value
@@ -113,21 +120,29 @@ trait CoursierSupport {
       }
     )
 
-    val (_, resolution) = resolveDependenciesMetadata(
-      repositories,
-      remoteDeps,
-      force,
-      mapDependencies,
-      customizer,
-      ctx,
-      coursierCacheCustomizer
-    )
-    val errs = resolution.errors
+    val (resolution, resErrs, otherErrors) =
+      try {
+        val (_, resolution) = resolveDependenciesMetadata(
+          repositories = repositories,
+          deps = remoteDeps,
+          force = force,
+          mapDependencies = mapDependencies,
+          customizer = customizer,
+          ctx = ctx,
+          coursierCacheCustomizer = coursierCacheCustomizer,
+          sameDependencyVersions = sameDependencyVersions
+        )
+        val errs = resolution.errors
+        (resolution, errs, None)
+      } catch {
+        case e: ResolutionError =>
+          (e.resolution, e.resolution.errors, Some(e.getMessage))
+      }
 
-    if (errs.nonEmpty) {
+    if (resErrs.nonEmpty) {
       val header =
         s"""|
-            |Resolution failed for ${errs.length} modules:
+            |Resolution failed for ${resErrs.length} modules:
             |--------------------------------------------
             |""".stripMargin
 
@@ -138,11 +153,15 @@ trait CoursierSupport {
             |For additional information on library dependencies, see the docs at
             |${mill.api.BuildInfo.millDocUrl}/mill/Library_Dependencies.html""".stripMargin
 
-      val errLines = errs.map {
+      val errLines = resErrs.map {
         case ((module, vsn), errMsgs) => s"  ${module.trim}:$vsn \n\t" + errMsgs.mkString("\n\t")
       }.mkString("\n")
       val msg = header + errLines + "\n" + helpMessage + "\n"
       Result.Failure(msg)
+
+    } else if (otherErrors.nonEmpty) {
+      Result.Failure(otherErrors.get)
+
     } else {
 
       val coursierCache0 = coursier.cache.FileCache[Task]().noCredentials
@@ -210,56 +229,74 @@ trait CoursierSupport {
 
   def resolveDependenciesMetadata(
       repositories: Seq[Repository],
-      deps: IterableOnce[coursier.Dependency],
-      force: IterableOnce[coursier.Dependency],
+      deps: IterableOnce[Dependency],
+      force: IterableOnce[Dependency],
       mapDependencies: Option[Dependency => Dependency] = None,
-      customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
+      customizer: Option[Resolution => Resolution] = None,
       ctx: Option[mill.api.Ctx.Log] = None,
       coursierCacheCustomizer: Option[
         coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
-      ] = None
+      ] = None,
+      sameDependencyVersions: Seq[Set[(String, String)]] = Seq()
   ): (Seq[Dependency], Resolution) = {
 
-    val cachePolicies = coursier.cache.CacheDefaults.cachePolicies
+    val rootDeps = deps.iterator
+      .map(d => mapDependencies.fold(d)(_.apply(d)))
+      .toSeq
 
-    val forceVersions = force.iterator
-      .map(mapDependencies.getOrElse(identity[Dependency](_)))
+    val forceVersions: Map[Module, String] = force.iterator
+      .map(d => mapDependencies.fold(d)(_.apply(d)))
       .map { d => d.module -> d.version }
       .toMap
 
-    val start0 = Resolution()
-      .withRootDependencies(
-        deps.iterator.map(mapDependencies.getOrElse(identity[Dependency](_))).toSeq
-      )
-      .withForceVersions(forceVersions)
-      .withMapDependencies(mapDependencies)
-
-    val start = customizer.getOrElse(identity[Resolution](_)).apply(start0)
-
-    val resolutionLogger = ctx.map(c => new TickerResolutionLogger(c))
-    val coursierCache0 = resolutionLogger match {
-      case None => coursier.cache.FileCache[Task]().withCachePolicies(cachePolicies)
-      case Some(l) =>
-        coursier.cache.FileCache[Task]()
-          .withCachePolicies(cachePolicies)
-          .withLogger(l)
-    }
-    val coursierCache = coursierCacheCustomizer.getOrElse(
-      identity[coursier.cache.FileCache[Task]](_)
-    ).apply(coursierCache0)
-
-    val fetches = coursierCache.fetchs
-
-    val fetch = coursier.core.ResolutionProcess.fetch(repositories, fetches.head, fetches.tail)
-
-    import scala.concurrent.ExecutionContext.Implicits.global
-
-    val resolution =
-      retry(ctx = ctx, errorMsgExtractor = (r: Resolution) => r.errors.flatMap(_._2)) {
-        () => start.process.run(fetch).unsafeRun()
+    val coursierCache: FileCache[Task] = FileCache[Task]()
+      .noCredentials
+      .pipe { cache =>
+        coursierCacheCustomizer.fold(cache)(c => c.apply(cache))
+      }.pipe { cache =>
+        ctx.fold(cache)(c => cache.withLogger(new TickerResolutionLogger(c)))
       }
 
-    (deps.iterator.to(Seq), resolution)
+    val rules = sameDependencyVersions.map { same =>
+      val modMatchers = same.map { case (org, name) =>
+        ModuleMatcher(Organization(org), ModuleName(name))
+      }
+      (SameVersion(modMatchers), RuleResolution.TryResolve)
+    }
+
+    {
+      val resolutionParams = ResolutionParams()
+        .withForceVersion(forceVersions)
+        .withRules(rules)
+
+      val resolve = Resolve()
+        .withCache(coursierCache)
+        .withDependencies(rootDeps)
+        .withRepositories(repositories)
+        .withResolutionParams(resolutionParams)
+
+      val resolution0 =
+//        try {
+        retry(
+          ctx = ctx,
+          errorMsgExtractor = (r: Resolution) => r.errors.flatMap(_._2)
+        ) {
+          () => resolve.run()
+        }
+//        } catch {
+//          case e: ResolutionError =>
+//
+//        }
+
+      val resolution = resolution0
+        .withMapDependencies(mapDependencies)
+        .pipe { res =>
+          customizer.fold(res)(_.apply(res))
+        }
+
+      (deps.iterator.to(Seq), resolution)
+
+    }
   }
 
 }

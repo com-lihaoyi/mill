@@ -58,7 +58,7 @@ object Deps {
   // The Scala 2.12.x version to use for some workers
   val workerScalaVersion212 = "2.12.19"
 
-  val testScala213Version = "2.13.10"
+  val testScala213Version = "2.13.12"
   // Scala Native 4.2 will not get releases for new Scala version
   val testScala213VersionForScalaNative42 = "2.13.8"
   val testScala212Version = "2.12.6"
@@ -183,7 +183,7 @@ object Deps {
   val upickle = ivy"com.lihaoyi::upickle:3.2.0"
   val utest = ivy"com.lihaoyi::utest:0.8.2"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.5"
-  val zinc = ivy"org.scala-sbt::zinc:1.9.6"
+  val zinc = ivy"org.scala-sbt::zinc:1.10.0-M3"
   // keep in sync with doc/antora/antory.yml
   val bsp4j = ivy"ch.epfl.scala:bsp4j:2.2.0-M2"
   val fansi = ivy"com.lihaoyi::fansi:0.4.0"
