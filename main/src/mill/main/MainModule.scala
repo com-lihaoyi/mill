@@ -284,7 +284,7 @@ trait MainModule extends mill.define.Module {
             "\n",
             ctx.applyPrefixColor("Inputs").toString,
             ":"
-          ) ++ t.inputs.distinct.iterator.flatMap(rec).map("\n    " + _.render)
+          ) ++ t.inputs.iterator.flatMap(rec).map("\n    " + _.render).distinct
       }
     }
 
