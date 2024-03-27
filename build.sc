@@ -871,6 +871,11 @@ object contrib extends Module {
     def testModuleDeps = super.testModuleDeps ++ Seq(scalalib)
   }
 
+  object junit extends ContribModule {
+    override def compileModuleDeps = super.compileModuleDeps ++ Seq(scalalib)
+    override def testModuleDeps = super.testModuleDeps ++ Seq(scalalib)
+  }
+
   object scoverage extends ContribModule {
     object api extends MillPublishScalaModule {
       def compileModuleDeps = Seq(main.api)

@@ -1,0 +1,45 @@
+= JUnit Report
+:page-aliases: Plugin_JUnit_report.adoc
+
+
+This module allows you to generate JUnit legacy XML report for Scala projects:
+https://github.com/testmoapp/junitxml[JUnit XML]. This plugin does not require
+you to run JUnit test. It relies on the intermediate data structure for test
+results provided by Mill.
+
+This plugin aims to allow integration in CI environment that support out of the
+box JUnit legacy XML like GitLab does.
+
+== Multi-module projects
+
+If you're using JUnit report on a project with multiple modules (or even one) then
+an additional module, `JUnitReport`, is available to help aggregate the reports from
+all test execution results.
+
+Simply define a `junit` module at the root of your project as shown:
+
+[source,scala]
+----
+  object junit extends JUnitReport
+----
+
+By default `JUnitReport` collects the test results in the output folder of the
+`testCached` task. If you want to change this behavior you can define a different
+`testDataSources` for example if you want to use the `test` command output.
+
+[source,scala]
+----
+  object junit extends JUnitReport {
+    override def testDataSources = "test"
+  }
+----
+
+This provides you with the following reporting function:
+
+[source,bash]
+----
+mill __.testCached       # run tests for all modules (to produce test execution data)
+mill junit.xmlReportAll  # generates testsuite reports in junit xml legacy format for all modules
+----
+
+The generated reports will be available `out/junit/xmlReportAll.dest/`, one per testsuite.
