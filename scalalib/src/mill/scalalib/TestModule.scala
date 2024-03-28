@@ -6,6 +6,7 @@ import mill.api.{Ctx, PathRef, Result}
 import mill.util.Jvm
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.testrunner.{Framework, TestArgs, TestResult, TestRunner}
+import sbt.testing.Status
 
 trait TestModule
     extends TestModule.JavaModuleBase
@@ -94,6 +95,12 @@ trait TestModule
   def testUseArgsFile: T[Boolean] = T { runUseArgsFile() || scala.util.Properties.isWin }
 
   /**
+   * Sets the file name for the generated JUnit-compatible test report.
+   * If None is set, no file will be generated.
+   */
+  def testReportXml: T[Option[String]] = T(Some("test-report.xml"))
+
+  /**
    * The actual task shared by `test`-tasks that runs test in a forked JVM.
    */
   protected def testTask(
@@ -101,6 +108,8 @@ trait TestModule
       globSelectors: Task[Seq[String]]
   ): Task[(String, Seq[TestResult])] =
     T.task {
+      testReportXml().foreach(file => os.remove(T.ctx().dest / file))
+
       val outputPath = T.dest / "out.json"
       val useArgsFile = testUseArgsFile()
 
@@ -160,6 +169,7 @@ trait TestModule
           val jsonOutput = ujson.read(outputPath.toIO)
           val (doneMsg, results) =
             upickle.default.read[(String, Seq[TestResult])](jsonOutput)
+          testReportXml().foreach(file => TestModule.genTestXmlReport(results, T.ctx().dest / file))
           TestModule.handleResults(doneMsg, results, Some(T.ctx()))
         } catch {
           case e: Throwable =>
@@ -320,5 +330,70 @@ object TestModule {
 
   trait ScalaModuleBase extends mill.Module {
     def scalacOptions: T[Seq[String]] = Seq.empty[String]
+  }
+
+  case class TestResultExtra(suiteName: String, testName: String, result: TestResult)
+
+  def genTestXmlReport(results0: Seq[TestResult], out: os.Path): Unit = {
+    val results = results0.map { r =>
+      val (suiteName, testName) = splitFullyQualifiedName(r.selector)
+      TestResultExtra(suiteName, testName, r)
+    }
+
+    val suites = results.groupMap(_.suiteName)(identity).map { case (suiteName, tests) =>
+      val cases = tests.map { test =>
+        val failure =
+          (test.result.exceptionName, test.result.exceptionMsg, test.result.exceptionTrace) match {
+            case (Some(name), Some(msg), Some(trace)) =>
+              Some(
+                <failure message={msg} type={name}>
+                  {
+                  trace
+                    .map(t =>
+                      s"${t.getClassName}.${t.getMethodName}(${t.getFileName}:${t.getLineNumber})"
+                    )
+                    .mkString(s"${name}: ${msg}\n    at ", "\n    at ", "")
+                }
+                </failure>
+              )
+            case _ => None
+          }
+        <testcase id={test.result.fullyQualifiedName}
+                  classname={test.suiteName}
+                  name={test.testName}
+                  time={(test.result.duration / 1000.0).toString}>
+          {failure.orNull}
+        </testcase>
+      }
+
+      <testsuite id={suiteName}
+                 name={suiteName}
+                 tests={tests.length.toString}
+                 failures={tests.count(_.result.status == Status.Failure.toString).toString}
+                 errors={tests.count(_.result.status == Status.Error.toString).toString}
+                 skipped={tests.count(_.result.status == Status.Skipped.toString).toString}
+                 time={(tests.map(_.result.duration).sum / 1000.0).toString}>
+        {cases}
+      </testsuite>
+    }
+
+    val xml =
+      <testsuites tests={results.size.toString}
+                  failures={results.count(_.result.status == Status.Failure.toString).toString}
+                  errors={results.count(_.result.status == Status.Error.toString).toString}
+                  skipped={results.count(_.result.status == Status.Skipped.toString).toString}
+                  time={(results.map(_.result.duration).sum / 1000.0).toString}>
+        {suites}
+      </testsuites>
+    if (results.nonEmpty) scala.xml.XML.save(out.toString(), xml, xmlDecl = true)
+  }
+
+  private val RE_FQN = """^(([a-zA-Z_$][a-zA-Z\d_$]*\.)*[a-zA-Z_$][a-zA-Z\d_$]*)\.(.*)$""".r
+
+  private def splitFullyQualifiedName(fullyQualifiedName: String): (String, String) = {
+    RE_FQN.findFirstMatchIn(fullyQualifiedName) match {
+      case Some(m) => (m.group(1), m.group(3))
+      case None => ("", fullyQualifiedName)
+    }
   }
 }
