@@ -17,7 +17,7 @@ object bar extends MyModule {
 // We don't mark either module as top-level using `extends BuildFileModule`, so
 // running tasks needs to use the module name as the prefix e.g. `foo.run` or
 // `bar.run`. You can define multiple modules the same way you define a single
-// module, using def moduleDeps` to define the relationship between them.
+// module, using `def moduleDeps` to define the relationship between them.
 //
 // Note that we split out the `scalaVersion` configuration common to both
 // modules into a separate `trait MyModule`. This lets us avoid the need to
