@@ -6,6 +6,7 @@ import mill.eval.EvaluatorPaths
 import mill.util._
 import mill.scalalib._
 import utest._
+import mill.scalajslib.internal.ScalaJSUtils
 object MultiModuleTests extends TestSuite {
   val workspacePath = TestUtil.getOutPathStatic() / "multi-module"
   val sourcePath = os.pwd / "scalajslib" / "test" / "resources" / "multi-module"
@@ -39,10 +40,11 @@ object MultiModuleTests extends TestSuite {
     prepareWorkspace()
 
     def checkOpt(optimize: Boolean) = {
-      val task = if (optimize) MultiModule.client.fullOpt else MultiModule.client.fastOpt
+      val task = if (optimize) MultiModule.client.fullLinkJS else MultiModule.client.fastLinkJS
       val Right((linked, evalCount)) = evaluator(task)
+      val processedReport = ScalaJSUtils.getReportMainFilePathRef(linked)
 
-      val runOutput = ScalaJsUtils.runJS(linked.path)
+      val runOutput = ScalaJsUtils.runJS(processedReport.path)
       assert(
         evalCount > 0,
         runOutput == "Hello from Scala.js, result is: 3\n"
