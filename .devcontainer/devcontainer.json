@@ -25,7 +25,7 @@
 	// "forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "yarn install & ./mill -v && ./millw __.prepareOffline && ./mill mill.bsp.BSP/install"
+	"postCreateCommand": "./mill -v && ./millw __.prepareOffline && ./mill mill.bsp.BSP/install"
 
 	// Configure tool-specific properties.
 	// "customizations": {},
