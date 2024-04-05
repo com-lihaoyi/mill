@@ -20,7 +20,7 @@ object EsModuleRemapTests extends TestSuite {
       override def scalaJSSourceMap = false
       override def moduleKind = ModuleKind.ESModule
 
-      override def esModuleRemap: Target[Map[String,String]] = Map(
+      override def esModuleRemap: Target[Map[String, String]] = Map(
         "@stdlib/linspace" -> remapTo
       )
     }

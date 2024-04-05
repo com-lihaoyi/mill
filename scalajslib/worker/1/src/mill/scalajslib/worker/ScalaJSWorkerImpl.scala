@@ -209,32 +209,31 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       irFiles = if (esModuleMap.isEmpty) {
         irFiles0
       } else {
-          val remapFct = esModuleMap.toSeq.foldLeft((in: String) => in){ case(fct, (s1, s2)) =>
-            val fct2 : (String => String) = (in => in.replace(s1, s2))
-            (in => fct(fct2(in)))
-          }
-          irFiles0.map{ImportMappedIRFile.fromIRFile(_)(remapFct)
+        val remapFct = esModuleMap.toSeq.foldLeft((in: String) => in) { case (fct, (s1, s2)) =>
+          val fct2: (String => String) = (in => in.replace(s1, s2))
+          (in => fct(fct2(in)))
         }
+        irFiles0.map { ImportMappedIRFile.fromIRFile(_)(remapFct) }
       }
       report <-
         if (useLegacy) {
-          // This uses the legacy linker interface, which is deprecated. The compiler will warn us about it, but the warnings are intentional in a legacy block. Suppress them. 
+          // This uses the legacy linker interface, which is deprecated. The compiler will warn us about it, but the warnings are intentional in a legacy block. Suppress them.
           val jsFileName = "out.js"
           val jsFile = new File(dest, jsFileName).toPath()
-          @annotation.nowarn 
-          var linkerOutput =  LinkerOutput(PathOutputFile(jsFile)) 
+          @annotation.nowarn
+          var linkerOutput = LinkerOutput(PathOutputFile(jsFile))
             .withJSFileURI(java.net.URI.create(jsFile.getFileName.toString))
-          
+
           val sourceMapNameOpt = Option.when(sourceMap)(s"${jsFile.getFileName}.map")
-          sourceMapNameOpt.foreach  { sourceMapName =>
+          sourceMapNameOpt.foreach { sourceMapName =>
             val sourceMapFile = jsFile.resolveSibling(sourceMapName)
-            @annotation.nowarn 
+            @annotation.nowarn
             val outFct = PathOutputFile(sourceMapFile)
             linkerOutput = linkerOutput
-              .withSourceMap( outFct  )
+              .withSourceMap(outFct)
               .withSourceMapURI(java.net.URI.create(sourceMapFile.getFileName.toString))
-          }        
-          @annotation.nowarn 
+          }
+          @annotation.nowarn
           val report = linker.link(irFiles, moduleInitializers, linkerOutput, logger).map {
             file =>
               Report(
@@ -290,7 +289,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       else runConfig0
         .withInheritErr(false)
         .withInheritOut(false)
-        .withOnOutputStream { 
+        .withOnOutputStream {
           case (Some(processOut), Some(processErr)) =>
             val sources = Seq(
               (processOut, System.out, "spawnSubprocess.stdout", false, () => true),
