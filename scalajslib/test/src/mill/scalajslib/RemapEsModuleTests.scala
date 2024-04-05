@@ -25,6 +25,18 @@ object EsModuleRemapTests extends TestSuite {
       )
     }
 
+    object OldJsModule extends ScalaJSModule {
+      override def millSourcePath = workspacePath
+      override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
+      override def scalaJSVersion = "1.15.0"
+      override def scalaJSSourceMap = false
+      override def moduleKind = ModuleKind.ESModule
+
+      override def esModuleRemap: Target[Map[String, String]] = Map(
+        "@stdlib/linspace" -> remapTo
+      )
+    }
+
     override lazy val millDiscover = Discover[this.type]
   }
 
@@ -47,6 +59,13 @@ object EsModuleRemapTests extends TestSuite {
       val rawJs = os.read.lines(mainPath)
       assert(rawJs(1).contains(remapTo))
     }
+
+    test("should throw for older scalaJS versions") {
+      val Left(ex) = evaluator(EsModuleRemap.OldJsModule.fastLinkJS)
+      val error = ex.asFailing.get.toString()      
+      assert(error.contains("will work with scalaJS 1.16 and above. You are using scalaJS 1.15.0"))
+    }
+
   }
 
   def prepareWorkspace(): Unit = {

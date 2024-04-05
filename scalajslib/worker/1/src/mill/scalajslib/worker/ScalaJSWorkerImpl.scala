@@ -209,6 +209,9 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       irFiles = if (esModuleMap.isEmpty) {
         irFiles0
       } else {
+        if (!minorIsGreaterThanOrEqual(16)) {
+          throw new Exception(s"Remapping EsModule imports will work with scalaJS 1.16 and above. You are using scalaJS ${ScalaJSVersions.current} - consider upgrading?")
+        }
         val remapFct = esModuleMap.toSeq.foldLeft((in: String) => in) { case (fct, (s1, s2)) =>
           val fct2: (String => String) = (in => in.replace(s1, s2))
           (in => fct(fct2(in)))

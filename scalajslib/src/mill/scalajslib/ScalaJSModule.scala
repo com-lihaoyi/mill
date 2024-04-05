@@ -74,8 +74,13 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   def scalaJSLinkerClasspath: T[Loose.Agg[PathRef]] = T {
     val commonDeps = Seq(
       ivy"org.scala-js::scalajs-sbt-test-adapter:${scalaJSVersion()}",
-      ivy"com.armanbilge::scalajs-importmap:0.1.1"
+      
     )
+    val maybeImportMap = scalaJSVersion() match {
+      case s"1.$n.$_" if n.toIntOption.exists(_ < 16) => Seq[Dep]()
+      case _ => Seq(ivy"com.armanbilge::scalajs-importmap:0.1.1")
+    }
+    
     val envDeps = scalaJSBinaryVersion() match {
       case "0.6" =>
         Seq(
@@ -90,13 +95,13 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     // we need to use the scala-library of the currently running mill
     resolveDependencies(
       repositoriesTask(),
-      (commonDeps.iterator ++ envDeps)
+      (commonDeps.iterator ++ envDeps ++ maybeImportMap)
         .map(Lib.depToBoundDep(_, mill.main.BuildInfo.scalaVersion, "")),
       ctx = Some(T.log)
     )
   }
 
-  def scalaJSToolsClasspath = T { scalaJSWorkerClasspath() ++ scalaJSLinkerClasspath() }
+  def scalaJSToolsClasspath = T { scalaJSWorkerClasspath() ++ scalaJSLinkerClasspath()}
 
   def fastLinkJS: Target[Report] = T.persistent {
     linkTask(isFullLinkJS = false, forceOutJs = false)()
@@ -268,9 +273,11 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def moduleSplitStyle: Target[ModuleSplitStyle] = T { ModuleSplitStyle.FewestModules }
 
-  def scalaJSOptimizer: Target[Boolean] = T { true }
+  def scalaJSOptimizer: Target[Boolean] = T { true }  
 
-  def esModuleRemap: Target[Map[String, String]] = T { Map.empty[String, String] }
+  def esModuleRemap: Target[Map[String, String]] = T {    
+    Map.empty[String, String] 
+  }
 
   /** Whether to emit a source map. */
   def scalaJSSourceMap: Target[Boolean] = T { true }
