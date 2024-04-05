@@ -203,6 +203,8 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
         testInitializer
     }
 
+    val importMap = Map[String, String]()
+
     val resultFuture = (for {
       (irContainers, _) <- irContainersAndPathsFuture
       irFiles0 <- irFileCacheCache.cached(irContainers)
