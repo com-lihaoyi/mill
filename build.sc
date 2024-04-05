@@ -189,6 +189,7 @@ object Deps {
   val fansi = ivy"com.lihaoyi::fansi:0.4.0"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.0"
   val requests = ivy"com.lihaoyi::requests:0.8.0"
+  val esModuleRemap = ivy"com.armanbilge::scalajs-importmap:0.1.1"
 
   /** Used to manage transitive versions. */
   val transitiveDeps = Seq(
@@ -816,7 +817,8 @@ object scalajslib extends MillStableScalaModule with BuildInfo {
       Deps.Scalajs_1.scalajsEnvJsdomNodejs,
       Deps.Scalajs_1.scalajsEnvExoegoJsdomNodejs,
       Deps.Scalajs_1.scalajsEnvPhantomjs,
-      Deps.Scalajs_1.scalajsEnvSelenium
+      Deps.Scalajs_1.scalajsEnvSelenium,
+      Deps.esModuleRemap
     )
   }
 }

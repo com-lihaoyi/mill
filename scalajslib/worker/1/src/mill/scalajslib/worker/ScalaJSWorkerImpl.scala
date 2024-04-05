@@ -25,6 +25,8 @@ import org.scalajs.testing.adapter.{TestAdapterInitializer => TAI}
 import scala.collection.mutable
 import scala.ref.SoftReference
 
+import com.armanbilge.sjsimportmap.ImportMappedIRFile
+
 class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
   private case class LinkerInput(
       isFullLinkJS: Boolean,
@@ -199,6 +201,8 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       case _ =>
         testInitializer
     }
+
+    val importMap = Map[String, String]()
 
     val resultFuture = (for {
       (irContainers, _) <- irContainersAndPathsFuture
