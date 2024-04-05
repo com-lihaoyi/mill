@@ -171,7 +171,8 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       esFeatures: ESFeatures,
       moduleSplitStyle: ModuleSplitStyle,
       outputPatterns: OutputPatterns,
-      minify: Boolean
+      minify: Boolean,
+      esModuleMap: Map[String, String] = Map[String, String]()
   ): Either[String, Report] = {
     // On Scala.js 1.2- we want to use the legacy mode either way since
     // the new mode is not supported and in tests we always use legacy = false
@@ -202,25 +203,39 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
         testInitializer
     }
 
-    val importMap = Map[String, String]()
-
     val resultFuture = (for {
       (irContainers, _) <- irContainersAndPathsFuture
-      irFiles <- irFileCacheCache.cached(irContainers)
+      irFiles0 <- irFileCacheCache.cached(irContainers)
+      irFiles = if (esModuleMap.isEmpty) {
+        irFiles0
+      } else {
+          val remapFct = esModuleMap.toSeq.foldLeft((in: String) => in){ case(fct, (s1, s2)) =>
+            val fct2 : (String => String) = (in => in.replace(s1, s2))
+            (in => fct(fct2(in)))
+          }
+          irFiles0.map{ImportMappedIRFile.fromIRFile(_)(remapFct)
+        }
+      }
       report <-
         if (useLegacy) {
+          // This uses the legacy linker interface, which is deprecated. The compiler will warn us about it, but the warnings are intentional in a legacy block. Suppress them. 
           val jsFileName = "out.js"
           val jsFile = new File(dest, jsFileName).toPath()
-          var linkerOutput = LinkerOutput(PathOutputFile(jsFile))
+          @annotation.nowarn 
+          var linkerOutput =  LinkerOutput(PathOutputFile(jsFile)) 
             .withJSFileURI(java.net.URI.create(jsFile.getFileName.toString))
+          
           val sourceMapNameOpt = Option.when(sourceMap)(s"${jsFile.getFileName}.map")
-          sourceMapNameOpt.foreach { sourceMapName =>
+          sourceMapNameOpt.foreach  { sourceMapName =>
             val sourceMapFile = jsFile.resolveSibling(sourceMapName)
+            @annotation.nowarn 
+            val outFct = PathOutputFile(sourceMapFile)
             linkerOutput = linkerOutput
-              .withSourceMap(PathOutputFile(sourceMapFile))
+              .withSourceMap( outFct  )
               .withSourceMapURI(java.net.URI.create(sourceMapFile.getFileName.toString))
-          }
-          linker.link(irFiles, moduleInitializers, linkerOutput, logger).map {
+          }        
+          @annotation.nowarn 
+          val report = linker.link(irFiles, moduleInitializers, linkerOutput, logger).map {
             file =>
               Report(
                 publicModules = Seq(Report.Module(
@@ -232,6 +247,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
                 dest = dest
               )
           }
+          report
         } else {
           val linkerOutput = PathOutputDirectory(dest.toPath())
           linker.link(
@@ -274,20 +290,22 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       else runConfig0
         .withInheritErr(false)
         .withInheritOut(false)
-        .withOnOutputStream { case (Some(processOut), Some(processErr)) =>
-          val sources = Seq(
-            (processOut, System.out, "spawnSubprocess.stdout", false, () => true),
-            (processErr, System.err, "spawnSubprocess.stderr", false, () => true)
-          )
-
-          for ((std, dest, name, checkAvailable, runningCheck) <- sources) {
-            val t = new Thread(
-              new mill.main.client.InputPumper(std, dest, checkAvailable, () => runningCheck()),
-              name
+        .withOnOutputStream { 
+          case (Some(processOut), Some(processErr)) =>
+            val sources = Seq(
+              (processOut, System.out, "spawnSubprocess.stdout", false, () => true),
+              (processErr, System.err, "spawnSubprocess.stderr", false, () => true)
             )
-            t.setDaemon(true)
-            t.start()
-          }
+
+            for ((std, dest, name, checkAvailable, runningCheck) <- sources) {
+              val t = new Thread(
+                new mill.main.client.InputPumper(std, dest, checkAvailable, () => runningCheck()),
+                name
+              )
+              t.setDaemon(true)
+              t.start()
+            }
+          case _ => ??? // should not happen
         }
     Run.runInterruptible(env, input, runConfig)
   }

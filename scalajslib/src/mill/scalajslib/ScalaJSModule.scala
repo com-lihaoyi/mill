@@ -73,7 +73,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def scalaJSLinkerClasspath: T[Loose.Agg[PathRef]] = T {
     val commonDeps = Seq(
-      ivy"org.scala-js::scalajs-sbt-test-adapter:${scalaJSVersion()}"
+      ivy"org.scala-js::scalajs-sbt-test-adapter:${scalaJSVersion()}",
+      ivy"com.armanbilge::scalajs-importmap:0.1.1"
     )
     val envDeps = scalaJSBinaryVersion() match {
       case "0.6" =>
@@ -130,7 +131,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       esFeatures = esFeatures(),
       moduleSplitStyle = moduleSplitStyle(),
       outputPatterns = scalaJSOutputPatterns(),
-      minify = scalaJSMinify()
+      minify = scalaJSMinify(),
+      esModuleMap = esModuleRemap()
     )
   }
 
@@ -172,7 +174,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       esFeatures: ESFeatures,
       moduleSplitStyle: ModuleSplitStyle,
       outputPatterns: OutputPatterns,
-      minify: Boolean
+      minify: Boolean,
+      esModuleMap: Map[String, String]
   )(implicit ctx: mill.api.Ctx): Result[Report] = {
     val outputPath = ctx.dest
 
@@ -192,7 +195,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       esFeatures = esFeatures,
       moduleSplitStyle = moduleSplitStyle,
       outputPatterns = outputPatterns,
-      minify = minify
+      minify = minify,
+      esModuleMap = esModuleMap
     )
   }
 
@@ -265,6 +269,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   def moduleSplitStyle: Target[ModuleSplitStyle] = T { ModuleSplitStyle.FewestModules }
 
   def scalaJSOptimizer: Target[Boolean] = T { true }
+
+  def esModuleRemap: Target[Map[String, String]] = T { Map.empty[String, String] }
 
   /** Whether to emit a source map. */
   def scalaJSSourceMap: Target[Boolean] = T { true }
@@ -346,7 +352,8 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       esFeatures = esFeatures(),
       moduleSplitStyle = moduleSplitStyle(),
       outputPatterns = scalaJSOutputPatterns(),
-      minify = scalaJSMinify()
+      minify = scalaJSMinify(),
+      esModuleMap = esModuleRemap()
     )
   }
 
