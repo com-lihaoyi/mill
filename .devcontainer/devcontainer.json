@@ -22,6 +22,8 @@
 	"features": {
 		"ghcr.io/devcontainers/features/java:1": {
 			"version":17
+		},
+		"ghcr.io/devcontainers/features/node:1":{
 		}
 	},
 
@@ -29,7 +31,7 @@
 	// "forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "./mill -v && ./millw __.prepareOffline && ./mill mill.bsp.BSP/install && ./mill __.compile"
+	"postCreateCommand": "./mill -v && ./mill __.prepareOffline && ./mill mill.bsp.BSP/install && ./mill __.compile"
 
 	// Configure tool-specific properties.
 	// "customizations": {},
