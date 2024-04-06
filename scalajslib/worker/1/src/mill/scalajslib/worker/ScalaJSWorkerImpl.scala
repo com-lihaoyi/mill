@@ -172,7 +172,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       moduleSplitStyle: ModuleSplitStyle,
       outputPatterns: OutputPatterns,
       minify: Boolean,
-      esModuleMap: Map[String, String] = Map[String, String]()
+      esModuleMap: Map[String, String]
   ): Either[String, Report] = {
     // On Scala.js 1.2- we want to use the legacy mode either way since
     // the new mode is not supported and in tests we always use legacy = false
