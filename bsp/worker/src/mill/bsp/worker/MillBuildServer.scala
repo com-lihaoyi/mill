@@ -27,7 +27,6 @@ import ch.epfl.scala.bsp4j.{
   InverseSourcesParams,
   InverseSourcesResult,
   LogMessageParams,
-  MavenDependencyModule,
   MessageType,
   OutputPathItem,
   OutputPathItemKind,
@@ -213,12 +212,13 @@ private class MillBuildServer(
     completableTasks(
       "workspaceBuildTargets",
       targetIds = _.bspModulesById.keySet.toSeq,
-      tasks = { case m: JavaModule => T.task { m.bspBuildTargetData() } }
-    ) { (ev, state, id, m, bspBuildTargetData) =>
-      val s = m.bspBuildTarget
-      val deps = m match {
+      tasks = { case m: BspModule => m.bspBuildTargetData }
+    ) { (ev, state, id, m: BspModule, bspBuildTargetData) =>
+      val depsIds = m match {
         case jm: JavaModule =>
-          jm.recursiveModuleDeps.collect { case bm: BspModule => state.bspIdByModule(bm) }
+          (jm.recursiveModuleDeps ++ jm.compileModuleDepsChecked)
+            .distinct
+            .collect { case bm: BspModule => state.bspIdByModule(bm) }
         case _ => Seq()
       }
       val data = bspBuildTargetData match {
@@ -245,21 +245,22 @@ private class MillBuildServer(
         case None => None
       }
 
+      val bt = m.bspBuildTarget
       val buildTarget = new BuildTarget(
         id,
-        s.tags.asJava,
-        s.languageIds.asJava,
-        deps.asJava,
+        bt.tags.asJava,
+        bt.languageIds.asJava,
+        depsIds.asJava,
         new BuildTargetCapabilities().tap { it =>
-          it.setCanCompile(s.canCompile)
-          it.setCanTest(s.canTest)
-          it.setCanRun(s.canRun)
-          it.setCanDebug(s.canDebug)
+          it.setCanCompile(bt.canCompile)
+          it.setCanTest(bt.canTest)
+          it.setCanRun(bt.canRun)
+          it.setCanDebug(bt.canDebug)
         }
       )
 
-      s.displayName.foreach(buildTarget.setDisplayName)
-      s.baseDirectory.foreach(p => buildTarget.setBaseDirectory(sanitizeUri(p)))
+      bt.displayName.foreach(buildTarget.setDisplayName)
+      bt.baseDirectory.foreach(p => buildTarget.setBaseDirectory(sanitizeUri(p)))
 
       for ((dataKind, data) <- data) {
         buildTarget.setDataKind(dataKind)
@@ -417,7 +418,7 @@ private class MillBuildServer(
         val ivy = transitiveCompileIvyDeps ++ transitiveIvyDeps
         val deps = ivy.map { dep =>
           // TODO: add data with "maven" data kind using a ...
-          MavenDependencyModule
+//          MavenDependencyModule
 
           new DependencyModule(dep.dep.module.repr, dep.dep.version)
         }
@@ -677,18 +678,22 @@ private class MillBuildServer(
       throw new NotImplementedError("debugSessionStart endpoint is not implemented")
     }
 
+  /**
+   * @params tasks A partial function
+   * @param f The function must accept the same modules as the partial function given by `tasks`.
+   */
   def completableTasks[T, V, W: ClassTag](
       hint: String,
       targetIds: State => Seq[BuildTargetIdentifier],
-      tasks: BspModule => Task[W]
+      tasks: PartialFunction[BspModule, Task[W]]
   )(f: (Evaluator, State, BuildTargetIdentifier, BspModule, W) => T)(agg: java.util.List[T] => V)
       : CompletableFuture[V] = {
     val prefix = hint.split(" ").head
     completable(hint) { state: State =>
       val ids = targetIds(state)
-      val tasksSeq = ids.map { id =>
+      val tasksSeq = ids.flatMap { id =>
         val (m, ev) = state.bspModulesById(id)
-        (tasks(m), (ev, id))
+        tasks.lift.apply(m).map(ts => (ts, (ev, id)))
       }
 
       val evaluated = tasksSeq
@@ -700,7 +705,7 @@ private class MillBuildServer(
             case (_, TaskResult(res: Result.Failing[_], _)) => res
           }
 
-          def logError(errorMsg: String) = {
+          def logError(errorMsg: String): Unit = {
             val msg = s"Request '$prefix' failed for ${id.getUri}: ${errorMsg}"
             debug(msg)
             client.onBuildLogMessage(new LogMessageParams(MessageType.ERROR, msg))
