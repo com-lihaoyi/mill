@@ -27,6 +27,7 @@ import ch.epfl.scala.bsp4j.{
   InverseSourcesParams,
   InverseSourcesResult,
   LogMessageParams,
+  MavenDependencyModule,
   MessageType,
   OutputPathItem,
   OutputPathItemKind,
@@ -281,16 +282,20 @@ private class MillBuildServer(
       }
     }
 
+  /**
+   * The build target sources request is sent from the client to the server to query
+   * for the list of text documents and directories that are belong to a build
+   * target. The sources response must not include sources that are external to the
+   * workspace, see [[buildTargetDependencySources()]].
+   */
   override def buildTargetSources(sourcesParams: SourcesParams)
       : CompletableFuture[SourcesResult] = {
 
-    def sourceItem(source: os.Path, generated: Boolean) = {
-      new SourceItem(
-        sanitizeUri(source),
-        if (source.toIO.isFile) SourceItemKind.FILE else SourceItemKind.DIRECTORY,
-        generated
-      )
-    }
+    def sourceItem(source: os.Path, generated: Boolean) = new SourceItem(
+      sanitizeUri(source),
+      if (source.toIO.isFile) SourceItemKind.FILE else SourceItemKind.DIRECTORY,
+      generated
+    )
 
     completableTasks(
       hint = s"buildTargetSources ${sourcesParams}",
@@ -342,6 +347,16 @@ private class MillBuildServer(
 
   /**
    * External dependencies (sources or source jars).
+   *
+   * The build target dependency sources request is sent from the client to the
+   * server to query for the sources of build target dependencies that are external
+   * to the workspace. The dependency sources response must not include source files
+   * that belong to a build target within the workspace, see [[buildTargetSources()]].
+   *
+   * The server communicates during the initialize handshake whether this method is
+   * supported or not. This method can for example be used by a language server on
+   * `textDocument/definition` to "Go to definition" from project sources to
+   * dependency sources.
    */
   override def buildTargetDependencySources(p: DependencySourcesParams)
       : CompletableFuture[DependencySourcesResult] =
@@ -377,6 +392,11 @@ private class MillBuildServer(
 
   /**
    * External dependencies per module (e.g. ivy deps)
+   *
+   * The build target dependency modules request is sent from the client to the
+   * server to query for the libraries of build target dependencies that are external
+   * to the workspace including meta information about library and their sources.
+   * It's an extended version of [[buildTargetSources()]].
    */
   override def buildTargetDependencyModules(params: DependencyModulesParams)
       : CompletableFuture[DependencyModulesResult] =
@@ -396,6 +416,9 @@ private class MillBuildServer(
           ) =>
         val ivy = transitiveCompileIvyDeps ++ transitiveIvyDeps
         val deps = ivy.map { dep =>
+          // TODO: add data with "maven" data kind using a ...
+          MavenDependencyModule
+
           new DependencyModule(dep.dep.module.repr, dep.dep.version)
         }
         val unmanged = unmanagedClasspath.map { dep =>
