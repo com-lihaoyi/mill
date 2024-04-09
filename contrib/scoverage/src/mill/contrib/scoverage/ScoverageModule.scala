@@ -3,10 +3,11 @@ package mill.contrib.scoverage
 import coursier.Repository
 import mill._
 import mill.api.{Loose, PathRef, Result}
-import mill.main.BuildInfo
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi.ReportType
+import mill.main.BuildInfo
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.{Dep, DepSyntax, JavaModule, ScalaModule}
+import mill.testrunner.TestResult
 import mill.util.Util.millProjectModule
 
 import scala.util.Try
@@ -188,31 +189,31 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
       PathRef(T.dest)
     }
 
-    override def generatedSources: Target[Seq[PathRef]] = T { outer.generatedSources() }
-    override def allSources: Target[Seq[PathRef]] = T { outer.allSources() }
+    override def generatedSources: T[Seq[PathRef]] = outer.generatedSources
+    override def allSources: T[Seq[PathRef]] = outer.allSources
     override def moduleDeps: Seq[JavaModule] = outer.moduleDeps
     override def compileModuleDeps: Seq[JavaModule] = outer.compileModuleDeps
-    override def sources: T[Seq[PathRef]] = T.sources { outer.sources() }
-    override def resources: T[Seq[PathRef]] = T.sources { outer.resources() }
-    override def scalaVersion = T { outer.scalaVersion() }
-    override def repositoriesTask: Task[Seq[Repository]] = T.task { outer.repositoriesTask() }
-    override def compileIvyDeps: Target[Agg[Dep]] = T { outer.compileIvyDeps() }
-    override def ivyDeps: Target[Agg[Dep]] =
+    override def sources: T[Seq[PathRef]] = outer.sources
+    override def resources: T[Seq[PathRef]] = outer.resources
+    override def scalaVersion: T[String] = outer.scalaVersion
+    override def repositoriesTask: Task[Seq[Repository]] = outer.repositoriesTask
+    override def compileIvyDeps: T[Agg[Dep]] = outer.compileIvyDeps
+    override def ivyDeps: T[Agg[Dep]] =
       T { outer.ivyDeps() ++ outer.scoverageRuntimeDeps() }
-    override def unmanagedClasspath: Target[Agg[PathRef]] = T { outer.unmanagedClasspath() }
+    override def unmanagedClasspath: T[Agg[PathRef]] = outer.unmanagedClasspath
 
     /** Add the scoverage scalac plugin. */
     override def scalacPluginIvyDeps: Target[Loose.Agg[Dep]] =
       T { outer.scalacPluginIvyDeps() ++ outer.scoveragePluginDeps() }
 
     /** Add the scoverage specific plugin settings (`dataDir`). */
-    override def scalacOptions: Target[Seq[String]] =
+    override def scalacOptions: T[Seq[String]] =
       T {
         val extras =
           if (isScala3()) {
-            Seq(s"-coverage-out:${data().path.toIO.getPath()}")
+            Seq(s"-coverage-out:${data().path.toIO.getPath}")
           } else {
-            val base = s"-P:scoverage:dataDir:${data().path.toIO.getPath()}"
+            val base = s"-P:scoverage:dataDir:${data().path.toIO.getPath}"
             if (isScoverage2()) Seq(base, s"-P:scoverage:sourceRoot:${T.workspace}")
             else Seq(base)
           }
@@ -225,30 +226,46 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     def xmlCoberturaReport(): Command[Unit] = T.command { doReport(ReportType.XmlCobertura) }
     def consoleReport(): Command[Unit] = T.command { doReport(ReportType.Console) }
 
-    override def skipIdea = outer.skipIdea
+    override def skipIdea = true
   }
 
-  trait ScoverageTests extends ScalaTests {
-    override def upstreamAssemblyClasspath = T {
-      super.upstreamAssemblyClasspath() ++
-        resolveDeps(T.task {
-          outer.scoverageRuntimeDeps().map(bindDependency())
-        })()
-    }
-    override def compileClasspath = T {
-      super.compileClasspath() ++
-        resolveDeps(T.task {
-          outer.scoverageRuntimeDeps().map(bindDependency())
-        })()
-    }
-    override def runClasspath = T {
-      super.runClasspath() ++
-        resolveDeps(T.task {
-          outer.scoverageRuntimeDeps().map(bindDependency())
-        })()
-    }
+  trait ScoverageTests extends ScalaTests { outerTests: ScalaTests =>
 
-    // Need the sources compiled with scoverage instrumentation to run.
-    override def moduleDeps: Seq[JavaModule] = Seq(outer.scoverage)
+    /** Inner worker module. This is not an `object` to allow users to override and customize it. */
+    lazy val scoverage: ScoverageTestsData = new ScoverageTestsData {}
+
+    /**
+     * The actual task shared by `test`-tasks that runs test in a forked JVM.
+     */
+    override protected def testTask(
+        args: Task[Seq[String]],
+        globSelectors: Task[Seq[String]]
+    ): Task[(String, Seq[TestResult])] = scoverage.testTask(args, globSelectors)
+
+    override def testLocal(args: String*): Command[(String, Seq[TestResult])] =
+      scoverage.testLocal(args: _*)
+    trait ScoverageTestsData extends ScalaTests {
+      override def testTask(
+          args: Task[Seq[String]],
+          globSelectors: Task[Seq[String]]
+      ): Task[(String, Seq[TestResult])] = super.testTask(args, globSelectors)
+
+      override def testFramework: T[String] = outerTests.testFramework
+      override def generatedSources: T[Seq[PathRef]] = outerTests.generatedSources
+      override def allSources: T[Seq[PathRef]] = outerTests.allSources
+      override def compileModuleDeps: Seq[JavaModule] = Seq.empty
+      override def sources: T[Seq[PathRef]] = outerTests.sources
+      override def resources: T[Seq[PathRef]] = outerTests.resources
+      override def scalaVersion: T[String] = outerTests.scalaVersion
+      override def repositoriesTask: Task[Seq[Repository]] = outerTests.repositoriesTask
+      override def compileIvyDeps: T[Agg[Dep]] = outerTests.compileIvyDeps
+      override def ivyDeps: T[Agg[Dep]] = outerTests.ivyDeps
+      override def unmanagedClasspath: T[Agg[PathRef]] = outerTests.unmanagedClasspath
+
+      // Need the sources compiled with scoverage instrumentation to run.
+      override def moduleDeps: Seq[JavaModule] = Seq(outer.scoverage)
+
+      override def skipIdea = true
+    }
   }
 }
