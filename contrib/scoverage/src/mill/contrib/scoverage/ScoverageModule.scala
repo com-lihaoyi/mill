@@ -80,13 +80,13 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     } else {
       if (isScoverage2()) {
         Agg(
-          ivy"org.scoverage:::scalac-scoverage-plugin:${sv}",
-          ivy"org.scoverage::scalac-scoverage-domain:${sv}",
-          ivy"org.scoverage::scalac-scoverage-serializer:${sv}",
-          ivy"org.scoverage::scalac-scoverage-reporter:${sv}"
+          ivy"org.scoverage:::scalac-scoverage-plugin:$sv",
+          ivy"org.scoverage::scalac-scoverage-domain:$sv",
+          ivy"org.scoverage::scalac-scoverage-serializer:$sv",
+          ivy"org.scoverage::scalac-scoverage-reporter:$sv"
         )
       } else {
-        Agg(ivy"org.scoverage:::scalac-scoverage-plugin:${sv}")
+        Agg(ivy"org.scoverage:::scalac-scoverage-plugin:$sv")
       }
     }
   }
@@ -123,20 +123,20 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
         case "2" :: "13" :: c :: _ if Try(c.toInt).getOrElse(0) > 8 =>
           val v = "2.13.8"
           T.log.outputStream.println(
-            s"Detected an unsupported Scala version (${millScalaVersion}). Using Scala version ${v} to resolve scoverage ${sv} reporting API."
+            s"Detected an unsupported Scala version ($millScalaVersion). Using Scala version $v to resolve scoverage $sv reporting API."
           )
           v
         case _ => millScalaVersion
       }
-      Agg(ivy"org.scoverage:scalac-scoverage-plugin_${scalaVersion}:${sv}")
+      Agg(ivy"org.scoverage:scalac-scoverage-plugin_$scalaVersion:$sv")
     } else {
       // we need to resolve with same Scala version used for Mill, not the project Scala version
       val scalaBinVersion = ZincWorkerUtil.scalaBinaryVersion(millScalaVersion)
       // In Scoverage 2.x, the reporting API is no longer bundled in the plugin jar
       Agg(
-        ivy"org.scoverage:scalac-scoverage-domain_${scalaBinVersion}:${sv}",
-        ivy"org.scoverage:scalac-scoverage-serializer_${scalaBinVersion}:${sv}",
-        ivy"org.scoverage:scalac-scoverage-reporter_${scalaBinVersion}:${sv}"
+        ivy"org.scoverage:scalac-scoverage-domain_$scalaBinVersion:$sv",
+        ivy"org.scoverage:scalac-scoverage-serializer_$scalaBinVersion:$sv",
+        ivy"org.scoverage:scalac-scoverage-reporter_$scalaBinVersion:$sv"
       )
     }
   }
