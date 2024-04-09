@@ -17,12 +17,18 @@ object foo extends RootModule with ScoverageModule {
   }
 }
 
-// This is a basic Mill build for a single `ScalaModule`, with two
-// third-party dependencies and a test suite using the uTest framework. As a
-// single-module project, it `extends RootModule` to mark `object foo` as the
-// top-level module in the build. This lets us directly perform operations
-// `./mill compile` or `./mill run` without needing to prefix it as
-// `foo.compile` or `foo.run`.
+// This is a basic Mill build for a single `ScalaModule`, enhanced with
+// Scoverage plugin. The root module extends the `ScoverageModule` and
+// specifies the version of scoverage version to use here: `2.1.0`. This
+// version can be change if there is newer ones. This will all use to
+// call the scoverage targets to produce coverage reports.
+// Then the sub test module extends `ScoverageTests` to transform the
+// execution of the various testXXX targets to use scoverage and produce
+// coverage data.
+// This lets us perform the coverage operations but before that you
+// must first run the test.
+// `./mill test` then `./mill scoverage.consoleReport` and get your
+// coverage into your console output.
 //
 // You can download this example project using the *download* link above
 // if you want to try out the commands below yourself. The only requirement is
