@@ -127,7 +127,7 @@ object Deps {
 
   val acyclic = ivy"com.lihaoyi:::acyclic:0.3.11"
   val ammoniteVersion = "3.0.0-M1"
-  val asmTree = ivy"org.ow2.asm:asm-tree:9.6"
+  val asmTree = ivy"org.ow2.asm:asm-tree:9.7"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
 
   val coursier = ivy"io.get-coursier::coursier:2.1.9"
