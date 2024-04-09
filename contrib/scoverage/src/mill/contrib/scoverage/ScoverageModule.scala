@@ -232,7 +232,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
   trait ScoverageTests extends ScalaTests { outerTests: ScalaTests =>
 
     /** Inner worker module. This is not an `object` to allow users to override and customize it. */
-    lazy val scoverage: ScoverageTestsData = new ScoverageTestsData {}
+    lazy val scoverage: ScoverageTestsDelegate = new ScoverageTestsDelegate {}
 
     /**
      * The actual task shared by `test`-tasks that runs test in a forked JVM.
@@ -244,7 +244,8 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
 
     override def testLocal(args: String*): Command[(String, Seq[TestResult])] =
       scoverage.testLocal(args: _*)
-    trait ScoverageTestsData extends ScalaTests {
+
+    trait ScoverageTestsDelegate extends ScalaTests {
       override def testTask(
           args: Task[Seq[String]],
           globSelectors: Task[Seq[String]]
