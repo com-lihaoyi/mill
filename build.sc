@@ -194,7 +194,7 @@ object Deps {
   /** Used to manage transitive versions. */
   val transitiveDeps = Seq(
     ivy"org.apache.ant:ant:1.10.14",
-    ivy"commons-io:commons-io:2.15.1",
+    ivy"commons-io:commons-io:2.16.1",
     ivy"com.google.code.gson:gson:2.10.1",
     ivy"com.google.protobuf:protobuf-java:3.25.3",
     ivy"com.google.guava:guava:33.1.0-jre",
