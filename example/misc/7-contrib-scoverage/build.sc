@@ -42,7 +42,7 @@ object foo extends RootModule with ScoverageModule {
 + foo.FooTests.simple ...  <h1>hello</h1>
 + foo.FooTests.escaping ...  <h1>&lt;hello&gt;</h1>
 
-> ./mill result scoverage._ # List what tasks are available to run from scoverage
+> ./mill resolve scoverage._ # List what tasks are available to run from scoverage
 ...
 scoverage.consoleReport
 ...
