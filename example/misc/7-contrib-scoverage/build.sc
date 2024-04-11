@@ -20,7 +20,7 @@ object foo extends RootModule with ScoverageModule {
 // This is a basic Mill build for a single `ScalaModule`, enhanced with
 // Scoverage plugin. The root module extends the `ScoverageModule` and
 // specifies the version of scoverage version to use here: `2.1.0`. This
-// version can be change if there is newer ones. This will all use to
+// version can be changed if there is a newer one. This will all use to
 // call the scoverage targets to produce coverage reports.
 // Then the sub test module extends `ScoverageTests` to transform the
 // execution of the various testXXX targets to use scoverage and produce
