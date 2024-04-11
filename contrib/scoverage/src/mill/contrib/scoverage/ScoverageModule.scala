@@ -7,7 +7,6 @@ import mill.contrib.scoverage.api.ScoverageReportWorkerApi.ReportType
 import mill.main.BuildInfo
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.{Dep, DepSyntax, JavaModule, ScalaModule}
-import mill.testrunner.TestResult
 import mill.util.Util.millProjectModule
 
 import scala.util.Try
@@ -189,6 +188,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
       PathRef(T.dest)
     }
 
+    override def compileResources: T[Seq[PathRef]] = outer.compileResources
     override def generatedSources: Target[Seq[PathRef]] = T { outer.generatedSources() }
     override def allSources: Target[Seq[PathRef]] = T { outer.allSources() }
     override def moduleDeps: Seq[JavaModule] = outer.moduleDeps
@@ -229,44 +229,22 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     override def skipIdea = true
   }
 
-  trait ScoverageTests extends ScalaTests { outerTests: ScalaTests =>
-
-    /** Inner worker module. This is not an `object` to allow users to override and customize it. */
-    lazy val scoverage: ScoverageTestsDelegate = new ScoverageTestsDelegate {}
+  trait ScoverageTests extends ScalaTests {
 
     /**
-     * The actual task shared by `test`-tasks that runs test in a forked JVM.
+     * Alter classfiles and resources from upstream modules and dependencies
+     * by removing the ones from outer.localRunClasspath() and replacing them
+     * with outer.scoverage.localRunClasspath()
      */
-    override protected def testTask(
-        args: Task[Seq[String]],
-        globSelectors: Task[Seq[String]]
-    ): Task[(String, Seq[TestResult])] = scoverage.testTask(args, globSelectors)
-
-    override def testLocal(args: String*): Command[(String, Seq[TestResult])] =
-      scoverage.testLocal(args: _*)
-
-    trait ScoverageTestsDelegate extends ScalaTests {
-      override def testTask(
-          args: Task[Seq[String]],
-          globSelectors: Task[Seq[String]]
-      ): Task[(String, Seq[TestResult])] = super.testTask(args, globSelectors)
-
-      override def testFramework: T[String] = outerTests.testFramework
-      override def generatedSources: T[Seq[PathRef]] = outerTests.generatedSources
-      override def allSources: T[Seq[PathRef]] = outerTests.allSources
-      override def compileModuleDeps: Seq[JavaModule] = Seq.empty
-      override def sources: T[Seq[PathRef]] = outerTests.sources
-      override def resources: T[Seq[PathRef]] = outerTests.resources
-      override def scalaVersion: T[String] = outerTests.scalaVersion
-      override def repositoriesTask: Task[Seq[Repository]] = outerTests.repositoriesTask
-      override def compileIvyDeps: T[Agg[Dep]] = outerTests.compileIvyDeps
-      override def ivyDeps: T[Agg[Dep]] = outerTests.ivyDeps
-      override def unmanagedClasspath: T[Agg[PathRef]] = outerTests.unmanagedClasspath
-
-      // Need the sources compiled with scoverage instrumentation to run.
-      override def moduleDeps: Seq[JavaModule] = Seq(outer.scoverage)
-
-      override def skipIdea = true
+    override def runClasspath: T[Seq[PathRef]] = T {
+      val outerLocalRunClasspath = outer.localRunClasspath().toSet
+      super.runClasspath().filterNot(
+        outerLocalRunClasspath
+      ) ++
+        outer.scoverage.localRunClasspath() ++
+        resolveDeps(T.task {
+          outer.scoverageRuntimeDeps().map(bindDependency())
+        })()
     }
   }
 }
