@@ -80,13 +80,13 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     } else {
       if (isScoverage2()) {
         Agg(
-          ivy"org.scoverage:::scalac-scoverage-plugin:$sv",
-          ivy"org.scoverage::scalac-scoverage-domain:$sv",
-          ivy"org.scoverage::scalac-scoverage-serializer:$sv",
-          ivy"org.scoverage::scalac-scoverage-reporter:$sv"
+          ivy"org.scoverage:::scalac-scoverage-plugin:${sv}",
+          ivy"org.scoverage::scalac-scoverage-domain:${sv}",
+          ivy"org.scoverage::scalac-scoverage-serializer:${sv}",
+          ivy"org.scoverage::scalac-scoverage-reporter:${sv}"
         )
       } else {
-        Agg(ivy"org.scoverage:::scalac-scoverage-plugin:$sv")
+        Agg(ivy"org.scoverage:::scalac-scoverage-plugin:${sv}")
       }
     }
   }
@@ -123,20 +123,20 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
         case "2" :: "13" :: c :: _ if Try(c.toInt).getOrElse(0) > 8 =>
           val v = "2.13.8"
           T.log.outputStream.println(
-            s"Detected an unsupported Scala version ($millScalaVersion). Using Scala version $v to resolve scoverage $sv reporting API."
+            s"Detected an unsupported Scala version (${millScalaVersion}). Using Scala version ${v} to resolve scoverage ${sv} reporting API."
           )
           v
         case _ => millScalaVersion
       }
-      Agg(ivy"org.scoverage:scalac-scoverage-plugin_$scalaVersion:$sv")
+      Agg(ivy"org.scoverage:scalac-scoverage-plugin_${scalaVersion}:${sv}")
     } else {
       // we need to resolve with same Scala version used for Mill, not the project Scala version
       val scalaBinVersion = ZincWorkerUtil.scalaBinaryVersion(millScalaVersion)
       // In Scoverage 2.x, the reporting API is no longer bundled in the plugin jar
       Agg(
-        ivy"org.scoverage:scalac-scoverage-domain_$scalaBinVersion:$sv",
-        ivy"org.scoverage:scalac-scoverage-serializer_$scalaBinVersion:$sv",
-        ivy"org.scoverage:scalac-scoverage-reporter_$scalaBinVersion:$sv"
+        ivy"org.scoverage:scalac-scoverage-domain_${scalaBinVersion}:${sv}",
+        ivy"org.scoverage:scalac-scoverage-serializer_${scalaBinVersion}:${sv}",
+        ivy"org.scoverage:scalac-scoverage-reporter_${scalaBinVersion}:${sv}"
       )
     }
   }
@@ -189,31 +189,31 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
       PathRef(T.dest)
     }
 
-    override def generatedSources: T[Seq[PathRef]] = outer.generatedSources
-    override def allSources: T[Seq[PathRef]] = outer.allSources
+    override def generatedSources: Target[Seq[PathRef]] = T { outer.generatedSources() }
+    override def allSources: Target[Seq[PathRef]] = T { outer.allSources() }
     override def moduleDeps: Seq[JavaModule] = outer.moduleDeps
     override def compileModuleDeps: Seq[JavaModule] = outer.compileModuleDeps
-    override def sources: T[Seq[PathRef]] = outer.sources
-    override def resources: T[Seq[PathRef]] = outer.resources
-    override def scalaVersion: T[String] = outer.scalaVersion
-    override def repositoriesTask: Task[Seq[Repository]] = outer.repositoriesTask
-    override def compileIvyDeps: T[Agg[Dep]] = outer.compileIvyDeps
-    override def ivyDeps: T[Agg[Dep]] =
+    override def sources: T[Seq[PathRef]] = T.sources { outer.sources() }
+    override def resources: T[Seq[PathRef]] = T.sources { outer.resources() }
+    override def scalaVersion = T { outer.scalaVersion() }
+    override def repositoriesTask: Task[Seq[Repository]] = T.task { outer.repositoriesTask() }
+    override def compileIvyDeps: Target[Agg[Dep]] = T { outer.compileIvyDeps() }
+    override def ivyDeps: Target[Agg[Dep]] =
       T { outer.ivyDeps() ++ outer.scoverageRuntimeDeps() }
-    override def unmanagedClasspath: T[Agg[PathRef]] = outer.unmanagedClasspath
+    override def unmanagedClasspath: Target[Agg[PathRef]] = T { outer.unmanagedClasspath() }
 
     /** Add the scoverage scalac plugin. */
     override def scalacPluginIvyDeps: Target[Loose.Agg[Dep]] =
       T { outer.scalacPluginIvyDeps() ++ outer.scoveragePluginDeps() }
 
     /** Add the scoverage specific plugin settings (`dataDir`). */
-    override def scalacOptions: T[Seq[String]] =
+    override def scalacOptions: Target[Seq[String]] =
       T {
         val extras =
           if (isScala3()) {
-            Seq(s"-coverage-out:${data().path.toIO.getPath}")
+            Seq(s"-coverage-out:${data().path.toIO.getPath()}")
           } else {
-            val base = s"-P:scoverage:dataDir:${data().path.toIO.getPath}"
+            val base = s"-P:scoverage:dataDir:${data().path.toIO.getPath()}"
             if (isScoverage2()) Seq(base, s"-P:scoverage:sourceRoot:${T.workspace}")
             else Seq(base)
           }
