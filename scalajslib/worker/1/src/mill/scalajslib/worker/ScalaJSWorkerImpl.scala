@@ -203,8 +203,6 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
         testInitializer
     }
 
-    val importMap = Map[String, String]()
-
     val resultFuture = (for {
       (irContainers, _) <- irContainersAndPathsFuture
       irFiles0 <- irFileCacheCache.cached(irContainers)
@@ -224,24 +222,18 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       }
       report <-
         if (useLegacy) {
-          // This uses the legacy linker interface, which is deprecated. The compiler will warn us about it, but the warnings are intentional in a legacy block. Suppress them.
           val jsFileName = "out.js"
           val jsFile = new File(dest, jsFileName).toPath()
-          @annotation.nowarn
           var linkerOutput = LinkerOutput(PathOutputFile(jsFile))
             .withJSFileURI(java.net.URI.create(jsFile.getFileName.toString))
-
           val sourceMapNameOpt = Option.when(sourceMap)(s"${jsFile.getFileName}.map")
           sourceMapNameOpt.foreach { sourceMapName =>
             val sourceMapFile = jsFile.resolveSibling(sourceMapName)
-            @annotation.nowarn
-            val outFct = PathOutputFile(sourceMapFile)
             linkerOutput = linkerOutput
-              .withSourceMap(outFct)
+              .withSourceMap(PathOutputFile(sourceMapFile))
               .withSourceMapURI(java.net.URI.create(sourceMapFile.getFileName.toString))
           }
-          @annotation.nowarn
-          val report = linker.link(irFiles, moduleInitializers, linkerOutput, logger).map {
+          linker.link(irFiles, moduleInitializers, linkerOutput, logger).map {
             file =>
               Report(
                 publicModules = Seq(Report.Module(
@@ -253,7 +245,6 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
                 dest = dest
               )
           }
-          report
         } else {
           val linkerOutput = PathOutputDirectory(dest.toPath())
           linker.link(

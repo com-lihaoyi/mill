@@ -29,7 +29,7 @@ object FullOptESModuleTests extends TestSuite {
 
     test("fullOpt with ESModule moduleKind") {
       val result =
-        fullOptESModuleModuleEvaluator(FullOptESModuleModule.fullOptESModuleModule.fullLinkJS)
+        fullOptESModuleModuleEvaluator(FullOptESModuleModule.fullOptESModuleModule.fullOpt)
       assert(result.isRight)
     }
   }
