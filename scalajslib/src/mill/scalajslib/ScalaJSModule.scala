@@ -77,10 +77,10 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     )
     val maybeImportMap = (scalaJSVersion(), esModuleRemap()) match {
       case (s"1.$n.$_", _) if n.toIntOption.exists(_ < 16) => Seq[Dep]()
-      case (_, importMap) => 
+      case (_, importMap) =>
         if (importMap.isEmpty)
           Seq[Dep]()
-        else          
+        else
           Seq(ivy"${ScalaJSBuildInfo.scalaJsRemapDep}")
     }
 
