@@ -796,7 +796,8 @@ object scalajslib extends MillStableScalaModule with BuildInfo {
         formatDep(Deps.Scalajs_1.scalajsEnvExoegoJsdomNodejs)
       ),
       BuildInfo.Value("scalajsEnvPhantomJs", formatDep(Deps.Scalajs_1.scalajsEnvPhantomjs)),
-      BuildInfo.Value("scalajsEnvSelenium", formatDep(Deps.Scalajs_1.scalajsEnvSelenium))
+      BuildInfo.Value("scalajsEnvSelenium", formatDep(Deps.Scalajs_1.scalajsEnvSelenium)),
+      BuildInfo.Value("scalaJsRemapDep", formatDep(Deps.esModuleRemap))
     )
   }
 

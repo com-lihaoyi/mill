@@ -75,9 +75,13 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     val commonDeps = Seq(
       ivy"org.scala-js::scalajs-sbt-test-adapter:${scalaJSVersion()}"
     )
-    val maybeImportMap = scalaJSVersion() match {
-      case s"1.$n.$_" if n.toIntOption.exists(_ < 16) => Seq[Dep]()
-      case _ => Seq(ivy"com.armanbilge::scalajs-importmap:0.1.1")
+    val maybeImportMap = (scalaJSVersion(), esModuleRemap()) match {
+      case (s"1.$n.$_", _) if n.toIntOption.exists(_ < 16) => Seq[Dep]()
+      case (_, importMap) => 
+        if (importMap.isEmpty)
+          Seq[Dep]()
+        else          
+          Seq(ivy"${ScalaJSBuildInfo.scalaJsRemapDep}")
     }
 
     val envDeps = scalaJSBinaryVersion() match {
