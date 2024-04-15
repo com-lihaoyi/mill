@@ -287,8 +287,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       else runConfig0
         .withInheritErr(false)
         .withInheritOut(false)
-        .withOnOutputStream {
-          case (Some(processOut), Some(processErr)) =>
+        .withOnOutputStream { case (Some(processOut), Some(processErr)) =>
             val sources = Seq(
               (processOut, System.out, "spawnSubprocess.stdout", false, () => true),
               (processErr, System.err, "spawnSubprocess.stderr", false, () => true)
@@ -302,7 +301,6 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
               t.setDaemon(true)
               t.start()
             }
-          case _ => ??? // should not happen
         }
     Run.runInterruptible(env, input, runConfig)
   }
