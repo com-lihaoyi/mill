@@ -191,6 +191,7 @@ object Deps {
   val requests = ivy"com.lihaoyi::requests:0.8.2"
   val esModuleRemap = ivy"com.armanbilge::scalajs-importmap:0.1.1"
 
+
   /** Used to manage transitive versions. */
   val transitiveDeps = Seq(
     ivy"org.apache.ant:ant:1.10.14",
