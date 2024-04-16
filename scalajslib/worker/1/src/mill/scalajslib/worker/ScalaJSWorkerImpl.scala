@@ -288,19 +288,19 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
         .withInheritErr(false)
         .withInheritOut(false)
         .withOnOutputStream { case (Some(processOut), Some(processErr)) =>
-            val sources = Seq(
-              (processOut, System.out, "spawnSubprocess.stdout", false, () => true),
-              (processErr, System.err, "spawnSubprocess.stderr", false, () => true)
-            )
+          val sources = Seq(
+            (processOut, System.out, "spawnSubprocess.stdout", false, () => true),
+            (processErr, System.err, "spawnSubprocess.stderr", false, () => true)
+          )
 
-            for ((std, dest, name, checkAvailable, runningCheck) <- sources) {
-              val t = new Thread(
-                new mill.main.client.InputPumper(std, dest, checkAvailable, () => runningCheck()),
-                name
-              )
-              t.setDaemon(true)
-              t.start()
-            }
+          for ((std, dest, name, checkAvailable, runningCheck) <- sources) {
+            val t = new Thread(
+              new mill.main.client.InputPumper(std, dest, checkAvailable, () => runningCheck()),
+              name
+            )
+            t.setDaemon(true)
+            t.start()
+          }
         }
     Run.runInterruptible(env, input, runConfig)
   }
