@@ -239,8 +239,8 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     override def runClasspath: T[Seq[PathRef]] = T {
       val outerClassesPath = outer.compile().classes
       val outerScoverageClassesPath = outer.scoverage.compile().classes
-      (super.runClasspath().flatMap { path =>
-        if (outerClassesPath == path) Seq(outerScoverageClassesPath) else Seq(path)
+      (super.runClasspath().map { path =>
+        if (outerClassesPath == path) outerScoverageClassesPath else path
       } ++ resolveDeps(T.task {
         outer.scoverageRuntimeDeps().map(bindDependency())
       })()).distinct
