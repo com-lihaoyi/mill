@@ -1,12 +1,11 @@
 package mill.example
 import mill.integration.{BashTokenizer, IntegrationTestSuite}
-import utest._
 import mill.util.Util
+import utest._
 
-import java.util.concurrent.TimeoutException
+import java.util.concurrent.{Executors, TimeoutException}
 import scala.annotation.tailrec
 import scala.concurrent.duration.DurationInt
-import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.chaining.scalaUtilChainingOps
 
 /**
@@ -55,11 +54,15 @@ object ExampleTestSuite extends IntegrationTestSuite {
     // Integration tests sometime hang on CI
     // The idea is to just abort and retry them after a reasonable amount of time
     @tailrec def retryOnTimeout[T](n: Int)(body: => T): T = {
-      val fut = Future { body }(ExecutionContext.global)
 
-      try Await.result(fut, testTimeout)
+      // We use Java Future here, as it supports cancellation
+      val executor = Executors.newFixedThreadPool(1)
+      val fut = executor.submit { () => body }
+
+      try fut.get(testTimeout.length, testTimeout.unit)
       catch {
         case e: TimeoutException =>
+          fut.cancel(true)
           if (n > 0) {
             Console.err.println(s"Timeout occurred (${testTimeout}). Retrying...")
             retryOnTimeout(n - 1)(body)
