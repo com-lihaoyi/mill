@@ -1,9 +1,10 @@
 package mill
 package scalalib
 
+import com.lumidion.sonatype.central.client.core.SonatypeCredentials
 import mill.define.{Command, ExternalModule, Target, Task}
 import mill.api.{JarManifest, PathRef, Result}
-import mill.scalalib.PublishModule.checkSonatypeCreds
+import mill.scalalib.PublishModule.{checkSonatypeCentralCreds, checkSonatypeCreds}
 import mill.scalalib.publish.{Artifact, SonatypePublisher}
 import os.Path
 
@@ -178,6 +179,8 @@ trait PublishModule extends JavaModule { outer =>
 
   def sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots"
 
+  def useSonatypeCentral: Boolean = false
+
   def publishArtifacts = T {
     val baseName = s"${artifactId()}-${publishVersion()}"
     PublishModule.PublishData(
@@ -220,20 +223,37 @@ trait PublishModule extends JavaModule { outer =>
       stagingRelease: Boolean = true
   ): define.Command[Unit] = T.command {
     val PublishModule.PublishData(artifactInfo, artifacts) = publishArtifacts()
-    new SonatypePublisher(
-      sonatypeUri,
-      sonatypeSnapshotUri,
-      checkSonatypeCreds(sonatypeCreds)(),
-      signed,
-      if (gpgArgs.isEmpty) PublishModule.defaultGpgArgs else gpgArgs,
-      readTimeout,
-      connectTimeout,
-      T.log,
-      T.workspace,
-      T.env,
-      awaitTimeout,
-      stagingRelease
-    ).publish(artifacts.map { case (a, b) => (a.path, b) }, artifactInfo, release)
+    val finalGpgArgs = if (gpgArgs.isEmpty) PublishModule.defaultGpgArgs else gpgArgs
+
+    if (useSonatypeCentral) {
+      val publisher = new SonatypeCentralPublisher(
+        credentials = checkSonatypeCentralCreds(sonatypeCreds)(),
+        signed = signed,
+        gpgArgs = finalGpgArgs,
+        connectTimeout = connectTimeout,
+        readTimeout = readTimeout,
+        log = T.log,
+        workspace = T.workspace,
+        env = T.env,
+        awaitTimeout = awaitTimeout
+      )
+      publisher.publish(artifacts.map { case (a, b) => (a.path, b) }, artifactInfo, release)
+    } else {
+      new SonatypePublisher(
+        sonatypeUri,
+        sonatypeSnapshotUri,
+        checkSonatypeCreds(sonatypeCreds)(),
+        signed,
+        finalGpgArgs,
+        readTimeout,
+        connectTimeout,
+        T.log,
+        T.workspace,
+        T.env,
+        awaitTimeout,
+        stagingRelease
+      ).publish(artifacts.map { case (a, b) => (a.path, b) }, artifactInfo, release)
+    }
   }
 
   override def manifest: T[JarManifest] = T {
@@ -306,22 +326,50 @@ object PublishModule extends ExternalModule {
     )
   }
 
-  private[scalalib] def checkSonatypeCreds(sonatypeCreds: String): Task[String] = T.task {
-    if (sonatypeCreds.isEmpty) {
-      (for {
-        username <- T.env.get("SONATYPE_USERNAME")
-        password <- T.env.get("SONATYPE_PASSWORD")
-      } yield {
-        Result.Success(s"$username:$password")
-      }).getOrElse(
-        Result.Failure(
-          "Consider using SONATYPE_USERNAME/SONATYPE_PASSWORD environment variables or passing `sonatypeCreds` argument"
-        )
+  private[scalalib] def getSonatypeCredsFromEnv: Task[(String, String)] = T.task {
+    (for {
+      username <- T.env.get("SONATYPE_USERNAME")
+      password <- T.env.get("SONATYPE_PASSWORD")
+    } yield {
+      Result.Success((username, password))
+    }).getOrElse(
+      Result.Failure(
+        "Consider using SONATYPE_USERNAME/SONATYPE_PASSWORD environment variables or passing `sonatypeCreds` argument"
       )
-    } else {
-      Result.Success(sonatypeCreds)
-    }
+    )
   }
+
+  private[scalalib] def checkSonatypeCreds(sonatypeCreds: String): Task[String] =
+    if (sonatypeCreds.isEmpty) {
+      for {
+        (username, password) <- getSonatypeCredsFromEnv
+      } yield s"$username:$password"
+    } else {
+      T.task {
+        Result.Success(sonatypeCreds)
+      }
+    }
+
+  private[scalalib] def checkSonatypeCentralCreds(rawCredentials: String)
+      : Task[SonatypeCredentials] =
+    if (rawCredentials.isEmpty) {
+      for {
+        (username, password) <- getSonatypeCredsFromEnv
+      } yield SonatypeCredentials(username, password)
+    } else {
+      T.task {
+        val splitCreds = rawCredentials.split(":").toVector
+        if (splitCreds.length >= 2) {
+          val username = splitCreds.head
+          val password = splitCreds.tail.mkString(":")
+          Result.Success(SonatypeCredentials(username, password))
+        } else {
+          Result.Failure(
+            "Invalid credentials set. Expected username and password to be separated by a colon."
+          )
+        }
+      }
+    }
 
   lazy val millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
 }
