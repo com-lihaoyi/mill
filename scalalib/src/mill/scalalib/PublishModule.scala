@@ -4,7 +4,7 @@ package scalalib
 import com.lumidion.sonatype.central.client.core.SonatypeCredentials
 import mill.define.{Command, ExternalModule, Target, Task}
 import mill.api.{JarManifest, PathRef, Result}
-import mill.scalalib.PublishModule.{checkSonatypeCentralCreds, checkSonatypeCreds}
+import mill.scalalib.PublishModule.{LegacySonatypePublishOptions, SonatypeCentralPublishOptions, checkSonatypeCentralCreds, checkSonatypeCreds}
 import mill.scalalib.publish.{Artifact, SonatypePublisher}
 import os.Path
 
@@ -175,11 +175,11 @@ trait PublishModule extends JavaModule { outer =>
       ).map(PathRef(_).withRevalidateOnce)
   }
 
-  def sonatypeUri: String = "https://oss.sonatype.org/service/local"
+  def legacySonatypePublishOptions: LegacySonatypePublishOptions = LegacySonatypePublishOptions()
 
-  def sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots"
+  def sonatypeCentralPublishOptions: SonatypeCentralPublishOptions = SonatypeCentralPublishOptions()
 
-  def useSonatypeCentral: Boolean = false
+  def publishToSonatypeCentral: Boolean = false
 
   def publishArtifacts = T {
     val baseName = s"${artifactId()}-${publishVersion()}"
@@ -225,7 +225,7 @@ trait PublishModule extends JavaModule { outer =>
     val PublishModule.PublishData(artifactInfo, artifacts) = publishArtifacts()
     val finalGpgArgs = if (gpgArgs.isEmpty) PublishModule.defaultGpgArgs else gpgArgs
 
-    if (useSonatypeCentral) {
+    if (publishToSonatypeCentral) {
       val publisher = new SonatypeCentralPublisher(
         credentials = checkSonatypeCentralCreds(sonatypeCreds)(),
         signed = signed,
@@ -274,6 +274,34 @@ object PublishModule extends ExternalModule {
   val defaultGpgArgs: Seq[String] = Seq("--batch", "--yes", "-a", "-b")
 
   case class PublishData(meta: Artifact, payload: Seq[(PathRef, String)])
+
+  private val defaultReadTimeout = 60000
+  private val defaultConnectTimeout = 5000
+  private val defaultAwaitTimeout = 120 * 1000
+  private val defaultSigned = true
+  private val defaultRelease = false
+
+  final case class LegacySonatypePublishOptions(
+      uri: String = "https://oss.sonatype.org/service/local",
+      snapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots",
+      release: Boolean = defaultRelease,
+      stagingRelease: Boolean = true,
+      signed: Boolean = defaultSigned,
+      gpgArgs: Seq[String] = defaultGpgArgs,
+      readTimeout: Int = defaultReadTimeout,
+      connectTimeout: Int = defaultConnectTimeout,
+      awaitTimeout: Int = defaultAwaitTimeout
+  )
+
+  final case class SonatypeCentralPublishOptions(
+      release: Boolean = defaultRelease,
+      signed: Boolean = defaultSigned,
+      gpgArgs: Seq[String] = defaultGpgArgs,
+      readTimeout: Int = defaultReadTimeout,
+      connectTimeout: Int = defaultConnectTimeout,
+      awaitTimeout: Int = defaultAwaitTimeout
+  )
+
   object PublishData {
     implicit def jsonify: upickle.default.ReadWriter[PublishData] = upickle.default.macroRW
   }

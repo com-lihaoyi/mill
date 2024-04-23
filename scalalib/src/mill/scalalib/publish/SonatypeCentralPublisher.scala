@@ -1,16 +1,12 @@
 package mill.scalalib.publish
 
-import com.lumidion.sonatype.central.client.core.{
-  DeploymentName,
-  PublishingType,
-  SonatypeCredentials
-}
+import com.lumidion.sonatype.central.client.core.{DeploymentName, PublishingType, SonatypeCredentials}
 import com.lumidion.sonatype.central.client.requests.SyncSonatypeClient
 import mill.api.Logger
-import org.apache.commons.io.output.ByteArrayOutputStream
 
 import java.io.FileOutputStream
 import java.nio.file.Path
+import java.util.UUID
 import java.util.jar.JarOutputStream
 import java.util.zip.ZipEntry
 
@@ -31,60 +27,49 @@ class SonatypeCentralPublisher(
     publishAll(release, fileMapping -> artifact)
   }
 
+  private val id = UUID.randomUUID().toString
+
   def publishAll(release: Boolean, artifacts: (Seq[(os.Path, String)], Artifact)*): Unit = {
     val mappings = getArtifactMappings(signed, gpgArgs, workspace, env, artifacts)
 
     val (_, releases) = mappings.partition(_._1.isSnapshot)
 
     val releaseGroups = releases.groupBy(_._1.group)
-//    val wd = os.pwd / "out" / "publish-central"
-//    os.remove.all(wd)
-//    os.makeDir.all(wd)
+    val wd = os.pwd / "out" / "publish-central"
+    println(s"Is release set - $release")
+    println(s"Removing all now - $id")
+    os.remove.all(wd)
+    println("All removed")
+    os.makeDir.all(wd)
 
-    for ((group, groupReleases) <- releaseGroups) {
-      println(group)
+    for ((_, groupReleases) <- releaseGroups) {
       groupReleases.foreach { case (art, data) =>
-//        val jarFile =
-//          Path.of(s"./out/publish-central/${art.group}-${art.id}-${art.version}.jar").toFile
         val jarFile =
-          Path.of(s"./${art.group}-${art.id}-${art.version}.jar").toFile
+          (wd / s"${art.group}-${art.id}-${art.version}.jar").toIO
         val fileOutputStream = new FileOutputStream(jarFile)
-//        val byteArrayOutputStream = new FileOutputStream()
         val jarOutputStream = new JarOutputStream(fileOutputStream)
-        println(art)
-//        try {
-        data.foreach { case (filename, fileAsBytes) =>
-          val zipEntry = new ZipEntry(filename)
-          jarOutputStream.putNextEntry(zipEntry)
-          jarOutputStream.write(fileAsBytes)
-          jarOutputStream.closeEntry()
+
+        try {
+          data.foreach { case (filename, fileAsBytes) =>
+            val zipEntry = new ZipEntry(filename)
+            jarOutputStream.putNextEntry(zipEntry)
+            jarOutputStream.write(fileAsBytes)
+            jarOutputStream.closeEntry()
+          }
+        } finally {
+          jarOutputStream.close()
         }
 
-
-        jarOutputStream.close()
-
-        val help = sonatypeCentralClient.uploadBundleFromFile(
-          jarFile,
-          DeploymentName.fromArtifact(
-            art.group,
-            art.id,
-            art.version
-          ),
-          Some(PublishingType.USER_MANAGED)
-        )
-
-        println(help)
-      }
-      releases
-//      if (stagingRelease) {
-//        publishRelease(
-//          release,
-//          groupReleases.flatMap(_._2),
-//          group,
-//          releases.map(_._1),
-//          awaitTimeout
+//        sonatypeCentralClient.uploadBundleFromFile(
+//          jarFile,
+//          DeploymentName.fromArtifact(
+//            art.group,
+//            art.id,
+//            art.version
+//          ),
+//          Some(PublishingType.USER_MANAGED)
 //        )
-//      } else publishReleaseNonstaging(groupReleases.flatMap(_._2), releases.map(_._1))
+      }
     }
   }
 
