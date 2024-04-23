@@ -129,14 +129,14 @@ trait DockerModule { outer: JavaModule =>
     }
 
     private def pullAndHash = T.input {
-      def imageHash() = 
+      def imageHash() =
         os.proc(executable(), "images", "--no-trunc", "--quiet", baseImage())
           .call(stderr = os.Inherit).out.text().trim
 
-      if(pullBaseImage() || imageHash().isEmpty) 
+      if (pullBaseImage() || imageHash().isEmpty)
         os.proc(executable(), "image", "pull", baseImage())
           .call(stdout = os.Inherit, stderr = os.Inherit)
-      
+
       (pullBaseImage(), imageHash())
     }
 
