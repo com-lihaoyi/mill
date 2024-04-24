@@ -1,8 +1,6 @@
 package mill.scalalib.publish
 
-import com.lumidion.sonatype.central.client.core.SonatypeCredentials
 import mill.api.Logger
-import com.lumidion.sonatype.central.client.requests.SyncSonatypeClient
 
 class SonatypePublisher(
     uri: String,
@@ -58,32 +56,6 @@ class SonatypePublisher(
 
   def publishAll(release: Boolean, artifacts: (Seq[(os.Path, String)], Artifact)*): Unit = {
     val mappings = getArtifactMappings(signed, gpgArgs, workspace, env, artifacts)
-//    val mappings = for ((fileMapping0, artifact) <- artifacts) yield {
-//      val publishPath = Seq(
-//        artifact.group.replace(".", "/"),
-//        artifact.id,
-//        artifact.version
-//      ).mkString("/")
-//      val fileMapping = fileMapping0.map { case (file, name) => (file, publishPath + "/" + name) }
-//
-//      val signedArtifacts =
-//        if (signed) fileMapping.map {
-//          case (file, name) =>
-//            gpgSigned(file = file, args = gpgArgs, workspace = workspace, env = env) -> s"$name.asc"
-//        }
-//        else Seq()
-//
-//      artifact -> (fileMapping ++ signedArtifacts).flatMap {
-//        case (file, name) =>
-//          val content = os.read.bytes(file)
-//
-//          Seq(
-//            name -> content,
-//            (name + ".md5") -> md5hex(content),
-//            (name + ".sha1") -> sha1hex(content)
-//          )
-//      }
-//    }
 
     val (snapshots, releases) = mappings.partition(_._1.isSnapshot)
     if (snapshots.nonEmpty) {
@@ -100,19 +72,6 @@ class SonatypePublisher(
           awaitTimeout
         )
       } else publishReleaseNonstaging(groupReleases.flatMap(_._2), releases.map(_._1))
-    }
-  }
-
-  private def getSonatypeCentralCreds: SonatypeCredentials = {
-    val splitCreds = credentials.split(":").toVector
-    if (splitCreds.length >= 2) {
-      val username = splitCreds.head
-      val password = splitCreds.tail.mkString(":")
-      SonatypeCredentials(username, password)
-    } else {
-      throw new Exception(
-        "Invalid credentials set. Expected username and password to be separated by a colon."
-      )
     }
   }
 

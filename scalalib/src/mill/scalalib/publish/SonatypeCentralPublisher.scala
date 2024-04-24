@@ -5,8 +5,6 @@ import com.lumidion.sonatype.central.client.requests.SyncSonatypeClient
 import mill.api.Logger
 
 import java.io.FileOutputStream
-import java.nio.file.Path
-import java.util.UUID
 import java.util.jar.JarOutputStream
 import java.util.zip.ZipEntry
 
@@ -27,8 +25,6 @@ class SonatypeCentralPublisher(
     publishAll(release, fileMapping -> artifact)
   }
 
-  private val id = UUID.randomUUID().toString
-
   def publishAll(release: Boolean, artifacts: (Seq[(os.Path, String)], Artifact)*): Unit = {
     val mappings = getArtifactMappings(signed, gpgArgs, workspace, env, artifacts)
 
@@ -36,16 +32,12 @@ class SonatypeCentralPublisher(
 
     val releaseGroups = releases.groupBy(_._1.group)
     val wd = os.pwd / "out" / "publish-central"
-    println(s"Is release set - $release")
-    println(s"Removing all now - $id")
-    os.remove.all(wd)
-    println("All removed")
     os.makeDir.all(wd)
 
     for ((_, groupReleases) <- releaseGroups) {
-      groupReleases.foreach { case (art, data) =>
+      groupReleases.foreach { case (artifact, data) =>
         val jarFile =
-          (wd / s"${art.group}-${art.id}-${art.version}.jar").toIO
+          (wd / s"${artifact.group}-${artifact.id}-${artifact.version}.jar").toIO
         val fileOutputStream = new FileOutputStream(jarFile)
         val jarOutputStream = new JarOutputStream(fileOutputStream)
 
@@ -60,15 +52,15 @@ class SonatypeCentralPublisher(
           jarOutputStream.close()
         }
 
-//        sonatypeCentralClient.uploadBundleFromFile(
-//          jarFile,
-//          DeploymentName.fromArtifact(
-//            art.group,
-//            art.id,
-//            art.version
-//          ),
-//          Some(PublishingType.USER_MANAGED)
-//        )
+        sonatypeCentralClient.uploadBundleFromFile(
+          jarFile,
+          DeploymentName.fromArtifact(
+            artifact.group,
+            artifact.id,
+            artifact.version
+          ),
+          Some(PublishingType.USER_MANAGED)
+        )
       }
     }
   }

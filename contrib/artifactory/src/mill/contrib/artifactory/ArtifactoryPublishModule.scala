@@ -3,7 +3,6 @@ package mill.contrib.artifactory
 import mill._
 import mill.api.Result
 import scalalib._
-import publish.Artifact
 import mill.contrib.artifactory.ArtifactoryPublishModule.checkArtifactoryCreds
 import mill.define.{ExternalModule, Task}
 
@@ -62,8 +61,8 @@ object ArtifactoryPublishModule extends ExternalModule {
       connectTimeout: Int = 5000
   ) = T.command {
 
-    val x: Seq[(Seq[(os.Path, String)], Artifact)] = T.sequence(publishArtifacts.value)().map {
-      case PublishModule.PublishData(a, s) => (s.map { case (p, f) => (p.path, f) }, a)
+    val artifacts = T.sequence(publishArtifacts.value)().map {
+      case data @ PublishModule.PublishData(_, _) => data.toDataWithConcretePath
     }
     new ArtifactoryPublisher(
       artifactoryUri,
@@ -73,7 +72,7 @@ object ArtifactoryPublishModule extends ExternalModule {
       connectTimeout,
       T.log
     ).publishAll(
-      x: _*
+      artifacts: _*
     )
   }
 
