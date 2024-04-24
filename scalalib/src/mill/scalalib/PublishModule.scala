@@ -4,7 +4,14 @@ package scalalib
 import com.lumidion.sonatype.central.client.core.SonatypeCredentials
 import mill.define.{Command, ExternalModule, Target, Task}
 import mill.api.{JarManifest, PathRef, Result}
-import mill.scalalib.PublishModule.{LegacySonatypePublishOptions, SonatypeCentralPublishOptions, checkSonatypeCentralCreds, checkSonatypeCreds, defaultCredentials, getFinalGpgArgs}
+import mill.scalalib.PublishModule.{
+  LegacySonatypePublishOptions,
+  SonatypeCentralPublishOptions,
+  checkSonatypeCentralCreds,
+  checkSonatypeCreds,
+  defaultCredentials,
+  getFinalGpgArgs
+}
 import mill.scalalib.publish.{Artifact, SonatypeCentralPublisher, SonatypePublisher}
 import os.Path
 
@@ -175,9 +182,11 @@ trait PublishModule extends JavaModule { outer =>
       ).map(PathRef(_).withRevalidateOnce)
   }
 
-  def legacySonatypePublishOptions: Target[LegacySonatypePublishOptions] = T { LegacySonatypePublishOptions() }
+  def legacySonatypePublishOptions: Target[LegacySonatypePublishOptions] =
+    T { LegacySonatypePublishOptions() }
 
-  def sonatypeCentralPublishOptions: Target[SonatypeCentralPublishOptions] = T { SonatypeCentralPublishOptions() }
+  def sonatypeCentralPublishOptions: Target[SonatypeCentralPublishOptions] =
+    T { SonatypeCentralPublishOptions() }
 
   def publishToSonatypeCentral: Target[Boolean] = T { PublishModule.defaultPublishToCentral }
 
@@ -286,7 +295,8 @@ object PublishModule extends ExternalModule {
   )
 
   object LegacySonatypePublishOptions {
-    implicit def jsonify: upickle.default.ReadWriter[LegacySonatypePublishOptions] = upickle.default.macroRW
+    implicit def jsonify: upickle.default.ReadWriter[LegacySonatypePublishOptions] =
+      upickle.default.macroRW
   }
 
   /**
@@ -305,7 +315,8 @@ object PublishModule extends ExternalModule {
   )
 
   object SonatypeCentralPublishOptions {
-    implicit def jsonify: upickle.default.ReadWriter[SonatypeCentralPublishOptions] = upickle.default.macroRW
+    implicit def jsonify: upickle.default.ReadWriter[SonatypeCentralPublishOptions] =
+      upickle.default.macroRW
   }
 
   object PublishData {
@@ -332,9 +343,10 @@ object PublishModule extends ExternalModule {
       awaitTimeout: Int = defaultAwaitTimeout
   ): Command[Unit] = T.command {
 
-    val artifacts: Seq[(Seq[(os.Path, String)], Artifact)] = T.sequence(publishArtifacts.value)().map {
-      case data @ PublishModule.PublishData(_, _) => data.toDataWithConcretePath
-    }
+    val artifacts: Seq[(Seq[(os.Path, String)], Artifact)] =
+      T.sequence(publishArtifacts.value)().map {
+        case data @ PublishModule.PublishData(_, _) => data.toDataWithConcretePath
+      }
 
     if (publishToCentral) {
       val publisher = new SonatypeCentralPublisher(
