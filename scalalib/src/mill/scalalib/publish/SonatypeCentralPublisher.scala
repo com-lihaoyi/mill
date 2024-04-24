@@ -23,7 +23,8 @@ class SonatypeCentralPublisher(
     env: Map[String, String],
     awaitTimeout: Int
 ) extends SonatypeHelpers {
-  private val sonatypeCentralClient = new SyncSonatypeClient(credentials)
+  private val sonatypeCentralClient =
+    new SyncSonatypeClient(credentials, readTimeout = readTimeout, connectTimeout = connectTimeout)
 
   def publish(fileMapping: Seq[(os.Path, String)], artifact: Artifact, release: Boolean): Unit = {
     publishAll(release, fileMapping -> artifact)
@@ -56,32 +57,28 @@ class SonatypeCentralPublisher(
           jarOutputStream.close()
         }
 
-        sonatypeCentralClient.uploadBundleFromFile(
-          jarFile,
-          DeploymentName.fromArtifact(
-            artifact.group,
-            artifact.id,
-            artifact.version
-          ),
-          Some(PublishingType.USER_MANAGED)
-        )
-      }
-    }
-  }
+        try {
+          sonatypeCentralClient.uploadBundleFromFile(
+            jarFile,
+            DeploymentName.fromArtifact(
+              artifact.group,
+              artifact.id,
+              artifact.version
+            ),
+            Some(PublishingType.USER_MANAGED),
+            timeout = awaitTimeout
+          )
+        } catch {
+          case ex: Throwable => {
+            throw new RuntimeException(
+              s"Failed to publish ${artifact.id} to Sonatype. Error: \n${ex.getMessage}"
+            )
+          }
 
-  private def reportPublishResults(
-      publishResults: Seq[requests.Response],
-      artifacts: Seq[Artifact]
-  ): Unit = {
-    if (publishResults.forall(_.is2xx)) {
-      log.info(s"Published ${artifacts.map(_.id).mkString(", ")} to Sonatype")
-    } else {
-      val errors = publishResults.filterNot(_.is2xx).map { response =>
-        s"Code: ${response.statusCode}, message: ${response.text()}"
+        }
+
+        log.info(s"Successfully published ${artifact.id} to Sonatype")
       }
-      throw new RuntimeException(
-        s"Failed to publish ${artifacts.map(_.id).mkString(", ")} to Sonatype. Errors: \n${errors.mkString("\n")}"
-      )
     }
   }
 }
