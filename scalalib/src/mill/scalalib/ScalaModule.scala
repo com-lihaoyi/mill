@@ -676,8 +676,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         incrementalCompilation = zincIncrementalCompilation(),
         auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
       )
-      .map(r =>
-        SemanticDbJavaModule.copySemanticdbFiles(r.classes.path, T.workspace, T.dest / "data")
+      .map(compileRes =>
+        SemanticDbJavaModule.copySemanticdbFiles(compileRes.classes.path, T.workspace, T.dest / "data")
       )
   }
 }

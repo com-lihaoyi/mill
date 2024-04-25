@@ -214,6 +214,7 @@ object SemanticDbJavaModule {
       sourceroot: os.Path,
       targetDir: os.Path
   ): PathRef = {
+    assert(classesDir != targetDir)
     os.remove.all(targetDir)
     os.makeDir.all(targetDir)
 
@@ -221,6 +222,8 @@ object SemanticDbJavaModule {
     val semanticPath = os.rel / "META-INF" / "semanticdb"
     val toClean = classesDir / semanticPath / sourceroot.segments.toSeq
 
+    // copy over all found semanticdb-files into the target directory
+    // but with corrected directory layout
     os.walk(classesDir, preOrder = true)
       .filter(os.isFile)
       .foreach { p =>
@@ -231,7 +234,7 @@ object SemanticDbJavaModule {
             } else {
               targetDir / p.relativeTo(classesDir)
             }
-          os.move(p, target, createFolders = true)
+          os.copy(p, target, createFolders = true)
         }
       }
     PathRef(targetDir)
