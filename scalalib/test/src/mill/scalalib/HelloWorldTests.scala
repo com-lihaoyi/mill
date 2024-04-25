@@ -667,7 +667,7 @@ object HelloWorldTests extends TestSuite {
 
       "fromScratch" - workspaceTest(SemanticWorld, debug = true) { eval =>
         {
-          println("second - expected full compile")
+          println("first - expected full compile")
           val Right((result, evalCount)) = eval.apply(SemanticWorld.core.semanticDbData)
 
           val dataPath = eval.outPath / "core" / "semanticDbData.dest" / "data"
@@ -683,14 +683,14 @@ object HelloWorldTests extends TestSuite {
           )
         }
         {
-          println("first - expected no compile")
+          println("second - expected no compile")
           // don't recompile if nothing changed
-          val Right((_, unchangedEvalCount)) = eval.apply(HelloWorld.core.semanticDbData)
+          val Right((_, unchangedEvalCount)) = eval.apply(SemanticWorld.core.semanticDbData)
           assert(unchangedEvalCount == 0)
         }
       }
       "incremental" - workspaceTest(SemanticWorld, debug = true) { eval =>
-        // create some mroe source file
+        // create some more source file to have a reasonable low incremental change later
         val extraFiles = Seq("Second", "Third", "Fourth").map { f =>
           val file = eval.evaluator.workspace / "core" / "src" / "hello" / s"${f}.scala"
           os.write(
@@ -722,14 +722,14 @@ object HelloWorldTests extends TestSuite {
         }
         // change nothing
         {
-          println("second - expect no compile")
+          println("second - expect no compile due to Mill caching")
           val Right((_, evalCount)) = eval.apply(SemanticWorld.core.semanticDbData)
           assert(evalCount == 0)
         }
 
         // change one
         {
-          println("\nthird - expect inc compile of one file\n")
+          println("third - expect inc compile of one file\n")
           os.write.append(extraFiles.head._1, "  ")
 
           val Right((result, evalCount)) = eval.apply(SemanticWorld.core.semanticDbData)
