@@ -50,15 +50,9 @@ class SonatypeCentralPublisher(
     singleBundleName.fold {
       for ((_, groupReleases) <- releaseGroups) {
         groupReleases.foreach { case (artifact, data) =>
-          val zipFile =
-            (wd / s"${artifact.group}-${artifact.id}-${artifact.version}.zip").toIO
-          val fileOutputStream = new FileOutputStream(zipFile)
-          val jarOutputStream = new JarOutputStream(fileOutputStream)
-
-          try {
-            zipFilesToJar(data, jarOutputStream)
-          } finally {
-            jarOutputStream.close()
+          val fileNameWithoutExtension = s"${artifact.group}-${artifact.id}-${artifact.version}"
+          val zipFile = streamToFile(fileNameWithoutExtension, wd) { outputStream =>
+            zipFilesToJar(data, outputStream)
           }
 
           val deploymentName = DeploymentName.fromArtifact(
@@ -72,18 +66,12 @@ class SonatypeCentralPublisher(
       }
 
     } { singleBundleName =>
-      val zipFile =
-        (wd / s"$singleBundleName.zip").toIO
-      val fileOutputStream = new FileOutputStream(zipFile)
-      val jarOutputStream = new JarOutputStream(fileOutputStream)
-      try {
+      val zipFile = streamToFile(singleBundleName, wd) { outputStream =>
         for ((_, groupReleases) <- releaseGroups) {
           groupReleases.foreach { case (_, data) =>
-            zipFilesToJar(data, jarOutputStream)
+            zipFilesToJar(data, outputStream)
           }
         }
-      } finally {
-        jarOutputStream.close()
       }
 
       val deploymentName = DeploymentName(singleBundleName)
@@ -116,7 +104,10 @@ class SonatypeCentralPublisher(
     log.info(s"Successfully published ${deploymentName.unapply} to Sonatype Central")
   }
 
-  private def streamToFile(fileNameWithoutExtension: String, wd: os.Path)(func: JarOutputStream => Unit): java.io.File = {
+  private def streamToFile(
+      fileNameWithoutExtension: String,
+      wd: os.Path
+  )(func: JarOutputStream => Unit): java.io.File = {
     val zipFile =
       (wd / s"$fileNameWithoutExtension.zip").toIO
     val fileOutputStream = new FileOutputStream(zipFile)

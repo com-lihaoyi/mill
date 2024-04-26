@@ -4,7 +4,10 @@ package scalalib
 import mill.define.{Command, ExternalModule, Target, Task}
 import mill.api.{JarManifest, PathRef, Result}
 import mill.scalalib.PublishModule.checkSonatypeCreds
-import mill.scalalib.publish.SonatypeHelpers.{PASSWORD_ENV_VARIABLE_NAME, USERNAME_ENV_VARIABLE_NAME}
+import mill.scalalib.publish.SonatypeHelpers.{
+  PASSWORD_ENV_VARIABLE_NAME,
+  USERNAME_ENV_VARIABLE_NAME
+}
 import mill.scalalib.publish.{Artifact, SonatypePublisher}
 import os.Path
 

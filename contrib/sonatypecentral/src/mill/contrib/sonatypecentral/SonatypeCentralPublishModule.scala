@@ -5,10 +5,20 @@ import mill._
 import scalalib._
 import define.{ExternalModule, Task}
 import mill.api.Result
-import mill.contrib.sonatypecentral.SonatypeCentralPublishModule.{defaultAwaitTimeout, defaultConnectTimeout, defaultCredentials, defaultReadTimeout, getPublishingTypeFromReleaseFlag, getSonatypeCredentials}
+import mill.contrib.sonatypecentral.SonatypeCentralPublishModule.{
+  defaultAwaitTimeout,
+  defaultConnectTimeout,
+  defaultCredentials,
+  defaultReadTimeout,
+  getPublishingTypeFromReleaseFlag,
+  getSonatypeCredentials
+}
 import mill.scalalib.PublishModule.{defaultStringGpgArgs, getFinalGpgArgs}
 import mill.scalalib.publish.Artifact
-import mill.scalalib.publish.SonatypeHelpers.{PASSWORD_ENV_VARIABLE_NAME, USERNAME_ENV_VARIABLE_NAME}
+import mill.scalalib.publish.SonatypeHelpers.{
+  PASSWORD_ENV_VARIABLE_NAME,
+  USERNAME_ENV_VARIABLE_NAME
+}
 
 trait SonatypeCentralPublishModule extends PublishModule {
   def gpgArgs: T[String] = T { defaultStringGpgArgs }
@@ -122,8 +132,10 @@ object SonatypeCentralPublishModule extends ExternalModule {
       usernameParameterValue: String,
       passwordParameterValue: String
   ): Task[SonatypeCredentials] = T.task {
-    val username = getSonatypeCredential(usernameParameterValue, "username", USERNAME_ENV_VARIABLE_NAME)()
-    val password = getSonatypeCredential(passwordParameterValue, "password", PASSWORD_ENV_VARIABLE_NAME)()
+    val username =
+      getSonatypeCredential(usernameParameterValue, "username", USERNAME_ENV_VARIABLE_NAME)()
+    val password =
+      getSonatypeCredential(passwordParameterValue, "password", PASSWORD_ENV_VARIABLE_NAME)()
     Result.Success(SonatypeCredentials(username, password))
   }
 

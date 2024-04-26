@@ -570,8 +570,7 @@ object main extends MillStableScalaModule with BuildInfo {
     Deps.windowsAnsi,
     Deps.mainargs,
     Deps.coursierInterface,
-    Deps.requests,
-    Deps.sonatypeCentralClient
+    Deps.requests
   )
 
   def compileIvyDeps = Agg(Deps.scalaReflect(scalaVersion()))
