@@ -474,7 +474,12 @@ class ZincWorkerImpl(
   }
 
   private def fileAnalysisStore(path: os.Path): AnalysisStore =
-    ConsistentFileAnalysisStore.binary(path.toIO, ReadWriteMappers.getEmptyMappers())
+    ConsistentFileAnalysisStore.binary(
+      file = path.toIO,
+      mappers = ReadWriteMappers.getEmptyMappers(),
+      // No need to utilize more that 8 cores to serialize a small file
+      parallelism = math.min(Runtime.getRuntime.availableProcessors(), 8)
+    )
 
   private def compileInternal(
       upstreamCompileOutput: Seq[CompilationResult],
