@@ -487,7 +487,7 @@ class ZincWorkerImpl(
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean,
       auxiliaryClassFileExtensions: Seq[String],
-      zincFile: os.SubPath = os.sub / "zinc"
+      zincCache: os.SubPath = os.sub / "zinc"
   )(implicit ctx: ZincWorkerApi.Ctx): Result[CompilationResult] = {
     os.makeDir.all(ctx.dest)
 
@@ -548,7 +548,7 @@ class ZincWorkerImpl(
       if (compileToJar) ctx.dest / "classes.jar"
       else ctx.dest / "classes"
 
-    val store = fileAnalysisStore(ctx.dest / zincFile)
+    val store = fileAnalysisStore(ctx.dest / zincCache)
 
     // Fix jdk classes marked as binary dependencies, see https://github.com/com-lihaoyi/mill/pull/1904
     val converter = MappedFileConverter.empty
@@ -577,7 +577,7 @@ class ZincWorkerImpl(
       setup = ic.setup(
         lookup = lookup,
         skip = false,
-        cacheFile = zincFile.toNIO,
+        cacheFile = zincCache.toNIO,
         cache = new FreshCompilerCache,
         incOptions = incOptions,
         reporter = newReporter,
@@ -621,7 +621,7 @@ class ZincWorkerImpl(
           newResult.setup()
         )
       )
-      Result.Success(CompilationResult((ctx.dest / zincFile), PathRef(classesDir)))
+      Result.Success(CompilationResult((ctx.dest / zincCache), PathRef(classesDir)))
     } catch {
       case e: CompileFailed =>
         Result.Failure(e.toString)
