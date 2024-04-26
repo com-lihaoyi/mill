@@ -78,6 +78,7 @@ object Deps {
     val scalajsEnvSelenium = ivy"org.scala-js::scalajs-env-selenium:1.1.1"
     val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:${scalaJsVersion}"
     val scalajsLinker = ivy"org.scala-js::scalajs-linker:${scalaJsVersion}"
+    val scalajsImportMap = ivy"com.armanbilge::scalajs-importmap:0.1.1"
   }
 
   object Scalanative_0_4 {
@@ -190,7 +191,6 @@ object Deps {
   val fansi = ivy"com.lihaoyi::fansi:0.4.0"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.0"
   val requests = ivy"com.lihaoyi::requests:0.8.2"
-  val esModuleRemap = ivy"com.armanbilge::scalajs-importmap:0.1.1"
 
 
   /** Used to manage transitive versions. */
@@ -799,7 +799,7 @@ object scalajslib extends MillStableScalaModule with BuildInfo {
       ),
       BuildInfo.Value("scalajsEnvPhantomJs", formatDep(Deps.Scalajs_1.scalajsEnvPhantomjs)),
       BuildInfo.Value("scalajsEnvSelenium", formatDep(Deps.Scalajs_1.scalajsEnvSelenium)),
-      BuildInfo.Value("scalaJsRemapDep", formatDep(Deps.esModuleRemap))
+      BuildInfo.Value("scalajsImportMap", formatDep(Deps.Scalajs_1.scalajsImportMap))
     )
   }
 
@@ -821,7 +821,7 @@ object scalajslib extends MillStableScalaModule with BuildInfo {
       Deps.Scalajs_1.scalajsEnvExoegoJsdomNodejs,
       Deps.Scalajs_1.scalajsEnvPhantomjs,
       Deps.Scalajs_1.scalajsEnvSelenium,
-      Deps.esModuleRemap
+      Deps.Scalajs_1.scalajsImportMap
     )
   }
 }

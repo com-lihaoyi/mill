@@ -18,7 +18,7 @@ private[scalajslib] trait ScalaJSWorkerApi {
       moduleSplitStyle: ModuleSplitStyle,
       outputPatterns: OutputPatterns,
       minify: Boolean,
-      esModuleMap: Map[String, String]
+      importMap: Seq[ESModuleImportMapping]
   ): Either[String, Report]
 
   def run(config: JsEnvConfig, report: Report): Unit
@@ -123,3 +123,8 @@ private[scalajslib] final case class OutputPatterns(
     jsFileURI: String,
     sourceMapURI: String
 )
+
+private[scalajslib] sealed trait ESModuleImportMapping
+private[scalajslib] object ESModuleImportMapping {
+  case class Prefix(prefix: String, replacement: String) extends ESModuleImportMapping
+}
