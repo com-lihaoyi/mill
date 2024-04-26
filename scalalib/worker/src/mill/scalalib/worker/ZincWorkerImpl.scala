@@ -13,7 +13,6 @@ import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerApi, ZincWorker
 import sbt.internal.inc.{
   Analysis,
   CompileFailed,
-  FileAnalysisStore,
   FreshCompilerCache,
   ManagedLoggedReporter,
   MappedFileConverter,
@@ -23,6 +22,7 @@ import sbt.internal.inc.{
   javac
 }
 import sbt.internal.inc.classpath.ClasspathUtil
+import sbt.internal.inc.consistent.ConsistentFileAnalysisStore
 import sbt.internal.util.{ConsoleAppender, ConsoleOut}
 import sbt.mill.SbtLoggerUtils
 import xsbti.compile.analysis.ReadWriteMappers
@@ -474,7 +474,7 @@ class ZincWorkerImpl(
   }
 
   private def fileAnalysisStore(path: os.Path): AnalysisStore =
-    FileAnalysisStore.binary(path.toIO, ReadWriteMappers.getEmptyMappers())
+    ConsistentFileAnalysisStore.binary(path.toIO, ReadWriteMappers.getEmptyMappers())
 
   private def compileInternal(
       upstreamCompileOutput: Seq[CompilationResult],
