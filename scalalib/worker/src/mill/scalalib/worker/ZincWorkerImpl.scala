@@ -25,8 +25,10 @@ import sbt.internal.inc.{
 import sbt.internal.inc.classpath.ClasspathUtil
 import sbt.internal.util.{ConsoleAppender, ConsoleOut}
 import sbt.mill.SbtLoggerUtils
+import xsbti.compile.analysis.ReadWriteMappers
 import xsbti.compile.{
   AnalysisContents,
+  AnalysisStore,
   AuxiliaryClassFileExtension,
   ClasspathOptions,
   CompileAnalysis,
@@ -331,7 +333,7 @@ class ZincWorkerImpl(
   def discoverMainClasses(compilationResult: CompilationResult): Seq[String] = {
     def toScala[A](o: Optional[A]): Option[A] = if (o.isPresent) Some(o.get) else None
 
-    toScala(FileAnalysisStore.binary(compilationResult.analysisFile.toIO).get())
+    toScala(fileAnalysisStore(compilationResult.analysisFile).get())
       .map(_.getAnalysis)
       .flatMap {
         case analysis: Analysis =>
@@ -471,6 +473,9 @@ class ZincWorkerImpl(
     }(f)
   }
 
+  private def fileAnalysisStore(path: os.Path): AnalysisStore =
+    FileAnalysisStore.binary(path.toIO, ReadWriteMappers.getEmptyMappers())
+
   private def compileInternal(
       upstreamCompileOutput: Seq[CompilationResult],
       sources: Agg[os.Path],
@@ -532,7 +537,7 @@ class ZincWorkerImpl(
         case _ => None
       }
       analysisFile match {
-        case Some(zincPath) => FileAnalysisStore.binary(zincPath.toIO).get().map(_.getAnalysis)
+        case Some(zincPath) => fileAnalysisStore(zincPath).get().map(_.getAnalysis)
         case None => Optional.empty[CompileAnalysis]
       }
     }
@@ -543,7 +548,7 @@ class ZincWorkerImpl(
       if (compileToJar) ctx.dest / "classes.jar"
       else ctx.dest / "classes"
 
-    val store = FileAnalysisStore.binary((ctx.dest / zincFile).toIO)
+    val store = fileAnalysisStore(ctx.dest / zincFile)
 
     // Fix jdk classes marked as binary dependencies, see https://github.com/com-lihaoyi/mill/pull/1904
     val converter = MappedFileConverter.empty
