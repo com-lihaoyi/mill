@@ -68,3 +68,8 @@ trait SonatypeHelpers {
   private def hexArray(arr: Array[Byte]) =
     String.format("%0" + (arr.length << 1) + "x", new BigInteger(1, arr))
 }
+
+object SonatypeHelpers {
+  val USERNAME_ENV_VARIABLE_NAME = "SONATYPE_USERNAME"
+  val PASSWORD_ENV_VARIABLE_NAME = "SONATYPE_PASSWORD"
+}

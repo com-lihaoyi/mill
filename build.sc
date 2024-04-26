@@ -1010,6 +1010,12 @@ object contrib extends Module {
     def ivyDeps = Agg(Deps.requests)
   }
 
+
+  object sonatypecentral extends ContribModule {
+    def compileModuleDeps = Seq(scalalib)
+    def ivyDeps = Agg(Deps.sonatypeCentralClient)
+  }
+
   object versionfile extends ContribModule {
     def compileModuleDeps = Seq(scalalib)
   }

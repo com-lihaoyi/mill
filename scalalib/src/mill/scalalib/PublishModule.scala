@@ -1,18 +1,11 @@
 package mill
 package scalalib
 
-import com.lumidion.sonatype.central.client.core.SonatypeCredentials
 import mill.define.{Command, ExternalModule, Target, Task}
 import mill.api.{JarManifest, PathRef, Result}
-import mill.scalalib.PublishModule.{
-  LegacySonatypePublishOptions,
-  SonatypeCentralPublishOptions,
-  checkSonatypeCentralCreds,
-  checkSonatypeCreds,
-  defaultCredentials,
-  getFinalGpgArgs
-}
-import mill.scalalib.publish.{Artifact, SonatypeCentralPublisher, SonatypePublisher}
+import mill.scalalib.PublishModule.checkSonatypeCreds
+import mill.scalalib.publish.SonatypeHelpers.{PASSWORD_ENV_VARIABLE_NAME, USERNAME_ENV_VARIABLE_NAME}
+import mill.scalalib.publish.{Artifact, SonatypePublisher}
 import os.Path
 
 /**
@@ -182,13 +175,9 @@ trait PublishModule extends JavaModule { outer =>
       ).map(PathRef(_).withRevalidateOnce)
   }
 
-  def legacySonatypePublishOptions: Target[LegacySonatypePublishOptions] =
-    T { LegacySonatypePublishOptions() }
+  def sonatypeUri: String = "https://oss.sonatype.org/service/local"
 
-  def sonatypeCentralPublishOptions: Target[SonatypeCentralPublishOptions] =
-    T { SonatypeCentralPublishOptions() }
-
-  def publishToSonatypeCentral: Target[Boolean] = T { PublishModule.defaultPublishToCentral }
+  def sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots"
 
   def publishArtifacts = T {
     val baseName = s"${artifactId()}-${publishVersion()}"
@@ -202,43 +191,50 @@ trait PublishModule extends JavaModule { outer =>
       ) ++ extraPublish().map(p => (p.file, s"$baseName${p.classifierPart}.${p.ext}"))
     )
   }
-  def publish(credentials: String = defaultCredentials): define.Command[Unit] = T.command {
-    val publishData = publishArtifacts()
-    val fileMapping = publishData.toDataWithConcretePath._1
-    val artifact = publishData.meta
 
-    if (publishToSonatypeCentral()) {
-      val options = sonatypeCentralPublishOptions()
-      val publisher = new SonatypeCentralPublisher(
-        credentials = checkSonatypeCentralCreds(credentials)(),
-        signed = options.signed,
-        gpgArgs = getFinalGpgArgs(options.gpgArgs),
-        connectTimeout = options.connectTimeout,
-        readTimeout = options.readTimeout,
-        log = T.log,
-        workspace = T.workspace,
-        env = T.env,
-        awaitTimeout = options.awaitTimeout
-      )
-      publisher.publish(fileMapping, artifact, options.release)
-    } else {
-      val options = legacySonatypePublishOptions()
-      val publisher = new SonatypePublisher(
-        uri = options.uri,
-        snapshotUri = options.snapshotUri,
-        credentials = checkSonatypeCreds(credentials)(),
-        signed = options.signed,
-        gpgArgs = getFinalGpgArgs(options.gpgArgs),
-        readTimeout = options.readTimeout,
-        connectTimeout = options.connectTimeout,
-        log = T.log,
-        workspace = T.workspace,
-        env = T.env,
-        awaitTimeout = options.awaitTimeout,
-        stagingRelease = options.stagingRelease
-      )
-      publisher.publish(fileMapping, artifact, options.release)
-    }
+  /**
+   * Publish all given artifacts to Sonatype.
+   * Uses environment variables SONATYPE_USERNAME and SONATYPE_PASSWORD as
+   * credentials.
+   *
+   * @param sonatypeCreds Sonatype credentials in format username:password.
+   *                      If specified, environment variables will be ignored.
+   *                      <i>Note: consider using environment variables over this argument due
+   *                      to security reasons.</i>
+   * @param gpgArgs       GPG arguments. Defaults to `--batch --yes -a -b`.
+   *                      Specifying this will override/remove the defaults.
+   *                      Add the default args to your args to keep them.
+   */
+  def publish(
+      sonatypeCreds: String = "",
+      signed: Boolean = true,
+      // mainargs wasn't handling a default value properly,
+      // so we instead use the empty Seq as default.
+      // see https://github.com/com-lihaoyi/mill/pull/1678
+      // TODO: In mill 0.11, we may want to change to a String argument
+      // which we can split at `,` symbols, as we do in `PublishModule.publishAll`.
+      gpgArgs: Seq[String] = Seq.empty,
+      release: Boolean = false,
+      readTimeout: Int = 60000,
+      connectTimeout: Int = 5000,
+      awaitTimeout: Int = 120 * 1000,
+      stagingRelease: Boolean = true
+  ): define.Command[Unit] = T.command {
+    val PublishModule.PublishData(artifactInfo, artifacts) = publishArtifacts()
+    new SonatypePublisher(
+      sonatypeUri,
+      sonatypeSnapshotUri,
+      checkSonatypeCreds(sonatypeCreds)(),
+      signed,
+      if (gpgArgs.isEmpty) PublishModule.defaultGpgArgs else gpgArgs,
+      readTimeout,
+      connectTimeout,
+      T.log,
+      T.workspace,
+      T.env,
+      awaitTimeout,
+      stagingRelease
+    ).publish(artifacts.map { case (a, b) => (a.path, b) }, artifactInfo, release)
   }
 
   override def manifest: T[JarManifest] = T {
@@ -253,72 +249,16 @@ trait PublishModule extends JavaModule { outer =>
       "Licenses" -> pom.licenses.map(l => s"${l.name} (${l.id})").mkString(",")
     )
   }
-
 }
 
 object PublishModule extends ExternalModule {
   val defaultGpgArgs: Seq[String] = Seq("--batch", "--yes", "-a", "-b")
-  private val defaultStringGpgArgs = defaultGpgArgs.mkString(",")
+  val defaultStringGpgArgs: String = defaultGpgArgs.mkString(",")
 
   case class PublishData(meta: Artifact, payload: Seq[(PathRef, String)]) {
     def toDataWithConcretePath: (Seq[(Path, String)], Artifact) =
       (payload.map { case (p, f) => (p.path, f) }, meta)
   }
-
-  private val defaultCredentials = ""
-  private val defaultReadTimeout = 60000
-  private val defaultConnectTimeout = 5000
-  private val defaultAwaitTimeout = 120 * 1000
-  private val defaultSigned = true
-  private val defaultRelease = false
-  private val defaultPublishToCentral = false
-  private val defaultLegacyUri = "https://oss.sonatype.org/service/local"
-  private val defaultLegacySnapshotUri = "https://oss.sonatype.org/content/repositories/snapshots"
-  private val defaultLegacyStagingRelease = true
-
-  /**
-   * @param credentials Sonatype credentials in format username:password.
-   *                      If specified, environment variables will be ignored.
-   *                      <i>Note: consider using environment variables over this argument due
-   *                      to security reasons.</i>
-   */
-  final case class LegacySonatypePublishOptions(
-      uri: String = defaultLegacyUri,
-      snapshotUri: String = defaultLegacySnapshotUri,
-      release: Boolean = defaultRelease,
-      stagingRelease: Boolean = defaultLegacyStagingRelease,
-      signed: Boolean = defaultSigned,
-      gpgArgs: String = defaultStringGpgArgs,
-      readTimeout: Int = defaultReadTimeout,
-      connectTimeout: Int = defaultConnectTimeout,
-      awaitTimeout: Int = defaultAwaitTimeout
-  )
-
-  object LegacySonatypePublishOptions {
-    implicit def jsonify: upickle.default.ReadWriter[LegacySonatypePublishOptions] =
-      upickle.default.macroRW
-  }
-
-  /**
-   * @param credentials Sonatype credentials in format username:password.
-   *                      If specified, environment variables will be ignored.
-   *                      <i>Note: consider using environment variables over this argument due
-   *                      to security reasons.</i>
-   */
-  final case class SonatypeCentralPublishOptions(
-      release: Boolean = defaultRelease,
-      signed: Boolean = defaultSigned,
-      gpgArgs: String = defaultStringGpgArgs,
-      readTimeout: Int = defaultReadTimeout,
-      connectTimeout: Int = defaultConnectTimeout,
-      awaitTimeout: Int = defaultAwaitTimeout
-  )
-
-  object SonatypeCentralPublishOptions {
-    implicit def jsonify: upickle.default.ReadWriter[SonatypeCentralPublishOptions] =
-      upickle.default.macroRW
-  }
-
   object PublishData {
     implicit def jsonify: upickle.default.ReadWriter[PublishData] = upickle.default.macroRW
   }
@@ -327,60 +267,51 @@ object PublishModule extends ExternalModule {
    * Publish all given artifacts to Sonatype.
    * Uses environment variables SONATYPE_USERNAME and SONATYPE_PASSWORD as
    * credentials.
+   *
+   * @param sonatypeCreds Sonatype credentials in format username:password.
+   *                      If specified, environment variables will be ignored.
+   *                      <i>Note: consider using environment variables over this argument due
+   *                      to security reasons.</i>
+   * @param gpgArgs       GPG arguments. Defaults to `--batch --yes -a -b`.
+   *                      Specifying this will override/remove the defaults.
+   *                      Add the default args to your args to keep them.
    */
   def publishAll(
       publishArtifacts: mill.main.Tasks[PublishModule.PublishData],
-      publishToCentral: Boolean = defaultPublishToCentral,
-      credentials: String = defaultCredentials,
-      uri: String = defaultLegacyUri,
-      snapshotUri: String = defaultLegacySnapshotUri,
-      release: Boolean = defaultRelease,
-      stagingRelease: Boolean = defaultLegacyStagingRelease,
-      signed: Boolean = defaultSigned,
+      sonatypeCreds: String = "",
+      signed: Boolean = true,
       gpgArgs: String = defaultStringGpgArgs,
-      readTimeout: Int = defaultReadTimeout,
-      connectTimeout: Int = defaultConnectTimeout,
-      awaitTimeout: Int = defaultAwaitTimeout
+      release: Boolean = false,
+      sonatypeUri: String = "https://oss.sonatype.org/service/local",
+      sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots",
+      readTimeout: Int = 60000,
+      connectTimeout: Int = 5000,
+      awaitTimeout: Int = 120 * 1000,
+      stagingRelease: Boolean = true
   ): Command[Unit] = T.command {
-
-    val artifacts: Seq[(Seq[(os.Path, String)], Artifact)] =
-      T.sequence(publishArtifacts.value)().map {
-        case data @ PublishModule.PublishData(_, _) => data.toDataWithConcretePath
-      }
-
-    if (publishToCentral) {
-      val publisher = new SonatypeCentralPublisher(
-        credentials = checkSonatypeCentralCreds(credentials)(),
-        signed = signed,
-        gpgArgs = getFinalGpgArgs(gpgArgs),
-        connectTimeout = connectTimeout,
-        readTimeout = readTimeout,
-        log = T.log,
-        workspace = T.workspace,
-        env = T.env,
-        awaitTimeout = awaitTimeout
-      )
-      publisher.publishAll(release, artifacts: _*)
-    } else {
-      val publisher = new SonatypePublisher(
-        uri = uri,
-        snapshotUri = snapshotUri,
-        credentials = checkSonatypeCreds(credentials)(),
-        signed = signed,
-        gpgArgs = getFinalGpgArgs(gpgArgs),
-        readTimeout = readTimeout,
-        connectTimeout = connectTimeout,
-        log = T.log,
-        workspace = T.workspace,
-        env = T.env,
-        awaitTimeout = awaitTimeout,
-        stagingRelease = stagingRelease
-      )
-      publisher.publishAll(release, artifacts: _*)
+    val x: Seq[(Seq[(os.Path, String)], Artifact)] = T.sequence(publishArtifacts.value)().map {
+      case PublishModule.PublishData(a, s) => (s.map { case (p, f) => (p.path, f) }, a)
     }
+    new SonatypePublisher(
+      sonatypeUri,
+      sonatypeSnapshotUri,
+      checkSonatypeCreds(sonatypeCreds)(),
+      signed,
+      gpgArgs.split(",").toIndexedSeq,
+      readTimeout,
+      connectTimeout,
+      T.log,
+      T.workspace,
+      T.env,
+      awaitTimeout,
+      stagingRelease
+    ).publishAll(
+      release,
+      x: _*
+    )
   }
 
-  private def getFinalGpgArgs(initialGpgArgs: String): Seq[String] = {
+  private[mill] def getFinalGpgArgs(initialGpgArgs: String): Seq[String] = {
     val argsAsString = if (initialGpgArgs.isEmpty) {
       defaultStringGpgArgs
     } else {
@@ -389,15 +320,15 @@ object PublishModule extends ExternalModule {
     argsAsString.split(",").toIndexedSeq
   }
 
-  private[scalalib] def getSonatypeCredsFromEnv: Task[(String, String)] = T.task {
+  private def getSonatypeCredsFromEnv: Task[(String, String)] = T.task {
     (for {
-      username <- T.env.get("SONATYPE_USERNAME")
-      password <- T.env.get("SONATYPE_PASSWORD")
+      username <- T.env.get(USERNAME_ENV_VARIABLE_NAME)
+      password <- T.env.get(PASSWORD_ENV_VARIABLE_NAME)
     } yield {
       Result.Success((username, password))
     }).getOrElse(
       Result.Failure(
-        "Consider using SONATYPE_USERNAME/SONATYPE_PASSWORD environment variables or passing `sonatypeCreds` argument"
+        s"Consider using ${USERNAME_ENV_VARIABLE_NAME}/${PASSWORD_ENV_VARIABLE_NAME} environment variables or passing `sonatypeCreds` argument"
       )
     )
   }
@@ -414,27 +345,6 @@ object PublishModule extends ExternalModule {
         } else {
           Result.Failure(
             "Sonatype credentials must be set in the following format - username:password. Incorrect format received."
-          )
-        }
-      }
-    }
-
-  private[scalalib] def checkSonatypeCentralCreds(rawCredentials: String)
-      : Task[SonatypeCredentials] =
-    if (rawCredentials.isEmpty) {
-      for {
-        (username, password) <- getSonatypeCredsFromEnv
-      } yield SonatypeCredentials(username, password)
-    } else {
-      T.task {
-        val splitCreds = rawCredentials.split(":").toVector
-        if (splitCreds.length >= 2) {
-          val username = splitCreds.head
-          val password = splitCreds.tail.mkString(":")
-          Result.Success(SonatypeCredentials(username, password))
-        } else {
-          Result.Failure(
-            "Invalid credentials set. Expected username and password to be separated by a colon."
           )
         }
       }
