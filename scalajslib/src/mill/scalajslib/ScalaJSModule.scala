@@ -75,13 +75,10 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     val commonDeps = Seq(
       ivy"org.scala-js::scalajs-sbt-test-adapter:${scalaJSVersion()}"
     )
-    val maybeImportMap = (scalaJSVersion(), esModuleRemap()) match {
-      case (s"1.$n.$_", _) if n.toIntOption.exists(_ < 16) => Seq[Dep]()
-      case (_, importMap) =>
-        if (importMap.isEmpty)
-          Seq[Dep]()
-        else
-          Seq(ivy"${ScalaJSBuildInfo.scalaJsRemapDep}")
+    val scalajsImportMapDeps = scalaJSVersion() match {
+      case s"1.$n.$_" if n.toIntOption.exists(_ >= 16) && scalaJSImportMap().nonEmpty =>
+        Seq(ivy"${ScalaJSBuildInfo.scalajsImportMap}")
+      case _ => Seq.empty[Dep]
     }
 
     val envDeps = scalaJSBinaryVersion() match {
@@ -98,7 +95,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     // we need to use the scala-library of the currently running mill
     resolveDependencies(
       repositoriesTask(),
-      (commonDeps.iterator ++ envDeps ++ maybeImportMap)
+      (commonDeps.iterator ++ envDeps ++ scalajsImportMapDeps)
         .map(Lib.depToBoundDep(_, mill.main.BuildInfo.scalaVersion, "")),
       ctx = Some(T.log)
     )
@@ -140,7 +137,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       moduleSplitStyle = moduleSplitStyle(),
       outputPatterns = scalaJSOutputPatterns(),
       minify = scalaJSMinify(),
-      esModuleMap = esModuleRemap()
+      importMap = scalaJSImportMap()
     )
   }
 
@@ -183,7 +180,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       moduleSplitStyle: ModuleSplitStyle,
       outputPatterns: OutputPatterns,
       minify: Boolean,
-      esModuleMap: Map[String, String]
+      importMap: Seq[ESModuleImportMapping]
   )(implicit ctx: mill.api.Ctx): Result[Report] = {
     val outputPath = ctx.dest
 
@@ -204,7 +201,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       moduleSplitStyle = moduleSplitStyle,
       outputPatterns = outputPatterns,
       minify = minify,
-      esModuleMap = esModuleMap
+      importMap = importMap
     )
   }
 
@@ -278,8 +275,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def scalaJSOptimizer: Target[Boolean] = T { true }
 
-  def esModuleRemap: Target[Map[String, String]] = T {
-    Map.empty[String, String]
+  def scalaJSImportMap: Target[Seq[ESModuleImportMapping]] = T {
+    Seq.empty[ESModuleImportMapping]
   }
 
   /** Whether to emit a source map. */
@@ -363,7 +360,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       moduleSplitStyle = moduleSplitStyle(),
       outputPatterns = scalaJSOutputPatterns(),
       minify = scalaJSMinify(),
-      esModuleMap = esModuleRemap()
+      importMap = scalaJSImportMap()
     )
   }
 

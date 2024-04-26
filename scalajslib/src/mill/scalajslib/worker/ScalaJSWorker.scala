@@ -147,6 +147,13 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
     )
   }
 
+  private def toWorkerApi(importMap: api.ESModuleImportMapping): workerApi.ESModuleImportMapping = {
+    importMap match {
+      case api.ESModuleImportMapping.Prefix(prefix, replacement) =>
+        workerApi.ESModuleImportMapping.Prefix(prefix, replacement)
+    }
+  }
+
   def link(
       toolsClasspath: Agg[mill.PathRef],
       runClasspath: Agg[mill.PathRef],
@@ -162,7 +169,7 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
       moduleSplitStyle: api.ModuleSplitStyle,
       outputPatterns: api.OutputPatterns,
       minify: Boolean,
-      esModuleMap: Map[String, String]
+      importMap: Seq[api.ESModuleImportMapping]
   )(implicit ctx: Ctx.Home): Result[api.Report] = {
     bridge(toolsClasspath).link(
       runClasspath = runClasspath.iterator.map(_.path.toNIO).toSeq,
@@ -178,7 +185,7 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
       moduleSplitStyle = toWorkerApi(moduleSplitStyle),
       outputPatterns = toWorkerApi(outputPatterns),
       minify = minify,
-      esModuleMap = esModuleMap
+      importMap = importMap.map(toWorkerApi)
     ) match {
       case Right(report) => Result.Success(fromWorkerApi(report))
       case Left(message) => Result.Failure(message)

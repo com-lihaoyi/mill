@@ -4,7 +4,7 @@ import mill.define.Discover
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
 import mill.define.Target
-import mill.scalajslib.api.ModuleKind
+import mill.scalajslib.api._
 
 object EsModuleRemapTests extends TestSuite {
   val workspacePath = TestUtil.getOutPathStatic() / "esModuleRemap"
@@ -20,8 +20,8 @@ object EsModuleRemapTests extends TestSuite {
       override def scalaJSSourceMap = false
       override def moduleKind = ModuleKind.ESModule
 
-      override def esModuleRemap: Target[Map[String, String]] = Map(
-        "@stdlib/linspace" -> remapTo
+      override def scalaJSImportMap: Target[Seq[ESModuleImportMapping]] = Seq(
+        ESModuleImportMapping.Prefix("@stdlib/linspace", remapTo)
       )
     }
 
@@ -32,8 +32,8 @@ object EsModuleRemapTests extends TestSuite {
       override def scalaJSSourceMap = false
       override def moduleKind = ModuleKind.ESModule
 
-      override def esModuleRemap: Target[Map[String, String]] = Map(
-        "@stdlib/linspace" -> remapTo
+      override def scalaJSImportMap: Target[Seq[ESModuleImportMapping]] = Seq(
+        ESModuleImportMapping.Prefix("@stdlib/linspace", remapTo)
       )
     }
 

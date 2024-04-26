@@ -270,3 +270,11 @@ object OutputPatterns {
 
   implicit val rw: RW[OutputPatterns] = macroRW[OutputPatterns]
 }
+
+sealed trait ESModuleImportMapping
+object ESModuleImportMapping {
+  case class Prefix(prefix: String, replacement: String) extends ESModuleImportMapping
+
+  implicit def rwPrefix: RW[Prefix] = macroRW
+  implicit def rw: RW[ESModuleImportMapping] = macroRW
+}

@@ -172,7 +172,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       moduleSplitStyle: ModuleSplitStyle,
       outputPatterns: OutputPatterns,
       minify: Boolean,
-      esModuleMap: Map[String, String]
+      importMap: Seq[ESModuleImportMapping]
   ): Either[String, Report] = {
     // On Scala.js 1.2- we want to use the legacy mode either way since
     // the new mode is not supported and in tests we always use legacy = false
@@ -206,19 +206,22 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
     val resultFuture = (for {
       (irContainers, _) <- irContainersAndPathsFuture
       irFiles0 <- irFileCacheCache.cached(irContainers)
-      irFiles = if (esModuleMap.isEmpty) {
+      irFiles = if (importMap.isEmpty) {
         irFiles0
       } else {
         if (!minorIsGreaterThanOrEqual(16)) {
-          throw new Exception(
-            s"Remapping EsModule imports will work with scalaJS 1.16 and above. You are using scalaJS ${ScalaJSVersions.current} - consider upgrading?"
-          )
+          throw new Exception("scalaJSImportMap is not supported with Scala.js < 1.16.")
         }
-        val remapFct = esModuleMap.toSeq.foldLeft((in: String) => in) { case (fct, (s1, s2)) =>
-          val fct2: (String => String) = (in => in.replace(s1, s2))
-          (in => fct(fct2(in)))
+        val remapFunction = (rawImport: String) => {
+          importMap
+            .collectFirst {
+              case ESModuleImportMapping.Prefix(prefix, replacement)
+                  if rawImport.startsWith(prefix) =>
+                s"$replacement${rawImport.stripPrefix(prefix)}"
+            }
+            .getOrElse(rawImport)
         }
-        irFiles0.map { ImportMappedIRFile.fromIRFile(_)(remapFct) }
+        irFiles0.map { ImportMappedIRFile.fromIRFile(_)(remapFunction) }
       }
       report <-
         if (useLegacy) {
