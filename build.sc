@@ -150,7 +150,7 @@ object Deps {
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.3"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.8.0"
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.23.0"
-  val osLib = ivy"com.lihaoyi::os-lib:0.9.3"
+  val osLib = ivy"com.lihaoyi::os-lib:0.10.0"
   val pprint = ivy"com.lihaoyi::pprint:0.8.1"
   val mainargs = ivy"com.lihaoyi::mainargs:0.6.3"
   val millModuledefsVersion = "0.10.9"
@@ -176,6 +176,7 @@ object Deps {
     ivy"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
   val scalaparse = ivy"com.lihaoyi::scalaparse:${fastparse.version}"
   val scalatags = ivy"com.lihaoyi::scalatags:0.12.0"
+  def scalaXml = ivy"org.scala-lang.modules::scala-xml:2.2.0"
   // keep in sync with doc/antora/antory.yml
   val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.9.3"
   val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.9.9"
@@ -730,7 +731,7 @@ def formatDep(dep: Dep) = {
 
 object scalalib extends MillStableScalaModule {
   def moduleDeps = Seq(main, scalalib.api, testrunner)
-  def ivyDeps = Agg(Deps.scalafmtDynamic)
+  def ivyDeps = Agg(Deps.scalafmtDynamic, Deps.scalaXml)
   def testIvyDeps = super.testIvyDeps() ++ Agg(Deps.scalaCheck)
   def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(worker.testDep())
 

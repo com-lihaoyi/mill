@@ -212,12 +212,13 @@ private class MillBuildServer(
     completableTasks(
       "workspaceBuildTargets",
       targetIds = _.bspModulesById.keySet.toSeq,
-      tasks = { case m: JavaModule => T.task { m.bspBuildTargetData() } }
-    ) { (ev, state, id, m, bspBuildTargetData) =>
-      val s = m.bspBuildTarget
-      val deps = m match {
+      tasks = { case m: BspModule => m.bspBuildTargetData }
+    ) { (ev, state, id, m: BspModule, bspBuildTargetData) =>
+      val depsIds = m match {
         case jm: JavaModule =>
-          jm.recursiveModuleDeps.collect { case bm: BspModule => state.bspIdByModule(bm) }
+          (jm.recursiveModuleDeps ++ jm.compileModuleDepsChecked)
+            .distinct
+            .collect { case bm: BspModule => state.bspIdByModule(bm) }
         case _ => Seq()
       }
       val data = bspBuildTargetData match {
@@ -244,21 +245,22 @@ private class MillBuildServer(
         case None => None
       }
 
+      val bt = m.bspBuildTarget
       val buildTarget = new BuildTarget(
         id,
-        s.tags.asJava,
-        s.languageIds.asJava,
-        deps.asJava,
+        bt.tags.asJava,
+        bt.languageIds.asJava,
+        depsIds.asJava,
         new BuildTargetCapabilities().tap { it =>
-          it.setCanCompile(s.canCompile)
-          it.setCanTest(s.canTest)
-          it.setCanRun(s.canRun)
-          it.setCanDebug(s.canDebug)
+          it.setCanCompile(bt.canCompile)
+          it.setCanTest(bt.canTest)
+          it.setCanRun(bt.canRun)
+          it.setCanDebug(bt.canDebug)
         }
       )
 
-      s.displayName.foreach(buildTarget.setDisplayName)
-      s.baseDirectory.foreach(p => buildTarget.setBaseDirectory(sanitizeUri(p)))
+      bt.displayName.foreach(buildTarget.setDisplayName)
+      bt.baseDirectory.foreach(p => buildTarget.setBaseDirectory(sanitizeUri(p)))
 
       for ((dataKind, data) <- data) {
         buildTarget.setDataKind(dataKind)
@@ -281,16 +283,20 @@ private class MillBuildServer(
       }
     }
 
+  /**
+   * The build target sources request is sent from the client to the server to query
+   * for the list of text documents and directories that are belong to a build
+   * target. The sources response must not include sources that are external to the
+   * workspace, see [[buildTargetDependencySources()]].
+   */
   override def buildTargetSources(sourcesParams: SourcesParams)
       : CompletableFuture[SourcesResult] = {
 
-    def sourceItem(source: os.Path, generated: Boolean) = {
-      new SourceItem(
-        sanitizeUri(source),
-        if (source.toIO.isFile) SourceItemKind.FILE else SourceItemKind.DIRECTORY,
-        generated
-      )
-    }
+    def sourceItem(source: os.Path, generated: Boolean) = new SourceItem(
+      sanitizeUri(source),
+      if (source.toIO.isFile) SourceItemKind.FILE else SourceItemKind.DIRECTORY,
+      generated
+    )
 
     completableTasks(
       hint = s"buildTargetSources ${sourcesParams}",
@@ -342,6 +348,16 @@ private class MillBuildServer(
 
   /**
    * External dependencies (sources or source jars).
+   *
+   * The build target dependency sources request is sent from the client to the
+   * server to query for the sources of build target dependencies that are external
+   * to the workspace. The dependency sources response must not include source files
+   * that belong to a build target within the workspace, see [[buildTargetSources()]].
+   *
+   * The server communicates during the initialize handshake whether this method is
+   * supported or not. This method can for example be used by a language server on
+   * `textDocument/definition` to "Go to definition" from project sources to
+   * dependency sources.
    */
   override def buildTargetDependencySources(p: DependencySourcesParams)
       : CompletableFuture[DependencySourcesResult] =
@@ -377,6 +393,11 @@ private class MillBuildServer(
 
   /**
    * External dependencies per module (e.g. ivy deps)
+   *
+   * The build target dependency modules request is sent from the client to the
+   * server to query for the libraries of build target dependencies that are external
+   * to the workspace including meta information about library and their sources.
+   * It's an extended version of [[buildTargetSources()]].
    */
   override def buildTargetDependencyModules(params: DependencyModulesParams)
       : CompletableFuture[DependencyModulesResult] =
@@ -396,6 +417,9 @@ private class MillBuildServer(
           ) =>
         val ivy = transitiveCompileIvyDeps ++ transitiveIvyDeps
         val deps = ivy.map { dep =>
+          // TODO: add data with "maven" data kind using a ...
+//          MavenDependencyModule
+
           new DependencyModule(dep.dep.module.repr, dep.dep.version)
         }
         val unmanged = unmanagedClasspath.map { dep =>
@@ -654,18 +678,22 @@ private class MillBuildServer(
       throw new NotImplementedError("debugSessionStart endpoint is not implemented")
     }
 
+  /**
+   * @params tasks A partial function
+   * @param f The function must accept the same modules as the partial function given by `tasks`.
+   */
   def completableTasks[T, V, W: ClassTag](
       hint: String,
       targetIds: State => Seq[BuildTargetIdentifier],
-      tasks: BspModule => Task[W]
+      tasks: PartialFunction[BspModule, Task[W]]
   )(f: (Evaluator, State, BuildTargetIdentifier, BspModule, W) => T)(agg: java.util.List[T] => V)
       : CompletableFuture[V] = {
     val prefix = hint.split(" ").head
     completable(hint) { state: State =>
       val ids = targetIds(state)
-      val tasksSeq = ids.map { id =>
+      val tasksSeq = ids.flatMap { id =>
         val (m, ev) = state.bspModulesById(id)
-        (tasks(m), (ev, id))
+        tasks.lift.apply(m).map(ts => (ts, (ev, id)))
       }
 
       val evaluated = tasksSeq
@@ -677,7 +705,7 @@ private class MillBuildServer(
             case (_, TaskResult(res: Result.Failing[_], _)) => res
           }
 
-          def logError(errorMsg: String) = {
+          def logError(errorMsg: String): Unit = {
             val msg = s"Request '$prefix' failed for ${id.getUri}: ${errorMsg}"
             debug(msg)
             client.onBuildLogMessage(new LogMessageParams(MessageType.ERROR, msg))

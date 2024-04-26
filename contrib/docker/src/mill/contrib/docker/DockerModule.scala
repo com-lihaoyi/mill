@@ -89,11 +89,6 @@ trait DockerModule { outer: JavaModule =>
      */
     def executable: T[String] = "docker"
 
-    private def baseImageCacheBuster: T[(Boolean, Double)] = T.input {
-      val pull = pullBaseImage()
-      if (pull) (pull, Math.random()) else (pull, 0d)
-    }
-
     def dockerfile: T[String] = T {
       val jarName = assembly().path.last
       val labelRhs = labels()
@@ -133,6 +128,18 @@ trait DockerModule { outer: JavaModule =>
          |ENTRYPOINT [$quotedEntryPointArgs]""".stripMargin
     }
 
+    private def pullAndHash = T.input {
+      def imageHash() =
+        os.proc(executable(), "images", "--no-trunc", "--quiet", baseImage())
+          .call(stderr = os.Inherit).out.text().trim
+
+      if (pullBaseImage() || imageHash().isEmpty)
+        os.proc(executable(), "image", "pull", baseImage())
+          .call(stdout = os.Inherit, stderr = os.Inherit)
+
+      (pullBaseImage(), imageHash())
+    }
+
     final def build = T {
       val dest = T.dest
 
@@ -145,7 +152,7 @@ trait DockerModule { outer: JavaModule =>
 
       val tagArgs = tags().flatMap(t => List("-t", t))
 
-      val (pull, _) = baseImageCacheBuster()
+      val (pull, _) = pullAndHash()
       val pullLatestBase = IterableShellable(if (pull) Some("--pull") else None)
 
       val result = os
