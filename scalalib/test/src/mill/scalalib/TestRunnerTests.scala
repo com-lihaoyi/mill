@@ -1,13 +1,16 @@
 package mill.scalalib
 
 import mill.{Agg, T}
-
 import mill.api.Result
 import mill.util.{TestEvaluator, TestUtil}
+import os.Path
+import sbt.testing.Status
 import utest._
 import utest.framework.TestPath
 
 import java.io.{ByteArrayOutputStream, PrintStream}
+import java.nio.file.Files
+import scala.xml.{Elem, NodeSeq, XML}
 
 object TestRunnerTests extends TestSuite {
   object testrunner extends TestUtil.BaseModule with ScalaModule {
@@ -84,6 +87,7 @@ object TestRunnerTests extends TestSuite {
           assert(
             test._2.size == 3
           )
+          junitReportIn(eval.outPath, "utest").shouldHave(3, Status.Success)
         }
         "testOnly" - {
           def testOnly(eval: TestEvaluator, args: Seq[String], size: Int) = {
@@ -116,6 +120,7 @@ object TestRunnerTests extends TestSuite {
             val Left(Result.Failure(msg, _)) = eval(testrunner.doneMessageFailure.test())
             val stdout = new String(outStream.toByteArray)
             assert(stdout.contains("test failure done message"))
+            junitReportIn(eval.outPath, "doneMessageFailure").shouldHave(1, Status.Failure)
           }
         }
         test("success") {
@@ -137,6 +142,7 @@ object TestRunnerTests extends TestSuite {
           workspaceTest(testrunner) { eval =>
             val Right((testRes, count)) = eval(testrunner.scalatest.test())
             assert(testRes._2.size == 2)
+            junitReportIn(eval.outPath, "scalatest").shouldHave(2, Status.Success)
           }
         }
       }
@@ -146,8 +152,39 @@ object TestRunnerTests extends TestSuite {
           workspaceTest(testrunner) { eval =>
             val Right((testRes, count)) = eval(testrunner.ziotest.test())
             assert(testRes._2.size == 1)
+            junitReportIn(eval.outPath, "ziotest").shouldHave(1, Status.Success)
           }
         }
+      }
+    }
+  }
+
+  trait JUnitReportMatch {
+    def shouldHave(quantity: Int, status: Status): Unit
+  }
+  private def junitReportIn(
+      outPath: Path,
+      moduleName: String,
+      action: String = "test"
+  ): JUnitReportMatch = {
+    val reportPath: Path = outPath / moduleName / s"$action.dest" / "test-report.xml"
+    val reportString = Files.readString(reportPath.toNIO)
+    val reportXML = XML.loadString(reportString)
+//    val pp = new scala.xml.PrettyPrinter(120, 2, true)
+//    println(pp.format(reportXML))
+    new JUnitReportMatch {
+      override def shouldHave(quantity: Int, status: Status): Unit = {
+        status match {
+          case Status.Success =>
+            val testCases: NodeSeq = reportXML \\ "testcase"
+            val actualSucceededTestCases: Int =
+              testCases.count(tc => !tc.child.exists(n => n.isInstanceOf[Elem]))
+            assert(quantity == actualSucceededTestCases)
+          case _ =>
+            val statusXML = reportXML \\ status.name().toLowerCase
+            assert(quantity == statusXML.size)
+        }
+        ()
       }
     }
   }

@@ -1,12 +1,17 @@
 package mill.scalalib
 
-import mill.{Agg, T}
-import mill.define.{Command, Task, TaskModule}
 import mill.api.{Ctx, PathRef, Result}
-import mill.util.Jvm
+import mill.define.{Command, Task, TaskModule}
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.testrunner.{Framework, TestArgs, TestResult, TestRunner}
+import mill.util.Jvm
+import mill.{Agg, T}
 import sbt.testing.Status
+
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
+import java.time.{Instant, LocalDateTime, ZoneId}
+import scala.xml.Elem
 
 trait TestModule
     extends TestModule.JavaModuleBase
@@ -108,8 +113,6 @@ trait TestModule
       globSelectors: Task[Seq[String]]
   ): Task[(String, Seq[TestResult])] =
     T.task {
-      testReportXml().foreach(file => os.remove(T.ctx().dest / file))
-
       val outputPath = T.dest / "out.json"
       val useArgsFile = testUseArgsFile()
 
@@ -169,8 +172,7 @@ trait TestModule
           val jsonOutput = ujson.read(outputPath.toIO)
           val (doneMsg, results) =
             upickle.default.read[(String, Seq[TestResult])](jsonOutput)
-          testReportXml().foreach(file => TestModule.genTestXmlReport(results, T.ctx().dest / file))
-          TestModule.handleResults(doneMsg, results, Some(T.ctx()))
+          TestModule.handleResults(doneMsg, results, T.ctx(), testReportXml())
         } catch {
           case e: Throwable =>
             Result.Failure("Test reporting failed: " + e)
@@ -189,7 +191,7 @@ trait TestModule
       args,
       T.testReporter
     )
-    TestModule.handleResults(doneMsg, results, Some(T.ctx()))
+    TestModule.handleResults(doneMsg, results, T.ctx(), testReportXml())
   }
 
   override def bspBuildTarget: BspBuildTarget = {
@@ -324,6 +326,16 @@ object TestModule {
     }
   }
 
+  def handleResults(
+      doneMsg: String,
+      results: Seq[TestResult],
+      ctx: Ctx.Env with Ctx.Dest,
+      testReportXml: Option[String]
+  ): Result[(String, Seq[TestResult])] = {
+    testReportXml.foreach(fileName => genTestXmlReport(results, ctx.dest / fileName))
+    handleResults(doneMsg, results, Some(ctx))
+  }
+
   trait JavaModuleBase extends BspModule {
     def ivyDeps: T[Agg[Dep]] = Agg.empty[Dep]
   }
@@ -332,68 +344,78 @@ object TestModule {
     def scalacOptions: T[Seq[String]] = Seq.empty[String]
   }
 
-  case class TestResultExtra(suiteName: String, testName: String, result: TestResult)
-
-  def genTestXmlReport(results0: Seq[TestResult], out: os.Path): Unit = {
-    val results = results0.map { r =>
-      val (suiteName, testName) = splitFullyQualifiedName(r.selector)
-      TestResultExtra(suiteName, testName, r)
-    }
-
-    val suites = results.groupMap(_.suiteName)(identity).map { case (suiteName, tests) =>
-      val cases = tests.map { test =>
-        val failure =
-          (test.result.exceptionName, test.result.exceptionMsg, test.result.exceptionTrace) match {
-            case (Some(name), Some(msg), Some(trace)) =>
-              Some(
-                <failure message={msg} type={name}>
-                  {
-                  trace
-                    .map(t =>
-                      s"${t.getClassName}.${t.getMethodName}(${t.getFileName}:${t.getLineNumber})"
-                    )
-                    .mkString(s"${name}: ${msg}\n    at ", "\n    at ", "")
-                }
-                </failure>
-              )
-            case _ => None
-          }
-        <testcase id={test.result.fullyQualifiedName}
-                  classname={test.suiteName}
-                  name={test.testName}
-                  time={(test.result.duration / 1000.0).toString}>
-          {failure.orNull}
+  private def genTestXmlReport(results0: Seq[TestResult], out: os.Path): Unit = {
+    val timestamp = DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(
+      LocalDateTime.ofInstant(
+        Instant.now.truncatedTo(ChronoUnit.SECONDS),
+        ZoneId.systemDefault()
+      )
+    )
+    def durationAsString(value: Long) = (value / 1000d).toString
+    def testcaseName(testResult: TestResult) =
+      testResult.selector.replace(s"${testResult.fullyQualifiedName}.", "")
+    val suites = results0.groupBy(_.fullyQualifiedName).map { case (fqn, testResults) =>
+      val cases = testResults.map { testResult =>
+        val testName = testcaseName(testResult)
+        <testcase classname={testResult.fullyQualifiedName}
+                  name={testName}
+                  time={durationAsString(testResult.duration)}>
+          {testCaseStatus(testResult).orNull}
         </testcase>
       }
 
-      <testsuite id={suiteName}
-                 name={suiteName}
-                 tests={tests.length.toString}
-                 failures={tests.count(_.result.status == Status.Failure.toString).toString}
-                 errors={tests.count(_.result.status == Status.Error.toString).toString}
-                 skipped={tests.count(_.result.status == Status.Skipped.toString).toString}
-                 time={(tests.map(_.result.duration).sum / 1000.0).toString}>
+      <testsuite name={fqn}
+                 tests={testResults.length.toString}
+                 failures={testResults.count(_.status == Status.Failure.toString).toString}
+                 errors={testResults.count(_.status == Status.Error.toString).toString}
+                 skipped={testResults.count(_.status == Status.Skipped.toString).toString}
+                 time={(testResults.map(_.duration).sum / 1000.0).toString}>
+                 timestamp={timestamp}
         {cases}
       </testsuite>
     }
-
+    // todo add the parent module name
     val xml =
-      <testsuites tests={results.size.toString}
-                  failures={results.count(_.result.status == Status.Failure.toString).toString}
-                  errors={results.count(_.result.status == Status.Error.toString).toString}
-                  skipped={results.count(_.result.status == Status.Skipped.toString).toString}
-                  time={(results.map(_.result.duration).sum / 1000.0).toString}>
+      <testsuites tests={results0.size.toString}
+                  failures={results0.count(_.status == Status.Failure.toString).toString}
+                  errors={results0.count(_.status == Status.Error.toString).toString}
+                  skipped={results0.count(_.status == Status.Skipped.toString).toString}
+                  time={durationAsString(results0.map(_.duration).sum)}>
         {suites}
       </testsuites>
-    if (results.nonEmpty) scala.xml.XML.save(out.toString(), xml, xmlDecl = true)
+    if (results0.nonEmpty) scala.xml.XML.save(out.toString(), xml, xmlDecl = true)
   }
 
-  private val RE_FQN = """^(([a-zA-Z_$][a-zA-Z\d_$]*\.)*[a-zA-Z_$][a-zA-Z\d_$]*)\.(.*)$""".r
+  private def testCaseStatus(e: TestResult): Option[Elem] = {
+    val Error = Status.Error.toString
+    val Failure = Status.Failure.toString
+    val Ignored = Status.Ignored.toString
+    val Skipped = Status.Skipped.toString
+    val Pending = Status.Pending.toString
 
-  private def splitFullyQualifiedName(fullyQualifiedName: String): (String, String) = {
-    RE_FQN.findFirstMatchIn(fullyQualifiedName) match {
-      case Some(m) => (m.group(1), m.group(3))
-      case None => ("", fullyQualifiedName)
+    val trace: String = e.exceptionTrace.map(stackTraceTrace =>
+      stackTraceTrace.map(t =>
+        s"${t.getClassName}.${t.getMethodName}(${t.getFileName}:${t.getLineNumber})"
+      )
+        .mkString(
+          s"${e.exceptionName.getOrElse("")}: ${e.exceptionMsg.getOrElse("")}\n    at ",
+          "\n    at ",
+          ""
+        )
+    ).getOrElse("")
+    e.status match {
+      case Error if (e.exceptionMsg.isDefined && e.exceptionName.isDefined) =>
+        Some(<error message={e.exceptionMsg.get} type={e.exceptionName.get}>
+          {trace}
+        </error>)
+      case Error => Some(<error message={"No Exception or message provided"}/>)
+      case Failure if (e.exceptionMsg.isDefined && e.exceptionName.isDefined) =>
+        Some(<failure message={e.exceptionMsg.get} type={e.exceptionName.get}>
+          {trace}
+        </failure>)
+      case Failure => Some(<failure message={"No Exception or message provided"}/>)
+      case Ignored | Skipped | Pending => Some(<skipped/>)
+      case _ => None
     }
   }
 }
