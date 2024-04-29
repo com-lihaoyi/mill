@@ -1,15 +1,14 @@
 package mill.scalalib
 
-import mill.{Agg, T}
 import mill.api.Result
 import mill.util.{TestEvaluator, TestUtil}
+import mill.{Agg, T}
 import os.Path
 import sbt.testing.Status
 import utest._
 import utest.framework.TestPath
 
 import java.io.{ByteArrayOutputStream, PrintStream}
-import java.nio.file.Files
 import scala.xml.{Elem, NodeSeq, XML}
 
 object TestRunnerTests extends TestSuite {
@@ -168,24 +167,19 @@ object TestRunnerTests extends TestSuite {
       action: String = "test"
   ): JUnitReportMatch = {
     val reportPath: Path = outPath / moduleName / s"$action.dest" / "test-report.xml"
-    val reportString = Files.readString(reportPath.toNIO)
-    val reportXML = XML.loadString(reportString)
-//    val pp = new scala.xml.PrettyPrinter(120, 2, true)
-//    println(pp.format(reportXML))
-    new JUnitReportMatch {
-      override def shouldHave(quantity: Int, status: Status): Unit = {
-        status match {
-          case Status.Success =>
-            val testCases: NodeSeq = reportXML \\ "testcase"
-            val actualSucceededTestCases: Int =
-              testCases.count(tc => !tc.child.exists(n => n.isInstanceOf[Elem]))
-            assert(quantity == actualSucceededTestCases)
-          case _ =>
-            val statusXML = reportXML \\ status.name().toLowerCase
-            assert(quantity == statusXML.size)
-        }
-        ()
+    val reportXML = XML.loadFile(reportPath.toIO)
+    (quantity: Int, status: Status) => {
+      status match {
+        case Status.Success =>
+          val testCases: NodeSeq = reportXML \\ "testcase"
+          val actualSucceededTestCases: Int =
+            testCases.count(tc => !tc.child.exists(n => n.isInstanceOf[Elem]))
+          assert(quantity == actualSucceededTestCases)
+        case _ =>
+          val statusXML = reportXML \\ status.name().toLowerCase
+          assert(quantity == statusXML.size)
       }
+      ()
     }
   }
 }
