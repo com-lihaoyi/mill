@@ -373,8 +373,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       T.testReporter,
       TestRunnerUtils.globFilter(globSelectors())
     )
-    val res =
-      TestModule.handleResults(doneMsg, results, T.ctx(), testReportXml(), jsEnvConfig().env)
+    val res = TestModule.handleResults(doneMsg, results, T.ctx(), testReportXml())
     // Hack to try and let the Node.js subprocess finish streaming it's stdout
     // to the JVM. Without this, the stdout can still be streaming when `close()`
     // is called, and some of the output is dropped onto the floor.
