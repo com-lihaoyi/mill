@@ -165,7 +165,8 @@ trait DockerModule { outer: JavaModule =>
       val pullLatestBase = IterableShellable(if (pull) Some("--pull") else None)
 
       
-      val result = if (platform().isEmpty) {
+      val result = if (platform().isEmpty || executable() != "docker") {
+        if (platform().nonEmpty) log.info("Platform parameter is ignored when using non-docker executable")
         os.proc(executable(), "build", tagArgs, pullLatestBase, dest)
         .call(stdout = os.Inherit, stderr = os.Inherit)
       } else {
@@ -174,7 +175,6 @@ trait DockerModule { outer: JavaModule =>
       }
       log.info(s"Docker build completed ${if (result.exitCode == 0) "successfully"
         else "unsuccessfully"} with ${result.exitCode}")
-      log.info(platform())
       tags()
     }
 
