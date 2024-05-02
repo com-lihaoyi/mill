@@ -170,9 +170,16 @@ trait TestModule
       else
         try {
           val jsonOutput = ujson.read(outputPath.toIO)
-          val (doneMsg, results) =
+          val (doneMsg, results) = {
             upickle.default.read[(String, Seq[TestResult])](jsonOutput)
-          TestModule.handleResults(doneMsg, results, T.ctx(), testReportXml())
+          }
+          TestModule.handleResults(
+            doneMsg,
+            results,
+            T.ctx(),
+            testReportXml(),
+            sys.props.toMap ++ forkEnv()
+          )
         } catch {
           case e: Throwable =>
             Result.Failure("Test reporting failed: " + e)
@@ -330,9 +337,10 @@ object TestModule {
       doneMsg: String,
       results: Seq[TestResult],
       ctx: Ctx.Env with Ctx.Dest,
-      testReportXml: Option[String]
+      testReportXml: Option[String],
+      props: Map[String, String] = Map.empty
   ): Result[(String, Seq[TestResult])] = {
-    testReportXml.foreach(fileName => genTestXmlReport(results, ctx.dest / fileName))
+    testReportXml.foreach(fileName => genTestXmlReport(results, ctx.dest / fileName, props))
     handleResults(doneMsg, results, Some(ctx))
   }
 
@@ -344,7 +352,11 @@ object TestModule {
     def scalacOptions: T[Seq[String]] = Seq.empty[String]
   }
 
-  private def genTestXmlReport(results0: Seq[TestResult], out: os.Path): Unit = {
+  private def genTestXmlReport(
+      results0: Seq[TestResult],
+      out: os.Path,
+      props: Map[String, String]
+  ): Unit = {
     val timestamp = DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(
       LocalDateTime.ofInstant(
         Instant.now.truncatedTo(ChronoUnit.SECONDS),
@@ -354,6 +366,16 @@ object TestModule {
     def durationAsString(value: Long) = (value / 1000d).toString
     def testcaseName(testResult: TestResult) =
       testResult.selector.replace(s"${testResult.fullyQualifiedName}.", "")
+
+    def properties: Elem = {
+      val ps = props.map { case (key, value) =>
+        <property name={key} value={value}/>
+      }
+      <properties>
+        {ps}
+      </properties>
+    }
+
     val suites = results0.groupBy(_.fullyQualifiedName).map { case (fqn, testResults) =>
       val cases = testResults.map { testResult =>
         val testName = testcaseName(testResult)
@@ -371,6 +393,7 @@ object TestModule {
                  skipped={testResults.count(_.status == Status.Skipped.toString).toString}
                  time={(testResults.map(_.duration).sum / 1000.0).toString}>
                  timestamp={timestamp}
+        {properties}
         {cases}
       </testsuite>
     }

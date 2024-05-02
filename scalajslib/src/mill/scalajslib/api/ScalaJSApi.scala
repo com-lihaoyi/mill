@@ -71,7 +71,9 @@ object ModuleSplitStyle {
   implicit val rw: RW[ModuleSplitStyle] = macroRW
 }
 
-sealed trait JsEnvConfig
+sealed trait JsEnvConfig {
+  val env: Map[String, String]
+}
 object JsEnvConfig {
   implicit def rwNodeJs: RW[NodeJs] = macroRW
   implicit def rwJsDom: RW[JsDom] = macroRW
@@ -130,7 +132,10 @@ object JsEnvConfig {
    */
   final class Selenium private (
       val capabilities: Selenium.Capabilities
-  ) extends JsEnvConfig
+  ) extends JsEnvConfig {
+    override val env: Map[String, String] = Map.empty
+  }
+
   object Selenium {
     implicit def rwCapabilities: RW[Capabilities] = macroRW
 
