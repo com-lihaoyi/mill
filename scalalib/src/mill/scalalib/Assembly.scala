@@ -217,7 +217,9 @@ object Assembly {
       base: Option[os.Path] = None,
       assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules
   ): Assembly = {
-    val rawJar = os.temp("out-tmp")
+    val rawJar = os.temp("out-tmp", deleteOnExit = false)
+    // we create the file later
+    os.remove(rawJar)
 
     // use the `base` (the upstream assembly) as a start
     val baseUri = "jar:" + rawJar.toIO.getCanonicalFile.toURI.toASCIIString
@@ -279,6 +281,7 @@ object Assembly {
         Using.resource(os.read.inputStream(rawJar)) { is =>
           os.write.append(destJar, is)
         }
+        os.remove(rawJar)
 
         if (!scala.util.Properties.isWin) {
           os.perms.set(
