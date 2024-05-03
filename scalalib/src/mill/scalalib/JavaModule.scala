@@ -569,11 +569,27 @@ trait JavaModule
    *
    * This should allow much faster assembly creation in the common case where
    * upstream dependencies do not change
+   *
+   * This implementation is deprecated because of it's return value.
+   * Please use [[upstreamAssembly2]] instead.
    */
+  @deprecated("Use upstreamAssembly2 instead, which has a richer return value", "Mill 0.11.8")
   def upstreamAssembly: T[PathRef] = T {
-    Assembly.createAssembly(
-      upstreamAssemblyClasspath().map(_.path),
-      manifest(),
+    upstreamAssembly2().pathRef
+  }
+
+  /**
+   * Build the assembly for upstream dependencies separate from the current
+   * classpath
+   *
+   * This should allow much faster assembly creation in the common case where
+   * upstream dependencies do not change
+   */
+  def upstreamAssembly2: T[Assembly] = T {
+    Assembly.create(
+      destJar = T.dest / "out.jar",
+      inputPaths = upstreamAssemblyClasspath().map(_.path),
+      manifest = manifest(),
       assemblyRules = assemblyRules
     )
   }
@@ -583,13 +599,35 @@ trait JavaModule
    * classfiles from this module and all it's upstream modules and dependencies
    */
   def assembly: T[PathRef] = T {
-    Assembly.createAssembly(
+    val prependScript = Option(prependShellScript()).filter(_ != "")
+    val upstream = upstreamAssembly2()
+
+    val created = Assembly.create(
+      destJar = T.dest / "out.jar",
       Agg.from(localClasspath().map(_.path)),
       manifest(),
-      prependShellScript(),
-      Some(upstreamAssembly().path),
+      prependScript,
+      Some(upstream.pathRef.path),
       assemblyRules
     )
+    // See https://github.com/com-lihaoyi/mill/pull/2655#issuecomment-1672468284
+    val problematicEntryCount = 65535
+    if (
+      prependScript.isDefined &&
+      (upstream.addedEntries + created.addedEntries) > problematicEntryCount
+    ) {
+      Result.Failure(
+        s"""The created assembly would contain more than $problematicEntryCount ZIP entries.
+           |JARs of that size are known to not work correctly with a prepended shell script.
+           |Either reduce the entries count of the assembly or disable the prepended shell script with:
+           |
+           |  def prependShellScript = ""
+           |""".stripMargin,
+        Some(created.pathRef)
+      )
+    } else {
+      Result.Success(created.pathRef)
+    }
   }
 
   /**
