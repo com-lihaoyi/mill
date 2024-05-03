@@ -8,18 +8,12 @@ import mill.util.Jvm.createJar
 import mill.api.Loose.Agg
 import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerUtil}
 import mainargs.Flag
-import mill.scalalib.bsp.{
-  BspBuildTarget,
-  BspModule,
-  BspUri,
-  JvmBuildTarget,
-  ScalaBuildTarget,
-  ScalaPlatform
-}
+import mill.scalalib.bsp.{BspBuildTarget, BspModule, BspUri, JvmBuildTarget, ScalaBuildTarget, ScalaPlatform}
 import mill.scalalib.dependency.versions.{ValidVersion, Version}
 
 import scala.reflect.internal.util.ScalaClassLoader
 import scala.util.Using
+import scala.util.chaining.scalaUtilChainingOps
 
 /**
  * Core configuration required to compile a single Scala compilation target
@@ -61,24 +55,54 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    */
   def scalaVersion: T[String]
 
-  override def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = T.task {
-    super.mapDependencies().andThen { d: coursier.Dependency =>
+  /**
+   * Historically, all Scala versions supported by Mill where forward and backward compatible within the same minor version.
+   * As a consequence, we pinned/freezed their version in the transitive dependencies.
+   * In newer Scala versions, this is no longer true.
+   */
+  private def scalaVersionPinning: Task[Boolean] = T {
+    val sv = scalaVersion()
+    // Scala 2.12-
+    sv.startsWith("2.") && sv.drop(2).takeWhile(_.isDigit).toIntOption.exists(_ < 13)
+  }
+
+  override def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = {
+    val correctOrgAndMaybePinVersionTask = T.task { d: coursier.Dependency =>
+      val sv = scalaVersion()
       val artifacts =
-        if (ZincWorkerUtil.isDotty(scalaVersion()))
+        if (ZincWorkerUtil.isDotty(sv))
           Set("dotty-library", "dotty-compiler")
-        else if (ZincWorkerUtil.isScala3(scalaVersion()))
+        else if (ZincWorkerUtil.isScala3(sv))
           Set("scala3-library", "scala3-compiler")
         else
           Set("scala-library", "scala-compiler", "scala-reflect")
       if (!artifacts(d.module.name.value)) d
-      else
+      else {
         d.withModule(
           d.module.withOrganization(
+            // always align organization (required for dotty / version early Scala 3)
             coursier.Organization(scalaOrganization())
           )
-        )
-          .withVersion(scalaVersion())
+        ).pipe { d =>
+          // pin (override) scala version if appropriate
+          if (scalaVersionPinning()) d.withVersion(sv) else d
+        }
+
+      }
     }
+
+    T.task {
+      super.mapDependencies().andThen(correctOrgAndMaybePinVersionTask())
+    }
+  }
+
+  override def enforceSameDependencyVersions: Task[Seq[Set[(String, String)]]] = T.task {
+    Seq(
+      // scala 2.x
+      Set("scala-library", "scala-compiler", "scala-reflect", "scalap").map(("org.scala-lang", _)),
+      // Dotty (early Scala 3)
+      Set("dotty-library", "dotty-compiler").map(("ch.epfl.lamp", _))
+    )
   }
 
   override def resolveCoursierDependency: Task[Dep => coursier.Dependency] =
@@ -239,7 +263,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     resolveDeps(
       T.task {
         val bind = bindDependency()
-        Lib.scalaDocIvyDeps(scalaOrganization(), scalaVersion()).map(bind)
+        Lib.scalaDocIvyDeps(scalaOrganization(), scalaVersion(), scalaVersionPinning()).map(bind)
       }
     )()
   }
@@ -255,7 +279,12 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   }
 
   def scalaLibraryIvyDeps: T[Agg[Dep]] = T {
-    Lib.scalaRuntimeIvyDeps(scalaOrganization(), scalaVersion())
+    Lib.scalaRuntimeIvyDeps(
+      scalaOrganization(),
+      scalaVersion(),
+      force = scalaVersionPinning(),
+      asRange = false
+    )
   }
 
   /** Adds the Scala Library is a mandatory dependency. */
@@ -269,11 +298,28 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   def scalaCompilerClasspath: T[Agg[PathRef]] = T {
     resolveDeps(
       T.task {
+        val pin = scalaVersionPinning()
         val bind = bindDependency()
-        (Lib.scalaCompilerIvyDeps(scalaOrganization(), scalaVersion()) ++
+        (Lib.scalaCompilerIvyDeps(scalaOrganization(), scalaVersion(), force = pin, asRange = !pin) ++
           scalaLibraryIvyDeps()).map(bind)
       }
     )()
+  }
+
+  override def resolvedIvyDeps: T[mill.Agg[PathRef]] = T {
+    // Same as super, but we want to enforce the used scala library version by making it a range
+    resolveDeps(T.task {
+      transitiveCompileIvyDeps() ++
+        transitiveIvyDeps() ++ (
+          if (scalaVersionPinning()) Agg.empty[BoundDep]
+          else Lib.scalaRuntimeIvyDeps(
+            scalaOrganization(),
+            scalaVersion(),
+            force = false,
+            asRange = true
+          ).map(bindDependency())
+        )
+    })()
   }
 
   // Keep in sync with [[bspCompileClassesPath]]
