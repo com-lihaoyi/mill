@@ -360,7 +360,7 @@ automatically open a pull request to update your Mill version (in
 `.mill-version` or `.config/mill-version` file), whenever there is a newer version available.
 
 TIP: Scala Steward can also
-xref:Configuration.adoc#_keeping_up_to_date_with_scala_steward[scan your project dependencies]
+xref:Scala_Module_Config.adoc#_keeping_up_to_date_with_scala_steward[scan your project dependencies]
 and keep them up-to-date.
 
 === Development Releases
