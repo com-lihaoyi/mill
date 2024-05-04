@@ -617,7 +617,7 @@ trait JavaModule
       (upstream.addedEntries + created.addedEntries) > problematicEntryCount
     ) {
       Result.Failure(
-        s"""The created assembly would contain more than $problematicEntryCount ZIP entries.
+        s"""The created assembly jar contains more than ${problematicEntryCount} ZIP entries.
            |JARs of that size are known to not work correctly with a prepended shell script.
            |Either reduce the entries count of the assembly or disable the prepended shell script with:
            |

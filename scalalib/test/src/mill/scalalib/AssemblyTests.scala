@@ -96,7 +96,7 @@ object AssemblyTests extends TestSuite {
       envArgs = Map.empty[String, String],
       workingDir = wd
     )
-    if(checkExe) {
+    if (checkExe) {
       Jvm.runSubprocess(
         commandArgs = Seq(file.toString(), "--text", "tutu"),
         envArgs = Map.empty[String, String],
@@ -132,7 +132,7 @@ object AssemblyTests extends TestSuite {
           workspaceTest(TestCase) { eval =>
             val Left(Result.Failure(msg, Some(res))) = eval(TestCase.exe.large.assembly)
             val expectedMsg =
-              """The created assembly would contain more than 65535 ZIP entries.
+              """The created assembly jar contains more than 65535 ZIP entries.
                 |JARs of that size are known to not work correctly with a prepended shell script.
                 |Either reduce the entries count of the assembly or disable the prepended shell script with:
                 |
