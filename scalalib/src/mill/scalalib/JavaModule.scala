@@ -18,6 +18,8 @@ import mill.scalalib.publish.Artifact
 import mill.util.Jvm
 import os.{Path, ProcessOutput}
 
+import scala.annotation.nowarn
+
 /**
  * Core configuration required to compile a single Java compilation target
  */
@@ -575,6 +577,10 @@ trait JavaModule
    */
   @deprecated("Use upstreamAssembly2 instead, which has a richer return value", "Mill 0.11.8")
   def upstreamAssembly: T[PathRef] = T {
+    T.log.error(
+      s"upstreamAssembly target is deprecated and should no longer used." +
+        s" Please make sure to use upstreamAssembly2 instead."
+    )
     upstreamAssembly2().pathRef
   }
 
@@ -599,6 +605,16 @@ trait JavaModule
    * classfiles from this module and all it's upstream modules and dependencies
    */
   def assembly: T[PathRef] = T {
+    // detect potential inconsistencies due to `upstreamAssembly` deprecation after 0.11.7
+    if (
+      (upstreamAssembly.ctx.enclosing: @nowarn) != s"${classOf[JavaModule].getName}#upstreamAssembly"
+    ) {
+      T.log.error(
+        s"${upstreamAssembly.ctx.enclosing: @nowarn} is overriding a deprecated target which is no longer used." +
+          s" Please make sure to override upstreamAssembly2 instead."
+      )
+    }
+
     val prependScript = Option(prependShellScript()).filter(_ != "")
     val upstream = upstreamAssembly2()
 
