@@ -85,6 +85,15 @@ trait DockerModule { outer: JavaModule =>
     def user: T[String] = ""
 
     /**
+     * Optional platform parameter, if set uses buildkit to build for specified platform.
+     *
+     * See also the Docker docs on
+     * [[https://docs.docker.com/reference/cli/docker/buildx/build/#platform]]
+     * for more information.
+     */
+    def platform: T[String] = ""
+
+    /**
      * The name of the executable to use, the default is "docker".
      */
     def executable: T[String] = "docker"
@@ -155,10 +164,24 @@ trait DockerModule { outer: JavaModule =>
       val (pull, _) = pullAndHash()
       val pullLatestBase = IterableShellable(if (pull) Some("--pull") else None)
 
-      val result = os
-        .proc(executable(), "build", tagArgs, pullLatestBase, dest)
-        .call(stdout = os.Inherit, stderr = os.Inherit)
-
+      val result = if (platform().isEmpty || executable() != "docker") {
+        if (platform().nonEmpty)
+          log.info("Platform parameter is ignored when using non-docker executable")
+        os.proc(executable(), "build", tagArgs, pullLatestBase, dest)
+          .call(stdout = os.Inherit, stderr = os.Inherit)
+      } else {
+        os.proc(
+          executable(),
+          "buildx",
+          "build",
+          tagArgs,
+          pullLatestBase,
+          "--platform",
+          platform(),
+          dest
+        )
+          .call(stdout = os.Inherit, stderr = os.Inherit)
+      }
       log.info(s"Docker build completed ${if (result.exitCode == 0) "successfully"
         else "unsuccessfully"} with ${result.exitCode}")
       tags()
