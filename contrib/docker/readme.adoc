@@ -64,7 +64,11 @@ object docker extends DockerConfig {
   def user = "new-user"
   // Optionally override the docker executable to use something else
   def executable = "podman"
+  // If the executable is docker (which is also the default), you can optionally also pass a platform parameter
+  // docker buildx is then used to build multi-platform images
+  def platform = "linux/arm64"
 }
 ----
+
 
 Run mill in interactive mode to see the docker client output, like `mill -i foo.docker.build`.
