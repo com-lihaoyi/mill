@@ -126,7 +126,7 @@ object Deps {
     Seq(Play_3_0, Play_2_9, Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
 
   val acyclic = ivy"com.lihaoyi:::acyclic:0.3.12"
-  val ammoniteVersion = "3.0.0-M1"
+  val ammoniteVersion = "3.0.0-M1-19-a7973e17"
   val asmTree = ivy"org.ow2.asm:asm-tree:9.7"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
 
@@ -168,7 +168,7 @@ object Deps {
   def scalap(scalaVersion: String) = ivy"org.scala-lang:scalap:${scalaVersion}"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   val scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
-  val scoverage2Version = "2.1.0"
+  val scoverage2Version = "2.1.1"
   val scalacScoverage2Plugin = ivy"org.scoverage:::scalac-scoverage-plugin:${scoverage2Version}"
   val scalacScoverage2Reporter = ivy"org.scoverage::scalac-scoverage-reporter:${scoverage2Version}"
   val scalacScoverage2Domain = ivy"org.scoverage::scalac-scoverage-domain:${scoverage2Version}"
