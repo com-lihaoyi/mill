@@ -353,6 +353,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
 trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModule { outer =>
   def scalaVersion = Deps.scalaVersion
   def scalafixScalaBinaryVersion = ZincWorkerUtil.scalaBinaryVersion(scalaVersion())
+  def semanticDbVersion = Deps.semanticDBscala.version
   def scalacOptions =
     super.scalacOptions() ++ Seq(
       "-deprecation",
