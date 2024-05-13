@@ -173,13 +173,7 @@ trait TestModule
           val (doneMsg, results) = {
             upickle.default.read[(String, Seq[TestResult])](jsonOutput)
           }
-          TestModule.handleResults(
-            doneMsg,
-            results,
-            T.ctx(),
-            testReportXml(),
-            sys.props.toMap ++ forkEnv()
-          )
+          TestModule.handleResults(doneMsg, results, T.ctx(), testReportXml())
         } catch {
           case e: Throwable =>
             Result.Failure("Test reporting failed: " + e)
@@ -338,9 +332,11 @@ object TestModule {
       results: Seq[TestResult],
       ctx: Ctx.Env with Ctx.Dest,
       testReportXml: Option[String],
-      props: Map[String, String] = Map.empty
+      props: Option[Map[String, String]] = None
   ): Result[(String, Seq[TestResult])] = {
-    testReportXml.foreach(fileName => genTestXmlReport(results, ctx.dest / fileName, props))
+    testReportXml.foreach(fileName =>
+      genTestXmlReport(results, ctx.dest / fileName, props.getOrElse(Map.empty))
+    )
     handleResults(doneMsg, results, Some(ctx))
   }
 
