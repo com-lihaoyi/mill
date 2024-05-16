@@ -25,6 +25,8 @@ import org.scalajs.testing.adapter.{TestAdapterInitializer => TAI}
 import scala.collection.mutable
 import scala.ref.SoftReference
 
+import com.armanbilge.sjsimportmap.ImportMappedIRFile
+
 class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
   private case class LinkerInput(
       isFullLinkJS: Boolean,
@@ -169,7 +171,8 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       esFeatures: ESFeatures,
       moduleSplitStyle: ModuleSplitStyle,
       outputPatterns: OutputPatterns,
-      minify: Boolean
+      minify: Boolean,
+      importMap: Seq[ESModuleImportMapping]
   ): Either[String, Report] = {
     // On Scala.js 1.2- we want to use the legacy mode either way since
     // the new mode is not supported and in tests we always use legacy = false
@@ -202,7 +205,24 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
 
     val resultFuture = (for {
       (irContainers, _) <- irContainersAndPathsFuture
-      irFiles <- irFileCacheCache.cached(irContainers)
+      irFiles0 <- irFileCacheCache.cached(irContainers)
+      irFiles = if (importMap.isEmpty) {
+        irFiles0
+      } else {
+        if (!minorIsGreaterThanOrEqual(16)) {
+          throw new Exception("scalaJSImportMap is not supported with Scala.js < 1.16.")
+        }
+        val remapFunction = (rawImport: String) => {
+          importMap
+            .collectFirst {
+              case ESModuleImportMapping.Prefix(prefix, replacement)
+                  if rawImport.startsWith(prefix) =>
+                s"$replacement${rawImport.stripPrefix(prefix)}"
+            }
+            .getOrElse(rawImport)
+        }
+        irFiles0.map { ImportMappedIRFile.fromIRFile(_)(remapFunction) }
+      }
       report <-
         if (useLegacy) {
           val jsFileName = "out.js"
