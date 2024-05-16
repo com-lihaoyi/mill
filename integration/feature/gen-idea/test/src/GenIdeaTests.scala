@@ -9,7 +9,7 @@ import os.Path
 
 object GenIdeaTests extends IntegrationTestSuite {
 
-  override def scriptSourcePath: Path = super.scriptSourcePath / "hello-world"
+  override def scriptSourcePath: Path = super.scriptSourcePath / "hello-idea"
 
   def tests: Tests = Tests {
     test("helper assertPartialContentMatches works") {
