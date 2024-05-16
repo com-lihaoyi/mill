@@ -1,10 +1,10 @@
 <module type="JAVA_MODULE" version="4">
     <component name="NewModuleRootManager">
-        <output-test url="file://$MODULE_DIR$/../../out/HelloWorld/test/ideaCompileOutput.dest/classes"/>
+        <output-test url="file://$MODULE_DIR$/../../out/HelloIdea/test/ideaCompileOutput.dest/classes"/>
         <exclude-output/>
-        <content url="file://$MODULE_DIR$/../../HelloWorld/test">
-            <sourceFolder url="file://$MODULE_DIR$/../../HelloWorld/test/src" isTestSource="true"/>
-            <sourceFolder url="file://$MODULE_DIR$/../../HelloWorld/test/resources" type="java-test-resource"/>
+        <content url="file://$MODULE_DIR$/../../HelloIdea/test">
+            <sourceFolder url="file://$MODULE_DIR$/../../HelloIdea/test/src" isTestSource="true"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../HelloIdea/test/resources" type="java-test-resource"/>
         </content>
         <orderEntry type="inheritedJdk"/>
         <orderEntry type="sourceFolder" forTests="false"/>
@@ -13,6 +13,6 @@
         <orderEntry type="library" name="logback-core-1.2.3.jar" level="project"/>
         <orderEntry type="library" name="scala-library-2.12.5.jar" level="project"/>
         <orderEntry type="library" name="slf4j-api-1.7.25.jar" level="project"/>
-        <orderEntry type="module" module-name="helloworld" exported=""/>
+        <orderEntry type="module" module-name="helloidea" exported=""/>
     </component>
 </module>

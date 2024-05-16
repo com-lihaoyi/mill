@@ -1,7 +1,7 @@
 package mill.idea
 
 import scala.collection.immutable
-import scala.util.Try
+import scala.util.{Success, Try}
 import scala.xml.{Elem, MetaData, Node, NodeSeq, Null, UnprefixedAttribute}
 import coursier.core.compatibility.xmlParseDom
 import coursier.maven.Pom
@@ -15,7 +15,6 @@ import mill.scalalib.GenIdeaModule.{IdeaConfigFile, JavaFacet}
 import mill.scalalib.internal.JavaModuleUtils
 import mill.util.Classpath
 import mill.{T, scalalib}
-import os.{Path, SubPath}
 import mill.scalalib.{GenIdeaImpl => _, _}
 
 case class GenIdeaImpl(
@@ -23,8 +22,8 @@ case class GenIdeaImpl(
 )(implicit ctx: Ctx) {
   import GenIdeaImpl._
 
-  val workDir: Path = evaluators.head.rootModule.millSourcePath
-  val ideaDir: Path = workDir / ".idea"
+  val workDir: os.Path = evaluators.head.rootModule.millSourcePath
+  val ideaDir: os.Path = workDir / ".idea"
 
   val ideaConfigVersion = 4
 
@@ -34,7 +33,7 @@ case class GenIdeaImpl(
       .getOrElse(("JDK_1_8", "1.8 (1)"))
 
     ctx.log.info("Analyzing modules ...")
-    val layout: Seq[(SubPath, Node)] =
+    val layout: Seq[(os.SubPath, Node)] =
       xmlFileLayout(evaluators, jdkInfo)
 
     ctx.log.debug("Cleaning obsolete IDEA project files ...")
@@ -102,7 +101,7 @@ case class GenIdeaImpl(
 //        .toSeq
 //        .distinct
 
-    val buildLibraryPaths: immutable.Seq[Path] = {
+    val buildLibraryPaths: immutable.Seq[os.Path] = {
       if (!fetchMillModules) Nil
       else {
         val moduleRepos = modulesByEvaluator.toSeq.flatMap { case (ev, modules) =>
@@ -197,7 +196,7 @@ case class GenIdeaImpl(
             }
 
             T.task {
-              val resolvedCp: Agg[Scoped[Path]] =
+              val resolvedCp: Agg[Scoped[os.Path]] =
                 externalDependencies().map(_.path).map(Scoped(_, None)) ++
                   extCompileIvyDeps()
                     .map(_.path)
@@ -251,14 +250,14 @@ case class GenIdeaImpl(
 
     val moduleLabels = modules.map { case (s, m, e) => (m, s) }.toMap
 
-    val allResolved: Seq[Path] =
+    val allResolved: Seq[os.Path] =
       (resolvedModules.flatMap(_.classpath).map(_.value) ++ buildLibraryPaths ++ buildDepsPaths)
         .distinct
         .sorted
 
-    val librariesProperties: Map[Path, Agg[Path]] =
+    val librariesProperties: Map[os.Path, Agg[os.Path]] =
       resolvedModules
-        .flatMap(x => x.libraryClasspath.map(_ -> x.compilerClasspath))
+        .flatMap(rm => rm.libraryClasspath.map(_ -> rm.compilerClasspath))
         .toMap
 
     val (wholeFileConfigs, configFileContributions) =
@@ -267,20 +266,20 @@ case class GenIdeaImpl(
         .partition(_.asWholeFile.isDefined)
 
     // whole file
-    val ideaWholeConfigFiles: Seq[(SubPath, Elem)] =
+    val ideaWholeConfigFiles: Seq[(os.SubPath, Elem)] =
       wholeFileConfigs.flatMap(_.asWholeFile).map { wf =>
         os.sub / wf._1 -> ideaConfigElementTemplate(wf._2)
       }
 
-    type FileComponent = (SubPath, Option[String])
+    type FileComponent = (os.SubPath, Option[String])
 
     /** Ensure, the additional configs don't collide. */
     def collisionFreeExtraConfigs(
         confs: Seq[IdeaConfigFile]
-    ): Map[SubPath, Seq[IdeaConfigFile]] = {
+    ): Map[os.SubPath, Seq[IdeaConfigFile]] = {
 
       var seen: Map[FileComponent, Seq[GenIdeaModule.Element]] = Map()
-      var result: Map[SubPath, Seq[IdeaConfigFile]] = Map()
+      var result: Map[os.SubPath, Seq[IdeaConfigFile]] = Map()
       confs.foreach { conf =>
         val key = conf.subPath -> conf.component
         seen.get(key) match {
@@ -307,7 +306,7 @@ case class GenIdeaImpl(
       result
     }
 
-    val fileComponentContributions: Seq[(SubPath, Elem)] =
+    val fileComponentContributions: Seq[(os.SubPath, Elem)] =
       collisionFreeExtraConfigs(configFileContributions).toSeq.map {
         case (file, configs) =>
           val map: Map[Option[String], Seq[GenIdeaModule.Element]] =
@@ -340,7 +339,7 @@ case class GenIdeaImpl(
     type ArtifactAndVersion = (String, String)
 
     def guessJarArtifactNameAndVersionFromPath(
-        path: Path
+        path: os.Path
     ): Option[ArtifactAndVersion] =
       Try {
         // in a local maven repo or a local Coursier repo,
@@ -444,7 +443,7 @@ case class GenIdeaImpl(
           r + (key -> (r.getOrElse(key, Vector()) :+ q.module))
       }
 
-    val fixedFiles: Seq[(SubPath, Elem)] = Seq(
+    val fixedFiles: Seq[(os.SubPath, Elem)] = Seq(
       Tuple2(os.sub / "misc.xml", miscXmlTemplate(jdkInfo)),
       Tuple2(os.sub / "scala_settings.xml", scalaSettingsTemplate()),
       Tuple2(
@@ -471,7 +470,7 @@ case class GenIdeaImpl(
       name.replaceAll("""[-.:]""", "_")
     }
 
-    val libraries: Seq[(SubPath, Elem)] =
+    val libraries: Seq[(os.SubPath, Elem)] =
       resolvedLibraries(allResolved).flatMap { resolved =>
         val names = libraryNames(resolved)
         val sources = resolved match {
@@ -481,7 +480,7 @@ case class GenIdeaImpl(
         }
         for (name <- names)
           yield {
-            val compilerCp: Agg[Path] = librariesProperties.getOrElse(resolved.path, Agg.empty)
+            val compilerCp: Agg[os.Path] = librariesProperties.getOrElse(resolved.path, Agg.empty)
             val languageLevel = name match {
               case _ if compilerCp.iterator.isEmpty => None
               case _ if name.startsWith("scala3-library_3-3.3.") => Some("Scala_3_3")
@@ -509,7 +508,7 @@ case class GenIdeaImpl(
           }
       }
 
-    val moduleFiles: Seq[(SubPath, Elem)] = resolvedModules.map {
+    val moduleFiles: Seq[(os.SubPath, Elem)] = resolvedModules.map {
       case ResolvedModule(
             path,
             resolvedDeps,
@@ -557,7 +556,7 @@ case class GenIdeaImpl(
 
         val sanizedDeps: Seq[ScopedOrd[String]] = {
           resolvedDeps
-            .map((s: Scoped[Path]) => pathToLibName(s.value) -> s.scope)
+            .map((s: Scoped[os.Path]) => pathToLibName(s.value) -> s.scope)
             .iterator
             .toSeq
             .groupBy(_._1)
@@ -727,31 +726,49 @@ case class GenIdeaImpl(
     </module>
   }
 
-  /** Try to make the file path a relative JAR URL (to PROJECT_DIR). */
+  /** Try to make the file path a relative JAR URL (to PROJECT_DIR or HOME_DIR). */
   def relativeJarUrl(path: os.Path): String = {
     // When coursier cache dir is on different logical drive than project dir
     // we can not use a relative path. See issue: https://github.com/lihaoyi/mill/issues/905
-    val relPath = relForwardPath(path, "$PROJECT_DIR$/")
+    val relPath = relForwardPath(path)
     if (path.ext == "jar") "jar://" + relPath + "!/" else "file://" + relPath
   }
 
-  /** Try to make the file path a relative URL (to PROJECT_DIR). */
-  def relativeFileUrl(path: Path): String = {
+  /** Try to make the file path a relative URL (to PROJECT_DIR or HOME_DIR). */
+  def relativeFileUrl(path: os.Path): String = {
     // When coursier cache dir is on different logical drive than project dir
     // we can not use a relative path. See issue: https://github.com/lihaoyi/mill/issues/905
-    "file://" + relForwardPath(path, "$PROJECT_DIR$/")
+    "file://" + relForwardPath(path)
   }
 
-  private def relForwardPath(path: os.Path, prefix: String): String = {
+  private val projectDir = (workDir, "$PROJECT_DIR$/")
+  private val homeDir = (os.home, "$USER_HOME$/")
+
+  private def relForwardPath(path: os.Path): String = {
+
     def forward(p: os.FilePath): String = p.toString().replace("""\""", "/")
-    Try(prefix + forward(path.relativeTo(workDir))).getOrElse(forward(path))
+
+    val relToProjectDir = Try(projectDir._2 + forward(path.relativeTo(projectDir._1)))
+    val relToHomeDir = Try(homeDir._2 + forward(path.relativeTo(homeDir._1)))
+
+    (relToProjectDir, relToHomeDir) match {
+      // We seem to be outside of project-dir but inside home dir, so use releative path to home dir
+      case (Success(p1), Success(p2)) if p1.contains("..") && !p2.contains("..") => p2
+      // default to project-dir-relative
+      case (Success(p), _) => p
+      // if that fails, use home-dir-relative, which might fix cases on Windows
+      // where the home-dir is not on the same drive as the project-dir
+      case (_, Success(p)) => p
+      // Use the absolute path
+      case _ => forward(path)
+    }
   }
 
   def libraryXmlTemplate(
       name: String,
       path: os.Path,
       sources: Option[os.Path],
-      scalaCompilerClassPath: Agg[Path],
+      scalaCompilerClassPath: Agg[os.Path],
       languageLevel: Option[String]
   ): Elem = {
     val isScalaLibrary = scalaCompilerClassPath.iterator.nonEmpty
@@ -990,15 +1007,15 @@ object GenIdeaImpl {
 
   final case class ResolvedModule(
       path: Segments,
-      classpath: Agg[Scoped[Path]],
+      classpath: Agg[Scoped[os.Path]],
       module: JavaModule,
-      pluginClasspath: Agg[Path],
+      pluginClasspath: Agg[os.Path],
       scalaOptions: Seq[String],
-      compilerClasspath: Agg[Path],
-      libraryClasspath: Agg[Path],
+      compilerClasspath: Agg[os.Path],
+      libraryClasspath: Agg[os.Path],
       facets: Seq[JavaFacet],
       configFileContributions: Seq[IdeaConfigFile],
-      compilerOutput: Path,
+      compilerOutput: os.Path,
       evaluator: Evaluator
   )
 
