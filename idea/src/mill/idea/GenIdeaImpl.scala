@@ -759,7 +759,6 @@ case class GenIdeaImpl(
       compilerBridgeJar: Option[os.Path],
       scaladocExtraClasspath: Agg[os.Path]
   ): Elem = {
-    val isScalaLibrary = scalaCompilerClassPath.iterator.nonEmpty
     <component name="libraryTable">
       <library name={name} type="Scala">
         <properties>
