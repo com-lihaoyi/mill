@@ -768,7 +768,6 @@ case class GenIdeaImpl(
       case _ => forward(path)
     }
   }
-  }
 
   def libraryXmlTemplate(
       name: String,
