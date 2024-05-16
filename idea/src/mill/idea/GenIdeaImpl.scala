@@ -258,7 +258,7 @@ case class GenIdeaImpl(
 
     val librariesProperties: Map[Path, Agg[Path]] =
       resolvedModules
-        .flatMap(x => x.libraryClasspath.map(_ -> x.compilerClasspath))
+        .flatMap(rm => rm.libraryClasspath.map(_ -> rm.compilerClasspath))
         .toMap
 
     val (wholeFileConfigs, configFileContributions) =

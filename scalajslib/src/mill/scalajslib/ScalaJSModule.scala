@@ -17,8 +17,6 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def scalaJSVersion: T[String]
 
-  @deprecated("use ScalaJSTests", "0.11.0")
-  type ScalaJSModuleTests = ScalaJSTests
   trait ScalaJSTests extends ScalaTests with TestScalaJSModule {
     override def scalaJSVersion = outer.scalaJSVersion()
     override def moduleKind: Target[ModuleKind] = outer.moduleKind()
@@ -27,6 +25,10 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     override def jsEnvConfig: Target[JsEnvConfig] = outer.jsEnvConfig()
     override def scalaJSOptimizer: Target[Boolean] = outer.scalaJSOptimizer()
   }
+  @deprecated("use ScalaJSTests", "0.11.0")
+  type ScalaJSModuleTests = ScalaJSTests
+  @deprecated("use ScalaJSTests", "0.11.0")
+  trait Tests extends ScalaJSTests
 
   def scalaJSBinaryVersion = T { ZincWorkerUtil.scalaJSBinaryVersion(scalaJSVersion()) }
 
