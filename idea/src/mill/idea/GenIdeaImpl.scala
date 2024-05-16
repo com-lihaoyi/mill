@@ -741,11 +741,6 @@ case class GenIdeaImpl(
     "file://" + relForwardPath(path)
   }
 
-  private def relProjectForwardPath(path: os.Path): String = {
-    def forward(p: os.FilePath): String = p.toString().replace("""\""", "/")
-    Try(projectDir._2 + forward(path.relativeTo(projectDir._1))).getOrElse(forward(path))
-  }
-
   private val projectDir = (workDir, "$PROJECT_DIR$/")
   private val homeDir = (os.home, "$USER_HOME$/")
 
