@@ -20,7 +20,11 @@ trait HelloIdeaModule extends scalalib.ScalaModule {
   }
 }
 
-object HelloIdea extends HelloIdeaModule
+object HelloIdea extends HelloIdeaModule {
+  object scala3 extends HelloIdeaModule {
+    def scalaVersion = "3.3.1"
+  }
+}
 
 object HiddenIdea extends HelloIdeaModule {
   override def skipIdea = true
