@@ -161,18 +161,16 @@ case class GenIdeaImpl(
               mod.resolveDeps(allIvyDeps, sources = true)()
             }
 
-            val (scalacPluginsIvyDeps, allScalacOptions) = mod match {
+            val (scalacPluginsIvyDeps, allScalacOptions, scalaVersion) = mod match {
               case mod: ScalaModule => (
                   T.task(mod.scalacPluginIvyDeps()),
-                  T.task(mod.allScalacOptions())
+                  T.task(mod.allScalacOptions()),
+                  T.task { Some(mod.scalaVersion()) }
                 )
               case _ => (
-                  T.task {
-                    Agg[Dep]()
-                  },
-                  T.task {
-                    Seq()
-                  }
+                  T.task(Agg[Dep]()),
+                  T.task(Seq[String]()),
+                  T.task(None)
                 )
             }
 
@@ -215,6 +213,7 @@ case class GenIdeaImpl(
               val resolvedConfigFileContributions: Seq[IdeaConfigFile] =
                 configFileContributions()
               val resolvedCompilerOutput = compilerOutput()
+              val resolvedScalaVersion = scalaVersion()
 
               ResolvedModule(
                 path = path,
@@ -224,12 +223,13 @@ case class GenIdeaImpl(
                 module = mod,
                 pluginClasspath = resolvedSp.map(_.path).filter(_.ext == "jar"),
                 scalaOptions = scalacOpts,
-                compilerClasspath = resolvedCompilerCp.map(_.path),
+                scalaCompilerClasspath = resolvedCompilerCp.map(_.path),
                 libraryClasspath = resolvedLibraryCp.map(_.path),
                 facets = resolvedFacets,
                 configFileContributions = resolvedConfigFileContributions,
                 compilerOutput = resolvedCompilerOutput.path,
-                evaluator = evaluator
+                evaluator = evaluator,
+                scalaVersion = resolvedScalaVersion
               )
             }
           }
@@ -254,11 +254,6 @@ case class GenIdeaImpl(
       (resolvedModules.flatMap(_.classpath).map(_.value) ++ buildLibraryPaths ++ buildDepsPaths)
         .distinct
         .sorted
-
-    val librariesProperties: Map[os.Path, Agg[os.Path]] =
-      resolvedModules
-        .flatMap(rm => rm.libraryClasspath.map(_ -> rm.compilerClasspath))
-        .toMap
 
     val (wholeFileConfigs, configFileContributions) =
       resolvedModules
@@ -466,8 +461,8 @@ case class GenIdeaImpl(
      * @note `:` in path isn't supported on Windows ~ https://github.com/com-lihaoyi/mill/issues/2243<br>
      *       It comes from [[sbtLibraryNameFromPom]]
      */
-    def libraryNameToFileSystemPathPart(name: String): String = {
-      name.replaceAll("""[-.:]""", "_")
+    def libraryNameToFileSystemPathPart(name: String, ext: String): os.SubPath = {
+      os.sub / s"${name.replaceAll("""[-.:]""", "_")}.${ext}"
     }
 
     val libraries: Seq[(os.SubPath, Elem)] =
@@ -480,47 +475,31 @@ case class GenIdeaImpl(
         }
         for (name <- names)
           yield {
-            val compilerCp: Agg[os.Path] = librariesProperties.getOrElse(resolved.path, Agg.empty)
-            val languageLevel = name match {
-              case _ if compilerCp.iterator.isEmpty => None
-              case _ if name.startsWith("scala3-library_3-3.3.") => Some("Scala_3_3")
-              case _ if name.startsWith("scala3-library_3-3.2.") => Some("Scala_3_2")
-              case _ if name.startsWith("scala3-library_3-3.1.") => Some("Scala_3_1")
-              case _ if name.startsWith("scala3-library_3-3.0.") => Some("Scala_3_0")
-              case _ if name.startsWith("scala-library-2.13.") => Some("Scala_2_13")
-              case _ if name.startsWith("scala-library-2.12.") => Some("Scala_2_12")
-              case _ if name.startsWith("scala-library-2.11.") => Some("Scala_2_11")
-              case _ if name.startsWith("scala-library-2.10.") => Some("Scala_2_10")
-              case _ if name.startsWith("scala-library-2.9.") => Some("Scala_2_9")
-              case _ if name.startsWith("dotty-library-0.27") => Some("Scala_0_27")
-              case _ => None
-            }
             Tuple2(
-              os.sub / "libraries" / s"${libraryNameToFileSystemPathPart(name)}.xml",
+              os.sub / "libraries" / libraryNameToFileSystemPathPart(name, "xml"),
               libraryXmlTemplate(
                 name = name,
                 path = resolved.path,
-                sources = sources,
-                scalaCompilerClassPath = compilerCp,
-                languageLevel = languageLevel
+                sources = sources
               )
             )
           }
       }
 
-    val moduleFiles: Seq[(os.SubPath, Elem)] = resolvedModules.map {
+    val moduleFiles: Seq[(os.SubPath, Elem)] = resolvedModules.flatMap {
       case ResolvedModule(
             path,
             resolvedDeps,
             mod,
             _,
             _,
-            _,
+            compilerClasspath,
             _,
             facets,
             _,
             compilerOutput,
-            evaluator
+            evaluator,
+            scalaVersion
           ) =>
         val Seq(
           resourcesPathRefs: Seq[PathRef],
@@ -540,19 +519,6 @@ case class GenIdeaImpl(
         val normalSourcePaths = (allSourcesPathRefs
           .map(_.path)
           .toSet -- generatedSourcePaths.toSet).toSeq
-
-        val scalaVersionOpt = mod match {
-          case x: ScalaModule =>
-            Some(
-              evaluator.evalOrThrow(
-                exceptionFactory = r =>
-                  GenIdeaException(
-                    s"Failure during evaluation of the scalaVersion: ${Evaluator.formatFailing(r)}"
-                  )
-              )(x.scalaVersion)
-            )
-          case _ => None
-        }
 
         val sanizedDeps: Seq[ScopedOrd[String]] = {
           resolvedDeps
@@ -592,9 +558,9 @@ case class GenIdeaImpl(
 
         val isTest = mod.isInstanceOf[TestModule]
 
-        val elem = moduleXmlTemplate(
+        val moduleXml = moduleXmlTemplate(
           basePath = mod.intellijModulePath,
-          scalaVersionOpt = scalaVersionOpt,
+          scalaVersionOpt = scalaVersion,
           resourcePaths = Strict.Agg.from(resourcesPathRefs.map(_.path)),
           normalSourcePaths = Strict.Agg.from(normalSourcePaths),
           generatedSourcePaths = Strict.Agg.from(generatedSourcePaths),
@@ -605,10 +571,32 @@ case class GenIdeaImpl(
           facets = facets
         )
 
-        Tuple2(
+        val moduleFile = Tuple2(
           os.sub / "mill_modules" / s"${moduleName(path)}.iml",
-          elem
+          moduleXml
         )
+
+        val scalaSdkFile = {
+          Option.when(scalaVersion.isDefined && compilerClasspath.nonEmpty) {
+            val name = s"scala-SDK-${scalaVersion.get}"
+            val languageLevel =
+              scalaVersion.map(_.split("[.]", 3).take(2).mkString("Scala_", "_", ""))
+
+            Tuple2(
+              os.sub / "libraries" / libraryNameToFileSystemPathPart(name, "xml"),
+              scalaSdkTemplate(
+                name = name,
+                languageLevel = languageLevel,
+                scalaCompilerClassPath = compilerClasspath,
+                // FIXME: fill in these fields
+                compilerBridgeJar = None,
+                scaladocExtraClasspath = None
+              )
+            )
+          }
+        }
+
+        Seq(moduleFile) ++ scalaSdkFile
     }
 
     {
@@ -764,32 +752,43 @@ case class GenIdeaImpl(
     }
   }
 
+  def scalaSdkTemplate(
+      name: String,
+      languageLevel: Option[String],
+      scalaCompilerClassPath: Agg[os.Path],
+      compilerBridgeJar: Option[os.Path],
+      scaladocExtraClasspath: Agg[os.Path]
+  ): Elem = {
+    <component name="libraryTable">
+      <library name={name} type="Scala">
+        <properties>
+            {
+      if (languageLevel.isDefined) <language-level>{languageLevel.get}</language-level>
+    }
+            <compiler-classpath>
+              {
+      scalaCompilerClassPath.iterator.toSeq.sortBy(_.wrapped).map(p =>
+        <root url={relativeFileUrl(p)}/>
+      )
+    }
+            </compiler-classpath>
+          {
+      if (compilerBridgeJar.isDefined) <compiler-bridge-binary-jar>{
+        relativeFileUrl(compilerBridgeJar.get)
+      }</compiler-bridge-binary-jar>
+    }
+        </properties>
+      </library>
+    </component>
+  }
+
   def libraryXmlTemplate(
       name: String,
       path: os.Path,
-      sources: Option[os.Path],
-      scalaCompilerClassPath: Agg[os.Path],
-      languageLevel: Option[String]
+      sources: Option[os.Path]
   ): Elem = {
-    val isScalaLibrary = scalaCompilerClassPath.iterator.nonEmpty
     <component name="libraryTable">
-      <library name={name} type={if (isScalaLibrary) "Scala" else null}>
-        {
-      if (isScalaLibrary) {
-        <properties>
-        {
-          if (languageLevel.isDefined) <language-level>{languageLevel.get}</language-level>
-        }
-        <compiler-classpath>
-            {
-          scalaCompilerClassPath.iterator.toSeq.sortBy(_.wrapped).map(p =>
-            <root url={relativeFileUrl(p)}/>
-          )
-        }
-          </compiler-classpath>
-        </properties>
-      }
-    }
+      <library name={name}>
         <CLASSES>
           <root url={relativeJarUrl(path)}/>
         </CLASSES>
@@ -892,6 +891,11 @@ case class GenIdeaImpl(
     }
         <orderEntry type="inheritedJdk" />
         <orderEntry type="sourceFolder" forTests="false" />
+        {
+      for {
+        scalaVersion <- scalaVersionOpt.toSeq
+      } yield <orderEntry type="library" name={s"scala-SDK-${scalaVersion}"} level="project" />
+    }
 
         {
       for (name <- libNames.sorted)
@@ -1011,12 +1015,13 @@ object GenIdeaImpl {
       module: JavaModule,
       pluginClasspath: Agg[os.Path],
       scalaOptions: Seq[String],
-      compilerClasspath: Agg[os.Path],
+      scalaCompilerClasspath: Agg[os.Path],
       libraryClasspath: Agg[os.Path],
       facets: Seq[JavaFacet],
       configFileContributions: Seq[IdeaConfigFile],
       compilerOutput: os.Path,
-      evaluator: Evaluator
+      evaluator: Evaluator,
+      scalaVersion: Option[String]
   )
 
   case class GenIdeaException(msg: String) extends RuntimeException
