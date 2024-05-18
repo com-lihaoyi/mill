@@ -1,0 +1,36 @@
+## Our purpose here is only to check that the devcontainer remains valid, cached and current.
+## So
+## - We will not run the tests. We only build on push to main.
+##
+
+name: 'build'
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout (GitHub)
+        uses: actions/checkout@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and run Dev Container task
+        uses: devcontainers/ci@v0.3
+        with:
+          # Change this to point to your image name
+          imageName: ghcr.io/example/example-devcontainer
+          # Change this to be your CI task/script
+          runCmd: |
+            # Add multiple commands to run if needed
+            make install-packages
+            make ci-build

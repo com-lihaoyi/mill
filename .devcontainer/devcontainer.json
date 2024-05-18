@@ -11,9 +11,12 @@
 				"usernamehw.errorlens",
 				"vscjava.vscode-java-pack",
 				"github.copilot",
+				"github.copilot-chat",
 				"github.vscode-github-actions",
 				"github.vscode-pull-request-github",
-				"eamodio.gitlens"
+				"eamodio.gitlens",
+				"ms-vscode-remote.remote-containers",
+				"github.vscode-pull-request-github"
 			]
 		}
 	},
