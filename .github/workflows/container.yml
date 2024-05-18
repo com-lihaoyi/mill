@@ -5,6 +5,8 @@
 ## - We will not run the tests. We only build on push to main.
 ##
 
+permissions: write-all
+
 name: 'build'
 on:
   push:
