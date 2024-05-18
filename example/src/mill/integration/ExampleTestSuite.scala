@@ -1,8 +1,11 @@
 package mill.example
 import mill.integration.{BashTokenizer, IntegrationTestSuite}
-import utest._
 import mill.util.Util
+import utest._
 
+import java.util.concurrent.{Executors, TimeoutException}
+import scala.annotation.tailrec
+import scala.concurrent.duration.DurationInt
 import scala.util.chaining.scalaUtilChainingOps
 
 /**
@@ -46,18 +49,41 @@ object ExampleTestSuite extends IntegrationTestSuite {
   val tests: Tests = Tests {
     val workspaceRoot = initWorkspace()
 
+    val testTimeout = 5.minutes
+
+    // Integration tests sometime hang on CI
+    // The idea is to just abort and retry them after a reasonable amount of time
+    @tailrec def retryOnTimeout[T](n: Int)(body: => T): T = {
+
+      // We use Java Future here, as it supports cancellation
+      val executor = Executors.newFixedThreadPool(1)
+      val fut = executor.submit { () => body }
+
+      try fut.get(testTimeout.length, testTimeout.unit)
+      catch {
+        case e: TimeoutException =>
+          fut.cancel(true)
+          if (n > 0) {
+            Console.err.println(s"Timeout occurred (${testTimeout}). Retrying...")
+            retryOnTimeout(n - 1)(body)
+          } else throw e
+      }
+
+    }
+
     test("exampleUsage") {
-      try {
-        val parsed = upickle.default.read[Seq[(String, String)]](sys.env("MILL_EXAMPLE_PARSED"))
-        val usageComment = parsed.collect { case ("example", txt) => txt }.mkString("\n\n")
-        val commandBlocks = ("\n" + usageComment.trim).split("\n> ").filter(_.nonEmpty)
+      val parsed = upickle.default.read[Seq[(String, String)]](sys.env("MILL_EXAMPLE_PARSED"))
+      val usageComment = parsed.collect { case ("example", txt) => txt }.mkString("\n\n")
+      val commandBlocks = ("\n" + usageComment.trim).split("\n> ").filter(_.nonEmpty)
 
-        for (commandBlock <- commandBlocks) processCommandBlock(workspaceRoot, commandBlock)
-
-        if (integrationTestMode != "fork") evalStdout("shutdown")
-      } finally {
-        try os.remove.all(workspaceRoot / "out")
-        catch { case e: Throwable => /*do nothing*/ }
+      retryOnTimeout(3) {
+        try {
+          for (commandBlock <- commandBlocks) processCommandBlock(workspaceRoot, commandBlock)
+          if (integrationTestMode != "fork") evalStdout("shutdown")
+        } finally {
+          try os.remove.all(workspaceRoot / "out")
+          catch { case e: Throwable => /*do nothing*/ }
+        }
       }
     }
   }

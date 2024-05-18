@@ -3,8 +3,8 @@ package mill.contrib.scoverage
 import coursier.Repository
 import mill._
 import mill.api.{Loose, PathRef, Result}
-import mill.main.BuildInfo
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi.ReportType
+import mill.main.BuildInfo
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.{Dep, DepSyntax, JavaModule, ScalaModule}
 import mill.util.Util.millProjectModule
@@ -188,6 +188,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
       PathRef(T.dest)
     }
 
+    override def compileResources: T[Seq[PathRef]] = outer.compileResources
     override def generatedSources: Target[Seq[PathRef]] = T { outer.generatedSources() }
     override def allSources: Target[Seq[PathRef]] = T { outer.allSources() }
     override def moduleDeps: Seq[JavaModule] = outer.moduleDeps
@@ -225,30 +226,24 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     def xmlCoberturaReport(): Command[Unit] = T.command { doReport(ReportType.XmlCobertura) }
     def consoleReport(): Command[Unit] = T.command { doReport(ReportType.Console) }
 
-    override def skipIdea = outer.skipIdea
+    override def skipIdea = true
   }
 
   trait ScoverageTests extends ScalaTests {
-    override def upstreamAssemblyClasspath = T {
-      super.upstreamAssemblyClasspath() ++
-        resolveDeps(T.task {
-          outer.scoverageRuntimeDeps().map(bindDependency())
-        })()
-    }
-    override def compileClasspath = T {
-      super.compileClasspath() ++
-        resolveDeps(T.task {
-          outer.scoverageRuntimeDeps().map(bindDependency())
-        })()
-    }
-    override def runClasspath = T {
-      super.runClasspath() ++
-        resolveDeps(T.task {
-          outer.scoverageRuntimeDeps().map(bindDependency())
-        })()
-    }
 
-    // Need the sources compiled with scoverage instrumentation to run.
-    override def moduleDeps: Seq[JavaModule] = Seq(outer.scoverage)
+    /**
+     * Alter classpath from upstream modules by replacing in-place outer module
+     * classes folder by the outer.scoverage classes folder and adding the
+     * scoverage runtime dependency.
+     */
+    override def runClasspath: T[Seq[PathRef]] = T {
+      val outerClassesPath = outer.compile().classes
+      val outerScoverageClassesPath = outer.scoverage.compile().classes
+      (super.runClasspath().map { path =>
+        if (outerClassesPath == path) outerScoverageClassesPath else path
+      } ++ resolveDeps(T.task {
+        outer.scoverageRuntimeDeps().map(bindDependency())
+      })()).distinct
+    }
   }
 }

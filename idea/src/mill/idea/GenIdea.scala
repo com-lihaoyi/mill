@@ -12,7 +12,7 @@ object GenIdea extends ExternalModule {
   def idea(allBootstrapEvaluators: Evaluator.AllBootstrapEvaluators): Command[Unit] = T.command {
     try {
       Result.Success(GenIdeaImpl(
-        evaluators = Evaluator.allBootstrapEvaluators.value.value
+        evaluators = allBootstrapEvaluators.value
       ).run())
     } catch {
       case GenIdeaImpl.GenIdeaException(m) => Result.Failure(m)

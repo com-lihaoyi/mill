@@ -52,7 +52,7 @@ object Settings {
 object Deps {
 
   // The Scala version to use
-  val scalaVersion = "2.13.13"
+  val scalaVersion = "2.13.14"
   // Scoverage 1.x will not get releases for newer Scala versions
   val scalaVersionForScoverageWorker1 = "2.13.8"
   // The Scala 2.12.x version to use for some workers
@@ -78,6 +78,7 @@ object Deps {
     val scalajsEnvSelenium = ivy"org.scala-js::scalajs-env-selenium:1.1.1"
     val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:${scalaJsVersion}"
     val scalajsLinker = ivy"org.scala-js::scalajs-linker:${scalaJsVersion}"
+    val scalajsImportMap = ivy"com.armanbilge::scalajs-importmap:0.1.1"
   }
 
   object Scalanative_0_4 {
@@ -89,7 +90,7 @@ object Deps {
   }
 
   object Scalanative_0_5 {
-    val scalanativeVersion = "0.5.0-RC2"
+    val scalanativeVersion = "0.5.0"
     val scalanativeTools = ivy"org.scala-native::tools:${scalanativeVersion}"
     val scalanativeUtil = ivy"org.scala-native::util:${scalanativeVersion}"
     val scalanativeNir = ivy"org.scala-native::nir:${scalanativeVersion}"
@@ -125,12 +126,12 @@ object Deps {
   val play =
     Seq(Play_3_0, Play_2_9, Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
 
-  val acyclic = ivy"com.lihaoyi:::acyclic:0.3.11"
-  val ammoniteVersion = "3.0.0-M1"
-  val asmTree = ivy"org.ow2.asm:asm-tree:9.6"
+  val acyclic = ivy"com.lihaoyi:::acyclic:0.3.12"
+  val ammoniteVersion = "3.0.0-M1-19-a7973e17"
+  val asmTree = ivy"org.ow2.asm:asm-tree:9.7"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
 
-  val coursier = ivy"io.get-coursier::coursier:2.1.9"
+  val coursier = ivy"io.get-coursier::coursier:2.1.10"
   val coursierInterface = ivy"io.get-coursier:interface:1.0.19"
 
   val cask = ivy"com.lihaoyi::cask:0.9.1"
@@ -138,7 +139,7 @@ object Deps {
   val fastparse = ivy"com.lihaoyi::fastparse:3.0.2"
   val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
   val graphvizJava = ivy"guru.nidi:graphviz-java-all-j2v8:0.18.1"
-  val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.9.0"
+  val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.9.1"
 
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.4.0" // 1.5.0+ dont support JDK8
 
@@ -150,9 +151,9 @@ object Deps {
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.3"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.8.0"
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.23.0"
-  val osLib = ivy"com.lihaoyi::os-lib:0.9.3"
+  val osLib = ivy"com.lihaoyi::os-lib:0.10.0"
   val pprint = ivy"com.lihaoyi::pprint:0.8.1"
-  val mainargs = ivy"com.lihaoyi::mainargs:0.6.2"
+  val mainargs = ivy"com.lihaoyi::mainargs:0.6.3"
   val millModuledefsVersion = "0.10.9"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = ivy"${millModuledefsString}"
@@ -168,7 +169,7 @@ object Deps {
   def scalap(scalaVersion: String) = ivy"org.scala-lang:scalap:${scalaVersion}"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   val scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
-  val scoverage2Version = "2.1.0"
+  val scoverage2Version = "2.1.1"
   val scalacScoverage2Plugin = ivy"org.scoverage:::scalac-scoverage-plugin:${scoverage2Version}"
   val scalacScoverage2Reporter = ivy"org.scoverage::scalac-scoverage-reporter:${scoverage2Version}"
   val scalacScoverage2Domain = ivy"org.scoverage::scalac-scoverage-domain:${scoverage2Version}"
@@ -176,24 +177,26 @@ object Deps {
     ivy"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
   val scalaparse = ivy"com.lihaoyi::scalaparse:${fastparse.version}"
   val scalatags = ivy"com.lihaoyi::scalatags:0.12.0"
+  def scalaXml = ivy"org.scala-lang.modules::scala-xml:2.2.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.9.2"
-  val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.9.9"
+  val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.9.3"
+  val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.9.10"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.1"
   val upickle = ivy"com.lihaoyi::upickle:3.2.0"
   val utest = ivy"com.lihaoyi::utest:0.8.2"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.5"
-  val zinc = ivy"org.scala-sbt::zinc:1.9.6"
+  val zinc = ivy"org.scala-sbt::zinc:1.10.0"
   // keep in sync with doc/antora/antory.yml
   val bsp4j = ivy"ch.epfl.scala:bsp4j:2.2.0-M2"
   val fansi = ivy"com.lihaoyi::fansi:0.4.0"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.0"
-  val requests = ivy"com.lihaoyi::requests:0.8.0"
+  val requests = ivy"com.lihaoyi::requests:0.8.2"
+
 
   /** Used to manage transitive versions. */
   val transitiveDeps = Seq(
     ivy"org.apache.ant:ant:1.10.14",
-    ivy"commons-io:commons-io:2.15.1",
+    ivy"commons-io:commons-io:2.16.1",
     ivy"com.google.code.gson:gson:2.10.1",
     ivy"com.google.protobuf:protobuf-java:3.25.3",
     ivy"com.google.guava:guava:33.1.0-jre",
@@ -352,6 +355,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
 trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModule { outer =>
   def scalaVersion = Deps.scalaVersion
   def scalafixScalaBinaryVersion = ZincWorkerUtil.scalaBinaryVersion(scalaVersion())
+  def semanticDbVersion = Deps.semanticDBscala.version
   def scalacOptions =
     super.scalacOptions() ++ Seq(
       "-deprecation",
@@ -728,7 +732,7 @@ def formatDep(dep: Dep) = {
 
 object scalalib extends MillStableScalaModule {
   def moduleDeps = Seq(main, scalalib.api, testrunner)
-  def ivyDeps = Agg(Deps.scalafmtDynamic)
+  def ivyDeps = Agg(Deps.scalafmtDynamic, Deps.scalaXml)
   def testIvyDeps = super.testIvyDeps() ++ Agg(Deps.scalaCheck)
   def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(worker.testDep())
 
@@ -795,7 +799,8 @@ object scalajslib extends MillStableScalaModule with BuildInfo {
         formatDep(Deps.Scalajs_1.scalajsEnvExoegoJsdomNodejs)
       ),
       BuildInfo.Value("scalajsEnvPhantomJs", formatDep(Deps.Scalajs_1.scalajsEnvPhantomjs)),
-      BuildInfo.Value("scalajsEnvSelenium", formatDep(Deps.Scalajs_1.scalajsEnvSelenium))
+      BuildInfo.Value("scalajsEnvSelenium", formatDep(Deps.Scalajs_1.scalajsEnvSelenium)),
+      BuildInfo.Value("scalajsImportMap", formatDep(Deps.Scalajs_1.scalajsImportMap))
     )
   }
 
@@ -816,7 +821,8 @@ object scalajslib extends MillStableScalaModule with BuildInfo {
       Deps.Scalajs_1.scalajsEnvJsdomNodejs,
       Deps.Scalajs_1.scalajsEnvExoegoJsdomNodejs,
       Deps.Scalajs_1.scalajsEnvPhantomjs,
-      Deps.Scalajs_1.scalajsEnvSelenium
+      Deps.Scalajs_1.scalajsEnvSelenium,
+      Deps.Scalajs_1.scalajsImportMap
     )
   }
 }

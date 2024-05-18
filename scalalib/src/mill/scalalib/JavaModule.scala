@@ -18,6 +18,8 @@ import mill.scalalib.publish.Artifact
 import mill.util.Jvm
 import os.{Path, ProcessOutput}
 
+import scala.annotation.nowarn
+
 /**
  * Core configuration required to compile a single Java compilation target
  */
@@ -569,11 +571,31 @@ trait JavaModule
    *
    * This should allow much faster assembly creation in the common case where
    * upstream dependencies do not change
+   *
+   * This implementation is deprecated because of it's return value.
+   * Please use [[upstreamAssembly2]] instead.
    */
+  @deprecated("Use upstreamAssembly2 instead, which has a richer return value", "Mill 0.11.8")
   def upstreamAssembly: T[PathRef] = T {
-    Assembly.createAssembly(
-      upstreamAssemblyClasspath().map(_.path),
-      manifest(),
+    T.log.error(
+      s"upstreamAssembly target is deprecated and should no longer used." +
+        s" Please make sure to use upstreamAssembly2 instead."
+    )
+    upstreamAssembly2().pathRef
+  }
+
+  /**
+   * Build the assembly for upstream dependencies separate from the current
+   * classpath
+   *
+   * This should allow much faster assembly creation in the common case where
+   * upstream dependencies do not change
+   */
+  def upstreamAssembly2: T[Assembly] = T {
+    Assembly.create(
+      destJar = T.dest / "out.jar",
+      inputPaths = upstreamAssemblyClasspath().map(_.path),
+      manifest = manifest(),
       assemblyRules = assemblyRules
     )
   }
@@ -583,13 +605,45 @@ trait JavaModule
    * classfiles from this module and all it's upstream modules and dependencies
    */
   def assembly: T[PathRef] = T {
-    Assembly.createAssembly(
+    // detect potential inconsistencies due to `upstreamAssembly` deprecation after 0.11.7
+    if (
+      (upstreamAssembly.ctx.enclosing: @nowarn) != s"${classOf[JavaModule].getName}#upstreamAssembly"
+    ) {
+      T.log.error(
+        s"${upstreamAssembly.ctx.enclosing: @nowarn} is overriding a deprecated target which is no longer used." +
+          s" Please make sure to override upstreamAssembly2 instead."
+      )
+    }
+
+    val prependScript = Option(prependShellScript()).filter(_ != "")
+    val upstream = upstreamAssembly2()
+
+    val created = Assembly.create(
+      destJar = T.dest / "out.jar",
       Agg.from(localClasspath().map(_.path)),
       manifest(),
-      prependShellScript(),
-      Some(upstreamAssembly().path),
+      prependScript,
+      Some(upstream.pathRef.path),
       assemblyRules
     )
+    // See https://github.com/com-lihaoyi/mill/pull/2655#issuecomment-1672468284
+    val problematicEntryCount = 65535
+    if (
+      prependScript.isDefined &&
+      (upstream.addedEntries + created.addedEntries) > problematicEntryCount
+    ) {
+      Result.Failure(
+        s"""The created assembly jar contains more than ${problematicEntryCount} ZIP entries.
+           |JARs of that size are known to not work correctly with a prepended shell script.
+           |Either reduce the entries count of the assembly or disable the prepended shell script with:
+           |
+           |  def prependShellScript = ""
+           |""".stripMargin,
+        Some(created.pathRef)
+      )
+    } else {
+      Result.Success(created.pathRef)
+    }
   }
 
   /**
