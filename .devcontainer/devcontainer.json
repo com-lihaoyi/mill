@@ -33,6 +33,6 @@
 	},
 
 	// Try do do as much as possible in advance, so that the container starts up and imports the build quickly
-	"onCreateCommand": "mill -j 0 __.prepareOffline && mill -j 0 __.compile && mill mill.bsp.BSP/install && mill --import ivy:com.lihaoyi::mill-contrib-bloop:  mill.contrib.bloop.Bloop/install"
+	// "onCreateCommand": "mill -j 0 __.prepareOffline && mill -j 0 __.compile && mill mill.bsp.BSP/install && mill --import ivy:com.lihaoyi::mill-contrib-bloop:  mill.contrib.bloop.Bloop/install"
 
 }
