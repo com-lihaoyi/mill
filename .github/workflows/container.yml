@@ -7,7 +7,7 @@
 
 permissions: write-all
 
-name: 'build'
+name: 'dev_container_check'
 on:
   push:
     branches:
@@ -36,5 +36,6 @@ jobs:
           # Change this to be your CI task/script
           runCmd: |
             # Add multiple commands to run if needed
-            ./mill -v
-            ./mill __.compile
+            cs version
+            mill -v
+            mill __.compile

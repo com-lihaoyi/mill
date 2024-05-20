@@ -3,7 +3,7 @@
 {
 	"name": "Ubuntu",
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "mcr.microsoft.com/devcontainers/base:jammy",
+  "image": "mcr.microsoft.com/devcontainers/base:jammy",
 	"customizations": {
 		"vscode": {
 			"extensions": [
@@ -19,7 +19,7 @@
 				"github.vscode-pull-request-github"
 			]
 		}
-	},
+  },
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	"features": {
@@ -27,18 +27,11 @@
 			"version":17
 		},
 		"ghcr.io/devcontainers/features/node:1":{
-		}
+		},
+		"./features/mill": {}
 	},
 
-	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [],
+	// Try do do as much as possible in advance, so that the container starts up and imports the build quickly
+	"onCreateCommand": "mill -j 0 __.prepareOffline && mill -j 0 __.compile && mill mill.bsp.BSP/install && mill --import ivy:com.lihaoyi::mill-contrib-bloop:  mill.contrib.bloop.Bloop/install"
 
-	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "./mill -v && ./mill __.prepareOffline && ./mill mill.bsp.BSP/install && ./mill __.compile"
-
-	// Configure tool-specific properties.
-	// "customizations": {},
-
-	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-	// "remoteUser": "root"
 }
