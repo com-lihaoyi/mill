@@ -27,6 +27,7 @@
 			"version":17
 		},
 		"ghcr.io/devcontainers/features/node:1":{
+			"version":"lts"
 		},
 		"./features/mill": {}
 	},
