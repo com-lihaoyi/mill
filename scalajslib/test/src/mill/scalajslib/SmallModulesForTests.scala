@@ -13,7 +13,8 @@ object SmallModulesForTests extends TestSuite {
     object smallModulesForModule extends ScalaJSModule {
       override def millSourcePath = workspacePath
       override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
-      override def scalaJSVersion = "1.10.0"
+      override def scalaJSVersion =
+        sys.props.getOrElse("TEST_SCALAJS_VERSION", ???) // at least "1.10.0"
       override def moduleKind = ModuleKind.ESModule
       override def moduleSplitStyle = ModuleSplitStyle.SmallModulesFor(List("app"))
     }
@@ -30,17 +31,20 @@ object SmallModulesForTests extends TestSuite {
 
     test("ModuleSplitStyle.SmallModulesFor") {
       println(evaluator(SmallModulesForModule.smallModulesForModule.sources))
-      val Right((report, _)) =
-        evaluator(SmallModulesForModule.smallModulesForModule.fastLinkJS)
+
+      val Right((report, _)) = evaluator(SmallModulesForModule.smallModulesForModule.fastLinkJS)
       val publicModules = report.publicModules
       test("it should have a single publicModule") {
         assert(publicModules.size == 1)
       }
-      val modulesLength = os.list(report.dest.path).length
       test("my.Foo should not have its own file since it is in a separate package") {
         assert(!os.exists(report.dest.path / "otherpackage.Foo.js"))
       }
-      assert(modulesLength == 10)
+      println(os.list(report.dest.path))
+      val modulesLength = os.list(report.dest.path).length
+
+      // this changed from 10 to 8 after Scala JS version 1.13
+      assert(modulesLength == 8)
     }
   }
 

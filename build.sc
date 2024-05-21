@@ -58,7 +58,7 @@ object Deps {
   // The Scala 2.12.x version to use for some workers
   val workerScalaVersion212 = "2.12.19"
 
-  val testScala213Version = "2.13.10"
+  val testScala213Version = "2.13.14"
   // Scala Native 4.2 will not get releases for new Scala version
   val testScala213VersionForScalaNative42 = "2.13.8"
   val testScala212Version = "2.12.6"
@@ -179,7 +179,7 @@ object Deps {
   val scalatags = ivy"com.lihaoyi::scalatags:0.12.0"
   def scalaXml = ivy"org.scala-lang.modules::scala-xml:2.2.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.9.3"
+  val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.9.4"
   val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.9.10"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.1"
   val upickle = ivy"com.lihaoyi::upickle:3.2.0"
