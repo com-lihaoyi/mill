@@ -136,7 +136,7 @@ object Deps {
 
   val cask = ivy"com.lihaoyi::cask:0.9.1"
   val castor = ivy"com.lihaoyi::castor:0.3.0"
-  val fastparse = ivy"com.lihaoyi::fastparse:3.0.2"
+  val fastparse = ivy"com.lihaoyi::fastparse:3.1.0"
   val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
   val graphvizJava = ivy"guru.nidi:graphviz-java-all-j2v8:0.18.1"
   val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.9.1"
@@ -153,7 +153,7 @@ object Deps {
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.23.0"
   val osLib = ivy"com.lihaoyi::os-lib:0.10.0"
   val pprint = ivy"com.lihaoyi::pprint:0.9.0"
-  val mainargs = ivy"com.lihaoyi::mainargs:0.6.3"
+  val mainargs = ivy"com.lihaoyi::mainargs:0.7.0"
   val millModuledefsVersion = "0.10.9"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = ivy"${millModuledefsString}"
@@ -180,7 +180,7 @@ object Deps {
   def scalaXml = ivy"org.scala-lang.modules::scala-xml:2.2.0"
   // keep in sync with doc/antora/antory.yml
   val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.9.3"
-  val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.9.9"
+  val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.9.10"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.1"
   val upickle = ivy"com.lihaoyi::upickle:3.2.0"
   val utest = ivy"com.lihaoyi::utest:0.8.2"
@@ -188,7 +188,7 @@ object Deps {
   val zinc = ivy"org.scala-sbt::zinc:1.10.0"
   // keep in sync with doc/antora/antory.yml
   val bsp4j = ivy"ch.epfl.scala:bsp4j:2.2.0-M2"
-  val fansi = ivy"com.lihaoyi::fansi:0.4.0"
+  val fansi = ivy"com.lihaoyi::fansi:0.5.0"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.0"
   val requests = ivy"com.lihaoyi::requests:0.8.2"
 
