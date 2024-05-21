@@ -13,7 +13,8 @@ object OutputPatternsTests extends TestSuite {
     object outputPatternsModule extends ScalaJSModule {
       override def millSourcePath = workspacePath
       override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
-      override def scalaJSVersion = sys.props.getOrElse("TEST_SCALAJS_VERSION", ???) // at least "1.12.0"
+      override def scalaJSVersion =
+        sys.props.getOrElse("TEST_SCALAJS_VERSION", ???) // at least "1.12.0"
       override def moduleKind = ModuleKind.CommonJSModule
       override def scalaJSOutputPatterns = OutputPatterns.fromJSFile("%s.mjs")
     }
