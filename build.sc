@@ -235,11 +235,9 @@ def millBinPlatform: T[String] = T {
 
 def baseDir = build.millSourcePath
 
-val bridgeScalaVersions = (Seq(
-  Deps.scalaVersion,
-  Deps.scalaVersionForScoverageWorker1,
-  Deps.workerScalaVersion212
-) ++ Seq(
+val essentialBridgeScalaVersions =
+  Seq(Deps.scalaVersion, Deps.scalaVersionForScoverageWorker1, Deps.workerScalaVersion212)
+val bridgeScalaVersions = (essentialBridgeScalaVersions ++ Seq(
   // Our version of Zinc doesn't work with Scala 2.12.0 and 2.12.4 compiler
   // bridges. We skip 2.12.1 because it's so old not to matter, and we need a
   // non-supported scala version for testing purposes. We skip 2.13.0-2 because
@@ -282,9 +280,10 @@ val bridgeScalaVersions = (Seq(
 // if given.
 val compilerBridgeScalaVersions =
   interp.watchValue(sys.env.get("MILL_COMPILER_BRIDGE_VERSIONS")) match {
-    case None => Seq.empty[String]
+    case None | Some("") => Seq.empty[String]
     case Some("all") => bridgeScalaVersions
-    case Some(versions) => versions.split(',').map(_.trim).toSeq
+    case Some("essential") => essentialBridgeScalaVersions
+    case Some(versions) => versions.split(',').map(_.trim()).toSeq
   }
 val bridgeVersion = "0.0.1"
 

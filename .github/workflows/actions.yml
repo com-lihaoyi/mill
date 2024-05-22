@@ -53,7 +53,6 @@ jobs:
               ./mill -i -k __.ivyDepsTree
               ./mill -i -k __.ivyDepsTree --withRuntime
 
-
     uses: ./.github/workflows/run-mill-action.yml
     with:
       java-version: ${{ matrix.java-version }}
@@ -86,10 +85,18 @@ jobs:
           - java-version: 17
             millargs: docs.githubPages
 
+
     uses: ./.github/workflows/run-mill-action.yml
     with:
       java-version: ${{ matrix.java-version }}
       millargs: ${{ matrix.millargs }}
+
+  compiler-bridge:
+    uses: ./.github/workflows/run-mill-action.yml
+    with:
+      java-version: '8'
+      millargs: bridge.__.publishLocal
+      env-bridge-versions: 'essential'
 
   format-check:
     uses: ./.github/workflows/run-mill-action.yml
