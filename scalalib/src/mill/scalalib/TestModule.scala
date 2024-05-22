@@ -387,8 +387,8 @@ object TestModule {
                  failures={testResults.count(_.status == Status.Failure.toString).toString}
                  errors={testResults.count(_.status == Status.Error.toString).toString}
                  skipped={testResults.count(_.status == Status.Skipped.toString).toString}
-                 time={(testResults.map(_.duration).sum / 1000.0).toString}>
-                 timestamp={timestamp}
+                 time={(testResults.map(_.duration).sum / 1000.0).toString}
+                 timestamp={timestamp}>
         {properties}
         {cases}
       </testsuite>
