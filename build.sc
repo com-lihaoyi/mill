@@ -184,7 +184,6 @@ object Deps {
   val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.9.10"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.1"
   val upickle = ivy"com.lihaoyi::upickle:3.2.0"
-  val utest = ivy"com.lihaoyi::utest:0.8.2"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.5"
   val zinc = ivy"org.scala-sbt::zinc:1.10.0"
   // keep in sync with doc/antora/antory.yml
@@ -209,6 +208,7 @@ object Deps {
     // tests framework (test)
     val scalaCheck = ivy"org.scalacheck::scalacheck:1.18.0"
     val scalaTest = ivy"org.scalatest::scalatest:3.2.18"
+    val utest = ivy"com.lihaoyi::utest:0.8.3"
     val zioTest = ivy"dev.zio::zio-test:2.0.21"
   }
 
@@ -372,7 +372,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
       "-Xlint:adapted-args"
     )
 
-  def testIvyDeps: T[Agg[Dep]] = Agg(Deps.utest)
+  def testIvyDeps: T[Agg[Dep]] = Agg(Deps.TestDeps.utest)
   def testModuleDeps: Seq[JavaModule] =
     if (this == main) Seq(main)
     else Seq(this, main.test)
@@ -422,7 +422,7 @@ trait MillBaseTestsModule extends MillJavaModule with TestModule {
       s"-DTEST_SCALAJS_VERSION=${Deps.Scalajs_1.scalaJsVersion}",
       s"-DTEST_SCALANATIVE_0_4_VERSION=${Deps.Scalanative_0_4.scalanativeVersion}",
       s"-DTEST_SCALANATIVE_0_5_VERSION=${Deps.Scalanative_0_5.scalanativeVersion}",
-      s"-DTEST_UTEST_VERSION=${Deps.utest.dep.version}",
+      s"-DTEST_UTEST_VERSION=${Deps.TestDeps.utest.dep.version}",
       s"-DTEST_SCALATEST_VERSION=${Deps.TestDeps.scalaTest.dep.version}",
       s"-DTEST_TEST_INTERFACE_VERSION=${Deps.sbtTestInterface.dep.version}",
       s"-DTEST_ZIOTEST_VERSION=${Deps.TestDeps.zioTest.dep.version}",
