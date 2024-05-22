@@ -165,7 +165,7 @@ object Deps {
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.17.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   // last scalafmt release supporting Java 8 is 3.7.15
-  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.7.15" // scala-steward:off
+  val scalafmtInterfaces = ivy"org.scalameta:scalafmt-interfaces:3.7.15" // scala-steward:off
   def scalap(scalaVersion: String) = ivy"org.scala-lang:scalap:${scalaVersion}"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   val scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
@@ -732,7 +732,7 @@ def formatDep(dep: Dep) = {
 
 object scalalib extends MillStableScalaModule {
   def moduleDeps = Seq(main, scalalib.api, testrunner)
-  def ivyDeps = Agg(Deps.scalafmtDynamic, Deps.scalaXml)
+  def ivyDeps = Agg(Deps.scalafmtInterfaces, Deps.scalaXml)
   def testIvyDeps = super.testIvyDeps() ++ Agg(Deps.scalaCheck)
   def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(worker.testDep())
 
@@ -748,7 +748,7 @@ object scalalib extends MillStableScalaModule {
     def buildInfoMembers = Seq(
       BuildInfo.Value("ammonite", Deps.ammoniteVersion, "Version of Ammonite."),
       BuildInfo.Value("zinc", Deps.zinc.dep.version, "Version of Zinc"),
-      BuildInfo.Value("scalafmtVersion", Deps.scalafmtDynamic.dep.version, "Version of Scalafmt"),
+      BuildInfo.Value("scalafmtVersion", Deps.scalafmtInterfaces.dep.version, "Version of Scalafmt"),
       BuildInfo.Value("semanticDBVersion", Deps.semanticDBscala.dep.version, "SemanticDB version."),
       BuildInfo.Value(
         "semanticDbJavaVersion",

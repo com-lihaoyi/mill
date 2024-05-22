@@ -17,14 +17,15 @@ object ScalafmtWorkerModule extends ExternalModule {
 private[scalafmt] class ScalafmtWorker extends AutoCloseable {
   private val reformatted: mutable.Map[os.Path, Int] = mutable.Map.empty
   private var configSig: Int = 0
+  private var scalafmtInstanceCache = Option.empty[(Long, Scalafmt)]
 
-  def reformat(input: Seq[PathRef], scalafmtConfig: PathRef)(implicit ctx: Ctx): Unit = {
-    reformatAction(input, scalafmtConfig, dryRun = false)
+  def reformat(scalafmtClasspath: Agg[PathRef], input: Seq[PathRef], scalafmtConfig: PathRef)(implicit ctx: Ctx): Unit = {
+    reformatAction(scalafmtClasspath, input, scalafmtConfig, dryRun = false)
   }
 
-  def checkFormat(input: Seq[PathRef], scalafmtConfig: PathRef)(implicit ctx: Ctx): Result[Unit] = {
+  def checkFormat(scalafmtClasspath: Agg[PathRef], input: Seq[PathRef], scalafmtConfig: PathRef)(implicit ctx: Ctx): Result[Unit] = {
 
-    val misformatted = reformatAction(input, scalafmtConfig, dryRun = true)
+    val misformatted = reformatAction(scalafmtClasspath, input, scalafmtConfig, dryRun = true)
     if (misformatted.isEmpty) {
       Result.Success(())
     } else {
@@ -39,6 +40,7 @@ private[scalafmt] class ScalafmtWorker extends AutoCloseable {
   // run scalafmt over input files and return any files that changed
   // (only save changes to files if dryRun is false)
   private def reformatAction(
+      scalafmtClasspath: Agg[PathRef],
       input: Seq[PathRef],
       scalafmtConfig: PathRef,
       dryRun: Boolean
@@ -57,8 +59,17 @@ private[scalafmt] class ScalafmtWorker extends AutoCloseable {
         ctx.log.info(s"Formatting ${toConsider.size} Scala sources")
       }
 
-      val scalafmt = Scalafmt
-        .create(this.getClass.getClassLoader)
+      val scalafmtClasspathSig = scalafmtClasspath.hashCode
+      val scalafmt = scalafmtInstanceCache match {
+        case Some((sig, instance)) if sig == scalafmtClasspathSig =>
+          instance
+        case _ =>
+          val classpathUrls = scalafmtClasspath.map(_.path.toIO.toURI.toURL).toSeq
+          val loader = mill.api.ClassLoader.create(classpathUrls, parent = null, sharedPrefixes = Seq("org.scalafmt.interfaces"))
+          val instance = Scalafmt.create(loader)
+          scalafmtInstanceCache = Some((scalafmtClasspathSig, instance))
+          instance
+      }
 
       val configPath = scalafmtConfig.path.toNIO
 

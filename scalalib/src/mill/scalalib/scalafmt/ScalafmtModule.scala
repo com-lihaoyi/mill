@@ -1,5 +1,6 @@
 package mill.scalalib.scalafmt
 
+import coursier.MavenRepository
 import mill._
 import mill.api.Result
 import mill.define.{ExternalModule, Discover}
@@ -11,6 +12,7 @@ trait ScalafmtModule extends JavaModule {
     ScalafmtWorkerModule
       .worker()
       .reformat(
+        scalafmtClasspath(),
         filesToFormat(sources()),
         resolvedScalafmtConfig()
       )
@@ -20,6 +22,7 @@ trait ScalafmtModule extends JavaModule {
     ScalafmtWorkerModule
       .worker()
       .checkFormat(
+        scalafmtClasspath(),
         filesToFormat(sources()),
         resolvedScalafmtConfig()
       )
@@ -29,6 +32,18 @@ trait ScalafmtModule extends JavaModule {
     T.workspace / ".scalafmt.conf",
     os.pwd / ".scalafmt.conf"
   )
+
+  def scalafmtVersion: T[String] = "3.7.15"
+
+  def scalafmtClasspath: T[Agg[PathRef]] =
+    Lib.resolveDependencies(
+      Seq(
+        coursier.LocalRepositories.ivy2Local,
+        MavenRepository("https://repo1.maven.org/maven2")
+      ),
+      Seq(ivy"org.scalameta::scalafmt-dynamic:${scalafmtVersion()}")
+        .map(Lib.depToBoundDep(_, "2.13.1"))
+    )
 
   // TODO: Do we want provide some defaults or write a default file?
   private[ScalafmtModule] def resolvedScalafmtConfig: Task[PathRef] = T.task {
@@ -67,13 +82,13 @@ trait ScalafmtModule extends JavaModule {
 }
 
 object ScalafmtModule extends ExternalModule with ScalafmtModule {
-
   def reformatAll(sources: mill.main.Tasks[Seq[PathRef]]): Command[Unit] =
     T.command {
       val files = T.sequence(sources.value)().flatMap(filesToFormat)
       ScalafmtWorkerModule
         .worker()
         .reformat(
+          scalafmtClasspath(),
           files,
           resolvedScalafmtConfig()
         )
@@ -85,6 +100,7 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule {
       ScalafmtWorkerModule
         .worker()
         .checkFormat(
+          scalafmtClasspath(),
           files,
           resolvedScalafmtConfig()
         )
