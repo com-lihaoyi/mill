@@ -162,7 +162,6 @@ object Deps {
   // can't use newer versions, as these need higher Java versions
   val testng = ivy"org.testng:testng:7.5.1"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
-  val scalaCheck = ivy"org.scalacheck::scalacheck:1.17.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   // last scalafmt release supporting Java 8 is 3.7.15
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.7.15" // scala-steward:off
@@ -207,6 +206,7 @@ object Deps {
   /** Used in tests. */
   object TestDeps {
     // tests framework (test)
+    val scalaCheck = ivy"org.scalacheck::scalacheck:1.18.0"
     val scalaTest = ivy"org.scalatest::scalatest:3.2.18"
     val zioTest = ivy"dev.zio::zio-test:2.0.21"
   }
@@ -733,7 +733,7 @@ def formatDep(dep: Dep) = {
 object scalalib extends MillStableScalaModule {
   def moduleDeps = Seq(main, scalalib.api, testrunner)
   def ivyDeps = Agg(Deps.scalafmtDynamic, Deps.scalaXml)
-  def testIvyDeps = super.testIvyDeps() ++ Agg(Deps.scalaCheck)
+  def testIvyDeps = super.testIvyDeps() ++ Agg(Deps.TestDeps.scalaCheck)
   def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(worker.testDep())
 
   object backgroundwrapper extends MillPublishJavaModule with MillJavaModule {
