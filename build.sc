@@ -280,10 +280,10 @@ val bridgeScalaVersions = (essentialBridgeScalaVersions ++ Seq(
 // if given.
 val compilerBridgeScalaVersions =
   interp.watchValue(sys.env.get("MILL_COMPILER_BRIDGE_VERSIONS")) match {
-    case None | Some("") => Seq.empty[String]
+    case None | Some("") | Some("none") => Seq.empty[String]
     case Some("all") => bridgeScalaVersions
     case Some("essential") => essentialBridgeScalaVersions
-    case Some(versions) => versions.split(',').map(_.trim()).toSeq
+    case Some(versions) => versions.split(',').map(_.trim()).filterNot(_.isEmpty).toSeq
   }
 val bridgeVersion = "0.0.1"
 

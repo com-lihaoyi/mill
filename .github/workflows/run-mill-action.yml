@@ -22,7 +22,7 @@ on:
         default: 90
         type: number
       env-bridge-versions:
-        default: ''
+        default: 'none'
         type: string
 
 jobs:
