@@ -237,7 +237,8 @@ def baseDir = build.millSourcePath
 
 val essentialBridgeScalaVersions =
   Seq(Deps.scalaVersion, Deps.scalaVersionForScoverageWorker1, Deps.workerScalaVersion212)
-val bridgeScalaVersions = (essentialBridgeScalaVersions ++ Seq(
+// published compiler bridges
+val bridgeScalaVersions = Seq(
   // Our version of Zinc doesn't work with Scala 2.12.0 and 2.12.4 compiler
   // bridges. We skip 2.12.1 because it's so old not to matter, and we need a
   // non-supported scala version for testing purposes. We skip 2.13.0-2 because
@@ -269,9 +270,8 @@ val bridgeScalaVersions = (essentialBridgeScalaVersions ++ Seq(
   "2.13.10",
   "2.13.11",
   "2.13.12",
-  "2.13.13",
-  "2.13.14"
-)).distinct
+  "2.13.13"
+)
 
 // We limit the number of compiler bridges to compile and publish for local
 // development and testing, because otherwise it takes forever to compile all
@@ -281,7 +281,7 @@ val bridgeScalaVersions = (essentialBridgeScalaVersions ++ Seq(
 val compilerBridgeScalaVersions =
   interp.watchValue(sys.env.get("MILL_COMPILER_BRIDGE_VERSIONS")) match {
     case None | Some("") | Some("none") => Seq.empty[String]
-    case Some("all") => bridgeScalaVersions
+    case Some("all") => (essentialBridgeScalaVersions ++ bridgeScalaVersions).distinct
     case Some("essential") => essentialBridgeScalaVersions
     case Some(versions) => versions.split(',').map(_.trim()).filterNot(_.isEmpty).toSeq
   }
