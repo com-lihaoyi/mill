@@ -529,7 +529,8 @@ trait BridgeModule extends MillPublishJavaModule with CrossScalaModule {
   def pomSettings = commonPomSettings(artifactName())
   def crossFullScalaVersion = true
   def ivyDeps = Agg(
-    ivy"org.scala-sbt:compiler-interface:${Versions.zinc}",
+    ivy"org.scala-sbt:compiler-interface:${Deps.zinc.version}",
+    ivy"org.scala-sbt:util-interface:${Deps.zinc.version}",
     ivy"org.scala-lang:scala-compiler:${crossScalaVersion}"
   )
 
@@ -538,23 +539,21 @@ trait BridgeModule extends MillPublishJavaModule with CrossScalaModule {
     Seq(PathRef(T.dest))
   }
 
-  def generatedSources = T {
-    import mill.scalalib.api.ZincWorkerUtil.{grepJar, scalaBinaryVersion}
-    val resolvedJars = resolveDeps(
-      T.task {
-        Agg(ivy"org.scala-sbt::compiler-bridge:${Deps.zinc.dep.version}").map(bindDependency())
-      },
+  def compilerBridgeIvyDeps: T[Agg[Dep]] = Agg(
+    ivy"org.scala-sbt::compiler-bridge:${Deps.zinc.version}".exclude("*" -> "*")
+  )
+
+  def compilerBridgeSourceJars: T[Agg[PathRef]] = T {
+    resolveDeps(
+      T.task { compilerBridgeIvyDeps().map(bindDependency()) },
       sources = true
     )()
+  }
 
-    val bridgeJar = grepJar(
-      resolvedJars,
-      s"compiler-bridge_${scalaBinaryVersion(scalaVersion())}",
-      Deps.zinc.dep.version,
-      true
-    )
-
-    mill.api.IO.unpackZip(bridgeJar.path, os.rel)
+  def generatedSources = T {
+    compilerBridgeSourceJars().foreach { jar =>
+      mill.api.IO.unpackZip(jar.path, os.rel)
+    }
 
     Seq(PathRef(T.dest))
   }
