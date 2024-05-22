@@ -6,7 +6,7 @@ import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.4.0`
 import $ivy.`com.github.lolgab::mill-mima::0.1.0`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.29`
 import $ivy.`com.lihaoyi::mill-contrib-buildinfo:`
-import $ivy.`com.goyeau::mill-scalafix::0.3.2`
+import $ivy.`com.goyeau::mill-scalafix::0.4.0`
 
 // imports
 import com.github.lolgab.mill.mima.{CheckDirection, ProblemFilter, Mima}
