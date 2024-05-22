@@ -192,7 +192,6 @@ object Deps {
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.0"
   val requests = ivy"com.lihaoyi::requests:0.8.2"
 
-
   /** Used to manage transitive versions. */
   val transitiveDeps = Seq(
     ivy"org.apache.ant:ant:1.10.14",
@@ -236,10 +235,14 @@ def millBinPlatform: T[String] = T {
 
 def baseDir = build.millSourcePath
 
-val bridgeScalaVersions = Seq(
+val bridgeScalaVersions = (Seq(
+  Deps.scalaVersion,
+  Deps.scalaVersionForScoverageWorker1,
+  Deps.workerScalaVersion212
+) ++ Seq(
   // Our version of Zinc doesn't work with Scala 2.12.0 and 2.12.4 compiler
   // bridges. We skip 2.12.1 because it's so old not to matter, and we need a
-  // non-supported scala versionm for testing purposes. We skip 2.13.0-2 because
+  // non-supported scala version for testing purposes. We skip 2.13.0-2 because
   // scaladoc fails on windows
   /*"2.12.0",*/ /*2.12.1",*/ "2.12.2",
   "2.12.3", /*"2.12.4",*/ "2.12.5",
@@ -257,7 +260,8 @@ val bridgeScalaVersions = Seq(
   "2.12.17",
   "2.12.18",
   "2.12.19",
-  /*"2.13.0", "2.13.1", "2.13.2",*/ "2.13.3",
+  /*"2.13.0", "2.13.1", "2.13.2",*/
+  "2.13.3",
   "2.13.4",
   "2.13.5",
   "2.13.6",
@@ -267,8 +271,9 @@ val bridgeScalaVersions = Seq(
   "2.13.10",
   "2.13.11",
   "2.13.12",
-  "2.13.13"
-)
+  "2.13.13",
+  "2.13.14"
+)).distinct
 
 // We limit the number of compiler bridges to compile and publish for local
 // development and testing, because otherwise it takes forever to compile all
