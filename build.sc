@@ -6,7 +6,7 @@ import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.4.0`
 import $ivy.`com.github.lolgab::mill-mima::0.1.0`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.29`
 import $ivy.`com.lihaoyi::mill-contrib-buildinfo:`
-import $ivy.`com.goyeau::mill-scalafix::0.3.2`
+import $ivy.`com.goyeau::mill-scalafix::0.4.0`
 
 // imports
 import com.github.lolgab.mill.mima.{CheckDirection, ProblemFilter, Mima}
@@ -60,7 +60,7 @@ object Deps {
   // The Scala 2.12.x version to use for some workers
   val workerScalaVersion212 = "2.12.19"
 
-  val testScala213Version = "2.13.10"
+  val testScala213Version = "2.13.14"
   // Scala Native 4.2 will not get releases for new Scala version
   val testScala213VersionForScalaNative42 = "2.13.8"
   val testScala212Version = "2.12.6"
@@ -92,7 +92,7 @@ object Deps {
   }
 
   object Scalanative_0_5 {
-    val scalanativeVersion = "0.5.0"
+    val scalanativeVersion = "0.5.1"
     val scalanativeTools = ivy"org.scala-native::tools:${scalanativeVersion}"
     val scalanativeUtil = ivy"org.scala-native::util:${scalanativeVersion}"
     val scalanativeNir = ivy"org.scala-native::nir:${scalanativeVersion}"
@@ -129,7 +129,7 @@ object Deps {
     Seq(Play_3_0, Play_2_9, Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
 
   val acyclic = ivy"com.lihaoyi:::acyclic:0.3.12"
-  val ammoniteVersion = "3.0.0-M1-19-a7973e17"
+  val ammoniteVersion = "3.0.0-M2-2-741e5dbb"
   val asmTree = ivy"org.ow2.asm:asm-tree:9.7"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
 
@@ -138,7 +138,7 @@ object Deps {
 
   val cask = ivy"com.lihaoyi::cask:0.9.1"
   val castor = ivy"com.lihaoyi::castor:0.3.0"
-  val fastparse = ivy"com.lihaoyi::fastparse:3.0.2"
+  val fastparse = ivy"com.lihaoyi::fastparse:3.1.0"
   val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
   val graphvizJava = ivy"guru.nidi:graphviz-java-all-j2v8:0.18.1"
   val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.9.1"
@@ -154,8 +154,8 @@ object Deps {
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.8.0"
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.23.0"
   val osLib = ivy"com.lihaoyi::os-lib:0.10.0"
-  val pprint = ivy"com.lihaoyi::pprint:0.8.1"
-  val mainargs = ivy"com.lihaoyi::mainargs:0.6.3"
+  val pprint = ivy"com.lihaoyi::pprint:0.9.0"
+  val mainargs = ivy"com.lihaoyi::mainargs:0.7.0"
   val millModuledefsVersion = "0.10.9"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = ivy"${millModuledefsString}"
@@ -164,7 +164,6 @@ object Deps {
   // can't use newer versions, as these need higher Java versions
   val testng = ivy"org.testng:testng:7.5.1"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
-  val scalaCheck = ivy"org.scalacheck::scalacheck:1.17.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   // last scalafmt release supporting Java 8 is 3.7.15
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.7.15" // scala-steward:off
@@ -181,7 +180,7 @@ object Deps {
   val scalatags = ivy"com.lihaoyi::scalatags:0.12.0"
   def scalaXml = ivy"org.scala-lang.modules::scala-xml:2.2.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.9.3"
+  val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.9.5"
   val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.9.10"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.1"
   val upickle = ivy"com.lihaoyi::upickle:3.2.0"
@@ -190,10 +189,9 @@ object Deps {
   val zinc = ivy"org.scala-sbt::zinc:1.10.0"
   // keep in sync with doc/antora/antory.yml
   val bsp4j = ivy"ch.epfl.scala:bsp4j:2.2.0-M2"
-  val fansi = ivy"com.lihaoyi::fansi:0.4.0"
+  val fansi = ivy"com.lihaoyi::fansi:0.5.0"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.0"
   val requests = ivy"com.lihaoyi::requests:0.8.2"
-
 
   /** Used to manage transitive versions. */
   val transitiveDeps = Seq(
@@ -201,7 +199,7 @@ object Deps {
     ivy"commons-io:commons-io:2.16.1",
     ivy"com.google.code.gson:gson:2.10.1",
     ivy"com.google.protobuf:protobuf-java:3.25.3",
-    ivy"com.google.guava:guava:33.1.0-jre",
+    ivy"com.google.guava:guava:33.2.0-jre",
     ivy"org.yaml:snakeyaml:2.2",
     ivy"org.apache.commons:commons-compress:[1.26.0,)"
   )
@@ -209,6 +207,7 @@ object Deps {
   /** Used in tests. */
   object TestDeps {
     // tests framework (test)
+    val scalaCheck = ivy"org.scalacheck::scalacheck:1.18.0"
     val scalaTest = ivy"org.scalatest::scalatest:3.2.18"
     val zioTest = ivy"dev.zio::zio-test:2.0.21"
   }
@@ -238,10 +237,13 @@ def millBinPlatform: T[String] = T {
 
 def baseDir = build.millSourcePath
 
+val essentialBridgeScalaVersions =
+  Seq(Deps.scalaVersion, Deps.scalaVersionForScoverageWorker1, Deps.workerScalaVersion212)
+// published compiler bridges
 val bridgeScalaVersions = Seq(
   // Our version of Zinc doesn't work with Scala 2.12.0 and 2.12.4 compiler
   // bridges. We skip 2.12.1 because it's so old not to matter, and we need a
-  // non-supported scala versionm for testing purposes. We skip 2.13.0-2 because
+  // non-supported scala version for testing purposes. We skip 2.13.0-2 because
   // scaladoc fails on windows
   /*"2.12.0",*/ /*2.12.1",*/ "2.12.2",
   "2.12.3", /*"2.12.4",*/ "2.12.5",
@@ -259,7 +261,8 @@ val bridgeScalaVersions = Seq(
   "2.12.17",
   "2.12.18",
   "2.12.19",
-  /*"2.13.0", "2.13.1", "2.13.2",*/ "2.13.3",
+  /*"2.13.0", "2.13.1", "2.13.2",*/
+  "2.13.3",
   "2.13.4",
   "2.13.5",
   "2.13.6",
@@ -280,9 +283,10 @@ val bridgeScalaVersions = Seq(
 // if given.
 val compilerBridgeScalaVersions =
   interp.watchValue(sys.env.get("MILL_COMPILER_BRIDGE_VERSIONS")) match {
-    case None => Seq.empty[String]
-    case Some("all") => bridgeScalaVersions
-    case Some(versions) => versions.split(',').map(_.trim).toSeq
+    case None | Some("") | Some("none") => Seq.empty[String]
+    case Some("all") => (essentialBridgeScalaVersions ++ bridgeScalaVersions).distinct
+    case Some("essential") => essentialBridgeScalaVersions
+    case Some(versions) => versions.split(',').map(_.trim()).filterNot(_.isEmpty).toSeq
   }
 val bridgeVersion = "0.0.1"
 
@@ -528,7 +532,8 @@ trait BridgeModule extends MillPublishJavaModule with CrossScalaModule {
   def pomSettings = commonPomSettings(artifactName())
   def crossFullScalaVersion = true
   def ivyDeps = Agg(
-    ivy"org.scala-sbt:compiler-interface:${Versions.zinc}",
+    ivy"org.scala-sbt:compiler-interface:${Deps.zinc.version}",
+    ivy"org.scala-sbt:util-interface:${Deps.zinc.version}",
     ivy"org.scala-lang:scala-compiler:${crossScalaVersion}"
   )
 
@@ -537,23 +542,21 @@ trait BridgeModule extends MillPublishJavaModule with CrossScalaModule {
     Seq(PathRef(T.dest))
   }
 
-  def generatedSources = T {
-    import mill.scalalib.api.ZincWorkerUtil.{grepJar, scalaBinaryVersion}
-    val resolvedJars = resolveDeps(
-      T.task {
-        Agg(ivy"org.scala-sbt::compiler-bridge:${Deps.zinc.dep.version}").map(bindDependency())
-      },
+  def compilerBridgeIvyDeps: T[Agg[Dep]] = Agg(
+    ivy"org.scala-sbt::compiler-bridge:${Deps.zinc.version}".exclude("*" -> "*")
+  )
+
+  def compilerBridgeSourceJars: T[Agg[PathRef]] = T {
+    resolveDeps(
+      T.task { compilerBridgeIvyDeps().map(bindDependency()) },
       sources = true
     )()
+  }
 
-    val bridgeJar = grepJar(
-      resolvedJars,
-      s"compiler-bridge_${scalaBinaryVersion(scalaVersion())}",
-      Deps.zinc.dep.version,
-      true
-    )
-
-    mill.api.IO.unpackZip(bridgeJar.path, os.rel)
+  def generatedSources = T {
+    compilerBridgeSourceJars().foreach { jar =>
+      mill.api.IO.unpackZip(jar.path, os.rel)
+    }
 
     Seq(PathRef(T.dest))
   }
@@ -736,7 +739,7 @@ def formatDep(dep: Dep) = {
 object scalalib extends MillStableScalaModule {
   def moduleDeps = Seq(main, scalalib.api, testrunner)
   def ivyDeps = Agg(Deps.scalafmtDynamic, Deps.scalaXml)
-  def testIvyDeps = super.testIvyDeps() ++ Agg(Deps.scalaCheck)
+  def testIvyDeps = super.testIvyDeps() ++ Agg(Deps.TestDeps.scalaCheck)
   def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(worker.testDep())
 
   object backgroundwrapper extends MillPublishJavaModule with MillJavaModule {

@@ -12,7 +12,8 @@ object SourceMapTests extends TestSuite {
     object sourceMapModule extends ScalaJSModule {
       override def millSourcePath = workspacePath
       override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
-      override def scalaJSVersion = "1.8.0"
+      override def scalaJSVersion =
+        sys.props.getOrElse("TEST_SCALAJS_VERSION", ???) // at least 1.8.0
       override def scalaJSSourceMap = false
     }
 
