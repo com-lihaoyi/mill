@@ -183,7 +183,7 @@ object Deps {
   val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.9.5"
   val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.9.10"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.1"
-  val upickle = ivy"com.lihaoyi::upickle:3.2.0"
+  val upickle = ivy"com.lihaoyi::upickle:3.3.1"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.5"
   val zinc = ivy"org.scala-sbt::zinc:1.10.0"
   // keep in sync with doc/antora/antory.yml
