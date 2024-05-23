@@ -37,6 +37,7 @@ object HelloNativeWorldTests extends TestSuite {
   val scalaNative04 = sys.props.getOrElse("TEST_SCALANATIVE_0_4_VERSION", ???)
   val scalaNative05 = sys.props.getOrElse("TEST_SCALANATIVE_0_5_VERSION", ???)
   val utestVersion = sys.props.getOrElse("TEST_UTEST_VERSION", ???)
+  val utestForNative04Version = "0.8.2"
 
   object HelloNativeWorld extends TestUtil.BaseModule {
     implicit object ReleaseModeToSegments
@@ -71,7 +72,10 @@ object HelloNativeWorldTests extends TestSuite {
       object test extends ScalaNativeTests with TestModule.Utest {
         override def sources = T.sources { millSourcePath / "src" / "utest" }
         override def ivyDeps = super.ivyDeps() ++ Agg(
-          ivy"com.lihaoyi::utest::$utestVersion"
+          ivy"com.lihaoyi::utest::${
+              if (scalaNativeVersion().startsWith("0.4")) utestForNative04Version
+              else utestVersion
+            }"
         )
       }
     }
