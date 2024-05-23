@@ -52,6 +52,8 @@ object Settings {
 object Deps {
 
   // The Scala version to use
+  // When updating, run "Publish Bridges" Github Actions for the new version
+  // and then add to it `bridgeScalaVersions`
   val scalaVersion = "2.13.14"
   // Scoverage 1.x will not get releases for newer Scala versions
   val scalaVersionForScoverageWorker1 = "2.13.8"
@@ -270,7 +272,8 @@ val bridgeScalaVersions = Seq(
   "2.13.10",
   "2.13.11",
   "2.13.12",
-  "2.13.13"
+  "2.13.13",
+  "2.13.14"
 )
 
 // We limit the number of compiler bridges to compile and publish for local
