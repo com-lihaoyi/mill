@@ -385,12 +385,12 @@ object TestModule {
 
       <testsuite name={fqn}
                  tests={testResults.length.toString}
-                 failures={testResults.count(_.status == Status.Failure.toString).toString}
-                 errors={testResults.count(_.status == Status.Error.toString).toString}
+                 failures={testResults.count(_.status == FailureStatus).toString}
+                 errors={testResults.count(_.status == ErrorStatus).toString}
                  skipped={
         testResults.count(testResult => SkippedStatus.contains(testResult.status)).toString
       }
-                 time={(testResults.map(_.duration).sum / 1000.0).toString}
+                 time={durationAsString(testResults.map(_.duration).sum)}
                  timestamp={formatTimestamp(timestamp)}>
         {properties}
         {cases}
@@ -399,8 +399,8 @@ object TestModule {
     // todo add the parent module name
     val xml =
       <testsuites tests={results0.size.toString}
-                  failures={results0.count(_.status == Status.Failure.toString).toString}
-                  errors={results0.count(_.status == Status.Error.toString).toString}
+                  failures={results0.count(_.status == FailureStatus).toString}
+                  errors={results0.count(_.status == ErrorStatus).toString}
                   skipped={
         results0.count(testResult => SkippedStatus.contains(testResult.status)).toString
       }
