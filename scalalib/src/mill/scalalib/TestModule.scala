@@ -208,7 +208,7 @@ object TestModule {
   private val FailedTestReportCount = 5
   private val ErrorStatus = Status.Error.name()
   private val FailureStatus = Status.Failure.name()
-  private val SkippedStatus =
+  private val SkippedStates =
     Set(Status.Ignored.name(), Status.Skipped.name(), Status.Pending.name())
 
   /**
@@ -388,7 +388,7 @@ object TestModule {
                  failures={testResults.count(_.status == FailureStatus).toString}
                  errors={testResults.count(_.status == ErrorStatus).toString}
                  skipped={
-        testResults.count(testResult => SkippedStatus.contains(testResult.status)).toString
+        testResults.count(testResult => SkippedStates.contains(testResult.status)).toString
       }
                  time={durationAsString(testResults.map(_.duration).sum)}
                  timestamp={formatTimestamp(timestamp)}>
@@ -402,7 +402,7 @@ object TestModule {
                   failures={results0.count(_.status == FailureStatus).toString}
                   errors={results0.count(_.status == ErrorStatus).toString}
                   skipped={
-        results0.count(testResult => SkippedStatus.contains(testResult.status)).toString
+        results0.count(testResult => SkippedStates.contains(testResult.status)).toString
       }
                   time={durationAsString(results0.map(_.duration).sum)}>
         {suites}
@@ -441,7 +441,7 @@ object TestModule {
           {trace}
         </failure>)
       case FailureStatus => Some(<failure message="No Exception or message provided"/>)
-      case s if SkippedStatus.contains(s) => Some(<skipped/>)
+      case s if SkippedStates.contains(s) => Some(<skipped/>)
       case _ => None
     }
   }
