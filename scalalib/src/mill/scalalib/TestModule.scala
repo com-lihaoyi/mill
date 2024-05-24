@@ -206,6 +206,10 @@ trait TestModule
 
 object TestModule {
   private val FailedTestReportCount = 5
+  private val ErrorStatus = Status.Error.name()
+  private val FailureStatus = Status.Failure.name()
+  private val SkippedStates =
+    Set(Status.Ignored.name(), Status.Skipped.name(), Status.Pending.name())
 
   /**
    * TestModule using TestNG Framework to run tests.
@@ -334,9 +338,12 @@ object TestModule {
       testReportXml: Option[String],
       props: Option[Map[String, String]] = None
   ): Result[(String, Seq[TestResult])] = {
-    testReportXml.foreach(fileName =>
-      genTestXmlReport(results, ctx.dest / fileName, props.getOrElse(Map.empty))
-    )
+    for {
+      fileName <- testReportXml
+      path = ctx.dest / fileName
+      xml <- genTestXmlReport(results, Instant.now(), props.getOrElse(Map.empty))
+      _ = scala.xml.XML.save(path.toString(), xml, xmlDecl = true)
+    } yield ()
     handleResults(doneMsg, results, Some(ctx))
   }
 
@@ -348,17 +355,11 @@ object TestModule {
     def scalacOptions: T[Seq[String]] = Seq.empty[String]
   }
 
-  private def genTestXmlReport(
+  private[scalalib] def genTestXmlReport(
       results0: Seq[TestResult],
-      out: os.Path,
+      timestamp: Instant,
       props: Map[String, String]
-  ): Unit = {
-    val timestamp = DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(
-      LocalDateTime.ofInstant(
-        Instant.now.truncatedTo(ChronoUnit.SECONDS),
-        ZoneId.systemDefault()
-      )
-    )
+  ): Option[Elem] = {
     def durationAsString(value: Long) = (value / 1000d).toString
     def testcaseName(testResult: TestResult) =
       testResult.selector.replace(s"${testResult.fullyQualifiedName}.", "")
@@ -384,11 +385,13 @@ object TestModule {
 
       <testsuite name={fqn}
                  tests={testResults.length.toString}
-                 failures={testResults.count(_.status == Status.Failure.toString).toString}
-                 errors={testResults.count(_.status == Status.Error.toString).toString}
-                 skipped={testResults.count(_.status == Status.Skipped.toString).toString}
-                 time={(testResults.map(_.duration).sum / 1000.0).toString}
-                 timestamp={timestamp}>
+                 failures={testResults.count(_.status == FailureStatus).toString}
+                 errors={testResults.count(_.status == ErrorStatus).toString}
+                 skipped={
+        testResults.count(testResult => SkippedStates.contains(testResult.status)).toString
+      }
+                 time={durationAsString(testResults.map(_.duration).sum)}
+                 timestamp={formatTimestamp(timestamp)}>
         {properties}
         {cases}
       </testsuite>
@@ -396,22 +399,27 @@ object TestModule {
     // todo add the parent module name
     val xml =
       <testsuites tests={results0.size.toString}
-                  failures={results0.count(_.status == Status.Failure.toString).toString}
-                  errors={results0.count(_.status == Status.Error.toString).toString}
-                  skipped={results0.count(_.status == Status.Skipped.toString).toString}
+                  failures={results0.count(_.status == FailureStatus).toString}
+                  errors={results0.count(_.status == ErrorStatus).toString}
+                  skipped={
+        results0.count(testResult => SkippedStates.contains(testResult.status)).toString
+      }
                   time={durationAsString(results0.map(_.duration).sum)}>
         {suites}
       </testsuites>
-    if (results0.nonEmpty) scala.xml.XML.save(out.toString(), xml, xmlDecl = true)
+    if (results0.nonEmpty) Some(xml) else None
+  }
+
+  private def formatTimestamp(timestamp: Instant): String = {
+    DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(
+      LocalDateTime.ofInstant(
+        timestamp.truncatedTo(ChronoUnit.SECONDS),
+        ZoneId.of("UTC")
+      )
+    )
   }
 
   private def testCaseStatus(e: TestResult): Option[Elem] = {
-    val Error = Status.Error.toString
-    val Failure = Status.Failure.toString
-    val Ignored = Status.Ignored.toString
-    val Skipped = Status.Skipped.toString
-    val Pending = Status.Pending.toString
-
     val trace: String = e.exceptionTrace.map(stackTraceTrace =>
       stackTraceTrace.map(t =>
         s"${t.getClassName}.${t.getMethodName}(${t.getFileName}:${t.getLineNumber})"
@@ -423,17 +431,17 @@ object TestModule {
         )
     ).getOrElse("")
     e.status match {
-      case Error if (e.exceptionMsg.isDefined && e.exceptionName.isDefined) =>
+      case ErrorStatus if (e.exceptionMsg.isDefined && e.exceptionName.isDefined) =>
         Some(<error message={e.exceptionMsg.get} type={e.exceptionName.get}>
           {trace}
         </error>)
-      case Error => Some(<error message={"No Exception or message provided"}/>)
-      case Failure if (e.exceptionMsg.isDefined && e.exceptionName.isDefined) =>
+      case ErrorStatus => Some(<error message="No Exception or message provided"/>)
+      case FailureStatus if (e.exceptionMsg.isDefined && e.exceptionName.isDefined) =>
         Some(<failure message={e.exceptionMsg.get} type={e.exceptionName.get}>
           {trace}
         </failure>)
-      case Failure => Some(<failure message={"No Exception or message provided"}/>)
-      case Ignored | Skipped | Pending => Some(<skipped/>)
+      case FailureStatus => Some(<failure message="No Exception or message provided"/>)
+      case s if SkippedStates.contains(s) => Some(<skipped/>)
       case _ => None
     }
   }
