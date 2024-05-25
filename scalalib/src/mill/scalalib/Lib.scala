@@ -79,6 +79,31 @@ object Lib {
     ).map(_.map(_.withRevalidateOnce))
   }
 
+  @deprecated(
+    "Compatibility shim. Use the overload with parameter sameDependencyVersions instead",
+    "Mill after 0.11.7"
+  )
+  def resolveDependencies(
+      repositories: Seq[Repository],
+      deps: IterableOnce[BoundDep],
+      sources: Boolean,
+      mapDependencies: Option[Dependency => Dependency],
+      customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
+      ctx: Option[Ctx.Log],
+      coursierCacheCustomizer: Option[
+        coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
+      ]
+  ): Result[Agg[PathRef]] = resolveDependencies(
+    repositories = repositories,
+    deps = deps,
+    sources = sources,
+    mapDependencies = mapDependencies,
+    customizer = customizer,
+    ctx = ctx,
+    coursierCacheCustomizer = coursierCacheCustomizer,
+    sameDependencyVersions = Seq()
+  )
+
   def scalaCompilerIvyDeps(scalaOrganization: String, scalaVersion: String): Loose.Agg[Dep] =
     if (ZincWorkerUtil.isDotty(scalaVersion))
       Agg(

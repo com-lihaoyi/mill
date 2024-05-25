@@ -227,6 +227,36 @@ trait CoursierSupport {
     }
   }
 
+  @deprecated(
+    "Compatibility shim. Use the overload with parameter sameDependencyVersions instead",
+    "Mill after 0.11.7"
+  )
+  def resolveDependencies(
+      repositories: Seq[Repository],
+      deps: IterableOnce[coursier.Dependency],
+      force: IterableOnce[coursier.Dependency],
+      sources: Boolean,
+      mapDependencies: Option[Dependency => Dependency],
+      customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
+      ctx: Option[mill.api.Ctx.Log],
+      coursierCacheCustomizer: Option[
+        coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
+      ],
+      resolveFilter: os.Path => Boolean
+  ): Result[Agg[PathRef]] =
+    resolveDependencies(
+      repositories = repositories,
+      deps = deps,
+      force = force,
+      sources = sources,
+      mapDependencies = mapDependencies,
+      customizer = customizer,
+      ctx = ctx,
+      coursierCacheCustomizer = coursierCacheCustomizer,
+      resolveFilter = resolveFilter,
+      sameDependencyVersions = Seq()
+    )
+
   def resolveDependenciesMetadata(
       repositories: Seq[Repository],
       deps: IterableOnce[Dependency],
@@ -298,6 +328,32 @@ trait CoursierSupport {
 
     }
   }
+
+  @deprecated(
+    "Compatibility shim. Use the overload with parameter sameDependencyVersions instead",
+    "Mill after 0.11.7"
+  )
+  def resolveDependenciesMetadata(
+      repositories: Seq[Repository],
+      deps: IterableOnce[Dependency],
+      force: IterableOnce[Dependency],
+      mapDependencies: Option[Dependency => Dependency],
+      customizer: Option[Resolution => Resolution],
+      ctx: Option[mill.api.Ctx.Log],
+      coursierCacheCustomizer: Option[
+        coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
+      ]
+  ): (Seq[Dependency], Resolution) =
+    resolveDependenciesMetadata(
+      repositories = repositories,
+      deps = deps,
+      force = force,
+      mapDependencies = mapDependencies,
+      customizer = customizer,
+      ctx = ctx,
+      coursierCacheCustomizer = coursierCacheCustomizer,
+      sameDependencyVersions = Seq()
+    )
 
 }
 
