@@ -256,7 +256,7 @@ trait PublishModule extends JavaModule { outer =>
 
 object PublishModule extends ExternalModule {
   val defaultGpgArgs: Seq[String] = Seq("--batch", "--yes", "-a", "-b")
-  val defaultStringGpgArgs: String = defaultGpgArgs.mkString(",")
+  private[mill] val defaultStringGpgArgs: String = defaultGpgArgs.mkString(",")
 
   case class PublishData(meta: Artifact, payload: Seq[(PathRef, String)]) {
 
