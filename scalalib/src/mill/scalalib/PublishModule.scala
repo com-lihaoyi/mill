@@ -259,7 +259,11 @@ object PublishModule extends ExternalModule {
   val defaultStringGpgArgs: String = defaultGpgArgs.mkString(",")
 
   case class PublishData(meta: Artifact, payload: Seq[(PathRef, String)]) {
-    def toDataWithConcretePath: (Seq[(Path, String)], Artifact) =
+
+    /**
+     * Maps the path reference to an actual path so that it can be used in publishAll signatures
+     */
+    private[mill] def withConcretePath: (Seq[(Path, String)], Artifact) =
       (payload.map { case (p, f) => (p.path, f) }, meta)
   }
   object PublishData {
@@ -300,7 +304,7 @@ object PublishModule extends ExternalModule {
       sonatypeSnapshotUri,
       checkSonatypeCreds(sonatypeCreds)(),
       signed,
-      gpgArgs.split(",").toIndexedSeq,
+      getFinalGpgArgs(gpgArgs),
       readTimeout,
       connectTimeout,
       T.log,

@@ -7,7 +7,8 @@ import com.lumidion.sonatype.central.client.core.{
 }
 import com.lumidion.sonatype.central.client.requests.SyncSonatypeClient
 import mill.api.Logger
-import mill.scalalib.publish.{Artifact, SonatypeHelpers}
+import mill.scalalib.publish.Artifact
+import mill.scalalib.publish.SonatypeHelpers.getArtifactMappings
 
 import java.io.FileOutputStream
 import java.util.jar.JarOutputStream
@@ -22,7 +23,7 @@ class SonatypeCentralPublisher(
     workspace: os.Path,
     env: Map[String, String],
     awaitTimeout: Int
-) extends SonatypeHelpers {
+) {
   private val sonatypeCentralClient =
     new SyncSonatypeClient(credentials, readTimeout = readTimeout, connectTimeout = connectTimeout)
 

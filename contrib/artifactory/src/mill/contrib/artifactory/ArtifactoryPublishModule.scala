@@ -62,7 +62,7 @@ object ArtifactoryPublishModule extends ExternalModule {
   ) = T.command {
 
     val artifacts = T.sequence(publishArtifacts.value)().map {
-      case data @ PublishModule.PublishData(_, _) => data.toDataWithConcretePath
+      case data @ PublishModule.PublishData(_, _) => data.withConcretePath
     }
     new ArtifactoryPublisher(
       artifactoryUri,

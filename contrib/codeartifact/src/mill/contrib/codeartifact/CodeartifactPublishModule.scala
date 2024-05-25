@@ -43,7 +43,7 @@ object CodeartifactPublishModule extends ExternalModule {
   ) =
     T.command {
       val artifacts = T.sequence(publishArtifacts.value)().map {
-        case data @ PublishModule.PublishData(_, _) => data.toDataWithConcretePath
+        case data @ PublishModule.PublishData(_, _) => data.withConcretePath
       }
       new CodeartifactPublisher(
         codeartifactUri,

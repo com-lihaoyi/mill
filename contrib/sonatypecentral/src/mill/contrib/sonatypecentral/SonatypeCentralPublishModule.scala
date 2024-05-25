@@ -21,15 +21,15 @@ import mill.scalalib.publish.SonatypeHelpers.{
 }
 
 trait SonatypeCentralPublishModule extends PublishModule {
-  def gpgArgs: T[String] = T { defaultStringGpgArgs }
+  def sonatypeCentralGpgArgs: T[String] = T { defaultStringGpgArgs }
 
-  def connectTimeout: T[Int] = T { defaultConnectTimeout }
+  def sonatypeCentralConnectTimeout: T[Int] = T { defaultConnectTimeout }
 
-  def readTimeout: T[Int] = T { defaultReadTimeout }
+  def sonatypeCentralReadTimeout: T[Int] = T { defaultReadTimeout }
 
-  def awaitTimeout: T[Int] = T { defaultAwaitTimeout }
+  def sonatypeCentralAwaitTimeout: T[Int] = T { defaultAwaitTimeout }
 
-  def shouldRelease: T[Boolean] = T { true }
+  def sonatypeCentralShouldRelease: T[Boolean] = T { true }
 
   def publishSonatypeCentral(
       username: String = defaultCredentials,
@@ -37,31 +37,35 @@ trait SonatypeCentralPublishModule extends PublishModule {
   ): define.Command[Unit] =
     T.command {
       val publishData = publishArtifacts()
-      val fileMapping = publishData.toDataWithConcretePath._1
+      val fileMapping = publishData.withConcretePath._1
       val artifact = publishData.meta
       val finalCredentials = getSonatypeCredentials(username, password)()
 
       val publisher = new SonatypeCentralPublisher(
         credentials = finalCredentials,
-        gpgArgs = getFinalGpgArgs(gpgArgs()),
-        connectTimeout = connectTimeout(),
-        readTimeout = readTimeout(),
+        gpgArgs = getFinalGpgArgs(sonatypeCentralGpgArgs()),
+        connectTimeout = sonatypeCentralConnectTimeout(),
+        readTimeout = sonatypeCentralReadTimeout(),
         log = T.log,
         workspace = T.workspace,
         env = T.env,
-        awaitTimeout = awaitTimeout()
+        awaitTimeout = sonatypeCentralAwaitTimeout()
       )
-      publisher.publish(fileMapping, artifact, getPublishingTypeFromReleaseFlag(shouldRelease()))
+      publisher.publish(
+        fileMapping,
+        artifact,
+        getPublishingTypeFromReleaseFlag(sonatypeCentralShouldRelease())
+      )
     }
 }
 
 object SonatypeCentralPublishModule extends ExternalModule {
 
-  private val defaultCredentials = ""
-  private val defaultReadTimeout = 60000
-  private val defaultConnectTimeout = 5000
-  private val defaultAwaitTimeout = 120 * 1000
-  private val defaultShouldRelease = true
+  val defaultCredentials = ""
+  val defaultReadTimeout = 60000
+  val defaultConnectTimeout = 5000
+  val defaultAwaitTimeout = 120 * 1000
+  val defaultShouldRelease = true
 
   def publishAll(
       publishArtifacts: mill.main.Tasks[PublishModule.PublishData],
@@ -77,7 +81,7 @@ object SonatypeCentralPublishModule extends ExternalModule {
 
     val artifacts: Seq[(Seq[(os.Path, String)], Artifact)] =
       T.sequence(publishArtifacts.value)().map {
-        case data @ PublishModule.PublishData(_, _) => data.toDataWithConcretePath
+        case data @ PublishModule.PublishData(_, _) => data.withConcretePath
       }
 
     val finalBundleName = if (bundleName.isEmpty) None else Some(bundleName)

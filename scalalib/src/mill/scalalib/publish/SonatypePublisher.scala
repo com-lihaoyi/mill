@@ -2,6 +2,8 @@ package mill.scalalib.publish
 
 import mill.api.Logger
 
+import mill.scalalib.publish.SonatypeHelpers.getArtifactMappings
+
 class SonatypePublisher(
     uri: String,
     snapshotUri: String,
@@ -15,7 +17,7 @@ class SonatypePublisher(
     env: Map[String, String],
     awaitTimeout: Int,
     stagingRelease: Boolean
-) extends SonatypeHelpers {
+) {
   @deprecated("Use other constructor instead", since = "mill 0.10.8")
   def this(
       uri: String,

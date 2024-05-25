@@ -5,10 +5,13 @@ import mill.util.Jvm
 import java.math.BigInteger
 import java.security.MessageDigest
 
-trait SonatypeHelpers {
+object SonatypeHelpers {
   // http://central.sonatype.org/pages/working-with-pgp-signatures.html#signing-a-file
 
-  protected def getArtifactMappings(
+  val USERNAME_ENV_VARIABLE_NAME = "SONATYPE_USERNAME"
+  val PASSWORD_ENV_VARIABLE_NAME = "SONATYPE_PASSWORD"
+
+  private[mill] def getArtifactMappings(
       isSigned: Boolean,
       gpgArgs: Seq[String],
       workspace: os.Path,
@@ -67,9 +70,4 @@ trait SonatypeHelpers {
 
   private def hexArray(arr: Array[Byte]) =
     String.format("%0" + (arr.length << 1) + "x", new BigInteger(1, arr))
-}
-
-object SonatypeHelpers {
-  val USERNAME_ENV_VARIABLE_NAME = "SONATYPE_USERNAME"
-  val PASSWORD_ENV_VARIABLE_NAME = "SONATYPE_PASSWORD"
 }
