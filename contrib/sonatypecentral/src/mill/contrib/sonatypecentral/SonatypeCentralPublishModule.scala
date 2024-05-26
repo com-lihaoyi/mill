@@ -13,7 +13,7 @@ import mill.contrib.sonatypecentral.SonatypeCentralPublishModule.{
   getPublishingTypeFromReleaseFlag,
   getSonatypeCredentials
 }
-import mill.scalalib.PublishModule.{defaultStringGpgArgs, getFinalGpgArgs}
+import mill.scalalib.PublishModule.{defaultGpgArgs, getFinalGpgArgs}
 import mill.scalalib.publish.Artifact
 import mill.scalalib.publish.SonatypeHelpers.{
   PASSWORD_ENV_VARIABLE_NAME,
@@ -21,7 +21,7 @@ import mill.scalalib.publish.SonatypeHelpers.{
 }
 
 trait SonatypeCentralPublishModule extends PublishModule {
-  def sonatypeCentralGpgArgs: T[String] = T { defaultStringGpgArgs }
+  def sonatypeCentralGpgArgs: T[String] = T { defaultGpgArgs.mkString(",") }
 
   def sonatypeCentralConnectTimeout: T[Int] = T { defaultConnectTimeout }
 
@@ -61,18 +61,18 @@ trait SonatypeCentralPublishModule extends PublishModule {
 
 object SonatypeCentralPublishModule extends ExternalModule {
 
-  val defaultCredentials = ""
-  val defaultReadTimeout = 60000
-  val defaultConnectTimeout = 5000
-  val defaultAwaitTimeout = 120 * 1000
-  val defaultShouldRelease = true
+  val defaultCredentials: String = ""
+  val defaultReadTimeout: Int = 60000
+  val defaultConnectTimeout: Int = 5000
+  val defaultAwaitTimeout: Int = 120 * 1000
+  val defaultShouldRelease: Boolean = true
 
   def publishAll(
       publishArtifacts: mill.main.Tasks[PublishModule.PublishData],
       username: String = defaultCredentials,
       password: String = defaultCredentials,
       shouldRelease: Boolean = defaultShouldRelease,
-      gpgArgs: String = defaultStringGpgArgs,
+      gpgArgs: String = defaultGpgArgs.mkString(","),
       readTimeout: Int = defaultReadTimeout,
       connectTimeout: Int = defaultConnectTimeout,
       awaitTimeout: Int = defaultAwaitTimeout,

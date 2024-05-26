@@ -256,7 +256,6 @@ trait PublishModule extends JavaModule { outer =>
 
 object PublishModule extends ExternalModule {
   val defaultGpgArgs: Seq[String] = Seq("--batch", "--yes", "-a", "-b")
-  private[mill] val defaultStringGpgArgs: String = defaultGpgArgs.mkString(",")
 
   case class PublishData(meta: Artifact, payload: Seq[(PathRef, String)]) {
 
@@ -287,7 +286,7 @@ object PublishModule extends ExternalModule {
       publishArtifacts: mill.main.Tasks[PublishModule.PublishData],
       sonatypeCreds: String = "",
       signed: Boolean = true,
-      gpgArgs: String = defaultStringGpgArgs,
+      gpgArgs: String = defaultGpgArgs.mkString(","),
       release: Boolean = false,
       sonatypeUri: String = "https://oss.sonatype.org/service/local",
       sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots",
@@ -320,7 +319,7 @@ object PublishModule extends ExternalModule {
 
   private[mill] def getFinalGpgArgs(initialGpgArgs: String): Seq[String] = {
     val argsAsString = if (initialGpgArgs.isEmpty) {
-      defaultStringGpgArgs
+      defaultGpgArgs.mkString(",")
     } else {
       initialGpgArgs
     }
