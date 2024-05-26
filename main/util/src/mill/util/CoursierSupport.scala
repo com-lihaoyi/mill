@@ -305,18 +305,10 @@ trait CoursierSupport {
         .withRepositories(repositories)
         .withResolutionParams(resolutionParams)
 
-      val resolution0 =
-//        try {
-        retry(
-          ctx = ctx,
-          errorMsgExtractor = (r: Resolution) => r.errors.flatMap(_._2)
-        ) {
-          () => resolve.run()
-        }
-//        } catch {
-//          case e: ResolutionError =>
-//
-//        }
+      val resolution0 = retry(
+        ctx = ctx,
+        errorMsgExtractor = (r: Resolution) => r.errors.flatMap(_._2)
+      )(resolve.run)
 
       val resolution = resolution0
         .withMapDependencies(mapDependencies)
