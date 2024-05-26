@@ -900,6 +900,16 @@ object contrib extends Module {
       def scalaVersion = Deps.play(playBinary).scalaVersion
       def moduleDeps = Seq(playlib.api)
       def ivyDeps = Agg(Deps.osLib, Deps.play(playBinary).routesCompiler)
+
+      // We don't have tests, but we need to override the auto-added `test` module
+      // since it's only supposed to be used with Scala 2.13
+      // otherwise, we get resolution conflicts
+      override lazy val test: MillScalaTests = new PlaylibWorkerTests {}
+      trait PlaylibWorkerTests extends MillScalaTests {
+        def scalaVersion = Deps.scalaVersion
+        def moduleDeps = Seq()
+        def ivyDeps = Agg.empty[Dep]
+      }
     }
   }
 
