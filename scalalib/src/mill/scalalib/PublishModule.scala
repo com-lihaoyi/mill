@@ -4,6 +4,10 @@ package scalalib
 import mill.define.{Command, ExternalModule, Target, Task}
 import mill.api.{JarManifest, PathRef, Result}
 import mill.scalalib.PublishModule.checkSonatypeCreds
+import mill.scalalib.publish.SonatypeHelpers.{
+  PASSWORD_ENV_VARIABLE_NAME,
+  USERNAME_ENV_VARIABLE_NAME
+}
 import mill.scalalib.publish.{Artifact, SonatypePublisher}
 import os.Path
 
@@ -253,7 +257,14 @@ trait PublishModule extends JavaModule { outer =>
 object PublishModule extends ExternalModule {
   val defaultGpgArgs: Seq[String] = Seq("--batch", "--yes", "-a", "-b")
 
-  case class PublishData(meta: Artifact, payload: Seq[(PathRef, String)])
+  case class PublishData(meta: Artifact, payload: Seq[(PathRef, String)]) {
+
+    /**
+     * Maps the path reference to an actual path so that it can be used in publishAll signatures
+     */
+    private[mill] def withConcretePath: (Seq[(Path, String)], Artifact) =
+      (payload.map { case (p, f) => (p.path, f) }, meta)
+  }
   object PublishData {
     implicit def jsonify: upickle.default.ReadWriter[PublishData] = upickle.default.macroRW
   }
@@ -292,7 +303,7 @@ object PublishModule extends ExternalModule {
       sonatypeSnapshotUri,
       checkSonatypeCreds(sonatypeCreds)(),
       signed,
-      gpgArgs.split(",").toIndexedSeq,
+      getFinalGpgArgs(gpgArgs),
       readTimeout,
       connectTimeout,
       T.log,
@@ -306,22 +317,44 @@ object PublishModule extends ExternalModule {
     )
   }
 
-  private[scalalib] def checkSonatypeCreds(sonatypeCreds: String): Task[String] = T.task {
-    if (sonatypeCreds.isEmpty) {
-      (for {
-        username <- T.env.get("SONATYPE_USERNAME")
-        password <- T.env.get("SONATYPE_PASSWORD")
-      } yield {
-        Result.Success(s"$username:$password")
-      }).getOrElse(
-        Result.Failure(
-          "Consider using SONATYPE_USERNAME/SONATYPE_PASSWORD environment variables or passing `sonatypeCreds` argument"
-        )
-      )
+  private[mill] def getFinalGpgArgs(initialGpgArgs: String): Seq[String] = {
+    val argsAsString = if (initialGpgArgs.isEmpty) {
+      defaultGpgArgs.mkString(",")
     } else {
-      Result.Success(sonatypeCreds)
+      initialGpgArgs
     }
+    argsAsString.split(",").toIndexedSeq
   }
+
+  private def getSonatypeCredsFromEnv: Task[(String, String)] = T.task {
+    (for {
+      username <- T.env.get(USERNAME_ENV_VARIABLE_NAME)
+      password <- T.env.get(PASSWORD_ENV_VARIABLE_NAME)
+    } yield {
+      Result.Success((username, password))
+    }).getOrElse(
+      Result.Failure(
+        s"Consider using ${USERNAME_ENV_VARIABLE_NAME}/${PASSWORD_ENV_VARIABLE_NAME} environment variables or passing `sonatypeCreds` argument"
+      )
+    )
+  }
+
+  private[scalalib] def checkSonatypeCreds(sonatypeCreds: String): Task[String] =
+    if (sonatypeCreds.isEmpty) {
+      for {
+        (username, password) <- getSonatypeCredsFromEnv
+      } yield s"$username:$password"
+    } else {
+      T.task {
+        if (sonatypeCreds.split(":").length >= 2) {
+          Result.Success(sonatypeCreds)
+        } else {
+          Result.Failure(
+            "Sonatype credentials must be set in the following format - username:password. Incorrect format received."
+          )
+        }
+      }
+    }
 
   lazy val millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
 }
