@@ -955,6 +955,16 @@ object contrib extends Module {
       // compile-time only, need to provide the correct scoverage version at runtime
       def compileIvyDeps = Agg(Deps.scalacScoveragePlugin)
       def scalaVersion = Deps.scalaVersionForScoverageWorker1
+
+      // We don't have tests, but we need to override the auto-added `test` module
+      // since it's only supposed to be used with Scala 2.13
+      // otherwise, we get resolution conflicts
+      override lazy val test: MillScalaTests = new ScoverageWorkerTests {}
+      trait ScoverageWorkerTests extends MillScalaTests {
+        def scalaVersion = Deps.scalaVersion
+        def moduleDeps = Seq()
+        def ivyDeps = Agg.empty[Dep]
+      }
     }
 
     // Worker for Scoverage 2.0
