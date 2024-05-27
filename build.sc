@@ -949,6 +949,8 @@ object contrib extends Module {
       // compile-time only, need to provide the correct scoverage version at runtime
       def compileIvyDeps = Agg(Deps.scalacScoveragePlugin)
       def scalaVersion = Deps.scalaVersionForScoverageWorker1
+      // Work around error: Can't force version 2.13.12 for modules org.scala-lang:scala-library
+      def enforceSameDependencyVersions = T.task { Seq.empty[Set[(String, String)]] }
     }
 
     // Worker for Scoverage 2.0
