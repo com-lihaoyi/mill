@@ -141,10 +141,15 @@ object CrossVersionTests extends TestSuite {
     expectedIvyDepsTree.foreach { tree =>
       if (!scala.util.Properties.isWin) {
         // Escape-sequence formatting isn't working under bare Windows
-        val expectedDepsTree = tree
-        val logFile =
+        val expectedDepsTree = tree.trim()
+        val logFile = {
           eval.evaluator.pathsResolver.resolveDest(mod.ivyDepsTree(IvyDepsTreeArgs())).log
-        val depsTree = os.read(logFile)
+        }
+        val depsTree = os.read.lines(logFile)
+          // need to erage any Mill ticker output
+          .filter(!_.contains("Downloading ["))
+          .mkString("\n")
+          .trim()
         assert(depsTree == expectedDepsTree)
       }
     }
