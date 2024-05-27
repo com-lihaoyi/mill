@@ -44,15 +44,15 @@ Below are the default publishing settings on the module level, which can be expl
 [source,scala]
 ----
 object mymodule extends SonatypeCentralPublishModule {
-  override def gpgArgs: T[String] = "--batch, --yes, -a, -b"
+  override def sonatypeCentralGpgArgs: T[String] = "--batch, --yes, -a, -b"
 
-  override def connectTimeout: T[Int] = 5000
+  override def sonatypeCentralConnectTimeout: T[Int] = 5000
 
-  override def readTimeout: T[Int] = 60000
+  override def sonatypeCentralReadTimeout: T[Int] = 60000
 
-  override def awaitTimeout: T[Int] = 120 * 1000
+  override def sonatypeCentralAwaitTimeout: T[Int] = 120 * 1000
 
-  override def shouldRelease: T[Boolean] = true
+  override def sonatypeCentralShouldRelease: T[Boolean] = true
   ...
 }
 ----
