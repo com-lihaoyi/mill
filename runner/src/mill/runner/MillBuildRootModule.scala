@@ -2,7 +2,7 @@ package mill.runner
 
 import coursier.Repository
 import mill._
-import mill.api.{Loose, PathRef, Result, internal}
+import mill.api.{PathRef, Result, internal}
 import mill.define.{Discover, Task}
 import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule}
 import mill.util.CoursierSupport
