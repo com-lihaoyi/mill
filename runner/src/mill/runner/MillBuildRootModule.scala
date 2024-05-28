@@ -4,7 +4,7 @@ import coursier.Repository
 import mill._
 import mill.api.{PathRef, Result, internal}
 import mill.define.{Discover, Task}
-import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule}
+import mill.scalalib.{BoundDep, Dep, DepSyntax, Lib, ScalaModule}
 import mill.util.CoursierSupport
 import mill.util.Util.millProjectModule
 import mill.scalalib.api.Versions
@@ -91,17 +91,10 @@ class MillBuildRootModule()(implicit
     imports
   }
 
-  private val millAssemblyEmbeddedDepsExcludes: Seq[(String, String)] =
-    Lib.millAssemblyEmbeddedDeps.toSeq.map(d =>
-      (d.dep.module.organization.value, d.dep.module.name.value)
-    )
-
   override def ivyDeps = T {
     Agg.from(
       MillIvy.processMillIvyDepSignature(parseBuildFiles().ivyDeps)
         .map(mill.scalalib.Dep.parse)
-        // Exclude artifacts, which are supposed to be provided by Mill itself
-        .map(_.exclude(millAssemblyEmbeddedDepsExcludes: _*))
     ) ++
       Agg(ivy"com.lihaoyi::mill-moduledefs:${Versions.millModuledefsVersion}")
   }
@@ -112,8 +105,6 @@ class MillBuildRootModule()(implicit
     Agg.from(
       MillIvy.processMillIvyDepSignature(ivyImports.toSet)
         .map(mill.scalalib.Dep.parse)
-        // Exclude artifacts, which are supposed to be provided by Mill itself
-        .map(_.exclude(millAssemblyEmbeddedDepsExcludes: _*))
     )
   }
 
@@ -233,6 +224,23 @@ class MillBuildRootModule()(implicit
   def enclosingClasspath = T.sources {
     millBuildRootModuleInfo.enclosingClasspath.map(p => mill.api.PathRef(p, quick = true))
   }
+
+  /**
+   * Dependencies, which should be transitively excluded.
+   * By default, these are the dependencies, which Mill provides itself (via [[unmanagedClasspath]]).
+   * We exclude them to avoid incompatible or duplicate artifacts on the classpath.
+   */
+  protected def resolveDepsExclusions: T[Seq[(String, String)]] = T{
+    Lib.millAssemblyEmbeddedDeps.toSeq.map(d =>
+      (d.dep.module.organization.value, d.dep.module.name.value)
+    )
+  }
+
+  override def resolveDeps(deps: Task[Agg[BoundDep]], sources: Boolean): Task[Agg[PathRef]] = {
+    val excludeProvided = T.task { deps().map(_.exclude(resolveDepsExclusions(): _*)) }
+    super.resolveDeps(excludeProvided, sources)
+  }
+
   override def unmanagedClasspath: T[Agg[PathRef]] = T {
     enclosingClasspath() ++ lineNumberPluginClasspath()
   }
