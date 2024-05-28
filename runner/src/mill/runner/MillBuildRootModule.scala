@@ -4,7 +4,7 @@ import coursier.Repository
 import mill._
 import mill.api.{PathRef, Result, internal}
 import mill.define.{Discover, Task}
-import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule}
+import mill.scalalib.{BoundDep, Dep, DepSyntax, Lib, ScalaModule}
 import mill.util.CoursierSupport
 import mill.util.Util.millProjectModule
 import mill.scalalib.api.Versions
@@ -96,7 +96,7 @@ class MillBuildRootModule()(implicit
       MillIvy.processMillIvyDepSignature(parseBuildFiles().ivyDeps)
         .map(mill.scalalib.Dep.parse)
     ) ++
-      Seq(ivy"com.lihaoyi::mill-moduledefs:${Versions.millModuledefsVersion}")
+      Agg(ivy"com.lihaoyi::mill-moduledefs:${Versions.millModuledefsVersion}")
   }
 
   override def runIvyDeps = T {
@@ -224,6 +224,23 @@ class MillBuildRootModule()(implicit
   def enclosingClasspath = T.sources {
     millBuildRootModuleInfo.enclosingClasspath.map(p => mill.api.PathRef(p, quick = true))
   }
+
+  /**
+   * Dependencies, which should be transitively excluded.
+   * By default, these are the dependencies, which Mill provides itself (via [[unmanagedClasspath]]).
+   * We exclude them to avoid incompatible or duplicate artifacts on the classpath.
+   */
+  protected def resolveDepsExclusions: T[Seq[(String, String)]] = T {
+    Lib.millAssemblyEmbeddedDeps.toSeq.map(d =>
+      (d.dep.module.organization.value, d.dep.module.name.value)
+    )
+  }
+
+  override def resolveDeps(deps: Task[Agg[BoundDep]], sources: Boolean): Task[Agg[PathRef]] = {
+    val excludeProvided = T.task { deps().map(_.exclude(resolveDepsExclusions(): _*)) }
+    super.resolveDeps(excludeProvided, sources)
+  }
+
   override def unmanagedClasspath: T[Agg[PathRef]] = T {
     enclosingClasspath() ++ lineNumberPluginClasspath()
   }
