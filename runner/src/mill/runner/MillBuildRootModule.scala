@@ -2,7 +2,7 @@ package mill.runner
 
 import coursier.Repository
 import mill._
-import mill.api.{PathRef, Result, internal}
+import mill.api.{Loose, PathRef, Result, internal}
 import mill.define.{Discover, Task}
 import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule}
 import mill.util.CoursierSupport
@@ -91,12 +91,19 @@ class MillBuildRootModule()(implicit
     imports
   }
 
+  val millAssemblyEmbeddedDepsExcludes: Seq[(String, String)] =
+    Lib.millAssemblyEmbeddedDeps.toSeq.map(d =>
+      (d.dep.module.organization.value, d.dep.module.name.value)
+    )
+
   override def ivyDeps = T {
     Agg.from(
       MillIvy.processMillIvyDepSignature(parseBuildFiles().ivyDeps)
         .map(mill.scalalib.Dep.parse)
+        // Exclude artifacts, which are supposed to be provided by Mill itself
+        .map(_.exclude(millAssemblyEmbeddedDepsExcludes: _*))
     ) ++
-      Seq(ivy"com.lihaoyi::mill-moduledefs:${Versions.millModuledefsVersion}")
+      Agg(ivy"com.lihaoyi::mill-moduledefs:${Versions.millModuledefsVersion}")
   }
 
   override def runIvyDeps = T {
@@ -105,6 +112,8 @@ class MillBuildRootModule()(implicit
     Agg.from(
       MillIvy.processMillIvyDepSignature(ivyImports.toSet)
         .map(mill.scalalib.Dep.parse)
+        // Exclude artifacts, which are supposed to be provided by Mill itself
+        .map(_.exclude(millAssemblyEmbeddedDepsExcludes: _*))
     )
   }
 
