@@ -91,7 +91,7 @@ class MillBuildRootModule()(implicit
     imports
   }
 
-  val millAssemblyEmbeddedDepsExcludes: Seq[(String, String)] =
+  private val millAssemblyEmbeddedDepsExcludes: Seq[(String, String)] =
     Lib.millAssemblyEmbeddedDeps.toSeq.map(d =>
       (d.dep.module.organization.value, d.dep.module.name.value)
     )
