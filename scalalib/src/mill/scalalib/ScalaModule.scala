@@ -90,20 +90,18 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     )
   }
 
-  override def resolveCoursierDependency: Task[Dep => coursier.Dependency] =
-    T.task {
-      Lib.depToDependency(_: Dep, scalaVersion(), platformSuffix())
-    }
+  override def resolveCoursierDependency: Task[Dep => coursier.Dependency] = T.task {
+    Lib.depToDependency(_: Dep, scalaVersion(), platformSuffix())
+  }
 
-  override def resolvePublishDependency: Task[Dep => publish.Dependency] =
-    T.task {
-      publish.Artifact.fromDep(
-        _: Dep,
-        scalaVersion(),
-        ZincWorkerUtil.scalaBinaryVersion(scalaVersion()),
-        platformSuffix()
-      )
-    }
+  override def resolvePublishDependency: Task[Dep => publish.Dependency] = T.task {
+    publish.Artifact.fromDep(
+      _: Dep,
+      scalaVersion(),
+      ZincWorkerUtil.scalaBinaryVersion(scalaVersion()),
+      platformSuffix()
+    )
+  }
 
   /**
    * Print the scala compile built-in help output.
