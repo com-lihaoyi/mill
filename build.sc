@@ -728,7 +728,7 @@ object main extends MillStableScalaModule with BuildInfo {
   def testModuleDeps = super.testModuleDeps ++ Seq(testkit)
 }
 
-object testrunner extends MillPublishScalaModule {
+object testrunner extends MillPublishScalaModule with MillScalaModuleWithTest {
   def moduleDeps = Seq(scalalib.api, main.util, entrypoint)
 
   object entrypoint extends MillPublishJavaModule {
