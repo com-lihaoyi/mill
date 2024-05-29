@@ -3,7 +3,7 @@ package mill.scalalib
 import mill.api.{Ctx, PathRef, Result}
 import mill.define.{Command, Task, TaskModule}
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
-import mill.testrunner.{Framework, TestArgs, TestResult, TestRunner}
+import mill.testrunner.{Framework, TestArgs, TestResult, TestRunner, TestRunnerUtils}
 import mill.util.Jvm
 import mill.{Agg, T}
 import sbt.testing.Status
@@ -45,6 +45,25 @@ trait TestModule
    * - [[TestModule.ZioTest]]
    */
   def testFramework: T[String]
+
+  def discoveredTestClasses: T[Seq[String]] = T {
+    val classes = Jvm.inprocess(
+      runClasspath().map(_.path),
+      classLoaderOverrideSbtTesting = true,
+      isolated = true,
+      closeContextClassLoaderWhenDone = true,
+      cl => {
+        val framework = Framework.framework(testFramework())(cl)
+        val classes = TestRunnerUtils.discoverTests(cl, framework, testClasspath().map(_.path))
+        classes.toSeq.map(_._1.getName())
+          .map {
+            case s if s.endsWith("$") => s.dropRight(1)
+            case s => s
+          }
+      }
+    )
+    classes.sorted
+  }
 
   /**
    * Discovers and runs the module's tests in a subprocess, reporting the

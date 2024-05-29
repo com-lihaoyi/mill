@@ -78,9 +78,9 @@ object TestRunnerTests extends TestSuite {
   }
 
   override def tests: Tests = Tests {
-    "TestRunner" - {
-      "utest" - {
-        "test case lookup" - workspaceTest(testrunner) { eval =>
+    test("TestRunner") - {
+      test("utest") - {
+        test("test case lookup") - workspaceTest(testrunner) { eval =>
           val Right((result, _)) = eval.apply(testrunner.utest.test())
           val test = result.asInstanceOf[(String, Seq[mill.testrunner.TestResult])]
           assert(
@@ -88,7 +88,17 @@ object TestRunnerTests extends TestSuite {
           )
           junitReportIn(eval.outPath, "utest").shouldHave(3 -> Status.Success)
         }
-        "testOnly" - {
+        test("discoveredTestClasses") - workspaceTest(testrunner) { eval =>
+          val Right((res, _)) = eval.apply(testrunner.utest.discoveredTestClasses)
+          val expected = Seq(
+            "mill.scalalib.BarTests",
+            "mill.scalalib.FooTests",
+            "mill.scalalib.FoobarTests"
+          )
+          assert(res == expected)
+          expected
+        }
+        test("testOnly") - {
           def testOnly(eval: TestEvaluator, args: Seq[String], size: Int) = {
             val Right((result1, _)) = eval.apply(testrunner.utest.testOnly(args: _*))
             val testOnly = result1.asInstanceOf[(String, Seq[mill.testrunner.TestResult])]
@@ -144,6 +154,12 @@ object TestRunnerTests extends TestSuite {
             junitReportIn(eval.outPath, "scalatest").shouldHave(2 -> Status.Success)
           }
         }
+        test("discoveredTestClasses") - workspaceTest(testrunner) { eval =>
+          val Right((res, _)) = eval.apply(testrunner.scalatest.discoveredTestClasses)
+          val expected = Seq("mill.scalalib.ScalaTestSpec")
+          assert(res == expected)
+          expected
+        }
       }
 
       "ZioTest" - {
@@ -153,6 +169,12 @@ object TestRunnerTests extends TestSuite {
             assert(testRes._2.size == 1)
             junitReportIn(eval.outPath, "ziotest").shouldHave(1 -> Status.Success)
           }
+        }
+        test("discoveredTestClasses") - workspaceTest(testrunner) { eval =>
+          val Right((res, _)) = eval.apply(testrunner.ziotest.discoveredTestClasses)
+          val expected = Seq("mill.scalalib.ZioTestSpec")
+          assert(res == expected)
+          expected
         }
       }
     }
