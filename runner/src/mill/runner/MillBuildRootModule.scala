@@ -314,12 +314,16 @@ object MillBuildRootModule {
   ): Unit = {
     for (scriptSource <- scriptSources) {
       val relative = scriptSource.path.relativeTo(base)
-      val dest = targetDest / FileImportGraph.fileImportToSegments(base, scriptSource.path, false)
+      val dest = targetDest / FileImportGraph.fileImportToSegments(
+        base,
+        scriptSource.path,
+        ext = ".scala"
+      )
 
       val newSource = MillBuildRootModule.top(
         relative,
         scriptSource.path / os.up,
-        FileImportGraph.fileImportToSegments(base, scriptSource.path, true).dropRight(1),
+        FileImportGraph.fileImportToSegments(base, scriptSource.path, ext = "").dropRight(1),
         scriptSource.path.baseName,
         enclosingClasspath,
         millTopLevelProjectRoot,
