@@ -57,6 +57,13 @@ import ch.epfl.scala.bsp4j.{
   TestTask,
   WorkspaceBuildTargetsResult
 }
+import scala.build.bsp.{
+  ScalaScriptBuildServer,
+  WrappedSourceItem,
+  WrappedSourcesItem,
+  WrappedSourcesParams,
+  WrappedSourcesResult
+}
 import ch.epfl.scala.bsp4j
 import com.google.gson.JsonObject
 import mill.T
@@ -88,7 +95,7 @@ private class MillBuildServer(
     logStream: PrintStream,
     canReload: Boolean
 ) extends ExternalModule
-    with BuildServer {
+    with BuildServer with ScalaScriptBuildServer {
 
   lazy val millDiscover: Discover[this.type] = Discover[this.type]
 
@@ -343,6 +350,41 @@ private class MillBuildServer(
         .toSeq
 
       new InverseSourcesResult(ids.asJava)
+    }
+  }
+
+  override def buildTargetWrappedSources(p: WrappedSourcesParams)
+      : CompletableFuture[WrappedSourcesResult] = {
+    completable(s"buildTargetWrappedSources ${p}") { state =>
+      val targets = p.getTargets()
+      val items = targets.asScala.flatMap { target =>
+        val (bspModule, evaluator) = state.bspModulesById(target)
+        bspModule match {
+          case module: MillBuildRootModule =>
+            val task: Task[WrappedSourcesItem] = T.task {
+              val wrappedSources = module.generateScriptSources()
+              val items = wrappedSources.items.map { wrappedSource =>
+                def toUri(path: os.Path) = path.toNIO.toUri.toASCIIString
+
+                val item =
+                  new WrappedSourceItem(toUri(wrappedSource.src), toUri(wrappedSource.dest))
+
+                item.setTopWrapper(wrappedSource.top)
+                item.setBottomWrapper(wrappedSource.bottom)
+
+                item
+              }.asJava
+
+              new WrappedSourcesItem(target, items)
+            }
+
+            Seq(evaluator.evalOrThrow()(task))
+          case _ =>
+            Seq.empty
+        }
+      }
+
+      new WrappedSourcesResult(items.asJava)
     }
   }
 

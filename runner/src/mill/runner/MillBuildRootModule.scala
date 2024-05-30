@@ -111,14 +111,14 @@ class MillBuildRootModule()(implicit
   override def platformSuffix: T[String] = s"_mill${BuildInfo.millBinPlatform}"
 
   override def generatedSources: T[Seq[PathRef]] = T {
-    generateScriptSources()
+    Seq(generateScriptSources().pathRef)
   }
 
-  def generateScriptSources: T[Seq[PathRef]] = T {
+  def generateScriptSources: T[MillBuildRootModule.WrappedSources] = T {
     val parsed = parseBuildFiles()
     if (parsed.errors.nonEmpty) Result.Failure(parsed.errors.mkString("\n"))
     else {
-      MillBuildRootModule.generateWrappedSources(
+      val wrappedSources = MillBuildRootModule.generateWrappedSources(
         millBuildRootModuleInfo.projectRoot / os.up,
         scriptSources(),
         parsed.seenScripts,
@@ -126,7 +126,7 @@ class MillBuildRootModule()(implicit
         millBuildRootModuleInfo.enclosingClasspath,
         millBuildRootModuleInfo.topLevelProjectRoot
       )
-      Result.Success(Seq(PathRef(T.dest)))
+      Result.Success(wrappedSources)
     }
   }
 
@@ -272,6 +272,7 @@ class MillBuildRootModule()(implicit
   def dummySources: Sources = T.sources(T.dest)
 }
 
+@internal
 object MillBuildRootModule {
 
   class BootstrapModule(
@@ -304,6 +305,16 @@ object MillBuildRootModule {
     )
   }
 
+  case class WrappedSources(pathRef: PathRef, items: Seq[WrappedSources.Item])
+
+  object WrappedSources {
+    case class Item(src: os.Path, dest: os.Path, top: String, bottom: String)
+    implicit val itemRW: upickle.default.ReadWriter[Item] =
+      upickle.default.macroRW
+    implicit val rw: upickle.default.ReadWriter[WrappedSources] =
+      upickle.default.macroRW
+  }
+
   def generateWrappedSources(
       base: os.Path,
       scriptSources: Seq[PathRef],
@@ -311,8 +322,8 @@ object MillBuildRootModule {
       targetDest: os.Path,
       enclosingClasspath: Seq[os.Path],
       millTopLevelProjectRoot: os.Path
-  ): Unit = {
-    for (scriptSource <- scriptSources) {
+  ): WrappedSources = {
+    val items = for (scriptSource <- scriptSources) yield {
       val relative = scriptSource.path.relativeTo(base)
       val dest = targetDest / FileImportGraph.fileImportToSegments(
         base,
@@ -320,7 +331,7 @@ object MillBuildRootModule {
         ext = ".scala"
       )
 
-      val newSource = MillBuildRootModule.top(
+      val top = MillBuildRootModule.top(
         relative,
         scriptSource.path / os.up,
         FileImportGraph.fileImportToSegments(base, scriptSource.path, ext = "").dropRight(1),
@@ -328,12 +339,16 @@ object MillBuildRootModule {
         enclosingClasspath,
         millTopLevelProjectRoot,
         scriptSource.path
-      ) +
-        scriptCode(scriptSource.path) +
-        MillBuildRootModule.bottom
+      )
+      val bottom = MillBuildRootModule.bottom
+      val newSource = top + scriptCode(scriptSource.path) + bottom
 
       os.write(dest, newSource, createFolders = true)
+
+      WrappedSources.Item(src = scriptSource.path, dest = dest, top = top, bottom = bottom)
     }
+
+    WrappedSources(PathRef(targetDest), items)
   }
 
   def top(
