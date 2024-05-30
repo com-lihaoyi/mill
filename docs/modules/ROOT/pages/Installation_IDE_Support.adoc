@@ -74,6 +74,12 @@ The script supports to following sources when determining the best Mill version 
 Using a system-wide installed `millw` is probably the robustest way to use Mill on any operating system.
 It also preserves support of rather old Mill versions next to recent ones, so that updating it or switching to `millw` initially should be a no-brainer.
 
+You can also install it on Homebrew via https://github.com/lefou/homebrew-millw[homebrew-millw]:
+
+[source,sh]
+----
+brew install lefou/millw/millw
+----
 
 == Other installation methods
 
