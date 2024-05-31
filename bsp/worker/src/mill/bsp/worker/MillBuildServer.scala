@@ -135,7 +135,7 @@ private class MillBuildServer(
 
       // TODO: scan BspModules and infer their capabilities
 
-      val supportedLangs = Seq("java", "scala").asJava
+      val supportedLangs = Seq("java", "scala", "scala-sc").asJava
       val capabilities = new BuildServerCapabilities
 
       capabilities.setBuildTargetChangedProvider(false)
