@@ -8,4 +8,5 @@ trait ColorLogger extends Logger {
   def infoColor: fansi.Attrs
   def errorColor: fansi.Attrs
   def withOutStream(outStream: PrintStream): ColorLogger = this
+  def withErrStream(errStream: PrintStream): ColorLogger = this
 }

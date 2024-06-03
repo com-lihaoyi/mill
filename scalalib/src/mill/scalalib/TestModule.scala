@@ -178,7 +178,7 @@ trait TestModule
           (runClasspath() ++ zincWorker().testrunnerEntrypointClasspath()).map(
             _.path
           ),
-        jvmArgs = jvmArgs,
+        jvmArgs = jvmArgs ++ Seq(s"-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,quiet=n"),
         envArgs = forkEnv(),
         mainArgs = mainArgs,
         workingDir = forkWorkingDir(),

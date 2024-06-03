@@ -188,6 +188,7 @@ object Deps {
   val zinc = ivy"org.scala-sbt::zinc:1.10.0"
   // keep in sync with doc/antora/antory.yml
   val bsp4j = ivy"ch.epfl.scala:bsp4j:2.2.0-M2"
+  val scalaDebugAdapter = ivy"ch.epfl.scala::scala-debug-adapter:4.1.1"
   val fansi = ivy"com.lihaoyi::fansi:0.5.0"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.0"
   val requests = ivy"com.lihaoyi::requests:0.8.2"
@@ -1102,7 +1103,7 @@ object bsp extends MillPublishScalaModule with BuildInfo {
 
   object worker extends MillPublishScalaModule {
     def compileModuleDeps = Seq(bsp, scalalib, testrunner, runner) ++ scalalib.compileModuleDeps
-    def ivyDeps = Agg(Deps.bsp4j, Deps.sbtTestInterface)
+    def ivyDeps = Agg(Deps.bsp4j, Deps.scalaDebugAdapter, Deps.sbtTestInterface)
   }
 }
 

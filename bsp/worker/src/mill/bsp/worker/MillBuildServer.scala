@@ -46,6 +46,7 @@ import ch.epfl.scala.bsp4j.{
   SourcesParams,
   SourcesResult,
   StatusCode,
+  TestParamsDataKind,
   TaskFinishDataKind,
   TaskFinishParams,
   TaskId,
@@ -58,9 +59,12 @@ import ch.epfl.scala.bsp4j.{
   WorkspaceBuildTargetsResult
 }
 import ch.epfl.scala.bsp4j
-import com.google.gson.JsonObject
+import ch.epfl.scala.debugadapter._
+import ch.epfl.scala.debugadapter.testing._
+import com.google.gson.{JsonArray, JsonObject}
 import mill.T
 import mill.api.{DummyTestReporter, Result, Strict}
+import mill.bsp.worker.debug._
 import mill.define.Segment.Label
 import mill.define.{Args, Discover, ExternalModule, Task}
 import mill.eval.Evaluator
@@ -81,6 +85,7 @@ import mill.eval.Evaluator.TaskResult
 
 import scala.util.chaining.scalaUtilChainingOps
 import scala.util.control.NonFatal
+import java.io.OutputStream
 private class MillBuildServer(
     bspVersion: String,
     serverVersion: String,
@@ -134,7 +139,7 @@ private class MillBuildServer(
       capabilities.setBuildTargetChangedProvider(false)
       capabilities.setCanReload(canReload)
       capabilities.setCompileProvider(new CompileProvider(supportedLangs))
-      capabilities.setDebugProvider(new DebugProvider(Seq().asJava))
+      capabilities.setDebugProvider(new DebugProvider(Seq("scala").asJava))
       capabilities.setDependencyModulesProvider(true)
       capabilities.setDependencySourcesProvider(true)
       capabilities.setInverseSourcesProvider(true)
@@ -675,7 +680,168 @@ private class MillBuildServer(
   override def debugSessionStart(debugParams: DebugSessionParams)
       : CompletableFuture[DebugSessionAddress] =
     completable(s"debugSessionStart ${debugParams}") { state =>
-      throw new NotImplementedError("debugSessionStart endpoint is not implemented")
+      debugParams.getDataKind() match {
+        case TestParamsDataKind.SCALA_TEST_SUITES =>
+          val classes =
+            debugParams
+              .getData()
+              .asInstanceOf[JsonArray]
+              .iterator()
+              .asScala.map(_.getAsString())
+              .toSeq
+
+          val testModules =
+            debugParams
+              .getTargets()
+              .asScala
+              .map(targetId => state.bspModulesById(targetId))
+              .collect {
+                case (m: TestModule, ev) => (m, ev)
+              }
+
+          import scala.concurrent.{blocking, Future}
+          import scala.concurrent.ExecutionContext.Implicits.global
+
+          val scalaVersion = testModules.headOption match {
+            case Some((m: mill.scalalib.ScalaModule, ev)) =>
+              ev.evalOrThrow()(m.scalaVersion)
+            case Some((m, ev)) =>
+              mill.main.BuildInfo.scalaVersion
+            case None => ???
+          }
+
+          val debuggee = new ScalaTestSuitesDebuggee(scalaVersion, debug) {
+            override def run(listener: DebuggeeListener): CancelableFuture[Unit] = {
+              val logger = new DebuggeeLogger(listener, System.out, System.err, debug)
+              new CancelableFuture[Unit] {
+                def future = Future {
+                  blocking {
+                    testModules.foreach { case (m, ev) =>
+                      debug("Before evaluating test")
+                      val outputStream = new PrintStream(new OutputStream {
+                        val buffer = new scala.collection.mutable.ArrayBuffer[Byte]
+                        def write(i: Int) = {
+                          if (i == '\n') {
+                            val toLog = new String(buffer.toArray)
+                            debug(toLog)
+                            logger.info(toLog)
+                            buffer.clear()
+                          } else {
+                            buffer += i.toByte
+                          }
+                        }
+                      })
+                      val errorStream = new PrintStream(new OutputStream {
+                        val buffer = new scala.collection.mutable.ArrayBuffer[Byte]
+                        def write(i: Int) = {
+                          if (i == '\n') {
+                            val toLog = new String(buffer.toArray)
+                            debug(toLog)
+                            logger.info(toLog)
+                            buffer.clear()
+                          } else {
+                            buffer += i.toByte
+                          }
+                        }
+                      })
+                      val results =
+                        ev.evaluate(
+                          Seq(m.testOnly(classes: _*)),
+                          logger =
+                            ev.baseLogger.withErrStream(errorStream).withOutStream(outputStream)
+                        )
+                      debug("After evaluating test")
+                      val result =
+                        results.rawValues.head.asInstanceOf[Result[(
+                            String,
+                            Seq[mill.testrunner.TestResult]
+                        )]]
+
+                      def bySuite(results: Seq[mill.testrunner.TestResult]) =
+                        results
+                          .groupBy(result => classes.find(cls => result.fullyQualifiedName.startsWith(cls)))
+
+                      result match {
+                        case Result.Success((doneMsg, results)) =>
+                          val resultsMap = bySuite(results)
+
+                          resultsMap.foreach {
+                            case (Some(suite), results) =>
+                              var totalDuration = 0L
+                              val tests: Seq[SingleTestSummary] = results.map{ result =>
+                                totalDuration += result.duration
+                                result.status match {
+                                  case "Success" =>
+                                    SingleTestResult.Passed(result.fullyQualifiedName, result.duration)
+                                  case "Skipped" =>
+                                    SingleTestResult.Skipped(result.fullyQualifiedName)
+                                  case _ =>
+                                    SingleTestResult.Failed(result.fullyQualifiedName, result.duration, result.exceptionMsg.getOrElse(""))
+                                }
+                              }
+
+                              listener.testResult(TestSuiteSummary(suite, totalDuration, tests.asJava))
+                            case _ =>
+                          }
+                        case Result.Failure(message, Some((doneMsg, results))) =>
+                          val resultsMap = bySuite(results)
+
+                          resultsMap.foreach {
+                            case (Some(suite), results) =>
+                              var totalDuration = 0L
+                              val tests: Seq[SingleTestSummary] = results.map{ result =>
+                                totalDuration += result.duration
+                                SingleTestResult.Passed(result.fullyQualifiedName, result.duration)
+                              }
+
+                              listener.testResult(TestSuiteSummary(suite, totalDuration, tests.asJava))
+                            case _ =>   
+                          }
+                        case Result.Failure(message, None) =>
+                          debug(s"Result.Failure($message, None)")
+                        case r: Result.Exception =>
+                          debug("r: Result.Exception")
+                        case Result.Aborted =>
+                          debug("Result.Aborted")
+                        case Result.Skipped =>
+                          debug("Result.Skipped")
+                      }
+                    }
+                  }
+                }
+                def cancel() = debug("cancel called")
+              }
+            }
+          }
+
+          val resolver = new DebugToolsResolver() {
+            def resolveDecoder(scalaVersion: ScalaVersion): Try[ClassLoader] = {
+              debug("called resolveDecoder")
+              ???
+            }
+            def resolveExpressionCompiler(scalaVersion: ScalaVersion): Try[ClassLoader] = {
+              debug("called resolveExpressionCompiler")
+              ???
+            }
+          }
+
+          val logger = new Logger {
+            def debug(msg: => String): Unit = System.err.println(s"[debug] $msg")
+            def info(msg: => String): Unit = System.err.println(s"[info] $msg")
+            def warn(msg: => String): Unit = System.err.println(s"[warn] $msg")
+            def error(msg: => String): Unit = System.err.println(s"[error] $msg")
+            def trace(t: => Throwable): Unit = t.printStackTrace()
+          }
+
+          val handler =
+            DebugServer.run(debuggee, resolver, logger)
+
+          new DebugSessionAddress(handler.uri.toString)
+        case other =>
+          throw new NotImplementedError(
+            s"$other dataKind not supported in debugSessionStart endpoint"
+          )
+      }
     }
 
   /**
