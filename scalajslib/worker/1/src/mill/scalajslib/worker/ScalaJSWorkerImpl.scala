@@ -17,7 +17,7 @@ import org.scalajs.linker.interface.{
   ModuleSplitStyle => _,
   _
 }
-import org.scalajs.logging.ScalaConsoleLogger
+import org.scalajs.logging.{Level, Logger}
 import org.scalajs.jsenv.{Input, JSEnv, RunConfig}
 import org.scalajs.testing.adapter.TestAdapter
 import org.scalajs.testing.adapter.{TestAdapterInitializer => TAI}
@@ -158,6 +158,14 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       (linker, irFileCacheCache)
     }
   }
+  private val logger = new Logger {
+    def log(level: Level, message: => String): Unit = {
+      System.err.println(message)
+    }
+    def trace(t: => Throwable): Unit = {
+      t.printStackTrace()
+    }
+  }
   def link(
       runClasspath: Seq[Path],
       dest: File,
@@ -190,7 +198,6 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       dest = dest
     ))
     val irContainersAndPathsFuture = PathIRContainer.fromClasspath(runClasspath)
-    val logger = new ScalaConsoleLogger
     val testInitializer =
       if (testBridgeInit)
         ModuleInitializer.mainMethod(TAI.ModuleClassName, TAI.MainMethodName) :: Nil
@@ -284,7 +291,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
   def run(config: JsEnvConfig, report: Report): Unit = {
     val env = jsEnv(config)
     val input = jsEnvInput(report)
-    val runConfig0 = RunConfig().withLogger(new ScalaConsoleLogger)
+    val runConfig0 = RunConfig().withLogger(logger)
     val runConfig =
       if (mill.api.SystemStreams.isOriginal()) runConfig0
       else runConfig0
@@ -315,7 +322,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
   ): (() => Unit, sbt.testing.Framework) = {
     val env = jsEnv(config)
     val input = jsEnvInput(report)
-    val tconfig = TestAdapter.Config().withLogger(new ScalaConsoleLogger)
+    val tconfig = TestAdapter.Config().withLogger(logger)
 
     val adapter = new TestAdapter(env, input, tconfig)
 
