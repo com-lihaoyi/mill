@@ -159,9 +159,8 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
     }
   }
   private val logger = new Logger {
-    def log(level: Level, message: => String): Unit = level match {
-      case Level.Warn | Level.Error => System.err.println(message)
-      case Level.Info | Level.Debug => System.out.println(message)
+    def log(level: Level, message: => String): Unit = {
+      System.err.println(message)
     }
     def trace(t: => Throwable): Unit = {
       t.printStackTrace()
