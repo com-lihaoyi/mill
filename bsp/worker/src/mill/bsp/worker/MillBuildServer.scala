@@ -760,7 +760,8 @@ private class MillBuildServer(
                           )
 
                       result match {
-                        case Result.Success(Val((doneMsg: String, results: Seq[mill.testrunner.TestResult]))) =>
+                        case s @ Result.Success(Val((doneMsg: String, results: Seq[mill.testrunner.TestResult]))) =>
+                          debug(s"Result.Success: $s")
                           val resultsMap = bySuite(results)
 
                           resultsMap.foreach {
@@ -791,9 +792,16 @@ private class MillBuildServer(
                                 totalDuration,
                                 tests.asJava
                               ))
-                            case _ =>
+                              debug(s"listener.testResult(${TestSuiteSummary(
+                                suite,
+                                totalDuration,
+                                tests.asJava
+                              )})")
+                            case other =>
+                              debug(s"other: $other")    
                           }
-                        case Result.Failure(message, Some(Val((doneMsg: String, results: Seq[mill.testrunner.TestResult])))) =>
+                        case f @ Result.Failure(message, Some(Val((doneMsg: String, results: Seq[mill.testrunner.TestResult])))) =>
+                          debug(s"Result.Failure: $f")
                           val resultsMap = bySuite(results)
 
                           resultsMap.foreach {
@@ -826,6 +834,9 @@ private class MillBuildServer(
                           )
                           debug("Result.Skipped")
                           throw new Exception("Aborted")
+
+                        case other =>
+                            debug(s"completely other: $other")    
                       }
                     }
                     debug("FINISHED WORK WITH FUTURE")
