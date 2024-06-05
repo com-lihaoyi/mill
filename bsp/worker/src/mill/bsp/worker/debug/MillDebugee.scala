@@ -17,7 +17,7 @@ abstract class ScalaTestSuitesDebuggee(scalaVersion: String, debug: String => Un
     debug("modules called") 
     ???
   }
-  def name: String = s"test adapter ${scala.util.Random.nextInt()}"
+  val name: String = s"test adapter ${scala.util.Random.nextInt()}"
   def observeClassUpdates(onClassUpdate: Seq[String] => Unit): java.io.Closeable = {
     debug("observeClassUpdates called")
     new java.io.Closeable {

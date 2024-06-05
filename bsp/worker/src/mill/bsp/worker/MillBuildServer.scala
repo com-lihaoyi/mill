@@ -63,7 +63,7 @@ import ch.epfl.scala.debugadapter._
 import ch.epfl.scala.debugadapter.testing._
 import com.google.gson.{JsonArray, JsonObject}
 import mill.T
-import mill.api.{DummyTestReporter, Result, Strict}
+import mill.api.{DummyTestReporter, Result, Strict, Val}
 import mill.bsp.worker.debug._
 import mill.define.Segment.Label
 import mill.define.{Args, Discover, ExternalModule, Task}
@@ -751,64 +751,87 @@ private class MillBuildServer(
                             ev.baseLogger.withErrStream(errorStream).withOutStream(outputStream)
                         )
                       debug("After evaluating test")
-                      val result =
-                        results.rawValues.head.asInstanceOf[Result[(
-                            String,
-                            Seq[mill.testrunner.TestResult]
-                        )]]
+                      val result = results.rawValues.head
 
                       def bySuite(results: Seq[mill.testrunner.TestResult]) =
                         results
-                          .groupBy(result => classes.find(cls => result.fullyQualifiedName.startsWith(cls)))
+                          .groupBy(result =>
+                            classes.find(cls => result.fullyQualifiedName.startsWith(cls))
+                          )
 
                       result match {
-                        case Result.Success((doneMsg, results)) =>
+                        case Result.Success(Val((doneMsg: String, results: Seq[mill.testrunner.TestResult]))) =>
                           val resultsMap = bySuite(results)
 
                           resultsMap.foreach {
                             case (Some(suite), results) =>
                               var totalDuration = 0L
-                              val tests: Seq[SingleTestSummary] = results.map{ result =>
+                              val tests: Seq[SingleTestSummary] = results.map { result =>
                                 totalDuration += result.duration
                                 result.status match {
                                   case "Success" =>
-                                    SingleTestResult.Passed(result.fullyQualifiedName, result.duration)
+                                    SingleTestResult.Passed(
+                                      result.fullyQualifiedName,
+                                      result.duration
+                                    )
                                   case "Skipped" =>
                                     SingleTestResult.Skipped(result.fullyQualifiedName)
-                                  case _ =>
-                                    SingleTestResult.Failed(result.fullyQualifiedName, result.duration, result.exceptionMsg.getOrElse(""))
+                                  case other =>
+                                    debug(s"Got `$other`")
+                                    SingleTestResult.Failed(
+                                      result.fullyQualifiedName,
+                                      result.duration,
+                                      result.exceptionMsg.getOrElse("")
+                                    )
                                 }
                               }
 
-                              listener.testResult(TestSuiteSummary(suite, totalDuration, tests.asJava))
+                              listener.testResult(TestSuiteSummary(
+                                suite,
+                                totalDuration,
+                                tests.asJava
+                              ))
                             case _ =>
                           }
-                        case Result.Failure(message, Some((doneMsg, results))) =>
+                        case Result.Failure(message, Some(Val((doneMsg: String, results: Seq[mill.testrunner.TestResult])))) =>
                           val resultsMap = bySuite(results)
 
                           resultsMap.foreach {
                             case (Some(suite), results) =>
                               var totalDuration = 0L
-                              val tests: Seq[SingleTestSummary] = results.map{ result =>
+                              val tests: Seq[SingleTestSummary] = results.map { result =>
                                 totalDuration += result.duration
                                 SingleTestResult.Passed(result.fullyQualifiedName, result.duration)
                               }
 
-                              listener.testResult(TestSuiteSummary(suite, totalDuration, tests.asJava))
-                            case _ =>   
+                              val summary = TestSuiteSummary(suite, totalDuration, tests.asJava)
+                              debug(s"sending result ${summary}")
+                              listener.testResult(summary)
+                            case _ =>
                           }
+                          throw new Exception(message)
                         case Result.Failure(message, None) =>
                           debug(s"Result.Failure($message, None)")
+                          throw new Exception(message)
                         case r: Result.Exception =>
                           debug("r: Result.Exception")
+                          throw r.throwable
                         case Result.Aborted =>
+                          throw new Exception("Aborted")
                           debug("Result.Aborted")
+                          throw new Exception("Aborted")
                         case Result.Skipped =>
+                          classes.foreach(cls =>
+                            listener.testResult(TestSuiteSummary(cls, 0, Nil.asJava))
+                          )
                           debug("Result.Skipped")
+                          throw new Exception("Aborted")
                       }
                     }
+                    debug("FINISHED WORK WITH FUTURE")
                   }
-                }
+                }.transform(t => { debug(s"FINISHED WITH RESULT $t") ; t } )
+
                 def cancel() = debug("cancel called")
               }
             }
@@ -826,10 +849,10 @@ private class MillBuildServer(
           }
 
           val logger = new Logger {
-            def debug(msg: => String): Unit = System.err.println(s"[debug] $msg")
-            def info(msg: => String): Unit = System.err.println(s"[info] $msg")
-            def warn(msg: => String): Unit = System.err.println(s"[warn] $msg")
-            def error(msg: => String): Unit = System.err.println(s"[error] $msg")
+            def debug(msg: => String): Unit = System.err.println(s"[DAP] [debug] $msg")
+            def info(msg: => String): Unit = System.err.println(s"[DAP] [info] $msg")
+            def warn(msg: => String): Unit = System.err.println(s"[DAP] [warn] $msg")
+            def error(msg: => String): Unit = System.err.println(s"[DAP] [error] $msg")
             def trace(t: => Throwable): Unit = t.printStackTrace()
           }
 
