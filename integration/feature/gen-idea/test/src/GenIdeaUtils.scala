@@ -53,6 +53,8 @@ object GenIdeaUtils {
         "/"
       )
     in.replace(path, "COURSIER_HOME")
+      .replace("//$USER_HOME$/AppData/Local/Coursier/cache/", "//$USER_HOME$/COURSIER_CACHE/")
+      .replace("//$USER_HOME$/.cache/coursier/", "//$USER_HOME$/COURSIER_CACHE/")
   }
 
   val ignoreString = "<!-- IGNORE -->"
