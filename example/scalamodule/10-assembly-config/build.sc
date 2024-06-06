@@ -1,7 +1,27 @@
 import mill._, scalalib._
 import mill.scalalib.Assembly._
 
-object foo extends ScalaModule {
+trait Jpackage extends JavaModule {
+  def jpackageName: T[String] = artifactName
+  def jpackage: T[PathRef] = T {
+    val localCp = localClasspath().map(_.path)
+    val runCp = runClasspath().map(_.path)
+    val mainJar = jar().path
+    val cp = runCp.filterNot(localCp.contains) ++ Seq(mainJar)
+
+    val libs = T.dest / "lib"
+    cp.filter(os.exists).foreach { p =>
+      os.copy.into(p, libs, createFolders = true)
+    }
+    val appName = jpackageName()
+    val outDest = T.dest / "out"
+    os.makeDir.all(outDest)
+    os.proc("jpackage", "--type", "app-image", "--name", appName, "--input", libs, "--main-jar", mainJar.last).call(cwd = outDest)
+    PathRef(outDest / appName / "bin" / appName)
+  }
+}
+
+object foo extends ScalaModule with Jpackage {
   def moduleDeps = Seq(bar)
   def scalaVersion = "2.13.8"
   def ivyDeps = Agg(ivy"com.lihaoyi::os-lib:0.9.1")
@@ -42,5 +62,11 @@ Foo Application Conf
 Loaded application.conf from resources:...
 ...Foo Application Conf
 ...Bar Application Conf
+
+> mill show foo.jpackage
+".../out/foo/jpackage.dest/out/foo/bin/foo"
+
+> ./out/foo/jpackage.dest/out/foo/bin/foo
+Loaded application.conf from resources: Foo Application Conf
 
 */
