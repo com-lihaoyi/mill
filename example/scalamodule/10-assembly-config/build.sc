@@ -1,25 +1,9 @@
 import mill._, scalalib._
 import mill.scalalib.Assembly._
 
-trait Jpackage extends JavaModule {
-  def jpackageName: T[String] = artifactName
-  def jpackage: T[PathRef] = T {
-    val localCp = localClasspath().map(_.path)
-    val runCp = runClasspath().map(_.path)
-    val mainJar = jar().path
-    val cp = runCp.filterNot(localCp.contains) ++ Seq(mainJar)
+import $meta.`mill-build`
 
-    val libs = T.dest / "lib"
-    cp.filter(os.exists).foreach { p =>
-      os.copy.into(p, libs, createFolders = true)
-    }
-    val appName = jpackageName()
-    val outDest = T.dest / "out"
-    os.makeDir.all(outDest)
-    os.proc("jpackage", "--type", "app-image", "--name", appName, "--input", libs, "--main-jar", mainJar.last).call(cwd = outDest)
-    PathRef(outDest / appName / "bin" / appName)
-  }
-}
+import jpackage.Jpackage
 
 object foo extends ScalaModule with Jpackage {
   def moduleDeps = Seq(bar)
