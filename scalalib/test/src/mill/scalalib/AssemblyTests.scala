@@ -91,14 +91,15 @@ object AssemblyTests extends TestSuite {
 
   def runAssembly(file: os.Path, wd: os.Path, checkExe: Boolean = false): Unit = {
     println(s"File size: ${os.stat(file).size}")
+    val args = Seq("--text", "tutu")
     Jvm.runSubprocess(
-      commandArgs = Seq(Jvm.javaExe, "-jar", file.toString(), "--text", "tutu"),
+      commandArgs = Seq(Jvm.javaExe, "-jar", file.toString()) ++ args,
       envArgs = Map.empty[String, String],
       workingDir = wd
     )
     if (checkExe) {
       Jvm.runSubprocess(
-        commandArgs = Seq(file.toString(), "--text", "tutu"),
+        commandArgs = Seq(file.toString()) ++ args,
         envArgs = Map.empty[String, String],
         workingDir = wd
       )
