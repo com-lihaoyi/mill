@@ -1,11 +1,7 @@
 import mill._, scalalib._
 import mill.scalalib.Assembly._
 
-import $meta.`mill-build`
-
-import jpackage.Jpackage
-
-object foo extends ScalaModule with Jpackage {
+object foo extends ScalaModule with JpackageModule {
   def moduleDeps = Seq(bar)
   def scalaVersion = "2.13.8"
   def ivyDeps = Agg(ivy"com.lihaoyi::os-lib:0.9.1")
@@ -48,9 +44,9 @@ Loaded application.conf from resources:...
 ...Bar Application Conf
 
 > mill show foo.jpackage
-".../out/foo/jpackage.dest/out/foo/bin/foo"
+".../out/foo/jpackage.dest/image"
 
-> ./out/foo/jpackage.dest/out/foo/bin/foo
+> ./out/foo/jpackage.dest/image/foo/bin/foo
 Loaded application.conf from resources: Foo Application Conf
 
 */
