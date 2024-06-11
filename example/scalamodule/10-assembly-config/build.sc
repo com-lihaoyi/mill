@@ -43,10 +43,10 @@ Loaded application.conf from resources:...
 ...Foo Application Conf
 ...Bar Application Conf
 
-> mill show foo.jpackage
-".../out/foo/jpackage.dest/image"
+> mill show foo.jpackageAppImage
+".../out/foo/jpackageAppImage.dest/image"
 
-> ./out/foo/jpackage.dest/image/foo/bin/foo
+> ./out/foo/jpackageAppImage.dest/image/foo/bin/foo
 Loaded application.conf from resources: Foo Application Conf
 
 */
