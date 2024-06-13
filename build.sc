@@ -1211,7 +1211,7 @@ object example extends MillScalaModule {
               val title =
                 if (seenCode) ""
                 else {
-                  val label = millVersion()
+                  val label = millLastTag()
                   val exampleDashed = examplePath.segments.mkString("-")
                   val download = s"{mill-download-url}/$label-$exampleDashed.zip[download]"
                   val browse = s"{mill-example-url}/$examplePath[browse]"
@@ -1696,7 +1696,7 @@ object docs extends Module {
        |    mill-github-url: ${Settings.projectUrl}
        |    mill-doc-url: ${if (authorMode) s"file://${T.dest}/site" else Settings.docUrl}
        |    mill-download-url: ${if (authorMode) s"file://${exampleZips().head.path / os.up}"
-      else s"${Settings.projectUrl}/releases/latest"}
+      else s"${Settings.projectUrl}/releases/download/latest"}
        |    mill-example-url: ${if (authorMode) s"file://${T.workspace}"
       else s"${Settings.projectUrl}/blob/main/"}
        |    utest-github-url: https://github.com/com-lihaoyi/utest
