@@ -294,7 +294,8 @@ val bridgeVersion = "0.0.1"
 trait MillJavaModule extends JavaModule {
 
   // Test setup
-  def testDep = T { (s"com.lihaoyi-${artifactId()}", testDepPaths().map(_.path).mkString("\n")) }
+  def testDep: T[(String, String)] =
+    T { (s"com.lihaoyi-${artifactId()}", testDepPaths().map(_.path).mkString("\n")) }
 
   // Workaround for Zinc/JNA bug
   // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
@@ -916,8 +917,11 @@ object contrib extends Module {
     def moduleDeps = Seq(scoverage.api)
     def compileModuleDeps = Seq(scalalib)
 
-    def testTransitiveDeps =
-      super.testTransitiveDeps() ++ Seq(worker.testDep(), worker2.testDep())
+    def testTransitiveDeps = T.input {
+      super.testTransitiveDeps() ++
+        Option.when(scoverage.enableScoverage1)(worker("1").testDep()).toSeq ++
+        Seq(worker("2").testDep())
+    }
 
     def testArgs = T {
       super.testArgs() ++
@@ -934,32 +938,40 @@ object contrib extends Module {
       super.testModuleDeps ++
         Seq(scalalib, scalajslib, scalanativelib, contrib.buildinfo)
 
-    // Worker for Scoverage 1.x
-    object worker extends MillPublishScalaModule {
-      // scoverage is on an old Scala version which doesnt support scalafix
-      def fix(args: String*): Command[Unit] = T.command {}
+    val enableScoverage1 = !scala.util.Properties.isJavaAtLeast(21)
+    val workerVersions = Option.when(enableScoverage1)("1").toSeq ++ Seq("2")
+
+    object worker extends Cross[Worker](workerVersions)
+    trait Worker extends MillPublishScalaModule with Cross.Module[String] {
+      def millSourcePath = crossValue match {
+        case "1" => super.millSourcePath
+        case "2" => super.millSourcePath / os.up / "worker2"
+      }
+
+      def fix(args: String*): Command[Unit] = crossValue match {
+        // scoverage is on an old Scala version which doesnt support scalafix
+        case "1" => T.command {}
+        case "2" => super.fix(args: _*)
+      }
+
       def compileModuleDeps = Seq(main.api)
       def moduleDeps = Seq(scoverage.api)
       def testDepPaths = T { Seq(compile().classes) }
 
+      def scalaVersion = crossValue match {
+        case "1" => Deps.scalaVersionForScoverageWorker1
+        case "2" => super.scalaVersion
+      }
       // compile-time only, need to provide the correct scoverage version at runtime
-      def compileIvyDeps = Agg(Deps.scalacScoveragePlugin)
-      def scalaVersion = Deps.scalaVersionForScoverageWorker1
-    }
-
-    // Worker for Scoverage 2.0
-    object worker2 extends MillPublishScalaModule {
-      def compileModuleDeps = Seq(main.api)
-      def moduleDeps = Seq(scoverage.api)
-      def testDepPaths = T { Seq(compile().classes) }
-      def compileIvyDeps = T {
-        Agg(
-          // compile-time only, need to provide the correct scoverage version at runtime
-          Deps.scalacScoverage2Plugin,
-          Deps.scalacScoverage2Reporter,
-          Deps.scalacScoverage2Domain,
-          Deps.scalacScoverage2Serializer
-        )
+      def compileIvyDeps = crossValue match {
+        case "1" => Agg(Deps.scalacScoveragePlugin)
+        case "2" => Agg(
+            // compile-time only, need to provide the correct scoverage version at runtime
+            Deps.scalacScoverage2Plugin,
+            Deps.scalacScoverage2Reporter,
+            Deps.scalacScoverage2Domain,
+            Deps.scalacScoverage2Serializer
+          )
       }
     }
   }
@@ -1449,7 +1461,7 @@ object dev extends MillPublishScalaModule {
     scalalib.backgroundwrapper.testDep(),
     contrib.buildinfo.testDep(),
     contrib.scoverage.testDep(),
-    contrib.scoverage.worker2.testDep(),
+    contrib.scoverage.worker("2").testDep(),
     contrib.playlib.testDep(),
     contrib.playlib.worker("2.8").testDep(),
     bsp.worker.testDep()
