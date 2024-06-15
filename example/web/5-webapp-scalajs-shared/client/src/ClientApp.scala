@@ -11,8 +11,8 @@ object ClientApp{
       new dom.RequestInit {
         method = dom.HttpMethod.POST
       }
-    ).then[String](response => response.text())
-      .then[Unit]{ text =>
+    ).`then`[String](response => response.text())
+      .`then`[Unit]{ text =>
         todoApp.innerHTML = Shared
           .renderBody(upickle.default.read[Seq[Todo]](text), state)
           .render
@@ -60,8 +60,8 @@ object ClientApp{
               method = dom.HttpMethod.POST
               body = newTodoInput.value
             }
-          ).then[String](response => response.text())
-            .then[Unit]{text =>
+          ).`then`[String](response => response.text())
+            .`then`[Unit]{text =>
               newTodoInput.value = ""
 
               todoApp.innerHTML = Shared
