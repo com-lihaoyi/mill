@@ -299,11 +299,12 @@ object MillBuildRootModule {
       val relative = scriptSource.path.relativeTo(base)
       val dest = targetDest / FileImportGraph.fileImportToSegments(base, scriptSource.path, false)
 
+      val pkg = FileImportGraph.fileImportToSegments(base, scriptSource.path, true).dropRight(1)
       val newSource = MillBuildRootModule.top(
         relative,
         scriptSource.path / os.up,
-        FileImportGraph.fileImportToSegments(base, scriptSource.path, true).dropRight(1),
-        scriptSource.path.baseName,
+        if (scriptSource.path.baseName == "build") pkg.dropRight(1) else pkg,
+        if (scriptSource.path.baseName == "build") pkg.last else scriptSource.path.baseName,
         enclosingClasspath,
         millTopLevelProjectRoot,
         scriptSource.path
@@ -344,7 +345,8 @@ object MillBuildRootModule {
 
     val miscInfoName = s"MiscInfo_$name"
 
-    s"""package ${pkg.map(backtickWrap).mkString(".")}
+    val pkgLine = if (pkg.isEmpty) "" else s"package ${pkg.map(backtickWrap).mkString(".")}"
+    s"""$pkgLine
        |
        |import _root_.mill.runner.MillBuildRootModule
        |
@@ -356,12 +358,12 @@ object MillBuildRootModule {
        |  )
        |  implicit lazy val millBaseModuleInfo: _root_.mill.main.RootModule.Info = _root_.mill.main.RootModule.Info(
        |    millBuildRootModuleInfo.projectRoot,
-       |    _root_.mill.define.Discover[${backtickWrap(name)}]
+       |    _root_.mill.define.Discover[${backtickWrap(name + "_class")}]
        |  )
        |}
        |import ${backtickWrap(miscInfoName)}.{millBuildRootModuleInfo, millBaseModuleInfo}
-       |object ${backtickWrap(name)} extends ${backtickWrap(name)}
-       |class ${backtickWrap(name)} extends $superClass {
+       |package object ${backtickWrap(name)} extends ${backtickWrap(name + "_class")}
+       |class ${backtickWrap(name + "_class")} extends $superClass {
        |
        |//MILL_ORIGINAL_FILE_PATH=${originalFilePath}
        |//MILL_USER_CODE_START_MARKER
