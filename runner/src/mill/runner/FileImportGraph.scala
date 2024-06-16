@@ -129,6 +129,16 @@ object FileImportGraph {
 
     val useDummy = !os.exists(projectRoot / "build.sc")
     walkScripts(projectRoot / "build.sc", useDummy)
+    os.walk(projectRoot)
+      .filter{p =>
+        val rel = p.relativeTo(projectRoot)
+        rel.last == "build.sc" &&
+        !rel.toString().startsWith("out/") &&
+        !rel.toString().startsWith("integration/") &&
+        !rel.toString().startsWith("example/")
+      }
+      .foreach(walkScripts(_))
+
     new FileImportGraph(
       seenScripts.toMap,
       seenRepo.toSeq,
