@@ -48,6 +48,15 @@ object BloopTests extends TestSuite {
 
     object scalaModule2 extends scalalib.ScalaModule {
       def scalaVersion = "2.12.8"
+      def moduleDeps = Seq(scalaModule)
+    }
+    object scalaModule3 extends scalalib.ScalaModule {
+      def scalaVersion = "2.12.8"
+      def moduleDeps = Seq(scalaModule2)
+    }
+    object scalaModule4 extends scalalib.ScalaModule {
+      def scalaVersion = "2.12.8"
+      def compileModuleDeps = Seq(scalaModule3)
     }
 
     object scalajsModule extends scalajslib.ScalaJSModule with testBloop.Module {
@@ -85,6 +94,8 @@ object BloopTests extends TestSuite {
       testEvaluator(testBloop.install())
       val scalaModuleConfig = readBloopConf("scalaModule.json")
       val scalaModule2Config = readBloopConf("scalaModule2.json")
+      val scalaModule3Config = readBloopConf("scalaModule3.json")
+      val scalaModule4Config = readBloopConf("scalaModule4.json")
       val testModuleConfig = readBloopConf("scalaModule.test.json")
       val scalajsModuleConfig = readBloopConf("scalajsModule.json")
       // skipped on Windows
@@ -110,9 +121,11 @@ object BloopTests extends TestSuite {
         val options = p.scala.get.options
         val version = p.scala.get.version
         val compileClasspath = p.classpath.map(_.toString)
+        val compileResources = p.resources.get.map(_.toString)
         val platform = p.platform.get.asInstanceOf[Jvm]
         val jvmOptions = platform.config.options
         val runtimeClasspath = platform.classpath.get.map(_.toString)
+        val runtimeResources = platform.resources.get.map(_.toString)
         val resolution = p.resolution.get.modules
 
         assert(name == "scalaModule")
@@ -126,14 +139,11 @@ object BloopTests extends TestSuite {
           )
         )
         assert(compileClasspath.exists(_.contains("reactive-streams-1.0.3.jar")))
-        assert(
-          compileClasspath.filterNot(_.contains("reactive-streams-1.0.3.jar")).forall(
-            runtimeClasspath.contains
-          )
-        )
-        assert(
-          runtimeClasspath.exists(_.contains("postgresql-42.3.3.jar"))
-        )
+        assert(!runtimeClasspath.exists(_.contains("reactive-streams-1.0.3.jar")))
+
+        assert(runtimeClasspath.exists(_.contains("postgresql-42.3.3.jar")))
+        assert(!compileClasspath.exists(_.contains("postgresql-42.3.3.jar")))
+
         assert(platform.name == "jvm")
         assert(platform.mainClass.get == "foo.bar.Main")
         assert(jvmOptions.contains(s"-Duser.dir=$workdir"))
@@ -144,6 +154,12 @@ object BloopTests extends TestSuite {
         assert(bloopConfigDep.organization == "ch.epfl.scala")
         assert(artifacts.map(_.name).distinct == List("bloop-config_2.12"))
         assert(artifacts.flatMap(_.classifier).contains("sources"))
+
+        assert(compileResources.exists(_.contains("scalaModule/compile-resources")))
+        assert(!compileResources.exists(_.contains("scalaModule/resources")))
+
+        assert(runtimeResources.exists(_.contains("scalaModule/compile-resources")))
+        assert(runtimeResources.exists(_.contains("scalaModule/resources")))
       }
       "scalaModuleTest" - {
         val p = testModuleConfig.project
@@ -163,6 +179,7 @@ object BloopTests extends TestSuite {
             p.classpath.contains
           )
         )
+        assert(p.platform.get.asInstanceOf[Jvm].classpath == None)
       }
       "configAccessTest" - {
         val (accessedConfig, _) =
@@ -172,6 +189,30 @@ object BloopTests extends TestSuite {
       "noDepTest" - {
         val cp = scalaModule2Config.project.classpath.map(_.toString)
         assert(cp.exists(_.contains("scala-library-2.12.8")))
+      }
+      "classpath" - {
+        val cp = scalaModule3Config.project.classpath.map(_.toString)
+        assert(!cp.exists(_.contains(".bloop/out/scalaModule3/classes")))
+        assert(cp.exists(_.contains(".bloop/out/scalaModule2/classes")))
+        assert(cp.exists(_.contains(".bloop/out/scalaModule/classes")))
+      }
+      "platform-classpath" - {
+        val cp = scalaModule3Config.project.platform.get.asInstanceOf[Jvm].classpath.map(_.toString)
+        assert(cp.exists(_.contains(".bloop/out/scalaModule3/classes")))
+        assert(cp.exists(_.contains(".bloop/out/scalaModule2/classes")))
+        assert(cp.exists(_.contains(".bloop/out/scalaModule/classes")))
+      }
+      "classpath-compile-module-deps" - {
+        val cp = scalaModule4Config.project.classpath.map(_.toString)
+        assert(cp.exists(_.contains(".bloop/out/scalaModule3/classes")))
+        assert(cp.exists(_.contains(".bloop/out/scalaModule2/classes")))
+        assert(cp.exists(_.contains(".bloop/out/scalaModule/classes")))
+      }
+      "platform-classpath-compile-module-deps" - {
+        val cp = scalaModule4Config.project.platform.get.asInstanceOf[Jvm].classpath.map(_.toString)
+        assert(!cp.exists(_.contains(".bloop/out/scalaModule3/classes")))
+        assert(!cp.exists(_.contains(".bloop/out/scalaModule2/classes")))
+        assert(!cp.exists(_.contains(".bloop/out/scalaModule/classes")))
       }
       "scalajsModule" - {
         val p = scalajsModuleConfig.project
@@ -222,7 +263,7 @@ object BloopTests extends TestSuite {
       testEvaluator(testBloop.install())
       val bloopDir = workdir / ".bloop"
       val files = os.list(bloopDir)
-      val size = (if (isWin) 4 else 5)
+      val size = (if (isWin) 6 else 7)
       assert(files.size == size)
       os.remove.all(bloopDir)
       testEvaluator(testBloop.install())

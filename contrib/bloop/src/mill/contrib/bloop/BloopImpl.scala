@@ -201,21 +201,25 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
     // //////////////////////////////////////////////////////////////////////////
 
     val classpath = T.task {
-      val depModules = (module.compileModuleDepsChecked ++ module.recursiveModuleDeps).distinct
-      // dep modules ++ ivy deps ++ unmanaged
-      depModules.map(classes) ++
-        module.resolvedIvyDeps().map(_.path) ++
-        module.unmanagedClasspath().map(_.path)
+      val transitiveCompileClasspath = T.traverse(module.transitiveModuleCompileModuleDeps)(m =>
+        T.task { m.localCompileClasspath().map(_.path) ++ Agg(classes(m)) }
+      )().flatten
+
+      module.resolvedIvyDeps().map(_.path) ++
+        transitiveCompileClasspath ++
+        module.localCompileClasspath().map(_.path)
     }
 
     val runtimeClasspath = T.task {
-      // dep modules ++ ivy deps ++ unmanaged
-      module.recursiveModuleDeps.map(classes) ++
+      module.transitiveModuleDeps.map(classes) ++
         module.resolvedRunIvyDeps().map(_.path) ++
         module.unmanagedClasspath().map(_.path)
     }
 
-    val resources = T.task(module.resources().map(_.path.toNIO).toList)
+    val compileResources =
+      T.task(module.compileResources().map(_.path.toNIO).toList)
+    val runtimeResources =
+      T.task(compileResources() ++ module.resources().map(_.path.toNIO).toList)
 
     val platform: Task[BloopConfig.Platform] = module match {
       case m: ScalaJSModule =>
@@ -277,8 +281,11 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
             ),
             mainClass = module.mainClass(),
             runtimeConfig = None,
-            classpath = Some(runtimeClasspath().map(_.toNIO).toList),
-            resources = Some(module.resources().map(_.path.toNIO).toList)
+            classpath = module match {
+              case _: TestModule => None
+              case _ => Some(runtimeClasspath().map(_.toNIO).toList)
+            },
+            resources = Some(runtimeResources())
           )
         }
     }
@@ -413,7 +420,7 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
         classpath = classpath().map(_.toNIO).toList,
         out = out(module).toNIO,
         classesDir = classes(module).toNIO,
-        resources = Some(resources()),
+        resources = Some(compileResources()),
         `scala` = scalaConfig(),
         java = javaConfig(),
         sbt = None,
