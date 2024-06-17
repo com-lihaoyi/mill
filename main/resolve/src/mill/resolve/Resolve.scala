@@ -272,8 +272,8 @@ trait Resolve[T] {
                 Left("Cannot resolve external module " + scoping.render)
             }
           rootModule <- moduleCls.getField("MODULE$").get(moduleCls) match {
-            case rootModule: ExternalModule => Right(rootModule)
-            case _ => Left("Class " + scoping.render + " is not an external module")
+            case rootModule: BaseModule => Right(rootModule)
+            case _ => Left("Class " + scoping.render + " is not an BaseModule")
           }
         } yield rootModule
     }
