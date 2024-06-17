@@ -21,7 +21,9 @@ object BloopTests extends IntegrationTestSuite {
 
       val config = ujson.read(os.read.stream(millBuildJsonFile))
       "mill-build config should contain build.sc source" - {
-        assert(config("project")("sources").arr.exists(path => os.Path(path.str).last == "build.sc"))
+        assert(config("project")("sources").arr.exists(path =>
+          os.Path(path.str).last == "build.sc"
+        ))
       }
     }
   }
