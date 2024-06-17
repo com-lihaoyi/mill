@@ -189,15 +189,15 @@ trait Resolve[T] {
   ): Either[String, Seq[T]]
 
   def resolve(
-      rootModule: BaseModule,
+      rootModules: Seq[BaseModule],
       scriptArgs: Seq[String],
       selectMode: SelectMode
   ): Either[String, List[T]] = {
-    resolve0(rootModule, scriptArgs, selectMode)
+    resolve0(rootModules, scriptArgs, selectMode)
   }
 
   private[mill] def resolve0(
-      baseModule: BaseModule,
+      baseModules: Seq[BaseModule],
       scriptArgs: Seq[String],
       selectMode: SelectMode
   ): Either[String, List[T]] = {
@@ -205,7 +205,7 @@ trait Resolve[T] {
     val resolvedGroups = ParseArgs(scriptArgs, selectMode).flatMap { groups =>
       val resolved = groups.map { case (selectors, args) =>
         val selected = selectors.map { case (scopedSel, sel) =>
-          resolveRootModule(baseModule, scopedSel).map { rootModule =>
+          resolveRootModule(baseModules, scopedSel).map { rootModule =>
             resolveNonEmptyAndHandle(args, sel, rootModule, nullCommandDefaults)
           }
         }
@@ -258,15 +258,15 @@ trait Resolve[T] {
   private[mill] def deduplicate(items: List[T]): List[T] = items
 
   private[mill] def resolveRootModule(
-      rootModule: BaseModule,
+      rootModules: Seq[BaseModule],
       scopedSel: Option[Segments]
   ): Either[String, BaseModule] = {
     scopedSel match {
-      case None => Right(rootModule)
+      case None => Right(rootModules.head)
       case Some(scoping) =>
         for {
           moduleCls <-
-            try Right(rootModule.getClass.getClassLoader.loadClass(scoping.render + "$"))
+            try Right(rootModules.head.getClass.getClassLoader.loadClass(scoping.render + "$"))
             catch {
               case e: ClassNotFoundException =>
                 Left("Cannot resolve external module " + scoping.render)

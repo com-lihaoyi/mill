@@ -15,7 +15,7 @@ import scala.util.DynamicVariable
  */
 trait Evaluator {
   def baseLogger: ColorLogger
-  def rootModule: BaseModule
+  def rootModules: Seq[BaseModule]
   def effectiveThreadCount: Int
   def outPath: os.Path
   def externalOutPath: os.Path

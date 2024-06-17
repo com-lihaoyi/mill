@@ -19,7 +19,7 @@ object MainModule {
       targets: Seq[String],
       selectMode: SelectMode
   )(f: List[NamedTask[Any]] => T): Result[T] = {
-    Resolve.Tasks.resolve(evaluator.rootModule, targets, selectMode) match {
+    Resolve.Tasks.resolve(evaluator.rootModules, targets, selectMode) match {
       case Left(err) => Result.Failure(err)
       case Right(tasks) => Result.Success(f(tasks))
     }
@@ -108,7 +108,7 @@ trait MainModule extends mill.define.Module {
    */
   def resolve(evaluator: Evaluator, targets: String*): Command[List[String]] = Target.command {
     val resolved = Resolve.Segments.resolve(
-      evaluator.rootModule,
+      evaluator.rootModules,
       targets,
       SelectMode.Multi
     )
@@ -138,7 +138,7 @@ trait MainModule extends mill.define.Module {
 
   private def plan0(evaluator: Evaluator, targets: Seq[String]) = {
     Resolve.Tasks.resolve(
-      evaluator.rootModule,
+      evaluator.rootModules,
       targets,
       SelectMode.Multi
     ) match {
@@ -158,7 +158,7 @@ trait MainModule extends mill.define.Module {
   def path(evaluator: Evaluator, src: String, dest: String): Command[List[String]] =
     Target.command {
       val resolved = Resolve.Tasks.resolve(
-        evaluator.rootModule,
+        evaluator.rootModules,
         List(src, dest),
         SelectMode.Multi
       )
@@ -212,7 +212,7 @@ trait MainModule extends mill.define.Module {
       def rec(t: Task[_]): Seq[Segments] = {
         if (seen(t)) Nil // do nothing
         else t match {
-          case t: mill.define.Target[_] if evaluator.rootModule.millInternal.targets.contains(t) =>
+          case t: mill.define.Target[_] if evaluator.rootModules.head.millInternal.targets.contains(t) =>
             Seq(t.ctx.segments)
           case _ =>
             seen.add(t)
@@ -237,7 +237,7 @@ trait MainModule extends mill.define.Module {
           if (t.asCommand.isEmpty) List()
           else {
             val mainDataOpt = evaluator
-              .rootModule
+              .rootModules.head
               .millDiscover
               .value
               .get(t.ctx.enclosingCls)
@@ -359,7 +359,7 @@ trait MainModule extends mill.define.Module {
         Right(os.list(rootDir).filterNot(keepPath))
       else
         mill.resolve.Resolve.Segments.resolve(
-          evaluator.rootModule,
+          evaluator.rootModules,
           targets,
           SelectMode.Multi
         ).map { ts =>
@@ -459,7 +459,7 @@ trait MainModule extends mill.define.Module {
     }
 
     Resolve.Tasks.resolve(
-      evaluator.rootModule,
+      evaluator.rootModules,
       targets,
       SelectMode.Multi
     ) match {
