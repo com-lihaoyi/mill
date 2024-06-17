@@ -5,7 +5,7 @@ import utest._
 object BloopTests extends IntegrationTestSuite {
   initWorkspace()
 
-  val installResult = eval("mill.contrib.bloop.Bloop/install")
+  val installResult: Boolean = eval("mill.contrib.bloop.Bloop/install")
 
   val tests: Tests = Tests {
     test("test") - {
