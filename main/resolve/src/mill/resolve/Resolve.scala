@@ -1,18 +1,7 @@
 package mill.resolve
 
 import mainargs.{MainData, TokenGrouping}
-import mill.define.{
-  BaseModule,
-  Command,
-  Discover,
-  ExternalModule,
-  Module,
-  NamedTask,
-  Reflect,
-  Segments,
-  Target,
-  TaskModule
-}
+import mill.define.{BaseModule, Command, Discover, ExternalModule, Module, NamedTask, Reflect, Segment, Segments, Target, TaskModule}
 import mill.resolve.ResolveCore.{Resolved, makeResultException}
 import mill.util.EitherOps
 
@@ -205,8 +194,8 @@ trait Resolve[T] {
     val resolvedGroups = ParseArgs(scriptArgs, selectMode).flatMap { groups =>
       val resolved = groups.map { case (selectors, args) =>
         val selected = selectors.map { case (scopedSel, sel) =>
-          resolveRootModule(baseModules, scopedSel).map { rootModule =>
-            resolveNonEmptyAndHandle(args, sel, rootModule, nullCommandDefaults)
+          resolveRootModule(baseModules, scopedSel, sel).map { case (rootModule, sel2) =>
+            resolveNonEmptyAndHandle(args, sel2, rootModule, nullCommandDefaults)
           }
         }
 
@@ -259,10 +248,24 @@ trait Resolve[T] {
 
   private[mill] def resolveRootModule(
       rootModules: Seq[BaseModule],
-      scopedSel: Option[Segments]
-  ): Either[String, BaseModule] = {
+      scopedSel: Option[Segments],
+      sel: Segments
+  ): Either[String, (BaseModule, Segments)] = {
     scopedSel match {
-      case None => Right(rootModules.head)
+      case None =>
+        val (drop, longestMatchingRootModule) = rootModules
+          .map(m => (m.getClass.getName, m))
+          .sortBy(_._1)
+          .reverse
+          .collect { case (s"millbuild.$parts.package$$", m)
+            if sel.value.takeWhile(_.isInstanceOf[Segment.Label])
+              .collect{case Segment.Label(v) => v}.zip(parts.split('.')).forall(t => t._1 == t._2) =>
+            parts.split('.').length -> m
+          }
+          .headOption
+          .getOrElse(0 -> rootModules.head)
+
+        Right((longestMatchingRootModule, Segments(sel.value.drop(drop))))
       case Some(scoping) =>
         for {
           moduleCls <-
@@ -275,7 +278,7 @@ trait Resolve[T] {
             case rootModule: BaseModule => Right(rootModule)
             case _ => Left("Class " + scoping.render + " is not an BaseModule")
           }
-        } yield rootModule
+        } yield (rootModule, sel)
     }
   }
 }
