@@ -253,19 +253,31 @@ trait Resolve[T] {
   ): Either[String, (BaseModule, Segments)] = {
     scopedSel match {
       case None =>
+        pprint.log(rootModules.map(m => (m.getClass.getName, m)))
         val (drop, longestMatchingRootModule) = rootModules
-          .map(m => (m.getClass.getName, m))
-          .sortBy(_._1)
+          .map{m =>
+            val parts = m.getClass.getName match{
+              case s"millbuild.$partString.package$$" => partString.split('.')
+              case s"millbuild.${partString}_class$$$last$$" => partString.split('.')
+              case _ => Array[String]()
+            }
+
+            (parts, m)
+          }
+          .sortBy(_._1.length)
           .reverse
-          .collect { case (s"millbuild.$parts.package$$", m)
-            if sel.value.takeWhile(_.isInstanceOf[Segment.Label])
-              .collect{case Segment.Label(v) => v}.zip(parts.split('.')).forall(t => t._1 == t._2) =>
-            parts.split('.').length -> m
+          .collect {
+            case (parts, m)
+              if sel.value.takeWhile(_.isInstanceOf[Segment.Label])
+                .collect{case Segment.Label(v) => v}.zip(parts).forall(t => t._1 == t._2) =>
+              parts.length -> m
           }
           .headOption
           .getOrElse(0 -> rootModules.head)
 
-        Right((longestMatchingRootModule, Segments(sel.value.drop(drop))))
+        val segmentsSuffix = Segments(sel.value.drop(drop))
+
+        Right((longestMatchingRootModule, segmentsSuffix))
       case Some(scoping) =>
         for {
           moduleCls <-
