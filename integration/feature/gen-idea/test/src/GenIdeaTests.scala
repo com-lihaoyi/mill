@@ -9,8 +9,7 @@ import os.Path
 
 object GenIdeaTests extends IntegrationTestSuite {
 
-  override def scriptSourcePath: Path = super.scriptSourcePath / "hello-world"
-  private val scalaVersionLibPart = "2_12_5"
+  override def scriptSourcePath: Path = super.scriptSourcePath / "hello-idea"
 
   def tests: Tests = Tests {
     test("helper assertPartialContentMatches works") {
@@ -54,19 +53,14 @@ object GenIdeaTests extends IntegrationTestSuite {
 
     test("genIdeaTests") {
       val workspacePath = initWorkspace()
+      val expectedBase = workspacePath / "idea"
+      val resources = os.walk(expectedBase).filter(os.isFile).map(_.subRelativeTo(expectedBase))
+
       eval("mill.idea.GenIdea/idea")
 
-      val checks = Seq(
-        os.sub / "mill_modules" / "helloworld.iml",
-        os.sub / "mill_modules" / "helloworld.test.iml",
-        os.sub / "mill_modules" / "mill-build.iml",
-        os.sub / "libraries" / s"scala_library_${scalaVersionLibPart}_jar.xml",
-        os.sub / "modules.xml",
-        os.sub / "misc.xml"
-      ).map { resource =>
+      val checks = resources.map { resource =>
         Try {
           assertIdeaXmlResourceMatchesFile(
-            scriptSlug,
             workspacePath,
             resource
           )

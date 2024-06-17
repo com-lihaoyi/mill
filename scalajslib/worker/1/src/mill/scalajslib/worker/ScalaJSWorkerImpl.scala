@@ -17,13 +17,15 @@ import org.scalajs.linker.interface.{
   ModuleSplitStyle => _,
   _
 }
-import org.scalajs.logging.ScalaConsoleLogger
+import org.scalajs.logging.{Level, Logger}
 import org.scalajs.jsenv.{Input, JSEnv, RunConfig}
 import org.scalajs.testing.adapter.TestAdapter
 import org.scalajs.testing.adapter.{TestAdapterInitializer => TAI}
 
 import scala.collection.mutable
 import scala.ref.SoftReference
+
+import com.armanbilge.sjsimportmap.ImportMappedIRFile
 
 class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
   private case class LinkerInput(
@@ -156,6 +158,14 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       (linker, irFileCacheCache)
     }
   }
+  private val logger = new Logger {
+    def log(level: Level, message: => String): Unit = {
+      System.err.println(message)
+    }
+    def trace(t: => Throwable): Unit = {
+      t.printStackTrace()
+    }
+  }
   def link(
       runClasspath: Seq[Path],
       dest: File,
@@ -169,7 +179,8 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       esFeatures: ESFeatures,
       moduleSplitStyle: ModuleSplitStyle,
       outputPatterns: OutputPatterns,
-      minify: Boolean
+      minify: Boolean,
+      importMap: Seq[ESModuleImportMapping]
   ): Either[String, Report] = {
     // On Scala.js 1.2- we want to use the legacy mode either way since
     // the new mode is not supported and in tests we always use legacy = false
@@ -187,7 +198,6 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       dest = dest
     ))
     val irContainersAndPathsFuture = PathIRContainer.fromClasspath(runClasspath)
-    val logger = new ScalaConsoleLogger
     val testInitializer =
       if (testBridgeInit)
         ModuleInitializer.mainMethod(TAI.ModuleClassName, TAI.MainMethodName) :: Nil
@@ -202,7 +212,24 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
 
     val resultFuture = (for {
       (irContainers, _) <- irContainersAndPathsFuture
-      irFiles <- irFileCacheCache.cached(irContainers)
+      irFiles0 <- irFileCacheCache.cached(irContainers)
+      irFiles = if (importMap.isEmpty) {
+        irFiles0
+      } else {
+        if (!minorIsGreaterThanOrEqual(16)) {
+          throw new Exception("scalaJSImportMap is not supported with Scala.js < 1.16.")
+        }
+        val remapFunction = (rawImport: String) => {
+          importMap
+            .collectFirst {
+              case ESModuleImportMapping.Prefix(prefix, replacement)
+                  if rawImport.startsWith(prefix) =>
+                s"$replacement${rawImport.stripPrefix(prefix)}"
+            }
+            .getOrElse(rawImport)
+        }
+        irFiles0.map { ImportMappedIRFile.fromIRFile(_)(remapFunction) }
+      }
       report <-
         if (useLegacy) {
           val jsFileName = "out.js"
@@ -264,7 +291,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
   def run(config: JsEnvConfig, report: Report): Unit = {
     val env = jsEnv(config)
     val input = jsEnvInput(report)
-    val runConfig0 = RunConfig().withLogger(new ScalaConsoleLogger)
+    val runConfig0 = RunConfig().withLogger(logger)
     val runConfig =
       if (mill.api.SystemStreams.isOriginal()) runConfig0
       else runConfig0
@@ -295,7 +322,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
   ): (() => Unit, sbt.testing.Framework) = {
     val env = jsEnv(config)
     val input = jsEnvInput(report)
-    val tconfig = TestAdapter.Config().withLogger(new ScalaConsoleLogger)
+    val tconfig = TestAdapter.Config().withLogger(logger)
 
     val adapter = new TestAdapter(env, input, tconfig)
 

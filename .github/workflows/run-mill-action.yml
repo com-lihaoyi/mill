@@ -21,6 +21,9 @@ on:
       timeout-minutes:
         default: 90
         type: number
+      env-bridge-versions:
+        default: 'none'
+        type: string
 
 jobs:
   build:
@@ -28,6 +31,8 @@ jobs:
     runs-on: ${{ inputs.os }}
     continue-on-error: ${{ inputs.continue-on-error }}
     timeout-minutes: ${{ inputs.timeout-minutes }}
+    env:
+      MILL_COMPILER_BRIDGE_VERSIONS: ${{ inputs.env-bridge-versions }}
 
     steps:
       - uses: actions/checkout@v4

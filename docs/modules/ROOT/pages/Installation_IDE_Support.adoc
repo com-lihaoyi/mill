@@ -74,6 +74,12 @@ The script supports to following sources when determining the best Mill version 
 Using a system-wide installed `millw` is probably the robustest way to use Mill on any operating system.
 It also preserves support of rather old Mill versions next to recent ones, so that updating it or switching to `millw` initially should be a no-brainer.
 
+You can also install it on Homebrew via https://github.com/lefou/homebrew-millw[homebrew-millw]:
+
+[source,sh]
+----
+brew install lefou/millw/millw
+----
 
 == Other installation methods
 
@@ -360,7 +366,7 @@ automatically open a pull request to update your Mill version (in
 `.mill-version` or `.config/mill-version` file), whenever there is a newer version available.
 
 TIP: Scala Steward can also
-xref:Configuration.adoc#_keeping_up_to_date_with_scala_steward[scan your project dependencies]
+xref:Scala_Module_Config.adoc#_keeping_up_to_date_with_scala_steward[scan your project dependencies]
 and keep them up-to-date.
 
 === Development Releases

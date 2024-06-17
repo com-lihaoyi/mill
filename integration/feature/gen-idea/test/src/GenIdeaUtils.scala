@@ -11,20 +11,26 @@ object GenIdeaUtils {
    * It may contain the `<!-- IGNORE -->` String, to simulate wildcard-matches.
    */
   def assertIdeaXmlResourceMatchesFile(
-      workspaceSlug: String,
       workspacePath: os.Path,
-      resource: os.RelPath
+      resource: os.SubPath
   ): Unit = {
     val expectedResourcePath = workspacePath / "idea" / resource
     val actualResourcePath = workspacePath / ".idea" / resource
 
-    val expectedResourceString = os.read.lines(expectedResourcePath).mkString("\n")
-    val actualResourceString = normaliseLibraryPaths(os.read(actualResourcePath), workspacePath)
+    val check = Try {
+      val expectedResourceString = os.read.lines(expectedResourcePath).mkString("\n")
+      val actualResourceString = normaliseLibraryPaths(os.read(actualResourcePath), workspacePath)
 
-    assertPartialContentMatches(
-      found = actualResourceString,
-      expected = expectedResourceString
+      assertPartialContentMatches(
+        found = actualResourceString,
+        expected = expectedResourceString
+      )
+    }
+    println(
+      s"Checking ${expectedResourcePath.relativeTo(workspacePath)} ... ${if (check.isSuccess) "OK"
+        else "FAILED"}"
     )
+    check.get
   }
 
   def assertPartialContentMatches(found: String, expected: String): Unit = {
@@ -47,6 +53,8 @@ object GenIdeaUtils {
         "/"
       )
     in.replace(path, "COURSIER_HOME")
+      .replace("//$USER_HOME$/AppData/Local/Coursier/cache/", "//$USER_HOME$/COURSIER_CACHE/")
+      .replace("//$USER_HOME$/.cache/coursier/", "//$USER_HOME$/COURSIER_CACHE/")
   }
 
   val ignoreString = "<!-- IGNORE -->"

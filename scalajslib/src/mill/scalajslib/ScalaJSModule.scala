@@ -17,8 +17,6 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def scalaJSVersion: T[String]
 
-  @deprecated("use ScalaJSTests", "0.11.0")
-  type ScalaJSModuleTests = ScalaJSTests
   trait ScalaJSTests extends ScalaTests with TestScalaJSModule {
     override def scalaJSVersion = outer.scalaJSVersion()
     override def moduleKind: Target[ModuleKind] = outer.moduleKind()
@@ -27,6 +25,10 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     override def jsEnvConfig: Target[JsEnvConfig] = outer.jsEnvConfig()
     override def scalaJSOptimizer: Target[Boolean] = outer.scalaJSOptimizer()
   }
+  @deprecated("use ScalaJSTests", "0.11.0")
+  type ScalaJSModuleTests = ScalaJSTests
+  @deprecated("use ScalaJSTests", "0.11.0")
+  trait Tests extends ScalaJSTests
 
   def scalaJSBinaryVersion = T { ZincWorkerUtil.scalaJSBinaryVersion(scalaJSVersion()) }
 
@@ -75,6 +77,12 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     val commonDeps = Seq(
       ivy"org.scala-js::scalajs-sbt-test-adapter:${scalaJSVersion()}"
     )
+    val scalajsImportMapDeps = scalaJSVersion() match {
+      case s"1.$n.$_" if n.toIntOption.exists(_ >= 16) && scalaJSImportMap().nonEmpty =>
+        Seq(ivy"${ScalaJSBuildInfo.scalajsImportMap}")
+      case _ => Seq.empty[Dep]
+    }
+
     val envDeps = scalaJSBinaryVersion() match {
       case "0.6" =>
         Seq(
@@ -89,7 +97,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     // we need to use the scala-library of the currently running mill
     resolveDependencies(
       repositoriesTask(),
-      (commonDeps.iterator ++ envDeps)
+      (commonDeps.iterator ++ envDeps ++ scalajsImportMapDeps)
         .map(Lib.depToBoundDep(_, mill.main.BuildInfo.scalaVersion, "")),
       ctx = Some(T.log)
     )
@@ -130,7 +138,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       esFeatures = esFeatures(),
       moduleSplitStyle = moduleSplitStyle(),
       outputPatterns = scalaJSOutputPatterns(),
-      minify = scalaJSMinify()
+      minify = scalaJSMinify(),
+      importMap = scalaJSImportMap()
     )
   }
 
@@ -172,7 +181,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       esFeatures: ESFeatures,
       moduleSplitStyle: ModuleSplitStyle,
       outputPatterns: OutputPatterns,
-      minify: Boolean
+      minify: Boolean,
+      importMap: Seq[ESModuleImportMapping]
   )(implicit ctx: mill.api.Ctx): Result[Report] = {
     val outputPath = ctx.dest
 
@@ -192,7 +202,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       esFeatures = esFeatures,
       moduleSplitStyle = moduleSplitStyle,
       outputPatterns = outputPatterns,
-      minify = minify
+      minify = minify,
+      importMap = importMap
     )
   }
 
@@ -265,6 +276,10 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   def moduleSplitStyle: Target[ModuleSplitStyle] = T { ModuleSplitStyle.FewestModules }
 
   def scalaJSOptimizer: Target[Boolean] = T { true }
+
+  def scalaJSImportMap: Target[Seq[ESModuleImportMapping]] = T {
+    Seq.empty[ESModuleImportMapping]
+  }
 
   /** Whether to emit a source map. */
   def scalaJSSourceMap: Target[Boolean] = T { true }
@@ -346,7 +361,8 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       esFeatures = esFeatures(),
       moduleSplitStyle = moduleSplitStyle(),
       outputPatterns = scalaJSOutputPatterns(),
-      minify = scalaJSMinify()
+      minify = scalaJSMinify(),
+      importMap = scalaJSImportMap()
     )
   }
 
@@ -373,7 +389,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       T.testReporter,
       TestRunnerUtils.globFilter(globSelectors())
     )
-    val res = TestModule.handleResults(doneMsg, results, Some(T.ctx()))
+    val res = TestModule.handleResults(doneMsg, results, T.ctx(), testReportXml())
     // Hack to try and let the Node.js subprocess finish streaming it's stdout
     // to the JVM. Without this, the stdout can still be streaming when `close()`
     // is called, and some of the output is dropped onto the floor.

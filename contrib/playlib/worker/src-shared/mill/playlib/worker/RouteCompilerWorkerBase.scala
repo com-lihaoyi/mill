@@ -83,7 +83,7 @@ protected[playlib] class RouteCompilerWorkerBase extends RouteCompilerWorkerApi 
   ): Either[Seq[RoutesCompilationError], Seq[File]] = {
     val result =
       RoutesCompiler.compile(
-        RoutesCompilerTask(
+        new RoutesCompilerTask(
           file.toIO,
           additionalImports,
           forwardsRouter,

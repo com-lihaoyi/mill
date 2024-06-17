@@ -8,6 +8,7 @@
         </content>
         <orderEntry type="inheritedJdk"/>
         <orderEntry type="sourceFolder" forTests="false"/>
+        <orderEntry type="library" name="scala-SDK-2.13.<!-- IGNORE -->" level="project"/>
 <!-- IGNORE -->
     </component>
 </module>

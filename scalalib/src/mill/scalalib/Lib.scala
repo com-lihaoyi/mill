@@ -135,6 +135,13 @@ object Lib {
     } yield path
   }
 
+  private[mill] def millAssemblyEmbeddedDeps: Agg[BoundDep] = Agg.from(
+    BuildInfo.millEmbeddedDeps
+      .split(",")
+      .map(d => ivy"$d")
+      .map(dep => Lib.depToBoundDep(dep, BuildInfo.scalaVersion))
+  )
+
   def resolveMillBuildDeps(
       repos: Seq[Repository],
       ctx: Option[mill.api.Ctx.Log],
@@ -143,14 +150,10 @@ object Lib {
     Util.millProperty("MILL_BUILD_LIBRARIES") match {
       case Some(found) => found.split(',').map(os.Path(_)).distinct.toList
       case None =>
-        val millDeps = BuildInfo.millEmbeddedDeps
-          .split(",")
-          .map(d => ivy"$d")
-          .map(dep => Lib.depToBoundDep(dep, BuildInfo.scalaVersion))
-
+        millAssemblyEmbeddedDeps
         val Result.Success(res) = scalalib.Lib.resolveDependencies(
           repositories = repos.toList,
-          deps = millDeps,
+          deps = millAssemblyEmbeddedDeps,
           sources = useSources,
           mapDependencies = None,
           customizer = None,

@@ -85,14 +85,18 @@ trait DockerModule { outer: JavaModule =>
     def user: T[String] = ""
 
     /**
+     * Optional platform parameter, if set uses buildkit to build for specified platform.
+     *
+     * See also the Docker docs on
+     * [[https://docs.docker.com/reference/cli/docker/buildx/build/#platform]]
+     * for more information.
+     */
+    def platform: T[String] = ""
+
+    /**
      * The name of the executable to use, the default is "docker".
      */
     def executable: T[String] = "docker"
-
-    private def baseImageCacheBuster: T[(Boolean, Double)] = T.input {
-      val pull = pullBaseImage()
-      if (pull) (pull, Math.random()) else (pull, 0d)
-    }
 
     def dockerfile: T[String] = T {
       val jarName = assembly().path.last
@@ -133,6 +137,18 @@ trait DockerModule { outer: JavaModule =>
          |ENTRYPOINT [$quotedEntryPointArgs]""".stripMargin
     }
 
+    private def pullAndHash = T.input {
+      def imageHash() =
+        os.proc(executable(), "images", "--no-trunc", "--quiet", baseImage())
+          .call(stderr = os.Inherit).out.text().trim
+
+      if (pullBaseImage() || imageHash().isEmpty)
+        os.proc(executable(), "image", "pull", baseImage())
+          .call(stdout = os.Inherit, stderr = os.Inherit)
+
+      (pullBaseImage(), imageHash())
+    }
+
     final def build = T {
       val dest = T.dest
 
@@ -145,13 +161,27 @@ trait DockerModule { outer: JavaModule =>
 
       val tagArgs = tags().flatMap(t => List("-t", t))
 
-      val (pull, _) = baseImageCacheBuster()
+      val (pull, _) = pullAndHash()
       val pullLatestBase = IterableShellable(if (pull) Some("--pull") else None)
 
-      val result = os
-        .proc(executable(), "build", tagArgs, pullLatestBase, dest)
-        .call(stdout = os.Inherit, stderr = os.Inherit)
-
+      val result = if (platform().isEmpty || executable() != "docker") {
+        if (platform().nonEmpty)
+          log.info("Platform parameter is ignored when using non-docker executable")
+        os.proc(executable(), "build", tagArgs, pullLatestBase, dest)
+          .call(stdout = os.Inherit, stderr = os.Inherit)
+      } else {
+        os.proc(
+          executable(),
+          "buildx",
+          "build",
+          tagArgs,
+          pullLatestBase,
+          "--platform",
+          platform(),
+          dest
+        )
+          .call(stdout = os.Inherit, stderr = os.Inherit)
+      }
       log.info(s"Docker build completed ${if (result.exitCode == 0) "successfully"
         else "unsuccessfully"} with ${result.exitCode}")
       tags()

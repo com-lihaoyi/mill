@@ -3,7 +3,7 @@ import mill.define.Target
 import mill._
 import mill.scalalib.{Dep, DepSyntax, TestModule}
 
-trait HelloWorldModule extends scalalib.ScalaModule {
+trait HelloIdeaModule extends scalalib.ScalaModule {
   def scalaVersion = "2.12.5"
   object test extends ScalaTests with TestModule.Utest {
     override def compileIvyDeps: Target[Agg[Dep]] = Agg(
@@ -20,8 +20,12 @@ trait HelloWorldModule extends scalalib.ScalaModule {
   }
 }
 
-object HelloWorld extends HelloWorldModule
+object HelloIdea extends HelloIdeaModule {
+  object scala3 extends HelloIdeaModule {
+    def scalaVersion = "3.3.1"
+  }
+}
 
-object HiddenWorld extends HelloWorldModule {
+object HiddenIdea extends HelloIdeaModule {
   override def skipIdea = true
 }

@@ -55,7 +55,7 @@ fi
 MILL_FIRST_ARG=""
 
  # first arg is a long flag for "--interactive" or starts with "-i"
-if [ "$1" = "--bsp" ] || [ "${1%"-i"*}" != "$1" ] || [ "$1" = "--interactive" ] || [ "$1" = "--no-server" ] || [ "$1" = "--repl" ] || [ "$1" = "--help" ] ; then
+if [ "$1" = "--bsp" ] || [ "${1#"-i"}" != "$1" ] || [ "$1" = "--interactive" ] || [ "$1" = "--no-server" ] || [ "$1" = "--repl" ] || [ "$1" = "--help" ] ; then
   # Need to preserve the first position of those listed options
   MILL_FIRST_ARG=$1
   shift

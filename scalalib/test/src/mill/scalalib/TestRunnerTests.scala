@@ -1,13 +1,15 @@
 package mill.scalalib
 
-import mill.{Agg, T}
-
 import mill.api.Result
 import mill.util.{TestEvaluator, TestUtil}
+import mill.{Agg, T}
+import os.Path
+import sbt.testing.Status
 import utest._
 import utest.framework.TestPath
 
 import java.io.{ByteArrayOutputStream, PrintStream}
+import scala.xml.{Elem, NodeSeq, XML}
 
 object TestRunnerTests extends TestSuite {
   object testrunner extends TestUtil.BaseModule with ScalaModule {
@@ -76,16 +78,27 @@ object TestRunnerTests extends TestSuite {
   }
 
   override def tests: Tests = Tests {
-    "TestRunner" - {
-      "utest" - {
-        "test case lookup" - workspaceTest(testrunner) { eval =>
+    test("TestRunner") - {
+      test("utest") - {
+        test("test case lookup") - workspaceTest(testrunner) { eval =>
           val Right((result, _)) = eval.apply(testrunner.utest.test())
           val test = result.asInstanceOf[(String, Seq[mill.testrunner.TestResult])]
           assert(
             test._2.size == 3
           )
+          junitReportIn(eval.outPath, "utest").shouldHave(3 -> Status.Success)
         }
-        "testOnly" - {
+        test("discoveredTestClasses") - workspaceTest(testrunner) { eval =>
+          val Right((res, _)) = eval.apply(testrunner.utest.discoveredTestClasses)
+          val expected = Seq(
+            "mill.scalalib.BarTests",
+            "mill.scalalib.FooTests",
+            "mill.scalalib.FoobarTests"
+          )
+          assert(res == expected)
+          expected
+        }
+        test("testOnly") - {
           def testOnly(eval: TestEvaluator, args: Seq[String], size: Int) = {
             val Right((result1, _)) = eval.apply(testrunner.utest.testOnly(args: _*))
             val testOnly = result1.asInstanceOf[(String, Seq[mill.testrunner.TestResult])]
@@ -116,6 +129,7 @@ object TestRunnerTests extends TestSuite {
             val Left(Result.Failure(msg, _)) = eval(testrunner.doneMessageFailure.test())
             val stdout = new String(outStream.toByteArray)
             assert(stdout.contains("test failure done message"))
+            junitReportIn(eval.outPath, "doneMessageFailure").shouldHave(1 -> Status.Failure)
           }
         }
         test("success") {
@@ -137,7 +151,14 @@ object TestRunnerTests extends TestSuite {
           workspaceTest(testrunner) { eval =>
             val Right((testRes, count)) = eval(testrunner.scalatest.test())
             assert(testRes._2.size == 2)
+            junitReportIn(eval.outPath, "scalatest").shouldHave(2 -> Status.Success)
           }
+        }
+        test("discoveredTestClasses") - workspaceTest(testrunner) { eval =>
+          val Right((res, _)) = eval.apply(testrunner.scalatest.discoveredTestClasses)
+          val expected = Seq("mill.scalalib.ScalaTestSpec")
+          assert(res == expected)
+          expected
         }
       }
 
@@ -146,8 +167,51 @@ object TestRunnerTests extends TestSuite {
           workspaceTest(testrunner) { eval =>
             val Right((testRes, count)) = eval(testrunner.ziotest.test())
             assert(testRes._2.size == 1)
+            junitReportIn(eval.outPath, "ziotest").shouldHave(1 -> Status.Success)
           }
         }
+        test("discoveredTestClasses") - workspaceTest(testrunner) { eval =>
+          val Right((res, _)) = eval.apply(testrunner.ziotest.discoveredTestClasses)
+          val expected = Seq("mill.scalalib.ZioTestSpec")
+          assert(res == expected)
+          expected
+        }
+      }
+    }
+  }
+
+  trait JUnitReportMatch {
+    def shouldHave(statuses: (Int, Status)*): Unit
+  }
+  private def junitReportIn(
+      outPath: Path,
+      moduleName: String,
+      action: String = "test"
+  ): JUnitReportMatch = {
+    val reportPath: Path = outPath / moduleName / s"$action.dest" / "test-report.xml"
+    val reportXML = XML.loadFile(reportPath.toIO)
+    new JUnitReportMatch {
+      override def shouldHave(statuses: (Int, Status)*): Unit = {
+        def getValue(attribute: String): Int =
+          reportXML.attribute(attribute).map(_.toString).getOrElse("0").toInt
+        statuses.foreach { case (expectedQuantity: Int, status: Status) =>
+          status match {
+            case Status.Success =>
+              val testCases: NodeSeq = reportXML \\ "testcase"
+              val actualSucceededTestCases: Int =
+                testCases.count(tc => !tc.child.exists(n => n.isInstanceOf[Elem]))
+              assert(expectedQuantity == actualSucceededTestCases)
+            case _ =>
+              val statusXML = reportXML \\ status.name().toLowerCase
+              val nbSpecificStatusElement = statusXML.size
+              assert(expectedQuantity == nbSpecificStatusElement)
+              val specificStatusAttributeValue = getValue(s"${status.name().toLowerCase}s")
+              assert(expectedQuantity == specificStatusAttributeValue)
+          }
+        }
+        val expectedNbTests = statuses.map(_._1).sum
+        val actualNbTests = getValue("tests")
+        assert(expectedNbTests == actualNbTests)
       }
     }
   }
