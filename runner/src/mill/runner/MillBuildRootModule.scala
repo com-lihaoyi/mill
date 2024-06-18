@@ -30,7 +30,7 @@ import scala.util.Try
 class MillBuildRootModule()(implicit
     baseModuleInfo: RootModule.Info,
     millBuildRootModuleInfo: MillBuildRootModule.Info
-) extends RootModule() with ScalaModule {
+) extends RootModule.Base() with ScalaModule {
   override def bspDisplayName0: String = millBuildRootModuleInfo
     .projectRoot
     .relativeTo(millBuildRootModuleInfo.topLevelProjectRoot)
@@ -278,7 +278,7 @@ object MillBuildRootModule {
       topLevelProjectRoot0: os.Path,
       projectRoot: os.Path,
       enclosingClasspath: Seq[os.Path]
-  )(implicit baseModuleInfo: RootModule.Info) extends RootModule {
+  )(implicit baseModuleInfo: RootModule.Info) extends RootModule.Base {
 
     implicit private def millBuildRootModuleInfo: Info = MillBuildRootModule.Info(
       enclosingClasspath,
@@ -346,14 +346,10 @@ object MillBuildRootModule {
       // Computing a path in "out" that uniquely reflects the location
       // of the foreign module relatively to the current build.
 
-      // Encoding the number of `/..`
-      val ups = if (relative.ups > 0) Seq(s"up-${relative.ups}") else Seq()
-      val segs =
-        ups ++
-        relative.segments.init
+      val segs = relative.segments.init
 
       val segsList = segs.map(pprint.Util.literalize(_)).mkString(", ")
-      s"_root_.mill.main.RootModule.Foreign(Some(_root_.mill.define.Segments.labels($segsList)))"
+      s"_root_.mill.main.RootModule.Base(Some(_root_.mill.define.Segments.labels($segsList)))"
     }
 
     val miscInfoName = s"MiscInfo_$name"

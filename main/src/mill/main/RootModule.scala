@@ -12,33 +12,17 @@ import mill.define.{Caller, Discover, Segments}
  * defined at the top level of the `build.sc` and not nested in any other
  * modules.
  */
-abstract class RootModule(foreign0: Option[Segments] = None)(implicit
+abstract class RootModule(implicit
     baseModuleInfo: RootModule.Info,
     millModuleEnclosing0: sourcecode.Enclosing,
     millModuleLine0: sourcecode.Line,
-    millFile0: sourcecode.File
-) extends mill.define.BaseModule(baseModuleInfo.millSourcePath0, foreign0 = foreign0)(
-      millModuleEnclosing0,
-      millModuleLine0,
-      millFile0,
-      Caller(null)
-    ) with mill.main.MainModule {
-
-  // Make BaseModule take the `millDiscover` as an implicit param, rather than
-  // defining it itself. That is so we can define it externally in the wrapper
-  // code and it have it automatically passed to both the wrapper BaseModule as
-  // well as any user-defined BaseModule that may be present, so the
-  // user-defined BaseModule can have a complete Discover[_] instance without
-  // needing to tediously call `override lazy val millDiscover = Discover[this.type]`
-  override lazy val millDiscover: Discover[this.type] =
-    baseModuleInfo.discover.asInstanceOf[Discover[this.type]]
-}
+    millFile0: sourcecode.File,
+    ctx: mill.define.Ctx
+) extends RootModule.Base(foreign0 = ctx.foreign)
 
 @internal
 object RootModule {
-  case class Info(millSourcePath0: os.Path, discover: Discover[_])
-
-  abstract class Foreign(foreign0: Option[Segments])(implicit
+  abstract class Base(foreign0: Option[Segments] = None)(implicit
       baseModuleInfo: RootModule.Info,
       millModuleEnclosing0: sourcecode.Enclosing,
       millModuleLine0: sourcecode.Line,
@@ -50,6 +34,14 @@ object RootModule {
         Caller(null)
       ) with mill.main.MainModule {
 
-    override implicit lazy val millDiscover: Discover[this.type] = Discover[this.type]
+    // Make BaseModule take the `millDiscover` as an implicit param, rather than
+    // defining it itself. That is so we can define it externally in the wrapper
+    // code and it have it automatically passed to both the wrapper BaseModule as
+    // well as any user-defined BaseModule that may be present, so the
+    // user-defined BaseModule can have a complete Discover[_] instance without
+    // needing to tediously call `override lazy val millDiscover = Discover[this.type]`
+    override lazy val millDiscover: Discover[this.type] =
+      baseModuleInfo.discover.asInstanceOf[Discover[this.type]]
   }
+  case class Info(millSourcePath0: os.Path, discover: Discover[_])
 }
