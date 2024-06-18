@@ -342,23 +342,19 @@ object MillBuildRootModule {
       millTopLevelProjectRoot: os.Path,
       originalFilePath: os.Path
   ): String = {
-    val superClass =
-      if (pkg.size <= 1 && name == "build") "_root_.mill.main.RootModule"
-      else {
-        // Computing a path in "out" that uniquely reflects the location
-        // of the foreign module relatively to the current build.
+    val superClass = {
+      // Computing a path in "out" that uniquely reflects the location
+      // of the foreign module relatively to the current build.
 
-        // Encoding the number of `/..`
-        val ups = if (relative.ups > 0) Seq(s"up-${relative.ups}") else Seq()
-        val segs =
-          Seq("foreign-modules") ++
-            ups ++
-            relative.segments.init ++
-            Seq(relative.segments.last.stripSuffix(".sc"))
+      // Encoding the number of `/..`
+      val ups = if (relative.ups > 0) Seq(s"up-${relative.ups}") else Seq()
+      val segs =
+        ups ++
+        relative.segments.init
 
-        val segsList = segs.map(pprint.Util.literalize(_)).mkString(", ")
-        s"_root_.mill.main.RootModule.Foreign(Some(_root_.mill.define.Segments.labels($segsList)))"
-      }
+      val segsList = segs.map(pprint.Util.literalize(_)).mkString(", ")
+      s"_root_.mill.main.RootModule.Foreign(Some(_root_.mill.define.Segments.labels($segsList)))"
+    }
 
     val miscInfoName = s"MiscInfo_$name"
 

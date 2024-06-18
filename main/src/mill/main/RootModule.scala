@@ -12,12 +12,12 @@ import mill.define.{Caller, Discover, Segments}
  * defined at the top level of the `build.sc` and not nested in any other
  * modules.
  */
-abstract class RootModule()(implicit
+abstract class RootModule(foreign0: Option[Segments] = None)(implicit
     baseModuleInfo: RootModule.Info,
     millModuleEnclosing0: sourcecode.Enclosing,
     millModuleLine0: sourcecode.Line,
     millFile0: sourcecode.File
-) extends mill.define.BaseModule(baseModuleInfo.millSourcePath0)(
+) extends mill.define.BaseModule(baseModuleInfo.millSourcePath0, foreign0 = foreign0)(
       millModuleEnclosing0,
       millModuleLine0,
       millFile0,

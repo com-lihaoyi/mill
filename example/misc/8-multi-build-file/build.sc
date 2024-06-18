@@ -11,7 +11,7 @@ trait MyModule extends ScalaModule {
 
 > ./mill resolve __
 
-> ./mill bar.compile
+> ./mill bar.build.compile
 
 > ./mill foo.compile
 
