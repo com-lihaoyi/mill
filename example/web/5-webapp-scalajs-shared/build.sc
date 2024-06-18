@@ -1,7 +1,7 @@
 import mill._, scalalib._, scalajslib._
 
 trait AppScalaModule extends ScalaModule {
-  def scalaVersion = "2.13.8"
+  def scalaVersion = "3.3.3"
 }
 
 trait AppScalaJSModule extends AppScalaModule with ScalaJSModule {
@@ -20,8 +20,7 @@ object root extends RootModule with AppScalaModule {
     super.resources() ++ Seq(PathRef(T.dest))
   }
 
-  object test extends ScalaTests {
-    def testFramework = "utest.runner.Framework"
+  object test extends ScalaTests with TestModule.Utest {
 
     def ivyDeps = Agg(
       ivy"com.lihaoyi::utest::0.7.10",
