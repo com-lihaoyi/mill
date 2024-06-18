@@ -354,7 +354,10 @@ object MillBuildRootModule {
 
     val miscInfoName = s"MiscInfo_$name"
 
-    val pkgLine = if (pkg.isEmpty) "" else s"package ${pkg.map(backtickWrap).mkString(".")}"
+    val pkgLine =
+      if (pkg.isEmpty) ""
+      else pkg.map(p => "package " + backtickWrap(p)).mkString(".")
+
     s"""$pkgLine
        |
        |import _root_.mill.runner.MillBuildRootModule
