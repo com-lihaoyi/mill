@@ -5,9 +5,9 @@ object Foo {
 
   @main
   def main(@arg(name = "foo-text") fooText: String,
-           @arg(name = "bar-text") barText: String): Unit = {
+           @arg(name = "bar-qux-text") barQuxText: String): Unit = {
     println("Foo.value: " + Foo.value)
-    bar.Bar.printText(barText)
+    bar.qux.BarQux.printText(barQuxText)
   }
 
   def main(args: Array[String]): Unit = ParserForMethods(this).runOrExit(args)
