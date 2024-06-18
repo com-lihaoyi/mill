@@ -11,5 +11,11 @@ trait MyModule extends ScalaModule {
 
 > ./mill resolve __
 
+> ./mill bar.compile
+
 > ./mill foo.compile
+
+> ./mill foo.run --foo-text hello --bar-text world
+Foo.value: hello
+Bar.value: <p>world</p>
 */

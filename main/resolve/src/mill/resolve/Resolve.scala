@@ -253,7 +253,6 @@ trait Resolve[T] {
   ): Either[String, (BaseModule, Segments)] = {
     scopedSel match {
       case None =>
-        pprint.log(rootModules.map(m => (m.getClass.getName, m)))
         val (drop, longestMatchingRootModule) = rootModules
           .map{m =>
             val parts = m.getClass.getName match{

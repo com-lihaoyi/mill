@@ -212,7 +212,7 @@ trait MainModule extends mill.define.Module {
       def rec(t: Task[_]): Seq[Segments] = {
         if (seen(t)) Nil // do nothing
         else t match {
-          case t: mill.define.Target[_] if evaluator.rootModules.head.millInternal.targets.contains(t) =>
+          case t: mill.define.Target[_] if evaluator.rootModules.exists(_.millInternal.targets.contains(t)) =>
             Seq(t.ctx.segments)
           case _ =>
             seen.add(t)
@@ -237,11 +237,14 @@ trait MainModule extends mill.define.Module {
           if (t.asCommand.isEmpty) List()
           else {
             val mainDataOpt = evaluator
-              .rootModules.head
-              .millDiscover
-              .value
-              .get(t.ctx.enclosingCls)
-              .flatMap(_._2.find(_.name == t.ctx.segments.parts.last))
+              .rootModules
+              .flatMap(
+                _.millDiscover
+                .value
+                .get(t.ctx.enclosingCls)
+                .flatMap(_._2.find(_.name == t.ctx.segments.parts.last))
+              )
+              .headOption
 
             mainDataOpt match {
               case Some(mainData) if mainData.renderedArgSigs.nonEmpty =>
