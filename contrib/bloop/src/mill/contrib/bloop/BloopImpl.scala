@@ -5,7 +5,7 @@ import mill._
 import mill.api.Result
 import mill.define.{Discover, ExternalModule, Module => MillModule}
 import mill.eval.Evaluator
-import mill.scalalib.internal.{JavaModuleUtils, ModuleUtils}
+import mill.scalalib.internal.JavaModuleUtils
 import mill.scalajslib.ScalaJSModule
 import mill.scalajslib.api.{JsEnvConfig, ModuleKind}
 import mill.scalalib._
@@ -17,7 +17,8 @@ import mill.scalanativelib.api.ReleaseMode
  * `mill.contrib.bloop.Bloop` object, and usable in tests by passing
  * a custom evaluator.
  */
-class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer =>
+class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
+  outer =>
   import BloopFormats._
 
   private val bloopDir = wd / ".bloop"
@@ -116,12 +117,14 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
   }
 
   protected def computeModules: Seq[JavaModule] = {
-    val eval = ev()
-    if (eval != null)
-      JavaModuleUtils.transitiveModules(eval.rootModule, accept)
-        .collect { case jm: JavaModule => jm }
-    else
-      Seq.empty
+    val evals = evs()
+    evals.flatMap { eval =>
+      if (eval != null)
+        JavaModuleUtils.transitiveModules(eval.rootModule, accept)
+          .collect { case jm: JavaModule => jm }
+      else
+        Seq.empty
+    }
   }
 
   // class-based pattern matching against path-dependant types doesn't seem to work.
@@ -144,10 +147,7 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
     Result.Success(sources.toMap)
   }
 
-  protected def name(m: JavaModule): String = ModuleUtils.moduleDisplayName(m) match {
-    case "" => "root-module"
-    case n => n
-  }
+  protected def name(m: JavaModule): String = m.bspDisplayName.replace('/', '-')
 
   protected def bloopConfigPath(module: JavaModule): os.Path =
     bloopDir / s"${name(module)}.json"
@@ -365,6 +365,7 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
           .groupBy {
             case (org, mod, version, _, _) => (org, mod, version)
           }
+          .view
           .mapValues {
             _.map {
               case (_, mod, _, classifier, file) =>
@@ -381,8 +382,9 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
                 artifacts = artifacts
               )
           }
+          .toList
 
-      gatherTask.unsafeRun().toList
+      gatherTask.unsafeRun()
     }
 
     val bloopResolution: Task[BloopConfig.Resolution] = T.task {

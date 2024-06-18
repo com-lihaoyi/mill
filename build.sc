@@ -1447,6 +1447,7 @@ object dev extends MillPublishScalaModule {
   def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(
     runner.linenumbers.testDep(),
     scalalib.backgroundwrapper.testDep(),
+    contrib.bloop.testDep(),
     contrib.buildinfo.testDep(),
     contrib.scoverage.testDep(),
     contrib.scoverage.worker2.testDep(),
