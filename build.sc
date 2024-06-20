@@ -590,7 +590,7 @@ object main extends MillStableScalaModule with BuildInfo {
       "millEmbeddedDeps",
       (
         T.traverse(
-          dev.transitiveModuleDeps.collect { case m: PublishModule => m }
+          dev.recursiveModuleDeps.collect { case m: PublishModule => m }
         )(
           _.publishSelfDependency
         )()
