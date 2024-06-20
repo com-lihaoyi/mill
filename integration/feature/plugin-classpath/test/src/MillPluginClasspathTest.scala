@@ -5,7 +5,7 @@ import utest._
 object MillPluginClasspathTest extends IntegrationTestSuite {
   initWorkspace()
 
-  val embeddedModules = Seq(
+  val embeddedModules: Seq[(String, String)] = Seq(
     ("com.lihaoyi", "mill-dev_2.13"),
     ("com.lihaoyi", "mill-main-client"),
     ("com.lihaoyi", "mill-main-api_2.13"),
