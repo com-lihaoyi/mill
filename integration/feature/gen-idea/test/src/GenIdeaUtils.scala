@@ -23,7 +23,8 @@ object GenIdeaUtils {
 
       assertPartialContentMatches(
         found = actualResourceString,
-        expected = expectedResourceString
+        expected = expectedResourceString,
+        resource.toString()
       )
     }
     println(
@@ -33,9 +34,9 @@ object GenIdeaUtils {
     check.get
   }
 
-  def assertPartialContentMatches(found: String, expected: String): Unit = {
+  def assertPartialContentMatches(found: String, expected: String, context: String = ""): Unit = {
     if (!expected.contains(ignoreString)) {
-      assert(found == expected)
+      assert(context != null && found == expected)
     }
 
     val pattern =
