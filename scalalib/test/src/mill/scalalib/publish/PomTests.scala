@@ -216,7 +216,14 @@ object PomTests extends TestSuite {
       pomSettings: PomSettings,
       properties: Map[String, String]
   ) =
-    XML.loadString(Pom(artifact, dependencies, artifactId, pomSettings, properties, PackagingType.Jar))
+    XML.loadString(Pom(
+      artifact,
+      dependencies,
+      artifactId,
+      pomSettings,
+      properties,
+      PackagingType.Jar
+    ))
 
   def singleText(seq: NodeSeq) =
     seq

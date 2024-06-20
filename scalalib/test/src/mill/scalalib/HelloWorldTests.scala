@@ -1317,8 +1317,6 @@ object HelloWorldTests extends TestSuite {
       assert(evalCount > 0)
     }
 
-
-
     "replAmmoniteMainClass" - workspaceTest(AmmoniteReplMainClass) { eval =>
       val Right((oldResult, _)) = eval.apply(AmmoniteReplMainClass.oldAmmonite.ammoniteMainClass)
       assert(oldResult == "ammonite.Main")
