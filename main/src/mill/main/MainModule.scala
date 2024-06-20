@@ -252,7 +252,8 @@ trait MainModule extends mill.define.Module {
                   leftColWidth = mainargs.Renderer.getLeftColWidth(mainData.renderedArgSigs),
                   docsOnNewLine = false,
                   customName = None,
-                  customDoc = None
+                  customDoc = None,
+                  sorted = true
                 )
 
                 // trim first line containing command name, since we already render
