@@ -117,13 +117,13 @@ object Deps {
     val playVersion = "2.7.9"
   }
   object Play_2_8 extends Play {
-    val playVersion = "2.8.21"
+    val playVersion = "2.8.22"
   }
   object Play_2_9 extends Play {
-    val playVersion = "2.9.1"
+    val playVersion = "2.9.4"
   }
   object Play_3_0 extends Play {
-    val playVersion = "3.0.3"
+    val playVersion = "3.0.4"
   }
   val play =
     Seq(Play_3_0, Play_2_9, Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
@@ -178,7 +178,7 @@ object Deps {
     ivy"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
   val scalaparse = ivy"com.lihaoyi::scalaparse:${fastparse.version}"
   val scalatags = ivy"com.lihaoyi::scalatags:0.12.0"
-  def scalaXml = ivy"org.scala-lang.modules::scala-xml:2.2.0"
+  def scalaXml = ivy"org.scala-lang.modules::scala-xml:2.3.0"
   // keep in sync with doc/antora/antory.yml
   val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.9.6"
   val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.9.10"
@@ -190,7 +190,7 @@ object Deps {
   val bsp4j = ivy"ch.epfl.scala:bsp4j:2.2.0-M2"
   val fansi = ivy"com.lihaoyi::fansi:0.5.0"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.0"
-  val requests = ivy"com.lihaoyi::requests:0.8.2"
+  val requests = ivy"com.lihaoyi::requests:0.8.3"
   val sonatypeCentralClient = ivy"com.lumidion::sonatype-central-client-requests:0.2.0"
 
   /** Used to manage transitive versions. */
