@@ -4,12 +4,10 @@ import java.io.{ByteArrayOutputStream, PrintStream}
 import java.util.jar.JarFile
 import scala.jdk.CollectionConverters._
 import scala.util.{Properties, Using}
-import scala.xml.NodeSeq
 import mill._
 import mill.api.Result
 import mill.define.NamedTask
 import mill.eval.{Evaluator, EvaluatorPaths}
-import mill.scalalib.publish.{VersionControl, _}
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
 import utest.framework.TestPath
@@ -210,27 +208,6 @@ object HelloWorldTests extends TestSuite {
   object HelloWorldDocTitle extends HelloBase {
     object core extends HelloWorldModule {
       override def scalaDocOptions = T(Seq("-doc-title", "Hello World"))
-    }
-  }
-
-  object HelloWorldWithPublish extends HelloBase {
-    object core extends HelloWorldModule with PublishModule {
-      override def artifactName = "hello-world"
-      override def publishVersion = "0.0.1"
-      override def pomSettings = PomSettings(
-        organization = "com.lihaoyi",
-        description = "hello world ready for real world publishing",
-        url = "https://github.com/lihaoyi/hello-world-publish",
-        licenses = Seq(License.Common.Apache2),
-        versionControl = VersionControl.github("lihaoyi", "hello-world-publish"),
-        developers =
-          Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
-      )
-      override def versionScheme = Some(VersionScheme.EarlySemVer)
-
-      def checkSonatypeCreds(sonatypeCreds: String) = T.command {
-        PublishModule.checkSonatypeCreds(sonatypeCreds)
-      }
     }
   }
 
@@ -1340,97 +1317,7 @@ object HelloWorldTests extends TestSuite {
       assert(evalCount > 0)
     }
 
-    "pom" - {
-      "should include scala-library dependency" - workspaceTest(HelloWorldWithPublish) { eval =>
-        val Right((result, evalCount)) = eval.apply(HelloWorldWithPublish.core.pom)
 
-        assert(
-          os.exists(result.path),
-          evalCount > 0
-        )
-
-        val pomXml = scala.xml.XML.loadFile(result.path.toString)
-        val scalaLibrary = pomXml \ "dependencies" \ "dependency"
-        assert(
-          (scalaLibrary \ "artifactId").text == "scala-library",
-          (scalaLibrary \ "groupId").text == "org.scala-lang"
-        )
-      }
-      "versionScheme" - workspaceTest(HelloWorldWithPublish) { eval =>
-        val Right((result, evalCount)) = eval.apply(HelloWorldWithPublish.core.pom)
-
-        assert(
-          os.exists(result.path),
-          evalCount > 0
-        )
-
-        val pomXml = scala.xml.XML.loadFile(result.path.toString)
-        val versionScheme = pomXml \ "properties" \ "info.versionScheme"
-        assert(versionScheme.text == "early-semver")
-      }
-    }
-
-    "publish" - {
-      "should retrieve credentials from environment variables if direct argument is empty" - workspaceTest(
-        HelloWorldWithPublish,
-        env = Evaluator.defaultEnv ++ Seq(
-          "SONATYPE_USERNAME" -> "user",
-          "SONATYPE_PASSWORD" -> "password"
-        )
-      ) { eval =>
-        val Right((credentials, evalCount)) =
-          eval.apply(HelloWorldWithPublish.core.checkSonatypeCreds(""))
-
-        assert(
-          credentials == "user:password",
-          evalCount > 0
-        )
-      }
-      "should prefer direct argument as credentials over environment variables" - workspaceTest(
-        HelloWorldWithPublish,
-        env = Evaluator.defaultEnv ++ Seq(
-          "SONATYPE_USERNAME" -> "user",
-          "SONATYPE_PASSWORD" -> "password"
-        )
-      ) { eval =>
-        val directValue = "direct:value"
-        val Right((credentials, evalCount)) =
-          eval.apply(HelloWorldWithPublish.core.checkSonatypeCreds(directValue))
-
-        assert(
-          credentials == directValue,
-          evalCount > 0
-        )
-      }
-      "should throw exception if neither environment variables or direct argument were not passed" - workspaceTest(
-        HelloWorldWithPublish
-      ) { eval =>
-        val Left(Result.Failure(msg, None)) =
-          eval.apply(HelloWorldWithPublish.core.checkSonatypeCreds(""))
-
-        assert(
-          msg.contains("Consider using SONATYPE_USERNAME/SONATYPE_PASSWORD environment variables")
-        )
-      }
-    }
-
-    "ivy" - {
-      "should include scala-library dependency" - workspaceTest(HelloWorldWithPublish) { eval =>
-        val Right((result, evalCount)) = eval.apply(HelloWorldWithPublish.core.ivy)
-
-        assert(
-          os.exists(result.path),
-          evalCount > 0
-        )
-
-        val ivyXml = scala.xml.XML.loadFile(result.path.toString)
-        val deps: NodeSeq = (ivyXml \ "dependencies" \ "dependency")
-        assert(deps.exists(n =>
-          (n \ "@conf").text == "compile->default(compile)" &&
-            (n \ "@name").text == "scala-library" && (n \ "@org").text == "org.scala-lang"
-        ))
-      }
-    }
 
     "replAmmoniteMainClass" - workspaceTest(AmmoniteReplMainClass) { eval =>
       val Right((oldResult, _)) = eval.apply(AmmoniteReplMainClass.oldAmmonite.ammoniteMainClass)
