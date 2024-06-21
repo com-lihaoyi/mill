@@ -266,14 +266,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.7-136-777bfc</span>
+    <span class="version">0.11.8</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.7-136-777bfc</a>
+          <a href="index.html">0.11.8</a>
         </li>
         <li class="version">
           <a href="0.11.0-M7/index.html">0.11.0-M7</a>
@@ -309,9 +309,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.7-136-777bfc</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.8</button>
   <div class="version-menu">
-    <a class="version is-current" href="Changelog.html">0.11.7-136-777bfc</a>
+    <a class="version is-current" href="Changelog.html">0.11.8</a>
     <a class="version is-missing" href="0.11.0-M7/index.html">0.11.0-M7</a>
     <a class="version is-missing" href="0.10.15/index.html">0.10.15</a>
     <a class="version is-missing" href="0.10.12/index.html">0.10.12</a>
@@ -327,6 +327,197 @@
 </aside>
 <article class="doc">
 <h1 class="page">Changelog</h1>
+<div class="sect1">
+<h2 id="0-11-8"><a class="anchor" href="#0-11-8"></a>0.11.8 - 2024-06-21</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><em>Changes since 0.11.7:</em></p>
+</div>
+<div class="paragraph">
+<p><em>New features</em></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Support Scala Native 0.5.0  <a href="https://github.com/com-lihaoyi/mill/pull/3054">#3054</a>  <a href="https://github.com/com-lihaoyi/mill/pull/3107">#3107</a> <a href="https://github.com/com-lihaoyi/mill/pull/3120">#3120</a></p>
+</li>
+<li>
+<p>Add 'jvmOptions' to docker contrib configuration  <a href="https://github.com/com-lihaoyi/mill/pull/3079">#3079</a></p>
+</li>
+<li>
+<p>Pass auxiliary class files to zinc so they are deleted together  <a href="https://github.com/com-lihaoyi/mill/pull/3072">#3072</a></p>
+</li>
+<li>
+<p>BSP: Handle new <code>JvmCompileClasspath</code> request  <a href="https://github.com/com-lihaoyi/mill/pull/3086">#3086</a></p>
+</li>
+<li>
+<p>Add support for Cobertura XML report task to help integration  <a href="https://github.com/com-lihaoyi/mill/pull/3093">#3093</a></p>
+</li>
+<li>
+<p>Support Scala.js minify via <code>scalaJSMinify: Target[String]</code>  <a href="https://github.com/com-lihaoyi/mill/pull/3094">#3094</a></p>
+</li>
+<li>
+<p>Restructure <code>TestModule</code>, add <code>RunModule</code>   <a href="https://github.com/com-lihaoyi/mill/pull/3064">#3064</a></p>
+</li>
+<li>
+<p>Move <code>run</code>-targets into <code>RunModule</code>  <a href="https://github.com/com-lihaoyi/mill/pull/3090">#3090</a></p>
+</li>
+<li>
+<p>TestModule: Support generation of JUnit-compatible xml report  <a href="https://github.com/com-lihaoyi/mill/pull/3099">#3099</a> <a href="https://github.com/com-lihaoyi/mill/pull/3172">#3172</a> <a href="https://github.com/com-lihaoyi/mill/pull/3135">#3135</a> <a href="https://github.com/com-lihaoyi/mill/pull/3184">#3184</a></p>
+</li>
+<li>
+<p>Use docker image hash to determine if build should rerun  <a href="https://github.com/com-lihaoyi/mill/pull/3124">#3124</a></p>
+</li>
+<li>
+<p>Add multi platform support to contrib.docker through docker buildx  <a href="https://github.com/com-lihaoyi/mill/pull/3143">#3143</a></p>
+</li>
+<li>
+<p>Add ability to re-write ESModule imports at link time   <a href="https://github.com/com-lihaoyi/mill/pull/3109">#3109</a></p>
+</li>
+<li>
+<p>Adding sonatype central support  <a href="https://github.com/com-lihaoyi/mill/pull/3130">#3130</a> <a href="https://github.com/com-lihaoyi/mill/pull/3187">#3187</a></p>
+</li>
+<li>
+<p>Add <code>TestModule.discoveredTestClasses</code> target to ease test inspection  <a href="https://github.com/com-lihaoyi/mill/pull/3191">#3191</a></p>
+</li>
+<li>
+<p>Support &quot;pom&quot; packaging type in <code>PublishModule</code>  <a href="https://github.com/com-lihaoyi/mill/pull/3222">#3222</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><em>Fixes and Improvements</em></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Restructure <code>VersionFinder</code>, increase speed, added ticker messages <a href="https://github.com/com-lihaoyi/mill/pull/3014">#3014</a></p>
+</li>
+<li>
+<p>Fix bsp compile classpath inconsistencies  <a href="https://github.com/com-lihaoyi/mill/pull/3017">#3017</a></p>
+</li>
+<li>
+<p>Bring more bsp-specific targets in line with their non-bsp versions  <a href="https://github.com/com-lihaoyi/mill/pull/3018">#3018</a></p>
+</li>
+<li>
+<p>Make BSP task processing more resilient  <a href="https://github.com/com-lihaoyi/mill/pull/3022">#3022</a></p>
+</li>
+<li>
+<p>Update example <code>build.sc</code> with current library versions  <a href="https://github.com/com-lihaoyi/mill/pull/3055">#3055</a></p>
+</li>
+<li>
+<p>Scoverage: Do not include the scalac plugin in the reporting classpath  <a href="https://github.com/com-lihaoyi/mill/pull/3060">#3060</a></p>
+</li>
+<li>
+<p>Add Scala 2.13.13 and 2.12.19 to supported bridges list  <a href="https://github.com/com-lihaoyi/mill/pull/3066">#3066</a></p>
+</li>
+<li>
+<p>Fix BuildInfo static Java file generator  <a href="https://github.com/com-lihaoyi/mill/pull/3074">#3074</a></p>
+</li>
+<li>
+<p>Scoverage inner module defaults to <code>skipIdea = outer.skipIdea</code>  <a href="https://github.com/com-lihaoyi/mill/pull/3098">#3098</a></p>
+</li>
+<li>
+<p>Deduplicate input tasks in <code>inspect</code> command  <a href="https://github.com/com-lihaoyi/mill/pull/3102">#3102</a></p>
+</li>
+<li>
+<p>CI: add scalafix-check to precondition to publish  <a href="https://github.com/com-lihaoyi/mill/pull/3095">#3095</a></p>
+</li>
+<li>
+<p>Docs for Continuous cache invalidation  <a href="https://github.com/com-lihaoyi/mill/pull/3096">#3096</a></p>
+</li>
+<li>
+<p>Isolate scoverage modules from their parent modules  <a href="https://github.com/com-lihaoyi/mill/pull/3118">#3118</a></p>
+</li>
+<li>
+<p>Scoverage improve classpath override to the minimal  <a href="https://github.com/com-lihaoyi/mill/pull/3122">#3122</a></p>
+</li>
+<li>
+<p>Improve internal BSP API and docs, fix a match error condition  <a href="https://github.com/com-lihaoyi/mill/pull/3111">#3111</a></p>
+</li>
+<li>
+<p>Retry example integration tests that didn’t finish after 5 minutes  <a href="https://github.com/com-lihaoyi/mill/pull/3125">#3125</a></p>
+</li>
+<li>
+<p>Fix mill script for parameter starting with -i  <a href="https://github.com/com-lihaoyi/mill/pull/3127">#3127</a></p>
+</li>
+<li>
+<p>Fixed semanticdb file copying issue, added more tests  <a href="https://github.com/com-lihaoyi/mill/pull/3080">#3080</a></p>
+</li>
+<li>
+<p>Detect assemblies with too many entries to fail shell script prepending  <a href="https://github.com/com-lihaoyi/mill/pull/3140">#3140</a></p>
+</li>
+<li>
+<p>Exclude mill provided dependencies in meta builds  <a href="https://github.com/com-lihaoyi/mill/pull/3189">#3189</a> <a href="https://github.com/com-lihaoyi/mill/pull/3221">#3221</a></p>
+</li>
+<li>
+<p>Fix Scala.js toolchain logs in server-client mode  <a href="https://github.com/com-lihaoyi/mill/pull/3196">#3196</a></p>
+</li>
+<li>
+<p>Fix compiler bridge build setup and build essential versions in CI  <a href="https://github.com/com-lihaoyi/mill/pull/3179">#3179</a></p>
+</li>
+<li>
+<p>Add Scala 2.13.14 to bridgeScalaVersions  <a href="https://github.com/com-lihaoyi/mill/pull/3166">#3166</a></p>
+</li>
+<li>
+<p>GenIdea improvements  <a href="https://github.com/com-lihaoyi/mill/pull/3153">#3153</a></p>
+</li>
+<li>
+<p>GenIdea: Use synthetic scala-SDK entry for compiler setup  <a href="https://github.com/com-lihaoyi/mill/pull/3154">#3154</a></p>
+</li>
+<li>
+<p>Fix classpath regression in Bloop export #1918  <a href="https://github.com/com-lihaoyi/mill/pull/3211">#3211</a></p>
+</li>
+<li>
+<p>Support <code>build.sc</code> in Bloop  <a href="https://github.com/com-lihaoyi/mill/pull/3208">#3208</a></p>
+</li>
+<li>
+<p>Fail if <code>testOnly</code> does not match any test case  <a href="https://github.com/com-lihaoyi/mill/pull/3224">#3224</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><em>Updates and internal changes</em></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Code cleanups</p>
+</li>
+<li>
+<p>Documentation updates and fixes</p>
+</li>
+<li>
+<p>Test and CI improvements</p>
+</li>
+<li>
+<p>Updates: acyclic 0.3.12, Ammonite 3.0.0-M2-11-713b6963, asm 9.7,
+commons-compress 1.26.2, commons-io 2.16.1, coursier 2.1.10,
+fastparse 3.1.0, fansi 0.5.0,
+guava 33.2.1,
+jarjar-abrams-core 1.14.0, jline 3.26.2, junixsocket 2.9.1,
+log4j-core 2.23.1,
+mainargs 0.7.0 mill-mima 0.1.1, mill-scalafix 0.4.0,
+os-lib 0.10.2,
+Play 2.8.22 / 2.9.4 / 3.0.4, pprint 0.9.0, protobuf-java 3.25.3,
+Scala 2.12.19 / 2.13.14,
+Scala Native 0.4.17 / 0.5.3,
+scala-xml 2.3.0,
+scalacheck 1.18.0, scalatest 3.2.18, scoverage 2.1.1,
+semanticdb-java 0.9.10, semanticdb-scalac 4.9.7
+requests 0.8.3,
+upickle 3.3.1, utest 0.8.3,
+zinc 1.10.0</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><em>For details refer to
+<a href="https://github.com/com-lihaoyi/mill/milestone/93?closed=1">milestone 0.11.8</a>
+and the <a href="https://github.com/com-lihaoyi/mill/compare/0.11.7...0.11.8">list of commits</a>.</em></p>
+</div>
+</div>
+</div>
 <div class="sect1">
 <h2 id="0-11-7"><a class="anchor" href="#0-11-7"></a>0.11.7 - 2024-02-05</h2>
 <div class="sectionbody">
