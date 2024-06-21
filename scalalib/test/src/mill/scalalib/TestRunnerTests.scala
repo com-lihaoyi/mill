@@ -120,8 +120,11 @@ object TestRunnerTests extends TestSuite {
             testOnly(eval, Seq("*Bar*", "*bar*"), 2)
           }
           "noMatch" - workspaceTest(testrunner) { eval =>
-            val Left(Result.Failure(msg, _)) = eval.apply(testrunner.utest.testOnly("noMatch", "noMatch*2"))
-            assert(msg == "Test selector does not match any test: noMatch noMatch*2\nRun discoveredTestClasses to see available tests")
+            val Left(Result.Failure(msg, _)) =
+              eval.apply(testrunner.utest.testOnly("noMatch", "noMatch*2"))
+            assert(
+              msg == "Test selector does not match any test: noMatch noMatch*2\nRun discoveredTestClasses to see available tests"
+            )
           }
         }
       }

@@ -193,9 +193,11 @@ trait TestModule
           val (doneMsg, results) = {
             upickle.default.read[(String, Seq[TestResult])](jsonOutput)
           }
-          if(results.isEmpty && selectors.nonEmpty) {
+          if (results.isEmpty && selectors.nonEmpty) {
             // no tests ran but we expected some to run, as we applied a filter (e.g. via `testOnly`)
-            Result.Failure(s"Test selector does not match any test: ${selectors.mkString(" ")}" + "\nRun discoveredTestClasses to see available tests")
+            Result.Failure(
+              s"Test selector does not match any test: ${selectors.mkString(" ")}" + "\nRun discoveredTestClasses to see available tests"
+            )
           } else TestModule.handleResults(doneMsg, results, T.ctx(), testReportXml())
         } catch {
           case e: Throwable =>
