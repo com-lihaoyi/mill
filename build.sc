@@ -201,7 +201,7 @@ object Deps {
     ivy"com.google.protobuf:protobuf-java:3.25.3",
     ivy"com.google.guava:guava:33.2.1-jre",
     ivy"org.yaml:snakeyaml:2.2",
-    ivy"org.apache.commons:commons-compress:[1.26.0,)"
+    ivy"org.apache.commons:commons-compress:1.26.0"
   )
 
   /** Used in tests. */
@@ -588,8 +588,25 @@ object main extends MillStableScalaModule with BuildInfo {
     BuildInfo.Value("millBinPlatform", millBinPlatform(), "Mill binary platform version."),
     BuildInfo.Value(
       "millEmbeddedDeps",
-      T.traverse(dev.moduleDeps)(_.publishSelfDependency)()
-        .map(artifact => s"${artifact.group}:${artifact.id}:${artifact.version}")
+      (
+        T.traverse(
+          dev.recursiveModuleDeps.collect { case m: PublishModule => m }
+        )(
+          _.publishSelfDependency
+        )()
+          .map(artifact => s"${artifact.group}:${artifact.id}:${artifact.version}") ++
+          Lib.resolveDependenciesMetadata(
+            repositories = dev.repositoriesTask(),
+            dev.transitiveIvyDeps(),
+            Some(dev.mapDependencies()),
+            dev.resolutionCustomizer(),
+            Some(T.ctx()),
+            dev.coursierCacheCustomizer()
+          )._2.minDependencies.toSeq
+            .map(d => s"${d.module.organization.value}:${d.module.name.value}:${d.version}")
+      )
+//      T.traverse(dev.moduleDeps)(_.publishSelfDependency)()
+//        .map(artifact => s"${artifact.group}:${artifact.id}:${artifact.version}")
         .mkString(","),
       "Dependency artifacts embedded in mill assembly by default."
     ),
@@ -1008,7 +1025,6 @@ object contrib extends Module {
     def compileModuleDeps = Seq(scalalib)
     def ivyDeps = Agg(Deps.requests)
   }
-
 
   object sonatypecentral extends ContribModule {
     def compileModuleDeps = Seq(scalalib)

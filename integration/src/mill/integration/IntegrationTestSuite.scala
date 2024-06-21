@@ -1,5 +1,6 @@
 package mill.integration
 
+import mill.eval.Evaluator
 import mill.resolve.SelectMode
 import mill.runner.RunnerState
 import os.{Path, Shellable}
@@ -89,6 +90,16 @@ abstract class IntegrationTestSuite extends TestSuite {
 
     val segments = selector._2.value.flatMap(_.pathSegments)
     os.read(wd / "out" / segments.init / s"${segments.last}.json")
+  }
+
+  def metaCached(selector: String): Evaluator.Cached = {
+    val data = meta(selector)
+    upickle.default.read[Evaluator.Cached](data)
+  }
+
+  def metaValue[T: upickle.default.Reader](selector: String): T = {
+    val cached = metaCached(selector)
+    upickle.default.read[T](cached.value)
   }
 
   def initWorkspace(): Path = {
