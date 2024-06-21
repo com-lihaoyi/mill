@@ -300,9 +300,7 @@ _Changes since {prev-version}:_
 
 __New features__
 
-* Support Scala Native 0.5.0-RC1  {link-pr}/3054[#3054]
-* Update Scala Native to 0.5.0-RC3  {link-pr}/3107[#3107]
-* Update Scala Native to 0.5.0  {link-pr}/3120[#3120]
+* Support Scala Native 0.5.0  {link-pr}/3054[#3054]  {link-pr}/3107[#3107] {link-pr}/3120[#3120]
 * Add 'jvmOptions' to docker contrib configuration  {link-pr}/3079[#3079]
 * Pass auxiliary class files to zinc so they are deleted together  {link-pr}/3072[#3072]
 * BSP: Handle new `JvmCompileClasspath` request  {link-pr}/3086[#3086]
@@ -314,7 +312,7 @@ __New features__
 * Use docker image hash to determine if build should rerun  {link-pr}/3124[#3124]
 * Add multi platform support to contrib.docker through docker buildx  {link-pr}/3143[#3143]
 * Add ability to re-write ESModule imports at link time   {link-pr}/3109[#3109]
-* feat: adding sonatype central support  {link-pr}/3130[#3130] {link-pr}/3187[#3187]
+* Adding sonatype central support  {link-pr}/3130[#3130] {link-pr}/3187[#3187]
 * Add `TestModule.discoveredTestClasses` target to ease test inspection  {link-pr}/3191[#3191]
 * Support "pom" packaging type in `PublishModule`  {link-pr}/3222[#3222]
 
