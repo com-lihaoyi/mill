@@ -100,13 +100,12 @@ trait TestModule
    * with "bar", with "arguments" as arguments passing to test framework.
    */
   def testOnly(args: String*): Command[(String, Seq[TestResult])] = {
-    val splitAt = args.indexOf("--")
-    val (selector, testArgs) =
-      if (splitAt == -1) (args, Seq.empty)
-      else {
-        val (s, t) = args.splitAt(splitAt)
+    val (selector, testArgs) = args.indexOf("--") match {
+      case -1 => (args, Seq.empty)
+      case pos =>
+        val (s, t) = args.splitAt(pos)
         (s, t.tail)
-      }
+    }
     T.command {
       testTask(T.task { testArgs }, T.task { selector })()
     }
@@ -152,6 +151,8 @@ trait TestModule
           forkArgs() -> Map()
         }
 
+      val selectors = globSelectors()
+
       val testArgs = TestArgs(
         framework = testFramework(),
         classpath = runClasspath().map(_.path),
@@ -161,7 +162,7 @@ trait TestModule
         colored = T.log.colored,
         testCp = testClasspath().map(_.path),
         home = T.home,
-        globSelectors = globSelectors()
+        globSelectors = selectors
       )
 
       val testRunnerClasspathArg = zincWorker().scalalibClasspath()
@@ -192,7 +193,12 @@ trait TestModule
           val (doneMsg, results) = {
             upickle.default.read[(String, Seq[TestResult])](jsonOutput)
           }
-          TestModule.handleResults(doneMsg, results, T.ctx(), testReportXml())
+          if (results.isEmpty && selectors.nonEmpty) {
+            // no tests ran but we expected some to run, as we applied a filter (e.g. via `testOnly`)
+            Result.Failure(
+              s"Test selector does not match any test: ${selectors.mkString(" ")}" + "\nRun discoveredTestClasses to see available tests"
+            )
+          } else TestModule.handleResults(doneMsg, results, T.ctx(), testReportXml())
         } catch {
           case e: Throwable =>
             Result.Failure("Test reporting failed: " + e)
