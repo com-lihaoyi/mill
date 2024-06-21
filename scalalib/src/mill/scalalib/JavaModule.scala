@@ -279,10 +279,17 @@ trait JavaModule
   }
 
   /**
-   * The transitive version of `localClasspath`
+   * The transitive version of [[localClasspath]].
    */
   def transitiveLocalClasspath: T[Agg[PathRef]] = T {
     T.traverse(transitiveModuleCompileModuleDeps)(_.localClasspath)().flatten
+  }
+
+  /**
+   * Almost the same as [[transitiveLocalClasspath]], but using the [[jar]]s instead of [[localClasspath]].
+   */
+  def transitiveJars: T[Seq[PathRef]] = T {
+    T.traverse(transitiveModuleCompileModuleDeps)(_.jar)()
   }
 
   /**
