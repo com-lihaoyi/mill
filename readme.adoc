@@ -6,10 +6,10 @@
 :link-current-doc-site: https://mill-build.com
 :link-mill-moduledefs: https://github.com/com-lihaoyi/mill-moduledefs
 :example-scala-version: 3.3.4
-ifndef::env-github[]
-:icons: font
 :toc:
 :toc-placement: preamble
+ifndef::env-github[]
+:icons: font
 endif::[]
 ifdef::env-github[]
 :caution-caption: :fire:
