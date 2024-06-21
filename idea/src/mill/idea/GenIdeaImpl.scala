@@ -204,8 +204,11 @@ case class GenIdeaImpl(
               // TODO: make this a separate eval to handle resolve errors
               externalSources()
               val resolvedSp: Agg[PathRef] = scalacPluginDependencies()
-              val resolvedCompilerCp: Agg[PathRef] =
-                scalaCompilerClasspath()
+              val (scalajsLibs, resolvedCompilerCp): (Agg[PathRef], Agg[PathRef]) =
+                scalaCompilerClasspath().partition { cp =>
+                  val path = cp.path.toString()
+                  path.contains("scalajs") || path.contains("sjs")
+                }
               val resolvedLibraryCp: Agg[PathRef] =
                 externalLibraryDependencies()
               val scalacOpts: Seq[String] = allScalacOptions()
@@ -214,12 +217,20 @@ case class GenIdeaImpl(
                 configFileContributions()
               val resolvedCompilerOutput = compilerOutput()
               val resolvedScalaVersion = scalaVersion()
+              // Ignore scala3-library_3 if sjs versions are presented
+              val filteredResolvedCp = if (scalajsLibs.isEmpty) {
+                resolvedCp
+              } else {
+                resolvedCp.filterNot(
+                  _.value.toString().contains("scala3-library_3")
+                )
+              }
 
               ResolvedModule(
                 path = path,
                 // FIXME: why do we need to sources in the classpath?
                 // FIXED, was: classpath = resolvedCp.map(_.path).filter(_.ext == "jar") ++ resolvedSrcs.map(_.path),
-                classpath = resolvedCp.filter(_.value.ext == "jar"),
+                classpath = filteredResolvedCp.filter(_.value.ext == "jar"),
                 module = mod,
                 pluginClasspath = resolvedSp.map(_.path).filter(_.ext == "jar"),
                 scalaOptions = scalacOpts,
