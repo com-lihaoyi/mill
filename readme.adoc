@@ -301,14 +301,14 @@ _Changes since {prev-version}:_
 __New features__
 
 * Support Scala Native 0.5.0  {link-pr}/3054[#3054]  {link-pr}/3107[#3107] {link-pr}/3120[#3120]
-* Add 'jvmOptions' to docker contrib configuration  {link-pr}/3079[#3079]
-* Pass auxiliary class files to zinc so they are deleted together  {link-pr}/3072[#3072]
+* Add `jvmOptions` to docker contrib configuration  {link-pr}/3079[#3079]
+* Pass auxiliary class files to zinc, so they are deleted together  {link-pr}/3072[#3072]
 * BSP: Handle new `JvmCompileClasspath` request  {link-pr}/3086[#3086]
 * Add support for Cobertura XML report task to help integration  {link-pr}/3093[#3093]
 * Support Scala.js minify via `scalaJSMinify: Target[String]`  {link-pr}/3094[#3094]
 * Restructure `TestModule`, add `RunModule`   {link-pr}/3064[#3064]
 * Move `run`-targets into `RunModule`  {link-pr}/3090[#3090]
-* TestModule: Support generation of JUnit-compatible xml report  {link-pr}/3099[#3099] {link-pr}/3172[#3172] {link-pr}/3135[#3135] {link-pr}/3184[#3184]
+* `TestModule`: Support generation of JUnit-compatible xml report  {link-pr}/3099[#3099] {link-pr}/3172[#3172] {link-pr}/3135[#3135] {link-pr}/3184[#3184]
 * Use docker image hash to determine if build should rerun  {link-pr}/3124[#3124]
 * Add multi platform support to contrib.docker through docker buildx  {link-pr}/3143[#3143]
 * Add ability to re-write ESModule imports at link time   {link-pr}/3109[#3109]
