@@ -284,6 +284,7 @@ object Assembly {
         os.remove(rawJar)
 
         if (!scala.util.Properties.isWin) {
+          // add execuable flag
           os.perms.set(
             destJar,
             os.perms(destJar)
