@@ -26,6 +26,11 @@ trait PublishModule extends JavaModule { outer =>
   }
 
   /**
+   * The packaging type. See [[PackagingType]] for specially handled values.
+   */
+  def pomPackagingType: String = PackagingType.Jar
+
+  /**
    * Configuration for the `pom.xml` metadata file published with this module
    */
   def pomSettings: T[PomSettings]
@@ -76,8 +81,14 @@ trait PublishModule extends JavaModule { outer =>
   }
 
   def pom: Target[PathRef] = T {
-    val pom =
-      Pom(artifactMetadata(), publishXmlDeps(), artifactId(), pomSettings(), publishProperties())
+    val pom = Pom(
+      artifactMetadata(),
+      publishXmlDeps(),
+      artifactId(),
+      pomSettings(),
+      publishProperties(),
+      packagingType = pomPackagingType
+    )
     val pomPath = T.dest / s"${artifactId()}-${publishVersion()}.pom"
     os.write.over(pomPath, pom)
     PathRef(pomPath)
@@ -182,17 +193,29 @@ trait PublishModule extends JavaModule { outer =>
 
   def sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots"
 
-  def publishArtifacts = T {
-    val baseName = s"${artifactId()}-${publishVersion()}"
-    PublishModule.PublishData(
-      artifactMetadata(),
-      Seq(
-        jar() -> s"$baseName.jar",
-        sourceJar() -> s"$baseName-sources.jar",
-        docJar() -> s"$baseName-javadoc.jar",
-        pom() -> s"$baseName.pom"
-      ) ++ extraPublish().map(p => (p.file, s"$baseName${p.classifierPart}.${p.ext}"))
-    )
+  def publishArtifacts: T[PublishModule.PublishData] = {
+    val baseNameTask: Task[String] = T.task { s"${artifactId()}-${publishVersion()}" }
+    val defaultPayloadTask: Task[Seq[(PathRef, String)]] = pomPackagingType match {
+      case PackagingType.Pom => T.task { Seq.empty[(PathRef, String)] }
+      case PackagingType.Jar | _ => T.task {
+          val baseName = baseNameTask()
+          Seq(
+            jar() -> s"$baseName.jar",
+            sourceJar() -> s"$baseName-sources.jar",
+            docJar() -> s"$baseName-javadoc.jar",
+            pom() -> s"$baseName.pom"
+          )
+        }
+    }
+    T {
+      val baseName = baseNameTask()
+      PublishModule.PublishData(
+        meta = artifactMetadata(),
+        payload = defaultPayloadTask() ++ extraPublish().map(p =>
+          (p.file, s"$baseName${p.classifierPart}.${p.ext}")
+        )
+      )
+    }
   }
 
   /**

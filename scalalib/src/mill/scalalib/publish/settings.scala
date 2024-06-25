@@ -69,5 +69,11 @@ case class PomSettings(
     licenses: Seq[License],
     versionControl: VersionControl,
     developers: Seq[Developer],
-    packaging: String = "jar"
+    @deprecated("Value will be ignored. Use PublishModule.pomPackageingType instead", "Mill 0.11.8")
+    packaging: String = PackagingType.Jar
 )
+
+object PackagingType {
+  val Pom = "pom"
+  val Jar = "jar"
+}

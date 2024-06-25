@@ -5,11 +5,11 @@
 :link-gitter: https://gitter.im/lihaoyi/mill
 :link-current-doc-site: https://mill-build.com
 :link-mill-moduledefs: https://github.com/com-lihaoyi/mill-moduledefs
-:example-scala-version: 3.3.1
-ifndef::env-github[]
-:icons: font
+:example-scala-version: 3.3.4
 :toc:
 :toc-placement: preamble
+ifndef::env-github[]
+:icons: font
 endif::[]
 ifdef::env-github[]
 :caution-caption: :fire:
@@ -287,6 +287,96 @@ endif::[]
 :link-issue: {link-github}/issues
 :link-milestone: {link-github}/milestone
 // find-replace-regex: https://github.com/com-lihaoyi/mill/pull/(\d*) -> {link-pr}/$1[#$1]
+
+
+[#0-11-8]
+=== 0.11.8 - 2024-06-21
+:version: 0.11.8
+:milestone-name: 0.11.8
+:milestone: 93
+:prev-version: 0.11.7
+
+_Changes since {prev-version}:_
+
+__New features__
+
+* Support Scala Native 0.5.0  {link-pr}/3054[#3054]  {link-pr}/3107[#3107] {link-pr}/3120[#3120]
+* Add `jvmOptions` to docker contrib configuration  {link-pr}/3079[#3079]
+* Pass auxiliary class files to zinc, so they are deleted together  {link-pr}/3072[#3072]
+* BSP: Handle new `JvmCompileClasspath` request  {link-pr}/3086[#3086]
+* Add support for Cobertura XML report task to help integration  {link-pr}/3093[#3093]
+* Support Scala.js minify via `scalaJSMinify: Target[String]`  {link-pr}/3094[#3094]
+* Restructure `TestModule`, add `RunModule`   {link-pr}/3064[#3064]
+* Move `run`-targets into `RunModule`  {link-pr}/3090[#3090]
+* `TestModule`: Support generation of JUnit-compatible xml report  {link-pr}/3099[#3099] {link-pr}/3172[#3172] {link-pr}/3135[#3135] {link-pr}/3184[#3184]
+* Use docker image hash to determine if build should rerun  {link-pr}/3124[#3124]
+* Add multi platform support to contrib.docker through docker buildx  {link-pr}/3143[#3143]
+* Add ability to re-write ESModule imports at link time   {link-pr}/3109[#3109]
+* Adding sonatype central support  {link-pr}/3130[#3130] {link-pr}/3187[#3187]
+* Add `TestModule.discoveredTestClasses` target to ease test inspection  {link-pr}/3191[#3191]
+* Support "pom" packaging type in `PublishModule`  {link-pr}/3222[#3222]
+
+
+__Fixes and Improvements__
+
+* Restructure `VersionFinder`, increase speed, added ticker messages {link-pr}/3014[#3014]
+* Fix bsp compile classpath inconsistencies  {link-pr}/3017[#3017]
+* Bring more bsp-specific targets in line with their non-bsp versions  {link-pr}/3018[#3018]
+* Make BSP task processing more resilient  {link-pr}/3022[#3022]
+* Update example `build.sc` with current library versions  {link-pr}/3055[#3055]
+* Scoverage: Do not include the scalac plugin in the reporting classpath  {link-pr}/3060[#3060]
+* Add Scala 2.13.13 and 2.12.19 to supported bridges list  {link-pr}/3066[#3066]
+* Fix BuildInfo static Java file generator  {link-pr}/3074[#3074]
+* Scoverage inner module defaults to `skipIdea = outer.skipIdea`  {link-pr}/3098[#3098]
+* Deduplicate input tasks in `inspect` command  {link-pr}/3102[#3102]
+* CI: add scalafix-check to precondition to publish  {link-pr}/3095[#3095]
+* Docs for Continuous cache invalidation  {link-pr}/3096[#3096]
+* Isolate scoverage modules from their parent modules  {link-pr}/3118[#3118]
+* Scoverage improve classpath override to the minimal  {link-pr}/3122[#3122]
+* Improve internal BSP API and docs, fix a match error condition  {link-pr}/3111[#3111]
+* Retry example integration tests that didn't finish after 5 minutes  {link-pr}/3125[#3125]
+* Fix mill script for parameter starting with -i  {link-pr}/3127[#3127]
+* Fixed semanticdb file copying issue, added more tests  {link-pr}/3080[#3080]
+* Detect assemblies with too many entries to fail shell script prepending  {link-pr}/3140[#3140]
+* Exclude mill provided dependencies in meta builds  {link-pr}/3189[#3189] {link-pr}/3221[#3221]
+* Fix Scala.js toolchain logs in server-client mode  {link-pr}/3196[#3196]
+* Fix compiler bridge build setup and build essential versions in CI  {link-pr}/3179[#3179]
+* Add Scala 2.13.14 to bridgeScalaVersions  {link-pr}/3166[#3166]
+* GenIdea improvements  {link-pr}/3153[#3153]
+* GenIdea: Use synthetic scala-SDK entry for compiler setup  {link-pr}/3154[#3154]
+* Fix classpath regression in Bloop export #1918  {link-pr}/3211[#3211]
+* Support `build.sc` in Bloop  {link-pr}/3208[#3208]
+* Fail if `testOnly` does not match any test case  {link-pr}/3224[#3224]
+
+
+__Updates and internal changes__
+
+* Code cleanups
+* Documentation updates and fixes
+* Test and CI improvements
+* Updates: acyclic 0.3.12, Ammonite 3.0.0-M2-11-713b6963, asm 9.7,
+    commons-compress 1.26.2, commons-io 2.16.1, coursier 2.1.10,
+    fastparse 3.1.0, fansi 0.5.0,
+    guava 33.2.1,
+    jarjar-abrams-core 1.14.0, jline 3.26.2, junixsocket 2.9.1,
+    log4j-core 2.23.1,
+    mainargs 0.7.0 mill-mima 0.1.1, mill-scalafix 0.4.0,
+    os-lib 0.10.2,
+    Play 2.8.22 / 2.9.4 / 3.0.4, pprint 0.9.0, protobuf-java 3.25.3,
+    Scala 2.12.19 / 2.13.14,
+    Scala Native 0.4.17 / 0.5.3,
+    scala-xml 2.3.0,
+    scalacheck 1.18.0, scalatest 3.2.18, scoverage 2.1.1,
+    semanticdb-java 0.9.10, semanticdb-scalac 4.9.7
+    requests 0.8.3,
+    upickle 3.3.1, utest 0.8.3,
+    zinc 1.10.0
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
 
 [#0-11-7]
 === 0.11.7 - 2024-02-05

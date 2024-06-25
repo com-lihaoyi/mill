@@ -17,7 +17,7 @@ object BloopTests extends TestSuite {
 
   val workdir = os.pwd / "target" / "workspace" / "bloop"
   val testEvaluator = TestEvaluator.static(build)
-  val testBloop = new BloopImpl(() => testEvaluator.evaluator, workdir)
+  val testBloop = new BloopImpl(() => Seq(testEvaluator.evaluator), workdir)
 
   object build extends TestUtil.BaseModule {
 

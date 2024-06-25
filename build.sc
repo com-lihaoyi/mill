@@ -46,7 +46,7 @@ object Settings {
     "0.11.0-M7"
   )
   val docTags: Seq[String] = Seq()
-  val mimaBaseVersions: Seq[String] = 0.to(7).map("0.11." + _)
+  val mimaBaseVersions: Seq[String] = 0.to(8).map("0.11." + _)
 }
 
 object Deps {
@@ -117,26 +117,26 @@ object Deps {
     val playVersion = "2.7.9"
   }
   object Play_2_8 extends Play {
-    val playVersion = "2.8.21"
+    val playVersion = "2.8.22"
   }
   object Play_2_9 extends Play {
-    val playVersion = "2.9.1"
+    val playVersion = "2.9.4"
   }
   object Play_3_0 extends Play {
-    val playVersion = "3.0.3"
+    val playVersion = "3.0.4"
   }
   val play =
     Seq(Play_3_0, Play_2_9, Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
 
   val acyclic = ivy"com.lihaoyi:::acyclic:0.3.12"
-  val ammoniteVersion = "3.0.0-M2-2-741e5dbb"
+  val ammoniteVersion = "3.0.0-M2-11-713b6963"
   val asmTree = ivy"org.ow2.asm:asm-tree:9.7"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
 
   val coursier = ivy"io.get-coursier::coursier:2.1.10"
   val coursierInterface = ivy"io.get-coursier:interface:1.0.19"
 
-  val cask = ivy"com.lihaoyi::cask:0.9.1"
+  val cask = ivy"com.lihaoyi::cask:0.9.2"
   val castor = ivy"com.lihaoyi::castor:0.3.0"
   val fastparse = ivy"com.lihaoyi::fastparse:3.1.0"
   val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
@@ -145,7 +145,7 @@ object Deps {
 
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.4.0" // 1.5.0+ dont support JDK8
 
-  val jline = ivy"org.jline:jline:3.25.1"
+  val jline = ivy"org.jline:jline:3.26.2"
   val jnaVersion = "5.14.0"
   val jna = ivy"net.java.dev.jna:jna:${jnaVersion}"
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:${jnaVersion}"
@@ -178,9 +178,9 @@ object Deps {
     ivy"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
   val scalaparse = ivy"com.lihaoyi::scalaparse:${fastparse.version}"
   val scalatags = ivy"com.lihaoyi::scalatags:0.12.0"
-  def scalaXml = ivy"org.scala-lang.modules::scala-xml:2.2.0"
+  def scalaXml = ivy"org.scala-lang.modules::scala-xml:2.3.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.9.5"
+  val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.9.7"
   val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.9.10"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.1"
   val upickle = ivy"com.lihaoyi::upickle:3.3.1"
@@ -190,7 +190,7 @@ object Deps {
   val bsp4j = ivy"ch.epfl.scala:bsp4j:2.2.0-M2"
   val fansi = ivy"com.lihaoyi::fansi:0.5.0"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.0"
-  val requests = ivy"com.lihaoyi::requests:0.8.2"
+  val requests = ivy"com.lihaoyi::requests:0.8.3"
   val sonatypeCentralClient = ivy"com.lumidion::sonatype-central-client-requests:0.2.0"
 
   /** Used to manage transitive versions. */
@@ -199,9 +199,9 @@ object Deps {
     ivy"commons-io:commons-io:2.16.1",
     ivy"com.google.code.gson:gson:2.10.1",
     ivy"com.google.protobuf:protobuf-java:3.25.3",
-    ivy"com.google.guava:guava:33.2.0-jre",
+    ivy"com.google.guava:guava:33.2.1-jre",
     ivy"org.yaml:snakeyaml:2.2",
-    ivy"org.apache.commons:commons-compress:[1.26.0,)"
+    ivy"org.apache.commons:commons-compress:1.26.2"
   )
 
   /** Used in tests. */
@@ -588,8 +588,25 @@ object main extends MillStableScalaModule with BuildInfo {
     BuildInfo.Value("millBinPlatform", millBinPlatform(), "Mill binary platform version."),
     BuildInfo.Value(
       "millEmbeddedDeps",
-      T.traverse(dev.moduleDeps)(_.publishSelfDependency)()
-        .map(artifact => s"${artifact.group}:${artifact.id}:${artifact.version}")
+      (
+        T.traverse(
+          dev.recursiveModuleDeps.collect { case m: PublishModule => m }
+        )(
+          _.publishSelfDependency
+        )()
+          .map(artifact => s"${artifact.group}:${artifact.id}:${artifact.version}") ++
+          Lib.resolveDependenciesMetadata(
+            repositories = dev.repositoriesTask(),
+            dev.transitiveIvyDeps(),
+            Some(dev.mapDependencies()),
+            dev.resolutionCustomizer(),
+            Some(T.ctx()),
+            dev.coursierCacheCustomizer()
+          )._2.minDependencies.toSeq
+            .map(d => s"${d.module.organization.value}:${d.module.name.value}:${d.version}")
+      )
+//      T.traverse(dev.moduleDeps)(_.publishSelfDependency)()
+//        .map(artifact => s"${artifact.group}:${artifact.id}:${artifact.version}")
         .mkString(","),
       "Dependency artifacts embedded in mill assembly by default."
     ),
@@ -1008,7 +1025,6 @@ object contrib extends Module {
     def compileModuleDeps = Seq(scalalib)
     def ivyDeps = Agg(Deps.requests)
   }
-
 
   object sonatypecentral extends ContribModule {
     def compileModuleDeps = Seq(scalalib)
@@ -1447,6 +1463,7 @@ object dev extends MillPublishScalaModule {
   def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(
     runner.linenumbers.testDep(),
     scalalib.backgroundwrapper.testDep(),
+    contrib.bloop.testDep(),
     contrib.buildinfo.testDep(),
     contrib.scoverage.testDep(),
     contrib.scoverage.worker2.testDep(),
