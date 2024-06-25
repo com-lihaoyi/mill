@@ -318,7 +318,8 @@ object MillBuildRootModule {
 
       val pkg = FileImportGraph.fileImportToSegments(base, scriptSource.path, true).dropRight(1)
       val newSource = MillBuildRootModule.top(
-        relative,
+        if (scriptSource.path.baseName == "build") relative.segments.init
+        else relative.segments.init :+ relative.baseName,
         scriptSource.path / os.up,
         if (scriptSource.path.baseName == "build") pkg.dropRight(1) else pkg,
         if (scriptSource.path.baseName == "build") pkg.last else scriptSource.path.baseName,
@@ -334,7 +335,7 @@ object MillBuildRootModule {
   }
 
   def top(
-      relative: os.RelPath,
+      segs: Seq[String],
       base: os.Path,
       pkg: Seq[String],
       name: String,
@@ -342,15 +343,9 @@ object MillBuildRootModule {
       millTopLevelProjectRoot: os.Path,
       originalFilePath: os.Path
   ): String = {
-    val superClass = {
-      // Computing a path in "out" that uniquely reflects the location
-      // of the foreign module relatively to the current build.
-
-      val segs = relative.segments.init
-
-      val segsList = segs.map(pprint.Util.literalize(_)).mkString(", ")
+    val segsList = segs.map(pprint.Util.literalize(_)).mkString(", ")
+    val superClass =
       s"_root_.mill.main.RootModule.Base(Some(_root_.mill.define.Segments.labels($segsList)))"
-    }
 
     val miscInfoName = s"MiscInfo_$name"
 
