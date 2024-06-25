@@ -118,7 +118,7 @@ class BloopImpl(ev: () => Evaluator, wd: os.Path) extends ExternalModule { outer
   protected def computeModules: Seq[JavaModule] = {
     val eval = ev()
     if (eval != null)
-      JavaModuleUtils.transitiveModules(eval.rootModule, accept)
+      eval.rootModules.flatMap(JavaModuleUtils.transitiveModules(_, accept))
         .collect { case jm: JavaModule => jm }
     else
       Seq.empty
