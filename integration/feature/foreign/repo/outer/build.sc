@@ -1,4 +1,4 @@
-import $file.inner.build
+
 import mill._
 
 trait PathAware extends mill.Module {

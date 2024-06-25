@@ -44,4 +44,20 @@ object RootModule {
       baseModuleInfo.discover.asInstanceOf[Discover[this.type]]
   }
   case class Info(millSourcePath0: os.Path, discover: Discover[_])
+
+
+  abstract class Foreign(foreign0: Option[Segments])(implicit
+      baseModuleInfo: RootModule.Info,
+      millModuleEnclosing0: sourcecode.Enclosing,
+      millModuleLine0: sourcecode.Line,
+      millFile0: sourcecode.File
+  ) extends mill.define.BaseModule(baseModuleInfo.millSourcePath0, foreign0 = foreign0)(
+        millModuleEnclosing0,
+        millModuleLine0,
+        millFile0,
+        Caller(null)
+      ) with mill.main.MainModule {
+
+    override implicit lazy val millDiscover: Discover[this.type] = Discover[this.type]
+  }
 }
