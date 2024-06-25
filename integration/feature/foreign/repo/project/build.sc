@@ -34,9 +34,9 @@ def checkInnerPaths = T {
 
 def checkOuterPaths = T {
   val thisPath: os.Path = millSourcePath
-  assertPathsEqual(millbuild.outer.millSourcePath, thisPath / os.up / "outer")
-  assertPathsEqual(millbuild.outer.sub.selfPath(), thisPath / os.up / "outer" / "sub")
-  assertPathsEqual(millbuild.outer.sub.sub.selfPath(), thisPath / os.up / "outer" / "sub" / "sub")
+  assertPathsEqual(millbuild.outer.millSourcePath, thisPath / "outer")
+  assertPathsEqual(millbuild.outer.sub.selfPath(), thisPath / "outer" / "sub")
+  assertPathsEqual(millbuild.outer.sub.sub.selfPath(), thisPath / "outer" / "sub" / "sub")
 
   // covers the case where millSourcePath is modified in a submodule
   assertPathsNotEqual(
@@ -47,11 +47,11 @@ def checkOuterPaths = T {
 
 def checkOuterInnerPaths = T {
   val thisPath: os.Path = millSourcePath
-  assertPathsEqual(millbuild.outer.inner.millSourcePath, thisPath / os.up / "outer" / "inner")
-  assertPathsEqual(millbuild.outer.inner.sub.selfPath(), thisPath / os.up / "outer" / "inner" / "sub")
+  assertPathsEqual(millbuild.outer.inner.millSourcePath, thisPath / "outer" / "inner")
+  assertPathsEqual(millbuild.outer.inner.sub.selfPath(), thisPath / "outer" / "inner" / "sub")
   assertPathsEqual(
     millbuild.outer.inner.sub.sub.selfPath(),
-    thisPath / os.up / "outer" / "inner" / "sub" / "sub"
+    thisPath / "outer" / "inner" / "sub" / "sub"
   )
 }
 
@@ -63,43 +63,43 @@ def checkOtherPaths = T {
 }
 
 def checkProjectDests = T {
-  val outPath: os.Path = millSourcePath / "out"
+  val outPath = millSourcePath / "out"
   assertPathsEqual(sub.selfDest(), outPath / "sub")
   assertPathsEqual(sub.sub.selfDest(), outPath / "sub" / "sub")
   assertPathsEqual(sub.sub2.selfDest(), outPath / "sub" / "sub2")
 }
 
 def checkInnerDests = T {
-  val foreignOut: os.Path = millSourcePath / "out" / "foreign-modules"
-  assertPathsEqual(millbuild.inner.sub.selfDest(), foreignOut / "inner" / "build" / "sub")
-  assertPathsEqual(millbuild.inner.sub.sub.selfDest(), foreignOut / "inner" / "build" / "sub" / "sub")
+  val outPath = millSourcePath / "out"
+  assertPathsEqual(millbuild.inner.sub.selfDest(), outPath / "inner" / "sub")
+  assertPathsEqual(millbuild.inner.sub.sub.selfDest(), outPath / "inner" / "sub" / "sub")
 }
 
 def checkOuterDests = T {
-  val foreignOut: os.Path = millSourcePath / "out" / "foreign-modules"
-  assertPathsEqual(millbuild.outer.sub.selfDest(), foreignOut / "up-1" / "outer" / "build" / "sub")
+  val outPath = millSourcePath / "out"
+  assertPathsEqual(millbuild.outer.sub.selfDest(), outPath / "outer" / "sub")
   assertPathsEqual(
     millbuild.outer.sub.sub.selfDest(),
-    foreignOut / "up-1" / "outer" / "build" / "sub" / "sub"
+    outPath / "outer" / "sub" / "sub"
   )
 }
 
 def checkOuterInnerDests = T {
-  val foreignOut: os.Path = millSourcePath / "out" / "foreign-modules"
+  val outPath = millSourcePath / "out"
   assertPathsEqual(
     millbuild.outer.inner.sub.selfDest(),
-    foreignOut / "up-1" / "outer" / "inner" / "build" / "sub"
+    outPath / "outer" / "inner" / "sub"
   )
   assertPathsEqual(
     millbuild.outer.inner.sub.sub.selfDest(),
-    foreignOut / "up-1" / "outer" / "inner" / "build" / "sub" / "sub"
+    outPath / "outer" / "inner" / "sub" / "sub"
   )
 }
 
 def checkOtherDests = T {
-  val foreignOut: os.Path = millSourcePath / "out" / "foreign-modules"
-  assertPathsEqual(millbuild.other.sub.selfDest(), foreignOut / "other" / "sub")
-  assertPathsEqual(millbuild.other.sub.sub.selfDest(), foreignOut / "other" / "sub" / "sub")
+  val outPath = millSourcePath / "out"
+  assertPathsEqual(millbuild.other.sub.selfDest(), outPath / "other" / "sub")
+  assertPathsEqual(millbuild.other.sub.sub.selfDest(), outPath / "other" / "sub" / "sub")
 }
 
 trait PathAware extends mill.Module {
