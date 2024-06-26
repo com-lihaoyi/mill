@@ -363,12 +363,12 @@ object MillBuildRootModule {
        |  )
        |  implicit lazy val millBaseModuleInfo: _root_.mill.main.RootModule.Info = _root_.mill.main.RootModule.Info(
        |    millBuildRootModuleInfo.projectRoot,
-       |    _root_.mill.define.Discover[${backtickWrap(name + "_class")}]
+       |    _root_.mill.define.Discover[${backtickWrap(name + "_")}]
        |  )
        |}
        |import ${backtickWrap(miscInfoName)}.{millBuildRootModuleInfo, millBaseModuleInfo}
-       |package object ${backtickWrap(name)} extends ${backtickWrap(name + "_class")}
-       |class ${backtickWrap(name + "_class")} extends $superClass {
+       |package object ${backtickWrap(name)} extends ${backtickWrap(name + "_")}
+       |class ${backtickWrap(name + "_")} extends $superClass {
        |
        |//MILL_ORIGINAL_FILE_PATH=${originalFilePath}
        |//MILL_USER_CODE_START_MARKER
