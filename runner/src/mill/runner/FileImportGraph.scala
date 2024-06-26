@@ -96,31 +96,27 @@ object FileImportGraph {
               if seenRepo.find(_._1 == repo).isEmpty
             } seenRepo.addOne((repo, s))
             (start, "_root_._", end)
+
           case ImportTree(Seq(("$ivy", _), rest @ _*), mapping, start, end) =>
             seenIvy.addAll(mapping.map(_._1))
             (start, "_root_._", end)
+
           case ImportTree(Seq(("$meta", _), rest @ _*), mapping, start, end) =>
             millImport = true
             (start, "_root_._", end)
-          case ImportTree(Seq(("$file", _), rest @ _*), mapping, start, end) =>
+
+          case ImportTree(Seq(("$file", x), rest @ _*), mapping, start, end) =>
             val nextPaths = mapping.map { case (lhs, rhs) => nextPathFor(s, rest.map(_._1) :+ lhs) }
 
             fileImports.addAll(nextPaths)
             importGraphEdges(s) ++= nextPaths
 
-            if (rest.isEmpty) (start, "_root_._", end)
-            else {
-              val end = rest.last._2
-              (
-                start,
-                fileImportToSegments(projectRoot, nextPaths(0) / os.up, false)
-                  .map(backtickWrap)
-                  .mkString("."),
-                end
-              )
-            }
+            val end = rest.lastOption.fold(x)(_._2)
+            (start, (Seq("millbuild") ++ rest.map(_._1)).map(backtickWrap).mkString("."), end)
+
         }
         val numNewLines = stmt.substring(start, end).count(_ == '\n')
+
         stmt = stmt.patch(start, patchString + mill.util.Util.newLine * numNewLines, end - start)
       }
 
