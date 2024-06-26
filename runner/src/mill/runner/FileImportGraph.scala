@@ -105,15 +105,18 @@ object FileImportGraph {
             millImport = true
             (start, "_root_._", end)
 
-          case ImportTree(Seq(("$file", x), rest @ _*), mapping, start, end) =>
+          case ImportTree(Seq(("$file", end0), rest @ _*), mapping, start, end) =>
             val nextPaths = mapping.map { case (lhs, rhs) => nextPathFor(s, rest.map(_._1) :+ lhs) }
 
             fileImports.addAll(nextPaths)
             importGraphEdges(s) ++= nextPaths
 
-            val end = rest.lastOption.fold(x)(_._2)
-            (start, (Seq("millbuild") ++ rest.map(_._1)).map(backtickWrap).mkString("."), end)
+            val patchString =
+              (fileImportToSegments(projectRoot, nextPaths(0) / os.up, false) ++ Seq())
+                .map(backtickWrap)
+                .mkString(".")
 
+            (start, patchString, rest.lastOption.fold(end0)(_._2))
         }
         val numNewLines = stmt.substring(start, end).count(_ == '\n')
 
