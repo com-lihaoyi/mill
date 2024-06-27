@@ -210,7 +210,7 @@ object Deps {
     val scalaCheck = ivy"org.scalacheck::scalacheck:1.18.0"
     val scalaTest = ivy"org.scalatest::scalatest:3.2.18"
     val utest = ivy"com.lihaoyi::utest:0.8.3"
-    val zioTest = ivy"dev.zio::zio-test:2.0.21"
+    val zioTest = ivy"dev.zio::zio-test:2.1.4"
   }
 
   /** Used in documentation. */
