@@ -257,7 +257,7 @@ trait Resolve[T] {
           .map{m =>
             val parts = m.getClass.getName match{
               case s"millbuild.$partString.package$$" => partString.split('.')
-              case s"millbuild.${partString}_class$$$last$$" => partString.split('.')
+              case s"millbuild.${partString}_$$$last$$" => partString.split('.')
               case _ => Array[String]()
             }
 
