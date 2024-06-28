@@ -213,7 +213,7 @@ class MillBuildBootstrap(
    */
   def processRunClasspath(
       nestedState: RunnerState,
-      rootModules: Seq[BaseModule],
+      rootModules: Seq[RootModule.Base],
       evaluator: Evaluator,
       prevFrameOpt: Option[RunnerState.Frame],
       prevOuterFrameOpt: Option[RunnerState.Frame]
@@ -296,7 +296,7 @@ class MillBuildBootstrap(
    */
   def processFinalTargets(
       nestedState: RunnerState,
-      rootModules: Seq[BaseModule],
+      rootModules: Seq[RootModule.Base],
       evaluator: Evaluator
   ): RunnerState = {
 
@@ -390,15 +390,15 @@ object MillBuildBootstrap {
   }
 
   def evaluateWithWatches(
-      rootModules: Seq[BaseModule],
+      rootModules: Seq[RootModule.Base],
       evaluator: Evaluator,
       targetsAndParams: Seq[String]
   ): (Either[String, Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
 //    rootModules.foreach(_.evalWatchedValues.clear())
     val evalTaskResult =
       RunScript.evaluateTasksNamed(evaluator, targetsAndParams, SelectMode.Separated)
-    val moduleWatched = Nil //rootModules.flatMap(_.watchedValues).toVector
-    val addedEvalWatched = Nil //rootModules.flatMap(_.evalWatchedValues).toVector
+    val moduleWatched = rootModules.flatMap(_.watchedValues).toVector
+    val addedEvalWatched = rootModules.flatMap(_.evalWatchedValues).toVector
 
     evalTaskResult match {
       case Left(msg) => (Left(msg), Nil, moduleWatched)
@@ -415,7 +415,7 @@ object MillBuildBootstrap {
       runClassLoader: URLClassLoader,
       depth: Int,
       projectRoot: os.Path
-  ): Either[String, Seq[BaseModule]] = {
+  ): Either[String, Seq[RootModule.Base]] = {
     val compileOutput = runClassLoader
       .getURLs
       .filter(_.toString.contains("mill-build"))
@@ -429,23 +429,23 @@ object MillBuildBootstrap {
       .map(_.relativeTo(compileOutput).segments.mkString(".").stripSuffix(".class"))
 
     val packageClasses = packageClassNames.map(runClassLoader.loadClass(_))
-    val rootModule0s = packageClasses.map(cls => cls.getField("MODULE$").get(cls).asInstanceOf[BaseModule])
+    val rootModule0s = packageClasses.map(cls => cls.getField("MODULE$").get(cls).asInstanceOf[RootModule.Base])
     val children = rootModule0s.map(getChildRootModule(_, depth, projectRoot))
     children.flatMap(_.left.toOption) match{
-      case Nil => Right[String, Seq[BaseModule]](children.map(_.toOption.get))
+      case Nil => Right[String, Seq[RootModule.Base]](children.map(_.toOption.get))
       case errors => Left(errors.mkString("\n"))
     }
   }
 
   def getChildRootModule(
-      rootModule0: BaseModule,
+      rootModule0: RootModule.Base,
       depth: Int,
       projectRoot: os.Path
-  ): Either[String, BaseModule] = {
+  ): Either[String, RootModule.Base] = {
 
-    val childRootModules: Seq[BaseModule] = rootModule0
+    val childRootModules: Seq[RootModule.Base] = rootModule0
       .millInternal
-      .reflectNestedObjects[BaseModule]()
+      .reflectNestedObjects[RootModule.Base]()
 
     val rootModuleOrErr = childRootModules match {
       case Seq() => Right(rootModule0)
