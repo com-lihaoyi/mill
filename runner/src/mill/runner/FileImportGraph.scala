@@ -134,6 +134,7 @@ object FileImportGraph {
         rel.last == "build.sc" &&
         !rel.toString().startsWith("out/") &&
         !rel.toString().startsWith("mill-build/") &&
+        !rel.toString().startsWith("scalalib/test/") &&
         !rel.toString().startsWith("integration/") &&
         !rel.toString().startsWith("example/")
       }
