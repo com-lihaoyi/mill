@@ -317,12 +317,13 @@ object MillBuildRootModule {
       val dest = targetDest / FileImportGraph.fileImportToSegments(base, scriptSource.path, false)
 
       val pkg = FileImportGraph.fileImportToSegments(base, scriptSource.path, true).dropRight(1)
+      val specialNames = Set("build", "module")
       val newSource = MillBuildRootModule.top(
-        if (scriptSource.path.baseName == "build") relative.segments.init
+        if (specialNames(scriptSource.path.baseName)) relative.segments.init
         else relative.segments.init :+ relative.baseName,
         scriptSource.path / os.up,
-        if (scriptSource.path.baseName == "build") pkg.dropRight(1) else pkg,
-        if (scriptSource.path.baseName == "build") pkg.last else scriptSource.path.baseName,
+        if (specialNames(scriptSource.path.baseName)) pkg.dropRight(1) else pkg,
+        if (specialNames(scriptSource.path.baseName)) pkg.last else scriptSource.path.baseName,
         enclosingClasspath,
         millTopLevelProjectRoot,
         scriptSource.path

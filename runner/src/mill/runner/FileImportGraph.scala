@@ -128,12 +128,10 @@ object FileImportGraph {
 
     val useDummy = !os.exists(projectRoot / "build.sc")
     walkScripts(projectRoot / "build.sc", useDummy)
-    os.walk(projectRoot, followLinks = true)
+    os.walk(projectRoot, followLinks = true, skip = p => p == projectRoot / "out" || p == projectRoot / "mill-build")
       .filter { p =>
         val rel = p.relativeTo(projectRoot)
-        rel.last == "build.sc" &&
-        !rel.toString().startsWith("out/") &&
-        !rel.toString().startsWith("mill-build/") &&
+        rel.last == "module.sc" &&
         !rel.toString().startsWith("scalalib/test/") &&
         !rel.toString().startsWith("integration/") &&
         !rel.toString().startsWith("example/")
