@@ -67,7 +67,9 @@ case class GenIdeaImpl(
       fetchMillModules: Boolean = true
   ): Seq[(os.SubPath, scala.xml.Node)] = {
 
-    val rootModules = evaluators.zipWithIndex.map { case (ev, idx) => (ev.rootModules.head, ev, idx) }
+    val rootModules = evaluators.zipWithIndex.map { case (ev, idx) =>
+      (ev.rootModules.head, ev, idx)
+    }
     val transitive: Seq[(BaseModule, Seq[Module], Evaluator, Int)] = rootModules
       .map { case (rootModule, ev, idx) =>
         (rootModule, JavaModuleUtils.transitiveModules(rootModule), ev, idx)

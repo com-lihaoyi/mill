@@ -109,7 +109,6 @@ abstract class IntegrationTestSuite extends TestSuite {
     // wrapper-folder inside the zip file, so copy the wrapper folder to the
     // destination instead of the folder containing the wrapper.
 
-
     // somehow os.copy does not properly preserve symlinks
     // os.copy(scriptSourcePath, workspacePath)
     os.proc("cp", "-R", scriptSourcePath, workspacePath).call()

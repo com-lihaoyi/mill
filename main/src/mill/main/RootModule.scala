@@ -45,7 +45,6 @@ object RootModule {
   }
   case class Info(millSourcePath0: os.Path, discover: Discover[_])
 
-
   abstract class Foreign(foreign0: Option[Segments])(implicit
       baseModuleInfo: RootModule.Info,
       millModuleEnclosing0: sourcecode.Enclosing,

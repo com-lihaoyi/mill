@@ -1,7 +1,18 @@
 package mill.resolve
 
 import mainargs.{MainData, TokenGrouping}
-import mill.define.{BaseModule, Command, Discover, ExternalModule, Module, NamedTask, Reflect, Segment, Segments, Target, TaskModule}
+import mill.define.{
+  BaseModule,
+  Command,
+  Discover,
+  Module,
+  NamedTask,
+  Reflect,
+  Segment,
+  Segments,
+  Target,
+  TaskModule
+}
 import mill.resolve.ResolveCore.{Resolved, makeResultException}
 import mill.util.EitherOps
 
@@ -254,8 +265,8 @@ trait Resolve[T] {
     scopedSel match {
       case None =>
         val (drop, longestMatchingRootModule) = rootModules
-          .map{m =>
-            val parts = m.getClass.getName match{
+          .map { m =>
+            val parts = m.getClass.getName match {
               case s"millbuild.$partString.package$$" => partString.split('.')
               case s"millbuild.${partString}_$$$last$$" => partString.split('.')
               case _ => Array[String]()
@@ -267,8 +278,8 @@ trait Resolve[T] {
           .reverse
           .collect {
             case (parts, m)
-              if sel.value.takeWhile(_.isInstanceOf[Segment.Label])
-                .collect{case Segment.Label(v) => v}.zip(parts).forall(t => t._1 == t._2) =>
+                if sel.value.takeWhile(_.isInstanceOf[Segment.Label])
+                  .collect { case Segment.Label(v) => v }.zip(parts).forall(t => t._1 == t._2) =>
               parts.length -> m
           }
           .headOption

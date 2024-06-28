@@ -429,9 +429,10 @@ object MillBuildBootstrap {
       .map(_.relativeTo(compileOutput).segments.mkString(".").stripSuffix(".class"))
 
     val packageClasses = packageClassNames.map(runClassLoader.loadClass(_))
-    val rootModule0s = packageClasses.map(cls => cls.getField("MODULE$").get(cls).asInstanceOf[RootModule.Base])
+    val rootModule0s =
+      packageClasses.map(cls => cls.getField("MODULE$").get(cls).asInstanceOf[RootModule.Base])
     val children = rootModule0s.map(getChildRootModule(_, depth, projectRoot))
-    children.flatMap(_.left.toOption) match{
+    children.flatMap(_.left.toOption) match {
       case Nil => Right[String, Seq[RootModule.Base]](children.map(_.toOption.get))
       case errors => Left(errors.mkString("\n"))
     }

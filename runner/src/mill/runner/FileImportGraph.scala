@@ -129,7 +129,7 @@ object FileImportGraph {
     val useDummy = !os.exists(projectRoot / "build.sc")
     walkScripts(projectRoot / "build.sc", useDummy)
     os.walk(projectRoot, followLinks = true)
-      .filter{p =>
+      .filter { p =>
         val rel = p.relativeTo(projectRoot)
         rel.last == "build.sc" &&
         !rel.toString().startsWith("out/") &&

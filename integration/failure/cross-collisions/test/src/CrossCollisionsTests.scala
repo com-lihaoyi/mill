@@ -12,7 +12,7 @@ object CrossCollisionsTests extends IntegrationTestSuite {
       assert(res.err.contains("Cross module "))
       assert(
         res.err.contains(
-            " contains colliding cross values: List(List(a, b), List(c)) and List(List(a), List(b, c))"
+          " contains colliding cross values: List(List(a, b), List(c)) and List(List(a), List(b, c))"
         )
       )
     }
