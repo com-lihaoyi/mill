@@ -135,6 +135,7 @@ class MillBuildBootstrap(
           Nil,
           // We don't want to evaluate anything in this depth (and above), so we just skip creating an evaluator,
           // mainly because we didn't even constructed (compiled) it's classpath
+          None,
           None
         )
         nestedState.add(frame = evalState, errorOpt = None)
@@ -144,7 +145,7 @@ class MillBuildBootstrap(
             getChildRootModule(nestedState.bootstrapModuleOpt.get, depth, projectRoot).map(Seq(_))
 
           case Some(nestedFrame) =>
-            getRootModule(nestedFrame.classLoaderOpt.get, depth, projectRoot)
+            getRootModule(nestedFrame.compileOutput.get, nestedFrame.classLoaderOpt.get, depth, projectRoot)
         }
 
         validatedRootModulesOrErr match {
@@ -221,7 +222,7 @@ class MillBuildBootstrap(
     evaluateWithWatches(
       rootModules,
       evaluator,
-      Seq("{runClasspath,scriptImportGraph,methodCodeHashSignatures}")
+      Seq("{runClasspath,compile,scriptImportGraph,methodCodeHashSignatures}")
     ) match {
       case (Left(error), evalWatches, moduleWatches) =>
         val evalState = RunnerState.Frame(
@@ -232,6 +233,7 @@ class MillBuildBootstrap(
           Map.empty,
           None,
           Nil,
+          None,
           Option(evaluator)
         )
 
@@ -240,6 +242,7 @@ class MillBuildBootstrap(
       case (
             Right(Seq(
               Val(runClasspath: Seq[PathRef]),
+              Val(compile: mill.scalalib.api.CompilationResult),
               Val(scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])]),
               Val(methodCodeHashSignatures: Map[String, Int])
             )),
@@ -282,6 +285,7 @@ class MillBuildBootstrap(
           methodCodeHashSignatures,
           Some(classLoader),
           runClasspath,
+          Some(compile.classes),
           Option(evaluator)
         )
 
@@ -316,6 +320,7 @@ class MillBuildBootstrap(
       Map.empty,
       None,
       Nil,
+      None,
       Option(evaluator)
     )
 
@@ -412,21 +417,18 @@ object MillBuildBootstrap {
   }
 
   def getRootModule(
+      compileOut: PathRef,
       runClassLoader: URLClassLoader,
       depth: Int,
       projectRoot: os.Path
   ): Either[String, Seq[RootModule.Base]] = {
-    val compileOutput = runClassLoader
-      .getURLs
-      .filter(_.toString.contains("mill-build"))
-      .filter(_.toString.contains("compile.dest/classes"))
-      .map(p => os.Path(p.getPath))
-      .head
 
     val packageClassNames = os
-      .walk(compileOutput)
-      .filter(_.last == "package$.class")
-      .map(_.relativeTo(compileOutput).segments.mkString(".").stripSuffix(".class"))
+      .walk(compileOut.path)
+      .map(_.relativeTo(compileOut.path).segments)
+      .collect { case "build" +: rest :+ "package$.class" =>
+        ("build" +: rest :+ "package$").mkString(".")
+      }
 
     val packageClasses = packageClassNames.map(runClassLoader.loadClass(_))
     val rootModule0s =

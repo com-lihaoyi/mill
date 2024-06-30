@@ -62,6 +62,7 @@ object RunnerState {
       methodCodeHashSignatures: Map[String, Int],
       classLoaderOpt: Option[RunnerState.URLClassLoader],
       runClasspath: Seq[PathRef],
+      compileOutput: Option[PathRef],
       evaluator: Option[Evaluator]
   ) {
 
@@ -102,7 +103,7 @@ object RunnerState {
     )
     implicit val loggedRw: ReadWriter[Logged] = macroRW
 
-    def empty: Frame = Frame(Map.empty, Nil, Nil, Map.empty, Map.empty, None, Nil, null)
+    def empty: Frame = Frame(Map.empty, Nil, Nil, Map.empty, Map.empty, None, Nil, None, null)
   }
 
 }
