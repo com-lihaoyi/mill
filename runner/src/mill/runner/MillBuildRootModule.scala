@@ -369,6 +369,7 @@ object MillBuildRootModule {
        |}
        |import ${backtickWrap(miscInfoName)}.{millBuildRootModuleInfo, millBaseModuleInfo}
        |package object ${backtickWrap(name)} extends ${backtickWrap(name + "_")}
+       |import ${backtickWrap(name)}._
        |class ${backtickWrap(name + "_")} extends $superClass {
        |
        |//MILL_ORIGINAL_FILE_PATH=${originalFilePath}
