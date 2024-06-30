@@ -133,13 +133,7 @@ object FileImportGraph {
         followLinks = true,
         skip = p => p == projectRoot / "out" || p == projectRoot / "mill-build" || os.exists(p / "build.sc")
       )
-      .filter { p =>
-        val rel = p.relativeTo(projectRoot)
-        rel.last == "module.sc" &&
-        !rel.toString().startsWith("scalalib/test/") &&
-        !rel.toString().startsWith("integration/") &&
-        !rel.toString().startsWith("example/")
-      }
+      .filter(_.last == "module.sc")
       .foreach(walkScripts(_))
 
     new FileImportGraph(
