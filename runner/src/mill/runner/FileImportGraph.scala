@@ -167,6 +167,6 @@ object FileImportGraph {
 
   def fileImportToSegments(base: os.Path, s: os.Path, stripExt: Boolean): Seq[String] = {
     val rel = (s / os.up / (if (stripExt) s.baseName else s.last)).relativeTo(base)
-    Seq("millbuild") ++ Seq.fill(rel.ups)("^") ++ rel.segments
+    Seq("build") ++ Seq.fill(rel.ups)("^") ++ rel.segments
   }
 }

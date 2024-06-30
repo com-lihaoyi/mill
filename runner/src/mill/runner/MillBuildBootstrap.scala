@@ -394,7 +394,7 @@ object MillBuildBootstrap {
       evaluator: Evaluator,
       targetsAndParams: Seq[String]
   ): (Either[String, Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
-//    rootModules.foreach(_.evalWatchedValues.clear())
+    rootModules.foreach(_.evalWatchedValues.clear())
     val evalTaskResult =
       RunScript.evaluateTasksNamed(evaluator, targetsAndParams, SelectMode.Separated)
     val moduleWatched = rootModules.flatMap(_.watchedValues).toVector

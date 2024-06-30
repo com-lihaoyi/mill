@@ -264,16 +264,18 @@ trait Resolve[T] {
   ): Either[String, (BaseModule, Segments)] = {
     scopedSel match {
       case None =>
-        val (drop, longestMatchingRootModule) = rootModules
+        val parts = rootModules
           .map { m =>
             val parts = m.getClass.getName match {
-              case s"millbuild.$partString.package$$" => partString.split('.')
-              case s"millbuild.${partString}_$$$last$$" => partString.split('.')
+              case s"build.$partString.package$$" => partString.split('.')
+              case s"build.${partString}_$$$last$$" => partString.split('.')
               case _ => Array[String]()
             }
 
             (parts, m)
           }
+
+        val (drop, longestMatchingRootModule) = parts
           .sortBy(_._1.length)
           .reverse
           .collect {
@@ -288,6 +290,7 @@ trait Resolve[T] {
         val segmentsSuffix = Segments(sel.value.drop(drop))
 
         Right((longestMatchingRootModule, segmentsSuffix))
+
       case Some(scoping) =>
         for {
           moduleCls <-
