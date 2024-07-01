@@ -134,6 +134,7 @@ object FileImportGraph {
       skip = p =>
         p == projectRoot / "out" || p == projectRoot / "mill-build" || os.exists(p / "build.sc")
     )
+      .filter(!_.startsWith(projectRoot / "integration")) // HACK
       .filter(_.last == "module.sc")
       .foreach(walkScripts(_))
 
