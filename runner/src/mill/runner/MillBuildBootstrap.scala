@@ -145,7 +145,12 @@ class MillBuildBootstrap(
             getChildRootModule(nestedState.bootstrapModuleOpt.get, depth, projectRoot).map(Seq(_))
 
           case Some(nestedFrame) =>
-            getRootModule(nestedFrame.compileOutput.get, nestedFrame.classLoaderOpt.get, depth, projectRoot)
+            getRootModule(
+              nestedFrame.compileOutput.get,
+              nestedFrame.classLoaderOpt.get,
+              depth,
+              projectRoot
+            )
         }
 
         validatedRootModulesOrErr match {
