@@ -134,8 +134,8 @@ object FileImportGraph {
         followLinks = true,
         skip = p =>
           p == projectRoot / "out" ||
-          p == projectRoot / "mill-build" ||
-          (os.isDir(p) && !os.exists(p / "module.sc"))
+            p == projectRoot / "mill-build" ||
+            (os.isDir(p) && !os.exists(p / "module.sc"))
       )
       .filter(_.last == "module.sc")
 
