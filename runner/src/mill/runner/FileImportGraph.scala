@@ -128,15 +128,18 @@ object FileImportGraph {
 
     val useDummy = !os.exists(projectRoot / "build.sc")
     walkScripts(projectRoot / "build.sc", useDummy)
-    os.walk(
-      projectRoot,
-      followLinks = true,
-      skip = p =>
-        p == projectRoot / "out" || p == projectRoot / "mill-build" || os.exists(p / "build.sc")
-    )
-      .filter(!_.startsWith(projectRoot / "integration")) // HACK
+    val buildFiles = os
+      .walk(
+        projectRoot,
+        followLinks = true,
+        skip = p =>
+          p == projectRoot / "out" ||
+          p == projectRoot / "mill-build" ||
+          (os.isDir(p) && !os.exists(p / "module.sc"))
+      )
       .filter(_.last == "module.sc")
-      .foreach(walkScripts(_))
+
+    buildFiles.foreach(walkScripts(_))
 
     new FileImportGraph(
       seenScripts.toMap,
