@@ -17,8 +17,8 @@ object Dependency extends ExternalModule {
       DependencyUpdatesImpl(
         ev,
         implicitly,
-        ev.rootModule,
-        ev.rootModule.millDiscover,
+        ev.rootModules.head,
+        ev.rootModules.head.millDiscover,
         allowPreRelease
       )
     }

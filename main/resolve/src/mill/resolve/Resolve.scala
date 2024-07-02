@@ -5,10 +5,10 @@ import mill.define.{
   BaseModule,
   Command,
   Discover,
-  ExternalModule,
   Module,
   NamedTask,
   Reflect,
+  Segment,
   Segments,
   Target,
   TaskModule
@@ -193,11 +193,18 @@ trait Resolve[T] {
       scriptArgs: Seq[String],
       selectMode: SelectMode
   ): Either[String, List[T]] = {
-    resolve0(rootModule, scriptArgs, selectMode)
+    resolve0(Seq(rootModule), scriptArgs, selectMode)
+  }
+  def resolve(
+      rootModules: Seq[BaseModule],
+      scriptArgs: Seq[String],
+      selectMode: SelectMode
+  ): Either[String, List[T]] = {
+    resolve0(rootModules, scriptArgs, selectMode)
   }
 
   private[mill] def resolve0(
-      baseModule: BaseModule,
+      baseModules: Seq[BaseModule],
       scriptArgs: Seq[String],
       selectMode: SelectMode
   ): Either[String, List[T]] = {
@@ -205,8 +212,8 @@ trait Resolve[T] {
     val resolvedGroups = ParseArgs(scriptArgs, selectMode).flatMap { groups =>
       val resolved = groups.map { case (selectors, args) =>
         val selected = selectors.map { case (scopedSel, sel) =>
-          resolveRootModule(baseModule, scopedSel).map { rootModule =>
-            resolveNonEmptyAndHandle(args, sel, rootModule, nullCommandDefaults)
+          resolveRootModule(baseModules, scopedSel, sel).map { case (rootModule, sel2) =>
+            resolveNonEmptyAndHandle(args, sel2, rootModule, nullCommandDefaults)
           }
         }
 
@@ -258,24 +265,52 @@ trait Resolve[T] {
   private[mill] def deduplicate(items: List[T]): List[T] = items
 
   private[mill] def resolveRootModule(
-      rootModule: BaseModule,
-      scopedSel: Option[Segments]
-  ): Either[String, BaseModule] = {
+      rootModules: Seq[BaseModule],
+      scopedSel: Option[Segments],
+      sel: Segments
+  ): Either[String, (BaseModule, Segments)] = {
     scopedSel match {
-      case None => Right(rootModule)
+      case None =>
+        val parts = rootModules
+          .map { m =>
+            val parts = m.getClass.getName match {
+              case s"build.$partString.package$$" => partString.split('.')
+              case s"build.${partString}_$$$last$$" => partString.split('.')
+              case _ => Array[String]()
+            }
+
+            (parts, m)
+          }
+
+        val (drop, longestMatchingRootModule) = parts
+          .sortBy(_._1.length)
+          .reverse
+          .collect {
+            case (parts, m)
+                if sel.value.takeWhile(_.isInstanceOf[Segment.Label])
+                  .collect { case Segment.Label(v) => v }.zip(parts).forall(t => t._1 == t._2) =>
+              parts.length -> m
+          }
+          .headOption
+          .getOrElse(0 -> rootModules.head)
+
+        val segmentsSuffix = Segments(sel.value.drop(drop))
+
+        Right((longestMatchingRootModule, segmentsSuffix))
+
       case Some(scoping) =>
         for {
           moduleCls <-
-            try Right(rootModule.getClass.getClassLoader.loadClass(scoping.render + "$"))
+            try Right(rootModules.head.getClass.getClassLoader.loadClass(scoping.render + "$"))
             catch {
               case e: ClassNotFoundException =>
                 Left("Cannot resolve external module " + scoping.render)
             }
           rootModule <- moduleCls.getField("MODULE$").get(moduleCls) match {
-            case rootModule: ExternalModule => Right(rootModule)
-            case _ => Left("Class " + scoping.render + " is not an external module")
+            case rootModule: BaseModule => Right(rootModule)
+            case _ => Left("Class " + scoping.render + " is not an BaseModule")
           }
-        } yield rootModule
+        } yield (rootModule, sel)
     }
   }
 }

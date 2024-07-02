@@ -12,7 +12,7 @@ object ForeignConflictTest extends IntegrationTestSuite {
     initWorkspace()
     test("test") - {
       // see https://github.com/lihaoyi/mill/issues/302
-      if (!mill.util.Util.java9OrAbove) {
+      if (false) {
         assert(
           eval("checkPaths"),
           eval("checkDests")

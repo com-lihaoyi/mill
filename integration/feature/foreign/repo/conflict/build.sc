@@ -1,4 +1,4 @@
-import $file.inner.{build => innerBuild}
+import build.conflict.inner
 import mill._
 
 // In this build, we have a local module targeting

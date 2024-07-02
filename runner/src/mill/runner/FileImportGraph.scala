@@ -96,31 +96,30 @@ object FileImportGraph {
               if seenRepo.find(_._1 == repo).isEmpty
             } seenRepo.addOne((repo, s))
             (start, "_root_._", end)
+
           case ImportTree(Seq(("$ivy", _), rest @ _*), mapping, start, end) =>
             seenIvy.addAll(mapping.map(_._1))
             (start, "_root_._", end)
+
           case ImportTree(Seq(("$meta", _), rest @ _*), mapping, start, end) =>
             millImport = true
             (start, "_root_._", end)
-          case ImportTree(Seq(("$file", _), rest @ _*), mapping, start, end) =>
+
+          case ImportTree(Seq(("$file", end0), rest @ _*), mapping, start, end) =>
             val nextPaths = mapping.map { case (lhs, rhs) => nextPathFor(s, rest.map(_._1) :+ lhs) }
 
             fileImports.addAll(nextPaths)
             importGraphEdges(s) ++= nextPaths
 
-            if (rest.isEmpty) (start, "_root_._", end)
-            else {
-              val end = rest.last._2
-              (
-                start,
-                fileImportToSegments(projectRoot, nextPaths(0) / os.up, false)
-                  .map(backtickWrap)
-                  .mkString("."),
-                end
-              )
-            }
+            val patchString =
+              (fileImportToSegments(projectRoot, nextPaths(0) / os.up, false) ++ Seq())
+                .map(backtickWrap)
+                .mkString(".")
+
+            (start, patchString, rest.lastOption.fold(end0)(_._2))
         }
         val numNewLines = stmt.substring(start, end).count(_ == '\n')
+
         stmt = stmt.patch(start, patchString + mill.util.Util.newLine * numNewLines, end - start)
       }
 
@@ -129,6 +128,19 @@ object FileImportGraph {
 
     val useDummy = !os.exists(projectRoot / "build.sc")
     walkScripts(projectRoot / "build.sc", useDummy)
+    val buildFiles = os
+      .walk(
+        projectRoot,
+        followLinks = true,
+        skip = p =>
+          p == projectRoot / "out" ||
+            p == projectRoot / "mill-build" ||
+            (os.isDir(p) && !os.exists(p / "module.sc"))
+      )
+      .filter(_.last == "module.sc")
+
+    buildFiles.foreach(walkScripts(_))
+
     new FileImportGraph(
       seenScripts.toMap,
       seenRepo.toSeq,
@@ -154,6 +166,6 @@ object FileImportGraph {
 
   def fileImportToSegments(base: os.Path, s: os.Path, stripExt: Boolean): Seq[String] = {
     val rel = (s / os.up / (if (stripExt) s.baseName else s.last)).relativeTo(base)
-    Seq("millbuild") ++ Seq.fill(rel.ups)("^") ++ rel.segments
+    Seq("build") ++ Seq.fill(rel.ups)("^") ++ rel.segments
   }
 }

@@ -23,8 +23,8 @@ object BspModulesTests extends IntegrationTestSuite {
           "", // the root module has no segments at all
           "HelloBsp",
           "HelloBsp.test",
-          "foreign-modules.proj1.build.proj1",
-          "foreign-modules.proj2.build.proj2"
+          "proj1.module",
+          "proj2.module"
           // "foreign-modules.proj3.proj3" // still not detected
         ).sorted
         assert(readModules == expectedModules)
