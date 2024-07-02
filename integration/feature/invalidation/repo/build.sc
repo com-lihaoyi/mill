@@ -1,22 +1,19 @@
 import mill._
-import $file.a.inputA
-import $file.b.{inputB => inputBRenamed}
+
 import $file.inputC
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
-import $file.e.inputE
-import $file.`-#!+→&%=~`.inputSymbols
-import $file.`-#+&%`
+import build.`-#!+→&%=~`.inputSymbols
 
 def task = T {
-  inputA.input()
-  inputBRenamed.input()
+  build.a.input()
+  build.b.input()
   inputC.input()
 }
 
 object module extends Module {
   def task = T {
     println("task")
-    inputA.input()
+    build.a.input()
     inputBRenamed.input()
     inputC.input()
   }
@@ -24,7 +21,7 @@ object module extends Module {
 
 def taskE = T {
   println("taskE")
-  inputE.input()
+  build.e.input()
 }
 
 def taskSymbols = T {
