@@ -354,7 +354,7 @@ object MillBuildRootModule {
 
     val pkgLine = pkg.map(p => "package " + backtickWrap(p)).mkString("\n")
 
-    if (isBuildOrModuleSc){
+    if (isBuildOrModuleSc) {
       s"""$pkgLine
          |
          |import _root_.mill.runner.MillBuildRootModule
@@ -378,7 +378,7 @@ object MillBuildRootModule {
          |//MILL_ORIGINAL_FILE_PATH=${originalFilePath}
          |//MILL_USER_CODE_START_MARKER
          |""".stripMargin
-    }else{
+    } else {
       s"""$pkgLine
          |object ${backtickWrap(name)} {
          |
