@@ -12,7 +12,10 @@ object foo extends ScalaJSModule {
 
 // This build defines a single `ScalaJSModule` with a test suite.
 // `ScalaJSModule` is similar to `ScalaModule`, except it requires a
-// `scalaJSVersion` to be provided.
+// `scalaJSVersion` to be provided. Take note that `ScalaJSTests` is provided by 
+// the `ScalaJSModule` trait. If you want to use it from outside that scope you can
+// use `TestScalaJSModule` instead of `ScalaJSTests`, but `ScalaJSTests` copies various
+// settings from your Scala.js module (`foo` in example) to the test module.
 //
 // By default, Scala.js code gets access to the `scala.scalajs.js` package,
 // which contains the core JS APIs like `js.JSON`, `js.Date`, etc. `ivyDeps` of
