@@ -332,7 +332,13 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
         .loadFrameworks(List(List(frameworkName)))
         .flatten
         .headOption
-        .getOrElse(throw new RuntimeException("Failed to get framework"))
+        .getOrElse(throw new RuntimeException(
+          """|Test framework class was not found. Please check that:
+             |- the correct Scala.js dependency of the framework is used (like ivy"group::artifact::version", instead of ivy"group::artifact:version" for JVM Scala. Note the extra : before the version.)
+             |- there are no typos in the framework class name.
+             |- the framework library is on the classpath
+             |""".stripMargin
+        ))
     )
   }
 
