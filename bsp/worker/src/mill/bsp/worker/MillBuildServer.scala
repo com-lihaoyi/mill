@@ -733,6 +733,8 @@ private class MillBuildServer(
     }
   }
 
+  val requestLock = new java.util.concurrent.locks.ReentrantLock()
+
   /**
    * Given a function that take input of type T and return output of type V,
    * apply the function on the given inputs and return a completable future of
@@ -745,13 +747,13 @@ private class MillBuildServer(
       checkInitialized: Boolean = true
   )(f: State => V): CompletableFuture[V] = {
     debug(s"Entered ${hint}")
+
     val start = System.currentTimeMillis()
     val prefix = hint.split(" ").head
     def took =
       debug(s"${prefix} took ${System.currentTimeMillis() - start} msec")
 
     val future = new CompletableFuture[V]()
-
     if (checkInitialized && !initialized) {
       future.completeExceptionally(
         new Exception(
@@ -762,6 +764,7 @@ private class MillBuildServer(
       statePromise.future.onComplete {
         case Success(state) =>
           try {
+            requestLock.lock()
             val v = f(state)
             took
             debug(s"${prefix} result: ${v}")
@@ -772,6 +775,8 @@ private class MillBuildServer(
               logStream.println(s"${prefix} caught exception: ${e}")
               e.printStackTrace(logStream)
               future.completeExceptionally(e)
+          } finally{
+            requestLock.unlock()
           }
         case Failure(exception) =>
           future.completeExceptionally(exception)
