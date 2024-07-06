@@ -42,7 +42,7 @@ abstract class BaseModule(
 
 }
 
-trait BaseModule0 extends Module{
+trait BaseModule0 extends Module {
   implicit def millDiscover: Discover[_]
   protected[mill] val watchedValues: mutable.Buffer[Watchable] = mutable.Buffer.empty[Watchable]
   protected[mill] val evalWatchedValues: mutable.Buffer[Watchable] = mutable.Buffer.empty[Watchable]

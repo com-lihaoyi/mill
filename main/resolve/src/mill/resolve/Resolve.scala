@@ -52,7 +52,9 @@ object Resolve {
         case r: Resolved.Command =>
           val instantiated = ResolveCore
             .instantiateModule0(rootModule, prefixedRootModules, r.segments.init)
-            .flatMap{case (mod, rootMod) => instantiateCommand(rootMod, r, mod, args, nullCommandDefaults) }
+            .flatMap { case (mod, rootMod) =>
+              instantiateCommand(rootMod, r, mod, args, nullCommandDefaults)
+            }
 
           instantiated.map(Some(_))
 
@@ -239,7 +241,7 @@ trait Resolve[T] {
       sel: Segments,
       nullCommandDefaults: Boolean
   ): Either[String, Seq[T]] = {
-    val rootModule = prefixedRootModules.collect {case (Nil, m) => m}.head
+    val rootModule = prefixedRootModules.collect { case (Nil, m) => m }.head
     val rootResolved = ResolveCore.Resolved.Module(Segments(), rootModule.getClass)
     val resolved =
       ResolveCore.resolve(
@@ -251,7 +253,8 @@ trait Resolve[T] {
       ) match {
         case ResolveCore.Success(value) => Right(value)
         case ResolveCore.NotFound(segments, found, next, possibleNexts) =>
-          val allPossibleNames = prefixedRootModules.flatMap(_._2.millDiscover.value.values).flatMap(_._1).toSet
+          val allPossibleNames =
+            prefixedRootModules.flatMap(_._2.millDiscover.value.values).flatMap(_._1).toSet
           Left(ResolveNotFoundHandler(
             selector = sel,
             segments = segments,

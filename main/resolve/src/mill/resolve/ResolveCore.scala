@@ -97,13 +97,25 @@ private object ResolveCore {
               case "__" =>
                 val self = Seq(Resolved.Module(m.segments, m.cls))
                 val transitiveOrErr =
-                  resolveTransitiveChildren(rootModule, prefixedRootModules, m.cls, None, current.segments, Nil)
+                  resolveTransitiveChildren(
+                    rootModule,
+                    prefixedRootModules,
+                    m.cls,
+                    None,
+                    current.segments,
+                    Nil
+                  )
 
                 transitiveOrErr.map(transitive => self ++ transitive)
 
               case "_" =>
                 resolveDirectChildren(
-                  rootModule, prefixedRootModules, m.cls, None, current.segments)
+                  rootModule,
+                  prefixedRootModules,
+                  m.cls,
+                  None,
+                  current.segments
+                )
 
               case pattern if pattern.startsWith("__:") =>
                 val typePattern = pattern.split(":").drop(1)
@@ -148,23 +160,24 @@ private object ResolveCore {
 
           case (Segment.Cross(cross), m: Resolved.Module) =>
             if (classOf[Cross[_]].isAssignableFrom(m.cls)) {
-              instantiateModule(rootModule, prefixedRootModules, current.segments).flatMap { case c: Cross[_] =>
-                catchWrapException(
-                  if (cross == Seq("__")) for ((_, v) <- c.valuesToModules.toSeq) yield v
-                  else if (cross.contains("_")) {
-                    for {
-                      (segments, v) <- c.segmentsToModules.toList
-                      if segments.length == cross.length
-                      if segments.zip(cross).forall { case (l, r) => l == r || r == "_" }
-                    } yield v
-                  } else {
-                    val crossOrDefault = if (cross.isEmpty) {
-                      // We want to select the default (first) crossValue
-                      c.defaultCrossSegments
-                    } else cross
-                    c.segmentsToModules.get(crossOrDefault.toList).toSeq
-                  }
-                )
+              instantiateModule(rootModule, prefixedRootModules, current.segments).flatMap {
+                case c: Cross[_] =>
+                  catchWrapException(
+                    if (cross == Seq("__")) for ((_, v) <- c.valuesToModules.toSeq) yield v
+                    else if (cross.contains("_")) {
+                      for {
+                        (segments, v) <- c.segmentsToModules.toList
+                        if segments.length == cross.length
+                        if segments.zip(cross).forall { case (l, r) => l == r || r == "_" }
+                      } yield v
+                    } else {
+                      val crossOrDefault = if (cross.isEmpty) {
+                        // We want to select the default (first) crossValue
+                        c.defaultCrossSegments
+                      } else cross
+                      c.segmentsToModules.get(crossOrDefault.toList).toSeq
+                    }
+                  )
               } match {
                 case Left(err) => Error(err)
                 case Right(searchModules) =>
@@ -181,15 +194,22 @@ private object ResolveCore {
         }
     }
   }
-  def instantiateModule(rootModule: Module,
-                         prefixedRootModules: Seq[(Seq[String], BaseModule)],
-                         segments: Segments): Either[String, Module] =
+  def instantiateModule(
+      rootModule: Module,
+      prefixedRootModules: Seq[(Seq[String], BaseModule)],
+      segments: Segments
+  ): Either[String, Module] =
     instantiateModule0(rootModule, prefixedRootModules, segments).map(_._1)
-  def instantiateModule0(rootModule: Module,
-                         prefixedRootModules: Seq[(Seq[String], BaseModule)],
-                         segments: Segments): Either[String, (Module, BaseModule)] = {
+  def instantiateModule0(
+      rootModule: Module,
+      prefixedRootModules: Seq[(Seq[String], BaseModule)],
+      segments: Segments
+  ): Either[String, (Module, BaseModule)] = {
 
-    segments.value.foldLeft[Either[String, (Module, BaseModule)]](Right((rootModule, rootModule.asInstanceOf[BaseModule]))) {
+    segments.value.foldLeft[Either[String, (Module, BaseModule)]](Right((
+      rootModule,
+      rootModule.asInstanceOf[BaseModule]
+    ))) {
       case (Right((current, currentRoot)), Segment.Label(s)) =>
         assert(s != "_", s)
         resolveDirectChildren0(
@@ -201,7 +221,7 @@ private object ResolveCore {
         ).flatMap {
           case Seq((_, Some(f))) =>
             val res = f(current)
-            res.map{
+            res.map {
               case b: BaseModule =>
                 (b, b)
               case b =>
@@ -238,13 +258,22 @@ private object ResolveCore {
       segments: Segments,
       typePattern: Seq[String]
   ): Either[String, Set[Resolved]] = {
-    val direct = resolveDirectChildren(rootModule, prefixedRootModules, cls, nameOpt, segments, typePattern)
+    val direct =
+      resolveDirectChildren(rootModule, prefixedRootModules, cls, nameOpt, segments, typePattern)
     direct.flatMap { direct =>
       for {
-        directTraverse <- resolveDirectChildren(rootModule, prefixedRootModules, cls, nameOpt, segments, Nil)
+        directTraverse <-
+          resolveDirectChildren(rootModule, prefixedRootModules, cls, nameOpt, segments, Nil)
         indirect0 = directTraverse
           .collect { case m: Resolved.Module =>
-            resolveTransitiveChildren(rootModule, prefixedRootModules, m.cls, nameOpt, m.segments, typePattern)
+            resolveTransitiveChildren(
+              rootModule,
+              prefixedRootModules,
+              m.cls,
+              nameOpt,
+              m.segments,
+              typePattern
+            )
           }
         indirect <- EitherOps.sequence(indirect0).map(_.flatten)
       } yield direct ++ indirect
@@ -290,7 +319,14 @@ private object ResolveCore {
       nameOpt: Option[String],
       segments: Segments
   ): Either[String, Set[Resolved]] =
-    resolveDirectChildren(rootModule, prefixedRootModules, cls, nameOpt, segments, typePattern = Nil)
+    resolveDirectChildren(
+      rootModule,
+      prefixedRootModules,
+      cls,
+      nameOpt,
+      segments,
+      typePattern = Nil
+    )
 
   def resolveDirectChildren(
       rootModule: Module,
@@ -367,19 +403,20 @@ private object ResolveCore {
               )
         }
       } else Right {
-        val nestedModuleScObjects = for{
-          (prefix, m) <- prefixedRootModules
-          if m.getClass == cls
-          (prefix2, m2) <- prefixedRootModules
-          if prefix2.startsWith(prefix) && prefix2.length == (prefix.length + 1)
-          if nameOpt.isEmpty || nameOpt.contains(prefix2.last)
-        } yield (
-          Resolved.Module(
-            Segments.labels(decode(prefix2.last)),
-            m2.getClass
-          ),
-          Some((_: Module) => Right(m2))
-        )
+        val nestedModuleScObjects =
+          for {
+            (prefix, m) <- prefixedRootModules
+            if m.getClass == cls
+            (prefix2, m2) <- prefixedRootModules
+            if prefix2.startsWith(prefix) && prefix2.length == (prefix.length + 1)
+            if nameOpt.isEmpty || nameOpt.contains(prefix2.last)
+          } yield (
+            Resolved.Module(
+              Segments.labels(decode(prefix2.last)),
+              m2.getClass
+            ),
+            Some((_: Module) => Right(m2))
+          )
 
         val reflectMemberObjects = Reflect
           .reflectNestedObjects0[Module](cls, namePred)
@@ -437,7 +474,13 @@ private object ResolveCore {
   ): NotFound = {
     val possibleNexts = current match {
       case m: Resolved.Module =>
-        resolveDirectChildren(rootModule, prefixedRootModules, m.cls, None, current.segments).toOption.get.map(
+        resolveDirectChildren(
+          rootModule,
+          prefixedRootModules,
+          m.cls,
+          None,
+          current.segments
+        ).toOption.get.map(
           _.segments.value.last
         )
 
