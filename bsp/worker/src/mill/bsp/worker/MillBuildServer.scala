@@ -775,7 +775,7 @@ private class MillBuildServer(
               logStream.println(s"${prefix} caught exception: ${e}")
               e.printStackTrace(logStream)
               future.completeExceptionally(e)
-          } finally{
+          } finally {
             requestLock.unlock()
           }
         case Failure(exception) =>
