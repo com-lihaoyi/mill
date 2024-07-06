@@ -65,6 +65,7 @@ object RootModule {
         Caller(null)
       ) {
 
-    override implicit lazy val millDiscover: Discover[this.type] = Discover[this.type]
+    override lazy val millDiscover: Discover[this.type] =
+      baseModuleInfo.discover.asInstanceOf[Discover[this.type]]
   }
 }

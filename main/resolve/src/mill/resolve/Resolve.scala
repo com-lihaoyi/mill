@@ -109,15 +109,17 @@ object Resolve {
       args: Seq[String],
       nullCommandDefaults: Boolean
   ) = {
-    ResolveCore.catchWrapException(
-      invokeCommand0(
+    ResolveCore.catchWrapException {
+      val invoked = invokeCommand0(
         p,
         r.segments.parts.last,
         rootModule.millDiscover.asInstanceOf[Discover[mill.define.Module]],
         args,
         nullCommandDefaults
-      ).head
-    ).flatten
+      )
+
+      invoked.head
+    }.flatten
   }
 
   private def invokeCommand0(
