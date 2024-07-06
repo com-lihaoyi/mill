@@ -10,6 +10,15 @@ trait MyModule extends ScalaModule {
 /** Usage
 
 > ./mill resolve __
+bar
+...
+bar.qux.module
+...
+bar.qux.module.compile
+...
+foo
+...
+foo.compile
 
 > ./mill bar.qux.module.compile
 

@@ -20,6 +20,7 @@ object Resolve {
   object Segments extends Resolve[Segments] {
     private[mill] def handleResolved(
         rootModule: BaseModule,
+        prefixedRootModules: Seq[(Seq[String], BaseModule)],
         resolved: Seq[Resolved],
         args: Seq[String],
         selector: Segments,
@@ -34,6 +35,7 @@ object Resolve {
   object Tasks extends Resolve[NamedTask[Any]] {
     private[mill] def handleResolved(
         rootModule: BaseModule,
+        prefixedRootModules: Seq[(Seq[String], BaseModule)],
         resolved: Seq[Resolved],
         args: Seq[String],
         selector: Segments,
@@ -42,23 +44,24 @@ object Resolve {
       val taskList = resolved.map {
         case r: Resolved.Target =>
           val instantiated = ResolveCore
-            .instantiateModule(rootModule, r.segments.init)
+            .instantiateModule(rootModule, prefixedRootModules, r.segments.init)
             .flatMap(instantiateTarget(r, _))
 
           instantiated.map(Some(_))
 
         case r: Resolved.Command =>
           val instantiated = ResolveCore
-            .instantiateModule(rootModule, r.segments.init)
+            .instantiateModule(rootModule, prefixedRootModules, r.segments.init)
             .flatMap(instantiateCommand(rootModule, r, _, args, nullCommandDefaults))
 
           instantiated.map(Some(_))
 
         case r: Resolved.Module =>
-          ResolveCore.instantiateModule(rootModule, r.segments).flatMap {
+          ResolveCore.instantiateModule(rootModule, prefixedRootModules, r.segments).flatMap {
             case value: TaskModule =>
               val directChildrenOrErr = ResolveCore.resolveDirectChildren(
                 rootModule,
+                prefixedRootModules,
                 value.getClass,
                 Some(value.defaultCommandName()),
                 value.millModuleSegments
@@ -182,6 +185,7 @@ object Resolve {
 trait Resolve[T] {
   private[mill] def handleResolved(
       rootModule: BaseModule,
+      prefixedRootModules: Seq[(Seq[String], BaseModule)],
       resolved: Seq[Resolved],
       args: Seq[String],
       segments: Segments,
@@ -235,10 +239,12 @@ trait Resolve[T] {
       sel: Segments,
       nullCommandDefaults: Boolean
   ): Either[String, Seq[T]] = {
+    val rootModule = prefixedRootModules.collect {case (Nil, m) => m}.head
     val rootResolved = ResolveCore.Resolved.Module(Segments(), rootModule.getClass)
     val resolved =
       ResolveCore.resolve(
         prefixedRootModules = prefixedRootModules,
+        rootModule = rootModule,
         remainingQuery = sel.value.toList,
         current = rootResolved,
         querySoFar = Segments()
@@ -259,7 +265,7 @@ trait Resolve[T] {
 
     resolved
       .map(_.toSeq.sortBy(_.segments.render))
-      .flatMap(handleResolved(rootModule, _, args, sel, nullCommandDefaults))
+      .flatMap(handleResolved(rootModule, prefixedRootModules, _, args, sel, nullCommandDefaults))
   }
 
   private[mill] def deduplicate(items: List[T]): List[T] = items
