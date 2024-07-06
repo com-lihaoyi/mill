@@ -212,8 +212,8 @@ trait Resolve[T] {
     val resolvedGroups = ParseArgs(scriptArgs, selectMode).flatMap { groups =>
       val resolved = groups.map { case (selectors, args) =>
         val selected = selectors.map { case (scopedSel, sel) =>
-          resolveRootModule(baseModules, scopedSel, sel).map { case (rootModule, sel2) =>
-            resolveNonEmptyAndHandle(args, sel2, rootModule, nullCommandDefaults)
+          resolveRootModule(baseModules, scopedSel).map { rootModuleSels =>
+            resolveNonEmptyAndHandle(args, rootModuleSels, sel, nullCommandDefaults)
           }
         }
 
@@ -231,21 +231,21 @@ trait Resolve[T] {
 
   private[mill] def resolveNonEmptyAndHandle(
       args: Seq[String],
+      prefixedRootModules: Seq[(Seq[String], BaseModule)],
       sel: Segments,
-      rootModule: BaseModule,
       nullCommandDefaults: Boolean
   ): Either[String, Seq[T]] = {
     val rootResolved = ResolveCore.Resolved.Module(Segments(), rootModule.getClass)
     val resolved =
       ResolveCore.resolve(
-        rootModule = rootModule,
+        prefixedRootModules = prefixedRootModules,
         remainingQuery = sel.value.toList,
         current = rootResolved,
         querySoFar = Segments()
       ) match {
         case ResolveCore.Success(value) => Right(value)
         case ResolveCore.NotFound(segments, found, next, possibleNexts) =>
-          val allPossibleNames = rootModule.millDiscover.value.values.flatMap(_._1).toSet
+          val allPossibleNames = prefixedRootModules.flatMap(_._2.millDiscover.value.values).flatMap(_._1).toSet
           Left(ResolveNotFoundHandler(
             selector = sel,
             segments = segments,
@@ -266,37 +266,22 @@ trait Resolve[T] {
 
   private[mill] def resolveRootModule(
       rootModules: Seq[BaseModule],
-      scopedSel: Option[Segments],
-      sel: Segments
-  ): Either[String, (BaseModule, Segments)] = {
+      scopedSel: Option[Segments]
+  ): Either[String, Seq[(Seq[String], BaseModule)]] = {
     scopedSel match {
       case None =>
-        val parts = rootModules
-          .map { m =>
-            val parts = m.getClass.getName match {
-              case s"build.$partString.package$$" => partString.split('.')
-              case s"build.${partString}_$$$last$$" => partString.split('.')
-              case _ => Array[String]()
+        Right(
+          rootModules
+            .map { m =>
+              val parts = m.getClass.getName match {
+                case s"build.$partString.package$$" => partString.split('.')
+                case s"build.${partString}_$$$last$$" => partString.split('.')
+                case _ => Array[String]()
+              }
+
+              (parts, m)
             }
-
-            (parts, m)
-          }
-
-        val (drop, longestMatchingRootModule) = parts
-          .sortBy(_._1.length)
-          .reverse
-          .collect {
-            case (parts, m)
-                if sel.value.takeWhile(_.isInstanceOf[Segment.Label])
-                  .collect { case Segment.Label(v) => v }.zip(parts).forall(t => t._1 == t._2) =>
-              parts.length -> m
-          }
-          .headOption
-          .getOrElse(0 -> rootModules.head)
-
-        val segmentsSuffix = Segments(sel.value.drop(drop))
-
-        Right((longestMatchingRootModule, segmentsSuffix))
+        )
 
       case Some(scoping) =>
         for {
@@ -310,7 +295,7 @@ trait Resolve[T] {
             case rootModule: BaseModule => Right(rootModule)
             case _ => Left("Class " + scoping.render + " is not an BaseModule")
           }
-        } yield (rootModule, sel)
+        } yield Seq((Nil, rootModule))
     }
   }
 }

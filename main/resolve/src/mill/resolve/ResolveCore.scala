@@ -64,7 +64,7 @@ private object ResolveCore {
   }
 
   def resolve(
-      rootModule: Module,
+      prefixedRootModules: Seq[(Seq[String], BaseModule)],
       remainingQuery: List[Segment],
       current: Resolved,
       querySoFar: Segments
