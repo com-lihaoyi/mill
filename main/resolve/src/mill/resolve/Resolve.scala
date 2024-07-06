@@ -107,7 +107,6 @@ object Resolve {
       args: Seq[String],
       nullCommandDefaults: Boolean
   ) = {
-    pprint.log(rootModule.getClass)
     ResolveCore.catchWrapException(
       invokeCommand0(
         p,
