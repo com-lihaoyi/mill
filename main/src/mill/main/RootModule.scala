@@ -20,6 +20,14 @@ abstract class RootModule(implicit
     ctx: mill.define.Ctx
 ) extends RootModule.Base(foreign0 = ctx.foreign)
 
+abstract class RootModuleForeign(implicit
+    baseModuleInfo: RootModule.Info,
+    millModuleEnclosing0: sourcecode.Enclosing,
+    millModuleLine0: sourcecode.Line,
+    millFile0: sourcecode.File,
+    ctx: mill.define.Ctx
+) extends RootModule.Foreign(foreign0 = ctx.foreign)
+
 @internal
 object RootModule {
   abstract class Base(foreign0: Option[Segments] = None)(implicit

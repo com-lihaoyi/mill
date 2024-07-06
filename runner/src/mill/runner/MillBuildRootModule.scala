@@ -10,7 +10,7 @@ import mill.util.Util.millProjectModule
 import mill.scalalib.api.Versions
 import pprint.Util.literalize
 import FileImportGraph.backtickWrap
-import mill.main.BuildInfo
+import mill.main.{BuildInfo, RootModule}
 
 import scala.collection.immutable.SortedMap
 import scala.util.Try
@@ -354,6 +354,10 @@ object MillBuildRootModule {
         s"_root_.mill.main.RootModule.Foreign(Some(_root_.mill.define.Segments.labels($segsList)))"
       }
 
+    val imports =
+      if (name == "build") "import mill.main.RootModule"
+      else "import mill.main.{RootModuleForeign => RootModule}"
+
     val miscInfoName = s"MiscInfo_$name"
 
     val pkgLine = pkg.map(p => "package " + backtickWrap(p)).mkString("\n")
@@ -362,6 +366,7 @@ object MillBuildRootModule {
       s"""$pkgLine
          |
          |import _root_.mill.runner.MillBuildRootModule
+         |$imports
          |
          |object ${backtickWrap(miscInfoName)} {
          |  implicit lazy val millBuildRootModuleInfo: _root_.mill.runner.MillBuildRootModule.Info = _root_.mill.runner.MillBuildRootModule.Info(
