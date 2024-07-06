@@ -55,7 +55,7 @@ object RootModule {
         millModuleLine0,
         millFile0,
         Caller(null)
-      ) with mill.main.MainModule {
+      ) {
 
     override implicit lazy val millDiscover: Discover[this.type] = Discover[this.type]
   }

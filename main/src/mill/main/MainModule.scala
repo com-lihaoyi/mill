@@ -1,9 +1,8 @@
 package mill.main
 
 import java.util.concurrent.LinkedBlockingQueue
-import mill.define.Target
+import mill.define.{BaseModule, BaseModule0, Command, NamedTask, Segments, Target, Task}
 import mill.api.{Ctx, Logger, PathRef, Result}
-import mill.define.{Command, NamedTask, Segments, Task}
 import mill.eval.{Evaluator, EvaluatorPaths, Terminal}
 import mill.resolve.{Resolve, SelectMode}
 import mill.resolve.SelectMode.Separated
@@ -60,39 +59,9 @@ object MainModule {
  * [[mill.define.Module]] containing all the default tasks that Mill provides: [[resolve]],
  * [[show]], [[inspect]], [[plan]], etc.
  */
-trait MainModule extends mill.define.Module {
-  protected[mill] val watchedValues: mutable.Buffer[Watchable] = mutable.Buffer.empty[Watchable]
-  protected[mill] val evalWatchedValues: mutable.Buffer[Watchable] = mutable.Buffer.empty[Watchable]
+trait MainModule extends BaseModule0 {
 
-  object interp {
-
-    def watchValue[T](v0: => T)(implicit fn: sourcecode.FileName, ln: sourcecode.Line): T = {
-      val v = v0
-      val watchable = Watchable.Value(
-        () => v0.hashCode,
-        v.hashCode(),
-        fn.value + ":" + ln.value
-      )
-      watchedValues.append(watchable)
-      v
-    }
-
-    def watch(p: os.Path): os.Path = {
-      val watchable = Watchable.Path(PathRef(p))
-      watchedValues.append(watchable)
-      p
-    }
-
-    def watch0(w: Watchable): Unit = {
-      watchedValues.append(w)
-    }
-
-    def evalWatch0(w: Watchable): Unit = {
-      evalWatchedValues.append(w)
-    }
-  }
-
-  implicit def millDiscover: mill.define.Discover[_]
+//  implicit def millDiscover: mill.define.Discover[_]
 
   /**
    * Show the mill version.

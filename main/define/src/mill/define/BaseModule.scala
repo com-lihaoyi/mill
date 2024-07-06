@@ -1,5 +1,10 @@
 package mill.define
 
+import mill.api.PathRef
+import mill.util.Watchable
+
+import scala.collection.mutable
+
 object BaseModule {
   case class Implicit(value: BaseModule)
 }
@@ -24,7 +29,8 @@ abstract class BaseModule(
         millFile0,
         caller
       )
-    ) with Module {
+    ) with Module with BaseModule0 {
+
   // A BaseModule should provide an empty Segments list to it's children, since
   // it is the root of the module tree, and thus must not include it's own
   // sourcecode.Name as part of the list,
@@ -34,6 +40,40 @@ abstract class BaseModule(
   implicit def millImplicitBaseModule: BaseModule.Implicit = BaseModule.Implicit(this)
   def millDiscover: Discover[this.type]
 
+}
+
+trait BaseModule0 extends Module{
+  implicit def millDiscover: Discover[_]
+  protected[mill] val watchedValues: mutable.Buffer[Watchable] = mutable.Buffer.empty[Watchable]
+  protected[mill] val evalWatchedValues: mutable.Buffer[Watchable] = mutable.Buffer.empty[Watchable]
+
+  object interp {
+
+    def watchValue[T](v0: => T)(implicit fn: sourcecode.FileName, ln: sourcecode.Line): T = {
+      val v = v0
+      val watchable = Watchable.Value(
+        () => v0.hashCode,
+        v.hashCode(),
+        fn.value + ":" + ln.value
+      )
+      watchedValues.append(watchable)
+      v
+    }
+
+    def watch(p: os.Path): os.Path = {
+      val watchable = Watchable.Path(PathRef(p))
+      watchedValues.append(watchable)
+      p
+    }
+
+    def watch0(w: Watchable): Unit = {
+      watchedValues.append(w)
+    }
+
+    def evalWatch0(w: Watchable): Unit = {
+      evalWatchedValues.append(w)
+    }
+  }
 }
 
 abstract class ExternalModule(implicit

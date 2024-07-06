@@ -219,7 +219,7 @@ class MillBuildBootstrap(
    */
   def processRunClasspath(
       nestedState: RunnerState,
-      rootModules: Seq[RootModule.Base],
+      rootModules: Seq[BaseModule],
       evaluator: Evaluator,
       prevFrameOpt: Option[RunnerState.Frame],
       prevOuterFrameOpt: Option[RunnerState.Frame]
@@ -305,7 +305,7 @@ class MillBuildBootstrap(
    */
   def processFinalTargets(
       nestedState: RunnerState,
-      rootModules: Seq[RootModule.Base],
+      rootModules: Seq[BaseModule],
       evaluator: Evaluator
   ): RunnerState = {
 
@@ -400,7 +400,7 @@ object MillBuildBootstrap {
   }
 
   def evaluateWithWatches(
-      rootModules: Seq[RootModule.Base],
+      rootModules: Seq[BaseModule],
       evaluator: Evaluator,
       targetsAndParams: Seq[String]
   ): (Either[String, Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
@@ -426,7 +426,7 @@ object MillBuildBootstrap {
       runClassLoader: URLClassLoader,
       depth: Int,
       projectRoot: os.Path
-  ): Either[String, Seq[RootModule.Base]] = {
+  ): Either[String, Seq[BaseModule]] = {
 
     val packageClassNames = os
       .walk(compileOut.path)
@@ -437,23 +437,23 @@ object MillBuildBootstrap {
 
     val packageClasses = packageClassNames.map(runClassLoader.loadClass(_))
     val rootModule0s =
-      packageClasses.map(cls => cls.getField("MODULE$").get(cls).asInstanceOf[RootModule.Base])
+      packageClasses.map(cls => cls.getField("MODULE$").get(cls).asInstanceOf[BaseModule])
     val children = rootModule0s.map(getChildRootModule(_, depth, projectRoot))
     children.flatMap(_.left.toOption) match {
-      case Nil => Right[String, Seq[RootModule.Base]](children.map(_.toOption.get))
+      case Nil => Right[String, Seq[BaseModule]](children.map(_.toOption.get))
       case errors => Left(errors.mkString("\n"))
     }
   }
 
   def getChildRootModule(
-      rootModule0: RootModule.Base,
+      rootModule0: BaseModule,
       depth: Int,
       projectRoot: os.Path
-  ): Either[String, RootModule.Base] = {
+  ): Either[String, BaseModule] = {
 
-    val childRootModules: Seq[RootModule.Base] = rootModule0
+    val childRootModules: Seq[BaseModule] = rootModule0
       .millInternal
-      .reflectNestedObjects[RootModule.Base]()
+      .reflectNestedObjects[BaseModule]()
 
     val rootModuleOrErr = childRootModules match {
       case Seq() => Right(rootModule0)

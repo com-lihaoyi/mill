@@ -348,7 +348,11 @@ object MillBuildRootModule {
   ): String = {
     val segsList = segs.map(pprint.Util.literalize(_)).mkString(", ")
     val superClass =
-      s"_root_.mill.main.RootModule.Base(Some(_root_.mill.define.Segments.labels($segsList)))"
+      if (name == "build") {
+        s"_root_.mill.main.RootModule.Base(Some(_root_.mill.define.Segments.labels($segsList)))"
+      } else {
+        s"_root_.mill.main.RootModule.Foreign(Some(_root_.mill.define.Segments.labels($segsList)))"
+      }
 
     val miscInfoName = s"MiscInfo_$name"
 
