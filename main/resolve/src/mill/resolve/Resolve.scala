@@ -51,8 +51,8 @@ object Resolve {
 
         case r: Resolved.Command =>
           val instantiated = ResolveCore
-            .instantiateModule(rootModule, prefixedRootModules, r.segments.init)
-            .flatMap(instantiateCommand(rootModule, r, _, args, nullCommandDefaults))
+            .instantiateModule0(rootModule, prefixedRootModules, r.segments.init)
+            .flatMap{case (mod, rootMod) => instantiateCommand(rootMod, r, mod, args, nullCommandDefaults) }
 
           instantiated.map(Some(_))
 
@@ -107,6 +107,7 @@ object Resolve {
       args: Seq[String],
       nullCommandDefaults: Boolean
   ) = {
+    pprint.log(rootModule.getClass)
     ResolveCore.catchWrapException(
       invokeCommand0(
         p,

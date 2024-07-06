@@ -181,12 +181,16 @@ private object ResolveCore {
         }
     }
   }
-
   def instantiateModule(rootModule: Module,
-                        prefixedRootModules: Seq[(Seq[String], BaseModule)],
-                        segments: Segments): Either[String, Module] = {
-    segments.value.foldLeft[Either[String, Module]](Right(rootModule)) {
-      case (Right(current), Segment.Label(s)) =>
+                         prefixedRootModules: Seq[(Seq[String], BaseModule)],
+                         segments: Segments): Either[String, Module] =
+    instantiateModule0(rootModule, prefixedRootModules, segments).map(_._1)
+  def instantiateModule0(rootModule: Module,
+                         prefixedRootModules: Seq[(Seq[String], BaseModule)],
+                         segments: Segments): Either[String, (Module, BaseModule)] = {
+
+    segments.value.foldLeft[Either[String, (Module, BaseModule)]](Right((rootModule, rootModule.asInstanceOf[BaseModule]))) {
+      case (Right((current, currentRoot)), Segment.Label(s)) =>
         assert(s != "_", s)
         resolveDirectChildren0(
           rootModule,
@@ -195,7 +199,14 @@ private object ResolveCore {
           current.getClass,
           Some(s)
         ).flatMap {
-          case Seq((_, Some(f))) => f(current)
+          case Seq((_, Some(f))) =>
+            val res = f(current)
+            res.map{
+              case b: BaseModule =>
+                (b, b)
+              case b =>
+                (b, currentRoot)
+            }
           case unknown =>
             sys.error(
               s"Unable to resolve single child " +
@@ -204,18 +215,19 @@ private object ResolveCore {
             )
         }
 
-      case (Right(current), Segment.Cross(vs)) =>
+      case (Right((current, currentRoot)), Segment.Cross(vs)) =>
         assert(!vs.contains("_"), vs)
 
         catchWrapException(
           current
             .asInstanceOf[Cross[_]]
             .segmentsToModules(vs.toList)
-            .asInstanceOf[Module]
+            .asInstanceOf[Module] -> currentRoot
         )
 
       case (Left(err), _) => Left(err)
     }
+
   }
 
   def resolveTransitiveChildren(
@@ -360,7 +372,7 @@ private object ResolveCore {
           if m.getClass == cls
           (prefix2, m2) <- prefixedRootModules
           if prefix2.startsWith(prefix) && prefix2.length == (prefix.length + 1)
-          if (nameOpt.isEmpty || nameOpt.contains(prefix2.last))
+          if nameOpt.isEmpty || nameOpt.contains(prefix2.last)
         } yield (
           Resolved.Module(
             Segments.labels(decode(prefix2.last)),
