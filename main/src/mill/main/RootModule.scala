@@ -65,6 +65,8 @@ object RootModule {
         Caller(null)
       ) {
 
+    object interp extends Interp
+
     override lazy val millDiscover: Discover[this.type] =
       baseModuleInfo.discover.asInstanceOf[Discover[this.type]]
   }
