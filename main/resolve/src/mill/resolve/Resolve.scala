@@ -19,7 +19,7 @@ object Resolve {
   object Segments extends Resolve[Segments] {
     private[mill] def handleResolved(
         rootModule: BaseModule,
-        prefixedRootModules: Seq[(Seq[String], BaseModule)],
+        prefixedRootModules: BaseModuleTree,
         resolved: Seq[Resolved],
         args: Seq[String],
         selector: Segments,
@@ -34,7 +34,7 @@ object Resolve {
   object Tasks extends Resolve[NamedTask[Any]] {
     private[mill] def handleResolved(
         rootModule: BaseModule,
-        prefixedRootModules: Seq[(Seq[String], BaseModule)],
+        prefixedRootModules: BaseModuleTree,
         resolved: Seq[Resolved],
         args: Seq[String],
         selector: Segments,
@@ -188,7 +188,7 @@ object Resolve {
 trait Resolve[T] {
   private[mill] def handleResolved(
       rootModule: BaseModule,
-      prefixedRootModules: Seq[(Seq[String], BaseModule)],
+      prefixedRootModules: BaseModuleTree,
       resolved: Seq[Resolved],
       args: Seq[String],
       segments: Segments,
@@ -238,11 +238,11 @@ trait Resolve[T] {
 
   private[mill] def resolveNonEmptyAndHandle(
       args: Seq[String],
-      prefixedRootModules: Seq[(Seq[String], BaseModule)],
+      prefixedRootModules: BaseModuleTree,
       sel: Segments,
       nullCommandDefaults: Boolean
   ): Either[String, Seq[T]] = {
-    val rootModule = prefixedRootModules.collect { case (Nil, m) => m }.head
+    val rootModule = prefixedRootModules.value.collect { case (Nil, m) => m }.head
     val rootResolved = ResolveCore.Resolved.Module(Segments(), rootModule.getClass)
     val resolved =
       ResolveCore.resolve(
@@ -255,7 +255,7 @@ trait Resolve[T] {
         case ResolveCore.Success(value) => Right(value)
         case ResolveCore.NotFound(segments, found, next, possibleNexts) =>
           val allPossibleNames =
-            prefixedRootModules.flatMap(_._2.millDiscover.value.values).flatMap(_._1).toSet
+            prefixedRootModules.value.flatMap(_._2.millDiscover.value.values).flatMap(_._1).toSet
           Left(ResolveNotFoundHandler(
             selector = sel,
             segments = segments,
@@ -277,20 +277,22 @@ trait Resolve[T] {
   private[mill] def resolveRootModule(
       rootModules: Seq[BaseModule],
       scopedSel: Option[Segments]
-  ): Either[String, Seq[(Seq[String], BaseModule)]] = {
+  ): Either[String, BaseModuleTree] = {
     scopedSel match {
       case None =>
         Right(
-          rootModules
-            .map { m =>
-              val parts = m.getClass.getName match {
-                case s"build.$partString.package$$" => partString.split('.')
-                case s"build.${partString}_$$$last$$" => partString.split('.')
-                case _ => Array[String]()
-              }
+          new BaseModuleTree(
+            rootModules
+              .map { m =>
+                val parts = m.getClass.getName match {
+                  case s"build.$partString.package$$" => partString.split('.')
+                  case s"build.${partString}_$$$last$$" => partString.split('.')
+                  case _ => Array[String]()
+                }
 
-              (parts, m)
-            }
+                (parts, m)
+              }
+          )
         )
 
       case Some(scoping) =>
@@ -305,7 +307,7 @@ trait Resolve[T] {
             case rootModule: BaseModule => Right(rootModule)
             case _ => Left("Class " + scoping.render + " is not an BaseModule")
           }
-        } yield Seq((Nil, rootModule))
+        } yield new BaseModuleTree(Seq((Nil, rootModule)))
     }
   }
 }

@@ -65,7 +65,7 @@ private object ResolveCore {
 
   def resolve(
       rootModule: BaseModule,
-      prefixedRootModules: Seq[(Seq[String], BaseModule)],
+      prefixedRootModules: BaseModuleTree,
       remainingQuery: List[Segment],
       current: Resolved,
       querySoFar: Segments
@@ -196,13 +196,13 @@ private object ResolveCore {
   }
   def instantiateModule(
       rootModule: Module,
-      prefixedRootModules: Seq[(Seq[String], BaseModule)],
+      prefixedRootModules: BaseModuleTree,
       segments: Segments
   ): Either[String, Module] =
     instantiateModule0(rootModule, prefixedRootModules, segments).map(_._1)
   def instantiateModule0(
       rootModule: Module,
-      prefixedRootModules: Seq[(Seq[String], BaseModule)],
+      prefixedRootModules: BaseModuleTree,
       segments: Segments
   ): Either[String, (Module, BaseModule)] = {
 
@@ -252,7 +252,7 @@ private object ResolveCore {
 
   def resolveTransitiveChildren(
       rootModule: Module,
-      prefixedRootModules: Seq[(Seq[String], BaseModule)],
+      prefixedRootModules: BaseModuleTree,
       cls: Class[_],
       nameOpt: Option[String],
       segments: Segments,
@@ -314,7 +314,7 @@ private object ResolveCore {
 
   def resolveDirectChildren(
       rootModule: Module,
-      prefixedRootModules: Seq[(Seq[String], BaseModule)],
+      prefixedRootModules: BaseModuleTree,
       cls: Class[_],
       nameOpt: Option[String],
       segments: Segments
@@ -330,7 +330,7 @@ private object ResolveCore {
 
   def resolveDirectChildren(
       rootModule: Module,
-      prefixedRootModules: Seq[(Seq[String], BaseModule)],
+      prefixedRootModules: BaseModuleTree,
       cls: Class[_],
       nameOpt: Option[String],
       segments: Segments,
@@ -368,7 +368,7 @@ private object ResolveCore {
 
   def resolveDirectChildren0(
       rootModule: Module,
-      prefixedRootModules: Seq[(Seq[String], BaseModule)],
+      prefixedRootModules: BaseModuleTree,
       segments: Segments,
       cls: Class[_],
       nameOpt: Option[String]
@@ -377,7 +377,7 @@ private object ResolveCore {
 
   def resolveDirectChildren0(
       rootModule: Module,
-      prefixedRootModules: Seq[(Seq[String], BaseModule)],
+      prefixedRootModules: BaseModuleTree,
       segments: Segments,
       cls: Class[_],
       nameOpt: Option[String],
@@ -405,9 +405,9 @@ private object ResolveCore {
       } else Right {
         val nestedModuleScObjects =
           for {
-            (prefix, m) <- prefixedRootModules
+            (prefix, m) <- prefixedRootModules.value
             if m.getClass == cls
-            (prefix2, m2) <- prefixedRootModules
+            (prefix2, m2) <- prefixedRootModules.value
             if prefix2.startsWith(prefix) && prefix2.length == (prefix.length + 1)
             if nameOpt.isEmpty || nameOpt.contains(prefix2.last)
           } yield (
@@ -467,7 +467,7 @@ private object ResolveCore {
 
   def notFoundResult(
       rootModule: Module,
-      prefixedRootModules: Seq[(Seq[String], BaseModule)],
+      prefixedRootModules: BaseModuleTree,
       querySoFar: Segments,
       current: Resolved,
       next: Segment
