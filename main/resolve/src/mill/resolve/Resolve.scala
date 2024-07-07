@@ -1,25 +1,14 @@
 package mill.resolve
 
 import mainargs.{MainData, TokenGrouping}
-import mill.define.{
-  BaseModule,
-  Command,
-  Discover,
-  Module,
-  NamedTask,
-  Reflect,
-  Segments,
-  Target,
-  TaskModule
-}
+import mill.define.{BaseModule, BaseModuleTree, Command, Discover, Module, NamedTask, Reflect, Segments, Target, TaskModule}
 import mill.resolve.ResolveCore.{Resolved, makeResultException}
 import mill.util.EitherOps
 
 object Resolve {
   object Segments extends Resolve[Segments] {
     private[mill] def handleResolved(
-        rootModule: BaseModule,
-        prefixedRootModules: BaseModuleTree,
+        baseModules: BaseModuleTree,
         resolved: Seq[Resolved],
         args: Seq[String],
         selector: Segments,
@@ -33,8 +22,7 @@ object Resolve {
 
   object Tasks extends Resolve[NamedTask[Any]] {
     private[mill] def handleResolved(
-        rootModule: BaseModule,
-        prefixedRootModules: BaseModuleTree,
+        baseModules: BaseModuleTree,
         resolved: Seq[Resolved],
         args: Seq[String],
         selector: Segments,
@@ -43,14 +31,14 @@ object Resolve {
       val taskList = resolved.map {
         case r: Resolved.Target =>
           val instantiated = ResolveCore
-            .instantiateModule(rootModule, prefixedRootModules, r.segments.init)
+            .instantiateModule(baseModules, r.segments.init)
             .flatMap(instantiateTarget(r, _))
 
           instantiated.map(Some(_))
 
         case r: Resolved.Command =>
           val instantiated = ResolveCore
-            .instantiateModule0(rootModule, prefixedRootModules, r.segments.init)
+            .instantiateModule0(baseModules, r.segments.init)
             .flatMap { case (mod, rootMod) =>
               instantiateCommand(rootMod, r, mod, args, nullCommandDefaults)
             }
@@ -58,11 +46,10 @@ object Resolve {
           instantiated.map(Some(_))
 
         case r: Resolved.Module =>
-          ResolveCore.instantiateModule(rootModule, prefixedRootModules, r.segments).flatMap {
+          ResolveCore.instantiateModule(baseModules, r.segments).flatMap {
             case value: TaskModule =>
               val directChildrenOrErr = ResolveCore.resolveDirectChildren(
-                rootModule,
-                prefixedRootModules,
+                baseModules,
                 value.getClass,
                 Some(value.defaultCommandName()),
                 value.millModuleSegments
@@ -72,7 +59,7 @@ object Resolve {
                 directChildren.head match {
                   case r: Resolved.Target => instantiateTarget(r, value).map(Some(_))
                   case r: Resolved.Command =>
-                    instantiateCommand(rootModule, r, value, args, nullCommandDefaults).map(Some(_))
+                    instantiateCommand(baseModules.rootModule, r, value, args, nullCommandDefaults).map(Some(_))
                 }
               )
             case _ => Right(None)
@@ -187,8 +174,7 @@ object Resolve {
 
 trait Resolve[T] {
   private[mill] def handleResolved(
-      rootModule: BaseModule,
-      prefixedRootModules: BaseModuleTree,
+      baseModules: BaseModuleTree,
       resolved: Seq[Resolved],
       args: Seq[String],
       segments: Segments,
@@ -238,23 +224,21 @@ trait Resolve[T] {
 
   private[mill] def resolveNonEmptyAndHandle(
       args: Seq[String],
-      prefixedRootModules: BaseModuleTree,
+      baseModules: BaseModuleTree,
       sel: Segments,
       nullCommandDefaults: Boolean
   ): Either[String, Seq[T]] = {
-    val rootModule = prefixedRootModules.lookupByParent(None).head._2
-    val rootResolved = ResolveCore.Resolved.Module(Segments(), rootModule.getClass)
+    val rootResolved = ResolveCore.Resolved.Module(Segments(), baseModules.rootModule.getClass)
     val resolved =
       ResolveCore.resolve(
-        prefixedRootModules = prefixedRootModules,
-        rootModule = rootModule,
+        baseModules = baseModules,
         remainingQuery = sel.value.toList,
         current = rootResolved,
         querySoFar = Segments()
       ) match {
         case ResolveCore.Success(value) => Right(value)
         case ResolveCore.NotFound(segments, found, next, possibleNexts) =>
-          val allPossibleNames = prefixedRootModules.allPossibleNames
+          val allPossibleNames = baseModules.allPossibleNames
           Left(ResolveNotFoundHandler(
             selector = sel,
             segments = segments,
@@ -268,7 +252,7 @@ trait Resolve[T] {
 
     resolved
       .map(_.toSeq.sortBy(_.segments.render))
-      .flatMap(handleResolved(rootModule, prefixedRootModules, _, args, sel, nullCommandDefaults))
+      .flatMap(handleResolved(baseModules, _, args, sel, nullCommandDefaults))
   }
 
   private[mill] def deduplicate(items: List[T]): List[T] = items
@@ -278,21 +262,7 @@ trait Resolve[T] {
       scopedSel: Option[Segments]
   ): Either[String, BaseModuleTree] = {
     scopedSel match {
-      case None =>
-        Right(
-          new BaseModuleTree(
-            rootModules
-              .map { m =>
-                val parts = m.getClass.getName match {
-                  case s"build.$partString.package$$" => partString.split('.')
-                  case s"build.${partString}_$$$last$$" => partString.split('.')
-                  case _ => Array[String]()
-                }
-
-                (parts, m)
-              }
-          )
-        )
+      case None => Right(BaseModuleTree.from(rootModules))
 
       case Some(scoping) =>
         for {

@@ -1,6 +1,4 @@
-package mill.resolve
-
-import mill.define.BaseModule
+package mill.define
 
 /**
  * Data structure containing the metadata of all [[BaseModule]]s defined in a Mill build, as well
@@ -17,5 +15,22 @@ class BaseModuleTree(value: Seq[(Seq[String], BaseModule)]){
 
   def lookupByParent(parentPrefixOpt: Option[Seq[String]]) = lookupByParent0.getOrElse(parentPrefixOpt, Nil)
 
+  def rootModule = lookupByParent(None).head._2
   val allPossibleNames = value.flatMap(_._2.millDiscover.value.values).flatMap(_._1).toSet
+}
+object BaseModuleTree{
+  def from(rootModules: Seq[BaseModule]) = {
+    new BaseModuleTree(
+      rootModules
+        .map { m =>
+          val parts = m.getClass.getName match {
+            case s"build.$partString.package$$" => partString.split('.')
+            case s"build.${partString}_$$$last$$" => partString.split('.')
+            case _ => Array[String]()
+          }
+
+          (parts, m)
+        }
+    )
+  }
 }
