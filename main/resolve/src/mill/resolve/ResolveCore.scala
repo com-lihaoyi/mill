@@ -405,10 +405,8 @@ private object ResolveCore {
       } else Right {
         val nestedModuleScObjects =
           for {
-            (prefix, m) <- prefixedRootModules.value
-            if m.getClass == cls
-            (prefix2, m2) <- prefixedRootModules.value
-            if prefix2.startsWith(prefix) && prefix2.length == (prefix.length + 1)
+            prefix <- prefixedRootModules.prefixForClass(cls).toSeq
+            (prefix2, m2) <- prefixedRootModules.lookupByParent(Some(prefix))
             if nameOpt.isEmpty || nameOpt.contains(prefix2.last)
           } yield (
             Resolved.Module(

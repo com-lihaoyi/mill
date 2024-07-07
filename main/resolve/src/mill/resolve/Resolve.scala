@@ -242,7 +242,7 @@ trait Resolve[T] {
       sel: Segments,
       nullCommandDefaults: Boolean
   ): Either[String, Seq[T]] = {
-    val rootModule = prefixedRootModules.value.collect { case (Nil, m) => m }.head
+    val rootModule = prefixedRootModules.lookupByParent(None).head._2
     val rootResolved = ResolveCore.Resolved.Module(Segments(), rootModule.getClass)
     val resolved =
       ResolveCore.resolve(
@@ -254,8 +254,7 @@ trait Resolve[T] {
       ) match {
         case ResolveCore.Success(value) => Right(value)
         case ResolveCore.NotFound(segments, found, next, possibleNexts) =>
-          val allPossibleNames =
-            prefixedRootModules.value.flatMap(_._2.millDiscover.value.values).flatMap(_._1).toSet
+          val allPossibleNames = prefixedRootModules.allPossibleNames
           Left(ResolveNotFoundHandler(
             selector = sel,
             segments = segments,
