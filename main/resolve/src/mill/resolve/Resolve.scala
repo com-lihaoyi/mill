@@ -1,7 +1,18 @@
 package mill.resolve
 
 import mainargs.{MainData, TokenGrouping}
-import mill.define.{BaseModule, BaseModuleTree, Command, Discover, Module, NamedTask, Reflect, Segments, Target, TaskModule}
+import mill.define.{
+  BaseModule,
+  BaseModuleTree,
+  Command,
+  Discover,
+  Module,
+  NamedTask,
+  Reflect,
+  Segments,
+  Target,
+  TaskModule
+}
 import mill.resolve.ResolveCore.{Resolved, makeResultException}
 import mill.util.EitherOps
 
@@ -59,7 +70,13 @@ object Resolve {
                 directChildren.head match {
                   case r: Resolved.Target => instantiateTarget(r, value).map(Some(_))
                   case r: Resolved.Command =>
-                    instantiateCommand(baseModules.rootModule, r, value, args, nullCommandDefaults).map(Some(_))
+                    instantiateCommand(
+                      baseModules.rootModule,
+                      r,
+                      value,
+                      args,
+                      nullCommandDefaults
+                    ).map(Some(_))
                 }
               )
             case _ => Right(None)
