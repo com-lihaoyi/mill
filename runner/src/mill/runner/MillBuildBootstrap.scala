@@ -4,7 +4,7 @@ import mill.util.{ColorLogger, PrefixLogger, Watchable}
 import mill.main.BuildInfo
 import mill.api.{PathRef, Val, internal}
 import mill.eval.Evaluator
-import mill.main.{RootModule, RunScript}
+import mill.main.RunScript
 import mill.resolve.SelectMode
 import mill.define.{BaseModule, Discover, Segments}
 

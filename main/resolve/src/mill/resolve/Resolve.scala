@@ -8,7 +8,6 @@ import mill.define.{
   Module,
   NamedTask,
   Reflect,
-  Segment,
   Segments,
   Target,
   TaskModule
