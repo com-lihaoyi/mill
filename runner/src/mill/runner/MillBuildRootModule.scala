@@ -92,11 +92,16 @@ class MillBuildRootModule()(implicit
   }
 
   override def ivyDeps = T {
+    val embeddedIncluded = BuildInfo.millEmbeddedDeps
+      .split(",")
+      .map(d => ivy"$d")
+
     Agg.from(
       MillIvy.processMillIvyDepSignature(parseBuildFiles().ivyDeps)
         .map(mill.scalalib.Dep.parse)
     ) ++
-      Agg(ivy"com.lihaoyi::mill-moduledefs:${Versions.millModuledefsVersion}")
+      Agg(ivy"com.lihaoyi::mill-moduledefs:${Versions.millModuledefsVersion}") ++
+    Agg.from(embeddedIncluded)
   }
 
   override def runIvyDeps = T {
@@ -242,7 +247,7 @@ class MillBuildRootModule()(implicit
   }
 
   override def unmanagedClasspath: T[Agg[PathRef]] = T {
-    enclosingClasspath() ++ lineNumberPluginClasspath()
+    lineNumberPluginClasspath()
   }
 
   override def scalacPluginIvyDeps: T[Agg[Dep]] = Agg(
