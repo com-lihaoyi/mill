@@ -91,7 +91,7 @@ class MillBuildRootModule()(implicit
     imports
   }
 
-  override def ivyDeps = T {
+  override def mandatoryIvyDeps = T {
     val embeddedIncluded = BuildInfo.millEmbeddedDeps
       .split(",")
       .map(d => ivy"$d")
