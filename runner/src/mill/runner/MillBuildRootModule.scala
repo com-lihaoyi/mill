@@ -101,7 +101,7 @@ class MillBuildRootModule()(implicit
         .map(mill.scalalib.Dep.parse)
     ) ++
       Agg(ivy"com.lihaoyi::mill-moduledefs:${Versions.millModuledefsVersion}") ++
-    Agg.from(embeddedIncluded)
+      Agg.from(embeddedIncluded)
   }
 
   override def runIvyDeps = T {
