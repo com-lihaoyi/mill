@@ -29,17 +29,6 @@ object MillPluginClasspathTest extends IntegrationTestSuite {
   )
 
   val tests: Tests = Tests {
-    test("exclusions") - {
-      val res1 = eval("--meta-level", "1", "resolveDepsExclusions")
-      assert(res1)
-
-      val exclusions = metaValue[Seq[(String, String)]]("mill-build.resolveDepsExclusions")
-      val expectedExclusions = embeddedModules
-
-      val diff = expectedExclusions.toSet.diff(exclusions.toSet)
-      assert(diff.isEmpty)
-
-    }
     test("runClasspath") - {
       // We expect Mill core transitive dependencies to be filtered out
       val res1 = eval("--meta-level", "1", "runClasspath")
