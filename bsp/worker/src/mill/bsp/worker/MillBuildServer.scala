@@ -379,13 +379,7 @@ private class MillBuildServer(
       }
     ) {
       case (ev, state, id, m: JavaModule, (resolveDepsSources, unmanagedClasspath, repos)) =>
-        val buildSources =
-          if (!m.isInstanceOf[MillBuildRootModule]) Nil
-          else mill.scalalib.Lib
-            .resolveMillBuildDeps(repos, None, useSources = true)
-            .map(sanitizeUri(_))
-
-        val cp = (resolveDepsSources ++ unmanagedClasspath).map(sanitizeUri).toSeq ++ buildSources
+        val cp = (resolveDepsSources ++ unmanagedClasspath).map(sanitizeUri).toSeq
         new DependencySourcesItem(id, cp.asJava)
     } {
       new DependencySourcesResult(_)

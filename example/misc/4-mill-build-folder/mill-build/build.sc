@@ -1,6 +1,6 @@
 import mill._, scalalib._
 
-object millbuild extends MillBuildRootModule{
+object millbuild extends runner.MillBuildRootModule{
   val scalatagsVersion = "0.12.0"
   def ivyDeps = Agg(ivy"com.lihaoyi::scalatags:$scalatagsVersion")
 
