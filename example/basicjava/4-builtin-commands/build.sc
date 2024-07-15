@@ -236,7 +236,6 @@ foo.assembly
 foo.transitiveCompileClasspath
 foo.compileResources
 foo.unmanagedClasspath
-foo.platformSuffix
 foo.compileIvyDeps
 foo.ivyDeps
 foo.transitiveIvyDeps
