@@ -85,7 +85,7 @@ foo.artifactName
 /** Usage
 
 > mill inspect foo.run
-foo.run(RunModule.scala:...)
+foo.run(RunModule...)
     Runs this module's code in a subprocess and waits for it to finish
 Inputs:
     foo.finalMainClass
@@ -236,11 +236,10 @@ foo.assembly
 foo.transitiveCompileClasspath
 foo.compileResources
 foo.unmanagedClasspath
-foo.scalaVersion
+...
 foo.platformSuffix
 foo.compileIvyDeps
-foo.scalaOrganization
-foo.scalaLibraryIvyDeps
+...
 foo.ivyDeps
 foo.transitiveIvyDeps
 foo.compileClasspath
