@@ -1198,7 +1198,7 @@ object example extends MillScalaModule {
     def fix(args: String*): Command[Unit] = T.command {}
     def testRepoRoot: T[PathRef] = T.source(millSourcePath)
     def compile = example.compile()
-    def buildScLines = os.read.lines(testRepoRoot().path / "build.sc")
+    def buildScLines = T{ os.read.lines(testRepoRoot().path / "build.sc") }
     def forkEnv = super.forkEnv() ++ Map("MILL_EXAMPLE_PARSED" -> upickle.default.write(parsed()))
 
     /**
@@ -1208,7 +1208,7 @@ object example extends MillScalaModule {
       val states = collection.mutable.Buffer("scala")
       val chunks = collection.mutable.Buffer(collection.mutable.Buffer.empty[String])
 
-      for (line <- buildScLines) {
+      for (line <- buildScLines()) {
         val (newState, restOpt) = line match {
           case s"/** Usage" => ("example", None)
           case s"/** See Also: $path */" =>
