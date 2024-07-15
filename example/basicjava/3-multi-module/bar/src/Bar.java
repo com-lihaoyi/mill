@@ -7,7 +7,7 @@ import net.sourceforge.argparse4j.inf.Namespace;
 
 public class Bar {
     public static String generateHtml(String text) {
-        String value = "<h1>" + StringEscapeUtils.escapeHtml4("world") + "</h1>";
+        String value = "<h1>" + StringEscapeUtils.escapeHtml4(text) + "</h1>";
         return value;
     }
 
