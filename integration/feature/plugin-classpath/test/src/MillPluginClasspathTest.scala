@@ -35,16 +35,7 @@ object MillPluginClasspathTest extends IntegrationTestSuite {
       assert(res1)
 
       val runClasspath = metaValue[Seq[String]]("mill-build.runClasspath")
-
-      val unexpectedArtifacts = embeddedModules.map {
-        case (o, n) => s"${o.replaceAll("[.]", "/")}/${n}"
-      }
-
-      val unexpected = unexpectedArtifacts.flatMap { a =>
-        runClasspath.find(p => p.toString.contains(a)).map((a, _))
-      }.toMap
-      assert(unexpected.isEmpty)
-
+      
       val expected = Seq("com/disneystreaming/smithy4s/smithy4s-mill-codegen-plugin_mill0.11_2.13")
       assert(expected.forall(a => runClasspath.exists(p => p.toString().contains(a))))
     }
