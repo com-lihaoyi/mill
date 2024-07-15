@@ -30,6 +30,10 @@ object foo extends RootModule with JavaModule {
 // Output for this module (compiled files, resolved dependency lists, ...)
 // lives in `out/`.
 //
+// This example project uses two third-party dependencies - ArgParse4J for CLI
+// argument parsing, Apache Commons Text for HTML escaping - and uses them to wrap a
+// given input string in HTML templates with proper escaping.
+//
 // You can run `assembly` to generate a standalone executable jar, which then
 // can be run from the command line or deployed to be run elsewhere.
 
@@ -87,7 +91,6 @@ Test run finished: 0 failed, 0 ignored, 2 total, ...
 <h1>hello</h1>
 
 */
-
 
 // The output of every Mill task is stored in the `out/` folder under a name
 // corresponding to the task that created it. e.g. The `assembly` task puts its

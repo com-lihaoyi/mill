@@ -71,6 +71,8 @@ Bar.value: <h1>world</h1>
 > mill bar.run world
 Bar.value: <h1>world</h1>
 
+> mill bar.test
+...
 */
 
 // Mill's evaluator will ensure that the modules are compiled in the right
