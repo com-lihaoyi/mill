@@ -1,4 +1,4 @@
-import mill._, scalalib._
+import mill._, javalib._
 
 trait MyJavaModule extends JavaModule{
   object test extends JavaModuleTests with TestModule.Junit4

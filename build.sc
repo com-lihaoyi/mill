@@ -1185,6 +1185,7 @@ object example extends MillScalaModule {
   def moduleDeps = Seq(integration)
 
   object basic extends Cross[ExampleCrossModule](listIn(millSourcePath / "basic"))
+  object javabuilds extends Cross[ExampleCrossModule](listIn(millSourcePath / "javabuilds"))
   object scalabuilds extends Cross[ExampleCrossModule](listIn(millSourcePath / "scalabuilds"))
   object scalamodule extends Cross[ExampleCrossModule](listIn(millSourcePath / "scalamodule"))
   object tasks extends Cross[ExampleCrossModule](listIn(millSourcePath / "tasks"))

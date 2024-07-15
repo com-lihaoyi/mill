@@ -1,13 +1,12 @@
 import mill._, scalalib._
 
-object foo extends RootModule with ScalaModule {
-  def scalaVersion = "2.13.11"
+object foo extends RootModule with JavaModule {
   def ivyDeps = Agg(
     ivy"com.lihaoyi::scalatags:0.12.0",
     ivy"com.lihaoyi::mainargs:0.6.2"
   )
 
-  object test extends ScalaTests {
+  object test extends JavaModuleTests {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.11")
     def testFramework = "utest.runner.Framework"
   }
@@ -20,12 +19,8 @@ object foo extends RootModule with ScalaModule {
 // `./mill compile` or `./mill run` without needing to prefix it as
 // `foo.compile` or `foo.run`.
 //
-// You can download this example project using the *download* link above
-// if you want to try out the commands below yourself. The only requirement is
-// that you have some version of the JVM installed; the `./mill` script takes
-// care of any further dependencies that need to be downloaded.
-//
-// The source code for this module lives in the `src/` folder.
+// Like the `JavaModule` example above,
+// the source code for this module lives in the `src/` folder.
 // Output for this module (compiled files, resolved dependency lists, ...)
 // lives in `out/`.
 //

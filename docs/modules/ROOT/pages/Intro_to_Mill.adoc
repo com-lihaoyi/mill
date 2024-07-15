@@ -14,19 +14,20 @@
 = Introduction to Mill
 :page-aliases: index.adoc
 
-{mill-github-url}[Mill] is your shiny new Scala/Java build tool! Mill aims for
+{mill-github-url}[Mill] is your shiny new Java/Scala build tool! Mill aims for
 simplicity by reusing concepts you are already familiar with, borrowing ideas
-from modern tools like https://bazel.build/[Bazel] and
-https://www.scala-sbt.org/[SBT]. It lets you build your projects in a way
-that's simple, fast, and predictable.
+from modern tools like https://maven.apache.org/[Maven], https://gradle.org/[Gradle],
+https://bazel.build/[Bazel] and https://www.scala-sbt.org/[SBT]. It lets you build
+your projects in a way that's simple, fast, and predictable.
 
 Mill automates dealing with a lot of common build-tool concerns: Caching,
 incremental re-computation, parallelism, discoverability, etc. This allows you
 to focus your effort on the business logic unique to your build, while letting
 Mill take care of all the rest.
 
-Mill has built-in support for the https://www.scala-lang.org/[Scala]
+Mill has built-in support for the Java and https://www.scala-lang.org/[Scala]
 programming language, and can serve as a replacement for
+https://maven.apache.org/[Maven], https://gradle.org/[Gradle], or
 http://www.scala-sbt.org/[SBT]. It can be xref:Extending_Mill.adoc[extended]
 to support any other language or platform via modules (written in Java
 or Scala) or through external subprocesses. Mill supports a rich ecosystem of
@@ -49,17 +50,21 @@ Mill to build a simple Scala program. The other pages of this doc-site go into
 more depth, with more examples of how to use Mill and more details of how the
 Mill build tool works.
 
+== Simple Java Module
+
+include::example/basic/1-simple-java.adoc[]
+
 == Simple Scala Module
 
-include::example/basic/1-simple-scala.adoc[]
+include::example/basic/2-simple-scala.adoc[]
 
 == Custom Build Logic
 
-include::example/basic/2-custom-build-logic.adoc[]
+include::example/basic/3-custom-build-logic.adoc[]
 
 == Multi-Module Project
 
-include::example/basic/3-multi-module.adoc[]
+include::example/basic/4-multi-module.adoc[]
 
 
 == Watch and Re-evaluate

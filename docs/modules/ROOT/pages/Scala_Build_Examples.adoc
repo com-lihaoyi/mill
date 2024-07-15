@@ -50,13 +50,10 @@ include::example/scalabuilds/7-cross-scala-version.adoc[]
 
 include::example/scalabuilds/8-sbt-compat-modules.adoc[]
 
-== Java Modules
-
-include::example/scalabuilds/9-java-modules.adoc[]
 
 == Realistic Scala Example Project
 
-include::example/scalabuilds/10-scala-realistic.adoc[]
+include::example/scalabuilds/9-scala-realistic.adoc[]
 
 
 == Example Builds
