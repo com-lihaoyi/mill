@@ -1187,6 +1187,7 @@ object example extends MillScalaModule {
   object basic extends Cross[ExampleCrossModule](listIn(millSourcePath / "basic"))
   object basicjava extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "basicjava"))
   object scalabuilds extends Cross[ExampleCrossModule](listIn(millSourcePath / "scalabuilds"))
+  object javabuilds extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "javabuilds"))
   object scalamodule extends Cross[ExampleCrossModule](listIn(millSourcePath / "scalamodule"))
   object tasks extends Cross[ExampleCrossModule](listIn(millSourcePath / "tasks"))
   object cross extends Cross[ExampleCrossModule](listIn(millSourcePath / "cross"))
@@ -1198,7 +1199,7 @@ object example extends MillScalaModule {
     def upstreamCross(s: String) = s match{
       case "basicjava" => basic
       case "javabuilds" => scalabuilds
-      case "scalamodule" => scalamodule
+      case "javamodule" => scalamodule
     }
 
     def buildScLines = T{

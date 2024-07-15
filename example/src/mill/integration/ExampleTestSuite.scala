@@ -113,15 +113,14 @@ object ExampleTestSuite extends IntegrationTestSuite {
       expectedSnippets: Vector[String],
       commandStr: String
   ): Unit = {
-    BashTokenizer.tokenize(commandStr)
-      .tap { cmd =>
-        Console.err.println(
-          s"""$workspaceRoot> ${cmd.mkString("'", "' '", "'")}
-             |--- Expected output --------
-             |${expectedSnippets.mkString("\n")}
-             |----------------------------""".stripMargin
-        )
-      } match {
+    val cmd = BashTokenizer.tokenize(commandStr)
+      Console.err.println(
+        s"""$workspaceRoot> ${cmd.mkString("'", "' '", "'")}
+           |--- Expected output --------
+           |${expectedSnippets.mkString("\n")}
+           |----------------------------""".stripMargin
+      )
+    cmd match {
       case Seq("cp", "-r", from, to) =>
         os.copy(os.Path(from, workspaceRoot), os.Path(to, workspaceRoot))
 
