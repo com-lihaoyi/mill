@@ -1198,6 +1198,7 @@ object example extends MillScalaModule {
     def upstreamCross(s: String) = s match{
       case "basicjava" => basic
       case "javabuilds" => scalabuilds
+      case "scalamodule" => scalamodule
     }
 
     def buildScLines = T{
