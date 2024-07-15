@@ -1194,8 +1194,17 @@ object example extends MillScalaModule {
   object web extends Cross[ExampleCrossModule](listIn(millSourcePath / "web"))
 
   trait ExampleCrossModuleJava extends ExampleCrossModule {
+
+    def upstreamCross(s: String) = s match{
+      case "basicjava" => basic
+      case "javabuilds" => scalabuilds
+    }
+
     def buildScLines = T{
-      val upstreamLines = os.read.lines(basic(crossValue).testRepoRoot().path / "build.sc")
+      val upstreamLines = os.read.lines(
+        upstreamCross(this.millModuleSegments.parts.dropRight(1).last)(crossValue)
+          .testRepoRoot().path / "build.sc"
+      )
       val lines = os.read.lines(testRepoRoot().path / "build.sc")
 
       import collection.mutable
