@@ -1,25 +1,28 @@
-import mill._, javalib._
+// SNIPPET:BUILD
 
-object foo extends RootModule with JavaModule {
+import mill._, scalalib._
+
+object foo extends RootModule with ScalaModule {
+  def scalaVersion = "2.13.11"
   def ivyDeps = Agg(
-    ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
-    ivy"org.apache.commons:commons-text:1.12.0"
+    ivy"com.lihaoyi::scalatags:0.12.0",
+    ivy"com.lihaoyi::mainargs:0.6.2"
   )
 
-  object test extends JavaModuleTests with TestModule.Junit4{
-    def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"com.google.guava:guava:33.2.1-jre"
-    )
+  object test extends ScalaTests {
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.11")
+    def testFramework = "utest.runner.Framework"
   }
 }
 
-
-// This is a basic Mill build for a single `JavaModule`, with two
-// third-party dependencies and a test suite using the JUnit framework. As a
+// This is a basic Mill build for a single `ScalaModule`, with two
+// third-party dependencies and a test suite using the uTest framework. As a
 // single-module project, it `extends RootModule` to mark `object foo` as the
 // top-level module in the build. This lets us directly perform operations
 // `./mill compile` or `./mill run` without needing to prefix it as
 // `foo.compile` or `foo.run`.
+//
+// SNIPPET:END
 //
 // You can download this example project using the *download* link above
 // if you want to try out the commands below yourself. The only requirement is
@@ -30,8 +33,10 @@ object foo extends RootModule with JavaModule {
 // Output for this module (compiled files, resolved dependency lists, ...)
 // lives in `out/`.
 //
-// This example project uses two third-party dependencies - ArgParse4J for CLI
-// argument parsing, Apache Commons Text for HTML escaping - and uses them to wrap a
+// SNIPPET:DEPENDENCIES
+//
+// This example project uses two third-party dependencies - MainArgs for CLI
+// argument parsing, Scalatags for HTML generation - and uses them to wrap a
 // given input string in HTML templates with proper escaping.
 //
 // You can run `assembly` to generate a standalone executable jar, which then
@@ -54,30 +59,28 @@ inspect
 ...
 
 > ./mill inspect compile # Show documentation and inputs of a task
-compile(JavaModule.scala:...)
+compile(ScalaModule.scala:...)
     Compiles the current module to generate compiled classfiles/bytecode.
 Inputs:
+    scalaVersion
     upstreamCompileOutput
     allSourceFiles
     compileClasspath
-...
 
 > ./mill compile # compile sources into classfiles
 ...
-compiling 1 Java source to...
+compiling 1 Scala source to...
 
 > ./mill run # run the main method, if any
-error: argument -t/--text is required
-...
+error: Missing argument: --text <str>
 
 > ./mill run --text hello
 <h1>hello</h1>
 
 > ./mill test
 ...
-Test foo.FooTest.testEscaping finished, ...
-Test foo.FooTest.testSimple finished, ...
-Test run finished: 0 failed, 0 ignored, 2 total, ...
++ foo.FooTests.simple ...  <h1>hello</h1>
++ foo.FooTests.escaping ...  <h1>&lt;hello&gt;</h1>
 
 > ./mill assembly # bundle classfiles and libraries into a jar for deployment
 
@@ -91,6 +94,8 @@ Test run finished: 0 failed, 0 ignored, 2 total, ...
 <h1>hello</h1>
 
 */
+
+// SNIPPET:END
 
 // The output of every Mill task is stored in the `out/` folder under a name
 // corresponding to the task that created it. e.g. The `assembly` task puts its

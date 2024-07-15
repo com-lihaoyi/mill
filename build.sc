@@ -1185,7 +1185,7 @@ object example extends MillScalaModule {
   def moduleDeps = Seq(integration)
 
   object basic extends Cross[ExampleCrossModule](listIn(millSourcePath / "basic"))
-  object basicjava extends Cross[ExampleCrossModule](listIn(millSourcePath / "basicjava"))
+  object basicjava extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "basicjava"))
   object scalabuilds extends Cross[ExampleCrossModule](listIn(millSourcePath / "scalabuilds"))
   object scalamodule extends Cross[ExampleCrossModule](listIn(millSourcePath / "scalamodule"))
   object tasks extends Cross[ExampleCrossModule](listIn(millSourcePath / "tasks"))
@@ -1193,11 +1193,42 @@ object example extends MillScalaModule {
   object misc extends Cross[ExampleCrossModule](listIn(millSourcePath / "misc"))
   object web extends Cross[ExampleCrossModule](listIn(millSourcePath / "web"))
 
+  trait ExampleCrossModuleJava extends ExampleCrossModule {
+    def buildScLines = T{
+      val upstreamLines = os.read.lines(basic(crossValue).testRepoRoot().path / "build.sc")
+      val lines = os.read.lines(testRepoRoot().path / "build.sc")
+
+      import collection.mutable
+      val groupedLines = mutable.Map.empty[String, mutable.Buffer[String]]
+      var current = Option.empty[String]
+      lines.foreach{
+        case s"// SNIPPET:$name" => current = Some(name)
+        case s => groupedLines.getOrElseUpdate(current.get, mutable.Buffer()).append(s)
+      }
+
+      upstreamLines.flatMap{
+        case s"// SNIPPET:$name" =>
+          if (name != "END") {
+
+            current = Some(name)
+            groupedLines(name)
+          } else{
+            current = None
+            Nil
+          }
+
+        case s =>
+          if (current.nonEmpty) None
+          else Some(s)
+      }
+    }
+  }
   trait ExampleCrossModule extends IntegrationTestCrossModule {
     // disable scalafix because these example modules don't have sources causing it to misbehave
     def fix(args: String*): Command[Unit] = T.command {}
     def testRepoRoot: T[PathRef] = T.source(millSourcePath)
     def compile = example.compile()
+
     def buildScLines = T{ os.read.lines(testRepoRoot().path / "build.sc") }
     def forkEnv = super.forkEnv() ++ Map("MILL_EXAMPLE_PARSED" -> upickle.default.write(parsed()))
 

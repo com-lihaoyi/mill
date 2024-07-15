@@ -20,7 +20,7 @@ include::Intro_to_Mill_Header.adoc[]
 
 == Simple Scala Module
 
-include::example/basic/1-simple-scala.adoc[]
+include::example/basic/1-simple.adoc[]
 
 == Custom Build Logic
 

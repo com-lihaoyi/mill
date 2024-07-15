@@ -19,7 +19,7 @@ include::Intro_to_Mill_Header.adoc[]
 
 == Simple Java Module
 
-include::example/basicjava/1-simple-java.adoc[]
+include::example/basicjava/1-simple.adoc[]
 
 
 == Java Modules

@@ -1,3 +1,4 @@
+// SNIPPET:BUILD
 import mill._, scalalib._
 
 trait MyModule extends ScalaModule {
@@ -16,6 +17,7 @@ object foo extends MyModule {
 object bar extends MyModule {
   def ivyDeps = Agg(ivy"com.lihaoyi::scalatags:0.8.2")
 }
+// SNIPPET:END
 
 // This example contains a simple Mill build with two modules, `foo` and `bar`.
 // We don't mark either module as top-level using `extends RootModule`, so
@@ -23,13 +25,14 @@ object bar extends MyModule {
 // `bar.run`. You can define multiple modules the same way you define a single
 // module, using `def moduleDeps` to define the relationship between them.
 //
-// Note that we split out the `def scalaVersion` and `object test` submodule
-// configuration common to both
+// Note that we split out the `test` submodule configuration common to both
 // modules into a separate `trait MyModule`. This lets us avoid the need to
 // copy-paste common settings, while still letting us define any per-module
 // configuration such as `ivyDeps` specific to a particular module.
 //
 // The above builds expect the following project layout:
+//
+// SNIPPET:TREE
 //
 // ----
 // build.sc
@@ -54,6 +57,7 @@ object bar extends MyModule {
 //         ...
 // ----
 //
+// SNIPPET:END
 // Typically, both source code and output files in Mill follow the module
 // hierarchy, so e.g. input to the `foo` module lives in `foo/src/` and
 // compiled output files live in `out/foo/compile.dest`.
@@ -73,8 +77,8 @@ Bar.value: <h1>world</h1>
 
 > mill bar.test
 ...
-+ bar.BarTests.simple ...  <h1>hello</h1>
-+ bar.BarTests.escaping ...  <h1>&lt;hello&gt;</h1>
+...bar.BarTests.simple...
+...bar.BarTests.escaping...
 
 */
 
