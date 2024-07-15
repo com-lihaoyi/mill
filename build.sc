@@ -1185,7 +1185,7 @@ object example extends MillScalaModule {
   def moduleDeps = Seq(integration)
 
   object basic extends Cross[ExampleCrossModule](listIn(millSourcePath / "basic"))
-  object javabuilds extends Cross[ExampleCrossModule](listIn(millSourcePath / "javabuilds"))
+  object basicjava extends Cross[ExampleCrossModule](listIn(millSourcePath / "basicjava"))
   object scalabuilds extends Cross[ExampleCrossModule](listIn(millSourcePath / "scalabuilds"))
   object scalamodule extends Cross[ExampleCrossModule](listIn(millSourcePath / "scalamodule"))
   object tasks extends Cross[ExampleCrossModule](listIn(millSourcePath / "tasks"))
@@ -1705,7 +1705,7 @@ object docs extends Module {
     s"""site:
        |  title: Mill
        |  url: ${if (authorMode) s"${T.dest}/site" else Settings.docUrl}
-       |  start_page: mill::Intro_to_Mill.adoc
+       |  start_page: mill::Intro_to_Mill_for_Scala.adoc
        |
        |content:
        |  sources:
