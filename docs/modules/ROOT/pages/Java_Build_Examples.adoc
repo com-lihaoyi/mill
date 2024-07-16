@@ -52,19 +52,11 @@ include::example/javabuilds/8-compat-modules.adoc[]
 include::example/javabuilds/9-realistic.adoc[]
 
 
-// == Example Builds
-//
-// Mill comes bundled with example builds for existing open-source projects, as
-// integration tests and examples:
-//
-// === Acyclic
-//
-// include::example/thirdparty/acyclic.adoc[]
-//
-// === Fansi
-//
-// include::example/thirdparty/fansi.adoc[]
-//
-// === JimFS
-//
-// include::example/thirdparty/jimfs.adoc[]
+== Example Builds
+
+Mill comes bundled with example builds for existing open-source projects, as
+integration tests and examples:
+
+=== JimFS
+
+include::example/thirdparty/jimfs.adoc[]

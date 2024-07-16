@@ -69,6 +69,3 @@ include::example/thirdparty/acyclic.adoc[]
 
 include::example/thirdparty/fansi.adoc[]
 
-=== JimFS
-
-include::example/thirdparty/jimfs.adoc[]
