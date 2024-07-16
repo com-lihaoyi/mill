@@ -3,7 +3,7 @@
 This page goes into more detail about the various configuration options
 for `JavaModule`.
 
-Many of the APIs covered here are listed in the Scaladoc:
+Many of the APIs covered here are listed in the API documentation:
 
 * {mill-doc-url}/api/latest/mill/scalalib/JavaModule.html[mill.scalalib.JavaModule]
 
@@ -25,7 +25,7 @@ include::example/javamodule/3-run-compile-deps.adoc[]
 include::example/javamodule/4-test-deps.adoc[]
 
 
-== Scaladoc Config
+== Javadoc Config
 
 include::example/javamodule/6-docjar.adoc[]
 

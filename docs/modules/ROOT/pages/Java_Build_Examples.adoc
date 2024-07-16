@@ -1,13 +1,13 @@
 = Java Build Examples
 
-On this page, we will explore the Mill build tool via a series of simple Scala
+On this page, we will explore the Mill build tool via a series of simple Java
 example projects. Each project demonstrates one particular feature of the Mill
 build tool, and is also an executable codebase you can download and run. By the
 end of this page, you will be familiar with how to configure Mill to work with
-realistic Scala codebases: cross-building, testing, and publishing them.
+realistic Java codebases: cross-building, testing, and publishing them.
 
 
-Many of the APIs covered here are listed in the Scaladoc:
+Many of the APIs covered here are listed in the API documentation:
 
 * {mill-doc-url}/api/latest/mill/main/RootModule.html[`mill.scalalib.RootModule`]
 * {mill-doc-url}/api/latest/mill/scalalib/TestModule$.html[`mill.scalalib.TestModule`]
