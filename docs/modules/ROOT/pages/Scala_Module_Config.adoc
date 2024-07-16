@@ -31,7 +31,7 @@ include::example/scalamodule/5-scala-compiler-plugins.adoc[]
 
 == Scaladoc Config
 
-include::example/scalamodule/6-scaladoc.adoc[]
+include::example/scalamodule/6-docjar.adoc[]
 
 == Unmanaged Jars
 

@@ -2,6 +2,8 @@
 // like to create the documenation for, configured via `scalaDocOptions` or
 // `javadocOptions`:
 
+// SNIPPET:BUILD
+
 import mill._, scalalib._
 
 object foo extends ScalaModule {
@@ -10,6 +12,7 @@ object foo extends ScalaModule {
   def scalaDocOptions = Seq("-siteroot", "mydocs", "-no-link-warnings")
 }
 
+// SNIPPET:END
 
 /** Usage
 
@@ -17,10 +20,11 @@ object foo extends ScalaModule {
 
 > unzip -p out/foo/docJar.dest/out.jar foo/Foo.html
 ...
-...<p>My Awesome Scaladoc for class Foo</p>...
-
+...My Awesome Docs for class Foo...
 
 */
+
+// SNIPPET:SCALA3
 
 // When using Scala 3 you're also able to use Scaladoc to generate a full static
 // site next to your API documention. This can include general documenation for
@@ -71,6 +75,6 @@ object bar extends ScalaModule {
 
 > unzip -p out/bar/docJar.dest/out.jar bar/Bar.html
 ...
-...<p>My Awesome Scaladoc for class Bar</p>...
+...<p>My Awesome Docs for class Bar</p>...
 
 */
