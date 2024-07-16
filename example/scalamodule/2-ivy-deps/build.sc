@@ -1,4 +1,5 @@
-import mill._, scalalib._
+// SNIPPET:BUILD
+// import mill._, scalalib._
 
 object foo extends RootModule with ScalaModule {
   def scalaVersion = "2.12.17"
@@ -8,11 +9,14 @@ object foo extends RootModule with ScalaModule {
     ivy"${scalaOrganization()}:scala-reflect:${scalaVersion()}"
   )
 }
+// SNIPPET:END
 
 // You can define the `ivyDeps` field to add ivy dependencies to your module.
 //
 // * Single `:` syntax (e.g. `"ivy"org.testng:testng:6.11"`) defines Java
 //   dependencies
+//
+// SNIPPET:SCALAIVY
 //
 // * Double `::` syntax (e.g. `ivy"com.lihaoyi::upickle:0.5.1"`) defines Scala
 //   dependencies
@@ -22,11 +26,15 @@ object foo extends RootModule with ScalaModule {
 //   instead of just `2.12`. These are typically Scala compiler plugins or
 //   similar.
 //
+// SNIPPET:END
+//
 // To select the test-jars from a dependency use the following syntax:
 //
 // * `ivy"org.apache.spark::spark-sql:2.4.0;classifier=tests`.
 //
 // Please consult the xref:Library_Dependencies.adoc[] section for even more details.
+
+// SNIPPET:USAGE
 
 /** Usage
 
