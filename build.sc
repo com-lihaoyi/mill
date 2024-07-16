@@ -1189,6 +1189,7 @@ object example extends MillScalaModule {
   object scalabuilds extends Cross[ExampleCrossModule](listIn(millSourcePath / "scalabuilds"))
   object javabuilds extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "javabuilds"))
   object scalamodule extends Cross[ExampleCrossModule](listIn(millSourcePath / "scalamodule"))
+  object javamodule extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "javamodule"))
   object tasks extends Cross[ExampleCrossModule](listIn(millSourcePath / "tasks"))
   object cross extends Cross[ExampleCrossModule](listIn(millSourcePath / "cross"))
   object misc extends Cross[ExampleCrossModule](listIn(millSourcePath / "misc"))

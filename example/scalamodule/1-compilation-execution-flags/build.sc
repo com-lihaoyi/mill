@@ -1,3 +1,4 @@
+// SNIPPET:BUILD
 import mill._, scalalib._
 
 object foo extends RootModule with ScalaModule{
@@ -7,7 +8,11 @@ object foo extends RootModule with ScalaModule{
   def forkEnv = Map("MY_ENV_VAR" -> "WORLD")
 }
 
-// You can pass flags to the Scala compiler via `scalacOptions`. By default,
+// You can pass flags to the Scala compiler via `scalacOptions`.
+
+// SNIPPET:END
+
+// By default,
 // `run` runs the compiled code in a subprocess, and you can pass in JVM flags
 // via `forkArgs` or environment-variables via `forkEnv`.
 //
