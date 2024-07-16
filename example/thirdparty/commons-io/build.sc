@@ -38,7 +38,8 @@ object commonsio extends RootModule with PublishModule with MavenModule {
   }
 }
 
-// JimFS is a small Java library
+// The Apache Commons IO library contains utility classes, stream implementations, file filters,
+// file comparators, endian transformation classes, and much more.
 //
 // Project home: https://github.com/apache/commons-io
 
