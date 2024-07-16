@@ -14,7 +14,7 @@
 
 = Introduction to Mill for Java
 
-include::partials$Intro_to_Mill_Header.adoc[]
+include::partial$Intro_to_Mill_Header.adoc[]
 
 
 == Simple Java Module
@@ -31,4 +31,4 @@ include::example/basicjava/3-multi-module.adoc[]
 
 
 
-include::partials$Intro_to_Mill_Footer.adoc[]
+include::partial$Intro_to_Mill_Footer.adoc[]

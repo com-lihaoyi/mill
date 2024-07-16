@@ -1,3 +1,3 @@
 = Installation and IDE Support
 
-include::partials$Installation_IDE_Support.adoc[]
+include::partial$Installation_IDE_Support.adoc[]

@@ -4,7 +4,7 @@
 // on end user goals and how to achieve them.
 .Scala Quick Start
 * xref:Intro_to_Mill_for_Scala.adoc[]
-* xref:Installation_IDE_Support.adoc[]
+* xref:Scala_Installation_IDE_Support.adoc[]
 * xref:Builtin_Commands.adoc[]
 * xref:Scala_Build_Examples.adoc[]
 * xref:Scala_Module_Config.adoc[]
