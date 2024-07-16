@@ -60,3 +60,7 @@ integration tests and examples:
 === JimFS
 
 include::example/thirdparty/jimfs.adoc[]
+
+=== Apache Commons IO
+
+include::example/thirdparty/commons-io.adoc[]
