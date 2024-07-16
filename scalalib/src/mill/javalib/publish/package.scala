@@ -1,6 +1,5 @@
 package mill.javalib
 
-
 package object publish extends mill.scalalib.publish.JsonFormatters {
   val Ivy = mill.scalalib.publish.Ivy
 

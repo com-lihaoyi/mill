@@ -8,7 +8,7 @@ package object javalib extends mill.scalalib.JsonFormatters {
       (
         ctx.parts.take(args.length).zip(args).flatMap { case (p, a) => Seq(p, a) } ++
           ctx.parts.drop(args.length)
-        ).mkString
+      ).mkString
     }
   }
 
