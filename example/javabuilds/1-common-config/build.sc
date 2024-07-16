@@ -24,11 +24,12 @@ object foo extends RootModule with JavaModule {
   def generatedSources: T[Seq[PathRef]] = T {
     for(name <- Seq("A", "B", "C")) os.write(
       T.dest / s"Foo$name.java",
-      s"""package foo;
+      s"""
+         |package foo;
          |public class Foo$name {
          |  public static String value = "hello $name";
          |}
-         |""".stripMargin
+      """.stripMargin
     )
 
     Seq(PathRef(T.dest))

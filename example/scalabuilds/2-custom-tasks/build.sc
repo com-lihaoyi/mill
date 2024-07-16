@@ -25,13 +25,14 @@ object foo extends RootModule with ScalaModule {
     }
     os.write(
       T.dest / s"MyDeps.scala",
-      s"""package foo
+      s"""
+         |package foo
          |object MyDeps {
          |  val value = List(
          |    ${prettyIvyDeps.mkString(",\n")}
          |  )
          |}
-         |""".stripMargin
+      """.stripMargin
     )
 
     Seq(PathRef(T.dest))

@@ -14,12 +14,13 @@ object foo extends RootModule with JavaModule {
     }
     os.write(
       T.dest / s"MyDeps.java",
-      s"""package foo;
+      s"""
+         |package foo;
          |public class MyDeps {
          |  public static String value =
          |    ${prettyIvyDeps.mkString(" + \"\\n\" + \n")};
          |}
-         |""".stripMargin
+      """.stripMargin
     )
 
     Seq(PathRef(T.dest))

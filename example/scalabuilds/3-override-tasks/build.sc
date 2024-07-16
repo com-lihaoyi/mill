@@ -12,7 +12,8 @@ object foo extends ScalaModule {
         |  def main(args: Array[String]): Unit = {
         |    println("Hello World")
         |  }
-        |}""".stripMargin
+        |}
+      """.stripMargin
     )
     Seq(PathRef(T.dest))
   }

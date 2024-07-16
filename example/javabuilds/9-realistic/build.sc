@@ -24,13 +24,14 @@ object foo extends MyModule {
   def generatedSources = T {
     os.write(
       T.dest / "Version.java",
-      s"""package foo;
+      s"""
+         |package foo;
          |public class Version {
          |    public static String value() {
          |        return "${publishVersion()}";
          |    }
          |}
-         |""".stripMargin
+      """.stripMargin
     )
     Seq(PathRef(T.dest))
   }

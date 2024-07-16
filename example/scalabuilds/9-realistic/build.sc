@@ -31,11 +31,12 @@ trait FooModule extends MyScalaModule {
   def generatedSources = T {
     os.write(
       T.dest / "Version.scala",
-      s"""package foo
+      s"""
+         |package foo
          |object Version{
          |  def value = "${publishVersion()}"
          |}
-         |""".stripMargin
+      """.stripMargin
     )
     Seq(PathRef(T.dest))
   }

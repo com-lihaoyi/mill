@@ -32,11 +32,12 @@ object foo extends RootModule with ScalaModule {
   def generatedSources: T[Seq[PathRef]] = T {
     for(name <- Seq("A", "B", "C")) os.write(
       T.dest / s"Foo$name.scala",
-      s"""package foo
+      s"""
+         |package foo
          |object Foo$name {
          |  val value = "hello $name"
          |}
-         |""".stripMargin
+      """.stripMargin
     )
 
     Seq(PathRef(T.dest))
