@@ -10,7 +10,7 @@
 * xref:Scala_Module_Config.adoc[]
 * xref:Web_Build_Examples.adoc[]
 
-.Java  Quick Start
+.Java Quick Start
 * xref:Intro_to_Mill_for_Java.adoc[]
 * xref:Java_Installation_IDE_Support.adoc[]
 * xref:Java_Builtin_Commands.adoc[]
