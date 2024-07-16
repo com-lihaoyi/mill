@@ -1793,6 +1793,10 @@ object docs extends Module {
        |  - require: '@antora/lunr-extension'
        |    index_latest_only: true
        |
+       |runtime:
+       |  log:
+       |    failure_level: error
+       |
        |""".stripMargin
   }
 
