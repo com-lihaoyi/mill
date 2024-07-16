@@ -1,6 +1,6 @@
 // SNIPPET:BUILD
 
-import mill._, scalalib._
+import mill._, javalib._
 
 object foo extends RootModule with JavaModule {
   /** Total number of lines in module's source files */

@@ -60,12 +60,8 @@ object qux extends MyModule
 // __.publishLocal
 // ----
 //
-// Also note that ``ScalaModule``s can depend on ``JavaModule``s, and
-// when multiple inter-dependent modules are published they automatically will
-// include the inter-module dependencies in the publish metadata.
-//
 // Also note how you can use ``trait``s to bundle together common combinations of
-// modules: `MyScalaModule` not only defines a `ScalaModule` with some common
+// modules: `My=Module` not only defines a `JavaModule` with some common
 // configuration, but it also defines a `object test` module within it with its
 // own configuration. This is a very useful technique for managing the often
 // repetitive module structure in a typical project

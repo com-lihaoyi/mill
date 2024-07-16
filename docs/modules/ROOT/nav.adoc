@@ -12,7 +12,7 @@
 
 .Java  Quick Start
 * xref:Intro_to_Mill_for_Java.adoc[]
-* xref:Installation_IDE_Support.adoc[]
+* xref:Java_Installation_IDE_Support.adoc[]
 * xref:Java_Builtin_Commands.adoc[]
 * xref:Java_Build_Examples.adoc[]
 * xref:Java_Module_Config.adoc[]

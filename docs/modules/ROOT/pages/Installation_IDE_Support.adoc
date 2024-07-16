@@ -1,5 +1,4 @@
 = Installation and IDE Support
-:page-aliases: Installation.adoc, IDE_Support.adoc
 
 The best method of installing Mill is to just install a <<_bootstrap_scripts,bootstrap script>>.
 This script can determine the best version to be used by a project (e.g. by

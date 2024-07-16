@@ -1,6 +1,6 @@
 // SNIPPET:BUILD
 
-import mill._, scalalib._
+import mill._, javalib._
 
 object foo extends RootModule with JavaModule {
   def ivyDeps = Agg(ivy"net.sourceforge.argparse4j:argparse4j:0.9.0")

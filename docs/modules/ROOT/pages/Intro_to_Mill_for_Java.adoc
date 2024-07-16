@@ -21,10 +21,14 @@ include::Intro_to_Mill_Header.adoc[]
 
 include::example/basicjava/1-simple.adoc[]
 
+== Custom Build Logic
 
-== Java Modules
+include::example/basicjava/2-custom-build-logic.adoc[]
 
-include::example/basicjava/2-java-modules.adoc[]
+== Multi-Module Project
+
+include::example/basicjava/3-multi-module.adoc[]
+
 
 
 include::Intro_to_Mill_Footer.adoc[]

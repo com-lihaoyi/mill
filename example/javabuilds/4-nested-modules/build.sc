@@ -2,7 +2,6 @@
 import mill._, javalib._
 
 trait MyModule extends JavaModule {
-  def scalaVersion = "2.13.8"
   def ivyDeps = Agg(
     ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
     ivy"org.apache.commons:commons-text:1.12.0"

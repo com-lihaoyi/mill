@@ -2,7 +2,6 @@
 import mill._, javalib._, publish._
 
 object foo extends JavaModule with PublishModule {
-  def scalaVersion = "2.13.8"
   def publishVersion = "0.0.1"
 
   def pomSettings = PomSettings(
@@ -17,7 +16,7 @@ object foo extends JavaModule with PublishModule {
   )
 }
 
-// This is an example `ScalaModule` with added publishing capabilities via
+// This is an example `JavaModule` with added publishing capabilities via
 // `PublishModule`. This requires that you define an additional
 // `publishVersion` and `pomSettings` with the relevant metadata, and provides
 // the `.publishLocal` and `publishSigned` tasks for publishing locally to the
