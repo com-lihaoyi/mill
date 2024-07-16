@@ -41,7 +41,15 @@ object jimfs extends PublishModule with MavenModule {
   }
 }
 
-// JimFS is a small Java library
+// JimFS is a small Java library implementing an in-memory filesystem. It is commonly
+// used in test suites to validate filesystem operations without needing to write
+// to disk.
+//
+// It has a relatively simple codebase structure, a single module and test suite.
+// It has a number of compile-time-only dependencies shared between the library and
+// test suite. One wrinkle is that it uses annotation processors as part of its build,
+// which Mill supports by providing the relevant `ivyDeps` of the annotation processor
+// and providing `javacOptions` to invoke it.
 //
 // Project home: https://github.com/google/jimfs
 

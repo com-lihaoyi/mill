@@ -14,11 +14,11 @@ object commonsio extends RootModule with PublishModule with MavenModule {
     developers = Nil
   )
 
-  def ivyDeps = Agg(
-    ivy"com.google.auto.service:auto-service:1.0",
-  )
-
-  def javacOptions = Seq("-processor", "com.google.auto.service.processor.AutoServiceProcessor")
+//  def ivyDeps = Agg(
+//    ivy"com.google.auto.service:auto-service:1.0",
+//  )
+//
+//  def javacOptions = Seq("-processor", "com.google.auto.service.processor.AutoServiceProcessor")
 
 
   object test extends MavenModuleTests with TestModule.Junit5 with  JmhModule{
@@ -40,6 +40,10 @@ object commonsio extends RootModule with PublishModule with MavenModule {
 
 // The Apache Commons IO library contains utility classes, stream implementations, file filters,
 // file comparators, endian transformation classes, and much more.
+//
+// The core library `commonsio` is dependency-free, but the test suite `commonsio.test`
+// as a number of libraries included. It also ships with JMH benchmarks, which Mill
+// supports via the built in JMH plugin
 //
 // Project home: https://github.com/apache/commons-io
 
