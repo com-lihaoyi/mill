@@ -53,7 +53,7 @@ include::example/scalabuilds/8-compat-modules.adoc[]
 
 == Realistic Scala Example Project
 
-include::example/scalabuilds/9-scala-realistic.adoc[]
+include::example/scalabuilds/9-realistic.adoc[]
 
 
 == Example Builds

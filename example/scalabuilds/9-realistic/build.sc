@@ -1,3 +1,4 @@
+// SNIPPET:ALL
 import mill._, scalalib._, publish._
 
 trait MyModule extends PublishModule {
