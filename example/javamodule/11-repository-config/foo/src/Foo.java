@@ -11,7 +11,7 @@ public class Foo {
     ArgumentParser parser = ArgumentParsers.newFor("Foo").build()
             .defaultHelp(true);
 
-    parser.addArgument("text");
+    parser.addArgument("--text");
 
     Namespace res = parser.parseArgs(args);
     String text = res.getString("text");

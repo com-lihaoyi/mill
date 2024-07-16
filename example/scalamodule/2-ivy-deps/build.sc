@@ -1,5 +1,5 @@
 // SNIPPET:BUILD
-// import mill._, scalalib._
+import mill._, scalalib._
 
 object foo extends RootModule with ScalaModule {
   def scalaVersion = "2.12.17"
