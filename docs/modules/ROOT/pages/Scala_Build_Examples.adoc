@@ -48,7 +48,7 @@ include::example/scalabuilds/7-cross-scala-version.adoc[]
 
 == SBT-Compatible Modules
 
-include::example/scalabuilds/8-sbt-compat-modules.adoc[]
+include::example/scalabuilds/8-compat-modules.adoc[]
 
 
 == Realistic Scala Example Project
