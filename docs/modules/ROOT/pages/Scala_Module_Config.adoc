@@ -77,9 +77,9 @@ The idea is to set an environment variable COURSIER_REPOSITORIES (see coursier d
 
 If you are using millw, a more permanent solution could be to set the environment variable at the top of the millw script, or as a user environment variable etc.
 
-== Backticked Names
+== Scoverage
 
-include::example/scalamodule/12-backticked-names.adoc[]
+include::example/scalamodule/12-contrib-scoverage.adoc[]
 
 == Unidoc
 
