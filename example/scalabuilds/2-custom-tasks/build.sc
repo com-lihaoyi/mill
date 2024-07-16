@@ -76,13 +76,13 @@ object foo extends RootModule with ScalaModule {
 > mill run --text hello
 text: hello
 MyDeps.value: List((com.lihaoyi,mainargs,0.4.0))
-my.line.count: 12
+my.line.count: 14
 
 > mill show lineCount
-12
+14
 
 > mill printLineCount
-12
+14
 */
 
 // SNIPPET:END
