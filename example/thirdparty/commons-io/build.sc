@@ -40,7 +40,7 @@ object commonsio extends RootModule with PublishModule with MavenModule {
 
 // JimFS is a small Java library
 //
-// Project home: https://github.com/google/jimfs
+// Project home: https://github.com/apache/commons-io
 
 /** Usage
 
