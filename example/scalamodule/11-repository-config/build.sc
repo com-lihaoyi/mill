@@ -1,6 +1,8 @@
 // By default, dependencies are resolved from maven central, but you can add
 // your own resolvers by overriding the `repositoriesTask` task in the module:
 
+// SNIPPET:BUILD1
+
 import mill._, scalalib._
 import mill.define.ModuleRef
 import coursier.maven.MavenRepository
@@ -12,10 +14,17 @@ val sonatypeReleases = Seq(
 object foo extends ScalaModule {
   def scalaVersion = "2.13.8"
 
+  def ivyDeps = Agg(
+    ivy"com.lihaoyi::scalatags:0.12.0",
+    ivy"com.lihaoyi::mainargs:0.6.2"
+  )
+
   def repositoriesTask = T.task {
     super.repositoriesTask() ++ sonatypeReleases
   }
 }
+
+// SNIPPET:END
 
 // Mill read https://get-coursier.io/[coursier] config files automatically.
 //
@@ -39,6 +48,8 @@ object foo extends ScalaModule {
 // custom `ZincWorkerModule`, and override the `zincWorker` method in your
 // `ScalaModule` by pointing it to that custom object:
 
+// SNIPPET:BUILD2
+
 object CustomZincWorkerModule extends ZincWorkerModule with CoursierModule {
   def repositoriesTask = T.task { super.repositoriesTask() ++ sonatypeReleases }
 }
@@ -51,7 +62,11 @@ object bar extends ScalaModule {
   def repositoriesTask = T.task {super.repositoriesTask() ++ sonatypeReleases}
 }
 
+// SNIPPET:END
+
 /** Usage
+
+> ./mill foo.run --text hello
 
 > ./mill bar.compile
 
