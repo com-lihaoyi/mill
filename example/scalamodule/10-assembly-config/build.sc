@@ -1,3 +1,4 @@
+// SNIPPET:BUILD
 import mill._, scalalib._
 import mill.scalalib.Assembly._
 
@@ -20,6 +21,7 @@ object foo extends ScalaModule {
 object bar extends ScalaModule {
   def scalaVersion = "2.13.8"
 }
+// SNIPPET:END
 
 // When you make a runnable jar of your project with `assembly` command,
 // you may want to exclude some files from a final jar (like signature files,
