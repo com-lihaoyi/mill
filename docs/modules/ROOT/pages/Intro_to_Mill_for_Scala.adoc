@@ -15,7 +15,7 @@
 
 :page-aliases: index.adoc
 
-include::Intro_to_Mill_Header.adoc[]
+include::partials$Intro_to_Mill_Header.adoc[]
 
 
 == Simple Scala Module
@@ -31,4 +31,4 @@ include::example/basic/2-custom-build-logic.adoc[]
 include::example/basic/3-multi-module.adoc[]
 
 
-include::Intro_to_Mill_Footer.adoc[]
+include::partials$Intro_to_Mill_Footer.adoc[]
