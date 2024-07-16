@@ -56,7 +56,7 @@ include::example/scalabuilds/8-compat-modules.adoc[]
 include::example/scalabuilds/9-realistic.adoc[]
 
 
-== Real World Builds
+== Example Builds for Real Projects
 
 Mill comes bundled with example builds for real-world open-source projects,
 demonstrating how Mill can be used to build code outside of tiny example codebases:
