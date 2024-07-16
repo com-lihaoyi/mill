@@ -64,3 +64,10 @@ include::example/thirdparty/jimfs.adoc[]
 === Apache Commons IO
 
 include::example/thirdparty/commons-io.adoc[]
+
+== Real World Mill Builds
+
+=== C3P0
+
+https://github.com/swaldman/c3p0[C3P0] is a JDBC connection pooling library
+written in Java, built using the Mill build tool.
