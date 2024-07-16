@@ -1,4 +1,4 @@
-// SNIPPET:BUILD
+//// SNIPPET:BUILD
 
 import mill._, javalib._
 
@@ -23,7 +23,7 @@ object foo extends RootModule with JavaModule {
 // `./mill compile` or `./mill run` without needing to prefix it as
 // `foo.compile` or `foo.run`.
 //
-// SNIPPET:DEPENDENCIES
+//// SNIPPET:DEPENDENCIES
 //
 // This example project uses two third-party dependencies - ArgParse4J for CLI
 // argument parsing, Apache Commons Text for HTML escaping - and uses them to wrap a

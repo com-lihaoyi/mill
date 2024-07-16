@@ -1,4 +1,4 @@
-// SNIPPET:BUILD1
+//// SNIPPET:BUILD1
 import mill._, javalib._
 
 object foo extends JavaModule {
@@ -28,7 +28,7 @@ object foo extends JavaModule {
     super.run(args)()
   }
 }
-// SNIPPET:BUILD2
+//// SNIPPET:BUILD2
 
 object foo2 extends JavaModule {
   def generatedSources = T{

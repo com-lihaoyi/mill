@@ -1,4 +1,4 @@
-// SNIPPET:BUILD
+//// SNIPPET:BUILD
 import mill._, javalib._
 
 object foo extends RootModule with JavaModule {
@@ -44,5 +44,5 @@ object foo extends RootModule with JavaModule {
   def forkEnv: T[Map[String, String]] = Map("MY_CUSTOM_ENV" -> "my-env-value")
 }
 
-// SNIPPET:FATAL_WARNINGS
+//// SNIPPET:FATAL_WARNINGS
 //

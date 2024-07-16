@@ -4,7 +4,7 @@
 // single generated text file containing the line count of all the source files
 // in that module
 
-// SNIPPET:BUILD
+//// SNIPPET:BUILD
 import mill._, scalalib._
 
 object foo extends RootModule with ScalaModule {
@@ -22,7 +22,7 @@ object foo extends RootModule with ScalaModule {
   }
 }
 
-// SNIPPET:END
+//// SNIPPET:END
 
 /** Usage
 

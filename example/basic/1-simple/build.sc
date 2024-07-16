@@ -1,4 +1,4 @@
-// SNIPPET:BUILD
+//// SNIPPET:BUILD
 
 import mill._, scalalib._
 
@@ -22,7 +22,7 @@ object foo extends RootModule with ScalaModule {
 // `./mill compile` or `./mill run` without needing to prefix it as
 // `foo.compile` or `foo.run`.
 //
-// SNIPPET:END
+//// SNIPPET:END
 //
 // You can download this example project using the *download* link above
 // if you want to try out the commands below yourself. The only requirement is
@@ -33,7 +33,7 @@ object foo extends RootModule with ScalaModule {
 // Output for this module (compiled files, resolved dependency lists, ...)
 // lives in `out/`.
 //
-// SNIPPET:DEPENDENCIES
+//// SNIPPET:DEPENDENCIES
 //
 // This example project uses two third-party dependencies - MainArgs for CLI
 // argument parsing, Scalatags for HTML generation - and uses them to wrap a
@@ -95,7 +95,7 @@ error: Missing argument: --text <str>
 
 */
 
-// SNIPPET:END
+//// SNIPPET:END
 
 // The output of every Mill task is stored in the `out/` folder under a name
 // corresponding to the task that created it. e.g. The `assembly` task puts its

@@ -1,4 +1,4 @@
-// SNIPPET:BUILD
+//// SNIPPET:BUILD
 import mill._, javalib._
 
 object foo extends RootModule with JavaModule {
@@ -7,9 +7,9 @@ object foo extends RootModule with JavaModule {
   )
 }
 
-// SNIPPET:SCALAIVY
+//// SNIPPET:SCALAIVY
 
-// SNIPPET:USAGE
+//// SNIPPET:USAGE
 /** Usage
 
 > ./mill run i am cow

@@ -1,4 +1,4 @@
-// SNIPPET:BUILD1
+//// SNIPPET:BUILD1
 
 import mill._, javalib._
 import mill.define.ModuleRef
@@ -18,7 +18,7 @@ object foo extends JavaModule {
   def repositoriesTask = T.task { super.repositoriesTask() ++ sonatypeReleases }
 }
 
-// SNIPPET:BUILD2
+//// SNIPPET:BUILD2
 
 object CustomZincWorkerModule extends ZincWorkerModule with CoursierModule {
   def repositoriesTask = T.task { super.repositoriesTask() ++ sonatypeReleases }

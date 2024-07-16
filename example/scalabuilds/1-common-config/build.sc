@@ -3,7 +3,7 @@
 // sources/resources, generating resources, and setting compilation/run
 // options.
 
-// SNIPPET:BUILD
+//// SNIPPET:BUILD
 import mill._, scalalib._
 
 object foo extends RootModule with ScalaModule {
@@ -54,7 +54,7 @@ object foo extends RootModule with ScalaModule {
   // Additional Scala compiler options, e.g. to turn warnings into errors
   def scalacOptions: T[Seq[String]] = Seq("-deprecation", "-Xfatal-warnings")
 }
-// SNIPPET:END
+//// SNIPPET:END
 
 //
 // Note the use of `millSourcePath`, `T.dest`, and `PathRef` when preforming
@@ -103,7 +103,7 @@ my.custom.property: my-prop-value
 
 */
 
-// SNIPPET:FATAL_WARNINGS
+//// SNIPPET:FATAL_WARNINGS
 
 /** Usage
 

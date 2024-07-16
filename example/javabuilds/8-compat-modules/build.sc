@@ -1,4 +1,4 @@
-// SNIPPET:ALL
+//// SNIPPET:ALL
 import mill._, javalib._
 
 object foo extends MavenModule {

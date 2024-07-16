@@ -2,7 +2,7 @@
 // dependencies and their versions at runtime, you can do so with
 // `runIvyDeps`.
 
-// SNIPPET:BUILD1
+//// SNIPPET:BUILD1
 
 import mill._, scalalib._
 
@@ -17,13 +17,13 @@ object foo extends ScalaModule {
   def mainClass = Some("bar.Bar")
 }
 
-// SNIPPET:END
+//// SNIPPET:END
 
 // You can also declare compile-time-only dependencies with `compileIvyDeps`.
 // These are present in the compile classpath, but will not propagated to the
 // transitive dependencies.
 
-// SNIPPET:BUILD2
+//// SNIPPET:BUILD2
 
 object bar extends ScalaModule {
   def scalaVersion = "2.13.8"
@@ -34,7 +34,7 @@ object bar extends ScalaModule {
   )
 }
 
-// SNIPPET:END
+//// SNIPPET:END
 // Typically, Mill assumes that a module with compile-time dependencies will
 // only be run after someone includes the equivalent run-time dependencies in
 // a later build step. e.g. in the case above, `bar` defines the compile-time
@@ -54,7 +54,7 @@ object bar extends ScalaModule {
 // NOTE: Compile-time dependencies are translated to `provided`-scoped
 // dependencies when publish to Maven or Ivy-Repositories.
 //
-// SNIPPET:SCALASTEWARD
+//// SNIPPET:SCALASTEWARD
 // === Keeping up-to-date with Scala Steward
 //
 // It's always a good idea to keep your dependencies up-to-date.

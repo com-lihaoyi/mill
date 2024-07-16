@@ -1,4 +1,4 @@
-// SNIPPET:ALL
+//// SNIPPET:ALL
 import mill._, scalalib._
 
 object foo extends SbtModule {

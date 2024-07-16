@@ -1,4 +1,4 @@
-// SNIPPET:BUILD
+//// SNIPPET:BUILD
 import mill._, javalib._
 
 object foo extends RootModule with JavaModule{
@@ -6,4 +6,4 @@ object foo extends RootModule with JavaModule{
   def forkEnv = Map("MY_ENV_VAR" -> "WORLD")
 }
 
-// SNIPPET:END
+//// SNIPPET:END

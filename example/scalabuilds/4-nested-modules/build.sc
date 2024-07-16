@@ -1,4 +1,4 @@
-// SNIPPET:BUILD
+//// SNIPPET:BUILD
 import mill._, scalalib._
 
 trait MyModule extends ScalaModule {
@@ -22,7 +22,7 @@ object baz extends MyModule {
   def moduleDeps = Seq(foo.bar, foo.qux, foo)
 }
 
-// SNIPPET:END
+//// SNIPPET:END
 
 // Modules can be nested arbitrarily deeply within each other. The outer module
 // can be the same kind of module as the ones within, or it can be a plain

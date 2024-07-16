@@ -9,7 +9,7 @@
 // and `runIvyDeps` to declare dependencies in test modules, and test modules
 // can use their `moduleDeps` to also depend on each other
 
-// SNIPPET:BUILD
+//// SNIPPET:BUILD
 
 import mill._, scalalib._
 
@@ -34,7 +34,7 @@ object baz extends ScalaModule {
   }
 }
 
-// SNIPPET:END
+//// SNIPPET:END
 
 // In this example, not only does `qux` depend on `baz`, but we also make
 // `qux.test` depend on `baz.test`. That lets `qux.test` make use of the

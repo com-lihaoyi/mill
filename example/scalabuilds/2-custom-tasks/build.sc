@@ -8,7 +8,7 @@
 //    and then override `forkArgs` to use it. That lets us access the line
 //    count at runtime using `sys.props` and print it when the program runs
 
-// SNIPPET:BUILD
+//// SNIPPET:BUILD
 
 import mill._, scalalib._
 
@@ -51,7 +51,7 @@ object foo extends RootModule with ScalaModule {
   def printLineCount() = T.command { println(lineCount()) }
 }
 
-// SNIPPET:END
+//// SNIPPET:END
 
 // Mill lets you define new cached Targets using the `T {...}` syntax,
 // depending on existing Targets e.g. `foo.sources` via the `foo.sources()`
@@ -69,7 +69,7 @@ object foo extends RootModule with ScalaModule {
 //
 // This example can be run as follows:
 
-// SNIPPET:COMMANDS
+//// SNIPPET:COMMANDS
 
 /** Usage
 
@@ -85,7 +85,7 @@ my.line.count: 14
 14
 */
 
-// SNIPPET:END
+//// SNIPPET:END
 
 // Custom targets and commands can contain arbitrary code. Whether you want to
 // download files using `requests.get`, shell-out to Webpack

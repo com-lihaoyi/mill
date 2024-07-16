@@ -1,4 +1,4 @@
-// SNIPPET:BUILD
+//// SNIPPET:BUILD
 import mill._, scalalib._
 
 object foo extends RootModule with ScalaModule {
@@ -6,7 +6,7 @@ object foo extends RootModule with ScalaModule {
   def mainClass = Some("foo.Qux")
 }
 
-// SNIPPET:END
+//// SNIPPET:END
 
 // Mill's `foo.run` by default will discover which main class to run from your
 // compilation output, but if there is more than one or the main class comes from

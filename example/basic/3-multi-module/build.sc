@@ -1,4 +1,4 @@
-// SNIPPET:BUILD
+//// SNIPPET:BUILD
 import mill._, scalalib._
 
 trait MyModule extends ScalaModule {
@@ -17,7 +17,7 @@ object foo extends MyModule {
 object bar extends MyModule {
   def ivyDeps = Agg(ivy"com.lihaoyi::scalatags:0.8.2")
 }
-// SNIPPET:END
+//// SNIPPET:END
 
 // This example contains a simple Mill build with two modules, `foo` and `bar`.
 // We don't mark either module as top-level using `extends RootModule`, so
@@ -32,7 +32,7 @@ object bar extends MyModule {
 //
 // The above builds expect the following project layout:
 //
-// SNIPPET:TREE
+//// SNIPPET:TREE
 //
 // ----
 // build.sc
@@ -57,7 +57,7 @@ object bar extends MyModule {
 //         ...
 // ----
 //
-// SNIPPET:END
+//// SNIPPET:END
 // Typically, both source code and output files in Mill follow the module
 // hierarchy, so e.g. input to the `foo` module lives in `foo/src/` and
 // compiled output files live in `out/foo/compile.dest`.

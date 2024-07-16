@@ -2,7 +2,7 @@
 // like to create the documenation for, configured via `scalaDocOptions` or
 // `javadocOptions`:
 
-// SNIPPET:BUILD
+//// SNIPPET:BUILD
 
 import mill._, scalalib._
 
@@ -12,7 +12,7 @@ object foo extends ScalaModule {
   def scalaDocOptions = Seq("-siteroot", "mydocs", "-no-link-warnings")
 }
 
-// SNIPPET:END
+//// SNIPPET:END
 
 /** Usage
 
@@ -24,7 +24,7 @@ object foo extends ScalaModule {
 
 */
 
-// SNIPPET:SCALA3
+//// SNIPPET:SCALA3
 
 // When using Scala 3 you're also able to use Scaladoc to generate a full static
 // site next to your API documention. This can include general documenation for

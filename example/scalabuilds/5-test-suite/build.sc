@@ -1,4 +1,4 @@
-// SNIPPET:BUILD1
+//// SNIPPET:BUILD1
 import mill._, scalalib._
 
 object foo extends ScalaModule {
@@ -8,7 +8,7 @@ object foo extends ScalaModule {
     def testFramework = "utest.runner.Framework"
   }
 }
-// SNIPPET:END
+//// SNIPPET:END
 // This build defines a single module with a test suite, configured to use
 // "uTest" as the testing framework. Test suites are themselves ``ScalaModule``s,
 // nested within the enclosing module, and have all the normal tasks like
@@ -45,7 +45,7 @@ compiling 1 ... source...
 // * `TestModule.Utest`
 // * `TestModule.ZioTest`
 
-// SNIPPET:BUILD2
+//// SNIPPET:BUILD2
 object bar extends ScalaModule {
   def scalaVersion = "2.13.8"
 
@@ -53,7 +53,7 @@ object bar extends ScalaModule {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.11")
   }
 }
-// SNIPPET:END
+//// SNIPPET:END
 /** Usage
 
 > mill bar.test
@@ -85,7 +85,7 @@ object bar extends ScalaModule {
 */
 
 // You can also define multiple test suites if you want, e.g.:
-// SNIPPET:BUILD3
+//// SNIPPET:BUILD3
 object qux extends ScalaModule {
   def scalaVersion = "2.13.8"
 
@@ -96,7 +96,7 @@ object qux extends ScalaModule {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.11")
   }
 }
-// SNIPPET:END
+//// SNIPPET:END
 // Each of which will expect their sources to be in their respective `foo/test` and
 // `foo/integration` folder.
 

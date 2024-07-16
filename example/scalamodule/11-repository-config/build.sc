@@ -1,7 +1,7 @@
 // By default, dependencies are resolved from maven central, but you can add
 // your own resolvers by overriding the `repositoriesTask` task in the module:
 
-// SNIPPET:BUILD1
+//// SNIPPET:BUILD1
 
 import mill._, scalalib._
 import mill.define.ModuleRef
@@ -24,7 +24,7 @@ object foo extends ScalaModule {
   }
 }
 
-// SNIPPET:END
+//// SNIPPET:END
 
 // Mill read https://get-coursier.io/[coursier] config files automatically.
 //
@@ -48,7 +48,7 @@ object foo extends ScalaModule {
 // custom `ZincWorkerModule`, and override the `zincWorker` method in your
 // `ScalaModule` by pointing it to that custom object:
 
-// SNIPPET:BUILD2
+//// SNIPPET:BUILD2
 
 object CustomZincWorkerModule extends ZincWorkerModule with CoursierModule {
   def repositoriesTask = T.task { super.repositoriesTask() ++ sonatypeReleases }
@@ -62,7 +62,7 @@ object bar extends ScalaModule {
   def repositoriesTask = T.task {super.repositoriesTask() ++ sonatypeReleases}
 }
 
-// SNIPPET:END
+//// SNIPPET:END
 
 /** Usage
 

@@ -1,4 +1,4 @@
-// SNIPPET:BUILD1
+//// SNIPPET:BUILD1
 import mill._, javalib._
 
 object foo extends JavaModule {
@@ -10,13 +10,13 @@ object foo extends JavaModule {
   }
 }
 
-// SNIPPET:BUILD2
+//// SNIPPET:BUILD2
 
 object bar extends JavaModule {
   object test extends JavaModuleTests with TestModule.Junit4
 }
 
-// SNIPPET:BUILD3
+//// SNIPPET:BUILD3
 object qux extends JavaModule {
   object test extends JavaModuleTests with TestModule.Junit4
   object integration extends JavaModuleTests with TestModule.Junit4

@@ -1214,12 +1214,14 @@ object example extends MillScalaModule {
       val groupedLines = mutable.Map.empty[String, mutable.Buffer[String]]
       var current = Option.empty[String]
       lines.foreach{
-        case s"// SNIPPET:$name" => current = Some(name)
-        case s => groupedLines.getOrElseUpdate(current.get, mutable.Buffer()).append(s)
+        case s"//// SNIPPET:$name" =>
+          current = Some(name)
+          groupedLines(name) = mutable.Buffer()
+        case s => groupedLines(current.get).append(s)
       }
 
       upstreamLines.flatMap{
-        case s"// SNIPPET:$name" =>
+        case s"//// SNIPPET:$name" =>
           if (name != "END") {
 
             current = Some(name)

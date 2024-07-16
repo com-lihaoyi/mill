@@ -1,4 +1,4 @@
-// SNIPPET:ALL
+//// SNIPPET:ALL
 import mill._, javalib._, publish._
 
 trait MyModule extends JavaModule with PublishModule {

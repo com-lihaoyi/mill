@@ -1,4 +1,4 @@
-// SNIPPET:BUILD
+//// SNIPPET:BUILD
 import mill._, scalalib._
 
 object foo extends RootModule with ScalaModule{
@@ -10,7 +10,7 @@ object foo extends RootModule with ScalaModule{
 
 // You can pass flags to the Scala compiler via `scalacOptions`.
 
-// SNIPPET:END
+//// SNIPPET:END
 
 // By default,
 // `run` runs the compiled code in a subprocess, and you can pass in JVM flags

@@ -1,4 +1,4 @@
-// SNIPPET:BUILD1
+//// SNIPPET:BUILD1
 
 import mill._, javalib._
 
@@ -12,7 +12,7 @@ object foo extends JavaModule {
   def mainClass = Some("bar.Bar")
 }
 
-// SNIPPET:BUILD2
+//// SNIPPET:BUILD2
 
 object bar extends JavaModule {
   def compileIvyDeps = Agg(
@@ -22,5 +22,5 @@ object bar extends JavaModule {
   )
 }
 
-// SNIPPET:SCALASTEWARD
+//// SNIPPET:SCALASTEWARD
 

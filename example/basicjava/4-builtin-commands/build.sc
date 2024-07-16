@@ -1,4 +1,4 @@
-// SNIPPET:BUILD
+//// SNIPPET:BUILD
 import mill._, javalib._
 
 trait MyModule extends JavaModule{

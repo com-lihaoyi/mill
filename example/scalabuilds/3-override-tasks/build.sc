@@ -1,4 +1,4 @@
-// SNIPPET:BUILD1
+//// SNIPPET:BUILD1
 import mill._, scalalib._
 
 object foo extends ScalaModule {
@@ -29,7 +29,7 @@ object foo extends ScalaModule {
   }
 }
 
-// SNIPPET:END
+//// SNIPPET:END
 
 // You can re-define targets and commands to override them, and use `super` if you
 // want to refer to the originally defined task. The above example shows how to
@@ -42,7 +42,7 @@ object foo extends ScalaModule {
 // `generatedSources`, or you can override `sources` and use `super` to
 // include the original source folder:
 
-// SNIPPET:BUILD2
+//// SNIPPET:BUILD2
 
 object foo2 extends ScalaModule {
   def scalaVersion = "2.13.8"
@@ -62,7 +62,7 @@ object foo3 extends ScalaModule {
   }
 }
 
-// SNIPPET:END
+//// SNIPPET:END
 
 // In Mill builds the `override` keyword is optional.
 

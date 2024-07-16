@@ -2,7 +2,7 @@
 //
 // The following examples will be assuming the `build.sc` file given below:
 
-// SNIPPET:BUILD
+//// SNIPPET:BUILD
 import mill._, scalalib._
 
 trait MyModule extends ScalaModule {
@@ -18,7 +18,7 @@ object bar extends MyModule {
   def ivyDeps = Agg(ivy"com.lihaoyi::scalatags:0.8.2")
 }
 
-// SNIPPET:END
+//// SNIPPET:END
 
 // == resolve
 
