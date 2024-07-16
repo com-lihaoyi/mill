@@ -1,3 +1,4 @@
+// SNIPPET:BUILD
 import mill._, scalalib._
 
 object foo extends RootModule with ScalaModule {
@@ -7,6 +8,8 @@ object foo extends RootModule with ScalaModule {
     else Agg.from(os.list(millSourcePath / "lib").map(PathRef(_)))
   }
 }
+
+// SNIPPET:END
 
 // You can override `unmanagedClasspath` to point it at any jars you place on the
 // filesystem, e.g. in the above snippet any jars that happen to live in the
