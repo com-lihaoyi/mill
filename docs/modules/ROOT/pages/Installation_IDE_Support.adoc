@@ -184,10 +184,12 @@ There are various issues, especially with interactive mode.
 
 === Asdf (unsupported)
 
-Installing mill via `asdf` is currently not officially supported.
+You can install and manage Mill via the Multiple Runtime Version Manager - https://asdf-vm.com/[`asdf`].
 
-But you can try to install mill using the `asdf-mill` plugin:
-[source,bash,subs="verbatim,attributes"]
+Support by `asdf` is currently possible by using the https://github.com/asdf-community/asdf-mill[`asdf-mill` plugin]:
+
+.Steps to install the `mill` plugin and Mill with `asdf` 
+[source,bash]
 ---
 asdf plugin add mill
 asdf install mill latest
