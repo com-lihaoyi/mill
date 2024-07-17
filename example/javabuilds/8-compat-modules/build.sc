@@ -18,7 +18,7 @@ object foo extends MavenModule {
 // - `foo/test/src`
 //
 // This is especially useful if you are migrating from Maven to Mill (or vice
-// versa), during which a particular module may be built using both SBT and
+// versa), during which a particular module may be built using both Maven and
 // Mill at the same time
 
 /** Usage
