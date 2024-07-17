@@ -14,13 +14,6 @@ object commonsio extends RootModule with PublishModule with MavenModule {
     developers = Nil
   )
 
-//  def ivyDeps = Agg(
-//    ivy"com.google.auto.service:auto-service:1.0",
-//  )
-//
-//  def javacOptions = Seq("-processor", "com.google.auto.service.processor.AutoServiceProcessor")
-
-
   object test extends MavenModuleTests with TestModule.Junit5 with  JmhModule{
     def jmhCoreVersion = "1.37"
     def ivyDeps = super.ivyDeps() ++ Agg(
