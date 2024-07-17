@@ -157,7 +157,11 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
     // Run all non-command tasks according to the threads
     // given but run the commands in linear order
-    evaluateTerminals(tasks, contextLoggerMsg0)(ec)
+    evaluateTerminals(
+      tasks,
+      if (sys.env.contains("MILL_TEST_SUITE")) _ => ""
+      else contextLoggerMsg0
+    )(ec)
     evaluateTerminals(commands, _ => "")(ExecutionContexts.RunNow)
 
     val finishedOptsMap = terminals0
