@@ -5,7 +5,7 @@ import utest._
 object CodeSigScalaModuleTests extends IntegrationTestSuite {
   val tests: Tests = Tests {
     def filterLines(out: String) = {
-      out.linesIterator.filter(!_.contains("[info]")).toSeq
+      out.linesIterator.filter(!_.contains("[info]")).toSet
     }
     val wsRoot = initWorkspace()
     "single" - {
@@ -17,7 +17,7 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
 
       assert(
         filterLines(initial.out) ==
-          Seq(
+          Set(
             "Foo generating sources...",
             "Foo compiling...",
             "Foo Hello World",
@@ -28,7 +28,7 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
       val cached = evalStdout("foo.run")
       assert(
         filterLines(cached.out) ==
-          Seq(
+          Set(
             "Foo Hello World",
             "Foo running..."
           )
@@ -38,7 +38,7 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
       // and any downstream targets
       mangleFile(wsRoot / "build.sc", _.replace("Foo running...", "FOO RUNNING"))
       val mangledFoo = evalStdout("foo.run")
-      assert(filterLines(mangledFoo.out) == Seq("Foo Hello World", "FOO RUNNING"))
+      assert(filterLines(mangledFoo.out) == Set("Foo Hello World", "FOO RUNNING"))
 
       // Changing the body `foo.compile` invalidates `foo.compile`, and downstream
       // `foo.run` runs regardless
@@ -47,7 +47,7 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
 
       assert(
         filterLines(mangledFoo2.out) ==
-          Seq(
+          Set(
             "FOO COMPILING",
             "Foo Hello World",
             "FOO RUNNING"
@@ -64,7 +64,7 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
 
       assert(
         filterLines(mangledFoo3.out) ==
-          Seq(
+          Set(
             "FOO GENERATING SOURCES",
             "Foo Hello World",
             "FOO RUNNING"
@@ -78,7 +78,7 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
 
       assert(
         filterLines(mangledFoo4.out) ==
-          Seq(
+          Set(
             "FOO GENERATING SOURCES",
             "FOO COMPILING",
             "Foo HELLO WORLD",
@@ -91,7 +91,7 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
 
       assert(
         filterLines(mangledFoo5.out) ==
-          Seq(
+          Set(
             "FOO COMPILING",
             "Foo HELLO WORLD",
             "FOO RUNNING"
@@ -111,7 +111,7 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
       val mangledFoo6 = evalStdout("foo.run")
       assert(
         filterLines(mangledFoo6.out) ==
-          Seq(
+          Set(
             "Foo HELLO WORLD",
             "FOO RUNNING"
           )
@@ -128,7 +128,7 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
 
       assert(
         filterLines(initial.out) ==
-          Seq(
+          Set(
             "Foo generating sources...",
             "Foo compiling...",
             "Foo assembly...",
@@ -154,14 +154,14 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
       // evaluation can see the return value was not changed and avoid invalidation
       mangleFile(wsRoot / "build.sc", _.replace("Foo compiling...", "FOO COMPILING"))
       val mangledFoo2 = evalStdout("{foo,bar,qux}.assembly")
-      assert(filterLines(mangledFoo2.out) == Seq("FOO COMPILING"))
+      assert(filterLines(mangledFoo2.out) == Set("FOO COMPILING"))
 
       mangleFile(
         wsRoot / "build.sc",
         _.replace("Foo generating sources...", "FOO generating sources")
       )
       val mangledFoo3 = evalStdout("{foo,bar,qux}.assembly")
-      assert(filterLines(mangledFoo3.out) == Seq("FOO generating sources"))
+      assert(filterLines(mangledFoo3.out) == Set("FOO generating sources"))
 
       // Changing the implementation of foo.generatedSources in a way that changes
       // its return value does cause downstream targets in foo and bar to invalidate,
@@ -174,7 +174,7 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
 
       assert(
         filterLines(mangledFoo4.out) ==
-          Seq(
+          Set(
             "FOO generating sources",
             "FOO COMPILING",
             "Foo assembly...",

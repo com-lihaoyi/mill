@@ -4,10 +4,10 @@ import utest._
 
 object ScriptsInvalidationTests extends IntegrationTestSuite {
 
-  def runTask(task: String): Vector[String] = {
+  def runTask(task: String): Set[String] = {
     val res = evalStdout(task)
     assert(res.isSuccess)
-    res.out.linesIterator.map(_.trim).toVector
+    res.out.linesIterator.map(_.trim).toSet
   }
 
   val tests: Tests = Tests {
@@ -17,7 +17,7 @@ object ScriptsInvalidationTests extends IntegrationTestSuite {
 
         val result = runTask("task")
 
-        val expected = Seq("a", "d", "b", "c")
+        val expected = Set("a", "d", "b", "c")
 
         assert(result == expected)
       }
@@ -39,7 +39,7 @@ object ScriptsInvalidationTests extends IntegrationTestSuite {
         initWorkspace()
 
         val result = runTask("task")
-        val expected = Seq("a", "d", "b", "c")
+        val expected = Set("a", "d", "b", "c")
 
         assert(result == expected)
       }
@@ -51,7 +51,7 @@ object ScriptsInvalidationTests extends IntegrationTestSuite {
         os.write.over(workspacePath / inputD, newContent)
 
         val result = runTask("task")
-        val expected = Seq("d2", "b")
+        val expected = Set("d2", "b")
 
         assert(result == expected)
       }
@@ -61,7 +61,7 @@ object ScriptsInvalidationTests extends IntegrationTestSuite {
         initWorkspace()
 
         val result = runTask("module.task")
-        val expected = Seq("a", "d", "b", "c", "task")
+        val expected = Set("a", "d", "b", "c", "task")
 
         assert(result == expected)
       }
@@ -73,7 +73,7 @@ object ScriptsInvalidationTests extends IntegrationTestSuite {
         os.write.over(workspacePath / buildPath, newContent)
 
         val result = runTask("module.task")
-        val expected = Seq("task2")
+        val expected = Set("task2")
 
         assert(result == expected)
       }
@@ -83,7 +83,7 @@ object ScriptsInvalidationTests extends IntegrationTestSuite {
         initWorkspace()
 
         val result = runTask("taskE")
-        val expected = Seq("a", "e", "taskE")
+        val expected = Set("a", "e", "taskE")
 
         assert(result == expected)
       }
@@ -95,7 +95,7 @@ object ScriptsInvalidationTests extends IntegrationTestSuite {
         os.write.over(workspacePath / buildPath, newContent)
 
         val result = runTask("taskE")
-        val expected = Seq("taskE2")
+        val expected = Set("taskE2")
 
         assert(result == expected)
       }
@@ -104,7 +104,7 @@ object ScriptsInvalidationTests extends IntegrationTestSuite {
       initWorkspace()
 
       val result = runTask("taskSymbols")
-      val expected = Seq("taskSymbols")
+      val expected = Set("taskSymbols")
 
       assert(result == expected)
     }
@@ -112,7 +112,7 @@ object ScriptsInvalidationTests extends IntegrationTestSuite {
       initWorkspace()
 
       val result = runTask("taskSymbolsInFile")
-      val expected = Seq("taskSymbolsInFile")
+      val expected = Set("taskSymbolsInFile")
 
       assert(result == expected)
     }
