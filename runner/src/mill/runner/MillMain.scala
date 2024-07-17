@@ -180,11 +180,7 @@ object MillMain {
               val userSpecifiedProperties =
                 userSpecifiedProperties0 ++ config.extraSystemProperties
 
-              val threadCount = config.threadCountRaw match {
-                case None => Some(1)
-                case Some(0) => None
-                case Some(n) => Some(n)
-              }
+              val threadCount = config.threadCountRaw
 
               if (mill.main.client.Util.isJava9OrAbove) {
                 val rt = config.home / Export.rtJarName

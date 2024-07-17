@@ -117,7 +117,7 @@ trait MainModule extends mill.define.Module {
       case Left(err) => Result.Failure(err)
       case Right(resolvedSegmentsList) =>
         val resolvedStrings = resolvedSegmentsList.map(_.render)
-        resolvedStrings.sorted.foreach(Target.log.outputStream.println)
+        resolvedStrings.sorted.foreach(evaluator.baseLogger.outputStream.println)
         Result.Success(resolvedStrings)
     }
   }
@@ -131,7 +131,7 @@ trait MainModule extends mill.define.Module {
       case Left(err) => Result.Failure(err)
       case Right(success) =>
         val renderedTasks = success.map(_.segments.render)
-        renderedTasks.foreach(Target.log.outputStream.println)
+        renderedTasks.foreach(evaluator.baseLogger.outputStream.println)
         Result.Success(renderedTasks)
     }
   }
@@ -189,7 +189,7 @@ trait MainModule extends mill.define.Module {
               val labels = list
                 .collect { case n: NamedTask[_] => n.ctx.segments.render }
 
-              labels.foreach(Target.log.outputStream.println(_))
+              labels.foreach(evaluator.baseLogger.outputStream.println(_))
 
               Result.Success(labels)
           }
@@ -307,7 +307,7 @@ trait MainModule extends mill.define.Module {
         for { str <- truncated ++ Iterator("\n") } sb.append(str)
         sb.toString()
       }).mkString("\n")
-      Target.log.outputStream.println(output)
+      evaluator.baseLogger.outputStream.println(output)
       fansi.Str(output).plainText
     }
   }
