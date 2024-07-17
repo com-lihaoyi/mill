@@ -6,8 +6,8 @@ object foo extends MavenModule {
 }
 
 
-// `MavenModule` is a variant of `JavaModule`\
-// that use the more verbose folder layout of Maven, SBT, and other tools:
+// `MavenModule` is a variant of `JavaModule`
+// that uses the more verbose folder layout of Maven, SBT, and other tools:
 //
 // - `foo/src/main/java`
 // - `foo/src/test/java`
