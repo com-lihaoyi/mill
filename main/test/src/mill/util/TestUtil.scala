@@ -12,7 +12,10 @@ import scala.collection.mutable
 
 object TestUtil extends MillTestKit {
 
-  override val targetDir = os.Path(sys.env("MILL_TEST_DEST_FOLDER"))
+  override val targetDir = sys.env.get("MILL_TEST_DEST_FOLDER") match{
+    case Some(v) => os.Path(v)
+    case None => os.pwd / "target"
+  }
 
   def getOutPath()(implicit fullName: sourcecode.FullName, tp: TestPath): os.Path = {
     getOutPath(tp.value)
