@@ -142,7 +142,7 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
       )
 
       val cached = evalStdout("{foo,bar,qux}.assembly")
-      assert(filterLines(cached.out) == Seq())
+      assert(filterLines(cached.out) == Set())
 
       // Changing the implementation of foo.compile or foo.generatedSources
       // without changing its return value causes that specific target to
