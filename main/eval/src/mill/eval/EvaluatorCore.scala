@@ -80,8 +80,9 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
     val futures = mutable.Map.empty[Terminal, Future[Option[GroupEvaluator.Results]]]
 
-    def evaluateTerminals(terminals: Seq[Terminal],
-                          contextLoggerMsg: Int => String)(implicit ec: ExecutionContext) = {
+    def evaluateTerminals(terminals: Seq[Terminal], contextLoggerMsg: Int => String)(implicit
+        ec: ExecutionContext
+    ) = {
       // We walk the task graph in topological order and schedule the futures
       // to run asynchronously. During this walk, we store the scheduled futures
       // in a dictionary. When scheduling each future, we are guaranteed that the
