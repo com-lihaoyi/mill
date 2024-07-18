@@ -81,15 +81,15 @@
 
   <li class="nav-item is-active" data-depth="0">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Quick Start</span>
+    <span class="nav-text">Scala Quick Start</span>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Intro_to_Mill.html">Introduction to Mill</a>
+    <a class="nav-link" href="Intro_to_Mill_for_Scala.html">Introduction to Mill for Scala</a>
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Installation_IDE_Support.html">Installation and IDE Support</a>
+    <a class="nav-link" href="Scala_Installation_IDE_Support.html">Installation and IDE Support</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -106,6 +106,33 @@
 
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Web_Build_Examples.html">Web Build Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Java Quick Start</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Intro_to_Mill_for_Java.html">Introduction to Mill for Java</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Java_Installation_IDE_Support.html">Installation and IDE Support</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Java_Builtin_Commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Java_Build_Examples.html">Java Build Examples</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Java_Module_Config.html">Java Module Configuration</a>
   </li>
 </ul>
   </li>
@@ -267,14 +294,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.8-11-0aa7bb</span>
+    <span class="version">0.11.8-12-369a14</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.8-11-0aa7bb</a>
+          <a href="index.html">0.11.8-12-369a14</a>
         </li>
         <li class="version">
           <a href="0.11.0-M7/index.html">0.11.0-M7</a>
@@ -301,18 +328,18 @@
 <main class="article">
 <div class="toolbar" role="navigation">
 <button class="nav-toggle"></button>
-  <a href="Intro_to_Mill.html" class="home-link"></a>
+  <a href="Intro_to_Mill_for_Scala.html" class="home-link"></a>
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="index.html">Mill Documentation</a></li>
-    <li>Quick Start</li>
+    <li>Scala Quick Start</li>
     <li><a href="Scala_Module_Config.html">Scala Module Configuration</a></li>
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.8-11-0aa7bb</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.8-12-369a14</button>
   <div class="version-menu">
-    <a class="version is-current" href="Scala_Module_Config.html">0.11.8-11-0aa7bb</a>
+    <a class="version is-current" href="Scala_Module_Config.html">0.11.8-12-369a14</a>
     <a class="version" href="0.11.0-M7/Configuration.html">0.11.0-M7</a>
     <a class="version" href="0.10.15/Configuration.html">0.10.15</a>
     <a class="version" href="0.10.12/Configuration.html">0.10.12</a>
@@ -363,7 +390,10 @@ object foo extends RootModule with ScalaModule{
 </div>
 </div>
 <div class="paragraph">
-<p>You can pass flags to the Scala compiler via <code>scalacOptions</code>. By default,
+<p>You can pass flags to the Scala compiler via <code>scalacOptions</code>.</p>
+</div>
+<div class="paragraph">
+<p>By default,
 <code>run</code> runs the compiled code in a subprocess, and you can pass in JVM flags
 via <code>forkArgs</code> or environment-variables via <code>forkEnv</code>.</p>
 </div>
@@ -424,6 +454,10 @@ object foo extends RootModule with ScalaModule {
 <p>Single <code>:</code> syntax (e.g. <code>&quot;ivy&quot;org.testng:testng:6.11&quot;</code>) defines Java
 dependencies</p>
 </li>
+</ul>
+</div>
+<div class="ulist">
+<ul>
 <li>
 <p>Double <code>::</code> syntax (e.g. <code>ivy&quot;com.lihaoyi::upickle:0.5.1&quot;</code>) defines Scala
 dependencies</p>
@@ -547,7 +581,7 @@ there is a newer version available.</p>
 </td>
 <td class="content">
 Scala Steward can also keep your
-<a href="Installation_IDE_Support.html#_automatic_mill_updates" class="xref page">Mill version up-to-date</a>.
+<a href="Scala_Installation_IDE_Support.html#_automatic_mill_updates" class="xref page">Mill version up-to-date</a>.
 </td>
 </tr>
 </tbody></table>
@@ -615,14 +649,14 @@ test helper throughout multiple modules' test suites</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill qux.test
--------------------------------- Running Tests --------------------------------
 Using BazTestUtils.bazAssertEquals
-+ qux.QuxTests.simple ...
+... qux.QuxTests.simple ...
+...
 
 &gt; ./mill baz.test
--------------------------------- Running Tests --------------------------------
 Using BazTestUtils.bazAssertEquals
-+ baz.BazTests.simple ...</code></pre>
+... baz.BazTests.simple ...
+...</code></pre>
 </div>
 </div>
 </div>
@@ -685,7 +719,7 @@ like to create the documenation for, configured via <code>scalaDocOptions</code>
 <code>javadocOptions</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/latest/0.11.8-example-scalamodule-6-scaladoc.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalamodule/6-scaladoc">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/latest/0.11.8-example-scalamodule-6-docjar.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalamodule/6-docjar">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
@@ -702,7 +736,7 @@ object foo extends ScalaModule {
 
 &gt; unzip -p out/foo/docJar.dest/out.jar foo/Foo.html
 ...
-...&lt;p&gt;My Awesome Scaladoc for class Foo&lt;/p&gt;...</code></pre>
+...My Awesome Docs for class Foo...</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -761,7 +795,7 @@ documentation.</p>
 
 &gt; unzip -p out/bar/docJar.dest/out.jar bar/Bar.html
 ...
-...&lt;p&gt;My Awesome Scaladoc for class Bar&lt;/p&gt;...</code></pre>
+...&lt;p&gt;My Awesome Docs for class Bar&lt;/p&gt;...</code></pre>
 </div>
 </div>
 </div>
@@ -940,6 +974,11 @@ val sonatypeReleases = Seq(
 object foo extends ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
 
+  def ivyDeps = Agg(
+    ivy&quot;com.lihaoyi::scalatags:0.12.0&quot;,
+    ivy&quot;com.lihaoyi::mainargs:0.6.2&quot;
+  )
+
   def repositoriesTask = T.task {
     super.repositoriesTask() ++ sonatypeReleases
   }
@@ -999,7 +1038,9 @@ object bar extends ScalaModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill bar.compile</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.run --text hello
+
+&gt; ./mill bar.compile</code></pre>
 </div>
 </div>
 </div>
@@ -1038,57 +1079,73 @@ Resolution failed for 1 modules:
 </div>
 </div>
 <div class="sect1">
-<h2 id="_backticked_names"><a class="anchor" href="#_backticked_names"></a>Backticked Names</h2>
+<h2 id="_scoverage"><a class="anchor" href="#_scoverage"></a>Scoverage</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/latest/0.11.8-example-scalamodule-12-backticked-names.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalamodule/12-backticked-names">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/latest/0.11.8-example-scalamodule-12-contrib-scoverage.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalamodule/12-contrib-scoverage">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
-import mill.scalalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+import $ivy.`com.lihaoyi::mill-contrib-scoverage:`
 
-object `hyphenated-module` extends Module {
-  def `hyphenated-target` = T{
-    println(&quot;hyphenated target in a hyphenated module.&quot;)
-  }
-}
+import mill.contrib.scoverage._
 
-object unhyphenatedModule extends Module {
-  def unhyphenated_target = T{
-    println(&quot;unhyphenated target in an unhyphenated module.&quot;)
+object foo extends RootModule with ScoverageModule {
+  def scoverageVersion = &quot;2.1.0&quot;
+  def scalaVersion = &quot;2.13.11&quot;
+  def ivyDeps = Agg(
+    ivy&quot;com.lihaoyi::scalatags:0.12.0&quot;,
+    ivy&quot;com.lihaoyi::mainargs:0.6.2&quot;
+  )
+
+  object test extends ScoverageTests /*with TestModule.Utest */{
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.7.11&quot;)
+    def testFramework = &quot;utest.runner.Framework&quot;
   }
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Mill modules and tasks may be composed of the following character types:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>Alphanumeric (A-Z, a-z, and 0-9)</p>
-</li>
-<li>
-<p>Underscore (<code>_</code>)</p>
-</li>
-<li>
-<p>Hyphen (<code>-</code>)</p>
-</li>
-</ul>
+<p>This is a basic Mill build for a single <code>ScalaModule</code>, enhanced with
+Scoverage plugin. The root module extends the <code>ScoverageModule</code> and
+specifies the version of scoverage version to use here: <code>2.1.0</code>. This
+version can be changed if there is a newer one. Now you can call the
+scoverage targets to produce coverage reports.
+The sub test module extends <code>ScoverageTests</code> to transform the
+execution of the various testXXX targets to use scoverage and produce
+coverage data.
+This lets us perform the coverage operations but before that you
+must first run the test.
+<code>./mill test</code> then <code>./mill scoverage.consoleReport</code> and get your
+coverage into your console output.</p>
 </div>
 <div class="paragraph">
-<p>Due to Scala naming restrictions, module and task names with hyphens must be
-surrounded by back-ticks (<code>`</code>).</p>
-</div>
-<div class="paragraph">
-<p>Using hyphenated names at the command line is unaffected by these restrictions.</p>
+<p>You can download this example project using the <strong>download</strong> link above
+if you want to try out the commands below yourself. The only requirement is
+that you have some version of the JVM installed; the <code>./mill</code> script takes
+care of any further dependencies that need to be downloaded.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill hyphenated-module.hyphenated-target
-hyphenated target in a hyphenated module.
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill test # Run the tests and produce the coverage data
+...
++ foo.FooTests.simple ...  &lt;h1&gt;hello&lt;/h1&gt;
++ foo.FooTests.escaping ...  &lt;h1&gt;&amp;lt;hello&amp;gt;&lt;/h1&gt;
 
-&gt; ./mill unhyphenatedModule.unhyphenated_target
-unhyphenated target in an unhyphenated module.</code></pre>
+&gt; ./mill resolve scoverage._ # List what tasks are available to run from scoverage
+...
+scoverage.consoleReport
+...
+scoverage.htmlReport
+...
+scoverage.xmlCoberturaReport
+...
+scoverage.xmlReport
+...
+
+&gt; ./mill scoverage.consoleReport
+...
+Statement coverage.: 16.67%
+Branch coverage....: 100.00%</code></pre>
 </div>
 </div>
 </div>

@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Untitled :: Mill</title>
-    <link rel="canonical" href="https://mill-build.com/mill/example/scalamodule/6-scaladoc.html" />
+    <link rel="canonical" href="https://mill-build.com/mill/example/javamodule/10-assembly-config.html" />
     <meta name="generator" content="Antora 3.0.1" />
     <link rel="stylesheet" href="../../../_/css/site.css" />
 <link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
@@ -79,15 +79,15 @@
 
   <li class="nav-item is-active" data-depth="0">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Quick Start</span>
+    <span class="nav-text">Scala Quick Start</span>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../../Intro_to_Mill.html">Introduction to Mill</a>
+    <a class="nav-link" href="../../Intro_to_Mill_for_Scala.html">Introduction to Mill for Scala</a>
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../../Installation_IDE_Support.html">Installation and IDE Support</a>
+    <a class="nav-link" href="../../Scala_Installation_IDE_Support.html">Installation and IDE Support</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -104,6 +104,33 @@
 
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="../../Web_Build_Examples.html">Web Build Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Java Quick Start</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Intro_to_Mill_for_Java.html">Introduction to Mill for Java</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Java_Installation_IDE_Support.html">Installation and IDE Support</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Java_Builtin_Commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Java_Build_Examples.html">Java Build Examples</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Java_Module_Config.html">Java Module Configuration</a>
   </li>
 </ul>
   </li>
@@ -265,14 +292,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.8-11-0aa7bb</span>
+    <span class="version">0.11.8-12-369a14</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="../../index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="../../index.html">0.11.8-11-0aa7bb</a>
+          <a href="../../index.html">0.11.8-12-369a14</a>
         </li>
         <li class="version">
           <a href="../../0.11.0-M7/index.html">0.11.0-M7</a>
@@ -299,13 +326,13 @@
 <main class="article">
 <div class="toolbar" role="navigation">
 <button class="nav-toggle"></button>
-  <a href="../../Intro_to_Mill.html" class="home-link"></a>
+  <a href="../../Intro_to_Mill_for_Scala.html" class="home-link"></a>
 <nav class="breadcrumbs" aria-label="breadcrumbs">
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.8-11-0aa7bb</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.8-12-369a14</button>
   <div class="version-menu">
-    <a class="version is-current" href="6-scaladoc.html">0.11.8-11-0aa7bb</a>
+    <a class="version is-current" href="10-assembly-config.html">0.11.8-12-369a14</a>
     <a class="version is-missing" href="../../0.11.0-M7/index.html">0.11.0-M7</a>
     <a class="version is-missing" href="../../0.10.15/index.html">0.10.15</a>
     <a class="version is-missing" href="../../0.10.12/index.html">0.10.12</a>
@@ -313,96 +340,60 @@
     <a class="version is-missing" href="../../0.9.12/index.html">0.9.12</a>
   </div>
 </div>
-<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/example/scalamodule/6-scaladoc.adoc">Edit this Page</a></div>
+<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/example/javamodule/10-assembly-config.adoc">Edit this Page</a></div>
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<div class="paragraph">
-<p>To generate API documenation you can use the <code>docJar</code> task on the module you’d
-like to create the documenation for, configured via <code>scalaDocOptions</code> or
-<code>javadocOptions</code>:</p>
-</div>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/latest/0.11.8-example-scalamodule-6-scaladoc.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalamodule/6-scaladoc">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/latest/0.11.8-example-javamodule-10-assembly-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/javamodule/10-assembly-config">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
+import mill.javalib.Assembly._
 
-object foo extends ScalaModule {
-  def scalaVersion = &quot;3.1.3&quot;
+object foo extends JavaModule {
+  def moduleDeps = Seq(bar)
+  def assemblyRules = Seq(
+    // all application.conf files will be concatenated into single file
+    Rule.Append(&quot;application.conf&quot;),
+    // all *.conf files will be concatenated into single file
+    Rule.AppendPattern(&quot;.*\\.conf&quot;),
+    // all *.temp files will be excluded from a final jar
+    Rule.ExcludePattern(&quot;.*\\.temp&quot;),
+    // the `shapeless` package will be shaded under the `shade` package
+    Rule.Relocate(&quot;shapeless.**&quot;, &quot;shade.shapless.@1&quot;)
+  )
+}
 
-  def scalaDocOptions = Seq(&quot;-siteroot&quot;, &quot;mydocs&quot;, &quot;-no-link-warnings&quot;)
-}</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo.docJar
-
-&gt; unzip -p out/foo/docJar.dest/out.jar foo/Foo.html
-...
-...&lt;p&gt;My Awesome Scaladoc for class Foo&lt;/p&gt;...</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>When using Scala 3 you’re also able to use Scaladoc to generate a full static
-site next to your API documention. This can include general documenation for
-your project and even a blog. While you can find the full documenation for this
-in the <a href="https://docs.scala-lang.org/scala3/guides/scaladoc/index.html">Scala 3
-docs</a>, below you’ll find some useful information to help you generate this with
-Mill.</p>
-</div>
-<div class="paragraph">
-<p>By default, Mill will consider the <em>site root</em> as it’s called in
-<a href="https://docs.scala-lang.org/scala3/guides/scaladoc/static-site.html">Scala 3
-docs</a>, to be the value of <code>docResources()</code>. It will look there for your
-<code>_docs/</code> and your <code>_blog/</code> directory if any exist. Given a
-project called <code>bar</code>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bar extends ScalaModule {
-  def scalaVersion = &quot;3.1.3&quot;
+object bar extends JavaModule {
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Your project structure for this would look something like this:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>.
-├── build.sc
-├── bar
-│  ├── docs
-│  │  ├── _blog
-│  │  │  ├── _posts
-│  │  │  │  └── 2022-08-14-hello-world.md
-│  │  │  └── index.md
-│  │  └── _docs
-│  │     ├── getting-started.md
-│  │     ├── index.html
-│  │     └── index.md
-│  └── src
-│     └── example
-│        └── Hello.scala</pre>
-</div>
+<p>When you make a runnable jar of your project with <code>assembly</code> command,
+you may want to exclude some files from a final jar (like signature files,
+and manifest files from library jars), and merge duplicated files (for
+instance <code>reference.conf</code> files from library dependencies).</p>
 </div>
 <div class="paragraph">
-<p>After generating your docs with <code>mill example.docJar</code> you’ll find by opening
-your <code>out/app/docJar.dest/javadoc/index.html</code> locally in your browser you’ll
-have a full static site including your API docs, your blog, and your
-documentation.</p>
+<p>By default mill excludes all <code>*.sf</code>, <code>*.dsa</code>, <code>*.rsa</code>, and
+<code>META-INF/MANIFEST.MF</code> files from assembly, and concatenates all
+<code>reference.conf</code> files. You can also define your own merge/exclude rules.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show bar.docJar
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.assembly
 
-&gt; unzip -p out/bar/docJar.dest/out.jar bar/Bar.html
-...
-...&lt;p&gt;My Awesome Scaladoc for class Bar&lt;/p&gt;...</code></pre>
+&gt; unzip -p ./out/foo/assembly.dest/out.jar application.conf
+Bar Application Conf
+Foo Application Conf
+
+&gt; java -jar ./out/foo/assembly.dest/out.jar\
+Loaded application.conf from resources:...
+...Foo Application Conf
+...Bar Application Conf</code></pre>
 </div>
 </div>
 </article>

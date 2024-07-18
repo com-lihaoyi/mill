@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Untitled :: Mill</title>
-    <link rel="canonical" href="https://mill-build.com/mill/example/scalabuilds/10-scala-realistic.html" />
+    <link rel="canonical" href="https://mill-build.com/mill/example/javabuilds/4-nested-modules.html" />
     <meta name="generator" content="Antora 3.0.1" />
     <link rel="stylesheet" href="../../../_/css/site.css" />
 <link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
@@ -79,15 +79,15 @@
 
   <li class="nav-item is-active" data-depth="0">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Quick Start</span>
+    <span class="nav-text">Scala Quick Start</span>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../../Intro_to_Mill.html">Introduction to Mill</a>
+    <a class="nav-link" href="../../Intro_to_Mill_for_Scala.html">Introduction to Mill for Scala</a>
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../../Installation_IDE_Support.html">Installation and IDE Support</a>
+    <a class="nav-link" href="../../Scala_Installation_IDE_Support.html">Installation and IDE Support</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -104,6 +104,33 @@
 
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="../../Web_Build_Examples.html">Web Build Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Java Quick Start</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Intro_to_Mill_for_Java.html">Introduction to Mill for Java</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Java_Installation_IDE_Support.html">Installation and IDE Support</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Java_Builtin_Commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Java_Build_Examples.html">Java Build Examples</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Java_Module_Config.html">Java Module Configuration</a>
   </li>
 </ul>
   </li>
@@ -265,14 +292,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.8-11-0aa7bb</span>
+    <span class="version">0.11.8-12-369a14</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="../../index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="../../index.html">0.11.8-11-0aa7bb</a>
+          <a href="../../index.html">0.11.8-12-369a14</a>
         </li>
         <li class="version">
           <a href="../../0.11.0-M7/index.html">0.11.0-M7</a>
@@ -299,13 +326,13 @@
 <main class="article">
 <div class="toolbar" role="navigation">
 <button class="nav-toggle"></button>
-  <a href="../../Intro_to_Mill.html" class="home-link"></a>
+  <a href="../../Intro_to_Mill_for_Scala.html" class="home-link"></a>
 <nav class="breadcrumbs" aria-label="breadcrumbs">
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.8-11-0aa7bb</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.8-12-369a14</button>
   <div class="version-menu">
-    <a class="version is-current" href="10-scala-realistic.html">0.11.8-11-0aa7bb</a>
+    <a class="version is-current" href="4-nested-modules.html">0.11.8-12-369a14</a>
     <a class="version is-missing" href="../../0.11.0-M7/index.html">0.11.0-M7</a>
     <a class="version is-missing" href="../../0.10.15/index.html">0.10.15</a>
     <a class="version is-missing" href="../../0.10.12/index.html">0.10.12</a>
@@ -313,7 +340,7 @@
     <a class="version is-missing" href="../../0.9.12/index.html">0.9.12</a>
   </div>
 </div>
-<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/example/scalabuilds/10-scala-realistic.adoc">Edit this Page</a></div>
+<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/example/javabuilds/4-nested-modules.adoc">Edit this Page</a></div>
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -321,149 +348,66 @@
 </aside>
 <article class="doc">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/latest/0.11.8-example-scalabuilds-10-scala-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalabuilds/10-scala-realistic">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/latest/0.11.8-example-javabuilds-4-nested-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/javabuilds/4-nested-modules">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._, publish._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
 
-trait MyModule extends PublishModule {
-  def publishVersion = &quot;0.0.1&quot;
-
-  def pomSettings = PomSettings(
-    description = &quot;Hello&quot;,
-    organization = &quot;com.lihaoyi&quot;,
-    url = &quot;https://github.com/lihaoyi/example&quot;,
-    licenses = Seq(License.MIT),
-    versionControl = VersionControl.github(&quot;lihaoyi&quot;, &quot;example&quot;),
-    developers = Seq(Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;))
+trait MyModule extends JavaModule {
+  def ivyDeps = Agg(
+    ivy&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;,
+    ivy&quot;org.apache.commons:commons-text:1.12.0&quot;
   )
 }
 
-trait MyScalaModule extends MyModule with CrossScalaModule {
-  def ivyDeps = Agg(ivy&quot;com.lihaoyi::scalatags:0.12.0&quot;)
-  object test extends ScalaTests {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.7.11&quot;)
-    def testFramework = &quot;utest.runner.Framework&quot;
+object foo extends MyModule {
+  def moduleDeps = Seq(bar, qux)
+
+  object bar extends MyModule
+  object qux extends MyModule {
+    def moduleDeps = Seq(bar)
   }
 }
 
-val scalaVersions = Seq(&quot;2.13.8&quot;, &quot;3.2.2&quot;)
-
-object foo extends Cross[FooModule](scalaVersions)
-trait FooModule extends MyScalaModule {
-  def moduleDeps = Seq(bar(), qux)
-
-  def generatedSources = T {
-    os.write(
-      T.dest / &quot;Version.scala&quot;,
-      s&quot;&quot;&quot;package foo
-object Version{
-  def value = &quot;${publishVersion()}&quot;
-}
-&quot;&quot;&quot;.stripMargin
-    )
-    Seq(PathRef(T.dest))
-  }
-}
-
-object bar extends Cross[BarModule](scalaVersions)
-trait BarModule extends MyScalaModule {
-  def moduleDeps = Seq(qux)
-}
-
-object qux extends JavaModule with MyModule</code></pre>
+object baz extends MyModule {
+  def moduleDeps = Seq(foo.bar, foo.qux, foo)
+}</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>A semi-realistic build setup, combining all the individual Mill concepts:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>Two <code>CrossScalaModules</code> compiled against two Scala versions, that depend on
-each other as well as on a <code>JavaModule</code></p>
-</li>
-<li>
-<p>With unit testing and publishing set up</p>
-</li>
-<li>
-<p>With version-specific sources</p>
-</li>
-<li>
-<p>With generated sources to include the <code>publishVersion</code> as a string in the
-code, so it can be printed at runtime</p>
-</li>
-</ul>
+<p>Modules can be nested arbitrarily deeply within each other. The outer module
+can be the same kind of module as the ones within, or it can be a plain
+<code>Module</code> if we just need a wrapper to put the modules in without any tasks
+defined on the wrapper.</p>
 </div>
 <div class="paragraph">
-<p>Note that for multi-module builds like this, using queries to run tasks on
-multiple targets at once can be very convenient:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>__.test
-__.publishLocal</pre>
-</div>
+<p>The outer module can also depend on the inner module (as shown above),
+and vice versa, but not both at the same.</p>
 </div>
 <div class="paragraph">
-<p>Also note that <code>ScalaModule</code>s can depend on <code>JavaModule</code>s, and
-when multiple inter-dependent modules are published they automatically will
-include the inter-module dependencies in the publish metadata.</p>
-</div>
-<div class="paragraph">
-<p>Also note how you can use <code>trait</code>s to bundle together common combinations of
-modules: <code>MyScalaModule</code> not only defines a <code>ScalaModule</code> with some common
-configuration, but it also defines a <code>object test</code> module within it with its
-own configuration. This is a very useful technique for managing the often
-repetitive module structure in a typical project</p>
+<p>Running tasks on the nested modules requires the full module path
+<code>foo.bar.run</code></p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill resolve __.run
-bar[2.13.8].run
-bar[2.13.8].test.run
-bar[3.2.2].run
-bar[3.2.2].test.run
-foo[2.13.8].run
-foo[2.13.8].test.run
-foo[3.2.2].run
-foo[3.2.2].test.run
-qux.run
+foo.bar.run
+foo.qux.run
+baz.run
 
-&gt; mill foo[2.13.8].run
-foo version 0.0.1
-Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
-Bar.value: &lt;p&gt;world Specific code for Scala 2.x&lt;/p&gt;
-Qux.value: 31337
+&gt; mill foo.run --bar-text hello --qux-text world --foo-text today
+Bar.value: &lt;h1&gt;hello&lt;/h1&gt;
+Qux.value: &lt;p&gt;world&lt;/p&gt;
+Foo.value: &lt;p&gt;today&lt;/p&gt;
 
-&gt; mill bar[3.2.2].test
-+ bar.BarTests.test ... &lt;p&gt;world Specific code for Scala 3.x&lt;/p&gt;
+&gt; mill baz.run --bar-text hello --qux-text world --foo-text today --baz-text yay
+Bar.value: &lt;h1&gt;hello&lt;/h1&gt;
+Qux.value: &lt;p&gt;world&lt;/p&gt;
+Foo.value: &lt;p&gt;today&lt;/p&gt;
+Baz.value: &lt;p&gt;yay&lt;/p&gt;
 
-&gt; mill qux.run
-Qux.value: 31337
-
-&gt; mill __.compile
-
-&gt; mill __.test
-+ bar.BarTests.test ... &lt;p&gt;world Specific code for Scala 2.x&lt;/p&gt;
-+ bar.BarTests.test ... &lt;p&gt;world Specific code for Scala 3.x&lt;/p&gt;
-+ foo.FooTests.test ... &lt;h1&gt;hello&lt;/h1&gt;
-+ foo.FooTests.test ... &lt;h1&gt;hello&lt;/h1&gt;
-
-&gt; mill __.publishLocal
-Publishing Artifact(com.lihaoyi,foo_2.13,0.0.1) to ivy repo...
-Publishing Artifact(com.lihaoyi,bar_2.13,0.0.1) to ivy repo...
-Publishing Artifact(com.lihaoyi,foo_3,0.0.1) to ivy repo...
-Publishing Artifact(com.lihaoyi,bar_3,0.0.1) to ivy repo...
-Publishing Artifact(com.lihaoyi,qux,0.0.1) to ivy repo...
-
-&gt; mill show foo[2.13.8].assembly # mac/linux
-&quot;.../out/foo/2.13.8/assembly.dest/out.jar&quot;
-
-&gt; ./out/foo/2.13.8/assembly.dest/out.jar # mac/linux
-foo version 0.0.1
-Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
-Bar.value: &lt;p&gt;world Specific code for Scala 2.x&lt;/p&gt;
-Qux.value: 31337</code></pre>
+&gt; mill foo.qux.run --bar-text hello --qux-text world
+Bar.value: &lt;h1&gt;hello&lt;/h1&gt;
+Qux.value: &lt;p&gt;world&lt;/p&gt;</code></pre>
 </div>
 </div>
 </article>

@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Untitled :: Mill</title>
-    <link rel="canonical" href="https://mill-build.com/mill/example/scalabuilds/9-java-modules.html" />
+    <link rel="canonical" href="https://mill-build.com/mill/example/scalamodule/12-contrib-scoverage.html" />
     <meta name="generator" content="Antora 3.0.1" />
     <link rel="stylesheet" href="../../../_/css/site.css" />
 <link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
@@ -79,15 +79,15 @@
 
   <li class="nav-item is-active" data-depth="0">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Quick Start</span>
+    <span class="nav-text">Scala Quick Start</span>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../../Intro_to_Mill.html">Introduction to Mill</a>
+    <a class="nav-link" href="../../Intro_to_Mill_for_Scala.html">Introduction to Mill for Scala</a>
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../../Installation_IDE_Support.html">Installation and IDE Support</a>
+    <a class="nav-link" href="../../Scala_Installation_IDE_Support.html">Installation and IDE Support</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -104,6 +104,33 @@
 
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="../../Web_Build_Examples.html">Web Build Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Java Quick Start</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Intro_to_Mill_for_Java.html">Introduction to Mill for Java</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Java_Installation_IDE_Support.html">Installation and IDE Support</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Java_Builtin_Commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Java_Build_Examples.html">Java Build Examples</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Java_Module_Config.html">Java Module Configuration</a>
   </li>
 </ul>
   </li>
@@ -265,14 +292,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.8-11-0aa7bb</span>
+    <span class="version">0.11.8-12-369a14</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="../../index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="../../index.html">0.11.8-11-0aa7bb</a>
+          <a href="../../index.html">0.11.8-12-369a14</a>
         </li>
         <li class="version">
           <a href="../../0.11.0-M7/index.html">0.11.0-M7</a>
@@ -299,13 +326,13 @@
 <main class="article">
 <div class="toolbar" role="navigation">
 <button class="nav-toggle"></button>
-  <a href="../../Intro_to_Mill.html" class="home-link"></a>
+  <a href="../../Intro_to_Mill_for_Scala.html" class="home-link"></a>
 <nav class="breadcrumbs" aria-label="breadcrumbs">
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.8-11-0aa7bb</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.8-12-369a14</button>
   <div class="version-menu">
-    <a class="version is-current" href="9-java-modules.html">0.11.8-11-0aa7bb</a>
+    <a class="version is-current" href="12-contrib-scoverage.html">0.11.8-12-369a14</a>
     <a class="version is-missing" href="../../0.11.0-M7/index.html">0.11.0-M7</a>
     <a class="version is-missing" href="../../0.10.15/index.html">0.10.15</a>
     <a class="version is-missing" href="../../0.10.12/index.html">0.10.12</a>
@@ -313,7 +340,7 @@
     <a class="version is-missing" href="../../0.9.12/index.html">0.9.12</a>
   </div>
 </div>
-<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/example/scalabuilds/9-java-modules.adoc">Edit this Page</a></div>
+<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/example/scalamodule/12-contrib-scoverage.adoc">Edit this Page</a></div>
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -321,44 +348,70 @@
 </aside>
 <article class="doc">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/latest/0.11.8-example-scalabuilds-9-java-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalabuilds/9-java-modules">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/latest/0.11.8-example-scalamodule-12-contrib-scoverage.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalamodule/12-contrib-scoverage">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+import $ivy.`com.lihaoyi::mill-contrib-scoverage:`
 
-trait MyJavaModule extends JavaModule{
-  object test extends JavaModuleTests with TestModule.Junit4
-}
+import mill.contrib.scoverage._
 
-object foo extends MyJavaModule{
-  def moduleDeps = Seq(bar)
-}
+object foo extends RootModule with ScoverageModule {
+  def scoverageVersion = &quot;2.1.0&quot;
+  def scalaVersion = &quot;2.13.11&quot;
+  def ivyDeps = Agg(
+    ivy&quot;com.lihaoyi::scalatags:0.12.0&quot;,
+    ivy&quot;com.lihaoyi::mainargs:0.6.2&quot;
+  )
 
-object bar extends JavaModule</code></pre>
+  object test extends ScoverageTests /*with TestModule.Utest */{
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.7.11&quot;)
+    def testFramework = &quot;utest.runner.Framework&quot;
+  }
+}</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Mill also supports <code>JavaModule</code>s, which can only contain pure Java code
-without any Scala. These have the same set of tasks as <code>ScalaModules</code>:
-<code>compile</code>, <code>run</code>, etc., and can similarly depend on each other and have
-their own test suites.</p>
+<p>This is a basic Mill build for a single <code>ScalaModule</code>, enhanced with
+Scoverage plugin. The root module extends the <code>ScoverageModule</code> and
+specifies the version of scoverage version to use here: <code>2.1.0</code>. This
+version can be changed if there is a newer one. Now you can call the
+scoverage targets to produce coverage reports.
+The sub test module extends <code>ScoverageTests</code> to transform the
+execution of the various testXXX targets to use scoverage and produce
+coverage data.
+This lets us perform the coverage operations but before that you
+must first run the test.
+<code>./mill test</code> then <code>./mill scoverage.consoleReport</code> and get your
+coverage into your console output.</p>
+</div>
+<div class="paragraph">
+<p>You can download this example project using the <strong>download</strong> link above
+if you want to try out the commands below yourself. The only requirement is
+that you have some version of the JVM installed; the <code>./mill</code> script takes
+care of any further dependencies that need to be downloaded.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill resolve __.run
-foo.run
-bar.run
-
-&gt; mill foo.compile
-compiling 1 Java source...
-
-&gt; mill foo.run
-Foo.value: 31337
-Bar.value: 271828
-
-&gt; mill foo.test
-Test run started
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill test # Run the tests and produce the coverage data
 ...
-Test run finished: 0 failed, 0 ignored, 2 total...</code></pre>
++ foo.FooTests.simple ...  &lt;h1&gt;hello&lt;/h1&gt;
++ foo.FooTests.escaping ...  &lt;h1&gt;&amp;lt;hello&amp;gt;&lt;/h1&gt;
+
+&gt; ./mill resolve scoverage._ # List what tasks are available to run from scoverage
+...
+scoverage.consoleReport
+...
+scoverage.htmlReport
+...
+scoverage.xmlCoberturaReport
+...
+scoverage.xmlReport
+...
+
+&gt; ./mill scoverage.consoleReport
+...
+Statement coverage.: 16.67%
+Branch coverage....: 100.00%</code></pre>
 </div>
 </div>
 </article>

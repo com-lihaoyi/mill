@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Untitled :: Mill</title>
-    <link rel="canonical" href="https://mill-build.com/mill/example/scalabuilds/8-sbt-compat-modules.html" />
+    <link rel="canonical" href="https://mill-build.com/mill/example/javabuilds/2-custom-tasks.html" />
     <meta name="generator" content="Antora 3.0.1" />
     <link rel="stylesheet" href="../../../_/css/site.css" />
 <link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
@@ -79,15 +79,15 @@
 
   <li class="nav-item is-active" data-depth="0">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Quick Start</span>
+    <span class="nav-text">Scala Quick Start</span>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../../Intro_to_Mill.html">Introduction to Mill</a>
+    <a class="nav-link" href="../../Intro_to_Mill_for_Scala.html">Introduction to Mill for Scala</a>
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../../Installation_IDE_Support.html">Installation and IDE Support</a>
+    <a class="nav-link" href="../../Scala_Installation_IDE_Support.html">Installation and IDE Support</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -104,6 +104,33 @@
 
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="../../Web_Build_Examples.html">Web Build Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Java Quick Start</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Intro_to_Mill_for_Java.html">Introduction to Mill for Java</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Java_Installation_IDE_Support.html">Installation and IDE Support</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Java_Builtin_Commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Java_Build_Examples.html">Java Build Examples</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Java_Module_Config.html">Java Module Configuration</a>
   </li>
 </ul>
   </li>
@@ -265,14 +292,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.8-11-0aa7bb</span>
+    <span class="version">0.11.8-12-369a14</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="../../index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="../../index.html">0.11.8-11-0aa7bb</a>
+          <a href="../../index.html">0.11.8-12-369a14</a>
         </li>
         <li class="version">
           <a href="../../0.11.0-M7/index.html">0.11.0-M7</a>
@@ -299,13 +326,13 @@
 <main class="article">
 <div class="toolbar" role="navigation">
 <button class="nav-toggle"></button>
-  <a href="../../Intro_to_Mill.html" class="home-link"></a>
+  <a href="../../Intro_to_Mill_for_Scala.html" class="home-link"></a>
 <nav class="breadcrumbs" aria-label="breadcrumbs">
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.8-11-0aa7bb</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.8-12-369a14</button>
   <div class="version-menu">
-    <a class="version is-current" href="8-sbt-compat-modules.html">0.11.8-11-0aa7bb</a>
+    <a class="version is-current" href="2-custom-tasks.html">0.11.8-12-369a14</a>
     <a class="version is-missing" href="../../0.11.0-M7/index.html">0.11.0-M7</a>
     <a class="version is-missing" href="../../0.10.15/index.html">0.10.15</a>
     <a class="version is-missing" href="../../0.10.12/index.html">0.10.12</a>
@@ -313,7 +340,7 @@
     <a class="version is-missing" href="../../0.9.12/index.html">0.9.12</a>
   </div>
 </div>
-<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/example/scalabuilds/8-sbt-compat-modules.adoc">Edit this Page</a></div>
+<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/example/javabuilds/2-custom-tasks.adoc">Edit this Page</a></div>
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -321,92 +348,98 @@
 </aside>
 <article class="doc">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/latest/0.11.8-example-scalabuilds-8-sbt-compat-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/scalabuilds/8-sbt-compat-modules">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/latest/0.11.8-example-javabuilds-2-custom-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/javabuilds/2-custom-tasks">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
 
-object foo extends SbtModule {
-  def scalaVersion = &quot;2.13.8&quot;
-  object test extends SbtModuleTests {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.7.11&quot;)
-    def testFramework = &quot;utest.runner.Framework&quot;
-  }
+object foo extends RootModule with JavaModule {
+  def ivyDeps = Agg(ivy&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;)
+
+  def generatedSources: T[Seq[PathRef]] = T {
+    val prettyIvyDeps = for(ivyDep &lt;- ivyDeps()) yield {
+      val org = ivyDep.dep.module.organization.value
+      val name = ivyDep.dep.module.name.value
+      val version = ivyDep.dep.version
+      s&quot;&quot;&quot; &quot;$org:$name:$version&quot; &quot;&quot;&quot;
+    }
+    os.write(
+      T.dest / s&quot;MyDeps.java&quot;,
+      s&quot;&quot;&quot;
+package foo;
+public class MyDeps {
+  public static String value =
+    ${prettyIvyDeps.mkString(&quot; + \&quot;\\n\&quot; + \n&quot;)};
 }
+      &quot;&quot;&quot;.stripMargin
+    )
 
-
-object bar extends Cross[BarModule](&quot;2.12.17&quot;, &quot;2.13.8&quot;)
-trait BarModule extends CrossSbtModule {
-  object test extends CrossSbtModuleTests {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.7.11&quot;)
-    def testFramework = &quot;utest.runner.Framework&quot;
+    Seq(PathRef(T.dest))
   }
+
+  def lineCount: T[Int] = T {
+    sources()
+      .flatMap(pathRef =&gt; os.walk(pathRef.path))
+      .filter(_.ext == &quot;java&quot;)
+      .map(os.read.lines(_).size)
+      .sum
+  }
+
+  def forkArgs: T[Seq[String]] = Seq(s&quot;-Dmy.line.count=${lineCount()}&quot;)
+
+  def printLineCount() = T.command { println(lineCount()) }
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p><code>SbtModule</code>/<code>CrossSbtModule</code> are variants of <code>ScalaModule</code>/<code>CrossScalaModule</code>
-that use the more verbose folder layout of SBT, Maven, and other tools:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>foo/src/main/scala</code></p>
-</li>
-<li>
-<p><code>foo/src/main/scala-2.12</code></p>
-</li>
-<li>
-<p><code>foo/src/main/scala-2.13</code></p>
-</li>
-<li>
-<p><code>foo/src/test/scala</code></p>
-</li>
-</ul>
+<p>Mill lets you define new cached Targets using the <code>T {…​}</code> syntax,
+depending on existing Targets e.g. <code>foo.sources</code> via the <code>foo.sources()</code>
+syntax to extract their current value, as shown in <code>lineCount</code> above. The
+return-type of a Target has to be JSON-serializable (using
+<a href="https://github.com/lihaoyi/upickle">uPickle</a>) and the Target is cached when
+first run until its inputs change (in this case, if someone edits the
+<code>foo.sources</code> files which live in <code>foo/src</code>. Cached Targets cannot take
+parameters.</p>
 </div>
 <div class="paragraph">
-<p>Rather than Mill’s</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>foo/src</code></p>
-</li>
-<li>
-<p><code>foo/src-2.12</code></p>
-</li>
-<li>
-<p><code>foo/src-2.13</code></p>
-</li>
-<li>
-<p><code>foo/test/src</code></p>
-</li>
-</ul>
+<p>Note that depending on a task requires use of parentheses after the task
+name, e.g. <code>ivyDeps()</code>, <code>sources()</code> and <code>lineCount()</code>. This converts the
+task of type <code>T[V]</code> into a value of type <code>V</code> you can make use in your task
+implementation.</p>
 </div>
 <div class="paragraph">
-<p>This is especially useful if you are migrating from SBT to Mill (or vice
-versa), during which a particular module may be built using both SBT and
-Mill at the same time</p>
+<p>This example can be run as follows:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.compile
-compiling 1 Scala source...
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill run --text hello
+text: hello
+MyDeps.value: net.sourceforge.argparse4j:argparse4j:0.9.0
+my.line.count: 24
 
-&gt; mill foo.test.compile
-compiling 1 Scala source...
+&gt; mill show lineCount
+24
 
-&gt; mill foo.test.test
-+ foo.FooTests.hello ...
-
-&gt; mill foo.test
-+ foo.FooTests.hello ...
-
-&gt; mill bar[2.13.8].run
-Bar.value: Hello World Scala library version 2.13.8...
-
-&gt; mill bar[2.12.17].run
-Bar.value: Hello World Scala library version 2.12.17...</code></pre>
+&gt; mill printLineCount
+24</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>Custom targets and commands can contain arbitrary code. Whether you want to
+download files using <code>requests.get</code>, shell-out to Webpack
+to compile some Javascript, generate sources to feed into a compiler, or
+create some custom jar/zip assembly with the files you want , all of these
+can simply be custom targets with your code running in the <code>T {…​}</code> block.</p>
+</div>
+<div class="paragraph">
+<p>You can create arbitrarily long chains of dependent targets, and Mill will
+handle the re-evaluation and caching of the targets' output for you.
+Mill also provides you a <code>T.dest</code> folder for you to use as scratch space or
+to store files you want to return: all files a task creates should live
+within <code>T.dest</code>, and any files you want to modify should be copied into
+<code>T.dest</code> before being modified. That ensures that the files belonging to a
+particular target all live in one place, avoiding file-name conflicts and
+letting Mill automatically invalidate the files when the target’s inputs
+change.</p>
 </div>
 </article>
   </div>
