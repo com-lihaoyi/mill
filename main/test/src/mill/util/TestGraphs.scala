@@ -619,6 +619,9 @@ object TestGraphs {
       trait ConcreteTests extends Tests {
         object inner extends Module{
           def foo = T { "foo" }
+          object innerer extends Module{
+            def bar = T { "bar" }
+          }
         }
       }
     }
