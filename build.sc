@@ -511,6 +511,11 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
     // Not sure why mima is picking up this stuff which is private[mill]
     ProblemFilter.exclude[Problem]("mill.resolve.*.resolve0"),
     ProblemFilter.exclude[Problem]("mill.resolve.*.resolveRootModule"),
+
+    // These methods are private so it doesn't matter
+    ProblemFilter.exclude[ReversedMissingMethodProblem]("mill.resolve.Resolve.handleResolved"),
+    ProblemFilter.exclude[Problem]("mill.resolve.*.resolveNonEmptyAndHandle*"),
+    ProblemFilter.exclude[Problem]("mill.resolve.ResolveCore*"),
   )
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
 
