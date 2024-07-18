@@ -506,7 +506,9 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
     ),
     ProblemFilter.exclude[ReversedMissingMethodProblem](
       "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$runMain"
-    )
+    ),
+    // Terminal is sealed, not sure why MIMA still complains
+    ProblemFilter.exclude[ReversedMissingMethodProblem]("mill.eval.Terminal.task")
   )
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
 
