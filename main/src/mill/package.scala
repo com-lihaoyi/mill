@@ -10,8 +10,8 @@ package object mill extends mill.api.JsonFormatters {
   val Cross = define.Cross
   type Agg[T] = mill.api.Loose.Agg[T]
   val Agg = mill.api.Loose.Agg
-
-  class root extends scala.annotation.StaticAnnotation
+  type RootModule = mill.main.RootModule
+  val RootModule = mill.main.RootModule
   type Args = define.Args
   val Args = define.Args
 
