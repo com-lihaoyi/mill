@@ -289,6 +289,20 @@ endif::[]
 // find-replace-regex: https://github.com/com-lihaoyi/mill/pull/(\d*) -> {link-pr}/$1[#$1]
 
 
+[#0-11-9]
+=== 0.11.9 - 2024-07-18
+:version: 0.11.9
+:milestone-name: 0.11.9
+:milestone: 94
+:prev-version: 0.11.8
+
+_Changes since {prev-version}:_
+
+__New features__
+
+* First class support for Java projects {link-pr}/3261[#3261]
+* Add coarse grained lock around BSP request to avoid deadlocks {link-pr}/3243[#3243]
+
 [#0-11-8]
 === 0.11.8 - 2024-06-21
 :version: 0.11.8
