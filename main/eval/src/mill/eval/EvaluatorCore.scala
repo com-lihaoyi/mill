@@ -158,7 +158,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     val (_, tasksTransitive0) = Plan.plan(Agg.from(tasks0.map(_.task)))
 
     val tasksTransitive = tasksTransitive0.toSet
-    val (tasks, commands) = terminals0.partition {
+    val (tasks, leafCommands) = terminals0.partition {
       case Terminal.Labelled(t, _) if tasksTransitive.contains(t) => true
       case _ => false
     }
@@ -167,10 +167,12 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     // given but run the commands in linear order
     evaluateTerminals(
       tasks,
+      // We want to skip the non-deterministic thread prefix in our test suite
+      // since all it would do is clutter the testing logic trying to match on it
       if (sys.env.contains("MILL_TEST_SUITE")) _ => ""
       else contextLoggerMsg0
     )(ec)
-    evaluateTerminals(commands, _ => "")(ExecutionContexts.RunNow)
+    evaluateTerminals(leafCommands, _ => "")(ExecutionContexts.RunNow)
 
     val finishedOptsMap = terminals0
       .map(t => (t, Await.result(futures(t), duration.Duration.Inf)))
