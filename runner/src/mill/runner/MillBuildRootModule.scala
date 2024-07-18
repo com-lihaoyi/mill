@@ -354,9 +354,9 @@ object MillBuildRootModule {
         s"_root_.mill.main.RootModule.Foreign(Some(_root_.mill.define.Segments.labels($segsList)))"
       }
 
-    val imports =
-      if (name == "build") "import mill.main.RootModule"
-      else "import mill.main.{RootModuleForeign => RootModule}"
+    val imports = ""
+//      if (name == "build") "import mill.main.RootModule"
+//      else "import mill.main.{RootModuleForeign => RootModule}"
 
     val miscInfoName = s"MiscInfo_$name"
 

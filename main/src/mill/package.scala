@@ -10,10 +10,8 @@ package object mill extends mill.api.JsonFormatters {
   val Cross = define.Cross
   type Agg[T] = mill.api.Loose.Agg[T]
   val Agg = mill.api.Loose.Agg
-  @deprecated("bincompat shim")
-  private[mill] type RootModule = mill.main.RootModule
-  @deprecated("bincompat shim")
-  private[mill] val RootModule = mill.main.RootModule
+  type RootModule = mill.main.RootModule
+  val RootModule = mill.main.RootModule
   type Args = define.Args
   val Args = define.Args
 
