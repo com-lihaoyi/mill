@@ -150,8 +150,16 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       }
     }
 
-    val (commands, tasks) = terminals0.partition {
-      case Terminal.Labelled(c: Command[_], _) => true
+    val tasks0 = terminals0.filter {
+      case Terminal.Labelled(c: Command[_], _) => false
+      case _ => true
+    }
+
+    val (_, tasksTransitive0) = Plan.plan(Agg.from(tasks0.map(_.task)))
+
+    val tasksTransitive = tasksTransitive0.toSet
+    val (tasks, commands) = terminals0.partition {
+      case Terminal.Labelled(t, _) if tasksTransitive.contains(t) => true
       case _ => false
     }
 
