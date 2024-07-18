@@ -1185,18 +1185,65 @@ object example extends MillScalaModule {
   def moduleDeps = Seq(integration)
 
   object basic extends Cross[ExampleCrossModule](listIn(millSourcePath / "basic"))
+  object basicjava extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "basicjava"))
   object scalabuilds extends Cross[ExampleCrossModule](listIn(millSourcePath / "scalabuilds"))
+  object javabuilds extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "javabuilds"))
   object scalamodule extends Cross[ExampleCrossModule](listIn(millSourcePath / "scalamodule"))
+  object javamodule extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "javamodule"))
   object tasks extends Cross[ExampleCrossModule](listIn(millSourcePath / "tasks"))
   object cross extends Cross[ExampleCrossModule](listIn(millSourcePath / "cross"))
   object misc extends Cross[ExampleCrossModule](listIn(millSourcePath / "misc"))
   object web extends Cross[ExampleCrossModule](listIn(millSourcePath / "web"))
 
+  trait ExampleCrossModuleJava extends ExampleCrossModule {
+
+    def upstreamCross(s: String) = s match{
+      case "basicjava" => basic
+      case "javabuilds" => scalabuilds
+      case "javamodule" => scalamodule
+    }
+
+    def buildScLines = T{
+      val upstreamLines = os.read.lines(
+        upstreamCross(this.millModuleSegments.parts.dropRight(1).last)(crossValue)
+          .testRepoRoot().path / "build.sc"
+      )
+      val lines = os.read.lines(testRepoRoot().path / "build.sc")
+
+      import collection.mutable
+      val groupedLines = mutable.Map.empty[String, mutable.Buffer[String]]
+      var current = Option.empty[String]
+      lines.foreach{
+        case s"//// SNIPPET:$name" =>
+          current = Some(name)
+          groupedLines(name) = mutable.Buffer()
+        case s => groupedLines(current.get).append(s)
+      }
+
+      upstreamLines.flatMap{
+        case s"//// SNIPPET:$name" =>
+          if (name != "END") {
+
+            current = Some(name)
+            groupedLines(name)
+          } else{
+            current = None
+            Nil
+          }
+
+        case s =>
+          if (current.nonEmpty) None
+          else Some(s)
+      }
+    }
+  }
   trait ExampleCrossModule extends IntegrationTestCrossModule {
     // disable scalafix because these example modules don't have sources causing it to misbehave
     def fix(args: String*): Command[Unit] = T.command {}
     def testRepoRoot: T[PathRef] = T.source(millSourcePath)
     def compile = example.compile()
+
+    def buildScLines = T{ os.read.lines(testRepoRoot().path / "build.sc") }
     def forkEnv = super.forkEnv() ++ Map("MILL_EXAMPLE_PARSED" -> upickle.default.write(parsed()))
 
     /**
@@ -1206,7 +1253,7 @@ object example extends MillScalaModule {
       val states = collection.mutable.Buffer("scala")
       val chunks = collection.mutable.Buffer(collection.mutable.Buffer.empty[String])
 
-      for (line <- os.read.lines(testRepoRoot().path / "build.sc")) {
+      for (line <- buildScLines()) {
         val (newState, restOpt) = line match {
           case s"/** Usage" => ("example", None)
           case s"/** See Also: $path */" =>
@@ -1278,7 +1325,8 @@ object example extends MillScalaModule {
   def repoInfo = Map(
     "acyclic" -> ("com-lihaoyi/acyclic", "1ec221f377794db39e8ff9b43415f81c703c202f"),
     "fansi" -> ("com-lihaoyi/fansi", "169ac96d7c6761a72590d312a433cf12c572573c"),
-    "jimfs" -> ("google/jimfs", "5b60a42eb9d3cd7a2073d549bd0cb833f5a7e7e9")
+    "jimfs" -> ("google/jimfs", "5b60a42eb9d3cd7a2073d549bd0cb833f5a7e7e9"),
+    "commons-io" -> ("apache/commons-io", "b91a48074231ef813bc9b91a815d77f6343ff8f0")
   )
   object thirdparty extends Cross[ThirdPartyModule](listIn(millSourcePath / "thirdparty"))
   trait ThirdPartyModule extends ExampleCrossModule {
@@ -1467,6 +1515,7 @@ object dev extends MillPublishScalaModule {
     contrib.buildinfo.testDep(),
     contrib.scoverage.testDep(),
     contrib.scoverage.worker2.testDep(),
+    contrib.jmh.testDep(),
     contrib.playlib.testDep(),
     contrib.playlib.worker("2.8").testDep(),
     bsp.worker.testDep()
@@ -1704,7 +1753,7 @@ object docs extends Module {
     s"""site:
        |  title: Mill
        |  url: ${if (authorMode) s"${T.dest}/site" else Settings.docUrl}
-       |  start_page: mill::Intro_to_Mill.adoc
+       |  start_page: mill::Intro_to_Mill_for_Scala.adoc
        |
        |content:
        |  sources:
@@ -1743,6 +1792,10 @@ object docs extends Module {
        |  extensions:
        |  - require: '@antora/lunr-extension'
        |    index_latest_only: true
+       |
+       |runtime:
+       |  log:
+       |    failure_level: error
        |
        |""".stripMargin
   }

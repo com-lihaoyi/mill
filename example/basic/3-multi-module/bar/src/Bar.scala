@@ -1,9 +1,12 @@
 package bar
 import scalatags.Text.all._
 object Bar {
-  def printText(text: String): Unit = {
-    val value = p("world")
-    println("Bar.value: " + value)
+  def generateHtml(text: String) = {
+    val value = h1(text)
+    value.toString
   }
-  def main(args: Array[String]) = printText(args(0))
+
+  def main(args: Array[String]) = {
+    println("Bar.value: " + generateHtml(args(0)))
+  }
 }

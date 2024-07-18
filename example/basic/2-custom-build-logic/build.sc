@@ -3,6 +3,8 @@
 // our `ScalaModule` - normally the `resources/` folder - to instead contain a
 // single generated text file containing the line count of all the source files
 // in that module
+
+//// SNIPPET:BUILD
 import mill._, scalalib._
 
 object foo extends RootModule with ScalaModule {
@@ -20,17 +22,19 @@ object foo extends RootModule with ScalaModule {
   }
 }
 
+//// SNIPPET:END
+
 /** Usage
 
 > mill run
 ...
-Line Count: 11
+Line Count: 17
 
 > mill show lineCount
-11
+17
 
 > mill inspect lineCount
-lineCount(build.sc:12)
+lineCount(build.sc:...)
     Total number of lines in module's source files
 Inputs:
     allSourceFiles

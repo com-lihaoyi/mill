@@ -57,6 +57,10 @@ include::example/misc/4-mill-build-folder.adoc[]
 
 include::example/misc/5-module-run-task.adoc[]
 
+== Importing Contrib Modules
+
+include::example/misc/6-contrib-import.adoc[]
+
 == Evaluator Commands (experimental)
 
 _Evaluator Command are experimental and suspected to change.

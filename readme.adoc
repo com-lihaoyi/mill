@@ -137,21 +137,21 @@ You can reproduce any of the tests manually using `dev.run`, e.g.
 
 [source,bash]
 ----
-./mill "example.basic[1-simple-scala].local"
+./mill "example.basic[1-simple].local"
 ----
 
 **Manual Test**
 
 [source,bash]
 ----
-./mill dev.run example/basic/1-simple-scala run --text hello
+./mill dev.run example/basic/1-simple run --text hello
 ----
 
 **Manual Test using Launcher Script**
 
 [source,bash]
 ----
-./mill dev.launcher && (cd example/basic/1-simple-scala && ../../../out/dev/launcher.dest/run run --text hello)
+./mill dev.launcher && (cd example/basic/1-simple && ../../../out/dev/launcher.dest/run run --text hello)
 ----
 
 === Sub-Process Tests *with* Packaging/Publishing
@@ -164,7 +164,7 @@ You can reproduce these tests manually using `dev.assembly`:
 
 [source,bash]
 ----
-./mill dev.assembly && (cd example/basic/1-simple-scala && ../../../out/dev/assembly.dest/mill run --text hello)
+./mill dev.assembly && (cd example/basic/1-simple && ../../../out/dev/assembly.dest/mill run --text hello)
 ----
 
 There are two flavors of these tests:

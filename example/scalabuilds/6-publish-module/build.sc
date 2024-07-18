@@ -1,3 +1,4 @@
+//// SNIPPET:BUILD
 import mill._, scalalib._, publish._
 
 object foo extends ScalaModule with PublishModule {
@@ -28,6 +29,8 @@ object foo extends ScalaModule with PublishModule {
 Publishing Artifact(com.lihaoyi,foo_2.13,0.0.1) to ivy repo...
 
 */
+
+//// SNIPPET:END
 
 // The `artifactName` defaults to the name of your module (in this case `foo`)
 // but can be overridden. The `organization` is defined in `pomSettings`.
