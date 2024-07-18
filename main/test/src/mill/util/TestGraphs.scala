@@ -610,16 +610,16 @@ object TestGraphs {
 
   object AbstractModule extends TestUtil.BaseModule {
     trait Abstract extends Module {
-      lazy val tests: Tests = new Tests{}
-      trait Tests extends Module{}
+      lazy val tests: Tests = new Tests {}
+      trait Tests extends Module {}
     }
 
-    object concrete extends Abstract{
-      override lazy val tests: ConcreteTests = new ConcreteTests{}
+    object concrete extends Abstract {
+      override lazy val tests: ConcreteTests = new ConcreteTests {}
       trait ConcreteTests extends Tests {
-        object inner extends Module{
+        object inner extends Module {
           def foo = T { "foo" }
-          object innerer extends Module{
+          object innerer extends Module {
             def bar = T { "bar" }
           }
         }
