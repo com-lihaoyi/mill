@@ -1,10 +1,4 @@
 
-{mill-github-url}[Mill] is your shiny new Java/Scala build tool! Mill aims for
-simplicity by reusing concepts you are already familiar with, borrowing ideas
-from modern tools like https://maven.apache.org/[Maven], https://gradle.org/[Gradle],
-https://bazel.build/[Bazel] and https://www.scala-sbt.org/[SBT]. It lets you build
-your projects in a way that's simple, fast, and predictable.
-
 Mill automates dealing with a lot of common build-tool concerns: Caching,
 incremental re-computation, parallelism, discoverability, etc. This allows you
 to focus your effort on the business logic unique to your build, while letting
@@ -17,11 +11,6 @@ http://www.scala-sbt.org/[SBT]. It can be xref:Extending_Mill.adoc[extended]
 to support any other language or platform via modules (written in Java
 or Scala) or through external subprocesses. Mill supports a rich ecosystem of
 xref:Contrib_Plugins.adoc[] and xref:Thirdparty_Plugins.adoc[].
-
-If you are using Mill, you will find the following book by the Author useful in
-using Mill and its supporting libraries to the fullest:
-
-* https://handsonscala.com/[Hands-on Scala Programming]
 
 If you prefer a video introduction rather than text, the following presentation
 (and companion blog post) is a good introduction into what the Mill build tool is

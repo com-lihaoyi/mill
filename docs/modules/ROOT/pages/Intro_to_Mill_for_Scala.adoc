@@ -15,8 +15,20 @@
 
 :page-aliases: index.adoc
 
+
+{mill-github-url}[Mill] is your shiny new Scala build tool! Mill aims for
+simplicity by reusing concepts you are already familiar with, borrowing ideas
+from modern tools like https://maven.apache.org/[Maven], https://gradle.org/[Gradle],
+https://bazel.build/[Bazel] and https://www.scala-sbt.org/[SBT]. It lets you build
+your projects in a way that's simple, fast, and predictable.
+
 include::partial$Intro_to_Mill_Header.adoc[]
 
+
+If you are using Mill, you will find the following book by the Author useful in
+using Mill and its supporting libraries to the fullest:
+
+* https://handsonscala.com/[Hands-on Scala Programming]
 
 == Simple Scala Module
 
