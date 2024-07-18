@@ -7,11 +7,12 @@ object millbuild extends MillBuildRootModule{
   def generatedSources = T {
     os.write(
       T.dest / "DepVersions.scala",
-      s"""package millbuild
+      s"""
+         |package millbuild
          |object DepVersions{
          |  def scalatagsVersion = "$scalatagsVersion"
          |}
-         |""".stripMargin
+      """.stripMargin
     )
     super.generatedSources() ++ Seq(PathRef(T.dest))
   }

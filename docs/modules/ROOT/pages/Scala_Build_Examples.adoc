@@ -48,21 +48,18 @@ include::example/scalabuilds/7-cross-scala-version.adoc[]
 
 == SBT-Compatible Modules
 
-include::example/scalabuilds/8-sbt-compat-modules.adoc[]
+include::example/scalabuilds/8-compat-modules.adoc[]
 
-== Java Modules
-
-include::example/scalabuilds/9-java-modules.adoc[]
 
 == Realistic Scala Example Project
 
-include::example/scalabuilds/10-scala-realistic.adoc[]
+include::example/scalabuilds/9-realistic.adoc[]
 
 
-== Example Builds
+== Example Builds for Real Projects
 
-Mill comes bundled with example builds for existing open-source projects, as
-integration tests and examples:
+Mill comes bundled with example builds for real-world open-source projects,
+demonstrating how Mill can be used to build code outside of tiny example codebases:
 
 === Acyclic
 
@@ -72,6 +69,19 @@ include::example/thirdparty/acyclic.adoc[]
 
 include::example/thirdparty/fansi.adoc[]
 
-=== JimFS
+== Real World Mill Builds
 
-include::example/thirdparty/jimfs.adoc[]
+=== Ammonite
+
+https://github.com/com-lihaoyi/Ammonite[Ammonite] is an ergonomic Scala REPL.
+
+=== Scala-ClI
+
+https://github.com/VirtusLab/scala-cli[Scala-CLI] is the primary CLI tool that
+runs when you enter `scala` in the terminal. It is able to compile, test, run,
+and package your Scala code in a variety of different ways
+
+=== Coursier
+
+https://github.com/coursier/coursier[Coursier] is a fast JVM dependency resolver,
+used in many build tools down resolve and download third party dependencies
