@@ -1,3 +1,4 @@
+//// SNIPPET:BUILD
 import mill._, scalalib._
 
 object foo extends RootModule with ScalaModule {
@@ -13,6 +14,7 @@ object foo extends RootModule with ScalaModule {
   }
 }
 
+//// SNIPPET:END
 // You can also override `unmanagedClasspath` to point it at jars that you want to
 // download from arbitrary URLs. Note that targets like `unmanagedClasspath` are
 // cached, so your jar is downloaded only once and re-used indefinitely after that.

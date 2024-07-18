@@ -1,5 +1,7 @@
 package foo
+
 import mainargs.{main, ParserForMethods}
+
 object Foo {
   @main
   def main(text: String): Unit = {
