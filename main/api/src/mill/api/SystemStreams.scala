@@ -2,6 +2,7 @@ package mill.api
 
 import java.io.{InputStream, OutputStream, PrintStream}
 import mill.main.client.InputPumper
+
 /**
  * Represents a set of streams that look similar to those provided by the
  * operating system. These may internally be proxied/redirected/processed, but
@@ -48,14 +49,14 @@ object SystemStreams {
 
   def originalErr: PrintStream = original.err
 
-  private class PumpedProcessInput extends os.ProcessInput{
+  private class PumpedProcessInput extends os.ProcessInput {
     def redirectFrom = ProcessBuilder.Redirect.PIPE
     def processInput(processIn: => os.SubProcess.InputStream) = Some(
       new InputPumper(() => System.in, () => processIn, true, () => true)
     )
   }
 
-  private class PumpedProcessOutput(dest: OutputStream) extends os.ProcessOutput{
+  private class PumpedProcessOutput(dest: OutputStream) extends os.ProcessOutput {
     def redirectTo = ProcessBuilder.Redirect.PIPE
     def processOutput(processOut: => os.SubProcess.OutputStream) =
       Some(new InputPumper(() => processOut, () => dest, false, () => true))

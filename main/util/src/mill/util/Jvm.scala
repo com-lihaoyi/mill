@@ -207,17 +207,17 @@ object Jvm extends CoursierSupport {
     spawnSubprocessWithBackgroundOutputs(commandArgs, envArgs, workingDir, backgroundOutputs)
   }
 
-    /**
-     * Spawns a generic subprocess, streaming the stdout and stderr to the
-     * console. If the System.out/System.err have been substituted, makes sure
-     * that the subprocess's stdout and stderr streams go to the subtituted
-     * streams.
-     *
-     * If the process should be spawned in the background, destination streams for out and err
-     * respectively must be defined in the backgroundOutputs tuple. Nonbackground process should set
-     * backgroundOutputs to None
-     */
-   def spawnSubprocessWithBackgroundOutputs(
+  /**
+   * Spawns a generic subprocess, streaming the stdout and stderr to the
+   * console. If the System.out/System.err have been substituted, makes sure
+   * that the subprocess's stdout and stderr streams go to the subtituted
+   * streams.
+   *
+   * If the process should be spawned in the background, destination streams for out and err
+   * respectively must be defined in the backgroundOutputs tuple. Nonbackground process should set
+   * backgroundOutputs to None
+   */
+  def spawnSubprocessWithBackgroundOutputs(
       commandArgs: Seq[String],
       envArgs: Map[String, String],
       workingDir: os.Path,
