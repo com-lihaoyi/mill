@@ -1,0 +1,12 @@
+= Web Build Examples
+
+This page contains examples of using Mill as a build tool for web-applications.
+It covers setting up a basic backend server with a variety of server frameworks
+
+== Spring Boot Hello World App
+
+include::example/javaweb/1-hello-spring-boot.adoc[]
+
+== Jetty Hello World App
+
+include::example/javaweb/1-hello-spring-boot.adoc[]
