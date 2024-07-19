@@ -59,7 +59,34 @@ object SystemStreams {
       Console.withIn(systemStreams.in) {
         Console.withOut(systemStreams.out) {
           Console.withErr(systemStreams.err) {
-            t
+            os.Inherit.in.withValue(
+              new os.ProcessInput{
+                def redirectFrom = ProcessBuilder.Redirect.PIPE
+                def processInput(processIn: => os.SubProcess.InputStream) = Some(
+                  new mill.main.client.InputPumper(in, processIn, true, () => true)
+                )
+              }
+            ){
+              os.Inherit.out.withValue(
+                new os.ProcessOutput{
+                  def redirectTo = ProcessBuilder.Redirect.PIPE
+                  def processOutput(processOut: => os.SubProcess.OutputStream) = Some(
+                    new mill.main.client.InputPumper(processOut, out, false, () => true)
+                  )
+                }
+              ){
+                os.Inherit.err.withValue(
+                  new os.ProcessOutput{
+                    def redirectTo = ProcessBuilder.Redirect.PIPE
+                    def processOutput(processErr: => os.SubProcess.OutputStream) = Some(
+                      new mill.main.client.InputPumper(processErr, err, false, () => true)
+                    )
+                  }
+                ){
+                  t
+                }
+              }
+            }
           }
         }
       }
