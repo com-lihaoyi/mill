@@ -13,7 +13,7 @@
 
 = Introduction to Mill for Scala
 
-:page-aliases: index.adoc
+:page-aliases: index.adoc, Intro_to_Mill.adoc
 
 
 {mill-github-url}[Mill] is your shiny new Scala build tool! Mill aims for
