@@ -305,7 +305,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
 
           for ((std, dest, name, checkAvailable, runningCheck) <- sources) {
             val t = new Thread(
-              new mill.main.client.InputPumper(std, dest, checkAvailable, () => runningCheck()),
+              new mill.main.client.InputPumper(() => std, () => dest, checkAvailable, () => runningCheck()),
               name
             )
             t.setDaemon(true)

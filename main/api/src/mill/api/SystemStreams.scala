@@ -1,7 +1,7 @@
 package mill.api
 
-import java.io.{InputStream, PrintStream}
-
+import java.io.{InputStream, OutputStream, PrintStream}
+import mill.main.client.InputPumper
 /**
  * Represents a set of streams that look similar to those provided by the
  * operating system. These may internally be proxied/redirected/processed, but
@@ -48,6 +48,18 @@ object SystemStreams {
 
   def originalErr: PrintStream = original.err
 
+  private class PumpedProcessInput extends os.ProcessInput{
+    def redirectFrom = ProcessBuilder.Redirect.PIPE
+    def processInput(processIn: => os.SubProcess.InputStream) = Some(
+      new InputPumper(() => System.in, () => processIn, true, () => true)
+    )
+  }
+
+  private class PumpedProcessOutput(dest: OutputStream) extends os.ProcessOutput{
+    def redirectTo = ProcessBuilder.Redirect.PIPE
+    def processOutput(processOut: => os.SubProcess.OutputStream) =
+      Some(new InputPumper(() => processOut, () => dest, false, () => true))
+  }
   def withStreams[T](systemStreams: SystemStreams)(t: => T): T = {
     val in = System.in
     val out = System.out
@@ -59,30 +71,9 @@ object SystemStreams {
       Console.withIn(systemStreams.in) {
         Console.withOut(systemStreams.out) {
           Console.withErr(systemStreams.err) {
-            os.Inherit.in.withValue(
-              new os.ProcessInput{
-                def redirectFrom = ProcessBuilder.Redirect.PIPE
-                def processInput(processIn: => os.SubProcess.InputStream) = Some(
-                  new mill.main.client.InputPumper(in, processIn, true, () => true)
-                )
-              }
-            ){
-              os.Inherit.out.withValue(
-                new os.ProcessOutput{
-                  def redirectTo = ProcessBuilder.Redirect.PIPE
-                  def processOutput(processOut: => os.SubProcess.OutputStream) = Some(
-                    new mill.main.client.InputPumper(processOut, out, false, () => true)
-                  )
-                }
-              ){
-                os.Inherit.err.withValue(
-                  new os.ProcessOutput{
-                    def redirectTo = ProcessBuilder.Redirect.PIPE
-                    def processOutput(processErr: => os.SubProcess.OutputStream) = Some(
-                      new mill.main.client.InputPumper(processErr, err, false, () => true)
-                    )
-                  }
-                ){
+            os.Inherit.in.withValue(new PumpedProcessInput) {
+              os.Inherit.out.withValue(new PumpedProcessOutput(System.out)) {
+                os.Inherit.err.withValue(new PumpedProcessOutput(System.err)) {
                   t
                 }
               }
