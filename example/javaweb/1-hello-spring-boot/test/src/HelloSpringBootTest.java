@@ -19,6 +19,6 @@ public class HelloSpringBootTest {
   @Test
   public void shouldReturnDefaultMessage() {
     String response = restTemplate.getForObject("http://localhost:" + port + "/", String.class);
-    assertEquals("Hello, World!", response);
+    assertEquals("<h1>Hello, World!</h1>", response);
   }
 }
