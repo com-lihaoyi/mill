@@ -5,7 +5,7 @@ import mill.resolve.SelectMode
 import mill.runner.RunnerState
 import os.{Path, Shellable}
 import utest._
-
+import collection.mutable
 import scala.util.control.NonFatal
 
 object IntegrationTestSuite {
@@ -38,18 +38,35 @@ abstract class IntegrationTestSuite extends TestSuite {
   }
 
   def evalTimeoutStdout(timeout: Long, s: Shellable*): IntegrationTestSuite.EvalResult = {
+    val output = mutable.Buffer.empty[String]
+    val error = mutable.Buffer.empty[String]
 
-    val output = Seq.newBuilder[String]
-    val error = Seq.newBuilder[String]
-    val processOutput = os.ProcessOutput.Readlines(output += _)
-    val processError = os.ProcessOutput.Readlines(error += _)
+    evalTimeoutStdout0(timeout, output, error)
+
+  }
+
+  def evalTimeoutStdout0(timeout: Long,
+                         output: mutable.Buffer[String],
+                         error: mutable.Buffer[String],
+                         s: Shellable*) = {
+
+    val processOutput = os.ProcessOutput.Readlines(s => synchronized(output.append(s)))
+    val processError = os.ProcessOutput.Readlines(s => synchronized(error.append(s)))
 
     val result = evalFork(processOutput, processError, s, timeout)
+
     IntegrationTestSuite.EvalResult(
       result,
-      output.result().mkString("\n"),
-      error.result().mkString("\n")
+      synchronized(output.mkString("\n")),
+      synchronized(error.mkString("\n"))
     )
+  }
+
+  // Combines stdout and stderr into a single stream; useful for testing
+  // against the combined output and also asserting on ordering
+  def evalStdCombined(s: Shellable*): IntegrationTestSuite.EvalResult = {
+    val combined = mutable.Buffer.empty[String]
+    evalTimeoutStdout0(-1, combined, combined, s:_*)
   }
 
   val millReleaseFileOpt: Option[Path] =
