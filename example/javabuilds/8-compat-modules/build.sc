@@ -2,7 +2,7 @@
 import mill._, javalib._
 
 object foo extends MavenModule {
-  object test extends MavenModuleTests with TestModule.Junit4
+  object test extends MavenTests with TestModule.Junit4
 }
 
 
