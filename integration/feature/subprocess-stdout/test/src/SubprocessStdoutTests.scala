@@ -69,7 +69,7 @@ object SubprocessStdoutTests extends IntegrationTestSuite {
               |proc stderrRaw""".stripMargin
           )
         )
-      }else{
+      } else {
         // Note that it should be out of order, because both `print`s will be captured and logged first,
         // whereas the two `proc` outputs will get sent to their respective log files and only noticed
         // a few milliseconds later as the files are polled for updates
