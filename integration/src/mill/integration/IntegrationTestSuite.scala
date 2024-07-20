@@ -41,7 +41,7 @@ abstract class IntegrationTestSuite extends TestSuite {
     val output = mutable.Buffer.empty[String]
     val error = mutable.Buffer.empty[String]
 
-    evalTimeoutStdout0(timeout, output, error)
+    evalTimeoutStdout0(timeout, output, error, s)
 
   }
 
@@ -49,7 +49,7 @@ abstract class IntegrationTestSuite extends TestSuite {
       timeout: Long,
       output: mutable.Buffer[String],
       error: mutable.Buffer[String],
-      s: Shellable*
+      s: Seq[Shellable]
   ): IntegrationTestSuite.EvalResult = {
 
     val processOutput = os.ProcessOutput.Readlines(s => synchronized(output.append(s)))
@@ -68,7 +68,7 @@ abstract class IntegrationTestSuite extends TestSuite {
   // against the combined output and also asserting on ordering
   def evalStdCombined(s: Shellable*): IntegrationTestSuite.EvalResult = {
     val combined = mutable.Buffer.empty[String]
-    evalTimeoutStdout0(-1, combined, combined, s: _*)
+    evalTimeoutStdout0(-1, combined, combined, s)
   }
 
   val millReleaseFileOpt: Option[Path] =
