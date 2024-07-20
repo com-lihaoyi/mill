@@ -2,7 +2,6 @@ package mill.util
 
 import mill.api.Loose.Agg
 import mill.api._
-import mill.main.client.InputPumper
 import os.{ProcessOutput, SubProcess}
 
 import java.io._
