@@ -242,8 +242,8 @@ object TestModule {
    */
   trait TestNg extends TestModule {
     override def testFramework: T[String] = "mill.testng.TestNGFramework"
-    override def ivyDeps: T[Agg[Dep]] = T {
-      super.ivyDeps() ++ Agg(
+    override def mandatoryIvyDeps: T[Agg[Dep]] = T {
+      super.mandatoryIvyDeps() ++ Agg(
         ivy"com.lihaoyi:mill-contrib-testng:${mill.api.BuildInfo.millVersion}"
       )
     }
@@ -255,8 +255,8 @@ object TestModule {
    */
   trait Junit4 extends TestModule {
     override def testFramework: T[String] = "com.novocode.junit.JUnitFramework"
-    override def ivyDeps: T[Agg[Dep]] = T {
-      super.ivyDeps() ++ Agg(ivy"com.novocode:junit-interface:0.11")
+    override def mandatoryIvyDeps: T[Agg[Dep]] = T {
+      super.mandatoryIvyDeps() ++ Agg(ivy"com.novocode:junit-interface:0.11")
     }
   }
 
@@ -266,8 +266,8 @@ object TestModule {
    */
   trait Junit5 extends TestModule {
     override def testFramework: T[String] = "net.aichler.jupiter.api.JupiterFramework"
-    override def ivyDeps: T[Agg[Dep]] = T {
-      super.ivyDeps() ++ Agg(ivy"net.aichler:jupiter-interface:0.9.0")
+    override def mandatoryIvyDeps: T[Agg[Dep]] = T {
+      super.mandatoryIvyDeps() ++ Agg(ivy"net.aichler:jupiter-interface:0.9.0")
     }
   }
 
