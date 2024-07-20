@@ -36,7 +36,7 @@ trait JavaModule
     with SemanticDbJavaModule { outer =>
 
   def zincWorker: ModuleRef[ZincWorkerModule] = super.zincWorker
-
+  type JavaTests = JavaModuleTests
   trait JavaModuleTests extends JavaModule with TestModule {
     // Run some consistence checks
     hierarchyChecks()

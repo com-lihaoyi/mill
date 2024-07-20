@@ -15,7 +15,7 @@ trait MyModule extends JavaModule with PublishModule {
 
   def ivyDeps = Agg(ivy"org.apache.commons:commons-text:1.12.0")
 
-  object test extends JavaModuleTests with TestModule.Junit4
+  object test extends JavaTests with TestModule.Junit4
 }
 
 object foo extends MyModule {
