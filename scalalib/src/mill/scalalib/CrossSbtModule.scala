@@ -11,6 +11,8 @@ trait CrossSbtModule extends SbtModule with CrossModuleBase { outer =>
       PathRef(millSourcePath / "src" / "main" / s"scala-$s")
     )
   }
+
+  type CrossSbtTests = CrossSbtModuleTests
   trait CrossSbtModuleTests extends SbtModuleTests {
     override def millSourcePath = outer.millSourcePath
     override def sources = T.sources {
