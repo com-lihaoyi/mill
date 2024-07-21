@@ -158,6 +158,8 @@ trait RunModule extends WithZincWorker {
         runUseArgsFile = runUseArgsFile(),
         backgroundOutputs = backgroundOutputs(T.dest)
       )(args().value: _*)(T.ctx())
+      println("runBackgroundTask SLEEPING 10000")
+      Thread.sleep(10000)
     }
 
   /**
