@@ -240,7 +240,7 @@ object TestModule {
    * TestModule using TestNG Framework to run tests.
    * You need to provide the testng dependency yourself.
    */
-  trait TestNg extends TestModule {
+  trait TestNg extends JavaModuleBase with TestModule {
     override def testFramework: T[String] = "mill.testng.TestNGFramework"
     override def mandatoryIvyDeps: T[Agg[Dep]] = T {
       super.mandatoryIvyDeps() ++ Agg(
@@ -253,7 +253,7 @@ object TestModule {
    * TestModule that uses JUnit 4 Framework to run tests.
    * You may want to provide the junit dependency explicitly to use another version.
    */
-  trait Junit4 extends TestModule {
+  trait Junit4 extends JavaModuleBase with TestModule {
     override def testFramework: T[String] = "com.novocode.junit.JUnitFramework"
     override def mandatoryIvyDeps: T[Agg[Dep]] = T {
       super.mandatoryIvyDeps() ++ Agg(ivy"com.novocode:junit-interface:0.11")
@@ -264,7 +264,7 @@ object TestModule {
    * TestModule that uses JUnit 5 Framework to run tests.
    * You may want to provide the junit dependency explicitly to use another version.
    */
-  trait Junit5 extends TestModule {
+  trait Junit5 extends JavaModuleBase with TestModule {
     override def testFramework: T[String] = "net.aichler.jupiter.api.JupiterFramework"
     override def mandatoryIvyDeps: T[Agg[Dep]] = T {
       super.mandatoryIvyDeps() ++ Agg(ivy"net.aichler:jupiter-interface:0.9.0")
@@ -374,6 +374,7 @@ object TestModule {
 
   trait JavaModuleBase extends BspModule {
     def ivyDeps: T[Agg[Dep]] = Agg.empty[Dep]
+    def mandatoryIvyDeps: T[Agg[Dep]] = Agg.empty[Dep]
   }
 
   trait ScalaModuleBase extends mill.Module {
