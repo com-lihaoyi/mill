@@ -180,6 +180,20 @@ sh -c "curl -L {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-ta
 Installing mill via `coursier` or `cs` is currently not officially supported.
 There are various issues, especially with interactive mode.
 
+=== Asdf (unsupported)
+
+You can install and manage Mill via the Multiple Runtime Version Manager - https://asdf-vm.com/[`asdf`].
+
+Support by `asdf` is currently possible by using the https://github.com/asdf-community/asdf-mill[`asdf-mill` plugin]:
+
+.Steps to install the `mill` plugin and Mill with `asdf` 
+[source,bash]
+---
+asdf plugin add mill
+asdf install mill latest
+asdf global mill latest
+---
+
 == IDE Support
 :link-metals: https://scalameta.org/metals/
 
