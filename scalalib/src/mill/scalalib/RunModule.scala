@@ -161,7 +161,7 @@ trait RunModule extends WithZincWorker {
       println("runBackgroundTask SLEEPING 10000")
       // Make sure to sleep a bit in the Mill test suite to allow the servers we
       // start time to initialize before we proceed with the following commands
-      if (T.env.contains("MILL_TEST_SUITE")) Thread.sleep(2000)
+      if (T.env.contains("MILL_TEST_SUITE")) Thread.sleep(5000)
     }
 
   /**
