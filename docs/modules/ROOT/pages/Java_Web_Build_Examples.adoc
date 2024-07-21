@@ -14,5 +14,5 @@ include::example/javaweb/2-hello-spring-boot.adoc[]
 
 == Spring Boot TodoMvc App
 
-include::example/javaweb/1-todo-spring-boot.adoc[]
+include::example/javaweb/3-todo-spring-boot.adoc[]
 
