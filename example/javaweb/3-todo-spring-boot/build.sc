@@ -26,8 +26,13 @@ object hello extends RootModule with JavaModule {
   }
 }
 
-// This example demonstrates how to set up a simple Spring Boot webserver,
-// able to handle a single HTTP request at `/` and reply with a single response.
+// This is a larger example using Spring Boot, implementing the well known
+// https://todomvc.com/[TodoMVC] example app. Apart from running a webserver,
+// this example also demonstrates:
+//
+// * Serving HTML templates using Thymeleaf
+// * Serving static Javascript and CSS using Webjars
+// * Querying a SQL database using JPA and H2
 
 
 /** Usage
@@ -38,7 +43,7 @@ object hello extends RootModule with JavaModule {
 
 > mill runBackground
 
-> curl http://localhost:8080
+> curl http://localhost:8087
 ...<h1>todos</h1>...
 
 > mill clean runBackground
