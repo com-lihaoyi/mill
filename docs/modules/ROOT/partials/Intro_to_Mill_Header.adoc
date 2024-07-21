@@ -14,8 +14,8 @@ Mill has built-in support for the Java and https://www.scala-lang.org/[Scala]
 programming language, and can serve as a replacement for
 https://maven.apache.org/[Maven], https://gradle.org/[Gradle], or
 http://www.scala-sbt.org/[SBT]. It can be xref:Extending_Mill.adoc[extended]
-to support any other language or platform via modules (written in Java
-or Scala) or through external subprocesses. Mill supports a rich ecosystem of
+to support any other language or platform via modules or through
+external subprocesses. Mill supports a rich ecosystem of
 xref:Contrib_Plugins.adoc[] and xref:Thirdparty_Plugins.adoc[].
 
 If you are using Mill, you will find the following book by the Author useful in
@@ -31,6 +31,6 @@ all about:
 - https://www.lihaoyi.com/post/SoWhatsSoSpecialAboutTheMillScalaBuildTool.html[Blog Post: So, What's So Special About The Mill Scala Build Tool?]
 
 The rest of this page contains a quick introduction to getting start with using
-Mill to build a simple Scala program. The other pages of this doc-site go into
+Mill to build a simple program. The other pages of this doc-site go into
 more depth, with more examples of how to use Mill and more details of how the
 Mill build tool works.

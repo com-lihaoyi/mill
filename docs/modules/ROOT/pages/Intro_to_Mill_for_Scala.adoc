@@ -15,6 +15,17 @@
 
 :page-aliases: index.adoc
 
+Mill is far easier to understand, maintain, and extend than other Scala build tools
+like SBT. Mill leverages concepts you already know: objects, methods, inheritance and
+overrides, meaning that any Scala programmer can start using Mill and immediately know
+how things work.
+
+If you are coming from a SBT background, the following blog posts discuss some of the
+fundamental design issues with SBT, and how Mill attempts to do better:
+
+- https://www.lihaoyi.com/post/SowhatswrongwithSBT.html[So, what's wrong with SBT?]
+- https://www.lihaoyi.com/post/MillBetterScalaBuilds.html[Mill: Better Scala Builds]
+
 include::partial$Intro_to_Mill_Header.adoc[]
 
 
