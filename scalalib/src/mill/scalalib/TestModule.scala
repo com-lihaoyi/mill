@@ -240,7 +240,7 @@ object TestModule {
    * TestModule using TestNG Framework to run tests.
    * You need to provide the testng dependency yourself.
    */
-  trait TestNg extends TestModule {s
+  trait TestNg extends TestModule {
     override def testFramework: T[String] = "mill.testng.TestNGFramework"
     override def ivyDeps: T[Agg[Dep]] = T {
       super.ivyDeps() ++ Agg(
