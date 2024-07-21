@@ -24,7 +24,7 @@ object hello extends RootModule with JavaModule {
 
 > mill runBackground
 
-> curl http://localhost:808=6
+> curl http://localhost:8086
 ...<h1>Hello, World!</h1>...
 
 > mill clean runBackground
