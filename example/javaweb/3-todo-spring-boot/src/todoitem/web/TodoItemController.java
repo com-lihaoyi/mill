@@ -17,9 +17,7 @@ public class TodoItemController {
 
     private final TodoItemRepository repository;
 
-    public TodoItemController(TodoItemRepository repository) {
-        this.repository = repository;
-    }
+    public TodoItemController(TodoItemRepository repository) { this.repository = repository; }
 
     @GetMapping
     public String index(Model model) {
@@ -42,11 +40,11 @@ public class TodoItemController {
     private void addAttributesForIndex(Model model,
                                        ListFilter listFilter) {
         model.addAttribute("item", new TodoItemFormData());
-        model.addAttribute("filter", listFilter);
-        model.addAttribute("todos", getTodoItems(listFilter));
-        model.addAttribute("totalNumberOfItems", repository.count());
-        model.addAttribute("numberOfActiveItems", getNumberOfActiveItems());
-        model.addAttribute("numberOfCompletedItems", getNumberOfCompletedItems());
+        model.addAttribute("todoFilter", listFilter);
+        model.addAttribute("todoItems", getTodoItems(listFilter));
+        model.addAttribute("totalItemCount", repository.count());
+        model.addAttribute("activeItemCount", getactiveItemCount());
+        model.addAttribute("completedItemCount", getcompletedItemCount());
     }
 
     @PostMapping
@@ -109,9 +107,9 @@ public class TodoItemController {
                 .collect(Collectors.toList());
     }
 
-    private int getNumberOfActiveItems() { return repository.countAllByCompleted(false); }
+    private int getactiveItemCount() { return repository.countAllByCompleted(false); }
 
-    private int getNumberOfCompletedItems() { return repository.countAllByCompleted(true); }
+    private int getcompletedItemCount() { return repository.countAllByCompleted(true); }
 
     public static record TodoItemDto(long id, String title, boolean completed) { }
 

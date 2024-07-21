@@ -8,20 +8,17 @@ object hello extends RootModule with JavaModule {
     ivy"org.springframework.boot:spring-boot-starter-web:2.5.4",
 
     ivy"javax.xml.bind:jaxb-api:2.3.1",
+
     ivy"org.webjars:webjars-locator:0.41",
     ivy"org.webjars.npm:todomvc-common:1.0.5",
-    ivy"org.webjars.npm:todomvc-app-css:2.4.1"
-  )
-  def runIvyDeps = Agg(
+    ivy"org.webjars.npm:todomvc-app-css:2.4.1",
+
     ivy"com.h2database:h2:2.3.230"
   )
 
   object test extends JavaModuleTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy"org.springframework.boot:spring-boot-starter-test:2.5.6"
-    )
-    def runIvyDeps = Agg(
-      ivy"com.h2database:h2:2.3.230"
     )
   }
 }
