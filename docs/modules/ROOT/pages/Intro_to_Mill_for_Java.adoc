@@ -18,21 +18,19 @@
 {mill-github-url}[Mill] is your shiny new Java build tool! Mill aims for
 simplicity by reusing concepts you are already familiar with, borrowing ideas
 from modern tools like https://maven.apache.org/[Maven], https://gradle.org/[Gradle],
-https://bazel.build/[Bazel]. It lets you build
+https://bazel.build/[Bazel]. Mill lets you build and customize
 your projects in a way that's simple, fast, and predictable.
 
-Compared to Maven and Gradle, Mill builds are far more intuitive and easy to read and write:
+Mill automates dealing with a lot of common build-tool concerns such as caching,
+incremental re-computation, and parallelism. This allows you
+to focus your effort on the business logic unique to your build, while letting
+Mill take care of all the rest.
+
+Compared to Maven and Gradle, Mill builds are far more intuitive and easy to read,
+write, and debug:
 
 * **Mill builds are an order of magnitude more concise than Maven pom.xml files**: this makes
   them both easy to write and easy to read at a glance
-
-* **Mill builds are easy to extend by non-experts**: anyone can extend a Mill build
-  with a few lines of code, without needing to learn a complicated plugin framework,
-  allowing end users the freedom to fit their build logic to their own unique requirements
-
-* **Mill builds are familiar to anyone who knows programming**: rather than scopes, lifecycles,
-  or phases, Mill builds on top of objects, methods, inheritance, and overrides: concepts
-  immediately familiar to any Java programmer
 
 include::partial$Intro_to_Mill_Header.adoc[]
 
