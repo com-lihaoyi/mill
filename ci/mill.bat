@@ -129,7 +129,7 @@ if not exist "%MILL%" (
     rem there seems to be no way to generate a unique temporary file path (on native Windows)
     set DOWNLOAD_FILE=%MILL%.tmp
 
-    if [!DOWNLOAD_FROM_MAVEN]==[1] (
+    if [!DOWNLOAD_FROM_MAVEN!]==[1] (
         set DOWNLOAD_URL=https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/!MILL_VERSION!/mill-dist-!MILL_VERSION!.jar
     ) else (
         set DOWNLOAD_URL=!GITHUB_RELEASE_CDN!%MILL_REPO_URL%/releases/download/!MILL_VERSION_TAG!/!MILL_VERSION!!DOWNLOAD_SUFFIX!
