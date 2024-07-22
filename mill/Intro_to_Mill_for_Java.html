@@ -298,14 +298,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.9-9-7147d7</span>
+    <span class="version">0.11.9-10-ed8931</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.9-9-7147d7</a>
+          <a href="index.html">0.11.9-10-ed8931</a>
         </li>
         <li class="version">
           <a href="0.11.0-M7/index.html">0.11.0-M7</a>
@@ -341,9 +341,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.9-9-7147d7</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.9-10-ed8931</button>
   <div class="version-menu">
-    <a class="version is-current" href="Intro_to_Mill_for_Java.html">0.11.9-9-7147d7</a>
+    <a class="version is-current" href="Intro_to_Mill_for_Java.html">0.11.9-10-ed8931</a>
     <a class="version is-missing" href="0.11.0-M7/index.html">0.11.0-M7</a>
     <a class="version is-missing" href="0.10.15/index.html">0.10.15</a>
     <a class="version is-missing" href="0.10.12/index.html">0.10.12</a>
@@ -365,22 +365,41 @@
 <p><a href="https://github.com/com-lihaoyi/mill">Mill</a> is your shiny new Java build tool! Mill aims for
 simplicity by reusing concepts you are already familiar with, borrowing ideas
 from modern tools like <a href="https://maven.apache.org/">Maven</a>, <a href="https://gradle.org/">Gradle</a>,
-<a href="https://bazel.build/">Bazel</a> and <a href="https://www.scala-sbt.org/">SBT</a>. It lets you build
+<a href="https://bazel.build/">Bazel</a>. Mill lets you build and customize
 your projects in a way that’s simple, fast, and predictable.</p>
 </div>
 <div class="paragraph">
-<p>Mill automates dealing with a lot of common build-tool concerns: Caching,
-incremental re-computation, parallelism, discoverability, etc. This allows you
+<p>Mill automates dealing with a lot of common build-tool concerns such as caching,
+incremental re-computation, and parallelism. This allows you
 to focus your effort on the business logic unique to your build, while letting
 Mill take care of all the rest.</p>
 </div>
 <div class="paragraph">
-<p>Mill has built-in support for the Java and <a href="https://www.scala-lang.org/">Scala</a>
-programming language, and can serve as a replacement for
-<a href="https://maven.apache.org/">Maven</a>, <a href="https://gradle.org/">Gradle</a>, or
-<a href="http://www.scala-sbt.org/">SBT</a>. It can be <a href="Extending_Mill.html" class="xref page">extended</a>
-to support any other language or platform via modules (written in Java
-or Scala) or through external subprocesses. Mill supports a rich ecosystem of
+<p>Compared to Maven and Gradle, Mill builds are far more intuitive and easy to read,
+write, and debug:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Mill builds are an order of magnitude more concise than Maven pom.xml files</strong>: this makes
+them both easy to write and easy to read at a glance</p>
+</li>
+<li>
+<p><strong>Mill builds are easy to extend by non-experts</strong>: anyone can extend a Mill build
+with a few lines of code, without needing to learn a complicated plugin framework,
+allowing end users the freedom to fit their build logic to their own unique requirements</p>
+</li>
+<li>
+<p><strong>Mill builds are familiar to anyone who knows programming</strong>: rather than scopes, lifecycles,
+or phases, Mill builds on top of objects, methods, inheritance, and overrides: concepts
+immediately familiar to any Java programmer</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Mill can be <a href="Extending_Mill.html" class="xref page">extended</a>
+to support any other language or platform via modules or through
+external subprocesses. Mill supports a rich ecosystem of
 <a href="Contrib_Plugins.html" class="xref page">Contrib Plugins</a> and <a href="Thirdparty_Plugins.html" class="xref page">Third-Party Plugins</a>.</p>
 </div>
 <div class="paragraph">
@@ -394,13 +413,13 @@ all about:</p>
 <p><a href="https://www.youtube.com/watch?v=UsXgCeU-ovI&amp;list=PLLMLOC3WM2r6ZFhFfVH74W-sl8LfWtOEc&amp;index=15">Video: A Deep Dive into the Mill Build Tool</a></p>
 </li>
 <li>
-<p><a href="https://www.lihaoyi.com/post/SoWhatsSoSpecialAboutTheMillScalaBuildTool.html">Blog Post: So, What’s So Special About The Mill Scala Build Tool?</a></p>
+<p><a href="https://www.lihaoyi.com/post/SoWhatsSoSpecialAboutTheMillScalaBuildTool.html">Blog Post: What’s So Special About The Mill Scala Build Tool?</a></p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
 <p>The rest of this page contains a quick introduction to getting start with using
-Mill to build a simple Scala program. The other pages of this doc-site go into
+Mill to build a simple program. The other pages of this doc-site go into
 more depth, with more examples of how to use Mill and more details of how the
 Mill build tool works.</p>
 </div>
@@ -420,7 +439,7 @@ object foo extends RootModule with JavaModule {
     ivy&quot;org.apache.commons:commons-text:1.12.0&quot;
   )
 
-  object test extends JavaModuleTests with TestModule.Junit4{
+  object test extends JavaTests with TestModule.Junit4{
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy&quot;com.google.guava:guava:33.2.1-jre&quot;
     )
@@ -627,7 +646,7 @@ maintainable even as the complexity of your project grows.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
 
 trait MyModule extends JavaModule{
-  object test extends JavaModuleTests with TestModule.Junit4
+  object test extends JavaTests with TestModule.Junit4
 }
 
 object foo extends MyModule{
@@ -862,7 +881,7 @@ Tasks that depend on each other can’t be processed in parallel.</p>
 <div class="listingblock">
 <div class="title">Output of <code>mill --help</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.11.9-9-7147d7
+<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.11.9-10-ed8931
 usage: mill [options] [[target [target-options]] [+ [target ...]]]
   -D --define &lt;k=v&gt;                 Define (or overwrite) a system property.
   -b --bell                         Ring the bell once if the run completes successfully, twice if

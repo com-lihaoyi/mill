@@ -298,14 +298,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.9-9-7147d7</span>
+    <span class="version">0.11.9-10-ed8931</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.9-9-7147d7</a>
+          <a href="index.html">0.11.9-10-ed8931</a>
         </li>
         <li class="version">
           <a href="0.11.0-M7/index.html">0.11.0-M7</a>
@@ -341,9 +341,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.9-9-7147d7</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.9-10-ed8931</button>
   <div class="version-menu">
-    <a class="version is-current" href="Java_Build_Examples.html">0.11.9-9-7147d7</a>
+    <a class="version is-current" href="Java_Build_Examples.html">0.11.9-10-ed8931</a>
     <a class="version is-missing" href="0.11.0-M7/index.html">0.11.0-M7</a>
     <a class="version is-missing" href="0.10.15/index.html">0.10.15</a>
     <a class="version is-missing" href="0.10.12/index.html">0.10.12</a>
@@ -761,7 +761,7 @@ Qux.value: &lt;p&gt;world&lt;/p&gt;</code></pre>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
 
 object foo extends JavaModule {
-  object test extends JavaModuleTests {
+  object test extends JavaTests {
     def testFramework = &quot;com.novocode.junit.JUnitFramework&quot;
     def ivyDeps = T {
       super.ivyDeps() ++ Agg(ivy&quot;com.novocode:junit-interface:0.11&quot;)
@@ -829,7 +829,7 @@ compiling 1 ... source...
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bar extends JavaModule {
-  object test extends JavaModuleTests with TestModule.Junit4
+  object test extends JavaTests with TestModule.Junit4
 }</code></pre>
 </div>
 </div>
@@ -869,8 +869,8 @@ lets you pass in a selector to decide which test to run, which in Mill would be:
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object qux extends JavaModule {
-  object test extends JavaModuleTests with TestModule.Junit4
-  object integration extends JavaModuleTests with TestModule.Junit4
+  object test extends JavaTests with TestModule.Junit4
+  object integration extends JavaTests with TestModule.Junit4
 }</code></pre>
 </div>
 </div>
@@ -1083,7 +1083,7 @@ maven path under <code>sonatypeUri</code> instead of staging path.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
 
 object foo extends MavenModule {
-  object test extends MavenModuleTests with TestModule.Junit4
+  object test extends MavenTests with TestModule.Junit4
 }</code></pre>
 </div>
 </div>
@@ -1158,7 +1158,7 @@ trait MyModule extends JavaModule with PublishModule {
 
   def ivyDeps = Agg(ivy&quot;org.apache.commons:commons-text:1.12.0&quot;)
 
-  object test extends JavaModuleTests with TestModule.Junit4
+  object test extends JavaTests with TestModule.Junit4
 }
 
 object foo extends MyModule {
@@ -1308,7 +1308,7 @@ object jimfs extends PublishModule with MavenModule {
 
   def javacOptions = Seq(&quot;-processor&quot;, &quot;com.google.auto.service.processor.AutoServiceProcessor&quot;)
 
-  object test extends MavenModuleTests {
+  object test extends MavenTests {
     def ivyDeps = sharedCompileIvyDeps() ++ Agg(
       ivy&quot;junit:junit:4.13.2&quot;,
       ivy&quot;com.google.guava:guava-testlib:31.1-android&quot;,
@@ -1367,7 +1367,7 @@ object commonsio extends RootModule with PublishModule with MavenModule {
     developers = Nil
   )
 
-  object test extends MavenModuleTests with TestModule.Junit5 with  JmhModule{
+  object test extends MavenTests with TestModule.Junit5 with  JmhModule{
     def jmhCoreVersion = &quot;1.37&quot;
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy&quot;org.junit.jupiter:junit-jupiter:5.10.3&quot;,
