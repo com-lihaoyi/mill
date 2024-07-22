@@ -35,7 +35,7 @@ jobs:
       matrix:
         include:
           # bootstrap tests
-          - java-version: 8
+          - java-version: 11
             buildcmd: ci/test-mill-release.sh
           - java-version: 17
             buildcmd: ci/test-mill-release.sh
@@ -48,7 +48,7 @@ jobs:
           - java-version: 20
             buildcmd: ci/test-mill-bootstrap.sh
           # Just some reporting to enable reasoning about library upgrades
-          - java-version: 8
+          - java-version: 11
             buildcmd: |
               ./mill -i -k __.ivyDepsTree
               ./mill -i -k __.ivyDepsTree --withRuntime
