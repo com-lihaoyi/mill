@@ -58,7 +58,7 @@ object SubprocessStdoutTests extends IntegrationTestSuite {
       // up in the console somewhere and not disappear
       //
       val res2 = evalStdCombined("inheritRaw").out
-      if (integrationTestMode == "fork") {
+      if (integrationTestMode != "fork") {
         // For `fork` tests, which represent `-i`/`--interactive`/`--no-server`, the output should
         // be properly ordered since it all comes directly from the stdout/stderr of the same process
         assert(
