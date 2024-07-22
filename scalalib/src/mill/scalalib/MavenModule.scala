@@ -17,7 +17,7 @@ trait MavenModule extends JavaModule { outer =>
   }
 
   type MavenTests = MavenModuleTests
-  @deprecated("0.11.10, use MavenTests instead")
+  @deprecated("Use JavaTests instead", since = "Mill 0.11.10")
   trait MavenModuleTests extends JavaModuleTests {
     override def millSourcePath = outer.millSourcePath
     override def intellijModulePath: os.Path = outer.millSourcePath / "src" / "test"
