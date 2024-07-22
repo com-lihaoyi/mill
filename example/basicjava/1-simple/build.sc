@@ -8,7 +8,7 @@ object foo extends RootModule with JavaModule {
     ivy"org.apache.commons:commons-text:1.12.0"
   )
 
-  object test extends JavaModuleTests with TestModule.Junit4{
+  object test extends JavaTests with TestModule.Junit4{
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy"com.google.guava:guava:33.2.1-jre"
     )

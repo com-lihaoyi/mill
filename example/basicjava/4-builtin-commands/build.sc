@@ -2,7 +2,7 @@
 import mill._, javalib._
 
 trait MyModule extends JavaModule{
-  object test extends JavaModuleTests with TestModule.Junit4
+  object test extends JavaTests with TestModule.Junit4
 }
 
 object foo extends MyModule{

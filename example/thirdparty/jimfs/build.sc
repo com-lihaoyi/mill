@@ -28,7 +28,7 @@ object jimfs extends PublishModule with MavenModule {
 
   def javacOptions = Seq("-processor", "com.google.auto.service.processor.AutoServiceProcessor")
 
-  object test extends MavenModuleTests {
+  object test extends MavenTests {
     def ivyDeps = sharedCompileIvyDeps() ++ Agg(
       ivy"junit:junit:4.13.2",
       ivy"com.google.guava:guava-testlib:31.1-android",

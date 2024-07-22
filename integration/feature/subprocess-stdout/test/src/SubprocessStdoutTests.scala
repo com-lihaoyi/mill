@@ -70,15 +70,15 @@ object SubprocessStdoutTests extends IntegrationTestSuite {
           )
         )
       } else {
-        // Note that it should be out of order, because both `print`s will be captured and logged first,
+        // Note that it may be out of order, because both `print`s will be captured and logged first,
         // whereas the two `proc` outputs will get sent to their respective log files and only noticed
         // a few milliseconds later as the files are polled for updates
         assert(
-          res2.contains(
-            """print stdoutRaw
-              |print stderrRaw
-              |proc stdoutRaw
-              |proc stderrRaw""".stripMargin
+          """print stdoutRaw
+            |print stderrRaw
+            |proc stdoutRaw
+            |proc stderrRaw""".stripMargin.linesIterator.toSet.subsetOf(
+            res2.linesIterator.toSet
           )
         )
       }
