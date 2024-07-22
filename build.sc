@@ -1194,6 +1194,7 @@ object example extends MillScalaModule {
   object cross extends Cross[ExampleCrossModule](listIn(millSourcePath / "cross"))
   object misc extends Cross[ExampleCrossModule](listIn(millSourcePath / "misc"))
   object web extends Cross[ExampleCrossModule](listIn(millSourcePath / "web"))
+  object javaweb extends Cross[ExampleCrossModule](listIn(millSourcePath / "javaweb"))
 
   trait ExampleCrossModuleJava extends ExampleCrossModule {
 
