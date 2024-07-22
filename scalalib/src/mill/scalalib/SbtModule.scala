@@ -13,6 +13,7 @@ trait SbtModule extends ScalaModule with MavenModule {
   )
 
   type SbtTests = SbtModuleTests
+  @deprecated("0.11.10, use SbtTests instead")
   trait SbtModuleTests extends ScalaTests with MavenTests {
     override def sources = T.sources(
       millSourcePath / "src" / "test" / "scala",

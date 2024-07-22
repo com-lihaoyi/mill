@@ -37,6 +37,7 @@ trait JavaModule
 
   def zincWorker: ModuleRef[ZincWorkerModule] = super.zincWorker
   type JavaTests = JavaModuleTests
+  @deprecated("0.11.10, use JavaTests instead")
   trait JavaModuleTests extends JavaModule with TestModule {
     // Run some consistence checks
     hierarchyChecks()
