@@ -50,12 +50,6 @@ using Mill and its supporting libraries to the fullest:
 
 * https://handsonscala.com/[Hands-on Scala Programming]
 
-
-If you are using Mill, you will find the following book by the Author useful in
-using Mill and its supporting libraries to the fullest:
-
-* https://handsonscala.com/[Hands-on Scala Programming]
-
 == Simple Scala Module
 
 include::example/basic/1-simple.adoc[]
