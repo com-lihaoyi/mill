@@ -48,7 +48,7 @@ object SubprocessStdoutTests extends IntegrationTestSuite {
              |print stdout9
              |proc stdout9
              |print stderr9
-             |proc stderr9""".stripMargin
+             |proc stderr9""".stripMargin.replaceAll("\r\n", "\n")
         )
       )
 
@@ -66,7 +66,7 @@ object SubprocessStdoutTests extends IntegrationTestSuite {
             """print stdoutRaw
               |proc stdoutRaw
               |print stderrRaw
-              |proc stderrRaw""".stripMargin
+              |proc stderrRaw""".stripMargin.replaceAll("\r\n", "\n")
           )
         )
       } else {
@@ -77,7 +77,7 @@ object SubprocessStdoutTests extends IntegrationTestSuite {
           """print stdoutRaw
             |print stderrRaw
             |proc stdoutRaw
-            |proc stderrRaw""".stripMargin.linesIterator.toSet.subsetOf(
+            |proc stderrRaw""".stripMargin.replaceAll("\r\n", "\n").linesIterator.toSet.subsetOf(
             res2.linesIterator.toSet
           )
         )
