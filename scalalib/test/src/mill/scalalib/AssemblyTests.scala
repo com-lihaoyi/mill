@@ -1,5 +1,6 @@
 package mill.scalalib
 
+import scala.util.Properties
 import mill._
 import mill.api.Result
 import mill.eval.Evaluator
@@ -125,7 +126,15 @@ object AssemblyTests extends TestSuite {
         test("small") {
           workspaceTest(TestCase) { eval =>
             val Right((res, _)) = eval(TestCase.exe.small.assembly)
-            runAssembly(res.path, TestCase.millSourcePath, checkExe = true)
+            val originalPath = res.path
+            val resolvedPath = 
+              if (Properties.isWin) {
+                val winPath = originalPath / os.up / s"${originalPath.last}.bat"
+                os.copy(originalPath, winPath)
+                winPath
+              }
+              else originalPath
+            runAssembly(resolvedPath, TestCase.millSourcePath, checkExe = true)
           }
         }
         test("large-should-fail") {
