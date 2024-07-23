@@ -289,6 +289,21 @@ endif::[]
 // find-replace-regex: https://github.com/com-lihaoyi/mill/pull/(\d*) -> {link-pr}/$1[#$1]
 
 
+[#0-11-10]
+=== 0.11.10 - 2024-07-23
+:version: 0.11.10
+:milestone-name: 0.11.10
+:milestone: 95
+:prev-version: 0.11.9
+
+_Changes since {prev-version}:_
+
+__New features__
+
+* Improvements in Java docs and user experience {link-pr}/3278[#3278]
+* Automatically pump os.proc streams when SystemStreams are redirected {link-pr}/3275[#3275]
+* Fix resolution of children of override lazy val modules {link-pr}/3270[#3270]
+
 [#0-11-9]
 === 0.11.9 - 2024-07-18
 :version: 0.11.9
