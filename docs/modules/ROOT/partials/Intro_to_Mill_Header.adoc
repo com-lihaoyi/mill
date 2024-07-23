@@ -1,15 +1,16 @@
 
-Mill automates dealing with a lot of common build-tool concerns: Caching,
-incremental re-computation, parallelism, discoverability, etc. This allows you
-to focus your effort on the business logic unique to your build, while letting
-Mill take care of all the rest.
 
-Mill has built-in support for the Java and https://www.scala-lang.org/[Scala]
-programming language, and can serve as a replacement for
-https://maven.apache.org/[Maven], https://gradle.org/[Gradle], or
-http://www.scala-sbt.org/[SBT]. It can be xref:Extending_Mill.adoc[extended]
-to support any other language or platform via modules (written in Java
-or Scala) or through external subprocesses. Mill supports a rich ecosystem of
+* **Mill builds are easy to extend by non-experts**: anyone can extend a Mill build
+with a few lines of code, without needing to learn a complicated plugin framework,
+allowing end users the freedom to fit their build logic to their own unique requirements
+
+* **Mill builds are familiar to anyone who knows programming**: rather than scopes, lifecycles,
+or phases, Mill builds on top of objects, methods, inheritance, and overrides: concepts
+immediately familiar to any Java programmer
+
+Mill can be xref:Extending_Mill.adoc[extended]
+to support any other language or platform via modules or through
+external subprocesses. Mill supports a rich ecosystem of
 xref:Contrib_Plugins.adoc[] and xref:Thirdparty_Plugins.adoc[].
 
 If you prefer a video introduction rather than text, the following presentation
@@ -17,9 +18,9 @@ If you prefer a video introduction rather than text, the following presentation
 all about:
 
 - https://www.youtube.com/watch?v=UsXgCeU-ovI&list=PLLMLOC3WM2r6ZFhFfVH74W-sl8LfWtOEc&index=15[Video: A Deep Dive into the Mill Build Tool]
-- https://www.lihaoyi.com/post/SoWhatsSoSpecialAboutTheMillScalaBuildTool.html[Blog Post: So, What's So Special About The Mill Scala Build Tool?]
+- https://www.lihaoyi.com/post/SoWhatsSoSpecialAboutTheMillScalaBuildTool.html[Blog Post: What's So Special About The Mill Scala Build Tool?]
 
 The rest of this page contains a quick introduction to getting start with using
-Mill to build a simple Scala program. The other pages of this doc-site go into
+Mill to build a simple program. The other pages of this doc-site go into
 more depth, with more examples of how to use Mill and more details of how the
 Mill build tool works.

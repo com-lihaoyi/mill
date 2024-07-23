@@ -14,7 +14,7 @@ object commonsio extends RootModule with PublishModule with MavenModule {
     developers = Nil
   )
 
-  object test extends MavenModuleTests with TestModule.Junit5 with  JmhModule{
+  object test extends MavenTests with TestModule.Junit5 with  JmhModule{
     def jmhCoreVersion = "1.37"
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy"org.junit.jupiter:junit-jupiter:5.10.3",

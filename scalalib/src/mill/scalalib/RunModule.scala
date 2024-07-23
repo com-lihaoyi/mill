@@ -158,7 +158,7 @@ trait RunModule extends WithZincWorker {
         runUseArgsFile = runUseArgsFile(),
         backgroundOutputs = backgroundOutputs(T.dest)
       )(args().value: _*)(T.ctx())
-      
+
       // Make sure to sleep a bit in the Mill test suite to allow the servers we
       // start time to initialize before we proceed with the following commands
       if (T.env.contains("MILL_TEST_SUITE")) {

@@ -3,7 +3,7 @@ import mill._, scalalib._
 
 object foo extends SbtModule {
   def scalaVersion = "2.13.8"
-  object test extends SbtModuleTests {
+  object test extends SbtTests {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.11")
     def testFramework = "utest.runner.Framework"
   }
@@ -12,7 +12,7 @@ object foo extends SbtModule {
 
 object bar extends Cross[BarModule]("2.12.17", "2.13.8")
 trait BarModule extends CrossSbtModule {
-  object test extends CrossSbtModuleTests {
+  object test extends CrossSbtTests {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.11")
     def testFramework = "utest.runner.Framework"
   }
