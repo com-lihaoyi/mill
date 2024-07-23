@@ -7,7 +7,7 @@ def inheritInterleaved = T {
     println("print stdout" + i)
     val echoCommandStdout =
       if (Properties.isWin) Seq("cmd.exe", "/C", s"echo proc stdout${i}")
-      else Seq(s"echo proc stdout${i}")
+      else Seq("echo", s"proc stdout${i}")
     os.proc(echoCommandStdout).call(stdout = os.Inherit)
     System.err.println("print stderr" + i)
     val echoCommandStderr =
