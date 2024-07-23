@@ -1783,7 +1783,7 @@ object docs extends Module {
        |    mill-github-url: ${Settings.projectUrl}
        |    mill-doc-url: ${if (authorMode) s"file://${T.dest}/site" else Settings.docUrl}
        |    mill-download-url: ${if (authorMode) s"file://${exampleZips().head.path / os.up}"
-      else s"${Settings.projectUrl}/releases/download/0.11.10"}
+      else s"${Settings.projectUrl}/releases/download/${millLastTag()}"}
        |    mill-example-url: ${if (authorMode) s"file://${T.workspace}"
       else s"${Settings.projectUrl}/blob/main/"}
        |    utest-github-url: https://github.com/com-lihaoyi/utest
