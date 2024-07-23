@@ -9,7 +9,9 @@ object foo extends JavaModule {
     }
   }
 }
-
+// This build defines a single module with a test suite, configured to use
+// "JUnit" as the testing framework. Test suites are themselves ``JavaModule``s,
+// nested within the enclosing module,
 //// SNIPPET:BUILD2
 
 object bar extends JavaModule {
