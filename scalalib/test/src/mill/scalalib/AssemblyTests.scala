@@ -127,13 +127,12 @@ object AssemblyTests extends TestSuite {
           workspaceTest(TestCase) { eval =>
             val Right((res, _)) = eval(TestCase.exe.small.assembly)
             val originalPath = res.path
-            val resolvedPath = 
+            val resolvedPath =
               if (Properties.isWin) {
                 val winPath = originalPath / os.up / s"${originalPath.last}.bat"
                 os.copy(originalPath, winPath)
                 winPath
-              }
-              else originalPath
+              } else originalPath
             runAssembly(resolvedPath, TestCase.millSourcePath, checkExe = true)
           }
         }
