@@ -1,18 +1,31 @@
+import scala.util.Properties
 import mill._
 
 
 def inheritInterleaved = T {
   for (i <- Range.inclusive(1, 9)) {
     println("print stdout" + i)
-    os.proc("echo", "proc stdout" + i).call(stdout = os.Inherit)
+    val echoCommandStdout =
+      if (Properties.isWin) Seq("cmd.exe", "/C", s"echo proc stdout${i}")
+      else Seq("echo", s"proc stdout${i}")
+    os.proc(echoCommandStdout).call(stdout = os.Inherit)
     System.err.println("print stderr" + i)
-    os.proc("bash", "-c", s"echo proc stderr${i} >&2").call(stderr = os.Inherit)
+    val echoCommandStderr =
+      if (Properties.isWin) Seq("cmd.exe", "/C", s"echo proc stderr${i}>&2")
+      else Seq("bash", "-c", s"echo proc stderr${i} >&2")
+    os.proc(echoCommandStderr).call(stderr = os.Inherit)
   }
 }
 
 def inheritRaw = T{
   println("print stdoutRaw")
-  os.proc("echo", "proc stdoutRaw").call(stdout = os.InheritRaw)
+  val echoCommandStdoutRaw =
+    if (Properties.isWin) Seq("cmd.exe", "/C", "echo proc stdoutRaw")
+    else Seq("echo", "proc stdoutRaw")
+  os.proc(echoCommandStdoutRaw).call(stdout = os.InheritRaw)
   System.err.println("print stderrRaw")
-  os.proc("bash", "-c", "echo proc stderrRaw >&2").call(stderr = os.InheritRaw)
+  val echoCommandStderrRaw =
+    if (Properties.isWin) Seq("cmd.exe", "/C", "echo proc stderrRaw>&2")
+    else Seq("bash", "-c", "echo proc stderrRaw >&2")
+  os.proc(echoCommandStderrRaw).call(stderr = os.InheritRaw)
 }
