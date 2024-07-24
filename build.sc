@@ -1968,6 +1968,7 @@ def exampleZips: T[Seq[PathRef]] = T {
     val example = examplePath.subRelativeTo(T.workspace)
     val exampleStr = millVersion() + "-" + example.segments.mkString("-")
     os.copy(examplePath, T.dest / exampleStr, createFolders = true)
+    os.write(T.dest / exampleStr / ".mill-version", millLastTag())
     os.copy(bootstrapLauncher().path, T.dest / exampleStr / "mill")
     val zip = T.dest / s"$exampleStr.zip"
     os.proc("zip", "-r", zip, exampleStr).call(cwd = T.dest)
