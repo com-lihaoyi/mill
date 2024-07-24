@@ -172,7 +172,7 @@ def resources = T.source { millSourcePath / "resources" }
 
 > ./mill jar # Cached from earlier
 
-> printf "\n" >> src/Foo.java # Add a newline to the end of Foo.java
+> printf "\n" >> src/foo/Foo.java # Add a newline to the end of Foo.java
 
 > ./mill jar # Classfiles recompiled but output unchanged, jar was not rebuilt
 Generating classfiles

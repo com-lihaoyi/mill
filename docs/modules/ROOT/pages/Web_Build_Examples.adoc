@@ -1,4 +1,4 @@
-= Web Build Examples
+= Scala Web Build Examples
 
 This page contains examples of using Mill as a build tool for web-applications.
 It covers setting up a basic backend server, Todo-MVC app, topics like cache
