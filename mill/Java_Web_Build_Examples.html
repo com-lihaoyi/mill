@@ -3,12 +3,14 @@
 <html lang="en"><head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Web Build Examples :: Mill</title>
+    <title>Java Web Build Examples :: Mill</title>
     <link rel="canonical" href="https://mill-build.com/mill/Java_Web_Build_Examples.html" />
     <link rel="prev" href="Java_Module_Config.html" />
     <link rel="next" href="Library_Dependencies.html" />
     <meta name="generator" content="Antora 3.0.1" />
     <link rel="stylesheet" href="../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
 <link rel="icon" href="../_/favicon.png" type="image/x-icon" />
   
   </head><body class="article">
@@ -105,7 +107,7 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Web_Build_Examples.html">Web Build Examples</a>
+    <a class="nav-link" href="Web_Build_Examples.html">Scala Web Build Examples</a>
   </li>
 </ul>
   </li>
@@ -136,7 +138,7 @@
   </li>
 
   <li class="nav-item is-current-page" data-depth="1">
-    <a class="nav-link" href="Java_Web_Build_Examples.html">Web Build Examples</a>
+    <a class="nav-link" href="Java_Web_Build_Examples.html">Java Web Build Examples</a>
   </li>
 </ul>
   </li>
@@ -298,14 +300,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.10-2-775e27</span>
+    <span class="version">0.11.10-3-79db2f</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.10-2-775e27</a>
+          <a href="index.html">0.11.10-3-79db2f</a>
         </li>
         <li class="version">
           <a href="0.11.0-M7/index.html">0.11.0-M7</a>
@@ -337,13 +339,13 @@
   <ul>
     <li><a href="index.html">Mill Documentation</a></li>
     <li>Java Quick Start</li>
-    <li><a href="Java_Web_Build_Examples.html">Web Build Examples</a></li>
+    <li><a href="Java_Web_Build_Examples.html">Java Web Build Examples</a></li>
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.10-2-775e27</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.10-3-79db2f</button>
   <div class="version-menu">
-    <a class="version is-current" href="Java_Web_Build_Examples.html">0.11.10-2-775e27</a>
+    <a class="version is-current" href="Java_Web_Build_Examples.html">0.11.10-3-79db2f</a>
     <a class="version is-missing" href="0.11.0-M7/index.html">0.11.0-M7</a>
     <a class="version is-missing" href="0.10.15/index.html">0.10.15</a>
     <a class="version is-missing" href="0.10.12/index.html">0.10.12</a>
@@ -358,7 +360,7 @@
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">Web Build Examples</h1>
+<h1 class="page">Java Web Build Examples</h1>
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
@@ -381,7 +383,7 @@ object hello extends RootModule with JavaModule {
     ivy&quot;javax.servlet:javax.servlet-api:4.0.1&quot;
   )
 
-  object test extends JavaModuleTests with TestModule.Junit4
+  object test extends JavaTests with TestModule.Junit4
 }</code></pre>
 </div>
 </div>
@@ -418,7 +420,7 @@ object hello extends RootModule with JavaModule {
     ivy&quot;org.springframework.boot:spring-boot-starter-actuator:2.5.6&quot;
   )
 
-  object test extends JavaModuleTests with TestModule.Junit5 {
+  object test extends JavaTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy&quot;org.springframework.boot:spring-boot-starter-test:2.5.6&quot;
     )
@@ -466,12 +468,28 @@ object hello extends RootModule with JavaModule {
     ivy&quot;org.webjars.npm:todomvc-common:1.0.5&quot;,
     ivy&quot;org.webjars.npm:todomvc-app-css:2.4.1&quot;,
 
-    ivy&quot;com.h2database:h2:2.3.230&quot;
+
   )
 
-  object test extends JavaModuleTests with TestModule.Junit5 {
+  trait HelloTests extends JavaTests with TestModule.Junit5{
+    def mainClass = Some(&quot;com.example.TodomvcApplication&quot;)
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy&quot;org.springframework.boot:spring-boot-starter-test:2.5.6&quot;
+    )
+  }
+
+  object test extends HelloTests{
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy&quot;com.h2database:h2:2.3.230&quot;,
+    )
+  }
+
+  object integration extends HelloTests {
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy&quot;org.testcontainers:testcontainers:1.18.0&quot;,
+      ivy&quot;org.testcontainers:junit-jupiter:1.18.0&quot;,
+      ivy&quot;org.testcontainers:postgresql:1.18.0&quot;,
+      ivy&quot;org.postgresql:postgresql:42.6.0&quot;,
     )
   }
 }</code></pre>
@@ -493,15 +511,25 @@ this example also demonstrates:</p>
 <li>
 <p>Querying a SQL database using JPA and H2</p>
 </li>
+<li>
+<p>Unit testing using a H2 in-memory database</p>
+</li>
+<li>
+<p>Integration testing using Testcontainers Postgres in Docker</p>
+</li>
 </ul>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill test
-...com.example.TodomvcApplicationTests#homePageLoads() finished...
-...com.example.TodomvcApplicationTests#addNewTodoItem() finished...
+...com.example.TodomvcTests#homePageLoads() finished...
+...com.example.TodomvcTests#addNewTodoItem() finished...
 
-&gt; mill runBackground
+&gt; mill integration
+...com.example.TodomvcIntegrationTests#homePageLoads() finished...
+...com.example.TodomvcIntegrationTests#addNewTodoItem() finished...
+
+&gt; mill test.runBackground
 
 &gt; curl http://localhost:8087
 ...&lt;h1&gt;todos&lt;/h1&gt;...

@@ -9,6 +9,8 @@
     <link rel="next" href="Java_Installation_IDE_Support.html" />
     <meta name="generator" content="Antora 3.0.1" />
     <link rel="stylesheet" href="../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
 <link rel="icon" href="../_/favicon.png" type="image/x-icon" />
   
   </head><body class="article">
@@ -105,7 +107,7 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Web_Build_Examples.html">Web Build Examples</a>
+    <a class="nav-link" href="Web_Build_Examples.html">Scala Web Build Examples</a>
   </li>
 </ul>
   </li>
@@ -136,7 +138,7 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Java_Web_Build_Examples.html">Web Build Examples</a>
+    <a class="nav-link" href="Java_Web_Build_Examples.html">Java Web Build Examples</a>
   </li>
 </ul>
   </li>
@@ -298,14 +300,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.10-2-775e27</span>
+    <span class="version">0.11.10-3-79db2f</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.10-2-775e27</a>
+          <a href="index.html">0.11.10-3-79db2f</a>
         </li>
         <li class="version">
           <a href="0.11.0-M7/index.html">0.11.0-M7</a>
@@ -341,9 +343,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.10-2-775e27</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.10-3-79db2f</button>
   <div class="version-menu">
-    <a class="version is-current" href="Intro_to_Mill_for_Java.html">0.11.10-2-775e27</a>
+    <a class="version is-current" href="Intro_to_Mill_for_Java.html">0.11.10-3-79db2f</a>
     <a class="version is-missing" href="0.11.0-M7/index.html">0.11.0-M7</a>
     <a class="version is-missing" href="0.10.15/index.html">0.10.15</a>
     <a class="version is-missing" href="0.10.12/index.html">0.10.12</a>
@@ -609,8 +611,10 @@ Inputs:
 <div class="paragraph">
 <p>Above, <code>def lineCount</code> is a new build target we define, which makes use of
 <code>allSourceFiles</code> (an existing target) and is in-turn used in our override of
-<code>resources</code> (also an existing target). This generated file can then be
-loaded and used at runtime, as see in the output of <code>mill run</code></p>
+<code>resources</code> (also an existing target). <code>os.read.lines</code> and <code>os.write `come
+from the <a href="https://github.com/com-lihaoyi/os-lib">OS-Lib</a> library, which is
+bundled with Mill. This generated file can then be
+loaded and used at runtime, as see in the output of `mill run</code></p>
 </div>
 <div class="paragraph">
 <p>While this is a toy example, it shows how easy it is to customize your Mill
@@ -685,12 +689,14 @@ configuration such as <code>ivyDeps</code> specific to a particular module.</p>
 <pre>build.sc
 foo/
     src/
-        Foo.java
+        foo/
+            Foo.java
     resources/
         ...
 bar/
     src/
-        Bar.java
+        bar/
+            Bar.java
     resources/
         ...
 out/
@@ -881,7 +887,7 @@ Tasks that depend on each other can’t be processed in parallel.</p>
 <div class="listingblock">
 <div class="title">Output of <code>mill --help</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.11.10-2-775e27
+<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.11.10-3-79db2f
 usage: mill [options] [[target [target-options]] [+ [target ...]]]
   -D --define &lt;k=v&gt;                 Define (or overwrite) a system property.
   -b --bell                         Ring the bell once if the run completes successfully, twice if
@@ -931,7 +937,7 @@ usage: mill [options] [[target [target-options]] [+ [target ...]]]
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="Web_Build_Examples.html">Web Build Examples</a></span>
+  <span class="prev"><a href="Web_Build_Examples.html">Scala Web Build Examples</a></span>
   <span class="next"><a href="Java_Installation_IDE_Support.html">Installation and IDE Support</a></span>
 </nav>
 </article>
