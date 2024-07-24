@@ -1756,6 +1756,8 @@ object docs extends Module {
        |  title: Mill
        |  url: ${if (authorMode) s"${T.dest}/site" else Settings.docUrl}
        |  start_page: mill::Intro_to_Mill_for_Scala.adoc
+       |  keys:
+       |    google_analytics: 'G-1C582ZJR85'
        |
        |content:
        |  sources:
@@ -1783,7 +1785,7 @@ object docs extends Module {
        |    mill-github-url: ${Settings.projectUrl}
        |    mill-doc-url: ${if (authorMode) s"file://${T.dest}/site" else Settings.docUrl}
        |    mill-download-url: ${if (authorMode) s"file://${exampleZips().head.path / os.up}"
-      else s"${Settings.projectUrl}/releases/download/0.11.10"}
+      else s"${Settings.projectUrl}/releases/download/${millLastTag()}"}
        |    mill-example-url: ${if (authorMode) s"file://${T.workspace}"
       else s"${Settings.projectUrl}/blob/main/"}
        |    utest-github-url: https://github.com/com-lihaoyi/utest
@@ -1966,6 +1968,7 @@ def exampleZips: T[Seq[PathRef]] = T {
     val example = examplePath.subRelativeTo(T.workspace)
     val exampleStr = millVersion() + "-" + example.segments.mkString("-")
     os.copy(examplePath, T.dest / exampleStr, createFolders = true)
+    os.write(T.dest / exampleStr / ".mill-version", millLastTag())
     os.copy(bootstrapLauncher().path, T.dest / exampleStr / "mill")
     val zip = T.dest / s"$exampleStr.zip"
     os.proc("zip", "-r", zip, exampleStr).call(cwd = T.dest)

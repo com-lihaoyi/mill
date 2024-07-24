@@ -5,7 +5,7 @@ for `JavaModule`.
 
 Many of the APIs covered here are listed in the API documentation:
 
-* {mill-doc-url}/api/latest/mill/scalalib/JavaModule.html[mill.scalalib.JavaModule]
+* {mill-doc-url}/api/latest/mill/scalalib/JavaModule.html[mill.javaalib.JavaModule]
 
 
 == Compilation & Execution Flags

@@ -15,14 +15,6 @@
 
 :page-aliases: index.adoc, Intro_to_Mill.adoc
 
-
-{mill-github-url}[Mill] is your shiny new Scala build tool! Mill aims for
-simplicity by reusing concepts you are already familiar with, borrowing ideas
-from modern tools like https://maven.apache.org/[Maven], https://gradle.org/[Gradle],
-https://bazel.build/[Bazel] and https://www.scala-sbt.org/[SBT]. It lets you build
-your projects in a way that's simple, fast, and predictable.
-
-
 {mill-github-url}[Mill] is your shiny new Scala build tool! Mill aims for
 simplicity by reusing concepts you are already familiar with, borrowing ideas
 from modern tools like https://maven.apache.org/[Maven], https://gradle.org/[Gradle],
@@ -44,12 +36,6 @@ how Mill attempts to do better:
 
 - https://www.lihaoyi.com/post/SowhatswrongwithSBT.html[So, what's wrong with SBT?]
 - https://www.lihaoyi.com/post/MillBetterScalaBuilds.html[Mill: Better Scala Builds]
-
-If you are using Mill, you will find the following book by the Author useful in
-using Mill and its supporting libraries to the fullest:
-
-* https://handsonscala.com/[Hands-on Scala Programming]
-
 
 If you are using Mill, you will find the following book by the Author useful in
 using Mill and its supporting libraries to the fullest:
