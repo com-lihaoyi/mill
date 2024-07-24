@@ -20,6 +20,9 @@ object bar extends JavaModule {
 
 //// SNIPPET:BUILD3
 object qux extends JavaModule {
-  object test extends JavaTests with TestModule.Junit4
-  object integration extends JavaTests with TestModule.Junit4
+  object test extends JavaTests with TestModule.Junit5
+  object integration extends JavaTests with TestModule.Junit5
 }
+
+// This example also demonstrates using Junit 5 instead of Junit 4,
+// with

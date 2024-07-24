@@ -16,7 +16,7 @@ object hello extends RootModule with JavaModule {
     ivy"com.h2database:h2:2.3.230"
   )
 
-  object test extends JavaModuleTests with TestModule.Junit5 {
+  object test extends JavaTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy"org.springframework.boot:spring-boot-starter-test:2.5.6"
     )
