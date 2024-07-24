@@ -7,10 +7,13 @@ object qux extends JavaModule {
 
   object test extends JavaTests with TestModule.Junit4 {
     def moduleDeps = super.moduleDeps ++ Seq(baz.test)
+    def ivyDeps = super.ivyDeps() ++ Agg(ivy"com.google.guava:guava:33.2.1-jre")
   }
 }
 
 
 object baz extends JavaModule {
-  object test extends JavaTests with TestModule.Junit4
+  object test extends JavaTests with TestModule.Junit4{
+    def ivyDeps = super.ivyDeps() ++ Agg(ivy"com.google.guava:guava:33.2.1-jre")
+  }
 }
