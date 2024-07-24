@@ -47,21 +47,11 @@ trait MicronautModule extends MavenModule{
   def javacOptions = Seq(
     "-processorpath",
     processors.runClasspath().map(_.path).mkString(":"),
-    "-processor",
-    "io.micronaut.annotation.processing.TypeElementVisitorProcessor",
-    "-processor",
-    "io.micronaut.annotation.processing.PackageConfigurationInjectProcessor",
-    "-processor",
-    "io.micronaut.annotation.processing.BeanDefinitionInjectProcessor",
-    "-processor",
-    "io.micronaut.annotation.processing.AggregatingTypeElementVisitorProcessor",
-    "-processor",
-    "io.micronaut.annotation.processing.AbstractInjectAnnotationProcessor",
-    "-processor",
-    "io.micronaut.annotation.processing.ConfigurationMetadataProcessor",
+    "-parameters",
+    "-Amicronaut.processing.incremental=true",
     "-Amicronaut.processing.group=example.micronaut",
-    "-Amicronaut.processing.module=default",
-    "-Amicronaut.processing.annotations=example.micronaut.*"
+    "-Amicronaut.processing.module=todo",
+    "-Amicronaut.processing.annotations=example.micronaut.*",
   )
 }
 

@@ -1,3 +1,11 @@
+import org.gradle.api.tasks.compile.JavaCompile
+
+tasks.withType(JavaCompile::class.java).configureEach {
+    doFirst {
+        println("Args for ${name} are ${options.allCompilerArgs}")
+    }
+}
+
 plugins {
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("io.micronaut.application") version "4.3.6"
