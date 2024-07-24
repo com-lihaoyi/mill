@@ -16,3 +16,6 @@ include::example/javaweb/2-hello-spring-boot.adoc[]
 
 include::example/javaweb/3-todo-spring-boot.adoc[]
 
+== Micronaut Hello World App
+
+include::example/javaweb/4-hello-micronaut.adoc[]
