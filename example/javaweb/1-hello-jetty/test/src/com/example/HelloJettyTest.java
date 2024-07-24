@@ -1,3 +1,4 @@
+package com.example;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.HandlerList;

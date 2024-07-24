@@ -25,12 +25,14 @@ object bar extends MyModule{
 // build.sc
 // foo/
 //     src/
-//         Foo.java
+//         foo/
+//             Foo.java
 //     resources/
 //         ...
 // bar/
 //     src/
-//         Bar.java
+//         bar/
+//             Bar.java
 //     resources/
 //         ...
 // out/

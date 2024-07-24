@@ -6,7 +6,7 @@ object hello extends RootModule with JavaModule {
     ivy"javax.servlet:javax.servlet-api:4.0.1"
   )
 
-  object test extends JavaModuleTests with TestModule.Junit4
+  object test extends JavaTests with TestModule.Junit4
 }
 
 // This example demonstrates how to set up a simple Jetty webserver,

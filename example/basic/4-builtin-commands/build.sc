@@ -115,7 +115,7 @@ Inputs:
 
 > mill show foo.allSourceFiles
 [
-  ".../foo/src/Foo..."
+  ".../foo/src.../Foo..."
 ]
 
 */

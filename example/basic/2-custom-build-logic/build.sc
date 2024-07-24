@@ -42,7 +42,9 @@ Inputs:
 
 // Above, `def lineCount` is a new build target we define, which makes use of
 // `allSourceFiles` (an existing target) and is in-turn used in our override of
-// `resources` (also an existing target). This generated file can then be
+// `resources` (also an existing target). `os.read.lines` and `os.write `come
+// from the https://github.com/com-lihaoyi/os-lib[OS-Lib] library, which is
+// bundled with Mill. This generated file can then be
 // loaded and used at runtime, as see in the output of `mill run`
 //
 // While this is a toy example, it shows how easy it is to customize your Mill

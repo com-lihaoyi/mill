@@ -1,4 +1,4 @@
-import mill._, scalalib._, publish._
+import mill._, javalib._, publish._
 
 def sharedCompileIvyDeps = T{
   Agg(

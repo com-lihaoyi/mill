@@ -13,12 +13,28 @@ object hello extends RootModule with JavaModule {
     ivy"org.webjars.npm:todomvc-common:1.0.5",
     ivy"org.webjars.npm:todomvc-app-css:2.4.1",
 
-    ivy"com.h2database:h2:2.3.230"
+
   )
 
-  object test extends JavaModuleTests with TestModule.Junit5 {
+  trait HelloTests extends JavaTests with TestModule.Junit5{
+    def mainClass = Some("com.example.TodomvcApplication")
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy"org.springframework.boot:spring-boot-starter-test:2.5.6"
+    )
+  }
+
+  object test extends HelloTests{
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy"com.h2database:h2:2.3.230",
+    )
+  }
+
+  object integration extends HelloTests {
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy"org.testcontainers:testcontainers:1.18.0",
+      ivy"org.testcontainers:junit-jupiter:1.18.0",
+      ivy"org.testcontainers:postgresql:1.18.0",
+      ivy"org.postgresql:postgresql:42.6.0",
     )
   }
 }
@@ -30,15 +46,21 @@ object hello extends RootModule with JavaModule {
 // * Serving HTML templates using Thymeleaf
 // * Serving static Javascript and CSS using Webjars
 // * Querying a SQL database using JPA and H2
+// * Unit testing using a H2 in-memory database
+// * Integration testing using Testcontainers Postgres in Docker
 
 
 /** Usage
 
 > mill test
-...com.example.TodomvcApplicationTests#homePageLoads() finished...
-...com.example.TodomvcApplicationTests#addNewTodoItem() finished...
+...com.example.TodomvcTests#homePageLoads() finished...
+...com.example.TodomvcTests#addNewTodoItem() finished...
 
-> mill runBackground
+> mill integration
+...com.example.TodomvcIntegrationTests#homePageLoads() finished...
+...com.example.TodomvcIntegrationTests#addNewTodoItem() finished...
+
+> mill test.runBackground
 
 > curl http://localhost:8087
 ...<h1>todos</h1>...
