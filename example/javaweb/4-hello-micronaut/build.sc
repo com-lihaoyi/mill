@@ -57,7 +57,8 @@ trait MicronautModule extends MavenModule{
 // you can then use `MicronautModule in your build just like you.
 //
 // The `MicronautModule` shown here does not implement the full functionality of the micronaut
-// CLI, but it easily can be extended with more features as necessary.
+// CLI; in particular, support for Micronaut AOT compilation is missing. But it easily can be
+// extended with more features as necessary.
 
 
 /** Usage
