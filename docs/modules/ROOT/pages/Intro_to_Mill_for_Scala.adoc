@@ -24,7 +24,8 @@ and customize your projects in a way that's simple, fast, and predictable.
 Mill automates dealing with a lot of common build-tool concerns such as caching,
 incremental re-computation, and parallelism. This allows you
 to focus your effort on the business logic unique to your build, while letting
-Mill take care of all the rest.
+Mill take care of all the rest. Mill's caching and parallelism mean it scales well
+from small projects to large codebases with hundreds of modules.
 
 Compared to SBT and other tools, Mill builds are far more intuitive and easy to read,
 write, and debug:
