@@ -1756,6 +1756,8 @@ object docs extends Module {
        |  title: Mill
        |  url: ${if (authorMode) s"${T.dest}/site" else Settings.docUrl}
        |  start_page: mill::Intro_to_Mill_for_Scala.adoc
+       |  keys:
+       |    google_analytics: 'G-1C582ZJR85'
        |
        |content:
        |  sources:
