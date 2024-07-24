@@ -12,19 +12,24 @@ object hello extends RootModule with MicronautModule {
     ivy"io.micronaut.serde:micronaut-serde-jackson:2.9.0",
     ivy"io.micronaut.data:micronaut-data-jdbc:4.7.0",
     ivy"io.micronaut.sql:micronaut-jdbc-hikari:5.6.0",
+    ivy"io.micronaut.validation:micronaut-validation:4.5.0",
+
     ivy"io.micronaut.views:micronaut-views-htmx:5.2.0",
     ivy"io.micronaut.views:micronaut-views-thymeleaf:5.2.0",
+
     ivy"org.webjars.npm:todomvc-common:1.0.5",
     ivy"org.webjars.npm:todomvc-app-css:2.4.1",
     ivy"org.webjars.npm:github-com-bigskysoftware-htmx:1.9.10",
-    ivy"io.micronaut.validation:micronaut-validation:4.5.0"
   )
 
 
   object test extends MavenTests with TestModule.Junit5{
     def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy"com.h2database:h2:2.2.224",
+
       ivy"io.micronaut:micronaut-http-client:$micronautVersion",
       ivy"io.micronaut.test:micronaut-test-junit5:4.4.0",
+
       ivy"org.junit.jupiter:junit-jupiter-api:5.8.1",
       ivy"org.junit.jupiter:junit-jupiter-engine:5.8.1"
     )
@@ -56,31 +61,36 @@ trait MicronautModule extends MavenModule{
 }
 
 
-// This example demonstrates how to set up a simple Micronaut example service,
-// using the code from the
-// https://guides.micronaut.io/latest/creating-your-first-micronaut-app.html[Micronaut Tutorial].
+// This example is a more complete example using Micronaut, adapted from
+// https://github.com/sdelamo/todomvc. On top of the `MicronautModule` and
+// annotation processing demonstrated by the previous example, this example
+// shows how a "full stack" web application using Micronaut looks like:
 //
-// To preserve compatibility with the file layout from the example project, we use `MavenModule`,
-// which follows the `src/main/java` and `src/test/java` folder convention.
+// * Thymeleaf for HTML templating
+// * Webjars for Javascript and CSS
+// * HTMX for interactivity
+// * Database interactions using JDBC and H2
+// * Controllers, Repositories, Entities, Forms
+// * A more detailed test suite
 //
-// Although Mill does not have a built in `MicronautModule`, this example shows how easy
-// it is to define it yourself as `trait MicronautModule`: setting up the annotation processor
-// classpath as a `JavaModule` and setting up the annotation via `javacOptions`. Once defined,
-// you can then use `MicronautModule in your build just like you.
-//
-// The `MicronautModule` shown here does not implement the full functionality of the micronaut
-// CLI, but it easily can be extended with more features as necessary.
+// Again, the example `MicronautModule` is by no means complete, but it demonstrates
+// how Mill can be integrated with Micronaut's annotation processors and configuration,
+// and can be extended to cover additional functionality in future
 
 
 /** Usage
 
 > mill test
-...example.micronaut.HelloControllerTest#testHello()...
+...example.micronaut.LearnJsonTest...
+...example.micronaut.TodoTest...
+...example.micronaut.TodoItemMapperTest...
+...example.micronaut.TodoItemControllerTest...
+...example.micronaut.HtmxWebJarsTest...
 
 > mill runBackground
 
-> curl http://localhost:8087/hello
-...Hello World...
+> curl http://localhost:8088
+ ...<h1>todos</h1>...
 
 > mill clean runBackground
 

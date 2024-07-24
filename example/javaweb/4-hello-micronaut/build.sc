@@ -24,8 +24,10 @@ trait MicronautModule extends MavenModule{
 
   object processors extends JavaModule{
     def ivyDeps = Agg(
+      ivy"io.micronaut.data:micronaut-data-processor:4.7.0",
       ivy"io.micronaut:micronaut-http-validation:$micronautVersion",
-      ivy"io.micronaut.serde:micronaut-serde-processor:2.10.1",
+      ivy"io.micronaut.serde:micronaut-serde-processor:2.9.0",
+      ivy"io.micronaut.validation:micronaut-validation-processor:4.5.0",
       ivy"io.micronaut:micronaut-inject-java:$micronautVersion"
     )
   }
@@ -33,14 +35,11 @@ trait MicronautModule extends MavenModule{
   def javacOptions = Seq(
     "-processorpath",
     processors.runClasspath().map(_.path).mkString(":"),
-    "-processor",
-    "io.micronaut.annotation.processing.TypeElementVisitorProcessor",
-    "-processor",
-    "io.micronaut.annotation.processing.PackageConfigurationInjectProcessor",
-    "-processor",
-    "io.micronaut.annotation.processing.BeanDefinitionInjectProcessor",
+    "-parameters",
+    "-Amicronaut.processing.incremental=true",
     "-Amicronaut.processing.group=example.micronaut",
-    "-Amicronaut.processing.module=default"
+    "-Amicronaut.processing.module=todo",
+    "-Amicronaut.processing.annotations=example.micronaut.*",
   )
 }
 
