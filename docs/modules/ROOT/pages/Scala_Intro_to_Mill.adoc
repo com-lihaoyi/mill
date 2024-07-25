@@ -30,20 +30,20 @@ It tries to learn from the strengths of each tool, while improving on their weak
 
 Compared to SBT:
 
-* **Mill makes customizing the build yourself much easier than SBT**: is all build tools
+* **Mill makes customizing the build yourself much easier**: is all build tools
   do is move files around and call subprocesses, and Mill makes doing that yourself easy.
   This means you can always make your Mill build do exactly what you want, and are not
   beholden to third-party plugins that may not exist, be well maintained, or interact well
   with each other.
 
-* **Mill is much more performant than SBT**: SBT has enough overhead that even a dozen
+* **Mill is much more performant**: SBT has enough overhead that even a dozen
   subprojects is enough to slow it down, while Mill can handle hundreds of modules without issue.
   Custom tasks in SBT re-execute every time, whereas in Mill they are cached automatically.
   Mill's watch-for-changes-and-re-run implementation has much lower latency than SBT's. The
   list of ways Mill improves upon SBT's performance is long, and at the command line you
   can really feel it
 
-* **Mill is much easier to understand than SBT**: Your Mill build is made of bog-standard
+* **Mill builds are much easier to understand**: Your Mill build is made of bog-standard
   `object`s and ``def``s, rather than SBT's
   https://eed3si9n.com/4th-dimension-with-sbt-013/[four-dimensional task matrix]. Your IDE's
   "*jump-to-definition*" in Mill actually brings you to the implementation of a task, rather
