@@ -26,7 +26,7 @@ strengths of each tool and improve on their weaknesses. Although Maven and Gradl
 are mature widely-used tools, they have fundamental limitations in their design
 (https://blog.ltgt.net/maven-is-broken-by-design/[Maven Design],
 https://www.bruceeckel.com/2021/01/02/the-problem-with-gradle/[Gradle Design]) that make
-them difficult to improve upon incrementally. Mill tries to do much better.
+them difficult to improve upon incrementally.
 
 Compared to Maven:
 
@@ -59,6 +59,9 @@ Compared to Gradle:
   without "_spooky action at a distance_", and the exact meaning of any config statement is
   a single "_jump-to-definition_" away in your IDE.
 
+Mill can be used for applications built on top of common Java frameworks like
+xref:Java_Web_Build_Examples.html#_spring_boot_todomvc_app[Spring Boot] or
+xref:Java_Web_Build_Examples.html#_micronaut_todomvc_app[Micronaut].
 
 Mill build files are written in Scala, but you do not need to have prior experience
 in Scala to read or write them.
