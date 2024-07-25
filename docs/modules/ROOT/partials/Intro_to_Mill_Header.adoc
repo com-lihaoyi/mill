@@ -6,7 +6,7 @@
 
 * *Maintainability*: Mill build targets are self contained without side-effects, making it easy
   to trace the data-flow of your build. Mill also provides better IDE support
-  (via xref:{{Lang}}_Installation_IDE_Support.adoc[IntelliJ or VSCode]) than any other build tool,
+  (via xref:{language}_Installation_IDE_Support.adoc[IntelliJ or VSCode]) than any other build tool,
   letting you use "_jump-to-definition_" to navigate around your build
   as easily as any application codebase. This makes maintaining Mill builds
   a far easier than the "_guess and grep_" workflows common with other build tools.

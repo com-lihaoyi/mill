@@ -1249,7 +1249,7 @@ object example extends MillScalaModule {
     def compile = example.compile()
 
     def lang = "Scala"
-    def buildScLines = T{ os.read.lines(testRepoRoot().path / "build.sc").map(_.replace("{{Lang}}", lang)) }
+    def buildScLines = T{ os.read.lines(testRepoRoot().path / "build.sc") }
     def forkEnv = super.forkEnv() ++ Map("MILL_EXAMPLE_PARSED" -> upickle.default.write(parsed()))
 
     /**

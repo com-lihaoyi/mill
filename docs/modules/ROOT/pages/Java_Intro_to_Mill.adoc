@@ -19,6 +19,8 @@
 {mill-github-url}[Mill] is a Java build tool that aims for performance,
 maintainability, and flexibility:
 
+:language: Java
+
 include::partial$Intro_to_Mill_Header.adoc[]
 
 Mill borrows ideas from other tools like https://maven.apache.org/[Maven],
