@@ -1198,45 +1198,48 @@ object example extends MillScalaModule {
   object javaweb extends Cross[ExampleCrossModule](listIn(millSourcePath / "javaweb"))
 
   trait ExampleCrossModuleJava extends ExampleCrossModule {
-
+    def lang = "Java"
     def upstreamCross(s: String) = s match{
-      case "basicjava" => basic
-      case "javabuilds" => scalabuilds
-      case "javamodule" => scalamodule
+      case "basicjava" => Some(basic)
+      case "javabuilds" => Some(scalabuilds)
+      case "javamodule" => Some(scalamodule)
+      case _ => None
     }
 
-    def buildScLines = T{
-      val upstreamLines = os.read.lines(
-        upstreamCross(this.millModuleSegments.parts.dropRight(1).last)(crossValue)
-          .testRepoRoot().path / "build.sc"
-      )
-      val lines = os.read.lines(testRepoRoot().path / "build.sc")
+    def buildScLines = upstreamCross(this.millModuleSegments.parts.dropRight(1).last) match{
+      case None => T{ super.buildScLines() }
+      case Some(upstream) =>
+        T {
+          val upstreamLines = os.read.lines(upstream(crossValue).testRepoRoot().path / "build.sc")
+          val lines = os.read.lines(testRepoRoot().path / "build.sc")
 
-      import collection.mutable
-      val groupedLines = mutable.Map.empty[String, mutable.Buffer[String]]
-      var current = Option.empty[String]
-      lines.foreach{
-        case s"//// SNIPPET:$name" =>
-          current = Some(name)
-          groupedLines(name) = mutable.Buffer()
-        case s => groupedLines(current.get).append(s)
-      }
-
-      upstreamLines.flatMap{
-        case s"//// SNIPPET:$name" =>
-          if (name != "END") {
-
-            current = Some(name)
-            groupedLines(name)
-          } else{
-            current = None
-            Nil
+          import collection.mutable
+          val groupedLines = mutable.Map.empty[String, mutable.Buffer[String]]
+          var current = Option.empty[String]
+          lines.foreach{
+            case s"//// SNIPPET:$name" =>
+              current = Some(name)
+              groupedLines(name) = mutable.Buffer()
+            case s => groupedLines(current.get).append(s)
           }
 
-        case s =>
-          if (current.nonEmpty) None
-          else Some(s)
+          upstreamLines.flatMap{
+            case s"//// SNIPPET:$name" =>
+              if (name != "END") {
+
+                current = Some(name)
+                groupedLines(name)
+              } else{
+                current = None
+                Nil
+              }
+
+            case s =>
+              if (current.nonEmpty) None
+              else Some(s)
+        }
       }
+
     }
   }
   trait ExampleCrossModule extends IntegrationTestCrossModule {
@@ -1245,7 +1248,8 @@ object example extends MillScalaModule {
     def testRepoRoot: T[PathRef] = T.source(millSourcePath)
     def compile = example.compile()
 
-    def buildScLines = T{ os.read.lines(testRepoRoot().path / "build.sc") }
+    def lang = "Scala"
+    def buildScLines = T{ os.read.lines(testRepoRoot().path / "build.sc").map(_.replace("{{Lang}}", lang)) }
     def forkEnv = super.forkEnv() ++ Map("MILL_EXAMPLE_PARSED" -> upickle.default.write(parsed()))
 
     /**

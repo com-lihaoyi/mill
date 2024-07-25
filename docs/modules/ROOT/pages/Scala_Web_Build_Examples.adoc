@@ -1,5 +1,7 @@
 = Scala Web Build Examples
 
+:page-aliases: Web_Build_Examples.adoc
+
 This page contains examples of using Mill as a build tool for web-applications.
 It covers setting up a basic backend server, Todo-MVC app, topics like cache
 busting, as well as usage of Scala.js both as standalone modules as well as
