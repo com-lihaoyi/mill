@@ -1198,7 +1198,6 @@ object example extends MillScalaModule {
   object javaweb extends Cross[ExampleCrossModule](listIn(millSourcePath / "javaweb"))
 
   trait ExampleCrossModuleJava extends ExampleCrossModule {
-    def lang = "Java"
     def upstreamCross(s: String) = s match{
       case "basicjava" => Some(basic)
       case "javabuilds" => Some(scalabuilds)
@@ -1248,7 +1247,6 @@ object example extends MillScalaModule {
     def testRepoRoot: T[PathRef] = T.source(millSourcePath)
     def compile = example.compile()
 
-    def lang = "Scala"
     def buildScLines = T{ os.read.lines(testRepoRoot().path / "build.sc") }
     def forkEnv = super.forkEnv() ++ Map("MILL_EXAMPLE_PARSED" -> upickle.default.write(parsed()))
 
