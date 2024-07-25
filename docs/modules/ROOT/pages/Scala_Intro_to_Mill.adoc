@@ -24,9 +24,7 @@ include::partial$Intro_to_Mill_Header.adoc[]
 
 Mill borrows ideas from other tools like https://maven.apache.org/[Maven],
 https://gradle.org/[Gradle], https://bazel.build/[Bazel], or https://www.scala-sbt.org/[SBT].
-It tries to learn from the strengths of each tool, while improving on their weaknesses. Mill
-build files are written in Scala, but you do not need to have prior experience in Scala to
-read or write them.
+It tries to learn from the strengths of each tool, while improving on their weaknesses.
 
 Compared to SBT:
 
