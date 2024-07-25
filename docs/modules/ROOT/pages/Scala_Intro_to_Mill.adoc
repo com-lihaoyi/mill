@@ -44,7 +44,7 @@ Compared to SBT:
   can really feel it
 
 * **Mill builds are much easier to understand**: Your Mill build is made of bog-standard
-  `object`s and ``def``s, rather than SBT's
+  ``object``s and ``def``s, rather than SBT's
   https://eed3si9n.com/4th-dimension-with-sbt-013/[four-dimensional task matrix]. Your IDE's
   "*jump-to-definition*" in Mill actually brings you to the implementation of a task, rather
   than an SBT `taskKey` declaration. Customizing things is as simple as writing or overriding
