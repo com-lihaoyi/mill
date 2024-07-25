@@ -16,9 +16,6 @@
 
 :page-aliases: index.adoc, Intro_to_Mill.adoc, Intro_to_Mill_for_Java.adoc
 
-{mill-github-url}[Mill] is a Java build tool that aims for performance,
-maintainability, and flexibility:
-
 :language: Java
 
 include::partial$Intro_to_Mill_Header.adoc[]

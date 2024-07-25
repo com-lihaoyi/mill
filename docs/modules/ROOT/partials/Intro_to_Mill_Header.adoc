@@ -1,3 +1,5 @@
+{mill-github-url}[Mill] is a {language} build tool that aims for performance,
+maintainability, and flexibility:
 
 * *Performance*: Mill's xref:Tasks.adoc[build graph] automatically caches and parallelizes build
   steps (called "_targets_"), minimizing the amount of work that needs to be done, and
