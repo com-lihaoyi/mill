@@ -20,9 +20,9 @@
 include::partial$Intro_to_Mill_Header.adoc[]
 
 Mill is used to build many mainstream Scala projects, such as the
-https://github.com/coursier/coursier/blob/main/build.sc[Coursier dependency resolver],
-https://github.com/VirtusLab/scala-cli/blob/main/build.sc[Scala-CLI], and the
-https://github.com/com-lihaoyi/Ammonite/blob/main/build.sc[Ammonite REPL]
+https://github.com/coursier/coursier[Coursier dependency resolver],
+https://github.com/VirtusLab/scala-cli[Scala-CLI], and the
+https://github.com/com-lihaoyi/Ammonite[Ammonite REPL]
 
 Mill borrows ideas from other tools like https://maven.apache.org/[Maven],
 https://gradle.org/[Gradle], https://bazel.build/[Bazel], or https://www.scala-sbt.org/[SBT].
