@@ -48,8 +48,30 @@ To generate IntelliJ IDEA project files into `.idea/`, run:
 
 [source,bash]
 ----
-mill mill.idea.GenIdea/idea
+./mill mill.idea.GenIdea/idea
 ----
+
+This will generate the XML files IntelliJ uses to configure your project
+
+```
+.idea
+.idea/scala_settings.xml
+.idea/mill_modules
+.idea/mill_modules/.iml
+.idea/mill_modules/mill-build.iml
+.idea/mill_modules/test.iml
+.idea/libraries
+.idea/libraries/mill_scalalib_2_13_0_11_10_jar.xml
+...
+.idea/workspace.xml
+.idea/modules.xml
+.idea/scala_compiler.xml
+.idea/misc.xml
+```
+
+After the files are generated, you can open the folder in IntelliJ to load the project
+into your IDE. If you make changes to your Mill `build.sc`, you can update the project config
+those updates by running `./mill mill.idea.GenIdea/idea` again.
 
 === VSCode
 
