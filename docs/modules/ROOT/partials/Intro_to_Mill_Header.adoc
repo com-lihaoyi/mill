@@ -1,5 +1,5 @@
-{mill-github-url}[Mill] is a JVM build tool that supports {language}. Mill aims for performance,
-maintainability, and flexibility:
+{mill-github-url}[Mill] is a JVM build tool that supports {language}. Mill aims to make
+your JVM project's build process performant, maintainable, and flexible:
 
 * *Performance*: Mill's xref:Tasks.adoc[build graph] automatically caches and xref:#_parallel_task_execution[parallelizes] build
   steps (called "*targets*"), minimizing the amount of work that needs to be done, and
