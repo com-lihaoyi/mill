@@ -65,7 +65,7 @@ Compared to Gradle:
   be hard to determine at a glance, the impact of a Mill config change is localized,
   only affecting downstream tasks. Apart from humans, tooling
   also finds it easier to understand Mill builds: your IDE can jump to the definition of
-  a Mill task, find its usage, peek at its doc-comments, and generally navigate the
+  a Mill task, find its usage, peek at its doc-comments. Your IDE can navigate Mill's
   xref:Tasks.adoc[task graph] and xref:Modules.adoc[module tree] just as easily as it can
   navigate the method call graph in a normal Java program, something impossible in tools like
   Maven or Gradle.
