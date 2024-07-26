@@ -16,8 +16,8 @@ maintainability, and flexibility:
 * *Flexibility*: Mill lets you write <<Custom Build Logic>>, rather than
   error-prone shell scripts, verbose AntRun XML, or complicated external plugins. Mill's
   custom targets and modules allow anything from
-  xref:Tasks.adoc#primitive-tasks[adding a simple pipeline of build targets], up to
-  xref:Modules.adoc#_use_case_diy_java_modules[supporting entirely new programming language toolchains].
+  xref:Tasks.adoc#primitive-tasks[adding simple pipelines], up to
+  xref:Modules.adoc#_use_case_diy_java_modules[adding entire language toolchains].
   This means Mill does not limit you to what Mill knows how to do, and can be easily
   customized to fit what *you* need to get done.
 

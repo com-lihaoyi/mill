@@ -21,7 +21,10 @@
 include::partial$Intro_to_Mill_Header.adoc[]
 
 Mill is used to build some real-world Java projects, such as the
-https://github.com/swaldman/c3p0[C3P0 JDBC Connection Pool].
+https://github.com/swaldman/c3p0[C3P0 JDBC Connection Pool], and
+can be used for applications built on top of common Java frameworks like
+xref:Java_Web_Build_Examples.adoc#_spring_boot_todomvc_app[Spring Boot] or
+xref:Java_Web_Build_Examples.adoc#_micronaut_todomvc_app[Micronaut].
 
 Mill borrows ideas from other tools like https://maven.apache.org/[Maven],
 https://gradle.org/[Gradle], https://bazel.build/[Bazel], but tries to learn from the
@@ -61,10 +64,6 @@ Compared to Gradle:
   inheritance, and overrides. This means that impact of a Mill config statement is localized,
   without "_spooky action at a distance_", and the exact meaning of any config statement is
   a single "_jump-to-definition_" away in your IDE.
-
-Mill can be used for applications built on top of common Java frameworks like
-xref:Java_Web_Build_Examples.adoc#_spring_boot_todomvc_app[Spring Boot] or
-xref:Java_Web_Build_Examples.adoc#_micronaut_todomvc_app[Micronaut].
 
 Mill build files are written in Scala, but you do not need to have prior experience
 in Scala to read or write them.
