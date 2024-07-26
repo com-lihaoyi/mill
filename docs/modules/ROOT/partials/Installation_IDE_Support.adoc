@@ -94,7 +94,7 @@ those updates by opening the "BSP" tab and clicking the "Refresh" button
 
 image::VSCodeRefresh.png[]
 
-=== If things go wrong
+=== Debugging IDE issues
 
 In case things go wrong, it can be sometimes hard to find the cause.
 BSP is just a protocol, and as such, issues on the server side (the Mill BSP
