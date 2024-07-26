@@ -75,7 +75,7 @@ include::example/thirdparty/fansi.adoc[]
 
 https://github.com/com-lihaoyi/Ammonite[Ammonite] is an ergonomic Scala REPL.
 
-=== Scala-ClI
+=== Scala-CLI
 
 https://github.com/VirtusLab/scala-cli[Scala-CLI] is the primary CLI tool that
 runs when you enter `scala` in the terminal. It is able to compile, test, run,
