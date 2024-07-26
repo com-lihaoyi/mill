@@ -146,20 +146,54 @@ Once you found and fixed that and the environments are the same, `clean` and res
 == Bootstrap Scripts
 
 Although the Mill example projects come with their own `./mill` bootstrap script,
-you can also download it manually. There are currently two bootstrap script available:
+you can also download it manually:
 
-* the rather simple `mill` script <<_mills_bootstrap_script_linuxos_x_only,in the root of th Mill repository>>,
-  which only works on Linux and Unix-like machines, or
-* <<_millw,the `lefou/millw` script>>, an external project with more features and more supported platforms.
+[source,bash,subs="verbatim,attributes"]
+----
+curl -L {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag} > mill && chmod +x mill
+echo {mill-last-tag} > .mill-version
+----
 
-Using `millw` is recommended. We plan to merge both script in the future.
+Downloading a `mill` bootstrap script to the root of your project repository helps make it easier for
+new contributors to build your project, as they don't have to install Mill before they can start.
+Anyone who wants to work with the project can simply use the `./mill` script directly.
+
+[source,bash]
+----
+./mill --version
+./mill __.compile # double underscore
+----
 
 In general, bootstrap scripts are the recommended way of installing Mill.
 Similar to `./gradlew` or `./mvnw`, the `./mill` bootstrap script
 reduces the chance of errors due to the installed version of Mill
 being incompatible with the version expected by your build.
+In-project bootstrap scripts are also useful for running Mill in CI/CD, ensuring
+that your build server like Jenkins or Github Actions has the correct version of Mill
+present to build, compile or test your code.
 
-All bootstrap scripts can be installed globally and/or per project.
+=== `millw`
+
+You can also use https://github.com/lefou/millw[lefou/millw] as a drop-in replacement for `mill`.
+This script is a bit more advanced, and supports running on all major platforms including MS Windows.
+
+The script supports to following sources when determining the best Mill version to use:
+
+* `MILL_VERSION` environment variable
+* `.mill-version` file in the project directory
+* `.config/mill-version` file in the project directory
+* if non was defined so far, it can also check for the latest available version online
+* `DEFAULT_MILL_VERSION` environment variable
+
+Using a system-wide installed `millw` is probably the robustest way to use Mill on any operating system.
+It also preserves support of rather old Mill versions next to recent ones, so that updating it or switching to `millw` initially should be a no-brainer.
+
+You can also install it on Homebrew via https://github.com/lefou/homebrew-millw[homebrew-millw]:
+
+[source,sh]
+----
+brew install lefou/millw/millw
+----
 
 
 == Updating Mill
@@ -186,64 +220,6 @@ MILL_VERSION=0.5.0-3-4faefb ./mill __.compile
 
 to override the Mill version manually. This takes precedence over the version
 specified in `./mill`, `.config/mill-version` or `.mill-version`
-
-=== Global installation
-
-After installing the script in a global or user-wide location, you can use it everywhere.
-If it detects project-specific configuration of the Mill version, it will download and use this exact version.
-
-=== Project-specific installation
-
-You can also add the script to your project as `mill`.
-This makes it easier for new contributors to build your project, as they don't have to install Mill before they can start.
-Anyone who wants to work with the project can simply use the `./mill` script directly.
-
-[source,bash]
-----
-./mill --version
-./mill __.compile # double underscore
-----
-
-In-project bootstrap scripts are also useful for running Mill in CI/CD, ensuring
-that your build server like Jenkins or Github Actions has the correct version of Mill present to build, compile or test your code.
-
-[#_mills_bootstrap_script_linuxos_x_only]
-=== Mill's in-repo Bootstrap Script (Linux/OS-X Only)
-
-You can find this script in the root of the Mill repository, or on each release page.
-To get the latest version run the following command:
-
-[source,bash,subs="verbatim,attributes"]
-----
-curl -L {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag} > mill && chmod +x mill
-----
-
-The `mill` command will automatically use the version specified by the
-bootstrap script, even if you installed it via other means.
-The `./mill` file has a version number embedded within it, which you can update simply by editing the script.
-
-=== `millw`
-
-You can also use https://github.com/lefou/millw[lefou/millw] as a drop-in replacement for `mill`.
-This script is a bit more advanced, and supports running on all major platforms including MS Windows.
-
-The script supports to following sources when determining the best Mill version to use:
-
-* `MILL_VERSION` environment variable
-* `.mill-version` file in the project directory
-* `.config/mill-version` file in the project directory
-* if non was defined so far, it can also check for the latest available version online
-* `DEFAULT_MILL_VERSION` environment variable
-
-Using a system-wide installed `millw` is probably the robustest way to use Mill on any operating system.
-It also preserves support of rather old Mill versions next to recent ones, so that updating it or switching to `millw` initially should be a no-brainer.
-
-You can also install it on Homebrew via https://github.com/lefou/homebrew-millw[homebrew-millw]:
-
-[source,sh]
-----
-brew install lefou/millw/millw
-----
 
 == Other installation methods
 
