@@ -1,19 +1,23 @@
-{mill-github-url}[Mill] is a JVM build tool that supports {language}. Mill aims for performance,
-maintainability, and flexibility:
+{mill-github-url}[Mill] is a JVM build tool that supports {language}. Mill aims to make
+your JVM project's build process performant, maintainable, and flexible:
 
-* *Performance*: Mill's xref:Tasks.adoc[build graph] automatically caches and xref:#_parallel_task_execution[parallelizes] build
+* *Performance*: Mill's xref:Tasks.adoc[build graph] automatically
+  xref:The_Mill_Evaluation_Model.adoc#_caching_at_each_layer_of_the_evaluation_model[caches]
+  and xref:#_parallel_task_execution[parallelizes] build
   steps (called "*targets*"), minimizing the amount of work that needs to be done, and
   automatically profiling your build so you can optimize it. Even for large codebases with
   hundreds of modules, Mill keeps your workflows fast and responsive.
 
 * *Maintainability*: Mill build targets are self contained without side-effects, making it easy
   to trace the data-flow of your build. Mill also provides excellent IDE support
-  (via xref:{language}_Installation_IDE_Support.adoc#_ide_support[IntelliJ or VSCode]),
+  (via xref:{language}_Installation_IDE_Support.adoc#_intellij[IntelliJ] or
+  xref:{language}_Installation_IDE_Support.adoc#_vscode[VSCode]),
   letting you use "*jump-to-definition*" to navigate around your build
   as easily as any application codebase. This makes maintaining Mill builds
   a far easier than the "*guess and grep*" workflows common with other build tools.
 
-* *Flexibility*: Mill lets you write <<Custom Build Logic>>, rather than
+* *Flexibility*: Mill lets you write your xref:_custom_build_logic[custom build logic]
+  in type-checked code, rather than
   error-prone shell scripts, verbose AntRun XML, or complicated external plugins. Mill's
   custom targets and modules allow anything from
   xref:Tasks.adoc#primitive-tasks[adding simple pipelines], up to
