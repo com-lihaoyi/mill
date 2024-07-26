@@ -57,13 +57,28 @@ Compared to Gradle:
 
 * **Mill follows Gradle's conciseness**: Rather than pages and pages of verbose XML, every
   line of configuration in a Mill build is meaningful. e.g. adding a dependency is 1 line in
-  Mill, like it is in Gradle, and unlike the 5 line `<dependency>` declaration you find in Maven
+  Mill, like it is in Gradle, and unlike the 5 line `<dependency>` declaration you find in Maven.
+  While verbosity isn't everything, skimming and understanding a 100-line Mill `build.sc` file is
+  often much easier than skimming the equivalent 500-line Maven `pom.xml`.
 
-* **Mill helps keep your build understandable**: Unlike Gradle config statements that can
-  work in mysterious ways, Mill build configuration is done via vanilla methods, objects,
-  inheritance, and overrides. This means that impact of a Mill config statement is localized,
-  without "_spooky action at a distance_", and the exact meaning of any config statement is
-  a single "_jump-to-definition_" away in your IDE.
+* **Mill builds are more easily understandable**: While the impact of a Gradle config change can
+  be hard to determine at a glance, the impact of a Mill config change is localized,
+  only affecting downstream tasks. Apart from humans, tooling
+  also finds it easier to understand Mill builds: your IDE can jump to the definition of
+  a Mill task, find its usage, peek at its doc-comments, and generally navigate the
+  xref:Tasks.adoc[task graph] and xref:Modules.adoc[module tree] just as easily as it can
+  navigate the method call graph in a normal Java program, something impossible in tools like
+  Maven or Gradle.
+
+* **Mill enforces best practices by default**. All Mill tasks are cached by default, even
+  custom tasks. All Mill tasks write their output to disk xref:Out_Dir.adoc[following a
+  standard convention]. All task inter-dependencies are automatically captured, without
+  needing explicit annotation. All Mill builds are incremental, not just tasks but also
+  xref:The_Mill_Evaluation_Model.adoc#_caching_at_each_layer_of_the_evaluation_model[configuration
+  and other phases]. Where Gradle requires considerable
+  https://docs.gradle.org/current/userguide/incremental_build.html[effort and expertise]
+  to maintain the performance and structure of your build, Mill automates that effort so the
+  easiest thing to do is almost always the right thing to do.
 
 Mill build files are written in Scala, but you do not need to have prior experience
 in Scala to read or write them.
