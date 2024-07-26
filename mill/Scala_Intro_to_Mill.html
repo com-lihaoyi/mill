@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Introduction to Mill for Scala :: Mill</title>
-    <link rel="canonical" href="https://mill-build.com/mill/Intro_to_Mill_for_Scala.html" />
+    <link rel="canonical" href="https://mill-build.com/mill/Scala_Intro_to_Mill.html" />
     <link rel="prev" href="index.html" />
     <link rel="next" href="Scala_Installation_IDE_Support.html" />
     <meta name="generator" content="Antora 3.0.1" />
@@ -87,7 +87,7 @@
 <ul class="nav-list">
 
   <li class="nav-item is-current-page" data-depth="1">
-    <a class="nav-link" href="Intro_to_Mill_for_Scala.html">Introduction to Mill for Scala</a>
+    <a class="nav-link" href="Scala_Intro_to_Mill.html">Introduction to Mill for Scala</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -95,7 +95,7 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Builtin_Commands.html">Built-in Commands</a>
+    <a class="nav-link" href="Scala_Builtin_Commands.html">Built-in Commands</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -107,7 +107,7 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Web_Build_Examples.html">Scala Web Build Examples</a>
+    <a class="nav-link" href="Scala_Web_Build_Examples.html">Scala Web Build Examples</a>
   </li>
 </ul>
   </li>
@@ -118,7 +118,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Intro_to_Mill_for_Java.html">Introduction to Mill for Java</a>
+    <a class="nav-link" href="Java_Intro_to_Mill.html">Introduction to Mill for Java</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -300,14 +300,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.10-6-ce6054</span>
+    <span class="version">0.11.10-7-b02af6</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.10-6-ce6054</a>
+          <a href="index.html">0.11.10-7-b02af6</a>
         </li>
         <li class="version">
           <a href="0.11.0-M7/index.html">0.11.0-M7</a>
@@ -334,18 +334,17 @@
 <main class="article">
 <div class="toolbar" role="navigation">
 <button class="nav-toggle"></button>
-  <a href="Intro_to_Mill_for_Scala.html" class="home-link is-current"></a>
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="index.html">Mill Documentation</a></li>
     <li>Scala Quick Start</li>
-    <li><a href="Intro_to_Mill_for_Scala.html">Introduction to Mill for Scala</a></li>
+    <li><a href="Scala_Intro_to_Mill.html">Introduction to Mill for Scala</a></li>
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.10-6-ce6054</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.10-7-b02af6</button>
   <div class="version-menu">
-    <a class="version is-current" href="Intro_to_Mill_for_Scala.html">0.11.10-6-ce6054</a>
+    <a class="version is-current" href="Scala_Intro_to_Mill.html">0.11.10-7-b02af6</a>
     <a class="version is-missing" href="0.11.0-M7/index.html">0.11.0-M7</a>
     <a class="version is-missing" href="0.10.15/index.html">0.10.15</a>
     <a class="version is-missing" href="0.10.12/index.html">0.10.12</a>
@@ -353,7 +352,7 @@
     <a class="version is-missing" href="0.9.12/index.html">0.9.12</a>
   </div>
 </div>
-<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/Intro_to_Mill_for_Scala.adoc">Edit this Page</a></div>
+<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/Scala_Intro_to_Mill.adoc">Edit this Page</a></div>
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -364,46 +363,102 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p><a href="https://github.com/com-lihaoyi/mill">Mill</a> is your shiny new Scala build tool! Mill aims for
-simplicity by reusing concepts you are already familiar with, borrowing ideas
-from modern tools like <a href="https://maven.apache.org/">Maven</a>, <a href="https://gradle.org/">Gradle</a>,
-<a href="https://bazel.build/">Bazel</a> and <a href="https://www.scala-sbt.org/">SBT</a>. Mill lets you build
-and customize your projects in a way that’s simple, fast, and predictable.</p>
-</div>
-<div class="paragraph">
-<p>Mill automates dealing with a lot of common build-tool concerns such as caching,
-incremental re-computation, and parallelism. This allows you
-to focus your effort on the business logic unique to your build, while letting
-Mill take care of all the rest. Mill’s caching and parallelism mean it scales well
-from small projects to large codebases with hundreds of modules.</p>
-</div>
-<div class="paragraph">
-<p>Compared to SBT and other tools, Mill builds are far more intuitive and easy to read,
-write, and debug:</p>
+<p><a href="https://github.com/com-lihaoyi/mill">Mill</a> is a JVM build tool that supports Scala. Mill aims for performance,
+maintainability, and flexibility:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p><strong>Mill builds are easy to extend by non-experts</strong>: anyone can extend a Mill build
-with a few lines of code, without needing to learn a complicated plugin framework,
-allowing end users the freedom to fit their build logic to their own unique requirements</p>
+<p><strong>Performance</strong>: Mill’s <a href="Tasks.html" class="xref page">build graph</a> automatically caches and <a href="#_parallel_task_execution">parallelizes</a> build
+steps (called &quot;<strong>targets</strong>&quot;), minimizing the amount of work that needs to be done, and
+automatically profiling your build so you can optimize it. Even for large codebases with
+hundreds of modules, Mill keeps your workflows fast and responsive.</p>
 </li>
 <li>
-<p><strong>Mill builds are familiar to anyone who knows programming</strong>: rather than scopes, lifecycles,
-or phases, Mill builds on top of objects, methods, inheritance, and overrides: concepts
-immediately familiar to any Java programmer</p>
+<p><strong>Maintainability</strong>: Mill build targets are self contained without side-effects, making it easy
+to trace the data-flow of your build. Mill also provides excellent IDE support
+(via <a href="Scala_Installation_IDE_Support.html#_ide_support" class="xref page">IntelliJ or VSCode</a>),
+letting you use &quot;<strong>jump-to-definition</strong>&quot; to navigate around your build
+as easily as any application codebase. This makes maintaining Mill builds
+a far easier than the &quot;<strong>guess and grep</strong>&quot; workflows common with other build tools.</p>
+</li>
+<li>
+<p><strong>Flexibility</strong>: Mill lets you write <a href="#_custom_build_logic">Custom Build Logic</a>, rather than
+error-prone shell scripts, verbose AntRun XML, or complicated external plugins. Mill’s
+custom targets and modules allow anything from
+<a href="Tasks.html#primitive-tasks" class="xref page">adding simple pipelines</a>, up to
+<a href="Modules.html#_use_case_diy_java_modules" class="xref page">adding entire language toolchains</a>.
+This means Mill does not limit you to what Mill knows how to do, and can be easily
+customized to fit what <strong>you</strong> need to get done.</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>Mill can be <a href="Extending_Mill.html" class="xref page">extended</a>
-to support any other language or platform via modules or through
-external subprocesses. Mill supports a rich ecosystem of
-<a href="Contrib_Plugins.html" class="xref page">Contrib Plugins</a> and <a href="Thirdparty_Plugins.html" class="xref page">Third-Party Plugins</a>.</p>
+<p>These properties mean that Mill is able to scale well from small projects to
+large codebases with hundreds of modules: its performance keeps things snappy,
+its maintainability keeps things tidy, and its flexibility supports
+the ad-hoc customizations that inevitably appear as projects grow.</p>
 </div>
 <div class="paragraph">
-<p>If you prefer a video introduction rather than text, the following presentation
-(and companion blog post) is a good introduction into what the Mill build tool is
+<p>Mill is used to build many mainstream Scala projects, such as the
+<a href="https://github.com/coursier/coursier">Coursier dependency resolver</a>,
+<a href="https://github.com/VirtusLab/scala-cli">Scala-CLI</a>, and the
+<a href="https://github.com/com-lihaoyi/Ammonite">Ammonite REPL</a></p>
+</div>
+<div class="paragraph">
+<p>Mill borrows ideas from other tools like <a href="https://maven.apache.org/">Maven</a>,
+<a href="https://gradle.org/">Gradle</a>, <a href="https://bazel.build/">Bazel</a>, or <a href="https://www.scala-sbt.org/">SBT</a>.
+It tries to learn from the strengths of each tool, while improving on their weaknesses.</p>
+</div>
+<div class="paragraph">
+<p>Compared to SBT:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Mill makes customizing the build yourself much easier</strong>: most of what build tools
+do work with files and call subprocesses, and Mill makes doing that yourself easy.
+This means you can always make your Mill build do exactly what you want, and are not
+beholden to third-party plugins that may not exist, be well maintained, or interact well
+with each other.</p>
+</li>
+<li>
+<p><strong>Mill is much more performant</strong>: SBT has enough overhead that even a dozen
+subprojects is enough to slow it down, while Mill can handle hundreds of modules without issue.
+Custom tasks in SBT re-execute every time, whereas in Mill they are cached automatically.
+Mill’s watch-for-changes-and-re-run implementation has much lower latency than SBT’s. The
+list of ways Mill improves upon SBT’s performance is long, and at the command line you
+can really feel it</p>
+</li>
+<li>
+<p><strong>Mill builds are much easier to understand</strong>: Your Mill build is made of bog-standard
+<code>object</code>s and <code>def</code>s, rather than SBT’s
+<a href="https://eed3si9n.com/4th-dimension-with-sbt-013/">four-dimensional task matrix</a>. Your IDE’s
+&quot;<strong>jump-to-definition</strong>&quot; in Mill actually brings you to the implementation of a task, rather
+than an SBT <code>taskKey</code> declaration. Customizing things is as simple as writing or overriding
+`def`s. The net effect is that despite both tools' build files being written in Scala,
+Mill’s build files are much easier to understand and maintain.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For a more detailed dive into the problems with SBT or how Mill improves upon them, check
+out the following blog posts:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://www.lihaoyi.com/post/SowhatswrongwithSBT.html">So, what’s wrong with SBT?</a></p>
+</li>
+<li>
+<p><a href="https://www.lihaoyi.com/post/MillBetterScalaBuilds.html">Mill: Better Scala Builds</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If you’re interested in the fundamental ideas behind Mill, rather than the user-facing
+benefits discussed above, the following presentation
+and companion blog post is a good introduction into what the Mill build tool is
 all about:</p>
 </div>
 <div class="ulist">
@@ -418,23 +473,9 @@ all about:</p>
 </div>
 <div class="paragraph">
 <p>The rest of this page contains a quick introduction to getting start with using
-Mill to build a simple program. The other pages of this doc-site go into
+Mill to build a simple Scala program. The other pages of this doc-site go into
 more depth, with more examples of how to use Mill and more details of how the
 Mill build tool works.</p>
-</div>
-<div class="paragraph">
-<p>The following blog posts discuss some of the fundamental design issues with SBT, and
-how Mill attempts to do better:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><a href="https://www.lihaoyi.com/post/SowhatswrongwithSBT.html">So, what’s wrong with SBT?</a></p>
-</li>
-<li>
-<p><a href="https://www.lihaoyi.com/post/MillBetterScalaBuilds.html">Mill: Better Scala Builds</a></p>
-</li>
-</ul>
 </div>
 <div class="paragraph">
 <p>If you are using Mill, you will find the following book by the Author useful in
@@ -913,7 +954,7 @@ Tasks that depend on each other can’t be processed in parallel.</p>
 <div class="listingblock">
 <div class="title">Output of <code>mill --help</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.11.10-6-ce6054
+<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.11.10-7-b02af6
 usage: mill [options] [[target [target-options]] [+ [target ...]]]
   -D --define &lt;k=v&gt;                 Define (or overwrite) a system property.
   -b --bell                         Ring the bell once if the run completes successfully, twice if
