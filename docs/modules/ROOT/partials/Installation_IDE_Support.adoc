@@ -1,3 +1,13 @@
+++++
+<!-- Event snippet for Page view conversion page -->
+<script>
+  gtag('event', 'conversion', {
+      'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-',
+      'value': 1.0,
+      'currency': 'SGD'
+  });
+</script>
+++++
 
 For all the examples in this documentation, there is a `download` link that provides
 a zip file containing the full example ready to use. These examples come with a `./mill`
