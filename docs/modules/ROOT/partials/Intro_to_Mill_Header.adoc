@@ -1,4 +1,4 @@
-{mill-github-url}[Mill] is a {language} build tool that aims for performance,
+{mill-github-url}[Mill] is a JVM build tool that supports {language}. Mill aims for performance,
 maintainability, and flexibility:
 
 * *Performance*: Mill's xref:Tasks.adoc[build graph] automatically caches and parallelizes build
@@ -7,8 +7,8 @@ maintainability, and flexibility:
   hundreds of modules, Mill keeps your workflows fast and responsive.
 
 * *Maintainability*: Mill build targets are self contained without side-effects, making it easy
-  to trace the data-flow of your build. Mill also provides better IDE support
-  (via xref:{language}_Installation_IDE_Support.adoc[IntelliJ or VSCode]) than any other build tool,
+  to trace the data-flow of your build. Mill also provides excellent IDE support
+  (via xref:{language}_Installation_IDE_Support.adoc[IntelliJ or VSCode]),
   letting you use "_jump-to-definition_" to navigate around your build
   as easily as any application codebase. This makes maintaining Mill builds
   a far easier than the "_guess and grep_" workflows common with other build tools.

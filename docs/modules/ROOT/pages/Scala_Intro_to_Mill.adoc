@@ -30,8 +30,8 @@ It tries to learn from the strengths of each tool, while improving on their weak
 
 Compared to SBT:
 
-* **Mill makes customizing the build yourself much easier**: is all build tools
-  do is move files around and call subprocesses, and Mill makes doing that yourself easy.
+* **Mill makes customizing the build yourself much easier**: most of what build tools
+  do work with files and call subprocesses, and Mill makes doing that yourself easy.
   This means you can always make your Mill build do exactly what you want, and are not
   beholden to third-party plugins that may not exist, be well maintained, or interact well
   with each other.
@@ -49,7 +49,7 @@ Compared to SBT:
   "*jump-to-definition*" in Mill actually brings you to the implementation of a task, rather
   than an SBT `taskKey` declaration. Customizing things is as simple as writing or overriding
   `def`s. The net effect is that despite both tools' build files being written in Scala,
-  Mill's build files are much more
+  Mill's build files are much easier to understand and maintain.
 
 For a more detailed dive into the problems with SBT or how Mill improves upon them, check
 out the following blog posts:
