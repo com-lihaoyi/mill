@@ -14,7 +14,8 @@ your JVM project's build process performant, maintainable, and flexible:
   as easily as any application codebase. This makes maintaining Mill builds
   a far easier than the "*guess and grep*" workflows common with other build tools.
 
-* *Flexibility*: Mill lets you write <<Custom Build Logic>>, rather than
+* *Flexibility*: Mill lets you write your xref:_custom_build_logic[custom build logic]
+  in type-checked code, rather than
   error-prone shell scripts, verbose AntRun XML, or complicated external plugins. Mill's
   custom targets and modules allow anything from
   xref:Tasks.adoc#primitive-tasks[adding simple pipelines], up to
