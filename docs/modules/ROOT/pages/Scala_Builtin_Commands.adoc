@@ -1,5 +1,7 @@
 = Built-in Commands
 
+:page-aliases: Scala_Builtin_Commands.adoc
+
 Mill comes with a number of useful commands out of the box. These are listed
 in the Scaladoc:
 
