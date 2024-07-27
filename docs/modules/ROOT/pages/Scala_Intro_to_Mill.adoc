@@ -13,6 +13,12 @@
 
 = Introduction to Mill for Scala
 
+++++
+<script>
+gtag('config', 'AW-16649289906');
+</script>
+++++
+
 :page-aliases: index.adoc, Intro_to_Mill.adoc, Intro_to_Mill_for_Scala.adoc
 
 :language: Scala

@@ -1,5 +1,11 @@
 = Java Module Configuration
 
+++++
+<script>
+gtag('config', 'AW-16649289906');
+</script>
+++++
+
 This page goes into more detail about the various configuration options
 for `JavaModule`.
 

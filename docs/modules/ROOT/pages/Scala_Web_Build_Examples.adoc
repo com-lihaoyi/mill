@@ -1,5 +1,11 @@
 = Scala Web Build Examples
 
+++++
+<script>
+gtag('config', 'AW-16649289906');
+</script>
+++++
+
 :page-aliases: Web_Build_Examples.adoc
 
 This page contains examples of using Mill as a build tool for web-applications.

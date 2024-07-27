@@ -1,11 +1,7 @@
 ++++
-<!-- Event snippet for Page view conversion page -->
+<!-- Event snippet for Installation Page View conversion page -->
 <script>
-  gtag('event', 'conversion', {
-      'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-',
-      'value': 1.0,
-      'currency': 'SGD'
-  });
+  gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
 </script>
 ++++
 
