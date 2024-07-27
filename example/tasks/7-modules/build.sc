@@ -13,6 +13,23 @@ object foo extends Module {
   }
 }
 
+// [graphviz]
+// ....
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   subgraph cluster_0 {
+//     label=foo
+//     style=dashed
+//     subgraph cluster_1 {
+//       label="foo.qux"
+//       style=dashed
+//       "foo.qux.baz"
+//     }
+//     "foo.bar"
+//   }
+// }
+// ....
 // You would be able to run the two targets via `mill foo.bar` or `mill
 // foo.qux.baz`. You can use `mill show foo.bar` or `mill show foo.baz.qux` to
 // make Mill echo out the string value being returned by each Target. The two
@@ -60,7 +77,27 @@ object foo2 extends FooModule {
   def baz = T { qux() + " I am Cow" } // add a new `def`
 }
 
-// Note that the `override` keyword is implicit in mill, as is `T{...}` wrapper.
+// [graphviz]
+// ....
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   subgraph cluster_1 {
+//     label=foo2
+//     style=dashed
+//     "foo2.bar"
+//     "foo2.qux" -> "foo2.baz"
+//   }
+//   subgraph cluster_0 {
+//     label=foo1
+//     style=dashed
+//     "foo1.bar"
+//     "foo1.qux.super" -> "foo1.qux"
+//   }
+// }
+// ....
+
+// Note that the `override` keyword is optional in mill, as is `T{...}` wrapper.
 
 /** Usage
 
@@ -103,6 +140,24 @@ trait MyModule extends Module{
 object outer extends MyModule {
   object inner extends MyModule
 }
+
+// [graphviz]
+// ....
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   subgraph cluster_0 {
+//     label=outer
+//     style=dashed
+//     subgraph cluster_1 {
+//       label="outer.inner"
+//       style=dashed
+//       "outer.inner.sources" -> "outer.inner.target"
+//     }
+//     "outer.sources" -> "outer.target"
+//   }
+// }
+// ....
 
 // * The `outer` module has a `millSourcePath` of `outer/`, and thus a
 //   `outer.sources` referencing `outer/sources/`

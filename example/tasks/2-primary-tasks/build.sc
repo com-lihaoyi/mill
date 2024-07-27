@@ -1,12 +1,29 @@
 // There are three primary kinds of _Tasks_ that you should care about:
 //
-// * <<_targets>>, defined using `T {...}`
 // * <<_sources>>, defined using `T.sources {...}`
+// * <<_targets>>, defined using `T {...}`
 // * <<_commands>>, defined using `T.command {...}`
-//
-// === Targets
 
-import mill._
+// === Sources
+
+
+import mill.{Module, T, _}
+
+def sources = T.source { millSourcePath / "src" }
+def resources = T.source { millSourcePath / "resources" }
+
+
+// ``Source``s are defined using `T.source{...}` taking one `os.Path`, or `T.sources{...}`,
+// taking multiple ``os.Path``s as arguments. A ``Source``'s':
+// its build signature/`hashCode` depends not just on the path
+// it refers to (e.g. `foo/bar/baz`) but also the MD5 hash of the filesystem
+// tree under that path.
+//
+// `T.source` and `T.sources` are most common inputs in any Mill build:
+// they watch source files and folders and cause downstream targets to
+// re-compute if a change is detected.
+
+// === Targets
 
 def allSources = T {
   os.walk(sources().path)
@@ -21,6 +38,16 @@ def lineCount: T[Int] = T {
     .sum
 }
 
+// [graphviz]
+// ....
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   sources -> allSources -> lineCount
+//   sources [color=white]
+// }
+// ....
+//
 // ``Target``s are defined using the `def foo = T {...}` syntax, and dependencies
 // on other targets are defined using `foo()` to extract the value from them.
 // Apart from the `foo()` calls, the `T {...}` block contains arbitrary code that
@@ -74,6 +101,18 @@ def jar = T {
   PathRef(T.dest / "foo.jar")
 }
 
+// [graphviz]
+// ....
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   allSources -> classFiles -> jar
+//   resources -> jar
+//   allSources [color=white]
+//   resources [color=white]
+// }
+// ....
+
 /** Usage
 
 > ./mill jar
@@ -109,6 +148,16 @@ def hugeFileName = T{
   else "<no-huge-file>"
 }
 
+// [graphviz]
+// ....
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   allSources -> largeFile-> hugeFileName
+//   allSources [color=white]
+// }
+// ....
+
 /** Usage
 
 > ./mill show lineCount
@@ -140,6 +189,16 @@ def summarizeClassFileStats = T{
   )
 }
 
+// [graphviz]
+// ....
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   classFiles -> summarizedClassFileStats
+//   classFiles [color=white]
+// }
+// ....
+
 /** Usage
 
 > ./mill show summarizeClassFileStats
@@ -150,37 +209,53 @@ def summarizeClassFileStats = T{
 
 */
 
-// === Sources
 
-def sources = T.source { millSourcePath / "src" }
-def resources = T.source { millSourcePath / "resources" }
 
-// ``Source``s are defined using `T.sources {...}`, taking one-or-more
-// ``os.Path``s as arguments. A `Source` is a subclass of `Target[Seq[PathRef]]`:
-// this means that its build signature/`hashCode` depends not just on the path
-// it refers to (e.g. `foo/bar/baz`) but also the MD5 hash of the filesystem
-// tree under that path.
+// === Commands
+
+def run(args: String*) = T.command {
+  os.proc(
+      "java",
+      "-cp", s"${classFiles().path}:${resources().path}",
+      "foo.Foo",
+      args
+    )
+    .call(stdout = os.Inherit)
+}
+
+// [graphviz]
+// ....
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   classFiles -> run
+//   resources -> run
+//   classFiles [color=white]
+//   resources [color=white]
+// }
+// ....
+
+// Defined using `T.command {...}` syntax, ``Command``s can run arbitrary code, with
+// dependencies declared using the same `foo()` syntax (e.g. `classFiles()` above).
+// Commands can be parametrized, but their output is not cached, so they will
+// re-evaluate every time even if none of their inputs have changed.
+// A command with no parameter is defined as `def myCommand() = T.command {...}`.
+// It is a compile error if `()` is missing.
 //
-// `T.source` and `T.sources` are the most common inputs to your Mill build:
-// they watch source files and folders and cause downstream targets to
-// re-compute if a change is detected.
+// Like <<_targets>>, a command only evaluates after all its upstream
+// dependencies have completed, and will not begin to run if any upstream
+// dependency has failed.
 //
-// Note that even though a source file changed, that does not necessarily cause
-// all transitive downstream targets to re-compute:
+// Commands are assigned the same scratch/output folder `out/run.dest/` as
+// Targets are, and its returned metadata stored at the same `out/run.json`
+// path for consumption by external tools.
+//
+// Commands can only be defined directly within a `Module` body.
 
-/** Usage
+// === Overrides
 
-> ./mill jar # Cached from earlier
-
-> printf "\n" >> src/foo/Foo.java # Add a newline to the end of Foo.java
-
-> ./mill jar # Classfiles recompiled but output unchanged, jar was not rebuilt
-Generating classfiles
-
-*/
-
-// `T.sources` can be overriden with `super`, to let you
-// override-and-extend source lists the same way you would any other target
+// Targets and sources can be overriden, with the override task callable via `super`.
+// This lets you override-and-extend source lists the same way you would any other target
 // definition:
 //
 
@@ -211,33 +286,3 @@ object bar extends Bar
 ]
 
 */
-
-// [#commands]
-// === Commands
-
-def run(args: String*) = T.command {
-  os.proc(
-      "java",
-      "-cp", s"${classFiles().path}:${resources().path}",
-      "foo.Foo",
-      args
-    )
-    .call(stdout = os.Inherit)
-}
-
-// Defined using `T.command {...}` syntax, ``Command``s can run arbitrary code, with
-// dependencies declared using the same `foo()` syntax (e.g. `classFiles()` above).
-// Commands can be parametrized, but their output is not cached, so they will
-// re-evaluate every time even if none of their inputs have changed.
-// A command with no parameter is defined as `def myCommand() = T.command {...}`.
-// It is a compile error if `()` is missing.
-//
-// Like <<_targets>>, a command only evaluates after all its upstream
-// dependencies have completed, and will not begin to run if any upstream
-// dependency has failed.
-//
-// Commands are assigned the same scratch/output folder `out/run.dest/` as
-// Targets are, and its returned metadata stored at the same `out/run.json`
-// path for consumption by external tools.
-//
-// Commands can only be defined directly within a `Module` body.
