@@ -13,6 +13,47 @@ trait BarModule extends Cross.Module[String] {
   def bigSuffix = T { "[[[" + foo(crossValue).suffix() + "]]]" }
 }
 
+// [graphviz]
+// ....
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   subgraph cluster_0 {
+//     label="foo[2.10]"
+//     style=dashed
+//     "foo[2.10].suffix"
+//   }
+//   subgraph cluster_1 {
+//     label="foo[2.11]"
+//     style=dashed
+//     "foo[2.11].suffix"
+//   }
+//   subgraph cluster_2 {
+//     label="foo[2.12]"
+//     style=dashed
+//     "foo[2.12].suffix"
+//   }
+//   subgraph cluster_3 {
+//     label="bar[2.10]"
+//     style=dashed
+//     "bar[2.10].bigSuffix"
+//   }
+//   subgraph cluster_4 {
+//     label="bar[2.11]"
+//     style=dashed
+//     "bar[2.11].bigSuffix"
+//   }
+//   subgraph cluster_5 {
+//     label="bar[2.12]"
+//     style=dashed
+//     "bar[2.12].bigSuffix"
+//   }
+//   "foo[2.10].suffix" -> "bar[2.10].bigSuffix"
+//   "foo[2.11].suffix" -> "bar[2.11].bigSuffix"
+//   "foo[2.12].suffix" -> "bar[2.12].bigSuffix"
+// }
+// ....
+
 // Rather than pssing in a literal `"2.10"` to the `foo` cross module, we pass
 // in the `crossValue` property that is available within every `Cross.Module`.
 // This ensures that each version of `bar` depends on the corresponding version
