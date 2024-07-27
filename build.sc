@@ -1674,8 +1674,7 @@ object docs extends Module {
         "@antora/site-generator-default@3.1.9",
         "gitlab:antora/xref-validator",
         "@antora/lunr-extension@v1.0.0-alpha.6",
-        "asciidoctor-kroki@0.18.1",
-        "asciidoctor-opal-runtime"
+        "asciidoctor-kroki@0.18.1"
       ),
       envArgs = Map(),
       workingDir = npmDir
@@ -1688,7 +1687,7 @@ object docs extends Module {
 
     prepareAntora(npmDir)
     val cmdArgs =
-      Seq(s"${npmDir}/node_modules/.bin/${antoraExe}", "--stacktrace") ++ args
+      Seq(s"${npmDir}/node_modules/.bin/${antoraExe}") ++ args
     ctx.log.debug(s"command: ${cmdArgs.mkString("'", "' '", "'")}")
     Jvm.runSubprocess(
       commandArgs = cmdArgs,
@@ -1800,6 +1799,7 @@ object docs extends Module {
        |  extensions:
        |  - require: '@antora/lunr-extension'
        |    index_latest_only: true
+       |
        |runtime:
        |  log:
        |    failure_level: error
