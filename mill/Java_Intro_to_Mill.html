@@ -7,7 +7,7 @@
     <link rel="canonical" href="https://mill-build.com/mill/Java_Intro_to_Mill.html" />
     <link rel="prev" href="index.html" />
     <link rel="next" href="Java_Installation_IDE_Support.html" />
-    <meta name="generator" content="Antora 3.0.1" />
+    <meta name="generator" content="Antora 3.1.9" />
     <link rel="stylesheet" href="../_/css/site.css" />
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
@@ -300,14 +300,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.10-12-a37d49</span>
+    <span class="version">0.11.10-13-12b666</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.10-12-a37d49</a>
+          <a href="index.html">0.11.10-13-12b666</a>
         </li>
         <li class="version">
           <a href="0.11.0-M7/index.html">0.11.0-M7</a>
@@ -343,9 +343,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.10-12-a37d49</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.10-13-12b666</button>
   <div class="version-menu">
-    <a class="version is-current" href="Java_Intro_to_Mill.html">0.11.10-12-a37d49</a>
+    <a class="version is-current" href="Java_Intro_to_Mill.html">0.11.10-13-12b666</a>
     <a class="version is-missing" href="0.11.0-M7/index.html">0.11.0-M7</a>
     <a class="version is-missing" href="0.10.15/index.html">0.10.15</a>
     <a class="version is-missing" href="0.10.12/index.html">0.10.12</a>
@@ -678,6 +678,17 @@ object foo extends RootModule with JavaModule {
 }</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>The addition of <code>lineCount</code> and <code>resources</code> overrides the previous <code>resource</code>
+folder provided by <code>JavaModule</code> (labelled <code>resource.super</code> below), replacing
+it with the destination folder of the new <code>resources</code> target, which is wired
+up <code>lineCount</code>:</p>
+</div>
+<div class="imageblock kroki">
+<div class="content">
+<img src="_images/diag-7c8714c8be19faf8617fd97cf2c7ba9ab2057105.svg" alt="Diagram" />
+</div>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill run
@@ -697,7 +708,7 @@ Inputs:
 <div class="paragraph">
 <p>Above, <code>def lineCount</code> is a new build target we define, which makes use of
 <code>allSourceFiles</code> (an existing target) and is in-turn used in our override of
-<code>resources</code> (also an existing target). <code>os.read.lines</code> and <code>os.write `come
+<code>resources</code> (also an existing target). <code>os.read.lines</code> and <code>os.write come
 from the <a href="https://github.com/com-lihaoyi/os-lib">OS-Lib</a> library, which is
 bundled with Mill. This generated file can then be
 loaded and used at runtime, as see in the output of `mill run</code></p>
@@ -716,9 +727,9 @@ your IDE can always help you find the final override of any particular build
 target as well as where any overriden implementations may be defined.</p>
 </div>
 <div class="paragraph">
-<p>Lastly, custom user-defined targets in Mill benefit from all the same things
-that built-in targets do: caching, parallelism (with the <code>-j</code>/<code>--jobs</code>
-flag), inspectability via <code>show</code>/<code>inspect</code>, and so on.</p>
+<p>Unlike normal methods, custom user-defined targets in Mill benefit from all
+the same things that built-in targets do: automatic caching, parallelism
+(with the <code>-j</code>/<code>--jobs</code> flag), inspectability (via <code>show</code>/<code>inspect</code>), and so on.</p>
 </div>
 <div class="paragraph">
 <p>While these things may not matter for such a simple example that runs
@@ -973,7 +984,7 @@ Tasks that depend on each other can’t be processed in parallel.</p>
 <div class="listingblock">
 <div class="title">Output of <code>mill --help</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.11.10-12-a37d49
+<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.11.10-13-12b666
 usage: mill [options] [[target [target-options]] [+ [target ...]]]
   -D --define &lt;k=v&gt;                 Define (or overwrite) a system property.
   -b --bell                         Ring the bell once if the run completes successfully, twice if
