@@ -17,6 +17,56 @@ trait FooModule extends Cross.Module2[String, String] {
 
 def bar = T { s"hello ${foo("2.10", "jvm").suffix()}" }
 
+// [graphviz]
+// ....
+//  digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//
+//   subgraph cluster_6 {
+//     label="foo[2.12,native]"
+//     style=dashed
+//     "foo[2.12,native].suffix"
+//   }
+//
+//   subgraph cluster_3 {
+//     label="foo[2.10,js]"
+//     style=dashed
+//     "foo[2.10,js].suffix"
+//   }
+//   subgraph cluster_4 {
+//     label="foo[2.11,js]"
+//     style=dashed
+//     "foo[2.11,js].suffix" -> "foo[2.10,js].suffix" [style=invis]
+//   }
+//   subgraph cluster_5 {
+//     label="foo[2.12,js]"
+//     style=dashed
+//     "foo[2.12,js].suffix" -> "foo[2.11,js].suffix" [style=invis]
+//   }
+//
+//   subgraph cluster_0 {
+//
+//     label="foo[2.10,jvm]"
+//     style=dashed
+//     "foo[2.10,jvm].suffix"
+//
+//   }
+//   subgraph cluster_1 {
+//     label="foo[2.11,jvmcomm"
+//     style=dashed
+//     "foo[2.11,jvm].suffix" -> "foo[2.10,jvm].suffix" [style=invis]
+//   }
+//   subgraph cluster_2 {
+//     label="foo[2.12,jvm]"
+//     style=dashed
+//     "foo[2.12,jvm].suffix" -> "foo[2.11,jvm].suffix" [style=invis]
+//   }
+//
+//   "foo[2.10,jvm].suffix" -> bar
+// }
+// ....
+//
 // This example shows off using a for-loop to generate a list of
 // cross-key-tuples, as a `Seq[(String, String)]` that we then pass it into the
 // `Cross` constructor. These can be referenced from the command line as shown

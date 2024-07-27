@@ -11,6 +11,33 @@ def bar = T { s"hello ${foo("2.10").suffix()}" }
 
 def qux = T { s"hello ${foo("2.10").suffix()} world ${foo("2.12").suffix()}" }
 
+// [graphviz]
+// ....
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   subgraph cluster_2 {
+//     label="foo[2.12]"
+//     style=dashed
+//     "foo[2.12].suffix"
+//   }
+//   subgraph cluster_1 {
+//     label="foo[2.11]"
+//     style=dashed
+//     "foo[2.11].suffix"
+//   }
+//   subgraph cluster_0 {
+//     label="foo[2.10]"
+//     style=dashed
+//     "foo[2.10].suffix"
+//   }
+//   "foo[2.10].suffix" -> "bar"
+//   "foo[2.10].suffix" -> "qux" [constraint=false]
+//   "foo[2.12].suffix" -> "qux"
+// }
+// ....
+
+
 // Here, `def bar` uses `foo("2.10")` to reference the `"2.10"` instance of
 // `FooModule`. You can refer to whatever versions of the cross-module you want,
 // even using multiple versions of the cross-module in the same target as we do
