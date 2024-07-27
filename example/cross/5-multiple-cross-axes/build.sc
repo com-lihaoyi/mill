@@ -53,7 +53,7 @@ def bar = T { s"hello ${foo("2.10", "jvm").suffix()}" }
 //
 //   }
 //   subgraph cluster_1 {
-//     label="foo[2.11]"
+//     label="foo[2.11,jvmcomm"
 //     style=dashed
 //     "foo[2.11,jvm].suffix" -> "foo[2.10,jvm].suffix" [style=invis]
 //   }
