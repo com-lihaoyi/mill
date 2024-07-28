@@ -16,18 +16,13 @@ object foo extends Module {
 // [graphviz]
 // ....
 // digraph G {
-//   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
-//   subgraph cluster_0 {
-//     label=foo
-//     style=dashed
-//     subgraph cluster_1 {
-//       label="foo.qux"
-//       style=dashed
-//       "foo.qux.baz"
-//     }
-//     "foo.bar"
-//   }
+//   "root-module" [style=dashed]
+//   foo [style=dashed]
+//   "foo.qux" [style=dashed]
+//   "foo.qux.baz"
+//   "root-module" -> foo -> "foo.qux" -> "foo.qux.baz"  [style=dashed]
+//   foo -> "foo.bar"  [style=dashed]
 // }
 // ....
 // You would be able to run the two targets via `mill foo.bar` or `mill
@@ -59,7 +54,7 @@ object foo extends Module {
 // == Trait Modules
 //
 // Modules also provide a way to define and re-use common collections of tasks,
-// via Scala ``trait``s. Module ``trait `s support everything nornal Scala
+// via Scala ``trait``s. Module ``trait``s support everything normal Scala
 // ``trait``s do: abstract ``def``s, overrides, `super`, extension
 // with additional ``def``s, etc.
 
@@ -80,20 +75,16 @@ object foo2 extends FooModule {
 // [graphviz]
 // ....
 // digraph G {
-//   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
-//   subgraph cluster_1 {
-//     label=foo2
-//     style=dashed
-//     "foo2.bar"
-//     "foo2.qux" -> "foo2.baz"
-//   }
-//   subgraph cluster_0 {
-//     label=foo1
-//     style=dashed
-//     "foo1.bar"
-//     "foo1.qux.super" -> "foo1.qux"
-//   }
+//   bgcolor=transparent
+//   "root-module" [style=dashed]
+//   foo1 [style=dashed]
+//   foo2 [style=dashed]
+//   "root-module" -> foo1 -> "foo1.bar"  [style=dashed]
+//   foo1 -> "foo1.qux"  [style=dashed]
+//   "root-module" -> foo2 -> "foo2.bar"  [style=dashed]
+//   foo2 -> "foo2.qux"  [style=dashed]
+//   foo2 -> "foo2.baz"  [style=dashed]
 // }
 // ....
 
