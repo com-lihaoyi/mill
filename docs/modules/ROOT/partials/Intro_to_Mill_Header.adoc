@@ -1,5 +1,33 @@
-{mill-github-url}[Mill] is a JVM build tool that supports {language}. Mill aims to make
-your JVM project's build process performant, maintainable, and flexible:
+[graphviz]
+....
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+  bgcolor=transparent
+  newrank=true;
+  subgraph cluster_0 {
+    style=dashed
+    node [shape=box width=0 height=0 style=filled fillcolor=white]
+    label = "foo";
+
+    "foo.sources" -> "foo.compile" -> "foo.classPath" -> "foo.assembly"
+    "foo.mainClass" -> "foo.assembly"
+  }
+  subgraph cluster_1 {
+    style=dashed
+    node [shape=box width=0 height=0 style=filled fillcolor=white]
+    label = "bar";
+
+    "foo.classPath" -> "bar.compile"
+    "foo.classPath" -> "bar.classPath"
+    "bar.sources" -> "bar.compile" -> "bar.classPath" -> "bar.assembly"
+    "bar.mainClass" -> "bar.assembly"
+  }
+}
+....
+
+{mill-github-url}[Mill] is a graph-based JVM build tool that supports {language}.
+Mill aims to make your JVM project's build process performant, maintainable, and flexible:
 
 * *Performance*: Mill's xref:Tasks.adoc[build graph] automatically
   xref:The_Mill_Evaluation_Model.adoc#_caching_at_each_layer_of_the_evaluation_model[caches]
