@@ -18,25 +18,20 @@ trait BarModule extends Cross.Module[String] {
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
-//   subgraph cluster_0 {
-//     label="foo[2.10]"
+//   subgraph cluster_2 {
+//     label="foo[2.12]"
 //     style=dashed
-//     "foo[2.10].suffix"
+//     "foo[2.12].suffix"
 //   }
 //   subgraph cluster_1 {
 //     label="foo[2.11]"
 //     style=dashed
 //     "foo[2.11].suffix"
 //   }
-//   subgraph cluster_2 {
-//     label="foo[2.12]"
+//   subgraph cluster_0 {
+//     label="foo[2.10]"
 //     style=dashed
-//     "foo[2.12].suffix"
-//   }
-//   subgraph cluster_3 {
-//     label="bar[2.10]"
-//     style=dashed
-//     "bar[2.10].bigSuffix"
+//     "foo[2.10].suffix"
 //   }
 //   subgraph cluster_4 {
 //     label="bar[2.11]"
@@ -47,6 +42,11 @@ trait BarModule extends Cross.Module[String] {
 //     label="bar[2.12]"
 //     style=dashed
 //     "bar[2.12].bigSuffix"
+//   }
+//   subgraph cluster_3 {
+//     label="bar[2.10]"
+//     style=dashed
+//     "bar[2.10].bigSuffix"
 //   }
 //   "foo[2.10].suffix" -> "bar[2.10].bigSuffix"
 //   "foo[2.11].suffix" -> "bar[2.11].bigSuffix"

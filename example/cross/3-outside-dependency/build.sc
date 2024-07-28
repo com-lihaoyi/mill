@@ -31,9 +31,10 @@ def qux = T { s"hello ${foo("2.10").suffix()} world ${foo("2.12").suffix()}" }
 //     style=dashed
 //     "foo[2.10].suffix"
 //   }
+//   "foo[2.12].suffix" -> "qux" [constraint=false]
+//   "foo[2.11].suffix" -> "qux" [style=invis]
+//   "foo[2.10].suffix" -> "qux"
 //   "foo[2.10].suffix" -> "bar"
-//   "foo[2.10].suffix" -> "qux" [constraint=false]
-//   "foo[2.12].suffix" -> "qux"
 // }
 // ....
 
