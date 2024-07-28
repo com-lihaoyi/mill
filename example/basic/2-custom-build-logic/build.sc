@@ -34,12 +34,12 @@ object foo extends RootModule with ScalaModule {
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
-//   src -> allSourceFiles -> lineCount -> resources -> dest -> run
-//   "resources.super" -> dest [style=dashed]
-//   src [label="..." color=white]
-//   dest [label="..." color=white]
+//   allSourceFiles -> lineCount -> resources -> "..." -> run
+//   "resources.super" -> "..." [style=invis]
+//   "..." [color=white]
 //   "resources.super" [style=dashed]
 //   allSourceFiles [color=white]
+//   run [color=white]
 // }
 // ....
 
