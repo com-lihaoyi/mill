@@ -72,6 +72,10 @@ object foo2 extends FooModule {
   def baz = T { qux() + " I am Cow" } // add a new `def`
 }
 
+// This generates the following module tree and task graph, with the dotted boxes and
+// arrows representing the module tree, and the solid boxes and arrows representing
+// the task graph
+
 // [graphviz]
 // ....
 // digraph G {
@@ -81,10 +85,13 @@ object foo2 extends FooModule {
 //   foo1 [style=dashed]
 //   foo2 [style=dashed]
 //   "root-module" -> foo1 -> "foo1.bar"  [style=dashed]
+//   foo1 -> "foo1.qux.super"  [style=dashed]
 //   foo1 -> "foo1.qux"  [style=dashed]
 //   "root-module" -> foo2 -> "foo2.bar"  [style=dashed]
 //   foo2 -> "foo2.qux"  [style=dashed]
 //   foo2 -> "foo2.baz"  [style=dashed]
+//   "foo1.bar" -> "foo1.qux.super" -> "foo1.qux" [constraint=false]
+//   "foo2.bar" -> "foo2.qux" -> "foo2.baz" [constraint=false]
 // }
 // ....
 
@@ -135,18 +142,18 @@ object outer extends MyModule {
 // [graphviz]
 // ....
 // digraph G {
-//   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
-//   subgraph cluster_0 {
-//     label=outer
-//     style=dashed
-//     subgraph cluster_1 {
-//       label="outer.inner"
-//       style=dashed
-//       "outer.inner.sources" -> "outer.inner.target"
-//     }
-//     "outer.sources" -> "outer.target"
-//   }
+//   "root-module" [style=dashed]
+//   outer [style=dashed]
+//
+//   "outer.sources" -> "outer.target" [constraint=false]
+//   "outer.inner.sources" -> "outer.inner.target" [constraint=false]
+//   "outer.inner" [style=dashed]
+//   "root-module" -> outer -> "outer.inner"  [style=dashed]
+//   "outer.inner" -> "outer.inner.sources"  [style=dashed]
+//   "outer.inner" -> "outer.inner.target"  [style=dashed]
+//   outer -> "outer.sources"  [style=dashed]
+//   outer -> "outer.target"  [style=dashed]
 // }
 // ....
 
