@@ -37,7 +37,7 @@
 <g id="clust6" class="cluster">
 <title>cluster_1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="216,-158 216,-225 386,-225 386,-158 216,-158"/>
-<text text-anchor="middle" x="301" y="-207.7" font-family="Times,serif" font-size="14.00">foo[2.11,jvmcomm</text>
+<text text-anchor="middle" x="301" y="-207.7" font-family="Times,serif" font-size="14.00">foo[2.11,jvm]</text>
 </g>
 <g id="clust7" class="cluster">
 <title>cluster_2</title>
