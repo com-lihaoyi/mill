@@ -277,6 +277,15 @@ trait Bar extends Foo {
 
 object bar extends Bar
 
+// [graphviz]
+// ....
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   "bar.sourceRoots.super" -> "bar.sourceRoots" -> "bar.sourceContents"
+//   "bar.additionalSources" -> "bar.sourceRoots"
+// }
+// ....
 /** Usage
 
 > ./mill show bar.sourceContents # includes both source folders
