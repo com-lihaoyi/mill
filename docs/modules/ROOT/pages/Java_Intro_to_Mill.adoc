@@ -43,9 +43,9 @@ them difficult to improve upon incrementally.
 Compared to Maven:
 
 * **Mill follows Maven's innovation of good built-in defaults**: Mill's built-in
-  ``JavaModule``s follow Maven's "convention over configuration" style. This provides an
-  excellent default template that can be used to structure your project without any custom
-  configuration.
+  ``JavaModule``s follow Maven's "convention over configuration" style. Small mill
+  projects require minimal effort to get started, and larger Mill projects have a consistent
+  structure building on these defaults.
 
 * **Mill makes customizing the build tool much easier than Maven**. As projects grow, build
   grow beyond just compiling a single language: you need custom
