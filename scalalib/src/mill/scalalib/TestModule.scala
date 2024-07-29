@@ -267,7 +267,7 @@ object TestModule {
   trait Junit5 extends TestModule {
     override def testFramework: T[String] = "com.github.sbt.junit.jupiter.api.JupiterFramework"
     override def ivyDeps: T[Agg[Dep]] = T {
-      super.ivyDeps() ++ Agg(ivy"com.github.sbt.junit:jupiter-interface:0.1.4")
+      super.ivyDeps() ++ Agg(ivy"com.github.sbt.junit:jupiter-interface:0.11.4")
     }
   }
 
