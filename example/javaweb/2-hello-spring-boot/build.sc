@@ -1,4 +1,4 @@
-import mill._, javalib._, publish._
+import mill._, javalib._
 
 object hello extends RootModule with JavaModule {
   def ivyDeps = Agg(

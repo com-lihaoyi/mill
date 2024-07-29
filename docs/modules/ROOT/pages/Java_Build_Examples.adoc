@@ -1,5 +1,11 @@
 = Java Build Examples
 
+++++
+<script>
+gtag('config', 'AW-16649289906');
+</script>
+++++
+
 On this page, we will explore the Mill build tool via a series of simple Java
 example projects. Each project demonstrates one particular feature of the Mill
 build tool, and is also an executable codebase you can download and run. By the

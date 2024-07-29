@@ -23,6 +23,20 @@ def assembly = T {
   PathRef(T.dest / s"assembly.jar")
 }
 
+// This code defines the following task graph, with the boxes being the tasks
+// and the arrows representing the _data-flow_ between them:
+//
+// [graphviz]
+// ....
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   sources -> compile -> assembly
+//   resources -> assembly
+//   mainClass -> assembly
+// }
+// ....
+//
 // This example does not use any of Mill's builtin support for building Java or
 // Scala projects, and instead builds a pipeline "from scratch" using Mill
 // tasks and `javac`/`jar`/`java` subprocesses. We define `T.source` folders,
@@ -50,7 +64,40 @@ My Example Text
 // necessary, depending on what input sources changed:
 //
 // * If the files in `sources` change, it will re-evaluate
-//  `compile`, and `assembly`
+//  `compile`, and `assembly` (red)
 //
-// * If the files in `resources` change, it will only re-evaluate `assembly`
-//   and use the cached output of `compile`
+// [graphviz]
+// ....
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   sources -> compile -> assembly
+//   resources -> assembly
+//   mainClass -> assembly
+//   assembly [fillcolor=lightpink]
+//   sources [fillcolor=lightpink]
+//   compile [fillcolor=lightpink]
+//   resources [fillcolor=lightgreen]
+//   mainClass [fillcolor=lightgreen]
+// }
+// ....
+//
+// * If the files in `resources` change, it will only re-evaluate `assembly` (red)
+//   and use the cached output of `compile` (green)
+//
+// [graphviz]
+// ....
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   sources -> compile -> assembly
+//   resources -> assembly
+//   mainClass -> assembly
+//   assembly [fillcolor=lightpink]
+//   resources [fillcolor=lightpink]
+//   compile [fillcolor=lightgreen]
+//   sources [fillcolor=lightgreen]
+//   mainClass [fillcolor=lightgreen]
+// }
+// ....
+//

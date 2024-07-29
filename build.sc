@@ -1670,10 +1670,11 @@ object docs extends Module {
       commandArgs = Seq(
         npmExe,
         "install",
-        "@antora/cli@3.0.1",
-        "@antora/site-generator-default@3.0.1",
+        "@antora/cli@3.1.9",
+        "@antora/site-generator-default@3.1.9",
         "gitlab:antora/xref-validator",
-        "@antora/lunr-extension@v1.0.0-alpha.6"
+        "@antora/lunr-extension@v1.0.0-alpha.6",
+        "asciidoctor-kroki@0.18.1"
       ),
       envArgs = Map(),
       workingDir = npmDir
@@ -1755,7 +1756,7 @@ object docs extends Module {
     s"""site:
        |  title: Mill
        |  url: ${if (authorMode) s"${T.dest}/site" else Settings.docUrl}
-       |  start_page: mill::Intro_to_Mill_for_Scala.adoc
+       |  start_page: mill::Java_Intro_to_Mill.adoc
        |  keys:
        |    google_analytics: 'G-1C582ZJR85'
        |
@@ -1791,7 +1792,9 @@ object docs extends Module {
        |    utest-github-url: https://github.com/com-lihaoyi/utest
        |    upickle-github-url: https://github.com/com-lihaoyi/upickle
        |    mill-scip-version: ${Deps.DocDeps.millScip.dep.version}
-       |
+       |    kroki-fetch-diagram: true
+       |  extensions:
+       |  - asciidoctor-kroki
        |antora:
        |  extensions:
        |  - require: '@antora/lunr-extension'

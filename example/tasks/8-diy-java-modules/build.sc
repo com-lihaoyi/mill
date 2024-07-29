@@ -30,19 +30,29 @@ trait DiyJavaModule extends Module{
     PathRef(T.dest / s"assembly.jar")
   }
 }
+// This defines the following build graph for `DiyJavaModule`. Note that some of the
+// edges (dashed) are not connected; that is because `DiyJavaModule` is abstract, and
+// needs to be inherited by a concrete `object` before it can be used.
 
-object foo extends DiyJavaModule {
-  def moduleDeps = Seq(bar)
-  def mainClass = Some("foo.Foo")
-
-  object bar extends DiyJavaModule
-}
-
-object qux extends DiyJavaModule {
-  def moduleDeps = Seq(foo)
-  def mainClass = Some("qux.Qux")
-}
-
+// [graphviz]
+// ....
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   bgcolor=transparent
+//   subgraph cluster_0 {
+//     style=dashed
+//     node [shape=box width=0 height=0 style=filled fillcolor=white]
+//     label = "DiyJavaModule";
+//     n0 [label= "", shape=none,height=.0,width=.0]
+//     n0 -> "compile" [style=dashed]
+//     n0 -> "classPath" [style=dashed]
+//     "mainClass" -> "assembly"
+//     "sources" -> "compile" -> "classPath" -> "assembly"
+//   }
+// }
+// ....
+//
 // Some notable things to call out:
 //
 // * `def moduleDeps` is not a Target. This is necessary because targets cannot
@@ -58,6 +68,62 @@ object qux extends DiyJavaModule {
 //   having a default is very convenient
 //
 // * `def cpFlag` is not a task or target, it's just a normal helper method.
+//
+// Below, the inherit `DiyJavaModule` in three ``object``s: `foo`, `bar`, and `qux`:
+
+object foo extends DiyJavaModule {
+  def moduleDeps = Seq(bar)
+  def mainClass = Some("foo.Foo")
+
+  object bar extends DiyJavaModule
+}
+
+object qux extends DiyJavaModule {
+  def moduleDeps = Seq(foo)
+  def mainClass = Some("qux.Qux")
+}
+
+// This results in the following build graph, with the build graph for `DiyJavaModule`
+// duplicated three times - once per module - with the tasks wired up between the modules
+// according to our overrides for `moduleDeps`
+
+// [graphviz]
+// ....
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   bgcolor=transparent
+//   newrank=true;
+//   subgraph cluster_0 {
+//     style=dashed
+//     node [shape=box width=0 height=0 style=filled fillcolor=white]
+//     label = "foo.bar";
+//
+//     "foo.bar.sources" -> "foo.bar.compile" -> "foo.bar.classPath" -> "foo.bar.assembly"
+//     "foo.bar.mainClass" -> "foo.bar.assembly"
+//   }
+//   subgraph cluster_1 {
+//     style=dashed
+//     node [shape=box width=0 height=0 style=filled fillcolor=white]
+//     label = "foo";
+//
+//     "foo.bar.classPath" -> "foo.compile"   [constraint=false];
+//     "foo.bar.classPath" -> "foo.classPath"
+//     "foo.sources" -> "foo.compile" -> "foo.classPath" -> "foo.assembly"
+//     "foo.mainClass" -> "foo.assembly"
+//   }
+//   subgraph cluster_2 {
+//     style=dashed
+//     node [shape=box width=0 height=0 style=filled fillcolor=white]
+//     label = "qux";
+//
+//     "qux.mainClass" -> "qux.assembly"
+//     "foo.classPath" -> "qux.compile" [constraint=false];
+//     "foo.classPath" -> "qux.classPath"
+//     "qux.sources" -> "qux.compile" -> "qux.classPath" -> "qux.assembly"
+//   }
+// }
+// ....
 //
 // This simple set of `DiyJavaModule` can be used as follows:
 

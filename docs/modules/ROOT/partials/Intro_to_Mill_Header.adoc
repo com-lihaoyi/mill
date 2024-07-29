@@ -1,26 +1,59 @@
+[graphviz]
+....
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+  bgcolor=transparent
+  newrank=true;
+  subgraph cluster_0 {
+    style=dashed
+    node [shape=box width=0 height=0 style=filled fillcolor=white]
+    label = "foo";
 
+    "foo.sources" -> "foo.compile" -> "foo.classPath" -> "foo.assembly"
+    "foo.mainClass" -> "foo.assembly"
+  }
+  subgraph cluster_1 {
+    style=dashed
+    node [shape=box width=0 height=0 style=filled fillcolor=white]
+    label = "bar";
 
-* **Mill builds are easy to extend by non-experts**: anyone can extend a Mill build
-with a few lines of code, without needing to learn a complicated plugin framework,
-allowing end users the freedom to fit their build logic to their own unique requirements
+    "foo.classPath" -> "bar.compile"
+    "foo.classPath" -> "bar.classPath"
+    "bar.sources" -> "bar.compile" -> "bar.classPath" -> "bar.assembly"
+    "bar.mainClass" -> "bar.assembly"
+  }
+}
+....
 
-* **Mill builds are familiar to anyone who knows programming**: rather than scopes, lifecycles,
-or phases, Mill builds on top of objects, methods, inheritance, and overrides: concepts
-immediately familiar to any Java programmer
+{mill-github-url}[Mill] is a graph-based JVM build tool that supports {language}.
+Mill aims to make your JVM project's build process performant, maintainable, and flexible:
 
-Mill can be xref:Extending_Mill.adoc[extended]
-to support any other language or platform via modules or through
-external subprocesses. Mill supports a rich ecosystem of
-xref:Contrib_Plugins.adoc[] and xref:Thirdparty_Plugins.adoc[].
+* *Performance*: Mill's xref:Tasks.adoc[build graph] automatically
+  xref:The_Mill_Evaluation_Model.adoc#_caching_at_each_layer_of_the_evaluation_model[caches]
+  and xref:#_parallel_task_execution[parallelizes] build
+  tasks, minimizing the amount of work that needs to be done, and
+  automatically profiling your build so you can optimize it. Even for large codebases with
+  hundreds of modules, Mill keeps your workflows fast and responsive.
 
-If you prefer a video introduction rather than text, the following presentation
-(and companion blog post) is a good introduction into what the Mill build tool is
-all about:
+* *Maintainability*: Mill build tasks are self contained without side-effects, making it easy
+  to trace the data-flow of your build. Mill also provides excellent IDE support
+  (via xref:{language}_Installation_IDE_Support.adoc#_intellij[IntelliJ] or
+  xref:{language}_Installation_IDE_Support.adoc#_vscode[VSCode]),
+  letting you use "*jump-to-definition*" to navigate around your build
+  as easily as any application codebase. This makes maintaining Mill builds
+  a far easier than the "*guess and grep*" workflows common with other build tools.
 
-- https://www.youtube.com/watch?v=UsXgCeU-ovI&list=PLLMLOC3WM2r6ZFhFfVH74W-sl8LfWtOEc&index=15[Video: A Deep Dive into the Mill Build Tool]
-- https://www.lihaoyi.com/post/SoWhatsSoSpecialAboutTheMillScalaBuildTool.html[Blog Post: What's So Special About The Mill Scala Build Tool?]
+* *Flexibility*: Mill lets you write your xref:_custom_build_logic[custom build logic]
+  in type-checked code, rather than
+  error-prone shell scripts, verbose AntRun XML, or complicated external plugins. Mill's
+  custom tasks and modules allow anything from
+  xref:Tasks.adoc#primitive-tasks[adding simple pipelines], up to
+  xref:Modules.adoc#_use_case_diy_java_modules[adding entire language toolchains].
+  This means Mill does not limit you to what Mill knows how to do, and can be easily
+  customized to fit what *you* need to get done.
 
-The rest of this page contains a quick introduction to getting start with using
-Mill to build a simple program. The other pages of this doc-site go into
-more depth, with more examples of how to use Mill and more details of how the
-Mill build tool works.
+These properties mean that Mill is able to scale well from small projects to
+large codebases with hundreds of modules: its performance keeps things snappy,
+its maintainability keeps things tidy, and its flexibility supports
+the ad-hoc customizations that inevitably appear as projects grow.
