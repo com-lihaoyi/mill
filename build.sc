@@ -145,7 +145,7 @@ object Deps {
 
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.4.0" // 1.5.0+ dont support JDK8
 
-  val jline = ivy"org.jline:jline:3.26.2"
+  val jline = ivy"org.jline:jline:3.26.3"
   val jnaVersion = "5.14.0"
   val jna = ivy"net.java.dev.jna:jna:${jnaVersion}"
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:${jnaVersion}"
@@ -1199,13 +1199,13 @@ object example extends MillScalaModule {
 
   trait ExampleCrossModuleJava extends ExampleCrossModule {
 
-    def upstreamCross(s: String) = s match{
+    def upstreamCross(s: String) = s match {
       case "basicjava" => basic
       case "javabuilds" => scalabuilds
       case "javamodule" => scalamodule
     }
 
-    def buildScLines = T{
+    def buildScLines = T {
       val upstreamLines = os.read.lines(
         upstreamCross(this.millModuleSegments.parts.dropRight(1).last)(crossValue)
           .testRepoRoot().path / "build.sc"
@@ -1215,20 +1215,20 @@ object example extends MillScalaModule {
       import collection.mutable
       val groupedLines = mutable.Map.empty[String, mutable.Buffer[String]]
       var current = Option.empty[String]
-      lines.foreach{
+      lines.foreach {
         case s"//// SNIPPET:$name" =>
           current = Some(name)
           groupedLines(name) = mutable.Buffer()
         case s => groupedLines(current.get).append(s)
       }
 
-      upstreamLines.flatMap{
+      upstreamLines.flatMap {
         case s"//// SNIPPET:$name" =>
           if (name != "END") {
 
             current = Some(name)
             groupedLines(name)
-          } else{
+          } else {
             current = None
             Nil
           }
@@ -1245,7 +1245,7 @@ object example extends MillScalaModule {
     def testRepoRoot: T[PathRef] = T.source(millSourcePath)
     def compile = example.compile()
 
-    def buildScLines = T{ os.read.lines(testRepoRoot().path / "build.sc") }
+    def buildScLines = T { os.read.lines(testRepoRoot().path / "build.sc") }
     def forkEnv = super.forkEnv() ++ Map("MILL_EXAMPLE_PARSED" -> upickle.default.write(parsed()))
 
     /**
