@@ -7,11 +7,11 @@ object foo extends RootModule with ScoverageModule {
   def scoverageVersion = "2.1.0"
   def scalaVersion = "2.13.11"
   def ivyDeps = Agg(
-    ivy"com.lihaoyi::scalatags:0.12.0",
+    ivy"com.lihaoyi::scalatags:0.13.1",
     ivy"com.lihaoyi::mainargs:0.6.2"
   )
 
-  object test extends ScoverageTests /*with TestModule.Utest */{
+  object test extends ScoverageTests /*with TestModule.Utest */ {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.11")
     def testFramework = "utest.runner.Framework"
   }
@@ -35,26 +35,27 @@ object foo extends RootModule with ScoverageModule {
 // that you have some version of the JVM installed; the `./mill` script takes
 // care of any further dependencies that need to be downloaded.
 
-/** Usage
-
-> ./mill test # Run the tests and produce the coverage data
-...
-+ foo.FooTests.simple ...  <h1>hello</h1>
-+ foo.FooTests.escaping ...  <h1>&lt;hello&gt;</h1>
-
-> ./mill resolve scoverage._ # List what tasks are available to run from scoverage
-...
-scoverage.consoleReport
-...
-scoverage.htmlReport
-...
-scoverage.xmlCoberturaReport
-...
-scoverage.xmlReport
-...
-
-> ./mill scoverage.consoleReport
-...
-Statement coverage.: 16.67%
-Branch coverage....: 100.00%
-*/
+/**
+ * Usage
+ *
+ * > ./mill test # Run the tests and produce the coverage data
+ * ...
+ * + foo.FooTests.simple ...  <h1>hello</h1>
+ * + foo.FooTests.escaping ...  <h1>&lt;hello&gt;</h1>
+ *
+ * > ./mill resolve scoverage._ # List what tasks are available to run from scoverage
+ * ...
+ * scoverage.consoleReport
+ * ...
+ * scoverage.htmlReport
+ * ...
+ * scoverage.xmlCoberturaReport
+ * ...
+ * scoverage.xmlReport
+ * ...
+ *
+ * > ./mill scoverage.consoleReport
+ * ...
+ * Statement coverage.: 16.67%
+ * Branch coverage....: 100.00%
+ */

@@ -12,7 +12,7 @@ object root extends RootModule with AppScalaModule {
   def moduleDeps = Seq(shared.jvm)
   def ivyDeps = Agg(ivy"com.lihaoyi::cask:0.9.1")
 
-  def resources = T{
+  def resources = T {
     os.makeDir(T.dest / "webapp")
     val jsPath = client.fastLinkJS().dest.path
     os.copy(jsPath / "main.js", T.dest / "webapp" / "main.js")
@@ -24,15 +24,15 @@ object root extends RootModule with AppScalaModule {
 
     def ivyDeps = Agg(
       ivy"com.lihaoyi::utest::0.7.10",
-      ivy"com.lihaoyi::requests::0.6.9",
+      ivy"com.lihaoyi::requests::0.6.9"
     )
   }
 
   object shared extends Module {
     trait SharedModule extends AppScalaModule with PlatformScalaModule {
       def ivyDeps = Agg(
-        ivy"com.lihaoyi::scalatags::0.12.0",
-        ivy"com.lihaoyi::upickle::3.0.0",
+        ivy"com.lihaoyi::scalatags::0.13.1",
+        ivy"com.lihaoyi::upickle::3.0.0"
       )
     }
 
@@ -63,21 +63,21 @@ object root extends RootModule with AppScalaModule {
 // configuration. A full exploration of client-server code sharing techniques
 // is beyond the scope of this example.
 
-/** Usage
-
-> ./mill test
-+ webapp.WebAppTests.simpleRequest ...
-
-> ./mill runBackground
-
-> curl http://localhost:8083
-...What needs to be done...
-...
-
-> curl http://localhost:8083/static/main.js
-...Scala.js...
-...
-
-> ./mill clean runBackground
-
-*/
+/**
+ * Usage
+ *
+ * > ./mill test
+ * + webapp.WebAppTests.simpleRequest ...
+ *
+ * > ./mill runBackground
+ *
+ * > curl http://localhost:8083
+ * ...What needs to be done...
+ * ...
+ *
+ * > curl http://localhost:8083/static/main.js
+ * ...Scala.js...
+ * ...
+ *
+ * > ./mill clean runBackground
+ */
