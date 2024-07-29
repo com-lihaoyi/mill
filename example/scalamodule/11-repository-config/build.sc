@@ -15,7 +15,7 @@ object foo extends ScalaModule {
   def scalaVersion = "2.13.8"
 
   def ivyDeps = Agg(
-    ivy"com.lihaoyi::scalatags:0.12.0",
+    ivy"com.lihaoyi::scalatags:0.13.1",
     ivy"com.lihaoyi::mainargs:0.6.2"
   )
 
@@ -43,7 +43,6 @@ object foo extends ScalaModule {
 //
 // You can also set the environment variable `COURSIER_MIRRORS` or the jvm property `coursier.mirrors` to specify config file location.
 
-
 // To add custom resolvers to the initial bootstrap of the build, you can create a
 // custom `ZincWorkerModule`, and override the `zincWorker` method in your
 // `ScalaModule` by pointing it to that custom object:
@@ -59,15 +58,15 @@ object bar extends ScalaModule {
   def zincWorker = ModuleRef(CustomZincWorkerModule)
   // ... rest of your build definitions
 
-  def repositoriesTask = T.task {super.repositoriesTask() ++ sonatypeReleases}
+  def repositoriesTask = T.task { super.repositoriesTask() ++ sonatypeReleases }
 }
 
 //// SNIPPET:END
 
-/** Usage
-
-> ./mill foo.run --text hello
-
-> ./mill bar.compile
-
-*/
+/**
+ * Usage
+ *
+ * > ./mill foo.run --text hello
+ *
+ * > ./mill bar.compile
+ */
