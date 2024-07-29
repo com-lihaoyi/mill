@@ -145,7 +145,7 @@ object Deps {
 
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.4.0" // 1.5.0+ dont support JDK8
 
-  val jline = ivy"org.jline:jline:3.26.2"
+  val jline = ivy"org.jline:jline:3.26.3"
   val jnaVersion = "5.14.0"
   val jna = ivy"net.java.dev.jna:jna:${jnaVersion}"
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:${jnaVersion}"
