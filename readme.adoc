@@ -295,11 +295,16 @@ endif::[]
 
 _Changes since {prev-version}:_
 
-__New features__
+__Fixes and Improvements__
 
 * Improvements in Java docs and user experience {link-pr}/3278[#3278]
 * Automatically pump os.proc streams when SystemStreams are redirected {link-pr}/3275[#3275]
 * Fix resolution of children of override lazy val modules {link-pr}/3270[#3270]
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
 
 [#0-11-9]
 === 0.11.9 - 2024-07-18
@@ -313,7 +318,14 @@ _Changes since {prev-version}:_
 __New features__
 
 * First class support for Java projects {link-pr}/3261[#3261]
+
+__Fixes and Improvements__
+
 * Add coarse grained lock around BSP request to avoid deadlocks {link-pr}/3243[#3243]
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-8]
 === 0.11.8 - 2024-06-21
