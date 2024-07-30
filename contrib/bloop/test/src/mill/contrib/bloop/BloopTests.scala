@@ -155,11 +155,11 @@ object BloopTests extends TestSuite {
         assert(artifacts.map(_.name).distinct == List("bloop-config_2.12"))
         assert(artifacts.flatMap(_.classifier).contains("sources"))
 
-        assert(compileResources.exists(_.contains("scalaModule/compile-resources")))
-        assert(!compileResources.exists(_.contains("scalaModule/resources")))
+        assert(compileResources.exists(_.replace('\\', '/').contains("scalaModule/compile-resources")))
+        assert(!compileResources.exists(_.replace('\\', '/').contains("scalaModule/resources")))
 
-        assert(runtimeResources.exists(_.contains("scalaModule/compile-resources")))
-        assert(runtimeResources.exists(_.contains("scalaModule/resources")))
+        assert(runtimeResources.exists(_.replace('\\', '/').contains("scalaModule/compile-resources")))
+        assert(runtimeResources.exists(_.replace('\\', '/').contains("scalaModule/resources")))
       }
       "scalaModuleTest" - {
         val p = testModuleConfig.project
