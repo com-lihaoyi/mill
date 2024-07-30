@@ -180,7 +180,7 @@ object Deps {
   val scalatags = ivy"com.lihaoyi::scalatags:0.12.0"
   def scalaXml = ivy"org.scala-lang.modules::scala-xml:2.3.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.9.8"
+  val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.9.9"
   val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.10.0"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.1"
   val upickle = ivy"com.lihaoyi::upickle:3.3.1"
@@ -1199,13 +1199,13 @@ object example extends MillScalaModule {
 
   trait ExampleCrossModuleJava extends ExampleCrossModule {
 
-    def upstreamCross(s: String) = s match{
+    def upstreamCross(s: String) = s match {
       case "basicjava" => basic
       case "javabuilds" => scalabuilds
       case "javamodule" => scalamodule
     }
 
-    def buildScLines = T{
+    def buildScLines = T {
       val upstreamLines = os.read.lines(
         upstreamCross(this.millModuleSegments.parts.dropRight(1).last)(crossValue)
           .testRepoRoot().path / "build.sc"
@@ -1215,20 +1215,20 @@ object example extends MillScalaModule {
       import collection.mutable
       val groupedLines = mutable.Map.empty[String, mutable.Buffer[String]]
       var current = Option.empty[String]
-      lines.foreach{
+      lines.foreach {
         case s"//// SNIPPET:$name" =>
           current = Some(name)
           groupedLines(name) = mutable.Buffer()
         case s => groupedLines(current.get).append(s)
       }
 
-      upstreamLines.flatMap{
+      upstreamLines.flatMap {
         case s"//// SNIPPET:$name" =>
           if (name != "END") {
 
             current = Some(name)
             groupedLines(name)
-          } else{
+          } else {
             current = None
             Nil
           }
@@ -1245,7 +1245,7 @@ object example extends MillScalaModule {
     def testRepoRoot: T[PathRef] = T.source(millSourcePath)
     def compile = example.compile()
 
-    def buildScLines = T{ os.read.lines(testRepoRoot().path / "build.sc") }
+    def buildScLines = T { os.read.lines(testRepoRoot().path / "build.sc") }
     def forkEnv = super.forkEnv() ++ Map("MILL_EXAMPLE_PARSED" -> upickle.default.write(parsed()))
 
     /**
