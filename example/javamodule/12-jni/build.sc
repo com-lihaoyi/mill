@@ -19,6 +19,7 @@ object foo extends RootModule with JavaModule {
         "-I" + nativeHeaders().path, //
         "-I" + sys.props("java.home") + "/include/", // global JVM header files
         "-I" + sys.props("java.home") + "/include/darwin",
+        "-I" + sys.props("java.home") + "/include/linux",
         "-o", T.dest / output,
         cSourceFiles
       )
