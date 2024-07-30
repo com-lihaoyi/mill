@@ -155,7 +155,7 @@ object Deps {
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.23.1"
   val osLib = ivy"com.lihaoyi::os-lib:0.10.3"
   val pprint = ivy"com.lihaoyi::pprint:0.9.0"
-  val mainargs = ivy"com.lihaoyi::mainargs:0.7.0"
+  val mainargs = ivy"com.lihaoyi::mainargs:0.7.1"
   val millModuledefsVersion = "0.10.9"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = ivy"${millModuledefsString}"
