@@ -46,7 +46,7 @@ object Settings {
     "0.11.0-M7"
   )
   val docTags: Seq[String] = Seq()
-  val mimaBaseVersions: Seq[String] = 0.to(8).map("0.11." + _)
+  val mimaBaseVersions: Seq[String] = 0.to(10).map("0.11." + _)
 }
 
 object Deps {
@@ -145,7 +145,7 @@ object Deps {
 
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.4.0" // 1.5.0+ dont support JDK8
 
-  val jline = ivy"org.jline:jline:3.26.2"
+  val jline = ivy"org.jline:jline:3.26.3"
   val jnaVersion = "5.14.0"
   val jna = ivy"net.java.dev.jna:jna:${jnaVersion}"
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:${jnaVersion}"
@@ -155,7 +155,7 @@ object Deps {
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.23.1"
   val osLib = ivy"com.lihaoyi::os-lib:0.10.3"
   val pprint = ivy"com.lihaoyi::pprint:0.9.0"
-  val mainargs = ivy"com.lihaoyi::mainargs:0.7.0"
+  val mainargs = ivy"com.lihaoyi::mainargs:0.7.1"
   val millModuledefsVersion = "0.10.9"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = ivy"${millModuledefsString}"
@@ -180,7 +180,7 @@ object Deps {
   val scalatags = ivy"com.lihaoyi::scalatags:0.12.0"
   def scalaXml = ivy"org.scala-lang.modules::scala-xml:2.3.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.9.8"
+  val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.9.9"
   val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.10.0"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.1"
   val upickle = ivy"com.lihaoyi::upickle:3.3.1"
@@ -1199,7 +1199,7 @@ object example extends MillScalaModule {
 
   trait ExampleCrossModuleJava extends ExampleCrossModule {
 
-    def upstreamCross(s: String) = s match{
+    def upstreamCross(s: String) = s match {
       case "basicjava" => basic
       case "javabuilds" => scalabuilds
       case "javamodule" => scalamodule
@@ -1210,11 +1210,13 @@ object example extends MillScalaModule {
         this.millModuleSegments.parts.dropRight(1).last).valuesToModules.get(List(crossValue)
       ) match {
         case None =>
-          T { super.buildScLines() }
+          T {
+            super.buildScLines()
+          }
         case Some(upstream) => T {
           val upstreamLines = os.read.lines(
-
-            upstream.testRepoRoot().path / "build.sc"
+            upstream
+              .testRepoRoot().path / "build.sc"
           )
           val lines = os.read.lines(testRepoRoot().path / "build.sc")
 
@@ -1244,7 +1246,7 @@ object example extends MillScalaModule {
               else Some(s)
           }
         }
-    }
+      }
   }
   trait ExampleCrossModule extends IntegrationTestCrossModule {
     // disable scalafix because these example modules don't have sources causing it to misbehave
@@ -1252,7 +1254,7 @@ object example extends MillScalaModule {
     def testRepoRoot: T[PathRef] = T.source(millSourcePath)
     def compile = example.compile()
 
-    def buildScLines = T{ os.read.lines(testRepoRoot().path / "build.sc") }
+    def buildScLines = T { os.read.lines(testRepoRoot().path / "build.sc") }
     def forkEnv = super.forkEnv() ++ Map("MILL_EXAMPLE_PARSED" -> upickle.default.write(parsed()))
 
     /**
