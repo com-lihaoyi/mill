@@ -300,14 +300,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.10-25-8bce02</span>
+    <span class="version">0.11.10-26-ed2d2f</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.10-25-8bce02</a>
+          <a href="index.html">0.11.10-26-ed2d2f</a>
         </li>
         <li class="version">
           <a href="0.11.0-M7/index.html">0.11.0-M7</a>
@@ -343,9 +343,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.10-25-8bce02</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.10-26-ed2d2f</button>
   <div class="version-menu">
-    <a class="version is-current" href="Java_Intro_to_Mill.html">0.11.10-25-8bce02</a>
+    <a class="version is-current" href="Java_Intro_to_Mill.html">0.11.10-26-ed2d2f</a>
     <a class="version is-missing" href="0.11.0-M7/index.html">0.11.0-M7</a>
     <a class="version is-missing" href="0.10.15/index.html">0.10.15</a>
     <a class="version is-missing" href="0.10.12/index.html">0.10.12</a>
@@ -434,18 +434,19 @@ projects require minimal effort to get started, and larger Mill projects have a 
 structure building on these defaults.</p>
 </li>
 <li>
-<p><strong>Mill makes customizing the build tool much easier than Maven</strong>. As projects grow, build
-grow beyond just compiling a single language: you need custom
+<p><strong>Mill makes customizing the build tool much easier than Maven</strong>. Projects usually grows
+grow beyond just compiling a single language: needing custom
 code generation, custom linting workflows, custom output artifacts, or support for
 additional programming languages. Mill makes doing this yourself easy, so you are not beholden
 to third-party plugins that may not exist, be well maintained, or interact well with each other.</p>
 </li>
 <li>
 <p><strong>Mill automatically caches and parallelizes your build</strong>: This applies not just to the
-built-in <code>JavaModule</code>s and tasks that Mill ships with, but also any custom logic the
-developer may configure in their Mill build. This maximizes performance and snappiness of
+built-in tasks that Mill ships with, but also any custom logic the
+developer might write. This maximizes performance and snappiness of
 your command-line build workflows, and especially matters in larger codebases where builds
-tend to get slow.</p>
+tend to get slow: a Maven <code>clean install</code> taking over a minute might take just a
+few seconds in Mill.</p>
 </li>
 </ul>
 </div>
@@ -486,7 +487,8 @@ easiest thing to do is almost always the right thing to do.</p>
 </div>
 <div class="paragraph">
 <p>Mill build files are written in Scala, but you do not need to have prior experience
-in Scala to read or write them.</p>
+in Scala to read or write them. Like Gradle Groovy or Maven XML, it’s easy to learn
+enough Scala for Mill without needing to become an expert in the language.</p>
 </div>
 <div class="paragraph">
 <p>If you’re interested in the fundamental ideas behind Mill, rather than the user-facing
@@ -983,7 +985,7 @@ Tasks that depend on each other can’t be processed in parallel.</p>
 <div class="listingblock">
 <div class="title">Output of <code>mill --help</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.11.10-25-8bce02
+<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.11.10-26-ed2d2f
 usage: mill [options] [[target [target-options]] [+ [target ...]]]
   -D --define &lt;k=v&gt;                 Define (or overwrite) a system property.
   -b --bell                         Ring the bell once if the run completes successfully, twice if
