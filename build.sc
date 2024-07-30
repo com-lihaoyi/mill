@@ -145,7 +145,7 @@ object Deps {
 
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.4.0" // 1.5.0+ dont support JDK8
 
-  val jline = ivy"org.jline:jline:3.26.2"
+  val jline = ivy"org.jline:jline:3.26.3"
   val jnaVersion = "5.14.0"
   val jna = ivy"net.java.dev.jna:jna:${jnaVersion}"
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:${jnaVersion}"
@@ -155,7 +155,7 @@ object Deps {
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.23.1"
   val osLib = ivy"com.lihaoyi::os-lib:0.10.3"
   val pprint = ivy"com.lihaoyi::pprint:0.9.0"
-  val mainargs = ivy"com.lihaoyi::mainargs:0.7.0"
+  val mainargs = ivy"com.lihaoyi::mainargs:0.7.1"
   val millModuledefsVersion = "0.10.9"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = ivy"${millModuledefsString}"
@@ -180,7 +180,7 @@ object Deps {
   val scalatags = ivy"com.lihaoyi::scalatags:0.12.0"
   def scalaXml = ivy"org.scala-lang.modules::scala-xml:2.3.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.9.8"
+  val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.9.9"
   val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.10.0"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.1"
   val upickle = ivy"com.lihaoyi::upickle:3.3.1"
@@ -1205,39 +1205,48 @@ object example extends MillScalaModule {
       case "javamodule" => scalamodule
     }
 
-    def buildScLines = T {
-      val upstreamLines = os.read.lines(
-        upstreamCross(this.millModuleSegments.parts.dropRight(1).last)(crossValue)
-          .testRepoRoot().path / "build.sc"
-      )
-      val lines = os.read.lines(testRepoRoot().path / "build.sc")
+    def buildScLines =
+      upstreamCross(
+        this.millModuleSegments.parts.dropRight(1).last).valuesToModules.get(List(crossValue)
+      ) match {
+        case None =>
+          T {
+            super.buildScLines()
+          }
+        case Some(upstream) => T {
+          val upstreamLines = os.read.lines(
+            upstream
+              .testRepoRoot().path / "build.sc"
+          )
+          val lines = os.read.lines(testRepoRoot().path / "build.sc")
 
-      import collection.mutable
-      val groupedLines = mutable.Map.empty[String, mutable.Buffer[String]]
-      var current = Option.empty[String]
-      lines.foreach {
-        case s"//// SNIPPET:$name" =>
-          current = Some(name)
-          groupedLines(name) = mutable.Buffer()
-        case s => groupedLines(current.get).append(s)
-      }
-
-      upstreamLines.flatMap {
-        case s"//// SNIPPET:$name" =>
-          if (name != "END") {
-
-            current = Some(name)
-            groupedLines(name)
-          } else {
-            current = None
-            Nil
+          import collection.mutable
+          val groupedLines = mutable.Map.empty[String, mutable.Buffer[String]]
+          var current = Option.empty[String]
+          lines.foreach {
+            case s"//// SNIPPET:$name" =>
+              current = Some(name)
+              groupedLines(name) = mutable.Buffer()
+            case s => groupedLines(current.get).append(s)
           }
 
-        case s =>
-          if (current.nonEmpty) None
-          else Some(s)
+          upstreamLines.flatMap {
+            case s"//// SNIPPET:$name" =>
+              if (name != "END") {
+
+                current = Some(name)
+                groupedLines(name)
+              } else {
+                current = None
+                Nil
+              }
+
+            case s =>
+              if (current.nonEmpty) None
+              else Some(s)
+          }
+        }
       }
-    }
   }
   trait ExampleCrossModule extends IntegrationTestCrossModule {
     // disable scalafix because these example modules don't have sources causing it to misbehave
