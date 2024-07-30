@@ -28,7 +28,7 @@ digraph G {
 
 {mill-github-url}[Mill] is a graph-based JVM build tool that supports {language}.
 Mill aims to make your JVM project's build process performant, maintainable, and flexible
-even as it grows from a small project to a large codebases or monorepos with hundreds of modules:
+even as it grows from a small project to a large codebase or monorepo with hundreds of modules:
 
 * *Performance*: Mill's xref:Tasks.adoc[build graph] automatically
   xref:The_Mill_Evaluation_Model.adoc#_caching_at_each_layer_of_the_evaluation_model[caches]
