@@ -155,10 +155,14 @@ object BloopTests extends TestSuite {
         assert(artifacts.map(_.name).distinct == List("bloop-config_2.12"))
         assert(artifacts.flatMap(_.classifier).contains("sources"))
 
-        assert(compileResources.exists(_.replace('\\', '/').contains("scalaModule/compile-resources")))
+        assert(
+          compileResources.exists(_.replace('\\', '/').contains("scalaModule/compile-resources"))
+        )
         assert(!compileResources.exists(_.replace('\\', '/').contains("scalaModule/resources")))
 
-        assert(runtimeResources.exists(_.replace('\\', '/').contains("scalaModule/compile-resources")))
+        assert(
+          runtimeResources.exists(_.replace('\\', '/').contains("scalaModule/compile-resources"))
+        )
         assert(runtimeResources.exists(_.replace('\\', '/').contains("scalaModule/resources")))
       }
       "scalaModuleTest" - {
@@ -197,7 +201,9 @@ object BloopTests extends TestSuite {
         assert(cp.exists(_.contains(".bloop/out/scalaModule/classes")))
       }
       "platform-classpath" - {
-        val cp = scalaModule3Config.project.platform.get.asInstanceOf[Jvm].classpath.map(_.toString.replace('\\', '/'))
+        val cp = scalaModule3Config.project.platform.get.asInstanceOf[Jvm].classpath.map(
+          _.toString.replace('\\', '/')
+        )
         assert(cp.exists(_.contains(".bloop/out/scalaModule3/classes")))
         assert(cp.exists(_.contains(".bloop/out/scalaModule2/classes")))
         assert(cp.exists(_.contains(".bloop/out/scalaModule/classes")))
@@ -209,7 +215,9 @@ object BloopTests extends TestSuite {
         assert(cp.exists(_.contains(".bloop/out/scalaModule/classes")))
       }
       "platform-classpath-compile-module-deps" - {
-        val cp = scalaModule4Config.project.platform.get.asInstanceOf[Jvm].classpath.map(_.toString.replace('\\', '/'))
+        val cp = scalaModule4Config.project.platform.get.asInstanceOf[Jvm].classpath.map(
+          _.toString.replace('\\', '/')
+        )
         assert(!cp.exists(_.contains(".bloop/out/scalaModule3/classes")))
         assert(!cp.exists(_.contains(".bloop/out/scalaModule2/classes")))
         assert(!cp.exists(_.contains(".bloop/out/scalaModule/classes")))

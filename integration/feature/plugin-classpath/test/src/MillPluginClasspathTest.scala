@@ -57,7 +57,9 @@ object MillPluginClasspathTest extends IntegrationTestSuite {
       assert(unexpected.isEmpty)
 
       val expected = Seq("com/disneystreaming/smithy4s/smithy4s-mill-codegen-plugin_mill0.11_2.13")
-      assert(expected.forall(a => runClasspath.exists(p => p.toString().replace('\\', '/').contains(a))))
+      assert(expected.forall(a =>
+        runClasspath.exists(p => p.toString().replace('\\', '/').contains(a))
+      ))
     }
 
   }
