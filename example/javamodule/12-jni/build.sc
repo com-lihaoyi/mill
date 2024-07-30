@@ -1,4 +1,4 @@
-import mill._, javalib._
+import mill._, javalib._, util.Jvm
 
 object foo extends RootModule with JavaModule {
   // Additional source folder to put C sources
@@ -6,7 +6,7 @@ object foo extends RootModule with JavaModule {
 
   // Auto-generate JNI `.h` files from Java classes using Javac
   def nativeHeaders = T {
-    os.proc("javac", "-h", T.dest, "-d", T.dest.toString, allSourceFiles().map(_.path)).call()
+    os.proc(Jvm.jdkTool("javac"), "-h", T.dest, "-d", T.dest.toString, allSourceFiles().map(_.path)).call()
     PathRef(T.dest)
   }
 
@@ -19,6 +19,7 @@ object foo extends RootModule with JavaModule {
         "-I" + nativeHeaders().path, //
         "-I" + sys.props("java.home") + "/include/", // global JVM header files
         "-I" + sys.props("java.home") + "/include/darwin",
+        "-I" + sys.props("java.home") + "/include/linux",
         "-o", T.dest / output,
         cSourceFiles
       )
