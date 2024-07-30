@@ -42,6 +42,23 @@ object foo extends RootModule with JavaModule {
 // and in this example we use an environment variable to pass the path of that
 // file to the application code to load it using `System.load`.
 //
+// The above builds expect the following project layout:
+//
+// ----
+// build.sc
+// src/
+//     foo/
+//         HelloWorld.java
+//
+// native-src/
+//     HelloWorld.c
+//
+// test/
+//     src/
+//         foo/
+//             HelloWorldTest.java
+// ----
+//
 // This example is pretty minimal, but it demonstrates the core principles, and
 // can be extended if necessary to more elaborate use cases. The `native*` tasks
 // can also be extracted out into a `trait` for re-use if you have multiple
