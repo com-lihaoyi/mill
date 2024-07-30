@@ -47,17 +47,18 @@ Compared to Maven:
   projects require minimal effort to get started, and larger Mill projects have a consistent
   structure building on these defaults.
 
-* **Mill makes customizing the build tool much easier than Maven**. As projects grow, build
-  grow beyond just compiling a single language: you need custom
+* **Mill makes customizing the build tool much easier than Maven**. Projects usually grows
+  grow beyond just compiling a single language: needing custom
   code generation, custom linting workflows, custom output artifacts, or support for
   additional programming languages. Mill makes doing this yourself easy, so you are not beholden
   to third-party plugins that may not exist, be well maintained, or interact well with each other.
 
 * **Mill automatically caches and parallelizes your build**: This applies not just to the
-  built-in ``JavaModule``s and tasks that Mill ships with, but also any custom logic the
-  developer may configure in their Mill build. This maximizes performance and snappiness of
+  built-in tasks that Mill ships with, but also any custom logic the
+  developer might write. This maximizes performance and snappiness of
   your command-line build workflows, and especially matters in larger codebases where builds
-  tend to get slow.
+  tend to get slow: a Maven `clean install` taking over a minute might take just a 
+  few seconds in Mill.
 
 Compared to Gradle:
 
@@ -87,7 +88,8 @@ Compared to Gradle:
   easiest thing to do is almost always the right thing to do.
 
 Mill build files are written in Scala, but you do not need to have prior experience
-in Scala to read or write them.
+in Scala to read or write them. Like Gradle Groovy or Maven XML, it's easy to learn
+enough Scala for Mill without needing to become an expert in the language.
 
 
 include::partial$Intro_to_Mill_BlogVideo.adoc[]
