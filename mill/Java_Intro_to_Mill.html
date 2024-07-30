@@ -300,14 +300,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.10-29-351392</span>
+    <span class="version">0.11.10-33-625b91</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.10-29-351392</a>
+          <a href="index.html">0.11.10-33-625b91</a>
         </li>
         <li class="version">
           <a href="0.11.0-M7/index.html">0.11.0-M7</a>
@@ -343,9 +343,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.10-29-351392</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.10-33-625b91</button>
   <div class="version-menu">
-    <a class="version is-current" href="Java_Intro_to_Mill.html">0.11.10-29-351392</a>
+    <a class="version is-current" href="Java_Intro_to_Mill.html">0.11.10-33-625b91</a>
     <a class="version is-missing" href="0.11.0-M7/index.html">0.11.0-M7</a>
     <a class="version is-missing" href="0.10.15/index.html">0.10.15</a>
     <a class="version is-missing" href="0.10.12/index.html">0.10.12</a>
@@ -368,13 +368,13 @@ gtag('config', 'AW-16649289906');
 </script>
 <div class="imageblock kroki">
 <div class="content">
-<img src="_images/diag-75c3320dc26296bd3959509e6b17ed51307788aa.svg" alt="Diagram" />
+<img src="_images/diag-b0343d5da0132eadae14f49384f3a5434d372d46.svg" alt="Diagram" />
 </div>
 </div>
 <div class="paragraph">
 <p><a href="https://github.com/com-lihaoyi/mill">Mill</a> is a graph-based JVM build tool that supports Java.
 Mill aims to make your JVM project’s build process performant, maintainable, and flexible
-even as it grows from a small project to a large codebases or monorepos with hundreds of modules:</p>
+even as it grows from a small project to a large codebase or monorepo with hundreds of modules:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -389,10 +389,9 @@ fast and responsive.</p>
 <p><strong>Maintainability</strong>: Mill build tasks are self contained without side-effects making it easy
 to trace the data-flow, and its IDE support
 (via <a href="Java_Installation_IDE_Support.html#_intellij" class="xref page">IntelliJ</a> or
-<a href="Java_Installation_IDE_Support.html#_vscode" class="xref page">VSCode</a>),
+<a href="Java_Installation_IDE_Support.html#_vscode" class="xref page">VSCode</a>)
 lets you &quot;<strong>jump-to-definition</strong>&quot; around your build
-as easily as any application codebase. This makes maintaining Mill builds
-a far easier than the &quot;<strong>guess and grep</strong>&quot; workflows common with other build tools.</p>
+as easily as any application codebase.</p>
 </li>
 <li>
 <p><strong>Flexibility</strong>: Mill custom logic is written in <a href="#_custom_build_logic">custom build logic</a>
@@ -400,9 +399,8 @@ in type-checked code, rather than
 error-prone shell scripts, verbose AntRun XML, or complicated external plugins. Mill’s
 custom tasks and modules allow anything from
 <a href="Tasks.html#primitive-tasks" class="xref page">adding simple pipelines</a>, up to
-<a href="Modules.html#_use_case_diy_java_modules" class="xref page">adding entire language toolchains</a>.
-This means Mill does not limit you to what it can do, and can be easily customized
-to fit what you need to get done.</p>
+<a href="Modules.html#_use_case_diy_java_modules" class="xref page">adding entire language toolchains</a>,
+meaning it can be easily customized to fit exactly what you need.</p>
 </li>
 </ul>
 </div>
@@ -434,16 +432,16 @@ projects require minimal effort to get started, and larger Mill projects have a 
 structure building on these defaults.</p>
 </li>
 <li>
-<p><strong>Mill makes customizing the build tool much easier than Maven</strong>. Projects usually grows
+<p><strong>Mill makes customizing the build tool much easier than Maven</strong>. Projects usually
 grow beyond just compiling a single language: needing custom
-code generation, custom linting workflows, custom output artifacts, or support for
-additional programming languages. Mill makes doing this yourself easy, so you are not beholden
+code generation, linting workflows, output artifacts, or support for
+additional languages. Mill makes doing this yourself easy, so you are not beholden
 to third-party plugins that may not exist, be well maintained, or interact well with each other.</p>
 </li>
 <li>
-<p><strong>Mill automatically caches and parallelizes your build</strong>: This applies not just to the
-built-in tasks that Mill ships with, but also any custom logic the
-developer might write. This maximizes performance and snappiness of
+<p><strong>Mill automatically caches and parallelizes your build</strong>: Not just the
+built-in tasks that Mill ships with, but also any custom tasks or modules.
+This maximizes performance and snappiness of
 your command-line build workflows, and especially matters in larger codebases where builds
 tend to get slow: a Maven <code>clean install</code> taking over a minute might take just a
 few seconds in Mill.</p>
@@ -457,30 +455,28 @@ few seconds in Mill.</p>
 <ul>
 <li>
 <p><strong>Mill follows Gradle’s conciseness</strong>: Rather than pages and pages of verbose XML, every
-line of configuration in a Mill build is meaningful. e.g. adding a dependency is 1 line in
+line in a Mill build is meaningful. e.g. adding a dependency is 1 line in
 Mill, like it is in Gradle, and unlike the 5 line <code>&lt;dependency&gt;</code> declaration you find in Maven.
-While verbosity isn’t everything, skimming and understanding a 100-line Mill <code>build.sc</code> file is
+Skimming and understanding a 100-line Mill <code>build.sc</code> file is
 often much easier than skimming the equivalent 500-line Maven <code>pom.xml</code>.</p>
 </li>
 <li>
 <p><strong>Mill builds are more easily understandable</strong>: While the impact of a Gradle config change can
 be hard to determine at a glance, the impact of a Mill config change is localized,
-only affecting downstream tasks. Apart from humans, tooling
-also finds it easier to understand Mill builds: your IDE can jump to the definition of
-a Mill task, find its usage, peek at its doc-comments. Your IDE can navigate Mill’s
+only affecting downstream tasks. Your IDE can navigate Mill’s
 <a href="Tasks.html" class="xref page">task graph</a> and <a href="Modules.html" class="xref page">module tree</a> just as easily as it can
 navigate the method call graph in a normal Java program, something impossible in tools like
 Maven or Gradle.</p>
 </li>
 <li>
 <p><strong>Mill enforces best practices by default</strong>. All Mill tasks are cached by default, even
-custom tasks. All Mill tasks write their output to disk <a href="Out_Dir.html" class="xref page">following a
-standard convention</a>. All task inter-dependencies are automatically captured, without
-needing explicit annotation. All Mill builds are incremental, not just tasks but also
+custom tasks. All Mill tasks write their output to disk <a href="Out_Dir.html" class="xref page">a
+standard place</a>. All task inter-dependencies are automatically captured, without
+needing manual annotation. All Mill builds are incremental, not just tasks but also
 <a href="The_Mill_Evaluation_Model.html#_caching_at_each_layer_of_the_evaluation_model" class="xref page">configuration
 and other phases</a>. Where Gradle requires considerable
 <a href="https://docs.gradle.org/current/userguide/incremental_build.html">effort and expertise</a>
-to maintain the performance and structure of your build, Mill automates that effort so the
+to maintain your build, Mill automates it so the
 easiest thing to do is almost always the right thing to do.</p>
 </li>
 </ul>
@@ -985,7 +981,7 @@ Tasks that depend on each other can’t be processed in parallel.</p>
 <div class="listingblock">
 <div class="title">Output of <code>mill --help</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.11.10-29-351392
+<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.11.10-33-625b91
 usage: mill [options] [[target [target-options]] [+ [target ...]]]
   -D --define &lt;k=v&gt;                 Define (or overwrite) a system property.
   -b --bell                         Ring the bell once if the run completes successfully, twice if
