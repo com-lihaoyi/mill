@@ -348,7 +348,7 @@ finishes in less than half a second.
 == Conciseness
 
 The Mill `build.sc` file is approximately 600 lines of code, an order of magnitude
-more concise than the Maven `pom.xml` files which add up to over 10,000 lines.
+more concise than the Maven ``pom.xml`` files which add up to over 10,000 lines.
 
 === Simple Modules
 
@@ -399,7 +399,7 @@ And the equivalent `pom.xml` is 30 lines:
 In general, the Mill snippet contains all the same information as the Maven snippet: the name
 of the module and its dependency on `common`. Much of the other information in the Maven XML
 is inherited from the `trait NettyModule` we defined earlier in the file, where it can be
-shared with the rest of the modules rather than being duplicated for each one. This means
+shared with the rest of the modules rather than being duplicated for each one. 
 
 === Module Traits
 
