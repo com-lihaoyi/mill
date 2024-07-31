@@ -1765,8 +1765,8 @@ object docs extends Module {
     os.write.over(dest / "antora.yml", lines.mkString("\n"))
   }
 
-  def githubPagesPlaybookText(authorMode: Boolean) = T.task { extraSources: Seq[(String, os.Path)] =>
-    val taggedSources = for((tag, path) <- extraSources) yield {
+  def githubPagesPlaybookText(authorMode: Boolean) = T.task { extraSources: Seq[os.Path] =>
+    val taggedSources = for(path <- extraSources) yield {
       s"""    - url: ${baseDir}
          |      start_path: ${path.relativeTo(baseDir)}
          |""".stripMargin
@@ -1821,17 +1821,19 @@ object docs extends Module {
        |""".stripMargin
   }
 
-  def githubPages: T[PathRef] = T {
-    val worktrees = for(oldVersion <- Settings.docTags) yield {
+  def oldDocSources = T{
+    for(oldVersion <- Settings.docTags) yield {
       val checkout = T.dest / oldVersion
       os.proc("git", "clone", T.workspace / ".git", checkout).call(stdout = os.Inherit)
       os.proc("git", "checkout", oldVersion).call(cwd = checkout, stdout = os.Inherit)
       val outputFolder = checkout / "out" / "docs" / "source.dest"
       os.proc("./mill", "-i", "docs.source").call(cwd = checkout, stdout = os.Inherit)
-      (oldVersion, outputFolder)
+      PathRef(outputFolder)
     }
+  }
 
-    generatePages(authorMode = false)().apply(worktrees)
+  def githubPages: T[PathRef] = T {
+    generatePages(authorMode = false)().apply(oldDocSources().map(_.path))
   }
 
   def localPages = T {
@@ -1841,7 +1843,7 @@ object docs extends Module {
     )
   }
 
-  def generatePages(authorMode: Boolean) = T.task { extraSources: Seq[(String, os.Path)] =>
+  def generatePages(authorMode: Boolean) = T.task { extraSources: Seq[os.Path] =>
     T.log.errorStream.println("Creating Antora playbook ...")
     // dependency to sources
     source()
