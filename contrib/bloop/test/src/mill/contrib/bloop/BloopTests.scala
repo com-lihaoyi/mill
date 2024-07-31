@@ -121,7 +121,7 @@ object BloopTests extends TestSuite {
         val options = p.scala.get.options
         val version = p.scala.get.version
         val compileClasspath = p.classpath.map(_.toString)
-        val compileResources = p.resources.get.map(_.toString)
+        val compileResources = p.resources.get.map(_.toString.replace('\\', '/'))
         val platform = p.platform.get.asInstanceOf[Jvm]
         val jvmOptions = platform.config.options
         val runtimeClasspath = platform.classpath.get.map(_.toString)
@@ -155,11 +155,15 @@ object BloopTests extends TestSuite {
         assert(artifacts.map(_.name).distinct == List("bloop-config_2.12"))
         assert(artifacts.flatMap(_.classifier).contains("sources"))
 
-        assert(compileResources.exists(_.contains("scalaModule/compile-resources")))
-        assert(!compileResources.exists(_.contains("scalaModule/resources")))
+        assert(
+          compileResources.exists(_.replace('\\', '/').contains("scalaModule/compile-resources"))
+        )
+        assert(!compileResources.exists(_.replace('\\', '/').contains("scalaModule/resources")))
 
-        assert(runtimeResources.exists(_.contains("scalaModule/compile-resources")))
-        assert(runtimeResources.exists(_.contains("scalaModule/resources")))
+        assert(
+          runtimeResources.exists(_.replace('\\', '/').contains("scalaModule/compile-resources"))
+        )
+        assert(runtimeResources.exists(_.replace('\\', '/').contains("scalaModule/resources")))
       }
       "scalaModuleTest" - {
         val p = testModuleConfig.project
@@ -191,25 +195,29 @@ object BloopTests extends TestSuite {
         assert(cp.exists(_.contains("scala-library-2.12.8")))
       }
       "classpath" - {
-        val cp = scalaModule3Config.project.classpath.map(_.toString)
+        val cp = scalaModule3Config.project.classpath.map(_.toString.replace('\\', '/'))
         assert(!cp.exists(_.contains(".bloop/out/scalaModule3/classes")))
         assert(cp.exists(_.contains(".bloop/out/scalaModule2/classes")))
         assert(cp.exists(_.contains(".bloop/out/scalaModule/classes")))
       }
       "platform-classpath" - {
-        val cp = scalaModule3Config.project.platform.get.asInstanceOf[Jvm].classpath.map(_.toString)
+        val cp = scalaModule3Config.project.platform.get.asInstanceOf[Jvm].classpath.map(
+          _.toString.replace('\\', '/')
+        )
         assert(cp.exists(_.contains(".bloop/out/scalaModule3/classes")))
         assert(cp.exists(_.contains(".bloop/out/scalaModule2/classes")))
         assert(cp.exists(_.contains(".bloop/out/scalaModule/classes")))
       }
       "classpath-compile-module-deps" - {
-        val cp = scalaModule4Config.project.classpath.map(_.toString)
+        val cp = scalaModule4Config.project.classpath.map(_.toString.replace('\\', '/'))
         assert(cp.exists(_.contains(".bloop/out/scalaModule3/classes")))
         assert(cp.exists(_.contains(".bloop/out/scalaModule2/classes")))
         assert(cp.exists(_.contains(".bloop/out/scalaModule/classes")))
       }
       "platform-classpath-compile-module-deps" - {
-        val cp = scalaModule4Config.project.platform.get.asInstanceOf[Jvm].classpath.map(_.toString)
+        val cp = scalaModule4Config.project.platform.get.asInstanceOf[Jvm].classpath.map(
+          _.toString.replace('\\', '/')
+        )
         assert(!cp.exists(_.contains(".bloop/out/scalaModule3/classes")))
         assert(!cp.exists(_.contains(".bloop/out/scalaModule2/classes")))
         assert(!cp.exists(_.contains(".bloop/out/scalaModule/classes")))

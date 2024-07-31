@@ -1,6 +1,6 @@
 package hello
 
-object Hello{
+object Hello {
   def main(): Int = {
 
     val foo = () => used()
@@ -23,7 +23,7 @@ object Hello{
         "hello.Hello$#used()int"
     ]
 }
-*/
+ */
 
 /* expected-transitive-call-graph
 {
@@ -40,4 +40,4 @@ object Hello{
         "hello.Hello$#used()int"
     ]
 }
-*/
+ */
