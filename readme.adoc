@@ -286,6 +286,24 @@ endif::[]
 // find-replace-regex: https://github.com/com-lihaoyi/mill/pull/(\d*) -> {link-pr}/$1[#$1]
 
 
+[#0-11-11]
+=== 0.11.11 - 2024-07-31
+:version: 0.11.11
+:milestone-name: 0.11.11
+:milestone: 96
+:prev-version: 0.11.10
+
+_Changes since {prev-version}:_
+
+* Overhaul of the documentation site at https://mill-build.com
+* New Java- and Scala-specific sections on the documentation, with more detailed
+  comparisons to existing build tools
+* Added graphviz diagrams throughout to help the user in visualizing the concepts involved
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
 [#0-11-10]
 === 0.11.10 - 2024-07-23
 :version: 0.11.10
