@@ -1,6 +1,6 @@
 package hello
 
-object Hello{
+object Hello {
   def main(): Int = used()
   def used(): Int = 2
   def unused(): Int = 1
@@ -24,7 +24,7 @@ object Hello{
         "hello.Hello$#used()int"
     ]
 }
-*/
+ */
 
 /* expected-transitive-call-graph
 {
@@ -45,4 +45,4 @@ object Hello{
         "hello.Hello$#used()int"
     ]
 }
-*/
+ */

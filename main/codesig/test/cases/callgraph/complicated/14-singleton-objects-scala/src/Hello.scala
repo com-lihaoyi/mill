@@ -1,18 +1,17 @@
 package hello
 
-trait MyModule{
+trait MyModule {
   def x = "123"
   def y = "456"
 }
 
-object Foo extends MyModule{
+object Foo extends MyModule {
   override def x = super.x + "abc"
 }
 
-object Bar extends MyModule{
+object Bar extends MyModule {
   override def y = super.y + "abc" + Foo.x
 }
-
 
 /* expected-direct-call-graph
 {
@@ -53,4 +52,4 @@ object Bar extends MyModule{
         "hello.MyModule#y()java.lang.String"
     ]
 }
-*/
+ */
