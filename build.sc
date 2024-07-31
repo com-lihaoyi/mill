@@ -120,7 +120,7 @@ object Deps {
     val playVersion = "2.8.22"
   }
   object Play_2_9 extends Play {
-    val playVersion = "2.9.4"
+    val playVersion = "2.9.5"
   }
   object Play_3_0 extends Play {
     val playVersion = "3.0.5"
