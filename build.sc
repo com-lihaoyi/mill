@@ -1837,7 +1837,7 @@ object docs extends Module {
   }
 
   def localPages = T {
-    val pages = generatePages(authorMode = true)().apply(Nil)
+    val pages = generatePages(authorMode = true)().apply(oldDocSources().map(_.path))
     T.log.outputStream.println(
       s"You can browse the local pages at: ${(pages.path / "index.html").toNIO.toUri()}"
     )
