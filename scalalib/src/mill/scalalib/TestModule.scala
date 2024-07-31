@@ -265,7 +265,7 @@ object TestModule {
    * You may want to provide the junit dependency explicitly to use another version.
    */
   trait Junit5 extends TestModule {
-    override def testFramework: T[String] = "net.aichler.jupiter.api.JupiterFramework"
+    override def testFramework: T[String] = "com.github.sbt.junit.jupiter.api.JupiterFramework"
     override def ivyDeps: T[Agg[Dep]] = T {
       super.ivyDeps() ++ Agg(ivy"${mill.scalalib.api.Versions.jupiterInterface}")
     }
