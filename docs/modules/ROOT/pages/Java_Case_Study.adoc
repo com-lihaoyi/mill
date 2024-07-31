@@ -1,0 +1,430 @@
+= Java Case Study: Netty
+
+++++
+<script>
+gtag('config', 'AW-16649289906');
+</script>
+++++
+
+This page compares using Mill to Maven, using the [Netty Network Server](https://github.com/netty/netty)
+codebase as the example. Netty is a large, old codebase. 500,000 lines of Java, written by
+over 100 contributors across 15 years, split over 47 subprojects, with over 10,000 lines of
+Maven `pom.xml` configuration alone. By porting it to Mill, this case study should give you
+an idea of how Mill compares to Maven in larger, real-world projects.
+
+To do this, we have written a Mill `build.sc` file for the Netty project. This can be used
+with Mill to build and test the various submodules of the Netty project without needing to
+change any other files in the repository:
+
+- ???[Netty `build.sc` file]
+
+== Completeness
+
+The Mill build for Netty is not 100% complete, but it covers most of the major parts of Netty:
+compiling Java, compiling and linking C code via JNI, running JUnit tests and some integration
+tests using H2Spec. All 47 Maven subprojects are modelled using Mill.
+
+The goal of this exercise is not to be 100% feature complete enough to replace the Maven build
+today. It is instead meant to provide a realistic comparison of how using Mill in a large,
+complex project compares to using Maven.
+
+== Performance
+
+The Mill build for Netty is much more performant than the default Maven build. This applies to
+most workflows:
+
+=== Sequential Clean Compile
+
+```bash
+$ time ./mvnw -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true clean install
+
+$ time ./mill clean __.compile
+```
+
+=== Parallel Clean Compile
+
+```bash
+$ time ./mvnw -T 4 -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true clean install
+
+$ time ./mill -j 4 clean __.compile
+```
+
+=== Incremental Compile Without Clean
+
+$ time ./mvnw -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
+
+$ time ./mill __.compile
+
+=== No-Op Compile
+
+== Conciseness
+
+The Mill `build.sc` file is approximately 600 lines of code, an order of magnitude
+more concise than the Maven `pom.xml` files which add up to over 10,000 lines.
+
+=== Simple Modules
+
+This can be seen in some of the simplest of the submodules, e.g. `resolver`, where the Mill
+config is just 3 lines:
+
+```scala
+object resolver extends NettyModule{
+  def moduleDeps = Seq(common)
+}
+```
+And the equivalent `pom.xml` is 30 lines:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>io.netty</groupId>
+    <artifactId>netty-parent</artifactId>
+    <version>4.1.113.Final-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>netty-resolver</artifactId>
+  <packaging>jar</packaging>
+
+  <name>Netty/Resolver</name>
+
+  <properties>
+    <javaModuleName>io.netty.resolver</javaModuleName>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>netty-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+    </dependency>
+  </dependencies>
+</project>
+```
+
+In general, the Mill snippet contains all the same information as the Maven snippet: the name
+of the module and its dependency on `common`. Much of the other information in the Maven XML
+is inherited from the `trait NettyModule` we defined earlier in the file, where it can be
+shared with the rest of the modules rather than being duplicated for each one. This means
+
+=== Module Traits
+
+One example of how Mill can help keep your build config concise is the `NettyJniModule`. This
+is a `trait` that encapsulates the logic of wiring up your C source files, C compiler,
+and JVM. The definition is given below:
+
+```scala
+trait NettyJniModule extends NettyModule {
+  def jniLibraryName: T[String]
+  def cSources = T.source(millSourcePath / "src" / "main" / "c")
+  def resources = T{
+    os.copy(clang().path, T.dest / "META-INF" / "native" / jniLibraryName(), createFolders = true)
+    Seq(PathRef(T.dest))
+  }
+  def clang = T{
+    val Seq(sourceJar) = resolveDeps(
+      deps = T.task(Agg(ivy"io.netty:netty-jni-util:0.0.9.Final").map(bindDependency())),
+      sources = true
+    )().toSeq
+
+    os.makeDir.all(T.dest  / "src" / "main" / "c")
+    os.proc("jar", "xf", sourceJar.path).call(cwd = T.dest  / "src" / "main" / "c")
+
+    os.proc(
+      "clang",
+      // CFLAGS
+      "-O3", "-Werror", "-fno-omit-frame-pointer",
+      "-Wunused-variable", "-fvisibility=hidden",
+      "-I" + (T.dest / "src" / "main" / "c"),
+      "-I" + `transport-native-unix-common`.cHeaders().path,
+      "-I" + sys.props("java.home") + "/include/",
+      "-I" + sys.props("java.home") + "/include/darwin",
+      // LD_FLAGS
+      "-Wl,-weak_library," + (`transport-native-unix-common`.make()._1.path / "libnetty-unix-common.a"),
+      "-Wl,-platform_version,macos,10.9,10.9",
+      "-Wl,-single_module",
+      "-Wl,-undefined",
+      "-Wl,dynamic_lookup",
+      "-fno-common",
+      "-DPIC",
+      // sources
+      os.list(cSources().path)
+    ).call(cwd = T.dest, env = Map("MACOSX_DEPLOYMENT_TARGET" -> "10.9"))
+
+    PathRef(T.dest / "a.out")
+  }
+}
+```
+
+While the definition of `trait NettyJniModule` is quite involved, it contains logic that
+is fundamental to the Netty build, and has to be defined _somewhere_. The benefit is that once
+it is defined, we can use it throughout the built in other modules to let them work with
+C code and JNI
+
+```scala
+object `resolver-dns-native-macos` extends NettyJniModule {
+  def jniLibraryName = "libnetty_resolver_dns_native_macos_aarch_64.jnilib"
+  def moduleDeps = Seq(resolver)
+  def testModuleDeps = Seq(`resolver-dns`, `resolver-dns-classes-macos`)
+  def testIvyDeps = Agg(
+    ivy"org.apache.directory.server:apacheds-protocol-dns:1.5.7"
+  )
+}
+```
+```scala
+object `transport-native-kqueue` extends NettyJniModule{
+  def jniLibraryName = "libnetty_transport_native_kqueue_aarch_64.jnilib"
+  def moduleDeps = Seq(common, buffer, transport, `transport-native-unix-common`, `transport-classes-kqueue`)
+  def testModuleDeps = Seq(testsuite, `transport-native-unix-common-tests`)
+}
+```
+
+While Mill cannot make the complexity of your build disappear, what it can do is give you
+the tools necessary to manage it. In this case, it means the JNI-related logic can be defined
+once and re-used, rather than duplicating it as is often done in Maven `pom.xml`s.
+
+== Extensibility
+
+Even though Maven is designed to be declarative, in many real-world codebases you end
+up needing to run ad-hoc scripts and logic. This section will explore two such scenarios,
+so you can see how Mill differs from Maven in the handling of these requirements.
+
+=== Groovy
+
+The Maven build for the `common/` subproject
+uses a Groovy script for code generation. This is configured via:
+
+```xml
+<properties>
+  <collection.template.dir>${project.basedir}/src/main/templates</collection.template.dir>
+  <collection.template.test.dir>${project.basedir}/src/test/templates</collection.template.test.dir>
+  <collection.src.dir>${project.build.directory}/generated-sources/collections/java</collection.src.dir>
+  <collection.testsrc.dir>${project.build.directory}/generated-test-sources/collections/java</collection.testsrc.dir>
+</properties>
+<plugin>
+  <groupId>org.codehaus.gmaven</groupId>
+  <artifactId>groovy-maven-plugin</artifactId>
+  <version>2.1.1</version>
+  <dependencies>
+    <dependency>
+      <groupId>org.codehaus.groovy</groupId>
+      <artifactId>groovy</artifactId>
+      <version>3.0.9</version>
+    </dependency>
+    <dependency>
+      <groupId>ant</groupId>
+      <artifactId>ant-optional</artifactId>
+      <version>1.5.3-1</version>
+    </dependency>
+  </dependencies>
+  <executions>
+    <execution>
+      <id>generate-collections</id>
+      <phase>generate-sources</phase>
+      <goals>
+        <goal>execute</goal>
+      </goals>
+      <configuration>
+        <source>${project.basedir}/src/main/script/codegen.groovy</source>
+      </configuration>
+    </execution>
+  </executions>
+</plugin>
+```
+
+In contrast, the Mill build configures the code generation as follows:
+
+```scala
+import $ivy.`org.codehaus.groovy:groovy:3.0.9`
+import $ivy.`org.codehaus.groovy:groovy-ant:3.0.9`
+import $ivy.`ant:ant-optional:1.5.3-1`
+
+object common extends NettyModule{
+  ...
+  def script = T.source(millSourcePath / "src" / "main" / "script")
+  def generatedSources0 = T{
+    val shell = new groovy.lang.GroovyShell()
+    val context = new java.util.HashMap[String, Object]
+
+    context.put("collection.template.dir", "common/src/main/templates")
+    context.put("collection.template.test.dir", "common/src/test/templates")
+    context.put("collection.src.dir", (T.dest / "src").toString)
+    context.put("collection.testsrc.dir", (T.dest / "testsrc").toString)
+
+    shell.setProperty("properties", context)
+    shell.setProperty("ant", new groovy.ant.AntBuilder())
+
+    shell.evaluate((script().path / "codegen.groovy").toIO)
+
+    (PathRef(T.dest / "src"), PathRef(T.dest / "testsrc"))
+  }
+
+  def generatedSources = T{ Seq(generatedSources0()._1)}
+}
+```
+
+While the number of lines of code _written_ is not that different, the Mill configuration
+is a lot more direct: rather than writing 35 lines of XML to configure an opaque third-party
+plugin, we instead write 25 lines of code to directly do what we want: import `groovy`,
+configure a `GroovyShell`, and use it to evaluate our `codegen.groovy` script.
+
+This direct control means you are not beholden to third party plugins: rather than being
+limited to what an existing plugin _allows_ you to do, Mill allows you to directly write
+the code necessary to do what _you need to do_.
+
+### Calling Make
+
+The Maven build for the `transport-native-unix-common/` subproject needs to call
+`make` in order to compile its C code to modules that can be loaded into Java applications
+via JNI. Maven does this via the `maven-dependency-plugin` and `maven-antrun-plugin` which are
+approximately configured as below:
+
+```xml
+<properties>
+  <exe.make>make</exe.make>
+  <exe.compiler>gcc</exe.compiler>
+  <exe.archiver>ar</exe.archiver>
+  <nativeLibName>libnetty-unix-common</nativeLibName>
+  <nativeIncludeDir>${project.basedir}/src/main/c</nativeIncludeDir>
+  <jniUtilIncludeDir>${project.build.directory}/netty-jni-util/</jniUtilIncludeDir>
+  <nativeJarWorkdir>${project.build.directory}/native-jar-work</nativeJarWorkdir>
+  <nativeObjsOnlyDir>${project.build.directory}/native-objs-only</nativeObjsOnlyDir>
+  <nativeLibOnlyDir>${project.build.directory}/native-lib-only</nativeLibOnlyDir>
+</properties>
+
+<plugins>
+  <plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-dependency-plugin</artifactId>
+    <executions>
+      <!-- unpack netty-jni-util files -->
+      <execution>
+        <id>unpack</id>
+        <phase>generate-sources</phase>
+        <goals>
+          <goal>unpack-dependencies</goal>
+        </goals>
+        <configuration>
+          <includeGroupIds>io.netty</includeGroupIds>
+          <includeArtifactIds>netty-jni-util</includeArtifactIds>
+          <classifier>sources</classifier>
+          <outputDirectory>${jniUtilIncludeDir}</outputDirectory>
+          <includes>**.h,**.c</includes>
+          <overWriteReleases>false</overWriteReleases>
+          <overWriteSnapshots>true</overWriteSnapshots>
+        </configuration>
+      </execution>
+    </executions>
+  </plugin>
+  <plugin>
+    <artifactId>maven-antrun-plugin</artifactId>
+    <executions>
+      <!-- invoke the make file to build a static library -->
+      <execution>
+        <id>build-native-lib</id>
+        <phase>generate-sources</phase>
+        <goals>
+          <goal>run</goal>
+        </goals>
+        <configuration>
+          <target>
+            <exec executable="${exe.make}" failonerror="true" resolveexecutable="true">
+              <env key="CC" value="${exe.compiler}" />
+              <env key="AR" value="${exe.archiver}" />
+              <env key="LIB_DIR" value="${nativeLibOnlyDir}" />
+              <env key="OBJ_DIR" value="${nativeObjsOnlyDir}" />
+              <env key="JNI_PLATFORM" value="${jni.platform}" />
+              <env key="CFLAGS" value="-O3 -Werror -Wno-attributes -fPIC -fno-omit-frame-pointer -Wunused-variable -fvisibility=hidden" />
+              <env key="LDFLAGS" value="-Wl,--no-as-needed -lrt -Wl,-platform_version,macos,10.9,10.9" />
+              <env key="LIB_NAME" value="${nativeLibName}" />
+              <!-- support for __attribute__((weak_import)) by the linker was added in 10.2 so ensure we
+                   explicitly set the target platform. Otherwise we may get fatal link errors due to weakly linked
+                   methods which are not expected to be present on MacOS (e.g. accept4). -->
+              <env key="MACOSX_DEPLOYMENT_TARGET" value="10.9" />
+            </exec>
+          </target>
+        </configuration>
+      </execution>
+    </executions>
+  </plugin>
+</plugins>
+```
+
+The `maven-dependency-plugin` is used to download and unpack a single `jar` file,
+while `maven-antrun-plugin` is used to call `make`. Both are configured via XML,
+with the `make` command essentially being a bash script wrapped in layers of XML.
+
+In contrast, the Mill configuration for this logic is as follows:
+
+```scala
+def makefile = T.source(millSourcePath / "Makefile")
+def cSources = T.source(millSourcePath / "src" / "main" / "c")
+def cHeaders = T{
+  for(p <- os.walk(cSources().path) if p.ext == "h"){
+    os.copy(p, T.dest / p.relativeTo(cSources().path), createFolders = true)
+  }
+  PathRef(T.dest)
+}
+
+def make = T{
+  os.copy(makefile().path, T.dest / "Makefile")
+  os.copy(cSources().path, T.dest / "src" / "main" / "c", createFolders = true)
+
+  val Seq(sourceJar) = resolveDeps(
+    deps = T.task(Agg(ivy"io.netty:netty-jni-util:0.0.9.Final").map(bindDependency())),
+    sources = true
+  )().toSeq
+
+  os.proc("jar", "xf", sourceJar.path).call(cwd = T.dest  / "src" / "main" / "c")
+
+  os.proc("make").call(
+    cwd = T.dest,
+    env = Map(
+      "CC" -> "clang",
+      "AR" -> "ar",
+      "JNI_PLATFORM" -> "darwin",
+      "LIB_DIR" -> "lib-out",
+      "OBJ_DIR" -> "obj-out",
+      "MACOSX_DEPLOYMENT_TARGET" -> "10.9",
+      "CFLAGS" -> Seq(
+        "-mmacosx-version-min=10.9", "-O3", "-Werror", "-Wno-attributes", "-fPIC",
+        "-fno-omit-frame-pointer", "-Wunused-variable", "-fvisibility=hidden",
+        "-I" + sys.props("java.home") + "/include/",
+        "-I" + sys.props("java.home") + "/include/darwin",
+      ).mkString(" "),
+      "LD_FLAGS" -> "-Wl,--no-as-needed -lrt -Wl,-platform_version,macos,10.9,10.9",
+      "LIB_NAME" -> "libnetty-unix-common"
+    )
+  )
+
+  (PathRef(T.dest / "lib-out"), PathRef(T.dest / "obj-out"))
+}
+```
+
+[graphviz]
+....
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+  makefile -> make
+  cSources -> make
+  cSources -> cHeaders
+}
+....
+
+In Mill, we define the `makefile`, `cSources`, `cHeaders`, and `make` tasks. The bulk
+of the logic is in `def make`, which prepares the `makefile` and C sources,
+resolves the `netty-jni-util` source jar and unpacks it with `jar xf`, and calls `make`
+with the given environment variables. Both `cHeaders` and the output of `make` are used
+in downstream modules.
+
+Again, the Maven XML and Mill code contains exactly the same logic, and neither is
+much more concise or verbose than the other. Rather, what is interesting is that
+it is much easier to work with this kind of _build logic_ via _direct code_, rather
+than configuring a bunch of third-party plugins to try and achieve what you want.
