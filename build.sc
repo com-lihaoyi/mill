@@ -45,7 +45,9 @@ object Settings {
     "0.10.15",
     "0.11.0-M7"
   )
-  val docTags: Seq[String] = Seq()
+  val docTags: Seq[String] = Seq(
+    "0.11.11"
+  )
   val mimaBaseVersions: Seq[String] = 0.to(10).map("0.11." + _)
 }
 
@@ -1748,20 +1750,27 @@ object docs extends Module {
   def devAntoraSources: T[PathRef] = T {
     val dest = T.dest
     os.copy(source().path, dest, mergeFolders = true)
-    val lines = os.read(dest / "antora.yml").linesIterator.map {
-      case l if l.startsWith("version:") =>
-        s"version: 'master'" + "\n" + s"display-version: '${millVersion()}'"
-      case l if l.startsWith("    mill-version:") =>
-        s"    mill-version: '${millVersion()}'"
-      case l if l.startsWith("    mill-last-tag:") =>
-        s"    mill-last-tag: '${millLastTag()}'"
-      case l => l
-    }
-    os.write.over(dest / "antora.yml", lines.mkString("\n"))
+    sanitizeAntoraYml(dest, millVersion(), millLastTag())
     PathRef(dest)
   }
 
-  def githubPagesPlaybookText(authorMode: Boolean): Task[String] = T.task {
+  def sanitizeAntoraYml(dest: os.Path, millVersion: String, millLastTag: String) = {
+    println(s"sanitizeAntoraYml($dest, $millVersion, $millLastTag)")
+    val lines = os.read(dest / "antora.yml").linesIterator.map {
+      case s"version:$_" => s"version: 'master'" + "\n" + s"display-version: '$millVersion'"
+      case s"    mill-version:$_" => s"    mill-version: '$millVersion'"
+      case s"    mill-last-tag:$_" => s"    mill-last-tag: '$millLastTag'"
+      case l => l
+    }
+    os.write.over(dest / "antora.yml", lines.mkString("\n"))
+  }
+
+  def githubPagesPlaybookText(authorMode: Boolean) = T.task { extraSources: Seq[(String, os.Path)] =>
+    val taggedSources = for((tag, path) <- extraSources) yield {
+      s"""    - url: ${baseDir}
+         |      start_path: ${path.relativeTo(baseDir)}
+         |""".stripMargin
+    }
     s"""site:
        |  title: Mill
        |  url: ${if (authorMode) s"${T.dest}/site" else Settings.docUrl}
@@ -1775,14 +1784,10 @@ object docs extends Module {
        |      branches: []
        |      tags: ${Settings.legacyDocTags.map("'" + _ + "'").mkString("[", ",", "]")}
        |      start_path: docs/antora
-       |    - url: ${if (authorMode) baseDir else Settings.projectUrl}
-       |      branches: []
-       |      tags: ${Settings.docTags.map("'" + _ + "'").mkString("[", ",", "]")}
-       |      start_path: docs
-       |    # the master documentation (always in author mode)
+       |
+       |${taggedSources.mkString("\n\n")}
+       |
        |    - url: ${baseDir}
-       |      # edit_url: ${Settings.projectUrl}/edit/{refname}/{path}
-       |      branches: HEAD
        |      start_path: ${devAntoraSources().path.relativeTo(baseDir)}
        |ui:
        |  bundle:
@@ -1817,17 +1822,26 @@ object docs extends Module {
   }
 
   def githubPages: T[PathRef] = T {
-    generatePages(authorMode = false)()
+    val worktrees = for(oldVersion <- Settings.docTags) yield {
+      val checkout = T.dest / oldVersion
+      os.proc("git", "clone", T.workspace / ".git", checkout).call(stdout = os.Inherit)
+      os.proc("git", "checkout", oldVersion).call(cwd = checkout, stdout = os.Inherit)
+      val outputFolder = checkout / "out" / "docs" / "source.dest"
+      os.proc("./mill", "-i", "docs.source").call(cwd = checkout, stdout = os.Inherit)
+      (oldVersion, outputFolder)
+    }
+
+    generatePages(authorMode = false)().apply(worktrees)
   }
 
   def localPages = T {
-    val pages = generatePages(authorMode = true)()
+    val pages = generatePages(authorMode = true)().apply(Nil)
     T.log.outputStream.println(
       s"You can browse the local pages at: ${(pages.path / "index.html").toNIO.toUri()}"
     )
   }
 
-  def generatePages(authorMode: Boolean) = T.task {
+  def generatePages(authorMode: Boolean) = T.task { extraSources: Seq[(String, os.Path)] =>
     T.log.errorStream.println("Creating Antora playbook ...")
     // dependency to sources
     source()
@@ -1836,7 +1850,7 @@ object docs extends Module {
     val siteDir = docSite / "site"
     os.write(
       target = playbook,
-      data = githubPagesPlaybookText(authorMode)(),
+      data = githubPagesPlaybookText(authorMode)().apply(extraSources),
       createFolders = true
     )
     T.log.errorStream.println("Running Antora ...")
