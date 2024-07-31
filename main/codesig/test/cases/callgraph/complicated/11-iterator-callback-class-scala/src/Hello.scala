@@ -1,15 +1,15 @@
 package hello
 
-object Hello{
+object Hello {
   class TestElements() extends TestIterator
 
   trait TestIterator {
     def run(f: TestCallback[Int, Int]): Int = f(123)
   }
-  abstract class TestCallback[T, void]{
+  abstract class TestCallback[T, void] {
     def apply(x: T): void
   }
-  class TestCallbackImpl extends TestCallback[Int, Int]{
+  class TestCallbackImpl extends TestCallback[Int, Int] {
     // Because `TestCallbackImpl` is a SAM implementation,
     // we treat `apply` as being called from `<init>`
     def apply(x: Int): Int = x + 1
@@ -48,4 +48,4 @@ object Hello{
         "hello.Hello$#staticSpecialInterfaceMethods()int"
     ]
 }
-*/
+ */
