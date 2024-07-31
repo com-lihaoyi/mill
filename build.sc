@@ -1750,14 +1750,16 @@ object docs extends Module {
   def devAntoraSources: T[PathRef] = T {
     val dest = T.dest
     os.copy(source().path, dest, mergeFolders = true)
-    sanitizeAntoraYml(dest, millVersion(), millLastTag())
+    sanitizeAntoraYml(dest, "master", millVersion(), millLastTag())
     PathRef(dest)
   }
 
-  def sanitizeAntoraYml(dest: os.Path, millVersion: String, millLastTag: String) = {
-    println(s"sanitizeAntoraYml($dest, $millVersion, $millLastTag)")
+  def sanitizeAntoraYml(dest: os.Path,
+                        version: String,
+                        millVersion: String,
+                        millLastTag: String) = {
     val lines = os.read(dest / "antora.yml").linesIterator.map {
-      case s"version:$_" => s"version: 'master'" + "\n" + s"display-version: '$millVersion'"
+      case s"version:$_" => s"version: '$version'\ndisplay-version: '$millVersion'"
       case s"    mill-version:$_" => s"    mill-version: '$millVersion'"
       case s"    mill-last-tag:$_" => s"    mill-last-tag: '$millLastTag'"
       case l => l
@@ -1828,6 +1830,7 @@ object docs extends Module {
       os.proc("git", "checkout", oldVersion).call(cwd = checkout, stdout = os.Inherit)
       val outputFolder = checkout / "out" / "docs" / "source.dest"
       os.proc("./mill", "-i", "docs.source").call(cwd = checkout, stdout = os.Inherit)
+      sanitizeAntoraYml(outputFolder, oldVersion, oldVersion, oldVersion)
       PathRef(outputFolder)
     }
   }
