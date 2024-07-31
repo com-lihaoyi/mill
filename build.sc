@@ -136,7 +136,7 @@ object Deps {
   val coursier = ivy"io.get-coursier::coursier:2.1.10"
   val coursierInterface = ivy"io.get-coursier:interface:1.0.19"
 
-  val cask = ivy"com.lihaoyi::cask:0.9.2"
+  val cask = ivy"com.lihaoyi::cask:0.9.4"
   val castor = ivy"com.lihaoyi::castor:0.3.0"
   val fastparse = ivy"com.lihaoyi::fastparse:3.1.1"
   val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
@@ -210,7 +210,7 @@ object Deps {
     val scalaCheck = ivy"org.scalacheck::scalacheck:1.18.0"
     val scalaTest = ivy"org.scalatest::scalatest:3.2.18"
     val utest = ivy"com.lihaoyi::utest:0.8.3"
-    val zioTest = ivy"dev.zio::zio-test:2.0.21"
+    val zioTest = ivy"dev.zio::zio-test:2.0.22"
   }
 
   /** Used in documentation. */
