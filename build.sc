@@ -123,7 +123,7 @@ object Deps {
     val playVersion = "2.9.4"
   }
   object Play_3_0 extends Play {
-    val playVersion = "3.0.4"
+    val playVersion = "3.0.5"
   }
   val play =
     Seq(Play_3_0, Play_2_9, Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
