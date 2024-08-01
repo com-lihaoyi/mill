@@ -37,7 +37,10 @@ class SyntheticRootBspBuildTargetData(topLevelProjectRoot: os.Path) {
   ) // intellijBSP does not create contentRootData for module with only outputPaths (this is probably a bug)
 }
 object SyntheticRootBspBuildTargetData {
-  def makeIfNeeded(existingModules: Iterable[BspModule], workspaceDir: os.Path): Option[SyntheticRootBspBuildTargetData] = {
+  def makeIfNeeded(
+      existingModules: Iterable[BspModule],
+      workspaceDir: os.Path
+  ): Option[SyntheticRootBspBuildTargetData] = {
     def containsWorkspaceDir(path: Option[os.Path]) = path.exists(workspaceDir.startsWith)
     if (existingModules.exists { m => containsWorkspaceDir(m.bspBuildTarget.baseDirectory) }) None
     else Some(new SyntheticRootBspBuildTargetData(workspaceDir))
