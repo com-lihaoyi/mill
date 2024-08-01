@@ -82,13 +82,14 @@ import mill.eval.Evaluator.TaskResult
 import scala.util.chaining.scalaUtilChainingOps
 import scala.util.control.NonFatal
 private class MillBuildServer(
-    bspVersion: String,
-    serverVersion: String,
-    serverName: String,
-    logStream: PrintStream,
-    canReload: Boolean
-) extends ExternalModule
-    with BuildServer {
+     topLevelProjectRoot: os.Path,
+     bspVersion: String,
+     serverVersion: String,
+     serverName: String,
+     logStream: PrintStream,
+     canReload: Boolean
+   ) extends ExternalModule
+  with BuildServer {
 
   lazy val millDiscover: Discover[this.type] = Discover[this.type]
 
@@ -110,7 +111,7 @@ private class MillBuildServer(
     if (statePromise.isCompleted) statePromise = Promise[State]() // replace the promise
     evaluatorsOpt.foreach { evaluators =>
       statePromise.success(
-        new State(evaluators, debug)
+        new State(topLevelProjectRoot, evaluators, debug)
       )
     }
   }
