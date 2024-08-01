@@ -391,7 +391,9 @@ object `testsuite-http2` extends NettyTestSuiteModule{
   def moduleDeps = Seq(common, buffer, transport, handler, `codec-http`, `codec-http2`)
   def h2Spec = T{
 
-    val url = "https://github.com/summerwind/h2spec/releases/download/v2.6.0/h2spec_darwin_amd64.tar.gz"
+    val isOSX = sys.props("os.name").toLowerCase.contains("mac")
+    val binaryName = if (isOSX) "h2spec_darwin_amd64.tar.gz" else "h2spec_linux_amd64.tar.gz"
+    val url = s"https://github.com/summerwind/h2spec/releases/download/v2.6.0/$binaryName"
     os.write(T.dest / "h2spec.tar.gz", requests.get(url))
 
     os.proc("tar", "xzf", T.dest / "h2spec.tar.gz").call(cwd = T.dest)
