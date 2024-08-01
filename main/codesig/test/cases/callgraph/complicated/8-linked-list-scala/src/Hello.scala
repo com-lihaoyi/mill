@@ -2,7 +2,7 @@ package hello
 
 import scala.collection.AbstractIterator
 
-object Hello{
+object Hello {
 
   sealed abstract class TestList[+A] {
     def isEmpty: Boolean
@@ -76,4 +76,4 @@ object Hello{
         "hello.Hello$#simpleLinkedListForeach()int[]"
     ]
 }
-*/
+ */

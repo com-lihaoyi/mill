@@ -45,7 +45,9 @@ object Settings {
     "0.10.15",
     "0.11.0-M7"
   )
-  val docTags: Seq[String] = Seq()
+  val docTags: Seq[String] = Seq(
+    "0.11.11"
+  )
   val mimaBaseVersions: Seq[String] = 0.to(10).map("0.11." + _)
 }
 
@@ -120,23 +122,23 @@ object Deps {
     val playVersion = "2.8.22"
   }
   object Play_2_9 extends Play {
-    val playVersion = "2.9.4"
+    val playVersion = "2.9.5"
   }
   object Play_3_0 extends Play {
-    val playVersion = "3.0.4"
+    val playVersion = "3.0.5"
   }
   val play =
     Seq(Play_3_0, Play_2_9, Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
 
   val acyclic = ivy"com.lihaoyi:::acyclic:0.3.12"
-  val ammoniteVersion = "3.0.0-M2-11-713b6963"
+  val ammoniteVersion = "3.0.0-M2-15-9bed9700"
   val asmTree = ivy"org.ow2.asm:asm-tree:9.7"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
 
   val coursier = ivy"io.get-coursier::coursier:2.1.10"
   val coursierInterface = ivy"io.get-coursier:interface:1.0.19"
 
-  val cask = ivy"com.lihaoyi::cask:0.9.2"
+  val cask = ivy"com.lihaoyi::cask:0.9.4"
   val castor = ivy"com.lihaoyi::castor:0.3.0"
   val fastparse = ivy"com.lihaoyi::fastparse:3.1.1"
   val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
@@ -208,7 +210,7 @@ object Deps {
   object TestDeps {
     // tests framework (test)
     val scalaCheck = ivy"org.scalacheck::scalacheck:1.18.0"
-    val scalaTest = ivy"org.scalatest::scalatest:3.2.18"
+    val scalaTest = ivy"org.scalatest::scalatest:3.2.19"
     val utest = ivy"com.lihaoyi::utest:0.8.3"
     val zioTest = ivy"dev.zio::zio-test:2.0.22"
   }
@@ -1749,20 +1751,29 @@ object docs extends Module {
   def devAntoraSources: T[PathRef] = T {
     val dest = T.dest
     os.copy(source().path, dest, mergeFolders = true)
-    val lines = os.read(dest / "antora.yml").linesIterator.map {
-      case l if l.startsWith("version:") =>
-        s"version: 'master'" + "\n" + s"display-version: '${millVersion()}'"
-      case l if l.startsWith("    mill-version:") =>
-        s"    mill-version: '${millVersion()}'"
-      case l if l.startsWith("    mill-last-tag:") =>
-        s"    mill-last-tag: '${millLastTag()}'"
-      case l => l
-    }
-    os.write.over(dest / "antora.yml", lines.mkString("\n"))
+    sanitizeAntoraYml(dest, "master", millVersion(), millLastTag())
     PathRef(dest)
   }
 
-  def githubPagesPlaybookText(authorMode: Boolean): Task[String] = T.task {
+  def sanitizeAntoraYml(dest: os.Path,
+                        version: String,
+                        millVersion: String,
+                        millLastTag: String) = {
+    val lines = os.read(dest / "antora.yml").linesIterator.map {
+      case s"version:$_" => s"version: '$version'\ndisplay-version: '$millVersion'"
+      case s"    mill-version:$_" => s"    mill-version: '$millVersion'"
+      case s"    mill-last-tag:$_" => s"    mill-last-tag: '$millLastTag'"
+      case l => l
+    }
+    os.write.over(dest / "antora.yml", lines.mkString("\n"))
+  }
+
+  def githubPagesPlaybookText(authorMode: Boolean) = T.task { extraSources: Seq[os.Path] =>
+    val taggedSources = for(path <- extraSources) yield {
+      s"""    - url: ${baseDir}
+         |      start_path: ${path.relativeTo(baseDir)}
+         |""".stripMargin
+    }
     s"""site:
        |  title: Mill
        |  url: ${if (authorMode) s"${T.dest}/site" else Settings.docUrl}
@@ -1776,14 +1787,10 @@ object docs extends Module {
        |      branches: []
        |      tags: ${Settings.legacyDocTags.map("'" + _ + "'").mkString("[", ",", "]")}
        |      start_path: docs/antora
-       |    - url: ${if (authorMode) baseDir else Settings.projectUrl}
-       |      branches: []
-       |      tags: ${Settings.docTags.map("'" + _ + "'").mkString("[", ",", "]")}
-       |      start_path: docs
-       |    # the master documentation (always in author mode)
+       |
+       |${taggedSources.mkString("\n\n")}
+       |
        |    - url: ${baseDir}
-       |      # edit_url: ${Settings.projectUrl}/edit/{refname}/{path}
-       |      branches: HEAD
        |      start_path: ${devAntoraSources().path.relativeTo(baseDir)}
        |ui:
        |  bundle:
@@ -1817,18 +1824,30 @@ object docs extends Module {
        |""".stripMargin
   }
 
+  def oldDocSources = T{
+    for(oldVersion <- Settings.docTags) yield {
+      val checkout = T.dest / oldVersion
+      os.proc("git", "clone", T.workspace / ".git", checkout).call(stdout = os.Inherit)
+      os.proc("git", "checkout", oldVersion).call(cwd = checkout, stdout = os.Inherit)
+      val outputFolder = checkout / "out" / "docs" / "source.dest"
+      os.proc("./mill", "-i", "docs.source").call(cwd = checkout, stdout = os.Inherit)
+      sanitizeAntoraYml(outputFolder, oldVersion, oldVersion, oldVersion)
+      PathRef(outputFolder)
+    }
+  }
+
   def githubPages: T[PathRef] = T {
-    generatePages(authorMode = false)()
+    generatePages(authorMode = false)().apply(oldDocSources().map(_.path))
   }
 
   def localPages = T {
-    val pages = generatePages(authorMode = true)()
+    val pages = generatePages(authorMode = true)().apply(oldDocSources().map(_.path))
     T.log.outputStream.println(
       s"You can browse the local pages at: ${(pages.path / "index.html").toNIO.toUri()}"
     )
   }
 
-  def generatePages(authorMode: Boolean) = T.task {
+  def generatePages(authorMode: Boolean) = T.task { extraSources: Seq[os.Path] =>
     T.log.errorStream.println("Creating Antora playbook ...")
     // dependency to sources
     source()
@@ -1837,7 +1856,7 @@ object docs extends Module {
     val siteDir = docSite / "site"
     os.write(
       target = playbook,
-      data = githubPagesPlaybookText(authorMode)(),
+      data = githubPagesPlaybookText(authorMode)().apply(extraSources),
       createFolders = true
     )
     T.log.errorStream.println("Running Antora ...")
