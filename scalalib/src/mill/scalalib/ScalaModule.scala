@@ -174,10 +174,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    * Scalac options to activate the compiler plugins.
    */
   private def enablePluginScalacOptions: Target[Seq[String]] = T {
-    val resolvedJars = resolveDeps(T.task {
-      val bind = bindDependency()
-      scalacPluginIvyDeps().map(_.exclude("*" -> "*")).map(bind)
-    })()
+    val resolvedJars = resolveDeps(T.task { scalacPluginIvyDeps().map(_.exclude("*" -> "*")) })()
     resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path}").toSeq
   }
 
@@ -185,10 +182,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    * Scalac options to activate the compiler plugins for ScalaDoc generation.
    */
   private def enableScalaDocPluginScalacOptions: Target[Seq[String]] = T {
-    val resolvedJars = resolveDeps(T.task {
-      val bind = bindDependency()
-      scalaDocPluginIvyDeps().map(bind).map(_.exclude("*" -> "*"))
-    })()
+    val resolvedJars = resolveDeps(T.task {scalaDocPluginIvyDeps().map(_.exclude("*" -> "*"))})()
     resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path}").toSeq
   }
 
@@ -226,32 +220,21 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    * on maven central
    */
   def scalacPluginClasspath: T[Agg[PathRef]] = T {
-    resolveDeps(T.task {
-      val bind = bindDependency()
-      scalacPluginIvyDeps().map(bind)
-    })()
+    resolveDeps(scalacPluginIvyDeps)()
   }
 
   /**
    * Classpath of the scaladoc (or dottydoc) tool.
    */
   def scalaDocClasspath: T[Agg[PathRef]] = T {
-    resolveDeps(
-      T.task {
-        val bind = bindDependency()
-        Lib.scalaDocIvyDeps(scalaOrganization(), scalaVersion()).map(bind)
-      }
-    )()
+    resolveDeps(T.task{Lib.scalaDocIvyDeps(scalaOrganization(), scalaVersion())})()
   }
 
   /**
    * The ivy coordinates of Scala's own standard library
    */
   def scalaDocPluginClasspath: T[Agg[PathRef]] = T {
-    resolveDeps(T.task {
-      val bind = bindDependency()
-      scalaDocPluginIvyDeps().map(bind)
-    })()
+    resolveDeps(scalaDocPluginIvyDeps)()
   }
 
   def scalaLibraryIvyDeps: T[Agg[Dep]] = T {
@@ -269,9 +252,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   def scalaCompilerClasspath: T[Agg[PathRef]] = T {
     resolveDeps(
       T.task {
-        val bind = bindDependency()
-        (Lib.scalaCompilerIvyDeps(scalaOrganization(), scalaVersion()) ++
-          scalaLibraryIvyDeps()).map(bind)
+        Lib.scalaCompilerIvyDeps(scalaOrganization(), scalaVersion()) ++ scalaLibraryIvyDeps()
       }
     )()
   }
@@ -572,14 +553,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     T.command {
       super.prepareOffline(all)()
       // resolve the compile bridge jar
-      resolveDeps(T.task {
-        val bind = bindDependency()
-        scalacPluginIvyDeps().map(bind)
-      })()
-      resolveDeps(T.task {
-        val bind = bindDependency()
-        scalaDocPluginIvyDeps().map(bind)
-      })()
+      resolveDeps(scalacPluginIvyDeps)()
+      resolveDeps(scalaDocPluginIvyDeps)()
       zincWorker().scalaCompilerBridgeJar(
         scalaVersion(),
         scalaOrganization(),
@@ -630,8 +605,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
 
   override protected def semanticDbPluginClasspath = T {
     resolveDeps(T.task {
-      val bind = bindDependency()
-      (scalacPluginIvyDeps() ++ semanticDbPluginIvyDeps()).map(bind)
+      scalacPluginIvyDeps() ++ semanticDbPluginIvyDeps()
     })()
   }
 

@@ -140,10 +140,7 @@ case class GenIdeaImpl(
             }
 
             val externalLibraryDependencies = T.task {
-              mod.resolveDeps(T.task {
-                val bind = mod.bindDependency()
-                mod.mandatoryIvyDeps().map(bind)
-              })()
+              mod.resolveDeps(mod.mandatoryIvyDeps)()
             }
 
             val externalDependencies = T.task {
@@ -151,10 +148,7 @@ case class GenIdeaImpl(
                 T.traverse(mod.transitiveModuleDeps)(_.unmanagedClasspath)().flatten
             }
             val extCompileIvyDeps =
-              mod.resolveDeps(T.task {
-                val bind = mod.bindDependency()
-                mod.compileIvyDeps().map(bind)
-              })
+              mod.resolveDeps(mod.compileIvyDeps)
             val extRunIvyDeps = mod.resolvedRunIvyDeps
 
             val externalSources = T.task {
@@ -175,10 +169,7 @@ case class GenIdeaImpl(
             }
 
             val scalacPluginDependencies = T.task {
-              mod.resolveDeps(T.task {
-                val bind = mod.bindDependency()
-                scalacPluginsIvyDeps().map(bind)
-              })()
+              mod.resolveDeps(scalacPluginsIvyDeps)()
             }
 
             val facets = T.task {

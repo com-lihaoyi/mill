@@ -84,21 +84,17 @@ trait SemanticDbJavaModule extends CoursierModule {
    */
   protected def semanticDbEnablePluginScalacOptions: T[Seq[String]] = T {
     val resolvedJars = resolveDeps(T.task {
-      val bind = bindDependency()
-      semanticDbPluginIvyDeps().map(_.exclude("*" -> "*")).map(bind)
+      semanticDbPluginIvyDeps().map(_.exclude("*" -> "*"))
     })()
     resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path}").toSeq
   }
 
   protected def semanticDbPluginClasspath: T[Agg[PathRef]] = T {
-    resolveDeps(T.task {
-      val bind = bindDependency()
-      semanticDbPluginIvyDeps().map(bind)
-    })()
+    resolveDeps(semanticDbPluginIvyDeps)()
   }
 
   protected def resolvedSemanticDbJavaPluginIvyDeps: T[Agg[PathRef]] = T {
-    resolveDeps(T.task { semanticDbJavaPluginIvyDeps().map(bindDependency()) })()
+    resolveDeps(semanticDbJavaPluginIvyDeps)()
   }
 
   def semanticDbData: T[PathRef] = T.persistent {

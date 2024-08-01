@@ -98,8 +98,7 @@ trait JmhModule extends JavaModule {
   def generatorDeps = T {
     resolveDeps(
       T.task {
-        val bind = bindDependency()
-        Agg(ivy"org.openjdk.jmh:jmh-generator-bytecode:${jmhGeneratorByteCodeVersion()}").map(bind)
+        Agg(ivy"org.openjdk.jmh:jmh-generator-bytecode:${jmhGeneratorByteCodeVersion()}")
       }
     )()
   }

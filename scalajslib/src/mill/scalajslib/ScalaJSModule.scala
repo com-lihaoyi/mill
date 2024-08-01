@@ -337,12 +337,11 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
 
   def scalaJSTestDeps = T {
     resolveDeps(T.task {
-      val bind = bindDependency()
       Loose.Agg(
         ivy"org.scala-js::scalajs-library:${scalaJSVersion()}",
         ivy"org.scala-js::scalajs-test-bridge:${scalaJSVersion()}"
       )
-        .map(dep => bind(dep.withDottyCompat(scalaVersion())))
+        .map(_.withDottyCompat(scalaVersion()))
     })
   }
 

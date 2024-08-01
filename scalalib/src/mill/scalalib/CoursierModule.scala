@@ -32,6 +32,23 @@ trait CoursierModule extends mill.Module {
     Lib.depToDependencyJava(_: Dep)
   }
 
+  def resolveDeps(deps: Agg[Dep]): Task[Agg[PathRef]] = resolveDeps(
+    T.task { deps.map(bindDependency()) },
+    false
+  )
+  def resolveDepsSources(deps: Agg[Dep]): Task[Agg[PathRef]] = resolveDeps(
+    T.task { deps.map(bindDependency()) },
+    true
+  )
+  def resolveDeps(deps: Task[Agg[Dep]]): Task[Agg[PathRef]] = resolveDeps(
+    T.task { deps().map(bindDependency()) },
+    false
+  )
+  def resolveDepsSources(deps: Task[Agg[Dep]]): Task[Agg[PathRef]] = resolveDeps(
+    T.task { deps().map(bindDependency()) },
+    true
+  )
+
   /**
    * Task that resolves the given dependencies using the repositories defined with [[repositoriesTask]].
    *
