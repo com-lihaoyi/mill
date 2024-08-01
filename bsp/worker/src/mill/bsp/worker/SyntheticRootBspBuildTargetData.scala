@@ -7,6 +7,7 @@ import mill.scalalib.bsp.BspModule.Tag
 
 import java.util.UUID
 import scala.jdk.CollectionConverters._
+import ch.epfl.scala.bsp4j.BuildTarget
 
 /**
  * Synthesised [[BspBuildTarget]] to handle exclusions.
@@ -17,7 +18,7 @@ class SyntheticRootBspBuildTargetData(topLevelProjectRoot: os.Path) {
     Utils.sanitizeUri(topLevelProjectRoot / s"synth-build-target-${UUID.randomUUID()}")
   )
 
-  val bt = BspBuildTarget(
+  val bt: BspBuildTarget = BspBuildTarget(
     displayName = Some(topLevelProjectRoot.last + "-root"),
     baseDirectory = Some(topLevelProjectRoot),
     tags = Seq(Tag.Manual),
@@ -28,7 +29,7 @@ class SyntheticRootBspBuildTargetData(topLevelProjectRoot: os.Path) {
     canDebug = false
   )
 
-  val target = makeBuildTarget(id, Seq.empty, bt, None)
+  val target: BuildTarget = makeBuildTarget(id, Seq.empty, bt, None)
   private val sourcePath = topLevelProjectRoot / "src"
   def synthSources = new SourcesItem(
     id,
@@ -36,7 +37,7 @@ class SyntheticRootBspBuildTargetData(topLevelProjectRoot: os.Path) {
   ) // intellijBSP does not create contentRootData for module with only outputPaths (this is probably a bug)
 }
 object SyntheticRootBspBuildTargetData {
-  def makeIfNeeded(existingModules: Iterable[BspModule], workspaceDir: os.Path) = {
+  def makeIfNeeded(existingModules: Iterable[BspModule], workspaceDir: os.Path): Option[SyntheticRootBspBuildTargetData] = {
     def containsWorkspaceDir(path: Option[os.Path]) = path.exists(workspaceDir.startsWith)
     if (existingModules.exists { m => containsWorkspaceDir(m.bspBuildTarget.baseDirectory) }) None
     else Some(new SyntheticRootBspBuildTargetData(workspaceDir))

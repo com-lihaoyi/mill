@@ -64,7 +64,7 @@ private object Utils {
       depsIds: Seq[BuildTargetIdentifier],
       bt: BspBuildTarget,
       data: Option[(String, Object)]
-  ) = {
+  ): BuildTarget = {
     val buildTarget = new BuildTarget(
       id,
       bt.tags.asJava,
@@ -88,7 +88,7 @@ private object Utils {
     buildTarget
   }
 
-  def outputPaths(outDir: os.Path, buildTargetBaseDir: os.Path, topLevelProjectRoot: os.Path) = {
+  def outputPaths(outDir: os.Path, buildTargetBaseDir: os.Path, topLevelProjectRoot: os.Path): Seq[OutputPathItem] = {
     val output = new OutputPathItem(
       // Spec says, a directory must end with a forward slash
       sanitizeUri(outDir) + "/",
