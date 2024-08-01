@@ -34,4 +34,9 @@ private class State(workspaceDir:os.Path,evaluators: Seq[Evaluator], debug: Stri
 
   lazy val bspIdByModule: Map[BspModule, BuildTargetIdentifier] =
     bspModulesById.view.mapValues(_._1).map(_.swap).toMap
+  lazy val syntheticRootBspBuildTarget:Option[SyntheticRootBspBuildTargetData] = {
+    def containsWorkspaceDir(path: Option[os.Path]) = path.exists(workspaceDir.startsWith)
+
+    if (bspModulesById.values.exists { case (m, _) => containsWorkspaceDir(m.bspBuildTarget.baseDirectory) }) None else Some(new SyntheticRootBspBuildTargetData(workspaceDir))
+  }
 }
