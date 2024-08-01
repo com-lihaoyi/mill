@@ -57,6 +57,12 @@ object TutorialTests extends TestSuite {
     }
   }
 
+  object TutorialWithScala3Soures extends TutorialBase {
+    object core extends TutorialModule {
+      override def scalaPBScala3Sources = { true }
+    }
+  }
+
   val resourcePath: os.Path = os.pwd / "contrib" / "scalapblib" / "test" / "protobuf" / "tutorial"
 
   def protobufOutPath(eval: TestEvaluator): os.Path =
@@ -180,6 +186,11 @@ object TutorialTests extends TestSuite {
         val result = eval.apply(TutorialWithProtoc.core.compileScalaPB)
         assert(result.isLeft)
       }
+    }
+
+    "calledWithScala3Sources" - workspaceTest(TutorialWithScala3Soures) { eval =>
+      val result = eval.apply(Tutorial.core.compileScalaPB)
+      assert(result.isRight)
     }
 
     "compilationArgs" - {
