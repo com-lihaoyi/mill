@@ -46,6 +46,66 @@ private object Utils {
     else StatusCode.OK
   }
 
+  def makeBuildTarget(id: BuildTargetIdentifier, depsIds: Seq[BuildTargetIdentifier], bt: BspBuildTarget,data:Option[(String,Object)]) = {
+    val buildTarget = new BuildTarget(
+      id,
+      bt.tags.asJava,
+      bt.languageIds.asJava,
+      depsIds.asJava,
+      new BuildTargetCapabilities().tap { it =>
+        it.setCanCompile(bt.canCompile)
+        it.setCanTest(bt.canTest)
+        it.setCanRun(bt.canRun)
+        it.setCanDebug(bt.canDebug)
+      }
+    )
+
+    bt.displayName.foreach(buildTarget.setDisplayName)
+    bt.baseDirectory.foreach(p =>buildTarget.setBaseDirectory(sanitizeUri(p)))
+
+    for ((dataKind, data) <- data) {
+      buildTarget.setDataKind(dataKind)
+      buildTarget.setData(data)
+    }
+    buildTarget
+  }
+
+  def outputPaths(outDir: os.Path, buildTargetBaseDir: os.Path,topLevelProjectRoot:os.Path) = {
+    val output = new OutputPathItem(
+      // Spec says, a directory must end with a forward slash
+      sanitizeUri(outDir) + "/",
+      OutputPathItemKind.DIRECTORY
+    )
+
+    def ignore(path: os.Path): Boolean = {
+      path.last.startsWith(".") ||
+        path.endsWith(os.RelPath("out")) ||
+        path.endsWith(os.RelPath("target")) ||
+        path.endsWith(os.RelPath("docs")) ||
+        path.endsWith(os.RelPath("mill-build"))
+    }
+
+    def projectsRootPaths = os.walk(topLevelProjectRoot, ignore).collect {
+      case p if p.endsWith(os.RelPath("build.sc")) => p / up
+    }
+    def outputPathItem(path:os.Path) =
+      new OutputPathItem(
+        // Spec says, a directory must end with a forward slash
+        sanitizeUri(path) + "/",
+        OutputPathItemKind.DIRECTORY
+      )
+    def additionalExclusions = projectsRootPaths.flatMap { path =>
+      Seq(
+        outputPathItem(path / ".idea"),
+        outputPathItem(path / "out"),
+        outputPathItem(path / ".bsp"),
+        outputPathItem(path / ".bloop"),
+        )
+    }
+    output +: (if (topLevelProjectRoot.startsWith(buildTargetBaseDir)) {
+      additionalExclusions
+    } else Nil)
+  }
   private[this] def getStatusCodePerTask(
       results: Evaluator.Results,
       task: mill.define.Task[_]
