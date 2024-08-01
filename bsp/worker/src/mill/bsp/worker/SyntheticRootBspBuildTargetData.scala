@@ -2,7 +2,7 @@ package mill.bsp.worker
 
 import ch.epfl.scala.bsp4j.{BuildTargetIdentifier, SourceItem, SourceItemKind, SourcesItem}
 import mill.bsp.worker.Utils.{makeBuildTarget, sanitizeUri}
-import mill.scalalib.bsp.BspBuildTarget
+import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.scalalib.bsp.BspModule.Tag
 
 import java.util.UUID
@@ -29,4 +29,10 @@ class SyntheticRootBspBuildTargetData(topLevelProjectRoot:os.Path) {
   val target = makeBuildTarget(id,Seq.empty,bt,None)
   private val sourcePath = topLevelProjectRoot / "src"
   def synthSources = new SourcesItem(id,Seq(new SourceItem(sanitizeUri(sourcePath), SourceItemKind.DIRECTORY,false)).asJava) //intellijBSP does not create contentRootData for module with only outputPaths (this is probably a bug)
+}
+object SyntheticRootBspBuildTargetData{
+  def makeIfNeeded(existingModules:Iterable[BspModule],workspaceDir:os.Path) = {
+    def containsWorkspaceDir(path: Option[os.Path]) = path.exists(workspaceDir.startsWith)
+    if (existingModules.exists { m => containsWorkspaceDir(m.bspBuildTarget.baseDirectory) }) None else Some(new SyntheticRootBspBuildTargetData(workspaceDir))
+  }
 }
