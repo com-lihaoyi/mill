@@ -307,7 +307,7 @@
       <div class="title"><a href="../index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-latest">
-          <a href="../index.html">0.11.11-9-286c7d</a>
+          <a href="../index.html">0.11.11-10-7c7969</a>
         </li>
         <li class="version is-current">
           <a href="index.html">0.11.11</a>
@@ -348,7 +348,7 @@
 <div class="page-versions">
   <button class="version-menu-toggle" title="Show other versions of page">0.11.11</button>
   <div class="version-menu">
-    <a class="version" href="../Cross_Builds.html">0.11.11-9-286c7d</a>
+    <a class="version" href="../Cross_Builds.html">0.11.11-10-7c7969</a>
     <a class="version is-current" href="Cross_Builds.html">0.11.11</a>
     <a class="version" href="../0.11.0-M7/Cross_Builds.html">0.11.0-M7</a>
     <a class="version" href="../0.10.15/Cross_Builds.html">0.10.15</a>
@@ -564,9 +564,31 @@ def bar = T { s&quot;hello ${foo(&quot;2.10&quot;).suffix()}&quot; }
 def qux = T { s&quot;hello ${foo(&quot;2.10&quot;).suffix()} world ${foo(&quot;2.12&quot;).suffix()}&quot; }</code></pre>
 </div>
 </div>
-<div class="imageblock kroki">
+<div class="literalblock kroki-error">
 <div class="content">
-<img src="_images/diag-176652cac02b3af811d352bf783b5e07302cfb9b.svg" alt="Diagram" />
+<pre>digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+  subgraph cluster_2 {
+    label=&quot;foo[2.12]&quot;
+    style=dashed
+    &quot;foo[2.12].suffix&quot;
+  }
+  subgraph cluster_1 {
+    label=&quot;foo[2.11]&quot;
+    style=dashed
+    &quot;foo[2.11].suffix&quot;
+  }
+  subgraph cluster_0 {
+    label=&quot;foo[2.10]&quot;
+    style=dashed
+    &quot;foo[2.10].suffix&quot;
+  }
+  &quot;foo[2.12].suffix&quot; -&gt; &quot;qux&quot; [constraint=false]
+  &quot;foo[2.11].suffix&quot; -&gt; &quot;qux&quot; [style=invis]
+  &quot;foo[2.10].suffix&quot; -&gt; &quot;qux&quot;
+  &quot;foo[2.10].suffix&quot; -&gt; &quot;bar&quot;
+}</pre>
 </div>
 </div>
 <div class="paragraph">
