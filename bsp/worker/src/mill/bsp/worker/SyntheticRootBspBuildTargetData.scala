@@ -11,7 +11,7 @@ import ch.epfl.scala.bsp4j.BuildTarget
 
 /**
  * Synthesised [[BspBuildTarget]] to handle exclusions.
- * Intellij-Bsp doesn't provide a way to exclude files outside of module,so if there is no module having content root as [[topLevelProjectRoot]], [[SyntheticRootBspBuildTargetData]] will be created
+ * Intellij-Bsp doesn't provide a way to exclude files outside of module,so if there is no module having content root of [[topLevelProjectRoot]], [[SyntheticRootBspBuildTargetData]] will be created
  */
 class SyntheticRootBspBuildTargetData(topLevelProjectRoot: os.Path) {
   val id: BuildTargetIdentifier = new BuildTargetIdentifier(
