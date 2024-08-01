@@ -27,33 +27,26 @@ digraph G {
 ....
 
 {mill-github-url}[Mill] is a graph-based JVM build tool that supports {language}.
-Mill aims to make your JVM project's build process performant, maintainable, and flexible:
+Mill aims to make your JVM project's build process performant, maintainable, and flexible
+even as it grows from a small project to a large codebase or monorepo with hundreds of modules:
 
 * *Performance*: Mill's xref:Tasks.adoc[build graph] automatically
   xref:The_Mill_Evaluation_Model.adoc#_caching_at_each_layer_of_the_evaluation_model[caches]
   and xref:#_parallel_task_execution[parallelizes] build
-  tasks, minimizing the amount of work that needs to be done, and
-  automatically profiling your build so you can optimize it. Even for large codebases with
-  hundreds of modules, Mill keeps your workflows fast and responsive.
+  tasks, minimizing the amount of work that needs to be done and keeping your workflows
+  fast and responsive.
 
-* *Maintainability*: Mill build tasks are self contained without side-effects, making it easy
-  to trace the data-flow of your build. Mill also provides excellent IDE support
+* *Maintainability*: Mill build tasks are self contained without side-effects making it easy
+  to trace the data-flow, and its IDE support
   (via xref:{language}_Installation_IDE_Support.adoc#_intellij[IntelliJ] or
-  xref:{language}_Installation_IDE_Support.adoc#_vscode[VSCode]),
-  letting you use "*jump-to-definition*" to navigate around your build
-  as easily as any application codebase. This makes maintaining Mill builds
-  a far easier than the "*guess and grep*" workflows common with other build tools.
+  xref:{language}_Installation_IDE_Support.adoc#_vscode[VSCode])
+  lets you "*jump-to-definition*" around your build
+  as easily as any application codebase.
 
-* *Flexibility*: Mill lets you write your xref:_custom_build_logic[custom build logic]
+* *Flexibility*: Mill custom logic is written in xref:_custom_build_logic[custom build logic]
   in type-checked code, rather than
   error-prone shell scripts, verbose AntRun XML, or complicated external plugins. Mill's
   custom tasks and modules allow anything from
   xref:Tasks.adoc#primitive-tasks[adding simple pipelines], up to
-  xref:Modules.adoc#_use_case_diy_java_modules[adding entire language toolchains].
-  This means Mill does not limit you to what Mill knows how to do, and can be easily
-  customized to fit what *you* need to get done.
-
-These properties mean that Mill is able to scale well from small projects to
-large codebases with hundreds of modules: its performance keeps things snappy,
-its maintainability keeps things tidy, and its flexibility supports
-the ad-hoc customizations that inevitably appear as projects grow.
+  xref:Modules.adoc#_use_case_diy_java_modules[adding entire language toolchains],
+  meaning it can be easily customized to fit exactly what you need.
