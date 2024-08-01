@@ -1,11 +1,15 @@
 package mill.bsp.worker
 
-import ch.epfl.scala.bsp4j.{BuildClient, BuildTargetIdentifier, StatusCode, TaskId}
+import ch.epfl.scala.bsp4j.{BuildClient, BuildTarget, BuildTargetCapabilities, BuildTargetIdentifier, OutputPathItem, OutputPathItemKind, StatusCode, TaskId}
 import mill.api.{CompileProblemReporter, PathRef}
 import mill.api.Result.{Skipped, Success}
 import mill.eval.Evaluator
 import mill.scalalib.JavaModule
-import mill.scalalib.bsp.BspModule
+import mill.scalalib.bsp.{BspBuildTarget, BspModule}
+import os.up
+
+import scala.jdk.CollectionConverters._
+import scala.util.chaining.scalaUtilChainingOps
 
 private object Utils {
 
