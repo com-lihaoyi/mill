@@ -1,17 +1,17 @@
 package hello
 
-trait TestIter[+A]{
+trait TestIter[+A] {
   def hasNext: Boolean
   def next(): A
   def foreach[U](f: A => U) = { while (hasNext) f(next()) }
 }
 
-class SubTestIter() extends TestIter[Nothing]{
+class SubTestIter() extends TestIter[Nothing] {
   def hasNext: Boolean = false
   def next(): Nothing = throw new NoSuchElementException("next on empty iterator")
 }
 
-object Hello{
+object Hello {
   def minimizedIterator(): Array[Int] = {
     val iterator = new SubTestIter()
     val holder = Array(1)
@@ -46,4 +46,4 @@ object Hello{
         "hello.TestIter#foreach(scala.Function1)void"
     ]
 }
-*/
+ */

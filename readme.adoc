@@ -286,6 +286,24 @@ endif::[]
 // find-replace-regex: https://github.com/com-lihaoyi/mill/pull/(\d*) -> {link-pr}/$1[#$1]
 
 
+[#0-11-11]
+=== 0.11.11 - 2024-07-31
+:version: 0.11.11
+:milestone-name: 0.11.11
+:milestone: 96
+:prev-version: 0.11.10
+
+_Changes since {prev-version}:_
+
+* Overhaul of the documentation site at https://mill-build.com
+* New Java- and Scala-specific sections on the documentation, with more detailed
+  comparisons to existing build tools
+* Added graphviz diagrams throughout to help the user in visualizing the concepts involved
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
 [#0-11-10]
 === 0.11.10 - 2024-07-23
 :version: 0.11.10
@@ -295,11 +313,16 @@ endif::[]
 
 _Changes since {prev-version}:_
 
-__New features__
+__Fixes and Improvements__
 
 * Improvements in Java docs and user experience {link-pr}/3278[#3278]
 * Automatically pump os.proc streams when SystemStreams are redirected {link-pr}/3275[#3275]
 * Fix resolution of children of override lazy val modules {link-pr}/3270[#3270]
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
 
 [#0-11-9]
 === 0.11.9 - 2024-07-18
@@ -313,7 +336,14 @@ _Changes since {prev-version}:_
 __New features__
 
 * First class support for Java projects {link-pr}/3261[#3261]
+
+__Fixes and Improvements__
+
 * Add coarse grained lock around BSP request to avoid deadlocks {link-pr}/3243[#3243]
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-8]
 === 0.11.8 - 2024-06-21
