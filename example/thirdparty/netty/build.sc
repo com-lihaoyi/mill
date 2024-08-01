@@ -594,11 +594,6 @@ object `transport-udt` extends NettyModule{
 
 > ./mill -j5 __.compile
 
-> ./mill codec.test
-...Test io.netty.handler.codec.EmptyHeadersTest#testGetByte() started
-...Test io.netty.handler.codec.EmptyHeadersTest#testGetByte() finished...
-...
-
 > ./mill 'codec-{dns,haproxy,http,http2,memcache,mqtt,redis,smtp,socks,stomp,xml}.test'
 ...Test io.netty.handler.codec.stomp.StompSubframeEncoderTest#testEscapeStompHeaders() started
 ...Test io.netty.handler.codec.stomp.StompSubframeEncoderTest#testEscapeStompHeaders() finished...
