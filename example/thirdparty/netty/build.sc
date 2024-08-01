@@ -28,6 +28,7 @@ trait NettyBaseTestSuiteModule extends NettyBaseModule with TestModule.Junit5{
     ivy"io.netty:netty-tcnative-boringssl-static:2.0.65.Final",
     ivy"com.barchart.udt:barchart-udt-bundle:2.3.0",
     ivy"com.aayushatharva.brotli4j:native-osx-aarch64:1.16.0",
+    ivy"com.aayushatharva.brotli4j:native-linux-x86_64:1.16.0",
     ivy"org.jboss.marshalling:jboss-marshalling:2.0.5.Final",
     ivy"com.aayushatharva.brotli4j:brotli4j:1.16.0",
     ivy"org.apache.commons:commons-compress:1.26.0",
