@@ -548,7 +548,6 @@ object `transport-native-unix-common` extends NettyModule{
         "OBJ_DIR" -> "obj-out",
         "MACOSX_DEPLOYMENT_TARGET" -> "10.9",
         "CFLAGS" -> Seq(
-          "-mmacosx-version-min=10.9",
           "-O3",
           "-Werror",
           "-Wno-attributes",
