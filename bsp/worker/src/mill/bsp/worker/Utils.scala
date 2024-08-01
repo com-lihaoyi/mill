@@ -1,6 +1,15 @@
 package mill.bsp.worker
 
-import ch.epfl.scala.bsp4j.{BuildClient, BuildTarget, BuildTargetCapabilities, BuildTargetIdentifier, OutputPathItem, OutputPathItemKind, StatusCode, TaskId}
+import ch.epfl.scala.bsp4j.{
+  BuildClient,
+  BuildTarget,
+  BuildTargetCapabilities,
+  BuildTargetIdentifier,
+  OutputPathItem,
+  OutputPathItemKind,
+  StatusCode,
+  TaskId
+}
 import mill.api.{CompileProblemReporter, PathRef}
 import mill.api.Result.{Skipped, Success}
 import mill.eval.Evaluator
@@ -50,7 +59,12 @@ private object Utils {
     else StatusCode.OK
   }
 
-  def makeBuildTarget(id: BuildTargetIdentifier, depsIds: Seq[BuildTargetIdentifier], bt: BspBuildTarget,data:Option[(String,Object)]) = {
+  def makeBuildTarget(
+      id: BuildTargetIdentifier,
+      depsIds: Seq[BuildTargetIdentifier],
+      bt: BspBuildTarget,
+      data: Option[(String, Object)]
+  ) = {
     val buildTarget = new BuildTarget(
       id,
       bt.tags.asJava,
@@ -65,7 +79,7 @@ private object Utils {
     )
 
     bt.displayName.foreach(buildTarget.setDisplayName)
-    bt.baseDirectory.foreach(p =>buildTarget.setBaseDirectory(sanitizeUri(p)))
+    bt.baseDirectory.foreach(p => buildTarget.setBaseDirectory(sanitizeUri(p)))
 
     for ((dataKind, data) <- data) {
       buildTarget.setDataKind(dataKind)
@@ -74,7 +88,7 @@ private object Utils {
     buildTarget
   }
 
-  def outputPaths(outDir: os.Path, buildTargetBaseDir: os.Path,topLevelProjectRoot:os.Path) = {
+  def outputPaths(outDir: os.Path, buildTargetBaseDir: os.Path, topLevelProjectRoot: os.Path) = {
     val output = new OutputPathItem(
       // Spec says, a directory must end with a forward slash
       sanitizeUri(outDir) + "/",
@@ -83,16 +97,16 @@ private object Utils {
 
     def ignore(path: os.Path): Boolean = {
       path.last.startsWith(".") ||
-        path.endsWith(os.RelPath("out")) ||
-        path.endsWith(os.RelPath("target")) ||
-        path.endsWith(os.RelPath("docs")) ||
-        path.endsWith(os.RelPath("mill-build"))
+      path.endsWith(os.RelPath("out")) ||
+      path.endsWith(os.RelPath("target")) ||
+      path.endsWith(os.RelPath("docs")) ||
+      path.endsWith(os.RelPath("mill-build"))
     }
 
     def projectsRootPaths = os.walk(topLevelProjectRoot, ignore).collect {
       case p if p.endsWith(os.RelPath("build.sc")) => p / up
     }
-    def outputPathItem(path:os.Path) =
+    def outputPathItem(path: os.Path) =
       new OutputPathItem(
         // Spec says, a directory must end with a forward slash
         sanitizeUri(path) + "/",
@@ -103,12 +117,12 @@ private object Utils {
         outputPathItem(path / ".idea"),
         outputPathItem(path / "out"),
         outputPathItem(path / ".bsp"),
-        outputPathItem(path / ".bloop"),
-        )
+        outputPathItem(path / ".bloop")
+      )
     }
     output +: (if (topLevelProjectRoot.startsWith(buildTargetBaseDir)) {
-      additionalExclusions
-    } else Nil)
+                 additionalExclusions
+               } else Nil)
   }
   private[this] def getStatusCodePerTask(
       results: Evaluator.Results,

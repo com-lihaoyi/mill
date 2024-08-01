@@ -83,7 +83,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
         val classes = mainClass.toList ++ zincWorker.discoverMainClasses(compile)
         item.setMainClasses(classes.map(new JvmMainClass(_, Nil.asJava)).asJava)
         item
-    } {x=>
+    } { x =>
       agg(x._1)
     }
   }
@@ -106,7 +106,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
             .map(_.resolve(pathResolver))
             .map(sanitizeUri).toSeq.asJava
         )
-    } {x =>
+    } { x =>
       new JvmCompileClasspathResult(x._1)
     }
 }

@@ -15,11 +15,11 @@ import scala.concurrent.{Await, CancellationException, Promise}
 private class BspWorkerImpl() extends BspWorker {
 
   override def startBspServer(
-                               topLevelBuildRoot: os.Path,
-                               streams: SystemStreams,
-                               logStream: PrintStream,
-                               logDir: os.Path,
-                               canReload: Boolean
+      topLevelBuildRoot: os.Path,
+      streams: SystemStreams,
+      logStream: PrintStream,
+      logDir: os.Path,
+      canReload: Boolean
   ): Either[String, BspServerHandle] = {
 
     val millServer =

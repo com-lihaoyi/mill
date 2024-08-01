@@ -6,7 +6,7 @@ import mill.scalalib.internal.JavaModuleUtils
 import mill.define.Module
 import mill.eval.Evaluator
 
-private class State(workspaceDir:os.Path,evaluators: Seq[Evaluator], debug: String => Unit) {
+private class State(workspaceDir: os.Path, evaluators: Seq[Evaluator], debug: String => Unit) {
   lazy val bspModulesById: Map[BuildTargetIdentifier, (BspModule, Evaluator)] = {
     val modules: Seq[(Module, Seq[Module], Evaluator)] = evaluators
       .map(ev => (ev.rootModule, JavaModuleUtils.transitiveModules(ev.rootModule), ev))
@@ -34,6 +34,7 @@ private class State(workspaceDir:os.Path,evaluators: Seq[Evaluator], debug: Stri
 
   lazy val bspIdByModule: Map[BspModule, BuildTargetIdentifier] =
     bspModulesById.view.mapValues(_._1).map(_.swap).toMap
-  lazy val syntheticRootBspBuildTarget:Option[SyntheticRootBspBuildTargetData] = SyntheticRootBspBuildTargetData.makeIfNeeded(bspModulesById.values.map(_._1),workspaceDir)
+  lazy val syntheticRootBspBuildTarget: Option[SyntheticRootBspBuildTargetData] =
+    SyntheticRootBspBuildTargetData.makeIfNeeded(bspModulesById.values.map(_._1), workspaceDir)
 
 }
