@@ -13,7 +13,7 @@ import scala.jdk.CollectionConverters._
  * Intellij-Bsp doesn't provide a way to exclude files outside of module,so if there is no module with [[topLevelProjectRoot]] as content root [[SyntheticRootBspBuildTargetData]] will be created
 */
 class SyntheticRootBspBuildTargetData(topLevelProjectRoot:os.Path) {
-  val id: BuildTargetIdentifier = new BuildTargetIdentifier(Utils.sanitizeUri(topLevelProjectRoot / s"synth-build-target${UUID.randomUUID()}"))
+  val id: BuildTargetIdentifier = new BuildTargetIdentifier(Utils.sanitizeUri(topLevelProjectRoot / s"synth-build-target-${UUID.randomUUID()}"))
 
   val bt = BspBuildTarget(
     displayName = Some(topLevelProjectRoot.last + "-root"),
