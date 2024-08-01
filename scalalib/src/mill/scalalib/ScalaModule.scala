@@ -182,7 +182,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    * Scalac options to activate the compiler plugins for ScalaDoc generation.
    */
   private def enableScalaDocPluginScalacOptions: Target[Seq[String]] = T {
-    val resolvedJars = resolveDeps(T.task {scalaDocPluginIvyDeps().map(_.exclude("*" -> "*"))})()
+    val resolvedJars = resolveDeps(T.task { scalaDocPluginIvyDeps().map(_.exclude("*" -> "*")) })()
     resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path}").toSeq
   }
 
@@ -227,7 +227,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    * Classpath of the scaladoc (or dottydoc) tool.
    */
   def scalaDocClasspath: T[Agg[PathRef]] = T {
-    resolveDeps(T.task{Lib.scalaDocIvyDeps(scalaOrganization(), scalaVersion())})()
+    resolveDeps(T.task { Lib.scalaDocIvyDeps(scalaOrganization(), scalaVersion()) })()
   }
 
   /**
