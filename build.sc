@@ -193,7 +193,7 @@ object Deps {
   val fansi = ivy"com.lihaoyi::fansi:0.5.0"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.0"
   val requests = ivy"com.lihaoyi::requests:0.8.3"
-  val sonatypeCentralClient = ivy"com.lumidion::sonatype-central-client-requests:0.2.0"
+  val sonatypeCentralClient = ivy"com.lumidion::sonatype-central-client-requests:0.3.0"
 
   /** Used to manage transitive versions. */
   val transitiveDeps = Seq(
