@@ -659,7 +659,7 @@ private class MillBuildServer(
             }
         }
 
-      agg(evaluated.flatten.toSeq.asJava,state)
+      agg((evaluated.flatten.toSeq.asJava,state))
     }
   }
 
