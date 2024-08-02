@@ -475,7 +475,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   }
 
   def resolvedAmmoniteReplIvyDeps = T {
-    resolveDeps(T.task {
+    defaultResolver().resolveDeps {
       val scaVersion = scalaVersion()
       val ammVersion = ammoniteVersion()
       if (scaVersion != BuildInfo.scalaVersion && ammVersion == Versions.ammonite) {
@@ -487,7 +487,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
       val bind = bindDependency()
       runIvyDeps().map(bind) ++ transitiveIvyDeps() ++
         Agg(ivy"com.lihaoyi:::ammonite:${ammVersion}").map(bind)
-    })()
+    }
   }
 
   @internal

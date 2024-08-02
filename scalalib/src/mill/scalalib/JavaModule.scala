@@ -1009,19 +1009,18 @@ trait JavaModule
   override def prepareOffline(all: Flag): Command[Unit] = {
     val tasks =
       if (all.value) Seq(
-        resolveDeps(
-          T.task {
-            transitiveCompileIvyDeps() ++ transitiveIvyDeps()
-          },
-          sources = true
-        ),
-        resolveDeps(
-          T.task {
-            val bind = bindDependency()
-            runIvyDeps().map(bind) ++ transitiveIvyDeps()
-          },
-          sources = true
-        )
+        T.task {
+          defaultResolver().resolveDeps(
+            transitiveCompileIvyDeps() ++ transitiveIvyDeps(),
+            sources = true
+          )
+        },
+        T.task {
+          defaultResolver().resolveDeps(
+            runIvyDeps().map(bindDependency()) ++ transitiveIvyDeps(),
+            sources = true
+          )
+        }
       )
       else Seq()
 
