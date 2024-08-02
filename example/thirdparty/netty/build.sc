@@ -7,6 +7,8 @@ import $ivy.`ant:ant-optional:1.5.3-1`
 //   testsuite-native-image*
 //   testsuite-autobahn
 
+def isOSX = System.getProperty("os.name").toLowerCase.contains("mac")
+
 trait NettyBaseModule extends MavenModule{
   def javacOptions = Seq("-source", "1.8", "-target", "1.8")
 }
@@ -501,19 +503,26 @@ object `transport-classes-kqueue` extends NettyModule{
   def moduleDeps = Seq(common, buffer, transport, `transport-native-unix-common`)
 }
 
-object `transport-native-epoll` extends NettyModule{
+object `transport-native-epoll` extends NettyJniModule{
+  def jniLibraryName = "libnetty_transport_native_epoll_aarch_64.jnilib"
   def moduleDeps = Seq(common, buffer, transport, `transport-native-unix-common`, `transport-classes-epoll`)
   def testModuleDeps = Seq(testsuite, `transport-native-unix-common-tests`)
 
   def testIvyDeps = Agg(
     ivy"io.github.artsok:rerunner-jupiter:2.1.6"
   )
+
+  // Stub this out on OS-X
+  def clang = if (!isOSX) T{ super.clang() } else T{ PathRef(os.temp())}
 }
 
 object `transport-native-kqueue` extends NettyJniModule{
   def jniLibraryName = "libnetty_transport_native_kqueue_aarch_64.jnilib"
   def moduleDeps = Seq(common, buffer, transport, `transport-native-unix-common`, `transport-classes-kqueue`)
   def testModuleDeps = Seq(testsuite, `transport-native-unix-common-tests`)
+
+  // Stub this out on linux
+  def clang = if (isOSX) T{ super.clang() } else T{ PathRef(os.temp())}
 }
 
 object `transport-native-unix-common` extends NettyModule{
