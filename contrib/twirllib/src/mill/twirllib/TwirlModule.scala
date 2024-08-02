@@ -73,7 +73,10 @@ trait TwirlModule extends mill.Module { twirlModule =>
   lazy val twirlCoursierResolver: TwirlResolver = new TwirlResolver {}
 
   def twirlClasspath: T[Loose.Agg[PathRef]] = T {
-    twirlCoursierResolver.resolveDeps(twirlIvyDeps)
+    twirlCoursierResolver.resolveDeps(T.task {
+      val bind = twirlCoursierResolver.bindDependency()
+      twirlIvyDeps().map(bind)
+    })
   }
 
   def twirlImports: T[Seq[String]] = T {
