@@ -729,6 +729,7 @@ def make = T{
         "-fno-omit-frame-pointer", "-Wunused-variable", "-fvisibility=hidden",
         "-I" + sys.props("java.home") + "/include/",
         "-I" + sys.props("java.home") + "/include/darwin",
+        "-I" + sys.props("java.home") + "/include/linux",
       ).mkString(" "),
       "LD_FLAGS" -> "-Wl,--no-as-needed -lrt -Wl,-platform_version,macos,10.9,10.9",
       "LIB_NAME" -> "libnetty-unix-common"

@@ -106,6 +106,7 @@ trait NettyJniModule extends NettyModule {
       "-I" + `transport-native-unix-common`.cHeaders().path,
       "-I" + sys.props("java.home") + "/include/",
       "-I" + sys.props("java.home") + "/include/darwin",
+      "-I" + sys.props("java.home") + "/include/linux",
       // LD_FLAGS
       "-Wl,-weak_library," + (`transport-native-unix-common`.make()._1.path / "libnetty-unix-common.a"),
       "-Wl,-platform_version,macos,10.9,10.9",
@@ -557,6 +558,7 @@ object `transport-native-unix-common` extends NettyModule{
           "-fvisibility=hidden",
           "-I" + sys.props("java.home") + "/include/",
           "-I" + sys.props("java.home") + "/include/darwin",
+          "-I" + sys.props("java.home") + "/include/linux",
         ).mkString(" "),
         "LD_FLAGS" -> "-Wl,--no-as-needed -lrt -Wl,-platform_version,macos,10.9,10.9",
         "LIB_NAME" -> "libnetty-unix-common"
