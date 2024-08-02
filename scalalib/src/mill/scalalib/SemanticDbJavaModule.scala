@@ -83,22 +83,18 @@ trait SemanticDbJavaModule extends CoursierModule {
    * Scalac options to activate the compiler plugins.
    */
   protected def semanticDbEnablePluginScalacOptions: T[Seq[String]] = T {
-    val resolvedJars = resolveDeps(T.task {
-      val bind = bindDependency()
-      semanticDbPluginIvyDeps().map(_.exclude("*" -> "*")).map(bind)
-    })()
+    val resolvedJars = defaultResolver().resolveDeps(T.task {
+      semanticDbPluginIvyDeps().map(_.exclude("*" -> "*"))
+    )
     resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path}").toSeq
   }
 
   protected def semanticDbPluginClasspath: T[Agg[PathRef]] = T {
-    resolveDeps(T.task {
-      val bind = bindDependency()
-      semanticDbPluginIvyDeps().map(bind)
-    })()
+    defaultResolver().resolveDeps(semanticDbPluginIvyDeps())
   }
 
   protected def resolvedSemanticDbJavaPluginIvyDeps: T[Agg[PathRef]] = T {
-    resolveDeps(T.task { semanticDbJavaPluginIvyDeps().map(bindDependency()) })()
+    defaultResolver().resolveDeps(semanticDbJavaPluginIvyDeps())
   }
 
   def semanticDbData: T[PathRef] = T.persistent {

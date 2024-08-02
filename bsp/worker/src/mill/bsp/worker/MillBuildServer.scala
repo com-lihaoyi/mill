@@ -368,8 +368,8 @@ private class MillBuildServer(
         case m: JavaModule =>
           T.task {
             (
-              m.resolveDeps(
-                T.task(m.transitiveCompileIvyDeps() ++ m.transitiveIvyDeps()),
+              m.defaultResolver().resolveDeps(
+                m.transitiveCompileIvyDeps() ++ m.transitiveIvyDeps(),
                 sources = true
               )(),
               m.unmanagedClasspath(),

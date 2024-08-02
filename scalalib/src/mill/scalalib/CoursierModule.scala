@@ -32,6 +32,40 @@ trait CoursierModule extends mill.Module {
     Lib.depToDependencyJava(_: Dep)
   }
 
+  class ResolverX(repositories: Seq[Repository],
+                  bind: Dep => BoundDep,
+                  mapDependencies: Option[Dependency => Dependency] = None,
+                  customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
+                  ctx: Option[mill.api.Ctx.Log] = None,
+                  coursierCacheCustomizer: Option[
+                    coursier.cache.FileCache[coursier.util.Task] => coursier.cache.FileCache[coursier.util.Task]
+                  ] = None) {
+
+    def resolveDeps(deps: IterableOnce[Dep],
+                    sources: Boolean = false) = {
+      Lib.resolveDependencies(
+        repositories = repositories,
+        deps = deps.map(bind),
+        sources = sources,
+        mapDependencies = mapDependencies,
+        customizer = customizer,
+        coursierCacheCustomizer = coursierCacheCustomizer,
+        ctx = ctx
+      ).asSuccess.get.value
+    }
+  }
+
+  def defaultResolver: Task[ResolverX] = T.task{
+    new ResolverX(
+      repositories = repositoriesTask(),
+      bind = bindDependency(),
+      mapDependencies = Some(mapDependencies()),
+      customizer = resolutionCustomizer(),
+      coursierCacheCustomizer = coursierCacheCustomizer(),
+      ctx = Some(implicitly[mill.api.Ctx.Log])
+    )
+  }
+
   /**
    * Task that resolves the given dependencies using the repositories defined with [[repositoriesTask]].
    *
