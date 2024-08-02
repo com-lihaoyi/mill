@@ -10,6 +10,7 @@ import mill.api.PathRef
 import scala.annotation.nowarn
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
+import mill.Agg
 
 /**
  * This module provides the capability to resolve (transitive) dependencies from (remote) repositories.
@@ -18,8 +19,6 @@ import scala.concurrent.duration.Duration
  * in which case you must provide repositories by overriding [[CoursierModule.repositoriesTask]].
  */
 trait CoursierModule extends mill.Module {
-
-
 
   /**
    * Bind a dependency ([[Dep]]) to the actual module contetxt (e.g. the scala version and the platform suffix)
@@ -34,8 +33,7 @@ trait CoursierModule extends mill.Module {
     Lib.depToDependencyJava(_: Dep)
   }
 
-
-  def defaultResolver: Task[CoursierModule.Resolver] = T.task{
+  def defaultResolver: Task[CoursierModule.Resolver] = T.task {
     new CoursierModule.Resolver(
       repositories = repositoriesTask(),
       bind = bindDependency(),
@@ -122,19 +120,23 @@ trait CoursierModule extends mill.Module {
     T.task { None }
 
 }
-object CoursierModule{
+object CoursierModule {
 
-  class Resolver(repositories: Seq[Repository],
-                 bind: Dep => BoundDep,
-                 mapDependencies: Option[Dependency => Dependency] = None,
-                 customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
-                 ctx: Option[mill.api.Ctx.Log] = None,
-                 coursierCacheCustomizer: Option[
-                   coursier.cache.FileCache[coursier.util.Task] => coursier.cache.FileCache[coursier.util.Task]
-                 ] = None) {
+  class Resolver(
+      repositories: Seq[Repository],
+      bind: Dep => BoundDep,
+      mapDependencies: Option[Dependency => Dependency] = None,
+      customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
+      ctx: Option[mill.api.Ctx.Log] = None,
+      coursierCacheCustomizer: Option[
+        coursier.cache.FileCache[coursier.util.Task] => coursier.cache.FileCache[coursier.util.Task]
+      ] = None
+  ) {
 
-    def resolveDeps[T: CoursierModule.Resolvable](deps: IterableOnce[T],
-                                                  sources: Boolean = false) = {
+    def resolveDeps[T: CoursierModule.Resolvable](
+        deps: IterableOnce[T],
+        sources: Boolean = false
+    ): Agg[PathRef] = {
       Lib.resolveDependencies(
         repositories = repositories,
         deps = deps.map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind)),
@@ -143,17 +145,17 @@ object CoursierModule{
         customizer = customizer,
         coursierCacheCustomizer = coursierCacheCustomizer,
         ctx = ctx
-      ).asSuccess.get.value
+      ).getOrThrow
     }
   }
 
-  sealed trait Resolvable[T]{
+  sealed trait Resolvable[T] {
     def bind(t: T, bind: Dep => BoundDep): BoundDep
   }
-  implicit case object ResolvableDep extends Resolvable[Dep]{
+  implicit case object ResolvableDep extends Resolvable[Dep] {
     def bind(t: Dep, bind: Dep => BoundDep): BoundDep = bind(t)
   }
-  implicit case object ResolvableBoundDep extends Resolvable[BoundDep]{
+  implicit case object ResolvableBoundDep extends Resolvable[BoundDep] {
     def bind(t: BoundDep, bind: Dep => BoundDep): BoundDep = t
   }
 }
