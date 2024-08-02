@@ -193,14 +193,14 @@ object Deps {
   val fansi = ivy"com.lihaoyi::fansi:0.5.0"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.0"
   val requests = ivy"com.lihaoyi::requests:0.8.3"
-  val sonatypeCentralClient = ivy"com.lumidion::sonatype-central-client-requests:0.2.0"
+  val sonatypeCentralClient = ivy"com.lumidion::sonatype-central-client-requests:0.3.0"
 
   /** Used to manage transitive versions. */
   val transitiveDeps = Seq(
     ivy"org.apache.ant:ant:1.10.14",
     ivy"commons-io:commons-io:2.16.1",
     ivy"com.google.code.gson:gson:2.11.0",
-    ivy"com.google.protobuf:protobuf-java:3.25.3",
+    ivy"com.google.protobuf:protobuf-java:3.25.4",
     ivy"com.google.guava:guava:33.2.1-jre",
     ivy"org.yaml:snakeyaml:2.2",
     ivy"org.apache.commons:commons-compress:1.26.2"
