@@ -3,7 +3,7 @@ package mill.scalalib
 import coursier.cache.FileCache
 import coursier.{Dependency, Repository, Resolve}
 import coursier.core.Resolution
-import mill.{Agg, T}
+import mill.T
 import mill.define.Task
 import mill.api.PathRef
 
