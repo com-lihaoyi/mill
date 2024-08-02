@@ -371,7 +371,7 @@ private class MillBuildServer(
               m.defaultResolver().resolveDeps(
                 m.transitiveCompileIvyDeps() ++ m.transitiveIvyDeps(),
                 sources = true
-              )(),
+              ),
               m.unmanagedClasspath(),
               m.repositoriesTask()
             )
