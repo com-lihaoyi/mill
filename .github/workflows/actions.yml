@@ -140,16 +140,16 @@ jobs:
 
         include:
           # Limit some tests to Java 17 to limit CI times
+          # just run a subset of examples/ on Windows, because for some reason running
+          # the whole suite can take hours on windows v.s. half an hour on linux
           - java-version: 17
-            # just run a subset of examples/ on Windows, because for some reason running
-            # the whole suite can take hours on windows v.s. half an hour on linux
-            millargs: '"example.basic.__.local.test"'
+            millargs: '"example.basic[_].local.test"'
           - java-version: 17
-            millargs: "integration.feature.__.fork.test"
+            millargs: "'integration.feature[_].local.test'"
           - java-version: 17
-            millargs: "integration.feature.__.server.test"
+            millargs: "'integration.invalidation[_].server.test'"
           - java-version: 17
-            millargs: "integration.failure.__.fork.test"
+            millargs: "'integration.failure[_].fork.test'"
           - java-version: 17
             millargs: "contrib.__.test"
 
