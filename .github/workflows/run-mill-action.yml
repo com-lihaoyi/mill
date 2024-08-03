@@ -56,9 +56,9 @@ jobs:
         if: inputs.buildcmd != ''
 
       - name: Run Mill '${{ inputs.millargs }}'
-        run:  ./mill -i -k ${{ inputs.millargs }}
+        run:  ./mill -i -k -j3 ${{ inputs.millargs }}
         if: inputs.millargs != '' && !startsWith(inputs.os, 'windows')
 
       - name: Run Mill (on Windows) '${{ inputs.millargs }}'
-        run: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k ${{ inputs.millargs }}
+        run: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k -j3 ${{ inputs.millargs }}
         if: inputs.millargs != '' && startsWith(inputs.os, 'windows')
