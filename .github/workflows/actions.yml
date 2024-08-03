@@ -81,21 +81,15 @@ jobs:
           - java-version: 17
             millargs: "'example.{basicjava,javabuilds,javamodule,javaweb}[_].local.test'"
           - java-version: 17
-            millargs: "'example.{cross,misc,tasks}[_].local.test'"
+            millargs: "'example.{thirdparty,cross,misc,tasks}[_].local.test'"
           - java-version: 17
-            millargs: "'example.thirdparty[_].local.test'"
-          - java-version: 17
-            millargs: "'integration.feature[_].local.test'"
-          - java-version: 17
-            millargs: "'integration.ide[_].local.test'"
+            millargs: "'integration.{failure,feature,ide}[_].local.test'"
           - java-version: 17
             millargs: "'integration.invalidation[_].local.test'"
           - java-version: 17
             millargs: "'integration.invalidation[_].fork.test'"
           - java-version: 17
             millargs: "'integration.invalidation[_].server.test'"
-          - java-version: 17
-            millargs: "'integration.failure[_].test'"
           - java-version: 17
             millargs: docs.githubPages
 
