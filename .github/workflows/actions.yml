@@ -35,17 +35,11 @@ jobs:
       matrix:
         include:
           # bootstrap tests
-          - java-version: 8
-            buildcmd: ci/test-mill-release.sh
-          - java-version: 17
-            buildcmd: ci/test-mill-release.sh
-          # Limit some tests to Java 17 to limit CI times
-          - java-version: 17
+          - java-version: 8 # Have one job on oldest JVM
             buildcmd: ci/test-mill-dev.sh
-          - java-version: 17
-            buildcmd: ci/test-mill-bootstrap.sh
-          # Have one job on latest JVM
-          - java-version: 20
+          - java-version: 17 # Have one job on default JVM
+            buildcmd: ci/test-mill-release.sh
+          - java-version: 21 # Have one job on latest JVM
             buildcmd: ci/test-mill-bootstrap.sh
           # Just some reporting to enable reasoning about library upgrades
           - java-version: 8
@@ -64,32 +58,40 @@ jobs:
       matrix:
         java-version: [8, 17]
         millargs:
-          # unit and module tests
+          # Run unit and module tests on both oldest and newest Java versions
           - '"{main,scalalib,testrunner,bsp}.__.test"'
           - '"scalajslib.__.test"'
           - '"scalanativelib.__.test"'
-          # integration tests
-          - "integration.feature[_].server.test"
-          - "integration.feature[_].fork.test"
           # contrib tests
           - "contrib._.test"
 
         include:
-          # Limit some tests to Java 17 to limit CI times
+          # Integration and example tests are slow, so don't run the on multiple Java versions
+
+          # Group these tests together to try and balance out the runtimes of each job
+          # Just running in `local` mode since they shouldn't depend on the mode
           - java-version: 17
             millargs: "'example.{basic,scalabuilds,scalamodule,web}[_].local.test'"
           - java-version: 17
             millargs: "'example.{basicjava,javabuilds,javamodule,javaweb}[_].local.test'"
           - java-version: 17
             millargs: "'example.{thirdparty,cross,misc,tasks}[_].local.test'"
+
+            # Most of these integration tests should not depend on which mode they
+            # are run in, so just run them in `local`
           - java-version: 17
             millargs: "'integration.{failure,feature,ide}[_].local.test'"
+
+            # These invalidation tests need to be exercised in all three execution modes
+            # to make sure they work with and without -i/--no-server being passed
           - java-version: 17
             millargs: "'integration.invalidation[_].local.test'"
           - java-version: 17
             millargs: "'integration.invalidation[_].fork.test'"
           - java-version: 17
             millargs: "'integration.invalidation[_].server.test'"
+
+          # Check docsite compiles
           - java-version: 17
             millargs: docs.githubPages
 
