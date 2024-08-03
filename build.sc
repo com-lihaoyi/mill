@@ -46,7 +46,7 @@ object Settings {
     "0.11.0-M7"
   )
   val docTags: Seq[String] = Seq(
-    "0.11.11"
+    "0.11.10"
   )
   val mimaBaseVersions: Seq[String] = 0.to(10).map("0.11." + _)
 }
