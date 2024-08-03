@@ -1370,8 +1370,8 @@ object example extends MillScalaModule {
 object integration extends MillScalaModule {
   object failure extends Cross[IntegrationCrossModule](listIn(millSourcePath / "failure"))
   object feature extends Cross[IntegrationCrossModule](listIn(millSourcePath / "feature"))
-  object invalidation extends Cross[IntegrationCrossModule](listIn(millSourcePath / "codesig"))
-  object ide extends Cross[IntegrationCrossModule](listIn(millSourcePath / "codesig"))
+  object invalidation extends Cross[IntegrationCrossModule](listIn(millSourcePath / "invalidation"))
+  object ide extends Cross[IntegrationCrossModule](listIn(millSourcePath / "ide"))
   trait IntegrationCrossModule extends IntegrationTestCrossModule
 
   def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, runner.test)
