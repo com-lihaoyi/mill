@@ -69,8 +69,8 @@ jobs:
           - '"scalajslib.__.test"'
           - '"scalanativelib.__.test"'
           # integration tests
-          - "integration.feature.__.server.test"
-          - "integration.feature.__.fork.test"
+          - "integration.feature[_].server.test"
+          - "integration.feature[_].fork.test"
           # contrib tests
           - "contrib._.test"
 
@@ -90,6 +90,10 @@ jobs:
             millargs: "integration.ide[_].local.test"
           - java-version: 17
             millargs: "integration.invalidation[_].local.test"
+          - java-version: 17
+            millargs: "integration.invalidation[_].fork.test"
+          - java-version: 17
+            millargs: "integration.invalidation[_].server.test"
           - java-version: 17
             millargs: "integration.failure[_].test"
           - java-version: 17
