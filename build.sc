@@ -362,7 +362,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
 /**
  * Some custom scala settings and test convenience
  */
-trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModule { outer =>
+trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModule {
   def scalaVersion = Deps.scalaVersion
   def scalafixScalaBinaryVersion = ZincWorkerUtil.scalaBinaryVersion(scalaVersion())
   def semanticDbVersion = Deps.semanticDBscala.version
@@ -375,6 +375,17 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
       "-Xlint:adapted-args"
     )
 
+  def scalacPluginIvyDeps =
+    super.scalacPluginIvyDeps() ++
+      Agg(Deps.acyclic) ++
+      Agg.when(scalaVersion().startsWith("2.13."))(Deps.millModuledefsPlugin)
+
+  def mandatoryIvyDeps =
+    super.mandatoryIvyDeps() ++
+      Agg.when(scalaVersion().startsWith("2.13."))(Deps.millModuledefs)
+}
+
+trait MillScalaModuleWithTest extends MillScalaModule { outer =>
   def testIvyDeps: T[Agg[Dep]] = Agg(Deps.TestDeps.utest)
   def testModuleDeps: Seq[JavaModule] =
     if (this == main) Seq(main)
@@ -389,23 +400,16 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
 
   def runClasspath = super.runClasspath() ++ writeLocalTestOverrides()
 
-  def scalacPluginIvyDeps =
-    super.scalacPluginIvyDeps() ++
-      Agg(Deps.acyclic) ++
-      Agg.when(scalaVersion().startsWith("2.13."))(Deps.millModuledefsPlugin)
-
-  def mandatoryIvyDeps =
-    super.mandatoryIvyDeps() ++
-      Agg.when(scalaVersion().startsWith("2.13."))(Deps.millModuledefs)
-
   /** Default tests module. */
   lazy val test: MillScalaTests = new MillScalaTests {}
+
   trait MillScalaTests extends ScalaTests with MillBaseTestsModule {
     def runClasspath = super.runClasspath() ++ writeLocalTestOverrides()
     def forkArgs = super.forkArgs() ++ outer.testArgs()
     def moduleDeps = outer.testModuleDeps
     def ivyDeps = super.ivyDeps() ++ outer.testIvyDeps()
   }
+
 }
 
 trait MillBaseTestsModule extends MillJavaModule with TestModule {
@@ -440,7 +444,7 @@ trait MillBaseTestsModule extends MillJavaModule with TestModule {
 trait MillPublishScalaModule extends MillScalaModule with MillPublishJavaModule
 
 /** Publishable module which contains strictly handled API. */
-trait MillStableScalaModule extends MillPublishScalaModule with Mima {
+trait MillStableScalaModule extends MillPublishScalaModule with MillScalaModuleWithTest with Mima {
   import com.github.lolgab.mill.mima._
   override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] = Seq(
     // (5x) MIMA doesn't properly ignore things which are nested inside other private things
@@ -646,7 +650,7 @@ object main extends MillStableScalaModule with BuildInfo {
     def ivyDeps = Agg(Deps.coursier, Deps.jline)
   }
 
-  object codesig extends MillPublishScalaModule {
+  object codesig extends MillPublishScalaModule with MillScalaModuleWithTest {
     override def ivyDeps =
       Agg(Deps.asmTree, Deps.osLib, Deps.pprint)
     def moduleDeps = Seq(util)
@@ -737,14 +741,14 @@ object main extends MillStableScalaModule with BuildInfo {
     def ivyDeps = Agg(Deps.graphvizJava, Deps.jgraphtCore)
   }
 
-  object testkit extends MillPublishScalaModule {
+  object testkit extends MillPublishScalaModule with MillScalaModuleWithTest {
     def moduleDeps = Seq(eval, util, main)
   }
 
   def testModuleDeps = super.testModuleDeps ++ Seq(testkit)
 }
 
-object testrunner extends MillPublishScalaModule {
+object testrunner extends MillPublishScalaModule with MillScalaModuleWithTest {
   def moduleDeps = Seq(scalalib.api, main.util, entrypoint)
 
   object entrypoint extends MillPublishJavaModule {
@@ -858,7 +862,7 @@ object contrib extends Module {
   def contribModules: Seq[ContribModule] =
     millInternal.modules.collect { case m: ContribModule => m }
 
-  trait ContribModule extends MillPublishScalaModule {
+  trait ContribModule extends MillPublishScalaModule with MillScalaModuleWithTest {
     def readme = T.source(millSourcePath / "readme.adoc")
   }
 
@@ -965,6 +969,8 @@ object contrib extends Module {
       // compile-time only, need to provide the correct scoverage version at runtime
       def compileIvyDeps = Agg(Deps.scalacScoveragePlugin)
       def scalaVersion = Deps.scalaVersionForScoverageWorker1
+      // Work around error: Can't force version 2.13.12 for modules org.scala-lang:scala-library
+      def enforceSameDependencyVersions = T.task { Seq.empty[Set[(String, String)]] }
     }
 
     // Worker for Scoverage 2.0
@@ -1092,7 +1098,7 @@ object scalanativelib extends MillStableScalaModule {
   }
 }
 
-object bsp extends MillPublishScalaModule with BuildInfo {
+object bsp extends MillPublishScalaModule with MillScalaModuleWithTest with BuildInfo {
   def compileModuleDeps = Seq(scalalib)
   def testModuleDeps = super.testModuleDeps ++ compileModuleDeps
   def buildInfoPackageName = "mill.bsp"
@@ -1498,7 +1504,7 @@ def launcherScript(
   )
 }
 
-object runner extends MillPublishScalaModule {
+object runner extends MillPublishScalaModule with MillScalaModuleWithTest {
   def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, bsp, linenumbers, main.codesig)
   def skipPreviousVersions: T[Seq[String]] = Seq("0.11.0-M7")
 
@@ -1508,7 +1514,7 @@ object runner extends MillPublishScalaModule {
   }
 }
 
-object idea extends MillPublishScalaModule {
+object idea extends MillPublishScalaModule with MillScalaModuleWithTest {
   def moduleDeps = Seq(scalalib, runner)
 }
 
@@ -1517,7 +1523,7 @@ object dist extends MillPublishJavaModule {
   def moduleDeps = Seq(runner, idea)
 }
 
-object dev extends MillPublishScalaModule {
+object dev extends MillPublishScalaModule with MillScalaModuleWithTest {
   // disable scalafix here because it crashes when a module has no sources
   def fix(args: String*): Command[Unit] = T.command {}
   def moduleDeps = Seq(runner, idea)
