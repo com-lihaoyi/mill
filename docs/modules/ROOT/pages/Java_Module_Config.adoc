@@ -84,3 +84,7 @@ If you are using millw, a more permanent solution could be to set the environmen
 == Native C Code with JNI
 
 include::example/javamodule/12-jni.adoc[]
+
+== Annotation Processors with Lombok
+
+include::example/javamodule/13-annotation-processors-lombok.adoc[]
