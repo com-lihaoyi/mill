@@ -1,6 +1,5 @@
 package mill.scalalib
 
-import scala.collection.immutable
 import scala.util.Try
 import scala.xml.{Elem, MetaData, Node, NodeSeq, Null, UnprefixedAttribute}
 import coursier.core.compatibility.xmlParseDom
@@ -85,20 +84,6 @@ case class GenIdeaImpl(
         .map(x => (x.millModuleSegments, x))
         .toSeq
         .distinct
-
-    val buildLibraryPaths: immutable.Seq[Path] =
-      if (!fetchMillModules) Nil
-      else {
-        val moduleRepos = evaluator.evalOrThrow(
-          exceptionFactory = r =>
-            GenIdeaException(
-              s"Failure during resolving repositories: ${Evaluator.formatFailing(r)}"
-            )
-        )(modules.map(_._2.repositoriesTask))
-
-        Lib.resolveMillBuildDeps(moduleRepos.flatten, ctx, useSources = true)
-        Lib.resolveMillBuildDeps(moduleRepos.flatten, ctx, useSources = false)
-      }
 
     val buildDepsPaths = Classpath
       .allJars(evaluator.rootModule.getClass.getClassLoader)
@@ -218,7 +203,7 @@ case class GenIdeaImpl(
     val moduleLabels = modules.map(_.swap).toMap
 
     val allResolved: Seq[Path] =
-      (resolvedModules.flatMap(_.classpath).map(_.value) ++ buildLibraryPaths ++ buildDepsPaths)
+      (resolvedModules.flatMap(_.classpath).map(_.value) ++ buildDepsPaths)
         .distinct
         .sorted
 
@@ -411,7 +396,7 @@ case class GenIdeaImpl(
       }
 
     val allBuildLibraries: Set[ResolvedLibrary] =
-      resolvedLibraries(buildLibraryPaths ++ buildDepsPaths).toSet
+      resolvedLibraries(buildDepsPaths).toSet
 
     val fixedFiles: Seq[(SubPath, Elem)] = Seq(
       Tuple2(os.sub / "misc.xml", miscXmlTemplate(jdkInfo)),

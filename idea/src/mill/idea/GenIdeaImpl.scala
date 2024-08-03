@@ -1,6 +1,5 @@
 package mill.idea
 
-import scala.collection.immutable
 import scala.util.{Success, Try}
 import scala.xml.{Elem, MetaData, Node, NodeSeq, Null, UnprefixedAttribute}
 import coursier.core.compatibility.xmlParseDom
@@ -100,22 +99,6 @@ case class GenIdeaImpl(
 //        .map(x => (x.millModuleSegments, x))
 //        .toSeq
 //        .distinct
-
-    val buildLibraryPaths: immutable.Seq[os.Path] = {
-      if (!fetchMillModules) Nil
-      else {
-        val moduleRepos = modulesByEvaluator.toSeq.flatMap { case (ev, modules) =>
-          ev.evalOrThrow(
-            exceptionFactory = r =>
-              GenIdeaException(
-                s"Failure during resolving repositories: ${Evaluator.formatFailing(r)}"
-              )
-          )(modules.map(_._2.repositoriesTask))
-        }
-        Lib.resolveMillBuildDeps(moduleRepos.flatten, Option(ctx), useSources = true)
-        Lib.resolveMillBuildDeps(moduleRepos.flatten, Option(ctx), useSources = false)
-      }
-    }
 
     // is head the right one?
     val buildDepsPaths = Classpath.allJars(evaluators.head.rootModule.getClass.getClassLoader)
@@ -251,7 +234,7 @@ case class GenIdeaImpl(
     val moduleLabels = modules.map { case (s, m, e) => (m, s) }.toMap
 
     val allResolved: Seq[os.Path] =
-      (resolvedModules.flatMap(_.classpath).map(_.value) ++ buildLibraryPaths ++ buildDepsPaths)
+      (resolvedModules.flatMap(_.classpath).map(_.value) ++ buildDepsPaths)
         .distinct
         .sorted
 
