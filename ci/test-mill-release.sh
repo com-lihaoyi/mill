@@ -16,6 +16,4 @@ test ! -f $EXAMPLE/out/bar/2.13.8/assembly.dest/out.jar
 
 test -d $EXAMPLE/out/foo/3.2.2/compile.dest
 
-(cd $EXAMPLE && ../../../out/dev/assembly.dest/mill show "bar[2.13.8].assembly")
-
-test -f $EXAMPLE/out/bar/2.13.8/assembly.dest/out.jar
+(cd $EXAMPLE && ../../../out/dev/assembly.dest/mill show "example.basic[1-simple].server.test")
