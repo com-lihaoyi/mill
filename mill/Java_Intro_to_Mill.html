@@ -109,6 +109,10 @@
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Java_Web_Build_Examples.html">Java Web Build Examples</a>
   </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Java_Case_Study_Netty.html">Java Case Study: Netty</a>
+  </li>
 </ul>
   </li>
 
@@ -300,14 +304,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.10-52-ac45f7</span>
+    <span class="version">0.11.10-53-5aa41b</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.10-52-ac45f7</a>
+          <a href="index.html">0.11.10-53-5aa41b</a>
         </li>
         <li class="version">
           <a href="0.11.10/index.html">0.11.10</a>
@@ -346,9 +350,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.10-52-ac45f7</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.10-53-5aa41b</button>
   <div class="version-menu">
-    <a class="version is-current" href="Java_Intro_to_Mill.html">0.11.10-52-ac45f7</a>
+    <a class="version is-current" href="Java_Intro_to_Mill.html">0.11.10-53-5aa41b</a>
     <a class="version is-missing" href="0.11.10/index.html">0.11.10</a>
     <a class="version is-missing" href="0.11.0-M7/index.html">0.11.0-M7</a>
     <a class="version is-missing" href="0.10.15/index.html">0.10.15</a>
@@ -372,11 +376,12 @@ gtag('config', 'AW-16649289906');
 </script>
 <div class="imageblock kroki">
 <div class="content">
-<img src="_images/diag-f3247dbcfb24e250c376bd2e709febcc36fdeb78.svg" alt="Diagram" />
+<img src="_images/diag-8e1011632f0c5c2adb4e0ac65e0c9c404167f53c.svg" alt="Diagram" />
 </div>
 </div>
 <div class="paragraph">
-<p><a href="https://github.com/com-lihaoyi/mill">Mill</a> is a graph-based JVM build tool that supports Java.
+<p><a href="https://github.com/com-lihaoyi/mill">Mill</a> is a fast JVM build tool that supports Java, speeding
+up common development workflows by 5-10x <a href="Java_Case_Study_Netty.html" class="xref page">compared to Maven</a> or SBT.
 Mill aims to make your JVM project’s build process performant, maintainable, and flexible
 even as it grows from a small project to a large codebase or monorepo with hundreds of modules:</p>
 </div>
@@ -985,7 +990,7 @@ Tasks that depend on each other can’t be processed in parallel.</p>
 <div class="listingblock">
 <div class="title">Output of <code>mill --help</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.11.10-52-ac45f7
+<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.11.10-53-5aa41b
 usage: mill [options] [[target [target-options]] [+ [target ...]]]
   -D --define &lt;k=v&gt;                 Define (or overwrite) a system property.
   -b --bell                         Ring the bell once if the run completes successfully, twice if
