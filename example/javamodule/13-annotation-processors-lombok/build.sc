@@ -16,7 +16,7 @@ object foo extends JavaModule {
 
 > ./mill foo.test
 Test foo.HelloWorldTest.testSimple started
-Test foo.HelloWorldTest.testSimple finished
+Test foo.HelloWorldTest.testSimple finished...
 ...
 
 */
@@ -51,7 +51,7 @@ object bar extends JavaModule {
 
  > ./mill bar.test
  Test bar.HelloWorldTest.testSimple started
- Test bar.HelloWorldTest.testSimple finished
+ Test bar.HelloWorldTest.testSimple finished...
  ...
 
  */
