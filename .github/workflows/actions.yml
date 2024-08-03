@@ -39,7 +39,7 @@ jobs:
             buildcmd: ci/test-mill-dev.sh
           - java-version: 17 # Have one job on default JVM
             buildcmd: ci/test-mill-release.sh
-          - java-version: 21 # Have one job on latest JVM
+          - java-version: 17
             buildcmd: ci/test-mill-bootstrap.sh
           # Just some reporting to enable reasoning about library upgrades
           - java-version: 8
