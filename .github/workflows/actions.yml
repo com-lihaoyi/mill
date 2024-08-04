@@ -145,7 +145,7 @@ jobs:
           - java-version: 17
             millargs: '"example.basic[_].local.test"'
           - java-version: 17
-            millargs: "'integration.feature[_].local.test'"
+            millargs: "'integration.feature[_].fork.test'"
           - java-version: 17
             millargs: "'integration.invalidation[_].server.test'"
           - java-version: 17
