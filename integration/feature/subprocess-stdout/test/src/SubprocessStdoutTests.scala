@@ -11,7 +11,7 @@ object SubprocessStdoutTests extends IntegrationTestSuite {
       // Make sure that when a lot of printed/inherited stdout/stderr is printed
       // in quick succession, the output ordering is preserved and it doesn't get
       // jumbled up
-      retry(3){
+      retry(3) {
         assert(
           res1.contains(
             s"""print stdout1
