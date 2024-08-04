@@ -75,8 +75,8 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
             .map(sanitizeUri).toSeq.asJava,
           sanitizeUri(classesPathTask.resolve(pathResolver))
         )
-    } { x =>
-      new ScalacOptionsResult(x._1)
+    } {
+      new ScalacOptionsResult(_)
     }
 
   override def buildTargetScalaMainClasses(p: ScalaMainClassesParams)
@@ -101,8 +101,8 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
 
       case (ev, state, id, _, _) => // no Java module, so no main classes
         new ScalaMainClassesItem(id, Seq.empty[ScalaMainClass].asJava)
-    } { x =>
-      new ScalaMainClassesResult(x._1)
+    } {
+      new ScalaMainClassesResult(_)
     }
 
   override def buildTargetScalaTestClasses(p: ScalaTestClassesParams)
@@ -141,8 +141,8 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
       case (ev, state, id, _, _) =>
         // Not a test module, so no test classes
         new ScalaTestClassesItem(id, Seq.empty[String].asJava)
-    } { x =>
-      new ScalaTestClassesResult(x._1)
+    } {
+      new ScalaTestClassesResult(_)
     }
 
 }

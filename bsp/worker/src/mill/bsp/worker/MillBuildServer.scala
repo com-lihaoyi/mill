@@ -153,7 +153,7 @@ private class MillBuildServer(
   }
 
   override def workspaceBuildTargets(): CompletableFuture[WorkspaceBuildTargetsResult] =
-    completableTasks(
+    completableTasksWithState(
       "workspaceBuildTargets",
       targetIds = _.bspModulesById.keySet.toSeq,
       tasks = { case m: BspModule => m.bspBuildTargetData }
@@ -192,7 +192,7 @@ private class MillBuildServer(
       val bt = m.bspBuildTarget
       makeBuildTarget(id, depsIds, bt, data)
 
-    } { case (targets, state) =>
+    } { (targets, state) =>
       new WorkspaceBuildTargetsResult(
         (targets.asScala ++ state.syntheticRootBspBuildTarget.map(_.target)).asJava
       )
@@ -225,7 +225,7 @@ private class MillBuildServer(
       generated
     )
 
-    completableTasks(
+    completableTasksWithState(
       hint = s"buildTargetSources ${sourcesParams}",
       targetIds = _ => sourcesParams.getTargets.asScala.toSeq,
       tasks = {
@@ -243,7 +243,7 @@ private class MillBuildServer(
       }
     ) {
       case (ev, state, id, module, items) => new SourcesItem(id, items.asJava)
-    } { case (sourceItems, state) =>
+    } { (sourceItems, state) =>
       new SourcesResult(
         (sourceItems.asScala.toSeq ++ state.syntheticRootBspBuildTarget.map(_.synthSources)).asJava
       )
@@ -316,8 +316,8 @@ private class MillBuildServer(
 
         val cp = (resolveDepsSources ++ unmanagedClasspath).map(sanitizeUri).toSeq ++ buildSources
         new DependencySourcesItem(id, cp.asJava)
-    } { x =>
-      new DependencySourcesResult(x._1)
+    } {
+      new DependencySourcesResult(_)
     }
 
   /**
@@ -355,8 +355,8 @@ private class MillBuildServer(
           new DependencyModule(s"unmanaged-${dep.path.last}", "")
         }
         new DependencyModulesItem(id, (deps ++ unmanged).iterator.toSeq.asJava)
-    } { x =>
-      new DependencyModulesResult(x._1)
+    } {
+      new DependencyModulesResult(_)
     }
 
   override def buildTargetResources(p: ResourcesParams): CompletableFuture[ResourcesResult] =
@@ -372,8 +372,8 @@ private class MillBuildServer(
         val resourcesUrls = resources.map(_.path).filter(os.exists).map(sanitizeUri)
         new ResourcesItem(id, resourcesUrls.asJava)
 
-    } { x =>
-      new ResourcesResult(x._1)
+    } {
+      new ResourcesResult(_)
     }
 
   // TODO: if the client wants to give compilation arguments and the module
@@ -631,10 +631,22 @@ private class MillBuildServer(
       hint: String,
       targetIds: State => Seq[BuildTargetIdentifier],
       tasks: PartialFunction[BspModule, Task[W]]
-  )(f: (Evaluator, State, BuildTargetIdentifier, BspModule, W) => T)(agg: ((
+  )(f: (Evaluator, State, BuildTargetIdentifier, BspModule, W) => T)(agg: java.util.List[T] => V)
+      : CompletableFuture[V] =
+    completableTasksWithState[T, V, W](hint, targetIds, tasks)(f)((l, _) => agg(l))
+
+  /**
+   * @params tasks A partial function
+   * @param f The function must accept the same modules as the partial function given by `tasks`.
+   */
+  def completableTasksWithState[T, V, W: ClassTag](
+      hint: String,
+      targetIds: State => Seq[BuildTargetIdentifier],
+      tasks: PartialFunction[BspModule, Task[W]]
+  )(f: (Evaluator, State, BuildTargetIdentifier, BspModule, W) => T)(agg: (
       java.util.List[T],
       State
-  )) => V): CompletableFuture[V] = {
+  ) => V): CompletableFuture[V] = {
     val prefix = hint.split(" ").head
     completable(hint) { state: State =>
       val ids = targetIds(state).filterNot(state.syntheticRootBspBuildTarget.map(_.id).contains)
@@ -676,7 +688,7 @@ private class MillBuildServer(
             }
         }
 
-      agg((evaluated.flatten.toSeq.asJava, state))
+      agg(evaluated.flatten.toSeq.asJava, state)
     }
   }
 

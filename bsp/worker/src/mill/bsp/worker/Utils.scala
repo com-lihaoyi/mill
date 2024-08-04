@@ -15,7 +15,6 @@ import mill.api.Result.{Skipped, Success}
 import mill.eval.Evaluator
 import mill.scalalib.JavaModule
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
-import os.up
 
 import scala.jdk.CollectionConverters._
 import scala.util.chaining.scalaUtilChainingOps
@@ -108,7 +107,7 @@ private object Utils {
     }
 
     def projectsRootPaths = os.walk(topLevelProjectRoot, ignore).collect {
-      case p if p.endsWith(os.RelPath("build.sc")) => p / up
+      case p if p.endsWith(os.RelPath("build.sc")) => p / os.up
     }
     def outputPathItem(path: os.Path) =
       new OutputPathItem(
