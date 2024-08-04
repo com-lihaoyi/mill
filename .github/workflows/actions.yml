@@ -65,7 +65,7 @@ jobs:
             millargs: '"scalajslib.__.test"'
           - java-version: 8
             millargs: '"scalanativelib.__.test"'
-          - java-version: 8
+          - java-version: 17
             millargs: "contrib._.test"
 
           # Group these tests together to try and balance out the runtimes of each job
