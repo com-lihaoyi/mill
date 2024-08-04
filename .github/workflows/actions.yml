@@ -79,7 +79,7 @@ jobs:
 
             # Most of these integration tests should not depend on which mode they
             # are run in, so just run them in `local`
-          - java-version: 17
+          - java-version: 8
             millargs: "'integration.{failure,feature,ide}[_].local.test'"
 
             # These invalidation tests need to be exercised in all three execution modes
