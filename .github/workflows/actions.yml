@@ -149,7 +149,7 @@ jobs:
           - java-version: 17
             millargs: "'integration.invalidation[_].server.test'"
           - java-version: 17
-            millargs: "'integration.failure[_].local.test'"
+            millargs: "'integration.failure[_].fork.test'"
           - java-version: 17
             millargs: "contrib.__.test"
 
