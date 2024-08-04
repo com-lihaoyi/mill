@@ -91,10 +91,12 @@ trait NettyJniModule extends NettyModule {
     Seq(PathRef(T.dest))
   }
   def clang = T{
-    val Seq(sourceJar) = resolveDeps(
-      deps = T.task(Agg(ivy"io.netty:netty-jni-util:0.0.9.Final").map(bindDependency())),
-      sources = true
-    )().toSeq
+    val Seq(sourceJar) = defaultResolver()
+      .resolveDeps(
+        Agg(ivy"io.netty:netty-jni-util:0.0.9.Final").map(bindDependency()),
+        sources = true
+      )
+      .toSeq
 
     os.makeDir.all(T.dest  / "src" / "main" / "c")
     os.proc("jar", "xf", sourceJar.path).call(cwd = T.dest  / "src" / "main" / "c")
