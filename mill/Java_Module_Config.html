@@ -304,14 +304,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.10-53-5aa41b</span>
+    <span class="version">0.11.10-54-86ff34</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.10-53-5aa41b</a>
+          <a href="index.html">0.11.10-54-86ff34</a>
         </li>
         <li class="version">
           <a href="0.11.10/index.html">0.11.10</a>
@@ -350,9 +350,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.10-53-5aa41b</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.10-54-86ff34</button>
   <div class="version-menu">
-    <a class="version is-current" href="Java_Module_Config.html">0.11.10-53-5aa41b</a>
+    <a class="version is-current" href="Java_Module_Config.html">0.11.10-54-86ff34</a>
     <a class="version" href="0.11.10/Java_Module_Config.html">0.11.10</a>
     <a class="version is-missing" href="0.11.0-M7/index.html">0.11.0-M7</a>
     <a class="version is-missing" href="0.10.15/index.html">0.10.15</a>
@@ -970,6 +970,77 @@ Hello, World!
 &gt; ./mill test
 Test foo.HelloWorldTest.testSimple started
 Test foo.HelloWorldTest.testSimple finished...
+...</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_annotation_processors_with_lombok"><a class="anchor" href="#_annotation_processors_with_lombok"></a>Annotation Processors with Lombok</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.11.10/0.11.10-example-javamodule-13-annotation-processors-lombok.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/javamodule/13-annotation-processors-lombok">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
+
+
+object foo extends JavaModule {
+  def compileIvyDeps = Agg(ivy&quot;org.projectlombok:lombok:1.18.34&quot;)
+
+  object test extends JavaTests with TestModule.Junit4
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is an example of how to use Mill to build Java projects using Java annotations and
+annotation processors. In this case, we use the annotations provided by
+<a href="https://projectlombok.org">Project Lombok</a> to automatically generate getters and setters
+from class private fields</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.test
+Test foo.HelloWorldTest.testSimple started
+Test foo.HelloWorldTest.testSimple finished...
+...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The Java compiler automatically discovers annotation processors based on the
+classes available during compilation, e.g. on <code>compileIvyDeps</code> or <code>ivyDeps</code>,
+which is what takes place in the example above.</p>
+</div>
+<div class="paragraph">
+<p>In some cases, you may need
+to pass in the annotation processors manually, e.g. if you need annotation
+processors that are not on the compilation classpath, or you need finer control
+over exactly which annotation processors are active. To do this, you can define
+a module to contain the exact annotation processors you want, and pass
+in <code>-processorpath</code> to <code>javacOptions</code> explicitly:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object processors extends JavaModule{
+  def ivyDeps = Agg(ivy&quot;org.projectlombok:lombok:1.18.34&quot;)
+}
+
+object bar extends JavaModule {
+  def compileIvyDeps = Agg(ivy&quot;org.projectlombok:lombok:1.18.34&quot;)
+
+  def javacOptions = Seq(
+    &quot;-processorpath&quot;,
+    processors.runClasspath().map(_.path).mkString(&quot;:&quot;),
+  )
+
+  object test extends JavaTests with TestModule.Junit4
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill bar.test
+Test bar.HelloWorldTest.testSimple started
+Test bar.HelloWorldTest.testSimple finished...
 ...</code></pre>
 </div>
 </div>
