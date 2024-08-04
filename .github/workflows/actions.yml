@@ -61,6 +61,9 @@ jobs:
           # Run unit and module tests on both oldest and newest Java versions
           - '"{main,scalalib,testrunner,bsp}.__.test"'
         include:
+          # For most tests, run them arbitrarily on Java 8 or Java 17 on Linux, and
+          # on the opposite version on Windows below, so we get decent coverage of
+          # each test on each Java version and each operating system
           - java-version: 8
             millargs: '"scalajslib.__.test"'
           - java-version: 8
