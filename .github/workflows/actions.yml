@@ -60,13 +60,16 @@ jobs:
         millargs:
           # Run unit and module tests on both oldest and newest Java versions
           - '"{main,scalalib,testrunner,bsp}.__.test"'
-          - '"scalajslib.__.test"'
-          - '"scalanativelib.__.test"'
-          # contrib tests
-          - "contrib._.test"
-
         include:
-          # Integration and example tests are slow, so don't run the on multiple Java versions
+          # For most tests, run them arbitrarily on Java 8 or Java 17 on Linux, and
+          # on the opposite version on Windows below, so we get decent coverage of
+          # each test on each Java version and each operating system
+          - java-version: 8
+            millargs: '"scalajslib.__.test"'
+          - java-version: 8
+            millargs: '"scalanativelib.__.test"'
+          - java-version: 17
+            millargs: "contrib._.test"
 
           # Group these tests together to try and balance out the runtimes of each job
           # Just running in `local` mode since they shouldn't depend on the mode
@@ -79,7 +82,7 @@ jobs:
 
             # Most of these integration tests should not depend on which mode they
             # are run in, so just run them in `local`
-          - java-version: 17
+          - java-version: 8
             millargs: "'integration.{failure,feature,ide}[_].local.test'"
 
             # These invalidation tests need to be exercised in all three execution modes
@@ -131,26 +134,22 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        java-version: [8, 17]
-        millargs:
-          # Run a stripped down build matrix on Windows, to avoid taking too long
-          - '"{__.publishLocal,dev.assembly,__.compile}"'
-          - '"{main,scalalib,bsp}.__.test"'
-          - '"scalajslib.__.test"'
-
         include:
-          # Limit some tests to Java 17 to limit CI times
           # just run a subset of examples/ on Windows, because for some reason running
           # the whole suite can take hours on windows v.s. half an hour on linux
+          - java-version: 8
+            millargs: '"{main,scalalib,bsp}.__.test"'
           - java-version: 17
+            millargs: '"scalajslib.__.test"'
+          - java-version: 8
             millargs: '"example.basic[_].local.test"'
           - java-version: 17
             millargs: "'integration.feature[_].fork.test'"
-          - java-version: 17
+          - java-version: 8
             millargs: "'integration.invalidation[_].server.test'"
           - java-version: 17
             millargs: "'integration.failure[_].fork.test'"
-          - java-version: 17
+          - java-version: 8
             millargs: "contrib.__.test"
 
     uses: ./.github/workflows/run-mill-action.yml
