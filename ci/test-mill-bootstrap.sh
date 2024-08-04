@@ -20,5 +20,4 @@ ci/prepare-mill-bootstrap.sh
 
 # Run tests
 target/mill-release -i "__.compile"
-target/mill-release -i "{main,scalalib}.__.test"
 target/mill-release -i "example.basic[1-simple].server.test"

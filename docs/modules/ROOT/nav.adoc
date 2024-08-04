@@ -10,6 +10,7 @@
 * xref:Java_Build_Examples.adoc[]
 * xref:Java_Module_Config.adoc[]
 * xref:Java_Web_Build_Examples.adoc[]
+* xref:Java_Case_Study_Netty.adoc[]
 
 .Scala Quick Start
 * xref:Scala_Intro_to_Mill.adoc[]
