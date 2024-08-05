@@ -12,7 +12,10 @@ sealed trait Result[+T] {
   def flatMap[V](f: T => Result[V]): Result[V]
   def asSuccess: Option[Result.Success[T]] = None
   def asFailing: Option[Result.Failing[T]] = None
-
+  def getOrThrow: T = this match {
+    case Result.Success(v) => v
+    case f: Result.Failing[_] => throw f
+  }
 }
 
 object Result {
@@ -55,7 +58,7 @@ object Result {
    * A failed task execution.
    * @tparam T The result type of the computed task.
    */
-  sealed trait Failing[+T] extends Result[T] {
+  sealed trait Failing[+T] extends java.lang.Exception with Result[T] {
     def map[V](f: T => V): Failing[V]
     def flatMap[V](f: T => Result[V]): Failing[V]
     override def asFailing: Option[Result.Failing[T]] = Some(this)

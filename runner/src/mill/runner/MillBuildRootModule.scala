@@ -236,9 +236,8 @@ class MillBuildRootModule()(implicit
     )
   }
 
-  override def resolveDeps(deps: Task[Agg[BoundDep]], sources: Boolean): Task[Agg[PathRef]] = {
-    val excludeProvided = T.task { deps().map(_.exclude(resolveDepsExclusions(): _*)) }
-    super.resolveDeps(excludeProvided, sources)
+  override def bindDependency: Task[Dep => BoundDep] = T.task { dep: Dep =>
+    super.bindDependency().apply(dep).exclude(resolveDepsExclusions(): _*)
   }
 
   override def unmanagedClasspath: T[Agg[PathRef]] = T {
