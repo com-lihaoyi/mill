@@ -6,8 +6,8 @@ import mill.api.{PathRef, Result, internal}
 import mill.define.{Discover, Task}
 import mill.scalalib.{BoundDep, Dep, DepSyntax, Lib, ScalaModule}
 import mill.util.CoursierSupport
-import mill.util.Util.millProjectModule
 import mill.scalalib.api.Versions
+import mill.scalalib.api.ZincWorkerUtil
 import mill.main.client.OutFiles._
 import mill.main.client.CodeGenConstants.buildFileExtensions
 import mill.main.{BuildInfo, RootModule}
@@ -220,13 +220,15 @@ abstract class MillBuildRootModule()(implicit
    * We exclude them to avoid incompatible or duplicate artifacts on the classpath.
    */
   protected def resolveDepsExclusions: T[Seq[(String, String)]] = Task {
-    Lib.millAssemblyEmbeddedDeps.toSeq.map(d =>
-      (d.dep.module.organization.value, d.dep.module.name.value)
-    )
+    Lib.millAssemblyEmbeddedDeps.toSeq.flatMap({ d =>
+      val isScala3 = ZincWorkerUtil.isScala3(scalaVersion())
+      if isScala3 && d.dep.module.name.value == "scala-library" then None
+      else Some((d.dep.module.organization.value, d.dep.module.name.value))
+    })
   }
 
   override def bindDependency: Task[Dep => BoundDep] = Task.Anon { (dep: Dep) =>
-    super.bindDependency().apply(dep).exclude(resolveDepsExclusions(): _*)
+    super.bindDependency.apply().apply(dep).exclude(resolveDepsExclusions(): _*)
   }
 
   override def unmanagedClasspath: T[Agg[PathRef]] = Task {
@@ -240,12 +242,7 @@ abstract class MillBuildRootModule()(implicit
   override def scalacOptions: T[Seq[String]] = Task {
     super.scalacOptions() ++
       Seq(
-        "-Xplugin:" + lineNumberPluginClasspath().map(_.path).mkString(","),
-        "-deprecation",
-        // Make sure we abort of the plugin is not found, to ensure any
-        // classpath/plugin-discovery issues are surfaced early rather than
-        // after hours of debugging
-        "-Xplugin-require:mill-linenumber-plugin"
+        "-deprecation"
       )
   }
 
@@ -256,7 +253,8 @@ abstract class MillBuildRootModule()(implicit
     super.semanticDbPluginClasspath() ++ lineNumberPluginClasspath()
 
   def lineNumberPluginClasspath: T[Agg[PathRef]] = Task {
-    millProjectModule("mill-runner-linenumbers", repositoriesTask())
+    // millProjectModule("mill-runner-linenumbers", repositoriesTask())
+    Agg.empty
   }
 
   /** Used in BSP IntelliJ, which can only work with directories */

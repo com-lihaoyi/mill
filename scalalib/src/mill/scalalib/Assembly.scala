@@ -12,12 +12,27 @@ import java.util.Collections
 import java.util.jar.JarFile
 import java.util.regex.Pattern
 import scala.jdk.CollectionConverters._
-import scala.tools.nsc.io.Streamable
 import scala.util.Using
 
 case class Assembly(pathRef: PathRef, addedEntries: Int)
 
 object Assembly {
+
+  private object Streamable {
+    def bytes(is: InputStream): Array[Byte] = {
+      val buffer = new Array[Byte](8192)
+      val out = new java.io.ByteArrayOutputStream
+      var read = 0
+      while ({
+        read = is.read(buffer)
+        read != -1
+      }) {
+        out.write(buffer, 0, read)
+      }
+      out.close()
+      out.toByteArray
+    }
+  }
 
   implicit val assemblyJsonRW: upickle.default.ReadWriter[Assembly] = upickle.default.macroRW
 

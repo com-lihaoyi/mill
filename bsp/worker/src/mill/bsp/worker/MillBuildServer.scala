@@ -16,6 +16,7 @@ import mill.runner.MillBuildRootModule
 import mill.scalalib.bsp.{BspModule, JvmBuildTarget, ScalaBuildTarget}
 import mill.scalalib.{JavaModule, SemanticDbJavaModule, TestModule}
 import mill.util.ColorLogger
+import mill.given
 
 import java.io.PrintStream
 import java.util.concurrent.CompletableFuture

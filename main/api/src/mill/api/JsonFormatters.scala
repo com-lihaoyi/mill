@@ -50,7 +50,7 @@ trait JsonFormatters {
         ujson.Obj(
           "declaringClass" -> ujson.Str(ste.getClassName),
           "methodName" -> ujson.Str(ste.getMethodName),
-          "fileName" -> ujson.Arr(Option(ste.getFileName()).map(ujson.Str(_)).toSeq: _*),
+          "fileName" -> ujson.Arr(Option(ste.getFileName()).map(ujson.Str(_)).toSeq*),
           "lineNumber" -> ujson.Num(ste.getLineNumber)
         ),
       json =>

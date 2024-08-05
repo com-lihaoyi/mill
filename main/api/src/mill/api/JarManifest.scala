@@ -4,6 +4,8 @@ import upickle.default.ReadWriter
 
 import java.util.jar.{Attributes, Manifest}
 
+import Mirrors.autoMirror
+
 /**
  * Represents a JAR manifest.
  *
@@ -60,6 +62,8 @@ object JarManifest {
       main: Map[String, String] = Map.empty,
       groups: Map[String, Map[String, String]] = Map.empty
   ): JarManifest = new JarManifest(main, groups)
+
+  private given Root_JarManifest: Mirrors.Root[JarManifest] = Mirrors.autoRoot[JarManifest]
 
   implicit val jarManifestRW: ReadWriter[JarManifest] = upickle.default.macroRW
 

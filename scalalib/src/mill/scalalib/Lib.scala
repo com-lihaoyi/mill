@@ -102,7 +102,10 @@ object Lib {
       mapDependencies = mapDependencies,
       customizer = customizer,
       ctx = ctx,
-      coursierCacheCustomizer = coursierCacheCustomizer
+      coursierCacheCustomizer = coursierCacheCustomizer,
+      // SCALA 3.5.0, for some reason, without resolveFilter,
+      // then coursierCacheCustomizer is not typed correctly
+      resolveFilter = _ => true
     ).map(_.map(_.withRevalidateOnce))
   }
 

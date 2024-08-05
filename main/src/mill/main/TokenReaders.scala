@@ -69,5 +69,5 @@ trait TokenReaders0 {
     case t: TokensReader.Leftover[_, _] => new LeftoverTaskTokenReader[T](t)
   }
 
-  def given = () // dummy for scala 2/3 compat
+  def `given` = () // dummy for scala 2/3 compat
 }

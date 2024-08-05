@@ -132,11 +132,10 @@ object `package` extends RootModule {
       def compileIvyDeps = Task {
         Agg(
           // compile-time only, need to provide the correct scoverage version at runtime
-          build.Deps.scalacScoverage2Plugin,
           build.Deps.scalacScoverage2Reporter,
           build.Deps.scalacScoverage2Domain,
           build.Deps.scalacScoverage2Serializer
-        )
+        ) ++ Agg.when(!ZincWorkerUtil.isScala3(scalaVersion()))(build.Deps.scalacScoverage2Plugin)
       }
     }
   }
