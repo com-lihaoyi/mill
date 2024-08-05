@@ -295,6 +295,8 @@ endif::[]
 
 _Changes since {prev-version}:_
 
+* Workaround issue in Sonatype which started failing on double slashes in URLs
+  (even though they previously worked) https://github.com/com-lihaoyi/mill/commit/a293b46e80e37572bae46ef6225f41f547a5b238[Link]
 * Overhaul of the documentation site at https://mill-build.com
 * New Java- and Scala-specific sections on the documentation, with more detailed
   comparisons to existing build tools
