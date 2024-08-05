@@ -28,7 +28,7 @@ object ApplicativeTests extends TestSuite {
       value
     }
   }
-  @compileTimeOnly("Target.ctx() can only be used with a Task{...} block")
+  // @compileTimeOnly("Target.ctx() can only be used with a Task{...} block")
   @ImplicitStub
   implicit def taskCtx: String = ???
 

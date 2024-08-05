@@ -19,7 +19,9 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
     ivy"guru.nidi:graphviz-java-min-deps:0.18.1"
   )
 
-  def compileIvyDeps = Agg(build.Deps.scalaReflect(scalaVersion()))
+  def compileIvyDeps = T {
+    if (scalaVersion().startsWith("3.")) Agg.empty else Agg(build.Deps.scalaReflect(scalaVersion()))
+  }
 
   def buildInfoPackageName = "mill.main"
 
@@ -97,9 +99,11 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
 
   object define extends build.MillStableScalaModule {
     def moduleDeps = Seq(api, util)
-    def compileIvyDeps = Agg(build.Deps.scalaReflect(scalaVersion()))
+    def compileIvyDeps = T {
+      if (scalaVersion().startsWith("3.")) Agg.empty else Agg(build.Deps.scalaReflect(scalaVersion()))
+    }
     def ivyDeps = Agg(
-      build.Deps.millModuledefs,
+      // Deps.millModuledefs, // TODO: port moduledefs to Scala 3
       // Necessary so we can share the JNA classes throughout the build process
       build.Deps.jna,
       build.Deps.jnaPlatform,

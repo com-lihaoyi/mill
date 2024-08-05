@@ -96,9 +96,9 @@ trait JavaModule
    * If none is specified, the classpath is searched for an appropriate main
    * class to use if one exists
    */
-  def mainClass: T[Option[String]] = None
+  override def mainClass: T[Option[String]] = None // TODO: remove override with mill-moduledefs
 
-  def finalMainClassOpt: T[Either[String, String]] = Task {
+  override def finalMainClassOpt: T[Either[String, String]] = Task {  // TODO: remove override with mill-moduledefs
     mainClass() match {
       case Some(m) => Right(m)
       case None =>
@@ -115,7 +115,7 @@ trait JavaModule
     }
   }
 
-  def finalMainClass: T[String] = Task {
+  override def finalMainClass: T[String] = Task {  // TODO: remove override with mill-moduledefs
     finalMainClassOpt() match {
       case Right(main) => Result.Success(main)
       case Left(msg) => Result.Failure(msg)
@@ -133,7 +133,7 @@ trait JavaModule
    * ivy"org::name:version" for Scala dependencies or ivy"org:name:version"
    * for Java dependencies
    */
-  def ivyDeps: T[Agg[Dep]] = Task { Agg.empty[Dep] }
+  override def ivyDeps: T[Agg[Dep]] = Task { Agg.empty[Dep] }  // TODO: remove override with mill-moduledefs
 
   /**
    * Aggregation of mandatoryIvyDeps and ivyDeps.
@@ -375,7 +375,8 @@ trait JavaModule
    * The folders where the resource files for this module live.
    * If you need resources to be seen by the compiler, use [[compileResources]].
    */
-  def resources: T[Seq[PathRef]] = Task.Sources { millSourcePath / "resources" }
+  // TODO: remove override when mill-moduledefs is ported to scala 3
+  override def resources: T[Seq[PathRef]] = Task.Sources { millSourcePath / "resources" }
 
   /**
    * The folders where the compile time resource files for this module live.

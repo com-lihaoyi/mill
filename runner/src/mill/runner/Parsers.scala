@@ -71,7 +71,7 @@ object Parsers {
       // Call `fastparse.ParserInput.fromString` explicitly, to avoid generating a
       // lambda in the class body and making the we-do-not-load-fastparse-on-cached-scripts
       // test fail
-      parse(fastparse.ParserInput.fromString(stmt), ImportSplitter(_)) match {
+      parse(fastparse.ParserInput.fromString(stmt), ImportSplitter(using _)) match {
         case f: Parsed.Failure => hookedStmts.append((stmt, Nil))
         case Parsed.Success(parsedTrees, _) =>
           val importTrees = mutable.Buffer.empty[ImportTree]
@@ -108,7 +108,7 @@ object Parsers {
    * by adding `val res2 = ` without the whitespace getting in the way
    */
   def splitScript(rawCode: String, fileName: String): Either[String, (Seq[String], Seq[String])] = {
-    parse(rawCode, CompilationUnit(_)) match {
+    parse(rawCode, CompilationUnit(using _)) match {
       case f: Parsed.Failure => Left(formatFastparseError(fileName, rawCode, f))
       case s: Parsed.Success[(Option[Seq[String]], String, Seq[String])] =>
         Right(s.value._1.toSeq.flatten -> (Seq(s.value._2) ++ s.value._3))

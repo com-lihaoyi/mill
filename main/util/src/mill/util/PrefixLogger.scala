@@ -67,11 +67,11 @@ class PrefixLogger(
 
   override def info(s: String): Unit = {
     reportKey(logPrefixKey)
-    logger0.info(infoColor(linePrefix) + s)
+    logger0.info("" + infoColor(linePrefix) + s)
   }
   override def error(s: String): Unit = {
     reportKey(logPrefixKey)
-    logger0.error(infoColor(linePrefix) + s)
+    logger0.error("" + infoColor(linePrefix) + s)
   }
   override def ticker(s: String): Unit = setPromptDetail(logPrefixKey, s)
   override def setPromptDetail(key: Seq[String], s: String): Unit = logger0.setPromptDetail(key, s)
@@ -90,7 +90,7 @@ class PrefixLogger(
 
   override def debug(s: String): Unit = {
     if (debugEnabled) reportKey(logPrefixKey)
-    logger0.debug(infoColor(linePrefix) + s)
+    logger0.debug("" + infoColor(linePrefix) + s)
   }
   override def debugEnabled: Boolean = logger0.debugEnabled
 

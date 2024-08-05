@@ -55,7 +55,8 @@ object Deps {
   // The Scala version to use
   // When updating, run "Publish Bridges" Github Actions for the new version
   // and then add to it `bridgeScalaVersions`
-  val scalaVersion = "2.13.14"
+  val scalaVersion = "3.5.0"
+  val scala2Version = "2.13.14"
   // The Scala 2.12.x version to use for some workers
   val workerScalaVersion212 = "2.12.19"
 
@@ -68,14 +69,14 @@ object Deps {
 
   object Scalajs_1 {
     val scalaJsVersion = "1.16.0"
-    val scalajsEnvJsdomNodejs = ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.1.0"
-    val scalajsEnvExoegoJsdomNodejs = ivy"net.exoego::scalajs-env-jsdom-nodejs:2.1.0"
-    val scalajsEnvNodejs = ivy"org.scala-js::scalajs-env-nodejs:1.4.0"
-    val scalajsEnvPhantomjs = ivy"org.scala-js::scalajs-env-phantomjs:1.0.0"
-    val scalajsEnvSelenium = ivy"org.scala-js::scalajs-env-selenium:1.1.1"
-    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:${scalaJsVersion}"
-    val scalajsLinker = ivy"org.scala-js::scalajs-linker:${scalaJsVersion}"
-    val scalajsImportMap = ivy"com.armanbilge::scalajs-importmap:0.1.1"
+    val scalajsEnvJsdomNodejs = ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.1.0".withDottyCompat(scalaVersion)
+    val scalajsEnvExoegoJsdomNodejs = ivy"net.exoego::scalajs-env-jsdom-nodejs:2.1.0".withDottyCompat(scalaVersion)
+    val scalajsEnvNodejs = ivy"org.scala-js::scalajs-env-nodejs:1.4.0".withDottyCompat(scalaVersion)
+    val scalajsEnvPhantomjs = ivy"org.scala-js::scalajs-env-phantomjs:1.0.0".withDottyCompat(scalaVersion)
+    val scalajsEnvSelenium = ivy"org.scala-js::scalajs-env-selenium:1.1.1".withDottyCompat(scalaVersion)
+    val scalajsSbtTestAdapter = ivy"org.scala-js:scalajs-sbt-test-adapter_2.13:${scalaJsVersion}"
+    val scalajsLinker = ivy"org.scala-js:scalajs-linker_2.13:${scalaJsVersion}"
+    val scalajsImportMap = ivy"com.armanbilge::scalajs-importmap:0.1.1".withDottyCompat(scalaVersion)
   }
 
   object Scalanative_0_5 {
@@ -102,9 +103,11 @@ object Deps {
   }
   object Play_2_7 extends Play {
     val playVersion = "2.7.9"
+    override def scalaVersion: String = Deps.scala2Version
   }
   object Play_2_8 extends Play {
     val playVersion = "2.8.22"
+    override def scalaVersion: String = Deps.scala2Version
   }
   object Play_2_9 extends Play {
     val playVersion = "2.9.5"
@@ -118,9 +121,9 @@ object Deps {
   val acyclic = ivy"com.lihaoyi:::acyclic:0.3.12"
   val ammoniteVersion = "3.0.0-2-6342755f"
   val asmTree = ivy"org.ow2.asm:asm-tree:9.7"
-  val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
+  val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
 
-  val coursier = ivy"io.get-coursier::coursier:2.1.14"
+  val coursier = ivy"io.get-coursier::coursier:2.1.14".withDottyCompat(scalaVersion)
   val coursierInterface = ivy"io.get-coursier:interface:1.0.19"
 
   val cask = ivy"com.lihaoyi::cask:0.9.4"
@@ -160,8 +163,11 @@ object Deps {
   // can't use newer versions, as these need higher Java versions
   val testng = ivy"org.testng:testng:7.5.1"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
-  def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
-  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.8.3"
+  def scalaCompiler(scalaVersion: String) = {
+    if (scalaVersion.startsWith("3.")) ivy"org.scala-lang:scala3-compiler_3:${scalaVersion}"
+    else ivy"org.scala-lang:scala-compiler:${scalaVersion}"
+  }
+  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.8.3".withDottyCompat(scalaVersion)
   def scalap(scalaVersion: String) = ivy"org.scala-lang:scalap:${scalaVersion}"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   val scoverage2Version = "2.1.1"
@@ -178,11 +184,11 @@ object Deps {
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.1"
   val upickle = ivy"com.lihaoyi::upickle:3.3.1"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.5"
-  val zinc = ivy"org.scala-sbt::zinc:1.10.2"
+  val zinc = ivy"org.scala-sbt::zinc:1.10.2".withDottyCompat(scalaVersion)
   // keep in sync with doc/antora/antory.yml
   val bsp4j = ivy"ch.epfl.scala:bsp4j:2.2.0-M2"
   val fansi = ivy"com.lihaoyi::fansi:0.5.0"
-  val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.0"
+  val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.0".withDottyCompat(scalaVersion)
   val requests = ivy"com.lihaoyi::requests:0.9.0"
   val logback = ivy"ch.qos.logback:logback-classic:1.5.7"
   val sonatypeCentralClient = ivy"com.lumidion::sonatype-central-client-requests:0.3.0"
@@ -265,7 +271,7 @@ def millBinPlatform: T[String] = Task {
 def baseDir = build.millSourcePath
 
 val essentialBridgeScalaVersions =
-  Seq(Deps.scalaVersion, Deps.workerScalaVersion212)
+  Seq(Deps.scalaVersion, Deps.scala2Version, Deps.workerScalaVersion212)
 // published compiler bridges
 val bridgeScalaVersions = Seq(
   // Our version of Zinc doesn't work with Scala 2.12.0 and 2.12.4 compiler
@@ -402,20 +408,23 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
  */
 trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModule { outer =>
   def scalaVersion = Deps.scalaVersion
+  def scalapVersion = T { Deps.scala2Version }
   def scalafixScalaBinaryVersion = ZincWorkerUtil.scalaBinaryVersion(scalaVersion())
   def semanticDbVersion = Deps.semanticDBscala.version
   def scalacOptions =
     super.scalacOptions() ++ Seq(
       "-deprecation",
-      "-P:acyclic:force",
       "-feature",
       "-Xlint:unused",
       "-Xlint:adapted-args"
+    ) ++ (
+      if (scalaVersion().startsWith("3.")) Seq.empty
+      else Seq("-P:acyclic:force")
     )
 
   def scalacPluginIvyDeps =
     super.scalacPluginIvyDeps() ++
-      Agg(Deps.acyclic) ++
+      Agg.when(!scalaVersion().startsWith("3."))(Deps.acyclic) ++
       Agg.when(scalaVersion().startsWith("2.13."))(Deps.millModuledefsPlugin)
 
   def mandatoryIvyDeps =
@@ -436,7 +445,8 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
 trait MillBaseTestsModule extends TestModule {
   def forkArgs = Task {
     Seq(
-      s"-DMILL_SCALA_2_13_VERSION=${Deps.scalaVersion}",
+      s"-DMILL_SCALA_3_NEXT_VERSION=${Deps.scalaVersion}",
+      s"-DMILL_SCALA_2_13_VERSION=${Deps.scala2Version}",
       s"-DMILL_SCALA_2_12_VERSION=${Deps.workerScalaVersion212}",
       s"-DTEST_SCALA_2_13_VERSION=${Deps.testScala213Version}",
       s"-DTEST_SCALA_2_13_VERSION_FOR_SCALANATIVE_4_2=${Deps.testScala213VersionForScalaNative42}",
@@ -580,7 +590,9 @@ trait BridgeModule extends MillPublishJavaModule with CrossScalaModule {
   def ivyDeps = Agg(
     ivy"org.scala-sbt:compiler-interface:${Deps.zinc.version}",
     ivy"org.scala-sbt:util-interface:${Deps.zinc.version}",
-    ivy"org.scala-lang:scala-compiler:${crossScalaVersion}"
+  ) ++ Agg(
+    if (crossScalaVersion.startsWith("3.")) ivy"org.scala-lang::scala3-compiler:${crossScalaVersion}"
+    else ivy"org.scala-lang:scala-compiler:${crossScalaVersion}"
   )
 
   def resources = T.sources {
@@ -589,7 +601,8 @@ trait BridgeModule extends MillPublishJavaModule with CrossScalaModule {
   }
 
   def compilerBridgeIvyDeps: T[Agg[Dep]] = Agg(
-    ivy"org.scala-sbt::compiler-bridge:${Deps.zinc.version}".exclude("*" -> "*")
+    (if (crossScalaVersion.startsWith("3.")) ivy"org.scala-lang:scala3-sbt-bridge:${crossScalaVersion}"
+    else ivy"org.scala-sbt::compiler-bridge:${Deps.zinc.version}").exclude("*" -> "*")
   )
 
   def compilerBridgeSourceJars: T[Agg[PathRef]] = Task {
@@ -751,17 +764,17 @@ object dist0 extends MillPublishJavaModule {
 
   def testTransitiveDeps = build.runner.testTransitiveDeps() ++ Seq(
     build.main.graphviz.testDep(),
-    build.runner.linenumbers.testDep(),
+    // build.runner.linenumbers.testDep(),
     build.scalalib.backgroundwrapper.testDep(),
     build.contrib.bloop.testDep(),
     build.contrib.buildinfo.testDep(),
-    build.contrib.scoverage.testDep(),
-    build.contrib.scoverage.worker2.testDep(),
-    build.contrib.jmh.testDep(),
-    build.contrib.playlib.testDep(),
-    build.contrib.playlib.worker("2.8").testDep(),
-    build.bsp.worker.testDep(),
-    build.testkit.testDep()
+    // build.contrib.scoverage.testDep(),
+    // build.contrib.scoverage.worker2.testDep(),
+    // build.contrib.jmh.testDep(),
+    // build.contrib.playlib.testDep(),
+    // build.contrib.playlib.worker("2.8").testDep(),
+    // build.bsp.worker.testDep(),
+    // build.testkit.testDep()
   )
 }
 
@@ -1033,14 +1046,14 @@ def validate(): Command[Unit] = {
 }
 
 val dummyDeps: Seq[Dep] = Seq(
-  Deps.DocDeps.millScip,
+  // Deps.DocDeps.millScip,
   Deps.semanticDbJava,
-  Deps.semanticDBscala,
+  // Deps.semanticDBscala,
   Deps.TestDeps.scalaTest,
   Deps.TestDeps.zioTest,
-  Deps.acyclic,
-  Deps.scalacScoverage2Plugin,
-  ivy"com.lihaoyi:::ammonite:${Deps.ammoniteVersion}"
+  // Deps.acyclic,
+  // Deps.scalacScoverage2Plugin,
+  // ivy"com.lihaoyi:::ammonite:${Deps.ammoniteVersion}"
 ) ++ Deps.transitiveDeps ++ Deps.RuntimeDeps.all
 
 implicit object DepSegment extends Cross.ToSegments[Dep]({ dep =>

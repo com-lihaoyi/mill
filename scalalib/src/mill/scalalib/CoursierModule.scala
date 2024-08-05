@@ -23,8 +23,8 @@ trait CoursierModule extends mill.Module {
    * Bind a dependency ([[Dep]]) to the actual module contetxt (e.g. the scala version and the platform suffix)
    * @return The [[BoundDep]]
    */
-  def bindDependency: Task[Dep => BoundDep] = Task.Anon { dep: Dep =>
-    BoundDep((resolveCoursierDependency(): @nowarn).apply(dep), dep.force)
+  def bindDependency: Task[Dep => BoundDep] = Task.Anon { (dep: Dep) =>
+    BoundDep((resolveCoursierDependency.apply(): @nowarn).apply(dep), dep.force)
   }
 
   @deprecated("To be replaced by bindDependency", "Mill after 0.11.0-M0")
@@ -39,7 +39,8 @@ trait CoursierModule extends mill.Module {
       mapDependencies = Some(mapDependencies()),
       customizer = resolutionCustomizer(),
       coursierCacheCustomizer = coursierCacheCustomizer(),
-      ctx = Some(implicitly[mill.api.Ctx.Log])
+      // ctx = Some(implicitly[mill.api.Ctx.Log])
+      ctx = Some(???)
     )
   }
 
@@ -65,7 +66,8 @@ trait CoursierModule extends mill.Module {
         mapDependencies = Some(mapDependencies()),
         customizer = resolutionCustomizer(),
         coursierCacheCustomizer = coursierCacheCustomizer(),
-        ctx = Some(implicitly[mill.api.Ctx.Log])
+        // ctx = Some(implicitly[mill.api.Ctx.Log])
+        ctx = Some(???)
       )
     }
 
@@ -80,7 +82,7 @@ trait CoursierModule extends mill.Module {
    * Map dependencies before resolving them.
    * Override this to customize the set of dependencies.
    */
-  def mapDependencies: Task[Dependency => Dependency] = Task.Anon { d: Dependency => d }
+  def mapDependencies: Task[Dependency => Dependency] = Task.Anon { (d: Dependency) => d }
 
   /**
    * The repositories used to resolved dependencies with [[resolveDeps()]].

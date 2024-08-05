@@ -1,6 +1,7 @@
 package mill.bsp
 
 import mill.api.internal
+import scala.deriving.Mirror
 
 @internal
 sealed trait BspServerResult
@@ -28,4 +29,15 @@ object BspServerResult {
 
   implicit val jsonify: upickle.default.ReadWriter[BspServerResult] =
     upickle.default.macroRW
+
+  // GENERATED CODE BY ci/scripts/manual_mirror_gen.sc - DO NOT EDIT
+  private type SingletonMirrorProxy[T <: AnyRef & Singleton] = Mirror.SingletonProxy { val value: T }
+  private def genSingletonMirror[T <: AnyRef & Singleton](ref: T): SingletonMirrorProxy[T] =
+    new Mirror.SingletonProxy(ref).asInstanceOf[SingletonMirrorProxy[T]]
+  private given Mirror_ReloadWorkspace: SingletonMirrorProxy[ReloadWorkspace.type] =
+    genSingletonMirror(ReloadWorkspace)
+  private given Mirror_Shutdown: SingletonMirrorProxy[Shutdown.type] =
+    genSingletonMirror(Shutdown)
+  private given Mirror_Failure: SingletonMirrorProxy[Failure.type] =
+    genSingletonMirror(Failure)
 }

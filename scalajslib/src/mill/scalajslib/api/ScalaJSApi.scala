@@ -1,6 +1,7 @@
 package mill.scalajslib.api
 
 import upickle.default.{ReadWriter => RW, macroRW}
+import scala.deriving.Mirror
 
 sealed trait ModuleKind
 object ModuleKind {
@@ -12,6 +13,17 @@ object ModuleKind {
   implicit def rwCommonJSModule: RW[CommonJSModule.type] = macroRW
   implicit def rwESModule: RW[ESModule.type] = macroRW
   implicit def rw: RW[ModuleKind] = macroRW
+
+  // GENERATED CODE BY ci/scripts/manual_mirror_gen.sc - DO NOT EDIT
+  private type SingletonMirrorProxy[T <: AnyRef & Singleton] = Mirror.SingletonProxy { val value: T }
+  private def genSingletonMirror[T <: AnyRef & Singleton](ref: T): SingletonMirrorProxy[T] =
+    new Mirror.SingletonProxy(ref).asInstanceOf[SingletonMirrorProxy[T]]
+  private given Mirror_NoModule: SingletonMirrorProxy[NoModule.type] =
+    genSingletonMirror(NoModule)
+  private given Mirror_CommonJSModule: SingletonMirrorProxy[CommonJSModule.type] =
+    genSingletonMirror(CommonJSModule)
+  private given Mirror_ESModule: SingletonMirrorProxy[ESModule.type] =
+    genSingletonMirror(ESModule)
 }
 
 sealed trait ESVersion
@@ -34,6 +46,27 @@ object ESVersion {
   implicit val rw5_1: RW[ES5_1.type] = macroRW
 
   implicit val rw: RW[ESVersion] = macroRW[ESVersion]
+
+  // GENERATED CODE BY ci/scripts/manual_mirror_gen.sc - DO NOT EDIT
+  private type SingletonMirrorProxy[T <: AnyRef & Singleton] = Mirror.SingletonProxy { val value: T }
+  private def genSingletonMirror[T <: AnyRef & Singleton](ref: T): SingletonMirrorProxy[T] =
+    new Mirror.SingletonProxy(ref).asInstanceOf[SingletonMirrorProxy[T]]
+  private given Mirror_ES2015: SingletonMirrorProxy[ES2015.type] =
+    genSingletonMirror(ES2015)
+  private given Mirror_ES2016: SingletonMirrorProxy[ES2016.type] =
+    genSingletonMirror(ES2016)
+  private given Mirror_ES2017: SingletonMirrorProxy[ES2017.type] =
+    genSingletonMirror(ES2017)
+  private given Mirror_ES2018: SingletonMirrorProxy[ES2018.type] =
+    genSingletonMirror(ES2018)
+  private given Mirror_ES2019: SingletonMirrorProxy[ES2019.type] =
+    genSingletonMirror(ES2019)
+  private given Mirror_ES2020: SingletonMirrorProxy[ES2020.type] =
+    genSingletonMirror(ES2020)
+  private given Mirror_ES2021: SingletonMirrorProxy[ES2021.type] =
+    genSingletonMirror(ES2021)
+  private given Mirror_ES5_1: SingletonMirrorProxy[ES5_1.type] =
+    genSingletonMirror(ES5_1)
 }
 
 case class ESFeatures private (
@@ -79,6 +112,36 @@ object JsEnvConfig {
   implicit def rwPhantom: RW[Phantom] = macroRW
   implicit def rwSelenium: RW[Selenium] = macroRW
   implicit def rw: RW[JsEnvConfig] = macroRW
+
+  // GENERATED CODE BY ci/scripts/manual_mirror_gen.sc - DO NOT EDIT
+  private given Mirror_Selenium: Mirror.Product with {
+    final type MirroredMonoType = Selenium
+    final type MirroredType = Selenium
+    final type MirroredElemTypes = Selenium.Capabilities *: EmptyTuple
+    final type MirroredElemLabels = "capabilities" *: EmptyTuple
+
+    final def fromProduct(p: scala.Product): Selenium = {
+      val _1: Selenium.Capabilities = p.productElement(0).asInstanceOf[Selenium.Capabilities]
+
+      Selenium.apply(_1)
+    }
+  }
+  private given Mirror_JsEnvConfig: Mirror.Sum with {
+    final type MirroredMonoType = JsEnvConfig
+    final type MirroredType = JsEnvConfig
+    final type MirroredElemTypes = (NodeJs, JsDom, ExoegoJsDomNodeJs, Phantom, Selenium)
+    final type MirroredElemLabels = ("NodeJs", "JsDom", "ExoegoJsDomNodeJs", "Phantom", "Selenium")
+
+    final def ordinal(p: JsEnvConfig): Int = {
+      p match {
+        case _: NodeJs => 0
+        case _: JsDom => 1
+        case _: ExoegoJsDomNodeJs => 2
+        case _: Phantom => 3
+        case _: Selenium => 4
+      }
+    }
+  }
 
   /**
    * JavaScript environment to run on Node.js
@@ -134,6 +197,22 @@ object JsEnvConfig {
   object Selenium {
     implicit def rwCapabilities: RW[Capabilities] = macroRW
 
+    // GENERATED CODE BY ci/scripts/manual_mirror_gen.sc - DO NOT EDIT
+    private given Mirror_Capabilities: Mirror.Sum with {
+      final type MirroredMonoType = Capabilities
+      final type MirroredType = Capabilities
+      final type MirroredElemTypes = (ChromeOptions, FirefoxOptions, SafariOptions)
+      final type MirroredElemLabels = ("ChromeOptions", "FirefoxOptions", "SafariOptions")
+
+      final def ordinal(p: Capabilities): Int = {
+        p match {
+          case _: ChromeOptions => 0
+          case _: FirefoxOptions => 1
+          case _: SafariOptions => 2
+        }
+      }
+    }
+
     def apply(capabilities: Capabilities): Selenium =
       new Selenium(capabilities = capabilities)
 
@@ -149,6 +228,20 @@ object JsEnvConfig {
     object ChromeOptions {
       implicit def rw: RW[ChromeOptions] = macroRW
 
+      // GENERATED CODE BY ci/scripts/manual_mirror_gen.sc - DO NOT EDIT
+      private given Mirror_ChromeOptions: Mirror.Product with {
+        final type MirroredMonoType = ChromeOptions
+        final type MirroredType = ChromeOptions
+        final type MirroredElemTypes = Boolean *: EmptyTuple
+        final type MirroredElemLabels = "headless" *: EmptyTuple
+
+        final def fromProduct(p: scala.Product): ChromeOptions = {
+          val _1: Boolean = p.productElement(0).asInstanceOf[Boolean]
+
+          ChromeOptions.apply(_1)
+        }
+      }
+
       def apply(headless: Boolean): ChromeOptions =
         new ChromeOptions(headless = headless)
     }
@@ -163,6 +256,20 @@ object JsEnvConfig {
     object FirefoxOptions {
       implicit def rw: RW[FirefoxOptions] = macroRW
 
+      // GENERATED CODE BY ci/scripts/manual_mirror_gen.sc - DO NOT EDIT
+      private given Mirror_FirefoxOptions: Mirror.Product with {
+        final type MirroredMonoType = FirefoxOptions
+        final type MirroredType = FirefoxOptions
+        final type MirroredElemTypes = Boolean *: EmptyTuple
+        final type MirroredElemLabels = "headless" *: EmptyTuple
+
+        final def fromProduct(p: scala.Product): FirefoxOptions = {
+          val _1: Boolean = p.productElement(0).asInstanceOf[Boolean]
+
+          FirefoxOptions.apply(_1)
+        }
+      }
+
       def apply(): FirefoxOptions =
         new FirefoxOptions(headless = false)
       def apply(headless: Boolean): FirefoxOptions =
@@ -172,6 +279,20 @@ object JsEnvConfig {
     class SafariOptions private () extends Capabilities
     object SafariOptions {
       implicit def rw: RW[SafariOptions] = macroRW
+
+      // GENERATED CODE BY ci/scripts/manual_mirror_gen.sc - DO NOT EDIT
+      private given Mirror_SafariOptions: Mirror.Product with {
+        final type MirroredMonoType = SafariOptions
+        final type MirroredType = SafariOptions
+        final type MirroredElemTypes = EmptyTuple
+        final type MirroredElemLabels = EmptyTuple
+
+        final def fromProduct(p: scala.Product): SafariOptions = {
+
+
+          SafariOptions.apply()
+        }
+      }
 
       def apply(): SafariOptions =
         new SafariOptions()
@@ -269,6 +390,24 @@ object OutputPatterns {
   // scalalfix:on
 
   implicit val rw: RW[OutputPatterns] = macroRW[OutputPatterns]
+
+  // GENERATED CODE BY ci/scripts/manual_mirror_gen.sc - DO NOT EDIT
+  private given Mirror_OutputPatterns: Mirror.Product with {
+    final type MirroredMonoType = OutputPatterns
+    final type MirroredType = OutputPatterns
+    final type MirroredElemTypes = (String, String, String, String, String)
+    final type MirroredElemLabels = ("jsFile", "sourceMapFile", "moduleName", "jsFileURI", "sourceMapURI")
+
+    final def fromProduct(p: scala.Product): OutputPatterns = {
+      val _1: String = p.productElement(0).asInstanceOf[String]
+      val _2: String = p.productElement(1).asInstanceOf[String]
+      val _3: String = p.productElement(2).asInstanceOf[String]
+      val _4: String = p.productElement(3).asInstanceOf[String]
+      val _5: String = p.productElement(4).asInstanceOf[String]
+
+      OutputPatterns.apply(_1,_2,_3,_4,_5)
+    }
+  }
 }
 
 sealed trait ESModuleImportMapping

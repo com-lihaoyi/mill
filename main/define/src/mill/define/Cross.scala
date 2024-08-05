@@ -136,82 +136,82 @@ object Cross {
      * expression of type `Any`, but type-checking on the macro- expanded code
      * provides some degree of type-safety.
      */
-    implicit def make[M <: Module[_]](t: Any): Factory[M] = macro makeImpl[M]
-    def makeImpl[T: c.WeakTypeTag](c: blackbox.Context)(t: c.Expr[Any]): c.Expr[Factory[T]] = {
-      import c.universe._
-      val tpe = weakTypeOf[T]
+    implicit def make[M <: Module[_]](t: Any): Factory[M] = ??? // macro makeImpl[M]
+    // def makeImpl[T: c.WeakTypeTag](c: blackbox.Context)(t: c.Expr[Any]): c.Expr[Factory[T]] = {
+    //   import c.universe._
+    //   val tpe = weakTypeOf[T]
 
-      if (!tpe.typeSymbol.isClass) {
-        c.abort(c.enclosingPosition, s"Cross type $tpe must be trait")
-      }
+    //   if (!tpe.typeSymbol.isClass) {
+    //     c.abort(c.enclosingPosition, s"Cross type $tpe must be trait")
+    //   }
 
-      if (!tpe.typeSymbol.asClass.isTrait) abortOldStyleClass(c)(tpe)
+    //   if (!tpe.typeSymbol.asClass.isTrait) abortOldStyleClass(c)(tpe)
 
-      val wrappedT = if (t.tree.tpe <:< typeOf[Seq[_]]) t.tree else q"_root_.scala.Seq($t)"
-      val v1 = c.freshName(TermName("v1"))
-      val ctx0 = c.freshName(TermName("ctx0"))
-      val concreteCls = c.freshName(TypeName(tpe.typeSymbol.name.toString))
+    //   val wrappedT = if (t.tree.tpe <:< typeOf[Seq[_]]) t.tree else q"_root_.scala.Seq($t)"
+    //   val v1 = c.freshName(TermName("v1"))
+    //   val ctx0 = c.freshName(TermName("ctx0"))
+    //   val concreteCls = c.freshName(TypeName(tpe.typeSymbol.name.toString))
 
-      val newTrees = collection.mutable.Buffer.empty[Tree]
-      var valuesTree: Tree = null
-      var pathSegmentsTree: Tree = null
+    //   val newTrees = collection.mutable.Buffer.empty[Tree]
+    //   var valuesTree: Tree = null
+    //   var pathSegmentsTree: Tree = null
 
-      val segments = q"_root_.mill.define.Cross.ToSegments"
-      if (tpe <:< typeOf[Module[_]]) {
-        newTrees.append(q"override def crossValue = $v1")
-        pathSegmentsTree = q"$segments($v1)"
-        valuesTree = q"$wrappedT.map(List(_))"
-      } else c.abort(
-        c.enclosingPosition,
-        s"Cross type $tpe must implement Cross.Module[T]"
-      )
+    //   val segments = q"_root_.mill.define.Cross.ToSegments"
+    //   if (tpe <:< typeOf[Module[_]]) {
+    //     newTrees.append(q"override def crossValue = $v1")
+    //     pathSegmentsTree = q"$segments($v1)"
+    //     valuesTree = q"$wrappedT.map(List(_))"
+    //   } else c.abort(
+    //     c.enclosingPosition,
+    //     s"Cross type $tpe must implement Cross.Module[T]"
+    //   )
 
-      if (tpe <:< typeOf[Module2[_, _]]) {
-        // For `Module2` and above, `crossValue` is no longer the entire value,
-        // but instead is just the first element of a tuple
-        newTrees.clear()
-        newTrees.append(q"override def crossValue = $v1._1")
-        newTrees.append(q"override def crossValue2 = $v1._2")
-        pathSegmentsTree = q"$segments($v1._1) ++ $segments($v1._2)"
-        valuesTree = q"$wrappedT.map(_.productIterator.toList)"
-      }
+    //   if (tpe <:< typeOf[Module2[_, _]]) {
+    //     // For `Module2` and above, `crossValue` is no longer the entire value,
+    //     // but instead is just the first element of a tuple
+    //     newTrees.clear()
+    //     newTrees.append(q"override def crossValue = $v1._1")
+    //     newTrees.append(q"override def crossValue2 = $v1._2")
+    //     pathSegmentsTree = q"$segments($v1._1) ++ $segments($v1._2)"
+    //     valuesTree = q"$wrappedT.map(_.productIterator.toList)"
+    //   }
 
-      if (tpe <:< typeOf[Module3[_, _, _]]) {
-        newTrees.append(q"override def crossValue3 = $v1._3")
-        pathSegmentsTree = q"$segments($v1._1) ++ $segments($v1._2) ++ $segments($v1._3)"
-      }
+    //   if (tpe <:< typeOf[Module3[_, _, _]]) {
+    //     newTrees.append(q"override def crossValue3 = $v1._3")
+    //     pathSegmentsTree = q"$segments($v1._1) ++ $segments($v1._2) ++ $segments($v1._3)"
+    //   }
 
-      if (tpe <:< typeOf[Module4[_, _, _, _]]) {
-        newTrees.append(q"override def crossValue4 = $v1._4")
-        pathSegmentsTree =
-          q"$segments($v1._1) ++ $segments($v1._2) ++ $segments($v1._3) ++ $segments($v1._4)"
-      }
+    //   if (tpe <:< typeOf[Module4[_, _, _, _]]) {
+    //     newTrees.append(q"override def crossValue4 = $v1._4")
+    //     pathSegmentsTree =
+    //       q"$segments($v1._1) ++ $segments($v1._2) ++ $segments($v1._3) ++ $segments($v1._4)"
+    //   }
 
-      if (tpe <:< typeOf[Module5[_, _, _, _, _]]) {
-        newTrees.append(q"override def crossValue5 = $v1._5")
-        pathSegmentsTree =
-          q"$segments($v1._1) ++ $segments($v1._2) ++ $segments($v1._3) ++ $segments($v1._4) ++ $segments($v1._5)"
-      }
+    //   if (tpe <:< typeOf[Module5[_, _, _, _, _]]) {
+    //     newTrees.append(q"override def crossValue5 = $v1._5")
+    //     pathSegmentsTree =
+    //       q"$segments($v1._1) ++ $segments($v1._2) ++ $segments($v1._3) ++ $segments($v1._4) ++ $segments($v1._5)"
+    //   }
 
-      // We need to create a `class $concreteCls` here, rather than just
-      // creating an anonymous sub-type of $tpe, because our task resolution
-      // logic needs to use java reflection to identify sub-modules and java
-      // reflect can only properly identify nested `object`s inside Scala
-      // `object` and `class`es.
-      val tree = q"""
-        new mill.define.Cross.Factory[$tpe](
-          makeList = $wrappedT.map{($v1: ${tq""}) =>
-            class $concreteCls()(implicit ctx: mill.define.Ctx) extends $tpe{..$newTrees}
-            (classOf[$concreteCls], ($ctx0: ${tq""}) => new $concreteCls()($ctx0))
-          },
-          crossSegmentsList = $wrappedT.map(($v1: ${tq""}) => $pathSegmentsTree ),
-          crossValuesListLists = $valuesTree,
-          crossValuesRaw = $wrappedT
-       ).asInstanceOf[${weakTypeOf[Factory[T]]}]
-      """
+    //   // We need to create a `class $concreteCls` here, rather than just
+    //   // creating an anonymous sub-type of $tpe, because our task resolution
+    //   // logic needs to use java reflection to identify sub-modules and java
+    //   // reflect can only properly identify nested `object`s inside Scala
+    //   // `object` and `class`es.
+    //   val tree = q"""
+    //     new mill.define.Cross.Factory[$tpe](
+    //       makeList = $wrappedT.map{($v1: ${tq""}) =>
+    //         class $concreteCls()(implicit ctx: mill.define.Ctx) extends $tpe{..$newTrees}
+    //         (classOf[$concreteCls], ($ctx0: ${tq""}) => new $concreteCls()($ctx0))
+    //       },
+    //       crossSegmentsList = $wrappedT.map(($v1: ${tq""}) => $pathSegmentsTree ),
+    //       crossValuesListLists = $valuesTree,
+    //       crossValuesRaw = $wrappedT
+    //    ).asInstanceOf[${weakTypeOf[Factory[T]]}]
+    //   """
 
-      c.Expr[Factory[T]](tree)
-    }
+    //   c.Expr[Factory[T]](tree)
+    // }
 
     def abortOldStyleClass(c: blackbox.Context)(tpe: c.Type): Nothing = {
       val primaryConstructorArgs =

@@ -62,10 +62,10 @@ trait PublishModule extends JavaModule { outer =>
   }
 
   def publishXmlDeps: Task[Agg[Dependency]] = Task.Anon {
-    val ivyPomDeps = (ivyDeps() ++ mandatoryIvyDeps()).map(resolvePublishDependency().apply(_))
+    val ivyPomDeps = (ivyDeps() ++ mandatoryIvyDeps()).map(resolvePublishDependency.apply().apply(_))
 
     val compileIvyPomDeps = compileIvyDeps()
-      .map(resolvePublishDependency().apply(_))
+      .map(resolvePublishDependency.apply().apply(_))
       .filter(!ivyPomDeps.contains(_))
       .map(_.copy(scope = Scope.Provided))
 
@@ -314,6 +314,7 @@ object PublishModule extends ExternalModule with TaskModule {
       (payload.map { case (p, f) => (p.path, f) }, meta)
   }
   object PublishData {
+    import mill.scalalib.publish.artifactFormat
     implicit def jsonify: upickle.default.ReadWriter[PublishData] = upickle.default.macroRW
   }
 

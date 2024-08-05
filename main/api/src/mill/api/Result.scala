@@ -95,10 +95,15 @@ object Result {
         current = current.head.getCause :: current
       }
       current.reverse
-        .flatMap(ex =>
-          Seq(ex.toString) ++
-            ex.getStackTrace.dropRight(outerStack.value.length).map("    " + _)
-        )
+        .flatMap { ex =>
+          val elements = ex.getStackTrace.dropRight(outerStack.value.length)
+          val formatted =
+            // for some reason .map without the explicit ArrayOps conversion doesn't work,
+            // and results in `Result[String]` instead of `Array[String]`
+            new scala.collection.ArrayOps(elements).map("    " + _)
+          Seq(ex.toString) ++ formatted
+
+        }
         .mkString("\n")
     }
   }

@@ -35,7 +35,8 @@ trait BuildInfo extends JavaModule {
    */
   def buildInfoMembers: T[Seq[BuildInfo.Value]] = Seq.empty[BuildInfo.Value]
 
-  def resources: T[Seq[PathRef]] =
+  // TODO: remove override when mill-moduledefs is ported to Scala 3
+  override def resources: T[Seq[PathRef]] =
     if (buildInfoStaticCompiled) super.resources
     else Task.Sources { super.resources() ++ Seq(buildInfoResources()) }
 

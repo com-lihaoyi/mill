@@ -31,6 +31,7 @@ package mill.scalalib.dependency.updates
 import mill.scalalib.dependency.versions._
 
 import scala.collection.SortedSet
+import coursier.core.Repository.Complete.Input.Ver
 
 private[dependency] object UpdatesFinder {
 
@@ -74,5 +75,5 @@ private[dependency] object UpdatesFinder {
     case (_, _) => false
   }
 
-  private def isUpdate(current: Version) = current < _
+  private def isUpdate(current: Version) = current < (_: Version)
 }
