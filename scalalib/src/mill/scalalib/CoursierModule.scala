@@ -24,7 +24,7 @@ trait CoursierModule extends mill.Module {
    * @return The [[BoundDep]]
    */
   def bindDependency: Task[Dep => BoundDep] = Task.Anon { (dep: Dep) =>
-    BoundDep((resolveCoursierDependency(): @nowarn).apply(dep), dep.force)
+    BoundDep((resolveCoursierDependency.apply(): @nowarn).apply(dep), dep.force)
   }
 
   @deprecated("To be replaced by bindDependency", "Mill after 0.11.0-M0")
@@ -39,7 +39,8 @@ trait CoursierModule extends mill.Module {
       mapDependencies = Some(mapDependencies()),
       customizer = resolutionCustomizer(),
       coursierCacheCustomizer = coursierCacheCustomizer(),
-      ctx = Some(implicitly[mill.api.Ctx.Log])
+      // ctx = Some(implicitly[mill.api.Ctx.Log])
+      ctx = Some(???)
     )
   }
 
@@ -65,7 +66,8 @@ trait CoursierModule extends mill.Module {
         mapDependencies = Some(mapDependencies()),
         customizer = resolutionCustomizer(),
         coursierCacheCustomizer = coursierCacheCustomizer(),
-        ctx = Some(implicitly[mill.api.Ctx.Log])
+        // ctx = Some(implicitly[mill.api.Ctx.Log])
+        ctx = Some(???)
       )
     }
 

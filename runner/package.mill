@@ -15,7 +15,7 @@ object `package` extends RootModule with build.MillPublishScalaModule {
     build.scalajslib,
     build.scalanativelib,
     build.bsp,
-    linenumbers,
+    // linenumbers,
     build.main.codesig,
     build.main.server,
     client

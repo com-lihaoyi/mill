@@ -17,6 +17,9 @@ case class ImportTree(
  * Fastparse parser that extends the Scalaparse parser to handle `build.mill` and
  * other script files, and also for subsequently parsing any magic import
  * statements into [[ImportTree]] structures for the [[MillBuildRootModule]] to use
+ *
+ * TODO: currently this is unused, perhaps we should keep it if we still allow setting
+ * scalaVersion in mill-build/build.mill files to scala 2?
  */
 @internal
 object Parsers {
@@ -71,7 +74,7 @@ object Parsers {
       // Call `fastparse.ParserInput.fromString` explicitly, to avoid generating a
       // lambda in the class body and making the we-do-not-load-fastparse-on-cached-scripts
       // test fail
-      parse(fastparse.ParserInput.fromString(stmt), ImportSplitter(_)) match {
+      parse(fastparse.ParserInput.fromString(stmt), ImportSplitter(using _)) match {
         case f: Parsed.Failure => hookedStmts.append((stmt, Nil))
         case Parsed.Success(parsedTrees, _) =>
           val importTrees = mutable.Buffer.empty[ImportTree]
@@ -108,7 +111,7 @@ object Parsers {
    * by adding `val res2 = ` without the whitespace getting in the way
    */
   def splitScript(rawCode: String, fileName: String): Either[String, (Seq[String], Seq[String])] = {
-    parse(rawCode, CompilationUnit(_)) match {
+    parse(rawCode, CompilationUnit(using _)) match {
       case f: Parsed.Failure => Left(formatFastparseError(fileName, rawCode, f))
       case s: Parsed.Success[(Option[Seq[String]], String, Seq[String])] =>
         Right(s.value._1.toSeq.flatten -> (Seq(s.value._2) ++ s.value._3))
