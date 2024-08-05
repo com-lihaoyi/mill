@@ -32,16 +32,16 @@ Test foo.HelloWorldTest.testSimple finished...
 // a module to contain the exact annotation processors you want, and pass
 // in `-processorpath` to `javacOptions` explicitly:
 
-object processors extends JavaModule{
-  def ivyDeps = Agg(ivy"org.projectlombok:lombok:1.18.34")
-}
-
 object bar extends JavaModule {
   def compileIvyDeps = Agg(ivy"org.projectlombok:lombok:1.18.34")
 
+  def processors = T{
+    defaultResolver().resolveDeps(Agg(ivy"org.projectlombok:lombok:1.18.34"))
+  }
+
   def javacOptions = Seq(
     "-processorpath",
-    processors.runClasspath().map(_.path).mkString(":"),
+    processors().map(_.path).mkString(":"),
   )
 
   object test extends JavaTests with TestModule.Junit4

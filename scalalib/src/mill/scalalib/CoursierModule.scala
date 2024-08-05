@@ -3,13 +3,14 @@ package mill.scalalib
 import coursier.cache.FileCache
 import coursier.{Dependency, Repository, Resolve}
 import coursier.core.Resolution
-import mill.{Agg, T}
+import mill.T
 import mill.define.Task
 import mill.api.PathRef
 
 import scala.annotation.nowarn
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
+import mill.Agg
 
 /**
  * This module provides the capability to resolve (transitive) dependencies from (remote) repositories.
@@ -30,6 +31,17 @@ trait CoursierModule extends mill.Module {
   @deprecated("To be replaced by bindDependency", "Mill after 0.11.0-M0")
   def resolveCoursierDependency: Task[Dep => coursier.Dependency] = T.task {
     Lib.depToDependencyJava(_: Dep)
+  }
+
+  def defaultResolver: Task[CoursierModule.Resolver] = T.task {
+    new CoursierModule.Resolver(
+      repositories = repositoriesTask(),
+      bind = bindDependency(),
+      mapDependencies = Some(mapDependencies()),
+      customizer = resolutionCustomizer(),
+      coursierCacheCustomizer = coursierCacheCustomizer(),
+      ctx = Some(implicitly[mill.api.Ctx.Log])
+    )
   }
 
   /**
@@ -107,4 +119,43 @@ trait CoursierModule extends mill.Module {
       : Task[Option[FileCache[coursier.util.Task] => FileCache[coursier.util.Task]]] =
     T.task { None }
 
+}
+object CoursierModule {
+
+  class Resolver(
+      repositories: Seq[Repository],
+      bind: Dep => BoundDep,
+      mapDependencies: Option[Dependency => Dependency] = None,
+      customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
+      ctx: Option[mill.api.Ctx.Log] = None,
+      coursierCacheCustomizer: Option[
+        coursier.cache.FileCache[coursier.util.Task] => coursier.cache.FileCache[coursier.util.Task]
+      ] = None
+  ) {
+
+    def resolveDeps[T: CoursierModule.Resolvable](
+        deps: IterableOnce[T],
+        sources: Boolean = false
+    ): Agg[PathRef] = {
+      Lib.resolveDependencies(
+        repositories = repositories,
+        deps = deps.map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind)),
+        sources = sources,
+        mapDependencies = mapDependencies,
+        customizer = customizer,
+        coursierCacheCustomizer = coursierCacheCustomizer,
+        ctx = ctx
+      ).getOrThrow
+    }
+  }
+
+  sealed trait Resolvable[T] {
+    def bind(t: T, bind: Dep => BoundDep): BoundDep
+  }
+  implicit case object ResolvableDep extends Resolvable[Dep] {
+    def bind(t: Dep, bind: Dep => BoundDep): BoundDep = bind(t)
+  }
+  implicit case object ResolvableBoundDep extends Resolvable[BoundDep] {
+    def bind(t: BoundDep, bind: Dep => BoundDep): BoundDep = t
+  }
 }
