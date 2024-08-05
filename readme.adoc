@@ -24,11 +24,8 @@ endif::[]
 https://index.scala-lang.org/com-lihaoyi/mill/mill-main[image:https://index.scala-lang.org/com-lihaoyi/mill/mill-main/latest.svg[Mill]]
 https://www.patreon.com/lihaoyi[image:https://img.shields.io/badge/patreon-sponsor-ff69b4.svg[Patreon]]
 
-Your shiny new Scala build tool!
-Confused by SBT?
-Frustrated by Maven?
-Perplexed by Gradle?
-Give Mill a try!
+Mill is a graph-based JVM build tool that supports Java and Scala. Mill aims to make your 
+project’s build process performant, maintainable, and flexible.
 
 == Documentation
 
@@ -137,21 +134,21 @@ You can reproduce any of the tests manually using `dev.run`, e.g.
 
 [source,bash]
 ----
-./mill "example.basic[1-simple-scala].local"
+./mill "example.basic[1-simple].local"
 ----
 
 **Manual Test**
 
 [source,bash]
 ----
-./mill dev.run example/basic/1-simple-scala run --text hello
+./mill dev.run example/basic/1-simple run --text hello
 ----
 
 **Manual Test using Launcher Script**
 
 [source,bash]
 ----
-./mill dev.launcher && (cd example/basic/1-simple-scala && ../../../out/dev/launcher.dest/run run --text hello)
+./mill dev.launcher && (cd example/basic/1-simple && ../../../out/dev/launcher.dest/run run --text hello)
 ----
 
 === Sub-Process Tests *with* Packaging/Publishing
@@ -164,7 +161,7 @@ You can reproduce these tests manually using `dev.assembly`:
 
 [source,bash]
 ----
-./mill dev.assembly && (cd example/basic/1-simple-scala && ../../../out/dev/assembly.dest/mill run --text hello)
+./mill dev.assembly && (cd example/basic/1-simple && ../../../out/dev/assembly.dest/mill run --text hello)
 ----
 
 There are two flavors of these tests:
@@ -288,6 +285,67 @@ endif::[]
 :link-milestone: {link-github}/milestone
 // find-replace-regex: https://github.com/com-lihaoyi/mill/pull/(\d*) -> {link-pr}/$1[#$1]
 
+
+[#0-11-11]
+=== 0.11.11 - 2024-07-31
+:version: 0.11.11
+:milestone-name: 0.11.11
+:milestone: 96
+:prev-version: 0.11.10
+
+_Changes since {prev-version}:_
+
+* Workaround issue in Sonatype which started failing on double slashes in URLs
+  (even though they previously worked) https://github.com/com-lihaoyi/mill/commit/a293b46e80e37572bae46ef6225f41f547a5b238[Link]
+* Overhaul of the documentation site at https://mill-build.com
+* New Java- and Scala-specific sections on the documentation, with more detailed
+  comparisons to existing build tools
+* Added graphviz diagrams throughout to help the user in visualizing the concepts involved
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+[#0-11-10]
+=== 0.11.10 - 2024-07-23
+:version: 0.11.10
+:milestone-name: 0.11.10
+:milestone: 95
+:prev-version: 0.11.9
+
+_Changes since {prev-version}:_
+
+__Fixes and Improvements__
+
+* Improvements in Java docs and user experience {link-pr}/3278[#3278]
+* Automatically pump os.proc streams when SystemStreams are redirected {link-pr}/3275[#3275]
+* Fix resolution of children of override lazy val modules {link-pr}/3270[#3270]
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
+[#0-11-9]
+=== 0.11.9 - 2024-07-18
+:version: 0.11.9
+:milestone-name: 0.11.9
+:milestone: 94
+:prev-version: 0.11.8
+
+_Changes since {prev-version}:_
+
+__New features__
+
+* First class support for Java projects {link-pr}/3261[#3261]
+
+__Fixes and Improvements__
+
+* Add coarse grained lock around BSP request to avoid deadlocks {link-pr}/3243[#3243]
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-8]
 === 0.11.8 - 2024-06-21

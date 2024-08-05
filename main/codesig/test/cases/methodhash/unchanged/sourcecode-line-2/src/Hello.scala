@@ -4,6 +4,7 @@ package hello
  * Very verbose Scaladoc comment on top of class
  */
 object Hello {
+
   /**
    * less verbose Scaladoc comment for single method
    */

@@ -6,7 +6,6 @@ import utest._
 import java.util.concurrent.{Executors, TimeoutException}
 import scala.annotation.tailrec
 import scala.concurrent.duration.DurationInt
-import scala.util.chaining.scalaUtilChainingOps
 
 /**
  * Shared implementation for the tests in `example/`.
@@ -112,15 +111,14 @@ object ExampleTestSuite extends IntegrationTestSuite {
       expectedSnippets: Vector[String],
       commandStr: String
   ): Unit = {
-    BashTokenizer.tokenize(commandStr)
-      .tap { cmd =>
-        Console.err.println(
-          s"""$workspaceRoot> ${cmd.mkString("'", "' '", "'")}
-             |--- Expected output --------
-             |${expectedSnippets.mkString("\n")}
-             |----------------------------""".stripMargin
-        )
-      } match {
+    val cmd = BashTokenizer.tokenize(commandStr)
+    Console.err.println(
+      s"""$workspaceRoot> ${cmd.mkString("'", "' '", "'")}
+         |--- Expected output --------
+         |${expectedSnippets.mkString("\n")}
+         |----------------------------""".stripMargin
+    )
+    cmd match {
       case Seq("cp", "-r", from, to) =>
         os.copy(os.Path(from, workspaceRoot), os.Path(to, workspaceRoot))
 

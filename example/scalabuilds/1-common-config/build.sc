@@ -3,6 +3,7 @@
 // sources/resources, generating resources, and setting compilation/run
 // options.
 
+//// SNIPPET:BUILD
 import mill._, scalalib._
 
 object foo extends RootModule with ScalaModule {
@@ -30,12 +31,13 @@ object foo extends RootModule with ScalaModule {
   // Generate sources at build time
   def generatedSources: T[Seq[PathRef]] = T {
     for(name <- Seq("A", "B", "C")) os.write(
-      T.dest / s"$name.scala",
-      s"""package foo
-         |object Foo${name} {
+      T.dest / s"Foo$name.scala",
+      s"""
+         |package foo
+         |object Foo$name {
          |  val value = "hello $name"
          |}
-         |""".stripMargin
+      """.stripMargin
     )
 
     Seq(PathRef(T.dest))
@@ -52,6 +54,7 @@ object foo extends RootModule with ScalaModule {
   // Additional Scala compiler options, e.g. to turn warnings into errors
   def scalacOptions: T[Seq[String]] = Seq("-deprecation", "-Xfatal-warnings")
 }
+//// SNIPPET:END
 
 //
 // Note the use of `millSourcePath`, `T.dest`, and `PathRef` when preforming
@@ -98,10 +101,17 @@ MyResource: My Resource Contents
 MyOtherResource: My Other Resource Contents
 my.custom.property: my-prop-value
 
+*/
+
+//// SNIPPET:FATAL_WARNINGS
+
+/** Usage
+
 > sed -i 's/Foo2 {/Foo2 { println(this + "hello")/g' custom-src/Foo2.scala
 
 > mill compile # demonstrate -deprecation/-Xfatal-warnings flags
 error: object Foo2 { println(this + "hello")
 error:                       ^
 error: ...Implicit injection of + is deprecated. Convert to String to call +...
+
 */

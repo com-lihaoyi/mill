@@ -355,6 +355,7 @@ private[mill] trait GroupEvaluator {
             mill.api.SystemStreams.withStreams(multiLogger.systemStreams) {
               try task.evaluate(args).map(Val(_))
               catch {
+                case f: Result.Failing[Val] => f
                 case NonFatal(e) =>
                   Result.Exception(
                     e,

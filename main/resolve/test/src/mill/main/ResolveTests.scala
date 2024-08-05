@@ -1099,5 +1099,12 @@ object ResolveTests extends TestSuite {
         )
       }
     }
+    test("abstractModule") {
+      val check = new Checker(TestGraphs.AbstractModule)
+      test - check(
+        "__",
+        Right(Set(_.concrete.tests.inner.foo, _.concrete.tests.inner.innerer.bar))
+      )
+    }
   }
 }

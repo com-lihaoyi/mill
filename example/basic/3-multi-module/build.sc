@@ -1,7 +1,12 @@
+//// SNIPPET:BUILD
 import mill._, scalalib._
 
 trait MyModule extends ScalaModule {
   def scalaVersion = "2.13.11"
+  object test extends ScalaTests {
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.11")
+    def testFramework = "utest.runner.Framework"
+  }
 }
 
 object foo extends MyModule {
@@ -12,19 +17,22 @@ object foo extends MyModule {
 object bar extends MyModule {
   def ivyDeps = Agg(ivy"com.lihaoyi::scalatags:0.8.2")
 }
+//// SNIPPET:END
 
 // This example contains a simple Mill build with two modules, `foo` and `bar`.
-// We don't mark either module as top-level using `extends BuildFileModule`, so
+// We don't mark either module as top-level using `extends RootModule`, so
 // running tasks needs to use the module name as the prefix e.g. `foo.run` or
 // `bar.run`. You can define multiple modules the same way you define a single
 // module, using `def moduleDeps` to define the relationship between them.
 //
-// Note that we split out the `scalaVersion` configuration common to both
+// Note that we split out the `test` submodule configuration common to both
 // modules into a separate `trait MyModule`. This lets us avoid the need to
 // copy-paste common settings, while still letting us define any per-module
 // configuration such as `ivyDeps` specific to a particular module.
 //
 // The above builds expect the following project layout:
+//
+//// SNIPPET:TREE
 //
 // ----
 // build.sc
@@ -49,6 +57,7 @@ object bar extends MyModule {
 //         ...
 // ----
 //
+//// SNIPPET:END
 // Typically, both source code and output files in Mill follow the module
 // hierarchy, so e.g. input to the `foo` module lives in `foo/src/` and
 // compiled output files live in `out/foo/compile.dest`.
@@ -61,10 +70,15 @@ bar.run
 
 > mill foo.run --foo-text hello --bar-text world
 Foo.value: hello
-Bar.value: <p>world</p>
+Bar.value: <h1>world</h1>
 
 > mill bar.run world
-Bar.value: <p>world</p>
+Bar.value: <h1>world</h1>
+
+> mill bar.test
+...
+...bar.BarTests.simple...
+...bar.BarTests.escaping...
 
 */
 

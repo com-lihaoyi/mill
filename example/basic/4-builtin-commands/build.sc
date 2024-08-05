@@ -2,6 +2,7 @@
 //
 // The following examples will be assuming the `build.sc` file given below:
 
+//// SNIPPET:BUILD
 import mill._, scalalib._
 
 trait MyModule extends ScalaModule {
@@ -16,6 +17,8 @@ object foo extends MyModule {
 object bar extends MyModule {
   def ivyDeps = Agg(ivy"com.lihaoyi::scalatags:0.8.2")
 }
+
+//// SNIPPET:END
 
 // == resolve
 
@@ -46,8 +49,6 @@ foo.compile
 > mill resolve foo._
 foo.allSourceFiles
 foo.allSources
-foo.ammoniteReplClasspath
-foo.ammoniteVersion
 foo.artifactId
 foo.artifactName
 ...
@@ -82,7 +83,7 @@ foo.artifactName
 /** Usage
 
 > mill inspect foo.run
-foo.run(RunModule.scala:...)
+foo.run(RunModule...)
     Runs this module's code in a subprocess and waits for it to finish
 Inputs:
     foo.finalMainClass
@@ -107,8 +108,15 @@ Inputs:
 
 /** Usage
 
-> mill show foo.scalaVersion
-"2.13.11"
+> mill show foo.sources
+[
+  ".../foo/src"
+]
+
+> mill show foo.allSourceFiles
+[
+  ".../foo/src.../Foo..."
+]
 
 */
 
@@ -137,7 +145,6 @@ Inputs:
 
 > mill show foo.compileClasspath
 [
-  ".../org/scala-lang/scala-library/2.13.11/scala-library-2.13.11.jar",
   ...
   ".../foo/compile-resources"
 ]
@@ -158,7 +165,6 @@ Inputs:
     ".../foo/src"
   ],
   "foo.compileClasspath": [
-    ".../org/scala-lang/scala-library/2.13.11/scala-library-2.13.11.jar",
     ...
     ".../foo/compile-resources"
   ]
@@ -179,7 +185,6 @@ Inputs:
     ".../foo/src"
   ],
   "foo.compileClasspath": [
-    ".../org/scala-lang/scala-library/2.13.11/scala-library-2.13.11.jar",
     ...
     ".../foo/compile-resources"
   ]
@@ -226,11 +231,9 @@ foo.assembly
 foo.transitiveCompileClasspath
 foo.compileResources
 foo.unmanagedClasspath
-foo.scalaVersion
-foo.platformSuffix
+...
 foo.compileIvyDeps
-foo.scalaOrganization
-foo.scalaLibraryIvyDeps
+...
 foo.ivyDeps
 foo.transitiveIvyDeps
 foo.compileClasspath
