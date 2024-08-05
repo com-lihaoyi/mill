@@ -100,10 +100,8 @@ private object Utils {
 
     def ignore(path: os.Path): Boolean = {
       path.last.startsWith(".") ||
-      path.endsWith(os.RelPath("out")) ||
-      path.endsWith(os.RelPath("target")) ||
-      path.endsWith(os.RelPath("docs")) ||
-      path.endsWith(os.RelPath("mill-build"))
+      path.last == "out" ||
+      path.last == "target"
     }
 
     def projectsRootPaths = os.walk(topLevelProjectRoot, ignore).collect {
