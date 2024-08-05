@@ -11,8 +11,10 @@ rm gpg_key
 # Build all artifacts
 ./mill -i __.publishArtifacts
 
+./mill -i installLocal
+
 # Publish all artifacts
-./mill -i \
+./target/mill-release -i \
     mill.scalalib.PublishModule/publishAll \
     --sonatypeCreds $SONATYPE_USERNAME:$SONATYPE_PASSWORD \
     --gpgArgs --passphrase=$SONATYPE_PGP_PASSWORD,--no-tty,--pinentry-mode,loopback,--batch,--yes,-a,-b \
