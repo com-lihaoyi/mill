@@ -200,7 +200,7 @@ object Deps {
     ivy"org.apache.ant:ant:1.10.14",
     ivy"commons-io:commons-io:2.16.1",
     ivy"com.google.code.gson:gson:2.11.0",
-    ivy"com.google.protobuf:protobuf-java:3.25.4",
+    ivy"com.google.protobuf:protobuf-java:4.27.3",
     ivy"com.google.guava:guava:33.2.1-jre",
     ivy"org.yaml:snakeyaml:2.2",
     ivy"org.apache.commons:commons-compress:1.26.2"
@@ -1209,45 +1209,45 @@ object example extends MillScalaModule {
 
     def buildScLines =
       upstreamCross(
-        this.millModuleSegments.parts.dropRight(1).last).valuesToModules.get(List(crossValue)
-      ) match {
+        this.millModuleSegments.parts.dropRight(1).last
+      ).valuesToModules.get(List(crossValue)) match {
         case None =>
           T {
             super.buildScLines()
           }
         case Some(upstream) => T {
-          val upstreamLines = os.read.lines(
-            upstream
-              .testRepoRoot().path / "build.sc"
-          )
-          val lines = os.read.lines(testRepoRoot().path / "build.sc")
+            val upstreamLines = os.read.lines(
+              upstream
+                .testRepoRoot().path / "build.sc"
+            )
+            val lines = os.read.lines(testRepoRoot().path / "build.sc")
 
-          import collection.mutable
-          val groupedLines = mutable.Map.empty[String, mutable.Buffer[String]]
-          var current = Option.empty[String]
-          lines.foreach {
-            case s"//// SNIPPET:$name" =>
-              current = Some(name)
-              groupedLines(name) = mutable.Buffer()
-            case s => groupedLines(current.get).append(s)
-          }
-
-          upstreamLines.flatMap {
-            case s"//// SNIPPET:$name" =>
-              if (name != "END") {
-
+            import collection.mutable
+            val groupedLines = mutable.Map.empty[String, mutable.Buffer[String]]
+            var current = Option.empty[String]
+            lines.foreach {
+              case s"//// SNIPPET:$name" =>
                 current = Some(name)
-                groupedLines(name)
-              } else {
-                current = None
-                Nil
-              }
+                groupedLines(name) = mutable.Buffer()
+              case s => groupedLines(current.get).append(s)
+            }
 
-            case s =>
-              if (current.nonEmpty) None
-              else Some(s)
+            upstreamLines.flatMap {
+              case s"//// SNIPPET:$name" =>
+                if (name != "END") {
+
+                  current = Some(name)
+                  groupedLines(name)
+                } else {
+                  current = None
+                  Nil
+                }
+
+              case s =>
+                if (current.nonEmpty) None
+                else Some(s)
+            }
           }
-        }
       }
   }
   trait ExampleCrossModule extends IntegrationTestCrossModule {
@@ -1757,10 +1757,12 @@ object docs extends Module {
     PathRef(dest)
   }
 
-  def sanitizeAntoraYml(dest: os.Path,
-                        version: String,
-                        millVersion: String,
-                        millLastTag: String) = {
+  def sanitizeAntoraYml(
+      dest: os.Path,
+      version: String,
+      millVersion: String,
+      millLastTag: String
+  ) = {
     val lines = os.read(dest / "antora.yml").linesIterator.map {
       case s"version:$_" => s"version: '$version'\ndisplay-version: '$millVersion'"
       case s"    mill-version:$_" => s"    mill-version: '$millVersion'"
@@ -1771,7 +1773,7 @@ object docs extends Module {
   }
 
   def githubPagesPlaybookText(authorMode: Boolean) = T.task { extraSources: Seq[os.Path] =>
-    val taggedSources = for(path <- extraSources) yield {
+    val taggedSources = for (path <- extraSources) yield {
       s"""    - url: ${baseDir}
          |      start_path: ${path.relativeTo(baseDir)}
          |""".stripMargin
@@ -1826,8 +1828,8 @@ object docs extends Module {
        |""".stripMargin
   }
 
-  def oldDocSources = T{
-    for(oldVersion <- Settings.docTags) yield {
+  def oldDocSources = T {
+    for (oldVersion <- Settings.docTags) yield {
       val checkout = T.dest / oldVersion
       os.proc("git", "clone", T.workspace / ".git", checkout).call(stdout = os.Inherit)
       os.proc("git", "checkout", oldVersion).call(cwd = checkout, stdout = os.Inherit)
