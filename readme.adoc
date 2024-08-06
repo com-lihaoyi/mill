@@ -3,7 +3,7 @@
 :idseparator: -
 :link-github: https://github.com/com-lihaoyi/mill
 :link-gitter: https://gitter.im/lihaoyi/mill
-:link-current-doc-site: https://mill-build.com
+:link-current-doc-site: https://mill-build.org
 :link-mill-moduledefs: https://github.com/com-lihaoyi/mill-moduledefs
 :example-scala-version: 3.3.4
 :toc:
@@ -297,7 +297,7 @@ _Changes since {prev-version}:_
 
 * Workaround issue in Sonatype which started failing on double slashes in URLs
   (even though they previously worked) https://github.com/com-lihaoyi/mill/commit/a293b46e80e37572bae46ef6225f41f547a5b238[Link]
-* Overhaul of the documentation site at https://mill-build.com
+* Overhaul of the documentation site at https://mill-build.org
 * New Java- and Scala-specific sections on the documentation, with more detailed
   comparisons to existing build tools
 * Added graphviz diagrams throughout to help the user in visualizing the concepts involved

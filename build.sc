@@ -34,7 +34,7 @@ object Settings {
   val projectUrl = s"https://github.com/${githubOrg}/${githubRepo}"
   val changelogUrl = s"${projectUrl}#changelog"
   val newIssueUrl = s"${projectUrl}/issues/new/choose"
-  val docUrl = "https://mill-build.com"
+  val docUrl = "https://mill-build.org"
   // the exact branches containing a doc root
   val docBranches = Seq()
   // the exact tags containing a doc root
