@@ -12,7 +12,7 @@ object foo extends RootModule with ScoverageModule {
   )
 
   object test extends ScoverageTests /*with TestModule.Utest */{
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.11")
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
     def testFramework = "utest.runner.Framework"
   }
 }
