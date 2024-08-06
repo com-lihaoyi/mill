@@ -1,8 +1,8 @@
 import mill._, scalalib._, scalajslib._
 
 object foo extends ScalaJSModule {
-  def scalaVersion = "2.13.8"
-  def scalaJSVersion = "1.13.0"
+  def scalaVersion = "2.13.14"
+  def scalaJSVersion = "1.16.0"
   def ivyDeps = Agg(ivy"com.lihaoyi::scalatags::0.12.0")
   object test extends ScalaJSTests {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.8.4")

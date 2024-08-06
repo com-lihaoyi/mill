@@ -33,7 +33,7 @@ object fansi extends Module {
 
   object js extends Cross[JsFansiModule](scalaVersions)
   trait JsFansiModule extends FansiModule with ScalaJSModule {
-    def scalaJSVersion = "1.10.1"
+    def scalaJSVersion = "1.16.0"
     object test extends FansiTests with ScalaJSTests
   }
 
