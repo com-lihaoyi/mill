@@ -1455,7 +1455,7 @@ object HelloWorldTests extends TestSuite {
             //
             "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
             "org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
-            "org/portable-scala/portable-scala-reflect_2.13/0.1.0/portable-scala-reflect_2.13-0.1.0.jar",
+            "org/portable-scala/portable-scala-reflect_2.13/1.1.3/portable-scala-reflect_2.13-1.1.3.jar",
             "org/scala-lang/scala-reflect/2.13.12/scala-reflect-2.13.12.jar",
             //
             "MultiModuleClasspaths/ModMod/bar/compile-resources",
@@ -1520,7 +1520,7 @@ object HelloWorldTests extends TestSuite {
             //
             "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
             "org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
-            "org/portable-scala/portable-scala-reflect_2.13/0.1.0/portable-scala-reflect_2.13-0.1.0.jar",
+            "org/portable-scala/portable-scala-reflect_2.13/1.1.3/portable-scala-reflect_2.13-1.1.3.jar",
             "org/scala-lang/scala-reflect/2.13.12/scala-reflect-2.13.12.jar",
             //
             "MultiModuleClasspaths/ModCompile/bar/compile-resources",
@@ -1586,7 +1586,7 @@ object HelloWorldTests extends TestSuite {
             //
             "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
             "org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
-            "org/portable-scala/portable-scala-reflect_2.13/0.1.0/portable-scala-reflect_2.13-0.1.0.jar",
+            "org/portable-scala/portable-scala-reflect_2.13/1.1.3/portable-scala-reflect_2.13-1.1.3.jar",
             "org/scala-lang/scala-reflect/2.13.12/scala-reflect-2.13.12.jar",
             //
             "MultiModuleClasspaths/CompileMod/bar/compile-resources",
