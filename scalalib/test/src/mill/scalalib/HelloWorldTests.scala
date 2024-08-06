@@ -1448,7 +1448,7 @@ object HelloWorldTests extends TestSuite {
           expectedRunClasspath = List(
             // We pick up the oldest version of utest 0.7.0 from the current module, because
             // utest is a `runIvyDeps` and not picked up transitively
-            "com/lihaoyi/utest_2.13/0.7.0/utest_2.13-0.7.0.jar",
+            "com/lihaoyi/utest_2.13/0.8.4/utest_2.13-0.8.4.jar",
             // We pick up the newest version of sourcecode 0.2.4 from the upstream module, because
             // sourcecode is a `ivyDeps` and `runIvyDeps` and those are picked up transitively
             "com/lihaoyi/sourcecode_2.13/0.2.2/sourcecode_2.13-0.2.2.jar",
@@ -1512,7 +1512,7 @@ object HelloWorldTests extends TestSuite {
           MultiModuleClasspaths.ModCompile.qux,
           expectedRunClasspath = List(
             // `utest` is a `runIvyDeps` and not picked up transitively
-            "com/lihaoyi/utest_2.13/0.7.0/utest_2.13-0.7.0.jar",
+            "com/lihaoyi/utest_2.13/0.8.4/utest_2.13-0.8.4.jar",
             // Because `sourcecode` comes from `ivyDeps`, and the dependency from
             // `qux` to `bar` is a `compileModuleDeps`, we do not include its
             // dependencies for `qux`'s `runClasspath`
@@ -1577,7 +1577,7 @@ object HelloWorldTests extends TestSuite {
           eval,
           MultiModuleClasspaths.CompileMod.qux,
           expectedRunClasspath = List(
-            "com/lihaoyi/utest_2.13/0.7.0/utest_2.13-0.7.0.jar",
+            "com/lihaoyi/utest_2.13/0.8.4/utest_2.13-0.8.4.jar",
             // We pick up the version of `sourcecode` from `ivyDeps` from `bar` because
             // we have a normal `moduleDeps` from `qux` to `bar`, but do not pick it up
             // from `foo` because it's a `compileIvyDeps` from `bar` to `foo` and
