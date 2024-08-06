@@ -19,7 +19,7 @@ on:
         default: false
         type: boolean
       timeout-minutes:
-        default: 90
+        default: 60
         type: number
       env-bridge-versions:
         default: 'none'

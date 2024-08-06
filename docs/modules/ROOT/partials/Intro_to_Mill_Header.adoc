@@ -1,0 +1,53 @@
+[graphviz]
+....
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+  bgcolor=transparent
+  newrank=true;
+  subgraph cluster_0 {
+    style=dashed
+    node [shape=box width=0 height=0 style=filled fillcolor=white]
+    label = "foo";
+
+    "foo.sources" -> "foo.compile" -> "foo.classPath" -> "foo.assembly"
+    "foo.mainClass" -> "foo.assembly"
+  }
+  subgraph cluster_1 {
+    style=dashed
+    node [shape=box width=0 height=0 style=filled fillcolor=white]
+    label = "bar";
+
+    "foo.classPath" -> "bar.compile"
+    "foo.classPath" -> "bar.classPath"
+    "bar.sources" -> "bar.compile" -> "bar.classPath" -> "bar.assembly"
+    "bar.mainClass" -> "bar.assembly"
+  }
+}
+....
+
+{mill-github-url}[Mill] is a fast JVM build tool that supports {language}, speeding
+up common development workflows by 5-10x xref:Java_Case_Study_Netty.adoc[compared to Maven] or SBT.
+Mill aims to make your JVM project's build process performant, maintainable, and flexible
+even as it grows from a small project to a large codebase or monorepo with hundreds of modules:
+
+* *Performance*: Mill's xref:Tasks.adoc[build graph] automatically
+  xref:The_Mill_Evaluation_Model.adoc#_caching_at_each_layer_of_the_evaluation_model[caches]
+  and xref:#_parallel_task_execution[parallelizes] build
+  tasks, minimizing the amount of work that needs to be done and keeping your workflows
+  fast and responsive.
+
+* *Maintainability*: Mill build tasks are self contained without side-effects making it easy
+  to trace the data-flow, and its IDE support
+  (via xref:{language}_Installation_IDE_Support.adoc#_intellij[IntelliJ] or
+  xref:{language}_Installation_IDE_Support.adoc#_vscode[VSCode])
+  lets you "*jump-to-definition*" around your build
+  as easily as any application codebase.
+
+* *Flexibility*: Mill custom logic is written in xref:_custom_build_logic[custom build logic]
+  in type-checked code, rather than
+  error-prone shell scripts, verbose AntRun XML, or complicated external plugins. Mill's
+  custom tasks and modules allow anything from
+  xref:Tasks.adoc#primitive-tasks[adding simple pipelines], up to
+  xref:Modules.adoc#_use_case_diy_java_modules[adding entire language toolchains],
+  meaning it can be easily customized to fit exactly what you need.

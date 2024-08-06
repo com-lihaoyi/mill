@@ -146,6 +146,9 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   override def runLocal(args: Task[Args] = T.task(Args())): Command[Unit] = T.command { run(args) }
 
   override def run(args: Task[Args] = T.task(Args())): Command[Unit] = T.command {
+    if (args().value.nonEmpty) {
+      T.log.error("Passing command line arguments to run is not supported by Scala.js.")
+    }
     finalMainClassOpt() match {
       case Left(err) => Result.Failure(err)
       case Right(_) =>
@@ -336,14 +339,13 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 trait TestScalaJSModule extends ScalaJSModule with TestModule {
 
   def scalaJSTestDeps = T {
-    resolveDeps(T.task {
-      val bind = bindDependency()
+    defaultResolver().resolveDeps(
       Loose.Agg(
         ivy"org.scala-js::scalajs-library:${scalaJSVersion()}",
         ivy"org.scala-js::scalajs-test-bridge:${scalaJSVersion()}"
       )
-        .map(dep => bind(dep.withDottyCompat(scalaVersion())))
-    })
+        .map(_.withDottyCompat(scalaVersion()))
+    )
   }
 
   def fastLinkJSTest: Target[Report] = T.persistent {

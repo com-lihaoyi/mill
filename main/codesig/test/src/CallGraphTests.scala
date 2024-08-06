@@ -180,7 +180,7 @@ object CallGraphTests extends TestSuite {
               val expectedLines = sourceLines
                 .dropWhile(_ != openTagLine)
                 .drop(1)
-                .takeWhile(_ != "*/")
+                .takeWhile(l => l != "*/" && l != " */")
 
               Some(expectedLines.mkString("\n"))
             case _ => sys.error(s"Only one occurence of line \"$openTagLine\" is expected in file")

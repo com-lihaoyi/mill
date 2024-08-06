@@ -1,6 +1,7 @@
 package mill.api
 
-import java.io.{InputStream, PrintStream}
+import java.io.{InputStream, OutputStream, PrintStream}
+import mill.main.client.InputPumper
 
 /**
  * Represents a set of streams that look similar to those provided by the
@@ -48,6 +49,18 @@ object SystemStreams {
 
   def originalErr: PrintStream = original.err
 
+  private class PumpedProcessInput extends os.ProcessInput {
+    def redirectFrom = ProcessBuilder.Redirect.PIPE
+    def processInput(processIn: => os.SubProcess.InputStream): Some[InputPumper] = Some(
+      new InputPumper(() => System.in, () => processIn, true, () => true)
+    )
+  }
+
+  private class PumpedProcessOutput(dest: OutputStream) extends os.ProcessOutput {
+    def redirectTo = ProcessBuilder.Redirect.PIPE
+    def processOutput(processOut: => os.SubProcess.OutputStream): Some[InputPumper] =
+      Some(new InputPumper(() => processOut, () => dest, false, () => true))
+  }
   def withStreams[T](systemStreams: SystemStreams)(t: => T): T = {
     val in = System.in
     val out = System.out
@@ -59,7 +72,13 @@ object SystemStreams {
       Console.withIn(systemStreams.in) {
         Console.withOut(systemStreams.out) {
           Console.withErr(systemStreams.err) {
-            t
+            os.Inherit.in.withValue(new PumpedProcessInput) {
+              os.Inherit.out.withValue(new PumpedProcessOutput(System.out)) {
+                os.Inherit.err.withValue(new PumpedProcessOutput(System.err)) {
+                  t
+                }
+              }
+            }
           }
         }
       }

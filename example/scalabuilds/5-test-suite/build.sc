@@ -1,3 +1,4 @@
+//// SNIPPET:BUILD1
 import mill._, scalalib._
 
 object foo extends ScalaModule {
@@ -10,7 +11,9 @@ object foo extends ScalaModule {
 
 // This build defines a single module with a test suite, configured to use
 // "uTest" as the testing framework. Test suites are themselves ``ScalaModule``s,
-// nested within the enclosing module, and have all the normal tasks like
+// nested within the enclosing module,
+//// SNIPPET:END
+// and have all the normal tasks like
 // `foo.test.compile` available to run, but with an additional `.test` task
 // that runs the tests. You can also run the test suite directly, in which case
 // it will run the `.test` task as the default task for that module.
@@ -18,18 +21,18 @@ object foo extends ScalaModule {
 /** Usage
 
 > mill foo.compile
-compiling 1 Scala source...
+compiling 1 ... source...
 
 > mill foo.test.compile
-compiling 1 Scala source...
+compiling 1 ... source...
 
 > mill foo.test.test
-+ foo.FooTests.hello ...
-+ foo.FooTests.world ...
+...foo.FooTests.hello ...
+...foo.FooTests.world ...
 
 > mill foo.test
-+ foo.FooTests.hello ...
-+ foo.FooTests.world ...
+...foo.FooTests.hello ...
+...foo.FooTests.world ...
 
 */
 
@@ -44,6 +47,7 @@ compiling 1 Scala source...
 // * `TestModule.Utest`
 // * `TestModule.ZioTest`
 
+//// SNIPPET:BUILD2
 object bar extends ScalaModule {
   def scalaVersion = "2.13.8"
 
@@ -51,12 +55,12 @@ object bar extends ScalaModule {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.11")
   }
 }
-
+//// SNIPPET:END
 /** Usage
 
 > mill bar.test
-+ bar.BarTests.hello ...
-+ bar.BarTests.world ...
+...bar.BarTests.hello ...
+...bar.BarTests.world ...
 
 */
 
@@ -78,12 +82,12 @@ object bar extends ScalaModule {
 /** Usage
 
 > mill bar.test bar.BarTests.hello
-+ bar.BarTests.hello ...
+...bar.BarTests.hello ...
 
 */
 
 // You can also define multiple test suites if you want, e.g.:
-
+//// SNIPPET:BUILD3
 object qux extends ScalaModule {
   def scalaVersion = "2.13.8"
 
@@ -94,22 +98,22 @@ object qux extends ScalaModule {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.11")
   }
 }
-
+//// SNIPPET:END
 // Each of which will expect their sources to be in their respective `foo/test` and
 // `foo/integration` folder.
 
 /** Usage
 
 > mill qux.test
-+ qux.QuxTests.hello ...
-+ qux.QuxTests.world ...
+...qux.QuxTests...hello...
+...qux.QuxTests...world...
 
 > mill qux.integration
-+ qux.QuxIntegrationTests.helloworld ...
+...qux.QuxIntegrationTests...helloworld...
 
 > mill qux.{test,integration}
-+ qux.QuxTests.hello ...
-+ qux.QuxTests.world ...
-+ qux.QuxIntegrationTests.helloworld ...
+...qux.QuxTests...hello...
+...qux.QuxTests...world...
+...qux.QuxIntegrationTests...helloworld...
 
 */

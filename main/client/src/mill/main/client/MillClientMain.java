@@ -221,7 +221,7 @@ public class MillClientMain {
         InputStream outErr = ioSocket.getInputStream();
         OutputStream in = ioSocket.getOutputStream();
         ProxyStreamPumper outPump = new ProxyStreamPumper(outErr, stdout, stderr);
-        InputPumper inPump = new InputPumper(stdin, in, true);
+        InputPumper inPump = new InputPumper(() -> stdin, () -> in, true);
         Thread outThread = new Thread(outPump, "outPump");
         outThread.setDaemon(true);
         Thread inThread = new Thread(inPump, "inPump");
