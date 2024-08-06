@@ -304,14 +304,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.11-5-86c96f</span>
+    <span class="version">0.11.11-6-2151e9</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.11.11-5-86c96f</a>
+          <a href="index.html">0.11.11-6-2151e9</a>
         </li>
         <li class="version">
           <a href="0.11.10/index.html">0.11.10</a>
@@ -350,9 +350,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.11-5-86c96f</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.11-6-2151e9</button>
   <div class="version-menu">
-    <a class="version is-current" href="Scala_Build_Examples.html">0.11.11-5-86c96f</a>
+    <a class="version is-current" href="Scala_Build_Examples.html">0.11.11-6-2151e9</a>
     <a class="version" href="0.11.10/Scala_Build_Examples.html">0.11.10</a>
     <a class="version is-missing" href="0.11.0-M7/index.html">0.11.0-M7</a>
     <a class="version is-missing" href="0.10.15/index.html">0.10.15</a>
@@ -825,7 +825,7 @@ Qux.value: &lt;p&gt;world&lt;/p&gt;</code></pre>
 object foo extends ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
   object test extends ScalaTests {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.7.11&quot;)
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
   }
 }</code></pre>
@@ -894,7 +894,7 @@ compiling 1 ... source...
   def scalaVersion = &quot;2.13.8&quot;
 
   object test extends ScalaTests with TestModule.Utest {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.7.11&quot;)
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
   }
 }</code></pre>
 </div>
@@ -938,10 +938,10 @@ lets you pass in a selector to decide which test to run, which in Mill would be:
   def scalaVersion = &quot;2.13.8&quot;
 
   object test extends ScalaTests with TestModule.Utest {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.7.11&quot;)
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
   }
   object integration extends ScalaTests with TestModule.Utest {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.7.11&quot;)
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
   }
 }</code></pre>
 </div>
@@ -1232,7 +1232,7 @@ trait Bar2Module extends CrossScalaModule</code></pre>
 object foo extends SbtModule {
   def scalaVersion = &quot;2.13.8&quot;
   object test extends SbtTests {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.7.11&quot;)
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
   }
 }
@@ -1241,7 +1241,7 @@ object foo extends SbtModule {
 object bar extends Cross[BarModule](&quot;2.12.17&quot;, &quot;2.13.8&quot;)
 trait BarModule extends CrossSbtModule {
   object test extends CrossSbtTests {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.7.11&quot;)
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
   }
 }</code></pre>
@@ -1338,12 +1338,12 @@ trait MyModule extends PublishModule {
 trait MyScalaModule extends MyModule with CrossScalaModule {
   def ivyDeps = Agg(ivy&quot;com.lihaoyi::scalatags:0.12.0&quot;)
   object test extends ScalaTests {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.7.11&quot;)
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
   }
 }
 
-val scalaVersions = Seq(&quot;2.13.8&quot;, &quot;3.2.2&quot;)
+val scalaVersions = Seq(&quot;2.13.8&quot;, &quot;3.3.3&quot;)
 
 object foo extends Cross[FooModule](scalaVersions)
 trait FooModule extends MyScalaModule {
@@ -1419,12 +1419,12 @@ repetitive module structure in a typical project</p>
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill resolve __.run
 bar[2.13.8].run
 bar[2.13.8].test.run
-bar[3.2.2].run
-bar[3.2.2].test.run
+bar[3.3.3].run
+bar[3.3.3].test.run
 foo[2.13.8].run
 foo[2.13.8].test.run
-foo[3.2.2].run
-foo[3.2.2].test.run
+foo[3.3.3].run
+foo[3.3.3].test.run
 qux.run
 
 &gt; mill foo[2.13.8].run
@@ -1433,7 +1433,7 @@ Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
 Bar.value: &lt;p&gt;world Specific code for Scala 2.x&lt;/p&gt;
 Qux.value: 31337
 
-&gt; mill bar[3.2.2].test
+&gt; mill bar[3.3.3].test
 + bar.BarTests.test ... &lt;p&gt;world Specific code for Scala 3.x&lt;/p&gt;
 
 &gt; mill qux.run
@@ -1483,7 +1483,7 @@ demonstrating how Mill can be used to build code outside of tiny example codebas
 object Deps {
   def acyclic = ivy&quot;com.lihaoyi:::acyclic:0.3.6&quot;
   def scalaCompiler(scalaVersion: String) = ivy&quot;org.scala-lang:scala-compiler:$scalaVersion&quot;
-  val utest = ivy&quot;com.lihaoyi::utest:0.8.1&quot;
+  val utest = ivy&quot;com.lihaoyi::utest:0.8.4&quot;
 }
 
 val crosses =
@@ -1587,7 +1587,7 @@ trait FansiModule extends PublishModule with CrossScalaModule with PlatformScala
   def ivyDeps = Agg(ivy&quot;com.lihaoyi::sourcecode::0.3.0&quot;)
 
   trait FansiTests extends ScalaTests with TestModule.Utest {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest::0.8.1&quot;)
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest::0.8.4&quot;)
   }
 }
 
@@ -1599,7 +1599,7 @@ object fansi extends Module {
 
   object js extends Cross[JsFansiModule](scalaVersions)
   trait JsFansiModule extends FansiModule with ScalaJSModule {
-    def scalaJSVersion = &quot;1.10.1&quot;
+    def scalaJSVersion = &quot;1.16.0&quot;
     object test extends FansiTests with ScalaJSTests
   }
 

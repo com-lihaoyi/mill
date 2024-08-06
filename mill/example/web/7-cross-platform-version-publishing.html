@@ -302,14 +302,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.11.11-5-86c96f</span>
+    <span class="version">0.11.11-6-2151e9</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="../../index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="../../index.html">0.11.11-5-86c96f</a>
+          <a href="../../index.html">0.11.11-6-2151e9</a>
         </li>
         <li class="version">
           <a href="../../0.11.10/index.html">0.11.10</a>
@@ -343,9 +343,9 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.11.11-5-86c96f</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.11.11-6-2151e9</button>
   <div class="version-menu">
-    <a class="version is-current" href="7-cross-platform-version-publishing.html">0.11.11-5-86c96f</a>
+    <a class="version is-current" href="7-cross-platform-version-publishing.html">0.11.11-6-2151e9</a>
     <a class="version" href="../../0.11.10/example/web/7-cross-platform-version-publishing.html">0.11.10</a>
     <a class="version is-missing" href="../../0.11.0-M7/index.html">0.11.0-M7</a>
     <a class="version is-missing" href="../../0.10.15/index.html">0.10.15</a>
@@ -382,15 +382,15 @@ trait Shared extends CrossScalaModule with PlatformScalaModule with PublishModul
 }
 
 trait SharedTestModule extends TestModule {
-  def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest::0.7.11&quot;)
+  def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest::0.8.4&quot;)
   def testFramework = &quot;utest.runner.Framework&quot;
 }
 
 trait SharedJS extends Shared with ScalaJSModule {
-  def scalaJSVersion = &quot;1.13.0&quot;
+  def scalaJSVersion = &quot;1.16.0&quot;
 }
 
-val scalaVersions = Seq(&quot;2.13.8&quot;, &quot;3.2.2&quot;)
+val scalaVersions = Seq(&quot;2.13.14&quot;, &quot;3.3.3&quot;)
 
 object bar extends Module {
   object jvm extends Cross[JvmModule](scalaVersions)
@@ -433,36 +433,36 @@ different sets of Scala versions, as it allows you to specify the
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show qux.js[3.2.2].sources
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show qux.js[3.3.3].sources
 [
   &quot;.../qux/src&quot;,
   &quot;.../qux/src-js&quot;,
-  &quot;.../qux/src-3.2.2&quot;,
-  &quot;.../qux/src-3.2.2-js&quot;,
-  &quot;.../qux/src-3.2&quot;,
-  &quot;.../qux/src-3.2-js&quot;,
+  &quot;.../qux/src-3.3.3&quot;,
+  &quot;.../qux/src-3.3.3-js&quot;,
+  &quot;.../qux/src-3.3&quot;,
+  &quot;.../qux/src-3.3-js&quot;,
   &quot;.../qux/src-3&quot;,
   &quot;.../qux/src-3-js&quot;
 ]
 
-&gt; ./mill show qux.js[3.2.2].test.sources
+&gt; ./mill show qux.js[3.3.3].test.sources
 [
   &quot;.../qux/test/src&quot;,
   &quot;.../qux/test/src-js&quot;,
-  &quot;.../qux/test/src-3.2.2&quot;,
-  &quot;.../qux/test/src-3.2.2-js&quot;,
-  &quot;.../qux/test/src-3.2&quot;,
-  &quot;.../qux/test/src-3.2-js&quot;,
+  &quot;.../qux/test/src-3.3.3&quot;,
+  &quot;.../qux/test/src-3.3.3-js&quot;,
+  &quot;.../qux/test/src-3.3&quot;,
+  &quot;.../qux/test/src-3.3-js&quot;,
   &quot;.../qux/test/src-3&quot;,
   &quot;.../qux/test/src-3-js&quot;
 ]
 
-&gt; ./mill qux.jvm[2.13.8].run
+&gt; ./mill qux.jvm[2.13.14].run
 Bar.value: &lt;p&gt;world Specific code for Scala 2.x&lt;/p&gt;
 Parsing JSON with ujson.read
 Qux.main: Set(&lt;p&gt;i&lt;/p&gt;, &lt;p&gt;cow&lt;/p&gt;, &lt;p&gt;me&lt;/p&gt;)
 
-&gt; ./mill __.js[3.2.2].test
+&gt; ./mill __.js[3.3.3].test
 + bar.BarTests.test ...  &lt;p&gt;world Specific code for Scala 3.x&lt;/p&gt;
 + qux.QuxTests.parseJsonGetKeys ...  Set(i, cow, me)
 
