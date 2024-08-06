@@ -29,10 +29,11 @@ private object Plan {
             if (!overridden(t)) segments
             else {
               val Segment.Label(tName) = segments.value.last
+              pprint.log(t.ctx.enclosing)
               Segments(
                 segments.value.init ++
                   Seq(Segment.Label(tName + ".super")) ++
-                  t.ctx.enclosing.split("[.# ]").map(Segment.Label)
+                  t.ctx.enclosing.split("[.# ]").filter(_ != "<empty>").map(Segment.Label)
               )
             }
           Terminal.Labelled(t, augmentedSegments)
