@@ -16,7 +16,7 @@ trait Shared extends CrossScalaModule with PlatformScalaModule with PublishModul
 }
 
 trait SharedTestModule extends TestModule {
-  def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.7.11")
+  def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.8.4")
   def testFramework = "utest.runner.Framework"
 }
 

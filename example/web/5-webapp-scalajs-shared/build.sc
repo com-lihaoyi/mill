@@ -23,7 +23,7 @@ object root extends RootModule with AppScalaModule {
   object test extends ScalaTests with TestModule.Utest {
 
     def ivyDeps = Agg(
-      ivy"com.lihaoyi::utest::0.7.10",
+      ivy"com.lihaoyi::utest::0.8.4",
       ivy"com.lihaoyi::requests::0.6.9",
     )
   }
