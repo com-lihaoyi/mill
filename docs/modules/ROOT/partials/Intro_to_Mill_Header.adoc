@@ -26,7 +26,8 @@ digraph G {
 }
 ....
 
-{mill-github-url}[Mill] is a graph-based JVM build tool that supports {language}.
+{mill-github-url}[Mill] is a fast JVM build tool that supports {language}, speeding
+up common development workflows by 5-10x xref:Java_Case_Study_Netty.adoc[compared to Maven] or SBT.
 Mill aims to make your JVM project's build process performant, maintainable, and flexible
 even as it grows from a small project to a large codebase or monorepo with hundreds of modules:
 

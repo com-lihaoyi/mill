@@ -12,7 +12,7 @@ object app extends Module {
 
   object jvm extends Common
   object js extends Common with ScalaJSModule {
-    def scalaJSVersion = "1.15.0"
+    def scalaJSVersion = "1.16.0"
   }
   object native extends Common with ScalaNativeModule {
     def scalaNativeVersion = "0.4.17"

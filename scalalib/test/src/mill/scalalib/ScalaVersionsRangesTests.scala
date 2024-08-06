@@ -10,11 +10,11 @@ object ScalaVersionsRangesTests extends TestSuite {
   object ScalaVersionsRanges extends TestUtil.BaseModule {
     def millSourcePath = TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
 
-    object core extends Cross[CoreCrossModule]("2.11.12", "2.12.13", "2.13.5", "3.0.0-RC2")
+    object core extends Cross[CoreCrossModule]("2.12.13", "2.13.5", "3.3.3")
     trait CoreCrossModule extends CrossScalaModule
         with CrossScalaVersionRanges {
       object test extends ScalaTests with TestModule.Utest {
-        def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.8")
+        def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
       }
     }
   }

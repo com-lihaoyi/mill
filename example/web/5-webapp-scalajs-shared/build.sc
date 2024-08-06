@@ -5,7 +5,7 @@ trait AppScalaModule extends ScalaModule {
 }
 
 trait AppScalaJSModule extends AppScalaModule with ScalaJSModule {
-  def scalaJSVersion = "1.13.0"
+  def scalaJSVersion = "1.16.0"
 }
 
 object root extends RootModule with AppScalaModule {
@@ -23,7 +23,7 @@ object root extends RootModule with AppScalaModule {
   object test extends ScalaTests with TestModule.Utest {
 
     def ivyDeps = Agg(
-      ivy"com.lihaoyi::utest::0.7.10",
+      ivy"com.lihaoyi::utest::0.8.4",
       ivy"com.lihaoyi::requests::0.6.9",
     )
   }

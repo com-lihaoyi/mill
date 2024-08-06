@@ -34,7 +34,7 @@ object Settings {
   val projectUrl = s"https://github.com/${githubOrg}/${githubRepo}"
   val changelogUrl = s"${projectUrl}#changelog"
   val newIssueUrl = s"${projectUrl}/issues/new/choose"
-  val docUrl = "https://mill-build.com"
+  val docUrl = "https://mill-build.org"
   // the exact branches containing a doc root
   val docBranches = Seq()
   // the exact tags containing a doc root
@@ -46,7 +46,7 @@ object Settings {
     "0.11.0-M7"
   )
   val docTags: Seq[String] = Seq(
-    "0.11.11"
+    "0.11.10"
   )
   val mimaBaseVersions: Seq[String] = 0.to(10).map("0.11." + _)
 }
@@ -193,7 +193,7 @@ object Deps {
   val fansi = ivy"com.lihaoyi::fansi:0.5.0"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.0"
   val requests = ivy"com.lihaoyi::requests:0.8.3"
-  val sonatypeCentralClient = ivy"com.lumidion::sonatype-central-client-requests:0.2.0"
+  val sonatypeCentralClient = ivy"com.lumidion::sonatype-central-client-requests:0.3.0"
 
   object RuntimeDeps {
     val sbtTestInterface = ivy"com.github.sbt:junit-interface:0.13.2"
@@ -206,7 +206,7 @@ object Deps {
     ivy"org.apache.ant:ant:1.10.14",
     ivy"commons-io:commons-io:2.16.1",
     ivy"com.google.code.gson:gson:2.11.0",
-    ivy"com.google.protobuf:protobuf-java:3.25.3",
+    ivy"com.google.protobuf:protobuf-java:3.25.4",
     ivy"com.google.guava:guava:33.2.1-jre",
     ivy"org.yaml:snakeyaml:2.2",
     ivy"org.apache.commons:commons-compress:1.26.2"
@@ -217,7 +217,7 @@ object Deps {
     // tests framework (test)
     val scalaCheck = ivy"org.scalacheck::scalacheck:1.18.0"
     val scalaTest = ivy"org.scalatest::scalatest:3.2.19"
-    val utest = ivy"com.lihaoyi::utest:0.8.3"
+    val utest = ivy"com.lihaoyi::utest:0.8.4"
     val zioTest = ivy"dev.zio::zio-test:2.0.22"
   }
 
@@ -1359,7 +1359,8 @@ object example extends MillScalaModule {
     "acyclic" -> ("com-lihaoyi/acyclic", "1ec221f377794db39e8ff9b43415f81c703c202f"),
     "fansi" -> ("com-lihaoyi/fansi", "169ac96d7c6761a72590d312a433cf12c572573c"),
     "jimfs" -> ("google/jimfs", "5b60a42eb9d3cd7a2073d549bd0cb833f5a7e7e9"),
-    "commons-io" -> ("apache/commons-io", "b91a48074231ef813bc9b91a815d77f6343ff8f0")
+    "commons-io" -> ("apache/commons-io", "b91a48074231ef813bc9b91a815d77f6343ff8f0"),
+    "netty" -> ("netty/netty", "20a790ed362a3c11e0e990b58598e4ac6aa88bef")
   )
   object thirdparty extends Cross[ThirdPartyModule](listIn(millSourcePath / "thirdparty"))
   trait ThirdPartyModule extends ExampleCrossModule {
@@ -1389,6 +1390,8 @@ object example extends MillScalaModule {
 object integration extends MillScalaModule {
   object failure extends Cross[IntegrationCrossModule](listIn(millSourcePath / "failure"))
   object feature extends Cross[IntegrationCrossModule](listIn(millSourcePath / "feature"))
+  object invalidation extends Cross[IntegrationCrossModule](listIn(millSourcePath / "invalidation"))
+  object ide extends Cross[IntegrationCrossModule](listIn(millSourcePath / "ide"))
   trait IntegrationCrossModule extends IntegrationTestCrossModule
 
   def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, runner.test)

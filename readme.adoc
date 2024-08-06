@@ -3,7 +3,7 @@
 :idseparator: -
 :link-github: https://github.com/com-lihaoyi/mill
 :link-gitter: https://gitter.im/lihaoyi/mill
-:link-current-doc-site: https://mill-build.com
+:link-current-doc-site: https://mill-build.org
 :link-mill-moduledefs: https://github.com/com-lihaoyi/mill-moduledefs
 :example-scala-version: 3.3.4
 :toc:
@@ -24,7 +24,7 @@ endif::[]
 https://index.scala-lang.org/com-lihaoyi/mill/mill-main[image:https://index.scala-lang.org/com-lihaoyi/mill/mill-main/latest.svg[Mill]]
 https://www.patreon.com/lihaoyi[image:https://img.shields.io/badge/patreon-sponsor-ff69b4.svg[Patreon]]
 
-Mill is a graph-based JVM build tool that supports Java and Scala. Mill aims to make your 
+Mill is a fast JVM build tool that supports Java and Scala. Mill aims to make your 
 project’s build process performant, maintainable, and flexible.
 
 == Documentation
@@ -295,10 +295,17 @@ endif::[]
 
 _Changes since {prev-version}:_
 
-* Overhaul of the documentation site at https://mill-build.com
+* Workaround issue in Sonatype which started failing on double slashes in URLs
+  (even though they previously worked) https://github.com/com-lihaoyi/mill/commit/a293b46e80e37572bae46ef6225f41f547a5b238[Link]
+* Overhaul of the documentation site at https://mill-build.org
 * New Java- and Scala-specific sections on the documentation, with more detailed
   comparisons to existing build tools
 * Added graphviz diagrams throughout to help the user in visualizing the concepts involved
+* Update versions of JUnit sbt-test-interface libraries that Mill uses 
+  {link-pr}/3296[#3296]
+* Make it simpler to resolve dependencies in custom tasks via `defaultResolver().resolveDeps`
+  {link-pr}/3330[#3330]
+
 
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
