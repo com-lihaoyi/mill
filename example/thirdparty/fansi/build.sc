@@ -21,7 +21,7 @@ trait FansiModule extends PublishModule with CrossScalaModule with PlatformScala
   def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode::0.3.0")
 
   trait FansiTests extends ScalaTests with TestModule.Utest {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.8.1")
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.8.4")
   }
 }
 
@@ -33,7 +33,7 @@ object fansi extends Module {
 
   object js extends Cross[JsFansiModule](scalaVersions)
   trait JsFansiModule extends FansiModule with ScalaJSModule {
-    def scalaJSVersion = "1.10.1"
+    def scalaJSVersion = "1.16.0"
     object test extends FansiTests with ScalaJSTests
   }
 

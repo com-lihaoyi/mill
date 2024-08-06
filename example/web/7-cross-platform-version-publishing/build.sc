@@ -16,15 +16,15 @@ trait Shared extends CrossScalaModule with PlatformScalaModule with PublishModul
 }
 
 trait SharedTestModule extends TestModule {
-  def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.7.11")
+  def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.8.4")
   def testFramework = "utest.runner.Framework"
 }
 
 trait SharedJS extends Shared with ScalaJSModule {
-  def scalaJSVersion = "1.13.0"
+  def scalaJSVersion = "1.16.0"
 }
 
-val scalaVersions = Seq("2.13.8", "3.2.2")
+val scalaVersions = Seq("2.13.14", "3.3.3")
 
 object bar extends Module {
   object jvm extends Cross[JvmModule](scalaVersions)
@@ -65,36 +65,36 @@ object qux extends Module {
 
 /** Usage
 
-> ./mill show qux.js[3.2.2].sources
+> ./mill show qux.js[3.3.3].sources
 [
   ".../qux/src",
   ".../qux/src-js",
-  ".../qux/src-3.2.2",
-  ".../qux/src-3.2.2-js",
-  ".../qux/src-3.2",
-  ".../qux/src-3.2-js",
+  ".../qux/src-3.3.3",
+  ".../qux/src-3.3.3-js",
+  ".../qux/src-3.3",
+  ".../qux/src-3.3-js",
   ".../qux/src-3",
   ".../qux/src-3-js"
 ]
 
-> ./mill show qux.js[3.2.2].test.sources
+> ./mill show qux.js[3.3.3].test.sources
 [
   ".../qux/test/src",
   ".../qux/test/src-js",
-  ".../qux/test/src-3.2.2",
-  ".../qux/test/src-3.2.2-js",
-  ".../qux/test/src-3.2",
-  ".../qux/test/src-3.2-js",
+  ".../qux/test/src-3.3.3",
+  ".../qux/test/src-3.3.3-js",
+  ".../qux/test/src-3.3",
+  ".../qux/test/src-3.3-js",
   ".../qux/test/src-3",
   ".../qux/test/src-3-js"
 ]
 
-> ./mill qux.jvm[2.13.8].run
+> ./mill qux.jvm[2.13.14].run
 Bar.value: <p>world Specific code for Scala 2.x</p>
 Parsing JSON with ujson.read
 Qux.main: Set(<p>i</p>, <p>cow</p>, <p>me</p>)
 
-> ./mill __.js[3.2.2].test
+> ./mill __.js[3.3.3].test
 + bar.BarTests.test ...  <p>world Specific code for Scala 3.x</p>
 + qux.QuxTests.parseJsonGetKeys ...  Set(i, cow, me)
 

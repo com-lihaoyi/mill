@@ -34,7 +34,7 @@ object Settings {
   val projectUrl = s"https://github.com/${githubOrg}/${githubRepo}"
   val changelogUrl = s"${projectUrl}#changelog"
   val newIssueUrl = s"${projectUrl}/issues/new/choose"
-  val docUrl = "https://mill-build.com"
+  val docUrl = "https://mill-build.org"
   // the exact branches containing a doc root
   val docBranches = Seq()
   // the exact tags containing a doc root
@@ -211,7 +211,7 @@ object Deps {
     // tests framework (test)
     val scalaCheck = ivy"org.scalacheck::scalacheck:1.18.0"
     val scalaTest = ivy"org.scalatest::scalatest:3.2.19"
-    val utest = ivy"com.lihaoyi::utest:0.8.3"
+    val utest = ivy"com.lihaoyi::utest:0.8.4"
     val zioTest = ivy"dev.zio::zio-test:2.0.22"
   }
 
