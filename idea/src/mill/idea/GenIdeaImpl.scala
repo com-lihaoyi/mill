@@ -11,11 +11,13 @@ import mill.api.{PathRef, Strict}
 import mill.define.{Ctx => _, _}
 import mill.eval.Evaluator
 import mill.main.BuildInfo
+import mill.scalajslib.ScalaJSModule
 import mill.scalalib.GenIdeaModule.{IdeaConfigFile, JavaFacet}
 import mill.scalalib.internal.JavaModuleUtils
 import mill.util.Classpath
 import mill.{T, scalalib}
 import mill.scalalib.{GenIdeaImpl => _, _}
+import mill.scalanativelib.ScalaNativeModule
 
 case class GenIdeaImpl(
     private val evaluators: Seq[Evaluator]
@@ -570,14 +572,19 @@ case class GenIdeaImpl(
 
         val scalaSdkFile = {
           Option.when(scalaVersion.isDefined && compilerClasspath.nonEmpty) {
-            val name = s"scala-SDK-${scalaVersion.get}"
+            val name = mod match {
+              case _: ScalaJSModule => "scala-js-SDK"
+              case _: ScalaNativeModule => "scala-native-SDK"
+              case _: ScalaModule => "scala-SDK"
+            }
+            val nameAndVersion = s"${name}-${scalaVersion.get}"
             val languageLevel =
               scalaVersion.map(_.split("[.]", 3).take(2).mkString("Scala_", "_", ""))
 
             Tuple2(
-              os.sub / "libraries" / libraryNameToFileSystemPathPart(name, "xml"),
+              os.sub / "libraries" / libraryNameToFileSystemPathPart(nameAndVersion, "xml"),
               scalaSdkTemplate(
-                name = name,
+                name = nameAndVersion,
                 languageLevel = languageLevel,
                 scalaCompilerClassPath = compilerClasspath,
                 // FIXME: fill in these fields
