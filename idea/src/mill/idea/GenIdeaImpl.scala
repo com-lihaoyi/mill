@@ -552,9 +552,17 @@ case class GenIdeaImpl(
 
         val isTest = mod.isInstanceOf[TestModule]
 
+        val sdkName = (mod match {
+          case _: ScalaJSModule => Some("scala-js-SDK")
+          case _: ScalaNativeModule => Some("scala-native-SDK")
+          case _: ScalaModule => Some("scala-SDK")
+          case _ => None
+        })
+          .map { name => s"${name}-${scalaVersion.get}" }
+
         val moduleXml = moduleXmlTemplate(
           basePath = mod.intellijModulePath,
-          scalaVersionOpt = scalaVersion,
+          sdkOpt = sdkName,
           resourcePaths = Strict.Agg.from(resourcesPathRefs.map(_.path)),
           normalSourcePaths = Strict.Agg.from(normalSourcePaths),
           generatedSourcePaths = Strict.Agg.from(generatedSourcePaths),
@@ -571,13 +579,7 @@ case class GenIdeaImpl(
         )
 
         val scalaSdkFile = {
-          Option.when(scalaVersion.isDefined && compilerClasspath.nonEmpty) {
-            val name = mod match {
-              case _: ScalaJSModule => "scala-js-SDK"
-              case _: ScalaNativeModule => "scala-native-SDK"
-              case _: ScalaModule => "scala-SDK"
-            }
-            val nameAndVersion = s"${name}-${scalaVersion.get}"
+          sdkName.map { nameAndVersion =>
             val languageLevel =
               scalaVersion.map(_.split("[.]", 3).take(2).mkString("Scala_", "_", ""))
 
@@ -808,7 +810,7 @@ case class GenIdeaImpl(
    */
   def moduleXmlTemplate(
       basePath: os.Path,
-      scalaVersionOpt: Option[String],
+      sdkOpt: Option[String],
       resourcePaths: Strict.Agg[os.Path],
       normalSourcePaths: Strict.Agg[os.Path],
       generatedSourcePaths: Strict.Agg[os.Path],
@@ -892,8 +894,8 @@ case class GenIdeaImpl(
         <orderEntry type="sourceFolder" forTests="false" />
         {
       for {
-        scalaVersion <- scalaVersionOpt.toSeq
-      } yield <orderEntry type="library" name={s"scala-SDK-${scalaVersion}"} level="project" />
+        sdk <- sdkOpt.toSeq
+      } yield <orderEntry type="library" name={sdk} level="project" />
     }
 
         {
