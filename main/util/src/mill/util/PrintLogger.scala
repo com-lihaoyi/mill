@@ -50,6 +50,9 @@ class PrintLogger(
   override def withOutStream(outStream: PrintStream): PrintLogger =
     copy(systemStreams = new SystemStreams(outStream, systemStreams.err, systemStreams.in))
 
+  override def withErrStream(errStream: PrintStream): PrintLogger =
+    copy(systemStreams = new SystemStreams(systemStreams.out, errStream, systemStreams.in))
+
   private def copy(
       colored: Boolean = colored,
       enableTicker: Boolean = enableTicker,

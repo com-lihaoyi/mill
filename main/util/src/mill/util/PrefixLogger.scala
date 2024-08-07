@@ -51,6 +51,14 @@ class PrefixLogger(
     outStream0 = Some(outStream),
     errStream0 = Some(systemStreams.err)
   )
+
+  override def withErrStream(errStream: PrintStream): PrefixLogger = new PrefixLogger(
+    logger0.withErrStream(errStream),
+    context,
+    tickerContext,
+    outStream0 = Some(systemStreams.out),
+    errStream0 = Some(errStream)
+  )
 }
 
 object PrefixLogger {
