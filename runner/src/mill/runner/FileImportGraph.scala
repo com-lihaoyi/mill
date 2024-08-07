@@ -113,7 +113,7 @@ object FileImportGraph {
               val end = rest.last._2
               (
                 start,
-                fileImportToSegments(projectRoot, nextPaths(0) / os.up, false)
+                fileImportToSegments(projectRoot, nextPaths(0) / os.up, ext = "")
                   .map(backtickWrap)
                   .mkString("."),
                 end
@@ -152,8 +152,8 @@ object FileImportGraph {
     s / os.up / restSegments / os.up / s"${rest.last}.sc"
   }
 
-  def fileImportToSegments(base: os.Path, s: os.Path, stripExt: Boolean): Seq[String] = {
-    val rel = (s / os.up / (if (stripExt) s.baseName else s.last)).relativeTo(base)
+  def fileImportToSegments(base: os.Path, s: os.Path, ext: String): Seq[String] = {
+    val rel = (s / os.up / s"${s.baseName}${ext}").relativeTo(base)
     Seq("millbuild") ++ Seq.fill(rel.ups)("^") ++ rel.segments
   }
 }
