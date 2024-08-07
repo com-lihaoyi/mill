@@ -1,5 +1,6 @@
 package mill.runner
 
+import mill.given
 import mill.util.{ColorLogger, PrefixLogger, Watchable}
 import mill.main.BuildInfo
 import mill.main.client.CodeGenConstants._

@@ -1,7 +1,8 @@
 package mill.main
 
+import mill.given
 import mill.api.{PathRef, Result, Val}
-import mill.{Agg, T, Task}
+import mill.{Agg, T, Task, given}
 import mill.define.{Cross, Discover, Module}
 import mill.main.client.OutFiles
 import mill.testkit.UnitTester
