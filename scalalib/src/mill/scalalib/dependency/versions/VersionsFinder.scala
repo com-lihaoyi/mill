@@ -41,7 +41,9 @@ private[dependency] object VersionsFinder {
       javaModule: JavaModule
   ): Task[ResolvedDependencies] =
     Task.anon {
-      Task.log.ticker(s"Resolving dependencies [${progress.next()}/${progress.count}]: ${javaModule}")
+      Task.log.ticker(
+        s"Resolving dependencies [${progress.next()}/${progress.count}]: ${javaModule}"
+      )
 
       val bindDependency = javaModule.bindDependency()
       val deps = javaModule.ivyDeps()

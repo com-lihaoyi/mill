@@ -5,6 +5,7 @@ import mill.api.Result
 import scalalib._
 import mill.contrib.artifactory.ArtifactoryPublishModule.checkArtifactoryCreds
 import mill.define.{ExternalModule, Task}
+import mill.define.Command
 
 trait ArtifactoryPublishModule extends PublishModule {
   def artifactoryUri: String
@@ -59,7 +60,7 @@ object ArtifactoryPublishModule extends ExternalModule {
       publishArtifacts: mill.main.Tasks[PublishModule.PublishData],
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000
-  ) = Task.command {
+  ): Command[Unit] = Task.command {
 
     val artifacts = Task.sequence(publishArtifacts.value)().map {
       case data @ PublishModule.PublishData(_, _) => data.withConcretePath

@@ -7,7 +7,9 @@ import scala.language.implicitConversions
  * Provides access to various resources in the context of a currently execution Target.
  */
 object Ctx {
-  @compileTimeOnly("Target.ctx() / Task.ctx() / Task.* APIs can only be used with a Task {...} block")
+  @compileTimeOnly(
+    "Target.ctx() / Task.ctx() / Task.* APIs can only be used with a Task {...} block"
+  )
   @ImplicitStub
   implicit def taskCtx: Ctx = ???
 

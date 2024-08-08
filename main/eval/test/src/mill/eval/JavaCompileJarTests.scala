@@ -39,7 +39,8 @@ object JavaCompileJarTests extends TestSuite {
         def readme = Task.source { readmePath }
         def sourceRoot = Task.sources { sourceRootPath }
         def resourceRoot = Task.sources { resourceRootPath }
-        def allSources = Task { sourceRoot().flatMap(p => os.walk(p.path)).map(mill.api.PathRef(_)) }
+        def allSources =
+          Task { sourceRoot().flatMap(p => os.walk(p.path)).map(mill.api.PathRef(_)) }
         def classFiles = Task { compileAll(allSources()) }
         def jar = Task {
           Jvm.createJar(Loose.Agg(classFiles().path, readme().path) ++ resourceRoot().map(_.path))

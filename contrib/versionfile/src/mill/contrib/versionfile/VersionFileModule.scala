@@ -14,7 +14,8 @@ trait VersionFileModule extends Module {
   def releaseVersion: T[Version] = Task { currentVersion().asRelease }
 
   /** The next snapshot version. */
-  def nextVersion(bump: String): Task[Version] = Task.anon { currentVersion().asSnapshot.bump(bump) }
+  def nextVersion(bump: String): Task[Version] =
+    Task.anon { currentVersion().asSnapshot.bump(bump) }
 
   /** Writes the release version to file. */
   def setReleaseVersion(): Command[Unit] = Task.command {

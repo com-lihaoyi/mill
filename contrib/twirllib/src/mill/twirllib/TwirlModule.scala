@@ -33,7 +33,7 @@ trait TwirlModule extends mill.Module { twirlModule =>
    * Replicate the logic from twirl build,
    *      see: https://github.com/playframework/twirl/blob/2.0.1/build.sbt#L12-L17
    */
-  private def scalaParserCombinatorsVersion: T[String] = Task{
+  private def scalaParserCombinatorsVersion: T[String] = Task {
     twirlScalaVersion() match {
       case v if v.startsWith("2.") => "1.1.2"
       case _ => "2.3.0"

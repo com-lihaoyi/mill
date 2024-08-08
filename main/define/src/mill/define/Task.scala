@@ -123,10 +123,10 @@ trait Target[+T] extends NamedTask[T]
 
 object Target extends TaskCompanion {
   implicit def applyImplicit[T](t: T)(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
-  macro Target.Internal.targetImpl[T]
+    macro Target.Internal.targetImpl[T]
 
   implicit def applyImplicit[T](t: Result[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
-  macro Target.Internal.targetResultImpl[T]
+    macro Target.Internal.targetResultImpl[T]
 
   object Internal {
     private def isPrivateTargetOption(c: Context): c.Expr[Option[Boolean]] = {
@@ -136,8 +136,8 @@ object Target extends TaskCompanion {
     }
 
     def targetImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T])(
-      rw: c.Expr[RW[T]],
-      ctx: c.Expr[mill.define.Ctx]
+        rw: c.Expr[RW[T]],
+        ctx: c.Expr[mill.define.Ctx]
     ): c.Expr[Target[T]] = {
       import c.universe._
 
@@ -158,8 +158,8 @@ object Target extends TaskCompanion {
     }
 
     def targetResultImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[Result[T]])(
-      rw: c.Expr[RW[T]],
-      ctx: c.Expr[mill.define.Ctx]
+        rw: c.Expr[RW[T]],
+        ctx: c.Expr[mill.define.Ctx]
     ): c.Expr[Target[T]] = {
       import c.universe._
 
@@ -178,8 +178,8 @@ object Target extends TaskCompanion {
     }
 
     def targetTaskImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[Task[T]])(
-      rw: c.Expr[RW[T]],
-      ctx: c.Expr[mill.define.Ctx]
+        rw: c.Expr[RW[T]],
+        ctx: c.Expr[mill.define.Ctx]
     ): c.Expr[Target[T]] = {
       import c.universe._
 
@@ -198,7 +198,7 @@ object Target extends TaskCompanion {
     }
 
     def sourcesImpl1(c: Context)(values: c.Expr[Result[os.Path]]*)(ctx: c.Expr[mill.define.Ctx])
-    : c.Expr[Target[Seq[PathRef]]] = {
+        : c.Expr[Target[Seq[PathRef]]] = {
       import c.universe._
       val wrapped =
         for (value <- values.toList)
@@ -220,7 +220,7 @@ object Target extends TaskCompanion {
     }
 
     def sourcesImpl2(c: Context)(values: c.Expr[Result[Seq[PathRef]]])(ctx: c.Expr[mill.define.Ctx])
-    : c.Expr[Target[Seq[PathRef]]] = {
+        : c.Expr[Target[Seq[PathRef]]] = {
       import c.universe._
 
       val taskIsPrivate = isPrivateTargetOption(c)
@@ -237,7 +237,7 @@ object Target extends TaskCompanion {
     }
 
     def sourceImpl1(c: Context)(value: c.Expr[Result[os.Path]])(ctx: c.Expr[mill.define.Ctx])
-    : c.Expr[Target[PathRef]] = {
+        : c.Expr[Target[PathRef]] = {
       import c.universe._
 
       val wrapped =
@@ -259,7 +259,7 @@ object Target extends TaskCompanion {
     }
 
     def sourceImpl2(c: Context)(value: c.Expr[Result[PathRef]])(ctx: c.Expr[mill.define.Ctx])
-    : c.Expr[Target[PathRef]] = {
+        : c.Expr[Target[PathRef]] = {
       import c.universe._
 
       val taskIsPrivate = isPrivateTargetOption(c)
@@ -276,8 +276,8 @@ object Target extends TaskCompanion {
     }
 
     def inputImpl[T: c.WeakTypeTag](c: Context)(value: c.Expr[T])(
-      w: c.Expr[upickle.default.Writer[T]],
-      ctx: c.Expr[mill.define.Ctx]
+        w: c.Expr[upickle.default.Writer[T]],
+        ctx: c.Expr[mill.define.Ctx]
     ): c.Expr[Target[T]] = {
       import c.universe._
 
@@ -296,9 +296,9 @@ object Target extends TaskCompanion {
     }
 
     def commandFromTask[T: c.WeakTypeTag](c: Context)(t: c.Expr[Task[T]])(
-      ctx: c.Expr[mill.define.Ctx],
-      w: c.Expr[W[T]],
-      cls: c.Expr[EnclosingClass]
+        ctx: c.Expr[mill.define.Ctx],
+        w: c.Expr[W[T]],
+        cls: c.Expr[EnclosingClass]
     ): c.Expr[Command[T]] = {
       import c.universe._
 
@@ -316,9 +316,9 @@ object Target extends TaskCompanion {
     }
 
     def commandImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T])(
-      w: c.Expr[W[T]],
-      ctx: c.Expr[mill.define.Ctx],
-      cls: c.Expr[EnclosingClass]
+        w: c.Expr[W[T]],
+        ctx: c.Expr[mill.define.Ctx],
+        cls: c.Expr[EnclosingClass]
     ): c.Expr[Command[T]] = {
       import c.universe._
 
@@ -336,7 +336,7 @@ object Target extends TaskCompanion {
     }
 
     def workerImpl1[T: c.WeakTypeTag](c: Context)(t: c.Expr[Task[T]])(ctx: c.Expr[mill.define.Ctx])
-    : c.Expr[Worker[T]] = {
+        : c.Expr[Worker[T]] = {
       import c.universe._
 
       val taskIsPrivate = isPrivateTargetOption(c)
@@ -349,7 +349,7 @@ object Target extends TaskCompanion {
     }
 
     def workerImpl2[T: c.WeakTypeTag](c: Context)(t: c.Expr[T])(ctx: c.Expr[mill.define.Ctx])
-    : c.Expr[Worker[T]] = {
+        : c.Expr[Worker[T]] = {
       import c.universe._
 
       val taskIsPrivate = isPrivateTargetOption(c)
@@ -366,8 +366,8 @@ object Target extends TaskCompanion {
     }
 
     def persistentImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T])(
-      rw: c.Expr[RW[T]],
-      ctx: c.Expr[mill.define.Ctx]
+        rw: c.Expr[RW[T]],
+        ctx: c.Expr[mill.define.Ctx]
     ): c.Expr[PersistentImpl[T]] = {
       import c.universe._
 

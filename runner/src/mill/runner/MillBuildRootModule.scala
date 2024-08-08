@@ -14,6 +14,7 @@ import mill.main.{BuildInfo, RootModule}
 
 import scala.collection.immutable.SortedMap
 import scala.util.Try
+import mill.define.Target
 
 /**
  * Mill module for pre-processing a Mill `build.sc` and related files and then
@@ -47,7 +48,7 @@ class MillBuildRootModule()(implicit
    * All script files (that will get wrapped later)
    * @see [[generateScriptSources]]
    */
-  def scriptSources = Task.sources {
+  def scriptSources: Target[Seq[PathRef]] = Task.sources {
     MillBuildRootModule.parseBuildFiles(millBuildRootModuleInfo)
       .seenScripts
       .keys.map(PathRef(_))
@@ -140,7 +141,8 @@ class MillBuildRootModule()(implicit
 
   def methodCodeHashSignatures: T[Map[String, Int]] = Task.persistent {
     os.remove.all(Task.dest / "previous")
-    if (os.exists(Task.dest / "current")) os.move.over(Task.dest / "current", Task.dest / "previous")
+    if (os.exists(Task.dest / "current"))
+      os.move.over(Task.dest / "current", Task.dest / "previous")
     val debugEnabled = Task.log.debugEnabled
     val codesig = mill.codesig.CodeSig
       .compute(
@@ -221,7 +223,7 @@ class MillBuildRootModule()(implicit
     candidates.filterNot(filesToExclude.contains).map(PathRef(_))
   }
 
-  def enclosingClasspath = Task.sources {
+  def enclosingClasspath: Target[Seq[PathRef]] = Task.sources {
     millBuildRootModuleInfo.enclosingClasspath.map(p => mill.api.PathRef(p, quick = true))
   }
 
