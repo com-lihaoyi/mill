@@ -236,12 +236,13 @@ def millLastTag: T[String] = T {
 }
 
 def millBinPlatform: T[String] = T {
-  val tag = millLastTag()
-  if (tag.contains("-M")) tag
-  else {
-    val pos = if (tag.startsWith("0.")) 2 else 1
-    tag.split("[.]", pos + 1).take(pos).mkString(".")
-  }
+//  val tag = millLastTag()
+//  if (tag.contains("-M")) tag
+//  else {
+//    val pos = if (tag.startsWith("0.")) 2 else 1
+//    tag.split("[.]", pos + 1).take(pos).mkString(".")
+//  }
+  "0.11"
 }
 
 def baseDir = build.millSourcePath
