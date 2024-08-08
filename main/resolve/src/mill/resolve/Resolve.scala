@@ -3,9 +3,9 @@ package mill.resolve
 import mainargs.{MainData, TokenGrouping}
 import mill.define.{
   BaseModule,
+  BaseModuleTree,
   Command,
   Discover,
-  ExternalModule,
   Module,
   NamedTask,
   Reflect,
@@ -19,7 +19,7 @@ import mill.util.EitherOps
 object Resolve {
   object Segments extends Resolve[Segments] {
     private[mill] def handleResolved(
-        rootModule: BaseModule,
+        baseModules: BaseModuleTree,
         resolved: Seq[Resolved],
         args: Seq[String],
         selector: Segments,
@@ -33,7 +33,7 @@ object Resolve {
 
   object Tasks extends Resolve[NamedTask[Any]] {
     private[mill] def handleResolved(
-        rootModule: BaseModule,
+        baseModules: BaseModuleTree,
         resolved: Seq[Resolved],
         args: Seq[String],
         selector: Segments,
@@ -42,23 +42,25 @@ object Resolve {
       val taskList = resolved.map {
         case r: Resolved.Target =>
           val instantiated = ResolveCore
-            .instantiateModule(rootModule, r.segments.init)
+            .instantiateModule(baseModules, r.segments.init)
             .flatMap(instantiateTarget(r, _))
 
           instantiated.map(Some(_))
 
         case r: Resolved.Command =>
           val instantiated = ResolveCore
-            .instantiateModule(rootModule, r.segments.init)
-            .flatMap(instantiateCommand(rootModule, r, _, args, nullCommandDefaults))
+            .instantiateModule0(baseModules, r.segments.init)
+            .flatMap { case (mod, rootMod) =>
+              instantiateCommand(rootMod, r, mod, args, nullCommandDefaults)
+            }
 
           instantiated.map(Some(_))
 
         case r: Resolved.Module =>
-          ResolveCore.instantiateModule(rootModule, r.segments).flatMap {
+          ResolveCore.instantiateModule(baseModules, r.segments).flatMap {
             case value: TaskModule =>
               val directChildrenOrErr = ResolveCore.resolveDirectChildren(
-                rootModule,
+                baseModules,
                 value.getClass,
                 Some(value.defaultCommandName()),
                 value.millModuleSegments
@@ -68,7 +70,13 @@ object Resolve {
                 directChildren.head match {
                   case r: Resolved.Target => instantiateTarget(r, value).map(Some(_))
                   case r: Resolved.Command =>
-                    instantiateCommand(rootModule, r, value, args, nullCommandDefaults).map(Some(_))
+                    instantiateCommand(
+                      baseModules.rootModule,
+                      r,
+                      value,
+                      args,
+                      nullCommandDefaults
+                    ).map(Some(_))
                 }
               )
             case _ => Right(None)
@@ -104,15 +112,17 @@ object Resolve {
       args: Seq[String],
       nullCommandDefaults: Boolean
   ) = {
-    ResolveCore.catchWrapException(
-      invokeCommand0(
+    ResolveCore.catchWrapException {
+      val invoked = invokeCommand0(
         p,
         r.segments.parts.last,
         rootModule.millDiscover.asInstanceOf[Discover[mill.define.Module]],
         args,
         nullCommandDefaults
-      ).head
-    ).flatten
+      )
+
+      invoked.head
+    }.flatten
   }
 
   private def invokeCommand0(
@@ -181,7 +191,7 @@ object Resolve {
 
 trait Resolve[T] {
   private[mill] def handleResolved(
-      rootModule: BaseModule,
+      baseModules: BaseModuleTree,
       resolved: Seq[Resolved],
       args: Seq[String],
       segments: Segments,
@@ -193,11 +203,18 @@ trait Resolve[T] {
       scriptArgs: Seq[String],
       selectMode: SelectMode
   ): Either[String, List[T]] = {
-    resolve0(rootModule, scriptArgs, selectMode)
+    resolve0(Seq(rootModule), scriptArgs, selectMode)
+  }
+  def resolve(
+      rootModules: Seq[BaseModule],
+      scriptArgs: Seq[String],
+      selectMode: SelectMode
+  ): Either[String, List[T]] = {
+    resolve0(rootModules, scriptArgs, selectMode)
   }
 
   private[mill] def resolve0(
-      baseModule: BaseModule,
+      baseModules: Seq[BaseModule],
       scriptArgs: Seq[String],
       selectMode: SelectMode
   ): Either[String, List[T]] = {
@@ -205,8 +222,8 @@ trait Resolve[T] {
     val resolvedGroups = ParseArgs(scriptArgs, selectMode).flatMap { groups =>
       val resolved = groups.map { case (selectors, args) =>
         val selected = selectors.map { case (scopedSel, sel) =>
-          resolveRootModule(baseModule, scopedSel).map { rootModule =>
-            resolveNonEmptyAndHandle(args, sel, rootModule, nullCommandDefaults)
+          resolveRootModule(baseModules, scopedSel).map { rootModuleSels =>
+            resolveNonEmptyAndHandle(args, rootModuleSels, sel, nullCommandDefaults)
           }
         }
 
@@ -224,21 +241,21 @@ trait Resolve[T] {
 
   private[mill] def resolveNonEmptyAndHandle(
       args: Seq[String],
+      baseModules: BaseModuleTree,
       sel: Segments,
-      rootModule: BaseModule,
       nullCommandDefaults: Boolean
   ): Either[String, Seq[T]] = {
-    val rootResolved = ResolveCore.Resolved.Module(Segments(), rootModule.getClass)
+    val rootResolved = ResolveCore.Resolved.Module(Segments(), baseModules.rootModule.getClass)
     val resolved =
       ResolveCore.resolve(
-        rootModule = rootModule,
+        baseModules = baseModules,
         remainingQuery = sel.value.toList,
         current = rootResolved,
         querySoFar = Segments()
       ) match {
         case ResolveCore.Success(value) => Right(value)
         case ResolveCore.NotFound(segments, found, next, possibleNexts) =>
-          val allPossibleNames = rootModule.millDiscover.value.values.flatMap(_._1).toSet
+          val allPossibleNames = baseModules.allPossibleNames
           Left(ResolveNotFoundHandler(
             selector = sel,
             segments = segments,
@@ -252,30 +269,31 @@ trait Resolve[T] {
 
     resolved
       .map(_.toSeq.sortBy(_.segments.render))
-      .flatMap(handleResolved(rootModule, _, args, sel, nullCommandDefaults))
+      .flatMap(handleResolved(baseModules, _, args, sel, nullCommandDefaults))
   }
 
   private[mill] def deduplicate(items: List[T]): List[T] = items
 
   private[mill] def resolveRootModule(
-      rootModule: BaseModule,
+      rootModules: Seq[BaseModule],
       scopedSel: Option[Segments]
-  ): Either[String, BaseModule] = {
+  ): Either[String, BaseModuleTree] = {
     scopedSel match {
-      case None => Right(rootModule)
+      case None => Right(BaseModuleTree.from(rootModules))
+
       case Some(scoping) =>
         for {
           moduleCls <-
-            try Right(rootModule.getClass.getClassLoader.loadClass(scoping.render + "$"))
+            try Right(rootModules.head.getClass.getClassLoader.loadClass(scoping.render + "$"))
             catch {
               case e: ClassNotFoundException =>
                 Left("Cannot resolve external module " + scoping.render)
             }
           rootModule <- moduleCls.getField("MODULE$").get(moduleCls) match {
-            case rootModule: ExternalModule => Right(rootModule)
-            case _ => Left("Class " + scoping.render + " is not an external module")
+            case rootModule: BaseModule => Right(rootModule)
+            case _ => Left("Class " + scoping.render + " is not an BaseModule")
           }
-        } yield rootModule
+        } yield new BaseModuleTree(Seq((Nil, rootModule)))
     }
   }
 }

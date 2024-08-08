@@ -17,12 +17,12 @@ trait MyModule extends PublishModule {
 trait MyScalaModule extends MyModule with CrossScalaModule {
   def ivyDeps = Agg(ivy"com.lihaoyi::scalatags:0.12.0")
   object test extends ScalaTests {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.11")
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
     def testFramework = "utest.runner.Framework"
   }
 }
 
-val scalaVersions = Seq("2.13.8", "3.2.2")
+val scalaVersions = Seq("2.13.8", "3.3.3")
 
 object foo extends Cross[FooModule](scalaVersions)
 trait FooModule extends MyScalaModule {
@@ -84,12 +84,12 @@ object qux extends JavaModule with MyModule
 > mill resolve __.run
 bar[2.13.8].run
 bar[2.13.8].test.run
-bar[3.2.2].run
-bar[3.2.2].test.run
+bar[3.3.3].run
+bar[3.3.3].test.run
 foo[2.13.8].run
 foo[2.13.8].test.run
-foo[3.2.2].run
-foo[3.2.2].test.run
+foo[3.3.3].run
+foo[3.3.3].test.run
 qux.run
 
 > mill foo[2.13.8].run
@@ -98,7 +98,7 @@ Foo.value: <h1>hello</h1>
 Bar.value: <p>world Specific code for Scala 2.x</p>
 Qux.value: 31337
 
-> mill bar[3.2.2].test
+> mill bar[3.3.3].test
 + bar.BarTests.test ... <p>world Specific code for Scala 3.x</p>
 
 > mill qux.run

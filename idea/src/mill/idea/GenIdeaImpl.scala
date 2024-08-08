@@ -22,7 +22,7 @@ case class GenIdeaImpl(
 )(implicit ctx: Ctx) {
   import GenIdeaImpl._
 
-  val workDir: os.Path = evaluators.head.rootModule.millSourcePath
+  val workDir: os.Path = evaluators.head.rootModules.head.millSourcePath
   val ideaDir: os.Path = workDir / ".idea"
 
   val ideaConfigVersion = 4
@@ -67,7 +67,9 @@ case class GenIdeaImpl(
       fetchMillModules: Boolean = true
   ): Seq[(os.SubPath, scala.xml.Node)] = {
 
-    val rootModules = evaluators.zipWithIndex.map { case (ev, idx) => (ev.rootModule, ev, idx) }
+    val rootModules = evaluators.zipWithIndex.map { case (ev, idx) =>
+      (ev.rootModules.head, ev, idx)
+    }
     val transitive: Seq[(BaseModule, Seq[Module], Evaluator, Int)] = rootModules
       .map { case (rootModule, ev, idx) =>
         (rootModule, JavaModuleUtils.transitiveModules(rootModule), ev, idx)
@@ -118,7 +120,7 @@ case class GenIdeaImpl(
     }
 
     // is head the right one?
-    val buildDepsPaths = Classpath.allJars(evaluators.head.rootModule.getClass.getClassLoader)
+    val buildDepsPaths = Classpath.allJars(evaluators.head.rootModules.head.getClass.getClassLoader)
       .map(url => os.Path(java.nio.file.Paths.get(url.toURI)))
 
     def resolveTasks: Map[Evaluator, Seq[Task[ResolvedModule]]] =

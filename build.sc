@@ -1,15 +1,6 @@
-// plugins and dependencies
-import $file.ci.shared
-import $file.ci.upload
-import $ivy.`org.scalaj::scalaj-http:2.4.2`
-import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.4.0`
-import $ivy.`com.github.lolgab::mill-mima::0.1.1`
-import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.29`
-import $ivy.`com.lihaoyi::mill-contrib-buildinfo:`
-import $ivy.`com.goyeau::mill-scalafix::0.4.0`
-
 // imports
-import com.github.lolgab.mill.mima.{CheckDirection, ProblemFilter, Mima}
+import scala.util.chaining._
+import com.github.lolgab.mill.mima.Mima
 import coursier.maven.MavenRepository
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import com.goyeau.mill.scalafix.ScalafixModule
@@ -23,9 +14,18 @@ import mill.scalalib.publish._
 import mill.util.Jvm
 import mill.resolve.SelectMode
 import mill.contrib.buildinfo.BuildInfo
-import mill.scalalib.api.Versions
 import mill.T
 import mill.define.Cross
+
+// plugins and dependencies
+import $file.ci.shared
+import $file.ci.upload
+import $ivy.`org.scalaj::scalaj-http:2.4.2`
+import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.4.0`
+import $ivy.`com.github.lolgab::mill-mima::0.1.1`
+import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.29`
+import $ivy.`com.lihaoyi::mill-contrib-buildinfo:`
+import $ivy.`com.goyeau::mill-scalafix::0.4.0`
 
 object Settings {
   val pomOrg = "com.lihaoyi"
@@ -48,7 +48,7 @@ object Settings {
   val docTags: Seq[String] = Seq(
     "0.11.10"
   )
-  val mimaBaseVersions: Seq[String] = 0.to(10).map("0.11." + _)
+  val mimaBaseVersions: Seq[String] = 0.to(11).map("0.11." + _)
 }
 
 object Deps {
@@ -195,6 +195,12 @@ object Deps {
   val requests = ivy"com.lihaoyi::requests:0.8.3"
   val sonatypeCentralClient = ivy"com.lumidion::sonatype-central-client-requests:0.3.0"
 
+  object RuntimeDeps {
+    val sbtTestInterface = ivy"com.github.sbt:junit-interface:0.13.2"
+    val jupiterInterface = ivy"com.github.sbt.junit:jupiter-interface:0.11.4"
+    def all = Seq(sbtTestInterface, jupiterInterface)
+  }
+
   /** Used to manage transitive versions. */
   val transitiveDeps = Seq(
     ivy"org.apache.ant:ant:1.10.14",
@@ -211,7 +217,7 @@ object Deps {
     // tests framework (test)
     val scalaCheck = ivy"org.scalacheck::scalacheck:1.18.0"
     val scalaTest = ivy"org.scalatest::scalatest:3.2.19"
-    val utest = ivy"com.lihaoyi::utest:0.8.3"
+    val utest = ivy"com.lihaoyi::utest:0.8.4"
     val zioTest = ivy"dev.zio::zio-test:2.0.22"
   }
 
@@ -511,6 +517,17 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
     ),
     // Terminal is sealed, not sure why MIMA still complains
     ProblemFilter.exclude[ReversedMissingMethodProblem]("mill.eval.Terminal.task")
+
+    // Not sure why mima is picking up this stuff which is private[mill]
+    ProblemFilter.exclude[Problem]("mill.resolve.*.resolve0"),
+    ProblemFilter.exclude[Problem]("mill.resolve.*.resolveRootModule"),
+
+    // These methods are private so it doesn't matter
+    ProblemFilter.exclude[ReversedMissingMethodProblem]("mill.resolve.Resolve.handleResolved"),
+    ProblemFilter.exclude[Problem]("mill.resolve.*.resolveNonEmptyAndHandle*"),
+    ProblemFilter.exclude[Problem]("mill.resolve.ResolveCore*"),
+    ProblemFilter.exclude[InheritedNewAbstractMethodProblem]("mill.main.MainModule.mill$define$BaseModule0$_setter_$watchedValues_="),
+    ProblemFilter.exclude[InheritedNewAbstractMethodProblem]("mill.main.MainModule.mill$define$BaseModule0$_setter_$evalWatchedValues_="),
   )
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
 
@@ -791,7 +808,21 @@ object scalalib extends MillStableScalaModule {
       ),
       BuildInfo.Value("millCompilerBridgeScalaVersions", bridgeScalaVersions.mkString(",")),
       BuildInfo.Value("millCompilerBridgeVersion", bridgeVersion),
-      BuildInfo.Value("millVersion", millVersion(), "Mill version.")
+      BuildInfo.Value("millVersion", millVersion(), "Mill version."),
+      BuildInfo.Value(
+        "sbtTestInterface",
+        Deps.RuntimeDeps.sbtTestInterface.pipe { d =>
+          s"${d.dep.module.organization.value}:${d.dep.module.name.value}:${d.version}"
+        },
+        "Dependency sbt-test-interface"
+      ),
+      BuildInfo.Value(
+        "jupiterInterface",
+        Deps.RuntimeDeps.jupiterInterface.pipe { d =>
+          s"${d.dep.module.organization.value}:${d.dep.module.name.value}:${d.version}"
+        },
+        "Dependency to jupiter-interface"
+      )
     )
   }
 
@@ -2085,7 +2116,7 @@ val dummyDeps: Seq[Dep] = Seq(
   Deps.acyclic,
   Deps.scalacScoverage2Plugin,
   ivy"com.lihaoyi:::ammonite:${Deps.ammoniteVersion}"
-) ++ Deps.transitiveDeps
+) ++ Deps.transitiveDeps ++ Deps.RuntimeDeps.all
 
 implicit object DepSegment extends Cross.ToSegments[Dep]({ dep =>
       val depString = formatDep(dep)
