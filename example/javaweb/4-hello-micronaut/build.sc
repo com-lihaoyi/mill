@@ -70,7 +70,7 @@ trait MicronautModule extends MavenModule{
 
 > mill runBackground
 
-> curl http://localhost:8087/hello
+> curl http://localhost:8088/hello
 ...Hello World...
 
 > mill clean runBackground
