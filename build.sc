@@ -516,7 +516,7 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
       "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$runMain"
     ),
     // Terminal is sealed, not sure why MIMA still complains
-    ProblemFilter.exclude[ReversedMissingMethodProblem]("mill.eval.Terminal.task")
+    ProblemFilter.exclude[ReversedMissingMethodProblem]("mill.eval.Terminal.task"),
 
     // Not sure why mima is picking up this stuff which is private[mill]
     ProblemFilter.exclude[Problem]("mill.resolve.*.resolve0"),
