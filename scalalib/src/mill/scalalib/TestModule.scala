@@ -196,7 +196,6 @@ trait TestModule
           "MILL_TEST_RESOURCE_FOLDER" -> resources().map(_.path).mkString(";"),
           "MILL_TEST_DEST_FOLDER" -> T.dest.toString()
         ) ++ forkEnv(),
-        envArgs = Map() ++ forkEnv(),
         mainArgs = mainArgs,
         workingDir = if (testSandboxWorkingDir()) T.dest / "sandbox" else forkWorkingDir(),
         useCpPassingJar = useArgsFile

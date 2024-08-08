@@ -341,6 +341,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 }
 
 trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
+  override def resources = super[ScalaNativeModule].resources
   override def testLocal(args: String*) = T.command { test(args: _*) }
   override protected def testTask(
       args: Task[Seq[String]],

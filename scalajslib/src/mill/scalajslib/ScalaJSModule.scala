@@ -337,7 +337,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 }
 
 trait TestScalaJSModule extends ScalaJSModule with TestModule {
-
+  override def resources = super[ScalaJSModule].resources
   def scalaJSTestDeps = T {
     defaultResolver().resolveDeps(
       Loose.Agg(
