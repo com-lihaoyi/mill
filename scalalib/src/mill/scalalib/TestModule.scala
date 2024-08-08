@@ -183,7 +183,7 @@ trait TestModule
       os.write(argsFile, upickle.default.write(testArgs))
       val mainArgs = Seq(testRunnerClasspathArg, argsFile.toString)
 
-      os.makeDir(T.dest / "test-workspace")
+      os.makeDir(T.dest / "sandbox")
       Jvm.runSubprocess(
         mainClass = "mill.testrunner.entrypoint.TestRunnerMain",
         classPath =
@@ -195,7 +195,7 @@ trait TestModule
           Map("MILL_TEST_RESOURCE_FOLDER" -> resources().map(_.path).mkString(";")) ++
           forkEnv(),
         mainArgs = mainArgs,
-        workingDir = if (testUseDestAsWorkDir()) T.dest / "test-workspace" else forkWorkingDir(),
+        workingDir = if (testUseDestAsWorkDir()) T.dest / "sandbox" else forkWorkingDir(),
         useCpPassingJar = useArgsFile
       )
 
