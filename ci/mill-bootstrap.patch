@@ -1,9 +1,22 @@
 diff --git a/build.sc b/build.sc
-index 526ebaa9cf..616be491f9 100644
+index 56cc7fa6e3..1a148fccde 100644
 --- a/build.sc
 +++ b/build.sc
-@@ -1968,7 +1968,7 @@ def uploadToGithub(authKey: String) = T.command {
-
+@@ -22,10 +22,10 @@ import $file.ci.shared
+ import $file.ci.upload
+ import $ivy.`org.scalaj::scalaj-http:2.4.2`
+ import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.4.0`
+-import $ivy.`com.github.lolgab::mill-mima::0.1.1`
++import $ivy.`com.github.lolgab::mill-mima_mill0.11:0.1.1`
+ import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.29`
+ import $ivy.`com.lihaoyi::mill-contrib-buildinfo:`
+-import $ivy.`com.goyeau::mill-scalafix::0.4.0`
++import $ivy.`com.goyeau::mill-scalafix_mill0.11:0.4.0`
+ 
+ object Settings {
+   val pomOrg = "com.lihaoyi"
+@@ -2089,7 +2089,7 @@ def uploadToGithub(authKey: String) = T.command {
+ 
  private def resolveTasks[T](taskNames: String*): Seq[NamedTask[T]] = {
    mill.resolve.Resolve.Tasks.resolve(
 -    build,
