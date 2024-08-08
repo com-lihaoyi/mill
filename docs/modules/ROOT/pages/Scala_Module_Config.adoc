@@ -1,4 +1,11 @@
 = Scala Module Configuration
+
+++++
+<script>
+gtag('config', 'AW-16649289906');
+</script>
+++++
+
 :page-aliases: Configuring_Mill.adoc
 
 This page goes into more detail about the various configuration options

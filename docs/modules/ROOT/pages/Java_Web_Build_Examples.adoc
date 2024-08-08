@@ -1,4 +1,10 @@
-= Web Build Examples
+= Java Web Build Examples
+
+++++
+<script>
+gtag('config', 'AW-16649289906');
+</script>
+++++
 
 This page contains examples of using Mill as a build tool for web-applications.
 It covers setting up a basic backend server with a variety of server frameworks
@@ -16,3 +22,10 @@ include::example/javaweb/2-hello-spring-boot.adoc[]
 
 include::example/javaweb/3-todo-spring-boot.adoc[]
 
+== Micronaut Hello World App
+
+include::example/javaweb/4-hello-micronaut.adoc[]
+
+== Micronaut TodoMvc App
+
+include::example/javaweb/5-todo-micronaut.adoc[]

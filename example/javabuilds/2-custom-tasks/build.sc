@@ -12,13 +12,14 @@ object foo extends RootModule with JavaModule {
       val version = ivyDep.dep.version
       s""" "$org:$name:$version" """
     }
+    val ivyDepsString = prettyIvyDeps.mkString(" + \"\\n\" + \n")
     os.write(
       T.dest / s"MyDeps.java",
       s"""
          |package foo;
          |public class MyDeps {
          |  public static String value =
-         |    ${prettyIvyDeps.mkString(" + \"\\n\" + \n")};
+         |    $ivyDepsString;
          |}
       """.stripMargin
     )

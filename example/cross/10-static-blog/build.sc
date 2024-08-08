@@ -119,7 +119,21 @@ def dist = T {
 // All caching, incremental re-computation, and parallelism is done using the
 // Mill target graph. For this simple example, the graph is as follows
 //
-// image::BlogGraph.svg[BlogGraph.svg]
+// [graphviz]
+// ....
+// digraph G {
+//   node [shape=box width=0 height=0]
+//   "1 - Foo.md" -> "post[1]\nrender"
+//   "2 - Foo.md" -> "post[2]\nrender"
+//   "3 - Foo.md" -> "post[3]\nrender"
+//
+//   "post[1]\nrender" -> "dist"
+//   "post[2]\nrender" -> "dist"
+//   "post[3]\nrender" -> "dist"
+//   "index" -> "dist"
+//
+// }
+// ....
 //
 // This example use case is taken from the following blog post, which contains
 // some extensions and fun exercises to further familiarize yourself with Mill

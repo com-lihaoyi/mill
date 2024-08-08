@@ -1,5 +1,11 @@
 = Scala Build Examples
 
+++++
+<script>
+gtag('config', 'AW-16649289906');
+</script>
+++++
+
 On this page, we will explore the Mill build tool via a series of simple Scala
 example projects. Each project demonstrates one particular feature of the Mill
 build tool, and is also an executable codebase you can download and run. By the
@@ -75,7 +81,7 @@ include::example/thirdparty/fansi.adoc[]
 
 https://github.com/com-lihaoyi/Ammonite[Ammonite] is an ergonomic Scala REPL.
 
-=== Scala-ClI
+=== Scala-CLI
 
 https://github.com/VirtusLab/scala-cli[Scala-CLI] is the primary CLI tool that
 runs when you enter `scala` in the terminal. It is able to compile, test, run,

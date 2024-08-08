@@ -1,11 +1,17 @@
 = Java Module Configuration
 
+++++
+<script>
+gtag('config', 'AW-16649289906');
+</script>
+++++
+
 This page goes into more detail about the various configuration options
 for `JavaModule`.
 
 Many of the APIs covered here are listed in the API documentation:
 
-* {mill-doc-url}/api/latest/mill/scalalib/JavaModule.html[mill.scalalib.JavaModule]
+* {mill-doc-url}/api/latest/mill/scalalib/JavaModule.html[mill.javaalib.JavaModule]
 
 
 == Compilation & Execution Flags
@@ -49,7 +55,7 @@ include::example/javamodule/10-assembly-config.adoc[]
 
 include::example/javamodule/11-repository-config.adoc[]
 
-== Maven Central: Blocked!
+=== Maven Central: Blocked!
 
 Under some circumstances (e.g. corporate firewalls), you may not have access maven central. The typical symptom will be error messages which look like this;
 
@@ -73,3 +79,12 @@ The idea is to set an environment variable COURSIER_REPOSITORIES (see coursier d
 
 If you are using millw, a more permanent solution could be to set the environment variable at the top of the millw script, or as a user environment variable etc.
 
+
+
+== Native C Code with JNI
+
+include::example/javamodule/12-jni.adoc[]
+
+== Annotation Processors with Lombok
+
+include::example/javamodule/13-annotation-processors-lombok.adoc[]

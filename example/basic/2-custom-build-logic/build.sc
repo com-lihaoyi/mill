@@ -24,6 +24,26 @@ object foo extends RootModule with ScalaModule {
 
 //// SNIPPET:END
 
+// The addition of `lineCount` and `resources` overrides the previous `resource`
+// folder provided by `JavaModule` (labelled `resource.super` below), replacing
+// it with the destination folder of the new `resources` target, which is wired
+// up `lineCount`:
+//
+// [graphviz]
+// ....
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   allSourceFiles -> lineCount -> resources -> "..." -> run
+//   "resources.super" -> "..." [style=invis]
+//   "..." [color=white]
+//   "resources.super" [style=dashed]
+//   allSourceFiles [color=white]
+//   run [color=white]
+// }
+// ....
+
+
 /** Usage
 
 > mill run
@@ -42,7 +62,9 @@ Inputs:
 
 // Above, `def lineCount` is a new build target we define, which makes use of
 // `allSourceFiles` (an existing target) and is in-turn used in our override of
-// `resources` (also an existing target). This generated file can then be
+// `resources` (also an existing target). `os.read.lines` and `os.write come
+// from the https://github.com/com-lihaoyi/os-lib[OS-Lib] library, which is
+// bundled with Mill. This generated file can then be
 // loaded and used at runtime, as see in the output of `mill run`
 //
 // While this is a toy example, it shows how easy it is to customize your Mill
@@ -56,9 +78,9 @@ Inputs:
 // your IDE can always help you find the final override of any particular build
 // target as well as where any overriden implementations may be defined.
 //
-// Lastly, custom user-defined targets in Mill benefit from all the same things
-// that built-in targets do: caching, parallelism (with the `-j`/`--jobs`
-// flag), inspectability via `show`/`inspect`, and so on.
+// Unlike normal methods, custom user-defined targets in Mill benefit from all
+// the same things that built-in targets do: automatic caching, parallelism
+// (with the `-j`/`--jobs` flag), inspectability (via `show`/`inspect`), and so on.
 //
 // While these things may not matter for such a simple example that runs
 // quickly, they ensure that custom build logic remains performant and

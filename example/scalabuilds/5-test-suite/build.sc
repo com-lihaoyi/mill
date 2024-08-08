@@ -4,14 +4,16 @@ import mill._, scalalib._
 object foo extends ScalaModule {
   def scalaVersion = "2.13.8"
   object test extends ScalaTests {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.11")
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
     def testFramework = "utest.runner.Framework"
   }
 }
-//// SNIPPET:END
+
 // This build defines a single module with a test suite, configured to use
 // "uTest" as the testing framework. Test suites are themselves ``ScalaModule``s,
-// nested within the enclosing module, and have all the normal tasks like
+// nested within the enclosing module,
+//// SNIPPET:END
+// and have all the normal tasks like
 // `foo.test.compile` available to run, but with an additional `.test` task
 // that runs the tests. You can also run the test suite directly, in which case
 // it will run the `.test` task as the default task for that module.
@@ -50,7 +52,7 @@ object bar extends ScalaModule {
   def scalaVersion = "2.13.8"
 
   object test extends ScalaTests with TestModule.Utest {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.11")
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
   }
 }
 //// SNIPPET:END
@@ -90,10 +92,10 @@ object qux extends ScalaModule {
   def scalaVersion = "2.13.8"
 
   object test extends ScalaTests with TestModule.Utest {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.11")
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
   }
   object integration extends ScalaTests with TestModule.Utest {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.11")
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
   }
 }
 //// SNIPPET:END
@@ -103,15 +105,15 @@ object qux extends ScalaModule {
 /** Usage
 
 > mill qux.test
-...qux.QuxTests.hello ...
-...qux.QuxTests.world ...
+...qux.QuxTests...hello...
+...qux.QuxTests...world...
 
 > mill qux.integration
-...qux.QuxIntegrationTests.helloworld ...
+...qux.QuxIntegrationTests...helloworld...
 
 > mill qux.{test,integration}
-...qux.QuxTests.hello ...
-...qux.QuxTests.world ...
-...qux.QuxIntegrationTests.helloworld ...
+...qux.QuxTests...hello...
+...qux.QuxTests...world...
+...qux.QuxIntegrationTests...helloworld...
 
 */

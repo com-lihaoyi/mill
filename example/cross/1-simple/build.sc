@@ -9,6 +9,33 @@ trait FooModule extends Cross.Module[String] {
   def sources = T.sources(millSourcePath)
 }
 
+// [graphviz]
+// ....
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+
+//   subgraph cluster_2 {
+//     label="foo[2.12]"
+//     style=dashed
+//     "foo[2.12].suffix" -> "foo[2.12].bigSuffix"
+//     "foo[2.12].sources"
+//   }
+//   subgraph cluster_1 {
+//     label="foo[2.11]"
+//     style=dashed
+//     "foo[2.11].suffix" -> "foo[2.11].bigSuffix"
+//     "foo[2.11].sources"
+//   }
+//   subgraph cluster_0 {
+//     label="foo[2.10]"
+//     style=dashed
+//     "foo[2.10].suffix" -> "foo[2.10].bigSuffix"
+//     "foo[2.10].sources"
+//   }
+// }
+// ....
+
 // Cross modules defined using the `Cross[T]` class allow you to define
 // multiple copies of the same module, differing only in some input key. This
 // is very useful for building the same module against different versions of a
