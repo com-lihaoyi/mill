@@ -124,6 +124,16 @@ trait TestModule
   def testReportXml: T[Option[String]] = T(Some("test-report.xml"))
 
   /**
+   * Whether or not to use the test task destination folder as the working directory
+   * when running tests. `true` means test subprocess run in the `.dest/` folder of
+   * the test task, providing better isolation and encouragement of best practices
+   * (e.g. not reading/writing stuff randomly from the project source tree). `false`
+   * means the test subprocess runs in the project root folder, providing weaker
+   * isolation.
+   */
+  def testUseDestAsWorkDir: T[Boolean] = true
+
+  /**
    * The actual task shared by `test`-tasks that runs test in a forked JVM.
    */
   protected def testTask(
@@ -182,7 +192,7 @@ trait TestModule
         jvmArgs = jvmArgs,
         envArgs = forkEnv(),
         mainArgs = mainArgs,
-        workingDir = forkWorkingDir(),
+        workingDir = if (testUseDestAsWorkDir()) T.dest else forkWorkingDir(),
         useCpPassingJar = useArgsFile
       )
 
