@@ -11,11 +11,13 @@ import mill.api.{PathRef, Strict}
 import mill.define.{Ctx => _, _}
 import mill.eval.Evaluator
 import mill.main.BuildInfo
+import mill.scalajslib.ScalaJSModule
 import mill.scalalib.GenIdeaModule.{IdeaConfigFile, JavaFacet}
 import mill.scalalib.internal.JavaModuleUtils
 import mill.util.Classpath
 import mill.{T, scalalib}
 import mill.scalalib.{GenIdeaImpl => _, _}
+import mill.scalanativelib.ScalaNativeModule
 
 case class GenIdeaImpl(
     private val evaluators: Seq[Evaluator]
@@ -552,9 +554,17 @@ case class GenIdeaImpl(
 
         val isTest = mod.isInstanceOf[TestModule]
 
+        val sdkName = (mod match {
+          case _: ScalaJSModule => Some("scala-js-SDK")
+          case _: ScalaNativeModule => Some("scala-native-SDK")
+          case _: ScalaModule => Some("scala-SDK")
+          case _ => None
+        })
+          .map { name => s"${name}-${scalaVersion.get}" }
+
         val moduleXml = moduleXmlTemplate(
           basePath = mod.intellijModulePath,
-          scalaVersionOpt = scalaVersion,
+          sdkOpt = sdkName,
           resourcePaths = Strict.Agg.from(resourcesPathRefs.map(_.path)),
           normalSourcePaths = Strict.Agg.from(normalSourcePaths),
           generatedSourcePaths = Strict.Agg.from(generatedSourcePaths),
@@ -571,15 +581,14 @@ case class GenIdeaImpl(
         )
 
         val scalaSdkFile = {
-          Option.when(scalaVersion.isDefined && compilerClasspath.nonEmpty) {
-            val name = s"scala-SDK-${scalaVersion.get}"
+          sdkName.map { nameAndVersion =>
             val languageLevel =
               scalaVersion.map(_.split("[.]", 3).take(2).mkString("Scala_", "_", ""))
 
             Tuple2(
-              os.sub / "libraries" / libraryNameToFileSystemPathPart(name, "xml"),
+              os.sub / "libraries" / libraryNameToFileSystemPathPart(nameAndVersion, "xml"),
               scalaSdkTemplate(
-                name = name,
+                name = nameAndVersion,
                 languageLevel = languageLevel,
                 scalaCompilerClassPath = compilerClasspath,
                 // FIXME: fill in these fields
@@ -803,7 +812,7 @@ case class GenIdeaImpl(
    */
   def moduleXmlTemplate(
       basePath: os.Path,
-      scalaVersionOpt: Option[String],
+      sdkOpt: Option[String],
       resourcePaths: Strict.Agg[os.Path],
       normalSourcePaths: Strict.Agg[os.Path],
       generatedSourcePaths: Strict.Agg[os.Path],
@@ -887,8 +896,8 @@ case class GenIdeaImpl(
         <orderEntry type="sourceFolder" forTests="false" />
         {
       for {
-        scalaVersion <- scalaVersionOpt.toSeq
-      } yield <orderEntry type="library" name={s"scala-SDK-${scalaVersion}"} level="project" />
+        sdk <- sdkOpt.toSeq
+      } yield <orderEntry type="library" name={sdk} level="project" />
     }
 
         {
