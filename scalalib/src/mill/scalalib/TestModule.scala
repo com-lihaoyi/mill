@@ -24,6 +24,7 @@ trait TestModule
 
   override def defaultCommandName() = "test"
   def resources: T[Seq[PathRef]]
+
   /**
    * The classpath containing the tests. This is most likely the output of the compilation target.
    * By default this uses the result of [[localRunClasspath]], which is most likely the result of a local compilation.
@@ -193,7 +194,7 @@ trait TestModule
         jvmArgs = jvmArgs,
         envArgs =
           Map("MILL_TEST_RESOURCE_FOLDER" -> resources().map(_.path).mkString(";")) ++
-          forkEnv(),
+            forkEnv(),
         mainArgs = mainArgs,
         workingDir = if (testSandboxWorkingDir()) T.dest / "sandbox" else forkWorkingDir(),
         useCpPassingJar = useArgsFile
