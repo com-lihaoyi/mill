@@ -1805,7 +1805,7 @@ object docs extends Module {
       millVersion: String,
       millLastTag: String
   ): Unit = {
-    val isPreRelease = millVersion != millLastTag
+    val isPreRelease = (millVersion != millLastTag) || Seq("-M", "-RC").exists(millVersion.contains)
     val lines = os.read(dest / "antora.yml").linesIterator.map {
       case s"version:$_" =>
         if (isPreRelease)
