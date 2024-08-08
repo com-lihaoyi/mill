@@ -288,7 +288,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         reporter = T.reporter.apply(hashCode),
         reportCachedProblems = zincReportCachedProblems(),
         incrementalCompilation = zincIncrementalCompilation(),
-        auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
+        auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions(),
+        usePipeling = usePipeling()
       )
   }
 
@@ -660,7 +661,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         reporter = None,
         reportCachedProblems = zincReportCachedProblems(),
         incrementalCompilation = zincIncrementalCompilation(),
-        auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
+        auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions(),
+        usePipeling = usePipeling()
       )
       .map(compileRes =>
         SemanticDbJavaModule.copySemanticdbFiles(
@@ -670,4 +672,6 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         )
       )
   }
+
+  def usePipeling: T[Boolean] = T { false }
 }
