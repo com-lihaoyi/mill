@@ -35,14 +35,14 @@ jobs:
       matrix:
         include:
           # bootstrap tests
-          - java-version: 8 # Have one job on oldest JVM
+          - java-version: 11 # Have one job on oldest JVM
             buildcmd: ci/test-mill-dev.sh
           - java-version: 17 # Have one job on default JVM
             buildcmd: ci/test-mill-release.sh
           - java-version: 17
             buildcmd: ci/test-mill-bootstrap.sh
           # Just some reporting to enable reasoning about library upgrades
-          - java-version: 8
+          - java-version: 11
             buildcmd: |
               ./mill -i -k __.ivyDepsTree
               ./mill -i -k __.ivyDepsTree --withRuntime
@@ -56,7 +56,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        java-version: [8, 17]
+        java-version: [11, 17]
         millargs:
           # Run unit and module tests on both oldest and newest Java versions
           - '"{main,scalalib,testrunner,bsp}.__.test"'
@@ -64,9 +64,9 @@ jobs:
           # For most tests, run them arbitrarily on Java 8 or Java 17 on Linux, and
           # on the opposite version on Windows below, so we get decent coverage of
           # each test on each Java version and each operating system
-          - java-version: 8
+          - java-version: 11
             millargs: '"scalajslib.__.test"'
-          - java-version: 8
+          - java-version: 11
             millargs: '"scalanativelib.__.test"'
           - java-version: 17
             millargs: "contrib._.test"
@@ -82,7 +82,7 @@ jobs:
 
             # Most of these integration tests should not depend on which mode they
             # are run in, so just run them in `local`
-          - java-version: 8
+          - java-version: 11
             millargs: "'integration.{failure,feature,ide}[_].local.test'"
 
             # These invalidation tests need to be exercised in all three execution modes
@@ -114,19 +114,19 @@ jobs:
   format-check:
     uses: ./.github/workflows/run-mill-action.yml
     with:
-      java-version: '8'
+      java-version: '11'
       millargs: mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources
 
   scalafix-check:
     uses: ./.github/workflows/run-mill-action.yml
     with:
-      java-version: '8'
+      java-version: '11'
       millargs: -i -k __.fix --check
 
   bincompat-check:
     uses: ./.github/workflows/run-mill-action.yml
     with:
-      java-version: '8'
+      java-version: '11'
       millargs: __.mimaReportBinaryIssues
       continue-on-error: true
 
@@ -137,19 +137,19 @@ jobs:
         include:
           # just run a subset of examples/ on Windows, because for some reason running
           # the whole suite can take hours on windows v.s. half an hour on linux
-          - java-version: 8
+          - java-version: 11
             millargs: '"{main,scalalib,bsp}.__.test"'
           - java-version: 17
             millargs: '"scalajslib.__.test"'
-          - java-version: 8
+          - java-version: 11
             millargs: '"example.basic[_].local.test"'
           - java-version: 17
             millargs: "'integration.feature[_].fork.test'"
-          - java-version: 8
+          - java-version: 11
             millargs: "'integration.invalidation[_].server.test'"
           - java-version: 17
             millargs: "'integration.failure[_].fork.test'"
-          - java-version: 8
+          - java-version: 11
             millargs: "contrib.__.test"
 
     uses: ./.github/workflows/run-mill-action.yml

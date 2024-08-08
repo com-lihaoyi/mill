@@ -71,18 +71,17 @@ object ExampleTestSuite extends IntegrationTestSuite {
     }
 
     test("exampleUsage") {
+
       val parsed = upickle.default.read[Seq[(String, String)]](sys.env("MILL_EXAMPLE_PARSED"))
       val usageComment = parsed.collect { case ("example", txt) => txt }.mkString("\n\n")
       val commandBlocks = ("\n" + usageComment.trim).split("\n> ").filter(_.nonEmpty)
 
       retryOnTimeout(3) {
-        try {
-          for (commandBlock <- commandBlocks) processCommandBlock(workspaceRoot, commandBlock)
-          if (integrationTestMode != "fork") evalStdout("shutdown")
-        } finally {
-          try os.remove.all(workspaceRoot / "out")
-          catch { case e: Throwable => /*do nothing*/ }
-        }
+        try os.remove.all(workspaceRoot / "out")
+        catch { case e: Throwable => /*do nothing*/ }
+
+        for (commandBlock <- commandBlocks) processCommandBlock(workspaceRoot, commandBlock)
+        if (integrationTestMode != "fork") evalStdout("shutdown")
       }
     }
   }

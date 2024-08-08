@@ -101,7 +101,7 @@ case class GenIdeaImpl(
       }
 
     val buildDepsPaths = Classpath
-      .allJars(evaluator.rootModule.getClass.getClassLoader)
+      .allJars(evaluator.rootModules.getClass.getClassLoader)
       .map(url => os.Path(java.nio.file.Paths.get(url.toURI)))
 
     def resolveTasks: Seq[Task[ResolvedModule]] = modules.map {

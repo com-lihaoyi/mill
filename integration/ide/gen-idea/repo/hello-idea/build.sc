@@ -1,6 +1,7 @@
 import mill.api.Loose.Agg
 import mill.define.Target
 import mill._
+import mill.scalajslib.ScalaJSModule
 import mill.scalalib.{Dep, DepSyntax, TestModule}
 
 trait HelloIdeaModule extends scalalib.ScalaModule {
@@ -22,10 +23,20 @@ trait HelloIdeaModule extends scalalib.ScalaModule {
 
 object HelloIdea extends HelloIdeaModule {
   object scala3 extends HelloIdeaModule {
-    def scalaVersion = "3.3.1"
+    override def scalaVersion = "3.3.1"
   }
 }
 
 object HiddenIdea extends HelloIdeaModule {
   override def skipIdea = true
+}
+
+object HelloIdeaJs extends ScalaJSModule {
+  override def scalaVersion = "3.3.1"
+  override def scalaJSVersion = "1.16.0"
+  object test extends ScalaJSTests with TestModule.Utest {
+    override def ivyDeps: Target[Agg[Dep]] = Agg(
+      ivy"com.lihaoyi::utest::0.8.4"
+    )
+  }
 }

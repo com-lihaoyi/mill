@@ -192,9 +192,11 @@ trait TestModule
             _.path
           ),
         jvmArgs = jvmArgs,
-        envArgs =
-          Map("MILL_TEST_RESOURCE_FOLDER" -> resources().map(_.path).mkString(";")) ++
-            forkEnv(),
+        envArgs = Map(
+          "MILL_TEST_RESOURCE_FOLDER" -> resources().map(_.path).mkString(";"),
+          "MILL_TEST_DEST_FOLDER" -> T.dest.toString()
+        ) ++ forkEnv(),
+        envArgs = Map() ++ forkEnv(),
         mainArgs = mainArgs,
         workingDir = if (testSandboxWorkingDir()) T.dest / "sandbox" else forkWorkingDir(),
         useCpPassingJar = useArgsFile
@@ -270,7 +272,7 @@ object TestModule {
   trait Junit4 extends TestModule {
     override def testFramework: T[String] = "com.novocode.junit.JUnitFramework"
     override def ivyDeps: T[Agg[Dep]] = T {
-      super.ivyDeps() ++ Agg(ivy"com.github.sbt:junit-interface:0.13.2")
+      super.ivyDeps() ++ Agg(ivy"${mill.scalalib.api.Versions.sbtTestInterface}")
     }
   }
 
@@ -281,7 +283,7 @@ object TestModule {
   trait Junit5 extends TestModule {
     override def testFramework: T[String] = "com.github.sbt.junit.jupiter.api.JupiterFramework"
     override def ivyDeps: T[Agg[Dep]] = T {
-      super.ivyDeps() ++ Agg(ivy"com.github.sbt.junit:jupiter-interface:0.11.4")
+      super.ivyDeps() ++ Agg(ivy"${mill.scalalib.api.Versions.jupiterInterface}")
     }
   }
 

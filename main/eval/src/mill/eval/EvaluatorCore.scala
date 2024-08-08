@@ -66,93 +66,119 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
       ec: ExecutionContext with AutoCloseable,
-      contextLoggerMsg: Int => String
+      contextLoggerMsg0: Int => String
   ): Evaluator.Results = {
-    implicit val implicitEc = ec
-
     os.makeDir.all(outPath)
     val chromeProfileLogger = new ChromeProfileLogger(outPath / "mill-chrome-profile.json")
     val profileLogger = new ProfileLogger(outPath / "mill-profile.json")
     val threadNumberer = new ThreadNumberer()
     val (sortedGroups, transitive) = Plan.plan(goals)
     val interGroupDeps = findInterGroupDeps(sortedGroups)
-    val terminals = sortedGroups.keys().toVector
+    val terminals0 = sortedGroups.keys().toVector
     val failed = new AtomicBoolean(false)
     val count = new AtomicInteger(1)
 
     val futures = mutable.Map.empty[Terminal, Future[Option[GroupEvaluator.Results]]]
 
-    // We walk the task graph in topological order and schedule the futures
-    // to run asynchronously. During this walk, we store the scheduled futures
-    // in a dictionary. When scheduling each future, we are guaranteed that the
-    // necessary upstream futures will have already been scheduled and stored,
-    // due to the topological order of traversal.
-    for (terminal <- terminals) {
-      val deps = interGroupDeps(terminal)
-      futures(terminal) = Future.sequence(deps.map(futures)).map { upstreamValues =>
-        if (failed.get()) None
-        else {
-          val upstreamResults = upstreamValues
-            .iterator
-            .flatMap(_.iterator.flatMap(_.newResults))
-            .toMap
+    def evaluateTerminals(terminals: Seq[Terminal], contextLoggerMsg: Int => String)(implicit
+        ec: ExecutionContext
+    ) = {
+      // We walk the task graph in topological order and schedule the futures
+      // to run asynchronously. During this walk, we store the scheduled futures
+      // in a dictionary. When scheduling each future, we are guaranteed that the
+      // necessary upstream futures will have already been scheduled and stored,
+      // due to the topological order of traversal.
+      for (terminal <- terminals) {
+        val deps = interGroupDeps(terminal)
+        futures(terminal) = Future.sequence(deps.map(futures)).map { upstreamValues =>
+          if (failed.get()) None
+          else {
+            val upstreamResults = upstreamValues
+              .iterator
+              .flatMap(_.iterator.flatMap(_.newResults))
+              .toMap
 
-          val startTime = System.nanoTime() / 1000
-          val threadId = threadNumberer.getThreadId(Thread.currentThread())
-          val counterMsg = s"${count.getAndIncrement()}/${terminals.size}"
-          val contextLogger = PrefixLogger(
-            out = logger,
-            context = contextLoggerMsg(threadId),
-            tickerContext = GroupEvaluator.dynamicTickerPrefix.value
-          )
-
-          val res = evaluateGroupCached(
-            terminal = terminal,
-            group = sortedGroups.lookupKey(terminal),
-            results = upstreamResults,
-            counterMsg = counterMsg,
-            zincProblemReporter = reporter,
-            testReporter = testReporter,
-            logger = contextLogger
-          )
-
-          if (failFast && res.newResults.values.exists(_.result.asSuccess.isEmpty))
-            failed.set(true)
-
-          val endTime = System.nanoTime() / 1000
-
-          val duration = endTime - startTime
-
-          chromeProfileLogger.log(
-            task = Terminal.printTerm(terminal),
-            cat = "job",
-            startTime = startTime,
-            duration = duration,
-            threadId = threadNumberer.getThreadId(Thread.currentThread()),
-            cached = res.cached
-          )
-
-          profileLogger.log(
-            ProfileLogger.Timing(
-              terminal.render,
-              (duration / 1000).toInt,
-              res.cached,
-              deps.map(_.render),
-              res.inputsHash,
-              res.previousInputsHash
+            val startTime = System.nanoTime() / 1000
+            val threadId = threadNumberer.getThreadId(Thread.currentThread())
+            val counterMsg = s"${count.getAndIncrement()}/${terminals.size}"
+            val contextLogger = PrefixLogger(
+              out = logger,
+              context = contextLoggerMsg(threadId),
+              tickerContext = GroupEvaluator.dynamicTickerPrefix.value
             )
-          )
 
-          Some(res)
+            val res = evaluateGroupCached(
+              terminal = terminal,
+              group = sortedGroups.lookupKey(terminal),
+              results = upstreamResults,
+              counterMsg = counterMsg,
+              zincProblemReporter = reporter,
+              testReporter = testReporter,
+              logger = contextLogger
+            )
+
+            if (failFast && res.newResults.values.exists(_.result.asSuccess.isEmpty))
+              failed.set(true)
+
+            val endTime = System.nanoTime() / 1000
+
+            val duration = endTime - startTime
+
+            chromeProfileLogger.log(
+              task = Terminal.printTerm(terminal),
+              cat = "job",
+              startTime = startTime,
+              duration = duration,
+              threadId = threadNumberer.getThreadId(Thread.currentThread()),
+              cached = res.cached
+            )
+
+            profileLogger.log(
+              ProfileLogger.Timing(
+                terminal.render,
+                (duration / 1000).toInt,
+                res.cached,
+                deps.map(_.render),
+                res.inputsHash,
+                res.previousInputsHash
+              )
+            )
+
+            Some(res)
+          }
         }
       }
     }
 
-    val finishedOptsMap = terminals
+    val tasks0 = terminals0.filter {
+      case Terminal.Labelled(c: Command[_], _) => false
+      case _ => true
+    }
+
+    val (_, tasksTransitive0) = Plan.plan(Agg.from(tasks0.map(_.task)))
+
+    val tasksTransitive = tasksTransitive0.toSet
+    val (tasks, leafCommands) = terminals0.partition {
+      case Terminal.Labelled(t, _) if tasksTransitive.contains(t) => true
+      case _ => false
+    }
+
+    // Run all non-command tasks according to the threads
+    // given but run the commands in linear order
+    evaluateTerminals(
+      tasks,
+      // We want to skip the non-deterministic thread prefix in our test suite
+      // since all it would do is clutter the testing logic trying to match on it
+      if (sys.env.contains("MILL_TEST_SUITE")) _ => ""
+      else contextLoggerMsg0
+    )(ec)
+    evaluateTerminals(leafCommands, _ => "")(ExecutionContexts.RunNow)
+
+    val finishedOptsMap = terminals0
       .map(t => (t, Await.result(futures(t), duration.Duration.Inf)))
       .toMap
 
-    val results0: Vector[(Task[_], TaskResult[(Val, Int)])] = terminals
+    val results0: Vector[(Task[_], TaskResult[(Val, Int)])] = terminals0
       .flatMap { t =>
         sortedGroups.lookupKey(t).flatMap { t0 =>
           finishedOptsMap(t) match {

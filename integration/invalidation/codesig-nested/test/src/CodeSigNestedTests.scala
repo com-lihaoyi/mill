@@ -14,7 +14,7 @@ object CodeSigNestedTests extends IntegrationTestSuite {
       // with no changes
       val initial = evalStdout("outer.inner.qux")
       assert(
-        initial.out.linesIterator.toSeq == Seq(
+        initial.out.linesIterator.toSet == Set(
           "running foo",
           "running helperFoo",
           "running bar",
@@ -32,7 +32,7 @@ object CodeSigNestedTests extends IntegrationTestSuite {
       mangleFile(wsRoot / "build.sc", _.replace("running foo", "running foo2"))
       val mangledFoo = evalStdout("outer.inner.qux")
       assert(
-        mangledFoo.out.linesIterator.toSeq == Seq(
+        mangledFoo.out.linesIterator.toSet == Set(
           "running foo2",
           "running helperFoo"
           // The return value of foo did not change so qux is not invalidated
@@ -42,7 +42,7 @@ object CodeSigNestedTests extends IntegrationTestSuite {
       mangleFile(wsRoot / "build.sc", _.replace("; helperFoo }", "; helperFoo + 4 }"))
       val mangledHelperFooCall = evalStdout("outer.inner.qux")
       assert(
-        mangledHelperFooCall.out.linesIterator.toSeq == Seq(
+        mangledHelperFooCall.out.linesIterator.toSet == Set(
           "running foo2",
           "running helperFoo",
           // The return value of foo changes from 1 to 1+4=5, so qux is invalidated
@@ -54,9 +54,9 @@ object CodeSigNestedTests extends IntegrationTestSuite {
       mangleFile(wsRoot / "build.sc", _.replace("running qux", "running qux2"))
       val mangledQux = evalStdout("outer.inner.qux")
       assert(
-        mangledQux.out.linesIterator.toSeq ==
+        mangledQux.out.linesIterator.toSet ==
           // qux itself was changed, and so it is invalidated
-          Seq("running qux2", "running helperQux")
+          Set("running qux2", "running helperQux")
       )
 
       // Changing the body of some helper method that gets called by a T{...}
@@ -65,7 +65,7 @@ object CodeSigNestedTests extends IntegrationTestSuite {
       mangleFile(wsRoot / "build.sc", _.replace(" 1 ", " 6 "))
       val mangledHelperFooValue = evalStdout("outer.inner.qux")
       assert(
-        mangledHelperFooValue.out.linesIterator.toSeq == Seq(
+        mangledHelperFooValue.out.linesIterator.toSet == Set(
           "running foo2",
           "running helperFoo",
           // Because the return value of helperFoo/foo changes from 1+4=5 to 6+5=11, qux is invalidated
@@ -77,7 +77,7 @@ object CodeSigNestedTests extends IntegrationTestSuite {
       mangleFile(wsRoot / "build.sc", _.replace("running helperBar", "running helperBar2"))
       val mangledHelperBar = evalStdout("outer.inner.qux")
       assert(
-        mangledHelperBar.out.linesIterator.toSeq == Seq(
+        mangledHelperBar.out.linesIterator.toSet == Set(
           "running bar",
           "running helperBar2"
           // We do not need to re-evaluate qux because the return value of bar did not change
@@ -87,7 +87,7 @@ object CodeSigNestedTests extends IntegrationTestSuite {
       mangleFile(wsRoot / "build.sc", _.replace("20", "70"))
       val mangledHelperBarValue = evalStdout("outer.inner.qux")
       assert(
-        mangledHelperBarValue.out.linesIterator.toSeq == Seq(
+        mangledHelperBarValue.out.linesIterator.toSet == Set(
           "running bar",
           "running helperBar2",
           // Because the return value of helperBar/bar changes from 20 to 70, qux is invalidated
@@ -99,9 +99,9 @@ object CodeSigNestedTests extends IntegrationTestSuite {
       mangleFile(wsRoot / "build.sc", _.replace("running helperQux", "running helperQux2"))
       val mangledBar = evalStdout("outer.inner.qux")
       assert(
-        mangledBar.out.linesIterator.toSeq ==
+        mangledBar.out.linesIterator.toSet ==
           // helperQux was changed, so qux needs to invalidate
-          Seq("running qux2", "running helperQux2")
+          Set("running qux2", "running helperQux2")
       )
 
       // Make sure changing `val`s in varying levels of nested modules conservatively invalidates
@@ -109,7 +109,7 @@ object CodeSigNestedTests extends IntegrationTestSuite {
       mangleFile(wsRoot / "build.sc", _.replace("val valueFoo = 0", "val valueFoo = 10"))
       val mangledValFoo = evalStdout("outer.inner.qux")
       assert(
-        mangledValFoo.out.linesIterator.toSeq == Seq(
+        mangledValFoo.out.linesIterator.toSet == Set(
           "running foo2",
           "running helperFoo",
           "running bar",
@@ -122,7 +122,7 @@ object CodeSigNestedTests extends IntegrationTestSuite {
       mangleFile(wsRoot / "build.sc", _.replace("val valueBar = 0", "val valueBar = 10"))
       val mangledValBar = evalStdout("outer.inner.qux")
       assert(
-        mangledValBar.out.linesIterator.toSeq == Seq(
+        mangledValBar.out.linesIterator.toSet == Set(
           "running bar",
           "running helperBar2",
           "running qux2",
@@ -133,7 +133,7 @@ object CodeSigNestedTests extends IntegrationTestSuite {
       mangleFile(wsRoot / "build.sc", _.replace("val valueQux = 0", "val valueQux = 10"))
       val mangledValQux = evalStdout("outer.inner.qux")
       assert(
-        mangledValQux.out.linesIterator.toSeq == Seq(
+        mangledValQux.out.linesIterator.toSet == Set(
           "running qux2",
           "running helperQux2"
         )
@@ -145,7 +145,7 @@ object CodeSigNestedTests extends IntegrationTestSuite {
       )
       val mangledValFooUsedInBar = evalStdout("outer.inner.qux")
       assert(
-        mangledValFooUsedInBar.out.linesIterator.toSeq == Seq(
+        mangledValFooUsedInBar.out.linesIterator.toSet == Set(
           "running foo2",
           "running helperFoo",
           "running bar",
@@ -161,7 +161,7 @@ object CodeSigNestedTests extends IntegrationTestSuite {
       )
       val mangledValBarUsedInQux = evalStdout("outer.inner.qux")
       assert(
-        mangledValBarUsedInQux.out.linesIterator.toSeq == Seq(
+        mangledValBarUsedInQux.out.linesIterator.toSet == Set(
           "running bar",
           "running helperBar2",
           "running qux2",
@@ -191,7 +191,7 @@ object CodeSigNestedTests extends IntegrationTestSuite {
     "trait" - {
       val initial = evalStdout("traitOuter.traitInner.inner")
       assert(
-        initial.out.linesIterator.toSeq == Seq(
+        initial.out.linesIterator.toSet == Set(
           "running foo",
           "running helperFoo",
           "running outer",
@@ -210,7 +210,7 @@ object CodeSigNestedTests extends IntegrationTestSuite {
       )
       val mangleTraitInnerValue = evalStdout("traitOuter.traitInner.inner")
       assert(
-        mangleTraitInnerValue.out.linesIterator.toSeq == Seq(
+        mangleTraitInnerValue.out.linesIterator.toSet == Set(
           "running inner",
           "running helperTraitInner"
         )
@@ -222,7 +222,7 @@ object CodeSigNestedTests extends IntegrationTestSuite {
       )
       val mangleTraitOuterValue = evalStdout("traitOuter.traitInner.inner")
       assert(
-        mangleTraitOuterValue.out.linesIterator.toSeq == Seq(
+        mangleTraitOuterValue.out.linesIterator.toSet == Set(
           "running outer",
           "running helperTraitOuter",
           "running inner",

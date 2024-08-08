@@ -9,7 +9,7 @@ import mill.eval.Evaluator
 private class State(evaluators: Seq[Evaluator], debug: String => Unit) {
   lazy val bspModulesById: Map[BuildTargetIdentifier, (BspModule, Evaluator)] = {
     val modules: Seq[(Module, Seq[Module], Evaluator)] = evaluators
-      .map(ev => (ev.rootModule, JavaModuleUtils.transitiveModules(ev.rootModule), ev))
+      .flatMap(ev => ev.rootModules.map(rm => (rm, JavaModuleUtils.transitiveModules(rm), ev)))
 
     val map = modules
       .flatMap { case (rootModule, otherModules, eval) =>
@@ -30,7 +30,7 @@ private class State(evaluators: Seq[Evaluator], debug: String => Unit) {
     map
   }
 
-  lazy val rootModules: Seq[mill.define.BaseModule] = evaluators.map(_.rootModule)
+  lazy val rootModules: Seq[mill.define.BaseModule] = evaluators.flatMap(_.rootModules)
 
   lazy val bspIdByModule: Map[BspModule, BuildTargetIdentifier] =
     bspModulesById.view.mapValues(_._1).map(_.swap).toMap

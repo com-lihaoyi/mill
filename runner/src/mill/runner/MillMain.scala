@@ -1,11 +1,11 @@
 package mill.runner
 
-import java.io.{FileOutputStream, PrintStream}
+import java.io.{FileOutputStream, PrintStream, PipedInputStream}
 import java.util.Locale
 import scala.jdk.CollectionConverters._
 import scala.util.Properties
 import mill.java9rtexport.Export
-import mill.api.{DummyInputStream, MillException, internal, SystemStreams}
+import mill.api.{MillException, internal, SystemStreams}
 import mill.bsp.{BspContext, BspServerResult}
 import mill.main.BuildInfo
 import mill.util.PrintLogger
@@ -129,7 +129,7 @@ object MillMain {
         case Right(config)
             if (
               config.interactive.value || config.noServer.value || config.bsp.value
-            ) && streams.in == DummyInputStream =>
+            ) && streams.in.getClass == classOf[PipedInputStream] =>
           // because we have stdin as dummy, we assume we were already started in server process
           streams.err.println(
             "-i/--interactive/--no-server/--bsp must be passed in as the first argument"
@@ -181,7 +181,7 @@ object MillMain {
                 userSpecifiedProperties0 ++ config.extraSystemProperties
 
               val threadCount = config.threadCountRaw match {
-                case None => Some(1)
+                case None => None
                 case Some(0) => None
                 case Some(n) => Some(n)
               }
