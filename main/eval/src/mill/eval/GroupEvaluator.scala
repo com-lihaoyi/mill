@@ -369,7 +369,7 @@ private[mill] trait GroupEvaluator {
         newResults(task) = for (v <- res) yield {
           (
             v,
-            if (Task.isInstanceOf[Worker[_]]) inputsHash
+            if (task.isInstanceOf[Worker[_]]) inputsHash
             else v.##
           )
         }
