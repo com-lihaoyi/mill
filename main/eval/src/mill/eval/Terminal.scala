@@ -9,6 +9,7 @@ import mill.define.{NamedTask, Segment, Segments}
  */
 sealed trait Terminal {
   def render: String
+  def task: mill.define.Task[_]
 }
 
 object Terminal {

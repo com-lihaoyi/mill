@@ -180,7 +180,7 @@ trait TestModule
             _.path
           ),
         jvmArgs = jvmArgs,
-        envArgs = forkEnv(),
+        envArgs = Map("MILL_TEST_DEST_FOLDER" -> T.dest.toString()) ++ forkEnv(),
         mainArgs = mainArgs,
         workingDir = forkWorkingDir(),
         useCpPassingJar = useArgsFile

@@ -181,7 +181,7 @@ object MillMain {
                 userSpecifiedProperties0 ++ config.extraSystemProperties
 
               val threadCount = config.threadCountRaw match {
-                case None => Some(1)
+                case None => None
                 case Some(0) => None
                 case Some(n) => Some(n)
               }
