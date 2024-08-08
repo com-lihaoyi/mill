@@ -46,7 +46,8 @@ object Settings {
     "0.11.0-M7"
   )
   val docTags: Seq[String] = Seq(
-    "0.11.10"
+    "0.11.10",
+    "0.11.11"
   )
   val mimaBaseVersions: Seq[String] = 0.to(11).map("0.11." + _)
 }
@@ -526,8 +527,12 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
     ProblemFilter.exclude[ReversedMissingMethodProblem]("mill.resolve.Resolve.handleResolved"),
     ProblemFilter.exclude[Problem]("mill.resolve.*.resolveNonEmptyAndHandle*"),
     ProblemFilter.exclude[Problem]("mill.resolve.ResolveCore*"),
-    ProblemFilter.exclude[InheritedNewAbstractMethodProblem]("mill.main.MainModule.mill$define$BaseModule0$_setter_$watchedValues_="),
-    ProblemFilter.exclude[InheritedNewAbstractMethodProblem]("mill.main.MainModule.mill$define$BaseModule0$_setter_$evalWatchedValues_="),
+    ProblemFilter.exclude[InheritedNewAbstractMethodProblem](
+      "mill.main.MainModule.mill$define$BaseModule0$_setter_$watchedValues_="
+    ),
+    ProblemFilter.exclude[InheritedNewAbstractMethodProblem](
+      "mill.main.MainModule.mill$define$BaseModule0$_setter_$evalWatchedValues_="
+    )
   )
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
 
@@ -1242,45 +1247,45 @@ object example extends MillScalaModule {
 
     def buildScLines =
       upstreamCross(
-        this.millModuleSegments.parts.dropRight(1).last).valuesToModules.get(List(crossValue)
-      ) match {
+        this.millModuleSegments.parts.dropRight(1).last
+      ).valuesToModules.get(List(crossValue)) match {
         case None =>
           T {
             super.buildScLines()
           }
         case Some(upstream) => T {
-          val upstreamLines = os.read.lines(
-            upstream
-              .testRepoRoot().path / "build.sc"
-          )
-          val lines = os.read.lines(testRepoRoot().path / "build.sc")
+            val upstreamLines = os.read.lines(
+              upstream
+                .testRepoRoot().path / "build.sc"
+            )
+            val lines = os.read.lines(testRepoRoot().path / "build.sc")
 
-          import collection.mutable
-          val groupedLines = mutable.Map.empty[String, mutable.Buffer[String]]
-          var current = Option.empty[String]
-          lines.foreach {
-            case s"//// SNIPPET:$name" =>
-              current = Some(name)
-              groupedLines(name) = mutable.Buffer()
-            case s => groupedLines(current.get).append(s)
-          }
-
-          upstreamLines.flatMap {
-            case s"//// SNIPPET:$name" =>
-              if (name != "END") {
-
+            import collection.mutable
+            val groupedLines = mutable.Map.empty[String, mutable.Buffer[String]]
+            var current = Option.empty[String]
+            lines.foreach {
+              case s"//// SNIPPET:$name" =>
                 current = Some(name)
-                groupedLines(name)
-              } else {
-                current = None
-                Nil
-              }
+                groupedLines(name) = mutable.Buffer()
+              case s => groupedLines(current.get).append(s)
+            }
 
-            case s =>
-              if (current.nonEmpty) None
-              else Some(s)
+            upstreamLines.flatMap {
+              case s"//// SNIPPET:$name" =>
+                if (name != "END") {
+
+                  current = Some(name)
+                  groupedLines(name)
+                } else {
+                  current = None
+                  Nil
+                }
+
+              case s =>
+                if (current.nonEmpty) None
+                else Some(s)
+            }
           }
-        }
       }
   }
   trait ExampleCrossModule extends IntegrationTestCrossModule {
@@ -1783,6 +1788,10 @@ object docs extends Module {
   }
 
   def supplementalFiles = T.source(millSourcePath / "supplemental-ui")
+
+  /**
+   * The doc root ready to be build by antora for the current branch.
+   */
   def devAntoraSources: T[PathRef] = T {
     val dest = T.dest
     os.copy(source().path, dest, mergeFolders = true)
@@ -1790,12 +1799,19 @@ object docs extends Module {
     PathRef(dest)
   }
 
-  def sanitizeAntoraYml(dest: os.Path,
-                        version: String,
-                        millVersion: String,
-                        millLastTag: String) = {
+  def sanitizeAntoraYml(
+      dest: os.Path,
+      version: String,
+      millVersion: String,
+      millLastTag: String
+  ): Unit = {
+    val isPreRelease = (millVersion != millLastTag) || Seq("-M", "-RC").exists(millVersion.contains)
     val lines = os.read(dest / "antora.yml").linesIterator.map {
-      case s"version:$_" => s"version: '$version'\ndisplay-version: '$millVersion'"
+      case s"version:$_" =>
+        if (isPreRelease)
+          s"version: '${version}'\ndisplay-version: '${millVersion}'\nprerelease: true"
+        else
+          s"version: '${version}'\ndisplay-version: '${millVersion}'"
       case s"    mill-version:$_" => s"    mill-version: '$millVersion'"
       case s"    mill-last-tag:$_" => s"    mill-last-tag: '$millLastTag'"
       case l => l
@@ -1804,7 +1820,7 @@ object docs extends Module {
   }
 
   def githubPagesPlaybookText(authorMode: Boolean) = T.task { extraSources: Seq[os.Path] =>
-    val taggedSources = for(path <- extraSources) yield {
+    val taggedSources = for (path <- extraSources) yield {
       s"""    - url: ${baseDir}
          |      start_path: ${path.relativeTo(baseDir)}
          |""".stripMargin
@@ -1859,8 +1875,8 @@ object docs extends Module {
        |""".stripMargin
   }
 
-  def oldDocSources = T{
-    for(oldVersion <- Settings.docTags) yield {
+  def oldDocSources = T {
+    for (oldVersion <- Settings.docTags) yield {
       val checkout = T.dest / oldVersion
       os.proc("git", "clone", T.workspace / ".git", checkout).call(stdout = os.Inherit)
       os.proc("git", "checkout", oldVersion).call(cwd = checkout, stdout = os.Inherit)
@@ -1895,22 +1911,6 @@ object docs extends Module {
       createFolders = true
     )
     T.log.errorStream.println("Running Antora ...")
-//    // check xrefs
-//    runAntora(
-//      npmDir = npmBase(),
-//      workDir = docSite,
-//      args = Seq(
-//        "--generator",
-//        "@antora/xref-validator",
-//        playbook.last,
-//        "--to-dir",
-//        siteDir.toString(),
-//        "--attribute",
-//        "page-pagination"
-//      ) ++
-//        Seq("--fetch").filter(_ => !authorMode)
-//    )
-    // generate site (we can skip the --fetch now)
     runAntora(
       npmDir = npmBase(),
       workDir = docSite,
@@ -1921,7 +1921,7 @@ object docs extends Module {
         "--attribute",
         "page-pagination"
       ) ++
-        Seq("--fetch").filter(_ => !authorMode)
+        Option.when(!authorMode)("--fetch").toSeq
     )
     os.write(siteDir / ".nojekyll", "")
 
