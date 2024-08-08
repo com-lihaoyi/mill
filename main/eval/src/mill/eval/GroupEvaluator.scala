@@ -316,9 +316,9 @@ private[mill] trait GroupEvaluator {
 
         override def rawOutputStream: PrintStream = logger.rawOutputStream
       }
-      // This is used to track the usage of `T.dest` in more than one Task
+      // This is used to track the usage of `task.dest` in more than one Task
       // But it's not really clear what issue we try to prevent here
-      // Vice versa, being able to use T.dest in multiple `T.task`
+      // Vice versa, being able to use task.dest in multiple `task.anon`
       // is rather essential to split up larger tasks into small parts
       // So I like to disable this detection for now
       var usedDest = Option.empty[(Task[_], Array[StackTraceElement])]

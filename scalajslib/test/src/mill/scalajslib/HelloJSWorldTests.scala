@@ -54,7 +54,7 @@ object HelloJSWorldTests extends TestSuite {
     object buildUTest extends Cross[BuildModuleUtest](matrix)
     trait BuildModuleUtest extends RootModule {
       object test extends ScalaJSTests with TestModule.Utest {
-        override def sources = T.sources { millSourcePath / "src" / "utest" }
+        override def sources = task.sources { millSourcePath / "src" / "utest" }
         val utestVersion = if (ZincWorkerUtil.isScala3(crossScalaVersion)) "0.7.7" else "0.7.5"
         override def ivyDeps = Agg(
           ivy"com.lihaoyi::utest::$utestVersion"
@@ -65,7 +65,7 @@ object HelloJSWorldTests extends TestSuite {
     object buildScalaTest extends Cross[BuildModuleScalaTest](matrix)
     trait BuildModuleScalaTest extends RootModule {
       object test extends ScalaJSTests with TestModule.ScalaTest {
-        override def sources = T.sources { millSourcePath / "src" / "scalatest" }
+        override def sources = task.sources { millSourcePath / "src" / "scalatest" }
         override def ivyDeps = Agg(
           ivy"org.scalatest::scalatest::3.1.2"
         )
@@ -124,12 +124,12 @@ object HelloJSWorldTests extends TestSuite {
       val module = HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion)
       val jsFile =
         if (legacy) {
-          val task = if (optimize) module.fullOpt else module.fastOpt
-          val Right((result, evalCount)) = helloWorldEvaluator(task)
+          val task0 = if (optimize) module.fullOpt else module.fastOpt
+          val Right((result, evalCount)) = helloWorldEvaluator(task0)
           result.path
         } else {
-          val task = if (optimize) module.fullLinkJS else module.fastLinkJS
-          val Right((report, evalCount)) = helloWorldEvaluator(task)
+          val task0 = if (optimize) module.fullLinkJS else module.fastLinkJS
+          val Right((report, evalCount)) = helloWorldEvaluator(task0)
           report.dest.path / report.publicModules.head.jsFileName
         }
       val output = ScalaJsUtils.runJS(jsFile)
@@ -273,11 +273,11 @@ object HelloJSWorldTests extends TestSuite {
     }
 
     def checkRun(scalaVersion: String, scalaJSVersion: String): Unit = {
-      val task = HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion).run()
+      val task0 = HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion).run()
 
-      val Right((_, evalCount)) = helloWorldEvaluator(task)
+      val Right((_, evalCount)) = helloWorldEvaluator(task0)
 
-      val paths = EvaluatorPaths.resolveDestPaths(helloWorldEvaluator.outPath, task)
+      val paths = EvaluatorPaths.resolveDestPaths(helloWorldEvaluator.outPath, task0)
       val log = os.read(paths.log)
       assert(
         evalCount > 0,

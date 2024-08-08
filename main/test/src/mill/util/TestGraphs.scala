@@ -1,7 +1,7 @@
 package mill.util
 import TestUtil.test
 import mill.define.{Command, Cross, Discover, DynamicModule, ModuleRef, TaskModule}
-import mill.{Module, T}
+import mill.{Module, T, task}
 
 /**
  * Example dependency graphs for us to use in our test suite.
@@ -64,10 +64,10 @@ class TestGraphs() {
   }
 
   object defCachedDiamond extends TestUtil.BaseModule {
-    def up = T { test() }
-    def left = T { test(up) }
-    def right = T { test(up) }
-    def down = T { test(left, right) }
+    def up = task { test() }
+    def left = task { test(up) }
+    def right = task { test(up) }
+    def down = task { test(left, right) }
   }
 
   object borkedCachedDiamond2 extends TestUtil.BaseModule {
@@ -121,31 +121,31 @@ class TestGraphs() {
   //               _/
   // change - task2
   object separateGroups extends TestUtil.BaseModule {
-    val task1 = T.task { 1 }
-    def left = T { task1() }
+    val task1 = task.anon { 1 }
+    def left = task { task1() }
     val change = test()
-    val task2 = T.task { change() }
-    def right = T { task1() + task2() + left() + 1 }
+    val task2 = task.anon { change() }
+    def right = task { task1() + task2() + left() + 1 }
 
   }
 
   object moduleInitError extends TestUtil.BaseModule {
-    def rootTarget = T { println("Running rootTarget"); "rootTarget Result" }
-    def rootCommand(s: String) = T.command { println(s"Running rootCommand $s") }
+    def rootTarget = task { println("Running rootTarget"); "rootTarget Result" }
+    def rootCommand(s: String) = task.command { println(s"Running rootCommand $s") }
 
     object foo extends Module {
-      def fooTarget = T { println(s"Running fooTarget"); 123 }
-      def fooCommand(s: String) = T.command { println(s"Running fooCommand $s") }
+      def fooTarget = task { println(s"Running fooTarget"); 123 }
+      def fooCommand(s: String) = task.command { println(s"Running fooCommand $s") }
       throw new Exception("Foo Boom")
     }
 
     object bar extends Module {
-      def barTarget = T { println(s"Running barTarget"); "barTarget Result" }
-      def barCommand(s: String) = T.command { println(s"Running barCommand $s") }
+      def barTarget = task { println(s"Running barTarget"); "barTarget Result" }
+      def barCommand(s: String) = task.command { println(s"Running barCommand $s") }
 
       object qux extends Module {
-        def quxTarget = T { println(s"Running quxTarget"); "quxTarget Result" }
-        def quxCommand(s: String) = T.command { println(s"Running quxCommand $s") }
+        def quxTarget = task { println(s"Running quxTarget"); "quxTarget Result" }
+        def quxCommand(s: String) = task.command { println(s"Running quxCommand $s") }
         throw new Exception("Qux Boom")
       }
     }
@@ -156,17 +156,17 @@ class TestGraphs() {
   object moduleDependencyInitError extends TestUtil.BaseModule {
 
     object foo extends Module {
-      def fooTarget = T { println(s"Running fooTarget"); 123 }
-      def fooCommand(s: String) = T.command { println(s"Running fooCommand $s") }
+      def fooTarget = task { println(s"Running fooTarget"); 123 }
+      def fooCommand(s: String) = task.command { println(s"Running fooCommand $s") }
       throw new Exception("Foo Boom")
     }
 
     object bar extends Module {
-      def barTarget = T {
+      def barTarget = task {
         println(s"Running barTarget")
         s"${foo.fooTarget()} barTarget Result"
       }
-      def barCommand(s: String) = T.command {
+      def barCommand(s: String) = task.command {
         foo.fooCommand(s)()
         println(s"Running barCommand $s")
       }
@@ -180,7 +180,7 @@ class TestGraphs() {
       throw new Exception(s"MyCross Boom")
     }
     trait MyCross extends Cross.Module[Int] {
-      def foo = T { crossValue }
+      def foo = task { crossValue }
     }
 
     override lazy val millDiscover = Discover[this.type]
@@ -189,7 +189,7 @@ class TestGraphs() {
     object myCross extends Cross[MyCross](1, 2, 3, 4)
     trait MyCross extends Cross.Module[Int] {
       if (crossValue > 2) throw new Exception(s"MyCross Boom $crossValue")
-      def foo = T { crossValue }
+      def foo = task { crossValue }
     }
 
     override lazy val millDiscover = Discover[this.type]
@@ -197,7 +197,7 @@ class TestGraphs() {
   object crossModuleSelfInitError extends TestUtil.BaseModule {
     object myCross extends Cross[MyCross](1, 2, 3, throw new Exception(s"MyCross Boom"))
     trait MyCross extends Cross.Module[Int] {
-      def foo = T { crossValue }
+      def foo = task { crossValue }
     }
 
     override lazy val millDiscover = Discover[this.type]
@@ -208,7 +208,7 @@ class TestGraphs() {
       throw new Exception(s"Parent Boom")
       object myCross extends Cross[MyCross](1, 2, 3, 4)
       trait MyCross extends Cross.Module[Int] {
-        def foo = T { crossValue }
+        def foo = task { crossValue }
       }
     }
 
@@ -220,14 +220,14 @@ class TestGraphs() {
       lazy val inner: BaseInnerModule = new BaseInnerModule {}
       lazy val ignored: ModuleRef[BaseInnerModule] = ModuleRef(new BaseInnerModule {})
       trait BaseInnerModule extends mill.define.Module {
-        def baseTarget = T { 1 }
+        def baseTarget = task { 1 }
       }
     }
     object sub extends Base {
       override lazy val inner: SubInnerModule = new SubInnerModule {}
       override lazy val ignored: ModuleRef[SubInnerModule] = ModuleRef(new SubInnerModule {})
       trait SubInnerModule extends BaseInnerModule {
-        def subTarget = T { 2 }
+        def subTarget = task { 2 }
       }
     }
 
@@ -237,13 +237,13 @@ class TestGraphs() {
   object dynamicModule extends TestUtil.BaseModule {
     object normal extends DynamicModule {
       object inner extends Module {
-        def target = T { 1 }
+        def target = task { 1 }
       }
     }
     object niled extends DynamicModule {
       override def millModuleDirectChildren: Seq[Module] = Nil
       object inner extends Module {
-        def target = T { 1 }
+        def target = task { 1 }
       }
     }
 
@@ -256,73 +256,73 @@ object TestGraphs {
   //     /        \
   // task -------- right
   object triangleTask extends TestUtil.BaseModule {
-    val task = T.task { 1 }
-    def left = T { task() }
-    def right = T { task() + left() + 1 }
+    val task0 = task.anon { 1 }
+    def left = task { task0() }
+    def right = task { task0() + left() + 1 }
   }
 
   //      _ left
   //     /
   // task -------- right
   object multiTerminalGroup extends TestUtil.BaseModule {
-    val task = T.task { 1 }
-    def left = T { task() }
-    def right = T { task() }
+    val task0 = task.anon { 1 }
+    def left = task { task0() }
+    def right = task { task0() }
   }
 
   //       _ left _____________
   //      /        \           \
   // task1 -------- right ----- task2
   object multiTerminalBoundary extends TestUtil.BaseModule {
-    val task1 = T.task { 1 }
-    def left = T { task1() }
-    def right = T { task1() + left() + 1 }
-    val task2 = T.task { left() + right() }
+    val task1 = task.anon { 1 }
+    def left = task { task1() }
+    def right = task { task1() + left() + 1 }
+    val task2 = task.anon { left() + right() }
   }
 
   trait CanNest extends Module {
-    def single = T { 1 }
-    def invisible: Any = T { 2 }
-    def invisible2: mill.define.Task[Int] = T { 3 }
-    def invisible3: mill.define.Task[_] = T { 4 }
+    def single = task { 1 }
+    def invisible: Any = task { 2 }
+    def invisible2: mill.define.Task[Int] = task { 3 }
+    def invisible3: mill.define.Task[_] = task { 4 }
   }
   object nestedModule extends TestUtil.BaseModule {
-    def single = T { 5 }
-    def invisible: Any = T { 6 }
+    def single = task { 5 }
+    def invisible: Any = task { 6 }
     object nested extends Module {
-      def single = T { 7 }
-      def invisible: Any = T { 8 }
+      def single = task { 7 }
+      def invisible: Any = task { 8 }
 
     }
     object classInstance extends CanNest
 
   }
   object doubleNestedModule extends TestUtil.BaseModule {
-    def single = T { 5 }
+    def single = task { 5 }
     object nested extends Module {
-      def single = T { 7 }
+      def single = task { 7 }
 
       object inner extends Module {
-        def single = T { 9 }
+        def single = task { 9 }
       }
     }
   }
 
   trait BaseModule extends Module {
-    def foo = T { Seq("base") }
-    def cmd(i: Int) = T.command { Seq("base" + i) }
+    def foo = task { Seq("base") }
+    def cmd(i: Int) = task.command { Seq("base" + i) }
   }
 
   object canOverrideSuper extends TestUtil.BaseModule with BaseModule {
-    override def foo = T { super.foo() ++ Seq("object") }
-    override def cmd(i: Int) = T.command { super.cmd(i)() ++ Seq("object" + i) }
+    override def foo = task { super.foo() ++ Seq("object") }
+    override def cmd(i: Int) = task.command { super.cmd(i)() ++ Seq("object" + i) }
     override lazy val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   trait TraitWithModule extends Module { outer =>
     object TraitModule extends Module {
-      def testFrameworks = T { Seq("mill.UTestFramework") }
-      def test() = T.command { () /*donothing*/ }
+      def testFrameworks = task { Seq("mill.UTestFramework") }
+      def test() = task.command { () /*donothing*/ }
     }
   }
 
@@ -333,18 +333,18 @@ object TestGraphs {
 
   object nullTasks extends TestUtil.BaseModule {
     val nullString: String = null
-    def nullTask1 = T.task { nullString }
-    def nullTask2 = T.task { nullTask1() }
+    def nullTask1 = task.anon { nullString }
+    def nullTask2 = task.anon { nullTask1() }
 
-    def nullTarget1 = T { nullString }
-    def nullTarget2 = T { nullTarget1() }
-    def nullTarget3 = T { nullTask1() }
-    def nullTarget4 = T { nullTask2() }
+    def nullTarget1 = task { nullString }
+    def nullTarget2 = task { nullTarget1() }
+    def nullTarget3 = task { nullTask1() }
+    def nullTarget4 = task { nullTask2() }
 
-    def nullCommand1() = T.command { nullString }
-    def nullCommand2() = T.command { nullTarget1() }
-    def nullCommand3() = T.command { nullTask1() }
-    def nullCommand4() = T.command { nullTask2() }
+    def nullCommand1() = task.command { nullString }
+    def nullCommand2() = task.command { nullTarget1() }
+    def nullCommand3() = task.command { nullTask1() }
+    def nullCommand4() = task.command { nullTask2() }
 
     override lazy val millDiscover: Discover[this.type] = Discover[this.type]
   }
@@ -352,23 +352,23 @@ object TestGraphs {
   object duplicates extends TestUtil.BaseModule {
     object wrapper extends Module {
       object test1 extends Module {
-        def test1 = T {}
+        def test1 = task {}
       }
 
       object test2 extends TaskModule {
         override def defaultCommandName() = "test2"
-        def test2() = T.command {}
+        def test2() = task.command {}
       }
     }
 
     object test3 extends Module {
-      def test3 = T {}
+      def test3 = task {}
     }
 
     object test4 extends TaskModule {
       override def defaultCommandName() = "test4"
 
-      def test4() = T.command {}
+      def test4() = task.command {}
     }
     override lazy val millDiscover: Discover[this.type] = Discover[this.type]
   }
@@ -376,26 +376,26 @@ object TestGraphs {
   object singleCross extends TestUtil.BaseModule {
     object cross extends mill.Cross[Cross]("210", "211", "212")
     trait Cross extends Cross.Module[String] {
-      def suffix = T { crossValue }
+      def suffix = task { crossValue }
     }
 
     object cross2 extends mill.Cross[Cross2]("210", "211", "212")
     trait Cross2 extends Cross.Module[String] {
       override def millSourcePath = super.millSourcePath / crossValue
-      def suffix = T { crossValue }
+      def suffix = task { crossValue }
     }
   }
 
   object nonStringCross extends TestUtil.BaseModule {
     object cross extends mill.Cross[Cross](210, 211, 212)
     trait Cross extends Cross.Module[Int] {
-      def suffix = T { crossValue }
+      def suffix = task { crossValue }
     }
 
     object cross2 extends mill.Cross[Cross2](210L, 211L, 212L)
     trait Cross2 extends Cross.Module[Long] {
       override def millSourcePath = super.millSourcePath / crossValue.toString
-      def suffix = T { crossValue }
+      def suffix = task { crossValue }
     }
   }
 
@@ -408,12 +408,12 @@ object TestGraphs {
 
     object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
     trait FooModule extends MyModule {
-      def suffix = T { crossValue }
+      def suffix = task { crossValue }
     }
 
     object bar extends mill.Cross[BarModule]("2.10", "2.11", "2.12")
     trait BarModule extends MyModule {
-      def longSuffix = T { "_" + foo().suffix() }
+      def longSuffix = task { "_" + foo().suffix() }
     }
   }
   object doubleCross extends TestUtil.BaseModule {
@@ -425,26 +425,26 @@ object TestGraphs {
     object cross extends mill.Cross[Cross](crossMatrix)
     trait Cross extends Cross.Module2[String, String] {
       val (scalaVersion, platform) = (crossValue, crossValue2)
-      def suffix = T { scalaVersion + "_" + platform }
+      def suffix = task { scalaVersion + "_" + platform }
     }
   }
 
   object crossExtension extends TestUtil.BaseModule {
     object myCross extends Cross[MyCrossModule]("a", "b")
     trait MyCrossModule extends Cross.Module[String] {
-      def param1 = T { "Param Value: " + crossValue }
+      def param1 = task { "Param Value: " + crossValue }
     }
 
     object myCrossExtended extends Cross[MyCrossModuleExtended](("a", 1), ("b", 2))
     trait MyCrossModuleExtended extends MyCrossModule with Cross.Module2[String, Int] {
-      def param2 = T { "Param Value: " + crossValue2 }
+      def param2 = task { "Param Value: " + crossValue2 }
     }
 
     object myCrossExtendedAgain
         extends Cross[MyCrossModuleExtendedAgain](("a", 1, true), ("b", 2, false))
     trait MyCrossModuleExtendedAgain extends MyCrossModuleExtended
         with Cross.Module3[String, Int, Boolean] {
-      def param3 = T { "Param Value: " + crossValue3 }
+      def param3 = task { "Param Value: " + crossValue3 }
     }
   }
 
@@ -452,37 +452,37 @@ object TestGraphs {
     object myCross extends Cross[MyCrossModule]("a", "b")
     trait MyCrossModule extends Cross.Module[String] {
       object foo extends CrossValue {
-        def bar = T { "foo " + crossValue }
+        def bar = task { "foo " + crossValue }
       }
 
       object baz extends CrossValue {
-        def bar = T { "baz " + crossValue }
+        def bar = task { "baz " + crossValue }
       }
     }
 
     object myCross2 extends Cross[MyCrossModule2](("a", 1), ("b", 2))
     trait MyCrossModule2 extends Cross.Module2[String, Int] {
       object foo extends InnerCrossModule2 {
-        def bar = T { "foo " + crossValue }
-        def qux = T { "foo " + crossValue2 }
+        def bar = task { "foo " + crossValue }
+        def qux = task { "foo " + crossValue2 }
       }
       object baz extends InnerCrossModule2 {
-        def bar = T { "baz " + crossValue }
-        def qux = T { "baz " + crossValue2 }
+        def bar = task { "baz " + crossValue }
+        def qux = task { "baz " + crossValue2 }
       }
     }
 
     object myCross3 extends Cross[MyCrossModule3](("a", 1, true), ("b", 2, false))
     trait MyCrossModule3 extends Cross.Module3[String, Int, Boolean] {
       object foo extends InnerCrossModule3 {
-        def bar = T { "foo " + crossValue }
-        def qux = T { "foo " + crossValue2 }
-        def lol = T { "foo " + crossValue3 }
+        def bar = task { "foo " + crossValue }
+        def qux = task { "foo " + crossValue2 }
+        def lol = task { "foo " + crossValue3 }
       }
       object baz extends InnerCrossModule3 {
-        def bar = T { "baz " + crossValue }
-        def qux = T { "baz " + crossValue2 }
-        def lol = T { "baz " + crossValue3 }
+        def bar = task { "baz " + crossValue }
+        def qux = task { "baz " + crossValue2 }
+        def lol = task { "baz " + crossValue3 }
       }
     }
   }
@@ -496,7 +496,7 @@ object TestGraphs {
       object cross2 extends mill.Cross[Cross]("jvm", "js", "native")
       trait Cross extends Cross.Module[String] {
         val platform = crossValue
-        def suffix = T { scalaVersion + "_" + platform }
+        def suffix = task { scalaVersion + "_" + platform }
       }
     }
   }
@@ -513,7 +513,7 @@ object TestGraphs {
       trait Cross2 extends mill.Cross.Module[String] with TaskModule {
         def platform = crossValue
         override def defaultCommandName(): String = "suffixCmd"
-        def suffixCmd(suffix: String = "default"): Command[String] = T.command {
+        def suffixCmd(suffix: String = "default"): Command[String] = task.command {
           scalaVersion + "_" + platform + "_" + suffix
         }
       }
@@ -523,39 +523,39 @@ object TestGraphs {
 
   object StackableOverrides extends TestUtil.BaseModule {
     trait X extends Module {
-      def f = T { 1 }
+      def f = task { 1 }
     }
     trait A extends X {
-      override def f = T { super.f() + 2 }
+      override def f = task { super.f() + 2 }
     }
 
     trait B extends X {
-      override def f = T { super.f() + 3 }
+      override def f = task { super.f() + 3 }
     }
     object m extends A with B {}
   }
 
   object PrivateTasksInMixedTraits extends TestUtil.BaseModule {
     trait M1 extends Module {
-      private def foo = T { "foo-m1" }
-      def bar = T { foo() }
+      private def foo = task { "foo-m1" }
+      def bar = task { foo() }
     }
     trait M2 extends Module {
-      private def foo = T { "foo-m2" }
-      def baz = T { foo() }
+      private def foo = task { "foo-m2" }
+      def baz = task { foo() }
     }
     object mod extends M1 with M2
   }
 
   object TypedModules extends TestUtil.BaseModule {
     trait TypeA extends Module {
-      def foo = T { "foo" }
+      def foo = task { "foo" }
     }
     trait TypeB extends Module {
-      def bar = T { "bar" }
+      def bar = task { "bar" }
     }
     trait TypeC extends Module {
-      def baz = T { "baz" }
+      def baz = task { "baz" }
     }
     trait TypeAB extends TypeA with TypeB
 
@@ -569,11 +569,11 @@ object TestGraphs {
 
   object TypedCrossModules extends TestUtil.BaseModule {
     trait TypeA extends Cross.Module[String] {
-      def foo = T { crossValue }
+      def foo = task { crossValue }
     }
 
     trait TypeB extends Module {
-      def bar = T { "bar" }
+      def bar = task { "bar" }
     }
 
     trait TypeAB extends TypeA with TypeB
@@ -594,15 +594,15 @@ object TestGraphs {
 
   object TypedInnerModules extends TestUtil.BaseModule {
     trait TypeA extends Module {
-      def foo = T { "foo" }
+      def foo = task { "foo" }
     }
     object typeA extends TypeA
     object typeB extends Module {
-      def foo = T { "foo" }
+      def foo = task { "foo" }
     }
     object inner extends Module {
       trait TypeA extends Module {
-        def foo = T { "foo" }
+        def foo = task { "foo" }
       }
       object typeA extends TypeA
     }
@@ -618,9 +618,9 @@ object TestGraphs {
       override lazy val tests: ConcreteTests = new ConcreteTests {}
       trait ConcreteTests extends Tests {
         object inner extends Module {
-          def foo = T { "foo" }
+          def foo = task { "foo" }
           object innerer extends Module {
-            def bar = T { "bar" }
+            def bar = task { "bar" }
           }
         }
       }

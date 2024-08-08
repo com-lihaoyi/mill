@@ -74,7 +74,7 @@ build.
 
 [source,scala]
 ----
-def idea(ev: Evaluator) = T.command {
+def idea(ev: Evaluator) = task.command {
   mill.scalalib.GenIdea(
     implicitly,
     ev.rootModule,

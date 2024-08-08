@@ -6,7 +6,7 @@ import mill.main.BuildInfo
 import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerUtil}
 import mill.scalalib.bsp.BspBuildTarget
 import mill.util.Version
-import mill.{Agg, T}
+import mill.{Agg, T, task}
 
 import scala.util.Properties
 
@@ -22,18 +22,18 @@ trait SemanticDbJavaModule extends CoursierModule {
   def javacOptions: T[Seq[String]]
   def compileClasspath: T[Agg[PathRef]]
 
-  def semanticDbVersion: T[String] = T.input {
+  def semanticDbVersion: T[String] = task.input {
     val builtin = SemanticDbJavaModule.buildTimeSemanticDbVersion
-    val requested = T.env.getOrElse[String](
+    val requested = task.env.getOrElse[String](
       "SEMANTICDB_VERSION",
       SemanticDbJavaModule.contextSemanticDbVersion.get().getOrElse(builtin)
     )
     Version.chooseNewest(requested, builtin)(Version.IgnoreQualifierOrdering)
   }
 
-  def semanticDbJavaVersion: T[String] = T.input {
+  def semanticDbJavaVersion: T[String] = task.input {
     val builtin = SemanticDbJavaModule.buildTimeJavaSemanticDbVersion
-    val requested = T.env.getOrElse[String](
+    val requested = task.env.getOrElse[String](
       "JAVASEMANTICDB_VERSION",
       SemanticDbJavaModule.contextJavaSemanticDbVersion.get().getOrElse(builtin)
     )
@@ -42,7 +42,7 @@ trait SemanticDbJavaModule extends CoursierModule {
 
   def semanticDbScalaVersion: T[String] = BuildInfo.scalaVersion
 
-  protected def semanticDbPluginIvyDeps: T[Agg[Dep]] = T {
+  protected def semanticDbPluginIvyDeps: T[Agg[Dep]] = task {
     val sv = semanticDbScalaVersion()
     val semDbVersion = semanticDbVersion()
     if (!ZincWorkerUtil.isScala3(sv) && semDbVersion.isEmpty) {
@@ -62,7 +62,7 @@ trait SemanticDbJavaModule extends CoursierModule {
     }
   }
 
-  private def semanticDbJavaPluginIvyDeps: T[Agg[Dep]] = T {
+  private def semanticDbJavaPluginIvyDeps: T[Agg[Dep]] = task {
     val sv = semanticDbJavaVersion()
     if (sv.isEmpty) {
       val msg =
@@ -82,28 +82,28 @@ trait SemanticDbJavaModule extends CoursierModule {
   /**
    * Scalac options to activate the compiler plugins.
    */
-  protected def semanticDbEnablePluginScalacOptions: T[Seq[String]] = T {
+  protected def semanticDbEnablePluginScalacOptions: T[Seq[String]] = task {
     val resolvedJars = defaultResolver().resolveDeps(
       semanticDbPluginIvyDeps().map(_.exclude("*" -> "*"))
     )
     resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path}").toSeq
   }
 
-  protected def semanticDbPluginClasspath: T[Agg[PathRef]] = T {
+  protected def semanticDbPluginClasspath: T[Agg[PathRef]] = task {
     defaultResolver().resolveDeps(semanticDbPluginIvyDeps())
   }
 
-  protected def resolvedSemanticDbJavaPluginIvyDeps: T[Agg[PathRef]] = T {
+  protected def resolvedSemanticDbJavaPluginIvyDeps: T[Agg[PathRef]] = task {
     defaultResolver().resolveDeps(semanticDbJavaPluginIvyDeps())
   }
 
-  def semanticDbData: T[PathRef] = T.persistent {
+  def semanticDbData: T[PathRef] = task.persistent {
     val javacOpts = SemanticDbJavaModule.javacOptionsTask(javacOptions(), semanticDbJavaVersion())
 
     // we currently assume, we don't do incremental java compilation
-    os.remove.all(T.dest / "classes")
+    os.remove.all(task.dest / "classes")
 
-    T.log.debug(s"effective javac options: ${javacOpts}")
+    task.log.debug(s"effective javac options: ${javacOpts}")
 
     zincWorker().worker()
       .compileJava(
@@ -116,13 +116,13 @@ trait SemanticDbJavaModule extends CoursierModule {
         reportCachedProblems = zincReportCachedProblems(),
         incrementalCompilation = zincIncrementalCompilation()
       ).map(r =>
-        SemanticDbJavaModule.copySemanticdbFiles(r.classes.path, T.workspace, T.dest / "data")
+        SemanticDbJavaModule.copySemanticdbFiles(r.classes.path, task.workspace, task.dest / "data")
       )
   }
 
   // keep in sync with bspCompiledClassesAndSemanticDbFiles
-  def compiledClassesAndSemanticDbFiles: Target[PathRef] = T {
-    val dest = T.dest
+  def compiledClassesAndSemanticDbFiles: Target[PathRef] = task {
+    val dest = task.dest
     val classes = compile().classes.path
     val sems = semanticDbData().path
     if (os.exists(sems)) os.copy(sems, dest, mergeFolders = true)
@@ -135,8 +135,8 @@ trait SemanticDbJavaModule extends CoursierModule {
     if (
       compiledClassesAndSemanticDbFiles.ctx.enclosing == s"${classOf[SemanticDbJavaModule].getName}#compiledClassesAndSemanticDbFiles"
     ) {
-      T {
-        T.log.debug(
+      task {
+        task.log.debug(
           s"compiledClassesAndSemanticDbFiles target was not overridden, assuming hard-coded classes directory for target ${compiledClassesAndSemanticDbFiles}"
         )
         UnresolvedPath.DestPath(
@@ -146,8 +146,8 @@ trait SemanticDbJavaModule extends CoursierModule {
         )
       }
     } else {
-      T {
-        T.log.debug(
+      task {
+        task.log.debug(
           s"compiledClassesAndSemanticDbFiles target was overridden, need to actually execute compilation to get the compiled classes directory for target ${compiledClassesAndSemanticDbFiles}"
         )
         UnresolvedPath.ResolvedPath(compiledClassesAndSemanticDbFiles().path)

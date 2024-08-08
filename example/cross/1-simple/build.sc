@@ -4,9 +4,9 @@ import mill._
 
 object foo extends Cross[FooModule]("2.10", "2.11", "2.12")
 trait FooModule extends Cross.Module[String] {
-  def suffix = T { "_" + crossValue }
-  def bigSuffix = T { "[[[" + suffix() + "]]]" }
-  def sources = T.sources(millSourcePath)
+  def suffix = task { "_" + crossValue }
+  def bigSuffix = task { "[[[" + suffix() + "]]]" }
+  def sources = task.sources(millSourcePath)
 }
 
 // [graphviz]

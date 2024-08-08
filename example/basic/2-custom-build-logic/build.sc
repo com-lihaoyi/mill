@@ -17,8 +17,8 @@ object foo extends RootModule with ScalaModule {
 
   /** Generate resources using lineCount of sources */
   override def resources = T{
-    os.write(T.dest / "line-count.txt", "" + lineCount())
-    Seq(PathRef(T.dest))
+    os.write(task.dest / "line-count.txt", "" + lineCount())
+    Seq(PathRef(task.dest))
   }
 }
 

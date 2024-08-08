@@ -42,7 +42,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    *
    * @return
    */
-  def scalaOrganization: T[String] = T {
+  def scalaOrganization: T[String] = task {
     if (ZincWorkerUtil.isDotty(scalaVersion()))
       "ch.epfl.lamp"
     else
@@ -52,7 +52,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   /**
    * All individual source files fed into the Zinc compiler.
    */
-  override def allSourceFiles: T[Seq[PathRef]] = T {
+  override def allSourceFiles: T[Seq[PathRef]] = task {
     Lib.findSourceFiles(allSources(), Seq("scala", "java")).map(PathRef(_))
   }
 
@@ -61,7 +61,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    */
   def scalaVersion: T[String]
 
-  override def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = T.task {
+  override def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = task.anon {
     super.mapDependencies().andThen { d: coursier.Dependency =>
       val artifacts =
         if (ZincWorkerUtil.isDotty(scalaVersion()))
@@ -82,12 +82,12 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   }
 
   override def resolveCoursierDependency: Task[Dep => coursier.Dependency] =
-    T.task {
+    task.anon {
       Lib.depToDependency(_: Dep, scalaVersion(), platformSuffix())
     }
 
   override def resolvePublishDependency: Task[Dep => publish.Dependency] =
-    T.task {
+    task.anon {
       publish.Artifact.fromDep(
         _: Dep,
         scalaVersion(),
@@ -107,12 +107,12 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         """The option to pass to the scala compiler, e.g. "-Xlint:help". Default: "-help""""
       )
       args: String*
-  ): Command[Unit] = T.command {
+  ): Command[Unit] = task.command {
     val sv = scalaVersion()
 
     // TODO: do we need to handle compiler plugins?
     val options: Seq[String] = if (args.isEmpty) Seq("-help") else args
-    T.log.info(
+    task.log.info(
       s"""Output of scalac version: ${sv}
          |            with options: ${options.mkString(" ")}
          |""".stripMargin
@@ -160,20 +160,20 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   /**
    * Allows you to make use of Scala compiler plugins.
    */
-  def scalacPluginIvyDeps: Target[Agg[Dep]] = T { Agg.empty[Dep] }
+  def scalacPluginIvyDeps: Target[Agg[Dep]] = task { Agg.empty[Dep] }
 
-  def scalaDocPluginIvyDeps: Target[Agg[Dep]] = T { scalacPluginIvyDeps() }
+  def scalaDocPluginIvyDeps: Target[Agg[Dep]] = task { scalacPluginIvyDeps() }
 
   /**
    * Mandatory command-line options to pass to the Scala compiler
    * that shouldn't be removed by overriding `scalacOptions`
    */
-  protected def mandatoryScalacOptions: Target[Seq[String]] = T { Seq.empty[String] }
+  protected def mandatoryScalacOptions: Target[Seq[String]] = task { Seq.empty[String] }
 
   /**
    * Scalac options to activate the compiler plugins.
    */
-  private def enablePluginScalacOptions: Target[Seq[String]] = T {
+  private def enablePluginScalacOptions: Target[Seq[String]] = task {
 
     val resolvedJars = defaultResolver().resolveDeps(
       scalacPluginIvyDeps().map(_.exclude("*" -> "*"))
@@ -184,7 +184,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   /**
    * Scalac options to activate the compiler plugins for ScalaDoc generation.
    */
-  private def enableScalaDocPluginScalacOptions: Target[Seq[String]] = T {
+  private def enableScalaDocPluginScalacOptions: Target[Seq[String]] = task {
     val resolvedJars = defaultResolver().resolveDeps(
       scalaDocPluginIvyDeps().map(_.exclude("*" -> "*"))
     )
@@ -195,20 +195,20 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    * Command-line options to pass to the Scala compiler defined by the user.
    * Consumers should use `allScalacOptions` to read them.
    */
-  override def scalacOptions: Target[Seq[String]] = T { Seq.empty[String] }
+  override def scalacOptions: Target[Seq[String]] = task { Seq.empty[String] }
 
   /**
    * Aggregation of all the options passed to the Scala compiler.
    * In most cases, instead of overriding this Target you want to override `scalacOptions` instead.
    */
-  def allScalacOptions: Target[Seq[String]] = T {
+  def allScalacOptions: Target[Seq[String]] = task {
     mandatoryScalacOptions() ++ enablePluginScalacOptions() ++ scalacOptions()
   }
 
   /**
    * Options to pass directly into Scaladoc.
    */
-  def scalaDocOptions: T[Seq[String]] = T {
+  def scalaDocOptions: T[Seq[String]] = task {
     val defaults =
       if (ZincWorkerUtil.isDottyOrScala3(scalaVersion()))
         Seq(
@@ -224,14 +224,14 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    * additional jars here if you have some copiler plugin that isn't present
    * on maven central
    */
-  def scalacPluginClasspath: T[Agg[PathRef]] = T {
+  def scalacPluginClasspath: T[Agg[PathRef]] = task {
     defaultResolver().resolveDeps(scalacPluginIvyDeps())
   }
 
   /**
    * Classpath of the scaladoc (or dottydoc) tool.
    */
-  def scalaDocClasspath: T[Agg[PathRef]] = T {
+  def scalaDocClasspath: T[Agg[PathRef]] = task {
     defaultResolver().resolveDeps(
       Lib.scalaDocIvyDeps(scalaOrganization(), scalaVersion())
     )
@@ -240,25 +240,25 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   /**
    * The ivy coordinates of Scala's own standard library
    */
-  def scalaDocPluginClasspath: T[Agg[PathRef]] = T {
+  def scalaDocPluginClasspath: T[Agg[PathRef]] = task {
     defaultResolver().resolveDeps(
       scalaDocPluginIvyDeps()
     )
   }
 
-  def scalaLibraryIvyDeps: T[Agg[Dep]] = T {
+  def scalaLibraryIvyDeps: T[Agg[Dep]] = task {
     Lib.scalaRuntimeIvyDeps(scalaOrganization(), scalaVersion())
   }
 
   /** Adds the Scala Library is a mandatory dependency. */
-  override def mandatoryIvyDeps: T[Agg[Dep]] = T {
+  override def mandatoryIvyDeps: T[Agg[Dep]] = task {
     super.mandatoryIvyDeps() ++ scalaLibraryIvyDeps()
   }
 
   /**
    * Classpath of the Scala Compiler & any compiler plugins
    */
-  def scalaCompilerClasspath: T[Agg[PathRef]] = T {
+  def scalaCompilerClasspath: T[Agg[PathRef]] = task {
     defaultResolver().resolveDeps(
       Lib.scalaCompilerIvyDeps(scalaOrganization(), scalaVersion()) ++
         scalaLibraryIvyDeps()
@@ -266,9 +266,9 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   }
 
   // Keep in sync with [[bspCompileClassesPath]]
-  override def compile: T[CompilationResult] = T.persistent {
+  override def compile: T[CompilationResult] = task.persistent {
     val sv = scalaVersion()
-    if (sv == "2.12.4") T.log.error(
+    if (sv == "2.12.4") task.log.error(
       """Attention: Zinc is known to not work properly for Scala version 2.12.4.
         |You may want to select another version. Upgrading to a more recent Scala version is recommended.
         |For details, see: https://github.com/sbt/zinc/issues/1010""".stripMargin
@@ -285,7 +285,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         scalacOptions = allScalacOptions(),
         compilerClasspath = scalaCompilerClasspath(),
         scalacPluginClasspath = scalacPluginClasspath(),
-        reporter = T.reporter.apply(hashCode),
+        reporter = task.reporter.apply(hashCode),
         reportCachedProblems = zincReportCachedProblems(),
         incrementalCompilation = zincIncrementalCompilation(),
         auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
@@ -296,29 +296,29 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   @internal
   override def bspCompileClassesPath: Target[UnresolvedPath] =
     if (compile.ctx.enclosing == s"${classOf[ScalaModule].getName}#compile") {
-      T {
-        T.log.debug(
+      task {
+        task.log.debug(
           s"compile target was not overridden, assuming hard-coded classes directory for target ${compile}"
         )
         UnresolvedPath.DestPath(os.sub / "classes", compile.ctx.segments, compile.ctx.foreign)
       }
     } else {
-      T {
-        T.log.debug(
+      task {
+        task.log.debug(
           s"compile target was overridden, need to actually execute compilation to get the compiled classes directory for target ${compile}"
         )
         UnresolvedPath.ResolvedPath(compile().classes.path)
       }
     }
 
-  override def docSources: T[Seq[PathRef]] = T.sources {
+  override def docSources: T[Seq[PathRef]] = task.sources {
     if (
       ZincWorkerUtil.isScala3(scalaVersion()) && !ZincWorkerUtil.isScala3Milestone(scalaVersion())
     ) Seq(compile().classes)
     else allSources()
   }
 
-  override def docJar: T[PathRef] = T {
+  override def docJar: T[PathRef] = task {
     val compileCp = Seq(
       "-classpath",
       compileClasspath()
@@ -329,7 +329,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     )
 
     def packageWithZinc(options: Seq[String], files: Seq[os.Path], javadocDir: os.Path) = {
-      if (files.isEmpty) Result.Success(createJar(Agg(javadocDir))(T.dest))
+      if (files.isEmpty) Result.Success(createJar(Agg(javadocDir))(task.dest))
       else {
         zincWorker()
           .worker()
@@ -341,7 +341,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
             options ++ compileCp ++ scalaDocOptions() ++
               files.map(_.toString())
           ) match {
-          case true => Result.Success(createJar(Agg(javadocDir))(T.dest))
+          case true => Result.Success(createJar(Agg(javadocDir))(task.dest))
           case false => Result.Failure("docJar generation failed")
         }
       }
@@ -350,7 +350,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     if (
       ZincWorkerUtil.isDotty(scalaVersion()) || ZincWorkerUtil.isScala3Milestone(scalaVersion())
     ) { // dottydoc
-      val javadocDir = T.dest / "javadoc"
+      val javadocDir = task.dest / "javadoc"
       os.makeDir.all(javadocDir)
 
       for {
@@ -374,14 +374,14 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
       )
 
     } else if (ZincWorkerUtil.isScala3(scalaVersion())) { // scaladoc 3
-      val javadocDir = T.dest / "javadoc"
+      val javadocDir = task.dest / "javadoc"
       os.makeDir.all(javadocDir)
 
       // Scaladoc 3 allows including static files in documentation, but it only
       // supports one directory. Hence, to allow users to generate files
       // dynamically, we consolidate all files from all `docSources` into one
       // directory.
-      val combinedStaticDir = T.dest / "static"
+      val combinedStaticDir = task.dest / "static"
       os.makeDir.all(combinedStaticDir)
 
       for {
@@ -410,7 +410,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         javadocDir
       )
     } else { // scaladoc 2
-      val javadocDir = T.dest / "javadoc"
+      val javadocDir = task.dest / "javadoc"
       os.makeDir.all(javadocDir)
 
       packageWithZinc(
@@ -431,7 +431,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    * Opens up a Scala console with your module and all dependencies present,
    * for you to test and operate your code interactively.
    */
-  def console(): Command[Unit] = T.command {
+  def console(): Command[Unit] = task.command {
     if (!Util.isInteractive()) {
       Result.Failure("console needs to be run with the -i/--interactive flag")
     } else {
@@ -460,26 +460,26 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    * Ammonite's version used in the `repl` command is by default
    * set to the one Mill is built against.
    */
-  def ammoniteVersion: T[String] = T {
+  def ammoniteVersion: T[String] = task {
     Versions.ammonite
   }
 
   /**
    * Dependencies that are necessary to run the Ammonite Scala REPL
    */
-  def ammoniteReplClasspath: T[Seq[PathRef]] = T {
+  def ammoniteReplClasspath: T[Seq[PathRef]] = task {
     localClasspath() ++
       transitiveLocalClasspath() ++
       unmanagedClasspath() ++
       resolvedAmmoniteReplIvyDeps()
   }
 
-  def resolvedAmmoniteReplIvyDeps = T {
+  def resolvedAmmoniteReplIvyDeps = task {
     defaultResolver().resolveDeps {
       val scaVersion = scalaVersion()
       val ammVersion = ammoniteVersion()
       if (scaVersion != BuildInfo.scalaVersion && ammVersion == Versions.ammonite) {
-        T.log.info(
+        task.log.info(
           s"""Resolving Ammonite Repl ${ammVersion} for Scala ${scaVersion} ...
              |If you encounter dependency resolution failures, please review/override `def ammoniteVersion` to select a compatible release.""".stripMargin
         )
@@ -491,7 +491,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   }
 
   @internal
-  private[scalalib] def ammoniteMainClass: Task[String] = T.task {
+  private[scalalib] def ammoniteMainClass: Task[String] = task.anon {
     Version(ammoniteVersion()) match {
       case v: ValidVersion if Version.versionOrdering.compare(v, Version("2.4.1")) <= 0 =>
         "ammonite.Main"
@@ -504,12 +504,12 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    * for you to test and operate your code interactively.
    * Use [[ammoniteVersion]] to customize the Ammonite version to use.
    */
-  def repl(replOptions: String*): Command[Unit] = T.command {
-    if (T.log.inStream == DummyInputStream) {
+  def repl(replOptions: String*): Command[Unit] = task.command {
+    if (task.log.inStream == DummyInputStream) {
       Result.Failure("repl needs to be run with the -i/--interactive flag")
     } else {
       val mainClass = ammoniteMainClass()
-      T.log.debug(s"Using ammonite main class: ${mainClass}")
+      task.log.debug(s"Using ammonite main class: ${mainClass}")
       SystemStreams.withStreams(SystemStreams.original) {
         Jvm.runSubprocess(
           mainClass = mainClass,
@@ -533,12 +533,12 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   /**
    * What Scala version string to use when publishing
    */
-  def artifactScalaVersion: T[String] = T {
+  def artifactScalaVersion: T[String] = task {
     if (crossFullScalaVersion()) scalaVersion()
     else ZincWorkerUtil.scalaBinaryVersion(scalaVersion())
   }
 
-  override def zincAuxiliaryClassFileExtensions: T[Seq[String]] = T {
+  override def zincAuxiliaryClassFileExtensions: T[Seq[String]] = task {
     super.zincAuxiliaryClassFileExtensions() ++ (
       if (ZincWorkerUtil.isScala3(scalaVersion())) Seq("tasty")
       else Seq.empty[String]
@@ -558,7 +558,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
       if (all.value) Seq(ammonite)
       else Seq()
 
-    T.command {
+    task.command {
       super.prepareOffline(all)()
       // resolve the compile bridge jar
       defaultResolver().resolveDeps(
@@ -572,12 +572,12 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         scalaOrganization(),
         repositoriesTask()
       )
-      T.sequence(tasks)()
+      task.sequence(tasks)()
       ()
     }
   }
 
-  override def manifest: T[JarManifest] = T {
+  override def manifest: T[JarManifest] = task {
     super.manifest().add("Scala-Version" -> scalaVersion())
   }
 
@@ -589,7 +589,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   )
 
   @internal
-  override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = T.task {
+  override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = task.anon {
     Some((
       "scala",
       ScalaBuildTarget(
@@ -615,13 +615,13 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
 
   override def semanticDbScalaVersion: T[String] = scalaVersion()
 
-  override protected def semanticDbPluginClasspath = T {
+  override protected def semanticDbPluginClasspath = task {
     defaultResolver().resolveDeps(
       scalacPluginIvyDeps() ++ semanticDbPluginIvyDeps()
     )
   }
 
-  override def semanticDbData: T[PathRef] = T.persistent {
+  override def semanticDbData: T[PathRef] = task.persistent {
     val sv = scalaVersion()
 
     val scalacOptions = (
@@ -632,7 +632,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
           } else {
             Seq(
               "-Yrangepos",
-              s"-P:semanticdb:sourceroot:${T.workspace}",
+              s"-P:semanticdb:sourceroot:${task.workspace}",
               "-Ystop-after:semanticdb-typer"
             )
           }
@@ -642,8 +642,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
 
     val javacOpts = SemanticDbJavaModule.javacOptionsTask(javacOptions(), semanticDbJavaVersion())
 
-    T.log.debug(s"effective scalac options: ${scalacOptions}")
-    T.log.debug(s"effective javac options: ${javacOpts}")
+    task.log.debug(s"effective scalac options: ${scalacOptions}")
+    task.log.debug(s"effective javac options: ${javacOpts}")
 
     zincWorker().worker()
       .compileMixed(
@@ -665,8 +665,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
       .map(compileRes =>
         SemanticDbJavaModule.copySemanticdbFiles(
           compileRes.classes.path,
-          T.workspace,
-          T.dest / "data"
+          task.workspace,
+          task.dest / "data"
         )
       )
   }

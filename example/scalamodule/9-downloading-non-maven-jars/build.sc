@@ -3,14 +3,14 @@ import mill._, scalalib._
 
 object foo extends RootModule with ScalaModule {
   def scalaVersion = "2.13.8"
-  def unmanagedClasspath = T {
+  def unmanagedClasspath = task {
     os.write(
-      T.dest / "fastjavaio.jar",
+      task.dest / "fastjavaio.jar",
       requests.get.stream(
         "https://github.com/williamfiset/FastJavaIO/releases/download/1.1/fastjavaio.jar"
       )
     )
-    Agg(PathRef(T.dest / "fastjavaio.jar"))
+    Agg(PathRef(task.dest / "fastjavaio.jar"))
   }
 }
 

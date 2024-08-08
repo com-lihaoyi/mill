@@ -2,7 +2,7 @@ import scala.util.Properties
 import mill._
 
 
-def inheritInterleaved = T {
+def inheritInterleaved = task {
   for (i <- Range.inclusive(1, 9)) {
     println("print stdout" + i)
     val echoCommandStdout =

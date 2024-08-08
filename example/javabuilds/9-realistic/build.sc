@@ -21,9 +21,9 @@ trait MyModule extends JavaModule with PublishModule {
 object foo extends MyModule {
   def moduleDeps = Seq(bar, qux)
 
-  def generatedSources = T {
+  def generatedSources = task {
     os.write(
-      T.dest / "Version.java",
+      task.dest / "Version.java",
       s"""
          |package foo;
          |public class Version {
@@ -33,7 +33,7 @@ object foo extends MyModule {
          |}
       """.stripMargin
     )
-    Seq(PathRef(T.dest))
+    Seq(PathRef(task.dest))
   }
 }
 

@@ -12,9 +12,9 @@ trait BintrayPublishModule extends PublishModule {
 
   def bintrayRepo: String
 
-  def bintrayPackage = T { artifactId() }
+  def bintrayPackage = task { artifactId() }
 
-  def bintrayPublishArtifacts: T[BintrayPublishData] = T {
+  def bintrayPublishArtifacts: T[BintrayPublishData] = task {
     val PublishModule.PublishData(artifactInfo, artifacts) = publishArtifacts()
     BintrayPublishData(artifactInfo, artifacts, bintrayPackage())
   }
@@ -36,7 +36,7 @@ trait BintrayPublishModule extends PublishModule {
       release: Boolean = true,
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000
-  ): define.Command[Unit] = T.command {
+  ): define.Command[Unit] = task.command {
     new BintrayPublisher(
       bintrayOwner,
       bintrayRepo,
@@ -44,7 +44,7 @@ trait BintrayPublishModule extends PublishModule {
       release,
       readTimeout,
       connectTimeout,
-      T.log
+      task.log
     ).publish(bintrayPublishArtifacts())
   }
 }
@@ -69,7 +69,7 @@ object BintrayPublishModule extends ExternalModule {
       publishArtifacts: mill.main.Tasks[BintrayPublishData],
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000
-  ) = T.command {
+  ) = task.command {
     new BintrayPublisher(
       bintrayOwner,
       bintrayRepo,
@@ -77,17 +77,17 @@ object BintrayPublishModule extends ExternalModule {
       release,
       readTimeout,
       connectTimeout,
-      T.log
+      task.log
     ).publishAll(
-      T.sequence(publishArtifacts.value)(): _*
+      task.sequence(publishArtifacts.value)(): _*
     )
   }
 
-  private def checkBintrayCreds(credentials: String): Task[String] = T.task {
+  private def checkBintrayCreds(credentials: String): Task[String] = task.anon {
     if (credentials.isEmpty) {
       (for {
-        username <- T.env.get("BINTRAY_USERNAME")
-        password <- T.env.get("BINTRAY_PASSWORD")
+        username <- task.env.get("BINTRAY_USERNAME")
+        password <- task.env.get("BINTRAY_PASSWORD")
       } yield {
         Result.Success(s"$username:$password")
       }).getOrElse(

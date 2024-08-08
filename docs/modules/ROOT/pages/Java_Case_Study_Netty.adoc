@@ -579,22 +579,22 @@ import $ivy.`ant:ant-optional:1.5.3-1`
 
 object common extends NettyModule{
   ...
-  def script = T.source(millSourcePath / "src" / "main" / "script")
+  def script = task.source(millSourcePath / "src" / "main" / "script")
   def generatedSources0 = T{
     val shell = new groovy.lang.GroovyShell()
     val context = new java.util.HashMap[String, Object]
 
     context.put("collection.template.dir", "common/src/main/templates")
     context.put("collection.template.test.dir", "common/src/test/templates")
-    context.put("collection.src.dir", (T.dest / "src").toString)
-    context.put("collection.testsrc.dir", (T.dest / "testsrc").toString)
+    context.put("collection.src.dir", (task.dest / "src").toString)
+    context.put("collection.testsrc.dir", (task.dest / "testsrc").toString)
 
     shell.setProperty("properties", context)
     shell.setProperty("ant", new groovy.ant.AntBuilder())
 
     shell.evaluate((script().path / "codegen.groovy").toIO)
 
-    (PathRef(T.dest / "src"), PathRef(T.dest / "testsrc"))
+    (PathRef(task.dest / "src"), PathRef(task.dest / "testsrc"))
   }
 
   def generatedSources = T{ Seq(generatedSources0()._1)}
@@ -695,28 +695,28 @@ with the `make` command essentially being a bash script wrapped in layers of XML
 In contrast, the Mill configuration for this logic is as follows:
 
 ```scala
-def makefile = T.source(millSourcePath / "Makefile")
-def cSources = T.source(millSourcePath / "src" / "main" / "c")
+def makefile = task.source(millSourcePath / "Makefile")
+def cSources = task.source(millSourcePath / "src" / "main" / "c")
 def cHeaders = T{
   for(p <- os.walk(cSources().path) if p.ext == "h"){
-    os.copy(p, T.dest / p.relativeTo(cSources().path), createFolders = true)
+    os.copy(p, task.dest / p.relativeTo(cSources().path), createFolders = true)
   }
-  PathRef(T.dest)
+  PathRef(task.dest)
 }
 
 def make = T{
-  os.copy(makefile().path, T.dest / "Makefile")
-  os.copy(cSources().path, T.dest / "src" / "main" / "c", createFolders = true)
+  os.copy(makefile().path, task.dest / "Makefile")
+  os.copy(cSources().path, task.dest / "src" / "main" / "c", createFolders = true)
 
   val Seq(sourceJar) = resolveDeps(
-    deps = T.task(Agg(ivy"io.netty:netty-jni-util:0.0.9.Final").map(bindDependency())),
+    deps = task.anon(Agg(ivy"io.netty:netty-jni-util:0.0.9.Final").map(bindDependency())),
     sources = true
   )().toSeq
 
-  os.proc("jar", "xf", sourceJar.path).call(cwd = T.dest  / "src" / "main" / "c")
+  os.proc("jar", "xf", sourceJar.path).call(cwd = task.dest  / "src" / "main" / "c")
 
   os.proc("make").call(
-    cwd = T.dest,
+    cwd = task.dest,
     env = Map(
       "CC" -> "clang",
       "AR" -> "ar",
@@ -736,7 +736,7 @@ def make = T{
     )
   )
 
-  (PathRef(T.dest / "lib-out"), PathRef(T.dest / "obj-out"))
+  (PathRef(task.dest / "lib-out"), PathRef(task.dest / "obj-out"))
 }
 ```
 

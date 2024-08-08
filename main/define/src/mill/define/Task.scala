@@ -33,7 +33,7 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] {
   def sideHash: Int = 0
 
   /**
-   * Whether or not this [[Task]] deletes the `T.dest` folder between runs
+   * Whether or not this [[Task]] deletes the `task.dest` folder between runs
    */
   def flushDest: Boolean = true
 
@@ -43,7 +43,7 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] {
   def self: Task[T] = this
 }
 
-object Task {
+object Task extends TaskCompanion {
   abstract class Ops[+T] { this: Task[T] =>
     def map[V](f: T => V): Task[V] = new Task.Mapped(this, f)
     def filter(f: T => Boolean): Task[T] = this
@@ -86,8 +86,8 @@ object Task {
 
 /**
  * Represents a task that can be referenced by its path segments. `T{...}`
- * targets, `T.input`, `T.worker`, etc. but not including anonymous
- * `T.task` or `T.traverse` etc. instances
+ * targets, `task.input`, `task.worker`, etc. but not including anonymous
+ * `task.anon` or `task.traverse` etc. instances
  */
 trait NamedTask[+T] extends Task[T] {
 
@@ -121,17 +121,284 @@ trait NamedTask[+T] extends Task[T] {
  */
 trait Target[+T] extends NamedTask[T]
 
+object Target extends TaskCompanion {
+  implicit def applyImplicit[T](t: T)(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
+  macro Target.Internal.targetImpl[T]
+
+  implicit def applyImplicit[T](t: Result[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
+  macro Target.Internal.targetResultImpl[T]
+
+  object Internal {
+    private def isPrivateTargetOption(c: Context): c.Expr[Option[Boolean]] = {
+      import c.universe._
+      if (c.internal.enclosingOwner.isPrivate) reify(Some(true))
+      else reify(Some(false))
+    }
+
+    def targetImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T])(
+      rw: c.Expr[RW[T]],
+      ctx: c.Expr[mill.define.Ctx]
+    ): c.Expr[Target[T]] = {
+      import c.universe._
+
+      val taskIsPrivate = isPrivateTargetOption(c)
+
+      val lhs = Applicative.impl0[Task, T, mill.api.Ctx](c)(reify(Result.create(t.splice)).tree)
+
+      mill.moduledefs.Cacher.impl0[Target[T]](c)(
+        reify(
+          new TargetImpl[T](
+            lhs.splice,
+            ctx.splice,
+            rw.splice,
+            taskIsPrivate.splice
+          )
+        )
+      )
+    }
+
+    def targetResultImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[Result[T]])(
+      rw: c.Expr[RW[T]],
+      ctx: c.Expr[mill.define.Ctx]
+    ): c.Expr[Target[T]] = {
+      import c.universe._
+
+      val taskIsPrivate = isPrivateTargetOption(c)
+
+      mill.moduledefs.Cacher.impl0[Target[T]](c)(
+        reify(
+          new TargetImpl[T](
+            Applicative.impl0[Task, T, mill.api.Ctx](c)(t.tree).splice,
+            ctx.splice,
+            rw.splice,
+            taskIsPrivate.splice
+          )
+        )
+      )
+    }
+
+    def targetTaskImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[Task[T]])(
+      rw: c.Expr[RW[T]],
+      ctx: c.Expr[mill.define.Ctx]
+    ): c.Expr[Target[T]] = {
+      import c.universe._
+
+      val taskIsPrivate = isPrivateTargetOption(c)
+
+      mill.moduledefs.Cacher.impl0[Target[T]](c)(
+        reify(
+          new TargetImpl[T](
+            t.splice,
+            ctx.splice,
+            rw.splice,
+            taskIsPrivate.splice
+          )
+        )
+      )
+    }
+
+    def sourcesImpl1(c: Context)(values: c.Expr[Result[os.Path]]*)(ctx: c.Expr[mill.define.Ctx])
+    : c.Expr[Target[Seq[PathRef]]] = {
+      import c.universe._
+      val wrapped =
+        for (value <- values.toList)
+          yield Applicative.impl0[Task, PathRef, mill.api.Ctx](c)(
+            reify(value.splice.map(PathRef(_))).tree
+          ).tree
+
+      val taskIsPrivate = isPrivateTargetOption(c)
+
+      mill.moduledefs.Cacher.impl0[SourcesImpl](c)(
+        reify(
+          new SourcesImpl(
+            Target.sequence(c.Expr[List[Task[PathRef]]](q"_root_.scala.List(..$wrapped)").splice),
+            ctx.splice,
+            taskIsPrivate.splice
+          )
+        )
+      )
+    }
+
+    def sourcesImpl2(c: Context)(values: c.Expr[Result[Seq[PathRef]]])(ctx: c.Expr[mill.define.Ctx])
+    : c.Expr[Target[Seq[PathRef]]] = {
+      import c.universe._
+
+      val taskIsPrivate = isPrivateTargetOption(c)
+
+      mill.moduledefs.Cacher.impl0[SourcesImpl](c)(
+        reify(
+          new SourcesImpl(
+            Applicative.impl0[Task, Seq[PathRef], mill.api.Ctx](c)(values.tree).splice,
+            ctx.splice,
+            taskIsPrivate.splice
+          )
+        )
+      )
+    }
+
+    def sourceImpl1(c: Context)(value: c.Expr[Result[os.Path]])(ctx: c.Expr[mill.define.Ctx])
+    : c.Expr[Target[PathRef]] = {
+      import c.universe._
+
+      val wrapped =
+        Applicative.impl0[Task, PathRef, mill.api.Ctx](c)(
+          reify(value.splice.map(PathRef(_))).tree
+        )
+
+      val taskIsPrivate = isPrivateTargetOption(c)
+
+      mill.moduledefs.Cacher.impl0[Target[PathRef]](c)(
+        reify(
+          new SourceImpl(
+            wrapped.splice,
+            ctx.splice,
+            taskIsPrivate.splice
+          )
+        )
+      )
+    }
+
+    def sourceImpl2(c: Context)(value: c.Expr[Result[PathRef]])(ctx: c.Expr[mill.define.Ctx])
+    : c.Expr[Target[PathRef]] = {
+      import c.universe._
+
+      val taskIsPrivate = isPrivateTargetOption(c)
+
+      mill.moduledefs.Cacher.impl0[Target[PathRef]](c)(
+        reify(
+          new SourceImpl(
+            Applicative.impl0[Task, PathRef, mill.api.Ctx](c)(value.tree).splice,
+            ctx.splice,
+            taskIsPrivate.splice
+          )
+        )
+      )
+    }
+
+    def inputImpl[T: c.WeakTypeTag](c: Context)(value: c.Expr[T])(
+      w: c.Expr[upickle.default.Writer[T]],
+      ctx: c.Expr[mill.define.Ctx]
+    ): c.Expr[Target[T]] = {
+      import c.universe._
+
+      val taskIsPrivate = isPrivateTargetOption(c)
+
+      mill.moduledefs.Cacher.impl0[InputImpl[T]](c)(
+        reify(
+          new InputImpl[T](
+            Applicative.impl[Task, T, mill.api.Ctx](c)(value).splice,
+            ctx.splice,
+            w.splice,
+            taskIsPrivate.splice
+          )
+        )
+      )
+    }
+
+    def commandFromTask[T: c.WeakTypeTag](c: Context)(t: c.Expr[Task[T]])(
+      ctx: c.Expr[mill.define.Ctx],
+      w: c.Expr[W[T]],
+      cls: c.Expr[EnclosingClass]
+    ): c.Expr[Command[T]] = {
+      import c.universe._
+
+      val taskIsPrivate = isPrivateTargetOption(c)
+
+      reify(
+        new Command[T](
+          t.splice,
+          ctx.splice,
+          w.splice,
+          cls.splice.value,
+          taskIsPrivate.splice
+        )
+      )
+    }
+
+    def commandImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T])(
+      w: c.Expr[W[T]],
+      ctx: c.Expr[mill.define.Ctx],
+      cls: c.Expr[EnclosingClass]
+    ): c.Expr[Command[T]] = {
+      import c.universe._
+
+      val taskIsPrivate = isPrivateTargetOption(c)
+
+      reify(
+        new Command[T](
+          Applicative.impl[Task, T, mill.api.Ctx](c)(t).splice,
+          ctx.splice,
+          w.splice,
+          cls.splice.value,
+          taskIsPrivate.splice
+        )
+      )
+    }
+
+    def workerImpl1[T: c.WeakTypeTag](c: Context)(t: c.Expr[Task[T]])(ctx: c.Expr[mill.define.Ctx])
+    : c.Expr[Worker[T]] = {
+      import c.universe._
+
+      val taskIsPrivate = isPrivateTargetOption(c)
+
+      mill.moduledefs.Cacher.impl0[Worker[T]](c)(
+        reify(
+          new Worker[T](t.splice, ctx.splice, taskIsPrivate.splice)
+        )
+      )
+    }
+
+    def workerImpl2[T: c.WeakTypeTag](c: Context)(t: c.Expr[T])(ctx: c.Expr[mill.define.Ctx])
+    : c.Expr[Worker[T]] = {
+      import c.universe._
+
+      val taskIsPrivate = isPrivateTargetOption(c)
+
+      mill.moduledefs.Cacher.impl0[Worker[T]](c)(
+        reify(
+          new Worker[T](
+            Applicative.impl[Task, T, mill.api.Ctx](c)(t).splice,
+            ctx.splice,
+            taskIsPrivate.splice
+          )
+        )
+      )
+    }
+
+    def persistentImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T])(
+      rw: c.Expr[RW[T]],
+      ctx: c.Expr[mill.define.Ctx]
+    ): c.Expr[PersistentImpl[T]] = {
+      import c.universe._
+
+      val taskIsPrivate = isPrivateTargetOption(c)
+
+      mill.moduledefs.Cacher.impl0[PersistentImpl[T]](c)(
+        reify(
+          new PersistentImpl[T](
+            Applicative.impl[Task, T, mill.api.Ctx](c)(t).splice,
+            ctx.splice,
+            rw.splice,
+            taskIsPrivate.splice
+          )
+        )
+      )
+    }
+  }
+
+}
+
 /**
- * The [[mill.define.Target]] companion object, usually aliased as [[T]],
+ * The [[mill.define.Task]] companion object, usually aliased as [[task]],
  * provides most of the helper methods and macros used to build task graphs.
- * methods like `T.`[[apply]], `T.`[[sources]], `T.`[[command]] allow you to
- * define the tasks, while methods like `T.`[[dest]], `T.`[[log]] or
- * `T.`[[env]] provide the core APIs that are provided to a task implementation
+ * methods like `task.`[[apply]], `task.`[[sources]], `task.`[[command]] allow you to
+ * define the tasks, while methods like `task.`[[dest]], `task.`[[log]] or
+ * `task.`[[env]] provide the core APIs that are provided to a task implementation
  */
-object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
+trait TaskCompanion extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
 
   /**
-   * `T.dest` is a unique `os.Path` (e.g. `out/classFiles.dest/` or `out/run.dest/`)
+   * `task.dest` is a unique `os.Path` (e.g. `out/classFiles.dest/` or `out/run.dest/`)
    * that is assigned to every Target or Command. It is cleared before your
    * task runs, and you can use it as a scratch space for temporary files or
    * a place to put returned artifacts. This is guaranteed to be unique for
@@ -141,7 +408,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
   def dest(implicit ctx: mill.api.Ctx.Dest): os.Path = ctx.dest
 
   /**
-   * `T.log` is the default logger provided for every task. While your task is running,
+   * `task.log` is the default logger provided for every task. While your task is running,
    * `System.out` and `System.in` are also redirected to this logger. The logs for a
    * task are streamed to standard out/error as you would expect, but each task's
    * specific output is also streamed to a log file on disk, e.g. `out/run.log` or
@@ -158,8 +425,8 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
   def home(implicit ctx: mill.api.Ctx.Home): os.Path = ctx.home
 
   /**
-   * `T.env` is the environment variable map passed to the Mill command when
-   * it is run; typically used inside a `T.input` to ensure any changes in
+   * `task.env` is the environment variable map passed to the Mill command when
+   * it is run; typically used inside a `task.input` to ensure any changes in
    * the env vars are properly detected.
    *
    * Note that you should not use `sys.env`, as Mill's long-lived server
@@ -198,59 +465,59 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
    * return type is JSON serializable. In return they automatically caches their
    * return value to disk, only re-computing if upstream [[Task]]s change
    */
-  implicit def apply[T](t: T)(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
-    macro Internal.targetImpl[T]
+  def apply[T](t: T)(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
+    macro Target.Internal.targetImpl[T]
 
-  implicit def apply[T](t: Result[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
-    macro Internal.targetResultImpl[T]
+  def apply[T](t: Result[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
+    macro Target.Internal.targetResultImpl[T]
 
   def apply[T](t: Task[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
-    macro Internal.targetTaskImpl[T]
+    macro Target.Internal.targetTaskImpl[T]
 
   /**
    * [[PersistentImpl]] are a flavor of [[TargetImpl]], normally defined using
-   * the `T.persistent{...}` syntax. The main difference is that while
-   * [[TargetImpl]] deletes the `T.dest` folder in between runs,
+   * the `task.persistent{...}` syntax. The main difference is that while
+   * [[TargetImpl]] deletes the `task.dest` folder in between runs,
    * [[PersistentImpl]] preserves it. This lets the user make use of files on
    * disk that persistent between runs of the task, e.g. to implement their own
    * fine-grained caching beyond what Mill provides by default.
    *
-   * Note that the user defining a `T.persistent` task is taking on the
+   * Note that the user defining a `task.persistent` task is taking on the
    * responsibility of ensuring that their implementation is idempotent, i.e.
-   * that it computes the same result whether or not there is data in `T.dest`.
+   * that it computes the same result whether or not there is data in `task.dest`.
    * Violating that invariant can result in confusing mis-behaviors
    */
   def persistent[T](t: Result[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
-    macro Internal.persistentImpl[T]
+    macro Target.Internal.persistentImpl[T]
 
   /**
-   * A specialization of [[InputImpl]] defined via `T.sources`, [[SourcesImpl]]
+   * A specialization of [[InputImpl]] defined via `task.sources`, [[SourcesImpl]]
    * uses [[PathRef]]s to compute a signature for a set of source files and
    * folders.
    *
    * This is most used when detecting changes in source code: when you edit a
-   * file and run `mill compile`, it is the `T.sources` that re-computes the
+   * file and run `mill compile`, it is the `task.sources` that re-computes the
    * signature for you source files/folders and decides whether or not downstream
    * [[TargetImpl]]s need to be invalidated and re-computed.
    */
   def sources(values: Result[os.Path]*)(implicit ctx: mill.define.Ctx): Target[Seq[PathRef]] =
-    macro Internal.sourcesImpl1
+    macro Target.Internal.sourcesImpl1
 
   def sources(values: Result[Seq[PathRef]])(implicit ctx: mill.define.Ctx): Target[Seq[PathRef]] =
-    macro Internal.sourcesImpl2
+    macro Target.Internal.sourcesImpl2
 
   /**
    * Similar to [[Source]], but only for a single source file or folder. Defined
-   * using `T.source`.
+   * using `task.source`.
    */
   def source(value: Result[os.Path])(implicit ctx: mill.define.Ctx): Target[PathRef] =
-    macro Internal.sourceImpl1
+    macro Target.Internal.sourceImpl1
 
   def source(value: Result[PathRef])(implicit ctx: mill.define.Ctx): Target[PathRef] =
-    macro Internal.sourceImpl2
+    macro Target.Internal.sourceImpl2
 
   /**
-   * [[InputImpl]]s, normally defined using `T.input`, are [[NamedTask]]s that
+   * [[InputImpl]]s, normally defined using `task.input`, are [[NamedTask]]s that
    * re-evaluate every time Mill is run. This is in contrast to [[TargetImpl]]s
    * which only re-evaluate when upstream tasks change.
    *
@@ -258,7 +525,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
    * build graph that comes from outside: maybe from an environment variable, a
    * JVM system property, the hash returned by `git rev-parse HEAD`. Reading
    * these external mutable variables inside a `T{...}` [[TargetImpl]] will
-   * incorrectly cache them forever. Reading them inside a `T.input{...}`
+   * incorrectly cache them forever. Reading them inside a `task.input{...}`
    * will re-compute them every time, and only if the value changes would it
    * continue to invalidate downstream [[TargetImpl]]s
    *
@@ -269,11 +536,11 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
       w: upickle.default.Writer[T],
       ctx: mill.define.Ctx
   ): Target[T] =
-    macro Internal.inputImpl[T]
+    macro Target.Internal.inputImpl[T]
 
   /**
    * [[Command]]s are only [[NamedTask]]s defined using
-   * `def foo() = T.command{...}` and are typically called from the
+   * `def foo() = task.command{...}` and are typically called from the
    * command-line. Unlike other [[NamedTask]]s, [[Command]]s can be defined to
    * take arguments that are automatically converted to command-line
    * arguments, as long as an implicit [[mainargs.TokensReader]] is available.
@@ -282,17 +549,17 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
       ctx: mill.define.Ctx,
       w: W[T],
       cls: EnclosingClass
-  ): Command[T] = macro Internal.commandFromTask[T]
+  ): Command[T] = macro Target.Internal.commandFromTask[T]
 
   def command[T](t: Result[T])(implicit
       w: W[T],
       ctx: mill.define.Ctx,
       cls: EnclosingClass
-  ): Command[T] = macro Internal.commandImpl[T]
+  ): Command[T] = macro Target.Internal.commandImpl[T]
 
   /**
    * [[Worker]] is a [[NamedTask]] that lives entirely in-memory, defined using
-   * `T.worker{...}`. The value returned by `T.worker{...}` is long-lived,
+   * `task.worker{...}`. The value returned by `task.worker{...}` is long-lived,
    * persisting as long as the Mill process is kept alive (e.g. via `--watch`,
    * or via its default `MillServerMain` server process). This allows the user to
    * perform in-memory caching that is even more aggressive than the disk-based
@@ -305,10 +572,13 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
    * what in-memory state the worker may have.
    */
   def worker[T](t: Task[T])(implicit ctx: mill.define.Ctx): Worker[T] =
-    macro Internal.workerImpl1[T]
+    macro Target.Internal.workerImpl1[T]
 
   def worker[T](t: Result[T])(implicit ctx: mill.define.Ctx): Worker[T] =
-    macro Internal.workerImpl2[T]
+    macro Target.Internal.workerImpl2[T]
+
+  @deprecated("Use .anon", "0.12.0")
+  def task[T](t: Result[T]): Task[T] = macro Applicative.impl[Task, T, mill.api.Ctx]
 
   /**
    * Creates an anonymous `Task`. These depend on other tasks and
@@ -316,7 +586,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
    * command line and do not perform any caching. Typically used as helpers to
    * implement `T{...}` targets.
    */
-  def task[T](t: Result[T]): Task[T] = macro Applicative.impl[Task, T, mill.api.Ctx]
+  def anon[T](t: Result[T]): Task[T] = macro Applicative.impl[Task, T, mill.api.Ctx]
 
   /**
    * Converts a `Seq[Task[T]]` into a `Task[Seq[T]]`
@@ -337,264 +607,6 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
   def traverseCtx[I, R](xs: Seq[Task[I]])(f: (IndexedSeq[I], mill.api.Ctx) => Result[R])
       : Task[R] = {
     new Task.TraverseCtx[I, R](xs, f)
-  }
-
-  object Internal {
-    private def isPrivateTargetOption(c: Context): c.Expr[Option[Boolean]] = {
-      import c.universe._
-      if (c.internal.enclosingOwner.isPrivate) reify(Some(true))
-      else reify(Some(false))
-    }
-
-    def targetImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T])(
-        rw: c.Expr[RW[T]],
-        ctx: c.Expr[mill.define.Ctx]
-    ): c.Expr[Target[T]] = {
-      import c.universe._
-
-      val taskIsPrivate = isPrivateTargetOption(c)
-
-      val lhs = Applicative.impl0[Task, T, mill.api.Ctx](c)(reify(Result.create(t.splice)).tree)
-
-      mill.moduledefs.Cacher.impl0[Target[T]](c)(
-        reify(
-          new TargetImpl[T](
-            lhs.splice,
-            ctx.splice,
-            rw.splice,
-            taskIsPrivate.splice
-          )
-        )
-      )
-    }
-
-    def targetResultImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[Result[T]])(
-        rw: c.Expr[RW[T]],
-        ctx: c.Expr[mill.define.Ctx]
-    ): c.Expr[Target[T]] = {
-      import c.universe._
-
-      val taskIsPrivate = isPrivateTargetOption(c)
-
-      mill.moduledefs.Cacher.impl0[Target[T]](c)(
-        reify(
-          new TargetImpl[T](
-            Applicative.impl0[Task, T, mill.api.Ctx](c)(t.tree).splice,
-            ctx.splice,
-            rw.splice,
-            taskIsPrivate.splice
-          )
-        )
-      )
-    }
-
-    def targetTaskImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[Task[T]])(
-        rw: c.Expr[RW[T]],
-        ctx: c.Expr[mill.define.Ctx]
-    ): c.Expr[Target[T]] = {
-      import c.universe._
-
-      val taskIsPrivate = isPrivateTargetOption(c)
-
-      mill.moduledefs.Cacher.impl0[Target[T]](c)(
-        reify(
-          new TargetImpl[T](
-            t.splice,
-            ctx.splice,
-            rw.splice,
-            taskIsPrivate.splice
-          )
-        )
-      )
-    }
-
-    def sourcesImpl1(c: Context)(values: c.Expr[Result[os.Path]]*)(ctx: c.Expr[mill.define.Ctx])
-        : c.Expr[Target[Seq[PathRef]]] = {
-      import c.universe._
-      val wrapped =
-        for (value <- values.toList)
-          yield Applicative.impl0[Task, PathRef, mill.api.Ctx](c)(
-            reify(value.splice.map(PathRef(_))).tree
-          ).tree
-
-      val taskIsPrivate = isPrivateTargetOption(c)
-
-      mill.moduledefs.Cacher.impl0[SourcesImpl](c)(
-        reify(
-          new SourcesImpl(
-            Target.sequence(c.Expr[List[Task[PathRef]]](q"_root_.scala.List(..$wrapped)").splice),
-            ctx.splice,
-            taskIsPrivate.splice
-          )
-        )
-      )
-    }
-
-    def sourcesImpl2(c: Context)(values: c.Expr[Result[Seq[PathRef]]])(ctx: c.Expr[mill.define.Ctx])
-        : c.Expr[Target[Seq[PathRef]]] = {
-      import c.universe._
-
-      val taskIsPrivate = isPrivateTargetOption(c)
-
-      mill.moduledefs.Cacher.impl0[SourcesImpl](c)(
-        reify(
-          new SourcesImpl(
-            Applicative.impl0[Task, Seq[PathRef], mill.api.Ctx](c)(values.tree).splice,
-            ctx.splice,
-            taskIsPrivate.splice
-          )
-        )
-      )
-    }
-
-    def sourceImpl1(c: Context)(value: c.Expr[Result[os.Path]])(ctx: c.Expr[mill.define.Ctx])
-        : c.Expr[Target[PathRef]] = {
-      import c.universe._
-
-      val wrapped =
-        Applicative.impl0[Task, PathRef, mill.api.Ctx](c)(
-          reify(value.splice.map(PathRef(_))).tree
-        )
-
-      val taskIsPrivate = isPrivateTargetOption(c)
-
-      mill.moduledefs.Cacher.impl0[Target[PathRef]](c)(
-        reify(
-          new SourceImpl(
-            wrapped.splice,
-            ctx.splice,
-            taskIsPrivate.splice
-          )
-        )
-      )
-    }
-
-    def sourceImpl2(c: Context)(value: c.Expr[Result[PathRef]])(ctx: c.Expr[mill.define.Ctx])
-        : c.Expr[Target[PathRef]] = {
-      import c.universe._
-
-      val taskIsPrivate = isPrivateTargetOption(c)
-
-      mill.moduledefs.Cacher.impl0[Target[PathRef]](c)(
-        reify(
-          new SourceImpl(
-            Applicative.impl0[Task, PathRef, mill.api.Ctx](c)(value.tree).splice,
-            ctx.splice,
-            taskIsPrivate.splice
-          )
-        )
-      )
-    }
-
-    def inputImpl[T: c.WeakTypeTag](c: Context)(value: c.Expr[T])(
-        w: c.Expr[upickle.default.Writer[T]],
-        ctx: c.Expr[mill.define.Ctx]
-    ): c.Expr[Target[T]] = {
-      import c.universe._
-
-      val taskIsPrivate = isPrivateTargetOption(c)
-
-      mill.moduledefs.Cacher.impl0[InputImpl[T]](c)(
-        reify(
-          new InputImpl[T](
-            Applicative.impl[Task, T, mill.api.Ctx](c)(value).splice,
-            ctx.splice,
-            w.splice,
-            taskIsPrivate.splice
-          )
-        )
-      )
-    }
-
-    def commandFromTask[T: c.WeakTypeTag](c: Context)(t: c.Expr[Task[T]])(
-        ctx: c.Expr[mill.define.Ctx],
-        w: c.Expr[W[T]],
-        cls: c.Expr[EnclosingClass]
-    ): c.Expr[Command[T]] = {
-      import c.universe._
-
-      val taskIsPrivate = isPrivateTargetOption(c)
-
-      reify(
-        new Command[T](
-          t.splice,
-          ctx.splice,
-          w.splice,
-          cls.splice.value,
-          taskIsPrivate.splice
-        )
-      )
-    }
-
-    def commandImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T])(
-        w: c.Expr[W[T]],
-        ctx: c.Expr[mill.define.Ctx],
-        cls: c.Expr[EnclosingClass]
-    ): c.Expr[Command[T]] = {
-      import c.universe._
-
-      val taskIsPrivate = isPrivateTargetOption(c)
-
-      reify(
-        new Command[T](
-          Applicative.impl[Task, T, mill.api.Ctx](c)(t).splice,
-          ctx.splice,
-          w.splice,
-          cls.splice.value,
-          taskIsPrivate.splice
-        )
-      )
-    }
-
-    def workerImpl1[T: c.WeakTypeTag](c: Context)(t: c.Expr[Task[T]])(ctx: c.Expr[mill.define.Ctx])
-        : c.Expr[Worker[T]] = {
-      import c.universe._
-
-      val taskIsPrivate = isPrivateTargetOption(c)
-
-      mill.moduledefs.Cacher.impl0[Worker[T]](c)(
-        reify(
-          new Worker[T](t.splice, ctx.splice, taskIsPrivate.splice)
-        )
-      )
-    }
-
-    def workerImpl2[T: c.WeakTypeTag](c: Context)(t: c.Expr[T])(ctx: c.Expr[mill.define.Ctx])
-        : c.Expr[Worker[T]] = {
-      import c.universe._
-
-      val taskIsPrivate = isPrivateTargetOption(c)
-
-      mill.moduledefs.Cacher.impl0[Worker[T]](c)(
-        reify(
-          new Worker[T](
-            Applicative.impl[Task, T, mill.api.Ctx](c)(t).splice,
-            ctx.splice,
-            taskIsPrivate.splice
-          )
-        )
-      )
-    }
-
-    def persistentImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T])(
-        rw: c.Expr[RW[T]],
-        ctx: c.Expr[mill.define.Ctx]
-    ): c.Expr[PersistentImpl[T]] = {
-      import c.universe._
-
-      val taskIsPrivate = isPrivateTargetOption(c)
-
-      mill.moduledefs.Cacher.impl0[PersistentImpl[T]](c)(
-        reify(
-          new PersistentImpl[T](
-            Applicative.impl[Task, T, mill.api.Ctx](c)(t).splice,
-            ctx.splice,
-            rw.splice,
-            taskIsPrivate.splice
-          )
-        )
-      )
-    }
   }
 }
 

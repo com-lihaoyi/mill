@@ -98,7 +98,7 @@ trait DockerModule { outer: JavaModule =>
      */
     def executable: T[String] = "docker"
 
-    def dockerfile: T[String] = T {
+    def dockerfile: T[String] = task {
       val jarName = assembly().path.last
       val labelRhs = labels()
         .map { case (k, v) =>
@@ -137,7 +137,7 @@ trait DockerModule { outer: JavaModule =>
          |ENTRYPOINT [$quotedEntryPointArgs]""".stripMargin
     }
 
-    private def pullAndHash = T.input {
+    private def pullAndHash = task.input {
       def imageHash() =
         os.proc(executable(), "images", "--no-trunc", "--quiet", baseImage())
           .call(stderr = os.Inherit).out.text().trim
@@ -149,15 +149,15 @@ trait DockerModule { outer: JavaModule =>
       (pullBaseImage(), imageHash())
     }
 
-    final def build = T {
-      val dest = T.dest
+    final def build = task {
+      val dest = task.dest
 
       val asmPath = outer.assembly().path
       os.copy(asmPath, dest / asmPath.last)
 
       os.write(dest / "Dockerfile", dockerfile())
 
-      val log = T.log
+      val log = task.log
 
       val tagArgs = tags().flatMap(t => List("-t", t))
 
@@ -187,7 +187,7 @@ trait DockerModule { outer: JavaModule =>
       tags()
     }
 
-    final def push() = T.command {
+    final def push() = task.command {
       val tags = build()
       tags.foreach(t =>
         os.proc(executable(), "push", t).call(stdout = os.Inherit, stderr = os.Inherit)

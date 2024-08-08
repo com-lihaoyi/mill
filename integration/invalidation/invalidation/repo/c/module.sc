@@ -1,5 +1,5 @@
 import mill._
 
-def input = T {
+def input = task {
   println("c")
 }

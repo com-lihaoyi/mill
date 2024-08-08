@@ -5,13 +5,13 @@ import mill.util.Util.millProjectModule
 import mill.playlib.api.RouteCompilerType
 import mill.scalalib._
 import mill.scalalib.api._
-import mill.{Agg, T}
+import mill.{Agg, T, task}
 
 trait RouterModule extends ScalaModule with Version {
 
-  def routes: T[Seq[PathRef]] = T.sources { millSourcePath / "routes" }
+  def routes: T[Seq[PathRef]] = task.sources { millSourcePath / "routes" }
 
-  def routeFiles = T {
+  def routeFiles = task {
     val paths = routes().flatMap(file => os.walk(file.path))
     val routeFiles = paths.filter(_.ext == "routes") ++ paths.filter(_.last == "routes")
     routeFiles.map(f => PathRef(f))
@@ -45,7 +45,7 @@ trait RouterModule extends ScalaModule with Version {
    */
   def generatorType: RouteCompilerType = RouteCompilerType.InjectedGenerator
 
-  def routerClasspath: T[Agg[PathRef]] = T {
+  def routerClasspath: T[Agg[PathRef]] = task {
     defaultResolver().resolveDeps(
       playMinorVersion() match {
         case "2.6" | "2.7" | "2.8" =>
@@ -60,8 +60,8 @@ trait RouterModule extends ScalaModule with Version {
 
   protected val routeCompilerWorker: RouteCompilerWorkerModule = RouteCompilerWorkerModule
 
-  def compileRouter: T[CompilationResult] = T.persistent {
-    T.log.debug(s"compiling play routes with ${playVersion()} worker")
+  def compileRouter: T[CompilationResult] = task.persistent {
+    task.log.debug(s"compiling play routes with ${playVersion()} worker")
     routeCompilerWorker.routeCompilerWorker().compile(
       routerClasspath = playRouterToolsClasspath(),
       files = routeFiles().map(_.path),
@@ -70,11 +70,11 @@ trait RouterModule extends ScalaModule with Version {
       reverseRouter = generateReverseRouter,
       namespaceReverseRouter = namespaceReverseRouter,
       generatorType = generatorType,
-      dest = T.dest
+      dest = task.dest
     )
   }
 
-  def playRouteCompilerWorkerClasspath = T {
+  def playRouteCompilerWorkerClasspath = task {
     millProjectModule(
       s"mill-contrib-playlib-worker-${playMinorVersion()}",
       repositoriesTask(),
@@ -85,15 +85,15 @@ trait RouterModule extends ScalaModule with Version {
     )
   }
 
-  def playRouterToolsClasspath = T {
+  def playRouterToolsClasspath = task {
     playRouteCompilerWorkerClasspath() ++ routerClasspath()
   }
 
-  def routerClasses = T {
+  def routerClasses = task {
     Seq(compileRouter().classes)
   }
 
-  override def generatedSources = T {
+  override def generatedSources = task {
     super.generatedSources() ++ routerClasses()
   }
 }

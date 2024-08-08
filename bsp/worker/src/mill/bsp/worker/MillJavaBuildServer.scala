@@ -6,7 +6,7 @@ import ch.epfl.scala.bsp4j.{
   JavacOptionsParams,
   JavacOptionsResult
 }
-import mill.T
+import mill.{task, T}
 import mill.bsp.worker.Utils.sanitizeUri
 import mill.scalalib.{JavaModule, SemanticDbJavaModule}
 
@@ -26,7 +26,7 @@ private trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServe
             sem.bspCompiledClassesAndSemanticDbFiles
           case _ => m.bspCompileClassesPath
         }
-        T.task { (classesPathTask(), m.javacOptions(), m.bspCompileClasspath()) }
+        task.anon { (classesPathTask(), m.javacOptions(), m.bspCompileClasspath()) }
       }
     ) {
       // We ignore all non-JavaModule

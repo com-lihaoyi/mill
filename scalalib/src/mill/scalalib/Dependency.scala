@@ -1,6 +1,6 @@
 package mill.scalalib
 
-import mill.T
+import mill.{task, T}
 import mill.define.{Command, Discover, ExternalModule}
 import mill.eval.Evaluator
 import mill.scalalib.dependency.{DependencyUpdatesImpl, Format}
@@ -13,7 +13,7 @@ object Dependency extends ExternalModule {
       ev: Evaluator,
       allowPreRelease: Boolean = false
   ): Command[Seq[ModuleDependenciesUpdates]] =
-    T.command {
+    task.command {
       DependencyUpdatesImpl(
         ev,
         implicitly,
@@ -28,7 +28,7 @@ object Dependency extends ExternalModule {
       ev: Evaluator,
       allowPreRelease: Boolean = false,
       format: Format = Format.PerModule
-  ): Command[Unit] = T.command {
+  ): Command[Unit] = task.command {
     DependencyUpdatesImpl.showAllUpdates(updates(ev, allowPreRelease)(), format)
   }
 

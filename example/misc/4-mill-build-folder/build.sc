@@ -7,9 +7,9 @@ object foo extends RootModule with ScalaModule {
   def ivyDeps = Agg(ivy"com.lihaoyi::os-lib:0.9.1")
 
   def htmlSnippet = T{ h1("hello").toString }
-  def resources = T.sources{
-    os.write(T.dest / "snippet.txt", htmlSnippet())
-    super.resources() ++ Seq(PathRef(T.dest))
+  def resources = task.sources{
+    os.write(task.dest / "snippet.txt", htmlSnippet())
+    super.resources() ++ Seq(PathRef(task.dest))
   }
 
   def forkArgs = Seq(

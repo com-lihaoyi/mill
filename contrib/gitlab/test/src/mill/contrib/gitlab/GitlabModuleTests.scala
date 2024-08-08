@@ -1,6 +1,6 @@
 package mill.contrib.gitlab
 
-import mill.T
+import mill.{task, T}
 import mill.api.Result.Failure
 import mill.scalalib.publish.PomSettings
 import mill.util.{TestEvaluator, TestUtil}

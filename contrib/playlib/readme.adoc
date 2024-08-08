@@ -43,8 +43,8 @@ import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
 
 object core extends PlayModule {
     // config
-    override def scalaVersion = T { "2.13.12" }
-    override def playVersion = T { "2.8.20" }
+    override def scalaVersion = task { "2.13.12" }
+    override def playVersion = task { "2.8.20" }
 
     object test extends PlayTests
 }
@@ -117,8 +117,8 @@ import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
 
 object core extends PlayApiModule {
     // config
-    override def scalaVersion = T { "2.13.12" }
-    override def playVersion = T { "2.8.20" }
+    override def scalaVersion = task { "2.13.12" }
+    override def playVersion = task { "2.8.20" }
 
     object test extends PlayTests
 }
@@ -195,8 +195,8 @@ import $ivy.`com.lihaoyi::mill-contrib-playlib:`, mill.playlib._
 
 object core extends PlayModule {
     // config
-    override def scalaVersion = T { "2.13.12" }
-    override def playVersion = T { "2.8.20" }
+    override def scalaVersion = task { "2.13.12" }
+    override def playVersion = task { "2.8.20" }
 
     object test extends PlayTests
 }
@@ -235,8 +235,8 @@ import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
 
 object root extends RootModule with PlayModule {
 	// config
-	override def scalaVersion = T { "2.13.12" }
-	override def playVersion = T { "2.8.20" }
+	override def scalaVersion = task { "2.13.12" }
+	override def playVersion = task { "2.8.20" }
 
 	object test extends PlayTests
 }
@@ -278,7 +278,7 @@ import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
 
 object app extends ScalaModule with RouterModule {
   def playVersion = T{ "2.8.20" }
-  def scalaVersion = T { "2.13.12" }
+  def scalaVersion = task { "2.13.12" }
 }
 ----
 

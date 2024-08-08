@@ -4,7 +4,7 @@ import mill.contrib.scoverage.api.ScoverageReportWorkerApi.ReportType
 import mill.define.{Command, Module, Task}
 import mill.eval.Evaluator
 import mill.resolve.{Resolve, SelectMode}
-import mill.{PathRef, T}
+import mill.{PathRef, T, task}
 import os.Path
 
 /**
@@ -53,7 +53,7 @@ trait ScoverageReport extends Module {
       evaluator: Evaluator,
       sources: String = "__.allSources",
       dataTargets: String = "__.scoverage.data"
-  ): Command[PathRef] = T.command {
+  ): Command[PathRef] = task.command {
     reportTask(evaluator, ReportType.Html, sources, dataTargets)()
   }
 
@@ -62,7 +62,7 @@ trait ScoverageReport extends Module {
       evaluator: Evaluator,
       sources: String = "__.allSources",
       dataTargets: String = "__.scoverage.data"
-  ): Command[PathRef] = T.command {
+  ): Command[PathRef] = task.command {
     reportTask(evaluator, ReportType.Xml, sources, dataTargets)()
   }
 
@@ -71,7 +71,7 @@ trait ScoverageReport extends Module {
       evaluator: Evaluator,
       sources: String = "__.allSources",
       dataTargets: String = "__.scoverage.data"
-  ): Command[PathRef] = T.command {
+  ): Command[PathRef] = task.command {
     reportTask(evaluator, ReportType.XmlCobertura, sources, dataTargets)()
   }
 
@@ -80,7 +80,7 @@ trait ScoverageReport extends Module {
       evaluator: Evaluator,
       sources: String = "__.allSources",
       dataTargets: String = "__.scoverage.data"
-  ): Command[PathRef] = T.command {
+  ): Command[PathRef] = task.command {
     reportTask(evaluator, ReportType.Console, sources, dataTargets)()
   }
 
@@ -107,14 +107,14 @@ trait ScoverageReport extends Module {
       case Right(tasks) => tasks.asInstanceOf[Seq[Task[PathRef]]]
     }
 
-    T.task {
-      val sourcePaths: Seq[Path] = T.sequence(sourcesTasks)().flatten.map(_.path)
-      val dataPaths: Seq[Path] = T.sequence(dataTasks)().map(_.path)
+    task.anon {
+      val sourcePaths: Seq[Path] = task.sequence(sourcesTasks)().flatten.map(_.path)
+      val dataPaths: Seq[Path] = task.sequence(dataTasks)().map(_.path)
       scoverageReportWorkerModule
         .scoverageReportWorker()
         .bridge(workerModule.scoverageToolsClasspath())
-        .report(reportType, sourcePaths, dataPaths, T.workspace)
-      PathRef(T.dest)
+        .report(reportType, sourcePaths, dataPaths, task.workspace)
+      PathRef(task.dest)
     }
   }
 }

@@ -28,9 +28,9 @@ object foo extends Cross[FooModule](scalaVersions)
 trait FooModule extends MyScalaModule {
   def moduleDeps = Seq(bar(), qux)
 
-  def generatedSources = T {
+  def generatedSources = task {
     os.write(
-      T.dest / "Version.scala",
+      task.dest / "Version.scala",
       s"""
          |package foo
          |object Version{
@@ -38,7 +38,7 @@ trait FooModule extends MyScalaModule {
          |}
       """.stripMargin
     )
-    Seq(PathRef(T.dest))
+    Seq(PathRef(task.dest))
   }
 }
 

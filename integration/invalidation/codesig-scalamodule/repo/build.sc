@@ -6,7 +6,7 @@ object foo extends ScalaModule {
   def sources = T{
     println("Foo generating sources...")
     os.write(
-      T.dest / "Foo.scala",
+      task.dest / "Foo.scala",
       """package foo
         |object Foo {
         |  final val fooMsg = "Hello World"
@@ -16,20 +16,20 @@ object foo extends ScalaModule {
         |  }
         |}""".stripMargin
     )
-    Seq(PathRef(T.dest))
+    Seq(PathRef(task.dest))
   }
 
-  def compile = T {
+  def compile = task {
     println("Foo compiling...")
     super.compile()
   }
 
-  def run(args: Task[Args] = T.task(Args())) = T.command {
+  def run(args: Task[Args] = task.anon(Args())) = task.command {
     println("Foo running..." + args().value.mkString(" "))
     super.run(args)()
   }
 
-  def assembly = T {
+  def assembly = task {
     println("Foo assembly...")
     super.assembly()
   }
@@ -39,10 +39,10 @@ object bar extends ScalaModule {
   def moduleDeps = Seq(foo)
   def scalaVersion = "2.13.8"
 
-  def sources = T {
+  def sources = task {
     println("Bar generating sources...")
     os.write(
-      T.dest / "Bar.scala",
+      task.dest / "Bar.scala",
       """package bar
         |object Bar {
         |  def main(args: Array[String]): Unit = {
@@ -50,15 +50,15 @@ object bar extends ScalaModule {
         |  }
         |}""".stripMargin
     )
-    Seq(PathRef(T.dest))
+    Seq(PathRef(task.dest))
   }
 
-  def compile = T {
+  def compile = task {
     println("Bar compiling...")
     super.compile()
   }
 
-  def assembly = T {
+  def assembly = task {
     println("Bar assembly...")
     super.assembly()
   }
@@ -67,10 +67,10 @@ object bar extends ScalaModule {
 object qux extends ScalaModule {
   def scalaVersion = "2.13.8"
 
-  def sources = T {
+  def sources = task {
     println("Qux generating sources...")
     os.write(
-      T.dest / "Qux.scala",
+      task.dest / "Qux.scala",
       """package qux
         |object Qux {
         |  def main(args: Array[String]): Unit = {
@@ -78,15 +78,15 @@ object qux extends ScalaModule {
         |  }
         |}""".stripMargin
     )
-    Seq(PathRef(T.dest))
+    Seq(PathRef(task.dest))
   }
 
-  def compile = T {
+  def compile = task {
     println("Qux compiling...")
     super.compile()
   }
 
-  def assembly = T {
+  def assembly = task {
     println("Qux assembly...")
     super.assembly()
   }

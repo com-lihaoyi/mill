@@ -20,7 +20,7 @@ object AssemblyTests extends TestSuite {
   object TestCase extends TestUtil.BaseModule {
     trait Setup extends ScalaModule {
       def scalaVersion = "2.13.11"
-      def sources = T.sources(T.workspace / "src")
+      def sources = task.sources(task.workspace / "src")
       def ivyDeps = super.ivyDeps() ++ Agg(
         ivy"com.lihaoyi::scalatags:0.8.2",
         ivy"com.lihaoyi::mainargs:0.4.0",

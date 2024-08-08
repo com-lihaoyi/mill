@@ -1,17 +1,17 @@
 import mill._, define.Task
 
-def data = T.source(millSourcePath / "data")
+def data = task.source(millSourcePath / "data")
 
-def anonTask(fileName: String): Task[String] = T.task {
+def anonTask(fileName: String): Task[String] = task.anon {
   os.read(data().path / fileName)
 }
 
-def helloFileData = T { anonTask("hello.txt")() }
-def printFileData(fileName: String) = T.command {
+def helloFileData = task { anonTask("hello.txt")() }
+def printFileData(fileName: String) = task.command {
   println(anonTask(fileName)())
 }
 
-// You can define anonymous tasks using the `T.task {...}` syntax. These are
+// You can define anonymous tasks using the `task.anon {...}` syntax. These are
 // not runnable from the command-line, but can be used to share common code you
 // find yourself repeating in ``Target``s and ``Command``s.
 //

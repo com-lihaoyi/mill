@@ -1,13 +1,13 @@
 package mill.playlib
 
-import mill.T
+import mill.{task, T}
 import mill.scalalib._
 
 private[playlib] trait Layout extends JavaModule {
 
-  def conf = T.sources { millSourcePath / "conf" }
-  def app = T.sources { millSourcePath / "app" }
+  def conf = task.sources { millSourcePath / "conf" }
+  def app = task.sources { millSourcePath / "app" }
 
-  override def sources = T.sources { app() }
-  override def resources = T.sources { conf() }
+  override def sources = task.sources { app() }
+  override def resources = task.sources { conf() }
 }

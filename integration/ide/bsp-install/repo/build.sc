@@ -6,8 +6,8 @@ trait HelloBspModule extends ScalaModule {
   def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
   object test extends ScalaTests with TestModule.Utest
 
-  override def generatedSources = T {
-    Seq(PathRef(T.ctx().dest / "classes"))
+  override def generatedSources = task {
+    Seq(PathRef(task.ctx().dest / "classes"))
   }
 }
 

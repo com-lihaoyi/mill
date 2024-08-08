@@ -63,7 +63,7 @@ import $ivy.`net.mlbox::mill-antlr:0.1.0`
 import net.mlbox.millantlr.AntlrModule
 
 object foo extends ScalaModule with AntlrModule {
-  override def antlrGrammarSources = T.sources {
+  override def antlrGrammarSources = task.sources {
     Seq(os.pwd/"someGrammar.g4").map(PathRef(_))
   }
 }
@@ -587,10 +587,10 @@ the desired information via the `buildInfoMembers` method:
 // build.sc
 import $ivy.`com.github.carueda::jbuildinfo:0.1.2`
 import com.github.carueda.mill.JBuildInfo
-import mill.T
+import mill.{task, T}
 
 object project extends JBuildInfo {
-  def buildInfoMembers: T[Map[String, String]] = T {
+  def buildInfoMembers: T[Map[String, String]] = task {
     Map(
       "name" -> "some name",
       "version" -> "x.y.z"

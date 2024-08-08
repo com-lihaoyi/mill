@@ -39,7 +39,7 @@ object hello extends RootModule with MicronautModule {
 trait MicronautModule extends MavenModule{
   def micronautVersion: String
 
-  def processors = T {
+  def processors = task {
     defaultResolver().resolveDeps(
       Agg(
         ivy"io.micronaut.data:micronaut-data-processor:4.7.0",

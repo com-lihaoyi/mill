@@ -16,8 +16,8 @@ trait GitlabPublishModule extends PublishModule { outer =>
 
   def gitlabHeaders(
       systemProps: Map[String, String] = sys.props.toMap
-  ): Task[GitlabAuthHeaders] = T.task {
-    val auth = tokenLookup.resolveGitlabToken(T.env, systemProps, T.workspace)
+  ): Task[GitlabAuthHeaders] = task.anon {
+    val auth = tokenLookup.resolveGitlabToken(task.env, systemProps, task.workspace)
     auth match {
       case Left(msg) =>
         Failure(
@@ -30,19 +30,19 @@ trait GitlabPublishModule extends PublishModule { outer =>
   def publishGitlab(
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000
-  ): define.Command[Unit] = T.command {
+  ): define.Command[Unit] = task.command {
 
     val gitlabRepo = publishRepository
 
     val PublishModule.PublishData(artifactInfo, artifacts) = publishArtifacts()
     if (skipPublish) {
-      T.log.info(s"SkipPublish = true, skipping publishing of $artifactInfo")
+      task.log.info(s"SkipPublish = true, skipping publishing of $artifactInfo")
     } else {
       val uploader = new GitlabUploader(gitlabHeaders()(), readTimeout, connectTimeout)
       new GitlabPublisher(
         uploader.upload,
         gitlabRepo,
-        T.log
+        task.log
       ).publish(artifacts.map { case (a, b) => (a.path, b) }, artifactInfo)
     }
 
@@ -58,11 +58,11 @@ object GitlabPublishModule extends ExternalModule {
       publishArtifacts: mill.main.Tasks[PublishModule.PublishData],
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000
-  ): Command[Unit] = T.command {
+  ): Command[Unit] = task.command {
     val repo = ProjectRepository(gitlabRoot, projectId)
     val auth = GitlabAuthHeaders.privateToken(personalToken)
 
-    val artifacts = T.sequence(publishArtifacts.value)().map {
+    val artifacts = task.sequence(publishArtifacts.value)().map {
       case data @ PublishModule.PublishData(_, _) => data.withConcretePath
     }
     val uploader = new GitlabUploader(auth, readTimeout, connectTimeout)
@@ -70,7 +70,7 @@ object GitlabPublishModule extends ExternalModule {
     new GitlabPublisher(
       uploader.upload,
       repo,
-      T.log
+      task.log
     ).publishAll(
       artifacts: _*
     )

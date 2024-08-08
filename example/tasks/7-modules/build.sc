@@ -7,9 +7,9 @@
 import mill._
 
 object foo extends Module {
-  def bar = T { "hello" }
+  def bar = task { "hello" }
   object qux extends Module {
-    def baz = T { "world" }
+    def baz = task { "world" }
   }
 }
 
@@ -60,7 +60,7 @@ object foo extends Module {
 
 trait FooModule extends Module {
   def bar: T[String] // required override
-  def qux = T { bar() + " world" }
+  def qux = task { bar() + " world" }
 }
 
 object foo1 extends FooModule{
@@ -69,7 +69,7 @@ object foo1 extends FooModule{
 }
 object foo2 extends FooModule {
   def bar = "hi"
-  def baz = T { qux() + " I am Cow" } // add a new `def`
+  def baz = task { qux() + " I am Cow" } // add a new `def`
 }
 
 // This generates the following module tree and task graph, with the dotted boxes and
@@ -131,8 +131,8 @@ object foo2 extends FooModule {
 // module expects its input files to be on disk.
 
 trait MyModule extends Module{
-  def sources = T.source(millSourcePath / "sources")
-  def target = T { "hello " + os.list(sources().path).map(os.read(_)).mkString(" ") }
+  def sources = task.source(millSourcePath / "sources")
+  def target = task { "hello " + os.list(sources().path).map(os.read(_)).mkString(" ") }
 }
 
 object outer extends MyModule {

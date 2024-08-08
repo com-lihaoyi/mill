@@ -8,26 +8,26 @@ trait DiyJavaModule extends Module{
   def moduleDeps: Seq[DiyJavaModule] = Nil
   def mainClass: T[Option[String]] = None
 
-  def upstream: T[Seq[PathRef]] = T{ T.traverse(moduleDeps)(_.classPath)().flatten }
-  def sources = T.source(millSourcePath / "src")
+  def upstream: T[Seq[PathRef]] = T{ task.traverse(moduleDeps)(_.classPath)().flatten }
+  def sources = task.source(millSourcePath / "src")
 
-  def compile = T {
+  def compile = task {
     val allSources = os.walk(sources().path)
     val cpFlag = Seq("-cp", upstream().map(_.path).mkString(":"))
-    os.proc("javac", cpFlag, allSources, "-d", T.dest).call()
-    PathRef(T.dest)
+    os.proc("javac", cpFlag, allSources, "-d", task.dest).call()
+    PathRef(task.dest)
   }
 
   def classPath = T{ Seq(compile()) ++ upstream() }
 
-  def assembly = T {
-    for(cp <- classPath()) os.copy(cp.path, T.dest, mergeFolders = true)
+  def assembly = task {
+    for(cp <- classPath()) os.copy(cp.path, task.dest, mergeFolders = true)
 
     val mainFlags = mainClass().toSeq.flatMap(Seq("-e", _))
-    os.proc("jar", "-c", mainFlags, "-f", T.dest / s"assembly.jar", ".")
-      .call(cwd = T.dest)
+    os.proc("jar", "-c", mainFlags, "-f", task.dest / s"assembly.jar", ".")
+      .call(cwd = task.dest)
 
-    PathRef(T.dest / s"assembly.jar")
+    PathRef(task.dest / s"assembly.jar")
   }
 }
 // This defines the following build graph for `DiyJavaModule`. Note that some of the
@@ -59,11 +59,11 @@ trait DiyJavaModule extends Module{
 //   change the shape of the task graph during evaluation, whereas `moduleDeps`
 //   defines  module dependencies that determine the shape of the graph.
 //
-// * Using `T.traverse` to recursively gather the upstream classpath. This is
+// * Using `task.traverse` to recursively gather the upstream classpath. This is
 //   necessary to convert the `Seq[T[V]]` into a `T[Seq[V]]` that we can work
 //   with inside our targets
 //
-// * We use the `millSourcePath` together with `T.workspace` to infer a default
+// * We use the `millSourcePath` together with `task.workspace` to infer a default
 //   name for the jar of each module. Users can override it if they want, but
 //   having a default is very convenient
 //

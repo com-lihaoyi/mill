@@ -2,7 +2,7 @@ import mill._
 import java.lang.management.ManagementFactory
 import scala.jdk.CollectionConverters._
 
-def checkJvmOpts() = T.command {
+def checkJvmOpts() = task.command {
   val prop = System.getProperty("PROPERTY_PROPERLY_SET_VIA_JVM_OPTS")
   if (prop != "value-from-file") sys.error("jvm-opts not correctly applied, value was: " + prop)
   val runtime = ManagementFactory.getRuntimeMXBean()

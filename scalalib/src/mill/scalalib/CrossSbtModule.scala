@@ -1,12 +1,12 @@
 package mill.scalalib
 
 import mill.api.PathRef
-import mill.T
+import mill.{task, T}
 import mill.scalalib.{CrossModuleBase, SbtModule}
 
 trait CrossSbtModule extends SbtModule with CrossModuleBase { outer =>
 
-  override def sources: T[Seq[PathRef]] = T.sources {
+  override def sources: T[Seq[PathRef]] = task.sources {
     super.sources() ++ scalaVersionDirectoryNames.map(s =>
       PathRef(millSourcePath / "src" / "main" / s"scala-$s")
     )
@@ -16,7 +16,7 @@ trait CrossSbtModule extends SbtModule with CrossModuleBase { outer =>
   @deprecated("Use CrossSbtTests instead", since = "Mill 0.11.10")
   trait CrossSbtModuleTests extends SbtModuleTests {
     override def millSourcePath = outer.millSourcePath
-    override def sources = T.sources {
+    override def sources = task.sources {
       super.sources() ++ scalaVersionDirectoryNames.map(s =>
         PathRef(millSourcePath / "src" / "test" / s"scala-$s")
       )

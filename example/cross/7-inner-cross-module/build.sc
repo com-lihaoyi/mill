@@ -3,7 +3,7 @@ import mill._
 trait MyModule extends Module{
   def crossValue: String
   def name: T[String]
-  def param = T { name() + " Param Value: " + crossValue }
+  def param = task { name() + " Param Value: " + crossValue }
 }
 
 object foo extends Cross[FooModule]("a", "b")
@@ -16,7 +16,7 @@ trait FooModule extends Cross.Module[String] {
   }
 }
 
-def baz = T { s"hello ${foo("a").bar.param()}" }
+def baz = task { s"hello ${foo("a").bar.param()}" }
 
 // [graphviz]
 // ....

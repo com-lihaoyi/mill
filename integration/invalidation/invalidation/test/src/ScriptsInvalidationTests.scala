@@ -15,7 +15,7 @@ object ScriptsInvalidationTests extends IntegrationTestSuite {
       test("first run") {
         initWorkspace()
 
-        val result = runTask("task")
+        val result = runTask("task0")
 
         val expected = Set("a", "d", "b", "c")
 
@@ -29,7 +29,7 @@ object ScriptsInvalidationTests extends IntegrationTestSuite {
 
         os.write.over(workspacePath / buildPath, newContent)
 
-        val stdout = runTask("task")
+        val stdout = runTask("task0")
 
         assert(stdout.isEmpty)
       }
@@ -38,7 +38,7 @@ object ScriptsInvalidationTests extends IntegrationTestSuite {
       test("first run") {
         initWorkspace()
 
-        val result = runTask("task")
+        val result = runTask("task0")
         val expected = Set("a", "d", "b", "c")
 
         assert(result == expected)
@@ -50,7 +50,7 @@ object ScriptsInvalidationTests extends IntegrationTestSuite {
         val newContent = oldContent.replace("""println("d")""", """System.out.println("d2")""")
         os.write.over(workspacePath / inputD, newContent)
 
-        val result = runTask("task")
+        val result = runTask("task0")
         val expected = Set("d2", "b")
 
         assert(result == expected)
@@ -61,7 +61,7 @@ object ScriptsInvalidationTests extends IntegrationTestSuite {
         initWorkspace()
 
         val result = runTask("module.task")
-        val expected = Set("a", "d", "b", "c", "task")
+        val expected = Set("a", "d", "b", "c", "task0")
 
         assert(result == expected)
       }
@@ -69,7 +69,7 @@ object ScriptsInvalidationTests extends IntegrationTestSuite {
       test("second run modifying script") {
         val oldContent = os.read(scriptSourcePath / buildPath)
         val newContent =
-          oldContent.replace("""println("task")""", """System.out.println("task2")""")
+          oldContent.replace("""println("task0")""", """System.out.println("task2")""")
         os.write.over(workspacePath / buildPath, newContent)
 
         val result = runTask("module.task")

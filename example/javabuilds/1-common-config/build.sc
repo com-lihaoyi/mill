@@ -11,19 +11,19 @@ object foo extends RootModule with JavaModule {
   def mainClass: T[Option[String]] = Some("foo.Foo2")
 
   // Add (or replace) source folders for the module to use
-  def sources = T.sources{
+  def sources = task.sources{
     super.sources() ++ Seq(PathRef(millSourcePath / "custom-src"))
   }
 
   // Add (or replace) resource folders for the module to use
-  def resources = T.sources{
+  def resources = task.sources{
     super.resources() ++ Seq(PathRef(millSourcePath / "custom-resources"))
   }
 
   // Generate sources at build time
-  def generatedSources: T[Seq[PathRef]] = T {
+  def generatedSources: T[Seq[PathRef]] = task {
     for(name <- Seq("A", "B", "C")) os.write(
-      T.dest / s"Foo$name.java",
+      task.dest / s"Foo$name.java",
       s"""
          |package foo;
          |public class Foo$name {
@@ -32,7 +32,7 @@ object foo extends RootModule with JavaModule {
       """.stripMargin
     )
 
-    Seq(PathRef(T.dest))
+    Seq(PathRef(task.dest))
   }
 
   // Pass additional JVM flags when `.run` is called or in the executable

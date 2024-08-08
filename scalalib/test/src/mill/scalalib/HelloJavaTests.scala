@@ -20,7 +20,7 @@ object HelloJavaTests extends TestSuite {
       override def moduleDeps = Seq(core)
       object test extends JavaModuleTests with TestModule.Junit4
       object testJunit5 extends JavaModuleTests with TestModule.Junit5 {
-        override def ivyDeps: T[Agg[Dep]] = T {
+        override def ivyDeps: T[Agg[Dep]] = task {
           super.ivyDeps() ++ Agg(ivy"org.junit.jupiter:junit-jupiter-params:5.7.0")
         }
       }

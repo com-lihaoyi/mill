@@ -6,32 +6,32 @@ import java.nio.file.attribute.BasicFileAttributes
 import java.util
 
 import mill.scalalib.{Lib, ScalaModule}
-import mill.{PathRef, T}
+import mill.{PathRef, T, task}
 
 trait Static extends ScalaModule {
 
   /**
    * project resources including configuration, webjars and static assets
    */
-  override def resources = T.sources {
+  override def resources = task.sources {
     super.resources() :+ webJarResources() :+ staticAssets()
   }
 
   /**
    * Resource base path of packaged assets (path they will appear in in the jar)
    */
-  def assetsPath = T { "public" }
+  def assetsPath = task { "public" }
 
   /**
    *  Directories to include assets from
    */
-  def assetSources = T.sources { millSourcePath / assetsPath() }
+  def assetSources = task.sources { millSourcePath / assetsPath() }
 
   /*
   Collected static assets for the project
    */
-  def staticAssets = T {
-    val toPath = os.Path(assetsPath(), T.dest)
+  def staticAssets = task {
+    val toPath = os.Path(assetsPath(), task.dest)
     assetSources().foreach { pathRef =>
       val fromPath = pathRef.path
       if (os.isDir(fromPath)) {
@@ -40,20 +40,20 @@ trait Static extends ScalaModule {
         }
       }
     }
-    PathRef(T.dest)
+    PathRef(task.dest)
   }
 
   /**
    * webjar dependencies - created from transitive ivy deps
    */
-  def webJarDeps = T {
+  def webJarDeps = task {
     transitiveIvyDeps().filter(_.dep.module.organization.value == "org.webjars")
   }
 
   /**
    * jar files of web jars
    */
-  def webJars = T {
+  def webJars = task {
     Lib.resolveDependencies(
       repositoriesTask(),
       webJarDeps()
@@ -63,9 +63,9 @@ trait Static extends ScalaModule {
   /**
    * webjar resources extracted from their source jars with version from path removed
    */
-  def webJarResources = T {
-    extractWebJars(webJars().toSeq, os.Path(assetsPath(), T.dest) / "lib")
-    PathRef(T.dest)
+  def webJarResources = task {
+    extractWebJars(webJars().toSeq, os.Path(assetsPath(), task.dest) / "lib")
+    PathRef(task.dest)
   }
 
   private def extractWebJars(jars: Seq[PathRef], webJarBase: os.Path): Unit = {

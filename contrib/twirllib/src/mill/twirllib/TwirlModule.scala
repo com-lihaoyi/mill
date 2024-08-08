@@ -18,14 +18,14 @@ trait TwirlModule extends mill.Module { twirlModule =>
    * The Scala version matching the twirl version.
    * @since Mill after 0.10.5
    */
-  def twirlScalaVersion: T[String] = T {
+  def twirlScalaVersion: T[String] = task {
     twirlVersion() match {
       case s"1.$minor.$_" if minor.toIntOption.exists(_ < 4) => BuildInfo.workerScalaVersion212
       case _ => BuildInfo.scalaVersion
     }
   }
 
-  def twirlSources: T[Seq[PathRef]] = T.sources {
+  def twirlSources: T[Seq[PathRef]] = task.sources {
     millSourcePath / "views"
   }
 
@@ -33,15 +33,17 @@ trait TwirlModule extends mill.Module { twirlModule =>
    * Replicate the logic from twirl build,
    *      see: https://github.com/playframework/twirl/blob/2.0.1/build.sbt#L12-L17
    */
-  private def scalaParserCombinatorsVersion: T[String] = twirlScalaVersion.map {
-    case v if v.startsWith("2.") => "1.1.2"
-    case _ => "2.3.0"
+  private def scalaParserCombinatorsVersion: T[String] = task{
+    twirlScalaVersion() match {
+      case v if v.startsWith("2.") => "1.1.2"
+      case _ => "2.3.0"
+    }
   }
 
   /**
    * @since Mill after 0.10.5
    */
-  def twirlIvyDeps: T[Agg[Dep]] = T {
+  def twirlIvyDeps: T[Agg[Dep]] = task {
     Agg(
       if (twirlVersion().startsWith("1."))
         ivy"com.typesafe.play::twirl-compiler:${twirlVersion()}"
@@ -57,7 +59,7 @@ trait TwirlModule extends mill.Module { twirlModule =>
    * @since Mill after 0.10.5
    */
   trait TwirlResolver extends CoursierModule {
-    override def resolveCoursierDependency: Task[Dep => Dependency] = T.task { d: Dep =>
+    override def resolveCoursierDependency: Task[Dep => Dependency] = task.anon { d: Dep =>
       Lib.depToDependency(d, twirlScalaVersion())
     }
 
@@ -72,11 +74,11 @@ trait TwirlModule extends mill.Module { twirlModule =>
    */
   lazy val twirlCoursierResolver: TwirlResolver = new TwirlResolver {}
 
-  def twirlClasspath: T[Loose.Agg[PathRef]] = T {
+  def twirlClasspath: T[Loose.Agg[PathRef]] = task {
     twirlCoursierResolver.defaultResolver().resolveDeps(twirlIvyDeps())
   }
 
-  def twirlImports: T[Seq[String]] = T {
+  def twirlImports: T[Seq[String]] = task {
     TwirlWorkerApi.twirlWorker.defaultImports(twirlClasspath())
   }
 
@@ -88,12 +90,12 @@ trait TwirlModule extends mill.Module { twirlModule =>
 
   def twirlInclusiveDot: Boolean = false
 
-  def compileTwirl: T[mill.scalalib.api.CompilationResult] = T.persistent {
+  def compileTwirl: T[mill.scalalib.api.CompilationResult] = task.persistent {
     TwirlWorkerApi.twirlWorker
       .compile(
         twirlClasspath(),
         twirlSources().map(_.path),
-        T.dest,
+        task.dest,
         twirlImports(),
         twirlFormats(),
         twirlConstructorAnnotations,

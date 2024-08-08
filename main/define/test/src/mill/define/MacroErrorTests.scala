@@ -1,7 +1,7 @@
 package mill.define
 
 import utest._
-import mill.{T, Module}
+import mill.{T, task, Module}
 import mill.util.TestUtil
 object MacroErrorTests extends TestSuite {
 
@@ -19,12 +19,12 @@ object MacroErrorTests extends TestSuite {
       "command" - {
         val e = compileError("""
           object foo extends mill.util.TestUtil.BaseModule{
-            def w = T.command{1}
+            def w = task.command{1}
           }
           mill.define.Discover[foo.type]
         """)
         assert(
-          e.msg.contains("`T.command` definitions must have 1 parameter list"),
+          e.msg.contains("`task.command` definitions must have 1 parameter list"),
           e.pos.contains("def w = ")
         )
       }
@@ -44,7 +44,7 @@ object MacroErrorTests extends TestSuite {
       "input" - {
         val e = compileError("""
           object foo extends mill.util.TestUtil.BaseModule{
-            def y() = T.input{1}
+            def y() = task.input{1}
           }
           mill.define.Discover[foo.type]
         """)
@@ -56,7 +56,7 @@ object MacroErrorTests extends TestSuite {
       "sources" - {
         val e = compileError("""
           object foo extends mill.util.TestUtil.BaseModule{
-            def z() = T.sources{os.pwd}
+            def z() = task.sources{os.pwd}
           }
           mill.define.Discover[foo.type]
         """)
@@ -68,7 +68,7 @@ object MacroErrorTests extends TestSuite {
       "persistent" - {
         val e = compileError("""
           object foo extends mill.util.TestUtil.BaseModule{
-            def a() = T.persistent{1}
+            def a() = task.persistent{1}
           }
           mill.define.Discover[foo.type]
         """)

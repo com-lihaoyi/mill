@@ -1,6 +1,8 @@
 package object mill extends mill.api.JsonFormatters {
+  @deprecated("Use task.*", "0.12.0")
   val T = define.Target
   type T[+T] = define.Target[T]
+
   val Target = define.Target
   type Target[+T] = define.Target[T]
   val PathRef = mill.api.PathRef
@@ -15,6 +17,7 @@ package object mill extends mill.api.JsonFormatters {
   type Args = define.Args
   val Args = define.Args
 
+  val task = define.Task
   val Task = define.Task
   type Task[+T] = define.Task[T]
 

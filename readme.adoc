@@ -467,7 +467,7 @@ __New features__
 __Fixes and Improvements__
 
 * Better detect Windows Subsystem for Linux environments {link-pr}/2901[#2901]
-* Avoid evaluating `T.input`s twice {link-pr}/2952[#2952]
+* Avoid evaluating `task.input`s twice {link-pr}/2952[#2952]
 * Deduplicate (anonymous) tasks in results {link-pr}/2959[#2959]
 * Synchronize `evaluateGroupCached` to avoid concurrent access to cache  {link-pr}/2980[#2980]
 * Properly sanitize Windows reserved names and symbols in evaluator paths {link-pr}/2964[#2964], {link-pr}/2965[#2965]
@@ -542,7 +542,7 @@ _Changes since {prev-version}:_
 
 * Various BSP improvements {link-pr}/2814[#2814], {link-pr}/2813[#2813], {link-pr}/2810[#2810], {link-pr}/2771[#2771]
 
-* The `T.workspace` context path now always points to the top-level project directory, also for meta builds {link-pr}/2809[#2809]
+* The `task.workspace` context path now always points to the top-level project directory, also for meta builds {link-pr}/2809[#2809]
 
 * Mill now better detects and reports logical cycles in inter-module dependencies {link-pr}/2790[#2790]
 
@@ -766,7 +766,7 @@ It is now significantly lazier, resulting in less of the module tree being un-ne
 `run` to be easily used in the implementation of other tasks
 {link-pr}/2452[#2452]
 
-* ``T.input``s are now watched properly with `--watch`, and trigger re-evaluations when the watched value changes {link-pr}/2489[#2489]
+* ``task.input``s are now watched properly with `--watch`, and trigger re-evaluations when the watched value changes {link-pr}/2489[#2489]
 
 * Support for Java 20 {link-pr}/2501[#2501]
 
@@ -781,7 +781,7 @@ It is now significantly lazier, resulting in less of the module tree being un-ne
 * Enabled compilation warnings in `build.sc`
 {link-pr}/2519[#2519]
 
-* Print out the CLI flags when inspecting ``T.command``s
+* Print out the CLI flags when inspecting ``task.command``s
 {link-pr}/2522[#2522]
 
 _For details refer to
@@ -807,7 +807,7 @@ folder in the Mill repo, containing common build setups demonstrating Mill featu
 
 * Add some helpers to simplify cross-version/cross-platform modules {#2406}[{link-pr}/2406]
 
-* You can now override `T{...}` ``Target``s with `T.source` or `T.sources`, and vice versa {link-pr}/2402[#2402]
+* You can now override `T{...}` ``Target``s with `task.source` or `task.sources`, and vice versa {link-pr}/2402[#2402]
 
 * Removed the Ammonite script runner dependency used to evaluate `build.sc`
 files and instead compile them using Mill {link-pr}/2377[#2377]
@@ -1096,7 +1096,7 @@ _Changes since {prev-version}:_
 
 * Lots of documentation improvements, additions and restructurings
 * `core`: Fixed some rare issues with reading the `.mill-jvm-opts` file
-* `core`: We made slight adaptions to the `T.dest` location of target defined in included files, to fix potential colliding cache locations
+* `core`: We made slight adaptions to the `task.dest` location of target defined in included files, to fix potential colliding cache locations
 * `scalalib`: JAR archives created by Mill now by default contain directory entries
 * `scalalib`: Updated zinc to 1.8.0
 * `scalajslib`: Added support for more `JsEnv` providers
@@ -1405,7 +1405,7 @@ _Changes since {prev-version}:_
 * Coursier: we now implemented a workaround to tackle concurrent downloads issues
 * New `+` separator to provide multiple targets (with parameters) via cmdline
 * New `--import` cmdline option to run ad-hoc plugins without editing of `build.sc`
-* New `T.ctx().workspace` API to access the project root directory
+* New `task.ctx().workspace` API to access the project root directory
 * Various internal improvements and bug fixes
 * Various refactorings and cleanups
 
@@ -1703,7 +1703,7 @@ and the {link-compare}/0.7.0\...0.7.1[list of commits]._
 * `build.sc` files now uses Scala 2.13.2
 * Avoid duplicate target resolution with `mill resolve __`
 * Add ability to pass GPG arguments to publish via `--gpgArgs`
-* `-w`/`--watch` now works for `T.source` targets
+* `-w`/`--watch` now works for `task.source` targets
 
 _For details refer to {link-milestone}/37?closed=1[milestone 0.7.0]
 and the {link-compare}/0.6.3\...0.7.0[list of commits]._
@@ -1773,7 +1773,7 @@ and the {link-compare}/0.5.9\...0.6.0[list of commits]._
 === 0.5.9 - 2020-01-14
 
 * Bump library versions again
-* Alias `T.ctx.*` functions to `T.*`: `T.dest`, `T.log`, etc.
+* Alias `task.ctx.*` functions to `task.*`: `task.dest`, `task.log`, etc.
 * Bump Mill's client-connect-to-server timeout, to reduce flakiness when the server is taking a moment to start up
 
 _For details refer to the {link-compare}/0.5.7\...0.5.9[list of commits]._

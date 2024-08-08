@@ -5,9 +5,9 @@ object foo extends ScalaModule {
   def moduleDeps = Seq(bar)
   def ivyDeps = Agg(ivy"com.lihaoyi::mainargs:0.4.0")
 
-  def barWorkingDir = T{ T.dest }
+  def barWorkingDir = T{ task.dest }
   def sources = T{
-    bar.run(T.task(Args(barWorkingDir(), super.sources().map(_.path))))()
+    bar.run(task.anon(Args(barWorkingDir(), super.sources().map(_.path))))()
     Seq(PathRef(barWorkingDir()))
   }
 }

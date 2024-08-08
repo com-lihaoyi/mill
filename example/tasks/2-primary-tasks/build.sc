@@ -1,37 +1,37 @@
 // There are three primary kinds of _Tasks_ that you should care about:
 //
-// * <<_sources>>, defined using `T.sources {...}`
-// * <<_targets>>, defined using `T {...}`
-// * <<_commands>>, defined using `T.command {...}`
+// * <<_sources>>, defined using `task.sources {...}`
+// * <<_targets>>, defined using `task {...}`
+// * <<_commands>>, defined using `task.command {...}`
 
 // === Sources
 
 
 import mill.{Module, T, _}
 
-def sources = T.source { millSourcePath / "src" }
-def resources = T.source { millSourcePath / "resources" }
+def sources = task.source { millSourcePath / "src" }
+def resources = task.source { millSourcePath / "resources" }
 
 
-// ``Source``s are defined using `T.source{...}` taking one `os.Path`, or `T.sources{...}`,
+// ``Source``s are defined using `task.source{...}` taking one `os.Path`, or `task.sources{...}`,
 // taking multiple ``os.Path``s as arguments. A ``Source``'s':
 // its build signature/`hashCode` depends not just on the path
 // it refers to (e.g. `foo/bar/baz`) but also the MD5 hash of the filesystem
 // tree under that path.
 //
-// `T.source` and `T.sources` are most common inputs in any Mill build:
+// `task.source` and `task.sources` are most common inputs in any Mill build:
 // they watch source files and folders and cause downstream targets to
 // re-compute if a change is detected.
 
 // === Targets
 
-def allSources = T {
+def allSources = task {
   os.walk(sources().path)
     .filter(_.ext == "java")
     .map(PathRef(_))
 }
 
-def lineCount: T[Int] = T {
+def lineCount: T[Int] = task {
   println("Computing line count")
   allSources()
     .map(p => os.read.lines(p.path).size)
@@ -48,9 +48,9 @@ def lineCount: T[Int] = T {
 // }
 // ....
 //
-// ``Target``s are defined using the `def foo = T {...}` syntax, and dependencies
+// ``Target``s are defined using the `def foo = task {...}` syntax, and dependencies
 // on other targets are defined using `foo()` to extract the value from them.
-// Apart from the `foo()` calls, the `T {...}` block contains arbitrary code that
+// Apart from the `foo()` calls, the `task {...}` block contains arbitrary code that
 // does some work and returns a result.
 
 // If a target's inputs change but its output does not, e.g. someone changes a
@@ -74,31 +74,31 @@ Computing line count
 // line, or use `show` if you want to see the JSON content or pipe it to
 // external tools.
 
-// Each target, e.g. `classFiles`, is assigned a {mill-doc-url}/api/latest/mill/api/Ctx.html#dest:os.Path[T.dest]
+// Each target, e.g. `classFiles`, is assigned a {mill-doc-url}/api/latest/mill/api/Ctx.html#dest:os.Path[task.dest]
 // folder e.g. `out/classFiles.dest/` on disk as scratch space & to store its
 // output files , and its returned metadata is automatically JSON-serialized
 // and stored at `out/classFiles.json`. If you want to return a file or a set
-// of files as the result of a `Target`, write them to disk within your `T.dest`
+// of files as the result of a `Target`, write them to disk within your `task.dest`
 // folder and return a `PathRef()` that referencing the files or folders
 // you want to return:
 
-def classFiles = T {
+def classFiles = task {
   println("Generating classfiles")
 
-  os.proc("javac", allSources().map(_.path), "-d", T.dest)
-    .call(cwd = T.dest)
+  os.proc("javac", allSources().map(_.path), "-d", task.dest)
+    .call(cwd = task.dest)
 
-  PathRef(T.dest)
+  PathRef(task.dest)
 }
 
-def jar = T {
+def jar = task {
   println("Generating jar")
-  os.copy(classFiles().path, T.dest, mergeFolders = true)
-  os.copy(resources().path, T.dest, mergeFolders = true)
+  os.copy(classFiles().path, task.dest, mergeFolders = true)
+  os.copy(resources().path, task.dest, mergeFolders = true)
 
-  os.proc("jar", "-cfe", T.dest / "foo.jar", "foo.Foo", ".").call(cwd = T.dest)
+  os.proc("jar", "-cfe", task.dest / "foo.jar", "foo.Foo", ".").call(cwd = task.dest)
 
-  PathRef(T.dest / "foo.jar")
+  PathRef(task.dest / "foo.jar")
 }
 
 // [graphviz]
@@ -135,7 +135,7 @@ Generating jar
 // in `def largeFile` running even though the `largeFile()` branch of the
 // `if` conditional does not get used:
 
-def largeFile = T {
+def largeFile = task {
   println("Finding Largest File")
   allSources()
     .map(_.path)
@@ -213,7 +213,7 @@ def summarizeClassFileStats = T{
 
 // === Commands
 
-def run(args: String*) = T.command {
+def run(args: String*) = task.command {
   os.proc(
       "java",
       "-cp", s"${classFiles().path}:${resources().path}",
@@ -235,11 +235,11 @@ def run(args: String*) = T.command {
 // }
 // ....
 
-// Defined using `T.command {...}` syntax, ``Command``s can run arbitrary code, with
+// Defined using `task.command {...}` syntax, ``Command``s can run arbitrary code, with
 // dependencies declared using the same `foo()` syntax (e.g. `classFiles()` above).
 // Commands can be parametrized, but their output is not cached, so they will
 // re-evaluate every time even if none of their inputs have changed.
-// A command with no parameter is defined as `def myCommand() = T.command {...}`.
+// A command with no parameter is defined as `def myCommand() = task.command {...}`.
 // It is a compile error if `()` is missing.
 //
 // Like <<_targets>>, a command only evaluates after all its upstream
@@ -260,7 +260,7 @@ def run(args: String*) = T.command {
 //
 
 trait Foo extends Module {
-  def sourceRoots = T.sources(millSourcePath / "src")
+  def sourceRoots = task.sources(millSourcePath / "src")
   def sourceContents = T{
     sourceRoots()
       .flatMap(pref => os.walk(pref.path))
@@ -271,8 +271,8 @@ trait Foo extends Module {
 }
 
 trait Bar extends Foo {
-  def additionalSources = T.sources(millSourcePath / "src2")
-  def sourceRoots = T { super.sourceRoots() ++ additionalSources() }
+  def additionalSources = task.sources(millSourcePath / "src2")
+  def sourceRoots = task { super.sourceRoots() ++ additionalSources() }
 }
 
 object bar extends Bar

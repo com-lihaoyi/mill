@@ -1,7 +1,7 @@
 package mill.main
 
 import mill.api.{PathRef, Result, Val}
-import mill.{Agg, T}
+import mill.{Agg, T, task}
 import mill.define.{Cross, Discover, Module, Task}
 import mill.util.{TestEvaluator, TestUtil}
 import utest.{TestSuite, Tests, assert, test}
@@ -11,30 +11,30 @@ import java.io.{ByteArrayOutputStream, PrintStream}
 object MainModuleTests extends TestSuite {
 
   object mainModule extends TestUtil.BaseModule with MainModule {
-    def hello = T {
+    def hello = task {
       System.out.println("Hello System Stdout")
       System.err.println("Hello System Stderr")
       Console.out.println("Hello Console Stdout")
       Console.err.println("Hello Console Stderr")
       Seq("hello", "world")
     }
-    def hello2 = T {
+    def hello2 = task {
       System.out.println("Hello2 System Stdout")
       System.err.println("Hello2 System Stderr")
       Console.out.println("Hello2 Console Stdout")
       Console.err.println("Hello2 Console Stderr")
       Map("1" -> "hello", "2" -> "world")
     }
-    def helloCommand(x: Int, y: Task[String]) = T.command { (x, y(), hello()) }
+    def helloCommand(x: Int, y: Task[String]) = task.command { (x, y(), hello()) }
     override lazy val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object cleanModule extends TestUtil.BaseModule with MainModule {
 
     trait Cleanable extends Module {
-      def target = T {
-        os.write(T.dest / "dummy.txt", "dummy text")
-        Seq(PathRef(T.dest))
+      def target = task {
+        os.write(task.dest / "dummy.txt", "dummy text")
+        Seq(PathRef(task.dest))
       }
     }
 
@@ -42,15 +42,15 @@ object MainModuleTests extends TestSuite {
       object sub extends Cleanable
     }
     object bar extends Cleanable {
-      override def target = T {
-        os.write(T.dest / "dummy.txt", "dummy text")
-        super.target() ++ Seq(PathRef(T.dest))
+      override def target = task {
+        os.write(task.dest / "dummy.txt", "dummy text")
+        super.target() ++ Seq(PathRef(task.dest))
       }
     }
     object bazz extends Cross[Bazz]("1", "2", "3")
     trait Bazz extends Cleanable with Cross.Module[String]
 
-    def all = T {
+    def all = task {
       foo.target()
       bar.target()
       bazz("1").target()

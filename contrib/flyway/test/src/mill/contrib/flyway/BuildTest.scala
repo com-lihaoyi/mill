@@ -9,7 +9,7 @@ object BuildTest extends TestSuite {
   object Build extends TestUtil.BaseModule {
     object build extends FlywayModule {
 
-      override def resources = T.sources(os.pwd / "contrib" / "flyway" / "test" / "resources")
+      override def resources = task.sources(os.pwd / "contrib" / "flyway" / "test" / "resources")
 
       def h2 = ivy"com.h2database:h2:2.1.214"
 

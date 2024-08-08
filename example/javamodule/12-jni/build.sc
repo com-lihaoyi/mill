@@ -2,12 +2,12 @@ import mill._, javalib._, util.Jvm
 
 object foo extends RootModule with JavaModule {
   // Additional source folder to put C sources
-  def nativeSources = T.sources(millSourcePath / "native-src")
+  def nativeSources = task.sources(millSourcePath / "native-src")
 
   // Auto-generate JNI `.h` files from Java classes using Javac
-  def nativeHeaders = T {
-    os.proc(Jvm.jdkTool("javac"), "-h", T.dest, "-d", T.dest.toString, allSourceFiles().map(_.path)).call()
-    PathRef(T.dest)
+  def nativeHeaders = task {
+    os.proc(Jvm.jdkTool("javac"), "-h", task.dest, "-d", task.dest.toString, allSourceFiles().map(_.path)).call()
+    PathRef(task.dest)
   }
 
   // Compile C
@@ -20,12 +20,12 @@ object foo extends RootModule with JavaModule {
         "-I" + sys.props("java.home") + "/include/", // global JVM header files
         "-I" + sys.props("java.home") + "/include/darwin",
         "-I" + sys.props("java.home") + "/include/linux",
-        "-o", T.dest / output,
+        "-o", task.dest / output,
         cSourceFiles
       )
       .call(stdout = os.Inherit)
 
-    PathRef(T.dest / output)
+    PathRef(task.dest / output)
   }
 
   def forkEnv = Map("HELLO_WORLD_BINARY" -> nativeCompiled().path.toString)

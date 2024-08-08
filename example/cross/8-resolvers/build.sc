@@ -8,12 +8,12 @@ trait MyModule extends Cross.Module[String] {
 
 object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
 trait FooModule extends MyModule {
-  def suffix = T { "_" + crossValue }
+  def suffix = task { "_" + crossValue }
 }
 
 object bar extends mill.Cross[BarModule]("2.10", "2.11", "2.12")
 trait BarModule extends MyModule {
-  def bigSuffix = T { "[[[" + foo().suffix() + "]]]" }
+  def bigSuffix = task { "[[[" + foo().suffix() + "]]]" }
 }
 
 // You can define an implicit `mill.define.Cross.Resolver` within your

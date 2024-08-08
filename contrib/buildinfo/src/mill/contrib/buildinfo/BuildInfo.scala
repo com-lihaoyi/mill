@@ -1,6 +1,6 @@
 package mill.contrib.buildinfo
 
-import mill.T
+import mill.{task, T}
 import mill.api.PathRef
 import mill.scalalib.{JavaModule, ScalaModule}
 import mill.scalanativelib.ScalaNativeModule
@@ -37,15 +37,15 @@ trait BuildInfo extends JavaModule {
 
   def resources: T[Seq[PathRef]] =
     if (buildInfoStaticCompiled) super.resources
-    else T.sources { super.resources() ++ Seq(buildInfoResources()) }
+    else task.sources { super.resources() ++ Seq(buildInfoResources()) }
 
-  def buildInfoResources = T {
+  def buildInfoResources = task {
     val p = new java.util.Properties
     for (v <- buildInfoMembers()) p.setProperty(v.key, v.value)
 
     val subPath = os.SubPath(buildInfoPackageName.replace('.', '/'))
     val stream = os.write.outputStream(
-      T.dest / subPath / s"$buildInfoObjectName.buildinfo.properties",
+      task.dest / subPath / s"$buildInfoObjectName.buildinfo.properties",
       createFolders = true
     )
 
@@ -54,16 +54,16 @@ trait BuildInfo extends JavaModule {
       s"mill.contrib.buildinfo.BuildInfo for ${buildInfoPackageName}.${buildInfoObjectName}"
     )
     stream.close()
-    PathRef(T.dest)
+    PathRef(task.dest)
   }
 
   private def isScala = this.isInstanceOf[ScalaModule]
 
-  override def generatedSources = T {
+  override def generatedSources = task {
     super.generatedSources() ++ buildInfoSources()
   }
 
-  def buildInfoSources = T {
+  def buildInfoSources = task {
     if (buildInfoMembers().isEmpty) Nil
     else {
       val code = if (buildInfoStaticCompiled) BuildInfo.staticCompiledCodegen(
@@ -82,11 +82,11 @@ trait BuildInfo extends JavaModule {
       val ext = if (isScala) "scala" else "java"
 
       os.write(
-        T.dest / buildInfoPackageName.split('.') / s"${buildInfoObjectName}.$ext",
+        task.dest / buildInfoPackageName.split('.') / s"${buildInfoObjectName}.$ext",
         code,
         createFolders = true
       )
-      Seq(PathRef(T.dest))
+      Seq(PathRef(task.dest))
     }
   }
 }
