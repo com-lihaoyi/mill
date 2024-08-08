@@ -125,13 +125,13 @@ trait TestModule
 
   /**
    * Whether or not to use the test task destination folder as the working directory
-   * when running tests. `true` means test subprocess run in the `.dest/` folder of
+   * when running tests. `true` means test subprocess run in the `.dest/sandbox` folder of
    * the test task, providing better isolation and encouragement of best practices
    * (e.g. not reading/writing stuff randomly from the project source tree). `false`
    * means the test subprocess runs in the project root folder, providing weaker
    * isolation.
    */
-  def testUseDestAsWorkDir: T[Boolean] = true
+  def testSandboxWorkingDir: T[Boolean] = true
 
   /**
    * The actual task shared by `test`-tasks that runs test in a forked JVM.
@@ -195,7 +195,7 @@ trait TestModule
           Map("MILL_TEST_RESOURCE_FOLDER" -> resources().map(_.path).mkString(";")) ++
           forkEnv(),
         mainArgs = mainArgs,
-        workingDir = if (testUseDestAsWorkDir()) T.dest / "sandbox" else forkWorkingDir(),
+        workingDir = if (testSandboxWorkingDir()) T.dest / "sandbox" else forkWorkingDir(),
         useCpPassingJar = useArgsFile
       )
 
