@@ -12,6 +12,7 @@ import mill.scalajslib.api._
 import mill.scalajslib.internal.ScalaJSUtils.getReportMainFilePathRef
 import mill.scalajslib.worker.{ScalaJSWorker, ScalaJSWorkerExternalModule}
 import mill.scalalib.bsp.{ScalaBuildTarget, ScalaPlatform}
+import mill.T
 
 trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
@@ -337,7 +338,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 }
 
 trait TestScalaJSModule extends ScalaJSModule with TestModule {
-
+  override def resources: T[Seq[PathRef]] = super[ScalaJSModule].resources
   def scalaJSTestDeps = T {
     defaultResolver().resolveDeps(
       Loose.Agg(
