@@ -23,7 +23,6 @@ trait TestModule
   def compile: T[mill.scalalib.api.CompilationResult]
 
   override def defaultCommandName() = "test"
-  def resources: T[Seq[PathRef]] = T { Seq.empty[PathRef] }
 
   /**
    * The classpath containing the tests. This is most likely the output of the compilation target.
@@ -389,6 +388,7 @@ object TestModule {
 
   trait JavaModuleBase extends BspModule {
     def ivyDeps: T[Agg[Dep]] = Agg.empty[Dep]
+    def resources: T[Seq[PathRef]] = T { Seq.empty[PathRef] }
   }
 
   trait ScalaModuleBase extends mill.Module {
