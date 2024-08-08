@@ -23,7 +23,7 @@ trait TestModule
   def compile: T[mill.scalalib.api.CompilationResult]
 
   override def defaultCommandName() = "test"
-  def resources: T[Seq[PathRef]] = T{ Seq.empty[PathRef] }
+  def resources: T[Seq[PathRef]] = T { Seq.empty[PathRef] }
 
   /**
    * The classpath containing the tests. This is most likely the output of the compilation target.
