@@ -10,7 +10,7 @@ import org.flywaydb.core.internal.configuration.{ConfigUtils => flyway}
 import org.flywaydb.core.internal.info.MigrationInfoDumper
 import scala.jdk.CollectionConverters._
 
-import mill.{Agg, T, task}
+import mill.{Agg, T, Task}
 import mill.api.PathRef
 import mill.define.Command
 import mill.scalalib.{Dep, JavaModule}
@@ -22,13 +22,13 @@ trait FlywayModule extends JavaModule {
   def flywayUrl: T[String]
   def flywayUser: T[String] = T("")
   def flywayPassword: T[String] = T("")
-  def flywayFileLocations: T[Seq[PathRef]] = task {
+  def flywayFileLocations: T[Seq[PathRef]] = Task {
     resources().map(pr => PathRef(pr.path / "db" / "migration", pr.quick))
   }
 
   def flywayDriverDeps: T[Agg[Dep]]
 
-  def jdbcClasspath = task {
+  def jdbcClasspath = Task {
     defaultResolver().resolveDeps(flywayDriverDeps())
   }
 
@@ -37,7 +37,7 @@ trait FlywayModule extends JavaModule {
       .filter(_.nonEmpty)
       .map(key -> _)
 
-  def flywayInstance = task.worker {
+  def flywayInstance = Task.worker {
     val jdbcClassloader = new URLClassLoader(jdbcClasspath().map(_.path.toIO.toURI.toURL).toArray)
 
     val configProps = Map(flyway.URL -> flywayUrl()) ++
@@ -53,19 +53,19 @@ trait FlywayModule extends JavaModule {
       .load
   }
 
-  def flywayMigrate(): Command[MigrateResult] = task.command {
+  def flywayMigrate(): Command[MigrateResult] = Task.command {
     flywayInstance().migrate()
   }
 
-  def flywayClean(): Command[CleanResult] = task.command {
+  def flywayClean(): Command[CleanResult] = Task.command {
     flywayInstance().clean()
   }
 
-  def flywayBaseline(): Command[BaselineResult] = task.command {
+  def flywayBaseline(): Command[BaselineResult] = Task.command {
     flywayInstance().baseline()
   }
 
-  def flywayInfo(): Command[String] = task.command {
+  def flywayInfo(): Command[String] = Task.command {
     val info = flywayInstance().info
     val current = info.current
     val currentSchemaVersion =
@@ -74,7 +74,7 @@ trait FlywayModule extends JavaModule {
     val out =
       s"""Schema version: ${currentSchemaVersion}
          |${MigrationInfoDumper.dumpToAsciiTable(info.all)}""".stripMargin
-    task.log.outputStream.println(out)
+    Task.log.outputStream.println(out)
     out
   }
 }

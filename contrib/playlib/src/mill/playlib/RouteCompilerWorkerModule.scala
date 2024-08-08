@@ -1,10 +1,10 @@
 package mill.playlib
 
-import mill.{Module, T, task}
+import mill.{Module, T, Task}
 import mill.define.{Discover, ExternalModule, Worker}
 
 trait RouteCompilerWorkerModule extends Module {
-  def routeCompilerWorker: Worker[RouteCompilerWorker] = task.worker {
+  def routeCompilerWorker: Worker[RouteCompilerWorker] = Task.worker {
     new RouteCompilerWorker()
   }
 }

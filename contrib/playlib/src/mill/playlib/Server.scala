@@ -1,26 +1,26 @@
 package mill.playlib
 
 import mill.scalalib._
-import mill.{Agg, T, task}
+import mill.{Agg, T, Task}
 
 private[playlib] trait Server extends ScalaModule with Version {
 
-  def nettyServer = task { component("play-netty-server") }
+  def nettyServer = Task { component("play-netty-server") }
 
-  def akkaHttpServer = task { component("play-akka-http-server") }
+  def akkaHttpServer = Task { component("play-akka-http-server") }
 
-  def pekkoHttpServer = task { component("play-pekko-http-server") }
+  def pekkoHttpServer = Task { component("play-pekko-http-server") }
 
-  def playServerProvider = task {
+  def playServerProvider = Task {
     if (playVersion().startsWith("2."))
       akkaHttpServer()
     else
       pekkoHttpServer()
   }
 
-  override def runIvyDeps = task {
+  override def runIvyDeps = Task {
     super.runIvyDeps() ++ Agg(playServerProvider())
   }
 
-  override def mainClass = task { Some("play.core.server.ProdServerStart") }
+  override def mainClass = Task { Some("play.core.server.ProdServerStart") }
 }

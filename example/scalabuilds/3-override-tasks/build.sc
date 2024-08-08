@@ -4,9 +4,9 @@ import mill._, scalalib._
 object foo extends ScalaModule {
   def scalaVersion = "2.13.8"
 
-  def sources = T{
+  def sources = Task {
     os.write(
-      task.dest / "Foo.scala",
+      Task.dest / "Foo.scala",
       """package foo
         |object Foo {
         |  def main(args: Array[String]): Unit = {
@@ -15,15 +15,15 @@ object foo extends ScalaModule {
         |}
       """.stripMargin
     )
-    Seq(PathRef(task.dest))
+    Seq(PathRef(Task.dest))
   }
 
-  def compile = task {
+  def compile = Task {
     println("Compiling...")
     super.compile()
   }
 
-  def run(args: Task[Args] = task.anon(Args())) = task.command {
+  def run(args: Task[Args] = Task.anon(Args())) = Task.command {
     println("Running..." + args().value.mkString(" "))
     super.run(args)()
   }
@@ -32,10 +32,10 @@ object foo extends ScalaModule {
 //// SNIPPET:END
 
 // You can re-define targets and commands to override them, and use `super` if you
-// want to refer to the originally defined task. The above example shows how to
+// want to refer to the originally defined Task. The above example shows how to
 // override `compile` and `run` to add additional logging messages, and we
-// override `sources` which was `task.sources` for the `src/` folder with a plain
-// `T{...}` target that generates the  necessary source files on-the-fly.
+// override `sources` which was `Task.sources` for the `src/` folder with a plain
+// `Task {...}` target that generates the  necessary source files on-the-fly.
 //
 // Note that this example *replaces* your `src/` folder with the generated
 // sources. If you want to *add* generated sources, you can either override
@@ -47,18 +47,18 @@ object foo extends ScalaModule {
 object foo2 extends ScalaModule {
   def scalaVersion = "2.13.8"
 
-  def generatedSources = T{
-    os.write(task.dest / "Foo.scala", """...""")
-    Seq(PathRef(task.dest))
+  def generatedSources = Task {
+    os.write(Task.dest / "Foo.scala", """...""")
+    Seq(PathRef(Task.dest))
   }
 }
 
 object foo3 extends ScalaModule {
   def scalaVersion = "2.13.8"
 
-  def sources = T{
-    os.write(task.dest / "Foo.scala", """...""")
-    super.sources() ++ Seq(PathRef(task.dest))
+  def sources = Task {
+    os.write(Task.dest / "Foo.scala", """...""")
+    super.sources() ++ Seq(PathRef(Task.dest))
   }
 }
 

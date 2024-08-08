@@ -57,10 +57,10 @@ trait NettyBaseTestSuiteModule extends NettyBaseModule with TestModule.Junit5{
     "-enableassertions"
   )
 
-  def compile = T{
+  def compile = Task {
     // Hack to satisfy fragile tests that look for /test-classes/ in the file paths
     val sup = super.compile()
-    val testClasses = task.dest / "test-classes"
+    val testClasses = Task.dest / "test-classes"
     if (os.exists(sup.classes.path)) os.copy(sup.classes.path, testClasses, createFolders = true)
     sup.copy(classes = PathRef(testClasses))
   }
@@ -70,7 +70,7 @@ trait NettyTestSuiteModule extends NettyBaseTestSuiteModule{
 }
 trait NettyModule extends NettyBaseModule{
   def testModuleDeps: Seq[MavenModule] = Nil
-  def testIvyDeps: T[Agg[mill.scalalib.Dep]] = T{ Agg() }
+  def testIvyDeps: T[Agg[mill.scalalib.Dep]] = Task { Agg() }
 
   object test extends NettyBaseTestSuiteModule with MavenTests{
     def moduleDeps = super.moduleDeps ++ testModuleDeps
@@ -85,12 +85,12 @@ trait NettyModule extends NettyBaseModule{
 
 trait NettyJniModule extends NettyModule {
   def jniLibraryName: T[String]
-  def cSources = task.source(millSourcePath / "src" / "main" / "c")
-  def resources = T{
-    os.copy(clang().path, task.dest / "META-INF" / "native" / jniLibraryName(), createFolders = true)
-    Seq(PathRef(task.dest))
+  def cSources = Task.source(millSourcePath / "src" / "main" / "c")
+  def resources = Task {
+    os.copy(clang().path, Task.dest / "META-INF" / "native" / jniLibraryName(), createFolders = true)
+    Seq(PathRef(Task.dest))
   }
-  def clang = T{
+  def clang = Task {
     val Seq(sourceJar) = defaultResolver()
       .resolveDeps(
         Agg(ivy"io.netty:netty-jni-util:0.0.9.Final").map(bindDependency()),
@@ -98,15 +98,15 @@ trait NettyJniModule extends NettyModule {
       )
       .toSeq
 
-    os.makeDir.all(task.dest  / "src" / "main" / "c")
-    os.proc("jar", "xf", sourceJar.path).call(cwd = task.dest  / "src" / "main" / "c")
+    os.makeDir.all(Task.dest  / "src" / "main" / "c")
+    os.proc("jar", "xf", sourceJar.path).call(cwd = Task.dest  / "src" / "main" / "c")
 
     os.proc(
       "clang",
       // CFLAGS
       "-O3", "-Werror", "-fno-omit-frame-pointer",
       "-Wunused-variable", "-fvisibility=hidden",
-      "-I" + (task.dest / "src" / "main" / "c"),
+      "-I" + (Task.dest / "src" / "main" / "c"),
       "-I" + `transport-native-unix-common`.cHeaders().path,
       "-I" + sys.props("java.home") + "/include/",
       "-I" + sys.props("java.home") + "/include/darwin",
@@ -121,9 +121,9 @@ trait NettyJniModule extends NettyModule {
       "-DPIC",
       // sources
       os.list(cSources().path)
-    ).call(cwd = task.dest, env = Map("MACOSX_DEPLOYMENT_TARGET" -> "10.9"))
+    ).call(cwd = Task.dest, env = Map("MACOSX_DEPLOYMENT_TARGET" -> "10.9"))
 
-    PathRef(task.dest / "a.out")
+    PathRef(Task.dest / "a.out")
   }
 }
 
@@ -247,22 +247,22 @@ object common extends NettyModule{
     ivy"org.jctools:jctools-core:4.0.5",
   )
 
-  def script = task.source(millSourcePath / "src" / "main" / "script")
-  def generatedSources0 = T{
+  def script = Task.source(millSourcePath / "src" / "main" / "script")
+  def generatedSources0 = Task {
     val shell = new groovy.lang.GroovyShell()
 
     val context = new java.util.HashMap[String, Object]
     context.put("collection.template.dir", "common/src/main/templates")
     context.put("collection.template.test.dir", "common/src/test/templates")
-    context.put("collection.src.dir", (task.dest / "src").toString)
-    context.put("collection.testsrc.dir", (task.dest / "testsrc").toString)
+    context.put("collection.src.dir", (Task.dest / "src").toString)
+    context.put("collection.testsrc.dir", (Task.dest / "testsrc").toString)
     shell.setProperty("properties", context)
     shell.setProperty("ant", new groovy.ant.AntBuilder())
     shell.evaluate((script().path / "codegen.groovy").toIO)
-    (PathRef(task.dest / "src"), PathRef(task.dest / "testsrc"))
+    (PathRef(Task.dest / "src"), PathRef(Task.dest / "testsrc"))
   }
 
-  def generatedSources = T{ Seq(generatedSources0()._1)}
+  def generatedSources = Task { Seq(generatedSources0()._1)}
 }
 
 object `dev-tools` extends NettyModule{
@@ -394,26 +394,26 @@ object `testsuite-autobahn` extends NettyTestSuiteModule{
 
 object `testsuite-http2` extends NettyTestSuiteModule{
   def moduleDeps = Seq(common, buffer, transport, handler, `codec-http`, `codec-http2`)
-  def h2Spec = T{
+  def h2Spec = Task {
 
     val isOSX = sys.props("os.name").toLowerCase.contains("mac")
     val binaryName = if (isOSX) "h2spec_darwin_amd64.tar.gz" else "h2spec_linux_amd64.tar.gz"
     val url = s"https://github.com/summerwind/h2spec/releases/download/v2.6.0/$binaryName"
-    os.write(task.dest / "h2spec.tar.gz", requests.get(url))
+    os.write(Task.dest / "h2spec.tar.gz", requests.get(url))
 
-    os.proc("tar", "xzf", task.dest / "h2spec.tar.gz").call(cwd = task.dest)
-    PathRef(task.dest / "h2spec")
+    os.proc("tar", "xzf", Task.dest / "h2spec.tar.gz").call(cwd = Task.dest)
+    PathRef(Task.dest / "h2spec")
   }
-  override def test(args: String*) = task.command{
+  override def test(args: String*) = Task.command{
     val server = os.proc(assembly().path).spawn(stdout = os.Inherit)
     try {
       Thread.sleep(1000) // let the server start up
 
-      os.proc(h2Spec().path, "-p9000", "--junit-report", task.dest / "report.xml")
+      os.proc(h2Spec().path, "-p9000", "--junit-report", Task.dest / "report.xml")
         .call(stdout = os.Inherit, check = false)
 
       // Use the Scala XML library to parse and fish out the data we want from the report
-      val xmlFile = scala.xml.XML.loadFile((task.dest / "report.xml").toIO)
+      val xmlFile = scala.xml.XML.loadFile((Task.dest / "report.xml").toIO)
       val testCasesWithErrors = (xmlFile \\ "testcase").filter { testcase =>
         (testcase \\ "error").nonEmpty
       }
@@ -444,7 +444,7 @@ object `testsuite-http2` extends NettyTestSuiteModule{
 object `testsuite-native` extends NettyTestSuiteModule{
   def moduleDeps = Seq(`transport-native-kqueue`, `resolver-dns-native-macos`, `resolver-dns-classes-macos`, `transport-native-epoll`)
   def testModuleDeps = Seq(`resolver-dns-classes-macos`)
-  override def sources = task.sources( millSourcePath / "src" / "test" / "java" )
+  override def sources = Task.sources( millSourcePath / "src" / "test" / "java" )
 }
 
 object `testsuite-native-image` extends NettyTestSuiteModule{
@@ -470,7 +470,7 @@ object `testsuite-osgi` extends NettyTestSuiteModule{
     transport, `transport-sctp`, `transport-udt`
   )
 
-  override def sources = task.sources( millSourcePath / "src" / "test" / "java" )
+  override def sources = Task.sources( millSourcePath / "src" / "test" / "java" )
 
   def ivyDeps = super.ivyDeps() ++ Agg(
     ivy"org.apache.felix:org.apache.felix.configadmin:1.9.14",
@@ -483,7 +483,7 @@ object `testsuite-osgi` extends NettyTestSuiteModule{
 
 object `testsuite-shading` extends NettyTestSuiteModule{
   def moduleDeps = Seq(common)
-  override def sources = task.sources( millSourcePath / "src" / "test" / "java" )
+  override def sources = Task.sources( millSourcePath / "src" / "test" / "java" )
 }
 
 object transport extends NettyModule{
@@ -515,7 +515,7 @@ object `transport-native-epoll` extends NettyJniModule{
   )
 
   // Stub this out on OS-X
-  def clang = if (!isOSX) T{ super.clang() } else T{ PathRef(os.temp())}
+  def clang = if (!isOSX) Task { super.clang() } else Task { PathRef(os.temp())}
 }
 
 object `transport-native-kqueue` extends NettyJniModule{
@@ -524,34 +524,34 @@ object `transport-native-kqueue` extends NettyJniModule{
   def testModuleDeps = Seq(testsuite, `transport-native-unix-common-tests`)
 
   // Stub this out on linux
-  def clang = if (isOSX) T{ super.clang() } else T{ PathRef(os.temp())}
+  def clang = if (isOSX) Task { super.clang() } else Task { PathRef(os.temp())}
 }
 
 object `transport-native-unix-common` extends NettyModule{
   def moduleDeps = Seq(common, buffer, transport)
   def ivyDeps = Agg(ivy"org.junit.jupiter:junit-jupiter-api:5.9.0")
 
-  def makefile = task.source(millSourcePath / "Makefile")
-  def cSources = task.source(millSourcePath / "src" / "main" / "c")
-  def cHeaders = T{
+  def makefile = Task.source(millSourcePath / "Makefile")
+  def cSources = Task.source(millSourcePath / "src" / "main" / "c")
+  def cHeaders = Task {
     for(p <- os.walk(cSources().path) if p.ext == "h"){
-      os.copy(p, task.dest / p.relativeTo(cSources().path), createFolders = true)
+      os.copy(p, Task.dest / p.relativeTo(cSources().path), createFolders = true)
     }
-    PathRef(task.dest)
+    PathRef(Task.dest)
   }
 
-  def make = T{
+  def make = Task {
     val Seq(sourceJar) = resolveDeps(
-      deps = task.anon(Agg(ivy"io.netty:netty-jni-util:0.0.9.Final").map(bindDependency())),
+      deps = Task.anon(Agg(ivy"io.netty:netty-jni-util:0.0.9.Final").map(bindDependency())),
       sources = true
     )().toSeq
 
-    os.copy(makefile().path, task.dest / "Makefile")
-    os.copy(cSources().path, task.dest / "src" / "main" / "c", createFolders = true)
-    os.proc("jar", "xf", sourceJar.path).call(cwd = task.dest  / "src" / "main" / "c")
+    os.copy(makefile().path, Task.dest / "Makefile")
+    os.copy(cSources().path, Task.dest / "src" / "main" / "c", createFolders = true)
+    os.proc("jar", "xf", sourceJar.path).call(cwd = Task.dest  / "src" / "main" / "c")
 
     os.proc("make").call(
-      cwd = task.dest,
+      cwd = Task.dest,
       env = Map(
         "CC" -> "clang",
         "AR" -> "ar",
@@ -577,7 +577,7 @@ object `transport-native-unix-common` extends NettyModule{
     )
 
 
-    (PathRef(task.dest / "lib-out"), PathRef(task.dest / "obj-out"))
+    (PathRef(Task.dest / "lib-out"), PathRef(Task.dest / "obj-out"))
   }
 }
 object `transport-native-unix-common-tests` extends NettyTestSuiteModule{

@@ -1,5 +1,5 @@
 import mill._
 
 object module extends Module {
-  def input = task {}
+  def input = Task {}
 }

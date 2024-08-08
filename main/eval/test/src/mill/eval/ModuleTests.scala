@@ -1,21 +1,21 @@
 package mill.eval
 
 import mill.util.{TestEvaluator, TestUtil}
-import mill.{task, T}
+import mill.{Task, T}
 import mill.define.Discover
 
 import utest._
 
 object ModuleTests extends TestSuite {
   object ExternalModule extends mill.define.ExternalModule {
-    def x = task { 13 }
+    def x = Task { 13 }
     object inner extends mill.Module {
-      def y = task { 17 }
+      def y = Task { 17 }
     }
     lazy val millDiscover = Discover[this.type]
   }
   object Build extends TestUtil.BaseModule {
-    def z = task { ExternalModule.x() + ExternalModule.inner.y() }
+    def z = Task { ExternalModule.x() + ExternalModule.inner.y() }
   }
   val tests = Tests {
     "externalModuleTargetsAreNamespacedByModulePackagePath" - {
@@ -37,7 +37,7 @@ object ModuleTests extends TestSuite {
 
       object Build extends mill.define.ExternalModule {
 
-        def z = task { ExternalModule.x() + ExternalModule.inner.y() }
+        def z = Task { ExternalModule.x() + ExternalModule.inner.y() }
         lazy val millDiscover = Discover[this.type]
       }
 

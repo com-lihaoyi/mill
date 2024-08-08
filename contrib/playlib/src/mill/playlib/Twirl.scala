@@ -1,13 +1,13 @@
 package mill.playlib
 
-import mill.{task, T}
+import mill.{Task, T}
 import mill.twirllib._
 
 trait Twirl extends TwirlModule with Layout {
 
-  override def twirlSources = task.sources { app() }
+  override def twirlSources = Task.sources { app() }
 
-  override def twirlImports = task {
+  override def twirlImports = Task {
     super.twirlImports() ++ Seq(
       "models._",
       "controllers._",
@@ -19,9 +19,9 @@ trait Twirl extends TwirlModule with Layout {
     )
   }
 
-  def twirlOutput = task { Seq(compileTwirl().classes) }
+  def twirlOutput = Task { Seq(compileTwirl().classes) }
 
-  override def generatedSources = task {
+  override def generatedSources = Task {
     super.generatedSources() ++ twirlOutput()
   }
 }

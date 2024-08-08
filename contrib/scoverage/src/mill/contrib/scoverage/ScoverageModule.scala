@@ -60,11 +60,11 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
    */
   def scoverageVersion: T[String]
 
-  private def isScoverage2: Task[Boolean] = task.anon { scoverageVersion().startsWith("2.") }
+  private def isScoverage2: Task[Boolean] = Task.anon { scoverageVersion().startsWith("2.") }
 
-  private def isScala3: Task[Boolean] = task.anon { ZincWorkerUtil.isScala3(outer.scalaVersion()) }
+  private def isScala3: Task[Boolean] = Task.anon { ZincWorkerUtil.isScala3(outer.scalaVersion()) }
 
-  def scoverageRuntimeDeps: T[Agg[Dep]] = task {
+  def scoverageRuntimeDeps: T[Agg[Dep]] = Task {
     if (isScala3()) {
       Agg.empty
     } else {
@@ -72,7 +72,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     }
   }
 
-  def scoveragePluginDeps: T[Agg[Dep]] = task {
+  def scoveragePluginDeps: T[Agg[Dep]] = Task {
     val sv = scoverageVersion()
     if (isScala3()) {
       Agg.empty
@@ -90,7 +90,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     }
   }
 
-  private def checkVersions = task.anon {
+  private def checkVersions = Task.anon {
     val sv = scalaVersion()
     val isSov2 = scoverageVersion().startsWith("2.")
     (sv.split('.'), isSov2) match {
@@ -107,7 +107,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     }
   }
 
-  private def scoverageReporterIvyDeps: T[Agg[Dep]] = task {
+  private def scoverageReporterIvyDeps: T[Agg[Dep]] = Task {
     checkVersions()
 
     val sv = scoverageVersion()
@@ -121,7 +121,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
         // should be safe
         case "2" :: "13" :: c :: _ if Try(c.toInt).getOrElse(0) > 8 =>
           val v = "2.13.8"
-          task.log.outputStream.println(
+          Task.log.outputStream.println(
             s"Detected an unsupported Scala version (${millScalaVersion}). Using Scala version ${v} to resolve scoverage ${sv} reporting API."
           )
           v
@@ -140,16 +140,16 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     }
   }
 
-  def scoverageToolsClasspath: T[Agg[PathRef]] = task {
+  def scoverageToolsClasspath: T[Agg[PathRef]] = Task {
     scoverageReportWorkerClasspath() ++
       defaultResolver().resolveDeps(scoverageReporterIvyDeps())
   }
 
-  def scoverageClasspath: T[Agg[PathRef]] = task {
+  def scoverageClasspath: T[Agg[PathRef]] = Task {
     defaultResolver().resolveDeps(scoveragePluginDeps())
   }
 
-  def scoverageReportWorkerClasspath: T[Agg[PathRef]] = task {
+  def scoverageReportWorkerClasspath: T[Agg[PathRef]] = Task {
     val isScov2 = isScoverage2()
 
     val workerArtifact =
@@ -168,59 +168,59 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
 
   trait ScoverageData extends ScalaModule {
 
-    def doReport(reportType: ReportType): Task[Unit] = task.anon {
+    def doReport(reportType: ReportType): Task[Unit] = Task.anon {
       ScoverageReportWorker
         .scoverageReportWorker()
         .bridge(scoverageToolsClasspath())
-        .report(reportType, allSources().map(_.path), Seq(data().path), task.workspace)
+        .report(reportType, allSources().map(_.path), Seq(data().path), Task.workspace)
     }
 
     /**
      * The persistent data dir used to store scoverage coverage data.
      * Use to store coverage data at compile-time and by the various report targets.
      */
-    def data: T[PathRef] = task.persistent {
+    def data: T[PathRef] = Task.persistent {
       // via the persistent target, we ensure, the dest dir doesn't get cleared
-      PathRef(task.dest)
+      PathRef(Task.dest)
     }
 
     override def compileResources: T[Seq[PathRef]] = outer.compileResources
-    override def generatedSources: Target[Seq[PathRef]] = task { outer.generatedSources() }
-    override def allSources: Target[Seq[PathRef]] = task { outer.allSources() }
+    override def generatedSources: Target[Seq[PathRef]] = Task { outer.generatedSources() }
+    override def allSources: Target[Seq[PathRef]] = Task { outer.allSources() }
     override def moduleDeps: Seq[JavaModule] = outer.moduleDeps
     override def compileModuleDeps: Seq[JavaModule] = outer.compileModuleDeps
-    override def sources: T[Seq[PathRef]] = task.sources { outer.sources() }
-    override def resources: T[Seq[PathRef]] = task.sources { outer.resources() }
-    override def scalaVersion = task { outer.scalaVersion() }
-    override def repositoriesTask: Task[Seq[Repository]] = task.anon { outer.repositoriesTask() }
-    override def compileIvyDeps: Target[Agg[Dep]] = task { outer.compileIvyDeps() }
+    override def sources: T[Seq[PathRef]] = Task.sources { outer.sources() }
+    override def resources: T[Seq[PathRef]] = Task.sources { outer.resources() }
+    override def scalaVersion = Task { outer.scalaVersion() }
+    override def repositoriesTask: Task[Seq[Repository]] = Task.anon { outer.repositoriesTask() }
+    override def compileIvyDeps: Target[Agg[Dep]] = Task { outer.compileIvyDeps() }
     override def ivyDeps: Target[Agg[Dep]] =
-      task { outer.ivyDeps() ++ outer.scoverageRuntimeDeps() }
-    override def unmanagedClasspath: Target[Agg[PathRef]] = task { outer.unmanagedClasspath() }
+      Task { outer.ivyDeps() ++ outer.scoverageRuntimeDeps() }
+    override def unmanagedClasspath: Target[Agg[PathRef]] = Task { outer.unmanagedClasspath() }
 
     /** Add the scoverage scalac plugin. */
     override def scalacPluginIvyDeps: Target[Loose.Agg[Dep]] =
-      task { outer.scalacPluginIvyDeps() ++ outer.scoveragePluginDeps() }
+      Task { outer.scalacPluginIvyDeps() ++ outer.scoveragePluginDeps() }
 
     /** Add the scoverage specific plugin settings (`dataDir`). */
     override def scalacOptions: Target[Seq[String]] =
-      task {
+      Task {
         val extras =
           if (isScala3()) {
             Seq(s"-coverage-out:${data().path.toIO.getPath()}")
           } else {
             val base = s"-P:scoverage:dataDir:${data().path.toIO.getPath()}"
-            if (isScoverage2()) Seq(base, s"-P:scoverage:sourceRoot:${task.workspace}")
+            if (isScoverage2()) Seq(base, s"-P:scoverage:sourceRoot:${Task.workspace}")
             else Seq(base)
           }
 
         outer.scalacOptions() ++ extras
       }
 
-    def htmlReport(): Command[Unit] = task.command { doReport(ReportType.Html) }
-    def xmlReport(): Command[Unit] = task.command { doReport(ReportType.Xml) }
-    def xmlCoberturaReport(): Command[Unit] = task.command { doReport(ReportType.XmlCobertura) }
-    def consoleReport(): Command[Unit] = task.command { doReport(ReportType.Console) }
+    def htmlReport(): Command[Unit] = Task.command { doReport(ReportType.Html) }
+    def xmlReport(): Command[Unit] = Task.command { doReport(ReportType.Xml) }
+    def xmlCoberturaReport(): Command[Unit] = Task.command { doReport(ReportType.XmlCobertura) }
+    def consoleReport(): Command[Unit] = Task.command { doReport(ReportType.Console) }
 
     override def skipIdea = true
   }
@@ -232,7 +232,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
      * classes folder by the outer.scoverage classes folder and adding the
      * scoverage runtime dependency.
      */
-    override def runClasspath: T[Seq[PathRef]] = task {
+    override def runClasspath: T[Seq[PathRef]] = Task {
       val outerClassesPath = outer.compile().classes
       val outerScoverageClassesPath = outer.scoverage.compile().classes
       (super.runClasspath().map { path =>

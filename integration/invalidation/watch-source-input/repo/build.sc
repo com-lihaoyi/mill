@@ -2,10 +2,10 @@ import mill._
 
 println("Setting up build.sc")
 
-def foo = task.sources(millSourcePath / "foo1.txt", millSourcePath / "foo2.txt")
-def bar = task.source(millSourcePath / "bar.txt")
+def foo = Task.sources(millSourcePath / "foo1.txt", millSourcePath / "foo2.txt")
+def bar = Task.source(millSourcePath / "bar.txt")
 
-def qux = T{
+def qux = Task {
   val fooMsg = "Running qux foo contents " + foo().map(p => os.read(p.path)).mkString(" ")
   println(fooMsg)
 
@@ -19,9 +19,9 @@ def qux = T{
 
 interp.watchValue(PathRef(millSourcePath / "watchValue.txt"))
 
-def baz = task.input(PathRef(millSourcePath / "baz.txt"))
+def baz = Task.input(PathRef(millSourcePath / "baz.txt"))
 
-def lol = T{
+def lol = Task {
   val barMsg = "Running lol baz contents " + os.read(baz().path)
   println(barMsg)
 

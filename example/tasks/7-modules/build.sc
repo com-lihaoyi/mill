@@ -7,9 +7,9 @@
 import mill._
 
 object foo extends Module {
-  def bar = task { "hello" }
+  def bar = Task { "hello" }
   object qux extends Module {
-    def baz = task { "world" }
+    def baz = Task { "world" }
   }
 }
 
@@ -60,7 +60,7 @@ object foo extends Module {
 
 trait FooModule extends Module {
   def bar: T[String] // required override
-  def qux = task { bar() + " world" }
+  def qux = Task { bar() + " world" }
 }
 
 object foo1 extends FooModule{
@@ -69,7 +69,7 @@ object foo1 extends FooModule{
 }
 object foo2 extends FooModule {
   def bar = "hi"
-  def baz = task { qux() + " I am Cow" } // add a new `def`
+  def baz = Task { qux() + " I am Cow" } // add a new `def`
 }
 
 // This generates the following module tree and task graph, with the dotted boxes and
@@ -95,7 +95,7 @@ object foo2 extends FooModule {
 // }
 // ....
 
-// Note that the `override` keyword is optional in mill, as is `T{...}` wrapper.
+// Note that the `override` keyword is optional in mill, as is `Task {...}` wrapper.
 
 /** Usage
 
@@ -131,8 +131,8 @@ object foo2 extends FooModule {
 // module expects its input files to be on disk.
 
 trait MyModule extends Module{
-  def sources = task.source(millSourcePath / "sources")
-  def target = task { "hello " + os.list(sources().path).map(os.read(_)).mkString(" ") }
+  def sources = Task.source(millSourcePath / "sources")
+  def target = Task { "hello " + os.list(sources().path).map(os.read(_)).mkString(" ") }
 }
 
 object outer extends MyModule {

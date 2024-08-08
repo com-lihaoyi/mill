@@ -4,9 +4,9 @@ object millbuild extends MillBuildRootModule{
   val scalatagsVersion = "0.12.0"
   def ivyDeps = Agg(ivy"com.lihaoyi::scalatags:$scalatagsVersion")
 
-  def generatedSources = task {
+  def generatedSources = Task {
     os.write(
-      task.dest / "DepVersions.scala",
+      Task.dest / "DepVersions.scala",
       s"""
          |package millbuild
          |object DepVersions{
@@ -14,6 +14,6 @@ object millbuild extends MillBuildRootModule{
          |}
       """.stripMargin
     )
-    super.generatedSources() ++ Seq(PathRef(task.dest))
+    super.generatedSources() ++ Seq(PathRef(Task.dest))
   }
 }

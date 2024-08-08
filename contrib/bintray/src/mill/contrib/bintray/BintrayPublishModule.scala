@@ -12,9 +12,9 @@ trait BintrayPublishModule extends PublishModule {
 
   def bintrayRepo: String
 
-  def bintrayPackage = task { artifactId() }
+  def bintrayPackage = Task { artifactId() }
 
-  def bintrayPublishArtifacts: T[BintrayPublishData] = task {
+  def bintrayPublishArtifacts: T[BintrayPublishData] = Task {
     val PublishModule.PublishData(artifactInfo, artifacts) = publishArtifacts()
     BintrayPublishData(artifactInfo, artifacts, bintrayPackage())
   }
@@ -36,7 +36,7 @@ trait BintrayPublishModule extends PublishModule {
       release: Boolean = true,
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000
-  ): define.Command[Unit] = task.command {
+  ): define.Command[Unit] = Task.command {
     new BintrayPublisher(
       bintrayOwner,
       bintrayRepo,
@@ -44,7 +44,7 @@ trait BintrayPublishModule extends PublishModule {
       release,
       readTimeout,
       connectTimeout,
-      task.log
+      Task.log
     ).publish(bintrayPublishArtifacts())
   }
 }
@@ -69,7 +69,7 @@ object BintrayPublishModule extends ExternalModule {
       publishArtifacts: mill.main.Tasks[BintrayPublishData],
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000
-  ) = task.command {
+  ) = Task.command {
     new BintrayPublisher(
       bintrayOwner,
       bintrayRepo,
@@ -77,17 +77,17 @@ object BintrayPublishModule extends ExternalModule {
       release,
       readTimeout,
       connectTimeout,
-      task.log
+      Task.log
     ).publishAll(
-      task.sequence(publishArtifacts.value)(): _*
+      Task.sequence(publishArtifacts.value)(): _*
     )
   }
 
-  private def checkBintrayCreds(credentials: String): Task[String] = task.anon {
+  private def checkBintrayCreds(credentials: String): Task[String] = Task.anon {
     if (credentials.isEmpty) {
       (for {
-        username <- task.env.get("BINTRAY_USERNAME")
-        password <- task.env.get("BINTRAY_PASSWORD")
+        username <- Task.env.get("BINTRAY_USERNAME")
+        password <- Task.env.get("BINTRAY_PASSWORD")
       } yield {
         Result.Success(s"$username:$password")
       }).getOrElse(

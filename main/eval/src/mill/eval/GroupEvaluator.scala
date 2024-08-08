@@ -42,7 +42,7 @@ private[mill] trait GroupEvaluator {
     this.threadCount.getOrElse(Runtime.getRuntime().availableProcessors())
 
   /**
-   * Synchronize evaluations of the same terminal task.
+   * Synchronize evaluations of the same terminal Task.
    * This isn't necessarily needed for normal Mill executions,
    * but in an BSP context, where multiple requests where handled concurrently in the same Mill instance,
    * evaluating the same task concurrently  can happen.
@@ -316,9 +316,9 @@ private[mill] trait GroupEvaluator {
 
         override def rawOutputStream: PrintStream = logger.rawOutputStream
       }
-      // This is used to track the usage of `task.dest` in more than one Task
+      // This is used to track the usage of `Task.dest` in more than one Task
       // But it's not really clear what issue we try to prevent here
-      // Vice versa, being able to use task.dest in multiple `task.anon`
+      // Vice versa, being able to use Task.dest in multiple `Task.anon`
       // is rather essential to split up larger tasks into small parts
       // So I like to disable this detection for now
       var usedDest = Option.empty[(Task[_], Array[StackTraceElement])]
@@ -369,7 +369,7 @@ private[mill] trait GroupEvaluator {
         newResults(task) = for (v <- res) yield {
           (
             v,
-            if (task.isInstanceOf[Worker[_]]) inputsHash
+            if (Task.isInstanceOf[Worker[_]]) inputsHash
             else v.##
           )
         }

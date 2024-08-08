@@ -5,13 +5,13 @@ import mill.util.Util.millProjectModule
 import mill.playlib.api.RouteCompilerType
 import mill.scalalib._
 import mill.scalalib.api._
-import mill.{Agg, T, task}
+import mill.{Agg, T, Task}
 
 trait RouterModule extends ScalaModule with Version {
 
-  def routes: T[Seq[PathRef]] = task.sources { millSourcePath / "routes" }
+  def routes: T[Seq[PathRef]] = Task.sources { millSourcePath / "routes" }
 
-  def routeFiles = task {
+  def routeFiles = Task {
     val paths = routes().flatMap(file => os.walk(file.path))
     val routeFiles = paths.filter(_.ext == "routes") ++ paths.filter(_.last == "routes")
     routeFiles.map(f => PathRef(f))
@@ -45,7 +45,7 @@ trait RouterModule extends ScalaModule with Version {
    */
   def generatorType: RouteCompilerType = RouteCompilerType.InjectedGenerator
 
-  def routerClasspath: T[Agg[PathRef]] = task {
+  def routerClasspath: T[Agg[PathRef]] = Task {
     defaultResolver().resolveDeps(
       playMinorVersion() match {
         case "2.6" | "2.7" | "2.8" =>
@@ -60,8 +60,8 @@ trait RouterModule extends ScalaModule with Version {
 
   protected val routeCompilerWorker: RouteCompilerWorkerModule = RouteCompilerWorkerModule
 
-  def compileRouter: T[CompilationResult] = task.persistent {
-    task.log.debug(s"compiling play routes with ${playVersion()} worker")
+  def compileRouter: T[CompilationResult] = Task.persistent {
+    Task.log.debug(s"compiling play routes with ${playVersion()} worker")
     routeCompilerWorker.routeCompilerWorker().compile(
       routerClasspath = playRouterToolsClasspath(),
       files = routeFiles().map(_.path),
@@ -70,11 +70,11 @@ trait RouterModule extends ScalaModule with Version {
       reverseRouter = generateReverseRouter,
       namespaceReverseRouter = namespaceReverseRouter,
       generatorType = generatorType,
-      dest = task.dest
+      dest = Task.dest
     )
   }
 
-  def playRouteCompilerWorkerClasspath = task {
+  def playRouteCompilerWorkerClasspath = Task {
     millProjectModule(
       s"mill-contrib-playlib-worker-${playMinorVersion()}",
       repositoriesTask(),
@@ -85,15 +85,15 @@ trait RouterModule extends ScalaModule with Version {
     )
   }
 
-  def playRouterToolsClasspath = task {
+  def playRouterToolsClasspath = Task {
     playRouteCompilerWorkerClasspath() ++ routerClasspath()
   }
 
-  def routerClasses = task {
+  def routerClasses = Task {
     Seq(compileRouter().classes)
   }
 
-  override def generatedSources = task {
+  override def generatedSources = Task {
     super.generatedSources() ++ routerClasses()
   }
 }

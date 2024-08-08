@@ -31,7 +31,7 @@ trait AcyclicModule extends CrossScalaModule with PublishModule {
   def compileIvyDeps = Agg(Deps.scalaCompiler(crossScalaVersion))
 
   object test extends ScalaTests with TestModule.Utest {
-    def sources = task.sources(millSourcePath / "src", millSourcePath / "resources")
+    def sources = Task.sources(millSourcePath / "src", millSourcePath / "resources")
     def ivyDeps = Agg(Deps.utest, Deps.scalaCompiler(crossScalaVersion))
   }
 }

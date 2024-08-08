@@ -101,7 +101,7 @@ error: Missing argument: --text <str>
 // corresponding to the task that created it. e.g. The `assembly` task puts its
 // metadata output in `out/assembly.json`, and its output files in
 // `out/assembly.dest`. You can also use `show` to make Mill print out the
-// metadata output for a particular task.
+// metadata output for a particular Task.
 //
 // Additional Mill tasks you would likely need include:
 //
@@ -123,7 +123,7 @@ error: Missing argument: --text <str>
 // You can run `+mill resolve __+` to see a full list of the different tasks that
 // are available, `+mill resolve _+` to see the tasks within `foo`,
 // `mill inspect compile` to inspect a task's doc-comment documentation or what
-// it depends on, or `mill show foo.scalaVersion` to show the output of any task.
+// it depends on, or `mill show foo.scalaVersion` to show the output of any Task.
 //
 // The most common *tasks* that Mill can run are cached *targets*, such as
 // `compile`, and un-cached *commands* such as `foo.run`. Targets do not

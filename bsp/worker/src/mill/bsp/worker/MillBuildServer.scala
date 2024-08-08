@@ -59,10 +59,10 @@ import ch.epfl.scala.bsp4j.{
 }
 import ch.epfl.scala.bsp4j
 import com.google.gson.JsonObject
-import mill.{task, T}
+import mill.{Task, T}
 import mill.api.{DummyTestReporter, Result, Strict}
 import mill.define.Segment.Label
-import mill.define.{Args, Discover, ExternalModule, Task}
+import mill.define.{Args, Discover, ExternalModule}
 import mill.eval.Evaluator
 import mill.main.MainModule
 import mill.scalalib.{JavaModule, SemanticDbJavaModule, TestModule}
@@ -303,13 +303,13 @@ private class MillBuildServer(
       targetIds = _ => sourcesParams.getTargets.asScala.toSeq,
       tasks = {
         case module: MillBuildRootModule =>
-          task.anon {
+          Task.anon {
             module.scriptSources().map(p => sourceItem(p.path, false)) ++
               module.sources().map(p => sourceItem(p.path, false)) ++
               module.generatedSources().map(p => sourceItem(p.path, true))
           }
         case module: JavaModule =>
-          task.anon {
+          Task.anon {
             module.sources().map(p => sourceItem(p.path, false)) ++
               module.generatedSources().map(p => sourceItem(p.path, true))
           }
@@ -327,7 +327,7 @@ private class MillBuildServer(
     completable(s"buildtargetInverseSources ${p}") { state =>
       val tasksEvaluators = state.bspModulesById.iterator.collect {
         case (id, (m: JavaModule, ev)) =>
-          task.anon {
+          Task.anon {
             val src = m.allSourceFiles()
             val found = src.map(sanitizeUri).contains(
               p.getTextDocument.getUri
@@ -366,7 +366,7 @@ private class MillBuildServer(
       targetIds = _ => p.getTargets.asScala.toSeq,
       tasks = {
         case m: JavaModule =>
-          task.anon {
+          Task.anon {
             (
               m.defaultResolver().resolveDeps(
                 m.transitiveCompileIvyDeps() ++ m.transitiveIvyDeps(),
@@ -405,7 +405,7 @@ private class MillBuildServer(
       hint = "buildTargetDependencyModules",
       targetIds = _ => params.getTargets.asScala.toSeq,
       tasks = { case m: JavaModule =>
-        task.anon { (m.transitiveCompileIvyDeps(), m.transitiveIvyDeps(), m.unmanagedClasspath()) }
+        Task.anon { (m.transitiveCompileIvyDeps(), m.transitiveIvyDeps(), m.unmanagedClasspath()) }
       }
     ) {
       case (
@@ -435,8 +435,8 @@ private class MillBuildServer(
       s"buildTargetResources ${p}",
       targetIds = _ => p.getTargets.asScala.toSeq,
       tasks = {
-        case m: JavaModule => task.anon { m.resources() }
-        case _ => task.anon { Nil }
+        case m: JavaModule => Task.anon { m.resources() }
+        case _ => Task.anon { Nil }
       }
     ) {
       case (ev, state, id, m, resources) =>
@@ -457,7 +457,7 @@ private class MillBuildServer(
         case (m: SemanticDbJavaModule, ev) if clientWantsSemanticDb =>
           (m.compiledClassesAndSemanticDbFiles, ev)
         case (m: JavaModule, ev) => (m.compile, ev)
-        case (m, ev) => task.anon {
+        case (m, ev) => Task.anon {
             Result.Failure(
               s"Don't know how to compile non-Java target ${m.bspBuildTarget.displayName}"
             )
@@ -516,7 +516,7 @@ private class MillBuildServer(
       }.get
 
       val args = params.getArguments.getOrElse(Seq.empty[String])
-      val runTask = module.run(task.anon(Args(args)))
+      val runTask = module.run(Task.anon(Args(args)))
       val runResult = ev.evaluate(
         Strict.Agg(runTask),
         Utils.getBspLoggedReporterPool(runParams.getOriginId, state.bspIdByModule, client),

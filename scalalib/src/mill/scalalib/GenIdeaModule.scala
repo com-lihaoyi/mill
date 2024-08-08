@@ -1,7 +1,6 @@
 package mill.scalalib
 
-import mill.define.Task
-import mill.{Module, PathRef, T, task}
+import mill.{Module, PathRef, T, Task}
 import os.SubPath
 
 /**
@@ -23,16 +22,16 @@ trait GenIdeaModule extends Module {
    * @return
    */
   def ideaJavaModuleFacets(ideaConfigVersion: Int): Task[Seq[JavaFacet]] =
-    task.anon { Seq[JavaFacet]() }
+    Task.anon { Seq[JavaFacet]() }
 
   /**
    * Contribute components to idea config files.
    */
   def ideaConfigFiles(ideaConfigVersion: Int): Task[Seq[IdeaConfigFile]] =
-    task.anon { Seq[IdeaConfigFile]() }
+    Task.anon { Seq[IdeaConfigFile]() }
 
-  def ideaCompileOutput: T[PathRef] = task.persistent {
-    PathRef(task.dest / "classes")
+  def ideaCompileOutput: T[PathRef] = Task.persistent {
+    PathRef(Task.dest / "classes")
   }
 
 }

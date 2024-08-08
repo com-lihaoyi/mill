@@ -36,7 +36,7 @@ trait BspModule extends Module {
    * - [[ScalaBuildTarget]]
    */
   @internal
-  def bspBuildTargetData: Task[Option[(String, AnyRef)]] = task.anon { None }
+  def bspBuildTargetData: Task[Option[(String, AnyRef)]] = Task.anon { None }
 
 }
 

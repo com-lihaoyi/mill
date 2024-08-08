@@ -3,7 +3,6 @@ package mill.scalalib
 import coursier.cache.FileCache
 import coursier.{Dependency, Repository, Resolve}
 import coursier.core.Resolution
-import mill.{task, T}
 import mill.define.Task
 import mill.api.PathRef
 
@@ -24,16 +23,16 @@ trait CoursierModule extends mill.Module {
    * Bind a dependency ([[Dep]]) to the actual module contetxt (e.g. the scala version and the platform suffix)
    * @return The [[BoundDep]]
    */
-  def bindDependency: Task[Dep => BoundDep] = task.anon { dep: Dep =>
+  def bindDependency: Task[Dep => BoundDep] = Task.anon { dep: Dep =>
     BoundDep((resolveCoursierDependency(): @nowarn).apply(dep), dep.force)
   }
 
   @deprecated("To be replaced by bindDependency", "Mill after 0.11.0-M0")
-  def resolveCoursierDependency: Task[Dep => coursier.Dependency] = task.anon {
+  def resolveCoursierDependency: Task[Dep => coursier.Dependency] = Task.anon {
     Lib.depToDependencyJava(_: Dep)
   }
 
-  def defaultResolver: Task[CoursierModule.Resolver] = task.anon {
+  def defaultResolver: Task[CoursierModule.Resolver] = Task.anon {
     new CoursierModule.Resolver(
       repositories = repositoriesTask(),
       bind = bindDependency(),
@@ -52,7 +51,7 @@ trait CoursierModule extends mill.Module {
    * @return The [[PathRef]]s to the resolved files.
    */
   def resolveDeps(deps: Task[Agg[BoundDep]], sources: Boolean = false): Task[Agg[PathRef]] =
-    task.anon {
+    Task.anon {
       Lib.resolveDependencies(
         repositories = repositoriesTask(),
         deps = deps(),
@@ -68,12 +67,12 @@ trait CoursierModule extends mill.Module {
    * Map dependencies before resolving them.
    * Override this to customize the set of dependencies.
    */
-  def mapDependencies: Task[Dependency => Dependency] = task.anon { d: Dependency => d }
+  def mapDependencies: Task[Dependency => Dependency] = Task.anon { d: Dependency => d }
 
   /**
    * The repositories used to resolved dependencies with [[resolveDeps()]].
    */
-  def repositoriesTask: Task[Seq[Repository]] = task.anon {
+  def repositoriesTask: Task[Seq[Repository]] = Task.anon {
     import scala.concurrent.ExecutionContext.Implicits.global
     val repos = Await.result(
       Resolve().finalRepositories.future(),
@@ -91,7 +90,7 @@ trait CoursierModule extends mill.Module {
    * For example, the JavaFX artifacts are known to use OS specific properties.
    * To fix resolution for JavaFX, you could override this task like the following:
    * {{{
-   *     override def resolutionCustomizer = task.anon {
+   *     override def resolutionCustomizer = Task.anon {
    *       Some( (r: coursier.core.Resolution) =>
    *         r.withOsInfo(coursier.core.Activation.Os.fromProperties(sys.props.toMap))
    *       )
@@ -99,7 +98,7 @@ trait CoursierModule extends mill.Module {
    * }}}
    * @return
    */
-  def resolutionCustomizer: Task[Option[Resolution => Resolution]] = task.anon { None }
+  def resolutionCustomizer: Task[Option[Resolution => Resolution]] = Task.anon { None }
 
   /**
    * Customize the coursier file cache.
@@ -107,7 +106,7 @@ trait CoursierModule extends mill.Module {
    * This is rarely needed to be changed, but sometimes e.g you want to load a coursier plugin.
    * Doing so requires adding to coursier's classpath. To do this you could use the following:
    * {{{
-   *   override def coursierCacheCustomizer = task.anon {
+   *   override def coursierCacheCustomizer = Task.anon {
    *      Some( (fc: coursier.cache.FileCache[Task]) =>
    *        fc.withClassLoaders(Seq(classOf[coursier.cache.protocol.S3Handler].getClassLoader))
    *      )
@@ -117,7 +116,7 @@ trait CoursierModule extends mill.Module {
    */
   def coursierCacheCustomizer
       : Task[Option[FileCache[coursier.util.Task] => FileCache[coursier.util.Task]]] =
-    task.anon { None }
+    Task.anon { None }
 
 }
 object CoursierModule {

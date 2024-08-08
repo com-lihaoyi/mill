@@ -13,7 +13,7 @@ import ch.epfl.scala.bsp4j.{
   ScalacOptionsParams,
   ScalacOptionsResult
 }
-import mill.{Agg, T, task}
+import mill.{Agg, T, Task}
 import mill.bsp.worker.Utils.sanitizeUri
 import mill.util.Jvm
 import mill.scalalib.{JavaModule, ScalaModule, TestModule, UnresolvedPath}
@@ -35,13 +35,13 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
         case m: JavaModule =>
           val scalacOptionsTask = m match {
             case m: ScalaModule => m.allScalacOptions
-            case _ => task.anon { Seq.empty[String] }
+            case _ => Task.anon { Seq.empty[String] }
           }
 
           val compileClasspathTask =
             if (enableJvmCompileClasspathProvider) {
               // We have a dedicated request for it
-              task.anon { Agg.empty[UnresolvedPath] }
+              Task.anon { Agg.empty[UnresolvedPath] }
             } else {
               m.bspCompileClasspath
             }
@@ -53,7 +53,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
               m.bspCompileClassesPath
             }
 
-          task.anon {
+          Task.anon {
             (scalacOptionsTask(), compileClasspathTask(), classesPathTask())
           }
       }
@@ -85,7 +85,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
       hint = "buildTarget/scalaMainClasses",
       targetIds = _ => p.getTargets.asScala.toSeq,
       tasks = { case m: JavaModule =>
-        task.anon((m.zincWorker().worker(), m.compile(), m.forkArgs(), m.forkEnv()))
+        Task.anon((m.zincWorker().worker(), m.compile(), m.forkArgs(), m.forkEnv()))
       }
     ) {
       case (ev, state, id, m: JavaModule, (worker, compile, forkArgs, forkEnv)) =>
@@ -112,9 +112,9 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
       targetIds = _ => p.getTargets.asScala.toSeq,
       tasks = {
         case m: TestModule =>
-          task.anon(Some((m.runClasspath(), m.testFramework(), m.testClasspath())))
+          Task.anon(Some((m.runClasspath(), m.testFramework(), m.testClasspath())))
         case _ =>
-          task.anon(None)
+          Task.anon(None)
       }
     ) {
       case (ev, state, id, m: TestModule, Some((classpath, testFramework, testClasspath))) =>

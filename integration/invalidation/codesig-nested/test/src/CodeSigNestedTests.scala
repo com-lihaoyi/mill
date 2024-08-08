@@ -27,7 +27,7 @@ object CodeSigNestedTests extends IntegrationTestSuite {
       val cached = evalStdout("outer.inner.qux")
       assert(cached.out == "")
 
-      // Changing the body of a T{...} block directly invalidates that target,
+      // Changing the body of a Task {...} block directly invalidates that target,
       // but not downstream targets unless the return value changes
       mangleFile(wsRoot / "build.sc", _.replace("running foo", "running foo2"))
       val mangledFoo = evalStdout("outer.inner.qux")
@@ -59,7 +59,7 @@ object CodeSigNestedTests extends IntegrationTestSuite {
           Set("running qux2", "running helperQux")
       )
 
-      // Changing the body of some helper method that gets called by a T{...}
+      // Changing the body of some helper method that gets called by a Task {...}
       // block also invalidates the respective targets, and downstream targets if necessary
 
       mangleFile(wsRoot / "build.sc", _.replace(" 1 ", " 6 "))

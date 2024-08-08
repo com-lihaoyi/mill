@@ -1,6 +1,6 @@
 package mill.contrib.scoverage
 
-import mill.{Agg, T, task}
+import mill.{Agg, T, Task}
 import mill.api.{ClassLoader, Ctx, PathRef}
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi
 import mill.define.{Discover, ExternalModule, Worker}
@@ -39,6 +39,6 @@ class ScoverageReportWorker extends AutoCloseable {
 object ScoverageReportWorker extends ExternalModule {
 
   def scoverageReportWorker: Worker[ScoverageReportWorker] =
-    task.worker { new ScoverageReportWorker() }
+    Task.worker { new ScoverageReportWorker() }
   lazy val millDiscover: Discover[this.type] = Discover[this.type]
 }

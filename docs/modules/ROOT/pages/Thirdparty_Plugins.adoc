@@ -63,7 +63,7 @@ import $ivy.`net.mlbox::mill-antlr:0.1.0`
 import net.mlbox.millantlr.AntlrModule
 
 object foo extends ScalaModule with AntlrModule {
-  override def antlrGrammarSources = task.sources {
+  override def antlrGrammarSources = Task.sources {
     Seq(os.pwd/"someGrammar.g4").map(PathRef(_))
   }
 }
@@ -590,7 +590,7 @@ import com.github.carueda.mill.JBuildInfo
 import mill.{task, T}
 
 object project extends JBuildInfo {
-  def buildInfoMembers: T[Map[String, String]] = task {
+  def buildInfoMembers: T[Map[String, String]] = Task {
     Map(
       "name" -> "some name",
       "version" -> "x.y.z"
@@ -802,7 +802,7 @@ object project extends ScalaModule with OsgiBundleModule {
 
   def bundleSymbolicName = "com.example.project"
 
-  def osgiHeaders = T{ super.osgiHeaders().copy(
+  def osgiHeaders = Task { super.osgiHeaders().copy(
     `Export-Package`   = Seq("com.example.api"),
     `Bundle-Activator` = Some("com.example.internal.Activator")
   )}

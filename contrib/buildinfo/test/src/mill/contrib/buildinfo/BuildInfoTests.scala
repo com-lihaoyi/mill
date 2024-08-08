@@ -169,7 +169,7 @@ object BuildInfoTests extends TestSuite {
     "run" - workspaceTest(BuildInfoPlain, "scala") { eval =>
       val runResult = eval.outPath / "hello-mill"
       val Right((result, evalCount)) =
-        eval.apply(BuildInfoPlain.run(task.anon(Args(runResult.toString))))
+        eval.apply(BuildInfoPlain.run(Task.anon(Args(runResult.toString))))
 
       assert(
         os.exists(runResult),
@@ -188,7 +188,7 @@ object BuildInfoTests extends TestSuite {
       val runResult = eval.outPath / "hello-mill"
 
       val Right((result2, evalCount2)) =
-        eval.apply(BuildInfoStatic.run(task.anon(Args(runResult.toString))))
+        eval.apply(BuildInfoStatic.run(Task.anon(Args(runResult.toString))))
 
       assert(os.exists(buildInfoSourcePath(eval)))
       assert(!os.exists(buildInfoResourcePath(eval)))
@@ -199,7 +199,7 @@ object BuildInfoTests extends TestSuite {
     "java" - workspaceTest(BuildInfoJava, "java") { eval =>
       val runResult = eval.outPath / "hello-mill"
       val Right((result, evalCount)) =
-        eval.apply(BuildInfoJava.run(task.anon(Args(runResult.toString))))
+        eval.apply(BuildInfoJava.run(Task.anon(Args(runResult.toString))))
 
       assert(
         os.exists(runResult),
@@ -211,7 +211,7 @@ object BuildInfoTests extends TestSuite {
       val runResult = eval.outPath / "hello-mill"
       val generatedSrc = eval.outPath / "buildInfoSources.dest" / "foo" / "BuildInfo.java"
       val Right((result, evalCount)) =
-        eval.apply(BuildInfoJavaStatic.run(task.anon(Args(runResult.toString))))
+        eval.apply(BuildInfoJavaStatic.run(Task.anon(Args(runResult.toString))))
 
       assert(
         os.exists(runResult),

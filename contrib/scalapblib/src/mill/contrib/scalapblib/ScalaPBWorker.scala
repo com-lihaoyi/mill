@@ -4,7 +4,7 @@ package contrib.scalapblib
 import java.io.File
 
 import mill.api.PathRef
-import mill.{task, T}
+import mill.{Task, T}
 import mill.define.{Discover, ExternalModule, Worker}
 
 class ScalaPBWorker extends AutoCloseable {
@@ -126,6 +126,6 @@ trait ScalaPBWorkerApi {
 }
 
 object ScalaPBWorkerApi extends ExternalModule {
-  def scalaPBWorker: Worker[ScalaPBWorker] = task.worker { new ScalaPBWorker() }
+  def scalaPBWorker: Worker[ScalaPBWorker] = Task.worker { new ScalaPBWorker() }
   lazy val millDiscover: Discover[this.type] = Discover[this.type]
 }

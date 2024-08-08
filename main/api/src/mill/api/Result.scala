@@ -5,7 +5,7 @@ import scala.language.implicitConversions
 /**
  * The result of a task execution.
  *
- * @tparam T The result type of the computed task.
+ * @tparam T The result type of the computed Task.
  */
 sealed trait Result[+T] {
   def map[V](f: T => V): Result[V]
@@ -29,8 +29,8 @@ object Result {
 
   /**
    * A successful task execution.
-   * @param value The value computed by the task.
-   * @tparam T The result type of the computed task.
+   * @param value The value computed by the Task.
+   * @tparam T The result type of the computed Task.
    */
   case class Success[+T](value: T) extends Result[T] {
     def map[V](f: T => V): Success[V] = Result.Success(f(value))
@@ -56,7 +56,7 @@ object Result {
 
   /**
    * A failed task execution.
-   * @tparam T The result type of the computed task.
+   * @tparam T The result type of the computed Task.
    */
   sealed trait Failing[+T] extends java.lang.Exception with Result[T] {
     def map[V](f: T => V): Failing[V]
@@ -69,7 +69,7 @@ object Result {
    * An intensional failure, which provides a proper error message as well as an optional result value.
    * @param msg The error message.
    * @param value The optional result value.
-   * @tparam T The result type of the computed task.
+   * @tparam T The result type of the computed Task.
    */
   case class Failure[T](msg: String, value: Option[T] = None) extends Failing[T] {
     def map[V](f: T => V): Failure[V] = Result.Failure(msg, value.map(f(_)))
@@ -80,7 +80,7 @@ object Result {
   /**
    * An (mostly) unintentionally failed task which the exception that caused the failure.
    * @param throwable The exception that describes or caused the failure.
-   * @param outerStack The [[OuterStack]] of the failed task.
+   * @param outerStack The [[OuterStack]] of the failed Task.
    */
   case class Exception(throwable: Throwable, outerStack: OuterStack) extends Failing[Nothing] {
     def map[V](f: Nothing => V): Exception = this

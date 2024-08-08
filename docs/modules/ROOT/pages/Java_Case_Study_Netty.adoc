@@ -434,7 +434,7 @@ which we will explore below
 ```scala
 trait NettyModule extends NettyBaseModule{
   def testModuleDeps: Seq[MavenModule] = Nil
-  def testIvyDeps: T[Agg[mill.scalalib.Dep]] = T{ Agg() }
+  def testIvyDeps: T[Agg[mill.scalalib.Dep]] = Task { Agg() }
 
   object test extends NettyTestSuiteModule with MavenTests{
     def moduleDeps = super.moduleDeps ++ testModuleDeps
@@ -579,25 +579,25 @@ import $ivy.`ant:ant-optional:1.5.3-1`
 
 object common extends NettyModule{
   ...
-  def script = task.source(millSourcePath / "src" / "main" / "script")
-  def generatedSources0 = T{
+  def script = Task.source(millSourcePath / "src" / "main" / "script")
+  def generatedSources0 = Task {
     val shell = new groovy.lang.GroovyShell()
     val context = new java.util.HashMap[String, Object]
 
     context.put("collection.template.dir", "common/src/main/templates")
     context.put("collection.template.test.dir", "common/src/test/templates")
-    context.put("collection.src.dir", (task.dest / "src").toString)
-    context.put("collection.testsrc.dir", (task.dest / "testsrc").toString)
+    context.put("collection.src.dir", (Task.dest / "src").toString)
+    context.put("collection.testsrc.dir", (Task.dest / "testsrc").toString)
 
     shell.setProperty("properties", context)
     shell.setProperty("ant", new groovy.ant.AntBuilder())
 
     shell.evaluate((script().path / "codegen.groovy").toIO)
 
-    (PathRef(task.dest / "src"), PathRef(task.dest / "testsrc"))
+    (PathRef(Task.dest / "src"), PathRef(Task.dest / "testsrc"))
   }
 
-  def generatedSources = T{ Seq(generatedSources0()._1)}
+  def generatedSources = Task { Seq(generatedSources0()._1)}
 }
 ```
 
@@ -695,28 +695,28 @@ with the `make` command essentially being a bash script wrapped in layers of XML
 In contrast, the Mill configuration for this logic is as follows:
 
 ```scala
-def makefile = task.source(millSourcePath / "Makefile")
-def cSources = task.source(millSourcePath / "src" / "main" / "c")
-def cHeaders = T{
+def makefile = Task.source(millSourcePath / "Makefile")
+def cSources = Task.source(millSourcePath / "src" / "main" / "c")
+def cHeaders = Task {
   for(p <- os.walk(cSources().path) if p.ext == "h"){
-    os.copy(p, task.dest / p.relativeTo(cSources().path), createFolders = true)
+    os.copy(p, Task.dest / p.relativeTo(cSources().path), createFolders = true)
   }
-  PathRef(task.dest)
+  PathRef(Task.dest)
 }
 
-def make = T{
-  os.copy(makefile().path, task.dest / "Makefile")
-  os.copy(cSources().path, task.dest / "src" / "main" / "c", createFolders = true)
+def make = Task {
+  os.copy(makefile().path, Task.dest / "Makefile")
+  os.copy(cSources().path, Task.dest / "src" / "main" / "c", createFolders = true)
 
   val Seq(sourceJar) = resolveDeps(
-    deps = task.anon(Agg(ivy"io.netty:netty-jni-util:0.0.9.Final").map(bindDependency())),
+    deps = Task.anon(Agg(ivy"io.netty:netty-jni-util:0.0.9.Final").map(bindDependency())),
     sources = true
   )().toSeq
 
-  os.proc("jar", "xf", sourceJar.path).call(cwd = task.dest  / "src" / "main" / "c")
+  os.proc("jar", "xf", sourceJar.path).call(cwd = Task.dest  / "src" / "main" / "c")
 
   os.proc("make").call(
-    cwd = task.dest,
+    cwd = Task.dest,
     env = Map(
       "CC" -> "clang",
       "AR" -> "ar",
@@ -736,7 +736,7 @@ def make = T{
     )
   )
 
-  (PathRef(task.dest / "lib-out"), PathRef(task.dest / "obj-out"))
+  (PathRef(Task.dest / "lib-out"), PathRef(Task.dest / "obj-out"))
 }
 ```
 

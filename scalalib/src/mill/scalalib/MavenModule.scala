@@ -1,6 +1,6 @@
 package mill.scalalib
 
-import mill.{task, T}
+import mill.{Task, T}
 
 /**
  * A [[JavaModule]] with a Maven compatible directory layout.
@@ -9,10 +9,10 @@ import mill.{task, T}
  */
 trait MavenModule extends JavaModule { outer =>
 
-  override def sources = task.sources(
+  override def sources = Task.sources(
     millSourcePath / "src" / "main" / "java"
   )
-  override def resources = task.sources {
+  override def resources = Task.sources {
     millSourcePath / "src" / "main" / "resources"
   }
 
@@ -22,10 +22,10 @@ trait MavenModule extends JavaModule { outer =>
     override def millSourcePath = outer.millSourcePath
     override def intellijModulePath: os.Path = outer.millSourcePath / "src" / "test"
 
-    override def sources = task.sources(
+    override def sources = Task.sources(
       millSourcePath / "src" / "test" / "java"
     )
-    override def resources = task.sources {
+    override def resources = Task.sources {
       millSourcePath / "src" / "test" / "resources"
     }
   }

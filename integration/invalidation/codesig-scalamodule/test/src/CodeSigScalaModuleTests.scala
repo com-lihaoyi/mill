@@ -34,7 +34,7 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
           )
       )
 
-      // Changing the body of a T{...} block directly invalidates that target
+      // Changing the body of a Task {...} block directly invalidates that target
       // and any downstream targets
       mangleFile(wsRoot / "build.sc", _.replace("Foo running...", "FOO RUNNING"))
       val mangledFoo = evalStdout("foo.run")

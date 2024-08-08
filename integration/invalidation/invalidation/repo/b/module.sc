@@ -1,7 +1,7 @@
 import mill._
 import $file.inputD
 
-def input = task {
+def input = Task {
   inputD.method()
   println("b")
 }

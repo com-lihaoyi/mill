@@ -56,7 +56,7 @@ object HelloNativeWorldTests extends TestSuite {
     trait RootModule extends HelloNativeWorldModule {
       override def artifactName = "hello-native-world"
       def scalaNativeVersion = sNativeVersion
-      def releaseMode = task { mode }
+      def releaseMode = Task { mode }
       def pomSettings = PomSettings(
         organization = "com.lihaoyi",
         description = "hello native world ready for real world publishing",
@@ -70,7 +70,7 @@ object HelloNativeWorldTests extends TestSuite {
     object buildUTest extends Cross[BuildModuleUtest](matrix)
     trait BuildModuleUtest extends RootModule {
       object test extends ScalaNativeTests with TestModule.Utest {
-        override def sources = task.sources { millSourcePath / "src" / "utest" }
+        override def sources = Task.sources { millSourcePath / "src" / "utest" }
         override def ivyDeps = super.ivyDeps() ++ Agg(
           ivy"com.lihaoyi::utest::${
               if (scalaNativeVersion().startsWith("0.4")) utestForNative04Version
@@ -229,11 +229,11 @@ object HelloNativeWorldTests extends TestSuite {
     }
 
     def checkRun(scalaVersion: String, scalaNativeVersion: String, mode: ReleaseMode): Unit = {
-      val task0 =
+      val task =
         HelloNativeWorld.helloNativeWorld(scalaVersion, scalaNativeVersion, mode).nativeLink
-      val Right((_, evalCount)) = helloWorldEvaluator(task0)
+      val Right((_, evalCount)) = helloWorldEvaluator(task)
 
-      val paths = EvaluatorPaths.resolveDestPaths(helloWorldEvaluator.outPath, task0)
+      val paths = EvaluatorPaths.resolveDestPaths(helloWorldEvaluator.outPath, task)
       val stdout = os.proc(paths.dest / "out").call().out.lines()
       assert(
         stdout.contains("Hello Scala Native"),

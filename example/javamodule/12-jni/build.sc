@@ -2,16 +2,16 @@ import mill._, javalib._, util.Jvm
 
 object foo extends RootModule with JavaModule {
   // Additional source folder to put C sources
-  def nativeSources = task.sources(millSourcePath / "native-src")
+  def nativeSources = Task.sources(millSourcePath / "native-src")
 
   // Auto-generate JNI `.h` files from Java classes using Javac
-  def nativeHeaders = task {
-    os.proc(Jvm.jdkTool("javac"), "-h", task.dest, "-d", task.dest.toString, allSourceFiles().map(_.path)).call()
-    PathRef(task.dest)
+  def nativeHeaders = Task {
+    os.proc(Jvm.jdkTool("javac"), "-h", Task.dest, "-d", Task.dest.toString, allSourceFiles().map(_.path)).call()
+    PathRef(Task.dest)
   }
 
   // Compile C
-  def nativeCompiled = T{
+  def nativeCompiled = Task {
     val cSourceFiles = nativeSources().map(_.path).flatMap(os.walk(_)).filter(_.ext == "c")
     val output = "libhelloworld.so"
     os.proc(
@@ -20,12 +20,12 @@ object foo extends RootModule with JavaModule {
         "-I" + sys.props("java.home") + "/include/", // global JVM header files
         "-I" + sys.props("java.home") + "/include/darwin",
         "-I" + sys.props("java.home") + "/include/linux",
-        "-o", task.dest / output,
+        "-o", Task.dest / output,
         cSourceFiles
       )
       .call(stdout = os.Inherit)
 
-    PathRef(task.dest / output)
+    PathRef(Task.dest / output)
   }
 
   def forkEnv = Map("HELLO_WORLD_BINARY" -> nativeCompiled().path.toString)

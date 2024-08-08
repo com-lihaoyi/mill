@@ -12,9 +12,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 /**
  * Test to make sure that `--watch` works in the following cases:
  *
- * 1. `task.source`
- * 2. `task.sources`
- * 3. `task.input`
+ * 1. `Task.source`
+ * 2. `Task.sources`
+ * 3. `Task.input`
  * 4. `interp.watchValue`
  * 5. Implicitly watched files, like `build.sc`
  */

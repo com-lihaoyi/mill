@@ -7,7 +7,7 @@ trait JUnitTests extends TestModule.Junit4 {
    * Overridden ivyDeps Docs!!!
    */
   def ivyDeps = Agg(ivy"com.novocode:junit-interface:0.11")
-  def task0 = task {
+  def task = Task {
     "???"
   }
 }
@@ -21,7 +21,7 @@ object core extends JavaModule {
   /**
    * Core Target Docz!
    */
-  def target = task {
+  def target = Task {
     import collection.JavaConverters._
     println(this.getClass.getClassLoader.getResources("scalac-plugin.xml").asScala.toList)
     "Hello!"

@@ -6,10 +6,10 @@ object foo extends RootModule with ScalaModule {
   def scalaVersion = myScalaVersion
 
   def ivyDeps = Agg(ivy"com.lihaoyi::os-lib:0.9.1")
-  def htmlSnippet = T{ div(h1("hello"), p("world")).toString }
-  def resources = task.sources{
-    os.write(task.dest / "snippet.txt", htmlSnippet())
-    super.resources() ++ Seq(PathRef(task.dest))
+  def htmlSnippet = Task { div(h1("hello"), p("world")).toString }
+  def resources = Task.sources{
+    os.write(Task.dest / "snippet.txt", htmlSnippet())
+    super.resources() ++ Seq(PathRef(Task.dest))
   }
 }
 

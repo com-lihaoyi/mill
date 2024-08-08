@@ -36,7 +36,7 @@ object TutorialTests extends TestSuite {
 
   object TutorialWithAdditionalArgs extends TutorialBase {
     object core extends TutorialModule {
-      override def scalaPBAdditionalArgs = task {
+      override def scalaPBAdditionalArgs = Task {
         Seq(
           "--additional-test=..."
         )
@@ -46,7 +46,7 @@ object TutorialTests extends TestSuite {
 
   object TutorialWithSpecificSources extends TutorialBase {
     object core extends TutorialModule {
-      override def scalaPBSources: T[Seq[PathRef]] = task.sources {
+      override def scalaPBSources: T[Seq[PathRef]] = Task.sources {
         millSourcePath / "protobuf" / "tutorial" / "Tutorial.proto"
       }
 

@@ -28,7 +28,7 @@ object DottyDocTests extends TestSuite {
   object MultiDocsModule extends TestBase {
     object multidocs extends ScalaModule {
       def scalaVersion = "0.24.0-RC1"
-      def docResources = task.sources(
+      def docResources = Task.sources(
         millSourcePath / "docs1",
         millSourcePath / "docs2"
       )

@@ -5,7 +5,7 @@ import mill._, javalib._
 object foo extends RootModule with JavaModule {
   def ivyDeps = Agg(ivy"net.sourceforge.argparse4j:argparse4j:0.9.0")
 
-  def generatedSources: T[Seq[PathRef]] = task {
+  def generatedSources: T[Seq[PathRef]] = Task {
     val prettyIvyDeps = for(ivyDep <- ivyDeps()) yield {
       val org = ivyDep.dep.module.organization.value
       val name = ivyDep.dep.module.name.value
@@ -14,7 +14,7 @@ object foo extends RootModule with JavaModule {
     }
     val ivyDepsString = prettyIvyDeps.mkString(" + \"\\n\" + \n")
     os.write(
-      task.dest / s"MyDeps.java",
+      Task.dest / s"MyDeps.java",
       s"""
          |package foo;
          |public class MyDeps {
@@ -24,10 +24,10 @@ object foo extends RootModule with JavaModule {
       """.stripMargin
     )
 
-    Seq(PathRef(task.dest))
+    Seq(PathRef(Task.dest))
   }
 
-  def lineCount: T[Int] = task {
+  def lineCount: T[Int] = Task {
     sources()
       .flatMap(pathRef => os.walk(pathRef.path))
       .filter(_.ext == "java")
@@ -37,7 +37,7 @@ object foo extends RootModule with JavaModule {
 
   def forkArgs: T[Seq[String]] = Seq(s"-Dmy.line.count=${lineCount()}")
 
-  def printLineCount() = task.command { println(lineCount()) }
+  def printLineCount() = Task.command { println(lineCount()) }
 }
 
 //// SNIPPET:COMMANDS

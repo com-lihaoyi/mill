@@ -19,19 +19,19 @@ object foo extends RootModule with ScalaModule {
   def mainClass: T[Option[String]] = Some("foo.Foo2")
 
   // Add (or replace) source folders for the module to use
-  def sources = task.sources{
+  def sources = Task.sources{
     super.sources() ++ Seq(PathRef(millSourcePath / "custom-src"))
   }
 
   // Add (or replace) resource folders for the module to use
-  def resources = task.sources{
+  def resources = Task.sources{
     super.resources() ++ Seq(PathRef(millSourcePath / "custom-resources"))
   }
 
   // Generate sources at build time
-  def generatedSources: T[Seq[PathRef]] = task {
+  def generatedSources: T[Seq[PathRef]] = Task {
     for(name <- Seq("A", "B", "C")) os.write(
-      task.dest / s"Foo$name.scala",
+      Task.dest / s"Foo$name.scala",
       s"""
          |package foo
          |object Foo$name {
@@ -40,7 +40,7 @@ object foo extends RootModule with ScalaModule {
       """.stripMargin
     )
 
-    Seq(PathRef(task.dest))
+    Seq(PathRef(Task.dest))
   }
 
   // Pass additional JVM flags when `.run` is called or in the executable
@@ -57,7 +57,7 @@ object foo extends RootModule with ScalaModule {
 //// SNIPPET:END
 
 //
-// Note the use of `millSourcePath`, `task.dest`, and `PathRef` when preforming
+// Note the use of `millSourcePath`, `Task.dest`, and `PathRef` when preforming
 // various filesystem operations:
 //
 // 1. `millSourcePath` refers to the base path of the module. For the root
@@ -65,7 +65,7 @@ object foo extends RootModule with ScalaModule {
 //    the module path e.g. for module `foo.bar.qux` the `millSourcePath` would
 //    be `foo/bar/qux`. This can also be overriden if necessary
 //
-// 2. `task.dest` refers to the destination folder for a task in the `out/`
+// 2. `Task.dest` refers to the destination folder for a task in the `out/`
 //    folder. This is unique to each task, and can act as both a scratch space
 //    for temporary computations as well as a place to put "output" files,
 //    without worrying about filesystem conflicts with other tasks

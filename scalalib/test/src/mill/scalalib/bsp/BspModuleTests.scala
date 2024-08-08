@@ -2,12 +2,12 @@ package mill.scalalib.bsp
 
 import mill.define.Cross
 import mill.eval.EvaluatorPaths
-import mill.{Agg, T, task}
+import mill.{Agg, T, Task}
 import mill.scalalib.{DepSyntax, JavaModule, ScalaModule}
 import mill.util.{TestEvaluator, TestUtil}
 import os.FilePath
 import utest.framework.TestPath
-import utest.{TestSuite, Tests, test, _}
+import utest._
 
 object BspModuleTests extends TestSuite {
 

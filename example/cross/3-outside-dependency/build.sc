@@ -4,12 +4,12 @@ import mill._
 
 object foo extends Cross[FooModule]("2.10", "2.11", "2.12")
 trait FooModule extends Cross.Module[String] {
-  def suffix = task { "_" + crossValue }
+  def suffix = Task { "_" + crossValue }
 }
 
-def bar = task { s"hello ${foo("2.10").suffix()}" }
+def bar = Task { s"hello ${foo("2.10").suffix()}" }
 
-def qux = task { s"hello ${foo("2.10").suffix()} world ${foo("2.12").suffix()}" }
+def qux = Task { s"hello ${foo("2.10").suffix()} world ${foo("2.12").suffix()}" }
 
 // [graphviz]
 // ....

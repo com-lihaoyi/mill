@@ -2,7 +2,7 @@ import scala.util.Properties
 import mill._
 
 
-def inheritInterleaved = task {
+def inheritInterleaved = Task {
   for (i <- Range.inclusive(1, 9)) {
     println("print stdout" + i)
     val echoCommandStdout =
@@ -17,7 +17,7 @@ def inheritInterleaved = task {
   }
 }
 
-def inheritRaw = T{
+def inheritRaw = Task {
   println("print stdoutRaw")
   val echoCommandStdoutRaw =
     if (Properties.isWin) Seq("cmd.exe", "/C", "echo proc stdoutRaw")

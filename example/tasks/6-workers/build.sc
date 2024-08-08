@@ -1,4 +1,4 @@
-// Mill workers defined using `task.worker` are long-lived in-memory objects that
+// Mill workers defined using `Task.worker` are long-lived in-memory objects that
 // can persistent across multiple evaluations. These are similar to persistent
 // targets in that they let you cache things, but the fact that they let you
 // cache the worker object in-memory allows for greater performance and
@@ -11,19 +11,19 @@ import java.util.Arrays
 import java.io.ByteArrayOutputStream
 import java.util.zip.GZIPOutputStream
 
-def data = task.source(millSourcePath / "data")
+def data = Task.source(millSourcePath / "data")
 
-def compressWorker = task.worker{ new CompressWorker(task.dest) }
+def compressWorker = Task.worker{ new CompressWorker(Task.dest) }
 
-def compressedData = T{
+def compressedData = Task {
   println("Evaluating compressedData")
   for(p <- os.list(data().path)){
     os.write(
-      task.dest / s"${p.last}.gz",
+      Task.dest / s"${p.last}.gz",
       compressWorker().compress(p.last, os.read.bytes(p))
     )
   }
-  os.list(task.dest).map(PathRef(_))
+  os.list(Task.dest).map(PathRef(_))
 }
 
 class CompressWorker(dest: os.Path){
@@ -69,7 +69,7 @@ def compressBytes(input: Array[Byte]) = {
 // workers after every command. Commands run repeatedly using `--watch` will
 // also preserve the workers between them.
 //
-// Workers can also make use of their `task.dest` folder as a cache that persist
+// Workers can also make use of their `Task.dest` folder as a cache that persist
 // when the worker shuts down, as a second layer of caching. The example usage
 // below demonstrates how using the `--no-server` flag will make the worker
 // read from its disk cache, where it would have normally read from its
@@ -121,4 +121,4 @@ class MyWorker() extends AutoCloseable {
   override def close() = { /* cleanup and free resources */ }
 }
 
-def myWorker = task.worker { new MyWorker() }
+def myWorker = Task.worker { new MyWorker() }

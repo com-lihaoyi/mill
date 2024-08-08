@@ -6,7 +6,7 @@ import mill._
 object foo extends Cross[FooModule]("2.10", "2.11", "2.12")
 trait FooModule extends Cross.Module[String] {
   def millSourcePath = super.millSourcePath / crossValue
-  def sources = task.sources(millSourcePath)
+  def sources = Task.sources(millSourcePath)
 }
 
 // By default, cross modules do not include the cross key as part of the

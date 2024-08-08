@@ -26,7 +26,7 @@ trait PlatformScalaModule extends ScalaModule {
     .collect { case l: mill.define.Segment.Label => l.value }
     .last
 
-  override def sources: T[Seq[PathRef]] = task.sources {
+  override def sources: T[Seq[PathRef]] = Task.sources {
     super.sources().flatMap { source =>
       val platformPath =
         PathRef(source.path / _root_.os.up / s"${source.path.last}-${platformScalaSuffix}")

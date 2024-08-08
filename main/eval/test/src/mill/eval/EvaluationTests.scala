@@ -1,8 +1,8 @@
 package mill.eval
 
 import mill.util.TestUtil.{Test, test}
-import mill.define.{TargetImpl, Task}
-import mill.{task, T}
+import mill.define.TargetImpl
+import mill.{Task, T}
 import mill.util.{TestEvaluator, TestGraphs, TestUtil}
 import mill.api.Strict.Agg
 import os.SubPath
@@ -304,11 +304,11 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
           var leftCount = 0
           var rightCount = 0
           var middleCount = 0
-          def up = task { test.anon() }
-          def left = task.anon { leftCount += 1; up() + 1 }
-          def middle = task.anon { middleCount += 1; 100 }
-          def right = task { rightCount += 1; 10000 }
-          def down = task { left() + middle() + right() }
+          def up = Task { test.anon() }
+          def left = Task.anon { leftCount += 1; up() + 1 }
+          def middle = Task.anon { middleCount += 1; 100 }
+          def right = Task { rightCount += 1; 10000 }
+          def down = Task { left() + middle() + right() }
         }
 
         import build._

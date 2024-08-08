@@ -4,23 +4,23 @@ import mill._
 
 def mainClass: T[Option[String]] = Some("foo.Foo")
 
-def sources = task.source(millSourcePath / "src")
-def resources = task.source(millSourcePath / "resources")
+def sources = Task.source(millSourcePath / "src")
+def resources = Task.source(millSourcePath / "resources")
 
-def compile = task {
+def compile = Task {
   val allSources = os.walk(sources().path)
-  os.proc("javac", allSources, "-d", task.dest).call()
-  PathRef(task.dest)
+  os.proc("javac", allSources, "-d", Task.dest).call()
+  PathRef(Task.dest)
 }
 
-def assembly = task {
-  for(p <- Seq(compile(), resources())) os.copy(p.path, task.dest, mergeFolders = true)
+def assembly = Task {
+  for(p <- Seq(compile(), resources())) os.copy(p.path, Task.dest, mergeFolders = true)
 
   val mainFlags = mainClass().toSeq.flatMap(Seq("-e", _))
-  os.proc("jar", "-c", mainFlags, "-f", task.dest / s"assembly.jar", ".")
-    .call(cwd = task.dest)
+  os.proc("jar", "-c", mainFlags, "-f", Task.dest / s"assembly.jar", ".")
+    .call(cwd = Task.dest)
 
-  PathRef(task.dest / s"assembly.jar")
+  PathRef(Task.dest / s"assembly.jar")
 }
 
 // This code defines the following task graph, with the boxes being the tasks
@@ -39,8 +39,8 @@ def assembly = task {
 //
 // This example does not use any of Mill's builtin support for building Java or
 // Scala projects, and instead builds a pipeline "from scratch" using Mill
-// tasks and `javac`/`jar`/`java` subprocesses. We define `task.source` folders,
-// plain `T{...}` targets that depend on them, and a `task.command`.
+// tasks and `javac`/`jar`/`java` subprocesses. We define `Task.source` folders,
+// plain `Task {...}` targets that depend on them, and a `Task.command`.
 
 /** Usage
 

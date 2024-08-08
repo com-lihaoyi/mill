@@ -11,14 +11,14 @@ trait UnidocModule extends ScalaModule {
 
   def unidocVersion: T[Option[String]] = None
 
-  def unidocCommon(local: Boolean) = task.anon {
+  def unidocCommon(local: Boolean) = Task.anon {
     def unidocCompileClasspath =
-      Seq(compile().classes) ++ task.traverse(moduleDeps)(_.compileClasspath)().flatten
+      Seq(compile().classes) ++ Task.traverse(moduleDeps)(_.compileClasspath)().flatten
 
     val unidocSourceFiles =
-      allSourceFiles() ++ task.traverse(moduleDeps)(_.allSourceFiles)().flatten
+      allSourceFiles() ++ Task.traverse(moduleDeps)(_.allSourceFiles)().flatten
 
-    task.log.info(s"Staging scaladoc for ${unidocSourceFiles.length} files")
+    Task.log.info(s"Staging scaladoc for ${unidocSourceFiles.length} files")
 
     // the details of the options and zincWorker call are significantly
     // different between scala-2 scaladoc and scala-3 scaladoc
@@ -27,7 +27,7 @@ trait UnidocModule extends ScalaModule {
       "-doc-title",
       "Mill",
       "-d",
-      task.dest.toString,
+      Task.dest.toString,
       "-classpath",
       unidocCompileClasspath.map(_.path).mkString(sys.props("path.separator"))
     ) ++
@@ -41,7 +41,7 @@ trait UnidocModule extends ScalaModule {
           "-doc-source-url",
           url + "€{FILE_PATH}.scala",
           "-sourcepath",
-          task.workspace.toString
+          Task.workspace.toString
         )
       }
 
@@ -52,24 +52,24 @@ trait UnidocModule extends ScalaModule {
       scalacPluginClasspath(),
       options ++ unidocSourceFiles.map(_.path.toString)
     ) match {
-      case true => mill.api.Result.Success(PathRef(task.dest))
+      case true => mill.api.Result.Success(PathRef(Task.dest))
       case false => mill.api.Result.Failure("unidoc generation failed")
     }
   }
 
-  def unidocLocal = task {
+  def unidocLocal = Task {
     unidocCommon(true)()
-    PathRef(task.dest)
+    PathRef(Task.dest)
   }
 
-  def unidocSite = task {
+  def unidocSite = Task {
     unidocCommon(false)()
     for {
       sourceUrl <- unidocSourceUrl()
-      p <- os.walk(task.dest) if p.ext == "scala"
+      p <- os.walk(Task.dest) if p.ext == "scala"
     } {
-      os.write(p, os.read(p).replace(s"file://${task.workspace}", sourceUrl))
+      os.write(p, os.read(p).replace(s"file://${Task.workspace}", sourceUrl))
     }
-    PathRef(task.dest)
+    PathRef(Task.dest)
   }
 }

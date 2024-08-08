@@ -9,19 +9,19 @@ object root extends RootModule with ScalaModule {
     ivy"com.lihaoyi::os-lib:0.9.1"
   )
 
-  def resources = task {
+  def resources = Task {
     val hashMapping = for {
       resourceRoot <- super.resources()
       path <- os.walk(resourceRoot.path)
       if os.isFile(path)
-    } yield hashFile(path, resourceRoot.path, task.dest)
+    } yield hashFile(path, resourceRoot.path, Task.dest)
 
     os.write(
-      task.dest / "hashed-resource-mapping.json",
+      Task.dest / "hashed-resource-mapping.json",
       upickle.default.write(hashMapping.toMap, indent = 4)
     )
 
-    Seq(PathRef(task.dest))
+    Seq(PathRef(Task.dest))
   }
 
   object test extends ScalaTests {

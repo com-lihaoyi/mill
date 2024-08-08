@@ -7,7 +7,7 @@ import scala.language.implicitConversions
  * Provides access to various resources in the context of a currently execution Target.
  */
 object Ctx {
-  @compileTimeOnly("Target.ctx() / task.ctx() / task.* APIs can only be used with a T{...} block")
+  @compileTimeOnly("Target.ctx() / Task.ctx() / Task.* APIs can only be used with a Task {...} block")
   @ImplicitStub
   implicit def taskCtx: Ctx = ???
 
@@ -17,7 +17,7 @@ object Ctx {
   trait Dest {
 
     /**
-     * `task.dest` is a unique `os.Path` (e.g. `out/classFiles.dest/` or `out/run.dest/`)
+     * `Task.dest` is a unique `os.Path` (e.g. `out/classFiles.dest/` or `out/run.dest/`)
      * that is assigned to every Target or Command. It is cleared before your
      * task runs, and you can use it as a scratch space for temporary files or
      * a place to put returned artifacts. This is guaranteed to be unique for
@@ -34,7 +34,7 @@ object Ctx {
   trait Log {
 
     /**
-     * `task.log` is the default logger provided for every task. While your task is running,
+     * `Task.log` is the default logger provided for every Task. While your task is running,
      * `System.out` and `System.in` are also redirected to this logger. The logs for a
      * task are streamed to standard out/error as you would expect, but each task's
      * specific output is also streamed to a log file on disk, e.g. `out/run.log` or
@@ -62,8 +62,8 @@ object Ctx {
   trait Env {
 
     /**
-     * `task.env` is the environment variable map passed to the Mill command when
-     * it is run; typically used inside a `task.input` to ensure any changes in
+     * `Task.env` is the environment variable map passed to the Mill command when
+     * it is run; typically used inside a `Task.input` to ensure any changes in
      * the env vars are properly detected.
      *
      * Note that you should not use `sys.env`, as Mill's long-lived server

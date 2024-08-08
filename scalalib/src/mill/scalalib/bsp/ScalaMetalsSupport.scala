@@ -1,7 +1,7 @@
 package mill.scalalib.bsp
 
 import mill.api.experimental
-import mill.{Agg, T, task}
+import mill.{Agg, T, Task}
 import mill.define.Target
 import mill.scalalib.{Dep, DepSyntax, ScalaModule}
 import mill.api.Result
@@ -16,7 +16,7 @@ import mill.scalalib.api.ZincWorkerUtil
 )
 trait ScalaMetalsSupport extends ScalaModule {
 
-  override def scalacPluginIvyDeps: Target[Agg[Dep]] = task {
+  override def scalacPluginIvyDeps: Target[Agg[Dep]] = Task {
     val sv = scalaVersion()
     val semDbVersion = semanticDbVersion()
     val superRes = super.scalacPluginIvyDeps()
@@ -40,18 +40,18 @@ trait ScalaMetalsSupport extends ScalaModule {
   }
 
   /** Adds some options and configures the semanticDB plugin. */
-  override def mandatoryScalacOptions: Target[Seq[String]] = task {
+  override def mandatoryScalacOptions: Target[Seq[String]] = Task {
     super.mandatoryScalacOptions() ++ {
       if (ZincWorkerUtil.isScala3(scalaVersion())) {
         Seq("-Xsemanticdb")
       } else {
-        Seq("-Yrangepos", s"-P:semanticdb:sourceroot:${task.workspace}")
+        Seq("-Yrangepos", s"-P:semanticdb:sourceroot:${Task.workspace}")
       }
     }
   }
 
   /** Filters options unsupported by Metals. */
-  override def allScalacOptions: Target[Seq[String]] = task {
+  override def allScalacOptions: Target[Seq[String]] = Task {
     super.allScalacOptions().filterNot(_ == "-Xfatal-warnings")
   }
 }

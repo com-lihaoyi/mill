@@ -12,12 +12,12 @@ object root extends RootModule with AppScalaModule {
   def moduleDeps = Seq(shared.jvm)
   def ivyDeps = Agg(ivy"com.lihaoyi::cask:0.9.1")
 
-  def resources = T{
-    os.makeDir(task.dest / "webapp")
+  def resources = Task {
+    os.makeDir(Task.dest / "webapp")
     val jsPath = client.fastLinkJS().dest.path
-    os.copy(jsPath / "main.js", task.dest / "webapp" / "main.js")
-    os.copy(jsPath / "main.js.map", task.dest / "webapp" / "main.js.map")
-    super.resources() ++ Seq(PathRef(task.dest))
+    os.copy(jsPath / "main.js", Task.dest / "webapp" / "main.js")
+    os.copy(jsPath / "main.js.map", Task.dest / "webapp" / "main.js.map")
+    super.resources() ++ Seq(PathRef(Task.dest))
   }
 
   object test extends ScalaTests with TestModule.Utest {

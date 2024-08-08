@@ -20,12 +20,12 @@ object ProguardTests extends TestSuite {
 
     override def scalaVersion: T[String] = T(sys.props.getOrElse("MILL_SCALA_2_13_VERSION", ???))
 
-    def proguardContribClasspath = task {
+    def proguardContribClasspath = Task {
       millProjectModule("mill-contrib-proguard", repositoriesTask())
     }
 
     override def runClasspath: Target[Seq[PathRef]] =
-      task { super.runClasspath() ++ proguardContribClasspath() }
+      Task { super.runClasspath() ++ proguardContribClasspath() }
 
   }
 

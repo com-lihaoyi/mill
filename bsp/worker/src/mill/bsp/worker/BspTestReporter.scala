@@ -38,7 +38,7 @@ import java.io.{PrintWriter, StringWriter}
  *                  to log testing events.
  * @param arguments compilation arguments as part of the BSP context,
  *                  in case special arguments need to be passed to
- *                  the compiler before running the test task.
+ *                  the compiler before running the test Task.
  */
 private class BspTestReporter(
     client: BuildClient,

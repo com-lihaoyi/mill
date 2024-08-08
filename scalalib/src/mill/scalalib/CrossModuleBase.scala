@@ -1,6 +1,6 @@
 package mill.scalalib
 
-import mill.{task, T}
+import mill.{Task, T}
 import mill.define.Cross
 import mill.define.Cross.Resolver
 import mill.scalalib.api.ZincWorkerUtil
@@ -8,7 +8,7 @@ import mill.scalalib.api.ZincWorkerUtil
 trait CrossModuleBase extends ScalaModule with Cross.Module[String] {
   def crossScalaVersion: String = crossValue
 
-  def scalaVersion = task { crossScalaVersion }
+  def scalaVersion = Task { crossScalaVersion }
 
   protected def scalaVersionDirectoryNames: Seq[String] =
     ZincWorkerUtil.matchingVersions(crossScalaVersion)

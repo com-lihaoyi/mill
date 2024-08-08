@@ -100,7 +100,7 @@ Inputs:
 
 // == show
 
-// By default, Mill does not print out the metadata from evaluating a task.
+// By default, Mill does not print out the metadata from evaluating a Task.
 // Most people would not be interested in e.g. viewing the metadata related to
 // incremental compilation: they just want to compile their code! However, if you
 // want to inspect the build to debug problems, you can make Mill show you the

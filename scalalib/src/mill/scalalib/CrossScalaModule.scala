@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import mill.api.PathRef
-import mill.{task, T}
+import mill.{Task, T}
 
 /**
  * A [[ScalaModule]] which is suited to be used with [[mill.define.Cross]].
@@ -13,7 +13,7 @@ import mill.{task, T}
  * - src-2.12.3
  */
 trait CrossScalaModule extends ScalaModule with CrossModuleBase {
-  override def sources: T[Seq[PathRef]] = task.sources {
+  override def sources: T[Seq[PathRef]] = Task.sources {
     super.sources() ++
       scalaVersionDirectoryNames.map(s => PathRef(millSourcePath / s"src-$s"))
   }

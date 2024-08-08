@@ -33,7 +33,7 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] {
   def sideHash: Int = 0
 
   /**
-   * Whether or not this [[Task]] deletes the `task.dest` folder between runs
+   * Whether or not this [[Task]] deletes the `Task.dest` folder between runs
    */
   def flushDest: Boolean = true
 
@@ -85,9 +85,9 @@ object Task extends TaskCompanion {
 }
 
 /**
- * Represents a task that can be referenced by its path segments. `T{...}`
- * targets, `task.input`, `task.worker`, etc. but not including anonymous
- * `task.anon` or `task.traverse` etc. instances
+ * Represents a task that can be referenced by its path segments. `Task {...}`
+ * targets, `Task.input`, `Task.worker`, etc. but not including anonymous
+ * `Task.anon` or `Task.traverse` etc. instances
  */
 trait NamedTask[+T] extends Task[T] {
 
@@ -391,14 +391,14 @@ object Target extends TaskCompanion {
 /**
  * The [[mill.define.Task]] companion object, usually aliased as [[task]],
  * provides most of the helper methods and macros used to build task graphs.
- * methods like `task.`[[apply]], `task.`[[sources]], `task.`[[command]] allow you to
- * define the tasks, while methods like `task.`[[dest]], `task.`[[log]] or
- * `task.`[[env]] provide the core APIs that are provided to a task implementation
+ * methods like `Task.`[[apply]], `Task.`[[sources]], `Task.`[[command]] allow you to
+ * define the tasks, while methods like `Task.`[[dest]], `Task.`[[log]] or
+ * `Task.`[[env]] provide the core APIs that are provided to a task implementation
  */
 trait TaskCompanion extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
 
   /**
-   * `task.dest` is a unique `os.Path` (e.g. `out/classFiles.dest/` or `out/run.dest/`)
+   * `Task.dest` is a unique `os.Path` (e.g. `out/classFiles.dest/` or `out/run.dest/`)
    * that is assigned to every Target or Command. It is cleared before your
    * task runs, and you can use it as a scratch space for temporary files or
    * a place to put returned artifacts. This is guaranteed to be unique for
@@ -408,7 +408,7 @@ trait TaskCompanion extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx
   def dest(implicit ctx: mill.api.Ctx.Dest): os.Path = ctx.dest
 
   /**
-   * `task.log` is the default logger provided for every task. While your task is running,
+   * `Task.log` is the default logger provided for every Task. While your task is running,
    * `System.out` and `System.in` are also redirected to this logger. The logs for a
    * task are streamed to standard out/error as you would expect, but each task's
    * specific output is also streamed to a log file on disk, e.g. `out/run.log` or
@@ -425,8 +425,8 @@ trait TaskCompanion extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx
   def home(implicit ctx: mill.api.Ctx.Home): os.Path = ctx.home
 
   /**
-   * `task.env` is the environment variable map passed to the Mill command when
-   * it is run; typically used inside a `task.input` to ensure any changes in
+   * `Task.env` is the environment variable map passed to the Mill command when
+   * it is run; typically used inside a `Task.input` to ensure any changes in
    * the env vars are properly detected.
    *
    * Note that you should not use `sys.env`, as Mill's long-lived server
@@ -461,7 +461,7 @@ trait TaskCompanion extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx
 
   /**
    * A target is the most common [[Task]] a user would encounter, commonly
-   * defined using the `def foo = T{...}` syntax. [[TargetImpl]]s require that their
+   * defined using the `def foo = Task {...}` syntax. [[TargetImpl]]s require that their
    * return type is JSON serializable. In return they automatically caches their
    * return value to disk, only re-computing if upstream [[Task]]s change
    */
@@ -476,27 +476,27 @@ trait TaskCompanion extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx
 
   /**
    * [[PersistentImpl]] are a flavor of [[TargetImpl]], normally defined using
-   * the `task.persistent{...}` syntax. The main difference is that while
-   * [[TargetImpl]] deletes the `task.dest` folder in between runs,
+   * the `Task.persistent{...}` syntax. The main difference is that while
+   * [[TargetImpl]] deletes the `Task.dest` folder in between runs,
    * [[PersistentImpl]] preserves it. This lets the user make use of files on
    * disk that persistent between runs of the task, e.g. to implement their own
    * fine-grained caching beyond what Mill provides by default.
    *
-   * Note that the user defining a `task.persistent` task is taking on the
+   * Note that the user defining a `Task.persistent` task is taking on the
    * responsibility of ensuring that their implementation is idempotent, i.e.
-   * that it computes the same result whether or not there is data in `task.dest`.
+   * that it computes the same result whether or not there is data in `Task.dest`.
    * Violating that invariant can result in confusing mis-behaviors
    */
   def persistent[T](t: Result[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
     macro Target.Internal.persistentImpl[T]
 
   /**
-   * A specialization of [[InputImpl]] defined via `task.sources`, [[SourcesImpl]]
+   * A specialization of [[InputImpl]] defined via `Task.sources`, [[SourcesImpl]]
    * uses [[PathRef]]s to compute a signature for a set of source files and
    * folders.
    *
    * This is most used when detecting changes in source code: when you edit a
-   * file and run `mill compile`, it is the `task.sources` that re-computes the
+   * file and run `mill compile`, it is the `Task.sources` that re-computes the
    * signature for you source files/folders and decides whether or not downstream
    * [[TargetImpl]]s need to be invalidated and re-computed.
    */
@@ -508,7 +508,7 @@ trait TaskCompanion extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx
 
   /**
    * Similar to [[Source]], but only for a single source file or folder. Defined
-   * using `task.source`.
+   * using `Task.source`.
    */
   def source(value: Result[os.Path])(implicit ctx: mill.define.Ctx): Target[PathRef] =
     macro Target.Internal.sourceImpl1
@@ -517,15 +517,15 @@ trait TaskCompanion extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx
     macro Target.Internal.sourceImpl2
 
   /**
-   * [[InputImpl]]s, normally defined using `task.input`, are [[NamedTask]]s that
+   * [[InputImpl]]s, normally defined using `Task.input`, are [[NamedTask]]s that
    * re-evaluate every time Mill is run. This is in contrast to [[TargetImpl]]s
    * which only re-evaluate when upstream tasks change.
    *
    * [[InputImpl]]s are useful when you want to capture some input to the Mill
    * build graph that comes from outside: maybe from an environment variable, a
    * JVM system property, the hash returned by `git rev-parse HEAD`. Reading
-   * these external mutable variables inside a `T{...}` [[TargetImpl]] will
-   * incorrectly cache them forever. Reading them inside a `task.input{...}`
+   * these external mutable variables inside a `Task {...}` [[TargetImpl]] will
+   * incorrectly cache them forever. Reading them inside a `Task.input{...}`
    * will re-compute them every time, and only if the value changes would it
    * continue to invalidate downstream [[TargetImpl]]s
    *
@@ -540,7 +540,7 @@ trait TaskCompanion extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx
 
   /**
    * [[Command]]s are only [[NamedTask]]s defined using
-   * `def foo() = task.command{...}` and are typically called from the
+   * `def foo() = Task.command{...}` and are typically called from the
    * command-line. Unlike other [[NamedTask]]s, [[Command]]s can be defined to
    * take arguments that are automatically converted to command-line
    * arguments, as long as an implicit [[mainargs.TokensReader]] is available.
@@ -559,7 +559,7 @@ trait TaskCompanion extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx
 
   /**
    * [[Worker]] is a [[NamedTask]] that lives entirely in-memory, defined using
-   * `task.worker{...}`. The value returned by `task.worker{...}` is long-lived,
+   * `Task.worker{...}`. The value returned by `Task.worker{...}` is long-lived,
    * persisting as long as the Mill process is kept alive (e.g. via `--watch`,
    * or via its default `MillServerMain` server process). This allows the user to
    * perform in-memory caching that is even more aggressive than the disk-based
@@ -584,7 +584,7 @@ trait TaskCompanion extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx
    * Creates an anonymous `Task`. These depend on other tasks and
    * be-depended-upon by other tasks, but cannot be run directly from the
    * command line and do not perform any caching. Typically used as helpers to
-   * implement `T{...}` targets.
+   * implement `Task {...}` targets.
    */
   def anon[T](t: Result[T]): Task[T] = macro Applicative.impl[Task, T, mill.api.Ctx]
 

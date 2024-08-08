@@ -27,7 +27,7 @@ trait ArtifactoryPublishModule extends PublishModule {
       artifactorySnapshotUri: String = artifactorySnapshotUri,
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000
-  ): define.Command[Unit] = task.command {
+  ): define.Command[Unit] = Task.command {
     val PublishModule.PublishData(artifactInfo, artifacts) = publishArtifacts()
     new ArtifactoryPublisher(
       artifactoryUri,
@@ -35,7 +35,7 @@ trait ArtifactoryPublishModule extends PublishModule {
       checkArtifactoryCreds(credentials)(),
       readTimeout,
       connectTimeout,
-      task.log
+      Task.log
     ).publish(artifacts.map { case (a, b) => (a.path, b) }, artifactInfo)
   }
 }
@@ -59,9 +59,9 @@ object ArtifactoryPublishModule extends ExternalModule {
       publishArtifacts: mill.main.Tasks[PublishModule.PublishData],
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000
-  ) = task.command {
+  ) = Task.command {
 
-    val artifacts = task.sequence(publishArtifacts.value)().map {
+    val artifacts = Task.sequence(publishArtifacts.value)().map {
       case data @ PublishModule.PublishData(_, _) => data.withConcretePath
     }
     new ArtifactoryPublisher(
@@ -70,17 +70,17 @@ object ArtifactoryPublishModule extends ExternalModule {
       checkArtifactoryCreds(credentials)(),
       readTimeout,
       connectTimeout,
-      task.log
+      Task.log
     ).publishAll(
       artifacts: _*
     )
   }
 
-  private def checkArtifactoryCreds(credentials: String): Task[String] = task.anon {
+  private def checkArtifactoryCreds(credentials: String): Task[String] = Task.anon {
     if (credentials.isEmpty) {
       (for {
-        username <- task.env.get("ARTIFACTORY_USERNAME")
-        password <- task.env.get("ARTIFACTORY_PASSWORD")
+        username <- Task.env.get("ARTIFACTORY_USERNAME")
+        password <- Task.env.get("ARTIFACTORY_PASSWORD")
       } yield {
         Result.Success(s"$username:$password")
       }).getOrElse(

@@ -23,19 +23,19 @@ object ZincWorkerModule extends ExternalModule with ZincWorkerModule with Coursi
  */
 trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: CoursierModule =>
 
-  def classpath: T[Agg[PathRef]] = task {
+  def classpath: T[Agg[PathRef]] = Task {
     millProjectModule("mill-scalalib-worker", repositoriesTask())
   }
 
-  def scalalibClasspath: T[Agg[PathRef]] = task {
+  def scalalibClasspath: T[Agg[PathRef]] = Task {
     millProjectModule("mill-scalalib", repositoriesTask())
   }
 
-  def testrunnerEntrypointClasspath: T[Agg[PathRef]] = task {
+  def testrunnerEntrypointClasspath: T[Agg[PathRef]] = Task {
     millProjectModule("mill-testrunner-entrypoint", repositoriesTask(), artifactSuffix = "")
   }
 
-  def backgroundWrapperClasspath: T[Agg[PathRef]] = task {
+  def backgroundWrapperClasspath: T[Agg[PathRef]] = Task {
     millProjectModule(
       "mill-scalalib-backgroundwrapper",
       repositoriesTask(),
@@ -43,10 +43,10 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
     )
   }
 
-  def zincLogDebug: T[Boolean] = task.input(task.ctx().log.debugEnabled)
+  def zincLogDebug: T[Boolean] = Task.input(Task.ctx().log.debugEnabled)
 
-  def worker: Worker[ZincWorkerApi] = task.worker {
-    val jobs = task.ctx() match {
+  def worker: Worker[ZincWorkerApi] = Task.worker {
+    val jobs = Task.ctx() match {
       case j: Ctx.Jobs => j.jobs
       case _ => 1
     }
@@ -71,7 +71,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
     )
       .newInstance(
         Left((
-          task.ctx(),
+          Task.ctx(),
           (x: String, y: String) =>
             scalaCompilerBridgeJar(x, y, repositoriesTask())
               .asSuccess
@@ -167,14 +167,14 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
     } else dep
   }
 
-  override def prepareOffline(all: Flag): Command[Unit] = task.command {
+  override def prepareOffline(all: Flag): Command[Unit] = Task.command {
     super.prepareOffline(all)()
     classpath()
     ()
   }
 
   def prepareOfflineCompiler(scalaVersion: String, scalaOrganization: String): Command[Unit] =
-    task.command {
+    Task.command {
       classpath()
       scalaCompilerBridgeJar(scalaVersion, scalaOrganization, repositoriesTask())
       ()

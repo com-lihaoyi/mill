@@ -3,7 +3,7 @@ import mill._
 object foo extends Cross[FooModule]("2.10", "2.11", "2.12")
 
 trait FooModule extends Cross.Module[String] {
-  def suffix = task { "_" + crossValue }
+  def suffix = Task { "_" + crossValue }
 }
 
 object bar extends Cross[FooModule]("2.10", "2.11", "2.12") {

@@ -35,7 +35,7 @@ include::example/tasks/2-primary-tasks.adoc[]
 
 == Other Tasks
 
-* <<_anonymous_tasks>>, defined using `task.anon {...}`
+* <<_anonymous_tasks>>, defined using `Task.anon {...}`
 * <<_persistent_targets>>
 * <<_inputs>>
 * <<_workers>>

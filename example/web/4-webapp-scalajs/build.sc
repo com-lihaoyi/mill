@@ -8,14 +8,14 @@ object root extends RootModule with ScalaModule {
     ivy"com.lihaoyi::scalatags:0.12.0"
   )
 
-  def resources = task {
-    os.makeDir(task.dest / "webapp")
+  def resources = Task {
+    os.makeDir(Task.dest / "webapp")
     val jsPath = client.fastLinkJS().dest.path
     // Move main.js[.map]into the proper filesystem position
     // in the resource folder for the web server code to pick up
-    os.copy(jsPath / "main.js", task.dest / "webapp" / "main.js")
-    os.copy(jsPath / "main.js.map", task.dest / "webapp" / "main.js.map")
-    super.resources() ++ Seq(PathRef(task.dest))
+    os.copy(jsPath / "main.js", Task.dest / "webapp" / "main.js")
+    os.copy(jsPath / "main.js.map", Task.dest / "webapp" / "main.js.map")
+    super.resources() ++ Seq(PathRef(Task.dest))
   }
 
   object test extends ScalaTests {

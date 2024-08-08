@@ -1,6 +1,6 @@
 package mill.idea
 
-import mill.{task, T}
+import mill.{Task, T}
 import mill.api.Result
 import mill.define.{Command, Discover, ExternalModule}
 import mill.eval.Evaluator
@@ -9,7 +9,7 @@ import scala.util.control.NonFatal
 
 object GenIdea extends ExternalModule {
 
-  def idea(allBootstrapEvaluators: Evaluator.AllBootstrapEvaluators): Command[Unit] = task.command {
+  def idea(allBootstrapEvaluators: Evaluator.AllBootstrapEvaluators): Command[Unit] = Task.command {
     try {
       Result.Success(GenIdeaImpl(
         evaluators = allBootstrapEvaluators.value

@@ -3,10 +3,10 @@ import mill._, scalalib._
 object foo extends ScalaModule {
   def scalaVersion = "2.13.8"
 
-  def sources = T{
+  def sources = Task {
     println("Foo generating sources...")
     os.write(
-      task.dest / "Foo.scala",
+      Task.dest / "Foo.scala",
       """package foo
         |object Foo {
         |  final val fooMsg = "Hello World"
@@ -16,20 +16,20 @@ object foo extends ScalaModule {
         |  }
         |}""".stripMargin
     )
-    Seq(PathRef(task.dest))
+    Seq(PathRef(Task.dest))
   }
 
-  def compile = task {
+  def compile = Task {
     println("Foo compiling...")
     super.compile()
   }
 
-  def run(args: Task[Args] = task.anon(Args())) = task.command {
+  def run(args: Task[Args] = Task.anon(Args())) = Task.command {
     println("Foo running..." + args().value.mkString(" "))
     super.run(args)()
   }
 
-  def assembly = task {
+  def assembly = Task {
     println("Foo assembly...")
     super.assembly()
   }
@@ -39,10 +39,10 @@ object bar extends ScalaModule {
   def moduleDeps = Seq(foo)
   def scalaVersion = "2.13.8"
 
-  def sources = task {
+  def sources = Task {
     println("Bar generating sources...")
     os.write(
-      task.dest / "Bar.scala",
+      Task.dest / "Bar.scala",
       """package bar
         |object Bar {
         |  def main(args: Array[String]): Unit = {
@@ -50,15 +50,15 @@ object bar extends ScalaModule {
         |  }
         |}""".stripMargin
     )
-    Seq(PathRef(task.dest))
+    Seq(PathRef(Task.dest))
   }
 
-  def compile = task {
+  def compile = Task {
     println("Bar compiling...")
     super.compile()
   }
 
-  def assembly = task {
+  def assembly = Task {
     println("Bar assembly...")
     super.assembly()
   }
@@ -67,10 +67,10 @@ object bar extends ScalaModule {
 object qux extends ScalaModule {
   def scalaVersion = "2.13.8"
 
-  def sources = task {
+  def sources = Task {
     println("Qux generating sources...")
     os.write(
-      task.dest / "Qux.scala",
+      Task.dest / "Qux.scala",
       """package qux
         |object Qux {
         |  def main(args: Array[String]): Unit = {
@@ -78,15 +78,15 @@ object qux extends ScalaModule {
         |  }
         |}""".stripMargin
     )
-    Seq(PathRef(task.dest))
+    Seq(PathRef(Task.dest))
   }
 
-  def compile = task {
+  def compile = Task {
     println("Qux compiling...")
     super.compile()
   }
 
-  def assembly = task {
+  def assembly = Task {
     println("Qux assembly...")
     super.assembly()
   }

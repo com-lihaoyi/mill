@@ -4,7 +4,7 @@ import mill.api.JsonFormatters.pathReadWrite
 import mill.api.{Ctx, PathRef, Result}
 import mill.define.{Command, Task}
 import mill.util.Jvm
-import mill.{Agg, Args, T, task}
+import mill.{Agg, Args, T}
 import os.{Path, ProcessOutput}
 
 import scala.util.control.NonFatal
@@ -14,26 +14,26 @@ trait RunModule extends WithZincWorker {
   /**
    * Any command-line parameters you want to pass to the forked JVM.
    */
-  def forkArgs: T[Seq[String]] = task { Seq.empty[String] }
+  def forkArgs: T[Seq[String]] = Task { Seq.empty[String] }
 
   /**
    * Any environment variables you want to pass to the forked JVM.
    */
-  def forkEnv: T[Map[String, String]] = task.input { task.env }
+  def forkEnv: T[Map[String, String]] = Task.input { Task.env }
 
-  def forkWorkingDir: T[os.Path] = task { task.workspace }
+  def forkWorkingDir: T[os.Path] = Task { Task.workspace }
 
   /**
    * All classfiles and resources including upstream modules and dependencies
    * necessary to run this module's code.
    */
-  def runClasspath: T[Seq[PathRef]] = task { Seq.empty[PathRef] }
+  def runClasspath: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
 
   /**
    * The elements of the run classpath which are local to this module.
    * This is typically the output of a compilation step and bundles runtime resources.
    */
-  def localRunClasspath: T[Seq[PathRef]] = task { Seq.empty[PathRef] }
+  def localRunClasspath: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
 
   /**
    * Allows you to specify an explicit main class to use for the `run` command.
@@ -42,11 +42,11 @@ trait RunModule extends WithZincWorker {
    */
   def mainClass: T[Option[String]] = None
 
-  def allLocalMainClasses: T[Seq[String]] = task {
+  def allLocalMainClasses: T[Seq[String]] = Task {
     zincWorker().worker().discoverMainClasses(localRunClasspath().map(_.path))
   }
 
-  def finalMainClassOpt: T[Either[String, String]] = task {
+  def finalMainClassOpt: T[Either[String, String]] = Task {
     mainClass() match {
       case Some(m) => Right(m)
       case None =>
@@ -62,7 +62,7 @@ trait RunModule extends WithZincWorker {
     }
   }
 
-  def finalMainClass: T[String] = task {
+  def finalMainClass: T[String] = Task {
     finalMainClassOpt() match {
       case Right(main) => Result.Success(main)
       case Left(msg) => Result.Failure(msg)
@@ -72,12 +72,12 @@ trait RunModule extends WithZincWorker {
   /**
    * Control whether `run*`-targets should use an args file to pass command line args, if possible.
    */
-  def runUseArgsFile: T[Boolean] = task { scala.util.Properties.isWin }
+  def runUseArgsFile: T[Boolean] = Task { scala.util.Properties.isWin }
 
   /**
    * Runs this module's code in a subprocess and waits for it to finish
    */
-  def run(args: Task[Args] = task.anon(Args())): Command[Unit] = task.command {
+  def run(args: Task[Args] = Task.anon(Args())): Command[Unit] = Task.command {
     runForkedTask(finalMainClass, args)
   }
 
@@ -87,7 +87,7 @@ trait RunModule extends WithZincWorker {
    * since the code can dirty the parent Mill process and potentially leave it
    * in a bad state.
    */
-  def runLocal(args: Task[Args] = task.anon(Args())): Command[Unit] = task.command {
+  def runLocal(args: Task[Args] = Task.anon(Args())): Command[Unit] = Task.command {
     runLocalTask(finalMainClass, args)
   }
 
@@ -95,31 +95,31 @@ trait RunModule extends WithZincWorker {
    * Same as `run`, but lets you specify a main class to run
    */
   def runMain(mainClass: String, args: String*): Command[Unit] = {
-    val task0 = runForkedTask(task.anon { mainClass }, task.anon { Args(args) })
-    task.command { task0 }
+    val task = runForkedTask(Task.anon { mainClass }, Task.anon { Args(args) })
+    Task.command { task }
   }
 
   /**
    * Same as `runBackground`, but lets you specify a main class to run
    */
   def runMainBackground(mainClass: String, args: String*): Command[Unit] = {
-    val task0 = runBackgroundTask(task.anon { mainClass }, task.anon { Args(args) })
-    task.command { task0 }
+    val task = runBackgroundTask(Task.anon { mainClass }, Task.anon { Args(args) })
+    Task.command { task }
   }
 
   /**
    * Same as `runLocal`, but lets you specify a main class to run
    */
   def runMainLocal(mainClass: String, args: String*): Command[Unit] = {
-    val task0 = runLocalTask(task.anon { mainClass }, task.anon { Args(args) })
-    task.command { task0 }
+    val task = runLocalTask(Task.anon { mainClass }, Task.anon { Args(args) })
+    Task.command { task }
   }
 
   /**
    * Runs this module's code in a subprocess and waits for it to finish
    */
-  def runForkedTask(mainClass: Task[String], args: Task[Args] = task.anon(Args())): Task[Unit] =
-    task.anon {
+  def runForkedTask(mainClass: Task[String], args: Task[Args] = Task.anon(Args())): Task[Unit] =
+    Task.anon {
       try Result.Success(
           Jvm.runSubprocess(
             mainClass(),
@@ -136,8 +136,8 @@ trait RunModule extends WithZincWorker {
       }
     }
 
-  def runLocalTask(mainClass: Task[String], args: Task[Args] = task.anon(Args())): Task[Unit] =
-    task.anon {
+  def runLocalTask(mainClass: Task[String], args: Task[Args] = Task.anon(Args())): Task[Unit] =
+    Task.anon {
       Jvm.runLocal(
         mainClass(),
         runClasspath().map(_.path),
@@ -145,10 +145,10 @@ trait RunModule extends WithZincWorker {
       )
     }
 
-  def runBackgroundTask(mainClass: Task[String], args: Task[Args] = task.anon(Args())): Task[Unit] =
-    task.anon {
+  def runBackgroundTask(mainClass: Task[String], args: Task[Args] = Task.anon(Args())): Task[Unit] =
+    Task.anon {
       doRunBackground(
-        taskDest = task.dest,
+        taskDest = Task.dest,
         runClasspath = runClasspath(),
         zwBackgroundWrapperClasspath = zincWorker().backgroundWrapperClasspath(),
         forkArgs = forkArgs(),
@@ -156,12 +156,12 @@ trait RunModule extends WithZincWorker {
         finalMainClass = mainClass(),
         forkWorkingDir = forkWorkingDir(),
         runUseArgsFile = runUseArgsFile(),
-        backgroundOutputs = backgroundOutputs(task.dest)
-      )(args().value: _*)(task.ctx())
+        backgroundOutputs = backgroundOutputs(Task.dest)
+      )(args().value: _*)(Task.ctx())
 
       // Make sure to sleep a bit in the Mill test suite to allow the servers we
       // start time to initialize before we proceed with the following commands
-      if (task.env.contains("MILL_TEST_SUITE")) {
+      if (Task.env.contains("MILL_TEST_SUITE")) {
         println("runBackgroundTask SLEEPING 10000")
         Thread.sleep(5000)
       }

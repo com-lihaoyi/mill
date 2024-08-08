@@ -26,8 +26,8 @@ val posts = interp.watchValue {
 
 object post extends Cross[PostModule](posts)
 trait PostModule extends Cross.Module[String]{
-  def source = task.source(millSourcePath / crossValue)
-  def render = T{
+  def source = Task.source(millSourcePath / crossValue)
+  def render = Task {
     val doc = Parser.builder().build().parse(os.read(source().path))
     val title = mdNameToTitle(crossValue)
     val rendered = doctype("html")(
@@ -39,40 +39,40 @@ trait PostModule extends Cross.Module[String]{
       )
     )
 
-    os.write(task.dest /  mdNameToHtml(crossValue), rendered)
-    PathRef(task.dest / mdNameToHtml(crossValue))
+    os.write(Task.dest /  mdNameToHtml(crossValue), rendered)
+    PathRef(Task.dest / mdNameToHtml(crossValue))
   }
 }
 
 // The last page we need to generate is the index page, listing out the various
 // blog posts and providing links so we can navigate into them. To do this, we
-// need to wrap the `posts` value in a `task.input`, as it can change depending on
+// need to wrap the `posts` value in a `Task.input`, as it can change depending on
 // what `os.list` finds on disk. After that, it's straightforward to render the
 // `index.html` file we want:
 
-def postsInput = task.input{ posts }
+def postsInput = Task.input{ posts }
 
 def renderIndexEntry(mdName: String) = {
   h2(a(mdNameToTitle(mdName), href := ("post/" + mdNameToHtml(mdName))))
 }
 
-def index = T{
+def index = Task {
   val rendered = doctype("html")(
     html(body(h1("Blog"), postsInput().map(renderIndexEntry)))
   )
-  os.write(task.dest / "index.html", rendered)
-  PathRef(task.dest / "index.html")
+  os.write(Task.dest / "index.html", rendered)
+  PathRef(Task.dest / "index.html")
 }
 
 // Lastly we copy the individual post HTML files and the `index.html` file
 // into a single target's `.dest` folder, and return it:
 
-def dist = task {
-  for (post <- task.traverse(post.crossModules)(_.render)()) {
-    os.copy(post.path, task.dest / "post" / post.path.last, createFolders = true)
+def dist = Task {
+  for (post <- Task.traverse(post.crossModules)(_.render)()) {
+    os.copy(post.path, Task.dest / "post" / post.path.last, createFolders = true)
   }
-  os.copy(index().path, task.dest / "index.html")
-  PathRef(task.dest)
+  os.copy(index().path, Task.dest / "index.html")
+  PathRef(Task.dest)
 }
 
 // Now, you can run `mill dist` to generate the blog:

@@ -41,17 +41,17 @@ object NodeJSConfigTests extends TestSuite {
 
       override def artifactName = "hello-js-world"
       def scalaJSVersion = NodeJSConfigTests.scalaJSVersion
-      override def jsEnvConfig = task { JsEnvConfig.NodeJs(args = nodeArgs) }
+      override def jsEnvConfig = Task { JsEnvConfig.NodeJs(args = nodeArgs) }
     }
 
     object buildUTest extends Cross[BuildModuleUtest](matrix)
     trait BuildModuleUtest extends RootModule {
       object test extends ScalaJSTests with TestModule.Utest {
-        override def sources = task.sources { millSourcePath / "src" / "utest" }
+        override def sources = Task.sources { millSourcePath / "src" / "utest" }
         override def ivyDeps = Agg(
           ivy"com.lihaoyi::utest::$utestVersion"
         )
-        override def jsEnvConfig = task { JsEnvConfig.NodeJs(args = nodeArgs) }
+        override def jsEnvConfig = Task { JsEnvConfig.NodeJs(args = nodeArgs) }
       }
     }
 

@@ -1,7 +1,7 @@
 package mill.playlib
 
-import mill.{task, T}
+import mill.{Task, T}
 
 private[playlib] trait Router extends RouterModule with Layout {
-  override def routes = task { conf() }
+  override def routes = Task { conf() }
 }

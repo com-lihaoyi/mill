@@ -16,7 +16,7 @@ object foo extends RootModule with ScalaModule {
   def scalaVersion = "2.13.8"
   def ivyDeps = Agg(ivy"com.lihaoyi::mainargs:0.4.0")
 
-  def generatedSources: T[Seq[PathRef]] = task {
+  def generatedSources: T[Seq[PathRef]] = Task {
     val prettyIvyDeps = for(ivyDep <- ivyDeps()) yield {
       val org = ivyDep.dep.module.organization.value
       val name = ivyDep.dep.module.name.value
@@ -24,7 +24,7 @@ object foo extends RootModule with ScalaModule {
       s"""("$org", "$name", "$version")"""
     }
     os.write(
-      task.dest / s"MyDeps.scala",
+      Task.dest / s"MyDeps.scala",
       s"""
          |package foo
          |object MyDeps {
@@ -35,10 +35,10 @@ object foo extends RootModule with ScalaModule {
       """.stripMargin
     )
 
-    Seq(PathRef(task.dest))
+    Seq(PathRef(Task.dest))
   }
 
-  def lineCount: T[Int] = task {
+  def lineCount: T[Int] = Task {
     sources()
       .flatMap(pathRef => os.walk(pathRef.path))
       .filter(_.ext == "scala")
@@ -48,12 +48,12 @@ object foo extends RootModule with ScalaModule {
 
   def forkArgs: T[Seq[String]] = Seq(s"-Dmy.line.count=${lineCount()}")
 
-  def printLineCount() = task.command { println(lineCount()) }
+  def printLineCount() = Task.command { println(lineCount()) }
 }
 
 //// SNIPPET:END
 
-// Mill lets you define new cached Targets using the `task {...}` syntax,
+// Mill lets you define new cached Targets using the `Task {...}` syntax,
 // depending on existing Targets e.g. `foo.sources` via the `foo.sources()`
 // syntax to extract their current value, as shown in `lineCount` above. The
 // return-type of a Target has to be JSON-serializable (using
@@ -91,14 +91,14 @@ my.line.count: 14
 // download files using `requests.get`, shell-out to Webpack
 // to compile some Javascript, generate sources to feed into a compiler, or
 // create some custom jar/zip assembly with the files you want , all of these
-// can simply be custom targets with your code running in the `task {...}` block.
+// can simply be custom targets with your code running in the `Task {...}` block.
 //
 // You can create arbitrarily long chains of dependent targets, and Mill will
 // handle the re-evaluation and caching of the targets' output for you.
-// Mill also provides you a `task.dest` folder for you to use as scratch space or
+// Mill also provides you a `Task.dest` folder for you to use as scratch space or
 // to store files you want to return: all files a task creates should live
-// within `task.dest`, and any files you want to modify should be copied into
-// `task.dest` before being modified. That ensures that the files belonging to a
+// within `Task.dest`, and any files you want to modify should be copied into
+// `Task.dest` before being modified. That ensures that the files belonging to a
 // particular target all live in one place, avoiding file-name conflicts and
 // letting Mill automatically invalidate the files when the target's inputs
 // change.

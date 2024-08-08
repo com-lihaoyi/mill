@@ -1,7 +1,7 @@
 package mill.define
 
 import utest._
-import mill.{T, task, Module}
+import mill.{T, Task, Module}
 import mill.util.TestUtil
 object MacroErrorTests extends TestSuite {
 
@@ -9,9 +9,9 @@ object MacroErrorTests extends TestSuite {
 
     "errors" - {
       val expectedMsg =
-        "T{} members must be defs defined in a Cacher class/trait/object body"
+        "Task {} members must be defs defined in a Cacher class/trait/object body"
 
-      val err = compileError("object Foo extends TestUtil.BaseModule{ val x = T{1} }")
+      val err = compileError("object Foo extends TestUtil.BaseModule{ val x = Task {1} }")
       assert(err.msg == expectedMsg)
     }
 
@@ -19,12 +19,12 @@ object MacroErrorTests extends TestSuite {
       "command" - {
         val e = compileError("""
           object foo extends mill.util.TestUtil.BaseModule{
-            def w = task.command{1}
+            def w = Task.command{1}
           }
           mill.define.Discover[foo.type]
         """)
         assert(
-          e.msg.contains("`task.command` definitions must have 1 parameter list"),
+          e.msg.contains("`Task.command` definitions must have 1 parameter list"),
           e.pos.contains("def w = ")
         )
       }
@@ -32,7 +32,7 @@ object MacroErrorTests extends TestSuite {
       "target" - {
         val e = compileError("""
           object foo extends mill.util.TestUtil.BaseModule{
-            def x() = T{1}
+            def x() = Task {1}
           }
           mill.define.Discover[foo.type]
         """)
@@ -44,7 +44,7 @@ object MacroErrorTests extends TestSuite {
       "input" - {
         val e = compileError("""
           object foo extends mill.util.TestUtil.BaseModule{
-            def y() = task.input{1}
+            def y() = Task.input{1}
           }
           mill.define.Discover[foo.type]
         """)
@@ -56,7 +56,7 @@ object MacroErrorTests extends TestSuite {
       "sources" - {
         val e = compileError("""
           object foo extends mill.util.TestUtil.BaseModule{
-            def z() = task.sources{os.pwd}
+            def z() = Task.sources{os.pwd}
           }
           mill.define.Discover[foo.type]
         """)
@@ -68,7 +68,7 @@ object MacroErrorTests extends TestSuite {
       "persistent" - {
         val e = compileError("""
           object foo extends mill.util.TestUtil.BaseModule{
-            def a() = task.persistent{1}
+            def a() = Task.persistent{1}
           }
           mill.define.Discover[foo.type]
         """)
@@ -79,16 +79,16 @@ object MacroErrorTests extends TestSuite {
       }
     }
     "badTmacro" - {
-      // Make sure we can reference values from outside the T{...} block as part
+      // Make sure we can reference values from outside the Task {...} block as part
       // of our `Target#apply()` calls, but we cannot reference any values that
-      // come from inside the T{...} block
+      // come from inside the Task {...} block
       "pos" - {
         val e = compileError("""
-          val a = T{ 1 }
+          val a = Task { 1 }
           val arr = Array(a)
           val b = {
             val c = 0
-            T{
+            Task {
               arr(c)()
             }
           }
@@ -100,12 +100,12 @@ object MacroErrorTests extends TestSuite {
       "neg" - {
 
         val expectedMsg =
-          "Target#apply() call cannot use `value n` defined within the T{...} block"
+          "Target#apply() call cannot use `value n` defined within the Task {...} block"
         val err = compileError("""new Module{
-          def a = T{ 1 }
+          def a = Task { 1 }
           val arr = Array(a)
           def b = {
-            T{
+            Task {
               val n = 0
               arr(n)()
             }
@@ -116,12 +116,12 @@ object MacroErrorTests extends TestSuite {
       "neg2" - {
 
         val expectedMsg =
-          "Target#apply() call cannot use `value x` defined within the T{...} block"
+          "Target#apply() call cannot use `value x` defined within the Task {...} block"
         val err = compileError("""new Module{
-          def a = T{ 1 }
+          def a = Task { 1 }
           val arr = Array(a)
           def b = {
-            T{
+            Task {
               arr.map{x => x()}
             }
           }
@@ -131,10 +131,10 @@ object MacroErrorTests extends TestSuite {
       "neg3" - {
         val borkedCachedDiamond1 = utest.compileError("""
           object borkedCachedDiamond1 {
-            def up = T{ TestUtil.test() }
-            def left = T{ TestUtil.test(up) }
-            def right = T{ TestUtil.test(up) }
-            def down = T{ TestUtil.test(left, right) }
+            def up = Task { TestUtil.test() }
+            def left = Task { TestUtil.test(up) }
+            def right = Task { TestUtil.test(up) }
+            def down = Task { TestUtil.test(left, right) }
           }
         """)
         assert(borkedCachedDiamond1.msg.contains(

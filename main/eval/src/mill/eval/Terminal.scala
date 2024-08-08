@@ -5,7 +5,7 @@ import mill.define.{NamedTask, Segment, Segments}
 /**
  * A terminal or terminal target is some important work unit, that in most cases has a name (Right[Labelled])
  * or was directly called by the user (Left[Task]).
- * It's a T, task.worker, task.input, task.source, task.sources, task.persistent
+ * It's a T, Task.worker, Task.input, Task.source, Task.sources, Task.persistent
  */
 sealed trait Terminal {
   def render: String
@@ -18,7 +18,7 @@ object Terminal {
   }
 
   case class Task[T](task: mill.define.Task[_]) extends Terminal {
-    def render = task.toString
+    def render = Task.toString
   }
 
   def destSegments(labelledTask: Terminal.Labelled[_]): Segments = {
@@ -29,7 +29,7 @@ object Terminal {
   }
 
   def printTerm(term: Terminal): String = term match {
-    case Terminal.Task(task) => task.toString()
+    case Terminal.Task(task) => Task.toString()
     case labelled: Terminal.Labelled[_] =>
       val Seq(first, rest @ _*) = destSegments(labelled).value
       val msgParts = Seq(first.asInstanceOf[Segment.Label].value) ++ rest.map {

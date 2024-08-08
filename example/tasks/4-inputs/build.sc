@@ -1,13 +1,13 @@
 import mill._
 
-def myInput = task.input {
-  os.proc("git", "rev-parse", "HEAD").call(cwd = task.workspace)
+def myInput = Task.input {
+  os.proc("git", "rev-parse", "HEAD").call(cwd = Task.workspace)
     .out
     .text()
     .trim()
 }
 
-// A generalization of <<_sources>>, ``task.input``s are tasks that re-evaluate
+// A generalization of <<_sources>>, ``Task.input``s are tasks that re-evaluate
 // _every time_ (unlike <<_anonymous_tasks>>), containing an
 // arbitrary block of code.
 //
@@ -17,10 +17,10 @@ def myInput = task.input {
 // that target does not have any `Task` inputs and so will never re-compute
 // even if the external `git` status changes:
 
-def gitStatusTarget = task {
+def gitStatusTarget = Task {
   "v-" +
   os.proc("git", "log", "-1", "--pretty=format:%h-%B ")
-    .call(cwd = task.workspace)
+    .call(cwd = Task.workspace)
     .out
     .text()
     .trim()
@@ -46,16 +46,16 @@ def gitStatusTarget = task {
 // `gitStatusTarget` will continue to use any previously cached value, and
 // ``gitStatusTarget``'s output will  be out of date!
 
-// To fix this, you can wrap your `git log` in a `task.input`:
+// To fix this, you can wrap your `git log` in a `Task.input`:
 
-def gitStatusInput = task.input {
+def gitStatusInput = Task.input {
   os.proc("git", "log", "-1", "--pretty=format:%h-%B ")
-    .call(cwd = task.workspace)
+    .call(cwd = Task.workspace)
     .out
     .text()
     .trim()
 }
-def gitStatusTarget2 = task { "v-" + gitStatusInput() }
+def gitStatusTarget2 = Task { "v-" + gitStatusInput() }
 
 // This makes `gitStatusInput` to always re-evaluate every build, and only if
 // the output of `gitStatusInput` changes will `gitStatusTarget2` re-compute
@@ -74,7 +74,7 @@ def gitStatusTarget2 = task { "v-" + gitStatusInput() }
 
 */
 
-// Note that because ``task.input``s re-evaluate every time, you should ensure that the
-// code you put in `task.input` runs quickly. Ideally it should just be a simple check
+// Note that because ``Task.input``s re-evaluate every time, you should ensure that the
+// code you put in `Task.input` runs quickly. Ideally it should just be a simple check
 // "did anything change?" and any heavy-lifting should be delegated to downstream
 // targets where it can be cached if possible.

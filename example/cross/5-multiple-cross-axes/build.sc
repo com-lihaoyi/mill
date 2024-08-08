@@ -12,10 +12,10 @@ val crossMatrix = for {
 object foo extends mill.Cross[FooModule](crossMatrix)
 trait FooModule extends Cross.Module2[String, String] {
   val (crossVersion, platform) = (crossValue, crossValue2)
-  def suffix = task { "_" + crossVersion + "_" + platform }
+  def suffix = Task { "_" + crossVersion + "_" + platform }
 }
 
-def bar = task { s"hello ${foo("2.10", "jvm").suffix()}" }
+def bar = Task { s"hello ${foo("2.10", "jvm").suffix()}" }
 
 // [graphviz]
 // ....

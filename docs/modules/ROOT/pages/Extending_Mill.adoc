@@ -55,7 +55,7 @@ include::example/misc/4-mill-build-folder.adoc[]
 
 == Using ScalaModule.run as a task
 
-include::example/misc/5-module-run-task.adoc[]
+include::example/misc/5-module-run-Task.adoc[]
 
 == Importing Contrib Modules
 
@@ -74,7 +74,7 @@ build.
 
 [source,scala]
 ----
-def idea(ev: Evaluator) = task.command {
+def idea(ev: Evaluator) = Task.command {
   mill.scalalib.GenIdea(
     implicitly,
     ev.rootModule,

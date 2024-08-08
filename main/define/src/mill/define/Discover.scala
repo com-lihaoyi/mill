@@ -6,14 +6,14 @@ import scala.reflect.macros.blackbox
 
 /**
  * Macro to walk the module tree and generate `mainargs` entrypoints for any
- * `task.command` methods that it finds.
+ * `Task.command` methods that it finds.
  *
  * Note that unlike the rest of Mill's module-handling logic which uses Java
  * reflection, generation of entrypoints requires typeclass resolution, and so
  * needs to be done at compile time. Thus we walk the entire module tree,
  * collecting all the module `Class[_]`s we can find, and for each one generate
  * the `mainargs.MainData` containing metadata and resolved typeclasses for all
- * the `task.command` methods we find. This mapping from `Class[_]` to `MainData`
+ * the `Task.command` methods we find. This mapping from `Class[_]` to `MainData`
  * can then be used later to look up the `MainData` for any module.
  */
 case class Discover[T] private (
@@ -109,7 +109,7 @@ object Discover {
         overridesRoutes = {
           assertParamListCounts(
             methods,
-            (weakTypeOf[mill.define.Command[_]], 1, "`task.command`"),
+            (weakTypeOf[mill.define.Command[_]], 1, "`Task.command`"),
             (weakTypeOf[mill.define.Target[_]], 0, "Target")
           )
 

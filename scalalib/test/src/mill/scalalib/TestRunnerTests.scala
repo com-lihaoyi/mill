@@ -2,7 +2,7 @@ package mill.scalalib
 
 import mill.api.Result
 import mill.util.{TestEvaluator, TestUtil}
-import mill.{Agg, T, task}
+import mill.{Agg, T, Task}
 import os.Path
 import sbt.testing.Status
 import utest._
@@ -18,7 +18,7 @@ object TestRunnerTests extends TestSuite {
     def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
 
     object utest extends ScalaTests with TestModule.Utest {
-      override def ivyDeps = task {
+      override def ivyDeps = Task {
         super.ivyDeps() ++ Agg(
           ivy"com.lihaoyi::utest:${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}"
         )
@@ -26,7 +26,7 @@ object TestRunnerTests extends TestSuite {
     }
 
     object scalatest extends ScalaTests with TestModule.ScalaTest {
-      override def ivyDeps = task {
+      override def ivyDeps = Task {
         super.ivyDeps() ++ Agg(
           ivy"org.scalatest::scalatest:${sys.props.getOrElse("TEST_SCALATEST_VERSION", ???)}"
         )
@@ -34,7 +34,7 @@ object TestRunnerTests extends TestSuite {
     }
 
     trait DoneMessage extends ScalaTests {
-      override def ivyDeps = task {
+      override def ivyDeps = Task {
         super.ivyDeps() ++ Agg(
           ivy"org.scala-sbt:test-interface:${sys.props.getOrElse("TEST_TEST_INTERFACE_VERSION", ???)}"
         )
@@ -51,7 +51,7 @@ object TestRunnerTests extends TestSuite {
     }
 
     object ziotest extends ScalaTests with TestModule.ZioTest {
-      override def ivyDeps = task {
+      override def ivyDeps = Task {
         super.ivyDeps() ++ Agg(
           ivy"dev.zio::zio-test:${sys.props.getOrElse("TEST_ZIOTEST_VERSION", ???)}",
           ivy"dev.zio::zio-test-sbt:${sys.props.getOrElse("TEST_ZIOTEST_VERSION", ???)}"
