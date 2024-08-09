@@ -1,0 +1,4 @@
+<plugin>
+    <name>auto-override-plugin</name>
+    <classname>mill.moduledefs.AutoOverridePlugin</classname>
+</plugin>

@@ -96,8 +96,7 @@ class MillBuildRootModule()(implicit
     Agg.from(
       MillIvy.processMillIvyDepSignature(parseBuildFiles().ivyDeps)
         .map(mill.scalalib.Dep.parse)
-    ) ++
-      Agg(ivy"com.lihaoyi::mill-moduledefs:${Versions.millModuledefsVersion}")
+    )
   }
 
   override def runIvyDeps = Task {
@@ -246,27 +245,29 @@ class MillBuildRootModule()(implicit
     enclosingClasspath() ++ lineNumberPluginClasspath()
   }
 
-  override def scalacPluginIvyDeps: T[Agg[Dep]] = Agg(
-    ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${Versions.millModuledefsVersion}"
-  )
 
   override def scalacOptions: T[Seq[String]] = Task {
     super.scalacOptions() ++
       Seq(
         "-Xplugin:" + lineNumberPluginClasspath().map(_.path).mkString(","),
+        "-Xplugin:" + moduledefsPluginClasspath().map(_.path).mkString(","),
         "-deprecation",
         // Make sure we abort of the plugin is not found, to ensure any
         // classpath/plugin-discovery issues are surfaced early rather than
         // after hours of debugging
-        "-Xplugin-require:mill-linenumber-plugin"
+        "-Xplugin-require:mill-linenumber-plugin",
+        "-Xplugin-require:auto-override-plugin"
       )
   }
 
   override def scalacPluginClasspath: T[Agg[PathRef]] =
-    super.scalacPluginClasspath() ++ lineNumberPluginClasspath()
+    super.scalacPluginClasspath() ++ lineNumberPluginClasspath() ++ moduledefsPluginClasspath()
 
   def lineNumberPluginClasspath: T[Agg[PathRef]] = Task {
     millProjectModule("mill-runner-linenumbers", repositoriesTask())
+  }
+  def moduledefsPluginClasspath: T[Agg[PathRef]] = Task {
+    millProjectModule("mill-main-moduledefs-plugin", repositoriesTask(), artifactSuffix = "_2.13.14")
   }
 
   /** Used in BSP IntelliJ, which can only work with directories */

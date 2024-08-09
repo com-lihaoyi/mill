@@ -158,11 +158,6 @@ object Deps {
   val osLib = ivy"com.lihaoyi::os-lib:0.10.3"
   val pprint = ivy"com.lihaoyi::pprint:0.9.0"
   val mainargs = ivy"com.lihaoyi::mainargs:0.7.1"
-  val millModuledefsVersion = "0.10.9"
-  val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
-  val millModuledefs = ivy"${millModuledefsString}"
-  val millModuledefsPlugin =
-    ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${millModuledefsVersion}"
   // can't use newer versions, as these need higher Java versions
   val testng = ivy"org.testng:testng:7.5.1"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
@@ -370,16 +365,28 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
  */
 trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModule { outer =>
   def scalaVersion = Deps.scalaVersion
+
   def scalafixScalaBinaryVersion = ZincWorkerUtil.scalaBinaryVersion(scalaVersion())
   def semanticDbVersion = Deps.semanticDBscala.version
   def scalacOptions =
-    super.scalacOptions() ++ Seq(
-      "-deprecation",
-      "-P:acyclic:force",
-      "-feature",
-      "-Xlint:unused",
-      "-Xlint:adapted-args"
-    )
+    if (this == main.moduledefs || this.isInstanceOf[main.moduledefs.Plugin]) T {
+      super.scalacOptions() ++ Seq(
+        "-deprecation",
+        "-P:acyclic:force",
+        "-feature",
+        "-Xlint:unused",
+        "-Xlint:adapted-args",
+      )
+    } else T{
+      super.scalacOptions() ++ Seq(
+        "-deprecation",
+        "-P:acyclic:force",
+        "-feature",
+        "-Xlint:unused",
+        "-Xlint:adapted-args",
+        s"-Xplugin:${main.moduledefs.plugin(Deps.scalaVersion).jar().path}"
+      )
+    }
 
   def testIvyDeps: T[Agg[Dep]] = Agg(Deps.TestDeps.utest)
   def testModuleDeps: Seq[JavaModule] =
@@ -394,16 +401,13 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
   }
 
   def runClasspath = super.runClasspath() ++ writeLocalTestOverrides()
+  override def scalacPluginClasspath =
+    if (this == main.moduledefs || this.isInstanceOf[main.moduledefs.Plugin]) super.scalacPluginClasspath()
+    else {
+      super.scalacPluginClasspath() ++ Seq(main.moduledefs.plugin(Deps.scalaVersion).jar())
+    }
 
-  def scalacPluginIvyDeps =
-    super.scalacPluginIvyDeps() ++
-      Agg(Deps.acyclic) ++
-      Agg.when(scalaVersion().startsWith("2.13."))(Deps.millModuledefsPlugin)
-
-  def mandatoryIvyDeps =
-    super.mandatoryIvyDeps() ++
-      Agg.when(scalaVersion().startsWith("2.13."))(Deps.millModuledefs)
-
+  def scalacPluginIvyDeps = T { super.scalacPluginIvyDeps() ++ Agg(Deps.acyclic) }
   /** Default tests module. */
   lazy val test: MillScalaTests = new MillScalaTests {}
   trait MillScalaTests extends ScalaTests with MillBaseTestsModule {
@@ -630,16 +634,11 @@ object main extends MillStableScalaModule with BuildInfo {
 //        .map(artifact => s"${artifact.group}:${artifact.id}:${artifact.version}")
         .mkString(","),
       "Dependency artifacts embedded in mill assembly by default."
-    ),
-    BuildInfo.Value(
-      "millScalacPluginDeps",
-      Deps.millModuledefsString,
-      "Scalac compiler plugin dependencies to compile the build script."
     )
   )
 
   object api extends MillStableScalaModule with BuildInfo {
-    def moduleDeps = Seq(client)
+    def moduleDeps = Seq(client, moduledefs)
     def buildInfoPackageName = "mill.api"
     def buildInfoMembers = Seq(
       BuildInfo.Value("millVersion", millVersion(), "Mill version."),
@@ -720,10 +719,9 @@ object main extends MillStableScalaModule with BuildInfo {
   }
 
   object define extends MillStableScalaModule {
-    def moduleDeps = Seq(api, util)
+    def moduleDeps = Seq(api, util, moduledefs)
     def compileIvyDeps = Agg(Deps.scalaReflect(scalaVersion()))
     def ivyDeps = Agg(
-      Deps.millModuledefs,
       // Necessary so we can share the JNA classes throughout the build process
       Deps.jna,
       Deps.jnaPlatform,
@@ -760,6 +758,25 @@ object main extends MillStableScalaModule with BuildInfo {
     def moduleDeps = Seq(eval, util, main)
   }
 
+  object moduledefs extends MillPublishScalaModule {
+    override def scalaVersion = Deps.scalaVersion
+    override def ivyDeps = Agg(
+      Deps.scalaCompiler(scalaVersion()),
+      Deps.sourcecode
+    )
+
+    object plugin extends Cross[Plugin](0.to(14).map(v => "2.13." + v))
+    trait Plugin extends MillPublishScalaModule with CrossScalaModule {
+      def scalaVersion = super[CrossScalaModule].scalaVersion()
+      override def moduleDeps = Seq(moduledefs)
+      override def crossFullScalaVersion = true
+      override def ivyDeps = Agg(
+        Deps.scalaCompiler(scalaVersion()),
+        Deps.sourcecode
+      )
+    }
+  }
+
   def testModuleDeps = super.testModuleDeps ++ Seq(testkit)
 }
 
@@ -780,7 +797,9 @@ object scalalib extends MillStableScalaModule {
   def moduleDeps = Seq(main, scalalib.api, testrunner)
   def ivyDeps = Agg(Deps.scalafmtDynamic, Deps.scalaXml)
   def testIvyDeps = super.testIvyDeps() ++ Agg(Deps.TestDeps.scalaCheck)
-  def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(worker.testDep())
+  def testTransitiveDeps =
+    super.testTransitiveDeps() ++
+    Seq(worker.testDep(), main.moduledefs.plugin(Deps.scalaVersion).testDep())
 
   object backgroundwrapper extends MillPublishJavaModule with MillJavaModule {
     def ivyDeps = Agg(Deps.sbtTestInterface)
@@ -800,11 +819,6 @@ object scalalib extends MillStableScalaModule {
         "semanticDbJavaVersion",
         Deps.semanticDbJava.dep.version,
         "Java SemanticDB plugin version."
-      ),
-      BuildInfo.Value(
-        "millModuledefsVersion",
-        Deps.millModuledefsVersion,
-        "Mill ModuleDefs plugins version."
       ),
       BuildInfo.Value("millCompilerBridgeScalaVersions", bridgeScalaVersions.mkString(",")),
       BuildInfo.Value("millCompilerBridgeVersion", bridgeVersion),
@@ -951,7 +965,7 @@ object contrib extends Module {
       }
 
       def scalaVersion = Deps.play(playBinary).scalaVersion
-      def moduleDeps = Seq(playlib.api)
+      def moduleDeps = Seq(playlib.api, main.moduledefs)
       def ivyDeps = Agg(Deps.osLib, Deps.play(playBinary).routesCompiler)
     }
   }
@@ -1538,6 +1552,7 @@ object runner extends MillPublishScalaModule {
   def skipPreviousVersions: T[Seq[String]] = Seq("0.11.0-M7")
 
   object linenumbers extends MillPublishScalaModule {
+    def moduleDeps = Seq(main.moduledefs)
     def scalaVersion = Deps.scalaVersion
     def ivyDeps = Agg(Deps.scalaCompiler(scalaVersion()))
   }
