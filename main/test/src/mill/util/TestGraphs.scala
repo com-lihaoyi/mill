@@ -2,7 +2,7 @@ package mill.util
 import TestUtil.test
 import mill.define.{Command, Cross, Discover, DynamicModule, ModuleRef, TaskModule}
 import mill.{Module, T, Task}
-
+import mill.moduledefs.NullaryMethod
 /**
  * Example dependency graphs for us to use in our test suite.
  *
@@ -15,24 +15,23 @@ import mill.{Module, T, Task}
  * live in the companion object.
  */
 class TestGraphs() {
-  // single
   object singleton extends TestUtil.BaseModule {
-    val single = test()
+    @NullaryMethod val single = test()
   }
 
   object bactickIdentifiers extends TestUtil.BaseModule {
-    val `up-target` = test()
-    val `a-down-target` = test(`up-target`)
-    val `invisible&` = test()
+    @NullaryMethod val `up-target` = test()
+    @NullaryMethod val `a-down-target` = test(`up-target`)
+    @NullaryMethod val `invisible&` = test()
     object `nested-module` extends Module {
-      val `nested-target` = test()
+      @NullaryMethod val `nested-target` = test()
     }
   }
 
   // up---down
   object pair extends TestUtil.BaseModule {
-    val up = test()
-    val down = test(up)
+    @NullaryMethod val up = test()
+    @NullaryMethod val down = test(up)
   }
 
   // up---o---down
@@ -47,10 +46,10 @@ class TestGraphs() {
   //   \   /
   //   right
   object diamond extends TestUtil.BaseModule {
-    val up = test()
-    val left = test(up)
-    val right = test(up)
-    val down = test(left, right)
+    @NullaryMethod val up = test()
+    @NullaryMethod val left = test(up)
+    @NullaryMethod val right = test(up)
+    @NullaryMethod val down = test(left, right)
   }
 
   //    o
@@ -59,8 +58,8 @@ class TestGraphs() {
   //   \ /
   //    o
   object anonDiamond extends TestUtil.BaseModule {
-    val up = test()
-    val down = test(test.anon(up), test.anon(up))
+    @NullaryMethod val up = test()
+    @NullaryMethod val down = test(test.anon(up), test.anon(up))
   }
 
   object defCachedDiamond extends TestUtil.BaseModule {
@@ -96,9 +95,9 @@ class TestGraphs() {
   //      /          /
   //  o--B          o
   object bigSingleTerminal extends TestUtil.BaseModule {
-    val a = test(test.anon(), test.anon())
-    val b = test(test.anon())
-    val e = {
+    @NullaryMethod val a = test(test.anon(), test.anon())
+    @NullaryMethod val b = test(test.anon())
+    @NullaryMethod val e = {
       val c = test.anon(a)
       val d = test.anon(a)
       test(
@@ -108,12 +107,12 @@ class TestGraphs() {
     }
     val f = test(test.anon(test.anon(), test.anon(e)))
 
-    val i = {
+    @NullaryMethod val i = {
       val g = test.anon()
       val h = test.anon(g, e)
       test(test.anon(g), test.anon(test.anon(h)))
     }
-    val j = test(test.anon(i), test.anon(i, f), test.anon(f))
+    @NullaryMethod val j = test(test.anon(i), test.anon(i, f), test.anon(f))
   }
   //        _ left _
   //       /        \
@@ -121,10 +120,10 @@ class TestGraphs() {
   //               _/
   // change - task2
   object separateGroups extends TestUtil.BaseModule {
-    val task1 = Task.anon { 1 }
+    @NullaryMethod val task1 = Task.anon { 1 }
     def left = Task { task1() }
-    val change = test()
-    val task2 = Task.anon { change() }
+    @NullaryMethod val change = test()
+    @NullaryMethod val task2 = Task.anon { change() }
     def right = Task { task1() + task2() + left() + 1 }
 
   }
@@ -283,8 +282,8 @@ object TestGraphs {
   trait CanNest extends Module {
     def single = Task { 1 }
     def invisible: Any = Task { 2 }
-    def invisible2: mill.define.Task[Int] = Task { 3 }
-    def invisible3: mill.define.Task[_] = Task { 4 }
+    def visible2: mill.define.Task[Int] = Task { 3 }
+    def visible3: mill.define.Task[_] = Task { 4 }
   }
   object nestedModule extends TestUtil.BaseModule {
     def single = Task { 5 }

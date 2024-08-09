@@ -28,7 +28,7 @@ object DiscoverTests extends TestSuite {
       check(TestGraphs.TraitWithModuleObject)(_.TraitModule.testFrameworks)
     }
     "nestedModule" - {
-      check(TestGraphs.nestedModule)(_.single, _.nested.single, _.classInstance.single)
+      check(TestGraphs.nestedModule)(_.single, _.nested.single, _.classInstance.single, _.classInstance.visible2, _.classInstance.visible3)
     }
     "singleCross" - {
       check(TestGraphs.singleCross)(

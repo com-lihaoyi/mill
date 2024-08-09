@@ -41,7 +41,7 @@ trait Task[+T] extends Task.Ops[T] with Applyable[Task, T] {
   def asCommand: Option[Command[T]] = None
   def asWorker: Option[Worker[T]] = None
   def self: Task[T] = this
-  def ctx: Ctx = null
+  def ctx: Ctx = throw new UnsupportedOperationException("Cannot get the ctx of an anonymous task")
 }
 
 object Task extends TaskCompanion {

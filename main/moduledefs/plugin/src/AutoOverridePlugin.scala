@@ -77,14 +77,6 @@ class AutoOverridePlugin(val global: Global) extends Plugin {
               x.rhs
             )
 
-
-          case x: global.ValDef =>
-            comments.getComment(x.pos) match {
-              case Some(comment) =>
-                global.treeCopy.ValDef(tree, newMods(false, x.mods, comment), x.name, x.tpt, x.rhs)
-              case None => x
-            }
-
           case x => x
         })
       }

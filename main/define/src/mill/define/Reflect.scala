@@ -31,7 +31,13 @@ private[mill] object Reflect {
         (!noParams || m.getParameterCount == 0) &&
         (m.getModifiers & Modifier.STATIC) == 0 &&
         inner.isAssignableFrom(m.getReturnType) &&
-        filterAnnotations(m.getAnnotations.map(_.annotationType().getName).toSeq)
+        filterAnnotations(
+          (
+            outer.getDeclaredFields.filter(_.getName == m.getName).flatMap(_.getAnnotations) ++
+            m.getAnnotations
+          )
+            .map(_.annotationType().getName).toSeq
+        )
     } yield m
 
     // There can be multiple methods of the same name on a class if a sub-class
