@@ -669,7 +669,8 @@ object ZincWorkerImpl {
                 throw sys.error(msg)
               }
               rec(
-                seenModules ++ Seq(cand),
+                if (seenModules.contains(cand)) seenModules
+                else { seenModules ++ Seq(cand) },
                 toAnalyze = ((cand :: trace, deps(cand).toList)) :: (trace, remaining) :: rest
               )
           }
