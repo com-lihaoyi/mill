@@ -15,6 +15,7 @@ import mill.moduledefs.NullaryMethod
  * live in the companion object.
  */
 class TestGraphs() {
+
   object singleton extends TestUtil.BaseModule {
     @NullaryMethod val single = test()
   }

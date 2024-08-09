@@ -115,7 +115,8 @@ object Discover {
           Tuple2(
             for {
               m <- methods.toList.sortBy(_.fullName)
-              if m.returnType <:< weakTypeOf[mill.define.NamedTask[_]]
+              if m.returnType <:< weakTypeOf[mill.define.Task[_]]
+              if m.annotations.exists(_.tree.tpe =:= typeOf[mill.moduledefs.NullaryMethod])
             } yield m.name.decoded,
             for {
               m <- methods.toList.sortBy(_.fullName)
