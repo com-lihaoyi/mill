@@ -30,7 +30,7 @@ object HelloWorldTests extends TestSuite {
 
   trait HelloWorldModule extends scalalib.ScalaModule {
     def scalaVersion = scala212Version
-    override def semanticDbVersion: T[String] = T {
+    override def semanticDbVersion: T[String] = Task {
       // The latest semanticDB release for Scala 2.12.6
       "4.1.9"
     }
@@ -315,19 +315,20 @@ object HelloWorldTests extends TestSuite {
   }
 
   object ValidatedTarget extends HelloBase {
-    private def mkDirWithFile = T.task {
-      os.write(T.dest / "dummy", "dummy", createFolders = true)
-      PathRef(T.dest)
+    private def mkDirWithFile = Task.anon {
+      os.write(Task.dest / "dummy", "dummy", createFolders = true)
+      PathRef(Task.dest)
     }
-    def uncheckedPathRef: T[PathRef] = T { mkDirWithFile() }
-    def uncheckedSeqPathRef: T[Seq[PathRef]] = T { Seq(mkDirWithFile()) }
-    def uncheckedAggPathRef: T[Agg[PathRef]] = T { Agg(mkDirWithFile()) }
-    def uncheckedTuplePathRef: T[Tuple1[PathRef]] = T { Tuple1(mkDirWithFile()) }
+    def uncheckedPathRef: T[PathRef] = Task { mkDirWithFile() }
+    def uncheckedSeqPathRef: T[Seq[PathRef]] = Task { Seq(mkDirWithFile()) }
+    def uncheckedAggPathRef: T[Agg[PathRef]] = Task { Agg(mkDirWithFile()) }
+    def uncheckedTuplePathRef: T[Tuple1[PathRef]] = Task { Tuple1(mkDirWithFile()) }
 
-    def checkedPathRef: T[PathRef] = T { mkDirWithFile().withRevalidateOnce }
-    def checkedSeqPathRef: T[Seq[PathRef]] = T { Seq(mkDirWithFile()).map(_.withRevalidateOnce) }
-    def checkedAggPathRef: T[Agg[PathRef]] = T { Agg(mkDirWithFile()).map(_.withRevalidateOnce) }
-    def checkedTuplePathRef: T[Tuple1[PathRef]] = T { Tuple1(mkDirWithFile().withRevalidateOnce) }
+    def checkedPathRef: T[PathRef] = Task { mkDirWithFile().withRevalidateOnce }
+    def checkedSeqPathRef: T[Seq[PathRef]] = Task { Seq(mkDirWithFile()).map(_.withRevalidateOnce) }
+    def checkedAggPathRef: T[Agg[PathRef]] = Task { Agg(mkDirWithFile()).map(_.withRevalidateOnce) }
+    def checkedTuplePathRef: T[Tuple1[PathRef]] =
+      Task { Tuple1(mkDirWithFile().withRevalidateOnce) }
   }
 
   object MultiModuleClasspaths extends HelloBase {
@@ -337,7 +338,7 @@ object HelloWorldTests extends TestSuite {
       def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.2")
       def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.4.2")
       def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
-      def unmanagedClasspath = T { Agg(PathRef(millSourcePath / "unmanaged")) }
+      def unmanagedClasspath = Task { Agg(PathRef(millSourcePath / "unmanaged")) }
     }
     trait BarModule extends ScalaModule {
       def scalaVersion = "2.13.12"
@@ -345,7 +346,7 @@ object HelloWorldTests extends TestSuite {
       def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.1")
       def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.4.1")
       def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
-      def unmanagedClasspath = T { Agg(PathRef(millSourcePath / "unmanaged")) }
+      def unmanagedClasspath = Task { Agg(PathRef(millSourcePath / "unmanaged")) }
     }
     trait QuxModule extends ScalaModule {
       def scalaVersion = "2.13.12"
@@ -353,7 +354,7 @@ object HelloWorldTests extends TestSuite {
       def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.0")
       def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.4.0")
       def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
-      def unmanagedClasspath = T { Agg(PathRef(millSourcePath / "unmanaged")) }
+      def unmanagedClasspath = Task { Agg(PathRef(millSourcePath / "unmanaged")) }
     }
     object ModMod extends Module {
       object foo extends FooModule
@@ -829,7 +830,7 @@ object HelloWorldTests extends TestSuite {
       "runIfMainClassProvided" - workspaceTest(HelloWorldWithMain) { eval =>
         val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
         val Right((_, evalCount)) = eval.apply(
-          HelloWorldWithMain.core.run(T.task(Args(runResult.toString)))
+          HelloWorldWithMain.core.run(Task.anon(Args(runResult.toString)))
         )
 
         assert(evalCount > 0)
@@ -851,7 +852,7 @@ object HelloWorldTests extends TestSuite {
         // discovered by Zinc and used
         val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
         val Right((_, evalCount)) = eval.apply(
-          HelloWorldWithoutMain.core.run(T.task(Args(runResult.toString)))
+          HelloWorldWithoutMain.core.run(Task.anon(Args(runResult.toString)))
         )
 
         assert(evalCount > 0)
@@ -867,7 +868,7 @@ object HelloWorldTests extends TestSuite {
       "runIfMainClassProvided" - workspaceTest(HelloWorldWithMain) { eval =>
         val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
         val Right((_, evalCount)) = eval.apply(
-          HelloWorldWithMain.core.runLocal(T.task(Args(runResult.toString)))
+          HelloWorldWithMain.core.runLocal(Task.anon(Args(runResult.toString)))
         )
 
         assert(evalCount > 0)
@@ -880,7 +881,7 @@ object HelloWorldTests extends TestSuite {
       "runWithDefaultMain" - workspaceTest(HelloWorldDefaultMain) { eval =>
         val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
         val Right((_, evalCount)) = eval.apply(
-          HelloWorldDefaultMain.core.runLocal(T.task(Args(runResult.toString)))
+          HelloWorldDefaultMain.core.runLocal(Task.anon(Args(runResult.toString)))
         )
 
         assert(evalCount > 0)

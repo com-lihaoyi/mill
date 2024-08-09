@@ -310,7 +310,7 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
 
     test("runtimeErrorEdits") {
       val runErrorSnippet = """{
-                              |override def runClasspath = T{
+                              |override def runClasspath = Task {
                               |  throw new Exception("boom")
                               |  super.runClasspath()
                               |}""".stripMargin

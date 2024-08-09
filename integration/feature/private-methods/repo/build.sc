@@ -1,30 +1,30 @@
 import mill._
 
-def pub = T {
+def pub = Task {
   priv()
 }
 
-private def priv = T {
+private def priv = Task {
   "priv"
 }
 
 object foo extends Module {
-  def bar = T {
+  def bar = Task {
     baz()
   }
 }
 
-private def baz = T {
+private def baz = Task {
   "bazOuter"
 }
 
 object qux extends Module {
   object foo extends Module {
-    def bar = T {
+    def bar = Task {
       baz()
     }
   }
-  private def baz = T {
+  private def baz = Task {
     "bazInner"
   }
 }
@@ -32,12 +32,12 @@ object qux extends Module {
 object cls extends cls
 class cls extends Module {
   object foo extends Module {
-    def bar = T {
+    def bar = Task {
       baz()
     }
   }
 
-  private def baz = T {
+  private def baz = Task {
     "bazCls"
   }
 }

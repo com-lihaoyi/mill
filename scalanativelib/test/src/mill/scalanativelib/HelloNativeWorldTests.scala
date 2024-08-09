@@ -56,7 +56,7 @@ object HelloNativeWorldTests extends TestSuite {
     trait RootModule extends HelloNativeWorldModule {
       override def artifactName = "hello-native-world"
       def scalaNativeVersion = sNativeVersion
-      def releaseMode = T { mode }
+      def releaseMode = Task { mode }
       def pomSettings = PomSettings(
         organization = "com.lihaoyi",
         description = "hello native world ready for real world publishing",
@@ -70,7 +70,7 @@ object HelloNativeWorldTests extends TestSuite {
     object buildUTest extends Cross[BuildModuleUtest](matrix)
     trait BuildModuleUtest extends RootModule {
       object test extends ScalaNativeTests with TestModule.Utest {
-        override def sources = T.sources { millSourcePath / "src" / "utest" }
+        override def sources = Task.sources { millSourcePath / "src" / "utest" }
         override def ivyDeps = super.ivyDeps() ++ Agg(
           ivy"com.lihaoyi::utest::${
               if (scalaNativeVersion().startsWith("0.4")) utestForNative04Version

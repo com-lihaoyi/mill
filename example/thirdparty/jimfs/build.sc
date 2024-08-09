@@ -1,6 +1,6 @@
 import mill._, javalib._, publish._
 
-def sharedCompileIvyDeps = T{
+def sharedCompileIvyDeps = Task {
   Agg(
     ivy"com.google.auto.service:auto-service:1.0.1",
     ivy"com.google.code.findbugs:jsr305:3.0.2",

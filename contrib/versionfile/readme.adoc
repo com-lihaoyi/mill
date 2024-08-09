@@ -63,7 +63,7 @@ object mymodule extends PublishModule {
 
 == Configure the version file
 
-If you want the version file to have another name, you will need to override the `versionFile` task.
+If you want the version file to have another name, you will need to override the `versionFile` Task.
 
 If you have a project wide version file like in the example above, and you want the version file to reside
 at the root of the project, you can override `millSourcePath`:
