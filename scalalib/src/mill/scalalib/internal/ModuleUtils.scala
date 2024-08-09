@@ -15,6 +15,9 @@ object ModuleUtils {
     (module.millModuleShared.value.getOrElse(Segments()) ++ module.millModuleSegments).render
   }
 
+  // FIXME: Remove the Type restriction T <: Module
+  // although it makes sense in this context, the function is useful in other contexts as well
+  // FIMXE: Remove or consolidate with copy in ZincModuleImpl
   def recursive[T <: Module](name: String, start: T, deps: T => Seq[T]): Seq[T] = {
 
     @tailrec def rec(
