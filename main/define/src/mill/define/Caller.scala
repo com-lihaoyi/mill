@@ -1,14 +1,14 @@
 package mill.define
 
-// import sourcecode.Compat.Context
-// import language.experimental.macros
+import scala.quoted.*
 
 case class Caller(value: Any)
 object Caller {
   def apply()(implicit c: Caller) = c.value
-  implicit def generate: Caller = ??? //macro impl
-  // def impl(c: Context): c.Tree = {
-  //   import c.universe._
-  //   q"new _root_.mill.define.Caller(this)"
-  // }
+
+  /* basically a poison-pill to check that the Module defined version is enough */
+  inline given generate: Caller = defaultCaller
+
+  @annotation.compileTimeOnly("No enclosing scope, this is a bug")
+  def defaultCaller: Caller = Caller(null)
 }
