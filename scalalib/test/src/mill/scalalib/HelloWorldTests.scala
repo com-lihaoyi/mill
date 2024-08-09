@@ -957,7 +957,7 @@ object HelloWorldTests extends TestSuite {
       }
 
       "assemblyRules" - {
-        def checkAppend[M <: TestUtil.BaseModule](module: M, target: Target[PathRef]) =
+        def checkAppend[M <: TestUtil.BaseModule](module: M, target: Task[PathRef]) =
           workspaceTest(module) { eval =>
             val Right((result, _)) = eval.apply(target)
 
@@ -986,7 +986,7 @@ object HelloWorldTests extends TestSuite {
 
         def checkAppendMulti[M <: TestUtil.BaseModule](
             module: M,
-            target: Target[PathRef]
+            target: Task[PathRef]
         ): Unit =
           workspaceTest(
             module,
@@ -1013,7 +1013,7 @@ object HelloWorldTests extends TestSuite {
 
         def checkAppendWithSeparator[M <: TestUtil.BaseModule](
             module: M,
-            target: Target[PathRef]
+            target: Task[PathRef]
         ): Unit =
           workspaceTest(
             module,
@@ -1053,7 +1053,7 @@ object HelloWorldTests extends TestSuite {
 
         def checkExclude[M <: TestUtil.BaseModule](
             module: M,
-            target: Target[PathRef],
+            target: Task[PathRef],
             resourcePath: os.Path = resourcePath
         ) =
           workspaceTest(module, resourcePath) { eval =>
@@ -1085,7 +1085,7 @@ object HelloWorldTests extends TestSuite {
 
         def checkRelocate[M <: TestUtil.BaseModule](
             module: M,
-            target: Target[PathRef],
+            target: Task[PathRef],
             resourcePath: os.Path = resourcePath
         ) =
           workspaceTest(module, resourcePath) { eval =>
@@ -1327,7 +1327,7 @@ object HelloWorldTests extends TestSuite {
 
     "validated" - {
       "PathRef" - {
-        def check(t: Target[PathRef], flip: Boolean) =
+        def check(t: Task[PathRef], flip: Boolean) =
           workspaceTest(ValidatedTarget, debug = true) { eval =>
             // we reconstruct faulty behavior
             val Right((result, _)) = eval.apply(t)
@@ -1347,7 +1347,7 @@ object HelloWorldTests extends TestSuite {
         "checked" - check(ValidatedTarget.checkedPathRef, true)
       }
       "SeqPathRef" - {
-        def check(t: Target[Seq[PathRef]], flip: Boolean) = workspaceTest(ValidatedTarget) { eval =>
+        def check(t: Task[Seq[PathRef]], flip: Boolean) = workspaceTest(ValidatedTarget) { eval =>
           // we reconstruct faulty behavior
           val Right((result, _)) = eval.apply(t)
           assert(
@@ -1366,7 +1366,7 @@ object HelloWorldTests extends TestSuite {
         "checked" - check(ValidatedTarget.checkedSeqPathRef, true)
       }
       "AggPathRef" - {
-        def check(t: Target[Agg[PathRef]], flip: Boolean) = workspaceTest(ValidatedTarget) { eval =>
+        def check(t: Task[Agg[PathRef]], flip: Boolean) = workspaceTest(ValidatedTarget) { eval =>
           // we reconstruct faulty behavior
           val Right((result, _)) = eval.apply(t)
           assert(
@@ -1385,7 +1385,7 @@ object HelloWorldTests extends TestSuite {
         "checked" - check(ValidatedTarget.checkedAggPathRef, true)
       }
       "other" - {
-        def check(t: Target[Tuple1[PathRef]], flip: Boolean) = workspaceTest(ValidatedTarget) {
+        def check(t: Task[Tuple1[PathRef]], flip: Boolean) = workspaceTest(ValidatedTarget) {
           eval =>
             // we reconstruct faulty behavior
             val Right((result, _)) = eval.apply(t)

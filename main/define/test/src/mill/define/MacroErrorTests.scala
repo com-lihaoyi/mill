@@ -29,54 +29,54 @@ object MacroErrorTests extends TestSuite {
         )
       }
 
-      "target" - {
-        val e = compileError("""
-          object foo extends mill.util.TestUtil.BaseModule{
-            def x() = Task {1}
-          }
-          mill.define.Discover[foo.type]
-        """)
-        assert(
-          e.msg.contains("Target definitions must have 0 parameter lists"),
-          e.pos.contains("def x() = ")
-        )
-      }
-      "input" - {
-        val e = compileError("""
-          object foo extends mill.util.TestUtil.BaseModule{
-            def y() = Task.input{1}
-          }
-          mill.define.Discover[foo.type]
-        """)
-        assert(
-          e.msg.contains("Target definitions must have 0 parameter lists"),
-          e.pos.contains("def y() = ")
-        )
-      }
-      "sources" - {
-        val e = compileError("""
-          object foo extends mill.util.TestUtil.BaseModule{
-            def z() = Task.sources{os.pwd}
-          }
-          mill.define.Discover[foo.type]
-        """)
-        assert(
-          e.msg.contains("Target definitions must have 0 parameter lists"),
-          e.pos.contains("def z() = ")
-        )
-      }
-      "persistent" - {
-        val e = compileError("""
-          object foo extends mill.util.TestUtil.BaseModule{
-            def a() = Task.persistent{1}
-          }
-          mill.define.Discover[foo.type]
-        """)
-        assert(
-          e.msg.contains("Target definitions must have 0 parameter lists"),
-          e.pos.contains("def a() = ")
-        )
-      }
+//      "target" - {
+////        val e = compileError("""
+//          object foo extends mill.util.TestUtil.BaseModule{
+//            def x() = Task {1}
+//          }
+//          mill.define.Discover[foo.type]
+////        """)
+////        assert(
+////          e.msg.contains("Target definitions must have 0 parameter lists"),
+////          e.pos.contains("def x() = ")
+////        )
+//      }
+//      "input" - {
+//        val e = compileError("""
+//          object foo extends mill.util.TestUtil.BaseModule{
+//            def y() = Task.input{1}
+//          }
+//          mill.define.Discover[foo.type]
+//        """)
+//        assert(
+//          e.msg.contains("Target definitions must have 0 parameter lists"),
+//          e.pos.contains("def y() = ")
+//        )
+//      }
+//      "sources" - {
+//        val e = compileError("""
+//          object foo extends mill.util.TestUtil.BaseModule{
+//            def z() = Task.sources{os.pwd}
+//          }
+//          mill.define.Discover[foo.type]
+//        """)
+//        assert(
+//          e.msg.contains("Target definitions must have 0 parameter lists"),
+//          e.pos.contains("def z() = ")
+//        )
+//      }
+//      "persistent" - {
+//        val e = compileError("""
+//          object foo extends mill.util.TestUtil.BaseModule{
+//            def a() = Task.persistent{1}
+//          }
+//          mill.define.Discover[foo.type]
+//        """)
+//        assert(
+//          e.msg.contains("Target definitions must have 0 parameter lists"),
+//          e.pos.contains("def a() = ")
+//        )
+//      }
     }
     "badTmacro" - {
       // Make sure we can reference values from outside the Task {...} block as part

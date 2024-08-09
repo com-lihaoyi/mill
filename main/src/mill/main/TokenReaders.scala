@@ -6,7 +6,7 @@ import mill.define.{Args, Target, Task}
 import mill.resolve.{Resolve, SelectMode}
 import mill.resolve.SimpleTaskTokenReader
 
-case class Tasks[T](value: Seq[mill.define.NamedTask[T]])
+case class Tasks[T](value: Seq[mill.define.Task[T]])
 
 object Tasks {
   private[main] class TokenReader[T]() extends mainargs.TokensReader.Simple[Tasks[T]] {

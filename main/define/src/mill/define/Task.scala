@@ -543,7 +543,7 @@ trait TaskCompanion extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx
   def input[T](value: Result[T])(implicit
       w: upickle.default.Writer[T],
       ctx: mill.define.Ctx
-  ): Target[T] =
+  ): Task[T] =
     macro Target.Internal.inputImpl[T]
 
   /**

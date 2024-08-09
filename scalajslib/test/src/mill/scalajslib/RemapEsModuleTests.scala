@@ -4,7 +4,7 @@ import mill.api.Result
 import mill.define.Discover
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
-import mill.define.Target
+import mill.define.Task
 import mill.scalajslib.api._
 
 object EsModuleRemapTests extends TestSuite {

@@ -110,7 +110,6 @@ object Discover {
           assertParamListCounts(
             methods,
             (weakTypeOf[mill.define.Command[_]], 1, "`Task.command`"),
-            (weakTypeOf[mill.define.Target[_]], 0, "Target")
           )
 
           Tuple2(

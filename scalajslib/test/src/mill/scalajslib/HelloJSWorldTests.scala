@@ -198,7 +198,7 @@ object HelloJSWorldTests extends TestSuite {
       }
     }
 
-    def runTests(testTask: define.NamedTask[(String, Seq[TestResult])])
+    def runTests(testTask: define.Task[(String, Seq[TestResult])])
         : Map[String, Map[String, TestResult]] = {
       val Left(Result.Failure(_, Some(res))) = helloWorldEvaluator(testTask)
 

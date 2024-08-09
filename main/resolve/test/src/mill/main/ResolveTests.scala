@@ -1,6 +1,6 @@
 package mill.resolve
 
-import mill.define.NamedTask
+import mill.define.Task
 import mill.util.TestGraphs
 import mill.util.TestGraphs._
 import utest._
@@ -10,13 +10,13 @@ object ResolveTests extends TestSuite {
 
     def apply(
         selectorString: String,
-        expected0: Either[String, Set[T => NamedTask[_]]],
+        expected0: Either[String, Set[T => Task[_]]],
         expectedMetadata: Set[String] = Set()
     ) = checkSeq(Seq(selectorString), expected0, expectedMetadata)
 
     def checkSeq(
         selectorStrings: Seq[String],
-        expected0: Either[String, Set[T => NamedTask[_]]],
+        expected0: Either[String, Set[T => Task[_]]],
         expectedMetadata: Set[String] = Set()
     ) = {
       val expected = expected0.map(_.map(_(module)))
@@ -37,7 +37,7 @@ object ResolveTests extends TestSuite {
 
     def checkSeq0(
         selectorStrings: Seq[String],
-        check: Either[String, List[NamedTask[_]]] => Boolean,
+        check: Either[String, List[Task[_]]] => Boolean,
         checkMetadata: Either[String, List[String]] => Boolean = _ => true
     ) = {
 
@@ -595,8 +595,8 @@ object ResolveTests extends TestSuite {
       val check = new Checker(duplicates)
 
       def segments(
-          found: Either[String, List[NamedTask[_]]],
-          expected: Either[String, List[NamedTask[_]]]
+          found: Either[String, List[Task[_]]],
+          expected: Either[String, List[Task[_]]]
       ) = {
         found.map(_.map(_.ctx.segments)) == expected.map(_.map(_.ctx.segments))
       }

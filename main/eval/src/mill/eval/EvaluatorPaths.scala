@@ -1,7 +1,7 @@
 package mill.eval
 
 import mill.api.internal
-import mill.define.{NamedTask, Segment, Segments}
+import mill.define.{NamedTask, Segment, Segments, Task}
 
 import java.util.regex.Matcher
 
@@ -43,7 +43,7 @@ object EvaluatorPaths {
   }
   def resolveDestPaths(
       workspacePath: os.Path,
-      task: NamedTask[_]
+      task: Task[_]
   ): EvaluatorPaths = resolveDestPaths(workspacePath, task.ctx.segments, task.ctx.foreign)
 
   // case-insensitive match on reserved names

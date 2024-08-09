@@ -957,6 +957,11 @@ object contrib extends Module {
       def playBinary = crossValue
       def millSourcePath: os.Path = super.millSourcePath / playBinary
 
+      def scalacOptions = Seq.empty[String]
+
+      def scalacPluginClasspath = T{ Seq.empty[PathRef] }
+
+
       def sources = T.sources {
         // We want to avoid duplicating code as long as the Play APIs allow.
         // But if newer Play versions introduce incompatibilities,
@@ -965,7 +970,7 @@ object contrib extends Module {
       }
 
       def scalaVersion = Deps.play(playBinary).scalaVersion
-      def moduleDeps = Seq(playlib.api, main.moduledefs)
+      def moduleDeps = Seq(playlib.api)
       def ivyDeps = Agg(Deps.osLib, Deps.play(playBinary).routesCompiler)
     }
   }
