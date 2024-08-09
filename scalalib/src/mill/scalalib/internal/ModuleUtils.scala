@@ -15,10 +15,18 @@ object ModuleUtils {
     (module.millModuleShared.value.getOrElse(Segments()) ++ module.millModuleSegments).render
   }
 
-  // FIXME: Remove the Type restriction T <: Module
-  // although it makes sense in this context, the function is useful in other contexts as well
+  /**
+   * Find all dependencies.
+   * The result contains `start` and all its transitive dependencies provided by `deps`,
+   * but does not contain duplicates.
+   * If it detects a cycle, it throws an exception with a meaningful message containing the cycle trace.
+   * @param name The nane is used in the exception message only
+   * @param start the start element
+   * @param deps A function provided the direct dependencies
+   * @throws BuildScriptException if there were cycles in the dependencies
+   */
   // FIMXE: Remove or consolidate with copy in ZincModuleImpl
-  def recursive[T <: Module](name: String, start: T, deps: T => Seq[T]): Seq[T] = {
+  def recursive[T](name: String, start: T, deps: T => Seq[T]): Seq[T] = {
 
     @tailrec def rec(
         seenModules: List[T],
