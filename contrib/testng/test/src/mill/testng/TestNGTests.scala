@@ -23,7 +23,7 @@ object TestNGTests extends TestSuite {
         )
       }
 
-      override def runClasspath: Target[Seq[PathRef]] =
+      override def runClasspath: Task[Seq[PathRef]] =
         Task { super.runClasspath() ++ testngClasspath() }
       override def ivyDeps = Task {
         super.ivyDeps() ++

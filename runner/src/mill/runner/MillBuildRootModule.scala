@@ -48,7 +48,7 @@ class MillBuildRootModule()(implicit
    * All script files (that will get wrapped later)
    * @see [[generateScriptSources]]
    */
-  def scriptSources: Target[Seq[PathRef]] = Task.sources {
+  def scriptSources: Task[Seq[PathRef]] = Task.sources {
     MillBuildRootModule.parseBuildFiles(millBuildRootModuleInfo)
       .seenScripts
       .keys.map(PathRef(_))
@@ -84,7 +84,7 @@ class MillBuildRootModule()(implicit
     }
   }
 
-  def cliImports: Target[Seq[String]] = Task.input {
+  def cliImports: Task[Seq[String]] = Task.input {
     val imports = CliImports.value
     if (imports.nonEmpty) {
       Task.log.debug(s"Using cli-provided runtime imports: ${imports.mkString(", ")}")
@@ -222,7 +222,7 @@ class MillBuildRootModule()(implicit
     candidates.filterNot(filesToExclude.contains).map(PathRef(_))
   }
 
-  def enclosingClasspath: Target[Seq[PathRef]] = Task.sources {
+  def enclosingClasspath: Task[Seq[PathRef]] = Task.sources {
     millBuildRootModuleInfo.enclosingClasspath.map(p => mill.api.PathRef(p, quick = true))
   }
 
@@ -271,7 +271,7 @@ class MillBuildRootModule()(implicit
   }
 
   /** Used in BSP IntelliJ, which can only work with directories */
-  def dummySources: Sources = Task.sources(Task.dest)
+  def dummySources: Task[Seq[PathRef]] = Task.sources(Task.dest)
 }
 
 object MillBuildRootModule {

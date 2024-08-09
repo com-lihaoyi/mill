@@ -1,7 +1,7 @@
 package object mill extends mill.api.JsonFormatters {
   @deprecated("Use Task.*", "0.12.0")
-  val T = define.Target
-  type T[+T] = define.Target[T]
+  val T = define.Task
+  type T[+T] = define.Task[T]
 
   val Target = define.Target
   type Target[+T] = define.Target[T]

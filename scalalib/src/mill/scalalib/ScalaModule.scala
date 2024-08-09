@@ -29,12 +29,12 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   type ScalaModuleTests = ScalaTests
 
   trait ScalaTests extends JavaModuleTests with ScalaModule {
-    override def scalaOrganization: Target[String] = outer.scalaOrganization()
-    override def scalaVersion: Target[String] = outer.scalaVersion()
-    override def scalacPluginIvyDeps: Target[Agg[Dep]] = outer.scalacPluginIvyDeps()
-    override def scalacPluginClasspath: Target[Agg[PathRef]] = outer.scalacPluginClasspath()
-    override def scalacOptions: Target[Seq[String]] = outer.scalacOptions()
-    override def mandatoryScalacOptions: Target[Seq[String]] = outer.mandatoryScalacOptions()
+    override def scalaOrganization: Task[String] = outer.scalaOrganization()
+    override def scalaVersion: Task[String] = outer.scalaVersion()
+    override def scalacPluginIvyDeps: Task[Agg[Dep]] = outer.scalacPluginIvyDeps()
+    override def scalacPluginClasspath: Task[Agg[PathRef]] = outer.scalacPluginClasspath()
+    override def scalacOptions: Task[Seq[String]] = outer.scalacOptions()
+    override def mandatoryScalacOptions: Task[Seq[String]] = outer.mandatoryScalacOptions()
   }
 
   /**
@@ -160,20 +160,20 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   /**
    * Allows you to make use of Scala compiler plugins.
    */
-  def scalacPluginIvyDeps: Target[Agg[Dep]] = Task { Agg.empty[Dep] }
+  def scalacPluginIvyDeps: Task[Agg[Dep]] = Task { Agg.empty[Dep] }
 
-  def scalaDocPluginIvyDeps: Target[Agg[Dep]] = Task { scalacPluginIvyDeps() }
+  def scalaDocPluginIvyDeps: Task[Agg[Dep]] = Task { scalacPluginIvyDeps() }
 
   /**
    * Mandatory command-line options to pass to the Scala compiler
    * that shouldn't be removed by overriding `scalacOptions`
    */
-  protected def mandatoryScalacOptions: Target[Seq[String]] = Task { Seq.empty[String] }
+  protected def mandatoryScalacOptions: Task[Seq[String]] = Task { Seq.empty[String] }
 
   /**
    * Scalac options to activate the compiler plugins.
    */
-  private def enablePluginScalacOptions: Target[Seq[String]] = Task {
+  private def enablePluginScalacOptions: Task[Seq[String]] = Task {
 
     val resolvedJars = defaultResolver().resolveDeps(
       scalacPluginIvyDeps().map(_.exclude("*" -> "*"))
@@ -184,7 +184,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   /**
    * Scalac options to activate the compiler plugins for ScalaDoc generation.
    */
-  private def enableScalaDocPluginScalacOptions: Target[Seq[String]] = Task {
+  private def enableScalaDocPluginScalacOptions: Task[Seq[String]] = Task {
     val resolvedJars = defaultResolver().resolveDeps(
       scalaDocPluginIvyDeps().map(_.exclude("*" -> "*"))
     )
@@ -195,13 +195,13 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    * Command-line options to pass to the Scala compiler defined by the user.
    * Consumers should use `allScalacOptions` to read them.
    */
-  override def scalacOptions: Target[Seq[String]] = Task { Seq.empty[String] }
+  override def scalacOptions: Task[Seq[String]] = Task { Seq.empty[String] }
 
   /**
    * Aggregation of all the options passed to the Scala compiler.
    * In most cases, instead of overriding this Target you want to override `scalacOptions` instead.
    */
-  def allScalacOptions: Target[Seq[String]] = Task {
+  def allScalacOptions: Task[Seq[String]] = Task {
     mandatoryScalacOptions() ++ enablePluginScalacOptions() ++ scalacOptions()
   }
 
@@ -294,7 +294,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
 
   /** the path to the compiled classes without forcing the compilation. */
   @internal
-  override def bspCompileClassesPath: Target[UnresolvedPath] =
+  override def bspCompileClassesPath: Task[UnresolvedPath] =
     if (compile.ctx.enclosing == s"${classOf[ScalaModule].getName}#compile") {
       Task {
         Task.log.debug(

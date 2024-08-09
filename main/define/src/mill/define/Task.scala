@@ -41,9 +41,16 @@ trait Task[+T] extends Task.Ops[T] with Applyable[Task, T] {
   def asCommand: Option[Command[T]] = None
   def asWorker: Option[Worker[T]] = None
   def self: Task[T] = this
+  def ctx: Ctx = null
 }
 
 object Task extends TaskCompanion {
+  implicit def applyImplicit2[T](t: T)(implicit rw: RW[T], ctx: mill.define.Ctx): Task[T] =
+  macro Target.Internal.targetImpl[T]
+
+  implicit def applyImplicit2[T](t: Result[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Task[T] =
+  macro Target.Internal.targetResultImpl[T]
+
   abstract class Ops[+T] { this: Task[T] =>
     def map[V](f: T => V): Task[V] = new Task.Mapped(this, f)
     def filter(f: T => Boolean): Task[T] = this
@@ -107,7 +114,7 @@ trait NamedTask[+T] extends Task[T] {
 
   def evaluate(ctx: mill.api.Ctx): Result[T] = ctx.arg[T](0)
 
-  val ctx: Ctx = ctx0.withSegments(segments = ctx0.segments ++ Seq(ctx0.segment))
+  override val ctx: Ctx = ctx0.withSegments(segments = ctx0.segments ++ Seq(ctx0.segment))
   val inputs: Seq[Task[_]] = Seq(t)
 
   def readWriterOpt: Option[upickle.default.ReadWriter[_]] = None
@@ -122,6 +129,7 @@ trait NamedTask[+T] extends Task[T] {
 trait Target[+T] extends NamedTask[T]
 
 object Target extends TaskCompanion {
+
   implicit def applyImplicit[T](t: T)(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
     macro Target.Internal.targetImpl[T]
 
@@ -465,13 +473,13 @@ trait TaskCompanion extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx
    * return type is JSON serializable. In return they automatically caches their
    * return value to disk, only re-computing if upstream [[Task]]s change
    */
-  def apply[T](t: T)(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
+  def apply[T](t: T)(implicit rw: RW[T], ctx: mill.define.Ctx): Task[T] =
     macro Target.Internal.targetImpl[T]
 
-  def apply[T](t: Result[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
+  def apply[T](t: Result[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Task[T] =
     macro Target.Internal.targetResultImpl[T]
 
-  def apply[T](t: Task[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
+  def apply[T](t: Task[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Task[T] =
     macro Target.Internal.targetTaskImpl[T]
 
   /**
@@ -487,7 +495,7 @@ trait TaskCompanion extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx
    * that it computes the same result whether or not there is data in `Task.dest`.
    * Violating that invariant can result in confusing mis-behaviors
    */
-  def persistent[T](t: Result[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
+  def persistent[T](t: Result[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Task[T] =
     macro Target.Internal.persistentImpl[T]
 
   /**
@@ -500,20 +508,20 @@ trait TaskCompanion extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx
    * signature for you source files/folders and decides whether or not downstream
    * [[TargetImpl]]s need to be invalidated and re-computed.
    */
-  def sources(values: Result[os.Path]*)(implicit ctx: mill.define.Ctx): Target[Seq[PathRef]] =
+  def sources(values: Result[os.Path]*)(implicit ctx: mill.define.Ctx): Task[Seq[PathRef]] =
     macro Target.Internal.sourcesImpl1
 
-  def sources(values: Result[Seq[PathRef]])(implicit ctx: mill.define.Ctx): Target[Seq[PathRef]] =
+  def sources(values: Result[Seq[PathRef]])(implicit ctx: mill.define.Ctx): Task[Seq[PathRef]] =
     macro Target.Internal.sourcesImpl2
 
   /**
    * Similar to [[Source]], but only for a single source file or folder. Defined
    * using `Task.source`.
    */
-  def source(value: Result[os.Path])(implicit ctx: mill.define.Ctx): Target[PathRef] =
+  def source(value: Result[os.Path])(implicit ctx: mill.define.Ctx): Task[PathRef] =
     macro Target.Internal.sourceImpl1
 
-  def source(value: Result[PathRef])(implicit ctx: mill.define.Ctx): Target[PathRef] =
+  def source(value: Result[PathRef])(implicit ctx: mill.define.Ctx): Task[PathRef] =
     macro Target.Internal.sourceImpl2
 
   /**

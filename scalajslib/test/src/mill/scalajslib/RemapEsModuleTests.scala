@@ -21,7 +21,7 @@ object EsModuleRemapTests extends TestSuite {
       override def scalaJSSourceMap = false
       override def moduleKind = ModuleKind.ESModule
 
-      override def scalaJSImportMap: Target[Seq[ESModuleImportMapping]] = Seq(
+      override def scalaJSImportMap: Task[Seq[ESModuleImportMapping]] = Seq(
         ESModuleImportMapping.Prefix("@stdlib/linspace", remapTo)
       )
     }
@@ -33,7 +33,7 @@ object EsModuleRemapTests extends TestSuite {
       override def scalaJSSourceMap = false
       override def moduleKind = ModuleKind.ESModule
 
-      override def scalaJSImportMap: Target[Seq[ESModuleImportMapping]] = Seq(
+      override def scalaJSImportMap: Task[Seq[ESModuleImportMapping]] = Seq(
         ESModuleImportMapping.Prefix("@stdlib/linspace", remapTo)
       )
     }

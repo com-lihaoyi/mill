@@ -23,7 +23,7 @@ object VisualizeModule extends ExternalModule with VisualizeModule {
 trait VisualizeModule extends mill.define.TaskModule {
   def repositories: Seq[Repository]
   def defaultCommandName() = "run"
-  def classpath: Target[Loose.Agg[PathRef]] = Target {
+  def classpath: mill.define.Task[Loose.Agg[PathRef]] = Target {
     millProjectModule("mill-main-graphviz", repositories)
   }
 

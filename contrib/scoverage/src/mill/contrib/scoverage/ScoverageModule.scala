@@ -185,25 +185,25 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     }
 
     override def compileResources: T[Seq[PathRef]] = outer.compileResources
-    override def generatedSources: Target[Seq[PathRef]] = Task { outer.generatedSources() }
-    override def allSources: Target[Seq[PathRef]] = Task { outer.allSources() }
+    override def generatedSources: Task[Seq[PathRef]] = Task { outer.generatedSources() }
+    override def allSources: Task[Seq[PathRef]] = Task { outer.allSources() }
     override def moduleDeps: Seq[JavaModule] = outer.moduleDeps
     override def compileModuleDeps: Seq[JavaModule] = outer.compileModuleDeps
     override def sources: T[Seq[PathRef]] = Task.sources { outer.sources() }
     override def resources: T[Seq[PathRef]] = Task.sources { outer.resources() }
     override def scalaVersion = Task { outer.scalaVersion() }
     override def repositoriesTask: Task[Seq[Repository]] = Task.anon { outer.repositoriesTask() }
-    override def compileIvyDeps: Target[Agg[Dep]] = Task { outer.compileIvyDeps() }
-    override def ivyDeps: Target[Agg[Dep]] =
+    override def compileIvyDeps: Task[Agg[Dep]] = Task { outer.compileIvyDeps() }
+    override def ivyDeps: Task[Agg[Dep]] =
       Task { outer.ivyDeps() ++ outer.scoverageRuntimeDeps() }
-    override def unmanagedClasspath: Target[Agg[PathRef]] = Task { outer.unmanagedClasspath() }
+    override def unmanagedClasspath: Task[Agg[PathRef]] = Task { outer.unmanagedClasspath() }
 
     /** Add the scoverage scalac plugin. */
-    override def scalacPluginIvyDeps: Target[Loose.Agg[Dep]] =
+    override def scalacPluginIvyDeps: Task[Loose.Agg[Dep]] =
       Task { outer.scalacPluginIvyDeps() ++ outer.scoveragePluginDeps() }
 
     /** Add the scoverage specific plugin settings (`dataDir`). */
-    override def scalacOptions: Target[Seq[String]] =
+    override def scalacOptions: Task[Seq[String]] =
       Task {
         val extras =
           if (isScala3()) {

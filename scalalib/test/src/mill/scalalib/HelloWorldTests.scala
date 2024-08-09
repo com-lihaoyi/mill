@@ -213,7 +213,7 @@ object HelloWorldTests extends TestSuite {
 
   object HelloWorldScalaOverride extends HelloBase {
     object core extends HelloWorldModule {
-      override def scalaVersion: Target[String] = scala213Version
+      override def scalaVersion: Task[String] = scala213Version
     }
   }
 

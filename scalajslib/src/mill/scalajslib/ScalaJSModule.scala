@@ -19,11 +19,11 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   trait ScalaJSTests extends ScalaTests with TestScalaJSModule {
     override def scalaJSVersion = outer.scalaJSVersion()
-    override def moduleKind: Target[ModuleKind] = outer.moduleKind()
-    override def moduleSplitStyle: Target[ModuleSplitStyle] = outer.moduleSplitStyle()
+    override def moduleKind: Task[ModuleKind] = outer.moduleKind()
+    override def moduleSplitStyle: Task[ModuleSplitStyle] = outer.moduleSplitStyle()
     override def esFeatures = outer.esFeatures()
-    override def jsEnvConfig: Target[JsEnvConfig] = outer.jsEnvConfig()
-    override def scalaJSOptimizer: Target[Boolean] = outer.scalaJSOptimizer()
+    override def jsEnvConfig: Task[JsEnvConfig] = outer.jsEnvConfig()
+    override def scalaJSOptimizer: Task[Boolean] = outer.scalaJSOptimizer()
   }
   @deprecated("use ScalaJSTests", "0.11.0")
   type ScalaJSModuleTests = ScalaJSTests
@@ -34,7 +34,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def scalaJSWorkerVersion = Task { ZincWorkerUtil.scalaJSWorkerVersion(scalaJSVersion()) }
 
-  override def scalaLibraryIvyDeps: Target[Loose.Agg[Dep]] = Task {
+  override def scalaLibraryIvyDeps: Task[Loose.Agg[Dep]] = Task {
     val deps = super.scalaLibraryIvyDeps()
     if (ZincWorkerUtil.isScala3(scalaVersion())) {
       // Since Dotty/Scala3, Scala.JS is published with a platform suffix
@@ -56,7 +56,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     )
   }
 
-  def scalaJSJsEnvIvyDeps: Target[Agg[Dep]] = Task {
+  def scalaJSJsEnvIvyDeps: Task[Agg[Dep]] = Task {
     val dep = jsEnvConfig() match {
       case _: JsEnvConfig.NodeJs =>
         ivy"${ScalaJSBuildInfo.scalajsEnvNodejs}"
@@ -105,21 +105,21 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def scalaJSToolsClasspath = Task { scalaJSWorkerClasspath() ++ scalaJSLinkerClasspath() }
 
-  def fastLinkJS: Target[Report] = Task.persistent {
+  def fastLinkJS: Task[Report] = Task.persistent {
     linkTask(isFullLinkJS = false, forceOutJs = false)()
   }
 
-  def fullLinkJS: Target[Report] = Task.persistent {
+  def fullLinkJS: Task[Report] = Task.persistent {
     linkTask(isFullLinkJS = true, forceOutJs = false)()
   }
 
   @deprecated("Use fastLinkJS instead", "Mill 0.10.12")
-  def fastOpt: Target[PathRef] = Task {
+  def fastOpt: Task[PathRef] = Task {
     getReportMainFilePathRef(linkTask(isFullLinkJS = false, forceOutJs = true)())
   }
 
   @deprecated("Use fullLinkJS instead", "Mill 0.10.12")
-  def fullOpt: Target[PathRef] = Task {
+  def fullOpt: Task[PathRef] = Task {
     getReportMainFilePathRef(linkTask(isFullLinkJS = true, forceOutJs = true)())
   }
 
@@ -211,7 +211,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     )
   }
 
-  override def mandatoryScalacOptions: Target[Seq[String]] = Task {
+  override def mandatoryScalacOptions: Task[Seq[String]] = Task {
     // Don't add flag twice, e.g. if a test suite inherits it both directly
     // ScalaJSModule as well as from the enclosing non-test ScalaJSModule
     val scalajsFlag =
@@ -264,11 +264,11 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     else scalaJSBinaryVersion()
   }
 
-  override def platformSuffix: Target[String] = s"_sjs${artifactScalaJSVersion()}"
+  override def platformSuffix: Task[String] = s"_sjs${artifactScalaJSVersion()}"
 
-  def jsEnvConfig: Target[JsEnvConfig] = Task { JsEnvConfig.NodeJs() }
+  def jsEnvConfig: Task[JsEnvConfig] = Task { JsEnvConfig.NodeJs() }
 
-  def moduleKind: Target[ModuleKind] = Task { ModuleKind.NoModule }
+  def moduleKind: Task[ModuleKind] = Task { ModuleKind.NoModule }
 
   def esFeatures: T[ESFeatures] = Task {
     if (scalaJSVersion().startsWith("0."))
@@ -277,19 +277,19 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       ESFeatures.Defaults
   }
 
-  def moduleSplitStyle: Target[ModuleSplitStyle] = Task { ModuleSplitStyle.FewestModules }
+  def moduleSplitStyle: Task[ModuleSplitStyle] = Task { ModuleSplitStyle.FewestModules }
 
-  def scalaJSOptimizer: Target[Boolean] = Task { true }
+  def scalaJSOptimizer: Task[Boolean] = Task { true }
 
-  def scalaJSImportMap: Target[Seq[ESModuleImportMapping]] = Task {
+  def scalaJSImportMap: Task[Seq[ESModuleImportMapping]] = Task {
     Seq.empty[ESModuleImportMapping]
   }
 
   /** Whether to emit a source map. */
-  def scalaJSSourceMap: Target[Boolean] = Task { true }
+  def scalaJSSourceMap: Task[Boolean] = Task { true }
 
   /** Name patterns for output. */
-  def scalaJSOutputPatterns: Target[OutputPatterns] = Task { OutputPatterns.Defaults }
+  def scalaJSOutputPatterns: Task[OutputPatterns] = Task { OutputPatterns.Defaults }
 
   /**
    * Apply Scala.js-specific minification of the produced .js files.
@@ -304,7 +304,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
    *  minifier to be used in conjunction with a general-purpose JavaScript
    *  minifier.
    */
-  def scalaJSMinify: Target[Boolean] = Task { true }
+  def scalaJSMinify: Task[Boolean] = Task { true }
 
   override def prepareOffline(all: Flag): Command[Unit] = {
     val tasks =
@@ -349,7 +349,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
     )
   }
 
-  def fastLinkJSTest: Target[Report] = Task.persistent {
+  def fastLinkJSTest: Task[Report] = Task.persistent {
     linkJs(
       worker = ScalaJSWorkerExternalModule.scalaJSWorker(),
       toolsClasspath = scalaJSToolsClasspath(),

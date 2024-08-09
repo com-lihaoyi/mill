@@ -24,7 +24,7 @@ object ProguardTests extends TestSuite {
       millProjectModule("mill-contrib-proguard", repositoriesTask())
     }
 
-    override def runClasspath: Target[Seq[PathRef]] =
+    override def runClasspath: Task[Seq[PathRef]] =
       Task { super.runClasspath() ++ proguardContribClasspath() }
 
   }

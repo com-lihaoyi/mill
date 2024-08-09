@@ -54,9 +54,9 @@ trait PublishModule extends JavaModule { outer =>
    *
    * @since Mill after 0.10.0-M5
    */
-  def versionScheme: Target[Option[VersionScheme]] = Task { None }
+  def versionScheme: Task[Option[VersionScheme]] = Task { None }
 
-  def publishSelfDependency: Target[Artifact] = Task {
+  def publishSelfDependency: Task[Artifact] = Task {
     Artifact(pomSettings().organization, artifactId(), publishVersion())
   }
 
@@ -80,7 +80,7 @@ trait PublishModule extends JavaModule { outer =>
       compileModulePomDeps.map(Dependency(_, Scope.Provided))
   }
 
-  def pom: Target[PathRef] = Task {
+  def pom: Task[PathRef] = Task {
     val pom = Pom(
       artifactMetadata(),
       publishXmlDeps(),
@@ -94,28 +94,28 @@ trait PublishModule extends JavaModule { outer =>
     PathRef(pomPath)
   }
 
-  def ivy: Target[PathRef] = Task {
+  def ivy: Task[PathRef] = Task {
     val ivy = Ivy(artifactMetadata(), publishXmlDeps(), extraPublish())
     val ivyPath = Task.dest / "ivy.xml"
     os.write.over(ivyPath, ivy)
     PathRef(ivyPath)
   }
 
-  def artifactMetadata: Target[Artifact] = Task {
+  def artifactMetadata: Task[Artifact] = Task {
     Artifact(pomSettings().organization, artifactId(), publishVersion())
   }
 
   /**
    * Extra artifacts to publish.
    */
-  def extraPublish: Target[Seq[PublishInfo]] = Task { Seq.empty[PublishInfo] }
+  def extraPublish: Task[Seq[PublishInfo]] = Task { Seq.empty[PublishInfo] }
 
   /**
    * Properties to be published with the published pom/ivy XML.
    * Use `super.publishProperties() ++` when overriding to avoid losing default properties.
    * @since Mill after 0.10.0-M5
    */
-  def publishProperties: Target[Map[String, String]] = Task {
+  def publishProperties: Task[Map[String, String]] = Task {
     versionScheme().map(_.toProperty).toMap
   }
 
