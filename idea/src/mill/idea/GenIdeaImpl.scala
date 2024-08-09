@@ -541,14 +541,20 @@ case class GenIdeaImpl(
 
         val libNames = Strict.Agg.from(sanizedDeps).iterator.toSeq
 
-        val depNames = Strict.Agg
-          .from(mod.moduleDeps.map((_, None)) ++
-            mod.compileModuleDeps.map((_, Some("PROVIDED"))))
-          .filter(!_._1.skipIdea)
-          .map { case (v, s) => ScopedOrd(moduleName(moduleLabels(v)), s) }
-          .iterator
-          .toSeq
-          .distinct
+        val depNames = {
+          val allTransitive = mod.transitiveModuleCompileModuleDeps
+          val recursive = mod.recursiveModuleDeps
+          val provided = allTransitive.filterNot(recursive.contains)
+
+          Strict.Agg
+            .from(recursive.map((_, None)) ++
+              provided.map((_, Some("PROVIDED"))))
+            .filter(!_._1.skipIdea)
+            .map { case (v, s) => ScopedOrd(moduleName(moduleLabels(v)), s) }
+            .iterator
+            .toSeq
+            .distinct
+        }
 
         val isTest = mod.isInstanceOf[TestModule]
 
