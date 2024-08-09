@@ -53,3 +53,7 @@ object moduleD extends JavaModule {
   override def compileModuleDeps = Seq(moduleC)
 }
 object moduleE extends JavaModule
+object moduleF extends JavaModule {
+  override def compileModuleDeps = Seq(moduleC)
+  override def moduleDeps = Seq(moduleB, moduleA)
+}
