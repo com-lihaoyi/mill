@@ -51,7 +51,7 @@ class AutoOverridePlugin(val global: Global) extends Plugin {
               case Some(comment) =>
                 global.treeCopy.ClassDef(
                   tree,
-                  newMods(x.mods, comment),
+                  newMods(false, x.mods, comment),
                   x.name,
                   x.tparams,
                   x.impl
@@ -62,29 +62,26 @@ class AutoOverridePlugin(val global: Global) extends Plugin {
           case x: global.ModuleDef =>
             comments.getComment(x.pos) match {
               case Some(comment) =>
-                global.treeCopy.ModuleDef(tree, newMods(x.mods, comment), x.name, x.impl)
+                global.treeCopy.ModuleDef(tree, newMods(false, x.mods, comment), x.name, x.impl)
               case None => x
             }
 
           case x: global.DefDef =>
-            comments.getComment(x.pos) match {
-              case Some(comment) =>
-                global.treeCopy.DefDef(
-                  tree,
-                  newMods(x.mods, comment),
-                  x.name,
-                  x.tparams,
-                  x.vparamss,
-                  x.tpt,
-                  x.rhs
-                )
-              case None => x
-            }
+            global.treeCopy.DefDef(
+              tree,
+              newMods(x.vparamss.length == 0, x.mods, comments.getComment(x.pos).getOrElse("")),
+              x.name,
+              x.tparams,
+              x.vparamss,
+              x.tpt,
+              x.rhs
+            )
+
 
           case x: global.ValDef =>
             comments.getComment(x.pos) match {
               case Some(comment) =>
-                global.treeCopy.ValDef(tree, newMods(x.mods, comment), x.name, x.tpt, x.rhs)
+                global.treeCopy.ValDef(tree, newMods(false, x.mods, comment), x.name, x.tpt, x.rhs)
               case None => x
             }
 
@@ -92,22 +89,42 @@ class AutoOverridePlugin(val global: Global) extends Plugin {
         })
       }
 
-      def newMods(old: global.Modifiers, comment: String) = {
+      def newMods(nullaryMethod: Boolean, old: global.Modifiers, comment: String) = {
         old.copy(
-          annotations = createAnnotation(comment) :: old.annotations
+          annotations = createNullaryMethodAnnotation(nullaryMethod) ::: createAnnotation(comment) ::: old.annotations
         )
       }
 
-      private def createAnnotation(comment: String): global.Tree =
-        global.Apply(
-          global.Select(
-            global.New(
-              AutoOverridePlugin.scaladocAnnotationClassNameTree(global)
+      private def createNullaryMethodAnnotation(nullaryMethod: Boolean): List[global.Tree] = {
+        if (!nullaryMethod) Nil
+        else List{
+          global.Apply(
+            global.Select(
+              global.New(
+                AutoOverridePlugin.nullaryMethodAnnotationClassNameTree(global)
+              ),
+              global.nme.CONSTRUCTOR
             ),
-            global.nme.CONSTRUCTOR
-          ),
-          List(Literal(Constant(comment)))
-        )
+            List()
+          )
+        }
+      }
+
+
+      private def createAnnotation(comment: String): List[global.Tree] = {
+        if (comment == "") Nil
+        else List{
+          global.Apply(
+            global.Select(
+              global.New(
+                AutoOverridePlugin.scaladocAnnotationClassNameTree(global)
+              ),
+              global.nme.CONSTRUCTOR
+            ),
+            List(Literal(Constant(comment)))
+          )
+        }
+      }
 
     }
 
@@ -193,5 +210,15 @@ object AutoOverridePlugin {
         global.newTermName("moduledefs")
       ),
       global.newTypeName("Scaladoc")
+    )
+  private def nullaryMethodAnnotationClassNameTree(global: Global) =
+    global.Select(
+      global.Select(
+        global.Ident(
+          global.newTermName("mill")
+        ),
+        global.newTermName("moduledefs")
+      ),
+      global.newTypeName("NullaryMethod")
     )
 }

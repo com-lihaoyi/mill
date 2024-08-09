@@ -97,7 +97,13 @@ object Resolve {
 
   private def instantiateTarget(r: Resolved.Target, p: Module): Either[String, Target[_]] = {
     val definition = Reflect
-      .reflect(p.getClass, classOf[Target[_]], _ == r.segments.parts.last, true)
+      .reflect(
+        p.getClass,
+        classOf[mill.define.Target[_]],
+        _ == r.segments.parts.last,
+        true,
+        filterAnnotations = _.contains("mill.moduledefs.NullaryMethod")
+      )
       .head
 
     ResolveCore.catchWrapException(

@@ -71,14 +71,15 @@ object Module {
       modules.map(m => (m.millModuleSegments, m)).toMap
 
     lazy val targets: Set[Target[_]] =
-      traverse { _.millInternal.reflectAll[Target[_]].toIndexedSeq }.toSet
+      traverse { _.millInternal.reflectAll[Task[_]].toIndexedSeq.map(_.asTarget.get) }.toSet
 
     def reflect[T: ClassTag](filter: String => Boolean): Seq[T] = {
       Reflect.reflect(
         outer.getClass,
         implicitly[ClassTag[T]].runtimeClass,
         filter,
-        noParams = true
+        noParams = true,
+        filterAnnotations = _.contains("mill.moduledefs.NullaryMethod")
       )
         .map(_.invoke(outer).asInstanceOf[T])
     }

@@ -20,7 +20,8 @@ private[mill] object Reflect {
       outer: Class[_],
       inner: Class[_],
       filter: String => Boolean,
-      noParams: Boolean
+      noParams: Boolean,
+      filterAnnotations: Seq[String] => Boolean
   ): Seq[java.lang.reflect.Method] = {
     val res = for {
       m <- outer.getMethods
@@ -29,7 +30,8 @@ private[mill] object Reflect {
         isLegalIdentifier(n) &&
         (!noParams || m.getParameterCount == 0) &&
         (m.getModifiers & Modifier.STATIC) == 0 &&
-        inner.isAssignableFrom(m.getReturnType)
+        inner.isAssignableFrom(m.getReturnType) &&
+        filterAnnotations(m.getAnnotations.map(_.annotationType().getName).toSeq)
     } yield m
 
     // There can be multiple methods of the same name on a class if a sub-class
@@ -69,7 +71,8 @@ private[mill] object Reflect {
       outerCls,
       implicitly[ClassTag[T]].runtimeClass,
       filter,
-      noParams = true
+      noParams = true,
+      filterAnnotations = _ => true
     )
       .map(m => (m.getName, m))
 

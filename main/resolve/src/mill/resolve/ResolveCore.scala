@@ -434,14 +434,20 @@ private object ResolveCore {
     }
 
     val targets = Reflect
-      .reflect(cls, classOf[Target[_]], namePred, noParams = true)
+      .reflect(
+        cls,
+        classOf[Task[_]],
+        namePred,
+        noParams = true,
+        filterAnnotations = _.contains("mill.moduledefs.NullaryMethod")
+      )
       .map { m =>
         Resolved.Target(Segments.labels(decode(m.getName))) ->
           None
       }
 
     val commands = Reflect
-      .reflect(cls, classOf[Command[_]], namePred, noParams = false)
+      .reflect(cls, classOf[Command[_]], namePred, noParams = false, _ => true)
       .map(m => decode(m.getName))
       .map { name => Resolved.Command(Segments.labels(name)) -> None }
 
