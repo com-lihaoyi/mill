@@ -276,7 +276,7 @@ trait JavaModule
    * The upstream compilation output of all this module's upstream modules
    */
   def upstreamCompileOutput: T[Seq[CompilationResult]] = Task {
-    Task.traverse(transitiveModuleCompileModuleDeps)(_.compile)
+    Task.traverse(transitiveModuleCompileModuleDeps)(_.compile)()
   }
 
   /**
@@ -858,11 +858,11 @@ trait JavaModule
                 transitiveCompileIvyDeps() ++ runIvyDeps().map(bindDependency())
               },
               validModules
-            )
+            )()
           }
         case (Flag(true), Flag(false)) =>
           Task.command {
-            printDepsTree(args.inverse.value, transitiveCompileIvyDeps, validModules)
+            printDepsTree(args.inverse.value, transitiveCompileIvyDeps, validModules)()
           }
         case (Flag(false), Flag(true)) =>
           Task.command {
@@ -870,11 +870,11 @@ trait JavaModule
               args.inverse.value,
               Task.anon { runIvyDeps().map(bindDependency()) },
               validModules
-            )
+            )()
           }
         case _ =>
           Task.command {
-            printDepsTree(args.inverse.value, Task.anon { Agg.empty[BoundDep] }, validModules)
+            printDepsTree(args.inverse.value, Task.anon { Agg.empty[BoundDep] }, validModules)()
           }
       }
     } else {
@@ -943,7 +943,7 @@ trait JavaModule
    */
   def runBackground(args: String*): Command[Unit] = {
     val task = runBackgroundTask(finalMainClass, Task.anon { Args(args) })
-    Task.command { task }
+    Task.command { task() }
   }
 
   /**

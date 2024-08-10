@@ -217,10 +217,10 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
         outer.scalacOptions() ++ extras
       }
 
-    def htmlReport(): Command[Unit] = Task.command { doReport(ReportType.Html) }
-    def xmlReport(): Command[Unit] = Task.command { doReport(ReportType.Xml) }
-    def xmlCoberturaReport(): Command[Unit] = Task.command { doReport(ReportType.XmlCobertura) }
-    def consoleReport(): Command[Unit] = Task.command { doReport(ReportType.Console) }
+    def htmlReport(): Command[Unit] = Task.command { doReport(ReportType.Html)() }
+    def xmlReport(): Command[Unit] = Task.command { doReport(ReportType.Xml)() }
+    def xmlCoberturaReport(): Command[Unit] = Task.command { doReport(ReportType.XmlCobertura)() }
+    def consoleReport(): Command[Unit] = Task.command { doReport(ReportType.Console)() }
 
     override def skipIdea = true
   }

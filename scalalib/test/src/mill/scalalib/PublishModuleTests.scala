@@ -51,7 +51,7 @@ object PublishModuleTests extends TestSuite {
       override def versionScheme = Some(VersionScheme.EarlySemVer)
 
       def checkSonatypeCreds(sonatypeCreds: String) = Task.command {
-        PublishModule.checkSonatypeCreds(sonatypeCreds)
+        PublishModule.checkSonatypeCreds(sonatypeCreds)()
       }
     }
   }

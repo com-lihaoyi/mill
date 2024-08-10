@@ -64,10 +64,10 @@ class TestGraphs() {
   }
 
   object defCachedDiamond extends TestUtil.BaseModule {
-    def up = Task { test() }
-    def left = Task { test(up) }
-    def right = Task { test(up) }
-    def down = Task { test(left, right) }
+    def up = Task.ofTask { test() }
+    def left = Task.ofTask { test(up) }
+    def right = Task.ofTask { test(up)  }
+    def down = Task.ofTask { test(left, right) }
   }
 
   object borkedCachedDiamond2 extends TestUtil.BaseModule {

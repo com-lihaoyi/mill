@@ -479,7 +479,7 @@ trait TaskCompanion extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx
   def apply[T](t: Result[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Task[T] =
     macro Target.Internal.targetResultImpl[T]
 
-  def apply[T](t: Task[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Task[T] =
+  def ofTask[T](t: Task[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Task[T] =
     macro Target.Internal.targetTaskImpl[T]
 
   /**
@@ -553,12 +553,6 @@ trait TaskCompanion extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx
    * take arguments that are automatically converted to command-line
    * arguments, as long as an implicit [[mainargs.TokensReader]] is available.
    */
-  def command[T](t: Task[T])(implicit
-      ctx: mill.define.Ctx,
-      w: W[T],
-      cls: EnclosingClass
-  ): Command[T] = macro Target.Internal.commandFromTask[T]
-
   def command[T](t: Result[T])(implicit
       w: W[T],
       ctx: mill.define.Ctx,
@@ -579,9 +573,6 @@ trait TaskCompanion extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx
    * responsibility of ensuring the implementation is idempotent regardless of
    * what in-memory state the worker may have.
    */
-  def worker[T](t: Task[T])(implicit ctx: mill.define.Ctx): Worker[T] =
-    macro Target.Internal.workerImpl1[T]
-
   def worker[T](t: Result[T])(implicit ctx: mill.define.Ctx): Worker[T] =
     macro Target.Internal.workerImpl2[T]
 

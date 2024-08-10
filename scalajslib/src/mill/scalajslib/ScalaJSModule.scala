@@ -144,7 +144,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   }
 
   override def runLocal(args: Task[Args] = Task.anon(Args())): Command[Unit] =
-    Task.command { run(args) }
+    Task.command { run(args)() }
 
   override def run(args: Task[Args] = Task.anon(Args())): Command[Unit] = Task.command {
     if (args().value.nonEmpty) {
@@ -370,7 +370,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
   }
 
   override def testLocal(args: String*): Command[(String, Seq[TestResult])] =
-    Task.command { test(args: _*) }
+    Task.command { test(args: _*)() }
 
   override protected def testTask(
       args: Task[Seq[String]],

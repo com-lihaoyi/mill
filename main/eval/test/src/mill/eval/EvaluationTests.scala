@@ -304,7 +304,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
           var leftCount = 0
           var rightCount = 0
           var middleCount = 0
-          def up = Task { test.anon() }
+          def up = Task.ofTask { test.anon() }
           def left = Task.anon { leftCount += 1; up() + 1 }
           def middle = Task.anon { middleCount += 1; 100 }
           def right = Task { rightCount += 1; 10000 }
