@@ -1,9 +1,10 @@
 package mill.scalalib
 
 import mill.api.BuildScriptException
+import mill.define.Discover
 import mill.util.{TestEvaluator, TestUtil}
 import utest.framework.TestPath
-import utest.{TestSuite, Tests, intercept, test, assert}
+import utest.{TestSuite, Tests, assert, intercept, test}
 
 object CycleTests extends TestSuite {
 
@@ -28,6 +29,8 @@ object CycleTests extends TestSuite {
     object f extends JavaModule {
       override def compileModuleDeps = Seq(f)
     }
+
+    val millDiscover = Discover[this.type]
   }
 
   def workspaceTest[T](m: TestUtil.BaseModule)(t: TestEvaluator => T)(implicit tp: TestPath): T = {

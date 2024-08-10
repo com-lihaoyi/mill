@@ -1,7 +1,7 @@
 package mill.scalalib
 
+import mill.define.Discover
 import mill.{Agg, T, Task}
-
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
 import utest.framework.TestPath
@@ -19,6 +19,8 @@ object TestClassLoaderTests extends TestSuite {
         )
       }
     }
+
+    val millDiscover = Discover[this.type]
   }
 
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "classloader-test"

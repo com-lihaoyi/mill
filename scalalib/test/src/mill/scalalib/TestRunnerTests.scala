@@ -1,6 +1,7 @@
 package mill.scalalib
 
 import mill.api.Result
+import mill.define.Discover
 import mill.util.{TestEvaluator, TestUtil}
 import mill.{Agg, T, Task}
 import os.Path
@@ -58,6 +59,8 @@ object TestRunnerTests extends TestSuite {
         )
       }
     }
+
+    val millDiscover = Discover[this.type]
   }
 
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "testrunner"

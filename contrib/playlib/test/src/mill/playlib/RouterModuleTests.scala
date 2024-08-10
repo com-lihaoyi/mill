@@ -1,7 +1,7 @@
 package mill.playlib
 
 import mill.api.Result.Failure
-import mill.define.Cross
+import mill.define.{Cross, Discover}
 import mill.scalalib.ScalaModule
 import mill.util.TestUtil
 import utest.{TestSuite, Tests, assert, _}
@@ -22,6 +22,8 @@ object RouterModuleTests extends TestSuite with PlayTestSuite {
       def scalaVersion = crossValue
       def playVersion = crossValue2
     }
+
+    val millDiscover = Discover[this.type]
 
   }
 

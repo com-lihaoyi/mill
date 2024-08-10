@@ -1,6 +1,6 @@
 package mill.scalalib.bsp
 
-import mill.define.Cross
+import mill.define.{Cross, Discover}
 import mill.eval.EvaluatorPaths
 import mill.{Agg, T, Task}
 import mill.scalalib.{DepSyntax, JavaModule, ScalaModule}
@@ -28,6 +28,8 @@ object BspModuleTests extends TestSuite {
       override def moduleDeps = Seq(HelloBsp)
       override def ivyDeps = Agg(ivy"ch.qos.logback:logback-classic:1.1.10")
     }
+
+    val millDiscover = Discover[this.type]
   }
 
   object InterDeps extends BspBase {
@@ -42,6 +44,8 @@ object BspModuleTests extends TestSuite {
           .filter(c => c < crossValue)
           .map(i => Mod(i))
     }
+
+    val millDiscover = Discover[this.type]
   }
 
   def workspaceTest[T](m: TestUtil.BaseModule)(t: TestEvaluator => T)(implicit tp: TestPath): T = {

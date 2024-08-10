@@ -1,8 +1,8 @@
 package mill.scalalib
 
 import mill._
+import mill.define.Discover
 import mill.util.{TestEvaluator, TestUtil}
-
 import utest._
 import utest.framework.TestPath
 
@@ -17,6 +17,8 @@ object ScalaVersionsRangesTests extends TestSuite {
         def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
       }
     }
+
+    val millDiscover = Discover[this.type]
   }
   val resourcePath =
     os.pwd / "scalalib" / "test" / "resources" / "scala-versions-ranges"

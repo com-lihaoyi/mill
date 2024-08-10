@@ -1,7 +1,7 @@
 package mill.contrib.proguard
 
 import mill._
-import mill.define.Target
+import mill.define.{Discover, Target}
 import mill.util.Util.millProjectModule
 import mill.scalalib.ScalaModule
 import mill.util.TestEvaluator
@@ -27,6 +27,8 @@ object ProguardTests extends TestSuite {
     override def runClasspath: Task[Seq[PathRef]] =
       Task { super.runClasspath() ++ proguardContribClasspath() }
 
+
+    val millDiscover = Discover[this.type]
   }
 
   val testModuleSourcesPath: Path =

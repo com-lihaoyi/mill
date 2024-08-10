@@ -2,6 +2,7 @@ package mill
 package scalalib
 
 import mill.api.Result
+import mill.define.Discover
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
 import utest.framework.TestPath
@@ -25,6 +26,8 @@ object HelloJavaTests extends TestSuite {
         }
       }
     }
+
+    val millDiscover = Discover[this.type]
   }
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-java"
 

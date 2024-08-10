@@ -1,5 +1,6 @@
 package mill.twirllib
 
+import mill.define.Discover
 import mill.util.{TestEvaluator, TestUtil}
 import utest.framework.TestPath
 import utest.{TestSuite, Tests, assert, _}
@@ -24,6 +25,7 @@ trait HelloWorldTests extends TestSuite {
       override def twirlConstructorAnnotations: Seq[String] = testConstructorAnnotations
     }
 
+    val millDiscover = Discover[this.type]
   }
 
   object HelloWorldWithInclusiveDot extends HelloBase {
@@ -33,6 +35,7 @@ trait HelloWorldTests extends TestSuite {
       override def twirlFormats = super.twirlFormats() ++ Map("svg" -> "play.twirl.api.HtmlFormat")
     }
 
+    val millDiscover = Discover[this.type]
   }
 
   def workspaceTest[T](

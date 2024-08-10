@@ -433,18 +433,17 @@ private object ResolveCore {
       }
     }
 
+
     val targets = Reflect
       .reflect(
         cls,
         classOf[Task[_]],
         x =>
           namePred(x) &&
-          Iterator
-            .unfold[Class[_], Class[_]](cls)(c => c.getSuperclass match{
-              case null => None
-              case sup => Some((c, sup))
-            })
-            .exists(baseModules.targetNamesByClass.getOrElse(_, Set()).contains(x)),
+            findParent(
+            cls,
+            c => Option.when(baseModules.targetNamesByClass.getOrElse(c, Set()).contains(x))(())
+          ).nonEmpty,
         noParams = true
       )
       .map { m =>
@@ -458,6 +457,23 @@ private object ResolveCore {
       .map { name => Resolved.Command(Segments.labels(name)) -> None }
 
     modulesOrErr.map(_ ++ targets ++ commands)
+  }
+
+  def findParent[T](c: Class[_],
+                    target: Class[_] => Option[T],
+                    seen: collection.mutable.Set[Class[_]] = collection.mutable.Set()): Option[T] = {
+    target(c) match{
+      case Some(v) => Some(v)
+      case None =>
+        if (seen(c)) None
+        else {
+          seen.add(c)
+          (Option(c.getSuperclass).iterator ++ c.getInterfaces)
+            .flatMap(findParent(_, target, seen))
+            .nextOption()
+        }
+    }
+
   }
 
   def notFoundResult(

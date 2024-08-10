@@ -1,6 +1,7 @@
 package mill.scalalib
 
 import mill._
+import mill.define.Discover
 import utest._
 import utest.framework.TestPath
 import mill.util.{TestEvaluator, TestUtil}
@@ -15,6 +16,8 @@ object ScalaDoc3Tests extends TestSuite {
     object static extends ScalaModule {
       def scalaVersion = "3.0.0-RC1"
     }
+
+    val millDiscover = Discover[this.type]
   }
 
   // a project without static docs (i.e. only api docs, no markdown files)
@@ -22,6 +25,8 @@ object ScalaDoc3Tests extends TestSuite {
     object empty extends ScalaModule {
       def scalaVersion = "3.0.0-RC1"
     }
+
+    val millDiscover = Discover[this.type]
   }
 
   // a project with multiple static doc folders
@@ -33,6 +38,8 @@ object ScalaDoc3Tests extends TestSuite {
         millSourcePath / "docs2"
       )
     }
+
+    val millDiscover = Discover[this.type]
   }
 
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "scaladoc3"

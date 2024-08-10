@@ -1,7 +1,8 @@
 package mill.contrib.gitlab
 
-import mill.{Task, T}
+import mill.{T, Task}
 import mill.api.Result.Failure
+import mill.define.Discover
 import mill.scalalib.publish.PomSettings
 import mill.util.{TestEvaluator, TestUtil}
 import utest.framework.TestPath
@@ -23,6 +24,8 @@ object GitlabModuleTests extends TestSuite {
     override def publishVersion: T[String] = "0.0.1"
 
     override def tokenLookup: GitlabTokenLookup = emptyLookup
+
+    val millDiscover = Discover[this.type]
   }
 
   // GitlabMavenRepository does not need to be a module, but it needs to be invoked from one.
@@ -32,6 +35,8 @@ object GitlabModuleTests extends TestSuite {
       InstanceRepository("https://gl.local")
 
     override def tokenLookup = emptyLookup
+
+    val millDiscover = Discover[this.type]
   }
 
   def testModule[T](

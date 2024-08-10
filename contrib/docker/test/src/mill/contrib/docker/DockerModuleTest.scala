@@ -1,6 +1,7 @@
 package mill
 package contrib.docker
 
+import mill.define.Discover
 import mill.scalalib.JavaModule
 import mill.util.{TestEvaluator, TestUtil}
 import os.Path
@@ -41,6 +42,8 @@ object DockerModuleTest extends TestSuite {
       override def executable = testExecutable
       override def jvmOptions = Seq("-Xmx1024M")
     }
+
+    val millDiscover = Discover[this.type]
   }
 
   val testArtifactName = "mill-docker-contrib-test"

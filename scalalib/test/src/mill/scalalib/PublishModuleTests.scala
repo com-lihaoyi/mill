@@ -2,15 +2,9 @@ package mill.scalalib
 
 import mill.{Agg, T, Task}
 import mill.api.{PathRef, Result}
+import mill.define.Discover
 import mill.eval.Evaluator
-import mill.scalalib.publish.{
-  Developer,
-  License,
-  PackagingType,
-  PomSettings,
-  VersionControl,
-  VersionScheme
-}
+import mill.scalalib.publish.{Developer, License, PackagingType, PomSettings, VersionControl, VersionScheme}
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
 import utest.framework.TestPath
@@ -54,6 +48,8 @@ object PublishModuleTests extends TestSuite {
         PublishModule.checkSonatypeCreds(sonatypeCreds)()
       }
     }
+
+    val millDiscover = Discover[this.type]
   }
 
   object PomOnly extends PublishBase {
@@ -79,6 +75,8 @@ object PublishModuleTests extends TestSuite {
       override def docJar: T[PathRef] = Task { ???.asInstanceOf[PathRef] }
       override def sourceJar: T[PathRef] = Task { ???.asInstanceOf[PathRef] }
     }
+
+    val millDiscover = Discover[this.type]
   }
 
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "publish"

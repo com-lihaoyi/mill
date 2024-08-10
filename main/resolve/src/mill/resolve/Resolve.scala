@@ -137,10 +137,10 @@ object Resolve {
       rest: Seq[String],
       nullCommandDefaults: Boolean
   ): Iterable[Either[String, Command[_]]] = for {
-    (cls, (names, entryPoints)) <- discover.value
-    if cls.isAssignableFrom(target.getClass)
-    ep <- entryPoints
-    if ep.name == name
+    ep <- ResolveCore.findParent(
+      target.getClass,
+      discover.value.get(_).flatMap(_._2.find(_.name == name))
+    )
   } yield {
     def withNullDefault(a: mainargs.ArgSig): mainargs.ArgSig = {
       if (a.default.nonEmpty) a

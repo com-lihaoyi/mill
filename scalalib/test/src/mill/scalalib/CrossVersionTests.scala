@@ -1,6 +1,7 @@
 package mill.scalalib
 
 import mill.Agg
+import mill.define.Discover
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
 import utest.framework.TestPath
@@ -116,6 +117,7 @@ object CrossVersionTests extends TestSuite {
           |""".stripMargin
     }
 
+    val millDiscover = Discover[this.type]
   }
 
   def init()(implicit tp: TestPath) = {

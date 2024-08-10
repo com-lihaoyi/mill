@@ -1,6 +1,7 @@
 package mill.scalalib.scalafmt
 
 import mill._
+import mill.define.Discover
 import mill.main.Tasks
 import mill.scalalib.ScalaModule
 import mill.util.{TestEvaluator, TestUtil}
@@ -29,6 +30,8 @@ object ScalafmtTests extends TestSuite {
       }
 
     }
+
+    val millDiscover = Discover[this.type]
   }
 
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "scalafmt"

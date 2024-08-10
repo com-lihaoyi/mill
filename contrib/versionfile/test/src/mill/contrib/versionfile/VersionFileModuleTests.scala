@@ -1,7 +1,8 @@
 package mill.contrib.versionfile
 
-import mill.{Task, T}
+import mill.{T, Task}
 import mill.api.Result
+import mill.define.Discover
 import mill.util.{TestEvaluator, TestUtil}
 import utest.{TestSuite, Tests, assert, assertMatch, test}
 import utest.framework.TestPath
@@ -10,6 +11,8 @@ object VersionFileModuleTests extends TestSuite {
 
   object TestModule extends TestUtil.BaseModule {
     case object versionFile extends VersionFileModule
+
+    val millDiscover = Discover[this.type]
   }
 
   def evaluator[T, M <: TestUtil.BaseModule](

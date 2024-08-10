@@ -1,6 +1,7 @@
 package mill.playlib
 
-import mill.{Task, T}
+import mill.define.Discover
+import mill.{T, Task}
 import mill.util.TestUtil
 import utest._
 
@@ -10,6 +11,8 @@ object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
     override def playVersion = Task { testPlay28 }
     override def scalaVersion = Task { "2.13.12" }
     object test extends PlayTests
+
+    val millDiscover = Discover[this.type]
   }
 
   val resourcePath: os.Path =

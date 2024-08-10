@@ -3,6 +3,7 @@ package mill.contrib.scoverage
 import mill._
 import mill.api.Result
 import mill.contrib.buildinfo.BuildInfo
+import mill.define.Discover
 import mill.scalalib.{DepSyntax, SbtModule, ScalaModule, TestModule}
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
@@ -51,6 +52,8 @@ trait HelloWorldTests extends utest.TestSuite {
         override def ivyDeps = Agg(ivy"org.scalatest::scalatest:${testScalatestVersion}")
       }
     }
+
+    val millDiscover = Discover[this.type]
   }
 
   object HelloWorldSbt extends HelloBase {
@@ -63,6 +66,8 @@ trait HelloWorldTests extends utest.TestSuite {
         override def ivyDeps = Agg(ivy"org.scalatest::scalatest:${testScalatestVersion}")
       }
     }
+
+    val millDiscover = Discover[this.type]
   }
 
   def workspaceTest[T](

@@ -10,6 +10,8 @@ import os.Path
 import upickle.default._
 import utest._
 import bloop.config.Config.Platform.Jvm
+import mill.define.Discover
+
 import scala.util.Properties.isWin
 
 object BloopTests extends TestSuite {
@@ -81,6 +83,8 @@ object BloopTests extends TestSuite {
       override def skipBloop: Boolean = true
     }
 
+
+    val millDiscover = Discover[this.type]
   }
 
   def readBloopConf(jsonFile: String) =

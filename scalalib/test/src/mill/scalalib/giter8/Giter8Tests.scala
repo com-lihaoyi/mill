@@ -3,6 +3,7 @@ package mill.scalalib.giter8
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
 import mill.api.Loose.Agg
+import mill.define.Discover
 import os.Path
 
 object Giter8Tests extends TestSuite {
@@ -19,6 +20,8 @@ object Giter8Tests extends TestSuite {
 
         object g8Module extends TestUtil.BaseModule with Giter8Module {
           override def millSourcePath: Path = rootDir
+
+          val millDiscover = Discover[this.type]
         }
 
         val evaluator = new TestEvaluator(g8Module)

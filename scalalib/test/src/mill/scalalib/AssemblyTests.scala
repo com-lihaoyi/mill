@@ -3,6 +3,7 @@ package mill.scalalib
 import scala.util.Properties
 import mill._
 import mill.api.Result
+import mill.define.Discover
 import mill.eval.Evaluator
 import mill.util.{Jvm, TestEvaluator, TestUtil}
 import utest._
@@ -51,6 +52,7 @@ object AssemblyTests extends TestSuite {
       object large extends Setup with ExtraDeps
     }
 
+    val millDiscover = Discover[this.type]
   }
 
   val sources = Map(

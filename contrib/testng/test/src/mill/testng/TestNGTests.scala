@@ -1,7 +1,7 @@
 package mill
 package testng
 
-import mill.define.Target
+import mill.define.{Discover, Target}
 import mill.util.Util.millProjectModule
 import mill.scalalib._
 import mill.util.{TestEvaluator, TestUtil}
@@ -37,6 +37,8 @@ object TestNGTests extends TestSuite {
       }
     }
 
+
+    val millDiscover = Discover[this.type]
   }
 
   val resourcePath: os.Path = os.pwd / "contrib" / "testng" / "test" / "resources" / "demo"

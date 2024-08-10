@@ -1,7 +1,8 @@
 package mill.scalalib
 
+import mill.define.Discover
 import mill.util.{TestEvaluator, TestUtil}
-import mill.eval.{Evaluator}
+import mill.eval.Evaluator
 import utest._
 import utest.framework.TestPath
 
@@ -13,6 +14,8 @@ object CoursierMirrorTests extends TestSuite {
     object core extends ScalaModule {
       def scalaVersion = "2.13.12"
     }
+
+    val millDiscover = Discover[this.type]
   }
 
   def workspaceTest[T](
