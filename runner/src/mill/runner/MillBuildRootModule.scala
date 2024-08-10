@@ -4,9 +4,10 @@ import coursier.Repository
 import mill._
 import mill.api.{PathRef, Result, internal}
 import mill.define.{Discover, Task}
-import mill.scalalib.{BoundDep, Dep, Lib, ScalaModule}
+import mill.scalalib.{BoundDep, Dep, DepSyntax, Lib, ScalaModule}
 import mill.util.CoursierSupport
 import mill.util.Util.millProjectModule
+import mill.scalalib.api.Versions
 import pprint.Util.literalize
 import FileImportGraph.backtickWrap
 import mill.main.{BuildInfo, RootModule}
@@ -46,23 +47,23 @@ class MillBuildRootModule()(implicit
    * All script files (that will get wrapped later)
    * @see [[generateScriptSources]]
    */
-  def scriptSources: Task[Seq[PathRef]] = Task.sources {
+  def scriptSources = T.sources {
     MillBuildRootModule.parseBuildFiles(millBuildRootModuleInfo)
       .seenScripts
       .keys.map(PathRef(_))
       .toSeq
   }
 
-  def parseBuildFiles: T[FileImportGraph] = Task {
+  def parseBuildFiles: T[FileImportGraph] = T {
     scriptSources()
     MillBuildRootModule.parseBuildFiles(millBuildRootModuleInfo)
   }
 
   override def repositoriesTask: Task[Seq[Repository]] = {
-    val importedRepos = Task.anon {
+    val importedRepos = T.task {
       val repos = parseBuildFiles().repos.map { case (repo, srcFile) =>
         val relFile = Try {
-          srcFile.relativeTo(Task.workspace)
+          srcFile.relativeTo(T.workspace)
         }.recover { case _ => srcFile }.get
         CoursierSupport.repoFromString(
           repo,
@@ -77,27 +78,28 @@ class MillBuildRootModule()(implicit
       }
     }
 
-    Task.anon {
+    T.task {
       super.repositoriesTask() ++ importedRepos()
     }
   }
 
-  def cliImports: Task[Seq[String]] = Task.input {
+  def cliImports: Target[Seq[String]] = T.input {
     val imports = CliImports.value
     if (imports.nonEmpty) {
-      Task.log.debug(s"Using cli-provided runtime imports: ${imports.mkString(", ")}")
+      T.log.debug(s"Using cli-provided runtime imports: ${imports.mkString(", ")}")
     }
     imports
   }
 
-  override def ivyDeps = Task {
+  override def ivyDeps = T {
     Agg.from(
       MillIvy.processMillIvyDepSignature(parseBuildFiles().ivyDeps)
         .map(mill.scalalib.Dep.parse)
-    )
+    ) ++
+      Agg(ivy"com.lihaoyi::mill-moduledefs:${Versions.millModuledefsVersion}")
   }
 
-  override def runIvyDeps = Task {
+  override def runIvyDeps = T {
     val imports = cliImports()
     val ivyImports = imports.collect { case s"ivy:$rest" => rest }
     Agg.from(
@@ -108,11 +110,11 @@ class MillBuildRootModule()(implicit
 
   override def platformSuffix: T[String] = s"_mill${BuildInfo.millBinPlatform}"
 
-  override def generatedSources: T[Seq[PathRef]] = Task {
+  override def generatedSources: T[Seq[PathRef]] = T {
     generateScriptSources()
   }
 
-  def generateScriptSources: T[Seq[PathRef]] = Task {
+  def generateScriptSources: T[Seq[PathRef]] = T {
     val parsed = parseBuildFiles()
     if (parsed.errors.nonEmpty) Result.Failure(parsed.errors.mkString("\n"))
     else {
@@ -120,15 +122,15 @@ class MillBuildRootModule()(implicit
         millBuildRootModuleInfo.projectRoot / os.up,
         scriptSources(),
         parsed.seenScripts,
-        Task.dest,
+        T.dest,
         millBuildRootModuleInfo.enclosingClasspath,
         millBuildRootModuleInfo.topLevelProjectRoot
       )
-      Result.Success(Seq(PathRef(Task.dest)))
+      Result.Success(Seq(PathRef(T.dest)))
     }
   }
 
-  def scriptImportGraph: T[Map[os.Path, (Int, Seq[os.Path])]] = Task {
+  def scriptImportGraph: T[Map[os.Path, (Int, Seq[os.Path])]] = T {
     parseBuildFiles()
       .importGraphEdges
       .map { case (path, imports) =>
@@ -136,11 +138,10 @@ class MillBuildRootModule()(implicit
       }
   }
 
-  def methodCodeHashSignatures: T[Map[String, Int]] = Task.persistent {
-    os.remove.all(Task.dest / "previous")
-    if (os.exists(Task.dest / "current"))
-      os.move.over(Task.dest / "current", Task.dest / "previous")
-    val debugEnabled = Task.log.debugEnabled
+  def methodCodeHashSignatures: T[Map[String, Int]] = T.persistent {
+    os.remove.all(T.dest / "previous")
+    if (os.exists(T.dest / "current")) os.move.over(T.dest / "current", T.dest / "previous")
+    val debugEnabled = T.log.debugEnabled
     val codesig = mill.codesig.CodeSig
       .compute(
         classFiles = os.walk(compile().classes.path).filter(_.ext == "class"),
@@ -152,7 +153,7 @@ class MillBuildRootModule()(implicit
           // graph evaluator without needing to be accounted for in the post-compile
           // bytecode callgraph analysis.
           def isSimpleTarget =
-            (calledSig.desc.ret.pretty == classOf[mill.define.Task[_]].getName ||
+            (calledSig.desc.ret.pretty == classOf[mill.define.Target[_]].getName ||
               calledSig.desc.ret.pretty == classOf[mill.define.Worker[_]].getName) &&
               calledSig.desc.args.isEmpty
 
@@ -179,11 +180,11 @@ class MillBuildRootModule()(implicit
 
           (isSimpleTarget && !isForwarderCallsite) || isCommand
         },
-        logger = new mill.codesig.Logger(Option.when(debugEnabled)(Task.dest / "current")),
+        logger = new mill.codesig.Logger(Option.when(debugEnabled)(T.dest / "current")),
         prevTransitiveCallGraphHashesOpt = () =>
-          Option.when(os.exists(Task.dest / "previous" / "result.json"))(
+          Option.when(os.exists(T.dest / "previous" / "result.json"))(
             upickle.default.read[Map[String, Int]](
-              os.read.stream(Task.dest / "previous" / "result.json")
+              os.read.stream(T.dest / "previous" / "result.json")
             )
           )
       )
@@ -191,7 +192,7 @@ class MillBuildRootModule()(implicit
     val result = codesig.transitiveCallGraphHashes
     if (debugEnabled) {
       os.write(
-        Task.dest / "current" / "result.json",
+        T.dest / "current" / "result.json",
         upickle.default.stream(
           SortedMap.from(codesig.transitiveCallGraphHashes0.map { case (k, v) => (k.toString, v) }),
           indent = 4
@@ -201,26 +202,26 @@ class MillBuildRootModule()(implicit
     result
   }
 
-  override def sources: T[Seq[PathRef]] = Task {
+  override def sources: T[Seq[PathRef]] = T {
     scriptSources() ++ {
       if (parseBuildFiles().millImport) super.sources()
       else Seq.empty[PathRef]
     }
   }
 
-  override def resources: T[Seq[PathRef]] = Task {
+  override def resources: T[Seq[PathRef]] = T {
     if (parseBuildFiles().millImport) super.resources()
     else Seq.empty[PathRef]
   }
 
-  override def allSourceFiles: T[Seq[PathRef]] = Task {
+  override def allSourceFiles: T[Seq[PathRef]] = T {
     val candidates = Lib.findSourceFiles(allSources(), Seq("scala", "java", "sc"))
     // We need to unlist those files, which we replaced by generating wrapper scripts
     val filesToExclude = Lib.findSourceFiles(scriptSources(), Seq("sc"))
     candidates.filterNot(filesToExclude.contains).map(PathRef(_))
   }
 
-  def enclosingClasspath: Task[Seq[PathRef]] = Task.sources {
+  def enclosingClasspath = T.sources {
     millBuildRootModuleInfo.enclosingClasspath.map(p => mill.api.PathRef(p, quick = true))
   }
 
@@ -229,50 +230,45 @@ class MillBuildRootModule()(implicit
    * By default, these are the dependencies, which Mill provides itself (via [[unmanagedClasspath]]).
    * We exclude them to avoid incompatible or duplicate artifacts on the classpath.
    */
-  protected def resolveDepsExclusions: T[Seq[(String, String)]] = Task {
+  protected def resolveDepsExclusions: T[Seq[(String, String)]] = T {
     Lib.millAssemblyEmbeddedDeps.toSeq.map(d =>
       (d.dep.module.organization.value, d.dep.module.name.value)
     )
   }
 
-  override def bindDependency: Task[Dep => BoundDep] = Task.anon { dep: Dep =>
+  override def bindDependency: Task[Dep => BoundDep] = T.task { dep: Dep =>
     super.bindDependency().apply(dep).exclude(resolveDepsExclusions(): _*)
   }
 
-  override def unmanagedClasspath: T[Agg[PathRef]] = Task {
+  override def unmanagedClasspath: T[Agg[PathRef]] = T {
     enclosingClasspath() ++ lineNumberPluginClasspath()
   }
 
-  override def scalacOptions: T[Seq[String]] = Task {
+  override def scalacPluginIvyDeps: T[Agg[Dep]] = Agg(
+    ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${Versions.millModuledefsVersion}"
+  )
+
+  override def scalacOptions: T[Seq[String]] = T {
     super.scalacOptions() ++
       Seq(
         "-Xplugin:" + lineNumberPluginClasspath().map(_.path).mkString(","),
-        "-Xplugin:" + moduledefsPluginClasspath().map(_.path).mkString(","),
         "-deprecation",
         // Make sure we abort of the plugin is not found, to ensure any
         // classpath/plugin-discovery issues are surfaced early rather than
         // after hours of debugging
-        "-Xplugin-require:mill-linenumber-plugin",
-        "-Xplugin-require:auto-override-plugin"
+        "-Xplugin-require:mill-linenumber-plugin"
       )
   }
 
   override def scalacPluginClasspath: T[Agg[PathRef]] =
-    super.scalacPluginClasspath() ++ lineNumberPluginClasspath() ++ moduledefsPluginClasspath()
+    super.scalacPluginClasspath() ++ lineNumberPluginClasspath()
 
-  def lineNumberPluginClasspath: T[Agg[PathRef]] = Task {
+  def lineNumberPluginClasspath: T[Agg[PathRef]] = T {
     millProjectModule("mill-runner-linenumbers", repositoriesTask())
-  }
-  def moduledefsPluginClasspath: T[Agg[PathRef]] = Task {
-    millProjectModule(
-      "mill-main-moduledefs-plugin",
-      repositoriesTask(),
-      artifactSuffix = "_2.13.14"
-    )
   }
 
   /** Used in BSP IntelliJ, which can only work with directories */
-  def dummySources: Task[Seq[PathRef]] = Task.sources(Task.dest)
+  def dummySources: Sources = T.sources(T.dest)
 }
 
 object MillBuildRootModule {
