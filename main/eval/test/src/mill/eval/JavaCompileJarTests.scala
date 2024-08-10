@@ -59,7 +59,7 @@ object JavaCompileJarTests extends TestSuite {
             .call(stderr = os.Pipe)
         }
 
-        val millDiscover = Discover[this.type]
+        val millDiscover: Discover[this.type] = Discover[this.type]
       }
 
       import Build._

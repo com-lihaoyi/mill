@@ -18,7 +18,7 @@ object BuildTest extends TestSuite {
       def flywayDriverDeps = Agg(h2)
     }
 
-    val millDiscover = Discover[this.type]
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   def tests = Tests {

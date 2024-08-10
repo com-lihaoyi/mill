@@ -25,7 +25,7 @@ object GitlabModuleTests extends TestSuite {
 
     override def tokenLookup: GitlabTokenLookup = emptyLookup
 
-    val millDiscover = Discover[this.type]
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   // GitlabMavenRepository does not need to be a module, but it needs to be invoked from one.
@@ -36,7 +36,7 @@ object GitlabModuleTests extends TestSuite {
 
     override def tokenLookup = emptyLookup
 
-    val millDiscover = Discover[this.type]
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   def testModule[T](

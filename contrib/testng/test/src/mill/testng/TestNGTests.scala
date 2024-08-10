@@ -37,8 +37,7 @@ object TestNGTests extends TestSuite {
       }
     }
 
-
-    val millDiscover = Discover[this.type]
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   val resourcePath: os.Path = os.pwd / "contrib" / "testng" / "test" / "resources" / "demo"

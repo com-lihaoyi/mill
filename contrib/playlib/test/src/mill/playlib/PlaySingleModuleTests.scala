@@ -12,7 +12,7 @@ object PlaySingleModuleTests extends TestSuite with PlayTestSuite {
     override def scalaVersion = Task { sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???) }
     object test extends PlayTests
 
-    val millDiscover = Discover[this.type]
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   val resourcePath: os.Path = os.pwd / "contrib" / "playlib" / "test" / "resources" / "playsingle"

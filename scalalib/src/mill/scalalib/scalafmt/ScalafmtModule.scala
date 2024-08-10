@@ -90,5 +90,5 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule {
         )
     }
 
-  val millDiscover = Discover[this.type]
+  val millDiscover: Discover[this.type] = Discover[this.type]
 }

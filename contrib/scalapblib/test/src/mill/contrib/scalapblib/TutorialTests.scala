@@ -28,7 +28,7 @@ object TutorialTests extends TestSuite {
       override def scalaPBVersion = testScalaPbVersion
     }
 
-    val millDiscover = Discover[this.type]
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object TutorialWithProtoc extends TutorialBase {
@@ -36,7 +36,7 @@ object TutorialTests extends TestSuite {
       override def scalaPBProtocPath = Some("/dev/null")
     }
 
-    val millDiscover = Discover[this.type]
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object TutorialWithAdditionalArgs extends TutorialBase {
@@ -48,7 +48,7 @@ object TutorialTests extends TestSuite {
       }
     }
 
-    val millDiscover = Discover[this.type]
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object TutorialWithSpecificSources extends TutorialBase {
@@ -63,7 +63,7 @@ object TutorialTests extends TestSuite {
       )
     }
 
-    val millDiscover = Discover[this.type]
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   val resourcePath: os.Path = os.pwd / "contrib" / "scalapblib" / "test" / "protobuf" / "tutorial"

@@ -20,7 +20,7 @@ private[mill] object Reflect {
       outer: Class[_],
       inner: Class[_],
       filter: String => Boolean,
-      noParams: Boolean,
+      noParams: Boolean
   ): Seq[java.lang.reflect.Method] = {
     val res = for {
       m <- outer.getMethods

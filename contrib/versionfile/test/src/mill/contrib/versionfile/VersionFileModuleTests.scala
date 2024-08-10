@@ -12,7 +12,7 @@ object VersionFileModuleTests extends TestSuite {
   object TestModule extends TestUtil.BaseModule {
     case object versionFile extends VersionFileModule
 
-    val millDiscover = Discover[this.type]
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   def evaluator[T, M <: TestUtil.BaseModule](

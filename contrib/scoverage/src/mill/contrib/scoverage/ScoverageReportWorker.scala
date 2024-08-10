@@ -40,5 +40,5 @@ object ScoverageReportWorker extends ExternalModule {
 
   def scoverageReportWorker: Worker[ScoverageReportWorker] =
     Task.worker { new ScoverageReportWorker() }
-  val millDiscover = Discover[this.type]
+  val millDiscover: Discover[this.type] = Discover[this.type]
 }

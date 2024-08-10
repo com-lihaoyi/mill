@@ -27,7 +27,7 @@ object HelloJavaTests extends TestSuite {
       }
     }
 
-    val millDiscover = Discover[this.type]
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-java"
 

@@ -23,5 +23,5 @@ object GenIdea extends ExternalModule {
     ()
   }
 
-  override val millDiscover = Discover[this.type]
+  override val millDiscover: Discover[this.type] = Discover[this.type]
 }

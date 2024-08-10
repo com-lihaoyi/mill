@@ -17,7 +17,7 @@ object DottyDocTests extends TestSuite {
       def scalaVersion = "0.24.0-RC1"
     }
 
-    val millDiscover = Discover[this.type]
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   // a project without static docs (i.e. only api docs, no markdown files)
@@ -26,7 +26,7 @@ object DottyDocTests extends TestSuite {
       def scalaVersion = "0.24.0-RC1"
     }
 
-    val millDiscover = Discover[this.type]
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   // a project with multiple static doc folders
@@ -39,7 +39,7 @@ object DottyDocTests extends TestSuite {
       )
     }
 
-    val millDiscover = Discover[this.type]
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "dottydoc"

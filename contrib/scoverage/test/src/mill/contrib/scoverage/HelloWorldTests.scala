@@ -53,7 +53,7 @@ trait HelloWorldTests extends utest.TestSuite {
       }
     }
 
-    val millDiscover = Discover[this.type]
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object HelloWorldSbt extends HelloBase {
@@ -67,7 +67,7 @@ trait HelloWorldTests extends utest.TestSuite {
       }
     }
 
-    val millDiscover = Discover[this.type]
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   def workspaceTest[T](

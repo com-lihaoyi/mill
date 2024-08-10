@@ -52,7 +52,7 @@ object AssemblyTests extends TestSuite {
       object large extends Setup with ExtraDeps
     }
 
-    val millDiscover = Discover[this.type]
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   val sources = Map(

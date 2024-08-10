@@ -25,7 +25,7 @@ trait HelloWorldTests extends TestSuite {
       override def twirlConstructorAnnotations: Seq[String] = testConstructorAnnotations
     }
 
-    val millDiscover = Discover[this.type]
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object HelloWorldWithInclusiveDot extends HelloBase {
@@ -35,7 +35,7 @@ trait HelloWorldTests extends TestSuite {
       override def twirlFormats = super.twirlFormats() ++ Map("svg" -> "play.twirl.api.HtmlFormat")
     }
 
-    val millDiscover = Discover[this.type]
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   def workspaceTest[T](

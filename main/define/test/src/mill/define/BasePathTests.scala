@@ -62,7 +62,7 @@ object BasePathTests extends TestSuite {
           }
         }
 
-        val millDiscover = Discover[this.type]
+        val millDiscover: Discover[this.type] = Discover[this.type]
       }
       assert(
         overriddenBasePath.millSourcePath == os.pwd / "overriddenBasePathRootValue",

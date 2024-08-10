@@ -15,7 +15,7 @@ object CoursierMirrorTests extends TestSuite {
       def scalaVersion = "2.13.12"
     }
 
-    val millDiscover = Discover[this.type]
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   def workspaceTest[T](

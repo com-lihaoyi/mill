@@ -17,7 +17,7 @@ object ScalaTestsErrorTests extends TestSuite {
       }
     }
 
-    override lazy val millDiscover = Discover[this.type]
+    override lazy val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   def tests: Tests = Tests {

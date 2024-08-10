@@ -30,7 +30,7 @@ object CycleTests extends TestSuite {
       override def compileModuleDeps = Seq(f)
     }
 
-    val millDiscover = Discover[this.type]
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   def workspaceTest[T](m: TestUtil.BaseModule)(t: TestEvaluator => T)(implicit tp: TestPath): T = {

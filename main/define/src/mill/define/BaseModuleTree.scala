@@ -24,16 +24,18 @@ class BaseModuleTree(value: Seq[(Seq[String], BaseModule)]) {
 
     value
       .flatMap(_._2.millDiscover.value.values)
-      .flatMap{ t =>t._1 ++ t._2.map(_.defaultName) }
+      .flatMap { t => t._1 ++ t._2.map(_.defaultName) }
       .toSet
   }
 
-  val targetNamesByClass = value
-    .flatMap{  case (segs, base) => base.millDiscover.value.mapValues(_._1.toSet) }
+  val targetNamesByClass: Map[Class[_], Set[String]] = value
+    .flatMap { case (segs, base) => base.millDiscover.value.mapValues(_._1.toSet) }
     .toMap
 
-  val commandNamesByClass = value
-    .flatMap{  case (segs, base) => base.millDiscover.value.mapValues(_._2.toSet.map[String](_.defaultName)) }
+  val commandNamesByClass: Map[Class[_], Set[String]] = value
+    .flatMap { case (segs, base) =>
+      base.millDiscover.value.mapValues(_._2.toSet.map[String](_.defaultName))
+    }
     .toMap
 }
 

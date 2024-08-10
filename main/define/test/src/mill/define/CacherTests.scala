@@ -7,22 +7,22 @@ import utest._
 import utest.framework.TestPath
 
 object CacherTests extends TestSuite {
-  object Base extends Base{
-    val millDiscover = Discover[this.type]
+  object Base extends Base {
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
   trait Base extends TestUtil.BaseModule {
     def value = Task { 1 }
     def result = Task { Success(1) }
   }
-  object Middle extends Middle{
-    val millDiscover = Discover[this.type]
+  object Middle extends Middle {
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
   trait Middle extends Base {
     override def value = Task { super.value() + 2 }
     def overridden = Task { super.value() }
   }
-  object Terminal extends Terminal{
-    val millDiscover = Discover[this.type]
+  object Terminal extends Terminal {
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
   trait Terminal extends Middle {
     override def value = Task { super.value() + 4 }

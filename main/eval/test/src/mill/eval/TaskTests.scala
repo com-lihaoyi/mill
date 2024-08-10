@@ -262,8 +262,8 @@ trait TaskTests extends TestSuite {
 
 object SeqTaskTests extends TaskTests {
   def withEnv(f: (Build, TestEvaluator) => Unit)(implicit tp: TestPath) = {
-    object build extends Build{
-      val millDiscover = Discover[this.type]
+    object build extends Build {
+      val millDiscover: Discover[this.type] = Discover[this.type]
     }
     val check = new TestEvaluator(
       build,
@@ -275,8 +275,8 @@ object SeqTaskTests extends TaskTests {
 }
 object ParTaskTests extends TaskTests {
   def withEnv(f: (Build, TestEvaluator) => Unit)(implicit tp: TestPath) = {
-    object build extends Build{
-      val millDiscover = Discover[this.type]
+    object build extends Build {
+      val millDiscover: Discover[this.type] = Discover[this.type]
     }
     val check = new TestEvaluator(
       build,

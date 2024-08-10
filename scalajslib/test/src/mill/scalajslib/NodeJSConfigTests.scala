@@ -55,7 +55,7 @@ object NodeJSConfigTests extends TestSuite {
       }
     }
 
-    override lazy val millDiscover = Discover[this.type]
+    override lazy val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   val millSourcePath = os.pwd / "scalajslib" / "test" / "resources" / "hello-js-world"

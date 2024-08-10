@@ -14,7 +14,7 @@ object MillTestKitSuite extends TestSuite {
   object build extends testKit.BaseModule {
     def testTask = T("test")
 
-    val millDiscover = Discover[this.type]
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   def tests: Tests = Tests {

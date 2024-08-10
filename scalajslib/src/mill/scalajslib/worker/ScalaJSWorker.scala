@@ -220,5 +220,5 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
 private[scalajslib] object ScalaJSWorkerExternalModule extends mill.define.ExternalModule {
 
   def scalaJSWorker: Worker[ScalaJSWorker] = Task.worker { new ScalaJSWorker() }
-  val millDiscover = Discover[this.type]
+  val millDiscover: Discover[this.type] = Discover[this.type]
 }

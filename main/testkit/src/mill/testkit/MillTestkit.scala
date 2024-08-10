@@ -1,7 +1,7 @@
 package mill.testkit
 
 import mill._
-import mill.define.{Caller, Discover, InputImpl, TargetImpl}
+import mill.define.{Caller, InputImpl, TargetImpl}
 import mill.api.{DummyInputStream, Result, SystemStreams, Val}
 import mill.api.Result.OuterStack
 import mill.api.Strict.Agg
@@ -49,8 +49,7 @@ trait MillTestKit {
         implicitly,
         implicitly,
         Caller(null)
-      ) {
-  }
+      ) {}
 
   /**
    * @param module The module under test

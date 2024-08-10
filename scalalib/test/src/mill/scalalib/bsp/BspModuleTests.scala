@@ -29,7 +29,7 @@ object BspModuleTests extends TestSuite {
       override def ivyDeps = Agg(ivy"ch.qos.logback:logback-classic:1.1.10")
     }
 
-    val millDiscover = Discover[this.type]
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object InterDeps extends BspBase {
@@ -45,7 +45,7 @@ object BspModuleTests extends TestSuite {
           .map(i => Mod(i))
     }
 
-    val millDiscover = Discover[this.type]
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   def workspaceTest[T](m: TestUtil.BaseModule)(t: TestEvaluator => T)(implicit tp: TestPath): T = {

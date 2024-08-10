@@ -189,7 +189,7 @@ object FailureTests extends TestSuite {
         val task = Task.anon { Task.dest.toString.length }
         def right = Task { task() + left() + Task.dest.toString().length }
 
-        val millDiscover = Discover[this.type]
+        val millDiscover: Discover[this.type] = Discover[this.type]
       }
 
       val check = new TestEvaluator(build)

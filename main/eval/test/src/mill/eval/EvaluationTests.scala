@@ -310,7 +310,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
           def right = Task { rightCount += 1; 10000 }
           def down = Task { left() + middle() + right() }
 
-          val millDiscover = Discover[this.type]
+          val millDiscover: Discover[this.type] = Discover[this.type]
         }
 
         import build._

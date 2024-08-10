@@ -72,11 +72,11 @@ object ResolveTests extends TestSuite {
       x.left.exists(_.linesIterator.size < 25)
 
   def segments(
-          found: Either[String, List[Task[_]]],
-          expected: Either[String, List[Task[_]]]
-      ) = {
-        found.map(_.map(_.ctx.segments)) == expected.map(_.map(_.ctx.segments))
-      }
+      found: Either[String, List[Task[_]]],
+      expected: Either[String, List[Task[_]]]
+  ) = {
+    found.map(_.map(_.ctx.segments)) == expected.map(_.map(_.ctx.segments))
+  }
   val tests = Tests {
     val graphs = new mill.util.TestGraphs()
     import graphs._
@@ -204,7 +204,9 @@ object ResolveTests extends TestSuite {
       )
       "wildcardNeg" - check(
         "_._.single",
-        Left("Cannot resolve _._.single. Try `mill resolve _` or `mill resolve __.single` to see what's available.")
+        Left(
+          "Cannot resolve _._.single. Try `mill resolve _` or `mill resolve __.single` to see what's available."
+        )
       )
       "wildcardNeg2" - check(
         "_._.__",
@@ -280,7 +282,9 @@ object ResolveTests extends TestSuite {
       )
       "neg1" - check(
         "innerCmd",
-        Left("Cannot resolve innerCmd. Try `mill resolve _` or `mill resolve __.innerCmd` to see what's available.")
+        Left(
+          "Cannot resolve innerCmd. Try `mill resolve _` or `mill resolve __.innerCmd` to see what's available."
+        )
       )
       "neg2" - check(
         "outerCm",
@@ -383,7 +387,9 @@ object ResolveTests extends TestSuite {
         "wildcard" - {
           "labelNeg1" - check(
             "_.suffix",
-            Left("Cannot resolve _.suffix. Try `mill resolve _._` or `mill resolve __.suffix` to see what's available.")
+            Left(
+              "Cannot resolve _.suffix. Try `mill resolve _._` or `mill resolve __.suffix` to see what's available."
+            )
           )
           "labelNeg2" - check(
             "_.doesntExist",

@@ -18,7 +18,7 @@ object ScalaVersionsRangesTests extends TestSuite {
       }
     }
 
-    val millDiscover = Discover[this.type]
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
   val resourcePath =
     os.pwd / "scalalib" / "test" / "resources" / "scala-versions-ranges"

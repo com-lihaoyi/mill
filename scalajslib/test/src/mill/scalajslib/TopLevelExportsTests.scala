@@ -18,7 +18,7 @@ object TopLevelExportsTests extends TestSuite {
       override def moduleKind = ModuleKind.ESModule
     }
 
-    override lazy val millDiscover = Discover[this.type]
+    override lazy val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   val millSourcePath = os.pwd / "scalajslib" / "test" / "resources" / "top-level-exports"

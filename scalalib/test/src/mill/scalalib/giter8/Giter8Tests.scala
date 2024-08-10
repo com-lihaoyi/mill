@@ -21,7 +21,7 @@ object Giter8Tests extends TestSuite {
         object g8Module extends TestUtil.BaseModule with Giter8Module {
           override def millSourcePath: Path = rootDir
 
-          val millDiscover = Discover[this.type]
+          val millDiscover: Discover[this.type] = Discover[this.type]
         }
 
         val evaluator = new TestEvaluator(g8Module)

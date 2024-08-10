@@ -23,7 +23,7 @@ object RouterModuleTests extends TestSuite with PlayTestSuite {
       def playVersion = crossValue2
     }
 
-    val millDiscover = Discover[this.type]
+    val millDiscover: Discover[this.type] = Discover[this.type]
 
   }
 

@@ -12,5 +12,5 @@ trait RouteCompilerWorkerModule extends Module {
 private[playlib] object RouteCompilerWorkerModule
     extends ExternalModule
     with RouteCompilerWorkerModule {
-  val millDiscover = Discover[this.type]
+  val millDiscover: Discover[this.type] = Discover[this.type]
 }

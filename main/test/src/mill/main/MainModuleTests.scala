@@ -26,7 +26,7 @@ object MainModuleTests extends TestSuite {
       Map("1" -> "hello", "2" -> "world")
     }
     def helloCommand(x: Int, y: Task[String]) = Task.command { (x, y(), hello()) }
-    override val millDiscover = Discover[this.type]
+    override val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object cleanModule extends TestUtil.BaseModule with MainModule {
@@ -58,7 +58,7 @@ object MainModuleTests extends TestSuite {
       bazz("3").target()
     }
 
-    val millDiscover = Discover[this.type]
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   override def tests: Tests = Tests {

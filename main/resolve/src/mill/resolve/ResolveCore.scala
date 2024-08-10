@@ -433,7 +433,6 @@ private object ResolveCore {
       }
     }
 
-
     val targets = findFromParents(
       cls,
       c => baseModules.targetNamesByClass.getOrElse(c, Set()).filter(namePred).toSeq
@@ -447,17 +446,19 @@ private object ResolveCore {
     modulesOrErr.map(_ ++ targets ++ commands)
   }
 
-  def findFromParents[T](c: Class[_],
-                         target: Class[_] => Seq[T],
-                         seen: collection.mutable.Set[Class[_]] = collection.mutable.Set()): Seq[T] = {
+  def findFromParents[T](
+      c: Class[_],
+      target: Class[_] => Seq[T],
+      seen: collection.mutable.Set[Class[_]] = collection.mutable.Set()
+  ): Seq[T] = {
     if (seen(c)) Nil
     else {
       seen.add(c)
 
       target(c) ++
-      (Option(c.getSuperclass).iterator ++ c.getInterfaces)
-      .flatMap(findFromParents(_, target, seen))
-      .toSeq
+        (Option(c.getSuperclass).iterator ++ c.getInterfaces)
+          .flatMap(findFromParents(_, target, seen))
+          .toSeq
     }
   }
 

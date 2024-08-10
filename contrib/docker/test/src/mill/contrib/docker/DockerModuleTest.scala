@@ -43,7 +43,7 @@ object DockerModuleTest extends TestSuite {
       override def jvmOptions = Seq("-Xmx1024M")
     }
 
-    val millDiscover = Discover[this.type]
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   val testArtifactName = "mill-docker-contrib-test"

@@ -12,12 +12,12 @@ object ModuleTests extends TestSuite {
     object inner extends mill.Module {
       def y = Task { 17 }
     }
-    lazy val millDiscover = Discover[this.type]
+    lazy val millDiscover: Discover[this.type] = Discover[this.type]
   }
   object Build extends TestUtil.BaseModule {
     def z = Task { ExternalModule.x() + ExternalModule.inner.y() }
 
-    val millDiscover = Discover[this.type]
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
   val tests = Tests {
     "externalModuleTargetsAreNamespacedByModulePackagePath" - {
@@ -40,7 +40,7 @@ object ModuleTests extends TestSuite {
       object Build extends mill.define.ExternalModule {
 
         def z = Task { ExternalModule.x() + ExternalModule.inner.y() }
-        lazy val millDiscover = Discover[this.type]
+        lazy val millDiscover: Discover[this.type] = Discover[this.type]
       }
 
       intercept[java.lang.AssertionError] { Build }
