@@ -39,15 +39,15 @@ object Settings {
   val docBranches = Seq()
   // the exact tags containing a doc root
   val legacyDocTags: Seq[String] = Seq(
-    "0.9.12",
-    "0.10.0",
-    "0.10.12",
-    "0.10.15",
-    "0.11.0-M7"
+//    "0.9.12",
+//    "0.10.0",
+//    "0.10.12",
+//    "0.10.15",
+//    "0.11.0-M7"
   )
   val docTags: Seq[String] = Seq(
-    "0.11.10",
-    "0.11.11"
+//    "0.11.10",
+//    "0.11.11"
   )
   val mimaBaseVersions: Seq[String] = 0.to(11).map("0.11." + _)
 }
@@ -1894,6 +1894,12 @@ object docs extends Module {
 
   def localPages = T {
     val pages = generatePages(authorMode = true)().apply(oldDocSources().map(_.path))
+    T.log.outputStream.println(
+      s"You can browse the local pages at: ${(pages.path / "index.html").toNIO.toUri()}"
+    )
+  }
+  def fastPages = T {
+    val pages = generatePages(authorMode = true)().apply(Nil)
     T.log.outputStream.println(
       s"You can browse the local pages at: ${(pages.path / "index.html").toNIO.toUri()}"
     )

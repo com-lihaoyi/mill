@@ -34,6 +34,10 @@ include::example/javamodule/4-test-deps.adoc[]
 
 include::example/javamodule/5-resources.adoc[]
 
+== Annotation Processors
+
+include::example/javamodule/6-annotation-processors.adoc[]
+
 == Javadoc Config
 
 include::example/javamodule/7-docjar.adoc[]
@@ -88,6 +92,3 @@ If you are using millw, a more permanent solution could be to set the environmen
 
 include::example/javamodule/13-jni.adoc[]
 
-== Annotation Processors with Lombok
-
-include::example/javamodule/14-annotation-processors-lombok.adoc[]

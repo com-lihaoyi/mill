@@ -90,11 +90,11 @@ If you are using millw, a more permanent solution could be to set the environmen
 
 == Scoverage
 
-include::example/scalamodule/12-contrib-scoverage.adoc[]
+include::example/scalamodule/13-contrib-scoverage.adoc[]
 
 == Unidoc
 
-include::example/scalamodule/13-unidoc.adoc[]
+include::example/scalamodule/14-unidoc.adoc[]
 
 == Reformatting your code
 
