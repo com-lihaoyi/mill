@@ -2,6 +2,7 @@ package mill.testkit
 
 import mill.testkit.MillTestKit
 import mill._
+import mill.define.Discover
 import utest._
 
 object MillTestKitSuite extends TestSuite {
@@ -12,6 +13,8 @@ object MillTestKitSuite extends TestSuite {
 
   object build extends testKit.BaseModule {
     def testTask = T("test")
+
+    val millDiscover = Discover[this.type]
   }
 
   def tests: Tests = Tests {
