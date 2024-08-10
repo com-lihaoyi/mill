@@ -152,7 +152,7 @@ class MillBuildRootModule()(implicit
           // graph evaluator without needing to be accounted for in the post-compile
           // bytecode callgraph analysis.
           def isSimpleTarget =
-            (calledSig.desc.ret.pretty == classOf[mill.define.Target[_]].getName ||
+            (calledSig.desc.ret.pretty == classOf[mill.define.Task[_]].getName ||
               calledSig.desc.ret.pretty == classOf[mill.define.Worker[_]].getName) &&
               calledSig.desc.args.isEmpty
 
