@@ -101,8 +101,7 @@ object Resolve {
         p.getClass,
         classOf[mill.define.Task[_]],
         _ == r.segments.parts.last,
-        true,
-        filterAnnotations = _.contains("mill.moduledefs.NullaryMethod")
+        true
       )
       .head
 

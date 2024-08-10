@@ -71,6 +71,12 @@ object ResolveTests extends TestSuite {
       // contain the entire Mill internal call stack at point of failure
       x.left.exists(_.linesIterator.size < 25)
 
+  def segments(
+          found: Either[String, List[Task[_]]],
+          expected: Either[String, List[Task[_]]]
+      ) = {
+        found.map(_.map(_.ctx.segments)) == expected.map(_.map(_.ctx.segments))
+      }
   val tests = Tests {
     val graphs = new mill.util.TestGraphs()
     import graphs._
@@ -114,7 +120,7 @@ object ResolveTests extends TestSuite {
       )
       "neg5" - check(
         "invisible",
-        Left("Cannot resolve invisible. Try `mill resolve _` to see what's available.")
+        Left("Cannot resolve invisible. Try `mill resolve _` or `mill resolve __.invisible&` to see what's available.")
       )
       "negBadParse" - check(
         "invisible&",
@@ -134,6 +140,7 @@ object ResolveTests extends TestSuite {
         )
       }
     }
+
     "nested" - {
       val check = new Checker(nestedModule)
       "pos1" - check("single", Right(Set(_.single)), Set("single"))
@@ -197,7 +204,7 @@ object ResolveTests extends TestSuite {
       )
       "wildcardNeg" - check(
         "_._.single",
-        Left("Cannot resolve _._.single. Try `mill resolve _` to see what's available.")
+        Left("Cannot resolve _._.single. Try `mill resolve _` or `mill resolve __.single` to see what's available.")
       )
       "wildcardNeg2" - check(
         "_._.__",
@@ -259,6 +266,28 @@ object ResolveTests extends TestSuite {
       )
     }
 
+    "commands" - {
+      val check = new Checker(commands)
+      "pos1" - check.checkSeq0(
+        Seq("outerCmd"),
+        segments(_, Right(List(commands.outerCmd()))),
+        _ == Right(List("outerCmd"))
+      )
+      "pos2" - check.checkSeq0(
+        Seq("inner.innerCmd"),
+        segments(_, Right(List(commands.inner.innerCmd()))),
+        _ == Right(List("inner.innerCmd"))
+      )
+      "neg1" - check(
+        "innerCmd",
+        Left("Cannot resolve innerCmd. Try `mill resolve _` or `mill resolve __.innerCmd` to see what's available.")
+      )
+      "neg2" - check(
+        "outerCm",
+        Left("Cannot resolve outerCm. Did you mean outerCmd?")
+      )
+    }
+
     "cross" - {
       "single" - {
         val check = new Checker(singleCross)
@@ -296,7 +325,7 @@ object ResolveTests extends TestSuite {
         "neg4" - check(
           "cross[doesntExist].suffix",
           Left(
-            "Cannot resolve cross[doesntExist].suffix. Try `mill resolve cross._` to see what's available."
+            "Cannot resolve cross[doesntExist].suffix. Try `mill resolve cross._` or `mill resolve __.suffix` to see what's available."
           )
         )
         "wildcard" - check(
@@ -346,7 +375,7 @@ object ResolveTests extends TestSuite {
         "wildcard" - {
           "labelNeg1" - check(
             "_.suffix",
-            Left("Cannot resolve _.suffix. Try `mill resolve _._` to see what's available.")
+            Left("Cannot resolve _.suffix. Try `mill resolve _._` or `mill resolve __.suffix` to see what's available.")
           )
           "labelNeg2" - check(
             "_.doesntExist",
@@ -593,13 +622,6 @@ object ResolveTests extends TestSuite {
 
     "duplicate" - {
       val check = new Checker(duplicates)
-
-      def segments(
-          found: Either[String, List[Task[_]]],
-          expected: Either[String, List[Task[_]]]
-      ) = {
-        found.map(_.map(_.ctx.segments)) == expected.map(_.map(_.ctx.segments))
-      }
 
       "wildcard" - {
         "wrapped" - {

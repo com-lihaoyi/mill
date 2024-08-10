@@ -61,6 +61,8 @@ object BasePathTests extends TestSuite {
             override def millSourcePath = super.millSourcePath / "overriddenBasePathDoubleNested"
           }
         }
+
+        val millDiscover = Discover[this.type]
       }
       assert(
         overriddenBasePath.millSourcePath == os.pwd / "overriddenBasePathRootValue",

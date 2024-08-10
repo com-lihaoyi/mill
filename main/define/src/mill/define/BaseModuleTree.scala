@@ -20,9 +20,19 @@ class BaseModuleTree(value: Seq[(Seq[String], BaseModule)]) {
     lookupByParent0.getOrElse(parentPrefixOpt, Nil)
 
   def rootModule: BaseModule = lookupByParent(None).head._2
-  val allPossibleNames: Set[String] =
-    value.flatMap(_._2.millDiscover.value.values).flatMap(_._1).toSet
+  val allPossibleNames: Set[String] = {
+
+    value
+      .flatMap(_._2.millDiscover.value.values)
+      .flatMap{ t =>t._1 ++ t._2.map(_.defaultName) }
+      .toSet
+  }
+
+  val targetNamesByClass = value
+    .flatMap{  case (segs, base) => base.millDiscover.value.mapValues(_._1.toSet) }
+    .toMap
 }
+
 object BaseModuleTree {
   def from(rootModules: Seq[BaseModule]): BaseModuleTree = {
     new BaseModuleTree(

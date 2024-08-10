@@ -127,5 +127,5 @@ trait ScalaPBWorkerApi {
 
 object ScalaPBWorkerApi extends ExternalModule {
   def scalaPBWorker: Worker[ScalaPBWorker] = Task.worker { new ScalaPBWorker() }
-  lazy val millDiscover: Discover[this.type] = Discover[this.type]
+  val millDiscover = Discover[this.type]
 }

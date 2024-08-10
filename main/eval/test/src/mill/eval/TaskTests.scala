@@ -1,8 +1,8 @@
 package mill.eval
 
 import utest._
-import mill.{Task, T}
-import mill.define.{Module, Worker}
+import mill.{T, Task}
+import mill.define.{Discover, Module, Worker}
 import mill.util.{TestEvaluator, TestUtil}
 import utest.framework.TestPath
 
@@ -262,7 +262,9 @@ trait TaskTests extends TestSuite {
 
 object SeqTaskTests extends TaskTests {
   def withEnv(f: (Build, TestEvaluator) => Unit)(implicit tp: TestPath) = {
-    object build extends Build
+    object build extends Build{
+      val millDiscover = Discover[this.type]
+    }
     val check = new TestEvaluator(
       build,
       threads = Some(1),
@@ -273,7 +275,9 @@ object SeqTaskTests extends TaskTests {
 }
 object ParTaskTests extends TaskTests {
   def withEnv(f: (Build, TestEvaluator) => Unit)(implicit tp: TestPath) = {
-    object build extends Build
+    object build extends Build{
+      val millDiscover = Discover[this.type]
+    }
     val check = new TestEvaluator(
       build,
       threads = Some(16),

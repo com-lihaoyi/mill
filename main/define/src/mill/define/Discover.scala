@@ -105,7 +105,32 @@ object Discover {
       val mapping = for {
         discoveredModuleType <- seen.toSeq.sortBy(_.typeSymbol.fullName)
         curCls = discoveredModuleType
-        methods = getValsOrMeths(curCls)
+        methods = {
+          // Inlined from mainargs.Macros.getValsOrMeths, to allow us to pick up `val`s
+          // to support Mill's test suite
+          def isAMemberOfAnyRef(member: Symbol) = {
+            // AnyRef is an alias symbol, we go to the real "owner" of these methods
+            val anyRefSym = c.mirror.universe.definitions.ObjectClass
+            member.owner == anyRefSym
+          }
+          val extractableMembers = for {
+            member <- curCls.members.toList.reverse
+            if !isAMemberOfAnyRef(member)
+            if !member.isSynthetic
+            if member.isPublic
+            if member.isTerm
+            memTerm = member.asTerm
+            // if memTerm.isMethod
+            if !memTerm.isModule
+          } yield {
+            memTerm.asMethod
+          }
+
+          extractableMembers flatMap { case memTerm =>
+            if (memTerm.isSetter || memTerm.isConstructor) Nil
+            else Seq(memTerm)
+          }
+        }
         overridesRoutes = {
           assertParamListCounts(
             methods,
@@ -114,12 +139,11 @@ object Discover {
 
           Tuple2(
             for {
-              m <- methods.toList.sortBy(_.fullName)
-              if m.returnType <:< weakTypeOf[mill.define.Task[_]]
-              if m.annotations.exists(_.tree.tpe =:= typeOf[mill.moduledefs.NullaryMethod])
+              m <- methods.sortBy(_.fullName)
+              if (m.returnType <:< weakTypeOf[mill.define.Task[_]] && m.paramLists.isEmpty)
             } yield m.name.decoded,
             for {
-              m <- methods.toList.sortBy(_.fullName)
+              m <- methods.sortBy(_.fullName)
               if m.returnType <:< weakTypeOf[mill.define.Command[_]]
             } yield extractMethod(
               m.name,

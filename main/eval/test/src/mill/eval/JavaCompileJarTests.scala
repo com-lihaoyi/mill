@@ -8,6 +8,7 @@ import mill.api.Strict.Agg
 import mill.api.{JarManifest, Loose}
 import utest._
 import mill._
+import mill.define.Discover
 
 object JavaCompileJarTests extends TestSuite {
   def compileAll(sources: mill.api.Loose.Agg[mill.api.PathRef])(implicit ctx: Dest) = {
@@ -57,6 +58,8 @@ object JavaCompileJarTests extends TestSuite {
           os.proc("java", "-Duser.language=en", "-cp", classFiles().path, mainClsName)
             .call(stderr = os.Pipe)
         }
+
+        val millDiscover = Discover[this.type]
       }
 
       import Build._

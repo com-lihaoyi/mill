@@ -46,7 +46,8 @@ object Settings {
     "0.11.0-M7"
   )
   val docTags: Seq[String] = Seq(
-    "0.11.10"
+    "0.11.10",
+    "0.11.11"
   )
   val mimaBaseVersions: Seq[String] = 0.to(11).map("0.11." + _)
 }
@@ -158,6 +159,11 @@ object Deps {
   val osLib = ivy"com.lihaoyi::os-lib:0.10.3"
   val pprint = ivy"com.lihaoyi::pprint:0.9.0"
   val mainargs = ivy"com.lihaoyi::mainargs:0.7.1"
+  val millModuledefsVersion = "0.10.9"
+  val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
+  val millModuledefs = ivy"${millModuledefsString}"
+  val millModuledefsPlugin =
+    ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${millModuledefsVersion}"
   // can't use newer versions, as these need higher Java versions
   val testng = ivy"org.testng:testng:7.5.1"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
@@ -231,12 +237,13 @@ def millLastTag: T[String] = T {
 }
 
 def millBinPlatform: T[String] = T {
-  val tag = millLastTag()
-  if (tag.contains("-M")) tag
-  else {
-    val pos = if (tag.startsWith("0.")) 2 else 1
-    tag.split("[.]", pos + 1).take(pos).mkString(".")
-  }
+  //val tag = millLastTag()
+  //if (tag.contains("-M")) tag
+  //else {
+  //  val pos = if (tag.startsWith("0.")) 2 else 1
+  //  tag.split("[.]", pos + 1).take(pos).mkString(".")
+  //}
+  "0.11"
 }
 
 def baseDir = build.millSourcePath
@@ -365,28 +372,16 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
  */
 trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModule { outer =>
   def scalaVersion = Deps.scalaVersion
-
   def scalafixScalaBinaryVersion = ZincWorkerUtil.scalaBinaryVersion(scalaVersion())
   def semanticDbVersion = Deps.semanticDBscala.version
   def scalacOptions =
-    if (this == main.moduledefs || this.isInstanceOf[main.moduledefs.Plugin]) T {
-      super.scalacOptions() ++ Seq(
-        "-deprecation",
-        "-P:acyclic:force",
-        "-feature",
-        "-Xlint:unused",
-        "-Xlint:adapted-args",
-      )
-    } else T{
-      super.scalacOptions() ++ Seq(
-        "-deprecation",
-        "-P:acyclic:force",
-        "-feature",
-        "-Xlint:unused",
-        "-Xlint:adapted-args",
-        s"-Xplugin:${main.moduledefs.plugin(Deps.scalaVersion).jar().path}"
-      )
-    }
+    super.scalacOptions() ++ Seq(
+      "-deprecation",
+      "-P:acyclic:force",
+      "-feature",
+      "-Xlint:unused",
+      "-Xlint:adapted-args"
+    )
 
   def testIvyDeps: T[Agg[Dep]] = Agg(Deps.TestDeps.utest)
   def testModuleDeps: Seq[JavaModule] =
@@ -401,13 +396,16 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
   }
 
   def runClasspath = super.runClasspath() ++ writeLocalTestOverrides()
-  override def scalacPluginClasspath =
-    if (this == main.moduledefs || this.isInstanceOf[main.moduledefs.Plugin]) super.scalacPluginClasspath()
-    else {
-      super.scalacPluginClasspath() ++ Seq(main.moduledefs.plugin(Deps.scalaVersion).jar())
-    }
 
-  def scalacPluginIvyDeps = T { super.scalacPluginIvyDeps() ++ Agg(Deps.acyclic) }
+  def scalacPluginIvyDeps =
+    super.scalacPluginIvyDeps() ++
+      Agg(Deps.acyclic) ++
+      Agg.when(scalaVersion().startsWith("2.13."))(Deps.millModuledefsPlugin)
+
+  def mandatoryIvyDeps =
+    super.mandatoryIvyDeps() ++
+      Agg.when(scalaVersion().startsWith("2.13."))(Deps.millModuledefs)
+
   /** Default tests module. */
   lazy val test: MillScalaTests = new MillScalaTests {}
   trait MillScalaTests extends ScalaTests with MillBaseTestsModule {
@@ -452,7 +450,7 @@ trait MillPublishScalaModule extends MillScalaModule with MillPublishJavaModule
 /** Publishable module which contains strictly handled API. */
 trait MillStableScalaModule extends MillPublishScalaModule with Mima {
   import com.github.lolgab.mill.mima._
-  override def mimaBinaryIssueFilters = Seq(
+  override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] = Seq(
     // (5x) MIMA doesn't properly ignore things which are nested inside other private things
     // so we have to put explicit ignores here (https://github.com/lightbend/mima/issues/771)
     ProblemFilter.exclude[Problem]("mill.eval.ProfileLogger*"),
@@ -530,22 +528,28 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
     ProblemFilter.exclude[ReversedMissingMethodProblem]("mill.resolve.Resolve.handleResolved"),
     ProblemFilter.exclude[Problem]("mill.resolve.*.resolveNonEmptyAndHandle*"),
     ProblemFilter.exclude[Problem]("mill.resolve.ResolveCore*"),
-    ProblemFilter.exclude[InheritedNewAbstractMethodProblem]("mill.main.MainModule.mill$define$BaseModule0$_setter_$watchedValues_="),
-    ProblemFilter.exclude[InheritedNewAbstractMethodProblem]("mill.main.MainModule.mill$define$BaseModule0$_setter_$evalWatchedValues_="),
+    ProblemFilter.exclude[InheritedNewAbstractMethodProblem](
+      "mill.main.MainModule.mill$define$BaseModule0$_setter_$watchedValues_="
+    ),
+    ProblemFilter.exclude[InheritedNewAbstractMethodProblem](
+      "mill.main.MainModule.mill$define$BaseModule0$_setter_$evalWatchedValues_="
+    )
   )
-  def mimaPreviousVersions = Settings.mimaBaseVersions
+  def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
 
-  def mimaPreviousArtifacts = Agg.from(
-    Settings.mimaBaseVersions
-      .filter(v => !skipPreviousVersions().contains(v))
-      .map(version =>
-        ivy"${pomSettings().organization}:${artifactId()}:${version}"
-      )
-  )
+  def mimaPreviousArtifacts: T[Agg[Dep]] = T {
+    Agg.from(
+      Settings.mimaBaseVersions
+        .filter(v => !skipPreviousVersions().contains(v))
+        .map(version =>
+          ivy"${pomSettings().organization}:${artifactId()}:${version}"
+        )
+    )
+  }
 
   def mimaExcludeAnnotations = Seq("mill.api.internal", "mill.api.experimental")
   def mimaCheckDirection = CheckDirection.Backward
-  def skipPreviousVersions = T{ Seq.empty[String] }
+  def skipPreviousVersions: T[Seq[String]] = T(Seq.empty[String])
 }
 
 object bridge extends Cross[BridgeModule](compilerBridgeScalaVersions)
@@ -632,11 +636,16 @@ object main extends MillStableScalaModule with BuildInfo {
 //        .map(artifact => s"${artifact.group}:${artifact.id}:${artifact.version}")
         .mkString(","),
       "Dependency artifacts embedded in mill assembly by default."
+    ),
+    BuildInfo.Value(
+      "millScalacPluginDeps",
+      Deps.millModuledefsString,
+      "Scalac compiler plugin dependencies to compile the build script."
     )
   )
 
   object api extends MillStableScalaModule with BuildInfo {
-    def moduleDeps = Seq(client, moduledefs)
+    def moduleDeps = Seq(client)
     def buildInfoPackageName = "mill.api"
     def buildInfoMembers = Seq(
       BuildInfo.Value("millVersion", millVersion(), "Mill version."),
@@ -717,9 +726,10 @@ object main extends MillStableScalaModule with BuildInfo {
   }
 
   object define extends MillStableScalaModule {
-    def moduleDeps = Seq(api, util, moduledefs)
+    def moduleDeps = Seq(api, util)
     def compileIvyDeps = Agg(Deps.scalaReflect(scalaVersion()))
     def ivyDeps = Agg(
+      Deps.millModuledefs,
       // Necessary so we can share the JNA classes throughout the build process
       Deps.jna,
       Deps.jnaPlatform,
@@ -756,26 +766,6 @@ object main extends MillStableScalaModule with BuildInfo {
     def moduleDeps = Seq(eval, util, main)
   }
 
-  object moduledefs extends MillPublishScalaModule {
-    override def scalaVersion = Deps.scalaVersion
-    override def ivyDeps = Agg(
-      Deps.scalaCompiler(scalaVersion()),
-      Deps.sourcecode
-    )
-
-    object plugin extends Cross[Plugin](0.to(14).map(v => "2.13." + v))
-    trait Plugin extends MillPublishScalaModule with CrossScalaModule {
-      def scalaVersion = super[CrossScalaModule].scalaVersion()
-      override def moduleDeps = Seq(moduledefs)
-      override def crossFullScalaVersion = true
-      override def ivyDeps = Agg(
-        Deps.scalaCompiler(scalaVersion()),
-        Deps.sourcecode
-      )
-      override def fix(args: String*) = T.command{}
-    }
-  }
-
   def testModuleDeps = super.testModuleDeps ++ Seq(testkit)
 }
 
@@ -796,9 +786,7 @@ object scalalib extends MillStableScalaModule {
   def moduleDeps = Seq(main, scalalib.api, testrunner)
   def ivyDeps = Agg(Deps.scalafmtDynamic, Deps.scalaXml)
   def testIvyDeps = super.testIvyDeps() ++ Agg(Deps.TestDeps.scalaCheck)
-  def testTransitiveDeps =
-    super.testTransitiveDeps() ++
-    Seq(worker.testDep(), main.moduledefs.plugin(Deps.scalaVersion).testDep())
+  def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(worker.testDep())
 
   object backgroundwrapper extends MillPublishJavaModule with MillJavaModule {
     def ivyDeps = Agg(Deps.sbtTestInterface)
@@ -818,6 +806,11 @@ object scalalib extends MillStableScalaModule {
         "semanticDbJavaVersion",
         Deps.semanticDbJava.dep.version,
         "Java SemanticDB plugin version."
+      ),
+      BuildInfo.Value(
+        "millModuledefsVersion",
+        Deps.millModuledefsVersion,
+        "Mill ModuleDefs plugins version."
       ),
       BuildInfo.Value("millCompilerBridgeScalaVersions", bridgeScalaVersions.mkString(",")),
       BuildInfo.Value("millCompilerBridgeVersion", bridgeVersion),
@@ -955,11 +948,6 @@ object contrib extends Module {
     trait WorkerModule extends MillPublishScalaModule with Cross.Module[String] {
       def playBinary = crossValue
       def millSourcePath: os.Path = super.millSourcePath / playBinary
-
-      def scalacOptions = Seq("-Ywarn-unused")
-
-      def scalacPluginClasspath = T{ Seq.empty[PathRef] }
-
 
       def sources = T.sources {
         // We want to avoid duplicating code as long as the Play APIs allow.
@@ -1260,45 +1248,45 @@ object example extends MillScalaModule {
 
     def buildScLines =
       upstreamCross(
-        this.millModuleSegments.parts.dropRight(1).last).valuesToModules.get(List(crossValue)
-      ) match {
+        this.millModuleSegments.parts.dropRight(1).last
+      ).valuesToModules.get(List(crossValue)) match {
         case None =>
           T {
             super.buildScLines()
           }
         case Some(upstream) => T {
-          val upstreamLines = os.read.lines(
-            upstream
-              .testRepoRoot().path / "build.sc"
-          )
-          val lines = os.read.lines(testRepoRoot().path / "build.sc")
+            val upstreamLines = os.read.lines(
+              upstream
+                .testRepoRoot().path / "build.sc"
+            )
+            val lines = os.read.lines(testRepoRoot().path / "build.sc")
 
-          import collection.mutable
-          val groupedLines = mutable.Map.empty[String, mutable.Buffer[String]]
-          var current = Option.empty[String]
-          lines.foreach {
-            case s"//// SNIPPET:$name" =>
-              current = Some(name)
-              groupedLines(name) = mutable.Buffer()
-            case s => groupedLines(current.get).append(s)
-          }
-
-          upstreamLines.flatMap {
-            case s"//// SNIPPET:$name" =>
-              if (name != "END") {
-
+            import collection.mutable
+            val groupedLines = mutable.Map.empty[String, mutable.Buffer[String]]
+            var current = Option.empty[String]
+            lines.foreach {
+              case s"//// SNIPPET:$name" =>
                 current = Some(name)
-                groupedLines(name)
-              } else {
-                current = None
-                Nil
-              }
+                groupedLines(name) = mutable.Buffer()
+              case s => groupedLines(current.get).append(s)
+            }
 
-            case s =>
-              if (current.nonEmpty) None
-              else Some(s)
+            upstreamLines.flatMap {
+              case s"//// SNIPPET:$name" =>
+                if (name != "END") {
+
+                  current = Some(name)
+                  groupedLines(name)
+                } else {
+                  current = None
+                  Nil
+                }
+
+              case s =>
+                if (current.nonEmpty) None
+                else Some(s)
+            }
           }
-        }
       }
   }
   trait ExampleCrossModule extends IntegrationTestCrossModule {
@@ -1556,7 +1544,6 @@ object runner extends MillPublishScalaModule {
   def skipPreviousVersions: T[Seq[String]] = Seq("0.11.0-M7")
 
   object linenumbers extends MillPublishScalaModule {
-    def moduleDeps = Seq(main.moduledefs)
     def scalaVersion = Deps.scalaVersion
     def ivyDeps = Agg(Deps.scalaCompiler(scalaVersion()))
   }
@@ -1802,6 +1789,10 @@ object docs extends Module {
   }
 
   def supplementalFiles = T.source(millSourcePath / "supplemental-ui")
+
+  /**
+   * The doc root ready to be build by antora for the current branch.
+   */
   def devAntoraSources: T[PathRef] = T {
     val dest = T.dest
     os.copy(source().path, dest, mergeFolders = true)
@@ -1809,12 +1800,19 @@ object docs extends Module {
     PathRef(dest)
   }
 
-  def sanitizeAntoraYml(dest: os.Path,
-                        version: String,
-                        millVersion: String,
-                        millLastTag: String) = {
+  def sanitizeAntoraYml(
+      dest: os.Path,
+      version: String,
+      millVersion: String,
+      millLastTag: String
+  ): Unit = {
+    val isPreRelease = (millVersion != millLastTag) || Seq("-M", "-RC").exists(millVersion.contains)
     val lines = os.read(dest / "antora.yml").linesIterator.map {
-      case s"version:$_" => s"version: '$version'\ndisplay-version: '$millVersion'"
+      case s"version:$_" =>
+        if (isPreRelease)
+          s"version: '${version}'\ndisplay-version: '${millVersion}'\nprerelease: true"
+        else
+          s"version: '${version}'\ndisplay-version: '${millVersion}'"
       case s"    mill-version:$_" => s"    mill-version: '$millVersion'"
       case s"    mill-last-tag:$_" => s"    mill-last-tag: '$millLastTag'"
       case l => l
@@ -1823,7 +1821,7 @@ object docs extends Module {
   }
 
   def githubPagesPlaybookText(authorMode: Boolean) = T.task { extraSources: Seq[os.Path] =>
-    val taggedSources = for(path <- extraSources) yield {
+    val taggedSources = for (path <- extraSources) yield {
       s"""    - url: ${baseDir}
          |      start_path: ${path.relativeTo(baseDir)}
          |""".stripMargin
@@ -1878,8 +1876,8 @@ object docs extends Module {
        |""".stripMargin
   }
 
-  def oldDocSources = T{
-    for(oldVersion <- Settings.docTags) yield {
+  def oldDocSources = T {
+    for (oldVersion <- Settings.docTags) yield {
       val checkout = T.dest / oldVersion
       os.proc("git", "clone", T.workspace / ".git", checkout).call(stdout = os.Inherit)
       os.proc("git", "checkout", oldVersion).call(cwd = checkout, stdout = os.Inherit)
@@ -1914,22 +1912,6 @@ object docs extends Module {
       createFolders = true
     )
     T.log.errorStream.println("Running Antora ...")
-//    // check xrefs
-//    runAntora(
-//      npmDir = npmBase(),
-//      workDir = docSite,
-//      args = Seq(
-//        "--generator",
-//        "@antora/xref-validator",
-//        playbook.last,
-//        "--to-dir",
-//        siteDir.toString(),
-//        "--attribute",
-//        "page-pagination"
-//      ) ++
-//        Seq("--fetch").filter(_ => !authorMode)
-//    )
-    // generate site (we can skip the --fetch now)
     runAntora(
       npmDir = npmBase(),
       workDir = docSite,
@@ -1940,7 +1922,7 @@ object docs extends Module {
         "--attribute",
         "page-pagination"
       ) ++
-        Seq("--fetch").filter(_ => !authorMode)
+        Option.when(!authorMode)("--fetch").toSeq
     )
     os.write(siteDir / ".nojekyll", "")
 

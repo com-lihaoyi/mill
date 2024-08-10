@@ -90,7 +90,7 @@ private class MillBuildServer(
 ) extends ExternalModule
     with BuildServer {
 
-  lazy val millDiscover: Discover[this.type] = Discover[this.type]
+  val millDiscover = Discover[this.type]
 
   private[worker] var cancellator: Boolean => Unit = shutdownBefore => ()
   private[worker] var onSessionEnd: Option[BspServerResult => Unit] = None

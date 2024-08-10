@@ -1,8 +1,8 @@
 package mill.eval
 
 import mill.util.TestUtil.{Test, test}
-import mill.define.TargetImpl
-import mill.{Task, T}
+import mill.define.{Discover, TargetImpl}
+import mill.{T, Task}
 import mill.util.{TestEvaluator, TestGraphs, TestUtil}
 import mill.api.Strict.Agg
 import os.SubPath
@@ -309,6 +309,8 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
           def middle = Task.anon { middleCount += 1; 100 }
           def right = Task { rightCount += 1; 10000 }
           def down = Task { left() + middle() + right() }
+
+          val millDiscover = Discover[this.type]
         }
 
         import build._

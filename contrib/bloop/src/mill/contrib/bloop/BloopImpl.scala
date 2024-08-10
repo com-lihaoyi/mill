@@ -442,5 +442,5 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
     }
   }
 
-  lazy val millDiscover: Discover[this.type] = Discover[this.type]
+  val millDiscover = Discover[this.type]
 }

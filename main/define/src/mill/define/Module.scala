@@ -78,8 +78,7 @@ object Module {
         outer.getClass,
         implicitly[ClassTag[T]].runtimeClass,
         filter,
-        noParams = true,
-        filterAnnotations = _.contains("mill.moduledefs.NullaryMethod")
+        noParams = true
       )
         .map(_.invoke(outer).asInstanceOf[T])
     }

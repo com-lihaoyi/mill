@@ -1,8 +1,9 @@
 package mill.eval
 
-import mill.{Task, T}
+import mill.{T, Task}
 import mill.util.{TestEvaluator, TestUtil}
 import mill.api.Result.OuterStack
+import mill.define.Discover
 import utest._
 
 object FailureTests extends TestSuite {
@@ -187,6 +188,8 @@ object FailureTests extends TestSuite {
         // Using `Task.ctx(  ).dest` once in two different tasks is ok
         val task = Task.anon { Task.dest.toString.length }
         def right = Task { task() + left() + Task.dest.toString().length }
+
+        val millDiscover = Discover[this.type]
       }
 
       val check = new TestEvaluator(build)

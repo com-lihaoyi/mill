@@ -41,7 +41,7 @@ trait MillTestKit {
     targetDir / "worksources"
   }
 
-  class BaseModule(implicit
+  abstract class BaseModule(implicit
       millModuleEnclosing0: sourcecode.Enclosing,
       millModuleLine0: sourcecode.Line
   ) extends mill.define.BaseModule(getSrcPathBase() / millModuleEnclosing0.value.split("\\.| |#"))(
@@ -50,7 +50,6 @@ trait MillTestKit {
         implicitly,
         Caller(null)
       ) {
-    lazy val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   /**

@@ -16,6 +16,8 @@ object ModuleTests extends TestSuite {
   }
   object Build extends TestUtil.BaseModule {
     def z = Task { ExternalModule.x() + ExternalModule.inner.y() }
+
+    val millDiscover = Discover[this.type]
   }
   val tests = Tests {
     "externalModuleTargetsAreNamespacedByModulePackagePath" - {
