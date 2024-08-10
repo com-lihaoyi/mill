@@ -147,7 +147,7 @@ private[mill] trait GroupEvaluator {
               ))
               .getDeclaringClass.getName
             val name = namedTask.ctx.segment.pathSegments.last
-            val expectedName = methodClass + "#" + name + "()mill.define.Target"
+            val expectedName = methodClass + "#" + name + "()mill.define.Task"
 
             // We not only need to look up the code hash of the Target method being called,
             // but also the code hash of the constructors required to instantiate the Module
