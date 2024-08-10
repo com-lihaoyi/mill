@@ -230,7 +230,7 @@ class MillBuildRootModule()(implicit
    * By default, these are the dependencies, which Mill provides itself (via [[unmanagedClasspath]]).
    * We exclude them to avoid incompatible or duplicate artifacts on the classpath.
    */
-  protected def resolveDepsExclusions: T[Seq[(String, String)]] = T {
+  def resolveDepsExclusions: Task[Seq[(String, String)]] = T {
     Lib.millAssemblyEmbeddedDeps.toSeq.map(d =>
       (d.dep.module.organization.value, d.dep.module.name.value)
     )
