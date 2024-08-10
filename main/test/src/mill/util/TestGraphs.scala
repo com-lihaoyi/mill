@@ -347,6 +347,19 @@ object TestGraphs {
     val millDiscover = Discover[this.type]
   }
 
+  object commandLooksLikeTarget extends TestUtil.BaseModule {
+    // Make sure Mill doesn't get confused when the command `sngle` has the same
+    // name as a target `sngle`, and a target `sngle` exists elsewhere in the build
+    // graph, but there is no `sngle in the module being looked at
+    val single = test()
+
+    def sngle() = Task.command {}
+    object foo extends Module{
+      val sngle = test()
+    }
+
+    val millDiscover = Discover[this.type]
+  }
 
   trait BaseModule extends Module {
     def foo = Task { Seq("base") }

@@ -288,6 +288,14 @@ object ResolveTests extends TestSuite {
       )
     }
 
+    "commandLooksLikeTarget" - {
+      val check = new Checker(commandLooksLikeTarget)
+      check.checkSeq0(
+        Seq("sngle"),
+        segments(_, Right(List(commandLooksLikeTarget.sngle())))
+      )
+    }
+
     "cross" - {
       "single" - {
         val check = new Checker(singleCross)

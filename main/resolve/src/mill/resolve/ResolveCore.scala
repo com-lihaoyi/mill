@@ -439,9 +439,12 @@ private object ResolveCore {
         classOf[Task[_]],
         x =>
           namePred(x) &&
-          baseModules.targetNamesByClass.exists{case (cls, names) =>
-            cls.isAssignableFrom(cls) && names.contains(x)
-          },
+          Iterator
+            .unfold[Class[_], Class[_]](cls)(c => c.getSuperclass match{
+              case null => None
+              case sup => Some((c, sup))
+            })
+            .exists(baseModules.targetNamesByClass.getOrElse(_, Set()).contains(x)),
         noParams = true
       )
       .map { m =>
