@@ -49,6 +49,9 @@ object foo extends ScalaModule {
 //   by defining a `T.source` (`otherFiles` above) and passing it to `forkEnv`. This
 //   provide the folder path as an environment variable that the test can make use of
 //
+// You can click the *browse* button in the above example to see an example of code
+// the uses these three approaches to load files as part of a test module.
+//
 // Note that tests require that you pass in any files that they depend on explicitly.
 // This is necessary so that Mill knows when a test needs to be re-run and when a
 // previous result can be cached. This also ensures that tests reading and writing
