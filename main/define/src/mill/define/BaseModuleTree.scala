@@ -31,6 +31,10 @@ class BaseModuleTree(value: Seq[(Seq[String], BaseModule)]) {
   val targetNamesByClass = value
     .flatMap{  case (segs, base) => base.millDiscover.value.mapValues(_._1.toSet) }
     .toMap
+
+  val commandNamesByClass = value
+    .flatMap{  case (segs, base) => base.millDiscover.value.mapValues(_._2.toSet.map[String](_.defaultName)) }
+    .toMap
 }
 
 object BaseModuleTree {

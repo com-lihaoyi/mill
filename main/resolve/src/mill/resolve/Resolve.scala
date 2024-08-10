@@ -137,9 +137,9 @@ object Resolve {
       rest: Seq[String],
       nullCommandDefaults: Boolean
   ): Iterable[Either[String, Command[_]]] = for {
-    ep <- ResolveCore.findParent(
+    ep <- ResolveCore.findFromParents(
       target.getClass,
-      discover.value.get(_).flatMap(_._2.find(_.name == name))
+      discover.value.get(_).flatMap(_._2.find(_.name == name)).toSeq
     )
   } yield {
     def withNullDefault(a: mainargs.ArgSig): mainargs.ArgSig = {

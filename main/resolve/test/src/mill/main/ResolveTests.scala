@@ -120,7 +120,7 @@ object ResolveTests extends TestSuite {
       )
       "neg5" - check(
         "invisible",
-        Left("Cannot resolve invisible. Try `mill resolve _` or `mill resolve __.invisible&` to see what's available.")
+        Left("Cannot resolve invisible. Did you mean invisible&?")
       )
       "negBadParse" - check(
         "invisible&",
