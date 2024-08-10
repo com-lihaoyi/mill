@@ -7,7 +7,7 @@ import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.{CrossVersion, Dep, DepSyntax, Lib, TestModule}
 import mill.testrunner.{TestResult, TestRunner, TestRunnerUtils}
-import mill.define.{Command, Target, Task}
+import mill.define.{Command, Task}
 import mill.scalajslib.api._
 import mill.scalajslib.internal.ScalaJSUtils.getReportMainFilePathRef
 import mill.scalajslib.worker.{ScalaJSWorker, ScalaJSWorkerExternalModule}

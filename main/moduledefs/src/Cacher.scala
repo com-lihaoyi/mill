@@ -15,7 +15,7 @@ object Cacher {
   def impl0[T: c.WeakTypeTag](c: Context)(t: c.Expr[T]): c.Expr[T] = {
     c.Expr[T](wrapCached[T](c)(t.tree))
   }
-  def wrapCached[R: c.WeakTypeTag](c: Context)(t: c.Tree) = {
+  def wrapCached[R: c.WeakTypeTag](c: Context)(t: c.Tree): c.universe.Tree = {
 
     import c.universe._
     val owner = c.internal.enclosingOwner

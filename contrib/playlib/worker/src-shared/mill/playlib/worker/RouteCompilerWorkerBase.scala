@@ -67,8 +67,8 @@ protected[playlib] class RouteCompilerWorkerBase extends RouteCompilerWorkerApi 
       )
     ).foldLeft(seed) {
       case (Right(accFiles), Right(files)) => Right(accFiles ++ files)
-      case (Right(accFiles), Left(errors)) => Left(errors)
-      case (left @ Left(errors), _) => left
+      case (Right(_), Left(errors)) => Left(errors)
+      case (left @ Left(_), _) => left
     }
   }
 

@@ -83,13 +83,15 @@ class AutoOverridePlugin(val global: Global) extends Plugin {
 
       def newMods(nullaryMethod: Boolean, old: global.Modifiers, comment: String) = {
         old.copy(
-          annotations = createNullaryMethodAnnotation(nullaryMethod) ::: createAnnotation(comment) ::: old.annotations
+          annotations = createNullaryMethodAnnotation(nullaryMethod) ::: createAnnotation(
+            comment
+          ) ::: old.annotations
         )
       }
 
       private def createNullaryMethodAnnotation(nullaryMethod: Boolean): List[global.Tree] = {
         if (!nullaryMethod) Nil
-        else List{
+        else List {
           global.Apply(
             global.Select(
               global.New(
@@ -102,10 +104,9 @@ class AutoOverridePlugin(val global: Global) extends Plugin {
         }
       }
 
-
       private def createAnnotation(comment: String): List[global.Tree] = {
         if (comment == "") Nil
-        else List{
+        else List {
           global.Apply(
             global.Select(
               global.New(

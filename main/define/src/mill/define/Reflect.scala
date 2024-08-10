@@ -34,7 +34,7 @@ private[mill] object Reflect {
         filterAnnotations(
           (
             outer.getDeclaredFields.filter(_.getName == m.getName).flatMap(_.getAnnotations) ++
-            m.getAnnotations
+              m.getAnnotations
           )
             .map(_.annotationType().getName).toSeq
         )

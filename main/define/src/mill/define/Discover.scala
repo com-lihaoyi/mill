@@ -109,7 +109,7 @@ object Discover {
         overridesRoutes = {
           assertParamListCounts(
             methods,
-            (weakTypeOf[mill.define.Command[_]], 1, "`Task.command`"),
+            (weakTypeOf[mill.define.Command[_]], 1, "`Task.command`")
           )
 
           Tuple2(

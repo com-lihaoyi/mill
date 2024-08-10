@@ -5,7 +5,7 @@ import mill.api.Result
 import scalalib._
 import mill.contrib.bintray.BintrayPublishModule.checkBintrayCreds
 import mill.define.{ExternalModule, Task}
-import mill.define.{Command, Target}
+import mill.define.Command
 
 trait BintrayPublishModule extends PublishModule {
 

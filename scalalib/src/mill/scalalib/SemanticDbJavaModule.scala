@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import mill.api.{PathRef, Result, experimental}
-import mill.define.{ModuleRef, Target}
+import mill.define.ModuleRef
 import mill.main.BuildInfo
 import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerUtil}
 import mill.scalalib.bsp.BspBuildTarget

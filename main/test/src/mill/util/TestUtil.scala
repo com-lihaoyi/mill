@@ -24,7 +24,10 @@ object TestUtil extends MillTestKit {
   object test {
 
     def anon(inputs: Task[Int]*): Test = new Test(inputs)
-    def apply(inputs: Task[Int]*)(implicit ctx: mill.define.Ctx, name: sourcecode.Name): TestTarget = {
+    def apply(inputs: Task[Int]*)(implicit
+        ctx: mill.define.Ctx,
+        name: sourcecode.Name
+    ): TestTarget = {
       new TestTarget(inputs, pure = inputs.nonEmpty, name = name.value)
     }
   }
@@ -46,8 +49,9 @@ object TestUtil extends MillTestKit {
    * controlled externally, so you can construct arbitrary dataflow graphs and
    * test how changes propagate.
    */
-  class TestTarget(taskInputs: Seq[Task[Int]], val pure: Boolean, val name: String)(implicit ctx0: mill.define.Ctx)
-      extends TargetImpl[Int](
+  class TestTarget(taskInputs: Seq[Task[Int]], val pure: Boolean, val name: String)(implicit
+      ctx0: mill.define.Ctx
+  ) extends TargetImpl[Int](
         null,
         ctx0,
         upickle.default.readwriter[Int],
@@ -65,7 +69,7 @@ object TestUtil extends MillTestKit {
 
     override def sideHash = testTask.sideHash
     override def hashCode() = name.hashCode()
-    override def equals(o: Any) = o match{
+    override def equals(o: Any) = o match {
       case o: TestTarget => name == o.name
       case _ => false
     }

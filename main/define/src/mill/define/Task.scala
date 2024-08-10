@@ -46,10 +46,10 @@ trait Task[+T] extends Task.Ops[T] with Applyable[Task, T] {
 
 object Task extends TaskCompanion {
   implicit def applyImplicit2[T](t: T)(implicit rw: RW[T], ctx: mill.define.Ctx): Task[T] =
-  macro Target.Internal.targetImpl[T]
+    macro Target.Internal.targetImpl[T]
 
   implicit def applyImplicit2[T](t: Result[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Task[T] =
-  macro Target.Internal.targetResultImpl[T]
+    macro Target.Internal.targetResultImpl[T]
 
   abstract class Ops[+T] { this: Task[T] =>
     def map[V](f: T => V): Task[V] = new Task.Mapped(this, f)

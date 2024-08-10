@@ -4,17 +4,15 @@ import coursier.Repository
 import mill._
 import mill.api.{PathRef, Result, internal}
 import mill.define.{Discover, Task}
-import mill.scalalib.{BoundDep, Dep, DepSyntax, Lib, ScalaModule}
+import mill.scalalib.{BoundDep, Dep, Lib, ScalaModule}
 import mill.util.CoursierSupport
 import mill.util.Util.millProjectModule
-import mill.scalalib.api.Versions
 import pprint.Util.literalize
 import FileImportGraph.backtickWrap
 import mill.main.{BuildInfo, RootModule}
 
 import scala.collection.immutable.SortedMap
 import scala.util.Try
-import mill.define.Target
 
 /**
  * Mill module for pre-processing a Mill `build.sc` and related files and then
@@ -245,7 +243,6 @@ class MillBuildRootModule()(implicit
     enclosingClasspath() ++ lineNumberPluginClasspath()
   }
 
-
   override def scalacOptions: T[Seq[String]] = Task {
     super.scalacOptions() ++
       Seq(
@@ -267,7 +264,11 @@ class MillBuildRootModule()(implicit
     millProjectModule("mill-runner-linenumbers", repositoriesTask())
   }
   def moduledefsPluginClasspath: T[Agg[PathRef]] = Task {
-    millProjectModule("mill-main-moduledefs-plugin", repositoriesTask(), artifactSuffix = "_2.13.14")
+    millProjectModule(
+      "mill-main-moduledefs-plugin",
+      repositoriesTask(),
+      artifactSuffix = "_2.13.14"
+    )
   }
 
   /** Used in BSP IntelliJ, which can only work with directories */

@@ -2,7 +2,6 @@ package mill.scalalib.bsp
 
 import mill.api.experimental
 import mill.{Agg, T, Task}
-import mill.define.Target
 import mill.scalalib.{Dep, DepSyntax, ScalaModule}
 import mill.api.Result
 import mill.scalalib.api.ZincWorkerUtil

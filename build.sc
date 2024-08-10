@@ -452,7 +452,7 @@ trait MillPublishScalaModule extends MillScalaModule with MillPublishJavaModule
 /** Publishable module which contains strictly handled API. */
 trait MillStableScalaModule extends MillPublishScalaModule with Mima {
   import com.github.lolgab.mill.mima._
-  override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] = Seq(
+  override def mimaBinaryIssueFilters = Seq(
     // (5x) MIMA doesn't properly ignore things which are nested inside other private things
     // so we have to put explicit ignores here (https://github.com/lightbend/mima/issues/771)
     ProblemFilter.exclude[Problem]("mill.eval.ProfileLogger*"),
@@ -533,21 +533,19 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
     ProblemFilter.exclude[InheritedNewAbstractMethodProblem]("mill.main.MainModule.mill$define$BaseModule0$_setter_$watchedValues_="),
     ProblemFilter.exclude[InheritedNewAbstractMethodProblem]("mill.main.MainModule.mill$define$BaseModule0$_setter_$evalWatchedValues_="),
   )
-  def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
+  def mimaPreviousVersions = Settings.mimaBaseVersions
 
-  def mimaPreviousArtifacts: T[Agg[Dep]] = T {
-    Agg.from(
-      Settings.mimaBaseVersions
-        .filter(v => !skipPreviousVersions().contains(v))
-        .map(version =>
-          ivy"${pomSettings().organization}:${artifactId()}:${version}"
-        )
-    )
-  }
+  def mimaPreviousArtifacts = Agg.from(
+    Settings.mimaBaseVersions
+      .filter(v => !skipPreviousVersions().contains(v))
+      .map(version =>
+        ivy"${pomSettings().organization}:${artifactId()}:${version}"
+      )
+  )
 
   def mimaExcludeAnnotations = Seq("mill.api.internal", "mill.api.experimental")
   def mimaCheckDirection = CheckDirection.Backward
-  def skipPreviousVersions: T[Seq[String]] = T(Seq.empty[String])
+  def skipPreviousVersions = T{ Seq.empty[String] }
 }
 
 object bridge extends Cross[BridgeModule](compilerBridgeScalaVersions)
@@ -774,6 +772,7 @@ object main extends MillStableScalaModule with BuildInfo {
         Deps.scalaCompiler(scalaVersion()),
         Deps.sourcecode
       )
+      override def fix(args: String*) = T.command{}
     }
   }
 
@@ -957,7 +956,7 @@ object contrib extends Module {
       def playBinary = crossValue
       def millSourcePath: os.Path = super.millSourcePath / playBinary
 
-      def scalacOptions = Seq.empty[String]
+      def scalacOptions = Seq("-Ywarn-unused")
 
       def scalacPluginClasspath = T{ Seq.empty[PathRef] }
 

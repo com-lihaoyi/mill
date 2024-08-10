@@ -1,7 +1,7 @@
 package mill
 package scalalib
 
-import mill.define.{Command, ExternalModule, Target, Task}
+import mill.define.{Command, ExternalModule, Task}
 import mill.api.{JarManifest, PathRef, Result}
 import mill.scalalib.PublishModule.checkSonatypeCreds
 import mill.scalalib.publish.SonatypeHelpers.{

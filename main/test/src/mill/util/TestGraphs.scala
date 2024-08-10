@@ -3,6 +3,7 @@ import TestUtil.test
 import mill.define.{Command, Cross, Discover, DynamicModule, ModuleRef, TaskModule}
 import mill.{Module, T, Task}
 import mill.moduledefs.NullaryMethod
+
 /**
  * Example dependency graphs for us to use in our test suite.
  *
@@ -66,7 +67,7 @@ class TestGraphs() {
   object defCachedDiamond extends TestUtil.BaseModule {
     def up = Task.ofTask { test() }
     def left = Task.ofTask { test(up) }
-    def right = Task.ofTask { test(up)  }
+    def right = Task.ofTask { test(up) }
     def down = Task.ofTask { test(left, right) }
   }
 
