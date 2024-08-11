@@ -45,7 +45,7 @@ public class MillLauncher {
         builder.environment().put("MILL_WORKSPACE_ROOT", new File("").getCanonicalPath());
         File sandbox = new java.io.File(lockBase + "/" + ServerFiles.sandbox);
         sandbox.mkdirs();
-        builder.directory(sandbox);
+        // builder.directory(sandbox);
         return builder.start();
     }
 
