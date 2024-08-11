@@ -9,7 +9,7 @@ import org.newsclub.net.unix.AFUNIXServerSocket
 import org.newsclub.net.unix.AFUNIXSocketAddress
 import mill.main.BuildInfo
 import mill.main.client._
-import mill.api.{SystemStreams, WorkspaceRoot, internal}
+import mill.api.{SystemStreams, internal}
 import mill.main.client.lock.{Lock, Locks}
 
 import scala.util.Try
