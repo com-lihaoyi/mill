@@ -198,6 +198,22 @@ $ ./mill installLocal --binFile /tmp/mill --ivyRepo /tmp/millRepo
 ...
 Published 44 modules and installed /tmp/mill
 ----
+=== Testing Documentation Changes
+
+For testing documentation changes locally, you can generate documentation for the current checkout via
+
+[source,bash]
+----
+$ ./mill docs.fastPages
+----
+
+To generate documentation for both the current checkout and earlier versions, you can use
+
+
+[source,bash]
+----
+$ ./mill docs.localPages
+----
 
 === Troubleshooting
 

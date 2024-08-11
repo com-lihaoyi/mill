@@ -30,30 +30,37 @@ include::example/javamodule/3-run-compile-deps.adoc[]
 
 include::example/javamodule/4-test-deps.adoc[]
 
+== Classpath and Filesystem Resources
+
+include::example/javamodule/5-resources.adoc[]
+
+== Annotation Processors
+
+include::example/javamodule/6-annotation-processors.adoc[]
 
 == Javadoc Config
 
-include::example/javamodule/6-docjar.adoc[]
+include::example/javamodule/7-docjar.adoc[]
 
 == Unmanaged Jars
 
-include::example/javamodule/7-unmanaged-jars.adoc[]
+include::example/javamodule/8-unmanaged-jars.adoc[]
 
 == Specifying the Main Class
 
-include::example/javamodule/8-main-class.adoc[]
+include::example/javamodule/9-main-class.adoc[]
 
 == Downloading Non-Maven Jars
 
-include::example/javamodule/9-downloading-non-maven-jars.adoc[]
+include::example/javamodule/10-downloading-non-maven-jars.adoc[]
 
 == Customizing the Assembly
 
-include::example/javamodule/10-assembly-config.adoc[]
+include::example/javamodule/11-assembly-config.adoc[]
 
 == Repository Config
 
-include::example/javamodule/11-repository-config.adoc[]
+include::example/javamodule/12-repository-config.adoc[]
 
 === Maven Central: Blocked!
 
@@ -83,8 +90,5 @@ If you are using millw, a more permanent solution could be to set the environmen
 
 == Native C Code with JNI
 
-include::example/javamodule/12-jni.adoc[]
+include::example/javamodule/13-jni.adoc[]
 
-== Annotation Processors with Lombok
-
-include::example/javamodule/13-annotation-processors-lombok.adoc[]
