@@ -14,6 +14,20 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Util {
+    // use methods instead of constants to avoid inlining by compiler
+    public static final int ExitClientCodeCannotReadFromExitCodeFile() {
+        return 1;
+    }
+
+    public static final int ExitServerCodeWhenIdle() {
+        return 0;
+    }
+
+    public static final int ExitServerCodeWhenVersionMismatch() {
+        return 101;
+    }
+
+
     public static boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
     public static boolean isJava9OrAbove = !System.getProperty("java.specification.version").startsWith("1.");
     private static Charset utf8 = Charset.forName("UTF-8");

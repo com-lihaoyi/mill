@@ -6,7 +6,47 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
 
-public class MillEnv {
+public class MillLauncher {
+
+    static int launchMillNoServer(String[] args) throws Exception {
+        boolean setJnaNoSys = System.getProperty("jna.nosys") == null;
+
+        List<String> l = new ArrayList<>();
+        l.addAll(millLaunchJvmCommand(setJnaNoSys));
+        l.add("mill.runner.MillMain");
+        l.addAll(Arrays.asList(args));
+        ProcessBuilder builder = new ProcessBuilder()
+                .command(l)
+                .inheritIO();
+
+        return configureRunMillProcess(builder, "out/mill-client").waitFor();
+    }
+
+    static void launchMillServer(String lockBase, boolean setJnaNoSys) throws Exception {
+        List<String> l = new ArrayList<>();
+        l.addAll(millLaunchJvmCommand(setJnaNoSys));
+        l.add("mill.runner.MillServerMain");
+        l.add(new File(lockBase).getCanonicalPath());
+
+        File stdout = new java.io.File(lockBase + "/stdout");
+        File stderr = new java.io.File(lockBase + "/stderr");
+
+        ProcessBuilder builder = new ProcessBuilder()
+                .command(l)
+                .redirectOutput(stdout)
+                .redirectError(stderr);
+
+        configureRunMillProcess(builder, ServerFiles.sandbox(lockBase));
+    }
+
+    static Process configureRunMillProcess(ProcessBuilder builder,
+                                           String lockBase) throws Exception {
+        builder.environment().put("MILL_WORKSPACE_ROOT", new File("").getCanonicalPath());
+        File sandbox = new java.io.File(ServerFiles.sandbox(lockBase));
+        sandbox.mkdirs();
+        builder.directory(sandbox);
+        return builder.start();
+    }
 
     static File millJvmOptsFile() {
         String millJvmOptsPath = System.getenv("MILL_JVM_OPTS_PATH");

@@ -41,6 +41,7 @@ class MillBuildBootstrap(
     needBuildSc: Boolean,
     requestedMetaLevel: Option[Int]
 ) {
+  pprint.log(projectRoot)
   import MillBuildBootstrap._
 
   val millBootClasspath: Seq[os.Path] = prepareMillBootClasspath(projectRoot / "out")
@@ -79,7 +80,7 @@ class MillBuildBootstrap(
         lazy val state = evaluateRec(depth + 1)
         if (os.exists(recRoot(projectRoot, depth) / "build.sc")) state
         else {
-          val msg = "build.sc file not found. Are you in a Mill project folder?"
+          val msg = s"build.sc file not found in $projectRoot. Are you in a Mill project folder?"
           if (needBuildSc) {
             RunnerState(None, Nil, Some(msg))
           } else {
