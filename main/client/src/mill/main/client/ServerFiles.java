@@ -63,4 +63,18 @@ public class ServerFiles {
     public static String exitCode(String base){
         return base + "/exitCode";
     }
+
+    /**
+     * Where the server's stdout is piped to
+     */
+    public static String stdout(String base){
+        return base + "/stdout";
+    }
+
+    /**
+     * Where the server's stderr is piped to
+     */
+    public static String stderr(String base){
+        return base + "/stderr";
+    }
 }

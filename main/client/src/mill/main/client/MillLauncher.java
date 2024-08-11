@@ -28,8 +28,8 @@ public class MillLauncher {
         l.add("mill.runner.MillServerMain");
         l.add(new File(lockBase).getCanonicalPath());
 
-        File stdout = new java.io.File(lockBase + "/stdout");
-        File stderr = new java.io.File(lockBase + "/stderr");
+        File stdout = new java.io.File(ServerFiles.stdout(lockBase));
+        File stderr = new java.io.File(ServerFiles.stderr(lockBase));
 
         ProcessBuilder builder = new ProcessBuilder()
                 .command(l)

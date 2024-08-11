@@ -15,6 +15,8 @@ import java.nio.file.Paths;
 import java.util.Map;
 
 public class MillServerLauncher {
+    final static int tailerRefreshIntervalMillis = 2;
+    final static int maxLockAttempts = 3;
     public static int runMain(String[] args) throws Exception {
 
         final boolean setJnaNoSys = System.getProperty("jna.nosys") == null;
@@ -25,66 +27,71 @@ public class MillServerLauncher {
         final String versionAndJvmHomeEncoding = Util.sha1Hash(BuildInfo.millVersion + System.getProperty("java.home"));
         final int serverProcessesLimit = getServerProcessesLimit(versionAndJvmHomeEncoding);
 
-        int index = 0;
-        while (index < serverProcessesLimit) {
-            index++;
-            final String lockBase = "out/" + OutFiles.millWorker() + versionAndJvmHomeEncoding + "-" + index;
+        int serverIndex = 0;
+        while (serverIndex < serverProcessesLimit) { // Try each possible server process (-1 to -5)
+            serverIndex++;
+            final String lockBase = "out/" + OutFiles.millWorker() + versionAndJvmHomeEncoding + "-" + serverIndex;
             java.io.File lockBaseFile = new java.io.File(lockBase);
-            final File stdout = new java.io.File(lockBaseFile, "stdout");
-            final File stderr = new java.io.File(lockBaseFile, "stderr");
+            lockBaseFile.mkdirs();
 
-            int attempts = 0;
-            while (attempts < 3) {
-                try {
-                    lockBaseFile.mkdirs();
-
-                    final int refeshIntervalMillis = 2;
-
-                    try (
-                            Locks locks = Locks.files(lockBase);
-                            final FileToStreamTailer stdoutTailer = new FileToStreamTailer(stdout, System.out, refeshIntervalMillis);
-                            final FileToStreamTailer stderrTailer = new FileToStreamTailer(stderr, System.err, refeshIntervalMillis);
-                    ) {
-                        Locked clientLock = locks.clientLock.tryLock();
-                        if (clientLock != null) {
-                            stdoutTailer.start();
-                            stderrTailer.start();
-                            final int exitCode = run(
-                                    lockBase,
-                                    () -> {
-                                        try {
-                                            MillLauncher.launchMillServer(lockBase, setJnaNoSys);
-                                        } catch (Exception e) {
-                                            throw new RuntimeException(e);
-                                        }
-                                    },
-                                    locks,
-                                    System.in,
-                                    System.out,
-                                    System.err,
-                                    args,
-                                    System.getenv());
-
-                            // Here, we ensure we process the tails of the output files before interrupting
-                            // the threads
-                            stdoutTailer.flush();
-                            stderrTailer.flush();
-                            clientLock.release();
+            int lockAttempts = 0;
+            while (lockAttempts < maxLockAttempts) { // Try to lock a particular server
+                try (Locks locks = Locks.files(lockBase)) {
+                    Locked clientLock = locks.clientLock.tryLock();
+                    if (clientLock != null) {
+                        try {
+                            int exitCode = runMillServer(args, lockBase, setJnaNoSys, locks);
                             return exitCode;
+                        }finally{
+                            clientLock.release();
                         }
-                        System.err.println("clientLock is null");
                     }
                 } catch (Exception e) {
-                    System.err.println("Exception " + e);
-                    for (File file : lockBaseFile.listFiles()) {
-                        file.delete();
-                    }
+                    for (File file : lockBaseFile.listFiles()) file.delete();
                 } finally {
-                    attempts++;
+                    lockAttempts++;
                 }
             }
         }
         throw new MillServerCouldNotBeStarted("Reached max server processes limit: " + serverProcessesLimit);
+    }
+
+    static int runMillServer(String[] args,
+                             String lockBase,
+                             boolean setJnaNoSys,
+                             Locks locks) throws Exception {
+        final File stdout = new java.io.File(ServerFiles.stdout(lockBase));
+        final File stderr = new java.io.File(ServerFiles.stderr(lockBase));
+
+        try(
+                final FileToStreamTailer stdoutTailer = new FileToStreamTailer(stdout, System.out, tailerRefreshIntervalMillis);
+                final FileToStreamTailer stderrTailer = new FileToStreamTailer(stderr, System.err, tailerRefreshIntervalMillis);
+        ) {
+            stdoutTailer.start();
+            stderrTailer.start();
+            final int exitCode = run(
+                    lockBase,
+                    () -> {
+                        try {
+                            MillLauncher.launchMillServer(lockBase, setJnaNoSys);
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    },
+                    locks,
+                    System.in,
+                    System.out,
+                    System.err,
+                    args,
+                    System.getenv());
+
+            // Here, we ensure we process the tails of the output files before interrupting
+            // the threads
+            stdoutTailer.flush();
+            stderrTailer.flush();
+
+            return exitCode;
+        }
     }
 
     // 5 processes max
