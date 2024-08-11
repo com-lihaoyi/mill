@@ -19,7 +19,7 @@ public class MillLauncher {
                 .command(l)
                 .inheritIO();
 
-        return configureRunMillProcess(builder, "out/mill-client").waitFor();
+        return configureRunMillProcess(builder, OutFiles.out() + "/" + OutFiles.millNoServer()).waitFor();
     }
 
     static void launchMillServer(String lockBase, boolean setJnaNoSys) throws Exception {

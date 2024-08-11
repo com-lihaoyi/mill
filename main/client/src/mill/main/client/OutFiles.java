@@ -6,6 +6,13 @@ package mill.main.client;
  */
 public class OutFiles {
     /**
+     * Path of the Mill `out/` folder
+     */
+    public static String out(){
+        return "out";
+    }
+
+    /**
      * Path of the Mill "meta-build", used to compile the `build.sc` file so we can
      * run the primary Mill build. Can be nested for multiple stages of bootstrapping
      */
@@ -46,5 +53,12 @@ public class OutFiles {
      */
     public static String millWorker(){
         return "mill-worker-";
+    }
+
+    /**
+     * Subfolder of `out/` used to contain the Mill subprocess when run in no-server mode
+     */
+    public static String millNoServer(){
+        return "mill-no-server";
     }
 }

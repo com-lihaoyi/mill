@@ -44,7 +44,7 @@ class MillBuildBootstrap(
   pprint.log(projectRoot)
   import MillBuildBootstrap._
 
-  val millBootClasspath: Seq[os.Path] = prepareMillBootClasspath(projectRoot / "out")
+  val millBootClasspath: Seq[os.Path] = prepareMillBootClasspath(projectRoot / OutFiles.out())
   val millBootClasspathPathRefs: Seq[PathRef] = millBootClasspath.map(PathRef(_, quick = true))
 
   def evaluate(): Watching.Result[RunnerState] = CliImports.withValue(imports) {
@@ -346,7 +346,7 @@ class MillBuildBootstrap(
 
     val bootLogPrefix =
       if (depth == 0) ""
-      else "[" + (Seq.fill(depth - 1)("mill-build") ++ Seq("build.sc")).mkString("/") + "] "
+      else "[" + (Seq.fill(depth - 1)(OutFiles.millBuild()) ++ Seq("build.sc")).mkString("/") + "] "
 
     mill.eval.EvaluatorImpl(
       home,
@@ -486,11 +486,11 @@ object MillBuildBootstrap {
   }
 
   def recRoot(projectRoot: os.Path, depth: Int): os.Path = {
-    projectRoot / Seq.fill(depth)("mill-build")
+    projectRoot / Seq.fill(depth)(OutFiles.millBuild())
   }
 
   def recOut(projectRoot: os.Path, depth: Int): os.Path = {
-    projectRoot / "out" / Seq.fill(depth)("mill-build")
+    projectRoot / OutFiles.out() / Seq.fill(depth)(OutFiles.millBuild())
   }
 
 }

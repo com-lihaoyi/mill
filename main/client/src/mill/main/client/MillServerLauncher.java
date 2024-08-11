@@ -31,7 +31,7 @@ public class MillServerLauncher {
         int serverIndex = 0;
         while (serverIndex < serverProcessesLimit) { // Try each possible server process (-1 to -5)
             serverIndex++;
-            final String lockBase = "out/" + OutFiles.millWorker() + versionAndJvmHomeEncoding + "-" + serverIndex;
+            final String lockBase = OutFiles.out() + "/" + OutFiles.millWorker() + versionAndJvmHomeEncoding + "-" + serverIndex;
             java.io.File lockBaseFile = new java.io.File(lockBase);
             lockBaseFile.mkdirs();
 
@@ -94,7 +94,7 @@ public class MillServerLauncher {
 
     // 5 processes max
     private static int getServerProcessesLimit(String jvmHomeEncoding) {
-        File outFolder = new File("out");
+        File outFolder = new File(OutFiles.out());
         String[] totalProcesses = outFolder.list((dir, name) -> name.startsWith(OutFiles.millWorker()));
         String[] thisJdkProcesses = outFolder.list((dir, name) -> name.startsWith(OutFiles.millWorker() + jvmHomeEncoding));
 
