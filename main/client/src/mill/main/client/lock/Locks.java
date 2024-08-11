@@ -1,5 +1,7 @@
 package mill.main.client.lock;
 
+import mill.main.client.ServerFiles;
+
 public class Locks implements AutoCloseable {
 
     public Lock processLock;
@@ -8,9 +10,9 @@ public class Locks implements AutoCloseable {
 
     public static Locks files(String lockBase) throws Exception {
         return new Locks(){{
-            processLock = new FileLock(lockBase + "/pid");
-            serverLock = new FileLock(lockBase + "/serverLock");
-            clientLock = new FileLock(lockBase + "/clientLock");
+            processLock = new FileLock(ServerFiles.processLock(lockBase));
+            serverLock = new FileLock(ServerFiles.serverLock(lockBase));
+            clientLock = new FileLock(ServerFiles.clientLock(lockBase));
         }};
     }
 
