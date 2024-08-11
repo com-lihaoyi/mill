@@ -227,7 +227,6 @@ class Server[T](
 }
 
 object Server {
-  val uniqueServerId: Long = scala.util.Random.nextLong()
 
   def lockBlock[T](lock: Lock)(t: => T): T = {
     val l = lock.lock()
