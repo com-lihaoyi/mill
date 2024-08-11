@@ -1,5 +1,6 @@
 package mill.main.client;
 
+import com.sun.security.ntlm.Server;
 import mill.main.client.lock.Locked;
 import mill.main.client.lock.Locks;
 import org.newsclub.net.unix.AFUNIXSocket;
@@ -112,7 +113,7 @@ public class MillClientMain {
         int index = 0;
         while (index < serverProcessesLimit) {
             index++;
-            final String lockBase = "out/mill-worker-" + versionAndJvmHomeEncoding + "-" + index;
+            final String lockBase = "out/" + OutFiles.millWorker() + versionAndJvmHomeEncoding + "-" + index;
             java.io.File lockBaseFile = new java.io.File(lockBase);
             final File stdout = new java.io.File(lockBaseFile, "stdout");
             final File stderr = new java.io.File(lockBaseFile, "stderr");
@@ -185,7 +186,7 @@ public class MillClientMain {
         String[] args,
         Map<String, String> env) throws Exception {
 
-        try (FileOutputStream f = new FileOutputStream(lockBase + "/run")) {
+        try (FileOutputStream f = new FileOutputStream(ServerFiles.runArgs(lockBase))) {
             f.write(System.console() != null ? 1 : 0);
             Util.writeString(f, BuildInfo.millVersion);
             Util.writeArgs(args, f);
@@ -199,7 +200,7 @@ public class MillClientMain {
         }
         while (locks.processLock.probe()) Thread.sleep(3);
 
-        String socketName = lockBase + "/mill-" + Util.md5hex(new File(lockBase).getCanonicalPath()) + "-io";
+        String socketName = ServerFiles.pipe(lockBase);
         AFUNIXSocketAddress addr = AFUNIXSocketAddress.of(new File(socketName));
 
         long retryStart = System.currentTimeMillis();
@@ -241,7 +242,7 @@ public class MillClientMain {
         outPump.getLastData().waitForSilence(50);
 
         try {
-            return Integer.parseInt(Files.readAllLines(Paths.get(lockBase + "/exitCode")).get(0));
+            return Integer.parseInt(Files.readAllLines(Paths.get(ServerFiles.exitCode(lockBase))).get(0));
         } catch (Throwable e) {
             return ExitClientCodeCannotReadFromExitCodeFile();
         } finally {
@@ -252,8 +253,8 @@ public class MillClientMain {
     // 5 processes max
     private static int getServerProcessesLimit(String jvmHomeEncoding) {
         File outFolder = new File("out");
-        String[] totalProcesses = outFolder.list((dir, name) -> name.startsWith("mill-worker-"));
-        String[] thisJdkProcesses = outFolder.list((dir, name) -> name.startsWith("mill-worker-" + jvmHomeEncoding));
+        String[] totalProcesses = outFolder.list((dir, name) -> name.startsWith(OutFiles.millWorker()));
+        String[] thisJdkProcesses = outFolder.list((dir, name) -> name.startsWith(OutFiles.millWorker() + jvmHomeEncoding));
 
         int processLimit = 5;
         if (totalProcesses != null) {

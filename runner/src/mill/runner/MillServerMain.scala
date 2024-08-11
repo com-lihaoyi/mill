@@ -13,6 +13,7 @@ import mill.api.internal
 import mill.main.client.lock.{Lock, Locks}
 import mill.api.SystemStreams
 
+import java.nio.file.StandardOpenOption
 import scala.util.Try
 
 @internal
@@ -94,17 +95,32 @@ class Server[T](
     locks: Locks
 ) {
 
-  val originalStdout = System.out
+  val serverLog0 = new OutputStreamWriter(
+    os.write.outputStream(
+      os.Path(ServerFiles.serverLog(lockBase)),
+      openOptions = Seq(StandardOpenOption.APPEND)
+    )
+  )
+
+  def serverLog(s: String) = {
+    serverLog0.write(s + "\n")
+    serverLog0.flush()
+  }
+
   def run(): Unit = {
     val initialSystemProperties = sys.props.toMap
     Server.tryLockBlock(locks.processLock) {
+      serverLog("taken process lock")
       var running = true
       while (running) {
         Server.lockBlock(locks.serverLock) {
-          val socketName =
-            lockBase + "/mill-" + Util.md5hex(new File(lockBase).getCanonicalPath()) + "-io"
+          serverLog("taken server lock")
+
+          val socketName = ServerFiles.pipe(lockBase)
+
           new File(socketName).delete()
           val addr = AFUNIXSocketAddress.of(new File(socketName))
+          serverLog("bound socket")
           val serverSocket = AFUNIXServerSocket.bindOn(addr)
           val socketClose = () => serverSocket.close()
 
@@ -116,12 +132,17 @@ class Server[T](
           )
 
           sockOpt match {
-            case None => running = false
+            case None =>
+              serverLog("socket none")
+              running = false
             case Some(sock) =>
               try {
+                serverLog("handling run")
                 handleRun(sock, initialSystemProperties)
                 serverSocket.close()
-              } catch { case e: Throwable => e.printStackTrace(originalStdout) }
+              } catch { case e: Throwable =>
+                serverLog(e.toString + "\n" + e.getStackTrace.mkString("\n"))
+              }
           }
         }
         // Make sure you give an opportunity for the client to probe the lock
@@ -152,7 +173,7 @@ class Server[T](
     // that relies on that method
     val proxiedSocketInput = proxyInputStreamThroughPumper(clientSocket.getInputStream)
 
-    val argStream = new FileInputStream(lockBase + "/run")
+    val argStream = new FileInputStream(ServerFiles.runArgs(lockBase))
     val interactive = argStream.read() != 0
     val clientMillVersion = Util.readString(argStream)
     val serverMillVersion = BuildInfo.millVersion
@@ -161,7 +182,7 @@ class Server[T](
         s"Mill version changed ($serverMillVersion -> $clientMillVersion), re-starting server"
       )
       java.nio.file.Files.write(
-        java.nio.file.Paths.get(lockBase + "/exitCode"),
+        java.nio.file.Paths.get(ServerFiles.exitCode(lockBase)),
         s"${MillClientMain.ExitServerCodeWhenVersionMismatch()}".getBytes()
       )
       System.exit(MillClientMain.ExitServerCodeWhenVersionMismatch())
@@ -226,6 +247,7 @@ class Server[T](
 }
 
 object Server {
+  val uniqueServerId = scala.util.Random.nextLong()
 
   def lockBlock[T](lock: Lock)(t: => T): T = {
     val l = lock.lock()
