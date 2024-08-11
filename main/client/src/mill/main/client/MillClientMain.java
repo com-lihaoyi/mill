@@ -51,6 +51,7 @@ public class MillClientMain {
 
         new ProcessBuilder()
             .command(l)
+            .directory(new java.io.File(ServerFiles.sandbox(lockBase)))
             .redirectOutput(stdout)
             .redirectError(stderr)
             .start();

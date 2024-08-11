@@ -72,6 +72,7 @@ class IsolatedMillMainLoader {
 
         Process running = new ProcessBuilder()
             .command(l)
+            .directory(new java.io.File(ServerFiles.sandbox("out/mill-client")))
             .inheritIO()
             .start();
         return running.waitFor();

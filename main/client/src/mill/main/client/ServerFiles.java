@@ -5,6 +5,9 @@ package mill.main.client;
  * and documentation about what they do
  */
 public class ServerFiles {
+    public static String sandbox(String base){
+        return base + "/sandbox";
+    }
 
     /**
      * Lock file used to ensure a single server is running in a particular
