@@ -4,7 +4,7 @@ public abstract class Lock implements AutoCloseable {
 
     public abstract Locked lock() throws Exception;
 
-    public abstract Locked tryLock() throws Exception;
+    public abstract TryLocked tryLock() throws Exception;
 
     public void await() throws Exception {
         lock().release();

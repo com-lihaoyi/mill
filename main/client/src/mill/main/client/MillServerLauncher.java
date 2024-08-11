@@ -2,6 +2,7 @@ package mill.main.client;
 
 import mill.main.client.lock.Locked;
 import mill.main.client.lock.Locks;
+import mill.main.client.lock.TryLocked;
 import org.newsclub.net.unix.AFUNIXSocket;
 import org.newsclub.net.unix.AFUNIXSocketAddress;
 
@@ -36,15 +37,12 @@ public class MillServerLauncher {
 
             int lockAttempts = 0;
             while (lockAttempts < maxLockAttempts) { // Try to lock a particular server
-                try (Locks locks = Locks.files(lockBase)) {
-                    Locked clientLock = locks.clientLock.tryLock();
+                try (
+                        Locks locks = Locks.files(lockBase);
+                        TryLocked clientLock = locks.clientLock.tryLock()
+                ) {
                     if (clientLock != null) {
-                        try {
-                            int exitCode = runMillServer(args, lockBase, setJnaNoSys, locks);
-                            return exitCode;
-                        }finally{
-                            clientLock.release();
-                        }
+                        return runMillServer(args, lockBase, setJnaNoSys, locks);
                     }
                 } catch (Exception e) {
                     for (File file : lockBaseFile.listFiles()) file.delete();
