@@ -1,6 +1,5 @@
 package mill.main.client;
 
-import com.sun.security.ntlm.Server;
 import mill.main.client.lock.Locked;
 import mill.main.client.lock.Locks;
 import org.newsclub.net.unix.AFUNIXSocket;
