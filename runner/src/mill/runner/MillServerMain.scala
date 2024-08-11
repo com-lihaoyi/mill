@@ -102,7 +102,7 @@ class Server[T](
     )
   )
 
-  def serverLog(s: String) = {
+  def serverLog(s: String): Unit = {
     serverLog0.write(s + "\n")
     serverLog0.flush()
   }
@@ -140,8 +140,9 @@ class Server[T](
                 serverLog("handling run")
                 handleRun(sock, initialSystemProperties)
                 serverSocket.close()
-              } catch { case e: Throwable =>
-                serverLog(e.toString + "\n" + e.getStackTrace.mkString("\n"))
+              } catch {
+                case e: Throwable =>
+                  serverLog(e.toString + "\n" + e.getStackTrace.mkString("\n"))
               }
           }
         }
@@ -247,7 +248,7 @@ class Server[T](
 }
 
 object Server {
-  val uniqueServerId = scala.util.Random.nextLong()
+  val uniqueServerId: Long = scala.util.Random.nextLong()
 
   def lockBlock[T](lock: Lock)(t: => T): T = {
     val l = lock.lock()
