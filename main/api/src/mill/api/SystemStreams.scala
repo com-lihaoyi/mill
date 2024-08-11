@@ -52,14 +52,14 @@ object SystemStreams {
   private class PumpedProcessInput extends os.ProcessInput {
     def redirectFrom = ProcessBuilder.Redirect.PIPE
     def processInput(processIn: => os.SubProcess.InputStream): Some[InputPumper] = Some(
-      new InputPumper(() => System.in, () => processIn, true, () => true)
+      new InputPumper(() => System.in, () => processIn.wrapped, true, () => true)
     )
   }
 
   private class PumpedProcessOutput(dest: OutputStream) extends os.ProcessOutput {
     def redirectTo = ProcessBuilder.Redirect.PIPE
     def processOutput(processOut: => os.SubProcess.OutputStream): Some[InputPumper] =
-      Some(new InputPumper(() => processOut, () => dest, false, () => true))
+      Some(new InputPumper(() => processOut.wrapped, () => dest, false, () => true))
   }
   def withStreams[T](systemStreams: SystemStreams)(t: => T): T = {
     val in = System.in
