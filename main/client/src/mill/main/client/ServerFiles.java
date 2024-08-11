@@ -5,25 +5,20 @@ package mill.main.client;
  * and documentation about what they do
  */
 public class ServerFiles {
-    public static String sandbox(String base){
-        return base + "/sandbox";
-    }
+    final public static String sandbox = "sandbox";
 
     /**
      * Lock file used to ensure a single server is running in a particular
      * mill-worker folder.
      */
-    public static String processLock(String base){
-        return base + "/processLock";
-    }
+    final public static String processLock = "processLock";
 
-    public static String clientLock(String base){
-        return base + "/clientLock";
-    }
 
-    public static String serverLock(String base){
-        return base + "/serverLock";
-    }
+    final public static String clientLock = "clientLock";
+
+
+    final public static String serverLock = "serverLock";
+
 
 
     /**
@@ -44,37 +39,31 @@ public class ServerFiles {
     /**
      * Log file containing server housekeeping information
      */
-    public static String serverLog(String base){
-        return base + "/server.log";
-    }
+    final public static String serverLog = "server.log";
+
 
     /**
      * File that the client writes to pass the arguments, environment variables,
      * and other necessary metadata to the Mill server to kick off a run
      */
-    public static String runArgs(String base){
-        return base + "/runArgs";
-    }
+    final public static String runArgs = "runArgs";
+
 
     /**
      * File the server writes to pass the exit code of a completed run back to the
      * client
      */
-    public static String exitCode(String base){
-        return base + "/exitCode";
-    }
+    final public static String exitCode = "exitCode";
+
 
     /**
      * Where the server's stdout is piped to
      */
-    public static String stdout(String base){
-        return base + "/stdout";
-    }
+    final public static String stdout = "stdout";
+
 
     /**
      * Where the server's stderr is piped to
      */
-    public static String stderr(String base){
-        return base + "/stderr";
-    }
+    final public static String stderr = "stderr";
 }

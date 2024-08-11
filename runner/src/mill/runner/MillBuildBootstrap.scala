@@ -7,7 +7,7 @@ import mill.eval.Evaluator
 import mill.main.RunScript
 import mill.resolve.SelectMode
 import mill.define.{BaseModule, Discover, Segments}
-import mill.main.client.OutFiles
+import mill.main.client.OutFiles._
 
 import java.net.URLClassLoader
 
@@ -44,7 +44,7 @@ class MillBuildBootstrap(
   pprint.log(projectRoot)
   import MillBuildBootstrap._
 
-  val millBootClasspath: Seq[os.Path] = prepareMillBootClasspath(projectRoot / OutFiles.out())
+  val millBootClasspath: Seq[os.Path] = prepareMillBootClasspath(projectRoot / out)
   val millBootClasspathPathRefs: Seq[PathRef] = millBootClasspath.map(PathRef(_, quick = true))
 
   def evaluate(): Watching.Result[RunnerState] = CliImports.withValue(imports) {
@@ -52,7 +52,7 @@ class MillBuildBootstrap(
 
     for ((frame, depth) <- runnerState.frames.zipWithIndex) {
       os.write.over(
-        recOut(projectRoot, depth) / OutFiles.millRunnerState(),
+        recOut(projectRoot, depth) / millRunnerState,
         upickle.default.write(frame.loggedData, indent = 4),
         createFolders = true
       )
@@ -346,7 +346,7 @@ class MillBuildBootstrap(
 
     val bootLogPrefix =
       if (depth == 0) ""
-      else "[" + (Seq.fill(depth - 1)(OutFiles.millBuild()) ++ Seq("build.sc")).mkString("/") + "] "
+      else "[" + (Seq.fill(depth - 1)(millBuild) ++ Seq("build.sc")).mkString("/") + "] "
 
     mill.eval.EvaluatorImpl(
       home,
@@ -486,11 +486,11 @@ object MillBuildBootstrap {
   }
 
   def recRoot(projectRoot: os.Path, depth: Int): os.Path = {
-    projectRoot / Seq.fill(depth)(OutFiles.millBuild())
+    projectRoot / Seq.fill(depth)(millBuild)
   }
 
   def recOut(projectRoot: os.Path, depth: Int): os.Path = {
-    projectRoot / OutFiles.out() / Seq.fill(depth)(OutFiles.millBuild())
+    projectRoot / out / Seq.fill(depth)(millBuild)
   }
 
 }

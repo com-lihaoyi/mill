@@ -1,8 +1,9 @@
 package mill.main.client;
 
-import mill.main.client.lock.Locked;
 import mill.main.client.lock.Locks;
 import mill.main.client.lock.TryLocked;
+import static mill.main.client.OutFiles.*;
+
 import org.newsclub.net.unix.AFUNIXSocket;
 import org.newsclub.net.unix.AFUNIXSocketAddress;
 
@@ -31,7 +32,7 @@ public class MillServerLauncher {
         int serverIndex = 0;
         while (serverIndex < serverProcessesLimit) { // Try each possible server process (-1 to -5)
             serverIndex++;
-            final String lockBase = OutFiles.out() + "/" + OutFiles.millWorker() + versionAndJvmHomeEncoding + "-" + serverIndex;
+            final String lockBase = out + "/" + millWorker + versionAndJvmHomeEncoding + "-" + serverIndex;
             java.io.File lockBaseFile = new java.io.File(lockBase);
             lockBaseFile.mkdirs();
 
@@ -58,8 +59,8 @@ public class MillServerLauncher {
                              String lockBase,
                              boolean setJnaNoSys,
                              Locks locks) throws Exception {
-        final File stdout = new java.io.File(ServerFiles.stdout(lockBase));
-        final File stderr = new java.io.File(ServerFiles.stderr(lockBase));
+        final File stdout = new java.io.File(lockBase + "/" + ServerFiles.stdout);
+        final File stderr = new java.io.File(lockBase + "/" + ServerFiles.stderr);
 
         try(
                 final FileToStreamTailer stdoutTailer = new FileToStreamTailer(stdout, System.out, tailerRefreshIntervalMillis);
@@ -94,9 +95,9 @@ public class MillServerLauncher {
 
     // 5 processes max
     private static int getServerProcessesLimit(String jvmHomeEncoding) {
-        File outFolder = new File(OutFiles.out());
-        String[] totalProcesses = outFolder.list((dir, name) -> name.startsWith(OutFiles.millWorker()));
-        String[] thisJdkProcesses = outFolder.list((dir, name) -> name.startsWith(OutFiles.millWorker() + jvmHomeEncoding));
+        File outFolder = new File(out);
+        String[] totalProcesses = outFolder.list((dir, name) -> name.startsWith(millWorker));
+        String[] thisJdkProcesses = outFolder.list((dir, name) -> name.startsWith(millWorker + jvmHomeEncoding));
 
         int processLimit = 5;
 
@@ -118,7 +119,7 @@ public class MillServerLauncher {
             String[] args,
             Map<String, String> env) throws Exception {
 
-        try (FileOutputStream f = new FileOutputStream(ServerFiles.runArgs(lockBase))) {
+        try (FileOutputStream f = new FileOutputStream(lockBase + "/" + ServerFiles.runArgs)) {
             f.write(System.console() != null ? 1 : 0);
             Util.writeString(f, BuildInfo.millVersion);
             Util.writeArgs(args, f);
@@ -175,7 +176,7 @@ public class MillServerLauncher {
         outPump.getLastData().waitForSilence(50);
 
         try {
-            return Integer.parseInt(Files.readAllLines(Paths.get(ServerFiles.exitCode(lockBase))).get(0));
+            return Integer.parseInt(Files.readAllLines(Paths.get(lockBase + "/" + ServerFiles.exitCode)).get(0));
         } catch (Throwable e) {
             return Util.ExitClientCodeCannotReadFromExitCodeFile();
         } finally {

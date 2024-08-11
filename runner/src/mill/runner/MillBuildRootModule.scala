@@ -10,7 +10,7 @@ import mill.util.Util.millProjectModule
 import mill.scalalib.api.Versions
 import pprint.Util.literalize
 import FileImportGraph.backtickWrap
-import mill.main.client.OutFiles
+import mill.main.client.OutFiles._
 import mill.main.{BuildInfo, RootModule}
 
 import scala.collection.immutable.SortedMap
@@ -39,7 +39,7 @@ class MillBuildRootModule()(implicit
     .++(super.bspDisplayName0.split("/"))
     .mkString("/")
 
-  override def millSourcePath: os.Path = millBuildRootModuleInfo.projectRoot / os.up / OutFiles.millBuild()
+  override def millSourcePath: os.Path = millBuildRootModuleInfo.projectRoot / os.up / millBuild
   override def intellijModulePath: os.Path = millSourcePath / os.up
 
   override def scalaVersion: T[String] = BuildInfo.scalaVersion

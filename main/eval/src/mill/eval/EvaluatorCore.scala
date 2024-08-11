@@ -5,7 +5,7 @@ import mill.api.Strict.Agg
 import mill.api._
 import mill.define._
 import mill.eval.Evaluator.TaskResult
-import mill.main.client.OutFiles
+import mill.main.client.OutFiles._
 import mill.util._
 
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
@@ -70,8 +70,8 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       contextLoggerMsg0: Int => String
   ): Evaluator.Results = {
     os.makeDir.all(outPath)
-    val chromeProfileLogger = new ChromeProfileLogger(outPath / OutFiles.millChromeProfile())
-    val profileLogger = new ProfileLogger(outPath / OutFiles.millProfile())
+    val chromeProfileLogger = new ChromeProfileLogger(outPath / millChromeProfile)
+    val profileLogger = new ProfileLogger(outPath / millProfile)
     val threadNumberer = new ThreadNumberer()
     val (sortedGroups, transitive) = Plan.plan(goals)
     val interGroupDeps = findInterGroupDeps(sortedGroups)

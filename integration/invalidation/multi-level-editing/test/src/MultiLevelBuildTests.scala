@@ -1,6 +1,6 @@
 package mill.integration
 
-import mill.main.client.OutFiles
+import mill.main.client.OutFiles._
 import mill.runner.RunnerState
 import utest._
 
@@ -49,7 +49,7 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
       for (depth <- Range(0, n))
         yield {
           val path =
-            wsRoot / "out" / Seq.fill(depth)(OutFiles.millBuild()) / OutFiles.millRunnerState()
+            wsRoot / "out" / Seq.fill(depth)(millBuild) / millRunnerState
           if (os.exists(path)) upickle.default.read[RunnerState.Frame.Logged](os.read(path)) -> path
           else RunnerState.Frame.Logged(Map(), Seq(), Seq(), Map(), None, Seq(), 0) -> path
         }

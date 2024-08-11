@@ -10,9 +10,9 @@ public class Locks implements AutoCloseable {
 
     public static Locks files(String lockBase) throws Exception {
         return new Locks(){{
-            processLock = new FileLock(ServerFiles.processLock(lockBase));
-            serverLock = new FileLock(ServerFiles.serverLock(lockBase));
-            clientLock = new FileLock(ServerFiles.clientLock(lockBase));
+            processLock = new FileLock(lockBase + "/" + ServerFiles.processLock);
+            serverLock = new FileLock(lockBase + "/" + ServerFiles.serverLock);
+            clientLock = new FileLock(lockBase + "/" + ServerFiles.clientLock);
         }};
     }
 

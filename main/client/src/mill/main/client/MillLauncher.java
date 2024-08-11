@@ -1,5 +1,6 @@
 package mill.main.client;
 
+import static mill.main.client.OutFiles.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -19,7 +20,7 @@ public class MillLauncher {
                 .command(l)
                 .inheritIO();
 
-        return configureRunMillProcess(builder, OutFiles.out() + "/" + OutFiles.millNoServer()).waitFor();
+        return configureRunMillProcess(builder, out + "/" + millNoServer).waitFor();
     }
 
     static void launchMillServer(String lockBase, boolean setJnaNoSys) throws Exception {
@@ -28,21 +29,21 @@ public class MillLauncher {
         l.add("mill.runner.MillServerMain");
         l.add(new File(lockBase).getCanonicalPath());
 
-        File stdout = new java.io.File(ServerFiles.stdout(lockBase));
-        File stderr = new java.io.File(ServerFiles.stderr(lockBase));
+        File stdout = new java.io.File(lockBase + "/" + ServerFiles.stdout);
+        File stderr = new java.io.File(lockBase + "/" + ServerFiles.stderr);
 
         ProcessBuilder builder = new ProcessBuilder()
                 .command(l)
                 .redirectOutput(stdout)
                 .redirectError(stderr);
 
-        configureRunMillProcess(builder, ServerFiles.sandbox(lockBase));
+        configureRunMillProcess(builder, lockBase + "/" + ServerFiles.sandbox);
     }
 
     static Process configureRunMillProcess(ProcessBuilder builder,
                                            String lockBase) throws Exception {
         builder.environment().put("MILL_WORKSPACE_ROOT", new File("").getCanonicalPath());
-        File sandbox = new java.io.File(ServerFiles.sandbox(lockBase));
+        File sandbox = new java.io.File(lockBase + "/" + ServerFiles.sandbox);
         sandbox.mkdirs();
         builder.directory(sandbox);
         return builder.start();

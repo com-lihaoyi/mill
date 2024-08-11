@@ -1,7 +1,7 @@
 package mill.runner
 
 import mill.api.internal
-import mill.main.client.OutFiles
+import mill.main.client.OutFiles._
 
 import scala.reflect.NameTransformer.encode
 import scala.collection.mutable
@@ -135,8 +135,8 @@ object FileImportGraph {
         projectRoot,
         followLinks = true,
         skip = p =>
-          p == projectRoot / OutFiles.out() ||
-            p == projectRoot / OutFiles.millBuild() ||
+          p == projectRoot / out ||
+            p == projectRoot / millBuild ||
             (os.isDir(p) && !os.exists(p / "module.sc"))
       )
       .filter(_.last == "module.sc")
