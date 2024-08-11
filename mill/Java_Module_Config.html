@@ -4,7 +4,6 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Java Module Configuration :: Mill</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.11.11/Java_Module_Config.html" />
     <link rel="prev" href="Java_Build_Examples.html" />
     <link rel="next" href="Java_Web_Build_Examples.html" />
     <meta name="generator" content="Antora 3.1.9" />
@@ -304,35 +303,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.0-M0-9-fc35b1</span>
+    <span class="version">0.12.0-M0-10-1cc6f9</span>
   </div>
   <ul class="components">
     <li class="component is-current">
-      <div class="title"><a href="0.11.11/index.html">Mill Documentation</a></div>
+      <div class="title"><a href="index.html">Mill Documentation</a></div>
       <ul class="versions">
-        <li class="version is-current">
-          <a href="index.html">0.12.0-M0-9-fc35b1</a>
-        </li>
-        <li class="version is-latest">
-          <a href="0.11.11/index.html">0.11.11</a>
-        </li>
-        <li class="version">
-          <a href="0.11.10/index.html">0.11.10</a>
-        </li>
-        <li class="version">
-          <a href="0.11.0-M7/index.html">0.11.0-M7</a>
-        </li>
-        <li class="version">
-          <a href="0.10.15/index.html">0.10.15</a>
-        </li>
-        <li class="version">
-          <a href="0.10.12/index.html">0.10.12</a>
-        </li>
-        <li class="version">
-          <a href="0.10.0/index.html">0.10.0</a>
-        </li>
-        <li class="version">
-          <a href="0.9.12/index.html">0.9.12</a>
+        <li class="version is-current is-latest">
+          <a href="index.html">0.12.0-M0-10-1cc6f9</a>
         </li>
       </ul>
     </li>
@@ -344,7 +322,7 @@
 <main class="article">
 <div class="toolbar" role="navigation">
 <button class="nav-toggle"></button>
-  <a href="0.11.11/Java_Intro_to_Mill.html" class="home-link"></a>
+  <a href="Java_Intro_to_Mill.html" class="home-link"></a>
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="index.html">Mill Documentation</a></li>
@@ -352,19 +330,6 @@
     <li><a href="Java_Module_Config.html">Java Module Configuration</a></li>
   </ul>
 </nav>
-<div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-9-fc35b1</button>
-  <div class="version-menu">
-    <a class="version is-current" href="Java_Module_Config.html">0.12.0-M0-9-fc35b1</a>
-    <a class="version" href="0.11.11/Java_Module_Config.html">0.11.11</a>
-    <a class="version" href="0.11.10/Java_Module_Config.html">0.11.10</a>
-    <a class="version is-missing" href="0.11.0-M7/index.html">0.11.0-M7</a>
-    <a class="version is-missing" href="0.10.15/index.html">0.10.15</a>
-    <a class="version is-missing" href="0.10.12/index.html">0.10.12</a>
-    <a class="version is-missing" href="0.10.0/index.html">0.10.0</a>
-    <a class="version is-missing" href="0.9.12/index.html">0.9.12</a>
-  </div>
-</div>
 <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/Java_Module_Config.adoc">Edit this Page</a></div>
 </div>
   <div class="content">
@@ -602,10 +567,156 @@ Using BazTestUtils.bazAssertEquals
 </div>
 </div>
 <div class="sect1">
+<h2 id="_classpath_and_filesystem_resources"><a class="anchor" href="#_classpath_and_filesystem_resources"></a>Classpath and Filesystem Resources</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javamodule-5-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/javamodule/5-resources">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
+
+object foo extends JavaModule {
+  object test extends JavaTests with TestModule.Junit4 {
+    def otherFiles = T.source(millSourcePath / &quot;other-files&quot;)
+
+    def forkEnv = super.forkEnv() ++ Map(
+      &quot;OTHER_FILES_FOLDER&quot; -&gt; otherFiles().path.toString
+    )
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.test
+... foo.FooTests.simple ...
+...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This section discusses how tests can depend on resources locally on disk.
+Mill provides two ways to do this: via the JVM classpath resources, and via
+the resource folder which is made available as the environment variable
+<code>TEST_MILL_RESOURCE_FOLDER</code>;</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The <strong>classpath resources</strong> are useful when you want to fetch individual files,
+and are bundled with the application by the <code>.assembly</code> step when constructing
+an assembly jar for deployment. But they do not allow you to list folders
+or perform other filesystem operations.</p>
+</li>
+<li>
+<p>The <strong>resource folder</strong>, available via <code>TEST_MILL_RESOURCE_FOLDER</code>, gives you
+access to the folder path of the resources on disk. This is useful in allowing
+you to list and otherwise manipulate the filesystem, which you cannot do with
+<strong>classpath resources</strong>. However, the <code>TEST_MILL_RESOURCE_FOLDER</code> only exists
+when running tests using Mill, and is not available when executing applications
+packaged for deployment via <code>.assembly</code></p>
+</li>
+<li>
+<p>Apart from <code>resources/</code>, you can provide additional folders to your test suite
+by defining a <code>T.source</code> (<code>otherFiles</code> above) and passing it to <code>forkEnv</code>. This
+provide the folder path as an environment variable that the test can make use of</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>You can click the <strong>browse</strong> button in the above example to see an example of code
+the uses these three approaches to load files as part of a test module.</p>
+</div>
+<div class="paragraph">
+<p>Note that tests require that you pass in any files that they depend on explicitly.
+This is necessary so that Mill knows when a test needs to be re-run and when a
+previous result can be cached. This also ensures that tests reading and writing
+to the current working directory do not accidentally interfere with each others
+files, especially when running in parallel.</p>
+</div>
+<div class="paragraph">
+<p>The test process runs in a <code>sandbox/</code> folder, not in your project root folder, to
+prevent you from accidentally accessing files without explicitly passing them. If
+you have legacy tests that need to run in the project root folder to work, you
+can configure your test suite with <code>def testSandboxWorkingDir = false</code> to disable
+the sandbox and make the tests run in the project root.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_annotation_processors"><a class="anchor" href="#_annotation_processors"></a>Annotation Processors</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javamodule-6-annotation-processors.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/javamodule/6-annotation-processors">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
+
+
+object foo extends JavaModule {
+  def compileIvyDeps = Agg(ivy&quot;org.projectlombok:lombok:1.18.34&quot;)
+
+  object test extends JavaTests with TestModule.Junit4
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is an example of how to use Mill to build Java projects using Java annotations and
+annotation processors. In this case, we use the annotations provided by
+<a href="https://projectlombok.org">Project Lombok</a> to automatically generate getters and setters
+from class private fields</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.test
+Test foo.HelloWorldTest.testSimple started
+Test foo.HelloWorldTest.testSimple finished...
+...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The Java compiler automatically discovers annotation processors based on the
+classes available during compilation, e.g. on <code>compileIvyDeps</code> or <code>ivyDeps</code>,
+which is what takes place in the example above.</p>
+</div>
+<div class="paragraph">
+<p>In some cases, you may need
+to pass in the annotation processors manually, e.g. if you need annotation
+processors that are not on the compilation classpath, or you need finer control
+over exactly which annotation processors are active. To do this, you can define
+a module to contain the exact annotation processors you want, and pass
+in <code>-processorpath</code> to <code>javacOptions</code> explicitly:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bar extends JavaModule {
+  def compileIvyDeps = Agg(ivy&quot;org.projectlombok:lombok:1.18.34&quot;)
+
+  def processors = T{
+    defaultResolver().resolveDeps(Agg(ivy&quot;org.projectlombok:lombok:1.18.34&quot;))
+  }
+
+  def javacOptions = Seq(
+    &quot;-processorpath&quot;,
+    processors().map(_.path).mkString(&quot;:&quot;),
+  )
+
+  object test extends JavaTests with TestModule.Junit4
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill bar.test
+Test bar.HelloWorldTest.testSimple started
+Test bar.HelloWorldTest.testSimple finished...
+...</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_javadoc_config"><a class="anchor" href="#_javadoc_config"></a>Javadoc Config</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javamodule-6-docjar.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/javamodule/6-docjar">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javamodule-7-docjar.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/javamodule/7-docjar">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
 
@@ -629,7 +740,7 @@ object foo extends JavaModule {
 <h2 id="_unmanaged_jars"><a class="anchor" href="#_unmanaged_jars"></a>Unmanaged Jars</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javamodule-7-unmanaged-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/javamodule/7-unmanaged-jars">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javamodule-8-unmanaged-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/javamodule/8-unmanaged-jars">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
 
@@ -659,7 +770,7 @@ Key: age, Value: 30</code></pre>
 <h2 id="_specifying_the_main_class"><a class="anchor" href="#_specifying_the_main_class"></a>Specifying the Main Class</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javamodule-8-main-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/javamodule/8-main-class">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javamodule-9-main-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/javamodule/9-main-class">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
 
@@ -686,7 +797,7 @@ Hello Qux</code></pre>
 <h2 id="_downloading_non_maven_jars"><a class="anchor" href="#_downloading_non_maven_jars"></a>Downloading Non-Maven Jars</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javamodule-9-downloading-non-maven-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/javamodule/9-downloading-non-maven-jars">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javamodule-10-downloading-non-maven-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/javamodule/10-downloading-non-maven-jars">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
 
@@ -724,7 +835,7 @@ I weigh twice as much as you</code></pre>
 <h2 id="_customizing_the_assembly"><a class="anchor" href="#_customizing_the_assembly"></a>Customizing the Assembly</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javamodule-10-assembly-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/javamodule/10-assembly-config">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javamodule-11-assembly-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/javamodule/11-assembly-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
 import mill.javalib.Assembly._
@@ -778,7 +889,7 @@ Loaded application.conf from resources:...
 <h2 id="_repository_config"><a class="anchor" href="#_repository_config"></a>Repository Config</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javamodule-11-repository-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/javamodule/11-repository-config">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javamodule-12-repository-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/javamodule/12-repository-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
 import mill.define.ModuleRef
@@ -893,7 +1004,7 @@ Resolution failed for 1 modules:
 <h2 id="_native_c_code_with_jni"><a class="anchor" href="#_native_c_code_with_jni"></a>Native C Code with JNI</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javamodule-12-jni.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/javamodule/12-jni">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javamodule-13-jni.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/javamodule/13-jni">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._, util.Jvm
 
@@ -974,77 +1085,6 @@ Hello, World!
 &gt; ./mill test
 Test foo.HelloWorldTest.testSimple started
 Test foo.HelloWorldTest.testSimple finished...
-...</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_annotation_processors_with_lombok"><a class="anchor" href="#_annotation_processors_with_lombok"></a>Annotation Processors with Lombok</h2>
-<div class="sectionbody">
-<div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javamodule-13-annotation-processors-lombok.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/javamodule/13-annotation-processors-lombok">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
-
-
-object foo extends JavaModule {
-  def compileIvyDeps = Agg(ivy&quot;org.projectlombok:lombok:1.18.34&quot;)
-
-  object test extends JavaTests with TestModule.Junit4
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This is an example of how to use Mill to build Java projects using Java annotations and
-annotation processors. In this case, we use the annotations provided by
-<a href="https://projectlombok.org">Project Lombok</a> to automatically generate getters and setters
-from class private fields</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.test
-Test foo.HelloWorldTest.testSimple started
-Test foo.HelloWorldTest.testSimple finished...
-...</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The Java compiler automatically discovers annotation processors based on the
-classes available during compilation, e.g. on <code>compileIvyDeps</code> or <code>ivyDeps</code>,
-which is what takes place in the example above.</p>
-</div>
-<div class="paragraph">
-<p>In some cases, you may need
-to pass in the annotation processors manually, e.g. if you need annotation
-processors that are not on the compilation classpath, or you need finer control
-over exactly which annotation processors are active. To do this, you can define
-a module to contain the exact annotation processors you want, and pass
-in <code>-processorpath</code> to <code>javacOptions</code> explicitly:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bar extends JavaModule {
-  def compileIvyDeps = Agg(ivy&quot;org.projectlombok:lombok:1.18.34&quot;)
-
-  def processors = T{
-    defaultResolver().resolveDeps(Agg(ivy&quot;org.projectlombok:lombok:1.18.34&quot;))
-  }
-
-  def javacOptions = Seq(
-    &quot;-processorpath&quot;,
-    processors().map(_.path).mkString(&quot;:&quot;),
-  )
-
-  object test extends JavaTests with TestModule.Junit4
-}</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill bar.test
-Test bar.HelloWorldTest.testSimple started
-Test bar.HelloWorldTest.testSimple finished...
 ...</code></pre>
 </div>
 </div>
