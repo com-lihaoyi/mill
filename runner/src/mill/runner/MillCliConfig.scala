@@ -266,7 +266,8 @@ object MillCliConfigParser {
    */
   implicit object PathRead extends mainargs.TokensReader.Simple[os.Path] {
     def shortName = "path"
-    def read(strs: Seq[String]): Either[String, Path] = Right(os.Path(strs.last, WorkspaceRoot.workspaceRoot))
+    def read(strs: Seq[String]): Either[String, Path] =
+      Right(os.Path(strs.last, WorkspaceRoot.workspaceRoot))
   }
 
   private[this] lazy val parser: ParserForClass[MillCliConfig] =

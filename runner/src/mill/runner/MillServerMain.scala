@@ -105,7 +105,8 @@ class Server[T](
 
           new File(socketName).delete()
 
-          val addr = AFUNIXSocketAddress.of(os.Path(new File(socketName)).relativeTo(os.pwd).toNIO.toFile)
+          val addr =
+            AFUNIXSocketAddress.of(os.Path(new File(socketName)).relativeTo(os.pwd).toNIO.toFile)
           val serverSocket = AFUNIXServerSocket.bindOn(addr)
           val socketClose = () => serverSocket.close()
 
