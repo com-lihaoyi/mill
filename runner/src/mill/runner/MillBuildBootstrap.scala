@@ -7,6 +7,7 @@ import mill.eval.Evaluator
 import mill.main.RunScript
 import mill.resolve.SelectMode
 import mill.define.{BaseModule, Discover, Segments}
+import mill.main.client.OutFiles
 
 import java.net.URLClassLoader
 
@@ -50,7 +51,7 @@ class MillBuildBootstrap(
 
     for ((frame, depth) <- runnerState.frames.zipWithIndex) {
       os.write.over(
-        recOut(projectRoot, depth) / "mill-runner-state.json",
+        recOut(projectRoot, depth) / OutFiles.millRunnerState(),
         upickle.default.write(frame.loggedData, indent = 4),
         createFolders = true
       )

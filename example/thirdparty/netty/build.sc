@@ -13,7 +13,7 @@ trait NettyBaseModule extends MavenModule{
   def javacOptions = Seq("-source", "1.8", "-target", "1.8")
 }
 trait NettyBaseTestSuiteModule extends NettyBaseModule with TestModule.Junit5{
-
+  def testSandboxWorkingDir = false
   def testFramework = "com.github.sbt.junit.jupiter.api.JupiterFramework"
   def ivyDeps = Agg(
     ivy"com.github.sbt.junit:jupiter-interface:0.11.2",

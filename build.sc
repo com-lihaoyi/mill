@@ -1898,6 +1898,12 @@ object docs extends Module {
       s"You can browse the local pages at: ${(pages.path / "index.html").toNIO.toUri()}"
     )
   }
+  def fastPages = T {
+    val pages = generatePages(authorMode = true)().apply(Nil)
+    T.log.outputStream.println(
+      s"You can browse the local pages at: ${(pages.path / "index.html").toNIO.toUri()}"
+    )
+  }
 
   def generatePages(authorMode: Boolean) = T.task { extraSources: Seq[os.Path] =>
     T.log.errorStream.println("Creating Antora playbook ...")

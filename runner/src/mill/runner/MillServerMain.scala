@@ -101,8 +101,9 @@ class Server[T](
       var running = true
       while (running) {
         Server.lockBlock(locks.serverLock) {
-          val socketName =
-            lockBase + "/mill-" + Util.md5hex(new File(lockBase).getCanonicalPath()) + "-io"
+
+          val socketName = ServerFiles.pipe(lockBase)
+
           new File(socketName).delete()
           val addr = AFUNIXSocketAddress.of(new File(socketName))
           val serverSocket = AFUNIXServerSocket.bindOn(addr)
@@ -152,7 +153,7 @@ class Server[T](
     // that relies on that method
     val proxiedSocketInput = proxyInputStreamThroughPumper(clientSocket.getInputStream)
 
-    val argStream = new FileInputStream(lockBase + "/run")
+    val argStream = new FileInputStream(ServerFiles.runArgs(lockBase))
     val interactive = argStream.read() != 0
     val clientMillVersion = Util.readString(argStream)
     val serverMillVersion = BuildInfo.millVersion
@@ -161,7 +162,7 @@ class Server[T](
         s"Mill version changed ($serverMillVersion -> $clientMillVersion), re-starting server"
       )
       java.nio.file.Files.write(
-        java.nio.file.Paths.get(lockBase + "/exitCode"),
+        java.nio.file.Paths.get(ServerFiles.exitCode(lockBase)),
         s"${MillClientMain.ExitServerCodeWhenVersionMismatch()}".getBytes()
       )
       System.exit(MillClientMain.ExitServerCodeWhenVersionMismatch())

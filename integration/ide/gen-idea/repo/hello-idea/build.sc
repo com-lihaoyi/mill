@@ -2,7 +2,7 @@ import mill.api.Loose.Agg
 import mill.define.Target
 import mill._
 import mill.scalajslib.ScalaJSModule
-import mill.scalalib.{Dep, DepSyntax, TestModule}
+import mill.scalalib.{Dep, DepSyntax, JavaModule, TestModule}
 
 trait HelloIdeaModule extends scalalib.ScalaModule {
   def scalaVersion = "2.12.5"
@@ -39,4 +39,21 @@ object HelloIdeaJs extends ScalaJSModule {
       ivy"com.lihaoyi::utest::0.8.4"
     )
   }
+}
+
+object moduleA extends JavaModule
+object moduleB extends JavaModule {
+  override def moduleDeps = Seq(moduleA)
+}
+object moduleC extends JavaModule {
+  override def moduleDeps = Seq(moduleB)
+  override def compileModuleDeps = Seq(moduleE)
+}
+object moduleD extends JavaModule {
+  override def compileModuleDeps = Seq(moduleC)
+}
+object moduleE extends JavaModule
+object moduleF extends JavaModule {
+  override def compileModuleDeps = Seq(moduleC)
+  override def moduleDeps = Seq(moduleB, moduleA)
 }
