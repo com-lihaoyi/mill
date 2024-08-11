@@ -41,7 +41,6 @@ class MillBuildBootstrap(
     needBuildSc: Boolean,
     requestedMetaLevel: Option[Int]
 ) {
-  pprint.log(projectRoot)
   import MillBuildBootstrap._
 
   val millBootClasspath: Seq[os.Path] = prepareMillBootClasspath(projectRoot / out)
