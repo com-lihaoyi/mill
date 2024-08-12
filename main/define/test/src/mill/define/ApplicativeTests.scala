@@ -13,7 +13,7 @@ object ApplicativeTests extends TestSuite {
   object Opt extends Applicative.Applyer[Opt, Option, Applicative.Id, String] {
 
     val injectedCtx = "helloooo"
-    def apply[T](t: T): Option[T] = macro Applicative.impl[Option, T, String]
+    inline def apply[T](inline t: T): Option[T] = ${Applicative.impl[Option, Opt, Applicative.Id, T, String]('this, 't)}
 
     def traverseCtx[I, R](xs: Seq[Opt[I]])(f: (IndexedSeq[I], String) => Applicative.Id[R])
         : Option[R] = {
@@ -28,7 +28,7 @@ object ApplicativeTests extends TestSuite {
       value
     }
   }
-  // @compileTimeOnly("Target.ctx() can only be used with a Task{...} block")
+  @compileTimeOnly("Target.ctx() can only be used with a Task{...} block")
   @ImplicitStub
   implicit def taskCtx: String = ???
 
