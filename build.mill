@@ -422,14 +422,20 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
       else Seq("-P:acyclic:force")
     )
 
-  def scalacPluginIvyDeps =
+  def scalacPluginIvyDeps = T {
+    def sv = scalaVersion()
+    def hasModuleDefs = sv.startsWith("2.13.") || sv.startsWith("3.")
     super.scalacPluginIvyDeps() ++
-      Agg.when(!scalaVersion().startsWith("3."))(Deps.acyclic) ++
-      Agg.when(scalaVersion().startsWith("2.13."))(Deps.millModuledefsPlugin)
+      Agg.when(!sv.startsWith("3."))(Deps.acyclic) ++
+      Agg.when(hasModuleDefs)(Deps.millModuledefsPlugin)
+  }
 
-  def mandatoryIvyDeps =
+  def mandatoryIvyDeps = T {
+    def sv = scalaVersion()
+    def hasModuleDefs = sv.startsWith("2.13.") || sv.startsWith("3.")
     super.mandatoryIvyDeps() ++
-      Agg.when(scalaVersion().startsWith("2.13."))(Deps.millModuledefs)
+      Agg.when(hasModuleDefs)(Deps.millModuledefs)
+  }
 
   /** Default tests module. */
   lazy val test: MillScalaTests = new MillScalaTests {}

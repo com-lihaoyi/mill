@@ -16,7 +16,7 @@ object Dependency extends ExternalModule {
     Task.Command {
       DependencyUpdatesImpl(
         ev,
-        ???,// implicitly,
+        implicitly,
         ev.rootModule,
         ev.rootModule.millDiscover,
         allowPreRelease
