@@ -134,7 +134,7 @@ object Deps {
   val acyclic = ivy"com.lihaoyi:::acyclic:0.3.12"
   val ammoniteVersion = "3.0.0-M2-15-9bed9700"
   val asmTree = ivy"org.ow2.asm:asm-tree:9.7"
-  val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
+  val bloopConfig = ivy"ch.epfl.scala::bloop-config:2.0.3"
 
   val coursier = ivy"io.get-coursier::coursier:2.1.10"
   val coursierInterface = ivy"io.get-coursier:interface:1.0.19"
@@ -237,12 +237,12 @@ def millLastTag: T[String] = T {
 }
 
 def millBinPlatform: T[String] = T {
-  //val tag = millLastTag()
-  //if (tag.contains("-M")) tag
-  //else {
+  // val tag = millLastTag()
+  // if (tag.contains("-M")) tag
+  // else {
   //  val pos = if (tag.startsWith("0.")) 2 else 1
   //  tag.split("[.]", pos + 1).take(pos).mkString(".")
-  //}
+  // }
   "0.11"
 }
 
