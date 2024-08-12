@@ -44,7 +44,6 @@ class MillNoServerLauncher {
     public static void runMain(String[] args) throws Exception {
         LoadResult loadResult = load();
         if (loadResult.millMainMethod.isPresent()) {
-            System.err.println("Launching Mill as sub-process ...");
             int exitVal = MillLauncher.launchMillNoServer(args);
             System.exit(exitVal);
         } else {
