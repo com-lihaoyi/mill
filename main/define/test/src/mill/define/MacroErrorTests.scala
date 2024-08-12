@@ -101,32 +101,38 @@ object MacroErrorTests extends TestSuite {
       test("neg") {
 
         val expectedMsg =
-          "Target#apply() call cannot use `value n` defined within the Task{...} block"
-        val err = compileError("""new Module{
-          def a = Task { 1 }
-          val arr = Array(a)
-          def b = {
-            Task{
-              val n = 0
-              arr(n)()
+          "Target#apply() call cannot use `val n` defined within the Task{...} block"
+        val err = compileError("""
+          given mill.define.Ctx = ???
+          new Module{
+            def a = Task { 1 }
+            val arr = Array(a)
+            def b = {
+              Task{
+                val n = 0
+                arr(n)()
+              }
             }
           }
-        }""")
+        """)
         assert(err.msg == expectedMsg)
       }
       test("neg2") {
 
         val expectedMsg =
-          "Target#apply() call cannot use `value x` defined within the Task{...} block"
-        val err = compileError("""new Module{
-          def a = Task { 1 }
-          val arr = Array(a)
-          def b = {
-            Task{
-              arr.map{x => x()}
+          "Target#apply() call cannot use `val x` defined within the Task{...} block"
+        val err = compileError("""
+          given mill.define.Ctx = ???
+          new Module{
+            def a = Task { 1 }
+            val arr = Array(a)
+            def b = {
+              Task{
+                arr.map{x => x()}
+              }
             }
           }
-        }""")
+        """)
         assert(err.msg == expectedMsg)
       }
       test("neg3") {
@@ -168,7 +174,7 @@ object MacroErrorTests extends TestSuite {
       """
       )
       assert(error.msg.contains(
-        "could not find implicit value for evidence parameter of type mill.define.Cross.ToSegments[sun.misc.Unsafe]"
+        "Could not summon ToSegments[segArg.type]"
       ))
     }
   }
