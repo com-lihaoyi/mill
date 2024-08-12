@@ -39,8 +39,7 @@ trait CoursierModule extends mill.Module {
       mapDependencies = Some(mapDependencies()),
       customizer = resolutionCustomizer(),
       coursierCacheCustomizer = coursierCacheCustomizer(),
-      // ctx = Some(implicitly[mill.api.Ctx.Log])
-      ctx = Some(???)
+      ctx = Some(implicitly[mill.api.Ctx.Log])
     )
   }
 
@@ -66,8 +65,7 @@ trait CoursierModule extends mill.Module {
         mapDependencies = Some(mapDependencies()),
         customizer = resolutionCustomizer(),
         coursierCacheCustomizer = coursierCacheCustomizer(),
-        // ctx = Some(implicitly[mill.api.Ctx.Log])
-        ctx = Some(???)
+        ctx = Some(implicitly[mill.api.Ctx.Log])
       )
     }
 
