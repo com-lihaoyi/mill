@@ -2,7 +2,7 @@ package mill.main.client.lock;
 
 class MemoryLocked implements Locked {
 
-    protected java.util.concurrent.locks.Lock lock;
+    final protected java.util.concurrent.locks.Lock lock;
 
     public MemoryLocked(java.util.concurrent.locks.Lock lock) {
         this.lock = lock;

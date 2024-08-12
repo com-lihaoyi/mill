@@ -4,7 +4,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 class MemoryLock extends Lock {
 
-    private ReentrantLock innerLock = new ReentrantLock();
+    final private ReentrantLock innerLock = new ReentrantLock();
 
     public boolean probe() {
         return !innerLock.isLocked();
