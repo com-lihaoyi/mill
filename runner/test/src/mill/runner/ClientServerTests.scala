@@ -76,7 +76,7 @@ object ClientServerTests extends TestSuite {
   )(env: Map[String, String], args: Array[String]) = {
     val (in, out, err) = initStreams()
     Server.lockBlock(locks.clientLock) {
-      mill.main.client.MillClientMain.run(
+      mill.main.client.MillServerLauncher.run(
         tmpDir.toString,
         () => spawnEchoServer(tmpDir, locks),
         locks,

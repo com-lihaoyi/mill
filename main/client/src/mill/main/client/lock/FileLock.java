@@ -17,10 +17,8 @@ class FileLock extends Lock {
         return new FileLocked(chan.lock());
     }
 
-    public Locked tryLock() throws Exception {
-        java.nio.channels.FileLock l = chan.tryLock();
-        if (l == null) return null;
-        else return new FileLocked(l);
+    public TryLocked tryLock() throws Exception {
+        return new FileTryLocked(chan.tryLock());
     }
 
     public boolean probe() throws Exception {

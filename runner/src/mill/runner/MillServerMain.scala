@@ -9,9 +9,8 @@ import org.newsclub.net.unix.AFUNIXServerSocket
 import org.newsclub.net.unix.AFUNIXSocketAddress
 import mill.main.BuildInfo
 import mill.main.client._
-import mill.api.internal
+import mill.api.{SystemStreams, internal}
 import mill.main.client.lock.{Lock, Locks}
-import mill.api.SystemStreams
 
 import scala.util.Try
 
@@ -55,7 +54,7 @@ object MillServerMain extends MillServerMain[RunnerState] {
     new Server(
       lockBase = args0(0),
       this,
-      () => System.exit(MillClientMain.ExitServerCodeWhenIdle()),
+      () => System.exit(Util.ExitServerCodeWhenIdle()),
       acceptTimeoutMillis = acceptTimeoutMillis,
       Locks.files(args0(0))
     ).run()
@@ -105,7 +104,9 @@ class Server[T](
           val socketName = ServerFiles.pipe(lockBase)
 
           new File(socketName).delete()
-          val addr = AFUNIXSocketAddress.of(new File(socketName))
+
+          val addr =
+            AFUNIXSocketAddress.of(os.Path(new File(socketName)).relativeTo(os.pwd).toNIO.toFile)
           val serverSocket = AFUNIXServerSocket.bindOn(addr)
           val socketClose = () => serverSocket.close()
 
@@ -153,7 +154,7 @@ class Server[T](
     // that relies on that method
     val proxiedSocketInput = proxyInputStreamThroughPumper(clientSocket.getInputStream)
 
-    val argStream = new FileInputStream(ServerFiles.runArgs(lockBase))
+    val argStream = new FileInputStream(lockBase + "/" + ServerFiles.runArgs)
     val interactive = argStream.read() != 0
     val clientMillVersion = Util.readString(argStream)
     val serverMillVersion = BuildInfo.millVersion
@@ -162,10 +163,10 @@ class Server[T](
         s"Mill version changed ($serverMillVersion -> $clientMillVersion), re-starting server"
       )
       java.nio.file.Files.write(
-        java.nio.file.Paths.get(ServerFiles.exitCode(lockBase)),
-        s"${MillClientMain.ExitServerCodeWhenVersionMismatch()}".getBytes()
+        java.nio.file.Paths.get(lockBase + "/" + ServerFiles.exitCode),
+        s"${Util.ExitServerCodeWhenVersionMismatch()}".getBytes()
       )
-      System.exit(MillClientMain.ExitServerCodeWhenVersionMismatch())
+      System.exit(Util.ExitServerCodeWhenVersionMismatch())
     }
     val args = Util.parseArgs(argStream)
     val env = Util.parseMap(argStream)

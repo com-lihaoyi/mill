@@ -15,9 +15,9 @@ class MemoryLock extends Lock {
         return new MemoryLocked(innerLock);
     }
 
-    public Locked tryLock() {
-        if (innerLock.tryLock()) return new MemoryLocked(innerLock);
-        else return null;
+    public MemoryTryLocked tryLock() {
+        if (innerLock.tryLock()) return new MemoryTryLocked(innerLock);
+        else return new MemoryTryLocked(null);
     }
 
     @Override

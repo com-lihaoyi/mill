@@ -7,7 +7,7 @@ import mill.eval.Evaluator
 import mill.main.RunScript
 import mill.resolve.SelectMode
 import mill.define.{BaseModule, Discover, Segments}
-import mill.main.client.OutFiles
+import mill.main.client.OutFiles._
 
 import java.net.URLClassLoader
 
@@ -43,7 +43,7 @@ class MillBuildBootstrap(
 ) {
   import MillBuildBootstrap._
 
-  val millBootClasspath: Seq[os.Path] = prepareMillBootClasspath(projectRoot / "out")
+  val millBootClasspath: Seq[os.Path] = prepareMillBootClasspath(projectRoot / out)
   val millBootClasspathPathRefs: Seq[PathRef] = millBootClasspath.map(PathRef(_, quick = true))
 
   def evaluate(): Watching.Result[RunnerState] = CliImports.withValue(imports) {
@@ -51,7 +51,7 @@ class MillBuildBootstrap(
 
     for ((frame, depth) <- runnerState.frames.zipWithIndex) {
       os.write.over(
-        recOut(projectRoot, depth) / OutFiles.millRunnerState(),
+        recOut(projectRoot, depth) / millRunnerState,
         upickle.default.write(frame.loggedData, indent = 4),
         createFolders = true
       )
@@ -79,7 +79,7 @@ class MillBuildBootstrap(
         lazy val state = evaluateRec(depth + 1)
         if (os.exists(recRoot(projectRoot, depth) / "build.sc")) state
         else {
-          val msg = "build.sc file not found. Are you in a Mill project folder?"
+          val msg = s"build.sc file not found in $projectRoot. Are you in a Mill project folder?"
           if (needBuildSc) {
             RunnerState(None, Nil, Some(msg))
           } else {
@@ -345,7 +345,7 @@ class MillBuildBootstrap(
 
     val bootLogPrefix =
       if (depth == 0) ""
-      else "[" + (Seq.fill(depth - 1)("mill-build") ++ Seq("build.sc")).mkString("/") + "] "
+      else "[" + (Seq.fill(depth - 1)(millBuild) ++ Seq("build.sc")).mkString("/") + "] "
 
     mill.eval.EvaluatorImpl(
       home,
@@ -485,11 +485,11 @@ object MillBuildBootstrap {
   }
 
   def recRoot(projectRoot: os.Path, depth: Int): os.Path = {
-    projectRoot / Seq.fill(depth)("mill-build")
+    projectRoot / Seq.fill(depth)(millBuild)
   }
 
   def recOut(projectRoot: os.Path, depth: Int): os.Path = {
-    projectRoot / "out" / Seq.fill(depth)("mill-build")
+    projectRoot / out / Seq.fill(depth)(millBuild)
   }
 
 }

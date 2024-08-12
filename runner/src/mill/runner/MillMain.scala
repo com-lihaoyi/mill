@@ -1,11 +1,11 @@
 package mill.runner
 
-import java.io.{FileOutputStream, PrintStream, PipedInputStream}
+import java.io.{FileOutputStream, PipedInputStream, PrintStream}
 import java.util.Locale
 import scala.jdk.CollectionConverters._
 import scala.util.Properties
 import mill.java9rtexport.Export
-import mill.api.{MillException, internal, SystemStreams}
+import mill.api.{MillException, SystemStreams, WorkspaceRoot, internal}
 import mill.bsp.{BspContext, BspServerResult}
 import mill.main.BuildInfo
 import mill.util.PrintLogger
@@ -40,7 +40,7 @@ object MillMain {
       if (args.headOption == Option("--bsp")) {
         // In BSP mode, we use System.in/out for protocol communication
         // and all Mill output (stdout and stderr) goes to a dedicated file
-        val stderrFile = os.pwd / ".bsp" / "mill-bsp.stderr"
+        val stderrFile = WorkspaceRoot.workspaceRoot / ".bsp" / "mill-bsp.stderr"
         os.makeDir.all(stderrFile / os.up)
         val errFile = new PrintStream(new FileOutputStream(stderrFile.toIO, true))
         val errTee = new TeePrintStream(initialSystemStreams.err, errFile)
@@ -161,7 +161,7 @@ object MillMain {
             printLoggerState
           )
           if (!config.silent.value) {
-            checkMillVersionFromFile(os.pwd, streams.err)
+            checkMillVersionFromFile(WorkspaceRoot.workspaceRoot, streams.err)
           }
 
           // special BSP mode, in which we spawn a server and register the current evaluator when-ever we start to eval a dedicated command
@@ -220,7 +220,7 @@ object MillMain {
                     adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
 
                     new MillBuildBootstrap(
-                      projectRoot = os.pwd,
+                      projectRoot = WorkspaceRoot.workspaceRoot,
                       home = config.home,
                       keepGoing = config.keepGoing.value,
                       imports = config.imports,
