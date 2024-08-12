@@ -1,6 +1,6 @@
 package mill.main.client.lock;
 
-public class MemoryTryLocked extends MemoryLocked implements TryLocked {
+class MemoryTryLocked extends MemoryLocked implements TryLocked {
     public MemoryTryLocked(java.util.concurrent.locks.Lock lock) {
         super(lock);
     }

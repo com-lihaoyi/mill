@@ -5,8 +5,8 @@ import java.nio.channels.FileChannel;
 
 class FileLock extends Lock {
 
-    private RandomAccessFile raf;
-    private FileChannel chan;
+    final private RandomAccessFile raf;
+    final private FileChannel chan;
 
     public FileLock(String path) throws Exception {
         raf = new RandomAccessFile(path, "rw");
