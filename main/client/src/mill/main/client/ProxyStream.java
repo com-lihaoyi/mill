@@ -20,8 +20,8 @@ import java.io.OutputStream;
  *
  * Where header is a single byte of the form:
  *
- * - header > 0 indicating that this packet is for the `OUT` stream
- * - header < 0 indicating that this packet is for the `ERR` stream
+ * - header more than 0 indicating that this packet is for the `OUT` stream
+ * - header less then 0 indicating that this packet is for the `ERR` stream
  * - abs(header) indicating the length of the packet body, in bytes
  * - header == 0 indicating the end of the stream
  *

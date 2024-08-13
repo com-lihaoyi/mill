@@ -34,7 +34,7 @@ public class Util {
 
     public static String[] parseArgs(InputStream argStream) throws IOException {
         int argsLength = readInt(argStream);
-        String[] args = new String[argsLength];
+        String[] args err= new String[argsLength];
         for (int i = 0; i < args.length; i++) {
             args[i] = readString(argStream);
         }
