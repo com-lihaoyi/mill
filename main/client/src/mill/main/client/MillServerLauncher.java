@@ -164,16 +164,17 @@ public class MillServerLauncher {
         outThread.start();
         inThread.start();
 
+        // Fallback mechanism to terminate ProxyStream.Pumper.
+        //
+        // We don't expect this to be used much, because the `ProxyStream` protocol
+        // should provide a `0` packet to terminate the stream and stop the pumper.
+        // However, in the event that this does not happen, we still want the pumper
+        // to terminate eventually. So we wait for the `serverLock` to be released,
+        // indicating the server is done, and wait 0.5 seconds for any data to arrive
+        // before terminating the pumper.
         locks.serverLock.await();
-
-        // Although the process that the server was running has terminated and the server has sent all the stdout/stderr
-        // over the unix pipe and released its lock we don't know that all the data has arrived at the client
-        // The outThread of the ProxyStreamPumper will not close until the socket is closed (so we can't join on it)
-        // but we also can't close the socket until all the data has arrived. Catch 22. We could signal termination
-        // in the stream (ProxyOutputStream / ProxyStreamPumper) but that would require a new protocol.
-        // So we just wait until there has been X ms with no data
-
         outPump.waitForSilence(500);
+        outPump.stop();
 
         try {
             return Integer.parseInt(Files.readAllLines(Paths.get(lockBase + "/" + ServerFiles.exitCode)).get(0));

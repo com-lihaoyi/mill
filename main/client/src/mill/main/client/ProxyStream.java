@@ -94,7 +94,7 @@ public class ProxyStream{
         private OutputStream dest1;
         private OutputStream dest2;
         private long last = System.currentTimeMillis();
-
+        private boolean running = true;
         public Pumper(InputStream src, OutputStream destOut, OutputStream destErr){
             this.src = src;
             this.dest1 = destOut;
@@ -108,8 +108,8 @@ public class ProxyStream{
         }
 
         public void run() {
+
             byte[] buffer = new byte[1024];
-            boolean running = true;
             while (running) {
                 try {
                     int quantity0 = (byte)src.read();
@@ -148,6 +148,10 @@ public class ProxyStream{
         public void flush() throws IOException {
             dest1.flush();
             dest2.flush();
+        }
+
+        public void stop() {
+            running = false;
         }
     }
 }
