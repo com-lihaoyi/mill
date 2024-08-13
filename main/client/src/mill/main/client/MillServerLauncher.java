@@ -155,7 +155,7 @@ public class MillServerLauncher {
 
         InputStream outErr = ioSocket.getInputStream();
         OutputStream in = ioSocket.getOutputStream();
-        ProxyStreamPumper outPump = new ProxyStreamPumper(outErr, stdout, stderr);
+        ProxyStream.Pumper outPump = new ProxyStream.Pumper(outErr, stdout, stderr);
         InputPumper inPump = new InputPumper(() -> stdin, () -> in, true);
         Thread outThread = new Thread(outPump, "outPump");
         outThread.setDaemon(true);
@@ -173,7 +173,7 @@ public class MillServerLauncher {
         // in the stream (ProxyOutputStream / ProxyStreamPumper) but that would require a new protocol.
         // So we just wait until there has been X ms with no data
 
-        outPump.getLastData().waitForSilence(50);
+        outPump.waitForSilence(500);
 
         try {
             return Integer.parseInt(Files.readAllLines(Paths.get(lockBase + "/" + ServerFiles.exitCode)).get(0));

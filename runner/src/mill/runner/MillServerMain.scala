@@ -10,6 +10,7 @@ import org.newsclub.net.unix.AFUNIXSocketAddress
 import mill.main.BuildInfo
 import mill.main.client._
 import mill.api.{SystemStreams, internal}
+import mill.main.client.ProxyStream.Output
 import mill.main.client.lock.{Lock, Locks}
 
 import scala.util.Try
@@ -146,8 +147,9 @@ class Server[T](
   def handleRun(clientSocket: Socket, initialSystemProperties: Map[String, String]): Unit = {
 
     val currentOutErr = clientSocket.getOutputStream
-    val stdout = new PrintStream(new ProxyOutputStream(currentOutErr, 1), true)
-    val stderr = new PrintStream(new ProxyOutputStream(currentOutErr, -1), true)
+    val stdout = new PrintStream(new Output(currentOutErr, ProxyStream.OUT), true)
+    val stderr = new PrintStream(new Output(currentOutErr, ProxyStream.ERR), true)
+
     // Proxy the input stream through a pair of Piped**putStream via a pumper,
     // as the `UnixDomainSocketInputStream` we get directly from the socket does
     // not properly implement `available(): Int` and thus messes up polling logic
@@ -222,7 +224,11 @@ class Server[T](
     // flush before closing the socket
     System.out.flush()
     System.err.flush()
-
+    // Send a termination
+    currentOutErr.synchronized{
+      currentOutErr.write(ProxyStream.END)
+      currentOutErr.flush()
+    }
     clientSocket.close()
   }
 }
