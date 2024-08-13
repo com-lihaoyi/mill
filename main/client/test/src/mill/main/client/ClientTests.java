@@ -9,6 +9,7 @@ import org.junit.Test;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Proxy;
 import java.util.*;
 
 public class ClientTests {
@@ -115,8 +116,8 @@ public class ClientTests {
                                         int chunkMax) throws Exception{
 
         ByteArrayOutputStream pipe = new ByteArrayOutputStream();
-        OutputStream src1 = new ProxyStream.Output(pipe, 1);
-        OutputStream src2 = new ProxyStream.Output(pipe, -1);
+        OutputStream src1 = new ProxyStream.Output(pipe, ProxyStream.OUT);
+        OutputStream src2 = new ProxyStream.Output(pipe, ProxyStream.ERR);
 
         Random random = new Random(31337);
 

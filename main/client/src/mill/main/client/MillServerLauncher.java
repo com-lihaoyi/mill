@@ -173,7 +173,7 @@ public class MillServerLauncher {
         // indicating the server is done, and wait 0.5 seconds for any data to arrive
         // before terminating the pumper.
         locks.serverLock.await();
-        outPump.waitForSilence(500);
+        outThread.join();
         outPump.stop();
 
         try {

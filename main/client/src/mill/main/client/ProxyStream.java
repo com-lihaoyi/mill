@@ -35,7 +35,6 @@ public class ProxyStream{
 
     public static final int OUT = 1;
     public static final int ERR = -1;
-    public static final int END = 0;
 
     public static class Output extends java.io.OutputStream {
         private java.io.OutputStream destination;
@@ -107,12 +106,18 @@ public class ProxyStream{
             } while ((System.currentTimeMillis() - last) < millis);
         }
 
+        public boolean isRunning() {
+            return running;
+        }
+
         public void run() {
 
+            System.out.println("Pumper.run");
             byte[] buffer = new byte[1024];
             while (running) {
                 try {
                     int quantity0 = (byte)src.read();
+                    System.out.println("Pumper.run quantity0 " + quantity0);
                     if (quantity0 != 0) {
                         int quantity = Math.abs(quantity0);
                         int offset = 0;
@@ -133,6 +138,8 @@ public class ProxyStream{
                             flush();
                             this.last = System.currentTimeMillis();
                         }
+                    }else {
+
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
