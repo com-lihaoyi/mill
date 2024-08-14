@@ -9,7 +9,6 @@ import org.junit.Test;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
-import java.lang.reflect.Proxy;
 import java.util.*;
 
 public class ClientTests {
