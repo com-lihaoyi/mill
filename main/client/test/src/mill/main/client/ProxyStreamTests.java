@@ -23,7 +23,7 @@ public class ProxyStreamTests {
                 1000, 2000, 4000, 8000
         };
         byte[] interestingBytes = {
-                -128, -127, -126,
+                -1, -127, -126,
                 -120, -100, -80, -60, -40, -20, -10,
                 -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5,
                 10, 20, 40, 60, 80, 100, 120,
@@ -31,9 +31,9 @@ public class ProxyStreamTests {
         };
 
         for (int n: interestingLengths){
-            System.out.println("ProxyStreamTests fuzzing length " + n);
 
-            for (int r = 0; r < interestingBytes.length; r += 1) {
+            System.out.println("ProxyStreamTests fuzzing length " + n);
+            for (int r = 1; r < interestingBytes.length + 1; r += 1) {
                 byte[] outData = new byte[n];
                 byte[] errData = new byte[n];
                 for(int j = 0; j < n; j++) {
@@ -46,12 +46,15 @@ public class ProxyStreamTests {
                     errData[j] = (byte)-interestingBytes[(j + r) % interestingBytes.length];
                 }
 
-                test0(outData, errData, r);
+                // Run all tests both with the format `ProxyStream.END` packet
+                // being sent as well as when the stream is unceremoniously closed
+                test0(outData, errData, r, false);
+                test0(outData, errData, r, true);
             }
         }
     }
 
-    public void test0(byte[] outData, byte[] errData, int repeats) throws Exception{
+    public void test0(byte[] outData, byte[] errData, int repeats, boolean gracefulEnd) throws Exception{
         PipedOutputStream pipedOutputStream = new PipedOutputStream();
         PipedInputStream pipedInputStream = new PipedInputStream(1000000);
 
@@ -72,16 +75,25 @@ public class ProxyStreamTests {
                 new TeeOutputStream(destErr, destCombined)
         );
 
-        for(int i = 0; i < repeats; i++){
-            srcOut.write(outData);
-            srcErr.write(errData);
-        }
-        pipedOutputStream.write(0);
 
-        new Thread(pumper).start();
-        while(pumper.isRunning()) {
-            Thread.sleep(1);
-        }
+        new Thread(() -> {
+            try {
+                for (int i = 0; i < repeats; i++) {
+                    srcOut.write(outData);
+                    srcErr.write(errData);
+                }
+
+                if (gracefulEnd) ProxyStream.sendEnd(pipedOutputStream);
+                else {
+                    pipedOutputStream.close();
+                }
+            }catch(Exception e){ e.printStackTrace();}
+        }).start();
+
+        Thread pumperThread = new Thread(pumper);
+
+        pumperThread.start();
+        pumperThread.join();
 
         // Check that the individual `destOut` and `destErr` contain the correct bytes
         assertArrayEquals(repeatArray(outData, repeats), destOut.toByteArray());

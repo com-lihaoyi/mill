@@ -121,36 +121,40 @@ public class ProxyStream{
         public void run() {
 
             byte[] buffer = new byte[1024];
-            while (running) {
-                try {
-                    int quantity0 = (byte)src.read();
-                    if (quantity0 != 0) {
-                        int quantity = Math.abs(quantity0);
-                        int offset = 0;
-                        int delta = -1;
-                        while (offset < quantity) {
-                            delta = src.read(buffer, offset, quantity - offset);
-                            if (delta == -1) {
-                                running = false;
-                                break;
-                            } else {
-                                offset += delta;
+            try {
+                while (true) {
+                    try {
+                        int header = src.read();
+                        // -1 means socket was closed, 0 means a ProxyStream.END was sent
+                        if (header == -1 || header == 0) break;
+                        else {
+                            int quantity0 = (byte) header;
+                            int quantity = Math.abs(quantity0);
+                            int offset = 0;
+                            int delta = -1;
+                            while (offset < quantity) {
+                                delta = src.read(buffer, offset, quantity - offset);
+                                if (delta == -1) {
+                                    break;
+                                } else {
+                                    offset += delta;
+                                }
+                            }
+
+                            if (delta != -1) {
+                                if ((byte) quantity0 > 0) dest1.write(buffer, 0, offset);
+                                else dest2.write(buffer, 0, offset);
+                                flush();
+                                this.last = System.currentTimeMillis();
                             }
                         }
-
-                        if (delta != -1) {
-                            if (quantity0 > 0) dest1.write(buffer, 0, offset);
-                            else dest2.write(buffer, 0, offset);
-                            flush();
-                            this.last = System.currentTimeMillis();
-                        }
-                    }else {
-                        running = false;
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        System.exit(1);
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    System.exit(1);
                 }
+            }finally {
+                running = false;
             }
             try {
                 dest1.close();
