@@ -13,15 +13,14 @@ public class ProxyStreamTests {
      */
     @Test
     public void test() throws Exception{
-        // Test writes of sizes around 1, around 127, around 255, and much larger.
-        // These are likely sizes to have bugs since we write data in chunks of size
-        // 127
+        // Test writes of sizes around 1, around 127, around 255, and much larger. These
+        // are likely sizes to have bugs since we write data in chunks of size 127
         int[] interestingLengths = {
                 1, 2, 3, 4, 5, 6, 7, 8, 9,
                 10, 20, 30, 40, 50, 100,
                 126, 127, 128, 129, 130,
                 253, 254, 255, 256, 257,
-                1000, 2000, 3000
+                1000, 2000, 4000, 8000
         };
         byte[] interestingBytes = {
                 -128, -127, -126,
