@@ -8,6 +8,7 @@ import mill.main.client.ServerFiles;
  *
  * - Client:
  *   - Take clientLock
+ *   - If processLock is not yet taken, it means server is not running, so spawn a server
  *   - Wait for server socket to be available for connection
  * - Server:
  *   - Take processLock. If already taken, it means another server was running
