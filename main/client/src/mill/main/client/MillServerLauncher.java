@@ -155,26 +155,16 @@ public class MillServerLauncher {
 
         InputStream outErr = ioSocket.getInputStream();
         OutputStream in = ioSocket.getOutputStream();
-        ProxyStream.Pumper outPump = new ProxyStream.Pumper(outErr, stdout, stderr);
+        ProxyStream.Pumper outPumper = new ProxyStream.Pumper(outErr, stdout, stderr);
         InputPumper inPump = new InputPumper(() -> stdin, () -> in, true);
-        Thread outThread = new Thread(outPump, "outPump");
-        outThread.setDaemon(true);
+        Thread outPumperThread = new Thread(outPumper, "outPump");
+        outPumperThread.setDaemon(true);
         Thread inThread = new Thread(inPump, "inPump");
         inThread.setDaemon(true);
-        outThread.start();
+        outPumperThread.start();
         inThread.start();
 
-        // Fallback mechanism to terminate ProxyStream.Pumper.
-        //
-        // We don't expect this to be used much, because the `ProxyStream` protocol
-        // should provide a `0` packet to terminate the stream and stop the pumper.
-        // However, in the event that this does not happen, we still want the pumper
-        // to terminate eventually. So we wait for the `serverLock` to be released,
-        // indicating the server is done, and wait 0.5 seconds for any data to arrive
-        // before terminating the pumper.
-        locks.serverLock.await();
-        outThread.join();
-        outPump.stop();
+        outPumperThread.join();
 
         try {
             return Integer.parseInt(Files.readAllLines(Paths.get(lockBase + "/" + ServerFiles.exitCode)).get(0));

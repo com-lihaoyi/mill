@@ -101,7 +101,6 @@ object ClientServerTests extends TestSuite {
 
       assert(
         locks.clientLock.probe(),
-        locks.serverLock.probe(),
         locks.processLock.probe()
       )
 
@@ -118,7 +117,6 @@ object ClientServerTests extends TestSuite {
 
       assert(
         locks.clientLock.probe(),
-        !locks.serverLock.probe(),
         !locks.processLock.probe()
       )
 
@@ -135,7 +133,6 @@ object ClientServerTests extends TestSuite {
         Thread.sleep(2000)
         assert(
           locks.clientLock.probe(),
-          locks.serverLock.probe(),
           locks.processLock.probe()
         )
 
@@ -157,7 +154,6 @@ object ClientServerTests extends TestSuite {
 
         assert(
           locks.clientLock.probe(),
-          locks.serverLock.probe(),
           locks.processLock.probe()
         )
 
@@ -186,7 +182,6 @@ object ClientServerTests extends TestSuite {
 
         assert(
           locks.clientLock.probe(),
-          !locks.serverLock.probe(),
           !locks.processLock.probe()
         )
 
