@@ -11,8 +11,9 @@ import mill.main.client.ServerFiles;
  *   - If processLock is not yet taken, it means server is not running, so spawn a server
  *   - Wait for server socket to be available for connection
  * - Server:
- *   - Take processLock. If already taken, it means another server was running
- *     (e.g. spawned by a different client) so exit immediately
+ *   - Take processLock.
+ *     - If already taken, it means another server was running
+ *       (e.g. spawned by a different client) so exit immediately
  * - Server: loop:
  *   - Listen for incoming client requests on serverSocket
  *   - Execute client request
