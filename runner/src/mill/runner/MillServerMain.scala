@@ -128,10 +128,6 @@ class Server[T](
               finally sock.close();
             } finally serverSocket.close()
         }
-
-        // Make sure you give an opportunity for the client to probe the lock
-        // and realize the server has released it to signal completion
-        Thread.sleep(10)
       }
     }.getOrElse(throw new Exception("PID already present"))
   }
