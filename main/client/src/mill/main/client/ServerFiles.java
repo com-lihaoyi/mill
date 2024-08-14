@@ -30,7 +30,7 @@ public class ServerFiles {
      */
     public static String pipe(String base) {
         try {
-            return base + "mill-" + Util.md5hex(new java.io.File(base).getCanonicalPath()) + "-io";
+            return base + "/mill-" + Util.md5hex(new java.io.File(base).getCanonicalPath()) + "-io";
         }catch (Exception e){
             throw new RuntimeException(e);
         }
