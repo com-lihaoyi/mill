@@ -27,7 +27,7 @@ public class MillClientMain {
                 runNoServer = true;
             }
         }
-        System.out.println("MillClientMain.main runNoServer " + runNoServer);
+
         if (runNoServer) {
             // start in no-server mode
             MillNoServerLauncher.runMain(args);
