@@ -98,77 +98,64 @@ public class ProxyStream{
 
     public static class Pumper implements Runnable{
         private InputStream src;
-        private OutputStream dest1;
-        private OutputStream dest2;
-        private long last = System.currentTimeMillis();
-        private boolean running = true;
+        private OutputStream destOut;
+        private OutputStream destErr;
         public Pumper(InputStream src, OutputStream destOut, OutputStream destErr){
             this.src = src;
-            this.dest1 = destOut;
-            this.dest2 = destErr;
-        }
-
-        public void waitForSilence(int millis) throws InterruptedException {
-            do {
-                Thread.sleep(10);
-            } while ((System.currentTimeMillis() - last) < millis);
-        }
-
-        public boolean isRunning() {
-            return running;
+            this.destOut = destOut;
+            this.destErr = destErr;
         }
 
         public void run() {
 
             byte[] buffer = new byte[1024];
-            try {
-                while (true) {
-                    try {
-                        int header = src.read();
-                        // -1 means socket was closed, 0 means a ProxyStream.END was sent
-                        if (header == -1 || header == 0) break;
-                        else {
-                            int quantity0 = (byte) header;
-                            int quantity = Math.abs(quantity0);
-                            int offset = 0;
-                            int delta = -1;
-                            while (offset < quantity) {
-                                delta = src.read(buffer, offset, quantity - offset);
-                                if (delta == -1) {
-                                    break;
-                                } else {
-                                    offset += delta;
-                                }
-                            }
-
-                            if (delta != -1) {
-                                if ((byte) quantity0 > 0) dest1.write(buffer, 0, offset);
-                                else dest2.write(buffer, 0, offset);
-                                flush();
-                                this.last = System.currentTimeMillis();
+            while (true) {
+                try {
+                    int header = src.read();
+                    // -1 means socket was closed, 0 means a ProxyStream.END was sent. Note
+                    // that only header values > 0 represent actual data to read:
+                    // - sign((byte)header) represents which stream the data should be sent to
+                    // - abs((byte)header) represents the length of the data to read and send
+                    if (header == -1 || header == 0) break;
+                    else {
+                        int stream = (byte) header > 0 ? 1 : -1;
+                        int quantity0 = (byte) header;
+                        int quantity = Math.abs(quantity0);
+                        int offset = 0;
+                        int delta = -1;
+                        while (offset < quantity) {
+                            delta = src.read(buffer, offset, quantity - offset);
+                            if (delta == -1) {
+                                break;
+                            } else {
+                                offset += delta;
                             }
                         }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        System.exit(1);
+
+                        if (delta != -1) {
+                            switch(stream){
+                                case ProxyStream.OUT: destOut.write(buffer, 0, offset); break;
+                                case ProxyStream.ERR: destErr.write(buffer, 0, offset); break;
+                            }
+
+                            flush();
+                        }
                     }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    System.exit(1);
                 }
-            }finally {
-                running = false;
             }
+
             try {
-                dest1.close();
-                dest2.close();
+                destOut.close();
+                destErr.close();
             } catch(IOException e) {}
         }
 
         public void flush() throws IOException {
-            dest1.flush();
-            dest2.flush();
-        }
-
-        public void stop() {
-            running = false;
+            destOut.flush();
+            destErr.flush();
         }
     }
 }
