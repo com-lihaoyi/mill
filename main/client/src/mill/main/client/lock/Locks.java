@@ -27,7 +27,7 @@ final public class Locks implements AutoCloseable {
     final public Lock processLock;
     final public Lock clientLock;
 
-    public Locks(Lock processLock, Lock serverLock, Lock clientLock){
+    public Locks(Lock processLock, Lock clientLock){
         this.processLock = processLock;
         this.clientLock = clientLock;
     }
@@ -35,14 +35,12 @@ final public class Locks implements AutoCloseable {
     public static Locks files(String lockBase) throws Exception {
         return new Locks(
             new FileLock(lockBase + "/" + ServerFiles.processLock),
-            new FileLock(lockBase + "/" + ServerFiles.serverLock),
             new FileLock(lockBase + "/" + ServerFiles.clientLock)
         );
     }
 
     public static Locks memory() {
         return new Locks(
-            new MemoryLock(),
             new MemoryLock(),
             new MemoryLock()
         );

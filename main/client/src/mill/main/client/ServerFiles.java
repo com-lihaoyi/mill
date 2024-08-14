@@ -15,13 +15,6 @@ public class ServerFiles {
     final public static String processLock = "processLock";
 
     /**
-     * Lock file indicating a server is currently waiting for or processing
-     * a command. Used by the client to detect when the server has completed
-     * processing.
-     */
-    final public static String serverLock = "serverLock";
-
-    /**
      * Ensures only a single client is manipulating each mill-worker folder at
      * a time, either spawning the server or submitting a command. Also used by
      * the server to detect when a client disconnects, so it can terminate execution
