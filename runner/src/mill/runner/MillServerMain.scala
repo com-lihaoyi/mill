@@ -105,6 +105,7 @@ class Server[T](
 
         new File(socketName).delete()
 
+        // Use relative path because otherwise the full path might be too long for the socket API
         val addr =
           AFUNIXSocketAddress.of(os.Path(new File(socketName)).relativeTo(os.pwd).toNIO.toFile)
         val serverSocket = AFUNIXServerSocket.bindOn(addr)
