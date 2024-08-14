@@ -8,19 +8,18 @@ import mill.main.client.ServerFiles;
  *
  * - Client:
  *   - Take clientLock
- *   - If processLock is not taken, it means we need to spawn the server
- *      - Spawn the server and wait for processLock to be taken
+ *   - Wait for server socket to be available for connection
  * - Server:
- *   - take processLock
+ *   - Take processLock. If already taken, it means another server was running
+ *     (e.g. spawned by a different client) so exit immediately
  * - Server: loop:
- *   - Take serverLock,
  *   - Listen for incoming client requests on serverSocket
  *   - Execute client request
  *   - If clientLock is released during execution, terminate server
- *   - Release serverLock
+ *   - Send `ProxyStream.END` packet and call `clientSocket.close()`
  * - Client:
- *   - Wait for serverLock to be released, indicating server has finished execution
- *   - Give 50ms grace period for server output to arrive over pipe
+ *   - Wait for `ProxyStream.END` packet or `clientSocket.close()`,
+ *     indicating server has finished execution and all data has been received
  */
 final public class Locks implements AutoCloseable {
 
