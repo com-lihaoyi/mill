@@ -6,6 +6,13 @@ package mill.main.client;
  */
 public class ServerFiles {
     final public static String sandbox = "sandbox";
+    
+    /**
+     * Ensures only a single client is manipulating each mill-worker folder at
+     * a time, either spawning the server or submitting a command. Also used by
+     * the server to detect when a client disconnects, so it can terminate execution
+     */
+    final public static String clientLock = "clientLock";
 
     /**
      * Lock file ensuring a single server is running in a particular mill-worker
@@ -13,13 +20,6 @@ public class ServerFiles {
      * the lock and the others fail to do so and terminate immediately.
      */
     final public static String processLock = "processLock";
-
-    /**
-     * Ensures only a single client is manipulating each mill-worker folder at
-     * a time, either spawning the server or submitting a command. Also used by
-     * the server to detect when a client disconnects, so it can terminate execution
-     */
-    final public static String clientLock = "clientLock";
 
     /**
      * The pipe by which the client snd server exchange IO

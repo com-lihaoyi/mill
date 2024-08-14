@@ -27,18 +27,18 @@ import mill.main.client.ServerFiles;
  */
 final public class Locks implements AutoCloseable {
 
-    final public Lock processLock;
     final public Lock clientLock;
+    final public Lock processLock;
 
-    public Locks(Lock processLock, Lock clientLock){
-        this.processLock = processLock;
+    public Locks(Lock clientLock, Lock processLock){
         this.clientLock = clientLock;
+        this.processLock = processLock;
     }
 
     public static Locks files(String lockBase) throws Exception {
         return new Locks(
-            new FileLock(lockBase + "/" + ServerFiles.processLock),
-            new FileLock(lockBase + "/" + ServerFiles.clientLock)
+            new FileLock(lockBase + "/" + ServerFiles.clientLock),
+            new FileLock(lockBase + "/" + ServerFiles.processLock)
         );
     }
 
@@ -51,7 +51,7 @@ final public class Locks implements AutoCloseable {
 
     @Override
     public void close() throws Exception {
-        processLock.close();
         clientLock.close();
+        processLock.close();
     }
 }
