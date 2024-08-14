@@ -126,11 +126,7 @@ public class MillServerLauncher {
             Util.writeMap(env, f);
         }
 
-        boolean serverInit = false;
-        if (locks.processLock.probe()) {
-            serverInit = true;
-            initServer.run();
-        }
+        if (locks.processLock.probe()) initServer.run();
 
         while (locks.processLock.probe()) Thread.sleep(3);
 
@@ -155,25 +151,16 @@ public class MillServerLauncher {
 
         InputStream outErr = ioSocket.getInputStream();
         OutputStream in = ioSocket.getOutputStream();
-        ProxyStreamPumper outPump = new ProxyStreamPumper(outErr, stdout, stderr);
+        ProxyStream.Pumper outPumper = new ProxyStream.Pumper(outErr, stdout, stderr);
         InputPumper inPump = new InputPumper(() -> stdin, () -> in, true);
-        Thread outThread = new Thread(outPump, "outPump");
-        outThread.setDaemon(true);
+        Thread outPumperThread = new Thread(outPumper, "outPump");
+        outPumperThread.setDaemon(true);
         Thread inThread = new Thread(inPump, "inPump");
         inThread.setDaemon(true);
-        outThread.start();
+        outPumperThread.start();
         inThread.start();
 
-        locks.serverLock.await();
-
-        // Although the process that the server was running has terminated and the server has sent all the stdout/stderr
-        // over the unix pipe and released its lock we don't know that all the data has arrived at the client
-        // The outThread of the ProxyStreamPumper will not close until the socket is closed (so we can't join on it)
-        // but we also can't close the socket until all the data has arrived. Catch 22. We could signal termination
-        // in the stream (ProxyOutputStream / ProxyStreamPumper) but that would require a new protocol.
-        // So we just wait until there has been X ms with no data
-
-        outPump.getLastData().waitForSilence(50);
+        outPumperThread.join();
 
         try {
             return Integer.parseInt(Files.readAllLines(Paths.get(lockBase + "/" + ServerFiles.exitCode)).get(0));

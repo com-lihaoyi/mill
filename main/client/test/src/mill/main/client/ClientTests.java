@@ -115,8 +115,8 @@ public class ClientTests {
                                         int chunkMax) throws Exception{
 
         ByteArrayOutputStream pipe = new ByteArrayOutputStream();
-        OutputStream src1 = new ProxyOutputStream(pipe, 1);
-        OutputStream src2 = new ProxyOutputStream(pipe, -1);
+        OutputStream src1 = new ProxyStream.Output(pipe, ProxyStream.OUT);
+        OutputStream src2 = new ProxyStream.Output(pipe, ProxyStream.ERR);
 
         Random random = new Random(31337);
 
@@ -140,7 +140,7 @@ public class ClientTests {
 
         ByteArrayOutputStream dest1 = new ByteArrayOutputStream();
         ByteArrayOutputStream dest2 = new ByteArrayOutputStream();
-        ProxyStreamPumper pumper = new ProxyStreamPumper(
+        ProxyStream.Pumper pumper = new ProxyStream.Pumper(
                 new ByteArrayInputStream(bytes),
                 dest1, dest2
         );

@@ -10,6 +10,7 @@ import org.newsclub.net.unix.AFUNIXSocketAddress
 import mill.main.BuildInfo
 import mill.main.client._
 import mill.api.{SystemStreams, internal}
+import mill.main.client.ProxyStream.Output
 import mill.main.client.lock.{Lock, Locks}
 
 import scala.util.Try
@@ -52,7 +53,7 @@ object MillServerMain extends MillServerMain[RunnerState] {
       Try(System.getProperty("mill.server_timeout").toInt).getOrElse(5 * 60 * 1000) // 5 minutes
 
     new Server(
-      lockBase = args0(0),
+      lockBase = os.Path(args0(0)),
       this,
       () => System.exit(Util.ExitServerCodeWhenIdle()),
       acceptTimeoutMillis = acceptTimeoutMillis,
@@ -86,7 +87,7 @@ object MillServerMain extends MillServerMain[RunnerState] {
 }
 
 class Server[T](
-    lockBase: String,
+    lockBase: os.Path,
     sm: MillServerMain[T],
     interruptServer: () => Unit,
     acceptTimeoutMillis: Int,
@@ -99,36 +100,33 @@ class Server[T](
     Server.tryLockBlock(locks.processLock) {
       var running = true
       while (running) {
-        Server.lockBlock(locks.serverLock) {
 
-          val socketName = ServerFiles.pipe(lockBase)
+        val socketPath = os.Path(ServerFiles.pipe(lockBase.toString()))
 
-          new File(socketName).delete()
+        os.remove.all(socketPath)
 
-          val addr =
-            AFUNIXSocketAddress.of(os.Path(new File(socketName)).relativeTo(os.pwd).toNIO.toFile)
-          val serverSocket = AFUNIXServerSocket.bindOn(addr)
-          val socketClose = () => serverSocket.close()
+        // Use relative path because otherwise the full path might be too long for the socket API
+        val addr =
+          AFUNIXSocketAddress.of(socketPath.relativeTo(os.pwd).toNIO.toFile)
+        val serverSocket = AFUNIXServerSocket.bindOn(addr)
+        val socketClose = () => serverSocket.close()
 
-          val sockOpt = Server.interruptWith(
-            "MillSocketTimeoutInterruptThread",
-            acceptTimeoutMillis,
-            socketClose(),
-            serverSocket.accept()
-          )
+        val sockOpt = Server.interruptWith(
+          "MillSocketTimeoutInterruptThread",
+          acceptTimeoutMillis,
+          socketClose(),
+          serverSocket.accept()
+        )
 
-          sockOpt match {
-            case None => running = false
-            case Some(sock) =>
-              try {
-                handleRun(sock, initialSystemProperties)
-                serverSocket.close()
-              } catch { case e: Throwable => e.printStackTrace(originalStdout) }
-          }
+        sockOpt match {
+          case None => running = false
+          case Some(sock) =>
+            try {
+              try handleRun(sock, initialSystemProperties)
+              catch { case e: Throwable => e.printStackTrace(originalStdout) }
+              finally sock.close();
+            } finally serverSocket.close()
         }
-        // Make sure you give an opportunity for the client to probe the lock
-        // and realize the server has released it to signal completion
-        Thread.sleep(10)
       }
     }.getOrElse(throw new Exception("PID already present"))
   }
@@ -146,84 +144,86 @@ class Server[T](
   def handleRun(clientSocket: Socket, initialSystemProperties: Map[String, String]): Unit = {
 
     val currentOutErr = clientSocket.getOutputStream
-    val stdout = new PrintStream(new ProxyOutputStream(currentOutErr, 1), true)
-    val stderr = new PrintStream(new ProxyOutputStream(currentOutErr, -1), true)
-    // Proxy the input stream through a pair of Piped**putStream via a pumper,
-    // as the `UnixDomainSocketInputStream` we get directly from the socket does
-    // not properly implement `available(): Int` and thus messes up polling logic
-    // that relies on that method
-    val proxiedSocketInput = proxyInputStreamThroughPumper(clientSocket.getInputStream)
+    try {
+      val stdout = new PrintStream(new Output(currentOutErr, ProxyStream.OUT), true)
+      val stderr = new PrintStream(new Output(currentOutErr, ProxyStream.ERR), true)
 
-    val argStream = new FileInputStream(lockBase + "/" + ServerFiles.runArgs)
-    val interactive = argStream.read() != 0
-    val clientMillVersion = Util.readString(argStream)
-    val serverMillVersion = BuildInfo.millVersion
-    if (clientMillVersion != serverMillVersion) {
-      stderr.println(
-        s"Mill version changed ($serverMillVersion -> $clientMillVersion), re-starting server"
+      // Proxy the input stream through a pair of Piped**putStream via a pumper,
+      // as the `UnixDomainSocketInputStream` we get directly from the socket does
+      // not properly implement `available(): Int` and thus messes up polling logic
+      // that relies on that method
+      val proxiedSocketInput = proxyInputStreamThroughPumper(clientSocket.getInputStream)
+
+      val argStream = os.read.inputStream(lockBase / ServerFiles.runArgs)
+      val interactive = argStream.read() != 0
+      val clientMillVersion = Util.readString(argStream)
+      val serverMillVersion = BuildInfo.millVersion
+      if (clientMillVersion != serverMillVersion) {
+        stderr.println(
+          s"Mill version changed ($serverMillVersion -> $clientMillVersion), re-starting server"
+        )
+        os.write(
+          lockBase / ServerFiles.exitCode,
+          Util.ExitServerCodeWhenVersionMismatch().toString.getBytes()
+        )
+        System.exit(Util.ExitServerCodeWhenVersionMismatch())
+      }
+      val args = Util.parseArgs(argStream)
+      val env = Util.parseMap(argStream)
+      val userSpecifiedProperties = Util.parseMap(argStream)
+      argStream.close()
+
+      @volatile var done = false
+      @volatile var idle = false
+      val t = new Thread(
+        () =>
+          try {
+            val (result, newStateCache) = sm.main0(
+              args,
+              sm.stateCache,
+              interactive,
+              new SystemStreams(stdout, stderr, proxiedSocketInput),
+              env.asScala.toMap,
+              idle = _,
+              userSpecifiedProperties.asScala.toMap,
+              initialSystemProperties
+            )
+
+            sm.stateCache = newStateCache
+            os.write.over(
+              lockBase / ServerFiles.exitCode,
+              (if (result) 0 else 1).toString.getBytes()
+            )
+          } finally {
+            done = true
+            idle = true
+          },
+        "MillServerActionRunner"
       )
-      java.nio.file.Files.write(
-        java.nio.file.Paths.get(lockBase + "/" + ServerFiles.exitCode),
-        s"${Util.ExitServerCodeWhenVersionMismatch()}".getBytes()
-      )
-      System.exit(Util.ExitServerCodeWhenVersionMismatch())
-    }
-    val args = Util.parseArgs(argStream)
-    val env = Util.parseMap(argStream)
-    val userSpecifiedProperties = Util.parseMap(argStream)
-    argStream.close()
+      t.start()
+      // We cannot simply use Lock#await here, because the filesystem doesn't
+      // realize the clientLock/serverLock are held by different threads in the
+      // two processes and gives a spurious deadlock error
+      while (!done && !locks.clientLock.probe()) Thread.sleep(3)
 
-    @volatile var done = false
-    @volatile var idle = false
-    val t = new Thread(
-      () =>
-        try {
-          val (result, newStateCache) = sm.main0(
-            args,
-            sm.stateCache,
-            interactive,
-            new SystemStreams(stdout, stderr, proxiedSocketInput),
-            env.asScala.toMap,
-            idle = _,
-            userSpecifiedProperties.asScala.toMap,
-            initialSystemProperties
-          )
+      if (!idle) interruptServer()
 
-          sm.stateCache = newStateCache
-          java.nio.file.Files.write(
-            java.nio.file.Paths.get(lockBase + "/exitCode"),
-            (if (result) 0 else 1).toString.getBytes
-          )
-        } finally {
-          done = true
-          idle = true
-        },
-      "MillServerActionRunner"
-    )
-    t.start()
-    // We cannot simply use Lock#await here, because the filesystem doesn't
-    // realize the clientLock/serverLock are held by different threads in the
-    // two processes and gives a spurious deadlock error
-    while (!done && !locks.clientLock.probe()) Thread.sleep(3)
+      t.interrupt()
+      // Try to give thread a moment to stop before we kill it for real
+      Thread.sleep(5)
+      try t.stop()
+      catch {
+        case e: UnsupportedOperationException =>
+        // nothing we can do about, removed in Java 20
+        case e: java.lang.Error if e.getMessage.contains("Cleaner terminated abnormally") =>
+        // ignore this error and do nothing; seems benign
+      }
 
-    if (!idle) interruptServer()
+      // flush before closing the socket
+      System.out.flush()
+      System.err.flush()
 
-    t.interrupt()
-    // Try to give thread a moment to stop before we kill it for real
-    Thread.sleep(5)
-    try t.stop()
-    catch {
-      case e: UnsupportedOperationException =>
-      // nothing we can do about, removed in Java 20
-      case e: java.lang.Error if e.getMessage.contains("Cleaner terminated abnormally") =>
-      // ignore this error and do nothing; seems benign
-    }
-
-    // flush before closing the socket
-    System.out.flush()
-    System.err.flush()
-
-    clientSocket.close()
+    } finally ProxyStream.sendEnd(currentOutErr) // Send a termination
   }
 }
 
