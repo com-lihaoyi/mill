@@ -191,7 +191,7 @@ class Server[T](
             )
 
             sm.stateCache = newStateCache
-            os.write(lockBase / ServerFiles.exitCode, (if (result) 0 else 1).toString.getBytes())
+            os.write.over(lockBase / ServerFiles.exitCode, (if (result) 0 else 1).toString.getBytes())
           } finally {
             done = true
             idle = true
