@@ -77,7 +77,6 @@ public class MillServerLauncher {
                             throw new RuntimeException(e);
                         }
                     },
-                    locks,
                     System.in,
                     System.out,
                     System.err,
@@ -112,7 +111,6 @@ public class MillServerLauncher {
     public static int run(
             String lockBase,
             Runnable initServer,
-            Locks locks,
             InputStream stdin,
             OutputStream stdout,
             OutputStream stderr,
@@ -125,6 +123,8 @@ public class MillServerLauncher {
             Util.writeArgs(args, f);
             Util.writeMap(env, f);
         }
+
+        initServer.run();
 
         String socketName = ServerFiles.pipe(lockBase);
         AFUNIXSocketAddress addr = AFUNIXSocketAddress.of(new File(socketName));
