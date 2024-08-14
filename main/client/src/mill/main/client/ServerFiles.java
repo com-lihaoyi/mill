@@ -6,7 +6,7 @@ package mill.main.client;
  */
 public class ServerFiles {
     final public static String sandbox = "sandbox";
-    
+
     /**
      * Ensures only a single client is manipulating each mill-worker folder at
      * a time, either spawning the server or submitting a command. Also used by
@@ -30,7 +30,7 @@ public class ServerFiles {
      */
     public static String pipe(String base) {
         try {
-            return base + "/mill-" + Util.md5hex(new java.io.File(base).getCanonicalPath()) + "-io";
+            return base + "mill-" + Util.md5hex(new java.io.File(base).getCanonicalPath()) + "-io";
         }catch (Exception e){
             throw new RuntimeException(e);
         }

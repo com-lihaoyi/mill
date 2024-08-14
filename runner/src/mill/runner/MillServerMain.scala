@@ -4,6 +4,7 @@ import sun.misc.{Signal, SignalHandler}
 
 import java.io._
 import java.net.Socket
+import java.nio.file.{Files, Paths}
 import scala.jdk.CollectionConverters._
 import org.newsclub.net.unix.AFUNIXServerSocket
 import org.newsclub.net.unix.AFUNIXSocketAddress
@@ -53,7 +54,7 @@ object MillServerMain extends MillServerMain[RunnerState] {
       Try(System.getProperty("mill.server_timeout").toInt).getOrElse(5 * 60 * 1000) // 5 minutes
 
     new Server(
-      lockBase = args0(0),
+      lockBase = os.Path(args0(0)),
       this,
       () => System.exit(Util.ExitServerCodeWhenIdle()),
       acceptTimeoutMillis = acceptTimeoutMillis,
@@ -87,7 +88,7 @@ object MillServerMain extends MillServerMain[RunnerState] {
 }
 
 class Server[T](
-    lockBase: String,
+    lockBase: os.Path,
     sm: MillServerMain[T],
     interruptServer: () => Unit,
     acceptTimeoutMillis: Int,
@@ -101,13 +102,13 @@ class Server[T](
       var running = true
       while (running) {
 
-        val socketName = ServerFiles.pipe(lockBase)
+        val socketPath = os.Path(ServerFiles.pipe(lockBase.toString()))
 
-        new File(socketName).delete()
+        os.remove.all(socketPath)
 
         // Use relative path because otherwise the full path might be too long for the socket API
         val addr =
-          AFUNIXSocketAddress.of(os.Path(new File(socketName)).relativeTo(os.pwd).toNIO.toFile)
+          AFUNIXSocketAddress.of(socketPath.relativeTo(os.pwd).toNIO.toFile)
         val serverSocket = AFUNIXServerSocket.bindOn(addr)
         val socketClose = () => serverSocket.close()
 
@@ -158,7 +159,7 @@ class Server[T](
       // that relies on that method
       val proxiedSocketInput = proxyInputStreamThroughPumper(clientSocket.getInputStream)
 
-      val argStream = new FileInputStream(lockBase + "/" + ServerFiles.runArgs)
+      val argStream = os.read.inputStream(lockBase / ServerFiles.runArgs)
       val interactive = argStream.read() != 0
       val clientMillVersion = Util.readString(argStream)
       val serverMillVersion = BuildInfo.millVersion
@@ -166,9 +167,9 @@ class Server[T](
         stderr.println(
           s"Mill version changed ($serverMillVersion -> $clientMillVersion), re-starting server"
         )
-        java.nio.file.Files.write(
-          java.nio.file.Paths.get(lockBase + "/" + ServerFiles.exitCode),
-          s"${Util.ExitServerCodeWhenVersionMismatch()}".getBytes()
+        os.write(
+          lockBase / ServerFiles.exitCode,
+          Util.ExitServerCodeWhenVersionMismatch().toString.getBytes()
         )
         System.exit(Util.ExitServerCodeWhenVersionMismatch())
       }
@@ -194,10 +195,7 @@ class Server[T](
             )
 
             sm.stateCache = newStateCache
-            java.nio.file.Files.write(
-              java.nio.file.Paths.get(lockBase + "/exitCode"),
-              (if (result) 0 else 1).toString.getBytes
-            )
+            os.write(lockBase / ServerFiles.exitCode, (if (result) 0 else 1).toString.getBytes())
           } finally {
             done = true
             idle = true

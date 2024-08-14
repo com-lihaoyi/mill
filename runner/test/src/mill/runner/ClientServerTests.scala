@@ -52,16 +52,16 @@ object ClientServerTests extends TestSuite {
     (in, out, err)
   }
   def init() = {
-    val tmpDir = java.nio.file.Files.createTempDirectory("")
+    val tmpDir = os.temp.dir()
     val locks = Locks.memory()
 
     (tmpDir, locks)
   }
 
-  def spawnEchoServer(tmpDir: java.nio.file.Path, locks: Locks): Unit = {
+  def spawnEchoServer(tmpDir: os.Path, locks: Locks): Unit = {
     new Thread(() =>
       new Server(
-        tmpDir.toString,
+        tmpDir,
         new EchoServer(),
         () => (),
         1000,
@@ -71,7 +71,7 @@ object ClientServerTests extends TestSuite {
   }
 
   def runClientAux(
-      tmpDir: java.nio.file.Path,
+      tmpDir: os.Path,
       locks: Locks
   )(env: Map[String, String], args: Array[String]) = {
     val (in, out, err) = initStreams()
