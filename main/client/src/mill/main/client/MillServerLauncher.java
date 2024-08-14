@@ -126,7 +126,9 @@ public class MillServerLauncher {
             Util.writeMap(env, f);
         }
 
-        initServer.run();
+        if (locks.processLock.probe()) initServer.run();
+
+        while (locks.processLock.probe()) Thread.sleep(3);
 
         String socketName = ServerFiles.pipe(lockBase);
         AFUNIXSocketAddress addr = AFUNIXSocketAddress.of(new File(socketName));

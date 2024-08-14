@@ -122,9 +122,9 @@ class Server[T](
           case Some(sock) =>
             try {
               try handleRun(sock, initialSystemProperties)
-              catch { case e: Throwable => e.printStackTrace(originalStdout)}
+              catch { case e: Throwable => e.printStackTrace(originalStdout) }
               finally sock.close();
-            }finally serverSocket.close()
+            } finally serverSocket.close()
         }
 
         // Make sure you give an opportunity for the client to probe the lock
@@ -226,7 +226,7 @@ class Server[T](
       System.out.flush()
       System.err.flush()
 
-    }finally ProxyStream.sendEnd(currentOutErr) // Send a termination
+    } finally ProxyStream.sendEnd(currentOutErr) // Send a termination
   }
 }
 
