@@ -4,7 +4,6 @@ import sun.misc.{Signal, SignalHandler}
 
 import java.io._
 import java.net.Socket
-import java.nio.file.{Files, Paths}
 import scala.jdk.CollectionConverters._
 import org.newsclub.net.unix.AFUNIXServerSocket
 import org.newsclub.net.unix.AFUNIXSocketAddress
