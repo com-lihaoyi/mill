@@ -37,6 +37,13 @@ public class ProxyStream{
     public static final int ERR = -1;
     public static final int END = 0;
 
+    public static void sendEnd(OutputStream out) throws IOException {
+        synchronized(out){
+            out.write(ProxyStream.END);
+            out.flush();
+        }
+    }
+
     public static class Output extends java.io.OutputStream {
         private java.io.OutputStream destination;
         private int key;

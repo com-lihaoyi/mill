@@ -225,10 +225,7 @@ class Server[T](
     System.out.flush()
     System.err.flush()
     // Send a termination
-    currentOutErr.synchronized {
-      currentOutErr.write(ProxyStream.END)
-      currentOutErr.flush()
-    }
+    ProxyStream.sendEnd(currentOutErr)
     clientSocket.close()
   }
 }
