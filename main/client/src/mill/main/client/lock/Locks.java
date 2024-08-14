@@ -17,7 +17,9 @@ import mill.main.client.ServerFiles;
  * - Server: loop:
  *   - Listen for incoming client requests on serverSocket
  *   - Execute client request
- *   - If clientLock is released during execution, terminate server
+ *   - If clientLock is released during execution, terminate server (otherwise
+ *     we have no safe way of termianting the in-process request, so the server
+ *     may continue running for arbitrarily long with no client attached)
  *   - Send `ProxyStream.END` packet and call `clientSocket.close()`
  * - Client:
  *   - Wait for `ProxyStream.END` packet or `clientSocket.close()`,
