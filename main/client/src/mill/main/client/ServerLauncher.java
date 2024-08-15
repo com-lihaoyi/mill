@@ -59,8 +59,8 @@ public class ServerLauncher {
         while (serverIndex < serverProcessesLimit) { // Try each possible server process (-1 to -5)
             serverIndex++;
             final String serverDir = out + "/" + millWorker + versionAndJvmHomeEncoding + "-" + serverIndex;
-            java.io.File lockBaseFile = new java.io.File(serverDir);
-            lockBaseFile.mkdirs();
+            java.io.File serverDirFile = new java.io.File(serverDir);
+            serverDirFile.mkdirs();
 
             int lockAttempts = 0;
             while (lockAttempts < maxLockAttempts) { // Try to lock a particular server
@@ -78,7 +78,7 @@ public class ServerLauncher {
                         );
                     }
                 } catch (Exception e) {
-                    for (File file : lockBaseFile.listFiles()) file.delete();
+                    for (File file : serverDirFile.listFiles()) file.delete();
                 } finally {
                     lockAttempts++;
                 }

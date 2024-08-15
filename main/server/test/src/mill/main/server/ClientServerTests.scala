@@ -9,11 +9,15 @@ import scala.jdk.CollectionConverters._
 import utest._
 
 
+/**
+ * Exercises the client-server logic in memory, using in-memory locks
+ * and in-memory clients and servers
+ */
 object ClientServerTests extends TestSuite {
 
   val ENDL = System.lineSeparator()
-  class EchoServer(override val serverId: String, log: String => Unit, tmpDir: os.Path, locks: Locks)
-    extends Server[Option[Int]](tmpDir, 1000, locks) with Runnable {
+  class EchoServer(override val serverId: String, log: String => Unit, serverDir: os.Path, locks: Locks)
+    extends Server[Option[Int]](serverDir, 1000, locks) with Runnable {
     override def exitServer() = {
       log(serverId + " exiting server")
       super.exitServer()
@@ -60,22 +64,14 @@ object ClientServerTests extends TestSuite {
     val terminatedServers = collection.mutable.Set.empty[String]
     val dest = os.pwd / "out"
     os.makeDir.all(dest)
-    val tmpDir = os.temp.dir(dest)
+    val serverDir = os.temp.dir(dest)
 
     val locks = Locks.memory()
 
-
-    def initStreams() = {
-      val in = new ByteArrayInputStream(s"hello${ENDL}".getBytes())
-      val out = new ByteArrayOutputStream()
-      val err = new ByteArrayOutputStream()
-      (in, out, err)
-    }
-
-    def spawnEchoServer(tmpDir: os.Path, locks: Locks): Unit = {
+    def spawnEchoServer(serverDir: os.Path, locks: Locks): Unit = {
       val serverId = "server-" + nextServerId
       nextServerId += 1
-      new Thread(new EchoServer(serverId, log, tmpDir, locks)).start()
+      new Thread(new EchoServer(serverId, log, serverDir, locks)).start()
     }
     def log(s: String) = {
       logs.append(s)
@@ -84,10 +80,10 @@ object ClientServerTests extends TestSuite {
     val logs = collection.mutable.Buffer.empty[String]
 
 
-    def runClient(serverDir: os.Path,
-                  locks: Locks
-                    )(env: Map[String, String], args: Array[String]) = {
-      val (in, out, err) = initStreams()
+    def runClient(env: Map[String, String], args: Array[String]) = {
+      val in = new ByteArrayInputStream(s"hello${ENDL}".getBytes())
+      val out = new ByteArrayOutputStream()
+      val err = new ByteArrayOutputStream()
       Server.lockBlock(locks.clientLock) {
         mill.main.client.ServerLauncher.run(
           serverDir.toString,
@@ -104,7 +100,7 @@ object ClientServerTests extends TestSuite {
       }
     }
 
-    def apply(env: Map[String, String], args: Array[String]) = runClient(tmpDir, locks)(env, args)
+    def apply(env: Map[String, String], args: Array[String]) = runClient(env, args)
 
     def logsFor(suffix: String) = {
       logs.collect{case s if s.endsWith(" " + suffix) => s.dropRight(1 + suffix.length)}
