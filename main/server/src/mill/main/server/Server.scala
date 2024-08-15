@@ -165,6 +165,8 @@ abstract class Server[T](
       }
       val args = Util.parseArgs(argStream)
       val env = Util.parseMap(argStream)
+      serverLog("args " + upickle.default.write(args))
+      serverLog("env " + upickle.default.write(env.asScala))
       val userSpecifiedProperties = Util.parseMap(argStream)
       argStream.close()
 
@@ -185,10 +187,8 @@ abstract class Server[T](
             )
 
             stateCache = newStateCache
-            os.write.over(
-              serverDir / ServerFiles.exitCode,
-              (if (result) 0 else 1).toString.getBytes()
-            )
+            serverLog("exitCode " + ServerFiles.exitCode)
+            os.write.over(serverDir / ServerFiles.exitCode, if (result) "0" else "1")
           } finally {
             done = true
             idle = true
