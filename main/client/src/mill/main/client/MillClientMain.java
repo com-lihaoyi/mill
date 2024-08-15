@@ -7,9 +7,6 @@ import java.util.function.BiConsumer;
  * A Scala implementation would result in the JVM loading much more classes almost doubling the start-up times.
  */
 public class MillClientMain {
-
-
-
     public static void main(String[] args) throws Exception {
         boolean runNoServer = false;
         if (args.length > 0) {
@@ -55,7 +52,7 @@ public class MillClientMain {
 
     private static BiConsumer<String, Boolean> initServer = (serverDir, setJnaNoSys) -> {
         try {
-            MillLauncher.launchMillServer(serverDir, setJnaNoSys);
+            MillProcessLauncher.launchMillServer(serverDir, setJnaNoSys);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

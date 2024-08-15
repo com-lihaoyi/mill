@@ -44,7 +44,7 @@ class MillNoServerLauncher {
     public static void runMain(String[] args) throws Exception {
         LoadResult loadResult = load();
         if (loadResult.millMainMethod.isPresent()) {
-            int exitVal = MillLauncher.launchMillNoServer(args);
+            int exitVal = MillProcessLauncher.launchMillNoServer(args);
             System.exit(exitVal);
         } else {
             throw new RuntimeException("Cannot load mill.runner.MillMain class");
