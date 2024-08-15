@@ -20,6 +20,9 @@ abstract class Server[T](
     acceptTimeoutMillis: Int,
     locks: Locks
 ) {
+
+  var stateCache = stateCache0
+  def stateCache0: T
   val serverId = scala.util.Random.nextLong().toString
   def serverLog(s: String) = os.write.append(serverDir / ServerFiles.serverLog, s + "\n")
 
@@ -66,8 +69,6 @@ abstract class Server[T](
     pumperThread.start()
     pipedInput
   }
-
-  def handleRun(clientSocket: Socket, initialSystemProperties: Map[String, String]): Unit
 
   def watchServerIdFile() = {
     os.write.over(serverDir / ServerFiles.serverId, serverId)
@@ -122,6 +123,103 @@ abstract class Server[T](
       interrupt = false
     }
   }
+
+  def handleRun(clientSocket: Socket, initialSystemProperties: Map[String, String]): Unit = {
+
+    val currentOutErr = clientSocket.getOutputStream
+    try {
+      val stdout = new PrintStream(new Output(currentOutErr, ProxyStream.OUT), true)
+      val stderr = new PrintStream(new Output(currentOutErr, ProxyStream.ERR), true)
+
+      // Proxy the input stream through a pair of Piped**putStream via a pumper,
+      // as the `UnixDomainSocketInputStream` we get directly from the socket does
+      // not properly implement `available(): Int` and thus messes up polling logic
+      // that relies on that method
+      val proxiedSocketInput = proxyInputStreamThroughPumper(clientSocket.getInputStream)
+
+      val argStream = os.read.inputStream(serverDir / ServerFiles.runArgs)
+      val interactive = argStream.read() != 0
+      val clientMillVersion = Util.readString(argStream)
+      val serverMillVersion = BuildInfo.millVersion
+      if (clientMillVersion != serverMillVersion) {
+        stderr.println(
+          s"Mill version changed ($serverMillVersion -> $clientMillVersion), re-starting server"
+        )
+        os.write(
+          serverDir / ServerFiles.exitCode,
+          Util.ExitServerCodeWhenVersionMismatch().toString.getBytes()
+        )
+        System.exit(Util.ExitServerCodeWhenVersionMismatch())
+      }
+      val args = Util.parseArgs(argStream)
+      val env = Util.parseMap(argStream)
+      val userSpecifiedProperties = Util.parseMap(argStream)
+      argStream.close()
+
+      @volatile var done = false
+      @volatile var idle = false
+      val t = new Thread(
+        () =>
+          try {
+            val (result, newStateCache) = main0(
+              args,
+              stateCache,
+              interactive,
+              new SystemStreams(stdout, stderr, proxiedSocketInput),
+              env.asScala.toMap,
+              idle = _,
+              userSpecifiedProperties.asScala.toMap,
+              initialSystemProperties
+            )
+
+            stateCache = newStateCache
+            os.write.over(
+              serverDir / ServerFiles.exitCode,
+              (if (result) 0 else 1).toString.getBytes()
+            )
+          } finally {
+            done = true
+            idle = true
+          },
+        "MillServerActionRunner"
+      )
+      t.start()
+      // We cannot simply use Lock#await here, because the filesystem doesn't
+      // realize the clientLock/serverLock are held by different threads in the
+      // two processes and gives a spurious deadlock error
+      while (!done && !locks.clientLock.probe()) Thread.sleep(3)
+
+      if (!idle) interruptServer()
+
+      t.interrupt()
+      // Try to give thread a moment to stop before we kill it for real
+      Thread.sleep(5)
+      try t.stop()
+      catch {
+        case e: UnsupportedOperationException =>
+        // nothing we can do about, removed in Java 20
+        case e: java.lang.Error if e.getMessage.contains("Cleaner terminated abnormally") =>
+        // ignore this error and do nothing; seems benign
+      }
+
+      // flush before closing the socket
+      System.out.flush()
+      System.err.flush()
+
+    } finally ProxyStream.sendEnd(currentOutErr) // Send a termination
+  }
+
+  def main0(
+             args: Array[String],
+             stateCache: T,
+             mainInteractive: Boolean,
+             streams: SystemStreams,
+             env: Map[String, String],
+             setIdle: Boolean => Unit,
+             userSpecifiedProperties: Map[String, String],
+             initialSystemProperties: Map[String, String]
+           ): (Boolean, T)
+
 }
 
 object Server {

@@ -52,95 +52,29 @@ class MillServerMain(
       locks
     ) {
 
-  var stateCache = RunnerState.empty
+  def stateCache0 = RunnerState.empty
 
-  def handleRun(clientSocket: Socket, initialSystemProperties: Map[String, String]): Unit = {
-
-    val currentOutErr = clientSocket.getOutputStream
-    try {
-      val stdout = new PrintStream(new Output(currentOutErr, ProxyStream.OUT), true)
-      val stderr = new PrintStream(new Output(currentOutErr, ProxyStream.ERR), true)
-
-      // Proxy the input stream through a pair of Piped**putStream via a pumper,
-      // as the `UnixDomainSocketInputStream` we get directly from the socket does
-      // not properly implement `available(): Int` and thus messes up polling logic
-      // that relies on that method
-      val proxiedSocketInput = proxyInputStreamThroughPumper(clientSocket.getInputStream)
-
-      val argStream = os.read.inputStream(lockBase / ServerFiles.runArgs)
-      val interactive = argStream.read() != 0
-      val clientMillVersion = Util.readString(argStream)
-      val serverMillVersion = BuildInfo.millVersion
-      if (clientMillVersion != serverMillVersion) {
-        stderr.println(
-          s"Mill version changed ($serverMillVersion -> $clientMillVersion), re-starting server"
-        )
-        os.write(
-          lockBase / ServerFiles.exitCode,
-          Util.ExitServerCodeWhenVersionMismatch().toString.getBytes()
-        )
-        System.exit(Util.ExitServerCodeWhenVersionMismatch())
-      }
-      val args = Util.parseArgs(argStream)
-      val env = Util.parseMap(argStream)
-      val userSpecifiedProperties = Util.parseMap(argStream)
-      argStream.close()
-
-      @volatile var done = false
-      @volatile var idle = false
-      val t = new Thread(
-        () =>
-          try {
-            val streams = new SystemStreams(stdout, stderr, proxiedSocketInput)
-            val (result, newStateCache) =
-              try MillMain.main0(
-                  args,
-                  stateCache,
-                  interactive,
-                  streams,
-                  None,
-                  env.asScala.toMap,
-                  idle = _,
-                  userSpecifiedProperties.asScala.toMap,
-                  initialSystemProperties
-                )
-              catch MillMain.handleMillException(streams.err, stateCache)
-
-            stateCache = newStateCache
-            os.write.over(
-              lockBase / ServerFiles.exitCode,
-              (if (result) 0 else 1).toString.getBytes()
-            )
-          } finally {
-            done = true
-            idle = true
-          },
-        "MillServerActionRunner"
-      )
-      t.start()
-      // We cannot simply use Lock#await here, because the filesystem doesn't
-      // realize the clientLock/serverLock are held by different threads in the
-      // two processes and gives a spurious deadlock error
-      while (!done && !locks.clientLock.probe()) Thread.sleep(3)
-
-      if (!idle) interruptServer()
-
-      t.interrupt()
-      // Try to give thread a moment to stop before we kill it for real
-      Thread.sleep(5)
-      try t.stop()
-      catch {
-        case e: UnsupportedOperationException =>
-        // nothing we can do about, removed in Java 20
-        case e: java.lang.Error if e.getMessage.contains("Cleaner terminated abnormally") =>
-        // ignore this error and do nothing; seems benign
-      }
-
-      // flush before closing the socket
-      System.out.flush()
-      System.err.flush()
-
-    } finally ProxyStream.sendEnd(currentOutErr) // Send a termination
+  def main0(
+             args: Array[String],
+             stateCache: RunnerState,
+             mainInteractive: Boolean,
+             streams: SystemStreams,
+             env: Map[String, String],
+             setIdle: Boolean => Unit,
+             userSpecifiedProperties: Map[String, String],
+             initialSystemProperties: Map[String, String]
+           ): (Boolean, RunnerState) = {
+    try MillMain.main0(
+      args = args,
+      stateCache = stateCache,
+      mainInteractive = mainInteractive,
+      streams0 = streams,
+      bspLog = None,
+      env = env,
+      setIdle = setIdle,
+      userSpecifiedProperties0 = userSpecifiedProperties,
+      initialSystemProperties = initialSystemProperties
+    )
+    catch MillMain.handleMillException(streams.err, stateCache)
   }
-
 }

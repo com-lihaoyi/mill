@@ -40,9 +40,6 @@ class EchoServer(tmpDir: os.Path, locks: Locks)
     streams.err.flush()
     (true, None)
   }
-
-  def handleRun(clientSocket: java.net.Socket, initialSystemProperties: Map[String, String]): Unit =
-    ???
 }
 
 object ClientServerTests extends TestSuite {
