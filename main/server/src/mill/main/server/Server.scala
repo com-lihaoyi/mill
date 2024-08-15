@@ -34,9 +34,10 @@ abstract class Server[T](
   def serverLog(s: String) = println(serverDir / ServerFiles.serverLog, s + "\n")
 
   def run(): Unit = {
+    serverLog("running server")
     val initialSystemProperties = sys.props.toMap
 
-    Server.tryLockBlock(locks.processLock) {
+    try Server.tryLockBlock(locks.processLock) {
       watchServerIdFile()
 
       while ({
@@ -55,6 +56,7 @@ abstract class Server[T](
       }) ()
 
     }.getOrElse(throw new Exception("Mill server process already present, exiting"))
+    finally serverLog("exiting server")
   }
 
   def bindSocket() = {
@@ -80,21 +82,23 @@ abstract class Server[T](
   def watchServerIdFile() = {
     os.write.over(serverDir / ServerFiles.serverId, serverId)
     val serverIdThread = new Thread(
-      () => {
-        while (true) {
+      () =>
+        while ( {
           Thread.sleep(100)
           Try(os.read(serverDir / ServerFiles.serverId)).toOption match {
             case None =>
               serverLog("serverId file missing, exiting")
               interruptServer()
+              false
             case Some(s) =>
-              if (s != serverId) {
+              if (s != serverId) true
+              else {
                 serverLog(s"serverId file contents $s does not match serverId $serverId, exiting")
                 interruptServer()
+                false
               }
           }
-        }
-      },
+        })() ,
       "Server ID Checker Thread"
     )
     serverIdThread.start()
