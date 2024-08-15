@@ -14,7 +14,7 @@ object ClientServerTests extends TestSuite {
   val ENDL = System.lineSeparator()
   class EchoServer(override val serverId: String, log: String => Unit, tmpDir: os.Path, locks: Locks)
     extends Server[Option[Int]](tmpDir, 1000, locks) with Runnable {
-    def interruptServer() = ()
+    def exitServer() = log(serverId + " exiting server")
     def stateCache0 = None
 
     override def serverLog(s: String) = {
@@ -103,6 +103,9 @@ object ClientServerTests extends TestSuite {
 
     def apply(env: Map[String, String], args: Array[String]) = runClient(tmpDir, locks)(env, args)
 
+    def logsFor(suffix: String) = {
+      logs.collect{case s if s.endsWith(" " + suffix) => s.dropRight(1 + suffix.length)}
+    }
   }
 
   def tests = Tests {
@@ -149,8 +152,8 @@ object ClientServerTests extends TestSuite {
           tester.locks.processLock.probe()
         )
 
-        val exitingServerLogs = tester.logs.collect{case s"$serverId exiting server" => serverId}
-        assert(exitingServerLogs == Seq("server-0"))
+        assert(tester.logsFor("Interrupting after 1000ms") == Seq("server-0"))
+        assert(tester.logsFor("exiting server") == Seq("server-0"))
 
         // Have a third client spawn/connect-to a new server at the same path
         val (serverDir3, out3, err3) = tester(Map(), Array(" World"))
@@ -163,9 +166,7 @@ object ClientServerTests extends TestSuite {
         os.remove.all(serverDir3)
         Thread.sleep(500)
 
-        val missingServerIdLogs =
-          tester.logs.collect{case s"$serverId serverId file missing, exiting" => serverId}
-        assert(missingServerIdLogs == Seq("server-1"))
+        assert(tester.logsFor("serverId file missing") == Seq("server-0", "server-1"))
 
       }
     }

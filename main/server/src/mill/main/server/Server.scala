@@ -26,7 +26,7 @@ abstract class Server[T](
     locks: Locks
 ) {
 
-  def interruptServer(): Unit
+  def exitServer(): Unit
   var stateCache = stateCache0
   def stateCache0: T
 
@@ -55,8 +55,8 @@ abstract class Server[T](
         finally serverSocket.close()
       }) ()
 
-    }.getOrElse(throw new Exception("Mill server process already present, exiting"))
-    finally serverLog("exiting server")
+    }.getOrElse(throw new Exception("Mill server process already present"))
+    finally exitServer()
   }
 
   def bindSocket() = {
@@ -87,14 +87,14 @@ abstract class Server[T](
           Thread.sleep(100)
           Try(os.read(serverDir / ServerFiles.serverId)).toOption match {
             case None =>
-              serverLog("serverId file missing, exiting")
-              interruptServer()
+              serverLog("serverId file missing")
+              exitServer()
               false
             case Some(s) =>
-              if (s != serverId) true
+              if (s == serverId) true
               else {
-                serverLog(s"serverId file contents $s does not match serverId $serverId, exiting")
-                interruptServer()
+                serverLog(s"serverId file contents $s does not match serverId $serverId")
+                exitServer()
                 false
               }
           }
@@ -200,7 +200,7 @@ abstract class Server[T](
       // two processes and gives a spurious deadlock error
       while (!done && !locks.clientLock.probe()) Thread.sleep(3)
 
-      if (!idle) interruptServer()
+      if (!idle) exitServer()
 
       t.interrupt()
       // Try to give thread a moment to stop before we kill it for real
