@@ -169,10 +169,8 @@ public abstract class ServerLauncher {
             outPumperThread.start();
             inThread.start();
 
-            System.out.println("forceFailureForTestingMillisDelay " + forceFailureForTestingMillisDelay);
             if (forceFailureForTestingMillisDelay > 0){
                 Thread.sleep(forceFailureForTestingMillisDelay);
-                System.out.println("forceFailureForTestingMillisDelay BOOM");
                 throw new Exception("Force failure for testing: " + serverDir);
             }
             outPumperThread.join();
