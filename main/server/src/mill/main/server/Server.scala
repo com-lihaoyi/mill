@@ -20,10 +20,9 @@ abstract class Server[T](
     acceptTimeoutMillis: Int,
     locks: Locks
 ) {
-
-  val originalStdout = System.out
   val serverId = scala.util.Random.nextLong().toString
   def serverLog(s: String) = os.write.append(serverDir / ServerFiles.serverLog, s + "\n")
+
   def run(): Unit = {
     val initialSystemProperties = sys.props.toMap
 
