@@ -20,8 +20,6 @@ abstract class Server[T](
     acceptTimeoutMillis: Int,
     locks: Locks
 ) {
-  def stateCache0: T
-  var stateCache = stateCache0
 
   val originalStdout = System.out
   val serverId = scala.util.Random.nextLong().toString

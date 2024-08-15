@@ -51,7 +51,8 @@ class MillServerMain(
       acceptTimeoutMillis,
       locks
     ) {
-  def stateCache0 = RunnerState.empty
+
+  var stateCache = RunnerState.empty
 
   def handleRun(clientSocket: Socket, initialSystemProperties: Map[String, String]): Unit = {
 
