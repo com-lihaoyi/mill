@@ -34,7 +34,6 @@ object MillServerMain {
 
     new MillServerMain(
       serverDir = os.Path(args0(0)),
-      () => System.exit(Util.ExitServerCodeWhenIdle()),
       acceptTimeoutMillis = acceptTimeoutMillis,
       Locks.files(args0(0))
     ).run()
@@ -42,16 +41,15 @@ object MillServerMain {
 }
 class MillServerMain(
     serverDir: os.Path,
-    interruptServer: () => Unit,
     acceptTimeoutMillis: Int,
     locks: Locks
 ) extends mill.main.server.Server[RunnerState](
       serverDir,
-      interruptServer,
       acceptTimeoutMillis,
       locks
     ) {
 
+  def interruptServer() = System.exit(Util.ExitServerCodeWhenIdle())
   def stateCache0 = RunnerState.empty
 
   def main0(

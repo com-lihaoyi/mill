@@ -22,11 +22,11 @@ import scala.util.Try
  */
 abstract class Server[T](
     serverDir: os.Path,
-    interruptServer: () => Unit,
     acceptTimeoutMillis: Int,
     locks: Locks
 ) {
 
+  def interruptServer(): Unit
   var stateCache = stateCache0
   def stateCache0: T
 
