@@ -29,7 +29,7 @@ final public class Locks implements AutoCloseable {
 
     @Override
     public void close() throws Exception {
-        clientLock.close();
-        processLock.close();
+        clientLock.delete();
+        processLock.delete();
     }
 }

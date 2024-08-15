@@ -32,7 +32,10 @@ abstract class Server[T](
   def stateCache0: T
 
   val serverId = java.lang.Long.toHexString(scala.util.Random.nextLong())
-  def serverLog(s: String) = println(serverDir / ServerFiles.serverLog, s + "\n")
+  def serverLog0(s: String): Unit =
+    os.write.append(serverDir / ServerFiles.serverLog, s"$s\n", createFolders = true)
+
+  def serverLog(s: String): Unit = serverLog0(s"$serverId $s")
 
   def run(): Unit = {
     serverLog("running server")

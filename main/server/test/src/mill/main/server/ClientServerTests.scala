@@ -2,6 +2,7 @@ package mill.main.server
 
 import java.io._
 import mill.main.client.Util
+import mill.main.client.ServerFiles
 import mill.main.client.lock.Locks
 import mill.api.SystemStreams
 
@@ -16,17 +17,19 @@ import utest._
 object ClientServerTests extends TestSuite {
 
   val ENDL = System.lineSeparator()
-  class EchoServer(override val serverId: String, log: String => Unit, serverDir: os.Path, locks: Locks)
+  class EchoServer(override val serverId: String, serverDir: os.Path, locks: Locks)
     extends Server[Option[Int]](serverDir, 1000, locks) with Runnable {
     override def exitServer() = {
-      log(serverId + " exiting server")
+      serverLog("exiting server")
       super.exitServer()
     }
     def stateCache0 = None
 
-    override def serverLog(s: String) = {
-      log(serverId + " " + s)
+    override def serverLog0(s: String) = {
+      println(s)
+      super.serverLog0(s)
     }
+
     def main0(
                args: Array[String],
                stateCache: Option[Int],
@@ -64,63 +67,56 @@ object ClientServerTests extends TestSuite {
     val terminatedServers = collection.mutable.Set.empty[String]
     val dest = os.pwd / "out"
     os.makeDir.all(dest)
-    val serverDir = os.temp.dir(dest)
+    val outDir = os.temp.dir(dest, deleteOnExit = false)
 
-    val locks = Locks.memory()
-
-    def spawnEchoServer(serverDir: os.Path, locks: Locks): Unit = {
-      val serverId = "server-" + nextServerId
-      nextServerId += 1
-      new Thread(new EchoServer(serverId, log, serverDir, locks)).start()
-    }
-    def log(s: String) = {
-      logs.append(s)
-      println(s)
-    }
-    val logs = collection.mutable.Buffer.empty[String]
-
+    val memoryLocks = Array.fill(10)(Locks.memory());
 
     def runClient(env: Map[String, String], args: Array[String]) = {
       val in = new ByteArrayInputStream(s"hello${ENDL}".getBytes())
       val out = new ByteArrayOutputStream()
       val err = new ByteArrayOutputStream()
-      Server.lockBlock(locks.clientLock) {
-        mill.main.client.ServerLauncher.run(
-          serverDir.toString,
-          () => spawnEchoServer(serverDir, locks),
-          locks,
-          in,
-          out,
-          err,
-          args,
-          env.asJava
-        )
+      val result = new mill.main.client.ServerLauncher(
+        in,
+        new PrintStream(out),
+        new PrintStream(err),
+        env.asJava,
+        args,
+        memoryLocks
+      ){
+        def initServer(serverDir: String, b: Boolean, locks: Locks) = {
+          val serverId = "server-" + nextServerId
+          nextServerId += 1
+          new Thread(new EchoServer(serverId, os.Path(serverDir, os.pwd), locks)).start()
+        }
+      }.acquireLocksAndRun(outDir.relativeTo(os.pwd).toString)
 
-        ClientResult(serverDir, new String(out.toByteArray), new String(err.toByteArray))
-      }
+      ClientResult(
+        result.exitCode,
+        os.Path(result.serverDir, os.pwd),
+        outDir,
+        out.toString,
+        err.toString
+      )
     }
 
     def apply(env: Map[String, String], args: Array[String]) = runClient(env, args)
-
-    def logsFor(suffix: String) = {
-      logs.collect{case s if s.endsWith(" " + suffix) => s.dropRight(1 + suffix.length)}
-    }
   }
 
-  case class ClientResult(serverDir: os.Path, out: String, err: String)
+  case class ClientResult(exitCode: Int,
+                          serverDir: os.Path,
+                          outDir: os.Path,
+                          out: String,
+                          err: String){
+    def logsFor(suffix: String) = {
+      os.read
+        .lines(serverDir / ServerFiles.serverLog)
+        .collect{case s if s.endsWith(" " + suffix) => s.dropRight(1 + suffix.length)}
+    }
+  }
 
   def tests = Tests {
     "hello" - {
       val tester = new Tester
-
-
-      // Make sure the simple "have the client start a server and
-      // exchange one message" workflow works from end to end.
-
-      assert(
-        tester.locks.clientLock.probe(),
-        tester.locks.processLock.probe()
-      )
 
       val res1 = tester(Map(), Array("world"))
 
@@ -129,15 +125,7 @@ object ClientServerTests extends TestSuite {
         res1.err == s"HELLOworld${ENDL}"
       )
 
-      // Give a bit of time for the server to release the lock and
-      // re-acquire it to signal to the client that it"s" done
-
-      assert(
-        tester.locks.clientLock.probe(),
-        !tester.locks.processLock.probe()
-      )
-
-      // A seecond client in sequence connect to the same server
+      // A second client in sequence connect to the same server
       val res2 = tester(Map(), Array(" WORLD"))
 
       assert(
@@ -148,13 +136,9 @@ object ClientServerTests extends TestSuite {
       if (!Util.isWindows) {
         // Make sure the server times out of not used for a while
         Thread.sleep(2000)
-        assert(
-          tester.locks.clientLock.probe(),
-          tester.locks.processLock.probe()
-        )
 
-        assert(tester.logsFor("Interrupting after 1000ms") == Seq("server-0"))
-        assert(tester.logsFor("exiting server") == Seq("server-0"))
+        assert(res2.logsFor("Interrupting after 1000ms") == Seq("server-0"))
+        assert(res2.logsFor("exiting server") == Seq("server-0"))
 
         // Have a third client spawn/connect-to a new server at the same path
         val res3 = tester(Map(), Array(" World"))
@@ -164,11 +148,11 @@ object ClientServerTests extends TestSuite {
         )
 
         // Make sure if we delete the out dir, the server notices and exits
-        os.remove.all(res3.serverDir)
+        os.remove.all(res3.outDir)
         Thread.sleep(500)
 
-        assert(tester.logsFor("serverId file missing") == Seq("server-1"))
-        assert(tester.logsFor("exiting server") == Seq("server-0", "server-1"))
+        assert(res3.logsFor("serverId file missing") == Seq("server-1"))
+        assert(res3.logsFor("exiting server") == Seq("server-1"))
 
       }
     }
@@ -178,11 +162,6 @@ object ClientServerTests extends TestSuite {
 
       // Make sure the simple "have the client start a server and
       // exchange one message" workflow works from end to end.
-
-      assert(
-        tester.locks.clientLock.probe(),
-        tester.locks.processLock.probe()
-      )
 
       def longString(s: String) = Array.fill(1000)(s).mkString
       val b1000 = longString("b")
@@ -201,11 +180,6 @@ object ClientServerTests extends TestSuite {
       assert(
         res1.out == expected,
         res1.err == ""
-      )
-
-      assert(
-        tester.locks.clientLock.probe(),
-        !tester.locks.processLock.probe()
       )
 
       val path = List(

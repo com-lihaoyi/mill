@@ -5,6 +5,8 @@ import java.util.function.BiConsumer;
 import mill.main.client.ServerLauncher;
 import mill.main.client.ServerFiles;
 import mill.main.client.Util;
+import mill.main.client.lock.Locks;
+import mill.main.client.OutFiles;
 import mill.main.client.ServerCouldNotBeStarted;
 
 /**
@@ -34,9 +36,14 @@ public class MillClientMain {
             MillNoServerLauncher.runMain(args);
         } else try {
             // start in client-server mode
-            int exitCode = ServerLauncher.runMain(args, initServer);
+            ServerLauncher launcher = new ServerLauncher(System.in, System.out, System.err, System.getenv(), args, null){
+                public void initServer(String serverDir, boolean setJnaNoSys, Locks locks) throws Exception{
+                    MillProcessLauncher.launchMillServer(serverDir, setJnaNoSys);
+                }
+            };
+            int exitCode = launcher.acquireLocksAndRun(OutFiles.out);
             if (exitCode == Util.ExitServerCodeWhenVersionMismatch()) {
-                exitCode = ServerLauncher.runMain(args, initServer);
+                exitCode = launcher.acquireLocksAndRun(OutFiles.out);
             }
             System.exit(exitCode);
         } catch (ServerCouldNotBeStarted e) {
@@ -55,11 +62,4 @@ public class MillClientMain {
         }
     }
 
-    private static BiConsumer<String, Boolean> initServer = (serverDir, setJnaNoSys) -> {
-        try {
-            MillProcessLauncher.launchMillServer(serverDir, setJnaNoSys);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    };
 }

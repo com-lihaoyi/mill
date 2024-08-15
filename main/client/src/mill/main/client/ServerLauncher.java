@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -42,10 +43,34 @@ import java.util.function.BiConsumer;
  *   - Wait for `ProxyStream.END` packet or `clientSocket.close()`,
  *     indicating server has finished execution and all data has been received
  */
-public class ServerLauncher {
+public abstract class ServerLauncher {
+    public static class Result{
+        public int exitCode;
+        public String serverDir;
+    }
     final static int tailerRefreshIntervalMillis = 2;
     final static int maxLockAttempts = 3;
-    public static int runMain(String[] args, BiConsumer<String, Boolean> initServer) throws Exception {
+    public abstract void initServer(String serverDir, boolean b, Locks locks) throws Exception;
+    InputStream stdin;
+    PrintStream stdout;
+    PrintStream stderr;
+    Map<String, String> env;
+    String[] args;
+    Locks[] memoryLocks;
+    public ServerLauncher(InputStream stdin,
+                          PrintStream stdout,
+                          PrintStream stderr,
+                          Map<String, String> env,
+                          String[] args,
+                          Locks[] memoryLocks){
+        this.stdin = stdin;
+        this.stdout = stdout;
+        this.stderr = stderr;
+        this.env = env;
+        this.args = args;
+        this.memoryLocks = memoryLocks;
+    }
+    public Result acquireLocksAndRun(String outDir) throws Exception {
 
         final boolean setJnaNoSys = System.getProperty("jna.nosys") == null;
         if (setJnaNoSys) {
@@ -58,24 +83,21 @@ public class ServerLauncher {
         int serverIndex = 0;
         while (serverIndex < serverProcessesLimit) { // Try each possible server process (-1 to -5)
             serverIndex++;
-            final String serverDir = out + "/" + millWorker + versionAndJvmHomeEncoding + "-" + serverIndex;
+            final String serverDir = outDir + "/" + millWorker + versionAndJvmHomeEncoding + "-" + serverIndex;
             java.io.File serverDirFile = new java.io.File(serverDir);
             serverDirFile.mkdirs();
 
             int lockAttempts = 0;
             while (lockAttempts < maxLockAttempts) { // Try to lock a particular server
                 try (
-                        Locks locks = Locks.files(serverDir);
+                        Locks locks = memoryLocks != null ? memoryLocks[serverIndex-1] : Locks.files(serverDir);
                         TryLocked clientLock = locks.clientLock.tryLock()
                 ) {
                     if (clientLock != null) {
-                        return runMillServer(
-                                args,
-                                serverDir,
-                                setJnaNoSys,
-                                locks,
-                                () -> initServer.accept(serverDir, setJnaNoSys)
-                        );
+                        Result result = new Result();
+                        result.exitCode = run(serverDir, setJnaNoSys, locks);
+                        result.serverDir = serverDir;
+                        return result;
                     }
                 } catch (Exception e) {
                     for (File file : serverDirFile.listFiles()) file.delete();
@@ -85,39 +107,6 @@ public class ServerLauncher {
             }
         }
         throw new ServerCouldNotBeStarted("Reached max server processes limit: " + serverProcessesLimit);
-    }
-
-    static int runMillServer(String[] args,
-                             String serverDir,
-                             boolean setJnaNoSys,
-                             Locks locks,
-                             Runnable initServer) throws Exception {
-        final File stdout = new java.io.File(serverDir + "/" + ServerFiles.stdout);
-        final File stderr = new java.io.File(serverDir + "/" + ServerFiles.stderr);
-
-        try(
-                final FileToStreamTailer stdoutTailer = new FileToStreamTailer(stdout, System.out, tailerRefreshIntervalMillis);
-                final FileToStreamTailer stderrTailer = new FileToStreamTailer(stderr, System.err, tailerRefreshIntervalMillis);
-        ) {
-            stdoutTailer.start();
-            stderrTailer.start();
-            final int exitCode = run(
-                    serverDir,
-                    initServer,
-                    locks,
-                    System.in,
-                    System.out,
-                    System.err,
-                    args,
-                    System.getenv());
-
-            // Here, we ensure we process the tails of the output files before interrupting
-            // the threads
-            stdoutTailer.flush();
-            stderrTailer.flush();
-
-            return exitCode;
-        }
     }
 
     // 5 processes max
@@ -136,66 +125,76 @@ public class ServerLauncher {
 
         return processLimit;
     }
-    public static int run(
-            String serverDir,
-            Runnable initServer,
-            Locks locks,
-            InputStream stdin,
-            OutputStream stdout,
-            OutputStream stderr,
-            String[] args,
-            Map<String, String> env) throws Exception {
 
-        try (FileOutputStream f = new FileOutputStream(serverDir + "/" + ServerFiles.runArgs)) {
-            f.write(System.console() != null ? 1 : 0);
-            Util.writeString(f, BuildInfo.millVersion);
-            Util.writeArgs(args, f);
-            Util.writeMap(env, f);
-        }
+    int run(String serverDir, boolean setJnaNoSys, Locks locks) throws Exception {
+        try(
+                final FileToStreamTailer stdoutTailer = new FileToStreamTailer(
+                        new java.io.File(serverDir + "/" + ServerFiles.stdout),
+                        stdout,
+                        tailerRefreshIntervalMillis
+                );
+                final FileToStreamTailer stderrTailer = new FileToStreamTailer(
+                        new java.io.File(serverDir + "/" + ServerFiles.stderr),
+                        stderr,
+                        tailerRefreshIntervalMillis
+                );
+        ) {
+            stdoutTailer.start();
+            stderrTailer.start();
+            try (FileOutputStream f = new FileOutputStream(serverDir + "/" + ServerFiles.runArgs)) {
+                f.write(System.console() != null ? 1 : 0);
+                Util.writeString(f, BuildInfo.millVersion);
+                Util.writeArgs(args, f);
+                Util.writeMap(env, f);
+            }
 
-        if (locks.processLock.probe()) initServer.run();
+            if (locks.processLock.probe()) {
+                initServer(serverDir, setJnaNoSys, locks);
+            }
 
-        while (locks.processLock.probe()) Thread.sleep(3);
+            while (locks.processLock.probe()) Thread.sleep(3);
 
-        String socketName = ServerFiles.pipe(serverDir);
-        AFUNIXSocketAddress addr = AFUNIXSocketAddress.of(new File(socketName));
+            String socketName = ServerFiles.pipe(serverDir);
+            AFUNIXSocketAddress addr = AFUNIXSocketAddress.of(new File(socketName));
 
-        long retryStart = System.currentTimeMillis();
-        Socket ioSocket = null;
-        Throwable socketThrowable = null;
-        while (ioSocket == null && System.currentTimeMillis() - retryStart < 1000) {
+            long retryStart = System.currentTimeMillis();
+            Socket ioSocket = null;
+            Throwable socketThrowable = null;
+            while (ioSocket == null && System.currentTimeMillis() - retryStart < 1000) {
+                try {
+                    ioSocket = AFUNIXSocket.connectTo(addr);
+                } catch (Throwable e) {
+                    socketThrowable = e;
+                    Thread.sleep(10);
+                }
+            }
+
+            if (ioSocket == null) {
+                throw new Exception("Failed to connect to server", socketThrowable);
+            }
+
+            InputStream outErr = ioSocket.getInputStream();
+            OutputStream in = ioSocket.getOutputStream();
+            ProxyStream.Pumper outPumper = new ProxyStream.Pumper(outErr, stdout, stderr);
+            InputPumper inPump = new InputPumper(() -> stdin, () -> in, true);
+            Thread outPumperThread = new Thread(outPumper, "outPump");
+            outPumperThread.setDaemon(true);
+            Thread inThread = new Thread(inPump, "inPump");
+            inThread.setDaemon(true);
+            outPumperThread.start();
+            inThread.start();
+
+            outPumperThread.join();
+
             try {
-                ioSocket = AFUNIXSocket.connectTo(addr);
+                return Integer.parseInt(Files.readAllLines(Paths.get(serverDir + "/" + ServerFiles.exitCode)).get(0));
             } catch (Throwable e) {
-                socketThrowable = e;
-                Thread.sleep(1);
+                return Util.ExitClientCodeCannotReadFromExitCodeFile();
+            } finally {
+                ioSocket.close();
             }
         }
 
-        if (ioSocket == null) {
-            throw new Exception("Failed to connect to server", socketThrowable);
-        }
-
-        InputStream outErr = ioSocket.getInputStream();
-        OutputStream in = ioSocket.getOutputStream();
-        ProxyStream.Pumper outPumper = new ProxyStream.Pumper(outErr, stdout, stderr);
-        InputPumper inPump = new InputPumper(() -> stdin, () -> in, true);
-        Thread outPumperThread = new Thread(outPumper, "outPump");
-        outPumperThread.setDaemon(true);
-        Thread inThread = new Thread(inPump, "inPump");
-        inThread.setDaemon(true);
-        outPumperThread.start();
-        inThread.start();
-
-        outPumperThread.join();
-
-        try {
-            return Integer.parseInt(Files.readAllLines(Paths.get(serverDir + "/" + ServerFiles.exitCode)).get(0));
-        } catch (Throwable e) {
-            return Util.ExitClientCodeCannotReadFromExitCodeFile();
-        } finally {
-            ioSocket.close();
-        }
     }
 
 }

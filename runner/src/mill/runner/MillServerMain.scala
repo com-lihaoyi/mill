@@ -49,7 +49,7 @@ class MillServerMain(
       locks
     ) {
 
-  def exitServer() = System.exit(Util.ExitServerCodeWhenIdle())
+  override def exitServer() = {super.exitServer(); System.exit(Util.ExitServerCodeWhenIdle())}
   def stateCache0 = RunnerState.empty
 
   def main0(
