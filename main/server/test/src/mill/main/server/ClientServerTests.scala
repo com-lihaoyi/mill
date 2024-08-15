@@ -54,7 +54,9 @@ object ClientServerTests extends TestSuite {
     (in, out, err)
   }
   def init() = {
-    val tmpDir = os.temp.dir(os.pwd)
+    val dest = os.pwd / "out"
+    os.makeDir.all(dest)
+    val tmpDir = os.temp.dir(dest)
 
     val locks = Locks.memory()
 
@@ -169,10 +171,6 @@ object ClientServerTests extends TestSuite {
           out1 == expected,
           err1 == ""
         )
-
-        // Give a bit of time for the server to release the lock and
-        // re-acquire it to signal to the client that it's done
-        Thread.sleep(100)
 
         assert(
           locks.clientLock.probe(),
