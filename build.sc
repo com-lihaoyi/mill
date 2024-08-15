@@ -1437,7 +1437,7 @@ def launcherScript(
     cmdClassPath: Agg[String]
 ) = {
 
-  val millMainClass = "mill.main.client.MillClientMain"
+  val millMainClass = "mill.runner.client.MillClientMain"
 
   Jvm.universalScript(
     shellCommands = {
@@ -1548,8 +1548,13 @@ def launcherScript(
 }
 
 object runner extends MillPublishScalaModule {
+  object client extends MillPublishJavaModule{
+    def buildInfoPackageName = "mill.runner.client"
+    def moduleDeps = Seq(main.client)
+  }
+
   def moduleDeps = Seq(
-    scalalib, scalajslib, scalanativelib, bsp, linenumbers, main.codesig, main.server
+    scalalib, scalajslib, scalanativelib, bsp, linenumbers, main.codesig, main.server, client
   )
   def skipPreviousVersions: T[Seq[String]] = Seq("0.11.0-M7")
 

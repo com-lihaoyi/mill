@@ -1,7 +1,12 @@
-package mill.main.client;
+package mill.runner.client;
 
 import java.util.Arrays;
 import java.util.function.BiConsumer;
+import mill.main.client.ServerLauncher;
+import mill.main.client.ServerFiles;
+import mill.main.client.Util;
+import mill.main.client.ServerCouldNotBeStarted;
+
 /**
  * This is a Java implementation to speed up repetitive starts.
  * A Scala implementation would result in the JVM loading much more classes almost doubling the start-up times.
@@ -34,7 +39,7 @@ public class MillClientMain {
                 exitCode = ServerLauncher.runMain(args, initServer);
             }
             System.exit(exitCode);
-        } catch (MillServerCouldNotBeStarted e) {
+        } catch (ServerCouldNotBeStarted e) {
             // TODO: try to run in-process
             System.err.println("Could not start a Mill server process.\n" +
                 "This could be caused by too many already running Mill instances " +

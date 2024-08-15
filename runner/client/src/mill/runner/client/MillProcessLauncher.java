@@ -1,4 +1,4 @@
-package mill.main.client;
+package mill.runner.client;
 
 import static mill.main.client.OutFiles.*;
 import java.io.File;
@@ -6,6 +6,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
+import mill.main.client.Util;
+import mill.main.client.ServerFiles;
+import mill.main.client.ServerCouldNotBeStarted;
 
 public class MillProcessLauncher {
 
@@ -146,7 +149,7 @@ public class MillProcessLauncher {
         // extra opts
         File millJvmOptsFile = millJvmOptsFile();
         if (millJvmOptsFile.exists()) {
-            vmOptions.addAll(readOptsFileLines(millJvmOptsFile));
+            vmOptions.addAll(Util.readOptsFileLines(millJvmOptsFile));
         }
 
         vmOptions.add("-cp");
@@ -156,30 +159,6 @@ public class MillProcessLauncher {
     }
 
     static List<String> readMillJvmOpts() {
-        return readOptsFileLines(millJvmOptsFile());
+        return Util.readOptsFileLines(millJvmOptsFile());
     }
-
-    /**
-     * Reads a file, ignoring empty or comment lines
-     *
-     * @return The non-empty lines of the files or an empty list, if the file does not exists
-     */
-    static List<String> readOptsFileLines(final File file) {
-        final List<String> vmOptions = new LinkedList<>();
-        try (
-            final Scanner sc = new Scanner(file)
-        ) {
-            while (sc.hasNextLine()) {
-                String arg = sc.nextLine();
-                String trimmed = arg.trim();
-                if (!trimmed.isEmpty() && !trimmed.startsWith("#")) {
-                    vmOptions.add(arg);
-                }
-            }
-        } catch (FileNotFoundException e) {
-            // ignored
-        }
-        return vmOptions;
-    }
-
 }

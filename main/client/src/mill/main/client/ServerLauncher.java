@@ -84,7 +84,7 @@ public class ServerLauncher {
                 }
             }
         }
-        throw new MillServerCouldNotBeStarted("Reached max server processes limit: " + serverProcessesLimit);
+        throw new ServerCouldNotBeStarted("Reached max server processes limit: " + serverProcessesLimit);
     }
 
     static int runMillServer(String[] args,
