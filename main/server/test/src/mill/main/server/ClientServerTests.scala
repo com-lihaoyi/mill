@@ -81,7 +81,7 @@ object ClientServerTests extends TestSuite {
         args,
         env.asJava
       )
-      Thread.sleep(200)
+
       (new String(out.toByteArray), new String(err.toByteArray))
     }
   }
@@ -108,7 +108,6 @@ object ClientServerTests extends TestSuite {
 
       // Give a bit of time for the server to release the lock and
       // re-acquire it to signal to the client that it"s" done
-      Thread.sleep(100)
 
       assert(
         locks.clientLock.probe(),
