@@ -49,7 +49,8 @@ public abstract class ServerLauncher {
         public String serverDir;
     }
     final static int tailerRefreshIntervalMillis = 2;
-    final static int maxLockAttempts = 3;
+    final int serverProcessesLimit = 5;
+    final int serverInitWaitMillis = 10000;
     public abstract void initServer(String serverDir, boolean b, Locks locks) throws Exception;
     InputStream stdin;
     PrintStream stdout;
@@ -68,6 +69,9 @@ public abstract class ServerLauncher {
         this.stderr = stderr;
         this.env = env;
         this.args = args;
+        // For testing in memory, we need to pass in the locks separately, so that the
+        // locks can be shared between the different instances of `ServerLauncher` the
+        // same way file locks are shared between different Mill client/secrer processes
         this.memoryLocks = memoryLocks;
     }
     public Result acquireLocksAndRun(String outDir) throws Exception {
@@ -78,7 +82,7 @@ public abstract class ServerLauncher {
         }
 
         final String versionAndJvmHomeEncoding = Util.sha1Hash(BuildInfo.millVersion + System.getProperty("java.home"));
-        final int serverProcessesLimit = getServerProcessesLimit(versionAndJvmHomeEncoding);
+
 
         int serverIndex = 0;
         while (serverIndex < serverProcessesLimit) { // Try each possible server process (-1 to -5)
@@ -87,43 +91,19 @@ public abstract class ServerLauncher {
             java.io.File serverDirFile = new java.io.File(serverDir);
             serverDirFile.mkdirs();
 
-            int lockAttempts = 0;
-            while (lockAttempts < maxLockAttempts) { // Try to lock a particular server
-                try (
-                        Locks locks = memoryLocks != null ? memoryLocks[serverIndex-1] : Locks.files(serverDir);
-                        TryLocked clientLocked = locks.clientLock.tryLock()
-                ) {
-                    if (clientLocked.isLocked()) {
-                        Result result = new Result();
-                        result.exitCode = run(serverDir, setJnaNoSys, locks);
-                        result.serverDir = serverDir;
-                        return result;
-                    }
-                } catch (Exception e) {
-                    for (File file : serverDirFile.listFiles()) file.delete();
-                } finally {
-                    lockAttempts++;
+            try (
+                    Locks locks = memoryLocks != null ? memoryLocks[serverIndex-1] : Locks.files(serverDir);
+                    TryLocked clientLocked = locks.clientLock.tryLock()
+            ) {
+                if (clientLocked.isLocked()) {
+                    Result result = new Result();
+                    result.exitCode = run(serverDir, setJnaNoSys, locks);
+                    result.serverDir = serverDir;
+                    return result;
                 }
             }
         }
         throw new ServerCouldNotBeStarted("Reached max server processes limit: " + serverProcessesLimit);
-    }
-
-    // 5 processes max
-    private static int getServerProcessesLimit(String jvmHomeEncoding) {
-        File outFolder = new File(out);
-        String[] totalProcesses = outFolder.list((dir, name) -> name.startsWith(millWorker));
-        String[] thisJdkProcesses = outFolder.list((dir, name) -> name.startsWith(millWorker + jvmHomeEncoding));
-
-        int processLimit = 5;
-
-        if (thisJdkProcesses != null) {
-            processLimit -= Math.min(totalProcesses.length - thisJdkProcesses.length, 5);
-        } else if (totalProcesses != null) {
-            processLimit -= Math.min(totalProcesses.length, 5);
-        }
-
-        return processLimit;
     }
 
     int run(String serverDir, boolean setJnaNoSys, Locks locks) throws Exception {
@@ -160,7 +140,7 @@ public abstract class ServerLauncher {
             long retryStart = System.currentTimeMillis();
             Socket ioSocket = null;
             Throwable socketThrowable = null;
-            while (ioSocket == null && System.currentTimeMillis() - retryStart < 1000) {
+            while (ioSocket == null && System.currentTimeMillis() - retryStart < serverInitWaitMillis) {
                 try {
                     ioSocket = AFUNIXSocket.connectTo(addr);
                 } catch (Throwable e) {

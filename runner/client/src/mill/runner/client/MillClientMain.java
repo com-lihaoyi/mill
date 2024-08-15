@@ -41,9 +41,9 @@ public class MillClientMain {
                     MillProcessLauncher.launchMillServer(serverDir, setJnaNoSys);
                 }
             };
-            int exitCode = launcher.acquireLocksAndRun(OutFiles.out);
+            int exitCode = launcher.acquireLocksAndRun(OutFiles.out).exitCode;
             if (exitCode == Util.ExitServerCodeWhenVersionMismatch()) {
-                exitCode = launcher.acquireLocksAndRun(OutFiles.out);
+                exitCode = launcher.acquireLocksAndRun(OutFiles.out).exitCode;
             }
             System.exit(exitCode);
         } catch (ServerCouldNotBeStarted e) {
