@@ -46,33 +46,9 @@ class MillServerMain(
                       acceptTimeoutMillis: Int,
                       locks: Locks
                     )
-  extends mill.main.server.MillServerMain[RunnerState](lockBase, interruptServer, acceptTimeoutMillis, locks) {
+  extends mill.main.server.Server[RunnerState](lockBase, interruptServer, acceptTimeoutMillis, locks) {
   def stateCache0 = RunnerState.empty
 
-
-  def main0(
-             args: Array[String],
-             stateCache: RunnerState,
-             mainInteractive: Boolean,
-             streams: SystemStreams,
-             env: Map[String, String],
-             setIdle: Boolean => Unit,
-             userSpecifiedProperties: Map[String, String],
-             initialSystemProperties: Map[String, String]
-           ): (Boolean, RunnerState) = {
-    try MillMain.main0(
-      args = args,
-      stateCache = stateCache,
-      mainInteractive = mainInteractive,
-      streams0 = streams,
-      bspLog = None,
-      env = env,
-      setIdle = setIdle,
-      userSpecifiedProperties0 = userSpecifiedProperties,
-      initialSystemProperties = initialSystemProperties
-    )
-    catch MillMain.handleMillException(streams.err, stateCache)
-  }
 
   def handleRun(clientSocket: Socket, initialSystemProperties: Map[String, String]): Unit = {
 
@@ -111,16 +87,19 @@ class MillServerMain(
       val t = new Thread(
         () =>
           try {
-            val (result, newStateCache) = main0(
+            val streams = new SystemStreams(stdout, stderr, proxiedSocketInput)
+            val (result, newStateCache) = try MillMain.main0(
               args,
               stateCache,
               interactive,
-              new SystemStreams(stdout, stderr, proxiedSocketInput),
+              streams,
+              None,
               env.asScala.toMap,
               idle = _,
               userSpecifiedProperties.asScala.toMap,
               initialSystemProperties
-            )
+            ) catch MillMain.handleMillException(streams.err, stateCache)
+
 
             stateCache = newStateCache
             os.write.over(

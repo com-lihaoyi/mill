@@ -15,7 +15,7 @@ import mill.main.client.lock.{Lock, Locks}
 import scala.util.Try
 
 
-abstract class MillServerMain[T](
+abstract class Server[T](
                                   serverDir: os.Path,
                                   interruptServer: () => Unit,
                                   acceptTimeoutMillis: Int,
@@ -23,16 +23,6 @@ abstract class MillServerMain[T](
 ) {
   def stateCache0: T
   var stateCache = stateCache0
-  def main0(
-             args: Array[String],
-             stateCache: T,
-             mainInteractive: Boolean,
-             streams: SystemStreams,
-             env: Map[String, String],
-             setIdle: Boolean => Unit,
-             systemProperties: Map[String, String],
-             initialSystemProperties: Map[String, String]
-           ): (Boolean, T)
 
   val originalStdout = System.out
   val serverId = scala.util.Random.nextLong().toString

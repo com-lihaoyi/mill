@@ -9,7 +9,7 @@ import scala.jdk.CollectionConverters._
 import utest._
 
 class EchoServer(tmpDir: os.Path, locks: Locks)
-  extends MillServerMain[Option[Int]](tmpDir, () => (), 1000, locks) with Runnable{
+  extends Server[Option[Int]](tmpDir, () => (), 1000, locks) with Runnable{
   def stateCache0 = None
   def main0(
       args: Array[String],
