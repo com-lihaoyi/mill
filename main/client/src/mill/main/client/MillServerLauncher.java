@@ -15,11 +15,12 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Map;
+import java.util.function.BiConsumer;
 
 public class MillServerLauncher {
     final static int tailerRefreshIntervalMillis = 2;
     final static int maxLockAttempts = 3;
-    public static int runMain(String[] args) throws Exception {
+    public static int runMain(String[] args, BiConsumer<String, Boolean> initServer) throws Exception {
 
         final boolean setJnaNoSys = System.getProperty("jna.nosys") == null;
         if (setJnaNoSys) {
@@ -32,18 +33,24 @@ public class MillServerLauncher {
         int serverIndex = 0;
         while (serverIndex < serverProcessesLimit) { // Try each possible server process (-1 to -5)
             serverIndex++;
-            final String lockBase = out + "/" + millWorker + versionAndJvmHomeEncoding + "-" + serverIndex;
-            java.io.File lockBaseFile = new java.io.File(lockBase);
+            final String serverDir = out + "/" + millWorker + versionAndJvmHomeEncoding + "-" + serverIndex;
+            java.io.File lockBaseFile = new java.io.File(serverDir);
             lockBaseFile.mkdirs();
 
             int lockAttempts = 0;
             while (lockAttempts < maxLockAttempts) { // Try to lock a particular server
                 try (
-                        Locks locks = Locks.files(lockBase);
+                        Locks locks = Locks.files(serverDir);
                         TryLocked clientLock = locks.clientLock.tryLock()
                 ) {
                     if (clientLock != null) {
-                        return runMillServer(args, lockBase, setJnaNoSys, locks);
+                        return runMillServer(
+                                args,
+                                serverDir,
+                                setJnaNoSys,
+                                locks,
+                                () -> initServer.accept(serverDir, setJnaNoSys)
+                        );
                     }
                 } catch (Exception e) {
                     for (File file : lockBaseFile.listFiles()) file.delete();
@@ -56,11 +63,12 @@ public class MillServerLauncher {
     }
 
     static int runMillServer(String[] args,
-                             String lockBase,
+                             String serverDir,
                              boolean setJnaNoSys,
-                             Locks locks) throws Exception {
-        final File stdout = new java.io.File(lockBase + "/" + ServerFiles.stdout);
-        final File stderr = new java.io.File(lockBase + "/" + ServerFiles.stderr);
+                             Locks locks,
+                             Runnable initServer) throws Exception {
+        final File stdout = new java.io.File(serverDir + "/" + ServerFiles.stdout);
+        final File stderr = new java.io.File(serverDir + "/" + ServerFiles.stderr);
 
         try(
                 final FileToStreamTailer stdoutTailer = new FileToStreamTailer(stdout, System.out, tailerRefreshIntervalMillis);
@@ -69,14 +77,8 @@ public class MillServerLauncher {
             stdoutTailer.start();
             stderrTailer.start();
             final int exitCode = run(
-                    lockBase,
-                    () -> {
-                        try {
-                            MillLauncher.launchMillServer(lockBase, setJnaNoSys);
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                        }
-                    },
+                    serverDir,
+                    initServer,
                     locks,
                     System.in,
                     System.out,
@@ -110,7 +112,7 @@ public class MillServerLauncher {
         return processLimit;
     }
     public static int run(
-            String lockBase,
+            String serverDir,
             Runnable initServer,
             Locks locks,
             InputStream stdin,
@@ -119,7 +121,7 @@ public class MillServerLauncher {
             String[] args,
             Map<String, String> env) throws Exception {
 
-        try (FileOutputStream f = new FileOutputStream(lockBase + "/" + ServerFiles.runArgs)) {
+        try (FileOutputStream f = new FileOutputStream(serverDir + "/" + ServerFiles.runArgs)) {
             f.write(System.console() != null ? 1 : 0);
             Util.writeString(f, BuildInfo.millVersion);
             Util.writeArgs(args, f);
@@ -130,7 +132,7 @@ public class MillServerLauncher {
 
         while (locks.processLock.probe()) Thread.sleep(3);
 
-        String socketName = ServerFiles.pipe(lockBase);
+        String socketName = ServerFiles.pipe(serverDir);
         AFUNIXSocketAddress addr = AFUNIXSocketAddress.of(new File(socketName));
 
         long retryStart = System.currentTimeMillis();
@@ -163,7 +165,7 @@ public class MillServerLauncher {
         outPumperThread.join();
 
         try {
-            return Integer.parseInt(Files.readAllLines(Paths.get(lockBase + "/" + ServerFiles.exitCode)).get(0));
+            return Integer.parseInt(Files.readAllLines(Paths.get(serverDir + "/" + ServerFiles.exitCode)).get(0));
         } catch (Throwable e) {
             return Util.ExitClientCodeCannotReadFromExitCodeFile();
         } finally {

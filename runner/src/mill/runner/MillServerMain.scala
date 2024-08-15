@@ -33,7 +33,7 @@ object MillServerMain {
       Try(System.getProperty("mill.server_timeout").toInt).getOrElse(5 * 60 * 1000) // 5 minutes
 
     new MillServerMain(
-      lockBase = os.Path(args0(0)),
+      serverDir = os.Path(args0(0)),
       () => System.exit(Util.ExitServerCodeWhenIdle()),
       acceptTimeoutMillis = acceptTimeoutMillis,
       Locks.files(args0(0))
@@ -41,12 +41,12 @@ object MillServerMain {
   }
 }
 class MillServerMain(
-    lockBase: os.Path,
+    serverDir: os.Path,
     interruptServer: () => Unit,
     acceptTimeoutMillis: Int,
     locks: Locks
 ) extends mill.main.server.Server[RunnerState](
-      lockBase,
+      serverDir,
       interruptServer,
       acceptTimeoutMillis,
       locks
@@ -55,26 +55,26 @@ class MillServerMain(
   def stateCache0 = RunnerState.empty
 
   def main0(
-             args: Array[String],
-             stateCache: RunnerState,
-             mainInteractive: Boolean,
-             streams: SystemStreams,
-             env: Map[String, String],
-             setIdle: Boolean => Unit,
-             userSpecifiedProperties: Map[String, String],
-             initialSystemProperties: Map[String, String]
-           ): (Boolean, RunnerState) = {
+      args: Array[String],
+      stateCache: RunnerState,
+      mainInteractive: Boolean,
+      streams: SystemStreams,
+      env: Map[String, String],
+      setIdle: Boolean => Unit,
+      userSpecifiedProperties: Map[String, String],
+      initialSystemProperties: Map[String, String]
+  ): (Boolean, RunnerState) = {
     try MillMain.main0(
-      args = args,
-      stateCache = stateCache,
-      mainInteractive = mainInteractive,
-      streams0 = streams,
-      bspLog = None,
-      env = env,
-      setIdle = setIdle,
-      userSpecifiedProperties0 = userSpecifiedProperties,
-      initialSystemProperties = initialSystemProperties
-    )
+        args = args,
+        stateCache = stateCache,
+        mainInteractive = mainInteractive,
+        streams0 = streams,
+        bspLog = None,
+        env = env,
+        setIdle = setIdle,
+        userSpecifiedProperties0 = userSpecifiedProperties,
+        initialSystemProperties = initialSystemProperties
+      )
     catch MillMain.handleMillException(streams.err, stateCache)
   }
 }

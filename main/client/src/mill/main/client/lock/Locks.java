@@ -35,10 +35,10 @@ final public class Locks implements AutoCloseable {
         this.processLock = processLock;
     }
 
-    public static Locks files(String lockBase) throws Exception {
+    public static Locks files(String serverDir) throws Exception {
         return new Locks(
-            new FileLock(lockBase + "/" + ServerFiles.clientLock),
-            new FileLock(lockBase + "/" + ServerFiles.processLock)
+            new FileLock(serverDir + "/" + ServerFiles.clientLock),
+            new FileLock(serverDir + "/" + ServerFiles.processLock)
         );
     }
 

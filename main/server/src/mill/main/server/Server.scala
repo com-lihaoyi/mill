@@ -14,6 +14,12 @@ import mill.main.client.lock.{Lock, Locks}
 
 import scala.util.Try
 
+/**
+ * Models a long-lived server that receives requests from a client and calls a [[main0]]
+ * method to run the commands in-process. Provides the command args, env variables,
+ * JVM properties, wrapped input/output streams, and other metadata related to the
+ * client command
+ */
 abstract class Server[T](
     serverDir: os.Path,
     interruptServer: () => Unit,
@@ -36,14 +42,14 @@ abstract class Server[T](
         serverLog("listening on socket")
         val serverSocket = bindSocket()
         try interruptWithTimeout(() => serverSocket.close(), () => serverSocket.accept()) match {
-          case None => false
-          case Some(sock) =>
-            serverLog("handling run")
-            try handleRun(sock, initialSystemProperties)
-            catch { case e: Throwable => serverLog(e + "\n" + e.getStackTrace.mkString("\n")) }
-            finally sock.close();
-            true
-        }
+            case None => false
+            case Some(sock) =>
+              serverLog("handling run")
+              try handleRun(sock, initialSystemProperties)
+              catch { case e: Throwable => serverLog(e + "\n" + e.getStackTrace.mkString("\n")) }
+              finally sock.close();
+              true
+          }
         finally serverSocket.close()
       }) ()
 
@@ -210,15 +216,15 @@ abstract class Server[T](
   }
 
   def main0(
-             args: Array[String],
-             stateCache: T,
-             mainInteractive: Boolean,
-             streams: SystemStreams,
-             env: Map[String, String],
-             setIdle: Boolean => Unit,
-             userSpecifiedProperties: Map[String, String],
-             initialSystemProperties: Map[String, String]
-           ): (Boolean, T)
+      args: Array[String],
+      stateCache: T,
+      mainInteractive: Boolean,
+      streams: SystemStreams,
+      env: Map[String, String],
+      setIdle: Boolean => Unit,
+      userSpecifiedProperties: Map[String, String],
+      initialSystemProperties: Map[String, String]
+  ): (Boolean, T)
 
 }
 

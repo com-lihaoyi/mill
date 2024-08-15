@@ -1,8 +1,7 @@
 package mill.main.client;
 
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
-
+import java.util.function.BiConsumer;
 /**
  * This is a Java implementation to speed up repetitive starts.
  * A Scala implementation would result in the JVM loading much more classes almost doubling the start-up times.
@@ -33,9 +32,9 @@ public class MillClientMain {
             MillNoServerLauncher.runMain(args);
         } else try {
             // start in client-server mode
-            int exitCode = MillServerLauncher.runMain(args);
+            int exitCode = MillServerLauncher.runMain(args, initServer);
             if (exitCode == Util.ExitServerCodeWhenVersionMismatch()) {
-                exitCode = MillServerLauncher.runMain(args);
+                exitCode = MillServerLauncher.runMain(args, initServer);
             }
             System.exit(exitCode);
         } catch (MillServerCouldNotBeStarted e) {
@@ -53,4 +52,12 @@ public class MillClientMain {
             }
         }
     }
+
+    private static BiConsumer<String, Boolean> initServer = (serverDir, setJnaNoSys) -> {
+        try {
+            MillLauncher.launchMillServer(serverDir, setJnaNoSys);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    };
 }
