@@ -14,7 +14,10 @@ object ClientServerTests extends TestSuite {
   val ENDL = System.lineSeparator()
   class EchoServer(override val serverId: String, log: String => Unit, tmpDir: os.Path, locks: Locks)
     extends Server[Option[Int]](tmpDir, 1000, locks) with Runnable {
-    def exitServer() = log(serverId + " exiting server")
+    override def exitServer() = {
+      log(serverId + " exiting server")
+      super.exitServer()
+    }
     def stateCache0 = None
 
     override def serverLog(s: String) = {
@@ -97,7 +100,7 @@ object ClientServerTests extends TestSuite {
           env.asJava
         )
 
-        (serverDir, new String(out.toByteArray), new String(err.toByteArray))
+        ClientResult(serverDir, new String(out.toByteArray), new String(err.toByteArray))
       }
     }
 
@@ -107,6 +110,8 @@ object ClientServerTests extends TestSuite {
       logs.collect{case s if s.endsWith(" " + suffix) => s.dropRight(1 + suffix.length)}
     }
   }
+
+  case class ClientResult(serverDir: os.Path, out: String, err: String)
 
   def tests = Tests {
     "hello" - {
@@ -121,11 +126,11 @@ object ClientServerTests extends TestSuite {
         tester.locks.processLock.probe()
       )
 
-      val (_, out1, err1) = tester(Map(), Array("world"))
+      val res1 = tester(Map(), Array("world"))
 
       assert(
-        out1 == s"helloworld${ENDL}",
-        err1 == s"HELLOworld${ENDL}"
+        res1.out == s"helloworld${ENDL}",
+        res1.err == s"HELLOworld${ENDL}"
       )
 
       // Give a bit of time for the server to release the lock and
@@ -137,11 +142,11 @@ object ClientServerTests extends TestSuite {
       )
 
       // A seecond client in sequence connect to the same server
-      val (_, out2, err2) = tester(Map(), Array(" WORLD"))
+      val res2 = tester(Map(), Array(" WORLD"))
 
       assert(
-        out2 == s"hello WORLD${ENDL}",
-        err2 == s"HELLO WORLD${ENDL}"
+        res2.out == s"hello WORLD${ENDL}",
+        res2.err == s"HELLO WORLD${ENDL}"
       )
 
       if (!Util.isWindows) {
@@ -156,17 +161,18 @@ object ClientServerTests extends TestSuite {
         assert(tester.logsFor("exiting server") == Seq("server-0"))
 
         // Have a third client spawn/connect-to a new server at the same path
-        val (serverDir3, out3, err3) = tester(Map(), Array(" World"))
+        val res3 = tester(Map(), Array(" World"))
         assert(
-          out3 == s"hello World${ENDL}",
-          err3 == s"HELLO World${ENDL}"
+          res3.out == s"hello World${ENDL}",
+          res3.err == s"HELLO World${ENDL}"
         )
 
         // Make sure if we delete the out dir, the server notices and exits
-        os.remove.all(serverDir3)
+        os.remove.all(res3.serverDir)
         Thread.sleep(500)
 
-        assert(tester.logsFor("serverId file missing") == Seq("server-0", "server-1"))
+        assert(tester.logsFor("serverId file missing") == Seq("server-1"))
+        assert(tester.logsFor("exiting server") == Seq("server-0", "server-1"))
 
       }
     }
@@ -193,12 +199,12 @@ object ClientServerTests extends TestSuite {
         "c" -> c1000
       )
 
-      val (_, out1, err1) = tester(env, Array())
+      val res1 = tester(env, Array())
       val expected = s"a=$a1000${ENDL}b=$b1000${ENDL}c=$c1000${ENDL}"
 
       assert(
-        out1 == expected,
-        err1 == ""
+        res1.out == expected,
+        res1.err == ""
       )
 
       assert(
@@ -229,13 +235,13 @@ object ClientServerTests extends TestSuite {
       )
 
       val pathEnvVar = path.mkString(":")
-      val (_, out2, err2) = tester(Map("PATH" -> pathEnvVar), Array())
+      val res2 = tester(Map("PATH" -> pathEnvVar), Array())
 
       val expected2 = s"PATH=$pathEnvVar${ENDL}"
 
       assert(
-        out2 == expected2,
-        err2 == ""
+        res2.out == expected2,
+        res2.err == ""
       )
     }
   }

@@ -26,7 +26,8 @@ abstract class Server[T](
     locks: Locks
 ) {
 
-  def exitServer(): Unit
+  @volatile var running = true
+  def exitServer(): Unit = running = false
   var stateCache = stateCache0
   def stateCache0: T
 
@@ -40,7 +41,7 @@ abstract class Server[T](
     try Server.tryLockBlock(locks.processLock) {
       watchServerIdFile()
 
-      while ({
+      while (running && {
         serverLog("listening on socket")
         val serverSocket = bindSocket()
         try interruptWithTimeout(() => serverSocket.close(), () => serverSocket.accept()) match {
@@ -83,7 +84,7 @@ abstract class Server[T](
     os.write.over(serverDir / ServerFiles.serverId, serverId)
     val serverIdThread = new Thread(
       () =>
-        while ( {
+        while (running && {
           Thread.sleep(100)
           Try(os.read(serverDir / ServerFiles.serverId)).toOption match {
             case None =>
