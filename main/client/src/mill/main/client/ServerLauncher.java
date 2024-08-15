@@ -58,21 +58,26 @@ public abstract class ServerLauncher {
     Map<String, String> env;
     String[] args;
     Locks[] memoryLocks;
+    int forceFailureForTestingMillisDelay;
     public ServerLauncher(InputStream stdin,
                           PrintStream stdout,
                           PrintStream stderr,
                           Map<String, String> env,
                           String[] args,
-                          Locks[] memoryLocks){
+                          Locks[] memoryLocks,
+                          int forceFailureForTestingMillisDelay){
         this.stdin = stdin;
         this.stdout = stdout;
         this.stderr = stderr;
         this.env = env;
         this.args = args;
+
         // For testing in memory, we need to pass in the locks separately, so that the
         // locks can be shared between the different instances of `ServerLauncher` the
         // same way file locks are shared between different Mill client/secrer processes
         this.memoryLocks = memoryLocks;
+
+        this.forceFailureForTestingMillisDelay = forceFailureForTestingMillisDelay;
     }
     public Result acquireLocksAndRun(String outDir) throws Exception {
 
@@ -164,6 +169,12 @@ public abstract class ServerLauncher {
             outPumperThread.start();
             inThread.start();
 
+            System.out.println("forceFailureForTestingMillisDelay " + forceFailureForTestingMillisDelay);
+            if (forceFailureForTestingMillisDelay > 0){
+                Thread.sleep(forceFailureForTestingMillisDelay);
+                System.out.println("forceFailureForTestingMillisDelay BOOM");
+                throw new Exception("Force failure for testing: " + serverDir);
+            }
             outPumperThread.join();
 
             try {

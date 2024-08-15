@@ -72,7 +72,9 @@ object ClientServerTests extends TestSuite {
 
     val memoryLocks = Array.fill(10)(Locks.memory());
 
-    def runClient(env: Map[String, String], args: Array[String]) = {
+    def apply(env: Map[String, String] = Map(),
+              args: Array[String] = Array(),
+              forceFailureForTestingMillisDelay: Int = -1) = {
       val in = new ByteArrayInputStream(s"hello$ENDL".getBytes())
       val out = new ByteArrayOutputStream()
       val err = new ByteArrayOutputStream()
@@ -82,7 +84,8 @@ object ClientServerTests extends TestSuite {
         new PrintStream(err),
         env.asJava,
         args,
-        memoryLocks
+        memoryLocks,
+        forceFailureForTestingMillisDelay
       ){
         def initServer(serverDir: String, b: Boolean, locks: Locks) = {
           val serverId = "server-" + nextServerId
@@ -100,7 +103,6 @@ object ClientServerTests extends TestSuite {
       )
     }
 
-    def apply(env: Map[String, String], args: Array[String]) = runClient(env, args)
   }
 
   case class ClientResult(exitCode: Int,
@@ -119,7 +121,7 @@ object ClientServerTests extends TestSuite {
     val tester = new Tester
     "hello" - {
 
-      val res1 = tester(Map(), Array("world"))
+      val res1 = tester(args = Array("world"))
 
       assert(
         res1.out == s"helloworld$ENDL",
@@ -127,7 +129,7 @@ object ClientServerTests extends TestSuite {
       )
 
       // A second client in sequence connect to the same server
-      val res2 = tester(Map(), Array(" WORLD"))
+      val res2 = tester(args = Array(" WORLD"))
 
       assert(
         res2.out == s"hello WORLD$ENDL",
@@ -142,7 +144,7 @@ object ClientServerTests extends TestSuite {
         assert(res2.logsFor("exiting server") == Seq("server-0"))
 
         // Have a third client spawn/connect-to a new server at the same path
-        val res3 = tester(Map(), Array(" World"))
+        val res3 = tester(args = Array(" World"))
         assert(
           res3.out == s"hello World$ENDL",
           res3.err == s"HELLO World$ENDL"
@@ -160,12 +162,11 @@ object ClientServerTests extends TestSuite {
     "concurrency" - {
       // Make sure concurrently running client commands results in multiple processes
       // being spawned, running in different folders
-      println("="*80)
       import concurrent._
       import concurrent.ExecutionContext.Implicits.global
-      val f1 = Future(tester(Map(), Array(" World")))
-      val f2 = Future(tester(Map(), Array(" WORLD")))
-      val f3 = Future(tester(Map(), Array(" wOrLd")))
+      val f1 = Future(tester(args = Array(" World")))
+      val f2 = Future(tester(args = Array(" WORLD")))
+      val f3 = Future(tester(args = Array(" wOrLd")))
       val resF1 = Await.result(f1, duration.Duration.Inf)
       val resF2 = Await.result(f2, duration.Duration.Inf)
       val resF3 = Await.result(f3, duration.Duration.Inf)
@@ -180,6 +181,27 @@ object ClientServerTests extends TestSuite {
       assert(resF1.out == s"hello World$ENDL")
       assert(resF2.out == s"hello WORLD$ENDL")
       assert(resF3.out == s"hello wOrLd$ENDL")
+    }
+
+    "clientLockReleasedOnFailure" - {
+      // When the client gets interrupted via Ctrl-C, we exit the server immediately. This
+      // is because Mill ends up executing arbitrary JVM code, and there is no generic way
+      // to interrupt such an execution. The two options are to leave the server running
+      // for an unbounded duration, or kill the server process and take a performance hit
+      // on the next cold startup. Mill chooses the second option.
+      import concurrent._
+      import concurrent.ExecutionContext.Implicits.global
+      val res1 = intercept[Exception]{
+        tester.apply(args = Array(" World"), forceFailureForTestingMillisDelay = 100)
+      }
+
+      val s"Force failure for testing: $pathStr" = res1.getMessage
+      val logLines = os.read.lines(os.Path(pathStr, os.pwd) / "server.log")
+
+      assert(
+        logLines.takeRight(2) ==
+        Seq("server-0 client interrupted while server was executing command", "server-0 exiting server")
+      )
     }
 
     "envVars" - retry(3) {
@@ -197,7 +219,7 @@ object ClientServerTests extends TestSuite {
         "c" -> c1000
       )
 
-      val res1 = tester(env, Array())
+      val res1 = tester(env = env)
       val expected = s"a=$a1000${ENDL}b=$b1000${ENDL}c=$c1000$ENDL"
 
       assert(
@@ -228,7 +250,7 @@ object ClientServerTests extends TestSuite {
       )
 
       val pathEnvVar = path.mkString(":")
-      val res2 = tester(Map("PATH" -> pathEnvVar), Array())
+      val res2 = tester(env = Map("PATH" -> pathEnvVar))
 
       val expected2 = s"PATH=$pathEnvVar$ENDL"
 

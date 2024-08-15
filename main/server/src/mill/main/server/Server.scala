@@ -205,7 +205,10 @@ abstract class Server[T](
       // two processes and gives a spurious deadlock error
       while (!done && !locks.clientLock.probe()) Thread.sleep(3)
 
-      if (!idle) exitServer()
+      if (!idle) {
+        serverLog("client interrupted while server was executing command")
+        exitServer()
+      }
 
       t.interrupt()
       // Try to give thread a moment to stop before we kill it for real
