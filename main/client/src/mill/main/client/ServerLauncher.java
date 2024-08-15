@@ -91,9 +91,9 @@ public abstract class ServerLauncher {
             while (lockAttempts < maxLockAttempts) { // Try to lock a particular server
                 try (
                         Locks locks = memoryLocks != null ? memoryLocks[serverIndex-1] : Locks.files(serverDir);
-                        TryLocked clientLock = locks.clientLock.tryLock()
+                        TryLocked clientLocked = locks.clientLock.tryLock()
                 ) {
-                    if (clientLock != null) {
+                    if (clientLocked.isLocked()) {
                         Result result = new Result();
                         result.exitCode = run(serverDir, setJnaNoSys, locks);
                         result.serverDir = serverDir;

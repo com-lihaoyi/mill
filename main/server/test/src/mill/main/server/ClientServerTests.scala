@@ -43,6 +43,7 @@ object ClientServerTests extends TestSuite {
 
       val reader = new BufferedReader(new InputStreamReader(streams.in))
       val str = reader.readLine()
+      Thread.sleep(200)
       if (args.nonEmpty) {
         streams.out.println(str + args(0))
       }
@@ -72,7 +73,7 @@ object ClientServerTests extends TestSuite {
     val memoryLocks = Array.fill(10)(Locks.memory());
 
     def runClient(env: Map[String, String], args: Array[String]) = {
-      val in = new ByteArrayInputStream(s"hello${ENDL}".getBytes())
+      val in = new ByteArrayInputStream(s"hello$ENDL".getBytes())
       val out = new ByteArrayOutputStream()
       val err = new ByteArrayOutputStream()
       val result = new mill.main.client.ServerLauncher(
@@ -115,22 +116,22 @@ object ClientServerTests extends TestSuite {
   }
 
   def tests = Tests {
+    val tester = new Tester
     "hello" - {
-      val tester = new Tester
 
       val res1 = tester(Map(), Array("world"))
 
       assert(
-        res1.out == s"helloworld${ENDL}",
-        res1.err == s"HELLOworld${ENDL}"
+        res1.out == s"helloworld$ENDL",
+        res1.err == s"HELLOworld$ENDL"
       )
 
       // A second client in sequence connect to the same server
       val res2 = tester(Map(), Array(" WORLD"))
 
       assert(
-        res2.out == s"hello WORLD${ENDL}",
-        res2.err == s"HELLO WORLD${ENDL}"
+        res2.out == s"hello WORLD$ENDL",
+        res2.err == s"HELLO WORLD$ENDL"
       )
 
       if (!Util.isWindows) {
@@ -143,8 +144,8 @@ object ClientServerTests extends TestSuite {
         // Have a third client spawn/connect-to a new server at the same path
         val res3 = tester(Map(), Array(" World"))
         assert(
-          res3.out == s"hello World${ENDL}",
-          res3.err == s"HELLO World${ENDL}"
+          res3.out == s"hello World$ENDL",
+          res3.err == s"HELLO World$ENDL"
         )
 
         // Make sure if we delete the out dir, the server notices and exits
@@ -153,13 +154,35 @@ object ClientServerTests extends TestSuite {
 
         assert(res3.logsFor("serverId file missing") == Seq("server-1"))
         assert(res3.logsFor("exiting server") == Seq("server-1"))
-
       }
     }
 
-    "envVars" - retry(3) {
-      val tester = new Tester
+    "concurrency" - {
+      // Make sure concurrently running client commands results in multiple processes
+      // being spawned, running in different folders
+      println("="*80)
+      import concurrent._
+      import concurrent.ExecutionContext.Implicits.global
+      val f1 = Future(tester(Map(), Array(" World")))
+      val f2 = Future(tester(Map(), Array(" WORLD")))
+      val f3 = Future(tester(Map(), Array(" wOrLd")))
+      val resF1 = Await.result(f1, duration.Duration.Inf)
+      val resF2 = Await.result(f2, duration.Duration.Inf)
+      val resF3 = Await.result(f3, duration.Duration.Inf)
 
+      // Mutiple server processes live in same out folder
+      assert(resF1.outDir == resF2.outDir)
+      assert(resF2.outDir == resF3.outDir)
+      // but the serverDir is placed in different subfolders
+      assert(resF1.serverDir != resF2.serverDir)
+      assert(resF2.serverDir != resF3.serverDir)
+
+      assert(resF1.out == s"hello World$ENDL")
+      assert(resF2.out == s"hello WORLD$ENDL")
+      assert(resF3.out == s"hello wOrLd$ENDL")
+    }
+
+    "envVars" - retry(3) {
       // Make sure the simple "have the client start a server and
       // exchange one message" workflow works from end to end.
 
@@ -175,7 +198,7 @@ object ClientServerTests extends TestSuite {
       )
 
       val res1 = tester(env, Array())
-      val expected = s"a=$a1000${ENDL}b=$b1000${ENDL}c=$c1000${ENDL}"
+      val expected = s"a=$a1000${ENDL}b=$b1000${ENDL}c=$c1000$ENDL"
 
       assert(
         res1.out == expected,
@@ -207,7 +230,7 @@ object ClientServerTests extends TestSuite {
       val pathEnvVar = path.mkString(":")
       val res2 = tester(Map("PATH" -> pathEnvVar), Array())
 
-      val expected2 = s"PATH=$pathEnvVar${ENDL}"
+      val expected2 = s"PATH=$pathEnvVar$ENDL"
 
       assert(
         res2.out == expected2,

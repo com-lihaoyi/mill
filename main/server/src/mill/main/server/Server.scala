@@ -38,14 +38,13 @@ abstract class Server[T](
   def serverLog(s: String): Unit = serverLog0(s"$serverId $s")
 
   def run(): Unit = {
-    serverLog("running server")
+    serverLog("running server in " + serverDir)
     val initialSystemProperties = sys.props.toMap
 
     try Server.tryLockBlock(locks.processLock) {
       watchServerIdFile()
 
       while (running && {
-        serverLog("listening on socket")
         val serverSocket = bindSocket()
         try interruptWithTimeout(() => serverSocket.close(), () => serverSocket.accept()) match {
             case None => false
@@ -67,8 +66,10 @@ abstract class Server[T](
     val socketPath = os.Path(ServerFiles.pipe(serverDir.toString()))
     os.remove.all(socketPath)
 
+    val relFile = socketPath.relativeTo(os.pwd).toNIO.toFile
+    serverLog("listening on socket " + relFile)
     // Use relative path because otherwise the full path might be too long for the socket API
-    val addr = AFUNIXSocketAddress.of(socketPath.relativeTo(os.pwd).toNIO.toFile)
+    val addr = AFUNIXSocketAddress.of(relFile)
     AFUNIXServerSocket.bindOn(addr)
   }
 
