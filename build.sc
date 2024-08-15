@@ -762,6 +762,9 @@ object main extends MillStableScalaModule with BuildInfo {
     }
   }
 
+  object server extends MillPublishScalaModule {
+    def moduleDeps = Seq(client, api)
+  }
   object graphviz extends MillPublishScalaModule {
     def moduleDeps = Seq(main, scalalib)
     def ivyDeps = Agg(Deps.graphvizJava, Deps.jgraphtCore)
@@ -1545,7 +1548,9 @@ def launcherScript(
 }
 
 object runner extends MillPublishScalaModule {
-  def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, bsp, linenumbers, main.codesig)
+  def moduleDeps = Seq(
+    scalalib, scalajslib, scalanativelib, bsp, linenumbers, main.codesig, main.server
+  )
   def skipPreviousVersions: T[Seq[String]] = Seq("0.11.0-M7")
 
   object linenumbers extends MillPublishScalaModule {

@@ -1,4 +1,4 @@
-package mill.runner
+package mill.main.server
 
 import java.io._
 import mill.main.client.Util
@@ -8,7 +8,8 @@ import mill.api.SystemStreams
 import scala.jdk.CollectionConverters._
 import utest._
 
-class EchoServer extends MillServerMain[Option[Int]] {
+class EchoServer(tmpDir: os.Path, locks: Locks)
+  extends MillServerMain[Option[Int]](tmpDir, () => (), 1000, locks) with Runnable{
   def stateCache0 = None
   def main0(
       args: Array[String],
@@ -39,6 +40,9 @@ class EchoServer extends MillServerMain[Option[Int]] {
     streams.err.flush()
     (true, None)
   }
+
+  def handleRun(clientSocket: java.net.Socket,
+                initialSystemProperties: Map[String,String]): Unit = ???
 }
 
 object ClientServerTests extends TestSuite {
@@ -59,15 +63,7 @@ object ClientServerTests extends TestSuite {
   }
 
   def spawnEchoServer(tmpDir: os.Path, locks: Locks): Unit = {
-    new Thread(() =>
-      new Server(
-        tmpDir,
-        new EchoServer(),
-        () => (),
-        1000,
-        locks
-      ).run()
-    ).start()
+    new Thread(new EchoServer(tmpDir, locks)).start()
   }
 
   def runClientAux(
