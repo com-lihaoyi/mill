@@ -36,7 +36,7 @@ public class MillClientMain {
             MillNoServerLauncher.runMain(args);
         } else try {
             // start in client-server mode
-            ServerLauncher launcher = new ServerLauncher(System.in, System.out, System.err, System.getenv(), args, null){
+            ServerLauncher launcher = new ServerLauncher(System.in, System.out, System.err, System.getenv(), args, null, -1){
                 public void initServer(String serverDir, boolean setJnaNoSys, Locks locks) throws Exception{
                     MillProcessLauncher.launchMillServer(serverDir, setJnaNoSys);
                 }
