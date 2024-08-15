@@ -54,7 +54,7 @@ object ClientServerTests extends TestSuite {
     (in, out, err)
   }
   def init() = {
-    val tmpDir = os.temp.dir()
+    val tmpDir = os.temp.dir(os.pwd)
 
     val locks = Locks.memory()
 
