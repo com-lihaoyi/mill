@@ -95,9 +95,14 @@ class Server[T](
 ) {
 
   val originalStdout = System.out
+  val serverId = scala.util.Random.nextLong().toString
+  def serverLog(s: String) = os.write.append(lockBase / ServerFiles.serverLog, s + "\n")
   def run(): Unit = {
+
     val initialSystemProperties = sys.props.toMap
     Server.tryLockBlock(locks.processLock) {
+      watchServerIdFile()
+
       var running = true
       while (running) {
 
@@ -108,10 +113,11 @@ class Server[T](
         // Use relative path because otherwise the full path might be too long for the socket API
         val addr =
           AFUNIXSocketAddress.of(socketPath.relativeTo(os.pwd).toNIO.toFile)
+        serverLog("listening on socket")
         val serverSocket = AFUNIXServerSocket.bindOn(addr)
         val socketClose = () => serverSocket.close()
 
-        val sockOpt = Server.interruptWith(
+        val sockOpt = interruptWith(
           "MillSocketTimeoutInterruptThread",
           acceptTimeoutMillis,
           socketClose(),
@@ -122,8 +128,9 @@ class Server[T](
           case None => running = false
           case Some(sock) =>
             try {
+              serverLog("handling run")
               try handleRun(sock, initialSystemProperties)
-              catch { case e: Throwable => e.printStackTrace(originalStdout) }
+              catch { case e: Throwable => serverLog(e + "\n" + e.getStackTrace.mkString("\n"))}
               finally sock.close();
             } finally serverSocket.close()
         }
@@ -141,6 +148,7 @@ class Server[T](
     pumperThread.start()
     pipedInput
   }
+
   def handleRun(clientSocket: Socket, initialSystemProperties: Map[String, String]): Unit = {
 
     val currentOutErr = clientSocket.getOutputStream
@@ -225,23 +233,28 @@ class Server[T](
 
     } finally ProxyStream.sendEnd(currentOutErr) // Send a termination
   }
-}
 
-object Server {
-
-  def lockBlock[T](lock: Lock)(t: => T): T = {
-    val l = lock.lock()
-    try t
-    finally l.release()
-  }
-
-  def tryLockBlock[T](lock: Lock)(t: => T): Option[T] = {
-    lock.tryLock() match {
-      case null => None
-      case l =>
-        try Some(t)
-        finally l.release()
-    }
+  def watchServerIdFile() = {
+    os.write.over(lockBase / ServerFiles.serverId, serverId)
+    val serverIdThread = new Thread(
+      () => {
+        while (true){
+          Thread.sleep(100)
+          Try(os.read(lockBase / ServerFiles.serverId)).toOption match{
+            case None =>
+              serverLog("serverId file missing, exiting")
+              System.exit(0)
+            case Some(s) =>
+              if (s != serverId){
+                serverLog(s"serverId file contents $s does not match serverId $serverId, exiting")
+                System.exit(0)
+              }
+          }
+        }
+      },
+      "Server ID Checker Thread"
+    )
+    serverIdThread.start()
   }
 
   def interruptWith[T](threadName: String, millis: Int, close: => Unit, t: => T): Option[T] = {
@@ -253,6 +266,7 @@ object Server {
         catch { case t: InterruptedException => /* Do Nothing */ }
         if (interrupt) {
           interrupted = true
+          serverLog(s"Interrupting after ${millis}ms")
           close
         }
       },
@@ -273,4 +287,24 @@ object Server {
       interrupt = false
     }
   }
+}
+
+object Server {
+
+  def lockBlock[T](lock: Lock)(t: => T): T = {
+    val l = lock.lock()
+    try t
+    finally l.release()
+  }
+
+  def tryLockBlock[T](lock: Lock)(t: => T): Option[T] = {
+    lock.tryLock() match {
+      case null => None
+      case l =>
+        try Some(t)
+        finally l.release()
+    }
+  }
+
+
 }

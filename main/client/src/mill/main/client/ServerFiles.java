@@ -5,6 +5,7 @@ package mill.main.client;
  * and documentation about what they do
  */
 public class ServerFiles {
+    final public static String serverId = "serverId";
     final public static String sandbox = "sandbox";
 
     /**
