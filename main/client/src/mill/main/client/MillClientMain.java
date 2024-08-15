@@ -29,9 +29,9 @@ public class MillClientMain {
             MillNoServerLauncher.runMain(args);
         } else try {
             // start in client-server mode
-            int exitCode = MillServerLauncher.runMain(args, initServer);
+            int exitCode = ServerLauncher.runMain(args, initServer);
             if (exitCode == Util.ExitServerCodeWhenVersionMismatch()) {
-                exitCode = MillServerLauncher.runMain(args, initServer);
+                exitCode = ServerLauncher.runMain(args, initServer);
             }
             System.exit(exitCode);
         } catch (MillServerCouldNotBeStarted e) {

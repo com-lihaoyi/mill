@@ -17,7 +17,32 @@ import java.nio.file.Paths;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
-public class MillServerLauncher {
+/**
+ * Client side code that interacts with `Server.scala` in order to launch a generic
+ * long lived background server.
+ *
+ * The protocol is as follows:
+ *
+ * - Client:
+ *   - Take clientLock
+ *   - If processLock is not yet taken, it means server is not running, so spawn a server
+ *   - Wait for server socket to be available for connection
+ * - Server:
+ *   - Take processLock.
+ *     - If already taken, it means another server was running
+ *       (e.g. spawned by a different client) so exit immediately
+ * - Server: loop:
+ *   - Listen for incoming client requests on serverSocket
+ *   - Execute client request
+ *   - If clientLock is released during execution, terminate server (otherwise
+ *     we have no safe way of termianting the in-process request, so the server
+ *     may continue running for arbitrarily long with no client attached)
+ *   - Send `ProxyStream.END` packet and call `clientSocket.close()`
+ * - Client:
+ *   - Wait for `ProxyStream.END` packet or `clientSocket.close()`,
+ *     indicating server has finished execution and all data has been received
+ */
+public class ServerLauncher {
     final static int tailerRefreshIntervalMillis = 2;
     final static int maxLockAttempts = 3;
     public static int runMain(String[] args, BiConsumer<String, Boolean> initServer) throws Exception {
