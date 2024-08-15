@@ -2,15 +2,9 @@ package mill.runner
 
 import sun.misc.{Signal, SignalHandler}
 
-import java.io._
-import java.net.Socket
-import scala.jdk.CollectionConverters._
-import org.newsclub.net.unix.AFUNIXServerSocket
-import org.newsclub.net.unix.AFUNIXSocketAddress
 import mill.main.client._
-import mill.api.{SystemStreams, internal}
-import mill.main.client.ProxyStream.Output
-import mill.main.client.lock.{Lock, Locks}
+import mill.api.SystemStreams
+import mill.main.client.lock.Locks
 import scala.util.Try
 
 object MillServerMain {
@@ -49,7 +43,9 @@ class MillServerMain(
       locks
     ) {
 
-  override def exitServer() = {super.exitServer(); System.exit(Util.ExitServerCodeWhenIdle())}
+  override def exitServer(): Unit = {
+    super.exitServer(); System.exit(Util.ExitServerCodeWhenIdle())
+  }
   def stateCache0 = RunnerState.empty
 
   def main0(

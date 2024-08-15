@@ -9,7 +9,6 @@ import mill.api.SystemStreams
 import scala.jdk.CollectionConverters._
 import utest._
 
-
 /**
  * Exercises the client-server logic in memory, using in-memory locks
  * and in-memory clients and servers
@@ -18,7 +17,7 @@ object ClientServerTests extends TestSuite {
 
   val ENDL = System.lineSeparator()
   class EchoServer(override val serverId: String, serverDir: os.Path, locks: Locks)
-    extends Server[Option[Int]](serverDir, 1000, locks) with Runnable {
+      extends Server[Option[Int]](serverDir, 1000, locks) with Runnable {
     override def exitServer() = {
       serverLog("exiting server")
       super.exitServer()
@@ -31,15 +30,15 @@ object ClientServerTests extends TestSuite {
     }
 
     def main0(
-               args: Array[String],
-               stateCache: Option[Int],
-               mainInteractive: Boolean,
-               streams: SystemStreams,
-               env: Map[String, String],
-               setIdle: Boolean => Unit,
-               systemProperties: Map[String, String],
-               initialSystemProperties: Map[String, String]
-             ) = {
+        args: Array[String],
+        stateCache: Option[Int],
+        mainInteractive: Boolean,
+        streams: SystemStreams,
+        env: Map[String, String],
+        setIdle: Boolean => Unit,
+        systemProperties: Map[String, String],
+        initialSystemProperties: Map[String, String]
+    ) = {
 
       val reader = new BufferedReader(new InputStreamReader(streams.in))
       val str = reader.readLine()
@@ -72,9 +71,11 @@ object ClientServerTests extends TestSuite {
 
     val memoryLocks = Array.fill(10)(Locks.memory());
 
-    def apply(env: Map[String, String] = Map(),
-              args: Array[String] = Array(),
-              forceFailureForTestingMillisDelay: Int = -1) = {
+    def apply(
+        env: Map[String, String] = Map(),
+        args: Array[String] = Array(),
+        forceFailureForTestingMillisDelay: Int = -1
+    ) = {
       val in = new ByteArrayInputStream(s"hello$ENDL".getBytes())
       val out = new ByteArrayOutputStream()
       val err = new ByteArrayOutputStream()
@@ -86,7 +87,7 @@ object ClientServerTests extends TestSuite {
         args,
         memoryLocks,
         forceFailureForTestingMillisDelay
-      ){
+      ) {
         def initServer(serverDir: String, b: Boolean, locks: Locks) = {
           val serverId = "server-" + nextServerId
           nextServerId += 1
@@ -105,15 +106,17 @@ object ClientServerTests extends TestSuite {
 
   }
 
-  case class ClientResult(exitCode: Int,
-                          serverDir: os.Path,
-                          outDir: os.Path,
-                          out: String,
-                          err: String){
+  case class ClientResult(
+      exitCode: Int,
+      serverDir: os.Path,
+      outDir: os.Path,
+      out: String,
+      err: String
+  ) {
     def logsFor(suffix: String) = {
       os.read
         .lines(serverDir / ServerFiles.serverLog)
-        .collect{case s if s.endsWith(" " + suffix) => s.dropRight(1 + suffix.length)}
+        .collect { case s if s.endsWith(" " + suffix) => s.dropRight(1 + suffix.length) }
     }
   }
 
@@ -191,7 +194,7 @@ object ClientServerTests extends TestSuite {
       // on the next cold startup. Mill chooses the second option.
       import concurrent._
       import concurrent.ExecutionContext.Implicits.global
-      val res1 = intercept[Exception]{
+      val res1 = intercept[Exception] {
         tester.apply(args = Array(" World"), forceFailureForTestingMillisDelay = 100)
       }
 
@@ -200,7 +203,10 @@ object ClientServerTests extends TestSuite {
 
       assert(
         logLines.takeRight(2) ==
-        Seq("server-0 client interrupted while server was executing command", "server-0 exiting server")
+          Seq(
+            "server-0 client interrupted while server was executing command",
+            "server-0 exiting server"
+          )
       )
     }
 

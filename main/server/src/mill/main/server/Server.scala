@@ -1,14 +1,12 @@
 package mill.main.server
 
-import sun.misc.{Signal, SignalHandler}
-
 import java.io._
 import java.net.Socket
 import scala.jdk.CollectionConverters._
 import org.newsclub.net.unix.AFUNIXServerSocket
 import org.newsclub.net.unix.AFUNIXSocketAddress
 import mill.main.client._
-import mill.api.{SystemStreams, internal}
+import mill.api.SystemStreams
 import mill.main.client.ProxyStream.Output
 import mill.main.client.lock.{Lock, Locks}
 
@@ -31,7 +29,7 @@ abstract class Server[T](
   var stateCache = stateCache0
   def stateCache0: T
 
-  val serverId = java.lang.Long.toHexString(scala.util.Random.nextLong())
+  val serverId: String = java.lang.Long.toHexString(scala.util.Random.nextLong())
   def serverLog0(s: String): Unit =
     os.write.append(serverDir / ServerFiles.serverLog, s"$s\n", createFolders = true)
 
@@ -42,27 +40,31 @@ abstract class Server[T](
     val initialSystemProperties = sys.props.toMap
 
     try Server.tryLockBlock(locks.processLock) {
-      watchServerIdFile()
+        watchServerIdFile()
 
-      while (running && {
-        val serverSocket = bindSocket()
-        try interruptWithTimeout(() => serverSocket.close(), () => serverSocket.accept()) match {
-            case None => false
-            case Some(sock) =>
-              serverLog("handling run")
-              try handleRun(sock, initialSystemProperties)
-              catch { case e: Throwable => serverLog(e + "\n" + e.getStackTrace.mkString("\n")) }
-              finally sock.close();
-              true
+        while (
+          running && {
+            val serverSocket = bindSocket()
+            try
+              interruptWithTimeout(() => serverSocket.close(), () => serverSocket.accept()) match {
+                case None => false
+                case Some(sock) =>
+                  serverLog("handling run")
+                  try handleRun(sock, initialSystemProperties)
+                  catch {
+                    case e: Throwable => serverLog(e + "\n" + e.getStackTrace.mkString("\n"))
+                  } finally sock.close();
+                  true
+              }
+            finally serverSocket.close()
           }
-        finally serverSocket.close()
-      }) ()
+        ) ()
 
-    }.getOrElse(throw new Exception("Mill server process already present"))
+      }.getOrElse(throw new Exception("Mill server process already present"))
     finally exitServer()
   }
 
-  def bindSocket() = {
+  def bindSocket(): AFUNIXServerSocket = {
     val socketPath = os.Path(ServerFiles.pipe(serverDir.toString()))
     os.remove.all(socketPath)
 
@@ -84,26 +86,28 @@ abstract class Server[T](
     pipedInput
   }
 
-  def watchServerIdFile() = {
+  def watchServerIdFile(): Unit = {
     os.write.over(serverDir / ServerFiles.serverId, serverId)
     val serverIdThread = new Thread(
       () =>
-        while (running && {
-          Thread.sleep(100)
-          Try(os.read(serverDir / ServerFiles.serverId)).toOption match {
-            case None =>
-              serverLog("serverId file missing")
-              exitServer()
-              false
-            case Some(s) =>
-              if (s == serverId) true
-              else {
-                serverLog(s"serverId file contents $s does not match serverId $serverId")
+        while (
+          running && {
+            Thread.sleep(100)
+            Try(os.read(serverDir / ServerFiles.serverId)).toOption match {
+              case None =>
+                serverLog("serverId file missing")
                 exitServer()
                 false
-              }
+              case Some(s) =>
+                if (s == serverId) true
+                else {
+                  serverLog(s"serverId file contents $s does not match serverId $serverId")
+                  exitServer()
+                  false
+                }
+            }
           }
-        })() ,
+        ) (),
       "Server ID Checker Thread"
     )
     serverIdThread.start()
