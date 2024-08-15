@@ -9,7 +9,7 @@ import scala.jdk.CollectionConverters._
 import utest._
 
 class EchoServer(tmpDir: os.Path, locks: Locks)
-  extends Server[Option[Int]](tmpDir, () => (), 1000, locks) with Runnable{
+    extends Server[Option[Int]](tmpDir, () => (), 1000, locks) with Runnable {
   def stateCache0 = None
   def main0(
       args: Array[String],
@@ -41,8 +41,8 @@ class EchoServer(tmpDir: os.Path, locks: Locks)
     (true, None)
   }
 
-  def handleRun(clientSocket: java.net.Socket,
-                initialSystemProperties: Map[String,String]): Unit = ???
+  def handleRun(clientSocket: java.net.Socket, initialSystemProperties: Map[String, String]): Unit =
+    ???
 }
 
 object ClientServerTests extends TestSuite {

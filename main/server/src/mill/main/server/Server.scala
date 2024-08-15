@@ -14,12 +14,11 @@ import mill.main.client.lock.{Lock, Locks}
 
 import scala.util.Try
 
-
 abstract class Server[T](
-                                  serverDir: os.Path,
-                                  interruptServer: () => Unit,
-                                  acceptTimeoutMillis: Int,
-                                  locks: Locks
+    serverDir: os.Path,
+    interruptServer: () => Unit,
+    acceptTimeoutMillis: Int,
+    locks: Locks
 ) {
   def stateCache0: T
   var stateCache = stateCache0
@@ -47,7 +46,7 @@ abstract class Server[T](
             try {
               serverLog("handling run")
               try handleRun(sock, initialSystemProperties)
-              catch { case e: Throwable => serverLog(e + "\n" + e.getStackTrace.mkString("\n"))}
+              catch { case e: Throwable => serverLog(e + "\n" + e.getStackTrace.mkString("\n")) }
               finally sock.close();
             } finally serverSocket.close()
         }
@@ -81,14 +80,14 @@ abstract class Server[T](
     os.write.over(serverDir / ServerFiles.serverId, serverId)
     val serverIdThread = new Thread(
       () => {
-        while (true){
+        while (true) {
           Thread.sleep(100)
-          Try(os.read(serverDir / ServerFiles.serverId)).toOption match{
+          Try(os.read(serverDir / ServerFiles.serverId)).toOption match {
             case None =>
               serverLog("serverId file missing, exiting")
               System.exit(0)
             case Some(s) =>
-              if (s != serverId){
+              if (s != serverId) {
                 serverLog(s"serverId file contents $s does not match serverId $serverId, exiting")
                 System.exit(0)
               }
@@ -113,7 +112,7 @@ abstract class Server[T](
           close()
         }
       },
-      "MillSocketTimeoutInterruptThread",
+      "MillSocketTimeoutInterruptThread"
     )
 
     thread.start()

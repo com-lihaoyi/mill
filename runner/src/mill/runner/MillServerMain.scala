@@ -13,7 +13,7 @@ import mill.main.client.ProxyStream.Output
 import mill.main.client.lock.{Lock, Locks}
 import scala.util.Try
 
-object MillServerMain{
+object MillServerMain {
   def main(args0: Array[String]): Unit = {
     // Disable SIGINT interrupt signal in the Mill server.
     //
@@ -41,14 +41,17 @@ object MillServerMain{
   }
 }
 class MillServerMain(
-                      lockBase: os.Path,
-                      interruptServer: () => Unit,
-                      acceptTimeoutMillis: Int,
-                      locks: Locks
-                    )
-  extends mill.main.server.Server[RunnerState](lockBase, interruptServer, acceptTimeoutMillis, locks) {
+    lockBase: os.Path,
+    interruptServer: () => Unit,
+    acceptTimeoutMillis: Int,
+    locks: Locks
+) extends mill.main.server.Server[RunnerState](
+      lockBase,
+      interruptServer,
+      acceptTimeoutMillis,
+      locks
+    ) {
   def stateCache0 = RunnerState.empty
-
 
   def handleRun(clientSocket: Socket, initialSystemProperties: Map[String, String]): Unit = {
 
@@ -88,18 +91,19 @@ class MillServerMain(
         () =>
           try {
             val streams = new SystemStreams(stdout, stderr, proxiedSocketInput)
-            val (result, newStateCache) = try MillMain.main0(
-              args,
-              stateCache,
-              interactive,
-              streams,
-              None,
-              env.asScala.toMap,
-              idle = _,
-              userSpecifiedProperties.asScala.toMap,
-              initialSystemProperties
-            ) catch MillMain.handleMillException(streams.err, stateCache)
-
+            val (result, newStateCache) =
+              try MillMain.main0(
+                  args,
+                  stateCache,
+                  interactive,
+                  streams,
+                  None,
+                  env.asScala.toMap,
+                  idle = _,
+                  userSpecifiedProperties.asScala.toMap,
+                  initialSystemProperties
+                )
+              catch MillMain.handleMillException(streams.err, stateCache)
 
             stateCache = newStateCache
             os.write.over(
