@@ -29,8 +29,9 @@ abstract class Server[T](
 
   var stateCache = stateCache0
   def stateCache0: T
-  val serverId = scala.util.Random.nextLong().toString
-  def serverLog(s: String) = os.write.append(serverDir / ServerFiles.serverLog, s + "\n")
+
+  val serverId = java.lang.Long.toHexString(scala.util.Random.nextLong())
+  def serverLog(s: String) = println(serverDir / ServerFiles.serverLog, s + "\n")
 
   def run(): Unit = {
     val initialSystemProperties = sys.props.toMap
@@ -85,11 +86,11 @@ abstract class Server[T](
           Try(os.read(serverDir / ServerFiles.serverId)).toOption match {
             case None =>
               serverLog("serverId file missing, exiting")
-              System.exit(0)
+              interruptServer()
             case Some(s) =>
               if (s != serverId) {
                 serverLog(s"serverId file contents $s does not match serverId $serverId, exiting")
-                System.exit(0)
+                interruptServer()
               }
           }
         }

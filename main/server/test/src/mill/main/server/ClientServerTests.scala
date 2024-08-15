@@ -11,6 +11,7 @@ import utest._
 class EchoServer(tmpDir: os.Path, locks: Locks)
     extends Server[Option[Int]](tmpDir, () => (), 1000, locks) with Runnable {
   def stateCache0 = None
+  override def serverLog(s: String) = println(serverId + " " + s)
   def main0(
       args: Array[String],
       stateCache: Option[Int],
@@ -53,7 +54,8 @@ object ClientServerTests extends TestSuite {
     (in, out, err)
   }
   def init() = {
-    val tmpDir = os.temp.dir()
+    val tmpDir = os.temp.dir(os.pwd)
+    println("tmpDir " + tmpDir)
     val locks = Locks.memory()
 
     (tmpDir, locks)
