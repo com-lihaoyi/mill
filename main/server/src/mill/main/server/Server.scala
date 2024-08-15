@@ -30,27 +30,23 @@ abstract class Server[T](
     val initialSystemProperties = sys.props.toMap
 
     Server.tryLockBlock(locks.processLock) {
-
       watchServerIdFile()
 
-      var running = true
-      while (running) {
-
+      while ({
         serverLog("listening on socket")
         val serverSocket = bindSocket()
-        val sockOpt = interruptWithTimeout(() => serverSocket.close(), () => serverSocket.accept())
-
-        sockOpt match {
-          case None => running = false
+        try interruptWithTimeout(() => serverSocket.close(), () => serverSocket.accept()) match {
+          case None => false
           case Some(sock) =>
-            try {
-              serverLog("handling run")
-              try handleRun(sock, initialSystemProperties)
-              catch { case e: Throwable => serverLog(e + "\n" + e.getStackTrace.mkString("\n")) }
-              finally sock.close();
-            } finally serverSocket.close()
+            serverLog("handling run")
+            try handleRun(sock, initialSystemProperties)
+            catch { case e: Throwable => serverLog(e + "\n" + e.getStackTrace.mkString("\n")) }
+            finally sock.close();
+            true
         }
-      }
+        finally serverSocket.close()
+      }) ()
+
     }.getOrElse(throw new Exception("Mill server process already present, exiting"))
   }
 
