@@ -252,8 +252,8 @@ object common extends NettyModule{
     val shell = new groovy.lang.GroovyShell()
 
     val context = new java.util.HashMap[String, Object]
-    context.put("collection.template.dir", "common/src/main/templates")
-    context.put("collection.template.test.dir", "common/src/test/templates")
+    context.put("collection.template.dir", T.workspace + "/common/src/main/templates")
+    context.put("collection.template.test.dir", T.workspace + "/common/src/test/templates")
     context.put("collection.src.dir", (T.dest / "src").toString)
     context.put("collection.testsrc.dir", (T.dest / "testsrc").toString)
     shell.setProperty("properties", context)
