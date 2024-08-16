@@ -140,7 +140,7 @@ abstract class IntegrationTestSuite extends TestSuite {
 
   override def utestAfterEach(path: Seq[String]): Unit = {
     runnerState = RunnerState.empty
-    if (integrationTestMode == "server") {
+    if (integrationTestMode == "server" || integrationTestMode == "local") {
       // try to stop the server
       try {
         os.proc(millReleaseFileOpt.get, "shutdown").call(
