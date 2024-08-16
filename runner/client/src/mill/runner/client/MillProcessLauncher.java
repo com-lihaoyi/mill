@@ -48,7 +48,7 @@ public class MillProcessLauncher {
         builder.environment().put("MILL_WORKSPACE_ROOT", new File("").getCanonicalPath());
         File sandbox = new java.io.File(serverDir + "/" + ServerFiles.sandbox);
         sandbox.mkdirs();
-        // builder.directory(sandbox);
+        builder.directory(sandbox);
         return builder.start();
     }
 
@@ -88,7 +88,7 @@ public class MillProcessLauncher {
         return "java";
     }
 
-    static String[] millClasspath() {
+    static String[] millClasspath() throws Exception {
         String selfJars = "";
         List<String> vmOptions = new LinkedList<>();
         String millOptionsPath = System.getProperty("MILL_OPTIONS_PATH");
@@ -121,10 +121,14 @@ public class MillProcessLauncher {
         if (selfJars == null || selfJars.trim().isEmpty()) {
             throw new RuntimeException("MILL_CLASSPATH is empty!");
         }
-        return selfJars.split("[,]");
+        String[] selfJarsArray = selfJars.split("[,]");
+        for(int i = 0; i < selfJarsArray.length; i++){
+            selfJarsArray[i] = new java.io.File(selfJarsArray[i]).getCanonicalPath();
+        }
+        return selfJarsArray;
     }
 
-    static List<String> millLaunchJvmCommand(boolean setJnaNoSys) {
+    static List<String> millLaunchJvmCommand(boolean setJnaNoSys) throws Exception {
         final List<String> vmOptions = new ArrayList<>();
 
         // Java executable
