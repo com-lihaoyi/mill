@@ -1,6 +1,7 @@
 package mill.scalalib.scalafmt
 
 import mill._
+import mill.define.Discover
 import mill.main.Tasks
 import mill.scalalib.ScalaModule
 import mill.util.{TestEvaluator, TestUtil}
@@ -24,11 +25,13 @@ object ScalafmtTests extends TestSuite {
     object core extends ScalaModule with ScalafmtModule with BuildSrcModule {
       def scalaVersion: T[String] = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
 
-      def buildSources: T[Seq[PathRef]] = T.sources {
+      def buildSources: T[Seq[PathRef]] = Task.sources {
         millSourcePath / "util.sc"
       }
 
     }
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "scalafmt"

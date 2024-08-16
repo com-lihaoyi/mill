@@ -1,7 +1,7 @@
 package mill.bsp
 
 import mill.api.{Ctx, PathRef}
-import mill.{Agg, T}
+import mill.{Agg, T, Task}
 import mill.define.{Command, Discover, ExternalModule}
 import mill.main.BuildInfo
 import mill.eval.Evaluator
@@ -10,9 +10,9 @@ import mill.scalalib.CoursierModule
 
 object BSP extends ExternalModule with CoursierModule {
 
-  lazy val millDiscover: Discover[this.type] = Discover[this.type]
+  val millDiscover: Discover[this.type] = Discover[this.type]
 
-  private def bspWorkerLibs: T[Agg[PathRef]] = T {
+  private def bspWorkerLibs: T[Agg[PathRef]] = Task {
     millProjectModule("mill-bsp-worker", repositoriesTask())
   }
 
@@ -30,11 +30,11 @@ object BSP extends ExternalModule with CoursierModule {
    * reason, the message and stacktrace of the exception will be
    * printed to stdout.
    */
-  def install(jobs: Int = 1): Command[(PathRef, ujson.Value)] = T.command {
+  def install(jobs: Int = 1): Command[(PathRef, ujson.Value)] = Task.command {
     // we create a file containing the additional jars to load
     val libUrls = bspWorkerLibs().map(_.path.toNIO.toUri.toURL).iterator.toSeq
     val cpFile =
-      T.workspace / Constants.bspDir / s"${Constants.serverName}-${BuildInfo.millVersion}.resources"
+      Task.workspace / Constants.bspDir / s"${Constants.serverName}-${BuildInfo.millVersion}.resources"
     os.write.over(
       cpFile,
       libUrls.mkString("\n"),
@@ -50,10 +50,10 @@ object BSP extends ExternalModule with CoursierModule {
    * @return The server result, indicating if mill should re-run this command or just exit.
    */
   def startSession(allBootstrapEvaluators: Evaluator.AllBootstrapEvaluators)
-      : Command[BspServerResult] = T.command {
-    T.log.errorStream.println("BSP/startSession: Starting BSP session")
+      : Command[BspServerResult] = Task.command {
+    Task.log.errorStream.println("BSP/startSession: Starting BSP session")
     val res = BspContext.bspServerHandle.runSession(allBootstrapEvaluators.value)
-    T.log.errorStream.println(s"BSP/startSession: Finished BSP session, result: ${res}")
+    Task.log.errorStream.println(s"BSP/startSession: Finished BSP session, result: ${res}")
     res
   }
 

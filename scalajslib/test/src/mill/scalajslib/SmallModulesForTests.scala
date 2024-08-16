@@ -19,7 +19,7 @@ object SmallModulesForTests extends TestSuite {
       override def moduleSplitStyle = ModuleSplitStyle.SmallModulesFor(List("app"))
     }
 
-    override lazy val millDiscover = Discover[this.type]
+    override lazy val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   val millSourcePath = os.pwd / "scalajslib" / "test" / "resources" / "small-modules-for"

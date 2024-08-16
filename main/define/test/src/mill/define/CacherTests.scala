@@ -1,25 +1,31 @@
 package mill.define
 
 import mill.util.{TestEvaluator, TestUtil}
-import mill.T
+import mill.{Task, T}
 import mill.api.Result.Success
 import utest._
 import utest.framework.TestPath
 
 object CacherTests extends TestSuite {
-  object Base extends Base
+  object Base extends Base {
+    val millDiscover: Discover[this.type] = Discover[this.type]
+  }
   trait Base extends TestUtil.BaseModule {
-    def value = T { 1 }
-    def result = T { Success(1) }
+    def value = Task { 1 }
+    def result = Task { Success(1) }
   }
-  object Middle extends Middle
+  object Middle extends Middle {
+    val millDiscover: Discover[this.type] = Discover[this.type]
+  }
   trait Middle extends Base {
-    override def value = T { super.value() + 2 }
-    def overridden = T { super.value() }
+    override def value = Task { super.value() + 2 }
+    def overridden = Task { super.value() }
   }
-  object Terminal extends Terminal
+  object Terminal extends Terminal {
+    val millDiscover: Discover[this.type] = Discover[this.type]
+  }
   trait Terminal extends Middle {
-    override def value = T { super.value() + 4 }
+    override def value = Task { super.value() + 4 }
   }
 
   val tests = Tests {

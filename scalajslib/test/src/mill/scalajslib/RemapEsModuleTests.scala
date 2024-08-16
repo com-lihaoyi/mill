@@ -4,7 +4,7 @@ import mill.api.Result
 import mill.define.Discover
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
-import mill.define.Target
+import mill.define.Task
 import mill.scalajslib.api._
 
 object EsModuleRemapTests extends TestSuite {
@@ -21,7 +21,7 @@ object EsModuleRemapTests extends TestSuite {
       override def scalaJSSourceMap = false
       override def moduleKind = ModuleKind.ESModule
 
-      override def scalaJSImportMap: Target[Seq[ESModuleImportMapping]] = Seq(
+      override def scalaJSImportMap: Task[Seq[ESModuleImportMapping]] = Seq(
         ESModuleImportMapping.Prefix("@stdlib/linspace", remapTo)
       )
     }
@@ -33,12 +33,12 @@ object EsModuleRemapTests extends TestSuite {
       override def scalaJSSourceMap = false
       override def moduleKind = ModuleKind.ESModule
 
-      override def scalaJSImportMap: Target[Seq[ESModuleImportMapping]] = Seq(
+      override def scalaJSImportMap: Task[Seq[ESModuleImportMapping]] = Seq(
         ESModuleImportMapping.Prefix("@stdlib/linspace", remapTo)
       )
     }
 
-    override lazy val millDiscover = Discover[this.type]
+    override lazy val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   val millSourcePath = os.pwd / "scalajslib" / "test" / "resources" / "esModuleRemap"

@@ -1,7 +1,7 @@
 package mill.scalalib
 
-import mill.{Agg, T}
-
+import mill.define.Discover
+import mill.{Agg, T, Task}
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
 import utest.framework.TestPath
@@ -13,12 +13,14 @@ object TestClassLoaderTests extends TestSuite {
     def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
 
     object test extends ScalaTests with TestModule.Utest {
-      override def ivyDeps = T {
+      override def ivyDeps = Task {
         super.ivyDeps() ++ Agg(
           ivy"com.lihaoyi::utest:${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}"
         )
       }
     }
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "classloader-test"

@@ -3,6 +3,7 @@ package mill.scalalib
 import scala.util.Properties
 import mill._
 import mill.api.Result
+import mill.define.Discover
 import mill.eval.Evaluator
 import mill.util.{Jvm, TestEvaluator, TestUtil}
 import utest._
@@ -20,7 +21,7 @@ object AssemblyTests extends TestSuite {
   object TestCase extends TestUtil.BaseModule {
     trait Setup extends ScalaModule {
       def scalaVersion = "2.13.11"
-      def sources = T.sources(T.workspace / "src")
+      def sources = Task.sources(Task.workspace / "src")
       def ivyDeps = super.ivyDeps() ++ Agg(
         ivy"com.lihaoyi::scalatags:0.8.2",
         ivy"com.lihaoyi::mainargs:0.4.0",
@@ -51,6 +52,7 @@ object AssemblyTests extends TestSuite {
       object large extends Setup with ExtraDeps
     }
 
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   val sources = Map(

@@ -41,21 +41,21 @@ object NodeJSConfigTests extends TestSuite {
 
       override def artifactName = "hello-js-world"
       def scalaJSVersion = NodeJSConfigTests.scalaJSVersion
-      override def jsEnvConfig = T { JsEnvConfig.NodeJs(args = nodeArgs) }
+      override def jsEnvConfig = Task { JsEnvConfig.NodeJs(args = nodeArgs) }
     }
 
     object buildUTest extends Cross[BuildModuleUtest](matrix)
     trait BuildModuleUtest extends RootModule {
       object test extends ScalaJSTests with TestModule.Utest {
-        override def sources = T.sources { millSourcePath / "src" / "utest" }
+        override def sources = Task.sources { millSourcePath / "src" / "utest" }
         override def ivyDeps = Agg(
           ivy"com.lihaoyi::utest::$utestVersion"
         )
-        override def jsEnvConfig = T { JsEnvConfig.NodeJs(args = nodeArgs) }
+        override def jsEnvConfig = Task { JsEnvConfig.NodeJs(args = nodeArgs) }
       }
     }
 
-    override lazy val millDiscover = Discover[this.type]
+    override lazy val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   val millSourcePath = os.pwd / "scalajslib" / "test" / "resources" / "hello-js-world"

@@ -1,7 +1,7 @@
 package mill.contrib.proguard
 
 import mill._
-import mill.define.Target
+import mill.define.{Discover, Target}
 import mill.util.Util.millProjectModule
 import mill.scalalib.ScalaModule
 import mill.util.TestEvaluator
@@ -20,13 +20,14 @@ object ProguardTests extends TestSuite {
 
     override def scalaVersion: T[String] = T(sys.props.getOrElse("MILL_SCALA_2_13_VERSION", ???))
 
-    def proguardContribClasspath = T {
+    def proguardContribClasspath = Task {
       millProjectModule("mill-contrib-proguard", repositoriesTask())
     }
 
-    override def runClasspath: Target[Seq[PathRef]] =
-      T { super.runClasspath() ++ proguardContribClasspath() }
+    override def runClasspath: Task[Seq[PathRef]] =
+      Task { super.runClasspath() ++ proguardContribClasspath() }
 
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   val testModuleSourcesPath: Path =

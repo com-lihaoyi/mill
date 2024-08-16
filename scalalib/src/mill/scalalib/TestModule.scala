@@ -1,11 +1,11 @@
 package mill.scalalib
 
 import mill.api.{Ctx, PathRef, Result}
-import mill.define.{Command, Task, TaskModule}
+import mill.define.{Command, TaskModule}
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.testrunner.{Framework, TestArgs, TestResult, TestRunner, TestRunnerUtils}
 import mill.util.Jvm
-import mill.{Agg, T}
+import mill.{Agg, T, Task}
 import sbt.testing.Status
 
 import java.time.format.DateTimeFormatter
@@ -28,7 +28,7 @@ trait TestModule
    * The classpath containing the tests. This is most likely the output of the compilation target.
    * By default this uses the result of [[localRunClasspath]], which is most likely the result of a local compilation.
    */
-  def testClasspath: T[Seq[PathRef]] = T { localRunClasspath() }
+  def testClasspath: T[Seq[PathRef]] = Task { localRunClasspath() }
 
   /**
    * The test framework to use.
@@ -46,7 +46,7 @@ trait TestModule
    */
   def testFramework: T[String]
 
-  def discoveredTestClasses: T[Seq[String]] = T {
+  def discoveredTestClasses: T[Seq[String]] = Task {
     val classes = Jvm.inprocess(
       runClasspath().map(_.path),
       classLoaderOverrideSbtTesting = true,
@@ -71,14 +71,14 @@ trait TestModule
    * @see [[testCached]]
    */
   def test(args: String*): Command[(String, Seq[TestResult])] =
-    T.command {
-      testTask(T.task { args }, T.task { Seq.empty[String] })()
+    Task.command {
+      testTask(Task.anon { args }, Task.anon { Seq.empty[String] })()
     }
 
   /**
    * Args to be used by [[testCached]].
    */
-  def testCachedArgs: T[Seq[String]] = T { Seq[String]() }
+  def testCachedArgs: T[Seq[String]] = Task { Seq[String]() }
 
   /**
    * Discovers and runs the module's tests in a subprocess, reporting the
@@ -86,8 +86,8 @@ trait TestModule
    * If no input has changed since the last run, no test were executed.
    * @see [[test()]]
    */
-  def testCached: T[(String, Seq[TestResult])] = T {
-    testTask(testCachedArgs, T.task { Seq.empty[String] })()
+  def testCached: T[(String, Seq[TestResult])] = Task {
+    testTask(testCachedArgs, Task.anon { Seq.empty[String] })()
   }
 
   /**
@@ -106,8 +106,8 @@ trait TestModule
         val (s, t) = args.splitAt(pos)
         (s, t.tail)
     }
-    T.command {
-      testTask(T.task { testArgs }, T.task { selector })()
+    Task.command {
+      testTask(Task.anon { testArgs }, Task.anon { selector })()
     }
   }
 
@@ -115,7 +115,7 @@ trait TestModule
    * Controls whether the TestRunner should receive it's arguments via an args-file instead of a as long parameter list.
    * Defaults to what `runUseArgsFile` return.
    */
-  def testUseArgsFile: T[Boolean] = T { runUseArgsFile() || scala.util.Properties.isWin }
+  def testUseArgsFile: T[Boolean] = Task { runUseArgsFile() || scala.util.Properties.isWin }
 
   /**
    * Sets the file name for the generated JUnit-compatible test report.
@@ -140,8 +140,8 @@ trait TestModule
       args: Task[Seq[String]],
       globSelectors: Task[Seq[String]]
   ): Task[(String, Seq[TestResult])] =
-    T.task {
-      val outputPath = T.dest / "out.json"
+    Task.anon {
+      val outputPath = Task.dest / "out.json"
       val useArgsFile = testUseArgsFile()
 
       val (jvmArgs, props: Map[String, String]) =
@@ -169,9 +169,9 @@ trait TestModule
         arguments = args(),
         sysProps = props,
         outputPath = outputPath,
-        colored = T.log.colored,
+        colored = Task.log.colored,
         testCp = testClasspath().map(_.path),
-        home = T.home,
+        home = Task.home,
         globSelectors = selectors
       )
 
@@ -179,7 +179,7 @@ trait TestModule
         .map(_.path.toNIO.toUri.toURL)
         .mkString(",")
 
-      val argsFile = T.dest / "testargs"
+      val argsFile = Task.dest / "testargs"
       os.write(argsFile, upickle.default.write(testArgs))
       val mainArgs = Seq(testRunnerClasspathArg, argsFile.toString)
 
@@ -193,7 +193,7 @@ trait TestModule
         jvmArgs = jvmArgs,
         envArgs = Map(
           "MILL_TEST_RESOURCE_FOLDER" -> resources().map(_.path).mkString(";"),
-          "MILL_TEST_DEST_FOLDER" -> T.dest.toString()
+          "MILL_TEST_DEST_FOLDER" -> Task.dest.toString()
         ) ++ forkEnv(),
         mainArgs = mainArgs,
         workingDir = if (testSandboxWorkingDir()) T.dest / "sandbox" else forkWorkingDir(),
@@ -212,7 +212,7 @@ trait TestModule
             Result.Failure(
               s"Test selector does not match any test: ${selectors.mkString(" ")}" + "\nRun discoveredTestClasses to see available tests"
             )
-          } else TestModule.handleResults(doneMsg, results, T.ctx(), testReportXml())
+          } else TestModule.handleResults(doneMsg, results, Task.ctx(), testReportXml())
         } catch {
           case e: Throwable =>
             Result.Failure("Test reporting failed: " + e)
@@ -223,15 +223,15 @@ trait TestModule
    * Discovers and runs the module's tests in-process in an isolated classloader,
    * reporting the results to the console
    */
-  def testLocal(args: String*): Command[(String, Seq[TestResult])] = T.command {
+  def testLocal(args: String*): Command[(String, Seq[TestResult])] = Task.command {
     val (doneMsg, results) = TestRunner.runTestFramework(
       Framework.framework(testFramework()),
       runClasspath().map(_.path),
       Agg.from(testClasspath().map(_.path)),
       args,
-      T.testReporter
+      Task.testReporter
     )
-    TestModule.handleResults(doneMsg, results, T.ctx(), testReportXml())
+    TestModule.handleResults(doneMsg, results, Task.ctx(), testReportXml())
   }
 
   override def bspBuildTarget: BspBuildTarget = {
@@ -256,7 +256,7 @@ object TestModule {
    */
   trait TestNg extends TestModule {
     override def testFramework: T[String] = "mill.testng.TestNGFramework"
-    override def ivyDeps: T[Agg[Dep]] = T {
+    override def ivyDeps: T[Agg[Dep]] = Task {
       super.ivyDeps() ++ Agg(
         ivy"com.lihaoyi:mill-contrib-testng:${mill.api.BuildInfo.millVersion}"
       )
@@ -269,7 +269,7 @@ object TestModule {
    */
   trait Junit4 extends TestModule {
     override def testFramework: T[String] = "com.novocode.junit.JUnitFramework"
-    override def ivyDeps: T[Agg[Dep]] = T {
+    override def ivyDeps: T[Agg[Dep]] = Task {
       super.ivyDeps() ++ Agg(ivy"${mill.scalalib.api.Versions.sbtTestInterface}")
     }
   }
@@ -280,7 +280,7 @@ object TestModule {
    */
   trait Junit5 extends TestModule {
     override def testFramework: T[String] = "com.github.sbt.junit.jupiter.api.JupiterFramework"
-    override def ivyDeps: T[Agg[Dep]] = T {
+    override def ivyDeps: T[Agg[Dep]] = Task {
       super.ivyDeps() ++ Agg(ivy"${mill.scalalib.api.Versions.jupiterInterface}")
     }
   }
@@ -299,7 +299,7 @@ object TestModule {
    */
   trait Specs2 extends ScalaModuleBase with TestModule {
     override def testFramework: T[String] = "org.specs2.runner.Specs2Framework"
-    override def scalacOptions = T {
+    override def scalacOptions = Task {
       super.scalacOptions() ++ Seq("-Yrangepos")
     }
   }

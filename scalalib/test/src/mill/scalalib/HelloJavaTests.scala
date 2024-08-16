@@ -2,6 +2,7 @@ package mill
 package scalalib
 
 import mill.api.Result
+import mill.define.Discover
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
 import utest.framework.TestPath
@@ -20,11 +21,13 @@ object HelloJavaTests extends TestSuite {
       override def moduleDeps = Seq(core)
       object test extends JavaModuleTests with TestModule.Junit4
       object testJunit5 extends JavaModuleTests with TestModule.Junit5 {
-        override def ivyDeps: T[Agg[Dep]] = T {
+        override def ivyDeps: T[Agg[Dep]] = Task {
           super.ivyDeps() ++ Agg(ivy"org.junit.jupiter:junit-jupiter-params:5.7.0")
         }
       }
     }
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-java"
 

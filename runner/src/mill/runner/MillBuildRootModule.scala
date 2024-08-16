@@ -154,7 +154,7 @@ class MillBuildRootModule()(implicit
           // graph evaluator without needing to be accounted for in the post-compile
           // bytecode callgraph analysis.
           def isSimpleTarget =
-            (calledSig.desc.ret.pretty == classOf[mill.define.Target[_]].getName ||
+            (calledSig.desc.ret.pretty == classOf[mill.define.Task[_]].getName ||
               calledSig.desc.ret.pretty == classOf[mill.define.Worker[_]].getName) &&
               calledSig.desc.args.isEmpty
 
@@ -231,7 +231,7 @@ class MillBuildRootModule()(implicit
    * By default, these are the dependencies, which Mill provides itself (via [[unmanagedClasspath]]).
    * We exclude them to avoid incompatible or duplicate artifacts on the classpath.
    */
-  protected def resolveDepsExclusions: T[Seq[(String, String)]] = T {
+  def resolveDepsExclusions: Task[Seq[(String, String)]] = T {
     Lib.millAssemblyEmbeddedDeps.toSeq.map(d =>
       (d.dep.module.organization.value, d.dep.module.name.value)
     )

@@ -1,6 +1,7 @@
 package mill.contrib.buildinfo
 
 import mill._
+import mill.define.Discover
 import mill.util.TestEvaluator
 import mill.util.TestUtil
 import os.Path
@@ -20,6 +21,8 @@ object BuildInfoTests extends TestSuite {
     def scalaVersion = scalaVersionString
     def buildInfoPackageName = "foo"
     def buildInfoMembers = Seq.empty[BuildInfo.Value]
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object BuildInfoPlain extends BuildInfoModule with scalalib.ScalaModule {
@@ -28,6 +31,8 @@ object BuildInfoTests extends TestSuite {
     def buildInfoMembers = Seq(
       BuildInfo.Value("scalaVersion", scalaVersion())
     )
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object BuildInfoScalaJS extends BuildInfoModule with scalajslib.ScalaJSModule {
@@ -37,6 +42,8 @@ object BuildInfoTests extends TestSuite {
     def buildInfoMembers = Seq(
       BuildInfo.Value("scalaVersion", scalaVersion())
     )
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object BuildInfoComment extends BuildInfoModule with scalalib.ScalaModule {
@@ -54,6 +61,8 @@ object BuildInfoTests extends TestSuite {
         comment = "a helpful comment explaining what scalaVersion\nis all about"
       )
     )
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object BuildInfoStatic extends BuildInfoModule with scalalib.ScalaModule {
@@ -63,6 +72,8 @@ object BuildInfoTests extends TestSuite {
     def buildInfoMembers = Seq(
       BuildInfo.Value("scalaVersion", scalaVersion())
     )
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object BuildInfoSettings extends BuildInfoModule with scalalib.ScalaModule {
@@ -72,6 +83,8 @@ object BuildInfoTests extends TestSuite {
     def buildInfoMembers = Seq(
       BuildInfo.Value("scalaVersion", scalaVersion())
     )
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object BuildInfoJava extends BuildInfoModule {
@@ -80,6 +93,8 @@ object BuildInfoTests extends TestSuite {
     def buildInfoMembers = Seq(
       BuildInfo.Value("scalaVersion", "not-provided-for-java-modules")
     )
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object BuildInfoJavaStatic extends BuildInfoModule {
@@ -89,6 +104,8 @@ object BuildInfoTests extends TestSuite {
     def buildInfoMembers = Seq(
       BuildInfo.Value("scalaVersion", "not-provided-for-java-modules")
     )
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   val testModuleSourcesPath: Path =
@@ -169,7 +186,7 @@ object BuildInfoTests extends TestSuite {
     "run" - workspaceTest(BuildInfoPlain, "scala") { eval =>
       val runResult = eval.outPath / "hello-mill"
       val Right((result, evalCount)) =
-        eval.apply(BuildInfoPlain.run(T.task(Args(runResult.toString))))
+        eval.apply(BuildInfoPlain.run(Task.anon(Args(runResult.toString))))
 
       assert(
         os.exists(runResult),
@@ -188,7 +205,7 @@ object BuildInfoTests extends TestSuite {
       val runResult = eval.outPath / "hello-mill"
 
       val Right((result2, evalCount2)) =
-        eval.apply(BuildInfoStatic.run(T.task(Args(runResult.toString))))
+        eval.apply(BuildInfoStatic.run(Task.anon(Args(runResult.toString))))
 
       assert(os.exists(buildInfoSourcePath(eval)))
       assert(!os.exists(buildInfoResourcePath(eval)))
@@ -199,7 +216,7 @@ object BuildInfoTests extends TestSuite {
     "java" - workspaceTest(BuildInfoJava, "java") { eval =>
       val runResult = eval.outPath / "hello-mill"
       val Right((result, evalCount)) =
-        eval.apply(BuildInfoJava.run(T.task(Args(runResult.toString))))
+        eval.apply(BuildInfoJava.run(Task.anon(Args(runResult.toString))))
 
       assert(
         os.exists(runResult),
@@ -211,7 +228,7 @@ object BuildInfoTests extends TestSuite {
       val runResult = eval.outPath / "hello-mill"
       val generatedSrc = eval.outPath / "buildInfoSources.dest" / "foo" / "BuildInfo.java"
       val Right((result, evalCount)) =
-        eval.apply(BuildInfoJavaStatic.run(T.task(Args(runResult.toString))))
+        eval.apply(BuildInfoJavaStatic.run(Task.anon(Args(runResult.toString))))
 
       assert(
         os.exists(runResult),

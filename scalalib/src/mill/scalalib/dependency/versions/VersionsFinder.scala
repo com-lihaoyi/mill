@@ -1,11 +1,11 @@
 package mill.scalalib.dependency.versions
 
-import mill.define.{BaseModule, Task}
+import mill.define.BaseModule
 import mill.eval.Evaluator
 import mill.scalalib.dependency.metadata.{MetadataLoader, MetadataLoaderFactory}
 import mill.scalalib.{JavaModule, Lib}
 import mill.api.Ctx.{Home, Log}
-import mill.T
+import mill.{Task, T}
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -40,8 +40,10 @@ private[dependency] object VersionsFinder {
   private def resolveDeps(progress: Progress)(
       javaModule: JavaModule
   ): Task[ResolvedDependencies] =
-    T.task {
-      T.log.ticker(s"Resolving dependencies [${progress.next()}/${progress.count}]: ${javaModule}")
+    Task.anon {
+      Task.log.ticker(
+        s"Resolving dependencies [${progress.next()}/${progress.count}]: ${javaModule}"
+      )
 
       val bindDependency = javaModule.bindDependency()
       val deps = javaModule.ivyDeps()
@@ -61,7 +63,7 @@ private[dependency] object VersionsFinder {
           mapDependencies = Some(mapDeps),
           customizer = custom,
           coursierCacheCustomizer = cacheCustom,
-          ctx = Some(T.log)
+          ctx = Some(Task.log)
         )
 
       (javaModule, metadataLoaders, dependencies)
@@ -69,11 +71,11 @@ private[dependency] object VersionsFinder {
 
   private def resolveVersions(progres: Progress)(
       resolvedDependencies: ResolvedDependencies
-  ): Task[ModuleDependenciesVersions] = T.task {
+  ): Task[ModuleDependenciesVersions] = Task.anon {
     val (javaModule, metadataLoaders, dependencies) = resolvedDependencies
 
     val versions = dependencies.map { dependency =>
-      T.log.ticker(
+      Task.log.ticker(
         s"Analyzing dependencies [${progres.next()}/${progres.count}]: ${javaModule} / ${dependency.module}"
       )
       val currentVersion = Version(dependency.version)

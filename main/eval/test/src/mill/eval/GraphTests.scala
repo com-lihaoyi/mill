@@ -69,9 +69,9 @@ object GraphTests extends TestSuite {
     }
 
     "groupAroundNamedTargets" - {
-      def check[T, R <: Target[Int]](base: T)(
+      def check[T, R <: Task[Int]](base: T)(
           target: T => R,
-          important0: Agg[T => Target[_]],
+          important0: Agg[T => Task[_]],
           expected: Agg[(R, Int)]
       ) = {
 
@@ -85,7 +85,7 @@ object GraphTests extends TestSuite {
 
         TestUtil.checkTopological(flattened)
         for ((terminal, expectedSize) <- expected) {
-          val grouping = grouped.lookupKey(terminal)
+          val grouping = grouped.lookupKey(terminal.asTarget.get)
           assert(
             grouping.size == expectedSize,
             grouping.flatMap(_.asTarget: Option[Target[_]]).filter(important.contains) == Agg(

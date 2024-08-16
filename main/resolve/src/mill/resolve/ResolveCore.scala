@@ -433,19 +433,33 @@ private object ResolveCore {
       }
     }
 
-    val targets = Reflect
-      .reflect(cls, classOf[Target[_]], namePred, noParams = true)
-      .map { m =>
-        Resolved.Target(Segments.labels(decode(m.getName))) ->
-          None
-      }
+    val targets = findFromParents(
+      cls,
+      c => baseModules.targetNamesByClass.getOrElse(c, Set()).filter(namePred).toSeq
+    ).map { name => Resolved.Target(Segments.labels(name)) -> None }
 
-    val commands = Reflect
-      .reflect(cls, classOf[Command[_]], namePred, noParams = false)
-      .map(m => decode(m.getName))
-      .map { name => Resolved.Command(Segments.labels(name)) -> None }
+    val commands = findFromParents(
+      cls,
+      c => baseModules.commandNamesByClass.getOrElse(c, Set()).filter(namePred).toSeq
+    ).map { name => Resolved.Command(Segments.labels(name)) -> None }
 
     modulesOrErr.map(_ ++ targets ++ commands)
+  }
+
+  def findFromParents[T](
+      c: Class[_],
+      target: Class[_] => Seq[T],
+      seen: collection.mutable.Set[Class[_]] = collection.mutable.Set()
+  ): Seq[T] = {
+    if (seen(c)) Nil
+    else {
+      seen.add(c)
+
+      target(c) ++
+        (Option(c.getSuperclass).iterator ++ c.getInterfaces)
+          .flatMap(findFromParents(_, target, seen))
+          .toSeq
+    }
   }
 
   def notFoundResult(

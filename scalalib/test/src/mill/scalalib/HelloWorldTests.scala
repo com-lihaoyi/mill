@@ -6,7 +6,7 @@ import scala.jdk.CollectionConverters._
 import scala.util.{Properties, Using}
 import mill._
 import mill.api.Result
-import mill.define.NamedTask
+import mill.define.{Discover, NamedTask}
 import mill.eval.{Evaluator, EvaluatorPaths}
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
@@ -30,7 +30,7 @@ object HelloWorldTests extends TestSuite {
 
   trait HelloWorldModule extends scalalib.ScalaModule {
     def scalaVersion = scala212Version
-    override def semanticDbVersion: T[String] = T {
+    override def semanticDbVersion: T[String] = Task {
       // The latest semanticDB release for Scala 2.12.6
       "4.1.9"
     }
@@ -44,14 +44,20 @@ object HelloWorldTests extends TestSuite {
 
   object HelloWorld extends HelloBase {
     object core extends HelloWorldModule
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
   object SemanticWorld extends HelloBase {
     object core extends SemanticModule
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
   object HelloWorldNonPrecompiledBridge extends HelloBase {
     object core extends HelloWorldModule {
       override def scalaVersion = "2.12.1"
     }
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
   object CrossHelloWorld extends HelloBase {
     object core extends Cross[HelloWorldCross](
@@ -62,6 +68,8 @@ object HelloWorldTests extends TestSuite {
           scala213Version
         )
     trait HelloWorldCross extends CrossScalaModule
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
   object CrossModuleDeps extends HelloBase {
     object stable extends Cross[Stable](scala212Version, scala32Version)
@@ -71,20 +79,28 @@ object HelloWorldTests extends TestSuite {
     trait CuttingEdge extends CrossScalaModule {
       def moduleDeps = Seq(stable())
     }
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object HelloWorldDefaultMain extends HelloBase {
     object core extends HelloWorldModule
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object HelloWorldWithoutMain extends HelloBase {
     object core extends HelloWorldModule {
       override def mainClass = None
     }
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object HelloWorldWithMain extends HelloBase {
     object core extends HelloWorldModuleWithMain
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   val akkaHttpDeps = Agg(ivy"com.typesafe.akka::akka-http:10.0.13")
@@ -94,6 +110,8 @@ object HelloWorldTests extends TestSuite {
       override def ivyDeps = akkaHttpDeps
       override def assemblyRules = Seq(Assembly.Rule.Append("reference.conf"))
     }
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object HelloWorldAkkaHttpExclude extends HelloBase {
@@ -101,6 +119,8 @@ object HelloWorldTests extends TestSuite {
       override def ivyDeps = akkaHttpDeps
       override def assemblyRules = Seq(Assembly.Rule.Exclude("reference.conf"))
     }
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object HelloWorldAkkaHttpAppendPattern extends HelloBase {
@@ -108,6 +128,8 @@ object HelloWorldTests extends TestSuite {
       override def ivyDeps = akkaHttpDeps
       override def assemblyRules = Seq(Assembly.Rule.AppendPattern(".*.conf"))
     }
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object HelloWorldAkkaHttpExcludePattern extends HelloBase {
@@ -115,6 +137,8 @@ object HelloWorldTests extends TestSuite {
       override def ivyDeps = akkaHttpDeps
       override def assemblyRules = Seq(Assembly.Rule.ExcludePattern(".*.conf"))
     }
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object HelloWorldAkkaHttpRelocate extends HelloBase {
@@ -122,6 +146,8 @@ object HelloWorldTests extends TestSuite {
       override def ivyDeps = akkaHttpDeps
       override def assemblyRules = Seq(Assembly.Rule.Relocate("akka.**", "shaded.akka.@1"))
     }
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object HelloWorldAkkaHttpNoRules extends HelloBase {
@@ -129,6 +155,8 @@ object HelloWorldTests extends TestSuite {
       override def ivyDeps = akkaHttpDeps
       override def assemblyRules = Seq.empty
     }
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object HelloWorldMultiAppend extends HelloBase {
@@ -137,6 +165,8 @@ object HelloWorldTests extends TestSuite {
       override def assemblyRules = Seq(Assembly.Rule.Append("reference.conf"))
     }
     object model extends HelloWorldModule
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object HelloWorldMultiExclude extends HelloBase {
@@ -145,6 +175,8 @@ object HelloWorldTests extends TestSuite {
       override def assemblyRules = Seq(Assembly.Rule.Exclude("reference.conf"))
     }
     object model extends HelloWorldModule
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object HelloWorldMultiAppendPattern extends HelloBase {
@@ -153,6 +185,8 @@ object HelloWorldTests extends TestSuite {
       override def assemblyRules = Seq(Assembly.Rule.AppendPattern(".*.conf"))
     }
     object model extends HelloWorldModule
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object HelloWorldMultiAppendByPatternWithSeparator extends HelloBase {
@@ -161,6 +195,8 @@ object HelloWorldTests extends TestSuite {
       override def assemblyRules = Seq(Assembly.Rule.AppendPattern(".*.conf", "\n"))
     }
     object model extends HelloWorldModule
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object HelloWorldMultiExcludePattern extends HelloBase {
@@ -169,6 +205,8 @@ object HelloWorldTests extends TestSuite {
       override def assemblyRules = Seq(Assembly.Rule.ExcludePattern(".*.conf"))
     }
     object model extends HelloWorldModule
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object HelloWorldMultiNoRules extends HelloBase {
@@ -177,18 +215,24 @@ object HelloWorldTests extends TestSuite {
       override def assemblyRules = Seq.empty
     }
     object model extends HelloWorldModule
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object HelloWorldWarnUnused extends HelloBase {
     object core extends HelloWorldModule {
       override def scalacOptions = T(Seq("-Ywarn-unused"))
     }
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object HelloWorldFatalWarnings extends HelloBase {
     object core extends HelloWorldModule {
       override def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
     }
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object HelloWorldWithDocVersion extends HelloBase {
@@ -196,6 +240,8 @@ object HelloWorldTests extends TestSuite {
       override def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
       override def scalaDocOptions = super.scalaDocOptions() ++ Seq("-doc-version", "1.2.3")
     }
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object HelloWorldOnlyDocVersion extends HelloBase {
@@ -203,18 +249,24 @@ object HelloWorldTests extends TestSuite {
       override def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
       override def scalaDocOptions = T(Seq("-doc-version", "1.2.3"))
     }
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object HelloWorldDocTitle extends HelloBase {
     object core extends HelloWorldModule {
       override def scalaDocOptions = T(Seq("-doc-title", "Hello World"))
     }
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object HelloWorldScalaOverride extends HelloBase {
     object core extends HelloWorldModule {
-      override def scalaVersion: Target[String] = scala213Version
+      override def scalaVersion: Task[String] = scala213Version
     }
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object HelloWorldIvyDeps extends HelloBase {
@@ -225,6 +277,8 @@ object HelloWorldTests extends TestSuite {
       override def moduleDeps = Seq(moduleA)
       override def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.1.4")
     }
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object HelloWorldTypeLevel extends HelloBase {
@@ -243,6 +297,8 @@ object HelloWorldTests extends TestSuite {
         ivy"com.typesafe.genjavadoc:::genjavadoc-plugin:0.11"
       )
     }
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object HelloWorldMacros212 extends HelloBase {
@@ -255,6 +311,8 @@ object HelloWorldTests extends TestSuite {
         ivy"org.scalamacros:::paradise:2.1.0"
       )
     }
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object HelloWorldMacros213 extends HelloBase {
@@ -263,6 +321,8 @@ object HelloWorldTests extends TestSuite {
       override def ivyDeps = Agg(ivy"com.github.julien-truffaut::monocle-macro::2.1.0")
       override def scalacOptions = super.scalacOptions() ++ Seq("-Ymacro-annotations")
     }
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object HelloWorldFlags extends HelloBase {
@@ -273,6 +333,8 @@ object HelloWorldTests extends TestSuite {
         "-Ypartial-unification"
       )
     }
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object HelloWorldColorOutput extends HelloBase {
@@ -283,6 +345,8 @@ object HelloWorldTests extends TestSuite {
         "-Vimplicits"
       )
     }
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object HelloScalacheck extends HelloBase {
@@ -293,6 +357,8 @@ object HelloWorldTests extends TestSuite {
         override def testFramework = "org.scalacheck.ScalaCheckFramework"
       }
     }
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object Dotty213 extends HelloBase {
@@ -301,6 +367,8 @@ object HelloWorldTests extends TestSuite {
       override def ivyDeps =
         Agg(ivy"org.scala-lang.modules::scala-xml:1.2.0".withDottyCompat(scalaVersion()))
     }
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object AmmoniteReplMainClass extends HelloBase {
@@ -312,22 +380,27 @@ object HelloWorldTests extends TestSuite {
       override def scalaVersion = T("2.13.5")
       override def ammoniteVersion = T("2.5.0")
     }
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object ValidatedTarget extends HelloBase {
-    private def mkDirWithFile = T.task {
-      os.write(T.dest / "dummy", "dummy", createFolders = true)
-      PathRef(T.dest)
+    private def mkDirWithFile = Task.anon {
+      os.write(Task.dest / "dummy", "dummy", createFolders = true)
+      PathRef(Task.dest)
     }
-    def uncheckedPathRef: T[PathRef] = T { mkDirWithFile() }
-    def uncheckedSeqPathRef: T[Seq[PathRef]] = T { Seq(mkDirWithFile()) }
-    def uncheckedAggPathRef: T[Agg[PathRef]] = T { Agg(mkDirWithFile()) }
-    def uncheckedTuplePathRef: T[Tuple1[PathRef]] = T { Tuple1(mkDirWithFile()) }
+    def uncheckedPathRef: T[PathRef] = Task { mkDirWithFile() }
+    def uncheckedSeqPathRef: T[Seq[PathRef]] = Task { Seq(mkDirWithFile()) }
+    def uncheckedAggPathRef: T[Agg[PathRef]] = Task { Agg(mkDirWithFile()) }
+    def uncheckedTuplePathRef: T[Tuple1[PathRef]] = Task { Tuple1(mkDirWithFile()) }
 
-    def checkedPathRef: T[PathRef] = T { mkDirWithFile().withRevalidateOnce }
-    def checkedSeqPathRef: T[Seq[PathRef]] = T { Seq(mkDirWithFile()).map(_.withRevalidateOnce) }
-    def checkedAggPathRef: T[Agg[PathRef]] = T { Agg(mkDirWithFile()).map(_.withRevalidateOnce) }
-    def checkedTuplePathRef: T[Tuple1[PathRef]] = T { Tuple1(mkDirWithFile().withRevalidateOnce) }
+    def checkedPathRef: T[PathRef] = Task { mkDirWithFile().withRevalidateOnce }
+    def checkedSeqPathRef: T[Seq[PathRef]] = Task { Seq(mkDirWithFile()).map(_.withRevalidateOnce) }
+    def checkedAggPathRef: T[Agg[PathRef]] = Task { Agg(mkDirWithFile()).map(_.withRevalidateOnce) }
+    def checkedTuplePathRef: T[Tuple1[PathRef]] =
+      Task { Tuple1(mkDirWithFile().withRevalidateOnce) }
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object MultiModuleClasspaths extends HelloBase {
@@ -337,7 +410,7 @@ object HelloWorldTests extends TestSuite {
       def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.2")
       def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.4.2")
       def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
-      def unmanagedClasspath = T { Agg(PathRef(millSourcePath / "unmanaged")) }
+      def unmanagedClasspath = Task { Agg(PathRef(millSourcePath / "unmanaged")) }
     }
     trait BarModule extends ScalaModule {
       def scalaVersion = "2.13.12"
@@ -345,7 +418,7 @@ object HelloWorldTests extends TestSuite {
       def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.1")
       def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.4.1")
       def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
-      def unmanagedClasspath = T { Agg(PathRef(millSourcePath / "unmanaged")) }
+      def unmanagedClasspath = Task { Agg(PathRef(millSourcePath / "unmanaged")) }
     }
     trait QuxModule extends ScalaModule {
       def scalaVersion = "2.13.12"
@@ -353,7 +426,7 @@ object HelloWorldTests extends TestSuite {
       def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.0")
       def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.4.0")
       def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
-      def unmanagedClasspath = T { Agg(PathRef(millSourcePath / "unmanaged")) }
+      def unmanagedClasspath = Task { Agg(PathRef(millSourcePath / "unmanaged")) }
     }
     object ModMod extends Module {
       object foo extends FooModule
@@ -382,6 +455,8 @@ object HelloWorldTests extends TestSuite {
         def moduleDeps = Seq(bar)
       }
     }
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world"
@@ -829,7 +904,7 @@ object HelloWorldTests extends TestSuite {
       "runIfMainClassProvided" - workspaceTest(HelloWorldWithMain) { eval =>
         val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
         val Right((_, evalCount)) = eval.apply(
-          HelloWorldWithMain.core.run(T.task(Args(runResult.toString)))
+          HelloWorldWithMain.core.run(Task.anon(Args(runResult.toString)))
         )
 
         assert(evalCount > 0)
@@ -851,7 +926,7 @@ object HelloWorldTests extends TestSuite {
         // discovered by Zinc and used
         val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
         val Right((_, evalCount)) = eval.apply(
-          HelloWorldWithoutMain.core.run(T.task(Args(runResult.toString)))
+          HelloWorldWithoutMain.core.run(Task.anon(Args(runResult.toString)))
         )
 
         assert(evalCount > 0)
@@ -867,7 +942,7 @@ object HelloWorldTests extends TestSuite {
       "runIfMainClassProvided" - workspaceTest(HelloWorldWithMain) { eval =>
         val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
         val Right((_, evalCount)) = eval.apply(
-          HelloWorldWithMain.core.runLocal(T.task(Args(runResult.toString)))
+          HelloWorldWithMain.core.runLocal(Task.anon(Args(runResult.toString)))
         )
 
         assert(evalCount > 0)
@@ -880,7 +955,7 @@ object HelloWorldTests extends TestSuite {
       "runWithDefaultMain" - workspaceTest(HelloWorldDefaultMain) { eval =>
         val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
         val Right((_, evalCount)) = eval.apply(
-          HelloWorldDefaultMain.core.runLocal(T.task(Args(runResult.toString)))
+          HelloWorldDefaultMain.core.runLocal(Task.anon(Args(runResult.toString)))
         )
 
         assert(evalCount > 0)
@@ -956,7 +1031,7 @@ object HelloWorldTests extends TestSuite {
       }
 
       "assemblyRules" - {
-        def checkAppend[M <: TestUtil.BaseModule](module: M, target: Target[PathRef]) =
+        def checkAppend[M <: TestUtil.BaseModule](module: M, target: Task[PathRef]) =
           workspaceTest(module) { eval =>
             val Right((result, _)) = eval.apply(target)
 
@@ -985,7 +1060,7 @@ object HelloWorldTests extends TestSuite {
 
         def checkAppendMulti[M <: TestUtil.BaseModule](
             module: M,
-            target: Target[PathRef]
+            target: Task[PathRef]
         ): Unit =
           workspaceTest(
             module,
@@ -1012,7 +1087,7 @@ object HelloWorldTests extends TestSuite {
 
         def checkAppendWithSeparator[M <: TestUtil.BaseModule](
             module: M,
-            target: Target[PathRef]
+            target: Task[PathRef]
         ): Unit =
           workspaceTest(
             module,
@@ -1052,7 +1127,7 @@ object HelloWorldTests extends TestSuite {
 
         def checkExclude[M <: TestUtil.BaseModule](
             module: M,
-            target: Target[PathRef],
+            target: Task[PathRef],
             resourcePath: os.Path = resourcePath
         ) =
           workspaceTest(module, resourcePath) { eval =>
@@ -1084,7 +1159,7 @@ object HelloWorldTests extends TestSuite {
 
         def checkRelocate[M <: TestUtil.BaseModule](
             module: M,
-            target: Target[PathRef],
+            target: Task[PathRef],
             resourcePath: os.Path = resourcePath
         ) =
           workspaceTest(module, resourcePath) { eval =>
@@ -1326,7 +1401,7 @@ object HelloWorldTests extends TestSuite {
 
     "validated" - {
       "PathRef" - {
-        def check(t: Target[PathRef], flip: Boolean) =
+        def check(t: Task[PathRef], flip: Boolean) =
           workspaceTest(ValidatedTarget, debug = true) { eval =>
             // we reconstruct faulty behavior
             val Right((result, _)) = eval.apply(t)
@@ -1346,7 +1421,7 @@ object HelloWorldTests extends TestSuite {
         "checked" - check(ValidatedTarget.checkedPathRef, true)
       }
       "SeqPathRef" - {
-        def check(t: Target[Seq[PathRef]], flip: Boolean) = workspaceTest(ValidatedTarget) { eval =>
+        def check(t: Task[Seq[PathRef]], flip: Boolean) = workspaceTest(ValidatedTarget) { eval =>
           // we reconstruct faulty behavior
           val Right((result, _)) = eval.apply(t)
           assert(
@@ -1365,7 +1440,7 @@ object HelloWorldTests extends TestSuite {
         "checked" - check(ValidatedTarget.checkedSeqPathRef, true)
       }
       "AggPathRef" - {
-        def check(t: Target[Agg[PathRef]], flip: Boolean) = workspaceTest(ValidatedTarget) { eval =>
+        def check(t: Task[Agg[PathRef]], flip: Boolean) = workspaceTest(ValidatedTarget) { eval =>
           // we reconstruct faulty behavior
           val Right((result, _)) = eval.apply(t)
           assert(
@@ -1384,7 +1459,7 @@ object HelloWorldTests extends TestSuite {
         "checked" - check(ValidatedTarget.checkedAggPathRef, true)
       }
       "other" - {
-        def check(t: Target[Tuple1[PathRef]], flip: Boolean) = workspaceTest(ValidatedTarget) {
+        def check(t: Task[Tuple1[PathRef]], flip: Boolean) = workspaceTest(ValidatedTarget) {
           eval =>
             // we reconstruct faulty behavior
             val Right((result, _)) = eval.apply(t)

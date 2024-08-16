@@ -1,7 +1,7 @@
 package mill
 package testng
 
-import mill.define.Target
+import mill.define.{Discover, Target}
 import mill.util.Util.millProjectModule
 import mill.scalalib._
 import mill.util.{TestEvaluator, TestUtil}
@@ -15,7 +15,7 @@ object TestNGTests extends TestSuite {
       TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
 
     object test extends JavaModuleTests {
-      def testngClasspath = T {
+      def testngClasspath = Task {
         millProjectModule(
           "mill-contrib-testng",
           repositoriesTask(),
@@ -23,20 +23,21 @@ object TestNGTests extends TestSuite {
         )
       }
 
-      override def runClasspath: Target[Seq[PathRef]] =
-        T { super.runClasspath() ++ testngClasspath() }
-      override def ivyDeps = T {
+      override def runClasspath: Task[Seq[PathRef]] =
+        Task { super.runClasspath() ++ testngClasspath() }
+      override def ivyDeps = Task {
         super.ivyDeps() ++
           Agg(
             ivy"org.testng:testng:6.11",
             ivy"de.tototec:de.tobiasroeser.lambdatest:0.8.0"
           )
       }
-      override def testFramework = T {
+      override def testFramework = Task {
         "mill.testng.TestNGFramework"
       }
     }
 
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   val resourcePath: os.Path = os.pwd / "contrib" / "testng" / "test" / "resources" / "demo"

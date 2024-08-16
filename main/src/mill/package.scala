@@ -1,8 +1,10 @@
 package object mill extends mill.api.JsonFormatters {
-  val T = define.Target
-  type T[+T] = define.Target[T]
-  val Target = define.Target
-  type Target[+T] = define.Target[T]
+  @deprecated("Use Task.*", "0.12.0")
+  val T = define.Task
+  type T[+T] = define.Task[T]
+
+  val Target = define.Task
+  type Target[+T] = define.Task[T]
   val PathRef = mill.api.PathRef
   type PathRef = mill.api.PathRef
   type Module = define.Module
@@ -20,10 +22,10 @@ package object mill extends mill.api.JsonFormatters {
 
   type Command[+T] = define.Command[T]
   type Worker[+T] = define.Worker[T]
-  type Input[T] = define.Target[T]
-  type Persistent[T] = define.Target[T]
-  type Source = define.Target[mill.api.PathRef]
-  type Sources = define.Target[Seq[mill.api.PathRef]]
+  type Input[T] = define.Task[T]
+  type Persistent[T] = define.Task[T]
+  type Source = define.Task[mill.api.PathRef]
+  type Sources = define.Task[Seq[mill.api.PathRef]]
 
   type TaskModule = define.TaskModule
 }

@@ -97,7 +97,12 @@ object Resolve {
 
   private def instantiateTarget(r: Resolved.Target, p: Module): Either[String, Target[_]] = {
     val definition = Reflect
-      .reflect(p.getClass, classOf[Target[_]], _ == r.segments.parts.last, true)
+      .reflect(
+        p.getClass,
+        classOf[mill.define.Task[_]],
+        _ == r.segments.parts.last,
+        true
+      )
       .head
 
     ResolveCore.catchWrapException(
@@ -132,10 +137,10 @@ object Resolve {
       rest: Seq[String],
       nullCommandDefaults: Boolean
   ): Iterable[Either[String, Command[_]]] = for {
-    (cls, (names, entryPoints)) <- discover.value
-    if cls.isAssignableFrom(target.getClass)
-    ep <- entryPoints
-    if ep.name == name
+    ep <- ResolveCore.findFromParents(
+      target.getClass,
+      discover.value.get(_).flatMap(_._2.find(_.name == name)).toSeq
+    )
   } yield {
     def withNullDefault(a: mainargs.ArgSig): mainargs.ArgSig = {
       if (a.default.nonEmpty) a

@@ -6,7 +6,7 @@ import utest._
 object DiscoverTests extends TestSuite {
   val testGraphs = new TestGraphs
   val tests = Tests {
-    def check[T <: Module](m: T)(targets: (T => Target[_])*) = {
+    def check[T <: Module](m: T)(targets: (T => Task[_])*) = {
       val discovered = m.millInternal.targets
       val expected = targets.map(_(m)).toSet
       assert(discovered == expected)
@@ -28,7 +28,13 @@ object DiscoverTests extends TestSuite {
       check(TestGraphs.TraitWithModuleObject)(_.TraitModule.testFrameworks)
     }
     "nestedModule" - {
-      check(TestGraphs.nestedModule)(_.single, _.nested.single, _.classInstance.single)
+      check(TestGraphs.nestedModule)(
+        _.single,
+        _.nested.single,
+        _.classInstance.single,
+        _.classInstance.visible2,
+        _.classInstance.visible3
+      )
     }
     "singleCross" - {
       check(TestGraphs.singleCross)(

@@ -6,14 +6,14 @@ import scala.reflect.macros.blackbox
 
 /**
  * Macro to walk the module tree and generate `mainargs` entrypoints for any
- * `T.command` methods that it finds.
+ * `Task.command` methods that it finds.
  *
  * Note that unlike the rest of Mill's module-handling logic which uses Java
  * reflection, generation of entrypoints requires typeclass resolution, and so
  * needs to be done at compile time. Thus we walk the entire module tree,
  * collecting all the module `Class[_]`s we can find, and for each one generate
  * the `mainargs.MainData` containing metadata and resolved typeclasses for all
- * the `T.command` methods we find. This mapping from `Class[_]` to `MainData`
+ * the `Task.command` methods we find. This mapping from `Class[_]` to `MainData`
  * can then be used later to look up the `MainData` for any module.
  */
 case class Discover[T] private (
@@ -105,21 +105,45 @@ object Discover {
       val mapping = for {
         discoveredModuleType <- seen.toSeq.sortBy(_.typeSymbol.fullName)
         curCls = discoveredModuleType
-        methods = getValsOrMeths(curCls)
+        methods = {
+          // Inlined from mainargs.Macros.getValsOrMeths, to allow us to pick up `val`s
+          // to support Mill's test suite
+          def isAMemberOfAnyRef(member: Symbol) = {
+            // AnyRef is an alias symbol, we go to the real "owner" of these methods
+            val anyRefSym = c.mirror.universe.definitions.ObjectClass
+            member.owner == anyRefSym
+          }
+          val extractableMembers = for {
+            member <- curCls.members.toList.reverse
+            if !isAMemberOfAnyRef(member)
+            if !member.isSynthetic
+            if member.isPublic
+            if member.isTerm
+            memTerm = member.asTerm
+            // if memTerm.isMethod
+            if !memTerm.isModule
+          } yield {
+            memTerm.asMethod
+          }
+
+          extractableMembers flatMap { case memTerm =>
+            if (memTerm.isSetter || memTerm.isConstructor) Nil
+            else Seq(memTerm)
+          }
+        }
         overridesRoutes = {
           assertParamListCounts(
             methods,
-            (weakTypeOf[mill.define.Command[_]], 1, "`T.command`"),
-            (weakTypeOf[mill.define.Target[_]], 0, "Target")
+            (weakTypeOf[mill.define.Command[_]], 1, "`Task.command`")
           )
 
           Tuple2(
             for {
-              m <- methods.toList.sortBy(_.fullName)
-              if m.returnType <:< weakTypeOf[mill.define.NamedTask[_]]
+              m <- methods.sortBy(_.fullName)
+              if (m.returnType <:< weakTypeOf[mill.define.Task[_]] && m.paramLists.isEmpty)
             } yield m.name.decoded,
             for {
-              m <- methods.toList.sortBy(_.fullName)
+              m <- methods.sortBy(_.fullName)
               if m.returnType <:< weakTypeOf[mill.define.Command[_]]
             } yield extractMethod(
               m.name,

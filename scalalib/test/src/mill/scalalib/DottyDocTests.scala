@@ -1,6 +1,7 @@
 package mill.scalalib
 
 import mill._
+import mill.define.Discover
 import utest._
 import utest.framework.TestPath
 import mill.util.{TestEvaluator, TestUtil}
@@ -15,6 +16,8 @@ object DottyDocTests extends TestSuite {
     object static extends ScalaModule {
       def scalaVersion = "0.24.0-RC1"
     }
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   // a project without static docs (i.e. only api docs, no markdown files)
@@ -22,17 +25,21 @@ object DottyDocTests extends TestSuite {
     object empty extends ScalaModule {
       def scalaVersion = "0.24.0-RC1"
     }
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   // a project with multiple static doc folders
   object MultiDocsModule extends TestBase {
     object multidocs extends ScalaModule {
       def scalaVersion = "0.24.0-RC1"
-      def docResources = T.sources(
+      def docResources = Task.sources(
         millSourcePath / "docs1",
         millSourcePath / "docs2"
       )
     }
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "dottydoc"

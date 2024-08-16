@@ -9,9 +9,9 @@ import scala.collection.mutable
 import mill.api.Result
 
 object ScalafmtWorkerModule extends ExternalModule {
-  def worker: Worker[ScalafmtWorker] = T.worker { new ScalafmtWorker() }
+  def worker: Worker[ScalafmtWorker] = Task.worker { new ScalafmtWorker() }
 
-  lazy val millDiscover: Discover[this.type] = Discover[this.type]
+  val millDiscover: Discover[this.type] = Discover[this.type]
 }
 
 private[scalafmt] class ScalafmtWorker extends AutoCloseable {

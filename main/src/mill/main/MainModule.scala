@@ -120,7 +120,7 @@ trait MainModule extends BaseModule0 {
   }
 
   /**
-   * Prints out some dependency path from the `src` task to the `dest` task.
+   * Prints out some dependency path from the `src` task to the `dest` Task.
    *
    * If there are multiple dependency paths between `src` and `dest`, the path
    * chosen is arbitrary.

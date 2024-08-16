@@ -2,6 +2,7 @@ package mill.contrib.scalapblib
 
 import mill._
 import mill.api.PathRef
+import mill.define.Discover
 import mill.util.{TestEvaluator, TestUtil}
 import utest.framework.TestPath
 import utest.{TestSuite, Tests, assert, _}
@@ -26,27 +27,33 @@ object TutorialTests extends TestSuite {
     object core extends TutorialModule {
       override def scalaPBVersion = testScalaPbVersion
     }
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object TutorialWithProtoc extends TutorialBase {
     object core extends TutorialModule {
       override def scalaPBProtocPath = Some("/dev/null")
     }
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object TutorialWithAdditionalArgs extends TutorialBase {
     object core extends TutorialModule {
-      override def scalaPBAdditionalArgs = T {
+      override def scalaPBAdditionalArgs = Task {
         Seq(
           "--additional-test=..."
         )
       }
     }
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object TutorialWithSpecificSources extends TutorialBase {
     object core extends TutorialModule {
-      override def scalaPBSources: T[Seq[PathRef]] = T.sources {
+      override def scalaPBSources: T[Seq[PathRef]] = Task.sources {
         millSourcePath / "protobuf" / "tutorial" / "Tutorial.proto"
       }
 
@@ -55,6 +62,8 @@ object TutorialTests extends TestSuite {
         PathRef(millSourcePath / "protobuf" / "tutorial")
       )
     }
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   val resourcePath: os.Path = os.pwd / "contrib" / "scalapblib" / "test" / "protobuf" / "tutorial"

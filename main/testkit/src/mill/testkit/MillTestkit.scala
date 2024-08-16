@@ -1,7 +1,7 @@
 package mill.testkit
 
 import mill._
-import mill.define.{Caller, Discover, InputImpl, TargetImpl}
+import mill.define.{Caller, InputImpl, TargetImpl}
 import mill.api.{DummyInputStream, Result, SystemStreams, Val}
 import mill.api.Result.OuterStack
 import mill.api.Strict.Agg
@@ -41,7 +41,7 @@ trait MillTestKit {
     targetDir / "worksources"
   }
 
-  class BaseModule(implicit
+  abstract class BaseModule(implicit
       millModuleEnclosing0: sourcecode.Enclosing,
       millModuleLine0: sourcecode.Line
   ) extends mill.define.BaseModule(getSrcPathBase() / millModuleEnclosing0.value.split("\\.| |#"))(
@@ -49,9 +49,7 @@ trait MillTestKit {
         implicitly,
         implicitly,
         Caller(null)
-      ) {
-    lazy val millDiscover: Discover[this.type] = Discover[this.type]
-  }
+      ) {}
 
   /**
    * @param module The module under test

@@ -1,6 +1,7 @@
 package mill
 package playlib
 
+import mill.define.Discover
 import mill.util.TestUtil.{test => _, _}
 import utest.{TestSuite, Tests, assert, _}
 
@@ -13,8 +14,10 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
       override def playVersion = crossPlayVersion
       override def scalaVersion = crossScalaVersion
       object test extends PlayTests
-      override def ivyDeps = T { super.ivyDeps() ++ Agg(ws()) }
+      override def ivyDeps = Task { super.ivyDeps() ++ Agg(ws()) }
     }
+
+    val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   val resourcePath: os.Path = os.pwd / "contrib" / "playlib" / "test" / "resources" / "playmulti"

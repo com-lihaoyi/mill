@@ -21,21 +21,21 @@ import mill.scalalib.publish.SonatypeHelpers.{
 }
 
 trait SonatypeCentralPublishModule extends PublishModule {
-  def sonatypeCentralGpgArgs: T[String] = T { defaultGpgArgs.mkString(",") }
+  def sonatypeCentralGpgArgs: T[String] = Task { defaultGpgArgs.mkString(",") }
 
-  def sonatypeCentralConnectTimeout: T[Int] = T { defaultConnectTimeout }
+  def sonatypeCentralConnectTimeout: T[Int] = Task { defaultConnectTimeout }
 
-  def sonatypeCentralReadTimeout: T[Int] = T { defaultReadTimeout }
+  def sonatypeCentralReadTimeout: T[Int] = Task { defaultReadTimeout }
 
-  def sonatypeCentralAwaitTimeout: T[Int] = T { defaultAwaitTimeout }
+  def sonatypeCentralAwaitTimeout: T[Int] = Task { defaultAwaitTimeout }
 
-  def sonatypeCentralShouldRelease: T[Boolean] = T { true }
+  def sonatypeCentralShouldRelease: T[Boolean] = Task { true }
 
   def publishSonatypeCentral(
       username: String = defaultCredentials,
       password: String = defaultCredentials
   ): define.Command[Unit] =
-    T.command {
+    Task.command {
       val publishData = publishArtifacts()
       val fileMapping = publishData.withConcretePath._1
       val artifact = publishData.meta
@@ -46,9 +46,9 @@ trait SonatypeCentralPublishModule extends PublishModule {
         gpgArgs = getFinalGpgArgs(sonatypeCentralGpgArgs()),
         connectTimeout = sonatypeCentralConnectTimeout(),
         readTimeout = sonatypeCentralReadTimeout(),
-        log = T.log,
-        workspace = T.workspace,
-        env = T.env,
+        log = Task.log,
+        workspace = Task.workspace,
+        env = Task.env,
         awaitTimeout = sonatypeCentralAwaitTimeout()
       )
       publisher.publish(
@@ -77,10 +77,10 @@ object SonatypeCentralPublishModule extends ExternalModule {
       connectTimeout: Int = defaultConnectTimeout,
       awaitTimeout: Int = defaultAwaitTimeout,
       bundleName: String = ""
-  ): Command[Unit] = T.command {
+  ): Command[Unit] = Task.command {
 
     val artifacts: Seq[(Seq[(os.Path, String)], Artifact)] =
-      T.sequence(publishArtifacts.value)().map {
+      Task.sequence(publishArtifacts.value)().map {
         case data @ PublishModule.PublishData(_, _) => data.withConcretePath
       }
 
@@ -92,9 +92,9 @@ object SonatypeCentralPublishModule extends ExternalModule {
       gpgArgs = getFinalGpgArgs(gpgArgs),
       connectTimeout = connectTimeout,
       readTimeout = readTimeout,
-      log = T.log,
-      workspace = T.workspace,
-      env = T.env,
+      log = Task.log,
+      workspace = Task.workspace,
+      env = Task.env,
       awaitTimeout = awaitTimeout
     )
     publisher.publishAll(
@@ -116,12 +116,12 @@ object SonatypeCentralPublishModule extends ExternalModule {
       credentialParameterValue: String,
       credentialName: String,
       envVariableName: String
-  ): Task[String] = T.task {
+  ): Task[String] = Task.anon {
     if (credentialParameterValue.nonEmpty) {
       Result.Success(credentialParameterValue)
     } else {
       (for {
-        credential <- T.env.get(envVariableName)
+        credential <- Task.env.get(envVariableName)
       } yield {
         Result.Success(credential)
       }).getOrElse(
@@ -135,7 +135,7 @@ object SonatypeCentralPublishModule extends ExternalModule {
   private def getSonatypeCredentials(
       usernameParameterValue: String,
       passwordParameterValue: String
-  ): Task[SonatypeCredentials] = T.task {
+  ): Task[SonatypeCredentials] = Task.anon {
     val username =
       getSonatypeCredential(usernameParameterValue, "username", USERNAME_ENV_VARIABLE_NAME)()
     val password =
