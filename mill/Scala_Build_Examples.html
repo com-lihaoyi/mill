@@ -304,14 +304,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.0-M0-15-172225</span>
+    <span class="version">0.12.0-M0-16-b3b299</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="0.11.11/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="index.html">0.12.0-M0-15-172225</a>
+          <a href="index.html">0.12.0-M0-16-b3b299</a>
         </li>
         <li class="version is-latest">
           <a href="0.11.11/index.html">0.11.11</a>
@@ -353,9 +353,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-15-172225</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-16-b3b299</button>
   <div class="version-menu">
-    <a class="version is-current" href="Scala_Build_Examples.html">0.12.0-M0-15-172225</a>
+    <a class="version is-current" href="Scala_Build_Examples.html">0.12.0-M0-16-b3b299</a>
     <a class="version" href="0.11.11/Scala_Build_Examples.html">0.11.11</a>
     <a class="version" href="0.11.10/Scala_Build_Examples.html">0.11.10</a>
     <a class="version is-missing" href="0.11.0-M7/index.html">0.11.0-M7</a>
@@ -1482,7 +1482,21 @@ demonstrating how Mill can be used to build code outside of tiny example codebas
 <div class="listingblock">
 <div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-thirdparty-acyclic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/main//example/thirdparty/acyclic">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._, publish._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._, publish._</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>acyclic test suite assumes files are on disk at specific paths relative to <code>os.pwd</code>.
+To avoid changing the test code, we instead copy the necessary files into the <code>os.pwd</code>
+when preparing the resources for test suite execution</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">os.copy.over(
+  interp.watch(mill.api.WorkspaceRoot.workspaceRoot / &quot;acyclic&quot;),
+  os.pwd / &quot;acyclic&quot;,
+  createFolders = true
+)
 
 object Deps {
   def acyclic = ivy&quot;com.lihaoyi:::acyclic:0.3.6&quot;
