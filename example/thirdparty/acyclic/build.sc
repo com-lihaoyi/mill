@@ -32,6 +32,9 @@ trait AcyclicModule extends CrossScalaModule with PublishModule {
 
   object test extends ScalaTests with TestModule.Utest {
     def resources = T{
+      // acyclic test suite assumes files are on disk at specific paths relative to `os.pwd`.
+      // To avoid changing the test code, we instead copy the necessary files into the `os.pwd`
+      // when preparing the resources for test suite execution
       os.copy.over(T.workspace / "acyclic", os.pwd / "acyclic", createFolders = true)
       super.resources() ++ Seq(PathRef(os.pwd))
     }
