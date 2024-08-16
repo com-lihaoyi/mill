@@ -762,6 +762,9 @@ object main extends MillStableScalaModule with BuildInfo {
     }
   }
 
+  object server extends MillPublishScalaModule {
+    def moduleDeps = Seq(client, api)
+  }
   object graphviz extends MillPublishScalaModule {
     def moduleDeps = Seq(main, scalalib)
     def ivyDeps = Agg(Deps.graphvizJava, Deps.jgraphtCore)
@@ -1434,7 +1437,7 @@ def launcherScript(
     cmdClassPath: Agg[String]
 ) = {
 
-  val millMainClass = "mill.main.client.MillClientMain"
+  val millMainClass = "mill.runner.client.MillClientMain"
 
   Jvm.universalScript(
     shellCommands = {
@@ -1545,7 +1548,14 @@ def launcherScript(
 }
 
 object runner extends MillPublishScalaModule {
-  def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, bsp, linenumbers, main.codesig)
+  object client extends MillPublishJavaModule{
+    def buildInfoPackageName = "mill.runner.client"
+    def moduleDeps = Seq(main.client)
+  }
+
+  def moduleDeps = Seq(
+    scalalib, scalajslib, scalanativelib, bsp, linenumbers, main.codesig, main.server, client
+  )
   def skipPreviousVersions: T[Seq[String]] = Seq("0.11.0-M7")
 
   object linenumbers extends MillPublishScalaModule {

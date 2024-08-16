@@ -35,4 +35,6 @@ class FileLock extends Lock {
         chan.close();
         raf.close();
     }
+
+    public void delete() throws Exception { close(); }
 }

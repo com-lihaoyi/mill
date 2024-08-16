@@ -5,6 +5,7 @@ package mill.main.client;
  * and documentation about what they do
  */
 public class ServerFiles {
+    final public static String serverId = "serverId";
     final public static String sandbox = "sandbox";
 
     /**
@@ -30,7 +31,7 @@ public class ServerFiles {
      */
     public static String pipe(String base) {
         try {
-            return base + "/mill-" + Util.md5hex(new java.io.File(base).getCanonicalPath()) + "-io";
+            return base + "/mill-" + Util.md5hex(new java.io.File(base).getCanonicalPath()).substring(0, 8) + "-io";
         }catch (Exception e){
             throw new RuntimeException(e);
         }
