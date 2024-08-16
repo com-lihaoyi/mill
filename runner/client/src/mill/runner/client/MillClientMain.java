@@ -1,16 +1,19 @@
-package mill.main.client;
+package mill.runner.client;
 
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.function.BiConsumer;
+import mill.main.client.ServerLauncher;
+import mill.main.client.ServerFiles;
+import mill.main.client.Util;
+import mill.main.client.lock.Locks;
+import mill.main.client.OutFiles;
+import mill.main.client.ServerCouldNotBeStarted;
 
 /**
  * This is a Java implementation to speed up repetitive starts.
  * A Scala implementation would result in the JVM loading much more classes almost doubling the start-up times.
  */
 public class MillClientMain {
-
-
-
     public static void main(String[] args) throws Exception {
         boolean runNoServer = false;
         if (args.length > 0) {
@@ -33,12 +36,17 @@ public class MillClientMain {
             MillNoServerLauncher.runMain(args);
         } else try {
             // start in client-server mode
-            int exitCode = MillServerLauncher.runMain(args);
+            ServerLauncher launcher = new ServerLauncher(System.in, System.out, System.err, System.getenv(), args, null, -1){
+                public void initServer(String serverDir, boolean setJnaNoSys, Locks locks) throws Exception{
+                    MillProcessLauncher.launchMillServer(serverDir, setJnaNoSys);
+                }
+            };
+            int exitCode = launcher.acquireLocksAndRun(OutFiles.out).exitCode;
             if (exitCode == Util.ExitServerCodeWhenVersionMismatch()) {
-                exitCode = MillServerLauncher.runMain(args);
+                exitCode = launcher.acquireLocksAndRun(OutFiles.out).exitCode;
             }
             System.exit(exitCode);
-        } catch (MillServerCouldNotBeStarted e) {
+        } catch (ServerCouldNotBeStarted e) {
             // TODO: try to run in-process
             System.err.println("Could not start a Mill server process.\n" +
                 "This could be caused by too many already running Mill instances " +
@@ -53,4 +61,5 @@ public class MillClientMain {
             }
         }
     }
+
 }

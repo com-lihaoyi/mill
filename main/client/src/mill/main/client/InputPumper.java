@@ -38,7 +38,12 @@ public class InputPumper implements Runnable{
                 }
                 else if (checkAvailable && src.available() == 0) Thread.sleep(2);
                 else {
-                    int n = src.read(buffer);
+                    int n;
+                    try{
+                      n = src.read(buffer);
+                    } catch (Exception e){
+                        n = -1;
+                    }
                     if (n == -1) {
                         running = false;
                     }

@@ -1,4 +1,4 @@
-package mill.main.client;
+package mill.runner.client;
 
 import static mill.main.client.OutFiles.*;
 import java.io.File;
@@ -6,8 +6,11 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
+import mill.main.client.Util;
+import mill.main.client.ServerFiles;
+import mill.main.client.ServerCouldNotBeStarted;
 
-public class MillLauncher {
+public class MillProcessLauncher {
 
     static int launchMillNoServer(String[] args) throws Exception {
         boolean setJnaNoSys = System.getProperty("jna.nosys") == null;
@@ -23,27 +26,27 @@ public class MillLauncher {
         return configureRunMillProcess(builder, out + "/" + millNoServer).waitFor();
     }
 
-    static void launchMillServer(String lockBase, boolean setJnaNoSys) throws Exception {
+    static void launchMillServer(String serverDir, boolean setJnaNoSys) throws Exception {
         List<String> l = new ArrayList<>();
         l.addAll(millLaunchJvmCommand(setJnaNoSys));
         l.add("mill.runner.MillServerMain");
-        l.add(new File(lockBase).getCanonicalPath());
+        l.add(new File(serverDir).getCanonicalPath());
 
-        File stdout = new java.io.File(lockBase + "/" + ServerFiles.stdout);
-        File stderr = new java.io.File(lockBase + "/" + ServerFiles.stderr);
+        File stdout = new java.io.File(serverDir + "/" + ServerFiles.stdout);
+        File stderr = new java.io.File(serverDir + "/" + ServerFiles.stderr);
 
         ProcessBuilder builder = new ProcessBuilder()
                 .command(l)
                 .redirectOutput(stdout)
                 .redirectError(stderr);
 
-        configureRunMillProcess(builder, lockBase + "/" + ServerFiles.sandbox);
+        configureRunMillProcess(builder, serverDir + "/" + ServerFiles.sandbox);
     }
 
     static Process configureRunMillProcess(ProcessBuilder builder,
-                                           String lockBase) throws Exception {
+                                           String serverDir) throws Exception {
         builder.environment().put("MILL_WORKSPACE_ROOT", new File("").getCanonicalPath());
-        File sandbox = new java.io.File(lockBase + "/" + ServerFiles.sandbox);
+        File sandbox = new java.io.File(serverDir + "/" + ServerFiles.sandbox);
         sandbox.mkdirs();
         builder.directory(sandbox);
         return builder.start();
@@ -150,7 +153,7 @@ public class MillLauncher {
         // extra opts
         File millJvmOptsFile = millJvmOptsFile();
         if (millJvmOptsFile.exists()) {
-            vmOptions.addAll(readOptsFileLines(millJvmOptsFile));
+            vmOptions.addAll(Util.readOptsFileLines(millJvmOptsFile));
         }
 
         vmOptions.add("-cp");
@@ -160,30 +163,6 @@ public class MillLauncher {
     }
 
     static List<String> readMillJvmOpts() {
-        return readOptsFileLines(millJvmOptsFile());
+        return Util.readOptsFileLines(millJvmOptsFile());
     }
-
-    /**
-     * Reads a file, ignoring empty or comment lines
-     *
-     * @return The non-empty lines of the files or an empty list, if the file does not exists
-     */
-    static List<String> readOptsFileLines(final File file) {
-        final List<String> vmOptions = new LinkedList<>();
-        try (
-            final Scanner sc = new Scanner(file)
-        ) {
-            while (sc.hasNextLine()) {
-                String arg = sc.nextLine();
-                String trimmed = arg.trim();
-                if (!trimmed.isEmpty() && !trimmed.startsWith("#")) {
-                    vmOptions.add(arg);
-                }
-            }
-        } catch (FileNotFoundException e) {
-            // ignored
-        }
-        return vmOptions;
-    }
-
 }

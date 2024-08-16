@@ -154,6 +154,7 @@ object Deps {
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:${jnaVersion}"
 
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.3"
+  val commonsIO = ivy"commons-io:commons-io:2.16.1"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.8.0"
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.23.1"
   val osLib = ivy"com.lihaoyi::os-lib:0.10.3"
@@ -753,10 +754,17 @@ object main extends MillStableScalaModule with BuildInfo {
     def ivyDeps = Agg(Deps.junixsocket)
 
     object test extends JavaModuleTests with TestModule.Junit4 {
-      def ivyDeps = Agg(Deps.junitInterface, Deps.lambdaTest)
+      def ivyDeps = Agg(
+        Deps.junitInterface,
+        Deps.lambdaTest,
+        Deps.commonsIO
+      )
     }
   }
 
+  object server extends MillPublishScalaModule {
+    def moduleDeps = Seq(client, api)
+  }
   object graphviz extends MillPublishScalaModule {
     def moduleDeps = Seq(main, scalalib)
     def ivyDeps = Agg(Deps.graphvizJava, Deps.jgraphtCore)
@@ -1429,7 +1437,7 @@ def launcherScript(
     cmdClassPath: Agg[String]
 ) = {
 
-  val millMainClass = "mill.main.client.MillClientMain"
+  val millMainClass = "mill.runner.client.MillClientMain"
 
   Jvm.universalScript(
     shellCommands = {
@@ -1540,7 +1548,14 @@ def launcherScript(
 }
 
 object runner extends MillPublishScalaModule {
-  def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, bsp, linenumbers, main.codesig)
+  object client extends MillPublishJavaModule{
+    def buildInfoPackageName = "mill.runner.client"
+    def moduleDeps = Seq(main.client)
+  }
+
+  def moduleDeps = Seq(
+    scalalib, scalajslib, scalanativelib, bsp, linenumbers, main.codesig, main.server, client
+  )
   def skipPreviousVersions: T[Seq[String]] = Seq("0.11.0-M7")
 
   object linenumbers extends MillPublishScalaModule {
