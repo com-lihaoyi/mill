@@ -31,7 +31,7 @@ abstract class Server[T](
 
   val serverId: String = java.lang.Long.toHexString(scala.util.Random.nextLong())
   def serverLog0(s: String): Unit = {
-    if (running && os.exists(serverDir)) {
+    if (running) {
       os.write.append(serverDir / ServerFiles.serverLog, s"$s\n", createFolders = true)
     }
   }
