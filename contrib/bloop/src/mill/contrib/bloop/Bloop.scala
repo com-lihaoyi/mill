@@ -6,4 +6,7 @@ import mill.api.WorkspaceRoot
 /**
  * Usage : `mill mill.contrib.bloop.Bloop/install`
  */
-object Bloop extends BloopImpl(() => Evaluator.allBootstrapEvaluators.value.value, WorkspaceRoot.workspaceRoot)
+object Bloop extends BloopImpl(
+      () => Evaluator.allBootstrapEvaluators.value.value,
+      WorkspaceRoot.workspaceRoot
+    )
