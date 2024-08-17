@@ -1,6 +1,7 @@
 package mill.scalalib
 
 import mill.api.{Ctx, PathRef, Result}
+import mill.main.client.EnvVars
 import mill.define.{Command, Task, TaskModule}
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.testrunner.{Framework, TestArgs, TestResult, TestRunner, TestRunnerUtils}
@@ -191,10 +192,9 @@ trait TestModule
             _.path
           ),
         jvmArgs = jvmArgs,
-        envArgs = Map(
-          "MILL_TEST_RESOURCE_FOLDER" -> resources().map(_.path).mkString(";"),
-          "MILL_TEST_DEST_FOLDER" -> T.dest.toString()
-        ) ++ forkEnv(),
+        envArgs =
+          Map(EnvVars.MILL_TEST_RESOURCE_FOLDER -> resources().map(_.path).mkString(";")) ++
+          forkEnv(),
         mainArgs = mainArgs,
         workingDir = if (testSandboxWorkingDir()) T.dest / "sandbox" else forkWorkingDir(),
         useCpPassingJar = useArgsFile

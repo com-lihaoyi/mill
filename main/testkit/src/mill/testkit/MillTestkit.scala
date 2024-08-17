@@ -11,12 +11,12 @@ import mill.eval.Evaluator
 import mill.resolve.{Resolve, SelectMode}
 import mill.util.PrintLogger
 import mill.eval.EvaluatorImpl
+import mill.main.client.EnvVars
 import os.Path
 
 trait MillTestKit {
 
-  def defaultTargetDir: os.Path =
-    sys.env.get("MILL_TESTKIT_BASEDIR").map(os.pwd / os.RelPath(_)).getOrElse(os.temp.dir())
+  def defaultTargetDir: os.Path = os.temp.dir(os.pwd)
 
   def targetDir: os.Path = defaultTargetDir
 

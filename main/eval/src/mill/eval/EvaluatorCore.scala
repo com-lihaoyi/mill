@@ -6,6 +6,7 @@ import mill.api._
 import mill.define._
 import mill.eval.Evaluator.TaskResult
 import mill.main.client.OutFiles._
+import mill.main.client.EnvVars
 import mill.util._
 
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
@@ -170,7 +171,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       tasks,
       // We want to skip the non-deterministic thread prefix in our test suite
       // since all it would do is clutter the testing logic trying to match on it
-      if (sys.env.contains("MILL_TEST_SUITE")) _ => ""
+      if (sys.env.contains(EnvVars.MILL_TEST_SUITE)) _ => ""
       else contextLoggerMsg0
     )(ec)
     evaluateTerminals(leafCommands, _ => "")(ExecutionContexts.RunNow)

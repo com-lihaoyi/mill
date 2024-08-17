@@ -10,6 +10,7 @@ import java.nio.file.Paths;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.ArrayList;
+import mill.main.client.EnvVars;
 
 public class FooTests {
 
@@ -27,7 +28,7 @@ public class FooTests {
     assertEquals("Test Hello World Resource File A", testClasspathResourceText);
 
     // Use `MILL_TEST_RESOURCE_FOLDER` to read `test-file-b.txt` from filesystem
-    Path testFileResourceDir = Paths.get(System.getenv("MILL_TEST_RESOURCE_FOLDER"));
+    Path testFileResourceDir = Paths.get(System.getenv(EnvVars.MILL_TEST_RESOURCE_FOLDER"));
     String testFileResourceText = new String(
             Files.readAllBytes(testFileResourceDir.resolve("test-file-b.txt"))
     );

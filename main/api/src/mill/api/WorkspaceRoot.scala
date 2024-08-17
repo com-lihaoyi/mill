@@ -1,6 +1,6 @@
 package mill.api
 
-import os.Path
+import mill.main.client.EnvVars
 object WorkspaceRoot {
-  val workspaceRoot: Path = sys.env.get("MILL_WORKSPACE_ROOT").fold(os.pwd)(os.Path(_, os.pwd))
+  val workspaceRoot: os.Path = sys.env.get(EnvVars.MILL_WORKSPACE_ROOT).fold(os.pwd)(os.Path(_, os.pwd))
 }
