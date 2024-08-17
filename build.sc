@@ -209,7 +209,7 @@ object Deps {
     ivy"commons-io:commons-io:2.16.1",
     ivy"com.google.code.gson:gson:2.11.0",
     ivy"com.google.protobuf:protobuf-java:3.25.4",
-    ivy"com.google.guava:guava:33.2.1-jre",
+    ivy"com.google.guava:guava:33.3.0-jre",
     ivy"org.yaml:snakeyaml:2.2",
     ivy"org.apache.commons:commons-compress:1.26.2"
   )
@@ -238,12 +238,12 @@ def millLastTag: T[String] = T {
 }
 
 def millBinPlatform: T[String] = T {
-  //val tag = millLastTag()
-  //if (tag.contains("-M")) tag
-  //else {
+  // val tag = millLastTag()
+  // if (tag.contains("-M")) tag
+  // else {
   //  val pos = if (tag.startsWith("0.")) 2 else 1
   //  tag.split("[.]", pos + 1).take(pos).mkString(".")
-  //}
+  // }
   "0.11"
 }
 
@@ -1548,13 +1548,20 @@ def launcherScript(
 }
 
 object runner extends MillPublishScalaModule {
-  object client extends MillPublishJavaModule{
+  object client extends MillPublishJavaModule {
     def buildInfoPackageName = "mill.runner.client"
     def moduleDeps = Seq(main.client)
   }
 
   def moduleDeps = Seq(
-    scalalib, scalajslib, scalanativelib, bsp, linenumbers, main.codesig, main.server, client
+    scalalib,
+    scalajslib,
+    scalanativelib,
+    bsp,
+    linenumbers,
+    main.codesig,
+    main.server,
+    client
   )
   def skipPreviousVersions: T[Seq[String]] = Seq("0.11.0-M7")
 
