@@ -1388,6 +1388,7 @@ object example extends MillScalaModule {
     "jimfs" -> ("google/jimfs", "5b60a42eb9d3cd7a2073d549bd0cb833f5a7e7e9"),
     "commons-io" -> ("apache/commons-io", "b91a48074231ef813bc9b91a815d77f6343ff8f0"),
     "netty" -> ("netty/netty", "20a790ed362a3c11e0e990b58598e4ac6aa88bef")
+    "mockito" -> ("mockito/mockito", "97f3574cc07fdf36f1f76ba7332ac57675e140b1")
   )
   object thirdparty extends Cross[ThirdPartyModule](listIn(millSourcePath / "thirdparty"))
   trait ThirdPartyModule extends ExampleCrossModule {

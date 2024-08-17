@@ -1,4 +1,4 @@
-= Java Case Study: Netty
+= Case Study: Mill vs Maven
 
 ++++
 <script>
