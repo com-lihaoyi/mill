@@ -11,7 +11,6 @@ import mill.eval.Evaluator
 import mill.resolve.{Resolve, SelectMode}
 import mill.util.PrintLogger
 import mill.eval.EvaluatorImpl
-import mill.main.client.EnvVars
 import os.Path
 
 trait MillTestKit {

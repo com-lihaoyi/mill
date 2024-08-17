@@ -3,7 +3,6 @@ package mill.util
 import coursier.Repository
 import mill.api.Loose.Agg
 import mill.api.{BuildInfo, Ctx, IO, PathRef, Result}
-import mill.main.client.EnvVars
 
 object Util {
 
