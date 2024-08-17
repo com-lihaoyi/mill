@@ -194,7 +194,7 @@ trait TestModule
         jvmArgs = jvmArgs,
         envArgs =
           Map(EnvVars.MILL_TEST_RESOURCE_FOLDER -> resources().map(_.path).mkString(";")) ++
-          forkEnv(),
+            forkEnv(),
         mainArgs = mainArgs,
         workingDir = if (testSandboxWorkingDir()) T.dest / "sandbox" else forkWorkingDir(),
         useCpPassingJar = useArgsFile
