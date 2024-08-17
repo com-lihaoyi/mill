@@ -737,7 +737,7 @@ trait JavaModule
 
       Jvm.runSubprocess(
         commandArgs = Seq(Jvm.jdkTool("javadoc")) ++ cmdArgs,
-        envArgs = Map(),
+        envArgs = T.env,
         workingDir = T.dest
       )
     }

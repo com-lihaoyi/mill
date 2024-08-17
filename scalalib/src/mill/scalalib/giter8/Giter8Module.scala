@@ -26,6 +26,7 @@ trait Giter8Module extends CoursierModule {
       "giter8.Giter8",
       giter8Dependencies.map(_.path),
       mainArgs = args,
+      envArgs = T.env,
       workingDir = T.workspace
     )
   }

@@ -36,7 +36,7 @@ object Jvm extends CoursierSupport {
     val workingDir1 = Option(workingDir).getOrElse(ctx.dest)
     os.makeDir.all(workingDir1)
 
-    os.proc(commandArgs).call(cwd = workingDir1, env = envArgs)
+    os.proc(commandArgs).call(cwd = workingDir1, env = envArgs, propagateEnv = false)
   }
 
   /**
@@ -227,7 +227,8 @@ object Jvm extends CoursierSupport {
       env = envArgs,
       stdin = if (backgroundOutputs.isEmpty) os.Inherit else "",
       stdout = backgroundOutputs.map(_._1).getOrElse(os.Inherit),
-      stderr = backgroundOutputs.map(_._2).getOrElse(os.Inherit)
+      stderr = backgroundOutputs.map(_._2).getOrElse(os.Inherit),
+      propagateEnv = false
     )
   }
 

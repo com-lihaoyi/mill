@@ -91,16 +91,18 @@ object AssemblyTests extends TestSuite {
   }
 
   def runAssembly(file: os.Path, wd: os.Path, checkExe: Boolean = false): Unit = {
+    // TODO Mill 0.13: Add (implicit ctx: Ctx) parameter and use ctx.env
+    val env = sys.env
     println(s"File size: ${os.stat(file).size}")
     Jvm.runSubprocess(
       commandArgs = Seq(Jvm.javaExe, "-jar", file.toString(), "--text", "tutu"),
-      envArgs = Map.empty[String, String],
+      envArgs = env,
       workingDir = wd
     )
     if (checkExe) {
       Jvm.runSubprocess(
         commandArgs = Seq(file.toString(), "--text", "tutu"),
-        envArgs = Map.empty[String, String],
+        envArgs = env,
         workingDir = wd
       )
     }

@@ -43,7 +43,8 @@ trait JmhModule extends JavaModule {
         classPath = (runClasspath() ++ generatorDeps()).map(_.path) ++
           Seq(compileGeneratedSources().path, resources),
         mainArgs = args,
-        workingDir = T.ctx().dest
+        workingDir = T.ctx().dest,
+        envArgs = T.env
       )
     }
 
@@ -89,7 +90,8 @@ trait JmhModule extends JavaModule {
           sourcesDir.toString,
           resourcesDir.toString,
           "default"
-        )
+        ),
+        envArgs = T.env
       )
 
       (sourcesDir, resourcesDir)
