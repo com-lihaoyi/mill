@@ -34,7 +34,8 @@ most workflows, but the difference matters most for workflows which are short-li
 where the difference in the fixed overhead of the build tool is most noticeable.
 
 For comparison purposes, I disabled the Gradle subprojects that we did not fully implement in Mill
-(`kotlinTest`, `kotlinReleaseCoroutinesTest`, `android`, `osgi-test`, `java21-test`).
+(`groovyTest`, `groovyInlineTest`, `kotlinTest`, `kotlinReleaseCoroutinesTest`, `android`,
+`osgi-test`, `java21-test`).
 
 For the benchmarks below, each provided number is the median wall time of three consecutive runs
 on my M1 Macbook Pro. While ad-hoc, these benchmarks are enough to give you a flavor of how
