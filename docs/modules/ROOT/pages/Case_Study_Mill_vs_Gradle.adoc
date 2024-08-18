@@ -7,7 +7,7 @@ gtag('config', 'AW-16649289906');
 ++++
 
 This page compares using Mill to Gradle, using the https://github.com/mockito/mockito[Mockito Testing Library]
-codebase as the example. Netty is a medium sized codebase, 100,000 lines of Java split over 22
+codebase as the example. Mockito is a medium sized codebase, 100,000 lines of Java split over 22
 subprojects. By porting it to Mill, this case study should give you
 an idea of how Mill compares to Maven in more realistic, real-world projects.
 
