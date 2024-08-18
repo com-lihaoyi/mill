@@ -5,6 +5,7 @@ import coursier.util.Task
 import coursier.{Dependency, Repository, Resolution}
 import mill.api.{Ctx, Loose, PathRef, Result}
 import mill.main.BuildInfo
+import mill.main.client.EnvVars
 import mill.util.Util
 import mill.scalalib.api.ZincWorkerUtil
 
@@ -147,7 +148,7 @@ object Lib {
       ctx: Option[mill.api.Ctx.Log],
       useSources: Boolean
   ): Seq[os.Path] = {
-    Util.millProperty("MILL_BUILD_LIBRARIES") match {
+    Util.millProperty(EnvVars.MILL_BUILD_LIBRARIES) match {
       case Some(found) => found.split(',').map(os.Path(_)).distinct.toList
       case None =>
         millAssemblyEmbeddedDeps

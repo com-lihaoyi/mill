@@ -368,6 +368,7 @@ object MillBuildRootModule {
          |import _root_.mill.runner.MillBuildRootModule
          |$imports
          |
+         |@scala.annotation.nowarn
          |object ${backtickWrap(miscInfoName)} {
          |  implicit lazy val millBuildRootModuleInfo: _root_.mill.runner.MillBuildRootModule.Info = _root_.mill.runner.MillBuildRootModule.Info(
          |    ${enclosingClasspath.map(p => literalize(p.toString))}.map(_root_.os.Path(_)),
