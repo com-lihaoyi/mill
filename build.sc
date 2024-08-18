@@ -238,12 +238,12 @@ def millLastTag: T[String] = T {
 }
 
 def millBinPlatform: T[String] = T {
-  // val tag = millLastTag()
-  // if (tag.contains("-M")) tag
-  // else {
+  //val tag = millLastTag()
+  //if (tag.contains("-M")) tag
+  //else {
   //  val pos = if (tag.startsWith("0.")) 2 else 1
   //  tag.split("[.]", pos + 1).take(pos).mkString(".")
-  // }
+  //}
   "0.11"
 }
 
@@ -1548,20 +1548,13 @@ def launcherScript(
 }
 
 object runner extends MillPublishScalaModule {
-  object client extends MillPublishJavaModule {
+  object client extends MillPublishJavaModule{
     def buildInfoPackageName = "mill.runner.client"
     def moduleDeps = Seq(main.client)
   }
 
   def moduleDeps = Seq(
-    scalalib,
-    scalajslib,
-    scalanativelib,
-    bsp,
-    linenumbers,
-    main.codesig,
-    main.server,
-    client
+    scalalib, scalajslib, scalanativelib, bsp, linenumbers, main.codesig, main.server, client
   )
   def skipPreviousVersions: T[Seq[String]] = Seq("0.11.0-M7")
 
