@@ -77,7 +77,7 @@ jobs:
             millargs: "'example.{basic,scalabuilds,scalamodule,web}[_].local.test'"
           - java-version: 17
             millargs: "'example.{basicjava,javabuilds,javamodule,javaweb}[_].local.test'"
-          - java-version: 17
+          - java-version: 11
             millargs: "'example.{thirdparty,cross,misc,tasks}[_].local.test'"
 
             # Most of these integration tests should not depend on which mode they
