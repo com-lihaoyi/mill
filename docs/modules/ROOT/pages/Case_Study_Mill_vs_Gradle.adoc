@@ -9,7 +9,7 @@ gtag('config', 'AW-16649289906');
 This page compares using Mill to Gradle, using the https://github.com/mockito/mockito[Mockito Testing Library]
 codebase as the example. Mockito is a medium sized codebase, 100,000 lines of Java split over 22
 subprojects. By porting it to Mill, this case study should give you
-an idea of how Mill compares to Maven in more realistic, real-world projects.
+an idea of how Mill compares to Gradle in more realistic, real-world projects.
 
 To do this, we have written a Mill `build.sc` file for the Mockito project. This can be used
 with Mill to build and test the various submodules of the Mockito project without needing to
