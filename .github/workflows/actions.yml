@@ -78,7 +78,9 @@ jobs:
           - java-version: 17
             millargs: "'example.{basicjava,javabuilds,javamodule,javaweb}[_].local.test'"
           - java-version: 11
-            millargs: "'example.{thirdparty,cross,misc,tasks}[_].local.test'"
+            millargs: "'example.thirdparty[{netty,acyclic,commons-io}].local.test'"
+          - java-version: 17
+            millargs: "'example.thirdparty[{fansi,jimfs,mockito}].local.test'"
 
             # Most of these integration tests should not depend on which mode they
             # are run in, so just run them in `local`

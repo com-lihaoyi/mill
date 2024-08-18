@@ -20,8 +20,7 @@ change any other files in the repository:
 == Completeness
 
 The Mill build for Mockito is not 100% complete, but it covers most of the major parts of Mockito:
-compiling Java, running JUnit tests. For now, the Android, Kotlin, and OSGI tests are skipped
-since Mill does not support those frameworks.
+compiling Java, running JUnit tests. For now, the Android, Kotlin, and OSGI tests are skipped.
 
 The goal of this exercise is not to be 100% feature complete enough to replace the Gradle build
 today. It is instead meant to provide a realistic comparison of how using Mill in a realistic,

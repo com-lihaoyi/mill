@@ -36,4 +36,13 @@ package object javalib extends mill.scalalib.JsonFormatters {
 
   type PublishModule = mill.scalalib.PublishModule
   val PublishModule = mill.scalalib.PublishModule
+
+  type Dep = mill.scalalib.Dep
+  val Dep = mill.scalalib.Dep
+
+  type BoundDep = mill.scalalib.BoundDep
+  val BoundDep = mill.scalalib.BoundDep
+
+  type CrossVersion = mill.scalalib.CrossVersion
+  val CrossVersion = mill.scalalib.CrossVersion
 }

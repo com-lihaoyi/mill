@@ -37,8 +37,8 @@ object libraries{
 
 trait MockitoModule extends MavenModule{
   def testModuleDeps: Seq[JavaModule] = Nil
-  def testIvyDeps: T[Agg[mill.scalalib.Dep]] = Agg.empty[mill.scalalib.Dep]
-  def testRuntimeIvyDeps: T[Agg[mill.scalalib.Dep]] = Agg.empty[mill.scalalib.Dep]
+  def testIvyDeps: T[Agg[Dep]] = Agg.empty[Dep]
+  def testRuntimeIvyDeps: T[Agg[Dep]] = Agg.empty[Dep]
   def testFramework = "com.novocode.junit.JUnitFramework"
   def testForkArgs: T[Seq[String]] = Seq.empty[String]
   object test extends MavenTests{
