@@ -7,9 +7,9 @@ gtag('config', 'AW-16649289906');
 ++++
 
 This page compares using Mill to Gradle, using the https://github.com/mockito/mockito[Mockito Testing Library]
-codebase as the example. Netty is a medium sized codebase, 100,000 lines of Java split over 22
+codebase as the example. Mockito is a medium sized codebase, 100,000 lines of Java split over 22
 subprojects. By porting it to Mill, this case study should give you
-an idea of how Mill compares to Maven in more realistic, real-world projects.
+an idea of how Mill compares to Gradle in more realistic, real-world projects.
 
 To do this, we have written a Mill `build.sc` file for the Mockito project. This can be used
 with Mill to build and test the various submodules of the Mockito project without needing to
@@ -42,7 +42,7 @@ Mill's performance compares to Maven:
 
 [cols="1,1,1,1"]
 |===
-| Benchmark | Maven | Mill | Speedup
+| Benchmark | Gradle | Mill | Speedup
 
 | <<Sequential Clean Compile All>> | 17.6s | 5.40s | 3.3x
 | <<Parallel Clean Compile All>> | 12.3s | 3.57s | 3.4x
@@ -52,7 +52,7 @@ Mill's performance compares to Maven:
 |===
 
 The column on the right shows the speedups of how much faster Mill is compared to the
-equivalent Maven workflow. In most cases,  Mill is 5-10x faster than Maven. Below, we
+equivalent Maven workflow. In most cases,  Mill is 5-10x faster than Gradle. Below, we
 will go into more detail of each benchmark: how they were run, what they mean, and how
 we can explain the difference in performing the same task with the two different build tools.
 
