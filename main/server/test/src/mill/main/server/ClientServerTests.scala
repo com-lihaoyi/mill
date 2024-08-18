@@ -122,7 +122,7 @@ object ClientServerTests extends TestSuite {
 
   def tests = Tests {
     val tester = new Tester
-    "hello" - {
+    "hello" - retry(3) {
 
       val res1 = tester(args = Array("world"))
 

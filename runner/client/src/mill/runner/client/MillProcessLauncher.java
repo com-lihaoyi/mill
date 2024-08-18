@@ -9,6 +9,7 @@ import java.util.*;
 import mill.main.client.Util;
 import mill.main.client.ServerFiles;
 import mill.main.client.ServerCouldNotBeStarted;
+import mill.main.client.EnvVars;
 
 public class MillProcessLauncher {
 
@@ -45,7 +46,7 @@ public class MillProcessLauncher {
 
     static Process configureRunMillProcess(ProcessBuilder builder,
                                            String serverDir) throws Exception {
-        builder.environment().put("MILL_WORKSPACE_ROOT", new File("").getCanonicalPath());
+        builder.environment().put(EnvVars.MILL_WORKSPACE_ROOT, new File("").getCanonicalPath());
         File sandbox = new java.io.File(serverDir + "/" + ServerFiles.sandbox);
         sandbox.mkdirs();
         builder.directory(sandbox);
@@ -53,7 +54,7 @@ public class MillProcessLauncher {
     }
 
     static File millJvmOptsFile() {
-        String millJvmOptsPath = System.getenv("MILL_JVM_OPTS_PATH");
+        String millJvmOptsPath = System.getenv(EnvVars.MILL_JVM_OPTS_PATH);
         if (millJvmOptsPath == null || millJvmOptsPath.trim().equals("")) {
             millJvmOptsPath = ".mill-jvm-opts";
         }
@@ -66,7 +67,7 @@ public class MillProcessLauncher {
     }
 
     static String millServerTimeout() {
-        return System.getenv("MILL_SERVER_TIMEOUT_MILLIS");
+        return System.getenv(EnvVars.MILL_SERVER_TIMEOUT_MILLIS);
     }
 
     static boolean isWin() {

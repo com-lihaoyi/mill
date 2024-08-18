@@ -15,8 +15,7 @@ import os.Path
 
 trait MillTestKit {
 
-  def defaultTargetDir: os.Path =
-    sys.env.get("MILL_TESTKIT_BASEDIR").map(os.pwd / os.RelPath(_)).getOrElse(os.temp.dir())
+  def defaultTargetDir: os.Path = os.temp.dir(os.pwd)
 
   def targetDir: os.Path = defaultTargetDir
 
