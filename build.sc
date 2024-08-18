@@ -1304,7 +1304,10 @@ object example extends MillScalaModule {
     def compile = example.compile()
 
     def buildScLines = T { os.read.lines(testRepoRoot().path / "build.sc") }
-    def forkEnv = super.forkEnv() ++ Map("MILL_EXAMPLE_PARSED" -> upickle.default.write(parsed()))
+    def forkEnv = super.forkEnv() ++ Map(
+      "MILL_EXAMPLE_PARSED" -> upickle.default.write(parsed()),
+      "LANG" -> "C"
+    )
 
     /**
      * Parses a `build.sc` for specific comments and return the split-by-type content
