@@ -1,5 +1,5 @@
 import mill._, javalib._
-
+import java.io.File
 
 object foo extends JavaModule {
   def compileIvyDeps = Agg(ivy"org.projectlombok:lombok:1.18.34")
@@ -41,7 +41,7 @@ object bar extends JavaModule {
 
   def javacOptions = Seq(
     "-processorpath",
-    processors().map(_.path).mkString(":"),
+    processors().map(_.path).mkString(File.pathSeparator),
   )
 
   object test extends JavaTests with TestModule.Junit4
