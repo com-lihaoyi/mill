@@ -48,7 +48,12 @@ trait MockitoModule extends MavenModule{
     def forkArgs = testForkArgs()
     def ivyDeps =
       testIvyDeps() ++
-      Agg(libraries.hamcrest, libraries.junit4, libraries.bytebuddyagent, ivy"com.github.sbt:junit-interface:0.13.2")
+      Agg(
+        libraries.hamcrest,
+        libraries.junit4,
+        libraries.bytebuddyagent,
+        ivy"com.github.sbt:junit-interface:0.13.2"
+      )
   }
 }
 
