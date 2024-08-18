@@ -195,7 +195,7 @@ tries to do it _better_: faster compiles, shorter and easier to read configs, ea
 extensibility via libraries.
 
 Again, the Mill build used in this comparison is for demonstration purposes, and more
-work would be necessary to make the Mill build production ready: compatibility with
-different operating system architectures, Java versions, and so on. However, hopefully
-it demonstrates the potential value: improved performance, conciseness of the build logic,
-and easy extensibility so you can fine-tune your build logic to your requirements.
+work would be necessary to make the Mill build production ready: publishing configuration,
+code coverage integration, and so on. However, hopefully it demonstrates the potential value:
+significantly improved performance, so that you spend less time waiting for your code to
+compile and more time doing the work that actually matters.
