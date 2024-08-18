@@ -10,7 +10,6 @@ import java.nio.file.Paths;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.ArrayList;
-import mill.main.client.EnvVars;
 
 public class FooTests {
 
