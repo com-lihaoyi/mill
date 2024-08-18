@@ -43,7 +43,7 @@ Mill's performance compares to Maven:
 
 [cols="1,1,1,1"]
 |===
-| Benchmark | Maven | Mill | Speedup
+| Benchmark | Gradle | Mill | Speedup
 
 | <<Sequential Clean Compile All>> | 17.6s | 5.40s | 3.3x
 | <<Parallel Clean Compile All>> | 12.3s | 3.57s | 3.4x
