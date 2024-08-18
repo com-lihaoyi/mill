@@ -7,11 +7,12 @@ object SubprocessStdoutTests extends IntegrationTestSuite {
     initWorkspace()
 
     test {
-      val res1 = evalStdCombined("inheritInterleaved").out
-      // Make sure that when a lot of printed/inherited stdout/stderr is printed
-      // in quick succession, the output ordering is preserved and it doesn't get
-      // jumbled up
       retry(3) {
+        val res1 = evalStdCombined("inheritInterleaved").out
+        // Make sure that when a lot of printed/inherited stdout/stderr is printed
+        // in quick succession, the output ordering is preserved and it doesn't get
+        // jumbled up
+
         assert(
           res1.contains(
             s"""print stdout1
