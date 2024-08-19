@@ -36,8 +36,9 @@ trait JavaModule
     with SemanticDbJavaModule { outer =>
 
   def zincWorker: ModuleRef[ZincWorkerModule] = super.zincWorker
+  // TODO Mill 0.13: Delete type alias
   type JavaTests = JavaModuleTests
-  @deprecated("Use JavaTests instead", since = "Mill 0.11.10")
+  // TODO Mill 0.13: Rename to JavaTests
   trait JavaModuleTests extends JavaModule with TestModule {
     // Run some consistence checks
     hierarchyChecks()
