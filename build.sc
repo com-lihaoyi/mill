@@ -209,7 +209,7 @@ object Deps {
     ivy"commons-io:commons-io:2.16.1",
     ivy"com.google.code.gson:gson:2.11.0",
     ivy"com.google.protobuf:protobuf-java:3.25.4",
-    ivy"com.google.guava:guava:33.2.1-jre",
+    ivy"com.google.guava:guava:33.3.0-jre",
     ivy"org.yaml:snakeyaml:2.2",
     ivy"org.apache.commons:commons-compress:1.26.2"
   )
@@ -1304,7 +1304,10 @@ object example extends MillScalaModule {
     def compile = example.compile()
 
     def buildScLines = T { os.read.lines(testRepoRoot().path / "build.sc") }
-    def forkEnv = super.forkEnv() ++ Map("MILL_EXAMPLE_PARSED" -> upickle.default.write(parsed()))
+    def forkEnv = super.forkEnv() ++ Map(
+      "MILL_EXAMPLE_PARSED" -> upickle.default.write(parsed()),
+      "LANG" -> "C"
+    )
 
     /**
      * Parses a `build.sc` for specific comments and return the split-by-type content
