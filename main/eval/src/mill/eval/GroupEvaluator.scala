@@ -75,7 +75,8 @@ private[mill] trait GroupEvaluator {
       counterMsg: String,
       zincProblemReporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
-      logger: ColorLogger
+      logger: ColorLogger,
+//      groupTransitiveParents: Map[Class[_], Map[String, java.lang.reflect.Method]]
   ): GroupEvaluator.Results = synchronizedEval(
     terminal,
     onCollision =
@@ -126,6 +127,7 @@ private[mill] trait GroupEvaluator {
         .collect{case namedTask: NamedTask[_] =>
           namedTask.ctx.enclosingCls ->
             resolveParents(namedTask.ctx.enclosingCls)
+              .reverse
               .flatMap { c =>
                 val cMangledName = c.getName.replace('.', '$')
                 c.getDeclaredMethods.flatMap { m =>
