@@ -76,7 +76,8 @@ private[mill] trait GroupEvaluator {
       zincProblemReporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
       logger: ColorLogger,
-      classPossibleTaskNames: Map[Class[_], Map[String, java.lang.reflect.Method]]
+      classToTransitiveClasses: Map[Class[_], Seq[Class[_]]],
+      allTransitiveClassMethods: Map[Class[_], Map[String, java.lang.reflect.Method]]
   ): GroupEvaluator.Results = synchronizedEval(
     terminal,
     onCollision =
@@ -123,9 +124,13 @@ private[mill] trait GroupEvaluator {
           case namedTask: NamedTask[_] =>
 
             val encodedTaskName = encode(namedTask.ctx.segment.pathSegments.head)
-            val methodOpt = classPossibleTaskNames(namedTask.ctx.enclosingCls).get(encodedTaskName)
+            val methodOpt = for{
+              parentCls <- classToTransitiveClasses(namedTask.ctx.enclosingCls).iterator
+              m <- allTransitiveClassMethods(parentCls).get(encodedTaskName)
+            } yield m
 
             val methodClass = methodOpt
+              .nextOption()
               .getOrElse(throw new MillException(
                 s"Could not detect the parent class of target ${namedTask}. " +
                   s"Please report this at ${BuildInfo.millReportNewIssueUrl} . " +

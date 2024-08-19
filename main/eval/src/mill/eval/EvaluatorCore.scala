@@ -83,10 +83,10 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
     val futures = mutable.Map.empty[Terminal, Future[Option[GroupEvaluator.Results]]]
 
-    // Prepare a lookup table up front of all the method names that each class owns,
-    // so during evaluation it is cheap to look up what class each target belongs
-    // to determine of the enclosing class code signature changed.
-    val classPossibleTaskNames = precomputeMethodNamesPerClass(sortedGroups)
+    // Prepare a lookup tables up front of all the method names that each class owns,
+    // and the class hierarchy, so during evaluation it is cheap to look up what class
+    // each target belongs to determine of the enclosing class code signature changed.
+    val (classToTransitiveClasses, allTransitiveClassMethods) = precomputeMethodNamesPerClass(sortedGroups)
 
     def evaluateTerminals(terminals: Seq[Terminal], contextLoggerMsg: Int => String)(implicit
         ec: ExecutionContext
@@ -123,7 +123,8 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
               zincProblemReporter = reporter,
               testReporter = testReporter,
               logger = contextLogger,
-              classPossibleTaskNames = classPossibleTaskNames
+              classToTransitiveClasses,
+              allTransitiveClassMethods
             )
 
             if (failFast && res.newResults.values.exists(_.result.asSuccess.isEmpty))
@@ -218,36 +219,40 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
   private def precomputeMethodNamesPerClass(sortedGroups: MultiBiMap[Terminal, Task[_]]) = {
     def resolveTransitiveParents(c: Class[_]): Seq[Class[_]] = {
-      (Option(c.getSuperclass).toSeq ++ c.getInterfaces).flatMap(resolveTransitiveParents) ++
-        Seq(c)
+      Seq(c) ++
+      (Option(c.getSuperclass).toSeq ++ c.getInterfaces).flatMap(resolveTransitiveParents)
     }
 
-    val enclosingClassesHierarchy = sortedGroups
+    val classToTransitiveClasses = sortedGroups
       .values()
       .flatten
       .collect { case namedTask: NamedTask[_] => namedTask.ctx.enclosingCls }
-      .map(c => (c, resolveTransitiveParents(c)))
-      .toVector
+      .map(cls => cls -> resolveTransitiveParents(cls))
+      .toMap
 
-    val classPossibleTaskNames = enclosingClassesHierarchy
-      .sortBy(_._2.size)
-      .map { case (c, ps) =>
-        c -> ps.flatMap { p =>
-          val cMangledName = p.getName.replace('.', '$')
-          p.getDeclaredMethods
-            .filter(m => classOf[Task[_]].isAssignableFrom(m.getReturnType))
-            .flatMap { m =>
-              Seq(
-                m.getName -> m,
-                m.getName.stripPrefix(cMangledName + "$$") -> m,
-                m.getName.stripPrefix(cMangledName + "$") -> m
-              )
-            }
+    val allTransitiveClasses = classToTransitiveClasses
+      .iterator
+      .flatMap(_._2)
+      .toSet
+
+    val allTransitiveClassMethods = allTransitiveClasses
+      .map{cls =>
+        val cMangledName = cls.getName.replace('.', '$')
+        cls -> cls.getDeclaredMethods
+          .flatMap { m =>
+            Seq(
+              m.getName -> m,
+              // Handle scenarios where private method names get mangled when they are
+              // not really JVM-private due to being accessed by Scala nested objects
+              // or classes https://github.com/scala/bug/issues/9306
+              m.getName.stripPrefix(cMangledName + "$$") -> m,
+              m.getName.stripPrefix(cMangledName + "$") -> m
+            )
         }.toMap
       }
       .toMap
 
-    classPossibleTaskNames
+    (classToTransitiveClasses, allTransitiveClassMethods)
   }
 
   private def findInterGroupDeps(sortedGroups: MultiBiMap[Terminal, Task[_]])
