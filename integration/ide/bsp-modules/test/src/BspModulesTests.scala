@@ -1,5 +1,6 @@
 package mill.integration
-package local
+
+import mill.testkit.IntegrationTestSuite
 import mill.bsp.Constants
 import utest._
 

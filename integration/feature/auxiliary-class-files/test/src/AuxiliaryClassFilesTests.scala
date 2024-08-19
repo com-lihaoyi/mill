@@ -1,5 +1,7 @@
 package mill.integration
 
+import mill.testkit.IntegrationTestSuite
+
 import utest._
 
 // Regress test for issue https://github.com/com-lihaoyi/mill/issues/1901

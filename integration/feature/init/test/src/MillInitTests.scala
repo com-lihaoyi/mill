@@ -1,6 +1,8 @@
-package mill.integration.local
+package mill.integration
 
-import mill.integration.IntegrationTestSuite
+import mill.testkit.IntegrationTestSuite
+
+import mill.testkit.IntegrationTestSuite
 import utest._
 
 object MillInitTests extends IntegrationTestSuite {

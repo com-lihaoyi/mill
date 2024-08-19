@@ -1,4 +1,4 @@
-package mill.integration
+package mill.testkit
 import java.util.ArrayList
 import java.util.List
 import scala.jdk.CollectionConverters._

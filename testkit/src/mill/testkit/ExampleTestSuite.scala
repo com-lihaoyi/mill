@@ -1,5 +1,5 @@
-package mill.example
-import mill.integration.{BashTokenizer, IntegrationTestSuite}
+package mill.testkit
+import mill.testkit.{BashTokenizer, IntegrationTestSuite}
 import mill.util.Util
 import utest._
 

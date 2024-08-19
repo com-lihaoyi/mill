@@ -1,5 +1,7 @@
 package mill.integration
 
+import mill.testkit.IntegrationTestSuite
+
 import utest._
 
 object CodeSigHelloTests extends IntegrationTestSuite {

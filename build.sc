@@ -770,11 +770,13 @@ object main extends MillStableScalaModule with BuildInfo {
     def ivyDeps = Agg(Deps.graphvizJava, Deps.jgraphtCore)
   }
 
-  object testkit extends MillPublishScalaModule {
-    def moduleDeps = Seq(eval, util, main)
-  }
 
   def testModuleDeps = super.testModuleDeps ++ Seq(testkit)
+}
+
+object testkit extends MillPublishScalaModule {
+  def moduleDeps = Seq(main.eval, main.util, main)
+  def ivyDeps = Agg(Deps.TestDeps.utest)
 }
 
 object testrunner extends MillPublishScalaModule {
@@ -1186,14 +1188,14 @@ val DefaultLocalMillReleasePath =
 trait IntegrationTestModule extends MillScalaModule {
   def repoSlug: String
 
-  def scalaVersion = integration.scalaVersion()
-  def moduleDeps = Seq(main.test, integration)
+//  def scalaVersion = integration.scalaVersion()
+  def moduleDeps = Seq(main.test, testkit, runner)
   def sources = T.sources(millSourcePath / "test" / "src")
   def testRepoRoot: T[PathRef] = T.source(millSourcePath / "repo")
 
   trait ModeModule extends ScalaModule with MillBaseTestsModule {
     def mode: String = millModuleSegments.parts.last
-    def scalaVersion = integration.scalaVersion()
+    def scalaVersion = Deps.scalaVersion
 
     def forkEnv =
       super.forkEnv() ++
@@ -1233,11 +1235,9 @@ trait IntegrationTestCrossModule extends IntegrationTestModule with Cross.Module
 
 def listIn(path: os.Path) = interp.watchValue(os.list(path).map(_.last))
 
-object example extends MillScalaModule {
+object example extends Module {
   def exampleModules: Seq[ExampleCrossModule] =
     millInternal.modules.collect { case m: ExampleCrossModule => m }
-
-  def moduleDeps = Seq(integration)
 
   object basic extends Cross[ExampleCrossModule](listIn(millSourcePath / "basic"))
   object basicjava extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "basicjava"))
@@ -1306,7 +1306,7 @@ object example extends MillScalaModule {
     // disable scalafix because these example modules don't have sources causing it to misbehave
     def fix(args: String*): Command[Unit] = T.command {}
     def testRepoRoot: T[PathRef] = T.source(millSourcePath)
-    def compile = example.compile()
+    def compile = testkit.compile()
 
     def buildScLines = T { os.read.lines(testRepoRoot().path / "build.sc") }
     def forkEnv = super.forkEnv() ++ Map("MILL_EXAMPLE_PARSED" -> upickle.default.write(parsed()))
@@ -1419,14 +1419,12 @@ object example extends MillScalaModule {
   }
 }
 
-object integration extends MillScalaModule {
+object integration extends Module {
   object failure extends Cross[IntegrationCrossModule](listIn(millSourcePath / "failure"))
   object feature extends Cross[IntegrationCrossModule](listIn(millSourcePath / "feature"))
   object invalidation extends Cross[IntegrationCrossModule](listIn(millSourcePath / "invalidation"))
   object ide extends Cross[IntegrationCrossModule](listIn(millSourcePath / "ide"))
   trait IntegrationCrossModule extends IntegrationTestCrossModule
-
-  def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, runner.test)
 
   /** Deploy freshly build mill for use in tests */
   def testMill: T[PathRef] = {
