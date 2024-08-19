@@ -90,7 +90,7 @@ trait ScalaPBModule extends ScalaModule {
   else T { Seq.empty[PathRef] }
 
   def scalaPBProtoClasspath: T[Agg[PathRef]] = T {
-    defaultResolver().resolveDeps(transitiveCompileIvyDeps() ++ transitiveIvyDeps())
+    defaultResolver().resolveDepsResult(transitiveCompileIvyDeps() ++ transitiveIvyDeps())
   }
 
   def scalaPBUnpackProto: T[PathRef] = T {

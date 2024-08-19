@@ -29,7 +29,7 @@ trait FlywayModule extends JavaModule {
   def flywayDriverDeps: T[Agg[Dep]]
 
   def jdbcClasspath = T {
-    defaultResolver().resolveDeps(flywayDriverDeps())
+    defaultResolver().resolveDepsResult(flywayDriverDeps())
   }
 
   private def strToOptPair[A](key: String, v: String) =

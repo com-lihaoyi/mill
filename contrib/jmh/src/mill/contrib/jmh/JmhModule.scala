@@ -96,7 +96,7 @@ trait JmhModule extends JavaModule {
     }
 
   def generatorDeps = T {
-    defaultResolver().resolveDeps(
+    defaultResolver().resolveDepsResult(
       Agg(ivy"org.openjdk.jmh:jmh-generator-bytecode:${jmhGeneratorByteCodeVersion()}")
     )
   }

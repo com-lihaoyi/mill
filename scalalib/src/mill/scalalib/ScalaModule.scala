@@ -175,9 +175,12 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    */
   private def enablePluginScalacOptions: Target[Seq[String]] = T {
 
-    val resolvedJars = defaultResolver().resolveDeps(
-      scalacPluginIvyDeps().map(_.exclude("*" -> "*"))
-    )
+    val resolvedJars = T.task {
+      defaultResolver().resolveDepsResult(
+        scalacPluginIvyDeps().map(_.exclude("*" -> "*"))
+      )
+    }()
+
     resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path}").toSeq
   }
 
@@ -185,9 +188,11 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    * Scalac options to activate the compiler plugins for ScalaDoc generation.
    */
   private def enableScalaDocPluginScalacOptions: Target[Seq[String]] = T {
-    val resolvedJars = defaultResolver().resolveDeps(
-      scalaDocPluginIvyDeps().map(_.exclude("*" -> "*"))
-    )
+    val resolvedJars = T.task {
+      defaultResolver().resolveDepsResult(
+        scalaDocPluginIvyDeps().map(_.exclude("*" -> "*"))
+      )
+    }()
     resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path}").toSeq
   }
 
@@ -225,14 +230,14 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    * on maven central
    */
   def scalacPluginClasspath: T[Agg[PathRef]] = T {
-    defaultResolver().resolveDeps(scalacPluginIvyDeps())
+    defaultResolver().resolveDepsResult(scalacPluginIvyDeps())
   }
 
   /**
    * Classpath of the scaladoc (or dottydoc) tool.
    */
   def scalaDocClasspath: T[Agg[PathRef]] = T {
-    defaultResolver().resolveDeps(
+    defaultResolver().resolveDepsResult(
       Lib.scalaDocIvyDeps(scalaOrganization(), scalaVersion())
     )
   }
@@ -241,7 +246,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    * The ivy coordinates of Scala's own standard library
    */
   def scalaDocPluginClasspath: T[Agg[PathRef]] = T {
-    defaultResolver().resolveDeps(
+    defaultResolver().resolveDepsResult(
       scalaDocPluginIvyDeps()
     )
   }
@@ -259,7 +264,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    * Classpath of the Scala Compiler & any compiler plugins
    */
   def scalaCompilerClasspath: T[Agg[PathRef]] = T {
-    defaultResolver().resolveDeps(
+    defaultResolver().resolveDepsResult(
       Lib.scalaCompilerIvyDeps(scalaOrganization(), scalaVersion()) ++
         scalaLibraryIvyDeps()
     )
@@ -475,7 +480,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   }
 
   def resolvedAmmoniteReplIvyDeps = T {
-    defaultResolver().resolveDeps {
+    defaultResolver().resolveDepsResult {
       val scaVersion = scalaVersion()
       val ammVersion = ammoniteVersion()
       if (scaVersion != BuildInfo.scalaVersion && ammVersion == Versions.ammonite) {
@@ -561,10 +566,10 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     T.command {
       super.prepareOffline(all)()
       // resolve the compile bridge jar
-      defaultResolver().resolveDeps(
+      defaultResolver().resolveDepsResult(
         scalacPluginIvyDeps()
       )
-      defaultResolver().resolveDeps(
+      defaultResolver().resolveDepsResult(
         scalaDocPluginIvyDeps()
       )
       zincWorker().scalaCompilerBridgeJar(
@@ -616,7 +621,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   override def semanticDbScalaVersion: T[String] = scalaVersion()
 
   override protected def semanticDbPluginClasspath = T {
-    defaultResolver().resolveDeps(
+    defaultResolver().resolveDepsResult(
       scalacPluginIvyDeps() ++ semanticDbPluginIvyDeps()
     )
   }

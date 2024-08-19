@@ -340,7 +340,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 trait TestScalaJSModule extends ScalaJSModule with TestModule {
   override def resources: T[Seq[PathRef]] = super[ScalaJSModule].resources
   def scalaJSTestDeps = T {
-    defaultResolver().resolveDeps(
+    defaultResolver().resolveDepsResult(
       Loose.Agg(
         ivy"org.scala-js::scalajs-library:${scalaJSVersion()}",
         ivy"org.scala-js::scalajs-test-bridge:${scalaJSVersion()}"

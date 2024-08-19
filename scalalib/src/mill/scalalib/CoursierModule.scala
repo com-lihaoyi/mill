@@ -5,7 +5,7 @@ import coursier.{Dependency, Repository, Resolve}
 import coursier.core.Resolution
 import mill.T
 import mill.define.Task
-import mill.api.PathRef
+import mill.api.{PathRef, Result}
 
 import scala.annotation.nowarn
 import scala.concurrent.Await
@@ -133,10 +133,11 @@ object CoursierModule {
       ] = None
   ) {
 
-    def resolveDeps[T: CoursierModule.Resolvable](
+    // TODO Mill 0.13: Rename to `resolveDeps`
+    def resolveDepsResult[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean = false
-    ): Agg[PathRef] = {
+    ): Result[Agg[PathRef]] = {
       Lib.resolveDependencies(
         repositories = repositories,
         deps = deps.map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind)),
@@ -145,7 +146,15 @@ object CoursierModule {
         customizer = customizer,
         coursierCacheCustomizer = coursierCacheCustomizer,
         ctx = ctx
-      ).getOrThrow
+      )
+    }
+
+    // TODO Mill 0.13: Delete
+    def resolveDeps[T: CoursierModule.Resolvable](
+        deps: IterableOnce[T],
+        sources: Boolean = false
+    ): Agg[PathRef] = {
+      resolveDepsResult[T](deps, sources).getOrThrow
     }
   }
 

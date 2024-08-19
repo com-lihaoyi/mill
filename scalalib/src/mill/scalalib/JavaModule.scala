@@ -533,7 +533,7 @@ trait JavaModule
    * Resolved dependencies based on [[transitiveIvyDeps]] and [[transitiveCompileIvyDeps]].
    */
   def resolvedIvyDeps: T[Agg[PathRef]] = T {
-    defaultResolver().resolveDeps(transitiveCompileIvyDeps() ++ transitiveIvyDeps())
+    defaultResolver().resolveDepsResult(transitiveCompileIvyDeps() ++ transitiveIvyDeps())
   }
 
   /**
@@ -545,7 +545,7 @@ trait JavaModule
   }
 
   def resolvedRunIvyDeps: T[Agg[PathRef]] = T {
-    defaultResolver().resolveDeps(runIvyDeps().map(bindDependency()) ++ transitiveIvyDeps())
+    defaultResolver().resolveDepsResult(runIvyDeps().map(bindDependency()) ++ transitiveIvyDeps())
   }
 
   /**
@@ -1011,13 +1011,13 @@ trait JavaModule
     val tasks =
       if (all.value) Seq(
         T.task {
-          defaultResolver().resolveDeps(
+          defaultResolver().resolveDepsResult(
             transitiveCompileIvyDeps() ++ transitiveIvyDeps(),
             sources = true
           )
         },
         T.task {
-          defaultResolver().resolveDeps(
+          defaultResolver().resolveDepsResult(
             runIvyDeps().map(bindDependency()) ++ transitiveIvyDeps(),
             sources = true
           )
