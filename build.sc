@@ -228,7 +228,7 @@ object Deps {
     val millScip = ivy"io.chris-kipp::mill-scip_mill0.11:0.3.7"
   }
 
-  def kotlinVersion = "1.0.0"
+  def kotlinVersion = "1.9.20"
   val kotlinCompiler = ivy"org.jetbrains.kotlin:kotlin-compiler:${kotlinVersion}"
 }
 
@@ -666,7 +666,8 @@ object main extends MillStableScalaModule with BuildInfo {
       Deps.upickle,
       Deps.pprint,
       Deps.fansi,
-      Deps.sbtTestInterface
+      Deps.sbtTestInterface,
+      ivy"org.fusesource.jansi:jansi:2.4.0"
     )
   }
 
@@ -908,7 +909,7 @@ object kotlinlib extends MillStableScalaModule {
 
   override def scalaVersion = Deps.scalaVersion
   override def publishVersion: T[String] = VcsVersion.vcsState().format()
-
+  def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(worker.impl.testDep())
   override def javacOptions = {
     val release =
       if (scala.util.Properties.isJavaAtLeast(11)) Seq("-release", "8")
@@ -952,12 +953,10 @@ object kotlinlib extends MillStableScalaModule {
   }
 
   object worker extends MillStableScalaModule  {
-    override def artifactName = "de.tobiasroeser.mill.kotlin.worker"
     def moduleDeps = Seq(main.api)
     override def compileIvyDeps: T[Agg[Dep]] = Agg(Deps.osLib)
 
     object impl extends MillPublishScalaModule {
-      override def artifactName = "de.tobiasroeser.mill.kotlin.worker.impl"
       override def moduleDeps: Seq[PublishModule] = Seq(main.api, worker)
       override def compileIvyDeps: T[Agg[Dep]] = Agg(
         Deps.osLib,
@@ -1621,7 +1620,7 @@ object runner extends MillPublishScalaModule {
   }
 
   def moduleDeps = Seq(
-    scalalib, scalajslib, scalanativelib, bsp, linenumbers, main.codesig, main.server, client
+    scalalib, scalajslib, scalanativelib, bsp, linenumbers, main.codesig, main.server, client, kotlinlib
   )
   def skipPreviousVersions: T[Seq[String]] = Seq("0.11.0-M7")
 
@@ -1667,7 +1666,8 @@ object dev extends MillPublishScalaModule {
         genTask(main)() ++
         genTask(scalalib)() ++
         genTask(scalajslib)() ++
-        genTask(scalanativelib)()
+        genTask(scalanativelib)() ++
+        genTask(kotlinlib)()
 
     testArgs() ++
       Seq(

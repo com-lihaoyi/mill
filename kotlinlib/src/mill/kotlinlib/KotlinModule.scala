@@ -205,6 +205,7 @@ trait KotlinModule extends JavaModule with KotlinModulePlatform { outer =>
       )
   }
 
+  type KotlinTests = KotlinModuleTests
   /**
    * A test sub-module linked to its parent module best suited for unit-tests.
    */

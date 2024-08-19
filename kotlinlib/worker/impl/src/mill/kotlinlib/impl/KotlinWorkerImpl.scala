@@ -1,6 +1,6 @@
 package mill.kotlinlib.impl
 
-import de.tobiasroeser.mill.kotlin.KotlinWorker
+import mill.kotlinlib.KotlinWorker
 import mill.api.{Ctx, Result}
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
 
