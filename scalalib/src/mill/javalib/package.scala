@@ -1,6 +1,5 @@
 package mill
 
-
 package object javalib extends mill.scalalib.JsonFormatters {
   implicit class DepSyntax(ctx: StringContext) {
     def ivy(args: Any*): Dep = Dep.parse {
