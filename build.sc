@@ -1102,11 +1102,6 @@ object contrib extends Module {
     def compileModuleDeps = Seq(scalalib)
     def testModuleDeps = super.testModuleDeps ++ Seq(scalalib)
   }
-
-  object jacoco extends ContribModule {
-    def compileModuleDeps = Seq(scalalib)
-    def testModuleDeps = super.testModuleDeps ++ Seq(scalalib)
-  }
 }
 
 object scalanativelib extends MillStableScalaModule {
