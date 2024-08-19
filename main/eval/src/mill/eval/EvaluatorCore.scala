@@ -9,6 +9,7 @@ import mill.main.client.OutFiles._
 import mill.main.client.EnvVars
 import mill.util._
 
+import java.lang.reflect.Method
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import scala.collection.mutable
 import scala.concurrent._
@@ -81,47 +82,11 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     val count = new AtomicInteger(1)
 
     val futures = mutable.Map.empty[Terminal, Future[Option[GroupEvaluator.Results]]]
-//    def resolveParents(c: Class[_]): Seq[Class[_]] = {
-//      Seq(c) ++
-//        Option(c.getSuperclass).toSeq.flatMap(resolveParents) ++
-//        c.getInterfaces.flatMap(resolveParents)
-//    }
-//
-//    val allEnclosingClasses = sortedGroups
-//      .values()
-//      .flatten
-//      .collect { case namedTask: NamedTask[_] => namedTask.ctx.enclosingCls }
-//      .distinct
-//      .toVector
-//
-//    val enclosingClassMethodNames = allEnclosingClasses
-//      .map { c =>
-//        val cMangledName = c.getName.replace('.', '$')
-//        (
-//          c,
-//          c.getDeclaredMethods
-//            .iterator
-//            .flatMap(m =>
-//              Seq(
-//                m.getName -> m,
-//                // Handle scenarios where private method names get mangled when they are
-//                // not really JVM-private due to being accessed by Scala nested objects
-//                // or classes https://github.com/scala/bug/issues/9306
-//                m.getName.stripPrefix(cMangledName + "$$") -> m,
-//                m.getName.stripPrefix(cMangledName + "$") -> m
-//              )
-//            )
-//            .toMap
-//        )
-//      }
-//      .toMap
-//
-//    val classPossibleTaskNames = allEnclosingClasses
-//      .map { c =>
-//        (c, resolveParents(c).map(c => enclosingClassMethodNames.getOrElse(c, Map())))
-//      }
-//      .toMap
 
+    // Prepare a lookup table up front of all the method names that each class owns,
+    // so during evaluation it is cheap to look up what class each target belongs
+    // to determine of the enclosing class code signature changed.
+    val classPossibleTaskNames = precomputeMethodNamesPerClass(sortedGroups)
 
     def evaluateTerminals(terminals: Seq[Terminal], contextLoggerMsg: Int => String)(implicit
         ec: ExecutionContext
@@ -158,7 +123,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
               zincProblemReporter = reporter,
               testReporter = testReporter,
               logger = contextLogger,
-//              classPossibleTaskNames = classPossibleTaskNames
+              classPossibleTaskNames = classPossibleTaskNames
             )
 
             if (failFast && res.newResults.values.exists(_.result.asSuccess.isEmpty))
@@ -249,6 +214,40 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       getFailing(sortedGroups, results),
       results.map { case (k, v) => (k, v.map(_._1)) }
     )
+  }
+
+  private def precomputeMethodNamesPerClass(sortedGroups: MultiBiMap[Terminal, Task[_]]) = {
+    def resolveTransitiveParents(c: Class[_]): Seq[Class[_]] = {
+      (Option(c.getSuperclass).toSeq ++ c.getInterfaces).flatMap(resolveTransitiveParents) ++
+        Seq(c)
+    }
+
+    val enclosingClassesHierarchy = sortedGroups
+      .values()
+      .flatten
+      .collect { case namedTask: NamedTask[_] => namedTask.ctx.enclosingCls }
+      .map(c => (c, resolveTransitiveParents(c)))
+      .toVector
+
+    val classPossibleTaskNames = enclosingClassesHierarchy
+      .sortBy(_._2.size)
+      .map { case (c, ps) =>
+        c -> ps.flatMap { p =>
+          val cMangledName = p.getName.replace('.', '$')
+          p.getDeclaredMethods
+            .filter(m => classOf[Task[_]].isAssignableFrom(m.getReturnType))
+            .flatMap { m =>
+              Seq(
+                m.getName -> m,
+                m.getName.stripPrefix(cMangledName + "$$") -> m,
+                m.getName.stripPrefix(cMangledName + "$") -> m
+              )
+            }
+        }.toMap
+      }
+      .toMap
+
+    classPossibleTaskNames
   }
 
   private def findInterGroupDeps(sortedGroups: MultiBiMap[Terminal, Task[_]])

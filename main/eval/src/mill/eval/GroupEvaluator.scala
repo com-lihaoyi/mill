@@ -76,7 +76,7 @@ private[mill] trait GroupEvaluator {
       zincProblemReporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
       logger: ColorLogger,
-//      groupTransitiveParents: Map[Class[_], Map[String, java.lang.reflect.Method]]
+      classPossibleTaskNames: Map[Class[_], Map[String, java.lang.reflect.Method]]
   ): GroupEvaluator.Results = synchronizedEval(
     terminal,
     onCollision =
@@ -116,32 +116,6 @@ private[mill] trait GroupEvaluator {
         .map(p => scriptImportGraph.get(p).fold(0)(_._1))
         .sum
     } else {
-      def resolveParents(c: Class[_]): Seq[Class[_]] = {
-        Seq(c) ++
-          Option(c.getSuperclass).toSeq.flatMap(resolveParents) ++
-          c.getInterfaces.flatMap(resolveParents)
-      }
-
-      val groupTransitiveParents = group
-        .iterator
-        .collect{case namedTask: NamedTask[_] =>
-          namedTask.ctx.enclosingCls ->
-            resolveParents(namedTask.ctx.enclosingCls)
-              .reverse
-              .flatMap { c =>
-                val cMangledName = c.getName.replace('.', '$')
-                c.getDeclaredMethods.flatMap { m =>
-                  Seq(
-                    m.getName -> m,
-                    m.getName.stripPrefix(cMangledName + "$$") -> m,
-                    m.getName.stripPrefix(cMangledName + "$") -> m
-                  )
-                }
-              }
-            .toMap
-        }
-        .distinct
-        .toMap
 
       group
         .iterator
@@ -149,7 +123,7 @@ private[mill] trait GroupEvaluator {
           case namedTask: NamedTask[_] =>
 
             val encodedTaskName = encode(namedTask.ctx.segment.pathSegments.head)
-            val methodOpt = groupTransitiveParents(namedTask.ctx.enclosingCls).get(encodedTaskName)
+            val methodOpt = classPossibleTaskNames(namedTask.ctx.enclosingCls).get(encodedTaskName)
 
             val methodClass = methodOpt
               .getOrElse(throw new MillException(
