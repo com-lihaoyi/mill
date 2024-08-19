@@ -218,8 +218,8 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
   }
 
   private def precomputeMethodNamesPerClass(sortedGroups: MultiBiMap[Terminal, Task[_]]) = {
-    def resolveTransitiveParents(c: Class[_]): Seq[Class[_]] = {
-      Seq(c) ++
+    def resolveTransitiveParents(c: Class[_]): Array[Class[_]] = {
+      Array(c) ++
       (Option(c.getSuperclass).toSeq ++ c.getInterfaces).flatMap(resolveTransitiveParents)
     }
 
@@ -227,7 +227,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       .values()
       .flatten
       .collect { case namedTask: NamedTask[_] => namedTask.ctx.enclosingCls }
-      .map(cls => cls -> resolveTransitiveParents(cls))
+      .map(cls => cls -> (resolveTransitiveParents(cls): IndexedSeq[Class[_]]))
       .toMap
 
     val allTransitiveClasses = classToTransitiveClasses
