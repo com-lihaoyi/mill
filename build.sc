@@ -199,7 +199,7 @@ object Deps {
 
   object RuntimeDeps {
     val sbtTestInterface = ivy"com.github.sbt:junit-interface:0.13.2"
-    val jupiterInterface = ivy"com.github.sbt.junit:jupiter-interface:0.11.4"
+    val jupiterInterface = ivy"com.github.sbt.junit:jupiter-interface:0.13.0"
     def all = Seq(sbtTestInterface, jupiterInterface)
   }
 
