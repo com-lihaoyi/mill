@@ -1833,7 +1833,12 @@ object docs extends Module {
       case s"    mill-last-tag:$_" => s"    mill-last-tag: '$millLastTag'"
       case l => l
     }
-    os.write.over(dest / "antora.yml", lines.mkString("\n"))
+    val newLines = Seq(
+      s"    mill-download-url: ${Settings.projectUrl}/releases/download/$millLastTag",
+      s"    mill-example-url: ${Settings.projectUrl}/blob/$millLastTag/",
+    )
+
+    os.write.over(dest / "antora.yml", (lines ++ newLines).mkString("\n"))
   }
 
   def githubPagesPlaybookText(authorMode: Boolean) = T.task { extraSources: Seq[os.Path] =>
@@ -1870,10 +1875,6 @@ object docs extends Module {
        |  attributes:
        |    mill-github-url: ${Settings.projectUrl}
        |    mill-doc-url: ${if (authorMode) s"file://${T.dest}/site" else Settings.docUrl}
-       |    mill-download-url: ${if (authorMode) s"file://${exampleZips().head.path / os.up}"
-      else s"${Settings.projectUrl}/releases/download/${millLastTag()}"}
-       |    mill-example-url: ${if (authorMode) s"file://${T.workspace}"
-      else s"${Settings.projectUrl}/blob/main/"}
        |    utest-github-url: https://github.com/com-lihaoyi/utest
        |    upickle-github-url: https://github.com/com-lihaoyi/upickle
        |    mill-scip-version: ${Deps.DocDeps.millScip.dep.version}
