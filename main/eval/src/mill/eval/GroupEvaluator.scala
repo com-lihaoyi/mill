@@ -115,37 +115,54 @@ private[mill] trait GroupEvaluator {
         .map(p => scriptImportGraph.get(p).fold(0)(_._1))
         .sum
     } else {
+      def resolveParents(c: Class[_]): Seq[Class[_]] = {
+        Seq(c) ++
+          Option(c.getSuperclass).toSeq.flatMap(resolveParents) ++
+          c.getInterfaces.flatMap(resolveParents)
+      }
+
+      val groupTransitiveParents = group
+        .iterator
+        .collect{case namedTask: NamedTask[_] =>
+          namedTask.ctx.enclosingCls ->
+            resolveParents(namedTask.ctx.enclosingCls)
+              .map(c =>
+                (
+                  c.getName.replace('.', '$'),
+                  c.getDeclaredMethods
+                )
+              )
+        }
+        .distinct
+        .toMap
+
       group
         .iterator
         .collect {
           case namedTask: NamedTask[_] =>
-            def resolveParents(c: Class[_]): Seq[Class[_]] = {
-              Seq(c) ++
-                Option(c.getSuperclass).toSeq.flatMap(resolveParents) ++
-                c.getInterfaces.flatMap(resolveParents)
-            }
 
-            val transitiveParents = resolveParents(namedTask.ctx.enclosingCls)
+            val encodedTaskName = encode(namedTask.ctx.segment.pathSegments.head)
             val methods = for {
-              c <- transitiveParents
-              m <- c.getDeclaredMethods
-              encodedTaskName = encode(namedTask.ctx.segment.pathSegments.head)
-              if m.getName == encodedTaskName ||
+              (cMangledName, declaredMethods) <- groupTransitiveParents(namedTask.ctx.enclosingCls).iterator
+              m <- declaredMethods.find(m =>
+                m.getName == encodedTaskName ||
                 // Handle scenarios where private method names get mangled when they are
                 // not really JVM-private due to being accessed by Scala nested objects
                 // or classes https://github.com/scala/bug/issues/9306
-                m.getName == (c.getName.replace('.', '$') + "$$" + encodedTaskName) ||
-                m.getName == (c.getName.replace('.', '$') + "$" + encodedTaskName)
+                m.getName == cMangledName + "$$" + encodedTaskName ||
+                m.getName == cMangledName + "$" + encodedTaskName
+              )
             } yield m
 
             val methodClass = methods
-              .headOption
+              .nextOption()
               .getOrElse(throw new MillException(
                 s"Could not detect the parent class of target ${namedTask}. " +
                   s"Please report this at ${BuildInfo.millReportNewIssueUrl} . " +
                   s"As a workaround, you can run Mill with `--disable-callgraph-invalidation` option."
               ))
               .getDeclaringClass.getName
+
             val name = namedTask.ctx.segment.pathSegments.last
             val expectedName = methodClass + "#" + name + "()mill.define.Target"
 

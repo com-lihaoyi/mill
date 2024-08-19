@@ -23,6 +23,7 @@ object Watching {
       evaluate: Option[T] => Result[T]
   ): (Boolean, T) = {
     var prevState: Option[T] = None
+    var previous = System.currentTimeMillis()
     while (true) {
       val Result(watchables, errorOpt, result) = evaluate(prevState)
       prevState = Some(result)
@@ -40,10 +41,13 @@ object Watching {
         return (errorOpt.isEmpty, result)
       }
 
-      val alreadyStale = watchables.exists(!_.validate())
+      val alreadyStale = true
       if (!alreadyStale) {
         Watching.watchAndWait(logger, setIdle, streams.in, watchables)
       }
+      val next = System.currentTimeMillis()
+      println("Delta Millis " + (next - previous))
+      previous = next
     }
     ???
   }

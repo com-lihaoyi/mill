@@ -81,6 +81,47 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     val count = new AtomicInteger(1)
 
     val futures = mutable.Map.empty[Terminal, Future[Option[GroupEvaluator.Results]]]
+//    def resolveParents(c: Class[_]): Seq[Class[_]] = {
+//      Seq(c) ++
+//        Option(c.getSuperclass).toSeq.flatMap(resolveParents) ++
+//        c.getInterfaces.flatMap(resolveParents)
+//    }
+//
+//    val allEnclosingClasses = sortedGroups
+//      .values()
+//      .flatten
+//      .collect { case namedTask: NamedTask[_] => namedTask.ctx.enclosingCls }
+//      .distinct
+//      .toVector
+//
+//    val enclosingClassMethodNames = allEnclosingClasses
+//      .map { c =>
+//        val cMangledName = c.getName.replace('.', '$')
+//        (
+//          c,
+//          c.getDeclaredMethods
+//            .iterator
+//            .flatMap(m =>
+//              Seq(
+//                m.getName -> m,
+//                // Handle scenarios where private method names get mangled when they are
+//                // not really JVM-private due to being accessed by Scala nested objects
+//                // or classes https://github.com/scala/bug/issues/9306
+//                m.getName.stripPrefix(cMangledName + "$$") -> m,
+//                m.getName.stripPrefix(cMangledName + "$") -> m
+//              )
+//            )
+//            .toMap
+//        )
+//      }
+//      .toMap
+//
+//    val classPossibleTaskNames = allEnclosingClasses
+//      .map { c =>
+//        (c, resolveParents(c).map(c => enclosingClassMethodNames.getOrElse(c, Map())))
+//      }
+//      .toMap
+
 
     def evaluateTerminals(terminals: Seq[Terminal], contextLoggerMsg: Int => String)(implicit
         ec: ExecutionContext
@@ -116,7 +157,8 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
               counterMsg = counterMsg,
               zincProblemReporter = reporter,
               testReporter = testReporter,
-              logger = contextLogger
+              logger = contextLogger,
+//              classPossibleTaskNames = classPossibleTaskNames
             )
 
             if (failFast && res.newResults.values.exists(_.result.asSuccess.isEmpty))
