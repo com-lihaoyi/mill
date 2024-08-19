@@ -8,6 +8,7 @@ import mill.eval.Evaluator.TaskResult
 import mill.util._
 
 import java.io.PrintStream
+import java.lang.reflect.Method
 import scala.collection.mutable
 import scala.reflect.NameTransformer.encode
 import scala.util.control.NonFatal
@@ -76,8 +77,8 @@ private[mill] trait GroupEvaluator {
       zincProblemReporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
       logger: ColorLogger,
-      classToTransitiveClasses: Map[Class[_], Seq[Class[_]]],
-      allTransitiveClassMethods: Map[Class[_], Map[String, java.lang.reflect.Method]]
+      classToTransitiveClasses: Map[Class[_], IndexedSeq[Class[_]]],
+      allTransitiveClassMethods: Map[Class[_], Map[String, Method]]
   ): GroupEvaluator.Results = synchronizedEval(
     terminal,
     onCollision =
@@ -122,9 +123,8 @@ private[mill] trait GroupEvaluator {
         .iterator
         .collect {
           case namedTask: NamedTask[_] =>
-
             val encodedTaskName = encode(namedTask.ctx.segment.pathSegments.head)
-            val methodOpt = for{
+            val methodOpt = for {
               parentCls <- classToTransitiveClasses(namedTask.ctx.enclosingCls).iterator
               m <- allTransitiveClassMethods(parentCls).get(encodedTaskName)
             } yield m

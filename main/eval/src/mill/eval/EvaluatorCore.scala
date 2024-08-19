@@ -9,7 +9,6 @@ import mill.main.client.OutFiles._
 import mill.main.client.EnvVars
 import mill.util._
 
-import java.lang.reflect.Method
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import scala.collection.mutable
 import scala.concurrent._
@@ -86,7 +85,8 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     // Prepare a lookup tables up front of all the method names that each class owns,
     // and the class hierarchy, so during evaluation it is cheap to look up what class
     // each target belongs to determine of the enclosing class code signature changed.
-    val (classToTransitiveClasses, allTransitiveClassMethods) = precomputeMethodNamesPerClass(sortedGroups)
+    val (classToTransitiveClasses, allTransitiveClassMethods) =
+      precomputeMethodNamesPerClass(sortedGroups)
 
     def evaluateTerminals(terminals: Seq[Terminal], contextLoggerMsg: Int => String)(implicit
         ec: ExecutionContext
@@ -218,16 +218,17 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
   }
 
   private def precomputeMethodNamesPerClass(sortedGroups: MultiBiMap[Terminal, Task[_]]) = {
-    def resolveTransitiveParents(c: Class[_]): Array[Class[_]] = {
-      Array(c) ++
-      (Option(c.getSuperclass).toSeq ++ c.getInterfaces).flatMap(resolveTransitiveParents)
+    def resolveTransitiveParents(c: Class[_]): Iterator[Class[_]] = {
+      Iterator(c) ++
+        Option(c.getSuperclass).iterator.flatMap(resolveTransitiveParents) ++
+        c.getInterfaces.iterator.flatMap(resolveTransitiveParents)
     }
 
     val classToTransitiveClasses = sortedGroups
       .values()
       .flatten
       .collect { case namedTask: NamedTask[_] => namedTask.ctx.enclosingCls }
-      .map(cls => cls -> (resolveTransitiveParents(cls): IndexedSeq[Class[_]]))
+      .map(cls => cls -> resolveTransitiveParents(cls).toVector)
       .toMap
 
     val allTransitiveClasses = classToTransitiveClasses
@@ -236,7 +237,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       .toSet
 
     val allTransitiveClassMethods = allTransitiveClasses
-      .map{cls =>
+      .map { cls =>
         val cMangledName = cls.getName.replace('.', '$')
         cls -> cls.getDeclaredMethods
           .flatMap { m =>
@@ -248,7 +249,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
               m.getName.stripPrefix(cMangledName + "$$") -> m,
               m.getName.stripPrefix(cMangledName + "$") -> m
             )
-        }.toMap
+          }.toMap
       }
       .toMap
 
