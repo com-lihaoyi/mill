@@ -15,7 +15,7 @@ To do this, we have written a Mill `build.sc` file for the Mockito project. This
 with Mill to build and test the various submodules of the Mockito project without needing to
 change any other files in the repository:
 
-- https://github.com/com-lihaoyi/mill/blob/main/example/thirdparty/mockity/build.sc[Mockito build.sc file]
+- https://github.com/com-lihaoyi/mill/blob/main/example/thirdparty/mockito/build.sc[Mockito build.sc file]
 
 == Completeness
 
