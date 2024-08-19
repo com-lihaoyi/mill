@@ -1,4 +1,4 @@
-= Java Case Study: Netty
+= Case Study: Mill vs Maven
 
 ++++
 <script>
@@ -759,16 +759,22 @@ in downstream modules.
 
 Again, the Maven XML and Mill code contains exactly the same logic, and neither is
 much more concise or verbose than the other. Rather, what is interesting is that
-it is much easier to work with this kind of _build logic_ via _direct code_, rather
-than configuring a bunch of third-party plugins to try and achieve what you want.
+it is much easier to work with this kind of _build logic_ via _concise type-checked code_,
+rather than configuring a bunch of third-party plugins to try and achieve what you want.
 
 == Conclusion
 
 Both the Mill and Maven builds we discussed in this case study do the same thing: they
 compile Java code, zip them into Jar files, run tests. Sometimes they compile and link
-C code or run `make` or Groovy. Mill doesn't try to do _more_ than Maven does, but it
+C code or run `make` or Groovy.
+
+Mill doesn't try to do _more_ than Maven does, but it
 tries to do it _better_: faster compiles, shorter and easier to read configs, easier
 extensibility via libraries (e.g. `org.codehaus.groovy:groovy`) and subprocesses
 (e.g. `make`).
 
-This case study demonstrates that
+Again, the Mill build used in this comparison is for demonstration purposes, and more
+work would be necessary to make the Mill build production ready: compatibility with
+different operating system architectures, Java versions, and so on. However, hopefully
+it demonstrates the potential value: improved performance, conciseness of the build logic,
+and easy extensibility so you can fine-tune your build logic to your requirements.
