@@ -126,12 +126,17 @@ private[mill] trait GroupEvaluator {
         .collect{case namedTask: NamedTask[_] =>
           namedTask.ctx.enclosingCls ->
             resolveParents(namedTask.ctx.enclosingCls)
-              .map(c =>
-                (
-                  c.getName.replace('.', '$'),
-                  c.getDeclaredMethods
-                )
-              )
+              .flatMap { c =>
+                val cMangledName = c.getName.replace('.', '$')
+                c.getDeclaredMethods.flatMap { m =>
+                  Seq(
+                    m.getName -> m,
+                    m.getName.stripPrefix(cMangledName + "$$") -> m,
+                    m.getName.stripPrefix(cMangledName + "$") -> m
+                  )
+                }
+              }
+            .toMap
         }
         .distinct
         .toMap
@@ -142,20 +147,9 @@ private[mill] trait GroupEvaluator {
           case namedTask: NamedTask[_] =>
 
             val encodedTaskName = encode(namedTask.ctx.segment.pathSegments.head)
-            val methods = for {
-              (cMangledName, declaredMethods) <- groupTransitiveParents(namedTask.ctx.enclosingCls).iterator
-              m <- declaredMethods.find(m =>
-                m.getName == encodedTaskName ||
-                // Handle scenarios where private method names get mangled when they are
-                // not really JVM-private due to being accessed by Scala nested objects
-                // or classes https://github.com/scala/bug/issues/9306
-                m.getName == cMangledName + "$$" + encodedTaskName ||
-                m.getName == cMangledName + "$" + encodedTaskName
-              )
-            } yield m
+            val methodOpt = groupTransitiveParents(namedTask.ctx.enclosingCls).get(encodedTaskName)
 
-            val methodClass = methods
-              .nextOption()
+            val methodClass = methodOpt
               .getOrElse(throw new MillException(
                 s"Could not detect the parent class of target ${namedTask}. " +
                   s"Please report this at ${BuildInfo.millReportNewIssueUrl} . " +
