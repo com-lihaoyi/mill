@@ -2,7 +2,6 @@ package mill.testkit
 
 import mill.eval.Evaluator
 import mill.resolve.SelectMode
-//import mill.runner.RunnerState
 import os.{Path, Shellable}
 import utest._
 import collection.mutable
@@ -26,8 +25,6 @@ abstract class IntegrationTestSuite extends TestSuite {
   def wd: Path = workspacePath / buildPath / os.up
 
   val debugLog = false
-
-//  var runnerState = RunnerState.empty
 
   def eval(s: Shellable*): Boolean = evalFork(os.Inherit, os.Inherit, s, -1)
 
@@ -137,7 +134,6 @@ abstract class IntegrationTestSuite extends TestSuite {
   def mangleFile(p: os.Path, f: String => String): Unit = os.write.over(p, f(os.read(p)))
 
   override def utestAfterEach(path: Seq[String]): Unit = {
-//    runnerState = RunnerState.empty
     if (integrationTestMode == "server" || integrationTestMode == "local") {
       // try to stop the server
       try {
