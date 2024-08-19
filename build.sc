@@ -227,6 +227,9 @@ object Deps {
   object DocDeps {
     val millScip = ivy"io.chris-kipp::mill-scip_mill0.11:0.3.7"
   }
+
+  def kotlinVersion = "1.0.0"
+  val kotlinCompiler = ivy"org.jetbrains.kotlin:kotlin-compiler:${kotlinVersion}"
 }
 
 def millVersion: T[String] = T { VcsVersion.vcsState().format() }
@@ -900,6 +903,70 @@ object scalajslib extends MillStableScalaModule with BuildInfo {
     )
   }
 }
+
+object kotlinlib extends MillStableScalaModule {
+
+  override def scalaVersion = Deps.scalaVersion
+  override def publishVersion: T[String] = VcsVersion.vcsState().format()
+
+  override def javacOptions = {
+    val release =
+      if (scala.util.Properties.isJavaAtLeast(11)) Seq("-release", "8")
+      else Seq("-source", "1.8", "-target", "1.8")
+    release ++ Seq("-encoding", "UTF-8", "-deprecation")
+  }
+
+  override def scalacOptions = Seq("-release:8", "-encoding", "UTF-8", "-deprecation")
+
+  override def moduleDeps: Seq[PublishModule] = Seq(main, scalalib, worker)
+  override def ivyDeps = Agg(
+    ivy"${scalaOrganization()}:scala-library:${scalaVersion()}"
+  )
+
+  override def generatedSources: Target[Seq[PathRef]] = T {
+    super.generatedSources() :+ versionFile()
+  }
+
+  def versionFile: Target[PathRef] = T {
+    val dest = T.ctx().dest
+    val body =
+      s"""package mill.kotlinlib
+         |
+         |/**
+         | * Build-time generated versions file.
+         | */
+         |object Versions {
+         |  /** The mill-kotlin version. */
+         |  val millKotlinVersion = "${publishVersion()}"
+         |  /** The mill API version used to build mill-kotlin. */
+         |  val buildTimeMillVersion = "${millVersion()}"
+         |  /** The ivy dependency holding the mill kotlin worker impl. */
+         |  val millKotlinWorkerImplIvyDep = "${worker.impl.pomSettings().organization}:${worker.impl.artifactId()}:${worker.impl.publishVersion()}"
+         |  /** The default kotlin version used for the compiler. */
+         |  val kotlinCompilerVersion = "${Deps.kotlinVersion}"
+         |}
+         |""".stripMargin
+
+    os.write(dest / "Versions.scala", body)
+    PathRef(dest)
+  }
+
+  object worker extends MillStableScalaModule  {
+    override def artifactName = "de.tobiasroeser.mill.kotlin.worker"
+    def moduleDeps = Seq(main.api)
+    override def compileIvyDeps: T[Agg[Dep]] = Agg(Deps.osLib)
+
+    object impl extends MillPublishScalaModule {
+      override def artifactName = "de.tobiasroeser.mill.kotlin.worker.impl"
+      override def moduleDeps: Seq[PublishModule] = Seq(main.api, worker)
+      override def compileIvyDeps: T[Agg[Dep]] = Agg(
+        Deps.osLib,
+        Deps.kotlinCompiler
+      )
+    }
+  }
+}
+
 
 object contrib extends Module {
   def contribModules: Seq[ContribModule] =
