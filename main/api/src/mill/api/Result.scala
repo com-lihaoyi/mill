@@ -75,6 +75,7 @@ object Result {
     def map[V](f: T => V): Failure[V] = Result.Failure(msg, value.map(f(_)))
     def flatMap[V](f: T => Result[V]): Failure[V] =
       Failure(msg, value.flatMap(f(_).asSuccess.map(_.value)))
+    override def toString(): String = msg
   }
 
   /**
