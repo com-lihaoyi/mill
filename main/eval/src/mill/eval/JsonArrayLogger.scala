@@ -6,7 +6,7 @@ import java.nio.file.{Files, StandardOpenOption}
 private class JsonArrayLogger[T: upickle.default.Writer](outPath: os.Path, indent: Int) {
   private var used = false
 
-  val indentStr = " " * indent
+  val indentStr: String = " " * indent
   private lazy val traceStream = {
     val options = Seq(
       Seq(StandardOpenOption.CREATE, StandardOpenOption.WRITE),
