@@ -81,8 +81,9 @@ object Evaluator {
     (for ((k, fs) <- evaluated.failing.items())
       yield {
         val fss = fs.map {
-          case ex: Result.Exception => ex.toString
           case Result.Failure(t, _) => t
+          case Result.Exception(Result.Failure(t, _), _) => t
+          case ex: Result.Exception => ex.toString
         }
         s"${k.render} ${fss.iterator.mkString(", ")}"
       }).mkString("\n")

@@ -209,7 +209,7 @@ object Deps {
     ivy"commons-io:commons-io:2.16.1",
     ivy"com.google.code.gson:gson:2.11.0",
     ivy"com.google.protobuf:protobuf-java:3.25.4",
-    ivy"com.google.guava:guava:33.2.1-jre",
+    ivy"com.google.guava:guava:33.3.0-jre",
     ivy"org.yaml:snakeyaml:2.2",
     ivy"org.apache.commons:commons-compress:1.26.2"
   )
@@ -1304,7 +1304,10 @@ object example extends MillScalaModule {
     def compile = example.compile()
 
     def buildScLines = T { os.read.lines(testRepoRoot().path / "build.sc") }
-    def forkEnv = super.forkEnv() ++ Map("MILL_EXAMPLE_PARSED" -> upickle.default.write(parsed()))
+    def forkEnv = super.forkEnv() ++ Map(
+      "MILL_EXAMPLE_PARSED" -> upickle.default.write(parsed()),
+      "LANG" -> "C"
+    )
 
     /**
      * Parses a `build.sc` for specific comments and return the split-by-type content
@@ -1387,7 +1390,8 @@ object example extends MillScalaModule {
     "fansi" -> ("com-lihaoyi/fansi", "169ac96d7c6761a72590d312a433cf12c572573c"),
     "jimfs" -> ("google/jimfs", "5b60a42eb9d3cd7a2073d549bd0cb833f5a7e7e9"),
     "commons-io" -> ("apache/commons-io", "b91a48074231ef813bc9b91a815d77f6343ff8f0"),
-    "netty" -> ("netty/netty", "20a790ed362a3c11e0e990b58598e4ac6aa88bef")
+    "netty" -> ("netty/netty", "20a790ed362a3c11e0e990b58598e4ac6aa88bef"),
+    "mockito" -> ("mockito/mockito", "97f3574cc07fdf36f1f76ba7332ac57675e140b1")
   )
   object thirdparty extends Cross[ThirdPartyModule](listIn(millSourcePath / "thirdparty"))
   trait ThirdPartyModule extends ExampleCrossModule {
@@ -1832,7 +1836,12 @@ object docs extends Module {
       case s"    mill-last-tag:$_" => s"    mill-last-tag: '$millLastTag'"
       case l => l
     }
-    os.write.over(dest / "antora.yml", lines.mkString("\n"))
+    val newLines = Seq(
+      s"    mill-download-url: ${Settings.projectUrl}/releases/download/$millLastTag",
+      s"    mill-example-url: ${Settings.projectUrl}/blob/$millLastTag/",
+    )
+
+    os.write.over(dest / "antora.yml", (lines ++ newLines).mkString("\n"))
   }
 
   def githubPagesPlaybookText(authorMode: Boolean) = T.task { extraSources: Seq[os.Path] =>
@@ -1869,10 +1878,6 @@ object docs extends Module {
        |  attributes:
        |    mill-github-url: ${Settings.projectUrl}
        |    mill-doc-url: ${if (authorMode) s"file://${T.dest}/site" else Settings.docUrl}
-       |    mill-download-url: ${if (authorMode) s"file://${exampleZips().head.path / os.up}"
-      else s"${Settings.projectUrl}/releases/download/${millLastTag()}"}
-       |    mill-example-url: ${if (authorMode) s"file://${T.workspace}"
-      else s"${Settings.projectUrl}/blob/main/"}
        |    utest-github-url: https://github.com/com-lihaoyi/utest
        |    upickle-github-url: https://github.com/com-lihaoyi/upickle
        |    mill-scip-version: ${Deps.DocDeps.millScip.dep.version}

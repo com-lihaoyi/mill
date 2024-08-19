@@ -10,11 +10,10 @@ object foo extends RootModule with JavaModule {
 
   object test extends JavaTests with TestModule.Junit4{
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"com.google.guava:guava:33.2.1-jre"
+      ivy"com.google.guava:guava:33.3.0-jre"
     )
   }
 }
-
 
 // This is a basic Mill build for a single `JavaModule`, with two
 // third-party dependencies and a test suite using the JUnit framework. As a
