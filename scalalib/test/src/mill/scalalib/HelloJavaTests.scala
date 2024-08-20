@@ -2,14 +2,15 @@ package mill
 package scalalib
 
 import mill.api.Result
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.TestEvaluator
+import mill.testkit.MillTestKit
 import utest._
 import utest.framework.TestPath
 
 object HelloJavaTests extends TestSuite {
 
-  object HelloJava extends TestUtil.BaseModule {
-    def millSourcePath = TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
+  object HelloJava extends MillTestKit.BaseModule {
+    def millSourcePath = MillTestKit.getSrcPathBase() / millOuterCtx.enclosing.split('.')
 
     object core extends JavaModule {
       override def docJarUseArgsFile = false

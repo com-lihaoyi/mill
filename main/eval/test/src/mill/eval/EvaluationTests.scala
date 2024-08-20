@@ -3,7 +3,8 @@ package mill.eval
 import mill.util.TestUtil.{Test, test}
 import mill.define.{TargetImpl, Task}
 import mill.T
-import mill.util.{TestEvaluator, TestGraphs, TestUtil}
+import mill.util.{TestGraphs, TestUtil}
+import mill.testkit.{MillTestKit, TestEvaluator}
 import mill.api.Strict.Agg
 import os.SubPath
 import utest._
@@ -15,7 +16,7 @@ object EvaluationTestsThreadsNative extends EvaluationTests(threadCount = None)
 
 class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
 
-  class Checker[T <: TestUtil.BaseModule](module: T)(implicit tp: TestPath) {
+  class Checker[T <: MillTestKit.BaseModule](module: T)(implicit tp: TestPath) {
     // Make sure data is persisted even if we re-create the evaluator each time
 
     def evaluator = new TestEvaluator(module, threads = threadCount)(
@@ -300,7 +301,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         // up    middle -- down
         //                /
         //           right
-        object build extends TestUtil.BaseModule {
+        object build extends MillTestKit.BaseModule {
           var leftCount = 0
           var rightCount = 0
           var middleCount = 0

@@ -1,13 +1,14 @@
 package mill.scalalib
 
 import mill.Agg
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.TestEvaluator
+import mill.testkit.MillTestKit
 import utest._
 import utest.framework.TestPath
 
 object CrossVersionTests extends TestSuite {
 
-  object TestCases extends TestUtil.BaseModule {
+  object TestCases extends MillTestKit.BaseModule {
 
     object StandaloneScala213 extends ScalaModule {
       val tree =

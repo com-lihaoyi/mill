@@ -4,7 +4,8 @@ import scala.util.Properties
 import mill._
 import mill.api.Result
 import mill.eval.Evaluator
-import mill.util.{Jvm, TestEvaluator, TestUtil}
+import mill.util.Jvm
+import mill.testkit.{MillTestKit, TestEvaluator}
 import utest._
 import utest.framework.TestPath
 
@@ -17,7 +18,7 @@ import java.io.PrintStream
 
 object AssemblyTests extends TestSuite {
 
-  object TestCase extends TestUtil.BaseModule {
+  object TestCase extends MillTestKit.BaseModule {
     trait Setup extends ScalaModule {
       def scalaVersion = "2.13.11"
       def sources = T.sources(T.workspace / "src")
@@ -75,7 +76,7 @@ object AssemblyTests extends TestSuite {
   )
 
   def workspaceTest[T](
-      m: TestUtil.BaseModule,
+      m: MillTestKit.BaseModule,
       env: Map[String, String] = Evaluator.defaultEnv,
       debug: Boolean = false,
       errStream: PrintStream = System.err

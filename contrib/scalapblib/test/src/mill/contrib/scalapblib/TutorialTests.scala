@@ -2,16 +2,17 @@ package mill.contrib.scalapblib
 
 import mill._
 import mill.api.PathRef
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.TestEvaluator
+import mill.testkit.MillTestKit
 import utest.framework.TestPath
 import utest.{TestSuite, Tests, assert, _}
 
 object TutorialTests extends TestSuite {
   val testScalaPbVersion = "0.11.7"
 
-  trait TutorialBase extends TestUtil.BaseModule {
+  trait TutorialBase extends MillTestKit.BaseModule {
     override def millSourcePath: os.Path =
-      TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
+      MillTestKit.getSrcPathBase() / millOuterCtx.enclosing.split('.')
   }
 
   trait TutorialModule extends ScalaPBModule {
@@ -62,7 +63,7 @@ object TutorialTests extends TestSuite {
   def protobufOutPath(eval: TestEvaluator): os.Path =
     eval.outPath / "core" / "compileScalaPB.dest" / "com" / "example" / "tutorial"
 
-  def workspaceTest[T](m: TestUtil.BaseModule)(t: TestEvaluator => T)(implicit tp: TestPath): T = {
+  def workspaceTest[T](m: MillTestKit.BaseModule)(t: TestEvaluator => T)(implicit tp: TestPath): T = {
     val eval = new TestEvaluator(m)
     os.remove.all(m.millSourcePath)
     println(m.millSourcePath)

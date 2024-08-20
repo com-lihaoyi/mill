@@ -2,13 +2,14 @@ package mill.scalajslib
 
 import mill.define.Discover
 import mill.scalajslib.api._
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.TestEvaluator
+import mill.testkit.MillTestKit
 import utest._
 
 object SmallModulesForTests extends TestSuite {
-  val workspacePath = TestUtil.getOutPathStatic() / "small-modules-for"
+  val workspacePath = MillTestKit.getOutPathStatic() / "small-modules-for"
 
-  object SmallModulesForModule extends TestUtil.BaseModule {
+  object SmallModulesForModule extends MillTestKit.BaseModule {
 
     object smallModulesForModule extends ScalaJSModule {
       override def millSourcePath = workspacePath

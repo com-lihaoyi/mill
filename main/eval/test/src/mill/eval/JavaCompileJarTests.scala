@@ -1,9 +1,10 @@
 package mill.eval
 
-import mill.util.Jvm
+import mill.util.{Jvm, TestUtil}
 import mill.api.Ctx.Dest
 import mill.T
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.TestEvaluator
+import mill.testkit.MillTestKit
 import mill.api.Strict.Agg
 import mill.api.{JarManifest, Loose}
 import utest._
@@ -25,7 +26,7 @@ object JavaCompileJarTests extends TestSuite {
       os.makeDir.all(javacDestPath / os.up)
       os.copy(javacSrcPath, javacDestPath)
 
-      object Build extends TestUtil.BaseModule {
+      object Build extends MillTestKit.BaseModule {
         def sourceRootPath = javacDestPath / "src"
         def readmePath = javacDestPath / "readme.md"
         def resourceRootPath = javacDestPath / "resources"

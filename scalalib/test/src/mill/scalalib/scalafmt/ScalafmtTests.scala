@@ -3,7 +3,8 @@ package mill.scalalib.scalafmt
 import mill._
 import mill.main.Tasks
 import mill.scalalib.ScalaModule
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.TestEvaluator
+import mill.testkit.MillTestKit
 import utest._
 import utest.framework.TestPath
 
@@ -11,9 +12,9 @@ object ScalafmtTests extends TestSuite {
 
   val scalafmtTestVersion = mill.scalalib.api.Versions.scalafmtVersion
 
-  trait TestBase extends TestUtil.BaseModule {
+  trait TestBase extends MillTestKit.BaseModule {
     override def millSourcePath: os.Path =
-      TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
+      MillTestKit.getSrcPathBase() / millOuterCtx.enclosing.split('.')
   }
 
   trait BuildSrcModule {
@@ -34,7 +35,7 @@ object ScalafmtTests extends TestSuite {
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "scalafmt"
 
   def workspaceTest[T](
-      m: TestUtil.BaseModule,
+      m: MillTestKit.BaseModule,
       resourcePath: os.Path = resourcePath
   )(t: TestEvaluator => T)(
       implicit tp: TestPath

@@ -1,6 +1,7 @@
 package mill.define
 
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.TestEvaluator
+import mill.testkit.MillTestKit
 import mill.T
 import mill.api.Result.Success
 import utest._
@@ -8,7 +9,7 @@ import utest.framework.TestPath
 
 object CacherTests extends TestSuite {
   object Base extends Base
-  trait Base extends TestUtil.BaseModule {
+  trait Base extends MillTestKit.BaseModule {
     def value = T { 1 }
     def result = T { Success(1) }
   }
@@ -23,7 +24,7 @@ object CacherTests extends TestSuite {
   }
 
   val tests = Tests {
-    def eval[T <: TestUtil.BaseModule, V](mapping: T, v: Task[V])(implicit tp: TestPath) = {
+    def eval[T <: MillTestKit.BaseModule, V](mapping: T, v: Task[V])(implicit tp: TestPath) = {
       val evaluator = new TestEvaluator(mapping)
       evaluator(v).toOption.get._1
     }

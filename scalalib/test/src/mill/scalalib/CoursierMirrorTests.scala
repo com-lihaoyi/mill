@@ -1,6 +1,7 @@
 package mill.scalalib
 
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.TestEvaluator
+import mill.testkit.MillTestKit
 import mill.eval.{Evaluator}
 import utest._
 import utest.framework.TestPath
@@ -9,14 +10,14 @@ object CoursierMirrorTests extends TestSuite {
 
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "coursier"
 
-  object CoursierTest extends TestUtil.BaseModule {
+  object CoursierTest extends MillTestKit.BaseModule {
     object core extends ScalaModule {
       def scalaVersion = "2.13.12"
     }
   }
 
   def workspaceTest[T](
-      m: TestUtil.BaseModule,
+      m: MillTestKit.BaseModule,
       resourcePath: os.Path = resourcePath,
       env: Map[String, String] = Evaluator.defaultEnv,
       debug: Boolean = false

@@ -2,7 +2,8 @@ package mill
 package contrib.docker
 
 import mill.scalalib.JavaModule
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.TestEvaluator
+import mill.testkit.MillTestKit
 import os.Path
 import utest._
 import utest.framework.TestPath
@@ -13,9 +14,9 @@ object DockerModuleTest extends TestSuite {
     if (isInstalled("podman")) "podman"
     else "docker"
 
-  object Docker extends TestUtil.BaseModule with JavaModule with DockerModule {
+  object Docker extends MillTestKit.BaseModule with JavaModule with DockerModule {
 
-    override def millSourcePath = TestUtil.getSrcPathStatic()
+    override def millSourcePath = MillTestKit.getSrcPathStatic()
     override def artifactName = testArtifactName
 
     object dockerDefault extends DockerConfig {
@@ -55,7 +56,7 @@ object DockerModuleTest extends TestSuite {
     os.proc(getPathCmd, executable).call(check = false).exitCode == 0
   }
 
-  private def workspaceTest(m: TestUtil.BaseModule)(t: TestEvaluator => Unit)(
+  private def workspaceTest(m: MillTestKit.BaseModule)(t: TestEvaluator => Unit)(
       implicit tp: TestPath
   ): Unit = {
     if (isInstalled(testExecutable) && !scala.util.Properties.isWin) {

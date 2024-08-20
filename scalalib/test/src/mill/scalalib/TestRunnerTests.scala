@@ -1,7 +1,8 @@
 package mill.scalalib
 
 import mill.api.Result
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.TestEvaluator
+import mill.testkit.MillTestKit
 import mill.{Agg, T}
 import os.Path
 import sbt.testing.Status
@@ -12,8 +13,8 @@ import java.io.{ByteArrayOutputStream, PrintStream}
 import scala.xml.{Elem, NodeSeq, XML}
 
 object TestRunnerTests extends TestSuite {
-  object testrunner extends TestUtil.BaseModule with ScalaModule {
-    override def millSourcePath = TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
+  object testrunner extends MillTestKit.BaseModule with ScalaModule {
+    override def millSourcePath = MillTestKit.getSrcPathBase() / millOuterCtx.enclosing.split('.')
 
     def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
 
@@ -63,7 +64,7 @@ object TestRunnerTests extends TestSuite {
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "testrunner"
 
   def workspaceTest[T](
-      m: TestUtil.BaseModule,
+      m: MillTestKit.BaseModule,
       outStream: PrintStream = System.out,
       resourcePath: os.Path = resourcePath
   )(t: TestEvaluator => T)(

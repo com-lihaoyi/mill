@@ -3,11 +3,12 @@ package mill.scalanativelib
 import mill.Agg
 import mill.scalalib._
 import mill.define.Discover
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.TestEvaluator
+import mill.testkit.MillTestKit
 import utest._
 
 object ExclusionsTests extends TestSuite {
-  object Exclusions extends TestUtil.BaseModule {
+  object Exclusions extends MillTestKit.BaseModule {
     object scala213 extends ScalaNativeModule {
       def scalaNativeVersion = "0.4.3"
       def scalaVersion = "2.13.10"

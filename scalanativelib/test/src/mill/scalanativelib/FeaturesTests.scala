@@ -1,12 +1,13 @@
 package mill.scalanativelib
 
 import mill.define.Discover
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.TestEvaluator
+import mill.testkit.MillTestKit
 import utest._
 
 object FeaturesTests extends TestSuite {
-  val workspacePath = TestUtil.getOutPathStatic() / "features"
-  object Features extends TestUtil.BaseModule {
+  val workspacePath = MillTestKit.getOutPathStatic() / "features"
+  object Features extends MillTestKit.BaseModule {
     object module extends ScalaNativeModule {
       def millSourcePath = workspacePath
       def scalaNativeVersion = "0.4.9"

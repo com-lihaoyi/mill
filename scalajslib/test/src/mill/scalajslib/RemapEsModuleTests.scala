@@ -2,17 +2,18 @@ package mill.scalajslib
 
 import mill.api.Result
 import mill.define.Discover
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.TestEvaluator
+import mill.testkit.MillTestKit
 import utest._
 import mill.define.Target
 import mill.scalajslib.api._
 
 object EsModuleRemapTests extends TestSuite {
-  val workspacePath = TestUtil.getOutPathStatic() / "esModuleRemap"
+  val workspacePath = MillTestKit.getOutPathStatic() / "esModuleRemap"
 
   val remapTo = "https://cdn.jsdelivr.net/gh/stdlib-js/array-base-linspace@esm/index.mjs"
 
-  object EsModuleRemap extends TestUtil.BaseModule {
+  object EsModuleRemap extends MillTestKit.BaseModule {
 
     object sourceMapModule extends ScalaJSModule {
       override def millSourcePath = workspacePath

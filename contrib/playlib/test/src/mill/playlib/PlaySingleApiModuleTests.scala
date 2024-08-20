@@ -1,12 +1,12 @@
 package mill.playlib
 
 import mill.T
-import mill.util.TestUtil
+import mill.testkit.MillTestKit
 import utest.{TestSuite, Tests, assert, _}
 
 object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
 
-  object playsingleapi extends TestUtil.BaseModule with PlayApiModule with SingleModule {
+  object playsingleapi extends MillTestKit.BaseModule with PlayApiModule with SingleModule {
     override def playVersion = T { testPlay28 }
     override def scalaVersion = T { "2.13.12" }
     object test extends PlayTests

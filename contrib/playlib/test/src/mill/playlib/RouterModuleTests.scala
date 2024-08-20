@@ -3,14 +3,14 @@ package mill.playlib
 import mill.api.Result.Failure
 import mill.define.Cross
 import mill.scalalib.ScalaModule
-import mill.util.TestUtil
+import mill.testkit.MillTestKit
 import utest.{TestSuite, Tests, assert, _}
 
 object RouterModuleTests extends TestSuite with PlayTestSuite {
 
-  trait HelloBase extends TestUtil.BaseModule {
+  trait HelloBase extends MillTestKit.BaseModule {
     override def millSourcePath: os.Path =
-      TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
+      MillTestKit.getSrcPathBase() / millOuterCtx.enclosing.split('.')
   }
 
   trait HelloWorldModule extends mill.playlib.RouterModule with ScalaModule

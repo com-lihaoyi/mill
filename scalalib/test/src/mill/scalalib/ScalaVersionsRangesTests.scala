@@ -1,14 +1,15 @@
 package mill.scalalib
 
 import mill._
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.TestEvaluator
+import mill.testkit.MillTestKit
 
 import utest._
 import utest.framework.TestPath
 
 object ScalaVersionsRangesTests extends TestSuite {
-  object ScalaVersionsRanges extends TestUtil.BaseModule {
-    def millSourcePath = TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
+  object ScalaVersionsRanges extends MillTestKit.BaseModule {
+    def millSourcePath = MillTestKit.getSrcPathBase() / millOuterCtx.enclosing.split('.')
 
     object core extends Cross[CoreCrossModule]("2.12.13", "2.13.5", "3.3.3")
     trait CoreCrossModule extends CrossScalaModule
@@ -22,7 +23,7 @@ object ScalaVersionsRangesTests extends TestSuite {
     os.pwd / "scalalib" / "test" / "resources" / "scala-versions-ranges"
 
   def workspaceTest[T](
-      m: TestUtil.BaseModule
+      m: MillTestKit.BaseModule
   )(t: TestEvaluator => T)(implicit tp: TestPath): T = {
     val eval = new TestEvaluator(m)
     os.remove.all(m.millSourcePath)

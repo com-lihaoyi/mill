@@ -4,15 +4,16 @@ package testng
 import mill.define.Target
 import mill.util.Util.millProjectModule
 import mill.scalalib._
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.TestEvaluator
+import mill.testkit.MillTestKit
 import utest.framework.TestPath
 import utest.{TestSuite, Tests, assert, _}
 
 object TestNGTests extends TestSuite {
 
-  object demo extends TestUtil.BaseModule with JavaModule {
+  object demo extends MillTestKit.BaseModule with JavaModule {
     override def millSourcePath: os.Path =
-      TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
+      MillTestKit.getSrcPathBase() / millOuterCtx.enclosing.split('.')
 
     object test extends JavaModuleTests {
       def testngClasspath = T {
@@ -41,7 +42,7 @@ object TestNGTests extends TestSuite {
 
   val resourcePath: os.Path = os.pwd / "contrib" / "testng" / "test" / "resources" / "demo"
 
-  def workspaceTest[T, M <: TestUtil.BaseModule](
+  def workspaceTest[T, M <: MillTestKit.BaseModule](
       m: M,
       resourcePath: os.Path = resourcePath
   )(t: TestEvaluator => T)(implicit tp: TestPath): T = {

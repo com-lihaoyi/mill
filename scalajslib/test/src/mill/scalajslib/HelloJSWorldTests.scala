@@ -8,14 +8,16 @@ import mill.eval.EvaluatorPaths
 import mill.scalalib.{DepSyntax, PublishModule, ScalaModule, TestModule}
 import mill.testrunner.TestResult
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.TestEvaluator
+import mill.testkit.MillTestKit
 import utest._
 
 import scala.jdk.CollectionConverters._
 import mill.scalalib.api.ZincWorkerUtil
+import mill.util.TestUtil
 
 object HelloJSWorldTests extends TestSuite {
-  val workspacePath = TestUtil.getOutPathStatic() / "hello-js-world"
+  val workspacePath = MillTestKit.getOutPathStatic() / "hello-js-world"
 
   trait HelloJSWorldModule
       extends ScalaModule with ScalaJSModule with PublishModule
@@ -27,7 +29,7 @@ object HelloJSWorldTests extends TestSuite {
     override def mainClass = Some("Main")
   }
 
-  object HelloJSWorld extends TestUtil.BaseModule {
+  object HelloJSWorld extends MillTestKit.BaseModule {
     val scalaVersions = Seq("2.13.3", "3.0.0-RC1", "2.12.12", "2.11.12")
     val scalaJSVersions = Seq("1.8.0", "1.3.1", "1.0.1")
     val matrix = for {

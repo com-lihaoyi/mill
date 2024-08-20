@@ -4,14 +4,15 @@ import mill._
 import mill.define.Discover
 import mill.eval.EvaluatorPaths
 import mill.scalalib.{DepSyntax, ScalaModule, TestModule}
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.TestEvaluator
+import mill.testkit.MillTestKit
 import utest._
 import mill.scalajslib.api._
 
 import scala.util.Properties
 
 object NodeJSConfigTests extends TestSuite {
-  val workspacePath = TestUtil.getOutPathStatic() / "hello-js-world"
+  val workspacePath = MillTestKit.getOutPathStatic() / "hello-js-world"
   val scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
   val scalaJSVersion = sys.props.getOrElse("TEST_SCALAJS_VERSION", ???)
   val utestVersion = sys.props.getOrElse("TEST_UTEST_VERSION", ???)
@@ -30,7 +31,7 @@ object NodeJSConfigTests extends TestSuite {
     override def mainClass = Some("Main")
   }
 
-  object HelloJSWorld extends TestUtil.BaseModule {
+  object HelloJSWorld extends MillTestKit.BaseModule {
     val matrix = for {
       scala <- Seq(scalaVersion)
       nodeArgs <- Seq(nodeArgsEmpty, nodeArgs2G)

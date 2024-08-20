@@ -1,6 +1,7 @@
 package mill.eval
 
-import mill.util.{TestEvaluator, TestGraphs}
+import mill.testkit.TestEvaluator
+import mill.util.TestGraphs
 import mill.util.TestGraphs.{
   crossResolved,
   doubleCross,

@@ -1,15 +1,16 @@
 package mill.twirllib
 
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.TestEvaluator
+import mill.testkit.MillTestKit
 import utest.framework.TestPath
 import utest.{TestSuite, Tests, assert, _}
 
 trait HelloWorldTests extends TestSuite {
   val testTwirlVersion: String
 
-  trait HelloBase extends TestUtil.BaseModule {
+  trait HelloBase extends MillTestKit.BaseModule {
     override def millSourcePath: os.Path =
-      TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
+      MillTestKit.getSrcPathBase() / millOuterCtx.enclosing.split('.')
   }
 
   trait HelloWorldModule extends mill.twirllib.TwirlModule {
@@ -36,7 +37,7 @@ trait HelloWorldTests extends TestSuite {
   }
 
   def workspaceTest[T](
-      m: TestUtil.BaseModule,
+      m: MillTestKit.BaseModule,
       resourcePathSuffix: String,
       debug: Boolean = false
   )(t: TestEvaluator => T)(implicit tp: TestPath): T = {

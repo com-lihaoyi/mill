@@ -5,7 +5,8 @@ import mill._
 import mill.scalajslib.api.ModuleKind
 import mill.scalalib._
 import mill.scalanativelib.api.ReleaseMode
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.TestEvaluator
+import mill.testkit.MillTestKit
 import os.Path
 import upickle.default._
 import utest._
@@ -19,7 +20,7 @@ object BloopTests extends TestSuite {
   val testEvaluator = TestEvaluator.static(build)
   val testBloop = new BloopImpl(() => Seq(testEvaluator.evaluator), workdir)
 
-  object build extends TestUtil.BaseModule {
+  object build extends MillTestKit.BaseModule {
 
     override def millSourcePath = BloopTests.workdir
 

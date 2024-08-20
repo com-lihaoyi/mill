@@ -1,13 +1,13 @@
-package mill.util
+package mill.testkit
 
-import java.io.{InputStream, PrintStream}
+import mill.api.DummyInputStream
 import mill.eval.Evaluator
 import utest.framework.TestPath
 
-import mill.api.DummyInputStream
+import java.io.{InputStream, PrintStream}
 
 object TestEvaluator {
-  def static(module: => TestUtil.BaseModule)(implicit
+  def static(module: => MillTestKit.BaseModule)(implicit
       fullName: sourcecode.FullName
   ): TestEvaluator = {
     new TestEvaluator(module)(fullName, TestPath(Nil))
@@ -20,7 +20,7 @@ object TestEvaluator {
  * @param threads explicitly used nr. of parallel threads
  */
 class TestEvaluator(
-    module: TestUtil.BaseModule,
+    module: MillTestKit.BaseModule,
     failFast: Boolean = false,
     threads: Option[Int] = Some(1),
     outStream: PrintStream = System.out,
@@ -29,7 +29,7 @@ class TestEvaluator(
     debugEnabled: Boolean = false,
     extraPathEnd: Seq[String] = Seq.empty,
     env: Map[String, String] = Evaluator.defaultEnv
-)(implicit fullName: sourcecode.FullName, tp: TestPath) extends TestUtil.TestEvaluator(
+)(implicit fullName: sourcecode.FullName, tp: TestPath) extends MillTestKit.TestEvaluator(
       module,
       tp.value,
       failFast,

@@ -1,6 +1,7 @@
 package mill.eval
 
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.TestEvaluator
+import mill.testkit.MillTestKit
 import mill.T
 import mill.define.Discover
 
@@ -14,7 +15,7 @@ object ModuleTests extends TestSuite {
     }
     lazy val millDiscover = Discover[this.type]
   }
-  object Build extends TestUtil.BaseModule {
+  object Build extends MillTestKit.BaseModule {
     def z = T { ExternalModule.x() + ExternalModule.inner.y() }
   }
   val tests = Tests {

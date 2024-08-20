@@ -3,11 +3,12 @@ package mill.scalalib
 import mill._
 import utest._
 import utest.framework.TestPath
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.TestEvaluator
+import mill.testkit.MillTestKit
 
 object DottyDocTests extends TestSuite {
-  trait TestBase extends TestUtil.BaseModule {
-    def millSourcePath = TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
+  trait TestBase extends MillTestKit.BaseModule {
+    def millSourcePath = MillTestKit.getSrcPathBase() / millOuterCtx.enclosing.split('.')
   }
 
   // a project with static docs
@@ -38,7 +39,7 @@ object DottyDocTests extends TestSuite {
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "dottydoc"
 
   def workspaceTest[T](
-      m: TestUtil.BaseModule,
+      m: MillTestKit.BaseModule,
       resourcePath: os.Path = resourcePath
   )(t: TestEvaluator => T)(
       implicit tp: TestPath

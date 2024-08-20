@@ -1,8 +1,8 @@
 package mill.contrib.buildinfo
 
 import mill._
-import mill.util.TestEvaluator
-import mill.util.TestUtil
+import mill.testkit.TestEvaluator
+import mill.testkit.MillTestKit
 import os.Path
 import utest._
 import utest.framework.TestPath
@@ -11,9 +11,9 @@ object BuildInfoTests extends TestSuite {
 
   val scalaVersionString = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
   val scalaJSVersionString = sys.props.getOrElse("TEST_SCALAJS_VERSION", ???)
-  trait BuildInfoModule extends TestUtil.BaseModule with BuildInfo {
+  trait BuildInfoModule extends MillTestKit.BaseModule with BuildInfo {
     // override build root to test custom builds/modules
-    override def millSourcePath: Path = TestUtil.getSrcPathStatic() / "scala"
+    override def millSourcePath: Path = MillTestKit.getSrcPathStatic() / "scala"
   }
 
   object EmptyBuildInfo extends BuildInfoModule with scalalib.ScalaModule {
@@ -76,7 +76,7 @@ object BuildInfoTests extends TestSuite {
 
   object BuildInfoJava extends BuildInfoModule {
     def buildInfoPackageName = "foo"
-    override def millSourcePath: Path = TestUtil.getSrcPathStatic()
+    override def millSourcePath: Path = MillTestKit.getSrcPathStatic()
     def buildInfoMembers = Seq(
       BuildInfo.Value("scalaVersion", "not-provided-for-java-modules")
     )
@@ -84,7 +84,7 @@ object BuildInfoTests extends TestSuite {
 
   object BuildInfoJavaStatic extends BuildInfoModule {
     def buildInfoPackageName = "foo"
-    override def millSourcePath: Path = TestUtil.getSrcPathStatic()
+    override def millSourcePath: Path = MillTestKit.getSrcPathStatic()
     override def buildInfoStaticCompiled = true
     def buildInfoMembers = Seq(
       BuildInfo.Value("scalaVersion", "not-provided-for-java-modules")
@@ -94,7 +94,7 @@ object BuildInfoTests extends TestSuite {
   val testModuleSourcesPath: Path =
     os.pwd / "contrib" / "buildinfo" / "test" / "resources" / "buildinfo"
 
-  def workspaceTest[T](m: TestUtil.BaseModule, suffix: String)(t: TestEvaluator => T)(
+  def workspaceTest[T](m: MillTestKit.BaseModule, suffix: String)(t: TestEvaluator => T)(
       implicit tp: TestPath
   ): T = {
     val eval = new TestEvaluator(m)

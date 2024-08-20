@@ -10,13 +10,15 @@ import mill.scalalib.{DepSyntax, PublishModule, ScalaModule, TestModule}
 import mill.testrunner.TestResult
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 import mill.scalanativelib.api._
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.TestEvaluator
+import mill.testkit.MillTestKit
+import mill.util.TestUtil
 import utest._
 
 import scala.jdk.CollectionConverters._
 
 object HelloNativeWorldTests extends TestSuite {
-  val workspacePath = TestUtil.getOutPathStatic() / "hello-native-world"
+  val workspacePath = MillTestKit.getOutPathStatic() / "hello-native-world"
 
   trait HelloNativeWorldModule
       extends ScalaModule
@@ -39,7 +41,7 @@ object HelloNativeWorldTests extends TestSuite {
   val utestVersion = sys.props.getOrElse("TEST_UTEST_VERSION", ???)
   val utestForNative04Version = "0.8.2"
 
-  object HelloNativeWorld extends TestUtil.BaseModule {
+  object HelloNativeWorld extends MillTestKit.BaseModule {
     implicit object ReleaseModeToSegments
         extends Cross.ToSegments[ReleaseMode](v => List(v.toString))
 

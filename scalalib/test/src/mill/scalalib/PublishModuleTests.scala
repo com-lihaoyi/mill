@@ -11,7 +11,8 @@ import mill.scalalib.publish.{
   VersionControl,
   VersionScheme
 }
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.TestEvaluator
+import mill.testkit.MillTestKit
 import utest._
 import utest.framework.TestPath
 
@@ -22,9 +23,9 @@ object PublishModuleTests extends TestSuite {
 
   val scala212Version = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
 
-  trait PublishBase extends TestUtil.BaseModule {
+  trait PublishBase extends MillTestKit.BaseModule {
     override def millSourcePath: os.Path =
-      TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
+      MillTestKit.getSrcPathBase() / millOuterCtx.enclosing.split('.')
   }
 
   trait HelloScalaModule extends ScalaModule {
@@ -84,7 +85,7 @@ object PublishModuleTests extends TestSuite {
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "publish"
 
   def workspaceTest[T](
-      m: TestUtil.BaseModule,
+      m: MillTestKit.BaseModule,
       resourcePath: os.Path = resourcePath,
       env: Map[String, String] = Evaluator.defaultEnv,
       debug: Boolean = false,

@@ -3,11 +3,12 @@ package mill.eval
 import utest._
 import mill.T
 import mill.define.{Module, Worker}
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.TestEvaluator
+import mill.testkit.MillTestKit
 import utest.framework.TestPath
 
 trait TaskTests extends TestSuite {
-  trait SuperBuild extends TestUtil.BaseModule {
+  trait SuperBuild extends MillTestKit.BaseModule {
 
     var superBuildInputCount = 0
 

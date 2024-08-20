@@ -3,24 +3,25 @@ package contrib.jmh
 
 import mill.eval.EvaluatorPaths
 import mill.scalalib.ScalaModule
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.TestEvaluator
+import mill.testkit.MillTestKit
 import os.Path
 import utest._
 import utest.framework.TestPath
 
 object JmhModuleTest extends TestSuite {
 
-  object jmh extends TestUtil.BaseModule with ScalaModule with JmhModule {
+  object jmh extends MillTestKit.BaseModule with ScalaModule with JmhModule {
 
     override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
     override def jmhCoreVersion = "1.35"
-    override def millSourcePath = TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
+    override def millSourcePath = MillTestKit.getSrcPathBase() / millOuterCtx.enclosing.split('.')
   }
 
   val testModuleSourcesPath: Path =
     os.pwd / "contrib" / "jmh" / "test" / "resources" / "jmh"
 
-  private def workspaceTest(m: TestUtil.BaseModule)(t: TestEvaluator => Unit)(
+  private def workspaceTest(m: MillTestKit.BaseModule)(t: TestEvaluator => Unit)(
       implicit tp: TestPath
   ): Unit = {
     val eval = new TestEvaluator(m)

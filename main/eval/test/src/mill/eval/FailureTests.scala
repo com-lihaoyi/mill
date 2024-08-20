@@ -1,7 +1,8 @@
 package mill.eval
 
 import mill.T
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.TestEvaluator
+import mill.testkit.MillTestKit
 import mill.api.Result.OuterStack
 import utest._
 
@@ -180,7 +181,7 @@ object FailureTests extends TestSuite {
     }
 
     "multipleUsesOfDest" - {
-      object build extends TestUtil.BaseModule {
+      object build extends MillTestKit.BaseModule {
         // Using `T.ctx(  ).dest` twice in a single task is ok
         def left = T { +T.dest.toString.length + T.dest.toString.length }
 

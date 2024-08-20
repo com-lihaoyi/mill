@@ -4,7 +4,8 @@ import mill._
 import mill.api.Result
 import mill.contrib.buildinfo.BuildInfo
 import mill.scalalib.{DepSyntax, SbtModule, ScalaModule, TestModule}
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.TestEvaluator
+import mill.testkit.MillTestKit
 import utest._
 import utest.framework.TestPath
 
@@ -24,8 +25,8 @@ trait HelloWorldTests extends utest.TestSuite {
   val sbtResourcePath = resourcePath / os.up / "hello-world-sbt"
   val unmanagedFile = resourcePath / "unmanaged.xml"
 
-  trait HelloBase extends TestUtil.BaseModule {
-    override def millSourcePath = TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
+  trait HelloBase extends MillTestKit.BaseModule {
+    override def millSourcePath = MillTestKit.getSrcPathBase() / millOuterCtx.enclosing.split('.')
   }
 
   object HelloWorld extends HelloBase {
@@ -66,7 +67,7 @@ trait HelloWorldTests extends utest.TestSuite {
   }
 
   def workspaceTest[T](
-      m: TestUtil.BaseModule,
+      m: MillTestKit.BaseModule,
       resourcePath: os.Path = resourcePath,
       debugEnabled: Boolean = false
   )(t: TestEvaluator => T)(implicit tp: TestPath): T = {

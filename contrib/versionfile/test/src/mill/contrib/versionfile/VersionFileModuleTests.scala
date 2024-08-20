@@ -1,18 +1,20 @@
 package mill.contrib.versionfile
 
 import mill.T
+import mill.testkit.MillTestKit
 import mill.api.Result
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.TestEvaluator
+import mill.testkit.MillTestKit
 import utest.{TestSuite, Tests, assert, assertMatch, test}
 import utest.framework.TestPath
 
 object VersionFileModuleTests extends TestSuite {
 
-  object TestModule extends TestUtil.BaseModule {
+  object TestModule extends MillTestKit.BaseModule {
     case object versionFile extends VersionFileModule
   }
 
-  def evaluator[T, M <: TestUtil.BaseModule](
+  def evaluator[T, M <: MillTestKit.BaseModule](
       m: M,
       vf: M => VersionFileModule,
       versionText: String

@@ -1,6 +1,7 @@
 package mill.scalalib.giter8
 
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.TestEvaluator
+import mill.testkit.MillTestKit
 import utest._
 import mill.api.Loose.Agg
 import os.Path
@@ -17,7 +18,7 @@ object Giter8Tests extends TestSuite {
             template.replace("file:", "file://")
           } else template
 
-        object g8Module extends TestUtil.BaseModule with Giter8Module {
+        object g8Module extends MillTestKit.BaseModule with Giter8Module {
           override def millSourcePath: Path = rootDir
         }
 

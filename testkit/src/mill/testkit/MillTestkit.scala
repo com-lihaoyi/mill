@@ -13,6 +13,7 @@ import mill.util.PrintLogger
 import mill.eval.EvaluatorImpl
 import os.Path
 
+object MillTestKit extends MillTestKit
 trait MillTestKit {
 
   def defaultTargetDir: os.Path = os.temp.dir(os.pwd)

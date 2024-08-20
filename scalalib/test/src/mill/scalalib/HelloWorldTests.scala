@@ -8,7 +8,9 @@ import mill._
 import mill.api.Result
 import mill.define.NamedTask
 import mill.eval.{Evaluator, EvaluatorPaths}
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.TestEvaluator
+import mill.testkit.MillTestKit
+import mill.util.TestUtil
 import utest._
 import utest.framework.TestPath
 
@@ -23,9 +25,9 @@ object HelloWorldTests extends TestSuite {
   val scala33Version = sys.props.getOrElse("TEST_SCALA_3_3_VERSION", ???)
   val zincVersion = sys.props.getOrElse("TEST_ZINC_VERSION", ???)
 
-  trait HelloBase extends TestUtil.BaseModule {
+  trait HelloBase extends MillTestKit.BaseModule {
     override def millSourcePath: os.Path =
-      TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
+      MillTestKit.getSrcPathBase() / millOuterCtx.enclosing.split('.')
   }
 
   trait HelloWorldModule extends scalalib.ScalaModule {
@@ -415,7 +417,7 @@ object HelloWorldTests extends TestSuite {
   )
 
   def workspaceTest[T](
-      m: TestUtil.BaseModule,
+      m: MillTestKit.BaseModule,
       resourcePath: os.Path = resourcePath,
       env: Map[String, String] = Evaluator.defaultEnv,
       debug: Boolean = false,
@@ -956,7 +958,7 @@ object HelloWorldTests extends TestSuite {
       }
 
       "assemblyRules" - {
-        def checkAppend[M <: TestUtil.BaseModule](module: M, target: Target[PathRef]) =
+        def checkAppend[M <: MillTestKit.BaseModule](module: M, target: Target[PathRef]) =
           workspaceTest(module) { eval =>
             val Right((result, _)) = eval.apply(target)
 
@@ -983,7 +985,7 @@ object HelloWorldTests extends TestSuite {
         val helloWorldMultiResourcePath =
           os.pwd / "scalalib" / "test" / "resources" / "hello-world-multi"
 
-        def checkAppendMulti[M <: TestUtil.BaseModule](
+        def checkAppendMulti[M <: MillTestKit.BaseModule](
             module: M,
             target: Target[PathRef]
         ): Unit =
@@ -1010,7 +1012,7 @@ object HelloWorldTests extends TestSuite {
             }
           }
 
-        def checkAppendWithSeparator[M <: TestUtil.BaseModule](
+        def checkAppendWithSeparator[M <: MillTestKit.BaseModule](
             module: M,
             target: Target[PathRef]
         ): Unit =
@@ -1050,7 +1052,7 @@ object HelloWorldTests extends TestSuite {
           HelloWorldMultiAppendByPatternWithSeparator.core.assembly
         )
 
-        def checkExclude[M <: TestUtil.BaseModule](
+        def checkExclude[M <: MillTestKit.BaseModule](
             module: M,
             target: Target[PathRef],
             resourcePath: os.Path = resourcePath
@@ -1082,7 +1084,7 @@ object HelloWorldTests extends TestSuite {
           resourcePath = helloWorldMultiResourcePath
         )
 
-        def checkRelocate[M <: TestUtil.BaseModule](
+        def checkRelocate[M <: MillTestKit.BaseModule](
             module: M,
             target: Target[PathRef],
             resourcePath: os.Path = resourcePath

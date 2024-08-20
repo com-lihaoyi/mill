@@ -2,11 +2,12 @@ package mill.contrib.flyway
 
 import mill._
 import mill.scalalib._
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.TestEvaluator
+import mill.testkit.MillTestKit
 import utest.{TestSuite, Tests, assert, _}
 
 object BuildTest extends TestSuite {
-  object Build extends TestUtil.BaseModule {
+  object Build extends MillTestKit.BaseModule {
     object build extends FlywayModule {
 
       override def resources = T.sources(os.pwd / "contrib" / "flyway" / "test" / "resources")

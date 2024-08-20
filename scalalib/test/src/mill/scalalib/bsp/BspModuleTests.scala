@@ -4,7 +4,8 @@ import mill.define.Cross
 import mill.eval.EvaluatorPaths
 import mill.{Agg, T}
 import mill.scalalib.{DepSyntax, JavaModule, ScalaModule}
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.TestEvaluator
+import mill.testkit.MillTestKit
 import os.FilePath
 import utest.framework.TestPath
 import utest.{TestSuite, Tests, test, _}
@@ -13,9 +14,9 @@ object BspModuleTests extends TestSuite {
 
   val testScalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
 
-  trait BspBase extends TestUtil.BaseModule {
+  trait BspBase extends MillTestKit.BaseModule {
     override def millSourcePath: os.Path =
-      TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
+      MillTestKit.getSrcPathBase() / millOuterCtx.enclosing.split('.')
   }
 
   object MultiBase extends BspBase {
@@ -44,7 +45,7 @@ object BspModuleTests extends TestSuite {
     }
   }
 
-  def workspaceTest[T](m: TestUtil.BaseModule)(t: TestEvaluator => T)(implicit tp: TestPath): T = {
+  def workspaceTest[T](m: MillTestKit.BaseModule)(t: TestEvaluator => T)(implicit tp: TestPath): T = {
     val eval = new TestEvaluator(m)
     os.remove.all(m.millSourcePath)
     os.remove.all(eval.outPath)
