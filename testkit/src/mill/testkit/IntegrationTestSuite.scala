@@ -7,14 +7,7 @@ import utest._
 import scala.util.control.NonFatal
 import ujson.Value
 
-object IntegrationTestSuite {
 
-  /**
-   * A very simplified version of `os.CommandResult` meant for easily
-   * performing assertions against.
-   */
-  case class EvalResult(isSuccess: Boolean, out: String, err: String)
-}
 
 abstract class IntegrationTestSuite extends TestSuite {
 
@@ -135,4 +128,13 @@ abstract class IntegrationTestSuite extends TestSuite {
   override def utestAfterEach(path: Seq[String]): Unit = {
     if (clientServerMode) teardownWorkspace()
   }
+}
+
+object IntegrationTestSuite {
+
+  /**
+   * A very simplified version of `os.CommandResult` meant for easily
+   * performing assertions against.
+   */
+  case class EvalResult(isSuccess: Boolean, out: String, err: String)
 }
