@@ -3,8 +3,8 @@ package mill.eval
 import mill.util.{Jvm, TestUtil}
 import mill.api.Ctx.Dest
 import mill.T
-import mill.testkit.TestEvaluator
-import mill.testkit.MillTestKit
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import mill.api.Strict.Agg
 import mill.api.{JarManifest, Loose}
 import utest._
@@ -20,16 +20,10 @@ object JavaCompileJarTests extends TestSuite {
 
   val tests = Tests {
     test("javac") {
-      val javacSrcPath = os.pwd / "main" / "test" / "resources" / "examples" / "javac"
-      val javacDestPath = TestUtil.getOutPath() / "src"
-
-      os.makeDir.all(javacDestPath / os.up)
-      os.copy(javacSrcPath, javacDestPath)
-
-      object Build extends mill.testkit.BaseModule {
-        def sourceRootPath = javacDestPath / "src"
-        def readmePath = javacDestPath / "readme.md"
-        def resourceRootPath = javacDestPath / "resources"
+      object Build extends TestBaseModule {
+        def sourceRootPath = millSourcePath / "src"
+        def readmePath = millSourcePath / "readme.md"
+        def resourceRootPath = millSourcePath / "resources"
 
         // sourceRoot -> allSources -> classFiles
         //                                |
@@ -62,13 +56,9 @@ object JavaCompileJarTests extends TestSuite {
 
       import Build._
 
-      var evaluator = new TestEvaluator(Build)
-      def eval[T](t: Task[T]) = {
-        evaluator.apply(t)
-      }
-      def check(targets: Agg[Task[_]], expected: Agg[Task[_]]) = {
-        evaluator.check(targets, expected)
-      }
+      var evaluator = new UnitTester(Build)
+      def eval[T](t: Task[T]) = evaluator.apply(t)
+      def check(targets: Agg[Task[_]], expected: Agg[Task[_]]) = evaluator.check(targets, expected)
 
       def append(path: os.Path, txt: String) = os.write.append(path, txt)
 
@@ -105,7 +95,7 @@ object JavaCompileJarTests extends TestSuite {
       check(targets = Agg(jar), expected = Agg(jar))
 
       // You can swap evaluators halfway without any ill effects
-      evaluator = new TestEvaluator(Build)
+      evaluator = new UnitTester(Build)
 
       // Asking for an intermediate target forces things to be build up to that
       // target only; these are re-used for any downstream targets requested

@@ -1,7 +1,7 @@
 package mill.define
 
 import mill.util.TestGraphs
-import mill.testkit.MillTestKit
+import mill.testkit.TestBaseModule
 import utest._
 
 object BasePathTests extends TestSuite {
@@ -54,7 +54,7 @@ object BasePathTests extends TestSuite {
       checkMillSourcePath(TestGraphs.nestedCrosses)(_.cross("210").cross2("js"), "cross", "cross2")
     }
     test("overridden") {
-      object overriddenBasePath extends mill.testkit.BaseModule {
+      object overriddenBasePath extends TestBaseModule {
         override def millSourcePath = os.pwd / "overriddenBasePathRootValue"
         object nested extends Module {
           override def millSourcePath = super.millSourcePath / "overriddenBasePathNested"

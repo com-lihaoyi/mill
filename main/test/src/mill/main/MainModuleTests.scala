@@ -3,15 +3,15 @@ package mill.main
 import mill.api.{PathRef, Result, Val}
 import mill.{Agg, T}
 import mill.define.{Cross, Discover, Module, Task}
-import mill.testkit.TestEvaluator
-import mill.testkit.MillTestKit
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import utest.{TestSuite, Tests, assert, test}
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 
 object MainModuleTests extends TestSuite {
 
-  object mainModule extends mill.testkit.BaseModule with MainModule {
+  object mainModule extends TestBaseModule with MainModule {
     def hello = T {
       System.out.println("Hello System Stdout")
       System.err.println("Hello System Stderr")
@@ -30,7 +30,7 @@ object MainModuleTests extends TestSuite {
     override lazy val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
-  object cleanModule extends mill.testkit.BaseModule with MainModule {
+  object cleanModule extends TestBaseModule with MainModule {
 
     trait Cleanable extends Module {
       def target = T {
@@ -63,7 +63,7 @@ object MainModuleTests extends TestSuite {
   override def tests: Tests = Tests {
 
     test("inspect") {
-      val eval = new TestEvaluator(mainModule)
+      val eval = new UnitTester(mainModule)
       test("single") {
         val res = eval.evaluator.evaluate(Agg(mainModule.inspect(eval.evaluator, "hello")))
         val Result.Success(Val(value: String)) = res.rawValues.head
@@ -99,7 +99,7 @@ object MainModuleTests extends TestSuite {
     test("show") {
       val outStream = new ByteArrayOutputStream()
       val errStream = new ByteArrayOutputStream()
-      val evaluator = new TestEvaluator(
+      val evaluator = new UnitTester(
         mainModule,
         outStream = new PrintStream(outStream, true),
         errStream = new PrintStream(errStream, true)
@@ -176,7 +176,7 @@ object MainModuleTests extends TestSuite {
     }
 
     test("showNamed") {
-      val evaluator = new TestEvaluator(mainModule)
+      val evaluator = new UnitTester(mainModule)
       test("single") {
         val results =
           evaluator.evaluator.evaluate(Agg(mainModule.showNamed(evaluator.evaluator, "hello")))
@@ -210,7 +210,7 @@ object MainModuleTests extends TestSuite {
     }
 
     test("clean") {
-      val ev = new TestEvaluator(cleanModule)
+      val ev = new UnitTester(cleanModule)
       val out = ev.evaluator.outPath
 
       def checkExists(exists: Boolean)(paths: os.SubPath*): Unit = {

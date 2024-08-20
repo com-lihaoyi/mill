@@ -1,14 +1,14 @@
 package mill.scalalib
 
 import mill.api.BuildScriptException
-import mill.testkit.TestEvaluator
-import mill.testkit.MillTestKit
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import utest.framework.TestPath
 import utest.{TestSuite, Tests, intercept, test, assert}
 
 object CycleTests extends TestSuite {
 
-  object CycleBase extends mill.testkit.BaseModule {
+  object CycleBase extends TestBaseModule {
     // See issue: https://github.com/com-lihaoyi/mill/issues/2341
     object a extends ScalaModule {
       override def moduleDeps = Seq(a)
@@ -31,10 +31,10 @@ object CycleTests extends TestSuite {
     }
   }
 
-  def workspaceTest[T](m: mill.testkit.BaseModule)(t: TestEvaluator => T)(implicit
-      tp: TestPath
+  def workspaceTest[T](m: mill.testkit.TestBaseModule)(t: UnitTester => T)(implicit
+                                                                           tp: TestPath
   ): T = {
-    val eval = new TestEvaluator(m)
+    val eval = new UnitTester(m)
     os.remove.all(m.millSourcePath)
     os.remove.all(eval.outPath)
     os.makeDir.all(m.millSourcePath / os.up)

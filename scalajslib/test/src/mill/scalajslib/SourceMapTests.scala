@@ -1,17 +1,14 @@
 package mill.scalajslib
 
 import mill.define.Discover
-import mill.testkit.TestEvaluator
-import mill.testkit.MillTestKit
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import utest._
 
 object SourceMapTests extends TestSuite {
-  val workspacePath = MillTestKit.getOutPathStatic() / "source-map"
-
-  object SourceMapModule extends mill.testkit.BaseModule {
+  object SourceMapModule extends TestBaseModule {
 
     object sourceMapModule extends ScalaJSModule {
-      override def millSourcePath = workspacePath
       override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
       override def scalaJSVersion =
         sys.props.getOrElse("TEST_SCALAJS_VERSION", ???) // at least 1.8.0
@@ -23,11 +20,9 @@ object SourceMapTests extends TestSuite {
 
   val millSourcePath = os.pwd / "scalajslib" / "test" / "resources" / "hello-js-world"
 
-  val evaluator = TestEvaluator.static(SourceMapModule)
+  val evaluator = UnitTester.static(SourceMapModule)
 
   val tests: Tests = Tests {
-    prepareWorkspace()
-
     test("should disable source maps") {
       val Right(result) =
         evaluator(SourceMapModule.sourceMapModule.fastLinkJS)
@@ -39,11 +34,4 @@ object SourceMapTests extends TestSuite {
       assert(!os.exists(result.value.dest.path / "main.js.map"))
     }
   }
-
-  def prepareWorkspace(): Unit = {
-    os.remove.all(workspacePath)
-    os.makeDir.all(workspacePath / os.up)
-    os.copy(millSourcePath, workspacePath)
-  }
-
 }

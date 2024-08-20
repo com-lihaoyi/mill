@@ -2,8 +2,8 @@ package mill
 package contrib.docker
 
 import mill.scalalib.JavaModule
-import mill.testkit.TestEvaluator
-import mill.testkit.MillTestKit
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import os.Path
 import utest._
 import utest.framework.TestPath
@@ -14,9 +14,8 @@ object DockerModuleTest extends TestSuite {
     if (isInstalled("podman")) "podman"
     else "docker"
 
-  object Docker extends mill.testkit.BaseModule with JavaModule with DockerModule {
+  object Docker extends TestBaseModule with JavaModule with DockerModule {
 
-    override def millSourcePath = MillTestKit.getSrcPathStatic()
     override def artifactName = testArtifactName
 
     object dockerDefault extends DockerConfig {
@@ -56,11 +55,11 @@ object DockerModuleTest extends TestSuite {
     os.proc(getPathCmd, executable).call(check = false).exitCode == 0
   }
 
-  private def workspaceTest(m: mill.testkit.BaseModule)(t: TestEvaluator => Unit)(
+  private def workspaceTest(m: mill.testkit.TestBaseModule)(t: UnitTester => Unit)(
       implicit tp: TestPath
   ): Unit = {
     if (isInstalled(testExecutable) && !scala.util.Properties.isWin) {
-      val eval = new TestEvaluator(m)
+      val eval = new UnitTester(m)
       os.remove.all(m.millSourcePath)
       os.remove.all(eval.outPath)
       os.makeDir.all(m.millSourcePath / os.up)
@@ -97,7 +96,7 @@ object DockerModuleTest extends TestSuite {
 
     test("dockerfile contents") {
       test("default options") {
-        val eval = new TestEvaluator(Docker)
+        val eval = new UnitTester(Docker)
         val Right(result) = eval(Docker.dockerDefault.dockerfile)
         val expected = multineRegex.replaceAllIn(
           """
@@ -114,7 +113,7 @@ object DockerModuleTest extends TestSuite {
       }
 
       test("all options") {
-        val eval = new TestEvaluator(Docker)
+        val eval = new UnitTester(Docker)
         val Right(result) = eval(Docker.dockerAll.dockerfile)
         val expected = multineRegex.replaceAllIn(
           """
@@ -140,7 +139,7 @@ object DockerModuleTest extends TestSuite {
       }
 
       test("extra jvm options") {
-        val eval = new TestEvaluator(Docker)
+        val eval = new UnitTester(Docker)
         val Right(result) = eval(Docker.dockerJvmOptions.dockerfile)
         val expected = multineRegex.replaceAllIn(
           """

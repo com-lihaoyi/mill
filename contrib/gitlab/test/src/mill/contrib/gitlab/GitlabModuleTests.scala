@@ -3,8 +3,8 @@ package mill.contrib.gitlab
 import mill.T
 import mill.api.Result.Failure
 import mill.scalalib.publish.PomSettings
-import mill.testkit.TestEvaluator
-import mill.testkit.MillTestKit
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import utest.framework.TestPath
 import utest.{TestSuite, Tests, assertMatch, test}
 
@@ -14,7 +14,7 @@ object GitlabModuleTests extends TestSuite {
     override def tokenSearchOrder = Seq.empty
   }
 
-  object GitlabModule extends mill.testkit.BaseModule with GitlabPublishModule {
+  object GitlabModule extends TestBaseModule with GitlabPublishModule {
     override def publishRepository: ProjectRepository =
       ProjectRepository("http://gitlab.local", 0)
 
@@ -28,7 +28,7 @@ object GitlabModuleTests extends TestSuite {
 
   // GitlabMavenRepository does not need to be a module, but it needs to be invoked from one.
   // So for test purposes we make make a module with it to get a Ctx for evaluation
-  object GLMvnRepo extends mill.testkit.BaseModule with GitlabMavenRepository {
+  object GLMvnRepo extends TestBaseModule with GitlabMavenRepository {
     override def gitlabRepository: GitlabPackageRepository =
       InstanceRepository("https://gl.local")
 
@@ -36,9 +36,9 @@ object GitlabModuleTests extends TestSuite {
   }
 
   def testModule[T](
-      m: mill.testkit.BaseModule
-  )(t: TestEvaluator => T)(implicit tp: TestPath): T = {
-    val eval = new TestEvaluator(m)
+      m: mill.testkit.TestBaseModule
+  )(t: UnitTester => T)(implicit tp: TestPath): T = {
+    val eval = new UnitTester(m)
     t(eval)
   }
 

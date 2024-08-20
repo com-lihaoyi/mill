@@ -3,12 +3,12 @@ package mill.scalanativelib
 import mill.Agg
 import mill.scalalib._
 import mill.define.Discover
-import mill.testkit.TestEvaluator
-import mill.testkit.MillTestKit
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import utest._
 
 object ExclusionsTests extends TestSuite {
-  object Exclusions extends mill.testkit.BaseModule {
+  object Exclusions extends TestBaseModule {
     object scala213 extends ScalaNativeModule {
       def scalaNativeVersion = "0.4.3"
       def scalaVersion = "2.13.10"
@@ -26,7 +26,7 @@ object ExclusionsTests extends TestSuite {
     override lazy val millDiscover: Discover[Exclusions.this.type] = Discover[this.type]
   }
 
-  val exclusionsEvaluator = TestEvaluator.static(Exclusions)
+  val exclusionsEvaluator = UnitTester.static(Exclusions)
 
   val tests: Tests = Tests {
     test("scala3 scala native libraries are excluded in Scala 2.13") {

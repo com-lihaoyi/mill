@@ -1,23 +1,22 @@
 package mill.contrib.versionfile
 
 import mill.T
-import mill.api.Result
-import mill.testkit.TestEvaluator
+import mill.testkit.{UnitTester, TestBaseModule}
 import utest.{TestSuite, Tests, assert, assertMatch, test}
 import utest.framework.TestPath
 
 object VersionFileModuleTests extends TestSuite {
 
-  object TestModule extends mill.testkit.BaseModule {
+  object TestModule extends TestBaseModule {
     case object versionFile extends VersionFileModule
   }
 
-  def evaluator[T, M <: mill.testkit.BaseModule](
+  def evaluator[T, M <: mill.testkit.TestBaseModule](
       m: M,
       vf: M => VersionFileModule,
       versionText: String
-  )(implicit tp: TestPath): TestEvaluator = {
-    val eval = new TestEvaluator(m)
+  )(implicit tp: TestPath): UnitTester = {
+    val eval = new UnitTester(m)
     os.remove.all(m.millSourcePath)
     os.remove.all(eval.outPath)
     os.write.over(
@@ -28,18 +27,18 @@ object VersionFileModuleTests extends TestSuite {
     eval
   }
 
-  def workspaceTest0(versions: Version*)(test: TestEvaluator => Version => Any)(implicit
+  def workspaceTest0(versions: Version*)(test: UnitTester => Version => Any)(implicit
       tp: TestPath
   ): Unit = {
     for (version <- versions)
       test(evaluator(TestModule, (m: TestModule.type) => m.versionFile, version.toString))(version)
   }
 
-  def workspaceTest(versions: Version*)(test: TestEvaluator => Any)(implicit tp: TestPath): Unit =
+  def workspaceTest(versions: Version*)(test: UnitTester => Any)(implicit tp: TestPath): Unit =
     workspaceTest0(versions: _*)(eval => _ => test(eval))
 
   //  check version file ends with newline
-  def workspaceTestEndsWithNewline0(versions: Version*)(test: TestEvaluator => Version => Any)(
+  def workspaceTestEndsWithNewline0(versions: Version*)(test: UnitTester => Version => Any)(
       implicit tp: TestPath
   ): Unit = {
     for (version <- versions)
@@ -48,7 +47,7 @@ object VersionFileModuleTests extends TestSuite {
       )
   }
 
-  def workspaceTestEndsWithNewline(versions: Version*)(test: TestEvaluator => Any)(implicit
+  def workspaceTestEndsWithNewline(versions: Version*)(test: UnitTester => Any)(implicit
       tp: TestPath
   ): Unit =
     workspaceTestEndsWithNewline0(versions: _*)(eval => _ => test(eval))

@@ -3,8 +3,8 @@ package mill.scalalib.scalafmt
 import mill._
 import mill.main.Tasks
 import mill.scalalib.ScalaModule
-import mill.testkit.TestEvaluator
-import mill.testkit.MillTestKit
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import utest._
 import utest.framework.TestPath
 
@@ -12,16 +12,11 @@ object ScalafmtTests extends TestSuite {
 
   val scalafmtTestVersion = mill.scalalib.api.Versions.scalafmtVersion
 
-  trait TestBase extends mill.testkit.BaseModule {
-    override def millSourcePath: os.Path =
-      MillTestKit.getSrcPathBase() / millOuterCtx.enclosing.split('.')
-  }
-
   trait BuildSrcModule {
     def buildSources: T[Seq[PathRef]]
   }
 
-  object ScalafmtTestModule extends TestBase {
+  object ScalafmtTestModule extends TestBaseModule {
     object core extends ScalaModule with ScalafmtModule with BuildSrcModule {
       def scalaVersion: T[String] = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
 
@@ -35,12 +30,12 @@ object ScalafmtTests extends TestSuite {
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "scalafmt"
 
   def workspaceTest[T](
-      m: mill.testkit.BaseModule,
-      resourcePath: os.Path = resourcePath
-  )(t: TestEvaluator => T)(
+                        m: mill.testkit.TestBaseModule,
+                        resourcePath: os.Path = resourcePath
+  )(t: UnitTester => T)(
       implicit tp: TestPath
   ): T = {
-    val eval = new TestEvaluator(m)
+    val eval = new UnitTester(m)
     os.remove.all(m.millSourcePath)
     os.remove.all(eval.outPath)
     os.makeDir.all(m.millSourcePath / os.up)
@@ -130,7 +125,7 @@ object ScalafmtTests extends TestSuite {
 
   case class FileInfo(content: String, modifyTime: Long, path: os.Path)
 
-  def getProjectFiles(m: ScalaModule with BuildSrcModule, eval: TestEvaluator) = {
+  def getProjectFiles(m: ScalaModule with BuildSrcModule, eval: UnitTester) = {
     val Right(sourcesRes) = eval.apply(m.sources)
     val Right(resourcesRes) = eval.apply(m.resources)
     val Right(buildSourcesRes) = eval.apply(m.buildSources)

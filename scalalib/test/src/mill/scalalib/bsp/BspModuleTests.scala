@@ -4,8 +4,8 @@ import mill.define.Cross
 import mill.eval.EvaluatorPaths
 import mill.{Agg, T}
 import mill.scalalib.{DepSyntax, JavaModule, ScalaModule}
-import mill.testkit.TestEvaluator
-import mill.testkit.MillTestKit
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import os.FilePath
 import utest.framework.TestPath
 import utest.{TestSuite, Tests, test, _}
@@ -14,12 +14,7 @@ object BspModuleTests extends TestSuite {
 
   val testScalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
 
-  trait BspBase extends mill.testkit.BaseModule {
-    override def millSourcePath: os.Path =
-      MillTestKit.getSrcPathBase() / millOuterCtx.enclosing.split('.')
-  }
-
-  object MultiBase extends BspBase {
+  object MultiBase extends TestBaseModule  {
     object HelloBsp extends ScalaModule {
       def scalaVersion = testScalaVersion
       override def ivyDeps = Agg(ivy"org.slf4j:slf4j-api:1.7.34")
@@ -31,7 +26,7 @@ object BspModuleTests extends TestSuite {
     }
   }
 
-  object InterDeps extends BspBase {
+  object InterDeps extends TestBaseModule {
     val maxCrossCount = 15
     val configs = 1.to(maxCrossCount)
     object Mod extends Cross[ModCross](configs)
@@ -45,10 +40,10 @@ object BspModuleTests extends TestSuite {
     }
   }
 
-  def workspaceTest[T](m: mill.testkit.BaseModule)(t: TestEvaluator => T)(implicit
-      tp: TestPath
+  def workspaceTest[T](m: mill.testkit.TestBaseModule)(t: UnitTester => T)(implicit
+                                                                           tp: TestPath
   ): T = {
-    val eval = new TestEvaluator(m)
+    val eval = new UnitTester(m)
     os.remove.all(m.millSourcePath)
     os.remove.all(eval.outPath)
     os.makeDir.all(m.millSourcePath / os.up)

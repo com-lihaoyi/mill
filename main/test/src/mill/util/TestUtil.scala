@@ -1,21 +1,14 @@
 package mill.util
 
 import mill.define._
-import mill.testkit.MillTestKit
 import mill.api.Result
 import mill.api.Result.OuterStack
 import utest.assert
 import mill.api.Strict.Agg
-import utest.framework.TestPath
 
 import scala.collection.mutable
 
 object TestUtil {
-
-  def getOutPath()(implicit fullName: sourcecode.FullName, tp: TestPath): os.Path = {
-    MillTestKit.getOutPath(tp.value)
-  }
-
   object test {
 
     def anon(inputs: Task[Int]*): Test = new Test(inputs)

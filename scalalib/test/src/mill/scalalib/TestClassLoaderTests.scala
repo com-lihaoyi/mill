@@ -2,15 +2,13 @@ package mill.scalalib
 
 import mill.{Agg, T}
 
-import mill.testkit.TestEvaluator
-import mill.testkit.MillTestKit
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import utest._
 import utest.framework.TestPath
 
 object TestClassLoaderTests extends TestSuite {
-  object testclassloader extends mill.testkit.BaseModule with ScalaModule {
-    override def millSourcePath = MillTestKit.getSrcPathBase() / millOuterCtx.enclosing.split('.')
-
+  object testclassloader extends TestBaseModule with ScalaModule {
     def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
 
     object test extends ScalaTests with TestModule.Utest {
@@ -25,12 +23,12 @@ object TestClassLoaderTests extends TestSuite {
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "classloader-test"
 
   def workspaceTest[T](
-      m: mill.testkit.BaseModule,
-      resourcePath: os.Path = resourcePath
-  )(t: TestEvaluator => T)(
+                        m: mill.testkit.TestBaseModule,
+                        resourcePath: os.Path = resourcePath
+  )(t: UnitTester => T)(
       implicit tp: TestPath
   ): T = {
-    val eval = new TestEvaluator(m)
+    val eval = new UnitTester(m)
     os.remove.all(m.millSourcePath)
     os.remove.all(eval.outPath)
     os.makeDir.all(m.millSourcePath / os.up)

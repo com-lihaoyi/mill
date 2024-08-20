@@ -1,8 +1,8 @@
 package mill.eval
 
-import mill.testkit.TestEvaluator
-import mill.testkit.TestEvaluator.Result
-import mill.testkit.MillTestKit
+import mill.testkit.UnitTester
+import mill.testkit.UnitTester.Result
+import mill.testkit.TestBaseModule
 import mill.T
 import mill.define.Discover
 
@@ -16,12 +16,12 @@ object ModuleTests extends TestSuite {
     }
     lazy val millDiscover = Discover[this.type]
   }
-  object Build extends mill.testkit.BaseModule {
+  object Build extends TestBaseModule {
     def z = T { ExternalModule.x() + ExternalModule.inner.y() }
   }
   val tests = Tests {
     test("externalModuleTargetsAreNamespacedByModulePackagePath") {
-      val check = new TestEvaluator(Build)
+      val check = new UnitTester(Build)
       os.remove.all(check.outPath)
       val zresult = check.apply(Build.z)
       assert(

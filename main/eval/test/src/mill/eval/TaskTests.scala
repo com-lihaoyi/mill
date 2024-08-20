@@ -3,13 +3,13 @@ package mill.eval
 import utest._
 import mill.T
 import mill.define.{Module, Worker}
-import mill.testkit.TestEvaluator
-import mill.testkit.TestEvaluator.Result
-import mill.testkit.MillTestKit
+import mill.testkit.UnitTester
+import mill.testkit.UnitTester.Result
+import mill.testkit.TestBaseModule
 import utest.framework.TestPath
 
 trait TaskTests extends TestSuite {
-  trait SuperBuild extends mill.testkit.BaseModule {
+  trait SuperBuild extends TestBaseModule {
 
     var superBuildInputCount = 0
 
@@ -134,7 +134,7 @@ trait TaskTests extends TestSuite {
     }
   }
 
-  def withEnv(f: (Build, TestEvaluator) => Unit)(implicit tp: TestPath): Unit
+  def withEnv(f: (Build, UnitTester) => Unit)(implicit tp: TestPath): Unit
 
   val tests = Tests {
 
@@ -263,9 +263,9 @@ trait TaskTests extends TestSuite {
 }
 
 object SeqTaskTests extends TaskTests {
-  def withEnv(f: (Build, TestEvaluator) => Unit)(implicit tp: TestPath) = {
+  def withEnv(f: (Build, UnitTester) => Unit)(implicit tp: TestPath) = {
     object build extends Build
-    val check = new TestEvaluator(
+    val check = new UnitTester(
       build,
       threads = Some(1),
       extraPathEnd = Seq(getClass().getSimpleName())
@@ -274,9 +274,9 @@ object SeqTaskTests extends TaskTests {
   }
 }
 object ParTaskTests extends TaskTests {
-  def withEnv(f: (Build, TestEvaluator) => Unit)(implicit tp: TestPath) = {
+  def withEnv(f: (Build, UnitTester) => Unit)(implicit tp: TestPath) = {
     object build extends Build
-    val check = new TestEvaluator(
+    val check = new UnitTester(
       build,
       threads = Some(16),
       extraPathEnd = Seq(getClass().getSimpleName())

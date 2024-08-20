@@ -2,16 +2,14 @@ package mill
 package scalalib
 
 import mill.api.Result
-import mill.testkit.TestEvaluator
-import mill.testkit.MillTestKit
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import utest._
 import utest.framework.TestPath
 
 object HelloJavaTests extends TestSuite {
 
-  object HelloJava extends mill.testkit.BaseModule {
-    def millSourcePath = MillTestKit.getSrcPathBase() / millOuterCtx.enclosing.split('.')
-
+  object HelloJava extends TestBaseModule {
     object core extends JavaModule {
       override def docJarUseArgsFile = false
       object test extends JavaModuleTests with TestModule.Junit4
@@ -29,17 +27,11 @@ object HelloJavaTests extends TestSuite {
   }
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-java"
 
-  def init()(implicit tp: TestPath) = {
-    val eval = new TestEvaluator(HelloJava)
-    os.remove.all(HelloJava.millSourcePath)
-    os.remove.all(eval.outPath)
-    os.makeDir.all(HelloJava.millSourcePath / os.up)
-    os.copy(resourcePath, HelloJava.millSourcePath)
-    eval
-  }
+  
+  def testEval()(implicit tp: utest.framework.TestPath) = new UnitTester(HelloJava, sourceFileRoot = resourcePath)
   def tests: Tests = Tests {
     test("compile") {
-      val eval = init()
+      val eval = testEval()
 
       val Right(result1) = eval.apply(HelloJava.core.compile)
       val Right(result2) = eval.apply(HelloJava.core.compile)
@@ -61,7 +53,7 @@ object HelloJavaTests extends TestSuite {
         os.rel / "META-INF" / "semanticdb" / "core" / "src" / "Core.java.semanticdb"
 
       test("fromScratch") {
-        val eval = init()
+        val eval = testEval()
         val Right(result) = eval.apply(HelloJava.core.semanticDbData)
 
         val outputFiles =
@@ -80,7 +72,7 @@ object HelloJavaTests extends TestSuite {
         assert(result2.evalCount == 0)
       }
       test("incremental") {
-        val eval = init()
+        val eval = testEval()
 
         // create a second source file
         val secondFile = eval.evaluator.workspace / "core" / "src" / "hello" / "Second.java"
@@ -141,14 +133,14 @@ object HelloJavaTests extends TestSuite {
     }
     test("docJar") {
       test("withoutArgsFile") {
-        val eval = init()
+        val eval = testEval()
         val Right(result) = eval.apply(HelloJava.core.docJar)
         assert(
           os.proc("jar", "tf", result.value.path).call().out.lines().contains("hello/Core.html")
         )
       }
       test("withArgsFile") {
-        val eval = init()
+        val eval = testEval()
         val Right(result) = eval.apply(HelloJava.app.docJar)
         assert(
           os.proc("jar", "tf", result.value.path).call().out.lines().contains("hello/Main.html")
@@ -156,7 +148,7 @@ object HelloJavaTests extends TestSuite {
       }
     }
     test("test") - {
-      val eval = init()
+      val eval = testEval()
 
       val Left(Result.Failure(ref1, Some(v1))) = eval.apply(HelloJava.core.test.test())
 
@@ -191,7 +183,7 @@ object HelloJavaTests extends TestSuite {
       assert(testResults == expected)
     }
     test("failures") {
-      val eval = init()
+      val eval = testEval()
 
       val mainJava = HelloJava.millSourcePath / "app" / "src" / "Main.java"
       val coreJava = HelloJava.millSourcePath / "core" / "src" / "Core.java"

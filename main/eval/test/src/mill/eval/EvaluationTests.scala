@@ -4,7 +4,7 @@ import mill.util.TestUtil.{Test, test}
 import mill.define.{TargetImpl, Task}
 import mill.T
 import mill.util.{TestGraphs, TestUtil}
-import mill.testkit.{MillTestKit, TestEvaluator}
+import mill.testkit.{UnitTester, TestBaseModule}
 import mill.api.Strict.Agg
 import os.SubPath
 import utest._
@@ -16,10 +16,10 @@ object EvaluationTestsThreadsNative extends EvaluationTests(threadCount = None)
 
 class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
 
-  class Checker[T <: mill.testkit.BaseModule](module: T)(implicit tp: TestPath) {
+  class Checker[T <: mill.testkit.TestBaseModule](module: T)(implicit tp: TestPath) {
     // Make sure data is persisted even if we re-create the evaluator each time
 
-    val evaluator = new TestEvaluator(module, threads = threadCount)(
+    val evaluator = new UnitTester(module, threads = threadCount)(
       implicitly[sourcecode.FullName],
       TestPath(tp.value ++ Seq(s"threads-${threadCount.getOrElse("native")}"))
     )
@@ -301,7 +301,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         // up    middle -- down
         //                /
         //           right
-        object build extends mill.testkit.BaseModule {
+        object build extends TestBaseModule {
           var leftCount = 0
           var rightCount = 0
           var middleCount = 0

@@ -2,21 +2,18 @@ package mill.scalajslib
 
 import mill.api.Result
 import mill.define.Discover
-import mill.testkit.TestEvaluator
-import mill.testkit.MillTestKit
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import utest._
 import mill.define.Target
 import mill.scalajslib.api._
 
 object EsModuleRemapTests extends TestSuite {
-  val workspacePath = MillTestKit.getOutPathStatic() / "esModuleRemap"
-
   val remapTo = "https://cdn.jsdelivr.net/gh/stdlib-js/array-base-linspace@esm/index.mjs"
 
-  object EsModuleRemap extends mill.testkit.BaseModule {
+  object EsModuleRemap extends TestBaseModule {
 
     object sourceMapModule extends ScalaJSModule {
-      override def millSourcePath = workspacePath
       override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
       override def scalaJSVersion = "1.16.0"
       override def scalaJSSourceMap = false
@@ -28,7 +25,6 @@ object EsModuleRemapTests extends TestSuite {
     }
 
     object OldJsModule extends ScalaJSModule {
-      override def millSourcePath = workspacePath
       override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
       override def scalaJSVersion = "1.15.0"
       override def scalaJSSourceMap = false
@@ -44,11 +40,9 @@ object EsModuleRemapTests extends TestSuite {
 
   val millSourcePath = os.pwd / "scalajslib" / "test" / "resources" / "esModuleRemap"
 
-  val evaluator = TestEvaluator.static(EsModuleRemap)
+  val evaluator = UnitTester.static(EsModuleRemap)
 
   val tests: Tests = Tests {
-    prepareWorkspace()
-
     test("should remap the esmodule") {
       val Right(result) =
         evaluator(EsModuleRemap.sourceMapModule.fastLinkJS)
@@ -69,11 +63,4 @@ object EsModuleRemapTests extends TestSuite {
     }
 
   }
-
-  def prepareWorkspace(): Unit = {
-    os.remove.all(workspacePath)
-    os.makeDir.all(workspacePath / os.up)
-    os.copy(millSourcePath, workspacePath)
-  }
-
 }

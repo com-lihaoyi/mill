@@ -93,7 +93,7 @@ The following table contains the main ways you can test the code in
 === In-Process Tests
 
 In-process tests live in the `.test` sub-modules of the various Mill modules.
-These range from tiny unit tests, to larger integration tests that instantiate a `mill.testkit.BaseModule` in-process and a `TestEvaluator` to evaluate tasks on it.
+These range from tiny unit tests, to larger integration tests that instantiate a `mill.testkit.BaseModule` in-process and a `UnitTester` to evaluate tasks on it.
 
 Most "core" tests live in `main.__test`; these should run almost instantly, and cover most of Mill's functionality that is not specific to Scala/Scala.js/etc..
 Tests specific to Scala/Scala.js/Scala-Native live in
@@ -1203,7 +1203,7 @@ _Changes since {prev-version}:_
 * ``PathRef``s sigs are now more reproducible and independent of the used filesystem
 * `JavaModule` can now use a non-local Java Compiler to support all options
 * `Logger`: new `debugEnabled` to detect whether debug logging is enabled
-* New `testkit` module, to use `TestEvaluator` in external projects
+* New `testkit` module, to use `UnitTester` in external projects
 * Fixed reading of `.mill-jvm-opts` in server mode
 * BSP: Automatic SemanticDB enablement to improve Metals support
 * `mill.twirllib.TwirlModule` - new mandatory target `twirlScalaVersion` to configure the Scala version used by Twirl compiler, and support for newer versions

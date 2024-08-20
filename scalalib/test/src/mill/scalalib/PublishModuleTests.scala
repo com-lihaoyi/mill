@@ -11,8 +11,8 @@ import mill.scalalib.publish.{
   VersionControl,
   VersionScheme
 }
-import mill.testkit.TestEvaluator
-import mill.testkit.MillTestKit
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import utest._
 import utest.framework.TestPath
 
@@ -23,11 +23,6 @@ object PublishModuleTests extends TestSuite {
 
   val scala212Version = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
 
-  trait PublishBase extends mill.testkit.BaseModule {
-    override def millSourcePath: os.Path =
-      MillTestKit.getSrcPathBase() / millOuterCtx.enclosing.split('.')
-  }
-
   trait HelloScalaModule extends ScalaModule {
     def scalaVersion = scala212Version
     override def semanticDbVersion: T[String] = T {
@@ -36,7 +31,7 @@ object PublishModuleTests extends TestSuite {
     }
   }
 
-  object HelloWorldWithPublish extends PublishBase {
+  object HelloWorldWithPublish extends TestBaseModule  {
     object core extends HelloScalaModule with PublishModule {
       override def artifactName = "hello-world"
       override def publishVersion = "0.0.1"
@@ -57,7 +52,7 @@ object PublishModuleTests extends TestSuite {
     }
   }
 
-  object PomOnly extends PublishBase {
+  object PomOnly extends TestBaseModule  {
     object core extends JavaModule with PublishModule {
       override def pomPackagingType: String = PackagingType.Pom
       override def artifactName = "pom-only"
@@ -85,13 +80,13 @@ object PublishModuleTests extends TestSuite {
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "publish"
 
   def workspaceTest[T](
-      m: mill.testkit.BaseModule,
-      resourcePath: os.Path = resourcePath,
-      env: Map[String, String] = Evaluator.defaultEnv,
-      debug: Boolean = false,
-      errStream: PrintStream = System.err
-  )(t: TestEvaluator => T)(implicit tp: TestPath): T = {
-    val eval = new TestEvaluator(m, env = env, debugEnabled = debug, errStream = errStream)
+                        m: mill.testkit.TestBaseModule,
+                        resourcePath: os.Path = resourcePath,
+                        env: Map[String, String] = Evaluator.defaultEnv,
+                        debug: Boolean = false,
+                        errStream: PrintStream = System.err
+  )(t: UnitTester => T)(implicit tp: TestPath): T = {
+    val eval = new UnitTester(m, env = env, debugEnabled = debug, errStream = errStream)
     os.remove.all(m.millSourcePath)
     os.remove.all(eval.outPath)
     os.makeDir.all(m.millSourcePath / os.up)

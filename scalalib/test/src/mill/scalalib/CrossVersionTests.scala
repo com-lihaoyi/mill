@@ -1,14 +1,14 @@
 package mill.scalalib
 
 import mill.Agg
-import mill.testkit.TestEvaluator
-import mill.testkit.MillTestKit
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import utest._
 import utest.framework.TestPath
 
 object CrossVersionTests extends TestSuite {
 
-  object TestCases extends mill.testkit.BaseModule {
+  object TestCases extends TestBaseModule {
 
     object StandaloneScala213 extends ScalaModule {
       val tree =
@@ -120,7 +120,7 @@ object CrossVersionTests extends TestSuite {
   }
 
   def init()(implicit tp: TestPath) = {
-    val eval = new TestEvaluator(TestCases)
+    val eval = new UnitTester(TestCases)
     os.remove.all(eval.outPath)
     os.makeDir.all(TestCases.millSourcePath / os.up)
     eval

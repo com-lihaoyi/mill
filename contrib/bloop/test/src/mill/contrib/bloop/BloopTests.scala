@@ -5,8 +5,8 @@ import mill._
 import mill.scalajslib.api.ModuleKind
 import mill.scalalib._
 import mill.scalanativelib.api.ReleaseMode
-import mill.testkit.TestEvaluator
-import mill.testkit.MillTestKit
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import os.Path
 import upickle.default._
 import utest._
@@ -17,10 +17,10 @@ object BloopTests extends TestSuite {
   import BloopFormats._
 
   val workdir = os.pwd / "target" / "workspace" / "bloop"
-  val testEvaluator = TestEvaluator.static(build)
-  val testBloop = new BloopImpl(() => Seq(testEvaluator.evaluator), workdir)
+  val unitTester = UnitTester.static(build)
+  val testBloop = new BloopImpl(() => Seq(unitTester.evaluator), workdir)
 
-  object build extends mill.testkit.BaseModule {
+  object build extends TestBaseModule {
 
     override def millSourcePath = BloopTests.workdir
 
@@ -92,7 +92,7 @@ object BloopTests extends TestSuite {
   def tests: Tests = Tests {
     test("genBloopTests") {
 
-      testEvaluator(testBloop.install())
+      unitTester(testBloop.install())
       val scalaModuleConfig = readBloopConf("scalaModule.json")
       val scalaModule2Config = readBloopConf("scalaModule2.json")
       val scalaModule3Config = readBloopConf("scalaModule3.json")
@@ -105,7 +105,7 @@ object BloopTests extends TestSuite {
 
       test("no-compilation") {
         val workspaceOut =
-          os.pwd / "target" / "workspace" / "mill" / "contrib" / "bloop" / "BloopTests" / "testEvaluator"
+          os.pwd / "target" / "workspace" / "mill" / "contrib" / "bloop" / "BloopTests" / "UnitTester"
 
         // Ensuring that bloop config generation didn't trigger compilation
         assert(os.exists(workspaceOut / "scalaModule"))
@@ -188,7 +188,7 @@ object BloopTests extends TestSuite {
       }
       test("configAccessTest") {
         val accessedConfig =
-          testEvaluator(build.scalaModule.bloop.config).asSuccess.get.value.toOption.get
+          unitTester(build.scalaModule.bloop.config).asSuccess.get.value.toOption.get
         assert(accessedConfig.value == scalaModuleConfig)
       }
       test("noDepTest") {
@@ -253,7 +253,7 @@ object BloopTests extends TestSuite {
             val platform = p.platform.get.asInstanceOf[BloopConfig.Platform.Native]
 
             val clang =
-              testEvaluator(build.scalanativeModule.nativeClang).asSuccess.get.value.toOption.get
+              unitTester(build.scalanativeModule.nativeClang).asSuccess.get.value.toOption.get
 
             assert(name == "scalanativeModule")
             assert(workspaceDir == Some(workdir.wrapped))
@@ -269,13 +269,13 @@ object BloopTests extends TestSuite {
       }
     }
     test("regenerateAfterBloopDirRemoval") {
-      testEvaluator(testBloop.install())
+      unitTester(testBloop.install())
       val bloopDir = workdir / ".bloop"
       val files = os.list(bloopDir)
       val size = (if (isWin) 6 else 7)
       assert(files.size == size)
       os.remove.all(bloopDir)
-      testEvaluator(testBloop.install())
+      unitTester(testBloop.install())
       val files2 = os.list(bloopDir)
       assert(files2.size == size)
       assert(files2 == files)

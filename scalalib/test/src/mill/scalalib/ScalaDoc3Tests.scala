@@ -3,30 +3,26 @@ package mill.scalalib
 import mill._
 import utest._
 import utest.framework.TestPath
-import mill.testkit.TestEvaluator
-import mill.testkit.MillTestKit
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 
 object ScalaDoc3Tests extends TestSuite {
-  trait TestBase extends mill.testkit.BaseModule {
-    def millSourcePath = MillTestKit.getSrcPathBase() / millOuterCtx.enclosing.split('.')
-  }
-
   // a project with static docs
-  object StaticDocsModule extends TestBase {
+  object StaticDocsModule extends TestBaseModule  {
     object static extends ScalaModule {
       def scalaVersion = "3.0.0-RC1"
     }
   }
 
   // a project without static docs (i.e. only api docs, no markdown files)
-  object EmptyDocsModule extends TestBase {
+  object EmptyDocsModule extends TestBaseModule  {
     object empty extends ScalaModule {
       def scalaVersion = "3.0.0-RC1"
     }
   }
 
   // a project with multiple static doc folders
-  object MultiDocsModule extends TestBase {
+  object MultiDocsModule extends TestBaseModule  {
     object multidocs extends ScalaModule {
       def scalaVersion = "3.0.0-RC1"
       def docResources = T.sources(
@@ -39,12 +35,12 @@ object ScalaDoc3Tests extends TestSuite {
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "scaladoc3"
 
   def workspaceTest[T](
-      m: mill.testkit.BaseModule,
-      resourcePath: os.Path = resourcePath
-  )(t: TestEvaluator => T)(
+                        m: mill.testkit.TestBaseModule,
+                        resourcePath: os.Path = resourcePath
+  )(t: UnitTester => T)(
       implicit tp: TestPath
   ): T = {
-    val eval = new TestEvaluator(m)
+    val eval = new UnitTester(m)
     os.remove.all(m.millSourcePath)
     os.remove.all(eval.outPath)
     os.makeDir.all(m.millSourcePath / os.up)

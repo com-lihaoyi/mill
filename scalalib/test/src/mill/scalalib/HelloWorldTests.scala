@@ -8,8 +8,8 @@ import mill._
 import mill.api.Result
 import mill.define.NamedTask
 import mill.eval.{Evaluator, EvaluatorPaths}
-import mill.testkit.TestEvaluator
-import mill.testkit.MillTestKit
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import mill.util.TestUtil
 import utest._
 import utest.framework.TestPath
@@ -25,11 +25,6 @@ object HelloWorldTests extends TestSuite {
   val scala33Version = sys.props.getOrElse("TEST_SCALA_3_3_VERSION", ???)
   val zincVersion = sys.props.getOrElse("TEST_ZINC_VERSION", ???)
 
-  trait HelloBase extends mill.testkit.BaseModule {
-    override def millSourcePath: os.Path =
-      MillTestKit.getSrcPathBase() / millOuterCtx.enclosing.split('.')
-  }
-
   trait HelloWorldModule extends scalalib.ScalaModule {
     def scalaVersion = scala212Version
     override def semanticDbVersion: T[String] = T {
@@ -44,18 +39,18 @@ object HelloWorldTests extends TestSuite {
     override def mainClass: T[Option[String]] = Some("Main")
   }
 
-  object HelloWorld extends HelloBase {
+  object HelloWorld extends TestBaseModule  {
     object core extends HelloWorldModule
   }
-  object SemanticWorld extends HelloBase {
+  object SemanticWorld extends TestBaseModule  {
     object core extends SemanticModule
   }
-  object HelloWorldNonPrecompiledBridge extends HelloBase {
+  object HelloWorldNonPrecompiledBridge extends TestBaseModule  {
     object core extends HelloWorldModule {
       override def scalaVersion = "2.12.1"
     }
   }
-  object CrossHelloWorld extends HelloBase {
+  object CrossHelloWorld extends TestBaseModule  {
     object core extends Cross[HelloWorldCross](
           scala210Version,
           scala211Version,
@@ -65,7 +60,7 @@ object HelloWorldTests extends TestSuite {
         )
     trait HelloWorldCross extends CrossScalaModule
   }
-  object CrossModuleDeps extends HelloBase {
+  object CrossModuleDeps extends TestBaseModule  {
     object stable extends Cross[Stable](scala212Version, scala32Version)
     trait Stable extends CrossScalaModule
 
@@ -75,65 +70,65 @@ object HelloWorldTests extends TestSuite {
     }
   }
 
-  object HelloWorldDefaultMain extends HelloBase {
+  object HelloWorldDefaultMain extends TestBaseModule  {
     object core extends HelloWorldModule
   }
 
-  object HelloWorldWithoutMain extends HelloBase {
+  object HelloWorldWithoutMain extends TestBaseModule  {
     object core extends HelloWorldModule {
       override def mainClass = None
     }
   }
 
-  object HelloWorldWithMain extends HelloBase {
+  object HelloWorldWithMain extends TestBaseModule  {
     object core extends HelloWorldModuleWithMain
   }
 
   val akkaHttpDeps = Agg(ivy"com.typesafe.akka::akka-http:10.0.13")
 
-  object HelloWorldAkkaHttpAppend extends HelloBase {
+  object HelloWorldAkkaHttpAppend extends TestBaseModule  {
     object core extends HelloWorldModuleWithMain {
       override def ivyDeps = akkaHttpDeps
       override def assemblyRules = Seq(Assembly.Rule.Append("reference.conf"))
     }
   }
 
-  object HelloWorldAkkaHttpExclude extends HelloBase {
+  object HelloWorldAkkaHttpExclude extends TestBaseModule  {
     object core extends HelloWorldModuleWithMain {
       override def ivyDeps = akkaHttpDeps
       override def assemblyRules = Seq(Assembly.Rule.Exclude("reference.conf"))
     }
   }
 
-  object HelloWorldAkkaHttpAppendPattern extends HelloBase {
+  object HelloWorldAkkaHttpAppendPattern extends TestBaseModule  {
     object core extends HelloWorldModuleWithMain {
       override def ivyDeps = akkaHttpDeps
       override def assemblyRules = Seq(Assembly.Rule.AppendPattern(".*.conf"))
     }
   }
 
-  object HelloWorldAkkaHttpExcludePattern extends HelloBase {
+  object HelloWorldAkkaHttpExcludePattern extends TestBaseModule  {
     object core extends HelloWorldModuleWithMain {
       override def ivyDeps = akkaHttpDeps
       override def assemblyRules = Seq(Assembly.Rule.ExcludePattern(".*.conf"))
     }
   }
 
-  object HelloWorldAkkaHttpRelocate extends HelloBase {
+  object HelloWorldAkkaHttpRelocate extends TestBaseModule  {
     object core extends HelloWorldModuleWithMain {
       override def ivyDeps = akkaHttpDeps
       override def assemblyRules = Seq(Assembly.Rule.Relocate("akka.**", "shaded.akka.@1"))
     }
   }
 
-  object HelloWorldAkkaHttpNoRules extends HelloBase {
+  object HelloWorldAkkaHttpNoRules extends TestBaseModule  {
     object core extends HelloWorldModuleWithMain {
       override def ivyDeps = akkaHttpDeps
       override def assemblyRules = Seq.empty
     }
   }
 
-  object HelloWorldMultiAppend extends HelloBase {
+  object HelloWorldMultiAppend extends TestBaseModule  {
     object core extends HelloWorldModuleWithMain {
       override def moduleDeps = Seq(model)
       override def assemblyRules = Seq(Assembly.Rule.Append("reference.conf"))
@@ -141,7 +136,7 @@ object HelloWorldTests extends TestSuite {
     object model extends HelloWorldModule
   }
 
-  object HelloWorldMultiExclude extends HelloBase {
+  object HelloWorldMultiExclude extends TestBaseModule  {
     object core extends HelloWorldModuleWithMain {
       override def moduleDeps = Seq(model)
       override def assemblyRules = Seq(Assembly.Rule.Exclude("reference.conf"))
@@ -149,7 +144,7 @@ object HelloWorldTests extends TestSuite {
     object model extends HelloWorldModule
   }
 
-  object HelloWorldMultiAppendPattern extends HelloBase {
+  object HelloWorldMultiAppendPattern extends TestBaseModule  {
     object core extends HelloWorldModuleWithMain {
       override def moduleDeps = Seq(model)
       override def assemblyRules = Seq(Assembly.Rule.AppendPattern(".*.conf"))
@@ -157,7 +152,7 @@ object HelloWorldTests extends TestSuite {
     object model extends HelloWorldModule
   }
 
-  object HelloWorldMultiAppendByPatternWithSeparator extends HelloBase {
+  object HelloWorldMultiAppendByPatternWithSeparator extends TestBaseModule  {
     object core extends HelloWorldModuleWithMain {
       override def moduleDeps = Seq(model)
       override def assemblyRules = Seq(Assembly.Rule.AppendPattern(".*.conf", "\n"))
@@ -165,7 +160,7 @@ object HelloWorldTests extends TestSuite {
     object model extends HelloWorldModule
   }
 
-  object HelloWorldMultiExcludePattern extends HelloBase {
+  object HelloWorldMultiExcludePattern extends TestBaseModule  {
     object core extends HelloWorldModuleWithMain {
       override def moduleDeps = Seq(model)
       override def assemblyRules = Seq(Assembly.Rule.ExcludePattern(".*.conf"))
@@ -173,7 +168,7 @@ object HelloWorldTests extends TestSuite {
     object model extends HelloWorldModule
   }
 
-  object HelloWorldMultiNoRules extends HelloBase {
+  object HelloWorldMultiNoRules extends TestBaseModule  {
     object core extends HelloWorldModuleWithMain {
       override def moduleDeps = Seq(model)
       override def assemblyRules = Seq.empty
@@ -181,45 +176,45 @@ object HelloWorldTests extends TestSuite {
     object model extends HelloWorldModule
   }
 
-  object HelloWorldWarnUnused extends HelloBase {
+  object HelloWorldWarnUnused extends TestBaseModule  {
     object core extends HelloWorldModule {
       override def scalacOptions = T(Seq("-Ywarn-unused"))
     }
   }
 
-  object HelloWorldFatalWarnings extends HelloBase {
+  object HelloWorldFatalWarnings extends TestBaseModule  {
     object core extends HelloWorldModule {
       override def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
     }
   }
 
-  object HelloWorldWithDocVersion extends HelloBase {
+  object HelloWorldWithDocVersion extends TestBaseModule  {
     object core extends HelloWorldModule {
       override def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
       override def scalaDocOptions = super.scalaDocOptions() ++ Seq("-doc-version", "1.2.3")
     }
   }
 
-  object HelloWorldOnlyDocVersion extends HelloBase {
+  object HelloWorldOnlyDocVersion extends TestBaseModule  {
     object core extends HelloWorldModule {
       override def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
       override def scalaDocOptions = T(Seq("-doc-version", "1.2.3"))
     }
   }
 
-  object HelloWorldDocTitle extends HelloBase {
+  object HelloWorldDocTitle extends TestBaseModule  {
     object core extends HelloWorldModule {
       override def scalaDocOptions = T(Seq("-doc-title", "Hello World"))
     }
   }
 
-  object HelloWorldScalaOverride extends HelloBase {
+  object HelloWorldScalaOverride extends TestBaseModule  {
     object core extends HelloWorldModule {
       override def scalaVersion: Target[String] = scala213Version
     }
   }
 
-  object HelloWorldIvyDeps extends HelloBase {
+  object HelloWorldIvyDeps extends TestBaseModule  {
     object moduleA extends HelloWorldModule {
       override def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.1.3")
     }
@@ -229,7 +224,7 @@ object HelloWorldTests extends TestSuite {
     }
   }
 
-  object HelloWorldTypeLevel extends HelloBase {
+  object HelloWorldTypeLevel extends TestBaseModule  {
     object foo extends ScalaModule {
       override def scalaVersion = "2.11.8"
       override def scalaOrganization = "org.typelevel"
@@ -247,7 +242,7 @@ object HelloWorldTests extends TestSuite {
     }
   }
 
-  object HelloWorldMacros212 extends HelloBase {
+  object HelloWorldMacros212 extends TestBaseModule  {
     object core extends ScalaModule {
       override def scalaVersion = scala212Version
       override def ivyDeps = Agg(
@@ -259,7 +254,7 @@ object HelloWorldTests extends TestSuite {
     }
   }
 
-  object HelloWorldMacros213 extends HelloBase {
+  object HelloWorldMacros213 extends TestBaseModule  {
     object core extends ScalaModule {
       override def scalaVersion = scala213Version
       override def ivyDeps = Agg(ivy"com.github.julien-truffaut::monocle-macro::2.1.0")
@@ -267,7 +262,7 @@ object HelloWorldTests extends TestSuite {
     }
   }
 
-  object HelloWorldFlags extends HelloBase {
+  object HelloWorldFlags extends TestBaseModule  {
     object core extends ScalaModule {
       def scalaVersion = scala212Version
 
@@ -277,7 +272,7 @@ object HelloWorldTests extends TestSuite {
     }
   }
 
-  object HelloWorldColorOutput extends HelloBase {
+  object HelloWorldColorOutput extends TestBaseModule  {
     object core extends ScalaModule {
       def scalaVersion = scala213Version
 
@@ -287,7 +282,7 @@ object HelloWorldTests extends TestSuite {
     }
   }
 
-  object HelloScalacheck extends HelloBase {
+  object HelloScalacheck extends TestBaseModule  {
     object foo extends ScalaModule {
       def scalaVersion = scala212Version
       object test extends ScalaTests {
@@ -297,7 +292,7 @@ object HelloWorldTests extends TestSuite {
     }
   }
 
-  object Dotty213 extends HelloBase {
+  object Dotty213 extends TestBaseModule  {
     object foo extends ScalaModule {
       def scalaVersion = "0.18.1-RC1"
       override def ivyDeps =
@@ -305,7 +300,7 @@ object HelloWorldTests extends TestSuite {
     }
   }
 
-  object AmmoniteReplMainClass extends HelloBase {
+  object AmmoniteReplMainClass extends TestBaseModule  {
     object oldAmmonite extends ScalaModule {
       override def scalaVersion = T("2.13.5")
       override def ammoniteVersion = T("2.4.1")
@@ -316,7 +311,7 @@ object HelloWorldTests extends TestSuite {
     }
   }
 
-  object ValidatedTarget extends HelloBase {
+  object ValidatedTarget extends TestBaseModule  {
     private def mkDirWithFile = T.task {
       os.write(T.dest / "dummy", "dummy", createFolders = true)
       PathRef(T.dest)
@@ -332,7 +327,7 @@ object HelloWorldTests extends TestSuite {
     def checkedTuplePathRef: T[Tuple1[PathRef]] = T { Tuple1(mkDirWithFile().withRevalidateOnce) }
   }
 
-  object MultiModuleClasspaths extends HelloBase {
+  object MultiModuleClasspaths extends TestBaseModule  {
     trait FooModule extends ScalaModule {
       def scalaVersion = "2.13.12"
 
@@ -417,13 +412,13 @@ object HelloWorldTests extends TestSuite {
   )
 
   def workspaceTest[T](
-      m: mill.testkit.BaseModule,
-      resourcePath: os.Path = resourcePath,
-      env: Map[String, String] = Evaluator.defaultEnv,
-      debug: Boolean = false,
-      errStream: PrintStream = System.err
-  )(t: TestEvaluator => T)(implicit tp: TestPath): T = {
-    val eval = new TestEvaluator(m, env = env, debugEnabled = debug, errStream = errStream)
+                        m: mill.testkit.TestBaseModule,
+                        resourcePath: os.Path = resourcePath,
+                        env: Map[String, String] = Evaluator.defaultEnv,
+                        debug: Boolean = false,
+                        errStream: PrintStream = System.err
+  )(t: UnitTester => T)(implicit tp: TestPath): T = {
+    val eval = new UnitTester(m, env = env, debugEnabled = debug, errStream = errStream)
     os.remove.all(m.millSourcePath)
     os.remove.all(eval.outPath)
     os.makeDir.all(m.millSourcePath / os.up)
@@ -772,7 +767,7 @@ object HelloWorldTests extends TestSuite {
         )
       }
       test("runCross") {
-        def cross(eval: TestEvaluator, v: String, expectedOut: String): Unit = {
+        def cross(eval: UnitTester, v: String, expectedOut: String): Unit = {
 
           val runResult = eval.outPath / "hello-mill"
 
@@ -962,7 +957,7 @@ object HelloWorldTests extends TestSuite {
       }
 
       test("assemblyRules") {
-        def checkAppend[M <: mill.testkit.BaseModule](module: M, target: Target[PathRef]) =
+        def checkAppend[M <: mill.testkit.TestBaseModule](module: M, target: Target[PathRef]) =
           workspaceTest(module) { eval =>
             val Right(result) = eval.apply(target)
 
@@ -989,7 +984,7 @@ object HelloWorldTests extends TestSuite {
         val helloWorldMultiResourcePath =
           os.pwd / "scalalib" / "test" / "resources" / "hello-world-multi"
 
-        def checkAppendMulti[M <: mill.testkit.BaseModule](
+        def checkAppendMulti[M <: mill.testkit.TestBaseModule](
             module: M,
             target: Target[PathRef]
         ): Unit =
@@ -1016,7 +1011,7 @@ object HelloWorldTests extends TestSuite {
             }
           }
 
-        def checkAppendWithSeparator[M <: mill.testkit.BaseModule](
+        def checkAppendWithSeparator[M <: mill.testkit.TestBaseModule](
             module: M,
             target: Target[PathRef]
         ): Unit =
@@ -1056,7 +1051,7 @@ object HelloWorldTests extends TestSuite {
           HelloWorldMultiAppendByPatternWithSeparator.core.assembly
         )
 
-        def checkExclude[M <: mill.testkit.BaseModule](
+        def checkExclude[M <: mill.testkit.TestBaseModule](
             module: M,
             target: Target[PathRef],
             resourcePath: os.Path = resourcePath
@@ -1088,7 +1083,7 @@ object HelloWorldTests extends TestSuite {
           resourcePath = helloWorldMultiResourcePath
         )
 
-        def checkRelocate[M <: mill.testkit.BaseModule](
+        def checkRelocate[M <: mill.testkit.TestBaseModule](
             module: M,
             target: Target[PathRef],
             resourcePath: os.Path = resourcePath
@@ -1418,7 +1413,7 @@ object HelloWorldTests extends TestSuite {
       // Make sure that a bunch of modules dependent on each other has their various
       // {classpaths,moduleDeps,ivyDeps}x{run,compile,normal} properly aggregated
       def check(
-          eval: TestEvaluator,
+          eval: UnitTester,
           mod: ScalaModule,
           expectedRunClasspath: Seq[String],
           expectedCompileClasspath: Seq[String],

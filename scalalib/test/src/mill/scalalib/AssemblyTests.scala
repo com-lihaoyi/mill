@@ -5,7 +5,7 @@ import mill._
 import mill.api.Result
 import mill.eval.Evaluator
 import mill.util.Jvm
-import mill.testkit.{MillTestKit, TestEvaluator}
+import mill.testkit.{UnitTester, TestBaseModule}
 import utest._
 import utest.framework.TestPath
 
@@ -18,7 +18,7 @@ import java.io.PrintStream
 
 object AssemblyTests extends TestSuite {
 
-  object TestCase extends mill.testkit.BaseModule {
+  object TestCase extends TestBaseModule {
     trait Setup extends ScalaModule {
       def scalaVersion = "2.13.11"
       def sources = T.sources(T.workspace / "src")
@@ -76,12 +76,12 @@ object AssemblyTests extends TestSuite {
   )
 
   def workspaceTest[T](
-      m: mill.testkit.BaseModule,
-      env: Map[String, String] = Evaluator.defaultEnv,
-      debug: Boolean = false,
-      errStream: PrintStream = System.err
-  )(t: TestEvaluator => T)(implicit tp: TestPath): T = {
-    val eval = new TestEvaluator(m, env = env, debugEnabled = debug, errStream = errStream)
+                        m: mill.testkit.TestBaseModule,
+                        env: Map[String, String] = Evaluator.defaultEnv,
+                        debug: Boolean = false,
+                        errStream: PrintStream = System.err
+  )(t: UnitTester => T)(implicit tp: TestPath): T = {
+    val eval = new UnitTester(m, env = env, debugEnabled = debug, errStream = errStream)
     os.remove.all(m.millSourcePath)
     sources.foreach { case (file, content) =>
       os.write(m.millSourcePath / file, content, createFolders = true)

@@ -8,8 +8,8 @@ import mill.eval.EvaluatorPaths
 import mill.scalalib.{DepSyntax, PublishModule, ScalaModule, TestModule}
 import mill.testrunner.TestResult
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
-import mill.testkit.TestEvaluator
-import mill.testkit.MillTestKit
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import utest._
 
 import scala.jdk.CollectionConverters._
@@ -17,19 +17,16 @@ import mill.scalalib.api.ZincWorkerUtil
 import mill.util.TestUtil
 
 object HelloJSWorldTests extends TestSuite {
-  val workspacePath = MillTestKit.getOutPathStatic() / "hello-js-world"
-
   trait HelloJSWorldModule
       extends ScalaModule with ScalaJSModule with PublishModule
       with Cross.Module2[String, String] {
     val (crossScalaVersion, sjsVersion0) = (crossValue, crossValue2)
     def scalaVersion = crossScalaVersion
-    override def millSourcePath = workspacePath
     def publishVersion = "0.0.1-SNAPSHOT"
     override def mainClass = Some("Main")
   }
 
-  object HelloJSWorld extends mill.testkit.BaseModule {
+  object HelloJSWorld extends TestBaseModule {
     val scalaVersions = Seq("2.13.3", "3.0.0-RC1", "2.12.12", "2.11.12")
     val scalaJSVersions = Seq("1.8.0", "1.3.1", "1.0.1")
     val matrix = for {
@@ -89,12 +86,11 @@ object HelloJSWorldTests extends TestSuite {
 
   val millSourcePath = os.pwd / "scalajslib" / "test" / "resources" / "hello-js-world"
 
-  val helloWorldEvaluator = TestEvaluator.static(HelloJSWorld)
+  val helloWorldEvaluator = UnitTester.static(HelloJSWorld)
 
   val mainObject = helloWorldEvaluator.outPath / "src" / "Main.scala"
 
   def tests: Tests = Tests {
-    prepareWorkspace()
     test("compile") {
       def testCompileFromScratch(scalaVersion: String, scalaJSVersion: String): Unit = {
         val Right(result) =
@@ -337,12 +333,6 @@ object HelloJSWorldTests extends TestSuite {
       )
 
     inAllVersions ++ scalaJSVersionSpecific ++ scalaVersionSpecific
-  }
-
-  def prepareWorkspace(): Unit = {
-    os.remove.all(workspacePath)
-    os.makeDir.all(workspacePath / os.up)
-    os.copy(millSourcePath, workspacePath)
   }
 
   def testAllMatrix(

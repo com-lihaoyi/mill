@@ -7,27 +7,27 @@ object UnitTestTests extends TestSuite {
 
   def tests: Tests = Tests {
     test("simple") {
-      object build extends mill.testkit.BaseModule {
+      object build extends TestBaseModule {
         def testTask = T { "test" }
       }
 
-      val testEvaluator = new TestEvaluator(build)
-      val Right(result) = testEvaluator(build.testTask)
+      val UnitTester = new UnitTester(build)
+      val Right(result) = UnitTester(build.testTask)
       assert(result.value == "test")
     }
 
     test("sources") {
-      object build extends mill.testkit.BaseModule {
+      object build extends TestBaseModule {
         def testSource = T.source(millSourcePath / "source-file.txt")
         def testTask = T { os.read(testSource().path).toUpperCase() }
       }
 
-      val testEvaluator = new TestEvaluator(
+      val UnitTester = new UnitTester(
         build,
         sourceFileRoot = os.pwd / "testkit" / "test" / "resources" / "unit-test-example-project"
       )
 
-      val Right(result) = testEvaluator(build.testTask)
+      val Right(result) = UnitTester(build.testTask)
       assert(result.value == "HELLO WORLD SOURCE FILE")
     }
   }

@@ -4,20 +4,15 @@ import mill._
 import mill.define.Target
 import mill.util.Util.millProjectModule
 import mill.scalalib.ScalaModule
-import mill.testkit.TestEvaluator
-import mill.testkit.MillTestKit
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import os.Path
 import utest._
 import utest.framework.TestPath
 
 object ProguardTests extends TestSuite {
 
-  object proguard extends mill.testkit.BaseModule with ScalaModule with Proguard {
-    // override build root to test custom builds/modules
-//    override def millSourcePath: Path = MillTestKit.getSrcPathStatic()
-    override def millSourcePath: os.Path =
-      MillTestKit.getSrcPathBase() / millOuterCtx.enclosing.split('.')
-
+  object proguard extends TestBaseModule with ScalaModule with Proguard {
     override def scalaVersion: T[String] = T(sys.props.getOrElse("MILL_SCALA_2_13_VERSION", ???))
 
     def proguardContribClasspath = T {
@@ -32,10 +27,10 @@ object ProguardTests extends TestSuite {
   val testModuleSourcesPath: Path =
     os.pwd / "contrib" / "proguard" / "test" / "resources" / "proguard"
 
-  def workspaceTest[T](m: mill.testkit.BaseModule)(t: TestEvaluator => T)(
+  def workspaceTest[T](m: mill.testkit.TestBaseModule)(t: UnitTester => T)(
       implicit tp: TestPath
   ): T = {
-    val eval = new TestEvaluator(m, debugEnabled = true)
+    val eval = new UnitTester(m, debugEnabled = true)
     os.remove.all(m.millSourcePath)
     os.remove.all(eval.outPath)
     os.makeDir.all(m.millSourcePath / os.up)

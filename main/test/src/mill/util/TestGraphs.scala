@@ -1,6 +1,6 @@
 package mill.util
 import TestUtil.test
-import mill.testkit.MillTestKit
+import mill.testkit.TestBaseModule
 import mill.define.{Command, Cross, Discover, DynamicModule, ModuleRef, TaskModule}
 import mill.{Module, T}
 
@@ -17,11 +17,11 @@ import mill.{Module, T}
  */
 class TestGraphs() {
   // single
-  object singleton extends mill.testkit.BaseModule {
+  object singleton extends TestBaseModule {
     val single = test()
   }
 
-  object bactickIdentifiers extends mill.testkit.BaseModule {
+  object bactickIdentifiers extends TestBaseModule {
     val `up-target` = test()
     val `a-down-target` = test(`up-target`)
     val `invisible&` = test()
@@ -31,13 +31,13 @@ class TestGraphs() {
   }
 
   // up---down
-  object pair extends mill.testkit.BaseModule {
+  object pair extends TestBaseModule {
     val up = test()
     val down = test(up)
   }
 
   // up---o---down
-  object anonTriple extends mill.testkit.BaseModule {
+  object anonTriple extends TestBaseModule {
     val up = test()
     val down = test(test.anon(up))
   }
@@ -47,7 +47,7 @@ class TestGraphs() {
   // up    down
   //   \   /
   //   right
-  object diamond extends mill.testkit.BaseModule {
+  object diamond extends TestBaseModule {
     val up = test()
     val left = test(up)
     val right = test(up)
@@ -59,26 +59,26 @@ class TestGraphs() {
   // up   down
   //   \ /
   //    o
-  object anonDiamond extends mill.testkit.BaseModule {
+  object anonDiamond extends TestBaseModule {
     val up = test()
     val down = test(test.anon(up), test.anon(up))
   }
 
-  object defCachedDiamond extends mill.testkit.BaseModule {
+  object defCachedDiamond extends TestBaseModule {
     def up = T { test() }
     def left = T { test(up) }
     def right = T { test(up) }
     def down = T { test(left, right) }
   }
 
-  object borkedCachedDiamond2 extends mill.testkit.BaseModule {
+  object borkedCachedDiamond2 extends TestBaseModule {
     def up = test()
     def left = test(up)
     def right = test(up)
     def down = test(left, right)
   }
 
-  object borkedCachedDiamond3 extends mill.testkit.BaseModule {
+  object borkedCachedDiamond3 extends TestBaseModule {
     def up = test()
     def left = test(up)
     def right = test(up)
@@ -96,7 +96,7 @@ class TestGraphs() {
   //       o          o---F---o
   //      /          /
   //  o--B          o
-  object bigSingleTerminal extends mill.testkit.BaseModule {
+  object bigSingleTerminal extends TestBaseModule {
     val a = test(test.anon(), test.anon())
     val b = test(test.anon())
     val e = {
@@ -121,7 +121,7 @@ class TestGraphs() {
   //  task1 -------- right
   //               _/
   // change - task2
-  object separateGroups extends mill.testkit.BaseModule {
+  object separateGroups extends TestBaseModule {
     val task1 = T.task { 1 }
     def left = T { task1() }
     val change = test()
@@ -130,7 +130,7 @@ class TestGraphs() {
 
   }
 
-  object moduleInitError extends mill.testkit.BaseModule {
+  object moduleInitError extends TestBaseModule {
     def rootTarget = T { println("Running rootTarget"); "rootTarget Result" }
     def rootCommand(s: String) = T.command { println(s"Running rootCommand $s") }
 
@@ -154,7 +154,7 @@ class TestGraphs() {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  object moduleDependencyInitError extends mill.testkit.BaseModule {
+  object moduleDependencyInitError extends TestBaseModule {
 
     object foo extends Module {
       def fooTarget = T { println(s"Running fooTarget"); 123 }
@@ -176,7 +176,7 @@ class TestGraphs() {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  object crossModuleSimpleInitError extends mill.testkit.BaseModule {
+  object crossModuleSimpleInitError extends TestBaseModule {
     object myCross extends Cross[MyCross](1, 2, 3, 4) {
       throw new Exception(s"MyCross Boom")
     }
@@ -186,7 +186,7 @@ class TestGraphs() {
 
     override lazy val millDiscover = Discover[this.type]
   }
-  object crossModulePartialInitError extends mill.testkit.BaseModule {
+  object crossModulePartialInitError extends TestBaseModule {
     object myCross extends Cross[MyCross](1, 2, 3, 4)
     trait MyCross extends Cross.Module[Int] {
       if (crossValue > 2) throw new Exception(s"MyCross Boom $crossValue")
@@ -195,7 +195,7 @@ class TestGraphs() {
 
     override lazy val millDiscover = Discover[this.type]
   }
-  object crossModuleSelfInitError extends mill.testkit.BaseModule {
+  object crossModuleSelfInitError extends TestBaseModule {
     object myCross extends Cross[MyCross](1, 2, 3, throw new Exception(s"MyCross Boom"))
     trait MyCross extends Cross.Module[Int] {
       def foo = T { crossValue }
@@ -204,7 +204,7 @@ class TestGraphs() {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  object crossModuleParentInitError extends mill.testkit.BaseModule {
+  object crossModuleParentInitError extends TestBaseModule {
     object parent extends Module {
       throw new Exception(s"Parent Boom")
       object myCross extends Cross[MyCross](1, 2, 3, 4)
@@ -216,7 +216,7 @@ class TestGraphs() {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  object overrideModule extends mill.testkit.BaseModule {
+  object overrideModule extends TestBaseModule {
     trait Base extends Module {
       lazy val inner: BaseInnerModule = new BaseInnerModule {}
       lazy val ignored: ModuleRef[BaseInnerModule] = ModuleRef(new BaseInnerModule {})
@@ -235,7 +235,7 @@ class TestGraphs() {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  object dynamicModule extends mill.testkit.BaseModule {
+  object dynamicModule extends TestBaseModule {
     object normal extends DynamicModule {
       object inner extends Module {
         def target = T { 1 }
@@ -256,7 +256,7 @@ object TestGraphs {
   //      _ left _
   //     /        \
   // task -------- right
-  object triangleTask extends mill.testkit.BaseModule {
+  object triangleTask extends TestBaseModule {
     val task = T.task { 1 }
     def left = T { task() }
     def right = T { task() + left() + 1 }
@@ -265,7 +265,7 @@ object TestGraphs {
   //      _ left
   //     /
   // task -------- right
-  object multiTerminalGroup extends mill.testkit.BaseModule {
+  object multiTerminalGroup extends TestBaseModule {
     val task = T.task { 1 }
     def left = T { task() }
     def right = T { task() }
@@ -274,7 +274,7 @@ object TestGraphs {
   //       _ left _____________
   //      /        \           \
   // task1 -------- right ----- task2
-  object multiTerminalBoundary extends mill.testkit.BaseModule {
+  object multiTerminalBoundary extends TestBaseModule {
     val task1 = T.task { 1 }
     def left = T { task1() }
     def right = T { task1() + left() + 1 }
@@ -287,7 +287,7 @@ object TestGraphs {
     def invisible2: mill.define.Task[Int] = T { 3 }
     def invisible3: mill.define.Task[_] = T { 4 }
   }
-  object nestedModule extends mill.testkit.BaseModule {
+  object nestedModule extends TestBaseModule {
     def single = T { 5 }
     def invisible: Any = T { 6 }
     object nested extends Module {
@@ -298,7 +298,7 @@ object TestGraphs {
     object classInstance extends CanNest
 
   }
-  object doubleNestedModule extends mill.testkit.BaseModule {
+  object doubleNestedModule extends TestBaseModule {
     def single = T { 5 }
     object nested extends Module {
       def single = T { 7 }
@@ -314,7 +314,7 @@ object TestGraphs {
     def cmd(i: Int) = T.command { Seq("base" + i) }
   }
 
-  object canOverrideSuper extends mill.testkit.BaseModule with BaseModule {
+  object canOverrideSuper extends TestBaseModule with BaseModule {
     override def foo = T { super.foo() ++ Seq("object") }
     override def cmd(i: Int) = T.command { super.cmd(i)() ++ Seq("object" + i) }
     override lazy val millDiscover: Discover[this.type] = Discover[this.type]
@@ -328,11 +328,11 @@ object TestGraphs {
   }
 
   // Make sure nested objects inherited from traits work
-  object TraitWithModuleObject extends mill.testkit.BaseModule with TraitWithModule {
+  object TraitWithModuleObject extends TestBaseModule with TraitWithModule {
     override lazy val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
-  object nullTasks extends mill.testkit.BaseModule {
+  object nullTasks extends TestBaseModule {
     val nullString: String = null
     def nullTask1 = T.task { nullString }
     def nullTask2 = T.task { nullTask1() }
@@ -350,7 +350,7 @@ object TestGraphs {
     override lazy val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
-  object duplicates extends mill.testkit.BaseModule {
+  object duplicates extends TestBaseModule {
     object wrapper extends Module {
       object test1 extends Module {
         def test1 = T {}
@@ -374,7 +374,7 @@ object TestGraphs {
     override lazy val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
-  object singleCross extends mill.testkit.BaseModule {
+  object singleCross extends TestBaseModule {
     object cross extends mill.Cross[Cross]("210", "211", "212")
     trait Cross extends Cross.Module[String] {
       def suffix = T { crossValue }
@@ -387,7 +387,7 @@ object TestGraphs {
     }
   }
 
-  object nonStringCross extends mill.testkit.BaseModule {
+  object nonStringCross extends TestBaseModule {
     object cross extends mill.Cross[Cross](210, 211, 212)
     trait Cross extends Cross.Module[Int] {
       def suffix = T { crossValue }
@@ -400,7 +400,7 @@ object TestGraphs {
     }
   }
 
-  object crossResolved extends mill.testkit.BaseModule {
+  object crossResolved extends TestBaseModule {
     trait MyModule extends Cross.Module[String] {
       implicit object resolver extends mill.define.Cross.Resolver[MyModule] {
         def resolve[V <: MyModule](c: Cross[V]): V = c.valuesToModules(List(crossValue))
@@ -417,7 +417,7 @@ object TestGraphs {
       def longSuffix = T { "_" + foo().suffix() }
     }
   }
-  object doubleCross extends mill.testkit.BaseModule {
+  object doubleCross extends TestBaseModule {
     val crossMatrix = for {
       scalaVersion <- Seq("210", "211", "212")
       platform <- Seq("jvm", "js", "native")
@@ -430,7 +430,7 @@ object TestGraphs {
     }
   }
 
-  object crossExtension extends mill.testkit.BaseModule {
+  object crossExtension extends TestBaseModule {
     object myCross extends Cross[MyCrossModule]("a", "b")
     trait MyCrossModule extends Cross.Module[String] {
       def param1 = T { "Param Value: " + crossValue }
@@ -449,7 +449,7 @@ object TestGraphs {
     }
   }
 
-  object innerCrossModule extends mill.testkit.BaseModule {
+  object innerCrossModule extends TestBaseModule {
     object myCross extends Cross[MyCrossModule]("a", "b")
     trait MyCrossModule extends Cross.Module[String] {
       object foo extends CrossValue {
@@ -488,7 +488,7 @@ object TestGraphs {
     }
   }
 
-  object nestedCrosses extends mill.testkit.BaseModule {
+  object nestedCrosses extends TestBaseModule {
     object cross extends mill.Cross[Cross]("210", "211", "212") {
       override def defaultCrossSegments: Seq[String] = Seq("212")
     }
@@ -502,7 +502,7 @@ object TestGraphs {
     }
   }
 
-  object nestedTaskCrosses extends mill.testkit.BaseModule {
+  object nestedTaskCrosses extends TestBaseModule {
     // this is somehow necessary to let Discover see our inner (default) commands
     // I expected, that the identical inherited `millDiscover` is enough, but it isn't
     override lazy val millDiscover: Discover[this.type] = Discover[this.type]
@@ -522,7 +522,7 @@ object TestGraphs {
     }
   }
 
-  object StackableOverrides extends mill.testkit.BaseModule {
+  object StackableOverrides extends TestBaseModule {
     trait X extends Module {
       def f = T { 1 }
     }
@@ -536,7 +536,7 @@ object TestGraphs {
     object m extends A with B {}
   }
 
-  object PrivateTasksInMixedTraits extends mill.testkit.BaseModule {
+  object PrivateTasksInMixedTraits extends TestBaseModule {
     trait M1 extends Module {
       private def foo = T { "foo-m1" }
       def bar = T { foo() }
@@ -548,7 +548,7 @@ object TestGraphs {
     object mod extends M1 with M2
   }
 
-  object TypedModules extends mill.testkit.BaseModule {
+  object TypedModules extends TestBaseModule {
     trait TypeA extends Module {
       def foo = T { "foo" }
     }
@@ -568,7 +568,7 @@ object TestGraphs {
     object typeAB extends TypeAB
   }
 
-  object TypedCrossModules extends mill.testkit.BaseModule {
+  object TypedCrossModules extends TestBaseModule {
     trait TypeA extends Cross.Module[String] {
       def foo = T { crossValue }
     }
@@ -593,7 +593,7 @@ object TestGraphs {
     object nestedAB extends Cross[NestedAB]("a", "b")
   }
 
-  object TypedInnerModules extends mill.testkit.BaseModule {
+  object TypedInnerModules extends TestBaseModule {
     trait TypeA extends Module {
       def foo = T { "foo" }
     }
@@ -609,7 +609,7 @@ object TestGraphs {
     }
   }
 
-  object AbstractModule extends mill.testkit.BaseModule {
+  object AbstractModule extends TestBaseModule {
     trait Abstract extends Module {
       lazy val tests: Tests = new Tests {}
       trait Tests extends Module {}

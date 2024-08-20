@@ -3,22 +3,20 @@ package mill.scalajslib
 import mill._
 import mill.define.Discover
 import mill.eval.EvaluatorPaths
-import mill.util._
 import mill.scalalib._
-import mill.testkit.{MillTestKit, TestEvaluator}
+import mill.testkit.{UnitTester, TestBaseModule}
 import utest._
 object MultiModuleTests extends TestSuite {
-  val workspacePath = MillTestKit.getOutPathStatic() / "multi-module"
   val sourcePath = os.pwd / "scalajslib" / "test" / "resources" / "multi-module"
 
-  object MultiModule extends mill.testkit.BaseModule {
+  object MultiModule extends TestBaseModule {
     trait BaseModule extends ScalaJSModule {
       def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
       def scalaJSVersion = sys.props.getOrElse("TEST_SCALAJS_VERSION", ???)
     }
 
     object client extends BaseModule {
-      override def millSourcePath = workspacePath / "client"
+      override def millSourcePath = MultiModule.millSourcePath / "client"
       override def moduleDeps = Seq(shared)
       override def mainClass = Some("Main")
       object test extends ScalaJSTests with TestModule.Utest {
@@ -28,17 +26,15 @@ object MultiModuleTests extends TestSuite {
     }
 
     object shared extends BaseModule {
-      override def millSourcePath = workspacePath / "shared"
+      override def millSourcePath = MultiModule.millSourcePath / "shared"
     }
 
     override lazy val millDiscover = Discover[this.type]
   }
 
-  val evaluator = TestEvaluator.static(MultiModule)
+  val evaluator = UnitTester.static(MultiModule)
 
   def tests: Tests = Tests {
-    prepareWorkspace()
-
     def checkOpt(optimize: Boolean) = {
       val task = if (optimize) MultiModule.client.fullOpt else MultiModule.client.fastOpt
       val Right(result) = evaluator(task)
@@ -79,11 +75,4 @@ object MultiModuleTests extends TestSuite {
       )
     }
   }
-
-  def prepareWorkspace(): Unit = {
-    os.remove.all(workspacePath)
-    os.makeDir.all(workspacePath / os.up)
-    os.copy(sourcePath, workspacePath)
-  }
-
 }

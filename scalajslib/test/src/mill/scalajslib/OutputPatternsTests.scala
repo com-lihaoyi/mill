@@ -2,17 +2,15 @@ package mill.scalajslib
 
 import mill.define.Discover
 import mill.scalajslib.api._
-import mill.testkit.TestEvaluator
-import mill.testkit.MillTestKit
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import utest._
 
 object OutputPatternsTests extends TestSuite {
-  val workspacePath = MillTestKit.getOutPathStatic() / "hello-js-world"
 
-  object OutputPatternsModule extends mill.testkit.BaseModule {
+  object OutputPatternsModule extends TestBaseModule {
 
     object outputPatternsModule extends ScalaJSModule {
-      override def millSourcePath = workspacePath
       override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
       override def scalaJSVersion =
         sys.props.getOrElse("TEST_SCALAJS_VERSION", ???) // at least "1.12.0"
@@ -25,11 +23,9 @@ object OutputPatternsTests extends TestSuite {
 
   val millSourcePath = os.pwd / "scalajslib" / "test" / "resources" / "hello-js-world"
 
-  val evaluator = TestEvaluator.static(OutputPatternsModule)
+  val evaluator = UnitTester.static(OutputPatternsModule)
 
   val tests: Tests = Tests {
-    prepareWorkspace()
-
     test("output patterns") {
       val Right(result) =
         evaluator(OutputPatternsModule.outputPatternsModule.fastLinkJS)
@@ -42,11 +38,4 @@ object OutputPatternsTests extends TestSuite {
       assert(os.exists(result.value.dest.path / "main.mjs.map"))
     }
   }
-
-  def prepareWorkspace(): Unit = {
-    os.remove.all(workspacePath)
-    os.makeDir.all(workspacePath / os.up)
-    os.copy(millSourcePath, workspacePath)
-  }
-
 }

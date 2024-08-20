@@ -1,8 +1,8 @@
 package mill.contrib.buildinfo
 
 import mill._
-import mill.testkit.TestEvaluator
-import mill.testkit.MillTestKit
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import os.Path
 import utest._
 import utest.framework.TestPath
@@ -11,9 +11,7 @@ object BuildInfoTests extends TestSuite {
 
   val scalaVersionString = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
   val scalaJSVersionString = sys.props.getOrElse("TEST_SCALAJS_VERSION", ???)
-  trait BuildInfoModule extends mill.testkit.BaseModule with BuildInfo {
-    // override build root to test custom builds/modules
-    override def millSourcePath: Path = MillTestKit.getSrcPathStatic() / "scala"
+  trait BuildInfoModule extends TestBaseModule with BuildInfo {
   }
 
   object EmptyBuildInfo extends BuildInfoModule with scalalib.ScalaModule {
@@ -76,7 +74,6 @@ object BuildInfoTests extends TestSuite {
 
   object BuildInfoJava extends BuildInfoModule {
     def buildInfoPackageName = "foo"
-    override def millSourcePath: Path = MillTestKit.getSrcPathStatic()
     def buildInfoMembers = Seq(
       BuildInfo.Value("scalaVersion", "not-provided-for-java-modules")
     )
@@ -84,7 +81,6 @@ object BuildInfoTests extends TestSuite {
 
   object BuildInfoJavaStatic extends BuildInfoModule {
     def buildInfoPackageName = "foo"
-    override def millSourcePath: Path = MillTestKit.getSrcPathStatic()
     override def buildInfoStaticCompiled = true
     def buildInfoMembers = Seq(
       BuildInfo.Value("scalaVersion", "not-provided-for-java-modules")
@@ -94,10 +90,10 @@ object BuildInfoTests extends TestSuite {
   val testModuleSourcesPath: Path =
     os.pwd / "contrib" / "buildinfo" / "test" / "resources" / "buildinfo"
 
-  def workspaceTest[T](m: mill.testkit.BaseModule, suffix: String)(t: TestEvaluator => T)(
+  def workspaceTest[T](m: mill.testkit.TestBaseModule, suffix: String)(t: UnitTester => T)(
       implicit tp: TestPath
   ): T = {
-    val eval = new TestEvaluator(m)
+    val eval = new UnitTester(m)
     os.remove.all(m.millSourcePath)
     os.remove.all(eval.outPath)
     os.makeDir.all(m.millSourcePath / os.up)
@@ -105,10 +101,10 @@ object BuildInfoTests extends TestSuite {
     t(eval)
   }
 
-  def buildInfoSourcePath(eval: TestEvaluator) =
+  def buildInfoSourcePath(eval: UnitTester) =
     eval.outPath / "buildInfoSources.dest" / "foo" / "BuildInfo.scala"
 
-  def buildInfoResourcePath(eval: TestEvaluator) =
+  def buildInfoResourcePath(eval: UnitTester) =
     eval.outPath / "buildInfoResources.dest" / "foo" / "BuildInfo.buildinfo.properties"
   def tests: Tests = Tests {
 

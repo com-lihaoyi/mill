@@ -4,8 +4,8 @@ import mill._
 import mill.api.Result
 import mill.contrib.buildinfo.BuildInfo
 import mill.scalalib.{DepSyntax, SbtModule, ScalaModule, TestModule}
-import mill.testkit.TestEvaluator
-import mill.testkit.MillTestKit
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import utest._
 import utest.framework.TestPath
 
@@ -25,11 +25,7 @@ trait HelloWorldTests extends utest.TestSuite {
   val sbtResourcePath = resourcePath / os.up / "hello-world-sbt"
   val unmanagedFile = resourcePath / "unmanaged.xml"
 
-  trait HelloBase extends mill.testkit.BaseModule {
-    override def millSourcePath = MillTestKit.getSrcPathBase() / millOuterCtx.enclosing.split('.')
-  }
-
-  object HelloWorld extends HelloBase {
+  object HelloWorld extends TestBaseModule  {
     object other extends ScalaModule {
       def scalaVersion = testScalaVersion
     }
@@ -54,7 +50,7 @@ trait HelloWorldTests extends utest.TestSuite {
     }
   }
 
-  object HelloWorldSbt extends HelloBase {
+  object HelloWorldSbt extends TestBaseModule  {
     outer =>
     object core extends SbtModule with ScoverageModule {
       def scalaVersion = testScalaVersion
@@ -67,11 +63,11 @@ trait HelloWorldTests extends utest.TestSuite {
   }
 
   def workspaceTest[T](
-      m: mill.testkit.BaseModule,
-      resourcePath: os.Path = resourcePath,
-      debugEnabled: Boolean = false
-  )(t: TestEvaluator => T)(implicit tp: TestPath): T = {
-    val eval = new TestEvaluator(m, threads = threadCount, debugEnabled = debugEnabled)
+                        m: mill.testkit.TestBaseModule,
+                        resourcePath: os.Path = resourcePath,
+                        debugEnabled: Boolean = false
+  )(t: UnitTester => T)(implicit tp: TestPath): T = {
+    val eval = new UnitTester(m, threads = threadCount, debugEnabled = debugEnabled)
     os.remove.all(m.millSourcePath)
     os.remove.all(eval.outPath)
     os.makeDir.all(m.millSourcePath / os.up)

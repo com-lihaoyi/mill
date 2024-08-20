@@ -1,8 +1,8 @@
 package mill.eval
 
 import mill.T
-import mill.testkit.TestEvaluator
-import mill.testkit.MillTestKit
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import mill.api.Result.OuterStack
 import utest._
 
@@ -13,7 +13,7 @@ object FailureTests extends TestSuite {
     import graphs._
 
     test("evaluateSingle") {
-      val check = new TestEvaluator(singleton)
+      val check = new UnitTester(singleton)
       check.fail(
         target = singleton.single,
         expectedFailCount = 0,
@@ -46,7 +46,7 @@ object FailureTests extends TestSuite {
       )
     }
     test("evaluatePair") {
-      val check = new TestEvaluator(pair)
+      val check = new UnitTester(pair)
       check.fail(
         pair.down,
         expectedFailCount = 0,
@@ -80,7 +80,7 @@ object FailureTests extends TestSuite {
     }
 
     test("evaluatePair (failFast=true)") {
-      val check = new TestEvaluator(pair, failFast = true)
+      val check = new UnitTester(pair, failFast = true)
       check.fail(
         pair.down,
         expectedFailCount = 0,
@@ -113,7 +113,7 @@ object FailureTests extends TestSuite {
     }
 
     test("evaluateBacktickIdentifiers") {
-      val check = new TestEvaluator(bactickIdentifiers)
+      val check = new UnitTester(bactickIdentifiers)
       import bactickIdentifiers._
       check.fail(
         `a-down-target`,
@@ -147,7 +147,7 @@ object FailureTests extends TestSuite {
     }
 
     test("evaluateBacktickIdentifiers (failFast=true)") {
-      val check = new TestEvaluator(bactickIdentifiers, failFast = true)
+      val check = new UnitTester(bactickIdentifiers, failFast = true)
       import bactickIdentifiers._
       check.fail(
         `a-down-target`,
@@ -181,7 +181,7 @@ object FailureTests extends TestSuite {
     }
 
     test("multipleUsesOfDest") {
-      object build extends mill.testkit.BaseModule {
+      object build extends TestBaseModule {
         // Using `T.ctx(  ).dest` twice in a single task is ok
         def left = T { +T.dest.toString.length + T.dest.toString.length }
 
@@ -190,7 +190,7 @@ object FailureTests extends TestSuite {
         def right = T { task() + left() + T.dest.toString().length }
       }
 
-      val check = new TestEvaluator(build)
+      val check = new UnitTester(build)
       assert(check(build.left).isRight)
       assert(check(build.right).isRight)
       // assert(e.getMessage.contains("`dest` can only be used in one place"))

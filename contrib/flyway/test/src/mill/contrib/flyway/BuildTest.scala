@@ -2,12 +2,12 @@ package mill.contrib.flyway
 
 import mill._
 import mill.scalalib._
-import mill.testkit.TestEvaluator
-import mill.testkit.MillTestKit
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import utest.{TestSuite, Tests, assert, _}
 
 object BuildTest extends TestSuite {
-  object Build extends mill.testkit.BaseModule {
+  object Build extends TestBaseModule {
     object build extends FlywayModule {
 
       override def resources = T.sources(os.pwd / "contrib" / "flyway" / "test" / "resources")
@@ -21,13 +21,13 @@ object BuildTest extends TestSuite {
 
   def tests = Tests {
     test("clean") {
-      val eval = new TestEvaluator(Build)
+      val eval = new UnitTester(Build)
       val Right(result) = eval(Build.build.flywayClean())
       assert(result.evalCount > 0)
     }
 
     test("migrate") {
-      val eval = new TestEvaluator(Build)
+      val eval = new UnitTester(Build)
       val Right(result) = eval(Build.build.flywayMigrate())
       assert(
         result.evalCount > 0,
@@ -41,7 +41,7 @@ object BuildTest extends TestSuite {
     }
 
     test("info") {
-      val eval = new TestEvaluator(Build)
+      val eval = new UnitTester(Build)
       val Right(result) = eval(Build.build.flywayInfo())
       assert(result.evalCount > 0)
     }

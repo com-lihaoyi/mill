@@ -1,8 +1,8 @@
 package mill.scalalib
 
 import mill.api.Result
-import mill.testkit.TestEvaluator
-import mill.testkit.MillTestKit
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import mill.{Agg, T}
 import os.Path
 import sbt.testing.Status
@@ -13,9 +13,7 @@ import java.io.{ByteArrayOutputStream, PrintStream}
 import scala.xml.{Elem, NodeSeq, XML}
 
 object TestRunnerTests extends TestSuite {
-  object testrunner extends mill.testkit.BaseModule with ScalaModule {
-    override def millSourcePath = MillTestKit.getSrcPathBase() / millOuterCtx.enclosing.split('.')
-
+  object testrunner extends TestBaseModule with ScalaModule {
     def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
 
     object utest extends ScalaTests with TestModule.Utest {
@@ -64,13 +62,13 @@ object TestRunnerTests extends TestSuite {
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "testrunner"
 
   def workspaceTest[T](
-      m: mill.testkit.BaseModule,
-      outStream: PrintStream = System.out,
-      resourcePath: os.Path = resourcePath
-  )(t: TestEvaluator => T)(
+                        m: mill.testkit.TestBaseModule,
+                        outStream: PrintStream = System.out,
+                        resourcePath: os.Path = resourcePath
+  )(t: UnitTester => T)(
       implicit tp: TestPath
   ): T = {
-    val eval = new TestEvaluator(m, outStream = outStream)
+    val eval = new UnitTester(m, outStream = outStream)
     os.remove.all(m.millSourcePath)
     os.remove.all(eval.outPath)
     os.makeDir.all(m.millSourcePath / os.up)
@@ -100,7 +98,7 @@ object TestRunnerTests extends TestSuite {
           expected
         }
         test("testOnly") - {
-          def testOnly(eval: TestEvaluator, args: Seq[String], size: Int) = {
+          def testOnly(eval: UnitTester, args: Seq[String], size: Int) = {
             val Right(result) = eval.apply(testrunner.utest.testOnly(args: _*))
             val testOnly = result.value.asInstanceOf[(String, Seq[mill.testrunner.TestResult])]
             assert(

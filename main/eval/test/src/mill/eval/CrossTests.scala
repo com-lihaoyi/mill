@@ -1,7 +1,7 @@
 package mill.eval
 
-import mill.testkit.TestEvaluator
-import mill.testkit.TestEvaluator.Result
+import mill.testkit.UnitTester
+import mill.testkit.UnitTester.Result
 import mill.util.TestGraphs
 import mill.util.TestGraphs.{
   crossResolved,
@@ -17,7 +17,7 @@ import utest._
 object CrossTests extends TestSuite {
   val tests = Tests {
     test("singleCross") {
-      val check = new TestEvaluator(singleCross)
+      val check = new UnitTester(singleCross)
 
       val Right(Result("210", 1)) = check(singleCross.cross("210").suffix)
       val Right(Result("211", 1)) = check(singleCross.cross("211").suffix)
@@ -25,7 +25,7 @@ object CrossTests extends TestSuite {
     }
 
     test("nonStringCross") {
-      val check = new TestEvaluator(nonStringCross)
+      val check = new UnitTester(nonStringCross)
 
       val Right(Result(210, 1)) = check(nonStringCross.cross(210).suffix)
       val Right(Result(211, 1)) = check(nonStringCross.cross(211).suffix)
@@ -33,7 +33,7 @@ object CrossTests extends TestSuite {
     }
 
     test("crossExtension") {
-      val check = new TestEvaluator(crossExtension)
+      val check = new UnitTester(crossExtension)
 
       val Right(Result("Param Value: a", _)) = check(crossExtension.myCross("a").param1)
 
@@ -54,7 +54,7 @@ object CrossTests extends TestSuite {
     }
 
     test("crossResolved") {
-      val check = new TestEvaluator(crossResolved)
+      val check = new UnitTester(crossResolved)
 
       val Right(Result("2.10", 1)) = check(crossResolved.foo("2.10").suffix)
       val Right(Result("2.11", 1)) = check(crossResolved.foo("2.11").suffix)
@@ -66,7 +66,7 @@ object CrossTests extends TestSuite {
     }
 
     test("doubleCross") {
-      val check = new TestEvaluator(doubleCross)
+      val check = new UnitTester(doubleCross)
 
       val Right(Result("210_jvm", 1)) = check(doubleCross.cross("210", "jvm").suffix)
       val Right(Result("210_js", 1)) = check(doubleCross.cross("210", "js").suffix)
@@ -78,7 +78,7 @@ object CrossTests extends TestSuite {
     }
 
     test("innerCrossModule") {
-      val check = new TestEvaluator(innerCrossModule)
+      val check = new UnitTester(innerCrossModule)
 
       val Right(Result("foo a", 1)) = check(innerCrossModule.myCross("a").foo.bar)
       val Right(Result("baz b", 1)) = check(innerCrossModule.myCross("b").baz.bar)
@@ -97,7 +97,7 @@ object CrossTests extends TestSuite {
     }
 
     test("nestedCrosses") {
-      val check = new TestEvaluator(nestedCrosses)
+      val check = new UnitTester(nestedCrosses)
 
       val Right(Result("210_jvm", 1)) = check(nestedCrosses.cross("210").cross2("jvm").suffix)
       val Right(Result("210_js", 1)) = check(nestedCrosses.cross("210").cross2("js").suffix)
@@ -110,7 +110,7 @@ object CrossTests extends TestSuite {
 
     test("nestedTaskCrosses") {
       val model = TestGraphs.nestedTaskCrosses
-      val check = new TestEvaluator(model)
+      val check = new UnitTester(model)
 
       val Right(Result("210_jvm_1", 1)) = check(model.cross1("210").cross2("jvm").suffixCmd("1"))
       val Right(Result("210_js_2", 1)) = check(model.cross1("210").cross2("js").suffixCmd("2"))

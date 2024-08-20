@@ -1,15 +1,13 @@
 package mill.scalanativelib
 
 import mill.define.Discover
-import mill.testkit.TestEvaluator
-import mill.testkit.MillTestKit
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import utest._
 
 object FeaturesTests extends TestSuite {
-  val workspacePath = MillTestKit.getOutPathStatic() / "features"
-  object Features extends mill.testkit.BaseModule {
+  object Features extends TestBaseModule {
     object module extends ScalaNativeModule {
-      def millSourcePath = workspacePath
       def scalaNativeVersion = "0.4.9"
       def scalaVersion = "2.13.10"
       def nativeIncrementalCompilation = true
@@ -19,16 +17,9 @@ object FeaturesTests extends TestSuite {
 
   val millSourcePath = os.pwd / "scalanativelib" / "test" / "resources" / "features"
 
-  val featuresEvaluator = TestEvaluator.static(Features)
-
-  def prepareWorkspace(): Unit = {
-    os.remove.all(workspacePath)
-    os.makeDir.all(workspacePath / os.up)
-    os.copy(millSourcePath, workspacePath)
-  }
+  val featuresEvaluator = UnitTester.static(Features)
 
   val tests: Tests = Tests {
-    prepareWorkspace()
     test("incremental compilation works") {
       val Right(_) = featuresEvaluator(Features.module.nativeLink)
       val Right(result) = featuresEvaluator(Features.module.nativeWorkdir)

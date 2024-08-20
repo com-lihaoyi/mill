@@ -10,16 +10,14 @@ import mill.scalalib.{DepSyntax, PublishModule, ScalaModule, TestModule}
 import mill.testrunner.TestResult
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 import mill.scalanativelib.api._
-import mill.testkit.TestEvaluator
-import mill.testkit.MillTestKit
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import mill.util.TestUtil
 import utest._
 
 import scala.jdk.CollectionConverters._
 
 object HelloNativeWorldTests extends TestSuite {
-  val workspacePath = MillTestKit.getOutPathStatic() / "hello-native-world"
-
   trait HelloNativeWorldModule
       extends ScalaModule
       with ScalaNativeModule
@@ -27,7 +25,6 @@ object HelloNativeWorldTests extends TestSuite {
       with Cross.Module3[String, String, ReleaseMode] {
     val (crossScalaVersion, sNativeVersion, mode) = (crossValue, crossValue2, crossValue3)
     def scalaVersion = crossScalaVersion
-    override def millSourcePath = workspacePath
     def publishVersion = "0.0.1-SNAPSHOT"
     override def mainClass = Some("hello.Main")
   }
@@ -41,7 +38,7 @@ object HelloNativeWorldTests extends TestSuite {
   val utestVersion = sys.props.getOrElse("TEST_UTEST_VERSION", ???)
   val utestForNative04Version = "0.8.2"
 
-  object HelloNativeWorld extends mill.testkit.BaseModule {
+  object HelloNativeWorld extends TestBaseModule {
     implicit object ReleaseModeToSegments
         extends Cross.ToSegments[ReleaseMode](v => List(v.toString))
 
@@ -95,12 +92,11 @@ object HelloNativeWorldTests extends TestSuite {
 
   val millSourcePath = os.pwd / "scalanativelib" / "test" / "resources" / "hello-native-world"
 
-  val helloWorldEvaluator = TestEvaluator.static(HelloNativeWorld)
+  val helloWorldEvaluator = UnitTester.static(HelloNativeWorld)
 
   val mainObject = helloWorldEvaluator.outPath / "src" / "Main.scala"
 
   def tests: Tests = Tests {
-    prepareWorkspace()
     test("compile") {
       def testCompileFromScratch(
           scalaVersion: String,
@@ -283,12 +279,6 @@ object HelloNativeWorldTests extends TestSuite {
       else Set("Main.nir", "ArgsParser.nir")
 
     common ++ scalaVersionSpecific ++ scalaNativeVersionSpecific
-  }
-
-  def prepareWorkspace(): Unit = {
-    os.remove.all(workspacePath)
-    os.makeDir.all(workspacePath / os.up)
-    os.copy(millSourcePath, workspacePath)
   }
 
   def testAllMatrix(

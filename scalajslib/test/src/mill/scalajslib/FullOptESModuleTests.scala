@@ -2,15 +2,13 @@ package mill.scalajslib
 
 import mill.define.Discover
 import mill.scalajslib.api._
-import mill.testkit.TestEvaluator
-import mill.testkit.MillTestKit
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import utest._
 
 object FullOptESModuleTests extends TestSuite {
-  val workspacePath = MillTestKit.getOutPathStatic() / "hello-js-world"
 
-  object FullOptESModuleModule extends mill.testkit.BaseModule {
-    override def millSourcePath = workspacePath
+  object FullOptESModuleModule extends TestBaseModule {
 
     object fullOptESModuleModule extends ScalaJSModule {
       override def scalaVersion = "2.13.4"
@@ -23,22 +21,13 @@ object FullOptESModuleTests extends TestSuite {
 
   val millSourcePath = os.pwd / "scalajslib" / "test" / "resources" / "hello-js-world"
 
-  val fullOptESModuleModuleEvaluator = TestEvaluator.static(FullOptESModuleModule)
+  val fullOptESModuleModuleEvaluator = UnitTester.static(FullOptESModuleModule)
 
   val tests: Tests = Tests {
-    prepareWorkspace()
-
     test("fullOpt with ESModule moduleKind") {
       val result =
         fullOptESModuleModuleEvaluator(FullOptESModuleModule.fullOptESModuleModule.fullOpt)
       assert(result.isRight)
     }
   }
-
-  def prepareWorkspace(): Unit = {
-    os.remove.all(workspacePath)
-    os.makeDir.all(workspacePath / os.up)
-    os.copy(millSourcePath, workspacePath)
-  }
-
 }

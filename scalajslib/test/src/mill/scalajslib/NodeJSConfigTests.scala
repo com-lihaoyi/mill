@@ -4,15 +4,14 @@ import mill._
 import mill.define.Discover
 import mill.eval.EvaluatorPaths
 import mill.scalalib.{DepSyntax, ScalaModule, TestModule}
-import mill.testkit.TestEvaluator
-import mill.testkit.MillTestKit
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import utest._
 import mill.scalajslib.api._
 
 import scala.util.Properties
 
 object NodeJSConfigTests extends TestSuite {
-  val workspacePath = MillTestKit.getOutPathStatic() / "hello-js-world"
   val scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
   val scalaJSVersion = sys.props.getOrElse("TEST_SCALAJS_VERSION", ???)
   val utestVersion = sys.props.getOrElse("TEST_UTEST_VERSION", ???)
@@ -26,12 +25,11 @@ object NodeJSConfigTests extends TestSuite {
       with Cross.Module2[String, List[String]] {
     val (crossScalaVersion, nodeArgs) = (crossValue, crossValue2)
     def scalaVersion = crossScalaVersion
-    override def millSourcePath = workspacePath
     def publishVersion = "0.0.1-SNAPSHOT"
     override def mainClass = Some("Main")
   }
 
-  object HelloJSWorld extends mill.testkit.BaseModule {
+  object HelloJSWorld extends TestBaseModule {
     val matrix = for {
       scala <- Seq(scalaVersion)
       nodeArgs <- Seq(nodeArgsEmpty, nodeArgs2G)
@@ -61,13 +59,11 @@ object NodeJSConfigTests extends TestSuite {
 
   val millSourcePath = os.pwd / "scalajslib" / "test" / "resources" / "hello-js-world"
 
-  val helloWorldEvaluator = TestEvaluator.static(HelloJSWorld)
+  val helloWorldEvaluator = UnitTester.static(HelloJSWorld)
 
   val mainObject = helloWorldEvaluator.outPath / "src" / "Main.scala"
 
   def tests: Tests = Tests {
-    prepareWorkspace()
-
     def checkLog(command: define.Command[_], nodeArgs: List[String], notNodeArgs: List[String]) = {
       helloWorldEvaluator(command)
       val paths = EvaluatorPaths.resolveDestPaths(helloWorldEvaluator.outPath, command)
@@ -101,11 +97,4 @@ object NodeJSConfigTests extends TestSuite {
       test("run2G") - checkRun(nodeArgs2G, nodeArgs4G)
     }
   }
-
-  def prepareWorkspace(): Unit = {
-    os.remove.all(workspacePath)
-    os.makeDir.all(workspacePath / os.up)
-    os.copy(millSourcePath, workspacePath)
-  }
-
 }

@@ -6,18 +6,17 @@ import mill.api.{DummyInputStream, Result, SystemStreams, Val}
 import mill.define.{InputImpl, TargetImpl}
 import mill.eval.{Evaluator, EvaluatorImpl}
 import mill.resolve.{Resolve, SelectMode}
-import mill.testkit.MillTestKit.getOutPath
 import mill.util.PrintLogger
 import mill.api.Strict.Agg
 import utest.framework.TestPath
 
 import java.io.{InputStream, PrintStream}
 
-object TestEvaluator {
-  def static(module: => mill.testkit.BaseModule)(implicit
-      fullName: sourcecode.FullName
-  ): TestEvaluator = {
-    new TestEvaluator(module)(fullName, TestPath(Nil))
+object UnitTester {
+  def static(module: => mill.testkit.TestBaseModule)(implicit
+                                                     fullName: sourcecode.FullName
+  ): UnitTester = {
+    new UnitTester(module)(fullName, TestPath(Nil))
   }
 
   case class Result[T](value: T, evalCount: Int)
@@ -28,19 +27,22 @@ object TestEvaluator {
  * @param failFast failFast mode enabled
  * @param threads explicitly used nr. of parallel threads
  */
-class TestEvaluator(
-    module: mill.testkit.BaseModule,
-    failFast: Boolean = false,
-    threads: Option[Int] = Some(1),
-    outStream: PrintStream = System.out,
-    errStream: PrintStream = System.err,
-    inStream: InputStream = DummyInputStream,
-    debugEnabled: Boolean = false,
-    extraPathEnd: Seq[String] = Seq.empty,
-    env: Map[String, String] = Evaluator.defaultEnv,
-    sourceFileRoot: os.Path = null
+class UnitTester(
+                  module: mill.testkit.TestBaseModule,
+                  failFast: Boolean = false,
+                  threads: Option[Int] = Some(1),
+                  outStream: PrintStream = System.out,
+                  errStream: PrintStream = System.err,
+                  inStream: InputStream = DummyInputStream,
+                  debugEnabled: Boolean = false,
+                  extraPathEnd: Seq[String] = Seq.empty,
+                  env: Map[String, String] = Evaluator.defaultEnv,
+                  sourceFileRoot: os.Path = null
 )(implicit fullName: sourcecode.FullName, tp: TestPath) {
-  val outPath: os.Path = getOutPath(tp.value) / extraPathEnd
+  val outPath: os.Path = module.millSourcePath / "out"
+
+  os.remove.all(module.millSourcePath)
+  os.makeDir.all(module.millSourcePath)
 
   for (sourceFileRoot <- Option(sourceFileRoot)) {
     os.copy.over(sourceFileRoot, module.millSourcePath, createFolders = true)
@@ -82,7 +84,7 @@ class TestEvaluator(
     disableCallgraphInvalidation = false
   )
 
-  def apply(args: String*): Either[Result.Failing[_], TestEvaluator.Result[Seq[_]]] = {
+  def apply(args: String*): Either[Result.Failing[_], UnitTester.Result[Seq[_]]] = {
     mill.eval.Evaluator.currentEvaluator.withValue(evaluator) {
       Resolve.Tasks.resolve(evaluator.rootModules, args, SelectMode.Separated)
     } match {
@@ -91,23 +93,23 @@ class TestEvaluator(
     }
   }
 
-  def apply[T](task: Task[T]): Either[Result.Failing[T], TestEvaluator.Result[T]] = {
+  def apply[T](task: Task[T]): Either[Result.Failing[T], UnitTester.Result[T]] = {
     apply(Seq(task)) match {
       case Left(f) => Left(f.asInstanceOf[Result.Failing[T]])
-      case Right(TestEvaluator.Result(Seq(v), i)) =>
-        Right(TestEvaluator.Result(v.asInstanceOf[T], i))
+      case Right(UnitTester.Result(Seq(v), i)) =>
+        Right(UnitTester.Result(v.asInstanceOf[T], i))
     }
   }
 
   def apply(
       tasks: Seq[Task[_]],
       dummy: DummyImplicit = null
-  ): Either[Result.Failing[_], TestEvaluator.Result[Seq[_]]] = {
+  ): Either[Result.Failing[_], UnitTester.Result[Seq[_]]] = {
     val evaluated = evaluator.evaluate(tasks)
 
     if (evaluated.failing.keyCount == 0) {
       Right(
-        TestEvaluator.Result(
+        UnitTester.Result(
           evaluated.rawValues.map(_.asInstanceOf[Result.Success[Val]].value.value),
           evaluated.evaluated.collect {
             case t: TargetImpl[_]
