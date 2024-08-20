@@ -59,7 +59,7 @@ object JavaCompileJarTests extends TestSuite {
 
       import Build._
 
-      var evaluator = new UnitTester(
+      var evaluator = UnitTester(
         Build,
         sourceRoot = javacSrcPath
       )
@@ -101,7 +101,7 @@ object JavaCompileJarTests extends TestSuite {
       check(targets = Agg(jar), expected = Agg(jar))
 
       // You can swap evaluators halfway without any ill effects
-      evaluator = new UnitTester(
+      evaluator = UnitTester(
         Build,
         sourceRoot = javacSrcPath,
         resetSourcePath = false

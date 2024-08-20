@@ -1,8 +1,5 @@
 package mill.playlib
 
-import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
-import utest.framework.TestPath
 
 trait PlayTestSuite {
 
@@ -34,16 +31,4 @@ trait PlayTestSuite {
   }
 
   def resourcePath: os.Path
-
-  def workspaceTest[T, M <: mill.testkit.TestBaseModule](
-      m: M,
-      resourcePath: os.Path = resourcePath
-  )(t: UnitTester => T)(implicit tp: TestPath): T = {
-    val eval = new UnitTester(m)
-    os.remove.all(m.millSourcePath)
-    os.remove.all(eval.outPath)
-    os.makeDir.all(m.millSourcePath / os.up)
-    os.copy(resourcePath, m.millSourcePath)
-    t(eval)
-  }
 }

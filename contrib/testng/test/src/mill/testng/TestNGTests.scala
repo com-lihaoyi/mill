@@ -40,28 +40,18 @@ object TestNGTests extends TestSuite {
 
   val resourcePath: os.Path = os.pwd / "contrib" / "testng" / "test" / "resources" / "demo"
 
-  def workspaceTest[T, M <: mill.testkit.TestBaseModule](
-      m: M,
-      resourcePath: os.Path = resourcePath
-  )(t: UnitTester => T)(implicit tp: TestPath): T = {
-    val eval = new UnitTester(m)
-    os.remove.all(m.millSourcePath)
-    os.remove.all(eval.outPath)
-    os.makeDir.all(m.millSourcePath / os.up)
-    os.copy(resourcePath, m.millSourcePath)
-    t(eval)
-  }
-
   def tests: Tests = Tests {
     test("TestNG") {
-      test("demo") - workspaceTest(demo) { eval =>
+      test("demo") {
+        val eval = UnitTester(demo, resourcePath)
         val Right(result) = eval.apply(demo.test.testFramework)
         assert(
           result.value == "mill.testng.TestNGFramework",
           result.evalCount > 0
         )
       }
-      test("Test case lookup from inherited annotations") - workspaceTest(demo) { eval =>
+      test("Test case lookup from inherited annotations") {
+        val eval = UnitTester(demo, resourcePath)
         val Right(result) = eval.apply(demo.test.test())
         val tres = result.value.asInstanceOf[(String, Seq[mill.testrunner.TestResult])]
         assert(

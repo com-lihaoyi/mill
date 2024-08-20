@@ -17,7 +17,7 @@ object FeaturesTests extends TestSuite {
 
   val millSourcePath = os.pwd / "scalanativelib" / "test" / "resources" / "features"
 
-  val featuresEvaluator = new UnitTester(Features)
+  val featuresEvaluator = UnitTester(Features)
 
   val tests: Tests = Tests {
     test("incremental compilation works") {

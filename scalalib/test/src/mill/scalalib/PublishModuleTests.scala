@@ -83,7 +83,7 @@ object PublishModuleTests extends TestSuite {
   def tests: Tests = Tests {
     test("pom") {
       test("should include scala-library dependency") {
-        val eval = new UnitTester(HelloWorldWithPublish, sourceRoot = resourcePath)
+        val eval = UnitTester(HelloWorldWithPublish, resourcePath)
         val Right(result) = eval.apply(HelloWorldWithPublish.core.pom)
 
         assert(
@@ -100,7 +100,7 @@ object PublishModuleTests extends TestSuite {
         )
       }
       test("versionScheme")  {
-        val eval = new UnitTester(HelloWorldWithPublish, sourceRoot = resourcePath)
+        val eval = UnitTester(HelloWorldWithPublish, resourcePath)
         val Right(result) = eval.apply(HelloWorldWithPublish.core.pom)
 
         assert(
@@ -118,7 +118,7 @@ object PublishModuleTests extends TestSuite {
       test(
         "should retrieve credentials from environment variables if direct argument is empty"
       )  {
-        val eval = new UnitTester(
+        val eval = UnitTester(
           HelloWorldWithPublish,
           sourceRoot = resourcePath,
           env = Evaluator.defaultEnv ++ Seq(
@@ -137,7 +137,7 @@ object PublishModuleTests extends TestSuite {
       test(
         "should prefer direct argument as credentials over environment variables"
       ) {
-        val eval = new UnitTester(
+        val eval = UnitTester(
           HelloWorldWithPublish,
           sourceRoot = resourcePath,
           env = Evaluator.defaultEnv ++ Seq(
@@ -158,7 +158,7 @@ object PublishModuleTests extends TestSuite {
       test(
         "should throw exception if neither environment variables or direct argument were not passed"
       ) {
-        val eval = new UnitTester(HelloWorldWithPublish, sourceRoot = resourcePath)
+        val eval = UnitTester(HelloWorldWithPublish, resourcePath)
         val Left(Result.Failure(msg, None)) =
           eval.apply(HelloWorldWithPublish.core.checkSonatypeCreds(""))
 
@@ -170,7 +170,7 @@ object PublishModuleTests extends TestSuite {
 
     test("ivy") {
       test("should include scala-library dependency"){
-        val eval = new UnitTester(HelloWorldWithPublish, sourceRoot = resourcePath)
+        val eval = UnitTester(HelloWorldWithPublish, resourcePath)
         val Right(result) = eval.apply(HelloWorldWithPublish.core.ivy)
 
         assert(
@@ -189,7 +189,7 @@ object PublishModuleTests extends TestSuite {
 
     test("pom-packaging-type") - {
       test("pom") {
-        val eval = new UnitTester(PomOnly, sourceRoot = resourcePath)
+        val eval = UnitTester(PomOnly, resourcePath)
         val Right(result) = eval.apply(PomOnly.core.pom)
 //
 //        assert(

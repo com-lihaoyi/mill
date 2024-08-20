@@ -44,7 +44,7 @@ object BspModuleTests extends TestSuite {
   override def tests: Tests = Tests {
     test("bspCompileClasspath") {
       test("single module") {
-        val eval = new UnitTester(MultiBase)
+        val eval = UnitTester(MultiBase)
         val Right(result) = eval.apply(
           MultiBase.HelloBsp.bspCompileClasspath
         )
@@ -63,7 +63,7 @@ object BspModuleTests extends TestSuite {
         )
       }
       test("dependent module") {
-        val eval = new UnitTester(MultiBase)
+        val eval = UnitTester(MultiBase)
         val Right(result) = eval.apply(
           MultiBase.HelloBsp2.bspCompileClasspath
         )
@@ -94,7 +94,7 @@ object BspModuleTests extends TestSuite {
       test("interdependencies are fast") {
         test("reference (no BSP)") {
           def runNoBsp(entry: Int, maxTime: Int) = {
-            val eval = new UnitTester(InterDeps)
+            val eval = UnitTester(InterDeps)
             val start = System.currentTimeMillis()
             val Right(_) = eval.apply(
               InterDeps.Mod(entry).compileClasspath
@@ -108,7 +108,7 @@ object BspModuleTests extends TestSuite {
           test("index 15") { runNoBsp(15, 30000) }
         }
         def run(entry: Int, maxTime: Int) = retry(3) {
-          val eval = new UnitTester(InterDeps)
+          val eval = UnitTester(InterDeps)
           val start = System.currentTimeMillis()
           val Right(_) = eval.apply(
             InterDeps.Mod(entry).bspCompileClasspath

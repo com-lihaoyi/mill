@@ -20,20 +20,10 @@ object JmhModuleTest extends TestSuite {
   val testModuleSourcesPath: Path =
     os.pwd / "contrib" / "jmh" / "test" / "resources" / "jmh"
 
-  private def workspaceTest(m: mill.testkit.TestBaseModule)(t: UnitTester => Unit)(
-      implicit tp: TestPath
-  ): Unit = {
-    val eval = new UnitTester(m)
-    os.remove.all(m.millSourcePath)
-    os.remove.all(eval.outPath)
-    os.makeDir.all(m.millSourcePath / os.up)
-    os.copy(testModuleSourcesPath, m.millSourcePath)
-    t(eval)
-  }
-
   def tests = Tests {
     test("jmh") {
-      test("listJmhBenchmarks") - workspaceTest(jmh) { eval =>
+      test("listJmhBenchmarks") {
+        val eval = UnitTester(jmh, testModuleSourcesPath)
         val paths = EvaluatorPaths.resolveDestPaths(eval.outPath, jmh.listJmhBenchmarks())
         val outFile = paths.dest / "benchmarks.out"
         val Right(result) = eval(jmh.listJmhBenchmarks("-o", outFile.toString))

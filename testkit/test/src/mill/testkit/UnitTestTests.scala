@@ -11,8 +11,8 @@ object UnitTestTests extends TestSuite {
         def testTask = T { "test" }
       }
 
-      val UnitTester = new UnitTester(build)
-      val Right(result) = UnitTester(build.testTask)
+      val eval = UnitTester(build)
+      val Right(result) = eval(build.testTask)
       assert(result.value == "test")
     }
 
@@ -22,12 +22,12 @@ object UnitTestTests extends TestSuite {
         def testTask = T { os.read(testSource().path).toUpperCase() }
       }
 
-      val UnitTester = new UnitTester(
+      val eval = UnitTester(
         build,
         sourceRoot = os.pwd / "testkit" / "test" / "resources" / "unit-test-example-project"
       )
 
-      val Right(result) = UnitTester(build.testTask)
+      val Right(result) = eval(build.testTask)
       assert(result.value == "HELLO WORLD SOURCE FILE")
     }
   }

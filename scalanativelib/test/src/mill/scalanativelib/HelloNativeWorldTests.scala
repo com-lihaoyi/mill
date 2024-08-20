@@ -92,7 +92,7 @@ object HelloNativeWorldTests extends TestSuite {
 
   val millSourcePath = os.pwd / "scalanativelib" / "test" / "resources" / "hello-native-world"
 
-  val helloWorldEvaluator = new UnitTester(HelloNativeWorld)
+  val helloWorldEvaluator = UnitTester(HelloNativeWorld)
 
   val mainObject = helloWorldEvaluator.outPath / "src" / "Main.scala"
 

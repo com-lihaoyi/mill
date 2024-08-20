@@ -16,7 +16,7 @@ object VersionFileModuleTests extends TestSuite {
       vf: M => VersionFileModule,
       versionText: String
   )(implicit tp: TestPath): UnitTester = {
-    val eval = new UnitTester(m)
+    val eval = UnitTester(m)
     os.remove.all(m.millSourcePath)
     os.remove.all(eval.outPath)
     os.write.over(

@@ -63,7 +63,7 @@ object MainModuleTests extends TestSuite {
   override def tests: Tests = Tests {
 
     test("inspect") {
-      val eval = new UnitTester(mainModule)
+      val eval = UnitTester(mainModule)
       test("single") {
         val res = eval.evaluator.evaluate(Agg(mainModule.inspect(eval.evaluator, "hello")))
         val Result.Success(Val(value: String)) = res.rawValues.head
@@ -99,7 +99,7 @@ object MainModuleTests extends TestSuite {
     test("show") {
       val outStream = new ByteArrayOutputStream()
       val errStream = new ByteArrayOutputStream()
-      val evaluator = new UnitTester(
+      val evaluator = UnitTester(
         mainModule,
         outStream = new PrintStream(outStream, true),
         errStream = new PrintStream(errStream, true)
@@ -176,7 +176,7 @@ object MainModuleTests extends TestSuite {
     }
 
     test("showNamed") {
-      val evaluator = new UnitTester(mainModule)
+      val evaluator = UnitTester(mainModule)
       test("single") {
         val results =
           evaluator.evaluator.evaluate(Agg(mainModule.showNamed(evaluator.evaluator, "hello")))
@@ -210,7 +210,7 @@ object MainModuleTests extends TestSuite {
     }
 
     test("clean") {
-      val ev = new UnitTester(cleanModule)
+      val ev = UnitTester(cleanModule)
       val out = ev.evaluator.outPath
 
       def checkExists(exists: Boolean)(paths: os.SubPath*): Unit = {

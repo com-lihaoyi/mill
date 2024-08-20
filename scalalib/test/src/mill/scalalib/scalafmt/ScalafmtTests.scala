@@ -35,7 +35,7 @@ object ScalafmtTests extends TestSuite {
   )(t: UnitTester => T)(
       implicit tp: TestPath
   ): T = {
-    val eval = new UnitTester(m)
+    val eval = UnitTester(m)
     os.remove.all(m.millSourcePath)
     os.remove.all(eval.outPath)
     os.makeDir.all(m.millSourcePath / os.up)

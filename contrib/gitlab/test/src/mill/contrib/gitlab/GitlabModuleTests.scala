@@ -35,16 +35,11 @@ object GitlabModuleTests extends TestSuite {
     override def tokenLookup = emptyLookup
   }
 
-  def testModule[T](
-      m: mill.testkit.TestBaseModule
-  )(t: UnitTester => T)(implicit tp: TestPath): T = {
-    val eval = new UnitTester(m)
-    t(eval)
-  }
 
   override def tests: Tests = Tests {
 
-    test("GitlabPublishModule produces sane error message") - testModule(GitlabModule) { eval =>
+    test("GitlabPublishModule produces sane error message") {
+      val eval = UnitTester(GitlabModule)
       val e = eval(GitlabModule.gitlabHeaders(Map.empty))
 
       assertMatch(e) {
@@ -53,7 +48,8 @@ object GitlabModuleTests extends TestSuite {
       }
     }
 
-    test("GitlabMavenRepository produces sane error message") - testModule(GLMvnRepo) { eval =>
+    test("GitlabMavenRepository produces sane error message") {
+      val eval = UnitTester(GLMvnRepo)
       val e = eval(GLMvnRepo.mavenRepository)
 
       assertMatch(e) {

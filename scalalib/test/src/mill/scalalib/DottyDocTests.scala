@@ -38,7 +38,7 @@ object DottyDocTests extends TestSuite {
 
   def tests: Tests = Tests {
     test("static")  {
-      val eval = new UnitTester(StaticDocsModule, sourceRoot = resourcePath)
+      val eval = UnitTester(StaticDocsModule, resourcePath)
       val Right(_) = eval.apply(StaticDocsModule.static.docJar)
       val dest = eval.outPath / "static" / "docJar.dest"
       assert(
@@ -51,7 +51,7 @@ object DottyDocTests extends TestSuite {
       )
     }
     test("empty")  {
-      val eval = new UnitTester(EmptyDocsModule, sourceRoot = resourcePath)
+      val eval = UnitTester(EmptyDocsModule, resourcePath)
       val Right(_) = eval.apply(EmptyDocsModule.empty.docJar)
       val dest = eval.outPath / "empty" / "docJar.dest"
       assert(
@@ -60,7 +60,7 @@ object DottyDocTests extends TestSuite {
       )
     }
     test("multiple")  {
-      val eval = new UnitTester(MultiDocsModule, sourceRoot = resourcePath)
+      val eval = UnitTester(MultiDocsModule, resourcePath)
       val Right(_) = eval.apply(MultiDocsModule.multidocs.docJar)
       val dest = eval.outPath / "multidocs" / "docJar.dest"
       assert(

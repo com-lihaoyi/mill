@@ -21,7 +21,7 @@ object FullOptESModuleTests extends TestSuite {
 
   val millSourcePath = os.pwd / "scalajslib" / "test" / "resources" / "hello-js-world"
 
-  val fullOptESModuleModuleEvaluator = new UnitTester(FullOptESModuleModule)
+  val fullOptESModuleModuleEvaluator = UnitTester(FullOptESModuleModule)
 
   val tests: Tests = Tests {
     test("fullOpt with ESModule moduleKind") {

@@ -19,7 +19,7 @@ object CoursierMirrorTests extends TestSuite {
   def tests: Tests = Tests {
     sys.props("coursier.mirrors") = (resourcePath / "mirror.properties").toString
     test("readMirror")  {
-      val eval = new UnitTester(CoursierTest, sourceRoot = resourcePath)
+      val eval = UnitTester(CoursierTest, resourcePath)
       val Right(result) = eval.apply(CoursierTest.core.repositoriesTask)
       val centralReplaced = result.value.exists { repo =>
         repo.repr.contains("https://repo.maven.apache.org/maven2")

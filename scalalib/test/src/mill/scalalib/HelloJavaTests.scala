@@ -28,7 +28,7 @@ object HelloJavaTests extends TestSuite {
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-java"
 
   
-  def testEval() = new UnitTester(HelloJava, sourceRoot = resourcePath)
+  def testEval() = UnitTester(HelloJava, resourcePath)
   def tests: Tests = Tests {
     test("compile") {
       val eval = testEval()

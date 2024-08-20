@@ -27,20 +27,10 @@ object ProguardTests extends TestSuite {
   val testModuleSourcesPath: Path =
     os.pwd / "contrib" / "proguard" / "test" / "resources" / "proguard"
 
-  def workspaceTest[T](m: mill.testkit.TestBaseModule)(t: UnitTester => T)(
-      implicit tp: TestPath
-  ): T = {
-    val eval = new UnitTester(m, debugEnabled = true)
-    os.remove.all(m.millSourcePath)
-    os.remove.all(eval.outPath)
-    os.makeDir.all(m.millSourcePath / os.up)
-    os.copy(testModuleSourcesPath, m.millSourcePath)
-    t(eval)
-  }
-
   def tests: Tests = Tests {
     test("Proguard module") {
-      test("should download proguard jars") - workspaceTest(proguard) { eval =>
+      test("should download proguard jars") {
+        val eval = UnitTester(proguard, testModuleSourcesPath)
         val Right(result) = eval.apply(proguard.proguardClasspath)
         assert(
           result.value.iterator.toSeq.nonEmpty,
@@ -48,7 +38,8 @@ object ProguardTests extends TestSuite {
         )
       }
 
-      test("should create a proguarded jar") - workspaceTest(proguard) { eval =>
+      test("should create a proguarded jar") {
+        val eval = UnitTester(proguard, testModuleSourcesPath)
         val Right(result) = eval.apply(proguard.proguard)
         assert(os.exists(result.value.path))
       }

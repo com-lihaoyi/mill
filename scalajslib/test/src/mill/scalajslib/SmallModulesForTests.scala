@@ -22,7 +22,7 @@ object SmallModulesForTests extends TestSuite {
 
   val millSourcePath = os.pwd / "scalajslib" / "test" / "resources" / "small-modules-for"
 
-  val evaluator = new UnitTester(SmallModulesForModule)
+  val evaluator = UnitTester(SmallModulesForModule)
 
   val tests: Tests = Tests {
     test("ModuleSplitStyle.SmallModulesFor") {

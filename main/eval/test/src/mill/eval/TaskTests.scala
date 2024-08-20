@@ -265,14 +265,14 @@ trait TaskTests extends TestSuite {
 object SeqTaskTests extends TaskTests {
   def withEnv(f: (Build, UnitTester) => Unit)(implicit tp: TestPath) = {
     object build extends Build
-    val check = new UnitTester(build, threads = Some(1))
+    val check = UnitTester(build, threads = Some(1))
     f(build, check)
   }
 }
 object ParTaskTests extends TaskTests {
   def withEnv(f: (Build, UnitTester) => Unit)(implicit tp: TestPath) = {
     object build extends Build
-    val check = new UnitTester(build, threads = Some(16))
+    val check = UnitTester(build, threads = Some(16))
     f(build, check)
   }
 }

@@ -62,23 +62,11 @@ trait HelloWorldTests extends utest.TestSuite {
     }
   }
 
-  def workspaceTest[T](
-                        m: mill.testkit.TestBaseModule,
-                        resourcePath: os.Path = resourcePath,
-                        debugEnabled: Boolean = false
-  )(t: UnitTester => T)(implicit tp: TestPath): T = {
-    val eval = new UnitTester(m, threads = threadCount, debugEnabled = debugEnabled)
-    os.remove.all(m.millSourcePath)
-    os.remove.all(eval.outPath)
-    os.makeDir.all(m.millSourcePath / os.up)
-    os.copy(resourcePath, m.millSourcePath)
-    t(eval)
-  }
-
   def tests: utest.Tests = utest.Tests {
     test("HelloWorld") {
       test("core") {
-        test("scoverageVersion") - workspaceTest(HelloWorld) { eval =>
+        test("scoverageVersion") {
+          val eval = UnitTester(HelloWorld, resourcePath)
           val Right(result) = eval.apply(HelloWorld.core.scoverageVersion)
 
           assert(
@@ -87,7 +75,8 @@ trait HelloWorldTests extends utest.TestSuite {
           )
         }
         test("scoverage") {
-          test("unmanagedClasspath") - workspaceTest(HelloWorld) { eval =>
+          test("unmanagedClasspath") {
+            val eval = UnitTester(HelloWorld, resourcePath)
             val Right(result) =
               eval.apply(HelloWorld.core.scoverage.unmanagedClasspath)
 
@@ -96,7 +85,8 @@ trait HelloWorldTests extends utest.TestSuite {
               result.evalCount > 0
             )
           }
-          test("ivyDeps") - workspaceTest(HelloWorld) { eval =>
+          test("ivyDeps") {
+            val eval = UnitTester(HelloWorld, resourcePath)
             val Right(result) =
               eval.apply(HelloWorld.core.scoverage.ivyDeps)
 
@@ -110,7 +100,8 @@ trait HelloWorldTests extends utest.TestSuite {
               result.evalCount > 0
             )
           }
-          test("scalacPluginIvyDeps") - workspaceTest(HelloWorld) { eval =>
+          test("scalacPluginIvyDeps") {
+            val eval = UnitTester(HelloWorld, resourcePath)
             val Right(result) =
               eval.apply(HelloWorld.core.scoverage.scalacPluginIvyDeps)
 
@@ -133,7 +124,8 @@ trait HelloWorldTests extends utest.TestSuite {
               result.evalCount > 0
             )
           }
-          test("data") - workspaceTest(HelloWorld) { eval =>
+          test("data") {
+            val eval = UnitTester(HelloWorld, resourcePath)
             val Right(result) = eval.apply(HelloWorld.core.scoverage.data)
 
             val resultPath = result.value.path.toIO.getPath.replace("""\""", "/")
@@ -145,7 +137,8 @@ trait HelloWorldTests extends utest.TestSuite {
               result.evalCount > 0
             )
           }
-          test("htmlReport") - workspaceTest(HelloWorld) { eval =>
+          test("htmlReport") {
+            val eval = UnitTester(HelloWorld, resourcePath)
             val Right(_) = eval.apply(HelloWorld.core.test.compile)
             val res = eval.apply(HelloWorld.core.scoverage.htmlReport())
             if (
@@ -161,7 +154,8 @@ trait HelloWorldTests extends utest.TestSuite {
               ""
             }
           }
-          test("xmlReport") - workspaceTest(HelloWorld) { eval =>
+          test("xmlReport") {
+            val eval = UnitTester(HelloWorld, resourcePath)
             val Right(_) = eval.apply(HelloWorld.core.test.compile)
             val res = eval.apply(HelloWorld.core.scoverage.xmlReport())
             if (
@@ -177,7 +171,8 @@ trait HelloWorldTests extends utest.TestSuite {
               ""
             }
           }
-          test("xmlCoberturaReport") - workspaceTest(HelloWorld) { eval =>
+          test("xmlCoberturaReport") {
+            val eval = UnitTester(HelloWorld, resourcePath)
             val Right(_) = eval.apply(HelloWorld.core.test.compile)
             val res = eval.apply(HelloWorld.core.scoverage.xmlCoberturaReport())
             if (
@@ -193,14 +188,16 @@ trait HelloWorldTests extends utest.TestSuite {
               ""
             }
           }
-          test("console") - workspaceTest(HelloWorld) { eval =>
+          test("console") {
+            val eval = UnitTester(HelloWorld, resourcePath)
             val Right(_) = eval.apply(HelloWorld.core.test.compile)
             val Right(result) = eval.apply(HelloWorld.core.scoverage.consoleReport())
             assert(result.evalCount > 0)
           }
         }
         test("test") - {
-          test("upstreamAssemblyClasspath") - workspaceTest(HelloWorld) { eval =>
+          test("upstreamAssemblyClasspath") {
+            val eval = UnitTester(HelloWorld, resourcePath)
             val Right(result) =
               eval.apply(HelloWorld.core.scoverage.upstreamAssemblyClasspath)
 
@@ -218,7 +215,8 @@ trait HelloWorldTests extends utest.TestSuite {
               )
             }
           }
-          test("compileClasspath") - workspaceTest(HelloWorld) { eval =>
+          test("compileClasspath") {
+            val eval = UnitTester(HelloWorld, resourcePath)
             val Right(result) =
               eval.apply(HelloWorld.core.scoverage.compileClasspath)
 
@@ -236,7 +234,8 @@ trait HelloWorldTests extends utest.TestSuite {
               )
             }
           }
-          test("runClasspath") - workspaceTest(HelloWorld) { eval =>
+          test("runClasspath") {
+            val eval = UnitTester(HelloWorld, resourcePath)
             val Right(result) = eval.apply(HelloWorld.core.scoverage.runClasspath)
 
             val runtimeExistsOnClasspath =
@@ -259,17 +258,20 @@ trait HelloWorldTests extends utest.TestSuite {
     }
     test("HelloWorldSbt") {
       test("scoverage") {
-        test("htmlReport") - workspaceTest(HelloWorldSbt, sbtResourcePath) { eval =>
+        test("htmlReport") {
+          val eval = UnitTester(HelloWorld, sbtResourcePath)
           val Right(_) = eval.apply(HelloWorldSbt.core.test.compile)
           val Right(result) = eval.apply(HelloWorldSbt.core.scoverage.htmlReport())
           assert(result.evalCount > 0)
         }
-        test("xmlReport") - workspaceTest(HelloWorldSbt, sbtResourcePath) { eval =>
+        test("xmlReport") {
+          val eval = UnitTester(HelloWorld, sbtResourcePath)
           val Right(_) = eval.apply(HelloWorldSbt.core.test.compile)
           val Right(result) = eval.apply(HelloWorldSbt.core.scoverage.xmlReport())
           assert(result.evalCount > 0)
         }
-        test("console") - workspaceTest(HelloWorldSbt, sbtResourcePath) { eval =>
+        test("console") {
+          val eval = UnitTester(HelloWorld, sbtResourcePath)
           val Right(_) = eval.apply(HelloWorldSbt.core.test.compile)
           val Right(result) =
             eval.apply(HelloWorldSbt.core.scoverage.consoleReport())
@@ -288,11 +290,13 @@ trait FailedWorldTests extends HelloWorldTests {
     test("HelloWorld") {
       val mod = HelloWorld
       test("shouldFail") {
-        test("scoverageToolsCp") - workspaceTest(mod) { eval =>
+        test("scoverageToolsCp") {
+          val eval = UnitTester(mod, resourcePath)
           val Left(Result.Failure(msg, _)) = eval.apply(mod.core.scoverageToolsClasspath)
           assert(msg == errorMsg)
         }
-        test("other") - workspaceTest(mod) { eval =>
+        test("other"){
+          val eval = UnitTester(mod, resourcePath)
           val Left(Result.Failure(msg, _)) = eval.apply(mod.core.scoverage.xmlReport())
           assert(msg == errorMsg)
         }
@@ -301,14 +305,16 @@ trait FailedWorldTests extends HelloWorldTests {
     test("HelloWorldSbt") {
       val mod = HelloWorldSbt
       test("shouldFail") {
-        test("scoverageToolsCp") - workspaceTest(mod) { eval =>
+        test("scoverageToolsCp") {
+          val eval = UnitTester(mod, resourcePath)
           val res = eval.apply(mod.core.scoverageToolsClasspath)
           assert(res.isLeft)
           println(s"res: ${res}")
           val Left(Result.Failure(msg, _)) = res
           assert(msg == errorMsg)
         }
-        test("other") - workspaceTest(mod) { eval =>
+        test("other") {
+          val eval = UnitTester(mod, resourcePath)
           val Left(Result.Failure(msg, _)) = eval.apply(mod.core.scoverage.xmlReport())
           assert(msg == errorMsg)
         }

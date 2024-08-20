@@ -19,7 +19,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
   class Checker[T <: mill.testkit.TestBaseModule](module: T) {
     // Make sure data is persisted even if we re-create the evaluator each time
 
-    val evaluator = new UnitTester(module, threads = threadCount).evaluator
+    val evaluator = UnitTester(module, threads = threadCount).evaluator
 
     def apply(
         target: Task[_],

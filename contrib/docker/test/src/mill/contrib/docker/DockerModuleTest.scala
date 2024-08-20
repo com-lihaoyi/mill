@@ -58,14 +58,8 @@ object DockerModuleTest extends TestSuite {
   private def workspaceTest(m: mill.testkit.TestBaseModule)(t: UnitTester => Unit)(
       implicit tp: TestPath
   ): Unit = {
-    if (isInstalled(testExecutable) && !scala.util.Properties.isWin) {
-      val eval = new UnitTester(m)
-      os.remove.all(m.millSourcePath)
-      os.remove.all(eval.outPath)
-      os.makeDir.all(m.millSourcePath / os.up)
-      os.copy(testModuleSourcesPath, m.millSourcePath)
-      t(eval)
-    } else {
+    if (isInstalled(testExecutable) && !scala.util.Properties.isWin) t(UnitTester(m))
+    else {
       val identifier = tp.value.mkString("/")
       println(s"Skipping '$identifier' since no docker installation was found")
       assert(true)
@@ -96,7 +90,7 @@ object DockerModuleTest extends TestSuite {
 
     test("dockerfile contents") {
       test("default options") {
-        val eval = new UnitTester(Docker)
+        val eval = UnitTester(Docker)
         val Right(result) = eval(Docker.dockerDefault.dockerfile)
         val expected = multineRegex.replaceAllIn(
           """
@@ -113,7 +107,7 @@ object DockerModuleTest extends TestSuite {
       }
 
       test("all options") {
-        val eval = new UnitTester(Docker)
+        val eval = UnitTester(Docker)
         val Right(result) = eval(Docker.dockerAll.dockerfile)
         val expected = multineRegex.replaceAllIn(
           """
@@ -139,7 +133,7 @@ object DockerModuleTest extends TestSuite {
       }
 
       test("extra jvm options") {
-        val eval = new UnitTester(Docker)
+        val eval = UnitTester(Docker)
         val Right(result) = eval(Docker.dockerJvmOptions.dockerfile)
         val expected = multineRegex.replaceAllIn(
           """

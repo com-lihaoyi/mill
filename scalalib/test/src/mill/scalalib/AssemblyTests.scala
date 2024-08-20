@@ -95,13 +95,13 @@ object AssemblyTests extends TestSuite {
     test("Assembly") {
       test("noExe") {
         test("small")  {
-          val eval = new UnitTester(TestCase)
+          val eval = UnitTester(TestCase)
           val Right(result) = eval(TestCase.noExe.small.assembly)
           runAssembly(result.value.path, TestCase.millSourcePath)
 
         }
         test("large")  {
-          val eval = new UnitTester(TestCase)
+          val eval = UnitTester(TestCase)
           val Right(result) = eval(TestCase.noExe.large.assembly)
           runAssembly(result.value.path, TestCase.millSourcePath)
 
@@ -109,7 +109,7 @@ object AssemblyTests extends TestSuite {
       }
       test("exe") {
         test("small")  {
-          val eval = new UnitTester(TestCase)
+          val eval = UnitTester(TestCase)
           val Right(result) = eval(TestCase.exe.small.assembly)
           val originalPath = result.value.path
           val resolvedPath =
@@ -122,7 +122,7 @@ object AssemblyTests extends TestSuite {
         }
 
         test("large-should-fail")  {
-          val eval = new UnitTester(TestCase)
+          val eval = UnitTester(TestCase)
           val Left(Result.Failure(msg, Some(res))) = eval(TestCase.exe.large.assembly)
           val expectedMsg =
             """The created assembly jar contains more than 65535 ZIP entries.
