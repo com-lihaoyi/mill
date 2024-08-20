@@ -53,11 +53,6 @@ object VersionFileModuleTests extends TestSuite {
   ): Unit =
     workspaceTestEndsWithNewline0(versions: _*)(eval => _ => test(eval))
 
-  implicit class ResultOps[A](result: Either[Result.Failing[A], (A, Int)]) {
-    def value: Either[Result.Failing[A], A] = result.map(_._1)
-    def count: Either[Result.Failing[A], Int] = result.map(_._2)
-  }
-
   def tests: Tests = Tests {
 
     import Bump._
@@ -67,8 +62,8 @@ object VersionFileModuleTests extends TestSuite {
       val versions = Seq(Version.Release(1, 2, 3), Version.Snapshot(1, 2, 3))
 
       test("currentVersion") - workspaceTest0(versions: _*) { eval => expectedVersion =>
-        val out = eval(TestModule.versionFile.currentVersion)
-        assert(out.value == Right(expectedVersion))
+        val Right(out) = eval(TestModule.versionFile.currentVersion)
+        assert(out.value == expectedVersion)
       }
 
       test("releaseVersion") - workspaceTest(versions: _*) { eval =>
@@ -88,8 +83,8 @@ object VersionFileModuleTests extends TestSuite {
       test("currentVersion - file ends with newline") - workspaceTestEndsWithNewline0(
         versions: _*
       ) { eval => expectedVersion =>
-        val out = eval(TestModule.versionFile.currentVersion)
-        assert(out.value == Right(expectedVersion))
+        val Right(out) = eval(TestModule.versionFile.currentVersion)
+        assert(out.value == expectedVersion)
       }
 
       test("releaseVersion - file ends with newline") - workspaceTestEndsWithNewline(versions: _*) {
@@ -114,25 +109,25 @@ object VersionFileModuleTests extends TestSuite {
       val versions = Seq(Version.Release(1, 2, 3), Version.Snapshot(1, 2, 3))
 
       test("setReleaseVersion") - workspaceTest(versions: _*) { eval =>
-        val expected = eval(TestModule.versionFile.releaseVersion)
+        val Right(expected) = eval(TestModule.versionFile.releaseVersion)
         eval(TestModule.versionFile.setReleaseVersion())
-        val actual = eval(TestModule.versionFile.currentVersion)
+        val Right(actual) = eval(TestModule.versionFile.currentVersion)
         assert(expected.value == actual.value)
       }
 
       test("setNextVersion") - workspaceTest(versions: _*) { eval =>
         val bump = minor
-        val expected = eval(TestModule.versionFile.nextVersion(bump))
+        val Right(expected) = eval(TestModule.versionFile.nextVersion(bump))
         eval(TestModule.versionFile.setNextVersion(bump))
-        val actual = eval(TestModule.versionFile.currentVersion)
+        val Right(actual) = eval(TestModule.versionFile.currentVersion)
         assert(expected.value == actual.value)
       }
 
       test("setVersion") - workspaceTest(versions: _*) { eval =>
         val expected = Version.Release(1, 2, 4)
         eval(TestModule.versionFile.setVersion(T.task(expected)))
-        val actual = eval(TestModule.versionFile.currentVersion)
-        assert(actual.value == Right(expected))
+        val Right(actual) = eval(TestModule.versionFile.currentVersion)
+        assert(actual.value == expected)
       }
 
     }
@@ -142,28 +137,27 @@ object VersionFileModuleTests extends TestSuite {
       val versions = Seq(Version.Release(1, 2, 3), Version.Snapshot(1, 2, 3))
 
       test("tag") - workspaceTest0(versions: _*) { eval => version =>
-        val procs = eval(TestModule.versionFile.tag)
+        val Right(out) = eval(TestModule.versionFile.tag)
         val commitMessage = TestModule.versionFile.generateCommitMessage(version)
         assert(
-          procs.value == Right(
+          out.value ==
             Seq(
               os.proc("git", "commit", "-am", commitMessage),
               os.proc("git", "tag", version.toString)
             )
           )
-        )
+
       }
 
       test("push") - workspaceTest0(versions: _*) { eval => version =>
-        val procs = eval(TestModule.versionFile.push)
+        val Right(out) = eval(TestModule.versionFile.push)
         val commitMessage = TestModule.versionFile.generateCommitMessage(version)
         assert(
-          procs.value == Right(
+          out.value ==
             Seq(
               os.proc("git", "commit", "-am", commitMessage),
               os.proc("git", "push", "origin", "master", "--tags")
             )
-          )
         )
       }
 

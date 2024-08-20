@@ -140,96 +140,96 @@ trait TaskTests extends TestSuite {
     test("inputs") - withEnv { (build, check) =>
       // Inputs always re-evaluate, including forcing downstream cached Targets
       // to re-evaluate, but normal Tasks behind a Target run once then are cached
-      check.apply(build.taskInput) ==> Right((1, 1))
-      check.apply(build.taskInput) ==> Right((2, 1))
-      check.apply(build.taskInput) ==> Right((3, 1))
+      check.apply(build.taskInput) ==> Right(TestEvaluator.Result(1, 1))
+      check.apply(build.taskInput) ==> Right(TestEvaluator.Result(2, 1))
+      check.apply(build.taskInput) ==> Right(TestEvaluator.Result(3, 1))
     }
     test("noInputs") - withEnv { (build, check) =>
       // Inputs always re-evaluate, including forcing downstream cached Targets
       // to re-evaluate, but normal Tasks behind a Target run once then are cached
-      check.apply(build.taskNoInput) ==> Right((1, 1))
-      check.apply(build.taskNoInput) ==> Right((1, 0))
-      check.apply(build.taskNoInput) ==> Right((1, 0))
+      check.apply(build.taskNoInput) ==> Right(TestEvaluator.Result(1, 1))
+      check.apply(build.taskNoInput) ==> Right(TestEvaluator.Result(1, 0))
+      check.apply(build.taskNoInput) ==> Right(TestEvaluator.Result(1, 0))
     }
 
     test("persistent") - withEnv { (build, check) =>
       // Persistent tasks keep the working dir around between runs
       println(build.millSourcePath.toString() + "\n")
-      check.apply(build.persistent) ==> Right((1, 1))
-      check.apply(build.persistent) ==> Right((2, 1))
-      check.apply(build.persistent) ==> Right((3, 1))
+      check.apply(build.persistent) ==> Right(TestEvaluator.Result(1, 1))
+      check.apply(build.persistent) ==> Right(TestEvaluator.Result(2, 1))
+      check.apply(build.persistent) ==> Right(TestEvaluator.Result(3, 1))
     }
     test("nonPersistent") - withEnv { (build, check) =>
       // non-Persistent tasks keep the working dir around between runs
-      check.apply(build.nonPersistent) ==> Right((1, 1))
-      check.apply(build.nonPersistent) ==> Right((1, 1))
-      check.apply(build.nonPersistent) ==> Right((1, 1))
+      check.apply(build.nonPersistent) ==> Right(TestEvaluator.Result(1, 1))
+      check.apply(build.nonPersistent) ==> Right(TestEvaluator.Result(1, 1))
+      check.apply(build.nonPersistent) ==> Right(TestEvaluator.Result(1, 1))
     }
 
     test("worker") {
       test("static") - withEnv { (build, check) =>
         val wc = check.evaluator.workerCache
 
-        check.apply(build.staticWorkerDownstream) ==> Right((2, 1))
+        check.apply(build.staticWorkerDownstream) ==> Right(TestEvaluator.Result(2, 1))
         wc.size ==> 1
         val firstCached = wc.head
 
-        check.apply(build.staticWorkerDownstream) ==> Right((2, 0))
+        check.apply(build.staticWorkerDownstream) ==> Right(TestEvaluator.Result(2, 0))
         wc.head ==> firstCached
-        check.apply(build.staticWorkerDownstream) ==> Right((2, 0))
+        check.apply(build.staticWorkerDownstream) ==> Right(TestEvaluator.Result(2, 0))
         wc.head ==> firstCached
       }
       test("staticButReevaluated") - withEnv { (build, check) =>
         val wc = check.evaluator.workerCache
 
-        check.apply(build.staticWorkerDownstreamReeval) ==> Right((2, 1))
+        check.apply(build.staticWorkerDownstreamReeval) ==> Right(TestEvaluator.Result(2, 1))
         check.evaluator.workerCache.size ==> 1
         val firstCached = wc.head
 
-        check.apply(build.staticWorkerDownstreamReeval) ==> Right((2, 1))
+        check.apply(build.staticWorkerDownstreamReeval) ==> Right(TestEvaluator.Result(2, 1))
         wc.head ==> firstCached
-        check.apply(build.staticWorkerDownstreamReeval) ==> Right((2, 1))
+        check.apply(build.staticWorkerDownstreamReeval) ==> Right(TestEvaluator.Result(2, 1))
         wc.head ==> firstCached
       }
       test("changedOnce") - withEnv { (build, check) =>
-        check.apply(build.changeOnceWorkerDownstream) ==> Right((1, 1))
+        check.apply(build.changeOnceWorkerDownstream) ==> Right(TestEvaluator.Result(1, 1))
         // changed
-        check.apply(build.changeOnceWorkerDownstream) ==> Right((2, 1))
-        check.apply(build.changeOnceWorkerDownstream) ==> Right((2, 0))
+        check.apply(build.changeOnceWorkerDownstream) ==> Right(TestEvaluator.Result(2, 1))
+        check.apply(build.changeOnceWorkerDownstream) ==> Right(TestEvaluator.Result(2, 0))
       }
       test("alwaysChanged") - withEnv { (build, check) =>
         val wc = check.evaluator.workerCache
 
-        check.apply(build.noisyWorkerDownstream) ==> Right((2, 1))
+        check.apply(build.noisyWorkerDownstream) ==> Right(TestEvaluator.Result(2, 1))
         wc.size ==> 1
         val firstCached = wc.head
 
-        check.apply(build.noisyWorkerDownstream) ==> Right((3, 1))
+        check.apply(build.noisyWorkerDownstream) ==> Right(TestEvaluator.Result(3, 1))
         wc.size ==> 1
         assert(wc.head != firstCached)
         val secondCached = wc.head
 
-        check.apply(build.noisyWorkerDownstream) ==> Right((4, 1))
+        check.apply(build.noisyWorkerDownstream) ==> Right(TestEvaluator.Result(4, 1))
         wc.size ==> 1
         assert(wc.head != secondCached)
       }
       test("closableWorker") - withEnv { (build, check) =>
         val wc = check.evaluator.workerCache
 
-        check.apply(build.noisyClosableWorkerDownstream) ==> Right((2, 1))
+        check.apply(build.noisyClosableWorkerDownstream) ==> Right(TestEvaluator.Result(2, 1))
         wc.size ==> 1
         build.workerCloseCount ==> 0
 
         val firstCached = wc.head
 
-        check.apply(build.noisyClosableWorkerDownstream) ==> Right((3, 1))
+        check.apply(build.noisyClosableWorkerDownstream) ==> Right(TestEvaluator.Result(3, 1))
         wc.size ==> 1
         build.workerCloseCount ==> 1
         assert(wc.head != firstCached)
 
         val secondCached = wc.head
 
-        check.apply(build.noisyClosableWorkerDownstream) ==> Right((4, 1))
+        check.apply(build.noisyClosableWorkerDownstream) ==> Right(TestEvaluator.Result(4, 1))
         wc.size ==> 1
         assert(wc.head != secondCached)
       }
@@ -238,24 +238,24 @@ trait TaskTests extends TestSuite {
     test("overrideDifferentKind") {
       test("inputWithTarget") {
         test("notUsingSuper") - withEnv { (build, check) =>
-          check.apply(build.superBuildInputOverrideWithConstant) ==> Right((123, 1))
-          check.apply(build.superBuildInputOverrideWithConstant) ==> Right((123, 0))
-          check.apply(build.superBuildInputOverrideWithConstant) ==> Right((123, 0))
+          check.apply(build.superBuildInputOverrideWithConstant) ==> Right(TestEvaluator.Result(123, 1))
+          check.apply(build.superBuildInputOverrideWithConstant) ==> Right(TestEvaluator.Result(123, 0))
+          check.apply(build.superBuildInputOverrideWithConstant) ==> Right(TestEvaluator.Result(123, 0))
         }
         test("usingSuper") - withEnv { (build, check) =>
-          check.apply(build.superBuildInputOverrideUsingSuper) ==> Right((124, 1))
-          check.apply(build.superBuildInputOverrideUsingSuper) ==> Right((125, 1))
-          check.apply(build.superBuildInputOverrideUsingSuper) ==> Right((126, 1))
+          check.apply(build.superBuildInputOverrideUsingSuper) ==> Right(TestEvaluator.Result(124, 1))
+          check.apply(build.superBuildInputOverrideUsingSuper) ==> Right(TestEvaluator.Result(125, 1))
+          check.apply(build.superBuildInputOverrideUsingSuper) ==> Right(TestEvaluator.Result(126, 1))
         }
       }
       test("targetWithInput") - withEnv { (build, check) =>
-        check.apply(build.superBuildTargetOverrideWithInput) ==> Right((1, 0))
-        check.apply(build.superBuildTargetOverrideWithInput) ==> Right((2, 0))
-        check.apply(build.superBuildTargetOverrideWithInput) ==> Right((3, 0))
+        check.apply(build.superBuildTargetOverrideWithInput) ==> Right(TestEvaluator.Result(1, 0))
+        check.apply(build.superBuildTargetOverrideWithInput) ==> Right(TestEvaluator.Result(2, 0))
+        check.apply(build.superBuildTargetOverrideWithInput) ==> Right(TestEvaluator.Result(3, 0))
       }
     }
     test("duplicateTaskInResult-issue2958") - withEnv { (build, check) =>
-      check.apply(build.repro2958.command()) ==> Right(("task1,task1", 3))
+      check.apply(build.repro2958.command()) ==> Right(TestEvaluator.Result("task1,task1", 3))
     }
   }
 
