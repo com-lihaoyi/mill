@@ -46,15 +46,15 @@ object UnitTester {
  */
 class UnitTester(
                   module: mill.testkit.TestBaseModule,
-                  sourceRoot: os.Path = null,
-                  failFast: Boolean = false,
-                  threads: Option[Int] = Some(1),
-                  outStream: PrintStream = System.out,
-                  errStream: PrintStream = System.err,
-                  inStream: InputStream = DummyInputStream,
-                  debugEnabled: Boolean = false,
-                  env: Map[String, String] = Evaluator.defaultEnv,
-                  resetSourcePath: Boolean = true,
+                  sourceRoot: os.Path,
+                  failFast: Boolean,
+                  threads: Option[Int],
+                  outStream: PrintStream,
+                  errStream: PrintStream,
+                  inStream: InputStream,
+                  debugEnabled: Boolean,
+                  env: Map[String, String],
+                  resetSourcePath: Boolean,
 )(implicit fullName: sourcecode.FullName) {
   val outPath: os.Path = module.millSourcePath / "out"
 
