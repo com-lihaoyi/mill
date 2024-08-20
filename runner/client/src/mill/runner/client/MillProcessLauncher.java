@@ -5,6 +5,8 @@ import static mill.main.client.OutFiles.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 
 import mill.main.client.Util;
@@ -26,7 +28,24 @@ public class MillProcessLauncher {
             .inheritIO();
 
         final String sig = String.format("%08x", UUID.randomUUID().hashCode());
-        return configureRunMillProcess(builder, out + "/" + millNoServer + "-" + sig).waitFor();
+
+        boolean interrupted = false;
+        final String sandbox = out + "/" + millNoServer + "-" + sig;
+        try {
+            return configureRunMillProcess(builder, sandbox).waitFor();
+
+        } catch (InterruptedException e) {
+            interrupted = true;
+            throw e;
+        } finally {
+            if (!interrupted) {
+                // cleanup if process terminated for sure
+                Files.walk(Paths.get(sandbox))
+                    // depth-first
+                    .sorted(Comparator.reverseOrder())
+                    .forEach(p -> p.toFile().delete());
+            }
+        }
     }
 
     static void launchMillServer(String serverDir, boolean setJnaNoSys) throws Exception {
