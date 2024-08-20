@@ -45,8 +45,9 @@ import scala.concurrent.duration.DurationInt
  * to each one.
  */
 class ExampleTester(clientServerMode: Boolean,
-                    workspaceSourcePath: os.Path)
-  extends IntegrationTester(clientServerMode, workspaceSourcePath){
+                    workspaceSourcePath: os.Path,
+                    millExecutable: os.Path)
+  extends IntegrationTester(clientServerMode, workspaceSourcePath, millExecutable){
   initWorkspace()
 
   val testTimeout = 5.minutes
@@ -255,7 +256,7 @@ class ExampleTester(clientServerMode: Boolean,
 
   def run() = {
 
-    val parsed = upickle.default.read[Seq[(String, String)]](sys.env("MILL_EXAMPLE_PARSED"))
+    val parsed = ExampleParser(None, workspaceSourcePath)
     val usageComment = parsed.collect { case ("example", txt) => txt }.mkString("\n\n")
     val commandBlocks = ("\n" + usageComment.trim).split("\n> ").filter(_.nonEmpty)
 

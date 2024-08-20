@@ -6,9 +6,11 @@ import ujson.Value
 
 import scala.util.control.NonFatal
 
-class IntegrationTester(val millExecutable: os.Path,
-                        val clientServerMode: Boolean,
-                        val workspaceSourcePath: os.Path) extends IntegrationTester.Impl
+class IntegrationTester(val clientServerMode: Boolean,
+                        val workspaceSourcePath: os.Path,
+                        val millExecutable: os.Path) extends IntegrationTester.Impl{
+  initWorkspace()
+}
 object IntegrationTester {
   /**
    * A very simplified version of `os.CommandResult` meant for easily
@@ -157,5 +159,6 @@ object IntegrationTester {
       }
     }
   }
+
 }
 

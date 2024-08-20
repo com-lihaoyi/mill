@@ -1,4 +1,6 @@
 // imports
+import $meta._
+
 import scala.util.chaining._
 import com.github.lolgab.mill.mima.Mima
 import coursier.maven.MavenRepository
@@ -414,6 +416,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
     def forkArgs = super.forkArgs() ++ outer.testArgs()
     def moduleDeps = outer.testModuleDeps
     def ivyDeps = super.ivyDeps() ++ outer.testIvyDeps()
+    def forkEnv = super.forkEnv() ++ outer.forkEnv()
   }
 }
 
@@ -777,6 +780,12 @@ object main extends MillStableScalaModule with BuildInfo {
 object testkit extends MillPublishScalaModule {
   def moduleDeps = Seq(main.eval, main.util, main)
   def ivyDeps = Agg(Deps.TestDeps.utest)
+
+  def allSourceFiles =
+    super.allSourceFiles() ++
+    Seq(PathRef(build.millSourcePath / "mill-build" / "src" / "ExampleParser.scala"))
+
+  def forkEnv = super.forkEnv() ++ Map("MILL_EXECUTABLE_PATH" -> dev.launcher().path.toString())
 }
 
 object testrunner extends MillPublishScalaModule {
@@ -1302,28 +1311,7 @@ object example extends Module {
      * Parses a `build.sc` for specific comments and return the split-by-type content
      */
     def parsed: T[Seq[(String, String)]] = T {
-      val states = collection.mutable.Buffer("scala")
-      val chunks = collection.mutable.Buffer(collection.mutable.Buffer.empty[String])
-
-      for (line <- buildScLines()) {
-        val (newState, restOpt) = line match {
-          case s"/** Usage" => ("example", None)
-          case s"/** See Also: $path */" =>
-            (s"see:$path", Some(os.read(os.Path(path, testRepoRoot().path))))
-          case s"*/" => ("scala", None)
-          case s"//$rest" => ("comment", Some(rest.stripPrefix(" ")))
-          case l => (if (states.last == "comment") "scala" else states.last, Some(l))
-        }
-
-        if (newState != states.last) {
-          states.append(newState)
-          chunks.append(collection.mutable.Buffer.empty[String])
-        }
-
-        restOpt.foreach(r => chunks.last.append(r))
-      }
-
-      states.zip(chunks.map(_.mkString("\n").trim)).filter(_._2.nonEmpty).toSeq
+      mill.testkit.ExampleParser(Some(buildScLines()), testRepoRoot().path / "build.sc")
     }
 
     def rendered = T {
