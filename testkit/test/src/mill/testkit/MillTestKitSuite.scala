@@ -12,7 +12,7 @@ object MillTestKitSuite extends TestSuite {
       }
 
       val testEvaluator = new TestEvaluator(build)
-      val result = testEvaluator(build.testTask).map(_._1)
+      val result = testEvaluator(build.testTask).map(_.value)
       assert(result == Right("test"))
     }
 
@@ -28,7 +28,7 @@ object MillTestKitSuite extends TestSuite {
         createFolders = true
       )
       val testEvaluator = new TestEvaluator(build)
-      val result = testEvaluator(build.testTask).map(_._1)
+      val result = testEvaluator(build.testTask).map(_.value)
       assert(result == Right("HELLO WORLD SOURCE FILE"))
     }
   }

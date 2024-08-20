@@ -50,13 +50,13 @@ object EsModuleRemapTests extends TestSuite {
     prepareWorkspace()
 
     test("should remap the esmodule") {
-      val Right((report, _)) =
+      val Right(result) =
         evaluator(EsModuleRemap.sourceMapModule.fastLinkJS)
-      val publicModules = report.publicModules.toSeq
+      val publicModules = result.value.publicModules.toSeq
       assert(publicModules.length == 1)
       val main = publicModules.head
       assert(main.jsFileName == "main.js")
-      val mainPath = report.dest.path / "main.js"
+      val mainPath = result.value.dest.path / "main.js"
       assert(os.exists(mainPath))
       val rawJs = os.read.lines(mainPath)
       assert(rawJs(1).contains(remapTo))

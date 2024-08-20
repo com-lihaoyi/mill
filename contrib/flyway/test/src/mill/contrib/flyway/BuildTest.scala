@@ -22,28 +22,28 @@ object BuildTest extends TestSuite {
   def tests = Tests {
     test("clean") {
       val eval = new TestEvaluator(Build)
-      val Right((_, count)) = eval(Build.build.flywayClean())
-      assert(count > 0)
+      val Right(result) = eval(Build.build.flywayClean())
+      assert(result.evalCount > 0)
     }
 
     test("migrate") {
       val eval = new TestEvaluator(Build)
-      val Right((res, count)) = eval(Build.build.flywayMigrate())
+      val Right(result) = eval(Build.build.flywayMigrate())
       assert(
-        count > 0,
-        res.migrationsExecuted == 1
+        result.evalCount > 0,
+        result.value.migrationsExecuted == 1
       )
-      val Right((resAgain, countAgain)) = eval(Build.build.flywayMigrate())
+      val Right(resultAgain) = eval(Build.build.flywayMigrate())
       assert(
-        countAgain > 0,
-        resAgain.migrationsExecuted == 0
+        resultAgain.evalCount > 0,
+        resultAgain.value.migrationsExecuted == 0
       )
     }
 
     test("info") {
       val eval = new TestEvaluator(Build)
-      val Right((_, count)) = eval(Build.build.flywayInfo())
-      assert(count > 0)
+      val Right(result) = eval(Build.build.flywayInfo())
+      assert(result.evalCount > 0)
     }
   }
 }

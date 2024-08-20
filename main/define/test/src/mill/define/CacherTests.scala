@@ -26,7 +26,7 @@ object CacherTests extends TestSuite {
   val tests = Tests {
     def eval[T <: mill.testkit.BaseModule, V](mapping: T, v: Task[V])(implicit tp: TestPath) = {
       val evaluator = new TestEvaluator(mapping)
-      evaluator(v).toOption.get._1
+      evaluator(v).toOption.get.value
     }
 
     test("simpleDefIsCached") {

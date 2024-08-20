@@ -57,15 +57,15 @@ object TestNGTests extends TestSuite {
   def tests: Tests = Tests {
     test("TestNG") {
       test("demo") - workspaceTest(demo) { eval =>
-        val Right((result, evalCount)) = eval.apply(demo.test.testFramework)
+        val Right(result) = eval.apply(demo.test.testFramework)
         assert(
-          result == "mill.testng.TestNGFramework",
-          evalCount > 0
+          result.value == "mill.testng.TestNGFramework",
+          result.evalCount > 0
         )
       }
       test("Test case lookup from inherited annotations") - workspaceTest(demo) { eval =>
-        val Right((result, evalCount)) = eval.apply(demo.test.test())
-        val tres = result.asInstanceOf[(String, Seq[mill.testrunner.TestResult])]
+        val Right(result) = eval.apply(demo.test.test())
+        val tres = result.value.asInstanceOf[(String, Seq[mill.testrunner.TestResult])]
         assert(
           tres._2.size == 8
         )

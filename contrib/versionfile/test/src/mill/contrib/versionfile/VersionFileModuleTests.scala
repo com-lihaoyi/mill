@@ -1,10 +1,8 @@
 package mill.contrib.versionfile
 
 import mill.T
-import mill.testkit.MillTestKit
 import mill.api.Result
 import mill.testkit.TestEvaluator
-import mill.testkit.MillTestKit
 import utest.{TestSuite, Tests, assert, assertMatch, test}
 import utest.framework.TestPath
 

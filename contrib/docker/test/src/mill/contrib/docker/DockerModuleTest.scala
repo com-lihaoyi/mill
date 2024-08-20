@@ -85,20 +85,20 @@ object DockerModuleTest extends TestSuite {
 
     test("docker build") {
       test("default options") - workspaceTest(Docker) { eval =>
-        val Right((imageName :: Nil, _)) = eval(Docker.dockerDefault.build)
-        assert(imageName == testArtifactName)
+        val Right(result) = eval(Docker.dockerDefault.build)
+        assert(result.value == List(testArtifactName))
       }
 
       test("all options") - workspaceTest(Docker) { eval =>
-        val Right((imageName :: Nil, _)) = eval(Docker.dockerAll.build)
-        assert(imageName == testArtifactName)
+        val Right(result) = eval(Docker.dockerAll.build)
+        assert(result.value == List(testArtifactName))
       }
     }
 
     test("dockerfile contents") {
       test("default options") {
         val eval = new TestEvaluator(Docker)
-        val Right((dockerfileString, _)) = eval(Docker.dockerDefault.dockerfile)
+        val Right(result) = eval(Docker.dockerDefault.dockerfile)
         val expected = multineRegex.replaceAllIn(
           """
             |FROM gcr.io/distroless/java:latest
@@ -107,7 +107,7 @@ object DockerModuleTest extends TestSuite {
           sys.props("line.separator")
         )
         val dockerfileStringRefined = multineRegex.replaceAllIn(
-          dockerfileString,
+          result.value,
           sys.props("line.separator")
         )
         assert(dockerfileStringRefined == expected)
@@ -115,7 +115,7 @@ object DockerModuleTest extends TestSuite {
 
       test("all options") {
         val eval = new TestEvaluator(Docker)
-        val Right((dockerfileString, _)) = eval(Docker.dockerAll.dockerfile)
+        val Right(result) = eval(Docker.dockerAll.dockerfile)
         val expected = multineRegex.replaceAllIn(
           """
             |FROM docker.io/openjdk:11
@@ -133,7 +133,7 @@ object DockerModuleTest extends TestSuite {
           sys.props("line.separator")
         )
         val dockerfileStringRefined = multineRegex.replaceAllIn(
-          dockerfileString,
+          result.value,
           sys.props("line.separator")
         )
         assert(dockerfileStringRefined == expected)
@@ -141,7 +141,7 @@ object DockerModuleTest extends TestSuite {
 
       test("extra jvm options") {
         val eval = new TestEvaluator(Docker)
-        val Right((dockerfileString, _)) = eval(Docker.dockerJvmOptions.dockerfile)
+        val Right(result) = eval(Docker.dockerJvmOptions.dockerfile)
         val expected = multineRegex.replaceAllIn(
           """
             |FROM gcr.io/distroless/java:latest
@@ -150,7 +150,7 @@ object DockerModuleTest extends TestSuite {
           sys.props("line.separator")
         )
         val dockerfileStringRefined = multineRegex.replaceAllIn(
-          dockerfileString,
+          result.value,
           sys.props("line.separator")
         )
         assert(dockerfileStringRefined == expected)

@@ -31,15 +31,15 @@ object OutputPatternsTests extends TestSuite {
     prepareWorkspace()
 
     test("output patterns") {
-      val Right((report, _)) =
+      val Right(result) =
         evaluator(OutputPatternsModule.outputPatternsModule.fastLinkJS)
-      val publicModules = report.publicModules.toSeq
+      val publicModules = result.value.publicModules.toSeq
       assert(publicModules.length == 1)
       val main = publicModules(0)
       assert(main.jsFileName == "main.mjs")
-      assert(os.exists(report.dest.path / "main.mjs"))
+      assert(os.exists(result.value.dest.path / "main.mjs"))
       assert(main.sourceMapName == Some("main.mjs.map"))
-      assert(os.exists(report.dest.path / "main.mjs.map"))
+      assert(os.exists(result.value.dest.path / "main.mjs.map"))
     }
   }
 

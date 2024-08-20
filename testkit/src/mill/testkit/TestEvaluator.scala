@@ -19,6 +19,8 @@ object TestEvaluator {
   ): TestEvaluator = {
     new TestEvaluator(module)(fullName, TestPath(Nil))
   }
+
+  case class Result[T](value: T, evalCount: Int)
 }
 
 /**
@@ -75,7 +77,7 @@ class TestEvaluator(
     disableCallgraphInvalidation = false
   )
 
-  def evalTokens(args: String*): Either[Result.Failing[_], (Seq[_], Int)] = {
+  def evalTokens(args: String*): Either[Result.Failing[_], TestEvaluator.Result[Seq[_]]] = {
     mill.eval.Evaluator.currentEvaluator.withValue(evaluator) {
       Resolve.Tasks.resolve(evaluator.rootModules, args, SelectMode.Separated)
     } match {
@@ -84,19 +86,20 @@ class TestEvaluator(
     }
   }
 
-  def apply[T](task: Task[T]): Either[Result.Failing[T], (T, Int)] = {
+  def apply[T](task: Task[T]): Either[Result.Failing[T], TestEvaluator.Result[T]] = {
     apply(Seq(task)) match {
       case Left(f) => Left(f.asInstanceOf[Result.Failing[T]])
-      case Right((Seq(v), i)) => Right((v.asInstanceOf[T], i))
+      case Right(TestEvaluator.Result(Seq(v), i)) =>
+        Right(TestEvaluator.Result(v.asInstanceOf[T], i))
     }
   }
 
-  def apply(tasks: Seq[Task[_]]): Either[Result.Failing[_], (Seq[_], Int)] = {
+  def apply(tasks: Seq[Task[_]]): Either[Result.Failing[_], TestEvaluator.Result[Seq[_]]] = {
     val evaluated = evaluator.evaluate(tasks)
 
     if (evaluated.failing.keyCount == 0) {
       Right(
-        Tuple2(
+        TestEvaluator.Result(
           evaluated.rawValues.map(_.asInstanceOf[Result.Success[Val]].value.value),
           evaluated.evaluated.collect {
             case t: TargetImpl[_]

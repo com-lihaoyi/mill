@@ -37,7 +37,7 @@ object JmhModuleTest extends TestSuite {
       test("listJmhBenchmarks") - workspaceTest(jmh) { eval =>
         val paths = EvaluatorPaths.resolveDestPaths(eval.outPath, jmh.listJmhBenchmarks())
         val outFile = paths.dest / "benchmarks.out"
-        val Right((result, _)) = eval(jmh.listJmhBenchmarks("-o", outFile.toString))
+        val Right(result) = eval(jmh.listJmhBenchmarks("-o", outFile.toString))
         val expected = """Benchmarks:
                          |mill.contrib.jmh.Bench2.log
                          |mill.contrib.jmh.Bench2.sqrt

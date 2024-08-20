@@ -82,27 +82,27 @@ object TestRunnerTests extends TestSuite {
     test("TestRunner") - {
       test("utest") - {
         test("test case lookup") - workspaceTest(testrunner) { eval =>
-          val Right((result, _)) = eval.apply(testrunner.utest.test())
-          val test = result.asInstanceOf[(String, Seq[mill.testrunner.TestResult])]
+          val Right(result) = eval.apply(testrunner.utest.test())
+          val test = result.value.asInstanceOf[(String, Seq[mill.testrunner.TestResult])]
           assert(
             test._2.size == 3
           )
           junitReportIn(eval.outPath, "utest").shouldHave(3 -> Status.Success)
         }
         test("discoveredTestClasses") - workspaceTest(testrunner) { eval =>
-          val Right((res, _)) = eval.apply(testrunner.utest.discoveredTestClasses)
+          val Right(result) = eval.apply(testrunner.utest.discoveredTestClasses)
           val expected = Seq(
             "mill.scalalib.BarTests",
             "mill.scalalib.FooTests",
             "mill.scalalib.FoobarTests"
           )
-          assert(res == expected)
+          assert(result.value == expected)
           expected
         }
         test("testOnly") - {
           def testOnly(eval: TestEvaluator, args: Seq[String], size: Int) = {
-            val Right((result1, _)) = eval.apply(testrunner.utest.testOnly(args: _*))
-            val testOnly = result1.asInstanceOf[(String, Seq[mill.testrunner.TestResult])]
+            val Right(result) = eval.apply(testrunner.utest.testOnly(args: _*))
+            val testOnly = result.value.asInstanceOf[(String, Seq[mill.testrunner.TestResult])]
             assert(
               testOnly._2.size == size
             )
@@ -157,15 +157,15 @@ object TestRunnerTests extends TestSuite {
       test("ScalaTest") {
         test("scalatest.test") {
           workspaceTest(testrunner) { eval =>
-            val Right((testRes, count)) = eval(testrunner.scalatest.test())
-            assert(testRes._2.size == 2)
+            val Right(result) = eval(testrunner.scalatest.test())
+            assert(result.value._2.size == 2)
             junitReportIn(eval.outPath, "scalatest").shouldHave(2 -> Status.Success)
           }
         }
         test("discoveredTestClasses") - workspaceTest(testrunner) { eval =>
-          val Right((res, _)) = eval.apply(testrunner.scalatest.discoveredTestClasses)
+          val Right(result) = eval.apply(testrunner.scalatest.discoveredTestClasses)
           val expected = Seq("mill.scalalib.ScalaTestSpec")
-          assert(res == expected)
+          assert(result.value == expected)
           expected
         }
       }
@@ -173,15 +173,15 @@ object TestRunnerTests extends TestSuite {
       test("ZioTest") {
         test("ziotest.test") {
           workspaceTest(testrunner) { eval =>
-            val Right((testRes, count)) = eval(testrunner.ziotest.test())
-            assert(testRes._2.size == 1)
+            val Right(result) = eval(testrunner.ziotest.test())
+            assert(result.value._2.size == 1)
             junitReportIn(eval.outPath, "ziotest").shouldHave(1 -> Status.Success)
           }
         }
         test("discoveredTestClasses") - workspaceTest(testrunner) { eval =>
-          val Right((res, _)) = eval.apply(testrunner.ziotest.discoveredTestClasses)
+          val Right(result) = eval.apply(testrunner.ziotest.discoveredTestClasses)
           val expected = Seq("mill.scalalib.ZioTestSpec")
-          assert(res == expected)
+          assert(result.value == expected)
           expected
         }
       }

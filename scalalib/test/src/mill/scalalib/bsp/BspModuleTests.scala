@@ -59,12 +59,12 @@ object BspModuleTests extends TestSuite {
     test("bspCompileClasspath") {
       test("single module") {
         workspaceTest(MultiBase) { eval =>
-          val Right((result, evalCount)) = eval.apply(
+          val Right(result) = eval.apply(
             MultiBase.HelloBsp.bspCompileClasspath
           )
 
           val relResult =
-            result.iterator.map(_.resolve(eval.evaluator.pathsResolver).last).toSeq.sorted
+            result.value.iterator.map(_.resolve(eval.evaluator.pathsResolver).last).toSeq.sorted
           val expected = Seq(
             "compile-resources",
             "slf4j-api-1.7.34.jar",
@@ -73,16 +73,16 @@ object BspModuleTests extends TestSuite {
 
           assert(
             relResult == expected,
-            evalCount > 0
+            result.evalCount > 0
           )
         }
         test("dependent module") {
           workspaceTest(MultiBase) { eval =>
-            val Right((result, evalCount)) = eval.apply(
+            val Right(result) = eval.apply(
               MultiBase.HelloBsp2.bspCompileClasspath
             )
 
-            val relResults: Seq[FilePath] = result.iterator.map { p =>
+            val relResults: Seq[FilePath] = result.value.iterator.map { p =>
               val path = p.resolve(eval.evaluator.pathsResolver)
               val name = path.last
               if (name.endsWith(".jar")) os.rel / name
@@ -102,7 +102,7 @@ object BspModuleTests extends TestSuite {
 
             assert(
               relResults == expected,
-              evalCount > 0
+              result.evalCount > 0
             )
           }
         }
@@ -110,7 +110,7 @@ object BspModuleTests extends TestSuite {
           test("reference (no BSP)") {
             def runNoBsp(entry: Int, maxTime: Int) = workspaceTest(InterDeps) { eval =>
               val start = System.currentTimeMillis()
-              val Right((result, evalCount)) = eval.apply(
+              val Right(_) = eval.apply(
                 InterDeps.Mod(entry).compileClasspath
               )
               val timeSpent = System.currentTimeMillis() - start
@@ -124,7 +124,7 @@ object BspModuleTests extends TestSuite {
           def run(entry: Int, maxTime: Int) = retry(3) {
             workspaceTest(InterDeps) { eval =>
               val start = System.currentTimeMillis()
-              val Right((result, evalCount)) = eval.apply(
+              val Right(_) = eval.apply(
                 InterDeps.Mod(entry).bspCompileClasspath
               )
               val timeSpent = System.currentTimeMillis() - start

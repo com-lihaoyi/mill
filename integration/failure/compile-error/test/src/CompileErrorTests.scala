@@ -5,7 +5,6 @@ import mill.testkit.IntegrationTestSuite
 import utest._
 
 object CompileErrorTests extends IntegrationTestSuite {
-  def captureOutErr = true
   val tests: Tests = Tests {
     initWorkspace()
 

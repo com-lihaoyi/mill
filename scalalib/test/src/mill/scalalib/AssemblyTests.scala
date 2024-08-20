@@ -112,22 +112,22 @@ object AssemblyTests extends TestSuite {
       test("noExe") {
         test("small") {
           workspaceTest(TestCase) { eval =>
-            val Right((res, _)) = eval(TestCase.noExe.small.assembly)
-            runAssembly(res.path, TestCase.millSourcePath)
+            val Right(result) = eval(TestCase.noExe.small.assembly)
+            runAssembly(result.value.path, TestCase.millSourcePath)
           }
         }
         test("large") {
           workspaceTest(TestCase) { eval =>
-            val Right((res, _)) = eval(TestCase.noExe.large.assembly)
-            runAssembly(res.path, TestCase.millSourcePath)
+            val Right(result) = eval(TestCase.noExe.large.assembly)
+            runAssembly(result.value.path, TestCase.millSourcePath)
           }
         }
       }
       test("exe") {
         test("small") {
           workspaceTest(TestCase) { eval =>
-            val Right((res, _)) = eval(TestCase.exe.small.assembly)
-            val originalPath = res.path
+            val Right(result) = eval(TestCase.exe.small.assembly)
+            val originalPath = result.value.path
             val resolvedPath =
               if (Properties.isWin) {
                 val winPath = originalPath / os.up / s"${originalPath.last}.bat"

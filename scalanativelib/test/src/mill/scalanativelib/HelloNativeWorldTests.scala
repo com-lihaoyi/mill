@@ -107,29 +107,29 @@ object HelloNativeWorldTests extends TestSuite {
           scalaNativeVersion: String,
           mode: ReleaseMode
       ): Unit = {
-        val Right((result, evalCount)) =
+        val Right(result) =
           helloWorldEvaluator(HelloNativeWorld.helloNativeWorld(
             scalaVersion,
             scalaNativeVersion,
             mode
           ).compile)
 
-        val outPath = result.classes.path
+        val outPath = result.value.classes.path
         val outputFiles = os.walk(outPath).filter(os.isFile).map(_.last).toSet
         val expectedClassfiles = compileClassfiles(scalaVersion, scalaNativeVersion)
         assert(
           outputFiles == expectedClassfiles,
-          evalCount > 0
+          result.evalCount > 0
         )
 
         // don't recompile if nothing changed
-        val Right((_, unchangedEvalCount)) =
+        val Right(result2) =
           helloWorldEvaluator(HelloNativeWorld.helloNativeWorld(
             scalaVersion,
             scalaNativeVersion,
             mode
           ).compile)
-        assert(unchangedEvalCount == 0)
+        assert(result2.evalCount == 0)
       }
 
       testAllMatrix((scala, scalaNative, releaseMode) =>
@@ -139,13 +139,13 @@ object HelloNativeWorldTests extends TestSuite {
 
     test("jar") {
       test("containsNirs") {
-        val Right((result, evalCount)) =
+        val Right(result) =
           helloWorldEvaluator(HelloNativeWorld.helloNativeWorld(
             scala213,
             scalaNative04Old,
             ReleaseMode.Debug
           ).jar)
-        val jar = result.path
+        val jar = result.value.path
         val entries = new JarFile(jar.toIO).entries().asScala.map(_.getName)
         assert(entries.contains("hello/Main$.nir"))
       }
@@ -157,14 +157,14 @@ object HelloNativeWorldTests extends TestSuite {
           mode: ReleaseMode,
           artifactId: String
       ): Unit = {
-        val Right((result, evalCount)) = helloWorldEvaluator(
+        val Right(result) = helloWorldEvaluator(
           HelloNativeWorld.helloNativeWorld(
             scalaVersion,
             scalaNativeVersion,
             mode: ReleaseMode
           ).artifactMetadata
         )
-        assert(result.id == artifactId)
+        assert(result.value.id == artifactId)
       }
       test("artifactId_040") - testArtifactId(
         scala213,
@@ -233,13 +233,13 @@ object HelloNativeWorldTests extends TestSuite {
     def checkRun(scalaVersion: String, scalaNativeVersion: String, mode: ReleaseMode): Unit = {
       val task =
         HelloNativeWorld.helloNativeWorld(scalaVersion, scalaNativeVersion, mode).nativeLink
-      val Right((_, evalCount)) = helloWorldEvaluator(task)
+      val Right(result) = helloWorldEvaluator(task)
 
       val paths = EvaluatorPaths.resolveDestPaths(helloWorldEvaluator.outPath, task)
       val stdout = os.proc(paths.dest / "out").call().out.lines()
       assert(
         stdout.contains("Hello Scala Native"),
-        evalCount > 0
+        result.evalCount > 0
       )
     }
 
@@ -248,10 +248,10 @@ object HelloNativeWorldTests extends TestSuite {
     }
 
     def checkInheritedTargets[A](target: ScalaNativeModule => T[A], expected: A) = {
-      val Right((mainResult, _)) = helloWorldEvaluator(target(HelloNativeWorld.inherited))
-      val Right((testResult, _)) = helloWorldEvaluator(target(HelloNativeWorld.inherited.test))
-      assert(mainResult == expected)
-      assert(testResult == expected)
+      val Right(mainResult) = helloWorldEvaluator(target(HelloNativeWorld.inherited))
+      val Right(testResult) = helloWorldEvaluator(target(HelloNativeWorld.inherited.test))
+      assert(mainResult.value == expected)
+      assert(testResult.value == expected)
     }
     test("test-scalacOptions") {
       checkInheritedTargets(_.scalacOptions, Seq("-deprecation"))

@@ -31,8 +31,8 @@ object FeaturesTests extends TestSuite {
     prepareWorkspace()
     test("incremental compilation works") {
       val Right(_) = featuresEvaluator(Features.module.nativeLink)
-      val Right((nativeWorkdir, _)) = featuresEvaluator(Features.module.nativeWorkdir)
-      assert(os.exists(nativeWorkdir / "scala.ll"))
+      val Right(result) = featuresEvaluator(Features.module.nativeWorkdir)
+      assert(os.exists(result.value / "scala.ll"))
     }
   }
 }

@@ -83,25 +83,25 @@ trait HelloWorldTests extends utest.TestSuite {
     test("HelloWorld") {
       test("core") {
         test("scoverageVersion") - workspaceTest(HelloWorld) { eval =>
-          val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverageVersion)
+          val Right(result) = eval.apply(HelloWorld.core.scoverageVersion)
 
           assert(
-            result == testScoverageVersion,
-            evalCount > 0
+            result.value == testScoverageVersion,
+            result.evalCount > 0
           )
         }
         test("scoverage") {
           test("unmanagedClasspath") - workspaceTest(HelloWorld) { eval =>
-            val Right((result, evalCount)) =
+            val Right(result) =
               eval.apply(HelloWorld.core.scoverage.unmanagedClasspath)
 
             assert(
-              result.map(_.toString).iterator.exists(_.contains("unmanaged.xml")),
-              evalCount > 0
+              result.value.map(_.toString).iterator.exists(_.contains("unmanaged.xml")),
+              result.evalCount > 0
             )
           }
           test("ivyDeps") - workspaceTest(HelloWorld) { eval =>
-            val Right((result, evalCount)) =
+            val Right(result) =
               eval.apply(HelloWorld.core.scoverage.ivyDeps)
 
             val expected = if (isScala3) Agg.empty
@@ -110,12 +110,12 @@ trait HelloWorldTests extends utest.TestSuite {
             )
 
             assert(
-              result == expected,
-              evalCount > 0
+              result.value == expected,
+              result.evalCount > 0
             )
           }
           test("scalacPluginIvyDeps") - workspaceTest(HelloWorld) { eval =>
-            val Right((result, evalCount)) =
+            val Right(result) =
               eval.apply(HelloWorld.core.scoverage.scalacPluginIvyDeps)
 
             val expected = (isScov3, isScala3) match {
@@ -133,24 +133,24 @@ trait HelloWorldTests extends utest.TestSuite {
                 )
             }
             assert(
-              result == expected,
-              evalCount > 0
+              result.value == expected,
+              result.evalCount > 0
             )
           }
           test("data") - workspaceTest(HelloWorld) { eval =>
-            val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverage.data)
+            val Right(result) = eval.apply(HelloWorld.core.scoverage.data)
 
-            val resultPath = result.path.toIO.getPath.replace("""\""", "/")
+            val resultPath = result.value.path.toIO.getPath.replace("""\""", "/")
             val expectedEnd =
               "/target/workspace/mill/contrib/scoverage/HelloWorldTests/eval/HelloWorld/core/scoverage/data/core/scoverage/data.dest"
 
             assert(
               resultPath.endsWith(expectedEnd),
-              evalCount > 0
+              result.evalCount > 0
             )
           }
           test("htmlReport") - workspaceTest(HelloWorld) { eval =>
-            val Right((_, _)) = eval.apply(HelloWorld.core.test.compile)
+            val Right(_) = eval.apply(HelloWorld.core.test.compile)
             val res = eval.apply(HelloWorld.core.scoverage.htmlReport())
             if (
               res.isLeft && testScalaVersion.startsWith("3.2") && testScoverageVersion.startsWith(
@@ -160,13 +160,13 @@ trait HelloWorldTests extends utest.TestSuite {
               s"""Disabled for Scoverage ${testScoverageVersion} on Scala ${testScalaVersion}, as it fails with "No source root found" message"""
             } else {
               assert(res.isRight)
-              val Right((_, evalCount)) = res
-              assert(evalCount > 0)
+              val Right(result) = res
+              assert(result.evalCount > 0)
               ""
             }
           }
           test("xmlReport") - workspaceTest(HelloWorld) { eval =>
-            val Right((_, _)) = eval.apply(HelloWorld.core.test.compile)
+            val Right(_) = eval.apply(HelloWorld.core.test.compile)
             val res = eval.apply(HelloWorld.core.scoverage.xmlReport())
             if (
               res.isLeft && testScalaVersion.startsWith("3.2") && testScoverageVersion.startsWith(
@@ -176,13 +176,13 @@ trait HelloWorldTests extends utest.TestSuite {
               s"""Disabled for Scoverage ${testScoverageVersion} on Scala ${testScalaVersion}, as it fails with "No source root found" message"""
             } else {
               assert(res.isRight)
-              val Right((_, evalCount)) = res
-              assert(evalCount > 0)
+              val Right(result) = res
+              assert(result.evalCount > 0)
               ""
             }
           }
           test("xmlCoberturaReport") - workspaceTest(HelloWorld) { eval =>
-            val Right((_, _)) = eval.apply(HelloWorld.core.test.compile)
+            val Right(_) = eval.apply(HelloWorld.core.test.compile)
             val res = eval.apply(HelloWorld.core.scoverage.xmlCoberturaReport())
             if (
               res.isLeft && testScalaVersion.startsWith("3.2") && testScoverageVersion.startsWith(
@@ -192,69 +192,69 @@ trait HelloWorldTests extends utest.TestSuite {
               s"""Disabled for Scoverage ${testScoverageVersion} on Scala ${testScalaVersion}, as it fails with "No source root found" message"""
             } else {
               assert(res.isRight)
-              val Right((_, evalCount)) = res
-              assert(evalCount > 0)
+              val Right(result) = res
+              assert(result.evalCount > 0)
               ""
             }
           }
           test("console") - workspaceTest(HelloWorld) { eval =>
-            val Right((_, _)) = eval.apply(HelloWorld.core.test.compile)
-            val Right((_, evalCount)) = eval.apply(HelloWorld.core.scoverage.consoleReport())
-            assert(evalCount > 0)
+            val Right(_) = eval.apply(HelloWorld.core.test.compile)
+            val Right(result) = eval.apply(HelloWorld.core.scoverage.consoleReport())
+            assert(result.evalCount > 0)
           }
         }
         test("test") - {
           test("upstreamAssemblyClasspath") - workspaceTest(HelloWorld) { eval =>
-            val Right((result, evalCount)) =
+            val Right(result) =
               eval.apply(HelloWorld.core.scoverage.upstreamAssemblyClasspath)
 
             val runtimeExistsOnClasspath =
-              result.map(_.toString).iterator.exists(_.contains("scalac-scoverage-runtime"))
+              result.value.map(_.toString).iterator.exists(_.contains("scalac-scoverage-runtime"))
             if (isScala3) {
               assert(
                 !runtimeExistsOnClasspath,
-                evalCount > 0
+                result.evalCount > 0
               )
             } else {
               assert(
                 runtimeExistsOnClasspath,
-                evalCount > 0
+                result.evalCount > 0
               )
             }
           }
           test("compileClasspath") - workspaceTest(HelloWorld) { eval =>
-            val Right((result, evalCount)) =
+            val Right(result) =
               eval.apply(HelloWorld.core.scoverage.compileClasspath)
 
             val runtimeExistsOnClasspath =
-              result.map(_.toString).iterator.exists(_.contains("scalac-scoverage-runtime"))
+              result.value.map(_.toString).iterator.exists(_.contains("scalac-scoverage-runtime"))
             if (isScala3) {
               assert(
                 !runtimeExistsOnClasspath,
-                evalCount > 0
+                result.evalCount > 0
               )
             } else {
               assert(
                 runtimeExistsOnClasspath,
-                evalCount > 0
+                result.evalCount > 0
               )
             }
           }
           test("runClasspath") - workspaceTest(HelloWorld) { eval =>
-            val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverage.runClasspath)
+            val Right(result) = eval.apply(HelloWorld.core.scoverage.runClasspath)
 
             val runtimeExistsOnClasspath =
-              result.map(_.toString).iterator.exists(_.contains("scalac-scoverage-runtime"))
+              result.value.map(_.toString).iterator.exists(_.contains("scalac-scoverage-runtime"))
 
             if (isScala3) {
               assert(
                 !runtimeExistsOnClasspath,
-                evalCount > 0
+                result.evalCount > 0
               )
             } else {
               assert(
                 runtimeExistsOnClasspath,
-                evalCount > 0
+                result.evalCount > 0
               )
             }
           }
@@ -264,20 +264,20 @@ trait HelloWorldTests extends utest.TestSuite {
     test("HelloWorldSbt") {
       test("scoverage") {
         test("htmlReport") - workspaceTest(HelloWorldSbt, sbtResourcePath) { eval =>
-          val Right((_, _)) = eval.apply(HelloWorldSbt.core.test.compile)
-          val Right((result, evalCount)) = eval.apply(HelloWorldSbt.core.scoverage.htmlReport())
-          assert(evalCount > 0)
+          val Right(_) = eval.apply(HelloWorldSbt.core.test.compile)
+          val Right(result) = eval.apply(HelloWorldSbt.core.scoverage.htmlReport())
+          assert(result.evalCount > 0)
         }
         test("xmlReport") - workspaceTest(HelloWorldSbt, sbtResourcePath) { eval =>
-          val Right((_, _)) = eval.apply(HelloWorldSbt.core.test.compile)
-          val Right((result, evalCount)) = eval.apply(HelloWorldSbt.core.scoverage.xmlReport())
-          assert(evalCount > 0)
+          val Right(_) = eval.apply(HelloWorldSbt.core.test.compile)
+          val Right(result) = eval.apply(HelloWorldSbt.core.scoverage.xmlReport())
+          assert(result.evalCount > 0)
         }
         test("console") - workspaceTest(HelloWorldSbt, sbtResourcePath) { eval =>
-          val Right((_, _)) = eval.apply(HelloWorldSbt.core.test.compile)
-          val Right((result, evalCount)) =
+          val Right(_) = eval.apply(HelloWorldSbt.core.test.compile)
+          val Right(result) =
             eval.apply(HelloWorldSbt.core.scoverage.consoleReport())
-          assert(evalCount > 0)
+          assert(result.evalCount > 0)
         }
       }
     }

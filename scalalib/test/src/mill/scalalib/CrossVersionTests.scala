@@ -149,15 +149,15 @@ object CrossVersionTests extends TestSuite {
       }
     }
 
-    val Right((deps, _)) = eval.apply(mod.transitiveIvyDeps)
+    val Right(deps) = eval.apply(mod.transitiveIvyDeps)
 
-    val depNames = deps.toSeq.map(d => d.name).sorted
+    val depNames = deps.value.toSeq.map(d => d.name).sorted
 
     assert(depNames == expectedDeps.sorted)
 
-    val Right((libs, _)) = eval.apply(mod.compileClasspath)
+    val Right(libs) = eval.apply(mod.compileClasspath)
 
-    val libNames = libs.map(l => l.path.last).filter(_.endsWith(".jar")).toSeq.sorted
+    val libNames = libs.value.map(l => l.path.last).filter(_.endsWith(".jar")).toSeq.sorted
     assert(libNames == expectedLibs.sorted)
   }
 

@@ -33,16 +33,16 @@ object SmallModulesForTests extends TestSuite {
     test("ModuleSplitStyle.SmallModulesFor") {
       println(evaluator(SmallModulesForModule.smallModulesForModule.sources))
 
-      val Right((report, _)) = evaluator(SmallModulesForModule.smallModulesForModule.fastLinkJS)
-      val publicModules = report.publicModules
+      val Right(result) = evaluator(SmallModulesForModule.smallModulesForModule.fastLinkJS)
+      val publicModules = result.value.publicModules
       test("it should have a single publicModule") {
         assert(publicModules.size == 1)
       }
       test("my.Foo should not have its own file since it is in a separate package") {
-        assert(!os.exists(report.dest.path / "otherpackage.Foo.js"))
+        assert(!os.exists(result.value.dest.path / "otherpackage.Foo.js"))
       }
-      println(os.list(report.dest.path))
-      val modulesLength = os.list(report.dest.path).length
+      println(os.list(result.value.dest.path))
+      val modulesLength = os.list(result.value.dest.path).length
 
       // this changed from 10 to 8 after Scala JS version 1.13
       assert(modulesLength == 8)

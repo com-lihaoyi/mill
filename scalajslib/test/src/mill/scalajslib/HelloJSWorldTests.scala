@@ -97,21 +97,21 @@ object HelloJSWorldTests extends TestSuite {
     prepareWorkspace()
     test("compile") {
       def testCompileFromScratch(scalaVersion: String, scalaJSVersion: String): Unit = {
-        val Right((result, evalCount)) =
+        val Right(result) =
           helloWorldEvaluator(HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion).compile)
 
-        val outPath = result.classes.path
+        val outPath = result.value.classes.path
         val outputFiles = os.walk(outPath)
         val expectedClassfiles = compileClassfiles(outPath, scalaVersion, scalaJSVersion)
         assert(
           outputFiles.toSet == expectedClassfiles,
-          evalCount > 0
+          result.evalCount > 0
         )
 
         // don't recompile if nothing changed
-        val Right((_, unchangedEvalCount)) =
+        val Right(result2) =
           helloWorldEvaluator(HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion).compile)
-        assert(unchangedEvalCount == 0)
+        assert(result2.evalCount == 0)
       }
 
       testAllMatrix((scala, scalaJS) => testCompileFromScratch(scala, scalaJS))
@@ -127,12 +127,12 @@ object HelloJSWorldTests extends TestSuite {
       val jsFile =
         if (legacy) {
           val task = if (optimize) module.fullOpt else module.fastOpt
-          val Right((result, evalCount)) = helloWorldEvaluator(task)
-          result.path
+          val Right(result) = helloWorldEvaluator(task)
+          result.value.path
         } else {
           val task = if (optimize) module.fullLinkJS else module.fastLinkJS
-          val Right((report, evalCount)) = helloWorldEvaluator(task)
-          report.dest.path / report.publicModules.head.jsFileName
+          val Right(result) = helloWorldEvaluator(task)
+          result.value.dest.path / result.value.publicModules.head.jsFileName
         }
       val output = ScalaJsUtils.runJS(jsFile)
       assert(output == "Hello Scala.js\n")
@@ -169,20 +169,20 @@ object HelloJSWorldTests extends TestSuite {
     test("jar") {
       test("containsSJSIRs") {
         val (scala, scalaJS) = HelloJSWorld.matrix.head
-        val Right((result, evalCount)) =
+        val Right(result) =
           helloWorldEvaluator(HelloJSWorld.helloJsWorld(scala, scalaJS).jar)
-        val jar = result.path
+        val jar = result.value.path
         val entries = new JarFile(jar.toIO).entries().asScala.map(_.getName)
         assert(entries.contains("Main$.sjsir"))
       }
     }
     test("publish") {
       def testArtifactId(scalaVersion: String, scalaJSVersion: String, artifactId: String): Unit = {
-        val Right((result, evalCount)) = helloWorldEvaluator(HelloJSWorld.helloJsWorld(
+        val Right(result) = helloWorldEvaluator(HelloJSWorld.helloJsWorld(
           scalaVersion,
           scalaJSVersion
         ).artifactMetadata)
-        assert(result.id == artifactId)
+        assert(result.value.id == artifactId)
       }
       test("artifactId_10") {
         testArtifactId(
@@ -277,12 +277,12 @@ object HelloJSWorldTests extends TestSuite {
     def checkRun(scalaVersion: String, scalaJSVersion: String): Unit = {
       val task = HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion).run()
 
-      val Right((_, evalCount)) = helloWorldEvaluator(task)
+      val Right(result) = helloWorldEvaluator(task)
 
       val paths = EvaluatorPaths.resolveDestPaths(helloWorldEvaluator.outPath, task)
       val log = os.read(paths.log)
       assert(
-        evalCount > 0,
+        result.evalCount > 0,
         log.contains("node")
         // TODO: reenable somehow
         // In Scala.js 1.x, println's are sent to the stdout, not to the logger
@@ -295,10 +295,10 @@ object HelloJSWorldTests extends TestSuite {
     }
 
     def checkInheritedTargets[A](target: ScalaJSModule => T[A], expected: A) = {
-      val Right((mainResult, _)) = helloWorldEvaluator(target(HelloJSWorld.inherited))
-      val Right((testResult, _)) = helloWorldEvaluator(target(HelloJSWorld.inherited.test))
-      assert(mainResult == expected)
-      assert(testResult == expected)
+      val Right(mainResult) = helloWorldEvaluator(target(HelloJSWorld.inherited))
+      val Right(testResult) = helloWorldEvaluator(target(HelloJSWorld.inherited.test))
+      assert(mainResult.value == expected)
+      assert(testResult.value == expected)
     }
     test("test-scalacOptions") {
       checkInheritedTargets(_.scalacOptions, Seq("-deprecation"))

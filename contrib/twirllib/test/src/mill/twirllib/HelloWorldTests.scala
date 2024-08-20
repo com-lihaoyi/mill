@@ -87,12 +87,12 @@ trait HelloWorldTests extends TestSuite {
     test("twirlVersion") {
 
       test("fromBuild") - workspaceTest(HelloWorld, "hello-world") { eval =>
-        val Right((result, evalCount)) =
+        val Right(result) =
           eval.apply(HelloWorld.core.twirlVersion)
 
         assert(
-          result == testTwirlVersion,
-          evalCount > 0
+          result.value == testTwirlVersion,
+          result.evalCount > 0
         )
       }
     }
@@ -101,19 +101,19 @@ trait HelloWorldTests extends TestSuite {
         workspaceTest(HelloWorld, "hello-world", debug = true) { eval =>
           val res = eval.apply(HelloWorld.core.compileTwirl)
           assert(res.isRight)
-          val Right((result, evalCount)) = res
+          val Right(result) = res
 
-          val outputFiles = os.walk(result.classes.path).filter(_.last.endsWith(".scala"))
+          val outputFiles = os.walk(result.value.classes.path).filter(_.last.endsWith(".scala"))
           val expectedClassfiles = compileClassfiles.map(
             eval.outPath / "core" / "compileTwirl.dest" / _
           )
 
           assert(
-            result.classes.path == eval.outPath / "core" / "compileTwirl.dest",
+            result.value.classes.path == eval.outPath / "core" / "compileTwirl.dest",
             outputFiles.nonEmpty,
             outputFiles.forall(expectedClassfiles.contains),
             outputFiles.size == 3,
-            evalCount > 0,
+            result.evalCount > 0,
             outputFiles.forall { p =>
               val lines = os.read.lines(p).map(_.trim)
               (expectedDefaultImports ++ testAdditionalImports.map(s => s"import $s")).forall(
@@ -128,10 +128,10 @@ trait HelloWorldTests extends TestSuite {
           )
 
           // don't recompile if nothing changed
-          val Right((_, unchangedEvalCount)) =
+          val Right(result2) =
             eval.apply(HelloWorld.core.compileTwirl)
 
-          assert(unchangedEvalCount == 0)
+          assert(result2.evalCount == 0)
         }
       }
     }
@@ -141,9 +141,9 @@ trait HelloWorldTests extends TestSuite {
           HelloWorldWithInclusiveDot,
           "hello-world-inclusive-dot"
         ) { eval =>
-          val Right((result, evalCount)) = eval.apply(HelloWorldWithInclusiveDot.core.compileTwirl)
+          val Right(result) = eval.apply(HelloWorldWithInclusiveDot.core.compileTwirl)
 
-          val outputFiles = os.walk(result.classes.path).filter(_.last.endsWith(".scala"))
+          val outputFiles = os.walk(result.value.classes.path).filter(_.last.endsWith(".scala"))
           val expectedClassfiles = compileClassfiles.map(name =>
             eval.outPath / "core" / "compileTwirl.dest" / name / os.RelPath.up / name.last.replace(
               ".template.scala",
@@ -154,11 +154,11 @@ trait HelloWorldTests extends TestSuite {
           println(s"outputFiles: $outputFiles")
 
           assert(
-            result.classes.path == eval.outPath / "core" / "compileTwirl.dest",
+            result.value.classes.path == eval.outPath / "core" / "compileTwirl.dest",
             outputFiles.nonEmpty,
             outputFiles.forall(expectedClassfiles.contains),
             outputFiles.size == 3,
-            evalCount > 0,
+            result.evalCount > 0,
             outputFiles.filter(_.toString().contains("hello.template.scala")).forall { p =>
               val lines = os.read.lines(p).map(_.trim)
               lines.exists(_.contains("$$TwirlInclusiveDot"))
@@ -166,10 +166,10 @@ trait HelloWorldTests extends TestSuite {
           )
 
           // don't recompile if nothing changed
-          val Right((_, unchangedEvalCount)) =
+          val Right(result2) =
             eval.apply(HelloWorld.core.compileTwirl)
 
-          assert(unchangedEvalCount == 0)
+          assert(result2.evalCount == 0)
         }
       }
     }

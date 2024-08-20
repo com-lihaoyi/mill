@@ -88,45 +88,45 @@ object TutorialTests extends TestSuite {
     test("scalapbVersion") {
 
       test("fromBuild") - workspaceTest(Tutorial) { eval =>
-        val Right((result, evalCount)) = eval.apply(Tutorial.core.scalaPBVersion)
+        val Right(result) = eval.apply(Tutorial.core.scalaPBVersion)
 
         assert(
-          result == testScalaPbVersion,
-          evalCount > 0
+          result.value == testScalaPbVersion,
+          result.evalCount > 0
         )
       }
     }
 
     test("compileScalaPB") {
       test("calledDirectly") - workspaceTest(Tutorial) { eval =>
-        val Right((result, evalCount)) = eval.apply(Tutorial.core.compileScalaPB)
+        val Right(result) = eval.apply(Tutorial.core.compileScalaPB)
 
         val outPath = protobufOutPath(eval)
 
-        val outputFiles = os.walk(result.path).filter(os.isFile)
+        val outputFiles = os.walk(result.value.path).filter(os.isFile)
 
         val expectedSourcefiles = compiledSourcefiles.map(outPath / _)
 
         assert(
-          result.path == eval.outPath / "core" / "compileScalaPB.dest",
+          result.value.path == eval.outPath / "core" / "compileScalaPB.dest",
           outputFiles.nonEmpty,
           outputFiles.forall(expectedSourcefiles.contains),
           outputFiles.size == 5,
-          evalCount > 0
+          result.evalCount > 0
         )
 
         // don't recompile if nothing changed
-        val Right((_, unchangedEvalCount)) = eval.apply(Tutorial.core.compileScalaPB)
+        val Right(result2) = eval.apply(Tutorial.core.compileScalaPB)
 
-        assert(unchangedEvalCount == 0)
+        assert(result2.evalCount == 0)
       }
 
       test("calledWithSpecificFile") - workspaceTest(TutorialWithSpecificSources) { eval =>
-        val Right((result, evalCount)) = eval.apply(TutorialWithSpecificSources.core.compileScalaPB)
+        val Right(result) = eval.apply(TutorialWithSpecificSources.core.compileScalaPB)
 
         val outPath = protobufOutPath(eval)
 
-        val outputFiles = os.walk(result.path).filter(os.isFile)
+        val outputFiles = os.walk(result.value.path).filter(os.isFile)
 
         val expectedSourcefiles = Seq[os.RelPath](
           os.rel / "AddressBook.scala",
@@ -136,17 +136,17 @@ object TutorialTests extends TestSuite {
         ).map(outPath / _)
 
         assert(
-          result.path == eval.outPath / "core" / "compileScalaPB.dest",
+          result.value.path == eval.outPath / "core" / "compileScalaPB.dest",
           outputFiles.nonEmpty,
           outputFiles.forall(expectedSourcefiles.contains),
           outputFiles.size == 3,
-          evalCount > 0
+          result.evalCount > 0
         )
 
         // don't recompile if nothing changed
-        val Right((_, unchangedEvalCount)) = eval.apply(Tutorial.core.compileScalaPB)
+        val Right(result2) = eval.apply(Tutorial.core.compileScalaPB)
 
-        assert(unchangedEvalCount == 0)
+        assert(result2.evalCount == 0)
       }
 
 //      // This throws a NullPointerException in coursier somewhere
@@ -191,8 +191,8 @@ object TutorialTests extends TestSuite {
           val result =
             eval.apply(TutorialWithAdditionalArgs.core.scalaPBCompileOptions)
           result match {
-            case Right((args, _)) =>
-              assert(args.exists(_.contains("--additional-test=...")))
+            case Right(result) =>
+              assert(result.value.exists(_.contains("--additional-test=...")))
             case _ => assert(false)
           }
       }

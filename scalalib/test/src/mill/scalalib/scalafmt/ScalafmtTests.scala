@@ -131,13 +131,13 @@ object ScalafmtTests extends TestSuite {
   case class FileInfo(content: String, modifyTime: Long, path: os.Path)
 
   def getProjectFiles(m: ScalaModule with BuildSrcModule, eval: TestEvaluator) = {
-    val Right((sources, _)) = eval.apply(m.sources)
-    val Right((resources, _)) = eval.apply(m.resources)
-    val Right((buildSources, _)) = eval.apply(m.buildSources)
+    val Right(sourcesRes) = eval.apply(m.sources)
+    val Right(resourcesRes) = eval.apply(m.resources)
+    val Right(buildSourcesRes) = eval.apply(m.buildSources)
 
-    val sourcesFiles = sources.flatMap(p => os.walk(p.path))
-    val resourcesFiles = resources.flatMap(p => os.walk(p.path))
-    val buildFiles = buildSources.map(_.path)
+    val sourcesFiles = sourcesRes.value.flatMap(p => os.walk(p.path))
+    val resourcesFiles = resourcesRes.value.flatMap(p => os.walk(p.path))
+    val buildFiles = buildSourcesRes.value.map(_.path)
     (sourcesFiles ++ resourcesFiles ++ buildFiles).map { p =>
       p.last -> FileInfo(os.read(p), os.mtime(p), p)
     }.toMap

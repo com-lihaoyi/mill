@@ -46,16 +46,16 @@ object ProguardTests extends TestSuite {
   def tests: Tests = Tests {
     test("Proguard module") {
       test("should download proguard jars") - workspaceTest(proguard) { eval =>
-        val Right((agg, _)) = eval.apply(proguard.proguardClasspath)
+        val Right(result) = eval.apply(proguard.proguardClasspath)
         assert(
-          agg.iterator.toSeq.nonEmpty,
-          agg.iterator.toSeq.head.path.toString().contains("proguard-base")
+          result.value.iterator.toSeq.nonEmpty,
+          result.value.iterator.toSeq.head.path.toString().contains("proguard-base")
         )
       }
 
       test("should create a proguarded jar") - workspaceTest(proguard) { eval =>
-        val Right((path, _)) = eval.apply(proguard.proguard)
-        assert(os.exists(path.path))
+        val Right(result) = eval.apply(proguard.proguard)
+        assert(os.exists(result.value.path))
       }
     }
   }

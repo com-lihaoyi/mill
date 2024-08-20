@@ -41,11 +41,11 @@ object MultiModuleTests extends TestSuite {
 
     def checkOpt(optimize: Boolean) = {
       val task = if (optimize) MultiModule.client.fullOpt else MultiModule.client.fastOpt
-      val Right((linked, evalCount)) = evaluator(task)
+      val Right(result) = evaluator(task)
 
-      val runOutput = ScalaJsUtils.runJS(linked.path)
+      val runOutput = ScalaJsUtils.runJS(result.value.path)
       assert(
-        evalCount > 0,
+        result.evalCount > 0,
         runOutput == "Hello from Scala.js, result is: 3\n"
       )
     }
@@ -54,24 +54,24 @@ object MultiModuleTests extends TestSuite {
     test("fullOpt") - checkOpt(optimize = true)
 
     test("test") {
-      val Right(((_, testResults), evalCount)) = evaluator(MultiModule.client.test.test())
+      val Right(result) = evaluator(MultiModule.client.test.test())
 
       assert(
-        evalCount > 0,
-        testResults.size == 3,
-        testResults.forall(_.status == "Success")
+        result.evalCount > 0,
+        result.value._2.size == 3,
+        result.value._2.forall(_.status == "Success")
       )
     }
 
     test("run") {
       val command = MultiModule.client.run()
 
-      val Right((_, evalCount)) = evaluator(command)
+      val Right(result) = evaluator(command)
 
       val paths = EvaluatorPaths.resolveDestPaths(evaluator.outPath, command)
       val log = os.read(paths.log)
       assert(
-        evalCount > 0,
+        result.evalCount > 0,
         log.contains("node")
         // TODO: re-enable somehow
         // In Scala.js 1.x, the stdout is no longer sent to the log, so this check doesn't work

@@ -85,8 +85,9 @@ object MainModuleTests extends TestSuite {
         )
       }
       test("command") {
-        val Right((Seq(res: String), _)) = eval.evalTokens("inspect", "helloCommand")
+        val Right(result) = eval.evalTokens("inspect", "helloCommand")
 
+        val Seq(res: String) = result.value
         assert(
           res.startsWith("helloCommand("),
           res.contains("MainModuleTests.scala:"),
@@ -166,9 +167,10 @@ object MainModuleTests extends TestSuite {
           failureMsg.contains("-x <int>"),
           failureMsg.contains("-y <str>")
         )
-        val Right((Seq(res), _)) =
+        val Right(result) =
           evaluator.evalTokens("show", "helloCommand", "-x", "1337", "-y", "lol")
 
+        val Seq(res) = result.value
         assert(res == ujson.Arr(1337, "lol", ujson.Arr("hello", "world")))
       }
     }

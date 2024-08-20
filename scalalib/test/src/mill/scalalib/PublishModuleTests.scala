@@ -103,14 +103,14 @@ object PublishModuleTests extends TestSuite {
     test("pom") {
       test("should include scala-library dependency") - workspaceTest(HelloWorldWithPublish) {
         eval =>
-          val Right((result, evalCount)) = eval.apply(HelloWorldWithPublish.core.pom)
+          val Right(result) = eval.apply(HelloWorldWithPublish.core.pom)
 
           assert(
-            os.exists(result.path),
-            evalCount > 0
+            os.exists(result.value.path),
+            result.evalCount > 0
           )
 
-          val pomXml = scala.xml.XML.loadFile(result.path.toString)
+          val pomXml = scala.xml.XML.loadFile(result.value.path.toString)
           val scalaLibrary = pomXml \ "dependencies" \ "dependency"
           assert(
             (pomXml \ "packaging").text == PackagingType.Jar,
@@ -119,14 +119,14 @@ object PublishModuleTests extends TestSuite {
           )
       }
       test("versionScheme") - workspaceTest(HelloWorldWithPublish) { eval =>
-        val Right((result, evalCount)) = eval.apply(HelloWorldWithPublish.core.pom)
+        val Right(result) = eval.apply(HelloWorldWithPublish.core.pom)
 
         assert(
-          os.exists(result.path),
-          evalCount > 0
+          os.exists(result.value.path),
+          result.evalCount > 0
         )
 
-        val pomXml = scala.xml.XML.loadFile(result.path.toString)
+        val pomXml = scala.xml.XML.loadFile(result.value.path.toString)
         val versionScheme = pomXml \ "properties" \ "info.versionScheme"
         assert(versionScheme.text == "early-semver")
       }
@@ -142,12 +142,12 @@ object PublishModuleTests extends TestSuite {
           "SONATYPE_PASSWORD" -> "password"
         )
       ) { eval =>
-        val Right((credentials, evalCount)) =
+        val Right(result) =
           eval.apply(HelloWorldWithPublish.core.checkSonatypeCreds(""))
 
         assert(
-          credentials == "user:password",
-          evalCount > 0
+          result.value == "user:password",
+          result.evalCount > 0
         )
       }
       test(
@@ -160,12 +160,12 @@ object PublishModuleTests extends TestSuite {
         )
       ) { eval =>
         val directValue = "direct:value"
-        val Right((credentials, evalCount)) =
+        val Right(result) =
           eval.apply(HelloWorldWithPublish.core.checkSonatypeCreds(directValue))
 
         assert(
-          credentials == directValue,
-          evalCount > 0
+          result.value == directValue,
+          result.evalCount > 0
         )
       }
       test(
@@ -185,14 +185,14 @@ object PublishModuleTests extends TestSuite {
     test("ivy") {
       test("should include scala-library dependency") - workspaceTest(HelloWorldWithPublish) {
         eval =>
-          val Right((result, evalCount)) = eval.apply(HelloWorldWithPublish.core.ivy)
+          val Right(result) = eval.apply(HelloWorldWithPublish.core.ivy)
 
           assert(
-            os.exists(result.path),
-            evalCount > 0
+            os.exists(result.value.path),
+            result.evalCount > 0
           )
 
-          val ivyXml = scala.xml.XML.loadFile(result.path.toString)
+          val ivyXml = scala.xml.XML.loadFile(result.value.path.toString)
           val deps: NodeSeq = (ivyXml \ "dependencies" \ "dependency")
           assert(deps.exists(n =>
             (n \ "@conf").text == "compile->default(compile)" &&
@@ -203,7 +203,7 @@ object PublishModuleTests extends TestSuite {
 
     test("pom-packaging-type") - {
       test("pom") - workspaceTest(PomOnly) { eval =>
-        val Right((result, evalCount)) = eval.apply(PomOnly.core.pom)
+        val Right(result) = eval.apply(PomOnly.core.pom)
 //
 //        assert(
 //          os.exists(result.path),

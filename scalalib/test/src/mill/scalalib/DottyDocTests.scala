@@ -54,7 +54,7 @@ object DottyDocTests extends TestSuite {
 
   def tests: Tests = Tests {
     test("static") - workspaceTest(StaticDocsModule) { eval =>
-      val Right((_, _)) = eval.apply(StaticDocsModule.static.docJar)
+      val Right(_) = eval.apply(StaticDocsModule.static.docJar)
       val dest = eval.outPath / "static" / "docJar.dest"
       assert(
         os.exists(dest / "out.jar"), // final jar should exist
@@ -66,7 +66,7 @@ object DottyDocTests extends TestSuite {
       )
     }
     test("empty") - workspaceTest(EmptyDocsModule) { eval =>
-      val Right((_, _)) = eval.apply(EmptyDocsModule.empty.docJar)
+      val Right(_) = eval.apply(EmptyDocsModule.empty.docJar)
       val dest = eval.outPath / "empty" / "docJar.dest"
       assert(
         os.exists(dest / "out.jar"),
@@ -74,7 +74,7 @@ object DottyDocTests extends TestSuite {
       )
     }
     test("multiple") - workspaceTest(MultiDocsModule) { eval =>
-      val Right((_, _)) = eval.apply(MultiDocsModule.multidocs.docJar)
+      val Right(_) = eval.apply(MultiDocsModule.multidocs.docJar)
       val dest = eval.outPath / "multidocs" / "docJar.dest"
       assert(
         os.exists(dest / "out.jar"), // final jar should exist

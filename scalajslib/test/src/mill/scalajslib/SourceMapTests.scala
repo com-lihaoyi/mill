@@ -29,14 +29,14 @@ object SourceMapTests extends TestSuite {
     prepareWorkspace()
 
     test("should disable source maps") {
-      val Right((report, _)) =
+      val Right(result) =
         evaluator(SourceMapModule.sourceMapModule.fastLinkJS)
-      val publicModules = report.publicModules.toSeq
+      val publicModules = result.value.publicModules.toSeq
       assert(publicModules.length == 1)
       val main = publicModules.head
       assert(main.jsFileName == "main.js")
-      assert(os.exists(report.dest.path / "main.js"))
-      assert(!os.exists(report.dest.path / "main.js.map"))
+      assert(os.exists(result.value.dest.path / "main.js"))
+      assert(!os.exists(result.value.dest.path / "main.js.map"))
     }
   }
 
