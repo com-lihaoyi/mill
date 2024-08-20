@@ -10,7 +10,7 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
       out.linesIterator.filter(!_.contains("[info]")).toSet
     }
     initWorkspace()
-    "single" - {
+    test("single") {
       // Tests for fine-grained method-based invalidation within a single ScalaModule
 
       // Check normal behavior for initial run and subsequent fully-cached run
@@ -120,7 +120,7 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
       )
     }
 
-    "multiple" - {
+    test("multiple") {
       // Tests for fine-grained method-based invalidation between multiple ScalaModules,
       // some related and some not
 

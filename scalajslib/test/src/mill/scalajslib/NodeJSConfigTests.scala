@@ -89,16 +89,16 @@ object NodeJSConfigTests extends TestSuite {
         )
 
       test("test") - checkUtest(nodeArgsEmpty, nodeArgs2G)
-      "test2G" - checkUtest(nodeArgs2G, nodeArgs4G)
+      test("test2G") - checkUtest(nodeArgs2G, nodeArgs4G)
     }
 
     def checkRun(nodeArgs: List[String], notNodeArgs: List[String]): Unit = {
       checkLog(HelloJSWorld.helloJsWorld(scalaVersion, nodeArgs).run(), nodeArgs, notNodeArgs)
     }
 
-    "run" - {
-      "run" - checkRun(nodeArgsEmpty, nodeArgs2G)
-      "run2G" - checkRun(nodeArgs2G, nodeArgs4G)
+    test("run") {
+      test("run") - checkRun(nodeArgsEmpty, nodeArgs2G)
+      test("run2G") - checkRun(nodeArgs2G, nodeArgs4G)
     }
   }
 

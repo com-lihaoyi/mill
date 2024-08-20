@@ -84,19 +84,19 @@ object DockerModuleTest extends TestSuite {
   def tests = Tests {
 
     test("docker build") {
-      "default options" - workspaceTest(Docker) { eval =>
+      test("default options") - workspaceTest(Docker) { eval =>
         val Right((imageName :: Nil, _)) = eval(Docker.dockerDefault.build)
         assert(imageName == testArtifactName)
       }
 
-      "all options" - workspaceTest(Docker) { eval =>
+      test("all options") - workspaceTest(Docker) { eval =>
         val Right((imageName :: Nil, _)) = eval(Docker.dockerAll.build)
         assert(imageName == testArtifactName)
       }
     }
 
     test("dockerfile contents") {
-      "default options" - {
+      test("default options") {
         val eval = new TestEvaluator(Docker)
         val Right((dockerfileString, _)) = eval(Docker.dockerDefault.dockerfile)
         val expected = multineRegex.replaceAllIn(
@@ -113,7 +113,7 @@ object DockerModuleTest extends TestSuite {
         assert(dockerfileStringRefined == expected)
       }
 
-      "all options" - {
+      test("all options") {
         val eval = new TestEvaluator(Docker)
         val Right((dockerfileString, _)) = eval(Docker.dockerAll.dockerfile)
         val expected = multineRegex.replaceAllIn(
@@ -139,7 +139,7 @@ object DockerModuleTest extends TestSuite {
         assert(dockerfileStringRefined == expected)
       }
 
-      "extra jvm options" - {
+      test("extra jvm options") {
         val eval = new TestEvaluator(Docker)
         val Right((dockerfileString, _)) = eval(Docker.dockerJvmOptions.dockerfile)
         val expected = multineRegex.replaceAllIn(

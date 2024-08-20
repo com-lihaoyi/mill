@@ -7,7 +7,7 @@ import utest._
 object PrivateMethodsTests extends IntegrationTestSuite {
   val tests: Tests = Tests {
     initWorkspace()
-    "simple" - {
+    test("simple") {
       // Simple public target depending on private target works
       val pub = eval(("show", "pub"))
       assert(pub.out == "\"priv\"")

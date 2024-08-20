@@ -5,8 +5,8 @@ import utest._
 object EvaluatorPathsTests extends TestSuite {
 
   override def tests: Tests = Tests {
-    "sanitizedPathSegment" - {
-      "mask-reserved-chars-and-names" - {
+    test("sanitizedPathSegment") {
+      test("mask-reserved-chars-and-names") {
         val replace = Seq(
           // reserved file names under Windows
           "com1.json" -> "com1~.json",

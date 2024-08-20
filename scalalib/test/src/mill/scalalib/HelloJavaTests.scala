@@ -38,7 +38,7 @@ object HelloJavaTests extends TestSuite {
     eval
   }
   def tests: Tests = Tests {
-    "compile" - {
+    test("compile") {
       val eval = init()
 
       val Right((res1, n1)) = eval.apply(HelloJava.core.compile)
@@ -55,11 +55,11 @@ object HelloJavaTests extends TestSuite {
         !os.walk(res3.classes.path).exists(_.last == "Core.class")
       )
     }
-    "semanticDbData" - {
+    test("semanticDbData") {
       val expectedFile1 =
         os.rel / "META-INF" / "semanticdb" / "core" / "src" / "Core.java.semanticdb"
 
-      "fromScratch" - {
+      test("fromScratch") {
         val eval = init()
         val Right((result, evalCount)) = eval.apply(HelloJava.core.semanticDbData)
 
@@ -77,7 +77,7 @@ object HelloJavaTests extends TestSuite {
         val Right((_, unchangedEvalCount)) = eval.apply(HelloJava.core.semanticDbData)
         assert(unchangedEvalCount == 0)
       }
-      "incremental" - {
+      test("incremental") {
         val eval = init()
 
         // create a second source file
@@ -135,13 +135,13 @@ object HelloJavaTests extends TestSuite {
         )
       }
     }
-    "docJar" - {
-      "withoutArgsFile" - {
+    test("docJar") {
+      test("withoutArgsFile") {
         val eval = init()
         val Right((ref1, _)) = eval.apply(HelloJava.core.docJar)
         assert(os.proc("jar", "tf", ref1.path).call().out.lines().contains("hello/Core.html"))
       }
-      "withArgsFile" - {
+      test("withArgsFile") {
         val eval = init()
         val Right((ref2, _)) = eval.apply(HelloJava.app.docJar)
         assert(os.proc("jar", "tf", ref2.path).call().out.lines().contains("hello/Main.html"))
@@ -181,7 +181,7 @@ object HelloJavaTests extends TestSuite {
 
       assert(testResults == expected)
     }
-    "failures" - {
+    test("failures") {
       val eval = init()
 
       val mainJava = HelloJava.millSourcePath / "app" / "src" / "Main.java"

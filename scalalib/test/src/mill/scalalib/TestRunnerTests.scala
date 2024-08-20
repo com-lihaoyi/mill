@@ -108,19 +108,19 @@ object TestRunnerTests extends TestSuite {
             )
           }
 
-          "suffix" - workspaceTest(testrunner) { eval =>
+          test("suffix") - workspaceTest(testrunner) { eval =>
             testOnly(eval, Seq("*arTests"), 2)
           }
-          "prefix" - workspaceTest(testrunner) { eval =>
+          test("prefix") - workspaceTest(testrunner) { eval =>
             testOnly(eval, Seq("mill.scalalib.FooT*"), 1)
           }
-          "exactly" - workspaceTest(testrunner) { eval =>
+          test("exactly") - workspaceTest(testrunner) { eval =>
             testOnly(eval, Seq("mill.scalalib.FooTests"), 1)
           }
-          "multi" - workspaceTest(testrunner) { eval =>
+          test("multi") - workspaceTest(testrunner) { eval =>
             testOnly(eval, Seq("*Bar*", "*bar*"), 2)
           }
-          "noMatch" - workspaceTest(testrunner) { eval =>
+          test("noMatch") - workspaceTest(testrunner) { eval =>
             val Left(Result.Failure(msg, _)) =
               eval.apply(testrunner.utest.testOnly("noMatch", "noMatch*2"))
             assert(
@@ -130,7 +130,7 @@ object TestRunnerTests extends TestSuite {
         }
       }
 
-      "doneMessage" - {
+      test("doneMessage") {
         test("failure") {
           val outStream = new ByteArrayOutputStream()
           workspaceTest(testrunner, outStream = new PrintStream(outStream, true)) { eval =>
@@ -154,7 +154,7 @@ object TestRunnerTests extends TestSuite {
           }
         }
       }
-      "ScalaTest" - {
+      test("ScalaTest") {
         test("scalatest.test") {
           workspaceTest(testrunner) { eval =>
             val Right((testRes, count)) = eval(testrunner.scalatest.test())
@@ -170,7 +170,7 @@ object TestRunnerTests extends TestSuite {
         }
       }
 
-      "ZioTest" - {
+      test("ZioTest") {
         test("ziotest.test") {
           workspaceTest(testrunner) { eval =>
             val Right((testRes, count)) = eval(testrunner.ziotest.test())

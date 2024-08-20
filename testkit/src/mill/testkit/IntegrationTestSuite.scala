@@ -7,8 +7,6 @@ import utest._
 import scala.util.control.NonFatal
 import ujson.Value
 
-
-
 abstract class IntegrationTestSuite extends TestSuite {
 
   protected val clientServerMode: Boolean = sys.env("MILL_INTEGRATION_SERVER_MODE").toBoolean

@@ -13,16 +13,16 @@ object BloopTests extends IntegrationTestSuite {
     test("test") - {
       assert(installResult)
 
-      "root module bloop config should be created" - {
+      test("root module bloop config should be created") {
         assert(os.exists(workspacePath / ".bloop" / "root-module.json"))
       }
       val millBuildJsonFile = workspacePath / ".bloop" / "mill-build-.json"
-      "mill-build module bloop config should be created" - {
+      test("mill-build module bloop config should be created") {
         assert(os.exists(millBuildJsonFile))
       }
 
       val config = ujson.read(os.read.stream(millBuildJsonFile))
-      "mill-build config should contain build.sc source" - {
+      test("mill-build config should contain build.sc source") {
         assert(config("project")("sources").arr.exists(path =>
           os.Path(path.str).last == "build.sc"
         ))

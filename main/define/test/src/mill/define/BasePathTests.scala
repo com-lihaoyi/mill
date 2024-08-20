@@ -12,31 +12,31 @@ object BasePathTests extends TestSuite {
       val remaining = sub.millSourcePath.relativeTo(m.millSourcePath).segments
       assert(remaining == segments)
     }
-    "singleton" - {
+    test("singleton") {
       checkMillSourcePath(testGraphs.singleton)(identity)
     }
-    "backtickIdentifiers" - {
+    test("backtickIdentifiers") {
       checkMillSourcePath(testGraphs.bactickIdentifiers)(
         _.`nested-module`,
         "nested-module"
       )
     }
-    "separateGroups" - {
+    test("separateGroups") {
       checkMillSourcePath(TestGraphs.triangleTask)(identity)
     }
-    "TraitWithModuleObject" - {
+    test("TraitWithModuleObject") {
       checkMillSourcePath(TestGraphs.TraitWithModuleObject)(
         _.TraitModule,
         "TraitModule"
       )
     }
-    "nestedModuleNested" - {
+    test("nestedModuleNested") {
       checkMillSourcePath(TestGraphs.nestedModule)(_.nested, "nested")
     }
-    "nestedModuleInstance" - {
+    test("nestedModuleInstance") {
       checkMillSourcePath(TestGraphs.nestedModule)(_.classInstance, "classInstance")
     }
-    "singleCross" - {
+    test("singleCross") {
       checkMillSourcePath(TestGraphs.singleCross)(_.cross, "cross")
       checkMillSourcePath(TestGraphs.singleCross)(_.cross("210"), "cross")
       checkMillSourcePath(TestGraphs.singleCross)(_.cross("211"), "cross")
@@ -44,16 +44,16 @@ object BasePathTests extends TestSuite {
       checkMillSourcePath(TestGraphs.singleCross)(_.cross2("210"), "cross2", "210")
       checkMillSourcePath(TestGraphs.singleCross)(_.cross2("211"), "cross2", "211")
     }
-    "doubleCross" - {
+    test("doubleCross") {
       checkMillSourcePath(TestGraphs.doubleCross)(_.cross, "cross")
       checkMillSourcePath(TestGraphs.doubleCross)(_.cross("210", "jvm"), "cross")
       checkMillSourcePath(TestGraphs.doubleCross)(_.cross("212", "js"), "cross")
     }
-    "nestedCrosses" - {
+    test("nestedCrosses") {
       checkMillSourcePath(TestGraphs.nestedCrosses)(_.cross, "cross")
       checkMillSourcePath(TestGraphs.nestedCrosses)(_.cross("210").cross2("js"), "cross", "cross2")
     }
-    "overridden" - {
+    test("overridden") {
       object overriddenBasePath extends mill.testkit.BaseModule {
         override def millSourcePath = os.pwd / "overriddenBasePathRootValue"
         object nested extends Module {

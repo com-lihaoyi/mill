@@ -50,8 +50,8 @@ object MultiModuleTests extends TestSuite {
       )
     }
 
-    "fastOpt" - checkOpt(optimize = false)
-    "fullOpt" - checkOpt(optimize = true)
+    test("fastOpt") - checkOpt(optimize = false)
+    test("fullOpt") - checkOpt(optimize = true)
 
     test("test") {
       val Right(((_, testResults), evalCount)) = evaluator(MultiModule.client.test.test())

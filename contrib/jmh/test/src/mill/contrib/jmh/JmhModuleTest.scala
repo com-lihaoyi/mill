@@ -34,7 +34,7 @@ object JmhModuleTest extends TestSuite {
 
   def tests = Tests {
     test("jmh") {
-      "listJmhBenchmarks" - workspaceTest(jmh) { eval =>
+      test("listJmhBenchmarks") - workspaceTest(jmh) { eval =>
         val paths = EvaluatorPaths.resolveDestPaths(eval.outPath, jmh.listJmhBenchmarks())
         val outFile = paths.dest / "benchmarks.out"
         val Right((result, _)) = eval(jmh.listJmhBenchmarks("-o", outFile.toString))

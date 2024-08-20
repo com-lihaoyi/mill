@@ -85,9 +85,9 @@ object TutorialTests extends TestSuite {
   )
 
   def tests: Tests = Tests {
-    "scalapbVersion" - {
+    test("scalapbVersion") {
 
-      "fromBuild" - workspaceTest(Tutorial) { eval =>
+      test("fromBuild") - workspaceTest(Tutorial) { eval =>
         val Right((result, evalCount)) = eval.apply(Tutorial.core.scalaPBVersion)
 
         assert(
@@ -97,8 +97,8 @@ object TutorialTests extends TestSuite {
       }
     }
 
-    "compileScalaPB" - {
-      "calledDirectly" - workspaceTest(Tutorial) { eval =>
+    test("compileScalaPB") {
+      test("calledDirectly") - workspaceTest(Tutorial) { eval =>
         val Right((result, evalCount)) = eval.apply(Tutorial.core.compileScalaPB)
 
         val outPath = protobufOutPath(eval)
@@ -121,7 +121,7 @@ object TutorialTests extends TestSuite {
         assert(unchangedEvalCount == 0)
       }
 
-      "calledWithSpecificFile" - workspaceTest(TutorialWithSpecificSources) { eval =>
+      test("calledWithSpecificFile") - workspaceTest(TutorialWithSpecificSources) { eval =>
         val Right((result, evalCount)) = eval.apply(TutorialWithSpecificSources.core.compileScalaPB)
 
         val outPath = protobufOutPath(eval)
@@ -151,7 +151,7 @@ object TutorialTests extends TestSuite {
 
 //      // This throws a NullPointerException in coursier somewhere
 //      //
-//      // "triggeredByScalaCompile" - workspaceTest(Tutorial) { eval =>
+//      // test("triggeredByScalaCompile") -workspaceTest(Tutorial) { eval =>
 //      //   val Right((_, evalCount)) = eval.apply(Tutorial.core.compile)
 //
 //      //   val outPath = protobufOutPath(eval)
@@ -175,18 +175,18 @@ object TutorialTests extends TestSuite {
 //     }
     }
 
-    "useExternalProtocCompiler" - {
+    test("useExternalProtocCompiler") {
       /* This ensure that the `scalaPBProtocPath` is properly used.
        * As the given path is incorrect, the compilation should fail.
        */
-      "calledWithWrongProtocFile" - workspaceTest(TutorialWithProtoc) { eval =>
+      test("calledWithWrongProtocFile") - workspaceTest(TutorialWithProtoc) { eval =>
         val result = eval.apply(TutorialWithProtoc.core.compileScalaPB)
         assert(result.isLeft)
       }
     }
 
-    "compilationArgs" - {
-      "calledWithAdditionalArgs" - workspaceTest(TutorialWithAdditionalArgs) {
+    test("compilationArgs") {
+      test("calledWithAdditionalArgs") - workspaceTest(TutorialWithAdditionalArgs) {
         eval =>
           val result =
             eval.apply(TutorialWithAdditionalArgs.core.scalaPBCompileOptions)

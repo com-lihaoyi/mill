@@ -122,7 +122,7 @@ object ClientServerTests extends TestSuite {
 
   def tests = Tests {
     val tester = new Tester
-    "hello" - retry(3) {
+    test("hello") - retry(3) {
 
       val res1 = tester(args = Array("world"))
 
@@ -162,7 +162,7 @@ object ClientServerTests extends TestSuite {
       }
     }
 
-    "concurrency" - {
+    test("concurrency") {
       // Make sure concurrently running client commands results in multiple processes
       // being spawned, running in different folders
       import concurrent._
@@ -186,7 +186,7 @@ object ClientServerTests extends TestSuite {
       assert(resF3.out == s"hello wOrLd$ENDL")
     }
 
-    "clientLockReleasedOnFailure" - {
+    test("clientLockReleasedOnFailure") {
       // When the client gets interrupted via Ctrl-C, we exit the server immediately. This
       // is because Mill ends up executing arbitrary JVM code, and there is no generic way
       // to interrupt such an execution. The two options are to leave the server running
@@ -210,7 +210,7 @@ object ClientServerTests extends TestSuite {
       )
     }
 
-    "envVars" - retry(3) {
+    test("envVars") - retry(3) {
       // Make sure the simple "have the client start a server and
       // exchange one message" workflow works from end to end.
 

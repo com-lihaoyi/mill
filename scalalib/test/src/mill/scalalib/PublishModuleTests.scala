@@ -100,24 +100,25 @@ object PublishModuleTests extends TestSuite {
   }
 
   def tests: Tests = Tests {
-    "pom" - {
-      "should include scala-library dependency" - workspaceTest(HelloWorldWithPublish) { eval =>
-        val Right((result, evalCount)) = eval.apply(HelloWorldWithPublish.core.pom)
+    test("pom") {
+      test("should include scala-library dependency") - workspaceTest(HelloWorldWithPublish) {
+        eval =>
+          val Right((result, evalCount)) = eval.apply(HelloWorldWithPublish.core.pom)
 
-        assert(
-          os.exists(result.path),
-          evalCount > 0
-        )
+          assert(
+            os.exists(result.path),
+            evalCount > 0
+          )
 
-        val pomXml = scala.xml.XML.loadFile(result.path.toString)
-        val scalaLibrary = pomXml \ "dependencies" \ "dependency"
-        assert(
-          (pomXml \ "packaging").text == PackagingType.Jar,
-          (scalaLibrary \ "artifactId").text == "scala-library",
-          (scalaLibrary \ "groupId").text == "org.scala-lang"
-        )
+          val pomXml = scala.xml.XML.loadFile(result.path.toString)
+          val scalaLibrary = pomXml \ "dependencies" \ "dependency"
+          assert(
+            (pomXml \ "packaging").text == PackagingType.Jar,
+            (scalaLibrary \ "artifactId").text == "scala-library",
+            (scalaLibrary \ "groupId").text == "org.scala-lang"
+          )
       }
-      "versionScheme" - workspaceTest(HelloWorldWithPublish) { eval =>
+      test("versionScheme") - workspaceTest(HelloWorldWithPublish) { eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorldWithPublish.core.pom)
 
         assert(
@@ -131,8 +132,10 @@ object PublishModuleTests extends TestSuite {
       }
     }
 
-    "publish" - {
-      "should retrieve credentials from environment variables if direct argument is empty" - workspaceTest(
+    test("publish") {
+      test(
+        "should retrieve credentials from environment variables if direct argument is empty"
+      ) - workspaceTest(
         HelloWorldWithPublish,
         env = Evaluator.defaultEnv ++ Seq(
           "SONATYPE_USERNAME" -> "user",
@@ -147,7 +150,9 @@ object PublishModuleTests extends TestSuite {
           evalCount > 0
         )
       }
-      "should prefer direct argument as credentials over environment variables" - workspaceTest(
+      test(
+        "should prefer direct argument as credentials over environment variables"
+      ) - workspaceTest(
         HelloWorldWithPublish,
         env = Evaluator.defaultEnv ++ Seq(
           "SONATYPE_USERNAME" -> "user",
@@ -163,7 +168,9 @@ object PublishModuleTests extends TestSuite {
           evalCount > 0
         )
       }
-      "should throw exception if neither environment variables or direct argument were not passed" - workspaceTest(
+      test(
+        "should throw exception if neither environment variables or direct argument were not passed"
+      ) - workspaceTest(
         HelloWorldWithPublish
       ) { eval =>
         val Left(Result.Failure(msg, None)) =
@@ -175,21 +182,22 @@ object PublishModuleTests extends TestSuite {
       }
     }
 
-    "ivy" - {
-      "should include scala-library dependency" - workspaceTest(HelloWorldWithPublish) { eval =>
-        val Right((result, evalCount)) = eval.apply(HelloWorldWithPublish.core.ivy)
+    test("ivy") {
+      test("should include scala-library dependency") - workspaceTest(HelloWorldWithPublish) {
+        eval =>
+          val Right((result, evalCount)) = eval.apply(HelloWorldWithPublish.core.ivy)
 
-        assert(
-          os.exists(result.path),
-          evalCount > 0
-        )
+          assert(
+            os.exists(result.path),
+            evalCount > 0
+          )
 
-        val ivyXml = scala.xml.XML.loadFile(result.path.toString)
-        val deps: NodeSeq = (ivyXml \ "dependencies" \ "dependency")
-        assert(deps.exists(n =>
-          (n \ "@conf").text == "compile->default(compile)" &&
-            (n \ "@name").text == "scala-library" && (n \ "@org").text == "org.scala-lang"
-        ))
+          val ivyXml = scala.xml.XML.loadFile(result.path.toString)
+          val deps: NodeSeq = (ivyXml \ "dependencies" \ "dependency")
+          assert(deps.exists(n =>
+            (n \ "@conf").text == "compile->default(compile)" &&
+              (n \ "@name").text == "scala-library" && (n \ "@org").text == "org.scala-lang"
+          ))
       }
     }
 

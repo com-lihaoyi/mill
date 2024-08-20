@@ -84,9 +84,9 @@ trait HelloWorldTests extends TestSuite {
   }
 
   def tests: Tests = Tests {
-    "twirlVersion" - {
+    test("twirlVersion") {
 
-      "fromBuild" - workspaceTest(HelloWorld, "hello-world") { eval =>
+      test("fromBuild") - workspaceTest(HelloWorld, "hello-world") { eval =>
         val Right((result, evalCount)) =
           eval.apply(HelloWorld.core.twirlVersion)
 

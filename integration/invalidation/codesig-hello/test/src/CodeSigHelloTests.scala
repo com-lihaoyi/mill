@@ -7,7 +7,7 @@ import utest._
 object CodeSigHelloTests extends IntegrationTestSuite {
   val tests: Tests = Tests {
     initWorkspace()
-    "simple" - {
+    test("simple") {
       // Make sure the simplest case where we have a single target calling a single helper
       // method is properly invalidated when either the target body, or the helper method's body
       // is changed, or something changed in the constructor

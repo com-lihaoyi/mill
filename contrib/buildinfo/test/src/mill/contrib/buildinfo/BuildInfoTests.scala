@@ -112,12 +112,12 @@ object BuildInfoTests extends TestSuite {
     eval.outPath / "buildInfoResources.dest" / "foo" / "BuildInfo.buildinfo.properties"
   def tests: Tests = Tests {
 
-    "notCreateEmptySourcefile" - workspaceTest(EmptyBuildInfo, "scala") { eval =>
+    test("notCreateEmptySourcefile") - workspaceTest(EmptyBuildInfo, "scala") { eval =>
       val Right((result, evalCount)) = eval.apply(EmptyBuildInfo.buildInfoSources)
       assert(!os.exists(buildInfoSourcePath(eval)))
     }
 
-    "fileGeneration" - workspaceTest(BuildInfoComment, "scala") { eval =>
+    test("fileGeneration") - workspaceTest(BuildInfoComment, "scala") { eval =>
       val Right((result, evalCount)) =
         eval.apply(BuildInfoComment.compile)
 
@@ -151,7 +151,7 @@ object BuildInfoTests extends TestSuite {
       assert(buildInfoResource.contains(expectedResource))
     }
 
-    "supportCustomSettings" - workspaceTest(BuildInfoSettings, "scala") { eval =>
+    test("supportCustomSettings") - workspaceTest(BuildInfoSettings, "scala") { eval =>
       val Right((result, evalCount)) = eval.apply(BuildInfoSettings.buildInfoSources)
       val path = result.head.path
 
@@ -161,12 +161,12 @@ object BuildInfoTests extends TestSuite {
       assert(found.contains("object bar"))
     }
 
-    "compile" - workspaceTest(BuildInfoPlain, "scala") { eval =>
+    test("compile") - workspaceTest(BuildInfoPlain, "scala") { eval =>
       val Right((result, evalCount)) = eval.apply(BuildInfoPlain.compile)
       assert(true)
     }
 
-    "run" - workspaceTest(BuildInfoPlain, "scala") { eval =>
+    test("run") - workspaceTest(BuildInfoPlain, "scala") { eval =>
       val runResult = eval.outPath / "hello-mill"
       val Right((result, evalCount)) =
         eval.apply(BuildInfoPlain.run(T.task(Args(runResult.toString))))
@@ -177,12 +177,12 @@ object BuildInfoTests extends TestSuite {
       )
     }
 
-    "scalajs" - workspaceTest(BuildInfoScalaJS, "scala-simple") { eval =>
+    test("scalajs") - workspaceTest(BuildInfoScalaJS, "scala-simple") { eval =>
       val runResult = eval.outPath / "hello-mill"
       assert(eval.apply(BuildInfoScalaJS.fastLinkJS).isRight)
     }
 
-    "static" - workspaceTest(BuildInfoStatic, "scala") { eval =>
+    test("static") - workspaceTest(BuildInfoStatic, "scala") { eval =>
       // When `buildInfoStaticCompiled = true`, make sure we always create the
       // buildinfo Scala file and never create the resource file
       val runResult = eval.outPath / "hello-mill"
@@ -196,7 +196,7 @@ object BuildInfoTests extends TestSuite {
       assert(os.read(runResult) == scalaVersionString)
     }
 
-    "java" - workspaceTest(BuildInfoJava, "java") { eval =>
+    test("java") - workspaceTest(BuildInfoJava, "java") { eval =>
       val runResult = eval.outPath / "hello-mill"
       val Right((result, evalCount)) =
         eval.apply(BuildInfoJava.run(T.task(Args(runResult.toString))))
@@ -207,7 +207,7 @@ object BuildInfoTests extends TestSuite {
       )
     }
 
-    "java-static" - workspaceTest(BuildInfoJavaStatic, "java") { eval =>
+    test("java-static") - workspaceTest(BuildInfoJavaStatic, "java") { eval =>
       val runResult = eval.outPath / "hello-mill"
       val generatedSrc = eval.outPath / "buildInfoSources.dest" / "foo" / "BuildInfo.java"
       val Right((result, evalCount)) =
@@ -220,7 +220,7 @@ object BuildInfoTests extends TestSuite {
       )
     }
 
-    "generatedSources must be a folder" - workspaceTest(BuildInfoPlain, "scala") { eval =>
+    test("generatedSources must be a folder") - workspaceTest(BuildInfoPlain, "scala") { eval =>
       val buildInfoGeneratedSourcesFolder = eval.outPath / "buildInfoSources.dest"
       val Right((result, evalCount)) = eval.apply(BuildInfoPlain.generatedSources)
       assert(

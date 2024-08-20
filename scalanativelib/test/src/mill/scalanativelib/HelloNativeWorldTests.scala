@@ -101,7 +101,7 @@ object HelloNativeWorldTests extends TestSuite {
 
   def tests: Tests = Tests {
     prepareWorkspace()
-    "compile" - {
+    test("compile") {
       def testCompileFromScratch(
           scalaVersion: String,
           scalaNativeVersion: String,
@@ -137,8 +137,8 @@ object HelloNativeWorldTests extends TestSuite {
       )
     }
 
-    "jar" - {
-      "containsNirs" - {
+    test("jar") {
+      test("containsNirs") {
         val Right((result, evalCount)) =
           helloWorldEvaluator(HelloNativeWorld.helloNativeWorld(
             scala213,
@@ -150,7 +150,7 @@ object HelloNativeWorldTests extends TestSuite {
         assert(entries.contains("hello/Main$.nir"))
       }
     }
-    "publish" - {
+    test("publish") {
       def testArtifactId(
           scalaVersion: String,
           scalaNativeVersion: String,
@@ -166,7 +166,7 @@ object HelloNativeWorldTests extends TestSuite {
         )
         assert(result.id == artifactId)
       }
-      "artifactId_040" - testArtifactId(
+      test("artifactId_040") - testArtifactId(
         scala213,
         scalaNative04Old,
         ReleaseMode.Debug,
@@ -220,7 +220,7 @@ object HelloNativeWorldTests extends TestSuite {
             v.startsWith("0.5.") // Remove this once utest is released for Scala Native 0.5
       )
     }
-    "testCached" - {
+    test("testCached") {
       val cached = true
       testAllMatrix(
         (scala, scalaNative, releaseMode) => checkUtest(scala, scalaNative, releaseMode, cached),
@@ -243,7 +243,7 @@ object HelloNativeWorldTests extends TestSuite {
       )
     }
 
-    "run" - {
+    test("run") {
       testAllMatrix((scala, scalaNative, releaseMode) => checkRun(scala, scalaNative, releaseMode))
     }
 

@@ -8,7 +8,7 @@ object CodeSigNestedTests extends IntegrationTestSuite {
   val tests: Tests = Tests {
     initWorkspace()
 
-    "nested" - {
+    test("nested") {
       // Make sure the code-change invalidation works in more complex cases: multi-step
       // target graphs, targets inside module objects, targets inside module traits
 
@@ -190,7 +190,7 @@ object CodeSigNestedTests extends IntegrationTestSuite {
       assert(addedNewlinesInsideCurlies.out == "")
     }
 
-    "trait" - {
+    test("trait") {
       val initial = eval("traitOuter.traitInner.inner")
       assert(
         initial.out.linesIterator.toSet == Set(

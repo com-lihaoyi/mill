@@ -137,14 +137,14 @@ trait TaskTests extends TestSuite {
 
   val tests = Tests {
 
-    "inputs" - withEnv { (build, check) =>
+    test("inputs") - withEnv { (build, check) =>
       // Inputs always re-evaluate, including forcing downstream cached Targets
       // to re-evaluate, but normal Tasks behind a Target run once then are cached
       check.apply(build.taskInput) ==> Right((1, 1))
       check.apply(build.taskInput) ==> Right((2, 1))
       check.apply(build.taskInput) ==> Right((3, 1))
     }
-    "noInputs" - withEnv { (build, check) =>
+    test("noInputs") - withEnv { (build, check) =>
       // Inputs always re-evaluate, including forcing downstream cached Targets
       // to re-evaluate, but normal Tasks behind a Target run once then are cached
       check.apply(build.taskNoInput) ==> Right((1, 1))
@@ -152,22 +152,22 @@ trait TaskTests extends TestSuite {
       check.apply(build.taskNoInput) ==> Right((1, 0))
     }
 
-    "persistent" - withEnv { (build, check) =>
+    test("persistent") - withEnv { (build, check) =>
       // Persistent tasks keep the working dir around between runs
       println(build.millSourcePath.toString() + "\n")
       check.apply(build.persistent) ==> Right((1, 1))
       check.apply(build.persistent) ==> Right((2, 1))
       check.apply(build.persistent) ==> Right((3, 1))
     }
-    "nonPersistent" - withEnv { (build, check) =>
+    test("nonPersistent") - withEnv { (build, check) =>
       // non-Persistent tasks keep the working dir around between runs
       check.apply(build.nonPersistent) ==> Right((1, 1))
       check.apply(build.nonPersistent) ==> Right((1, 1))
       check.apply(build.nonPersistent) ==> Right((1, 1))
     }
 
-    "worker" - {
-      "static" - withEnv { (build, check) =>
+    test("worker") {
+      test("static") - withEnv { (build, check) =>
         val wc = check.evaluator.workerCache
 
         check.apply(build.staticWorkerDownstream) ==> Right((2, 1))
@@ -179,7 +179,7 @@ trait TaskTests extends TestSuite {
         check.apply(build.staticWorkerDownstream) ==> Right((2, 0))
         wc.head ==> firstCached
       }
-      "staticButReevaluated" - withEnv { (build, check) =>
+      test("staticButReevaluated") - withEnv { (build, check) =>
         val wc = check.evaluator.workerCache
 
         check.apply(build.staticWorkerDownstreamReeval) ==> Right((2, 1))
@@ -191,13 +191,13 @@ trait TaskTests extends TestSuite {
         check.apply(build.staticWorkerDownstreamReeval) ==> Right((2, 1))
         wc.head ==> firstCached
       }
-      "changedOnce" - withEnv { (build, check) =>
+      test("changedOnce") - withEnv { (build, check) =>
         check.apply(build.changeOnceWorkerDownstream) ==> Right((1, 1))
         // changed
         check.apply(build.changeOnceWorkerDownstream) ==> Right((2, 1))
         check.apply(build.changeOnceWorkerDownstream) ==> Right((2, 0))
       }
-      "alwaysChanged" - withEnv { (build, check) =>
+      test("alwaysChanged") - withEnv { (build, check) =>
         val wc = check.evaluator.workerCache
 
         check.apply(build.noisyWorkerDownstream) ==> Right((2, 1))
@@ -213,7 +213,7 @@ trait TaskTests extends TestSuite {
         wc.size ==> 1
         assert(wc.head != secondCached)
       }
-      "closableWorker" - withEnv { (build, check) =>
+      test("closableWorker") - withEnv { (build, check) =>
         val wc = check.evaluator.workerCache
 
         check.apply(build.noisyClosableWorkerDownstream) ==> Right((2, 1))
@@ -235,26 +235,26 @@ trait TaskTests extends TestSuite {
       }
     }
 
-    "overrideDifferentKind" - {
-      "inputWithTarget" - {
-        "notUsingSuper" - withEnv { (build, check) =>
+    test("overrideDifferentKind") {
+      test("inputWithTarget") {
+        test("notUsingSuper") - withEnv { (build, check) =>
           check.apply(build.superBuildInputOverrideWithConstant) ==> Right((123, 1))
           check.apply(build.superBuildInputOverrideWithConstant) ==> Right((123, 0))
           check.apply(build.superBuildInputOverrideWithConstant) ==> Right((123, 0))
         }
-        "usingSuper" - withEnv { (build, check) =>
+        test("usingSuper") - withEnv { (build, check) =>
           check.apply(build.superBuildInputOverrideUsingSuper) ==> Right((124, 1))
           check.apply(build.superBuildInputOverrideUsingSuper) ==> Right((125, 1))
           check.apply(build.superBuildInputOverrideUsingSuper) ==> Right((126, 1))
         }
       }
-      "targetWithInput" - withEnv { (build, check) =>
+      test("targetWithInput") - withEnv { (build, check) =>
         check.apply(build.superBuildTargetOverrideWithInput) ==> Right((1, 0))
         check.apply(build.superBuildTargetOverrideWithInput) ==> Right((2, 0))
         check.apply(build.superBuildTargetOverrideWithInput) ==> Right((3, 0))
       }
     }
-    "duplicateTaskInResult-issue2958" - withEnv { (build, check) =>
+    test("duplicateTaskInResult-issue2958") - withEnv { (build, check) =>
       check.apply(build.repro2958.command()) ==> Right(("task1,task1", 3))
     }
   }

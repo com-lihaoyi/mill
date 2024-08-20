@@ -12,7 +12,7 @@ object FailureTests extends TestSuite {
     val graphs = new mill.util.TestGraphs()
     import graphs._
 
-    "evaluateSingle" - {
+    test("evaluateSingle") {
       val check = new TestEvaluator(singleton)
       check.fail(
         target = singleton.single,
@@ -45,7 +45,7 @@ object FailureTests extends TestSuite {
         expectedRawValues = Seq(mill.api.Result.Exception(ex, new OuterStack(Nil)))
       )
     }
-    "evaluatePair" - {
+    test("evaluatePair") {
       val check = new TestEvaluator(pair)
       check.fail(
         pair.down,
@@ -79,7 +79,7 @@ object FailureTests extends TestSuite {
       )
     }
 
-    "evaluatePair (failFast=true)" - {
+    test("evaluatePair (failFast=true)") {
       val check = new TestEvaluator(pair, failFast = true)
       check.fail(
         pair.down,
@@ -112,7 +112,7 @@ object FailureTests extends TestSuite {
       )
     }
 
-    "evaluateBacktickIdentifiers" - {
+    test("evaluateBacktickIdentifiers") {
       val check = new TestEvaluator(bactickIdentifiers)
       import bactickIdentifiers._
       check.fail(
@@ -146,7 +146,7 @@ object FailureTests extends TestSuite {
       )
     }
 
-    "evaluateBacktickIdentifiers (failFast=true)" - {
+    test("evaluateBacktickIdentifiers (failFast=true)") {
       val check = new TestEvaluator(bactickIdentifiers, failFast = true)
       import bactickIdentifiers._
       check.fail(
@@ -180,7 +180,7 @@ object FailureTests extends TestSuite {
       )
     }
 
-    "multipleUsesOfDest" - {
+    test("multipleUsesOfDest") {
       object build extends mill.testkit.BaseModule {
         // Using `T.ctx(  ).dest` twice in a single task is ok
         def left = T { +T.dest.toString.length + T.dest.toString.length }

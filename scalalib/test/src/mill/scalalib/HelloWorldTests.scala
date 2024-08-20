@@ -432,9 +432,9 @@ object HelloWorldTests extends TestSuite {
   }
 
   def tests: Tests = Tests {
-    "scalaVersion" - {
+    test("scalaVersion") {
 
-      "fromBuild" - workspaceTest(HelloWorld) { eval =>
+      test("fromBuild") - workspaceTest(HelloWorld) { eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorld.core.scalaVersion)
 
         assert(
@@ -442,7 +442,7 @@ object HelloWorldTests extends TestSuite {
           evalCount > 0
         )
       }
-      "override" - workspaceTest(HelloWorldScalaOverride) { eval =>
+      test("override") - workspaceTest(HelloWorldScalaOverride) { eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorldScalaOverride.core.scalaVersion)
 
         assert(
@@ -452,8 +452,8 @@ object HelloWorldTests extends TestSuite {
       }
     }
 
-    "scalacOptions" - {
-      "emptyByDefault" - workspaceTest(HelloWorld) { eval =>
+    test("scalacOptions") {
+      test("emptyByDefault") - workspaceTest(HelloWorld) { eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorld.core.scalacOptions)
 
         assert(
@@ -461,7 +461,7 @@ object HelloWorldTests extends TestSuite {
           evalCount > 0
         )
       }
-      "override" - workspaceTest(HelloWorldFatalWarnings) { eval =>
+      test("override") - workspaceTest(HelloWorldFatalWarnings) { eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorldFatalWarnings.core.scalacOptions)
 
         assert(
@@ -471,22 +471,22 @@ object HelloWorldTests extends TestSuite {
       }
     }
 
-    "scalaDocOptions" - {
-      "emptyByDefault" - workspaceTest(HelloWorld) { eval =>
+    test("scalaDocOptions") {
+      test("emptyByDefault") - workspaceTest(HelloWorld) { eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorld.core.scalaDocOptions)
         assert(
           result.isEmpty,
           evalCount > 0
         )
       }
-      "override" - workspaceTest(HelloWorldDocTitle) { eval =>
+      test("override") - workspaceTest(HelloWorldDocTitle) { eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorldDocTitle.core.scalaDocOptions)
         assert(
           result == Seq("-doc-title", "Hello World"),
           evalCount > 0
         )
       }
-      "extend" - workspaceTest(HelloWorldWithDocVersion) { eval =>
+      test("extend") - workspaceTest(HelloWorldWithDocVersion) { eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorldWithDocVersion.core.scalaDocOptions)
         assert(
           result == Seq("-Ywarn-unused", "-Xfatal-warnings", "-doc-version", "1.2.3"),
@@ -494,7 +494,7 @@ object HelloWorldTests extends TestSuite {
         )
       }
       // make sure options are passed during ScalaDoc generation
-      "docJarWithTitle" - workspaceTest(
+      test("docJarWithTitle") - workspaceTest(
         HelloWorldDocTitle,
         resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world"
       ) { eval =>
@@ -506,14 +506,14 @@ object HelloWorldTests extends TestSuite {
           )
         )
       }
-      "docJarWithVersion" - workspaceTest(
+      test("docJarWithVersion") - workspaceTest(
         HelloWorldWithDocVersion,
         resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world"
       ) { eval =>
         // scaladoc generation fails because of "-Xfatal-warnings" flag
         val Left(Result.Failure(_, None)) = eval.apply(HelloWorldWithDocVersion.core.docJar)
       }
-      "docJarOnlyVersion" - workspaceTest(
+      test("docJarOnlyVersion") - workspaceTest(
         HelloWorldOnlyDocVersion,
         resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world"
       ) { eval =>
@@ -522,8 +522,8 @@ object HelloWorldTests extends TestSuite {
       }
     }
 
-    "scalacPluginClasspath" - {
-      "withMacroParadise" - workspaceTest(HelloWorldTypeLevel) { eval =>
+    test("scalacPluginClasspath") {
+      test("withMacroParadise") - workspaceTest(HelloWorldTypeLevel) { eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorldTypeLevel.foo.scalacPluginClasspath)
         assert(
           result.nonEmpty,
@@ -533,8 +533,8 @@ object HelloWorldTests extends TestSuite {
       }
     }
 
-    "scalaDocPluginClasspath" - {
-      "extend" - workspaceTest(HelloWorldTypeLevel) { eval =>
+    test("scalaDocPluginClasspath") {
+      test("extend") - workspaceTest(HelloWorldTypeLevel) { eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorldTypeLevel.foo.scalaDocPluginClasspath)
         assert(
           result.iterator.nonEmpty,
@@ -545,8 +545,8 @@ object HelloWorldTests extends TestSuite {
       }
     }
 
-    "compile" - {
-      "fromScratch" - workspaceTest(HelloWorld) { eval =>
+    test("compile") {
+      test("fromScratch") - workspaceTest(HelloWorld) { eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorld.core.compile)
 
         val classesPath = eval.outPath / "core" / "compile.dest" / "classes"
@@ -573,7 +573,7 @@ object HelloWorldTests extends TestSuite {
         ))
       }
 
-      "nonPreCompiledBridge" - workspaceTest(HelloWorldNonPrecompiledBridge) { eval =>
+      test("nonPreCompiledBridge") - workspaceTest(HelloWorldNonPrecompiledBridge) { eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorldNonPrecompiledBridge.core.compile)
 
         val classesPath = eval.outPath / "core" / "compile.dest" / "classes"
@@ -601,7 +601,7 @@ object HelloWorldTests extends TestSuite {
         ))
       }
 
-      "recompileOnChange" - workspaceTest(HelloWorld) { eval =>
+      test("recompileOnChange") - workspaceTest(HelloWorld) { eval =>
         val Right((_, freshCount)) = eval.apply(HelloWorld.core.compile)
         assert(freshCount > 0)
 
@@ -610,7 +610,7 @@ object HelloWorldTests extends TestSuite {
         val Right((_, incCompileCount)) = eval.apply(HelloWorld.core.compile)
         assert(incCompileCount > 0, incCompileCount < freshCount)
       }
-      "failOnError" - workspaceTest(HelloWorld) { eval =>
+      test("failOnError") - workspaceTest(HelloWorld) { eval =>
         os.write.append(HelloWorld.millSourcePath / "core" / "src" / "Main.scala", "val x: ")
 
         val Left(Result.Failure("Compilation failed", _)) = eval.apply(HelloWorld.core.compile)
@@ -631,20 +631,20 @@ object HelloWorldTests extends TestSuite {
 
         val Right((result, evalCount)) = eval.apply(HelloWorld.core.compile)
       }
-      "passScalacOptions" - workspaceTest(HelloWorldFatalWarnings) { eval =>
+      test("passScalacOptions") - workspaceTest(HelloWorldFatalWarnings) { eval =>
         // compilation fails because of "-Xfatal-warnings" flag
         val Left(Result.Failure("Compilation failed", _)) =
           eval.apply(HelloWorldFatalWarnings.core.compile)
       }
     }
 
-    "semanticDbData" - {
+    test("semanticDbData") {
       def semanticDbFiles: Set[os.SubPath] = Set(
         os.sub / "META-INF" / "semanticdb" / "core" / "src" / "Main.scala.semanticdb",
         os.sub / "META-INF" / "semanticdb" / "core" / "src" / "Result.scala.semanticdb"
       )
 
-      "fromScratch" - workspaceTest(SemanticWorld, debug = true) { eval =>
+      test("fromScratch") - workspaceTest(SemanticWorld, debug = true) { eval =>
         {
           println("first - expected full compile")
           val Right((result, evalCount)) = eval.apply(SemanticWorld.core.semanticDbData)
@@ -668,7 +668,7 @@ object HelloWorldTests extends TestSuite {
           assert(unchangedEvalCount == 0)
         }
       }
-      "incremental" - workspaceTest(SemanticWorld, debug = true) { eval =>
+      test("incremental") - workspaceTest(SemanticWorld, debug = true) { eval =>
         // create some more source file to have a reasonable low incremental change later
         val extraFiles = Seq("Second", "Third", "Fourth").map { f =>
           val file = eval.evaluator.workspace / "core" / "src" / "hello" / s"${f}.scala"
@@ -735,7 +735,7 @@ object HelloWorldTests extends TestSuite {
       }
     }
 
-    "artifactNameCross" - {
+    test("artifactNameCross") {
       workspaceTest(CrossHelloWorld) { eval =>
         val Right((artifactName, _)) =
           eval.apply(CrossHelloWorld.core(scala213Version).artifactName)
@@ -743,10 +743,10 @@ object HelloWorldTests extends TestSuite {
       }
     }
 
-    "scala-33-depend-on-scala-32-works" - {
+    test("scala-33-depend-on-scala-32-works") {
       CrossModuleDeps.cuttingEdge(scala33Version).moduleDeps
     }
-    "scala-213-depend-on-scala-212-fails" - {
+    test("scala-213-depend-on-scala-212-fails") {
       val message = intercept[Exception](
         CrossModuleDeps.cuttingEdge(scala213Version).moduleDeps
       ).getMessage
@@ -755,8 +755,8 @@ object HelloWorldTests extends TestSuite {
       )
     }
 
-    "runMain" - {
-      "runMainObject" - workspaceTest(HelloWorld) { eval =>
+    test("runMain") {
+      test("runMainObject") - workspaceTest(HelloWorld) { eval =>
         val runResult = eval.outPath / "core" / "runMain.dest" / "hello-mill"
 
         val Right((_, evalCount)) = eval.apply(HelloWorld.core.runMain("Main", runResult.toString))
@@ -767,7 +767,7 @@ object HelloWorldTests extends TestSuite {
           os.read(runResult) == "hello rockjam, your age is: 25"
         )
       }
-      "runCross" - {
+      test("runCross") {
         def cross(eval: TestEvaluator, v: String, expectedOut: String): Unit = {
 
           val runResult = eval.outPath / "hello-mill"
@@ -783,42 +783,42 @@ object HelloWorldTests extends TestSuite {
             os.read(runResult) == expectedOut
           )
         }
-        "v210" - TestUtil.disableInJava9OrAbove("Scala 2.10 tests don't work with Java 9+")(
+        test("v210") - TestUtil.disableInJava9OrAbove("Scala 2.10 tests don't work with Java 9+")(
           workspaceTest(CrossHelloWorld)(cross(
             _,
             scala210Version,
             s"${scala210Version} rox"
           ))
         )
-        "v211" - TestUtil.disableInJava9OrAbove("Scala 2.11 tests don't work with Java 9+")(
+        test("v211") - TestUtil.disableInJava9OrAbove("Scala 2.11 tests don't work with Java 9+")(
           workspaceTest(CrossHelloWorld)(cross(
             _,
             scala211Version,
             s"${scala211Version} pwns"
           ))
         )
-        "v2123" - workspaceTest(CrossHelloWorld)(cross(
+        test("v2123") - workspaceTest(CrossHelloWorld)(cross(
           _,
           scala2123Version,
           s"${scala2123Version} leet"
         ))
-        "v2124" - workspaceTest(CrossHelloWorld)(cross(
+        test("v2124") - workspaceTest(CrossHelloWorld)(cross(
           _,
           scala212Version,
           s"${scala212Version} leet"
         ))
-        "v2131" - workspaceTest(CrossHelloWorld)(cross(
+        test("v2131") - workspaceTest(CrossHelloWorld)(cross(
           _,
           scala213Version,
           s"${scala213Version} idk"
         ))
       }
 
-      "notRunInvalidMainObject" - workspaceTest(HelloWorld) { eval =>
+      test("notRunInvalidMainObject") - workspaceTest(HelloWorld) { eval =>
         val Left(Result.Failure("Subprocess failed", _)) =
           eval.apply(HelloWorld.core.runMain("Invalid"))
       }
-      "notRunWhenCompileFailed" - workspaceTest(HelloWorld) { eval =>
+      test("notRunWhenCompileFailed") - workspaceTest(HelloWorld) { eval =>
         os.write.append(HelloWorld.millSourcePath / "core" / "src" / "Main.scala", "val x: ")
 
         val Left(Result.Failure("Compilation failed", _)) =
@@ -827,8 +827,8 @@ object HelloWorldTests extends TestSuite {
       }
     }
 
-    "forkRun" - {
-      "runIfMainClassProvided" - workspaceTest(HelloWorldWithMain) { eval =>
+    test("forkRun") {
+      test("runIfMainClassProvided") - workspaceTest(HelloWorldWithMain) { eval =>
         val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
         val Right((_, evalCount)) = eval.apply(
           HelloWorldWithMain.core.run(T.task(Args(runResult.toString)))
@@ -841,14 +841,14 @@ object HelloWorldTests extends TestSuite {
           os.read(runResult) == "hello rockjam, your age is: 25"
         )
       }
-      "notRunWithoutMainClass" - workspaceTest(
+      test("notRunWithoutMainClass") - workspaceTest(
         HelloWorldWithoutMain,
         os.pwd / "scalalib" / "test" / "resources" / "hello-world-no-main"
       ) { eval =>
         val Left(Result.Failure(_, None)) = eval.apply(HelloWorldWithoutMain.core.run())
       }
 
-      "runDiscoverMainClass" - workspaceTest(HelloWorldWithoutMain) { eval =>
+      test("runDiscoverMainClass") - workspaceTest(HelloWorldWithoutMain) { eval =>
         // Make sure even if there isn't a main class defined explicitly, it gets
         // discovered by Zinc and used
         val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
@@ -865,8 +865,8 @@ object HelloWorldTests extends TestSuite {
       }
     }
 
-    "run" - {
-      "runIfMainClassProvided" - workspaceTest(HelloWorldWithMain) { eval =>
+    test("run") {
+      test("runIfMainClassProvided") - workspaceTest(HelloWorldWithMain) { eval =>
         val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
         val Right((_, evalCount)) = eval.apply(
           HelloWorldWithMain.core.runLocal(T.task(Args(runResult.toString)))
@@ -879,7 +879,7 @@ object HelloWorldTests extends TestSuite {
           os.read(runResult) == "hello rockjam, your age is: 25"
         )
       }
-      "runWithDefaultMain" - workspaceTest(HelloWorldDefaultMain) { eval =>
+      test("runWithDefaultMain") - workspaceTest(HelloWorldDefaultMain) { eval =>
         val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
         val Right((_, evalCount)) = eval.apply(
           HelloWorldDefaultMain.core.runLocal(T.task(Args(runResult.toString)))
@@ -892,7 +892,7 @@ object HelloWorldTests extends TestSuite {
           os.read(runResult) == "hello rockjam, your age is: 25"
         )
       }
-      "notRunWithoutMainClass" - workspaceTest(
+      test("notRunWithoutMainClass") - workspaceTest(
         HelloWorldWithoutMain,
         os.pwd / "scalalib" / "test" / "resources" / "hello-world-no-main"
       ) { eval =>
@@ -901,8 +901,8 @@ object HelloWorldTests extends TestSuite {
       }
     }
 
-    "jar" - {
-      "nonEmpty" - workspaceTest(HelloWorldWithMain) { eval =>
+    test("jar") {
+      test("nonEmpty") - workspaceTest(HelloWorldWithMain) { eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorldWithMain.core.jar)
 
         assert(
@@ -930,7 +930,7 @@ object HelloWorldTests extends TestSuite {
         }
       }
 
-      "logOutputToFile" - workspaceTest(HelloWorld) { eval =>
+      test("logOutputToFile") - workspaceTest(HelloWorld) { eval =>
         val outPath = eval.outPath
         eval.apply(HelloWorld.core.compile)
 
@@ -939,8 +939,8 @@ object HelloWorldTests extends TestSuite {
       }
     }
 
-    "assembly" - {
-      "assembly" - workspaceTest(HelloWorldWithMain) { eval =>
+    test("assembly") {
+      test("assembly") - workspaceTest(HelloWorldWithMain) { eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorldWithMain.core.assembly)
         assert(
           os.exists(result.path),
@@ -957,7 +957,7 @@ object HelloWorldTests extends TestSuite {
         assert(mainClass.contains("Main"))
       }
 
-      "assemblyRules" - {
+      test("assemblyRules") {
         def checkAppend[M <: mill.testkit.BaseModule](module: M, target: Target[PathRef]) =
           workspaceTest(module) { eval =>
             val Right((result, _)) = eval.apply(target)
@@ -1031,23 +1031,23 @@ object HelloWorldTests extends TestSuite {
             }
           }
 
-        "appendWithDeps" - checkAppend(
+        test("appendWithDeps") - checkAppend(
           HelloWorldAkkaHttpAppend,
           HelloWorldAkkaHttpAppend.core.assembly
         )
-        "appendMultiModule" - checkAppendMulti(
+        test("appendMultiModule") - checkAppendMulti(
           HelloWorldMultiAppend,
           HelloWorldMultiAppend.core.assembly
         )
-        "appendPatternWithDeps" - checkAppend(
+        test("appendPatternWithDeps") - checkAppend(
           HelloWorldAkkaHttpAppendPattern,
           HelloWorldAkkaHttpAppendPattern.core.assembly
         )
-        "appendPatternMultiModule" - checkAppendMulti(
+        test("appendPatternMultiModule") - checkAppendMulti(
           HelloWorldMultiAppendPattern,
           HelloWorldMultiAppendPattern.core.assembly
         )
-        "appendPatternMultiModuleWithSeparator" - checkAppendWithSeparator(
+        test("appendPatternMultiModuleWithSeparator") - checkAppendWithSeparator(
           HelloWorldMultiAppendByPatternWithSeparator,
           HelloWorldMultiAppendByPatternWithSeparator.core.assembly
         )
@@ -1065,20 +1065,20 @@ object HelloWorldTests extends TestSuite {
             }
           }
 
-        "excludeWithDeps" - checkExclude(
+        test("excludeWithDeps") - checkExclude(
           HelloWorldAkkaHttpExclude,
           HelloWorldAkkaHttpExclude.core.assembly
         )
-        "excludeMultiModule" - checkExclude(
+        test("excludeMultiModule") - checkExclude(
           HelloWorldMultiExclude,
           HelloWorldMultiExclude.core.assembly,
           resourcePath = helloWorldMultiResourcePath
         )
-        "excludePatternWithDeps" - checkExclude(
+        test("excludePatternWithDeps") - checkExclude(
           HelloWorldAkkaHttpExcludePattern,
           HelloWorldAkkaHttpExcludePattern.core.assembly
         )
-        "excludePatternMultiModule" - checkExclude(
+        test("excludePatternMultiModule") - checkExclude(
           HelloWorldMultiExcludePattern,
           HelloWorldMultiExcludePattern.core.assembly,
           resourcePath = helloWorldMultiResourcePath
@@ -1099,13 +1099,13 @@ object HelloWorldTests extends TestSuite {
             }
           }
 
-        "relocate" - {
-          "withDeps" - checkRelocate(
+        test("relocate") {
+          test("withDeps") - checkRelocate(
             HelloWorldAkkaHttpRelocate,
             HelloWorldAkkaHttpRelocate.core.assembly
           )
 
-          "run" - workspaceTest(
+          test("run") - workspaceTest(
             HelloWorldAkkaHttpRelocate,
             resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world-deps"
           ) { eval =>
@@ -1114,8 +1114,8 @@ object HelloWorldTests extends TestSuite {
           }
         }
 
-        "writeDownstreamWhenNoRule" - {
-          "withDeps" - workspaceTest(HelloWorldAkkaHttpNoRules) { eval =>
+        test("writeDownstreamWhenNoRule") {
+          test("withDeps") - workspaceTest(HelloWorldAkkaHttpNoRules) { eval =>
             val Right((result, _)) = eval.apply(HelloWorldAkkaHttpNoRules.core.assembly)
 
             Using.resource(new JarFile(result.path.toIO)) { jarFile =>
@@ -1137,7 +1137,7 @@ object HelloWorldTests extends TestSuite {
             }
           }
 
-          "multiModule" - workspaceTest(
+          test("multiModule") - workspaceTest(
             HelloWorldMultiNoRules,
             resourcePath = helloWorldMultiResourcePath
           ) { eval =>
@@ -1159,7 +1159,7 @@ object HelloWorldTests extends TestSuite {
         }
       }
 
-      "run" - workspaceTest(HelloWorldWithMain) { eval =>
+      test("run") - workspaceTest(HelloWorldWithMain) { eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorldWithMain.core.assembly)
 
         assert(
@@ -1177,7 +1177,7 @@ object HelloWorldTests extends TestSuite {
       }
     }
 
-    "ivyDeps" - workspaceTest(HelloWorldIvyDeps) { eval =>
+    test("ivyDeps") - workspaceTest(HelloWorldIvyDeps) { eval =>
       val Right((result, _)) = eval.apply(HelloWorldIvyDeps.moduleA.runClasspath)
       assert(
         result.exists(_.path.last == "sourcecode_2.12-0.1.3.jar"),
@@ -1191,7 +1191,7 @@ object HelloWorldTests extends TestSuite {
       )
     }
 
-    "typeLevel" - workspaceTest(HelloWorldTypeLevel) { eval =>
+    test("typeLevel") - workspaceTest(HelloWorldTypeLevel) { eval =>
       val classPathsToCheck = Seq(
         HelloWorldTypeLevel.foo.runClasspath,
         HelloWorldTypeLevel.foo.ammoniteReplClasspath,
@@ -1212,12 +1212,12 @@ object HelloWorldTests extends TestSuite {
       }
     }
 
-    "macros" - {
-      "scala-2.12" - {
+    test("macros") {
+      test("scala-2.12") {
         // Scala 2.12 does not always work with Java 17+
         // make sure macros are applied when compiling/running
         val mod = HelloWorldMacros212
-        "runMain" - workspaceTest(
+        test("runMain") - workspaceTest(
           mod,
           resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world-macros"
         ) { eval =>
@@ -1228,7 +1228,7 @@ object HelloWorldTests extends TestSuite {
           }
         }
         // make sure macros are applied when compiling during scaladoc generation
-        "docJar" - workspaceTest(
+        test("docJar") - workspaceTest(
           mod,
           resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world-macros"
         ) { eval =>
@@ -1239,10 +1239,10 @@ object HelloWorldTests extends TestSuite {
           }
         }
       }
-      "scala-2.13" - {
+      test("scala-2.13") {
         // make sure macros are applied when compiling/running
         val mod = HelloWorldMacros213
-        "runMain" - workspaceTest(
+        test("runMain") - workspaceTest(
           mod,
           resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world-macros"
         ) { eval =>
@@ -1250,7 +1250,7 @@ object HelloWorldTests extends TestSuite {
           assert(evalCount > 0)
         }
         // make sure macros are applied when compiling during scaladoc generation
-        "docJar" - workspaceTest(
+        test("docJar") - workspaceTest(
           mod,
           resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world-macros"
         ) { eval =>
@@ -1260,9 +1260,9 @@ object HelloWorldTests extends TestSuite {
       }
     }
 
-    "flags" - {
+    test("flags") {
       // make sure flags are passed when compiling/running
-      "runMain" - workspaceTest(
+      test("runMain") - workspaceTest(
         HelloWorldFlags,
         resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world-flags"
       ) { eval =>
@@ -1270,7 +1270,7 @@ object HelloWorldTests extends TestSuite {
         assert(evalCount > 0)
       }
       // make sure flags are passed during ScalaDoc generation
-      "docJar" - workspaceTest(
+      test("docJar") - workspaceTest(
         HelloWorldFlags,
         resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world-flags"
       ) { eval =>
@@ -1278,7 +1278,7 @@ object HelloWorldTests extends TestSuite {
         assert(evalCount > 0)
       }
     }
-    "color-output" - {
+    test("color-output") {
       val errStream = new ByteArrayOutputStream()
       workspaceTest(
         HelloWorldColorOutput,
@@ -1295,7 +1295,7 @@ object HelloWorldTests extends TestSuite {
       }
     }
 
-    "scalacheck" - workspaceTest(
+    test("scalacheck") - workspaceTest(
       HelloScalacheck,
       resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-scalacheck"
     ) { eval =>
@@ -1311,7 +1311,7 @@ object HelloWorldTests extends TestSuite {
       )
     }
 
-    "dotty213" - workspaceTest(
+    test("dotty213") - workspaceTest(
       Dotty213,
       resourcePath = os.pwd / "scalalib" / "test" / "resources" / "dotty213"
     ) { eval =>
@@ -1319,15 +1319,15 @@ object HelloWorldTests extends TestSuite {
       assert(evalCount > 0)
     }
 
-    "replAmmoniteMainClass" - workspaceTest(AmmoniteReplMainClass) { eval =>
+    test("replAmmoniteMainClass") - workspaceTest(AmmoniteReplMainClass) { eval =>
       val Right((oldResult, _)) = eval.apply(AmmoniteReplMainClass.oldAmmonite.ammoniteMainClass)
       assert(oldResult == "ammonite.Main")
       val Right((newResult, _)) = eval.apply(AmmoniteReplMainClass.newAmmonite.ammoniteMainClass)
       assert(newResult == "ammonite.AmmoniteMain")
     }
 
-    "validated" - {
-      "PathRef" - {
+    test("validated") {
+      test("PathRef") {
         def check(t: Target[PathRef], flip: Boolean) =
           workspaceTest(ValidatedTarget, debug = true) { eval =>
             // we reconstruct faulty behavior
@@ -1344,10 +1344,10 @@ object HelloWorldTests extends TestSuite {
               os.exists(result2.path) == flip
             )
           }
-        "unchecked" - check(ValidatedTarget.uncheckedPathRef, false)
-        "checked" - check(ValidatedTarget.checkedPathRef, true)
+        test("unchecked") - check(ValidatedTarget.uncheckedPathRef, false)
+        test("checked") - check(ValidatedTarget.checkedPathRef, true)
       }
-      "SeqPathRef" - {
+      test("SeqPathRef") {
         def check(t: Target[Seq[PathRef]], flip: Boolean) = workspaceTest(ValidatedTarget) { eval =>
           // we reconstruct faulty behavior
           val Right((result, _)) = eval.apply(t)
@@ -1363,10 +1363,10 @@ object HelloWorldTests extends TestSuite {
             result2.forall(p => os.exists(p.path) == flip)
           )
         }
-        "unchecked" - check(ValidatedTarget.uncheckedSeqPathRef, false)
-        "checked" - check(ValidatedTarget.checkedSeqPathRef, true)
+        test("unchecked") - check(ValidatedTarget.uncheckedSeqPathRef, false)
+        test("checked") - check(ValidatedTarget.checkedSeqPathRef, true)
       }
-      "AggPathRef" - {
+      test("AggPathRef") {
         def check(t: Target[Agg[PathRef]], flip: Boolean) = workspaceTest(ValidatedTarget) { eval =>
           // we reconstruct faulty behavior
           val Right((result, _)) = eval.apply(t)
@@ -1382,10 +1382,10 @@ object HelloWorldTests extends TestSuite {
             result2.forall(p => os.exists(p.path) == flip)
           )
         }
-        "unchecked" - check(ValidatedTarget.uncheckedAggPathRef, false)
-        "checked" - check(ValidatedTarget.checkedAggPathRef, true)
+        test("unchecked") - check(ValidatedTarget.uncheckedAggPathRef, false)
+        test("checked") - check(ValidatedTarget.checkedAggPathRef, true)
       }
-      "other" - {
+      test("other") {
         def check(t: Target[Tuple1[PathRef]], flip: Boolean) = workspaceTest(ValidatedTarget) {
           eval =>
             // we reconstruct faulty behavior
@@ -1402,13 +1402,13 @@ object HelloWorldTests extends TestSuite {
               os.exists(result2._1.path) == flip
             )
         }
-        "unchecked" - check(ValidatedTarget.uncheckedTuplePathRef, false)
-        "checked" - check(ValidatedTarget.checkedTuplePathRef, true)
+        test("unchecked") - check(ValidatedTarget.uncheckedTuplePathRef, false)
+        test("checked") - check(ValidatedTarget.checkedTuplePathRef, true)
       }
 
     }
 
-    "multiModuleClasspaths" - {
+    test("multiModuleClasspaths") {
       // Make sure that a bunch of modules dependent on each other has their various
       // {classpaths,moduleDeps,ivyDeps}x{run,compile,normal} properly aggregated
       def check(
@@ -1441,7 +1441,7 @@ object HelloWorldTests extends TestSuite {
         assert(runClasspath == upstreamAssemblyClasspath.toSeq ++ localClasspath)
       }
 
-      "modMod" - workspaceTest(MultiModuleClasspaths) { eval =>
+      test("modMod") - workspaceTest(MultiModuleClasspaths) { eval =>
         // Make sure that `compileClasspath` has all the same things as `runClasspath`,
         // but without the `/resources`
         check(
@@ -1506,7 +1506,7 @@ object HelloWorldTests extends TestSuite {
         )
       }
 
-      "modCompile" - workspaceTest(MultiModuleClasspaths) { eval =>
+      test("modCompile") - workspaceTest(MultiModuleClasspaths) { eval =>
         // Mostly the same as `modMod` above, but with the dependency
         // from `qux` to `bar` being a `compileModuleDeps`
         check(
@@ -1570,7 +1570,7 @@ object HelloWorldTests extends TestSuite {
         )
       }
 
-      "compileMod" - workspaceTest(MultiModuleClasspaths) { eval =>
+      test("compileMod") - workspaceTest(MultiModuleClasspaths) { eval =>
         // Both the `runClasspath` and `compileClasspath` should not have `foo` on the
         // classpath, nor should it have the versions of libraries pulled in by `foo`
         // (e.g. `sourcecode-0.2.4`), because it is a `compileModuleDep` of an upstream

@@ -5,12 +5,10 @@ import utest._
 
 object MillTestKitSuite extends TestSuite {
 
-
-
   def tests: Tests = Tests {
-    "simple" - {
+    test("simple") {
       object build extends mill.testkit.BaseModule {
-        def testTask = T{ "test" }
+        def testTask = T { "test" }
       }
 
       val testEvaluator = new TestEvaluator(build)
@@ -18,14 +16,15 @@ object MillTestKitSuite extends TestSuite {
       assert(result == Right("test"))
     }
 
-    "sources" - {
+    test("sources") {
       object build extends mill.testkit.BaseModule {
         def testSource = T.source(millSourcePath / "source-file.txt")
-        def testTask = T{ os.read(testSource().path).toUpperCase() }
+        def testTask = T { os.read(testSource().path).toUpperCase() }
       }
 
       os.copy.over(
-        os.pwd / "testkit" / "test" / "resources" / "example-project", build.millSourcePath,
+        os.pwd / "testkit" / "test" / "resources" / "example-project",
+        build.millSourcePath,
         createFolders = true
       )
       val testEvaluator = new TestEvaluator(build)

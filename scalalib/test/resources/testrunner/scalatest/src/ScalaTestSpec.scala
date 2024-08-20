@@ -4,8 +4,8 @@ import org.scalatest.freespec.AnyFreeSpec
 
 class ScalaTestSpec extends AnyFreeSpec {
 
-  "A Set" - {
-    "when empty" - {
+  test("A Set") {
+    test("when empty") {
       "should have size 0" in {
         assert(Set.empty.size == 0)
       }
