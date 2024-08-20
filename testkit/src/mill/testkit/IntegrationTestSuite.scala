@@ -55,7 +55,7 @@ abstract class IntegrationTestSuite extends TestSuite {
 
     val debugArgs = Option.when(debugLog)("--debug")
 
-    val shellable: os.Shellable = (millReleaseFileOpt.get, serverArgs, debugArgs, cmd, workspacePath)
+    val shellable: os.Shellable = (millReleaseFileOpt.get, serverArgs, debugArgs, cmd)
     val res0 = os.call(
       cmd = shellable,
       env = env,
