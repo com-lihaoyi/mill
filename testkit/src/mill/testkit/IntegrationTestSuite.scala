@@ -17,7 +17,7 @@ object IntegrationTestSuite {
 
 
 abstract class IntegrationTestSuite extends TestSuite {
-  val integrationTestMode: String = sys.env("MILL_INTEGRATION_TEST_MODE")
+  private val integrationTestMode: String = sys.env("MILL_INTEGRATION_TEST_MODE")
   assert(Set("local", "fork", "server").contains(integrationTestMode))
 
   private val clientServerMode: Boolean = integrationTestMode == "server" || integrationTestMode == "local"
@@ -32,7 +32,7 @@ abstract class IntegrationTestSuite extends TestSuite {
 
   protected def scriptSourcePath: os.Path = os.Path(sys.env("MILL_INTEGRATION_REPO_ROOT"))
 
-  val debugLog = false
+  def debugLog = false
 
   /**
    * Evaluates a Mill [[cmd]]. Essentially the same as `os.call`, except it
