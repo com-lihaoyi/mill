@@ -47,9 +47,10 @@ object Settings {
   )
   val docTags: Seq[String] = Seq(
     "0.11.10",
-    "0.11.11"
+    "0.11.11",
+    "0.11.12"
   )
-  val mimaBaseVersions: Seq[String] = 0.to(11).map("0.11." + _)
+  val mimaBaseVersions: Seq[String] = 0.to(12).map("0.11." + _)
 }
 
 object Deps {
