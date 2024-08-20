@@ -1197,8 +1197,7 @@ trait IntegrationTestModule extends MillScalaModule {
         IntegrationTestModule.this.forkEnv() ++
         Map(
           "MILL_INTEGRATION_TEST_SERVER_MODE" -> (mode == "local" || mode == "server").toString,
-          "MILL_INTEGRATION_REPO_ROOT" -> testRepoRoot().path.toString,
-          "MILL_WORKSPACE_PATH" -> workspaceDir().path.toString
+          "MILL_INTEGRATION_REPO_ROOT" -> testRepoRoot().path.toString
         ) ++
         testReleaseEnv()
 

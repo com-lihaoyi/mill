@@ -25,8 +25,8 @@ abstract class IntegrationTestSuite extends TestSuite {
    * Mill build being tested. Contains the `build.sc` file, any application code, and
    * the `out/` folder containing the build output
    */
-  def workspacePath: os.Path =
-    os.Path(sys.env.getOrElse("MILL_WORKSPACE_PATH", ???))
+  def workspacePath: os.Path = os.temp.dir()
+
 
   protected def scriptSourcePath: os.Path = os.Path(sys.env("MILL_INTEGRATION_REPO_ROOT"))
 
@@ -97,6 +97,7 @@ abstract class IntegrationTestSuite extends TestSuite {
   }
 
   def initWorkspace(): Path = {
+    println(s"Copying integration test sources from $scriptSourcePath to $workspacePath)
     os.remove.all(workspacePath)
     os.makeDir.all(workspacePath / os.up)
     // somehow os.copy does not properly preserve symlinks
