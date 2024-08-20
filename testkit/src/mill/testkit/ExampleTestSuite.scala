@@ -224,7 +224,7 @@ object ExampleTestSuite extends IntegrationTestSuite {
       .mkString("\n")
 
     def plainTextLines(s: String) =
-      fansi.Str(s, errorMode = fansi.ErrorMode.Strip).plainText
+      s
         .replace("\\\\", "/") // Convert windows paths in JSON strings to Unix
         .linesIterator
         // Don't bother checking empty lines
