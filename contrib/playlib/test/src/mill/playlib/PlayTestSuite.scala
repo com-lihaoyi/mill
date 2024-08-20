@@ -1,6 +1,5 @@
 package mill.playlib
 
-
 trait PlayTestSuite {
 
   val testScala212 = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)

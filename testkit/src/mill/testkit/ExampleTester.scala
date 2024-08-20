@@ -6,7 +6,6 @@ import java.util.concurrent.{Executors, TimeoutException}
 import scala.annotation.tailrec
 import scala.concurrent.duration.DurationInt
 
-
 /**
  * Shared implementation for the tests in `example/`.
  *
@@ -44,10 +43,11 @@ import scala.concurrent.duration.DurationInt
  * interpreter that reads the command lines and does things in-JVM in response
  * to each one.
  */
-class ExampleTester(clientServerMode: Boolean,
-                    workspaceSourcePath: os.Path,
-                    millExecutable: os.Path)
-  extends IntegrationTester(clientServerMode, workspaceSourcePath, millExecutable){
+class ExampleTester(
+    clientServerMode: Boolean,
+    workspaceSourcePath: os.Path,
+    millExecutable: os.Path
+) extends IntegrationTester(clientServerMode, workspaceSourcePath, millExecutable) {
   initWorkspace()
 
   val testTimeout = 5.minutes
@@ -93,10 +93,10 @@ class ExampleTester(clientServerMode: Boolean,
   }
 
   def processCommand(
-                      workspaceRoot: os.Path,
-                      expectedSnippets: Vector[String],
-                      commandStr: String
-                    ): Unit = {
+      workspaceRoot: os.Path,
+      expectedSnippets: Vector[String],
+      commandStr: String
+  ): Unit = {
     val cmd = BashTokenizer.tokenize(commandStr)
     Console.err.println(
       s"""$workspaceRoot> ${cmd.mkString("'", "' '", "'")}
@@ -196,9 +196,9 @@ class ExampleTester(clientServerMode: Boolean,
   }
 
   def validateEval(
-                    expectedSnippets: Vector[String],
-                    evalResult: IntegrationTester.EvalResult
-                  ): Unit = {
+      expectedSnippets: Vector[String],
+      evalResult: IntegrationTester.EvalResult
+  ): Unit = {
     if (expectedSnippets.exists(_.startsWith("error: "))) assert(!evalResult.isSuccess)
     else assert(evalResult.isSuccess)
 

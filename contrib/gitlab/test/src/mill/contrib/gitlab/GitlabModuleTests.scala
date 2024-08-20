@@ -35,7 +35,6 @@ object GitlabModuleTests extends TestSuite {
     override def tokenLookup = emptyLookup
   }
 
-
   override def tests: Tests = Tests {
 
     test("GitlabPublishModule produces sane error message") {

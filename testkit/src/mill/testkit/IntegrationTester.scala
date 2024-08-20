@@ -6,12 +6,15 @@ import ujson.Value
 
 import scala.util.control.NonFatal
 
-class IntegrationTester(val clientServerMode: Boolean,
-                        val workspaceSourcePath: os.Path,
-                        val millExecutable: os.Path) extends IntegrationTester.Impl{
+class IntegrationTester(
+    val clientServerMode: Boolean,
+    val workspaceSourcePath: os.Path,
+    val millExecutable: os.Path
+) extends IntegrationTester.Impl {
   initWorkspace()
 }
 object IntegrationTester {
+
   /**
    * A very simplified version of `os.CommandResult` meant for easily
    * performing assertions against.
@@ -32,8 +35,6 @@ object IntegrationTester {
      */
     val workspacePath: os.Path = os.temp.dir(deleteOnExit = false)
 
-
-
     def debugLog = false
 
     /**
@@ -43,18 +44,18 @@ object IntegrationTester {
      * convenience.
      */
     def eval(
-              cmd: os.Shellable,
-              env: Map[String, String] = millTestSuiteEnv,
-              cwd: os.Path = workspacePath,
-              stdin: os.ProcessInput = os.Pipe,
-              stdout: os.ProcessOutput = os.Pipe,
-              stderr: os.ProcessOutput = os.Pipe,
-              mergeErrIntoOut: Boolean = false,
-              timeout: Long = -1,
-              check: Boolean = false,
-              propagateEnv: Boolean = true,
-              timeoutGracePeriod: Long = 100
-            ): IntegrationTester.EvalResult = {
+        cmd: os.Shellable,
+        env: Map[String, String] = millTestSuiteEnv,
+        cwd: os.Path = workspacePath,
+        stdin: os.ProcessInput = os.Pipe,
+        stdout: os.ProcessOutput = os.Pipe,
+        stderr: os.ProcessOutput = os.Pipe,
+        mergeErrIntoOut: Boolean = false,
+        timeout: Long = -1,
+        check: Boolean = false,
+        propagateEnv: Boolean = true,
+        timeoutGracePeriod: Long = 100
+    ): IntegrationTester.EvalResult = {
       val serverArgs = Option.when(!clientServerMode)("--no-server")
 
       val debugArgs = Option.when(debugLog)("--debug")
@@ -91,6 +92,7 @@ object IntegrationTester {
     def meta(selector0: String): Meta = new Meta(selector0)
 
     class Meta(selector0: String) {
+
       /**
        * Returns the raw text of the `.json` metadata file
        */
@@ -161,4 +163,3 @@ object IntegrationTester {
   }
 
 }
-

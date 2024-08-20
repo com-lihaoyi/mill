@@ -20,7 +20,6 @@ object ScalaVersionsRangesTests extends TestSuite {
   val resourcePath =
     os.pwd / "scalalib" / "test" / "resources" / "scala-versions-ranges"
 
-
   val tests = Tests {
     test("main with Scala 2.12- and 2.13+ specific code") {
       val eval = UnitTester(ScalaVersionsRanges, resourcePath)

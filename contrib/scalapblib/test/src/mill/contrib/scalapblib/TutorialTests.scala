@@ -174,7 +174,7 @@ object TutorialTests extends TestSuite {
     }
 
     test("compilationArgs") {
-      test("calledWithAdditionalArgs"){
+      test("calledWithAdditionalArgs") {
         val eval = UnitTester(TutorialWithAdditionalArgs, resourcePath)
         val result =
           eval.apply(TutorialWithAdditionalArgs.core.scalaPBCompileOptions)

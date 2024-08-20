@@ -94,13 +94,13 @@ object AssemblyTests extends TestSuite {
   def tests: Tests = Tests {
     test("Assembly") {
       test("noExe") {
-        test("small")  {
+        test("small") {
           val eval = UnitTester(TestCase)
           val Right(result) = eval(TestCase.noExe.small.assembly)
           runAssembly(result.value.path, TestCase.millSourcePath)
 
         }
-        test("large")  {
+        test("large") {
           val eval = UnitTester(TestCase)
           val Right(result) = eval(TestCase.noExe.large.assembly)
           runAssembly(result.value.path, TestCase.millSourcePath)
@@ -108,7 +108,7 @@ object AssemblyTests extends TestSuite {
         }
       }
       test("exe") {
-        test("small")  {
+        test("small") {
           val eval = UnitTester(TestCase)
           val Right(result) = eval(TestCase.exe.small.assembly)
           val originalPath = result.value.path
@@ -121,7 +121,7 @@ object AssemblyTests extends TestSuite {
           runAssembly(resolvedPath, TestCase.millSourcePath, checkExe = true)
         }
 
-        test("large-should-fail")  {
+        test("large-should-fail") {
           val eval = UnitTester(TestCase)
           val Left(Result.Failure(msg, Some(res))) = eval(TestCase.exe.large.assembly)
           val expectedMsg =

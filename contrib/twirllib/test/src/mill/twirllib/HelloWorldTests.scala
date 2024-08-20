@@ -12,7 +12,7 @@ trait HelloWorldTests extends TestSuite {
     def twirlVersion = testTwirlVersion
   }
 
-  object HelloWorld extends TestBaseModule  {
+  object HelloWorld extends TestBaseModule {
 
     object core extends HelloWorldModule {
       override def twirlImports = super.twirlImports() ++ testAdditionalImports
@@ -22,7 +22,7 @@ trait HelloWorldTests extends TestSuite {
 
   }
 
-  object HelloWorldWithInclusiveDot extends TestBaseModule  {
+  object HelloWorldWithInclusiveDot extends TestBaseModule {
 
     object core extends HelloWorldModule {
       override def twirlInclusiveDot: Boolean = true
@@ -30,7 +30,6 @@ trait HelloWorldTests extends TestSuite {
     }
 
   }
-
 
   def resourcePath = os.pwd / "contrib" / "twirllib" / "test" / "resources"
   def compileClassfiles: Seq[os.RelPath] = Seq[os.RelPath](

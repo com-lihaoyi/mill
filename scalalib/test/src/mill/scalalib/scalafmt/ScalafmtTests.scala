@@ -30,8 +30,8 @@ object ScalafmtTests extends TestSuite {
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "scalafmt"
 
   def workspaceTest[T](
-                        m: mill.testkit.TestBaseModule,
-                        resourcePath: os.Path = resourcePath
+      m: mill.testkit.TestBaseModule,
+      resourcePath: os.Path = resourcePath
   )(t: UnitTester => T)(
       implicit tp: TestPath
   ): T = {

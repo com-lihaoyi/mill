@@ -25,7 +25,7 @@ trait HelloWorldTests extends utest.TestSuite {
   val sbtResourcePath = resourcePath / os.up / "hello-world-sbt"
   val unmanagedFile = resourcePath / "unmanaged.xml"
 
-  object HelloWorld extends TestBaseModule  {
+  object HelloWorld extends TestBaseModule {
     object other extends ScalaModule {
       def scalaVersion = testScalaVersion
     }
@@ -50,7 +50,7 @@ trait HelloWorldTests extends utest.TestSuite {
     }
   }
 
-  object HelloWorldSbt extends TestBaseModule  {
+  object HelloWorldSbt extends TestBaseModule {
     outer =>
     object core extends SbtModule with ScoverageModule {
       def scalaVersion = testScalaVersion
@@ -295,7 +295,7 @@ trait FailedWorldTests extends HelloWorldTests {
           val Left(Result.Failure(msg, _)) = eval.apply(mod.core.scoverageToolsClasspath)
           assert(msg == errorMsg)
         }
-        test("other"){
+        test("other") {
           val eval = UnitTester(mod, resourcePath)
           val Left(Result.Failure(msg, _)) = eval.apply(mod.core.scoverage.xmlReport())
           assert(msg == errorMsg)

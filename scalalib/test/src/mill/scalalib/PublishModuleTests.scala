@@ -31,7 +31,7 @@ object PublishModuleTests extends TestSuite {
     }
   }
 
-  object HelloWorldWithPublish extends TestBaseModule  {
+  object HelloWorldWithPublish extends TestBaseModule {
     object core extends HelloScalaModule with PublishModule {
       override def artifactName = "hello-world"
       override def publishVersion = "0.0.1"
@@ -52,7 +52,7 @@ object PublishModuleTests extends TestSuite {
     }
   }
 
-  object PomOnly extends TestBaseModule  {
+  object PomOnly extends TestBaseModule {
     object core extends JavaModule with PublishModule {
       override def pomPackagingType: String = PackagingType.Pom
       override def artifactName = "pom-only"
@@ -79,7 +79,6 @@ object PublishModuleTests extends TestSuite {
 
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "publish"
 
-
   def tests: Tests = Tests {
     test("pom") {
       test("should include scala-library dependency") {
@@ -99,7 +98,7 @@ object PublishModuleTests extends TestSuite {
           (scalaLibrary \ "groupId").text == "org.scala-lang"
         )
       }
-      test("versionScheme")  {
+      test("versionScheme") {
         val eval = UnitTester(HelloWorldWithPublish, resourcePath)
         val Right(result) = eval.apply(HelloWorldWithPublish.core.pom)
 
@@ -117,7 +116,7 @@ object PublishModuleTests extends TestSuite {
     test("publish") {
       test(
         "should retrieve credentials from environment variables if direct argument is empty"
-      )  {
+      ) {
         val eval = UnitTester(
           HelloWorldWithPublish,
           sourceRoot = resourcePath,
@@ -169,7 +168,7 @@ object PublishModuleTests extends TestSuite {
     }
 
     test("ivy") {
-      test("should include scala-library dependency"){
+      test("should include scala-library dependency") {
         val eval = UnitTester(HelloWorldWithPublish, resourcePath)
         val Right(result) = eval.apply(HelloWorldWithPublish.core.ivy)
 

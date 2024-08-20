@@ -8,21 +8,21 @@ import mill.testkit.TestBaseModule
 
 object DottyDocTests extends TestSuite {
   // a project with static docs
-  object StaticDocsModule extends TestBaseModule  {
+  object StaticDocsModule extends TestBaseModule {
     object static extends ScalaModule {
       def scalaVersion = "0.24.0-RC1"
     }
   }
 
   // a project without static docs (i.e. only api docs, no markdown files)
-  object EmptyDocsModule extends TestBaseModule  {
+  object EmptyDocsModule extends TestBaseModule {
     object empty extends ScalaModule {
       def scalaVersion = "0.24.0-RC1"
     }
   }
 
   // a project with multiple static doc folders
-  object MultiDocsModule extends TestBaseModule  {
+  object MultiDocsModule extends TestBaseModule {
     object multidocs extends ScalaModule {
       def scalaVersion = "0.24.0-RC1"
       def docResources = T.sources(
@@ -34,10 +34,8 @@ object DottyDocTests extends TestSuite {
 
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "dottydoc"
 
-
-
   def tests: Tests = Tests {
-    test("static")  {
+    test("static") {
       val eval = UnitTester(StaticDocsModule, resourcePath)
       val Right(_) = eval.apply(StaticDocsModule.static.docJar)
       val dest = eval.outPath / "static" / "docJar.dest"
@@ -50,7 +48,7 @@ object DottyDocTests extends TestSuite {
         os.exists(dest / "javadoc" / "_site" / "api" / "pkg" / "SomeClass.html")
       )
     }
-    test("empty")  {
+    test("empty") {
       val eval = UnitTester(EmptyDocsModule, resourcePath)
       val Right(_) = eval.apply(EmptyDocsModule.empty.docJar)
       val dest = eval.outPath / "empty" / "docJar.dest"
@@ -59,7 +57,7 @@ object DottyDocTests extends TestSuite {
         os.exists(dest / "javadoc" / "_site" / "api" / "pkg" / "SomeClass.html")
       )
     }
-    test("multiple")  {
+    test("multiple") {
       val eval = UnitTester(MultiDocsModule, resourcePath)
       val Right(_) = eval.apply(MultiDocsModule.multidocs.docJar)
       val dest = eval.outPath / "multidocs" / "docJar.dest"

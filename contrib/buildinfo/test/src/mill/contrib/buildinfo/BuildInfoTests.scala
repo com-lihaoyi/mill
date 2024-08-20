@@ -11,8 +11,7 @@ object BuildInfoTests extends TestSuite {
 
   val scalaVersionString = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
   val scalaJSVersionString = sys.props.getOrElse("TEST_SCALAJS_VERSION", ???)
-  trait BuildInfoModule extends TestBaseModule with BuildInfo {
-  }
+  trait BuildInfoModule extends TestBaseModule with BuildInfo {}
 
   object EmptyBuildInfo extends BuildInfoModule with scalalib.ScalaModule {
     def scalaVersion = scalaVersionString
@@ -137,7 +136,7 @@ object BuildInfoTests extends TestSuite {
       assert(buildInfoResource.contains(expectedResource))
     }
 
-    test("supportCustomSettings"){
+    test("supportCustomSettings") {
       val eval = UnitTester(BuildInfoSettings, testModuleSourcesPath / "scala")
       val Right(result) = eval.apply(BuildInfoSettings.buildInfoSources)
       val path = result.value.head.path
@@ -148,7 +147,7 @@ object BuildInfoTests extends TestSuite {
       assert(found.contains("object bar"))
     }
 
-    test("compile"){
+    test("compile") {
       val eval = UnitTester(BuildInfoPlain, testModuleSourcesPath / "scala")
       val Right(_) = eval.apply(BuildInfoPlain.compile)
       assert(true)

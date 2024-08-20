@@ -14,7 +14,7 @@ object BspModuleTests extends TestSuite {
 
   val testScalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
 
-  object MultiBase extends TestBaseModule  {
+  object MultiBase extends TestBaseModule {
     object HelloBsp extends ScalaModule {
       def scalaVersion = testScalaVersion
       override def ivyDeps = Agg(ivy"org.slf4j:slf4j-api:1.7.34")
@@ -39,7 +39,6 @@ object BspModuleTests extends TestSuite {
           .map(i => Mod(i))
     }
   }
-
 
   override def tests: Tests = Tests {
     test("bspCompileClasspath") {

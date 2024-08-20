@@ -8,7 +8,8 @@ object ExampleTestTests extends TestSuite {
     test("example") {
       new ExampleTester(
         clientServerMode = true,
-        workspaceSourcePath = os.pwd / "testkit" / "test" / "resources" / "example-test-example-project",
+        workspaceSourcePath =
+          os.pwd / "testkit" / "test" / "resources" / "example-test-example-project",
         millExecutable = os.Path(sys.env("MILL_EXECUTABLE_PATH"))
       ).run()
     }

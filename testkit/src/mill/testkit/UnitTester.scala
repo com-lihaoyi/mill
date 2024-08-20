@@ -14,28 +14,27 @@ import java.io.{InputStream, PrintStream}
 object UnitTester {
   case class Result[T](value: T, evalCount: Int)
   def apply(
-
-             module: mill.testkit.TestBaseModule,
-             sourceRoot: os.Path = null,
-             failFast: Boolean = false,
-             threads: Option[Int] = Some(1),
-             outStream: PrintStream = System.out,
-             errStream: PrintStream = System.err,
-             inStream: InputStream = DummyInputStream,
-             debugEnabled: Boolean = false,
-             env: Map[String, String] = Evaluator.defaultEnv,
-             resetSourcePath: Boolean = true,
-           )  = new UnitTester(
+      module: mill.testkit.TestBaseModule,
+      sourceRoot: os.Path = null,
+      failFast: Boolean = false,
+      threads: Option[Int] = Some(1),
+      outStream: PrintStream = System.out,
+      errStream: PrintStream = System.err,
+      inStream: InputStream = DummyInputStream,
+      debugEnabled: Boolean = false,
+      env: Map[String, String] = Evaluator.defaultEnv,
+      resetSourcePath: Boolean = true
+  ) = new UnitTester(
     module = module,
-      sourceRoot = sourceRoot,
-      failFast = failFast,
-      threads = threads,
-      outStream = outStream,
-      errStream = errStream,
-      inStream = inStream,
-      debugEnabled = debugEnabled,
-      env = env,
-      resetSourcePath = resetSourcePath,
+    sourceRoot = sourceRoot,
+    failFast = failFast,
+    threads = threads,
+    outStream = outStream,
+    errStream = errStream,
+    inStream = inStream,
+    debugEnabled = debugEnabled,
+    env = env,
+    resetSourcePath = resetSourcePath
   )
 }
 
@@ -45,16 +44,16 @@ object UnitTester {
  * @param threads explicitly used nr. of parallel threads
  */
 class UnitTester(
-                  module: mill.testkit.TestBaseModule,
-                  sourceRoot: os.Path,
-                  failFast: Boolean,
-                  threads: Option[Int],
-                  outStream: PrintStream,
-                  errStream: PrintStream,
-                  inStream: InputStream,
-                  debugEnabled: Boolean,
-                  env: Map[String, String],
-                  resetSourcePath: Boolean,
+    module: mill.testkit.TestBaseModule,
+    sourceRoot: os.Path,
+    failFast: Boolean,
+    threads: Option[Int],
+    outStream: PrintStream,
+    errStream: PrintStream,
+    inStream: InputStream,
+    debugEnabled: Boolean,
+    env: Map[String, String],
+    resetSourcePath: Boolean
 )(implicit fullName: sourcecode.FullName) {
   val outPath: os.Path = module.millSourcePath / "out"
 

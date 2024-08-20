@@ -8,21 +8,21 @@ import mill.testkit.TestBaseModule
 
 object ScalaDoc3Tests extends TestSuite {
   // a project with static docs
-  object StaticDocsModule extends TestBaseModule  {
+  object StaticDocsModule extends TestBaseModule {
     object static extends ScalaModule {
       def scalaVersion = "3.0.0-RC1"
     }
   }
 
   // a project without static docs (i.e. only api docs, no markdown files)
-  object EmptyDocsModule extends TestBaseModule  {
+  object EmptyDocsModule extends TestBaseModule {
     object empty extends ScalaModule {
       def scalaVersion = "3.0.0-RC1"
     }
   }
 
   // a project with multiple static doc folders
-  object MultiDocsModule extends TestBaseModule  {
+  object MultiDocsModule extends TestBaseModule {
     object multidocs extends ScalaModule {
       def scalaVersion = "3.0.0-RC1"
       def docResources = T.sources(
@@ -33,8 +33,6 @@ object ScalaDoc3Tests extends TestSuite {
   }
 
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "scaladoc3"
-
-
 
   def tests: Tests = Tests {
     test("static") {
