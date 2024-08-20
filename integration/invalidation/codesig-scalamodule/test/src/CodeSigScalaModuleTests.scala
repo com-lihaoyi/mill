@@ -38,13 +38,13 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
 
       // Changing the body of a T{...} block directly invalidates that target
       // and any downstream targets
-      modifyFile(wsRoot / "build.sc", _.replace("Foo running...", "FOO RUNNING"))
+      modifyFile(workspacePath / "build.sc", _.replace("Foo running...", "FOO RUNNING"))
       val mangledFoo = eval("foo.run")
       assert(filterLines(mangledFoo.out) == Set("Foo Hello World", "FOO RUNNING"))
 
       // Changing the body `foo.compile` invalidates `foo.compile`, and downstream
       // `foo.run` runs regardless
-      modifyFile(wsRoot / "build.sc", _.replace("Foo compiling...", "FOO COMPILING"))
+      modifyFile(workspacePath / "build.sc", _.replace("Foo compiling...", "FOO COMPILING"))
       val mangledFoo2 = eval("foo.run")
 
       assert(
@@ -59,7 +59,7 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
       // Changing the body `foo.generatedSources` invalidates `foo.generatedSources`,
       // but if the return value is not changed then `foo.compile` does not invalidate
       modifyFile(
-        wsRoot / "build.sc",
+        workspacePath / "build.sc",
         _.replace("Foo generating sources...", "FOO GENERATING SOURCES")
       )
       val mangledFoo3 = eval("foo.run")
@@ -75,7 +75,7 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
 
       // Changing the body `foo.generatedSources` invalidates `foo.generatedSources`,
       // and if the return value is changed then `foo.compile` does invalidate
-      modifyFile(wsRoot / "build.sc", _.replace(""""Hello World"""", """"HELLO WORLD""""))
+      modifyFile(workspacePath / "build.sc", _.replace(""""Hello World"""", """"HELLO WORLD""""))
       val mangledFoo4 = eval("foo.run")
 
       assert(
@@ -88,7 +88,7 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
           )
       )
 
-      modifyFile(wsRoot / "build.sc", _.replace("2.13.8", "2.12.11"))
+      modifyFile(workspacePath / "build.sc", _.replace("2.13.8", "2.12.11"))
       val mangledFoo5 = eval("foo.run")
 
       assert(
@@ -102,7 +102,7 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
 
       // Adding newlines in various places doesn't invalidate anything
       modifyFile(
-        wsRoot / "build.sc",
+        workspacePath / "build.sc",
         s =>
           "\n\n\n" +
             s.replace("def scalaVersion", "\ndef scalaVersion\n")
@@ -154,12 +154,12 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
       // target methods to the upstream target method because it will get handled
       // later by the runtime build graph evaluation, and the runtime build graph
       // evaluation can see the return value was not changed and avoid invalidation
-      modifyFile(wsRoot / "build.sc", _.replace("Foo compiling...", "FOO COMPILING"))
+      modifyFile(workspacePath / "build.sc", _.replace("Foo compiling...", "FOO COMPILING"))
       val mangledFoo2 = eval("{foo,bar,qux}.assembly")
       assert(filterLines(mangledFoo2.out) == Set("FOO COMPILING"))
 
       modifyFile(
-        wsRoot / "build.sc",
+        workspacePath / "build.sc",
         _.replace("Foo generating sources...", "FOO generating sources")
       )
       val mangledFoo3 = eval("{foo,bar,qux}.assembly")
@@ -169,7 +169,7 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
       // its return value does cause downstream targets in foo and bar to invalidate,
       // but unrelated targets (bar.generatedSources and qux.*) are not invalidated
       modifyFile(
-        wsRoot / "build.sc",
+        workspacePath / "build.sc",
         _.replace("""fooMsg = "Hello World"""", """fooMsg = "HELLO WORLD"""")
       )
       val mangledFoo4 = eval("{foo,bar,qux}.assembly")

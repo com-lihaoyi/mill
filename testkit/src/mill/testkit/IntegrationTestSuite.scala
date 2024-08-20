@@ -111,20 +111,21 @@ abstract class IntegrationTestSuite extends TestSuite {
    */
   def modifyFile(p: os.Path, f: String => String): Unit = os.write.over(p, f(os.read(p)))
 
-  override def utestAfterEach(path: Seq[String]): Unit = {
-    if (clientServerMode) {
-      // try to stop the server
-      try {
-        os.proc(millReleaseFileOpt.get, "shutdown").call(
-          cwd = workspacePath,
-          stdin = os.Inherit,
-          stdout = os.Inherit,
-          stderr = os.Inherit,
-          env = millTestSuiteEnv
-        )
-      } catch {
-        case NonFatal(e) =>
-      }
+  def teardownWorkspace() = {
+    // try to stop the server
+    try {
+      os.proc(millReleaseFileOpt.get, "shutdown").call(
+        cwd = workspacePath,
+        stdin = os.Inherit,
+        stdout = os.Inherit,
+        stderr = os.Inherit,
+        env = millTestSuiteEnv
+      )
+    } catch {
+      case NonFatal(e) =>
     }
+  }
+  override def utestAfterEach(path: Seq[String]): Unit = {
+    if (clientServerMode) teardownWorkspace()
   }
 }

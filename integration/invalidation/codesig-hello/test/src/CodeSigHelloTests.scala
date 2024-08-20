@@ -18,7 +18,7 @@ object CodeSigHelloTests extends IntegrationTestSuite {
       val cached = eval("foo")
       assert(cached.out == "")
 
-      modifyFile(wsRoot / "build.sc", _.replace("running foo", "running foo2"))
+      modifyFile(workspacePath / "build.sc", _.replace("running foo", "running foo2"))
       val mangledFoo = eval("foo")
 
       assert(mangledFoo.out.linesIterator.toSeq == Seq("running foo2", "running helperFoo"))
@@ -26,14 +26,14 @@ object CodeSigHelloTests extends IntegrationTestSuite {
       val cached2 = eval("foo")
       assert(cached2.out == "")
 
-      modifyFile(wsRoot / "build.sc", _.replace("running helperFoo", "running helperFoo2"))
+      modifyFile(workspacePath / "build.sc", _.replace("running helperFoo", "running helperFoo2"))
       val mangledHelperFoo = eval("foo")
 
       assert(mangledHelperFoo.out.linesIterator.toSeq == Seq("running foo2", "running helperFoo2"))
 
       // Make sure changing `val`s, which only affects the Module constructor and
       // not the Target method itself, causes invalidation
-      modifyFile(wsRoot / "build.sc", _.replace("val valueFoo = 0", "val valueFoo = 10"))
+      modifyFile(workspacePath / "build.sc", _.replace("val valueFoo = 0", "val valueFoo = 10"))
       val mangledValFoo = eval("foo")
       assert(mangledValFoo.out.linesIterator.toSeq == Seq("running foo2", "running helperFoo2"))
 
@@ -41,7 +41,7 @@ object CodeSigHelloTests extends IntegrationTestSuite {
       // we only know that the constructor changed and don't do enough analysis to
       // know that this particular val is not used
       modifyFile(
-        wsRoot / "build.sc",
+        workspacePath / "build.sc",
         _.replace("val valueFooUsedInBar = 0", "val valueFooUsedInBar = 10")
       )
       val mangledValFooUsedInBar = eval("foo")
