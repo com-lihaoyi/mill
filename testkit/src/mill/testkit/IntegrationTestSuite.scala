@@ -67,7 +67,7 @@ abstract class IntegrationTestSuite extends TestSuite {
       timeoutGracePeriod = timeoutGracePeriod,
     )
 
-    IntegrationTestSuite.EvalResult(res0.exitCode == 0, res0.out.text(), res0.err.text())
+    IntegrationTestSuite.EvalResult(res0.exitCode == 0, res0.out.trim(), res0.err.trim())
   }
 
   private val millReleaseFileOpt: Option[Path] =
