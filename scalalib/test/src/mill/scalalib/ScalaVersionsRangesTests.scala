@@ -20,30 +20,18 @@ object ScalaVersionsRangesTests extends TestSuite {
   val resourcePath =
     os.pwd / "scalalib" / "test" / "resources" / "scala-versions-ranges"
 
-  def workspaceTest[T](
-      m: mill.testkit.TestBaseModule
-  )(t: UnitTester => T)(implicit tp: TestPath): T = {
-    val eval = new UnitTester(m)
-    os.remove.all(m.millSourcePath)
-    os.remove.all(eval.outPath)
-    os.makeDir.all(m.millSourcePath / os.up)
-    os.copy(resourcePath, ScalaVersionsRanges.millSourcePath)
-    t(eval)
-  }
 
   val tests = Tests {
     test("main with Scala 2.12- and 2.13+ specific code") {
-      workspaceTest(ScalaVersionsRanges) { eval =>
-        ScalaVersionsRanges.core.crossModules.map { c =>
-          val Right(_) = eval(c.run())
-        }
+      val eval = new UnitTester(ScalaVersionsRanges, sourceRoot = resourcePath)
+      ScalaVersionsRanges.core.crossModules.map { c =>
+        val Right(_) = eval(c.run())
       }
     }
     test("test with Scala 2.12- and 2.13+ specific code") {
-      workspaceTest(ScalaVersionsRanges) { eval =>
-        ScalaVersionsRanges.core.crossModules.map { c =>
-          val Right(_) = eval(c.test.test())
-        }
+      val eval = new UnitTester(ScalaVersionsRanges, sourceRoot = resourcePath)
+      ScalaVersionsRanges.core.crossModules.map { c =>
+        val Right(_) = eval(c.test.test())
       }
     }
   }

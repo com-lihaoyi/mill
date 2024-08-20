@@ -34,22 +34,11 @@ object ScalaDoc3Tests extends TestSuite {
 
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "scaladoc3"
 
-  def workspaceTest[T](
-                        m: mill.testkit.TestBaseModule,
-                        resourcePath: os.Path = resourcePath
-  )(t: UnitTester => T)(
-      implicit tp: TestPath
-  ): T = {
-    val eval = new UnitTester(m)
-    os.remove.all(m.millSourcePath)
-    os.remove.all(eval.outPath)
-    os.makeDir.all(m.millSourcePath / os.up)
-    os.copy(resourcePath, m.millSourcePath)
-    t(eval)
-  }
+
 
   def tests: Tests = Tests {
-    test("static") - workspaceTest(StaticDocsModule) { eval =>
+    test("static") {
+      val eval = new UnitTester(StaticDocsModule, sourceRoot = resourcePath)
       val Right(_) = eval.apply(StaticDocsModule.static.docJar)
       val dest = eval.outPath / "static" / "docJar.dest"
       assert(
@@ -61,7 +50,8 @@ object ScalaDoc3Tests extends TestSuite {
         os.exists(dest / "javadoc" / "api" / "pkg" / "SomeClass.html")
       )
     }
-    test("empty") - workspaceTest(EmptyDocsModule) { eval =>
+    test("empty") {
+      val eval = new UnitTester(EmptyDocsModule, sourceRoot = resourcePath)
       val Right(_) = eval.apply(EmptyDocsModule.empty.docJar)
       val dest = eval.outPath / "empty" / "docJar.dest"
       assert(
@@ -69,7 +59,8 @@ object ScalaDoc3Tests extends TestSuite {
         os.exists(dest / "javadoc" / "api" / "pkg" / "SomeClass.html")
       )
     }
-    test("multiple") - workspaceTest(MultiDocsModule) { eval =>
+    test("multiple") {
+      val eval = new UnitTester(MultiDocsModule, sourceRoot = resourcePath)
       val Right(_) = eval.apply(MultiDocsModule.multidocs.docJar)
       val dest = eval.outPath / "multidocs" / "docJar.dest"
       assert(

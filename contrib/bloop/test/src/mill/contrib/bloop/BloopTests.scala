@@ -17,7 +17,7 @@ object BloopTests extends TestSuite {
   import BloopFormats._
 
   val workdir = os.pwd / "target" / "workspace" / "bloop"
-  val unitTester = UnitTester.static(build)
+  val unitTester = new UnitTester(build)
   val testBloop = new BloopImpl(() => Seq(unitTester.evaluator), workdir)
 
   object build extends TestBaseModule {

@@ -16,23 +16,10 @@ object CoursierMirrorTests extends TestSuite {
     }
   }
 
-  def workspaceTest[T](
-                        m: mill.testkit.TestBaseModule,
-                        resourcePath: os.Path = resourcePath,
-                        env: Map[String, String] = Evaluator.defaultEnv,
-                        debug: Boolean = false
-  )(t: UnitTester => T)(implicit tp: TestPath): T = {
-    val eval = new UnitTester(m, env = env, debugEnabled = debug)
-    os.remove.all(m.millSourcePath)
-    os.remove.all(eval.outPath)
-    os.makeDir.all(m.millSourcePath / os.up)
-    os.copy(resourcePath, m.millSourcePath)
-    t(eval)
-  }
-
   def tests: Tests = Tests {
     sys.props("coursier.mirrors") = (resourcePath / "mirror.properties").toString
-    test("readMirror") - workspaceTest(CoursierTest) { eval =>
+    test("readMirror")  {
+      val eval = new UnitTester(CoursierTest, sourceRoot = resourcePath)
       val Right(result) = eval.apply(CoursierTest.core.repositoriesTask)
       val centralReplaced = result.value.exists { repo =>
         repo.repr.contains("https://repo.maven.apache.org/maven2")

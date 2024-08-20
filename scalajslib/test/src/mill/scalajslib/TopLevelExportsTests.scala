@@ -21,7 +21,7 @@ object TopLevelExportsTests extends TestSuite {
 
   val millSourcePath = os.pwd / "scalajslib" / "test" / "resources" / "top-level-exports"
 
-  val evaluator = UnitTester.static(TopLevelExportsModule)
+  val evaluator = new UnitTester(TopLevelExportsModule)
 
   val tests: Tests = Tests {
     test("top level exports") {

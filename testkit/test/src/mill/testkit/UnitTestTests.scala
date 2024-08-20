@@ -24,7 +24,7 @@ object UnitTestTests extends TestSuite {
 
       val UnitTester = new UnitTester(
         build,
-        sourceFileRoot = os.pwd / "testkit" / "test" / "resources" / "unit-test-example-project"
+        sourceRoot = os.pwd / "testkit" / "test" / "resources" / "unit-test-example-project"
       )
 
       val Right(result) = UnitTester(build.testTask)

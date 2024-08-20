@@ -11,7 +11,6 @@ object Giter8Tests extends TestSuite {
   override def tests: Tests = Tests {
     test("init") {
       test("hello") {
-        val rootDir = os.temp.dir(prefix = "mill_giter8_test")
         val template = getClass().getClassLoader().getResource("giter8/hello.g8").toExternalForm
         val templateString =
           if (template.startsWith("file:/") && template(6) != '/') {
@@ -39,7 +38,7 @@ object Giter8Tests extends TestSuite {
         assert(
           res.failing.keyCount == 0,
           res.values.size == 1,
-          files.forall(f => os.exists(rootDir / "hello" / f))
+          files.forall(f => os.exists(g8Module.millSourcePath / "hello" / f))
         )
       }
     }

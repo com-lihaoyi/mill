@@ -31,25 +31,17 @@ object CycleTests extends TestSuite {
     }
   }
 
-  def workspaceTest[T](m: mill.testkit.TestBaseModule)(t: UnitTester => T)(implicit
-                                                                           tp: TestPath
-  ): T = {
-    val eval = new UnitTester(m)
-    os.remove.all(m.millSourcePath)
-    os.remove.all(eval.outPath)
-    os.makeDir.all(m.millSourcePath / os.up)
-    t(eval)
-  }
-
   override def tests: Tests = Tests {
     test("moduleDeps") {
-      test("self-reference") - workspaceTest(CycleBase) { eval =>
+      test("self-reference")  {
+        val eval = new UnitTester(CycleBase)
         val ex = intercept[BuildScriptException] {
           eval.apply(CycleBase.a.compile)
         }
         assert(ex.getMessage.contains("a.moduleDeps: cycle detected: a -> a"))
       }
-      test("cycle-in-deps") - workspaceTest(CycleBase) { eval =>
+      test("cycle-in-deps")  {
+        val eval = new UnitTester(CycleBase)
         val ex = intercept[BuildScriptException] {
           eval.apply(CycleBase.e.compile)
         }
@@ -57,7 +49,8 @@ object CycleTests extends TestSuite {
       }
     }
     test("compileModuleDeps") {
-      test("self-reference") - workspaceTest(CycleBase) { eval =>
+      test("self-reference")  {
+        val eval = new UnitTester(CycleBase)
         val ex = intercept[BuildScriptException] {
           eval.apply(CycleBase.f.compile)
         }

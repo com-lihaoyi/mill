@@ -8,17 +8,10 @@ import mill.eval.{Evaluator, EvaluatorImpl}
 import mill.resolve.{Resolve, SelectMode}
 import mill.util.PrintLogger
 import mill.api.Strict.Agg
-import utest.framework.TestPath
 
 import java.io.{InputStream, PrintStream}
 
 object UnitTester {
-  def static(module: => mill.testkit.TestBaseModule)(implicit
-                                                     fullName: sourcecode.FullName
-  ): UnitTester = {
-    new UnitTester(module)(fullName, TestPath(Nil))
-  }
-
   case class Result[T](value: T, evalCount: Int)
 }
 
@@ -35,17 +28,19 @@ class UnitTester(
                   errStream: PrintStream = System.err,
                   inStream: InputStream = DummyInputStream,
                   debugEnabled: Boolean = false,
-                  extraPathEnd: Seq[String] = Seq.empty,
                   env: Map[String, String] = Evaluator.defaultEnv,
-                  sourceFileRoot: os.Path = null
-)(implicit fullName: sourcecode.FullName, tp: TestPath) {
+                  sourceRoot: os.Path = null,
+                  resetSourcePath: Boolean = true,
+)(implicit fullName: sourcecode.FullName) {
   val outPath: os.Path = module.millSourcePath / "out"
 
-  os.remove.all(module.millSourcePath)
-  os.makeDir.all(module.millSourcePath)
+  if (resetSourcePath) {
+    os.remove.all(module.millSourcePath)
+    os.makeDir.all(module.millSourcePath)
 
-  for (sourceFileRoot <- Option(sourceFileRoot)) {
-    os.copy.over(sourceFileRoot, module.millSourcePath, createFolders = true)
+    for (sourceFileRoot <- Option(sourceRoot)) {
+      os.copy.over(sourceFileRoot, module.millSourcePath, createFolders = true)
+    }
   }
 
   object logger extends mill.util.PrintLogger(

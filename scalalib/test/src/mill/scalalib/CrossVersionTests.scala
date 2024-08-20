@@ -119,12 +119,7 @@ object CrossVersionTests extends TestSuite {
 
   }
 
-  def init()(implicit tp: TestPath) = {
-    val eval = new UnitTester(TestCases)
-    os.remove.all(eval.outPath)
-    os.makeDir.all(TestCases.millSourcePath / os.up)
-    eval
-  }
+  def init() = new UnitTester(TestCases)
 
   import TestCases._
 

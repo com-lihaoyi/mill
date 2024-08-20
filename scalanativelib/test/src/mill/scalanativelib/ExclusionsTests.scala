@@ -26,7 +26,7 @@ object ExclusionsTests extends TestSuite {
     override lazy val millDiscover: Discover[Exclusions.this.type] = Discover[this.type]
   }
 
-  val exclusionsEvaluator = UnitTester.static(Exclusions)
+  val exclusionsEvaluator = new UnitTester(Exclusions)
 
   val tests: Tests = Tests {
     test("scala3 scala native libraries are excluded in Scala 2.13") {

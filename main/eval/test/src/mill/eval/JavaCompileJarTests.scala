@@ -18,7 +18,10 @@ object JavaCompileJarTests extends TestSuite {
     mill.api.PathRef(ctx.dest)
   }
 
+  val javacSrcPath = os.pwd / "main" / "test" / "resources" / "examples" / "javac"
+
   val tests = Tests {
+
     test("javac") {
       object Build extends TestBaseModule {
         def sourceRootPath = millSourcePath / "src"
@@ -56,7 +59,10 @@ object JavaCompileJarTests extends TestSuite {
 
       import Build._
 
-      var evaluator = new UnitTester(Build)
+      var evaluator = new UnitTester(
+        Build,
+        sourceRoot = javacSrcPath
+      )
       def eval[T](t: Task[T]) = evaluator.apply(t)
       def check(targets: Agg[Task[_]], expected: Agg[Task[_]]) = evaluator.check(targets, expected)
 
@@ -95,7 +101,11 @@ object JavaCompileJarTests extends TestSuite {
       check(targets = Agg(jar), expected = Agg(jar))
 
       // You can swap evaluators halfway without any ill effects
-      evaluator = new UnitTester(Build)
+      evaluator = new UnitTester(
+        Build,
+        sourceRoot = javacSrcPath,
+        resetSourcePath = false
+      )
 
       // Asking for an intermediate target forces things to be build up to that
       // target only; these are re-used for any downstream targets requested

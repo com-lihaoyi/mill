@@ -16,14 +16,10 @@ object EvaluationTestsThreadsNative extends EvaluationTests(threadCount = None)
 
 class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
 
-  class Checker[T <: mill.testkit.TestBaseModule](module: T)(implicit tp: TestPath) {
+  class Checker[T <: mill.testkit.TestBaseModule](module: T) {
     // Make sure data is persisted even if we re-create the evaluator each time
 
-    val evaluator = new UnitTester(module, threads = threadCount)(
-      implicitly[sourcecode.FullName],
-      TestPath(tp.value ++ Seq(s"threads-${threadCount.getOrElse("native")}"))
-    )
-      .evaluator
+    val evaluator = new UnitTester(module, threads = threadCount).evaluator
 
     def apply(
         target: Task[_],

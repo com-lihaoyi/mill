@@ -59,7 +59,7 @@ object NodeJSConfigTests extends TestSuite {
 
   val millSourcePath = os.pwd / "scalajslib" / "test" / "resources" / "hello-js-world"
 
-  val helloWorldEvaluator = UnitTester.static(HelloJSWorld)
+  val helloWorldEvaluator = new UnitTester(HelloJSWorld)
 
   val mainObject = helloWorldEvaluator.outPath / "src" / "Main.scala"
 

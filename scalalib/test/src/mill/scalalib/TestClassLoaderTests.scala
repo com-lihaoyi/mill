@@ -22,25 +22,10 @@ object TestClassLoaderTests extends TestSuite {
 
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "classloader-test"
 
-  def workspaceTest[T](
-                        m: mill.testkit.TestBaseModule,
-                        resourcePath: os.Path = resourcePath
-  )(t: UnitTester => T)(
-      implicit tp: TestPath
-  ): T = {
-    val eval = new UnitTester(m)
-    os.remove.all(m.millSourcePath)
-    os.remove.all(eval.outPath)
-    os.makeDir.all(m.millSourcePath / os.up)
-    os.copy(resourcePath, m.millSourcePath)
-    t(eval)
-  }
-
   override def tests: Tests = Tests {
     test("com.sun classes exist in tests classpath (Java 8 only)") {
-      workspaceTest(testclassloader) { eval =>
-        assert(eval.apply(testclassloader.test.test()).isRight)
-      }
+      val eval = new UnitTester(testclassloader, sourceRoot = resourcePath)
+      assert(eval.apply(testclassloader.test.test()).isRight)
     }
   }
 }

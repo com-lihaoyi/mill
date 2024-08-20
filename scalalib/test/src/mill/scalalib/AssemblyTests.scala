@@ -75,22 +75,6 @@ object AssemblyTests extends TestSuite {
         |}""".stripMargin
   )
 
-  def workspaceTest[T](
-                        m: mill.testkit.TestBaseModule,
-                        env: Map[String, String] = Evaluator.defaultEnv,
-                        debug: Boolean = false,
-                        errStream: PrintStream = System.err
-  )(t: UnitTester => T)(implicit tp: TestPath): T = {
-    val eval = new UnitTester(m, env = env, debugEnabled = debug, errStream = errStream)
-    os.remove.all(m.millSourcePath)
-    sources.foreach { case (file, content) =>
-      os.write(m.millSourcePath / file, content, createFolders = true)
-    }
-    os.remove.all(eval.outPath)
-    os.makeDir.all(m.millSourcePath / os.up)
-    t(eval)
-  }
-
   def runAssembly(file: os.Path, wd: os.Path, checkExe: Boolean = false): Unit = {
     println(s"File size: ${os.stat(file).size}")
     Jvm.runSubprocess(
@@ -110,45 +94,45 @@ object AssemblyTests extends TestSuite {
   def tests: Tests = Tests {
     test("Assembly") {
       test("noExe") {
-        test("small") {
-          workspaceTest(TestCase) { eval =>
-            val Right(result) = eval(TestCase.noExe.small.assembly)
-            runAssembly(result.value.path, TestCase.millSourcePath)
-          }
+        test("small")  {
+          val eval = new UnitTester(TestCase)
+          val Right(result) = eval(TestCase.noExe.small.assembly)
+          runAssembly(result.value.path, TestCase.millSourcePath)
+
         }
-        test("large") {
-          workspaceTest(TestCase) { eval =>
-            val Right(result) = eval(TestCase.noExe.large.assembly)
-            runAssembly(result.value.path, TestCase.millSourcePath)
-          }
+        test("large")  {
+          val eval = new UnitTester(TestCase)
+          val Right(result) = eval(TestCase.noExe.large.assembly)
+          runAssembly(result.value.path, TestCase.millSourcePath)
+
         }
       }
       test("exe") {
-        test("small") {
-          workspaceTest(TestCase) { eval =>
-            val Right(result) = eval(TestCase.exe.small.assembly)
-            val originalPath = result.value.path
-            val resolvedPath =
-              if (Properties.isWin) {
-                val winPath = originalPath / os.up / s"${originalPath.last}.bat"
-                os.copy(originalPath, winPath)
-                winPath
-              } else originalPath
-            runAssembly(resolvedPath, TestCase.millSourcePath, checkExe = true)
-          }
+        test("small")  {
+          val eval = new UnitTester(TestCase)
+          val Right(result) = eval(TestCase.exe.small.assembly)
+          val originalPath = result.value.path
+          val resolvedPath =
+            if (Properties.isWin) {
+              val winPath = originalPath / os.up / s"${originalPath.last}.bat"
+              os.copy(originalPath, winPath)
+              winPath
+            } else originalPath
+          runAssembly(resolvedPath, TestCase.millSourcePath, checkExe = true)
         }
-        test("large-should-fail") {
-          workspaceTest(TestCase) { eval =>
-            val Left(Result.Failure(msg, Some(res))) = eval(TestCase.exe.large.assembly)
-            val expectedMsg =
-              """The created assembly jar contains more than 65535 ZIP entries.
-                |JARs of that size are known to not work correctly with a prepended shell script.
-                |Either reduce the entries count of the assembly or disable the prepended shell script with:
-                |
-                |  def prependShellScript = ""
-                |""".stripMargin
-            assert(msg == expectedMsg)
-          }
+
+        test("large-should-fail")  {
+          val eval = new UnitTester(TestCase)
+          val Left(Result.Failure(msg, Some(res))) = eval(TestCase.exe.large.assembly)
+          val expectedMsg =
+            """The created assembly jar contains more than 65535 ZIP entries.
+              |JARs of that size are known to not work correctly with a prepended shell script.
+              |Either reduce the entries count of the assembly or disable the prepended shell script with:
+              |
+              |  def prependShellScript = ""
+              |""".stripMargin
+          assert(msg == expectedMsg)
+
         }
       }
     }
