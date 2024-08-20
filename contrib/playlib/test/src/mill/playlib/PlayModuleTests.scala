@@ -24,26 +24,26 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
       test("fromBuild") {
         matrix.foreach { case (scalaVersion, playVersion) =>
           workspaceTest(playmulti) { eval =>
-            val Right((conf, _)) = eval.apply(playmulti.core(scalaVersion, playVersion).conf)
-            val Right((app, _)) = eval.apply(playmulti.core(scalaVersion, playVersion).app)
-            val Right((sources, _)) = eval.apply(playmulti.core(scalaVersion, playVersion).sources)
-            val Right((resources, _)) =
+            val Right(conf) = eval.apply(playmulti.core(scalaVersion, playVersion).conf)
+            val Right(app) = eval.apply(playmulti.core(scalaVersion, playVersion).app)
+            val Right(sources) = eval.apply(playmulti.core(scalaVersion, playVersion).sources)
+            val Right(resources) =
               eval.apply(playmulti.core(scalaVersion, playVersion).resources)
-            val Right((testSources, _)) =
+            val Right(testSources) =
               eval.apply(playmulti.core(scalaVersion, playVersion).test.sources)
-            val Right((testResources, _)) =
+            val Right(testResources) =
               eval.apply(playmulti.core(scalaVersion, playVersion).test.resources)
             assert(
-              conf.map(_.path.relativeTo(playmulti.millSourcePath).toString()) == Seq("core/conf"),
-              app.map(_.path.relativeTo(playmulti.millSourcePath).toString()) == Seq("core/app"),
+              conf.value.map(_.path.relativeTo(playmulti.millSourcePath).toString()) == Seq("core/conf"),
+              app.value.map(_.path.relativeTo(playmulti.millSourcePath).toString()) == Seq("core/app"),
               sources == app,
-              resources.map(_.path.relativeTo(playmulti.millSourcePath).toString()).contains(
+              resources.value.map(_.path.relativeTo(playmulti.millSourcePath).toString()).contains(
                 "core/conf"
               ),
-              testSources.map(_.path.relativeTo(playmulti.millSourcePath).toString()) == Seq(
+              testSources.value.map(_.path.relativeTo(playmulti.millSourcePath).toString()) == Seq(
                 "core/test"
               ),
-              testResources.map(_.path.relativeTo(playmulti.millSourcePath).toString()) == Seq(
+              testResources.value.map(_.path.relativeTo(playmulti.millSourcePath).toString()) == Seq(
                 "core/test/resources"
               )
             )
@@ -55,7 +55,7 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
       test("fromBuild") {
         matrix.foreach { case (scalaVersion, playVersion) =>
           workspaceTest(playmulti) { eval =>
-            val Right((deps, evalCount)) =
+            val Right(result) =
               eval.apply(playmulti.core(scalaVersion, playVersion).ivyDeps)
             val expectedModules = Seq[String](
               "play",
@@ -64,10 +64,10 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
               "play-logback",
               "play-ahc-ws"
             )
-            val outputModules = deps.map(_.dep.module.name.value)
+            val outputModules = result.value.map(_.dep.module.name.value)
             assert(
               outputModules.forall(expectedModules.contains),
-              evalCount > 0
+              result.evalCount > 0
             )
           }
         }
@@ -85,9 +85,9 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
         skipUnsupportedVersions(playVersion) {
           workspaceTest(playmulti) { eval =>
             val eitherResult = eval.apply(playmulti.core(scalaVersion, playVersion).compile)
-            val Right((result, evalCount)) = eitherResult
+            val Right(result) = eitherResult
             val outputClassFiles =
-              os.walk(result.classes.path).filter(f => os.isFile(f) && f.ext == "class")
+              os.walk(result.value.classes.path).filter(f => os.isFile(f) && f.ext == "class")
 
             val expectedClassfiles = Seq[os.RelPath](
               os.RelPath("controllers/HomeController.class"),
@@ -110,17 +110,17 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
               eval.outPath / "core" / scalaVersion / playVersion / "compile.dest" / "classes" / _
             )
             assert(
-              result.classes.path == eval.outPath / "core" / scalaVersion / playVersion / "compile.dest" / "classes",
+              result.value.classes.path == eval.outPath / "core" / scalaVersion / playVersion / "compile.dest" / "classes",
               outputClassFiles.nonEmpty,
               outputClassFiles.forall(expectedClassfiles.contains),
               outputClassFiles.size == 15,
-              evalCount > 0
+              result.evalCount > 0
             )
 
             // don't recompile if nothing changed
-            val Right((_, unchangedEvalCount)) =
+            val Right(result2) =
               eval.apply(playmulti.core(scalaVersion, playVersion).compile)
-            assert(unchangedEvalCount == 0)
+            assert(result2.evalCount == 0)
           }
         }
       }

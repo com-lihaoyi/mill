@@ -37,8 +37,8 @@ object RouterModuleTests extends TestSuite with PlayTestSuite {
         skipUnsupportedVersions(playVersion) {
           workspaceTest(HelloWorld) { eval =>
             val eitherResult = eval.apply(HelloWorld.core(scalaVersion, playVersion).compileRouter)
-            val Right((result, evalCount)) = eitherResult
-            val outputFiles = os.walk(result.classes.path).filter(os.isFile)
+            val Right(result) = eitherResult
+            val outputFiles = os.walk(result.value.classes.path).filter(os.isFile)
             val expectedClassfiles = Seq[os.RelPath](
               os.RelPath("controllers/ReverseRoutes.scala"),
               os.RelPath("controllers/routes.java"),
@@ -51,18 +51,18 @@ object RouterModuleTests extends TestSuite with PlayTestSuite {
               eval.outPath / "core" / scalaVersion / playVersion / "compileRouter.dest" / _
             )
             assert(
-              result.classes.path == eval.outPath / "core" / scalaVersion / playVersion / "compileRouter.dest",
+              result.value.classes.path == eval.outPath / "core" / scalaVersion / playVersion / "compileRouter.dest",
               outputFiles.nonEmpty,
               outputFiles.forall(expectedClassfiles.contains),
               outputFiles.size == 7,
-              evalCount > 0
+              result.evalCount > 0
             )
 
             // don't recompile if nothing changed
-            val Right((_, unchangedEvalCount)) =
+            val Right(result2) =
               eval.apply(HelloWorld.core(scalaVersion, playVersion).compileRouter)
 
-            assert(unchangedEvalCount == 0)
+            assert(result2.evalCount == 0)
           }
         }
       }

@@ -187,9 +187,9 @@ object BloopTests extends TestSuite {
         assert(p.platform.get.asInstanceOf[Jvm].classpath == None)
       }
       test("configAccessTest") {
-        val (accessedConfig, _) =
+        val accessedConfig =
           testEvaluator(build.scalaModule.bloop.config).asSuccess.get.value.toOption.get
-        assert(accessedConfig == scalaModuleConfig)
+        assert(accessedConfig.value == scalaModuleConfig)
       }
       test("noDepTest") {
         val cp = scalaModule2Config.project.classpath.map(_.toString)
@@ -252,7 +252,7 @@ object BloopTests extends TestSuite {
             val version = p.scala.get.version
             val platform = p.platform.get.asInstanceOf[BloopConfig.Platform.Native]
 
-            val (clang, _) =
+            val clang =
               testEvaluator(build.scalanativeModule.nativeClang).asSuccess.get.value.toOption.get
 
             assert(name == "scalanativeModule")
@@ -260,7 +260,7 @@ object BloopTests extends TestSuite {
             assert(sources == List(workdir / "scalanativeModule" / "src"))
             assert(version == build.scalanativeModule.sv)
             assert(platform.config.mode == BloopConfig.LinkerMode.Debug)
-            assert(platform.config.clang == clang.toNIO)
+            assert(platform.config.clang == clang.value.toNIO)
         }
       }
       test("skipped") {

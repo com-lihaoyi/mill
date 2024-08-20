@@ -19,10 +19,10 @@ object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
     test("playVersion") {
       test("fromBuild") {
         workspaceTest(playsingleapi) { eval =>
-          val Right((result, evalCount)) = eval.apply(playsingleapi.playVersion)
+          val Right(result) = eval.apply(playsingleapi.playVersion)
           assert(
-            result == testPlay28,
-            evalCount > 0
+            result.value == testPlay28,
+            result.evalCount > 0
           )
         }
       }
@@ -30,21 +30,21 @@ object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
     test("layout") {
       test("fromBuild") {
         workspaceTest(playsingleapi) { eval =>
-          val Right((conf, _)) = eval.apply(playsingleapi.conf)
-          val Right((app, _)) = eval.apply(playsingleapi.app)
-          val Right((sources, _)) = eval.apply(playsingleapi.sources)
-          val Right((resources, _)) = eval.apply(playsingleapi.resources)
-          val Right((testSources, _)) = eval.apply(playsingleapi.test.sources)
-          val Right((testResources, _)) = eval.apply(playsingleapi.test.resources)
+          val Right(conf) = eval.apply(playsingleapi.conf)
+          val Right(app) = eval.apply(playsingleapi.app)
+          val Right(sources) = eval.apply(playsingleapi.sources)
+          val Right(resources) = eval.apply(playsingleapi.resources)
+          val Right(testSources) = eval.apply(playsingleapi.test.sources)
+          val Right(testResources) = eval.apply(playsingleapi.test.resources)
           assert(
-            conf.map(_.path.relativeTo(playsingleapi.millSourcePath).toString()) == Seq("conf"),
-            app.map(_.path.relativeTo(playsingleapi.millSourcePath).toString()) == Seq("app"),
+            conf.value.map(_.path.relativeTo(playsingleapi.millSourcePath).toString()) == Seq("conf"),
+            app.value.map(_.path.relativeTo(playsingleapi.millSourcePath).toString()) == Seq("app"),
             sources == app,
             resources == conf,
-            testSources.map(_.path.relativeTo(playsingleapi.millSourcePath).toString()) == Seq(
+            testSources.value.map(_.path.relativeTo(playsingleapi.millSourcePath).toString()) == Seq(
               "test"
             ),
-            testResources.map(_.path.relativeTo(playsingleapi.millSourcePath).toString()) == Seq(
+            testResources.value.map(_.path.relativeTo(playsingleapi.millSourcePath).toString()) == Seq(
               "test/resources"
             )
           )
@@ -54,8 +54,8 @@ object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
     test("compile") {
       workspaceTest(playsingleapi) { eval =>
         val eitherResult = eval.apply(playsingleapi.compile)
-        val Right((result, evalCount)) = eitherResult
-        val outputFiles = os.walk(result.classes.path).filter(os.isFile)
+        val Right(result) = eitherResult
+        val outputFiles = os.walk(result.value.classes.path).filter(os.isFile)
         val expectedClassfiles = Seq[os.RelPath](
           os.RelPath("controllers/HomeController.class"),
           os.RelPath("controllers/ReverseAssets.class"),
@@ -72,16 +72,16 @@ object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
           eval.outPath / "compile.dest" / "classes" / _
         )
         assert(
-          result.classes.path == eval.outPath / "compile.dest" / "classes",
+          result.value.classes.path == eval.outPath / "compile.dest" / "classes",
           outputFiles.nonEmpty,
           outputFiles.forall(expectedClassfiles.contains),
           outputFiles.size == 11,
-          evalCount > 0
+          result.evalCount > 0
         )
 
-        val Right((_, unchangedEvalCount)) = eval.apply(playsingleapi.compile)
+        val Right(result2) = eval.apply(playsingleapi.compile)
 
-        assert(unchangedEvalCount == 0)
+        assert(result2.evalCount == 0)
       }
     }
   }
