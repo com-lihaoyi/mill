@@ -5,6 +5,7 @@ import mill.resolve.SelectMode
 import os.Path
 import utest._
 import scala.util.control.NonFatal
+import ujson.Value
 
 object IntegrationTestSuite {
   /**
@@ -19,6 +20,8 @@ abstract class IntegrationTestSuite extends TestSuite {
   val integrationTestMode: String = sys.env("MILL_INTEGRATION_TEST_MODE")
   assert(Set("local", "fork", "server").contains(integrationTestMode))
 
+  private val clientServerMode: Boolean = integrationTestMode == "server" || integrationTestMode == "local"
+
   /**
    * The working directory of the integration test suite, which is the root of the
    * Mill build being tested. Contains the `build.sc` file, any application code, and
@@ -27,7 +30,7 @@ abstract class IntegrationTestSuite extends TestSuite {
   def workspacePath: os.Path =
     os.Path(sys.props.getOrElse("MILL_WORKSPACE_PATH", ???))
 
-  def scriptSourcePath: os.Path = os.Path(sys.env("MILL_INTEGRATION_REPO_ROOT"))
+  protected def scriptSourcePath: os.Path = os.Path(sys.env("MILL_INTEGRATION_REPO_ROOT"))
 
   val debugLog = false
 
@@ -48,11 +51,9 @@ abstract class IntegrationTestSuite extends TestSuite {
            check: Boolean = false,
            propagateEnv: Boolean = true,
            timeoutGracePeriod: Long = 100): IntegrationTestSuite.EvalResult = {
-    val serverArgs =
-      if (integrationTestMode == "server" || integrationTestMode == "local") Seq()
-      else Seq("--no-server")
+    val serverArgs = Option.when(!clientServerMode)("--no-server")
 
-    val debugArgs = if (debugLog) Seq("--debug") else Seq()
+    val debugArgs = Option.when(debugLog)("--debug")
 
     val shellable: os.Shellable = (millReleaseFileOpt.get, serverArgs, debugArgs, cmd, workspacePath)
     val res0 = os.call(
@@ -94,7 +95,7 @@ abstract class IntegrationTestSuite extends TestSuite {
       upickle.default.read[Evaluator.Cached](text)
     }
 
-    def json = ujson.read(cached.value)
+    def json: Value.Value = ujson.read(cached.value)
 
     def value[T: upickle.default.Reader]: T = {
       upickle.default.read[T](cached.value)
@@ -104,10 +105,6 @@ abstract class IntegrationTestSuite extends TestSuite {
   def initWorkspace(): Path = {
     os.remove.all(workspacePath)
     os.makeDir.all(workspacePath / os.up)
-    // The unzipped git repo snapshots we get from github come with a
-    // wrapper-folder inside the zip file, so copy the wrapper folder to the
-    // destination instead of the folder containing the wrapper.
-
     // somehow os.copy does not properly preserve symlinks
     // os.copy(scriptSourcePath, workspacePath)
     os.proc("cp", "-R", scriptSourcePath, workspacePath).call()
@@ -122,7 +119,7 @@ abstract class IntegrationTestSuite extends TestSuite {
   def modifyFile(p: os.Path, f: String => String): Unit = os.write.over(p, f(os.read(p)))
 
   override def utestAfterEach(path: Seq[String]): Unit = {
-    if (integrationTestMode == "server" || integrationTestMode == "local") {
+    if (clientServerMode) {
       // try to stop the server
       try {
         os.proc(millReleaseFileOpt.get, "shutdown").call(
