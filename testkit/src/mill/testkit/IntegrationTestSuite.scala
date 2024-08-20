@@ -29,8 +29,8 @@ abstract class IntegrationTestSuite extends TestSuite {
 
   def eval(
              cmd: os.Shellable,
-             env: Map[String, String] = null,
-             cwd: os.Path = null,
+             env: Map[String, String] = millTestSuiteEnv,
+             cwd: os.Path = wd,
              stdin: os.ProcessInput = os.Pipe,
              stdout: os.ProcessOutput = os.Pipe,
              stderr: os.ProcessOutput = os.Pipe,
