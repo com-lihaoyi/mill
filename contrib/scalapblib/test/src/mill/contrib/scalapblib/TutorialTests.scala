@@ -63,7 +63,9 @@ object TutorialTests extends TestSuite {
   def protobufOutPath(eval: TestEvaluator): os.Path =
     eval.outPath / "core" / "compileScalaPB.dest" / "com" / "example" / "tutorial"
 
-  def workspaceTest[T](m: mill.testkit.BaseModule)(t: TestEvaluator => T)(implicit tp: TestPath): T = {
+  def workspaceTest[T](m: mill.testkit.BaseModule)(t: TestEvaluator => T)(implicit
+      tp: TestPath
+  ): T = {
     val eval = new TestEvaluator(m)
     os.remove.all(m.millSourcePath)
     println(m.millSourcePath)

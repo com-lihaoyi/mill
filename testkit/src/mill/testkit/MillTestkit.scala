@@ -1,12 +1,10 @@
 package mill.testkit
 
-
 object MillTestKit {
 
   def defaultTargetDir: os.Path = os.temp.dir(deleteOnExit = false)
 
   def targetDir: os.Path = defaultTargetDir
-
 
   def getOutPath(testPath: Seq[String])(implicit fullName: sourcecode.FullName): os.Path = {
     getOutPathStatic() / testPath

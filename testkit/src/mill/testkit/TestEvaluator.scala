@@ -40,15 +40,15 @@ class TestEvaluator(
   val outPath: os.Path = getOutPath(tp.value) / extraPathEnd
 
   object logger extends mill.util.PrintLogger(
-    colored = true,
-    enableTicker = true,
-    mill.util.Colors.Default.info,
-    mill.util.Colors.Default.error,
-    new SystemStreams(out = outStream, err = errStream, in = inStream),
-    debugEnabled = debugEnabled,
-    context = "",
-    new PrintLogger.State()
-  ) {
+        colored = true,
+        enableTicker = true,
+        mill.util.Colors.Default.info,
+        mill.util.Colors.Default.error,
+        new SystemStreams(out = outStream, err = errStream, in = inStream),
+        debugEnabled = debugEnabled,
+        context = "",
+        new PrintLogger.State()
+      ) {
     val prefix: String = {
       val idx = fullName.value.lastIndexOf(".")
       if (idx > 0) fullName.value.substring(0, idx)
@@ -100,8 +100,8 @@ class TestEvaluator(
           evaluated.rawValues.map(_.asInstanceOf[Result.Success[Val]].value.value),
           evaluated.evaluated.collect {
             case t: TargetImpl[_]
-              if module.millInternal.targets.contains(t)
-                && !t.ctx.external => t
+                if module.millInternal.targets.contains(t)
+                  && !t.ctx.external => t
             case t: mill.define.Command[_] => t
           }.size
         )
