@@ -650,7 +650,8 @@ object HelloWorldTests extends TestSuite {
           val Right(result) = eval.apply(SemanticWorld.core.semanticDbData)
 
           val dataPath = eval.outPath / "core" / "semanticDbData.dest" / "data"
-          val outputFiles = os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
+          val outputFiles =
+            os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
 
           val expectedSemFiles = semanticDbFiles
           assert(
@@ -690,7 +691,8 @@ object HelloWorldTests extends TestSuite {
           val Right(result) = eval.apply(SemanticWorld.core.semanticDbData)
 
           val dataPath = eval.outPath / "core" / "semanticDbData.dest" / "data"
-          val outputFiles = os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
+          val outputFiles =
+            os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
 
           val expectedSemFiles = semanticDbFiles ++ extraFiles.map(_._2)
           assert(
@@ -712,7 +714,8 @@ object HelloWorldTests extends TestSuite {
           os.write.append(extraFiles.head._1, "  ")
 
           val Right(result) = eval.apply(SemanticWorld.core.semanticDbData)
-          val outputFiles = os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
+          val outputFiles =
+            os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
           val expectedFiles = semanticDbFiles ++ extraFiles.map(_._2)
           assert(
             outputFiles.toSet == expectedFiles,
@@ -725,7 +728,8 @@ object HelloWorldTests extends TestSuite {
           os.remove(extraFiles.head._1)
 
           val Right(result) = eval.apply(SemanticWorld.core.semanticDbData)
-          val outputFiles = os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
+          val outputFiles =
+            os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
           val expectedFiles = semanticDbFiles ++ extraFiles.map(_._2).drop(1)
           assert(
             outputFiles.toSet == expectedFiles,
@@ -1207,7 +1211,9 @@ object HelloWorldTests extends TestSuite {
                 "scala-reflect"
               ))
           ),
-          result.value.map(_.toString).exists(x => x.contains("typelevel") && x.contains("scala-library"))
+          result.value.map(_.toString).exists(x =>
+            x.contains("typelevel") && x.contains("scala-library")
+          )
         )
       }
     }
@@ -1438,7 +1444,9 @@ object HelloWorldTests extends TestSuite {
         // invariant: the `upstreamAssemblyClasspath` used to make the `upstreamAssembly`
         // and the `localClasspath` used to complete it to make the final `assembly` must
         // have the same entries as the `runClasspath` used to execute things
-        assert(runClasspathRes.value == upstreamAssemblyClasspathRes.value.toSeq ++ localClasspathRes.value)
+        assert(
+          runClasspathRes.value == upstreamAssemblyClasspathRes.value.toSeq ++ localClasspathRes.value
+        )
       }
 
       test("modMod") - workspaceTest(MultiModuleClasspaths) { eval =>

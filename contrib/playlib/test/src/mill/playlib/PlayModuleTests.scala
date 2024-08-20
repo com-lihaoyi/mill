@@ -34,8 +34,12 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
             val Right(testResources) =
               eval.apply(playmulti.core(scalaVersion, playVersion).test.resources)
             assert(
-              conf.value.map(_.path.relativeTo(playmulti.millSourcePath).toString()) == Seq("core/conf"),
-              app.value.map(_.path.relativeTo(playmulti.millSourcePath).toString()) == Seq("core/app"),
+              conf.value.map(_.path.relativeTo(playmulti.millSourcePath).toString()) == Seq(
+                "core/conf"
+              ),
+              app.value.map(_.path.relativeTo(playmulti.millSourcePath).toString()) == Seq(
+                "core/app"
+              ),
               sources == app,
               resources.value.map(_.path.relativeTo(playmulti.millSourcePath).toString()).contains(
                 "core/conf"
@@ -43,7 +47,9 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
               testSources.value.map(_.path.relativeTo(playmulti.millSourcePath).toString()) == Seq(
                 "core/test"
               ),
-              testResources.value.map(_.path.relativeTo(playmulti.millSourcePath).toString()) == Seq(
+              testResources.value.map(
+                _.path.relativeTo(playmulti.millSourcePath).toString()
+              ) == Seq(
                 "core/test/resources"
               )
             )

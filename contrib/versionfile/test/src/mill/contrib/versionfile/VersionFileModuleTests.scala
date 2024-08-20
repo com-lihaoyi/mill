@@ -145,7 +145,7 @@ object VersionFileModuleTests extends TestSuite {
               os.proc("git", "commit", "-am", commitMessage),
               os.proc("git", "tag", version.toString)
             )
-          )
+        )
 
       }
 

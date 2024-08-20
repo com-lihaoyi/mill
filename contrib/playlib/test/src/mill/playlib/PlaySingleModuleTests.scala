@@ -28,8 +28,12 @@ object PlaySingleModuleTests extends TestSuite with PlayTestSuite {
             conf.value.map(_.path.relativeTo(playsingle.millSourcePath).toString()) == Seq("conf"),
             app.value.map(_.path.relativeTo(playsingle.millSourcePath).toString()) == Seq("app"),
             sources == app,
-            resources.value.map(_.path.relativeTo(playsingle.millSourcePath).toString()).contains("conf"),
-            testSources.value.map(_.path.relativeTo(playsingle.millSourcePath).toString()) == Seq("test"),
+            resources.value.map(_.path.relativeTo(playsingle.millSourcePath).toString()).contains(
+              "conf"
+            ),
+            testSources.value.map(_.path.relativeTo(playsingle.millSourcePath).toString()) == Seq(
+              "test"
+            ),
             testResources.value.map(_.path.relativeTo(playsingle.millSourcePath).toString()) == Seq(
               "test/resources"
             )

@@ -3,7 +3,7 @@ package mill.testkit
 import mill._
 import utest._
 
-object MillTestKitSuite extends TestSuite {
+object MillTestKitTests extends TestSuite {
 
   def tests: Tests = Tests {
     test("simple") {
@@ -12,8 +12,8 @@ object MillTestKitSuite extends TestSuite {
       }
 
       val testEvaluator = new TestEvaluator(build)
-      val result = testEvaluator(build.testTask).map(_.value)
-      assert(result == Right("test"))
+      val Right(result) = testEvaluator(build.testTask)
+      assert(result.value == "test")
     }
 
     test("sources") {
@@ -22,15 +22,13 @@ object MillTestKitSuite extends TestSuite {
         def testTask = T { os.read(testSource().path).toUpperCase() }
       }
 
-      os.copy.over(
-        os.pwd / "testkit" / "test" / "resources" / "example-project",
-        build.millSourcePath,
-        createFolders = true
+      val testEvaluator = new TestEvaluator(
+        build,
+        sourceFileRoot = os.pwd / "testkit" / "test" / "resources" / "example-project"
       )
-      val testEvaluator = new TestEvaluator(build)
-      val result = testEvaluator(build.testTask).map(_.value)
-      assert(result == Right("HELLO WORLD SOURCE FILE"))
+
+      val Right(result) = testEvaluator(build.testTask)
+      assert(result.value == "HELLO WORLD SOURCE FILE")
     }
   }
-
 }

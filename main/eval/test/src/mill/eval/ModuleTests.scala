@@ -1,6 +1,7 @@
 package mill.eval
 
 import mill.testkit.TestEvaluator
+import mill.testkit.TestEvaluator.Result
 import mill.testkit.MillTestKit
 import mill.T
 import mill.define.Discover
@@ -24,7 +25,7 @@ object ModuleTests extends TestSuite {
       os.remove.all(check.outPath)
       val zresult = check.apply(Build.z)
       assert(
-        zresult == Right(TestEvaluator.Result(30, 1)),
+        zresult == Right(Result(30, 1)),
         os.read(check.evaluator.outPath / "z.json").contains("30"),
         os.read(
           check.outPath / "mill" / "eval" / "ModuleTests" / "ExternalModule" / "x.json"

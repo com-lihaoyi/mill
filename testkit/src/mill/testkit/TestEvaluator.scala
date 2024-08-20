@@ -37,9 +37,14 @@ class TestEvaluator(
     inStream: InputStream = DummyInputStream,
     debugEnabled: Boolean = false,
     extraPathEnd: Seq[String] = Seq.empty,
-    env: Map[String, String] = Evaluator.defaultEnv
+    env: Map[String, String] = Evaluator.defaultEnv,
+    sourceFileRoot: os.Path = null
 )(implicit fullName: sourcecode.FullName, tp: TestPath) {
   val outPath: os.Path = getOutPath(tp.value) / extraPathEnd
+
+  for (sourceFileRoot <- Option(sourceFileRoot)) {
+    os.copy.over(sourceFileRoot, module.millSourcePath, createFolders = true)
+  }
 
   object logger extends mill.util.PrintLogger(
         colored = true,
@@ -94,7 +99,10 @@ class TestEvaluator(
     }
   }
 
-  def apply(tasks: Seq[Task[_]], dummy: DummyImplicit = null): Either[Result.Failing[_], TestEvaluator.Result[Seq[_]]] = {
+  def apply(
+      tasks: Seq[Task[_]],
+      dummy: DummyImplicit = null
+  ): Either[Result.Failing[_], TestEvaluator.Result[Seq[_]]] = {
     val evaluated = evaluator.evaluate(tasks)
 
     if (evaluated.failing.keyCount == 0) {

@@ -37,14 +37,20 @@ object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
           val Right(testSources) = eval.apply(playsingleapi.test.sources)
           val Right(testResources) = eval.apply(playsingleapi.test.resources)
           assert(
-            conf.value.map(_.path.relativeTo(playsingleapi.millSourcePath).toString()) == Seq("conf"),
+            conf.value.map(_.path.relativeTo(playsingleapi.millSourcePath).toString()) == Seq(
+              "conf"
+            ),
             app.value.map(_.path.relativeTo(playsingleapi.millSourcePath).toString()) == Seq("app"),
             sources == app,
             resources == conf,
-            testSources.value.map(_.path.relativeTo(playsingleapi.millSourcePath).toString()) == Seq(
+            testSources.value.map(
+              _.path.relativeTo(playsingleapi.millSourcePath).toString()
+            ) == Seq(
               "test"
             ),
-            testResources.value.map(_.path.relativeTo(playsingleapi.millSourcePath).toString()) == Seq(
+            testResources.value.map(
+              _.path.relativeTo(playsingleapi.millSourcePath).toString()
+            ) == Seq(
               "test/resources"
             )
           )

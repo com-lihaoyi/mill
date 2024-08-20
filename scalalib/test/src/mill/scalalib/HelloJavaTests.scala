@@ -64,7 +64,8 @@ object HelloJavaTests extends TestSuite {
         val eval = init()
         val Right(result) = eval.apply(HelloJava.core.semanticDbData)
 
-        val outputFiles = os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
+        val outputFiles =
+          os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
         val dataPath = eval.outPath / "core" / "semanticDbData.dest" / "data"
 
         assert(
@@ -111,7 +112,8 @@ object HelloJavaTests extends TestSuite {
         val Right(result) = eval.apply(HelloJava.core.semanticDbData)
 
         val dataPath = eval.outPath / "core" / "semanticDbData.dest" / "data"
-        val outputFiles = os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
+        val outputFiles =
+          os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
 
         val expectedFile2 =
           os.rel / "META-INF" / "semanticdb" / "core" / "src" / "hello" / "Second.java.semanticdb"
@@ -129,7 +131,8 @@ object HelloJavaTests extends TestSuite {
         os.write.append(thirdFile, "  ")
 
         val Right(result2) = eval.apply(HelloJava.core.semanticDbData)
-        val files2 = os.walk(result2.value.path).filter(os.isFile).map(_.relativeTo(result2.value.path))
+        val files2 =
+          os.walk(result2.value.path).filter(os.isFile).map(_.relativeTo(result2.value.path))
         assert(
           files2.toSet == Set(expectedFile1, expectedFile3),
           result2.evalCount > 0
@@ -140,12 +143,16 @@ object HelloJavaTests extends TestSuite {
       test("withoutArgsFile") {
         val eval = init()
         val Right(result) = eval.apply(HelloJava.core.docJar)
-        assert(os.proc("jar", "tf", result.value.path).call().out.lines().contains("hello/Core.html"))
+        assert(
+          os.proc("jar", "tf", result.value.path).call().out.lines().contains("hello/Core.html")
+        )
       }
       test("withArgsFile") {
         val eval = init()
         val Right(result) = eval.apply(HelloJava.app.docJar)
-        assert(os.proc("jar", "tf", result.value.path).call().out.lines().contains("hello/Main.html"))
+        assert(
+          os.proc("jar", "tf", result.value.path).call().out.lines().contains("hello/Main.html")
+        )
       }
     }
     test("test") - {
@@ -171,7 +178,8 @@ object HelloJavaTests extends TestSuite {
 
       val Right(result3) = eval.apply(HelloJava.app.testJunit5.test())
 
-      val testResults = result3.value._2.map(t => (t.fullyQualifiedName, t.selector, t.status)).sorted
+      val testResults =
+        result3.value._2.map(t => (t.fullyQualifiedName, t.selector, t.status)).sorted
       val expected = Seq(
         ("hello.Junit5TestsA", "coreTest()", "Success"),
         ("hello.Junit5TestsA", "palindromes(String):1", "Success"),
