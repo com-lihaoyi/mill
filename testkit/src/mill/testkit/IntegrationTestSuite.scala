@@ -8,6 +8,7 @@ import scala.util.control.NonFatal
 import ujson.Value
 
 object IntegrationTestSuite {
+
   /**
    * A very simplified version of `os.CommandResult` meant for easily
    * performing assertions against.
@@ -26,7 +27,6 @@ abstract class IntegrationTestSuite extends TestSuite {
    */
   val workspacePath: os.Path = os.temp.dir(deleteOnExit = false)
 
-
   protected def scriptSourcePath: os.Path = os.Path(sys.env("MILL_INTEGRATION_REPO_ROOT"))
 
   def debugLog = false
@@ -37,17 +37,19 @@ abstract class IntegrationTestSuite extends TestSuite {
    * for you, and wraps the output in a [[IntegrationTestSuite.EvalResult]] for
    * convenience.
    */
-  def eval(cmd: os.Shellable,
-           env: Map[String, String] = millTestSuiteEnv,
-           cwd: os.Path = workspacePath,
-           stdin: os.ProcessInput = os.Pipe,
-           stdout: os.ProcessOutput = os.Pipe,
-           stderr: os.ProcessOutput = os.Pipe,
-           mergeErrIntoOut: Boolean = false,
-           timeout: Long = -1,
-           check: Boolean = false,
-           propagateEnv: Boolean = true,
-           timeoutGracePeriod: Long = 100): IntegrationTestSuite.EvalResult = {
+  def eval(
+      cmd: os.Shellable,
+      env: Map[String, String] = millTestSuiteEnv,
+      cwd: os.Path = workspacePath,
+      stdin: os.ProcessInput = os.Pipe,
+      stdout: os.ProcessOutput = os.Pipe,
+      stderr: os.ProcessOutput = os.Pipe,
+      mergeErrIntoOut: Boolean = false,
+      timeout: Long = -1,
+      check: Boolean = false,
+      propagateEnv: Boolean = true,
+      timeoutGracePeriod: Long = 100
+  ): IntegrationTestSuite.EvalResult = {
     val serverArgs = Option.when(!clientServerMode)("--no-server")
 
     val debugArgs = Option.when(debugLog)("--debug")
@@ -64,7 +66,7 @@ abstract class IntegrationTestSuite extends TestSuite {
       timeout = timeout,
       check = check,
       propagateEnv = propagateEnv,
-      timeoutGracePeriod = timeoutGracePeriod,
+      timeoutGracePeriod = timeoutGracePeriod
     )
 
     IntegrationTestSuite.EvalResult(res0.exitCode == 0, res0.out.trim(), res0.err.trim())
@@ -73,14 +75,15 @@ abstract class IntegrationTestSuite extends TestSuite {
   private val millReleaseFileOpt: Option[Path] =
     Option(System.getenv("MILL_INTEGRATION_LAUNCHER")).map(os.Path(_, os.pwd))
 
-  private val millTestSuiteEnv: Map[String, String] = Map("MILL_TEST_SUITE" -> this.getClass().toString())
+  private val millTestSuiteEnv: Map[String, String] =
+    Map("MILL_TEST_SUITE" -> this.getClass().toString())
 
   /**
    * Helpers to read the `.json` metadata files belonging to a particular task
    * (specified by [[selector0]]) from the `out/` folder.
    */
   def meta(selector0: String): Meta = new Meta(selector0)
-  class Meta(selector0: String){
+  class Meta(selector0: String) {
     def text: String = {
       val Seq((List(selector), _)) =
         mill.resolve.ParseArgs.apply(Seq(selector0), SelectMode.Separated).getOrElse(???)
@@ -111,7 +114,7 @@ abstract class IntegrationTestSuite extends TestSuite {
    */
   def modifyFile(p: os.Path, f: String => String): Unit = os.write.over(p, f(os.read(p)))
 
-  def teardownWorkspace() = {
+  def teardownWorkspace(): Any = {
     // try to stop the server
     try {
       os.proc(millReleaseFileOpt.get, "shutdown").call(

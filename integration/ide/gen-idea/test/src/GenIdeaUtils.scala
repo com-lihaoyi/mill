@@ -1,6 +1,5 @@
 package mill.integration
 
-
 import java.util.regex.Pattern
 import scala.util.Try
 import utest.assert

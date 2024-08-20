@@ -78,7 +78,9 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
     def evalCheckErr(expectedSnippets: String*) = {
       // Wipe out stale state files to make sure they don't get picked up when
       // Mill aborts early and fails to generate a new one
-      os.walk(workspacePath / "out").filter(_.last == "mill-runner-state.json").foreach(os.remove(_))
+      os.walk(workspacePath / "out").filter(_.last == "mill-runner-state.json").foreach(
+        os.remove(_)
+      )
 
       val res = eval("foo.run")
       assert(res.isSuccess == false)
