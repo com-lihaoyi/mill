@@ -5,6 +5,7 @@ import utest._
 import java.util.concurrent.{Executors, TimeoutException}
 import scala.annotation.tailrec
 import scala.concurrent.duration.DurationInt
+import scala.concurrent.duration.FiniteDuration
 
 /**
  * Shared implementation for the tests in `example/`.
@@ -50,7 +51,7 @@ class ExampleTester(
 ) extends IntegrationTester(clientServerMode, workspaceSourcePath, millExecutable) {
   initWorkspace()
 
-  val testTimeout = 5.minutes
+  val testTimeout: FiniteDuration = 5.minutes
 
   // Integration tests sometime hang on CI
   // The idea is to just abort and retry them after a reasonable amount of time
@@ -254,7 +255,7 @@ class ExampleTester(
     expected.linesIterator.exists(globMatches(_, filtered))
   }
 
-  def run() = {
+  def run(): Any = {
 
     val parsed = ExampleParser(None, workspaceSourcePath)
     val usageComment = parsed.collect { case ("example", txt) => txt }.mkString("\n\n")
