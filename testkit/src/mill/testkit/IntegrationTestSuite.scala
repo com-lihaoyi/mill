@@ -91,15 +91,11 @@ abstract class IntegrationTestSuite extends TestSuite {
       os.read(workspacePath / "out" / segments.init / s"${segments.last}.json")
     }
 
-    def cached: Evaluator.Cached = {
-      upickle.default.read[Evaluator.Cached](text)
-    }
+    def cached: Evaluator.Cached = upickle.default.read[Evaluator.Cached](text)
 
     def json: Value.Value = ujson.read(cached.value)
 
-    def value[T: upickle.default.Reader]: T = {
-      upickle.default.read[T](cached.value)
-    }
+    def value[T: upickle.default.Reader]: T = upickle.default.read[T](cached.value)
   }
 
   def initWorkspace(): Path = {
