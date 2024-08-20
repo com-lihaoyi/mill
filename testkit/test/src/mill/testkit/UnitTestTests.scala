@@ -3,7 +3,7 @@ package mill.testkit
 import mill._
 import utest._
 
-object MillTestKitTests extends TestSuite {
+object UnitTestTests extends TestSuite {
 
   def tests: Tests = Tests {
     test("simple") {
@@ -24,7 +24,7 @@ object MillTestKitTests extends TestSuite {
 
       val testEvaluator = new TestEvaluator(
         build,
-        sourceFileRoot = os.pwd / "testkit" / "test" / "resources" / "example-project"
+        sourceFileRoot = os.pwd / "testkit" / "test" / "resources" / "unit-test-example-project"
       )
 
       val Right(result) = testEvaluator(build.testTask)

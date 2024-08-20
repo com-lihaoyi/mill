@@ -1,6 +1,6 @@
 package mill.integration
 
-import mill.testkit.IntegrationTestSuite
+import mill.testkit.{IntegrationTestSuite, IntegrationTester}
 
 import mill.main.client.Util
 import utest._
@@ -40,7 +40,7 @@ object WatchSourceInputTests extends IntegrationTestSuite {
         mutable.Buffer[String],
         mutable.Buffer[String],
         mutable.Buffer[String]
-    ) => IntegrationTestSuite.EvalResult): Unit = {
+    ) => IntegrationTester.EvalResult): Unit = {
       val expectedOut = mutable.Buffer.empty[String]
       // Most of these are normal `println`s, so they go to `stdout` by
       // default unless you use `show` in which case they go to `stderr`.

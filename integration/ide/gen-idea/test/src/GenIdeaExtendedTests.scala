@@ -8,7 +8,7 @@ import os.Path
 
 object GenIdeaExtendedTests extends IntegrationTestSuite {
 
-  override def scriptSourcePath: Path = super.scriptSourcePath / "extended"
+  override def workspaceSourcePath: Path = super.workspaceSourcePath / "extended"
 
   def tests: Tests = Tests {
     test("genIdeaTests") {
