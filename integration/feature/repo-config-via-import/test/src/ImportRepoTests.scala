@@ -13,7 +13,7 @@ object ImportRepoTests extends IntegrationTestSuite {
       //   import $repo.`file:///tmp/testrepo`
       // ```
       // and use it as additional repository
-      assert(eval("foo.resolvedIvyDeps"))
+      assert(eval("foo.resolvedIvyDeps").isSuccess)
       val model = os.read(workspacePath / "out" / "mill-build" / "parseBuildFiles.json")
       assert(model.contains("""file:///tmp/testrepo""""))
     }

@@ -11,6 +11,7 @@ object IntegrationTestSuite {
   case class EvalResult(isSuccess: Boolean, out: String, err: String)
 }
 
+
 abstract class IntegrationTestSuite extends TestSuite {
   val integrationTestMode: String = sys.env("MILL_INTEGRATION_TEST_MODE")
   assert(Set("local", "fork", "server").contains(integrationTestMode))
@@ -26,77 +27,47 @@ abstract class IntegrationTestSuite extends TestSuite {
 
   val debugLog = false
 
-  def eval(s: Shellable*): Boolean = evalFork(os.Inherit, os.Inherit, s, -1)
-
-  def evalStdout(s: Shellable*): IntegrationTestSuite.EvalResult = {
-    evalTimeoutStdout(-1, s: _*)
-  }
-
-  def evalTimeoutStdout(timeout: Long, s: Shellable*): IntegrationTestSuite.EvalResult = {
-    val output = mutable.Buffer.empty[String]
-    val error = mutable.Buffer.empty[String]
-
-    evalTimeoutStdout0(timeout, output, error, s)
-
-  }
-
-  def evalTimeoutStdout0(
-      timeout: Long,
-      output: mutable.Buffer[String],
-      error: mutable.Buffer[String],
-      s: Seq[Shellable]
-  ): IntegrationTestSuite.EvalResult = {
-
-    val processOutput = os.ProcessOutput.Readlines(s => synchronized(output.append(s)))
-    val processError = os.ProcessOutput.Readlines(s => synchronized(error.append(s)))
-
-    val result = evalFork(processOutput, processError, s, timeout)
-
-    IntegrationTestSuite.EvalResult(
-      result,
-      synchronized(output.mkString("\n")),
-      synchronized(error.mkString("\n"))
-    )
-  }
-
-  // Combines stdout and stderr into a single stream; useful for testing
-  // against the combined output and also asserting on ordering
-  def evalStdCombined(s: Shellable*): IntegrationTestSuite.EvalResult = {
-    val combined = mutable.Buffer.empty[String]
-    evalTimeoutStdout0(-1, combined, combined, s)
-  }
-
-  val millReleaseFileOpt: Option[Path] =
-    Option(System.getenv("MILL_TEST_LAUNCHER")).map(os.Path(_, os.pwd))
-
-  val millTestSuiteEnv: Map[String, String] = Map("MILL_TEST_SUITE" -> this.getClass().toString())
-
-  private def evalFork(
-      stdout: os.ProcessOutput,
-      stderr: os.ProcessOutput,
-      s: Seq[Shellable],
-      timeout: Long
-  ): Boolean = {
+  def eval(
+             cmd: os.Shellable,
+             env: Map[String, String] = null,
+             cwd: os.Path = null,
+             stdin: os.ProcessInput = os.Pipe,
+             stdout: os.ProcessOutput = os.Pipe,
+             stderr: os.ProcessOutput = os.Pipe,
+             mergeErrIntoOut: Boolean = false,
+             timeout: Long = -1,
+             check: Boolean = false,
+             propagateEnv: Boolean = true,
+             timeoutGracePeriod: Long = 100
+           ): IntegrationTestSuite.EvalResult = {
     val serverArgs =
       if (integrationTestMode == "server" || integrationTestMode == "local") Seq()
       else Seq("--no-server")
 
     val debugArgs = if (debugLog) Seq("--debug") else Seq()
 
-    try {
-      os.proc(millReleaseFileOpt.get, serverArgs, debugArgs, s).call(
-        cwd = wd,
-        stdin = os.Inherit,
-        stdout = stdout,
-        stderr = stderr,
-        env = millTestSuiteEnv,
-        timeout = timeout
-      )
-      true
-    } catch {
-      case NonFatal(_) => false
-    }
+    val shellable: os.Shellable = (millReleaseFileOpt.get, serverArgs, debugArgs, cmd, wd)
+    val res0 = os.call(
+      cmd = shellable,
+      env = env,
+      cwd = cwd,
+      stdin = stdin,
+      stdout = stdout,
+      stderr = stderr,
+      mergeErrIntoOut = mergeErrIntoOut,
+      timeout = timeout,
+      check = check,
+      propagateEnv = propagateEnv,
+      timeoutGracePeriod = timeoutGracePeriod,
+    )
+
+    IntegrationTestSuite.EvalResult(res0.exitCode == 0, res0.out.text(), res0.err.text())
   }
+
+  val millReleaseFileOpt: Option[Path] =
+    Option(System.getenv("MILL_TEST_LAUNCHER")).map(os.Path(_, os.pwd))
+
+  val millTestSuiteEnv: Map[String, String] = Map("MILL_TEST_SUITE" -> this.getClass().toString())
 
   def meta(s: String): String = {
     val Seq((List(selector), _)) =

@@ -9,14 +9,14 @@ object AuxiliaryClassFilesTests extends IntegrationTestSuite {
   val tests: Tests = Tests {
     test("tasty files are deleted together with companion class files") {
       initWorkspace()
-      assert(eval("app.jvm.compile"))
+      assert(eval("app.jvm.compile").isSuccess)
 
       val classes = wd / "out" / "app" / "jvm" / "compile.dest" / "classes"
       val firstRun = os.list(classes).map(_.last)
 
       os.remove(wd / "app" / "src" / "foo.scala")
 
-      assert(eval("app.jvm.compile"))
+      assert(eval("app.jvm.compile").isSuccess)
 
       val secondRun = os.list(classes).map(_.last)
 
@@ -29,7 +29,7 @@ object AuxiliaryClassFilesTests extends IntegrationTestSuite {
 
       os.write(wd / "app" / "src" / "bar.scala", "object bar { println(foo) }")
       val firstRunSuccessful = eval("app.jvm.compile")
-      assert(firstRunSuccessful)
+      assert(firstRunSuccessful.isSuccess)
 
       val classes = wd / "out" / "app" / "jvm" / "compile.dest" / "classes"
       val firstRun = os.list(classes).map(_.last)
@@ -37,7 +37,7 @@ object AuxiliaryClassFilesTests extends IntegrationTestSuite {
       os.remove(wd / "app" / "src" / "foo.scala")
 
       val secondRunSuccessful = eval("app.jvm.compile")
-      assert(!secondRunSuccessful)
+      assert(!secondRunSuccessful.isSuccess)
 
       val secondRun = os.list(classes).map(_.last)
 
@@ -54,14 +54,14 @@ object AuxiliaryClassFilesTests extends IntegrationTestSuite {
 
     test("nir files are deleted together with companion class files") {
       initWorkspace()
-      assert(eval("app.native.compile"))
+      assert(eval("app.native.compile").isSuccess)
 
       val classes = wd / "out" / "app" / "native" / "compile.dest" / "classes"
       val firstRun = os.list(classes).map(_.last)
 
       os.remove(wd / "app" / "src" / "foo.scala")
 
-      assert(eval("app.native.compile"))
+      assert(eval("app.native.compile").isSuccess)
 
       val secondRun = os.list(classes).map(_.last)
 
@@ -71,14 +71,14 @@ object AuxiliaryClassFilesTests extends IntegrationTestSuite {
 
     test("sjsir files are deleted together with companion class files") {
       initWorkspace()
-      assert(eval("app.js.compile"))
+      assert(eval("app.js.compile").isSuccess)
 
       val classes = wd / "out" / "app" / "js" / "compile.dest" / "classes"
       val firstRun = os.list(classes).map(_.last)
 
       os.remove(wd / "app" / "src" / "foo.scala")
 
-      assert(eval("app.js.compile"))
+      assert(eval("app.js.compile").isSuccess)
 
       val secondRun = os.list(classes).map(_.last)
 

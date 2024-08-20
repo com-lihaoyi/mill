@@ -9,7 +9,7 @@ object LargeProjectTests extends IntegrationTestSuite {
     initWorkspace()
     test("test") - {
 
-      assert(eval("foo.common.one.compile"))
+      assert(eval("foo.common.one.compile").isSuccess)
     }
   }
 }

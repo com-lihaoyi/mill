@@ -11,12 +11,12 @@ object BspModulesTests extends IntegrationTestSuite {
     test("BSP module with foreign modules") {
       test("can be installed") {
         val workspacePath = initWorkspace()
-        assert(eval("mill.bsp.BSP/install"))
+        assert(eval("mill.bsp.BSP/install").isSuccess)
         os.exists(workspacePath / Constants.bspDir / s"${Constants.serverName}.json") ==> true
       }
       test("ModuleUtils resolves all referenced transitive modules") {
         val workspacePath = initWorkspace()
-        assert(eval("validate"))
+        assert(eval("validate").isSuccess)
         val file = workspacePath / "out" / "validate.dest" / "transitive-modules.json"
         assert(os.exists(file))
         val readModules = os.read.lines(file).sorted

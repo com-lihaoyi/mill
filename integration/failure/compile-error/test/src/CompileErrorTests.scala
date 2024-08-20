@@ -10,7 +10,7 @@ object CompileErrorTests extends IntegrationTestSuite {
     initWorkspace()
 
     test {
-      val res = evalStdout("foo.scalaVersion")
+      val res = eval("foo.scalaVersion")
 
       assert(res.isSuccess == false)
       assert(res.err.contains("""bar.sc:14:9: not found: value doesntExist"""))

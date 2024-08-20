@@ -9,7 +9,7 @@ object MissingBuildFileTests extends IntegrationTestSuite {
     initWorkspace()
 
     test {
-      val res = evalStdout("resolve", "_")
+      val res = eval(("resolve", "_"))
       assert(!res.isSuccess)
       val s"build.sc file not found in $msg. Are you in a Mill project folder?" = res.err
     }

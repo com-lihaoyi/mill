@@ -9,7 +9,7 @@ object ParseErrorTests extends IntegrationTestSuite {
     initWorkspace()
 
     test {
-      val res = evalStdout("foo.scalaVersion")
+      val res = eval("foo.scalaVersion")
 
       assert(res.isSuccess == false)
 

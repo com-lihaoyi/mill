@@ -67,7 +67,7 @@ object WatchSourceInputTests extends IntegrationTestSuite {
       testBase(show) { (expectedOut, expectedErr, expectedShows) =>
         val showArgs = if (show) Seq("show") else Nil
 
-        val evalResult = Future { evalTimeoutStdout(maxDuration, "--watch", showArgs, "qux") }
+        val evalResult = Future { eval(("--watch", showArgs, "qux"), timeout = maxDuration) }
 
         awaitCompletionMarker("initialized0")
         awaitCompletionMarker("quxRan0")
@@ -143,7 +143,7 @@ object WatchSourceInputTests extends IntegrationTestSuite {
       testBase(show) { (expectedOut, expectedErr, expectedShows) =>
         val showArgs = if (show) Seq("show") else Nil
 
-        val evalResult = Future { evalTimeoutStdout(maxDuration, "--watch", showArgs, "lol") }
+        val evalResult = Future { eval(("--watch", showArgs, "lol"), timeout = maxDuration) }
 
         awaitCompletionMarker("initialized0")
         awaitCompletionMarker("lolRan0")

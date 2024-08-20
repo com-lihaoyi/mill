@@ -9,7 +9,7 @@ object CrossCollisionsTests extends IntegrationTestSuite {
     initWorkspace()
 
     test("detect-collision") {
-      val res = evalStdout("resolve", "foo._")
+      val res = eval(("resolve", "foo._"))
       assert(!res.isSuccess)
       assert(res.err.contains("Cross module "))
       assert(

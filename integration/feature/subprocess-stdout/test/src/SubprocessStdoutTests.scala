@@ -9,7 +9,7 @@ object SubprocessStdoutTests extends IntegrationTestSuite {
     initWorkspace()
 
     test {
-      val res1 = evalStdCombined("inheritInterleaved").out
+      val res1 = eval("inheritInterleaved", mergeErrIntoOut = true).out
       // Make sure that when a lot of printed/inherited stdout/stderr is printed
       // in quick succession, the output ordering is preserved and it doesn't get
       // jumbled up
@@ -61,7 +61,7 @@ object SubprocessStdoutTests extends IntegrationTestSuite {
       // be out of order from the original Mill stdout/stderr, but they should still at least turn
       // up in the console somewhere and not disappear
       //
-      val res2 = evalStdCombined("inheritRaw").out
+      val res2 = eval("inheritRaw", mergeErrIntoOut = true).out
       if (integrationTestMode == "fork") {
         // For `fork` tests, which represent `-i`/`--interactive`/`--no-server`, the output should
         // be properly ordered since it all comes directly from the stdout/stderr of the same process

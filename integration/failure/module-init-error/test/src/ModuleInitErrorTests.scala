@@ -12,11 +12,11 @@ object ModuleInitErrorTests extends IntegrationTestSuite {
     test("resolve") {
       // Ensure that resolve works even of the modules containing the resolved
       // tasks are broken
-      val res1 = evalStdout("resolve", "foo.fooTarget")
+      val res1 = eval(("resolve", "foo.fooTarget"))
       assert(res1.isSuccess == true)
       assert(res1.out.contains("foo.fooTarget"))
 
-      val res2 = evalStdout("resolve", "_._")
+      val res2 = eval(("resolve", "_._"))
       assert(res2.isSuccess == true)
       assert(
         res2.out.contains("bar.barCommand"),
@@ -26,11 +26,11 @@ object ModuleInitErrorTests extends IntegrationTestSuite {
         res2.out.contains("foo.fooCommand")
       )
 
-      val res3 = evalStdout("resolve", "__.fooTarget")
+      val res3 = eval(("resolve", "__.fooTarget"))
       assert(res3.isSuccess == true)
       assert(res3.out.contains("foo.fooTarget"))
 
-      val res4 = evalStdout("resolve", "__")
+      val res4 = eval(("resolve", "__"))
       assert(res4.isSuccess == true)
       assert(res4.out.contains("bar"))
       assert(res4.out.contains("bar.barCommand"))
@@ -46,19 +46,19 @@ object ModuleInitErrorTests extends IntegrationTestSuite {
     test("rootTarget") {
       // If we specify a target in the root module, we are not
       // affected by the sub-modules failing to initialize
-      val res = evalStdout("rootTarget")
+      val res = eval("rootTarget")
       assert(res.isSuccess == true)
       assert(res.out.contains("""Running rootTarget"""))
     }
     test("rootCommand") {
       // If we specify a target in the root module, we are not
       // affected by the sub-modules failing to initialize
-      val res = evalStdout("rootCommand", "hello")
+      val res = eval(("rootCommand", "hello"))
       assert(res.isSuccess == true)
       assert(res.out.contains("""Running rootCommand hello"""))
     }
     test("fooTarget") {
-      val res = evalStdout("foo.fooTarget")
+      val res = eval("foo.fooTarget")
       assert(res.isSuccess == false)
       assert(fansi.Str(res.err).plainText.contains("""java.lang.Exception: Foo Boom"""))
       // Make sure the stack trace is "short" and does not contain all the stack
@@ -66,29 +66,29 @@ object ModuleInitErrorTests extends IntegrationTestSuite {
       assert(fansi.Str(res.err).plainText.linesIterator.size < 20)
     }
     test("fooCommand") {
-      val res = evalStdout("foo.fooCommand", "hello")
+      val res = eval(("foo.fooCommand", "hello"))
       assert(res.isSuccess == false)
       assert(fansi.Str(res.err).plainText.contains("""java.lang.Exception: Foo Boom"""))
       assert(fansi.Str(res.err).plainText.linesIterator.size < 20)
     }
     test("barTarget") {
-      val res = evalStdout("bar.barTarget")
+      val res = eval("bar.barTarget")
       assert(res.isSuccess == true)
       assert(res.out.contains("""Running barTarget"""))
     }
     test("barCommand") {
-      val res = evalStdout("bar.barCommand", "hello")
+      val res = eval(("bar.barCommand", "hello"))
       assert(res.isSuccess == true)
       assert(res.out.contains("""Running barCommand hello"""))
     }
     test("quxTarget") {
-      val res = evalStdout("bar.qux.quxTarget")
+      val res = eval("bar.qux.quxTarget")
       assert(res.isSuccess == false)
       assert(fansi.Str(res.err).plainText.contains("""java.lang.Exception: Qux Boom"""))
       assert(fansi.Str(res.err).plainText.linesIterator.size < 20)
     }
     test("quxCommand") {
-      val res = evalStdout("bar.qux.quxCommand", "hello")
+      val res = eval(("bar.qux.quxCommand", "hello"))
       assert(res.isSuccess == false)
       assert(fansi.Str(res.err).plainText.contains("""java.lang.Exception: Qux Boom"""))
       assert(fansi.Str(res.err).plainText.linesIterator.size < 20)

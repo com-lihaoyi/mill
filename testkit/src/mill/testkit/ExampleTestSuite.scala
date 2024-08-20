@@ -81,7 +81,7 @@ object ExampleTestSuite extends IntegrationTestSuite {
         catch { case e: Throwable => /*do nothing*/ }
 
         for (commandBlock <- commandBlocks) processCommandBlock(workspaceRoot, commandBlock)
-        if (integrationTestMode != "fork") evalStdout("shutdown")
+        if (integrationTestMode != "fork") eval("shutdown")
       }
     }
   }
@@ -185,7 +185,7 @@ object ExampleTestSuite extends IntegrationTestSuite {
 
       case Seq(command, rest @ _*) =>
         val evalResult = command match {
-          case "./mill" | "mill" => evalStdout(rest)
+          case "./mill" | "mill" => eval(rest)
           case s"./$cmd" =>
             val tokens = cmd +: rest
             val executable = workspaceRoot / os.SubPath(tokens.head)
@@ -195,9 +195,10 @@ object ExampleTestSuite extends IntegrationTestSuite {
                   s"Other files present include ${os.list(executable / os.up)}"
               )
             }
-            val res = os
-              .proc(executable, tokens.tail)
-              .call(stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot)
+            val res = os.call(
+                cmd = (executable, tokens.tail),
+                stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot
+            )
 
             IntegrationTestSuite.EvalResult(res.exitCode == 0, res.out.text(), res.err.text())
         }

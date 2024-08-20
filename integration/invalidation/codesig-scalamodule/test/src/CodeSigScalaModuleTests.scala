@@ -15,7 +15,7 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
 
       // Check normal behavior for initial run and subsequent fully-cached run
       // with no changes
-      val initial = evalStdout("foo.run")
+      val initial = eval("foo.run")
 
       assert(
         filterLines(initial.out) ==
@@ -27,7 +27,7 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
           )
       )
 
-      val cached = evalStdout("foo.run")
+      val cached = eval("foo.run")
       assert(
         filterLines(cached.out) ==
           Set(
@@ -39,13 +39,13 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
       // Changing the body of a T{...} block directly invalidates that target
       // and any downstream targets
       mangleFile(wsRoot / "build.sc", _.replace("Foo running...", "FOO RUNNING"))
-      val mangledFoo = evalStdout("foo.run")
+      val mangledFoo = eval("foo.run")
       assert(filterLines(mangledFoo.out) == Set("Foo Hello World", "FOO RUNNING"))
 
       // Changing the body `foo.compile` invalidates `foo.compile`, and downstream
       // `foo.run` runs regardless
       mangleFile(wsRoot / "build.sc", _.replace("Foo compiling...", "FOO COMPILING"))
-      val mangledFoo2 = evalStdout("foo.run")
+      val mangledFoo2 = eval("foo.run")
 
       assert(
         filterLines(mangledFoo2.out) ==
@@ -62,7 +62,7 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
         wsRoot / "build.sc",
         _.replace("Foo generating sources...", "FOO GENERATING SOURCES")
       )
-      val mangledFoo3 = evalStdout("foo.run")
+      val mangledFoo3 = eval("foo.run")
 
       assert(
         filterLines(mangledFoo3.out) ==
@@ -76,7 +76,7 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
       // Changing the body `foo.generatedSources` invalidates `foo.generatedSources`,
       // and if the return value is changed then `foo.compile` does invalidate
       mangleFile(wsRoot / "build.sc", _.replace(""""Hello World"""", """"HELLO WORLD""""))
-      val mangledFoo4 = evalStdout("foo.run")
+      val mangledFoo4 = eval("foo.run")
 
       assert(
         filterLines(mangledFoo4.out) ==
@@ -89,7 +89,7 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
       )
 
       mangleFile(wsRoot / "build.sc", _.replace("2.13.8", "2.12.11"))
-      val mangledFoo5 = evalStdout("foo.run")
+      val mangledFoo5 = eval("foo.run")
 
       assert(
         filterLines(mangledFoo5.out) ==
@@ -110,7 +110,7 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
               .replace("def compile", "\ndef compile\n")
               .replace("def run", "\ndef run\n")
       )
-      val mangledFoo6 = evalStdout("foo.run")
+      val mangledFoo6 = eval("foo.run")
       assert(
         filterLines(mangledFoo6.out) ==
           Set(
@@ -126,7 +126,7 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
 
       // Check normal behavior for initial run and subsequent fully-cached run
       // with no changes
-      val initial = evalStdout("{foo,bar,qux}.assembly")
+      val initial = eval("{foo,bar,qux}.assembly")
 
       assert(
         filterLines(initial.out) ==
@@ -143,7 +143,7 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
           )
       )
 
-      val cached = evalStdout("{foo,bar,qux}.assembly")
+      val cached = eval("{foo,bar,qux}.assembly")
       assert(filterLines(cached.out) == Set())
 
       // Changing the implementation of foo.compile or foo.generatedSources
@@ -155,14 +155,14 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
       // later by the runtime build graph evaluation, and the runtime build graph
       // evaluation can see the return value was not changed and avoid invalidation
       mangleFile(wsRoot / "build.sc", _.replace("Foo compiling...", "FOO COMPILING"))
-      val mangledFoo2 = evalStdout("{foo,bar,qux}.assembly")
+      val mangledFoo2 = eval("{foo,bar,qux}.assembly")
       assert(filterLines(mangledFoo2.out) == Set("FOO COMPILING"))
 
       mangleFile(
         wsRoot / "build.sc",
         _.replace("Foo generating sources...", "FOO generating sources")
       )
-      val mangledFoo3 = evalStdout("{foo,bar,qux}.assembly")
+      val mangledFoo3 = eval("{foo,bar,qux}.assembly")
       assert(filterLines(mangledFoo3.out) == Set("FOO generating sources"))
 
       // Changing the implementation of foo.generatedSources in a way that changes
@@ -172,7 +172,7 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
         wsRoot / "build.sc",
         _.replace("""fooMsg = "Hello World"""", """fooMsg = "HELLO WORLD"""")
       )
-      val mangledFoo4 = evalStdout("{foo,bar,qux}.assembly")
+      val mangledFoo4 = eval("{foo,bar,qux}.assembly")
 
       assert(
         filterLines(mangledFoo4.out) ==

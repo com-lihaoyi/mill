@@ -18,7 +18,7 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
     val wsRoot = initWorkspace()
 
     def runAssertSuccess(expected: String) = {
-      val res = evalStdout("foo.run")
+      val res = eval("foo.run")
       assert(res.isSuccess == true)
       assert(res.out.contains(expected))
     }
@@ -80,7 +80,7 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
       // Mill aborts early and fails to generate a new one
       os.walk(wsRoot / "out").filter(_.last == "mill-runner-state.json").foreach(os.remove(_))
 
-      val res = evalStdout("foo.run")
+      val res = eval("foo.run")
       assert(res.isSuccess == false)
       // Prepend a "\n" to allow callsites to use "\n" to test for start of
       // line, even though the first line doesn't have a "\n" at the start
