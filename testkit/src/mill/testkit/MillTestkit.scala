@@ -13,18 +13,12 @@ import mill.util.PrintLogger
 import mill.eval.EvaluatorImpl
 import os.Path
 
-object MillTestKit extends MillTestKit
-trait MillTestKit {
+object MillTestKit {
 
   def defaultTargetDir: os.Path = os.temp.dir(os.pwd)
 
   def targetDir: os.Path = defaultTargetDir
 
-  def staticTestEvaluator(module: => mill.define.BaseModule)(implicit
-      fullName: sourcecode.FullName
-  ): TestEvaluator = {
-    new TestEvaluator(module, Seq.empty)(fullName)
-  }
 
   def getOutPath(testPath: Seq[String])(implicit fullName: sourcecode.FullName): os.Path = {
     getOutPathStatic() / testPath
