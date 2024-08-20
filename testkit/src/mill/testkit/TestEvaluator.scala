@@ -77,7 +77,7 @@ class TestEvaluator(
     disableCallgraphInvalidation = false
   )
 
-  def evalTokens(args: String*): Either[Result.Failing[_], TestEvaluator.Result[Seq[_]]] = {
+  def apply(args: String*): Either[Result.Failing[_], TestEvaluator.Result[Seq[_]]] = {
     mill.eval.Evaluator.currentEvaluator.withValue(evaluator) {
       Resolve.Tasks.resolve(evaluator.rootModules, args, SelectMode.Separated)
     } match {
@@ -94,7 +94,7 @@ class TestEvaluator(
     }
   }
 
-  def apply(tasks: Seq[Task[_]]): Either[Result.Failing[_], TestEvaluator.Result[Seq[_]]] = {
+  def apply(tasks: Seq[Task[_]], dummy: DummyImplicit = null): Either[Result.Failing[_], TestEvaluator.Result[Seq[_]]] = {
     val evaluated = evaluator.evaluate(tasks)
 
     if (evaluated.failing.keyCount == 0) {

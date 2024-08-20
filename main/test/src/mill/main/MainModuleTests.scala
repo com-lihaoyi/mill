@@ -85,7 +85,7 @@ object MainModuleTests extends TestSuite {
         )
       }
       test("command") {
-        val Right(result) = eval.evalTokens("inspect", "helloCommand")
+        val Right(result) = eval.apply("inspect", "helloCommand")
 
         val Seq(res: String) = result.value
         assert(
@@ -161,14 +161,14 @@ object MainModuleTests extends TestSuite {
       }
 
       test("command") {
-        val Left(Result.Failure(failureMsg, _)) = evaluator.evalTokens("show", "helloCommand")
+        val Left(Result.Failure(failureMsg, _)) = evaluator.apply("show", "helloCommand")
         assert(
           failureMsg.contains("Expected Signature: helloCommand"),
           failureMsg.contains("-x <int>"),
           failureMsg.contains("-y <str>")
         )
         val Right(result) =
-          evaluator.evalTokens("show", "helloCommand", "-x", "1337", "-y", "lol")
+          evaluator.apply("show", "helloCommand", "-x", "1337", "-y", "lol")
 
         val Seq(res) = result.value
         assert(res == ujson.Arr(1337, "lol", ujson.Arr("hello", "world")))
