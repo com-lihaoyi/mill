@@ -81,7 +81,7 @@ object ExampleTestSuite extends IntegrationTestSuite {
         catch { case e: Throwable => /*do nothing*/ }
 
         for (commandBlock <- commandBlocks) processCommandBlock(workspaceRoot, commandBlock)
-        if (integrationTestMode != "fork") eval("shutdown")
+        if (clientServerMode) eval("shutdown")
       }
     }
   }
@@ -98,8 +98,8 @@ object ExampleTestSuite extends IntegrationTestSuite {
     val incorrectPlatform =
       (comment.exists(_.startsWith("windows")) && !Util.windowsPlatform) ||
         (comment.exists(_.startsWith("mac/linux")) && Util.windowsPlatform) ||
-        (comment.exists(_.startsWith("--no-server")) && integrationTestMode != "fork") ||
-        (comment.exists(_.startsWith("not --no-server")) && integrationTestMode == "fork")
+        (comment.exists(_.startsWith("--no-server")) && clientServerMode) ||
+        (comment.exists(_.startsWith("not --no-server")) && !clientServerMode)
 
     if (!incorrectPlatform) {
       processCommand(workspaceRoot, expectedSnippets, commandHead.trim)

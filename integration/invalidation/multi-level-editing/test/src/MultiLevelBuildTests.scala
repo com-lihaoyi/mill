@@ -111,7 +111,7 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
         }
 
       val expectedChanged =
-        if (integrationTestMode != "fork") expectedChanged0
+        if (clientServerMode) expectedChanged0
         else expectedChanged0.map {
           case java.lang.Boolean.FALSE => true
           case n => n

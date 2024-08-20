@@ -17,10 +17,8 @@ object IntegrationTestSuite {
 
 
 abstract class IntegrationTestSuite extends TestSuite {
-  private val integrationTestMode: String = sys.env("MILL_INTEGRATION_TEST_MODE")
-  assert(Set("local", "fork", "server").contains(integrationTestMode))
 
-  private val clientServerMode: Boolean = integrationTestMode == "server" || integrationTestMode == "local"
+  protected val clientServerMode: Boolean = sys.env("MILL_INTEGRATION_TEST_SERVER_MODE").toBoolean
 
   /**
    * The working directory of the integration test suite, which is the root of the
@@ -28,7 +26,7 @@ abstract class IntegrationTestSuite extends TestSuite {
    * the `out/` folder containing the build output
    */
   def workspacePath: os.Path =
-    os.Path(sys.props.getOrElse("MILL_WORKSPACE_PATH", ???))
+    os.Path(sys.env.getOrElse("MILL_WORKSPACE_PATH", ???))
 
   protected def scriptSourcePath: os.Path = os.Path(sys.env("MILL_INTEGRATION_REPO_ROOT"))
 

@@ -1196,19 +1196,15 @@ trait IntegrationTestModule extends MillScalaModule {
       super.forkEnv() ++
         IntegrationTestModule.this.forkEnv() ++
         Map(
-          "MILL_INTEGRATION_TEST_MODE" -> mode,
-          "MILL_INTEGRATION_TEST_SLUG" -> repoSlug,
-          "MILL_INTEGRATION_REPO_ROOT" -> testRepoRoot().path.toString
+          "MILL_INTEGRATION_TEST_SERVER_MODE" -> (mode == "local" || mode == "server").toString,
+          "MILL_INTEGRATION_REPO_ROOT" -> testRepoRoot().path.toString,
+          "MILL_WORKSPACE_PATH" -> workspaceDir().path.toString
         ) ++
         testReleaseEnv()
 
     def workspaceDir = T.persistent { PathRef(T.dest) }
 
-    def forkArgs = T {
-      super.forkArgs() ++
-        dev.forkArgs() ++
-        Seq(s"-DMILL_WORKSPACE_PATH=${workspaceDir().path}")
-    }
+    def forkArgs = T { super.forkArgs() ++ dev.forkArgs() }
 
     def testReleaseEnv =
       if (mode == "local") T { Map("MILL_TEST_LAUNCHER" -> dev.launcher().path.toString()) }
