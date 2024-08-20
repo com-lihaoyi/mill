@@ -72,18 +72,16 @@ trait MillTestKit {
   )(implicit fullName: sourcecode.FullName) {
     val outPath: Path = getOutPath(testPath) / extraPathEnd
 
-//  val logger = DummyLogger
-    val logger: logger = new logger
-    class logger extends mill.util.PrintLogger(
-          colored = true,
-          enableTicker = true,
-          mill.util.Colors.Default.info,
-          mill.util.Colors.Default.error,
-          new SystemStreams(out = outStream, err = errStream, in = inStream),
-          debugEnabled = debugEnabled,
-          context = "",
-          new PrintLogger.State()
-        ) {
+    object logger extends mill.util.PrintLogger(
+      colored = true,
+      enableTicker = true,
+      mill.util.Colors.Default.info,
+      mill.util.Colors.Default.error,
+      new SystemStreams(out = outStream, err = errStream, in = inStream),
+      debugEnabled = debugEnabled,
+      context = "",
+      new PrintLogger.State()
+    ) {
       val prefix: String = {
         val idx = fullName.value.lastIndexOf(".")
         if (idx > 0) fullName.value.substring(0, idx)

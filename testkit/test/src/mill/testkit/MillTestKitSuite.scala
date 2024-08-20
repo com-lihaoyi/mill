@@ -1,6 +1,5 @@
 package mill.testkit
 
-import mill.testkit.MillTestKit
 import mill._
 import utest._
 
