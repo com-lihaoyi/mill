@@ -16,10 +16,10 @@ object EvaluationTestsThreadsNative extends EvaluationTests(threadCount = None)
 
 class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
 
-  class Checker[T <: MillTestKit.BaseModule](module: T)(implicit tp: TestPath) {
+  class Checker[T <: mill.testkit.BaseModule](module: T)(implicit tp: TestPath) {
     // Make sure data is persisted even if we re-create the evaluator each time
 
-    def evaluator = new TestEvaluator(module, threads = threadCount)(
+    val evaluator = new TestEvaluator(module, threads = threadCount)(
       implicitly[sourcecode.FullName],
       TestPath(tp.value ++ Seq(s"threads-${threadCount.getOrElse("native")}"))
     )
@@ -301,7 +301,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         // up    middle -- down
         //                /
         //           right
-        object build extends MillTestKit.BaseModule {
+        object build extends mill.testkit.BaseModule {
           var leftCount = 0
           var rightCount = 0
           var middleCount = 0

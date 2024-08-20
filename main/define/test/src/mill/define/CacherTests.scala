@@ -9,7 +9,7 @@ import utest.framework.TestPath
 
 object CacherTests extends TestSuite {
   object Base extends Base
-  trait Base extends MillTestKit.BaseModule {
+  trait Base extends mill.testkit.BaseModule {
     def value = T { 1 }
     def result = T { Success(1) }
   }
@@ -24,7 +24,7 @@ object CacherTests extends TestSuite {
   }
 
   val tests = Tests {
-    def eval[T <: MillTestKit.BaseModule, V](mapping: T, v: Task[V])(implicit tp: TestPath) = {
+    def eval[T <: mill.testkit.BaseModule, V](mapping: T, v: Task[V])(implicit tp: TestPath) = {
       val evaluator = new TestEvaluator(mapping)
       evaluator(v).toOption.get._1
     }

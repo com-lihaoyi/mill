@@ -14,7 +14,7 @@ object DockerModuleTest extends TestSuite {
     if (isInstalled("podman")) "podman"
     else "docker"
 
-  object Docker extends MillTestKit.BaseModule with JavaModule with DockerModule {
+  object Docker extends mill.testkit.BaseModule with JavaModule with DockerModule {
 
     override def millSourcePath = MillTestKit.getSrcPathStatic()
     override def artifactName = testArtifactName
@@ -56,7 +56,7 @@ object DockerModuleTest extends TestSuite {
     os.proc(getPathCmd, executable).call(check = false).exitCode == 0
   }
 
-  private def workspaceTest(m: MillTestKit.BaseModule)(t: TestEvaluator => Unit)(
+  private def workspaceTest(m: mill.testkit.BaseModule)(t: TestEvaluator => Unit)(
       implicit tp: TestPath
   ): Unit = {
     if (isInstalled(testExecutable) && !scala.util.Properties.isWin) {

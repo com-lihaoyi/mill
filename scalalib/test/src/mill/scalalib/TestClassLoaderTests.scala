@@ -8,7 +8,7 @@ import utest._
 import utest.framework.TestPath
 
 object TestClassLoaderTests extends TestSuite {
-  object testclassloader extends MillTestKit.BaseModule with ScalaModule {
+  object testclassloader extends mill.testkit.BaseModule with ScalaModule {
     override def millSourcePath = MillTestKit.getSrcPathBase() / millOuterCtx.enclosing.split('.')
 
     def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
@@ -25,7 +25,7 @@ object TestClassLoaderTests extends TestSuite {
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "classloader-test"
 
   def workspaceTest[T](
-      m: MillTestKit.BaseModule,
+      m: mill.testkit.BaseModule,
       resourcePath: os.Path = resourcePath
   )(t: TestEvaluator => T)(
       implicit tp: TestPath

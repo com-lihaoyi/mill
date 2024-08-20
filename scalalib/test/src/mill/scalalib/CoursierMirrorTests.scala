@@ -10,14 +10,14 @@ object CoursierMirrorTests extends TestSuite {
 
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "coursier"
 
-  object CoursierTest extends MillTestKit.BaseModule {
+  object CoursierTest extends mill.testkit.BaseModule {
     object core extends ScalaModule {
       def scalaVersion = "2.13.12"
     }
   }
 
   def workspaceTest[T](
-      m: MillTestKit.BaseModule,
+      m: mill.testkit.BaseModule,
       resourcePath: os.Path = resourcePath,
       env: Map[String, String] = Evaluator.defaultEnv,
       debug: Boolean = false

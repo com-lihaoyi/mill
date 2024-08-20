@@ -9,7 +9,7 @@ import utest._
 object FullOptESModuleTests extends TestSuite {
   val workspacePath = MillTestKit.getOutPathStatic() / "hello-js-world"
 
-  object FullOptESModuleModule extends MillTestKit.BaseModule {
+  object FullOptESModuleModule extends mill.testkit.BaseModule {
     override def millSourcePath = workspacePath
 
     object fullOptESModuleModule extends ScalaJSModule {

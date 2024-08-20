@@ -7,7 +7,7 @@ import mill.testkit.MillTestKit
 import utest.{TestSuite, Tests, assert, _}
 
 object BuildTest extends TestSuite {
-  object Build extends MillTestKit.BaseModule {
+  object Build extends mill.testkit.BaseModule {
     object build extends FlywayModule {
 
       override def resources = T.sources(os.pwd / "contrib" / "flyway" / "test" / "resources")

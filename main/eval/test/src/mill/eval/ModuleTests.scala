@@ -15,7 +15,7 @@ object ModuleTests extends TestSuite {
     }
     lazy val millDiscover = Discover[this.type]
   }
-  object Build extends MillTestKit.BaseModule {
+  object Build extends mill.testkit.BaseModule {
     def z = T { ExternalModule.x() + ExternalModule.inner.y() }
   }
   val tests = Tests {

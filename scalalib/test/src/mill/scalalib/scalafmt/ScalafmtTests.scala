@@ -12,7 +12,7 @@ object ScalafmtTests extends TestSuite {
 
   val scalafmtTestVersion = mill.scalalib.api.Versions.scalafmtVersion
 
-  trait TestBase extends MillTestKit.BaseModule {
+  trait TestBase extends mill.testkit.BaseModule {
     override def millSourcePath: os.Path =
       MillTestKit.getSrcPathBase() / millOuterCtx.enclosing.split('.')
   }
@@ -35,7 +35,7 @@ object ScalafmtTests extends TestSuite {
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "scalafmt"
 
   def workspaceTest[T](
-      m: MillTestKit.BaseModule,
+      m: mill.testkit.BaseModule,
       resourcePath: os.Path = resourcePath
   )(t: TestEvaluator => T)(
       implicit tp: TestPath

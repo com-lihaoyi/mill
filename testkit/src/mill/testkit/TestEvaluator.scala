@@ -14,7 +14,7 @@ import utest.framework.TestPath
 import java.io.{InputStream, PrintStream}
 
 object TestEvaluator {
-  def static(module: => MillTestKit.BaseModule)(implicit
+  def static(module: => mill.testkit.BaseModule)(implicit
       fullName: sourcecode.FullName
   ): TestEvaluator = {
     new TestEvaluator(module)(fullName, TestPath(Nil))
@@ -27,7 +27,7 @@ object TestEvaluator {
  * @param threads explicitly used nr. of parallel threads
  */
 class TestEvaluator(
-    module: MillTestKit.BaseModule,
+    module: mill.testkit.BaseModule,
     failFast: Boolean = false,
     threads: Option[Int] = Some(1),
     outStream: PrintStream = System.out,

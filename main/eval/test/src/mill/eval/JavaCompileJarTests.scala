@@ -26,7 +26,7 @@ object JavaCompileJarTests extends TestSuite {
       os.makeDir.all(javacDestPath / os.up)
       os.copy(javacSrcPath, javacDestPath)
 
-      object Build extends MillTestKit.BaseModule {
+      object Build extends mill.testkit.BaseModule {
         def sourceRootPath = javacDestPath / "src"
         def readmePath = javacDestPath / "readme.md"
         def resourceRootPath = javacDestPath / "resources"

@@ -11,7 +11,7 @@ import utest.framework.TestPath
 
 object JmhModuleTest extends TestSuite {
 
-  object jmh extends MillTestKit.BaseModule with ScalaModule with JmhModule {
+  object jmh extends mill.testkit.BaseModule with ScalaModule with JmhModule {
 
     override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
     override def jmhCoreVersion = "1.35"
@@ -21,7 +21,7 @@ object JmhModuleTest extends TestSuite {
   val testModuleSourcesPath: Path =
     os.pwd / "contrib" / "jmh" / "test" / "resources" / "jmh"
 
-  private def workspaceTest(m: MillTestKit.BaseModule)(t: TestEvaluator => Unit)(
+  private def workspaceTest(m: mill.testkit.BaseModule)(t: TestEvaluator => Unit)(
       implicit tp: TestPath
   ): Unit = {
     val eval = new TestEvaluator(m)

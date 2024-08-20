@@ -8,7 +8,7 @@ import utest.{TestSuite, Tests, intercept, test, assert}
 
 object CycleTests extends TestSuite {
 
-  object CycleBase extends MillTestKit.BaseModule {
+  object CycleBase extends mill.testkit.BaseModule {
     // See issue: https://github.com/com-lihaoyi/mill/issues/2341
     object a extends ScalaModule {
       override def moduleDeps = Seq(a)
@@ -31,7 +31,7 @@ object CycleTests extends TestSuite {
     }
   }
 
-  def workspaceTest[T](m: MillTestKit.BaseModule)(t: TestEvaluator => T)(implicit tp: TestPath): T = {
+  def workspaceTest[T](m: mill.testkit.BaseModule)(t: TestEvaluator => T)(implicit tp: TestPath): T = {
     val eval = new TestEvaluator(m)
     os.remove.all(m.millSourcePath)
     os.remove.all(eval.outPath)

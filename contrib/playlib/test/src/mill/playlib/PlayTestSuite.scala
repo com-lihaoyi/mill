@@ -35,7 +35,7 @@ trait PlayTestSuite {
 
   def resourcePath: os.Path
 
-  def workspaceTest[T, M <: MillTestKit.BaseModule](
+  def workspaceTest[T, M <: mill.testkit.BaseModule](
       m: M,
       resourcePath: os.Path = resourcePath
   )(t: TestEvaluator => T)(implicit tp: TestPath): T = {

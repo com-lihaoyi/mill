@@ -8,7 +8,7 @@ import mill.testkit.MillTestKit
 import utest._
 
 object ExclusionsTests extends TestSuite {
-  object Exclusions extends MillTestKit.BaseModule {
+  object Exclusions extends mill.testkit.BaseModule {
     object scala213 extends ScalaNativeModule {
       def scalaNativeVersion = "0.4.3"
       def scalaVersion = "2.13.10"

@@ -8,7 +8,7 @@ import utest._
 object SourceMapTests extends TestSuite {
   val workspacePath = MillTestKit.getOutPathStatic() / "source-map"
 
-  object SourceMapModule extends MillTestKit.BaseModule {
+  object SourceMapModule extends mill.testkit.BaseModule {
 
     object sourceMapModule extends ScalaJSModule {
       override def millSourcePath = workspacePath

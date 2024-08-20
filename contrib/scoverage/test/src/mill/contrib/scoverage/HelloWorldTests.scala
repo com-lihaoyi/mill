@@ -25,7 +25,7 @@ trait HelloWorldTests extends utest.TestSuite {
   val sbtResourcePath = resourcePath / os.up / "hello-world-sbt"
   val unmanagedFile = resourcePath / "unmanaged.xml"
 
-  trait HelloBase extends MillTestKit.BaseModule {
+  trait HelloBase extends mill.testkit.BaseModule {
     override def millSourcePath = MillTestKit.getSrcPathBase() / millOuterCtx.enclosing.split('.')
   }
 
@@ -67,7 +67,7 @@ trait HelloWorldTests extends utest.TestSuite {
   }
 
   def workspaceTest[T](
-      m: MillTestKit.BaseModule,
+      m: mill.testkit.BaseModule,
       resourcePath: os.Path = resourcePath,
       debugEnabled: Boolean = false
   )(t: TestEvaluator => T)(implicit tp: TestPath): T = {

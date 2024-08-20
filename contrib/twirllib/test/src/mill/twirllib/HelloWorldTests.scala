@@ -8,7 +8,7 @@ import utest.{TestSuite, Tests, assert, _}
 trait HelloWorldTests extends TestSuite {
   val testTwirlVersion: String
 
-  trait HelloBase extends MillTestKit.BaseModule {
+  trait HelloBase extends mill.testkit.BaseModule {
     override def millSourcePath: os.Path =
       MillTestKit.getSrcPathBase() / millOuterCtx.enclosing.split('.')
   }
@@ -37,7 +37,7 @@ trait HelloWorldTests extends TestSuite {
   }
 
   def workspaceTest[T](
-      m: MillTestKit.BaseModule,
+      m: mill.testkit.BaseModule,
       resourcePathSuffix: String,
       debug: Boolean = false
   )(t: TestEvaluator => T)(implicit tp: TestPath): T = {

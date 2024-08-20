@@ -8,7 +8,7 @@ import utest.{TestSuite, Tests, assert, _}
 
 object RouterModuleTests extends TestSuite with PlayTestSuite {
 
-  trait HelloBase extends MillTestKit.BaseModule {
+  trait HelloBase extends mill.testkit.BaseModule {
     override def millSourcePath: os.Path =
       MillTestKit.getSrcPathBase() / millOuterCtx.enclosing.split('.')
   }

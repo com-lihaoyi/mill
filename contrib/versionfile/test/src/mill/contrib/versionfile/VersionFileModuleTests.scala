@@ -10,11 +10,11 @@ import utest.framework.TestPath
 
 object VersionFileModuleTests extends TestSuite {
 
-  object TestModule extends MillTestKit.BaseModule {
+  object TestModule extends mill.testkit.BaseModule {
     case object versionFile extends VersionFileModule
   }
 
-  def evaluator[T, M <: MillTestKit.BaseModule](
+  def evaluator[T, M <: mill.testkit.BaseModule](
       m: M,
       vf: M => VersionFileModule,
       versionText: String

@@ -18,7 +18,7 @@ import java.io.PrintStream
 
 object AssemblyTests extends TestSuite {
 
-  object TestCase extends MillTestKit.BaseModule {
+  object TestCase extends mill.testkit.BaseModule {
     trait Setup extends ScalaModule {
       def scalaVersion = "2.13.11"
       def sources = T.sources(T.workspace / "src")
@@ -76,7 +76,7 @@ object AssemblyTests extends TestSuite {
   )
 
   def workspaceTest[T](
-      m: MillTestKit.BaseModule,
+      m: mill.testkit.BaseModule,
       env: Map[String, String] = Evaluator.defaultEnv,
       debug: Boolean = false,
       errStream: PrintStream = System.err

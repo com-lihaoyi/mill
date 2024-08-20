@@ -6,7 +6,7 @@ import utest.{TestSuite, Tests, assert, _}
 
 object PlayModuleTests extends TestSuite with PlayTestSuite {
 
-  object playmulti extends MillTestKit.BaseModule {
+  object playmulti extends mill.testkit.BaseModule {
     object core extends Cross[CoreCrossModule](matrix)
     trait CoreCrossModule extends PlayModule with Cross.Module2[String, String] {
       val (crossScalaVersion, crossPlayVersion) = (crossValue, crossValue2)

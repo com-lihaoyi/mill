@@ -8,7 +8,7 @@ import utest.framework.TestPath
 
 object CrossVersionTests extends TestSuite {
 
-  object TestCases extends MillTestKit.BaseModule {
+  object TestCases extends mill.testkit.BaseModule {
 
     object StandaloneScala213 extends ScalaModule {
       val tree =

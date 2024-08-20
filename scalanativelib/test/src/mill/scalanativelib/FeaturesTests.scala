@@ -7,7 +7,7 @@ import utest._
 
 object FeaturesTests extends TestSuite {
   val workspacePath = MillTestKit.getOutPathStatic() / "features"
-  object Features extends MillTestKit.BaseModule {
+  object Features extends mill.testkit.BaseModule {
     object module extends ScalaNativeModule {
       def millSourcePath = workspacePath
       def scalaNativeVersion = "0.4.9"

@@ -11,7 +11,7 @@ import utest.{TestSuite, Tests, assert, _}
 
 object TestNGTests extends TestSuite {
 
-  object demo extends MillTestKit.BaseModule with JavaModule {
+  object demo extends mill.testkit.BaseModule with JavaModule {
     override def millSourcePath: os.Path =
       MillTestKit.getSrcPathBase() / millOuterCtx.enclosing.split('.')
 
@@ -42,7 +42,7 @@ object TestNGTests extends TestSuite {
 
   val resourcePath: os.Path = os.pwd / "contrib" / "testng" / "test" / "resources" / "demo"
 
-  def workspaceTest[T, M <: MillTestKit.BaseModule](
+  def workspaceTest[T, M <: mill.testkit.BaseModule](
       m: M,
       resourcePath: os.Path = resourcePath
   )(t: TestEvaluator => T)(implicit tp: TestPath): T = {

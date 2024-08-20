@@ -13,7 +13,7 @@ object EsModuleRemapTests extends TestSuite {
 
   val remapTo = "https://cdn.jsdelivr.net/gh/stdlib-js/array-base-linspace@esm/index.mjs"
 
-  object EsModuleRemap extends MillTestKit.BaseModule {
+  object EsModuleRemap extends mill.testkit.BaseModule {
 
     object sourceMapModule extends ScalaJSModule {
       override def millSourcePath = workspacePath

@@ -9,7 +9,7 @@ import utest._
 object SmallModulesForTests extends TestSuite {
   val workspacePath = MillTestKit.getOutPathStatic() / "small-modules-for"
 
-  object SmallModulesForModule extends MillTestKit.BaseModule {
+  object SmallModulesForModule extends mill.testkit.BaseModule {
 
     object smallModulesForModule extends ScalaJSModule {
       override def millSourcePath = workspacePath

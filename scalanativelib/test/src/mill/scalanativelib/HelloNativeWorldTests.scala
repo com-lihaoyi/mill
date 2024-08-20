@@ -41,7 +41,7 @@ object HelloNativeWorldTests extends TestSuite {
   val utestVersion = sys.props.getOrElse("TEST_UTEST_VERSION", ???)
   val utestForNative04Version = "0.8.2"
 
-  object HelloNativeWorld extends MillTestKit.BaseModule {
+  object HelloNativeWorld extends mill.testkit.BaseModule {
     implicit object ReleaseModeToSegments
         extends Cross.ToSegments[ReleaseMode](v => List(v.toString))
 

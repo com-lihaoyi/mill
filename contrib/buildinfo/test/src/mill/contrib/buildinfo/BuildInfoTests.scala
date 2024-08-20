@@ -11,7 +11,7 @@ object BuildInfoTests extends TestSuite {
 
   val scalaVersionString = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
   val scalaJSVersionString = sys.props.getOrElse("TEST_SCALAJS_VERSION", ???)
-  trait BuildInfoModule extends MillTestKit.BaseModule with BuildInfo {
+  trait BuildInfoModule extends mill.testkit.BaseModule with BuildInfo {
     // override build root to test custom builds/modules
     override def millSourcePath: Path = MillTestKit.getSrcPathStatic() / "scala"
   }
@@ -94,7 +94,7 @@ object BuildInfoTests extends TestSuite {
   val testModuleSourcesPath: Path =
     os.pwd / "contrib" / "buildinfo" / "test" / "resources" / "buildinfo"
 
-  def workspaceTest[T](m: MillTestKit.BaseModule, suffix: String)(t: TestEvaluator => T)(
+  def workspaceTest[T](m: mill.testkit.BaseModule, suffix: String)(t: TestEvaluator => T)(
       implicit tp: TestPath
   ): T = {
     val eval = new TestEvaluator(m)

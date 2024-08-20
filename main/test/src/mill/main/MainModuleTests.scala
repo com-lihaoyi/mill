@@ -11,7 +11,7 @@ import java.io.{ByteArrayOutputStream, PrintStream}
 
 object MainModuleTests extends TestSuite {
 
-  object mainModule extends MillTestKit.BaseModule with MainModule {
+  object mainModule extends mill.testkit.BaseModule with MainModule {
     def hello = T {
       System.out.println("Hello System Stdout")
       System.err.println("Hello System Stderr")
@@ -30,7 +30,7 @@ object MainModuleTests extends TestSuite {
     override lazy val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
-  object cleanModule extends MillTestKit.BaseModule with MainModule {
+  object cleanModule extends mill.testkit.BaseModule with MainModule {
 
     trait Cleanable extends Module {
       def target = T {

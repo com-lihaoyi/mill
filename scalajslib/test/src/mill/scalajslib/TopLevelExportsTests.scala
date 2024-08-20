@@ -9,7 +9,7 @@ import utest._
 object TopLevelExportsTests extends TestSuite {
   val workspacePath = MillTestKit.getOutPathStatic() / "top-level-exports"
 
-  object TopLevelExportsModule extends MillTestKit.BaseModule {
+  object TopLevelExportsModule extends mill.testkit.BaseModule {
 
     object topLevelExportsModule extends ScalaJSModule {
       override def millSourcePath = workspacePath

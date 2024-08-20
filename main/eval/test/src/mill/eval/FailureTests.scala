@@ -181,7 +181,7 @@ object FailureTests extends TestSuite {
     }
 
     "multipleUsesOfDest" - {
-      object build extends MillTestKit.BaseModule {
+      object build extends mill.testkit.BaseModule {
         // Using `T.ctx(  ).dest` twice in a single task is ok
         def left = T { +T.dest.toString.length + T.dest.toString.length }
 

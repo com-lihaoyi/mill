@@ -5,11 +5,9 @@ import utest._
 
 object MillTestKitSuite extends TestSuite {
 
-  object build extends MillTestKit.BaseModule {
+  object build extends mill.testkit.BaseModule {
     def testTask = T("test")
   }
-
-
 
   def tests: Tests = Tests {
     "Test evaluator allows to run tasks" - {

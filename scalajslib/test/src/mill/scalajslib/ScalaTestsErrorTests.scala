@@ -7,7 +7,7 @@ import mill.util.TestUtil
 import utest._
 
 object ScalaTestsErrorTests extends TestSuite {
-  object ScalaTestsError extends MillTestKit.BaseModule {
+  object ScalaTestsError extends mill.testkit.BaseModule {
     object scalaTestsError extends ScalaJSModule {
       def scalaVersion = sys.props.getOrElse("TEST_SCALA_3_3_VERSION", ???)
       def scalaJSVersion = sys.props.getOrElse("TEST_SCALAJS_VERSION", ???)

@@ -11,14 +11,14 @@ object MacroErrorTests extends TestSuite {
       val expectedMsg =
         "T{} members must be defs defined in a Cacher class/trait/object body"
 
-      val err = compileError("object Foo extends mill.testkit.MillTestKit.BaseModule{ val x = T{1} }")
+      val err = compileError("object Foo extends mill.testkit.BaseModule{ val x = T{1} }")
       assert(err.msg == expectedMsg)
     }
 
     "badParameterSets" - {
       "command" - {
         val e = compileError("""
-          object foo extends mill.testkit.MillTestKit.BaseModule{
+          object foo extends mill.testkit.BaseModule{
             def w = T.command{1}
           }
           mill.define.Discover[foo.type]
@@ -31,7 +31,7 @@ object MacroErrorTests extends TestSuite {
 
       "target" - {
         val e = compileError("""
-          object foo extends mill.testkit.MillTestKit.BaseModule{
+          object foo extends mill.testkit.BaseModule{
             def x() = T{1}
           }
           mill.define.Discover[foo.type]
@@ -43,7 +43,7 @@ object MacroErrorTests extends TestSuite {
       }
       "input" - {
         val e = compileError("""
-          object foo extends mill.testkit.MillTestKit.BaseModule{
+          object foo extends mill.testkit.BaseModule{
             def y() = T.input{1}
           }
           mill.define.Discover[foo.type]
@@ -55,7 +55,7 @@ object MacroErrorTests extends TestSuite {
       }
       "sources" - {
         val e = compileError("""
-          object foo extends mill.testkit.MillTestKit.BaseModule{
+          object foo extends mill.testkit.BaseModule{
             def z() = T.sources{os.pwd}
           }
           mill.define.Discover[foo.type]
@@ -67,7 +67,7 @@ object MacroErrorTests extends TestSuite {
       }
       "persistent" - {
         val e = compileError("""
-          object foo extends mill.testkit.MillTestKit.BaseModule{
+          object foo extends mill.testkit.BaseModule{
             def a() = T.persistent{1}
           }
           mill.define.Discover[foo.type]
@@ -146,7 +146,7 @@ object MacroErrorTests extends TestSuite {
     "badCrossKeys" - {
       val error = utest.compileError(
         """
-        object foo extends mill.testkit.MillTestKit.BaseModule{
+        object foo extends mill.testkit.BaseModule{
           object cross extends Cross[MyCrossModule](Seq(1, 2, 3))
           trait MyCrossModule extends Cross.Module[String]
         }
@@ -160,7 +160,7 @@ object MacroErrorTests extends TestSuite {
     "invalidCrossType" - {
       val error = utest.compileError(
         """
-        object foo extends mill.testkit.MillTestKit.BaseModule{
+        object foo extends mill.testkit.BaseModule{
           object cross extends Cross[MyCrossModule](null.asInstanceOf[sun.misc.Unsafe])
           trait MyCrossModule extends Cross.Module[sun.misc.Unsafe]
         }

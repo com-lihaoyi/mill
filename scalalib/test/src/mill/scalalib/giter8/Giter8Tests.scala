@@ -18,7 +18,7 @@ object Giter8Tests extends TestSuite {
             template.replace("file:", "file://")
           } else template
 
-        object g8Module extends MillTestKit.BaseModule with Giter8Module {
+        object g8Module extends mill.testkit.BaseModule with Giter8Module {
           override def millSourcePath: Path = rootDir
         }
 

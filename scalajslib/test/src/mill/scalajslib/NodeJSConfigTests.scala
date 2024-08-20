@@ -31,7 +31,7 @@ object NodeJSConfigTests extends TestSuite {
     override def mainClass = Some("Main")
   }
 
-  object HelloJSWorld extends MillTestKit.BaseModule {
+  object HelloJSWorld extends mill.testkit.BaseModule {
     val matrix = for {
       scala <- Seq(scalaVersion)
       nodeArgs <- Seq(nodeArgsEmpty, nodeArgs2G)

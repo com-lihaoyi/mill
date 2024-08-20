@@ -9,7 +9,7 @@ import utest.framework.TestPath
 
 object HelloJavaTests extends TestSuite {
 
-  object HelloJava extends MillTestKit.BaseModule {
+  object HelloJava extends mill.testkit.BaseModule {
     def millSourcePath = MillTestKit.getSrcPathBase() / millOuterCtx.enclosing.split('.')
 
     object core extends JavaModule {

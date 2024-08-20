@@ -14,7 +14,7 @@ object BspModuleTests extends TestSuite {
 
   val testScalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
 
-  trait BspBase extends MillTestKit.BaseModule {
+  trait BspBase extends mill.testkit.BaseModule {
     override def millSourcePath: os.Path =
       MillTestKit.getSrcPathBase() / millOuterCtx.enclosing.split('.')
   }
@@ -45,7 +45,7 @@ object BspModuleTests extends TestSuite {
     }
   }
 
-  def workspaceTest[T](m: MillTestKit.BaseModule)(t: TestEvaluator => T)(implicit tp: TestPath): T = {
+  def workspaceTest[T](m: mill.testkit.BaseModule)(t: TestEvaluator => T)(implicit tp: TestPath): T = {
     val eval = new TestEvaluator(m)
     os.remove.all(m.millSourcePath)
     os.remove.all(eval.outPath)

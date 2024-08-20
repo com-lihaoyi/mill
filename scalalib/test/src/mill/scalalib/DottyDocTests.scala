@@ -7,7 +7,7 @@ import mill.testkit.TestEvaluator
 import mill.testkit.MillTestKit
 
 object DottyDocTests extends TestSuite {
-  trait TestBase extends MillTestKit.BaseModule {
+  trait TestBase extends mill.testkit.BaseModule {
     def millSourcePath = MillTestKit.getSrcPathBase() / millOuterCtx.enclosing.split('.')
   }
 
@@ -39,7 +39,7 @@ object DottyDocTests extends TestSuite {
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "dottydoc"
 
   def workspaceTest[T](
-      m: MillTestKit.BaseModule,
+      m: mill.testkit.BaseModule,
       resourcePath: os.Path = resourcePath
   )(t: TestEvaluator => T)(
       implicit tp: TestPath

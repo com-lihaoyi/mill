@@ -8,7 +8,7 @@ import mill.testkit.MillTestKit
 import utest.framework.TestPath
 
 trait TaskTests extends TestSuite {
-  trait SuperBuild extends MillTestKit.BaseModule {
+  trait SuperBuild extends mill.testkit.BaseModule {
 
     var superBuildInputCount = 0
 

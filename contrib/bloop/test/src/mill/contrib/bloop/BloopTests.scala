@@ -20,7 +20,7 @@ object BloopTests extends TestSuite {
   val testEvaluator = TestEvaluator.static(build)
   val testBloop = new BloopImpl(() => Seq(testEvaluator.evaluator), workdir)
 
-  object build extends MillTestKit.BaseModule {
+  object build extends mill.testkit.BaseModule {
 
     override def millSourcePath = BloopTests.workdir
 

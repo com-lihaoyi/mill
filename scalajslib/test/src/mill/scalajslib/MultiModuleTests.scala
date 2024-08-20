@@ -11,7 +11,7 @@ object MultiModuleTests extends TestSuite {
   val workspacePath = MillTestKit.getOutPathStatic() / "multi-module"
   val sourcePath = os.pwd / "scalajslib" / "test" / "resources" / "multi-module"
 
-  object MultiModule extends MillTestKit.BaseModule {
+  object MultiModule extends mill.testkit.BaseModule {
     trait BaseModule extends ScalaJSModule {
       def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
       def scalaJSVersion = sys.props.getOrElse("TEST_SCALAJS_VERSION", ???)
