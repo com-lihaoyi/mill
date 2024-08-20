@@ -15,17 +15,16 @@ object IntegrationTestSuite {
   case class EvalResult(isSuccess: Boolean, out: String, err: String)
 }
 
-
 abstract class IntegrationTestSuite extends TestSuite {
 
-  protected val clientServerMode: Boolean = sys.env("MILL_INTEGRATION_TEST_SERVER_MODE").toBoolean
+  protected val clientServerMode: Boolean = sys.env("MILL_INTEGRATION_SERVER_MODE").toBoolean
 
   /**
    * The working directory of the integration test suite, which is the root of the
    * Mill build being tested. Contains the `build.sc` file, any application code, and
    * the `out/` folder containing the build output
    */
-  def workspacePath: os.Path = os.temp.dir()
+  val workspacePath: os.Path = os.temp.dir(deleteOnExit = false)
 
 
   protected def scriptSourcePath: os.Path = os.Path(sys.env("MILL_INTEGRATION_REPO_ROOT"))
@@ -72,7 +71,7 @@ abstract class IntegrationTestSuite extends TestSuite {
   }
 
   private val millReleaseFileOpt: Option[Path] =
-    Option(System.getenv("MILL_TEST_LAUNCHER")).map(os.Path(_, os.pwd))
+    Option(System.getenv("MILL_INTEGRATION_LAUNCHER")).map(os.Path(_, os.pwd))
 
   private val millTestSuiteEnv: Map[String, String] = Map("MILL_TEST_SUITE" -> this.getClass().toString())
 
@@ -80,7 +79,8 @@ abstract class IntegrationTestSuite extends TestSuite {
    * Helpers to read the `.json` metadata files belonging to a particular task
    * (specified by [[selector0]]) from the `out/` folder.
    */
-  case class meta(selector0: String){
+  def meta(selector0: String): Meta = new Meta(selector0)
+  class Meta(selector0: String){
     def text: String = {
       val Seq((List(selector), _)) =
         mill.resolve.ParseArgs.apply(Seq(selector0), SelectMode.Separated).getOrElse(???)
@@ -96,16 +96,14 @@ abstract class IntegrationTestSuite extends TestSuite {
     def value[T: upickle.default.Reader]: T = upickle.default.read[T](cached.value)
   }
 
-  def initWorkspace(): Path = {
-    println(s"Copying integration test sources from $scriptSourcePath to $workspacePath)
+  def initWorkspace(): Unit = {
+    println(s"Copying integration test sources from $scriptSourcePath to $workspacePath")
     os.remove.all(workspacePath)
     os.makeDir.all(workspacePath / os.up)
     // somehow os.copy does not properly preserve symlinks
     // os.copy(scriptSourcePath, workspacePath)
-    os.proc("cp", "-R", scriptSourcePath, workspacePath).call()
-
+    os.call(("cp", "-R", scriptSourcePath, workspacePath))
     os.remove.all(workspacePath / "out")
-    workspacePath
   }
 
   /**

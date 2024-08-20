@@ -46,7 +46,7 @@ import scala.concurrent.duration.DurationInt
  */
 object ExampleTestSuite extends IntegrationTestSuite {
   val tests: Tests = Tests {
-    val workspaceRoot = initWorkspace()
+    initWorkspace()
 
     val testTimeout = 5.minutes
 
@@ -77,10 +77,10 @@ object ExampleTestSuite extends IntegrationTestSuite {
       val commandBlocks = ("\n" + usageComment.trim).split("\n> ").filter(_.nonEmpty)
 
       retryOnTimeout(3) {
-        try os.remove.all(workspaceRoot / "out")
+        try os.remove.all(workspacePath / "out")
         catch { case e: Throwable => /*do nothing*/ }
 
-        for (commandBlock <- commandBlocks) processCommandBlock(workspaceRoot, commandBlock)
+        for (commandBlock <- commandBlocks) processCommandBlock(workspacePath, commandBlock)
         if (clientServerMode) eval("shutdown")
       }
     }

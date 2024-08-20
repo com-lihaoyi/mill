@@ -12,7 +12,7 @@ object BspInstallDebugTests extends IntegrationTestSuite {
 
   def tests: Tests = Tests {
     test("BSP install forwards --debug option to server") {
-      val workspacePath = initWorkspace()
+      initWorkspace()
       eval("mill.bsp.BSP/install") ==> true
       val jsonFile = workspacePath / Constants.bspDir / s"${Constants.serverName}.json"
       assert(os.exists(jsonFile))

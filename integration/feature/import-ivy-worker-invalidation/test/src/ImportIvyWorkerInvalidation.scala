@@ -8,7 +8,7 @@ object ImportIvyWorkerInvalidation extends IntegrationTestSuite {
 
   val tests: Tests = Tests {
     test {
-      val wsRoot = initWorkspace()
+      initWorkspace()
       assert(eval("app.compile").isSuccess)
       modifyFile(wsRoot / "build.sc", _.replace("object app", "println(\"hello\"); object app"))
       assert(eval("app.compile").isSuccess)

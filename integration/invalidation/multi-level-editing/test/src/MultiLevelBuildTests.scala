@@ -15,7 +15,7 @@ import scala.util.matching.Regex
 // in all cases.
 object MultiLevelBuildTests extends IntegrationTestSuite {
   val tests: Tests = Tests {
-    val wsRoot = initWorkspace()
+    initWorkspace()
 
     def runAssertSuccess(expected: String) = {
       val res = eval("foo.run")

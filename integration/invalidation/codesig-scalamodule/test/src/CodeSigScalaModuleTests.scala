@@ -9,7 +9,7 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
     def filterLines(out: String) = {
       out.linesIterator.filter(!_.contains("[info]")).toSet
     }
-    val wsRoot = initWorkspace()
+    initWorkspace()
     "single" - {
       // Tests for fine-grained method-based invalidation within a single ScalaModule
 

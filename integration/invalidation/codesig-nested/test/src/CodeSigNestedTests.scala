@@ -6,7 +6,7 @@ import utest._
 
 object CodeSigNestedTests extends IntegrationTestSuite {
   val tests: Tests = Tests {
-    val wsRoot = initWorkspace()
+    initWorkspace()
 
     "nested" - {
       // Make sure the code-change invalidation works in more complex cases: multi-step

@@ -13,7 +13,7 @@ object GenIdeaExtendedTests extends IntegrationTestSuite {
 
   def tests: Tests = Tests {
     "genIdeaTests" - {
-      val workspacePath = initWorkspace()
+      initWorkspace()
       val expectedBase = workspacePath / "idea"
       val resources = os.walk(expectedBase).filter(os.isFile).map(_.subRelativeTo(expectedBase))
 

@@ -24,7 +24,7 @@ object WatchSourceInputTests extends IntegrationTestSuite {
 
   val maxDuration = 60000
   val tests: Tests = Tests {
-    val wsRoot = initWorkspace()
+    initWorkspace()
 
     def awaitCompletionMarker(name: String) = {
       val maxTime = System.currentTimeMillis() + maxDuration

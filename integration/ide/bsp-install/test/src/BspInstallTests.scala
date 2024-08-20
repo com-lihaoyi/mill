@@ -9,7 +9,7 @@ object BspInstallTests extends IntegrationTestSuite {
 
   def tests: Tests = Tests {
     test("BSP install") {
-      val workspacePath = initWorkspace()
+      initWorkspace()
       assert(eval("mill.bsp.BSP/install").isSuccess)
       val jsonFile = workspacePath / Constants.bspDir / s"${Constants.serverName}.json"
       assert(os.exists(jsonFile))

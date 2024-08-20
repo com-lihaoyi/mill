@@ -1183,7 +1183,6 @@ val DefaultLocalMillReleasePath =
 trait IntegrationTestModule extends MillScalaModule {
   def repoSlug: String
 
-//  def scalaVersion = integration.scalaVersion()
   def moduleDeps = Seq(main.test, testkit, runner)
   def sources = T.sources(millSourcePath / "test" / "src")
   def testRepoRoot: T[PathRef] = T.source(millSourcePath / "repo")
@@ -1196,18 +1195,16 @@ trait IntegrationTestModule extends MillScalaModule {
       super.forkEnv() ++
         IntegrationTestModule.this.forkEnv() ++
         Map(
-          "MILL_INTEGRATION_TEST_SERVER_MODE" -> (mode == "local" || mode == "server").toString,
+          "MILL_INTEGRATION_SERVER_MODE" -> (mode == "local" || mode == "server").toString,
           "MILL_INTEGRATION_REPO_ROOT" -> testRepoRoot().path.toString
         ) ++
         testReleaseEnv()
 
-    def workspaceDir = T.persistent { PathRef(T.dest) }
-
     def forkArgs = T { super.forkArgs() ++ dev.forkArgs() }
 
     def testReleaseEnv =
-      if (mode == "local") T { Map("MILL_TEST_LAUNCHER" -> dev.launcher().path.toString()) }
-      else T { Map("MILL_TEST_LAUNCHER" -> integration.testMill().path.toString()) }
+      if (mode == "local") T { Map("MILL_INTEGRATION_LAUNCHER" -> dev.launcher().path.toString()) }
+      else T { Map("MILL_INTEGRATION_LAUNCHER" -> integration.testMill().path.toString()) }
 
     def compile = IntegrationTestModule.this.compile()
     def moduleDeps = Seq(IntegrationTestModule.this)
