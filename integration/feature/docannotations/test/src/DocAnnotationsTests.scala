@@ -19,7 +19,7 @@ object DocAnnotationsTests extends IntegrationTestSuite {
     initWorkspace()
     test("test") - {
       val res = eval(("inspect", "core.test.ivyDeps"))
-      assert(res == true)
+      assert(res.isSuccess == true)
 
       val inheritedIvyDeps = ujson.read(meta("inspect"))("value").str
       assert(

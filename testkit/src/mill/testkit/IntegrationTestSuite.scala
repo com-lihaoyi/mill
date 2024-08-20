@@ -27,8 +27,7 @@ abstract class IntegrationTestSuite extends TestSuite {
 
   val debugLog = false
 
-  def eval(
-             cmd: os.Shellable,
+  def eval(cmd: os.Shellable,
              env: Map[String, String] = millTestSuiteEnv,
              cwd: os.Path = wd,
              stdin: os.ProcessInput = os.Pipe,
@@ -38,8 +37,7 @@ abstract class IntegrationTestSuite extends TestSuite {
              timeout: Long = -1,
              check: Boolean = false,
              propagateEnv: Boolean = true,
-             timeoutGracePeriod: Long = 100
-           ): IntegrationTestSuite.EvalResult = {
+             timeoutGracePeriod: Long = 100): IntegrationTestSuite.EvalResult = {
     val serverArgs =
       if (integrationTestMode == "server" || integrationTestMode == "local") Seq()
       else Seq("--no-server")
