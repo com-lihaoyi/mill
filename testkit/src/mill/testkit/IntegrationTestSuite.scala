@@ -2,12 +2,15 @@ package mill.testkit
 
 import mill.eval.Evaluator
 import mill.resolve.SelectMode
-import os.{Path, Shellable}
+import os.Path
 import utest._
-import collection.mutable
 import scala.util.control.NonFatal
 
 object IntegrationTestSuite {
+  /**
+   * A very simplified version of `os.CommandResult` meant for easily
+   * performing assertions against.
+   */
   case class EvalResult(isSuccess: Boolean, out: String, err: String)
 }
 
@@ -27,17 +30,23 @@ abstract class IntegrationTestSuite extends TestSuite {
 
   val debugLog = false
 
+  /**
+   * Evaluates a Mill [[cmd]]. Essentially the same as `os.call`, except it
+   * provides the Mill executable and some test flags and environment variables
+   * for you, and wraps the output in a [[IntegrationTestSuite.EvalResult]] for
+   * convenience.
+   */
   def eval(cmd: os.Shellable,
-             env: Map[String, String] = millTestSuiteEnv,
-             cwd: os.Path = wd,
-             stdin: os.ProcessInput = os.Pipe,
-             stdout: os.ProcessOutput = os.Pipe,
-             stderr: os.ProcessOutput = os.Pipe,
-             mergeErrIntoOut: Boolean = false,
-             timeout: Long = -1,
-             check: Boolean = false,
-             propagateEnv: Boolean = true,
-             timeoutGracePeriod: Long = 100): IntegrationTestSuite.EvalResult = {
+           env: Map[String, String] = millTestSuiteEnv,
+           cwd: os.Path = wd,
+           stdin: os.ProcessInput = os.Pipe,
+           stdout: os.ProcessOutput = os.Pipe,
+           stderr: os.ProcessOutput = os.Pipe,
+           mergeErrIntoOut: Boolean = false,
+           timeout: Long = -1,
+           check: Boolean = false,
+           propagateEnv: Boolean = true,
+           timeoutGracePeriod: Long = 100): IntegrationTestSuite.EvalResult = {
     val serverArgs =
       if (integrationTestMode == "server" || integrationTestMode == "local") Seq()
       else Seq("--no-server")
@@ -67,22 +76,28 @@ abstract class IntegrationTestSuite extends TestSuite {
 
   val millTestSuiteEnv: Map[String, String] = Map("MILL_TEST_SUITE" -> this.getClass().toString())
 
-  def meta(s: String): String = {
-    val Seq((List(selector), _)) =
-      mill.resolve.ParseArgs.apply(Seq(s), SelectMode.Separated).getOrElse(???)
+  /**
+   * Helpers to read the `.json` metadata files belonging to a particular task
+   * (specified by [[selector0]]) from the `out/` folder.
+   */
+  case class meta(selector0: String){
+    def text: String = {
+      val Seq((List(selector), _)) =
+        mill.resolve.ParseArgs.apply(Seq(selector0), SelectMode.Separated).getOrElse(???)
 
-    val segments = selector._2.value.flatMap(_.pathSegments)
-    os.read(wd / "out" / segments.init / s"${segments.last}.json")
-  }
+      val segments = selector._2.value.flatMap(_.pathSegments)
+      os.read(wd / "out" / segments.init / s"${segments.last}.json")
+    }
 
-  def metaCached(selector: String): Evaluator.Cached = {
-    val data = meta(selector)
-    upickle.default.read[Evaluator.Cached](data)
-  }
+    def cached: Evaluator.Cached = {
+      upickle.default.read[Evaluator.Cached](text)
+    }
 
-  def metaValue[T: upickle.default.Reader](selector: String): T = {
-    val cached = metaCached(selector)
-    upickle.default.read[T](cached.value)
+    def json = ujson.read(cached.value)
+
+    def value[T: upickle.default.Reader]: T = {
+      upickle.default.read[T](cached.value)
+    }
   }
 
   def initWorkspace(): Path = {
