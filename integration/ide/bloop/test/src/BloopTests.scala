@@ -14,9 +14,9 @@ object BloopTests extends IntegrationTestSuite {
       assert(installResult)
 
       "root module bloop config should be created" - {
-        assert(os.exists(wd / ".bloop" / "root-module.json"))
+        assert(os.exists(workspacePath / ".bloop" / "root-module.json"))
       }
-      val millBuildJsonFile = wd / ".bloop" / "mill-build-.json"
+      val millBuildJsonFile = workspacePath / ".bloop" / "mill-build-.json"
       "mill-build module bloop config should be created" - {
         assert(os.exists(millBuildJsonFile))
       }

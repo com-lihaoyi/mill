@@ -129,18 +129,18 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
       // which doesn't need generate a classloader which never changes
       checkChangedClassloaders(null, true, true, true)
 
-      mangleFile(wsRoot / "foo" / "src" / "Example.scala", _.replace("!", "?"))
+      modifyFile(wsRoot / "foo" / "src" / "Example.scala", _.replace("!", "?"))
       runAssertSuccess("<h1>hello</h1><p>world</p><p>0.8.2</p>?")
       checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
       // Second run with no build changes, all classloaders are unchanged
       checkChangedClassloaders(null, false, false, false)
 
-      mangleFile(wsRoot / "build.sc", _.replace("hello", "HELLO"))
+      modifyFile(wsRoot / "build.sc", _.replace("hello", "HELLO"))
       runAssertSuccess("<h1>HELLO</h1><p>world</p><p>0.8.2</p>?")
       checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
       checkChangedClassloaders(null, true, false, false)
 
-      mangleFile(
+      modifyFile(
         wsRoot / "mill-build" / "build.sc",
         _.replace("def scalatagsVersion = ", "def scalatagsVersion = \"changed-\" + ")
       )
@@ -148,7 +148,7 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
       checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
       checkChangedClassloaders(null, true, true, false)
 
-      mangleFile(
+      modifyFile(
         wsRoot / "mill-build" / "mill-build" / "build.sc",
         _.replace("0.8.2", "0.12.0")
       )
@@ -156,7 +156,7 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
       checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
       checkChangedClassloaders(null, true, true, true)
 
-      mangleFile(
+      modifyFile(
         wsRoot / "mill-build" / "mill-build" / "build.sc",
         _.replace("0.12.0", "0.8.2")
       )
@@ -164,7 +164,7 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
       checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
       checkChangedClassloaders(null, true, true, true)
 
-      mangleFile(
+      modifyFile(
         wsRoot / "mill-build" / "build.sc",
         _.replace("def scalatagsVersion = \"changed-\" + ", "def scalatagsVersion = ")
       )
@@ -172,12 +172,12 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
       checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
       checkChangedClassloaders(null, true, true, false)
 
-      mangleFile(wsRoot / "build.sc", _.replace("HELLO", "hello"))
+      modifyFile(wsRoot / "build.sc", _.replace("HELLO", "hello"))
       runAssertSuccess("<h1>hello</h1><p>world</p><p>0.8.2</p>?")
       checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
       checkChangedClassloaders(null, true, false, false)
 
-      mangleFile(wsRoot / "foo" / "src" / "Example.scala", _.replace("?", "!"))
+      modifyFile(wsRoot / "foo" / "src" / "Example.scala", _.replace("?", "!"))
       runAssertSuccess("<h1>hello</h1><p>world</p><p>0.8.2</p>!")
       checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
       checkChangedClassloaders(null, false, false, false)
@@ -185,10 +185,10 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
 
     test("parseErrorEdits") {
       def causeParseError(p: os.Path) =
-        mangleFile(p, _.replace("extends", "extendx"))
+        modifyFile(p, _.replace("extends", "extendx"))
 
       def fixParseError(p: os.Path) =
-        mangleFile(p, _.replace("extendx", "extends"))
+        modifyFile(p, _.replace("extendx", "extends"))
 
       runAssertSuccess("<h1>hello</h1><p>world</p><p>0.8.2</p>!")
       checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
@@ -250,10 +250,10 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
 
     test("compileErrorEdits") {
       def causeCompileError(p: os.Path) =
-        mangleFile(p, _ + "\nimport doesnt.exist")
+        modifyFile(p, _ + "\nimport doesnt.exist")
 
       def fixCompileError(p: os.Path) =
-        mangleFile(p, _.replace("import doesnt.exist", ""))
+        modifyFile(p, _.replace("import doesnt.exist", ""))
 
       runAssertSuccess("<h1>hello</h1><p>world</p><p>0.8.2</p>!")
       checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
@@ -320,10 +320,10 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
                               |}""".stripMargin
 
       def causeRuntimeError(p: os.Path) =
-        mangleFile(p, _.replaceFirst("\\{", runErrorSnippet))
+        modifyFile(p, _.replaceFirst("\\{", runErrorSnippet))
 
       def fixRuntimeError(p: os.Path) =
-        mangleFile(p, _.replaceFirst(Regex.quote(runErrorSnippet), "\\{"))
+        modifyFile(p, _.replaceFirst(Regex.quote(runErrorSnippet), "\\{"))
 
       runAssertSuccess("<h1>hello</h1><p>world</p><p>0.8.2</p>!")
       checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)

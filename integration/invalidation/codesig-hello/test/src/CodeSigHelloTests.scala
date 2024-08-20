@@ -18,7 +18,7 @@ object CodeSigHelloTests extends IntegrationTestSuite {
       val cached = eval("foo")
       assert(cached.out == "")
 
-      mangleFile(wsRoot / "build.sc", _.replace("running foo", "running foo2"))
+      modifyFile(wsRoot / "build.sc", _.replace("running foo", "running foo2"))
       val mangledFoo = eval("foo")
 
       assert(mangledFoo.out.linesIterator.toSeq == Seq("running foo2", "running helperFoo"))
@@ -26,21 +26,21 @@ object CodeSigHelloTests extends IntegrationTestSuite {
       val cached2 = eval("foo")
       assert(cached2.out == "")
 
-      mangleFile(wsRoot / "build.sc", _.replace("running helperFoo", "running helperFoo2"))
+      modifyFile(wsRoot / "build.sc", _.replace("running helperFoo", "running helperFoo2"))
       val mangledHelperFoo = eval("foo")
 
       assert(mangledHelperFoo.out.linesIterator.toSeq == Seq("running foo2", "running helperFoo2"))
 
       // Make sure changing `val`s, which only affects the Module constructor and
       // not the Target method itself, causes invalidation
-      mangleFile(wsRoot / "build.sc", _.replace("val valueFoo = 0", "val valueFoo = 10"))
+      modifyFile(wsRoot / "build.sc", _.replace("val valueFoo = 0", "val valueFoo = 10"))
       val mangledValFoo = eval("foo")
       assert(mangledValFoo.out.linesIterator.toSeq == Seq("running foo2", "running helperFoo2"))
 
       // Even modifying `val`s that do not affect the target invalidates it, because
       // we only know that the constructor changed and don't do enough analysis to
       // know that this particular val is not used
-      mangleFile(
+      modifyFile(
         wsRoot / "build.sc",
         _.replace("val valueFooUsedInBar = 0", "val valueFooUsedInBar = 10")
       )

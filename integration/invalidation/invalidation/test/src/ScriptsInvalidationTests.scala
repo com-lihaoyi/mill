@@ -25,11 +25,11 @@ object ScriptsInvalidationTests extends IntegrationTestSuite {
       }
 
       test("second run modifying script") {
-        val oldContent = os.read(scriptSourcePath / buildPath)
+        val oldContent = os.read(scriptSourcePath / "build.sc")
         val newContent =
           oldContent.replace("""println("task")""", """System.out.println("task2")""")
 
-        os.write.over(workspacePath / buildPath, newContent)
+        os.write.over(workspacePath / "build.sc", newContent)
 
         val stdout = runTask("task")
 
@@ -69,10 +69,10 @@ object ScriptsInvalidationTests extends IntegrationTestSuite {
       }
 
       test("second run modifying script") {
-        val oldContent = os.read(scriptSourcePath / buildPath)
+        val oldContent = os.read(scriptSourcePath / "build.sc")
         val newContent =
           oldContent.replace("""println("task")""", """System.out.println("task2")""")
-        os.write.over(workspacePath / buildPath, newContent)
+        os.write.over(workspacePath / "build.sc", newContent)
 
         val result = runTask("module.task")
         val expected = Set("task2")
@@ -91,10 +91,10 @@ object ScriptsInvalidationTests extends IntegrationTestSuite {
       }
 
       test("second run modifying script") {
-        val oldContent = os.read(scriptSourcePath / buildPath)
+        val oldContent = os.read(scriptSourcePath / "build.sc")
         val newContent =
           oldContent.replace("""println("taskE")""", """System.out.println("taskE2")""")
-        os.write.over(workspacePath / buildPath, newContent)
+        os.write.over(workspacePath / "build.sc", newContent)
 
         val result = runTask("taskE")
         val expected = Set("taskE2")

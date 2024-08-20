@@ -123,7 +123,7 @@ object ExampleTestSuite extends IntegrationTestSuite {
         os.copy(os.Path(from, workspaceRoot), os.Path(to, workspaceRoot))
 
       case Seq("sed", "-i", s"s/$oldStr/$newStr/g", file) =>
-        mangleFile(os.Path(file, workspaceRoot), _.replace(oldStr, newStr))
+        modifyFile(os.Path(file, workspaceRoot), _.replace(oldStr, newStr))
 
       case Seq("curl", url) =>
         Thread.sleep(1500) // Need to give backgroundWrapper time to spin up
@@ -181,7 +181,7 @@ object ExampleTestSuite extends IntegrationTestSuite {
         }
 
       case Seq("printf", literal, ">>", path) =>
-        mangleFile(os.Path(path, workspacePath), _ + ujson.read(s""""${literal}"""").str)
+        modifyFile(os.Path(path, workspacePath), _ + ujson.read(s""""${literal}"""").str)
 
       case Seq(command, rest @ _*) =>
         val evalResult = command match {

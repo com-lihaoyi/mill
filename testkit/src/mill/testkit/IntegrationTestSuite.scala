@@ -19,14 +19,15 @@ abstract class IntegrationTestSuite extends TestSuite {
   val integrationTestMode: String = sys.env("MILL_INTEGRATION_TEST_MODE")
   assert(Set("local", "fork", "server").contains(integrationTestMode))
 
+  /**
+   * The working directory of the integration test suite, which is the root of the
+   * Mill build being tested. Contains the `build.sc` file, any application code, and
+   * the `out/` folder containing the build output
+   */
   def workspacePath: os.Path =
     os.Path(sys.props.getOrElse("MILL_WORKSPACE_PATH", ???))
 
   def scriptSourcePath: os.Path = os.Path(sys.env("MILL_INTEGRATION_REPO_ROOT"))
-
-  def buildPath: os.SubPath = os.sub / "build.sc"
-
-  def wd: Path = workspacePath / buildPath / os.up
 
   val debugLog = false
 
@@ -38,7 +39,7 @@ abstract class IntegrationTestSuite extends TestSuite {
    */
   def eval(cmd: os.Shellable,
            env: Map[String, String] = millTestSuiteEnv,
-           cwd: os.Path = wd,
+           cwd: os.Path = workspacePath,
            stdin: os.ProcessInput = os.Pipe,
            stdout: os.ProcessOutput = os.Pipe,
            stderr: os.ProcessOutput = os.Pipe,
@@ -53,7 +54,7 @@ abstract class IntegrationTestSuite extends TestSuite {
 
     val debugArgs = if (debugLog) Seq("--debug") else Seq()
 
-    val shellable: os.Shellable = (millReleaseFileOpt.get, serverArgs, debugArgs, cmd, wd)
+    val shellable: os.Shellable = (millReleaseFileOpt.get, serverArgs, debugArgs, cmd, workspacePath)
     val res0 = os.call(
       cmd = shellable,
       env = env,
@@ -71,10 +72,10 @@ abstract class IntegrationTestSuite extends TestSuite {
     IntegrationTestSuite.EvalResult(res0.exitCode == 0, res0.out.text(), res0.err.text())
   }
 
-  val millReleaseFileOpt: Option[Path] =
+  private val millReleaseFileOpt: Option[Path] =
     Option(System.getenv("MILL_TEST_LAUNCHER")).map(os.Path(_, os.pwd))
 
-  val millTestSuiteEnv: Map[String, String] = Map("MILL_TEST_SUITE" -> this.getClass().toString())
+  private val millTestSuiteEnv: Map[String, String] = Map("MILL_TEST_SUITE" -> this.getClass().toString())
 
   /**
    * Helpers to read the `.json` metadata files belonging to a particular task
@@ -86,7 +87,7 @@ abstract class IntegrationTestSuite extends TestSuite {
         mill.resolve.ParseArgs.apply(Seq(selector0), SelectMode.Separated).getOrElse(???)
 
       val segments = selector._2.value.flatMap(_.pathSegments)
-      os.read(wd / "out" / segments.init / s"${segments.last}.json")
+      os.read(workspacePath / "out" / segments.init / s"${segments.last}.json")
     }
 
     def cached: Evaluator.Cached = {
@@ -115,14 +116,17 @@ abstract class IntegrationTestSuite extends TestSuite {
     workspacePath
   }
 
-  def mangleFile(p: os.Path, f: String => String): Unit = os.write.over(p, f(os.read(p)))
+  /**
+   * Helper method to modify a file containing text during your test suite.
+   */
+  def modifyFile(p: os.Path, f: String => String): Unit = os.write.over(p, f(os.read(p)))
 
   override def utestAfterEach(path: Seq[String]): Unit = {
     if (integrationTestMode == "server" || integrationTestMode == "local") {
       // try to stop the server
       try {
         os.proc(millReleaseFileOpt.get, "shutdown").call(
-          cwd = wd,
+          cwd = workspacePath,
           stdin = os.Inherit,
           stdout = os.Inherit,
           stderr = os.Inherit,
