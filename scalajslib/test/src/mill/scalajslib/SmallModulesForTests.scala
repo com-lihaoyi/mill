@@ -7,15 +7,13 @@ import mill.testkit.TestBaseModule
 import utest._
 
 object SmallModulesForTests extends TestSuite {
-  object SmallModulesForModule extends TestBaseModule {
+  object SmallModulesForModule extends TestBaseModule with ScalaJSModule {
 
-    object smallModulesForModule extends ScalaJSModule {
-      override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
-      override def scalaJSVersion =
-        sys.props.getOrElse("TEST_SCALAJS_VERSION", ???) // at least "1.10.0"
-      override def moduleKind = ModuleKind.ESModule
-      override def moduleSplitStyle = ModuleSplitStyle.SmallModulesFor(List("app"))
-    }
+    override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
+    override def scalaJSVersion =
+      sys.props.getOrElse("TEST_SCALAJS_VERSION", ???) // at least "1.10.0"
+    override def moduleKind = ModuleKind.ESModule
+    override def moduleSplitStyle = ModuleSplitStyle.SmallModulesFor(List("app"))
 
     override lazy val millDiscover = Discover[this.type]
   }
@@ -26,9 +24,9 @@ object SmallModulesForTests extends TestSuite {
 
   val tests: Tests = Tests {
     test("ModuleSplitStyle.SmallModulesFor") {
-      println(evaluator(SmallModulesForModule.smallModulesForModule.sources))
+      println(evaluator(SmallModulesForModule.sources))
 
-      val Right(result) = evaluator(SmallModulesForModule.smallModulesForModule.fastLinkJS)
+      val Right(result) = evaluator(SmallModulesForModule.fastLinkJS)
       val publicModules = result.value.publicModules
       test("it should have a single publicModule") {
         assert(publicModules.size == 1)

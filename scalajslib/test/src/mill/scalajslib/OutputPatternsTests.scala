@@ -10,7 +10,7 @@ object OutputPatternsTests extends TestSuite {
 
   object OutputPatternsModule extends TestBaseModule {
 
-    object outputPatternsModule extends ScalaJSModule {
+    object build extends ScalaJSModule {
       override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
       override def scalaJSVersion =
         sys.props.getOrElse("TEST_SCALAJS_VERSION", ???) // at least "1.12.0"
@@ -28,7 +28,7 @@ object OutputPatternsTests extends TestSuite {
   val tests: Tests = Tests {
     test("output patterns") {
       val Right(result) =
-        evaluator(OutputPatternsModule.outputPatternsModule.fastLinkJS)
+        evaluator(OutputPatternsModule.build.fastLinkJS)
       val publicModules = result.value.publicModules.toSeq
       assert(publicModules.length == 1)
       val main = publicModules(0)

@@ -11,29 +11,31 @@ import mill.scalajslib.api._
 object EsModuleRemapTests extends TestSuite {
   val remapTo = "https://cdn.jsdelivr.net/gh/stdlib-js/array-base-linspace@esm/index.mjs"
 
-  object EsModuleRemap extends TestBaseModule {
+  object EsModuleRemap extends TestBaseModule with ScalaJSModule {
+    override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
 
-    object sourceMapModule extends ScalaJSModule {
-      override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
-      override def scalaJSVersion = "1.16.0"
-      override def scalaJSSourceMap = false
-      override def moduleKind = ModuleKind.ESModule
+    override def scalaJSVersion = "1.16.0"
 
-      override def scalaJSImportMap: Target[Seq[ESModuleImportMapping]] = Seq(
-        ESModuleImportMapping.Prefix("@stdlib/linspace", remapTo)
-      )
-    }
+    override def scalaJSSourceMap = false
 
-    object OldJsModule extends ScalaJSModule {
-      override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
-      override def scalaJSVersion = "1.15.0"
-      override def scalaJSSourceMap = false
-      override def moduleKind = ModuleKind.ESModule
+    override def moduleKind = ModuleKind.ESModule
 
-      override def scalaJSImportMap: Target[Seq[ESModuleImportMapping]] = Seq(
-        ESModuleImportMapping.Prefix("@stdlib/linspace", remapTo)
-      )
-    }
+    override def scalaJSImportMap: Target[Seq[ESModuleImportMapping]] = Seq(
+      ESModuleImportMapping.Prefix("@stdlib/linspace", remapTo)
+    )
+
+    override lazy val millDiscover = Discover[this.type]
+  }
+
+  object OldJsModule extends TestBaseModule with ScalaJSModule {
+    override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
+    override def scalaJSVersion = "1.15.0"
+    override def scalaJSSourceMap = false
+    override def moduleKind = ModuleKind.ESModule
+
+    override def scalaJSImportMap: Target[Seq[ESModuleImportMapping]] = Seq(
+      ESModuleImportMapping.Prefix("@stdlib/linspace", remapTo)
+    )
 
     override lazy val millDiscover = Discover[this.type]
   }
@@ -45,7 +47,7 @@ object EsModuleRemapTests extends TestSuite {
   val tests: Tests = Tests {
     test("should remap the esmodule") {
       val Right(result) =
-        evaluator(EsModuleRemap.sourceMapModule.fastLinkJS)
+        evaluator(EsModuleRemap.fastLinkJS)
       val publicModules = result.value.publicModules.toSeq
       assert(publicModules.length == 1)
       val main = publicModules.head
@@ -57,7 +59,7 @@ object EsModuleRemapTests extends TestSuite {
     }
 
     test("should throw for older scalaJS versions") {
-      val Left(Result.Exception(ex, _)) = evaluator(EsModuleRemap.OldJsModule.fastLinkJS)
+      val Left(Result.Exception(ex, _)) = evaluator(OldJsModule.fastLinkJS)
       val error = ex.getMessage
       assert(error == "scalaJSImportMap is not supported with Scala.js < 1.16.")
     }

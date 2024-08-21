@@ -7,14 +7,11 @@ import mill.testkit.TestBaseModule
 import utest._
 
 object TopLevelExportsTests extends TestSuite {
-  object TopLevelExportsModule extends TestBaseModule {
-
-    object topLevelExportsModule extends ScalaJSModule {
-      override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
-      override def scalaJSVersion =
-        sys.props.getOrElse("TEST_SCALAJS_VERSION", ???) // at least "1.8.0"
-      override def moduleKind = ModuleKind.ESModule
-    }
+  object TopLevelExportsModule extends TestBaseModule with ScalaJSModule {
+    override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
+    override def scalaJSVersion =
+      sys.props.getOrElse("TEST_SCALAJS_VERSION", ???) // at least "1.8.0"
+    override def moduleKind = ModuleKind.ESModule
 
     override lazy val millDiscover = Discover[this.type]
   }
@@ -25,9 +22,9 @@ object TopLevelExportsTests extends TestSuite {
 
   val tests: Tests = Tests {
     test("top level exports") {
-      println(evaluator(TopLevelExportsModule.topLevelExportsModule.sources))
+      println(evaluator(TopLevelExportsModule.sources))
       val Right(result) =
-        evaluator(TopLevelExportsModule.topLevelExportsModule.fastLinkJS)
+        evaluator(TopLevelExportsModule.fastLinkJS)
       val publicModules = result.value.publicModules.toSeq
       assert(publicModules.length == 2)
       val b = publicModules(0)
