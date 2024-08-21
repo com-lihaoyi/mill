@@ -35,17 +35,14 @@ object NodeJSConfigTests extends TestSuite {
       nodeArgs <- Seq(nodeArgsEmpty, nodeArgs2G)
     } yield (scala, nodeArgs)
 
-    object helloJsWorld extends Cross[RootModule](matrix)
+    object build extends Cross[RootModule](matrix)
     trait RootModule extends HelloJSWorldModule {
 
       override def artifactName = "hello-js-world"
       def scalaJSVersion = NodeJSConfigTests.scalaJSVersion
       override def jsEnvConfig = T { JsEnvConfig.NodeJs(args = nodeArgs) }
-    }
 
-    object buildUTest extends Cross[BuildModuleUtest](matrix)
-    trait BuildModuleUtest extends RootModule {
-      object test extends ScalaJSTests with TestModule.Utest {
+      object `test-utest` extends ScalaJSTests with TestModule.Utest {
         override def sources = T.sources { millSourcePath / "src" / "utest" }
         override def ivyDeps = Agg(
           ivy"com.lihaoyi::utest::$utestVersion"
@@ -53,6 +50,7 @@ object NodeJSConfigTests extends TestSuite {
         override def jsEnvConfig = T { JsEnvConfig.NodeJs(args = nodeArgs) }
       }
     }
+
 
     override lazy val millDiscover = Discover[this.type]
   }
@@ -79,7 +77,7 @@ object NodeJSConfigTests extends TestSuite {
       def checkUtest(nodeArgs: List[String], notNodeArgs: List[String]) =
         if (Properties.isJavaAtLeast(17)) "skipped on Java 17+"
         else checkLog(
-          HelloJSWorld.buildUTest(scalaVersion, nodeArgs).test.test(),
+          HelloJSWorld.build(scalaVersion, nodeArgs).`test-utest`.test(),
           nodeArgs,
           notNodeArgs
         )
@@ -89,7 +87,7 @@ object NodeJSConfigTests extends TestSuite {
     }
 
     def checkRun(nodeArgs: List[String], notNodeArgs: List[String]): Unit = {
-      checkLog(HelloJSWorld.helloJsWorld(scalaVersion, nodeArgs).run(), nodeArgs, notNodeArgs)
+      checkLog(HelloJSWorld.build(scalaVersion, nodeArgs).run(), nodeArgs, notNodeArgs)
     }
 
     test("run") {

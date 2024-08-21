@@ -8,7 +8,7 @@ import utest._
 object SourceMapTests extends TestSuite {
   object SourceMapModule extends TestBaseModule {
 
-    object helloJsWorld extends ScalaJSModule {
+    object build extends ScalaJSModule {
       override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
       override def scalaJSVersion =
         sys.props.getOrElse("TEST_SCALAJS_VERSION", ???) // at least 1.8.0
@@ -25,7 +25,7 @@ object SourceMapTests extends TestSuite {
   val tests: Tests = Tests {
     test("should disable source maps") {
       val Right(result) =
-        evaluator(SourceMapModule.helloJsWorld.fastLinkJS)
+        evaluator(SourceMapModule.build.fastLinkJS)
       val publicModules = result.value.publicModules.toSeq
       assert(publicModules.length == 1)
       val main = publicModules.head

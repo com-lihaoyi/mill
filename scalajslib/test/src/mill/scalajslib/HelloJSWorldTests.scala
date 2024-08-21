@@ -245,24 +245,26 @@ object HelloJSWorldTests extends TestSuite {
       )
     }
 
-    test("test") {
-      val cached = false
+    test("utest") {
       testAllMatrix(
-        (scala, scalaJS) => checkUtest(scala, scalaJS, cached),
+        (scala, scalaJS) => checkUtest(scala, scalaJS, cached = false),
       )
+    }
+    test("scalatest") {
       testAllMatrix(
-        (scala, scalaJS) => checkScalaTest(scala, scalaJS, cached),
+        (scala, scalaJS) => checkScalaTest(scala, scalaJS, cached = false),
         skipScala = ZincWorkerUtil.isScala3
       )
     }
 
-    test("testCached") {
-      val cached = false
+    test("utestCached") {
       testAllMatrix(
-        (scala, scalaJS) => checkUtest(scala, scalaJS, cached),
+        (scala, scalaJS) => checkUtest(scala, scalaJS, cached = true),
       )
+    }
+    test("scalatestCached") {
       testAllMatrix(
-        (scala, scalaJS) => checkScalaTest(scala, scalaJS, cached),
+        (scala, scalaJS) => checkScalaTest(scala, scalaJS, cached = true),
         skipScala = ZincWorkerUtil.isScala3
       )
     }
