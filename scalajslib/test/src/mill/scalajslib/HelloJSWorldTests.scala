@@ -27,7 +27,7 @@ object HelloJSWorldTests extends TestSuite {
   }
 
   object HelloJSWorld extends TestBaseModule {
-    val scalaVersions = Seq("2.13.3", "3.0.0-RC1", "2.12.12", "2.11.12")
+    val scalaVersions = Seq("2.13.3", "3.0.0-RC1", "2.12.12")
     val scalaJSVersions = Seq("1.8.0", "1.3.1", "1.0.1")
     val matrix = for {
       scala <- scalaVersions
@@ -249,7 +249,6 @@ object HelloJSWorldTests extends TestSuite {
       val cached = false
       testAllMatrix(
         (scala, scalaJS) => checkUtest(scala, scalaJS, cached),
-        skipScala = _.startsWith("2.11.")
       )
       testAllMatrix(
         (scala, scalaJS) => checkScalaTest(scala, scalaJS, cached),
@@ -261,7 +260,6 @@ object HelloJSWorldTests extends TestSuite {
       val cached = false
       testAllMatrix(
         (scala, scalaJS) => checkUtest(scala, scalaJS, cached),
-        skipScala = _.startsWith("2.11.")
       )
       testAllMatrix(
         (scala, scalaJS) => checkScalaTest(scala, scalaJS, cached),
@@ -346,14 +344,7 @@ object HelloJSWorldTests extends TestSuite {
       if !skipScala(scala)
       if !skipScalaJS(scalaJS)
     } {
-      if (scala.startsWith("2.11.")) {
-        TestUtil.disableInJava9OrAbove("Scala 2.11 tests don't run under Java 9+")(f(
-          scala,
-          scalaJS
-        ))
-      } else {
-        f(scala, scalaJS)
-      }
+      f(scala, scalaJS)
     }
   }
 

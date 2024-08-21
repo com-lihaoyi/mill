@@ -345,28 +345,9 @@ object Scoverage2Tests_3_2 extends HelloWorldTests {
   override def testScoverageVersion = sys.props.getOrElse("MILL_SCOVERAGE2_VERSION", ???)
 }
 
-object Scoverage1Tests_3_0 extends FailedWorldTests {
-  override def testScalaVersion: String = sys.props.getOrElse("TEST_SCALA_3_0_VERSION", ???)
-  override def testScoverageVersion = sys.props.getOrElse("MILL_SCOVERAGE_VERSION", ???)
-  override val errorMsg =
-    "Scala 3.0 and 3.1 is not supported by Scoverage. You have to update to at least Scala 3.2 and Scoverage 2.0"
-}
-
 object Scoverage1Tests_3_2 extends FailedWorldTests {
   override def testScalaVersion: String = sys.props.getOrElse("TEST_SCALA_3_2_VERSION", ???)
   override def testScoverageVersion = sys.props.getOrElse("MILL_SCOVERAGE_VERSION", ???)
   override val errorMsg =
     "Scoverage 1.x does not support Scala 3. You have to update to at least Scala 3.2 and Scoverage 2.0"
-}
-
-object Scoverage2Tests_2_11 extends FailedWorldTests {
-  override def testScalaVersion: String = sys.props.getOrElse("TEST_SCALA_2_11_VERSION", ???)
-  override val errorMsg =
-    "Scoverage 2.x is not compatible with Scala 2.11. Consider using Scoverage 1.x or switch to a newer Scala version."
-}
-
-object Scoverage2Tests_3_1 extends FailedWorldTests {
-  override def testScalaVersion: String = sys.props.getOrElse("TEST_SCALA_3_1_VERSION", ???)
-  override val errorMsg =
-    "Scala 3.0 and 3.1 is not supported by Scoverage. You have to update to at least Scala 3.2 and Scoverage 2.0"
 }

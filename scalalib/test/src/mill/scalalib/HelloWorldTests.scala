@@ -16,8 +16,6 @@ import utest.framework.TestPath
 
 object HelloWorldTests extends TestSuite {
 
-  val scala210Version = sys.props.getOrElse("TEST_SCALA_2_10_VERSION", ???)
-  val scala211Version = sys.props.getOrElse("TEST_SCALA_2_11_VERSION", ???)
   val scala2123Version = "2.12.3"
   val scala212Version = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
   val scala213Version = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
@@ -52,8 +50,6 @@ object HelloWorldTests extends TestSuite {
   }
   object CrossHelloWorld extends TestBaseModule {
     object core extends Cross[HelloWorldCross](
-          scala210Version,
-          scala211Version,
           scala2123Version,
           scala212Version,
           scala213Version
@@ -786,14 +782,7 @@ object HelloWorldTests extends TestSuite {
             os.read(runResult) == expectedOut
           )
         }
-        test("v210") - TestUtil.disableInJava9OrAbove("Scala 2.10 tests don't work with Java 9+") {
-          val eval = UnitTester(CrossHelloWorld, resourcePath)
-          cross(eval, scala210Version, s"${scala210Version} rox")
-        }
-        test("v211") - TestUtil.disableInJava9OrAbove("Scala 2.11 tests don't work with Java 9+") {
-          val eval = UnitTester(CrossHelloWorld, resourcePath)
-          cross(eval, scala211Version, s"${scala211Version} pwns")
-        }
+
         test("v2123") - {
           val eval = UnitTester(CrossHelloWorld, resourcePath)
           cross(eval, scala2123Version, s"${scala2123Version} leet")

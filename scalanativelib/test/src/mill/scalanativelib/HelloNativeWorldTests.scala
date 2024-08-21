@@ -30,25 +30,18 @@ object HelloNativeWorldTests extends TestSuite {
   }
 
   val scala213 = sys.props.getOrElse("TEST_SCALA_2_13_VERSION_FOR_SCALANATIVE_4_2", ???)
-  val scala31 = sys.props.getOrElse("TEST_SCALA_3_1_VERSION", ???)
   val scala33 = sys.props.getOrElse("TEST_SCALA_3_3_VERSION", ???)
-  val scalaNative04Old = "0.4.2"
-  val scalaNative04 = sys.props.getOrElse("TEST_SCALANATIVE_0_4_VERSION", ???)
   val scalaNative05 = sys.props.getOrElse("TEST_SCALANATIVE_0_5_VERSION", ???)
   val utestVersion = sys.props.getOrElse("TEST_UTEST_VERSION", ???)
-  val utestForNative04Version = "0.8.2"
 
   object HelloNativeWorld extends TestBaseModule {
     implicit object ReleaseModeToSegments
         extends Cross.ToSegments[ReleaseMode](v => List(v.toString))
 
     val matrix = for {
-      scala <- Seq(scala33, scala31, scala213, "2.12.13", "2.11.12")
-      scalaNative <- Seq(scalaNative04Old, scalaNative04, scalaNative05)
+      scala <- Seq(scala33, scala213)
+      scalaNative <- Seq(scalaNative05)
       mode <- List(ReleaseMode.Debug, ReleaseMode.ReleaseFast)
-      if !(ZincWorkerUtil.isScala3(scala) && scalaNative == scalaNative04Old)
-      if !(scala.startsWith("2.11") && scalaNative != scalaNative04Old)
-      if !(scala.startsWith("2.12") && scalaNative == scalaNative05)
     } yield (scala, scalaNative, mode)
 
     object helloNativeWorld extends Cross[RootModule](matrix)
@@ -71,10 +64,7 @@ object HelloNativeWorldTests extends TestSuite {
       object test extends ScalaNativeTests with TestModule.Utest {
         override def sources = T.sources { millSourcePath / "src" / "utest" }
         override def ivyDeps = super.ivyDeps() ++ Agg(
-          ivy"com.lihaoyi::utest::${
-              if (scalaNativeVersion().startsWith("0.4")) utestForNative04Version
-              else utestVersion
-            }"
+          ivy"com.lihaoyi::utest::$utestVersion"
         )
       }
     }
@@ -138,7 +128,7 @@ object HelloNativeWorldTests extends TestSuite {
         val Right(result) =
           helloWorldEvaluator(HelloNativeWorld.helloNativeWorld(
             scala213,
-            scalaNative04Old,
+            scalaNative05,
             ReleaseMode.Debug
           ).jar)
         val jar = result.value.path
@@ -162,12 +152,6 @@ object HelloNativeWorldTests extends TestSuite {
         )
         assert(result.value.id == artifactId)
       }
-      test("artifactId_040") - testArtifactId(
-        scala213,
-        scalaNative04Old,
-        ReleaseMode.Debug,
-        "hello-native-world_native0.4_2.13"
-      )
     }
 
     def runTests(testTask: define.NamedTask[(String, Seq[TestResult])])
@@ -211,18 +195,12 @@ object HelloNativeWorldTests extends TestSuite {
 
       testAllMatrix(
         (scala, scalaNative, releaseMode) => checkUtest(scala, scalaNative, releaseMode, cached),
-        skipScalaNative = v =>
-          v == scalaNative04Old ||
-            v.startsWith("0.5.") // Remove this once utest is released for Scala Native 0.5
       )
     }
     test("testCached") {
       val cached = true
       testAllMatrix(
         (scala, scalaNative, releaseMode) => checkUtest(scala, scalaNative, releaseMode, cached),
-        skipScalaNative = v =>
-          v == scalaNative04Old ||
-            v.startsWith("0.5.") // Remove this once utest is released for Scala Native 0.5
       )
     }
 
@@ -274,9 +252,7 @@ object HelloNativeWorldTests extends TestSuite {
         "Main$delayedInit$body.nir"
       )
 
-    val scalaNativeVersionSpecific =
-      if (scalaNativeVersion == scalaNative04Old) Set.empty
-      else Set("Main.nir", "ArgsParser.nir")
+    val scalaNativeVersionSpecific = Set("Main.nir", "ArgsParser.nir")
 
     common ++ scalaVersionSpecific ++ scalaNativeVersionSpecific
   }

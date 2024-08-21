@@ -69,10 +69,6 @@ object Deps {
   // Scala Native 4.2 will not get releases for new Scala version
   val testScala213VersionForScalaNative42 = "2.13.8"
   val testScala212Version = "2.12.6"
-  val testScala211Version = "2.11.12"
-  val testScala210Version = "2.10.6"
-  val testScala30Version = "3.0.2"
-  val testScala31Version = "3.1.3"
   val testScala32Version = "3.2.0"
   val testScala33Version = "3.3.1"
 
@@ -86,14 +82,6 @@ object Deps {
     val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:${scalaJsVersion}"
     val scalajsLinker = ivy"org.scala-js::scalajs-linker:${scalaJsVersion}"
     val scalajsImportMap = ivy"com.armanbilge::scalajs-importmap:0.1.1"
-  }
-
-  object Scalanative_0_4 {
-    val scalanativeVersion = "0.4.17"
-    val scalanativeTools = ivy"org.scala-native::tools:${scalanativeVersion}"
-    val scalanativeUtil = ivy"org.scala-native::util:${scalanativeVersion}"
-    val scalanativeNir = ivy"org.scala-native::nir:${scalanativeVersion}"
-    val scalanativeTestRunner = ivy"org.scala-native::test-runner:${scalanativeVersion}"
   }
 
   object Scalanative_0_5 {
@@ -428,14 +416,9 @@ trait MillBaseTestsModule extends MillJavaModule with TestModule {
       s"-DTEST_SCALA_2_13_VERSION=${Deps.testScala213Version}",
       s"-DTEST_SCALA_2_13_VERSION_FOR_SCALANATIVE_4_2=${Deps.testScala213VersionForScalaNative42}",
       s"-DTEST_SCALA_2_12_VERSION=${Deps.testScala212Version}",
-      s"-DTEST_SCALA_2_11_VERSION=${Deps.testScala211Version}",
-      s"-DTEST_SCALA_2_10_VERSION=${Deps.testScala210Version}",
-      s"-DTEST_SCALA_3_0_VERSION=${Deps.testScala30Version}",
-      s"-DTEST_SCALA_3_1_VERSION=${Deps.testScala31Version}",
       s"-DTEST_SCALA_3_2_VERSION=${Deps.testScala32Version}",
       s"-DTEST_SCALA_3_3_VERSION=${Deps.testScala33Version}",
       s"-DTEST_SCALAJS_VERSION=${Deps.Scalajs_1.scalaJsVersion}",
-      s"-DTEST_SCALANATIVE_0_4_VERSION=${Deps.Scalanative_0_4.scalanativeVersion}",
       s"-DTEST_SCALANATIVE_0_5_VERSION=${Deps.Scalanative_0_5.scalanativeVersion}",
       s"-DTEST_UTEST_VERSION=${Deps.TestDeps.utest.dep.version}",
       s"-DTEST_SCALATEST_VERSION=${Deps.TestDeps.scalaTest.dep.version}",
@@ -1122,7 +1105,7 @@ object scalanativelib extends MillStableScalaModule {
     def ivyDeps = Agg(Deps.sbtTestInterface)
   }
 
-  object worker extends Cross[WorkerModule]("0.4", "0.5")
+  object worker extends Cross[WorkerModule]("0.5")
 
   trait WorkerModule extends MillPublishScalaModule with Cross.Module[String] {
     def scalaNativeWorkerVersion = crossValue
@@ -1137,14 +1120,6 @@ object scalanativelib extends MillStableScalaModule {
           Deps.Scalanative_0_5.scalanativeUtil,
           Deps.Scalanative_0_5.scalanativeNir,
           Deps.Scalanative_0_5.scalanativeTestRunner
-        )
-      case "0.4" =>
-        Agg(
-          Deps.osLib,
-          Deps.Scalanative_0_4.scalanativeTools,
-          Deps.Scalanative_0_4.scalanativeUtil,
-          Deps.Scalanative_0_4.scalanativeNir,
-          Deps.Scalanative_0_4.scalanativeTestRunner
         )
     }
   }
