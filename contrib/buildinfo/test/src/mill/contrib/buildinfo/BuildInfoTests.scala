@@ -1,25 +1,25 @@
 package mill.contrib.buildinfo
 
 import mill._
+import mill.scalalib.ScalaModule
+import mill.scalajslib.ScalaJSModule
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import os.Path
 import utest._
-import utest.framework.TestPath
 
 object BuildInfoTests extends TestSuite {
 
   val scalaVersionString = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
   val scalaJSVersionString = sys.props.getOrElse("TEST_SCALAJS_VERSION", ???)
-  trait BuildInfoModule extends TestBaseModule with BuildInfo {}
 
-  object EmptyBuildInfo extends BuildInfoModule with scalalib.ScalaModule {
+  object EmptyBuildInfo extends TestBaseModule with BuildInfo with ScalaModule {
     def scalaVersion = scalaVersionString
     def buildInfoPackageName = "foo"
     def buildInfoMembers = Seq.empty[BuildInfo.Value]
   }
 
-  object BuildInfoPlain extends BuildInfoModule with scalalib.ScalaModule {
+  object BuildInfoPlain extends TestBaseModule with BuildInfo with ScalaModule {
     def scalaVersion = scalaVersionString
     def buildInfoPackageName = "foo"
     def buildInfoMembers = Seq(
@@ -27,7 +27,7 @@ object BuildInfoTests extends TestSuite {
     )
   }
 
-  object BuildInfoScalaJS extends BuildInfoModule with scalajslib.ScalaJSModule {
+  object BuildInfoScalaJS extends TestBaseModule with BuildInfo with ScalaJSModule {
     def scalaVersion = scalaVersionString
     def scalaJSVersion = scalaJSVersionString
     def buildInfoPackageName = "foo"
@@ -36,7 +36,7 @@ object BuildInfoTests extends TestSuite {
     )
   }
 
-  object BuildInfoComment extends BuildInfoModule with scalalib.ScalaModule {
+  object BuildInfoComment extends TestBaseModule with BuildInfo with ScalaModule {
     def scalaVersion = scalaVersionString
     def buildInfoPackageName = "foo"
     def buildInfoMembers = Seq(
@@ -53,7 +53,7 @@ object BuildInfoTests extends TestSuite {
     )
   }
 
-  object BuildInfoStatic extends BuildInfoModule with scalalib.ScalaModule {
+  object BuildInfoStatic extends TestBaseModule with BuildInfo with ScalaModule {
     def scalaVersion = scalaVersionString
     def buildInfoPackageName = "foo"
     override def buildInfoStaticCompiled = true
@@ -62,7 +62,7 @@ object BuildInfoTests extends TestSuite {
     )
   }
 
-  object BuildInfoSettings extends BuildInfoModule with scalalib.ScalaModule {
+  object BuildInfoSettings extends TestBaseModule with BuildInfo with ScalaModule {
     def scalaVersion = scalaVersionString
     def buildInfoPackageName = "foo"
     override def buildInfoObjectName = "bar"
@@ -71,14 +71,14 @@ object BuildInfoTests extends TestSuite {
     )
   }
 
-  object BuildInfoJava extends BuildInfoModule {
+  object BuildInfoJava extends TestBaseModule with BuildInfo {
     def buildInfoPackageName = "foo"
     def buildInfoMembers = Seq(
       BuildInfo.Value("scalaVersion", "not-provided-for-java-modules")
     )
   }
 
-  object BuildInfoJavaStatic extends BuildInfoModule {
+  object BuildInfoJavaStatic extends TestBaseModule with BuildInfo {
     def buildInfoPackageName = "foo"
     override def buildInfoStaticCompiled = true
     def buildInfoMembers = Seq(
