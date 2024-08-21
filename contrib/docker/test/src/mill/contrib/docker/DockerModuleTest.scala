@@ -58,7 +58,8 @@ object DockerModuleTest extends TestSuite {
   private def workspaceTest(m: mill.testkit.TestBaseModule)(t: UnitTester => Unit)(
       implicit tp: TestPath
   ): Unit = {
-    if (isInstalled(testExecutable) && !scala.util.Properties.isWin) t(UnitTester(m, testModuleSourcesPath))
+    if (isInstalled(testExecutable) && !scala.util.Properties.isWin)
+      t(UnitTester(m, testModuleSourcesPath))
     else {
       val identifier = tp.value.mkString("/")
       println(s"Skipping '$identifier' since no docker installation was found")

@@ -100,7 +100,8 @@ object MainModuleTests extends TestSuite {
       val outStream = new ByteArrayOutputStream()
       val errStream = new ByteArrayOutputStream()
       val evaluator = UnitTester(
-        mainModule, null,
+        mainModule,
+        null,
         outStream = new PrintStream(outStream, true),
         errStream = new PrintStream(errStream, true)
       )

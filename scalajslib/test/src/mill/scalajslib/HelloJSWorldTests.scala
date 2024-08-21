@@ -57,14 +57,12 @@ object HelloJSWorldTests extends TestSuite {
         )
       }
 
-
       object `test-scalatest` extends ScalaJSTests with TestModule.ScalaTest {
         override def sources = T.sources { millSourcePath / "src" / "scalatest" }
         override def ivyDeps = Agg(
           ivy"org.scalatest::scalatest::3.1.2"
         )
       }
-
 
     }
     object inherited extends ScalaJSModule {
@@ -81,8 +79,6 @@ object HelloJSWorldTests extends TestSuite {
   }
 
   val millSourcePath = os.pwd / "scalajslib" / "test" / "resources" / "hello-js-world"
-
-
 
   def tests: Tests = Tests {
     test("compile") {
@@ -246,9 +242,7 @@ object HelloJSWorldTests extends TestSuite {
     }
 
     test("utest") {
-      testAllMatrix(
-        (scala, scalaJS) => checkUtest(scala, scalaJS, cached = false),
-      )
+      testAllMatrix((scala, scalaJS) => checkUtest(scala, scalaJS, cached = false))
     }
     test("scalatest") {
       testAllMatrix(
@@ -258,9 +252,7 @@ object HelloJSWorldTests extends TestSuite {
     }
 
     test("utestCached") {
-      testAllMatrix(
-        (scala, scalaJS) => checkUtest(scala, scalaJS, cached = true),
-      )
+      testAllMatrix((scala, scalaJS) => checkUtest(scala, scalaJS, cached = true))
     }
     test("scalatestCached") {
       testAllMatrix(

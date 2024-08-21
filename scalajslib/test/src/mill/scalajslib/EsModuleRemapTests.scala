@@ -42,8 +42,6 @@ object EsModuleRemapTests extends TestSuite {
 
   val millSourcePath = os.pwd / "scalajslib" / "test" / "resources" / "esModuleRemap"
 
-
-
   val tests: Tests = Tests {
     test("should remap the esmodule") {
       val evaluator = UnitTester(EsModuleRemap, millSourcePath)

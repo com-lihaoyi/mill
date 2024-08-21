@@ -34,7 +34,8 @@ object VersionFileModuleTests extends TestSuite {
     workspaceTest0(versions: _*)(eval => _ => test(eval))
 
   //  check version file ends with newline
-  def workspaceTestEndsWithNewline0(versions: Version*)(test: UnitTester => Version => Any): Unit = {
+  def workspaceTestEndsWithNewline0(versions: Version*)(test: UnitTester => Version => Any)
+      : Unit = {
     for (version <- versions)
       test(evaluator(TestModule, (m: TestModule.type) => m.versionFile, version.toString + "\n"))(
         version

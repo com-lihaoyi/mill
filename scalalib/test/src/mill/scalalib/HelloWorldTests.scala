@@ -1439,7 +1439,7 @@ object HelloWorldTests extends TestSuite {
         val start = eval.evaluator.rootModule.millSourcePath
         val startToken = Set("org", "com")
         def simplify(cp: Seq[PathRef]) = {
-          cp.map(_.path).map{ p =>
+          cp.map(_.path).map { p =>
             if (p.startsWith(start)) p.relativeTo(start).toString()
             else p.segments.dropWhile(!startToken.contains(_)).mkString("/")
           }
@@ -1448,7 +1448,6 @@ object HelloWorldTests extends TestSuite {
         val simplerRunClasspath = simplify(runClasspathRes.value)
         val simplerCompileClasspath = simplify(compileClasspathRes.value.toSeq)
         val simplerLocalClasspath = simplify(localClasspathRes.value)
-
 
         assert(expectedRunClasspath == simplerRunClasspath)
         assert(expectedCompileClasspath == simplerCompileClasspath)

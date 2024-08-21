@@ -51,7 +51,6 @@ object NodeJSConfigTests extends TestSuite {
       }
     }
 
-
     override lazy val millDiscover = Discover[this.type]
   }
 

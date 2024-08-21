@@ -29,7 +29,6 @@ object ScalafmtTests extends TestSuite {
 
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "scalafmt"
 
-
   def tests: Tests = Tests {
     test("scalafmt") {
       def checkReformat(reformatCommand: mill.define.Command[Unit], buildSrcIncluded: Boolean) = {

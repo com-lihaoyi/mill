@@ -192,14 +192,14 @@ object HelloNativeWorldTests extends TestSuite {
     test("test") - {
       val cached = false
 
-      testAllMatrix(
-        (scala, scalaNative, releaseMode) => checkUtest(scala, scalaNative, releaseMode, cached),
+      testAllMatrix((scala, scalaNative, releaseMode) =>
+        checkUtest(scala, scalaNative, releaseMode, cached)
       )
     }
     test("testCached") {
       val cached = true
-      testAllMatrix(
-        (scala, scalaNative, releaseMode) => checkUtest(scala, scalaNative, releaseMode, cached),
+      testAllMatrix((scala, scalaNative, releaseMode) =>
+        checkUtest(scala, scalaNative, releaseMode, cached)
       )
     }
 
