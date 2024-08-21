@@ -15,11 +15,14 @@ object FeaturesTests extends TestSuite {
 
   val millSourcePath = os.pwd / "scalanativelib" / "test" / "resources" / "features"
 
+
+
   val tests: Tests = Tests {
     test("incremental compilation works") {
       val eval = UnitTester(Features, millSourcePath)
       val Right(_) = eval(Features.nativeLink)
       val Right(result) = eval(Features.nativeWorkdir)
+      assert(os.walk(result.value).exists(_.ext == "ll"))
     }
   }
 }
