@@ -54,26 +54,7 @@ object AssemblyTests extends TestSuite {
 
   }
 
-  val sources = Map(
-    os.rel / "src" / "Main.scala" ->
-      """package ultra
-        |
-        |import scalatags.Text.all._
-        |import mainargs.{main, ParserForMethods}
-        |
-        |object Main {
-        |  def generateHtml(text: String) = {
-        |    h1(text).toString
-        |  }
-        |
-        |  @main
-        |  def main(text: String) = {
-        |    println(generateHtml(text))
-        |  }
-        |
-        |  def main(args: Array[String]): Unit = ParserForMethods(this).runOrExit(args)
-        |}""".stripMargin
-  )
+  val sources = os.pwd / "scalalib" / "test" / "resources" / "assembly"
 
   def runAssembly(file: os.Path, wd: os.Path, checkExe: Boolean = false): Unit = {
     println(s"File size: ${os.stat(file).size}")
@@ -95,13 +76,13 @@ object AssemblyTests extends TestSuite {
     test("Assembly") {
       test("noExe") {
         test("small") {
-          val eval = UnitTester(TestCase)
+          val eval = UnitTester(TestCase, sourceRoot = sources)
           val Right(result) = eval(TestCase.noExe.small.assembly)
           runAssembly(result.value.path, TestCase.millSourcePath)
 
         }
         test("large") {
-          val eval = UnitTester(TestCase)
+          val eval = UnitTester(TestCase, sourceRoot = sources)
           val Right(result) = eval(TestCase.noExe.large.assembly)
           runAssembly(result.value.path, TestCase.millSourcePath)
 
@@ -109,7 +90,7 @@ object AssemblyTests extends TestSuite {
       }
       test("exe") {
         test("small") {
-          val eval = UnitTester(TestCase)
+          val eval = UnitTester(TestCase, sourceRoot = sources)
           val Right(result) = eval(TestCase.exe.small.assembly)
           val originalPath = result.value.path
           val resolvedPath =
@@ -122,7 +103,7 @@ object AssemblyTests extends TestSuite {
         }
 
         test("large-should-fail") {
-          val eval = UnitTester(TestCase)
+          val eval = UnitTester(TestCase, sourceRoot = sources)
           val Left(Result.Failure(msg, Some(res))) = eval(TestCase.exe.large.assembly)
           val expectedMsg =
             """The created assembly jar contains more than 65535 ZIP entries.
