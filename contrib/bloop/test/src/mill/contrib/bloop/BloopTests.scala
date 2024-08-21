@@ -16,14 +16,11 @@ import scala.util.Properties.isWin
 object BloopTests extends TestSuite {
   import BloopFormats._
 
-  val workdir = os.pwd / "target" / "workspace" / "bloop"
   val unitTester = UnitTester(build, null)
+  val workdir = unitTester.evaluator.rootModule.millSourcePath
   val testBloop = new BloopImpl(() => Seq(unitTester.evaluator), workdir)
 
   object build extends TestBaseModule {
-
-    override def millSourcePath = BloopTests.workdir
-
     object scalaModule extends scalalib.ScalaModule with testBloop.Module {
       def scalaVersion = "2.12.8"
       val bloopVersion = mill.contrib.bloop.Versions.bloop
