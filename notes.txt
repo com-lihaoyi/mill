@@ -1,0 +1,6 @@
+mill.scalalib.test failures
+
+  mill.scalalib.HelloWorldTests mill.scalalib.HelloWorldTests.assembly.run
+  mill.scalalib.HelloWorldTests mill.scalalib.HelloWorldTests.multiModuleClasspaths.modMod
+  mill.scalalib.HelloWorldTests mill.scalalib.HelloWorldTests.multiModuleClasspaths.modCompile
+  mill.scalalib.HelloWorldTests mill.scalalib.HelloWorldTests.multiModuleClasspaths.compileMod

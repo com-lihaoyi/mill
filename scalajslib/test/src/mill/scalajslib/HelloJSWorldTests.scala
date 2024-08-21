@@ -86,7 +86,7 @@ object HelloJSWorldTests extends TestSuite {
 
   val millSourcePath = os.pwd / "scalajslib" / "test" / "resources" / "hello-js-world"
 
-  val helloWorldEvaluator = UnitTester(HelloJSWorld)
+  val helloWorldEvaluator = UnitTester(HelloJSWorld, millSourcePath)
 
   val mainObject = helloWorldEvaluator.outPath / "src" / "Main.scala"
 

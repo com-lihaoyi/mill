@@ -34,14 +34,14 @@ object CycleTests extends TestSuite {
   override def tests: Tests = Tests {
     test("moduleDeps") {
       test("self-reference") {
-        val eval = UnitTester(CycleBase)
+        val eval = UnitTester(CycleBase, null)
         val ex = intercept[BuildScriptException] {
           eval.apply(CycleBase.a.compile)
         }
         assert(ex.getMessage.contains("a.moduleDeps: cycle detected: a -> a"))
       }
       test("cycle-in-deps") {
-        val eval = UnitTester(CycleBase)
+        val eval = UnitTester(CycleBase, null)
         val ex = intercept[BuildScriptException] {
           eval.apply(CycleBase.e.compile)
         }
@@ -50,7 +50,7 @@ object CycleTests extends TestSuite {
     }
     test("compileModuleDeps") {
       test("self-reference") {
-        val eval = UnitTester(CycleBase)
+        val eval = UnitTester(CycleBase, null)
         val ex = intercept[BuildScriptException] {
           eval.apply(CycleBase.f.compile)
         }

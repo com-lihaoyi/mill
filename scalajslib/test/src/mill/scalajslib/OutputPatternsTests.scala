@@ -23,7 +23,7 @@ object OutputPatternsTests extends TestSuite {
 
   val millSourcePath = os.pwd / "scalajslib" / "test" / "resources" / "hello-js-world"
 
-  val evaluator = UnitTester(OutputPatternsModule)
+  val evaluator = UnitTester(OutputPatternsModule, millSourcePath)
 
   val tests: Tests = Tests {
     test("output patterns") {

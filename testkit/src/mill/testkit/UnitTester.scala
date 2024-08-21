@@ -15,7 +15,7 @@ object UnitTester {
   case class Result[T](value: T, evalCount: Int)
   def apply(
       module: mill.testkit.TestBaseModule,
-      sourceRoot: os.Path = null,
+      sourceRoot: os.Path,
       failFast: Boolean = false,
       threads: Option[Int] = Some(1),
       outStream: PrintStream = System.out,

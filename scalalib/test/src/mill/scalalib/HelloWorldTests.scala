@@ -1122,7 +1122,7 @@ object HelloWorldTests extends TestSuite {
 
         test("writeDownstreamWhenNoRule") {
           test("withDeps") {
-            val eval = UnitTester(HelloWorldAkkaHttpNoRules)
+            val eval = UnitTester(HelloWorldAkkaHttpNoRules, null)
             val Right(result) = eval.apply(HelloWorldAkkaHttpNoRules.core.assembly)
 
             Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
@@ -1168,7 +1168,7 @@ object HelloWorldTests extends TestSuite {
       }
 
       test("run") {
-        val eval = UnitTester(HelloWorldWithMain)
+        val eval = UnitTester(HelloWorldWithMain, resourcePath)
         val Right(result) = eval.apply(HelloWorldWithMain.core.assembly)
 
         assert(
@@ -1187,7 +1187,7 @@ object HelloWorldTests extends TestSuite {
     }
 
     test("ivyDeps") {
-      val eval = UnitTester(HelloWorldIvyDeps)
+      val eval = UnitTester(HelloWorldIvyDeps, resourcePath)
       val Right(result) = eval.apply(HelloWorldIvyDeps.moduleA.runClasspath)
       assert(
         result.value.exists(_.path.last == "sourcecode_2.12-0.1.3.jar"),
@@ -1202,7 +1202,7 @@ object HelloWorldTests extends TestSuite {
     }
 
     test("typeLevel") {
-      val eval = UnitTester(HelloWorldTypeLevel)
+      val eval = UnitTester(HelloWorldTypeLevel, null)
       val classPathsToCheck = Seq(
         HelloWorldTypeLevel.foo.runClasspath,
         HelloWorldTypeLevel.foo.ammoniteReplClasspath,
@@ -1341,7 +1341,7 @@ object HelloWorldTests extends TestSuite {
     }
 
     test("replAmmoniteMainClass") {
-      val eval = UnitTester(AmmoniteReplMainClass)
+      val eval = UnitTester(AmmoniteReplMainClass, null)
       val Right(result) = eval.apply(AmmoniteReplMainClass.oldAmmonite.ammoniteMainClass)
       assert(result.value == "ammonite.Main")
       val Right(result2) = eval.apply(AmmoniteReplMainClass.newAmmonite.ammoniteMainClass)
@@ -1351,7 +1351,7 @@ object HelloWorldTests extends TestSuite {
     test("validated") {
       test("PathRef") {
         def check(t: Target[PathRef], flip: Boolean) = {
-          val eval = UnitTester(ValidatedTarget)
+          val eval = UnitTester(ValidatedTarget, null)
           // we reconstruct faulty behavior
           val Right(result) = eval.apply(t)
           assert(
@@ -1371,7 +1371,7 @@ object HelloWorldTests extends TestSuite {
       }
       test("SeqPathRef") {
         def check(t: Target[Seq[PathRef]], flip: Boolean) {
-          val eval = UnitTester(ValidatedTarget)
+          val eval = UnitTester(ValidatedTarget, null)
           // we reconstruct faulty behavior
           val Right(result) = eval.apply(t)
           assert(
@@ -1391,7 +1391,7 @@ object HelloWorldTests extends TestSuite {
       }
       test("AggPathRef") {
         def check(t: Target[Agg[PathRef]], flip: Boolean) = {
-          val eval = UnitTester(ValidatedTarget)
+          val eval = UnitTester(ValidatedTarget, null)
           // we reconstruct faulty behavior
           val Right(result) = eval.apply(t)
           assert(
@@ -1411,7 +1411,7 @@ object HelloWorldTests extends TestSuite {
       }
       test("other") {
         def check(t: Target[Tuple1[PathRef]], flip: Boolean) = {
-          val eval = UnitTester(ValidatedTarget)
+          val eval = UnitTester(ValidatedTarget, null)
           // we reconstruct faulty behavior
           val Right(result) = eval.apply(t)
           assert(
@@ -1468,7 +1468,7 @@ object HelloWorldTests extends TestSuite {
       }
 
       test("modMod") {
-        val eval = UnitTester(MultiModuleClasspaths)
+        val eval = UnitTester(MultiModuleClasspaths, resourcePath)
         // Make sure that `compileClasspath` has all the same things as `runClasspath`,
         // but without the `/resources`
         check(
@@ -1534,7 +1534,7 @@ object HelloWorldTests extends TestSuite {
       }
 
       test("modCompile") {
-        val eval = UnitTester(MultiModuleClasspaths)
+        val eval = UnitTester(MultiModuleClasspaths, resourcePath)
         // Mostly the same as `modMod` above, but with the dependency
         // from `qux` to `bar` being a `compileModuleDeps`
         check(
@@ -1599,7 +1599,7 @@ object HelloWorldTests extends TestSuite {
       }
 
       test("compileMod") {
-        val eval = UnitTester(MultiModuleClasspaths)
+        val eval = UnitTester(MultiModuleClasspaths, resourcePath)
         // Both the `runClasspath` and `compileClasspath` should not have `foo` on the
         // classpath, nor should it have the versions of libraries pulled in by `foo`
         // (e.g. `sourcecode-0.2.4`), because it is a `compileModuleDep` of an upstream

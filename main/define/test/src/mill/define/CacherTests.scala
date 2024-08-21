@@ -25,7 +25,7 @@ object CacherTests extends TestSuite {
 
   val tests = Tests {
     def eval[T <: mill.testkit.TestBaseModule, V](mapping: T, v: Task[V])(implicit tp: TestPath) = {
-      val evaluator = UnitTester(mapping)
+      val evaluator = UnitTester(mapping, null)
       evaluator(v).toOption.get.value
     }
 

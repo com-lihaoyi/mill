@@ -21,7 +21,7 @@ object ModuleTests extends TestSuite {
   }
   val tests = Tests {
     test("externalModuleTargetsAreNamespacedByModulePackagePath") {
-      val check = UnitTester(Build)
+      val check = UnitTester(Build, null)
       os.remove.all(check.outPath)
       val zresult = check.apply(Build.z)
       assert(

@@ -119,7 +119,7 @@ object CrossVersionTests extends TestSuite {
 
   }
 
-  def init() = UnitTester(TestCases)
+  def init() = UnitTester(TestCases, null)
 
   import TestCases._
 

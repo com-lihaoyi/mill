@@ -13,7 +13,7 @@ object FailureTests extends TestSuite {
     import graphs._
 
     test("evaluateSingle") {
-      val check = UnitTester(singleton)
+      val check = UnitTester(singleton, null)
       check.fail(
         target = singleton.single,
         expectedFailCount = 0,
@@ -46,7 +46,7 @@ object FailureTests extends TestSuite {
       )
     }
     test("evaluatePair") {
-      val check = UnitTester(pair)
+      val check = UnitTester(pair, null)
       check.fail(
         pair.down,
         expectedFailCount = 0,
@@ -80,7 +80,7 @@ object FailureTests extends TestSuite {
     }
 
     test("evaluatePair (failFast=true)") {
-      val check = UnitTester(pair, failFast = true)
+      val check = UnitTester(pair, null, failFast = true)
       check.fail(
         pair.down,
         expectedFailCount = 0,
@@ -113,7 +113,7 @@ object FailureTests extends TestSuite {
     }
 
     test("evaluateBacktickIdentifiers") {
-      val check = UnitTester(bactickIdentifiers)
+      val check = UnitTester(bactickIdentifiers, null)
       import bactickIdentifiers._
       check.fail(
         `a-down-target`,
@@ -147,7 +147,7 @@ object FailureTests extends TestSuite {
     }
 
     test("evaluateBacktickIdentifiers (failFast=true)") {
-      val check = UnitTester(bactickIdentifiers, failFast = true)
+      val check = UnitTester(bactickIdentifiers, null, failFast = true)
       import bactickIdentifiers._
       check.fail(
         `a-down-target`,
@@ -190,7 +190,7 @@ object FailureTests extends TestSuite {
         def right = T { task() + left() + T.dest.toString().length }
       }
 
-      val check = UnitTester(build)
+      val check = UnitTester(build, null)
       assert(check(build.left).isRight)
       assert(check(build.right).isRight)
       // assert(e.getMessage.contains("`dest` can only be used in one place"))

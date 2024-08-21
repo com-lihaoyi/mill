@@ -19,7 +19,7 @@ object Giter8Tests extends TestSuite {
 
         object g8Module extends TestBaseModule with Giter8Module
 
-        val evaluator = UnitTester(g8Module)
+        val evaluator = UnitTester(g8Module, null)
 
         val giter8Args = Seq(
           templateString,

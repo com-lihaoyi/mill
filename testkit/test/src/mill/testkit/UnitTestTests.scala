@@ -5,13 +5,14 @@ import utest._
 
 object UnitTestTests extends TestSuite {
 
+  val resourcePath = os.pwd / "testkit" / "test" / "resources" / "unit-test-example-project"
   def tests: Tests = Tests {
     test("simple") {
       object build extends TestBaseModule {
         def testTask = T { "test" }
       }
 
-      val eval = UnitTester(build)
+      val eval = UnitTester(build, resourcePath)
       val Right(result) = eval(build.testTask)
       assert(result.value == "test")
     }
@@ -22,10 +23,7 @@ object UnitTestTests extends TestSuite {
         def testTask = T { os.read(testSource().path).toUpperCase() }
       }
 
-      val eval = UnitTester(
-        build,
-        sourceRoot = os.pwd / "testkit" / "test" / "resources" / "unit-test-example-project"
-      )
+      val eval = UnitTester(build, resourcePath)
 
       val Right(result) = eval(build.testTask)
       assert(result.value == "HELLO WORLD SOURCE FILE")

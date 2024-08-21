@@ -155,8 +155,6 @@ object TestRunnerTests extends TestSuite {
       test("ScalaTest") {
         test("test") {
           val eval = UnitTester(testrunner, resourcePath)
-          pprint.log(testrunner.millSourcePath)
-          pprint.log(testrunner.scalatest.millSourcePath)
           val Right(result) = eval(testrunner.scalatest.test())
           assert(result.value._2.size == 2)
           junitReportIn(eval.outPath, "scalatest").shouldHave(2 -> Status.Success)

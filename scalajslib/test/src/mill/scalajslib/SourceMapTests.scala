@@ -20,7 +20,7 @@ object SourceMapTests extends TestSuite {
 
   val millSourcePath = os.pwd / "scalajslib" / "test" / "resources" / "hello-js-world"
 
-  val evaluator = UnitTester(SourceMapModule)
+  val evaluator = UnitTester(SourceMapModule, millSourcePath)
 
   val tests: Tests = Tests {
     test("should disable source maps") {

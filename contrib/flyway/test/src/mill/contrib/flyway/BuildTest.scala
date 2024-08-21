@@ -21,13 +21,13 @@ object BuildTest extends TestSuite {
 
   def tests = Tests {
     test("clean") {
-      val eval = UnitTester(Build)
+      val eval = UnitTester(Build, null)
       val Right(result) = eval(Build.build.flywayClean())
       assert(result.evalCount > 0)
     }
 
     test("migrate") {
-      val eval = UnitTester(Build)
+      val eval = UnitTester(Build, null)
       val Right(result) = eval(Build.build.flywayMigrate())
       assert(
         result.evalCount > 0,
@@ -41,7 +41,7 @@ object BuildTest extends TestSuite {
     }
 
     test("info") {
-      val eval = UnitTester(Build)
+      val eval = UnitTester(Build, null)
       val Right(result) = eval(Build.build.flywayInfo())
       assert(result.evalCount > 0)
     }

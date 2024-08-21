@@ -32,7 +32,7 @@ object MultiModuleTests extends TestSuite {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  val evaluator = UnitTester(MultiModule)
+  val evaluator = UnitTester(MultiModule, sourcePath)
 
   def tests: Tests = Tests {
     def checkOpt(optimize: Boolean) = {
