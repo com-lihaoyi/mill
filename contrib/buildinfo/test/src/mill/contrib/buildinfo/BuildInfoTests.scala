@@ -166,7 +166,7 @@ object BuildInfoTests extends TestSuite {
     }
 
     test("scalajs") {
-      val eval = UnitTester(BuildInfoScalaJS, testModuleSourcesPath / "scala")
+      val eval = UnitTester(BuildInfoScalaJS, testModuleSourcesPath / "scala-simple")
       val runResult = eval.outPath / "hello-mill"
       assert(eval.apply(BuildInfoScalaJS.fastLinkJS).isRight)
     }
