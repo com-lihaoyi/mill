@@ -44,7 +44,7 @@ object HelloNativeWorldTests extends TestSuite {
       mode <- List(ReleaseMode.Debug, ReleaseMode.ReleaseFast)
     } yield (scala, scalaNative, mode)
 
-    object helloNativeWorld extends Cross[RootModule](matrix)
+    object build extends Cross[RootModule](matrix)
     trait RootModule extends HelloNativeWorldModule {
       override def artifactName = "hello-native-world"
       def scalaNativeVersion = sNativeVersion
@@ -58,9 +58,7 @@ object HelloNativeWorldTests extends TestSuite {
         developers =
           Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
       )
-    }
-    object buildUTest extends Cross[BuildModuleUtest](matrix)
-    trait BuildModuleUtest extends RootModule {
+
       object test extends ScalaNativeTests with TestModule.Utest {
         override def sources = T.sources { millSourcePath / "src" / "utest" }
         override def ivyDeps = super.ivyDeps() ++ Agg(
@@ -68,6 +66,7 @@ object HelloNativeWorldTests extends TestSuite {
         )
       }
     }
+
     object inherited extends ScalaNativeModule {
       val (scala, scalaNative, _) = matrix.head
       def scalacOptions = Seq("-deprecation")
@@ -82,10 +81,6 @@ object HelloNativeWorldTests extends TestSuite {
 
   val millSourcePath = os.pwd / "scalanativelib" / "test" / "resources" / "hello-native-world"
 
-  val helloWorldEvaluator = UnitTester(HelloNativeWorld, millSourcePath)
-
-  val mainObject = helloWorldEvaluator.outPath / "src" / "Main.scala"
-
   def tests: Tests = Tests {
     test("compile") {
       def testCompileFromScratch(
@@ -93,8 +88,9 @@ object HelloNativeWorldTests extends TestSuite {
           scalaNativeVersion: String,
           mode: ReleaseMode
       ): Unit = {
+        val eval = UnitTester(HelloNativeWorld, millSourcePath)
         val Right(result) =
-          helloWorldEvaluator(HelloNativeWorld.helloNativeWorld(
+          eval(HelloNativeWorld.build(
             scalaVersion,
             scalaNativeVersion,
             mode
@@ -110,7 +106,7 @@ object HelloNativeWorldTests extends TestSuite {
 
         // don't recompile if nothing changed
         val Right(result2) =
-          helloWorldEvaluator(HelloNativeWorld.helloNativeWorld(
+          eval(HelloNativeWorld.build(
             scalaVersion,
             scalaNativeVersion,
             mode
@@ -125,8 +121,9 @@ object HelloNativeWorldTests extends TestSuite {
 
     test("jar") {
       test("containsNirs") {
+        val eval = UnitTester(HelloNativeWorld, millSourcePath)
         val Right(result) =
-          helloWorldEvaluator(HelloNativeWorld.helloNativeWorld(
+          eval(HelloNativeWorld.build(
             scala213,
             scalaNative05,
             ReleaseMode.Debug
@@ -143,8 +140,9 @@ object HelloNativeWorldTests extends TestSuite {
           mode: ReleaseMode,
           artifactId: String
       ): Unit = {
-        val Right(result) = helloWorldEvaluator(
-          HelloNativeWorld.helloNativeWorld(
+        val eval = UnitTester(HelloNativeWorld, millSourcePath)
+        val Right(result) = eval(
+          HelloNativeWorld.build(
             scalaVersion,
             scalaNativeVersion,
             mode: ReleaseMode
@@ -156,7 +154,8 @@ object HelloNativeWorldTests extends TestSuite {
 
     def runTests(testTask: define.NamedTask[(String, Seq[TestResult])])
         : Map[String, Map[String, TestResult]] = {
-      val Left(Result.Failure(_, Some(res))) = helloWorldEvaluator(testTask)
+      val eval = UnitTester(HelloNativeWorld, millSourcePath)
+      val Left(Result.Failure(_, Some(res))) = eval(testTask)
 
       val (doneMsg, testResults) = res
       testResults
@@ -173,8 +172,8 @@ object HelloNativeWorldTests extends TestSuite {
         cached: Boolean
     ) = {
       val resultMap = runTests(
-        if (!cached) HelloNativeWorld.buildUTest(scalaVersion, scalaNativeVersion, mode).test.test()
-        else HelloNativeWorld.buildUTest(scalaVersion, scalaNativeVersion, mode).test.testCached
+        if (!cached) HelloNativeWorld.build(scalaVersion, scalaNativeVersion, mode).test.test()
+        else HelloNativeWorld.build(scalaVersion, scalaNativeVersion, mode).test.testCached
       )
 
       val mainTests = resultMap("hellotest.MainTests")
@@ -205,11 +204,12 @@ object HelloNativeWorldTests extends TestSuite {
     }
 
     def checkRun(scalaVersion: String, scalaNativeVersion: String, mode: ReleaseMode): Unit = {
+      val eval = UnitTester(HelloNativeWorld, millSourcePath)
       val task =
-        HelloNativeWorld.helloNativeWorld(scalaVersion, scalaNativeVersion, mode).nativeLink
-      val Right(result) = helloWorldEvaluator(task)
+        HelloNativeWorld.build(scalaVersion, scalaNativeVersion, mode).nativeLink
+      val Right(result) = eval(task)
 
-      val paths = EvaluatorPaths.resolveDestPaths(helloWorldEvaluator.outPath, task)
+      val paths = EvaluatorPaths.resolveDestPaths(eval.outPath, task)
       val stdout = os.proc(paths.dest / "out").call().out.lines()
       assert(
         stdout.contains("Hello Scala Native"),
@@ -222,8 +222,9 @@ object HelloNativeWorldTests extends TestSuite {
     }
 
     def checkInheritedTargets[A](target: ScalaNativeModule => T[A], expected: A) = {
-      val Right(mainResult) = helloWorldEvaluator(target(HelloNativeWorld.inherited))
-      val Right(testResult) = helloWorldEvaluator(target(HelloNativeWorld.inherited.test))
+      val eval = UnitTester(HelloNativeWorld, millSourcePath)
+      val Right(mainResult) = eval(target(HelloNativeWorld.inherited))
+      val Right(testResult) = eval(target(HelloNativeWorld.inherited.test))
       assert(mainResult.value == expected)
       assert(testResult.value == expected)
     }
