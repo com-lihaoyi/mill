@@ -764,9 +764,9 @@ object testkit extends MillPublishScalaModule {
   def moduleDeps = Seq(main.eval, main.util, main)
   def ivyDeps = Agg(Deps.TestDeps.utest)
 
-  def allSourceFiles =
-    super.allSourceFiles() ++
-    Seq(PathRef(build.millSourcePath / "mill-build" / "src" / "ExampleParser.scala"))
+  def sources =
+    super.sources() ++
+    Seq(PathRef(build.millSourcePath / "mill-build" / "src"))
 
   def forkEnv = super.forkEnv() ++ Map("MILL_EXECUTABLE_PATH" -> dev.launcher().path.toString())
 }
