@@ -3,7 +3,7 @@ package mill.testkit
 import mill._
 import utest._
 
-object UnitTestTests extends TestSuite {
+object UnitTesterTests extends TestSuite {
 
   val resourcePath = os.pwd / "testkit" / "test" / "resources" / "unit-test-example-project"
   def tests: Tests = Tests {

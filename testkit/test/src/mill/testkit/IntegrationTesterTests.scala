@@ -2,7 +2,7 @@ package mill.testkit
 
 import utest._
 
-object IntegrationTestTests extends TestSuite {
+object IntegrationTesterTests extends TestSuite {
 
   def tests: Tests = Tests {
 
