@@ -1447,14 +1447,19 @@ object HelloWorldTests extends TestSuite {
         val Right(upstreamAssemblyClasspathRes) = eval.apply(mod.upstreamAssemblyClasspath)
         val Right(localClasspathRes) = eval.apply(mod.localClasspath)
 
-        val start = Set("org", "com", "MultiModuleClasspaths", "multiModuleClasspaths")
+        val start = eval.evaluator.rootModule.millSourcePath
+        val startToken = Set("org", "com")
         def simplify(cp: Seq[PathRef]) = {
-          cp.map(_.path.segments.dropWhile(!start.contains(_)).mkString("/"))
+          cp.map(_.path).map{ p =>
+            if (p.startsWith(start)) p.relativeTo(start).toString()
+            else p.segments.dropWhile(!startToken.contains(_)).mkString("/")
+          }
         }
 
         val simplerRunClasspath = simplify(runClasspathRes.value)
         val simplerCompileClasspath = simplify(compileClasspathRes.value.toSeq)
         val simplerLocalClasspath = simplify(localClasspathRes.value)
+
 
         assert(expectedRunClasspath == simplerRunClasspath)
         assert(expectedCompileClasspath == simplerCompileClasspath)
@@ -1487,20 +1492,20 @@ object HelloWorldTests extends TestSuite {
             "org/portable-scala/portable-scala-reflect_2.13/1.1.3/portable-scala-reflect_2.13-1.1.3.jar",
             "org/scala-lang/scala-reflect/2.13.12/scala-reflect-2.13.12.jar",
             //
-            "MultiModuleClasspaths/ModMod/bar/compile-resources",
-            "MultiModuleClasspaths/ModMod/bar/unmanaged",
-            "MultiModuleClasspaths/ModMod/bar/resources",
-            "multiModuleClasspaths/modMod/ModMod/bar/compile.dest/classes",
+            "ModMod/bar/compile-resources",
+            "ModMod/bar/unmanaged",
+            "ModMod/bar/resources",
+            "out/ModMod/bar/compile.dest/classes",
             //
-            "MultiModuleClasspaths/ModMod/foo/compile-resources",
-            "MultiModuleClasspaths/ModMod/foo/unmanaged",
-            "MultiModuleClasspaths/ModMod/foo/resources",
-            "multiModuleClasspaths/modMod/ModMod/foo/compile.dest/classes",
+            "ModMod/foo/compile-resources",
+            "ModMod/foo/unmanaged",
+            "ModMod/foo/resources",
+            "out/ModMod/foo/compile.dest/classes",
             //
-            "MultiModuleClasspaths/ModMod/qux/compile-resources",
-            "MultiModuleClasspaths/ModMod/qux/unmanaged",
-            "MultiModuleClasspaths/ModMod/qux/resources",
-            "multiModuleClasspaths/modMod/ModMod/qux/compile.dest/classes"
+            "ModMod/qux/compile-resources",
+            "ModMod/qux/unmanaged",
+            "ModMod/qux/resources",
+            "out/ModMod/qux/compile.dest/classes"
           ),
           expectedCompileClasspath = List(
             // Make sure we only have geny 0.6.4 from the current module, and not newer
@@ -1511,24 +1516,24 @@ object HelloWorldTests extends TestSuite {
             //
             "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
             //
-            "MultiModuleClasspaths/ModMod/bar/compile-resources",
-            "MultiModuleClasspaths/ModMod/bar/unmanaged",
-            "multiModuleClasspaths/modMod/ModMod/bar/compile.dest/classes",
+            "ModMod/bar/compile-resources",
+            "ModMod/bar/unmanaged",
+            "out/ModMod/bar/compile.dest/classes",
             //
-            "MultiModuleClasspaths/ModMod/foo/compile-resources",
-            "MultiModuleClasspaths/ModMod/foo/unmanaged",
-            "multiModuleClasspaths/modMod/ModMod/foo/compile.dest/classes",
+            "ModMod/foo/compile-resources",
+            "ModMod/foo/unmanaged",
+            "out/ModMod/foo/compile.dest/classes",
             //
-            "MultiModuleClasspaths/ModMod/qux/compile-resources",
-            "MultiModuleClasspaths/ModMod/qux/unmanaged"
+            "ModMod/qux/compile-resources",
+            "ModMod/qux/unmanaged"
             // We do not include `qux/compile.dest/classes` here, because this is the input
             // that is required to compile `qux` in the first place
           ),
           expectedLocalClasspath = List(
-            "MultiModuleClasspaths/ModMod/qux/compile-resources",
-            "MultiModuleClasspaths/ModMod/qux/unmanaged",
-            "MultiModuleClasspaths/ModMod/qux/resources",
-            "multiModuleClasspaths/modMod/ModMod/qux/compile.dest/classes"
+            "ModMod/qux/compile-resources",
+            "ModMod/qux/unmanaged",
+            "ModMod/qux/resources",
+            "out/ModMod/qux/compile.dest/classes"
           )
         )
       }
@@ -1553,20 +1558,20 @@ object HelloWorldTests extends TestSuite {
             "org/portable-scala/portable-scala-reflect_2.13/1.1.3/portable-scala-reflect_2.13-1.1.3.jar",
             "org/scala-lang/scala-reflect/2.13.12/scala-reflect-2.13.12.jar",
             //
-            "MultiModuleClasspaths/ModCompile/bar/compile-resources",
-            "MultiModuleClasspaths/ModCompile/bar/unmanaged",
-            "MultiModuleClasspaths/ModCompile/bar/resources",
-            "multiModuleClasspaths/modCompile/ModCompile/bar/compile.dest/classes",
+            "ModCompile/bar/compile-resources",
+            "ModCompile/bar/unmanaged",
+            "ModCompile/bar/resources",
+            "out/ModCompile/bar/compile.dest/classes",
             //
-            "MultiModuleClasspaths/ModCompile/foo/compile-resources",
-            "MultiModuleClasspaths/ModCompile/foo/unmanaged",
-            "MultiModuleClasspaths/ModCompile/foo/resources",
-            "multiModuleClasspaths/modCompile/ModCompile/foo/compile.dest/classes",
+            "ModCompile/foo/compile-resources",
+            "ModCompile/foo/unmanaged",
+            "ModCompile/foo/resources",
+            "out/ModCompile/foo/compile.dest/classes",
             //
-            "MultiModuleClasspaths/ModCompile/qux/compile-resources",
-            "MultiModuleClasspaths/ModCompile/qux/unmanaged",
-            "MultiModuleClasspaths/ModCompile/qux/resources",
-            "multiModuleClasspaths/modCompile/ModCompile/qux/compile.dest/classes"
+            "ModCompile/qux/compile-resources",
+            "ModCompile/qux/unmanaged",
+            "ModCompile/qux/resources",
+            "out/ModCompile/qux/compile.dest/classes"
           ),
           expectedCompileClasspath = List(
             "com/lihaoyi/geny_2.13/0.4.0/geny_2.13-0.4.0.jar",
@@ -1578,22 +1583,22 @@ object HelloWorldTests extends TestSuite {
             //
             "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
             //
-            "MultiModuleClasspaths/ModCompile/bar/compile-resources",
-            "MultiModuleClasspaths/ModCompile/bar/unmanaged",
-            "multiModuleClasspaths/modCompile/ModCompile/bar/compile.dest/classes",
+            "ModCompile/bar/compile-resources",
+            "ModCompile/bar/unmanaged",
+            "out/ModCompile/bar/compile.dest/classes",
             //
-            "MultiModuleClasspaths/ModCompile/foo/compile-resources",
-            "MultiModuleClasspaths/ModCompile/foo/unmanaged",
-            "multiModuleClasspaths/modCompile/ModCompile/foo/compile.dest/classes",
+            "ModCompile/foo/compile-resources",
+            "ModCompile/foo/unmanaged",
+            "out/ModCompile/foo/compile.dest/classes",
             //
-            "MultiModuleClasspaths/ModCompile/qux/compile-resources",
-            "MultiModuleClasspaths/ModCompile/qux/unmanaged"
+            "ModCompile/qux/compile-resources",
+            "ModCompile/qux/unmanaged"
           ),
           expectedLocalClasspath = List(
-            "MultiModuleClasspaths/ModCompile/qux/compile-resources",
-            "MultiModuleClasspaths/ModCompile/qux/unmanaged",
-            "MultiModuleClasspaths/ModCompile/qux/resources",
-            "multiModuleClasspaths/modCompile/ModCompile/qux/compile.dest/classes"
+            "ModCompile/qux/compile-resources",
+            "ModCompile/qux/unmanaged",
+            "ModCompile/qux/resources",
+            "out/ModCompile/qux/compile.dest/classes"
           )
         )
       }
@@ -1620,15 +1625,15 @@ object HelloWorldTests extends TestSuite {
             "org/portable-scala/portable-scala-reflect_2.13/1.1.3/portable-scala-reflect_2.13-1.1.3.jar",
             "org/scala-lang/scala-reflect/2.13.12/scala-reflect-2.13.12.jar",
             //
-            "MultiModuleClasspaths/CompileMod/bar/compile-resources",
-            "MultiModuleClasspaths/CompileMod/bar/unmanaged",
-            "MultiModuleClasspaths/CompileMod/bar/resources",
-            "multiModuleClasspaths/compileMod/CompileMod/bar/compile.dest/classes",
+            "CompileMod/bar/compile-resources",
+            "CompileMod/bar/unmanaged",
+            "CompileMod/bar/resources",
+            "out/CompileMod/bar/compile.dest/classes",
             //
-            "MultiModuleClasspaths/CompileMod/qux/compile-resources",
-            "MultiModuleClasspaths/CompileMod/qux/unmanaged",
-            "MultiModuleClasspaths/CompileMod/qux/resources",
-            "multiModuleClasspaths/compileMod/CompileMod/qux/compile.dest/classes"
+            "CompileMod/qux/compile-resources",
+            "CompileMod/qux/unmanaged",
+            "CompileMod/qux/resources",
+            "out/CompileMod/qux/compile.dest/classes"
           ),
           expectedCompileClasspath = List(
             "com/lihaoyi/geny_2.13/0.4.0/geny_2.13-0.4.0.jar",
@@ -1638,18 +1643,18 @@ object HelloWorldTests extends TestSuite {
             // We do not include `foo`s compile output here, because `foo` is a
             // `compileModuleDep` of `bar`, and `compileModuleDep`s are non-transitive
             //
-            "MultiModuleClasspaths/CompileMod/bar/compile-resources",
-            "MultiModuleClasspaths/CompileMod/bar/unmanaged",
-            "multiModuleClasspaths/compileMod/CompileMod/bar/compile.dest/classes",
+            "CompileMod/bar/compile-resources",
+            "CompileMod/bar/unmanaged",
+            "out/CompileMod/bar/compile.dest/classes",
             //
-            "MultiModuleClasspaths/CompileMod/qux/compile-resources",
-            "MultiModuleClasspaths/CompileMod/qux/unmanaged"
+            "CompileMod/qux/compile-resources",
+            "CompileMod/qux/unmanaged"
           ),
           expectedLocalClasspath = List(
-            "MultiModuleClasspaths/CompileMod/qux/compile-resources",
-            "MultiModuleClasspaths/CompileMod/qux/unmanaged",
-            "MultiModuleClasspaths/CompileMod/qux/resources",
-            "multiModuleClasspaths/compileMod/CompileMod/qux/compile.dest/classes"
+            "CompileMod/qux/compile-resources",
+            "CompileMod/qux/unmanaged",
+            "CompileMod/qux/resources",
+            "out/CompileMod/qux/compile.dest/classes"
           )
         )
       }
