@@ -11,7 +11,7 @@ object HygieneTests extends IntegrationTestSuite {
     test {
       val res = eval("scala.foo")
       assert(res.isSuccess == true)
-      val output = meta("scala.foo").text
+      val output = outJson("scala.foo").text
       assert(output.contains("\"fooValue\""))
     }
   }

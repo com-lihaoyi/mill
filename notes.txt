@@ -1,2 +1,25 @@
-  mill.scalajslib.HelloJSWorldTests mill.scalajslib.HelloJSWorldTests.test
-  mill.scalajslib.HelloJSWorldTests mill.scalajslib.HelloJSWorldTests.testCached
+contrib.bloop.test.test 13 tests failed:
+  mill.contrib.bloop.BloopTests mill.contrib.bloop.BloopTests.genBloopTests.no-compilation
+  mill.contrib.bloop.BloopTests mill.contrib.bloop.BloopTests.genBloopTests.scalaModule
+  mill.contrib.bloop.BloopTests mill.contrib.bloop.BloopTests.genBloopTests.scalaModuleTest
+  mill.contrib.bloop.BloopTests mill.contrib.bloop.BloopTests.genBloopTests.configAccessTest
+  mill.contrib.bloop.BloopTests mill.contrib.bloop.BloopTests.genBloopTests.noDepTest
+  and 8 more ...
+contrib.buildinfo.test.test 1 tests failed:
+  mill.contrib.buildinfo.BuildInfoTests mill.contrib.buildinfo.BuildInfoTests.scalajs
+contrib.playlib.test.test 5 tests failed:
+  mill.playlib.PlaySingleModuleTests mill.playlib.PlaySingleModuleTests.layout.fromBuild
+  mill.playlib.PlaySingleModuleTests mill.playlib.PlaySingleModuleTests.compile
+  mill.playlib.PlaySingleApiModuleTests mill.playlib.PlaySingleApiModuleTests.playVersion.fromBuild
+  mill.playlib.PlaySingleApiModuleTests mill.playlib.PlaySingleApiModuleTests.layout.fromBuild
+  mill.playlib.PlaySingleApiModuleTests mill.playlib.PlaySingleApiModuleTests.compile
+contrib.scoverage.test.test 4 tests failed:
+  mill.contrib.scoverage.Scoverage1Tests_2_13 mill.contrib.scoverage.Scoverage1Tests_2_13.HelloWorld.core.scoverage.data
+  mill.contrib.scoverage.Scoverage1Tests_2_12 mill.contrib.scoverage.Scoverage1Tests_2_12.HelloWorld.core.scoverage.data
+  mill.contrib.scoverage.Scoverage2Tests_2_13 mill.contrib.scoverage.Scoverage2Tests_2_13.HelloWorld.core.scoverage.data
+  mill.contrib.scoverage.Scoverage2Tests_3_2 mill.contrib.scoverage.Scoverage2Tests_3_2.HelloWorld.core.scoverage.data
+contrib.versionfile.test.test 4 tests failed:
+  mill.contrib.versionfile.VersionFileModuleTests mill.contrib.versionfile.VersionFileModuleTests.reading.releaseVersion
+  mill.contrib.versionfile.VersionFileModuleTests mill.contrib.versionfile.VersionFileModuleTests.reading.nextVersion
+  mill.contrib.versionfile.VersionFileModuleTests mill.contrib.versionfile.VersionFileModuleTests.reading.releaseVersion - file ends with newline
+  mill.contrib.versionfile.VersionFileModuleTests mill.contrib.versionfile.VersionFileModuleTests.reading.nextVersion - file ends with newline

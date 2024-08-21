@@ -17,13 +17,13 @@ object IntegrationTesterTests extends TestSuite {
       val res1 = tester.eval("testTask")
       assert(res1.isSuccess)
       assert(res1.err.contains("compiling 1 Scala source")) // compiling the `build.sc`
-      assert(tester.meta("testTask").value[String] == "HELLO WORLD SOURCE FILE")
+      assert(tester.outJson("testTask").value[String] == "HELLO WORLD SOURCE FILE")
 
       tester.modifyFile(tester.workspacePath / "source-file.txt", _ + "!!!")
 
       val res2 = tester.eval("testTask")
       assert(!res2.err.contains("compiling 1 Scala source")) // no need to re-compile `build.sc`
-      assert(tester.meta("testTask").value[String] == "HELLO WORLD SOURCE FILE!!!")
+      assert(tester.outJson("testTask").value[String] == "HELLO WORLD SOURCE FILE!!!")
     }
   }
 }

@@ -35,7 +35,7 @@ object MillPluginClasspathTest extends IntegrationTestSuite {
       val res1 = eval(("--meta-level", "1", "resolveDepsExclusions"))
       assert(res1.isSuccess)
 
-      val exclusions = meta("mill-build.resolveDepsExclusions").value[Seq[(String, String)]]
+      val exclusions = outJson("mill-build.resolveDepsExclusions").value[Seq[(String, String)]]
       val expectedExclusions = embeddedModules
 
       val diff = expectedExclusions.toSet.diff(exclusions.toSet)
@@ -47,7 +47,7 @@ object MillPluginClasspathTest extends IntegrationTestSuite {
       val res1 = eval(("--meta-level", "1", "runClasspath"))
       assert(res1.isSuccess)
 
-      val runClasspath = meta("mill-build.runClasspath").value[Seq[String]]
+      val runClasspath = outJson("mill-build.runClasspath").value[Seq[String]]
 
       val unexpectedArtifacts = embeddedModules.map {
         case (o, n) => s"${o.replaceAll("[.]", "/")}/${n}"

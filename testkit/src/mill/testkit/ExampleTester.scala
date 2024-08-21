@@ -8,7 +8,12 @@ import scala.concurrent.duration.DurationInt
 import scala.concurrent.duration.FiniteDuration
 
 /**
- * Shared implementation for the tests in `example/`.
+ * A variant of [[IntegrationTester]], [[ExampleTester]] works the same way
+ * except the commands used to test the project come from a `/** Usage ... */`
+ * comment inside the project's `build.sc` file. This is intended to make the
+ * `build.sc` file usable as documentation, such that a reader can skim the `build.sc`
+ * and see both the build configuration as well as the commands they themselves can
+ * enter at the command line to exercise it.
  *
  * Implements a bash-like test DSL for educational purposes, parsed out from a
  * `Example Usage` comment in the example's `build.sc` file. Someone should be
