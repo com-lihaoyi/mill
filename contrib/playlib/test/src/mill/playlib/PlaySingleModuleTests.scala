@@ -7,6 +7,7 @@ import utest.{TestSuite, Tests, assert, _}
 object PlaySingleModuleTests extends TestSuite with PlayTestSuite {
 
   object playsingle extends TestBaseModule with PlayModule with SingleModule {
+    override val millSourcePath = os.temp() // workaround problem in `SingleModule`
     override def playVersion = T { testPlay28 }
     override def scalaVersion = T { sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???) }
     object test extends PlayTests

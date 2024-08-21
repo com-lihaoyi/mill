@@ -51,7 +51,6 @@ trait HelloWorldTests extends utest.TestSuite {
   }
 
   object HelloWorldSbt extends TestBaseModule {
-    outer =>
     object core extends SbtModule with ScoverageModule {
       def scalaVersion = testScalaVersion
       def scoverageVersion = testScoverageVersion
@@ -129,8 +128,7 @@ trait HelloWorldTests extends utest.TestSuite {
             val Right(result) = eval.apply(HelloWorld.core.scoverage.data)
 
             val resultPath = result.value.path.toIO.getPath.replace("""\""", "/")
-            val expectedEnd =
-              "/target/workspace/mill/contrib/scoverage/HelloWorldTests/eval/HelloWorld/core/scoverage/data/core/scoverage/data.dest"
+            val expectedEnd = "/out/core/scoverage/data.dest"
 
             assert(
               resultPath.endsWith(expectedEnd),
