@@ -48,10 +48,8 @@ object IntegrationTester {
      * Mill build being tested. Contains the `build.sc` file, any application code, and
      * the `out/` folder containing the build output
      */
-    val workspacePath: os.Path = os.pwd / "out" / "interation-tester-workdir"
+    val workspacePath: os.Path = os.temp.dir(os.pwd / "out" / "interation-tester-workdir", deleteOnExit = false)
 
-    os.remove.all(workspacePath)
-    os.makeDir.all(workspacePath)
     def debugLog = false
 
     /**
