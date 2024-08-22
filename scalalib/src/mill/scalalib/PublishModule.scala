@@ -313,9 +313,9 @@ object PublishModule extends ExternalModule {
       release: Boolean = false,
       sonatypeUri: String = "https://oss.sonatype.org/service/local",
       sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots",
-      readTimeout: Int = 60000,
-      connectTimeout: Int = 5000,
-      awaitTimeout: Int = 120 * 1000,
+      readTimeout: Int = 10 * 60 * 1000,
+      connectTimeout: Int = 10 * 60 * 1000,
+      awaitTimeout: Int = 10 * 60 * 1000,
       stagingRelease: Boolean = true
   ): Command[Unit] = T.command {
     val x: Seq[(Seq[(os.Path, String)], Artifact)] = T.sequence(publishArtifacts.value)().map {
