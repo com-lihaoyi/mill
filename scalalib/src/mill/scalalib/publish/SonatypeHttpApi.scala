@@ -5,7 +5,6 @@ import java.util.Base64
 import scala.annotation.tailrec
 import scala.concurrent.duration._
 
-import mill.api.Result
 import mill.main.BuildInfo
 
 class SonatypeHttpApi(
