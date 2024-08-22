@@ -37,7 +37,8 @@ private class State(workspaceDir: os.Path, evaluators: Seq[Evaluator], debug: St
   lazy val syntheticRootBspBuildTarget: Option[SyntheticRootBspBuildTargetData] =
     SyntheticRootBspBuildTargetData.makeIfNeeded(bspModulesById.values.map(_._1), workspaceDir)
 
-  def filterNonSynthetic(input: java.util.List[BuildTargetIdentifier]): java.util.List[BuildTargetIdentifier] = {
+  def filterNonSynthetic(input: java.util.List[BuildTargetIdentifier])
+      : java.util.List[BuildTargetIdentifier] = {
     import collection.JavaConverters._
     input.asScala.filterNot(syntheticRootBspBuildTarget.map(_.id).contains).toList.asJava
   }

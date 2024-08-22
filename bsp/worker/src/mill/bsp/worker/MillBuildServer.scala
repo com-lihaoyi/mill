@@ -432,7 +432,6 @@ private class MillBuildServer(
           else
             outputPaths(module.bspBuildTarget.baseDirectory.get, topLevelProjectRoot)
 
-
         new OutputPathsItem(target, items.asJava)
       }
 
