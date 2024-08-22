@@ -18,9 +18,7 @@ Many of the APIs covered here are listed in the API documentation:
 * {mill-doc-url}/api/latest/mill/main/RootModule.html[`mill.scalalib.RootModule`]
 * {mill-doc-url}/api/latest/mill/scalalib/TestModule$.html[`mill.scalalib.TestModule`]
 * {mill-doc-url}/api/latest/mill/scalalib/PublishModule.html[`mill.scalalib.PublishModule`]
-* {mill-doc-url}/api/latest/mill/scalalib/CrossScalaModule.html[`mill.scalalib.CrossScalaModule`]
 * {mill-doc-url}/api/latest/mill/scalalib/MavenModule.html[`mill.scalalib.MavenModule`]
-* {mill-doc-url}/api/latest/mill/scalalib/CrossSbtModule.html[`mill.scalalib.CrossSbtModule`]
 * {mill-doc-url}/api/latest/mill/scalalib/JavaModule.html[`mill.scalalib.JavaModule`]
 
 == Common Configuration Overrides
