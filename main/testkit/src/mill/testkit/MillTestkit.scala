@@ -15,8 +15,7 @@ import os.Path
 
 trait MillTestKit {
 
-  def defaultTargetDir: os.Path =
-    sys.env.get("MILL_TESTKIT_BASEDIR").map(os.pwd / os.RelPath(_)).getOrElse(os.temp.dir())
+  def defaultTargetDir: os.Path = os.temp.dir(os.pwd)
 
   def targetDir: os.Path = defaultTargetDir
 
@@ -100,7 +99,7 @@ trait MillTestKit {
       module.millSourcePath,
       outPath,
       outPath,
-      module,
+      Seq(module),
       logger,
       0,
       0,
@@ -113,7 +112,7 @@ trait MillTestKit {
 
     def evalTokens(args: String*): Either[Result.Failing[_], (Seq[_], Int)] = {
       mill.eval.Evaluator.currentEvaluator.withValue(evaluator) {
-        Resolve.Tasks.resolve(evaluator.rootModule, args, SelectMode.Separated)
+        Resolve.Tasks.resolve(evaluator.rootModules, args, SelectMode.Separated)
       } match {
         case Left(err) => Left(Result.Failure(err))
         case Right(resolved) => apply(resolved)

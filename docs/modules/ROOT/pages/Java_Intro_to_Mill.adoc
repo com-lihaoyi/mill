@@ -40,7 +40,7 @@ are mature widely-used tools, they have fundamental limitations in their design
 https://www.bruceeckel.com/2021/01/02/the-problem-with-gradle/[Gradle Design]) that make
 them difficult to improve upon incrementally.
 
-Compared to Maven:
+xref:Case_Study_Mill_vs_Maven.adoc[Compared to Maven]:
 
 * **Mill follows Maven's innovation of good built-in defaults**: Mill's built-in
   ``JavaModule``s follow Maven's "convention over configuration" style. Small mill
@@ -60,7 +60,7 @@ Compared to Maven:
   tend to get slow: a Maven `clean install` taking over a minute might take just a 
   few seconds in Mill.
 
-Compared to Gradle:
+xref:Case_Study_Mill_vs_Gradle.adoc[Compared to Gradle]:
 
 * **Mill follows Gradle's conciseness**: Rather than pages and pages of verbose XML, every
   line in a Mill build is meaningful. e.g. adding a dependency is 1 line in
@@ -68,12 +68,10 @@ Compared to Gradle:
   Skimming and understanding a 100-line Mill `build.sc` file is
   often much easier than skimming the equivalent 500-line Maven `pom.xml`.
 
-* **Mill builds are more easily understandable**: While the impact of a Gradle config change can
-  be hard to determine at a glance, the impact of a Mill config change is localized,
-  only affecting downstream tasks. Your IDE can navigate Mill's
-  xref:Tasks.adoc[task graph] and xref:Modules.adoc[module tree] just as easily as it can
-  navigate the method call graph in a normal Java program, something impossible in tools like
-  Maven or Gradle.
+* **Mill builds more performant**: Although both Mill and Gradle automatically cache and
+  parallelize your build, Mill does so with much less fixed overhead, resulting in 2-3x
+  speedups in common command-line workflows. This means less time waiting for your build
+  tool, and more time focusing on the things that really matter to your project.
 
 * **Mill enforces best practices by default**. All Mill tasks are cached by default, even
   custom tasks. All Mill tasks write their output to disk xref:Out_Dir.adoc[a

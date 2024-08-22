@@ -42,6 +42,7 @@ trait JavaModule
     // Run some consistence checks
     hierarchyChecks()
 
+    override def resources = super[JavaModule].resources
     override def moduleDeps: Seq[JavaModule] = Seq(outer)
     override def repositoriesTask: Task[Seq[Repository]] = outer.repositoriesTask
     override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
@@ -532,7 +533,7 @@ trait JavaModule
    * Resolved dependencies based on [[transitiveIvyDeps]] and [[transitiveCompileIvyDeps]].
    */
   def resolvedIvyDeps: T[Agg[PathRef]] = T {
-    resolveDeps(T.task { transitiveCompileIvyDeps() ++ transitiveIvyDeps() })()
+    defaultResolver().resolveDeps(transitiveCompileIvyDeps() ++ transitiveIvyDeps())
   }
 
   /**
@@ -544,7 +545,7 @@ trait JavaModule
   }
 
   def resolvedRunIvyDeps: T[Agg[PathRef]] = T {
-    resolveDeps(T.task { runIvyDeps().map(bindDependency()) ++ transitiveIvyDeps() })()
+    defaultResolver().resolveDeps(runIvyDeps().map(bindDependency()) ++ transitiveIvyDeps())
   }
 
   /**
@@ -1009,19 +1010,18 @@ trait JavaModule
   override def prepareOffline(all: Flag): Command[Unit] = {
     val tasks =
       if (all.value) Seq(
-        resolveDeps(
-          T.task {
-            transitiveCompileIvyDeps() ++ transitiveIvyDeps()
-          },
-          sources = true
-        ),
-        resolveDeps(
-          T.task {
-            val bind = bindDependency()
-            runIvyDeps().map(bind) ++ transitiveIvyDeps()
-          },
-          sources = true
-        )
+        T.task {
+          defaultResolver().resolveDeps(
+            transitiveCompileIvyDeps() ++ transitiveIvyDeps(),
+            sources = true
+          )
+        },
+        T.task {
+          defaultResolver().resolveDeps(
+            runIvyDeps().map(bindDependency()) ++ transitiveIvyDeps(),
+            sources = true
+          )
+        }
       )
       else Seq()
 

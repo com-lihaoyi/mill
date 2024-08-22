@@ -18,7 +18,7 @@ object qux extends ScalaModule {
   def moduleDeps = Seq(baz)
 
   object test extends ScalaTests {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.11")
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
     def testFramework = "utest.runner.Framework"
     def moduleDeps = super.moduleDeps ++ Seq(baz.test)
   }
@@ -29,7 +29,7 @@ object baz extends ScalaModule {
   def scalaVersion = "2.13.8"
 
   object test extends ScalaTests {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.11")
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
     def testFramework = "utest.runner.Framework"
   }
 }
@@ -54,3 +54,4 @@ Using BazTestUtils.bazAssertEquals
 ...
 
 */
+

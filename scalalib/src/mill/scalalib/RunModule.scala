@@ -3,6 +3,7 @@ package mill.scalalib
 import mill.api.JsonFormatters.pathReadWrite
 import mill.api.{Ctx, PathRef, Result}
 import mill.define.{Command, Task}
+import mill.main.client.EnvVars
 import mill.util.Jvm
 import mill.{Agg, Args, T}
 import os.{Path, ProcessOutput}
@@ -161,7 +162,7 @@ trait RunModule extends WithZincWorker {
 
       // Make sure to sleep a bit in the Mill test suite to allow the servers we
       // start time to initialize before we proceed with the following commands
-      if (T.env.contains("MILL_TEST_SUITE")) {
+      if (T.env.contains(EnvVars.MILL_TEST_SUITE)) {
         println("runBackgroundTask SLEEPING 10000")
         Thread.sleep(5000)
       }

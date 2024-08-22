@@ -10,11 +10,10 @@ object foo extends RootModule with JavaModule {
 
   object test extends JavaTests with TestModule.Junit4{
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"com.google.guava:guava:33.2.1-jre"
+      ivy"com.google.guava:guava:33.3.0-jre"
     )
   }
 }
-
 
 // This is a basic Mill build for a single `JavaModule`, with two
 // third-party dependencies and a test suite using the JUnit framework. As a
@@ -72,7 +71,7 @@ error: argument -t/--text is required
 ...
 Test foo.FooTest.testEscaping finished, ...
 Test foo.FooTest.testSimple finished, ...
-Test run finished: 0 failed, 0 ignored, 2 total, ...
+Test run foo.FooTest finished: 0 failed, 0 ignored, 2 total, ...
 
 > ./mill assembly # bundle classfiles and libraries into a jar for deployment
 

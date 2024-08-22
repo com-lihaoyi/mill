@@ -11,7 +11,7 @@ object foo extends RootModule with ScalaModule {
 
   object test extends ScalaTests {
     def ivyDeps = Agg(
-      ivy"com.lihaoyi::utest:0.7.11",
+      ivy"com.lihaoyi::utest:0.8.4",
       ivy"org.scalatest::scalatest-freespec:3.2.18"
     )
     def testFramework = "utest.runner.Framework"

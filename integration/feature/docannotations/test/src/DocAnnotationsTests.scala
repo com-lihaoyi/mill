@@ -37,7 +37,6 @@ object DocAnnotationsTests extends IntegrationTestSuite {
 
       assert(eval("inspect", "core.target"))
       val target = ujson.read(meta("inspect"))("value").str
-      pprint.log(target)
       assert(
         globMatches(
           """core.target(build.sc:...)

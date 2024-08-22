@@ -3,7 +3,7 @@
 :idseparator: -
 :link-github: https://github.com/com-lihaoyi/mill
 :link-gitter: https://gitter.im/lihaoyi/mill
-:link-current-doc-site: https://mill-build.com
+:link-current-doc-site: https://mill-build.org
 :link-mill-moduledefs: https://github.com/com-lihaoyi/mill-moduledefs
 :example-scala-version: 3.3.4
 :toc:
@@ -24,7 +24,7 @@ endif::[]
 https://index.scala-lang.org/com-lihaoyi/mill/mill-main[image:https://index.scala-lang.org/com-lihaoyi/mill/mill-main/latest.svg[Mill]]
 https://www.patreon.com/lihaoyi[image:https://img.shields.io/badge/patreon-sponsor-ff69b4.svg[Patreon]]
 
-Mill is a graph-based JVM build tool that supports Java and Scala. Mill aims to make your 
+Mill is a fast JVM build tool that supports Java and Scala. Mill aims to make your 
 project’s build process performant, maintainable, and flexible.
 
 == Documentation
@@ -198,6 +198,22 @@ $ ./mill installLocal --binFile /tmp/mill --ivyRepo /tmp/millRepo
 ...
 Published 44 modules and installed /tmp/mill
 ----
+=== Testing Documentation Changes
+
+For testing documentation changes locally, you can generate documentation for the current checkout via
+
+[source,bash]
+----
+$ ./mill docs.fastPages
+----
+
+To generate documentation for both the current checkout and earlier versions, you can use
+
+
+[source,bash]
+----
+$ ./mill docs.localPages
+----
 
 === Troubleshooting
 
@@ -286,19 +302,50 @@ endif::[]
 // find-replace-regex: https://github.com/com-lihaoyi/mill/pull/(\d*) -> {link-pr}/$1[#$1]
 
 
-[#0-11-11]
-=== 0.11.11 - 2024-07-31
-:version: 0.11.11
-:milestone-name: 0.11.11
-:milestone: 96
-:prev-version: 0.11.10
+[#0-11-12]
+=== 0.11.12 - 2024-08-20
+:version: 0.11.12
+:milestone-name: 0.11.12
+:milestone: 99
+:prev-version: 0.11.11
 
 _Changes since {prev-version}:_
 
-* Overhaul of the documentation site at https://mill-build.com
+* Bump uTest to 0.8.4 {link-pr}/3340[#3340]
+* Manage TestModule dependencies via `build.sc` {link-pr}/3320[#3320]
+* Fix the warning not being printed when -i/--interactive/--no-server/--bsp are not the first argument {link-pr}/3346[#3346]
+* GenIdea: Make Scala SDK specific for JS / Native {link-pr}/3348[#3348]
+* CI: Adapt CI for 0.11.x branch {link-pr}/3350[#3350]
+* GenIdea: unroll module dependencies {link-pr}/3358[#3358]
+* Print pretty error message when Result.Failure is thrown {link-pr}/3393[#3393]
+* Avoid spurious deprecation warnings in generated code {link-pr}/3400[#3400]
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+[#0-11-11]
+=== 0.11.11 - 2024-08-05
+:version: 0.11.11
+:milestone-name: 0.11.11
+:milestone: 98
+:prev-version: 0.11.10
+
+*_We initially tagged `0.11.11` on 2024-11-31 but never published the released due to technical issues. On 2024-08-05 we re-tagged and published `0.11.11`._*
+
+_Changes since {prev-version}:_
+
+* Workaround issue in Sonatype which started failing on double slashes in URLs
+  (even though they previously worked) https://github.com/com-lihaoyi/mill/commit/a293b46e80e37572bae46ef6225f41f547a5b238[Link]
+* Overhaul of the documentation site at https://mill-build.org
 * New Java- and Scala-specific sections on the documentation, with more detailed
   comparisons to existing build tools
 * Added graphviz diagrams throughout to help the user in visualizing the concepts involved
+* Update versions of JUnit sbt-test-interface libraries that Mill uses 
+  {link-pr}/3296[#3296]
+* Make it simpler to resolve dependencies in custom tasks via `defaultResolver().resolveDeps`
+  {link-pr}/3330[#3330]
+
 
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]

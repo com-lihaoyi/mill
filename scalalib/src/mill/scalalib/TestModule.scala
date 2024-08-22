@@ -1,6 +1,7 @@
 package mill.scalalib
 
 import mill.api.{Ctx, PathRef, Result}
+import mill.main.client.EnvVars
 import mill.define.{Command, Task, TaskModule}
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.testrunner.{Framework, TestArgs, TestResult, TestRunner, TestRunnerUtils}
@@ -124,6 +125,16 @@ trait TestModule
   def testReportXml: T[Option[String]] = T(Some("test-report.xml"))
 
   /**
+   * Whether or not to use the test task destination folder as the working directory
+   * when running tests. `true` means test subprocess run in the `.dest/sandbox` folder of
+   * the test task, providing better isolation and encouragement of best practices
+   * (e.g. not reading/writing stuff randomly from the project source tree). `false`
+   * means the test subprocess runs in the project root folder, providing weaker
+   * isolation.
+   */
+  def testSandboxWorkingDir: T[Boolean] = true
+
+  /**
    * The actual task shared by `test`-tasks that runs test in a forked JVM.
    */
   protected def testTask(
@@ -173,6 +184,7 @@ trait TestModule
       os.write(argsFile, upickle.default.write(testArgs))
       val mainArgs = Seq(testRunnerClasspathArg, argsFile.toString)
 
+      os.makeDir(T.dest / "sandbox")
       Jvm.runSubprocess(
         mainClass = "mill.testrunner.entrypoint.TestRunnerMain",
         classPath =
@@ -180,9 +192,11 @@ trait TestModule
             _.path
           ),
         jvmArgs = jvmArgs,
-        envArgs = forkEnv(),
+        envArgs =
+          Map(EnvVars.MILL_TEST_RESOURCE_FOLDER -> resources().map(_.path).mkString(";")) ++
+            forkEnv(),
         mainArgs = mainArgs,
-        workingDir = forkWorkingDir(),
+        workingDir = if (testSandboxWorkingDir()) T.dest / "sandbox" else forkWorkingDir(),
         useCpPassingJar = useArgsFile
       )
 
@@ -256,7 +270,7 @@ object TestModule {
   trait Junit4 extends TestModule {
     override def testFramework: T[String] = "com.novocode.junit.JUnitFramework"
     override def ivyDeps: T[Agg[Dep]] = T {
-      super.ivyDeps() ++ Agg(ivy"com.novocode:junit-interface:0.11")
+      super.ivyDeps() ++ Agg(ivy"${mill.scalalib.api.Versions.sbtTestInterface}")
     }
   }
 
@@ -265,9 +279,9 @@ object TestModule {
    * You may want to provide the junit dependency explicitly to use another version.
    */
   trait Junit5 extends TestModule {
-    override def testFramework: T[String] = "net.aichler.jupiter.api.JupiterFramework"
+    override def testFramework: T[String] = "com.github.sbt.junit.jupiter.api.JupiterFramework"
     override def ivyDeps: T[Agg[Dep]] = T {
-      super.ivyDeps() ++ Agg(ivy"net.aichler:jupiter-interface:0.9.0")
+      super.ivyDeps() ++ Agg(ivy"${mill.scalalib.api.Versions.jupiterInterface}")
     }
   }
 
@@ -374,6 +388,7 @@ object TestModule {
 
   trait JavaModuleBase extends BspModule {
     def ivyDeps: T[Agg[Dep]] = Agg.empty[Dep]
+    def resources: T[Seq[PathRef]] = T { Seq.empty[PathRef] }
   }
 
   trait ScalaModuleBase extends mill.Module {

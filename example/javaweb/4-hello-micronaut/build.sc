@@ -22,19 +22,21 @@ object hello extends RootModule with MicronautModule {
 trait MicronautModule extends MavenModule{
   def micronautVersion: String
 
-  object processors extends JavaModule{
-    def ivyDeps = Agg(
-      ivy"io.micronaut.data:micronaut-data-processor:4.7.0",
-      ivy"io.micronaut:micronaut-http-validation:$micronautVersion",
-      ivy"io.micronaut.serde:micronaut-serde-processor:2.9.0",
-      ivy"io.micronaut.validation:micronaut-validation-processor:4.5.0",
-      ivy"io.micronaut:micronaut-inject-java:$micronautVersion"
+  def processors = T{
+    defaultResolver().resolveDeps(
+      Agg(
+        ivy"io.micronaut.data:micronaut-data-processor:4.7.0",
+        ivy"io.micronaut:micronaut-http-validation:$micronautVersion",
+        ivy"io.micronaut.serde:micronaut-serde-processor:2.9.0",
+        ivy"io.micronaut.validation:micronaut-validation-processor:4.5.0",
+        ivy"io.micronaut:micronaut-inject-java:$micronautVersion"
+      )
     )
   }
 
   def javacOptions = Seq(
     "-processorpath",
-    processors.runClasspath().map(_.path).mkString(":"),
+    processors().map(_.path).mkString(":"),
     "-parameters",
     "-Amicronaut.processing.incremental=true",
     "-Amicronaut.processing.group=example.micronaut",
@@ -68,7 +70,7 @@ trait MicronautModule extends MavenModule{
 
 > mill runBackground
 
-> curl http://localhost:8087/hello
+> curl http://localhost:8088/hello
 ...Hello World...
 
 > mill clean runBackground
