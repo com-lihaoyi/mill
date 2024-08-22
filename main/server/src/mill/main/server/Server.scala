@@ -6,7 +6,7 @@ import scala.jdk.CollectionConverters._
 import org.newsclub.net.unix.AFUNIXServerSocket
 import org.newsclub.net.unix.AFUNIXSocketAddress
 import mill.main.client._
-import mill.api.SystemStreams
+import mill.api.{Result, SystemStreams}
 import mill.main.client.ProxyStream.Output
 import mill.main.client.lock.{Lock, Locks}
 
@@ -63,7 +63,7 @@ abstract class Server[T](
           }
         ) ()
 
-      }.getOrElse(throw new Exception("Mill server process already present"))
+      }.getOrElse(throw Result.Failure("Mill server process already present"))
     finally exitServer()
   }
 

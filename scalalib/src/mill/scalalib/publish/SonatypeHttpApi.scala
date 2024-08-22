@@ -5,10 +5,8 @@ import java.util.Base64
 import scala.annotation.tailrec
 import scala.concurrent.duration._
 
+import mill.api.Result
 import mill.main.BuildInfo
-import requests.BaseSession
-import ujson.ParseException
-import requests.Session
 
 class SonatypeHttpApi(
     uri: String,
@@ -16,7 +14,7 @@ class SonatypeHttpApi(
     readTimeout: Int,
     connectTimeout: Int
 ) {
-  val http: Session = requests.Session(
+  val http: requests.Session = requests.Session(
     readTimeout = readTimeout,
     connectTimeout = connectTimeout,
     maxRedirects = 0,
@@ -29,7 +27,9 @@ class SonatypeHttpApi(
     "Authorization" -> s"Basic $base64Creds",
     "Accept" -> "application/json",
     "Content-Type" -> "application/json",
-    "User-Agent" -> s"mill-${BuildInfo.millVersion}${BaseSession.defaultHeaders.get("User-Agent").map(" (" + _ + ")").getOrElse("")}"
+    "User-Agent" -> s"mill-${BuildInfo.millVersion}${requests.BaseSession.defaultHeaders.get(
+        "User-Agent"
+      ).map(" (" + _ + ")").getOrElse("")}"
   )
 
   // https://oss.sonatype.org/nexus-staging-plugin/default/docs/path__staging_profiles.html
@@ -42,7 +42,7 @@ class SonatypeHttpApi(
     )
 
     if (!response.is2xx) {
-      throw new Exception(s"$uri/staging/profiles returned ${response.statusCode}")
+      throw Result.Failure(s"$uri/staging/profiles returned ${response.statusCode}")
     }
 
     val resourceUri =
@@ -67,7 +67,7 @@ class SonatypeHttpApi(
     try {
       ujson.read(response.text())("type").str
     } catch {
-      case e: ParseException =>
+      case e: ujson.ParseException =>
         throw new RuntimeException(
           s"Could not parse HTTP response. ${e.getMessage()}" + "\n" + s"Raw response: ${response}",
           e

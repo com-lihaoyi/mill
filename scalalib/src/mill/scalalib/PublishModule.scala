@@ -20,7 +20,7 @@ trait PublishModule extends JavaModule { outer =>
   override def moduleDeps: Seq[PublishModule] = super.moduleDeps.map {
     case m: PublishModule => m
     case other =>
-      throw new Exception(
+      throw Result.Failure(
         s"PublishModule moduleDeps need to be also PublishModules. $other is not a PublishModule"
       )
   }
