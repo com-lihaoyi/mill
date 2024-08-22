@@ -84,7 +84,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
         item.setMainClasses(classes.map(new JvmMainClass(_, Nil.asJava)).asJava)
         item
     } {
-      agg(_)
+      agg
     }
   }
 
