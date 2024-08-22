@@ -47,8 +47,12 @@ object IntegrationTester {
      * The working directory of the integration test suite, which is the root of the
      * Mill build being tested. Contains the `build.sc` file, any application code, and
      * the `out/` folder containing the build output
+     *
+     * Make sure it lives inside `os.pwd` because somehow the tests fail on windows
+     * if it lives in the global temp folder.
      */
-    val workspacePath: os.Path = os.temp.dir(os.pwd / "out" / "interation-tester-workdir", deleteOnExit = false)
+    val workspacePath: os.Path =
+      os.temp.dir(os.pwd / "out" / "interation-tester-workdir", deleteOnExit = false)
 
     def debugLog = false
 
