@@ -61,11 +61,11 @@ private[mill] class BspContext(
 
       override def rawOutputStream: PrintStream = systemStreams.out
     }
-    val workspace = os.pwd
-    BspWorker(workspace, home, log).flatMap { worker =>
+
+    BspWorker(mill.api.WorkspaceRoot.workspaceRoot, home, log).flatMap { worker =>
       os.makeDir.all(home / Constants.bspDir)
       worker.startBspServer(
-        workspace,
+        mill.api.WorkspaceRoot.workspaceRoot,
         streams,
         logStream.getOrElse(streams.err),
         home / Constants.bspDir,
