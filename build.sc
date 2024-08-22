@@ -1232,18 +1232,16 @@ object example extends Module {
     }
     def testRepoRoot = T{
       os.copy.over(super.testRepoRoot().path, T.dest)
-      os.write.over(T.dest / "build.sc", buildScLines().mkString("\n"))
+      for(lines <- buildScLines()) os.write.over(T.dest / "build.sc", lines.mkString("\n"))
       PathRef(T.dest)
     }
     def buildScLines =
       upstreamCross(
         this.millModuleSegments.parts.dropRight(1).last
       ).valuesToModules.get(List(crossValue)) match {
-        case None =>
-          T {
-            super.buildScLines()
-          }
+        case None => T {None}
         case Some(upstream) => T {
+          Some {
             val upstreamLines = os.read.lines(
               upstream
                 .testRepoRoot().path / "build.sc"
@@ -1276,6 +1274,7 @@ object example extends Module {
                 else Some(s)
             }
           }
+        }
       }
   }
   trait ExampleCrossModule extends IntegrationTestCrossModule {
@@ -1285,7 +1284,6 @@ object example extends Module {
 
     def compile = testkit.compile()
 
-    def buildScLines = T { os.read.lines(testRepoRoot().path / "build.sc") }
     def forkEnv = super.forkEnv() ++ Map(
       "MILL_EXAMPLE_PARSED" -> upickle.default.write(parsed()),
       "LANG" -> "C"

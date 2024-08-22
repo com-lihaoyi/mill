@@ -1,6 +1,6 @@
 package mill.testkit
 
-object ExampleParser{
+object ExampleParser {
   def apply(testRepoRoot: os.Path): Seq[(String, String)] = {
 
     val states = collection.mutable.Buffer("scala")
