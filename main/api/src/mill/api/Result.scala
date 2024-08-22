@@ -72,6 +72,7 @@ object Result {
    * @tparam T The result type of the computed task.
    */
   case class Failure[T](msg: String, value: Option[T] = None) extends Failing[T] {
+    override def getMessage(): String = msg
     def map[V](f: T => V): Failure[V] = Result.Failure(msg, value.map(f(_)))
     def flatMap[V](f: T => Result[V]): Failure[V] =
       Failure(msg, value.flatMap(f(_).asSuccess.map(_.value)))
