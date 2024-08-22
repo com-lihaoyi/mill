@@ -10,7 +10,10 @@ class TestBaseModule(implicit
     millModuleLine0: sourcecode.Line,
     millModuleFile0: sourcecode.File
 ) extends mill.define.BaseModule(
-      os.temp.dir(os.pwd / "out" / "mill-test-base-module", deleteOnExit = false)
+      {
+        os.makeDir.all(os.pwd / "out" / "mill-test-base-module")
+        os.temp.dir(os.pwd / "out" / "mill-test-base-module", deleteOnExit = false)
+      }
     )(
       millModuleEnclosing0,
       millModuleLine0,
