@@ -302,6 +302,28 @@ endif::[]
 // find-replace-regex: https://github.com/com-lihaoyi/mill/pull/(\d*) -> {link-pr}/$1[#$1]
 
 
+[#0-11-12]
+=== 0.11.12 - 2024-08-20
+:version: 0.11.12
+:milestone-name: 0.11.12
+:milestone: 99
+:prev-version: 0.11.11
+
+_Changes since {prev-version}:_
+
+* Bump uTest to 0.8.4 {link-pr}/3340[#3340]
+* Manage TestModule dependencies via `build.sc` {link-pr}/3320[#3320]
+* Fix the warning not being printed when -i/--interactive/--no-server/--bsp are not the first argument {link-pr}/3346[#3346]
+* GenIdea: Make Scala SDK specific for JS / Native {link-pr}/3348[#3348]
+* CI: Adapt CI for 0.11.x branch {link-pr}/3350[#3350]
+* GenIdea: unroll module dependencies {link-pr}/3358[#3358]
+* Print pretty error message when Result.Failure is thrown {link-pr}/3393[#3393]
+* Avoid spurious deprecation warnings in generated code {link-pr}/3400[#3400]
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
 [#0-11-11]
 === 0.11.11 - 2024-08-05
 :version: 0.11.11
