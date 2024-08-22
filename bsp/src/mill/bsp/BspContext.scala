@@ -65,6 +65,7 @@ private[mill] class BspContext(
     BspWorker(mill.api.WorkspaceRoot.workspaceRoot, home, log).flatMap { worker =>
       os.makeDir.all(home / Constants.bspDir)
       worker.startBspServer(
+        mill.api.WorkspaceRoot.workspaceRoot,
         streams,
         logStream.getOrElse(streams.err),
         home / Constants.bspDir,
