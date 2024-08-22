@@ -1230,7 +1230,11 @@ object example extends Module {
       case "javabuilds" => scalabuilds
       case "javamodule" => scalamodule
     }
-
+    def testRepoRoot = T{
+      os.copy.over(super.testRepoRoot().path, T.dest)
+      os.write.over(T.dest / "build.sc", buildScLines().mkString("\n"))
+      PathRef(T.dest)
+    }
     def buildScLines =
       upstreamCross(
         this.millModuleSegments.parts.dropRight(1).last
@@ -1244,7 +1248,7 @@ object example extends Module {
               upstream
                 .testRepoRoot().path / "build.sc"
             )
-            val lines = os.read.lines(testRepoRoot().path / "build.sc")
+            val lines = os.read.lines(super.testRepoRoot().path / "build.sc")
 
             import collection.mutable
             val groupedLines = mutable.Map.empty[String, mutable.Buffer[String]]
@@ -1278,6 +1282,7 @@ object example extends Module {
     // disable scalafix because these example modules don't have sources causing it to misbehave
     def fix(args: String*): Command[Unit] = T.command {}
     def testRepoRoot: T[PathRef] = T.source(millSourcePath)
+
     def compile = testkit.compile()
 
     def buildScLines = T { os.read.lines(testRepoRoot().path / "build.sc") }
@@ -1290,7 +1295,7 @@ object example extends Module {
      * Parses a `build.sc` for specific comments and return the split-by-type content
      */
     def parsed: T[Seq[(String, String)]] = T {
-      mill.testkit.ExampleParser(Some(buildScLines()), testRepoRoot().path / "build.sc")
+      mill.testkit.ExampleParser(testRepoRoot().path)
     }
 
     def rendered = T {

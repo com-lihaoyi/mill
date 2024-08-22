@@ -261,8 +261,7 @@ class ExampleTester(
   }
 
   def run(): Any = {
-
-    val parsed = ExampleParser(None, workspaceSourcePath)
+    val parsed = ExampleParser(workspaceSourcePath)
     val usageComment = parsed.collect { case ("example", txt) => txt }.mkString("\n\n")
     val commandBlocks = ("\n" + usageComment.trim).split("\n> ").filter(_.nonEmpty)
 

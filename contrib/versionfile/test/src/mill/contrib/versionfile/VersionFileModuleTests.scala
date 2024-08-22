@@ -65,7 +65,7 @@ object VersionFileModuleTests extends TestSuite {
 
       test("nextVersion") - workspaceTest(versions: _*) { eval =>
         val Right(out) = eval(TestModule.versionFile.nextVersion(minor))
-        assert(out == Version.Snapshot(1, 3, 0))
+        assert(out.value == Version.Snapshot(1, 3, 0))
       }
 
       test("currentVersion - file ends with newline") - workspaceTestEndsWithNewline0(
