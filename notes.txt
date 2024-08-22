@@ -1,6 +1,0 @@
-contrib.bloop.test.test 13 tests failed:
-  mill.contrib.bloop.BloopTests mill.contrib.bloop.BloopTests.genBloopTests.no-compilation
-  mill.contrib.bloop.BloopTests mill.contrib.bloop.BloopTests.genBloopTests.scalaModule
-  mill.contrib.bloop.BloopTests mill.contrib.bloop.BloopTests.genBloopTests.scalaModuleTest
-  mill.contrib.bloop.BloopTests mill.contrib.bloop.BloopTests.genBloopTests.configAccessTest
-  mill.contrib.bloop.BloopTests mill.contrib.bloop.BloopTests.genBloopTests.noDepTest
