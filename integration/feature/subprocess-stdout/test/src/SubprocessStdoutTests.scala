@@ -66,7 +66,7 @@ object SubprocessStdoutTests extends IntegrationTestSuite {
         // For `fork` tests, which represent `-i`/`--interactive`/`--no-server`, the output should
         // be properly ordered since it all comes directly from the stdout/stderr of the same process
         assert(
-          res2.contains(
+          res2.replaceAll("\r\n", "\n").contains(
             """print stdoutRaw
               |proc stdoutRaw
               |print stderrRaw
@@ -82,7 +82,7 @@ object SubprocessStdoutTests extends IntegrationTestSuite {
             |print stderrRaw
             |proc stdoutRaw
             |proc stderrRaw""".stripMargin.replaceAll("\r\n", "\n").linesIterator.toSet.subsetOf(
-            res2.linesIterator.toSet
+            res2.replaceAll("\r\n", "\n").linesIterator.toSet
           )
         )
       }
