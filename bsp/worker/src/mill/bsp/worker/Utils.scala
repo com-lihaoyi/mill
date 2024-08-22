@@ -88,43 +88,24 @@ private object Utils {
   }
 
   def outputPaths(
-      outDir: os.Path,
       buildTargetBaseDir: os.Path,
       topLevelProjectRoot: os.Path
   ): Seq[OutputPathItem] = {
-    val output = new OutputPathItem(
-      // Spec says, a directory must end with a forward slash
-      sanitizeUri(outDir) + "/",
-      OutputPathItemKind.DIRECTORY
-    )
 
-    def ignore(path: os.Path): Boolean = {
-      path.last.startsWith(".") ||
-      path.last == "out" ||
-      path.last == "target"
-    }
-
-    def projectsRootPaths = os.walk(topLevelProjectRoot, ignore).collect {
-      case p if p.endsWith(os.RelPath("build.sc")) => p / os.up
-    }
     def outputPathItem(path: os.Path) =
-      new OutputPathItem(
-        // Spec says, a directory must end with a forward slash
-        sanitizeUri(path) + "/",
-        OutputPathItemKind.DIRECTORY
-      )
-    def additionalExclusions = projectsRootPaths.flatMap { path =>
+      // Spec says, a directory must end with a forward slash 
+      new OutputPathItem(sanitizeUri(path) + "/", OutputPathItemKind.DIRECTORY)
+
+    if (topLevelProjectRoot.startsWith(buildTargetBaseDir))
       Seq(
-        outputPathItem(path / ".idea"),
-        outputPathItem(path / "out"),
-        outputPathItem(path / ".bsp"),
-        outputPathItem(path / ".bloop")
+        outputPathItem(topLevelProjectRoot / ".idea"),
+        outputPathItem(topLevelProjectRoot / "out"),
+        outputPathItem(topLevelProjectRoot / ".bsp"),
+        outputPathItem(topLevelProjectRoot / ".bloop")
       )
-    }
-    output +: (if (topLevelProjectRoot.startsWith(buildTargetBaseDir)) {
-                 additionalExclusions
-               } else Nil)
+    else Nil
   }
+
   private[this] def getStatusCodePerTask(
       results: Evaluator.Results,
       task: mill.define.Task[_]

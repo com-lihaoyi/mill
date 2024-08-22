@@ -419,7 +419,7 @@ private class MillBuildServer(
         synthTarget <- state.syntheticRootBspBuildTarget
         if params.getTargets.contains(synthTarget.id)
         baseDir <- synthTarget.bt.baseDirectory
-      } yield new OutputPathsItem(synthTarget.id, outputPaths(baseDir / "out", baseDir, topLevelProjectRoot).asJava)
+      } yield new OutputPathsItem(synthTarget.id, outputPaths(baseDir, topLevelProjectRoot).asJava)
 
       val items = for {
         target <- params.getTargets.asScala
@@ -429,12 +429,11 @@ private class MillBuildServer(
           module match {
             case external if external.millOuterCtx.external =>
               outputPaths(
-                ev.externalOutPath,
                 module.bspBuildTarget.baseDirectory.get,
                 topLevelProjectRoot
               )
             case _ =>
-              outputPaths(ev.outPath, module.bspBuildTarget.baseDirectory.get, topLevelProjectRoot)
+              outputPaths(module.bspBuildTarget.baseDirectory.get, topLevelProjectRoot)
           }
         }
 
