@@ -45,6 +45,7 @@ object IntegrationTester {
 
     private val workspacePathBase = os.pwd / "out" / "interation-tester-workdir"
     os.makeDir.all(workspacePathBase)
+
     /**
      * The working directory of the integration test suite, which is the root of the
      * Mill build being tested. Contains the `build.sc` file, any application code, and
