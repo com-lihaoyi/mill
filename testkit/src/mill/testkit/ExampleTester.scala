@@ -49,6 +49,15 @@ import scala.concurrent.duration.FiniteDuration
  * interpreter that reads the command lines and does things in-JVM in response
  * to each one.
  */
+object ExampleTester {
+  def run(clientServerMode: Boolean, workspaceSourcePath: os.Path, millExecutable: os.Path) =
+    new ExampleTester(
+      clientServerMode,
+      workspaceSourcePath,
+      millExecutable
+    ).run()
+}
+
 class ExampleTester(
     clientServerMode: Boolean,
     workspaceSourcePath: os.Path,
