@@ -50,7 +50,7 @@ import scala.concurrent.duration.FiniteDuration
  * to each one.
  */
 object ExampleTester {
-  def run(clientServerMode: Boolean, workspaceSourcePath: os.Path, millExecutable: os.Path) =
+  def run(clientServerMode: Boolean, workspaceSourcePath: os.Path, millExecutable: os.Path): Unit =
     new ExampleTester(
       clientServerMode,
       workspaceSourcePath,
