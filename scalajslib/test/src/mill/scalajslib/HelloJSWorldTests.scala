@@ -161,8 +161,11 @@ object HelloJSWorldTests extends TestSuite {
         val Right(result) =
           eval(HelloJSWorld.build(scala, scalaJS).jar)
         val jar = result.value.path
-        val entries = new JarFile(jar.toIO).entries().asScala.map(_.getName)
-        assert(entries.contains("Main$.sjsir"))
+        val jarFile = new JarFile(jar.toIO)
+        try {
+          val entries = jarFile.entries().asScala.map(_.getName)
+          assert(entries.contains("Main$.sjsir"))
+        }finally jarFile.close()
       }
     }
     test("publish") {
