@@ -38,7 +38,7 @@ trait ZincWorkerUtil {
 
     classPath.iterator
       .find(pathRef => mavenStyleMatch(pathRef.path.last) || ivyStyleMatch(pathRef.path))
-      .getOrElse(throw Result.Failure(
+      .getOrElse(throw new Exception(
         s"Cannot find **/$name-$versionPrefix*$suffix or **/$versionPrefix*/$dir/$name$suffix in ${classPath.iterator.mkString("[", ", ", "]")}"
       ))
   }

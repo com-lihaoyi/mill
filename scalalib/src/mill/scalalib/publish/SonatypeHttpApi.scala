@@ -42,7 +42,7 @@ class SonatypeHttpApi(
     )
 
     if (!response.is2xx) {
-      throw Result.Failure(s"$uri/staging/profiles returned ${response.statusCode}")
+      throw new Exception(s"$uri/staging/profiles returned ${response.statusCode}")
     }
 
     val resourceUri =

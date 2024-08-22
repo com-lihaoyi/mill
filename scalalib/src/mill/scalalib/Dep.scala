@@ -1,7 +1,6 @@
 package mill.scalalib
 
 import coursier.core.{Configuration, Dependency}
-import mill.api.Result
 import mill.scalalib.CrossVersion._
 import mill.scalalib.api.ZincWorkerUtil
 import upickle.default.{macroRW, ReadWriter => RW}
@@ -110,8 +109,8 @@ object Dep {
       s.split('=') match {
         case Array("classifier", v) => as.withClassifier(coursier.Classifier(v))
         case Array("type", v) => as.withType(coursier.Type(v))
-        case Array(k, v) => throw Result.Failure(s"Unrecognized attribute: [$s]")
-        case _ => throw Result.Failure(s"Unable to parse attribute specifier: [$s]")
+        case Array(k, v) => throw new Exception(s"Unrecognized attribute: [$s]")
+        case _ => throw new Exception(s"Unable to parse attribute specifier: [$s]")
       }
     }
     (module.split(':') match {
@@ -121,7 +120,7 @@ object Dep {
       case Array(a, "", b, "", c) => Dep(a, b, c, cross = Binary(platformed = true))
       case Array(a, "", "", b, c) => Dep(a, b, c, cross = Full(platformed = false))
       case Array(a, "", "", b, "", c) => Dep(a, b, c, cross = Full(platformed = true))
-      case _ => throw Result.Failure(s"Unable to parse signature: [$signature]")
+      case _ => throw new Exception(s"Unable to parse signature: [$signature]")
     }).configure(attributes = attributes)
   }
   def apply(

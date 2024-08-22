@@ -185,8 +185,7 @@ object Jvm extends CoursierSupport {
       Runtime.getRuntime().removeShutdownHook(shutdownHook)
     }
     if (process.exitCode() == 0) ()
-    else
-      throw Result.Failure("Interactive Subprocess Failed (exit code " + process.exitCode() + ")")
+    else throw new Exception("Interactive Subprocess Failed (exit code " + process.exitCode() + ")")
   }
 
   /**
