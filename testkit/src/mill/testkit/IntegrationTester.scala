@@ -43,6 +43,8 @@ object IntegrationTester {
 
     val clientServerMode: Boolean
 
+    private val workspacePathBase = os.pwd / "out" / "interation-tester-workdir"
+    os.makeDir.all(workspacePathBase)
     /**
      * The working directory of the integration test suite, which is the root of the
      * Mill build being tested. Contains the `build.sc` file, any application code, and
@@ -52,7 +54,7 @@ object IntegrationTester {
      * if it lives in the global temp folder.
      */
     val workspacePath: os.Path =
-      os.temp.dir(os.pwd / "out" / "interation-tester-workdir", deleteOnExit = false)
+      os.temp.dir(workspacePathBase, deleteOnExit = false)
 
     def debugLog = false
 
