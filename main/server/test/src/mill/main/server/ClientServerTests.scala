@@ -199,6 +199,7 @@ object ClientServerTests extends TestSuite {
       }
 
       val s"Force failure for testing: $pathStr" = res1.getMessage
+      Thread.sleep(100) // give a moment for logs to all turn up on disk
       val logLines = os.read.lines(os.Path(pathStr, os.pwd) / "server.log")
 
       assert(
