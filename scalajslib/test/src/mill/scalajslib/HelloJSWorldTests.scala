@@ -165,7 +165,7 @@ object HelloJSWorldTests extends TestSuite {
         try {
           val entries = jarFile.entries().asScala.map(_.getName)
           assert(entries.contains("Main$.sjsir"))
-        }finally jarFile.close()
+        } finally jarFile.close()
       }
     }
     test("publish") {
