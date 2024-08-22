@@ -423,17 +423,15 @@ private class MillBuildServer(
         target <- params.getTargets.asScala
         (module, ev) <- state.bspModulesById.get(target)
       } yield {
-        val items = {
-          module match {
-            case external if external.millOuterCtx.external =>
-              outputPaths(
-                module.bspBuildTarget.baseDirectory.get,
-                topLevelProjectRoot
-              )
-            case _ =>
-              outputPaths(module.bspBuildTarget.baseDirectory.get, topLevelProjectRoot)
-          }
-        }
+        val items =
+          if (module.millOuterCtx.external)
+            outputPaths(
+              module.bspBuildTarget.baseDirectory.get,
+              topLevelProjectRoot
+            )
+          else
+            outputPaths(module.bspBuildTarget.baseDirectory.get, topLevelProjectRoot)
+
 
         new OutputPathsItem(target, items.asJava)
       }
