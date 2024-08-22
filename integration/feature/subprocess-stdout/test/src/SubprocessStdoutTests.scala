@@ -15,7 +15,7 @@ object SubprocessStdoutTests extends IntegrationTestSuite {
       // jumbled up
       retry(3) {
         assert(
-          res1.contains(
+          res1.replaceAll("\r\n", "\n").contains(
             s"""print stdout1
                |proc stdout1
                |print stderr1
