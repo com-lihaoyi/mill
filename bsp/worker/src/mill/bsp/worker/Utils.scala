@@ -93,7 +93,7 @@ private object Utils {
   ): Seq[OutputPathItem] = {
 
     def outputPathItem(path: os.Path) =
-      // Spec says, a directory must end with a forward slash 
+      // Spec says, a directory must end with a forward slash
       new OutputPathItem(sanitizeUri(path) + "/", OutputPathItemKind.DIRECTORY)
 
     if (topLevelProjectRoot.startsWith(buildTargetBaseDir))

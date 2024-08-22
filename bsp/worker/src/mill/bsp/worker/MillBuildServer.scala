@@ -380,9 +380,7 @@ private class MillBuildServer(
   // already has some from the build file, what to do?
   override def buildTargetCompile(p: CompileParams): CompletableFuture[CompileResult] =
     completable(s"buildTargetCompile ${p}") { state =>
-      p.setTargets(p.getTargets.asScala.filterNot(
-        state.syntheticRootBspBuildTarget.map(_.id).contains
-      ).toList.asJava)
+      p.setTargets(state.filterNonSynthetic(p.getTargets))
       val params = TaskParameters.fromCompileParams(p)
       val taskId = params.hashCode()
       val compileTasksEvs = params.getTargets.distinct.map(state.bspModulesById).map {
@@ -471,9 +469,7 @@ private class MillBuildServer(
 
   override def buildTargetTest(testParams: TestParams): CompletableFuture[TestResult] =
     completable(s"buildTargetTest ${testParams}") { state =>
-      testParams.setTargets(testParams.getTargets.asScala.toSeq.filterNot(
-        state.syntheticRootBspBuildTarget.map(_.id).contains
-      ).toList.asJava)
+      testParams.setTargets(state.filterNonSynthetic(testParams.getTargets))
       val millBuildTargetIds = state
         .rootModules
         .map { case m: BspModule => state.bspIdByModule(m) }
@@ -565,9 +561,7 @@ private class MillBuildServer(
   override def buildTargetCleanCache(cleanCacheParams: CleanCacheParams)
       : CompletableFuture[CleanCacheResult] =
     completable(s"buildTargetCleanCache ${cleanCacheParams}") { state =>
-      cleanCacheParams.setTargets(cleanCacheParams.getTargets.asScala.toSeq.filterNot(
-        state.syntheticRootBspBuildTarget.map(_.id).contains
-      ).toList.asJava)
+      cleanCacheParams.setTargets(state.filterNonSynthetic(cleanCacheParams.getTargets))
       val (msg, cleaned) =
         cleanCacheParams.getTargets.asScala.foldLeft((
           "",
@@ -616,9 +610,7 @@ private class MillBuildServer(
   override def debugSessionStart(debugParams: DebugSessionParams)
       : CompletableFuture[DebugSessionAddress] =
     completable(s"debugSessionStart ${debugParams}") { state =>
-      debugParams.setTargets(debugParams.getTargets.asScala.toSeq.filterNot(
-        state.syntheticRootBspBuildTarget.map(_.id).contains
-      ).toList.asJava)
+      debugParams.setTargets(state.filterNonSynthetic(debugParams.getTargets))
       throw new NotImplementedError("debugSessionStart endpoint is not implemented")
     }
 
@@ -648,7 +640,7 @@ private class MillBuildServer(
   ) => V): CompletableFuture[V] = {
     val prefix = hint.split(" ").head
     completable(hint) { state: State =>
-      val ids = targetIds(state).filterNot(state.syntheticRootBspBuildTarget.map(_.id).contains)
+      val ids = state.filterNonSynthetic(targetIds(state).asJava).asScala
       val tasksSeq = ids.flatMap { id =>
         val (m, ev) = state.bspModulesById(id)
         tasks.lift.apply(m).map(ts => (ts, (ev, id)))
