@@ -12,7 +12,7 @@ Meta-builds are recursive, which means, it can itself have a nested meta-builds,
 
 To run a task on a meta-build, you specifying the `--meta-level` option to select the meta-build level.
 
-== Example: Format the `build.sc`
+== Autoformatting the `build.sc`
 
 As an example of running a task on the meta-build, you can format the `build.sc` with Scalafmt.
 Everything is already provided by Mill.
@@ -27,7 +27,7 @@ $ mill --meta-level 1 mill.scalalib.scalafmt.ScalafmtModule/reformatAll sources
 * `mill.scalalib.scalafmt.ScalafmtModule/reformatAll` is a generic task to format scala source files with Scalafmt. It requires the targets that refer to the source files as argument
 * `sources` this selects the `sources` targets of the meta-build, which at least contains the `build.sc`.
 
-== Example: Find plugin updates
+== Finding plugin updates
 
 Mill plugins are defined as `ivyDeps` in the meta-build.
 Hence, you can easily search for updates with the external `mill.scalalib.Dependency` module.
@@ -39,6 +39,10 @@ Found 1 dependency update for
 de.tototec:de.tobiasroeser.mill.vcs.version_mill0.11_2.13 : 0.3.1-> 0.4.0
 ----
 
-== Example: Customizing the Meta-Build
+== Sharing Libraries between `build.sc` and Application Code
 
-include::example/misc/4-mill-build-folder.adoc[]
+include::example/misc/4-meta-build.adoc[]
+
+== Sharing Source Code between `build.sc` and Application Code
+
+include::example/misc/5-meta-shared-sources.adoc[]
