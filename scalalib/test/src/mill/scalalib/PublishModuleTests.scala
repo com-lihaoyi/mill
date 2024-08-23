@@ -11,7 +11,8 @@ import mill.scalalib.publish.{
   VersionControl,
   VersionScheme
 }
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import utest._
 import utest.framework.TestPath
 
@@ -22,11 +23,6 @@ object PublishModuleTests extends TestSuite {
 
   val scala212Version = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
 
-  trait PublishBase extends TestUtil.BaseModule {
-    override def millSourcePath: os.Path =
-      TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
-  }
-
   trait HelloScalaModule extends ScalaModule {
     def scalaVersion = scala212Version
     override def semanticDbVersion: T[String] = T {
@@ -35,7 +31,7 @@ object PublishModuleTests extends TestSuite {
     }
   }
 
-  object HelloWorldWithPublish extends PublishBase {
+  object HelloWorldWithPublish extends TestBaseModule {
     object core extends HelloScalaModule with PublishModule {
       override def artifactName = "hello-world"
       override def publishVersion = "0.0.1"
@@ -56,7 +52,7 @@ object PublishModuleTests extends TestSuite {
     }
   }
 
-  object PomOnly extends PublishBase {
+  object PomOnly extends TestBaseModule {
     object core extends JavaModule with PublishModule {
       override def pomPackagingType: String = PackagingType.Pom
       override def artifactName = "pom-only"
@@ -83,32 +79,18 @@ object PublishModuleTests extends TestSuite {
 
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "publish"
 
-  def workspaceTest[T](
-      m: TestUtil.BaseModule,
-      resourcePath: os.Path = resourcePath,
-      env: Map[String, String] = Evaluator.defaultEnv,
-      debug: Boolean = false,
-      errStream: PrintStream = System.err
-  )(t: TestEvaluator => T)(implicit tp: TestPath): T = {
-    val eval = new TestEvaluator(m, env = env, debugEnabled = debug, errStream = errStream)
-    os.remove.all(m.millSourcePath)
-    os.remove.all(eval.outPath)
-    os.makeDir.all(m.millSourcePath / os.up)
-    os.copy(resourcePath, m.millSourcePath)
-    t(eval)
-  }
-
   def tests: Tests = Tests {
-    "pom" - {
-      "should include scala-library dependency" - workspaceTest(HelloWorldWithPublish) { eval =>
-        val Right((result, evalCount)) = eval.apply(HelloWorldWithPublish.core.pom)
+    test("pom") {
+      test("should include scala-library dependency") {
+        val eval = UnitTester(HelloWorldWithPublish, resourcePath)
+        val Right(result) = eval.apply(HelloWorldWithPublish.core.pom)
 
         assert(
-          os.exists(result.path),
-          evalCount > 0
+          os.exists(result.value.path),
+          result.evalCount > 0
         )
 
-        val pomXml = scala.xml.XML.loadFile(result.path.toString)
+        val pomXml = scala.xml.XML.loadFile(result.value.path.toString)
         val scalaLibrary = pomXml \ "dependencies" \ "dependency"
         assert(
           (pomXml \ "packaging").text == PackagingType.Jar,
@@ -116,55 +98,66 @@ object PublishModuleTests extends TestSuite {
           (scalaLibrary \ "groupId").text == "org.scala-lang"
         )
       }
-      "versionScheme" - workspaceTest(HelloWorldWithPublish) { eval =>
-        val Right((result, evalCount)) = eval.apply(HelloWorldWithPublish.core.pom)
+      test("versionScheme") {
+        val eval = UnitTester(HelloWorldWithPublish, resourcePath)
+        val Right(result) = eval.apply(HelloWorldWithPublish.core.pom)
 
         assert(
-          os.exists(result.path),
-          evalCount > 0
+          os.exists(result.value.path),
+          result.evalCount > 0
         )
 
-        val pomXml = scala.xml.XML.loadFile(result.path.toString)
+        val pomXml = scala.xml.XML.loadFile(result.value.path.toString)
         val versionScheme = pomXml \ "properties" \ "info.versionScheme"
         assert(versionScheme.text == "early-semver")
       }
     }
 
-    "publish" - {
-      "should retrieve credentials from environment variables if direct argument is empty" - workspaceTest(
-        HelloWorldWithPublish,
-        env = Evaluator.defaultEnv ++ Seq(
-          "SONATYPE_USERNAME" -> "user",
-          "SONATYPE_PASSWORD" -> "password"
+    test("publish") {
+      test(
+        "should retrieve credentials from environment variables if direct argument is empty"
+      ) {
+        val eval = UnitTester(
+          HelloWorldWithPublish,
+          sourceRoot = resourcePath,
+          env = Evaluator.defaultEnv ++ Seq(
+            "SONATYPE_USERNAME" -> "user",
+            "SONATYPE_PASSWORD" -> "password"
+          )
         )
-      ) { eval =>
-        val Right((credentials, evalCount)) =
+        val Right(result) =
           eval.apply(HelloWorldWithPublish.core.checkSonatypeCreds(""))
 
         assert(
-          credentials == "user:password",
-          evalCount > 0
+          result.value == "user:password",
+          result.evalCount > 0
         )
       }
-      "should prefer direct argument as credentials over environment variables" - workspaceTest(
-        HelloWorldWithPublish,
-        env = Evaluator.defaultEnv ++ Seq(
-          "SONATYPE_USERNAME" -> "user",
-          "SONATYPE_PASSWORD" -> "password"
+      test(
+        "should prefer direct argument as credentials over environment variables"
+      ) {
+        val eval = UnitTester(
+          HelloWorldWithPublish,
+          sourceRoot = resourcePath,
+          env = Evaluator.defaultEnv ++ Seq(
+            "SONATYPE_USERNAME" -> "user",
+            "SONATYPE_PASSWORD" -> "password"
+          )
         )
-      ) { eval =>
+
         val directValue = "direct:value"
-        val Right((credentials, evalCount)) =
+        val Right(result) =
           eval.apply(HelloWorldWithPublish.core.checkSonatypeCreds(directValue))
 
         assert(
-          credentials == directValue,
-          evalCount > 0
+          result.value == directValue,
+          result.evalCount > 0
         )
       }
-      "should throw exception if neither environment variables or direct argument were not passed" - workspaceTest(
-        HelloWorldWithPublish
-      ) { eval =>
+      test(
+        "should throw exception if neither environment variables or direct argument were not passed"
+      ) {
+        val eval = UnitTester(HelloWorldWithPublish, resourcePath)
         val Left(Result.Failure(msg, None)) =
           eval.apply(HelloWorldWithPublish.core.checkSonatypeCreds(""))
 
@@ -174,16 +167,17 @@ object PublishModuleTests extends TestSuite {
       }
     }
 
-    "ivy" - {
-      "should include scala-library dependency" - workspaceTest(HelloWorldWithPublish) { eval =>
-        val Right((result, evalCount)) = eval.apply(HelloWorldWithPublish.core.ivy)
+    test("ivy") {
+      test("should include scala-library dependency") {
+        val eval = UnitTester(HelloWorldWithPublish, resourcePath)
+        val Right(result) = eval.apply(HelloWorldWithPublish.core.ivy)
 
         assert(
-          os.exists(result.path),
-          evalCount > 0
+          os.exists(result.value.path),
+          result.evalCount > 0
         )
 
-        val ivyXml = scala.xml.XML.loadFile(result.path.toString)
+        val ivyXml = scala.xml.XML.loadFile(result.value.path.toString)
         val deps: NodeSeq = (ivyXml \ "dependencies" \ "dependency")
         assert(deps.exists(n =>
           (n \ "@conf").text == "compile->default(compile)" &&
@@ -193,8 +187,9 @@ object PublishModuleTests extends TestSuite {
     }
 
     test("pom-packaging-type") - {
-      test("pom") - workspaceTest(PomOnly) { eval =>
-        val Right((result, evalCount)) = eval.apply(PomOnly.core.pom)
+      test("pom") {
+        val eval = UnitTester(PomOnly, resourcePath)
+        val Right(result) = eval.apply(PomOnly.core.pom)
 //
 //        assert(
 //          os.exists(result.path),

@@ -1,5 +1,7 @@
 package mill.integration
 
+import mill.testkit.{IntegrationTestSuite, IntegrationTester}
+
 import mill.main.client.Util
 import utest._
 
@@ -22,11 +24,11 @@ object WatchSourceInputTests extends IntegrationTestSuite {
 
   val maxDuration = 60000
   val tests: Tests = Tests {
-    val wsRoot = initWorkspace()
+    initWorkspace()
 
     def awaitCompletionMarker(name: String) = {
       val maxTime = System.currentTimeMillis() + maxDuration
-      while (!os.exists(wsRoot / "out" / name)) {
+      while (!os.exists(workspacePath / "out" / name)) {
         if (System.currentTimeMillis() > maxTime) {
           sys.error(s"awaitCompletionMarker($name) timed out")
         }
@@ -38,7 +40,7 @@ object WatchSourceInputTests extends IntegrationTestSuite {
         mutable.Buffer[String],
         mutable.Buffer[String],
         mutable.Buffer[String]
-    ) => IntegrationTestSuite.EvalResult): Unit = {
+    ) => IntegrationTester.EvalResult): Unit = {
       val expectedOut = mutable.Buffer.empty[String]
       // Most of these are normal `println`s, so they go to `stdout` by
       // default unless you use `show` in which case they go to `stderr`.
@@ -65,7 +67,7 @@ object WatchSourceInputTests extends IntegrationTestSuite {
       testBase(show) { (expectedOut, expectedErr, expectedShows) =>
         val showArgs = if (show) Seq("show") else Nil
 
-        val evalResult = Future { evalTimeoutStdout(maxDuration, "--watch", showArgs, "qux") }
+        val evalResult = Future { eval(("--watch", showArgs, "qux"), timeout = maxDuration) }
 
         awaitCompletionMarker("initialized0")
         awaitCompletionMarker("quxRan0")
@@ -80,7 +82,7 @@ object WatchSourceInputTests extends IntegrationTestSuite {
           "Running qux foo contents initial-foo1 initial-foo2 Running qux bar contents initial-bar"
         )
 
-        os.write.over(wsRoot / "foo1.txt", "edited-foo1")
+        os.write.over(workspacePath / "foo1.txt", "edited-foo1")
         awaitCompletionMarker("quxRan1")
         expectedErr.append(
           "Running qux foo contents edited-foo1 initial-foo2",
@@ -90,7 +92,7 @@ object WatchSourceInputTests extends IntegrationTestSuite {
           "Running qux foo contents edited-foo1 initial-foo2 Running qux bar contents initial-bar"
         )
 
-        os.write.over(wsRoot / "foo2.txt", "edited-foo2")
+        os.write.over(workspacePath / "foo2.txt", "edited-foo2")
         awaitCompletionMarker("quxRan2")
         expectedErr.append(
           "Running qux foo contents edited-foo1 edited-foo2",
@@ -100,7 +102,7 @@ object WatchSourceInputTests extends IntegrationTestSuite {
           "Running qux foo contents edited-foo1 edited-foo2 Running qux bar contents initial-bar"
         )
 
-        os.write.over(wsRoot / "bar.txt", "edited-bar")
+        os.write.over(workspacePath / "bar.txt", "edited-bar")
         awaitCompletionMarker("quxRan3")
         expectedErr.append(
           "Running qux foo contents edited-foo1 edited-foo2",
@@ -110,7 +112,7 @@ object WatchSourceInputTests extends IntegrationTestSuite {
           "Running qux foo contents edited-foo1 edited-foo2 Running qux bar contents edited-bar"
         )
 
-        os.write.append(wsRoot / "build.sc", "\ndef unrelated = true")
+        os.write.append(workspacePath / "build.sc", "\ndef unrelated = true")
         awaitCompletionMarker("initialized1")
         expectedOut.append(
           "Setting up build.sc"
@@ -123,7 +125,7 @@ object WatchSourceInputTests extends IntegrationTestSuite {
           "Running qux foo contents edited-foo1 edited-foo2 Running qux bar contents edited-bar"
         )
 
-        os.write.over(wsRoot / "watchValue.txt", "exit")
+        os.write.over(workspacePath / "watchValue.txt", "exit")
         awaitCompletionMarker("initialized2")
         expectedOut.append("Setting up build.sc")
 
@@ -141,7 +143,7 @@ object WatchSourceInputTests extends IntegrationTestSuite {
       testBase(show) { (expectedOut, expectedErr, expectedShows) =>
         val showArgs = if (show) Seq("show") else Nil
 
-        val evalResult = Future { evalTimeoutStdout(maxDuration, "--watch", showArgs, "lol") }
+        val evalResult = Future { eval(("--watch", showArgs, "lol"), timeout = maxDuration) }
 
         awaitCompletionMarker("initialized0")
         awaitCompletionMarker("lolRan0")
@@ -153,17 +155,17 @@ object WatchSourceInputTests extends IntegrationTestSuite {
         )
         expectedShows.append("Running lol baz contents initial-baz")
 
-        os.write.over(wsRoot / "baz.txt", "edited-baz")
+        os.write.over(workspacePath / "baz.txt", "edited-baz")
         awaitCompletionMarker("lolRan1")
         expectedErr.append("Running lol baz contents edited-baz")
         expectedShows.append("Running lol baz contents edited-baz")
 
-        os.write.over(wsRoot / "watchValue.txt", "edited-watchValue")
+        os.write.over(workspacePath / "watchValue.txt", "edited-watchValue")
         awaitCompletionMarker("initialized1")
         expectedOut.append("Setting up build.sc")
         expectedShows.append("Running lol baz contents edited-baz")
 
-        os.write.over(wsRoot / "watchValue.txt", "exit")
+        os.write.over(workspacePath / "watchValue.txt", "exit")
         awaitCompletionMarker("initialized2")
         expectedOut.append("Setting up build.sc")
 

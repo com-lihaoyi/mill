@@ -3,11 +3,11 @@ package mill.scalanativelib
 import mill._
 import mill.define.Discover
 import mill.scalalib.TestModule
-import mill.util.TestUtil
+import mill.testkit.TestBaseModule
 import utest._
 
 object ScalaTestsErrorTests extends TestSuite {
-  object ScalaTestsError extends TestUtil.BaseModule {
+  object ScalaTestsError extends TestBaseModule {
     object scalaTestsError extends ScalaNativeModule {
       def scalaVersion = sys.props.getOrElse("TEST_SCALA_3_3_VERSION", ???)
       def scalaNativeVersion = sys.props.getOrElse("TEST_SCALANATIVE_0_4_VERSION", ???)

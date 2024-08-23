@@ -2,7 +2,8 @@ package mill
 package contrib.docker
 
 import mill.scalalib.JavaModule
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import os.Path
 import utest._
 import utest.framework.TestPath
@@ -13,9 +14,8 @@ object DockerModuleTest extends TestSuite {
     if (isInstalled("podman")) "podman"
     else "docker"
 
-  object Docker extends TestUtil.BaseModule with JavaModule with DockerModule {
+  object Docker extends TestBaseModule with JavaModule with DockerModule {
 
-    override def millSourcePath = TestUtil.getSrcPathStatic()
     override def artifactName = testArtifactName
 
     object dockerDefault extends DockerConfig {
@@ -55,17 +55,12 @@ object DockerModuleTest extends TestSuite {
     os.proc(getPathCmd, executable).call(check = false).exitCode == 0
   }
 
-  private def workspaceTest(m: TestUtil.BaseModule)(t: TestEvaluator => Unit)(
+  private def workspaceTest(m: mill.testkit.TestBaseModule)(t: UnitTester => Unit)(
       implicit tp: TestPath
   ): Unit = {
-    if (isInstalled(testExecutable) && !scala.util.Properties.isWin) {
-      val eval = new TestEvaluator(m)
-      os.remove.all(m.millSourcePath)
-      os.remove.all(eval.outPath)
-      os.makeDir.all(m.millSourcePath / os.up)
-      os.copy(testModuleSourcesPath, m.millSourcePath)
-      t(eval)
-    } else {
+    if (isInstalled(testExecutable) && !scala.util.Properties.isWin)
+      t(UnitTester(m, testModuleSourcesPath))
+    else {
       val identifier = tp.value.mkString("/")
       println(s"Skipping '$identifier' since no docker installation was found")
       assert(true)
@@ -83,21 +78,21 @@ object DockerModuleTest extends TestSuite {
   def tests = Tests {
 
     test("docker build") {
-      "default options" - workspaceTest(Docker) { eval =>
-        val Right((imageName :: Nil, _)) = eval(Docker.dockerDefault.build)
-        assert(imageName == testArtifactName)
+      test("default options") - workspaceTest(Docker) { eval =>
+        val Right(result) = eval(Docker.dockerDefault.build)
+        assert(result.value == List(testArtifactName))
       }
 
-      "all options" - workspaceTest(Docker) { eval =>
-        val Right((imageName :: Nil, _)) = eval(Docker.dockerAll.build)
-        assert(imageName == testArtifactName)
+      test("all options") - workspaceTest(Docker) { eval =>
+        val Right(result) = eval(Docker.dockerAll.build)
+        assert(result.value == List(testArtifactName))
       }
     }
 
     test("dockerfile contents") {
-      "default options" - {
-        val eval = new TestEvaluator(Docker)
-        val Right((dockerfileString, _)) = eval(Docker.dockerDefault.dockerfile)
+      test("default options") {
+        val eval = UnitTester(Docker, null)
+        val Right(result) = eval(Docker.dockerDefault.dockerfile)
         val expected = multineRegex.replaceAllIn(
           """
             |FROM gcr.io/distroless/java:latest
@@ -106,15 +101,15 @@ object DockerModuleTest extends TestSuite {
           sys.props("line.separator")
         )
         val dockerfileStringRefined = multineRegex.replaceAllIn(
-          dockerfileString,
+          result.value,
           sys.props("line.separator")
         )
         assert(dockerfileStringRefined == expected)
       }
 
-      "all options" - {
-        val eval = new TestEvaluator(Docker)
-        val Right((dockerfileString, _)) = eval(Docker.dockerAll.dockerfile)
+      test("all options") {
+        val eval = UnitTester(Docker, null)
+        val Right(result) = eval(Docker.dockerAll.dockerfile)
         val expected = multineRegex.replaceAllIn(
           """
             |FROM docker.io/openjdk:11
@@ -132,15 +127,15 @@ object DockerModuleTest extends TestSuite {
           sys.props("line.separator")
         )
         val dockerfileStringRefined = multineRegex.replaceAllIn(
-          dockerfileString,
+          result.value,
           sys.props("line.separator")
         )
         assert(dockerfileStringRefined == expected)
       }
 
-      "extra jvm options" - {
-        val eval = new TestEvaluator(Docker)
-        val Right((dockerfileString, _)) = eval(Docker.dockerJvmOptions.dockerfile)
+      test("extra jvm options") {
+        val eval = UnitTester(Docker, null)
+        val Right(result) = eval(Docker.dockerJvmOptions.dockerfile)
         val expected = multineRegex.replaceAllIn(
           """
             |FROM gcr.io/distroless/java:latest
@@ -149,7 +144,7 @@ object DockerModuleTest extends TestSuite {
           sys.props("line.separator")
         )
         val dockerfileStringRefined = multineRegex.replaceAllIn(
-          dockerfileString,
+          result.value,
           sys.props("line.separator")
         )
         assert(dockerfileStringRefined == expected)

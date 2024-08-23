@@ -3,7 +3,8 @@ package mill.contrib.gitlab
 import mill.T
 import mill.api.Result.Failure
 import mill.scalalib.publish.PomSettings
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import utest.framework.TestPath
 import utest.{TestSuite, Tests, assertMatch, test}
 
@@ -13,7 +14,7 @@ object GitlabModuleTests extends TestSuite {
     override def tokenSearchOrder = Seq.empty
   }
 
-  object GitlabModule extends TestUtil.BaseModule with GitlabPublishModule {
+  object GitlabModule extends TestBaseModule with GitlabPublishModule {
     override def publishRepository: ProjectRepository =
       ProjectRepository("http://gitlab.local", 0)
 
@@ -27,23 +28,17 @@ object GitlabModuleTests extends TestSuite {
 
   // GitlabMavenRepository does not need to be a module, but it needs to be invoked from one.
   // So for test purposes we make make a module with it to get a Ctx for evaluation
-  object GLMvnRepo extends TestUtil.BaseModule with GitlabMavenRepository {
+  object GLMvnRepo extends TestBaseModule with GitlabMavenRepository {
     override def gitlabRepository: GitlabPackageRepository =
       InstanceRepository("https://gl.local")
 
     override def tokenLookup = emptyLookup
   }
 
-  def testModule[T](
-      m: TestUtil.BaseModule
-  )(t: TestEvaluator => T)(implicit tp: TestPath): T = {
-    val eval = new TestEvaluator(m)
-    t(eval)
-  }
-
   override def tests: Tests = Tests {
 
-    test("GitlabPublishModule produces sane error message") - testModule(GitlabModule) { eval =>
+    test("GitlabPublishModule produces sane error message") {
+      val eval = UnitTester(GitlabModule, null)
       val e = eval(GitlabModule.gitlabHeaders(Map.empty))
 
       assertMatch(e) {
@@ -52,7 +47,8 @@ object GitlabModuleTests extends TestSuite {
       }
     }
 
-    test("GitlabMavenRepository produces sane error message") - testModule(GLMvnRepo) { eval =>
+    test("GitlabMavenRepository produces sane error message") {
+      val eval = UnitTester(GLMvnRepo, null)
       val e = eval(GLMvnRepo.mavenRepository)
 
       assertMatch(e) {

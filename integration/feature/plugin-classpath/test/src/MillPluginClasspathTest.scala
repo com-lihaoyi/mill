@@ -1,5 +1,7 @@
 package mill.integration
 
+import mill.testkit.IntegrationTestSuite
+
 import utest._
 
 object MillPluginClasspathTest extends IntegrationTestSuite {
@@ -30,10 +32,10 @@ object MillPluginClasspathTest extends IntegrationTestSuite {
 
   val tests: Tests = Tests {
     test("exclusions") - {
-      val res1 = eval("--meta-level", "1", "resolveDepsExclusions")
-      assert(res1)
+      val res1 = eval(("--meta-level", "1", "resolveDepsExclusions"))
+      assert(res1.isSuccess)
 
-      val exclusions = metaValue[Seq[(String, String)]]("mill-build.resolveDepsExclusions")
+      val exclusions = outJson("mill-build.resolveDepsExclusions").value[Seq[(String, String)]]
       val expectedExclusions = embeddedModules
 
       val diff = expectedExclusions.toSet.diff(exclusions.toSet)
@@ -42,10 +44,10 @@ object MillPluginClasspathTest extends IntegrationTestSuite {
     }
     test("runClasspath") - {
       // We expect Mill core transitive dependencies to be filtered out
-      val res1 = eval("--meta-level", "1", "runClasspath")
-      assert(res1)
+      val res1 = eval(("--meta-level", "1", "runClasspath"))
+      assert(res1.isSuccess)
 
-      val runClasspath = metaValue[Seq[String]]("mill-build.runClasspath")
+      val runClasspath = outJson("mill-build.runClasspath").value[Seq[String]]
 
       val unexpectedArtifacts = embeddedModules.map {
         case (o, n) => s"${o.replaceAll("[.]", "/")}/${n}"

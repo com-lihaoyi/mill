@@ -1,0 +1,4 @@
+import mill._
+
+def testSource = T.source(millSourcePath / "source-file.txt")
+def testTask = T { os.read(testSource().path).toUpperCase() }

@@ -1,5 +1,7 @@
 package mill.integration
 
+import mill.testkit.IntegrationTestSuite
+
 import utest._
 
 object SubprocessStdoutTests extends IntegrationTestSuite {
@@ -7,13 +9,13 @@ object SubprocessStdoutTests extends IntegrationTestSuite {
     initWorkspace()
 
     test {
-      val res1 = evalStdCombined("inheritInterleaved").out
+      val res1 = eval("inheritInterleaved", mergeErrIntoOut = true).out
       // Make sure that when a lot of printed/inherited stdout/stderr is printed
       // in quick succession, the output ordering is preserved and it doesn't get
       // jumbled up
       retry(3) {
         assert(
-          res1.contains(
+          res1.replaceAll("\r\n", "\n").contains(
             s"""print stdout1
                |proc stdout1
                |print stderr1
@@ -59,12 +61,12 @@ object SubprocessStdoutTests extends IntegrationTestSuite {
       // be out of order from the original Mill stdout/stderr, but they should still at least turn
       // up in the console somewhere and not disappear
       //
-      val res2 = evalStdCombined("inheritRaw").out
-      if (integrationTestMode == "fork") {
+      val res2 = eval("inheritRaw", mergeErrIntoOut = true).out
+      if (!clientServerMode) {
         // For `fork` tests, which represent `-i`/`--interactive`/`--no-server`, the output should
         // be properly ordered since it all comes directly from the stdout/stderr of the same process
         assert(
-          res2.contains(
+          res2.replaceAll("\r\n", "\n").contains(
             """print stdoutRaw
               |proc stdoutRaw
               |print stderrRaw
@@ -80,7 +82,7 @@ object SubprocessStdoutTests extends IntegrationTestSuite {
             |print stderrRaw
             |proc stdoutRaw
             |proc stderrRaw""".stripMargin.replaceAll("\r\n", "\n").linesIterator.toSet.subsetOf(
-            res2.linesIterator.toSet
+            res2.replaceAll("\r\n", "\n").linesIterator.toSet
           )
         )
       }

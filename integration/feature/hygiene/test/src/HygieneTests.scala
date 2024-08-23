@@ -1,5 +1,7 @@
 package mill.integration
 
+import mill.testkit.IntegrationTestSuite
+
 import utest._
 
 object HygieneTests extends IntegrationTestSuite {
@@ -8,8 +10,8 @@ object HygieneTests extends IntegrationTestSuite {
 
     test {
       val res = eval("scala.foo")
-      assert(res == true)
-      val output = meta("scala.foo")
+      assert(res.isSuccess == true)
+      val output = outJson("scala.foo").text
       assert(output.contains("\"fooValue\""))
     }
   }

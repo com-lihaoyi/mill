@@ -1,4 +1,4 @@
-package mill.integration.local
+package mill.integration
 
 import java.util.regex.Pattern
 import scala.util.Try

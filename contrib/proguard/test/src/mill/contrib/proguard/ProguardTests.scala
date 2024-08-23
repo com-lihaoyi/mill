@@ -4,20 +4,15 @@ import mill._
 import mill.define.Target
 import mill.util.Util.millProjectModule
 import mill.scalalib.ScalaModule
-import mill.util.TestEvaluator
-import mill.util.TestUtil
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import os.Path
 import utest._
 import utest.framework.TestPath
 
 object ProguardTests extends TestSuite {
 
-  object proguard extends TestUtil.BaseModule with ScalaModule with Proguard {
-    // override build root to test custom builds/modules
-//    override def millSourcePath: Path = TestUtil.getSrcPathStatic()
-    override def millSourcePath: os.Path =
-      TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
-
+  object proguard extends TestBaseModule with ScalaModule with Proguard {
     override def scalaVersion: T[String] = T(sys.props.getOrElse("MILL_SCALA_2_13_VERSION", ???))
 
     def proguardContribClasspath = T {
@@ -32,30 +27,21 @@ object ProguardTests extends TestSuite {
   val testModuleSourcesPath: Path =
     os.pwd / "contrib" / "proguard" / "test" / "resources" / "proguard"
 
-  def workspaceTest[T](m: TestUtil.BaseModule)(t: TestEvaluator => T)(
-      implicit tp: TestPath
-  ): T = {
-    val eval = new TestEvaluator(m, debugEnabled = true)
-    os.remove.all(m.millSourcePath)
-    os.remove.all(eval.outPath)
-    os.makeDir.all(m.millSourcePath / os.up)
-    os.copy(testModuleSourcesPath, m.millSourcePath)
-    t(eval)
-  }
-
   def tests: Tests = Tests {
     test("Proguard module") {
-      test("should download proguard jars") - workspaceTest(proguard) { eval =>
-        val Right((agg, _)) = eval.apply(proguard.proguardClasspath)
+      test("should download proguard jars") {
+        val eval = UnitTester(proguard, testModuleSourcesPath)
+        val Right(result) = eval.apply(proguard.proguardClasspath)
         assert(
-          agg.iterator.toSeq.nonEmpty,
-          agg.iterator.toSeq.head.path.toString().contains("proguard-base")
+          result.value.iterator.toSeq.nonEmpty,
+          result.value.iterator.toSeq.head.path.toString().contains("proguard-base")
         )
       }
 
-      test("should create a proguarded jar") - workspaceTest(proguard) { eval =>
-        val Right((path, _)) = eval.apply(proguard.proguard)
-        assert(os.exists(path.path))
+      test("should create a proguarded jar") {
+        val eval = UnitTester(proguard, testModuleSourcesPath)
+        val Right(result) = eval.apply(proguard.proguard)
+        assert(os.exists(result.value.path))
       }
     }
   }

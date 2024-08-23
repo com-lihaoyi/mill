@@ -1,15 +1,15 @@
-package mill.integration.local
+package mill.integration
 
 import utest.{Tests, assert, _}
 
 import scala.util.Try
-import mill.integration.IntegrationTestSuite
+import mill.testkit.IntegrationTestSuite
 import GenIdeaUtils._
 import os.Path
 
 object GenIdeaTests extends IntegrationTestSuite {
 
-  override def scriptSourcePath: Path = super.scriptSourcePath / "hello-idea"
+  override def workspaceSourcePath: Path = super.workspaceSourcePath / "hello-idea"
 
   def tests: Tests = Tests {
     test("helper assertPartialContentMatches works") {
@@ -52,7 +52,7 @@ object GenIdeaTests extends IntegrationTestSuite {
     }
 
     test("genIdeaTests") {
-      val workspacePath = initWorkspace()
+      initWorkspace()
       val expectedBase = workspacePath / "idea"
       val resources = os.walk(expectedBase).filter(os.isFile).map(_.subRelativeTo(expectedBase))
 
