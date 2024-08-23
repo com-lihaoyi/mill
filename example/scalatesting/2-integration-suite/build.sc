@@ -1,3 +1,6 @@
+// You can also define test suites with different names other than `test`. For example,
+// the build below defines a test suite with the name `integration`, in addition
+// to that named `test`.
 
 //// SNIPPET:BUILD3
 
@@ -15,9 +18,6 @@ object qux extends ScalaModule {
 }
 //// SNIPPET:END
 
-// You can also define test suites with different names other than `test`. For example,
-// the build below defines a test suite with the name `integration`, in addition
-// to that named `test`.
 
 // These two test modules will expect their sources to be in their respective `foo/test` and
 // `foo/integration` folder respectively

@@ -1245,10 +1245,7 @@ object example extends Module {
         case None => T {None}
         case Some(upstream) => T {
           Some {
-            val upstreamLines = os.read.lines(
-              upstream
-                .testRepoRoot().path / "build.sc"
-            )
+            val upstreamLines = os.read.lines(upstream.testRepoRoot().path / "build.sc")
             val lines = os.read.lines(super.testRepoRoot().path / "build.sc")
 
             import collection.mutable
@@ -1258,13 +1255,13 @@ object example extends Module {
               case s"//// SNIPPET:$name" =>
                 current = Some(name)
                 groupedLines(name) = mutable.Buffer()
-              case s => groupedLines(current.get).append(s)
+              case s => current.foreach(groupedLines(_).append(s))
             }
 
+            current = None
             upstreamLines.flatMap {
               case s"//// SNIPPET:$name" =>
                 if (name != "END") {
-
                   current = Some(name)
                   groupedLines(name)
                 } else {
@@ -1272,9 +1269,7 @@ object example extends Module {
                   Nil
                 }
 
-              case s =>
-                if (current.nonEmpty) None
-                else Some(s)
+              case s => if (current.nonEmpty) None else Some(s)
             }
           }
         }
