@@ -1806,7 +1806,7 @@ object docs extends Module {
          |""".stripMargin
     }
     s"""site:
-       |  title: Mill JVM Build Tool
+       |  title: The Mill Build Tool
        |  url: ${if (authorMode) s"${T.dest}/site" else Settings.docUrl}
        |  start_page: mill::Java_Intro_to_Mill.adoc
        |  keys:
