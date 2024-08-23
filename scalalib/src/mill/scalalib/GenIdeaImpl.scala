@@ -27,7 +27,7 @@ case class GenIdeaImpl(
 
   val ideaConfigVersion = 4
 
-  def run(): Unit =    ???
+  def run(): Unit = ???
 
   def extractCurrentJdk(ideaPath: os.Path): Option[(String, String)] = ???
 
@@ -39,7 +39,7 @@ case class GenIdeaImpl(
       fetchMillModules: Boolean = true
   ): Seq[(os.SubPath, scala.xml.Node)] = ???
 
-  def relify(p: os.Path): String = p.relativeTo(ideaDir / ???
+  def relify(p: os.Path): String = ???
 
   def ideaConfigElementTemplate(element: GenIdeaModule.Element): Elem = ???
 
@@ -86,7 +86,7 @@ case class GenIdeaImpl(
 
   def scalaCompilerTemplate(
       settings: Map[(Agg[os.Path], Seq[String]), Seq[JavaModule]]
-  ) = ???
+  ): Elem = ???
 }
 
 object GenIdeaImpl {
