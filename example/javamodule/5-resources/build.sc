@@ -11,3 +11,7 @@ object foo extends JavaModule {
   }
 }
 
+//// SNIPPET:APPLICATIONCODE
+
+/** See Also: foo/src/Foo.java */
+/** See Also: foo/test/src/FooTests.java */

@@ -40,10 +40,6 @@ include::example/scalabuilds/3-override-tasks.adoc[]
 
 include::example/scalabuilds/4-nested-modules.adoc[]
 
-== Scala Module With Test Suite
-
-include::example/scalabuilds/5-test-suite.adoc[]
-
 == Publish Module
 
 include::example/scalabuilds/6-publish-module.adoc[]

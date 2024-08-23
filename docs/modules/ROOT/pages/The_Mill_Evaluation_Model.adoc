@@ -5,7 +5,7 @@ Evaluating a Mill target typically goes through the following phases:
 1. *Compilation*: Mill compiles the `build.sc` to classfiles, following the
 <<_the_mill_bootstrapping_process>> to eventually produce a `RootModule` object
 
-2. *Planning*: Mill resolves the list of xref:Tasks.adoc[] given from the command line,
+2. *Resolution*: Mill resolves the list of xref:Tasks.adoc[] given from the command line,
    e.g. `resolve _` or `foo.compile` or `{bar,qux}.__.test`, to a list of
    concrete `Task` objects nested on xref:Modules.adoc[] within the `RootModule` along
    with their transitive dependencies
@@ -84,11 +84,14 @@ the overall workflow remains fast even for large projects:
       https://github.com/com-lihaoyi/mill/pull/2417[#2417] for more details
 
 This approach to caching does assume a certain programming style inside your
-`build.sc`: we may or may not re-instantiate the `RootModule` of your
-`build.sc` depending on caching, and your code should work either way. For code
-written in a typical Scala style, this is not a problem at all.
+Mill build: we may-or-may-not re-instantiate the modules in your
+`build.sc` and we may-or-may-not re-execute any particular task depending on caching,
+but your code needs to work either way. Furthermore, task ``def``s and module `object`s in your
+build are instantiated lazily on-demand, and your code needs to work regardless
+of which order they are executed in. For code written in a typical Scala style,
+which tends to avoid side effects, this is not a problem at all.
 
-One thing to note is for code that runs during *Planning*: any reading of
+One thing to note is for code that runs during *Resolution*: any reading of
 external mutable state needs to be wrapped in an `interp.watchValue{...}`
 wrapper. This ensures that Mill knows where these external reads are, so that
 it can check if their value changed and if so re-instantiate `RootModule` with
@@ -137,5 +140,5 @@ Mill supports multiple levels of meta-builds for bootstrapping:
 - Two level of meta-builds: `mill-build/mill-build/build.sc`,
   `mill-build/build.sc` and `build.sc`
 
-xref:Extending_Mill.adoc#_the_mill_meta_build[Extending Mill: The Mill Meta Build] works through a simple use case
+xref:The_Mill_Meta_Build.adoc[The Mill Meta Build] works through a simple use case
 and example for meta-builds.

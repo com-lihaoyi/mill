@@ -29,13 +29,11 @@ $ mill -w foo.runBackground
 
 == Parallel Task Execution
 
-By default, mill will evaluate all tasks in sequence.
-But mill also supports processing tasks in parallel.
-This feature is currently experimental and we encourage you to report any issues
-you find on our bug tracker.
+By default, mill will evaluate all tasks in parallel, with the number of concurrent
+tasks equal to the number of cores on your machine.
 
-To enable parallel task execution, use the `--jobs` (`-j`) option followed by a
-number of maximal parallel threads.
+You can use the `--jobs` (`-j`) to configure explicitly how many concurrent tasks you
+wish to run
 
 Example: Use up to 4 parallel threads to compile all modules:
 
@@ -44,10 +42,9 @@ Example: Use up to 4 parallel threads to compile all modules:
 mill -j 4 __.compile
 ----
 
-To use as many threads as your machine has (logical) processor cores use `--jobs 0`.
-To disable parallel execution use `--jobs 1`. This is currently the default.
+To disable parallel execution use `--jobs 1`.
 
-`mill -j` generates an output file in `out/mill-chrome-profile.json` that can be
+`mill` generates an output file in `out/mill-chrome-profile.json` that can be
 loaded into the Chrome browser's `chrome://tracing` page for visualization.
 This can make it much easier to analyze your parallel runs to find out what's
 taking the most time:

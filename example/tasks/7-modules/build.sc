@@ -219,3 +219,10 @@ object outer2 extends MyModule {
 ..."value": "hello contents of file inside outer2/nested/inner/sources/"...
 
 */
+
+// *Note that `os.pwd` of the Mill process is set to an empty `sandbox/` folder by default.*
+// When defining a module's source files, you should always use `millSourcePath` to ensure the
+// paths defined are relative to the module's root folder, so the module logic can continue
+// to work even if moved into a different subfolder. In the rare case where you need the
+// Mill project root path, and you truly know what you are doing, you can call
+// g`mill.api.WorkspaceRoot.workspaceRoot`.

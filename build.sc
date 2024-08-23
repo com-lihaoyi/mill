@@ -1207,7 +1207,9 @@ object example extends Module {
   object basic extends Cross[ExampleCrossModule](listIn(millSourcePath / "basic"))
   object basicjava extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "basicjava"))
   object scalabuilds extends Cross[ExampleCrossModule](listIn(millSourcePath / "scalabuilds"))
+  object scalatesting extends Cross[ExampleCrossModule](listIn(millSourcePath / "scalatesting"))
   object javabuilds extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "javabuilds"))
+  object javatesting extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "javatesting"))
   object scalamodule extends Cross[ExampleCrossModule](listIn(millSourcePath / "scalamodule"))
   object javamodule extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "javamodule"))
   object tasks extends Cross[ExampleCrossModule](listIn(millSourcePath / "tasks"))
@@ -1222,6 +1224,7 @@ object example extends Module {
       case "basicjava" => basic
       case "javabuilds" => scalabuilds
       case "javamodule" => scalamodule
+      case "javatesting" => scalatesting
     }
     def testRepoRoot = T{
       os.copy.over(super.testRepoRoot().path, T.dest)
@@ -1235,10 +1238,7 @@ object example extends Module {
         case None => T {None}
         case Some(upstream) => T {
           Some {
-            val upstreamLines = os.read.lines(
-              upstream
-                .testRepoRoot().path / "build.sc"
-            )
+            val upstreamLines = os.read.lines(upstream.testRepoRoot().path / "build.sc")
             val lines = os.read.lines(super.testRepoRoot().path / "build.sc")
 
             import collection.mutable
@@ -1248,13 +1248,13 @@ object example extends Module {
               case s"//// SNIPPET:$name" =>
                 current = Some(name)
                 groupedLines(name) = mutable.Buffer()
-              case s => groupedLines(current.get).append(s)
+              case s => current.foreach(groupedLines(_).append(s))
             }
 
+            current = None
             upstreamLines.flatMap {
               case s"//// SNIPPET:$name" =>
                 if (name != "END") {
-
                   current = Some(name)
                   groupedLines(name)
                 } else {
@@ -1262,9 +1262,7 @@ object example extends Module {
                   Nil
                 }
 
-              case s =>
-                if (current.nonEmpty) None
-                else Some(s)
+              case s => if (current.nonEmpty) None else Some(s)
             }
           }
         }
@@ -1801,7 +1799,7 @@ object docs extends Module {
          |""".stripMargin
     }
     s"""site:
-       |  title: Mill
+       |  title: The Mill Build Tool
        |  url: ${if (authorMode) s"${T.dest}/site" else Settings.docUrl}
        |  start_page: mill::Java_Intro_to_Mill.adoc
        |  keys:
