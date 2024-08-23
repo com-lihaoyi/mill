@@ -32,7 +32,7 @@ private object Plan {
               Segments(
                 segments.value.init ++
                   Seq(Segment.Label(tName + ".super")) ++
-                  t.ctx.enclosing.split("[.# ]").map(Segment.Label)
+                  t.ctx.enclosing.split("[.# ]").filter(_ != "<empty>").map(Segment.Label)
               )
             }
           Terminal.Labelled(t, augmentedSegments)

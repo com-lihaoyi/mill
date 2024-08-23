@@ -2,29 +2,34 @@ package mill.main.client;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.function.Supplier;
 
 public class InputPumper implements Runnable{
-    private InputStream src;
-    private OutputStream dest;
+    private Supplier<InputStream> src0;
+    private Supplier<OutputStream> dest0;
+
     private Boolean checkAvailable;
     private java.util.function.BooleanSupplier runningCheck;
-    public InputPumper(InputStream src,
-                       OutputStream dest,
+    public InputPumper(Supplier<InputStream> src,
+                       Supplier<OutputStream> dest,
                        Boolean checkAvailable){
         this(src, dest, checkAvailable, () -> true);
     }
-    public InputPumper(InputStream src,
-                       OutputStream dest,
+    public InputPumper(Supplier<InputStream> src,
+                       Supplier<OutputStream> dest,
                        Boolean checkAvailable,
                        java.util.function.BooleanSupplier runningCheck){
-        this.src = src;
-        this.dest = dest;
+        this.src0 = src;
+        this.dest0 = dest;
         this.checkAvailable = checkAvailable;
         this.runningCheck = runningCheck;
     }
 
     boolean running = true;
     public void run() {
+        InputStream src = src0.get();
+        OutputStream dest = dest0.get();
+
         byte[] buffer = new byte[1024];
         try{
             while(running){
@@ -33,7 +38,12 @@ public class InputPumper implements Runnable{
                 }
                 else if (checkAvailable && src.available() == 0) Thread.sleep(2);
                 else {
-                    int n = src.read(buffer);
+                    int n;
+                    try{
+                      n = src.read(buffer);
+                    } catch (Exception e){
+                        n = -1;
+                    }
                     if (n == -1) {
                         running = false;
                     }

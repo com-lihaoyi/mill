@@ -1,5 +1,7 @@
 package mill.integration
 
+import mill.testkit.IntegrationTestSuite
+
 import utest._
 
 object LargeProjectTests extends IntegrationTestSuite {
@@ -7,7 +9,7 @@ object LargeProjectTests extends IntegrationTestSuite {
     initWorkspace()
     test("test") - {
 
-      assert(eval("foo.common.one.compile"))
+      assert(eval("foo.common.one.compile").isSuccess)
     }
   }
 }

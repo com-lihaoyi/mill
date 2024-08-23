@@ -1,4 +1,11 @@
 = Scala Module Configuration
+
+++++
+<script>
+gtag('config', 'AW-16649289906');
+</script>
+++++
+
 :page-aliases: Configuring_Mill.adoc
 
 This page goes into more detail about the various configuration options
@@ -25,33 +32,37 @@ include::example/scalamodule/3-run-compile-deps.adoc[]
 
 include::example/scalamodule/4-test-deps.adoc[]
 
+== Classpath and Filesystem Resources
+
+include::example/scalamodule/5-resources.adoc[]
+
 == Scala Compiler Plugins
 
-include::example/scalamodule/5-scala-compiler-plugins.adoc[]
+include::example/scalamodule/6-scala-compiler-plugins.adoc[]
 
 == Scaladoc Config
 
-include::example/scalamodule/6-scaladoc.adoc[]
+include::example/scalamodule/7-docjar.adoc[]
 
 == Unmanaged Jars
 
-include::example/scalamodule/7-unmanaged-jars.adoc[]
+include::example/scalamodule/8-unmanaged-jars.adoc[]
 
 == Specifying the Main Class
 
-include::example/scalamodule/8-main-class.adoc[]
+include::example/scalamodule/9-main-class.adoc[]
 
 == Downloading Non-Maven Jars
 
-include::example/scalamodule/9-downloading-non-maven-jars.adoc[]
+include::example/scalamodule/10-downloading-non-maven-jars.adoc[]
 
 == Customizing the Assembly
 
-include::example/scalamodule/10-assembly-config.adoc[]
+include::example/scalamodule/11-assembly-config.adoc[]
 
 == Repository Config
 
-include::example/scalamodule/11-repository-config.adoc[]
+include::example/scalamodule/12-repository-config.adoc[]
 
 == Maven Central: Blocked!
 
@@ -77,13 +88,13 @@ The idea is to set an environment variable COURSIER_REPOSITORIES (see coursier d
 
 If you are using millw, a more permanent solution could be to set the environment variable at the top of the millw script, or as a user environment variable etc.
 
-== Backticked Names
+== Scoverage
 
-include::example/scalamodule/12-backticked-names.adoc[]
+include::example/scalamodule/13-contrib-scoverage.adoc[]
 
 == Unidoc
 
-include::example/scalamodule/13-unidoc.adoc[]
+include::example/scalamodule/14-unidoc.adoc[]
 
 == Reformatting your code
 

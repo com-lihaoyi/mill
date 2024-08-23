@@ -101,7 +101,7 @@ case class GenIdeaImpl(
       }
 
     val buildDepsPaths = Classpath
-      .allJars(evaluator.rootModule.getClass.getClassLoader)
+      .allJars(evaluator.rootModules.getClass.getClassLoader)
       .map(url => os.Path(java.nio.file.Paths.get(url.toURI)))
 
     def resolveTasks: Seq[Task[ResolvedModule]] = modules.map {
@@ -121,21 +121,19 @@ case class GenIdeaImpl(
         }
 
         val externalLibraryDependencies = T.task {
-          mod.resolveDeps(T.task {
-            val bind = mod.bindDependency()
-            mod.mandatoryIvyDeps().map(bind)
-          })()
+          mod.defaultResolver().resolveDeps(
+            mod.mandatoryIvyDeps()
+          )
         }
 
         val externalDependencies = T.task {
           mod.resolvedIvyDeps() ++
             T.traverse(mod.transitiveModuleDeps)(_.unmanagedClasspath)().flatten
         }
-        val extCompileIvyDeps =
-          mod.resolveDeps(T.task {
-            val bind = mod.bindDependency()
-            mod.compileIvyDeps().map(bind)
-          })
+        val extCompileIvyDeps = T.task {
+          mod.defaultResolver().resolveDeps(mod.compileIvyDeps())
+        }
+
         val extRunIvyDeps = mod.resolvedRunIvyDeps
 
         val externalSources = T.task {
@@ -151,10 +149,7 @@ case class GenIdeaImpl(
         }
 
         val scalacPluginDependencies = T.task {
-          mod.resolveDeps(T.task {
-            val bind = mod.bindDependency()
-            scalacPluginsIvyDeps().map(bind)
-          })()
+          mod.defaultResolver().resolveDeps(scalacPluginsIvyDeps())
         }
 
         val facets = T.task {

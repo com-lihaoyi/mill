@@ -1,9 +1,10 @@
 package mill.scalalib
 
 import mill.api.{Ctx, PathRef, Result}
+import mill.main.client.EnvVars
 import mill.define.{Command, Task, TaskModule}
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
-import mill.testrunner.{Framework, TestArgs, TestResult, TestRunner}
+import mill.testrunner.{Framework, TestArgs, TestResult, TestRunner, TestRunnerUtils}
 import mill.util.Jvm
 import mill.{Agg, T}
 import sbt.testing.Status
@@ -46,6 +47,25 @@ trait TestModule
    */
   def testFramework: T[String]
 
+  def discoveredTestClasses: T[Seq[String]] = T {
+    val classes = Jvm.inprocess(
+      runClasspath().map(_.path),
+      classLoaderOverrideSbtTesting = true,
+      isolated = true,
+      closeContextClassLoaderWhenDone = true,
+      cl => {
+        val framework = Framework.framework(testFramework())(cl)
+        val classes = TestRunnerUtils.discoverTests(cl, framework, testClasspath().map(_.path))
+        classes.toSeq.map(_._1.getName())
+          .map {
+            case s if s.endsWith("$") => s.dropRight(1)
+            case s => s
+          }
+      }
+    )
+    classes.sorted
+  }
+
   /**
    * Discovers and runs the module's tests in a subprocess, reporting the
    * results to the console.
@@ -81,13 +101,12 @@ trait TestModule
    * with "bar", with "arguments" as arguments passing to test framework.
    */
   def testOnly(args: String*): Command[(String, Seq[TestResult])] = {
-    val splitAt = args.indexOf("--")
-    val (selector, testArgs) =
-      if (splitAt == -1) (args, Seq.empty)
-      else {
-        val (s, t) = args.splitAt(splitAt)
+    val (selector, testArgs) = args.indexOf("--") match {
+      case -1 => (args, Seq.empty)
+      case pos =>
+        val (s, t) = args.splitAt(pos)
         (s, t.tail)
-      }
+    }
     T.command {
       testTask(T.task { testArgs }, T.task { selector })()
     }
@@ -104,6 +123,16 @@ trait TestModule
    * If None is set, no file will be generated.
    */
   def testReportXml: T[Option[String]] = T(Some("test-report.xml"))
+
+  /**
+   * Whether or not to use the test task destination folder as the working directory
+   * when running tests. `true` means test subprocess run in the `.dest/sandbox` folder of
+   * the test task, providing better isolation and encouragement of best practices
+   * (e.g. not reading/writing stuff randomly from the project source tree). `false`
+   * means the test subprocess runs in the project root folder, providing weaker
+   * isolation.
+   */
+  def testSandboxWorkingDir: T[Boolean] = true
 
   /**
    * The actual task shared by `test`-tasks that runs test in a forked JVM.
@@ -133,6 +162,8 @@ trait TestModule
           forkArgs() -> Map()
         }
 
+      val selectors = globSelectors()
+
       val testArgs = TestArgs(
         framework = testFramework(),
         classpath = runClasspath().map(_.path),
@@ -142,7 +173,7 @@ trait TestModule
         colored = T.log.colored,
         testCp = testClasspath().map(_.path),
         home = T.home,
-        globSelectors = globSelectors()
+        globSelectors = selectors
       )
 
       val testRunnerClasspathArg = zincWorker().scalalibClasspath()
@@ -153,6 +184,7 @@ trait TestModule
       os.write(argsFile, upickle.default.write(testArgs))
       val mainArgs = Seq(testRunnerClasspathArg, argsFile.toString)
 
+      os.makeDir(T.dest / "sandbox")
       Jvm.runSubprocess(
         mainClass = "mill.testrunner.entrypoint.TestRunnerMain",
         classPath =
@@ -160,9 +192,11 @@ trait TestModule
             _.path
           ),
         jvmArgs = jvmArgs,
-        envArgs = forkEnv(),
+        envArgs =
+          Map(EnvVars.MILL_TEST_RESOURCE_FOLDER -> resources().map(_.path).mkString(";")) ++
+            forkEnv(),
         mainArgs = mainArgs,
-        workingDir = forkWorkingDir(),
+        workingDir = if (testSandboxWorkingDir()) T.dest / "sandbox" else forkWorkingDir(),
         useCpPassingJar = useArgsFile
       )
 
@@ -173,7 +207,12 @@ trait TestModule
           val (doneMsg, results) = {
             upickle.default.read[(String, Seq[TestResult])](jsonOutput)
           }
-          TestModule.handleResults(doneMsg, results, T.ctx(), testReportXml())
+          if (results.isEmpty && selectors.nonEmpty) {
+            // no tests ran but we expected some to run, as we applied a filter (e.g. via `testOnly`)
+            Result.Failure(
+              s"Test selector does not match any test: ${selectors.mkString(" ")}" + "\nRun discoveredTestClasses to see available tests"
+            )
+          } else TestModule.handleResults(doneMsg, results, T.ctx(), testReportXml())
         } catch {
           case e: Throwable =>
             Result.Failure("Test reporting failed: " + e)
@@ -206,6 +245,10 @@ trait TestModule
 
 object TestModule {
   private val FailedTestReportCount = 5
+  private val ErrorStatus = Status.Error.name()
+  private val FailureStatus = Status.Failure.name()
+  private val SkippedStates =
+    Set(Status.Ignored.name(), Status.Skipped.name(), Status.Pending.name())
 
   /**
    * TestModule using TestNG Framework to run tests.
@@ -227,7 +270,7 @@ object TestModule {
   trait Junit4 extends TestModule {
     override def testFramework: T[String] = "com.novocode.junit.JUnitFramework"
     override def ivyDeps: T[Agg[Dep]] = T {
-      super.ivyDeps() ++ Agg(ivy"com.novocode:junit-interface:0.11")
+      super.ivyDeps() ++ Agg(ivy"${mill.scalalib.api.Versions.sbtTestInterface}")
     }
   }
 
@@ -236,9 +279,9 @@ object TestModule {
    * You may want to provide the junit dependency explicitly to use another version.
    */
   trait Junit5 extends TestModule {
-    override def testFramework: T[String] = "net.aichler.jupiter.api.JupiterFramework"
+    override def testFramework: T[String] = "com.github.sbt.junit.jupiter.api.JupiterFramework"
     override def ivyDeps: T[Agg[Dep]] = T {
-      super.ivyDeps() ++ Agg(ivy"net.aichler:jupiter-interface:0.9.0")
+      super.ivyDeps() ++ Agg(ivy"${mill.scalalib.api.Versions.jupiterInterface}")
     }
   }
 
@@ -334,31 +377,29 @@ object TestModule {
       testReportXml: Option[String],
       props: Option[Map[String, String]] = None
   ): Result[(String, Seq[TestResult])] = {
-    testReportXml.foreach(fileName =>
-      genTestXmlReport(results, ctx.dest / fileName, props.getOrElse(Map.empty))
-    )
+    for {
+      fileName <- testReportXml
+      path = ctx.dest / fileName
+      xml <- genTestXmlReport(results, Instant.now(), props.getOrElse(Map.empty))
+      _ = scala.xml.XML.save(path.toString(), xml, xmlDecl = true)
+    } yield ()
     handleResults(doneMsg, results, Some(ctx))
   }
 
   trait JavaModuleBase extends BspModule {
     def ivyDeps: T[Agg[Dep]] = Agg.empty[Dep]
+    def resources: T[Seq[PathRef]] = T { Seq.empty[PathRef] }
   }
 
   trait ScalaModuleBase extends mill.Module {
     def scalacOptions: T[Seq[String]] = Seq.empty[String]
   }
 
-  private def genTestXmlReport(
+  private[scalalib] def genTestXmlReport(
       results0: Seq[TestResult],
-      out: os.Path,
+      timestamp: Instant,
       props: Map[String, String]
-  ): Unit = {
-    val timestamp = DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(
-      LocalDateTime.ofInstant(
-        Instant.now.truncatedTo(ChronoUnit.SECONDS),
-        ZoneId.systemDefault()
-      )
-    )
+  ): Option[Elem] = {
     def durationAsString(value: Long) = (value / 1000d).toString
     def testcaseName(testResult: TestResult) =
       testResult.selector.replace(s"${testResult.fullyQualifiedName}.", "")
@@ -384,11 +425,13 @@ object TestModule {
 
       <testsuite name={fqn}
                  tests={testResults.length.toString}
-                 failures={testResults.count(_.status == Status.Failure.toString).toString}
-                 errors={testResults.count(_.status == Status.Error.toString).toString}
-                 skipped={testResults.count(_.status == Status.Skipped.toString).toString}
-                 time={(testResults.map(_.duration).sum / 1000.0).toString}>
-                 timestamp={timestamp}
+                 failures={testResults.count(_.status == FailureStatus).toString}
+                 errors={testResults.count(_.status == ErrorStatus).toString}
+                 skipped={
+        testResults.count(testResult => SkippedStates.contains(testResult.status)).toString
+      }
+                 time={durationAsString(testResults.map(_.duration).sum)}
+                 timestamp={formatTimestamp(timestamp)}>
         {properties}
         {cases}
       </testsuite>
@@ -396,22 +439,27 @@ object TestModule {
     // todo add the parent module name
     val xml =
       <testsuites tests={results0.size.toString}
-                  failures={results0.count(_.status == Status.Failure.toString).toString}
-                  errors={results0.count(_.status == Status.Error.toString).toString}
-                  skipped={results0.count(_.status == Status.Skipped.toString).toString}
+                  failures={results0.count(_.status == FailureStatus).toString}
+                  errors={results0.count(_.status == ErrorStatus).toString}
+                  skipped={
+        results0.count(testResult => SkippedStates.contains(testResult.status)).toString
+      }
                   time={durationAsString(results0.map(_.duration).sum)}>
         {suites}
       </testsuites>
-    if (results0.nonEmpty) scala.xml.XML.save(out.toString(), xml, xmlDecl = true)
+    if (results0.nonEmpty) Some(xml) else None
+  }
+
+  private def formatTimestamp(timestamp: Instant): String = {
+    DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(
+      LocalDateTime.ofInstant(
+        timestamp.truncatedTo(ChronoUnit.SECONDS),
+        ZoneId.of("UTC")
+      )
+    )
   }
 
   private def testCaseStatus(e: TestResult): Option[Elem] = {
-    val Error = Status.Error.toString
-    val Failure = Status.Failure.toString
-    val Ignored = Status.Ignored.toString
-    val Skipped = Status.Skipped.toString
-    val Pending = Status.Pending.toString
-
     val trace: String = e.exceptionTrace.map(stackTraceTrace =>
       stackTraceTrace.map(t =>
         s"${t.getClassName}.${t.getMethodName}(${t.getFileName}:${t.getLineNumber})"
@@ -423,17 +471,17 @@ object TestModule {
         )
     ).getOrElse("")
     e.status match {
-      case Error if (e.exceptionMsg.isDefined && e.exceptionName.isDefined) =>
+      case ErrorStatus if (e.exceptionMsg.isDefined && e.exceptionName.isDefined) =>
         Some(<error message={e.exceptionMsg.get} type={e.exceptionName.get}>
           {trace}
         </error>)
-      case Error => Some(<error message={"No Exception or message provided"}/>)
-      case Failure if (e.exceptionMsg.isDefined && e.exceptionName.isDefined) =>
+      case ErrorStatus => Some(<error message="No Exception or message provided"/>)
+      case FailureStatus if (e.exceptionMsg.isDefined && e.exceptionName.isDefined) =>
         Some(<failure message={e.exceptionMsg.get} type={e.exceptionName.get}>
           {trace}
         </failure>)
-      case Failure => Some(<failure message={"No Exception or message provided"}/>)
-      case Ignored | Skipped | Pending => Some(<skipped/>)
+      case FailureStatus => Some(<failure message="No Exception or message provided"/>)
+      case s if SkippedStates.contains(s) => Some(<skipped/>)
       case _ => None
     }
   }

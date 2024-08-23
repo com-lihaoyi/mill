@@ -17,7 +17,7 @@ public class MillEnvTests extends FreeSpec {
                 File file = new File(
                     getClass().getClassLoader().getResource("file-wo-final-newline.txt").toURI()
                 );
-                List<String> lines = MillEnv.readOptsFileLines(file);
+                List<String> lines = Util.readOptsFileLines(file);
                 expectEquals(
                     lines,
                     Arrays.asList(

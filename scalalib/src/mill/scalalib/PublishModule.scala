@@ -4,6 +4,10 @@ package scalalib
 import mill.define.{Command, ExternalModule, Target, Task}
 import mill.api.{JarManifest, PathRef, Result}
 import mill.scalalib.PublishModule.checkSonatypeCreds
+import mill.scalalib.publish.SonatypeHelpers.{
+  PASSWORD_ENV_VARIABLE_NAME,
+  USERNAME_ENV_VARIABLE_NAME
+}
 import mill.scalalib.publish.{Artifact, SonatypePublisher}
 import os.Path
 
@@ -20,6 +24,11 @@ trait PublishModule extends JavaModule { outer =>
         s"PublishModule moduleDeps need to be also PublishModules. $other is not a PublishModule"
       )
   }
+
+  /**
+   * The packaging type. See [[PackagingType]] for specially handled values.
+   */
+  def pomPackagingType: String = PackagingType.Jar
 
   /**
    * Configuration for the `pom.xml` metadata file published with this module
@@ -72,8 +81,14 @@ trait PublishModule extends JavaModule { outer =>
   }
 
   def pom: Target[PathRef] = T {
-    val pom =
-      Pom(artifactMetadata(), publishXmlDeps(), artifactId(), pomSettings(), publishProperties())
+    val pom = Pom(
+      artifactMetadata(),
+      publishXmlDeps(),
+      artifactId(),
+      pomSettings(),
+      publishProperties(),
+      packagingType = pomPackagingType
+    )
     val pomPath = T.dest / s"${artifactId()}-${publishVersion()}.pom"
     os.write.over(pomPath, pom)
     PathRef(pomPath)
@@ -178,17 +193,29 @@ trait PublishModule extends JavaModule { outer =>
 
   def sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots"
 
-  def publishArtifacts = T {
-    val baseName = s"${artifactId()}-${publishVersion()}"
-    PublishModule.PublishData(
-      artifactMetadata(),
-      Seq(
-        jar() -> s"$baseName.jar",
-        sourceJar() -> s"$baseName-sources.jar",
-        docJar() -> s"$baseName-javadoc.jar",
-        pom() -> s"$baseName.pom"
-      ) ++ extraPublish().map(p => (p.file, s"$baseName${p.classifierPart}.${p.ext}"))
-    )
+  def publishArtifacts: T[PublishModule.PublishData] = {
+    val baseNameTask: Task[String] = T.task { s"${artifactId()}-${publishVersion()}" }
+    val defaultPayloadTask: Task[Seq[(PathRef, String)]] = pomPackagingType match {
+      case PackagingType.Pom => T.task { Seq.empty[(PathRef, String)] }
+      case PackagingType.Jar | _ => T.task {
+          val baseName = baseNameTask()
+          Seq(
+            jar() -> s"$baseName.jar",
+            sourceJar() -> s"$baseName-sources.jar",
+            docJar() -> s"$baseName-javadoc.jar",
+            pom() -> s"$baseName.pom"
+          )
+        }
+    }
+    T {
+      val baseName = baseNameTask()
+      PublishModule.PublishData(
+        meta = artifactMetadata(),
+        payload = defaultPayloadTask() ++ extraPublish().map(p =>
+          (p.file, s"$baseName${p.classifierPart}.${p.ext}")
+        )
+      )
+    }
   }
 
   /**
@@ -253,7 +280,14 @@ trait PublishModule extends JavaModule { outer =>
 object PublishModule extends ExternalModule {
   val defaultGpgArgs: Seq[String] = Seq("--batch", "--yes", "-a", "-b")
 
-  case class PublishData(meta: Artifact, payload: Seq[(PathRef, String)])
+  case class PublishData(meta: Artifact, payload: Seq[(PathRef, String)]) {
+
+    /**
+     * Maps the path reference to an actual path so that it can be used in publishAll signatures
+     */
+    private[mill] def withConcretePath: (Seq[(Path, String)], Artifact) =
+      (payload.map { case (p, f) => (p.path, f) }, meta)
+  }
   object PublishData {
     implicit def jsonify: upickle.default.ReadWriter[PublishData] = upickle.default.macroRW
   }
@@ -279,9 +313,9 @@ object PublishModule extends ExternalModule {
       release: Boolean = false,
       sonatypeUri: String = "https://oss.sonatype.org/service/local",
       sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots",
-      readTimeout: Int = 60000,
-      connectTimeout: Int = 5000,
-      awaitTimeout: Int = 120 * 1000,
+      readTimeout: Int = 10 * 60 * 1000,
+      connectTimeout: Int = 10 * 60 * 1000,
+      awaitTimeout: Int = 10 * 60 * 1000,
       stagingRelease: Boolean = true
   ): Command[Unit] = T.command {
     val x: Seq[(Seq[(os.Path, String)], Artifact)] = T.sequence(publishArtifacts.value)().map {
@@ -292,7 +326,7 @@ object PublishModule extends ExternalModule {
       sonatypeSnapshotUri,
       checkSonatypeCreds(sonatypeCreds)(),
       signed,
-      gpgArgs.split(",").toIndexedSeq,
+      getFinalGpgArgs(gpgArgs),
       readTimeout,
       connectTimeout,
       T.log,
@@ -306,22 +340,44 @@ object PublishModule extends ExternalModule {
     )
   }
 
-  private[scalalib] def checkSonatypeCreds(sonatypeCreds: String): Task[String] = T.task {
-    if (sonatypeCreds.isEmpty) {
-      (for {
-        username <- T.env.get("SONATYPE_USERNAME")
-        password <- T.env.get("SONATYPE_PASSWORD")
-      } yield {
-        Result.Success(s"$username:$password")
-      }).getOrElse(
-        Result.Failure(
-          "Consider using SONATYPE_USERNAME/SONATYPE_PASSWORD environment variables or passing `sonatypeCreds` argument"
-        )
-      )
+  private[mill] def getFinalGpgArgs(initialGpgArgs: String): Seq[String] = {
+    val argsAsString = if (initialGpgArgs.isEmpty) {
+      defaultGpgArgs.mkString(",")
     } else {
-      Result.Success(sonatypeCreds)
+      initialGpgArgs
     }
+    argsAsString.split(",").toIndexedSeq
   }
+
+  private def getSonatypeCredsFromEnv: Task[(String, String)] = T.task {
+    (for {
+      username <- T.env.get(USERNAME_ENV_VARIABLE_NAME)
+      password <- T.env.get(PASSWORD_ENV_VARIABLE_NAME)
+    } yield {
+      Result.Success((username, password))
+    }).getOrElse(
+      Result.Failure(
+        s"Consider using ${USERNAME_ENV_VARIABLE_NAME}/${PASSWORD_ENV_VARIABLE_NAME} environment variables or passing `sonatypeCreds` argument"
+      )
+    )
+  }
+
+  private[scalalib] def checkSonatypeCreds(sonatypeCreds: String): Task[String] =
+    if (sonatypeCreds.isEmpty) {
+      for {
+        (username, password) <- getSonatypeCredsFromEnv
+      } yield s"$username:$password"
+    } else {
+      T.task {
+        if (sonatypeCreds.split(":").length >= 2) {
+          Result.Success(sonatypeCreds)
+        } else {
+          Result.Failure(
+            "Sonatype credentials must be set in the following format - username:password. Incorrect format received."
+          )
+        }
+      }
+    }
 
   lazy val millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
 }

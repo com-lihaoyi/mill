@@ -18,6 +18,11 @@ include::example/tasks/7-modules.adoc[]
 
 include::example/tasks/8-diy-java-modules.adoc[]
 
+== Backticked Names
+
+include::example/tasks/9-backticked-names.adoc[]
+
+
 == External Modules
 
 Libraries for use in Mill can define ``ExternalModule``s: ``Module``s which are

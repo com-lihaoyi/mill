@@ -1,9 +1,11 @@
 package mill.scalalib
 
+import scala.util.Properties
 import mill._
 import mill.api.Result
 import mill.eval.Evaluator
-import mill.util.{Jvm, TestEvaluator, TestUtil}
+import mill.util.Jvm
+import mill.testkit.{UnitTester, TestBaseModule}
 import utest._
 import utest.framework.TestPath
 
@@ -16,7 +18,7 @@ import java.io.PrintStream
 
 object AssemblyTests extends TestSuite {
 
-  object TestCase extends TestUtil.BaseModule {
+  object TestCase extends TestBaseModule {
     trait Setup extends ScalaModule {
       def scalaVersion = "2.13.11"
       def sources = T.sources(T.workspace / "src")
@@ -52,42 +54,7 @@ object AssemblyTests extends TestSuite {
 
   }
 
-  val sources = Map(
-    os.rel / "src" / "Main.scala" ->
-      """package ultra
-        |
-        |import scalatags.Text.all._
-        |import mainargs.{main, ParserForMethods}
-        |
-        |object Main {
-        |  def generateHtml(text: String) = {
-        |    h1(text).toString
-        |  }
-        |
-        |  @main
-        |  def main(text: String) = {
-        |    println(generateHtml(text))
-        |  }
-        |
-        |  def main(args: Array[String]): Unit = ParserForMethods(this).runOrExit(args)
-        |}""".stripMargin
-  )
-
-  def workspaceTest[T](
-      m: TestUtil.BaseModule,
-      env: Map[String, String] = Evaluator.defaultEnv,
-      debug: Boolean = false,
-      errStream: PrintStream = System.err
-  )(t: TestEvaluator => T)(implicit tp: TestPath): T = {
-    val eval = new TestEvaluator(m, env = env, debugEnabled = debug, errStream = errStream)
-    os.remove.all(m.millSourcePath)
-    sources.foreach { case (file, content) =>
-      os.write(m.millSourcePath / file, content, createFolders = true)
-    }
-    os.remove.all(eval.outPath)
-    os.makeDir.all(m.millSourcePath / os.up)
-    t(eval)
-  }
+  val sources = os.pwd / "scalalib" / "test" / "resources" / "assembly"
 
   def runAssembly(file: os.Path, wd: os.Path, checkExe: Boolean = false): Unit = {
     println(s"File size: ${os.stat(file).size}")
@@ -109,37 +76,44 @@ object AssemblyTests extends TestSuite {
     test("Assembly") {
       test("noExe") {
         test("small") {
-          workspaceTest(TestCase) { eval =>
-            val Right((res, _)) = eval(TestCase.noExe.small.assembly)
-            runAssembly(res.path, TestCase.millSourcePath)
-          }
+          val eval = UnitTester(TestCase, sourceRoot = sources)
+          val Right(result) = eval(TestCase.noExe.small.assembly)
+          runAssembly(result.value.path, TestCase.millSourcePath)
+
         }
         test("large") {
-          workspaceTest(TestCase) { eval =>
-            val Right((res, _)) = eval(TestCase.noExe.large.assembly)
-            runAssembly(res.path, TestCase.millSourcePath)
-          }
+          val eval = UnitTester(TestCase, sourceRoot = sources)
+          val Right(result) = eval(TestCase.noExe.large.assembly)
+          runAssembly(result.value.path, TestCase.millSourcePath)
+
         }
       }
       test("exe") {
         test("small") {
-          workspaceTest(TestCase) { eval =>
-            val Right((res, _)) = eval(TestCase.exe.small.assembly)
-            runAssembly(res.path, TestCase.millSourcePath, checkExe = true)
-          }
+          val eval = UnitTester(TestCase, sourceRoot = sources)
+          val Right(result) = eval(TestCase.exe.small.assembly)
+          val originalPath = result.value.path
+          val resolvedPath =
+            if (Properties.isWin) {
+              val winPath = originalPath / os.up / s"${originalPath.last}.bat"
+              os.copy(originalPath, winPath)
+              winPath
+            } else originalPath
+          runAssembly(resolvedPath, TestCase.millSourcePath, checkExe = true)
         }
+
         test("large-should-fail") {
-          workspaceTest(TestCase) { eval =>
-            val Left(Result.Failure(msg, Some(res))) = eval(TestCase.exe.large.assembly)
-            val expectedMsg =
-              """The created assembly jar contains more than 65535 ZIP entries.
-                |JARs of that size are known to not work correctly with a prepended shell script.
-                |Either reduce the entries count of the assembly or disable the prepended shell script with:
-                |
-                |  def prependShellScript = ""
-                |""".stripMargin
-            assert(msg == expectedMsg)
-          }
+          val eval = UnitTester(TestCase, sourceRoot = sources)
+          val Left(Result.Failure(msg, Some(res))) = eval(TestCase.exe.large.assembly)
+          val expectedMsg =
+            """The created assembly jar contains more than 65535 ZIP entries.
+              |JARs of that size are known to not work correctly with a prepended shell script.
+              |Either reduce the entries count of the assembly or disable the prepended shell script with:
+              |
+              |  def prependShellScript = ""
+              |""".stripMargin
+          assert(msg == expectedMsg)
+
         }
       }
     }

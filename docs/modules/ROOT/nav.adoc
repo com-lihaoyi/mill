@@ -2,13 +2,24 @@
 // do this other thing, etc. We touch on a lot of topics about how Mill works,
 // but we intentionally skim over them and do not go into depth: the focus is
 // on end user goals and how to achieve them.
-.Quick Start
-* xref:Intro_to_Mill.adoc[]
-* xref:Installation_IDE_Support.adoc[]
-* xref:Builtin_Commands.adoc[]
+
+.Java Quick Start
+* xref:Java_Intro_to_Mill.adoc[]
+* xref:Java_Installation_IDE_Support.adoc[]
+* xref:Java_Builtin_Commands.adoc[]
+* xref:Java_Build_Examples.adoc[]
+* xref:Java_Module_Config.adoc[]
+* xref:Java_Web_Build_Examples.adoc[]
+* xref:Case_Study_Mill_vs_Maven.adoc[]
+* xref:Case_Study_Mill_vs_Gradle.adoc[]
+
+.Scala Quick Start
+* xref:Scala_Intro_to_Mill.adoc[]
+* xref:Scala_Installation_IDE_Support.adoc[]
+* xref:Scala_Builtin_Commands.adoc[]
 * xref:Scala_Build_Examples.adoc[]
 * xref:Scala_Module_Config.adoc[]
-* xref:Web_Build_Examples.adoc[]
+* xref:Scala_Web_Build_Examples.adoc[]
 
 // This section is all about developing a deeper understanding of specific
 // topics in Mill. This is the opposite of `Quick Start` above: while we touch

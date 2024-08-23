@@ -2,7 +2,7 @@ package mill.eval
 
 import mill.api.{CompileProblemReporter, DummyTestReporter, Result, TestReporter, Val}
 import mill.api.Strict.Agg
-import mill.define.{BaseModule, Segments, Task}
+import mill.define.{BaseModule, BaseModuleTree, Segments, Task}
 import mill.eval.Evaluator.{Results, formatFailing}
 import mill.util.{ColorLogger, MultiBiMap}
 
@@ -15,7 +15,9 @@ import scala.util.DynamicVariable
  */
 trait Evaluator {
   def baseLogger: ColorLogger
-  def rootModule: BaseModule
+  def rootModule: BaseModule = rootModules.head
+  def rootModules: Seq[BaseModule] = Seq(rootModule)
+  def baseModules: BaseModuleTree = BaseModuleTree.from(rootModules)
   def effectiveThreadCount: Int
   def outPath: os.Path
   def externalOutPath: os.Path
@@ -79,8 +81,9 @@ object Evaluator {
     (for ((k, fs) <- evaluated.failing.items())
       yield {
         val fss = fs.map {
-          case ex: Result.Exception => ex.toString
           case Result.Failure(t, _) => t
+          case Result.Exception(Result.Failure(t, _), _) => t
+          case ex: Result.Exception => ex.toString
         }
         s"${k.render} ${fss.iterator.mkString(", ")}"
       }).mkString("\n")

@@ -1,9 +1,8 @@
 package mill.main
 
 import java.util.concurrent.LinkedBlockingQueue
-import mill.define.Target
+import mill.define.{BaseModule0, Command, NamedTask, Segments, Target, Task}
 import mill.api.{Ctx, Logger, PathRef, Result}
-import mill.define.{Command, NamedTask, Segments, Task}
 import mill.eval.{Evaluator, EvaluatorPaths, Terminal}
 import mill.resolve.{Resolve, SelectMode}
 import mill.resolve.SelectMode.Separated
@@ -19,7 +18,7 @@ object MainModule {
       targets: Seq[String],
       selectMode: SelectMode
   )(f: List[NamedTask[Any]] => T): Result[T] = {
-    Resolve.Tasks.resolve(evaluator.rootModule, targets, selectMode) match {
+    Resolve.Tasks.resolve(evaluator.rootModules, targets, selectMode) match {
       case Left(err) => Result.Failure(err)
       case Right(tasks) => Result.Success(f(tasks))
     }
@@ -60,39 +59,10 @@ object MainModule {
  * [[mill.define.Module]] containing all the default tasks that Mill provides: [[resolve]],
  * [[show]], [[inspect]], [[plan]], etc.
  */
-trait MainModule extends mill.define.Module {
-  protected[mill] val watchedValues: mutable.Buffer[Watchable] = mutable.Buffer.empty[Watchable]
-  protected[mill] val evalWatchedValues: mutable.Buffer[Watchable] = mutable.Buffer.empty[Watchable]
+trait MainModule extends BaseModule0 {
 
-  object interp {
-
-    def watchValue[T](v0: => T)(implicit fn: sourcecode.FileName, ln: sourcecode.Line): T = {
-      val v = v0
-      val watchable = Watchable.Value(
-        () => v0.hashCode,
-        v.hashCode(),
-        fn.value + ":" + ln.value
-      )
-      watchedValues.append(watchable)
-      v
-    }
-
-    def watch(p: os.Path): os.Path = {
-      val watchable = Watchable.Path(PathRef(p))
-      watchedValues.append(watchable)
-      p
-    }
-
-    def watch0(w: Watchable): Unit = {
-      watchedValues.append(w)
-    }
-
-    def evalWatch0(w: Watchable): Unit = {
-      evalWatchedValues.append(w)
-    }
-  }
-
-  implicit def millDiscover: mill.define.Discover[_]
+  object interp extends Interp
+//  implicit def millDiscover: mill.define.Discover[_]
 
   /**
    * Show the mill version.
@@ -108,7 +78,7 @@ trait MainModule extends mill.define.Module {
    */
   def resolve(evaluator: Evaluator, targets: String*): Command[List[String]] = Target.command {
     val resolved = Resolve.Segments.resolve(
-      evaluator.rootModule,
+      evaluator.rootModules,
       targets,
       SelectMode.Multi
     )
@@ -138,7 +108,7 @@ trait MainModule extends mill.define.Module {
 
   private def plan0(evaluator: Evaluator, targets: Seq[String]) = {
     Resolve.Tasks.resolve(
-      evaluator.rootModule,
+      evaluator.rootModules,
       targets,
       SelectMode.Multi
     ) match {
@@ -158,7 +128,7 @@ trait MainModule extends mill.define.Module {
   def path(evaluator: Evaluator, src: String, dest: String): Command[List[String]] =
     Target.command {
       val resolved = Resolve.Tasks.resolve(
-        evaluator.rootModule,
+        evaluator.rootModules,
         List(src, dest),
         SelectMode.Multi
       )
@@ -212,7 +182,8 @@ trait MainModule extends mill.define.Module {
       def rec(t: Task[_]): Seq[Segments] = {
         if (seen(t)) Nil // do nothing
         else t match {
-          case t: mill.define.Target[_] if evaluator.rootModule.millInternal.targets.contains(t) =>
+          case t: mill.define.Target[_]
+              if evaluator.rootModules.exists(_.millInternal.targets.contains(t)) =>
             Seq(t.ctx.segments)
           case _ =>
             seen.add(t)
@@ -237,11 +208,14 @@ trait MainModule extends mill.define.Module {
           if (t.asCommand.isEmpty) List()
           else {
             val mainDataOpt = evaluator
-              .rootModule
-              .millDiscover
-              .value
-              .get(t.ctx.enclosingCls)
-              .flatMap(_._2.find(_.name == t.ctx.segments.parts.last))
+              .rootModules
+              .flatMap(
+                _.millDiscover
+                  .value
+                  .get(t.ctx.enclosingCls)
+                  .flatMap(_._2.find(_.name == t.ctx.segments.parts.last))
+              )
+              .headOption
 
             mainDataOpt match {
               case Some(mainData) if mainData.renderedArgSigs.nonEmpty =>
@@ -252,7 +226,8 @@ trait MainModule extends mill.define.Module {
                   leftColWidth = mainargs.Renderer.getLeftColWidth(mainData.renderedArgSigs),
                   docsOnNewLine = false,
                   customName = None,
-                  customDoc = None
+                  customDoc = None,
+                  sorted = true
                 )
 
                 // trim first line containing command name, since we already render
@@ -359,7 +334,7 @@ trait MainModule extends mill.define.Module {
         Right(os.list(rootDir).filterNot(keepPath))
       else
         mill.resolve.Resolve.Segments.resolve(
-          evaluator.rootModule,
+          evaluator.rootModules,
           targets,
           SelectMode.Multi
         ).map { ts =>
@@ -459,7 +434,7 @@ trait MainModule extends mill.define.Module {
     }
 
     Resolve.Tasks.resolve(
-      evaluator.rootModule,
+      evaluator.rootModules,
       targets,
       SelectMode.Multi
     ) match {

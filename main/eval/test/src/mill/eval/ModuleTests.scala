@@ -1,6 +1,8 @@
 package mill.eval
 
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.UnitTester
+import mill.testkit.UnitTester.Result
+import mill.testkit.TestBaseModule
 import mill.T
 import mill.define.Discover
 
@@ -14,16 +16,16 @@ object ModuleTests extends TestSuite {
     }
     lazy val millDiscover = Discover[this.type]
   }
-  object Build extends TestUtil.BaseModule {
+  object Build extends TestBaseModule {
     def z = T { ExternalModule.x() + ExternalModule.inner.y() }
   }
   val tests = Tests {
-    "externalModuleTargetsAreNamespacedByModulePackagePath" - {
-      val check = new TestEvaluator(Build)
+    test("externalModuleTargetsAreNamespacedByModulePackagePath") {
+      val check = UnitTester(Build, null)
       os.remove.all(check.outPath)
       val zresult = check.apply(Build.z)
       assert(
-        zresult == Right((30, 1)),
+        zresult == Right(Result(30, 1)),
         os.read(check.evaluator.outPath / "z.json").contains("30"),
         os.read(
           check.outPath / "mill" / "eval" / "ModuleTests" / "ExternalModule" / "x.json"
@@ -33,7 +35,7 @@ object ModuleTests extends TestSuite {
         ).contains("17")
       )
     }
-    "externalModuleMustBeGlobalStatic" - {
+    test("externalModuleMustBeGlobalStatic") {
 
       object Build extends mill.define.ExternalModule {
 

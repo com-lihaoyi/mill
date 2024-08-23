@@ -11,18 +11,20 @@ import mill.api.{PathRef, Strict}
 import mill.define.{Ctx => _, _}
 import mill.eval.Evaluator
 import mill.main.BuildInfo
+import mill.scalajslib.ScalaJSModule
 import mill.scalalib.GenIdeaModule.{IdeaConfigFile, JavaFacet}
 import mill.scalalib.internal.JavaModuleUtils
 import mill.util.Classpath
 import mill.{T, scalalib}
 import mill.scalalib.{GenIdeaImpl => _, _}
+import mill.scalanativelib.ScalaNativeModule
 
 case class GenIdeaImpl(
     private val evaluators: Seq[Evaluator]
 )(implicit ctx: Ctx) {
   import GenIdeaImpl._
 
-  val workDir: os.Path = evaluators.head.rootModule.millSourcePath
+  val workDir: os.Path = evaluators.head.rootModules.head.millSourcePath
   val ideaDir: os.Path = workDir / ".idea"
 
   val ideaConfigVersion = 4
@@ -67,7 +69,9 @@ case class GenIdeaImpl(
       fetchMillModules: Boolean = true
   ): Seq[(os.SubPath, scala.xml.Node)] = {
 
-    val rootModules = evaluators.zipWithIndex.map { case (ev, idx) => (ev.rootModule, ev, idx) }
+    val rootModules = evaluators.zipWithIndex.map { case (ev, idx) =>
+      (ev.rootModules.head, ev, idx)
+    }
     val transitive: Seq[(BaseModule, Seq[Module], Evaluator, Int)] = rootModules
       .map { case (rootModule, ev, idx) =>
         (rootModule, JavaModuleUtils.transitiveModules(rootModule), ev, idx)
@@ -118,7 +122,7 @@ case class GenIdeaImpl(
     }
 
     // is head the right one?
-    val buildDepsPaths = Classpath.allJars(evaluators.head.rootModule.getClass.getClassLoader)
+    val buildDepsPaths = Classpath.allJars(evaluators.head.rootModules.head.getClass.getClassLoader)
       .map(url => os.Path(java.nio.file.Paths.get(url.toURI)))
 
     def resolveTasks: Map[Evaluator, Seq[Task[ResolvedModule]]] =
@@ -140,21 +144,16 @@ case class GenIdeaImpl(
             }
 
             val externalLibraryDependencies = T.task {
-              mod.resolveDeps(T.task {
-                val bind = mod.bindDependency()
-                mod.mandatoryIvyDeps().map(bind)
-              })()
+              mod.defaultResolver().resolveDeps(mod.mandatoryIvyDeps())
             }
 
             val externalDependencies = T.task {
               mod.resolvedIvyDeps() ++
                 T.traverse(mod.transitiveModuleDeps)(_.unmanagedClasspath)().flatten
             }
-            val extCompileIvyDeps =
-              mod.resolveDeps(T.task {
-                val bind = mod.bindDependency()
-                mod.compileIvyDeps().map(bind)
-              })
+            val extCompileIvyDeps = T.task {
+              mod.defaultResolver().resolveDeps(mod.compileIvyDeps())
+            }
             val extRunIvyDeps = mod.resolvedRunIvyDeps
 
             val externalSources = T.task {
@@ -175,10 +174,7 @@ case class GenIdeaImpl(
             }
 
             val scalacPluginDependencies = T.task {
-              mod.resolveDeps(T.task {
-                val bind = mod.bindDependency()
-                scalacPluginsIvyDeps().map(bind)
-              })()
+              mod.defaultResolver().resolveDeps(scalacPluginsIvyDeps())
             }
 
             val facets = T.task {
@@ -558,20 +554,34 @@ case class GenIdeaImpl(
 
         val libNames = Strict.Agg.from(sanizedDeps).iterator.toSeq
 
-        val depNames = Strict.Agg
-          .from(mod.moduleDeps.map((_, None)) ++
-            mod.compileModuleDeps.map((_, Some("PROVIDED"))))
-          .filter(!_._1.skipIdea)
-          .map { case (v, s) => ScopedOrd(moduleName(moduleLabels(v)), s) }
-          .iterator
-          .toSeq
-          .distinct
+        val depNames = {
+          val allTransitive = mod.transitiveModuleCompileModuleDeps
+          val recursive = mod.recursiveModuleDeps
+          val provided = allTransitive.filterNot(recursive.contains)
+
+          Strict.Agg
+            .from(recursive.map((_, None)) ++
+              provided.map((_, Some("PROVIDED"))))
+            .filter(!_._1.skipIdea)
+            .map { case (v, s) => ScopedOrd(moduleName(moduleLabels(v)), s) }
+            .iterator
+            .toSeq
+            .distinct
+        }
 
         val isTest = mod.isInstanceOf[TestModule]
 
+        val sdkName = (mod match {
+          case _: ScalaJSModule => Some("scala-js-SDK")
+          case _: ScalaNativeModule => Some("scala-native-SDK")
+          case _: ScalaModule => Some("scala-SDK")
+          case _ => None
+        })
+          .map { name => s"${name}-${scalaVersion.get}" }
+
         val moduleXml = moduleXmlTemplate(
           basePath = mod.intellijModulePath,
-          scalaVersionOpt = scalaVersion,
+          sdkOpt = sdkName,
           resourcePaths = Strict.Agg.from(resourcesPathRefs.map(_.path)),
           normalSourcePaths = Strict.Agg.from(normalSourcePaths),
           generatedSourcePaths = Strict.Agg.from(generatedSourcePaths),
@@ -588,15 +598,14 @@ case class GenIdeaImpl(
         )
 
         val scalaSdkFile = {
-          Option.when(scalaVersion.isDefined && compilerClasspath.nonEmpty) {
-            val name = s"scala-SDK-${scalaVersion.get}"
+          sdkName.map { nameAndVersion =>
             val languageLevel =
               scalaVersion.map(_.split("[.]", 3).take(2).mkString("Scala_", "_", ""))
 
             Tuple2(
-              os.sub / "libraries" / libraryNameToFileSystemPathPart(name, "xml"),
+              os.sub / "libraries" / libraryNameToFileSystemPathPart(nameAndVersion, "xml"),
               scalaSdkTemplate(
-                name = name,
+                name = nameAndVersion,
                 languageLevel = languageLevel,
                 scalaCompilerClassPath = compilerClasspath,
                 // FIXME: fill in these fields
@@ -820,7 +829,7 @@ case class GenIdeaImpl(
    */
   def moduleXmlTemplate(
       basePath: os.Path,
-      scalaVersionOpt: Option[String],
+      sdkOpt: Option[String],
       resourcePaths: Strict.Agg[os.Path],
       normalSourcePaths: Strict.Agg[os.Path],
       generatedSourcePaths: Strict.Agg[os.Path],
@@ -904,8 +913,8 @@ case class GenIdeaImpl(
         <orderEntry type="sourceFolder" forTests="false" />
         {
       for {
-        scalaVersion <- scalaVersionOpt.toSeq
-      } yield <orderEntry type="library" name={s"scala-SDK-${scalaVersion}"} level="project" />
+        sdk <- sdkOpt.toSeq
+      } yield <orderEntry type="library" name={sdk} level="project" />
     }
 
         {

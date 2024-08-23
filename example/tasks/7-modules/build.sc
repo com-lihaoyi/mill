@@ -13,6 +13,18 @@ object foo extends Module {
   }
 }
 
+// [graphviz]
+// ....
+// digraph G {
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   "root-module" [style=dashed]
+//   foo [style=dashed]
+//   "foo.qux" [style=dashed]
+//   "foo.qux.baz"
+//   "root-module" -> foo -> "foo.qux" -> "foo.qux.baz"  [style=dashed]
+//   foo -> "foo.bar"  [style=dashed]
+// }
+// ....
 // You would be able to run the two targets via `mill foo.bar` or `mill
 // foo.qux.baz`. You can use `mill show foo.bar` or `mill show foo.baz.qux` to
 // make Mill echo out the string value being returned by each Target. The two
@@ -42,7 +54,7 @@ object foo extends Module {
 // == Trait Modules
 //
 // Modules also provide a way to define and re-use common collections of tasks,
-// via Scala ``trait``s. Module ``trait `s support everything nornal Scala
+// via Scala ``trait``s. Module ``trait``s support everything normal Scala
 // ``trait``s do: abstract ``def``s, overrides, `super`, extension
 // with additional ``def``s, etc.
 
@@ -60,7 +72,30 @@ object foo2 extends FooModule {
   def baz = T { qux() + " I am Cow" } // add a new `def`
 }
 
-// Note that the `override` keyword is implicit in mill, as is `T{...}` wrapper.
+// This generates the following module tree and task graph, with the dotted boxes and
+// arrows representing the module tree, and the solid boxes and arrows representing
+// the task graph
+
+// [graphviz]
+// ....
+// digraph G {
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   bgcolor=transparent
+//   "root-module" [style=dashed]
+//   foo1 [style=dashed]
+//   foo2 [style=dashed]
+//   "root-module" -> foo1 -> "foo1.bar"  [style=dashed]
+//   foo1 -> "foo1.qux.super"  [style=dashed]
+//   foo1 -> "foo1.qux"  [style=dashed]
+//   "root-module" -> foo2 -> "foo2.bar"  [style=dashed]
+//   foo2 -> "foo2.qux"  [style=dashed]
+//   foo2 -> "foo2.baz"  [style=dashed]
+//   "foo1.bar" -> "foo1.qux.super" -> "foo1.qux" [constraint=false]
+//   "foo2.bar" -> "foo2.qux" -> "foo2.baz" [constraint=false]
+// }
+// ....
+
+// Note that the `override` keyword is optional in mill, as is `T{...}` wrapper.
 
 /** Usage
 
@@ -103,6 +138,24 @@ trait MyModule extends Module{
 object outer extends MyModule {
   object inner extends MyModule
 }
+
+// [graphviz]
+// ....
+// digraph G {
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   "root-module" [style=dashed]
+//   outer [style=dashed]
+//
+//   "outer.sources" -> "outer.target" [constraint=false]
+//   "outer.inner.sources" -> "outer.inner.target" [constraint=false]
+//   "outer.inner" [style=dashed]
+//   "root-module" -> outer -> "outer.inner"  [style=dashed]
+//   "outer.inner" -> "outer.inner.sources"  [style=dashed]
+//   "outer.inner" -> "outer.inner.target"  [style=dashed]
+//   outer -> "outer.sources"  [style=dashed]
+//   outer -> "outer.target"  [style=dashed]
+// }
+// ....
 
 // * The `outer` module has a `millSourcePath` of `outer/`, and thus a
 //   `outer.sources` referencing `outer/sources/`

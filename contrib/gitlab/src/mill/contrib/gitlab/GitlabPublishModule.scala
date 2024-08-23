@@ -4,7 +4,6 @@ import mill._
 import mill.api.Result.{Failure, Success}
 import mill.api.Result
 import mill.define.{Command, ExternalModule, Task}
-import mill.scalalib.publish.Artifact
 import scalalib._
 
 trait GitlabPublishModule extends PublishModule { outer =>
@@ -63,11 +62,9 @@ object GitlabPublishModule extends ExternalModule {
     val repo = ProjectRepository(gitlabRoot, projectId)
     val auth = GitlabAuthHeaders.privateToken(personalToken)
 
-    val artifacts: Seq[(Seq[(os.Path, String)], Artifact)] =
-      T.sequence(publishArtifacts.value)().map {
-        case PublishModule.PublishData(a, s) => (s.map { case (p, f) => (p.path, f) }, a)
-      }
-
+    val artifacts = T.sequence(publishArtifacts.value)().map {
+      case data @ PublishModule.PublishData(_, _) => data.withConcretePath
+    }
     val uploader = new GitlabUploader(auth, readTimeout, connectTimeout)
 
     new GitlabPublisher(

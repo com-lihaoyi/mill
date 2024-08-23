@@ -17,7 +17,7 @@ private[mill] case class EvaluatorImpl(
     workspace: os.Path,
     outPath: os.Path,
     externalOutPath: os.Path,
-    rootModule: mill.define.BaseModule,
+    override val rootModules: Seq[mill.define.BaseModule],
     baseLogger: ColorLogger,
     classLoaderSigHash: Int,
     classLoaderIdentityHash: Int,

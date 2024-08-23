@@ -2,7 +2,6 @@ package mill.util
 
 import mill.api.Loose.Agg
 import mill.api._
-import mill.main.client.InputPumper
 import os.{ProcessOutput, SubProcess}
 
 import java.io._
@@ -223,46 +222,13 @@ object Jvm extends CoursierSupport {
       workingDir: os.Path,
       backgroundOutputs: Option[Tuple2[ProcessOutput, ProcessOutput]] = None
   ): SubProcess = {
-    // If System.in is fake, then we pump output manually rather than relying
-    // on `os.Inherit`. That is because `os.Inherit` does not follow changes
-    // to System.in/System.out/System.err, so the subprocess's streams get sent
-    // to the parent process's origin outputs even if we want to direct them
-    // elsewhere
-
-    if (!SystemStreams.isOriginal()) {
-      val process = os.proc(commandArgs).spawn(
-        cwd = workingDir,
-        env = envArgs,
-        stdin = if (backgroundOutputs.isEmpty) os.Pipe else "",
-        stdout = backgroundOutputs.map(_._1).getOrElse(os.Pipe),
-        stderr = backgroundOutputs.map(_._2).getOrElse(os.Pipe)
-      )
-
-      val sources = Seq(
-        (process.stdout, System.out, "spawnSubprocess.stdout", false, () => true),
-        (process.stderr, System.err, "spawnSubprocess.stderr", false, () => true),
-        (System.in, process.stdin, "spawnSubprocess.stdin", true, () => process.isAlive())
-      )
-
-      for ((std, dest, name, checkAvailable, runningCheck) <- sources) {
-        val t = new Thread(
-          new InputPumper(std, dest, checkAvailable, () => runningCheck()),
-          name
-        )
-        t.setDaemon(true)
-        t.start()
-      }
-
-      process
-    } else {
-      os.proc(commandArgs).spawn(
-        cwd = workingDir,
-        env = envArgs,
-        stdin = if (backgroundOutputs.isEmpty) os.Inherit else "",
-        stdout = backgroundOutputs.map(_._1).getOrElse(os.Inherit),
-        stderr = backgroundOutputs.map(_._2).getOrElse(os.Inherit)
-      )
-    }
+    os.proc(commandArgs).spawn(
+      cwd = workingDir,
+      env = envArgs,
+      stdin = if (backgroundOutputs.isEmpty) os.Inherit else "",
+      stdout = backgroundOutputs.map(_._1).getOrElse(os.Inherit),
+      stderr = backgroundOutputs.map(_._2).getOrElse(os.Inherit)
+    )
   }
 
   def runLocal(

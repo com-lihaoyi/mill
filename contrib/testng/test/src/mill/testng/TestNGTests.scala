@@ -4,15 +4,14 @@ package testng
 import mill.define.Target
 import mill.util.Util.millProjectModule
 import mill.scalalib._
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import utest.framework.TestPath
 import utest.{TestSuite, Tests, assert, _}
 
 object TestNGTests extends TestSuite {
 
-  object demo extends TestUtil.BaseModule with JavaModule {
-    override def millSourcePath: os.Path =
-      TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
+  object demo extends TestBaseModule with JavaModule {
 
     object test extends JavaModuleTests {
       def testngClasspath = T {
@@ -41,30 +40,20 @@ object TestNGTests extends TestSuite {
 
   val resourcePath: os.Path = os.pwd / "contrib" / "testng" / "test" / "resources" / "demo"
 
-  def workspaceTest[T, M <: TestUtil.BaseModule](
-      m: M,
-      resourcePath: os.Path = resourcePath
-  )(t: TestEvaluator => T)(implicit tp: TestPath): T = {
-    val eval = new TestEvaluator(m)
-    os.remove.all(m.millSourcePath)
-    os.remove.all(eval.outPath)
-    os.makeDir.all(m.millSourcePath / os.up)
-    os.copy(resourcePath, m.millSourcePath)
-    t(eval)
-  }
-
   def tests: Tests = Tests {
-    "TestNG" - {
-      "demo" - workspaceTest(demo) { eval =>
-        val Right((result, evalCount)) = eval.apply(demo.test.testFramework)
+    test("TestNG") {
+      test("demo") {
+        val eval = UnitTester(demo, resourcePath)
+        val Right(result) = eval.apply(demo.test.testFramework)
         assert(
-          result == "mill.testng.TestNGFramework",
-          evalCount > 0
+          result.value == "mill.testng.TestNGFramework",
+          result.evalCount > 0
         )
       }
-      "Test case lookup from inherited annotations" - workspaceTest(demo) { eval =>
-        val Right((result, evalCount)) = eval.apply(demo.test.test())
-        val tres = result.asInstanceOf[(String, Seq[mill.testrunner.TestResult])]
+      test("Test case lookup from inherited annotations") {
+        val eval = UnitTester(demo, resourcePath)
+        val Right(result) = eval.apply(demo.test.test())
+        val tres = result.value.asInstanceOf[(String, Seq[mill.testrunner.TestResult])]
         assert(
           tres._2.size == 8
         )

@@ -8,6 +8,7 @@ import mill.eval.Evaluator.TaskResult
 import mill.util._
 
 import java.io.PrintStream
+import java.lang.reflect.Method
 import scala.collection.mutable
 import scala.reflect.NameTransformer.encode
 import scala.util.control.NonFatal
@@ -22,7 +23,7 @@ private[mill] trait GroupEvaluator {
   def workspace: os.Path
   def outPath: os.Path
   def externalOutPath: os.Path
-  def rootModule: mill.define.BaseModule
+  def rootModules: Seq[mill.define.BaseModule]
   def classLoaderSigHash: Int
   def classLoaderIdentityHash: Int
   def workerCache: mutable.Map[Segments, (Int, Val)]
@@ -75,7 +76,9 @@ private[mill] trait GroupEvaluator {
       counterMsg: String,
       zincProblemReporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
-      logger: ColorLogger
+      logger: ColorLogger,
+      classToTransitiveClasses: Map[Class[_], IndexedSeq[Class[_]]],
+      allTransitiveClassMethods: Map[Class[_], Map[String, Method]]
   ): GroupEvaluator.Results = synchronizedEval(
     terminal,
     onCollision =
@@ -115,37 +118,26 @@ private[mill] trait GroupEvaluator {
         .map(p => scriptImportGraph.get(p).fold(0)(_._1))
         .sum
     } else {
+
       group
         .iterator
         .collect {
           case namedTask: NamedTask[_] =>
-            def resolveParents(c: Class[_]): Seq[Class[_]] = {
-              Seq(c) ++
-                Option(c.getSuperclass).toSeq.flatMap(resolveParents) ++
-                c.getInterfaces.flatMap(resolveParents)
-            }
-
-            val transitiveParents = resolveParents(namedTask.ctx.enclosingCls)
-            val methods = for {
-              c <- transitiveParents
-              m <- c.getDeclaredMethods
-              encodedTaskName = encode(namedTask.ctx.segment.pathSegments.head)
-              if m.getName == encodedTaskName ||
-                // Handle scenarios where private method names get mangled when they are
-                // not really JVM-private due to being accessed by Scala nested objects
-                // or classes https://github.com/scala/bug/issues/9306
-                m.getName == (c.getName.replace('.', '$') + "$$" + encodedTaskName) ||
-                m.getName == (c.getName.replace('.', '$') + "$" + encodedTaskName)
+            val encodedTaskName = encode(namedTask.ctx.segment.pathSegments.head)
+            val methodOpt = for {
+              parentCls <- classToTransitiveClasses(namedTask.ctx.enclosingCls).iterator
+              m <- allTransitiveClassMethods(parentCls).get(encodedTaskName)
             } yield m
 
-            val methodClass = methods
-              .headOption
+            val methodClass = methodOpt
+              .nextOption()
               .getOrElse(throw new MillException(
                 s"Could not detect the parent class of target ${namedTask}. " +
                   s"Please report this at ${BuildInfo.millReportNewIssueUrl} . " +
                   s"As a workaround, you can run Mill with `--disable-callgraph-invalidation` option."
               ))
               .getDeclaringClass.getName
+
             val name = namedTask.ctx.segment.pathSegments.last
             val expectedName = methodClass + "#" + name + "()mill.define.Target"
 
@@ -355,6 +347,7 @@ private[mill] trait GroupEvaluator {
             mill.api.SystemStreams.withStreams(multiLogger.systemStreams) {
               try task.evaluate(args).map(Val(_))
               catch {
+                case f: Result.Failing[Val] => f
                 case NonFatal(e) =>
                   Result.Exception(
                     e,

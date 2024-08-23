@@ -1,18 +1,17 @@
 package mill.scalajslib
 
 import mill.define.Discover
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import utest._
 
 object SourceMapTests extends TestSuite {
-  val workspacePath = TestUtil.getOutPathStatic() / "source-map"
+  object SourceMapModule extends TestBaseModule {
 
-  object SourceMapModule extends TestUtil.BaseModule {
-
-    object sourceMapModule extends ScalaJSModule {
-      override def millSourcePath = workspacePath
+    object build extends ScalaJSModule {
       override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
-      override def scalaJSVersion = "1.8.0"
+      override def scalaJSVersion =
+        sys.props.getOrElse("TEST_SCALAJS_VERSION", ???) // at least 1.8.0
       override def scalaJSSourceMap = false
     }
 
@@ -21,27 +20,18 @@ object SourceMapTests extends TestSuite {
 
   val millSourcePath = os.pwd / "scalajslib" / "test" / "resources" / "hello-js-world"
 
-  val evaluator = TestEvaluator.static(SourceMapModule)
+  val evaluator = UnitTester(SourceMapModule, millSourcePath)
 
   val tests: Tests = Tests {
-    prepareWorkspace()
-
     test("should disable source maps") {
-      val Right((report, _)) =
-        evaluator(SourceMapModule.sourceMapModule.fastLinkJS)
-      val publicModules = report.publicModules.toSeq
+      val Right(result) =
+        evaluator(SourceMapModule.build.fastLinkJS)
+      val publicModules = result.value.publicModules.toSeq
       assert(publicModules.length == 1)
       val main = publicModules.head
       assert(main.jsFileName == "main.js")
-      assert(os.exists(report.dest.path / "main.js"))
-      assert(!os.exists(report.dest.path / "main.js.map"))
+      assert(os.exists(result.value.dest.path / "main.js"))
+      assert(!os.exists(result.value.dest.path / "main.js.map"))
     }
   }
-
-  def prepareWorkspace(): Unit = {
-    os.remove.all(workspacePath)
-    os.makeDir.all(workspacePath / os.up)
-    os.copy(millSourcePath, workspacePath)
-  }
-
 }

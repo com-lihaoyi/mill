@@ -3,7 +3,8 @@ package mill.eval
 import mill.util.TestUtil.{Test, test}
 import mill.define.{TargetImpl, Task}
 import mill.T
-import mill.util.{TestEvaluator, TestGraphs, TestUtil}
+import mill.util.{TestGraphs, TestUtil}
+import mill.testkit.{UnitTester, TestBaseModule}
 import mill.api.Strict.Agg
 import os.SubPath
 import utest._
@@ -15,14 +16,10 @@ object EvaluationTestsThreadsNative extends EvaluationTests(threadCount = None)
 
 class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
 
-  class Checker[T <: TestUtil.BaseModule](module: T)(implicit tp: TestPath) {
+  class Checker[T <: mill.testkit.TestBaseModule](module: T) {
     // Make sure data is persisted even if we re-create the evaluator each time
 
-    def evaluator = new TestEvaluator(module, threads = threadCount)(
-      implicitly[sourcecode.FullName],
-      TestPath(tp.value ++ Seq(s"threads-${threadCount.getOrElse("native")}"))
-    )
-      .evaluator
+    val evaluator = UnitTester(module, null, threads = threadCount).evaluator
 
     def apply(
         target: Task[_],
@@ -64,9 +61,9 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
     object graphs extends TestGraphs()
     import graphs._
     import TestGraphs._
-    "evaluateSingle" - {
+    utest.test("evaluateSingle") {
 
-      "singleton" - {
+      utest.test("singleton") {
         import singleton._
         val check = new Checker(singleton)
         // First time the target is evaluated
@@ -76,7 +73,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         // After incrementing the counter, it forces re-evaluation
         check(single, expValue = 1, expEvaled = Agg(single))
       }
-      "backtickIdentifiers" - {
+      utest.test("backtickIdentifiers") {
         import graphs.bactickIdentifiers._
         val check = new Checker(bactickIdentifiers)
 
@@ -88,7 +85,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         `up-target`.counter += 1
         check(`a-down-target`, expValue = 2, expEvaled = Agg(`up-target`, `a-down-target`))
       }
-      "pair" - {
+      utest.test("pair") {
         import pair._
         val check = new Checker(pair)
         check(down, expValue = 0, expEvaled = Agg(up, down))
@@ -99,7 +96,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         up.counter += 1
         check(down, expValue = 2, expEvaled = Agg(up, down))
       }
-      "anonTriple" - {
+      utest.test("anonTriple") {
         import anonTriple._
         val check = new Checker(anonTriple)
         val middle = down.inputs(0)
@@ -115,7 +112,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
 
         check(down, expValue = 3, expEvaled = Agg(middle, down))
       }
-      "diamond" - {
+      utest.test("diamond") {
         import diamond._
         val check = new Checker(diamond)
         check(down, expValue = 0, expEvaled = Agg(up, left, right, down))
@@ -133,7 +130,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         right.counter += 1
         check(down, expValue = 5, expEvaled = Agg(right, down))
       }
-      "anonDiamond" - {
+      utest.test("anonDiamond") {
         import anonDiamond._
         val check = new Checker(anonDiamond)
         val left = down.inputs(0).asInstanceOf[TestUtil.Test]
@@ -154,7 +151,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         check(down, expValue = 5, expEvaled = Agg(left, right, down))
       }
 
-      "bigSingleTerminal" - {
+      utest.test("bigSingleTerminal") {
         import bigSingleTerminal._
         val check = new Checker(bigSingleTerminal)
 
@@ -173,8 +170,8 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
       }
     }
 
-    "evaluateMixed" - {
-      "separateGroups" - {
+    utest.test("evaluateMixed") {
+      utest.test("separateGroups") {
         // Make sure that `left` and `right` are able to recompute separately,
         // even though one depends on the other
 
@@ -192,7 +189,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         assert(filtered3 == Agg(change, right))
 
       }
-      "triangleTask" - {
+      utest.test("triangleTask") {
 
         import triangleTask._
         val checker = new Checker(triangleTask)
@@ -200,7 +197,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         checker(left, 1, Agg(), extraEvaled = -1)
 
       }
-      "multiTerminalGroup" - {
+      utest.test("multiTerminalGroup") {
         import multiTerminalGroup._
 
         val checker = new Checker(multiTerminalGroup)
@@ -208,7 +205,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         checker(left, 1, Agg(left), extraEvaled = -1)
       }
 
-      "multiTerminalBoundary" - {
+      utest.test("multiTerminalBoundary") {
 
         import multiTerminalBoundary._
 
@@ -217,7 +214,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         checker(task2, 4, Agg(), extraEvaled = -1, secondRunNoOp = false)
       }
 
-      "overrideSuperTask" - {
+      utest.test("overrideSuperTask") {
         // Make sure you can override targets, call their supers, and have the
         // overridden target be allocated a spot within the overridden/ folder of
         // the main publicly-available target
@@ -237,7 +234,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
           !overridden.contains("object")
         )
       }
-      "overrideSuperCommand" - {
+      utest.test("overrideSuperCommand") {
         // Make sure you can override commands, call their supers, and have the
         // overridden command be allocated a spot within the super/ folder of
         // the main publicly-available command
@@ -264,7 +261,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
           !overridden.contains("object1")
         )
       }
-      "nullTasks" - {
+      utest.test("nullTasks") {
         import nullTasks._
         val checker = new Checker(nullTasks)
         checker(nullTarget1, null, Agg(nullTarget1), extraEvaled = -1)
@@ -291,7 +288,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         checker(nc4, null, Agg(nc4), extraEvaled = -1, secondRunNoOp = false)
       }
 
-      "tasksAreUncached" - {
+      utest.test("tasksAreUncached") {
         // Make sure the tasks `left` and `middle` re-compute every time, while
         // the target `right` does not
         //
@@ -300,7 +297,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         // up    middle -- down
         //                /
         //           right
-        object build extends TestUtil.BaseModule {
+        object build extends TestBaseModule {
           var leftCount = 0
           var rightCount = 0
           var middleCount = 0
@@ -355,7 +352,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         assert(leftCount == 4, middleCount == 4, rightCount == 1)
       }
     }
-    "stackableOverrides" - {
+    utest.test("stackableOverrides") {
       // Make sure you can override commands, call their supers, and have the
       // overridden command be allocated a spot within the super/ folder of
       // the main publicly-available command
@@ -382,7 +379,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
       )
       assert(os.read(checker.evaluator.outPath / "m" / "f.json").contains(" 6,"))
     }
-    "privateTasksInMixedTraits" - {
+    utest.test("privateTasksInMixedTraits") {
       // Make sure we can have private cached targets in different trait with the same name,
       // and caching still works when these traits are mixed together
       import PrivateTasksInMixedTraits._

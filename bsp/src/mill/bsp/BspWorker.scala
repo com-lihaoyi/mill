@@ -8,6 +8,7 @@ import java.net.URL
 
 private trait BspWorker {
   def startBspServer(
+      topLevelBuildRoot: os.Path,
       streams: SystemStreams,
       logStream: PrintStream,
       logDir: os.Path,

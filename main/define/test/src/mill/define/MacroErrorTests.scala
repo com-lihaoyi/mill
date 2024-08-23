@@ -3,22 +3,23 @@ package mill.define
 import utest._
 import mill.{T, Module}
 import mill.util.TestUtil
+import mill.testkit.TestBaseModule
 object MacroErrorTests extends TestSuite {
 
   val tests = Tests {
 
-    "errors" - {
+    test("errors") {
       val expectedMsg =
         "T{} members must be defs defined in a Cacher class/trait/object body"
 
-      val err = compileError("object Foo extends TestUtil.BaseModule{ val x = T{1} }")
+      val err = compileError("object Foo extends TestBaseModule{ val x = T{1} }")
       assert(err.msg == expectedMsg)
     }
 
-    "badParameterSets" - {
-      "command" - {
+    test("badParameterSets") {
+      test("command") {
         val e = compileError("""
-          object foo extends mill.util.TestUtil.BaseModule{
+          object foo extends TestBaseModule{
             def w = T.command{1}
           }
           mill.define.Discover[foo.type]
@@ -29,9 +30,9 @@ object MacroErrorTests extends TestSuite {
         )
       }
 
-      "target" - {
+      test("target") {
         val e = compileError("""
-          object foo extends mill.util.TestUtil.BaseModule{
+          object foo extends TestBaseModule{
             def x() = T{1}
           }
           mill.define.Discover[foo.type]
@@ -41,9 +42,9 @@ object MacroErrorTests extends TestSuite {
           e.pos.contains("def x() = ")
         )
       }
-      "input" - {
+      test("input") {
         val e = compileError("""
-          object foo extends mill.util.TestUtil.BaseModule{
+          object foo extends TestBaseModule{
             def y() = T.input{1}
           }
           mill.define.Discover[foo.type]
@@ -53,9 +54,9 @@ object MacroErrorTests extends TestSuite {
           e.pos.contains("def y() = ")
         )
       }
-      "sources" - {
+      test("sources") {
         val e = compileError("""
-          object foo extends mill.util.TestUtil.BaseModule{
+          object foo extends TestBaseModule{
             def z() = T.sources{os.pwd}
           }
           mill.define.Discover[foo.type]
@@ -65,9 +66,9 @@ object MacroErrorTests extends TestSuite {
           e.pos.contains("def z() = ")
         )
       }
-      "persistent" - {
+      test("persistent") {
         val e = compileError("""
-          object foo extends mill.util.TestUtil.BaseModule{
+          object foo extends TestBaseModule{
             def a() = T.persistent{1}
           }
           mill.define.Discover[foo.type]
@@ -78,11 +79,11 @@ object MacroErrorTests extends TestSuite {
         )
       }
     }
-    "badTmacro" - {
+    test("badTmacro") {
       // Make sure we can reference values from outside the T{...} block as part
       // of our `Target#apply()` calls, but we cannot reference any values that
       // come from inside the T{...} block
-      "pos" - {
+      test("pos") {
         val e = compileError("""
           val a = T{ 1 }
           val arr = Array(a)
@@ -97,7 +98,7 @@ object MacroErrorTests extends TestSuite {
           "Modules, Targets and Commands can only be defined within a mill Module"
         ))
       }
-      "neg" - {
+      test("neg") {
 
         val expectedMsg =
           "Target#apply() call cannot use `value n` defined within the T{...} block"
@@ -113,7 +114,7 @@ object MacroErrorTests extends TestSuite {
         }""")
         assert(err.msg == expectedMsg)
       }
-      "neg2" - {
+      test("neg2") {
 
         val expectedMsg =
           "Target#apply() call cannot use `value x` defined within the T{...} block"
@@ -128,7 +129,7 @@ object MacroErrorTests extends TestSuite {
         }""")
         assert(err.msg == expectedMsg)
       }
-      "neg3" - {
+      test("neg3") {
         val borkedCachedDiamond1 = utest.compileError("""
           object borkedCachedDiamond1 {
             def up = T{ TestUtil.test() }
@@ -143,10 +144,10 @@ object MacroErrorTests extends TestSuite {
       }
     }
 
-    "badCrossKeys" - {
+    test("badCrossKeys") {
       val error = utest.compileError(
         """
-        object foo extends mill.util.TestUtil.BaseModule{
+        object foo extends TestBaseModule{
           object cross extends Cross[MyCrossModule](Seq(1, 2, 3))
           trait MyCrossModule extends Cross.Module[String]
         }
@@ -157,10 +158,10 @@ object MacroErrorTests extends TestSuite {
       assert(error.msg.contains("required: String"))
     }
 
-    "invalidCrossType" - {
+    test("invalidCrossType") {
       val error = utest.compileError(
         """
-        object foo extends mill.util.TestUtil.BaseModule{
+        object foo extends TestBaseModule{
           object cross extends Cross[MyCrossModule](null.asInstanceOf[sun.misc.Unsafe])
           trait MyCrossModule extends Cross.Module[sun.misc.Unsafe]
         }

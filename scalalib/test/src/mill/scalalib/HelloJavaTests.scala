@@ -2,15 +2,14 @@ package mill
 package scalalib
 
 import mill.api.Result
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import utest._
 import utest.framework.TestPath
 
 object HelloJavaTests extends TestSuite {
 
-  object HelloJava extends TestUtil.BaseModule {
-    def millSourcePath = TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
-
+  object HelloJava extends TestBaseModule {
     object core extends JavaModule {
       override def docJarUseArgsFile = false
       object test extends JavaModuleTests with TestModule.Junit4
@@ -28,56 +27,51 @@ object HelloJavaTests extends TestSuite {
   }
   val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-java"
 
-  def init()(implicit tp: TestPath) = {
-    val eval = new TestEvaluator(HelloJava)
-    os.remove.all(HelloJava.millSourcePath)
-    os.remove.all(eval.outPath)
-    os.makeDir.all(HelloJava.millSourcePath / os.up)
-    os.copy(resourcePath, HelloJava.millSourcePath)
-    eval
-  }
+  def testEval() = UnitTester(HelloJava, resourcePath)
   def tests: Tests = Tests {
-    "compile" - {
-      val eval = init()
+    test("compile") {
+      val eval = testEval()
 
-      val Right((res1, n1)) = eval.apply(HelloJava.core.compile)
-      val Right((res2, 0)) = eval.apply(HelloJava.core.compile)
-      val Right((res3, n2)) = eval.apply(HelloJava.app.compile)
+      val Right(result1) = eval.apply(HelloJava.core.compile)
+      val Right(result2) = eval.apply(HelloJava.core.compile)
+      val Right(result3) = eval.apply(HelloJava.app.compile)
 
       assert(
-        res1 == res2,
-        n1 != 0,
-        n2 != 0,
-        os.walk(res1.classes.path).exists(_.last == "Core.class"),
-        !os.walk(res1.classes.path).exists(_.last == "Main.class"),
-        os.walk(res3.classes.path).exists(_.last == "Main.class"),
-        !os.walk(res3.classes.path).exists(_.last == "Core.class")
+        result1.value == result2.value,
+        result2.evalCount == 0,
+        result3.evalCount != 0,
+        result3.evalCount != 0,
+        os.walk(result1.value.classes.path).exists(_.last == "Core.class"),
+        !os.walk(result1.value.classes.path).exists(_.last == "Main.class"),
+        os.walk(result3.value.classes.path).exists(_.last == "Main.class"),
+        !os.walk(result3.value.classes.path).exists(_.last == "Core.class")
       )
     }
-    "semanticDbData" - {
+    test("semanticDbData") {
       val expectedFile1 =
         os.rel / "META-INF" / "semanticdb" / "core" / "src" / "Core.java.semanticdb"
 
-      "fromScratch" - {
-        val eval = init()
-        val Right((result, evalCount)) = eval.apply(HelloJava.core.semanticDbData)
+      test("fromScratch") {
+        val eval = testEval()
+        val Right(result) = eval.apply(HelloJava.core.semanticDbData)
 
-        val outputFiles = os.walk(result.path).filter(os.isFile).map(_.relativeTo(result.path))
+        val outputFiles =
+          os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
         val dataPath = eval.outPath / "core" / "semanticDbData.dest" / "data"
 
         assert(
-          result.path == dataPath,
+          result.value.path == dataPath,
           outputFiles.nonEmpty,
           outputFiles == Seq(expectedFile1),
-          evalCount > 0
+          result.evalCount > 0
         )
 
         // don't recompile if nothing changed
-        val Right((_, unchangedEvalCount)) = eval.apply(HelloJava.core.semanticDbData)
-        assert(unchangedEvalCount == 0)
+        val Right(result2) = eval.apply(HelloJava.core.semanticDbData)
+        assert(result2.evalCount == 0)
       }
-      "incremental" - {
-        val eval = init()
+      test("incremental") {
+        val eval = testEval()
 
         // create a second source file
         val secondFile = eval.evaluator.workspace / "core" / "src" / "hello" / "Second.java"
@@ -106,48 +100,54 @@ object HelloJavaTests extends TestSuite {
             |""".stripMargin,
           createFolders = true
         )
-        val Right((result, evalCount)) = eval.apply(HelloJava.core.semanticDbData)
+        val Right(result) = eval.apply(HelloJava.core.semanticDbData)
 
         val dataPath = eval.outPath / "core" / "semanticDbData.dest" / "data"
-        val outputFiles = os.walk(result.path).filter(os.isFile).map(_.relativeTo(result.path))
+        val outputFiles =
+          os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
 
         val expectedFile2 =
           os.rel / "META-INF" / "semanticdb" / "core" / "src" / "hello" / "Second.java.semanticdb"
         val expectedFile3 =
           os.rel / "META-INF" / "semanticdb" / "core" / "src" / "hello" / "Third.java.semanticdb"
         assert(
-          result.path == dataPath,
+          result.value.path == dataPath,
           outputFiles.nonEmpty,
           outputFiles.toSet == Set(expectedFile1, expectedFile2, expectedFile3),
-          evalCount > 0
+          result.evalCount > 0
         )
 
         // delete one, keep one, change one
         os.remove(secondFile)
         os.write.append(thirdFile, "  ")
 
-        val Right((result2, changedEvalCount)) = eval.apply(HelloJava.core.semanticDbData)
-        val files2 = os.walk(result2.path).filter(os.isFile).map(_.relativeTo(result2.path))
+        val Right(result2) = eval.apply(HelloJava.core.semanticDbData)
+        val files2 =
+          os.walk(result2.value.path).filter(os.isFile).map(_.relativeTo(result2.value.path))
         assert(
           files2.toSet == Set(expectedFile1, expectedFile3),
-          changedEvalCount > 0
+          result2.evalCount > 0
         )
       }
     }
-    "docJar" - {
-      "withoutArgsFile" - {
-        val eval = init()
-        val Right((ref1, _)) = eval.apply(HelloJava.core.docJar)
-        assert(os.proc("jar", "tf", ref1.path).call().out.lines().contains("hello/Core.html"))
+    test("docJar") {
+      test("withoutArgsFile") {
+        val eval = testEval()
+        val Right(result) = eval.apply(HelloJava.core.docJar)
+        assert(
+          os.proc("jar", "tf", result.value.path).call().out.lines().contains("hello/Core.html")
+        )
       }
-      "withArgsFile" - {
-        val eval = init()
-        val Right((ref2, _)) = eval.apply(HelloJava.app.docJar)
-        assert(os.proc("jar", "tf", ref2.path).call().out.lines().contains("hello/Main.html"))
+      test("withArgsFile") {
+        val eval = testEval()
+        val Right(result) = eval.apply(HelloJava.app.docJar)
+        assert(
+          os.proc("jar", "tf", result.value.path).call().out.lines().contains("hello/Main.html")
+        )
       }
     }
     test("test") - {
-      val eval = init()
+      val eval = testEval()
 
       val Left(Result.Failure(ref1, Some(v1))) = eval.apply(HelloJava.core.test.test())
 
@@ -158,18 +158,19 @@ object HelloJavaTests extends TestSuite {
         v1._2(1).status == "Failure"
       )
 
-      val Right((v2, _)) = eval.apply(HelloJava.app.test.test())
+      val Right(result2) = eval.apply(HelloJava.app.test.test())
 
       assert(
-        v2._2(0).fullyQualifiedName == "hello.MyAppTests.appTest",
-        v2._2(0).status == "Success",
-        v2._2(1).fullyQualifiedName == "hello.MyAppTests.coreTest",
-        v2._2(1).status == "Success"
+        result2.value._2(0).fullyQualifiedName == "hello.MyAppTests.appTest",
+        result2.value._2(0).status == "Success",
+        result2.value._2(1).fullyQualifiedName == "hello.MyAppTests.coreTest",
+        result2.value._2(1).status == "Success"
       )
 
-      val Right((v3, _)) = eval.apply(HelloJava.app.testJunit5.test())
+      val Right(result3) = eval.apply(HelloJava.app.testJunit5.test())
 
-      val testResults = v3._2.map(t => (t.fullyQualifiedName, t.selector, t.status)).sorted
+      val testResults =
+        result3.value._2.map(t => (t.fullyQualifiedName, t.selector, t.status)).sorted
       val expected = Seq(
         ("hello.Junit5TestsA", "coreTest()", "Success"),
         ("hello.Junit5TestsA", "palindromes(String):1", "Success"),
@@ -180,8 +181,8 @@ object HelloJavaTests extends TestSuite {
 
       assert(testResults == expected)
     }
-    "failures" - {
-      val eval = init()
+    test("failures") {
+      val eval = testEval()
 
       val mainJava = HelloJava.millSourcePath / "app" / "src" / "Main.java"
       val coreJava = HelloJava.millSourcePath / "core" / "src" / "Core.java"

@@ -1,4 +1,4 @@
-import mill._, scalalib._, publish._
+import mill._, javalib._, publish._
 
 def sharedCompileIvyDeps = T{
   Agg(
@@ -28,7 +28,7 @@ object jimfs extends PublishModule with MavenModule {
 
   def javacOptions = Seq("-processor", "com.google.auto.service.processor.AutoServiceProcessor")
 
-  object test extends MavenModuleTests {
+  object test extends MavenTests {
     def ivyDeps = sharedCompileIvyDeps() ++ Agg(
       ivy"junit:junit:4.13.2",
       ivy"com.google.guava:guava-testlib:31.1-android",
@@ -41,7 +41,15 @@ object jimfs extends PublishModule with MavenModule {
   }
 }
 
-// JimFS is a small Java library
+// JimFS is a small Java library implementing an in-memory filesystem. It is commonly
+// used in test suites to validate filesystem operations without needing to write
+// to disk.
+//
+// It has a relatively simple codebase structure, a single module and test suite.
+// It has a number of compile-time-only dependencies shared between the library and
+// test suite. One wrinkle is that it uses annotation processors as part of its build,
+// which Mill supports by providing the relevant `ivyDeps` of the annotation processor
+// and providing `javacOptions` to invoke it.
 //
 // Project home: https://github.com/google/jimfs
 

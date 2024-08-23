@@ -10,6 +10,8 @@ Mill:
 * http://www.lihaoyi.com/post/SowhatswrongwithSBT.html[Blog Post: So, what's wrong with SBT?]
 * http://www.lihaoyi.com/post/BuildToolsasPureFunctionalPrograms.html[Blog Post: Build Tools as Pure Functional Programs]
 
+== Principles
+
 === Dependency graph first
 
 Mill's most important abstraction is the dependency graph of ``Task``s.
@@ -196,6 +198,22 @@ build-related questions listed above.
 
 === The Object Hierarchy
 
+[graphviz]
+....
+digraph G {
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+  bgcolor=transparent
+  "root-module" [style=dashed]
+  foo1 [style=dashed]
+  foo2 [style=dashed]
+  "root-module" -> foo1 -> "foo1.bar"  [style=dashed]
+  foo1 -> "foo1.qux"  [style=dashed]
+  "root-module" -> foo2 -> "foo2.bar"  [style=dashed]
+  foo2 -> "foo2.qux"  [style=dashed]
+  foo2 -> "foo2.baz"  [style=dashed]
+}
+....
+
 The module hierarchy is the graph of objects, starting from the root of the
 `build.sc` file, that extend `mill.Module`. At the leaves of the hierarchy are
 the ``Target``s you can run.
@@ -219,6 +237,44 @@ other ``Target``s. You know up-front where the ``Target``s data "lives" on disk,
 are sure that it will never clash with any other ``Target``s data.
 
 === The Call Graph
+
+[graphviz]
+....
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+  bgcolor=transparent
+  newrank=true;
+  subgraph cluster_0 {
+    style=dashed
+    node [shape=box width=0 height=0 style=filled fillcolor=white]
+    label = "foo.bar";
+
+    "foo.bar.sources" -> "foo.bar.compile" -> "foo.bar.classPath" -> "foo.bar.assembly"
+    "foo.bar.mainClass" -> "foo.bar.assembly"
+  }
+  subgraph cluster_1 {
+    style=dashed
+    node [shape=box width=0 height=0 style=filled fillcolor=white]
+    label = "foo";
+
+    "foo.bar.classPath" -> "foo.compile"   [constraint=false];
+    "foo.bar.classPath" -> "foo.classPath"
+    "foo.sources" -> "foo.compile" -> "foo.classPath" -> "foo.assembly"
+    "foo.mainClass" -> "foo.assembly"
+  }
+  subgraph cluster_2 {
+    style=dashed
+    node [shape=box width=0 height=0 style=filled fillcolor=white]
+    label = "qux";
+
+    "qux.mainClass" -> "qux.assembly"
+    "foo.classPath" -> "qux.compile" [constraint=false];
+    "foo.classPath" -> "qux.classPath"
+    "qux.sources" -> "qux.compile" -> "qux.classPath" -> "qux.assembly"
+  }
+}
+....
 
 The Scala call graph of "which target references which other target" is core to
 how Mill operates. This graph is reified via the `T {...}` macro to make it
