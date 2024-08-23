@@ -125,7 +125,7 @@ trait DockerModule { outer: JavaModule =>
         else volumes().map(v => s"\"$v\"").mkString("VOLUME [", ", ", "]"),
         run().map(c => s"RUN $c").mkString("\n"),
         if (user().isEmpty) "" else s"USER ${user()}"
-      ).filter(_.nonEmpty).mkString(sys.props("line.separator"))
+      ).filter(_.nonEmpty).mkString(sys.props.getOrElse("line.separator", ???))
 
       val quotedEntryPointArgs = (Seq("java") ++ jvmOptions() ++ Seq("-jar", s"/$jarName"))
         .map(arg => s"\"$arg\"").mkString(", ")
