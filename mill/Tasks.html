@@ -3,7 +3,7 @@
 <html lang="en"><head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Tasks :: Mill</title>
+    <title>Tasks :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/0.11.12/Tasks.html" />
     <link rel="prev" href="Out_Dir.html" />
     <link rel="next" href="Modules.html" />
@@ -19,7 +19,7 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" /> Mill</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
         <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
@@ -83,12 +83,8 @@
 
   <li class="nav-item is-active" data-depth="0">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Java Quick Start</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Java_Intro_to_Mill.html">Introduction to Mill for Java</a>
-  </li>
+<ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Java_Installation_IDE_Support.html">Installation and IDE Support</a>
@@ -99,15 +95,19 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Java_Build_Examples.html">Java Build Examples</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Java_Module_Config.html">Java Module Configuration</a>
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Java_Web_Build_Examples.html">Java Web Build Examples</a>
+    <a class="nav-link" href="Java_Build_Examples.html">Java Build Examples</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Testing_Java_Projects.html">Testing Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Java_Web_Examples.html">Java Web Examples</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -122,12 +122,8 @@
 
   <li class="nav-item is-active" data-depth="0">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Scala Quick Start</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Scala_Intro_to_Mill.html">Introduction to Mill for Scala</a>
-  </li>
+<ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Scala_Installation_IDE_Support.html">Installation and IDE Support</a>
@@ -138,15 +134,19 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Scala_Build_Examples.html">Scala Build Examples</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Scala_Module_Config.html">Scala Module Configuration</a>
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Scala_Web_Build_Examples.html">Scala Web Build Examples</a>
+    <a class="nav-link" href="Scala_Build_Examples.html">Scala Build Examples</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Testing_Scala_Projects.html">Testing Scala Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Scala_Web_Examples.html">Scala Web Examples</a>
   </li>
 </ul>
   </li>
@@ -181,10 +181,6 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Extending_Mill.html">Extending Mill</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="The_Mill_Evaluation_Model.html">The Mill Evaluation Model</a>
   </li>
 </ul>
@@ -192,8 +188,12 @@
 
   <li class="nav-item is-active" data-depth="0">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Mill Plugins</span>
+    <span class="nav-text">Extending Mill</span>
 <ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Import_File_And_Import_Ivy.html">import $file and import $ivy</a>
+  </li>
 
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Using_Plugins.html">Using Plugins</a>
@@ -218,10 +218,6 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="contrib/buildinfo.html">BuildInfo</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_BSP.html">BSP - Build Server Protocol</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -277,6 +273,10 @@
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Thirdparty_Plugins.html">Third-Party Plugins</a>
   </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="The_Mill_Meta_Build.html">The Mill Meta-Build</a>
+  </li>
 </ul>
   </li>
 
@@ -308,14 +308,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.0-M0-36-c3a4fb</span>
+    <span class="version">0.12.0-M0-37-925318</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="0.11.12/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="index.html">0.12.0-M0-36-c3a4fb</a>
+          <a href="index.html">0.12.0-M0-37-925318</a>
         </li>
         <li class="version is-latest">
           <a href="0.11.12/index.html">0.11.12</a>
@@ -360,9 +360,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-36-c3a4fb</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-37-925318</button>
   <div class="version-menu">
-    <a class="version is-current" href="Tasks.html">0.12.0-M0-36-c3a4fb</a>
+    <a class="version is-current" href="Tasks.html">0.12.0-M0-37-925318</a>
     <a class="version" href="0.11.12/Tasks.html">0.11.12</a>
     <a class="version" href="0.11.11/Tasks.html">0.11.11</a>
     <a class="version" href="0.11.10/Tasks.html">0.11.10</a>
@@ -635,7 +635,7 @@ re-compute if a change is detected.</p>
 }
 
 def lineCount: T[Int] = T {
-  println(&quot;Computing line count&quot;)
+  println(&quot;Computing line count!!!&quot;)
   allSources()
     .map(p =&gt; os.read.lines(p.path).size)
     .sum
@@ -670,11 +670,48 @@ Computing line count
 </div>
 </div>
 <div class="paragraph">
+<p>Furthermore, when code changes occur, targets only invalidate if the code change
+may directly or indirectly affect it. e.g. adding a comment to <code>lineCount</code> will
+not cause it to recompute:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-diff hljs" data-lang="diff"> def lineCount: T[Int] = T {
+  println(&quot;Computing line count&quot;)
++  // Hello World
+  allSources()
+    .map(p =&gt; os.read.lines(p.path).size)
+    .sum</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>But changing the code of the target or any upstream helper method will cause the
+old value to be invalidated and a new value re-computed (with a new <code>println</code>)
+next time it is invoked:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-diff hljs" data-lang="diff">  def lineCount: T[Int] = T {
+-  println(&quot;Computing line count&quot;)
++  println(&quot;Computing line count!!!&quot;)
+  allSources()
+    .map(p =&gt; os.read.lines(p.path).size)
+    .sum</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For more information on how the bytecode analysis necessary for invalidating targets
+based on code-changes work, see <a href="https://github.com/com-lihaoyi/mill/pull/2417">PR#2417</a>
+that implemented it.</p>
+</div>
+<div class="paragraph">
 <p>The return-value of targets has to be JSON-serializable via
 <a href="https://github.com/com-lihaoyi/upickle">uPickle</a>. You can run targets directly from the command
 line, or use <code>show</code> if you want to see the JSON content or pipe it to
 external tools.</p>
 </div>
+<div class="sect3">
+<h4 id="_t_dest"><a class="anchor" href="#_t_dest"></a>T.dest</h4>
 <div class="paragraph">
 <p>Each target, e.g. <code>classFiles</code>, is assigned a <a href="https://mill-build.org/api/latest/mill/api/Ctx.html#dest:os.Path">T.dest</a>
 folder e.g. <code>out/classFiles.dest/</code> on disk as scratch space &amp; to store its
@@ -722,6 +759,18 @@ Generating jar
 </div>
 </div>
 <div class="paragraph">
+<p><strong>Note that <code>os.pwd</code> of the Mill process is set to an empty <code>sandbox/</code> folder by default.</strong>
+This is to stop you from accidentally reading and writing files to the base repository root,
+which would cause problems with Mill’s caches not invalidating properly or files from different
+tasks colliding and causing issues.
+You should never use <code>os.pwd</code> or rely on the process working directory, and always explicitly
+use <code>T.dest</code> or the <code>.path</code> of upstream <code>PathRef</code>s when accessing files. In the rare case where
+you truly need the Mill project root folder, you can access it via <code>T.workspace</code></p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_dependent_targets"><a class="anchor" href="#_dependent_targets"></a>Dependent Targets</h4>
+<div class="paragraph">
 <p>Targets can depend on other targets via the <code>foo()</code> syntax.
 The graph of inter-dependent targets is evaluated in topological order; that
 means that the body of a target will not even begin to evaluate if one of its
@@ -765,6 +814,9 @@ Finding Largest File
 &quot;&lt;no-huge-file&gt;&quot;</code></pre>
 </div>
 </div>
+</div>
+<div class="sect3">
+<h4 id="_custom_types"><a class="anchor" href="#_custom_types"></a>Custom Types</h4>
 <div class="paragraph">
 <p>uPickle comes with built-in support for most Scala primitive types and
 builtin data structures: tuples, collections, <code>PathRef</code>s, etc. can be
@@ -801,6 +853,7 @@ def summarizeClassFileStats = T{
   &quot;totalFileSize&quot;: ...,
   &quot;largestFile&quot;: &quot;...&quot;
 }</code></pre>
+</div>
 </div>
 </div>
 </div>
@@ -849,9 +902,9 @@ path for consumption by external tools.</p>
 <div class="sect2">
 <h3 id="_overrides"><a class="anchor" href="#_overrides"></a>Overrides</h3>
 <div class="paragraph">
-<p>Targets and sources can be overriden, with the override task callable via <code>super</code>.
-This lets you override-and-extend source lists the same way you would any other target
-definition:</p>
+<p>Tasks can be overriden, with the overriden task callable via <code>super</code>.
+You can also override a task with a different type of task, e.g. below
+we override <code>sourceRoots</code> which is a <code>T.sources</code> with a <code>T{}</code> target:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -894,22 +947,6 @@ object bar extends Bar</code></pre>
 <div class="sect1">
 <h2 id="_other_tasks"><a class="anchor" href="#_other_tasks"></a>Other Tasks</h2>
 <div class="sectionbody">
-<div class="ulist">
-<ul>
-<li>
-<p><a href="#_anonymous_tasks">Anonymous Tasks</a>, defined using <code>T.task {…​}</code></p>
-</li>
-<li>
-<p><a href="#_persistent_targets">Persistent Targets</a></p>
-</li>
-<li>
-<p><a href="#_inputs">Inputs</a></p>
-</li>
-<li>
-<p><a href="#_workers">Workers</a></p>
-</li>
-</ul>
-</div>
 <div class="sect2">
 <h3 id="_anonymous_tasks"><a class="anchor" href="#_anonymous_tasks"></a>Anonymous Tasks</h3>
 <div class="listingblock">
@@ -1299,6 +1336,89 @@ class MyWorker() extends AutoCloseable {
 
 def myWorker = T.worker { new MyWorker() }</code></pre>
 </div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_evaluator_commands_experimental"><a class="anchor" href="#_evaluator_commands_experimental"></a>Evaluator Commands (experimental)</h3>
+<div class="paragraph">
+<p><em>Evaluator Command are experimental and suspected to change.
+See <a href="https://github.com/com-lihaoyi/mill/issues/502">issue #502</a> for details.</em></p>
+</div>
+<div class="paragraph">
+<p>You can define a command that takes in the current <code>Evaluator</code> as an argument,
+which you can use to inspect the entire build, or run arbitrary tasks.
+For example, here is the <code>mill.scalalib.GenIdea/idea</code> command which uses this
+to traverse the module-tree and generate an Intellij project config for your
+build.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def idea(ev: Evaluator) = T.command {
+  mill.scalalib.GenIdea(
+    implicitly,
+    ev.rootModule,
+    ev.discover
+  )
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Many built-in tools are implemented as custom evaluator commands:
+<a href="Scala_Builtin_Commands.html#_inspect" class="xref page">inspect</a>,
+<a href="Scala_Builtin_Commands.html#_resolve" class="xref page">resolve</a>,
+<a href="Scala_Builtin_Commands.html#_show" class="xref page">show</a>.
+If you want a way to run Mill commands and programmatically manipulate the
+tasks and outputs, you do so with your own evaluator command.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_using_scalamodule_run_as_a_task"><a class="anchor" href="#_using_scalamodule_run_as_a_task"></a>Using ScalaModule.run as a task</h3>
+<div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-misc-5-module-run-task.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/misc/5-module-run-task">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = &quot;2.13.8&quot;
+  def moduleDeps = Seq(bar)
+  def ivyDeps = Agg(ivy&quot;com.lihaoyi::mainargs:0.4.0&quot;)
+
+  def barWorkingDir = T{ T.dest }
+  def sources = T{
+    bar.run(T.task(Args(barWorkingDir(), super.sources().map(_.path))))()
+    Seq(PathRef(barWorkingDir()))
+  }
+}
+
+object bar extends ScalaModule{
+  def scalaVersion = &quot;2.13.8&quot;
+  def ivyDeps = Agg(ivy&quot;com.lihaoyi::os-lib:0.9.1&quot;)
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example demonstrates using Mill <code>ScalaModule</code>s as build tasks: rather
+than defining the task logic in the <code>build.sc</code>, we instead put the build
+logic within the <code>bar</code> module as <code>bar/src/Bar.scala</code>. In this example, we use
+<code>Bar.scala</code> as a source-code pre-processor on the <code>foo</code> module source code:
+we override <code>foo.sources</code>, passing the <code>super.sources()</code> to <code>bar.run</code> along
+with a <code>barWorkingDir</code>, and returning a <code>PathRef(barWorkingDir())</code> as the
+new <code>foo.sources</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.run
+...
+Foo.value: HELLO</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example does a trivial string-replace of &quot;hello&quot; with &quot;HELLO&quot;, but is
+enough to demonstrate how you can use Mill <code>ScalaModule</code>s to implement your
+own arbitrarily complex transformations. This is useful for build logic that
+may not fit nicely inside a <code>build.sc</code> file, whether due to the sheer lines
+of code or due to dependencies that may conflict with the Mill classpath
+present in <code>build.sc</code></p>
 </div>
 </div>
 </div>

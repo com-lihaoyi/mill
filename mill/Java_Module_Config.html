@@ -3,10 +3,10 @@
 <html lang="en"><head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Java Module Configuration :: Mill</title>
+    <title>Java Module Configuration :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/0.11.12/Java_Module_Config.html" />
-    <link rel="prev" href="Java_Build_Examples.html" />
-    <link rel="next" href="Java_Web_Build_Examples.html" />
+    <link rel="prev" href="Java_Builtin_Commands.html" />
+    <link rel="next" href="Java_Build_Examples.html" />
     <meta name="generator" content="Antora 3.1.9" />
     <link rel="stylesheet" href="../_/css/site.css" />
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
@@ -19,7 +19,7 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" /> Mill</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
         <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
@@ -83,12 +83,8 @@
 
   <li class="nav-item is-active" data-depth="0">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Java Quick Start</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Java_Intro_to_Mill.html">Introduction to Mill for Java</a>
-  </li>
+<ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Java_Installation_IDE_Support.html">Installation and IDE Support</a>
@@ -98,16 +94,20 @@
     <a class="nav-link" href="Java_Builtin_Commands.html">Built-in Commands</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Java_Build_Examples.html">Java Build Examples</a>
-  </li>
-
   <li class="nav-item is-current-page" data-depth="1">
     <a class="nav-link" href="Java_Module_Config.html">Java Module Configuration</a>
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Java_Web_Build_Examples.html">Java Web Build Examples</a>
+    <a class="nav-link" href="Java_Build_Examples.html">Java Build Examples</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Testing_Java_Projects.html">Testing Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Java_Web_Examples.html">Java Web Examples</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -122,12 +122,8 @@
 
   <li class="nav-item is-active" data-depth="0">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Scala Quick Start</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Scala_Intro_to_Mill.html">Introduction to Mill for Scala</a>
-  </li>
+<ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Scala_Installation_IDE_Support.html">Installation and IDE Support</a>
@@ -138,15 +134,19 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Scala_Build_Examples.html">Scala Build Examples</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Scala_Module_Config.html">Scala Module Configuration</a>
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Scala_Web_Build_Examples.html">Scala Web Build Examples</a>
+    <a class="nav-link" href="Scala_Build_Examples.html">Scala Build Examples</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Testing_Scala_Projects.html">Testing Scala Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Scala_Web_Examples.html">Scala Web Examples</a>
   </li>
 </ul>
   </li>
@@ -181,10 +181,6 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Extending_Mill.html">Extending Mill</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="The_Mill_Evaluation_Model.html">The Mill Evaluation Model</a>
   </li>
 </ul>
@@ -192,8 +188,12 @@
 
   <li class="nav-item is-active" data-depth="0">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Mill Plugins</span>
+    <span class="nav-text">Extending Mill</span>
 <ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Import_File_And_Import_Ivy.html">import $file and import $ivy</a>
+  </li>
 
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Using_Plugins.html">Using Plugins</a>
@@ -218,10 +218,6 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="contrib/buildinfo.html">BuildInfo</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_BSP.html">BSP - Build Server Protocol</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -277,6 +273,10 @@
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Thirdparty_Plugins.html">Third-Party Plugins</a>
   </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="The_Mill_Meta_Build.html">The Mill Meta-Build</a>
+  </li>
 </ul>
   </li>
 
@@ -308,14 +308,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.0-M0-36-c3a4fb</span>
+    <span class="version">0.12.0-M0-37-925318</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="0.11.12/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="index.html">0.12.0-M0-36-c3a4fb</a>
+          <a href="index.html">0.12.0-M0-37-925318</a>
         </li>
         <li class="version is-latest">
           <a href="0.11.12/index.html">0.11.12</a>
@@ -355,14 +355,14 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="index.html">Mill Documentation</a></li>
-    <li>Java Quick Start</li>
+    <li><a href="Java_Intro_to_Mill.html">Introduction to Mill for Java</a></li>
     <li><a href="Java_Module_Config.html">Java Module Configuration</a></li>
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-36-c3a4fb</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-37-925318</button>
   <div class="version-menu">
-    <a class="version is-current" href="Java_Module_Config.html">0.12.0-M0-36-c3a4fb</a>
+    <a class="version is-current" href="Java_Module_Config.html">0.12.0-M0-37-925318</a>
     <a class="version" href="0.11.12/Java_Module_Config.html">0.11.12</a>
     <a class="version" href="0.11.11/Java_Module_Config.html">0.11.11</a>
     <a class="version" href="0.11.10/Java_Module_Config.html">0.11.10</a>
@@ -501,6 +501,11 @@ JSONified using Jackson: [&quot;i&quot;,&quot;am&quot;,&quot;cow&quot;]</code></
 <div class="sect1">
 <h2 id="_runtime_and_compile_time_dependencies"><a class="anchor" href="#_runtime_and_compile_time_dependencies"></a>Runtime and Compile-time Dependencies</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>If you want to use additional dependencies at runtime or override
+dependencies and their versions at runtime, you can do so with
+<code>runIvyDeps</code>.</p>
+</div>
 <div class="listingblock">
 <div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javamodule-3-run-compile-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javamodule/3-run-compile-deps">browse</a>)</div>
 <div class="content">
@@ -564,51 +569,6 @@ dependencies when publish to Maven or Ivy-Repositories.
 </div>
 </div>
 <div class="sect1">
-<h2 id="_test_dependencies"><a class="anchor" href="#_test_dependencies"></a>Test Dependencies</h2>
-<div class="sectionbody">
-<div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javamodule-4-test-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javamodule/4-test-deps">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
-
-object qux extends JavaModule {
-  def moduleDeps = Seq(baz)
-
-  object test extends JavaTests with TestModule.Junit4 {
-    def moduleDeps = super.moduleDeps ++ Seq(baz.test)
-    def ivyDeps = super.ivyDeps() ++ Agg(ivy&quot;com.google.guava:guava:33.3.0-jre&quot;)
-  }
-}
-
-object baz extends JavaModule {
-  object test extends JavaTests with TestModule.Junit4 {
-    def ivyDeps = super.ivyDeps() ++ Agg(ivy&quot;com.google.guava:guava:33.3.0-jre&quot;)
-  }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>In this example, not only does <code>qux</code> depend on <code>baz</code>, but we also make
-<code>qux.test</code> depend on <code>baz.test</code>. That lets <code>qux.test</code> make use of the
-<code>BazTestUtils</code> class that <code>baz.test</code> defines, allowing us to re-use this
-test helper throughout multiple modules' test suites</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill qux.test
-Using BazTestUtils.bazAssertEquals
-... qux.QuxTests.simple ...
-...
-
-&gt; ./mill baz.test
-Using BazTestUtils.bazAssertEquals
-... baz.BazTests.simple ...
-...</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
 <h2 id="_classpath_and_filesystem_resources"><a class="anchor" href="#_classpath_and_filesystem_resources"></a>Classpath and Filesystem Resources</h2>
 <div class="sectionbody">
 <div class="listingblock">
@@ -638,7 +598,7 @@ object foo extends JavaModule {
 <p>This section discusses how tests can depend on resources locally on disk.
 Mill provides two ways to do this: via the JVM classpath resources, and via
 the resource folder which is made available as the environment variable
-<code>TEST_MILL_RESOURCE_FOLDER</code>;</p>
+<code>MILL_TEST_RESOURCE_FOLDER</code>;</p>
 </div>
 <div class="ulist">
 <ul>
@@ -649,10 +609,10 @@ an assembly jar for deployment. But they do not allow you to list folders
 or perform other filesystem operations.</p>
 </li>
 <li>
-<p>The <strong>resource folder</strong>, available via <code>TEST_MILL_RESOURCE_FOLDER</code>, gives you
+<p>The <strong>resource folder</strong>, available via <code>MILL_TEST_RESOURCE_FOLDER</code>, gives you
 access to the folder path of the resources on disk. This is useful in allowing
 you to list and otherwise manipulate the filesystem, which you cannot do with
-<strong>classpath resources</strong>. However, the <code>TEST_MILL_RESOURCE_FOLDER</code> only exists
+<strong>classpath resources</strong>. However, the <code>MILL_TEST_RESOURCE_FOLDER</code> only exists
 when running tests using Mill, and is not available when executing applications
 packaged for deployment via <code>.assembly</code></p>
 </li>
@@ -664,8 +624,102 @@ provide the folder path as an environment variable that the test can make use of
 </ul>
 </div>
 <div class="paragraph">
-<p>You can click the <strong>browse</strong> button in the above example to see an example of code
-the uses these three approaches to load files as part of a test module.</p>
+<p>Example application code demonstrating the techniques above can be seen below:</p>
+</div>
+<div class="listingblock">
+<div class="title">foo/test/resources/test-file-a.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javamodule/5-resources/foo/test/resources/test-file-a.txt">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Test Hello World Resource File A</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">foo/test/resources/test-file-b.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javamodule/5-resources/foo/test/resources/test-file-b.txt">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Test Hello World Resource File B</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">foo/test/other-files/other-file.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javamodule/5-resources/foo/test/other-files/other-file.txt">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Other Hello World File</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">foo/src/Foo.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javamodule/5-resources/foo/src/Foo.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
+
+import java.io.IOException;
+import java.io.InputStream;
+
+public class Foo {
+
+  // Read `file.txt` from classpath
+  public static String classpathResourceText() throws IOException {
+    // Get the resource as an InputStream
+    try (InputStream inputStream = Foo.class.getClassLoader().getResourceAsStream(&quot;file.txt&quot;)) {
+      return new String(inputStream.readAllBytes());
+    }
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">foo/test/src/FooTests.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javamodule/5-resources/foo/test/src/FooTests.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
+
+import org.junit.Test;
+import static org.junit.Assert.*;
+
+import java.io.InputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.ArrayList;
+
+public class FooTests {
+
+  @Test
+  public void simple() throws IOException {
+    // Reference app module's `Foo` class which reads `file.txt` from classpath
+    String appClasspathResourceText = Foo.classpathResourceText();
+    assertEquals(&quot;Hello World Resource File&quot;, appClasspathResourceText);
+
+    // Read `test-file-a.txt` from classpath
+    String testClasspathResourceText;
+    try (InputStream inputStream = Foo.class.getClassLoader().getResourceAsStream(&quot;test-file-a.txt&quot;)) {
+      testClasspathResourceText = new String(inputStream.readAllBytes());
+    }
+    assertEquals(&quot;Test Hello World Resource File A&quot;, testClasspathResourceText);
+
+    // Use `MILL_TEST_RESOURCE_FOLDER` to read `test-file-b.txt` from filesystem
+    Path testFileResourceDir = Paths.get(System.getenv(&quot;MILL_TEST_RESOURCE_FOLDER&quot;));
+    String testFileResourceText = new String(
+            Files.readAllBytes(testFileResourceDir.resolve(&quot;test-file-b.txt&quot;))
+    );
+    assertEquals(&quot;Test Hello World Resource File B&quot;, testFileResourceText);
+
+    // Use `MILL_TEST_RESOURCE_FOLDER` to list files available in resource folder
+    List&lt;Path&gt; actualFiles = new ArrayList&lt;&gt;(Files.list(testFileResourceDir).toList());
+    actualFiles.sort(Path::compareTo);
+    List&lt;Path&gt; expectedFiles = List.of(
+            testFileResourceDir.resolve(&quot;test-file-a.txt&quot;),
+            testFileResourceDir.resolve(&quot;test-file-b.txt&quot;)
+    );
+    assertEquals(expectedFiles, actualFiles);
+
+    // Use the `OTHER_FILES_FOLDER` configured in your build to access the
+    // files in `foo/test/other-files/`.
+    String otherFileText = new String(
+            Files.readAllBytes(Paths.get(System.getenv(&quot;OTHER_FILES_FOLDER&quot;), &quot;other-file.txt&quot;))
+    );
+    assertEquals(&quot;Other Hello World File&quot;, otherFileText);
+  }
+}</code></pre>
+</div>
 </div>
 <div class="paragraph">
 <p>Note that tests require that you pass in any files that they depend on explicitly.
@@ -757,6 +811,11 @@ Test bar.HelloWorldTest.testSimple finished...
 <div class="sect1">
 <h2 id="_javadoc_config"><a class="anchor" href="#_javadoc_config"></a>Javadoc Config</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>To generate API documenation you can use the <code>docJar</code> task on the module you’d
+like to create the documenation for, configured via <code>scalaDocOptions</code> or
+<code>javadocOptions</code>:</p>
+</div>
 <div class="listingblock">
 <div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javamodule-7-docjar.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javamodule/7-docjar">browse</a>)</div>
 <div class="content">
@@ -930,6 +989,10 @@ Loaded application.conf from resources:...
 <div class="sect1">
 <h2 id="_repository_config"><a class="anchor" href="#_repository_config"></a>Repository Config</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>By default, dependencies are resolved from maven central, but you can add
+your own resolvers by overriding the <code>repositoriesTask</code> task in the module:</p>
+</div>
 <div class="listingblock">
 <div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javamodule-12-repository-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javamodule/12-repository-config">browse</a>)</div>
 <div class="content">
@@ -1133,8 +1196,8 @@ Test foo.HelloWorldTest.testSimple finished...
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="Java_Build_Examples.html">Java Build Examples</a></span>
-  <span class="next"><a href="Java_Web_Build_Examples.html">Java Web Build Examples</a></span>
+  <span class="prev"><a href="Java_Builtin_Commands.html">Built-in Commands</a></span>
+  <span class="next"><a href="Java_Build_Examples.html">Java Build Examples</a></span>
 </nav>
 </article>
   </div>

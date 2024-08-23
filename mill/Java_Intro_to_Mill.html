@@ -3,7 +3,7 @@
 <html lang="en"><head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Introduction to Mill for Java :: Mill</title>
+    <title>Introduction to Mill for Java :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/0.11.12/Java_Intro_to_Mill.html" />
     <link rel="prev" href="index.html" />
     <link rel="next" href="Java_Installation_IDE_Support.html" />
@@ -19,7 +19,7 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" /> Mill</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
         <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
@@ -81,14 +81,10 @@
   <nav class="nav-menu">
 <ul class="nav-list">
 
-  <li class="nav-item is-active" data-depth="0">
+  <li class="nav-item is-current-page is-active" data-depth="0">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Java Quick Start</span>
-<ul class="nav-list">
-
-  <li class="nav-item is-current-page" data-depth="1">
     <a class="nav-link" href="Java_Intro_to_Mill.html">Introduction to Mill for Java</a>
-  </li>
+<ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Java_Installation_IDE_Support.html">Installation and IDE Support</a>
@@ -99,15 +95,19 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Java_Build_Examples.html">Java Build Examples</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Java_Module_Config.html">Java Module Configuration</a>
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Java_Web_Build_Examples.html">Java Web Build Examples</a>
+    <a class="nav-link" href="Java_Build_Examples.html">Java Build Examples</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Testing_Java_Projects.html">Testing Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Java_Web_Examples.html">Java Web Examples</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -122,12 +122,8 @@
 
   <li class="nav-item is-active" data-depth="0">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Scala Quick Start</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Scala_Intro_to_Mill.html">Introduction to Mill for Scala</a>
-  </li>
+<ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Scala_Installation_IDE_Support.html">Installation and IDE Support</a>
@@ -138,15 +134,19 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Scala_Build_Examples.html">Scala Build Examples</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Scala_Module_Config.html">Scala Module Configuration</a>
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Scala_Web_Build_Examples.html">Scala Web Build Examples</a>
+    <a class="nav-link" href="Scala_Build_Examples.html">Scala Build Examples</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Testing_Scala_Projects.html">Testing Scala Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Scala_Web_Examples.html">Scala Web Examples</a>
   </li>
 </ul>
   </li>
@@ -181,10 +181,6 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Extending_Mill.html">Extending Mill</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="The_Mill_Evaluation_Model.html">The Mill Evaluation Model</a>
   </li>
 </ul>
@@ -192,8 +188,12 @@
 
   <li class="nav-item is-active" data-depth="0">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Mill Plugins</span>
+    <span class="nav-text">Extending Mill</span>
 <ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Import_File_And_Import_Ivy.html">import $file and import $ivy</a>
+  </li>
 
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Using_Plugins.html">Using Plugins</a>
@@ -218,10 +218,6 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="contrib/buildinfo.html">BuildInfo</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="Plugin_BSP.html">BSP - Build Server Protocol</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -277,6 +273,10 @@
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Thirdparty_Plugins.html">Third-Party Plugins</a>
   </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="The_Mill_Meta_Build.html">The Mill Meta-Build</a>
+  </li>
 </ul>
   </li>
 
@@ -308,14 +308,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.0-M0-36-c3a4fb</span>
+    <span class="version">0.12.0-M0-37-925318</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="0.11.12/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="index.html">0.12.0-M0-36-c3a4fb</a>
+          <a href="index.html">0.12.0-M0-37-925318</a>
         </li>
         <li class="version is-latest">
           <a href="0.11.12/index.html">0.11.12</a>
@@ -355,14 +355,13 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="index.html">Mill Documentation</a></li>
-    <li>Java Quick Start</li>
     <li><a href="Java_Intro_to_Mill.html">Introduction to Mill for Java</a></li>
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-36-c3a4fb</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-37-925318</button>
   <div class="version-menu">
-    <a class="version is-current" href="Java_Intro_to_Mill.html">0.12.0-M0-36-c3a4fb</a>
+    <a class="version is-current" href="Java_Intro_to_Mill.html">0.12.0-M0-37-925318</a>
     <a class="version" href="0.11.12/Java_Intro_to_Mill.html">0.11.12</a>
     <a class="version" href="0.11.11/Java_Intro_to_Mill.html">0.11.11</a>
     <a class="version is-missing" href="0.11.10/index.html">0.11.10</a>
@@ -388,11 +387,11 @@ gtag('config', 'AW-16649289906');
 </script>
 <div class="imageblock kroki">
 <div class="content">
-<img src="_images/diag-9bc2ffe27ff65ef1de385c750f41cb99ec7b8bde.svg" alt="Diagram" />
+<img src="_images/diag-d5a7511303b18d2e52a5afbebf83385adc68bb85.svg" alt="Diagram" />
 </div>
 </div>
 <div class="paragraph">
-<p><a href="https://github.com/com-lihaoyi/mill">Mill</a> is a fast JVM build tool that supports Java, speeding
+<p><a href="https://github.com/com-lihaoyi/mill">Mill</a> is a fast multi-language build tool that supports Java, speeding
 up common development workflows by 2-10x <a href="Case_Study_Mill_vs_Maven.html" class="xref page">compared to Maven</a>,
 <a href="Case_Study_Mill_vs_Gradle.html" class="xref page">Gradle</a>, or SBT.
 Mill aims to make your JVM project’s build process performant, maintainable, and flexible
@@ -404,25 +403,24 @@ even as it grows from a small project to a large codebase or monorepo with hundr
 <p><strong>Performance</strong>: Mill’s <a href="Tasks.html" class="xref page">build graph</a> automatically
 <a href="The_Mill_Evaluation_Model.html#_caching_at_each_layer_of_the_evaluation_model" class="xref page">caches</a>
 and <a href="#_parallel_task_execution">parallelizes</a> build
-tasks, minimizing the amount of work that needs to be done and keeping your workflows
-fast and responsive.</p>
+tasks, keeping your workflows fast and responsive. Mill adds minimal overhead over
+the logic necessary to build your project, while providing tools to let you identify
+and resolve bottlenecks in your build</p>
 </li>
 <li>
-<p><strong>Maintainability</strong>: Mill build tasks are self contained without side-effects making it easy
-to trace the data-flow, and its IDE support
-(via <a href="Java_Installation_IDE_Support.html#_intellij" class="xref page">IntelliJ</a> or
+<p><strong>Maintainability</strong>: Mill config and custom logic is written in
+<a href="#_custom_build_logic">custom build logic</a> in concise type-checked code,
+rather than shell scripts, XML or YAML. This lets IDEs
+(<a href="Java_Installation_IDE_Support.html#_intellij" class="xref page">IntelliJ</a> or
 <a href="Java_Installation_IDE_Support.html#_vscode" class="xref page">VSCode</a>)
-lets you &quot;<strong>jump-to-definition</strong>&quot; around your build
-as easily as any application codebase.</p>
+&quot;jump-to-definition&quot; to navigate around your build as easily as any application codebase.</p>
 </li>
 <li>
-<p><strong>Flexibility</strong>: Mill custom logic is written in <a href="#_custom_build_logic">custom build logic</a>
-in type-checked code, rather than
-error-prone shell scripts, verbose AntRun XML, or complicated external plugins. Mill’s
-custom tasks and modules allow anything from
+<p><strong>Flexibility</strong>: Mill’s custom tasks and modules allow anything from
 <a href="Tasks.html#primitive-tasks" class="xref page">adding simple pipelines</a>, up to
-<a href="Modules.html#_use_case_diy_java_modules" class="xref page">adding entire language toolchains</a>,
-meaning it can be easily customized to fit exactly what you need.</p>
+<a href="Modules.html#_use_case_diy_java_modules" class="xref page">entire language toolchains</a>.
+This means Mill can be easily customized to fit exactly what you need without being beholden
+to third-party plugins which may not work well together or be well maintained.</p>
 </li>
 </ul>
 </div>
@@ -430,8 +428,8 @@ meaning it can be easily customized to fit exactly what you need.</p>
 <p>Mill is used to build some real-world Java projects, such as the
 <a href="https://github.com/swaldman/c3p0">C3P0 JDBC Connection Pool</a>, and
 can be used for applications built on top of common Java frameworks like
-<a href="Java_Web_Build_Examples.html#_spring_boot_todomvc_app" class="xref page">Spring Boot</a> or
-<a href="Java_Web_Build_Examples.html#_micronaut_todomvc_app" class="xref page">Micronaut</a>.</p>
+<a href="Java_Web_Examples.html#_spring_boot_todomvc_app" class="xref page">Spring Boot</a> or
+<a href="Java_Web_Examples.html#_micronaut_todomvc_app" class="xref page">Micronaut</a>.</p>
 </div>
 <div class="paragraph">
 <p>Mill borrows ideas from other tools like <a href="https://maven.apache.org/">Maven</a>,
@@ -676,6 +674,13 @@ time.</p>
 <div class="sect1">
 <h2 id="_custom_build_logic"><a class="anchor" href="#_custom_build_logic"></a>Custom Build Logic</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>Mill makes it very easy to customize your build graph, overriding portions
+of it with custom logic. In this example, we override the JVM <code>resources</code> of
+our <code>ScalaModule</code> - normally the <code>resources/</code> folder - to instead contain a
+single generated text file containing the line count of all the source files
+in that module</p>
+</div>
 <div class="listingblock">
 <div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-basicjava-2-custom-build-logic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/basicjava/2-custom-build-logic">browse</a>)</div>
 <div class="content">
@@ -951,14 +956,12 @@ $ mill -w foo.runBackground</code></pre>
 <h2 id="_parallel_task_execution"><a class="anchor" href="#_parallel_task_execution"></a>Parallel Task Execution</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>By default, mill will evaluate all tasks in sequence.
-But mill also supports processing tasks in parallel.
-This feature is currently experimental and we encourage you to report any issues
-you find on our bug tracker.</p>
+<p>By default, mill will evaluate all tasks in parallel, with the number of concurrent
+tasks equal to the number of cores on your machine.</p>
 </div>
 <div class="paragraph">
-<p>To enable parallel task execution, use the <code>--jobs</code> (<code>-j</code>) option followed by a
-number of maximal parallel threads.</p>
+<p>You can use the <code>--jobs</code> (<code>-j</code>) to configure explicitly how many concurrent tasks you
+wish to run</p>
 </div>
 <div class="paragraph">
 <p>Example: Use up to 4 parallel threads to compile all modules:</p>
@@ -969,11 +972,10 @@ number of maximal parallel threads.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>To use as many threads as your machine has (logical) processor cores use <code>--jobs 0</code>.
-To disable parallel execution use <code>--jobs 1</code>. This is currently the default.</p>
+<p>To disable parallel execution use <code>--jobs 1</code>.</p>
 </div>
 <div class="paragraph">
-<p><code>mill -j</code> generates an output file in <code>out/mill-chrome-profile.json</code> that can be
+<p><code>mill</code> generates an output file in <code>out/mill-chrome-profile.json</code> that can be
 loaded into the Chrome browser’s <code>chrome://tracing</code> page for visualization.
 This can make it much easier to analyze your parallel runs to find out what’s
 taking the most time:</p>
@@ -1001,7 +1003,7 @@ Tasks that depend on each other can’t be processed in parallel.</p>
 <div class="listingblock">
 <div class="title">Output of <code>mill --help</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.12.0-M0-36-c3a4fb
+<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.12.0-M0-37-925318
 usage: mill [options] [[target [target-options]] [+ [target ...]]]
   -D --define &lt;k=v&gt;                 Define (or overwrite) a system property.
   -b --bell                         Ring the bell once if the run completes successfully, twice if
