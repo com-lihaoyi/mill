@@ -35,21 +35,19 @@ even as it grows from a small project to a large codebase or monorepo with hundr
 * *Performance*: Mill's xref:Tasks.adoc[build graph] automatically
   xref:The_Mill_Evaluation_Model.adoc#_caching_at_each_layer_of_the_evaluation_model[caches]
   and xref:#_parallel_task_execution[parallelizes] build
-  tasks, minimizing the amount of work that needs to be done and keeping your workflows
-  fast and responsive. Mill adds minimal overhead over the logic necessary to build your
-  project, while providing tools to let you identify and resolve bottlenecks in your build
+  tasks, keeping your workflows fast and responsive. Mill adds minimal overhead over
+  the logic necessary to build your project, while providing tools to let you identify
+  and resolve bottlenecks in your build
 
 * *Maintainability*: Mill config and custom logic is written in
   xref:_custom_build_logic[custom build logic] in concise type-checked code,
-  rather than shell scripts, XML or YAML. This also allows Mill's IDE support
-  (via xref:{language}_Installation_IDE_Support.adoc#_intellij[IntelliJ] or
+  rather than shell scripts, XML or YAML. This lets IDEs
+  (xref:{language}_Installation_IDE_Support.adoc#_intellij[IntelliJ] or
   xref:{language}_Installation_IDE_Support.adoc#_vscode[VSCode])
-  to let you "*jump-to-definition*" around your build
-  as easily as any application codebase.
+  "jump-to-definition" to navigate around your build as easily as any application codebase.
 
 * *Flexibility*: Mill's custom tasks and modules allow anything from
   xref:Tasks.adoc#primitive-tasks[adding simple pipelines], up to
-  xref:Modules.adoc#_use_case_diy_java_modules[adding entire language toolchains],
-  meaning it can be easily customized to fit exactly what you need. This means you
-  are never beholden to third-party plugins which may not work well together,
-  be maintained, or exist at all.
+  xref:Modules.adoc#_use_case_diy_java_modules[entire language toolchains].
+  This means Mill can be easily customized to fit exactly what you need without being beholden
+  to third-party plugins which may not work well together or be well maintained.
