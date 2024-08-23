@@ -1238,7 +1238,9 @@ object example extends MillScalaModule {
   object basic extends Cross[ExampleCrossModule](listIn(millSourcePath / "basic"))
   object basicjava extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "basicjava"))
   object scalabuilds extends Cross[ExampleCrossModule](listIn(millSourcePath / "scalabuilds"))
+  object scalatesting extends Cross[ExampleCrossModule](listIn(millSourcePath / "scalatesting"))
   object javabuilds extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "javabuilds"))
+  object javatesting extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "javatesting"))
   object scalamodule extends Cross[ExampleCrossModule](listIn(millSourcePath / "scalamodule"))
   object javamodule extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "javamodule"))
   object tasks extends Cross[ExampleCrossModule](listIn(millSourcePath / "tasks"))
@@ -1253,6 +1255,7 @@ object example extends MillScalaModule {
       case "basicjava" => basic
       case "javabuilds" => scalabuilds
       case "javamodule" => scalamodule
+      case "javatesting" => scalatesting
     }
 
     def buildScLines =

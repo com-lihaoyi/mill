@@ -31,17 +31,17 @@ object foo extends ScalaModule {
 // This section discusses how tests can depend on resources locally on disk.
 // Mill provides two ways to do this: via the JVM classpath resources, and via
 // the resource folder which is made available as the environment variable
-// `TEST_MILL_RESOURCE_FOLDER`;
+// `MILL_TEST_RESOURCE_FOLDER`;
 //
 // * The *classpath resources* are useful when you want to fetch individual files,
 //   and are bundled with the application by the `.assembly` step when constructing
 //   an assembly jar for deployment. But they do not allow you to list folders
 //   or perform other filesystem operations.
 //
-// * The *resource folder*, available via `TEST_MILL_RESOURCE_FOLDER`, gives you
+// * The *resource folder*, available via `MILL_TEST_RESOURCE_FOLDER`, gives you
 //   access to the folder path of the resources on disk. This is useful in allowing
 //   you to list and otherwise manipulate the filesystem, which you cannot do with
-//   *classpath resources*. However, the `TEST_MILL_RESOURCE_FOLDER` only exists
+//   *classpath resources*. However, the `MILL_TEST_RESOURCE_FOLDER` only exists
 //   when running tests using Mill, and is not available when executing applications
 //   packaged for deployment via `.assembly`
 //

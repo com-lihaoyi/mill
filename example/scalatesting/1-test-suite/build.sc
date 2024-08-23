@@ -64,15 +64,50 @@ object bar extends ScalaModule {
 
 */
 
-// By default, tests are run in a subprocess, and `forkArg` and `forkEnv` can be
-// overridden to pass JVM flags &amp; environment variables. You can also use
+// You can also select multiple test suites in one command using Mill's
+// xref:Target_Query_Syntax.adoc[Target Query Syntax]
+
+/** Usage
+
+> mill __.test
+...bar.BarTests.hello ...
+...bar.BarTests.world ...
+...foo.FooTests.hello ...
+...foo.FooTests.world ...
+...
+
+*/
+
+// Mill provides three ways of running tests
 //
-// [source,bash]
-// ----
-// mill foo.test.testLocal
-// ----
+// * `foo.test.test`: runs tests in a subprocess in an empty `sandbox/` folder.
 //
-// To run tests in-process in an isolated classloader.
+// * `foo.test.testCached`: runs the tests in an empty `sandbox/` folder and caches the results
+//   if successful. Also allows multiple test modules to be run in parallel e.g. via `mill __.testCached`
+//
+// * `foo.test.testLocal`: runs tests in an isolated classloader as part of the main Mill process.
+//   This can be faster than `.test`, but is less flexible (e.g. you cannot pass `forkEnv`)
+//   and more prone to interference (due to sharing the `sandbox/` folder provided by the
+//   Mill process)
+
+/** Usage
+
+> mill bar.test.test
+
+> mill bar.test.testCached
+
+> mill bar.test.testLocal
+
+*/
+
+// By default, `.test` runs tests in a subprocess, and `forkArg` and `forkEnv` can be
+// overridden to pass JVM flags &amp; environment variables. Note that Mill runs
+// tests with the `PWD` set to an empty `sandbox/` folder by default. Tests
+// can access files from their resource directory via the environment variable
+// `MILL_TEST_RESOURCE_FOLDER` which provides the path to the resource folder,
+// and additional paths can be provided to test via `forkEnv`. See
+// xref:Java_Module_Config.adoc#_classpath_and_filesystem_resources[Classpath and Filesystem Resources]
+// for more details.
 //
 // If you want to pass any arguments to the test framework, simply put them after
 // `foo.test` in the command line. e.g. {utest-github-url}[uTest]
@@ -83,37 +118,5 @@ object bar extends ScalaModule {
 
 > mill bar.test bar.BarTests.hello
 ...bar.BarTests.hello ...
-
-*/
-
-// You can also define multiple test suites if you want, e.g.:
-//// SNIPPET:BUILD3
-object qux extends ScalaModule {
-  def scalaVersion = "2.13.8"
-
-  object test extends ScalaTests with TestModule.Utest {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
-  }
-  object integration extends ScalaTests with TestModule.Utest {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
-  }
-}
-//// SNIPPET:END
-// Each of which will expect their sources to be in their respective `foo/test` and
-// `foo/integration` folder.
-
-/** Usage
-
-> mill qux.test
-...qux.QuxTests...hello...
-...qux.QuxTests...world...
-
-> mill qux.integration
-...qux.QuxIntegrationTests...helloworld...
-
-> mill qux.{test,integration}
-...qux.QuxTests...hello...
-...qux.QuxTests...world...
-...qux.QuxIntegrationTests...helloworld...
 
 */

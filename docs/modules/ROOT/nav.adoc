@@ -8,6 +8,7 @@
 * xref:Java_Installation_IDE_Support.adoc[]
 * xref:Java_Builtin_Commands.adoc[]
 * xref:Java_Build_Examples.adoc[]
+* xref:Testing_Java_Projects.adoc[]
 * xref:Java_Module_Config.adoc[]
 // * xref:Testing_Java_Projects.adoc[]
 // * xref:Publishing_Java_Projects.adoc[]
@@ -21,6 +22,7 @@
 * xref:Scala_Builtin_Commands.adoc[]
 * xref:Scala_Build_Examples.adoc[]
 * xref:Scala_Module_Config.adoc[]
+* xref:Testing_Scala_Projects.adoc[]
 // * xref:Publishing_Scala_Projects.adoc[]
 * xref:Scala_Web_Build_Examples.adoc[]
 

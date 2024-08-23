@@ -74,9 +74,9 @@ jobs:
           # Group these tests together to try and balance out the runtimes of each job
           # Just running in `local` mode since they shouldn't depend on the mode
           - java-version: 17
-            millargs: "'example.{basic,scalabuilds,scalamodule,web}[_].local.test'"
+            millargs: "'example.{basic,scalabuilds,scalamodule,scalatesting,web}[_].local.test'"
           - java-version: 17
-            millargs: "'example.{basicjava,javabuilds,javamodule,javaweb}[_].local.test'"
+            millargs: "'example.{basicjava,javabuilds,javamodule,javatesting,javaweb}[_].local.test'"
           - java-version: 11
             millargs: "'example.thirdparty[{mockito,acyclic,commons-io}].local.test'"
           - java-version: 17

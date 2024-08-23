@@ -37,10 +37,6 @@ include::example/javabuilds/3-override-tasks.adoc[]
 
 include::example/javabuilds/4-nested-modules.adoc[]
 
-== Java Module With Test Suite
-
-include::example/javabuilds/5-test-suite.adoc[]
-
 == Publish Module
 
 include::example/javabuilds/6-publish-module.adoc[]

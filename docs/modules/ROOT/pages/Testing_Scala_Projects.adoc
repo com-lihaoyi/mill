@@ -1,0 +1,17 @@
+= Testing Scala Projects
+
+++++
+<script>
+gtag('config', 'AW-16649289906');
+</script>
+++++
+
+This page will discuss common topics around working with test suites using the Mill build tool
+
+== Defining Unit Test Suites
+
+include::example/scalatesting/1-test-suite.adoc[]
+
+== Defining Integration Test Suites
+
+include::example/scalatesting/2-integration-suite.adoc[]
