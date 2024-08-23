@@ -11,7 +11,7 @@
 * xref:Java_Module_Config.adoc[]
 * xref:Testing_Java_Projects.adoc[]
 // * xref:Publishing_Java_Projects.adoc[]
-* xref:Java_Web_Build_Examples.adoc[]
+* xref:Java_Web_Examples.adoc[]
 * xref:Case_Study_Mill_vs_Maven.adoc[]
 * xref:Case_Study_Mill_vs_Gradle.adoc[]
 
@@ -23,7 +23,7 @@
 * xref:Scala_Module_Config.adoc[]
 * xref:Testing_Scala_Projects.adoc[]
 // * xref:Publishing_Scala_Projects.adoc[]
-* xref:Scala_Web_Build_Examples.adoc[]
+* xref:Scala_Web_Examples.adoc[]
 
 // This section is all about developing a deeper understanding of specific
 // topics in Mill. This is the opposite of `Quick Start` above: while we touch
