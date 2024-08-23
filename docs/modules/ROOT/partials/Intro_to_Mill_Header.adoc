@@ -38,17 +38,18 @@ even as it grows from a small project to a large codebase or monorepo with hundr
   tasks, minimizing the amount of work that needs to be done and keeping your workflows
   fast and responsive.
 
-* *Maintainability*: Mill build tasks are self contained without side-effects making it easy
+* *Maintainability*: Mill build tasks are without side-effects making it easy
   to trace the data-flow, and its IDE support
   (via xref:{language}_Installation_IDE_Support.adoc#_intellij[IntelliJ] or
   xref:{language}_Installation_IDE_Support.adoc#_vscode[VSCode])
   lets you "*jump-to-definition*" around your build
-  as easily as any application codebase.
+  as easily as any application codebase. Mill custom logic is written in
+  xref:_custom_build_logic[custom build logic] in concise type-checked code, rather than
+  error-prone shell scripts, verbose AntRun XML, or complicated external plugins.
 
-* *Flexibility*: Mill custom logic is written in xref:_custom_build_logic[custom build logic]
-  in concise type-checked code, rather than
-  error-prone shell scripts, verbose AntRun XML, or complicated external plugins. Mill's
-  custom tasks and modules allow anything from
+* *Flexibility*: Mill's custom tasks and modules allow anything from
   xref:Tasks.adoc#primitive-tasks[adding simple pipelines], up to
   xref:Modules.adoc#_use_case_diy_java_modules[adding entire language toolchains],
-  meaning it can be easily customized to fit exactly what you need.
+  meaning it can be easily customized to fit exactly what you need. This means you
+  are never beholden to third-party plugins which may not work well together or,
+  be maintained, or exist at all.
