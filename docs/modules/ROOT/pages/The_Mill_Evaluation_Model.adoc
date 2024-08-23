@@ -5,7 +5,7 @@ Evaluating a Mill target typically goes through the following phases:
 1. *Compilation*: Mill compiles the `build.sc` to classfiles, following the
 <<_the_mill_bootstrapping_process>> to eventually produce a `RootModule` object
 
-2. *Planning*: Mill resolves the list of xref:Tasks.adoc[] given from the command line,
+2. *Resolution*: Mill resolves the list of xref:Tasks.adoc[] given from the command line,
    e.g. `resolve _` or `foo.compile` or `{bar,qux}.__.test`, to a list of
    concrete `Task` objects nested on xref:Modules.adoc[] within the `RootModule` along
    with their transitive dependencies
