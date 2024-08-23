@@ -26,10 +26,6 @@ include::example/javamodule/2-ivy-deps.adoc[]
 
 include::example/javamodule/3-run-compile-deps.adoc[]
 
-== Test Dependencies
-
-include::example/javamodule/4-test-deps.adoc[]
-
 == Classpath and Filesystem Resources
 
 include::example/javamodule/5-resources.adoc[]

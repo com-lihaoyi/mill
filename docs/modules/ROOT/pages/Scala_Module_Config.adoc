@@ -28,10 +28,6 @@ include::example/scalamodule/2-ivy-deps.adoc[]
 
 include::example/scalamodule/3-run-compile-deps.adoc[]
 
-== Test Dependencies
-
-include::example/scalamodule/4-test-deps.adoc[]
-
 == Classpath and Filesystem Resources
 
 include::example/scalamodule/5-resources.adoc[]

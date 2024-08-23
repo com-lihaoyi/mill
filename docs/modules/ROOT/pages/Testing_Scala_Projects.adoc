@@ -12,6 +12,11 @@ This page will discuss common topics around working with test suites using the M
 
 include::example/scalatesting/1-test-suite.adoc[]
 
+
+== Test Dependencies
+
+include::example/scalatesting/2-test-deps.adoc[]
+
 == Defining Integration Test Suites
 
-include::example/scalatesting/2-integration-suite.adoc[]
+include::example/scalatesting/3-integration-suite.adoc[]

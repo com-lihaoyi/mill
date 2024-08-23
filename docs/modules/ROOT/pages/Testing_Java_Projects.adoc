@@ -12,6 +12,11 @@ This page will discuss common topics around working with test suites using the M
 
 include::example/javatesting/1-test-suite.adoc[]
 
+
+== Test Dependencies
+
+include::example/javatesting/2-test-deps.adoc[]
+
 == Defining Integration Test Suites
 
-include::example/javatesting/2-integration-suite.adoc[]
+include::example/javatesting/3-integration-suite.adoc[]

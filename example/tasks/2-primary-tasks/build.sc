@@ -74,6 +74,8 @@ Computing line count
 // line, or use `show` if you want to see the JSON content or pipe it to
 // external tools.
 
+// ==== T.dest
+//
 // Each target, e.g. `classFiles`, is assigned a {mill-doc-url}/api/latest/mill/api/Ctx.html#dest:os.Path[T.dest]
 // folder e.g. `out/classFiles.dest/` on disk as scratch space & to store its
 // output files , and its returned metadata is automatically JSON-serialized
@@ -124,6 +126,16 @@ Generating jar
 
 */
 
+// *Note that `os.pwd` of the Mill process is set to an empty `sandbox/` folder by default.*
+// This is to stop you from accidentally reading and writing files to the base repository root,
+// which would cause problems with Mill's caches not invalidating properly or files from different
+// tasks colliding and causing issues.
+// You should never use `os.pwd` or rely on the process working directory, and always explicitly
+// use `T.dest` or the `.path` of upstream ``PathRef``s when accessing files. In the rare case where
+// you truly need the Mill project root folder, you can access it via `T.workspace`
+//
+// ==== Dependent Targets
+//
 // Targets can depend on other targets via the `foo()` syntax.
 // The graph of inter-dependent targets is evaluated in topological order; that
 // means that the body of a target will not even begin to evaluate if one of its
@@ -169,6 +181,8 @@ Finding Largest File
 
 */
 
+// ==== Custom Types
+//
 // uPickle comes with built-in support for most Scala primitive types and
 // builtin data structures: tuples, collections, ``PathRef``s, etc. can be
 // returned and automatically serialized/de-serialized as necessary. One
@@ -254,9 +268,9 @@ def run(args: String*) = T.command {
 
 // === Overrides
 
-// Targets and sources can be overriden, with the override task callable via `super`.
-// This lets you override-and-extend source lists the same way you would any other target
-// definition:
+// Tasks can be overriden, with the overriden task callable via `super`.
+// You can also override a task with a different type of task, e.g. below
+// we override `sourceRoots` which is a `T.sources` with a `T{}` target:
 //
 
 trait Foo extends Module {
