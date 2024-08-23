@@ -9,9 +9,8 @@ object foo extends RootModule with ScalaModule {
 }
 
 /** See Also: mill-build/build.sc */
-
-/** See Also: src/Foo.scala */
 /** See Also: mill-build/src/ScalaVersion.scala */
+/** See Also: src/Foo.scala */
 
 // This example shows another use of the Mill meta-build: because the meta-build
 // is just a normal Scala module (with some special handling for the `.sc` file extension),
