@@ -61,8 +61,6 @@ case class GenIdeaImpl(
   /** Try to make the file path a relative URL (to PROJECT_DIR). */
   def relativeFileUrl(path: Path): String = ???
 
-  
-
   def libraryXmlTemplate(
       name: String,
       path: os.Path,
