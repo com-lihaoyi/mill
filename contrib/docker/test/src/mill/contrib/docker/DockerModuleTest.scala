@@ -98,11 +98,11 @@ object DockerModuleTest extends TestSuite {
             |FROM gcr.io/distroless/java:latest
             |COPY out.jar /out.jar
             |ENTRYPOINT ["java", "-jar", "/out.jar"]""".stripMargin,
-          sys.props("line.separator")
+          sys.props.getOrElse("line.separator", ???)
         )
         val dockerfileStringRefined = multineRegex.replaceAllIn(
           result.value,
-          sys.props("line.separator")
+          sys.props.getOrElse("line.separator", ???)
         )
         assert(dockerfileStringRefined == expected)
       }
@@ -124,11 +124,11 @@ object DockerModuleTest extends TestSuite {
             |USER user1
             |COPY out.jar /out.jar
             |ENTRYPOINT ["java", "-jar", "/out.jar"]""".stripMargin,
-          sys.props("line.separator")
+          sys.props.getOrElse("line.separator", ???)
         )
         val dockerfileStringRefined = multineRegex.replaceAllIn(
           result.value,
-          sys.props("line.separator")
+          sys.props.getOrElse("line.separator", ???)
         )
         assert(dockerfileStringRefined == expected)
       }
@@ -141,11 +141,11 @@ object DockerModuleTest extends TestSuite {
             |FROM gcr.io/distroless/java:latest
             |COPY out.jar /out.jar
             |ENTRYPOINT ["java", "-Xmx1024M", "-jar", "/out.jar"]""".stripMargin,
-          sys.props("line.separator")
+          sys.props.getOrElse("line.separator", ???)
         )
         val dockerfileStringRefined = multineRegex.replaceAllIn(
           result.value,
-          sys.props("line.separator")
+          sys.props.getOrElse("line.separator", ???)
         )
         assert(dockerfileStringRefined == expected)
       }

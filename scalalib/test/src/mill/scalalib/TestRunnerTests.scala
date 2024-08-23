@@ -14,12 +14,12 @@ import scala.xml.{Elem, NodeSeq, XML}
 
 object TestRunnerTests extends TestSuite {
   object testrunner extends TestBaseModule with ScalaModule {
-    def scalaVersion = sys.props("TEST_SCALA_2_13_VERSION")
+    def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
 
     object utest extends ScalaTests with TestModule.Utest {
       override def ivyDeps = T {
         super.ivyDeps() ++ Agg(
-          ivy"com.lihaoyi::utest:${sys.props("TEST_UTEST_VERSION")}"
+          ivy"com.lihaoyi::utest:${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}"
         )
       }
     }
@@ -27,7 +27,7 @@ object TestRunnerTests extends TestSuite {
     object scalatest extends ScalaTests with TestModule.ScalaTest {
       override def ivyDeps = T {
         super.ivyDeps() ++ Agg(
-          ivy"org.scalatest::scalatest:${sys.props("TEST_SCALATEST_VERSION")}"
+          ivy"org.scalatest::scalatest:${sys.props.getOrElse("TEST_SCALATEST_VERSION", ???)}"
         )
       }
     }
@@ -35,7 +35,7 @@ object TestRunnerTests extends TestSuite {
     trait DoneMessage extends ScalaTests {
       override def ivyDeps = T {
         super.ivyDeps() ++ Agg(
-          ivy"org.scala-sbt:test-interface:${sys.props("TEST_TEST_INTERFACE_VERSION")}"
+          ivy"org.scala-sbt:test-interface:${sys.props.getOrElse("TEST_TEST_INTERFACE_VERSION", ???)}"
         )
       }
     }
