@@ -86,8 +86,8 @@ the overall workflow remains fast even for large projects:
 This approach to caching does assume a certain programming style inside your
 Mill build: we may-or-may-not re-instantiate the modules in your
 `build.sc` and we may-or-may-not re-execute any particular task depending on caching,
-but your code needs to work either way. Task ``def``s and module `object`s in your
-build are also instantiated lazily on-demand, and your code needs to work regardless
+but your code needs to work either way. Furthermore, task ``def``s and module `object`s in your
+build are instantiated lazily on-demand, and your code needs to work regardless
 of which order they are executed in. For code written in a typical Scala style,
 which tends to avoid side effects, this is not a problem at all.
 
