@@ -46,7 +46,7 @@ even as it grows from a small project to a large codebase or monorepo with hundr
   as easily as any application codebase.
 
 * *Flexibility*: Mill custom logic is written in xref:_custom_build_logic[custom build logic]
-  in type-checked code, rather than
+  in concise type-checked code, rather than
   error-prone shell scripts, verbose AntRun XML, or complicated external plugins. Mill's
   custom tasks and modules allow anything from
   xref:Tasks.adoc#primitive-tasks[adding simple pipelines], up to

@@ -100,12 +100,34 @@ object bar extends ScalaModule {
 
 */
 
-// By default, `.test` runs tests in a subprocess, and `forkArg` and `forkEnv` can be
-// overridden to pass JVM flags &amp; environment variables. Note that Mill runs
-// tests with the `PWD` set to an empty `sandbox/` folder by default. Tests
-// can access files from their resource directory via the environment variable
-// `MILL_TEST_RESOURCE_FOLDER` which provides the path to the resource folder,
-// and additional paths can be provided to test via `forkEnv`. See
+// Mill provides three ways of running tests
+//
+// * `foo.test.test`: runs tests in a subprocess in an empty `sandbox/` folder, and
+//   `forkArg` and `forkEnv` can be overridden to pass JVM flags &amp; environment variables.
+//
+// * `foo.test.testCached`: runs the tests in an empty `sandbox/` folder and caches the results
+//   if successful. Also allows multiple test modules to be run in parallel e.g. via
+//   `mill __.testCached`. Again, `forkEnv` and `forkArgs` can be configured.
+//
+// * `foo.test.testLocal`: runs tests in an isolated classloader as part of the main Mill process.
+//   This can be faster than `.test`, but is less flexible (e.g. you cannot pass `forkEnv`)
+//   and more prone to interference (due to sharing the `sandbox/` folder provided by the
+//   Mill process)
+//
+//
+// [source,bash,subs="attributes,verbatim"]
+// ----
+// > mill bar.test.test
+//
+// > mill bar.test.testCached
+//
+// > mill bar.test.testLocal
+// ----
+//
+// *Note that Mill runs tests with the `PWD` set to an empty `sandbox/` folder by default*.
+// Tests can access files from their resource directory via the environment variable
+// `MILL_TEST_RESOURCE_FOLDER` which provides the path to the resource folder, and additional
+// paths can be provided to test via `forkEnv`. See
 // xref:Java_Module_Config.adoc#_classpath_and_filesystem_resources[Classpath and Filesystem Resources]
 // for more details.
 //
