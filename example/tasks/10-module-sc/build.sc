@@ -10,6 +10,12 @@ trait MyModule extends ScalaModule {
 
 // Mill allows you to break up your `build.sc` file into smaller files by defining the
 // build-related logic for any particular subfolder as a `module.sc` file in that subfolder.
+// This can be very useful to keep large Mill builds maintainable, as each folder's build logic
+// gets co-located with the files that need to be built, and speeds up compilation of the
+// build logic since each `build.sc` or `module.sc` file can be compiled independently when
+// it is modified without re-compiling all the others.
+//
+//
 // In this example, the root `build.sc` only contains the `trait MyModule`, but it is
 // `foo/module.sc` and `bar/qux/module.sc` that define modules using it. The modules
 // defined in `foo/module.sc` and `bar/qux/module.sc` are automatically nested within
