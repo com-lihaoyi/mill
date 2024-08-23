@@ -18,6 +18,7 @@ object foo extends ScalaModule {
     )
   }
 }
+
 //// SNIPPET:END
 
 /** Usage
@@ -49,8 +50,22 @@ object foo extends ScalaModule {
 //   by defining a `T.source` (`otherFiles` above) and passing it to `forkEnv`. This
 //   provide the folder path as an environment variable that the test can make use of
 //
-// You can click the *browse* button in the above example to see an example of code
-// the uses these three approaches to load files as part of a test module.
+// Example application code demonstrating the techniques above can be seen below:
+
+
+/** See Also: foo/test/resources/test-file-a.txt */
+/** See Also: foo/test/resources/test-file-b.txt */
+/** See Also: foo/test/other-files/other-file.txt */
+
+//// SNIPPET:APPLICATIONCODE
+
+/** See Also: foo/src/Foo.scala */
+/** See Also: foo/test/src/FooTests.scala */
+
+//// SNIPPET:END
+
+
+//
 //
 // Note that tests require that you pass in any files that they depend on explicitly.
 // This is necessary so that Mill knows when a test needs to be re-run and when a
