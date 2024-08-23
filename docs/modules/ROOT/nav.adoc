@@ -3,8 +3,7 @@
 // but we intentionally skim over them and do not go into depth: the focus is
 // on end user goals and how to achieve them.
 
-.Java Quick Start
-* xref:Java_Intro_to_Mill.adoc[]
+.xref:Java_Intro_to_Mill.adoc[]
 * xref:Java_Installation_IDE_Support.adoc[]
 * xref:Java_Builtin_Commands.adoc[]
 * xref:Java_Module_Config.adoc[]
@@ -15,8 +14,7 @@
 * xref:Case_Study_Mill_vs_Maven.adoc[]
 * xref:Case_Study_Mill_vs_Gradle.adoc[]
 
-.Scala Quick Start
-* xref:Scala_Intro_to_Mill.adoc[]
+.xref:Scala_Intro_to_Mill.adoc[]
 * xref:Scala_Installation_IDE_Support.adoc[]
 * xref:Scala_Builtin_Commands.adoc[]
 * xref:Scala_Module_Config.adoc[]

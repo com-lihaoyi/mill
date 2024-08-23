@@ -124,7 +124,7 @@ object bar extends ScalaModule {
 // > mill bar.test.testLocal
 // ----
 //
-// *Note that Mill runs tests with the `PWD` set to an empty `sandbox/` folder by default*.
+// *Note that Mill runs tests with the working directory set to an empty `sandbox/` folder by default*.
 // Tests can access files from their resource directory via the environment variable
 // `MILL_TEST_RESOURCE_FOLDER` which provides the path to the resource folder, and additional
 // paths can be provided to test via `forkEnv`. See

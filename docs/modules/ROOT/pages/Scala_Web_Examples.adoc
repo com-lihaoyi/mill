@@ -1,4 +1,4 @@
-= Scala Web Build Examples
+= Scala Web Examples
 
 ++++
 <script>

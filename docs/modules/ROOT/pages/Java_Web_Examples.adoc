@@ -1,4 +1,4 @@
-= Java Web Build Examples
+= Java Web Examples
 
 ++++
 <script>
