@@ -9,6 +9,8 @@
 * xref:Java_Builtin_Commands.adoc[]
 * xref:Java_Build_Examples.adoc[]
 * xref:Java_Module_Config.adoc[]
+// * xref:Testing_Java_Projects.adoc[]
+// * xref:Publishing_Java_Projects.adoc[]
 * xref:Java_Web_Build_Examples.adoc[]
 * xref:Case_Study_Mill_vs_Maven.adoc[]
 * xref:Case_Study_Mill_vs_Gradle.adoc[]
@@ -19,6 +21,7 @@
 * xref:Scala_Builtin_Commands.adoc[]
 * xref:Scala_Build_Examples.adoc[]
 * xref:Scala_Module_Config.adoc[]
+// * xref:Publishing_Scala_Projects.adoc[]
 * xref:Scala_Web_Build_Examples.adoc[]
 
 // This section is all about developing a deeper understanding of specific
@@ -33,13 +36,14 @@
 * xref:Modules.adoc[]
 * xref:Cross_Builds.adoc[]
 * xref:Target_Query_Syntax.adoc[]
-* xref:Extending_Mill.adoc[]
+
 * xref:The_Mill_Evaluation_Model.adoc[]
 
 // This section talks about Mill plugins. While it could theoretically fit in
 // either section above, it is probably an important enough topic it is worth
 // breaking out on its own
-.Mill Plugins
+.Extending Mill
+* xref:Import_File_And_Import_Ivy.adoc[]
 * xref:Using_Plugins.adoc[]
 * xref:Contrib_Plugins.adoc[]
 // See also the list in Contrib_Plugins.adoc
@@ -47,7 +51,6 @@
 ** xref:contrib/bintray.adoc[]
 ** xref:contrib/bloop.adoc[]
 ** xref:contrib/buildinfo.adoc[]
-** xref:Plugin_BSP.adoc[]
 ** xref:contrib/codeartifact.adoc[]
 ** xref:contrib/docker.adoc[]
 ** xref:contrib/flyway.adoc[]
@@ -60,8 +63,8 @@
 ** xref:contrib/testng.adoc[]
 ** xref:contrib/twirllib.adoc[]
 ** xref:contrib/versionfile.adoc[]
-
 * xref:Thirdparty_Plugins.adoc[]
+* xref:The_Mill_Meta_Build.adoc[]
 
 // Reference pages that a typical user would not typically read top-to-bottom,
 // but may need to look up once in a while, and thus should be written down

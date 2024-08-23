@@ -137,5 +137,5 @@ Mill supports multiple levels of meta-builds for bootstrapping:
 - Two level of meta-builds: `mill-build/mill-build/build.sc`,
   `mill-build/build.sc` and `build.sc`
 
-xref:Extending_Mill.adoc#_the_mill_meta_build[Extending Mill: The Mill Meta Build] works through a simple use case
+xref:The_Mill_Meta_Build.adoc[The Mill Meta Build] works through a simple use case
 and example for meta-builds.

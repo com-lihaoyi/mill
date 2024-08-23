@@ -1,6 +1,7 @@
 = Contrib Plugins
 :page-aliases: Contrib_Modules.adoc
 
+
 The ((plugins)) in this section are hosted in the Mill git tree and developed / maintained by the community.
 
 For details about including plugins in your `build.sc` read xref:Using_Plugins.adoc[Using Mill Plugins].
@@ -47,3 +48,8 @@ import $ivy.`com.lihaoyi::mill-contrib-bloop:`
 * xref:contrib/testng.adoc[]
 * xref:contrib/twirllib.adoc[]
 * xref:contrib/versionfile.adoc[]
+
+
+== Importing Contrib Modules
+
+include::example/misc/6-contrib-import.adoc[]

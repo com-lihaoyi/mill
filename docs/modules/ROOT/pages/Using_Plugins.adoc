@@ -1,6 +1,6 @@
 = Using Plugins
 
-Mill plugins are ordinary jars and are loaded as any other external dependency with the xref:Extending_Mill.adoc#_import_ivy[`import $ivy` mechanism].
+Mill plugins are ordinary jars and are loaded as any other external dependency with the xref:Import_File_And_Import_Ivy.adoc[`import $ivy` mechanism].
 
 There exist a large number of Mill plugins, Many of them are available on GitHub and via Maven Central. We also have a list of plugins, which is most likely not complete, but it might be a good start if you are looking for plugins: xref:Thirdparty_Plugins.adoc[].
 
