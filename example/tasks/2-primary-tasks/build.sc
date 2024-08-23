@@ -32,7 +32,7 @@ def allSources = T {
 }
 
 def lineCount: T[Int] = T {
-  println("Computing line count")
+  println("Computing line count!!!")
   allSources()
     .map(p => os.read.lines(p.path).size)
     .sum
@@ -69,6 +69,36 @@ Computing line count
 
 */
 
+// Furthermore, when code changes occur, targets only invalidate if the code change
+// may directly or indirectly affect it. e.g. adding a comment to `lineCount` will
+// not cause it to recompute:
+
+// ```diff
+//  def lineCount: T[Int] = T {
+//   println("Computing line count")
+//+  // Hello World
+//   allSources()
+//     .map(p => os.read.lines(p.path).size)
+//     .sum
+// ```
+//
+// But changing the code of the target or any upstream helper method will cause the
+// old value to be invalidated and a new value re-computed (with a new `println`)
+// next time it is invoked:
+//
+// ```diff
+//   def lineCount: T[Int] = T {
+//-  println("Computing line count")
+//+  println("Computing line count!!!")
+//   allSources()
+//     .map(p => os.read.lines(p.path).size)
+//     .sum
+// ```
+//
+// For more information on how the bytecode analysis necessary for invalidating targets
+// based on code-changes work, see https://github.com/com-lihaoyi/mill/pull/2417[PR#2417]
+// that implemented it.
+//
 // The return-value of targets has to be JSON-serializable via
 // {upickle-github-url}[uPickle]. You can run targets directly from the command
 // line, or use `show` if you want to see the JSON content or pipe it to
