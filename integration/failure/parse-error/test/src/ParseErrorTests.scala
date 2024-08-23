@@ -1,5 +1,7 @@
 package mill.integration
 
+import mill.testkit.IntegrationTestSuite
+
 import utest._
 
 object ParseErrorTests extends IntegrationTestSuite {
@@ -7,7 +9,7 @@ object ParseErrorTests extends IntegrationTestSuite {
     initWorkspace()
 
     test {
-      val res = evalStdout("foo.scalaVersion")
+      val res = eval("foo.scalaVersion")
 
       assert(res.isSuccess == false)
 

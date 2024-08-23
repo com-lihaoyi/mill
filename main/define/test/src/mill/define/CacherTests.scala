@@ -1,6 +1,7 @@
 package mill.define
 
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import mill.T
 import mill.api.Result.Success
 import utest._
@@ -8,7 +9,7 @@ import utest.framework.TestPath
 
 object CacherTests extends TestSuite {
   object Base extends Base
-  trait Base extends TestUtil.BaseModule {
+  trait Base extends TestBaseModule {
     def value = T { 1 }
     def result = T { Success(1) }
   }
@@ -23,38 +24,38 @@ object CacherTests extends TestSuite {
   }
 
   val tests = Tests {
-    def eval[T <: TestUtil.BaseModule, V](mapping: T, v: Task[V])(implicit tp: TestPath) = {
-      val evaluator = new TestEvaluator(mapping)
-      evaluator(v).toOption.get._1
+    def eval[T <: mill.testkit.TestBaseModule, V](mapping: T, v: Task[V])(implicit tp: TestPath) = {
+      val evaluator = UnitTester(mapping, null)
+      evaluator(v).toOption.get.value
     }
 
-    "simpleDefIsCached" - {
+    test("simpleDefIsCached") {
       Predef.assert(Base.value eq Base.value)
       Predef.assert(eval(Base, Base.value) == 1)
     }
 
-    "resultDefIsCached" - {
+    test("resultDefIsCached") {
       Predef.assert(Base.result eq Base.result)
       Predef.assert(eval(Base, Base.result) == 1)
     }
 
-    "overridingDefIsAlsoCached" - {
+    test("overridingDefIsAlsoCached") {
       Predef.assert(eval(Middle, Middle.value) == 3)
       Predef.assert(Middle.value eq Middle.value)
     }
 
-    "overriddenDefRemainsAvailable" - {
+    test("overriddenDefRemainsAvailable") {
       Predef.assert(eval(Middle, Middle.overridden) == 1)
     }
 
-    "multipleOverridesWork" - {
+    test("multipleOverridesWork") {
       Predef.assert(eval(Terminal, Terminal.value) == 7)
       Predef.assert(eval(Terminal, Terminal.overridden) == 1)
     }
     //    Doesn't fail, presumably compileError doesn't go far enough in the
     //    compilation pipeline to hit the override checks
     //
-    //    "overrideOutsideModuleFails" - {
+    //    test("overrideOutsideModuleFails") {
     //      compileError("""
     //        trait Foo{
     //          def x = 1

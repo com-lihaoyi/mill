@@ -1,5 +1,6 @@
 package mill.integration
-package local
+
+import mill.testkit.IntegrationTestSuite
 import mill.bsp.Constants
 import utest._
 
@@ -8,8 +9,8 @@ object BspInstallTests extends IntegrationTestSuite {
 
   def tests: Tests = Tests {
     test("BSP install") {
-      val workspacePath = initWorkspace()
-      assert(eval("mill.bsp.BSP/install"))
+      initWorkspace()
+      assert(eval("mill.bsp.BSP/install").isSuccess)
       val jsonFile = workspacePath / Constants.bspDir / s"${Constants.serverName}.json"
       assert(os.exists(jsonFile))
       val contents = os.read(jsonFile)

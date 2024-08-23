@@ -1,13 +1,14 @@
 package mill.scalalib
 
 import mill.Agg
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import utest._
 import utest.framework.TestPath
 
 object CrossVersionTests extends TestSuite {
 
-  object TestCases extends TestUtil.BaseModule {
+  object TestCases extends TestBaseModule {
 
     object StandaloneScala213 extends ScalaModule {
       val tree =
@@ -118,12 +119,7 @@ object CrossVersionTests extends TestSuite {
 
   }
 
-  def init()(implicit tp: TestPath) = {
-    val eval = new TestEvaluator(TestCases)
-    os.remove.all(eval.outPath)
-    os.makeDir.all(TestCases.millSourcePath / os.up)
-    eval
-  }
+  def init() = UnitTester(TestCases, null)
 
   import TestCases._
 
@@ -148,15 +144,15 @@ object CrossVersionTests extends TestSuite {
       }
     }
 
-    val Right((deps, _)) = eval.apply(mod.transitiveIvyDeps)
+    val Right(deps) = eval.apply(mod.transitiveIvyDeps)
 
-    val depNames = deps.toSeq.map(d => d.name).sorted
+    val depNames = deps.value.toSeq.map(d => d.name).sorted
 
     assert(depNames == expectedDeps.sorted)
 
-    val Right((libs, _)) = eval.apply(mod.compileClasspath)
+    val Right(libs) = eval.apply(mod.compileClasspath)
 
-    val libNames = libs.map(l => l.path.last).filter(_.endsWith(".jar")).toSeq.sorted
+    val libNames = libs.value.map(l => l.path.last).filter(_.endsWith(".jar")).toSeq.sorted
     assert(libNames == expectedLibs.sorted)
   }
 

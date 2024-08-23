@@ -1,0 +1,68 @@
+package mill.scalajslib
+
+import mill.api.Result
+import mill.define.Discover
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
+import utest._
+import mill.define.Target
+import mill.scalajslib.api._
+
+object EsModuleRemapTests extends TestSuite {
+  val remapTo = "https://cdn.jsdelivr.net/gh/stdlib-js/array-base-linspace@esm/index.mjs"
+
+  object EsModuleRemap extends TestBaseModule with ScalaJSModule {
+    override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
+
+    override def scalaJSVersion = "1.16.0"
+
+    override def scalaJSSourceMap = false
+
+    override def moduleKind = ModuleKind.ESModule
+
+    override def scalaJSImportMap: Target[Seq[ESModuleImportMapping]] = Seq(
+      ESModuleImportMapping.Prefix("@stdlib/linspace", remapTo)
+    )
+
+    override lazy val millDiscover = Discover[this.type]
+  }
+
+  object OldJsModule extends TestBaseModule with ScalaJSModule {
+    override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
+    override def scalaJSVersion = "1.15.0"
+    override def scalaJSSourceMap = false
+    override def moduleKind = ModuleKind.ESModule
+
+    override def scalaJSImportMap: Target[Seq[ESModuleImportMapping]] = Seq(
+      ESModuleImportMapping.Prefix("@stdlib/linspace", remapTo)
+    )
+
+    override lazy val millDiscover = Discover[this.type]
+  }
+
+  val millSourcePath = os.pwd / "scalajslib" / "test" / "resources" / "esModuleRemap"
+
+  val tests: Tests = Tests {
+    test("should remap the esmodule") {
+      val evaluator = UnitTester(EsModuleRemap, millSourcePath)
+      val Right(result) =
+        evaluator(EsModuleRemap.fastLinkJS)
+      val publicModules = result.value.publicModules.toSeq
+      assert(publicModules.length == 1)
+      val main = publicModules.head
+      assert(main.jsFileName == "main.js")
+      val mainPath = result.value.dest.path / "main.js"
+      assert(os.exists(mainPath))
+      val rawJs = os.read.lines(mainPath)
+      assert(rawJs(1).contains(remapTo))
+    }
+
+    test("should throw for older scalaJS versions") {
+      val evaluator = UnitTester(EsModuleRemap, millSourcePath)
+      val Left(Result.Exception(ex, _)) = evaluator(OldJsModule.fastLinkJS)
+      val error = ex.getMessage
+      assert(error == "scalaJSImportMap is not supported with Scala.js < 1.16.")
+    }
+
+  }
+}

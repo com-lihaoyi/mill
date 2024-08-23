@@ -3,14 +3,15 @@ package mill.main
 import mill.api.{PathRef, Result, Val}
 import mill.{Agg, T}
 import mill.define.{Cross, Discover, Module, Task}
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import utest.{TestSuite, Tests, assert, test}
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 
 object MainModuleTests extends TestSuite {
 
-  object mainModule extends TestUtil.BaseModule with MainModule {
+  object mainModule extends TestBaseModule with MainModule {
     def hello = T {
       System.out.println("Hello System Stdout")
       System.err.println("Hello System Stderr")
@@ -29,7 +30,7 @@ object MainModuleTests extends TestSuite {
     override lazy val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
-  object cleanModule extends TestUtil.BaseModule with MainModule {
+  object cleanModule extends TestBaseModule with MainModule {
 
     trait Cleanable extends Module {
       def target = T {
@@ -62,7 +63,7 @@ object MainModuleTests extends TestSuite {
   override def tests: Tests = Tests {
 
     test("inspect") {
-      val eval = new TestEvaluator(mainModule)
+      val eval = UnitTester(mainModule, null)
       test("single") {
         val res = eval.evaluator.evaluate(Agg(mainModule.inspect(eval.evaluator, "hello")))
         val Result.Success(Val(value: String)) = res.rawValues.head
@@ -84,8 +85,9 @@ object MainModuleTests extends TestSuite {
         )
       }
       test("command") {
-        val Right((Seq(res: String), _)) = eval.evalTokens("inspect", "helloCommand")
+        val Right(result) = eval.apply("inspect", "helloCommand")
 
+        val Seq(res: String) = result.value
         assert(
           res.startsWith("helloCommand("),
           res.contains("MainModuleTests.scala:"),
@@ -97,8 +99,9 @@ object MainModuleTests extends TestSuite {
     test("show") {
       val outStream = new ByteArrayOutputStream()
       val errStream = new ByteArrayOutputStream()
-      val evaluator = new TestEvaluator(
+      val evaluator = UnitTester(
         mainModule,
+        null,
         outStream = new PrintStream(outStream, true),
         errStream = new PrintStream(errStream, true)
       )
@@ -159,21 +162,22 @@ object MainModuleTests extends TestSuite {
       }
 
       test("command") {
-        val Left(Result.Failure(failureMsg, _)) = evaluator.evalTokens("show", "helloCommand")
+        val Left(Result.Failure(failureMsg, _)) = evaluator.apply("show", "helloCommand")
         assert(
           failureMsg.contains("Expected Signature: helloCommand"),
           failureMsg.contains("-x <int>"),
           failureMsg.contains("-y <str>")
         )
-        val Right((Seq(res), _)) =
-          evaluator.evalTokens("show", "helloCommand", "-x", "1337", "-y", "lol")
+        val Right(result) =
+          evaluator.apply("show", "helloCommand", "-x", "1337", "-y", "lol")
 
+        val Seq(res) = result.value
         assert(res == ujson.Arr(1337, "lol", ujson.Arr("hello", "world")))
       }
     }
 
     test("showNamed") {
-      val evaluator = new TestEvaluator(mainModule)
+      val evaluator = UnitTester(mainModule, null)
       test("single") {
         val results =
           evaluator.evaluator.evaluate(Agg(mainModule.showNamed(evaluator.evaluator, "hello")))
@@ -207,7 +211,7 @@ object MainModuleTests extends TestSuite {
     }
 
     test("clean") {
-      val ev = new TestEvaluator(cleanModule)
+      val ev = UnitTester(cleanModule, null)
       val out = ev.evaluator.outPath
 
       def checkExists(exists: Boolean)(paths: os.SubPath*): Unit = {

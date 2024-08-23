@@ -1,9 +1,10 @@
 package mill.eval
 
-import mill.util.Jvm
+import mill.util.{Jvm, TestUtil}
 import mill.api.Ctx.Dest
 import mill.T
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import mill.api.Strict.Agg
 import mill.api.{JarManifest, Loose}
 import utest._
@@ -17,18 +18,15 @@ object JavaCompileJarTests extends TestSuite {
     mill.api.PathRef(ctx.dest)
   }
 
+  val javacSrcPath = os.pwd / "main" / "test" / "resources" / "examples" / "javac"
+
   val tests = Tests {
-    "javac" - {
-      val javacSrcPath = os.pwd / "main" / "test" / "resources" / "examples" / "javac"
-      val javacDestPath = TestUtil.getOutPath() / "src"
 
-      os.makeDir.all(javacDestPath / os.up)
-      os.copy(javacSrcPath, javacDestPath)
-
-      object Build extends TestUtil.BaseModule {
-        def sourceRootPath = javacDestPath / "src"
-        def readmePath = javacDestPath / "readme.md"
-        def resourceRootPath = javacDestPath / "resources"
+    test("javac") {
+      object Build extends TestBaseModule {
+        def sourceRootPath = millSourcePath / "src"
+        def readmePath = millSourcePath / "readme.md"
+        def resourceRootPath = millSourcePath / "resources"
 
         // sourceRoot -> allSources -> classFiles
         //                                |
@@ -61,13 +59,12 @@ object JavaCompileJarTests extends TestSuite {
 
       import Build._
 
-      var evaluator = new TestEvaluator(Build)
-      def eval[T](t: Task[T]) = {
-        evaluator.apply(t)
-      }
-      def check(targets: Agg[Task[_]], expected: Agg[Task[_]]) = {
-        evaluator.check(targets, expected)
-      }
+      var evaluator = UnitTester(
+        Build,
+        sourceRoot = javacSrcPath
+      )
+      def eval[T](t: Task[T]) = evaluator.apply(t)
+      def check(targets: Agg[Task[_]], expected: Agg[Task[_]]) = evaluator.check(targets, expected)
 
       def append(path: os.Path, txt: String) = os.write.append(path, txt)
 
@@ -104,7 +101,11 @@ object JavaCompileJarTests extends TestSuite {
       check(targets = Agg(jar), expected = Agg(jar))
 
       // You can swap evaluators halfway without any ill effects
-      evaluator = new TestEvaluator(Build)
+      evaluator = UnitTester(
+        Build,
+        sourceRoot = javacSrcPath,
+        resetSourcePath = false
+      )
 
       // Asking for an intermediate target forces things to be build up to that
       // target only; these are re-used for any downstream targets requested
@@ -162,10 +163,10 @@ object JavaCompileJarTests extends TestSuite {
       for (i <- 0 until 3) {
         // Build.run is not cached, so every time we eval it it has to
         // re-evaluate
-        val Right((runOutput, evalCount)) = eval(Build.run("test.Foo"))
+        val Right(result) = eval(Build.run("test.Foo"))
         assert(
-          runOutput.out.text() == s"${31337 + 271828}${System.lineSeparator}",
-          evalCount == 1
+          result.value.out.text() == s"${31337 + 271828}${System.lineSeparator}",
+          result.evalCount == 1
         )
       }
 
@@ -183,15 +184,15 @@ object JavaCompileJarTests extends TestSuite {
         }
         """
       )
-      val Right((runOutput2, evalCount2)) = eval(Build.run("test.BarFour"))
+      val Right(result2) = eval(Build.run("test.BarFour"))
       assert(
-        runOutput2.out.text() == "New Cls!" + System.lineSeparator,
-        evalCount2 == 3
+        result2.value.out.text() == "New Cls!" + System.lineSeparator,
+        result2.evalCount == 3
       )
-      val Right((runOutput3, evalCount3)) = eval(Build.run("test.BarFour"))
+      val Right(result3) = eval(Build.run("test.BarFour"))
       assert(
-        runOutput3.out.text() == "New Cls!" + System.lineSeparator,
-        evalCount3 == 1
+        result3.value.out.text() == "New Cls!" + System.lineSeparator,
+        result3.evalCount == 1
       )
     }
   }

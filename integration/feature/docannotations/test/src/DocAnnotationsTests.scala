@@ -1,5 +1,7 @@
 package mill.integration
 
+import mill.testkit.IntegrationTestSuite
+
 import utest._
 
 object DocAnnotationsTests extends IntegrationTestSuite {
@@ -16,10 +18,10 @@ object DocAnnotationsTests extends IntegrationTestSuite {
   val tests: Tests = Tests {
     initWorkspace()
     test("test") - {
-      val res = eval("inspect", "core.test.ivyDeps")
-      assert(res == true)
+      val res = eval(("inspect", "core.test.ivyDeps"))
+      assert(res.isSuccess == true)
 
-      val inheritedIvyDeps = ujson.read(meta("inspect"))("value").str
+      val inheritedIvyDeps = outJson("inspect").json.str
       assert(
         globMatches(
           """core.test.ivyDeps(build.sc:...)
@@ -35,8 +37,8 @@ object DocAnnotationsTests extends IntegrationTestSuite {
         )
       )
 
-      assert(eval("inspect", "core.target"))
-      val target = ujson.read(meta("inspect"))("value").str
+      assert(eval(("inspect", "core.target")).isSuccess)
+      val target = outJson("inspect").json.str
       assert(
         globMatches(
           """core.target(build.sc:...)
@@ -48,8 +50,8 @@ object DocAnnotationsTests extends IntegrationTestSuite {
         )
       )
 
-      assert(eval("inspect", "inspect"))
-      val doc = ujson.read(meta("inspect"))("value").str
+      assert(eval(("inspect", "inspect")).isSuccess)
+      val doc = outJson("inspect").json.str
       assert(
         globMatches(
           """inspect(MainModule.scala:...)
@@ -61,8 +63,8 @@ object DocAnnotationsTests extends IntegrationTestSuite {
         )
       )
 
-      assert(eval("inspect", "core.run"))
-      val run = ujson.read(meta("inspect"))("value").str
+      assert(eval(("inspect", "core.run")).isSuccess)
+      val run = outJson("inspect").json.str
 
       assert(
         globMatches(
@@ -83,9 +85,9 @@ object DocAnnotationsTests extends IntegrationTestSuite {
         )
       )
 
-      assert(eval("inspect", "core.ivyDepsTree"))
+      assert(eval(("inspect", "core.ivyDepsTree")).isSuccess)
 
-      val ivyDepsTree = ujson.read(meta("inspect"))("value").str
+      val ivyDepsTree = outJson("inspect").json.str
 
       assert(
         globMatches(
@@ -110,8 +112,8 @@ object DocAnnotationsTests extends IntegrationTestSuite {
 
       // Make sure both kebab-case and camelCase flags work, even though the
       // docs from `inspect` only show the kebab-case version
-      assert(eval("core.ivyDepsTree", "--withCompile", "--withRuntime"))
-      assert(eval("core.ivyDepsTree", "--with-compile", "--with-runtime"))
+      assert(eval(("core.ivyDepsTree", "--withCompile", "--withRuntime")).isSuccess)
+      assert(eval(("core.ivyDepsTree", "--with-compile", "--with-runtime")).isSuccess)
     }
   }
 }

@@ -1,5 +1,7 @@
 package mill.integration
 
+import mill.testkit.IntegrationTestSuite
+
 import utest._
 
 object MultipleTopLevelModulesTests extends IntegrationTestSuite {
@@ -7,7 +9,7 @@ object MultipleTopLevelModulesTests extends IntegrationTestSuite {
     initWorkspace()
 
     test("success") {
-      val res = evalStdout("resolve", "_")
+      val res = eval(("resolve", "_"))
       assert(!res.isSuccess)
       assert(res.err.contains(
         "Only one RootModule can be defined in a build, not 2:"

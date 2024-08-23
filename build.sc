@@ -1,4 +1,6 @@
 // imports
+import $meta._
+
 import scala.util.chaining._
 import com.github.lolgab.mill.mima.Mima
 import coursier.maven.MavenRepository
@@ -68,10 +70,6 @@ object Deps {
   // Scala Native 4.2 will not get releases for new Scala version
   val testScala213VersionForScalaNative42 = "2.13.8"
   val testScala212Version = "2.12.6"
-  val testScala211Version = "2.11.12"
-  val testScala210Version = "2.10.6"
-  val testScala30Version = "3.0.2"
-  val testScala31Version = "3.1.3"
   val testScala32Version = "3.2.0"
   val testScala33Version = "3.3.1"
 
@@ -85,14 +83,6 @@ object Deps {
     val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:${scalaJsVersion}"
     val scalajsLinker = ivy"org.scala-js::scalajs-linker:${scalaJsVersion}"
     val scalajsImportMap = ivy"com.armanbilge::scalajs-importmap:0.1.1"
-  }
-
-  object Scalanative_0_4 {
-    val scalanativeVersion = "0.4.17"
-    val scalanativeTools = ivy"org.scala-native::tools:${scalanativeVersion}"
-    val scalanativeUtil = ivy"org.scala-native::util:${scalanativeVersion}"
-    val scalanativeNir = ivy"org.scala-native::nir:${scalanativeVersion}"
-    val scalanativeTestRunner = ivy"org.scala-native::test-runner:${scalanativeVersion}"
   }
 
   object Scalanative_0_5 {
@@ -158,7 +148,7 @@ object Deps {
   val commonsIO = ivy"commons-io:commons-io:2.16.1"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.8.0"
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.23.1"
-  val osLib = ivy"com.lihaoyi::os-lib:0.10.3"
+  val osLib = ivy"com.lihaoyi::os-lib:0.10.4"
   val pprint = ivy"com.lihaoyi::pprint:0.9.0"
   val mainargs = ivy"com.lihaoyi::mainargs:0.7.1"
   val millModuledefsVersion = "0.10.9"
@@ -415,6 +405,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
     def forkArgs = super.forkArgs() ++ outer.testArgs()
     def moduleDeps = outer.testModuleDeps
     def ivyDeps = super.ivyDeps() ++ outer.testIvyDeps()
+    def forkEnv = super.forkEnv() ++ outer.forkEnv()
   }
 }
 
@@ -426,14 +417,9 @@ trait MillBaseTestsModule extends MillJavaModule with TestModule {
       s"-DTEST_SCALA_2_13_VERSION=${Deps.testScala213Version}",
       s"-DTEST_SCALA_2_13_VERSION_FOR_SCALANATIVE_4_2=${Deps.testScala213VersionForScalaNative42}",
       s"-DTEST_SCALA_2_12_VERSION=${Deps.testScala212Version}",
-      s"-DTEST_SCALA_2_11_VERSION=${Deps.testScala211Version}",
-      s"-DTEST_SCALA_2_10_VERSION=${Deps.testScala210Version}",
-      s"-DTEST_SCALA_3_0_VERSION=${Deps.testScala30Version}",
-      s"-DTEST_SCALA_3_1_VERSION=${Deps.testScala31Version}",
       s"-DTEST_SCALA_3_2_VERSION=${Deps.testScala32Version}",
       s"-DTEST_SCALA_3_3_VERSION=${Deps.testScala33Version}",
       s"-DTEST_SCALAJS_VERSION=${Deps.Scalajs_1.scalaJsVersion}",
-      s"-DTEST_SCALANATIVE_0_4_VERSION=${Deps.Scalanative_0_4.scalanativeVersion}",
       s"-DTEST_SCALANATIVE_0_5_VERSION=${Deps.Scalanative_0_5.scalanativeVersion}",
       s"-DTEST_UTEST_VERSION=${Deps.TestDeps.utest.dep.version}",
       s"-DTEST_SCALATEST_VERSION=${Deps.TestDeps.scalaTest.dep.version}",
@@ -771,11 +757,19 @@ object main extends MillStableScalaModule with BuildInfo {
     def ivyDeps = Agg(Deps.graphvizJava, Deps.jgraphtCore)
   }
 
-  object testkit extends MillPublishScalaModule {
-    def moduleDeps = Seq(eval, util, main)
-  }
 
   def testModuleDeps = super.testModuleDeps ++ Seq(testkit)
+}
+
+object testkit extends MillPublishScalaModule {
+  def moduleDeps = Seq(main.eval, main.util, main)
+  def ivyDeps = Agg(Deps.TestDeps.utest)
+
+  def sources =
+    super.sources() ++
+    Seq(PathRef(build.millSourcePath / "mill-build" / "src"))
+
+  def forkEnv = super.forkEnv() ++ Map("MILL_EXECUTABLE_PATH" -> dev.launcher().path.toString())
 }
 
 object testrunner extends MillPublishScalaModule {
@@ -1106,13 +1100,13 @@ object contrib extends Module {
 object scalanativelib extends MillStableScalaModule {
   def moduleDeps = Seq(scalalib, scalanativelib.`worker-api`)
   def testTransitiveDeps =
-    super.testTransitiveDeps() ++ Seq(worker("0.4").testDep(), worker("0.5").testDep())
+    super.testTransitiveDeps() ++ Seq(worker("0.5").testDep())
 
   object `worker-api` extends MillPublishScalaModule {
     def ivyDeps = Agg(Deps.sbtTestInterface)
   }
 
-  object worker extends Cross[WorkerModule]("0.4", "0.5")
+  object worker extends Cross[WorkerModule]("0.5")
 
   trait WorkerModule extends MillPublishScalaModule with Cross.Module[String] {
     def scalaNativeWorkerVersion = crossValue
@@ -1127,14 +1121,6 @@ object scalanativelib extends MillStableScalaModule {
           Deps.Scalanative_0_5.scalanativeUtil,
           Deps.Scalanative_0_5.scalanativeNir,
           Deps.Scalanative_0_5.scalanativeTestRunner
-        )
-      case "0.4" =>
-        Agg(
-          Deps.osLib,
-          Deps.Scalanative_0_4.scalanativeTools,
-          Deps.Scalanative_0_4.scalanativeUtil,
-          Deps.Scalanative_0_4.scalanativeNir,
-          Deps.Scalanative_0_4.scalanativeTestRunner
         )
     }
   }
@@ -1182,36 +1168,28 @@ val DefaultLocalMillReleasePath =
 trait IntegrationTestModule extends MillScalaModule {
   def repoSlug: String
 
-  def scalaVersion = integration.scalaVersion()
-  def moduleDeps = Seq(main.test, integration)
+  def moduleDeps = Seq(main.test, testkit, runner)
   def sources = T.sources(millSourcePath / "test" / "src")
   def testRepoRoot: T[PathRef] = T.source(millSourcePath / "repo")
 
   trait ModeModule extends ScalaModule with MillBaseTestsModule {
     def mode: String = millModuleSegments.parts.last
-    def scalaVersion = integration.scalaVersion()
+    def scalaVersion = Deps.scalaVersion
 
     def forkEnv =
       super.forkEnv() ++
         IntegrationTestModule.this.forkEnv() ++
         Map(
-          "MILL_INTEGRATION_TEST_MODE" -> mode,
-          "MILL_INTEGRATION_TEST_SLUG" -> repoSlug,
+          "MILL_INTEGRATION_SERVER_MODE" -> (mode == "local" || mode == "server").toString,
           "MILL_INTEGRATION_REPO_ROOT" -> testRepoRoot().path.toString
         ) ++
         testReleaseEnv()
 
-    def workspaceDir = T.persistent { PathRef(T.dest) }
-
-    def forkArgs = T {
-      super.forkArgs() ++
-        dev.forkArgs() ++
-        Seq(s"-DMILL_WORKSPACE_PATH=${workspaceDir().path}")
-    }
+    def forkArgs = T { super.forkArgs() ++ dev.forkArgs() }
 
     def testReleaseEnv =
-      if (mode == "local") T { Map("MILL_TEST_LAUNCHER" -> dev.launcher().path.toString()) }
-      else T { Map("MILL_TEST_LAUNCHER" -> integration.testMill().path.toString()) }
+      if (mode == "local") T { Map("MILL_INTEGRATION_LAUNCHER" -> dev.launcher().path.toString()) }
+      else T { Map("MILL_INTEGRATION_LAUNCHER" -> integration.testMill().path.toString()) }
 
     def compile = IntegrationTestModule.this.compile()
     def moduleDeps = Seq(IntegrationTestModule.this)
@@ -1229,11 +1207,9 @@ trait IntegrationTestCrossModule extends IntegrationTestModule with Cross.Module
 
 def listIn(path: os.Path) = interp.watchValue(os.list(path).map(_.last))
 
-object example extends MillScalaModule {
+object example extends Module {
   def exampleModules: Seq[ExampleCrossModule] =
     millInternal.modules.collect { case m: ExampleCrossModule => m }
-
-  def moduleDeps = Seq(integration)
 
   object basic extends Cross[ExampleCrossModule](listIn(millSourcePath / "basic"))
   object basicjava extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "basicjava"))
@@ -1254,21 +1230,23 @@ object example extends MillScalaModule {
       case "javabuilds" => scalabuilds
       case "javamodule" => scalamodule
     }
-
+    def testRepoRoot = T{
+      os.copy.over(super.testRepoRoot().path, T.dest)
+      for(lines <- buildScLines()) os.write.over(T.dest / "build.sc", lines.mkString("\n"))
+      PathRef(T.dest)
+    }
     def buildScLines =
       upstreamCross(
         this.millModuleSegments.parts.dropRight(1).last
       ).valuesToModules.get(List(crossValue)) match {
-        case None =>
-          T {
-            super.buildScLines()
-          }
+        case None => T {None}
         case Some(upstream) => T {
+          Some {
             val upstreamLines = os.read.lines(
               upstream
                 .testRepoRoot().path / "build.sc"
             )
-            val lines = os.read.lines(testRepoRoot().path / "build.sc")
+            val lines = os.read.lines(super.testRepoRoot().path / "build.sc")
 
             import collection.mutable
             val groupedLines = mutable.Map.empty[String, mutable.Buffer[String]]
@@ -1296,15 +1274,16 @@ object example extends MillScalaModule {
                 else Some(s)
             }
           }
+        }
       }
   }
   trait ExampleCrossModule extends IntegrationTestCrossModule {
     // disable scalafix because these example modules don't have sources causing it to misbehave
     def fix(args: String*): Command[Unit] = T.command {}
     def testRepoRoot: T[PathRef] = T.source(millSourcePath)
-    def compile = example.compile()
 
-    def buildScLines = T { os.read.lines(testRepoRoot().path / "build.sc") }
+    def compile = testkit.compile()
+
     def forkEnv = super.forkEnv() ++ Map(
       "MILL_EXAMPLE_PARSED" -> upickle.default.write(parsed()),
       "LANG" -> "C"
@@ -1314,28 +1293,7 @@ object example extends MillScalaModule {
      * Parses a `build.sc` for specific comments and return the split-by-type content
      */
     def parsed: T[Seq[(String, String)]] = T {
-      val states = collection.mutable.Buffer("scala")
-      val chunks = collection.mutable.Buffer(collection.mutable.Buffer.empty[String])
-
-      for (line <- buildScLines()) {
-        val (newState, restOpt) = line match {
-          case s"/** Usage" => ("example", None)
-          case s"/** See Also: $path */" =>
-            (s"see:$path", Some(os.read(os.Path(path, testRepoRoot().path))))
-          case s"*/" => ("scala", None)
-          case s"//$rest" => ("comment", Some(rest.stripPrefix(" ")))
-          case l => (if (states.last == "comment") "scala" else states.last, Some(l))
-        }
-
-        if (newState != states.last) {
-          states.append(newState)
-          chunks.append(collection.mutable.Buffer.empty[String])
-        }
-
-        restOpt.foreach(r => chunks.last.append(r))
-      }
-
-      states.zip(chunks.map(_.mkString("\n").trim)).filter(_._2.nonEmpty).toSeq
+      mill.testkit.ExampleParser(testRepoRoot().path)
     }
 
     def rendered = T {
@@ -1419,14 +1377,12 @@ object example extends MillScalaModule {
   }
 }
 
-object integration extends MillScalaModule {
+object integration extends Module {
   object failure extends Cross[IntegrationCrossModule](listIn(millSourcePath / "failure"))
   object feature extends Cross[IntegrationCrossModule](listIn(millSourcePath / "feature"))
   object invalidation extends Cross[IntegrationCrossModule](listIn(millSourcePath / "invalidation"))
   object ide extends Cross[IntegrationCrossModule](listIn(millSourcePath / "ide"))
   trait IntegrationCrossModule extends IntegrationTestCrossModule
-
-  def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, runner.test)
 
   /** Deploy freshly build mill for use in tests */
   def testMill: T[PathRef] = {

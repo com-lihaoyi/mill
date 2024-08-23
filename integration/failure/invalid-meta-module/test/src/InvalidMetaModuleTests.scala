@@ -1,5 +1,7 @@
 package mill.integration
 
+import mill.testkit.IntegrationTestSuite
+
 import utest._
 
 object InvalidMetaModuleTests extends IntegrationTestSuite {
@@ -7,7 +9,7 @@ object InvalidMetaModuleTests extends IntegrationTestSuite {
     initWorkspace()
 
     test("success") {
-      val res = evalStdout("resolve", "_")
+      val res = eval(("resolve", "_"))
       assert(res.isSuccess == false)
       assert(res.err.contains(
         "Root module in mill-build/build.sc must be of class mill.runner.MillBuildRootModule"

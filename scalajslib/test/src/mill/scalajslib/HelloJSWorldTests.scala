@@ -8,27 +8,26 @@ import mill.eval.EvaluatorPaths
 import mill.scalalib.{DepSyntax, PublishModule, ScalaModule, TestModule}
 import mill.testrunner.TestResult
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import utest._
 
 import scala.jdk.CollectionConverters._
 import mill.scalalib.api.ZincWorkerUtil
+import mill.util.TestUtil
 
 object HelloJSWorldTests extends TestSuite {
-  val workspacePath = TestUtil.getOutPathStatic() / "hello-js-world"
-
   trait HelloJSWorldModule
       extends ScalaModule with ScalaJSModule with PublishModule
       with Cross.Module2[String, String] {
     val (crossScalaVersion, sjsVersion0) = (crossValue, crossValue2)
     def scalaVersion = crossScalaVersion
-    override def millSourcePath = workspacePath
     def publishVersion = "0.0.1-SNAPSHOT"
     override def mainClass = Some("Main")
   }
 
-  object HelloJSWorld extends TestUtil.BaseModule {
-    val scalaVersions = Seq("2.13.3", "3.0.0-RC1", "2.12.12", "2.11.12")
+  object HelloJSWorld extends TestBaseModule {
+    val scalaVersions = Seq("2.13.3", "3.0.0-RC1", "2.12.12")
     val scalaJSVersions = Seq("1.8.0", "1.3.1", "1.0.1")
     val matrix = for {
       scala <- scalaVersions
@@ -36,7 +35,7 @@ object HelloJSWorldTests extends TestSuite {
       if !(ZincWorkerUtil.isScala3(scala) && scalaJS != scalaJSVersions.head)
     } yield (scala, scalaJS)
 
-    object helloJsWorld extends Cross[RootModule](matrix)
+    object build extends Cross[RootModule](matrix)
     trait RootModule extends HelloJSWorldModule {
       override def artifactName = "hello-js-world"
       def scalaJSVersion = sjsVersion0
@@ -49,29 +48,23 @@ object HelloJSWorldTests extends TestSuite {
         developers =
           Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
       )
-    }
 
-    object buildUTest extends Cross[BuildModuleUtest](matrix)
-    trait BuildModuleUtest extends RootModule {
-      object test extends ScalaJSTests with TestModule.Utest {
+      object `test-utest` extends ScalaJSTests with TestModule.Utest {
         override def sources = T.sources { millSourcePath / "src" / "utest" }
         val utestVersion = if (ZincWorkerUtil.isScala3(crossScalaVersion)) "0.7.7" else "0.7.5"
         override def ivyDeps = Agg(
           ivy"com.lihaoyi::utest::$utestVersion"
         )
       }
-    }
 
-    object buildScalaTest extends Cross[BuildModuleScalaTest](matrix)
-    trait BuildModuleScalaTest extends RootModule {
-      object test extends ScalaJSTests with TestModule.ScalaTest {
+      object `test-scalatest` extends ScalaJSTests with TestModule.ScalaTest {
         override def sources = T.sources { millSourcePath / "src" / "scalatest" }
         override def ivyDeps = Agg(
           ivy"org.scalatest::scalatest::3.1.2"
         )
       }
-    }
 
+    }
     object inherited extends ScalaJSModule {
       val (scala, scalaJS) = matrix.head
       def scalacOptions = Seq("-deprecation")
@@ -87,29 +80,25 @@ object HelloJSWorldTests extends TestSuite {
 
   val millSourcePath = os.pwd / "scalajslib" / "test" / "resources" / "hello-js-world"
 
-  val helloWorldEvaluator = TestEvaluator.static(HelloJSWorld)
-
-  val mainObject = helloWorldEvaluator.outPath / "src" / "Main.scala"
-
   def tests: Tests = Tests {
-    prepareWorkspace()
     test("compile") {
+      val eval = UnitTester(HelloJSWorld, millSourcePath)
       def testCompileFromScratch(scalaVersion: String, scalaJSVersion: String): Unit = {
-        val Right((result, evalCount)) =
-          helloWorldEvaluator(HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion).compile)
+        val Right(result) =
+          eval(HelloJSWorld.build(scalaVersion, scalaJSVersion).compile)
 
-        val outPath = result.classes.path
+        val outPath = result.value.classes.path
         val outputFiles = os.walk(outPath)
         val expectedClassfiles = compileClassfiles(outPath, scalaVersion, scalaJSVersion)
         assert(
           outputFiles.toSet == expectedClassfiles,
-          evalCount > 0
+          result.evalCount > 0
         )
 
         // don't recompile if nothing changed
-        val Right((_, unchangedEvalCount)) =
-          helloWorldEvaluator(HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion).compile)
-        assert(unchangedEvalCount == 0)
+        val Right(result2) =
+          eval(HelloJSWorld.build(scalaVersion, scalaJSVersion).compile)
+        assert(result2.evalCount == 0)
       }
 
       testAllMatrix((scala, scalaJS) => testCompileFromScratch(scala, scalaJS))
@@ -121,16 +110,17 @@ object HelloJSWorldTests extends TestSuite {
         optimize: Boolean,
         legacy: Boolean
     ): Unit = {
-      val module = HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion)
+      val eval = UnitTester(HelloJSWorld, millSourcePath)
+      val module = HelloJSWorld.build(scalaVersion, scalaJSVersion)
       val jsFile =
         if (legacy) {
           val task = if (optimize) module.fullOpt else module.fastOpt
-          val Right((result, evalCount)) = helloWorldEvaluator(task)
-          result.path
+          val Right(result) = eval(task)
+          result.value.path
         } else {
           val task = if (optimize) module.fullLinkJS else module.fastLinkJS
-          val Right((report, evalCount)) = helloWorldEvaluator(task)
-          report.dest.path / report.publicModules.head.jsFileName
+          val Right(result) = eval(task)
+          result.value.dest.path / result.value.publicModules.head.jsFileName
         }
       val output = ScalaJsUtils.runJS(jsFile)
       assert(output == "Hello Scala.js\n")
@@ -166,21 +156,26 @@ object HelloJSWorldTests extends TestSuite {
     }
     test("jar") {
       test("containsSJSIRs") {
+        val eval = UnitTester(HelloJSWorld, millSourcePath)
         val (scala, scalaJS) = HelloJSWorld.matrix.head
-        val Right((result, evalCount)) =
-          helloWorldEvaluator(HelloJSWorld.helloJsWorld(scala, scalaJS).jar)
-        val jar = result.path
-        val entries = new JarFile(jar.toIO).entries().asScala.map(_.getName)
-        assert(entries.contains("Main$.sjsir"))
+        val Right(result) =
+          eval(HelloJSWorld.build(scala, scalaJS).jar)
+        val jar = result.value.path
+        val jarFile = new JarFile(jar.toIO)
+        try {
+          val entries = jarFile.entries().asScala.map(_.getName)
+          assert(entries.contains("Main$.sjsir"))
+        } finally jarFile.close()
       }
     }
     test("publish") {
+      val eval = UnitTester(HelloJSWorld, millSourcePath)
       def testArtifactId(scalaVersion: String, scalaJSVersion: String, artifactId: String): Unit = {
-        val Right((result, evalCount)) = helloWorldEvaluator(HelloJSWorld.helloJsWorld(
+        val Right(result) = eval(HelloJSWorld.build(
           scalaVersion,
           scalaJSVersion
         ).artifactMetadata)
-        assert(result.id == artifactId)
+        assert(result.value.id == artifactId)
       }
       test("artifactId_10") {
         testArtifactId(
@@ -200,7 +195,8 @@ object HelloJSWorldTests extends TestSuite {
 
     def runTests(testTask: define.NamedTask[(String, Seq[TestResult])])
         : Map[String, Map[String, TestResult]] = {
-      val Left(Result.Failure(_, Some(res))) = helloWorldEvaluator(testTask)
+      val eval = UnitTester(HelloJSWorld, millSourcePath)
+      val Left(Result.Failure(_, Some(res))) = eval(testTask)
 
       val (doneMsg, testResults) = res
       testResults
@@ -212,8 +208,8 @@ object HelloJSWorldTests extends TestSuite {
 
     def checkUtest(scalaVersion: String, scalaJSVersion: String, cached: Boolean) = {
       val resultMap = runTests(
-        if (!cached) HelloJSWorld.buildUTest(scalaVersion, scalaJSVersion).test.test()
-        else HelloJSWorld.buildUTest(scalaVersion, scalaJSVersion).test.testCached
+        if (!cached) HelloJSWorld.build(scalaVersion, scalaJSVersion).`test-utest`.test()
+        else HelloJSWorld.build(scalaVersion, scalaJSVersion).`test-utest`.testCached
       )
 
       val mainTests = resultMap("MainTests")
@@ -231,8 +227,8 @@ object HelloJSWorldTests extends TestSuite {
 
     def checkScalaTest(scalaVersion: String, scalaJSVersion: String, cached: Boolean) = {
       val resultMap = runTests(
-        if (!cached) HelloJSWorld.buildScalaTest(scalaVersion, scalaJSVersion).test.test()
-        else HelloJSWorld.buildScalaTest(scalaVersion, scalaJSVersion).test.testCached
+        if (!cached) HelloJSWorld.build(scalaVersion, scalaJSVersion).`test-scalatest`.test()
+        else HelloJSWorld.build(scalaVersion, scalaJSVersion).`test-scalatest`.testCached
       )
 
       val mainSpec = resultMap("MainSpec")
@@ -248,39 +244,36 @@ object HelloJSWorldTests extends TestSuite {
       )
     }
 
-    test("test") {
-      val cached = false
+    test("utest") {
+      testAllMatrix((scala, scalaJS) => checkUtest(scala, scalaJS, cached = false))
+    }
+    test("scalatest") {
       testAllMatrix(
-        (scala, scalaJS) => checkUtest(scala, scalaJS, cached),
-        skipScala = _.startsWith("2.11.")
-      )
-      testAllMatrix(
-        (scala, scalaJS) => checkScalaTest(scala, scalaJS, cached),
+        (scala, scalaJS) => checkScalaTest(scala, scalaJS, cached = false),
         skipScala = ZincWorkerUtil.isScala3
       )
     }
 
-    test("testCached") {
-      val cached = false
+    test("utestCached") {
+      testAllMatrix((scala, scalaJS) => checkUtest(scala, scalaJS, cached = true))
+    }
+    test("scalatestCached") {
       testAllMatrix(
-        (scala, scalaJS) => checkUtest(scala, scalaJS, cached),
-        skipScala = _.startsWith("2.11.")
-      )
-      testAllMatrix(
-        (scala, scalaJS) => checkScalaTest(scala, scalaJS, cached),
+        (scala, scalaJS) => checkScalaTest(scala, scalaJS, cached = true),
         skipScala = ZincWorkerUtil.isScala3
       )
     }
 
     def checkRun(scalaVersion: String, scalaJSVersion: String): Unit = {
-      val task = HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion).run()
+      val eval = UnitTester(HelloJSWorld, millSourcePath)
+      val task = HelloJSWorld.build(scalaVersion, scalaJSVersion).run()
 
-      val Right((_, evalCount)) = helloWorldEvaluator(task)
+      val Right(result) = eval(task)
 
-      val paths = EvaluatorPaths.resolveDestPaths(helloWorldEvaluator.outPath, task)
+      val paths = EvaluatorPaths.resolveDestPaths(eval.outPath, task)
       val log = os.read(paths.log)
       assert(
-        evalCount > 0,
+        result.evalCount > 0,
         log.contains("node")
         // TODO: reenable somehow
         // In Scala.js 1.x, println's are sent to the stdout, not to the logger
@@ -293,10 +286,11 @@ object HelloJSWorldTests extends TestSuite {
     }
 
     def checkInheritedTargets[A](target: ScalaJSModule => T[A], expected: A) = {
-      val Right((mainResult, _)) = helloWorldEvaluator(target(HelloJSWorld.inherited))
-      val Right((testResult, _)) = helloWorldEvaluator(target(HelloJSWorld.inherited.test))
-      assert(mainResult == expected)
-      assert(testResult == expected)
+      val eval = UnitTester(HelloJSWorld, millSourcePath)
+      val Right(mainResult) = eval(target(HelloJSWorld.inherited))
+      val Right(testResult) = eval(target(HelloJSWorld.inherited.test))
+      assert(mainResult.value == expected)
+      assert(testResult.value == expected)
     }
     test("test-scalacOptions") {
       checkInheritedTargets(_.scalacOptions, Seq("-deprecation"))
@@ -337,12 +331,6 @@ object HelloJSWorldTests extends TestSuite {
     inAllVersions ++ scalaJSVersionSpecific ++ scalaVersionSpecific
   }
 
-  def prepareWorkspace(): Unit = {
-    os.remove.all(workspacePath)
-    os.makeDir.all(workspacePath / os.up)
-    os.copy(millSourcePath, workspacePath)
-  }
-
   def testAllMatrix(
       f: (String, String) => Unit,
       skipScala: String => Boolean = _ => false,
@@ -353,14 +341,7 @@ object HelloJSWorldTests extends TestSuite {
       if !skipScala(scala)
       if !skipScalaJS(scalaJS)
     } {
-      if (scala.startsWith("2.11.")) {
-        TestUtil.disableInJava9OrAbove("Scala 2.11 tests don't run under Java 9+")(f(
-          scala,
-          scalaJS
-        ))
-      } else {
-        f(scala, scalaJS)
-      }
+      f(scala, scalaJS)
     }
   }
 

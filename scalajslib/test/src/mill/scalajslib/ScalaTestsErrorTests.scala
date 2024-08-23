@@ -2,11 +2,12 @@ package mill.scalajslib
 
 import mill.define.Discover
 import mill.scalalib.TestModule
+import mill.testkit.TestBaseModule
 import mill.util.TestUtil
 import utest._
 
 object ScalaTestsErrorTests extends TestSuite {
-  object ScalaTestsError extends TestUtil.BaseModule {
+  object ScalaTestsError extends TestBaseModule {
     object scalaTestsError extends ScalaJSModule {
       def scalaVersion = sys.props.getOrElse("TEST_SCALA_3_3_VERSION", ???)
       def scalaJSVersion = sys.props.getOrElse("TEST_SCALAJS_VERSION", ???)
