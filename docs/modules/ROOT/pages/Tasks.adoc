@@ -82,4 +82,4 @@ tasks and outputs, you do so with your own evaluator command.
 
 === Using ScalaModule.run as a task
 
-include::example/misc/5-module-run-task.adoc[]
+include::example/tasks/11-module-run-task.adoc[]
