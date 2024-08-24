@@ -1,3 +1,7 @@
+package foo
+
+import org.scalatest.freespec._
+
 class FooScalaTests extends AnyFreeSpec {
   "Foo" - {
     "simple" in {
@@ -12,3 +16,4 @@ class FooScalaTests extends AnyFreeSpec {
     }
   }
 }
+t
