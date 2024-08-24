@@ -4,6 +4,7 @@ import com.github.lolgab.mill.mima.Mima
 import coursier.maven.MavenRepository
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import com.goyeau.mill.scalafix.ScalafixModule
+import example.millSourcePath
 import mill._
 import mill.api.JarManifest
 import mill.define.NamedTask
@@ -1201,30 +1202,45 @@ trait IntegrationTestCrossModule extends IntegrationTestModule with Cross.Module
 def listIn(path: os.Path) = interp.watchValue(os.list(path).map(_.last))
 
 object example extends Module {
-  def exampleModules: Seq[ExampleCrossModule] =
-    millInternal.modules.collect { case m: ExampleCrossModule => m }
+  def exampleModules: Seq[ExampleCrossModule] = millInternal
+    .modules
+    .collect { case m: ExampleCrossModule => m }
 
-  object basic extends Cross[ExampleCrossModule](listIn(millSourcePath / "basic"))
-  object basicjava extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "basicjava"))
-  object scalabuilds extends Cross[ExampleCrossModule](listIn(millSourcePath / "scalabuilds"))
-  object scalatesting extends Cross[ExampleCrossModule](listIn(millSourcePath / "scalatesting"))
-  object javabuilds extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "javabuilds"))
-  object javatesting extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "javatesting"))
-  object scalamodule extends Cross[ExampleCrossModule](listIn(millSourcePath / "scalamodule"))
-  object javamodule extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "javamodule"))
-  object tasks extends Cross[ExampleCrossModule](listIn(millSourcePath / "tasks"))
-  object cross extends Cross[ExampleCrossModule](listIn(millSourcePath / "cross"))
-  object misc extends Cross[ExampleCrossModule](listIn(millSourcePath / "misc"))
-  object web extends Cross[ExampleCrossModule](listIn(millSourcePath / "web"))
-  object javaweb extends Cross[ExampleCrossModule](listIn(millSourcePath / "javaweb"))
+
+  object javalib extends Module{
+    object basic extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "basic"))
+    object builds extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "builds"))
+    object testing extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "testing"))
+    object module extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "module"))
+    object web extends Cross[ExampleCrossModule](listIn(millSourcePath / "web"))
+  }
+  object scalalib extends Module{
+    object basic extends Cross[ExampleCrossModule](listIn(millSourcePath / "basic"))
+    object builds extends Cross[ExampleCrossModule](listIn(millSourcePath / "builds"))
+    object testing extends Cross[ExampleCrossModule](listIn(millSourcePath / "testing"))
+    object module extends Cross[ExampleCrossModule](listIn(millSourcePath / "module"))
+    object web extends Cross[ExampleCrossModule](listIn(millSourcePath / "web"))
+  }
+
+  object depth extends Module{
+    object tasks extends Cross[ExampleCrossModule](listIn(millSourcePath / "tasks"))
+    object cross extends Cross[ExampleCrossModule](listIn(millSourcePath / "cross"))
+  }
+
+  object extending extends Module{
+    object imports extends Cross[ExampleCrossModule](listIn(millSourcePath / "imports"))
+    object metabuild extends Cross[ExampleCrossModule](listIn(millSourcePath / "metabuild"))
+    object plugins extends Cross[ExampleCrossModule](listIn(millSourcePath / "plugins"))
+  }
 
   trait ExampleCrossModuleJava extends ExampleCrossModule {
 
     def upstreamCross(s: String) = s match {
-      case "basicjava" => basic
-      case "javabuilds" => scalabuilds
-      case "javamodule" => scalamodule
-      case "javatesting" => scalatesting
+      case "basic" => scalalib.basic
+      case "builds" => scalalib.builds
+      case "module" => scalalib.module
+      case "testing" => scalalib.testing
+      case "web" => scalalib.web
     }
     def testRepoRoot = T{
       os.copy.over(super.testRepoRoot().path, T.dest)
@@ -1268,6 +1284,7 @@ object example extends Module {
         }
       }
   }
+
   trait ExampleCrossModule extends IntegrationTestCrossModule {
     // disable scalafix because these example modules don't have sources causing it to misbehave
     def fix(args: String*): Command[Unit] = T.command {}
@@ -1530,7 +1547,7 @@ object dev extends MillPublishScalaModule {
   def moduleDeps = Seq(runner, idea)
 
   def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(
-    dist.testDep(),
+    (s"com.lihaoyi-${dist.artifactId()}", rawAssembly().path.toString),
     runner.linenumbers.testDep(),
     scalalib.backgroundwrapper.testDep(),
     contrib.bloop.testDep(),
@@ -1738,6 +1755,7 @@ object docs extends Module {
         }
       )()
 
+    pprint.log(renderedExamples.map(_._1),height=9999)
     for ((name, pref) <- renderedExamples) os.copy(
       pref.path,
       pagesWd / "example" / os.SubPath(s"$name.adoc"),

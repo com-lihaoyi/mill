@@ -16,47 +16,47 @@ Many of the APIs covered here are listed in the API documentation:
 
 == Compilation & Execution Flags
 
-include::example/javamodule/1-compilation-execution-flags.adoc[]
+include::example/javalib/module/1-compilation-execution-flags.adoc[]
 
 == Adding Ivy Dependencies
 
-include::example/javamodule/2-ivy-deps.adoc[]
+include::example/javalib/module/2-ivy-deps.adoc[]
 
 == Runtime and Compile-time Dependencies
 
-include::example/javamodule/3-run-compile-deps.adoc[]
+include::example/javalib/module/3-run-compile-deps.adoc[]
 
 == Classpath and Filesystem Resources
 
-include::example/javamodule/5-resources.adoc[]
+include::example/javalib/module/5-resources.adoc[]
 
 == Annotation Processors
 
-include::example/javamodule/6-annotation-processors.adoc[]
+include::example/javalib/module/6-annotation-processors.adoc[]
 
 == Javadoc Config
 
-include::example/javamodule/7-docjar.adoc[]
+include::example/javalib/module/7-docjar.adoc[]
 
 == Unmanaged Jars
 
-include::example/javamodule/8-unmanaged-jars.adoc[]
+include::example/javalib/module/8-unmanaged-jars.adoc[]
 
 == Specifying the Main Class
 
-include::example/javamodule/9-main-class.adoc[]
+include::example/javalib/module/9-main-class.adoc[]
 
 == Downloading Non-Maven Jars
 
-include::example/javamodule/10-downloading-non-maven-jars.adoc[]
+include::example/javalib/module/10-downloading-non-maven-jars.adoc[]
 
 == Customizing the Assembly
 
-include::example/javamodule/11-assembly-config.adoc[]
+include::example/javalib/module/11-assembly-config.adoc[]
 
 == Repository Config
 
-include::example/javamodule/12-repository-config.adoc[]
+include::example/javalib/module/12-repository-config.adoc[]
 
 === Maven Central: Blocked!
 
@@ -86,5 +86,5 @@ If you are using millw, a more permanent solution could be to set the environmen
 
 == Native C Code with JNI
 
-include::example/javamodule/13-jni.adoc[]
+include::example/javalib/module/13-jni.adoc[]
 

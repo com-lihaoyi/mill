@@ -41,8 +41,8 @@ de.tototec:de.tobiasroeser.mill.vcs.version_mill0.11_2.13 : 0.3.1-> 0.4.0
 
 == Sharing Libraries between `build.sc` and Application Code
 
-include::example/misc/4-meta-build.adoc[]
+include::example/extending/metabuild/4-meta-build.adoc[]
 
 == Sharing Source Code between `build.sc` and Application Code
 
-include::example/misc/5-meta-shared-sources.adoc[]
+include::example/extending/metabuild/5-meta-shared-sources.adoc[]

@@ -1,4 +1,4 @@
 = import $file and import $ivy
 
-include::example/misc/3-import-file-ivy.adoc[]
+include::example/extending/imports/3-import-file-ivy.adoc[]
 

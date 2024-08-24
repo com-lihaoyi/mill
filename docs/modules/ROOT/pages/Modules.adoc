@@ -12,15 +12,15 @@ Mill's comes with built in modules such as `mill.scalalib.ScalaModule` and
 `mill.scalalib.CrossSbtModule`, but you can also define your own modules to do
 things that are not built-in to Mill.
 
-include::example/tasks/7-modules.adoc[]
+include::example/depth/tasks/7-modules.adoc[]
 
 == Use Case: DIY Java Modules
 
-include::example/tasks/8-diy-java-modules.adoc[]
+include::example/depth/tasks/8-diy-java-modules.adoc[]
 
 == Backticked Names
 
-include::example/tasks/9-backticked-names.adoc[]
+include::example/depth/tasks/9-backticked-names.adoc[]
 
 
 == External Modules
@@ -61,6 +61,6 @@ needing to define your own `T.command` in your `build.sc` file
 
 == Nested `module.sc` files
 
-include::example/tasks/10-module-sc.adoc[]
+include::example/depth/tasks/10-module-sc.adoc[]
 
 
