@@ -18,11 +18,11 @@ object myplugin extends ScalaModule with PublishModule {
     object testMill extends JavaModule{
       def ivyDeps = Agg(ivy"com.lihaoyi:mill-dist:$millVersion")
       def mainClass = Some("mill.runner.client.MillClientMain")
-//      def resources = T{
-//        val p = T.dest / "mill" / "local-test-overrides" / s"com.lihaoyi-${myplugin.artifactId()}"
-//        os.write(p, myplugin.runClasspath().map(_.path).mkString("\n"), createFolders = true)
-//        Seq(PathRef(T.dest))
-//      }
+      def resources = T{
+        val p = T.dest / "mill" / "local-test-overrides" / s"com.lihaoyi-${myplugin.artifactId()}"
+        os.write(p, myplugin.runClasspath().map(_.path).mkString("\n"), createFolders = true)
+        Seq(PathRef(T.dest))
+      }
     }
   }
 
@@ -80,7 +80,9 @@ compiling 1 Scala source...
 /** Usage
 
 > ./mill myplugin.test
++ myplugin.UnitTests.unit...
 + myplugin.IntegrationTests.integration...
++ myplugin.ExampleTests.example...
 ...
 */
 
@@ -169,8 +171,10 @@ compiling 1 Scala source...
 
 /** Usage
 
+> sed -i 's/0.0.1/0.0.2/g' build.sc
+
 > ./mill myplugin.publishLocal
-Publishing Artifact(com.lihaoyi,myplugin_2.13,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,myplugin_2.13,0.0.2) to ivy repo...
 
 */
 // Mill plugins are JVM libraries like any other library written in Java or Scala. Thus they

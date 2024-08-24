@@ -5,7 +5,7 @@ import utest._
 
 object UnitTests extends TestSuite {
   def tests: Tests = Tests {
-    test("simple") {
+    test("unit") {
       object build extends TestBaseModule with LineCountJavaModule{
         def lineCountResourceFileName = "line-count.txt"
       }
