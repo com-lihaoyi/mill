@@ -1,5 +1,3 @@
-
-
 class FooScalaTests extends AnyFreeSpec {
   "Foo" - {
     "simple" in {

@@ -1,4 +1,3 @@
-
 object FooTests extends TestSuite {
   def tests = Tests {
     test("simple") {
