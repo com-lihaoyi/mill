@@ -1571,7 +1571,9 @@ object dev extends MillPublishScalaModule {
   def fix(args: String*): Command[Unit] = T.command {}
   def moduleDeps = Seq(runner, idea)
 
-  def testTransitiveDeps = dist0.testTransitiveDeps()
+  def testTransitiveDeps = dist0.testTransitiveDeps() ++ Seq(
+    (s"com.lihaoyi-${dist.artifactId()}", dist0.assembly().path.toString),
+  )
 
   def genTask(m: ScalaModule) = T.task { Seq(m.jar(), m.sourceJar()) ++ m.runClasspath() }
 
