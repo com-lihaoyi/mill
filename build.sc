@@ -1224,6 +1224,7 @@ object example extends Module {
 
   object depth extends Module{
     object tasks extends Cross[ExampleCrossModule](listIn(millSourcePath / "tasks"))
+    object modules extends Cross[ExampleCrossModule](listIn(millSourcePath / "modules"))
     object cross extends Cross[ExampleCrossModule](listIn(millSourcePath / "cross"))
   }
 
@@ -1755,7 +1756,6 @@ object docs extends Module {
         }
       )()
 
-    pprint.log(renderedExamples.map(_._1),height=9999)
     for ((name, pref) <- renderedExamples) os.copy(
       pref.path,
       pagesWd / "example" / os.SubPath(s"$name.adoc"),
