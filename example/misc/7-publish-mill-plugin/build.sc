@@ -1,7 +1,6 @@
 
 import mill._, scalalib._, publish._
 import mill.main.BuildInfo.millVersion
-import mill.util.Util.millProjectModule
 
 object myplugin extends ScalaModule with PublishModule {
   def scalaVersion = "2.13.8"
