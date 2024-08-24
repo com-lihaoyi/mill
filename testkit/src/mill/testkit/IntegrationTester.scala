@@ -9,7 +9,7 @@ import scala.util.control.NonFatal
 /**
  * Helper meant for executing Mill integration tests, which runs Mill in a subprocess
  * against a folder with a `build.sc` and project files. Provides APIs such as [[eval]]
- * to run Mill commands and [[outJson]] to inspect the results on disk. You can use
+ * to run Mill commands and [[out]] to inspect the results on disk. You can use
  * [[modifyFile]] or any of the OS-Lib `os.*` APIs on the [[workspacePath]] to modify
  * project files in the course of the test.
  *
@@ -111,7 +111,7 @@ object IntegrationTester {
      * Helpers to read the `.json` metadata files belonging to a particular task
      * (specified by [[selector0]]) from the `out/` folder.
      */
-    def outJson(selector0: String): Meta = new Meta(selector0)
+    def out(selector0: String): Meta = new Meta(selector0)
 
     class Meta(selector0: String) {
 

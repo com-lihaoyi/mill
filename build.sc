@@ -1521,7 +1521,7 @@ object idea extends MillPublishScalaModule {
 }
 
 object dist extends MillPublishJavaModule {
-  def jar = dev.assembly()
+  def jar = dev.rawAssembly()
 }
 
 object dev extends MillPublishScalaModule {
@@ -1530,6 +1530,7 @@ object dev extends MillPublishScalaModule {
   def moduleDeps = Seq(runner, idea)
 
   def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(
+    dist.testDep(),
     runner.linenumbers.testDep(),
     scalalib.backgroundwrapper.testDep(),
     contrib.bloop.testDep(),
@@ -1586,8 +1587,7 @@ object dev extends MillPublishScalaModule {
     case m: PublishModule if (m ne this) && (m ne dist) => m
   }
 
-  def assembly = T {
-    T.traverse(allPublishModules)(m => m.publishLocalCached)()
+  def rawAssembly = T{
     val version = millVersion()
     val devRunClasspath = runClasspath().map(_.path)
     val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
@@ -1607,6 +1607,10 @@ object dev extends MillPublishScalaModule {
       T.dest / filename
     )
     PathRef(T.dest / filename)
+  }
+  def assembly = T {
+    T.traverse(allPublishModules)(m => m.publishLocalCached)()
+    rawAssembly()
   }
 
   def prependShellScript = T {

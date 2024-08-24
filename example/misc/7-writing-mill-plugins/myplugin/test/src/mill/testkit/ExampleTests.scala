@@ -1,5 +1,5 @@
-package mill.testkit
-
+package myplugin
+import mill.testkit.ExampleTester
 import utest._
 
 object ExampleTests extends TestSuite {
@@ -9,7 +9,7 @@ object ExampleTests extends TestSuite {
       val resourceFolder = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER"))
       ExampleTester.run(
         clientServerMode = true,
-        workspaceSourcePath = resourceFolder / "example-test-example-project",
+        workspaceSourcePath = resourceFolder / "example-test-project",
         millExecutable = os.Path(sys.env("MILL_EXECUTABLE_PATH"))
       )
     }
