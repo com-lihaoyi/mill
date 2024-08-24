@@ -11,9 +11,7 @@ object foo extends ScalaModule with PublishModule {
     url = "https://github.com/lihaoyi/example",
     licenses = Seq(License.MIT),
     versionControl = VersionControl.github("lihaoyi", "example"),
-    developers = Seq(
-      Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi")
-    )
+    developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
   )
 }
 

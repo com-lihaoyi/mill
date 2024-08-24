@@ -13,9 +13,7 @@ trait FansiModule extends PublishModule with CrossScalaModule with PlatformScala
     url = "https://github.com/com-lihaoyi/Fansi",
     licenses = Seq(License.MIT),
     versionControl = VersionControl.github(owner = "com-lihaoyi", repo = "fansi"),
-    developers = Seq(
-      Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi")
-    )
+    developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
   )
 
   def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode::0.3.0")

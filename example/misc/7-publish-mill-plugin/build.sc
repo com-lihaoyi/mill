@@ -12,9 +12,7 @@ object myplugin extends ScalaModule with PublishModule {
     url = "https://github.com/lihaoyi/example",
     licenses = Seq(License.MIT),
     versionControl = VersionControl.github("lihaoyi", "example"),
-    developers = Seq(
-      Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi")
-    )
+    developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
   )
 
   def ivyDeps = Agg(
@@ -23,10 +21,16 @@ object myplugin extends ScalaModule with PublishModule {
   )
 
   object test extends ScalaTests with TestModule.Utest{
-    def forkEnv = Map(
-      "MILL_EXECUTABLE_PATH" ->
-        defaultResolver().resolveDeps(Seq(ivy"com.lihaoyi:mill-dist:$millVersion"))
-          .head.path.toString
-    )
+    def forkEnv = T{
+      pprint.log(defaultResolver().resolveDeps(Seq(ivy"com.lihaoyi:mill-dist:$millVersion")))
+      Map(
+        "MILL_EXECUTABLE_PATH" ->
+          defaultResolver().resolveDeps(Seq(ivy"com.lihaoyi:mill-dist:$millVersion"))
+            .map(_.path)
+            .find(_.segments.contains("mill-dist"))
+            .get
+            .toString
+      )
+    }
   }
 }

@@ -1522,7 +1522,6 @@ object idea extends MillPublishScalaModule {
 
 object dist extends MillPublishJavaModule {
   def jar = dev.assembly()
-  def moduleDeps = Seq(runner, idea)
 }
 
 object dev extends MillPublishScalaModule {
@@ -1540,7 +1539,8 @@ object dev extends MillPublishScalaModule {
     contrib.jmh.testDep(),
     contrib.playlib.testDep(),
     contrib.playlib.worker("2.8").testDep(),
-    bsp.worker.testDep()
+    bsp.worker.testDep(),
+    testkit.testDep(),
   )
 
   def genTask(m: ScalaModule) = T.task { Seq(m.jar(), m.sourceJar()) ++ m.runClasspath() }
