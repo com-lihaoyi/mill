@@ -1641,7 +1641,9 @@ object dev extends MillPublishScalaModule {
   }
   def assembly = T {
     T.traverse(allPublishModules)(m => m.publishLocalCached)()
-    rawAssembly()
+    val raw = rawAssembly().path
+    os.copy(raw, T.dest / raw.last)
+    PathRef(raw.last)
   }
 
   def prependShellScript = T {
