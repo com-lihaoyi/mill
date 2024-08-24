@@ -32,7 +32,7 @@ def allSources = T {
 }
 
 def lineCount: T[Int] = T {
-  println("Computing line count!!!")
+  println("Computing line count")
   allSources()
     .map(p => os.read.lines(p.path).size)
     .sum
