@@ -4,7 +4,9 @@ import utest._
 
 object IntegrationTests extends TestSuite {
 
+  println("initializing myplugin.IntegrationTest")
   def tests: Tests = Tests {
+    println("initializing myplugin.IntegrationTest.tests")
 
     test("integration") {
       pprint.log(sys.env("MILL_EXECUTABLE_PATH"))

@@ -18,11 +18,11 @@ object myplugin extends ScalaModule with PublishModule {
     object testMill extends JavaModule{
       def ivyDeps = Agg(ivy"com.lihaoyi:mill-dist:$millVersion")
       def mainClass = Some("mill.runner.client.MillClientMain")
-      def resources = T{
-        val p = T.dest / "mill" / "local-test-overrides" / s"com.lihaoyi-${myplugin.artifactId()}"
-        os.write(p, myplugin.runClasspath().map(_.path).mkString("\n"), createFolders = true)
-        Seq(PathRef(T.dest))
-      }
+//      def resources = T{
+//        val p = T.dest / "mill" / "local-test-overrides" / s"com.lihaoyi-${myplugin.artifactId()}"
+//        os.write(p, myplugin.runClasspath().map(_.path).mkString("\n"), createFolders = true)
+//        Seq(PathRef(T.dest))
+//      }
     }
   }
 

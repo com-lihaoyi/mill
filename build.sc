@@ -381,7 +381,8 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
     Seq(PathRef(T.dest))
   }
 
-  def runClasspath = super.runClasspath() ++ writeLocalTestOverrides()
+  def runClasspathWithoutOverrides = T{ super.runClasspath() }
+  def runClasspath = runClasspathWithoutOverrides() ++ writeLocalTestOverrides()
 
   def scalacPluginIvyDeps =
     super.scalacPluginIvyDeps() ++
@@ -1542,13 +1543,16 @@ object dist extends MillPublishJavaModule {
   def jar = dev.rawAssembly()
 }
 
-object dev extends MillPublishScalaModule {
-  // disable scalafix here because it crashes when a module has no sources
-  def fix(args: String*): Command[Unit] = T.command {}
-  def moduleDeps = Seq(runner, idea)
-
-  def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(
-    (s"com.lihaoyi-${dist.artifactId()}", rawAssembly().path.toString),
+object dist0 extends MillPublishJavaModule {
+  def writeLocalTestOverrides = T.task {
+    for ((k, v) <- testTransitiveDeps()) {
+      os.write(T.dest / "mill" / "local-test-overrides" / k, v, createFolders = true)
+    }
+    Seq(PathRef(T.dest))
+  }
+  def upstreamAssemblyClasspath = Agg.from(dev.runClasspathWithoutOverrides())
+  def localClasspath = super.localClasspath() ++ writeLocalTestOverrides()
+  def testTransitiveDeps = runner.testTransitiveDeps() ++ Seq(
     runner.linenumbers.testDep(),
     scalalib.backgroundwrapper.testDep(),
     contrib.bloop.testDep(),
@@ -1561,6 +1565,13 @@ object dev extends MillPublishScalaModule {
     bsp.worker.testDep(),
     testkit.testDep(),
   )
+}
+object dev extends MillPublishScalaModule {
+  // disable scalafix here because it crashes when a module has no sources
+  def fix(args: String*): Command[Unit] = T.command {}
+  def moduleDeps = Seq(runner, idea)
+
+  def testTransitiveDeps = dist0.testTransitiveDeps()
 
   def genTask(m: ScalaModule) = T.task { Seq(m.jar(), m.sourceJar()) ++ m.runClasspath() }
 
