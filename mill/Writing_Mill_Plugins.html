@@ -311,14 +311,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.0-M0-41-d8b6df</span>
+    <span class="version">0.12.0-M0-42-81cbf1</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="0.11.12/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="index.html">0.12.0-M0-41-d8b6df</a>
+          <a href="index.html">0.12.0-M0-42-81cbf1</a>
         </li>
         <li class="version is-latest">
           <a href="0.11.12/index.html">0.11.12</a>
@@ -363,9 +363,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-41-d8b6df</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-42-81cbf1</button>
   <div class="version-menu">
-    <a class="version is-current" href="Writing_Mill_Plugins.html">0.12.0-M0-41-d8b6df</a>
+    <a class="version is-current" href="Writing_Mill_Plugins.html">0.12.0-M0-42-81cbf1</a>
     <a class="version is-missing" href="0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="0.11.10/index.html">0.11.10</a>
@@ -500,10 +500,6 @@ defined. The plugin can be compiled via:</p>
 compiling 1 Scala source...</code></pre>
 </div>
 </div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_testing"><a class="anchor" href="#_testing"></a>Testing</h3>
 <div class="paragraph">
 <p>Mill provides the <code>mill-testkit</code> library to make it easy for you to test your Mill
 plugin. The example project above has set up tests that can be run via the normal <code>.test</code>
@@ -522,8 +518,11 @@ command, as shown below:</p>
 <p><code>mill-testkit</code> is the same set of helpers that Mill uses internally for its
 own testing, and covers three approaches:</p>
 </div>
-<div class="sect3">
-<h4 id="_unit_tests"><a class="anchor" href="#_unit_tests"></a>Unit tests</h4>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_unit_tests"><a class="anchor" href="#_unit_tests"></a>Unit tests</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>These are tests that run in-process, with the Mill <code>build.sc</code> defined as a <code>TestBaseModule</code>,
 and using a <code>UnitTester</code> to run its tasks and inspect their output. <code>UnitTester</code> is provided
@@ -600,8 +599,10 @@ main limitation is that they do not exercise the Mill subprocess-launch and boot
 but that should not be a concern for most Mill plugins.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_integration_tests"><a class="anchor" href="#_integration_tests"></a>Integration tests</h4>
+</div>
+<div class="sect1">
+<h2 id="_integration_tests"><a class="anchor" href="#_integration_tests"></a>Integration tests</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>Integration tests are one step up from Unit tests: they are significantly slower to run due
 to running Mill in a subprocess, but are able to exercise the end-to-end lifecycle of a Mill
@@ -711,8 +712,10 @@ your Mill plugin logic prints to standard output or standard error, and you want
 that the printed output is as expected.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_example_tests"><a class="anchor" href="#_example_tests"></a>Example tests</h4>
+</div>
+<div class="sect1">
+<h2 id="_example_tests"><a class="anchor" href="#_example_tests"></a>Example tests</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>Example tests are a variant of the integration tests mentioned above, but instead of
 having the testing logic defined as part of the test suite in a <code>.scala</code> file, the testing
@@ -834,8 +837,9 @@ what output they should expect.</p>
 </div>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_publishing"><a class="anchor" href="#_publishing"></a>Publishing</h3>
+<div class="sect1">
+<h2 id="_publishing"><a class="anchor" href="#_publishing"></a>Publishing</h2>
+<div class="sectionbody">
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; sed -i 's/0.0.1/0.0.2/g' build.sc
@@ -850,6 +854,7 @@ are published the same way: by extending <code>PublishModule</code> and defining
 and <code>pomSettings</code>. Once done, you can publish the plugin locally via <code>publishLocal</code> below,
 or to Maven Central via `mill.scalalib.public.PublishModule/publishAll`for other developers to
 use.</p>
+</div>
 </div>
 </div>
 <nav class="pagination">
