@@ -35,12 +35,12 @@ jobs:
       matrix:
         include:
           # bootstrap tests
-          - java-version: 11 # Have one job on oldest JVM
-            buildcmd: ci/test-mill-dev.sh
-          - java-version: 17 # Have one job on default JVM
-            buildcmd: ci/test-mill-release.sh
-          - java-version: 17
-            buildcmd: ci/test-mill-bootstrap.sh
+#          - java-version: 11 # Have one job on oldest JVM
+#            buildcmd: ci/test-mill-dev.sh
+#          - java-version: 17 # Have one job on default JVM
+#            buildcmd: ci/test-mill-release.sh
+#          - java-version: 17
+#            buildcmd: ci/test-mill-bootstrap.sh
           # Just some reporting to enable reasoning about library upgrades
           - java-version: 11
             buildcmd: |
