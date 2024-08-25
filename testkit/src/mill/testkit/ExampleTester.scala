@@ -180,7 +180,10 @@ class ExampleTester(tester: IntegrationTester.Impl) {
         }
 
       case Seq("printf", literal, ">>", path) =>
-        tester.modifyFile(os.Path(path, tester.workspacePath), _ + ujson.read(s""""${literal}"""").str)
+        tester.modifyFile(
+          os.Path(path, tester.workspacePath),
+          _ + ujson.read(s""""${literal}"""").str
+        )
 
       case Seq(command, rest @ _*) =>
         val evalResult = command match {

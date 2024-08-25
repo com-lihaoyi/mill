@@ -1287,6 +1287,8 @@ object example extends Module {
   }
 
   trait ExampleCrossModule extends IntegrationTestCrossModule {
+    // disable scalafix because these example modules don't have sources causing it to misbehave
+    def fix(args: String*): Command[Unit] = T.command {}
     def testRepoRoot: T[PathRef] = T.source(millSourcePath)
 
     def compile = testkit.compile()
@@ -1542,6 +1544,8 @@ object idea extends MillPublishScalaModule {
  * to itself in its [[testTransitiveDeps]], to avoid a circular dependency.
  */
 object dist0 extends MillPublishJavaModule {
+  // disable scalafix here because it crashes when a module has no sources
+  def fix(args: String*): Command[Unit] = T.command {}
   def moduleDeps = Seq(runner, idea)
 
   def testTransitiveDeps = runner.testTransitiveDeps() ++ Seq(
