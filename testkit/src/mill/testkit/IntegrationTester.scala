@@ -39,7 +39,7 @@ object IntegrationTester {
   trait Impl extends AutoCloseable {
 
     def millExecutable: os.Path
-    protected def workspaceSourcePath: os.Path
+    def workspaceSourcePath: os.Path
 
     val clientServerMode: Boolean
 
@@ -54,13 +54,12 @@ object IntegrationTester {
      * Make sure it lives inside `os.pwd` because somehow the tests fail on windows
      * if it lives in the global temp folder.
      */
-    val workspacePath: os.Path =
-      os.temp.dir(workspacePathBase, deleteOnExit = false)
+    val workspacePath: os.Path = os.temp.dir(workspacePathBase, deleteOnExit = false)
 
     def debugLog = false
 
     /**
-     * Evaluates a Mill [[cmd]]. Essentially the same as `os.call`, except it
+     * Evaluates a Mill command. Essentially the same as `os.call`, except it
      * provides the Mill executable and some test flags and environment variables
      * for you, and wraps the output in a [[IntegrationTester.EvalResult]] for
      * convenience.
@@ -104,8 +103,7 @@ object IntegrationTester {
       )
     }
 
-    private val millTestSuiteEnv: Map[String, String] =
-      Map("MILL_TEST_SUITE" -> this.getClass().toString())
+    private val millTestSuiteEnv = Map("MILL_TEST_SUITE" -> this.getClass().toString())
 
     /**
      * Helpers to read the `.json` metadata files belonging to a particular task

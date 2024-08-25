@@ -52,18 +52,16 @@ import scala.concurrent.duration.FiniteDuration
 object ExampleTester {
   def run(clientServerMode: Boolean, workspaceSourcePath: os.Path, millExecutable: os.Path): Unit =
     new ExampleTester(
-      clientServerMode,
-      workspaceSourcePath,
-      millExecutable
+      new IntegrationTester(
+        clientServerMode,
+        workspaceSourcePath,
+        millExecutable
+      )
     ).run()
 }
 
-class ExampleTester(
-    clientServerMode: Boolean,
-    workspaceSourcePath: os.Path,
-    millExecutable: os.Path
-) extends IntegrationTester(clientServerMode, workspaceSourcePath, millExecutable) {
-  initWorkspace()
+class ExampleTester(tester: IntegrationTester.Impl) {
+  tester.initWorkspace()
 
   val testTimeout: FiniteDuration = 5.minutes
 
@@ -99,8 +97,8 @@ class ExampleTester(
     val incorrectPlatform =
       (comment.exists(_.startsWith("windows")) && !Util.windowsPlatform) ||
         (comment.exists(_.startsWith("mac/linux")) && Util.windowsPlatform) ||
-        (comment.exists(_.startsWith("--no-server")) && clientServerMode) ||
-        (comment.exists(_.startsWith("not --no-server")) && !clientServerMode)
+        (comment.exists(_.startsWith("--no-server")) && tester.clientServerMode) ||
+        (comment.exists(_.startsWith("not --no-server")) && !tester.clientServerMode)
 
     if (!incorrectPlatform) {
       processCommand(workspaceRoot, expectedSnippets, commandHead.trim)
@@ -124,7 +122,7 @@ class ExampleTester(
         os.copy(os.Path(from, workspaceRoot), os.Path(to, workspaceRoot))
 
       case Seq("sed", "-i", s"s/$oldStr/$newStr/g", file) =>
-        modifyFile(os.Path(file, workspaceRoot), _.replace(oldStr, newStr))
+        tester.modifyFile(os.Path(file, workspaceRoot), _.replace(oldStr, newStr))
 
       case Seq("curl", url) =>
         Thread.sleep(1500) // Need to give backgroundWrapper time to spin up
@@ -182,11 +180,11 @@ class ExampleTester(
         }
 
       case Seq("printf", literal, ">>", path) =>
-        modifyFile(os.Path(path, workspacePath), _ + ujson.read(s""""${literal}"""").str)
+        tester.modifyFile(os.Path(path, tester.workspacePath), _ + ujson.read(s""""${literal}"""").str)
 
       case Seq(command, rest @ _*) =>
         val evalResult = command match {
-          case "./mill" | "mill" => eval(rest)
+          case "./mill" | "mill" => tester.eval(rest)
           case s"./$cmd" =>
             val tokens = cmd +: rest
             val executable = workspaceRoot / os.SubPath(tokens.head)
@@ -270,16 +268,16 @@ class ExampleTester(
   }
 
   def run(): Any = {
-    val parsed = ExampleParser(workspaceSourcePath)
+    val parsed = ExampleParser(tester.workspaceSourcePath)
     val usageComment = parsed.collect { case ("example", txt) => txt }.mkString("\n\n")
     val commandBlocks = ("\n" + usageComment.trim).split("\n> ").filter(_.nonEmpty)
 
     retryOnTimeout(3) {
-      try os.remove.all(workspacePath / "out")
+      try os.remove.all(tester.workspacePath / "out")
       catch { case e: Throwable => /*do nothing*/ }
 
-      for (commandBlock <- commandBlocks) processCommandBlock(workspacePath, commandBlock)
-      if (clientServerMode) eval("shutdown")
+      for (commandBlock <- commandBlocks) processCommandBlock(tester.workspacePath, commandBlock)
+      if (tester.clientServerMode) tester.eval("shutdown")
     }
   }
 }
