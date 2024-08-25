@@ -63,7 +63,7 @@ def hashFile(path: os.Path, src: os.Path, dest: os.Path) = {
 > ./mill test
 + webapp.WebAppTests.simpleRequest ...
 
-> ./mill runBackground
+> ./mill runBackground; sleep 2 # give time for server to start
 
 > curl http://localhost:8081
 ...What needs to be done...

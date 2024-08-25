@@ -11,7 +11,7 @@ def testTask = T { os.read(testSource().path).toUpperCase() }
 > cat out/testTask.json
 ..."HELLO WORLD SOURCE FILE"...
 
-> sed -i 's/file/file!!!/g' source-file.txt
+> sed -i.bak 's/file/file!!!/g' source-file.txt
 
 > ./mill testTask
 

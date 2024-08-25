@@ -36,11 +36,11 @@ object bar extends ScalaModule {
 
 > ./mill foo.assembly
 
-> unzip -p ./out/foo/assembly.dest/out.jar application.conf
+> unzip -p ./out/foo/assembly.dest/out.jar application.conf || true
 Bar Application Conf
 Foo Application Conf
 
-> java -jar ./out/foo/assembly.dest/out.jar\
+> java -jar ./out/foo/assembly.dest/out.jar
 Loaded application.conf from resources:...
 ...Foo Application Conf
 ...Bar Application Conf

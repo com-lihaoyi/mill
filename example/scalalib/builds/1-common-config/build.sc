@@ -117,7 +117,7 @@ my.custom.property: my-prop-value
 
 /** Usage
 
-> sed -i 's/Foo2 {/Foo2 { println(this + "hello")/g' custom-src/Foo2.scala
+> sed -i.bak 's/Foo2 {/Foo2 { println(this + "hello")/g' custom-src/Foo2.scala
 
 > mill compile # demonstrate -deprecation/-Xfatal-warnings flags
 error: object Foo2 { println(this + "hello")

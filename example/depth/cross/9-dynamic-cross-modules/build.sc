@@ -33,7 +33,7 @@ error: Cannot resolve modules[new]...
 
 > cp -r modules/bar modules/new
 
-> sed -i 's/Bar/New/g' modules/new/src/Example.scala
+> sed -i.bak 's/Bar/New/g' modules/new/src/Example.scala
 
 > mill resolve modules[_]
 modules[bar]

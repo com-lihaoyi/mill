@@ -88,7 +88,7 @@ Compressing: world.txt
 
 > ./mill compressedData # when no input changes, compressedData does not evaluate at all
 
-> sed -i 's/Hello/HELLO/g' data/hello.txt
+> sed -i.bak 's/Hello/HELLO/g' data/hello.txt
 
 > ./mill compressedData # not --no-server, we read the data from memory
 Compressing: hello.txt
