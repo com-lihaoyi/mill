@@ -26,36 +26,36 @@ Many of the APIs covered here are listed in the Scaladoc:
 
 == Common Configuration Overrides
 
-include::example/scalabuilds/1-common-config.adoc[]
+include::example/scalalib/builds/1-common-config.adoc[]
 
 == Custom Tasks
 
-include::example/scalabuilds/2-custom-tasks.adoc[]
+include::example/scalalib/builds/2-custom-tasks.adoc[]
 
 == Overriding Tasks
 
-include::example/scalabuilds/3-override-tasks.adoc[]
+include::example/scalalib/builds/3-override-tasks.adoc[]
 
 == Nesting Modules
 
-include::example/scalabuilds/4-nested-modules.adoc[]
+include::example/scalalib/builds/4-nested-modules.adoc[]
 
 == Publish Module
 
-include::example/scalabuilds/6-publish-module.adoc[]
+include::example/scalalib/builds/6-publish-module.adoc[]
 
 == Cross-Scala-Version Modules
 
-include::example/scalabuilds/7-cross-scala-version.adoc[]
+include::example/scalalib/builds/7-cross-scala-version.adoc[]
 
 == SBT-Compatible Modules
 
-include::example/scalabuilds/8-compat-modules.adoc[]
+include::example/scalalib/builds/8-compat-modules.adoc[]
 
 
 == Realistic Scala Example Project
 
-include::example/scalabuilds/9-realistic.adoc[]
+include::example/scalalib/builds/9-realistic.adoc[]
 
 
 == Example Builds for Real Projects

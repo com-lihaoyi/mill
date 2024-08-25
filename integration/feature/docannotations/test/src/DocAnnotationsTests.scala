@@ -21,7 +21,7 @@ object DocAnnotationsTests extends IntegrationTestSuite {
       val res = eval(("inspect", "core.test.ivyDeps"))
       assert(res.isSuccess == true)
 
-      val inheritedIvyDeps = outJson("inspect").json.str
+      val inheritedIvyDeps = out("inspect").json.str
       assert(
         globMatches(
           """core.test.ivyDeps(build.sc:...)
@@ -38,7 +38,7 @@ object DocAnnotationsTests extends IntegrationTestSuite {
       )
 
       assert(eval(("inspect", "core.target")).isSuccess)
-      val target = outJson("inspect").json.str
+      val target = out("inspect").json.str
       assert(
         globMatches(
           """core.target(build.sc:...)
@@ -51,7 +51,7 @@ object DocAnnotationsTests extends IntegrationTestSuite {
       )
 
       assert(eval(("inspect", "inspect")).isSuccess)
-      val doc = outJson("inspect").json.str
+      val doc = out("inspect").json.str
       assert(
         globMatches(
           """inspect(MainModule.scala:...)
@@ -64,7 +64,7 @@ object DocAnnotationsTests extends IntegrationTestSuite {
       )
 
       assert(eval(("inspect", "core.run")).isSuccess)
-      val run = outJson("inspect").json.str
+      val run = out("inspect").json.str
 
       assert(
         globMatches(
@@ -87,7 +87,7 @@ object DocAnnotationsTests extends IntegrationTestSuite {
 
       assert(eval(("inspect", "core.ivyDepsTree")).isSuccess)
 
-      val ivyDepsTree = outJson("inspect").json.str
+      val ivyDepsTree = out("inspect").json.str
 
       assert(
         globMatches(

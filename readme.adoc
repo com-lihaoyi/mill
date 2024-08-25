@@ -85,8 +85,8 @@ The following table contains the main ways you can test the code in
 |===
 | Config | Automated Testing | Manual Testing | Manual Testing CI
 | In-Process Tests | `main.__.test`, `scalalib.test`, `contrib.buildinfo.test`, etc. |  |
-| Sub-Process w/o packaging/publishing| `example.\\__.local`, `integration.__.local` | `dev.run` | `test-mill-dev.sh`
-| Sub-Process w/ packaging/publishing | `example.\\__.server`, `integration.__.server` | `dev.assembly` | `test-mill-release.sh`
+| Sub-Process w/o packaging/publishing| `example.\\__.local`, `integration.__.local` | `dist.run` | `test-mill-dev.sh`
+| Sub-Process w/ packaging/publishing | `example.\\__.server`, `integration.__.server` | `dist.assembly` | `test-mill-release.sh`
 | Bootstrapping: Building Mill with your current checkout of Mill |  | `installLocal` | `test-mill-bootstrap.sh`
 |===
 
@@ -109,7 +109,7 @@ Note that the in-memory tests compile the `BaseModule` together with the test su
 `example.\\__.local` and `integration.__.local` tests run Mill end-to-end in a subprocess, but *without* the expensive/slow steps of packaging the core packages into an assembly jar and publishing the remaining packages to
 `~/.ivy2/local`.
 You can reproduce these tests manually using
-`./mill dev.run <test-folder-path> <command>`.
+`./mill dist.run <test-folder-path> <command>`.
 
 `example` tests are written in a single `build.sc` file, with the test commands written in a comment with a bash-like syntax together with the build code and comments that explain the example.
 These serve three purposes:
@@ -128,7 +128,7 @@ The `integration` tests are similar to `example` tests and share most of their t
 2. `integration` tests are written using a Scala test suite extending
 `IntegrationTestSuite`, giving more flexibility at the expense of readability
 
-You can reproduce any of the tests manually using `dev.run`, e.g.
+You can reproduce any of the tests manually using `dist.run`, e.g.
 
 **Automated Test**
 
@@ -141,14 +141,14 @@ You can reproduce any of the tests manually using `dev.run`, e.g.
 
 [source,bash]
 ----
-./mill dev.run example/basic/1-simple run --text hello
+./mill dist.run example/basic/1-simple run --text hello
 ----
 
 **Manual Test using Launcher Script**
 
 [source,bash]
 ----
-./mill dev.launcher && (cd example/basic/1-simple && ../../../out/dev/launcher.dest/run run --text hello)
+./mill dist.launcher && (cd example/basic/1-simple && ../../../out/dist/launcher.dest/run run --text hello)
 ----
 
 === Sub-Process Tests *with* Packaging/Publishing
@@ -157,11 +157,11 @@ You can reproduce any of the tests manually using `dev.run`, e.g.
 `integration.__.fork` cover the same test cases as the `.local` tests described above, but they perform packaging of the Mill core modules into an assembly jar, and publish the remaining modules to `~/.ivy2/local`.
 This results in a more realistic test environment, but at the cost of taking tens-of-seconds more to run a test after making a code change.
 
-You can reproduce these tests manually using `dev.assembly`:
+You can reproduce these tests manually using `dist.assembly`:
 
 [source,bash]
 ----
-./mill dev.assembly && (cd example/basic/1-simple && ../../../out/dev/assembly.dest/mill run --text hello)
+./mill dist.assembly && (cd example/basic/1-simple && ../../../out/dist/assembly.dest/mill run --text hello)
 ----
 
 There are two flavors of these tests:

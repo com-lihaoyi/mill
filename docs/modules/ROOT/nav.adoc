@@ -63,6 +63,7 @@
 ** xref:contrib/twirllib.adoc[]
 ** xref:contrib/versionfile.adoc[]
 * xref:Thirdparty_Plugins.adoc[]
+* xref:Writing_Mill_Plugins.adoc[]
 * xref:The_Mill_Meta_Build.adoc[]
 
 // Reference pages that a typical user would not typically read top-to-bottom,

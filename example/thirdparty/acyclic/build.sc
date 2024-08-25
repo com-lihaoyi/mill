@@ -32,9 +32,7 @@ trait AcyclicModule extends CrossScalaModule with PublishModule {
     url = "https://github.com/com-lihaoyi/acyclic",
     licenses = Seq(License.MIT),
     versionControl = VersionControl.github(owner = "com-lihaoyi", repo = "acyclic"),
-    developers = Seq(
-      Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi")
-    )
+    developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
   )
 
   def compileIvyDeps = Agg(Deps.scalaCompiler(crossScalaVersion))

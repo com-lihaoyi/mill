@@ -8,44 +8,44 @@ config and building it across a variety of source folders.
 
 == Simple Cross Modules
 
-include::example/cross/1-simple.adoc[]
+include::example/depth/cross/1-simple.adoc[]
 
 == Default Cross Modules
 
-include::example/cross/11-default-cross-module.adoc[]
+include::example/depth/cross/11-default-cross-module.adoc[]
 
 == Cross Modules Source Paths
 
-include::example/cross/2-cross-source-path.adoc[]
+include::example/depth/cross/2-cross-source-path.adoc[]
 
 == Using Cross Modules from Outside Targets
 
-include::example/cross/3-outside-dependency.adoc[]
+include::example/depth/cross/3-outside-dependency.adoc[]
 
 == Using Cross Modules from other Cross Modules
 
-include::example/cross/4-cross-dependencies.adoc[]
+include::example/depth/cross/4-cross-dependencies.adoc[]
 
 == Multiple Cross Axes
 
-include::example/cross/5-multiple-cross-axes.adoc[]
+include::example/depth/cross/5-multiple-cross-axes.adoc[]
 
 == Extending Cross Modules
 
-include::example/cross/6-axes-extension.adoc[]
+include::example/depth/cross/6-axes-extension.adoc[]
 
 == Inner Cross Modules
 
-include::example/cross/7-inner-cross-module.adoc[]
+include::example/depth/cross/7-inner-cross-module.adoc[]
 
 == Cross Resolvers
 
-include::example/cross/8-resolvers.adoc[]
+include::example/depth/cross/8-resolvers.adoc[]
 
 == Dynamic Cross Modules
 
-include::example/cross/9-dynamic-cross-modules.adoc[]
+include::example/depth/cross/9-dynamic-cross-modules.adoc[]
 
 == Use Case: Static Blog
 
-include::example/cross/10-static-blog.adoc[]
+include::example/depth/cross/10-static-blog.adoc[]

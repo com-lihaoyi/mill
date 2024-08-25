@@ -9,7 +9,7 @@ import scala.util.control.NonFatal
 /**
  * Helper meant for executing Mill integration tests, which runs Mill in a subprocess
  * against a folder with a `build.sc` and project files. Provides APIs such as [[eval]]
- * to run Mill commands and [[outJson]] to inspect the results on disk. You can use
+ * to run Mill commands and [[out]] to inspect the results on disk. You can use
  * [[modifyFile]] or any of the OS-Lib `os.*` APIs on the [[workspacePath]] to modify
  * project files in the course of the test.
  *
@@ -39,7 +39,7 @@ object IntegrationTester {
   trait Impl extends AutoCloseable {
 
     def millExecutable: os.Path
-    protected def workspaceSourcePath: os.Path
+    def workspaceSourcePath: os.Path
 
     val clientServerMode: Boolean
 
@@ -54,13 +54,12 @@ object IntegrationTester {
      * Make sure it lives inside `os.pwd` because somehow the tests fail on windows
      * if it lives in the global temp folder.
      */
-    val workspacePath: os.Path =
-      os.temp.dir(workspacePathBase, deleteOnExit = false)
+    val workspacePath: os.Path = os.temp.dir(workspacePathBase, deleteOnExit = false)
 
     def debugLog = false
 
     /**
-     * Evaluates a Mill [[cmd]]. Essentially the same as `os.call`, except it
+     * Evaluates a Mill command. Essentially the same as `os.call`, except it
      * provides the Mill executable and some test flags and environment variables
      * for you, and wraps the output in a [[IntegrationTester.EvalResult]] for
      * convenience.
@@ -104,14 +103,13 @@ object IntegrationTester {
       )
     }
 
-    private val millTestSuiteEnv: Map[String, String] =
-      Map("MILL_TEST_SUITE" -> this.getClass().toString())
+    private val millTestSuiteEnv = Map("MILL_TEST_SUITE" -> this.getClass().toString())
 
     /**
      * Helpers to read the `.json` metadata files belonging to a particular task
      * (specified by [[selector0]]) from the `out/` folder.
      */
-    def outJson(selector0: String): Meta = new Meta(selector0)
+    def out(selector0: String): Meta = new Meta(selector0)
 
     class Meta(selector0: String) {
 

@@ -92,14 +92,14 @@ include::partial$Intro_to_Mill_BlogVideo.adoc[]
 
 == Simple Java Module
 
-include::example/basicjava/1-simple.adoc[]
+include::example/javalib/basic/1-simple.adoc[]
 
 == Custom Build Logic
 
-include::example/basicjava/2-custom-build-logic.adoc[]
+include::example/javalib/basic/2-custom-build-logic.adoc[]
 
 == Multi-Module Project
 
-include::example/basicjava/3-multi-module.adoc[]
+include::example/javalib/basic/3-multi-module.adoc[]
 
 include::partial$Intro_to_Mill_Footer.adoc[]
