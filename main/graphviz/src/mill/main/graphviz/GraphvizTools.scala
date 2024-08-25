@@ -4,7 +4,6 @@ import guru.nidi.graphviz.attribute.Rank.RankDir
 import guru.nidi.graphviz.attribute.{Rank, Shape, Style}
 import mill.api.PathRef
 import mill.define.NamedTask
-import mill.eval.Graph
 import org.jgrapht.graph.{DefaultEdge, SimpleDirectedGraph}
 
 object GraphvizTools {

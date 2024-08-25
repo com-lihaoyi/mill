@@ -366,7 +366,6 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         extraEvaled = -1
       )
 
-
       assert(
         os.read(checker.evaluator.outPath / "m" / "f.super" / "X.json")
           .contains(" 1,")
@@ -389,7 +388,6 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         extraEvaled = -1
       )
 
-
       assert(
         os.read(checker.evaluator.outPath / "m" / "f.super" / "A" / "X.json")
           .contains(" 1,")
@@ -411,7 +409,6 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         Agg(m.f),
         extraEvaled = -1
       )
-
 
       assert(
         os.read(checker.evaluator.outPath / "m" / "f.super" / "A" / "X.json")

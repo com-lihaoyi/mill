@@ -537,12 +537,12 @@ object TestGraphs {
   }
 
   object StackableOverrides2 extends TestBaseModule {
-    object A extends Module{
-      trait X extends Module{
+    object A extends Module {
+      trait X extends Module {
         def f = T { 1 }
       }
     }
-    object B extends Module{
+    object B extends Module {
       trait X extends A.X {
         override def f = T { super.f() + 2 }
       }
@@ -554,15 +554,14 @@ object TestGraphs {
   }
 
   object StackableOverrides3 extends TestBaseModule {
-    object A extends Module{
-      trait X extends Module{
+    object A extends Module {
+      trait X extends Module {
         def f = T { 1 }
       }
     }
     trait X extends A.X {
       override def f = T { super.f() + 2 }
     }
-
 
     object m extends X {
       override def f = T { super.f() + 3 }
