@@ -123,7 +123,8 @@ class ExampleTester(
 
   def processCommand(
       expectedSnippets: Vector[String],
-      commandStr0: String
+      commandStr0: String,
+      check: Boolean = true
   ): Unit = {
     val commandStr = commandStr0 match {
       case s"mill $rest" => s"./mill $rest"
@@ -147,16 +148,20 @@ class ExampleTester(
         res.exitCode == 0,
         fansi.Str(res.out.text(), errorMode = fansi.ErrorMode.Strip).plainText,
         fansi.Str(res.err.text(), errorMode = fansi.ErrorMode.Strip).plainText
-      )
+      ),
+      check
     )
   }
 
   def validateEval(
       expectedSnippets: Vector[String],
-      evalResult: IntegrationTester.EvalResult
+      evalResult: IntegrationTester.EvalResult,
+      check: Boolean = true
   ): Unit = {
-    if (expectedSnippets.exists(_.startsWith("error: "))) assert(!evalResult.isSuccess)
-    else assert(evalResult.isSuccess)
+    if (check){
+      if (expectedSnippets.exists(_.startsWith("error: "))) assert(!evalResult.isSuccess)
+      else assert(evalResult.isSuccess)
+    }
 
     val unwrappedExpected = expectedSnippets
       .map {
@@ -215,7 +220,7 @@ class ExampleTester(
 
         for (commandBlock <- commandBlocks) processCommandBlock(commandBlock)
       } finally {
-        if (clientServerMode) processCommand(Vector(), "./mill shutdown")
+        if (clientServerMode) processCommand(Vector(), "./mill shutdown", check = false)
       }
     }
   }
