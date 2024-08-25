@@ -36,25 +36,12 @@ object IntegrationTester {
    */
   case class EvalResult(isSuccess: Boolean, out: String, err: String)
 
-  trait Impl extends AutoCloseable {
+  trait Impl extends AutoCloseable with IntegrationTesterBase {
 
     def millExecutable: os.Path
     def workspaceSourcePath: os.Path
 
     val clientServerMode: Boolean
-
-    private val workspacePathBase = os.pwd / "out" / "interation-tester-workdir"
-    os.makeDir.all(workspacePathBase)
-
-    /**
-     * The working directory of the integration test suite, which is the root of the
-     * Mill build being tested. Contains the `build.sc` file, any application code, and
-     * the `out/` folder containing the build output
-     *
-     * Make sure it lives inside `os.pwd` because somehow the tests fail on windows
-     * if it lives in the global temp folder.
-     */
-    val workspacePath: os.Path = os.temp.dir(workspacePathBase, deleteOnExit = false)
 
     def debugLog = false
 
@@ -139,19 +126,6 @@ object IntegrationTester {
        * Returns the value parsed from JSON into a value of type [[T]]
        */
       def value[T: upickle.default.Reader]: T = upickle.default.read[T](cached.value)
-    }
-
-    /**
-     * Initializes the workspace in preparation for integration testing
-     */
-    def initWorkspace(): Unit = {
-      println(s"Copying integration test sources from $workspaceSourcePath to $workspacePath")
-      os.remove.all(workspacePath)
-      os.makeDir.all(workspacePath / os.up)
-      // somehow os.copy does not properly preserve symlinks
-      // os.copy(scriptSourcePath, workspacePath)
-      os.call(("cp", "-R", workspaceSourcePath, workspacePath))
-      os.remove.all(workspacePath / "out")
     }
 
     /**
