@@ -16,7 +16,7 @@ private[mill] object Plan {
         // subclass implementations with the same name
         if (t.isPrivate == Some(true) || overridden.contains(segments)) {
           overridden.updateWith(segments)(o => Some(o.getOrElse(Nil) ++ Seq(t.ctx.enclosing)))
-        }else {
+        } else {
           overridden.updateWith(segments)(o => Some(o.getOrElse(Nil)))
         }
 
@@ -44,8 +44,7 @@ private[mill] object Plan {
    * other overriden tasks of the same name, and finding the shortest
    * suffix that uniquely distinguishes them.
    */
-  private def assignOverridenTaskSegments(overriddenEnclosings: Seq[String],
-                                          t: NamedTask[Any]) = {
+  private def assignOverridenTaskSegments(overriddenEnclosings: Seq[String], t: NamedTask[Any]) = {
     def splitEnclosing(s: String) = s.split("[.# ]").filter(_ != "<empty>")
     val segments = t.ctx.segments
     val superSegmentStrings = overriddenEnclosings.map(splitEnclosing)
@@ -56,7 +55,6 @@ private[mill] object Plan {
     val dropLeft = Range(0, shortestSuperLength)
       .find(i => superSegmentStrings.distinctBy(_(i)).size != 1)
       .getOrElse(shortestSuperLength)
-
 
     val splitted = splitEnclosing(t.ctx.enclosing)
     // `dropRight(1)` to always drop the task name, which has to be
