@@ -312,14 +312,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.0-M0-40-dbdcbf</span>
+    <span class="version">0.12.0-M0-41-d8b6df</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="0.11.12/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="index.html">0.12.0-M0-40-dbdcbf</a>
+          <a href="index.html">0.12.0-M0-41-d8b6df</a>
         </li>
         <li class="version is-latest">
           <a href="0.11.12/index.html">0.11.12</a>
@@ -364,9 +364,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-40-dbdcbf</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-41-d8b6df</button>
   <div class="version-menu">
-    <a class="version is-current" href="Java_Build_Examples.html">0.12.0-M0-40-dbdcbf</a>
+    <a class="version is-current" href="Java_Build_Examples.html">0.12.0-M0-41-d8b6df</a>
     <a class="version" href="0.11.12/Java_Build_Examples.html">0.11.12</a>
     <a class="version" href="0.11.11/Java_Build_Examples.html">0.11.11</a>
     <a class="version" href="0.11.10/Java_Build_Examples.html">0.11.10</a>
@@ -477,6 +477,20 @@ public class Foo$name {
   // this does not apply to running externally via `.assembly
   def forkEnv: T[Map[String, String]] = Map(&quot;MY_CUSTOM_ENV&quot; -&gt; &quot;my-env-value&quot;)
 }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you want to better understand how the various upstream tasks feed into
+a task of interest, such as <code>run</code>, you can visualize their relationships via</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show visualizePlan run</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/VisualizePlanJava.svg" alt="VisualizePlanJava.svg" />
 </div>
 </div>
 <div class="paragraph">
