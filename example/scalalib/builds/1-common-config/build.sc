@@ -54,8 +54,16 @@ object foo extends RootModule with ScalaModule {
   // Additional Scala compiler options, e.g. to turn warnings into errors
   def scalacOptions: T[Seq[String]] = Seq("-deprecation", "-Xfatal-warnings")
 }
+// If you want to better understand how the various upstream tasks feed into
+// a task of interest, such as `run`, you can visualize their relationships via
+/** Usage
+> mill show visualizePlan foo.run
+*/
+//
+// image::VisualizePlanScala.svg[VisualizePlanScala.svg]
+//
 //// SNIPPET:END
-
+//
 //
 // Note the use of `millSourcePath`, `T.dest`, and `PathRef` when preforming
 // various filesystem operations:

@@ -42,7 +42,10 @@ object GraphvizTools {
     org.jgrapht.alg.TransitiveReduction.INSTANCE.reduce(jgraph)
     val nodes = indexToTask.map(t =>
       node(sortedGroups.lookupValue(t).render)
-        .`with` { Style.SOLID}
+        .`with` {
+          if (targets.contains(t)) Style.SOLID
+          else Style.DASHED
+        }
         .`with`(Shape.BOX)
     )
 
