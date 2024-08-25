@@ -50,17 +50,26 @@ import scala.concurrent.duration.FiniteDuration
  * to each one.
  */
 object ExampleTester {
-  def run(clientServerMode: Boolean, workspaceSourcePath: os.Path, millExecutable: os.Path): Unit =
+  def run(clientServerMode: Boolean,
+          workspaceSourcePath: os.Path,
+          millExecutable: os.Path,
+          bashExecutable: String = defaultBashExecutable()): Unit =
     new ExampleTester(
       new IntegrationTester(
         clientServerMode,
         workspaceSourcePath,
-        millExecutable
-      )
+        millExecutable,
+      ),
+      bashExecutable
     ).run()
+
+  def defaultBashExecutable() = {
+    if (!mill.main.client.Util.isWindows) "bash"
+    else "C:\\Program Files\\Git\\usr\\bin\\bash.exe"
+  }
 }
 
-class ExampleTester(tester: IntegrationTester.Impl) {
+class ExampleTester(tester: IntegrationTester.Impl, bashExecutable: String) {
   tester.initWorkspace()
 
   os.copy.over(tester.millExecutable, tester.workspacePath / "mill")
@@ -119,7 +128,7 @@ class ExampleTester(tester: IntegrationTester.Impl) {
     Console.err.println(s"$workspaceRoot> $commandStr")
 
     val res = os.call(
-      ("C:\\Program Files\\Git\\usr\\bin\\bash.exe", "-c", commandStr),
+      (bashExecutable, "-c", commandStr),
       stdout = os.Pipe,
       stderr = os.Pipe,
       cwd = workspaceRoot,

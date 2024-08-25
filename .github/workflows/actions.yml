@@ -148,7 +148,7 @@ jobs:
 #          - java-version: 17
 #            millargs: '"scalajslib.__.test"'
           - java-version: 11
-            millargs: '"example.scalalib.basic.__.local.test"'
+            millargs: '"example.scalalib.basic.__.fork.test"'
 #          - java-version: 17
 #            millargs: "'integration.feature[_].fork.test'"
 #          - java-version: 11
