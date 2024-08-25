@@ -119,7 +119,7 @@ class ExampleTester(tester: IntegrationTester.Impl) {
     Console.err.println(s"$workspaceRoot> $commandStr")
 
     val res = os.call(
-      ("""C:\Program Files\Git\usr\bin\bash.exe""", "-c", commandStr),
+      ("C:\\Program Files\\Git\\usr\\bin\\bash.exe", "-c", commandStr),
       stdout = os.Pipe,
       stderr = os.Pipe,
       cwd = workspaceRoot,
