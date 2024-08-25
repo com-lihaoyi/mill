@@ -132,53 +132,6 @@ class ExampleTester(tester: IntegrationTester.Impl) {
           IntegrationTester.EvalResult(res.is2xx, res.text(), "")
         )
 
-      case Seq("cat", path) =>
-        val res = os.read(os.Path(path, workspaceRoot))
-        validateEval(
-          expectedSnippets,
-          IntegrationTester.EvalResult(true, res, "")
-        )
-
-      case Seq("node", rest @ _*) =>
-        val res = os
-          .proc("node", rest)
-          .call(stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot)
-        validateEval(
-          expectedSnippets,
-          IntegrationTester.EvalResult(res.exitCode == 0, res.out.text(), res.err.text())
-        )
-
-      case Seq("git", rest @ _*) =>
-        val res = os
-          .proc("git", rest)
-          .call(stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot)
-        validateEval(
-          expectedSnippets,
-          IntegrationTester.EvalResult(res.exitCode == 0, res.out.text(), res.err.text())
-        )
-
-      case Seq("java", "-jar", rest @ _*) =>
-        val res = os
-          .proc("java", "-jar", rest)
-          .call(stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot)
-        validateEval(
-          expectedSnippets,
-          IntegrationTester.EvalResult(res.exitCode == 0, res.out.text(), res.err.text())
-        )
-
-      case Seq("unzip", "-p", zip, path) =>
-        val zipFile = new java.util.zip.ZipFile((workspaceRoot / os.SubPath(zip)).toIO)
-        try {
-          val boas = new java.io.ByteArrayOutputStream
-          os.Internals.transfer(zipFile.getInputStream(zipFile.getEntry(path)), boas)
-          validateEval(
-            expectedSnippets,
-            IntegrationTester.EvalResult(true, boas.toString("UTF-8"), "")
-          )
-        } finally {
-          zipFile.close()
-        }
-
       case Seq("printf", literal, ">>", path) =>
         tester.modifyFile(
           os.Path(path, tester.workspacePath),
