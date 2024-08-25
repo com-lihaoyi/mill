@@ -214,7 +214,7 @@ class ExampleTester(
         }
 
         for (commandBlock <- commandBlocks) processCommandBlock(commandBlock)
-      }finally{
+      } finally {
         if (clientServerMode) processCommand(Vector(), "shutdown")
       }
     }

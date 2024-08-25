@@ -1,6 +1,6 @@
 package mill.testkit
 
-trait IntegrationTesterBase{
+trait IntegrationTesterBase {
   def workspaceSourcePath: os.Path
   private val workspacePathBase = os.pwd / "out" / "interation-tester-workdir"
   os.makeDir.all(workspacePathBase)
@@ -15,7 +15,6 @@ trait IntegrationTesterBase{
    */
   val workspacePath: os.Path = os.temp.dir(workspacePathBase, deleteOnExit = false)
 
-
   /**
    * Initializes the workspace in preparation for integration testing
    */
@@ -29,4 +28,3 @@ trait IntegrationTesterBase{
     os.remove.all(workspacePath / "out")
   }
 }
-
