@@ -116,12 +116,7 @@ class ExampleTester(tester: IntegrationTester.Impl) {
       case s"mill $rest" => s"./mill $rest"
       case s => s
     }
-    Console.err.println(
-      s"""$workspaceRoot> $commandStr}
-         |--- Expected output --------
-         |${expectedSnippets.mkString("\n")}
-         |----------------------------""".stripMargin
-    )
+    Console.err.println(s"$workspaceRoot> $commandStr")
 
     val res = os.call(
       ("bash", "-c", commandStr),
