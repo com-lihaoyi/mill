@@ -57,11 +57,9 @@ object ExampleTester {
       bashExecutable: String = defaultBashExecutable()
   ): Unit =
     new ExampleTester(
-      new IntegrationTester(
-        clientServerMode,
-        workspaceSourcePath,
-        millExecutable
-      ),
+      clientServerMode,
+      workspaceSourcePath,
+      millExecutable,
       bashExecutable
     ).run()
 
@@ -72,12 +70,14 @@ object ExampleTester {
 }
 
 class ExampleTester(
-    tester: IntegrationTester.Impl,
+    clientServerMode: Boolean,
+    val workspaceSourcePath: os.Path,
+    millExecutable: os.Path,
     bashExecutable: String = ExampleTester.defaultBashExecutable()
-) {
-  tester.initWorkspace()
+) extends IntegrationTesterBase {
+  initWorkspace()
 
-  os.copy.over(tester.millExecutable, tester.workspacePath / "mill")
+  os.copy.over(millExecutable, workspacePath / "mill")
 
   val testTimeout: FiniteDuration = 5.minutes
 
@@ -101,7 +101,7 @@ class ExampleTester(
 
   }
 
-  def processCommandBlock(workspaceRoot: os.Path, commandBlock: String): Unit = {
+  def processCommandBlock(commandBlock: String): Unit = {
     val commandBlockLines = commandBlock.linesIterator.toVector
 
     val expectedSnippets = commandBlockLines.tail
@@ -113,16 +113,15 @@ class ExampleTester(
     val incorrectPlatform =
       (comment.exists(_.startsWith("windows")) && !Util.windowsPlatform) ||
         (comment.exists(_.startsWith("mac/linux")) && Util.windowsPlatform) ||
-        (comment.exists(_.startsWith("--no-server")) && tester.clientServerMode) ||
-        (comment.exists(_.startsWith("not --no-server")) && !tester.clientServerMode)
+        (comment.exists(_.startsWith("--no-server")) && clientServerMode) ||
+        (comment.exists(_.startsWith("not --no-server")) && !clientServerMode)
 
     if (!incorrectPlatform) {
-      processCommand(workspaceRoot, expectedSnippets, commandHead.trim)
+      processCommand(expectedSnippets, commandHead.trim)
     }
   }
 
   def processCommand(
-      workspaceRoot: os.Path,
       expectedSnippets: Vector[String],
       commandStr0: String
   ): Unit = {
@@ -130,13 +129,13 @@ class ExampleTester(
       case s"mill $rest" => s"./mill $rest"
       case s => s
     }
-    Console.err.println(s"$workspaceRoot> $commandStr")
+    Console.err.println(s"$workspacePath> $commandStr")
 
     val res = os.call(
       (bashExecutable, "-c", commandStr),
       stdout = os.Pipe,
       stderr = os.Pipe,
-      cwd = workspaceRoot,
+      cwd = workspacePath,
       mergeErrIntoOut = true,
       env = Map("MILL_TEST_SUITE" -> this.getClass().toString()),
       check = false
@@ -203,16 +202,21 @@ class ExampleTester(
   }
 
   def run(): Any = {
-    val parsed = ExampleParser(tester.workspaceSourcePath)
+    val parsed = ExampleParser(workspaceSourcePath)
     val usageComment = parsed.collect { case ("example", txt) => txt }.mkString("\n\n")
     val commandBlocks = ("\n" + usageComment.trim).split("\n> ").filter(_.nonEmpty)
 
     retryOnTimeout(3) {
-      try os.remove.all(tester.workspacePath / "out")
-      catch { case e: Throwable => /*do nothing*/ }
+      try {
+        try os.remove.all(workspacePath / "out")
+        catch {
+          case e: Throwable => /*do nothing*/
+        }
 
-      for (commandBlock <- commandBlocks) processCommandBlock(tester.workspacePath, commandBlock)
-      if (tester.clientServerMode) tester.eval("shutdown")
+        for (commandBlock <- commandBlocks) processCommandBlock(commandBlock)
+      }finally{
+        if (clientServerMode) processCommand(Vector(), "shutdown")
+      }
     }
   }
 }

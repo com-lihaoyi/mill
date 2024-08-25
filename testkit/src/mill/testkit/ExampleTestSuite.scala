@@ -5,7 +5,7 @@ object ExampleTestSuite extends IntegrationTestSuite {
   val tests: Tests = Tests {
 
     test("exampleTest") {
-      new ExampleTester(this).run()
+      new ExampleTester(clientServerMode, workspaceSourcePath, millExecutable).run()
     }
   }
 }
