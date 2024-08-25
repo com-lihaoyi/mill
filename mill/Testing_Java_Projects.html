@@ -274,6 +274,10 @@
   </li>
 
   <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Writing_Mill_Plugins.html">Writing Mill Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="The_Mill_Meta_Build.html">The Mill Meta-Build</a>
   </li>
 </ul>
@@ -307,14 +311,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.0-M0-39-68d00b</span>
+    <span class="version">0.12.0-M0-40-dbdcbf</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="0.11.12/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="index.html">0.12.0-M0-39-68d00b</a>
+          <a href="index.html">0.12.0-M0-40-dbdcbf</a>
         </li>
         <li class="version is-latest">
           <a href="0.11.12/index.html">0.11.12</a>
@@ -359,9 +363,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-39-68d00b</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-40-dbdcbf</button>
   <div class="version-menu">
-    <a class="version is-current" href="Testing_Java_Projects.html">0.12.0-M0-39-68d00b</a>
+    <a class="version is-current" href="Testing_Java_Projects.html">0.12.0-M0-40-dbdcbf</a>
     <a class="version is-missing" href="0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="0.11.10/index.html">0.11.10</a>
@@ -394,7 +398,7 @@ gtag('config', 'AW-16649289906');
 <h2 id="_defining_unit_test_suites"><a class="anchor" href="#_defining_unit_test_suites"></a>Defining Unit Test Suites</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javatesting-1-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javatesting/1-test-suite">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javalib-testing-1-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javalib/testing/1-test-suite">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
 
@@ -604,7 +608,7 @@ and <code>runIvyDeps</code> to declare dependencies in test modules, and test mo
 can use their <code>moduleDeps</code> to also depend on each other</p>
 </div>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javatesting-2-test-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javatesting/2-test-deps">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javalib-testing-2-test-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javalib/testing/2-test-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
 
@@ -654,7 +658,7 @@ the build below defines a test suite with the name <code>integration</code>, in 
 to that named <code>test</code>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javatesting-3-integration-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javatesting/3-integration-suite">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javalib-testing-3-integration-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javalib/testing/3-integration-suite">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
 object qux extends JavaModule {
