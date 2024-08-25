@@ -311,14 +311,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.0-M0-42-81cbf1</span>
+    <span class="version">0.12.0-M0-43-b34068</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="0.11.12/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="index.html">0.12.0-M0-42-81cbf1</a>
+          <a href="index.html">0.12.0-M0-43-b34068</a>
         </li>
         <li class="version is-latest">
           <a href="0.11.12/index.html">0.11.12</a>
@@ -363,9 +363,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-42-81cbf1</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-43-b34068</button>
   <div class="version-menu">
-    <a class="version is-current" href="Writing_Mill_Plugins.html">0.12.0-M0-42-81cbf1</a>
+    <a class="version is-current" href="Writing_Mill_Plugins.html">0.12.0-M0-43-b34068</a>
     <a class="version is-missing" href="0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="0.11.10/index.html">0.11.10</a>
@@ -391,6 +391,11 @@
 Sonatype’s Maven Central so it can be used by other developers over the internet
 via <a href="Import_File_And_Import_Ivy.html" class="xref page">import $ivy</a>.</p>
 </div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_project_configuration"><a class="anchor" href="#_project_configuration"></a>Project Configuration</h2>
+<div class="sectionbody">
 <div class="listingblock">
 <div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-extending-plugins-7-writing-mill-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/extending/plugins/7-writing-mill-plugins">browse</a>)</div>
 <div class="content">
@@ -464,6 +469,11 @@ and to configure it for publishing to Maven Central via <code>PublishModule</cod
 it defines an abstract <code>def lineCountResourceFileName</code> task, it adds an additional
 <code>def lineCount</code> task, and it overrides the <code>def resources</code>:</p>
 </div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_plugin_implementation"><a class="anchor" href="#_plugin_implementation"></a>Plugin Implementation</h2>
+<div class="sectionbody">
 <div class="listingblock">
 <div class="title">myplugin/src/LineCountJavaModule.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/extending/plugins/7-writing-mill-plugins/myplugin/src/LineCountJavaModule.scala">browse</a>)</div>
 <div class="content">
@@ -521,7 +531,7 @@ own testing, and covers three approaches:</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_unit_tests"><a class="anchor" href="#_unit_tests"></a>Unit tests</h2>
+<h2 id="_unit_tests"><a class="anchor" href="#_unit_tests"></a>Unit Tests</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>These are tests that run in-process, with the Mill <code>build.sc</code> defined as a <code>TestBaseModule</code>,
@@ -601,7 +611,7 @@ but that should not be a concern for most Mill plugins.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_integration_tests"><a class="anchor" href="#_integration_tests"></a>Integration tests</h2>
+<h2 id="_integration_tests"><a class="anchor" href="#_integration_tests"></a>Integration Tests</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Integration tests are one step up from Unit tests: they are significantly slower to run due
@@ -714,7 +724,7 @@ that the printed output is as expected.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_example_tests"><a class="anchor" href="#_example_tests"></a>Example tests</h2>
+<h2 id="_example_tests"><a class="anchor" href="#_example_tests"></a>Example Tests</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Example tests are a variant of the integration tests mentioned above, but instead of
