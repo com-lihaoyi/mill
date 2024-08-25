@@ -158,6 +158,14 @@ class ExampleTester(tester: IntegrationTester.Impl) {
             )
 
             IntegrationTester.EvalResult(res.exitCode == 0, res.out.text(), res.err.text())
+          case _ =>
+            val res = os
+              .proc(command, rest)
+              .call(stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot)
+            validateEval(
+              expectedSnippets,
+              IntegrationTester.EvalResult(res.exitCode == 0, res.out.text(), res.err.text())
+            )
         }
 
         validateEval(expectedSnippets, evalResult)
