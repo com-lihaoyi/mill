@@ -536,6 +536,39 @@ object TestGraphs {
     object m extends A with B {}
   }
 
+  object StackableOverrides2 extends TestBaseModule {
+    object A extends Module{
+      trait X extends Module{
+        def f = T { 1 }
+      }
+    }
+    object B extends Module{
+      trait X extends A.X {
+        override def f = T { super.f() + 2 }
+      }
+    }
+
+    object m extends B.X {
+      override def f = T { super.f() + 3 }
+    }
+  }
+
+  object StackableOverrides3 extends TestBaseModule {
+    object A extends Module{
+      trait X extends Module{
+        def f = T { 1 }
+      }
+    }
+    trait X extends A.X {
+      override def f = T { super.f() + 2 }
+    }
+
+
+    object m extends X {
+      override def f = T { super.f() + 3 }
+    }
+  }
+
   object PrivateTasksInMixedTraits extends TestBaseModule {
     trait M1 extends Module {
       private def foo = T { "foo-m1" }

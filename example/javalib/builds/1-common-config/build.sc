@@ -46,7 +46,7 @@ object foo extends RootModule with JavaModule {
 // If you want to better understand how the various upstream tasks feed into
 // a task of interest, such as `run`, you can visualize their relationships via
 /** Usage
-> mill show visualizePlan foo.run
+> mill show visualizePlan run
 */
 //
 // image::VisualizePlanJava.svg[VisualizePlanJava.svg]
