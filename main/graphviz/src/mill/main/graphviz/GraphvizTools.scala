@@ -10,12 +10,9 @@ import org.jgrapht.graph.{DefaultEdge, SimpleDirectedGraph}
 object GraphvizTools {
 
   def apply(targets: Seq[NamedTask[Any]], rs: Seq[NamedTask[Any]], dest: os.Path): Seq[PathRef] = {
-    val transitive = Graph.transitiveTargets(rs.distinct)
-    val topoSorted = Graph.topoSorted(transitive)
+    val (sortedGroups, transitive) = mill.eval.Plan.plan(rs)
+
     val goalSet = rs.toSet
-    val sortedGroups = Graph.groupAroundImportantTargets(topoSorted) {
-      case x: NamedTask[Any] if goalSet.contains(x) => x
-    }
     import guru.nidi.graphviz.engine.{Format, Graphviz}
     import guru.nidi.graphviz.model.Factory._
 
@@ -32,22 +29,21 @@ object GraphvizTools {
 
     val edges = edgesIterator.map { case (k, v) => (k, v.toArray.distinct) }.toArray
 
-    val indexToTask = edges.flatMap { case (k, vs) => Iterator(k) ++ vs }.distinct
+    val indexToTask = edges.flatMap { case (k, vs) => Iterator(k.task) ++ vs }.distinct
     val taskToIndex = indexToTask.zipWithIndex.toMap
 
     val jgraph = new SimpleDirectedGraph[Int, DefaultEdge](classOf[DefaultEdge])
 
     for (i <- indexToTask.indices) jgraph.addVertex(i)
     for ((src, dests) <- edges; dest <- dests) {
-      jgraph.addEdge(taskToIndex(src), taskToIndex(dest))
+      jgraph.addEdge(taskToIndex(src.task), taskToIndex(dest))
     }
 
     org.jgrapht.alg.TransitiveReduction.INSTANCE.reduce(jgraph)
     val nodes = indexToTask.map(t =>
-      node(t.ctx.segments.render).`with` {
-        if (targets.contains(t)) Style.SOLID
-        else Style.DASHED
-      }.`with`(Shape.BOX)
+      node(sortedGroups.lookupValue(t).render)
+        .`with` { Style.SOLID}
+        .`with`(Shape.BOX)
     )
 
     var g = graph("example1").directed

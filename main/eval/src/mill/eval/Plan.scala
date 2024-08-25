@@ -4,7 +4,7 @@ import mill.api.Strict
 import mill.define.{NamedTask, Segment, Segments, Task}
 import mill.util.MultiBiMap
 
-private object Plan {
+private[mill] object Plan {
   def plan(goals: Agg[Task[_]]): (MultiBiMap[Terminal, Task[_]], Strict.Agg[Task[_]]) = {
     val transitive = Graph.transitiveTargets(goals)
     val topoSorted = Graph.topoSorted(transitive)
