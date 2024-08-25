@@ -179,7 +179,7 @@ Inputs:
 
 /** Usage
 
-> mill showNamed "foo.{sources,compileClasspath}"
+> mill showNamed 'foo.{sources,compileClasspath}'
 {
   "foo.sources": [
     ".../foo/src"
