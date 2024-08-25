@@ -169,7 +169,7 @@ compiling 1 Scala source...
 
 /** Usage
 
-> sed -i 's/0.0.1/0.0.2/g' build.sc
+> sed -i.bak 's/0.0.1/0.0.2/g' build.sc
 
 > ./mill myplugin.publishLocal
 Publishing Artifact(com.lihaoyi,myplugin_2.13,0.0.2) to ivy repo...

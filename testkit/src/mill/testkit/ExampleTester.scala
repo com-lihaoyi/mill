@@ -63,6 +63,8 @@ object ExampleTester {
 class ExampleTester(tester: IntegrationTester.Impl) {
   tester.initWorkspace()
 
+  os.copy.over(tester.millExecutable, tester.workspacePath / "mill")
+
   val testTimeout: FiniteDuration = 5.minutes
 
   // Integration tests sometime hang on CI
@@ -108,66 +110,37 @@ class ExampleTester(tester: IntegrationTester.Impl) {
   def processCommand(
       workspaceRoot: os.Path,
       expectedSnippets: Vector[String],
-      commandStr: String
+      commandStr0: String
   ): Unit = {
-    val cmd = BashTokenizer.tokenize(commandStr)
+    val commandStr = commandStr0 match{
+      case s"mill $rest" => s"./mill $rest"
+      case s => s
+    }
     Console.err.println(
-      s"""$workspaceRoot> ${cmd.mkString("'", "' '", "'")}
+      s"""$workspaceRoot> $commandStr}
          |--- Expected output --------
          |${expectedSnippets.mkString("\n")}
          |----------------------------""".stripMargin
     )
-    cmd match {
-      case Seq("cp", "-r", from, to) =>
-        os.copy(os.Path(from, workspaceRoot), os.Path(to, workspaceRoot))
 
-      case Seq("sed", "-i", s"s/$oldStr/$newStr/g", file) =>
-        tester.modifyFile(os.Path(file, workspaceRoot), _.replace(oldStr, newStr))
+    val res = os.call(
+      ("bash", "-c", commandStr),
+      stdout = os.Pipe,
+      stderr = os.Pipe,
+      cwd = workspaceRoot,
+      mergeErrIntoOut = true,
+      env = Map("MILL_TEST_SUITE" -> this.getClass().toString()),
+      check = false
+    )
 
-      case Seq("curl", url) =>
-        Thread.sleep(1500) // Need to give backgroundWrapper time to spin up
-        val res = requests.get(url)
-        validateEval(
-          expectedSnippets,
-          IntegrationTester.EvalResult(res.is2xx, res.text(), "")
-        )
-
-      case Seq("printf", literal, ">>", path) =>
-        tester.modifyFile(
-          os.Path(path, tester.workspacePath),
-          _ + ujson.read(s""""${literal}"""").str
-        )
-
-      case Seq(command, rest @ _*) =>
-        val evalResult = command match {
-          case "./mill" | "mill" => tester.eval(rest)
-          case s"./$cmd" =>
-            val tokens = cmd +: rest
-            val executable = workspaceRoot / os.SubPath(tokens.head)
-            if (!os.exists(executable)) {
-              throw new Exception(
-                s"Executable $executable not found.\n" +
-                  s"Other files present include ${os.list(executable / os.up)}"
-              )
-            }
-            val res = os.call(
-              cmd = (executable, tokens.tail),
-              stdout = os.Pipe,
-              stderr = os.Pipe,
-              cwd = workspaceRoot
-            )
-
-            IntegrationTester.EvalResult(res.exitCode == 0, res.out.text(), res.err.text())
-          case _ =>
-            val res = os
-              .proc(command, rest)
-              .call(stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot)
-
-            IntegrationTester.EvalResult(res.exitCode == 0, res.out.text(), res.err.text())
-        }
-
-        validateEval(expectedSnippets, evalResult)
-    }
+    validateEval(
+      expectedSnippets,
+      IntegrationTester.EvalResult(
+        res.exitCode == 0,
+        fansi.Str(res.out.text(), errorMode = fansi.ErrorMode.Strip).plainText,
+        fansi.Str(res.err.text(), errorMode = fansi.ErrorMode.Strip).plainText
+      )
+    )
   }
 
   def validateEval(
@@ -197,32 +170,23 @@ class ExampleTester(tester: IntegrationTester.Impl) {
         )
         .toVector
 
-    val filteredErr = plainTextLines(evalResult.err)
     val filteredOut = plainTextLines(evalResult.out)
 
     if (expectedSnippets.nonEmpty) {
       for (outLine <- filteredOut) {
         globMatchesAny(unwrappedExpected, outLine)
       }
-      for (errLine <- filteredErr) {
-        globMatchesAny(unwrappedExpected, errLine)
-      }
     }
 
     for (expectedLine <- unwrappedExpected.linesIterator) {
-      val combinedOutErr = (filteredOut ++ filteredErr).mkString("\n")
-      assert(globMatches(expectedLine, combinedOutErr))
+      assert(filteredOut.exists(globMatches(expectedLine, _)))
     }
   }
 
-  def globMatches(expected: String, filtered: String): Boolean = {
-    filtered
-      .linesIterator
-      .exists(
-        StringContext
-          .glob(expected.split("\\.\\.\\.", -1).toIndexedSeq, _)
-          .nonEmpty
-      )
+  def globMatches(expected: String, line: String): Boolean = {
+    StringContext
+      .glob(expected.split("\\.\\.\\.", -1).toIndexedSeq, line)
+      .nonEmpty
   }
 
   def globMatchesAny(expected: String, filtered: String): Boolean = {

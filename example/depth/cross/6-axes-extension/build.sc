@@ -49,9 +49,9 @@ trait FooModule3 extends FooModule2 with Cross.Module3[String, Int, Boolean] {
 > mill show foo3[b,2,false].param3
 "Param Value: false"
 
-> sed -i 's/, true//g' build.sc
+> sed -i.bak 's/, true//g' build.sc
 
-> sed -i 's/, false//g' build.sc
+> sed -i.bak 's/, false//g' build.sc
 
 > mill show foo3[b,2,false].param3
 error: ...object foo3 extends Cross[FooModule3](("a", 1), ("b", 2))

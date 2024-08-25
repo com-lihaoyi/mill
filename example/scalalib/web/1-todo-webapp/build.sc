@@ -26,7 +26,7 @@ object root extends RootModule with ScalaModule {
 > ./mill test
 + webapp.WebAppTests.simpleRequest...
 
-> ./mill runBackground
+> ./mill runBackground; sleep 2 # give time for server to start
 
 > curl http://localhost:8080
 ...What needs to be done...

@@ -22,7 +22,7 @@ object hello extends RootModule with JavaModule {
 > mill test
 ...com.example.HelloSpringBootTest#shouldReturnDefaultMessage() finished...
 
-> mill runBackground
+> mill runBackground; sleep 2 # give time for server to start
 
 > curl http://localhost:8086
 ...<h1>Hello, World!</h1>...

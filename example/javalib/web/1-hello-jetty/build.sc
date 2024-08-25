@@ -18,7 +18,7 @@ object hello extends RootModule with JavaModule {
 > mill test
 ...HelloJettyTest.testHelloJetty finished...
 
-> mill runBackground
+> mill runBackground; sleep 2 # give time for server to start
 
 > curl http://localhost:8085
 ...<h1>Hello, World!</h1>...

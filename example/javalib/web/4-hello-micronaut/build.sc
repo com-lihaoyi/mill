@@ -68,7 +68,7 @@ trait MicronautModule extends MavenModule{
 > mill test
 ...example.micronaut.HelloControllerTest#testHello()...
 
-> mill runBackground
+> mill runBackground; sleep 2 # give time for server to start
 
 > curl http://localhost:8088/hello
 ...Hello World...
