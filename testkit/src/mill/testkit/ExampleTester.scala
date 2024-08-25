@@ -50,15 +50,17 @@ import scala.concurrent.duration.FiniteDuration
  * to each one.
  */
 object ExampleTester {
-  def run(clientServerMode: Boolean,
-          workspaceSourcePath: os.Path,
-          millExecutable: os.Path,
-          bashExecutable: String = defaultBashExecutable()): Unit =
+  def run(
+      clientServerMode: Boolean,
+      workspaceSourcePath: os.Path,
+      millExecutable: os.Path,
+      bashExecutable: String = defaultBashExecutable()
+  ): Unit =
     new ExampleTester(
       new IntegrationTester(
         clientServerMode,
         workspaceSourcePath,
-        millExecutable,
+        millExecutable
       ),
       bashExecutable
     ).run()
@@ -69,8 +71,10 @@ object ExampleTester {
   }
 }
 
-class ExampleTester(tester: IntegrationTester.Impl,
-                    bashExecutable: String = ExampleTester.defaultBashExecutable()) {
+class ExampleTester(
+    tester: IntegrationTester.Impl,
+    bashExecutable: String = ExampleTester.defaultBashExecutable()
+) {
   tester.initWorkspace()
 
   os.copy.over(tester.millExecutable, tester.workspacePath / "mill")
