@@ -306,7 +306,7 @@ foo.compileClasspath
 // relationships in `.svg` and `.png` form for you to inspect. It also generates
 // `.txt`, `.dot` and `.json` for easy processing by downstream tools.
 //
-// The above command generates the following diagram:
+// The above command generates the following diagram (right-click open in new tab to see full sized):
 //
 // image::VisualizeJava.svg[VisualizeJava.svg]
 //
@@ -331,7 +331,7 @@ foo.compileClasspath
 // by the query. Tasks directly resolved are shown with a solid border, and
 // dependencies are shown with a dotted border.
 //
-// The above command generates the following diagram:
+// The above command generates the following diagram (right-click open in new tab to see full sized):
 //
 // image::VisualizePlanJava.svg[VisualizePlanJava.svg]
 //

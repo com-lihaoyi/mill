@@ -62,6 +62,8 @@ object foo extends RootModule with ScalaModule {
 //
 // image::VisualizePlanScala.svg[VisualizePlanScala.svg]
 //
+// (right-click open in new tab to see full sized)
+//
 //// SNIPPET:END
 //
 //

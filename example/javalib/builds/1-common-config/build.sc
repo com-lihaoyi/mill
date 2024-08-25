@@ -51,5 +51,7 @@ object foo extends RootModule with JavaModule {
 //
 // image::VisualizePlanJava.svg[VisualizePlanJava.svg]
 //
+// (right-click open in new tab to see full sized)
+//
 //// SNIPPET:FATAL_WARNINGS
 //

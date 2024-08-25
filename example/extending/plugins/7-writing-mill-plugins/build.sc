@@ -70,8 +70,6 @@ compiling 1 Scala source...
 
 */
 
-// === Testing
-
 
 // Mill provides the `mill-testkit` library to make it easy for you to test your Mill
 // plugin. The example project above has set up tests that can be run via the normal `.test`
@@ -89,7 +87,7 @@ compiling 1 Scala source...
 // `mill-testkit` is the same set of helpers that Mill uses internally for its
 // own testing, and covers three approaches:
 //
-// ==== Unit tests
+// == Unit tests
 //
 // These are tests that run in-process, with the Mill `build.sc` defined as a `TestBaseModule`,
 // and using a `UnitTester` to run its tasks and inspect their output. `UnitTester` is provided
@@ -104,7 +102,7 @@ compiling 1 Scala source...
 // main limitation is that they do not exercise the Mill subprocess-launch and bootstrap process,
 // but that should not be a concern for most Mill plugins.
 //
-// ==== Integration tests
+// == Integration tests
 //
 // Integration tests are one step up from Unit tests: they are significantly slower to run due
 // to running Mill in a subprocess, but are able to exercise the end-to-end lifecycle of a Mill
@@ -128,7 +126,7 @@ compiling 1 Scala source...
 // your Mill plugin logic prints to standard output or standard error, and you want to assert
 // that the printed output is as expected.
 //
-// ==== Example tests
+// == Example tests
 //
 // Example tests are a variant of the integration tests mentioned above, but instead of
 // having the testing logic defined as part of the test suite in a `.scala` file, the testing
@@ -167,7 +165,7 @@ compiling 1 Scala source...
 // build that is runnable using your plugin, along with a list of commands they can run and
 // what output they should expect.
 //
-// === Publishing
+// == Publishing
 
 /** Usage
 
