@@ -8,19 +8,19 @@ import mill.main.BuildInfo.millVersion
 object myplugin extends ScalaModule with PublishModule {
   def scalaVersion = "2.13.8"
 
-  def ivyDeps = Agg(ivy"com.lihaoyi::mill-scalalib:$millVersion")
+  def ivyDeps = Agg(ivy"com.lihaoyi:mill-dist:$millVersion")
 
   // Testing Config
   object test extends ScalaTests with TestModule.Utest{
     def ivyDeps = Agg(ivy"com.lihaoyi::mill-testkit:$millVersion")
-    def forkEnv = Map("MILL_EXECUTABLE_PATH" -> testMill.assembly().path.toString)
+    def forkEnv = Map("MILL_EXECUTABLE_PATH" -> millExecutable.assembly().path.toString)
 
-    object testMill extends JavaModule{
+    object millExecutable extends JavaModule{
       def ivyDeps = Agg(ivy"com.lihaoyi:mill-dist:$millVersion")
       def mainClass = Some("mill.runner.client.MillClientMain")
       def resources = T{
         val p = T.dest / "mill" / "local-test-overrides" / s"com.lihaoyi-${myplugin.artifactId()}"
-        os.write(p, myplugin.runClasspath().map(_.path).mkString("\n"), createFolders = true)
+        os.write(p, myplugin.localClasspath().map(_.path).mkString("\n"), createFolders = true)
         Seq(PathRef(T.dest))
       }
     }

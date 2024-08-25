@@ -306,6 +306,21 @@ trait MillJavaModule extends JavaModule {
     upstream.toMap ++ current
   }
 
+
+  def testIvyDeps: T[Agg[Dep]] = Agg(Deps.TestDeps.utest)
+  def testModuleDeps: Seq[JavaModule] =
+    if (this == main) Seq(main)
+    else Seq(this, main.test)
+
+  def writeLocalTestOverrides = T.task {
+    for ((k, v) <- testTransitiveDeps()) {
+      os.write(T.dest / "mill" / "local-test-overrides" / k, v, createFolders = true)
+    }
+    Seq(PathRef(T.dest))
+  }
+
+  def runClasspath = super.runClasspath() ++ writeLocalTestOverrides()
+
   def repositoriesTask = T.task {
     super.repositoriesTask() ++
       Seq(MavenRepository("https://oss.sonatype.org/content/repositories/releases"))
@@ -369,21 +384,6 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
       "-Xlint:adapted-args"
     )
 
-  def testIvyDeps: T[Agg[Dep]] = Agg(Deps.TestDeps.utest)
-  def testModuleDeps: Seq[JavaModule] =
-    if (this == main) Seq(main)
-    else Seq(this, main.test)
-
-  def writeLocalTestOverrides = T.task {
-    for ((k, v) <- testTransitiveDeps()) {
-      os.write(T.dest / "mill" / "local-test-overrides" / k, v, createFolders = true)
-    }
-    Seq(PathRef(T.dest))
-  }
-
-  def runClasspathWithoutOverrides = T{ super.runClasspath() }
-  def runClasspath = runClasspathWithoutOverrides() ++ writeLocalTestOverrides()
-
   def scalacPluginIvyDeps =
     super.scalacPluginIvyDeps() ++
       Agg(Deps.acyclic) ++
@@ -396,7 +396,6 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
   /** Default tests module. */
   lazy val test: MillScalaTests = new MillScalaTests {}
   trait MillScalaTests extends ScalaTests with MillBaseTestsModule {
-    def runClasspath = super.runClasspath() ++ writeLocalTestOverrides()
     def forkArgs = super.forkArgs() ++ outer.testArgs()
     def moduleDeps = outer.testModuleDeps
     def ivyDeps = super.ivyDeps() ++ outer.testIvyDeps()
@@ -600,18 +599,18 @@ object main extends MillStableScalaModule with BuildInfo {
       "millEmbeddedDeps",
       (
         T.traverse(
-          dev.recursiveModuleDeps.collect { case m: PublishModule => m }
+          dist.recursiveModuleDeps.collect { case m: PublishModule => m }
         )(
           _.publishSelfDependency
         )()
           .map(artifact => s"${artifact.group}:${artifact.id}:${artifact.version}") ++
           Lib.resolveDependenciesMetadata(
-            repositories = dev.repositoriesTask(),
-            dev.transitiveIvyDeps(),
-            Some(dev.mapDependencies()),
-            dev.resolutionCustomizer(),
+            repositories = dist.repositoriesTask(),
+            dist.transitiveIvyDeps(),
+            Some(dist.mapDependencies()),
+            dist.resolutionCustomizer(),
             Some(T.ctx()),
-            dev.coursierCacheCustomizer()
+            dist.coursierCacheCustomizer()
           )._2.minDependencies.toSeq
             .map(d => s"${d.module.organization.value}:${d.module.name.value}:${d.version}")
       )
@@ -764,7 +763,7 @@ object testkit extends MillPublishScalaModule {
     super.sources() ++
     Seq(PathRef(build.millSourcePath / "mill-build" / "src"))
 
-  def forkEnv = super.forkEnv() ++ Map("MILL_EXECUTABLE_PATH" -> dev.launcher().path.toString())
+  def forkEnv = super.forkEnv() ++ Map("MILL_EXECUTABLE_PATH" -> dist.launcher().path.toString())
 }
 
 object testrunner extends MillPublishScalaModule {
@@ -1180,10 +1179,10 @@ trait IntegrationTestModule extends MillScalaModule {
         ) ++
         testReleaseEnv()
 
-    def forkArgs = T { super.forkArgs() ++ dev.forkArgs() }
+    def forkArgs = T { super.forkArgs() ++ dist.forkArgs() }
 
     def testReleaseEnv =
-      if (mode == "local") T { Map("MILL_INTEGRATION_LAUNCHER" -> dev.launcher().path.toString()) }
+      if (mode == "local") T { Map("MILL_INTEGRATION_LAUNCHER" -> dist.launcher().path.toString()) }
       else T { Map("MILL_INTEGRATION_LAUNCHER" -> integration.testMill().path.toString()) }
 
     def compile = IntegrationTestModule.this.compile()
@@ -1288,8 +1287,6 @@ object example extends Module {
   }
 
   trait ExampleCrossModule extends IntegrationTestCrossModule {
-    // disable scalafix because these example modules don't have sources causing it to misbehave
-    def fix(args: String*): Command[Unit] = T.command {}
     def testRepoRoot: T[PathRef] = T.source(millSourcePath)
 
     def compile = testkit.compile()
@@ -1539,19 +1536,14 @@ object idea extends MillPublishScalaModule {
   def moduleDeps = Seq(scalalib, runner)
 }
 
-object dist extends MillPublishJavaModule {
-  def jar = dev.rawAssembly()
-}
-
+/**
+ * Version of [[dist]] meant for local integration testing within the Mill
+ * repo. Looks mostly the same as [[dist]], except it does not have a reference
+ * to itself in its [[testTransitiveDeps]], to avoid a circular dependency.
+ */
 object dist0 extends MillPublishJavaModule {
-  def writeLocalTestOverrides = T.task {
-    for ((k, v) <- testTransitiveDeps()) {
-      os.write(T.dest / "mill" / "local-test-overrides" / k, v, createFolders = true)
-    }
-    Seq(PathRef(T.dest))
-  }
-  def upstreamAssemblyClasspath = Agg.from(dev.runClasspathWithoutOverrides())
-  def localClasspath = super.localClasspath() ++ writeLocalTestOverrides()
+  def moduleDeps = Seq(runner, idea)
+
   def testTransitiveDeps = runner.testTransitiveDeps() ++ Seq(
     runner.linenumbers.testDep(),
     scalalib.backgroundwrapper.testDep(),
@@ -1566,13 +1558,14 @@ object dist0 extends MillPublishJavaModule {
     testkit.testDep(),
   )
 }
-object dev extends MillPublishScalaModule {
-  // disable scalafix here because it crashes when a module has no sources
-  def fix(args: String*): Command[Unit] = T.command {}
+
+
+object dist extends MillPublishJavaModule {
+  def jar = rawAssembly()
   def moduleDeps = Seq(runner, idea)
 
   def testTransitiveDeps = dist0.testTransitiveDeps() ++ Seq(
-    (s"com.lihaoyi-${dist.artifactId()}", dist0.assembly().path.toString),
+    (s"com.lihaoyi-${dist.artifactId()}", dist0.runClasspath().map(_.path).mkString("\n")),
   )
 
   def genTask(m: ScalaModule) = T.task { Seq(m.jar(), m.sourceJar()) ++ m.runClasspath() }
@@ -2011,12 +2004,12 @@ def installLocalCache() = T.command {
 }
 
 def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Path] = T.task {
-  val millBin = dev.assembly()
+  val millBin = dist.assembly()
   val targetFile = os.Path(binFile(), T.workspace)
   if (os.exists(targetFile))
     T.log.info(s"Overwriting existing local Mill binary at ${targetFile}")
   os.copy.over(millBin.path, targetFile, createFolders = true)
-  T.log.info(s"Published ${dev.allPublishModules.size} modules and installed ${targetFile}")
+  T.log.info(s"Published ${dist.allPublishModules.size} modules and installed ${targetFile}")
   targetFile
 }
 
@@ -2083,7 +2076,7 @@ def uploadToGithub(authKey: String) = T.command {
   val examples = exampleZips().map(z => (z.path, z.path.last))
 
   val zips = examples ++ Seq(
-    (dev.assembly().path, label + "-assembly"),
+    (dist.assembly().path, label + "-assembly"),
     (bootstrapLauncher().path, label)
   )
 
