@@ -43,6 +43,13 @@ object foo extends RootModule with JavaModule {
   // this does not apply to running externally via `.assembly
   def forkEnv: T[Map[String, String]] = Map("MY_CUSTOM_ENV" -> "my-env-value")
 }
-
+// If you want to better understand how the various upstream tasks feed into
+// a task of interest, such as `run`, you can visualize their relationships via
+/** Usage
+> mill show visualizePlan run
+*/
+//
+// image::VisualizePlanJava.svg[VisualizePlanJava.svg]
+//
 //// SNIPPET:FATAL_WARNINGS
 //

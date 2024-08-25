@@ -1,0 +1,541 @@
+<svg width="1795px" height="503px"
+ viewBox="0.00 0.00 1795.00 503.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 499.0)">
+<title>example1</title>
+<polygon fill="white" stroke="none" points="-4,4 -4,-499 1791,-499 1791,4 -4,4"/>
+<!-- mill.scalalib.ZincWorkerModule.classpath -->
+<g id="node1" class="node">
+<title>mill.scalalib.ZincWorkerModule.classpath</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="616.12,-387 366.88,-387 366.88,-351 616.12,-351 616.12,-387"/>
+<text text-anchor="middle" x="491.5" y="-363.95" font-family="Times,serif" font-size="14.00">mill.scalalib.ZincWorkerModule.classpath</text>
+</g>
+<!-- mill.scalalib.ZincWorkerModule.worker -->
+<g id="node2" class="node">
+<title>mill.scalalib.ZincWorkerModule.worker</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="905.5,-387 667.5,-387 667.5,-351 905.5,-351 905.5,-387"/>
+<text text-anchor="middle" x="786.5" y="-363.95" font-family="Times,serif" font-size="14.00">mill.scalalib.ZincWorkerModule.worker</text>
+</g>
+<!-- mill.scalalib.ZincWorkerModule.classpath&#45;&gt;mill.scalalib.ZincWorkerModule.worker -->
+<g id="edge1" class="edge">
+<title>mill.scalalib.ZincWorkerModule.classpath&#45;&gt;mill.scalalib.ZincWorkerModule.worker</title>
+<path fill="none" stroke="black" d="M616.33,-369C629.38,-369 642.67,-369 655.78,-369"/>
+<polygon fill="black" stroke="black" points="655.73,-372.5 665.73,-369 655.73,-365.5 655.73,-372.5"/>
+</g>
+<!-- compile -->
+<g id="node19" class="node">
+<title>compile</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="1080.88,-306 1020.62,-306 1020.62,-270 1080.88,-270 1080.88,-306"/>
+<text text-anchor="middle" x="1050.75" y="-282.95" font-family="Times,serif" font-size="14.00">compile</text>
+</g>
+<!-- mill.scalalib.ZincWorkerModule.worker&#45;&gt;compile -->
+<g id="edge2" class="edge">
+<title>mill.scalalib.ZincWorkerModule.worker&#45;&gt;compile</title>
+<path fill="none" stroke="black" d="M874.2,-350.56C884.8,-347.89 895.44,-345.02 905.5,-342 941.38,-331.23 981.19,-316.08 1009.89,-304.56"/>
+<polygon fill="black" stroke="black" points="1010.95,-307.91 1018.9,-300.91 1008.32,-301.42 1010.95,-307.91"/>
+</g>
+<!-- mill.scalalib.ZincWorkerModule.zincLogDebug -->
+<g id="node3" class="node">
+<title>mill.scalalib.ZincWorkerModule.zincLogDebug</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="631.5,-441 351.5,-441 351.5,-405 631.5,-405 631.5,-441"/>
+<text text-anchor="middle" x="491.5" y="-417.95" font-family="Times,serif" font-size="14.00">mill.scalalib.ZincWorkerModule.zincLogDebug</text>
+</g>
+<!-- mill.scalalib.ZincWorkerModule.zincLogDebug&#45;&gt;mill.scalalib.ZincWorkerModule.worker -->
+<g id="edge3" class="edge">
+<title>mill.scalalib.ZincWorkerModule.zincLogDebug&#45;&gt;mill.scalalib.ZincWorkerModule.worker</title>
+<path fill="none" stroke="black" d="M592.51,-404.57C618.89,-399.71 647.5,-394.43 674.42,-389.47"/>
+<polygon fill="black" stroke="black" points="674.75,-392.97 683.95,-387.72 673.48,-386.09 674.75,-392.97"/>
+</g>
+<!-- sources -->
+<g id="node4" class="node">
+<title>sources</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="264.12,-293 207.62,-293 207.62,-257 264.12,-257 264.12,-293"/>
+<text text-anchor="middle" x="235.88" y="-269.95" font-family="Times,serif" font-size="14.00">sources</text>
+</g>
+<!-- allSources -->
+<g id="node5" class="node">
+<title>allSources</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="527.62,-333 455.38,-333 455.38,-297 527.62,-297 527.62,-333"/>
+<text text-anchor="middle" x="491.5" y="-309.95" font-family="Times,serif" font-size="14.00">allSources</text>
+</g>
+<!-- sources&#45;&gt;allSources -->
+<g id="edge4" class="edge">
+<title>sources&#45;&gt;allSources</title>
+<path fill="none" stroke="black" d="M264.5,-279.36C307.59,-286.15 391.3,-299.35 443.86,-307.64"/>
+<polygon fill="black" stroke="black" points="443.3,-311.1 453.72,-309.2 444.39,-304.18 443.3,-311.1"/>
+</g>
+<!-- allSourceFiles -->
+<g id="node7" class="node">
+<title>allSourceFiles</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="833.12,-333 739.88,-333 739.88,-297 833.12,-297 833.12,-333"/>
+<text text-anchor="middle" x="786.5" y="-309.95" font-family="Times,serif" font-size="14.00">allSourceFiles</text>
+</g>
+<!-- allSources&#45;&gt;allSourceFiles -->
+<g id="edge5" class="edge">
+<title>allSources&#45;&gt;allSourceFiles</title>
+<path fill="none" stroke="black" d="M527.84,-315C577.5,-315 668.49,-315 727.98,-315"/>
+<polygon fill="black" stroke="black" points="727.92,-318.5 737.92,-315 727.92,-311.5 727.92,-318.5"/>
+</g>
+<!-- generatedSources -->
+<g id="node6" class="node">
+<title>generatedSources</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="291.5,-401 180.25,-401 180.25,-365 291.5,-365 291.5,-401"/>
+<text text-anchor="middle" x="235.88" y="-377.95" font-family="Times,serif" font-size="14.00">generatedSources</text>
+</g>
+<!-- generatedSources&#45;&gt;allSources -->
+<g id="edge6" class="edge">
+<title>generatedSources&#45;&gt;allSources</title>
+<path fill="none" stroke="black" d="M291.54,-364.54C299.59,-361.73 307.77,-358.83 315.5,-356 331.62,-350.1 335.01,-346.77 351.5,-342 381.77,-333.25 416.58,-326.49 443.79,-321.93"/>
+<polygon fill="black" stroke="black" points="444.15,-325.41 453.46,-320.35 443.03,-318.51 444.15,-325.41"/>
+</g>
+<!-- allSourceFiles&#45;&gt;compile -->
+<g id="edge7" class="edge">
+<title>allSourceFiles&#45;&gt;compile</title>
+<path fill="none" stroke="black" d="M833.48,-310.27C883.05,-305.16 961.2,-297.12 1008.75,-292.22"/>
+<polygon fill="black" stroke="black" points="1009.04,-295.71 1018.63,-291.2 1008.33,-288.75 1009.04,-295.71"/>
+</g>
+<!-- compileIvyDeps -->
+<g id="node8" class="node">
+<title>compileIvyDeps</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="113.12,-225 7.12,-225 7.12,-189 113.12,-189 113.12,-225"/>
+<text text-anchor="middle" x="60.12" y="-201.95" font-family="Times,serif" font-size="14.00">compileIvyDeps</text>
+</g>
+<!-- transitiveCompileIvyDeps -->
+<g id="node9" class="node">
+<title>transitiveCompileIvyDeps</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="315.5,-225 156.25,-225 156.25,-189 315.5,-189 315.5,-225"/>
+<text text-anchor="middle" x="235.88" y="-201.95" font-family="Times,serif" font-size="14.00">transitiveCompileIvyDeps</text>
+</g>
+<!-- compileIvyDeps&#45;&gt;transitiveCompileIvyDeps -->
+<g id="edge8" class="edge">
+<title>compileIvyDeps&#45;&gt;transitiveCompileIvyDeps</title>
+<path fill="none" stroke="black" d="M113.26,-207C123.2,-207 133.86,-207 144.6,-207"/>
+<polygon fill="black" stroke="black" points="144.28,-210.5 154.28,-207 144.28,-203.5 144.28,-210.5"/>
+</g>
+<!-- resolvedIvyDeps -->
+<g id="node13" class="node">
+<title>resolvedIvyDeps</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="545.25,-225 437.75,-225 437.75,-189 545.25,-189 545.25,-225"/>
+<text text-anchor="middle" x="491.5" y="-201.95" font-family="Times,serif" font-size="14.00">resolvedIvyDeps</text>
+</g>
+<!-- transitiveCompileIvyDeps&#45;&gt;resolvedIvyDeps -->
+<g id="edge9" class="edge">
+<title>transitiveCompileIvyDeps&#45;&gt;resolvedIvyDeps</title>
+<path fill="none" stroke="black" d="M315.73,-207C351.11,-207 392.34,-207 425.86,-207"/>
+<polygon fill="black" stroke="black" points="425.86,-210.5 435.86,-207 425.86,-203.5 425.86,-210.5"/>
+</g>
+<!-- ivyDeps -->
+<g id="node10" class="node">
+<title>ivyDeps</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="90.62,-360 29.63,-360 29.63,-324 90.62,-324 90.62,-360"/>
+<text text-anchor="middle" x="60.12" y="-336.95" font-family="Times,serif" font-size="14.00">ivyDeps</text>
+</g>
+<!-- transitiveIvyDeps -->
+<g id="node11" class="node">
+<title>transitiveIvyDeps</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="291.88,-347 179.88,-347 179.88,-311 291.88,-311 291.88,-347"/>
+<text text-anchor="middle" x="235.88" y="-323.95" font-family="Times,serif" font-size="14.00">transitiveIvyDeps</text>
+</g>
+<!-- ivyDeps&#45;&gt;transitiveIvyDeps -->
+<g id="edge10" class="edge">
+<title>ivyDeps&#45;&gt;transitiveIvyDeps</title>
+<path fill="none" stroke="black" d="M90.99,-339.77C112.22,-338.18 141.57,-335.98 168.23,-333.99"/>
+<polygon fill="black" stroke="black" points="168.24,-337.5 177.95,-333.26 167.72,-330.51 168.24,-337.5"/>
+</g>
+<!-- transitiveIvyDeps&#45;&gt;resolvedIvyDeps -->
+<g id="edge12" class="edge">
+<title>transitiveIvyDeps&#45;&gt;resolvedIvyDeps</title>
+<path fill="none" stroke="black" d="M292.18,-316C300.58,-312.4 308.7,-307.81 315.5,-302 341.49,-279.78 324.03,-254.36 351.5,-234 372.74,-218.26 400.66,-210.98 425.9,-207.83"/>
+<polygon fill="black" stroke="black" points="426.18,-211.32 435.77,-206.81 425.46,-204.35 426.18,-211.32"/>
+</g>
+<!-- resolvedRunIvyDeps -->
+<g id="node28" class="node">
+<title>resolvedRunIvyDeps</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="556.5,-495 426.5,-495 426.5,-459 556.5,-459 556.5,-495"/>
+<text text-anchor="middle" x="491.5" y="-471.95" font-family="Times,serif" font-size="14.00">resolvedRunIvyDeps</text>
+</g>
+<!-- transitiveIvyDeps&#45;&gt;resolvedRunIvyDeps -->
+<g id="edge11" class="edge">
+<title>transitiveIvyDeps&#45;&gt;resolvedRunIvyDeps</title>
+<path fill="none" stroke="black" d="M292,-340.95C300.62,-344.69 308.86,-349.58 315.5,-356 347.68,-387.08 317.24,-421.23 351.5,-450 369.14,-464.81 392.48,-472.39 414.99,-476.06"/>
+<polygon fill="black" stroke="black" points="414.41,-479.51 424.79,-477.4 415.35,-472.58 414.41,-479.51"/>
+</g>
+<!-- mandatoryIvyDeps -->
+<g id="node12" class="node">
+<title>mandatoryIvyDeps</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="120.25,-306 0,-306 0,-270 120.25,-270 120.25,-306"/>
+<text text-anchor="middle" x="60.12" y="-282.95" font-family="Times,serif" font-size="14.00">mandatoryIvyDeps</text>
+</g>
+<!-- mandatoryIvyDeps&#45;&gt;transitiveIvyDeps -->
+<g id="edge13" class="edge">
+<title>mandatoryIvyDeps&#45;&gt;transitiveIvyDeps</title>
+<path fill="none" stroke="black" d="M120.43,-302C136.01,-305.67 152.9,-309.66 168.81,-313.41"/>
+<polygon fill="black" stroke="black" points="167.63,-316.73 178.16,-315.62 169.23,-309.91 167.63,-316.73"/>
+</g>
+<!-- compileClasspath -->
+<g id="node17" class="node">
+<title>compileClasspath</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="842.88,-279 730.12,-279 730.12,-243 842.88,-243 842.88,-279"/>
+<text text-anchor="middle" x="786.5" y="-255.95" font-family="Times,serif" font-size="14.00">compileClasspath</text>
+</g>
+<!-- resolvedIvyDeps&#45;&gt;compileClasspath -->
+<g id="edge14" class="edge">
+<title>resolvedIvyDeps&#45;&gt;compileClasspath</title>
+<path fill="none" stroke="black" d="M545.56,-216.78C594.11,-225.73 666.16,-239.01 718.63,-248.68"/>
+<polygon fill="black" stroke="black" points="717.89,-252.1 728.36,-250.47 719.16,-245.21 717.89,-252.1"/>
+</g>
+<!-- compileResources -->
+<g id="node14" class="node">
+<title>compileResources</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="293.75,-171 178,-171 178,-135 293.75,-135 293.75,-171"/>
+<text text-anchor="middle" x="235.88" y="-147.95" font-family="Times,serif" font-size="14.00">compileResources</text>
+</g>
+<!-- localCompileClasspath -->
+<g id="node15" class="node">
+<title>localCompileClasspath</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="562.5,-171 420.5,-171 420.5,-135 562.5,-135 562.5,-171"/>
+<text text-anchor="middle" x="491.5" y="-147.95" font-family="Times,serif" font-size="14.00">localCompileClasspath</text>
+</g>
+<!-- compileResources&#45;&gt;localCompileClasspath -->
+<g id="edge15" class="edge">
+<title>compileResources&#45;&gt;localCompileClasspath</title>
+<path fill="none" stroke="black" d="M294.11,-153C328.01,-153 371.51,-153 408.95,-153"/>
+<polygon fill="black" stroke="black" points="408.84,-156.5 418.84,-153 408.84,-149.5 408.84,-156.5"/>
+</g>
+<!-- localCompileClasspath&#45;&gt;compileClasspath -->
+<g id="edge16" class="edge">
+<title>localCompileClasspath&#45;&gt;compileClasspath</title>
+<path fill="none" stroke="black" d="M562.71,-155.85C586.12,-159.49 611.34,-166.58 631.5,-180 655.51,-195.98 643.76,-217.62 667.5,-234 682.47,-244.33 700.81,-250.76 718.52,-254.75"/>
+<polygon fill="black" stroke="black" points="717.75,-258.16 728.24,-256.68 719.12,-251.3 717.75,-258.16"/>
+</g>
+<!-- unmanagedClasspath -->
+<g id="node16" class="node">
+<title>unmanagedClasspath</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="301.62,-117 170.12,-117 170.12,-81 301.62,-81 301.62,-117"/>
+<text text-anchor="middle" x="235.88" y="-93.95" font-family="Times,serif" font-size="14.00">unmanagedClasspath</text>
+</g>
+<!-- unmanagedClasspath&#45;&gt;localCompileClasspath -->
+<g id="edge17" class="edge">
+<title>unmanagedClasspath&#45;&gt;localCompileClasspath</title>
+<path fill="none" stroke="black" d="M301.86,-112.84C334.57,-119.8 374.55,-128.31 409.27,-135.71"/>
+<polygon fill="black" stroke="black" points="408.35,-139.09 418.86,-137.75 409.81,-132.24 408.35,-139.09"/>
+</g>
+<!-- compileClasspath&#45;&gt;compile -->
+<g id="edge18" class="edge">
+<title>compileClasspath&#45;&gt;compile</title>
+<path fill="none" stroke="black" d="M843.12,-266.73C892.8,-271.84 964.43,-279.22 1008.98,-283.8"/>
+<polygon fill="black" stroke="black" points="1008.43,-287.26 1018.73,-284.81 1009.15,-280.3 1008.43,-287.26"/>
+</g>
+<!-- transitiveCompileClasspath -->
+<g id="node18" class="node">
+<title>transitiveCompileClasspath</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="574.5,-279 408.5,-279 408.5,-243 574.5,-243 574.5,-279"/>
+<text text-anchor="middle" x="491.5" y="-255.95" font-family="Times,serif" font-size="14.00">transitiveCompileClasspath</text>
+</g>
+<!-- transitiveCompileClasspath&#45;&gt;compileClasspath -->
+<g id="edge19" class="edge">
+<title>transitiveCompileClasspath&#45;&gt;compileClasspath</title>
+<path fill="none" stroke="black" d="M574.9,-261C620.17,-261 675.62,-261 718.25,-261"/>
+<polygon fill="black" stroke="black" points="718.13,-264.5 728.13,-261 718.13,-257.5 718.13,-264.5"/>
+</g>
+<!-- finalMainClassOpt -->
+<g id="node25" class="node">
+<title>finalMainClassOpt</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="1315.5,-383 1196,-383 1196,-347 1315.5,-347 1315.5,-383"/>
+<text text-anchor="middle" x="1255.75" y="-359.95" font-family="Times,serif" font-size="14.00">finalMainClassOpt</text>
+</g>
+<!-- compile&#45;&gt;finalMainClassOpt -->
+<g id="edge21" class="edge">
+<title>compile&#45;&gt;finalMainClassOpt</title>
+<path fill="none" stroke="black" d="M1081.27,-299.2C1111.22,-310.56 1158.41,-328.46 1196.01,-342.72"/>
+<polygon fill="black" stroke="black" points="1194.33,-345.83 1204.92,-346.1 1196.81,-339.28 1194.33,-345.83"/>
+</g>
+<!-- localRunClasspath -->
+<g id="node30" class="node">
+<title>localRunClasspath</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="1314.38,-252 1197.12,-252 1197.12,-216 1314.38,-216 1314.38,-252"/>
+<text text-anchor="middle" x="1255.75" y="-228.95" font-family="Times,serif" font-size="14.00">localRunClasspath</text>
+</g>
+<!-- compile&#45;&gt;localRunClasspath -->
+<g id="edge20" class="edge">
+<title>compile&#45;&gt;localRunClasspath</title>
+<path fill="none" stroke="black" d="M1081.22,-280.93C1103.03,-275.63 1133.43,-268.1 1160,-261 1168.37,-258.77 1177.13,-256.36 1185.8,-253.94"/>
+<polygon fill="black" stroke="black" points="1186.57,-257.35 1195.25,-251.28 1184.68,-250.62 1186.57,-257.35"/>
+</g>
+<!-- upstreamCompileOutput -->
+<g id="node20" class="node">
+<title>upstreamCompileOutput</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="862,-225 711,-225 711,-189 862,-189 862,-225"/>
+<text text-anchor="middle" x="786.5" y="-201.95" font-family="Times,serif" font-size="14.00">upstreamCompileOutput</text>
+</g>
+<!-- upstreamCompileOutput&#45;&gt;compile -->
+<g id="edge22" class="edge">
+<title>upstreamCompileOutput&#45;&gt;compile</title>
+<path fill="none" stroke="black" d="M862.41,-219.17C877.07,-222.92 892.06,-227.77 905.5,-234 923.64,-242.41 923.44,-252.41 941.5,-261 962.75,-271.11 988.22,-277.7 1009.1,-281.84"/>
+<polygon fill="black" stroke="black" points="1008.23,-285.24 1018.7,-283.62 1009.5,-278.36 1008.23,-285.24"/>
+</g>
+<!-- javacOptions -->
+<g id="node21" class="node">
+<title>javacOptions</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="830.12,-171 742.88,-171 742.88,-135 830.12,-135 830.12,-171"/>
+<text text-anchor="middle" x="786.5" y="-147.95" font-family="Times,serif" font-size="14.00">javacOptions</text>
+</g>
+<!-- javacOptions&#45;&gt;compile -->
+<g id="edge23" class="edge">
+<title>javacOptions&#45;&gt;compile</title>
+<path fill="none" stroke="black" d="M830.36,-153.62C854.77,-156.05 884.57,-162.77 905.5,-180 935.91,-205.04 911.33,-235.67 941.5,-261 960.23,-276.73 986.83,-283.51 1008.97,-286.35"/>
+<polygon fill="black" stroke="black" points="1008.6,-289.83 1018.9,-287.36 1009.31,-282.86 1008.6,-289.83"/>
+</g>
+<!-- zincReportCachedProblems -->
+<g id="node22" class="node">
+<title>zincReportCachedProblems</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="870.25,-117 702.75,-117 702.75,-81 870.25,-81 870.25,-117"/>
+<text text-anchor="middle" x="786.5" y="-93.95" font-family="Times,serif" font-size="14.00">zincReportCachedProblems</text>
+</g>
+<!-- zincReportCachedProblems&#45;&gt;compile -->
+<g id="edge24" class="edge">
+<title>zincReportCachedProblems&#45;&gt;compile</title>
+<path fill="none" stroke="black" d="M870.73,-106.02C883.61,-110.3 895.82,-116.66 905.5,-126 950.18,-169.12 897.24,-217.45 941.5,-261 959.25,-278.47 986.48,-285.2 1009.19,-287.57"/>
+<polygon fill="black" stroke="black" points="1008.83,-291.06 1019.07,-288.34 1009.37,-284.08 1008.83,-291.06"/>
+</g>
+<!-- zincIncrementalCompilation -->
+<g id="node23" class="node">
+<title>zincIncrementalCompilation</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="872.5,-441 700.5,-441 700.5,-405 872.5,-405 872.5,-441"/>
+<text text-anchor="middle" x="786.5" y="-417.95" font-family="Times,serif" font-size="14.00">zincIncrementalCompilation</text>
+</g>
+<!-- zincIncrementalCompilation&#45;&gt;compile -->
+<g id="edge25" class="edge">
+<title>zincIncrementalCompilation&#45;&gt;compile</title>
+<path fill="none" stroke="black" d="M872.88,-412.04C884.49,-408.16 895.75,-402.96 905.5,-396 930.19,-378.37 918.77,-358.1 941.5,-338 961.14,-320.64 987.83,-308.22 1009.79,-300.1"/>
+<polygon fill="black" stroke="black" points="1010.76,-303.47 1019.03,-296.85 1008.44,-296.87 1010.76,-303.47"/>
+</g>
+<!-- mainClass -->
+<g id="node24" class="node">
+<title>mainClass</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="1087.25,-383 1014.25,-383 1014.25,-347 1087.25,-347 1087.25,-383"/>
+<text text-anchor="middle" x="1050.75" y="-359.95" font-family="Times,serif" font-size="14.00">mainClass</text>
+</g>
+<!-- mainClass&#45;&gt;finalMainClassOpt -->
+<g id="edge26" class="edge">
+<title>mainClass&#45;&gt;finalMainClassOpt</title>
+<path fill="none" stroke="black" d="M1087.58,-365C1114.35,-365 1151.82,-365 1184.5,-365"/>
+<polygon fill="black" stroke="black" points="1184.32,-368.5 1194.32,-365 1184.32,-361.5 1184.32,-368.5"/>
+</g>
+<!-- finalMainClass -->
+<g id="node26" class="node">
+<title>finalMainClass</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="1694.38,-383 1595.12,-383 1595.12,-347 1694.38,-347 1694.38,-383"/>
+<text text-anchor="middle" x="1644.75" y="-359.95" font-family="Times,serif" font-size="14.00">finalMainClass</text>
+</g>
+<!-- finalMainClassOpt&#45;&gt;finalMainClass -->
+<g id="edge27" class="edge">
+<title>finalMainClassOpt&#45;&gt;finalMainClass</title>
+<path fill="none" stroke="black" d="M1315.87,-367.88C1327.67,-368.35 1339.98,-368.76 1351.5,-369 1442.59,-370.92 1465.41,-371.09 1556.5,-369 1565.24,-368.8 1574.47,-368.49 1583.52,-368.12"/>
+<polygon fill="black" stroke="black" points="1583.5,-371.63 1593.34,-367.7 1583.2,-364.63 1583.5,-371.63"/>
+</g>
+<!-- run -->
+<g id="node44" class="node">
+<title>run</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="1787,-171 1733,-171 1733,-135 1787,-135 1787,-171"/>
+<text text-anchor="middle" x="1760" y="-147.95" font-family="Times,serif" font-size="14.00">run</text>
+</g>
+<!-- finalMainClass&#45;&gt;run -->
+<g id="edge28" class="edge">
+<title>finalMainClass&#45;&gt;run</title>
+<path fill="none" stroke="black" d="M1668.64,-346.61C1678.39,-337.85 1689.28,-326.74 1697,-315 1724.75,-272.8 1742.75,-216.35 1751.87,-182.45"/>
+<polygon fill="black" stroke="black" points="1755.21,-183.48 1754.34,-172.92 1748.44,-181.72 1755.21,-183.48"/>
+</g>
+<!-- runIvyDeps -->
+<g id="node27" class="node">
+<title>runIvyDeps</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="275.75,-495 196,-495 196,-459 275.75,-459 275.75,-495"/>
+<text text-anchor="middle" x="235.88" y="-471.95" font-family="Times,serif" font-size="14.00">runIvyDeps</text>
+</g>
+<!-- runIvyDeps&#45;&gt;resolvedRunIvyDeps -->
+<g id="edge29" class="edge">
+<title>runIvyDeps&#45;&gt;resolvedRunIvyDeps</title>
+<path fill="none" stroke="black" d="M276.23,-477C313.17,-477 369.41,-477 415.01,-477"/>
+<polygon fill="black" stroke="black" points="414.84,-480.5 424.84,-477 414.84,-473.5 414.84,-480.5"/>
+</g>
+<!-- runClasspath -->
+<g id="node34" class="node">
+<title>runClasspath</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="1688,-306 1601.5,-306 1601.5,-270 1688,-270 1688,-306"/>
+<text text-anchor="middle" x="1644.75" y="-282.95" font-family="Times,serif" font-size="14.00">runClasspath</text>
+</g>
+<!-- resolvedRunIvyDeps&#45;&gt;runClasspath -->
+<g id="edge30" class="edge">
+<title>resolvedRunIvyDeps&#45;&gt;runClasspath</title>
+<path fill="none" stroke="black" d="M556.85,-476.24C660.6,-475.08 871.25,-473 1049.75,-473 1049.75,-473 1049.75,-473 1256.75,-473 1397.76,-473 1435.63,-441.63 1556.5,-369 1563.36,-364.88 1593.89,-336.06 1616.92,-313.96"/>
+<polygon fill="black" stroke="black" points="1619.13,-316.69 1623.91,-307.23 1614.28,-311.64 1619.13,-316.69"/>
+</g>
+<!-- localRunClasspath.super.RunModule -->
+<g id="node29" class="node">
+<title>localRunClasspath.super.RunModule</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="1160,-252 941.5,-252 941.5,-216 1160,-216 1160,-252"/>
+<text text-anchor="middle" x="1050.75" y="-228.95" font-family="Times,serif" font-size="14.00">localRunClasspath.super.RunModule</text>
+</g>
+<!-- localRunClasspath.super.RunModule&#45;&gt;localRunClasspath -->
+<g id="edge31" class="edge">
+<title>localRunClasspath.super.RunModule&#45;&gt;localRunClasspath</title>
+<path fill="none" stroke="black" d="M1160.38,-234C1168.9,-234 1177.36,-234 1185.5,-234"/>
+<polygon fill="black" stroke="black" points="1185.27,-237.5 1195.27,-234 1185.27,-230.5 1185.27,-237.5"/>
+</g>
+<!-- localClasspath -->
+<g id="node32" class="node">
+<title>localClasspath</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="1501.38,-252 1406.62,-252 1406.62,-216 1501.38,-216 1501.38,-252"/>
+<text text-anchor="middle" x="1454" y="-228.95" font-family="Times,serif" font-size="14.00">localClasspath</text>
+</g>
+<!-- localRunClasspath&#45;&gt;localClasspath -->
+<g id="edge32" class="edge">
+<title>localRunClasspath&#45;&gt;localClasspath</title>
+<path fill="none" stroke="black" d="M1314.83,-234C1340.12,-234 1369.69,-234 1394.97,-234"/>
+<polygon fill="black" stroke="black" points="1394.74,-237.5 1404.74,-234 1394.74,-230.5 1394.74,-237.5"/>
+</g>
+<!-- resources -->
+<g id="node31" class="node">
+<title>resources</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="1084.25,-198 1017.25,-198 1017.25,-162 1084.25,-162 1084.25,-198"/>
+<text text-anchor="middle" x="1050.75" y="-174.95" font-family="Times,serif" font-size="14.00">resources</text>
+</g>
+<!-- resources&#45;&gt;localRunClasspath -->
+<g id="edge33" class="edge">
+<title>resources&#45;&gt;localRunClasspath</title>
+<path fill="none" stroke="black" d="M1084.51,-187.87C1106.02,-193.11 1134.74,-200.25 1160,-207 1168.37,-209.23 1177.13,-211.64 1185.8,-214.06"/>
+<polygon fill="black" stroke="black" points="1184.68,-217.38 1195.25,-216.72 1186.57,-210.65 1184.68,-217.38"/>
+</g>
+<!-- localClasspath&#45;&gt;runClasspath -->
+<g id="edge34" class="edge">
+<title>localClasspath&#45;&gt;runClasspath</title>
+<path fill="none" stroke="black" d="M1501.85,-246.04C1519.07,-250.58 1538.71,-255.88 1556.5,-261 1567.47,-264.16 1579.17,-267.67 1590.33,-271.1"/>
+<polygon fill="black" stroke="black" points="1589.22,-274.42 1599.8,-274.03 1591.28,-267.73 1589.22,-274.42"/>
+</g>
+<!-- runClasspath.super.RunModule -->
+<g id="node33" class="node">
+<title>runClasspath.super.RunModule</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="1547.88,-360 1360.12,-360 1360.12,-324 1547.88,-324 1547.88,-360"/>
+<text text-anchor="middle" x="1454" y="-336.95" font-family="Times,serif" font-size="14.00">runClasspath.super.RunModule</text>
+</g>
+<!-- runClasspath.super.RunModule&#45;&gt;runClasspath -->
+<g id="edge35" class="edge">
+<title>runClasspath.super.RunModule&#45;&gt;runClasspath</title>
+<path fill="none" stroke="black" d="M1525.81,-323.55C1536.12,-320.75 1546.6,-317.85 1556.5,-315 1567.47,-311.84 1579.17,-308.33 1590.33,-304.9"/>
+<polygon fill="black" stroke="black" points="1591.28,-308.27 1599.8,-301.97 1589.22,-301.58 1591.28,-308.27"/>
+</g>
+<!-- runClasspath&#45;&gt;run -->
+<g id="edge36" class="edge">
+<title>runClasspath&#45;&gt;run</title>
+<path fill="none" stroke="black" d="M1661.26,-269.51C1680.66,-246.39 1714.03,-206.61 1736.3,-180.06"/>
+<polygon fill="black" stroke="black" points="1738.96,-182.34 1742.71,-172.42 1733.6,-177.84 1738.96,-182.34"/>
+</g>
+<!-- transitiveLocalClasspath -->
+<g id="node35" class="node">
+<title>transitiveLocalClasspath</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="1528.75,-306 1379.25,-306 1379.25,-270 1528.75,-270 1528.75,-306"/>
+<text text-anchor="middle" x="1454" y="-282.95" font-family="Times,serif" font-size="14.00">transitiveLocalClasspath</text>
+</g>
+<!-- transitiveLocalClasspath&#45;&gt;runClasspath -->
+<g id="edge37" class="edge">
+<title>transitiveLocalClasspath&#45;&gt;runClasspath</title>
+<path fill="none" stroke="black" d="M1529.06,-288C1549.33,-288 1570.91,-288 1589.82,-288"/>
+<polygon fill="black" stroke="black" points="1589.7,-291.5 1599.7,-288 1589.7,-284.5 1589.7,-291.5"/>
+</g>
+<!-- forkArgs.super.RunModule -->
+<g id="node36" class="node">
+<title>forkArgs.super.RunModule</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="1537,-198 1371,-198 1371,-162 1537,-162 1537,-198"/>
+<text text-anchor="middle" x="1454" y="-174.95" font-family="Times,serif" font-size="14.00">forkArgs.super.RunModule</text>
+</g>
+<!-- forkArgs -->
+<g id="node37" class="node">
+<title>forkArgs</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="1677.12,-198 1612.38,-198 1612.38,-162 1677.12,-162 1677.12,-198"/>
+<text text-anchor="middle" x="1644.75" y="-174.95" font-family="Times,serif" font-size="14.00">forkArgs</text>
+</g>
+<!-- forkArgs.super.RunModule&#45;&gt;forkArgs -->
+<g id="edge38" class="edge">
+<title>forkArgs.super.RunModule&#45;&gt;forkArgs</title>
+<path fill="none" stroke="black" d="M1537.24,-180C1559.02,-180 1581.68,-180 1600.47,-180"/>
+<polygon fill="black" stroke="black" points="1600.4,-183.5 1610.4,-180 1600.4,-176.5 1600.4,-183.5"/>
+</g>
+<!-- forkArgs&#45;&gt;run -->
+<g id="edge39" class="edge">
+<title>forkArgs&#45;&gt;run</title>
+<path fill="none" stroke="black" d="M1677.6,-172.41C1691.33,-169.13 1707.48,-165.28 1721.76,-161.88"/>
+<polygon fill="black" stroke="black" points="1722.35,-165.34 1731.26,-159.61 1720.72,-158.53 1722.35,-165.34"/>
+</g>
+<!-- forkEnv.super.RunModule -->
+<g id="node38" class="node">
+<title>forkEnv.super.RunModule</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="1534.38,-144 1373.62,-144 1373.62,-108 1534.38,-108 1534.38,-144"/>
+<text text-anchor="middle" x="1454" y="-120.95" font-family="Times,serif" font-size="14.00">forkEnv.super.RunModule</text>
+</g>
+<!-- forkEnv -->
+<g id="node39" class="node">
+<title>forkEnv</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="1674.88,-144 1614.62,-144 1614.62,-108 1674.88,-108 1674.88,-144"/>
+<text text-anchor="middle" x="1644.75" y="-120.95" font-family="Times,serif" font-size="14.00">forkEnv</text>
+</g>
+<!-- forkEnv.super.RunModule&#45;&gt;forkEnv -->
+<g id="edge40" class="edge">
+<title>forkEnv.super.RunModule&#45;&gt;forkEnv</title>
+<path fill="none" stroke="black" d="M1534.77,-126C1558.21,-126 1582.88,-126 1602.81,-126"/>
+<polygon fill="black" stroke="black" points="1602.74,-129.5 1612.74,-126 1602.74,-122.5 1602.74,-129.5"/>
+</g>
+<!-- forkEnv&#45;&gt;run -->
+<g id="edge41" class="edge">
+<title>forkEnv&#45;&gt;run</title>
+<path fill="none" stroke="black" d="M1675.21,-133.02C1689.41,-136.41 1706.61,-140.51 1721.72,-144.11"/>
+<polygon fill="black" stroke="black" points="1720.77,-147.48 1731.31,-146.4 1722.39,-140.67 1720.77,-147.48"/>
+</g>
+<!-- forkWorkingDir.super.RunModule -->
+<g id="node40" class="node">
+<title>forkWorkingDir.super.RunModule</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="1556.5,-90 1351.5,-90 1351.5,-54 1556.5,-54 1556.5,-90"/>
+<text text-anchor="middle" x="1454" y="-66.95" font-family="Times,serif" font-size="14.00">forkWorkingDir.super.RunModule</text>
+</g>
+<!-- forkWorkingDir -->
+<g id="node41" class="node">
+<title>forkWorkingDir</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="1697,-90 1592.5,-90 1592.5,-54 1697,-54 1697,-90"/>
+<text text-anchor="middle" x="1644.75" y="-66.95" font-family="Times,serif" font-size="14.00">forkWorkingDir</text>
+</g>
+<!-- forkWorkingDir.super.RunModule&#45;&gt;forkWorkingDir -->
+<g id="edge42" class="edge">
+<title>forkWorkingDir.super.RunModule&#45;&gt;forkWorkingDir</title>
+<path fill="none" stroke="black" d="M1556.83,-72C1564.93,-72 1572.95,-72 1580.65,-72"/>
+<polygon fill="black" stroke="black" points="1580.56,-75.5 1590.56,-72 1580.56,-68.5 1580.56,-75.5"/>
+</g>
+<!-- forkWorkingDir&#45;&gt;run -->
+<g id="edge43" class="edge">
+<title>forkWorkingDir&#45;&gt;run</title>
+<path fill="none" stroke="black" d="M1683.3,-90.48C1688.01,-93.18 1692.69,-96.04 1697,-99 1709.05,-107.26 1721.38,-117.54 1731.83,-126.92"/>
+<polygon fill="black" stroke="black" points="1729.27,-129.32 1739.01,-133.49 1733.99,-124.15 1729.27,-129.32"/>
+</g>
+<!-- runUseArgsFile.super.RunModule -->
+<g id="node42" class="node">
+<title>runUseArgsFile.super.RunModule</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="1555.75,-36 1352.25,-36 1352.25,0 1555.75,0 1555.75,-36"/>
+<text text-anchor="middle" x="1454" y="-12.95" font-family="Times,serif" font-size="14.00">runUseArgsFile.super.RunModule</text>
+</g>
+<!-- runUseArgsFile -->
+<g id="node43" class="node">
+<title>runUseArgsFile</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="1695.88,-36 1593.62,-36 1593.62,0 1695.88,0 1695.88,-36"/>
+<text text-anchor="middle" x="1644.75" y="-12.95" font-family="Times,serif" font-size="14.00">runUseArgsFile</text>
+</g>
+<!-- runUseArgsFile.super.RunModule&#45;&gt;runUseArgsFile -->
+<g id="edge44" class="edge">
+<title>runUseArgsFile.super.RunModule&#45;&gt;runUseArgsFile</title>
+<path fill="none" stroke="black" d="M1556.01,-18C1564.92,-18 1573.76,-18 1582.2,-18"/>
+<polygon fill="black" stroke="black" points="1581.92,-21.5 1591.92,-18 1581.92,-14.5 1581.92,-21.5"/>
+</g>
+<!-- runUseArgsFile&#45;&gt;run -->
+<g id="edge45" class="edge">
+<title>runUseArgsFile&#45;&gt;run</title>
+<path fill="none" stroke="black" d="M1686.17,-36.39C1690.05,-38.99 1693.74,-41.86 1697,-45 1720.38,-67.54 1737.67,-100.82 1747.96,-124.46"/>
+<polygon fill="black" stroke="black" points="1744.65,-125.62 1751.74,-133.5 1751.11,-122.92 1744.65,-125.62"/>
+</g>
+</g>
+</svg>

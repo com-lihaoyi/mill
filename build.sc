@@ -1549,6 +1549,7 @@ object dist0 extends MillPublishJavaModule {
   def moduleDeps = Seq(runner, idea)
 
   def testTransitiveDeps = runner.testTransitiveDeps() ++ Seq(
+    main.graphviz.testDep(),
     runner.linenumbers.testDep(),
     scalalib.backgroundwrapper.testDep(),
     contrib.bloop.testDep(),
