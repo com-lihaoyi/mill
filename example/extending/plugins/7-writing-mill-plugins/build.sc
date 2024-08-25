@@ -2,6 +2,8 @@
 // Sonatype's Maven Central so it can be used by other developers over the internet
 // via xref:Import_File_And_Import_Ivy.adoc[import $ivy].
 
+// == Project Configuration
+
 import mill._, scalalib._, publish._
 import mill.main.BuildInfo.millVersion
 
@@ -58,6 +60,8 @@ object myplugin extends ScalaModule with PublishModule {
 // it defines an abstract `def lineCountResourceFileName` task, it adds an additional
 // `def lineCount` task, and it overrides the `def resources`:
 
+// == Plugin Implementation
+
 /** See Also: myplugin/src/LineCountJavaModule.scala */
 
 // This is a synthetic example, but it serves to illustrate how Mill plugins are typically
@@ -87,7 +91,7 @@ compiling 1 Scala source...
 // `mill-testkit` is the same set of helpers that Mill uses internally for its
 // own testing, and covers three approaches:
 //
-// == Unit tests
+// == Unit Tests
 //
 // These are tests that run in-process, with the Mill `build.sc` defined as a `TestBaseModule`,
 // and using a `UnitTester` to run its tasks and inspect their output. `UnitTester` is provided
@@ -102,7 +106,7 @@ compiling 1 Scala source...
 // main limitation is that they do not exercise the Mill subprocess-launch and bootstrap process,
 // but that should not be a concern for most Mill plugins.
 //
-// == Integration tests
+// == Integration Tests
 //
 // Integration tests are one step up from Unit tests: they are significantly slower to run due
 // to running Mill in a subprocess, but are able to exercise the end-to-end lifecycle of a Mill
@@ -126,7 +130,7 @@ compiling 1 Scala source...
 // your Mill plugin logic prints to standard output or standard error, and you want to assert
 // that the printed output is as expected.
 //
-// == Example tests
+// == Example Tests
 //
 // Example tests are a variant of the integration tests mentioned above, but instead of
 // having the testing logic defined as part of the test suite in a `.scala` file, the testing
