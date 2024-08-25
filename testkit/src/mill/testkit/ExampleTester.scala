@@ -158,7 +158,7 @@ class ExampleTester(
       evalResult: IntegrationTester.EvalResult,
       check: Boolean = true
   ): Unit = {
-    if (check){
+    if (check) {
       if (expectedSnippets.exists(_.startsWith("error: "))) assert(!evalResult.isSuccess)
       else assert(evalResult.isSuccess)
     }
