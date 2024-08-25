@@ -69,7 +69,8 @@ object ExampleTester {
   }
 }
 
-class ExampleTester(tester: IntegrationTester.Impl, bashExecutable: String) {
+class ExampleTester(tester: IntegrationTester.Impl,
+                    bashExecutable: String = ExampleTester.defaultBashExecutable()) {
   tester.initWorkspace()
 
   os.copy.over(tester.millExecutable, tester.workspacePath / "mill")
