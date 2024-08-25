@@ -65,7 +65,7 @@ object ExampleTester {
       bashExecutable
     ).run()
 
-  def defaultBashExecutable() = {
+  def defaultBashExecutable(): String = {
     if (!mill.main.client.Util.isWindows) "bash"
     else "C:\\Program Files\\Git\\usr\\bin\\bash.exe"
   }
