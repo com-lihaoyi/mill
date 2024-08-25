@@ -112,7 +112,7 @@ class ExampleTester(tester: IntegrationTester.Impl) {
       expectedSnippets: Vector[String],
       commandStr0: String
   ): Unit = {
-    val commandStr = commandStr0 match{
+    val commandStr = commandStr0 match {
       case s"mill $rest" => s"./mill $rest"
       case s => s
     }
