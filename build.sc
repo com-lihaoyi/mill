@@ -868,6 +868,8 @@ object scalajslib extends MillStableScalaModule with BuildInfo {
   }
 
   object `worker-api` extends MillPublishScalaModule {
+    // disable scalafix here because it crashes when a module has no rules
+    def fix(args: String*): Command[Unit] = T.command {}
     def ivyDeps = Agg(Deps.sbtTestInterface)
   }
 
@@ -1097,6 +1099,8 @@ object scalanativelib extends MillStableScalaModule {
     super.testTransitiveDeps() ++ Seq(worker("0.5").testDep())
 
   object `worker-api` extends MillPublishScalaModule {
+    // disable scalafix here because it crashes when a module has no rules
+    def fix(args: String*): Command[Unit] = T.command {}
     def ivyDeps = Agg(Deps.sbtTestInterface)
   }
 
@@ -1529,6 +1533,9 @@ object runner extends MillPublishScalaModule {
   def skipPreviousVersions: T[Seq[String]] = Seq("0.11.0-M7")
 
   object linenumbers extends MillPublishScalaModule {
+    // disable scalafix here because it crashes when a module has no rules
+    def fix(args: String*): Command[Unit] = T.command {}
+
     def scalaVersion = Deps.scalaVersion
     def ivyDeps = Agg(Deps.scalaCompiler(scalaVersion()))
   }
