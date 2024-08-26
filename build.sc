@@ -4,7 +4,6 @@ import com.github.lolgab.mill.mima.Mima
 import coursier.maven.MavenRepository
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import com.goyeau.mill.scalafix.ScalafixModule
-import example.millSourcePath
 import mill._
 import mill.api.JarManifest
 import mill.define.NamedTask

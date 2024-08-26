@@ -1,6 +1,13 @@
 package mill.eval
 
-import mill.api.{CompileProblemReporter, DummyTestReporter, Result, TestReporter, Val}
+import mill.api.{
+  CompileProblemReporter,
+  DummyTestReporter,
+  Result,
+  ResultFailureException,
+  TestReporter,
+  Val
+}
 import mill.api.Strict.Agg
 import mill.define.{BaseModule, BaseModuleTree, Segments, Task}
 import mill.eval.Evaluator.{Results, formatFailing}
@@ -101,7 +108,7 @@ object Evaluator {
       yield {
         val fss = fs.map {
           case Result.Failure(t, _) => t
-          case Result.Exception(Result.Failure(t, _), _) => t
+          case Result.Exception(e: ResultFailureException, _) => e.getMessage
           case ex: Result.Exception => ex.toString
         }
         s"${k.render} ${fss.iterator.mkString(", ")}"

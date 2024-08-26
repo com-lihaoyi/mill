@@ -4,11 +4,11 @@ import coursier.Repository
 import mainargs.Flag
 import mill.Agg
 import mill._
-import mill.api.{Ctx, FixSizedCache, KeyedLockedCache, PathRef, Result}
-import mill.define.{ExternalModule, Discover}
+import mill.api.{Ctx, FixSizedCache, KeyedLockedCache, PathRef, Result, ResultFailureException}
+import mill.define.{Discover, ExternalModule}
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.api.ZincWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
-import mill.scalalib.api.{ZincWorkerApi, ZincWorkerUtil, Versions}
+import mill.scalalib.api.{Versions, ZincWorkerApi, ZincWorkerUtil}
 import mill.util.Util.millProjectModule
 
 /**
@@ -76,7 +76,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
             scalaCompilerBridgeJar(x, y, repositoriesTask())
               .asSuccess
               .getOrElse(
-                throw new Exception(s"Failed to load compiler bridge for $x $y")
+                throw new ResultFailureException(s"Failed to load compiler bridge for $x $y")
               )
               .value
         )),

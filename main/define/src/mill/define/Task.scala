@@ -193,6 +193,12 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
   def workspace(implicit ctx: mill.api.Ctx): os.Path = ctx.workspace
 
   /**
+   * Fail the current task. This behaves equivalent to `return Result.Failure(msg)`.
+   * @param msg The failure message
+   */
+  def fail(msg: String)(implicit ctx: mill.api.Ctx): Nothing = ctx.fail(msg)
+
+  /**
    * A target is the most common [[Task]] a user would encounter, commonly
    * defined using the `def foo = T{...}` syntax. [[TargetImpl]]s require that their
    * return type is JSON serializable. In return they automatically caches their

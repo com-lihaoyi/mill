@@ -14,7 +14,11 @@ sealed trait Result[+T] {
   def asFailing: Option[Result.Failing[T]] = None
   def getOrThrow: T = this match {
     case Result.Success(v) => v
-    case f: Result.Failing[_] => throw f
+    case Result.Failure(msg, _) =>
+      // TODO: once, we have an original exception, reuse it
+      throw new ResultFailureException(msg)
+    case Result.Exception(e, _) =>
+      throw e
   }
 }
 
@@ -22,6 +26,9 @@ object Result {
   implicit def create[T](t: => T): Result[T] = {
     try Success(t)
     catch {
+      case e: ResultFailureException =>
+        // TODO: add cause when Result.Failure supports it
+        Result.Failure(e.getMessage, None)
       case e: Throwable =>
         Exception(e, new OuterStack(new java.lang.Exception().getStackTrace().toIndexedSeq))
     }
@@ -58,7 +65,7 @@ object Result {
    * A failed task execution.
    * @tparam T The result type of the computed task.
    */
-  sealed trait Failing[+T] extends java.lang.Exception with Result[T] {
+  sealed trait Failing[+T] extends Result[T] {
     def map[V](f: T => V): Failing[V]
     def flatMap[V](f: T => Result[V]): Failing[V]
     override def asFailing: Option[Result.Failing[T]] = Some(this)
