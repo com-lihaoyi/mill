@@ -2099,7 +2099,7 @@ def uploadToGithub(authKey: String) = T.command {
 
 private def resolveTasks[T](taskNames: String*): Seq[NamedTask[T]] = {
   mill.resolve.Resolve.Tasks.resolve(
-    build,
+    build.`package`,
     taskNames,
     SelectMode.Separated
   ).map(x => x.asInstanceOf[Seq[mill.define.NamedTask[T]]]).getOrElse(???)
