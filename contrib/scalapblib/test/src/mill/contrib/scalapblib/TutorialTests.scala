@@ -55,7 +55,6 @@ object TutorialTests extends TestSuite {
     }
   }
 
-
   val resourcePath: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER"))
 
   def protobufOutPath(eval: UnitTester): os.Path =
