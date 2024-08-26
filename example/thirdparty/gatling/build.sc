@@ -344,6 +344,8 @@ object `gatling-test-framework` extends GatlingModule{
 
 /** Usage
 
+> sed -i.bak 's/1.seconds/10.seconds/g' gatling-core/src/test/scala/io/gatling/core/actor/ActorSpec.scala
+
 > sed -i.bak 's/is.toString(charset)/is.toString()/g' gatling-benchmarks/src/main/scala/io/gatling/Utils.scala
 
 > ./mill __.test
