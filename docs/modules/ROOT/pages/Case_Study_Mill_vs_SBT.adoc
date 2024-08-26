@@ -33,9 +33,8 @@ The Mill build for Gatling is generally snappier than the SBT build. This applie
 most workflows, but the difference matters most for workflows which are short-lived,
 where the difference in the fixed overhead of the build tool is most noticeable.
 
-I disabled `gatling-build-plugin` which bundles the various scalafmt/scalafix/etc. linters
-as part of `compile`, for a fair comparison since Mill doesn't bundle them and instead
-expects them to be invoked separately.
+For a fair comparison, we disabled `gatling-build-plugin` in the sbt setup, which bundles the various scalafmt/scalafix/etc. linters as part of `compile`, 
+since Mill doesn't bundle them and instead expects them to be invoked separately.
 
 For the benchmarks below, each provided number is the median wall time of three consecutive runs
 on my M1 Macbook Pro. While ad-hoc, these benchmarks are enough to give you a flavor of how
