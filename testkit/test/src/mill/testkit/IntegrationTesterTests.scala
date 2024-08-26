@@ -10,7 +10,7 @@ object IntegrationTesterTests extends TestSuite {
       val tester = new IntegrationTester(
         clientServerMode = true,
         workspaceSourcePath =
-          os.pwd / "testkit" / "test" / "resources" / "integration-test-example-project",
+          os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "integration-test-example-project",
         millExecutable = os.Path(sys.env("MILL_EXECUTABLE_PATH"))
       )
 

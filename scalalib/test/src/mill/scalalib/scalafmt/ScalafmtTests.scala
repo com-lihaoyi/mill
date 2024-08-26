@@ -27,7 +27,7 @@ object ScalafmtTests extends TestSuite {
     }
   }
 
-  val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "scalafmt"
+  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "scalafmt"
 
   def tests: Tests = Tests {
     test("scalafmt") {

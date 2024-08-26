@@ -59,7 +59,7 @@ object TestRunnerTests extends TestSuite {
     }
   }
 
-  val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "testrunner"
+  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "testrunner"
 
   override def tests: Tests = Tests {
     test("TestRunner") - {

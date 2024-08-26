@@ -16,7 +16,7 @@ object TopLevelExportsTests extends TestSuite {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  val millSourcePath = os.pwd / "scalajslib" / "test" / "resources" / "top-level-exports"
+  val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "top-level-exports"
 
   val evaluator = UnitTester(TopLevelExportsModule, millSourcePath)
 

@@ -13,7 +13,7 @@ object FeaturesTests extends TestSuite {
     override lazy val millDiscover: Discover[Features.this.type] = Discover[this.type]
   }
 
-  val millSourcePath = os.pwd / "scalanativelib" / "test" / "resources" / "features"
+  val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "features"
 
   val tests: Tests = Tests {
     test("incremental compilation works") {

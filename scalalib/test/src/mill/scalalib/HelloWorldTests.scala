@@ -377,7 +377,7 @@ object HelloWorldTests extends TestSuite {
     }
   }
 
-  val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-world"
+  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world"
 
   def jarMainClass(jar: JarFile): Option[String] = {
     import java.util.jar.Attributes._
@@ -480,7 +480,7 @@ object HelloWorldTests extends TestSuite {
       test("docJarWithTitle") {
         val eval = UnitTester(
           HelloWorldDocTitle,
-          sourceRoot = os.pwd / "scalalib" / "test" / "resources" / "hello-world"
+          sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world"
         )
         val Right(result) = eval.apply(HelloWorldDocTitle.core.docJar)
         assert(
@@ -493,7 +493,7 @@ object HelloWorldTests extends TestSuite {
       test("docJarWithVersion") {
         val eval = UnitTester(
           HelloWorldWithDocVersion,
-          sourceRoot = os.pwd / "scalalib" / "test" / "resources" / "hello-world"
+          sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world"
         )
         // scaladoc generation fails because of "-Xfatal-warnings" flag
         val Left(Result.Failure(_, None)) = eval.apply(HelloWorldWithDocVersion.core.docJar)
@@ -501,7 +501,7 @@ object HelloWorldTests extends TestSuite {
       test("docJarOnlyVersion") {
         val eval = UnitTester(
           HelloWorldOnlyDocVersion,
-          sourceRoot = os.pwd / "scalalib" / "test" / "resources" / "hello-world"
+          sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world"
         )
         // `docJar` requires the `compile` task to succeed (since the addition of Scaladoc 3)
         val Left(Result.Failure(_, None)) = eval.apply(HelloWorldOnlyDocVersion.core.docJar)
@@ -831,7 +831,7 @@ object HelloWorldTests extends TestSuite {
 
         val eval = UnitTester(
           HelloWorldWithoutMain,
-          sourceRoot = os.pwd / "scalalib" / "test" / "resources" / "hello-world-no-main"
+          sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world-no-main"
         )
         val Left(Result.Failure(_, None)) = eval.apply(HelloWorldWithoutMain.core.run())
       }
@@ -886,7 +886,7 @@ object HelloWorldTests extends TestSuite {
       test("notRunWithoutMainClass") {
         val eval = UnitTester(
           HelloWorldWithoutMain,
-          sourceRoot = os.pwd / "scalalib" / "test" / "resources" / "hello-world-no-main"
+          sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world-no-main"
         )
         val Left(Result.Failure(_, None)) = eval.apply(HelloWorldWithoutMain.core.runLocal())
       }
@@ -977,7 +977,7 @@ object HelloWorldTests extends TestSuite {
         }
 
         val helloWorldMultiResourcePath =
-          os.pwd / "scalalib" / "test" / "resources" / "hello-world-multi"
+          os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world-multi"
 
         def checkAppendMulti[M <: mill.testkit.TestBaseModule](
             module: M,
@@ -1102,7 +1102,7 @@ object HelloWorldTests extends TestSuite {
           test("run") {
             val eval = UnitTester(
               HelloWorldAkkaHttpRelocate,
-              sourceRoot = os.pwd / "scalalib" / "test" / "resources" / "hello-world-deps"
+              sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world-deps"
             )
             val Right(result) = eval.apply(HelloWorldAkkaHttpRelocate.core.runMain("Main"))
             assert(result.evalCount > 0)
@@ -1222,7 +1222,7 @@ object HelloWorldTests extends TestSuite {
         test("runMain") {
           val eval = UnitTester(
             mod,
-            sourceRoot = os.pwd / "scalalib" / "test" / "resources" / "hello-world-macros"
+            sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world-macros"
           )
           if (Properties.isJavaAtLeast(17)) "skipped on Java 17+"
           else {
@@ -1234,7 +1234,7 @@ object HelloWorldTests extends TestSuite {
         test("docJar") {
           val eval = UnitTester(
             mod,
-            sourceRoot = os.pwd / "scalalib" / "test" / "resources" / "hello-world-macros"
+            sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world-macros"
           )
           if (Properties.isJavaAtLeast(17)) "skipped on Java 17+"
           else {
@@ -1249,7 +1249,7 @@ object HelloWorldTests extends TestSuite {
         test("runMain") {
           val eval = UnitTester(
             mod,
-            sourceRoot = os.pwd / "scalalib" / "test" / "resources" / "hello-world-macros"
+            sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world-macros"
           )
           val Right(result) = eval.apply(mod.core.runMain("Main"))
           assert(result.evalCount > 0)
@@ -1258,7 +1258,7 @@ object HelloWorldTests extends TestSuite {
         test("docJar") {
           val eval = UnitTester(
             mod,
-            sourceRoot = os.pwd / "scalalib" / "test" / "resources" / "hello-world-macros"
+            sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world-macros"
           )
           val Right(result) = eval.apply(mod.core.docJar)
           assert(result.evalCount > 0)
@@ -1271,7 +1271,7 @@ object HelloWorldTests extends TestSuite {
       test("runMain") {
         val eval = UnitTester(
           HelloWorldFlags,
-          sourceRoot = os.pwd / "scalalib" / "test" / "resources" / "hello-world-flags"
+          sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world-flags"
         )
         val Right(result) = eval.apply(HelloWorldFlags.core.runMain("Main"))
         assert(result.evalCount > 0)
@@ -1280,7 +1280,7 @@ object HelloWorldTests extends TestSuite {
       test("docJar") {
         val eval = UnitTester(
           HelloWorldFlags,
-          sourceRoot = os.pwd / "scalalib" / "test" / "resources" / "hello-world-flags"
+          sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world-flags"
         )
         val Right(result) = eval.apply(HelloWorldFlags.core.docJar)
         assert(result.evalCount > 0)
@@ -1291,7 +1291,7 @@ object HelloWorldTests extends TestSuite {
 
       val eval = UnitTester(
         HelloWorldColorOutput,
-        sourceRoot = os.pwd / "scalalib" / "test" / "resources" / "hello-world-color-output",
+        sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world-color-output",
         errStream = new PrintStream(errStream, true)
       )
       val Left(Result.Failure("Compilation failed", _)) =
@@ -1306,7 +1306,7 @@ object HelloWorldTests extends TestSuite {
     test("scalacheck") {
       val eval = UnitTester(
         HelloScalacheck,
-        sourceRoot = os.pwd / "scalalib" / "test" / "resources" / "hello-scalacheck"
+        sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-scalacheck"
       )
       val Right(result) = eval.apply(HelloScalacheck.foo.test.test())
       assert(
@@ -1323,7 +1323,7 @@ object HelloWorldTests extends TestSuite {
     test("dotty213") {
       val eval = UnitTester(
         Dotty213,
-        sourceRoot = os.pwd / "scalalib" / "test" / "resources" / "dotty213"
+        sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "dotty213"
       )
       val Right(result) = eval.apply(Dotty213.foo.run())
       assert(result.evalCount > 0)

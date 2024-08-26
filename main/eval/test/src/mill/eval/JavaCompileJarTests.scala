@@ -18,7 +18,8 @@ object JavaCompileJarTests extends TestSuite {
     mill.api.PathRef(ctx.dest)
   }
 
-  val javacSrcPath = os.pwd / "main" / "test" / "resources" / "examples" / "javac"
+  val resourceFolder = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER"))
+  val javacSrcPath = resourceFolder / "examples" / "javac"
 
   val tests = Tests {
 
