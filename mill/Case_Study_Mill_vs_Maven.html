@@ -147,6 +147,10 @@
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Scala_Web_Examples.html">Scala Web Examples</a>
   </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Case_Study_Mill_vs_SBT.html">Case Study: Mill vs SBT</a>
+  </li>
 </ul>
   </li>
 
@@ -311,14 +315,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.0-M0-44-a34932</span>
+    <span class="version">0.12.0-M0-45-90ec87</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="0.11.12/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="index.html">0.12.0-M0-44-a34932</a>
+          <a href="index.html">0.12.0-M0-45-90ec87</a>
         </li>
         <li class="version is-latest">
           <a href="0.11.12/index.html">0.11.12</a>
@@ -363,9 +367,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-44-a34932</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-45-90ec87</button>
   <div class="version-menu">
-    <a class="version is-current" href="Case_Study_Mill_vs_Maven.html">0.12.0-M0-44-a34932</a>
+    <a class="version is-current" href="Case_Study_Mill_vs_Maven.html">0.12.0-M0-45-90ec87</a>
     <a class="version is-missing" href="0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="0.11.10/index.html">0.11.10</a>
@@ -1285,6 +1289,59 @@ rather than configuring a bunch of third-party plugins to try and achieve what y
 </div>
 </div>
 <div class="sect1">
+<h2 id="_debugging_tooling"><a class="anchor" href="#_debugging_tooling"></a>Debugging Tooling</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Another area that Mill does better than Maven is providing builtin tools for you to understand
+what your build is doing. For example, the Mockito project build discussed has 21 submodules
+and associated test suites, but how do these different modules depend on each other? With
+Mill, you can run <code>./mill show visualize __.compile</code>, and it will show you how the
+<code>compile</code> task of each module depends on the others:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/NettyCompileGraph.svg" alt="NettyCompileGraph" />
+</div>
+</div>
+<div class="paragraph">
+<p>Apart from the static dependency graph, another thing of interest may be the performance
+profile and timeline: where the time is spent when you actually compile everything. With
+Mill, when you run a compilation using <code>./mill -j 10 __.compile</code>, you automatically get a
+<code>out/mill-chrome-profile.json</code> file that you can load into your <code>chrome://tracing</code> page and
+visualize where your build is spending time and where the performance bottlenecks are:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/NettyCompileProfile.png" alt="NettyCompileProfile" />
+</div>
+</div>
+<div class="paragraph">
+<p>If you want to inspect the tree of third-party dependencies used by any module, the
+built in <code>ivyDepsTree</code> command lets you do that easily:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ./mill handler.ivyDepsTree
+├─ org.jctools:jctools-core:4.0.5
+├─ org.junit.jupiter:junit-jupiter-api:5.9.0
+│  ├─ org.apiguardian:apiguardian-api:1.1.2
+│  ├─ org.junit.platform:junit-platform-commons:1.9.0
+│  │  └─ org.apiguardian:apiguardian-api:1.1.2
+│  └─ org.opentest4j:opentest4j:1.2.0
+└─ com.google.protobuf:protobuf-java:2.6.1</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>None of these tools are rocket science, but Mill provides all of them out of the
+box in a convenient package for you to use. Whether you want a visual graph layout,
+a parallel performance profile, or a third-party dependency tree of your project,
+Mill makes it easy and convenient without needing to fiddle with custom configuration
+or third party plugins. This helps make it easy for you to explore, understand, and
+take ownership of the build tool.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_conclusion"><a class="anchor" href="#_conclusion"></a>Conclusion</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -1303,7 +1360,10 @@ extensibility via libraries (e.g. <code>org.codehaus.groovy:groovy</code>) and s
 work would be necessary to make the Mill build production ready: compatibility with
 different operating system architectures, Java versions, and so on. However, hopefully
 it demonstrates the potential value: improved performance, conciseness of the build logic,
-and easy extensibility so you can fine-tune your build logic to your requirements.</p>
+and easy extensibility so you can fine-tune your build logic to your requirements.
+Mill provides builtin tools to help you navigate,
+visualize, and understand your build, turning a normally opaque &quot;build config&quot; into
+something that’s transparent and easily understandable.</p>
 </div>
 </div>
 </div>
