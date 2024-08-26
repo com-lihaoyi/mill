@@ -762,6 +762,46 @@ much more concise or verbose than the other. Rather, what is interesting is that
 it is much easier to work with this kind of _build logic_ via _concise type-checked code_,
 rather than configuring a bunch of third-party plugins to try and achieve what you want.
 
+
+== Debugging Tooling
+
+Another area that Mill does better than Maven is providing builtin tools for you to understand
+what your build is doing. For example, the Mockito project build discussed has 21 submodules
+and associated test suites, but how do these different modules depend on each other? With
+Mill, you can run `./mill show visualize __.compile`, and it will show you how the
+`compile` task of each module depends on the others:
+
+image::NettyCompileGraph.svg[]
+
+Apart from the static dependency graph, another thing of interest may be the performance
+profile and timeline: where the time is spent when you actually compile everything. With
+Mill, when you run a compilation using `./mill -j 10 __.compile`, you automatically get a
+`out/mill-chrome-profile.json` file that you can load into your `chrome://tracing` page and
+visualize where your build is spending time and where the performance bottlenecks are:
+
+image::NettyCompileProfile.png[]
+
+If you want to inspect the tree of third-party dependencies used by any module, the
+built in `ivyDepsTree` command lets you do that easily:
+
+```bash
+$ ./mill handler.ivyDepsTree
+├─ org.jctools:jctools-core:4.0.5
+├─ org.junit.jupiter:junit-jupiter-api:5.9.0
+│  ├─ org.apiguardian:apiguardian-api:1.1.2
+│  ├─ org.junit.platform:junit-platform-commons:1.9.0
+│  │  └─ org.apiguardian:apiguardian-api:1.1.2
+│  └─ org.opentest4j:opentest4j:1.2.0
+└─ com.google.protobuf:protobuf-java:2.6.1
+```
+
+None of these tools are rocket science, but Mill provides all of them out of the
+box in a convenient package for you to use. Whether you want a visual graph layout,
+a parallel performance profile, or a third-party dependency tree of your project,
+Mill makes it easy and convenient without needing to fiddle with custom configuration
+or third party plugins. This helps make it easy for you to explore, understand, and
+take ownership of the build tool.
+
 == Conclusion
 
 Both the Mill and Maven builds we discussed in this case study do the same thing: they
@@ -778,3 +818,6 @@ work would be necessary to make the Mill build production ready: compatibility w
 different operating system architectures, Java versions, and so on. However, hopefully
 it demonstrates the potential value: improved performance, conciseness of the build logic,
 and easy extensibility so you can fine-tune your build logic to your requirements.
+Mill provides builtin tools to help you navigate,
+visualize, and understand your build, turning a normally opaque "build config" into
+something that's transparent and easily understandable.
