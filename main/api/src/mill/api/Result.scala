@@ -29,6 +29,7 @@ object Result {
       case e: ResultFailureException =>
         // TODO: add cause when Result.Failure supports it
         Result.Failure(e.getMessage, None)
+      case f: Result.Failing[T] => f
       case e: Throwable =>
         Exception(e, new OuterStack(new java.lang.Exception().getStackTrace().toIndexedSeq))
     }
@@ -65,11 +66,11 @@ object Result {
    * A failed task execution.
    * @tparam T The result type of the computed task.
    */
-  sealed trait Failing[+T] extends Result[T] {
+  // TODO: remove `Exception` from hierarchy for Mill 0.13
+  sealed trait Failing[+T] extends java.lang.Exception with Result[T] {
     def map[V](f: T => V): Failing[V]
     def flatMap[V](f: T => Result[V]): Failing[V]
     override def asFailing: Option[Result.Failing[T]] = Some(this)
-
   }
 
   /**
