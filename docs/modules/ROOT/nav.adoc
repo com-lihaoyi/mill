@@ -22,6 +22,7 @@
 * xref:Testing_Scala_Projects.adoc[]
 // * xref:Publishing_Scala_Projects.adoc[]
 * xref:Scala_Web_Examples.adoc[]
+* xref:Case_Study_Mill_vs_SBT.adoc[]
 
 // This section is all about developing a deeper understanding of specific
 // topics in Mill. This is the opposite of `Quick Start` above: while we touch

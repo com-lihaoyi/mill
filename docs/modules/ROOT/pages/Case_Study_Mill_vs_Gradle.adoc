@@ -181,6 +181,43 @@ For both Mill and Gradle, we see small speedups relative to the <<Incremental Co
 benchmark above, which likely comes from not having to compile any Java source files at all. Mill
 remains faster than Gradle by about 2.0x.
 
+== Debugging Tooling
+
+Another area that Mill does better than Gradle is providing builtin tools for you to understand
+what your build is doing. For example, the Mockito project build discussed has 21 submodules
+and associated test suites, but how do these different modules depend on each other? With
+Mill, you can run `./mill show visualize __.compile`, and it will show you how the
+`compile` task of each module depends on the others:
+
+image::MockitoCompileGraph.svg[]
+
+Apart from the static dependency graph, another thing of interest may be the performance
+profile and timeline: where the time is spent when you actually compile everything. With
+Mill, when you run a compilation using `./mill -j 10 __.compile`, you automatically get a
+`out/mill-chrome-profile.json` file that you can load into your `chrome://tracing` page and
+visualize where your build is spending time and where the performance bottlenecks are:
+
+image::MockitoCompileProfile.png[]
+
+If you want to inspect the tree of third-party dependencies used by any module, the
+built in `ivyDepsTree` command lets you do that easily:
+
+```bash
+$ ./mill subprojects.junit-jupiter.ivyDepsTree
+├─ org.junit.jupiter:junit-jupiter-api:5.10.3
+│  ├─ org.apiguardian:apiguardian-api:1.1.2
+│  ├─ org.junit.platform:junit-platform-commons:1.10.3
+│  │  └─ org.apiguardian:apiguardian-api:1.1.2
+│  └─ org.opentest4j:opentest4j:1.3.0
+└─ org.objenesis:objenesis:3.3
+```
+
+None of these tools are rocket science, but Mill provides all of them out of the
+box in a convenient package for you to use. Whether you want a visual graph layout,
+a parallel performance profile, or a third-party dependency tree of your project,
+Mill makes it easy and convenient without needing to fiddle with custom configuration
+or third party plugins. This helps make it easy for you to explore, understand, and
+take ownership of the build tool.
 
 == Conclusion
 
@@ -197,4 +234,6 @@ Again, the Mill build used in this comparison is for demonstration purposes, and
 work would be necessary to make the Mill build production ready: publishing configuration,
 code coverage integration, and so on. However, hopefully it demonstrates the potential value:
 significantly improved performance, so that you spend less time waiting for your code to
-compile and more time doing the work that actually matters.
+compile and more time doing the work that actually matters, with builtin debugging tools
+to help turn normally opaque "build config" into something that's transparent and
+easily understandable.

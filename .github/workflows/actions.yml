@@ -80,7 +80,7 @@ jobs:
           - java-version: 11
             millargs: "'example.thirdparty[{mockito,acyclic,commons-io}].local.test'"
           - java-version: 17
-            millargs: "'example.thirdparty[{fansi,jimfs,netty}].local.test'"
+            millargs: "'example.thirdparty[{fansi,jimfs,netty,gatling}].local.test'"
           - java-version: 11
             millargs: "'example.depth.__.local.test'"
           - java-version: 17
