@@ -139,7 +139,7 @@ object FileImportGraph {
             p == projectRoot / millBuild ||
             (os.isDir(p) && !os.exists(p / "module.sc"))
       )
-      .filter(_.last == "module.sc")
+      .filter(p => p.last == "module.sc" && os.read(p).nonEmpty)
 
     buildFiles.foreach(walkScripts(_))
 
