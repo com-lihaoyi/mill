@@ -41,6 +41,12 @@ object RootModule {
         millFile0,
         Caller(null)
       ) with mill.main.MainModule {
+    def this(segments: String*)(implicit
+        baseModuleInfo: RootModule.Info,
+        millModuleEnclosing0: sourcecode.Enclosing,
+        millModuleLine0: sourcecode.Line,
+        millFile0: sourcecode.File
+    ) = this(Some(Segments.labels(segments: _*)))
 
     // Make BaseModule take the `millDiscover` as an implicit param, rather than
     // defining it itself. That is so we can define it externally in the wrapper
@@ -64,7 +70,12 @@ object RootModule {
         millFile0,
         Caller(null)
       ) {
-
+    def this(segments: String*)(implicit
+        baseModuleInfo: RootModule.Info,
+        millModuleEnclosing0: sourcecode.Enclosing,
+        millModuleLine0: sourcecode.Line,
+        millFile0: sourcecode.File
+    ) = this(Some(Segments.labels(segments: _*)))
     object interp extends Interp
 
     override lazy val millDiscover: Discover[this.type] =
