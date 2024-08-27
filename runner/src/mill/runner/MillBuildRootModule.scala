@@ -318,7 +318,7 @@ object MillBuildRootModule {
 
       val pkg = FileImportGraph.fileImportToSegments(base, scriptSource.path, true).dropRight(1)
       val specialNames = Set("build", "module")
-      val pkgLine = (if (specialNames(scriptSource.path.baseName)) pkg.dropRight(1) else pkg)
+      val pkgLine = (if (specialNames(scriptSource.path.baseName)) pkg else pkg)
         .map(p => "package " + backtickWrap(p)).mkString("\n")
       val userScriptCode = scriptCode(scriptSource.path)
       val markerComment = s"""//MILL_ORIGINAL_FILE_PATH=${scriptSource.path}
@@ -351,38 +351,41 @@ object MillBuildRootModule {
       millTopLevelProjectRoot: os.Path
   ): String = {
     val segsList = segs.map(pprint.Util.literalize(_)).mkString(", ")
-    val superClass =
-      if (name == "build") {
-        s"_root_.mill.main.RootModule.Base(Some(_root_.mill.define.Segments.labels($segsList)))"
-      } else {
-        s"_root_.mill.main.RootModule.Foreign(Some(_root_.mill.define.Segments.labels($segsList)))"
-      }
-
-    val miscInfoName = s"MiscInfo_$name"
-
+    val superClass = if (name == "build") "Base" else "Foreign"
+    
     s"""
        |import _root_.mill.runner.MillBuildRootModule
        |
        |@scala.annotation.nowarn
-       |object ${backtickWrap(miscInfoName)} {
-       |  implicit lazy val millBuildRootModuleInfo: _root_.mill.runner.MillBuildRootModule.Info = _root_.mill.runner.MillBuildRootModule.Info(
-       |    ${enclosingClasspath.map(p => literalize(p.toString))}.map(_root_.os.Path(_)),
-       |    _root_.os.Path(${literalize(base.toString)}),
-       |    _root_.os.Path(${literalize(millTopLevelProjectRoot.toString)}),
-       |  )
-       |  implicit lazy val millBaseModuleInfo: _root_.mill.main.RootModule.Info = _root_.mill.main.RootModule.Info(
-       |    millBuildRootModuleInfo.projectRoot,
-       |    _root_.mill.define.Discover[${backtickWrap(name + "_")}]
-       |  )
-       |}
-       |import ${backtickWrap(miscInfoName)}.{millBuildRootModuleInfo, millBaseModuleInfo}
-       |package object ${backtickWrap(name)} extends ${backtickWrap(name + "_")}
-       |import ${backtickWrap(name)}._
-       |class ${backtickWrap(name + "_")} extends $superClass {
+       |object MillMiscInfo extends MillBuildRootModule.MillMiscInfo(
+       |    ${enclosingClasspath.map(p => literalize(p.toString))},
+       |    ${literalize(base.toString)},
+       |    ${literalize(millTopLevelProjectRoot.toString)},
+       |    _root_.mill.define.Discover[PackageModule]
+       |)
+       |import MillMiscInfo.{millBuildRootModuleInfo, millBaseModuleInfo}
+       |object `package` extends PackageModule
+       |class PackageModule extends _root_.mill.main.RootModule.$superClass(Some(_root_.mill.define.Segments.labels($segsList))) {
        |
        |
        |""".stripMargin
   }
 
   val bottom = "}"
+
+  class MillMiscInfo(enclosingClasspath: Seq[String],
+                     projectRoot: String,
+                     topLevelProjectRoot: String,
+                     discover: Discover[_]){
+    implicit val millBuildRootModuleInfo: MillBuildRootModule.Info = MillBuildRootModule.Info(
+      enclosingClasspath.map(os.Path(_)),
+      os.Path(projectRoot),
+      os.Path(topLevelProjectRoot)
+    )
+    implicit val millBaseModuleInfo: RootModule.Info = RootModule.Info(
+      millBuildRootModuleInfo.projectRoot,
+      discover
+    )
+  }
+
 }
