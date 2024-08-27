@@ -336,11 +336,8 @@ object MillBuildRootModule {
 
       val pkgLine = pkg.map(p => "package " + backtickWrap(p)).mkString("\n")
       val markerComment =
-        s"""
-           |//MILL_ORIGINAL_FILE_PATH=${scriptSource.path}
-           |//MILL_USER_CODE_START_MARKER
-           |
-           |""".stripMargin
+        s"""//MILL_ORIGINAL_FILE_PATH=${scriptSource.path}
+           |//MILL_USER_CODE_START_MARKER""".stripMargin
 
       os.write(
         dest,
