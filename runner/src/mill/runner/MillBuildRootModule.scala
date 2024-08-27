@@ -365,18 +365,19 @@ object MillBuildRootModule {
 
     s"""import _root_.mill.runner.MillBuildRootModule
        |package ${backtickWrap(name)}{
-       |  @scala.annotation.nowarn
+       |  @_root_.scala.annotation.nowarn
        |  object MillMiscInfo extends MillBuildRootModule.MillMiscInfo(
        |    ${enclosingClasspath.map(p => literalize(p.toString))},
        |    ${literalize(base.toString)},
        |    ${literalize(millTopLevelProjectRoot.toString)},
        |    _root_.mill.define.Discover[${backtickWrap(name + "_")}]
        |  )
-       |
        |}
        |
        |import ${backtickWrap(name)}.MillMiscInfo._
+       |
        |package object ${backtickWrap(name)} extends ${backtickWrap(name + "_")}
+       |
        |class ${backtickWrap(name + "_")}
        |extends _root_.mill.main.RootModule.$superClass($segsList) {
        |""".stripMargin
