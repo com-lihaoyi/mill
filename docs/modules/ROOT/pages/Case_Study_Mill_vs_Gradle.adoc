@@ -184,7 +184,7 @@ remains faster than Gradle by about 2.0x.
 == Debugging Tooling
 
 Another area that Mill does better than Gradle is providing builtin tools for you to understand
-what your build is doing. For example, the Mockito project build discussed has 21 submodules
+what your build is doing. For example, the Mockito project build discussed has 22 submodules
 and associated test suites, but how do these different modules depend on each other? With
 Mill, you can run `./mill show visualize __.compile`, and it will show you how the
 `compile` task of each module depends on the others:
