@@ -21,8 +21,7 @@ case class Discover[T] private (
       Class[_],
       (Seq[String], Seq[mainargs.MainData[_, _]])
     ],
-    dummy: Int = 0, /* avoid conflict with Discover.apply(value: Map) below*/
-    packageObjectDirectChildModules: Seq[String] = Nil
+    dummy: Int = 0 /* avoid conflict with Discover.apply(value: Map) below*/
 ) {
   @deprecated("Binary compatibility shim", "Mill 0.11.4")
   private[define] def this(value: Map[Class[_], Seq[mainargs.MainData[_, _]]]) =
@@ -42,12 +41,6 @@ case class Discover[T] private (
 }
 
 object Discover {
-  def apply3[T](
-      value: Map[Class[_], (Seq[String], Seq[mainargs.MainData[_, _]])],
-      packageObjectDirectChildModules: Seq[String]
-  ): Discover[T] =
-    new Discover[T](value, packageObjectDirectChildModules = packageObjectDirectChildModules)
-
   def apply2[T](value: Map[Class[_], (Seq[String], Seq[mainargs.MainData[_, _]])]): Discover[T] =
     new Discover[T](value)
 
@@ -148,18 +141,8 @@ object Discover {
         q"$lhs -> $overridesLambda"
       }
 
-      val packageObjectDirectChildModules = weakTypeOf[T]
-        .members
-        .collect { case m if m.isModule && m.info <:< weakTypeOf[mill.define.Module] => m.name }
-
       c.Expr[Discover[T]](
-        q"""
-        import _root_.mill.main.TokenReaders._
-        _root_.mill.define.Discover.apply3(
-          _root_.scala.collection.immutable.Map(..$mapping),
-          _root_.scala.collection.immutable.Seq(..$packageObjectDirectChildModules)
-        )
-        """
+        q"import _root_.mill.main.TokenReaders._; _root_.mill.define.Discover.apply2(_root_.scala.collection.immutable.Map(..$mapping))"
       )
     }
   }
