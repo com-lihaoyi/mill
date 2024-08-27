@@ -322,16 +322,15 @@ object MillBuildRootModule {
       val pkgLine = pkg.map(p => "package " + backtickWrap(p)).mkString("\n")
 
       val top =
-        if (!specialNames(scriptSource.path.baseName)) {
-          MillBuildRootModule.topRaw(scriptSource.path.baseName)
-        } else {
-          MillBuildRootModule.topBuild(
+        if (!specialNames(scriptSource.path.baseName)) topRaw(scriptSource.path.baseName)
+        else {
+          topBuild(
             segs = relative.segments.init,
             base = scriptSource.path / os.up,
             pkgLine = pkgLine,
             name = pkg.last,
             enclosingClasspath = enclosingClasspath,
-            millTopLevelProjectRoot = millTopLevelProjectRoot,
+            millTopLevelProjectRoot = millTopLevelProjectRoot
           )
         }
 
@@ -340,18 +339,16 @@ object MillBuildRootModule {
         top,
         userCodeHeaderComment(scriptSource.path),
         scriptCode(scriptSource.path),
-        MillBuildRootModule.bottom
+        bottom
       ).mkString("\n")
 
       os.write(dest, newSource, createFolders = true)
     }
   }
 
-  def topRaw(name: String) = {
-    s"object ${backtickWrap(name)} {"
-  }
+  def topRaw(name: String): String = s"object ${backtickWrap(name)} {"
 
-  def userCodeHeaderComment(originalFilePath: os.Path) =
+  def userCodeHeaderComment(originalFilePath: os.Path): String =
     s"""//MILL_ORIGINAL_FILE_PATH=${originalFilePath}
        |//MILL_USER_CODE_START_MARKER
        |
@@ -363,7 +360,7 @@ object MillBuildRootModule {
       pkgLine: String,
       name: String,
       enclosingClasspath: Seq[os.Path],
-      millTopLevelProjectRoot: os.Path,
+      millTopLevelProjectRoot: os.Path
   ): String = {
     val segsList = segs.map(pprint.Util.literalize(_)).mkString(", ")
     val superClass =
