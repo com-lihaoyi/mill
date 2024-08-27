@@ -378,9 +378,8 @@ object MillBuildRootModule {
        |
        |}
        |
-       |import ${backtickWrap(name)}.MillMiscInfo.{millBuildRootModuleInfo, millBaseModuleInfo}
+       |import ${backtickWrap(name)}.MillMiscInfo._
        |package object ${backtickWrap(name)} extends ${backtickWrap(name + "_")}
-       |import ${backtickWrap(name)}._
        |class ${backtickWrap(name + "_")}
        |extends _root_.mill.main.RootModule.$superClass($segsList) {
        |""".stripMargin
