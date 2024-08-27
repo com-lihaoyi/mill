@@ -352,7 +352,7 @@ object MillBuildRootModule {
   ): String = {
     val segsList = segs.map(pprint.Util.literalize(_)).mkString(", ")
     val superClass = if (name == "build") "Base" else "Foreign"
-    
+
     s"""
        |import _root_.mill.runner.MillBuildRootModule
        |
@@ -366,17 +366,17 @@ object MillBuildRootModule {
        |import MillMiscInfo.{millBuildRootModuleInfo, millBaseModuleInfo}
        |object `package` extends PackageModule
        |class PackageModule extends _root_.mill.main.RootModule.$superClass(Some(_root_.mill.define.Segments.labels($segsList))) {
-       |
-       |
        |""".stripMargin
   }
 
   val bottom = "}"
 
-  class MillMiscInfo(enclosingClasspath: Seq[String],
-                     projectRoot: String,
-                     topLevelProjectRoot: String,
-                     discover: Discover[_]){
+  class MillMiscInfo(
+      enclosingClasspath: Seq[String],
+      projectRoot: String,
+      topLevelProjectRoot: String,
+      discover: Discover[_]
+  ) {
     implicit val millBuildRootModuleInfo: MillBuildRootModule.Info = MillBuildRootModule.Info(
       enclosingClasspath.map(os.Path(_)),
       os.Path(projectRoot),
