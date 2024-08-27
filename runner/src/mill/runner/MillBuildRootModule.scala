@@ -316,22 +316,20 @@ object MillBuildRootModule {
       val relative = scriptSource.path.relativeTo(base)
       val dest = targetDest / FileImportGraph.fileImportToSegments(base, scriptSource.path, false)
 
-      val pkg0 = FileImportGraph.fileImportToSegments(base, scriptSource.path, true).dropRight(1)
+      val pkg = FileImportGraph.fileImportToSegments(base, scriptSource.path, true).dropRight(1)
       val specialNames = Set("build", "module")
-      val (pkg, newSource) =
+      val newSource =
         if (specialNames(scriptSource.path.baseName)) {
-          val pkg :+ pkgLast = pkg0
 
-          pkg -> topBuild(
+          topBuild(
             relative.segments.init,
             scriptSource.path / os.up,
-            pkgLast,
+            pkg.last,
             enclosingClasspath,
             millTopLevelProjectRoot
           )
         } else {
-          val pkg = pkg0
-          pkg -> s"""object ${backtickWrap(scriptSource.path.baseName)} {"""
+          s"""object ${backtickWrap(scriptSource.path.baseName)} {"""
         }
 
       val pkgLine = pkg.map(p => "package " + backtickWrap(p)).mkString("\n")
@@ -363,22 +361,18 @@ object MillBuildRootModule {
     val segsList = segs.map(pprint.Util.literalize(_)).mkString(", ")
     val superClass = if (name == "build") "Base" else "Foreign"
 
-    s"""import _root_.mill.runner.MillBuildRootModule
-       |package ${backtickWrap(name)}{
-       |  @_root_.scala.annotation.nowarn
-       |  object MillMiscInfo extends MillBuildRootModule.MillMiscInfo(
-       |    ${enclosingClasspath.map(p => literalize(p.toString))},
-       |    ${literalize(base.toString)},
-       |    ${literalize(millTopLevelProjectRoot.toString)},
-       |    _root_.mill.define.Discover[${backtickWrap(name + "_")}]
-       |  )
-       |}
-       |
-       |import ${backtickWrap(name)}.MillMiscInfo._
-       |
-       |package object ${backtickWrap(name)} extends ${backtickWrap(name + "_")}
-       |
-       |class ${backtickWrap(name + "_")}
+    s"""
+       |import _root_.mill.runner.MillBuildRootModule
+       |@_root_.scala.annotation.nowarn
+       |object MillMiscInfo extends MillBuildRootModule.MillMiscInfo(
+       |  ${enclosingClasspath.map(p => literalize(p.toString))},
+       |  ${literalize(base.toString)},
+       |  ${literalize(millTopLevelProjectRoot.toString)},
+       |  _root_.mill.define.Discover[MillPackageClass]
+       |)
+       |import MillMiscInfo._
+       |object `package` extends MillPackageClass
+       |class MillPackageClass
        |extends _root_.mill.main.RootModule.$superClass($segsList) {
        |""".stripMargin
   }
