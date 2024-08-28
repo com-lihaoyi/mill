@@ -29,7 +29,8 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       goals: Agg[Task[_]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
-      logger: ColorLogger = baseLogger
+      logger: ColorLogger = baseLogger,
+      serialCommandExec: Boolean = false
   ): Evaluator.Results = {
     os.makeDir.all(outPath)
 
@@ -42,7 +43,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
         if (effectiveThreadCount == 1) ""
         else s"[#${if (effectiveThreadCount > 9) f"$threadId%02d" else threadId}] "
 
-      try evaluate0(goals, logger, reporter, testReporter, ec, contextLoggerMsg)
+      try evaluate0(goals, logger, reporter, testReporter, ec, contextLoggerMsg, serialCommandExec)
       finally ec.close()
     }
   }
@@ -68,7 +69,8 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
       ec: ExecutionContext with AutoCloseable,
-      contextLoggerMsg0: Int => String
+      contextLoggerMsg0: Int => String,
+      serialCommandExec: Boolean
   ): Evaluator.Results = {
     os.makeDir.all(outPath)
     val chromeProfileLogger = new ChromeProfileLogger(outPath / millChromeProfile)
@@ -170,7 +172,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     val tasksTransitive = tasksTransitive0.toSet
     val (tasks, leafCommands) = terminals0.partition {
       case Terminal.Labelled(t, _) if tasksTransitive.contains(t) => true
-      case _ => false
+      case _ => !serialCommandExec
     }
 
     // Run all non-command tasks according to the threads

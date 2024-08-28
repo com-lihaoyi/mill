@@ -35,7 +35,7 @@ object RunScript {
       evaluator: Evaluator,
       targets: Agg[Task[Any]]
   ): (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]]) = {
-    val evaluated: Results = evaluator.evaluate(targets)
+    val evaluated: Results = evaluator.evaluate(targets, serialCommandExec = true)
 
     val watched = evaluated.results
       .iterator
