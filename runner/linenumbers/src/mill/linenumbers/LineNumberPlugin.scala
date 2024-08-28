@@ -134,15 +134,19 @@ object LineNumberPlugin {
                         case d: g.DefDef => d.name.toString() != "<init>"
                         case t => t ne pkgObj
                       }
-                      .partition{
+                      .partition {
                         case t: g.Import => true
                         case t: g.ClassDef => true
                         case t: g.ModuleDef => true
                         case _ => false
                       }
-                  val (rootParents, nonRootParents) = pkgObj.impl.parents.partition(isRootModuleIdent)
-                  if (rootParents.isEmpty){
-                    g.reporter.error(pkgObj.pos, "Root module must extend either `RootModule` or `MillBuildRootModule`")
+                  val (rootParents, nonRootParents) =
+                    pkgObj.impl.parents.partition(isRootModuleIdent)
+                  if (rootParents.isEmpty) {
+                    g.reporter.error(
+                      pkgObj.pos,
+                      "Root module must extend either `RootModule` or `MillBuildRootModule`"
+                    )
                   }
                   val newPkgCls = g.treeCopy.ClassDef(
                     pkgCls,
@@ -154,7 +158,7 @@ object LineNumberPlugin {
                       pkgCls.impl.parents ++ nonRootParents,
                       g.ValDef(g.Modifiers(), pkgObj.name, g.EmptyTree, g.EmptyTree),
                       innerStmts ++
-                      pkgObj.impl.body
+                        pkgObj.impl.body
                     )
                   )
                   (pkgClsIndex, outerStmts, newPkgCls, pkgObj)
@@ -171,8 +175,13 @@ object LineNumberPlugin {
                 before ++ newOuterStmts ++ Seq(newPkgCls) ++ after.drop(1)
               )
             case multiple =>
-              for(m <- multiple){
-                g.reporter.error(m._4.pos, s"Only one RootModule can be defined in a build, not ${multiple.size}: " + multiple.map(_._4.name).mkString(", "))
+              for (m <- multiple) {
+                g.reporter.error(
+                  m._4.pos,
+                  s"Only one RootModule can be defined in a build, not ${multiple.size}: " + multiple.map(
+                    _._4.name
+                  ).mkString(", ")
+                )
               }
               tree
           }

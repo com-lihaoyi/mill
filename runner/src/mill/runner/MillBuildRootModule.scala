@@ -318,7 +318,7 @@ object MillBuildRootModule {
       val dest = targetDest / FileImportGraph.fileImportToSegments(base, scriptSource.path, false)
 
       val childNames = scriptSources
-        .collect{case p if p.path.last == "module.sc" => p.path / os.up}
+        .collect { case p if p.path.last == "module.sc" => p.path / os.up }
         .filter(p => p.startsWith(scriptSource.path / os.up))
         .map(_.subRelativeTo(scriptSource.path / os.up).segments)
         .collect { case Seq(single) => single }
