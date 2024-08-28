@@ -115,24 +115,29 @@ object LineNumberPlugin {
 
     object PackageObjectUnpacker extends g.Transformer {
 
+      def isRootModuleIdent(t: g.Tree) = t match{
+        case i: g.Ident => i.name.toString() == "RootModule"
+        case t => false
+      }
       override def transform(tree: g.Tree) = tree match {
         case pkgDef: g.PackageDef =>
           val resOpt = pkgDef.stats.zipWithIndex.collect{
             case (pkgCls: g.ClassDef, pkgClsIndex)
               if pkgCls.name.toString().startsWith("MillPackageClass") =>
               pkgCls.impl.body.collect {
-                case pkgObj: g.ModuleDef if pkgObj.name.toString() == "module" || pkgObj.name.toString() == "build" =>
+                case pkgObj: g.ModuleDef
+                  if pkgObj.name.toString() == g.currentSource.file.name.stripSuffix(".sc")
+                    || pkgObj.impl.parents.exists(isRootModuleIdent) =>
                   val (importStmts, nonImportStmts) = pkgCls.impl.body.partition(_.isInstanceOf[g.Import])
                   val newPkgCls = g.treeCopy.ClassDef(pkgCls, pkgCls.mods, pkgCls.name, pkgCls.tparams,
                     g.treeCopy.Template(
                       pkgCls.impl,
-                      pkgCls.impl.parents ++ pkgObj.impl.parents,
+                      pkgCls.impl.parents ++ pkgObj.impl.parents.filter(!isRootModuleIdent(_)),
                       pkgCls.impl.self,
                       nonImportStmts
                         .filter{
                           case d: g.DefDef => d.name.toString() != "<init>"
-                          case d: g.ModuleDef => false
-                          case _ => true
+                          case t => t ne pkgObj
                         } ++
                         pkgObj.impl.body
                     )
@@ -157,12 +162,11 @@ object LineNumberPlugin {
     }
 
     if (g.currentSource.file.hasExtension("sc")) {
-//      println("unit.body BEFORE " + unit.body)
       unit.body = LineNumberCorrector(unit)
+
       if(g.currentSource.file.name.endsWith("module.sc") || g.currentSource.file.name.endsWith("build.sc")){
         unit.body = PackageObjectUnpacker(unit)
       }
-//      println("unit.body AFTER " + unit.body)
     }
   }
 }
