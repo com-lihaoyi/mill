@@ -116,7 +116,7 @@ object LineNumberPlugin {
     object PackageObjectUnpacker extends g.Transformer {
 
       def isRootModuleIdent(t: g.Tree) = t match{
-        case i: g.Ident => i.name.toString() == "RootModule"
+        case i: g.Ident => i.name.toString() == "RootModule" || i.name.toString() == "MillBuildRootModule"
         case t => false
       }
       override def transform(tree: g.Tree) = tree match {
@@ -164,7 +164,7 @@ object LineNumberPlugin {
     if (g.currentSource.file.hasExtension("sc")) {
       unit.body = LineNumberCorrector(unit)
 
-      if(g.currentSource.file.name.endsWith("module.sc") || g.currentSource.file.name.endsWith("build.sc")){
+      if(g.currentSource.file.name == "module.sc" || g.currentSource.file.name == "build.sc"){
         unit.body = PackageObjectUnpacker(unit)
       }
     }
