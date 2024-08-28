@@ -416,7 +416,6 @@ object MillBuildBootstrap {
     buildClass.getField("MODULE$").get(buildClass).asInstanceOf[BaseModule]
   }
 
-
   def recRoot(projectRoot: os.Path, depth: Int): os.Path = {
     projectRoot / Seq.fill(depth)(millBuild)
   }

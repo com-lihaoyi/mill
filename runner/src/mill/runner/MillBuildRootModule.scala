@@ -279,13 +279,13 @@ object MillBuildRootModule {
       projectRoot: os.Path,
       enclosingClasspath: Seq[os.Path]
   )(implicit baseModuleInfo: RootModule.Info) extends MillBuildRootModule()(
-    implicitly,
-    MillBuildRootModule.Info(
-      enclosingClasspath,
-      projectRoot,
-      topLevelProjectRoot0
-    )
-  ) {
+        implicitly,
+        MillBuildRootModule.Info(
+          enclosingClasspath,
+          projectRoot,
+          topLevelProjectRoot0
+        )
+      ) {
 
     override lazy val millDiscover: Discover[this.type] =
       baseModuleInfo.discover.asInstanceOf[Discover[this.type]]
@@ -320,7 +320,7 @@ object MillBuildRootModule {
         .map(_.path / os.up)
         .filter(_.startsWith(scriptSource.path / os.up))
         .map(_.subRelativeTo(scriptSource.path / os.up).segments)
-        .collect{case Seq(single) => single}
+        .collect { case Seq(single) => single }
 
       val pkg = FileImportGraph.fileImportToSegments(base, scriptSource.path, true).dropRight(1)
 
@@ -375,8 +375,11 @@ object MillBuildRootModule {
       childAliases: String
   ): String = {
     val segsList = segs.map(pprint.Util.literalize(_)).mkString(", ")
-    val superClass = if (name == "build") "Base" else "Foreign"
-
+    val superClass =
+      if (name == "build") {
+        if (millTopLevelProjectRoot == base) "_root_.mill.main.RootModule.Base"
+        else "_root_.mill.runner.MillBuildRootModule"
+      } else "_root_.mill.main.RootModule.Foreign"
 
     s"""
        |import _root_.mill.runner.MillBuildRootModule
@@ -393,7 +396,7 @@ object MillBuildRootModule {
        |import MillMiscInfo._
        |object $name extends MillPackageClass
        |class MillPackageClass
-       |extends _root_.mill.main.RootModule.$superClass($segsList) {
+       |extends $superClass($segsList) {
        |  $childAliases
        |""".stripMargin
   }

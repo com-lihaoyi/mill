@@ -64,7 +64,7 @@ private object ResolveCore {
   }
 
   def resolve(
-               rootModule: BaseModule,
+      rootModule: BaseModule,
       remainingQuery: List[Segment],
       current: Resolved,
       querySoFar: Segments
@@ -195,7 +195,7 @@ private object ResolveCore {
     instantiateModule0(rootModule, segments).map(_._1)
 
   def instantiateModule0(
-                          rootModule: BaseModule,
+      rootModule: BaseModule,
       segments: Segments
   ): Either[String, (Module, BaseModule)] = {
 
@@ -317,7 +317,7 @@ private object ResolveCore {
     )
 
   def resolveDirectChildren(
-                             rootModule: BaseModule,
+      rootModule: BaseModule,
       cls: Class[_],
       nameOpt: Option[String],
       segments: Segments,
@@ -354,7 +354,7 @@ private object ResolveCore {
   }
 
   def resolveDirectChildren0(
-                              rootModule: BaseModule,
+      rootModule: BaseModule,
       segments: Segments,
       cls: Class[_],
       nameOpt: Option[String]
@@ -362,7 +362,7 @@ private object ResolveCore {
     resolveDirectChildren0(rootModule, segments, cls, nameOpt, Nil)
 
   def resolveDirectChildren0(
-                              rootModule: BaseModule,
+      rootModule: BaseModule,
       segments: Segments,
       cls: Class[_],
       nameOpt: Option[String],
@@ -388,7 +388,6 @@ private object ResolveCore {
               )
         }
       } else Right {
-
 
         val reflectMemberObjects = Reflect
           .reflectNestedObjects0[Module](cls, namePred)
@@ -438,7 +437,7 @@ private object ResolveCore {
   }
 
   def notFoundResult(
-                      rootModule: BaseModule,
+      rootModule: BaseModule,
       querySoFar: Segments,
       current: Resolved,
       next: Segment

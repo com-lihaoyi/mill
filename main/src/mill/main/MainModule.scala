@@ -209,11 +209,10 @@ trait MainModule extends BaseModule0 {
           else {
             val mainDataOpt = evaluator
               .rootModule
-                .millDiscover
-                  .value
-                  .get(t.ctx.enclosingCls)
-                  .flatMap(_._2.find(_.name == t.ctx.segments.parts.last))
-
+              .millDiscover
+              .value
+              .get(t.ctx.enclosingCls)
+              .flatMap(_._2.find(_.name == t.ctx.segments.parts.last))
               .headOption
 
             mainDataOpt match {

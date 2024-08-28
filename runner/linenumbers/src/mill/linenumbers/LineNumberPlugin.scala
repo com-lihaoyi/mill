@@ -112,30 +112,35 @@ object LineNumberPlugin {
       def apply(unit: g.CompilationUnit) = transform(unit.body)
     }
 
-
     object PackageObjectUnpacker extends g.Transformer {
 
-      def isRootModuleIdent(t: g.Tree) = t match{
-        case i: g.Ident => i.name.toString() == "RootModule" || i.name.toString() == "MillBuildRootModule"
+      def isRootModuleIdent(t: g.Tree) = t match {
+        case i: g.Ident =>
+          i.name.toString() == "RootModule" || i.name.toString() == "MillBuildRootModule"
         case t => false
       }
       override def transform(tree: g.Tree) = tree match {
         case pkgDef: g.PackageDef =>
-          val resOpt = pkgDef.stats.zipWithIndex.collect{
+          val resOpt = pkgDef.stats.zipWithIndex.collect {
             case (pkgCls: g.ClassDef, pkgClsIndex)
-              if pkgCls.name.toString().startsWith("MillPackageClass") =>
+                if pkgCls.name.toString().startsWith("MillPackageClass") =>
               pkgCls.impl.body.collect {
                 case pkgObj: g.ModuleDef
-                  if pkgObj.name.toString() == g.currentSource.file.name.stripSuffix(".sc")
-                    || pkgObj.impl.parents.exists(isRootModuleIdent) =>
-                  val (importStmts, nonImportStmts) = pkgCls.impl.body.partition(_.isInstanceOf[g.Import])
-                  val newPkgCls = g.treeCopy.ClassDef(pkgCls, pkgCls.mods, pkgCls.name, pkgCls.tparams,
+                    if pkgObj.name.toString() == g.currentSource.file.name.stripSuffix(".sc")
+                      || pkgObj.impl.parents.exists(isRootModuleIdent) =>
+                  val (importStmts, nonImportStmts) =
+                    pkgCls.impl.body.partition(_.isInstanceOf[g.Import])
+                  val newPkgCls = g.treeCopy.ClassDef(
+                    pkgCls,
+                    pkgCls.mods,
+                    pkgCls.name,
+                    pkgCls.tparams,
                     g.treeCopy.Template(
                       pkgCls.impl,
                       pkgCls.impl.parents ++ pkgObj.impl.parents.filter(!isRootModuleIdent(_)),
                       g.ValDef(g.Modifiers(), pkgObj.name, g.EmptyTree, g.EmptyTree),
                       nonImportStmts
-                        .filter{
+                        .filter {
                           case d: g.DefDef => d.name.toString() != "<init>"
                           case t => t ne pkgObj
                         } ++
@@ -145,7 +150,7 @@ object LineNumberPlugin {
                   (pkgClsIndex, importStmts, newPkgCls)
               }
           }.flatten
-          resOpt match{
+          resOpt match {
             case Nil => super.transform(tree)
             case List((pkgClsIndex, newOuterStmts, newPkgCls)) =>
               val (before, after) = pkgDef.stats.splitAt(pkgClsIndex)
@@ -164,7 +169,7 @@ object LineNumberPlugin {
     if (g.currentSource.file.hasExtension("sc")) {
       unit.body = LineNumberCorrector(unit)
 
-      if(g.currentSource.file.name == "module.sc" || g.currentSource.file.name == "build.sc"){
+      if (g.currentSource.file.name == "module.sc" || g.currentSource.file.name == "build.sc") {
         unit.body = PackageObjectUnpacker(unit)
       }
     }
