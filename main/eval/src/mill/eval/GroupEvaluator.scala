@@ -23,7 +23,7 @@ private[mill] trait GroupEvaluator {
   def workspace: os.Path
   def outPath: os.Path
   def externalOutPath: os.Path
-  def rootModules: Seq[mill.define.BaseModule]
+  def rootModule: mill.define.BaseModule
   def classLoaderSigHash: Int
   def classLoaderIdentityHash: Int
   def workerCache: mutable.Map[Segments, (Int, Val)]

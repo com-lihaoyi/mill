@@ -31,7 +31,7 @@ import scala.util.Try
 class MillBuildRootModule()(implicit
     baseModuleInfo: RootModule.Info,
     millBuildRootModuleInfo: MillBuildRootModule.Info
-) extends RootModule.Base() with ScalaModule {
+) extends RootModule() with ScalaModule {
   override def bspDisplayName0: String = millBuildRootModuleInfo
     .projectRoot
     .relativeTo(millBuildRootModuleInfo.topLevelProjectRoot)
@@ -278,7 +278,7 @@ object MillBuildRootModule {
       topLevelProjectRoot0: os.Path,
       projectRoot: os.Path,
       enclosingClasspath: Seq[os.Path]
-  )(implicit baseModuleInfo: RootModule.Info) extends RootModule.Base {
+  )(implicit baseModuleInfo: RootModule.Info) extends RootModule {
 
     implicit private def millBuildRootModuleInfo: Info = MillBuildRootModule.Info(
       enclosingClasspath,

@@ -64,7 +64,7 @@ private object ResolveCore {
   }
 
   def resolve(
-      baseModules: BaseModuleTree,
+               rootModule: BaseModule,
       remainingQuery: List[Segment],
       current: Resolved,
       querySoFar: Segments
@@ -74,7 +74,7 @@ private object ResolveCore {
       case head :: tail =>
         def recurse(searchModules: Set[Resolved]): Result = {
           val (failures, successesLists) = searchModules
-            .map(r => resolve(baseModules, tail, r, querySoFar ++ Seq(head)))
+            .map(r => resolve(rootModule, tail, r, querySoFar ++ Seq(head)))
             .partitionMap { case s: Success => Right(s.value); case f: Failed => Left(f) }
 
           val (errors, notFounds) = failures.partitionMap {
@@ -86,7 +86,7 @@ private object ResolveCore {
           else if (successesLists.flatten.nonEmpty) Success(successesLists.flatten)
           else notFounds.size match {
             case 1 => notFounds.head
-            case _ => notFoundResult(baseModules, querySoFar, current, head)
+            case _ => notFoundResult(rootModule, querySoFar, current, head)
           }
         }
 
@@ -97,7 +97,7 @@ private object ResolveCore {
                 val self = Seq(Resolved.Module(m.segments, m.cls))
                 val transitiveOrErr =
                   resolveTransitiveChildren(
-                    baseModules,
+                    rootModule,
                     m.cls,
                     None,
                     current.segments,
@@ -108,7 +108,7 @@ private object ResolveCore {
 
               case "_" =>
                 resolveDirectChildren(
-                  baseModules,
+                  rootModule,
                   m.cls,
                   None,
                   current.segments
@@ -119,7 +119,7 @@ private object ResolveCore {
                 val self = Seq(Resolved.Module(m.segments, m.cls))
 
                 val transitiveOrErr = resolveTransitiveChildren(
-                  baseModules,
+                  rootModule,
                   m.cls,
                   None,
                   current.segments,
@@ -131,7 +131,7 @@ private object ResolveCore {
               case pattern if pattern.startsWith("_:") =>
                 val typePattern = pattern.split(":").drop(1)
                 resolveDirectChildren(
-                  baseModules,
+                  rootModule,
                   m.cls,
                   None,
                   current.segments,
@@ -140,7 +140,7 @@ private object ResolveCore {
 
               case _ =>
                 resolveDirectChildren(
-                  baseModules,
+                  rootModule,
                   m.cls,
                   Some(singleLabel),
                   current.segments
@@ -154,7 +154,7 @@ private object ResolveCore {
 
           case (Segment.Cross(cross), m: Resolved.Module) =>
             if (classOf[Cross[_]].isAssignableFrom(m.cls)) {
-              instantiateModule(baseModules, current.segments).flatMap {
+              instantiateModule(rootModule, current.segments).flatMap {
                 case c: Cross[_] =>
                   catchWrapException(
                     if (cross == Seq("__")) for ((_, v) <- c.valuesToModules.toSeq) yield v
@@ -182,31 +182,31 @@ private object ResolveCore {
                   )
               }
 
-            } else notFoundResult(baseModules, querySoFar, current, head)
+            } else notFoundResult(rootModule, querySoFar, current, head)
 
-          case _ => notFoundResult(baseModules, querySoFar, current, head)
+          case _ => notFoundResult(rootModule, querySoFar, current, head)
         }
     }
   }
   def instantiateModule(
-      baseModules: BaseModuleTree,
+      rootModule: BaseModule,
       segments: Segments
   ): Either[String, Module] =
-    instantiateModule0(baseModules, segments).map(_._1)
+    instantiateModule0(rootModule, segments).map(_._1)
 
   def instantiateModule0(
-      baseModules: BaseModuleTree,
+                          rootModule: BaseModule,
       segments: Segments
   ): Either[String, (Module, BaseModule)] = {
 
     segments.value.foldLeft[Either[String, (Module, BaseModule)]](Right((
-      baseModules.rootModule,
-      baseModules.rootModule
+      rootModule,
+      rootModule
     ))) {
       case (Right((current, currentRoot)), Segment.Label(s)) =>
         assert(s != "_", s)
         resolveDirectChildren0(
-          baseModules,
+          rootModule,
           current.millModuleSegments,
           current.getClass,
           Some(s)
@@ -222,7 +222,7 @@ private object ResolveCore {
           case unknown =>
             sys.error(
               s"Unable to resolve single child " +
-                s"rootModule: ${baseModules.rootModule}, segments: ${segments.render}," +
+                s"rootModule: ${rootModule}, segments: ${segments.render}," +
                 s"current: $current, s: ${s}, unknown: $unknown"
             )
         }
@@ -243,22 +243,22 @@ private object ResolveCore {
   }
 
   def resolveTransitiveChildren(
-      baseModules: BaseModuleTree,
+      rootModule: BaseModule,
       cls: Class[_],
       nameOpt: Option[String],
       segments: Segments,
       typePattern: Seq[String]
   ): Either[String, Set[Resolved]] = {
     val direct =
-      resolveDirectChildren(baseModules, cls, nameOpt, segments, typePattern)
+      resolveDirectChildren(rootModule, cls, nameOpt, segments, typePattern)
     direct.flatMap { direct =>
       for {
         directTraverse <-
-          resolveDirectChildren(baseModules, cls, nameOpt, segments, Nil)
+          resolveDirectChildren(rootModule, cls, nameOpt, segments, Nil)
         indirect0 = directTraverse
           .collect { case m: Resolved.Module =>
             resolveTransitiveChildren(
-              baseModules,
+              rootModule,
               m.cls,
               nameOpt,
               m.segments,
@@ -303,13 +303,13 @@ private object ResolveCore {
       }
 
   def resolveDirectChildren(
-      baseModules: BaseModuleTree,
+      rootModule: BaseModule,
       cls: Class[_],
       nameOpt: Option[String],
       segments: Segments
   ): Either[String, Set[Resolved]] =
     resolveDirectChildren(
-      baseModules,
+      rootModule,
       cls,
       nameOpt,
       segments,
@@ -317,7 +317,7 @@ private object ResolveCore {
     )
 
   def resolveDirectChildren(
-      baseModules: BaseModuleTree,
+                             rootModule: BaseModule,
       cls: Class[_],
       nameOpt: Option[String],
       segments: Segments,
@@ -325,7 +325,7 @@ private object ResolveCore {
   ): Either[String, Set[Resolved]] = {
 
     val crossesOrErr = if (classOf[Cross[_]].isAssignableFrom(cls) && nameOpt.isEmpty) {
-      instantiateModule(baseModules, segments).map {
+      instantiateModule(rootModule, segments).map {
         case cross: Cross[_] =>
           for (item <- cross.items) yield {
             Resolved.Module(segments ++ Segment.Cross(item.crossSegments), item.cls)
@@ -340,7 +340,7 @@ private object ResolveCore {
         classMatchesTypePred(typePattern)(c.cls)
       }
 
-      resolveDirectChildren0(baseModules, segments, cls, nameOpt, typePattern)
+      resolveDirectChildren0(rootModule, segments, cls, nameOpt, typePattern)
         .map(
           _.map {
             case (Resolved.Module(s, cls), _) => Resolved.Module(segments ++ s, cls)
@@ -354,15 +354,15 @@ private object ResolveCore {
   }
 
   def resolveDirectChildren0(
-      baseModules: BaseModuleTree,
+                              rootModule: BaseModule,
       segments: Segments,
       cls: Class[_],
       nameOpt: Option[String]
   ): Either[String, Seq[(Resolved, Option[Module => Either[String, Module]])]] =
-    resolveDirectChildren0(baseModules, segments, cls, nameOpt, Nil)
+    resolveDirectChildren0(rootModule, segments, cls, nameOpt, Nil)
 
   def resolveDirectChildren0(
-      baseModules: BaseModuleTree,
+                              rootModule: BaseModule,
       segments: Segments,
       cls: Class[_],
       nameOpt: Option[String],
@@ -372,7 +372,7 @@ private object ResolveCore {
 
     val modulesOrErr: Either[String, Seq[(Resolved, Option[Module => Either[String, Module]])]] = {
       if (classOf[DynamicModule].isAssignableFrom(cls)) {
-        instantiateModule(baseModules, segments).map {
+        instantiateModule(rootModule, segments).map {
           case m: DynamicModule =>
             m.millModuleDirectChildren
               .filter(c => namePred(c.millModuleSegments.parts.last))
@@ -388,18 +388,7 @@ private object ResolveCore {
               )
         }
       } else Right {
-        val nestedModuleScObjects =
-          for {
-            prefix <- baseModules.prefixForClass(cls).toSeq
-            (prefix2, m2) <- baseModules.lookupByParent(Some(prefix))
-            if nameOpt.isEmpty || nameOpt.contains(prefix2.last)
-          } yield (
-            Resolved.Module(
-              Segments.labels(decode(prefix2.last)),
-              m2.getClass
-            ),
-            Some((_: Module) => Right(m2))
-          )
+
 
         val reflectMemberObjects = Reflect
           .reflectNestedObjects0[Module](cls, namePred)
@@ -429,7 +418,7 @@ private object ResolveCore {
             )
           }
 
-        nestedModuleScObjects ++ reflectMemberObjects
+        reflectMemberObjects
       }
     }
 
@@ -449,7 +438,7 @@ private object ResolveCore {
   }
 
   def notFoundResult(
-      baseModules: BaseModuleTree,
+                      rootModule: BaseModule,
       querySoFar: Segments,
       current: Resolved,
       next: Segment
@@ -457,7 +446,7 @@ private object ResolveCore {
     val possibleNexts = current match {
       case m: Resolved.Module =>
         resolveDirectChildren(
-          baseModules,
+          rootModule,
           m.cls,
           None,
           current.segments

@@ -91,7 +91,7 @@ class UnitTester(
     module.millSourcePath,
     outPath,
     outPath,
-    Seq(module),
+    module,
     logger,
     0,
     0,
@@ -104,7 +104,7 @@ class UnitTester(
 
   def apply(args: String*): Either[Result.Failing[_], UnitTester.Result[Seq[_]]] = {
     mill.eval.Evaluator.currentEvaluator.withValue(evaluator) {
-      Resolve.Tasks.resolve(evaluator.rootModules, args, SelectMode.Separated)
+      Resolve.Tasks.resolve(evaluator.rootModule, args, SelectMode.Separated)
     } match {
       case Left(err) => Left(Result.Failure(err))
       case Right(resolved) => apply(resolved)

@@ -3,7 +3,6 @@ package mill.resolve
 import mainargs.{MainData, TokenGrouping}
 import mill.define.{
   BaseModule,
-  BaseModuleTree,
   Command,
   Discover,
   Module,
@@ -19,7 +18,7 @@ import mill.util.EitherOps
 object Resolve {
   object Segments extends Resolve[Segments] {
     private[mill] def handleResolved(
-        baseModules: BaseModuleTree,
+        rootModule: BaseModule,
         resolved: Seq[Resolved],
         args: Seq[String],
         selector: Segments,
@@ -33,7 +32,7 @@ object Resolve {
 
   object Tasks extends Resolve[NamedTask[Any]] {
     private[mill] def handleResolved(
-        baseModules: BaseModuleTree,
+        rootModule: BaseModule,
         resolved: Seq[Resolved],
         args: Seq[String],
         selector: Segments,
@@ -42,14 +41,14 @@ object Resolve {
       val taskList = resolved.map {
         case r: Resolved.Target =>
           val instantiated = ResolveCore
-            .instantiateModule(baseModules, r.segments.init)
+            .instantiateModule(rootModule, r.segments.init)
             .flatMap(instantiateTarget(r, _))
 
           instantiated.map(Some(_))
 
         case r: Resolved.Command =>
           val instantiated = ResolveCore
-            .instantiateModule0(baseModules, r.segments.init)
+            .instantiateModule0(rootModule, r.segments.init)
             .flatMap { case (mod, rootMod) =>
               instantiateCommand(rootMod, r, mod, args, nullCommandDefaults)
             }
@@ -57,10 +56,10 @@ object Resolve {
           instantiated.map(Some(_))
 
         case r: Resolved.Module =>
-          ResolveCore.instantiateModule(baseModules, r.segments).flatMap {
+          ResolveCore.instantiateModule(rootModule, r.segments).flatMap {
             case value: TaskModule =>
               val directChildrenOrErr = ResolveCore.resolveDirectChildren(
-                baseModules,
+                rootModule,
                 value.getClass,
                 Some(value.defaultCommandName()),
                 value.millModuleSegments
@@ -71,7 +70,7 @@ object Resolve {
                   case r: Resolved.Target => instantiateTarget(r, value).map(Some(_))
                   case r: Resolved.Command =>
                     instantiateCommand(
-                      baseModules.rootModule,
+                      rootModule,
                       r,
                       value,
                       args,
@@ -191,7 +190,7 @@ object Resolve {
 
 trait Resolve[T] {
   private[mill] def handleResolved(
-      baseModules: BaseModuleTree,
+      rootModule: BaseModule,
       resolved: Seq[Resolved],
       args: Seq[String],
       segments: Segments,
@@ -203,18 +202,11 @@ trait Resolve[T] {
       scriptArgs: Seq[String],
       selectMode: SelectMode
   ): Either[String, List[T]] = {
-    resolve0(Seq(rootModule), scriptArgs, selectMode)
-  }
-  def resolve(
-      rootModules: Seq[BaseModule],
-      scriptArgs: Seq[String],
-      selectMode: SelectMode
-  ): Either[String, List[T]] = {
-    resolve0(rootModules, scriptArgs, selectMode)
+    resolve0(rootModule, scriptArgs, selectMode)
   }
 
   private[mill] def resolve0(
-      baseModules: Seq[BaseModule],
+      rootModule: BaseModule,
       scriptArgs: Seq[String],
       selectMode: SelectMode
   ): Either[String, List[T]] = {
@@ -222,7 +214,7 @@ trait Resolve[T] {
     val resolvedGroups = ParseArgs(scriptArgs, selectMode).flatMap { groups =>
       val resolved = groups.map { case (selectors, args) =>
         val selected = selectors.map { case (scopedSel, sel) =>
-          resolveRootModule(baseModules, scopedSel).map { rootModuleSels =>
+          resolveRootModule(rootModule, scopedSel).map { rootModuleSels =>
             resolveNonEmptyAndHandle(args, rootModuleSels, sel, nullCommandDefaults)
           }
         }
@@ -241,21 +233,21 @@ trait Resolve[T] {
 
   private[mill] def resolveNonEmptyAndHandle(
       args: Seq[String],
-      baseModules: BaseModuleTree,
+      rootModule: BaseModule,
       sel: Segments,
       nullCommandDefaults: Boolean
   ): Either[String, Seq[T]] = {
-    val rootResolved = ResolveCore.Resolved.Module(Segments(), baseModules.rootModule.getClass)
+    val rootResolved = ResolveCore.Resolved.Module(Segments(), rootModule.getClass)
     val resolved =
       ResolveCore.resolve(
-        baseModules = baseModules,
+        rootModule = rootModule,
         remainingQuery = sel.value.toList,
         current = rootResolved,
         querySoFar = Segments()
       ) match {
         case ResolveCore.Success(value) => Right(value)
         case ResolveCore.NotFound(segments, found, next, possibleNexts) =>
-          val allPossibleNames = baseModules.allPossibleNames
+          val allPossibleNames = rootModule.millDiscover.value.values.flatMap(_._1).toSet
           Left(ResolveNotFoundHandler(
             selector = sel,
             segments = segments,
@@ -269,22 +261,22 @@ trait Resolve[T] {
 
     resolved
       .map(_.toSeq.sortBy(_.segments.render))
-      .flatMap(handleResolved(baseModules, _, args, sel, nullCommandDefaults))
+      .flatMap(handleResolved(rootModule, _, args, sel, nullCommandDefaults))
   }
 
   private[mill] def deduplicate(items: List[T]): List[T] = items
 
   private[mill] def resolveRootModule(
-      rootModules: Seq[BaseModule],
+      rootModule: BaseModule,
       scopedSel: Option[Segments]
-  ): Either[String, BaseModuleTree] = {
+  ): Either[String, BaseModule] = {
     scopedSel match {
-      case None => Right(BaseModuleTree.from(Seq(rootModules.head)))
+      case None => Right(rootModule)
 
       case Some(scoping) =>
         for {
           moduleCls <-
-            try Right(rootModules.head.getClass.getClassLoader.loadClass(scoping.render + "$"))
+            try Right(rootModule.getClass.getClassLoader.loadClass(scoping.render + "$"))
             catch {
               case e: ClassNotFoundException =>
                 Left("Cannot resolve external module " + scoping.render)
@@ -293,7 +285,7 @@ trait Resolve[T] {
             case rootModule: BaseModule => Right(rootModule)
             case _ => Left("Class " + scoping.render + " is not an BaseModule")
           }
-        } yield new BaseModuleTree(Seq((Nil, rootModule)))
+        } yield rootModule
     }
   }
 }

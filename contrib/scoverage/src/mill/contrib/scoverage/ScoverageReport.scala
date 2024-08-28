@@ -91,7 +91,7 @@ trait ScoverageReport extends Module {
       dataTargets: String
   ): Task[PathRef] = {
     val sourcesTasks: Seq[Task[Seq[PathRef]]] = Resolve.Tasks.resolve(
-      evaluator.rootModules,
+      evaluator.rootModule,
       Seq(sources),
       SelectMode.Separated
     ) match {
@@ -99,7 +99,7 @@ trait ScoverageReport extends Module {
       case Right(tasks) => tasks.asInstanceOf[Seq[Task[Seq[PathRef]]]]
     }
     val dataTasks: Seq[Task[PathRef]] = Resolve.Tasks.resolve(
-      evaluator.rootModules,
+      evaluator.rootModule,
       Seq(dataTargets),
       SelectMode.Separated
     ) match {
