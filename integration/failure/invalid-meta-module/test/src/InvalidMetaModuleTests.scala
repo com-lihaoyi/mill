@@ -12,7 +12,7 @@ object InvalidMetaModuleTests extends IntegrationTestSuite {
       val res = eval(("resolve", "_"))
       assert(res.isSuccess == false)
       assert(res.err.contains(
-        "Root module in mill-build/build.sc must be of class mill.runner.MillBuildRootModule"
+        "Root module must extend either `RootModule` or `MillBuildRootModule`"
       ))
     }
   }

@@ -140,6 +140,10 @@ object LineNumberPlugin {
                         case t: g.ModuleDef => true
                         case _ => false
                       }
+                  val (rootParents, nonRootParents) = pkgObj.impl.parents.partition(isRootModuleIdent)
+                  if (rootParents.isEmpty){
+                    g.reporter.error(pkgObj.pos, "Root module must extend either `RootModule` or `MillBuildRootModule`")
+                  }
                   val newPkgCls = g.treeCopy.ClassDef(
                     pkgCls,
                     pkgCls.mods,
@@ -147,7 +151,7 @@ object LineNumberPlugin {
                     pkgCls.tparams,
                     g.treeCopy.Template(
                       pkgCls.impl,
-                      pkgCls.impl.parents ++ pkgObj.impl.parents.filter(!isRootModuleIdent(_)),
+                      pkgCls.impl.parents ++ nonRootParents,
                       g.ValDef(g.Modifiers(), pkgObj.name, g.EmptyTree, g.EmptyTree),
                       innerStmts ++
                       pkgObj.impl.body

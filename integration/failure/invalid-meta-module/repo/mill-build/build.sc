@@ -1,2 +1,2 @@
 import mill._
-object module extends RootModule
+object build
