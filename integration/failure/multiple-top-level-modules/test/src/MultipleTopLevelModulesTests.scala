@@ -12,7 +12,7 @@ object MultipleTopLevelModulesTests extends IntegrationTestSuite {
       val res = eval(("resolve", "_"))
       assert(!res.isSuccess)
       assert(res.err.contains(
-        "Only one RootModule can be defined in a build, not 2:"
+        "Only one RootModule can be defined in a build, not 2: foo, bar"
       ))
     }
   }

@@ -153,18 +153,24 @@ object LineNumberPlugin {
                       pkgObj.impl.body
                     )
                   )
-                  (pkgClsIndex, outerStmts, newPkgCls)
+                  (pkgClsIndex, outerStmts, newPkgCls, pkgObj)
               }
           }.flatten
           resOpt match {
             case Nil => super.transform(tree)
-            case List((pkgClsIndex, newOuterStmts, newPkgCls)) =>
+
+            case List((pkgClsIndex, newOuterStmts, newPkgCls, _)) =>
               val (before, after) = pkgDef.stats.splitAt(pkgClsIndex)
               g.treeCopy.PackageDef(
                 unit.body,
                 pkgDef.pid,
                 before ++ newOuterStmts ++ Seq(newPkgCls) ++ after.drop(1)
               )
+            case multiple =>
+              for(m <- multiple){
+                g.reporter.error(m._4.pos, s"Only one RootModule can be defined in a build, not ${multiple.size}: " + multiple.map(_._4.name).mkString(", "))
+              }
+              tree
           }
         case tree => super.transform(tree)
       }
