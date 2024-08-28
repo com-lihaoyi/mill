@@ -1,5 +1,5 @@
 import mill._
 
-object module extends Module {
+object module extends RootModule {
   def input = T {}
 }

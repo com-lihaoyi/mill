@@ -29,5 +29,5 @@ def taskSymbols = T {
 
 def taskSymbolsInFile = T {
   println("taskSymbolsInFile")
-  build.`-#+&%`.module.input()
+  build.`-#+&%`.input()
 }
