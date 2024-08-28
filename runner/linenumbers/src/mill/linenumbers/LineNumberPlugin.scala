@@ -133,7 +133,7 @@ object LineNumberPlugin {
                     g.treeCopy.Template(
                       pkgCls.impl,
                       pkgCls.impl.parents ++ pkgObj.impl.parents.filter(!isRootModuleIdent(_)),
-                      pkgCls.impl.self,
+                      g.ValDef(g.Modifiers(), pkgObj.name, g.EmptyTree, g.EmptyTree),
                       nonImportStmts
                         .filter{
                           case d: g.DefDef => d.name.toString() != "<init>"
