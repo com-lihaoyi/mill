@@ -128,8 +128,18 @@ object LineNumberPlugin {
                 case pkgObj: g.ModuleDef
                     if pkgObj.name.toString() == g.currentSource.file.name.stripSuffix(".sc")
                       || pkgObj.impl.parents.exists(isRootModuleIdent) =>
-                  val (importStmts, nonImportStmts) =
-                    pkgCls.impl.body.partition(_.isInstanceOf[g.Import])
+                  val (outerStmts, innerStmts) =
+                    pkgCls.impl.body
+                      .filter {
+                        case d: g.DefDef => d.name.toString() != "<init>"
+                        case t => t ne pkgObj
+                      }
+                      .partition{
+                        case t: g.Import => true
+                        case t: g.ClassDef => true
+                        case t: g.ModuleDef => true
+                        case _ => false
+                      }
                   val newPkgCls = g.treeCopy.ClassDef(
                     pkgCls,
                     pkgCls.mods,
@@ -139,15 +149,11 @@ object LineNumberPlugin {
                       pkgCls.impl,
                       pkgCls.impl.parents ++ pkgObj.impl.parents.filter(!isRootModuleIdent(_)),
                       g.ValDef(g.Modifiers(), pkgObj.name, g.EmptyTree, g.EmptyTree),
-                      nonImportStmts
-                        .filter {
-                          case d: g.DefDef => d.name.toString() != "<init>"
-                          case t => t ne pkgObj
-                        } ++
-                        pkgObj.impl.body
+                      innerStmts ++
+                      pkgObj.impl.body
                     )
                   )
-                  (pkgClsIndex, importStmts, newPkgCls)
+                  (pkgClsIndex, outerStmts, newPkgCls)
               }
           }.flatten
           resOpt match {
