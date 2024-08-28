@@ -29,7 +29,7 @@ import mill.main.RootModule
  */
 @internal
 case class RunnerState(
-    bootstrapModuleOpt: Option[RootModule],
+    bootstrapModuleOpt: Option[RootModule.Base],
     frames: Seq[RunnerState.Frame],
     errorOpt: Option[String]
 ) {

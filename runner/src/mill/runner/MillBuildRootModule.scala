@@ -31,7 +31,7 @@ import scala.util.Try
 class MillBuildRootModule()(implicit
     baseModuleInfo: RootModule.Info,
     millBuildRootModuleInfo: MillBuildRootModule.Info
-) extends RootModule() with ScalaModule {
+) extends RootModule.Base() with ScalaModule {
   override def bspDisplayName0: String = millBuildRootModuleInfo
     .projectRoot
     .relativeTo(millBuildRootModuleInfo.topLevelProjectRoot)
@@ -278,14 +278,14 @@ object MillBuildRootModule {
       topLevelProjectRoot0: os.Path,
       projectRoot: os.Path,
       enclosingClasspath: Seq[os.Path]
-  )(implicit baseModuleInfo: RootModule.Info) extends RootModule {
-
-    implicit private def millBuildRootModuleInfo: Info = MillBuildRootModule.Info(
+  )(implicit baseModuleInfo: RootModule.Info) extends MillBuildRootModule()(
+    implicitly,
+    MillBuildRootModule.Info(
       enclosingClasspath,
       projectRoot,
       topLevelProjectRoot0
     )
-    object build extends MillBuildRootModule
+  ) {
 
     override lazy val millDiscover: Discover[this.type] =
       baseModuleInfo.discover.asInstanceOf[Discover[this.type]]
@@ -316,19 +316,12 @@ object MillBuildRootModule {
       val relative = scriptSource.path.relativeTo(base)
       val dest = targetDest / FileImportGraph.fileImportToSegments(base, scriptSource.path, false)
 
-      println()
-      pprint.log(scriptSource.path.relativeTo(millTopLevelProjectRoot))
-      pprint.log(scriptSource.path / os.up)
-      pprint.log(scriptSources.map(_.path / os.up))
-
       val childNames = scriptSources
         .map(_.path / os.up)
         .filter(_.startsWith(scriptSource.path / os.up))
         .map(_.subRelativeTo(scriptSource.path / os.up).segments)
         .collect{case Seq(single) => single}
 
-
-      pprint.log(childNames)
       val pkg = FileImportGraph.fileImportToSegments(base, scriptSource.path, true).dropRight(1)
 
       val pkgSelector = pkg.map(backtickWrap).mkString(".")

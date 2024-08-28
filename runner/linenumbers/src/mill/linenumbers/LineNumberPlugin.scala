@@ -157,12 +157,12 @@ object LineNumberPlugin {
     }
 
     if (g.currentSource.file.hasExtension("sc")) {
-      println("unit.body BEFORE " + unit.body)
+//      println("unit.body BEFORE " + unit.body)
       unit.body = LineNumberCorrector(unit)
       if(g.currentSource.file.name.endsWith("module.sc") || g.currentSource.file.name.endsWith("build.sc")){
         unit.body = PackageObjectUnpacker(unit)
       }
-      println("unit.body AFTER " + unit.body)
+//      println("unit.body AFTER " + unit.body)
     }
   }
 }
