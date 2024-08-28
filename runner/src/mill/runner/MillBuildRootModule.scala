@@ -318,7 +318,7 @@ object MillBuildRootModule {
 
       val childNames = scriptSources
         .map(_.path / os.up)
-        .filter(_.startsWith(scriptSource.path / os.up))
+        .filter(p => p.startsWith(scriptSource.path / os.up) && p.last == "module.sc")
         .map(_.subRelativeTo(scriptSource.path / os.up).segments)
         .collect { case Seq(single) => single }
 
