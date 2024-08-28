@@ -312,13 +312,14 @@ object MillBuildRootModule {
       enclosingClasspath: Seq[os.Path],
       millTopLevelProjectRoot: os.Path
   ): Unit = {
+
     for (scriptSource <- scriptSources) {
       val relative = scriptSource.path.relativeTo(base)
       val dest = targetDest / FileImportGraph.fileImportToSegments(base, scriptSource.path, false)
 
       val childNames = scriptSources
-        .map(_.path / os.up)
-        .filter(p => p.startsWith(scriptSource.path / os.up) && p.last == "module.sc")
+        .collect{case p if p.path.last == "module.sc" => p.path / os.up}
+        .filter(p => p.startsWith(scriptSource.path / os.up))
         .map(_.subRelativeTo(scriptSource.path / os.up).segments)
         .collect { case Seq(single) => single }
         .distinct
