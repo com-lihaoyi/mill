@@ -276,7 +276,7 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
       evalCheckErr(
         "\n1 targets failed",
         (workspacePath / "mill-build" / "build.sc").toString,
-        "not found: value doesnt"
+        "not found: object doesnt"
       )
       checkWatchedFiles(Nil, Nil, buildPaths2, buildPaths3)
       checkChangedClassloaders(null, null, null, false)
@@ -285,7 +285,7 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
       evalCheckErr(
         "\n1 targets failed",
         (workspacePath / "mill-build" / "mill-build" / "build.sc").toString,
-        "not found: value doesnt"
+        "not found: object doesnt"
       )
       checkWatchedFiles(Nil, Nil, Nil, buildPaths3)
       checkChangedClassloaders(null, null, null, null)
@@ -294,7 +294,7 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
       evalCheckErr(
         "\n1 targets failed",
         (workspacePath / "mill-build" / "build.sc").toString,
-        "not found: value doesnt"
+        "not found: object doesnt"
       )
       checkWatchedFiles(Nil, Nil, buildPaths2, buildPaths3)
       checkChangedClassloaders(null, null, null, true)
