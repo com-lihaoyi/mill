@@ -321,6 +321,7 @@ object MillBuildRootModule {
         .filter(p => p.startsWith(scriptSource.path / os.up) && p.last == "module.sc")
         .map(_.subRelativeTo(scriptSource.path / os.up).segments)
         .collect { case Seq(single) => single }
+        .distinct
 
       val pkg = FileImportGraph.fileImportToSegments(base, scriptSource.path, true).dropRight(1)
 
