@@ -26,15 +26,15 @@ trait MyModule extends ScalaModule {
 > ./mill resolve __
 bar
 ...
-bar.qux.module
+bar.qux.mymodule
 ...
-bar.qux.module.compile
+bar.qux.mymodule.compile
 ...
 foo
 ...
 foo.compile
 
-> ./mill bar.qux.module.compile
+> ./mill bar.qux.mymodule.compile
 
 > ./mill foo.compile
 

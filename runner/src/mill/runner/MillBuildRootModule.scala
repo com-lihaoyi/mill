@@ -316,7 +316,26 @@ object MillBuildRootModule {
       val relative = scriptSource.path.relativeTo(base)
       val dest = targetDest / FileImportGraph.fileImportToSegments(base, scriptSource.path, false)
 
+      println()
+      pprint.log(scriptSource.path.relativeTo(millTopLevelProjectRoot))
+      pprint.log(scriptSource.path / os.up)
+      pprint.log(scriptSources.map(_.path / os.up))
+
+      val childNames = scriptSources
+        .map(_.path / os.up)
+        .filter(_.startsWith(scriptSource.path / os.up))
+        .map(_.subRelativeTo(scriptSource.path / os.up).segments)
+        .collect{case Seq(single) => single}
+
+
+      pprint.log(childNames)
       val pkg = FileImportGraph.fileImportToSegments(base, scriptSource.path, true).dropRight(1)
+
+      val pkgSelector = pkg.map(backtickWrap).mkString(".")
+      val childAliases = childNames
+        .map(c => s"lazy val ${backtickWrap(c)} = $pkgSelector.${backtickWrap(c)}.module")
+        .mkString("\n")
+
       val specialNames = Set("build", "module")
       val newSource =
         if (specialNames(scriptSource.path.baseName)) {
@@ -324,15 +343,18 @@ object MillBuildRootModule {
           topBuild(
             relative.segments.init,
             scriptSource.path / os.up,
-            pkg.last,
+            scriptSource.path.baseName,
             enclosingClasspath,
-            millTopLevelProjectRoot
+            millTopLevelProjectRoot,
+            childAliases
           )
         } else {
-          s"""object ${backtickWrap(scriptSource.path.baseName)} {"""
+          s"""object ${backtickWrap(scriptSource.path.baseName)} {
+             |  $childAliases
+             |""".stripMargin
         }
 
-      val pkgLine = pkg.map(p => "package " + backtickWrap(p)).mkString("\n")
+      val pkgLine = s"package $pkgSelector"
       val markerComment =
         s"""//MILL_ORIGINAL_FILE_PATH=${scriptSource.path}
            |//MILL_USER_CODE_START_MARKER""".stripMargin
@@ -356,10 +378,12 @@ object MillBuildRootModule {
       base: os.Path,
       name: String,
       enclosingClasspath: Seq[os.Path],
-      millTopLevelProjectRoot: os.Path
+      millTopLevelProjectRoot: os.Path,
+      childAliases: String
   ): String = {
     val segsList = segs.map(pprint.Util.literalize(_)).mkString(", ")
     val superClass = if (name == "build") "Base" else "Foreign"
+
 
     s"""
        |import _root_.mill.runner.MillBuildRootModule
@@ -369,11 +393,15 @@ object MillBuildRootModule {
        |  ${literalize(base.toString)},
        |  ${literalize(millTopLevelProjectRoot.toString)},
        |  _root_.mill.define.Discover[MillPackageClass]
-       |)
+       |){
+       |  $childAliases
+       |  lazy val build = _root_.millbuild.build
+       |}
        |import MillMiscInfo._
-       |object `package` extends MillPackageClass
+       |object $name extends MillPackageClass
        |class MillPackageClass
        |extends _root_.mill.main.RootModule.$superClass($segsList) {
+       |  $childAliases
        |""".stripMargin
   }
 

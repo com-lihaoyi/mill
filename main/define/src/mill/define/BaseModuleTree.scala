@@ -30,7 +30,7 @@ object BaseModuleTree {
         .map { m =>
           val parts = m.getClass.getName match {
             case s"build.$partString.package$$" => partString.split('.')
-            case s"build.${partString}.MillPackageClass$$$last$$" => partString.split('.')
+            case s"build.${partString}.MillPackageClass$$" => partString.split('.')
             case _ => Array[String]()
           }
 

@@ -429,21 +429,12 @@ object MillBuildBootstrap {
       projectRoot: os.Path
   ): Either[String, Seq[BaseModule]] = {
 
-    val packageClassNames = os
-      .walk(compileOut.path)
-      .map(_.relativeTo(compileOut.path).segments)
-      .collect { case "build" +: rest :+ "package$.class" =>
-        ("build" +: rest :+ "package$").mkString(".")
-      }
 
-    val packageClasses = packageClassNames.map(runClassLoader.loadClass(_))
+    val packageClasses = Seq(runClassLoader.loadClass("millbuild.build$"))
     val rootModule0s =
       packageClasses.map(cls => cls.getField("MODULE$").get(cls).asInstanceOf[BaseModule])
-    val children = rootModule0s.map(getChildRootModule(_, depth, projectRoot))
-    children.flatMap(_.left.toOption) match {
-      case Nil => Right[String, Seq[BaseModule]](children.map(_.toOption.get))
-      case errors => Left(errors.mkString("\n"))
-    }
+
+    Right(rootModule0s)
   }
 
   def getChildRootModule(

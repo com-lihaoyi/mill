@@ -279,7 +279,7 @@ trait Resolve[T] {
       scopedSel: Option[Segments]
   ): Either[String, BaseModuleTree] = {
     scopedSel match {
-      case None => Right(BaseModuleTree.from(rootModules))
+      case None => Right(BaseModuleTree.from(Seq(rootModules.head)))
 
       case Some(scoping) =>
         for {

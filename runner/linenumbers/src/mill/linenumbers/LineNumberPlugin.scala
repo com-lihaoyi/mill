@@ -3,6 +3,30 @@ package mill.linenumbers
 import scala.tools.nsc._
 import scala.tools.nsc.plugins.{Plugin, PluginComponent}
 
+// TRANSFORMING
+//
+// class MillPackageClass
+// extends _root_.mill.main.RootModule.$superClass($segsList) {
+//   import a.b
+//   import a.b.c
+//   object module extends Foo with Bar with Baz {
+//     import x.y
+//     import x.y.z
+//     ...
+//   }
+// }
+//
+// BECOMES
+//
+// import a.b
+// import a.b.c
+// class MillPackageClass
+// extends _root_.mill.main.RootModule.$superClass($segsList)
+// with Foo with Bar with Baz{
+//   import x.y
+//   import x.y.z
+//   ...
+// }
 /**
  * Used to capture the names in scope after every execution, reporting them
  * to the `output` function. Needs to be a compiler plugin so we can hook in
@@ -88,8 +112,57 @@ object LineNumberPlugin {
       def apply(unit: g.CompilationUnit) = transform(unit.body)
     }
 
+
+    object PackageObjectUnpacker extends g.Transformer {
+
+      override def transform(tree: g.Tree) = tree match {
+        case pkgDef: g.PackageDef =>
+          val resOpt = pkgDef.stats.zipWithIndex.collect{
+            case (pkgCls: g.ClassDef, pkgClsIndex)
+              if pkgCls.name.toString().startsWith("MillPackageClass") =>
+              pkgCls.impl.body.collect {
+                case pkgObj: g.ModuleDef if pkgObj.name.toString() == "module" || pkgObj.name.toString() == "build" =>
+                  val (importStmts, nonImportStmts) = pkgCls.impl.body.partition(_.isInstanceOf[g.Import])
+                  val newPkgCls = g.treeCopy.ClassDef(pkgCls, pkgCls.mods, pkgCls.name, pkgCls.tparams,
+                    g.treeCopy.Template(
+                      pkgCls.impl,
+                      pkgCls.impl.parents ++ pkgObj.impl.parents,
+                      pkgCls.impl.self,
+                      nonImportStmts
+                        .filter{
+                          case d: g.DefDef => d.name.toString() != "<init>"
+                          case d: g.ModuleDef => false
+                          case _ => true
+                        } ++
+                        pkgObj.impl.body
+                    )
+                  )
+                  (pkgClsIndex, importStmts, newPkgCls)
+              }
+          }.flatten
+          resOpt match{
+            case Nil => super.transform(tree)
+            case List((pkgClsIndex, newOuterStmts, newPkgCls)) =>
+              val (before, after) = pkgDef.stats.splitAt(pkgClsIndex)
+              g.treeCopy.PackageDef(
+                unit.body,
+                pkgDef.pid,
+                before ++ newOuterStmts ++ Seq(newPkgCls) ++ after.drop(1)
+              )
+          }
+        case tree => super.transform(tree)
+      }
+
+      def apply(unit: g.CompilationUnit) = transform(unit.body)
+    }
+
     if (g.currentSource.file.hasExtension("sc")) {
+      println("unit.body BEFORE " + unit.body)
       unit.body = LineNumberCorrector(unit)
+      if(g.currentSource.file.name.endsWith("module.sc") || g.currentSource.file.name.endsWith("build.sc")){
+        unit.body = PackageObjectUnpacker(unit)
+      }
+      println("unit.body AFTER " + unit.body)
     }
   }
 }
