@@ -396,6 +396,7 @@ object MillBuildRootModule {
        |  lazy val build = _root_.millbuild.build
        |}
        |import MillMiscInfo._
+       |import _root_.millbuild.build.interp
        |object $name extends MillPackageClass
        |// User code needs to be put in a separate class for proper submodule
        |// object initialization due to https://github.com/scala/scala3/issues/21444
