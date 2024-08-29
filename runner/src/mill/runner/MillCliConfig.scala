@@ -122,7 +122,12 @@ class MillCliConfig private (
            Level 0 is the normal project, level 1 the first meta-build, and so on.
            The last level is the built-in synthetic meta-build which Mill uses to bootstrap the project."""
     )
-    val metaLevel: Option[Int]
+    val metaLevel: Option[Int],
+    @arg(
+      doc =
+        """"""
+    )
+    val allowPositionalCommandArgs: Flag,
 ) {
   override def toString: String = Seq(
     "home" -> home,
@@ -145,7 +150,8 @@ class MillCliConfig private (
     "leftoverArgs" -> leftoverArgs,
     "color" -> color,
     "disableCallgraphInvalidation" -> disableCallgraphInvalidation,
-    "metaLevel" -> metaLevel
+    "metaLevel" -> metaLevel,
+    "allowPositionalCommandArgs" -> allowPositionalCommandArgs,
   ).map(p => s"${p._1}=${p._2}").mkString(getClass().getSimpleName + "(", ",", ")")
 }
 
@@ -202,7 +208,8 @@ object MillCliConfig {
     leftoverArgs = leftoverArgs,
     color = color,
     disableCallgraphInvalidation,
-    metaLevel = metaLevel
+    metaLevel = metaLevel,
+    allowPositionalCommandArgs = Flag()
   )
 
   @deprecated("Bin-compat shim", "Mill after 0.11.0")
