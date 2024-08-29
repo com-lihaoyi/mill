@@ -15,7 +15,7 @@ import java.time.{Instant, LocalDateTime, ZoneId}
 import scala.xml.Elem
 
 trait TestModule
-    extends TestModule.JavaModuleBase
+  extends TestModule.JavaModuleBase
     with WithZincWorker
     with RunModule
     with TaskModule {
@@ -29,9 +29,7 @@ trait TestModule
    * The classpath containing the tests. This is most likely the output of the compilation target.
    * By default this uses the result of [[localRunClasspath]], which is most likely the result of a local compilation.
    */
-  def testClasspath: T[Seq[PathRef]] = T {
-    localRunClasspath()
-  }
+  def testClasspath: T[Seq[PathRef]] = T { localRunClasspath() }
 
   /**
    * The test framework to use.
@@ -71,19 +69,11 @@ trait TestModule
   /**
    * Discovers and runs the module's tests in a subprocess, reporting the
    * results to the console.
-   *
    * @see [[testCached]]
    */
   def test(args: String*): Command[(String, Seq[TestResult])] =
     T.command {
-      testTask(
-        T.task {
-          args
-        },
-        T.task {
-          Seq.empty[String]
-        }
-      )()
+      testTask(T.task { args }, T.task { Seq.empty[String] })()
     }
 
   def getTestEnvironmentVars(args: String*): Command[(String, String, String, Seq[String])] = {
@@ -97,24 +87,16 @@ trait TestModule
   /**
    * Args to be used by [[testCached]].
    */
-  def testCachedArgs: T[Seq[String]] = T {
-    Seq[String]()
-  }
+  def testCachedArgs: T[Seq[String]] = T { Seq[String]() }
 
   /**
    * Discovers and runs the module's tests in a subprocess, reporting the
    * results to the console.
    * If no input has changed since the last run, no test were executed.
-   *
    * @see [[test()]]
    */
   def testCached: T[(String, Seq[TestResult])] = T {
-    testTask(
-      testCachedArgs,
-      T.task {
-        Seq.empty[String]
-      }
-    )()
+    testTask(testCachedArgs, T.task { Seq.empty[String] })()
   }
 
   /**
@@ -134,14 +116,7 @@ trait TestModule
         (s, t.tail)
     }
     T.command {
-      testTask(
-        T.task {
-          testArgs
-        },
-        T.task {
-          selector
-        }
-      )()
+      testTask(T.task { testArgs }, T.task { selector })()
     }
   }
 
@@ -149,9 +124,7 @@ trait TestModule
    * Controls whether the TestRunner should receive it's arguments via an args-file instead of a as long parameter list.
    * Defaults to what `runUseArgsFile` return.
    */
-  def testUseArgsFile: T[Boolean] = T {
-    runUseArgsFile() || scala.util.Properties.isWin
-  }
+  def testUseArgsFile: T[Boolean] = T { runUseArgsFile() || scala.util.Properties.isWin }
 
   /**
    * Sets the file name for the generated JUnit-compatible test report.
@@ -207,9 +180,9 @@ trait TestModule
    * The actual task shared by `test`-tasks that runs test in a forked JVM.
    */
   protected def testTask(
-      args: Task[Seq[String]],
-      globSelectors: Task[Seq[String]]
-  ): Task[(String, Seq[TestResult])] =
+                          args: Task[Seq[String]],
+                          globSelectors: Task[Seq[String]]
+                        ): Task[(String, Seq[TestResult])] =
     T.task {
       val outputPath = T.dest / "out.json"
       val useArgsFile = testUseArgsFile()
@@ -325,7 +298,6 @@ object TestModule {
    */
   trait TestNg extends TestModule {
     override def testFramework: T[String] = "mill.testng.TestNGFramework"
-
     override def ivyDeps: T[Agg[Dep]] = T {
       super.ivyDeps() ++ Agg(
         ivy"com.lihaoyi:mill-contrib-testng:${mill.api.BuildInfo.millVersion}"
@@ -339,7 +311,6 @@ object TestModule {
    */
   trait Junit4 extends TestModule {
     override def testFramework: T[String] = "com.novocode.junit.JUnitFramework"
-
     override def ivyDeps: T[Agg[Dep]] = T {
       super.ivyDeps() ++ Agg(ivy"${mill.scalalib.api.Versions.sbtTestInterface}")
     }
@@ -351,7 +322,6 @@ object TestModule {
    */
   trait Junit5 extends TestModule {
     override def testFramework: T[String] = "com.github.sbt.junit.jupiter.api.JupiterFramework"
-
     override def ivyDeps: T[Agg[Dep]] = T {
       super.ivyDeps() ++ Agg(ivy"${mill.scalalib.api.Versions.jupiterInterface}")
     }
@@ -371,7 +341,6 @@ object TestModule {
    */
   trait Specs2 extends ScalaModuleBase with TestModule {
     override def testFramework: T[String] = "org.specs2.runner.Specs2Framework"
-
     override def scalacOptions = T {
       super.scalacOptions() ++ Seq("-Yrangepos")
     }
@@ -412,15 +381,15 @@ object TestModule {
 
   @deprecated("Use other overload instead", "Mill after 0.10.2")
   def handleResults(
-      doneMsg: String,
-      results: Seq[TestResult]
-  ): Result[(String, Seq[TestResult])] = handleResults(doneMsg, results, None)
+                     doneMsg: String,
+                     results: Seq[TestResult]
+                   ): Result[(String, Seq[TestResult])] = handleResults(doneMsg, results, None)
 
   def handleResults(
-      doneMsg: String,
-      results: Seq[TestResult],
-      ctx: Option[Ctx.Env]
-  ): Result[(String, Seq[TestResult])] = {
+                     doneMsg: String,
+                     results: Seq[TestResult],
+                     ctx: Option[Ctx.Env]
+                   ): Result[(String, Seq[TestResult])] = {
 
     val badTests: Seq[TestResult] =
       results.filter(x => Set("Error", "Failure").contains(x.status))
@@ -434,24 +403,22 @@ object TestModule {
         if (badTests.length <= reportCount) ""
         else s"\n  and ${badTests.length - reportCount} more ..."
 
-      val msg = s"${badTests.size} tests failed: ${
-          badTests
-            .take(reportCount)
-            .map(t => s"${t.fullyQualifiedName} ${t.selector}")
-            .mkString("\n  ", "\n  ", "")
-        }$suffix"
+      val msg = s"${badTests.size} tests failed: ${badTests
+        .take(reportCount)
+        .map(t => s"${t.fullyQualifiedName} ${t.selector}")
+        .mkString("\n  ", "\n  ", "")}$suffix"
 
       Result.Failure(msg, Some((doneMsg, results)))
     }
   }
 
   def handleResults(
-      doneMsg: String,
-      results: Seq[TestResult],
-      ctx: Ctx.Env with Ctx.Dest,
-      testReportXml: Option[String],
-      props: Option[Map[String, String]] = None
-  ): Result[(String, Seq[TestResult])] = {
+                     doneMsg: String,
+                     results: Seq[TestResult],
+                     ctx: Ctx.Env with Ctx.Dest,
+                     testReportXml: Option[String],
+                     props: Option[Map[String, String]] = None
+                   ): Result[(String, Seq[TestResult])] = {
     for {
       fileName <- testReportXml
       path = ctx.dest / fileName
@@ -463,10 +430,7 @@ object TestModule {
 
   trait JavaModuleBase extends BspModule {
     def ivyDeps: T[Agg[Dep]] = Agg.empty[Dep]
-
-    def resources: T[Seq[PathRef]] = T {
-      Seq.empty[PathRef]
-    }
+    def resources: T[Seq[PathRef]] = T { Seq.empty[PathRef] }
   }
 
   trait ScalaModuleBase extends mill.Module {
@@ -474,18 +438,17 @@ object TestModule {
   }
 
   private[scalalib] def genTestXmlReport(
-      results0: Seq[TestResult],
-      timestamp: Instant,
-      props: Map[String, String]
-  ): Option[Elem] = {
+                                          results0: Seq[TestResult],
+                                          timestamp: Instant,
+                                          props: Map[String, String]
+                                        ): Option[Elem] = {
     def durationAsString(value: Long) = (value / 1000d).toString
-
     def testcaseName(testResult: TestResult) =
       testResult.selector.replace(s"${testResult.fullyQualifiedName}.", "")
 
     def properties: Elem = {
       val ps = props.map { case (key, value) =>
-        <property name={key} value={value}/>
+          <property name={key} value={value}/>
       }
       <properties>
         {ps}
@@ -507,11 +470,12 @@ object TestModule {
                  failures={testResults.count(_.status == FailureStatus).toString}
                  errors={testResults.count(_.status == ErrorStatus).toString}
                  skipped={
-        testResults.count(testResult => SkippedStates.contains(testResult.status)).toString
-      }
+                 testResults.count(testResult => SkippedStates.contains(testResult.status)).toString
+                 }
                  time={durationAsString(testResults.map(_.duration).sum)}
                  timestamp={formatTimestamp(timestamp)}>
-        {properties}{cases}
+        {properties}
+        {cases}
       </testsuite>
     }
     // todo add the parent module name
@@ -520,8 +484,8 @@ object TestModule {
                   failures={results0.count(_.status == FailureStatus).toString}
                   errors={results0.count(_.status == ErrorStatus).toString}
                   skipped={
-        results0.count(testResult => SkippedStates.contains(testResult.status)).toString
-      }
+                  results0.count(testResult => SkippedStates.contains(testResult.status)).toString
+                  }
                   time={durationAsString(results0.map(_.duration).sum)}>
         {suites}
       </testsuites>
@@ -540,8 +504,8 @@ object TestModule {
   private def testCaseStatus(e: TestResult): Option[Elem] = {
     val trace: String = e.exceptionTrace.map(stackTraceTrace =>
       stackTraceTrace.map(t =>
-        s"${t.getClassName}.${t.getMethodName}(${t.getFileName}:${t.getLineNumber})"
-      )
+          s"${t.getClassName}.${t.getMethodName}(${t.getFileName}:${t.getLineNumber})"
+        )
         .mkString(
           s"${e.exceptionName.getOrElse("")}: ${e.exceptionMsg.getOrElse("")}\n    at ",
           "\n    at ",
