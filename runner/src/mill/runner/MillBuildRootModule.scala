@@ -328,11 +328,14 @@ object MillBuildRootModule {
 
       val pkgSelector = pkg.map(backtickWrap).mkString(".")
       val childAliases = childNames
-        .map(c => s"lazy val ${backtickWrap(c)} = $pkgSelector.${backtickWrap(c)}.module")
+        .map { c =>
+          val comment = "// subfolder module reference"
+          s"def ${backtickWrap(c)} = $pkgSelector.${backtickWrap(c)}.module $comment"
+        }
         .mkString("\n")
 
       val specialNames = Set("build", "module")
-      val newSource =
+      val (newSource, newSuffix) =
         if (specialNames(scriptSource.path.baseName)) {
 
           topBuild(
@@ -342,11 +345,10 @@ object MillBuildRootModule {
             enclosingClasspath,
             millTopLevelProjectRoot,
             childAliases
-          )
+          ) -> childAliases
         } else {
           s"""object ${backtickWrap(scriptSource.path.baseName)} {
-             |  $childAliases
-             |""".stripMargin
+             |""".stripMargin -> ""
         }
 
       val pkgLine = s"package $pkgSelector"
@@ -361,6 +363,11 @@ object MillBuildRootModule {
           newSource,
           markerComment,
           scriptCode(scriptSource.path),
+
+          // define this after user code so in case of conflict these lines are what turn
+          // up in the error message, so we can add a comment and control what the user sees
+          newSuffix,
+
           MillBuildRootModule.bottom
         ).mkString("\n"),
         createFolders = true
@@ -405,9 +412,6 @@ object MillBuildRootModule {
        |// object initialization due to https://github.com/scala/scala3/issues/21444
        |class MillPackageClass
        |extends $superClass($segsList) {
-       |  // Duplicate child aliases inside `MillPackageClass` so they generate members
-       |  // that can be discovered via java reflection during task/module resolution
-       |  $childAliases
        |""".stripMargin
   }
 
