@@ -31,7 +31,7 @@ import scala.util.Try
 class MillBuildRootModule()(implicit
     baseModuleInfo: RootModule.Info,
     millBuildRootModuleInfo: MillBuildRootModule.Info
-) extends RootModule.Base() with ScalaModule {
+) extends RootModule() with ScalaModule {
   override def bspDisplayName0: String = millBuildRootModuleInfo
     .projectRoot
     .relativeTo(millBuildRootModuleInfo.topLevelProjectRoot)
@@ -379,9 +379,9 @@ object MillBuildRootModule {
     val segsList = segs.map(pprint.Util.literalize(_)).mkString(", ")
     val superClass =
       if (name == "build") {
-        if (millTopLevelProjectRoot == base) "_root_.mill.main.RootModule.Base"
+        if (millTopLevelProjectRoot == base) "_root_.mill.main.RootModule"
         else "_root_.mill.runner.MillBuildRootModule"
-      } else "_root_.mill.main.RootModule.Foreign"
+      } else "_root_.mill.main.RootModule.Subfolder"
 
     s"""
        |import _root_.mill.runner.MillBuildRootModule
