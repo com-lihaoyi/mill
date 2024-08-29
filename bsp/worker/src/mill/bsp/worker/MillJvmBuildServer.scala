@@ -24,7 +24,7 @@ import scala.jdk.CollectionConverters._
 private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer =>
 
   override def buildTargetJvmRunEnvironment(params: JvmRunEnvironmentParams)
-  : CompletableFuture[JvmRunEnvironmentResult] = {
+      : CompletableFuture[JvmRunEnvironmentResult] = {
     jvmRunTestEnvironment(
       s"buildTarget/jvmRunEnvironment ${params}",
       params.getTargets.asScala.toSeq,
@@ -33,7 +33,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
   }
 
   override def buildTargetJvmTestEnvironment(params: JvmTestEnvironmentParams)
-  : CompletableFuture[JvmTestEnvironmentResult] = {
+      : CompletableFuture[JvmTestEnvironmentResult] = {
     jvmRunTestEnvironment(
       s"buildTarget/jvmTestEnvironment ${params}",
       params.getTargets.asScala.toSeq,
@@ -42,10 +42,10 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
   }
 
   def jvmRunTestEnvironment[V](
-                                name: String,
-                                targetIds: Seq[BuildTargetIdentifier],
-                                agg: java.util.List[JvmEnvironmentItem] => V
-                              ): CompletableFuture[V] = {
+      name: String,
+      targetIds: Seq[BuildTargetIdentifier],
+      agg: java.util.List[JvmEnvironmentItem] => V
+  ): CompletableFuture[V] = {
     completableTasks(
       name,
       targetIds = _ => targetIds,
@@ -127,7 +127,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
   }
 
   override def buildTargetJvmCompileClasspath(params: JvmCompileClasspathParams)
-  : CompletableFuture[JvmCompileClasspathResult] =
+      : CompletableFuture[JvmCompileClasspathResult] =
     completableTasks(
       hint = "buildTarget/jvmCompileClasspath",
       targetIds = _ => params.getTargets.asScala.toSeq,
