@@ -142,7 +142,7 @@ object LineNumberPlugin {
                       }
                   val (rootParents, nonRootParents) =
                     pkgObj.impl.parents.partition(isRootModuleIdent)
-                  if (rootParents.isEmpty) {
+                  if (g.currentSource.file.name == "build" && rootParents.isEmpty) {
                     g.reporter.error(
                       pkgObj.pos,
                       "Root module must extend either `RootModule` or `MillBuildRootModule`"
