@@ -86,12 +86,12 @@ object build extends RootModule with MockitoModule{
 
   object subprojects extends Module {
     object android extends MockitoModule {
-      def moduleDeps = Seq(mockito)
+      def moduleDeps = Seq(build)
       def ivyDeps = Agg(libraries.bytebuddyandroid)
     }
     object errorprone extends MockitoModule {
       def compileIvyDeps = Agg(libraries.autoservice)
-      def moduleDeps = Seq(mockito)
+      def moduleDeps = Seq(build)
       def ivyDeps = Agg(libraries.errorprone)
       def testIvyDeps = Agg(libraries.errorproneTestApi)
 
@@ -116,8 +116,8 @@ object build extends RootModule with MockitoModule{
       )
     }
     object extTest extends MockitoModule{
-      def moduleDeps = Seq(mockito, `junit-jupiter`)
-      def testModuleDeps = Seq(mockito.test)
+      def moduleDeps = Seq(build, `junit-jupiter`)
+      def testModuleDeps = Seq(build.test)
       def testIvyDeps = Agg(
         libraries.junit4,
         libraries.assertj,
@@ -132,7 +132,7 @@ object build extends RootModule with MockitoModule{
     }
 
     object inlineTest extends MockitoModule{
-      def testModuleDeps = Seq(mockito)
+      def testModuleDeps = Seq(build)
       def testIvyDeps = Agg(libraries.junit4, libraries.assertj)
     }
 
@@ -143,7 +143,7 @@ object build extends RootModule with MockitoModule{
 
 
     object `junit-jupiter` extends MockitoModule{
-      def moduleDeps = Seq(mockito)
+      def moduleDeps = Seq(build)
 
       def ivyDeps = Agg(libraries.junitJupiterApi)
       def testFramework = "com.github.sbt.junit.jupiter.api.JupiterFramework"
@@ -187,7 +187,7 @@ object build extends RootModule with MockitoModule{
       )
     }
     object `memory-test` extends MockitoModule{
-      def testModuleDeps = Seq(mockito)
+      def testModuleDeps = Seq(build)
       def testIvyDeps = Agg(libraries.assertj)
       def testForkArgs = Seq("-Xmx128m")
     }
@@ -244,15 +244,15 @@ object build extends RootModule with MockitoModule{
 //      )
 //    }
     object `programmatic-test` extends MockitoModule{
-      def testModuleDeps = Seq(mockito)
+      def testModuleDeps = Seq(build)
       def testIvyDeps = Agg(libraries.junit4, libraries.assertj)
     }
     object proxy extends MockitoModule{
-      def testModuleDeps = Seq(mockito)
+      def testModuleDeps = Seq(build)
       def testIvyDeps = Agg(libraries.junit4, libraries.assertj)
     }
     object subclass extends MockitoModule{
-      def testModuleDeps = Seq(mockito)
+      def testModuleDeps = Seq(build)
       def testIvyDeps = Agg(libraries.junit4, libraries.assertj)
     }
   }
