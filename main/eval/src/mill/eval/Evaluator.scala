@@ -33,7 +33,7 @@ trait Evaluator {
 
   def withBaseLogger(newBaseLogger: ColorLogger): Evaluator
   def withFailFast(newFailFast: Boolean): Evaluator
-  def allowPositionalCommandArgs: Boolean
+  def allowPositionalCommandArgs: Boolean = false
   def plan(goals: Agg[Task[_]]): (MultiBiMap[Terminal, Task[_]], Agg[Task[_]])
 
   /**

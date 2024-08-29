@@ -214,6 +214,13 @@ trait Resolve[T] {
     resolve0(Seq(rootModule), scriptArgs, selectMode, allowPositionalCommandArgs)
   }
   def resolve(
+      rootModule: BaseModule,
+      scriptArgs: Seq[String],
+      selectMode: SelectMode,
+  ): Either[String, List[T]] = {
+    resolve0(Seq(rootModule), scriptArgs, selectMode, false)
+  }
+  def resolve(
       rootModules: Seq[BaseModule],
       scriptArgs: Seq[String],
       selectMode: SelectMode,
