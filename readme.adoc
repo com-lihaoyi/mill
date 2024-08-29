@@ -308,6 +308,9 @@ endif::[]
 * *Breaking Changes*
 ** Builds can now be modularized into per-folder definitions by defining
 `module.sc` files in subfolders {link-pr}/3213[#3213]
+*** This change removes the ability to define targets and modules in arbitrary scripts that
+you `import $file`. All targets and modules need to be moved to `module.sc` files in each
+subfolder
 
 ** Turn on parallelism for task evaluation by default, except for commands
 which always run serially at the end {link-pr}/3265[#3265]
