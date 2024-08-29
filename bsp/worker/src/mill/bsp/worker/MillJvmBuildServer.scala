@@ -69,7 +69,15 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
             state,
             id,
             _: JavaModule,
-            (localRunClasspath, runClasspath, forkArgs, forkWorkingDir, forkEnv, mainClass, zincWorker)
+            (
+              localRunClasspath,
+              runClasspath,
+              forkArgs,
+              forkWorkingDir,
+              forkEnv,
+              mainClass,
+              zincWorker
+            )
           ) =>
         val classpath = runClasspath.map(_.path).map(sanitizeUri)
         val item = new JvmEnvironmentItem(
@@ -80,7 +88,8 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
           forkEnv.asJava
         )
 
-        val classes = mainClass.toList ++ zincWorker.discoverMainClasses(localRunClasspath.map(_.path))
+        val classes =
+          mainClass.toList ++ zincWorker.discoverMainClasses(localRunClasspath.map(_.path))
         item.setMainClasses(classes.distinct.map(new JvmMainClass(_, Nil.asJava)).asJava)
         item
     } {
