@@ -4,7 +4,7 @@ import mill.testkit.IntegrationTestSuite
 
 import utest._
 
-object InvalidMetaModuleTests extends IntegrationTestSuite {
+object InvalidRootModuleTests extends IntegrationTestSuite {
   val tests: Tests = Tests {
     initWorkspace()
 
@@ -12,7 +12,7 @@ object InvalidMetaModuleTests extends IntegrationTestSuite {
       val res = eval(("resolve", "_"))
       assert(res.isSuccess == false)
       assert(res.err.contains("Root module "))
-      assert(res.err.contains("must extend `MillBuildRootModule`"))
+      assert(res.err.contains("must extend `RootModule`"))
     }
   }
 }

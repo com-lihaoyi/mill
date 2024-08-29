@@ -4,7 +4,7 @@ import mill.testkit.IntegrationTestSuite
 
 import utest._
 
-object MultipleTopLevelModulesTests extends IntegrationTestSuite {
+object MisnamedRootModuleTests extends IntegrationTestSuite {
   val tests: Tests = Tests {
     initWorkspace()
 
@@ -12,7 +12,7 @@ object MultipleTopLevelModulesTests extends IntegrationTestSuite {
       val res = eval(("resolve", "_"))
       assert(!res.isSuccess)
       assert(res.err.contains(
-        "Only one RootModule can be defined in a build, not 2: foo, bar"
+        "Only one RootModule named `build` can be defined in a build, not: foo"
       ))
     }
   }
