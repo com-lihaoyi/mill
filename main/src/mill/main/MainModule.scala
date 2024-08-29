@@ -125,7 +125,10 @@ trait MainModule extends BaseModule0 {
    * If there are multiple dependency paths between `src` and `dest`, the path
    * chosen is arbitrary.
    */
-  def path(evaluator: Evaluator, src: String, dest: String): Command[List[String]] =
+
+  def path(evaluator: Evaluator,
+           @mainargs.arg(positional = true) src: String,
+           @mainargs.arg(positional = true) dest: String): Command[List[String]] =
     Target.command {
       val resolved = Resolve.Tasks.resolve(
         evaluator.rootModules,

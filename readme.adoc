@@ -327,7 +327,8 @@ between tasks and tests due to parallelism
   allowing just `./mill mycommand value`. {link-pr}/3431[#3431].
 
 *** You can pass in
-  `--allow-positional-command-args` to fall back to the old behavior
+  `--allow-positional-command-args` to fall back to the old behavior, or use `@mainargs.arg(positional = true)`
+  on individual parameters
 
 * Other Changes
 
