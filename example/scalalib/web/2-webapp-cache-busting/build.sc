@@ -1,7 +1,7 @@
 import mill._, scalalib._
 import java.util.Arrays
 
-object root extends RootModule with ScalaModule {
+object build extends RootModule with ScalaModule {
   def scalaVersion = "2.13.8"
   def ivyDeps = Agg(
     ivy"com.lihaoyi::cask:0.9.1",

@@ -3,7 +3,7 @@ import $ivy.`com.lihaoyi::mill-contrib-scoverage:`
 
 import mill.contrib.scoverage._
 
-object foo extends RootModule with ScoverageModule {
+object build extends RootModule with ScoverageModule {
   def scoverageVersion = "2.1.0"
   def scalaVersion = "2.13.11"
   def ivyDeps = Agg(

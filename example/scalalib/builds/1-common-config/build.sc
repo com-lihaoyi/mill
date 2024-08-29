@@ -6,7 +6,7 @@
 //// SNIPPET:BUILD
 import mill._, scalalib._
 
-object foo extends RootModule with ScalaModule {
+object build extends RootModule with ScalaModule {
   def scalaVersion = "2.13.8"
 
   // You can have arbitrary numbers of third-party dependencies

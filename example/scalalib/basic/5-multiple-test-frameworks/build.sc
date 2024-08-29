@@ -2,7 +2,7 @@ import mill._
 import mill.scalalib._
 import mill.scalalib.api.CompilationResult
 
-object foo extends RootModule with ScalaModule {
+object build extends RootModule with ScalaModule {
   def scalaVersion = "2.13.11"
   def ivyDeps = Agg(
     ivy"com.lihaoyi::scalatags:0.12.0",

@@ -1,7 +1,7 @@
 //// SNIPPET:BUILD
 import mill._, scalalib._
 
-object foo extends RootModule with ScalaModule {
+object build extends RootModule with ScalaModule {
   def scalaVersion = "2.12.17"
   def ivyDeps = Agg(
     ivy"com.lihaoyi::upickle:3.1.0",

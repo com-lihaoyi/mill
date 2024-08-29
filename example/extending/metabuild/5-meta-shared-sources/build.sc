@@ -1,7 +1,7 @@
 import $meta._
 import mill._, scalalib._
 
-object foo extends RootModule with ScalaModule {
+object build extends RootModule with ScalaModule {
   def scalaVersion = millbuild.ScalaVersion.myScalaVersion
   def sources = T.sources{
     super.sources() ++ Seq(PathRef(millSourcePath / "mill-build" / "src"))

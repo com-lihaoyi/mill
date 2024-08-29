@@ -2,7 +2,7 @@
 
 import mill._, javalib._
 
-object foo extends RootModule with JavaModule {
+object build extends RootModule with JavaModule {
   def ivyDeps = Agg(
     ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
     ivy"org.apache.commons:commons-text:1.12.0"

@@ -1,7 +1,7 @@
 //// SNIPPET:BUILD
 import mill._, javalib._
 
-object foo extends RootModule with JavaModule {
+object build extends RootModule with JavaModule {
   // You can have arbitrary numbers of third-party dependencies
   def ivyDeps = Agg(
     ivy"org.apache.commons:commons-text:1.12.0"

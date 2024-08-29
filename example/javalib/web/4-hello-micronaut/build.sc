@@ -1,6 +1,6 @@
 import mill._, javalib._
 
-object hello extends RootModule with MicronautModule {
+object build extends RootModule with MicronautModule {
   def micronautVersion = "4.5.3"
   def ivyDeps = Agg(
     ivy"io.micronaut:micronaut-http-server-netty:$micronautVersion",

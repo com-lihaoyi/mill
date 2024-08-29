@@ -2,7 +2,7 @@
 
 import mill._, javalib._
 
-object foo extends RootModule with JavaModule {
+object build extends RootModule with JavaModule {
   /** Total number of lines in module's source files */
   def lineCount = T{
     allSourceFiles().map(f => os.read.lines(f.path).size).sum

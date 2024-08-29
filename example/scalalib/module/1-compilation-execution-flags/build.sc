@@ -1,7 +1,7 @@
 //// SNIPPET:BUILD
 import mill._, scalalib._
 
-object foo extends RootModule with ScalaModule{
+object build extends RootModule with ScalaModule{
   def scalaVersion = "2.13.8"
   def scalacOptions = Seq("-Ydelambdafy:inline")
   def forkArgs = Seq("-Xmx4g", "-Dmy.jvm.property=hello")

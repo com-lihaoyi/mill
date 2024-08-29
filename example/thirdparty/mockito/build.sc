@@ -57,7 +57,7 @@ trait MockitoModule extends MavenModule{
   }
 }
 
-object mockito extends RootModule with MockitoModule{
+object build extends RootModule with MockitoModule{
   def compileIvyDeps = Agg(
     libraries.hamcrest, libraries.junit4, libraries.bytebuddyagent,
     libraries.bytebuddy,

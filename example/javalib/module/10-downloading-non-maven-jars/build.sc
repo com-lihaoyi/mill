@@ -1,7 +1,7 @@
 //// SNIPPET:BUILD
 import mill._, javalib._
 
-object foo extends RootModule with JavaModule {
+object build extends RootModule with JavaModule {
   def unmanagedClasspath = T {
     os.write(
       T.dest / "fastjavaio.jar",

@@ -1,6 +1,6 @@
 import mill._, scalalib._, scalajslib._
 
-object root extends RootModule with ScalaModule {
+object build extends RootModule with ScalaModule {
 
   def scalaVersion = "2.13.14"
   def ivyDeps = Agg(
