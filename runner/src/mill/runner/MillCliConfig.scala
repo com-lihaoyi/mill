@@ -127,7 +127,7 @@ class MillCliConfig private (
       doc =
         """"""
     )
-    val allowPositionalCommandArgs: Flag,
+    val allowPositionalCommandArgs: Flag
 ) {
   override def toString: String = Seq(
     "home" -> home,
@@ -151,7 +151,7 @@ class MillCliConfig private (
     "color" -> color,
     "disableCallgraphInvalidation" -> disableCallgraphInvalidation,
     "metaLevel" -> metaLevel,
-    "allowPositionalCommandArgs" -> allowPositionalCommandArgs,
+    "allowPositionalCommandArgs" -> allowPositionalCommandArgs
   ).map(p => s"${p._1}=${p._2}").mkString(getClass().getSimpleName + "(", ",", ")")
 }
 

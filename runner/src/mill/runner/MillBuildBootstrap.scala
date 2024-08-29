@@ -405,7 +405,7 @@ object MillBuildBootstrap {
   def evaluateWithWatches(
       rootModules: Seq[BaseModule],
       evaluator: Evaluator,
-      targetsAndParams: Seq[String],
+      targetsAndParams: Seq[String]
   ): (Either[String, Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
     rootModules.foreach(_.evalWatchedValues.clear())
     val evalTaskResult =

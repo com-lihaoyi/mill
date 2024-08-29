@@ -28,7 +28,7 @@ object MainModule {
       evaluator: Evaluator,
       targets: Seq[String],
       log: Logger,
-      watch0: Watchable => Unit,
+      watch0: Watchable => Unit
   )(f: Seq[(Any, Option[(RunScript.TaskName, ujson.Value)])] => ujson.Value)
       : Result[ujson.Value] = {
 
@@ -126,9 +126,11 @@ trait MainModule extends BaseModule0 {
    * chosen is arbitrary.
    */
 
-  def path(evaluator: Evaluator,
-           @mainargs.arg(positional = true) src: String,
-           @mainargs.arg(positional = true) dest: String): Command[List[String]] =
+  def path(
+      evaluator: Evaluator,
+      @mainargs.arg(positional = true) src: String,
+      @mainargs.arg(positional = true) dest: String
+  ): Command[List[String]] =
     Target.command {
       val resolved = Resolve.Tasks.resolve(
         evaluator.rootModules,

@@ -53,7 +53,14 @@ object Resolve {
           val instantiated = ResolveCore
             .instantiateModule0(baseModules, r.segments.init)
             .flatMap { case (mod, rootMod) =>
-              instantiateCommand(rootMod, r, mod, args, nullCommandDefaults, allowPositionalCommandArgs)
+              instantiateCommand(
+                rootMod,
+                r,
+                mod,
+                args,
+                nullCommandDefaults,
+                allowPositionalCommandArgs
+              )
             }
 
           instantiated.map(Some(_))
@@ -216,7 +223,7 @@ trait Resolve[T] {
   def resolve(
       rootModule: BaseModule,
       scriptArgs: Seq[String],
-      selectMode: SelectMode,
+      selectMode: SelectMode
   ): Either[String, List[T]] = {
     resolve0(Seq(rootModule), scriptArgs, selectMode, false)
   }
@@ -231,7 +238,7 @@ trait Resolve[T] {
   def resolve(
       rootModules: Seq[BaseModule],
       scriptArgs: Seq[String],
-      selectMode: SelectMode,
+      selectMode: SelectMode
   ): Either[String, List[T]] = {
     resolve0(rootModules, scriptArgs, selectMode, false)
   }
@@ -247,7 +254,13 @@ trait Resolve[T] {
       val resolved = groups.map { case (selectors, args) =>
         val selected = selectors.map { case (scopedSel, sel) =>
           resolveRootModule(baseModules, scopedSel).map { rootModuleSels =>
-            resolveNonEmptyAndHandle(args, rootModuleSels, sel, nullCommandDefaults, allowPositionalCommandArgs)
+            resolveNonEmptyAndHandle(
+              args,
+              rootModuleSels,
+              sel,
+              nullCommandDefaults,
+              allowPositionalCommandArgs
+            )
           }
         }
 
@@ -294,7 +307,14 @@ trait Resolve[T] {
 
     resolved
       .map(_.toSeq.sortBy(_.segments.render))
-      .flatMap(handleResolved(baseModules, _, args, sel, nullCommandDefaults, allowPositionalCommandArgs))
+      .flatMap(handleResolved(
+        baseModules,
+        _,
+        args,
+        sel,
+        nullCommandDefaults,
+        allowPositionalCommandArgs
+      ))
   }
 
   private[mill] def deduplicate(items: List[T]): List[T] = items

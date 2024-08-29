@@ -133,21 +133,25 @@ class TestGraphs() {
 
   object moduleInitError extends TestBaseModule {
     def rootTarget = T { println("Running rootTarget"); "rootTarget Result" }
-    def rootCommand(@arg(positional = true) s: String) = T.command { println(s"Running rootCommand $s") }
+    def rootCommand(@arg(positional = true) s: String) =
+      T.command { println(s"Running rootCommand $s") }
 
     object foo extends Module {
       def fooTarget = T { println(s"Running fooTarget"); 123 }
-      def fooCommand(@arg(positional = true) s: String) = T.command { println(s"Running fooCommand $s") }
+      def fooCommand(@arg(positional = true) s: String) =
+        T.command { println(s"Running fooCommand $s") }
       throw new Exception("Foo Boom")
     }
 
     object bar extends Module {
       def barTarget = T { println(s"Running barTarget"); "barTarget Result" }
-      def barCommand(@arg(positional = true) s: String) = T.command { println(s"Running barCommand $s") }
+      def barCommand(@arg(positional = true) s: String) =
+        T.command { println(s"Running barCommand $s") }
 
       object qux extends Module {
         def quxTarget = T { println(s"Running quxTarget"); "quxTarget Result" }
-        def quxCommand(@arg(positional = true) s: String) = T.command { println(s"Running quxCommand $s") }
+        def quxCommand(@arg(positional = true) s: String) =
+          T.command { println(s"Running quxCommand $s") }
         throw new Exception("Qux Boom")
       }
     }
@@ -159,7 +163,8 @@ class TestGraphs() {
 
     object foo extends Module {
       def fooTarget = T { println(s"Running fooTarget"); 123 }
-      def fooCommand(@arg(positional = true) s: String) = T.command { println(s"Running fooCommand $s") }
+      def fooCommand(@arg(positional = true) s: String) =
+        T.command { println(s"Running fooCommand $s") }
       throw new Exception("Foo Boom")
     }
 
@@ -515,9 +520,10 @@ object TestGraphs {
       trait Cross2 extends mill.Cross.Module[String] with TaskModule {
         def platform = crossValue
         override def defaultCommandName(): String = "suffixCmd"
-        def suffixCmd(@arg(positional = true) suffix: String = "default"): Command[String] = T.command {
-          scalaVersion + "_" + platform + "_" + suffix
-        }
+        def suffixCmd(@arg(positional = true) suffix: String = "default"): Command[String] =
+          T.command {
+            scalaVersion + "_" + platform + "_" + suffix
+          }
       }
 
     }
