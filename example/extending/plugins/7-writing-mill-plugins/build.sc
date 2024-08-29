@@ -48,8 +48,18 @@ object myplugin extends ScalaModule with PublishModule {
 //
 // The above `build.sc` file sets up a `object myplugin extends ScalaModule` not just to
 // compile your Mill plugin project, but also to run automated tests using `mill-testkit`,
-// and to configure it for publishing to Maven Central via `PublishModule`
+// and to configure it for publishing to Maven Central via `PublishModule`. 
+// It looks like any other Scala project, except for a few things to take note:
 //
+// * A dependency on `com.lihaoyi:mill-dist:$millVersion`
+// * A test dependency on `com.lihaoyi::mill-testkit:$millVersion`
+// * An `object millExecutable` that adds some resources to the published `mill-dist`
+//   assembly to configure it to rewire `import $ivy` to instead use the local compiled
+//   classfiles for testing.
+
+
+// == Plugin Implementation
+
 // Like any other `trait`, a Mill plugin's traits modules allow you to:
 //
 // * Add additional tasks to an existing module
@@ -59,8 +69,6 @@ object myplugin extends ScalaModule with PublishModule {
 // In this example, we define a `LineCountJavaModule` that does all of the above:
 // it defines an abstract `def lineCountResourceFileName` task, it adds an additional
 // `def lineCount` task, and it overrides the `def resources`:
-
-// == Plugin Implementation
 
 /** See Also: myplugin/src/LineCountJavaModule.scala */
 
