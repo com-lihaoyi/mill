@@ -53,7 +53,7 @@ object ModuleInitErrorTests extends IntegrationTestSuite {
     test("rootCommand") {
       // If we specify a target in the root module, we are not
       // affected by the sub-modules failing to initialize
-      val res = eval(("rootCommand", "hello"))
+      val res = eval(("rootCommand", "-s", "hello"))
       assert(res.isSuccess == true)
       assert(res.out.contains("""Running rootCommand hello"""))
     }
@@ -66,7 +66,7 @@ object ModuleInitErrorTests extends IntegrationTestSuite {
       assert(fansi.Str(res.err).plainText.linesIterator.size < 20)
     }
     test("fooCommand") {
-      val res = eval(("foo.fooCommand", "hello"))
+      val res = eval(("foo.fooCommand", "-s", "hello"))
       assert(res.isSuccess == false)
       assert(fansi.Str(res.err).plainText.contains("""java.lang.Exception: Foo Boom"""))
       assert(fansi.Str(res.err).plainText.linesIterator.size < 20)
@@ -77,7 +77,7 @@ object ModuleInitErrorTests extends IntegrationTestSuite {
       assert(res.out.contains("""Running barTarget"""))
     }
     test("barCommand") {
-      val res = eval(("bar.barCommand", "hello"))
+      val res = eval(("bar.barCommand", "-s", "hello"))
       assert(res.isSuccess == true)
       assert(res.out.contains("""Running barCommand hello"""))
     }
@@ -88,7 +88,7 @@ object ModuleInitErrorTests extends IntegrationTestSuite {
       assert(fansi.Str(res.err).plainText.linesIterator.size < 20)
     }
     test("quxCommand") {
-      val res = eval(("bar.qux.quxCommand", "hello"))
+      val res = eval(("bar.qux.quxCommand", "-s", "hello"))
       assert(res.isSuccess == false)
       assert(fansi.Str(res.err).plainText.contains("""java.lang.Exception: Qux Boom"""))
       assert(fansi.Str(res.err).plainText.linesIterator.size < 20)

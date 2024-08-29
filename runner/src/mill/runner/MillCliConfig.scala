@@ -122,7 +122,12 @@ class MillCliConfig private (
            Level 0 is the normal project, level 1 the first meta-build, and so on.
            The last level is the built-in synthetic meta-build which Mill uses to bootstrap the project."""
     )
-    val metaLevel: Option[Int]
+    val metaLevel: Option[Int],
+    @arg(
+      doc =
+        """"""
+    )
+    val allowPositionalCommandArgs: Flag
 ) {
   override def toString: String = Seq(
     "home" -> home,
@@ -145,7 +150,8 @@ class MillCliConfig private (
     "leftoverArgs" -> leftoverArgs,
     "color" -> color,
     "disableCallgraphInvalidation" -> disableCallgraphInvalidation,
-    "metaLevel" -> metaLevel
+    "metaLevel" -> metaLevel,
+    "allowPositionalCommandArgs" -> allowPositionalCommandArgs
   ).map(p => s"${p._1}=${p._2}").mkString(getClass().getSimpleName + "(", ",", ")")
 }
 
@@ -180,7 +186,8 @@ object MillCliConfig {
       leftoverArgs: Leftover[String] = Leftover(),
       color: Option[Boolean] = None,
       disableCallgraphInvalidation: Flag = Flag(),
-      metaLevel: Option[Int] = None
+      metaLevel: Option[Int] = None,
+      allowPositionalCommandArgs: Flag = Flag()
   ): MillCliConfig = new MillCliConfig(
     home = home,
     repl = repl,
@@ -202,7 +209,56 @@ object MillCliConfig {
     leftoverArgs = leftoverArgs,
     color = color,
     disableCallgraphInvalidation,
-    metaLevel = metaLevel
+    metaLevel = metaLevel,
+    allowPositionalCommandArgs = allowPositionalCommandArgs
+  )
+  @deprecated("Bin-compat shim", "Mill after 0.11.12")
+  def apply(
+      home: os.Path,
+      @deprecated("No longer supported.", "Mill 0.11.0-M8")
+      repl: Flag,
+      noServer: Flag,
+      bsp: Flag,
+      showVersion: Flag,
+      ringBell: Flag,
+      disableTicker: Flag,
+      enableTicker: Option[Boolean],
+      debugLog: Flag,
+      keepGoing: Flag,
+      extraSystemProperties: Map[String, String],
+      threadCountRaw: Option[Int],
+      imports: Seq[String],
+      interactive: Flag,
+      help: Flag,
+      watch: Flag,
+      silent: Flag,
+      leftoverArgs: Leftover[String],
+      color: Option[Boolean],
+      disableCallgraphInvalidation: Flag,
+      metaLevel: Option[Int]
+  ): MillCliConfig = new MillCliConfig(
+    home = home,
+    repl = repl,
+    noServer = noServer,
+    bsp = bsp,
+    showVersion = showVersion,
+    ringBell = ringBell,
+    disableTicker = disableTicker,
+    enableTicker = enableTicker,
+    debugLog = debugLog,
+    keepGoing = keepGoing,
+    extraSystemProperties = extraSystemProperties,
+    threadCountRaw = threadCountRaw,
+    imports = imports,
+    interactive = interactive,
+    help = help,
+    watch = watch,
+    silent = silent,
+    leftoverArgs = leftoverArgs,
+    color = color,
+    disableCallgraphInvalidation,
+    metaLevel = metaLevel,
+    allowPositionalCommandArgs = Flag()
   )
 
   @deprecated("Bin-compat shim", "Mill after 0.11.0")
