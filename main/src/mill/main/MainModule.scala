@@ -28,7 +28,7 @@ object MainModule {
       evaluator: Evaluator,
       targets: Seq[String],
       log: Logger,
-      watch0: Watchable => Unit
+      watch0: Watchable => Unit,
   )(f: Seq[(Any, Option[(RunScript.TaskName, ujson.Value)])] => ujson.Value)
       : Result[ujson.Value] = {
 

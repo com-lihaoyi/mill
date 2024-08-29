@@ -15,13 +15,13 @@ object RunScript {
   def evaluateTasksNamed(
       evaluator: Evaluator,
       scriptArgs: Seq[String],
-      selectMode: SelectMode
+      selectMode: SelectMode,
   ): Either[
     String,
     (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]])
   ] = {
     val resolved = mill.eval.Evaluator.currentEvaluator.withValue(evaluator) {
-      Resolve.Tasks.resolve(evaluator.rootModules, scriptArgs, selectMode)
+      Resolve.Tasks.resolve(evaluator.rootModules, scriptArgs, selectMode, evaluator.allowPositionalCommandArgs)
     }
     for (targets <- resolved) yield evaluateNamed(evaluator, Agg.from(targets))
   }

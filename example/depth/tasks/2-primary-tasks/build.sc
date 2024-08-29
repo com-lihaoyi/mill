@@ -52,6 +52,13 @@ def lineCount: T[Int] = T {
 // on other targets are defined using `foo()` to extract the value from them.
 // Apart from the `foo()` calls, the `T {...}` block contains arbitrary code that
 // does some work and returns a result.
+//
+// The `os.walk` and `os.read.lines` statements above are from the
+// https://github.com/com-lihaoyi/os-lib[OS-Lib] library, which provides all common
+// filesystem and subprocess operations for Mill builds. You can see the OS-Lib library
+// documentation for more details:
+//
+// * https://github.com/com-lihaoyi/os-lib[OS-Lib Library Documentation]
 
 // If a target's inputs change but its output does not, e.g. someone changes a
 // comment within the source files that doesn't affect the classfiles, then
@@ -102,7 +109,9 @@ Computing line count
 // The return-value of targets has to be JSON-serializable via
 // {upickle-github-url}[uPickle]. You can run targets directly from the command
 // line, or use `show` if you want to see the JSON content or pipe it to
-// external tools.
+// external tools. See the uPickle library documentation for more details:
+//
+// * {upickle-github-url}[uPickle Library Documentation]
 
 // ==== T.dest
 //
@@ -257,11 +266,11 @@ def summarizeClassFileStats = T{
 
 // === Commands
 
-def run(args: String*) = T.command {
+def run(mainClass: String, args: String*) = T.command {
   os.proc(
       "java",
       "-cp", s"${classFiles().path}:${resources().path}",
-      "foo.Foo",
+      mainClass,
       args
     )
     .call(stdout = os.Inherit)
@@ -285,6 +294,49 @@ def run(args: String*) = T.command {
 // re-evaluate every time even if none of their inputs have changed.
 // A command with no parameter is defined as `def myCommand() = T.command {...}`.
 // It is a compile error if `()` is missing.
+//
+// Targets can take command line params, parsed by the https://github.com/com-lihaoyi/mainargs[MainArgs]
+// library. Thus the signature `def run(mainClass: String, args: String*)` takes
+// params of the form `--main-class <str> <arg1> <arg2> ... <argn>`:
+
+/** Usage
+
+> ./mill run --main-class foo.Foo hello world
+Foo.value: 31337
+args: hello world
+foo.txt resource: My Example Text
+
+*/
+
+// Command line arguments can take most primitive types: `String`, `Int`, `Boolean`, etc.,
+// along with `Option[T]` representing optional values and `Seq[T]` representing repeatable values,
+// and `mainargs.Flag` representing flags and `mainargs.Leftover[T]` representing any command line
+// arguments not parsed earlier. Default values for command line arguments are also supported.
+// See the mainargs documentation for more details:
+//
+// * [MainArgs Library Documentation](https://github.com/com-lihaoyi/mainargs[MainArgs])
+//
+// By default, all command parameters need to be named, except for variadic parameters
+// of type `T*` or `mainargs.Leftover[T]`. You can use the flag `--allow-positional-command-args`
+// to allow arbitrary arguments to be passed positionally, as shown below:
+
+/** Usage
+
+> ./mill run foo.Foo hello world # this raises an error because `--main-class` is not given
+error: Missing argument: --mainClass <str>
+Expected Signature: run
+  --mainClass <str>
+  args <str>...
+...
+
+> ./mill --allow-positional-command-args run foo.Foo hello world # this succeeds due to --allow-positional-command-args
+Foo.value: 31337
+args: hello world
+foo.txt resource: My Example Text
+
+*/
+
+
 //
 // Like <<_targets>>, a command only evaluates after all its upstream
 // dependencies have completed, and will not begin to run if any upstream

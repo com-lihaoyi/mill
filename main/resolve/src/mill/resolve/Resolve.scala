@@ -209,7 +209,7 @@ trait Resolve[T] {
       rootModule: BaseModule,
       scriptArgs: Seq[String],
       selectMode: SelectMode,
-      allowPositionalCommandArgs: Boolean
+      allowPositionalCommandArgs: Boolean = false
   ): Either[String, List[T]] = {
     resolve0(Seq(rootModule), scriptArgs, selectMode, allowPositionalCommandArgs)
   }
@@ -220,6 +220,13 @@ trait Resolve[T] {
       allowPositionalCommandArgs: Boolean
   ): Either[String, List[T]] = {
     resolve0(rootModules, scriptArgs, selectMode, allowPositionalCommandArgs)
+  }
+  def resolve(
+      rootModules: Seq[BaseModule],
+      scriptArgs: Seq[String],
+      selectMode: SelectMode,
+  ): Either[String, List[T]] = {
+    resolve0(rootModules, scriptArgs, selectMode, false)
   }
 
   private[mill] def resolve0(
