@@ -1,5 +1,6 @@
 package mill.util
 import TestUtil.test
+import mainargs.arg
 import mill.testkit.TestBaseModule
 import mill.define.{Command, Cross, Discover, DynamicModule, ModuleRef, TaskModule}
 import mill.{Module, T}
@@ -132,21 +133,25 @@ class TestGraphs() {
 
   object moduleInitError extends TestBaseModule {
     def rootTarget = T { println("Running rootTarget"); "rootTarget Result" }
-    def rootCommand(s: String) = T.command { println(s"Running rootCommand $s") }
+    def rootCommand(@arg(positional = true) s: String) =
+      T.command { println(s"Running rootCommand $s") }
 
     object foo extends Module {
       def fooTarget = T { println(s"Running fooTarget"); 123 }
-      def fooCommand(s: String) = T.command { println(s"Running fooCommand $s") }
+      def fooCommand(@arg(positional = true) s: String) =
+        T.command { println(s"Running fooCommand $s") }
       throw new Exception("Foo Boom")
     }
 
     object bar extends Module {
       def barTarget = T { println(s"Running barTarget"); "barTarget Result" }
-      def barCommand(s: String) = T.command { println(s"Running barCommand $s") }
+      def barCommand(@arg(positional = true) s: String) =
+        T.command { println(s"Running barCommand $s") }
 
       object qux extends Module {
         def quxTarget = T { println(s"Running quxTarget"); "quxTarget Result" }
-        def quxCommand(s: String) = T.command { println(s"Running quxCommand $s") }
+        def quxCommand(@arg(positional = true) s: String) =
+          T.command { println(s"Running quxCommand $s") }
         throw new Exception("Qux Boom")
       }
     }
@@ -158,7 +163,8 @@ class TestGraphs() {
 
     object foo extends Module {
       def fooTarget = T { println(s"Running fooTarget"); 123 }
-      def fooCommand(s: String) = T.command { println(s"Running fooCommand $s") }
+      def fooCommand(@arg(positional = true) s: String) =
+        T.command { println(s"Running fooCommand $s") }
       throw new Exception("Foo Boom")
     }
 
@@ -167,7 +173,7 @@ class TestGraphs() {
         println(s"Running barTarget")
         s"${foo.fooTarget()} barTarget Result"
       }
-      def barCommand(s: String) = T.command {
+      def barCommand(@arg(positional = true) s: String) = T.command {
         foo.fooCommand(s)()
         println(s"Running barCommand $s")
       }
@@ -514,9 +520,10 @@ object TestGraphs {
       trait Cross2 extends mill.Cross.Module[String] with TaskModule {
         def platform = crossValue
         override def defaultCommandName(): String = "suffixCmd"
-        def suffixCmd(suffix: String = "default"): Command[String] = T.command {
-          scalaVersion + "_" + platform + "_" + suffix
-        }
+        def suffixCmd(@arg(positional = true) suffix: String = "default"): Command[String] =
+          T.command {
+            scalaVersion + "_" + platform + "_" + suffix
+          }
       }
 
     }
@@ -534,6 +541,38 @@ object TestGraphs {
       override def f = T { super.f() + 3 }
     }
     object m extends A with B {}
+  }
+
+  object StackableOverrides2 extends TestBaseModule {
+    object A extends Module {
+      trait X extends Module {
+        def f = T { 1 }
+      }
+    }
+    object B extends Module {
+      trait X extends A.X {
+        override def f = T { super.f() + 2 }
+      }
+    }
+
+    object m extends B.X {
+      override def f = T { super.f() + 3 }
+    }
+  }
+
+  object StackableOverrides3 extends TestBaseModule {
+    object A extends Module {
+      trait X extends Module {
+        def f = T { 1 }
+      }
+    }
+    trait X extends A.X {
+      override def f = T { super.f() + 2 }
+    }
+
+    object m extends X {
+      override def f = T { super.f() + 3 }
+    }
   }
 
   object PrivateTasksInMixedTraits extends TestBaseModule {

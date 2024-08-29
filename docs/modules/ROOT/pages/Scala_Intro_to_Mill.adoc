@@ -72,14 +72,14 @@ using Mill and its supporting libraries to the fullest:
 
 == Simple Scala Module
 
-include::example/basic/1-simple.adoc[]
+include::example/scalalib/basic/1-simple.adoc[]
 
 == Custom Build Logic
 
-include::example/basic/2-custom-build-logic.adoc[]
+include::example/scalalib/basic/2-custom-build-logic.adoc[]
 
 == Multi-Module Project
 
-include::example/basic/3-multi-module.adoc[]
+include::example/scalalib/basic/3-multi-module.adoc[]
 
 include::partial$Intro_to_Mill_Footer.adoc[]

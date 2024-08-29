@@ -4,6 +4,7 @@ import com.github.lolgab.mill.mima.Mima
 import coursier.maven.MavenRepository
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import com.goyeau.mill.scalafix.ScalafixModule
+import example.millSourcePath
 import mill._
 import mill.api.JarManifest
 import mill.define.NamedTask
@@ -305,6 +306,21 @@ trait MillJavaModule extends JavaModule {
     upstream.toMap ++ current
   }
 
+
+  def testIvyDeps: T[Agg[Dep]] = Agg(Deps.TestDeps.utest)
+  def testModuleDeps: Seq[JavaModule] =
+    if (this == main) Seq(main)
+    else Seq(this, main.test)
+
+  def writeLocalTestOverrides = T.task {
+    for ((k, v) <- testTransitiveDeps()) {
+      os.write(T.dest / "mill" / "local-test-overrides" / k, v, createFolders = true)
+    }
+    Seq(PathRef(T.dest))
+  }
+
+  def runClasspath = super.runClasspath() ++ writeLocalTestOverrides()
+
   def repositoriesTask = T.task {
     super.repositoriesTask() ++
       Seq(MavenRepository("https://oss.sonatype.org/content/repositories/releases"))
@@ -368,20 +384,6 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
       "-Xlint:adapted-args"
     )
 
-  def testIvyDeps: T[Agg[Dep]] = Agg(Deps.TestDeps.utest)
-  def testModuleDeps: Seq[JavaModule] =
-    if (this == main) Seq(main)
-    else Seq(this, main.test)
-
-  def writeLocalTestOverrides = T.task {
-    for ((k, v) <- testTransitiveDeps()) {
-      os.write(T.dest / "mill" / "local-test-overrides" / k, v, createFolders = true)
-    }
-    Seq(PathRef(T.dest))
-  }
-
-  def runClasspath = super.runClasspath() ++ writeLocalTestOverrides()
-
   def scalacPluginIvyDeps =
     super.scalacPluginIvyDeps() ++
       Agg(Deps.acyclic) ++
@@ -394,7 +396,6 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
   /** Default tests module. */
   lazy val test: MillScalaTests = new MillScalaTests {}
   trait MillScalaTests extends ScalaTests with MillBaseTestsModule {
-    def runClasspath = super.runClasspath() ++ writeLocalTestOverrides()
     def forkArgs = super.forkArgs() ++ outer.testArgs()
     def moduleDeps = outer.testModuleDeps
     def ivyDeps = super.ivyDeps() ++ outer.testIvyDeps()
@@ -598,18 +599,18 @@ object main extends MillStableScalaModule with BuildInfo {
       "millEmbeddedDeps",
       (
         T.traverse(
-          dev.recursiveModuleDeps.collect { case m: PublishModule => m }
+          dist.recursiveModuleDeps.collect { case m: PublishModule => m }
         )(
           _.publishSelfDependency
         )()
           .map(artifact => s"${artifact.group}:${artifact.id}:${artifact.version}") ++
           Lib.resolveDependenciesMetadata(
-            repositories = dev.repositoriesTask(),
-            dev.transitiveIvyDeps(),
-            Some(dev.mapDependencies()),
-            dev.resolutionCustomizer(),
+            repositories = dist.repositoriesTask(),
+            dist.transitiveIvyDeps(),
+            Some(dist.mapDependencies()),
+            dist.resolutionCustomizer(),
             Some(T.ctx()),
-            dev.coursierCacheCustomizer()
+            dist.coursierCacheCustomizer()
           )._2.minDependencies.toSeq
             .map(d => s"${d.module.organization.value}:${d.module.name.value}:${d.version}")
       )
@@ -762,7 +763,7 @@ object testkit extends MillPublishScalaModule {
     super.sources() ++
     Seq(PathRef(build.millSourcePath / "mill-build" / "src"))
 
-  def forkEnv = super.forkEnv() ++ Map("MILL_EXECUTABLE_PATH" -> dev.launcher().path.toString())
+  def forkEnv = super.forkEnv() ++ Map("MILL_EXECUTABLE_PATH" -> dist.launcher().path.toString())
 }
 
 object testrunner extends MillPublishScalaModule {
@@ -1178,10 +1179,10 @@ trait IntegrationTestModule extends MillScalaModule {
         ) ++
         testReleaseEnv()
 
-    def forkArgs = T { super.forkArgs() ++ dev.forkArgs() }
+    def forkArgs = T { super.forkArgs() ++ dist.forkArgs() }
 
     def testReleaseEnv =
-      if (mode == "local") T { Map("MILL_INTEGRATION_LAUNCHER" -> dev.launcher().path.toString()) }
+      if (mode == "local") T { Map("MILL_INTEGRATION_LAUNCHER" -> dist.launcher().path.toString()) }
       else T { Map("MILL_INTEGRATION_LAUNCHER" -> integration.testMill().path.toString()) }
 
     def compile = IntegrationTestModule.this.compile()
@@ -1201,30 +1202,46 @@ trait IntegrationTestCrossModule extends IntegrationTestModule with Cross.Module
 def listIn(path: os.Path) = interp.watchValue(os.list(path).map(_.last))
 
 object example extends Module {
-  def exampleModules: Seq[ExampleCrossModule] =
-    millInternal.modules.collect { case m: ExampleCrossModule => m }
+  def exampleModules: Seq[ExampleCrossModule] = millInternal
+    .modules
+    .collect { case m: ExampleCrossModule => m }
 
-  object basic extends Cross[ExampleCrossModule](listIn(millSourcePath / "basic"))
-  object basicjava extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "basicjava"))
-  object scalabuilds extends Cross[ExampleCrossModule](listIn(millSourcePath / "scalabuilds"))
-  object scalatesting extends Cross[ExampleCrossModule](listIn(millSourcePath / "scalatesting"))
-  object javabuilds extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "javabuilds"))
-  object javatesting extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "javatesting"))
-  object scalamodule extends Cross[ExampleCrossModule](listIn(millSourcePath / "scalamodule"))
-  object javamodule extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "javamodule"))
-  object tasks extends Cross[ExampleCrossModule](listIn(millSourcePath / "tasks"))
-  object cross extends Cross[ExampleCrossModule](listIn(millSourcePath / "cross"))
-  object misc extends Cross[ExampleCrossModule](listIn(millSourcePath / "misc"))
-  object web extends Cross[ExampleCrossModule](listIn(millSourcePath / "web"))
-  object javaweb extends Cross[ExampleCrossModule](listIn(millSourcePath / "javaweb"))
+
+  object javalib extends Module{
+    object basic extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "basic"))
+    object builds extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "builds"))
+    object testing extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "testing"))
+    object module extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "module"))
+    object web extends Cross[ExampleCrossModule](listIn(millSourcePath / "web"))
+  }
+  object scalalib extends Module{
+    object basic extends Cross[ExampleCrossModule](listIn(millSourcePath / "basic"))
+    object builds extends Cross[ExampleCrossModule](listIn(millSourcePath / "builds"))
+    object testing extends Cross[ExampleCrossModule](listIn(millSourcePath / "testing"))
+    object module extends Cross[ExampleCrossModule](listIn(millSourcePath / "module"))
+    object web extends Cross[ExampleCrossModule](listIn(millSourcePath / "web"))
+  }
+
+  object depth extends Module{
+    object tasks extends Cross[ExampleCrossModule](listIn(millSourcePath / "tasks"))
+    object modules extends Cross[ExampleCrossModule](listIn(millSourcePath / "modules"))
+    object cross extends Cross[ExampleCrossModule](listIn(millSourcePath / "cross"))
+  }
+
+  object extending extends Module{
+    object imports extends Cross[ExampleCrossModule](listIn(millSourcePath / "imports"))
+    object metabuild extends Cross[ExampleCrossModule](listIn(millSourcePath / "metabuild"))
+    object plugins extends Cross[ExampleCrossModule](listIn(millSourcePath / "plugins"))
+  }
 
   trait ExampleCrossModuleJava extends ExampleCrossModule {
 
     def upstreamCross(s: String) = s match {
-      case "basicjava" => basic
-      case "javabuilds" => scalabuilds
-      case "javamodule" => scalamodule
-      case "javatesting" => scalatesting
+      case "basic" => scalalib.basic
+      case "builds" => scalalib.builds
+      case "module" => scalalib.module
+      case "testing" => scalalib.testing
+      case "web" => scalalib.web
     }
     def testRepoRoot = T{
       os.copy.over(super.testRepoRoot().path, T.dest)
@@ -1268,6 +1285,7 @@ object example extends Module {
         }
       }
   }
+
   trait ExampleCrossModule extends IntegrationTestCrossModule {
     // disable scalafix because these example modules don't have sources causing it to misbehave
     def fix(args: String*): Command[Unit] = T.command {}
@@ -1341,7 +1359,8 @@ object example extends Module {
     "jimfs" -> ("google/jimfs", "5b60a42eb9d3cd7a2073d549bd0cb833f5a7e7e9"),
     "commons-io" -> ("apache/commons-io", "b91a48074231ef813bc9b91a815d77f6343ff8f0"),
     "netty" -> ("netty/netty", "20a790ed362a3c11e0e990b58598e4ac6aa88bef"),
-    "mockito" -> ("mockito/mockito", "97f3574cc07fdf36f1f76ba7332ac57675e140b1")
+    "mockito" -> ("mockito/mockito", "97f3574cc07fdf36f1f76ba7332ac57675e140b1"),
+    "gatling" -> ("gatling/gatling", "3870fda86e6bca005fbd53108c60a65db36279b6")
   )
   object thirdparty extends Cross[ThirdPartyModule](listIn(millSourcePath / "thirdparty"))
   trait ThirdPartyModule extends ExampleCrossModule {
@@ -1520,17 +1539,18 @@ object idea extends MillPublishScalaModule {
   def moduleDeps = Seq(scalalib, runner)
 }
 
-object dist extends MillPublishJavaModule {
-  def jar = dev.assembly()
-  def moduleDeps = Seq(runner, idea)
-}
-
-object dev extends MillPublishScalaModule {
+/**
+ * Version of [[dist]] meant for local integration testing within the Mill
+ * repo. Looks mostly the same as [[dist]], except it does not have a reference
+ * to itself in its [[testTransitiveDeps]], to avoid a circular dependency.
+ */
+object dist0 extends MillPublishJavaModule {
   // disable scalafix here because it crashes when a module has no sources
   def fix(args: String*): Command[Unit] = T.command {}
   def moduleDeps = Seq(runner, idea)
 
-  def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(
+  def testTransitiveDeps = runner.testTransitiveDeps() ++ Seq(
+    main.graphviz.testDep(),
     runner.linenumbers.testDep(),
     scalalib.backgroundwrapper.testDep(),
     contrib.bloop.testDep(),
@@ -1540,7 +1560,18 @@ object dev extends MillPublishScalaModule {
     contrib.jmh.testDep(),
     contrib.playlib.testDep(),
     contrib.playlib.worker("2.8").testDep(),
-    bsp.worker.testDep()
+    bsp.worker.testDep(),
+    testkit.testDep(),
+  )
+}
+
+
+object dist extends MillPublishJavaModule {
+  def jar = rawAssembly()
+  def moduleDeps = Seq(runner, idea)
+
+  def testTransitiveDeps = dist0.testTransitiveDeps() ++ Seq(
+    (s"com.lihaoyi-${dist.artifactId()}", dist0.runClasspath().map(_.path).mkString("\n")),
   )
 
   def genTask(m: ScalaModule) = T.task { Seq(m.jar(), m.sourceJar()) ++ m.runClasspath() }
@@ -1586,8 +1617,7 @@ object dev extends MillPublishScalaModule {
     case m: PublishModule if (m ne this) && (m ne dist) => m
   }
 
-  def assembly = T {
-    T.traverse(allPublishModules)(m => m.publishLocalCached)()
+  def rawAssembly = T{
     val version = millVersion()
     val devRunClasspath = runClasspath().map(_.path)
     val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
@@ -1607,6 +1637,12 @@ object dev extends MillPublishScalaModule {
       T.dest / filename
     )
     PathRef(T.dest / filename)
+  }
+  def assembly = T {
+    T.traverse(allPublishModules)(m => m.publishLocalCached)()
+    val raw = rawAssembly().path
+    os.copy(raw, T.dest / raw.last)
+    PathRef(T.dest / raw.last)
   }
 
   def prependShellScript = T {
@@ -1974,12 +2010,12 @@ def installLocalCache() = T.command {
 }
 
 def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Path] = T.task {
-  val millBin = dev.assembly()
+  val millBin = dist.assembly()
   val targetFile = os.Path(binFile(), T.workspace)
   if (os.exists(targetFile))
     T.log.info(s"Overwriting existing local Mill binary at ${targetFile}")
   os.copy.over(millBin.path, targetFile, createFolders = true)
-  T.log.info(s"Published ${dev.allPublishModules.size} modules and installed ${targetFile}")
+  T.log.info(s"Published ${dist.allPublishModules.size} modules and installed ${targetFile}")
   targetFile
 }
 
@@ -2046,7 +2082,7 @@ def uploadToGithub(authKey: String) = T.command {
   val examples = exampleZips().map(z => (z.path, z.path.last))
 
   val zips = examples ++ Seq(
-    (dev.assembly().path, label + "-assembly"),
+    (dist.assembly().path, label + "-assembly"),
     (bootstrapLauncher().path, label)
   )
 

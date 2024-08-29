@@ -225,7 +225,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
 
         val public = os.read(checker.evaluator.outPath / "foo.json")
         val overridden = os.read(
-          checker.evaluator.outPath / "foo.super" / "mill" / "util" / "TestGraphs" / "BaseModule" / "foo.json"
+          checker.evaluator.outPath / "foo.super" / "BaseModule.json"
         )
         assert(
           public.contains("base"),
@@ -252,7 +252,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
 
         val public = os.read(checker.evaluator.outPath / "cmd.json")
         val overridden = os.read(
-          checker.evaluator.outPath / "cmd.super" / "mill" / "util" / "TestGraphs" / "BaseModule" / "cmd.json"
+          checker.evaluator.outPath / "cmd.super" / "BaseModule.json"
         )
         assert(
           public.contains("base1"),
@@ -366,15 +366,56 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         extraEvaled = -1
       )
 
-      def overridePath(task: String): SubPath =
-        os.sub / s"${task}.super" / "mill" / "util" / "TestGraphs" / "StackableOverrides"
-
       assert(
-        os.read(checker.evaluator.outPath / "m" / overridePath("f") / "X" / "f.json")
+        os.read(checker.evaluator.outPath / "m" / "f.super" / "X.json")
           .contains(" 1,")
       )
       assert(
-        os.read(checker.evaluator.outPath / "m" / overridePath("f") / "A" / "f.json")
+        os.read(checker.evaluator.outPath / "m" / "f.super" / "A.json")
+          .contains(" 3,")
+      )
+      assert(os.read(checker.evaluator.outPath / "m" / "f.json").contains(" 6,"))
+    }
+    utest.test("stackableOverrides2") {
+      // When the supers have the same name, qualify them until they are distinct
+      import StackableOverrides2._
+
+      val checker = new Checker(StackableOverrides2)
+      checker(
+        m.f,
+        6,
+        Agg(m.f),
+        extraEvaled = -1
+      )
+
+      assert(
+        os.read(checker.evaluator.outPath / "m" / "f.super" / "A" / "X.json")
+          .contains(" 1,")
+      )
+      assert(
+        os.read(checker.evaluator.outPath / "m" / "f.super" / "B" / "X.json")
+          .contains(" 3,")
+      )
+      assert(os.read(checker.evaluator.outPath / "m" / "f.json").contains(" 6,"))
+    }
+    utest.test("stackableOverrides3") {
+      // When the supers have the same name, qualify them until they are distinct
+      import StackableOverrides3._
+
+      val checker = new Checker(StackableOverrides3)
+      checker(
+        m.f,
+        6,
+        Agg(m.f),
+        extraEvaled = -1
+      )
+
+      assert(
+        os.read(checker.evaluator.outPath / "m" / "f.super" / "A" / "X.json")
+          .contains(" 1,")
+      )
+      assert(
+        os.read(checker.evaluator.outPath / "m" / "f.super" / "X.json")
           .contains(" 3,")
       )
       assert(os.read(checker.evaluator.outPath / "m" / "f.json").contains(" 6,"))

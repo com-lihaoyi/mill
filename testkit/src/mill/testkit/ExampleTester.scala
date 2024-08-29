@@ -50,20 +50,34 @@ import scala.concurrent.duration.FiniteDuration
  * to each one.
  */
 object ExampleTester {
-  def run(clientServerMode: Boolean, workspaceSourcePath: os.Path, millExecutable: os.Path): Unit =
+  def run(
+      clientServerMode: Boolean,
+      workspaceSourcePath: os.Path,
+      millExecutable: os.Path,
+      bashExecutable: String = defaultBashExecutable()
+  ): Unit =
     new ExampleTester(
       clientServerMode,
       workspaceSourcePath,
-      millExecutable
+      millExecutable,
+      bashExecutable
     ).run()
+
+  def defaultBashExecutable(): String = {
+    if (!mill.main.client.Util.isWindows) "bash"
+    else "C:\\Program Files\\Git\\usr\\bin\\bash.exe"
+  }
 }
 
 class ExampleTester(
     clientServerMode: Boolean,
-    workspaceSourcePath: os.Path,
-    millExecutable: os.Path
-) extends IntegrationTester(clientServerMode, workspaceSourcePath, millExecutable) {
+    val workspaceSourcePath: os.Path,
+    millExecutable: os.Path,
+    bashExecutable: String = ExampleTester.defaultBashExecutable()
+) extends IntegrationTesterBase {
   initWorkspace()
+
+  os.copy.over(millExecutable, workspacePath / "mill")
 
   val testTimeout: FiniteDuration = 5.minutes
 
@@ -87,7 +101,7 @@ class ExampleTester(
 
   }
 
-  def processCommandBlock(workspaceRoot: os.Path, commandBlock: String): Unit = {
+  def processCommandBlock(commandBlock: String): Unit = {
     val commandBlockLines = commandBlock.linesIterator.toVector
 
     val expectedSnippets = commandBlockLines.tail
@@ -103,119 +117,51 @@ class ExampleTester(
         (comment.exists(_.startsWith("not --no-server")) && !clientServerMode)
 
     if (!incorrectPlatform) {
-      processCommand(workspaceRoot, expectedSnippets, commandHead.trim)
+      processCommand(expectedSnippets, commandHead.trim)
     }
   }
 
   def processCommand(
-      workspaceRoot: os.Path,
       expectedSnippets: Vector[String],
-      commandStr: String
+      commandStr0: String,
+      check: Boolean = true
   ): Unit = {
-    val cmd = BashTokenizer.tokenize(commandStr)
-    Console.err.println(
-      s"""$workspaceRoot> ${cmd.mkString("'", "' '", "'")}
-         |--- Expected output --------
-         |${expectedSnippets.mkString("\n")}
-         |----------------------------""".stripMargin
-    )
-    cmd match {
-      case Seq("cp", "-r", from, to) =>
-        os.copy(os.Path(from, workspaceRoot), os.Path(to, workspaceRoot))
-
-      case Seq("sed", "-i", s"s/$oldStr/$newStr/g", file) =>
-        modifyFile(os.Path(file, workspaceRoot), _.replace(oldStr, newStr))
-
-      case Seq("curl", url) =>
-        Thread.sleep(1500) // Need to give backgroundWrapper time to spin up
-        val res = requests.get(url)
-        validateEval(
-          expectedSnippets,
-          IntegrationTester.EvalResult(res.is2xx, res.text(), "")
-        )
-
-      case Seq("cat", path) =>
-        val res = os.read(os.Path(path, workspaceRoot))
-        validateEval(
-          expectedSnippets,
-          IntegrationTester.EvalResult(true, res, "")
-        )
-
-      case Seq("node", rest @ _*) =>
-        val res = os
-          .proc("node", rest)
-          .call(stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot)
-        validateEval(
-          expectedSnippets,
-          IntegrationTester.EvalResult(res.exitCode == 0, res.out.text(), res.err.text())
-        )
-
-      case Seq("git", rest @ _*) =>
-        val res = os
-          .proc("git", rest)
-          .call(stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot)
-        validateEval(
-          expectedSnippets,
-          IntegrationTester.EvalResult(res.exitCode == 0, res.out.text(), res.err.text())
-        )
-
-      case Seq("java", "-jar", rest @ _*) =>
-        val res = os
-          .proc("java", "-jar", rest)
-          .call(stdout = os.Pipe, stderr = os.Pipe, cwd = workspaceRoot)
-        validateEval(
-          expectedSnippets,
-          IntegrationTester.EvalResult(res.exitCode == 0, res.out.text(), res.err.text())
-        )
-
-      case Seq("unzip", "-p", zip, path) =>
-        val zipFile = new java.util.zip.ZipFile((workspaceRoot / os.SubPath(zip)).toIO)
-        try {
-          val boas = new java.io.ByteArrayOutputStream
-          os.Internals.transfer(zipFile.getInputStream(zipFile.getEntry(path)), boas)
-          validateEval(
-            expectedSnippets,
-            IntegrationTester.EvalResult(true, boas.toString("UTF-8"), "")
-          )
-        } finally {
-          zipFile.close()
-        }
-
-      case Seq("printf", literal, ">>", path) =>
-        modifyFile(os.Path(path, workspacePath), _ + ujson.read(s""""${literal}"""").str)
-
-      case Seq(command, rest @ _*) =>
-        val evalResult = command match {
-          case "./mill" | "mill" => eval(rest)
-          case s"./$cmd" =>
-            val tokens = cmd +: rest
-            val executable = workspaceRoot / os.SubPath(tokens.head)
-            if (!os.exists(executable)) {
-              throw new Exception(
-                s"Executable $executable not found.\n" +
-                  s"Other files present include ${os.list(executable / os.up)}"
-              )
-            }
-            val res = os.call(
-              cmd = (executable, tokens.tail),
-              stdout = os.Pipe,
-              stderr = os.Pipe,
-              cwd = workspaceRoot
-            )
-
-            IntegrationTester.EvalResult(res.exitCode == 0, res.out.text(), res.err.text())
-        }
-
-        validateEval(expectedSnippets, evalResult)
+    val commandStr = commandStr0 match {
+      case s"mill $rest" => s"./mill $rest"
+      case s => s
     }
+    Console.err.println(s"$workspacePath> $commandStr")
+
+    val res = os.call(
+      (bashExecutable, "-c", commandStr),
+      stdout = os.Pipe,
+      stderr = os.Pipe,
+      cwd = workspacePath,
+      mergeErrIntoOut = true,
+      env = Map("MILL_TEST_SUITE" -> this.getClass().toString()),
+      check = false
+    )
+
+    validateEval(
+      expectedSnippets,
+      IntegrationTester.EvalResult(
+        res.exitCode == 0,
+        fansi.Str(res.out.text(), errorMode = fansi.ErrorMode.Strip).plainText,
+        fansi.Str(res.err.text(), errorMode = fansi.ErrorMode.Strip).plainText
+      ),
+      check
+    )
   }
 
   def validateEval(
       expectedSnippets: Vector[String],
-      evalResult: IntegrationTester.EvalResult
+      evalResult: IntegrationTester.EvalResult,
+      check: Boolean = true
   ): Unit = {
-    if (expectedSnippets.exists(_.startsWith("error: "))) assert(!evalResult.isSuccess)
-    else assert(evalResult.isSuccess)
+    if (check) {
+      if (expectedSnippets.exists(_.startsWith("error: "))) assert(!evalResult.isSuccess)
+      else assert(evalResult.isSuccess)
+    }
 
     val unwrappedExpected = expectedSnippets
       .map {
@@ -237,32 +183,23 @@ class ExampleTester(
         )
         .toVector
 
-    val filteredErr = plainTextLines(evalResult.err)
     val filteredOut = plainTextLines(evalResult.out)
 
     if (expectedSnippets.nonEmpty) {
       for (outLine <- filteredOut) {
         globMatchesAny(unwrappedExpected, outLine)
       }
-      for (errLine <- filteredErr) {
-        globMatchesAny(unwrappedExpected, errLine)
-      }
     }
 
     for (expectedLine <- unwrappedExpected.linesIterator) {
-      val combinedOutErr = (filteredOut ++ filteredErr).mkString("\n")
-      assert(globMatches(expectedLine, combinedOutErr))
+      assert(filteredOut.exists(globMatches(expectedLine, _)))
     }
   }
 
-  def globMatches(expected: String, filtered: String): Boolean = {
-    filtered
-      .linesIterator
-      .exists(
-        StringContext
-          .glob(expected.split("\\.\\.\\.", -1).toIndexedSeq, _)
-          .nonEmpty
-      )
+  def globMatches(expected: String, line: String): Boolean = {
+    StringContext
+      .glob(expected.split("\\.\\.\\.", -1).toIndexedSeq, line)
+      .nonEmpty
   }
 
   def globMatchesAny(expected: String, filtered: String): Boolean = {
@@ -275,11 +212,16 @@ class ExampleTester(
     val commandBlocks = ("\n" + usageComment.trim).split("\n> ").filter(_.nonEmpty)
 
     retryOnTimeout(3) {
-      try os.remove.all(workspacePath / "out")
-      catch { case e: Throwable => /*do nothing*/ }
+      try {
+        try os.remove.all(workspacePath / "out")
+        catch {
+          case e: Throwable => /*do nothing*/
+        }
 
-      for (commandBlock <- commandBlocks) processCommandBlock(workspacePath, commandBlock)
-      if (clientServerMode) eval("shutdown")
+        for (commandBlock <- commandBlocks) processCommandBlock(commandBlock)
+      } finally {
+        if (clientServerMode) processCommand(Vector(), "./mill shutdown", check = false)
+      }
     }
   }
 }

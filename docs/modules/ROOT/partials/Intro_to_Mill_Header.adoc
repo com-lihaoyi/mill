@@ -26,9 +26,10 @@ digraph G {
 }
 ....
 
-{mill-github-url}[Mill] is a fast multi-language build tool that supports {language}, speeding
-up common development workflows by 2-10x xref:Case_Study_Mill_vs_Maven.adoc[compared to Maven],
-xref:Case_Study_Mill_vs_Gradle.adoc[Gradle], or SBT.
+{mill-github-url}[Mill] is a fast multi-language build tool that supports {language}, making your
+common development workflows xref:Case_Study_Mill_vs_Maven.adoc[5-10x faster to Maven], or
+xref:Case_Study_Mill_vs_Gradle.adoc[2-4x faster than Gradle], with
+xref:Case_Study_Mill_vs_SBT.adoc[an easier experience than SBT].
 Mill aims to make your JVM project's build process performant, maintainable, and flexible
 even as it grows from a small project to a large codebase or monorepo with hundreds of modules:
 

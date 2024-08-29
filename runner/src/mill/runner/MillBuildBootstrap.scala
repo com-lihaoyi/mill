@@ -39,7 +39,8 @@ class MillBuildBootstrap(
     logger: ColorLogger,
     disableCallgraphInvalidation: Boolean,
     needBuildSc: Boolean,
-    requestedMetaLevel: Option[Int]
+    requestedMetaLevel: Option[Int],
+    allowPositionalCommandArgs: Boolean
 ) {
   import MillBuildBootstrap._
 
@@ -362,7 +363,8 @@ class MillBuildBootstrap(
       threadCount = threadCount,
       scriptImportGraph = scriptImportGraph,
       methodCodeHashSignatures = methodCodeHashSignatures,
-      disableCallgraphInvalidation = disableCallgraphInvalidation
+      disableCallgraphInvalidation = disableCallgraphInvalidation,
+      allowPositionalCommandArgs = allowPositionalCommandArgs
     )
   }
 

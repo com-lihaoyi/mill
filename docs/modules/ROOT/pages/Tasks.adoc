@@ -26,29 +26,29 @@ different Task types:
 |Cached In-Memory | | | | | |X
 |===
 
-include::example/tasks/1-task-graph.adoc[]
+include::example/depth/tasks/1-task-graph.adoc[]
 
 [#primitive-tasks]
 == Primary Tasks
 
-include::example/tasks/2-primary-tasks.adoc[]
+include::example/depth/tasks/2-primary-tasks.adoc[]
 
 == Other Tasks
 
 === Anonymous Tasks
 
-include::example/tasks/3-anonymous-tasks.adoc[]
+include::example/depth/tasks/3-anonymous-tasks.adoc[]
 
 === Inputs
 
-include::example/tasks/4-inputs.adoc[]
+include::example/depth/tasks/4-inputs.adoc[]
 
 === Persistent Targets
 
-include::example/tasks/5-persistent-targets.adoc[]
+include::example/depth/tasks/5-persistent-targets.adoc[]
 
 === Workers
-include::example/tasks/6-workers.adoc[]
+include::example/depth/tasks/6-workers.adoc[]
 
 
 === Evaluator Commands (experimental)
@@ -82,4 +82,4 @@ tasks and outputs, you do so with your own evaluator command.
 
 === Using ScalaModule.run as a task
 
-include::example/tasks/11-module-run-task.adoc[]
+include::example/depth/tasks/11-module-run-task.adoc[]

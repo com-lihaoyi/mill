@@ -18,47 +18,47 @@ Many of the APIs covered here are listed in the Scaladoc:
 
 == Compilation & Execution Flags
 
-include::example/scalamodule/1-compilation-execution-flags.adoc[]
+include::example/scalalib/module/1-compilation-execution-flags.adoc[]
 
 == Adding Ivy Dependencies
 
-include::example/scalamodule/2-ivy-deps.adoc[]
+include::example/scalalib/module/2-ivy-deps.adoc[]
 
 == Runtime and Compile-time Dependencies
 
-include::example/scalamodule/3-run-compile-deps.adoc[]
+include::example/scalalib/module/3-run-compile-deps.adoc[]
 
 == Classpath and Filesystem Resources
 
-include::example/scalamodule/5-resources.adoc[]
+include::example/scalalib/module/5-resources.adoc[]
 
 == Scala Compiler Plugins
 
-include::example/scalamodule/6-scala-compiler-plugins.adoc[]
+include::example/scalalib/module/6-scala-compiler-plugins.adoc[]
 
 == Scaladoc Config
 
-include::example/scalamodule/7-docjar.adoc[]
+include::example/scalalib/module/7-docjar.adoc[]
 
 == Unmanaged Jars
 
-include::example/scalamodule/8-unmanaged-jars.adoc[]
+include::example/scalalib/module/8-unmanaged-jars.adoc[]
 
 == Specifying the Main Class
 
-include::example/scalamodule/9-main-class.adoc[]
+include::example/scalalib/module/9-main-class.adoc[]
 
 == Downloading Non-Maven Jars
 
-include::example/scalamodule/10-downloading-non-maven-jars.adoc[]
+include::example/scalalib/module/10-downloading-non-maven-jars.adoc[]
 
 == Customizing the Assembly
 
-include::example/scalamodule/11-assembly-config.adoc[]
+include::example/scalalib/module/11-assembly-config.adoc[]
 
 == Repository Config
 
-include::example/scalamodule/12-repository-config.adoc[]
+include::example/scalalib/module/12-repository-config.adoc[]
 
 == Maven Central: Blocked!
 
@@ -86,11 +86,11 @@ If you are using millw, a more permanent solution could be to set the environmen
 
 == Scoverage
 
-include::example/scalamodule/13-contrib-scoverage.adoc[]
+include::example/scalalib/module/13-contrib-scoverage.adoc[]
 
 == Unidoc
 
-include::example/scalamodule/14-unidoc.adoc[]
+include::example/scalalib/module/14-unidoc.adoc[]
 
 == Reformatting your code
 
