@@ -147,6 +147,7 @@ trait ZincWorkerApi {
   /**
    * Find main classes by inspecting the Zinc compilation analysis file.
    */
+  @deprecated("Use other overload accepting a local classpath instead.", "Mill 0.12.0-RC1")
   def discoverMainClasses(compilationResult: CompilationResult): Seq[String]
 
   def docJar(
