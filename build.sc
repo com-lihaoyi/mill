@@ -144,7 +144,7 @@ object Deps {
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.23.1"
   val osLib = ivy"com.lihaoyi::os-lib:0.10.4"
   val pprint = ivy"com.lihaoyi::pprint:0.9.0"
-  val mainargs = ivy"com.lihaoyi::mainargs:0.7.1"
+  val mainargs = ivy"com.lihaoyi::mainargs:0.7.2"
   val millModuledefsVersion = "0.10.9"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = ivy"${millModuledefsString}"
@@ -223,12 +223,12 @@ def millLastTag: T[String] = T {
 }
 
 def millBinPlatform: T[String] = T {
-  //val tag = millLastTag()
-  //if (tag.contains("-M")) tag
-  //else {
+  // val tag = millLastTag()
+  // if (tag.contains("-M")) tag
+  // else {
   //  val pos = if (tag.startsWith("0.")) 2 else 1
   //  tag.split("[.]", pos + 1).take(pos).mkString(".")
-  //}
+  // }
   "0.11"
 }
 
@@ -305,7 +305,6 @@ trait MillJavaModule extends JavaModule {
     val current = Seq(testDep())
     upstream.toMap ++ current
   }
-
 
   def testIvyDeps: T[Agg[Dep]] = Agg(Deps.TestDeps.utest)
   def testModuleDeps: Seq[JavaModule] =
@@ -751,7 +750,6 @@ object main extends MillStableScalaModule with BuildInfo {
     def ivyDeps = Agg(Deps.graphvizJava, Deps.jgraphtCore)
   }
 
-
   def testModuleDeps = super.testModuleDeps ++ Seq(testkit)
 }
 
@@ -761,7 +759,7 @@ object testkit extends MillPublishScalaModule {
 
   def sources =
     super.sources() ++
-    Seq(PathRef(build.millSourcePath / "mill-build" / "src"))
+      Seq(PathRef(build.millSourcePath / "mill-build" / "src"))
 
   def forkEnv = super.forkEnv() ++ Map("MILL_EXECUTABLE_PATH" -> dist.launcher().path.toString())
 }
@@ -1206,15 +1204,14 @@ object example extends Module {
     .modules
     .collect { case m: ExampleCrossModule => m }
 
-
-  object javalib extends Module{
+  object javalib extends Module {
     object basic extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "basic"))
     object builds extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "builds"))
     object testing extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "testing"))
     object module extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "module"))
     object web extends Cross[ExampleCrossModule](listIn(millSourcePath / "web"))
   }
-  object scalalib extends Module{
+  object scalalib extends Module {
     object basic extends Cross[ExampleCrossModule](listIn(millSourcePath / "basic"))
     object builds extends Cross[ExampleCrossModule](listIn(millSourcePath / "builds"))
     object testing extends Cross[ExampleCrossModule](listIn(millSourcePath / "testing"))
@@ -1222,13 +1219,13 @@ object example extends Module {
     object web extends Cross[ExampleCrossModule](listIn(millSourcePath / "web"))
   }
 
-  object depth extends Module{
+  object depth extends Module {
     object tasks extends Cross[ExampleCrossModule](listIn(millSourcePath / "tasks"))
     object modules extends Cross[ExampleCrossModule](listIn(millSourcePath / "modules"))
     object cross extends Cross[ExampleCrossModule](listIn(millSourcePath / "cross"))
   }
 
-  object extending extends Module{
+  object extending extends Module {
     object imports extends Cross[ExampleCrossModule](listIn(millSourcePath / "imports"))
     object metabuild extends Cross[ExampleCrossModule](listIn(millSourcePath / "metabuild"))
     object plugins extends Cross[ExampleCrossModule](listIn(millSourcePath / "plugins"))
@@ -1243,46 +1240,46 @@ object example extends Module {
       case "testing" => scalalib.testing
       case "web" => scalalib.web
     }
-    def testRepoRoot = T{
+    def testRepoRoot = T {
       os.copy.over(super.testRepoRoot().path, T.dest)
-      for(lines <- buildScLines()) os.write.over(T.dest / "build.sc", lines.mkString("\n"))
+      for (lines <- buildScLines()) os.write.over(T.dest / "build.sc", lines.mkString("\n"))
       PathRef(T.dest)
     }
     def buildScLines =
       upstreamCross(
         this.millModuleSegments.parts.dropRight(1).last
       ).valuesToModules.get(List(crossValue)) match {
-        case None => T {None}
+        case None => T { None }
         case Some(upstream) => T {
-          Some {
-            val upstreamLines = os.read.lines(upstream.testRepoRoot().path / "build.sc")
-            val lines = os.read.lines(super.testRepoRoot().path / "build.sc")
+            Some {
+              val upstreamLines = os.read.lines(upstream.testRepoRoot().path / "build.sc")
+              val lines = os.read.lines(super.testRepoRoot().path / "build.sc")
 
-            import collection.mutable
-            val groupedLines = mutable.Map.empty[String, mutable.Buffer[String]]
-            var current = Option.empty[String]
-            lines.foreach {
-              case s"//// SNIPPET:$name" =>
-                current = Some(name)
-                groupedLines(name) = mutable.Buffer()
-              case s => current.foreach(groupedLines(_).append(s))
-            }
-
-            current = None
-            upstreamLines.flatMap {
-              case s"//// SNIPPET:$name" =>
-                if (name != "END") {
+              import collection.mutable
+              val groupedLines = mutable.Map.empty[String, mutable.Buffer[String]]
+              var current = Option.empty[String]
+              lines.foreach {
+                case s"//// SNIPPET:$name" =>
                   current = Some(name)
-                  groupedLines(name)
-                } else {
-                  current = None
-                  Nil
-                }
+                  groupedLines(name) = mutable.Buffer()
+                case s => current.foreach(groupedLines(_).append(s))
+              }
 
-              case s => if (current.nonEmpty) None else Some(s)
+              current = None
+              upstreamLines.flatMap {
+                case s"//// SNIPPET:$name" =>
+                  if (name != "END") {
+                    current = Some(name)
+                    groupedLines(name)
+                  } else {
+                    current = None
+                    Nil
+                  }
+
+                case s => if (current.nonEmpty) None else Some(s)
+              }
             }
           }
-        }
       }
   }
 
@@ -1519,13 +1516,20 @@ def launcherScript(
 }
 
 object runner extends MillPublishScalaModule {
-  object client extends MillPublishJavaModule{
+  object client extends MillPublishJavaModule {
     def buildInfoPackageName = "mill.runner.client"
     def moduleDeps = Seq(main.client)
   }
 
   def moduleDeps = Seq(
-    scalalib, scalajslib, scalanativelib, bsp, linenumbers, main.codesig, main.server, client
+    scalalib,
+    scalajslib,
+    scalanativelib,
+    bsp,
+    linenumbers,
+    main.codesig,
+    main.server,
+    client
   )
   def skipPreviousVersions: T[Seq[String]] = Seq("0.11.0-M7")
 
@@ -1561,17 +1565,16 @@ object dist0 extends MillPublishJavaModule {
     contrib.playlib.testDep(),
     contrib.playlib.worker("2.8").testDep(),
     bsp.worker.testDep(),
-    testkit.testDep(),
+    testkit.testDep()
   )
 }
-
 
 object dist extends MillPublishJavaModule {
   def jar = rawAssembly()
   def moduleDeps = Seq(runner, idea)
 
   def testTransitiveDeps = dist0.testTransitiveDeps() ++ Seq(
-    (s"com.lihaoyi-${dist.artifactId()}", dist0.runClasspath().map(_.path).mkString("\n")),
+    (s"com.lihaoyi-${dist.artifactId()}", dist0.runClasspath().map(_.path).mkString("\n"))
   )
 
   def genTask(m: ScalaModule) = T.task { Seq(m.jar(), m.sourceJar()) ++ m.runClasspath() }
@@ -1617,7 +1620,7 @@ object dist extends MillPublishJavaModule {
     case m: PublishModule if (m ne this) && (m ne dist) => m
   }
 
-  def rawAssembly = T{
+  def rawAssembly = T {
     val version = millVersion()
     val devRunClasspath = runClasspath().map(_.path)
     val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
@@ -1822,7 +1825,7 @@ object docs extends Module {
     }
     val newLines = Seq(
       s"    mill-download-url: ${Settings.projectUrl}/releases/download/$millLastTag",
-      s"    mill-example-url: ${Settings.projectUrl}/blob/$millLastTag/",
+      s"    mill-example-url: ${Settings.projectUrl}/blob/$millLastTag/"
     )
 
     os.write.over(dest / "antora.yml", (lines ++ newLines).mkString("\n"))
