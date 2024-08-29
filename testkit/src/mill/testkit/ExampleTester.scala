@@ -183,16 +183,16 @@ class ExampleTester(
         )
         .toVector
 
-    val filteredOut = plainTextLines(evalResult.out)
+    val filteredOut = plainTextLines(evalResult.out).mkString("\n")
 
     if (expectedSnippets.nonEmpty) {
-      for (outLine <- filteredOut) {
+      for (outLine <- filteredOut.linesIterator) {
         globMatchesAny(unwrappedExpected, outLine)
       }
     }
 
     for (expectedLine <- unwrappedExpected.linesIterator) {
-      assert(filteredOut.exists(globMatches(expectedLine, _)))
+      assert(filteredOut.linesIterator.exists(globMatches(expectedLine, _)))
     }
   }
 
