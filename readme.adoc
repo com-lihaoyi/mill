@@ -306,37 +306,37 @@ endif::[]
 === main
 
 * *Breaking Changes*
-  * Builds can now be modularized into per-folder definitions by defining
-  `module.sc` files in subfolders {link-pr}/3213[#3213]
+    * Builds can now be modularized into per-folder definitions by defining
+    `module.sc` files in subfolders {link-pr}/3213[#3213]
 
-  * Turn on parallelism for task evaluation by default, except for commands
-  which always run serially at the end {link-pr}/3265[#3265]
-  * This can be disabled by passing `--jobs 1`
+    * Turn on parallelism for task evaluation by default, except for commands
+    which always run serially at the end {link-pr}/3265[#3265]
+    * This can be disabled by passing `--jobs 1`
 
-  * Overhaul the Mill client-server protocol to improve robustness
-  {link-pr}/3363[#3363] {link-pr}/3366[#3366] {link-pr}/3368[#3368] {link-pr}/3370[#3370]
+    * Overhaul the Mill client-server protocol to improve robustness
+    {link-pr}/3363[#3363] {link-pr}/3366[#3366] {link-pr}/3368[#3368] {link-pr}/3370[#3370]
 
-  * Mill uses empty sandbox folders as the working directory for running its own code and
-  {link-pr}/3367[#3367] and test suites {link-pr}/3347[#3347], to avoid accidental interference
-  between tasks and tests due to parallelism
-  * This can be disabled by adding `def testSandboxWorkingDir = false` in your test module
+    * Mill uses empty sandbox folders as the working directory for running its own code and
+    {link-pr}/3367[#3367] and test suites {link-pr}/3347[#3347], to avoid accidental interference
+    between tasks and tests due to parallelism
+    * This can be disabled by adding `def testSandboxWorkingDir = false` in your test module
 
-  * Mill commands now require arguments to be passed named via `./mill mycommand --key value`, rather than
-    allowing just `./mill mycommand value`. {link-pr}/3431[#3431]. You can pass in
-    `--allow-positional-command-args` to fall back to the old behavior
+    * Mill commands now require arguments to be passed named via `./mill mycommand --key value`, rather than
+      allowing just `./mill mycommand value`. {link-pr}/3431[#3431]. You can pass in
+      `--allow-positional-command-args` to fall back to the old behavior
 
 * Other Changes
-  * Mill now publishes unit, integration, and example test fixtures for writing plugins {link-pr}/3398[#3398]
-  for downstream plugin authors to use in testing their own Mill extensions
-
-  * Bump default Sonatype Maven Central publishing timeouts to 10 minutes to avoid
-  timeouts due to slowness https://github.com/com-lihaoyi/mill/commit/b4c9386b0233fab53a312426715e226e4a7f6302
-
-  * Importing Mill projects into IntelliJ via BSP now properly marks the `out/`, `.idea/`, and `.bsp/` folders
-  as excluded {link-pr}/3329[#3329]
-
-  * Optimizations to Mill evaluation logic to reduce fixed overhead of running Mill
-  on large projects {link-pr}/3388[#3388]
+    * Mill now publishes unit, integration, and example test fixtures for writing plugins {link-pr}/3398[#3398]
+    for downstream plugin authors to use in testing their own Mill extensions
+   
+    * Bump default Sonatype Maven Central publishing timeouts to 10 minutes to avoid
+    timeouts due to slowness https://github.com/com-lihaoyi/mill/commit/b4c9386b0233fab53a312426715e226e4a7f6302
+   
+    * Importing Mill projects into IntelliJ via BSP now properly marks the `out/`, `.idea/`, and `.bsp/` folders
+    as excluded {link-pr}/3329[#3329]
+   
+    * Optimizations to Mill evaluation logic to reduce fixed overhead of running Mill
+    on large projects {link-pr}/3388[#3388]
 
 
 [#0-11-12]
