@@ -367,7 +367,6 @@ object MillBuildRootModule {
           // define this after user code so in case of conflict these lines are what turn
           // up in the error message, so we can add a comment and control what the user sees
           newSuffix,
-
           MillBuildRootModule.bottom
         ).mkString("\n"),
         createFolders = true
