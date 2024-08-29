@@ -315,14 +315,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.0-M0-51-a53b3c</span>
+    <span class="version">0.12.0-M0-52-b3466e</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="0.11.12/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="index.html">0.12.0-M0-51-a53b3c</a>
+          <a href="index.html">0.12.0-M0-52-b3466e</a>
         </li>
         <li class="version is-latest">
           <a href="0.11.12/index.html">0.11.12</a>
@@ -367,9 +367,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-51-a53b3c</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-52-b3466e</button>
   <div class="version-menu">
-    <a class="version is-current" href="Changelog.html">0.12.0-M0-51-a53b3c</a>
+    <a class="version is-current" href="Changelog.html">0.12.0-M0-52-b3466e</a>
     <a class="version" href="0.11.12/Changelog.html">0.11.12</a>
     <a class="version" href="0.11.11/Changelog.html">0.11.11</a>
     <a class="version" href="0.11.10/Changelog.html">0.11.10</a>
@@ -391,6 +391,18 @@
 <div class="sect1">
 <h2 id="main"><a class="anchor" href="#main"></a>main branch</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>The upcoming 0.12.0 release is <em>binary compatible</em> with 0.11.x, but contains a lot of
+breaking changes that are necessary to move the project forward. The breaking changes
+are listed below, with instructions provided on how to either disable the breaking change
+with a flag or adjust your code to accommodate it. Due to binary compatibility, Mill plugins
+published for Mill 0.11.x can continue to be used without updating them.</p>
+</div>
+<div class="paragraph">
+<p>0.12.x is intended to bundle together all the breaking changes we need to do that do not
+break binary compatibility. It is expected to be followed by 0.13.x, which will contain
+further changes that <em>do</em> break binary compatibility.</p>
+</div>
 <div class="ulist">
 <ul>
 <li>
