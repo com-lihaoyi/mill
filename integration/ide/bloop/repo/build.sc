@@ -5,4 +5,4 @@ import $ivy.`com.lihaoyi::mill-contrib-bloop:`
 import mill._
 import mill.scalalib._
 
-object root extends RootModule with JavaModule
+object build extends RootModule with JavaModule

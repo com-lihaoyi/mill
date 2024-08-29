@@ -233,7 +233,7 @@ by extending `RootModule` in your build:
 import mill._
 import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
 
-object root extends RootModule with PlayModule {
+object build extends RootModule with PlayModule {
 	// config
 	override def scalaVersion = T { "2.13.12" }
 	override def playVersion = T { "2.8.20" }
