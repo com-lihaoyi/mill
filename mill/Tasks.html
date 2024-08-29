@@ -316,14 +316,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.0-M0-48-e5eb64</span>
+    <span class="version">0.12.0-M0-49-d30f2c</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="0.11.12/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="index.html">0.12.0-M0-48-e5eb64</a>
+          <a href="index.html">0.12.0-M0-49-d30f2c</a>
         </li>
         <li class="version is-latest">
           <a href="0.11.12/index.html">0.11.12</a>
@@ -368,9 +368,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-48-e5eb64</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-49-d30f2c</button>
   <div class="version-menu">
-    <a class="version is-current" href="Tasks.html">0.12.0-M0-48-e5eb64</a>
+    <a class="version is-current" href="Tasks.html">0.12.0-M0-49-d30f2c</a>
     <a class="version" href="0.11.12/Tasks.html">0.11.12</a>
     <a class="version" href="0.11.11/Tasks.html">0.11.11</a>
     <a class="version" href="0.11.10/Tasks.html">0.11.10</a>
@@ -662,6 +662,19 @@ Apart from the <code>foo()</code> calls, the <code>T {…​}</code> block conta
 does some work and returns a result.</p>
 </div>
 <div class="paragraph">
+<p>The <code>os.walk</code> and <code>os.read.lines</code> statements above are from the
+<a href="https://github.com/com-lihaoyi/os-lib">OS-Lib</a> library, which provides all common
+filesystem and subprocess operations for Mill builds. You can see the OS-Lib library
+documentation for more details:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/com-lihaoyi/os-lib">OS-Lib Library Documentation</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
 <p>If a target’s inputs change but its output does not, e.g. someone changes a
 comment within the source files that doesn’t affect the classfiles, then
 downstream targets do not re-evaluate. This is determined using the
@@ -716,7 +729,14 @@ that implemented it.</p>
 <p>The return-value of targets has to be JSON-serializable via
 <a href="https://github.com/com-lihaoyi/upickle">uPickle</a>. You can run targets directly from the command
 line, or use <code>show</code> if you want to see the JSON content or pipe it to
-external tools.</p>
+external tools. See the uPickle library documentation for more details:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/com-lihaoyi/upickle">uPickle Library Documentation</a></p>
+</li>
+</ul>
 </div>
 <div class="sect3">
 <h4 id="_t_dest"><a class="anchor" href="#_t_dest"></a>T.dest</h4>
@@ -869,11 +889,11 @@ def summarizeClassFileStats = T{
 <h3 id="_commands"><a class="anchor" href="#_commands"></a>Commands</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def run(args: String*) = T.command {
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def run(mainClass: String, args: String*) = T.command {
   os.proc(
       &quot;java&quot;,
       &quot;-cp&quot;, s&quot;${classFiles().path}:${resources().path}&quot;,
-      &quot;foo.Foo&quot;,
+      mainClass,
       args
     )
     .call(stdout = os.Inherit)
@@ -892,6 +912,53 @@ Commands can be parametrized, but their output is not cached, so they will
 re-evaluate every time even if none of their inputs have changed.
 A command with no parameter is defined as <code>def myCommand() = T.command {…​}</code>.
 It is a compile error if <code>()</code> is missing.</p>
+</div>
+<div class="paragraph">
+<p>Targets can take command line params, parsed by the <a href="https://github.com/com-lihaoyi/mainargs">MainArgs</a>
+library. Thus the signature <code>def run(mainClass: String, args: String*)</code> takes
+params of the form <code>--main-class &lt;str&gt; &lt;arg1&gt; &lt;arg2&gt; …​ &lt;argn&gt;</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run --main-class foo.Foo hello world
+Foo.value: 31337
+args: hello world
+foo.txt resource: My Example Text</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Command line arguments can take most primitive types: <code>String</code>, <code>Int</code>, <code>Boolean</code>, etc.,
+along with <code>Option[T]</code> representing optional values and <code>Seq[T]</code> representing repeatable values,
+and <code>mainargs.Flag</code> representing flags and <code>mainargs.Leftover[T]</code> representing any command line
+arguments not parsed earlier. Default values for command line arguments are also supported.
+See the mainargs documentation for more details:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>[MainArgs Library Documentation](<a href="https://github.com/com-lihaoyi/mainargs">MainArgs</a>)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>By default, all command parameters need to be named, except for variadic parameters
+of type <code>T*</code> or <code>mainargs.Leftover[T]</code>. You can use the flag <code>--allow-positional-command-args</code>
+to allow arbitrary arguments to be passed positionally, as shown below:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run foo.Foo hello world # this raises an error because `--main-class` is not given
+error: Missing argument: --mainClass &lt;str&gt;
+Expected Signature: run
+  --mainClass &lt;str&gt;
+  args &lt;str&gt;...
+...
+
+&gt; ./mill --allow-positional-command-args run foo.Foo hello world # this succeeds due to --allow-positional-command-args
+Foo.value: 31337
+args: hello world
+foo.txt resource: My Example Text</code></pre>
+</div>
 </div>
 <div class="paragraph">
 <p>Like <a href="#_targets">Targets</a>, a command only evaluates after all its upstream
@@ -997,10 +1064,10 @@ altogether.</p>
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show helloFileData
 &quot;Hello&quot;
 
-&gt; ./mill printFileData hello.txt
+&gt; ./mill printFileData --file-name hello.txt
 Hello
 
-&gt; ./mill printFileData world.txt
+&gt; ./mill printFileData --file-name world.txt
 World!</code></pre>
 </div>
 </div>
