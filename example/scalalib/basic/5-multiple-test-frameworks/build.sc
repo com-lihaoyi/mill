@@ -18,8 +18,8 @@ object build extends RootModule with ScalaModule {
   }
   object test2 extends TestModule with TestModule.ScalaTest {
     override def compile: T[CompilationResult] = ???
-    override def runClasspath: T[Seq[PathRef]] = foo.test.runClasspath()
-    override def testClasspath = foo.test.testClasspath()
+    override def runClasspath: T[Seq[PathRef]] = build.test.runClasspath()
+    override def testClasspath = build.test.testClasspath()
   }
 }
 
