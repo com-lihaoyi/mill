@@ -392,6 +392,9 @@ object MillBuildRootModule {
        |  ${literalize(millTopLevelProjectRoot.toString)},
        |  _root_.mill.define.Discover[MillPackageClass]
        |){
+       |  // aliases so child modules can be referred to directly as `foo` rather
+       |  // than `foo.module`. Need to be outside `MillPackageClass` in case they are
+       |  // referenced in the combined `extends` clause
        |  $childAliases
        |  lazy val build = _root_.millbuild.build
        |}
@@ -402,6 +405,8 @@ object MillBuildRootModule {
        |// object initialization due to https://github.com/scala/scala3/issues/21444
        |class MillPackageClass
        |extends $superClass($segsList) {
+       |  // Duplicate child aliases inside `MillPackageClass` so they generate members
+       |  // that can be discovered via java reflection during task/module resolution
        |  $childAliases
        |""".stripMargin
   }
