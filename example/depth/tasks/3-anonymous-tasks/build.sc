@@ -32,10 +32,10 @@ def printFileData(fileName: String) = T.command {
 > ./mill show helloFileData
 "Hello"
 
-> ./mill printFileData hello.txt
+> ./mill printFileData --file-name hello.txt
 Hello
 
-> ./mill printFileData world.txt
+> ./mill printFileData --file-name world.txt
 World!
 
 */

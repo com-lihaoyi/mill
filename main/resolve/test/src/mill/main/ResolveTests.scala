@@ -52,7 +52,8 @@ object ResolveTests extends TestSuite {
       Resolve.Tasks.resolve0(
         module,
         selectorStrings,
-        SelectMode.Separated
+        SelectMode.Separated,
+        false
       )
     }
 
@@ -60,7 +61,8 @@ object ResolveTests extends TestSuite {
       Resolve.Segments.resolve0(
         module,
         selectorStrings,
-        SelectMode.Separated
+        SelectMode.Separated,
+        false
       ).map(_.map(_.render))
     }
   }

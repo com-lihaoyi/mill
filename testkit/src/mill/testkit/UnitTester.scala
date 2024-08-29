@@ -99,7 +99,8 @@ class UnitTester(
     threadCount = threads,
     env = env,
     methodCodeHashSignatures = Map(),
-    disableCallgraphInvalidation = false
+    disableCallgraphInvalidation = false,
+    allowPositionalCommandArgs = false
   )
 
   def apply(args: String*): Either[Result.Failing[_], UnitTester.Result[Seq[_]]] = {

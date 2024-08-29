@@ -22,7 +22,8 @@ object Resolve {
         resolved: Seq[Resolved],
         args: Seq[String],
         selector: Segments,
-        nullCommandDefaults: Boolean
+        nullCommandDefaults: Boolean,
+        allowPositionalCommandArgs: Boolean
     ) = {
       Right(resolved.map(_.segments))
     }
@@ -36,7 +37,8 @@ object Resolve {
         resolved: Seq[Resolved],
         args: Seq[String],
         selector: Segments,
-        nullCommandDefaults: Boolean
+        nullCommandDefaults: Boolean,
+        allowPositionalCommandArgs: Boolean
     ) = {
       val taskList = resolved.map {
         case r: Resolved.Target =>
@@ -50,7 +52,14 @@ object Resolve {
           val instantiated = ResolveCore
             .instantiateModule0(rootModule, r.segments.init)
             .flatMap { case (mod, rootMod) =>
-              instantiateCommand(rootMod, r, mod, args, nullCommandDefaults)
+              instantiateCommand(
+                rootMod,
+                r,
+                mod,
+                args,
+                nullCommandDefaults,
+                allowPositionalCommandArgs
+              )
             }
 
           instantiated.map(Some(_))
@@ -74,7 +83,8 @@ object Resolve {
                       r,
                       value,
                       args,
-                      nullCommandDefaults
+                      nullCommandDefaults,
+                      allowPositionalCommandArgs
                     ).map(Some(_))
                 }
               )
@@ -109,7 +119,8 @@ object Resolve {
       r: Resolved.Command,
       p: Module,
       args: Seq[String],
-      nullCommandDefaults: Boolean
+      nullCommandDefaults: Boolean,
+      allowPositionalCommandArgs: Boolean
   ) = {
     ResolveCore.catchWrapException {
       val invoked = invokeCommand0(
@@ -117,7 +128,8 @@ object Resolve {
         r.segments.parts.last,
         rootModule.millDiscover.asInstanceOf[Discover[mill.define.Module]],
         args,
-        nullCommandDefaults
+        nullCommandDefaults,
+        allowPositionalCommandArgs
       )
 
       invoked.head
@@ -129,7 +141,8 @@ object Resolve {
       name: String,
       discover: Discover[mill.define.Module],
       rest: Seq[String],
-      nullCommandDefaults: Boolean
+      nullCommandDefaults: Boolean,
+      allowPositionalCommandArgs: Boolean
   ): Iterable[Either[String, Command[_]]] = for {
     (cls, (names, entryPoints)) <- discover.value
     if cls.isAssignableFrom(target.getClass)
@@ -153,7 +166,7 @@ object Resolve {
     mainargs.TokenGrouping.groupArgs(
       rest,
       flattenedArgSigsWithDefaults,
-      allowPositional = true,
+      allowPositional = allowPositionalCommandArgs,
       allowRepeats = false,
       allowLeftover = ep.argSigs0.exists(_.reader.isLeftover),
       nameMapper = mainargs.Util.kebabCaseNameMapper
@@ -194,28 +207,44 @@ trait Resolve[T] {
       resolved: Seq[Resolved],
       args: Seq[String],
       segments: Segments,
-      nullCommandDefaults: Boolean
+      nullCommandDefaults: Boolean,
+      allowPositionalCommandArgs: Boolean
   ): Either[String, Seq[T]]
 
   def resolve(
       rootModule: BaseModule,
       scriptArgs: Seq[String],
+      selectMode: SelectMode,
+      allowPositionalCommandArgs: Boolean = false
+  ): Either[String, List[T]] = {
+    resolve0(rootModule, scriptArgs, selectMode, allowPositionalCommandArgs)
+  }
+  def resolve(
+      rootModule: BaseModule,
+      scriptArgs: Seq[String],
       selectMode: SelectMode
   ): Either[String, List[T]] = {
-    resolve0(rootModule, scriptArgs, selectMode)
+    resolve0(rootModule, scriptArgs, selectMode, false)
   }
 
   private[mill] def resolve0(
       rootModule: BaseModule,
       scriptArgs: Seq[String],
-      selectMode: SelectMode
+      selectMode: SelectMode,
+      allowPositionalCommandArgs: Boolean
   ): Either[String, List[T]] = {
     val nullCommandDefaults = selectMode == SelectMode.Multi
     val resolvedGroups = ParseArgs(scriptArgs, selectMode).flatMap { groups =>
       val resolved = groups.map { case (selectors, args) =>
         val selected = selectors.map { case (scopedSel, sel) =>
           resolveRootModule(rootModule, scopedSel).map { rootModuleSels =>
-            resolveNonEmptyAndHandle(args, rootModuleSels, sel, nullCommandDefaults)
+            resolveNonEmptyAndHandle(
+              args,
+              rootModuleSels,
+              sel,
+              nullCommandDefaults,
+              allowPositionalCommandArgs
+            )
           }
         }
 
@@ -235,7 +264,8 @@ trait Resolve[T] {
       args: Seq[String],
       rootModule: BaseModule,
       sel: Segments,
-      nullCommandDefaults: Boolean
+      nullCommandDefaults: Boolean,
+      allowPositionalCommandArgs: Boolean
   ): Either[String, Seq[T]] = {
     val rootResolved = ResolveCore.Resolved.Module(Segments(), rootModule.getClass)
     val resolved =
@@ -261,7 +291,14 @@ trait Resolve[T] {
 
     resolved
       .map(_.toSeq.sortBy(_.segments.render))
-      .flatMap(handleResolved(rootModule, _, args, sel, nullCommandDefaults))
+      .flatMap(handleResolved(
+        rootModule,
+        _,
+        args,
+        sel,
+        nullCommandDefaults,
+        allowPositionalCommandArgs
+      ))
   }
 
   private[mill] def deduplicate(items: List[T]): List[T] = items
