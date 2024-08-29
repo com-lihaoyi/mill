@@ -305,15 +305,16 @@ endif::[]
 [#main]
 === main branch
 
-The upcoming 0.12.0 release is _binary compatible_ with 0.11.x, but contains a lot of
-breaking changes that are necessary to move the project forward. The breaking changes
-are listed below, with instructions provided on how to either disable the breaking change
-with a flag or adjust your code to accommodate it. Due to binary compatibility, Mill plugins
-published for Mill 0.11.x can continue to be used without updating them.
+The upcoming 0.12.0 release is intended to bundle together all the breaking changes we 
+need to do that do not break binary compatibility. It is expected to be followed by 0.13.x,
+which will contain further changes that _do_ break binary compatibility. Due to binary 
+compatibility, Mill plugins published for Mill 0.11.x can continue to be used without updating 
+them. 
 
-0.12.x is intended to bundle together all the breaking changes we need to do that do not
-break binary compatibility. It is expected to be followed by 0.13.x, which will contain
-further changes that _do_ break binary compatibility.
+Despite being binary compatible, 0.12.0 is a major release, and it should be expected to take
+some work to upgrade to. The breaking changes are listed below, with instructions provided on 
+how to either disable the breaking change with a flag or adjust your code to accommodate it. 
+
 
 * *Breaking Changes*
 ** Builds can now be modularized into per-folder definitions by defining
@@ -339,6 +340,9 @@ between tasks and tests due to parallelism
 *** You can pass in
   `--allow-positional-command-args` to fall back to the old behavior, or use `@mainargs.arg(positional = true)`
   on individual parameters
+
+** Dropped support for Java 8, Scala 2.11.x/3.1.x, and Scala-Native 0.4.x, following suit with the rest of the 
+ com-lihaoyi ecosystem. We now expect a minimum of Java 8, Scala 2.12.x/3.2.x, and Scala-Native 0.5.x
 
 * Other Changes
 
