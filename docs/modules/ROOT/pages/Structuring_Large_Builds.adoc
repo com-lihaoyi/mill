@@ -1,4 +1,4 @@
-= Managing Large Builds
+= Structuring Large Builds
 
 == Nested `module.sc` files
 
