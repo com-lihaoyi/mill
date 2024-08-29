@@ -397,6 +397,8 @@ object MillBuildRootModule {
        |}
        |import MillMiscInfo._
        |object $name extends MillPackageClass
+       |// User code needs to be put in a separate class for proper submodule
+       |// object initialization due to https://github.com/scala/scala3/issues/21444
        |class MillPackageClass
        |extends $superClass($segsList) {
        |  $childAliases
