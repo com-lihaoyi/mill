@@ -330,7 +330,7 @@ object MillBuildRootModule {
       val childAliases = childNames
         .map { c =>
           val comment = "// subfolder module reference"
-          s"def ${backtickWrap(c)} = $pkgSelector.${backtickWrap(c)}.module $comment"
+          s"final def ${backtickWrap(c)} = $pkgSelector.${backtickWrap(c)}.module $comment"
         }
         .mkString("\n")
 
