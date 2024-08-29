@@ -47,7 +47,7 @@ object RootModule {
           millModuleEnclosing0 = path.mkString("."),
           millModuleLine0 = millModuleLine0,
           millModuleBasePath0 = Ctx.BasePath(baseModuleInfo.millSourcePath0 / os.up),
-          segments0 = Segments.labels(path: _*),
+          segments0 = Segments.labels(path.init: _*),
           external0 = Ctx.External(false),
           foreign0 = Ctx.Foreign(None),
           fileName = millFile0,
