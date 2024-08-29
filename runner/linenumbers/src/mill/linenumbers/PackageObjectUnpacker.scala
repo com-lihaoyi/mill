@@ -3,7 +3,7 @@ package mill.linenumbers
 import scala.tools.nsc.Global
 
 object PackageObjectUnpacker {
-  def apply(g: Global, adjustedFile: String)(unit: g.CompilationUnit) = {
+  def apply(g: Global, adjustedFile: String)(unit: g.CompilationUnit): g.Tree = {
     // TRANSFORMING
     //
     // class MillPackageClass
@@ -40,11 +40,11 @@ object PackageObjectUnpacker {
         case pkgDef: g.PackageDef =>
           val resOpt = pkgDef.stats.zipWithIndex.collect {
             case (pkgCls: g.ClassDef, pkgClsIndex)
-              if pkgCls.name.toString().startsWith("MillPackageClass") =>
+                if pkgCls.name.toString().startsWith("MillPackageClass") =>
               pkgCls.impl.body.collect {
                 case pkgObj: g.ModuleDef
-                  if pkgObj.name.toString() == expectedName
-                    || pkgObj.impl.parents.exists(isRootModuleIdent) =>
+                    if pkgObj.name.toString() == expectedName
+                      || pkgObj.impl.parents.exists(isRootModuleIdent) =>
                   val (outerStmts, innerStmts) =
                     pkgCls.impl.body
                       .filter {
@@ -86,7 +86,8 @@ object PackageObjectUnpacker {
           resOpt.flatten match {
             case Nil => super.transform(tree)
 
-            case List((pkgClsIndex, newOuterStmts, newPkgCls, v)) if v.name.toString() == expectedName =>
+            case List((pkgClsIndex, newOuterStmts, newPkgCls, v))
+                if v.name.toString() == expectedName =>
               val (before, after) = pkgDef.stats.splitAt(pkgClsIndex)
               g.treeCopy.PackageDef(
                 pkgDef,

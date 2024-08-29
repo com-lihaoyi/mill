@@ -3,10 +3,7 @@ package mill.linenumbers
 import scala.tools.nsc.Global
 
 object LineNumberCorrector {
-  def apply(g: Global,
-            lines: Seq[String],
-            adjustedFile: String)(unit: g.CompilationUnit) = {
-
+  def apply(g: Global, lines: Seq[String], adjustedFile: String)(unit: g.CompilationUnit): g.Tree = {
 
     val userCodeStartMarker = "//MILL_USER_CODE_START_MARKER"
 

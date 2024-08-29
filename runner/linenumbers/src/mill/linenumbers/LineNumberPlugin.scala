@@ -3,7 +3,6 @@ package mill.linenumbers
 import scala.tools.nsc._
 import scala.tools.nsc.plugins.{Plugin, PluginComponent}
 
-
 /**
  * Used to capture the names in scope after every execution, reporting them
  * to the `output` function. Needs to be a compiler plugin so we can hook in
