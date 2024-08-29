@@ -30,17 +30,16 @@ class LineNumberPlugin(val global: Global) extends Plugin {
 
 object LineNumberPlugin {
   def apply(g: Global)(unit: g.CompilationUnit): Unit = {
-
-    val str = new String(g.currentSource.content)
-    val lines = str.linesWithSeparators.toVector
-    val adjustedFile = lines
-      .collectFirst { case s"//MILL_ORIGINAL_FILE_PATH=$rest" => rest.trim }
-      .get
-
-    val rootFileNames = Set("module.sc", "build.sc")
-
-
     if (g.currentSource.file.hasExtension("sc")) {
+
+      val str = new String(g.currentSource.content)
+      val lines = str.linesWithSeparators.toVector
+      val adjustedFile = lines
+        .collectFirst { case s"//MILL_ORIGINAL_FILE_PATH=$rest" => rest.trim }
+        .getOrElse(sys.error(g.currentSource.path))
+
+      val rootFileNames = Set("module.sc", "build.sc")
+
       unit.body = LineNumberCorrector(g, lines, adjustedFile)(unit)
 
       if (rootFileNames(g.currentSource.file.name)) {
