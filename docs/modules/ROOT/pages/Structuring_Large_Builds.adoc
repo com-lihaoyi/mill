@@ -1,0 +1,7 @@
+= Managing Large Builds
+
+== Nested `module.sc` files
+
+include::example/depth/modules/10-module-sc.adoc[]
+
+

@@ -43,10 +43,10 @@ Foo.value: hello
 BarQux.value: <p>world</p>
 */
 
-// Note that in this example, `foo/module.sc` defines `object build extends RootModule`,
-// and so the name `.build` does not need to be provided at the command line. In contrast,
-// `bar/qux/module.sc` defines `object module` that does not extend `RootModule`, and so
-// we need to explicitly reference it with a `.module` suffix.
+// Note that in this example, `foo/module.sc` defines `object module extends RootModule`,
+// and so the name `.module` does not need to be provided at the command line. In contrast,
+// `bar/qux/module.sc` defines `object mymodule` that does not extend `RootModule`, and so
+// we need to explicitly reference it with a `.mymodule` suffix.
 //
 // `module.sc` files are only discovered in direct subfolders of the root `build.sc` or
 // subfolders of another folder containing a `module.sc`; Hence in this example, we need
