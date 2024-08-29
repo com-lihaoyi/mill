@@ -302,8 +302,8 @@ endif::[]
 // find-replace-regex: https://github.com/com-lihaoyi/mill/pull/(\d*) -> {link-pr}/$1[#$1]
 
 
-[#main] branch
-=== main
+[#main]
+=== main branch
 
 * *Breaking Changes*
 ** Builds can now be modularized into per-folder definitions by defining
@@ -335,9 +335,9 @@ between tasks and tests due to parallelism
 ** Overhaul the Mill client-server protocol to improve robustness
 {link-pr}/3363[#3363] {link-pr}/3366[#3366] {link-pr}/3368[#3368] {link-pr}/3370[#3370]
 
-
 ** Mill now publishes unit, integration, and example test fixtures for writing plugins {link-pr}/3398[#3398]
-for downstream plugin authors to use in testing their own Mill extensions
+for downstream plugin authors to use in testing their own Mill extensions. See the documentation for
+https://mill-build.org/mill/Writing_Mill_Plugins.html[Writing Mill Plugins] for more details
 
 ** Bump default Sonatype Maven Central publishing timeouts to 10 minutes to avoid
 timeouts due to slowness https://github.com/com-lihaoyi/mill/commit/b4c9386b0233fab53a312426715e226e4a7f6302
