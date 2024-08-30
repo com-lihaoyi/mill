@@ -8,14 +8,13 @@ import guru.nidi.graphviz.attribute.{Rank, Shape, Style}
 import guru.nidi.graphviz.engine.{
   AbstractJavascriptEngine,
   AbstractJsGraphvizEngine,
-  GraphvizException,
-  ResultHandler,
-  V8JavascriptEngine
+  ResultHandler
 }
 import mill.api.PathRef
 import mill.define.NamedTask
 import org.jgrapht.graph.{DefaultEdge, SimpleDirectedGraph}
 import org.slf4j.LoggerFactory
+import org.slf4j.Logger
 
 object GraphvizTools {
 
@@ -90,7 +89,7 @@ object GraphvizTools {
 }
 
 class V8JavascriptEngine() extends AbstractJavascriptEngine {
-  val LOG = LoggerFactory.getLogger(classOf[V8JavascriptEngine])
+  val LOG: Logger = LoggerFactory.getLogger(classOf[V8JavascriptEngine])
   val v8Runtime: V8Runtime = V8Host.getV8Instance().createV8Runtime()
   LOG.info("Starting V8 runtime...")
   LOG.info("Started V8 runtime. Initializing javascript...")
@@ -100,13 +99,13 @@ class V8JavascriptEngine() extends AbstractJavascriptEngine {
 
   class ResultHandlerInterceptor(resultHandler: ResultHandler) {
     @V8Function
-    def result(s: String) = resultHandler.setResult(s)
+    def result(s: String): Unit = resultHandler.setResult(s)
 
     @V8Function
-    def error(s: String) = resultHandler.setError(s)
+    def error(s: String): Unit = resultHandler.setError(s)
 
     @V8Function
-    def log(s: String) = resultHandler.log(s)
+    def log(s: String): Unit = resultHandler.log(s)
   }
   val v8ValueObject = v8Runtime.createV8ValueObject
   v8Runtime.getGlobalObject.set("resultHandlerInterceptor", v8ValueObject)
