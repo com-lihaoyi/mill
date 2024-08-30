@@ -1,4 +1,3 @@
-package ci
 /**
  * Utility code that is shared between our SBT build and our Mill build. SBT
  * calls this by shelling out to Ammonite in a subprocess, while Mill loads it
