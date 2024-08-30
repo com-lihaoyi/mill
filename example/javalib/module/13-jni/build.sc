@@ -1,6 +1,6 @@
 import mill._, javalib._, util.Jvm
 
-object build extends RootModule with JavaModule {
+object `package` extends RootModule with JavaModule {
   // Additional source folder to put C sources
   def nativeSources = T.sources(millSourcePath / "native-src")
 

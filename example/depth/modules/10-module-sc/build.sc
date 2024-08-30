@@ -4,9 +4,9 @@ trait MyModule extends ScalaModule {
   def scalaVersion = "2.13.11"
 }
 
-/** See Also: foo/module.sc */
+/** See Also: foo/package.sc */
 
-/** See Also: bar/qux/module.sc */
+/** See Also: bar/qux/package.sc */
 
 // Mill allows you to break up your `build.sc` file into smaller files by defining the
 // build-related logic for any particular subfolder as a `module.sc` file in that subfolder.

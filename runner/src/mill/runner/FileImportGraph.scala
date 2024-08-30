@@ -54,7 +54,14 @@ object FileImportGraph {
       if (!seenScripts.contains(s)) {
         val readFileEither = scala.util.Try {
           val content = if (useDummy) "" else os.read(s)
-          Parsers.splitScript(content, s.relativeTo(topLevelProjectRoot).toString)
+          val (segments, rest) =
+            if (content.startsWith("package ")) {
+              val firstLineEnd0 = content.indexOf('\n')
+              val firstLineEnd = if (firstLineEnd0 == -1) content.length else firstLineEnd0
+              (content.take(firstLineEnd).stripPrefix("package ").split("\\.", -1).toList, content.drop(firstLineEnd))
+            }else (Nil, content)
+
+          Parsers.splitScript(rest, s.relativeTo(topLevelProjectRoot).toString)
         } match {
           case scala.util.Failure(ex) => Left(ex.getClass.getName + " " + ex.getMessage)
           case scala.util.Success(value) => value
@@ -137,9 +144,9 @@ object FileImportGraph {
         skip = p =>
           p == projectRoot / out ||
             p == projectRoot / millBuild ||
-            (os.isDir(p) && !os.exists(p / "module.sc"))
+            (os.isDir(p) && !os.exists(p / "package.sc"))
       )
-      .filter(_.last == "module.sc")
+      .filter(_.last == "package.sc")
 
     buildFiles.foreach(walkScripts(_))
 
@@ -168,6 +175,6 @@ object FileImportGraph {
 
   def fileImportToSegments(base: os.Path, s: os.Path, stripExt: Boolean): Seq[String] = {
     val rel = (s / os.up / (if (stripExt) s.baseName else s.last)).relativeTo(base)
-    Seq("millbuild") ++ Seq.fill(rel.ups)("^") ++ rel.segments
+    Seq("build") ++ Seq.fill(rel.ups)("^") ++ rel.segments
   }
 }

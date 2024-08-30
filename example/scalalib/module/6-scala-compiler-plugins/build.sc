@@ -1,6 +1,6 @@
 import mill._, scalalib._
 
-object build extends RootModule with ScalaModule {
+object `package` extends RootModule with ScalaModule {
   def scalaVersion = "2.13.8"
 
   def compileIvyDeps = Agg(ivy"com.lihaoyi:::acyclic:0.3.6")

@@ -8,7 +8,7 @@ trait AppScalaJSModule extends AppScalaModule with ScalaJSModule {
   def scalaJSVersion = "1.16.0"
 }
 
-object build extends RootModule with AppScalaModule {
+object `package` extends RootModule with AppScalaModule {
   def moduleDeps = Seq(shared.jvm)
   def ivyDeps = Agg(ivy"com.lihaoyi::cask:0.9.1")
 

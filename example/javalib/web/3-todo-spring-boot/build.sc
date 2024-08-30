@@ -1,6 +1,6 @@
 import mill._, javalib._
 
-object build extends RootModule with JavaModule {
+object `package` extends RootModule with JavaModule {
   def ivyDeps = Agg(
     ivy"org.springframework.boot:spring-boot-starter-data-jpa:2.5.4",
     ivy"org.springframework.boot:spring-boot-starter-thymeleaf:2.5.4",

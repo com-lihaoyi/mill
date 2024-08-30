@@ -1,6 +1,6 @@
 import mill._, javalib._
 
-object build extends RootModule with MicronautModule {
+object `package` extends RootModule with MicronautModule {
   def micronautVersion = "4.4.3"
   def runIvyDeps = Agg(
     ivy"ch.qos.logback:logback-classic:1.5.3",

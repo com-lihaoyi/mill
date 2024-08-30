@@ -2,7 +2,7 @@ import mill._, javalib._, publish._
 import $ivy.`com.lihaoyi::mill-contrib-jmh:$MILL_VERSION`
 import contrib.jmh.JmhModule
 
-object build extends RootModule with PublishModule with MavenModule {
+object `package` extends RootModule with PublishModule with MavenModule {
   def publishVersion = "2.17.0-SNAPSHOT"
 
   def pomSettings = PomSettings(

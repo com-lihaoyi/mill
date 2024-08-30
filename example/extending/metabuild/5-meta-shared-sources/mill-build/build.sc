@@ -1,3 +1,3 @@
 import mill._
 
-object build extends MillBuildRootModule
+object `package` extends MillBuildRootModule

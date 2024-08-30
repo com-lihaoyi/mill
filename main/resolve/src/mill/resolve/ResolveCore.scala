@@ -214,10 +214,8 @@ private object ResolveCore {
           case Seq((_, Some(f))) =>
             val res = f(current)
             res.map {
-              case b: BaseModule =>
-                (b, b)
-              case b =>
-                (b, currentRoot)
+              case b: BaseModule => (b, b)
+              case b => (b, currentRoot)
             }
           case unknown =>
             sys.error(
@@ -306,22 +304,8 @@ private object ResolveCore {
       rootModule: BaseModule,
       cls: Class[_],
       nameOpt: Option[String],
-      segments: Segments
-  ): Either[String, Set[Resolved]] =
-    resolveDirectChildren(
-      rootModule,
-      cls,
-      nameOpt,
-      segments,
-      typePattern = Nil
-    )
-
-  def resolveDirectChildren(
-      rootModule: BaseModule,
-      cls: Class[_],
-      nameOpt: Option[String],
       segments: Segments,
-      typePattern: Seq[String]
+      typePattern: Seq[String] = Nil
   ): Either[String, Set[Resolved]] = {
 
     val crossesOrErr = if (classOf[Cross[_]].isAssignableFrom(cls) && nameOpt.isEmpty) {
@@ -357,18 +341,10 @@ private object ResolveCore {
       rootModule: BaseModule,
       segments: Segments,
       cls: Class[_],
-      nameOpt: Option[String]
-  ): Either[String, Seq[(Resolved, Option[Module => Either[String, Module]])]] =
-    resolveDirectChildren0(rootModule, segments, cls, nameOpt, Nil)
-
-  def resolveDirectChildren0(
-      rootModule: BaseModule,
-      segments: Segments,
-      cls: Class[_],
       nameOpt: Option[String],
-      typePattern: Seq[String]
+      typePattern: Seq[String] = Nil
   ): Either[String, Seq[(Resolved, Option[Module => Either[String, Module]])]] = {
-    def namePred(n: String) = nameOpt.isEmpty || nameOpt.contains(n)
+    def namePred(n: String) = nameOpt.isEmpty || nameOpt.contains(n) || nameOpt.contains(n.stripSuffix("__mill_subfolder_reference"))
 
     val modulesOrErr: Either[String, Seq[(Resolved, Option[Module => Either[String, Module]])]] = {
       if (classOf[DynamicModule].isAssignableFrom(cls)) {
@@ -401,7 +377,7 @@ private object ResolveCore {
           }
           .map { case (name, member) =>
             Resolved.Module(
-              Segments.labels(decode(name)),
+              Segments.labels(decode(name.stripSuffix("__mill_subfolder_reference"))),
               member match {
                 case f: java.lang.reflect.Field => f.getType
                 case f: java.lang.reflect.Method => f.getReturnType

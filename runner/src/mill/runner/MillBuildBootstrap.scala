@@ -414,7 +414,7 @@ object MillBuildBootstrap {
   }
 
   def getRootModule(runClassLoader: URLClassLoader): BaseModule = {
-    val buildClass = runClassLoader.loadClass("millbuild.build$")
+    val buildClass = runClassLoader.loadClass("build.package$")
     buildClass.getField("MODULE$").get(buildClass).asInstanceOf[BaseModule]
   }
 

@@ -34,7 +34,7 @@ object PackageObjectUnpacker {
       case t => false
     }
 
-    val expectedName = g.currentSource.file.name.stripSuffix(".sc")
+    val expectedName = "package"
     object Transformer extends g.Transformer {
       override def transform(tree: g.Tree) = tree match {
         case pkgDef: g.PackageDef =>

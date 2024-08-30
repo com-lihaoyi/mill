@@ -1,3 +1,4 @@
+package bar.qux
 import mill._, scalalib._
 
 object mymodule extends build.MyModule {

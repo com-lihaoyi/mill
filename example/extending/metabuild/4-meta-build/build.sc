@@ -2,7 +2,7 @@ import $meta._
 import mill._, scalalib._
 import scalatags.Text.all._
 
-object build extends RootModule with ScalaModule {
+object `package` extends RootModule with ScalaModule {
   def scalaVersion = "2.13.4"
   def ivyDeps = Agg(
     ivy"com.lihaoyi::scalatags:${millbuild.DepVersions.scalatagsVersion}",

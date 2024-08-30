@@ -7,7 +7,7 @@
 //// SNIPPET:BUILD
 import mill._, scalalib._
 
-object build extends RootModule with ScalaModule {
+object `package` extends RootModule with ScalaModule {
   def scalaVersion = "2.13.11"
 
   /** Total number of lines in module's source files */

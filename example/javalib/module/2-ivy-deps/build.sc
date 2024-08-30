@@ -1,7 +1,7 @@
 //// SNIPPET:BUILD
 import mill._, javalib._
 
-object build extends RootModule with JavaModule {
+object `package` extends RootModule with JavaModule {
   def ivyDeps = Agg(
     ivy"com.fasterxml.jackson.core:jackson-databind:2.13.4",
   )
