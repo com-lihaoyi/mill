@@ -1,0 +1,19 @@
+diff --git a/ci/shared.sc b/ci/shared.sc
+index 57bb0eec30..1d045d8942 100644
+--- a/ci/shared.sc
++++ b/ci/shared.sc
+@@ -1,3 +1,4 @@
++package ci
+ /**
+  * Utility code that is shared between our SBT build and our Mill build. SBT
+  * calls this by shelling out to Ammonite in a subprocess, while Mill loads it
+diff --git a/ci/upload.sc b/ci/upload.sc
+index 409af098bf..2cd2c9c1fb 100644
+--- a/ci/upload.sc
++++ b/ci/upload.sc
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env amm
++package ci
+
+ import scalaj.http._
+ import mainargs.main

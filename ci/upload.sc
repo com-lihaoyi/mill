@@ -1,4 +1,4 @@
-#!/usr/bin/env amm
+package ci
 
 import scalaj.http._
 import mainargs.main
