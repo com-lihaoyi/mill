@@ -12,7 +12,7 @@ object MisnamedRootModuleTests extends IntegrationTestSuite {
       val res = eval(("resolve", "_"))
       assert(!res.isSuccess)
       assert(res.err.contains(
-        "Only one RootModule named `build` can be defined in a build, not: foo"
+        "Only one RootModule named `package` can be defined in a build, not: foo"
       ))
     }
   }

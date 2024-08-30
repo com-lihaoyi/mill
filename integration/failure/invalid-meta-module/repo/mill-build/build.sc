@@ -1,2 +1,2 @@
 import mill._
-object build
+object `package`

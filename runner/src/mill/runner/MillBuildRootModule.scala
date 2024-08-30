@@ -305,7 +305,7 @@ object MillBuildRootModule {
   }
 
   def generateWrappedSources(
-      base: os.Path,
+      projectRoot: os.Path,
       scriptSources: Seq[PathRef],
       scriptCode: Map[os.Path, String],
       targetDest: os.Path,
@@ -314,27 +314,28 @@ object MillBuildRootModule {
   ): Unit = {
 
     for (scriptSource <- scriptSources) {
-      val relative = scriptSource.path.relativeTo(base)
-      val dest = targetDest / FileImportGraph.fileImportToSegments(base, scriptSource.path, false)
+      val scriptFolderPath = scriptSource.path / os.up
+      val relative = scriptSource.path.relativeTo(projectRoot)
+      val dest =
+        targetDest / FileImportGraph.fileImportToSegments(projectRoot, scriptSource.path, false)
 
       val childNames = scriptSources
         .collect { case p if p.path.last == "package.sc" => p.path / os.up }
-        .filter(p => p.startsWith(scriptSource.path / os.up))
-        .map(_.subRelativeTo(scriptSource.path / os.up).segments)
+        .filter(p => p.startsWith(scriptFolderPath))
+        .map(_.subRelativeTo(scriptFolderPath).segments)
         .collect { case Seq(single) => single }
         .distinct
 
       val Seq("millbuild", pkg @ _*) =
-        FileImportGraph.fileImportToSegments(base, scriptSource.path, true).dropRight(1)
+        FileImportGraph.fileImportToSegments(projectRoot, scriptFolderPath, true)
 
       val pkgSelector = pkg.map(backtickWrap).mkString(".")
       val childAliases = childNames
         .map { c =>
           val comment = "// subfolder module reference"
-          ""
-          s"final def ${backtickWrap(c + "__mill_subfolder_reference")} = _root_.millbuild.${(pkg :+ backtickWrap(
-              c
-            )).map(backtickWrap).mkString(".")}.`package` $comment"
+          val lhs = backtickWrap(c + "__mill_subfolder_reference")
+          val selector = (pkg :+ backtickWrap(c)).map(backtickWrap).mkString(".")
+          s"final def $lhs = _root_.millbuild.$selector.`package` $comment"
         }
         .mkString("\n")
 
@@ -344,11 +345,10 @@ object MillBuildRootModule {
 
           topBuild(
             relative.segments.init,
-            scriptSource.path / os.up,
+            scriptFolderPath,
             scriptSource.path.baseName,
             enclosingClasspath,
-            millTopLevelProjectRoot,
-            childAliases
+            millTopLevelProjectRoot
           ) -> childAliases
         } else {
           s"""object ${backtickWrap(scriptSource.path.baseName)} {
@@ -381,16 +381,15 @@ object MillBuildRootModule {
 
   def topBuild(
       segs: Seq[String],
-      base: os.Path,
+      scriptFolderPath: os.Path,
       name: String,
       enclosingClasspath: Seq[os.Path],
-      millTopLevelProjectRoot: os.Path,
-      childAliases: String
+      millTopLevelProjectRoot: os.Path
   ): String = {
     val segsList = segs.map(pprint.Util.literalize(_)).mkString(", ")
     val superClass =
       if (name == "build") {
-        if (millTopLevelProjectRoot == base) "_root_.mill.main.RootModule"
+        if (millTopLevelProjectRoot == scriptFolderPath) "_root_.mill.main.RootModule"
         else "_root_.mill.runner.MillBuildRootModule"
       } else "_root_.mill.main.RootModule.Subfolder"
 
@@ -399,7 +398,7 @@ object MillBuildRootModule {
        |@_root_.scala.annotation.nowarn
        |object MillMiscInfo extends MillBuildRootModule.MillMiscInfo(
        |  ${enclosingClasspath.map(p => literalize(p.toString))},
-       |  ${literalize(base.toString)},
+       |  ${literalize(scriptFolderPath.toString)},
        |  ${literalize(millTopLevelProjectRoot.toString)},
        |  _root_.mill.define.Discover[MillPackageClass]
        |){

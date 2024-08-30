@@ -64,6 +64,19 @@ object FileImportGraph {
               )
             } else (Nil, content)
 
+          val expectedImportSegments =
+            (s / os.up).relativeTo(projectRoot).segments.map(backtickWrap).mkString(".")
+          val importSegments = segments.mkString(".")
+          if (expectedImportSegments != importSegments) {
+            val expectedImport =
+              if (expectedImportSegments.isEmpty) "<none>"
+              else s"\"package $expectedImportSegments\""
+            errors.append(
+              s"Package declaration \"package $importSegments\" in " +
+                s"${s.relativeTo(topLevelProjectRoot)} does not match " +
+                s"folder structure. Expected: $expectedImport"
+            )
+          }
           Parsers.splitScript(rest, s.relativeTo(topLevelProjectRoot).toString)
         } match {
           case scala.util.Failure(ex) => Left(ex.getClass.getName + " " + ex.getMessage)
