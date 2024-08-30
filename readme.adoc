@@ -335,7 +335,6 @@ between tasks and tests due to parallelism
 ** Overhaul the Mill client-server protocol to improve robustness
 {link-pr}/3363[#3363] {link-pr}/3366[#3366] {link-pr}/3368[#3368] {link-pr}/3370[#3370]
 
-
 ** Mill now publishes unit, integration, and example test fixtures for writing plugins {link-pr}/3398[#3398]
 for downstream plugin authors to use in testing their own Mill extensions
 
