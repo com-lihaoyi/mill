@@ -50,7 +50,14 @@ private object ResolveCore {
 
   case class Error(msg: String) extends Failed
 
-  def catchWrapException[T](t: => T): Either[String, T] = mill.api.Result.catchWrapException[T](t)
+  def catchWrapException[T](t: => T): Either[String, T] = {
+    try Right(t)
+    catch {
+      case e: InvocationTargetException =>
+        makeResultException(e.getCause, new java.lang.Exception())
+      case e: Exception => makeResultException(e, new java.lang.Exception())
+    }
+  }
 
   def makeResultException(e: Throwable, base: Exception): Left[String, Nothing] =
     mill.api.Result.makeResultException(e, base)
