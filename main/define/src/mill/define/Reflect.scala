@@ -89,4 +89,29 @@ private[mill] object Reflect {
 
     first ++ second
   }
+
+  def reflectNestedObjects02[T: ClassTag](
+                                          outerCls: Class[_],
+                                          filter: String => Boolean = Function.const(true)
+                                        ): Seq[(String, Class[_], Any => T)] = {
+    reflectNestedObjects0[T](outerCls, c => filter(c.stripSuffix("__mill_subfolder_reference"))).map{
+      case (name, m: java.lang.reflect.Method) =>
+        if (name.endsWith("__mill_subfolder_reference")){
+          val strippedName = name.stripSuffix("__mill_subfolder_reference")
+          val s"$prefix.package$$" = outerCls.getName
+          val subfolderModuleCls = outerCls.getClassLoader.loadClass(s"$prefix.$strippedName.package$$")
+          (
+            strippedName,
+            subfolderModuleCls,
+            (outer: Any) => subfolderModuleCls.getField("MODULE$").get(subfolderModuleCls).asInstanceOf[T]
+          )
+        }else{
+          (name, m.getReturnType, (outer: Any) => m.invoke(outer).asInstanceOf[T])
+        }
+      case (name, m: java.lang.reflect.Field) =>
+        (name, m.getType, (outer: Any) => m.get(outer).asInstanceOf[T])
+    }
+  }
+
 }
+

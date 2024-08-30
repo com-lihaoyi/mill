@@ -335,7 +335,7 @@ object MillBuildRootModule {
           val comment = "// subfolder module reference"
           val lhs = backtickWrap(c + "__mill_subfolder_reference")
           val selector = (pkg :+ backtickWrap(c)).map(backtickWrap).mkString(".")
-          s"final def $lhs = _root_.millbuild.$selector.`package` $comment"
+          s"final def $lhs: _root_.millbuild.$selector.`package`.type = null $comment"
         }
         .mkString("\n")
 

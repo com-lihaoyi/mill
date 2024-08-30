@@ -50,18 +50,9 @@ private object ResolveCore {
 
   case class Error(msg: String) extends Failed
 
-  def catchWrapException[T](t: => T): Either[String, T] = {
-    try Right(t)
-    catch {
-      case e: InvocationTargetException => makeResultException(e.getCause, new Exception())
-      case e: Exception => makeResultException(e, new Exception())
-    }
-  }
+  def catchWrapException[T](t: => T): Either[String, T] = mill.api.Result.catchWrapException[T](t)
 
-  def makeResultException(e: Throwable, base: Exception): Left[String, Nothing] = {
-    val outerStack = new mill.api.Result.OuterStack(base.getStackTrace)
-    Left(mill.api.Result.Exception(e, outerStack).toString)
-  }
+  def makeResultException(e: Throwable, base: Exception): Left[String, Nothing] =  mill.api.Result.makeResultException(e, base)
 
   def resolve(
       rootModule: BaseModule,
@@ -366,33 +357,13 @@ private object ResolveCore {
               )
         }
       } else Right {
-
         val reflectMemberObjects = Reflect
-          .reflectNestedObjects0[Module](cls, namePred)
-          .filter {
-            case (_, member) =>
-              val memberCls = member match {
-                case f: java.lang.reflect.Field => f.getType
-                case f: java.lang.reflect.Method => f.getReturnType
-              }
-              classMatchesTypePred(typePattern)(memberCls)
-          }
-          .map { case (name, member) =>
-            Resolved.Module(
-              Segments.labels(decode(name.stripSuffix("__mill_subfolder_reference"))),
-              member match {
-                case f: java.lang.reflect.Field => f.getType
-                case f: java.lang.reflect.Method => f.getReturnType
-              }
-            ) -> (
-              member match {
-                case f: java.lang.reflect.Field =>
-                  Some((x: Module) => catchWrapException(f.get(x).asInstanceOf[Module]))
-
-                case f: java.lang.reflect.Method =>
-                  Some((x: Module) => catchWrapException(f.invoke(x).asInstanceOf[Module]))
-              }
-            )
+          .reflectNestedObjects02[Module](cls, namePred)
+          .collect {
+            case (name, memberCls, getter) if classMatchesTypePred(typePattern)(memberCls) =>
+              val resolved = Resolved.Module(Segments.labels(decode(name)), memberCls)
+              val getter2 = Some((mod: Module) => catchWrapException(getter(mod)))
+              (resolved, getter2)
           }
 
         reflectMemberObjects
