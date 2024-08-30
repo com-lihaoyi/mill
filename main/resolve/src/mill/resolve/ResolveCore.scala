@@ -52,7 +52,8 @@ private object ResolveCore {
 
   def catchWrapException[T](t: => T): Either[String, T] = mill.api.Result.catchWrapException[T](t)
 
-  def makeResultException(e: Throwable, base: Exception): Left[String, Nothing] =  mill.api.Result.makeResultException(e, base)
+  def makeResultException(e: Throwable, base: Exception): Left[String, Nothing] =
+    mill.api.Result.makeResultException(e, base)
 
   def resolve(
       rootModule: BaseModule,

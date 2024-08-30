@@ -115,7 +115,8 @@ object Result {
   def catchWrapException[T](t: => T): Either[String, T] = {
     try Right(t)
     catch {
-      case e: InvocationTargetException => makeResultException(e.getCause, new java.lang.Exception())
+      case e: InvocationTargetException =>
+        makeResultException(e.getCause, new java.lang.Exception())
       case e: Exception => makeResultException(e, new java.lang.Exception())
     }
   }
