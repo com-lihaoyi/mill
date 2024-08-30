@@ -44,7 +44,6 @@ trait VisualizeModule extends mill.define.TaskModule {
         throw Result.Failure(
           """graphviz `dot` executable not found for rendering visualization. Please install it via:
             |
-            |
             |Mac: brew install graphviz
             |Ubuntu: sudo apt install graphviz
             |""".stripMargin
