@@ -5,11 +5,7 @@ import com.caoccao.javet.interception.logging.JavetStandardConsoleInterceptor
 import com.caoccao.javet.interop.{V8Host, V8Runtime}
 import guru.nidi.graphviz.attribute.Rank.RankDir
 import guru.nidi.graphviz.attribute.{Rank, Shape, Style}
-import guru.nidi.graphviz.engine.{
-  AbstractJavascriptEngine,
-  AbstractJsGraphvizEngine,
-  ResultHandler
-}
+import guru.nidi.graphviz.engine.{AbstractJavascriptEngine, AbstractJsGraphvizEngine, ResultHandler}
 import mill.api.PathRef
 import mill.define.NamedTask
 import org.jgrapht.graph.{DefaultEdge, SimpleDirectedGraph}
