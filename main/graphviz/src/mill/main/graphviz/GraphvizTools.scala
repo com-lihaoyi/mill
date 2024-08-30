@@ -1,10 +1,21 @@
 package mill.main.graphviz
 
+import com.caoccao.javet.annotations.V8Function
+import com.caoccao.javet.interception.logging.JavetStandardConsoleInterceptor
+import com.caoccao.javet.interop.{V8Host, V8Runtime}
 import guru.nidi.graphviz.attribute.Rank.RankDir
 import guru.nidi.graphviz.attribute.{Rank, Shape, Style}
+import guru.nidi.graphviz.engine.{
+  AbstractJavascriptEngine,
+  AbstractJsGraphvizEngine,
+  GraphvizException,
+  ResultHandler,
+  V8JavascriptEngine
+}
 import mill.api.PathRef
 import mill.define.NamedTask
 import org.jgrapht.graph.{DefaultEdge, SimpleDirectedGraph}
+import org.slf4j.LoggerFactory
 
 object GraphvizTools {
 
@@ -61,7 +72,8 @@ object GraphvizTools {
 
     g = g.graphAttr().`with`(Rank.dir(RankDir.LEFT_TO_RIGHT))
 
-    val gv = Graphviz.fromGraph(g).totalMemory(100 * 1000 * 1000)
+    Graphviz.useEngine(new AbstractJsGraphvizEngine(true, () => new V8JavascriptEngine()) {})
+    val gv = Graphviz.fromGraph(g).totalMemory(128 * 1024 * 1024)
     val outputs = Seq(
       Format.PLAIN -> "out.txt",
       Format.XDOT -> "out.dot",
@@ -69,9 +81,49 @@ object GraphvizTools {
       Format.PNG -> "out.png",
       Format.SVG -> "out.svg"
     )
+
     for ((fmt, name) <- outputs) {
       gv.render(fmt).toFile((dest / name).toIO)
     }
     outputs.map(x => mill.PathRef(dest / x._2))
   }
+}
+
+class V8JavascriptEngine() extends AbstractJavascriptEngine {
+  val LOG = LoggerFactory.getLogger(classOf[V8JavascriptEngine])
+  val v8Runtime: V8Runtime = V8Host.getV8Instance().createV8Runtime()
+  LOG.info("Starting V8 runtime...")
+  LOG.info("Started V8 runtime. Initializing javascript...")
+  val resultHandler = new ResultHandler
+  val javetStandardConsoleInterceptor = new JavetStandardConsoleInterceptor(v8Runtime)
+  javetStandardConsoleInterceptor.register(v8Runtime.getGlobalObject)
+
+  class ResultHandlerInterceptor(resultHandler: ResultHandler) {
+    @V8Function
+    def result(s: String) = resultHandler.setResult(s)
+
+    @V8Function
+    def error(s: String) = resultHandler.setError(s)
+
+    @V8Function
+    def log(s: String) = resultHandler.log(s)
+  }
+  val v8ValueObject = v8Runtime.createV8ValueObject
+  v8Runtime.getGlobalObject.set("resultHandlerInterceptor", v8ValueObject)
+  v8ValueObject.bind(new ResultHandlerInterceptor(resultHandler))
+
+  v8Runtime.getExecutor(
+    "var result = resultHandlerInterceptor.result; " +
+      "var error = resultHandlerInterceptor.error; " +
+      "var log = resultHandlerInterceptor.log; "
+  ).execute()
+
+  LOG.info("Initialized javascript.")
+
+  override protected def execute(js: String): String = {
+    v8Runtime.getExecutor(js).execute()
+    resultHandler.waitFor
+  }
+
+  override def close(): Unit = v8Runtime.close()
 }
