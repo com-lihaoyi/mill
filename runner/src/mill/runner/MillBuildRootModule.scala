@@ -324,14 +324,17 @@ object MillBuildRootModule {
         .collect { case Seq(single) => single }
         .distinct
 
-      val Seq("millbuild", pkg@_*) = FileImportGraph.fileImportToSegments(base, scriptSource.path, true).dropRight(1)
+      val Seq("millbuild", pkg @ _*) =
+        FileImportGraph.fileImportToSegments(base, scriptSource.path, true).dropRight(1)
 
       val pkgSelector = pkg.map(backtickWrap).mkString(".")
       val childAliases = childNames
         .map { c =>
           val comment = "// subfolder module reference"
           ""
-          s"final def ${backtickWrap(c + "__mill_subfolder_reference")} = _root_.millbuild.${(pkg :+ backtickWrap(c)).map(backtickWrap).mkString(".")}.`package` $comment"
+          s"final def ${backtickWrap(c + "__mill_subfolder_reference")} = _root_.millbuild.${(pkg :+ backtickWrap(
+              c
+            )).map(backtickWrap).mkString(".")}.`package` $comment"
         }
         .mkString("\n")
 

@@ -344,7 +344,9 @@ private object ResolveCore {
       nameOpt: Option[String],
       typePattern: Seq[String] = Nil
   ): Either[String, Seq[(Resolved, Option[Module => Either[String, Module]])]] = {
-    def namePred(n: String) = nameOpt.isEmpty || nameOpt.contains(n) || nameOpt.contains(n.stripSuffix("__mill_subfolder_reference"))
+    def namePred(n: String) = nameOpt.isEmpty || nameOpt.contains(n) || nameOpt.contains(
+      n.stripSuffix("__mill_subfolder_reference")
+    )
 
     val modulesOrErr: Either[String, Seq[(Resolved, Option[Module => Either[String, Module]])]] = {
       if (classOf[DynamicModule].isAssignableFrom(cls)) {

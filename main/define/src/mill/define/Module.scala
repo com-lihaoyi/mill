@@ -87,7 +87,10 @@ object Module {
 
     def reflectNestedObjects[T: ClassTag](filter: String => Boolean = Function.const(true))
         : Seq[T] = {
-      Reflect.reflectNestedObjects0(outer.getClass, n => filter(n.stripSuffix("__mill_subfolder_reference"))).map {
+      Reflect.reflectNestedObjects0(
+        outer.getClass,
+        n => filter(n.stripSuffix("__mill_subfolder_reference"))
+      ).map {
         case (name, m: java.lang.reflect.Method) => m.invoke(outer).asInstanceOf[T]
         case (name, m: java.lang.reflect.Field) => m.get(outer).asInstanceOf[T]
       }

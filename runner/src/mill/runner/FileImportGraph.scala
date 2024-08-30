@@ -58,8 +58,11 @@ object FileImportGraph {
             if (content.startsWith("package ")) {
               val firstLineEnd0 = content.indexOf('\n')
               val firstLineEnd = if (firstLineEnd0 == -1) content.length else firstLineEnd0
-              (content.take(firstLineEnd).stripPrefix("package ").split("\\.", -1).toList, content.drop(firstLineEnd))
-            }else (Nil, content)
+              (
+                content.take(firstLineEnd).stripPrefix("package ").split("\\.", -1).toList,
+                content.drop(firstLineEnd)
+              )
+            } else (Nil, content)
 
           Parsers.splitScript(rest, s.relativeTo(topLevelProjectRoot).toString)
         } match {
