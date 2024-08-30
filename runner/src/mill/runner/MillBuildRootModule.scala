@@ -324,14 +324,14 @@ object MillBuildRootModule {
         .collect { case Seq(single) => single }
         .distinct
 
-      val Seq("build", pkg@_*) = FileImportGraph.fileImportToSegments(base, scriptSource.path, true).dropRight(1)
+      val Seq("millbuild", pkg@_*) = FileImportGraph.fileImportToSegments(base, scriptSource.path, true).dropRight(1)
 
       val pkgSelector = pkg.map(backtickWrap).mkString(".")
       val childAliases = childNames
         .map { c =>
           val comment = "// subfolder module reference"
           ""
-          s"final def ${backtickWrap(c + "__mill_subfolder_reference")} = _root_.build.${(pkg :+ backtickWrap(c)).map(backtickWrap).mkString(".")}.`package` $comment"
+          s"final def ${backtickWrap(c + "__mill_subfolder_reference")} = _root_.millbuild.${(pkg :+ backtickWrap(c)).map(backtickWrap).mkString(".")}.`package` $comment"
         }
         .mkString("\n")
 
@@ -352,7 +352,7 @@ object MillBuildRootModule {
              |""".stripMargin -> ""
         }
 
-      val pkgLine = s"package build; " + (if (pkg.nonEmpty) s"package $pkgSelector" else "")
+      val pkgLine = s"package millbuild; " + (if (pkg.nonEmpty) s"package $pkgSelector" else "")
 
       val markerComment =
         s"""//MILL_ORIGINAL_FILE_PATH=${scriptSource.path}
@@ -400,7 +400,10 @@ object MillBuildRootModule {
        |  ${literalize(millTopLevelProjectRoot.toString)},
        |  _root_.mill.define.Discover[MillPackageClass]
        |){
-
+       |  // aliases so child modules can be referred to directly as `foo` rather
+       |  // than `foo.module`. Need to be outside `MillPackageClass` in case they are
+       |  // referenced in the combined `extends` clause
+       |  lazy val build = _root_.millbuild.`package`
        |}
        |import MillMiscInfo._
        |object `package` extends MillPackageClass
@@ -408,10 +411,6 @@ object MillBuildRootModule {
        |// object initialization due to https://github.com/scala/scala3/issues/21444
        |class MillPackageClass
        |extends $superClass($segsList) {
-       |  // aliases so child modules can be referred to directly as `foo` rather
-       |  // than `foo.module`. Need to be outside `MillPackageClass` in case they are
-       |  // referenced in the combined `extends` clause
-       |  private lazy val build = _root_.build.`package`
        |""".stripMargin
   }
 
