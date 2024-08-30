@@ -58,7 +58,6 @@ object RunnerState {
       workerCache: Map[Segments, (Int, Val)],
       evalWatched: Seq[Watchable],
       moduleWatched: Seq[Watchable],
-      scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])],
       methodCodeHashSignatures: Map[String, Int],
       classLoaderOpt: Option[RunnerState.URLClassLoader],
       runClasspath: Seq[PathRef],
@@ -73,7 +72,6 @@ object RunnerState {
         },
         evalWatched.collect { case Watchable.Path(p) => p },
         moduleWatched.collect { case Watchable.Path(p) => p },
-        scriptImportGraph,
         classLoaderOpt.map(_.identity),
         runClasspath,
         runClasspath.hashCode()
@@ -96,14 +94,13 @@ object RunnerState {
         workerCache: Map[String, WorkerInfo],
         evalWatched: Seq[PathRef],
         moduleWatched: Seq[PathRef],
-        scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])],
         classLoaderIdentity: Option[Int],
         runClasspath: Seq[PathRef],
         runClasspathHash: Int
     )
     implicit val loggedRw: ReadWriter[Logged] = macroRW
 
-    def empty: Frame = Frame(Map.empty, Nil, Nil, Map.empty, Map.empty, None, Nil, None, null)
+    def empty: Frame = Frame(Map.empty, Nil, Nil, Map.empty, None, Nil, None, null)
   }
 
 }

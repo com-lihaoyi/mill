@@ -19,7 +19,6 @@ case class FileImportGraph(
     seenScripts: Map[os.Path, String],
     repos: Seq[(String, os.Path)],
     ivyDeps: Set[String],
-    importGraphEdges: Map[os.Path, Seq[os.Path]],
     errors: Seq[String],
     millImport: Boolean
 )
@@ -164,7 +163,6 @@ object FileImportGraph {
       seenScripts.toMap,
       seenRepo.toSeq,
       seenIvy.toSet,
-      Map(),
       errors.toSeq,
       millImport
     )

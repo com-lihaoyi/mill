@@ -22,10 +22,6 @@ import scala.util.Try
  * `import $file`s, wraps the script files to turn them into valid Scala code
  * and then compiles them with the `ivyDeps` extracted from the `import $ivy`
  * calls within the scripts.
- *
- * Also dumps the [[scriptImportGraph]] for the downstream Evaluator to use for
- * fine-grained task invalidation based the import relationship between the file
- * defining the task and any files which were changed.
  */
 @internal
 class MillBuildRootModule()(implicit
@@ -129,14 +125,6 @@ class MillBuildRootModule()(implicit
       )
       Result.Success(Seq(PathRef(T.dest)))
     }
-  }
-
-  def scriptImportGraph: T[Map[os.Path, (Int, Seq[os.Path])]] = T {
-    parseBuildFiles()
-      .importGraphEdges
-      .map { case (path, imports) =>
-        (path, (PathRef(path).hashCode(), imports))
-      }
   }
 
   def methodCodeHashSignatures: T[Map[String, Int]] = T.persistent {
