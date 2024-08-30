@@ -39,15 +39,16 @@ trait VisualizeModule extends mill.define.TaskModule {
       LinkedBlockingQueue[Result[Seq[PathRef]]]
   )] = Target.worker {
     try os.proc("dot").call(stdin = "graph {}")
-    catch{ case e: Exception =>
-      throw Result.Failure(
-        """graphviz `dot` executable not found for rendering visualization. Please install it via:
-          |
-          |
-          |Mac: brew install graphviz
-          |Ubuntu: sudo apt install graphviz
-          |""".stripMargin
-      )
+    catch {
+      case e: Exception =>
+        throw Result.Failure(
+          """graphviz `dot` executable not found for rendering visualization. Please install it via:
+            |
+            |
+            |Mac: brew install graphviz
+            |Ubuntu: sudo apt install graphviz
+            |""".stripMargin
+        )
 
     }
     val in = new LinkedBlockingQueue[(Seq[_], Seq[_], os.Path)]()
