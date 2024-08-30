@@ -1,3 +1,4 @@
+package proj3
 import mill._
 import mill.scalalib._
 
