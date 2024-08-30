@@ -1,3 +1,4 @@
+package a
 import mill._
 
 def input = T {

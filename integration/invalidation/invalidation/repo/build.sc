@@ -3,31 +3,31 @@ import mill._
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
 
 def task = T {
-  build.a.input()
-  build.b.input()
-  build.c.input()
+  a.input()
+  b.input()
+  c.input()
 }
 
 object module extends Module {
   def task = T {
     println("task")
-    build.a.input()
-    build.b.input()
-    build.c.input()
+    a.input()
+    b.input()
+    c.input()
   }
 }
 
 def taskE = T {
   println("taskE")
-  build.e.input()
+  e.input()
 }
 
 def taskSymbols = T {
   println("taskSymbols")
-  build.`-#!+→&%=~`.input()
+  `-#!+→&%=~`.input()
 }
 
 def taskSymbolsInFile = T {
   println("taskSymbolsInFile")
-  build.`-#+&%`.input()
+  `-#+&%`.input()
 }

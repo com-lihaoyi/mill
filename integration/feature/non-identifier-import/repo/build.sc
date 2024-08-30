@@ -1,4 +1,4 @@
-import $file.`foo-bar`, `foo-bar`.FooBar
+import `foo-bar`.FooBar
 
 import mill._
 

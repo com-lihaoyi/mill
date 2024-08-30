@@ -1,5 +1,6 @@
+package `-#+&%`
 import mill._
 
-object module extends RootModule {
+object `package` extends RootModule {
   def input = T {}
 }
