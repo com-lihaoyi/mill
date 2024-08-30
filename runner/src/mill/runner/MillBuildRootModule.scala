@@ -332,6 +332,8 @@ object MillBuildRootModule {
       val pkgSelector = pkg.map(backtickWrap).mkString(".")
       val childAliases = childNames
         .map { c =>
+          // Dummy references to sub modules. Just used as metadata for the discover and
+          // resolve logic to traverse, cannot actually be evaluated and used
           val comment = "// subfolder module reference"
           val lhs = backtickWrap(c + "__mill_subfolder_reference")
           val selector = (pkg :+ backtickWrap(c)).map(backtickWrap).mkString(".")
