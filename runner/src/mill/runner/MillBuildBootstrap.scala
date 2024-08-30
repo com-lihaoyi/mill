@@ -2,6 +2,7 @@ package mill.runner
 
 import mill.util.{ColorLogger, PrefixLogger, Watchable}
 import mill.main.BuildInfo
+import mill.main.client.CodeGenConstants._
 import mill.api.{PathRef, Val, internal}
 import mill.eval.Evaluator
 import mill.main.RunScript
@@ -406,7 +407,7 @@ object MillBuildBootstrap {
   }
 
   def getRootModule(runClassLoader: URLClassLoader): BaseModule = {
-    val buildClass = runClassLoader.loadClass("millbuild.package$")
+    val buildClass = runClassLoader.loadClass(s"$globalPackagePrefix.${wrapperObjectName}$$")
     buildClass.getField("MODULE$").get(buildClass).asInstanceOf[BaseModule]
   }
 

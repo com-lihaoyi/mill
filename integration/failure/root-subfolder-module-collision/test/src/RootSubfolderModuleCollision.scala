@@ -11,8 +11,10 @@ object RootSubfolderModuleCollision extends IntegrationTestSuite {
     test("success") {
       val res = eval(("resolve", "_"))
       assert(res.isSuccess == false)
-      assert(res.err.contains("sub is defined twice"))
-      assert(res.err.contains("def sub = millbuild.sub.module // subfolder module reference"))
+      assert(res.err.contains("sub is already defined as object sub"))
+      assert(res.err.contains(
+        " final lazy val sub: _root_.millbuild.sub.package_.type = _root_.millbuild.sub.package_ // subfolder module reference"
+      ))
     }
   }
 }

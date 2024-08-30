@@ -8,8 +8,6 @@ import mill.scalalib.{BoundDep, Dep, DepSyntax, Lib, ScalaModule}
 import mill.util.CoursierSupport
 import mill.util.Util.millProjectModule
 import mill.scalalib.api.Versions
-import pprint.Util.literalize
-import FileImportGraph.backtickWrap
 import mill.main.client.OutFiles._
 import mill.main.{BuildInfo, RootModule}
 
@@ -115,7 +113,7 @@ class MillBuildRootModule()(implicit
     val parsed = parseBuildFiles()
     if (parsed.errors.nonEmpty) Result.Failure(parsed.errors.mkString("\n"))
     else {
-      MillBuildRootModule.generateWrappedSources(
+      CodeGen.generateWrappedSources(
         millBuildRootModuleInfo.projectRoot / os.up,
         scriptSources(),
         parsed.seenScripts,
@@ -292,122 +290,6 @@ object MillBuildRootModule {
     )
   }
 
-  def generateWrappedSources(
-      projectRoot: os.Path,
-      scriptSources: Seq[PathRef],
-      scriptCode: Map[os.Path, String],
-      targetDest: os.Path,
-      enclosingClasspath: Seq[os.Path],
-      millTopLevelProjectRoot: os.Path
-  ): Unit = {
-
-    for (scriptSource <- scriptSources) {
-      val scriptFolderPath = scriptSource.path / os.up
-      val relative = scriptSource.path.relativeTo(projectRoot)
-      val dest =
-        targetDest / FileImportGraph.fileImportToSegments(projectRoot, scriptSource.path, false)
-
-      val childNames = scriptSources
-        .collect { case p if p.path.last == "package.sc" => p.path / os.up }
-        .filter(p => p.startsWith(scriptFolderPath))
-        .map(_.subRelativeTo(scriptFolderPath).segments)
-        .collect { case Seq(single) => single }
-        .distinct
-
-      val Seq("millbuild", pkg @ _*) =
-        FileImportGraph.fileImportToSegments(projectRoot, scriptFolderPath, true)
-
-      val pkgSelector = pkg.map(backtickWrap).mkString(".")
-      val childAliases = childNames
-        .map { c =>
-          // Dummy references to sub modules. Just used as metadata for the discover and
-          // resolve logic to traverse, cannot actually be evaluated and used
-          val comment = "// subfolder module reference"
-          val lhs = backtickWrap(c + "__mill_subfolder_reference")
-          val selector = (pkg :+ backtickWrap(c)).map(backtickWrap).mkString(".")
-          s"final def $lhs: _root_.millbuild.$selector.`package`.type = null $comment"
-        }
-        .mkString("\n")
-
-      val specialNames = Set("build", "package")
-      val (newSource, newSuffix) =
-        if (specialNames(scriptSource.path.baseName)) {
-
-          topBuild(
-            relative.segments.init,
-            scriptFolderPath,
-            scriptSource.path.baseName,
-            enclosingClasspath,
-            millTopLevelProjectRoot
-          ) -> childAliases
-        } else {
-          s"""object ${backtickWrap(scriptSource.path.baseName)} {
-             |""".stripMargin -> ""
-        }
-
-      val pkgLine = s"package millbuild; " + (if (pkg.nonEmpty) s"package $pkgSelector" else "")
-
-      val markerComment =
-        s"""//MILL_ORIGINAL_FILE_PATH=${scriptSource.path}
-           |//MILL_USER_CODE_START_MARKER""".stripMargin
-
-      os.write(
-        dest,
-        Seq(
-          pkgLine,
-          newSource,
-          markerComment,
-          scriptCode(scriptSource.path),
-
-          // define this after user code so in case of conflict these lines are what turn
-          // up in the error message, so we can add a comment and control what the user sees
-          newSuffix,
-          MillBuildRootModule.bottom
-        ).mkString("\n"),
-        createFolders = true
-      )
-    }
-  }
-
-  def topBuild(
-      segs: Seq[String],
-      scriptFolderPath: os.Path,
-      name: String,
-      enclosingClasspath: Seq[os.Path],
-      millTopLevelProjectRoot: os.Path
-  ): String = {
-    val segsList = segs.map(pprint.Util.literalize(_)).mkString(", ")
-    val superClass =
-      if (name == "build") {
-        if (millTopLevelProjectRoot == scriptFolderPath) "_root_.mill.main.RootModule"
-        else "_root_.mill.runner.MillBuildRootModule"
-      } else "_root_.mill.main.RootModule.Subfolder"
-
-    s"""
-       |import _root_.mill.runner.MillBuildRootModule
-       |@_root_.scala.annotation.nowarn
-       |object MillMiscInfo extends MillBuildRootModule.MillMiscInfo(
-       |  ${enclosingClasspath.map(p => literalize(p.toString))},
-       |  ${literalize(scriptFolderPath.toString)},
-       |  ${literalize(millTopLevelProjectRoot.toString)},
-       |  _root_.mill.define.Discover[MillPackageClass]
-       |){
-       |  // aliases so child modules can be referred to directly as `foo` rather
-       |  // than `foo.module`. Need to be outside `MillPackageClass` in case they are
-       |  // referenced in the combined `extends` clause
-       |  lazy val build = _root_.millbuild.`package`
-       |}
-       |import MillMiscInfo._
-       |object `package` extends MillPackageClass
-       |// User code needs to be put in a separate class for proper submodule
-       |// object initialization due to https://github.com/scala/scala3/issues/21444
-       |class MillPackageClass
-       |extends $superClass($segsList) {
-       |""".stripMargin
-  }
-
-  val bottom = "\n}"
-
   class MillMiscInfo(
       enclosingClasspath: Seq[String],
       projectRoot: String,
@@ -424,5 +306,4 @@ object MillBuildRootModule {
       discover
     )
   }
-
 }

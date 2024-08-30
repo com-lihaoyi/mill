@@ -1,6 +1,7 @@
 package mill.runner
 
 import mill.api.internal
+import mill.main.client.CodeGenConstants._
 import mill.main.client.OutFiles._
 
 import scala.reflect.NameTransformer.encode
@@ -141,8 +142,8 @@ object FileImportGraph {
       transformedStmts.append(stmt)
     }
 
-    val useDummy = !os.exists(projectRoot / "build.sc")
-    processScript(projectRoot / "build.sc", useDummy)
+    val useDummy = !os.exists(projectRoot / rootBuildFileName)
+    processScript(projectRoot / rootBuildFileName, useDummy)
     val buildFiles = os
       .walk(
         projectRoot,
@@ -150,9 +151,9 @@ object FileImportGraph {
         skip = p =>
           p == projectRoot / out ||
             p == projectRoot / millBuild ||
-            (os.isDir(p) && !os.exists(p / "package.sc"))
+            (os.isDir(p) && !os.exists(p / nestedBuildFileName))
       )
-      .filter(_.last == "package.sc")
+      .filter(_.last == nestedBuildFileName)
 
     val adjacentScripts = (projectRoot +: buildFiles.map(_ / os.up))
       .flatMap(os.list(_))
@@ -168,21 +169,8 @@ object FileImportGraph {
     )
   }
 
-  def nextPathFor(s: os.Path, rest: Seq[String]): os.Path = {
-    // Manually do the foldLeft to work around bug in os-lib
-    // https://github.com/com-lihaoyi/os-lib/pull/160
-    val restSegments = rest
-      .map {
-        case "^" => os.up
-        case s => os.rel / s
-      }
-      .foldLeft(os.rel)(_ / _)
-
-    s / os.up / restSegments / os.up / s"${rest.last}.sc"
-  }
-
   def fileImportToSegments(base: os.Path, s: os.Path, stripExt: Boolean): Seq[String] = {
     val rel = (s / os.up / (if (stripExt) s.baseName else s.last)).relativeTo(base)
-    Seq("millbuild") ++ Seq.fill(rel.ups)("^") ++ rel.segments
+    Seq(globalPackagePrefix) ++ Seq.fill(rel.ups)("^") ++ rel.segments
   }
 }
