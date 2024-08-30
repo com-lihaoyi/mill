@@ -15,7 +15,7 @@ object ImportFileUnsupported extends IntegrationTestSuite {
       assert(
         res.err.contains(
           "is no longer supported. Any `foo/bar.sc` file in a folder next to a " +
-          "`foo/package.sc` can be directly imported via `import foo.bar`"
+            "`foo/package.sc` can be directly imported via `import foo.bar`"
         )
       )
     }

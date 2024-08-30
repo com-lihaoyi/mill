@@ -128,8 +128,8 @@ object FileImportGraph {
           case ImportTree(Seq(("$file", end0), rest @ _*), mapping, start, end) =>
             errors.append(
               s"Import $$file syntax in $s is no longer supported. Any `foo/bar.sc` file " +
-              s"in a folder next to a `foo/package.sc` can be directly imported via " +
-              "`import foo.bar`"
+                s"in a folder next to a `foo/package.sc` can be directly imported via " +
+                "`import foo.bar`"
             )
 
             (start, "", rest.lastOption.fold(end0)(_._2))
