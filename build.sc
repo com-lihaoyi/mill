@@ -180,6 +180,7 @@ object Deps {
   val fansi = ivy"com.lihaoyi::fansi:0.5.0"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.0"
   val requests = ivy"com.lihaoyi::requests:0.9.0"
+  val logback = ivy"ch.qos.logback:logback-classic:1.2.11"
   val sonatypeCentralClient = ivy"com.lumidion::sonatype-central-client-requests:0.3.0"
 
   object RuntimeDeps {
@@ -579,7 +580,8 @@ object main extends MillStableScalaModule with BuildInfo {
     Deps.windowsAnsi,
     Deps.mainargs,
     Deps.coursierInterface,
-    Deps.requests
+    Deps.requests,
+    Deps.logback
   )
 
   def compileIvyDeps = Agg(Deps.scalaReflect(scalaVersion()))

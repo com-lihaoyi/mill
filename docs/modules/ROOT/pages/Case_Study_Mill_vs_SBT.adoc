@@ -233,7 +233,7 @@ wondering what your build tool is doing.
 Another area that Mill does better than SBT is providing builtin tools for you to understand
 what your build is doing. For example, the Gatling project build discussed has 21 submodules
 and associated test suites, but how do these different modules depend on each other? With
-Mill, you can run `./mill show visualize __.compile`, and it will show you how the
+Mill, you can run `./mill visualize __.compile`, and it will show you how the
 `compile` task of each module depends on the others:
 
 image::GatlingCompileGraph.svg[]

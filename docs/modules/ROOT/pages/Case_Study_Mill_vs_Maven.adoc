@@ -596,7 +596,7 @@ rather than configuring a bunch of third-party plugins to try and achieve what y
 Another area that Mill does better than Maven is providing builtin tools for you to understand
 what your build is doing. For example, the Netty project build discussed has 47 submodules
 and associated test suites, but how do these different modules depend on each other? With
-Mill, you can run `./mill show visualize __.compile`, and it will show you how the
+Mill, you can run `./mill visualize __.compile`, and it will show you how the
 `compile` task of each module depends on the others:
 
 image::NettyCompileGraph.svg[]
