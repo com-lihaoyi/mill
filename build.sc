@@ -142,7 +142,7 @@ object Deps {
   val commonsIO = ivy"commons-io:commons-io:2.16.1"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.8.0"
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.23.1"
-  val osLib = ivy"com.lihaoyi::os-lib:0.10.4"
+  val osLib = ivy"com.lihaoyi::os-lib:0.10.4-11-380c77"
   val pprint = ivy"com.lihaoyi::pprint:0.9.0"
   val mainargs = ivy"com.lihaoyi::mainargs:0.7.1"
   val millModuledefsVersion = "0.10.9"
