@@ -64,16 +64,10 @@ object FileImportGraph {
             )
           } else (Nil, content)
 
-        val fileNameSegment = Option.when(
-          !nestedBuildFileNames.contains(s.last) && !rootBuildFileNames.contains(s.last)
-        ) {
-          s.baseName
-        }
 
         val expectedImportSegments0 =
           Seq(rootModuleAlias) ++
-            (s / os.up).relativeTo(projectRoot).segments ++
-            fileNameSegment
+            (s / os.up).relativeTo(projectRoot).segments
 
         val expectedImportSegments = expectedImportSegments0.map(backtickWrap).mkString(".")
         val importSegments = segments.mkString(".")

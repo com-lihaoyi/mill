@@ -36,8 +36,12 @@ object CodeGen {
             Option.when(path / os.up / os.up == scriptFolderPath) {
               (path / os.up).last
             }
-          } else Option.when(path / os.up == scriptFolderPath)(path.baseName)
+          } else None
         }
+        .distinct
+
+      val childTraits = scriptSources
+        .collect{case p if p.path != scriptPath && p.path / os.up == scriptFolderPath => p.path.baseName}
         .distinct
 
       val Seq(`globalPackagePrefix`, pkg @ _*) =
@@ -62,7 +66,8 @@ object CodeGen {
         enclosingClasspath,
         millTopLevelProjectRoot,
         childAliases,
-        isBuildScript
+        isBuildScript,
+        childTraits.map(t => s"with $pkgSelector.${backtickWrap(t)}").mkString
       )
 
       val pkgLine =
@@ -96,19 +101,20 @@ object CodeGen {
       enclosingClasspath: Seq[os.Path],
       millTopLevelProjectRoot: os.Path,
       childAliases: String,
-      isBuildScript: Boolean
+      isBuildScript: Boolean,
+      childTraits: String
   ): String = {
     val segsList = segs.map(pprint.Util.literalize(_)).mkString(", ")
     val extendsClause =
       if (!isBuildScript) "" // Non-`build.sc`/`package.sc` files cannot define modules
       else if (segs.isEmpty) {
         if (millTopLevelProjectRoot == scriptFolderPath) {
-          s"extends _root_.mill.main.RootModule($segsList)"
+          s"extends _root_.mill.main.RootModule($segsList) $childTraits"
         } else {
-          s"extends _root_.mill.runner.MillBuildRootModule($segsList)"
+          s"extends _root_.mill.runner.MillBuildRootModule($segsList) $childTraits"
         }
       } else {
-        s"extends _root_.mill.main.RootModule.Subfolder($segsList)"
+        s"extends _root_.mill.main.RootModule.Subfolder($segsList) $childTraits"
       }
 
     // MillMiscInfo defines a bunch of module metadata that is only relevant
@@ -145,13 +151,18 @@ object CodeGen {
       if (segs.nonEmpty) s"import build_.{package_ => build}"
       else "import build_.{MillMiscInfo => build}"
 
+    val header = if (isBuildScript){
+      s"""object $wrapperObjectName extends $wrapperObjectName
+         |// User code needs to be put in a separate class for proper submodule
+         |// object initialization due to https://github.com/scala/scala3/issues/21444
+         |class $wrapperObjectName $extendsClause {""".stripMargin
+    }else{
+      s"trait ${segs.last} $extendsClause"
+    }
     s"""
       |$prelude
       |$buildImport
-      |object $wrapperObjectName extends $wrapperObjectName
-      |// User code needs to be put in a separate class for proper submodule
-      |// object initialization due to https://github.com/scala/scala3/issues/21444
-      |class $wrapperObjectName $extendsClause {
+      |$header
       |  $selfReference
       |""".stripMargin
   }
