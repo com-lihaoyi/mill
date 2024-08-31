@@ -176,7 +176,7 @@ object FileImportGraph {
 
     val adjacentScripts = (projectRoot +: buildFiles.map(_ / os.up))
       .flatMap(os.list(_))
-      .filter(_.ext == "mill")
+      .filter(p => buildFileExtensions.contains(p.ext))
     (buildFiles ++ adjacentScripts).foreach(processScript(_))
 
     new FileImportGraph(

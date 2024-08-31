@@ -133,6 +133,8 @@ object CodeGen {
       ""
     }
 
+    val selfReference = if (segs.isEmpty) "final val build = this" else ""
+
     // `build` refers to different things in `build.sc` and outside `build.sc`. That is
     // `build` refers to the `build.sc` object itself, and if we import it we get a circular
     // dependency compiler error. However, most times in `build.sc` when you use `build` you
@@ -143,16 +145,15 @@ object CodeGen {
       if (segs.nonEmpty) s"import build_.{package_ => build}"
       else "import build_.{MillMiscInfo => build}"
 
-    val newer = s"""
-                   |$prelude
-                   |$buildImport
-                   |object $wrapperObjectName extends $wrapperObjectName
-                   |// User code needs to be put in a separate class for proper submodule
-                   |// object initialization due to https://github.com/scala/scala3/issues/21444
-                   |class $wrapperObjectName $extendsClause {
-                   |
-                   |""".stripMargin
-    newer
+    s"""
+      |$prelude
+      |$buildImport
+      |object $wrapperObjectName extends $wrapperObjectName
+      |// User code needs to be put in a separate class for proper submodule
+      |// object initialization due to https://github.com/scala/scala3/issues/21444
+      |class $wrapperObjectName $extendsClause {
+      |  $selfReference
+      |""".stripMargin
   }
 
   val bottom = "\n}"
