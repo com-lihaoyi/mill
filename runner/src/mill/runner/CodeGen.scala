@@ -20,9 +20,11 @@ object CodeGen {
       val scriptPath = scriptSource.path
       val specialNames = Set(nestedBuildFileName, rootBuildFileName)
 
+      val isBuildScript = specialNames(scriptPath.last)
       val scriptFolderPath =
-        if (specialNames(scriptPath.last)) scriptPath / os.up
+        if (isBuildScript) scriptPath / os.up
         else scriptPath / os.up / scriptPath.baseName
+
       val dest =
         targetDest / FileImportGraph.fileImportToSegments(projectRoot, scriptPath, false)
 
@@ -56,13 +58,14 @@ object CodeGen {
         .mkString("\n")
 
 
-      val (newSource, newSuffix) = topBuild(
-            scriptFolderPath.relativeTo(projectRoot).segments,
-            scriptFolderPath,
-            enclosingClasspath,
-            millTopLevelProjectRoot,
-            childAliases
-          ) -> childAliases
+      val newSource = topBuild(
+        scriptFolderPath.relativeTo(projectRoot).segments,
+        scriptFolderPath,
+        enclosingClasspath,
+        millTopLevelProjectRoot,
+        childAliases,
+        isBuildScript
+      )
 
 
       val pkgLine =
@@ -82,7 +85,7 @@ object CodeGen {
 
           // define this after user code so in case of conflict these lines are what turn
           // up in the error message, so we can add a comment and control what the user sees
-          newSuffix,
+          childAliases,
           bottom
         ).mkString("\n"),
         createFolders = true
@@ -95,14 +98,21 @@ object CodeGen {
       scriptFolderPath: os.Path,
       enclosingClasspath: Seq[os.Path],
       millTopLevelProjectRoot: os.Path,
-      childAliases: String
+      childAliases: String,
+      isBuildScript: Boolean
   ): String = {
     val segsList = segs.map(pprint.Util.literalize(_)).mkString(", ")
-    val superClass =
-      if (segs.isEmpty) {
-        if (millTopLevelProjectRoot == scriptFolderPath) "_root_.mill.main.RootModule"
-        else "_root_.mill.runner.MillBuildRootModule"
-      } else "_root_.mill.main.RootModule.Subfolder"
+    val extendsClause =
+      if (!isBuildScript) ""
+      else if (segs.isEmpty) {
+        if (millTopLevelProjectRoot == scriptFolderPath) {
+          s"extends _root_.mill.main.RootModule($segsList)"
+        } else{
+          s"extends _root_.mill.runner.MillBuildRootModule($segsList)"
+        }
+      } else {
+        s"extends _root_.mill.main.RootModule.Subfolder($segsList)"
+      }
 
     s"""
        |import _root_.mill.runner.MillBuildRootModule
@@ -123,8 +133,7 @@ object CodeGen {
        |object $wrapperObjectName extends $wrapperObjectName
        |// User code needs to be put in a separate class for proper submodule
        |// object initialization due to https://github.com/scala/scala3/issues/21444
-       |class $wrapperObjectName
-       |extends $superClass($segsList) {
+       |class $wrapperObjectName $extendsClause {
        |
        |""".stripMargin
   }
