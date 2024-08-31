@@ -39,13 +39,16 @@ object CodeGen {
         .distinct
 
       val sibling = scriptSources
-        .collect{case p if p.path != scriptPath && p.path / os.up == scriptFolderPath => p.path.baseName}
+        .collect {
+          case p if p.path != scriptPath && p.path / os.up == scriptFolderPath => p.path.baseName
+        }
         .distinct
 
       val Seq(`globalPackagePrefix`, pkg @ _*) =
         FileImportGraph.fileImportToSegments(projectRoot, scriptFolderPath, true)
 
-      def pkgSelector0(pre: Option[String], s: Option[String]) = ((pre ++ pkg ++ s).map(backtickWrap)).mkString(".")
+      def pkgSelector0(pre: Option[String], s: Option[String]) =
+        ((pre ++ pkg ++ s).map(backtickWrap)).mkString(".")
       val pkgSelector = pkgSelector0(None, None)
       def pkgSelector2(s: Option[String]) = s"_root_.${pkgSelector0(Some(globalPackagePrefix), s)}"
       val childAliases = childNames
@@ -67,7 +70,12 @@ object CodeGen {
         millTopLevelProjectRoot,
         childAliases,
         isBuildScript,
-        sibling.map(t => s"import ${pkgSelector2(t match{ case "package" | "build" => None case _ => Some(t)})}._").mkString("\n")
+        sibling.map(t =>
+          s"import ${pkgSelector2(t match {
+              case "package" | "build" => None
+              case _ => Some(t)
+            })}._"
+        ).mkString("\n")
       )
 
       val pkgLine =
@@ -152,21 +160,21 @@ object CodeGen {
       if (segs.nonEmpty) s"import build_.{package_ => build}"
       else "import build_.{MillMiscInfo => build}"
 
-    val header = if (isBuildScript){
+    val header = if (isBuildScript) {
       s"""object $wrapperObjectName extends $wrapperObjectName
          |// User code needs to be put in a separate class for proper submodule
          |// object initialization due to https://github.com/scala/scala3/issues/21444
          |class $wrapperObjectName $extendsClause {""".stripMargin
-    }else{
-      s"object $name {"
+    } else {
+      s"object ${backtickWrap(name)} {"
     }
     s"""
-      |$prelude
-      |$buildImport
-      |$adjacentImports
-      |$header
-      |  $selfReference
-      |""".stripMargin
+       |$prelude
+       |$buildImport
+       |$adjacentImports
+       |$header
+       |  $selfReference
+       |""".stripMargin
   }
 
   val bottom = "\n}"

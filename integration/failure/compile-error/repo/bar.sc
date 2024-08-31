@@ -1,4 +1,4 @@
-package build.bar
+package build
 // Make sure this
 /* gives the correct */
 // line numbers

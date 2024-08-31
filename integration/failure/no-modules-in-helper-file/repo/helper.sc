@@ -1,3 +1,3 @@
-package build.helper
+package build
 import mill._
 object foo extends Module

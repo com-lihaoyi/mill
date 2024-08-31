@@ -64,7 +64,6 @@ object FileImportGraph {
             )
           } else (Nil, content)
 
-
         val expectedImportSegments0 =
           Seq(rootModuleAlias) ++
             (s / os.up).relativeTo(projectRoot).segments

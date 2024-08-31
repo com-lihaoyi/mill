@@ -1,4 +1,4 @@
-package proj2
+package build.proj2
 import mill._
 import mill.scalalib._
 
