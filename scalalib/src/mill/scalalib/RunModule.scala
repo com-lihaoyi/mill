@@ -20,7 +20,7 @@ trait RunModule extends WithZincWorker {
   /**
    * Any environment variables you want to pass to the forked JVM.
    */
-  def forkEnv: T[Map[String, String]] = T.input { T.env }
+  def forkEnv: T[Map[String, String]] = T { Map.empty[String, String] }
 
   def forkWorkingDir: T[os.Path] = T { T.workspace }
 
