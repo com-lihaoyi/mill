@@ -4,7 +4,7 @@ import mill.testkit.IntegrationTestSuite
 
 import utest._
 
-object RootSubfolderModuleCollision extends IntegrationTestSuite {
+object RootSubfolderModuleCollisionTests extends IntegrationTestSuite {
   val tests: Tests = Tests {
     initWorkspace()
 
@@ -13,7 +13,7 @@ object RootSubfolderModuleCollision extends IntegrationTestSuite {
       assert(res.isSuccess == false)
       assert(res.err.contains("sub is already defined as object sub"))
       assert(res.err.contains(
-        " final lazy val sub: _root_.millbuild.sub.package_.type = _root_.millbuild.sub.package_ // subfolder module reference"
+        " final lazy val sub: _root_.build_.sub.package_.type = _root_.build_.sub.package_ // subfolder module referenc"
       ))
     }
   }
