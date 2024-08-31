@@ -18,7 +18,7 @@ index e69de29bb2..5ea1cedb53 100644
 --- a/ci/package.sc
 +++ b/ci/package.sc
 @@ -0,0 +1 @@
-+package ci
++package build.ci
 \ No newline at end of file
 diff --git a/ci/shared.sc b/ci/shared.sc
 index 57bb0eec30..1d045d8942 100644
