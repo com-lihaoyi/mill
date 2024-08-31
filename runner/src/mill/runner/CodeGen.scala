@@ -111,7 +111,7 @@ object CodeGen {
        |  ${enclosingClasspath.map(p => literalize(p.toString))},
        |  ${literalize(scriptFolderPath.toString)},
        |  ${literalize(millTopLevelProjectRoot.toString)},
-       |  _root_.mill.define.Discover[MillPackageClass]
+       |  _root_.mill.define.Discover[$wrapperObjectName]
        |){
        |  // aliases so child modules can be referred to directly as `foo` rather
        |  // than `foo.module`. Need to be outside `MillPackageClass` in case they are
@@ -120,10 +120,10 @@ object CodeGen {
        |}
        |import MillMiscInfo._
        |${if (segs.nonEmpty) s"import build_.{package_ => build}" else "import build_.{MillMiscInfo => build}"}
-       |object $wrapperObjectName extends MillPackageClass
+       |object $wrapperObjectName extends $wrapperObjectName
        |// User code needs to be put in a separate class for proper submodule
        |// object initialization due to https://github.com/scala/scala3/issues/21444
-       |class MillPackageClass
+       |class $wrapperObjectName
        |extends $superClass($segsList) {
        |
        |""".stripMargin

@@ -40,7 +40,7 @@ object PackageObjectUnpacker {
         case pkgDef: g.PackageDef =>
           val resOpt = pkgDef.stats.zipWithIndex.collect {
             case (pkgCls: g.ClassDef, pkgClsIndex)
-                if pkgCls.name.toString().startsWith("MillPackageClass") =>
+                if pkgCls.name.toString().startsWith("package_") =>
               pkgCls.impl.body.collect {
                 case pkgObj: g.ModuleDef
                     if pkgObj.name.toString() == expectedName || pkgObj.name.toString() == "build"
