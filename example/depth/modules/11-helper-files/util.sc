@@ -1,0 +1,1 @@
+def scalaVersion = "2.13.14"

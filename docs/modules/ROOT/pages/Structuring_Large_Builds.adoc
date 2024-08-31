@@ -1,7 +1,11 @@
 = Structuring Large Builds
 
-== Nested `module.sc` files
+== Multi-file Builds
 
-include::example/depth/modules/10-module-sc.adoc[]
+include::example/depth/modules/10-multi-file-builds.adoc[]
+
+== Helper Files
+
+include::example/depth/modules/11-helper-files.adoc[]
 
 
