@@ -13,6 +13,12 @@ index dd0af490ea..8cb39371b2 100644
 
  object Settings {
    val pomOrg = "com.lihaoyi"
+diff --git a/ci/package.sc b/ci/package.sc
+index e69de29bb2..6a5b3e8b8e 100644
+--- a/ci/package.sc
++++ b/ci/package.sc
+@@ -0,0 +1 @@
++package build.ci
 diff --git a/ci/shared.sc b/ci/shared.sc
 index 57bb0eec30..7144723962 100644
 --- a/ci/shared.sc
