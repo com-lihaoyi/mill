@@ -1530,6 +1530,7 @@ object runner extends MillPublishScalaModule {
   def skipPreviousVersions: T[Seq[String]] = Seq("0.11.0-M7")
 
   object linenumbers extends MillPublishScalaModule {
+    def moduleDeps = Seq(main.client)
     def scalaVersion = Deps.scalaVersion
     def ivyDeps = Agg(Deps.scalaCompiler(scalaVersion()))
   }

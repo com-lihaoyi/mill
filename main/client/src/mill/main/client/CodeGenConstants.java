@@ -21,12 +21,17 @@ public class CodeGenConstants {
     /**
      * The name of the root build file
      */
-    final public static String rootBuildFileName = "build.sc";
+    final public static String[] rootBuildFileNames = {"build.mill", "build.sc"};
 
     /**
      * The name of any sub-folder build files
      */
-    final public static String nestedBuildFileName = "package.sc";
+    final public static String[] nestedBuildFileNames = {"package.mill", "package.sc"};
+
+    /**
+     * The extensions used by build files
+     */
+    final public static String[] buildFileExtensions = {"mill", "sc"};
 
     /**
      * The user-facing name for the root of the module tree.

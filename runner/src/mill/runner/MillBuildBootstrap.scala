@@ -79,9 +79,14 @@ class MillBuildBootstrap(
         // Unfortunately, some targets also make sense without a `build.sc`, e.g. the `init` command.
         // Hence we only report a missing `build.sc` as an problem if the command itself does not succeed.
         lazy val state = evaluateRec(depth + 1)
-        if (os.exists(recRoot(projectRoot, depth) / "build.sc")) state
+        if (
+          rootBuildFileNames.exists(rootBuildFileName =>
+            os.exists(recRoot(projectRoot, depth) / rootBuildFileName)
+          )
+        ) state
         else {
-          val msg = s"build.sc file not found in $projectRoot. Are you in a Mill project folder?"
+          val msg =
+            s"${rootBuildFileNames.head} file not found in $projectRoot. Are you in a Mill project folder?"
           if (needBuildSc) {
             RunnerState(None, Nil, Some(msg))
           } else {

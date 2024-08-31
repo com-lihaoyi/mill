@@ -64,22 +64,24 @@ object FileImportGraph {
             )
           } else (Nil, content)
 
-
-        val fileNameSegment = s.last match{
-          case `nestedBuildFileName` | `rootBuildFileName` => None
-          case s"$baseName.sc" => Some(baseName)
+        val fileNameSegment = Option.when(
+          !nestedBuildFileNames.contains(s.last) && !rootBuildFileNames.contains(s.last)
+        ) {
+          s.baseName
         }
 
         val expectedImportSegments0 =
           Seq(rootModuleAlias) ++
-          (s / os.up).relativeTo(projectRoot).segments ++
-          fileNameSegment
+            (s / os.up).relativeTo(projectRoot).segments ++
+            fileNameSegment
 
         val expectedImportSegments = expectedImportSegments0.map(backtickWrap).mkString(".")
         val importSegments = segments.mkString(".")
-        if (expectedImportSegments != importSegments &&
-            // Root build.sc file has its `package build` be optional
-            !(importSegments == "" && s.last == "build.sc")) {
+        if (
+          expectedImportSegments != importSegments &&
+          // Root build.sc file has its `package build` be optional
+          !(importSegments == "" && rootBuildFileNames.contains(s.last))
+        ) {
           val expectedImport =
             if (expectedImportSegments.isEmpty) "<none>"
             else s"\"package $expectedImportSegments\""
@@ -154,8 +156,11 @@ object FileImportGraph {
       transformedStmts.append(stmt)
     }
 
-    val useDummy = !os.exists(projectRoot / rootBuildFileName)
-    processScript(projectRoot / rootBuildFileName, useDummy)
+    val rootBuildFiles =
+      rootBuildFileNames.find(rootBuildFileName => os.exists(projectRoot / rootBuildFileName))
+    val useDummy = rootBuildFiles.isEmpty
+    val foundRootBuildFileName: String = rootBuildFiles.getOrElse(rootBuildFileNames.head)
+    processScript(projectRoot / foundRootBuildFileName, useDummy)
     val buildFiles = os
       .walk(
         projectRoot,
@@ -163,13 +168,15 @@ object FileImportGraph {
         skip = p =>
           p == projectRoot / out ||
             p == projectRoot / millBuild ||
-            (os.isDir(p) && !os.exists(p / nestedBuildFileName))
+            (os.isDir(p) && !nestedBuildFileNames.exists(nestedBuildFileName =>
+              os.exists(p / nestedBuildFileName)
+            ))
       )
-      .filter(_.last == nestedBuildFileName)
+      .filter(p => nestedBuildFileNames.contains(p.last))
 
     val adjacentScripts = (projectRoot +: buildFiles.map(_ / os.up))
       .flatMap(os.list(_))
-      .filter(_.ext == "sc")
+      .filter(_.ext == "mill")
     (buildFiles ++ adjacentScripts).foreach(processScript(_))
 
     new FileImportGraph(

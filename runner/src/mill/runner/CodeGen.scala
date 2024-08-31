@@ -18,7 +18,7 @@ object CodeGen {
 
     for (scriptSource <- scriptSources) {
       val scriptPath = scriptSource.path
-      val specialNames = Set(nestedBuildFileName, rootBuildFileName)
+      val specialNames = (nestedBuildFileNames ++ rootBuildFileNames).toSet
 
       val isBuildScript = specialNames(scriptPath.last)
       val scriptFolderPath =
@@ -32,12 +32,11 @@ object CodeGen {
         .flatMap { p =>
           val path = p.path
           if (path == scriptPath) None
-          else if(path.last == nestedBuildFileName) {
-            Option.when(path / os.up / os.up == scriptFolderPath){
+          else if (nestedBuildFileNames.contains(path.last)) {
+            Option.when(path / os.up / os.up == scriptFolderPath) {
               (path / os.up).last
             }
-          }
-          else Option.when(path / os.up == scriptFolderPath)(path.baseName)
+          } else Option.when(path / os.up == scriptFolderPath)(path.baseName)
         }
         .distinct
 
@@ -57,7 +56,6 @@ object CodeGen {
         }
         .mkString("\n")
 
-
       val newSource = topBuild(
         scriptFolderPath.relativeTo(projectRoot).segments,
         scriptFolderPath,
@@ -66,7 +64,6 @@ object CodeGen {
         childAliases,
         isBuildScript
       )
-
 
       val pkgLine =
         s"package $globalPackagePrefix; " + (if (pkg.nonEmpty) s"package $pkgSelector" else "")
@@ -107,7 +104,7 @@ object CodeGen {
       else if (segs.isEmpty) {
         if (millTopLevelProjectRoot == scriptFolderPath) {
           s"extends _root_.mill.main.RootModule($segsList)"
-        } else{
+        } else {
           s"extends _root_.mill.runner.MillBuildRootModule($segsList)"
         }
       } else {
@@ -116,7 +113,7 @@ object CodeGen {
 
     // MillMiscInfo defines a bunch of module metadata that is only relevant
     // for `build.sc`/`package.sc` files that can define modules
-    val prelude = if (isBuildScript){
+    val prelude = if (isBuildScript) {
       s"""import _root_.mill.runner.MillBuildRootModule
          |@_root_.scala.annotation.nowarn
          |object MillMiscInfo extends MillBuildRootModule.MillMiscInfo(
@@ -132,7 +129,7 @@ object CodeGen {
          |}
          |import MillMiscInfo._
          |""".stripMargin
-    }else{
+    } else {
       ""
     }
 
@@ -147,14 +144,14 @@ object CodeGen {
       else "import build_.{MillMiscInfo => build}"
 
     val newer = s"""
-       |$prelude
-       |$buildImport
-       |object $wrapperObjectName extends $wrapperObjectName
-       |// User code needs to be put in a separate class for proper submodule
-       |// object initialization due to https://github.com/scala/scala3/issues/21444
-       |class $wrapperObjectName $extendsClause {
-       |
-       |""".stripMargin
+                   |$prelude
+                   |$buildImport
+                   |object $wrapperObjectName extends $wrapperObjectName
+                   |// User code needs to be put in a separate class for proper submodule
+                   |// object initialization due to https://github.com/scala/scala3/issues/21444
+                   |class $wrapperObjectName $extendsClause {
+                   |
+                   |""".stripMargin
     newer
   }
 

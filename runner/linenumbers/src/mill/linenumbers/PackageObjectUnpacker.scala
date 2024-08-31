@@ -61,8 +61,9 @@ object PackageObjectUnpacker {
                     pkgObj.impl.parents.partition(isRootModuleIdent)
                   if (rootParents.isEmpty) {
                     val isMetaBuild =
-                      adjustedFile.endsWith("mill-build/build.sc") ||
-                        adjustedFile.endsWith("mill-build\\build.sc")
+                      adjustedFile.replace('\\', '/').endsWith("mill-build/build.sc") ||
+                        adjustedFile.replace('\\', '/').endsWith("mill-build/build.mill")
+
                     val expected = if (isMetaBuild) "MillBuildRootModule" else "RootModule"
                     g.reporter.error(
                       pkgObj.pos,

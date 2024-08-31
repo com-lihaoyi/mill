@@ -9,6 +9,7 @@ import mill.util.CoursierSupport
 import mill.util.Util.millProjectModule
 import mill.scalalib.api.Versions
 import mill.main.client.OutFiles._
+import mill.main.client.CodeGenConstants.buildFileExtensions
 import mill.main.{BuildInfo, RootModule}
 
 import scala.collection.immutable.SortedMap
@@ -202,9 +203,9 @@ class MillBuildRootModule()(implicit
   }
 
   override def allSourceFiles: T[Seq[PathRef]] = T {
-    val candidates = Lib.findSourceFiles(allSources(), Seq("scala", "java", "sc"))
+    val candidates = Lib.findSourceFiles(allSources(), Seq("scala", "java") ++ buildFileExtensions)
     // We need to unlist those files, which we replaced by generating wrapper scripts
-    val filesToExclude = Lib.findSourceFiles(scriptSources(), Seq("sc"))
+    val filesToExclude = Lib.findSourceFiles(scriptSources(), buildFileExtensions)
     candidates.filterNot(filesToExclude.contains).map(PathRef(_))
   }
 

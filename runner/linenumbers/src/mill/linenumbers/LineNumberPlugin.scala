@@ -1,5 +1,6 @@
 package mill.linenumbers
 
+import mill.main.client.CodeGenConstants.buildFileExtensions
 import scala.tools.nsc._
 import scala.tools.nsc.plugins.{Plugin, PluginComponent}
 
@@ -29,7 +30,7 @@ class LineNumberPlugin(val global: Global) extends Plugin {
 
 object LineNumberPlugin {
   def apply(g: Global)(unit: g.CompilationUnit): Unit = {
-    if (g.currentSource.file.hasExtension("sc")) {
+    if (buildFileExtensions.exists(g.currentSource.file.hasExtension(_))) {
 
       val str = new String(g.currentSource.content)
       val lines = str.linesWithSeparators.toVector
@@ -37,13 +38,9 @@ object LineNumberPlugin {
         .collectFirst { case s"//MILL_ORIGINAL_FILE_PATH=$rest" => rest.trim }
         .getOrElse(sys.error(g.currentSource.path))
 
-//      val rootFileNames = Set("package.sc", "build.sc")
-
       unit.body = LineNumberCorrector(g, lines, adjustedFile)(unit)
 
-//      if (rootFileNames(g.currentSource.file.name)) {
       unit.body = PackageObjectUnpacker(g, adjustedFile)(unit)
-//      }
     }
   }
 }
