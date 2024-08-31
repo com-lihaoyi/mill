@@ -3,5 +3,5 @@ import mill._
 
 def input = T {
   println("e")
-  a.input()
+  build.a.input()
 }
