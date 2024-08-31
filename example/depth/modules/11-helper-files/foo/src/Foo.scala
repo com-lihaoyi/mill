@@ -2,9 +2,7 @@ package foo
 
 object Foo {
   def main(args: Array[String]): Unit = {
-    println("build.util.scalaVersion: " + sys.env("SCALA_VERSION"))
-    println("util.scalaVersion: " + sys.env("SCALA_VERSION2"))
-    println("build.foo.versions.projectVersion: " + sys.env("PROJECT_VERSION"))
-    println("versions.projectVersion: " + sys.env("PROJECT_VERSION2"))
+    println("Foo Env build.util.myScalaVersion: " + sys.env("MY_SCALA_VERSION"))
+    println("Foo Env build.foo.versions.myProjectVersion: " + sys.env("MY_PROJECT_VERSION"))
   }
 }

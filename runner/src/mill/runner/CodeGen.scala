@@ -17,16 +17,26 @@ object CodeGen {
   ): Unit = {
 
     for (scriptSource <- scriptSources) {
-      val scriptFolderPath = scriptSource.path / os.up
-      val relative = scriptSource.path.relativeTo(projectRoot)
+      val scriptPath = scriptSource.path
+      val specialNames = Set(nestedBuildFileName, rootBuildFileName)
+
+      val scriptFolderPath =
+        if (specialNames(scriptPath.last)) scriptPath / os.up
+        else scriptPath / os.up / scriptPath.baseName
       val dest =
-        targetDest / FileImportGraph.fileImportToSegments(projectRoot, scriptSource.path, false)
+        targetDest / FileImportGraph.fileImportToSegments(projectRoot, scriptPath, false)
 
       val childNames = scriptSources
-        .collect { case p if p.path.last == nestedBuildFileName => p.path / os.up }
-        .filter(p => p.startsWith(scriptFolderPath))
-        .map(_.subRelativeTo(scriptFolderPath).segments)
-        .collect { case Seq(single) => single }
+        .flatMap { p =>
+          val path = p.path
+          if (path == scriptPath) None
+          else if(path.last == nestedBuildFileName) {
+            Option.when(path / os.up / os.up == scriptFolderPath){
+              (path / os.up).last
+            }
+          }
+          else Option.when(path / os.up == scriptFolderPath)(path.baseName)
+        }
         .distinct
 
       val Seq(`globalPackagePrefix`, pkg @ _*) =
@@ -45,28 +55,21 @@ object CodeGen {
         }
         .mkString("\n")
 
-      val specialNames = Set(nestedBuildFileName, rootBuildFileName)
-      val (newSource, newSuffix) =
-        if (specialNames(scriptSource.path.last)) {
 
-          topBuild(
-            relative.segments.init,
+      val (newSource, newSuffix) = topBuild(
+            scriptFolderPath.relativeTo(projectRoot).segments,
             scriptFolderPath,
-            scriptSource.path.baseName,
             enclosingClasspath,
             millTopLevelProjectRoot,
             childAliases
           ) -> childAliases
-        } else {
-          s"""object ${backtickWrap(scriptSource.path.baseName)} {
-             |""".stripMargin -> ""
-        }
+
 
       val pkgLine =
         s"package $globalPackagePrefix; " + (if (pkg.nonEmpty) s"package $pkgSelector" else "")
 
       val markerComment =
-        s"""//MILL_ORIGINAL_FILE_PATH=${scriptSource.path}
+        s"""//MILL_ORIGINAL_FILE_PATH=$scriptPath
            |//MILL_USER_CODE_START_MARKER""".stripMargin
 
       os.write(
@@ -75,7 +78,7 @@ object CodeGen {
           pkgLine,
           newSource,
           markerComment,
-          scriptCode(scriptSource.path),
+          scriptCode(scriptPath),
 
           // define this after user code so in case of conflict these lines are what turn
           // up in the error message, so we can add a comment and control what the user sees
@@ -90,7 +93,6 @@ object CodeGen {
   def topBuild(
       segs: Seq[String],
       scriptFolderPath: os.Path,
-      name: String,
       enclosingClasspath: Seq[os.Path],
       millTopLevelProjectRoot: os.Path,
       childAliases: String
@@ -115,15 +117,15 @@ object CodeGen {
        |  // than `foo.module`. Need to be outside `MillPackageClass` in case they are
        |  // referenced in the combined `extends` clause
        |  $childAliases
-       |  lazy val $rootModuleAlias = _root_.$globalPackagePrefix.$wrapperObjectName
        |}
        |import MillMiscInfo._
-       |${if (segs.nonEmpty) s"import MillMiscInfo.$rootModuleAlias._" else ""}
+       |${if (segs.nonEmpty) s"import build_.{package_ => build}" else "import build_.{MillMiscInfo => build}"}
        |object $wrapperObjectName extends MillPackageClass
        |// User code needs to be put in a separate class for proper submodule
        |// object initialization due to https://github.com/scala/scala3/issues/21444
        |class MillPackageClass
        |extends $superClass($segsList) {
+       |
        |""".stripMargin
   }
 

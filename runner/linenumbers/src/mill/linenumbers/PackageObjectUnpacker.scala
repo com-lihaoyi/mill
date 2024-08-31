@@ -43,7 +43,7 @@ object PackageObjectUnpacker {
                 if pkgCls.name.toString().startsWith("MillPackageClass") =>
               pkgCls.impl.body.collect {
                 case pkgObj: g.ModuleDef
-                    if pkgObj.name.toString() == expectedName
+                    if pkgObj.name.toString() == expectedName || pkgObj.name.toString() == "build"
                       || pkgObj.impl.parents.exists(isRootModuleIdent) =>
                   val (outerStmts, innerStmts) =
                     pkgCls.impl.body
@@ -91,6 +91,7 @@ object PackageObjectUnpacker {
             case List((pkgClsIndex, newOuterStmts, newPkgCls, v))
                 if v.name.toString() == expectedName =>
               val (before, after) = pkgDef.stats.splitAt(pkgClsIndex)
+
               g.treeCopy.PackageDef(
                 pkgDef,
                 pkgDef.pid,
@@ -110,6 +111,9 @@ object PackageObjectUnpacker {
       }
     }
 
-    Transformer.transform(unit.body)
+    val res = Transformer.transform(unit.body)
+//    println("=" * 50 + adjustedFile + "=" * 50)
+//    println(res)
+    res
   }
 }

@@ -37,13 +37,13 @@ object LineNumberPlugin {
         .collectFirst { case s"//MILL_ORIGINAL_FILE_PATH=$rest" => rest.trim }
         .getOrElse(sys.error(g.currentSource.path))
 
-      val rootFileNames = Set("package.sc", "build.sc")
+//      val rootFileNames = Set("package.sc", "build.sc")
 
       unit.body = LineNumberCorrector(g, lines, adjustedFile)(unit)
 
-      if (rootFileNames(g.currentSource.file.name)) {
-        unit.body = PackageObjectUnpacker(g, adjustedFile)(unit)
-      }
+//      if (rootFileNames(g.currentSource.file.name)) {
+      unit.body = PackageObjectUnpacker(g, adjustedFile)(unit)
+//      }
     }
   }
 }

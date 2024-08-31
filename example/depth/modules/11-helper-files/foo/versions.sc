@@ -1,2 +1,2 @@
 package foo
-def projectVersion = "0.0.1"
+def myProjectVersion = "0.0.1"
