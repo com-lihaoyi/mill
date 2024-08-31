@@ -1,3 +1,4 @@
+package build
 import mill._, scalalib._
 
 trait MyModule extends ScalaModule {

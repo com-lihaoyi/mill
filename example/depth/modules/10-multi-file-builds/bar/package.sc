@@ -1,1 +1,1 @@
-package bar
+package build.bar

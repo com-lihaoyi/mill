@@ -1,3 +1,4 @@
+package build
 import mill._, scalalib._
 
 object `package` extends RootModule with build.util.MyModule{
@@ -24,7 +25,7 @@ object `package` extends RootModule with build.util.MyModule{
 // * `foo/package.sc` can be referred to as simple `build.foo`
 // * `foo/versions.sc` can be referred to as simple `build.foo.versions`
 //
-// 
+//
 
 /** Usage
 

@@ -1,3 +1,5 @@
+package build.util
+
 import mill._, scalalib._
 
 def myScalaVersion = "2.13.14"

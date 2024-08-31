@@ -12,13 +12,13 @@ object InvalidPackageDeclaration extends IntegrationTestSuite {
       val res = eval(("resolve", "_"))
       assert(res.isSuccess == false)
       assert(res.err.contains(
-        """Package declaration "package wrong" in build.sc does not match folder structure. Expected: <none>"""
+        """Package declaration "package wrong" in build.sc does not match folder structure. Expected: "package build""""
       ))
       assert(res.err.contains(
-        """Package declaration "package " in sub/package.sc does not match folder structure. Expected: "package sub""""
+        """Package declaration "package " in sub/package.sc does not match folder structure. Expected: "package build.sub""""
       ))
       assert(res.err.contains(
-        """Package declaration "package `sub-2`" in sub-2/inner/package.sc does not match folder structure. Expected: "package `sub-2`.inner""""
+        """Package declaration "package `sub-2`" in sub-2/inner/package.sc does not match folder structure. Expected: "package build.`sub-2`.inner""""
       ))
     }
   }

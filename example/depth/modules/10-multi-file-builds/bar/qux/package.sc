@@ -1,4 +1,4 @@
-package bar.qux
+package build.bar.qux
 import mill._, scalalib._
 
 object mymodule extends build.MyModule {

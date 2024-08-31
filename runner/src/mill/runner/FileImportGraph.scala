@@ -64,10 +64,22 @@ object FileImportGraph {
             )
           } else (Nil, content)
 
-        val expectedImportSegments =
-          (s / os.up).relativeTo(projectRoot).segments.map(backtickWrap).mkString(".")
+
+        val fileNameSegment = s.last match{
+          case `nestedBuildFileName` | `rootBuildFileName` => None
+          case s"$baseName.sc" => Some(baseName)
+        }
+
+        val expectedImportSegments0 =
+          Seq(rootModuleAlias) ++
+          (s / os.up).relativeTo(projectRoot).segments ++
+          fileNameSegment
+
+        val expectedImportSegments = expectedImportSegments0.map(backtickWrap).mkString(".")
         val importSegments = segments.mkString(".")
-        if (expectedImportSegments != importSegments) {
+        if (expectedImportSegments != importSegments &&
+            // Root build.sc file has its `package build` be optional
+            !(importSegments == "" && s.last == "build.sc")) {
           val expectedImport =
             if (expectedImportSegments.isEmpty) "<none>"
             else s"\"package $expectedImportSegments\""

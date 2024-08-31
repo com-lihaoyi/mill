@@ -1,4 +1,4 @@
-package foo
+package build.foo
 import mill._, scalalib._
 
 object `package` extends RootModule with build.util.MyModule {
