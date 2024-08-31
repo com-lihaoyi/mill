@@ -1,3 +1,3 @@
-package build.foo.versions
+package build.foo
 
-def myProjectVersion = "0.0.1"
+def myProjectVersion_ = "0.0.1"

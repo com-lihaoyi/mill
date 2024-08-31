@@ -21,9 +21,7 @@ object CodeGen {
       val specialNames = (nestedBuildFileNames ++ rootBuildFileNames).toSet
 
       val isBuildScript = specialNames(scriptPath.last)
-      val scriptFolderPath =
-        if (isBuildScript) scriptPath / os.up
-        else scriptPath / os.up / scriptPath.baseName
+      val scriptFolderPath = scriptPath / os.up
 
       val dest =
         targetDest / FileImportGraph.fileImportToSegments(projectRoot, scriptPath, false)
@@ -40,34 +38,36 @@ object CodeGen {
         }
         .distinct
 
-      val childTraits = scriptSources
+      val sibling = scriptSources
         .collect{case p if p.path != scriptPath && p.path / os.up == scriptFolderPath => p.path.baseName}
         .distinct
 
       val Seq(`globalPackagePrefix`, pkg @ _*) =
         FileImportGraph.fileImportToSegments(projectRoot, scriptFolderPath, true)
 
-      val pkgSelector = pkg.map(backtickWrap).mkString(".")
+      def pkgSelector0(pre: Option[String], s: Option[String]) = ((pre ++ pkg ++ s).map(backtickWrap)).mkString(".")
+      val pkgSelector = pkgSelector0(None, None)
+      def pkgSelector2(s: Option[String]) = s"_root_.${pkgSelector0(Some(globalPackagePrefix), s)}"
       val childAliases = childNames
         .map { c =>
           // Dummy references to sub modules. Just used as metadata for the discover and
           // resolve logic to traverse, cannot actually be evaluated and used
           val comment = "// subfolder module reference"
           val lhs = backtickWrap(c)
-          val selector = (pkg :+ backtickWrap(c)).map(backtickWrap).mkString(".")
-          val rhs = s"_root_.$globalPackagePrefix.$selector.package_"
+          val rhs = s"${pkgSelector2(Some(c))}.package_"
           s"final lazy val $lhs: $rhs.type = $rhs $comment"
         }
         .mkString("\n")
 
       val newSource = topBuild(
+        scriptPath.baseName,
         scriptFolderPath.relativeTo(projectRoot).segments,
         scriptFolderPath,
         enclosingClasspath,
         millTopLevelProjectRoot,
         childAliases,
         isBuildScript,
-        childTraits.map(t => s"with $pkgSelector.${backtickWrap(t)}").mkString
+        sibling.map(t => s"import ${pkgSelector2(t match{ case "package" | "build" => None case _ => Some(t)})}._").mkString("\n")
       )
 
       val pkgLine =
@@ -96,25 +96,26 @@ object CodeGen {
   }
 
   def topBuild(
+      name: String,
       segs: Seq[String],
       scriptFolderPath: os.Path,
       enclosingClasspath: Seq[os.Path],
       millTopLevelProjectRoot: os.Path,
       childAliases: String,
       isBuildScript: Boolean,
-      childTraits: String
+      adjacentImports: String
   ): String = {
     val segsList = segs.map(pprint.Util.literalize(_)).mkString(", ")
     val extendsClause =
       if (!isBuildScript) "" // Non-`build.sc`/`package.sc` files cannot define modules
       else if (segs.isEmpty) {
         if (millTopLevelProjectRoot == scriptFolderPath) {
-          s"extends _root_.mill.main.RootModule($segsList) $childTraits"
+          s"extends _root_.mill.main.RootModule($segsList) "
         } else {
-          s"extends _root_.mill.runner.MillBuildRootModule($segsList) $childTraits"
+          s"extends _root_.mill.runner.MillBuildRootModule($segsList) "
         }
       } else {
-        s"extends _root_.mill.main.RootModule.Subfolder($segsList) $childTraits"
+        s"extends _root_.mill.main.RootModule.Subfolder($segsList) "
       }
 
     // MillMiscInfo defines a bunch of module metadata that is only relevant
@@ -139,7 +140,7 @@ object CodeGen {
       ""
     }
 
-    val selfReference = if (segs.isEmpty) "final val build = this" else ""
+    val selfReference = if (segs.isEmpty) "final private val build = this" else ""
 
     // `build` refers to different things in `build.sc` and outside `build.sc`. That is
     // `build` refers to the `build.sc` object itself, and if we import it we get a circular
@@ -157,11 +158,12 @@ object CodeGen {
          |// object initialization due to https://github.com/scala/scala3/issues/21444
          |class $wrapperObjectName $extendsClause {""".stripMargin
     }else{
-      s"trait ${segs.last} $extendsClause"
+      s"object $name {"
     }
     s"""
       |$prelude
       |$buildImport
+      |$adjacentImports
       |$header
       |  $selfReference
       |""".stripMargin

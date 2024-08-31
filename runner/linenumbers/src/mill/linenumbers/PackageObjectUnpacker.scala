@@ -113,8 +113,8 @@ object PackageObjectUnpacker {
     }
 
     val res = Transformer.transform(unit.body)
-//    println("=" * 50 + adjustedFile + "=" * 50)
-//    println(res)
+    println("=" * 50 + adjustedFile + "=" * 50)
+    println(res)
     res
   }
 }

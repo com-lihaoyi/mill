@@ -1,6 +1,5 @@
 import mill._, scalalib._
 import $ivy.`com.lihaoyi::scalatags:0.12.0`, scalatags.Text.all._
-import scalaversion.myScalaVersion
 
 object `package` extends RootModule with ScalaModule {
   def scalaVersion = "2.13.8"

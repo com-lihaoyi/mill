@@ -1,9 +1,9 @@
-package build.util
+package build
 
 import mill._, scalalib._
 
-def myScalaVersion = "2.13.14"
+def myScalaVersion_ = "2.13.14"
 
-trait MyModule extends ScalaModule {
-  def scalaVersion = myScalaVersion
+trait MyModule_ extends ScalaModule {
+  def scalaVersion = myScalaVersion_
 }
