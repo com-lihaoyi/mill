@@ -103,7 +103,7 @@ object CodeGen {
   ): String = {
     val segsList = segs.map(pprint.Util.literalize(_)).mkString(", ")
     val extendsClause =
-      if (!isBuildScript) ""
+      if (!isBuildScript) "" // Non-`build.sc`/`package.sc` files cannot define modules
       else if (segs.isEmpty) {
         if (millTopLevelProjectRoot == scriptFolderPath) {
           s"extends _root_.mill.main.RootModule($segsList)"
@@ -114,30 +114,49 @@ object CodeGen {
         s"extends _root_.mill.main.RootModule.Subfolder($segsList)"
       }
 
-    s"""
-       |import _root_.mill.runner.MillBuildRootModule
-       |@_root_.scala.annotation.nowarn
-       |object MillMiscInfo extends MillBuildRootModule.MillMiscInfo(
-       |  ${enclosingClasspath.map(p => literalize(p.toString))},
-       |  ${literalize(scriptFolderPath.toString)},
-       |  ${literalize(millTopLevelProjectRoot.toString)},
-       |  _root_.mill.define.Discover[$wrapperObjectName]
-       |){
-       |  // aliases so child modules can be referred to directly as `foo` rather
-       |  // than `foo.module`. Need to be outside `MillPackageClass` in case they are
-       |  // referenced in the combined `extends` clause
-       |  $childAliases
-       |}
-       |import MillMiscInfo._
-       |${if (segs.nonEmpty) s"import build_.{package_ => build}" else "import build_.{MillMiscInfo => build}"}
+    // MillMiscInfo defines a bunch of module metadata that is only relevant
+    // for `build.sc`/`package.sc` files that can define modules
+    val prelude = if (isBuildScript){
+      s"""import _root_.mill.runner.MillBuildRootModule
+         |@_root_.scala.annotation.nowarn
+         |object MillMiscInfo extends MillBuildRootModule.MillMiscInfo(
+         |  ${enclosingClasspath.map(p => literalize(p.toString))},
+         |  ${literalize(scriptFolderPath.toString)},
+         |  ${literalize(millTopLevelProjectRoot.toString)},
+         |  _root_.mill.define.Discover[$wrapperObjectName]
+         |){
+         |  // aliases so child modules can be referred to directly as `foo` rather
+         |  // than `foo.module`. Need to be outside `MillPackageClass` in case they are
+         |  // referenced in the combined `extends` clause
+         |  $childAliases
+         |}
+         |import MillMiscInfo._
+         |""".stripMargin
+    }else{
+      ""
+    }
+
+    // `build` refers to different things in `build.sc` and outside `build.sc`. That is
+    // `build` refers to the `build.sc` object itself, and if we import it we get a circular
+    // dependency compiler error. However, most times in `build.sc` when you use `build` you
+    // are referring to things in other files, and so using `MillMiscInfo` which has the
+    // relevant forwarders is sufficient even if it doesn't give full access to the `build.sc`
+    // definitions
+    val buildImport =
+      if (segs.nonEmpty) s"import build_.{package_ => build}"
+      else "import build_.{MillMiscInfo => build}"
+
+    val newer = s"""
+       |$prelude
+       |$buildImport
        |object $wrapperObjectName extends $wrapperObjectName
        |// User code needs to be put in a separate class for proper submodule
        |// object initialization due to https://github.com/scala/scala3/issues/21444
        |class $wrapperObjectName $extendsClause {
        |
        |""".stripMargin
+    newer
   }
 
   val bottom = "\n}"
-
 }

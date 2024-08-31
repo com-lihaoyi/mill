@@ -14,6 +14,17 @@ object `package` extends RootModule with build.util.MyModule{
 // Apart from having `package.sc` files in subfolders to define modules, Mill
 // also allows you to have helper code in any `*.sc` file in the same folder
 // as your `build.sc` or a `package.sc`.
+//
+// Different helper scripts and ``build.sc``/``package.sc`` files can all refer to
+// each other using the `build` object, which marks the root object of your build.
+// In this example:
+//
+// * `build.sc` can be referred to as simple `build`
+// * `util.sc` can be referred to as simple `build.util`
+// * `foo/package.sc` can be referred to as simple `build.foo`
+// * `foo/versions.sc` can be referred to as simple `build.foo.versions`
+//
+// 
 
 /** Usage
 
