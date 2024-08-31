@@ -128,10 +128,19 @@ object Deps {
   val castor = ivy"com.lihaoyi::castor:0.3.0"
   val fastparse = ivy"com.lihaoyi::fastparse:3.1.1"
   val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
-  val graphvizJava = ivy"guru.nidi:graphviz-java-all-j2v8:0.18.1"
+  val graphvizJava = Seq(
+    ivy"guru.nidi:graphviz-java-min-deps:0.18.1",
+    ivy"org.webjars.npm:viz.js-graphviz-java:2.1.3",
+    ivy"org.apache.xmlgraphics:batik-rasterizer:1.17"
+  )
   val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.10.0"
 
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.4.0" // 1.5.0+ dont support JDK8
+  val javet = Seq(
+    ivy"com.caoccao.javet:javet:3.1.5",
+    ivy"com.caoccao.javet:javet-linux-arm64:3.1.5",
+    ivy"com.caoccao.javet:javet-macos:3.1.5",
+  )
 
   val jline = ivy"org.jline:jline:3.26.3"
   val jnaVersion = "5.14.0"
@@ -180,6 +189,7 @@ object Deps {
   val fansi = ivy"com.lihaoyi::fansi:0.5.0"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.0"
   val requests = ivy"com.lihaoyi::requests:0.9.0"
+  val logback = ivy"ch.qos.logback:logback-classic:1.2.11"
   val sonatypeCentralClient = ivy"com.lumidion::sonatype-central-client-requests:0.3.0"
 
   object RuntimeDeps {
@@ -579,7 +589,8 @@ object main extends MillStableScalaModule with BuildInfo {
     Deps.windowsAnsi,
     Deps.mainargs,
     Deps.coursierInterface,
-    Deps.requests
+    Deps.requests,
+    Deps.logback
   )
 
   def compileIvyDeps = Agg(Deps.scalaReflect(scalaVersion()))
@@ -748,7 +759,7 @@ object main extends MillStableScalaModule with BuildInfo {
   }
   object graphviz extends MillPublishScalaModule {
     def moduleDeps = Seq(main, scalalib)
-    def ivyDeps = Agg(Deps.graphvizJava, Deps.jgraphtCore)
+    def ivyDeps = Agg(Deps.jgraphtCore) ++ Deps.graphvizJava ++ Deps.javet
   }
 
 

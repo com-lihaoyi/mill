@@ -435,7 +435,11 @@ trait MainModule extends BaseModule0 {
     ): Result[Seq[PathRef]] = {
       val (in, out) = vizWorker
       in.put((rs, allRs, ctx.dest))
-      out.take()
+      val res = out.take()
+      res.map { v =>
+        println(upickle.default.write(v.map(_.path.toString()), indent = 2))
+        v
+      }
     }
 
     Resolve.Tasks.resolve(

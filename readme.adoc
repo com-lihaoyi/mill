@@ -362,6 +362,10 @@ as excluded {link-pr}/3329[#3329]
 ** Optimizations to Mill evaluation logic to reduce fixed overhead of running Mill
 on large projects {link-pr}/3388[#3388]
 
+** Improvements to `visualize` and `visualizePlan` such that they no longer need to be
+prefixed with `show` and no longer need a separate `graphviz`/`dot` install on Mac-OSX
+{link-pr}/3438[#3438]
+
 
 [#0-11-12]
 === 0.11.12 - 2024-08-20
