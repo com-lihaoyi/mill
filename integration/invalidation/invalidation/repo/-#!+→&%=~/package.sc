@@ -1,4 +1,4 @@
-package `-#!+→&%=~`
+package build.`-#!+→&%=~`
 
 import mill._
 

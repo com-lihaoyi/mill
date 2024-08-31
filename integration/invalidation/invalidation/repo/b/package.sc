@@ -1,4 +1,4 @@
-package b
+package build.b
 import mill._
 
 def input = T {
