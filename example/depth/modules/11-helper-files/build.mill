@@ -1,15 +1,11 @@
 package build
 import mill._, scalalib._
 
-object `package` extends RootModule with MyModule_{
+object `package` extends RootModule with MyModule{
   def forkEnv = Map(
     "MY_SCALA_VERSION" -> build.scalaVersion(),
-    "MY_PROJECT_VERSION" -> build.foo.myProjectVersion,
+    "MY_PROJECT_VERSION" -> build_.foo.versions.myProjectVersion,
   )
-
-  def myScalaVersion = myScalaVersion_
-
-  type MyModule = MyModule_
 }
 ///** See Also: util.sc */
 ///** See Also: foo/package.sc */
@@ -25,11 +21,13 @@ object `package` extends RootModule with MyModule_{
 // In this example:
 //
 // * `build.sc` can be referred to as simple `build`
-// * `util.sc` can be referred to as simple `build.util`
+// * `util.sc` can be referred to as simple `build_.util`
 // * `foo/package.sc` can be referred to as simple `build.foo`
-// * `foo/versions.sc` can be referred to as simple `build.foo.versions`
+// * `foo/versions.sc` can be referred to as simple `build_.foo.versions`
 //
-//
+// Note the trailing `_` in `build_` in the references to helper files.
+// This syntax for importing helper files is a bit awkward, but is expected
+// to improve in future versions of Mill
 
 /** Usage
 
