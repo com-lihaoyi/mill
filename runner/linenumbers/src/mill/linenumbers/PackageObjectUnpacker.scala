@@ -45,13 +45,16 @@ object PackageObjectUnpacker {
                 case pkgObj: g.ModuleDef
                     if pkgObj.name.toString() == expectedName || pkgObj.name.toString() == "build"
                       || pkgObj.impl.parents.exists(isRootModuleIdent) =>
-                  val outerStmts =
+                  val (outerStmts, innerStmts) =
                     pkgCls.impl.body
                       .filter {
                         case d: g.DefDef => d.name.toString() != "<init>"
                         case t => t ne pkgObj
                       }
-
+                      .partition {
+                        case t: g.ValDef if t.mods.isLazy && t.mods.isFinal => false
+                        case _ => true
+                      }
                   val (rootParents, nonRootParents) =
                     pkgObj.impl.parents.partition(isRootModuleIdent)
                   if (rootParents.isEmpty) {
@@ -74,7 +77,8 @@ object PackageObjectUnpacker {
                       pkgCls.impl,
                       pkgCls.impl.parents ++ nonRootParents,
                       g.ValDef(g.Modifiers(), pkgObj.name, g.EmptyTree, g.EmptyTree),
-                      pkgObj.impl.body
+                      innerStmts ++
+                        pkgObj.impl.body
                     )
                   )
                   (pkgClsIndex, outerStmts, newPkgCls, pkgObj)
