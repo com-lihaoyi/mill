@@ -148,8 +148,6 @@ object CodeGen {
       ""
     }
 
-    val selfReference = if (segs.isEmpty) "final private val build = this" else ""
-
     // `build` refers to different things in `build.sc` and outside `build.sc`. That is
     // `build` refers to the `build.sc` object itself, and if we import it we get a circular
     // dependency compiler error. However, most times in `build.sc` when you use `build` you
@@ -157,8 +155,10 @@ object CodeGen {
     // relevant forwarders is sufficient even if it doesn't give full access to the `build.sc`
     // definitions
     val buildImport =
-      if (segs.nonEmpty) s"import build_.{package_ => build}"
+      if (true) s"import build_.{package_ => build}"
       else "import build_.{MillMiscInfo => build}"
+
+
 
     val header = if (isBuildScript) {
       s"""object $wrapperObjectName extends $wrapperObjectName
@@ -173,7 +173,6 @@ object CodeGen {
        |$buildImport
        |$adjacentImports
        |$header
-       |  $selfReference
        |""".stripMargin
   }
 
