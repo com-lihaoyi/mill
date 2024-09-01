@@ -54,15 +54,19 @@ object FileImportGraph {
 
       val readFileEither = scala.util.Try {
         val content = if (useDummy) "" else os.read(s)
-        val (segments, rest) =
+        val (packageLine, rest) =
           if (content.startsWith("package ")) {
-            val firstLineEnd0 = content.indexOf('\n')
-            val firstLineEnd = if (firstLineEnd0 == -1) content.length else firstLineEnd0
-            (
-              content.take(firstLineEnd).stripPrefix("package ").split("\\.", -1).toList,
-              content.drop(firstLineEnd)
-            )
-          } else (Nil, content)
+            content.linesIterator.toSeq match{
+              case Seq(single) => (Some(single), "")
+              case Seq(first, rest@_*) =>
+                (Some(first), rest.mkString("\n"))
+            }
+          } else (None, content)
+
+        val segments = packageLine match {
+          case Some(s) => s.stripPrefix("package ").split("\\.", -1).toList
+          case None => Nil
+        }
 
         val expectedImportSegments0 =
           Seq(rootModuleAlias) ++
