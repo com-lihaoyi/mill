@@ -57,9 +57,9 @@ object FileImportGraph {
         val (packageLine, rest) =
           if (content.startsWith("package ")) {
             content.linesIterator.toSeq match{
-              case Seq(single) => (Some(single), "")
+              case Seq(single) => (Some(single), "\n")
               case Seq(first, rest@_*) =>
-                (Some(first), rest.mkString("\n"))
+                (Some(first), "\n" + rest.mkString("\n"))
             }
           } else (None, content)
 
