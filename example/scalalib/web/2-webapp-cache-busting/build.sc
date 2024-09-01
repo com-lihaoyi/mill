@@ -31,16 +31,17 @@ object `package` extends RootModule with ScalaModule {
       ivy"com.lihaoyi::requests::0.6.9",
     )
   }
+
+  def hashFile(path: os.Path, src: os.Path, dest: os.Path) = {
+    val hash = Integer.toHexString(Arrays.hashCode(os.read.bytes(path)))
+    val relPath = path.relativeTo(src)
+    val ext = if (relPath.ext == "") "" else s".${relPath.ext}"
+    val hashedPath = relPath / os.up / s"${relPath.baseName}-$hash$ext"
+    os.copy(path, dest / hashedPath, createFolders = true)
+    (relPath.toString(), hashedPath.toString())
+  }
 }
 
-def hashFile(path: os.Path, src: os.Path, dest: os.Path) = {
-  val hash = Integer.toHexString(Arrays.hashCode(os.read.bytes(path)))
-  val relPath = path.relativeTo(src)
-  val ext = if (relPath.ext == "") "" else s".${relPath.ext}"
-  val hashedPath = relPath / os.up / s"${relPath.baseName}-$hash$ext"
-  os.copy(path, dest / hashedPath, createFolders = true)
-  (relPath.toString(), hashedPath.toString())
-}
 
 // This example demonstrates how to implement webapp "cache busting" in Mill,
 // where we serve static files with a hash appended to the filename, and save

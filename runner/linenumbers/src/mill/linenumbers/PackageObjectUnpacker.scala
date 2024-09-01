@@ -53,7 +53,15 @@ object PackageObjectUnpacker {
                       }
                       .partition {
                         case t: g.ValDef if t.mods.isLazy && t.mods.isFinal => false
-                        case _ => true
+                        case t: g.ClassDef => true
+                        case t: g.ModuleDef => true
+                        case t: g.Import => true
+                        case t =>
+                          g.reporter.error(
+                            t.pos,
+                            s"Definition not allowed outside body of object `package`"
+                          )
+                          false
                       }
                   val (rootParents, nonRootParents) =
                     pkgObj.impl.parents.partition(isRootModuleIdent)

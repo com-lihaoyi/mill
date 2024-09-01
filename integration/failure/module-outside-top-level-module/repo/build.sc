@@ -1,6 +1,6 @@
 import mill._
 
-def invalidTarget = 123
 
+object invalidModule extends Module
 
 object `package` extends RootModule

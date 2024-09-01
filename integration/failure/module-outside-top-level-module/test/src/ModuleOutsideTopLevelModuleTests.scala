@@ -4,7 +4,7 @@ import mill.testkit.IntegrationTestSuite
 
 import utest._
 
-object ThingsOutsideTopLevelModuleTests extends IntegrationTestSuite {
+object ModuleOutsideTopLevelModuleTests extends IntegrationTestSuite {
   val tests: Tests = Tests {
     initWorkspace()
 
@@ -13,12 +13,12 @@ object ThingsOutsideTopLevelModuleTests extends IntegrationTestSuite {
       assert(!res.isSuccess)
       assert(
         res.err.contains(
-          "Definition not allowed outside body of object `package`"
+          "Modules, Targets and Commands can only be defined within a mill Module"
         )
       )
       assert(
         res.err.contains(
-          "def invalidTarget"
+          "object invalidModule extends Module"
         )
       )
     }
