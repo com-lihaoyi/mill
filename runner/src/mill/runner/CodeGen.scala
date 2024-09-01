@@ -158,8 +158,6 @@ object CodeGen {
       if (true) s"import build_.{package_ => build}"
       else "import build_.{MillMiscInfo => build}"
 
-
-
     val header = if (isBuildScript) {
       s"""object $wrapperObjectName extends $wrapperObjectName
          |// User code needs to be put in a separate class for proper submodule
