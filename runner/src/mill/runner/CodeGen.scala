@@ -169,6 +169,7 @@ object CodeGen {
       s"object ${backtickWrap(name)} {"
     }
     s"""
+       |import _root_.{build_ => $$file}
        |$prelude
        |$buildImport
        |$adjacentImports

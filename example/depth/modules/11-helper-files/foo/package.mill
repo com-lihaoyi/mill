@@ -1,9 +1,9 @@
 package build.foo
 import mill._, scalalib._
-
+import $file.util
 object `package` extends RootModule with build_.util.MyModule {
   def forkEnv = Map(
-    "MY_SCALA_VERSION" -> build_.util.myScalaVersion,
+    "MY_SCALA_VERSION" -> util.myScalaVersion,
     "MY_PROJECT_VERSION" -> myProjectVersion
   )
 }

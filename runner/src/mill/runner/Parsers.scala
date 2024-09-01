@@ -73,7 +73,8 @@ object Parsers {
         case Parsed.Success(parsedTrees, _) =>
           val importTrees = mutable.Buffer.empty[ImportTree]
           for (importTree <- parsedTrees) {
-            if (importTree.prefix(0)._1(0) == '$') importTrees.append(importTree)
+            val pre = importTree.prefix(0)._1
+            if (pre(0) == '$' && pre != "$file") importTrees.append(importTree)
           }
           hookedStmts.append((stmt, importTrees.toSeq))
       }

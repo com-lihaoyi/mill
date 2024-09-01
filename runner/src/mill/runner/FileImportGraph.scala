@@ -75,6 +75,7 @@ object FileImportGraph {
         val expectedImportSegments = expectedImportSegments0.map(backtickWrap).mkString(".")
         val importSegments = segments.mkString(".")
         if (
+          s.ext == "mill" &&
           expectedImportSegments != importSegments &&
           // Root build.sc file has its `package build` be optional
           !(importSegments == "" && rootBuildFileNames.contains(s.last))
@@ -136,14 +137,14 @@ object FileImportGraph {
             millImport = true
             (start, "_root_._", end)
 
-          case ImportTree(Seq(("$file", end0), rest @ _*), mapping, start, end) =>
-            errors.append(
-              s"Import $$file syntax in $s is no longer supported. Any `foo/bar.sc` file " +
-                s"in a folder next to a `foo/package.sc` can be directly imported via " +
-                "`import foo.bar`"
-            )
+//          case ImportTree(Seq(("$file", end0), rest @ _*), mapping, start, end) =>
+//            errors.append(
+//              s"Import $$file syntax in $s is no longer supported. Any `foo/bar.sc` file " +
+//                s"in a folder next to a `foo/package.sc` can be directly imported via " +
+//                "`import foo.bar`"
+//            )
 
-            (start, "", rest.lastOption.fold(end0)(_._2))
+//            (start, "$file", rest.lastOption.fold(end0)(_._2))
         }
         val numNewLines = stmt.substring(start, end).count(_ == '\n')
 
