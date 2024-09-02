@@ -292,7 +292,7 @@ foo.compileClasspath
 // == visualize
 //
 /** Usage
-> mill show visualize foo._
+> mill visualize foo._
 [
   ".../out/visualize.dest/out.txt",
   ".../out/visualize.dest/out.dot",

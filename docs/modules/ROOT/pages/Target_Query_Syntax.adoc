@@ -26,7 +26,7 @@ They look like regular Scala class name qualifiers.
 There are two kind of segments: _label segments_ and _cross segments_.
 
 _Label segments_ are the components of a target path and have the same restriction as Scala identifiers.
-The must start with a letter and may contain letters, numbers and a limited set of special characters `-` (dash), `_` (underscore).
+They must start with a letter and may contain letters, numbers and a limited set of special characters `-` (dash), `_` (underscore).
 They are used to denote Mill modules, tasks, but in the case of xref:Modules.adoc#external-modules[external modules] their Scala package names.
 
 _Cross segments_ start with a label segment but contain additional square brackets (`[`, `]`]) and are used to denote cross module and their parameters.

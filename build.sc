@@ -128,10 +128,19 @@ object Deps {
   val castor = ivy"com.lihaoyi::castor:0.3.0"
   val fastparse = ivy"com.lihaoyi::fastparse:3.1.1"
   val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
-  val graphvizJava = ivy"guru.nidi:graphviz-java-all-j2v8:0.18.1"
+  val graphvizJava = Seq(
+    ivy"guru.nidi:graphviz-java-min-deps:0.18.1",
+    ivy"org.webjars.npm:viz.js-graphviz-java:2.1.3",
+    ivy"org.apache.xmlgraphics:batik-rasterizer:1.17"
+  )
   val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.10.0"
 
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.4.0" // 1.5.0+ dont support JDK8
+  val javet = Seq(
+    ivy"com.caoccao.javet:javet:3.1.5",
+    ivy"com.caoccao.javet:javet-linux-arm64:3.1.5",
+    ivy"com.caoccao.javet:javet-macos:3.1.5"
+  )
 
   val jline = ivy"org.jline:jline:3.26.3"
   val jnaVersion = "5.14.0"
@@ -142,9 +151,9 @@ object Deps {
   val commonsIO = ivy"commons-io:commons-io:2.16.1"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.8.0"
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.23.1"
-  val osLib = ivy"com.lihaoyi::os-lib:0.10.4"
+  val osLib = ivy"com.lihaoyi::os-lib:0.10.5"
   val pprint = ivy"com.lihaoyi::pprint:0.9.0"
-  val mainargs = ivy"com.lihaoyi::mainargs:0.7.1"
+  val mainargs = ivy"com.lihaoyi::mainargs:0.7.2"
   val millModuledefsVersion = "0.10.9"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = ivy"${millModuledefsString}"
@@ -180,6 +189,7 @@ object Deps {
   val fansi = ivy"com.lihaoyi::fansi:0.5.0"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.0"
   val requests = ivy"com.lihaoyi::requests:0.9.0"
+  val logback = ivy"ch.qos.logback:logback-classic:1.2.13"
   val sonatypeCentralClient = ivy"com.lumidion::sonatype-central-client-requests:0.3.0"
 
   object RuntimeDeps {
@@ -193,7 +203,7 @@ object Deps {
     ivy"org.apache.ant:ant:1.10.14",
     ivy"commons-io:commons-io:2.16.1",
     ivy"com.google.code.gson:gson:2.11.0",
-    ivy"com.google.protobuf:protobuf-java:3.25.4",
+    ivy"com.google.protobuf:protobuf-java:4.28.0",
     ivy"com.google.guava:guava:33.3.0-jre",
     ivy"org.yaml:snakeyaml:2.2",
     ivy"org.apache.commons:commons-compress:1.26.2"
@@ -223,12 +233,12 @@ def millLastTag: T[String] = T {
 }
 
 def millBinPlatform: T[String] = T {
-  //val tag = millLastTag()
-  //if (tag.contains("-M")) tag
-  //else {
+  // val tag = millLastTag()
+  // if (tag.contains("-M")) tag
+  // else {
   //  val pos = if (tag.startsWith("0.")) 2 else 1
   //  tag.split("[.]", pos + 1).take(pos).mkString(".")
-  //}
+  // }
   "0.11"
 }
 
@@ -305,7 +315,6 @@ trait MillJavaModule extends JavaModule {
     val current = Seq(testDep())
     upstream.toMap ++ current
   }
-
 
   def testIvyDeps: T[Agg[Dep]] = Agg(Deps.TestDeps.utest)
   def testModuleDeps: Seq[JavaModule] =
@@ -579,7 +588,8 @@ object main extends MillStableScalaModule with BuildInfo {
     Deps.windowsAnsi,
     Deps.mainargs,
     Deps.coursierInterface,
-    Deps.requests
+    Deps.requests,
+    Deps.logback
   )
 
   def compileIvyDeps = Agg(Deps.scalaReflect(scalaVersion()))
@@ -748,9 +758,8 @@ object main extends MillStableScalaModule with BuildInfo {
   }
   object graphviz extends MillPublishScalaModule {
     def moduleDeps = Seq(main, scalalib)
-    def ivyDeps = Agg(Deps.graphvizJava, Deps.jgraphtCore)
+    def ivyDeps = Agg(Deps.jgraphtCore) ++ Deps.graphvizJava ++ Deps.javet
   }
-
 
   def testModuleDeps = super.testModuleDeps ++ Seq(testkit)
 }
@@ -761,7 +770,7 @@ object testkit extends MillPublishScalaModule {
 
   def sources =
     super.sources() ++
-    Seq(PathRef(build.millSourcePath / "mill-build" / "src"))
+      Seq(PathRef(build.millSourcePath / "mill-build" / "src"))
 
   def forkEnv = super.forkEnv() ++ Map("MILL_EXECUTABLE_PATH" -> dist.launcher().path.toString())
 }
@@ -1206,15 +1215,14 @@ object example extends Module {
     .modules
     .collect { case m: ExampleCrossModule => m }
 
-
-  object javalib extends Module{
+  object javalib extends Module {
     object basic extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "basic"))
     object builds extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "builds"))
     object testing extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "testing"))
     object module extends Cross[ExampleCrossModuleJava](listIn(millSourcePath / "module"))
     object web extends Cross[ExampleCrossModule](listIn(millSourcePath / "web"))
   }
-  object scalalib extends Module{
+  object scalalib extends Module {
     object basic extends Cross[ExampleCrossModule](listIn(millSourcePath / "basic"))
     object builds extends Cross[ExampleCrossModule](listIn(millSourcePath / "builds"))
     object testing extends Cross[ExampleCrossModule](listIn(millSourcePath / "testing"))
@@ -1222,14 +1230,14 @@ object example extends Module {
     object web extends Cross[ExampleCrossModule](listIn(millSourcePath / "web"))
   }
 
-  object depth extends Module{
+  object depth extends Module {
     object tasks extends Cross[ExampleCrossModule](listIn(millSourcePath / "tasks"))
     object modules extends Cross[ExampleCrossModule](listIn(millSourcePath / "modules"))
     object cross extends Cross[ExampleCrossModule](listIn(millSourcePath / "cross"))
     object large extends Cross[ExampleCrossModule](listIn(millSourcePath / "large"))
   }
 
-  object extending extends Module{
+  object extending extends Module {
     object imports extends Cross[ExampleCrossModule](listIn(millSourcePath / "imports"))
     object metabuild extends Cross[ExampleCrossModule](listIn(millSourcePath / "metabuild"))
     object plugins extends Cross[ExampleCrossModule](listIn(millSourcePath / "plugins"))
@@ -1292,7 +1300,6 @@ object example extends Module {
 
             case s => if (current.nonEmpty) None else Some(s)
           }
-        }
       }
     }
   }
@@ -1530,13 +1537,20 @@ def launcherScript(
 }
 
 object runner extends MillPublishScalaModule {
-  object client extends MillPublishJavaModule{
+  object client extends MillPublishJavaModule {
     def buildInfoPackageName = "mill.runner.client"
     def moduleDeps = Seq(main.client)
   }
 
   def moduleDeps = Seq(
-    scalalib, scalajslib, scalanativelib, bsp, linenumbers, main.codesig, main.server, client
+    scalalib,
+    scalajslib,
+    scalanativelib,
+    bsp,
+    linenumbers,
+    main.codesig,
+    main.server,
+    client
   )
   def skipPreviousVersions: T[Seq[String]] = Seq("0.11.0-M7")
 
@@ -1573,17 +1587,16 @@ object dist0 extends MillPublishJavaModule {
     contrib.playlib.testDep(),
     contrib.playlib.worker("2.8").testDep(),
     bsp.worker.testDep(),
-    testkit.testDep(),
+    testkit.testDep()
   )
 }
-
 
 object dist extends MillPublishJavaModule {
   def jar = rawAssembly()
   def moduleDeps = Seq(runner, idea)
 
   def testTransitiveDeps = dist0.testTransitiveDeps() ++ Seq(
-    (s"com.lihaoyi-${dist.artifactId()}", dist0.runClasspath().map(_.path).mkString("\n")),
+    (s"com.lihaoyi-${dist.artifactId()}", dist0.runClasspath().map(_.path).mkString("\n"))
   )
 
   def genTask(m: ScalaModule) = T.task { Seq(m.jar(), m.sourceJar()) ++ m.runClasspath() }
@@ -1629,7 +1642,7 @@ object dist extends MillPublishJavaModule {
     case m: PublishModule if (m ne this) && (m ne dist) => m
   }
 
-  def rawAssembly = T{
+  def rawAssembly = T {
     val version = millVersion()
     val devRunClasspath = runClasspath().map(_.path)
     val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
@@ -1834,7 +1847,7 @@ object docs extends Module {
     }
     val newLines = Seq(
       s"    mill-download-url: ${Settings.projectUrl}/releases/download/$millLastTag",
-      s"    mill-example-url: ${Settings.projectUrl}/blob/$millLastTag/",
+      s"    mill-example-url: ${Settings.projectUrl}/blob/$millLastTag/"
     )
 
     os.write.over(dest / "antora.yml", (lines ++ newLines).mkString("\n"))
