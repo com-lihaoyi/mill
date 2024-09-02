@@ -1261,7 +1261,7 @@ object example extends Module {
       case Some(upstream) => T{
         os.copy.over(super.testRepoRoot().path, T.dest)
         val upstreamRoot = upstream.testRepoRoot().path
-        val suffix = Seq("build.sc", "build.mill").find(s => os.exists(upstreamRoot / s)).head
+        val suffix = Seq("build.mill", "build.mill").find(s => os.exists(upstreamRoot / s)).head
         for(lines <- buildScLines()) {
           os.write.over(T.dest / suffix, lines.mkString("\n"))
         }
@@ -1269,7 +1269,7 @@ object example extends Module {
       }
     }
     def buildScLines = upstreamOpt match {
-      case None => T {None}
+      case None => T { None }
       case Some(upstream) => T {
         Some {
           val upstreamRoot = upstream.testRepoRoot().path
@@ -1300,6 +1300,7 @@ object example extends Module {
 
             case s => if (current.nonEmpty) None else Some(s)
           }
+        }
       }
     }
   }
