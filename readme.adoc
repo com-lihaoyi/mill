@@ -335,6 +335,10 @@ with `package build` for `.mill` files in the root folder and `package build.foo
 *** You need to create empty `package.sc` files in any folder containing scripts if they are not already
 adjacent to your `build.sc` in the root folder
 
+** ``RootModule`s can only be named `package`, e.g. `object foo extends RootModule` must now be
+named ``object `package` extends RootModule`.
+
+*** If you have an existing `RootModule`, you need to rename it ``object `package` extends RootModule``
 
 ** Turn on parallelism for task evaluation by default, except for commands
 which always run serially at the end {link-pr}/3265[#3265]
