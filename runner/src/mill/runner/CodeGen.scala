@@ -103,18 +103,7 @@ object CodeGen {
       millTopLevelProjectRoot: os.Path,
       childAliases: String,
   ): String = {
-    val segsList = segs.map(pprint.Util.literalize(_)).mkString(", ")
-    val extendsClause = if (segs.isEmpty) {
-      if (millTopLevelProjectRoot == scriptFolderPath) {
-        s"extends _root_.mill.main.RootModule() "
-      } else {
-        s"extends _root_.mill.runner.MillBuildRootModule() "
-      }
-    } else {
-      s"extends _root_.mill.main.RootModule.Subfolder($segsList) "
-    }
-
-    val prelude =
+        val prelude =
       s"""import _root_.mill.runner.MillBuildRootModule
          |@_root_.scala.annotation.nowarn
          |object MillMiscInfo extends MillBuildRootModule.MillMiscInfo(
@@ -130,6 +119,17 @@ object CodeGen {
          |}
          |import MillMiscInfo._
          |""".stripMargin
+
+    val extendsClause = if (segs.isEmpty) {
+      if (millTopLevelProjectRoot == scriptFolderPath) {
+        s"extends _root_.mill.main.RootModule() "
+      } else {
+        s"extends _root_.mill.runner.MillBuildRootModule() "
+      }
+    } else {
+      val segsList = segs.map(pprint.Util.literalize(_)).mkString(", ")
+      s"extends _root_.mill.main.RootModule.Subfolder($segsList) "
+    }
 
     val header =
       // User code needs to be put in a separate class for proper submodule
