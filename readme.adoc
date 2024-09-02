@@ -375,7 +375,10 @@ between tasks and tests due to parallelism
   on individual parameters
 
 ** Dropped support for Java 8, Scala 2.11.x/3.1.x, and Scala-Native 0.4.x, following suit with the rest of the 
- com-lihaoyi ecosystem. We now expect a minimum of Java 8, Scala 2.12.x/3.2.x, and Scala-Native 0.5.x
+com-lihaoyi ecosystem. We now expect a minimum of Java 8, Scala 2.12.x/3.2.x, and Scala-Native 0.5.x
+
+** `--disable-callgraph-invalidation` is no longer supported. The flag is still accepted but is
+now a no-op.
 
 * Other Changes
 

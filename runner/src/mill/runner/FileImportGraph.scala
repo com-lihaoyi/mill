@@ -55,36 +55,34 @@ object FileImportGraph {
       val readFileEither = scala.util.Try {
         val content = if (useDummy) "" else os.read(s)
         val fileName = s.relativeTo(topLevelProjectRoot).toString
-        for(splitted <- Parsers.splitScript(content, fileName))
-        yield {
-          val (pkgs, stmts) = splitted
-          val importSegments = pkgs.mkString(".")
+        for (splitted <- Parsers.splitScript(content, fileName))
+          yield {
+            val (pkgs, stmts) = splitted
+            val importSegments = pkgs.mkString(".")
 
-          val expectedImportSegments0 =
-            Seq(rootModuleAlias) ++
-              (s / os.up).relativeTo(projectRoot).segments
+            val expectedImportSegments0 =
+              Seq(rootModuleAlias) ++
+                (s / os.up).relativeTo(projectRoot).segments
 
-          val expectedImportSegments = expectedImportSegments0.map(backtickWrap).mkString(".")
-          if (
-          // Legacy `.sc` files have their package build be optional
-            s.ext == "mill" &&
+            val expectedImportSegments = expectedImportSegments0.map(backtickWrap).mkString(".")
+            if (
+              // Legacy `.sc` files have their package build be optional
+              s.ext == "mill" &&
               expectedImportSegments != importSegments &&
               // Root build.mill file has its `package build` be optional
               !(importSegments == "" && rootBuildFileNames.contains(s.last))
-          ) {
-            val expectedImport =
-              if (expectedImportSegments.isEmpty) "<none>"
-              else s"\"package $expectedImportSegments\""
-            errors.append(
-              s"Package declaration \"package $importSegments\" in " +
-                s"${s.relativeTo(topLevelProjectRoot)} does not match " +
-                s"folder structure. Expected: $expectedImport"
-            )
+            ) {
+              val expectedImport =
+                if (expectedImportSegments.isEmpty) "<none>"
+                else s"\"package $expectedImportSegments\""
+              errors.append(
+                s"Package declaration \"package $importSegments\" in " +
+                  s"${s.relativeTo(topLevelProjectRoot)} does not match " +
+                  s"folder structure. Expected: $expectedImport"
+              )
+            }
+            stmts
           }
-          stmts
-        }
-
-
 
       } match {
         case scala.util.Failure(ex) => Left(ex.getClass.getName + " " + ex.getMessage)
@@ -139,8 +137,10 @@ object FileImportGraph {
           case ImportTree(Seq(("$file", end0), rest @ _*), mapping, start, end) =>
             // Only recursively explore imports from legacy `.sc` files, as new `.mill` files
             // do file discovery via scanning folders containing `package.mill` files
-            if (s.ext == "sc"){
-              val nextPaths = mapping.map { case (lhs, rhs) => nextPathFor(s, rest.map(_._1) :+ lhs) }
+            if (s.ext == "sc") {
+              val nextPaths = mapping.map { case (lhs, rhs) =>
+                nextPathFor(s, rest.map(_._1) :+ lhs)
+              }
               val patchString =
                 (fileImportToSegments(projectRoot, nextPaths(0) / os.up, false) ++ Seq())
                   .map(backtickWrap)
@@ -148,7 +148,7 @@ object FileImportGraph {
               fileImports.addAll(nextPaths)
               (start, patchString, rest.lastOption.fold(end0)(_._2))
 
-            }else{
+            } else {
               (start, "", start)
             }
         }

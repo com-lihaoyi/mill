@@ -59,7 +59,7 @@ object Parsers {
   def StatementBlock[$: P]: P[Seq[String]] =
     P(Semis.? ~ (TmplStat ~~ WS ~~ (Semis | &("}") | End)).!.repX)
 
-  def TopPkgSeq[$: P] = P( ((scalaparse.Scala.`package` ~ QualId.!) ~~ !(WS ~ "{")).repX(1, Semis) )
+  def TopPkgSeq[$: P] = P(((scalaparse.Scala.`package` ~ QualId.!) ~~ !(WS ~ "{")).repX(1, Semis))
 
   def CompilationUnit[$: P]: P[(Option[Seq[String]], String, Seq[String])] =
     P(Semis.? ~ TopPkgSeq.? ~~ WL.! ~~ StatementBlock ~ WL ~ End)
