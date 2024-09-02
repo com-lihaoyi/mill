@@ -29,19 +29,19 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
       workspacePath / "foo" / "src"
     )
     val buildPaths = Seq(
-      workspacePath / "build.sc",
+      workspacePath / "build.mill",
       workspacePath / "mill-build" / "compile-resources",
       workspacePath / "mill-build" / "resources",
       workspacePath / "mill-build" / "src"
     )
     val buildPaths2 = Seq(
-      workspacePath / "mill-build" / "build.sc",
+      workspacePath / "mill-build" / "build.mill",
       workspacePath / "mill-build" / "mill-build" / "compile-resources",
       workspacePath / "mill-build" / "mill-build" / "resources",
       workspacePath / "mill-build" / "mill-build" / "src"
     )
     val buildPaths3 = Seq(
-      workspacePath / "mill-build" / "mill-build" / "build.sc",
+      workspacePath / "mill-build" / "mill-build" / "build.mill",
       workspacePath / "mill-build" / "mill-build" / "mill-build" / "compile-resources",
       workspacePath / "mill-build" / "mill-build" / "mill-build" / "resources",
       workspacePath / "mill-build" / "mill-build" / "mill-build" / "src"
@@ -137,13 +137,13 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
       // Second run with no build changes, all classloaders are unchanged
       checkChangedClassloaders(null, false, false, false)
 
-      modifyFile(workspacePath / "build.sc", _.replace("hello", "HELLO"))
+      modifyFile(workspacePath / "build.mill", _.replace("hello", "HELLO"))
       runAssertSuccess("<h1>HELLO</h1><p>world</p><p>0.8.2</p>?")
       checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
       checkChangedClassloaders(null, true, false, false)
 
       modifyFile(
-        workspacePath / "mill-build" / "build.sc",
+        workspacePath / "mill-build" / "build.mill",
         _.replace("def scalatagsVersion = ", "def scalatagsVersion = \"changed-\" + ")
       )
       runAssertSuccess("<h1>HELLO</h1><p>world</p><p>changed-0.8.2</p>?")
@@ -151,7 +151,7 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
       checkChangedClassloaders(null, true, true, false)
 
       modifyFile(
-        workspacePath / "mill-build" / "mill-build" / "build.sc",
+        workspacePath / "mill-build" / "mill-build" / "build.mill",
         _.replace("0.8.2", "0.12.0")
       )
       runAssertSuccess("<h1>HELLO</h1><p>world</p><p>changed-0.12.0</p>?")
@@ -159,7 +159,7 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
       checkChangedClassloaders(null, true, true, true)
 
       modifyFile(
-        workspacePath / "mill-build" / "mill-build" / "build.sc",
+        workspacePath / "mill-build" / "mill-build" / "build.mill",
         _.replace("0.12.0", "0.8.2")
       )
       runAssertSuccess("<h1>HELLO</h1><p>world</p><p>changed-0.8.2</p>?")
@@ -167,14 +167,14 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
       checkChangedClassloaders(null, true, true, true)
 
       modifyFile(
-        workspacePath / "mill-build" / "build.sc",
+        workspacePath / "mill-build" / "build.mill",
         _.replace("def scalatagsVersion = \"changed-\" + ", "def scalatagsVersion = ")
       )
       runAssertSuccess("<h1>HELLO</h1><p>world</p><p>0.8.2</p>?")
       checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
       checkChangedClassloaders(null, true, true, false)
 
-      modifyFile(workspacePath / "build.sc", _.replace("HELLO", "hello"))
+      modifyFile(workspacePath / "build.mill", _.replace("HELLO", "hello"))
       runAssertSuccess("<h1>hello</h1><p>world</p><p>0.8.2</p>?")
       checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
       checkChangedClassloaders(null, true, false, false)
@@ -196,10 +196,10 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
       checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
       checkChangedClassloaders(null, true, true, true)
 
-      causeParseError(workspacePath / "build.sc")
+      causeParseError(workspacePath / "build.mill")
       evalCheckErr(
         "\n1 targets failed",
-        "\ngenerateScriptSources build.sc"
+        "\ngenerateScriptSources build.mill"
       )
       checkWatchedFiles(Nil, buildPaths, Nil, Nil)
       // When one of the meta-builds still has parse errors, all classloaders
@@ -208,43 +208,43 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
       // every level of the meta-build
       checkChangedClassloaders(null, null, null, null)
 
-      fixParseError(workspacePath / "build.sc")
-      causeParseError(workspacePath / "mill-build" / "build.sc")
+      fixParseError(workspacePath / "build.mill")
+      causeParseError(workspacePath / "mill-build" / "build.mill")
       evalCheckErr(
         "\n1 targets failed",
-        "\ngenerateScriptSources mill-build/build.sc"
+        "\ngenerateScriptSources mill-build/build.mill"
       )
       checkWatchedFiles(Nil, Nil, buildPaths2, Nil)
       checkChangedClassloaders(null, null, null, null)
 
-      fixParseError(workspacePath / "mill-build" / "build.sc")
-      causeParseError(workspacePath / "mill-build" / "mill-build" / "build.sc")
+      fixParseError(workspacePath / "mill-build" / "build.mill")
+      causeParseError(workspacePath / "mill-build" / "mill-build" / "build.mill")
       evalCheckErr(
         "\n1 targets failed",
-        "\ngenerateScriptSources mill-build/mill-build/build.sc"
+        "\ngenerateScriptSources mill-build/mill-build/build.mill"
       )
       checkWatchedFiles(Nil, Nil, Nil, buildPaths3)
       checkChangedClassloaders(null, null, null, null)
 
-      fixParseError(workspacePath / "mill-build" / "mill-build" / "build.sc")
-      causeParseError(workspacePath / "mill-build" / "build.sc")
+      fixParseError(workspacePath / "mill-build" / "mill-build" / "build.mill")
+      causeParseError(workspacePath / "mill-build" / "build.mill")
       evalCheckErr(
         "\n1 targets failed",
-        "\ngenerateScriptSources mill-build/build.sc"
+        "\ngenerateScriptSources mill-build/build.mill"
       )
       checkWatchedFiles(Nil, Nil, buildPaths2, Nil)
       checkChangedClassloaders(null, null, null, null)
 
-      fixParseError(workspacePath / "mill-build" / "build.sc")
-      causeParseError(workspacePath / "build.sc")
+      fixParseError(workspacePath / "mill-build" / "build.mill")
+      causeParseError(workspacePath / "build.mill")
       evalCheckErr(
         "\n1 targets failed",
-        "\ngenerateScriptSources build.sc"
+        "\ngenerateScriptSources build.mill"
       )
       checkWatchedFiles(Nil, buildPaths, Nil, Nil)
       checkChangedClassloaders(null, null, null, null)
 
-      fixParseError(workspacePath / "build.sc")
+      fixParseError(workspacePath / "build.mill")
       runAssertSuccess("<h1>hello</h1><p>world</p><p>0.8.2</p>!")
       checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
       checkChangedClassloaders(null, true, true, true)
@@ -261,54 +261,54 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
       checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
       checkChangedClassloaders(null, true, true, true)
 
-      causeCompileError(workspacePath / "build.sc")
+      causeCompileError(workspacePath / "build.mill")
       evalCheckErr(
         "\n1 targets failed",
         // Ensure the file path in the compile error is properly adjusted to point
         // at the original source file and not the generated file
-        (workspacePath / "build.sc").toString,
+        (workspacePath / "build.mill").toString,
         "not found: value doesnt"
       )
       checkWatchedFiles(Nil, buildPaths, buildPaths2, buildPaths3)
       checkChangedClassloaders(null, null, false, false)
 
-      causeCompileError(workspacePath / "mill-build" / "build.sc")
+      causeCompileError(workspacePath / "mill-build" / "build.mill")
       evalCheckErr(
         "\n1 targets failed",
-        (workspacePath / "mill-build" / "build.sc").toString,
+        (workspacePath / "mill-build" / "build.mill").toString,
         "not found: object doesnt"
       )
       checkWatchedFiles(Nil, Nil, buildPaths2, buildPaths3)
       checkChangedClassloaders(null, null, null, false)
 
-      causeCompileError(workspacePath / "mill-build" / "mill-build" / "build.sc")
+      causeCompileError(workspacePath / "mill-build" / "mill-build" / "build.mill")
       evalCheckErr(
         "\n1 targets failed",
-        (workspacePath / "mill-build" / "mill-build" / "build.sc").toString,
+        (workspacePath / "mill-build" / "mill-build" / "build.mill").toString,
         "not found: object doesnt"
       )
       checkWatchedFiles(Nil, Nil, Nil, buildPaths3)
       checkChangedClassloaders(null, null, null, null)
 
-      fixCompileError(workspacePath / "mill-build" / "mill-build" / "build.sc")
+      fixCompileError(workspacePath / "mill-build" / "mill-build" / "build.mill")
       evalCheckErr(
         "\n1 targets failed",
-        (workspacePath / "mill-build" / "build.sc").toString,
+        (workspacePath / "mill-build" / "build.mill").toString,
         "not found: object doesnt"
       )
       checkWatchedFiles(Nil, Nil, buildPaths2, buildPaths3)
       checkChangedClassloaders(null, null, null, true)
 
-      fixCompileError(workspacePath / "mill-build" / "build.sc")
+      fixCompileError(workspacePath / "mill-build" / "build.mill")
       evalCheckErr(
         "\n1 targets failed",
-        (workspacePath / "build.sc").toString,
+        (workspacePath / "build.mill").toString,
         "not found: value doesnt"
       )
       checkWatchedFiles(Nil, buildPaths, buildPaths2, buildPaths3)
       checkChangedClassloaders(null, null, true, false)
 
-      fixCompileError(workspacePath / "build.sc")
+      fixCompileError(workspacePath / "build.mill")
       runAssertSuccess("<h1>hello</h1><p>world</p><p>0.8.2</p>!")
       checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
       checkChangedClassloaders(null, true, false, false)
@@ -331,7 +331,7 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
       checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
       checkChangedClassloaders(null, true, true, true)
 
-      causeRuntimeError(workspacePath / "build.sc")
+      causeRuntimeError(workspacePath / "build.mill")
       evalCheckErr(
         "\n1 targets failed",
         "foo.runClasspath java.lang.Exception: boom"
@@ -339,43 +339,43 @@ object MultiLevelBuildTests extends IntegrationTestSuite {
       checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
       checkChangedClassloaders(null, true, false, false)
 
-      causeRuntimeError(workspacePath / "mill-build" / "build.sc")
+      causeRuntimeError(workspacePath / "mill-build" / "build.mill")
       evalCheckErr(
         "\n1 targets failed",
-        "build.sc",
+        "build.mill",
         "runClasspath java.lang.Exception: boom"
       )
       checkWatchedFiles(Nil, buildPaths, buildPaths2, buildPaths3)
       checkChangedClassloaders(null, null, true, false)
 
-      causeRuntimeError(workspacePath / "mill-build" / "mill-build" / "build.sc")
+      causeRuntimeError(workspacePath / "mill-build" / "mill-build" / "build.mill")
       evalCheckErr(
         "\n1 targets failed",
-        "build.sc",
+        "build.mill",
         "runClasspath java.lang.Exception: boom"
       )
       checkWatchedFiles(Nil, Nil, buildPaths2, buildPaths3)
       checkChangedClassloaders(null, null, null, true)
 
-      fixRuntimeError(workspacePath / "mill-build" / "mill-build" / "build.sc")
+      fixRuntimeError(workspacePath / "mill-build" / "mill-build" / "build.mill")
       evalCheckErr(
         "\n1 targets failed",
-        "build.sc",
+        "build.mill",
         "runClasspath java.lang.Exception: boom"
       )
       checkWatchedFiles(Nil, buildPaths, buildPaths2, buildPaths3)
       checkChangedClassloaders(null, null, true, true)
 
-      fixRuntimeError(workspacePath / "mill-build" / "build.sc")
+      fixRuntimeError(workspacePath / "mill-build" / "build.mill")
       evalCheckErr(
         "\n1 targets failed",
-        "build.sc",
+        "build.mill",
         "foo.runClasspath java.lang.Exception: boom"
       )
       checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
       checkChangedClassloaders(null, true, true, false)
 
-      fixRuntimeError(workspacePath / "build.sc")
+      fixRuntimeError(workspacePath / "build.mill")
       runAssertSuccess("<h1>hello</h1><p>world</p><p>0.8.2</p>!")
       checkWatchedFiles(fooPaths, buildPaths, buildPaths2, buildPaths3)
       checkChangedClassloaders(null, true, false, false)

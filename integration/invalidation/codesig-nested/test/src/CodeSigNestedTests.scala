@@ -207,7 +207,7 @@ object CodeSigNestedTests extends IntegrationTestSuite {
       assert(cached.out == "")
 
       modifyFile(
-        workspacePath / "build.sc",
+        workspacePath / "build.mill",
         _.replace("val valueTraitInner = 0", "val valueTraitInner = 10")
       )
       val mangleTraitInnerValue = eval("traitOuter.traitInner.inner")
@@ -219,7 +219,7 @@ object CodeSigNestedTests extends IntegrationTestSuite {
       )
 
       modifyFile(
-        workspacePath / "build.sc",
+        workspacePath / "build.mill",
         _.replace("val valueTraitOuter = 0", "val valueTraitOuter = 10")
       )
       val mangleTraitOuterValue = eval("traitOuter.traitInner.inner")
