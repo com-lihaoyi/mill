@@ -144,7 +144,9 @@ object FileImportGraph {
           case ImportTree(Seq(("$file", end0), rest @ _*), mapping, start, end) =>
             val nextPaths = mapping.map { case (lhs, rhs) => nextPathFor(projectRoot, rest.map(_._1) :+ lhs) }
 
-            fileImports.addAll(nextPaths)
+            // Only recursively explore imports from legacy `.sc` files, as new `.mill` files
+            // do file discovery via scanning folders containing `package.mill` files
+            if (s.ext == "sc") fileImports.addAll(nextPaths)
 
             (start, "", start)
         }
