@@ -80,10 +80,11 @@ object CodeGen {
         if (!hasPackageObject) scriptCode
         else scriptCode.replace(
           "\nobject `package` extends RootModule",
+          // Use whitespace to try and make sure stuff to the right has the same column offset
           if (segments.isEmpty) "\nclass   package_  extends RootModule"
           else {
             val segmentsStr = segments.map(pprint.Util.literalize(_)).mkString(", ")
-            // Use whitespace to make sure stuff to the right has the same column offset
+
             s"\nclass   package_  extends RootModule.Subfolder($segmentsStr)"
           }
         )
