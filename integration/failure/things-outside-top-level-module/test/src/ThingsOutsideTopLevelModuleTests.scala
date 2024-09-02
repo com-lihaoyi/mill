@@ -13,7 +13,7 @@ object ThingsOutsideTopLevelModuleTests extends IntegrationTestSuite {
       assert(!res.isSuccess)
       assert(
         res.err.contains(
-          "Definition not allowed outside body of object `package`"
+          "expected class or object definition"
         )
       )
       assert(

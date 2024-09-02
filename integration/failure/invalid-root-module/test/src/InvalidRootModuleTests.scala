@@ -11,7 +11,7 @@ object InvalidRootModuleTests extends IntegrationTestSuite {
     test("success") {
       val res = eval(("resolve", "_"))
       assert(res.isSuccess == false)
-      assert(res.err.contains("Root module "))
+      assert(res.err.contains("object `package` in "))
       assert(res.err.contains("must extend `RootModule`"))
     }
   }
