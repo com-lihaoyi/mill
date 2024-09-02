@@ -23,7 +23,7 @@ object `package` extends RootModule with ScalaModule {
 // compiled and executed to perform your build. This "meta-build" module lives in
 // `mill-build/`, and can be enabled via the `import $meta._` statement above.
 
-/** See Also: mill-build/build.sc */
+/** See Also: mill-build/build.mill */
 /** See Also: src/Foo.scala */
 
 // Typically, if you wanted to use a library such as Scalatags in both your `build.sc`
@@ -76,12 +76,12 @@ Run-time HTML snippet: <p>world</p>
 
 > mill --meta-level 1 show sources
 [
-.../build.sc",
+.../build.mill",
 .../mill-build/src"
 ]
 
 > mill --meta-level 2 show sources
-.../mill-build/build.sc"
+.../mill-build/build.mill"
 
 
 */

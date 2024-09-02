@@ -125,7 +125,7 @@ compiling 1 Scala source...
 
 /** See Also: myplugin/test/src/mill/testkit/IntegrationTests.scala */
 /** See Also: myplugin/test/resources/integration-test-project/src/foo/Foo.java */
-/** See Also: myplugin/test/resources/integration-test-project/build.sc */
+/** See Also: myplugin/test/resources/integration-test-project/build.mill */
 
 // Integration tests are generally used sparingly, but they are handy for scenarios where
 // your Mill plugin logic prints to standard output or standard error, and you want to assert
@@ -143,7 +143,7 @@ compiling 1 Scala source...
 
 /** See Also: myplugin/test/src/mill/testkit/ExampleTests.scala */
 /** See Also: myplugin/test/resources/example-test-project/src/foo/Foo.java */
-/** See Also: myplugin/test/resources/example-test-project/build.sc */
+/** See Also: myplugin/test/resources/example-test-project/build.mill */
 
 // The `/** Usage */` comment is of the following format:
 //

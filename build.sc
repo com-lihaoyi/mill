@@ -1226,6 +1226,7 @@ object example extends Module {
     object tasks extends Cross[ExampleCrossModule](listIn(millSourcePath / "tasks"))
     object modules extends Cross[ExampleCrossModule](listIn(millSourcePath / "modules"))
     object cross extends Cross[ExampleCrossModule](listIn(millSourcePath / "cross"))
+    object large extends Cross[ExampleCrossModule](listIn(millSourcePath / "large"))
   }
 
   object extending extends Module{

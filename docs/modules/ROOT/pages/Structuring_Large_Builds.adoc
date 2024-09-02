@@ -2,10 +2,14 @@
 
 == Multi-file Builds
 
-include::example/depth/modules/10-multi-file-builds.adoc[]
+include::example/depth/large/10-multi-file-builds.adoc[]
 
 == Helper Files
 
-include::example/depth/modules/11-helper-files.adoc[]
+include::example/depth/large/11-helper-files.adoc[]
+
+== Legacy `.sc` extension
+
+include::example/depth/large/12-helper-files.adoc[]
 
 

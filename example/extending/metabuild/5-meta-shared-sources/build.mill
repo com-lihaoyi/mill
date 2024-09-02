@@ -9,7 +9,7 @@ object `package` extends RootModule with ScalaModule {
   }
 }
 
-/** See Also: mill-build/build.sc */
+/** See Also: mill-build/build.mill */
 /** See Also: mill-build/src/ScalaVersion.scala */
 /** See Also: src/Foo.scala */
 
