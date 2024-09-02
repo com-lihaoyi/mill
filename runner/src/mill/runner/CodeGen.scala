@@ -10,7 +10,7 @@ object CodeGen {
   def generateWrappedSources(
       projectRoot: os.Path,
       scriptSources: Seq[PathRef],
-      scriptCode: Map[os.Path, String],
+      allScriptCode: Map[os.Path, String],
       targetDest: os.Path,
       enclosingClasspath: Seq[os.Path],
       millTopLevelProjectRoot: os.Path
@@ -73,13 +73,35 @@ object CodeGen {
         "import build_.{package_ => build}"
       ).mkString("\n")
 
-      val wrapperHeader = if (isBuildScript) {
-        topBuildScript(
-          scriptFolderPath.relativeTo(projectRoot).segments,
+      val scriptCode = allScriptCode(scriptPath)
+      val hasPackageObject = scriptCode.contains("\nobject `package` extends RootModule")
+      val segments = scriptFolderPath.relativeTo(projectRoot).segments
+      val newScriptCode =
+        if (!hasPackageObject) scriptCode
+        else scriptCode.replace(
+          "\nobject `package` extends RootModule",
+          if (segments.isEmpty) "\nclass   package_  extends RootModule"
+          else {
+            val segmentsStr = segments.map(pprint.Util.literalize(_)).mkString(", ")
+            // Use whitespace to make sure stuff to the right has the same column offset
+            s"\nclass   package_  extends RootModule.Subfolder($segmentsStr)"
+          }
+        )
+
+      val prelude = if (isBuildScript){
+        topBuildPrelude(
           scriptFolderPath,
           enclosingClasspath,
           millTopLevelProjectRoot,
           childAliases
+        )
+      }else ""
+
+      val wrapperHeader = if (isBuildScript) {
+        topBuildHeader(
+          segments,
+          scriptFolderPath,
+          millTopLevelProjectRoot,
         )
       } else {
         s"""object ${backtickWrap(scriptPath.baseName)} {""".stripMargin
@@ -89,48 +111,61 @@ object CodeGen {
         s"""//MILL_ORIGINAL_FILE_PATH=$scriptPath
            |//MILL_USER_CODE_START_MARKER""".stripMargin
 
+      val packageObject =
+        if (!hasPackageObject) ""
+        else {
+          s"""object package_ extends package_ {
+             |  $childAliases
+             |}""".stripMargin
+        }
       os.write(
         dest,
         Seq(
           pkgLine,
           aliasImports,
-          wrapperHeader,
+          prelude,
+          if (hasPackageObject) "" else wrapperHeader,
           markerComment,
-          scriptCode(scriptPath),
+          newScriptCode,
           // define this after user code so in case of conflict these lines are what turn
           // up in the error message, so we can add a comment and control what the user sees
-          childAliases,
-          bottom
+          if (hasPackageObject) "" else childAliases,
+          if (hasPackageObject) "" else bottom,
+          packageObject
         ).mkString("\n"),
         createFolders = true
       )
     }
   }
 
-  def topBuildScript(
-      segs: Seq[String],
+  def topBuildPrelude(
       scriptFolderPath: os.Path,
       enclosingClasspath: Seq[os.Path],
       millTopLevelProjectRoot: os.Path,
       childAliases: String
   ): String = {
-    val prelude =
-      s"""import _root_.mill.runner.MillBuildRootModule
-         |@_root_.scala.annotation.nowarn
-         |object MillMiscInfo extends MillBuildRootModule.MillMiscInfo(
-         |  ${enclosingClasspath.map(p => literalize(p.toString))},
-         |  ${literalize(scriptFolderPath.toString)},
-         |  ${literalize(millTopLevelProjectRoot.toString)},
-         |  _root_.mill.define.Discover[$wrapperObjectName]
-         |){
-         |  // aliases so child modules can be referred to directly as `foo` rather
-         |  // than `foo.module`. Need to be outside `MillPackageClass` in case they are
-         |  // referenced in the combined `extends` clause
-         |  $childAliases
-         |}
-         |import MillMiscInfo._
-         |""".stripMargin
+    s"""import _root_.mill.runner.MillBuildRootModule
+       |@_root_.scala.annotation.nowarn
+       |object MillMiscInfo extends MillBuildRootModule.MillMiscInfo(
+       |  ${enclosingClasspath.map(p => literalize(p.toString))},
+       |  ${literalize(scriptFolderPath.toString)},
+       |  ${literalize(millTopLevelProjectRoot.toString)},
+       |  _root_.mill.define.Discover[$wrapperObjectName.type]
+       |){
+       |  // aliases so child modules can be referred to directly as `foo` rather
+       |  // than `foo.module`. Need to be outside `MillPackageClass` in case they are
+       |  // referenced in the combined `extends` clause
+       |  $childAliases
+       |}
+       |import MillMiscInfo._
+       |""".stripMargin
+  }
 
+  def topBuildHeader(
+      segs: Seq[String],
+      scriptFolderPath: os.Path,
+      millTopLevelProjectRoot: os.Path,
+  ): String = {
     val extendsClause = if (segs.isEmpty) {
       if (millTopLevelProjectRoot == scriptFolderPath) {
         s"extends _root_.mill.main.RootModule() "
@@ -142,15 +177,11 @@ object CodeGen {
       s"extends _root_.mill.main.RootModule.Subfolder($segsList) "
     }
 
-    val header =
-      // User code needs to be put in a separate class for proper submodule
-      // object initialization due to https://github.com/scala/scala3/issues/21444
-      s"""object $wrapperObjectName extends $wrapperObjectName
-         |class $wrapperObjectName $extendsClause {""".stripMargin
+    // User code needs to be put in a separate class for proper submodule
+    // object initialization due to https://github.com/scala/scala3/issues/21444
+    s"""object $wrapperObjectName extends $wrapperObjectName
+       |class $wrapperObjectName $extendsClause {""".stripMargin
 
-    s"""$prelude
-       |$header
-       |""".stripMargin
   }
 
   val bottom = "\n}"

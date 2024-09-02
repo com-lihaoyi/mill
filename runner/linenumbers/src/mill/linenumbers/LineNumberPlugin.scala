@@ -39,8 +39,6 @@ object LineNumberPlugin {
         .getOrElse(sys.error(g.currentSource.path))
 
       unit.body = LineNumberCorrector(g, lines, adjustedFile)(unit)
-
-      unit.body = PackageObjectUnpacker(g, adjustedFile)(unit)
     }
   }
 }
