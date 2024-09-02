@@ -1,7 +1,7 @@
 package mill.runner
 
 import mill.main.client.CodeGenConstants._
-import mill.api.PathRef
+import mill.api.{PathRef, Result}
 import mill.runner.FileImportGraph.backtickWrap
 import pprint.Util.literalize
 
@@ -21,6 +21,14 @@ object CodeGen {
 
       val isBuildScript = specialNames(scriptPath.last)
       val scriptFolderPath = scriptPath / os.up
+
+      if (scriptFolderPath == projectRoot && scriptPath.baseName == "package"){
+        throw Result.Failure(s"Mill ${scriptPath.last} files can only be in subfolders")
+      }
+
+      if (scriptFolderPath != projectRoot && scriptPath.baseName == "build"){
+        throw Result.Failure(s"Mill ${scriptPath.last} files can only be in the project root")
+      }
 
       val packageSegments = FileImportGraph.fileImportToSegments(projectRoot, scriptPath)
       val dest = targetDest / packageSegments
