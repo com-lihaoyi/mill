@@ -318,22 +318,31 @@ how to either disable the breaking change with a flag or adjust your code to acc
 
 * *Breaking Changes*
 
-** The `build.sc` file has been renamed `build.mill` to prevent confusion with Ammonite/Scala-CLI scripts,
-and all associated `.sc` files have been renamed to `.mill`. All `.mill` files must have a `package` declaration,
-with `package build` for `.mill` files in the root folder and `package build.foo.bar` for `.mill` files in `foo/bar/`.
 
-*** For migration compatibility, `.sc` files are still supported, but you should convert to use `.mill` with explicit
+** Build file overhaul
+
+*** The `build.sc` file has been renamed `build.mill` to prevent confusion with Ammonite/Scala-CLI scripts,
+and all associated `.sc` files have been renamed to `.mill`.
+**** For migration compatibility, `.sc` files are still supported, but you should convert to use `.mill` with explicit
 `package` declarations to benefit from improved IDE support
 
-** Builds can now be modularized into per-folder definitions by defining `package.mill` files in subfolders
+*** All `.mill` files must have a `package` declaration,
+with `package build` for `.mill` files in the root folder and `package build.foo.bar` for `.mill` files in `foo/bar/`.
+
+**** The package declaration remains optional for legacy `.sc` files
+
+*** Only `foo.mill` files in folders adjacent to a `build.mill` or `package.mill` can be imported via `import $file`.
+
+**** You need to create empty `package.mill` files in any folder containing scripts if they are not already
+adjacent to your `build.mill` in the root folder
+
+**** `foo.sc` files can continue to be imported from arbitrary paths, to ease in the migration
+
+*** Builds can now be modularized into per-folder definitions by defining `package.mill` files in subfolders
 {link-pr}/3213[#3213]. You can no longer define targets and modules in arbitrary `foo.sc` files
 
-*** All target and module definitions must be moved into `package.mill` files in each folder.
+**** All target and module definitions must be moved into `package.mill` files in each folder.
 
-** Only `foo.mill` files in folders adjacent to a `build.mill` or `package.mill` can be imported via `import $file`.
-
-*** You need to create empty `package.sc` files in any folder containing scripts if they are not already
-adjacent to your `build.sc` in the root folder
 
 ** ``RootModule`s can only be named `package`, e.g. `object foo extends RootModule` must now be
 named ``object `package` extends RootModule`.
