@@ -1,4 +1,3 @@
-package build
 import $meta._
 
 import mill._

@@ -1,4 +1,3 @@
-package build
 import mill.api.Loose.Agg
 import mill.define.Target
 import mill._
