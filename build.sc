@@ -1243,47 +1243,57 @@ object example extends Module {
       case "testing" => scalalib.testing
       case "web" => scalalib.web
     }
-    def testRepoRoot = T{
-      os.copy.over(super.testRepoRoot().path, T.dest)
-      for(lines <- buildScLines()) os.write.over(T.dest / "build.sc", lines.mkString("\n"))
-      PathRef(T.dest)
+    val upstreamOpt = upstreamCross(
+      this.millModuleSegments.parts.dropRight(1).last
+    ).valuesToModules.get(List(crossValue))
+
+    def testRepoRoot = upstreamOpt match {
+      case None => T{ super.testRepoRoot() }
+      case Some(upstream) => T{
+        os.copy.over(super.testRepoRoot().path, T.dest)
+        val upstreamRoot = upstream.testRepoRoot().path
+        val suffix = Seq("build.sc", "build.mill").find(s => os.exists(upstreamRoot / s)).head
+        for(lines <- buildScLines()) {
+          os.write.over(T.dest / suffix, lines.mkString("\n"))
+        }
+        PathRef(T.dest)
+      }
     }
-    def buildScLines =
-      upstreamCross(
-        this.millModuleSegments.parts.dropRight(1).last
-      ).valuesToModules.get(List(crossValue)) match {
-        case None => T {None}
-        case Some(upstream) => T {
-          Some {
-            val upstreamLines = os.read.lines(upstream.testRepoRoot().path / "build.sc")
-            val lines = os.read.lines(super.testRepoRoot().path / "build.sc")
+    def buildScLines = upstreamOpt match {
+      case None => T {None}
+      case Some(upstream) => T {
+        Some {
+          val upstreamRoot = upstream.testRepoRoot().path
+          val suffix = Seq("build.sc", "build.mill").find(s => os.exists(upstreamRoot / s)).head
+          val upstreamLines = os.read.lines(upstream.testRepoRoot().path / suffix)
+          val lines = os.read.lines(super.testRepoRoot().path / suffix)
 
-            import collection.mutable
-            val groupedLines = mutable.Map.empty[String, mutable.Buffer[String]]
-            var current = Option.empty[String]
-            lines.foreach {
-              case s"//// SNIPPET:$name" =>
+          import collection.mutable
+          val groupedLines = mutable.Map.empty[String, mutable.Buffer[String]]
+          var current = Option.empty[String]
+          lines.foreach {
+            case s"//// SNIPPET:$name" =>
+              current = Some(name)
+              groupedLines(name) = mutable.Buffer()
+            case s => current.foreach(groupedLines(_).append(s))
+          }
+
+          current = None
+          upstreamLines.flatMap {
+            case s"//// SNIPPET:$name" =>
+              if (name != "END") {
                 current = Some(name)
-                groupedLines(name) = mutable.Buffer()
-              case s => current.foreach(groupedLines(_).append(s))
-            }
+                groupedLines(name)
+              } else {
+                current = None
+                Nil
+              }
 
-            current = None
-            upstreamLines.flatMap {
-              case s"//// SNIPPET:$name" =>
-                if (name != "END") {
-                  current = Some(name)
-                  groupedLines(name)
-                } else {
-                  current = None
-                  Nil
-                }
-
-              case s => if (current.nonEmpty) None else Some(s)
-            }
+            case s => if (current.nonEmpty) None else Some(s)
           }
         }
       }
+    }
   }
 
   trait ExampleCrossModule extends IntegrationTestCrossModule {
