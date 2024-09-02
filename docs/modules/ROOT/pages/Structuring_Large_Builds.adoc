@@ -10,6 +10,6 @@ include::example/depth/large/11-helper-files.adoc[]
 
 == Legacy `.sc` extension
 
-include::example/depth/large/12-helper-files.adoc[]
+include::example/depth/large/12-helper-files-sc.adoc[]
 
 

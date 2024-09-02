@@ -104,12 +104,14 @@ object FileImportGraph {
           errors.append(err)
 
         case Right(stmts) =>
+          val fileImports = mutable.Set.empty[os.Path]
           // we don't expect any new imports when using an empty dummy
           val transformedStmts = mutable.Buffer.empty[String]
           for ((stmt0, importTrees) <- Parsers.parseImportHooksWithIndices(stmts)) {
-            walkStmt(s, stmt0, importTrees, transformedStmts)
+            walkStmt(s, stmt0, importTrees, fileImports, transformedStmts)
           }
           seenScripts(s) = transformedStmts.mkString
+          fileImports.foreach(processScript(_))
       }
     }
 
@@ -117,6 +119,7 @@ object FileImportGraph {
         s: os.Path,
         stmt0: String,
         importTrees: Seq[ImportTree],
+        fileImports: mutable.Set[os.Path],
         transformedStmts: mutable.Buffer[String]
     ) = {
 
@@ -138,14 +141,12 @@ object FileImportGraph {
             millImport = true
             (start, "_root_._", end)
 
-//          case ImportTree(Seq(("$file", end0), rest @ _*), mapping, start, end) =>
-//            errors.append(
-//              s"Import $$file syntax in $s is no longer supported. Any `foo/bar.sc` file " +
-//                s"in a folder next to a `foo/package.sc` can be directly imported via " +
-//                "`import foo.bar`"
-//            )
+          case ImportTree(Seq(("$file", end0), rest @ _*), mapping, start, end) =>
+            val nextPaths = mapping.map { case (lhs, rhs) => nextPathFor(projectRoot, rest.map(_._1) :+ lhs) }
 
-//            (start, "$file", rest.lastOption.fold(end0)(_._2))
+            fileImports.addAll(nextPaths)
+
+            (start, "", start)
         }
         val numNewLines = stmt.substring(start, end).count(_ == '\n')
 
@@ -185,6 +186,23 @@ object FileImportGraph {
       errors.toSeq,
       millImport
     )
+  }
+
+  def nextPathFor(projectRoot: os.Path, rest: Seq[String]): os.Path = {
+    // Manually do the foldLeft to work around bug in os-lib
+    // https://github.com/com-lihaoyi/os-lib/pull/160
+    val restSegments = rest
+      .map {
+        case "^" => sys.error(
+          "^ to reference parent folders is no longer supported as `import $file` now only "+
+          "takes absolute paths. Please convert your `import $file` to use the absolute path " +
+          "of the imported file from the project root."
+        )
+        case s => os.rel / s
+      }
+      .foldLeft(os.rel)(_ / _)
+
+    projectRoot / restSegments / os.up / s"${rest.last}.sc"
   }
 
   def fileImportToSegments(base: os.Path, s: os.Path, stripExt: Boolean): Seq[String] = {
