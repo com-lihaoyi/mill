@@ -139,7 +139,7 @@ object Deps {
   val javet = Seq(
     ivy"com.caoccao.javet:javet:3.1.5",
     ivy"com.caoccao.javet:javet-linux-arm64:3.1.5",
-    ivy"com.caoccao.javet:javet-macos:3.1.5",
+    ivy"com.caoccao.javet:javet-macos:3.1.5"
   )
 
   val jline = ivy"org.jline:jline:3.26.3"
@@ -189,7 +189,7 @@ object Deps {
   val fansi = ivy"com.lihaoyi::fansi:0.5.0"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.0"
   val requests = ivy"com.lihaoyi::requests:0.9.0"
-  val logback = ivy"ch.qos.logback:logback-classic:1.2.11"
+  val logback = ivy"ch.qos.logback:logback-classic:1.2.13"
   val sonatypeCentralClient = ivy"com.lumidion::sonatype-central-client-requests:0.3.0"
 
   object RuntimeDeps {
