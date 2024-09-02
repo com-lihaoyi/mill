@@ -62,21 +62,25 @@ object CodeGen {
         }
         .mkString("\n")
 
-      val newSource = topBuild(
-        scriptPath.baseName,
-        scriptFolderPath.relativeTo(projectRoot).segments,
-        scriptFolderPath,
-        enclosingClasspath,
-        millTopLevelProjectRoot,
-        childAliases,
-        isBuildScript,
-        sibling.map(t =>
-          s"import ${pkgSelector2(t match {
-              case "package" | "build" => None
-              case _ => Some(t)
-            })}._"
-        ).mkString("\n")
-      )
+      val adjacentImports = sibling.map(t =>
+        s"import ${pkgSelector2(t match {
+          case "package" | "build" => None
+          case _ => Some(t)
+        })}._"
+      ).mkString("\n")
+      val newSource = if (isBuildScript){
+        topBuildScript(
+          scriptFolderPath.relativeTo(projectRoot).segments,
+          scriptFolderPath,
+          enclosingClasspath,
+          millTopLevelProjectRoot,
+          childAliases,
+          adjacentImports
+        )
+      } else{
+        topHelper(scriptPath.baseName, adjacentImports)
+      }
+
 
       val pkgLine =
         s"package $globalPackagePrefix; " + (if (pkg.nonEmpty) s"package $pkgSelector" else "")
@@ -92,7 +96,6 @@ object CodeGen {
           newSource,
           markerComment,
           scriptCode(scriptPath),
-
           // define this after user code so in case of conflict these lines are what turn
           // up in the error message, so we can add a comment and control what the user sees
           childAliases,
@@ -103,32 +106,28 @@ object CodeGen {
     }
   }
 
-  def topBuild(
-      name: String,
+  def topBuildScript(
       segs: Seq[String],
       scriptFolderPath: os.Path,
       enclosingClasspath: Seq[os.Path],
       millTopLevelProjectRoot: os.Path,
       childAliases: String,
-      isBuildScript: Boolean,
       adjacentImports: String
   ): String = {
     val segsList = segs.map(pprint.Util.literalize(_)).mkString(", ")
-    val extendsClause =
-      if (!isBuildScript) "" // Non-`build.mill`/`package.sc` files cannot define modules
-      else if (segs.isEmpty) {
-        if (millTopLevelProjectRoot == scriptFolderPath) {
-          s"extends _root_.mill.main.RootModule($segsList) "
-        } else {
-          s"extends _root_.mill.runner.MillBuildRootModule($segsList) "
-        }
+    val extendsClause = if (segs.isEmpty) {
+      if (millTopLevelProjectRoot == scriptFolderPath) {
+        s"extends _root_.mill.main.RootModule($segsList) "
       } else {
-        s"extends _root_.mill.main.RootModule.Subfolder($segsList) "
+        s"extends _root_.mill.runner.MillBuildRootModule($segsList) "
       }
+    } else {
+      s"extends _root_.mill.main.RootModule.Subfolder($segsList) "
+    }
 
     // MillMiscInfo defines a bunch of module metadata that is only relevant
     // for `build.sc`/`package.sc` files that can define modules
-    val prelude = if (isBuildScript) {
+    val prelude =
       s"""import _root_.mill.runner.MillBuildRootModule
          |@_root_.scala.annotation.nowarn
          |object MillMiscInfo extends MillBuildRootModule.MillMiscInfo(
@@ -144,34 +143,35 @@ object CodeGen {
          |}
          |import MillMiscInfo._
          |""".stripMargin
-    } else {
-      ""
-    }
 
-    // `build` refers to different things in `build.sc` and outside `build.sc`. That is
-    // `build` refers to the `build.sc` object itself, and if we import it we get a circular
-    // dependency compiler error. However, most times in `build.sc` when you use `build` you
-    // are referring to things in other files, and so using `MillMiscInfo` which has the
-    // relevant forwarders is sufficient even if it doesn't give full access to the `build.sc`
-    // definitions
-    val buildImport =
-      if (true) s"import build_.{package_ => build}"
-      else "import build_.{MillMiscInfo => build}"
+    // Provide `build` as an alias to the root `build_.package_`, since from the user's
+    // perspective it looks like they're writing things that live in `package build`,
+    // but at compile-time we rename things, we so provide an alias to preserve the fiction
+    val buildImport = "import build_.{package_ => build}"
 
-    val header = if (isBuildScript) {
+
+    val header =
+      // User code needs to be put in a separate class for proper submodule
+      // object initialization due to https://github.com/scala/scala3/issues/21444
       s"""object $wrapperObjectName extends $wrapperObjectName
-         |// User code needs to be put in a separate class for proper submodule
-         |// object initialization due to https://github.com/scala/scala3/issues/21444
          |class $wrapperObjectName $extendsClause {""".stripMargin
-    } else {
-      s"object ${backtickWrap(name)} {"
-    }
-    s"""
-       |import _root_.{build_ => $$file}
+
+    s"""import _root_.{build_ => $$file}
        |$prelude
        |$buildImport
        |$adjacentImports
        |$header
+       |""".stripMargin
+  }
+  def topHelper(name: String, adjacentImports: String): String = {
+
+    // Provide `build` as an alias to the root `build_.package_`, since from the user's
+    // perspective it looks like they're writing things that live in `package build`,
+    // but at compile-time we rename things, we so provide an alias to preserve the fiction
+    s"""import _root_.{build_ => $$file}
+       |import build_.{package_ => build}
+       |$adjacentImports
+       |object ${backtickWrap(name)} {
        |""".stripMargin
   }
 
