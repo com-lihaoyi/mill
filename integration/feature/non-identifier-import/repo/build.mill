@@ -1,5 +1,5 @@
 package build
-import `foo-bar`.FooBar
+import $file.`foo-bar`.FooBar
 
 import mill._
 

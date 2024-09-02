@@ -17,8 +17,6 @@ object BspModulesTests extends IntegrationTestSuite {
       test("ModuleUtils resolves all referenced transitive modules") {
         initWorkspace()
         val res = eval("validate")
-        pprint.log(res.err)
-        pprint.log(res.out)
         assert(res.isSuccess)
         val file = workspacePath / "out" / "validate.dest" / "transitive-modules.json"
         assert(os.exists(file))
