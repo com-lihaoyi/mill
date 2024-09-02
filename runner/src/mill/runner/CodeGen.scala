@@ -62,28 +62,26 @@ object CodeGen {
         }
         .mkString("\n")
 
-      val adjacentImports = sibling.map(t =>
-        s"import ${pkgSelector2(t match {
-          case "package" | "build" => None
-          case _ => Some(t)
-        })}._"
-      ).mkString("\n")
-      val newSource = if (isBuildScript){
+      val pkgLine = s"package ${pkgSelector0(Some(globalPackagePrefix), None)}"
+
+      // Provide `build` as an alias to the root `build_.package_`, since from the user's
+      // perspective it looks like they're writing things that live in `package build`,
+      // but at compile-time we rename things, we so provide an alias to preserve the fiction
+      val aliasImports =
+        s"""import _root_.{build_ => $$file}
+           |import build_.{package_ => build}""".stripMargin
+
+      val wrapperHeader = if (isBuildScript){
         topBuildScript(
           scriptFolderPath.relativeTo(projectRoot).segments,
           scriptFolderPath,
           enclosingClasspath,
           millTopLevelProjectRoot,
           childAliases,
-          adjacentImports
         )
       } else{
-        topHelper(scriptPath.baseName, adjacentImports)
+        s"""object ${backtickWrap(scriptPath.baseName)} {""".stripMargin
       }
-
-
-      val pkgLine =
-        s"package $globalPackagePrefix; " + (if (pkg.nonEmpty) s"package $pkgSelector" else "")
 
       val markerComment =
         s"""//MILL_ORIGINAL_FILE_PATH=$scriptPath
@@ -93,7 +91,8 @@ object CodeGen {
         dest,
         Seq(
           pkgLine,
-          newSource,
+          aliasImports,
+          wrapperHeader,
           markerComment,
           scriptCode(scriptPath),
           // define this after user code so in case of conflict these lines are what turn
@@ -112,21 +111,18 @@ object CodeGen {
       enclosingClasspath: Seq[os.Path],
       millTopLevelProjectRoot: os.Path,
       childAliases: String,
-      adjacentImports: String
   ): String = {
     val segsList = segs.map(pprint.Util.literalize(_)).mkString(", ")
     val extendsClause = if (segs.isEmpty) {
       if (millTopLevelProjectRoot == scriptFolderPath) {
-        s"extends _root_.mill.main.RootModule($segsList) "
+        s"extends _root_.mill.main.RootModule() "
       } else {
-        s"extends _root_.mill.runner.MillBuildRootModule($segsList) "
+        s"extends _root_.mill.runner.MillBuildRootModule() "
       }
     } else {
       s"extends _root_.mill.main.RootModule.Subfolder($segsList) "
     }
 
-    // MillMiscInfo defines a bunch of module metadata that is only relevant
-    // for `build.sc`/`package.sc` files that can define modules
     val prelude =
       s"""import _root_.mill.runner.MillBuildRootModule
          |@_root_.scala.annotation.nowarn
@@ -144,34 +140,14 @@ object CodeGen {
          |import MillMiscInfo._
          |""".stripMargin
 
-    // Provide `build` as an alias to the root `build_.package_`, since from the user's
-    // perspective it looks like they're writing things that live in `package build`,
-    // but at compile-time we rename things, we so provide an alias to preserve the fiction
-    val buildImport = "import build_.{package_ => build}"
-
-
     val header =
       // User code needs to be put in a separate class for proper submodule
       // object initialization due to https://github.com/scala/scala3/issues/21444
       s"""object $wrapperObjectName extends $wrapperObjectName
          |class $wrapperObjectName $extendsClause {""".stripMargin
 
-    s"""import _root_.{build_ => $$file}
-       |$prelude
-       |$buildImport
-       |$adjacentImports
+    s"""$prelude
        |$header
-       |""".stripMargin
-  }
-  def topHelper(name: String, adjacentImports: String): String = {
-
-    // Provide `build` as an alias to the root `build_.package_`, since from the user's
-    // perspective it looks like they're writing things that live in `package build`,
-    // but at compile-time we rename things, we so provide an alias to preserve the fiction
-    s"""import _root_.{build_ => $$file}
-       |import build_.{package_ => build}
-       |$adjacentImports
-       |object ${backtickWrap(name)} {
        |""".stripMargin
   }
 
