@@ -66,7 +66,7 @@ object CodeGen {
       val aliasImports = Seq(
         // `$file` as an alias for `build_` to make usage of `import $file` when importing
         // helper methods work
-        "import _root_.{build_ => $$file}",
+        "import _root_.{build_ => $file}",
         // Provide `build` as an alias to the root `build_.package_`, since from the user's
         // perspective it looks like they're writing things that live in `package build`,
         // but at compile-time we rename things, we so provide an alias to preserve the fiction

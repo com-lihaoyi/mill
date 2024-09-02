@@ -161,10 +161,16 @@ object FileImportGraph {
       transformedStmts.append(stmt)
     }
 
-    val rootBuildFiles =
-      rootBuildFileNames.find(rootBuildFileName => os.exists(projectRoot / rootBuildFileName))
+    val rootBuildFiles = rootBuildFileNames
+      .find(rootBuildFileName => os.exists(projectRoot / rootBuildFileName))
+
+
     val useDummy = rootBuildFiles.isEmpty
     val foundRootBuildFileName: String = rootBuildFiles.getOrElse(rootBuildFileNames.head)
+
+    val buildFileExtension = buildFileExtensions.find(foundRootBuildFileName.endsWith).get
+    val nestedBuildFileName = nestedBuildFileNames.find(_.endsWith(buildFileExtension)).get
+
     processScript(projectRoot / foundRootBuildFileName, useDummy)
     val buildFiles = os
       .walk(
@@ -173,15 +179,14 @@ object FileImportGraph {
         skip = p =>
           p == projectRoot / out ||
             p == projectRoot / millBuild ||
-            (os.isDir(p) && !nestedBuildFileNames.exists(nestedBuildFileName =>
-              os.exists(p / nestedBuildFileName)
-            ))
+            (os.isDir(p) && !os.exists(p / nestedBuildFileName))
       )
-      .filter(p => nestedBuildFileNames.contains(p.last))
+      .filter(_.last == nestedBuildFileName)
 
     val adjacentScripts = (projectRoot +: buildFiles.map(_ / os.up))
       .flatMap(os.list(_))
-      .filter(p => buildFileExtensions.contains(p.ext))
+      .filter(_.ext == buildFileExtension)
+
     (buildFiles ++ adjacentScripts).foreach(processScript(_))
 
     new FileImportGraph(
