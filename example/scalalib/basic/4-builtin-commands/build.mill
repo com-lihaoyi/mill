@@ -1,7 +1,7 @@
 package build
-// == Example `build.sc`
+// == Example `build.mill`
 //
-// The following examples will be assuming the `build.sc` file given below:
+// The following examples will be assuming the `build.mill` file given below:
 
 //// SNIPPET:BUILD
 import mill._, scalalib._

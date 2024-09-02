@@ -17,7 +17,7 @@ object `package` extends RootModule with ScalaModule {
   }
 }
 
-// This example illustrates usage of the `mill-build/` folder. Mill's `build.sc`
+// This example illustrates usage of the `mill-build/` folder. Mill's `build.mill`
 // file and it's `import $file` and `$ivy` are a shorthand syntax for defining
 // a Mill `ScalaModule`, with sources and `ivyDeps` and so on, which is
 // compiled and executed to perform your build. This "meta-build" module lives in
@@ -26,11 +26,11 @@ object `package` extends RootModule with ScalaModule {
 /** See Also: mill-build/build.mill */
 /** See Also: src/Foo.scala */
 
-// Typically, if you wanted to use a library such as Scalatags in both your `build.sc`
+// Typically, if you wanted to use a library such as Scalatags in both your `build.mill`
 // as well as your application code, you would need to duplicate the version of Scalatags
 // used in both your `import $ivy` statement as well as your `def ivyDeps` statement.
 // The meta-build lets us avoid this duplication: we use `generatedSources` in
-// `mill-build/build.sc` to create a `DepVersions` object that the `build.sc` can use to pass the
+// `mill-build/build.mill` to create a `DepVersions` object that the `build.mill` can use to pass the
 // `scalatagsVersion` to the application without having to copy-paste the
 // version and keep the two copies in sync.
 //
@@ -58,8 +58,8 @@ Run-time HTML snippet: <p>world</p>
 
 
 // This example is trivial, but in larger builds there may be much more scenarios
-// where you may want to keep the libraries used in your `build.sc` and the libraries
-// used in your application code consistent. With the `mill-build/build.sc` configuration
+// where you may want to keep the libraries used in your `build.mill` and the libraries
+// used in your application code consistent. With the `mill-build/build.mill` configuration
 // enabled by `import $meta._`, this becomes possible.
 //
 // You can customize the `mill-build/` module with more flexibility than is

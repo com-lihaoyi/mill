@@ -42,7 +42,7 @@ object `package` extends RootModule with ScalaModule {
 //
 // Note that the client-side Scala code is the simplest 1-to-1 translation of
 // the original Javascript, using `scalajs-dom`, as this example is intended to
-// demonstrate the `build.sc` config in Mill. A real codebase is likely to use
+// demonstrate the `build.mill` config in Mill. A real codebase is likely to use
 // Javascript or Scala UI frameworks to manage the UI, but those are beyond the
 // scope of this example.
 

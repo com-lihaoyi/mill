@@ -8,26 +8,22 @@ object `package` extends RootModule with MyModule{
   )
 }
 ///** See Also: util.sc */
-///** See Also: foo/package.sc */
-///** See Also: foo/versions.sc */
+///** See Also: foo/package */
+///** See Also: foo/versions.mill */
 
 
-// Apart from having `package.sc` files in subfolders to define modules, Mill
-// also allows you to have helper code in any `*.sc` file in the same folder
-// as your `build.sc` or a `package.sc`.
+// Apart from having `package` files in subfolders to define modules, Mill
+// also allows you to have helper code in any `*.mill` file in the same folder
+// as your `build.mill` or a `package.mill`.
 //
-// Different helper scripts and ``build.sc``/``package.sc`` files can all refer to
+// Different helper scripts and ``build.mill``/``package`` files can all refer to
 // each other using the `build` object, which marks the root object of your build.
 // In this example:
 //
-// * `build.sc` can be referred to as simple `build`
-// * `util.sc` can be referred to as simple `build_.util`
-// * `foo/package.sc` can be referred to as simple `build.foo`
-// * `foo/versions.sc` can be referred to as simple `build_.foo.versions`
-//
-// Note the trailing `_` in `build_` in the references to helper files.
-// This syntax for importing helper files is a bit awkward, but is expected
-// to improve in future versions of Mill
+// * `build.mill` can be referred to as simple `build`
+// * `util.mill` can be referred to as simple `$file.util`
+// * `foo/package` can be referred to as simple `build.foo`
+// * `foo/versions.mill` can be referred to as simple `$file.foo.versions`
 
 /** Usage
 

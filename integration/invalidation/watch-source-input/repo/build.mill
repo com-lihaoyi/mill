@@ -1,7 +1,7 @@
 package build
 import mill._
 
-println("Setting up build.sc")
+println("Setting up build.mill")
 
 def foo = T.sources(millSourcePath / "foo1.txt", millSourcePath / "foo2.txt")
 def bar = T.source(millSourcePath / "bar.txt")

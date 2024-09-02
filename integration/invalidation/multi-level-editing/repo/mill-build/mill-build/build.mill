@@ -1,5 +1,5 @@
 package build
-// build.sc
+// build.mill
 import mill._, scalalib._
 
 object `package` extends MillBuildRootModule {

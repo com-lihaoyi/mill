@@ -71,7 +71,7 @@ def bar = T { s"hello ${foo("2.10", "jvm").suffix()}" }
 // This example shows off using a for-loop to generate a list of
 // cross-key-tuples, as a `Seq[(String, String)]` that we then pass it into the
 // `Cross` constructor. These can be referenced from the command line as shown
-// below, or referenced in other parts of your `build.sc` as shown in `def bar`
+// below, or referenced in other parts of your `build.mill` as shown in `def bar`
 // above.
 //
 // In this example we assigned `crossValue` and `crossValue2` to the names

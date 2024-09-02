@@ -36,7 +36,7 @@ object bar extends MyModule {
 //// SNIPPET:TREE
 //
 // ----
-// build.sc
+// build.mill
 // foo/
 //     src/
 //         Foo.scala

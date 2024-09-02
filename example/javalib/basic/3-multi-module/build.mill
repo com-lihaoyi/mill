@@ -23,7 +23,7 @@ object bar extends MyModule{
 
 //// SNIPPET:TREE
 // ----
-// build.sc
+// build.mill
 // foo/
 //     src/
 //         foo/

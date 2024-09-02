@@ -48,7 +48,7 @@ object bar extends ScalaModule {
 //
 // ----
 // .
-// ├── build.sc
+// ├── build.mill
 // ├── bar
 // │  ├── docs
 // │  │  ├── _blog

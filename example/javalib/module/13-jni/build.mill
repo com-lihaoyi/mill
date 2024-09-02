@@ -46,7 +46,7 @@ object `package` extends RootModule with JavaModule {
 // The above builds expect the following project layout:
 //
 // ----
-// build.sc
+// build.mill
 // src/
 //     foo/
 //         HelloWorld.java

@@ -14,7 +14,7 @@ object `package` extends RootModule with ScalaModule {
 }
 
 // This example illustrates usage of  `import $ivy`.
-// `import $ivy` lets you import ivy dependencies into your `build.sc`, so
+// `import $ivy` lets you import ivy dependencies into your `build.mill`, so
 // you can use arbitrary third-party libraries at build-time. This makes
 // lets you perform computations at build-time rather than run-time,
 // speeding up your application start up. In this case, we move the
