@@ -134,13 +134,13 @@ object CodeGen {
         throw Result.Failure(s"Only one RootModule named `package` can be defined in a build, not: ${misnamed.map(_.name).mkString(", ")}")
       }
 
-      val packageObjectData = objectData.find(o => o.name == "`package`" && o.parent == "RootModule")
+      val packageObjectData = objectData.find(o => o.name == "`package`" && (o.parent == "RootModule" || o.parent == "MillBuildRootModule"))
       val segments = scriptFolderPath.relativeTo(projectRoot).segments
       val newScriptCode = packageObjectData match{
         case None => scriptCode
         case Some(objectData) =>
           val substitute = // Use whitespace to try and make sure stuff to the right has the same column offset
-            if (segments.isEmpty) "class   package_  extends RootModule"
+            if (segments.isEmpty) s"class   package_  extends $expectedParent"
             else {
               val segmentsStr = segments.map(pprint.Util.literalize(_)).mkString(", ")
 

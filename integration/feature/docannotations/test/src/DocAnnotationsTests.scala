@@ -57,6 +57,8 @@ object DocAnnotationsTests extends IntegrationTestSuite {
           """inspect(MainModule.scala:...)
             |    Displays metadata about the given task without actually running it.
             |
+            |    targets <str>...
+            |
             |Inputs:
             |""".stripMargin,
           doc
