@@ -9,7 +9,7 @@ object MillInitTests extends IntegrationTestSuite {
     test("Mill init works") {
       initWorkspace()
       eval(("init", "com-lihaoyi/mill-scala-hello.g8", "--name=example")).isSuccess ==> true
-      val projFile = workspacePath / "example" / "build.mill"
+      val projFile = workspacePath / "example" / "build.sc"
       assert(os.exists(projFile))
     }
   }
