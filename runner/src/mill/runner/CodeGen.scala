@@ -15,7 +15,6 @@ object CodeGen {
       enclosingClasspath: Seq[os.Path],
       millTopLevelProjectRoot: os.Path
   ): Unit = {
-
     for (scriptSource <- scriptSources) {
       val scriptPath = scriptSource.path
       val specialNames = (nestedBuildFileNames ++ rootBuildFileNames).toSet
@@ -23,8 +22,8 @@ object CodeGen {
       val isBuildScript = specialNames(scriptPath.last)
       val scriptFolderPath = scriptPath / os.up
 
-      val dest =
-        targetDest / FileImportGraph.fileImportToSegments(projectRoot, scriptPath, false)
+      val packageSegments = FileImportGraph.fileImportToSegments(projectRoot, scriptPath, false)
+      val dest = targetDest / packageSegments
 
       val childNames = scriptSources
         .flatMap { p =>
@@ -38,18 +37,10 @@ object CodeGen {
         }
         .distinct
 
-      val sibling = scriptSources
-        .collect {
-          case p if p.path != scriptPath && p.path / os.up == scriptFolderPath => p.path.baseName
-        }
-        .distinct
-
-      val Seq(`globalPackagePrefix`, pkg @ _*) =
-        FileImportGraph.fileImportToSegments(projectRoot, scriptFolderPath, true)
+      val Seq(`globalPackagePrefix`, pkg @ _*) = packageSegments
 
       def pkgSelector0(pre: Option[String], s: Option[String]) =
-        ((pre ++ pkg ++ s).map(backtickWrap)).mkString(".")
-      val pkgSelector = pkgSelector0(None, None)
+        (pre ++ pkg ++ s).map(backtickWrap).mkString(".")
       def pkgSelector2(s: Option[String]) = s"_root_.${pkgSelector0(Some(globalPackagePrefix), s)}"
       val childAliases = childNames
         .map { c =>
