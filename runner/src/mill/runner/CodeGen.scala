@@ -37,7 +37,7 @@ object CodeGen {
         }
         .distinct
 
-      val Seq(`globalPackagePrefix`, pkg @ _*) = packageSegments
+      val pkg = packageSegments.drop(1).dropRight(1)
 
       def pkgSelector0(pre: Option[String], s: Option[String]) =
         (pre ++ pkg ++ s).map(backtickWrap).mkString(".")
