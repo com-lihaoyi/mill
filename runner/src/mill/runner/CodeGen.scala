@@ -22,7 +22,7 @@ object CodeGen {
       val isBuildScript = specialNames(scriptPath.last)
       val scriptFolderPath = scriptPath / os.up
 
-      val packageSegments = FileImportGraph.fileImportToSegments(projectRoot, scriptPath, false)
+      val packageSegments = FileImportGraph.fileImportToSegments(projectRoot, scriptPath)
       val dest = targetDest / packageSegments
 
       val childNames = scriptSources
