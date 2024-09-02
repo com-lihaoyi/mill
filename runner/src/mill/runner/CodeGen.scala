@@ -22,11 +22,11 @@ object CodeGen {
       val isBuildScript = specialNames(scriptPath.last)
       val scriptFolderPath = scriptPath / os.up
 
-      if (scriptFolderPath == projectRoot && scriptPath.baseName == "package"){
+      if (scriptFolderPath == projectRoot && scriptPath.baseName == "package") {
         throw Result.Failure(s"Mill ${scriptPath.last} files can only be in subfolders")
       }
 
-      if (scriptFolderPath != projectRoot && scriptPath.baseName == "build"){
+      if (scriptFolderPath != projectRoot && scriptPath.baseName == "build") {
         throw Result.Failure(s"Mill ${scriptPath.last} files can only be in the project root")
       }
 
@@ -73,15 +73,15 @@ object CodeGen {
         "import build_.{package_ => build}"
       ).mkString("\n")
 
-      val wrapperHeader = if (isBuildScript){
+      val wrapperHeader = if (isBuildScript) {
         topBuildScript(
           scriptFolderPath.relativeTo(projectRoot).segments,
           scriptFolderPath,
           enclosingClasspath,
           millTopLevelProjectRoot,
-          childAliases,
+          childAliases
         )
-      } else{
+      } else {
         s"""object ${backtickWrap(scriptPath.baseName)} {""".stripMargin
       }
 
@@ -112,9 +112,9 @@ object CodeGen {
       scriptFolderPath: os.Path,
       enclosingClasspath: Seq[os.Path],
       millTopLevelProjectRoot: os.Path,
-      childAliases: String,
+      childAliases: String
   ): String = {
-        val prelude =
+    val prelude =
       s"""import _root_.mill.runner.MillBuildRootModule
          |@_root_.scala.annotation.nowarn
          |object MillMiscInfo extends MillBuildRootModule.MillMiscInfo(

@@ -164,7 +164,6 @@ object FileImportGraph {
     val rootBuildFiles = rootBuildFileNames
       .find(rootBuildFileName => os.exists(projectRoot / rootBuildFileName))
 
-
     val useDummy = rootBuildFiles.isEmpty
     val foundRootBuildFileName: String = rootBuildFiles.getOrElse(rootBuildFileNames.head)
 
