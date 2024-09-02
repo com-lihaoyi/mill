@@ -1317,7 +1317,7 @@ object example extends Module {
     )
 
     /**
-     * Parses a `build.sc` for specific comments and return the split-by-type content
+     * Parses a `build.mill` for specific comments and return the split-by-type content
      */
     def parsed: T[Seq[(String, String)]] = T {
       mill.testkit.ExampleParser(testRepoRoot().path)
@@ -1346,7 +1346,7 @@ object example extends Module {
                   val exampleDashed = examplePath.segments.mkString("-")
                   val download = s"{mill-download-url}/$label-$exampleDashed.zip[download]"
                   val browse = s"{mill-example-url}/$examplePath[browse]"
-                  s".build.sc ($download, $browse)"
+                  s".build.mill ($download, $browse)"
                 }
               seenCode = true
               s"""

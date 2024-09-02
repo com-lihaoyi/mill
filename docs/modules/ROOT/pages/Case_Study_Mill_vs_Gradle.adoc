@@ -11,11 +11,11 @@ codebase as the example. Mockito is a medium sized codebase, 100,000 lines of Ja
 subprojects. By porting it to Mill, this case study should give you
 an idea of how Mill compares to Gradle in more realistic, real-world projects.
 
-To do this, we have written a Mill `build.sc` file for the Mockito project. This can be used
+To do this, we have written a Mill `build.mill` file for the Mockito project. This can be used
 with Mill to build and test the various submodules of the Mockito project without needing to
 change any other files in the repository:
 
-- https://github.com/com-lihaoyi/mill/blob/main/example/thirdparty/mockito/build.sc[Mockito build.sc file]
+- https://github.com/com-lihaoyi/mill/blob/main/example/thirdparty/mockito/build.mill[Mockito build.mill file]
 
 == Completeness
 

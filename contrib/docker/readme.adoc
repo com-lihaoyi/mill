@@ -7,9 +7,10 @@ Requires the docker CLI to be installed.
 
 In the simplest configuration just extend `DockerModule` and declare a `DockerConfig` object.
 
-.`build.sc`
+.`build.mill`
 [source,scala]
 ----
+package build
 import mill._, scalalib._
 
 import $ivy.`com.lihaoyi::mill-contrib-docker:$MILL_VERSION`

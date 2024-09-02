@@ -31,7 +31,7 @@ object CodeSigNestedTests extends IntegrationTestSuite {
 
       // Changing the body of a T{...} block directly invalidates that target,
       // but not downstream targets unless the return value changes
-      modifyFile(workspacePath / "build.sc", _.replace("running foo", "running foo2"))
+      modifyFile(workspacePath / "build.mill", _.replace("running foo", "running foo2"))
       val mangledFoo = eval("outer.inner.qux")
       assert(
         mangledFoo.out.linesIterator.toSet == Set(
@@ -41,7 +41,7 @@ object CodeSigNestedTests extends IntegrationTestSuite {
         )
       )
 
-      modifyFile(workspacePath / "build.sc", _.replace("; helperFoo }", "; helperFoo + 4 }"))
+      modifyFile(workspacePath / "build.mill", _.replace("; helperFoo }", "; helperFoo + 4 }"))
       val mangledHelperFooCall = eval("outer.inner.qux")
       assert(
         mangledHelperFooCall.out.linesIterator.toSet == Set(
@@ -53,7 +53,7 @@ object CodeSigNestedTests extends IntegrationTestSuite {
         )
       )
 
-      modifyFile(workspacePath / "build.sc", _.replace("running qux", "running qux2"))
+      modifyFile(workspacePath / "build.mill", _.replace("running qux", "running qux2"))
       val mangledQux = eval("outer.inner.qux")
       assert(
         mangledQux.out.linesIterator.toSet ==
@@ -64,7 +64,7 @@ object CodeSigNestedTests extends IntegrationTestSuite {
       // Changing the body of some helper method that gets called by a T{...}
       // block also invalidates the respective targets, and downstream targets if necessary
 
-      modifyFile(workspacePath / "build.sc", _.replace(" 1 ", " 6 "))
+      modifyFile(workspacePath / "build.mill", _.replace(" 1 ", " 6 "))
       val mangledHelperFooValue = eval("outer.inner.qux")
       assert(
         mangledHelperFooValue.out.linesIterator.toSet == Set(
@@ -76,7 +76,7 @@ object CodeSigNestedTests extends IntegrationTestSuite {
         )
       )
 
-      modifyFile(workspacePath / "build.sc", _.replace("running helperBar", "running helperBar2"))
+      modifyFile(workspacePath / "build.mill", _.replace("running helperBar", "running helperBar2"))
       val mangledHelperBar = eval("outer.inner.qux")
       assert(
         mangledHelperBar.out.linesIterator.toSet == Set(
@@ -86,7 +86,7 @@ object CodeSigNestedTests extends IntegrationTestSuite {
         )
       )
 
-      modifyFile(workspacePath / "build.sc", _.replace("20", "70"))
+      modifyFile(workspacePath / "build.mill", _.replace("20", "70"))
       val mangledHelperBarValue = eval("outer.inner.qux")
       assert(
         mangledHelperBarValue.out.linesIterator.toSet == Set(
@@ -98,7 +98,7 @@ object CodeSigNestedTests extends IntegrationTestSuite {
         )
       )
 
-      modifyFile(workspacePath / "build.sc", _.replace("running helperQux", "running helperQux2"))
+      modifyFile(workspacePath / "build.mill", _.replace("running helperQux", "running helperQux2"))
       val mangledBar = eval("outer.inner.qux")
       assert(
         mangledBar.out.linesIterator.toSet ==
@@ -108,7 +108,7 @@ object CodeSigNestedTests extends IntegrationTestSuite {
 
       // Make sure changing `val`s in varying levels of nested modules conservatively invalidates
       // all targets in inner modules, regardless of whether they are related or not
-      modifyFile(workspacePath / "build.sc", _.replace("val valueFoo = 0", "val valueFoo = 10"))
+      modifyFile(workspacePath / "build.mill", _.replace("val valueFoo = 0", "val valueFoo = 10"))
       val mangledValFoo = eval("outer.inner.qux")
       assert(
         mangledValFoo.out.linesIterator.toSet == Set(
@@ -121,7 +121,7 @@ object CodeSigNestedTests extends IntegrationTestSuite {
         )
       )
 
-      modifyFile(workspacePath / "build.sc", _.replace("val valueBar = 0", "val valueBar = 10"))
+      modifyFile(workspacePath / "build.mill", _.replace("val valueBar = 0", "val valueBar = 10"))
       val mangledValBar = eval("outer.inner.qux")
       assert(
         mangledValBar.out.linesIterator.toSet == Set(
@@ -132,7 +132,7 @@ object CodeSigNestedTests extends IntegrationTestSuite {
         )
       )
 
-      modifyFile(workspacePath / "build.sc", _.replace("val valueQux = 0", "val valueQux = 10"))
+      modifyFile(workspacePath / "build.mill", _.replace("val valueQux = 0", "val valueQux = 10"))
       val mangledValQux = eval("outer.inner.qux")
       assert(
         mangledValQux.out.linesIterator.toSet == Set(
@@ -142,7 +142,7 @@ object CodeSigNestedTests extends IntegrationTestSuite {
       )
 
       modifyFile(
-        workspacePath / "build.sc",
+        workspacePath / "build.mill",
         _.replace("val valueFooUsedInBar = 0", "val valueFooUsedInBar = 10")
       )
       val mangledValFooUsedInBar = eval("outer.inner.qux")
@@ -158,7 +158,7 @@ object CodeSigNestedTests extends IntegrationTestSuite {
       )
 
       modifyFile(
-        workspacePath / "build.sc",
+        workspacePath / "build.mill",
         _.replace("val valueBarUsedInQux = 0", "val valueBarUsedInQux = 10")
       )
       val mangledValBarUsedInQux = eval("outer.inner.qux")
@@ -172,18 +172,18 @@ object CodeSigNestedTests extends IntegrationTestSuite {
       )
 
       // Adding a newline before one of the target definitions does not invalidate it
-      modifyFile(workspacePath / "build.sc", _.replace("def qux", "\ndef qux"))
+      modifyFile(workspacePath / "build.mill", _.replace("def qux", "\ndef qux"))
       val addedSingleNewline = eval("outer.inner.qux")
       assert(addedSingleNewline.out == "")
 
-      modifyFile(workspacePath / "build.sc", _.replace("def", "\ndef"))
+      modifyFile(workspacePath / "build.mill", _.replace("def", "\ndef"))
       val addedManyNewlines = eval("outer.inner.qux")
       assert(addedManyNewlines.out == "")
 
       // Reformatting the entire file, replacing `;`s with `\n`s and spacing out
       // the target bodies over multiple lines does not cause anything to invalidate
       modifyFile(
-        workspacePath / "build.sc",
+        workspacePath / "build.mill",
         _.replace("{", "{\n").replace("}", "\n}").replace(";", "\n")
       )
       val addedNewlinesInsideCurlies = eval("outer.inner.qux")

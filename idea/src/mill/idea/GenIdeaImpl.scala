@@ -384,7 +384,7 @@ case class GenIdeaImpl(
 
     /**
      * We need to use a very specific library name format.
-     * This is required in order IntelliJ IDEA can recognize `$ivy` imports in `build.sc` files and doesn't show red code.
+     * This is required in order IntelliJ IDEA can recognize `$ivy` imports in `build.mill` files and doesn't show red code.
      * This is how currently Ammonite integration is done in Scala Plugin for IntelliJ IDEA.
      *
      * @see [[https://github.com/JetBrains/intellij-scala/blob/idea223.x/scala/worksheet/src/org/jetbrains/plugins/scala/worksheet/ammonite/AmmoniteUtil.scala#L240]]

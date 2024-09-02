@@ -24,15 +24,15 @@ installed. This is necessary as Mill build files are written in Scala,
 even if you are using it to build a Java project.
 
 Once you have the plugin installed, you can use IntelliJ to open any project
-containing a Mill `build.sc` file, and IntelliJ will automatically load the
+containing a Mill `build.mill` file, and IntelliJ will automatically load the
 Mill build. This will provide support both for your application code,
-as well as the code in the `build.sc`:
+as well as the code in the `build.mill`:
 
 image::IntellijApp.png[]
 
 image::IntellijBuild.png[]
 
-If you make changes to your Mill `build.sc`, you can ask Intellij to load
+If you make changes to your Mill `build.mill`, you can ask Intellij to load
 those updates by opening the "BSP" tab and clicking the "Refresh" button
 
 image::IntellijRefresh.png[]
@@ -59,15 +59,15 @@ installed. This is necessary as Mill build files are written in Scala,
 even if you are using it to build a Java project.
 
 Once you have the language server installed, you can ask VSCode to open any folder
-containing a Mill `build.sc` file, and VSCode will ask you to import your
+containing a Mill `build.mill` file, and VSCode will ask you to import your
 Mill build. This will provide support both for your application code,
-as well as the code in the `build.sc`:
+as well as the code in the `build.mill`:
 
 image::VSCodeApp.png[]
 
 image::VSCodeBuild.png[]
 
-If you make changes to your Mill `build.sc`, you can ask VSCode to load
+If you make changes to your Mill `build.mill`, you can ask VSCode to load
 those updates by opening the "BSP" tab and clicking the "Refresh" button
 
 image::VSCodeRefresh.png[]

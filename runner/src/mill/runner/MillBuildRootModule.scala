@@ -16,8 +16,8 @@ import scala.collection.immutable.SortedMap
 import scala.util.Try
 
 /**
- * Mill module for pre-processing a Mill `build.sc` and related files and then
- * compiling them as a normal [[ScalaModule]]. Parses `build.sc`, walks any
+ * Mill module for pre-processing a Mill `build.mill` and related files and then
+ * compiling them as a normal [[ScalaModule]]. Parses `build.mill`, walks any
  * `import $file`s, wraps the script files to turn them into valid Scala code
  * and then compiles them with the `ivyDeps` extracted from the `import $ivy`
  * calls within the scripts.

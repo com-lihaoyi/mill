@@ -4,12 +4,12 @@ import mill.api.internal
 import mill.define.{BaseModule, Ctx, Caller, Discover, Module, Segments}
 
 /**
- * Used to mark a module in your `build.sc` as a top-level module, so it's
+ * Used to mark a module in your `build.mill` as a top-level module, so it's
  * targets and commands can be run directly e.g. via `mill run` rather than
  * prefixed by the module name `mill foo.run`.
  *
- * Only one top-level module may be defined in your `build.sc`, and it must be
- * defined at the top level of the `build.sc` and not nested in any other
+ * Only one top-level module may be defined in your `build.mill`, and it must be
+ * defined at the top level of the `build.mill` and not nested in any other
  * modules.
  */
 abstract class RootModule()(implicit

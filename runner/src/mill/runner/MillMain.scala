@@ -296,7 +296,7 @@ object MillMain {
   }
 
   /**
-   * Determine, whether we need a `build.sc` or not.
+   * Determine, whether we need a `build.mill` or not.
    */
   private def needBuildSc(config: MillCliConfig): Boolean = {
     // Tasks, for which running Mill without an existing buildfile is allowed.
@@ -309,7 +309,7 @@ object MillMain {
     val whitelistMatch =
       targetsAndParams.nonEmpty && noBuildFileTaskWhitelist.exists(targetsAndParams.head == _)
     // Has the user additional/extra imports
-    // (which could provide additional commands that could make sense without a build.sc)
+    // (which could provide additional commands that could make sense without a build.mill)
     val extraPlugins = config.imports.nonEmpty
     !(whitelistMatch || extraPlugins)
   }

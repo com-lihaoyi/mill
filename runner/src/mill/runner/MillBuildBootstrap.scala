@@ -16,7 +16,7 @@ import java.net.URLClassLoader
  * Logic around bootstrapping Mill, creating a [[MillBuildRootModule.BootstrapModule]]
  * and compiling builds/meta-builds and classloading their [[RootModule]]s so we
  * can evaluate the requested tasks on the [[RootModule]] representing the user's
- * `build.sc` file.
+ * `build.mill` file.
  *
  * When Mill is run in client-server mode, or with `--watch`, then data from
  * each evaluation is cached in-memory in [[prevRunnerState]].
@@ -75,9 +75,9 @@ class MillBuildBootstrap(
 
     val nestedState: RunnerState =
       if (depth == 0) {
-        // On this level we typically want assume a Mill project, which means we want to require an existing `build.sc`.
-        // Unfortunately, some targets also make sense without a `build.sc`, e.g. the `init` command.
-        // Hence we only report a missing `build.sc` as an problem if the command itself does not succeed.
+        // On this level we typically want assume a Mill project, which means we want to require an existing `build.mill`.
+        // Unfortunately, some targets also make sense without a `build.mill`, e.g. the `init` command.
+        // Hence we only report a missing `build.mill` as an problem if the command itself does not succeed.
         lazy val state = evaluateRec(depth + 1)
         if (
           rootBuildFileNames.exists(rootBuildFileName =>
@@ -92,7 +92,7 @@ class MillBuildBootstrap(
           } else {
             state match {
               case RunnerState(bootstrapModuleOpt, frames, Some(error)) =>
-                // Add a potential clue (missing build.sc) to the underlying error message
+                // Add a potential clue (missing build.mill) to the underlying error message
                 RunnerState(bootstrapModuleOpt, frames, Some(msg + "\n" + error))
               case state => state
             }
@@ -203,7 +203,7 @@ class MillBuildBootstrap(
   }
 
   /**
-   * Handles the compilation of `build.sc` or one of the meta-builds. These
+   * Handles the compilation of `build.mill` or one of the meta-builds. These
    * cases all only need us to run evaluate `runClasspath` and
    * `scriptImportGraph` to instantiate their classloader/`RootModule` to feed
    * into the next level's [[Evaluator]].
@@ -334,7 +334,7 @@ class MillBuildBootstrap(
 
     val bootLogPrefix =
       if (depth == 0) ""
-      else "[" + (Seq.fill(depth - 1)(millBuild) ++ Seq("build.sc")).mkString("/") + "] "
+      else "[" + (Seq.fill(depth - 1)(millBuild) ++ Seq("build.mill")).mkString("/") + "] "
 
     mill.eval.EvaluatorImpl(
       home,

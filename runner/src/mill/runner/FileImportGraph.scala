@@ -40,7 +40,7 @@ object FileImportGraph {
 
   /**
    * We perform a depth-first traversal of the import graph of `.sc` files,
-   * starting from `build.sc`, collecting the information necessary to
+   * starting from `build.mill`, collecting the information necessary to
    * instantiate the [[MillRootModule]]
    */
   def parseBuildFiles(topLevelProjectRoot: os.Path, projectRoot: os.Path): FileImportGraph = {
@@ -75,9 +75,10 @@ object FileImportGraph {
         val expectedImportSegments = expectedImportSegments0.map(backtickWrap).mkString(".")
         val importSegments = segments.mkString(".")
         if (
+          // Legacy `.sc` files have their package build be optional
           s.ext == "mill" &&
           expectedImportSegments != importSegments &&
-          // Root build.sc file has its `package build` be optional
+          // Root build.mill file has its `package build` be optional
           !(importSegments == "" && rootBuildFileNames.contains(s.last))
         ) {
           val expectedImport =

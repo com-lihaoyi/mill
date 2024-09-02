@@ -398,7 +398,7 @@ private[mill] trait GroupEvaluator {
   // re-created - so the worker *class* changes - but the *value* inputs to the
   // worker does not change. This typically happens when the worker class is
   // brought in via `import $ivy`, since the class then comes from the
-  // non-bootstrap classloader which can be re-created when the `build.sc` file
+  // non-bootstrap classloader which can be re-created when the `build.mill` file
   // changes.
   //
   // We do not want to do this for normal targets, because those are always

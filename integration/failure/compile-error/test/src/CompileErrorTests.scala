@@ -16,7 +16,7 @@ object CompileErrorTests extends IntegrationTestSuite {
       assert(res.err.contains("""println(doesntExist)"""))
       assert(res.err.contains("""qux.sc:4:34: type mismatch;"""))
       assert(res.err.contains(
-        """build.sc:8:5: value noSuchMethod is not a member"""
+        """build.mill:8:5: value noSuchMethod is not a member"""
       ))
     }
   }

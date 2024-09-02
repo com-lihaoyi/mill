@@ -14,7 +14,7 @@ case class ImportTree(
 )
 
 /**
- * Fastparse parser that extends the Scalaparse parser to handle `build.sc` and
+ * Fastparse parser that extends the Scalaparse parser to handle `build.mill` and
  * other script files, and also for subsequently parsing any magic import
  * statements into [[ImportTree]] structures for the [[MillBuildRootModule]] to use
  */

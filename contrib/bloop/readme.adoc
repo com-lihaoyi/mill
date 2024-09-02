@@ -22,9 +22,10 @@ It generate correct bloop config for any `JavaModule`, `ScalaModule`,
 You can mix-in the `Bloop.Module` trait with any JavaModule to quickly access
 the deserialised configuration for that particular module:
 
-.`build.sc`
+.`build.mill`
 [source,scala]
 ----
+package build
 import $ivy.`com.lihaoyi::mill-contrib-bloop:`
 
 import mill._

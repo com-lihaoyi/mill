@@ -9,7 +9,7 @@ import utest._
 import scala.util.matching.Regex
 
 // Cause various kinds of changes - valid, parse errors, compile errors,
-// runtime errors - in various levels of build.sc meta-builds, ensuring
+// runtime errors - in various levels of build.mill meta-builds, ensuring
 // that the proper messages are reported, proper build classloaders are
 // re-used or invalidated, and the proper files end up getting watched
 // in all cases.

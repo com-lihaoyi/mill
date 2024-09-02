@@ -26,11 +26,11 @@ compilation, and so on. Mill's main advantage over SBT is its simplicity:
   visualizing subproject dependencies, performance profiles, third-party dependency trees. This helps
   you understand what your Mill build is doing.
 
-To do this comparison, we have written a Mill `build.sc` file for the Gatling project. This can be used
+To do this comparison, we have written a Mill `build.mill` file for the Gatling project. This can be used
 with Mill to build and test the various submodules of the Gatling project without needing to
 change any other files in the repository:
 
-- https://github.com/com-lihaoyi/mill/blob/main/example/thirdparty/gatling/build.sc[Gatling build.sc file]
+- https://github.com/com-lihaoyi/mill/blob/main/example/thirdparty/gatling/build.mill[Gatling build.mill file]
 
 == Completeness
 

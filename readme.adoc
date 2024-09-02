@@ -111,7 +111,7 @@ Note that the in-memory tests compile the `BaseModule` together with the test su
 You can reproduce these tests manually using
 `./mill dist.run <test-folder-path> <command>`.
 
-`example` tests are written in a single `build.sc` file, with the test commands written in a comment with a bash-like syntax together with the build code and comments that explain the example.
+`example` tests are written in a single `build.mill` file, with the test commands written in a comment with a bash-like syntax together with the build code and comments that explain the example.
 These serve three purposes:
 
 1. Basic smoke-tests to make sure the functionality works at all, without covering every edge case
@@ -183,7 +183,7 @@ To test bootstrapping of Mill's own Mill build using a version of Mill built fro
 ci/patch-mill-bootstrap.sh
 ----
 
-This creates a standalone assembly at `target/mill-release` you can use, which references jars published locally in your `~/.ivy2/local` cache, and applies any necessary patches to `build.sc` to deal with changes in Mill between the version specified in `.config/mill-version` that is normally used to build Mill and the `HEAD` version your assembly was created from.
+This creates a standalone assembly at `target/mill-release` you can use, which references jars published locally in your `~/.ivy2/local` cache, and applies any necessary patches to `build.mill` to deal with changes in Mill between the version specified in `.config/mill-version` that is normally used to build Mill and the `HEAD` version your assembly was created from.
 You can then use this standalone assembly to build & re-build your current Mill checkout without worrying about stomping over compiled code that the assembly is using.
 
 This assembly is design to work on bash, bash-like shells and Windows Cmd.
@@ -317,11 +317,24 @@ how to either disable the breaking change with a flag or adjust your code to acc
 
 
 * *Breaking Changes*
-** Builds can now be modularized into per-folder definitions by defining
-`module.sc` files in subfolders {link-pr}/3213[#3213]
-*** This change removes the ability to define targets and modules in arbitrary scripts that
-you `import $file`. All targets and modules need to be moved to `module.sc` files in each
-subfolder
+
+** The `build.sc` file has been renamed `build.mill` to prevent confusion with Ammonite/Scala-CLI scripts,
+and all associated `.sc` files have been renamed to `.mill`. All `.mill` files must have a `package` declaration,
+with `package build` for `.mill` files in the root folder and `package build.foo.bar` for `.mill` files in `foo/bar/`.
+
+*** For migration compatibility, `.sc` files are still supported, but you should convert to use `.mill` with explicit
+`package` declarations to benefit from improved IDE support
+
+** Builds can now be modularized into per-folder definitions by defining `package.mill` files in subfolders
+{link-pr}/3213[#3213]. You can no longer define targets and modules in arbitrary `foo.sc` files
+
+*** All target and module definitions must be moved into `package.mill` files in each folder.
+
+** Only `foo.mill` files in folders adjacent to a `build.mill` or `package.mill` can be imported via `import $file`.
+
+*** You need to create empty `package.sc` files in any folder containing scripts if they are not already
+adjacent to your `build.sc` in the root folder
+
 
 ** Turn on parallelism for task evaluation by default, except for commands
 which always run serially at the end {link-pr}/3265[#3265]

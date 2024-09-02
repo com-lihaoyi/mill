@@ -65,7 +65,7 @@ xref:Case_Study_Mill_vs_Gradle.adoc[Compared to Gradle]:
 * **Mill follows Gradle's conciseness**: Rather than pages and pages of verbose XML, every
   line in a Mill build is meaningful. e.g. adding a dependency is 1 line in
   Mill, like it is in Gradle, and unlike the 5 line `<dependency>` declaration you find in Maven.
-  Skimming and understanding a 100-line Mill `build.sc` file is
+  Skimming and understanding a 100-line Mill `build.mill` file is
   often much easier than skimming the equivalent 500-line Maven `pom.xml`.
 
 * **Mill builds more performant**: Although both Mill and Gradle automatically cache and

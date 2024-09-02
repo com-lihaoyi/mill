@@ -4,9 +4,10 @@
 This plugin allows users to publish open-source packages to Maven Central via the Sonatype Central portal.
 
 == Quickstart
-Add the following to your `build.sc`:
+Add the following to your `build.mill`:
 [source,scala]
 ----
+package build
 import $ivy.`com.lihaoyi::mill-contrib-sonatypecentral:`
 import mill.contrib.sonatypecentral.SonatypeCentralPublishModule
 

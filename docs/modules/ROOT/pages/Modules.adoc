@@ -56,5 +56,4 @@ that is shared by the entire build: for example,
 `mill.scalalib.ZincWorkerApi/zincWorker` provides a shared Scala compilation
 service & cache that is shared between all ``ScalaModule``s, and
 `mill.scalalib.GenIdea/idea` lets you generate IntelliJ projects without
-needing to define your own `T.command` in your `build.sc` file
-
+needing to define your own `T.command` in your `build.mill` file

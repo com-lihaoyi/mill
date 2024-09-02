@@ -24,7 +24,7 @@ object DocAnnotationsTests extends IntegrationTestSuite {
       val inheritedIvyDeps = out("inspect").json.str
       assert(
         globMatches(
-          """core.test.ivyDeps(build.sc:...)
+          """core.test.ivyDeps(build.mill:...)
             |    Overridden ivyDeps Docs!!!
             |
             |    Any ivy dependencies you want to add to this Module, in the format
@@ -41,7 +41,7 @@ object DocAnnotationsTests extends IntegrationTestSuite {
       val target = out("inspect").json.str
       assert(
         globMatches(
-          """core.target(build.sc:...)
+          """core.target(build.mill:...)
             |    Core Target Docz!
             |
             |Inputs:

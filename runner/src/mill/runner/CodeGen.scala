@@ -115,7 +115,7 @@ object CodeGen {
   ): String = {
     val segsList = segs.map(pprint.Util.literalize(_)).mkString(", ")
     val extendsClause =
-      if (!isBuildScript) "" // Non-`build.sc`/`package.sc` files cannot define modules
+      if (!isBuildScript) "" // Non-`build.mill`/`package.sc` files cannot define modules
       else if (segs.isEmpty) {
         if (millTopLevelProjectRoot == scriptFolderPath) {
           s"extends _root_.mill.main.RootModule($segsList) "
