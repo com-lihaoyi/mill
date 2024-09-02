@@ -305,7 +305,7 @@ endif::[]
 [#main]
 === main branch
 
-The upcoming 0.12.0 release is intended to bundle together all the breaking changes we 
+The upcoming 0.12.0 release is intended to bundle together breaking changes we
 need to do that do not break binary compatibility. It is expected to be followed by 0.13.x,
 which will contain further changes that _do_ break binary compatibility. Due to binary 
 compatibility, Mill plugins published for Mill 0.11.x can continue to be used without updating 
@@ -385,9 +385,15 @@ now a no-op.
 ** Overhaul the Mill client-server protocol to improve robustness
 {link-pr}/3363[#3363] {link-pr}/3366[#3366] {link-pr}/3368[#3368] {link-pr}/3370[#3370]
 
-** Mill now publishes unit, integration, and example test fixtures for writing plugins {link-pr}/3398[#3398]
-for downstream plugin authors to use in testing their own Mill extensions. See the documentation for
-https://mill-build.org/mill/Writing_Mill_Plugins.html[Writing Mill Plugins] for more details
+** Mill now publishes unit, integration, and example test fixtures for writing plugins as `mill-testkit`
+{link-pr}/3398[#3398] for downstream plugin authors to use in testing their own Mill extensions.
+
+*** See the documentation for
+https://mill-build.org/mill/Writing_Mill_Plugins.html[Writing Mill Plugins] for more details.
+
+*** `mill-testkit` is experimental and does not provide the same stability or binary-compatibility
+guarantees as the rest of Mill. Nevertheless, if you are writing Mill plugins, please try it out
+and let us know what you think!
 
 ** Bump default Sonatype Maven Central publishing timeouts to 10 minutes to avoid
 timeouts due to slowness https://github.com/com-lihaoyi/mill/commit/b4c9386b0233fab53a312426715e226e4a7f6302
