@@ -140,11 +140,11 @@ object CodeGen {
         case None => scriptCode
         case Some(objectData) =>
           val substitute = // Use whitespace to try and make sure stuff to the right has the same column offset
-            if (segments.isEmpty) s"class   package_  extends $expectedParent"
+            if (segments.isEmpty) s"class package_ extends $expectedParent"
             else {
               val segmentsStr = segments.map(pprint.Util.literalize(_)).mkString(", ")
 
-              s"class   package_  extends RootModule.Subfolder($segmentsStr)"
+              s"class package_ extends RootModule.Subfolder($segmentsStr)"
             }
           scriptCode.take(objectData.start) +
           substitute +
