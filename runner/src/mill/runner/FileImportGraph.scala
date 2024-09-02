@@ -137,14 +137,22 @@ object FileImportGraph {
             (start, "_root_._", end)
 
           case ImportTree(Seq(("$file", end0), rest @ _*), mapping, start, end) =>
-            val nextPaths = mapping.map { case (lhs, rhs) => nextPathFor(projectRoot, rest.map(_._1) :+ lhs) }
-
             // Only recursively explore imports from legacy `.sc` files, as new `.mill` files
             // do file discovery via scanning folders containing `package.mill` files
-            if (s.ext == "sc") fileImports.addAll(nextPaths)
+            if (s.ext == "sc"){
+              val nextPaths = mapping.map { case (lhs, rhs) => nextPathFor(s, rest.map(_._1) :+ lhs) }
+              val patchString =
+                (fileImportToSegments(projectRoot, nextPaths(0) / os.up, false) ++ Seq())
+                  .map(backtickWrap)
+                  .mkString(".")
+              fileImports.addAll(nextPaths)
+              (start, patchString, rest.lastOption.fold(end0)(_._2))
 
-            (start, "", start)
+            }else{
+              (start, "", start)
+            }
         }
+
         val numNewLines = stmt.substring(start, end).count(_ == '\n')
 
         stmt = stmt.patch(start, patchString + mill.util.Util.newLine * numNewLines, end - start)
@@ -185,21 +193,17 @@ object FileImportGraph {
     )
   }
 
-  def nextPathFor(projectRoot: os.Path, rest: Seq[String]): os.Path = {
+  def nextPathFor(s: os.Path, rest: Seq[String]): os.Path = {
     // Manually do the foldLeft to work around bug in os-lib
     // https://github.com/com-lihaoyi/os-lib/pull/160
     val restSegments = rest
       .map {
-        case "^" => sys.error(
-          "^ to reference parent folders is no longer supported as `import $file` now only "+
-          "takes absolute paths. Please convert your `import $file` to use the absolute path " +
-          "of the imported file from the project root."
-        )
+        case "^" => os.up
         case s => os.rel / s
       }
       .foldLeft(os.rel)(_ / _)
 
-    projectRoot / restSegments / os.up / s"${rest.last}.sc"
+    s / os.up / restSegments / os.up / s"${rest.last}.sc"
   }
 
   def fileImportToSegments(base: os.Path, s: os.Path, stripExt: Boolean): Seq[String] = {

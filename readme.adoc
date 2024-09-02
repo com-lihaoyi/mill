@@ -319,19 +319,21 @@ how to either disable the breaking change with a flag or adjust your code to acc
 * *Breaking Changes*
 
 
-** Build file overhaul
+** Build file overhaul: Mill now uses `.mill` as its file extension, with some semantic changes
+from the old `.sc` files to allow better IDE support. The `.sc` extension is still supported
+and its semantics are largely unchanged the ease the migration, but you should convert your Mill
+configs to `.mill` files to benefit from Mill's improved IDE experience going forward.
 
 *** The `build.sc` file has been renamed `build.mill` to prevent confusion with Ammonite/Scala-CLI scripts,
 and all associated `.sc` files have been renamed to `.mill`.
-**** For migration compatibility, `.sc` files are still supported, but you should convert to use `.mill` with explicit
-`package` declarations to benefit from improved IDE support
 
 *** All `.mill` files must have a `package` declaration,
 with `package build` for `.mill` files in the root folder and `package build.foo.bar` for `.mill` files in `foo/bar/`.
 
 **** The package declaration remains optional for legacy `.sc` files
 
-*** Only `foo.mill` files in folders adjacent to a `build.mill` or `package.mill` can be imported via `import $file`.
+*** Only `foo.mill` files in folders directly containing a `build.mill` or `package.mill` can
+be imported via `import $file`.
 
 **** You need to create empty `package.mill` files in any folder containing scripts if they are not already
 adjacent to your `build.mill` in the root folder
@@ -343,8 +345,13 @@ adjacent to your `build.mill` in the root folder
 
 **** All target and module definitions must be moved into `package.mill` files in each folder.
 
+*** `$file` references in `.mill` files are now absolute from the project root, and thus `.^` to
+refer to parent package is no longer supported, for consistency with other programming environments
 
-** ``RootModule`s can only be named `package`, e.g. `object foo extends RootModule` must now be
+**** `$file` references in old `.sc` files are unchanged and continue being relative, preserving the
+current behavior.
+
+** ``RootModule``s can only be named `package`, e.g. `object foo extends RootModule` must now be
 named ``object `package` extends RootModule`.
 
 *** If you have an existing `RootModule`, you need to rename it ``object `package` extends RootModule``
