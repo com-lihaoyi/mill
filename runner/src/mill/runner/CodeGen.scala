@@ -183,7 +183,7 @@ object CodeGen {
   def topBuildPrelude(
       scriptFolderPath: os.Path,
       enclosingClasspath: Seq[os.Path],
-      millTopLevelProjectRoot: os.Path,
+      millTopLevelProjectRoot: os.Path
   ): String = {
     s"""import _root_.mill.runner.MillBuildRootModule
        |@_root_.scala.annotation.nowarn
@@ -217,8 +217,8 @@ object CodeGen {
     // User code needs to be put in a separate class for proper submodule
     // object initialization due to https://github.com/scala/scala3/issues/21444
     s"""object $wrapperObjectName extends $wrapperObjectName{
-        |  $childAliases
-        |}
+       |  $childAliases
+       |}
        |class $wrapperObjectName $extendsClause {""".stripMargin
 
   }
