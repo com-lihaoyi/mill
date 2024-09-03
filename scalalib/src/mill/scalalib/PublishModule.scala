@@ -2,7 +2,7 @@ package mill
 package scalalib
 
 import mill.define.{Command, ExternalModule, Target, Task}
-import mill.api.{JarManifest, PathRef, Result}
+import mill.api.{BuildScriptException, JarManifest, PathRef, Result}
 import mill.scalalib.PublishModule.checkSonatypeCreds
 import mill.scalalib.publish.SonatypeHelpers.{
   PASSWORD_ENV_VARIABLE_NAME,
@@ -20,7 +20,7 @@ trait PublishModule extends JavaModule { outer =>
   override def moduleDeps: Seq[PublishModule] = super.moduleDeps.map {
     case m: PublishModule => m
     case other =>
-      throw new Exception(
+      throw new BuildScriptException(
         s"PublishModule moduleDeps need to be also PublishModules. $other is not a PublishModule"
       )
   }

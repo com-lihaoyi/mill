@@ -97,6 +97,18 @@ object Ctx {
     def workspace: os.Path
   }
 
+  /**
+   * Provide some convenience API to fail a task.
+   */
+  trait Fail {
+
+    /**
+     * Fail the current task. This behaves equivalent to `return Result.Failure(msg)`.
+     * @param msg The failure message
+     */
+    def fail(msg: String): Nothing = throw new ResultFailureException(msg)
+  }
+
   def defaultHome: os.Path = os.home / ".mill" / "ammonite"
 
   /**
@@ -123,7 +135,8 @@ class Ctx(
     with Ctx.Args
     with Ctx.Home
     with Ctx.Env
-    with Ctx.Workspace {
+    with Ctx.Workspace
+    with Ctx.Fail {
 
   def dest: os.Path = dest0()
   def arg[T](index: Int): T = {

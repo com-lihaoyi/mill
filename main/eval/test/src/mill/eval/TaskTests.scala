@@ -2,7 +2,7 @@ package mill.eval
 
 import utest._
 import mill.T
-import mill.define.{Module, Worker}
+import mill.define.{Module, Task, Worker}
 import mill.testkit.UnitTester
 import mill.testkit.UnitTester.Result
 import mill.testkit.TestBaseModule
@@ -119,6 +119,16 @@ trait TaskTests extends TestSuite {
     override def superBuildTargetOverrideWithInput = T.input {
       superBuildTargetOverrideWithInputCount += 1
       superBuildTargetOverrideWithInputCount
+    }
+
+    def sometimesFailing(fail: Boolean): Task[String] = T.task {
+      if (!fail) mill.api.Result.Success("Success")
+      else mill.api.Result.Failure("Failure")
+    }
+
+    def sometimesFailingWithException(fail: Boolean): Task[String] = T.task {
+      if (!fail) "Success"
+      else T.fail("Failure")
     }
 
     // Reproduction of issue https://github.com/com-lihaoyi/mill/issues/2958
@@ -257,6 +267,23 @@ trait TaskTests extends TestSuite {
     }
     test("duplicateTaskInResult-issue2958") - withEnv { (build, check) =>
       check(build.repro2958.command()) ==> Right(Result("task1,task1", 3))
+    }
+
+    test("sometimeFailing") {
+      test("success") - withEnv { (build, check) =>
+        check(build.sometimesFailing(false)) ==> Right(Result("Success", 0))
+      }
+      test("failure") - withEnv { (build, check) =>
+        check(build.sometimesFailing(true)) ==> Left(mill.api.Result.Failure("Failure", None))
+      }
+    }
+    test("sometimeFailingWithException") {
+      test("success") - withEnv { (build, check) =>
+        check(build.sometimesFailingWithException(false)) ==> Right(Result("Success", 0))
+      }
+      test("failure") - withEnv { (build, check) =>
+        check(build.sometimesFailingWithException(true)) ==> Left(mill.api.Result.Failure("Failure", None))
+      }
     }
   }
 

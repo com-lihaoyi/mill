@@ -1,7 +1,8 @@
 package mill.scalalib.api
 
 import mill.api.Loose.Agg
-import mill.api.PathRef
+import mill.api.{PathRef, ResultFailureException}
+
 import scala.util.matching.Regex
 
 trait ZincWorkerUtil {
@@ -68,7 +69,7 @@ trait ZincWorkerUtil {
 
   def scalaJSBinaryVersion(scalaJSVersion: String): String = scalaJSVersion match {
     case _ if scalaJSVersion.startsWith("0.6.") =>
-      throw new Exception("Scala.js 0.6 is not supported")
+      throw new ResultFailureException("Scala.js 0.6 is not supported")
     case ScalaJSFullVersion(major, minor, patch, suffix) =>
       if (suffix != null && minor == "0" && patch == "0")
         s"$major.$minor$suffix"
@@ -78,7 +79,7 @@ trait ZincWorkerUtil {
 
   def scalaJSWorkerVersion(scalaJSVersion: String): String = scalaJSVersion match {
     case _ if scalaJSVersion.startsWith("0.6.") =>
-      throw new Exception("Scala.js 0.6 is not supported")
+      throw new ResultFailureException("Scala.js 0.6 is not supported")
     case ScalaJSFullVersion(major, _, _, _) =>
       major
   }
