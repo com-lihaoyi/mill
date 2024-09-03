@@ -78,92 +78,109 @@ object CodeGen {
 
       val scriptCode = allScriptCode(scriptPath)
 
-      val instrument = new ObjectDataInstrument(scriptCode)
-      fastparse.parse(scriptCode, Parsers.CompilationUnit(_), instrument = instrument)
-      val objectData = instrument.objectData
-
-      val expectedParent =
-        if (projectRoot != millTopLevelProjectRoot) "MillBuildRootModule" else "RootModule"
-      if (objectData.exists(o => o.name.text == "`package`" && o.parent.text != expectedParent)) {
-        throw Result.Failure(s"object `package` in $scriptPath must extend `$expectedParent`")
-      }
-      val misnamed =
-        objectData.filter(o => o.name.text != "`package`" && o.parent.text == expectedParent)
-      if (misnamed.nonEmpty) {
-        throw Result.Failure(
-          s"Only one RootModule named `package` can be defined in a build, not: ${misnamed.map(_.name.text).mkString(", ")}"
-        )
-      }
-
-      val packageObjectData = objectData.find(o =>
-        o.name.text == "`package`" && (o.parent.text == "RootModule" || o.parent.text == "MillBuildRootModule")
-      )
-      val segments = scriptFolderPath.relativeTo(projectRoot).segments
-
-      val newScriptCode = packageObjectData match {
-        case None => scriptCode
-        case Some(objectData) =>
-          val newParent = // Use whitespace to try and make sure stuff to the right has the same column offset
-            if (segments.isEmpty) expectedParent
-            else {
-              val segmentsStr = segments.map(pprint.Util.literalize(_)).mkString(", ")
-              s"RootModule.Subfolder($segmentsStr)"
-            }
-
-          var newScriptCode = scriptCode
-          newScriptCode = objectData.obj.applyTo(newScriptCode, "class")
-          newScriptCode = objectData.name.applyTo(newScriptCode, wrapperObjectName)
-          newScriptCode = objectData.parent.applyTo(newScriptCode, newParent)
-          newScriptCode
-      }
-
-      val prelude = if (isBuildScript) {
-        topBuildPrelude(
-          scriptFolderPath,
-          enclosingClasspath,
-          millTopLevelProjectRoot,
-          childAliases
-        )
-      } else ""
-
-      val wrapperHeader = if (isBuildScript) {
-        topBuildHeader(
-          segments,
-          scriptFolderPath,
-          millTopLevelProjectRoot
-        )
-      } else {
-        s"""object ${backtickWrap(scriptPath.baseName)} {""".stripMargin
-      }
-
       val markerComment =
         s"""//MILL_ORIGINAL_FILE_PATH=$scriptPath
            |//MILL_USER_CODE_START_MARKER""".stripMargin
 
-      val packageObject =
-        if (packageObjectData.isEmpty) ""
-        else {
-          s"""object package_ extends package_ {
-             |  $childAliases
+      val parts =
+        if (!isBuildScript) {
+          s"""$pkgLine
+             |$aliasImports
+             |object ${backtickWrap(scriptPath.baseName)} {
+             |$markerComment
+             |$scriptCode
              |}""".stripMargin
+        } else {
+          generateBuildScript(
+            projectRoot,
+            enclosingClasspath,
+            millTopLevelProjectRoot,
+            scriptPath,
+            scriptFolderPath,
+            childAliases,
+            pkgLine,
+            aliasImports,
+            scriptCode,
+            markerComment
+          )
         }
-      os.write(
-        dest,
-        Seq(
-          pkgLine,
-          aliasImports,
-          prelude,
-          if (packageObjectData.nonEmpty) "" else wrapperHeader,
-          markerComment,
-          newScriptCode,
-          // define this after user code so in case of conflict these lines are what turn
-          // up in the error message, so we can add a comment and control what the user sees
-          if (packageObjectData.nonEmpty) "" else childAliases,
-          if (packageObjectData.nonEmpty) "" else bottom,
-          packageObject
-        ).mkString("\n"),
-        createFolders = true
+
+      os.write(dest, parts, createFolders = true)
+    }
+  }
+
+  private def generateBuildScript(
+      projectRoot: os.Path,
+      enclosingClasspath: Seq[os.Path],
+      millTopLevelProjectRoot: os.Path,
+      scriptPath: os.Path,
+      scriptFolderPath: os.Path,
+      childAliases: String,
+      pkgLine: String,
+      aliasImports: String,
+      scriptCode: String,
+      markerComment: String
+  ) = {
+    val prelude = topBuildPrelude(
+      scriptFolderPath,
+      enclosingClasspath,
+      millTopLevelProjectRoot,
+      childAliases
+    )
+    val segments = scriptFolderPath.relativeTo(projectRoot).segments
+    val instrument = new ObjectDataInstrument(scriptCode)
+    fastparse.parse(scriptCode, Parsers.CompilationUnit(_), instrument = instrument)
+    val objectData = instrument.objectData
+
+    val expectedParent =
+      if (projectRoot != millTopLevelProjectRoot) "MillBuildRootModule" else "RootModule"
+
+    if (objectData.exists(o => o.name.text == "`package`" && o.parent.text != expectedParent)) {
+      throw Result.Failure(s"object `package` in $scriptPath must extend `$expectedParent`")
+    }
+    val misnamed =
+      objectData.filter(o => o.name.text != "`package`" && o.parent.text == expectedParent)
+    if (misnamed.nonEmpty) {
+      throw Result.Failure(
+        s"Only one RootModule named `package` can be defined in a build, not: ${misnamed.map(_.name.text).mkString(", ")}"
       )
+    }
+    objectData.find(o =>
+      o.name.text == "`package`" && (o.parent.text == "RootModule" || o.parent.text == "MillBuildRootModule")
+    ) match {
+      case Some(objectData) =>
+        val newParent = // Use whitespace to try and make sure stuff to the right has the same column offset
+          if (segments.isEmpty) expectedParent
+          else {
+            val segmentsStr = segments.map(pprint.Util.literalize(_)).mkString(", ")
+            s"RootModule.Subfolder($segmentsStr)"
+          }
+
+        var newScriptCode = scriptCode
+        newScriptCode = objectData.obj.applyTo(newScriptCode, "class")
+        newScriptCode = objectData.name.applyTo(newScriptCode, wrapperObjectName)
+        newScriptCode = objectData.parent.applyTo(newScriptCode, newParent)
+
+        s"""$pkgLine
+           |$aliasImports
+           |$prelude
+           |$markerComment
+           |$newScriptCode
+           |object $wrapperObjectName extends $wrapperObjectName {
+           |  $childAliases
+           |}""".stripMargin
+      case None =>
+        s"""$pkgLine
+           |$aliasImports
+           |$prelude
+           |${topBuildHeader(segments, scriptFolderPath, millTopLevelProjectRoot)}
+           |$markerComment
+           |$scriptCode
+           |// define this after user code so in case of conflict these lines are what turn
+           |// up in the error message, so we can add a comment and control what the user sees
+           |$childAliases
+           |}""".stripMargin
+
     }
   }
 
@@ -212,8 +229,6 @@ object CodeGen {
        |class $wrapperObjectName $extendsClause {""".stripMargin
 
   }
-
-  val bottom = "\n}"
 
   private case class Snippet(var text: String = null, var start: Int = -1, var end: Int = -1) {
     def applyTo(s: String, replacement: String): String =
