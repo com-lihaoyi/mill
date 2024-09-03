@@ -4,7 +4,7 @@ import mill.testkit.IntegrationTestSuite
 
 import utest._
 
-object CompileErrorTests extends IntegrationTestSuite {
+object RootModuleCompileErrorTests extends IntegrationTestSuite {
   val tests: Tests = Tests {
     initWorkspace()
 
@@ -12,8 +12,13 @@ object CompileErrorTests extends IntegrationTestSuite {
       val res = eval("foo.scalaVersion")
 
       assert(res.isSuccess == false)
-//      assert(res.err.contains("""bar.mill:15:9: not found: value doesntExist"""))
-//      assert(res.err.contains("""println(doesntExist)"""))
+      // For now these error messages still show generated/mangled code; not ideal, but it'll do
+      assert(res.err.contains("""build.mill:6:42: not found: type UnknownRootModule"""))
+      assert(res.err.contains("""class  package_  extends RootModule with UnknownRootModule {"""))
+      assert(res.err.contains("""foo/package.mill:6:59: not found: type UnknownFooModule"""))
+      assert(res.err.contains(
+        """class  package_  extends RootModule.Subfolder("foo") with UnknownFooModule {"""
+      ))
 
       assert(res.err.contains("""build.mill:7:22: not found: value unknownRootInternalDef"""))
       assert(res.err.contains("""def scalaVersion = unknownRootInternalDef"""))
