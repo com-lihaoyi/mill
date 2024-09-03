@@ -216,7 +216,7 @@ object CodeGen {
   val bottom = "\n}"
 
   private case class Snippet(var text: String = null, var start: Int = -1, var end: Int = -1) {
-    def applyTo(s: String, replacement: String) =
+    def applyTo(s: String, replacement: String): String =
       s.patch(start, replacement.padTo(end - start, ' '), end - start)
   }
 
