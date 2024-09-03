@@ -1,5 +1,6 @@
 package mill.scalalib
 
+import mainargs.arg
 import mill.api.JsonFormatters.pathReadWrite
 import mill.api.{Ctx, PathRef, Result}
 import mill.define.{Command, Task}
@@ -95,7 +96,7 @@ trait RunModule extends WithZincWorker {
   /**
    * Same as `run`, but lets you specify a main class to run
    */
-  def runMain(mainClass: String, args: String*): Command[Unit] = {
+  def runMain(@arg(positional = true) mainClass: String, args: String*): Command[Unit] = {
     val task = runForkedTask(T.task { mainClass }, T.task { Args(args) })
     T.command { task }
   }
@@ -103,7 +104,7 @@ trait RunModule extends WithZincWorker {
   /**
    * Same as `runBackground`, but lets you specify a main class to run
    */
-  def runMainBackground(mainClass: String, args: String*): Command[Unit] = {
+  def runMainBackground(@arg(positional = true) mainClass: String, args: String*): Command[Unit] = {
     val task = runBackgroundTask(T.task { mainClass }, T.task { Args(args) })
     T.command { task }
   }
@@ -111,7 +112,7 @@ trait RunModule extends WithZincWorker {
   /**
    * Same as `runLocal`, but lets you specify a main class to run
    */
-  def runMainLocal(mainClass: String, args: String*): Command[Unit] = {
+  def runMainLocal(@arg(positional = true) mainClass: String, args: String*): Command[Unit] = {
     val task = runLocalTask(T.task { mainClass }, T.task { Args(args) })
     T.command { task }
   }
