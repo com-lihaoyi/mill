@@ -222,6 +222,9 @@ object CodeGen {
 
   case class ObjectData(obj: Snippet, name: Snippet, parent: Snippet)
 
+  // Use Fastparse's Instrument API to identify top-level `object`s during a parse
+  // and fish out the start/end indices and text for parts of the code that we need
+  // to mangle and replace
   class ObjectDataInstrument(scriptCode: String) extends fastparse.internal.Instrument {
     val objectData = mutable.Buffer.empty[ObjectData]
     val current = collection.mutable.ArrayDeque[(String, Int)]()
