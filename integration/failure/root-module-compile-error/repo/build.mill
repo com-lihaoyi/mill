@@ -1,0 +1,10 @@
+package build
+import mill._
+
+object before extends UnknownBeforeModule
+
+object `package` extends RootModule with UnknownRootModule {
+  def scalaVersion = unknownRootInternalDef
+}
+
+object after extends UnknownAfterModule
