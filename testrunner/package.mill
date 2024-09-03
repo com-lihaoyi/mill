@@ -1,0 +1,32 @@
+package build.testrunner
+// imports
+import scala.util.chaining._
+import com.github.lolgab.mill.mima.Mima
+import coursier.maven.MavenRepository
+import de.tobiasroeser.mill.vcs.version.VcsVersion
+import com.goyeau.mill.scalafix.ScalafixModule
+import mill._
+import mill.api.JarManifest
+import mill.define.NamedTask
+import mill.main.Tasks
+import mill.scalalib._
+import mill.scalalib.api.ZincWorkerUtil
+import mill.scalalib.publish._
+import mill.util.Jvm
+import mill.resolve.SelectMode
+import mill.contrib.buildinfo.BuildInfo
+import mill.T
+import mill.define.Cross
+
+// plugins and dependencies
+import $meta._
+import $file.ci.shared
+import $file.ci.upload
+
+object `package` extends RootModule with build.MillPublishScalaModule {
+  def moduleDeps = Seq(build.scalalib.api, build.main.util, entrypoint)
+
+  object entrypoint extends build.MillPublishJavaModule {
+    override def ivyDeps = Agg(build.Deps.sbtTestInterface)
+  }
+}
