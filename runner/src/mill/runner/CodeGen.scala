@@ -215,17 +215,17 @@ object CodeGen {
 
   val bottom = "\n}"
 
-  case class Snippet(var text: String = null, var start: Int = -1, var end: Int = -1) {
-    def applyTo(s: String, replacement: String): String =
+  private case class Snippet(var text: String = null, var start: Int = -1, var end: Int = -1) {
+    def applyTo(s: String, replacement: String) =
       s.patch(start, replacement.padTo(end - start, ' '), end - start)
   }
 
-  case class ObjectData(obj: Snippet, name: Snippet, parent: Snippet)
+  private case class ObjectData(obj: Snippet, name: Snippet, parent: Snippet)
 
   // Use Fastparse's Instrument API to identify top-level `object`s during a parse
   // and fish out the start/end indices and text for parts of the code that we need
   // to mangle and replace
-  class ObjectDataInstrument(scriptCode: String) extends fastparse.internal.Instrument {
+  private class ObjectDataInstrument(scriptCode: String) extends fastparse.internal.Instrument {
     val objectData: mutable.Buffer[ObjectData] = mutable.Buffer.empty[ObjectData]
     val current: mutable.ArrayDeque[(String, Int)] = collection.mutable.ArrayDeque[(String, Int)]()
     def matches(stack: String*)(t: => Unit): Unit = if (current.map(_._1) == stack) { t }
