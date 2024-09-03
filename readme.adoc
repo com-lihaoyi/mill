@@ -111,7 +111,7 @@ Note that the in-memory tests compile the `BaseModule` together with the test su
 You can reproduce these tests manually using
 `./mill dist.run <test-folder-path> <command>`.
 
-`example` tests are written in a single `build.sc` file, with the test commands written in a comment with a bash-like syntax together with the build code and comments that explain the example.
+`example` tests are written in a single `build.mill` file, with the test commands written in a comment with a bash-like syntax together with the build code and comments that explain the example.
 These serve three purposes:
 
 1. Basic smoke-tests to make sure the functionality works at all, without covering every edge case
@@ -183,7 +183,7 @@ To test bootstrapping of Mill's own Mill build using a version of Mill built fro
 ci/patch-mill-bootstrap.sh
 ----
 
-This creates a standalone assembly at `target/mill-release` you can use, which references jars published locally in your `~/.ivy2/local` cache, and applies any necessary patches to `build.sc` to deal with changes in Mill between the version specified in `.config/mill-version` that is normally used to build Mill and the `HEAD` version your assembly was created from.
+This creates a standalone assembly at `target/mill-release` you can use, which references jars published locally in your `~/.ivy2/local` cache, and applies any necessary patches to `build.mill` to deal with changes in Mill between the version specified in `.config/mill-version` that is normally used to build Mill and the `HEAD` version your assembly was created from.
 You can then use this standalone assembly to build & re-build your current Mill checkout without worrying about stomping over compiled code that the assembly is using.
 
 This assembly is design to work on bash, bash-like shells and Windows Cmd.
@@ -305,7 +305,7 @@ endif::[]
 [#main]
 === main branch
 
-The upcoming 0.12.0 release is intended to bundle together all the breaking changes we 
+The upcoming 0.12.0 release is intended to bundle together breaking changes we
 need to do that do not break binary compatibility. It is expected to be followed by 0.13.x,
 which will contain further changes that _do_ break binary compatibility. Due to binary 
 compatibility, Mill plugins published for Mill 0.11.x can continue to be used without updating 
@@ -317,11 +317,44 @@ how to either disable the breaking change with a flag or adjust your code to acc
 
 
 * *Breaking Changes*
-** Builds can now be modularized into per-folder definitions by defining
-`module.sc` files in subfolders {link-pr}/3213[#3213]
-*** This change removes the ability to define targets and modules in arbitrary scripts that
-you `import $file`. All targets and modules need to be moved to `module.sc` files in each
-subfolder
+
+
+** Build file overhaul: Mill now uses `.mill` as its file extension, with some semantic changes
+from the old `.sc` files to allow better IDE support. The `.sc` extension is still supported
+and its semantics are largely unchanged the ease the migration, but you should convert your Mill
+configs to `.mill` files to benefit from Mill's improved IDE experience going forward.
+
+*** The `build.sc` file has been renamed `build.mill` to prevent confusion with Ammonite/Scala-CLI scripts,
+and all associated `.sc` files have been renamed to `.mill`.
+
+*** All `.mill` files must have a `package` declaration,
+with `package build` for `.mill` files in the root folder and `package build.foo.bar` for `.mill` files in `foo/bar/`.
+
+**** The package declaration remains optional for legacy `.sc` files
+
+*** Only `foo.mill` files in folders directly containing a `build.mill` or `package.mill` can
+be imported via `import $file`.
+
+**** You need to create empty `package.mill` files in any folder containing scripts if they are not already
+adjacent to your `build.mill` in the root folder
+
+**** `foo.sc` files can continue to be imported from arbitrary paths, to ease in the migration
+
+*** Builds can now be modularized into per-folder definitions by defining `package.mill` files in subfolders
+{link-pr}/3213[#3213]. You can no longer define targets and modules in arbitrary `foo.sc` files
+
+**** All target and module definitions must be moved into `package.mill` files in each folder.
+
+*** `$file` references in `.mill` files are now absolute from the project root, and thus `.^` to
+refer to parent package is no longer supported, for consistency with other programming environments
+
+**** `$file` references in old `.sc` files are unchanged and continue being relative, preserving the
+current behavior.
+
+** ``RootModule``s can only be named `package`, e.g. `object foo extends RootModule` must now be
+named ``object `package` extends RootModule`.
+
+*** If you have an existing `RootModule`, you need to rename it ``object `package` extends RootModule``
 
 ** Turn on parallelism for task evaluation by default, except for commands
 which always run serially at the end {link-pr}/3265[#3265]
@@ -342,16 +375,25 @@ between tasks and tests due to parallelism
   on individual parameters
 
 ** Dropped support for Java 8, Scala 2.11.x/3.1.x, and Scala-Native 0.4.x, following suit with the rest of the 
- com-lihaoyi ecosystem. We now expect a minimum of Java 8, Scala 2.12.x/3.2.x, and Scala-Native 0.5.x
+com-lihaoyi ecosystem. We now expect a minimum of Java 8, Scala 2.12.x/3.2.x, and Scala-Native 0.5.x
+
+** `--disable-callgraph-invalidation` is no longer supported. The flag is still accepted but is
+now a no-op.
 
 * Other Changes
 
 ** Overhaul the Mill client-server protocol to improve robustness
 {link-pr}/3363[#3363] {link-pr}/3366[#3366] {link-pr}/3368[#3368] {link-pr}/3370[#3370]
 
-** Mill now publishes unit, integration, and example test fixtures for writing plugins {link-pr}/3398[#3398]
-for downstream plugin authors to use in testing their own Mill extensions. See the documentation for
-https://mill-build.org/mill/Writing_Mill_Plugins.html[Writing Mill Plugins] for more details
+** Mill now publishes unit, integration, and example test fixtures for writing plugins as `mill-testkit`
+{link-pr}/3398[#3398] for downstream plugin authors to use in testing their own Mill extensions.
+
+*** See the documentation for
+https://mill-build.org/mill/Writing_Mill_Plugins.html[Writing Mill Plugins] for more details.
+
+*** `mill-testkit` is experimental and does not provide the same stability or binary-compatibility
+guarantees as the rest of Mill. Nevertheless, if you are writing Mill plugins, please try it out
+and let us know what you think!
 
 ** Bump default Sonatype Maven Central publishing timeouts to 10 minutes to avoid
 timeouts due to slowness https://github.com/com-lihaoyi/mill/commit/b4c9386b0233fab53a312426715e226e4a7f6302

@@ -14,8 +14,8 @@ $ mill -w foo.run
 ----
 
 Mill's `--watch` flag watches both the files you are building using Mill, as
-well as Mill's own `build.sc` file and anything it imports, so any changes to
-your `build.sc` will automatically get picked up.
+well as Mill's own `build.mill` file and anything it imports, so any changes to
+your `build.mill` will automatically get picked up.
 
 For long-running processes like web servers, you can use `runBackground` to make sure they recompile and restart when code changes,
 forcefully terminating the previous process even though it may be still alive:

@@ -18,7 +18,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
  * 2. `T.sources`
  * 3. `T.input`
  * 4. `interp.watchValue`
- * 5. Implicitly watched files, like `build.sc`
+ * 5. Implicitly watched files, like `build.mill`
  */
 object WatchSourceInputTests extends IntegrationTestSuite {
 
@@ -72,7 +72,7 @@ object WatchSourceInputTests extends IntegrationTestSuite {
         awaitCompletionMarker("initialized0")
         awaitCompletionMarker("quxRan0")
         expectedOut.append(
-          "Setting up build.sc"
+          "Setting up build.mill"
         )
         expectedErr.append(
           "Running qux foo contents initial-foo1 initial-foo2",
@@ -112,10 +112,10 @@ object WatchSourceInputTests extends IntegrationTestSuite {
           "Running qux foo contents edited-foo1 edited-foo2 Running qux bar contents edited-bar"
         )
 
-        os.write.append(workspacePath / "build.sc", "\ndef unrelated = true")
+        os.write.append(workspacePath / "build.mill", "\ndef unrelated = true")
         awaitCompletionMarker("initialized1")
         expectedOut.append(
-          "Setting up build.sc"
+          "Setting up build.mill"
           // These targets do not re-evaluate, because the change to the build
           // file was unrelated to them and does not affect their transitive callgraph
           //        "Running qux foo contents edited-foo1 edited-foo2",
@@ -127,7 +127,7 @@ object WatchSourceInputTests extends IntegrationTestSuite {
 
         os.write.over(workspacePath / "watchValue.txt", "exit")
         awaitCompletionMarker("initialized2")
-        expectedOut.append("Setting up build.sc")
+        expectedOut.append("Setting up build.mill")
 
         Await.result(evalResult, Duration.apply(maxDuration, SECONDS))
       }
@@ -148,7 +148,7 @@ object WatchSourceInputTests extends IntegrationTestSuite {
         awaitCompletionMarker("initialized0")
         awaitCompletionMarker("lolRan0")
         expectedOut.append(
-          "Setting up build.sc"
+          "Setting up build.mill"
         )
         expectedErr.append(
           "Running lol baz contents initial-baz"
@@ -162,12 +162,12 @@ object WatchSourceInputTests extends IntegrationTestSuite {
 
         os.write.over(workspacePath / "watchValue.txt", "edited-watchValue")
         awaitCompletionMarker("initialized1")
-        expectedOut.append("Setting up build.sc")
+        expectedOut.append("Setting up build.mill")
         expectedShows.append("Running lol baz contents edited-baz")
 
         os.write.over(workspacePath / "watchValue.txt", "exit")
         awaitCompletionMarker("initialized2")
-        expectedOut.append("Setting up build.sc")
+        expectedOut.append("Setting up build.mill")
 
         Await.result(evalResult, Duration.apply(maxDuration, SECONDS))
       }

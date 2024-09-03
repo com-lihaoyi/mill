@@ -2,7 +2,7 @@ import mill._
 import mill.runner.MillBuildRootModule
 import mill.scalalib._
 
-object build extends MillBuildRootModule {
+object `package` extends MillBuildRootModule {
   override def ivyDeps = Agg(
     ivy"org.scalaj::scalaj-http:2.4.2",
     ivy"de.tototec::de.tobiasroeser.mill.vcs.version::0.4.0",

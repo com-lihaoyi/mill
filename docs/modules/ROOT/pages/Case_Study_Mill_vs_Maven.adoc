@@ -12,11 +12,11 @@ over 100 contributors across 15 years, split over 47 subprojects, with over 10,0
 Maven `pom.xml` configuration alone. By porting it to Mill, this case study should give you
 an idea of how Mill compares to Maven in larger, real-world projects.
 
-To do this, we have written a Mill `build.sc` file for the Netty project. This can be used
+To do this, we have written a Mill `build.mill` file for the Netty project. This can be used
 with Mill to build and test the various submodules of the Netty project without needing to
 change any other files in the repository:
 
-- https://github.com/com-lihaoyi/mill/blob/main/example/thirdparty/netty/build.sc[Netty build.sc file]
+- https://github.com/com-lihaoyi/mill/blob/main/example/thirdparty/netty/build.mill[Netty build.mill file]
 
 == Completeness
 

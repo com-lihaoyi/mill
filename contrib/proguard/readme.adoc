@@ -16,9 +16,10 @@ The only default entrypoint is the main class (i.e. `finalMainClass` task). Addi
 
 Here is a simple example:
 
-.`build.sc`
+.`build.mill`
 [source,scala]
 ----
+package build
 import $ivy.`com.lihaoyi::mill-contrib-proguard:`
 import contrib.proguard._
 

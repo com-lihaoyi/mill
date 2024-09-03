@@ -1,0 +1,3 @@
+package build.foo
+import mill._
+object `package` extends RootModule

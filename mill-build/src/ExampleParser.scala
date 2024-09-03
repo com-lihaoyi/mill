@@ -6,7 +6,9 @@ object ExampleParser {
     val states = collection.mutable.Buffer("scala")
     val chunks = collection.mutable.Buffer(collection.mutable.Buffer.empty[String])
 
-    for (line <- os.read.lines(testRepoRoot / "build.sc")) {
+    val rootBuildFileNames = Seq("build.sc", "build.mill")
+    val buildFile = rootBuildFileNames.map(testRepoRoot / _).find(os.exists)
+    for (line <- os.read.lines(buildFile.get)) {
       val (newState, restOpt) = line match {
         case s"/** Usage" => ("example", None)
         case s"/** See Also: $path */" =>

@@ -89,4 +89,17 @@ private[mill] object Reflect {
 
     first ++ second
   }
+
+  def reflectNestedObjects02[T: ClassTag](
+      outerCls: Class[_],
+      filter: String => Boolean = Function.const(true)
+  ): Seq[(String, Class[_], Any => T)] = {
+    reflectNestedObjects0[T](outerCls, filter).map {
+      case (name, m: java.lang.reflect.Method) =>
+        (name, m.getReturnType, (outer: Any) => m.invoke(outer).asInstanceOf[T])
+      case (name, m: java.lang.reflect.Field) =>
+        (name, m.getType, (outer: Any) => m.get(outer).asInstanceOf[T])
+    }
+  }
+
 }

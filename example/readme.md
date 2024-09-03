@@ -24,7 +24,7 @@ The three sub-folders are:
    the Mill build tool: dynamic cross modules, `$file` and `$ivy` imports, and
    using the `mill-build/` folder.
 
-7. `thirdparty/`: some example `build.sc` files for real-world Java and Scala
+7. `thirdparty/`: some example `build.mill` files for real-world Java and Scala
    codebases
 
 Within each sub-folder, examples are numbered in the order they are intended to

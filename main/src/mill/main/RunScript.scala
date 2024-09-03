@@ -22,7 +22,7 @@ object RunScript {
   ] = {
     val resolved = mill.eval.Evaluator.currentEvaluator.withValue(evaluator) {
       Resolve.Tasks.resolve(
-        evaluator.rootModules,
+        evaluator.rootModule,
         scriptArgs,
         selectMode,
         evaluator.allowPositionalCommandArgs

@@ -1,6 +1,7 @@
 package mill.scalalib.scalafmt
 
 import mill._
+import mill.main.client.CodeGenConstants.buildFileExtensions
 import mill.api.Result
 import mill.define.{ExternalModule, Discover}
 import mill.scalalib._
@@ -55,7 +56,7 @@ trait ScalafmtModule extends JavaModule {
       file <- {
         if (os.isDir(pathRef.path)) {
           os.walk(pathRef.path).filter(file =>
-            os.isFile(file) && (file.ext == "scala" || file.ext == "sc")
+            os.isFile(file) && (file.ext == "scala" || buildFileExtensions.contains(file.ext))
           )
         } else {
           Seq(pathRef.path)

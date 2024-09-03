@@ -154,7 +154,7 @@ object Deps {
   val osLib = ivy"com.lihaoyi::os-lib:0.10.5"
   val pprint = ivy"com.lihaoyi::pprint:0.9.0"
   val mainargs = ivy"com.lihaoyi::mainargs:0.7.2"
-  val millModuledefsVersion = "0.10.9"
+  val millModuledefsVersion = "0.11.0-M2"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = ivy"${millModuledefsString}"
   val millModuledefsPlugin =
@@ -1234,6 +1234,7 @@ object example extends Module {
     object tasks extends Cross[ExampleCrossModule](listIn(millSourcePath / "tasks"))
     object modules extends Cross[ExampleCrossModule](listIn(millSourcePath / "modules"))
     object cross extends Cross[ExampleCrossModule](listIn(millSourcePath / "cross"))
+    object large extends Cross[ExampleCrossModule](listIn(millSourcePath / "large"))
   }
 
   object extending extends Module {
@@ -1251,47 +1252,57 @@ object example extends Module {
       case "testing" => scalalib.testing
       case "web" => scalalib.web
     }
-    def testRepoRoot = T {
-      os.copy.over(super.testRepoRoot().path, T.dest)
-      for (lines <- buildScLines()) os.write.over(T.dest / "build.sc", lines.mkString("\n"))
-      PathRef(T.dest)
-    }
-    def buildScLines =
-      upstreamCross(
-        this.millModuleSegments.parts.dropRight(1).last
-      ).valuesToModules.get(List(crossValue)) match {
-        case None => T { None }
-        case Some(upstream) => T {
-            Some {
-              val upstreamLines = os.read.lines(upstream.testRepoRoot().path / "build.sc")
-              val lines = os.read.lines(super.testRepoRoot().path / "build.sc")
+    val upstreamOpt = upstreamCross(
+      this.millModuleSegments.parts.dropRight(1).last
+    ).valuesToModules.get(List(crossValue))
 
-              import collection.mutable
-              val groupedLines = mutable.Map.empty[String, mutable.Buffer[String]]
-              var current = Option.empty[String]
-              lines.foreach {
-                case s"//// SNIPPET:$name" =>
-                  current = Some(name)
-                  groupedLines(name) = mutable.Buffer()
-                case s => current.foreach(groupedLines(_).append(s))
-              }
-
-              current = None
-              upstreamLines.flatMap {
-                case s"//// SNIPPET:$name" =>
-                  if (name != "END") {
-                    current = Some(name)
-                    groupedLines(name)
-                  } else {
-                    current = None
-                    Nil
-                  }
-
-                case s => if (current.nonEmpty) None else Some(s)
-              }
-            }
-          }
+    def testRepoRoot = upstreamOpt match {
+      case None => T{ super.testRepoRoot() }
+      case Some(upstream) => T{
+        os.copy.over(super.testRepoRoot().path, T.dest)
+        val upstreamRoot = upstream.testRepoRoot().path
+        val suffix = Seq("build.mill", "build.mill").find(s => os.exists(upstreamRoot / s)).head
+        for(lines <- buildScLines()) {
+          os.write.over(T.dest / suffix, lines.mkString("\n"))
+        }
+        PathRef(T.dest)
       }
+    }
+    def buildScLines = upstreamOpt match {
+      case None => T { None }
+      case Some(upstream) => T {
+        Some {
+          val upstreamRoot = upstream.testRepoRoot().path
+          val suffix = Seq("build.sc", "build.mill").find(s => os.exists(upstreamRoot / s)).head
+          val upstreamLines = os.read.lines(upstream.testRepoRoot().path / suffix)
+          val lines = os.read.lines(super.testRepoRoot().path / suffix)
+
+          import collection.mutable
+          val groupedLines = mutable.Map.empty[String, mutable.Buffer[String]]
+          var current = Option.empty[String]
+          lines.foreach {
+            case s"//// SNIPPET:$name" =>
+              current = Some(name)
+              groupedLines(name) = mutable.Buffer()
+            case s => current.foreach(groupedLines(_).append(s))
+          }
+
+          current = None
+          upstreamLines.flatMap {
+            case s"//// SNIPPET:$name" =>
+              if (name != "END") {
+                current = Some(name)
+                groupedLines(name)
+              } else {
+                current = None
+                Nil
+              }
+
+            case s => if (current.nonEmpty) None else Some(s)
+          }
+        }
+      }
+    }
   }
 
   trait ExampleCrossModule extends IntegrationTestCrossModule {
@@ -1307,7 +1318,7 @@ object example extends Module {
     )
 
     /**
-     * Parses a `build.sc` for specific comments and return the split-by-type content
+     * Parses a `build.mill` for specific comments and return the split-by-type content
      */
     def parsed: T[Seq[(String, String)]] = T {
       mill.testkit.ExampleParser(testRepoRoot().path)
@@ -1336,7 +1347,7 @@ object example extends Module {
                   val exampleDashed = examplePath.segments.mkString("-")
                   val download = s"{mill-download-url}/$label-$exampleDashed.zip[download]"
                   val browse = s"{mill-example-url}/$examplePath[browse]"
-                  s".build.sc ($download, $browse)"
+                  s".build.mill ($download, $browse)"
                 }
               seenCode = true
               s"""
@@ -1545,6 +1556,7 @@ object runner extends MillPublishScalaModule {
   def skipPreviousVersions: T[Seq[String]] = Seq("0.11.0-M7")
 
   object linenumbers extends MillPublishScalaModule {
+    def moduleDeps = Seq(main.client)
     def scalaVersion = Deps.scalaVersion
     def ivyDeps = Agg(Deps.scalaCompiler(scalaVersion()))
   }

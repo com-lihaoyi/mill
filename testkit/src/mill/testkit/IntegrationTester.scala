@@ -8,14 +8,14 @@ import scala.util.control.NonFatal
 
 /**
  * Helper meant for executing Mill integration tests, which runs Mill in a subprocess
- * against a folder with a `build.sc` and project files. Provides APIs such as [[eval]]
+ * against a folder with a `build.mill` and project files. Provides APIs such as [[eval]]
  * to run Mill commands and [[out]] to inspect the results on disk. You can use
  * [[modifyFile]] or any of the OS-Lib `os.*` APIs on the [[workspacePath]] to modify
  * project files in the course of the test.
  *
  * @param clientServerMode Whether to run Mill in client-server mode. If `false`, Mill
  *                         is run with `--no-server`
- * @param workspaceSourcePath The folder in which the `build.sc` and project files being
+ * @param workspaceSourcePath The folder in which the `build.mill` and project files being
  *                            tested comes from. These are copied into a temporary folder
  *                            and are no modified during tests
  * @param millExecutable What Mill executable to use.

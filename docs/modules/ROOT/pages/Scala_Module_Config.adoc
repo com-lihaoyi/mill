@@ -98,7 +98,7 @@ Mill supports code formatting via https://scalameta.org/scalafmt/[scalafmt] out 
 
 To have a formatting per-module you need to make your module extend `mill.scalalib.scalafmt.ScalafmtModule`:
 
-.`build.sc`
+.`build.mill`
 [source,scala,subs="attributes,verbatim"]
 ----
 import mill._, scalalib._, scalafmt._
@@ -175,7 +175,7 @@ by changes to upstream sources.
 If for any reason you want to disable incremental compilation for a module, you can override and set
 `zincIncrementalCompilation` to `false`
 
-.`build.sc`
+.`build.mill`
 [source,scala,subs="attributes,verbatim"]
 ----
 import mill._, scalalib._
