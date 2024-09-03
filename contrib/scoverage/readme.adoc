@@ -11,9 +11,10 @@ extends the `mill.contrib.scoverage.ScoverageModule` trait when defining your
 module. Additionally, you must define a submodule that extends the
 `ScoverageTests` trait that belongs to your instance of `ScoverageModule`.
 
-.`build.sc`
+.`build.mill`
 [source,scala]
 ----
+package build
 import $ivy.`com.lihaoyi::mill-contrib-scoverage:`
 import mill.contrib.scoverage.ScoverageModule
 

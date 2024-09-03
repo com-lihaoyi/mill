@@ -8,9 +8,10 @@ To declare a module that uses BuildInfo you must extend the `mill.contrib.buildi
 
 Quickstart:
 
-.`build.sc`
+.`build.mill`
 [source,scala]
 ----
+package build
 import $ivy.`com.lihaoyi::mill-contrib-buildinfo:`
 import mill.contrib.buildinfo.BuildInfo
 

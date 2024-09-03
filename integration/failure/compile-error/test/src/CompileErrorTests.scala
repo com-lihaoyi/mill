@@ -12,11 +12,11 @@ object CompileErrorTests extends IntegrationTestSuite {
       val res = eval("foo.scalaVersion")
 
       assert(res.isSuccess == false)
-      assert(res.err.contains("""bar.sc:14:9: not found: value doesntExist"""))
+      assert(res.err.contains("""bar.mill:15:9: not found: value doesntExist"""))
       assert(res.err.contains("""println(doesntExist)"""))
-      assert(res.err.contains("""qux.sc:3:34: type mismatch;"""))
+      assert(res.err.contains("""qux.mill:4:34: type mismatch;"""))
       assert(res.err.contains(
-        """build.sc:8:5: value noSuchMethod is not a member of object"""
+        """build.mill:9:5: value noSuchMethod is not a member"""
       ))
     }
   }

@@ -29,7 +29,7 @@ object Giter8Tests extends TestSuite {
         val res = evaluator.evaluator.evaluate(Agg(g8Module.init(giter8Args: _*)))
 
         val files = Seq(
-          os.sub / "build.sc",
+          os.sub / "build.mill",
           os.sub / "README.md",
           os.sub / "hello" / "src" / "Hello.scala",
           os.sub / "hello" / "test" / "src" / "MyTest.scala"

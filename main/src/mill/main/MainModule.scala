@@ -18,7 +18,7 @@ object MainModule {
       targets: Seq[String],
       selectMode: SelectMode
   )(f: List[NamedTask[Any]] => T): Result[T] = {
-    Resolve.Tasks.resolve(evaluator.rootModules, targets, selectMode) match {
+    Resolve.Tasks.resolve(evaluator.rootModule, targets, selectMode) match {
       case Left(err) => Result.Failure(err)
       case Right(tasks) => Result.Success(f(tasks))
     }
@@ -78,7 +78,7 @@ trait MainModule extends BaseModule0 {
    */
   def resolve(evaluator: Evaluator, targets: String*): Command[List[String]] = Target.command {
     val resolved = Resolve.Segments.resolve(
-      evaluator.rootModules,
+      evaluator.rootModule,
       targets,
       SelectMode.Multi
     )
@@ -108,7 +108,7 @@ trait MainModule extends BaseModule0 {
 
   private def plan0(evaluator: Evaluator, targets: Seq[String]) = {
     Resolve.Tasks.resolve(
-      evaluator.rootModules,
+      evaluator.rootModule,
       targets,
       SelectMode.Multi
     ) match {
@@ -125,10 +125,15 @@ trait MainModule extends BaseModule0 {
    * If there are multiple dependency paths between `src` and `dest`, the path
    * chosen is arbitrary.
    */
-  def path(evaluator: Evaluator, src: String, dest: String): Command[List[String]] =
+
+  def path(
+      evaluator: Evaluator,
+      @mainargs.arg(positional = true) src: String,
+      @mainargs.arg(positional = true) dest: String
+  ): Command[List[String]] =
     Target.command {
       val resolved = Resolve.Tasks.resolve(
-        evaluator.rootModules,
+        evaluator.rootModule,
         List(src, dest),
         SelectMode.Multi
       )
@@ -183,7 +188,7 @@ trait MainModule extends BaseModule0 {
         if (seen(t)) Nil // do nothing
         else t match {
           case t: mill.define.Target[_]
-              if evaluator.rootModules.exists(_.millInternal.targets.contains(t)) =>
+              if evaluator.rootModule.millInternal.targets.contains(t) =>
             Seq(t.ctx.segments)
           case _ =>
             seen.add(t)
@@ -208,13 +213,11 @@ trait MainModule extends BaseModule0 {
           if (t.asCommand.isEmpty) List()
           else {
             val mainDataOpt = evaluator
-              .rootModules
-              .flatMap(
-                _.millDiscover
-                  .value
-                  .get(t.ctx.enclosingCls)
-                  .flatMap(_._2.find(_.name == t.ctx.segments.parts.last))
-              )
+              .rootModule
+              .millDiscover
+              .value
+              .get(t.ctx.enclosingCls)
+              .flatMap(_._2.find(_.name == t.ctx.segments.parts.last))
               .headOption
 
             mainDataOpt match {
@@ -334,7 +337,7 @@ trait MainModule extends BaseModule0 {
         Right(os.list(rootDir).filterNot(keepPath))
       else
         mill.resolve.Resolve.Segments.resolve(
-          evaluator.rootModules,
+          evaluator.rootModule,
           targets,
           SelectMode.Multi
         ).map { ts =>
@@ -430,11 +433,15 @@ trait MainModule extends BaseModule0 {
     ): Result[Seq[PathRef]] = {
       val (in, out) = vizWorker
       in.put((rs, allRs, ctx.dest))
-      out.take()
+      val res = out.take()
+      res.map { v =>
+        println(upickle.default.write(v.map(_.path.toString()), indent = 2))
+        v
+      }
     }
 
     Resolve.Tasks.resolve(
-      evaluator.rootModules,
+      evaluator.rootModule,
       targets,
       SelectMode.Multi
     ) match {

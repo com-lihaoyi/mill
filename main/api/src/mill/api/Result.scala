@@ -1,5 +1,6 @@
 package mill.api
 
+import java.lang.reflect.InvocationTargetException
 import scala.language.implicitConversions
 
 /**
@@ -109,5 +110,19 @@ object Result {
       case o: OuterStack => value.equals(o.value)
       case _ => false
     }
+  }
+
+  def catchWrapException[T](t: => T): Either[String, T] = {
+    try Right(t)
+    catch {
+      case e: InvocationTargetException =>
+        makeResultException(e.getCause, new java.lang.Exception())
+      case e: Exception => makeResultException(e, new java.lang.Exception())
+    }
+  }
+
+  def makeResultException(e: Throwable, base: java.lang.Exception): Left[String, Nothing] = {
+    val outerStack = new mill.api.Result.OuterStack(base.getStackTrace)
+    Left(mill.api.Result.Exception(e, outerStack).toString)
   }
 }

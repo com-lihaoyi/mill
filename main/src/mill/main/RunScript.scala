@@ -21,7 +21,12 @@ object RunScript {
     (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]])
   ] = {
     val resolved = mill.eval.Evaluator.currentEvaluator.withValue(evaluator) {
-      Resolve.Tasks.resolve(evaluator.rootModules, scriptArgs, selectMode)
+      Resolve.Tasks.resolve(
+        evaluator.rootModule,
+        scriptArgs,
+        selectMode,
+        evaluator.allowPositionalCommandArgs
+      )
     }
     for (targets <- resolved) yield evaluateNamed(evaluator, Agg.from(targets))
   }
@@ -35,7 +40,7 @@ object RunScript {
       evaluator: Evaluator,
       targets: Agg[Task[Any]]
   ): (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]]) = {
-    val evaluated: Results = evaluator.evaluate(targets)
+    val evaluated: Results = evaluator.evaluate(targets, serialCommandExec = true)
 
     val watched = evaluated.results
       .iterator

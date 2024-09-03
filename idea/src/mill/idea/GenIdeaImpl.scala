@@ -24,7 +24,7 @@ case class GenIdeaImpl(
 )(implicit ctx: Ctx) {
   import GenIdeaImpl._
 
-  val workDir: os.Path = evaluators.head.rootModules.head.millSourcePath
+  val workDir: os.Path = evaluators.head.rootModule.millSourcePath
   val ideaDir: os.Path = workDir / ".idea"
 
   val ideaConfigVersion = 4
@@ -70,7 +70,7 @@ case class GenIdeaImpl(
   ): Seq[(os.SubPath, scala.xml.Node)] = {
 
     val rootModules = evaluators.zipWithIndex.map { case (ev, idx) =>
-      (ev.rootModules.head, ev, idx)
+      (ev.rootModule, ev, idx)
     }
     val transitive: Seq[(BaseModule, Seq[Module], Evaluator, Int)] = rootModules
       .map { case (rootModule, ev, idx) =>
@@ -122,7 +122,7 @@ case class GenIdeaImpl(
     }
 
     // is head the right one?
-    val buildDepsPaths = Classpath.allJars(evaluators.head.rootModules.head.getClass.getClassLoader)
+    val buildDepsPaths = Classpath.allJars(evaluators.head.rootModule.getClass.getClassLoader)
       .map(url => os.Path(java.nio.file.Paths.get(url.toURI)))
 
     def resolveTasks: Map[Evaluator, Seq[Task[ResolvedModule]]] =
@@ -384,7 +384,7 @@ case class GenIdeaImpl(
 
     /**
      * We need to use a very specific library name format.
-     * This is required in order IntelliJ IDEA can recognize `$ivy` imports in `build.sc` files and doesn't show red code.
+     * This is required in order IntelliJ IDEA can recognize `$ivy` imports in `build.mill` files and doesn't show red code.
      * This is how currently Ammonite integration is done in Scala Plugin for IntelliJ IDEA.
      *
      * @see [[https://github.com/JetBrains/intellij-scala/blob/idea223.x/scala/worksheet/src/org/jetbrains/plugins/scala/worksheet/ammonite/AmmoniteUtil.scala#L240]]

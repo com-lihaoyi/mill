@@ -5,9 +5,10 @@ You can use `JmhModule` to integrate JMH testing with Mill.
 
 Example configuration:
 
-.`build.sc`
+.`build.mill`
 [source,scala]
 ----
+package build
 import mill._, scalalib._
 
 import $ivy.`com.lihaoyi::mill-contrib-jmh:`

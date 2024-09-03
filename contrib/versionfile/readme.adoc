@@ -9,10 +9,11 @@ This plugin provides helpers for updating a version file and committing the chan
 
 == Quickstart
 
-Add a `VersionFileModule` to the `build.sc` file:
+Add a `VersionFileModule` to the `build.mill` file:
 
 [source,scala]
 ----
+package build
 import $ivy.`com.lihaoyi::mill-contrib-versionfile:`
 import mill.contrib.versionfile.VersionFileModule
 
@@ -20,7 +21,7 @@ object versionFile extends VersionFileModule
 ----
 
 The module will read and write to the file `version` located at the module's `millSourcePath`.
-In the example above, that would be `/versionFile/version` relative to the `build.sc` file.
+In the example above, that would be `/versionFile/version` relative to the `build.mill` file.
 
 Create the version file with the initial version number:
 
@@ -78,7 +79,7 @@ object versionFile extends VersionFileModule {
 }
 ----
 
-In this example, it would look for the file `version` in the same directory as the `build.sc`.
+In this example, it would look for the file `version` in the same directory as the `build.mill`.
 
 == Set release version
 

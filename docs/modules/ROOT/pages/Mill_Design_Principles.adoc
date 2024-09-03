@@ -32,7 +32,7 @@ The syntax for running targets from the command line `mill Foo.bar.baz` is
 the same as referencing a target in Scala code, `Foo.bar.baz`
 
 Everything that you can run from the command line lives in an object hierarchy
-in your `build.sc` file. Different parts of the hierarchy can have different
+in your `build.mill` file. Different parts of the hierarchy can have different
 ``Target``s available: just add a new `def foo = T {...}` somewhere and you'll be
 able to run it.
 
@@ -215,7 +215,7 @@ digraph G {
 ....
 
 The module hierarchy is the graph of objects, starting from the root of the
-`build.sc` file, that extend `mill.Module`. At the leaves of the hierarchy are
+`build.mill` file, that extend `mill.Module`. At the leaves of the hierarchy are
 the ``Target``s you can run.
 
 A ``Target``'s position in the module hierarchy tells you many things. For

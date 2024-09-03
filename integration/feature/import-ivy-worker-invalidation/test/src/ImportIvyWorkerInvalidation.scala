@@ -11,7 +11,7 @@ object ImportIvyWorkerInvalidation extends IntegrationTestSuite {
       initWorkspace()
       assert(eval("app.compile").isSuccess)
       modifyFile(
-        workspacePath / "build.sc",
+        workspacePath / "build.mill",
         _.replace("object app", "println(\"hello\"); object app")
       )
       assert(eval("app.compile").isSuccess)

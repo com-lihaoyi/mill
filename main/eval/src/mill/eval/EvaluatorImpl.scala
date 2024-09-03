@@ -1,9 +1,10 @@
 package mill.eval
 
-import mill.api.Val
+import mill.api.{CompileProblemReporter, Strict, TestReporter, Val}
 import mill.api.Strict.Agg
 import mill.define._
 import mill.util._
+
 import scala.collection.mutable
 import scala.reflect.ClassTag
 
@@ -17,7 +18,7 @@ private[mill] case class EvaluatorImpl(
     workspace: os.Path,
     outPath: os.Path,
     externalOutPath: os.Path,
-    override val rootModules: Seq[mill.define.BaseModule],
+    override val rootModule: mill.define.BaseModule,
     baseLogger: ColorLogger,
     classLoaderSigHash: Int,
     classLoaderIdentityHash: Int,
@@ -27,7 +28,8 @@ private[mill] case class EvaluatorImpl(
     threadCount: Option[Int] = Some(1),
     scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])] = Map.empty,
     methodCodeHashSignatures: Map[String, Int],
-    override val disableCallgraphInvalidation: Boolean
+    override val disableCallgraphInvalidation: Boolean,
+    override val allowPositionalCommandArgs: Boolean
 ) extends Evaluator with EvaluatorCore {
   import EvaluatorImpl._
 
@@ -41,6 +43,18 @@ private[mill] case class EvaluatorImpl(
 
   override def plan(goals: Agg[Task[_]]): (MultiBiMap[Terminal, Task[_]], Agg[Task[_]]) = {
     Plan.plan(goals)
+  }
+
+  override def evaluate(
+      goals: Strict.Agg[Task[_]],
+      reporter: Int => Option[CompileProblemReporter],
+      testReporter: TestReporter,
+      logger: ColorLogger,
+      serialCommandExec: Boolean
+  ): Evaluator.Results = {
+    // TODO: cleanup once we break bin-compat in Mill 0.13
+    // disambiguate override hierarchy
+    super.evaluate(goals, reporter, testReporter, logger, serialCommandExec)
   }
 
   override def evalOrThrow(exceptionFactory: Evaluator.Results => Throwable)

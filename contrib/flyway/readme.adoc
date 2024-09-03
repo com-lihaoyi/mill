@@ -6,9 +6,10 @@ The flyway module currently supports the most common flyway use cases with file 
 
 Configure flyway by overriding settings in your module. For example
 
-.`build.sc`
+.`build.mill`
 [source,scala]
 ----
+package build
 import mill._, scalalib._
 
 import $ivy.`com.lihaoyi::mill-contrib-flyway:`

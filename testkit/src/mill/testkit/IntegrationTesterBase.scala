@@ -2,12 +2,12 @@ package mill.testkit
 
 trait IntegrationTesterBase {
   def workspaceSourcePath: os.Path
-  private val workspacePathBase = os.pwd / "out" / "interation-tester-workdir"
+  private val workspacePathBase = os.pwd / "out" / "integration-tester-workdir"
   os.makeDir.all(workspacePathBase)
 
   /**
    * The working directory of the integration test suite, which is the root of the
-   * Mill build being tested. Contains the `build.sc` file, any application code, and
+   * Mill build being tested. Contains the `build.mill` file, any application code, and
    * the `out/` folder containing the build output
    *
    * Make sure it lives inside `os.pwd` because somehow the tests fail on windows

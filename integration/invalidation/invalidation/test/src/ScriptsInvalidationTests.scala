@@ -26,7 +26,7 @@ object ScriptsInvalidationTests extends IntegrationTestSuite {
 
       test("second run modifying script") {
         modifyFile(
-          workspacePath / "build.sc",
+          workspacePath / "build.mill",
           _.replace("""println("task")""", """System.out.println("task2")""")
         )
 
@@ -47,7 +47,7 @@ object ScriptsInvalidationTests extends IntegrationTestSuite {
 
       test("second run modifying script") {
         modifyFile(
-          workspacePath / "b" / "inputD.sc",
+          workspacePath / "b" / "inputD.mill",
           _.replace("""println("d")""", """System.out.println("d2")""")
         )
 
@@ -69,7 +69,7 @@ object ScriptsInvalidationTests extends IntegrationTestSuite {
 
       test("second run modifying script") {
         modifyFile(
-          workspacePath / "build.sc",
+          workspacePath / "build.mill",
           _.replace("""println("task")""", """System.out.println("task2")""")
         )
 
@@ -91,7 +91,7 @@ object ScriptsInvalidationTests extends IntegrationTestSuite {
 
       test("second run modifying script") {
         modifyFile(
-          workspacePath / "build.sc",
+          workspacePath / "build.mill",
           _.replace("""println("taskE")""", """System.out.println("taskE2")""")
         )
 

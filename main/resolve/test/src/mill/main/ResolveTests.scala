@@ -50,17 +50,19 @@ object ResolveTests extends TestSuite {
 
     def resolveTasks(selectorStrings: Seq[String]) = {
       Resolve.Tasks.resolve0(
-        Seq(module),
+        module,
         selectorStrings,
-        SelectMode.Separated
+        SelectMode.Separated,
+        false
       )
     }
 
     def resolveMetadata(selectorStrings: Seq[String]) = {
       Resolve.Segments.resolve0(
-        Seq(module),
+        module,
         selectorStrings,
-        SelectMode.Separated
+        SelectMode.Separated,
+        false
       ).map(_.map(_.render))
     }
   }

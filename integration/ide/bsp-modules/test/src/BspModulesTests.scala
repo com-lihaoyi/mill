@@ -16,7 +16,8 @@ object BspModulesTests extends IntegrationTestSuite {
       }
       test("ModuleUtils resolves all referenced transitive modules") {
         initWorkspace()
-        assert(eval("validate").isSuccess)
+        val res = eval("validate")
+        assert(res.isSuccess)
         val file = workspacePath / "out" / "validate.dest" / "transitive-modules.json"
         assert(os.exists(file))
         val readModules = os.read.lines(file).sorted
@@ -24,9 +25,9 @@ object BspModulesTests extends IntegrationTestSuite {
           "", // the root module has no segments at all
           "HelloBsp",
           "HelloBsp.test",
-          "proj1.module",
-          "proj2.module"
-          // "foreign-modules.proj3.proj3" // still not detected
+          "proj1",
+          "proj2",
+          "proj3"
         ).sorted
         assert(readModules == expectedModules)
       }

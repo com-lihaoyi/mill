@@ -13,7 +13,7 @@ object Tasks {
     def shortName = "<tasks>"
     def read(s: Seq[String]): Either[String, Tasks[T]] = {
       Resolve.Tasks.resolve(
-        Evaluator.currentEvaluator.value.rootModules,
+        Evaluator.currentEvaluator.value.rootModule,
         s,
         SelectMode.Separated
       ).map(x => Tasks(x.asInstanceOf[Seq[mill.define.NamedTask[T]]]))

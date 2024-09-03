@@ -5,7 +5,7 @@ The Plugins in this section are developed/maintained outside the mill git tree.
 This list is most likely not complete.
 If you wrote a Mill plugin or find that one is missing in this list, please open a {mill-github-url}/pulls[pull request] and add that plugin with a short description (in alphabetical order).
 
-For details about including plugins in your `build.sc` read xref:Using_Plugins.adoc[Using Mill Plugins].
+For details about including plugins in your `build.mill` read xref:Using_Plugins.adoc[Using Mill Plugins].
 
 CAUTION: Besides the documentation provided here, we urge you to consult the respective linked plugin documentation pages.
 The usage examples given here are most probably incomplete and sometimes outdated!
@@ -158,7 +158,7 @@ Project home: https://github.com/swaldman/mill-daemon
 
 Place the millw script from https://github.com/lefou/millw in your project directory.
 
-./opt/coolproj/build.sc
+./opt/coolproj/build.mill
 ----
 import $ivy.`com.mchange::mill-daemon:0.0.1`
 import com.mchange.milldaemon.DaemonModule
@@ -314,7 +314,7 @@ A plugin that checks that `ivyDeps` and `ivyCompileDeps` accurately reflect the 
 Project home: https://github.com/kierendavies/mill-explicit-deps
 
 
-.`build.sc`
+.`build.mill`
 [source,scala]
 ----
 import $ivy.`io.github.kierendavies::mill-explicit-deps::0.1.0`
@@ -354,7 +354,7 @@ working targets for your template after generation.
 Project home: https://github.com/ckipp01/mill-giter8
 
 
-.`build.sc`
+.`build.mill`
 [source,scala]
 ----
 import $ivy.`io.chris-kipp::mill-giter8::0.2.0`
@@ -461,7 +461,7 @@ We assume, you have a mill plugin named `mill-demo`
 
 [source,scala]
 ----
-// build.sc
+// build.mill
 import mill._, mill.scalalib._
 object demo extends ScalaModule with PublishModule {
   // ...

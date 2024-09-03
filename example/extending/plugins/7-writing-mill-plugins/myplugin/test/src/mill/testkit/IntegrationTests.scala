@@ -19,7 +19,7 @@ object IntegrationTests extends TestSuite {
 
       val res1 = tester.eval("run")
       assert(res1.isSuccess)
-      assert(res1.err.contains("compiling 1 Java source")) // compiling the `build.sc`
+      assert(res1.err.contains("compiling 1 Java source")) // compiling the `build.mill`
       assert(res1.out.contains("Line Count: 17"))
       assert(tester.out("lineCount").value[Int] == 17)
 

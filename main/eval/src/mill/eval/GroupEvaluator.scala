@@ -23,7 +23,7 @@ private[mill] trait GroupEvaluator {
   def workspace: os.Path
   def outPath: os.Path
   def externalOutPath: os.Path
-  def rootModules: Seq[mill.define.BaseModule]
+  def rootModule: mill.define.BaseModule
   def classLoaderSigHash: Int
   def classLoaderIdentityHash: Int
   def workerCache: mutable.Map[Segments, (Int, Val)]
@@ -94,85 +94,59 @@ private[mill] trait GroupEvaluator {
       group.iterator.map(_.sideHash)
     )
 
-    val scriptsHash = if (disableCallgraphInvalidation) {
-      val possibleScripts = scriptImportGraph.keySet.map(_.toString)
-      val scripts = new Loose.Agg.Mutable[os.Path]()
-      group.iterator.flatMap(t => Iterator(t) ++ t.inputs).foreach {
-        // Filter out the `fileName` as a string before we call `os.Path` on it, because
-        // otherwise linux paths on earlier-compiled artifacts can cause this to crash
-        // when running on Windows with a different file path format
-        case namedTask: NamedTask[_] if possibleScripts.contains(namedTask.ctx.fileName) =>
-          scripts.append(os.Path(namedTask.ctx.fileName))
-        case _ =>
+    val scriptsHash = group
+      .iterator
+      .collect {
+        case namedTask: NamedTask[_] =>
+          val encodedTaskName = encode(namedTask.ctx.segment.pathSegments.head)
+          val methodOpt = for {
+            parentCls <- classToTransitiveClasses(namedTask.ctx.enclosingCls).iterator
+            m <- allTransitiveClassMethods(parentCls).get(encodedTaskName)
+          } yield m
+
+          val methodClass = methodOpt
+            .nextOption()
+            .getOrElse(throw new MillException(
+              s"Could not detect the parent class of target ${namedTask}. " +
+                s"Please report this at ${BuildInfo.millReportNewIssueUrl} . " +
+                s"As a workaround, you can run Mill with `--disable-callgraph-invalidation` option."
+            ))
+            .getDeclaringClass.getName
+
+          val name = namedTask.ctx.segment.pathSegments.last
+          val expectedName = methodClass + "#" + name + "()mill.define.Target"
+
+          // We not only need to look up the code hash of the Target method being called,
+          // but also the code hash of the constructors required to instantiate the Module
+          // that the Target is being called on. This can be done by walking up the nested
+          // modules and looking at their constructors (they're `object`s and should each
+          // have only one)
+          val allEnclosingModules = Vector.unfold(namedTask.ctx) {
+            case null => None
+            case ctx =>
+              ctx.enclosingModule match {
+                case null => None
+                case m: mill.define.Module => Some((m, m.millOuterCtx))
+                case unknown =>
+                  throw new MillException(s"Unknown ctx of target ${namedTask}: $unknown")
+              }
+          }
+
+          val constructorHashes = allEnclosingModules
+            .map(m =>
+              constructorHashSignatures.get(m.getClass.getName) match {
+                case Some(Seq((singleMethod, hash))) => hash
+                case Some(multiple) => throw new MillException(
+                    s"Multiple constructors found for module $m: ${multiple.mkString(",")}"
+                  )
+                case None => 0
+              }
+            )
+
+          methodCodeHashSignatures.get(expectedName) ++ constructorHashes
       }
-
-      val transitiveScripts = Graph.transitiveNodes(scripts)(t =>
-        scriptImportGraph.get(t).map(_._2).getOrElse(Nil)
-      )
-
-      transitiveScripts
-        .iterator
-        // Sometimes tasks are defined in external/upstreadm dependencies,
-        // (e.g. a lot of tasks come from JavaModule.scala) and won't be
-        // present in the scriptImportGraph
-        .map(p => scriptImportGraph.get(p).fold(0)(_._1))
-        .sum
-    } else {
-
-      group
-        .iterator
-        .collect {
-          case namedTask: NamedTask[_] =>
-            val encodedTaskName = encode(namedTask.ctx.segment.pathSegments.head)
-            val methodOpt = for {
-              parentCls <- classToTransitiveClasses(namedTask.ctx.enclosingCls).iterator
-              m <- allTransitiveClassMethods(parentCls).get(encodedTaskName)
-            } yield m
-
-            val methodClass = methodOpt
-              .nextOption()
-              .getOrElse(throw new MillException(
-                s"Could not detect the parent class of target ${namedTask}. " +
-                  s"Please report this at ${BuildInfo.millReportNewIssueUrl} . " +
-                  s"As a workaround, you can run Mill with `--disable-callgraph-invalidation` option."
-              ))
-              .getDeclaringClass.getName
-
-            val name = namedTask.ctx.segment.pathSegments.last
-            val expectedName = methodClass + "#" + name + "()mill.define.Target"
-
-            // We not only need to look up the code hash of the Target method being called,
-            // but also the code hash of the constructors required to instantiate the Module
-            // that the Target is being called on. This can be done by walking up the nested
-            // modules and looking at their constructors (they're `object`s and should each
-            // have only one)
-            val allEnclosingModules = Vector.unfold(namedTask.ctx) {
-              case null => None
-              case ctx =>
-                ctx.enclosingModule match {
-                  case null => None
-                  case m: mill.define.Module => Some((m, m.millOuterCtx))
-                  case unknown =>
-                    throw new MillException(s"Unknown ctx of target ${namedTask}: $unknown")
-                }
-            }
-
-            val constructorHashes = allEnclosingModules
-              .map(m =>
-                constructorHashSignatures.get(m.getClass.getName) match {
-                  case Some(Seq((singleMethod, hash))) => hash
-                  case Some(multiple) => throw new MillException(
-                      s"Multiple constructors found for module $m: ${multiple.mkString(",")}"
-                    )
-                  case None => 0
-                }
-              )
-
-            methodCodeHashSignatures.get(expectedName) ++ constructorHashes
-        }
-        .flatten
-        .sum
-    }
+      .flatten
+      .sum
 
     val inputsHash = externalInputsHash + sideHashes + classLoaderSigHash + scriptsHash
 
@@ -398,7 +372,7 @@ private[mill] trait GroupEvaluator {
   // re-created - so the worker *class* changes - but the *value* inputs to the
   // worker does not change. This typically happens when the worker class is
   // brought in via `import $ivy`, since the class then comes from the
-  // non-bootstrap classloader which can be re-created when the `build.sc` file
+  // non-bootstrap classloader which can be re-created when the `build.mill` file
   // changes.
   //
   // We do not want to do this for normal targets, because those are always

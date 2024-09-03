@@ -87,10 +87,8 @@ object Module {
 
     def reflectNestedObjects[T: ClassTag](filter: String => Boolean = Function.const(true))
         : Seq[T] = {
-      Reflect.reflectNestedObjects0(outer.getClass, filter).map {
-        case (name, m: java.lang.reflect.Method) => m.invoke(outer).asInstanceOf[T]
-        case (name, m: java.lang.reflect.Field) => m.get(outer).asInstanceOf[T]
-      }
+      Reflect.reflectNestedObjects02(outer.getClass, filter)
+        .map { case (name, cls, getter) => getter(outer) }
     }
   }
 }
