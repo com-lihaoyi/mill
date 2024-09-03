@@ -124,8 +124,7 @@ object CodeGen {
     val prelude = topBuildPrelude(
       scriptFolderPath,
       enclosingClasspath,
-      millTopLevelProjectRoot,
-      childAliases
+      millTopLevelProjectRoot
     )
     val segments = scriptFolderPath.relativeTo(projectRoot).segments
     val instrument = new ObjectDataInstrument(scriptCode)
@@ -173,12 +172,9 @@ object CodeGen {
         s"""$pkgLine
            |$aliasImports
            |$prelude
-           |${topBuildHeader(segments, scriptFolderPath, millTopLevelProjectRoot)}
+           |${topBuildHeader(segments, scriptFolderPath, millTopLevelProjectRoot, childAliases)}
            |$markerComment
            |$scriptCode
-           |// define this after user code so in case of conflict these lines are what turn
-           |// up in the error message, so we can add a comment and control what the user sees
-           |$childAliases
            |}""".stripMargin
 
     }
@@ -187,8 +183,7 @@ object CodeGen {
   def topBuildPrelude(
       scriptFolderPath: os.Path,
       enclosingClasspath: Seq[os.Path],
-      millTopLevelProjectRoot: os.Path,
-      childAliases: String
+      millTopLevelProjectRoot: os.Path
   ): String = {
     s"""import _root_.mill.runner.MillBuildRootModule
        |@_root_.scala.annotation.nowarn
@@ -197,12 +192,7 @@ object CodeGen {
        |  ${literalize(scriptFolderPath.toString)},
        |  ${literalize(millTopLevelProjectRoot.toString)},
        |  _root_.mill.define.Discover[$wrapperObjectName.type]
-       |){
-       |  // aliases so child modules can be referred to directly as `foo` rather
-       |  // than `foo.module`. Need to be outside `MillPackageClass` in case they are
-       |  // referenced in the combined `extends` clause
-       |  $childAliases
-       |}
+       |)
        |import MillMiscInfo._
        |""".stripMargin
   }
@@ -210,7 +200,8 @@ object CodeGen {
   def topBuildHeader(
       segs: Seq[String],
       scriptFolderPath: os.Path,
-      millTopLevelProjectRoot: os.Path
+      millTopLevelProjectRoot: os.Path,
+      childAliases: String
   ): String = {
     val extendsClause = if (segs.isEmpty) {
       if (millTopLevelProjectRoot == scriptFolderPath) {
@@ -225,7 +216,9 @@ object CodeGen {
 
     // User code needs to be put in a separate class for proper submodule
     // object initialization due to https://github.com/scala/scala3/issues/21444
-    s"""object $wrapperObjectName extends $wrapperObjectName
+    s"""object $wrapperObjectName extends $wrapperObjectName{
+       |  $childAliases
+       |}
        |class $wrapperObjectName $extendsClause {""".stripMargin
 
   }
