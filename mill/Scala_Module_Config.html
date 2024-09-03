@@ -316,14 +316,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.0-M0-63-11d32c</span>
+    <span class="version">0.12.0-M0-64-9baac5</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="0.11.12/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="index.html">0.12.0-M0-63-11d32c</a>
+          <a href="index.html">0.12.0-M0-64-9baac5</a>
         </li>
         <li class="version is-latest">
           <a href="0.11.12/index.html">0.11.12</a>
@@ -368,9 +368,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-63-11d32c</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-64-9baac5</button>
   <div class="version-menu">
-    <a class="version is-current" href="Scala_Module_Config.html">0.12.0-M0-63-11d32c</a>
+    <a class="version is-current" href="Scala_Module_Config.html">0.12.0-M0-64-9baac5</a>
     <a class="version" href="0.11.12/Scala_Module_Config.html">0.11.12</a>
     <a class="version" href="0.11.11/Scala_Module_Config.html">0.11.11</a>
     <a class="version" href="0.11.10/Scala_Module_Config.html">0.11.10</a>
@@ -414,11 +414,16 @@ for <code>ScalaModule</code>.</p>
 <h2 id="_compilation_execution_flags"><a class="anchor" href="#_compilation_execution_flags"></a>Compilation &amp; Execution Flags</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-scalalib-module-1-compilation-execution-flags.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/scalalib/module/1-compilation-execution-flags">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-scalalib-module-1-compilation-execution-flags.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/scalalib/module/1-compilation-execution-flags">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
+</div>
+</div>
+<div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
-object foo extends RootModule with ScalaModule{
+object `package` extends RootModule with ScalaModule{
   def scalaVersion = &quot;2.13.8&quot;
   def scalacOptions = Seq(&quot;-Ydelambdafy:inline&quot;)
   def forkArgs = Seq(&quot;-Xmx4g&quot;, &quot;-Dmy.jvm.property=hello&quot;)
@@ -468,11 +473,16 @@ hello WORLD</code></pre>
 <h2 id="_adding_ivy_dependencies"><a class="anchor" href="#_adding_ivy_dependencies"></a>Adding Ivy Dependencies</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-scalalib-module-2-ivy-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/scalalib/module/2-ivy-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-scalalib-module-2-ivy-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/scalalib/module/2-ivy-deps">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
+</div>
+</div>
+<div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
-object foo extends RootModule with ScalaModule {
+object `package` extends RootModule with ScalaModule {
   def scalaVersion = &quot;2.12.17&quot;
   def ivyDeps = Agg(
     ivy&quot;com.lihaoyi::upickle:3.1.0&quot;,
@@ -532,13 +542,18 @@ serialized using uPickle: [&quot;i&quot;,&quot;am&quot;,&quot;cow&quot;]</code><
 <div class="sect1">
 <h2 id="_runtime_and_compile_time_dependencies"><a class="anchor" href="#_runtime_and_compile_time_dependencies"></a>Runtime and Compile-time Dependencies</h2>
 <div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-scalalib-module-3-run-compile-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/scalalib/module/3-run-compile-deps">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
+</div>
+</div>
 <div class="paragraph">
 <p>If you want to use additional dependencies at runtime or override
 dependencies and their versions at runtime, you can do so with
 <code>runIvyDeps</code>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-scalalib-module-3-run-compile-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/scalalib/module/3-run-compile-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
@@ -630,7 +645,12 @@ Scala Steward can also keep your
 <h2 id="_classpath_and_filesystem_resources"><a class="anchor" href="#_classpath_and_filesystem_resources"></a>Classpath and Filesystem Resources</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-scalalib-module-5-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/scalalib/module/5-resources">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-scalalib-module-5-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/scalalib/module/5-resources">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
+</div>
+</div>
+<div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
@@ -777,11 +797,12 @@ the sandbox and make the tests run in the project root.</p>
 <h2 id="_scala_compiler_plugins"><a class="anchor" href="#_scala_compiler_plugins"></a>Scala Compiler Plugins</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-scalalib-module-6-scala-compiler-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/scalalib/module/6-scala-compiler-plugins">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-scalalib-module-6-scala-compiler-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/scalalib/module/6-scala-compiler-plugins">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, scalalib._
 
-object foo extends RootModule with ScalaModule {
+object `package` extends RootModule with ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
 
   def compileIvyDeps = Agg(ivy&quot;com.lihaoyi:::acyclic:0.3.6&quot;)
@@ -825,13 +846,18 @@ error:   def x = Foo.y</code></pre>
 <div class="sect1">
 <h2 id="_scaladoc_config"><a class="anchor" href="#_scaladoc_config"></a>Scaladoc Config</h2>
 <div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-scalalib-module-7-docjar.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/scalalib/module/7-docjar">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
+</div>
+</div>
 <div class="paragraph">
 <p>To generate API documenation you can use the <code>docJar</code> task on the module you’d
 like to create the documenation for, configured via <code>scalaDocOptions</code> or
 <code>javadocOptions</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-scalalib-module-7-docjar.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/scalalib/module/7-docjar">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
@@ -879,7 +905,7 @@ project called <code>bar</code>:</p>
 <div class="listingblock">
 <div class="content">
 <pre>.
-├── build.sc
+├── build.mill
 ├── bar
 │  ├── docs
 │  │  ├── _blog
@@ -916,11 +942,16 @@ documentation.</p>
 <h2 id="_unmanaged_jars"><a class="anchor" href="#_unmanaged_jars"></a>Unmanaged Jars</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-scalalib-module-8-unmanaged-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/scalalib/module/8-unmanaged-jars">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-scalalib-module-8-unmanaged-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/scalalib/module/8-unmanaged-jars">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
+</div>
+</div>
+<div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
-object foo extends RootModule with ScalaModule {
+object `package` extends RootModule with ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
   def unmanagedClasspath = T {
     if (!os.exists(millSourcePath / &quot;lib&quot;)) Agg()
@@ -947,11 +978,16 @@ Key: age, Value: 30</code></pre>
 <h2 id="_specifying_the_main_class"><a class="anchor" href="#_specifying_the_main_class"></a>Specifying the Main Class</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-scalalib-module-9-main-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/scalalib/module/9-main-class">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-scalalib-module-9-main-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/scalalib/module/9-main-class">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
+</div>
+</div>
+<div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
-object foo extends RootModule with ScalaModule {
+object `package` extends RootModule with ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
   def mainClass = Some(&quot;foo.Qux&quot;)
 }</code></pre>
@@ -975,11 +1011,16 @@ Hello Qux</code></pre>
 <h2 id="_downloading_non_maven_jars"><a class="anchor" href="#_downloading_non_maven_jars"></a>Downloading Non-Maven Jars</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-scalalib-module-10-downloading-non-maven-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/scalalib/module/10-downloading-non-maven-jars">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-scalalib-module-10-downloading-non-maven-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/scalalib/module/10-downloading-non-maven-jars">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
+</div>
+</div>
+<div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
-object foo extends RootModule with ScalaModule {
+object `package` extends RootModule with ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
   def unmanagedClasspath = T {
     os.write(
@@ -1014,7 +1055,12 @@ I weigh twice as much as you</code></pre>
 <h2 id="_customizing_the_assembly"><a class="anchor" href="#_customizing_the_assembly"></a>Customizing the Assembly</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-scalalib-module-11-assembly-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/scalalib/module/11-assembly-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-scalalib-module-11-assembly-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/scalalib/module/11-assembly-config">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
+</div>
+</div>
+<div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 import mill.scalalib.Assembly._
@@ -1070,12 +1116,17 @@ Loaded application.conf from resources:...
 <div class="sect1">
 <h2 id="_repository_config"><a class="anchor" href="#_repository_config"></a>Repository Config</h2>
 <div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-scalalib-module-12-repository-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/scalalib/module/12-repository-config">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
+</div>
+</div>
 <div class="paragraph">
 <p>By default, dependencies are resolved from maven central, but you can add
 your own resolvers by overriding the <code>repositoriesTask</code> task in the module:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-scalalib-module-12-repository-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/scalalib/module/12-repository-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 import mill.define.ModuleRef
@@ -1196,14 +1247,15 @@ Resolution failed for 1 modules:
 <h2 id="_scoverage"><a class="anchor" href="#_scoverage"></a>Scoverage</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-scalalib-module-13-contrib-scoverage.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/scalalib/module/13-contrib-scoverage">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-scalalib-module-13-contrib-scoverage.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/scalalib/module/13-contrib-scoverage">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, scalalib._
 import $ivy.`com.lihaoyi::mill-contrib-scoverage:`
 
 import mill.contrib.scoverage._
 
-object foo extends RootModule with ScoverageModule {
+object `package` extends RootModule with ScoverageModule {
   def scoverageVersion = &quot;2.1.0&quot;
   def scalaVersion = &quot;2.13.11&quot;
   def ivyDeps = Agg(
@@ -1268,9 +1320,10 @@ Branch coverage....: 100.00%</code></pre>
 <h2 id="_unidoc"><a class="anchor" href="#_unidoc"></a>Unidoc</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-scalalib-module-14-unidoc.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/scalalib/module/14-unidoc">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-scalalib-module-14-unidoc.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/scalalib/module/14-unidoc">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, scalalib._
 
 object foo extends ScalaModule with UnidocModule{
   def scalaVersion = &quot;2.13.8&quot;
@@ -1341,7 +1394,7 @@ sources as browsable from the <code>unidocSourceUrl</code> base (e.g. on Github)
 <p>To have a formatting per-module you need to make your module extend <code>mill.scalalib.scalafmt.ScalafmtModule</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title"><code>build.sc</code></div>
+<div class="title"><code>build.mill</code></div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._, scalafmt._
 
@@ -1443,7 +1496,7 @@ by changes to upstream sources.</p>
 <code>zincIncrementalCompilation</code> to <code>false</code></p>
 </div>
 <div class="listingblock">
-<div class="title"><code>build.sc</code></div>
+<div class="title"><code>build.mill</code></div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 

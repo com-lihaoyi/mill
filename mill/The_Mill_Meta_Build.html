@@ -315,14 +315,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.0-M0-63-11d32c</span>
+    <span class="version">0.12.0-M0-64-9baac5</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="0.11.12/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="index.html">0.12.0-M0-63-11d32c</a>
+          <a href="index.html">0.12.0-M0-64-9baac5</a>
         </li>
         <li class="version is-latest">
           <a href="0.11.12/index.html">0.11.12</a>
@@ -367,9 +367,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-63-11d32c</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-64-9baac5</button>
   <div class="version-menu">
-    <a class="version is-current" href="The_Mill_Meta_Build.html">0.12.0-M0-63-11d32c</a>
+    <a class="version is-current" href="The_Mill_Meta_Build.html">0.12.0-M0-64-9baac5</a>
     <a class="version is-missing" href="0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="0.11.10/index.html">0.11.10</a>
@@ -391,7 +391,7 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>The meta-build manages the compilation of the <code>build.sc</code>.
+<p>The meta-build manages the compilation of the <code>build.mill</code>.
 If you don’t configure it explicitly, a built-in synthetic meta-build is used.</p>
 </div>
 <div class="paragraph">
@@ -408,15 +408,15 @@ It needs to contain a top-level module of type <code>MillBuildRootModule</code>.
 </div>
 </div>
 <div class="sect1">
-<h2 id="_autoformatting_the_build_sc"><a class="anchor" href="#_autoformatting_the_build_sc"></a>Autoformatting the <code>build.sc</code></h2>
+<h2 id="_autoformatting_the_build_mill"><a class="anchor" href="#_autoformatting_the_build_mill"></a>Autoformatting the <code>build.mill</code></h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>As an example of running a task on the meta-build, you can format the <code>build.sc</code> with Scalafmt.
+<p>As an example of running a task on the meta-build, you can format the <code>build.mill</code> with Scalafmt.
 Everything is already provided by Mill.
 You only need a <code>.scalafmt.conf</code> config file which at least needs configure the Scalafmt version.</p>
 </div>
 <div class="listingblock">
-<div class="title">Run Scalafmt on the <code>build.sc</code> (and potentially included files)</div>
+<div class="title">Run Scalafmt on the <code>build.mill</code> (and potentially included files)</div>
 <div class="content">
 <pre>$ mill --meta-level 1 mill.scalalib.scalafmt.ScalafmtModule/reformatAll sources</pre>
 </div>
@@ -430,7 +430,7 @@ You only need a <code>.scalafmt.conf</code> config file which at least needs con
 <p><code>mill.scalalib.scalafmt.ScalafmtModule/reformatAll</code> is a generic task to format scala source files with Scalafmt. It requires the targets that refer to the source files as argument</p>
 </li>
 <li>
-<p><code>sources</code> this selects the <code>sources</code> targets of the meta-build, which at least contains the <code>build.sc</code>.</p>
+<p><code>sources</code> this selects the <code>sources</code> targets of the meta-build, which at least contains the <code>build.mill</code>.</p>
 </li>
 </ul>
 </div>
@@ -454,16 +454,17 @@ de.tototec:de.tobiasroeser.mill.vcs.version_mill0.11_2.13 : 0.3.1-&gt; 0.4.0</pr
 </div>
 </div>
 <div class="sect1">
-<h2 id="_sharing_libraries_between_build_sc_and_application_code"><a class="anchor" href="#_sharing_libraries_between_build_sc_and_application_code"></a>Sharing Libraries between <code>build.sc</code> and Application Code</h2>
+<h2 id="_sharing_libraries_between_build_mill_and_application_code"><a class="anchor" href="#_sharing_libraries_between_build_mill_and_application_code"></a>Sharing Libraries between <code>build.mill</code> and Application Code</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-extending-metabuild-4-meta-build.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/extending/metabuild/4-meta-build">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-extending-metabuild-4-meta-build.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/extending/metabuild/4-meta-build">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $meta._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import $meta._
 import mill._, scalalib._
 import scalatags.Text.all._
 
-object foo extends RootModule with ScalaModule {
+object `package` extends RootModule with ScalaModule {
   def scalaVersion = &quot;2.13.4&quot;
   def ivyDeps = Agg(
     ivy&quot;com.lihaoyi::scalatags:${millbuild.DepVersions.scalatagsVersion}&quot;,
@@ -479,18 +480,19 @@ object foo extends RootModule with ScalaModule {
 </div>
 </div>
 <div class="paragraph">
-<p>This example illustrates usage of the <code>mill-build/</code> folder. Mill’s <code>build.sc</code>
+<p>This example illustrates usage of the <code>mill-build/</code> folder. Mill’s <code>build.mill</code>
 file and it’s <code>import $file</code> and <code>$ivy</code> are a shorthand syntax for defining
 a Mill <code>ScalaModule</code>, with sources and <code>ivyDeps</code> and so on, which is
 compiled and executed to perform your build. This &quot;meta-build&quot; module lives in
 <code>mill-build/</code>, and can be enabled via the <code>import $meta._</code> statement above.</p>
 </div>
 <div class="listingblock">
-<div class="title">mill-build/build.sc (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/extending/metabuild/4-meta-build/mill-build/build.sc">browse</a>)</div>
+<div class="title">mill-build/build.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/extending/metabuild/4-meta-build/mill-build/build.mill">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, scalalib._
 
-object millbuild extends MillBuildRootModule{
+object `package` extends MillBuildRootModule{
   val scalatagsVersion = &quot;0.12.0&quot;
   def ivyDeps = Agg(ivy&quot;com.lihaoyi::scalatags:$scalatagsVersion&quot;)
 
@@ -523,11 +525,11 @@ object Foo {
 </div>
 </div>
 <div class="paragraph">
-<p>Typically, if you wanted to use a library such as Scalatags in both your <code>build.sc</code>
+<p>Typically, if you wanted to use a library such as Scalatags in both your <code>build.mill</code>
 as well as your application code, you would need to duplicate the version of Scalatags
 used in both your <code>import $ivy</code> statement as well as your <code>def ivyDeps</code> statement.
 The meta-build lets us avoid this duplication: we use <code>generatedSources</code> in
-<code>mill-build/build.sc</code> to create a <code>DepVersions</code> object that the <code>build.sc</code> can use to pass the
+<code>mill-build/build.mill</code> to create a <code>DepVersions</code> object that the <code>build.mill</code> can use to pass the
 <code>scalatagsVersion</code> to the application without having to copy-paste the
 version and keep the two copies in sync.</p>
 </div>
@@ -555,8 +557,8 @@ Run-time HTML snippet: &lt;p&gt;world&lt;/p&gt;</code></pre>
 </div>
 <div class="paragraph">
 <p>This example is trivial, but in larger builds there may be much more scenarios
-where you may want to keep the libraries used in your <code>build.sc</code> and the libraries
-used in your application code consistent. With the <code>mill-build/build.sc</code> configuration
+where you may want to keep the libraries used in your <code>build.mill</code> and the libraries
+used in your application code consistent. With the <code>mill-build/build.mill</code> configuration
 enabled by <code>import $meta._</code>, this becomes possible.</p>
 </div>
 <div class="paragraph">
@@ -574,26 +576,27 @@ cli option.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill --meta-level 1 show sources
 [
-.../build.sc&quot;,
+.../build.mill&quot;,
 .../mill-build/src&quot;
 ]
 
 &gt; mill --meta-level 2 show sources
-.../mill-build/build.sc&quot;</code></pre>
+.../mill-build/build.mill&quot;</code></pre>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_sharing_source_code_between_build_sc_and_application_code"><a class="anchor" href="#_sharing_source_code_between_build_sc_and_application_code"></a>Sharing Source Code between <code>build.sc</code> and Application Code</h2>
+<h2 id="_sharing_source_code_between_build_mill_and_application_code"><a class="anchor" href="#_sharing_source_code_between_build_mill_and_application_code"></a>Sharing Source Code between <code>build.mill</code> and Application Code</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-extending-metabuild-5-meta-shared-sources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/extending/metabuild/5-meta-shared-sources">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-extending-metabuild-5-meta-shared-sources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/extending/metabuild/5-meta-shared-sources">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $meta._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import $meta._
 import mill._, scalalib._
 
-object foo extends RootModule with ScalaModule {
+object `package` extends RootModule with ScalaModule {
   def scalaVersion = millbuild.ScalaVersion.myScalaVersion
   def sources = T.sources{
     super.sources() ++ Seq(PathRef(millSourcePath / &quot;mill-build&quot; / &quot;src&quot;))
@@ -602,11 +605,12 @@ object foo extends RootModule with ScalaModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">mill-build/build.sc (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/extending/metabuild/5-meta-shared-sources/mill-build/build.sc">browse</a>)</div>
+<div class="title">mill-build/build.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/extending/metabuild/5-meta-shared-sources/mill-build/build.mill">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._
 
-object millbuild extends MillBuildRootModule</code></pre>
+object `package` extends MillBuildRootModule</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -633,9 +637,9 @@ object Foo {
 <div class="paragraph">
 <p>This example shows another use of the Mill meta-build: because the meta-build
 is just a normal Scala module (with some special handling for the <code>.sc</code> file extension),
-your <code>build.sc</code> file can take normal Scala source files that are placed in <code>mill-build/src/</code>
+your <code>build.mill</code> file can take normal Scala source files that are placed in <code>mill-build/src/</code>
 This allows us to share those sources with your application code by appropriately
-configuring your <code>def sources</code> in <code>build.sc</code> above.</p>
+configuring your <code>def sources</code> in <code>build.mill</code> above.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -645,18 +649,18 @@ scalaVersion: 2.13.10</code></pre>
 </div>
 <div class="paragraph">
 <p>Here we only share a trivial <code>def myScalaVersion = &quot;2.13.10&quot;</code> definition between
-the <code>build.sc</code> and application code. But this ability to share arbitrary code between
+the <code>build.mill</code> and application code. But this ability to share arbitrary code between
 your application and your build opens up a lot of possibilities:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
 <p>Run-time initialization logic can be placed in <code>mill-build/src/</code>, shared with the
-<code>build.sc</code> and used to perform build-time preprocessing, reducing the work needing
+<code>build.mill</code> and used to perform build-time preprocessing, reducing the work needing
 to be done at application start and reducing startup latencies.</p>
 </li>
 <li>
-<p>Build-time <code>build.sc</code> logic can be placed in <code>mill-build/src/</code> and shared with your
+<p>Build-time <code>build.mill</code> logic can be placed in <code>mill-build/src/</code> and shared with your
 run-time application code, allowing greater flexibility in e.g. exercising the shared
 logic in response to user input that’s not available at build time.</p>
 </li>

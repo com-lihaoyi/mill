@@ -315,14 +315,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.0-M0-63-11d32c</span>
+    <span class="version">0.12.0-M0-64-9baac5</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="0.11.12/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="index.html">0.12.0-M0-63-11d32c</a>
+          <a href="index.html">0.12.0-M0-64-9baac5</a>
         </li>
         <li class="version is-latest">
           <a href="0.11.12/index.html">0.11.12</a>
@@ -367,9 +367,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-63-11d32c</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-64-9baac5</button>
   <div class="version-menu">
-    <a class="version is-current" href="Writing_Mill_Plugins.html">0.12.0-M0-63-11d32c</a>
+    <a class="version is-current" href="Writing_Mill_Plugins.html">0.12.0-M0-64-9baac5</a>
     <a class="version is-missing" href="0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="0.11.10/index.html">0.11.10</a>
@@ -390,6 +390,12 @@
 <h1 class="page">Writing Mill Plugins</h1>
 <div id="preamble">
 <div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-extending-plugins-7-writing-mill-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/extending/plugins/7-writing-mill-plugins">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
+</div>
+</div>
 <div class="paragraph">
 <p>This example demonstrates how to write and test Mill plugin, and publish it to
 Sonatype’s Maven Central so it can be used by other developers over the internet
@@ -401,7 +407,6 @@ via <a href="Import_File_And_Import_Ivy.html" class="xref page">import $ivy</a>.
 <h2 id="_project_configuration"><a class="anchor" href="#_project_configuration"></a>Project Configuration</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-extending-plugins-7-writing-mill-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/extending/plugins/7-writing-mill-plugins">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._, publish._
 import mill.main.BuildInfo.millVersion
@@ -443,12 +448,12 @@ object myplugin extends ScalaModule with PublishModule {
 </div>
 <div class="paragraph">
 <p>Mill plugins are fundamentally just JVM libraries that depend on Mill. Any vanilla JVM
-library (whether written in Java or Scala) can be used in a Mill <code>build.sc</code> file via
+library (whether written in Java or Scala) can be used in a Mill <code>build.mill</code> file via
 <code>import $ivy</code>, but Mill plugins tend to integrate with Mill by defining a
-<a href="Modules.html#_trait_modules" class="xref page">trait for modules in your <code>build.sc</code> to inherit from</a>.</p>
+<a href="Modules.html#_trait_modules" class="xref page">trait for modules in your <code>build.mill</code> to inherit from</a>.</p>
 </div>
 <div class="paragraph">
-<p>The above <code>build.sc</code> file sets up a <code>object myplugin extends ScalaModule</code> not just to
+<p>The above <code>build.mill</code> file sets up a <code>object myplugin extends ScalaModule</code> not just to
 compile your Mill plugin project, but also to run automated tests using <code>mill-testkit</code>,
 and to configure it for publishing to Maven Central via <code>PublishModule</code>.
 It looks like any other Scala project, except for a few things to take note:</p>
@@ -554,7 +559,7 @@ own testing, and covers three approaches:</p>
 <h2 id="_unit_tests"><a class="anchor" href="#_unit_tests"></a>Unit Tests</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>These are tests that run in-process, with the Mill <code>build.sc</code> defined as a <code>TestBaseModule</code>,
+<p>These are tests that run in-process, with the Mill <code>build.mill</code> defined as a <code>TestBaseModule</code>,
 and using a <code>UnitTester</code> to run its tasks and inspect their output. <code>UnitTester</code> is provided
 a path to a folder on disk containing the files that are to be built with the given <code>TestBaseModule</code>,
 and can be used to evaluate tasks (by direct reference or by string-selector) and inspect
@@ -637,7 +642,7 @@ but that should not be a concern for most Mill plugins.</p>
 <p>Integration tests are one step up from Unit tests: they are significantly slower to run due
 to running Mill in a subprocess, but are able to exercise the end-to-end lifecycle of a Mill
 command. Unlike unit tests which define a <code>TestRootModule</code> in-memory as part of the test code,
-Mill’s integration tests rely on a <code>build.sc</code> that is processed and compiled as part of the
+Mill’s integration tests rely on a <code>build.mill</code> that is processed and compiled as part of the
 test initialization, and can only perform assertions on the four things that are returned from
 any subprocess:</p>
 </div>
@@ -683,7 +688,7 @@ object IntegrationTests extends TestSuite {
 
       val res1 = tester.eval(&quot;run&quot;)
       assert(res1.isSuccess)
-      assert(res1.err.contains(&quot;compiling 1 Java source&quot;)) // compiling the `build.sc`
+      assert(res1.err.contains(&quot;compiling 1 Java source&quot;)) // compiling the `build.mill`
       assert(res1.out.contains(&quot;Line Count: 17&quot;))
       assert(tester.out(&quot;lineCount&quot;).value[Int] == 17)
 
@@ -726,12 +731,13 @@ public class Foo {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">myplugin/test/resources/integration-test-project/build.sc (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/extending/plugins/7-writing-mill-plugins/myplugin/test/resources/integration-test-project/build.sc">browse</a>)</div>
+<div class="title">myplugin/test/resources/integration-test-project/build.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/extending/plugins/7-writing-mill-plugins/myplugin/test/resources/integration-test-project/build.mill">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $ivy.`com.lihaoyi::myplugin:0.0.1`
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import $ivy.`com.lihaoyi::myplugin:0.0.1`
 import mill._, myplugin._
 
-object foo extends RootModule with LineCountJavaModule{
+object `package` extends RootModule with LineCountJavaModule{
   def lineCountResourceFileName = &quot;line-count.txt&quot;
 }</code></pre>
 </div>
@@ -749,7 +755,7 @@ that the printed output is as expected.</p>
 <div class="paragraph">
 <p>Example tests are a variant of the integration tests mentioned above, but instead of
 having the testing logic defined as part of the test suite in a <code>.scala</code> file, the testing
-logic is instead defined as a <code>/** Usage */</code> comment in the <code>build.sc</code>. These tests are
+logic is instead defined as a <code>/** Usage */</code> comment in the <code>build.mill</code>. These tests are
 a great way of documenting expected usage of your plugin: a user can glance at a single
 file to see how the plugin is imported (via <code>import $ivy</code>) how it is used (e.g. by being
 extended by a module) and what commands they can run exercising the plugin and the resultant
@@ -800,12 +806,13 @@ public class Foo {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">myplugin/test/resources/example-test-project/build.sc (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/extending/plugins/7-writing-mill-plugins/myplugin/test/resources/example-test-project/build.sc">browse</a>)</div>
+<div class="title">myplugin/test/resources/example-test-project/build.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/extending/plugins/7-writing-mill-plugins/myplugin/test/resources/example-test-project/build.mill">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $ivy.`com.lihaoyi::myplugin:0.0.1`
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import $ivy.`com.lihaoyi::myplugin:0.0.1`
 import mill._, myplugin._
 
-object foo extends RootModule with LineCountJavaModule{
+object `package` extends RootModule with LineCountJavaModule{
   def lineCountResourceFileName = &quot;line-count.txt&quot;
 }
 
@@ -840,7 +847,7 @@ Line Count: 18
 </li>
 <li>
 <p>Expected output lines can contain <code>…​</code> wildcards to match against parts of the output
-which are unstable or unnecessary for someone reading through the <code>build.sc</code>.</p>
+which are unstable or unnecessary for someone reading through the <code>build.mill</code>.</p>
 </li>
 <li>
 <p>A <code>…​</code> wildcard on its own line can be used to match against any number of additional
@@ -855,13 +862,13 @@ line printed is given and every line given is printed. <code>…​</code> wildc
 additional fuzziness to the matching. The point of example tests is not to match
 character-for-character exactly what the output must be, but to match on the &quot;important&quot;
 parts of the output while simultaneously emphasizing these important parts to someone who
-may be reading the <code>build.sc</code></p>
+may be reading the <code>build.mill</code></p>
 </div>
 <div class="paragraph">
 <p>Example tests are similar to integration tests in that they exercise the full Mill bootstrapping
 process, and are thus much slower and more expensive to run than unit tests. However, it is
 usually a good idea to have at least one example test for your Mill plugin, so a user who
-wishes to use it can take the <code>build.sc</code> and associated files and immediately have a Mill
+wishes to use it can take the <code>build.mill</code> and associated files and immediately have a Mill
 build that is runnable using your plugin, along with a list of commands they can run and
 what output they should expect.</p>
 </div>
@@ -872,7 +879,7 @@ what output they should expect.</p>
 <div class="sectionbody">
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; sed -i.bak 's/0.0.1/0.0.2/g' build.sc
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; sed -i.bak 's/0.0.1/0.0.2/g' build.mill
 
 &gt; ./mill myplugin.publishLocal
 Publishing Artifact(com.lihaoyi,myplugin_2.13,0.0.2) to ivy repo...</code></pre>

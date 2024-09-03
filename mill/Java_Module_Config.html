@@ -316,14 +316,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.0-M0-63-11d32c</span>
+    <span class="version">0.12.0-M0-64-9baac5</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="0.11.12/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="index.html">0.12.0-M0-63-11d32c</a>
+          <a href="index.html">0.12.0-M0-64-9baac5</a>
         </li>
         <li class="version is-latest">
           <a href="0.11.12/index.html">0.11.12</a>
@@ -368,9 +368,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-63-11d32c</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-64-9baac5</button>
   <div class="version-menu">
-    <a class="version is-current" href="Java_Module_Config.html">0.12.0-M0-63-11d32c</a>
+    <a class="version is-current" href="Java_Module_Config.html">0.12.0-M0-64-9baac5</a>
     <a class="version" href="0.11.12/Java_Module_Config.html">0.11.12</a>
     <a class="version" href="0.11.11/Java_Module_Config.html">0.11.11</a>
     <a class="version" href="0.11.10/Java_Module_Config.html">0.11.10</a>
@@ -414,11 +414,12 @@ for <code>JavaModule</code>.</p>
 <h2 id="_compilation_execution_flags"><a class="anchor" href="#_compilation_execution_flags"></a>Compilation &amp; Execution Flags</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javalib-module-1-compilation-execution-flags.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javalib/module/1-compilation-execution-flags">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javalib-module-1-compilation-execution-flags.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javalib/module/1-compilation-execution-flags">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, javalib._
 
-object foo extends RootModule with JavaModule{
+object `package` extends RootModule with JavaModule{
   def forkArgs = Seq(&quot;-Xmx4g&quot;, &quot;-Dmy.jvm.property=hello&quot;)
   def forkEnv = Map(&quot;MY_ENV_VAR&quot; -&gt; &quot;WORLD&quot;)
 }</code></pre>
@@ -463,11 +464,12 @@ hello WORLD</code></pre>
 <h2 id="_adding_ivy_dependencies"><a class="anchor" href="#_adding_ivy_dependencies"></a>Adding Ivy Dependencies</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javalib-module-2-ivy-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javalib/module/2-ivy-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javalib-module-2-ivy-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javalib/module/2-ivy-deps">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, javalib._
 
-object foo extends RootModule with JavaModule {
+object `package` extends RootModule with JavaModule {
   def ivyDeps = Agg(
     ivy&quot;com.fasterxml.jackson.core:jackson-databind:2.13.4&quot;,
   )
@@ -509,13 +511,18 @@ JSONified using Jackson: [&quot;i&quot;,&quot;am&quot;,&quot;cow&quot;]</code></
 <div class="sect1">
 <h2 id="_runtime_and_compile_time_dependencies"><a class="anchor" href="#_runtime_and_compile_time_dependencies"></a>Runtime and Compile-time Dependencies</h2>
 <div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javalib-module-3-run-compile-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javalib/module/3-run-compile-deps">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
+</div>
+</div>
 <div class="paragraph">
 <p>If you want to use additional dependencies at runtime or override
 dependencies and their versions at runtime, you can do so with
 <code>runIvyDeps</code>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javalib-module-3-run-compile-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javalib/module/3-run-compile-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
 
@@ -580,9 +587,10 @@ dependencies when publish to Maven or Ivy-Repositories.
 <h2 id="_classpath_and_filesystem_resources"><a class="anchor" href="#_classpath_and_filesystem_resources"></a>Classpath and Filesystem Resources</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javalib-module-5-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javalib/module/5-resources">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javalib-module-5-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javalib/module/5-resources">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, javalib._
 
 object foo extends JavaModule {
   object test extends JavaTests with TestModule.Junit4 {
@@ -749,9 +757,10 @@ the sandbox and make the tests run in the project root.</p>
 <h2 id="_annotation_processors"><a class="anchor" href="#_annotation_processors"></a>Annotation Processors</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javalib-module-6-annotation-processors.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javalib/module/6-annotation-processors">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javalib-module-6-annotation-processors.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javalib/module/6-annotation-processors">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, javalib._
 import java.io.File
 
 object foo extends JavaModule {
@@ -819,13 +828,18 @@ Test bar.HelloWorldTest.testSimple finished...
 <div class="sect1">
 <h2 id="_javadoc_config"><a class="anchor" href="#_javadoc_config"></a>Javadoc Config</h2>
 <div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javalib-module-7-docjar.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javalib/module/7-docjar">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
+</div>
+</div>
 <div class="paragraph">
 <p>To generate API documenation you can use the <code>docJar</code> task on the module you’d
 like to create the documenation for, configured via <code>scalaDocOptions</code> or
 <code>javadocOptions</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javalib-module-7-docjar.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javalib/module/7-docjar">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
 
@@ -849,11 +863,12 @@ object foo extends JavaModule {
 <h2 id="_unmanaged_jars"><a class="anchor" href="#_unmanaged_jars"></a>Unmanaged Jars</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javalib-module-8-unmanaged-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javalib/module/8-unmanaged-jars">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javalib-module-8-unmanaged-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javalib/module/8-unmanaged-jars">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, javalib._
 
-object foo extends RootModule with JavaModule {
+object `package` extends RootModule with JavaModule {
   def unmanagedClasspath = T {
     if (!os.exists(millSourcePath / &quot;lib&quot;)) Agg()
     else Agg.from(os.list(millSourcePath / &quot;lib&quot;).map(PathRef(_)))
@@ -879,11 +894,12 @@ Key: age, Value: 30</code></pre>
 <h2 id="_specifying_the_main_class"><a class="anchor" href="#_specifying_the_main_class"></a>Specifying the Main Class</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javalib-module-9-main-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javalib/module/9-main-class">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javalib-module-9-main-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javalib/module/9-main-class">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, javalib._
 
-object foo extends RootModule with JavaModule {
+object `package` extends RootModule with JavaModule {
   def mainClass = Some(&quot;foo.Qux&quot;)
 }</code></pre>
 </div>
@@ -906,11 +922,12 @@ Hello Qux</code></pre>
 <h2 id="_downloading_non_maven_jars"><a class="anchor" href="#_downloading_non_maven_jars"></a>Downloading Non-Maven Jars</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javalib-module-10-downloading-non-maven-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javalib/module/10-downloading-non-maven-jars">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javalib-module-10-downloading-non-maven-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javalib/module/10-downloading-non-maven-jars">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, javalib._
 
-object foo extends RootModule with JavaModule {
+object `package` extends RootModule with JavaModule {
   def unmanagedClasspath = T {
     os.write(
       T.dest / &quot;fastjavaio.jar&quot;,
@@ -944,9 +961,10 @@ I weigh twice as much as you</code></pre>
 <h2 id="_customizing_the_assembly"><a class="anchor" href="#_customizing_the_assembly"></a>Customizing the Assembly</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javalib-module-11-assembly-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javalib/module/11-assembly-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javalib-module-11-assembly-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javalib/module/11-assembly-config">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, javalib._
 import mill.javalib.Assembly._
 
 object foo extends JavaModule {
@@ -997,12 +1015,17 @@ Loaded application.conf from resources:...
 <div class="sect1">
 <h2 id="_repository_config"><a class="anchor" href="#_repository_config"></a>Repository Config</h2>
 <div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javalib-module-12-repository-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javalib/module/12-repository-config">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
+</div>
+</div>
 <div class="paragraph">
 <p>By default, dependencies are resolved from maven central, but you can add
 your own resolvers by overriding the <code>repositoriesTask</code> task in the module:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javalib-module-12-repository-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javalib/module/12-repository-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
 import mill.define.ModuleRef
@@ -1117,11 +1140,12 @@ Resolution failed for 1 modules:
 <h2 id="_native_c_code_with_jni"><a class="anchor" href="#_native_c_code_with_jni"></a>Native C Code with JNI</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javalib-module-13-jni.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javalib/module/13-jni">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javalib-module-13-jni.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javalib/module/13-jni">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._, util.Jvm
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, javalib._, util.Jvm
 
-object foo extends RootModule with JavaModule {
+object `package` extends RootModule with JavaModule {
   // Additional source folder to put C sources
   def nativeSources = T.sources(millSourcePath / &quot;native-src&quot;)
 
@@ -1170,7 +1194,7 @@ file to the application code to load it using <code>System.load</code>.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>build.sc
+<pre>build.mill
 src/
     foo/
         HelloWorld.java

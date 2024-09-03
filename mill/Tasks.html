@@ -316,14 +316,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.0-M0-63-11d32c</span>
+    <span class="version">0.12.0-M0-64-9baac5</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="0.11.12/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="index.html">0.12.0-M0-63-11d32c</a>
+          <a href="index.html">0.12.0-M0-64-9baac5</a>
         </li>
         <li class="version is-latest">
           <a href="0.11.12/index.html">0.11.12</a>
@@ -368,9 +368,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-63-11d32c</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-64-9baac5</button>
   <div class="version-menu">
-    <a class="version is-current" href="Tasks.html">0.12.0-M0-63-11d32c</a>
+    <a class="version is-current" href="Tasks.html">0.12.0-M0-64-9baac5</a>
     <a class="version" href="0.11.12/Tasks.html">0.11.12</a>
     <a class="version" href="0.11.11/Tasks.html">0.11.11</a>
     <a class="version" href="0.11.10/Tasks.html">0.11.10</a>
@@ -494,11 +494,16 @@ different Task types:</p>
 </tr>
 </tbody>
 </table>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-tasks-1-task-graph.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/tasks/1-task-graph">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
+</div>
+</div>
 <div class="paragraph">
 <p>The following is a simple self-contained example using Mill to compile Java:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-tasks-1-task-graph.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/tasks/1-task-graph">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
@@ -592,6 +597,12 @@ and use the cached output of <code>compile</code> (green)</p>
 <div class="sect1">
 <h2 id="primitive-tasks"><a class="anchor" href="#primitive-tasks"></a>Primary Tasks</h2>
 <div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-tasks-2-primary-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/tasks/2-primary-tasks">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
+</div>
+</div>
 <div class="paragraph">
 <p>There are three primary kinds of <em>Tasks</em> that you should care about:</p>
 </div>
@@ -611,7 +622,6 @@ and use the cached output of <code>compile</code> (green)</p>
 <div class="sect2">
 <h3 id="_sources"><a class="anchor" href="#_sources"></a>Sources</h3>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-tasks-2-primary-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/tasks/2-primary-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.{Module, T, _}
 
@@ -1025,9 +1035,10 @@ object bar extends Bar</code></pre>
 <div class="sect2">
 <h3 id="_anonymous_tasks"><a class="anchor" href="#_anonymous_tasks"></a>Anonymous Tasks</h3>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-tasks-3-anonymous-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/tasks/3-anonymous-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-tasks-3-anonymous-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/tasks/3-anonymous-tasks">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, define.Task
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, define.Task
 
 def data = T.source(millSourcePath / &quot;data&quot;)
 
@@ -1075,9 +1086,10 @@ World!</code></pre>
 <div class="sect2">
 <h3 id="_inputs"><a class="anchor" href="#_inputs"></a>Inputs</h3>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-tasks-4-inputs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/tasks/4-inputs">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-tasks-4-inputs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/tasks/4-inputs">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._
 
 def myInput = T.input {
   os.proc(&quot;git&quot;, &quot;rev-parse&quot;, &quot;HEAD&quot;).call(cwd = T.workspace)
@@ -1172,6 +1184,12 @@ targets where it can be cached if possible.</p>
 </div>
 <div class="sect2">
 <h3 id="_persistent_targets"><a class="anchor" href="#_persistent_targets"></a>Persistent Targets</h3>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-tasks-5-persistent-targets.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/tasks/5-persistent-targets">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
+</div>
+</div>
 <div class="paragraph">
 <p>Persistent targets defined using <code>T.persistent</code> are similar to normal
 <code>Target</code>s, except their <code>T.dest</code> folder is not cleared before every
@@ -1182,7 +1200,6 @@ fine-grained manner than Mill’s own Target-level caching.</p>
 <p>Below is a semi-realistic example of using a <code>T.persistent</code> target:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-tasks-5-persistent-targets.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/tasks/5-persistent-targets">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 import java.util.Arrays
@@ -1267,6 +1284,12 @@ Compressing: world.txt</code></pre>
 </div>
 <div class="sect2">
 <h3 id="_workers"><a class="anchor" href="#_workers"></a>Workers</h3>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-tasks-6-workers.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/tasks/6-workers">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
+</div>
+</div>
 <div class="paragraph">
 <p>Mill workers defined using <code>T.worker</code> are long-lived in-memory objects that
 can persistent across multiple evaluations. These are similar to persistent
@@ -1277,7 +1300,6 @@ and paying the cost of serializing it to disk every evaluation. This example
 uses a Worker to provide simple in-memory caching for compressed files.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-tasks-6-workers.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/tasks/6-workers">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 import java.util.Arrays
@@ -1449,9 +1471,10 @@ tasks and outputs, you do so with your own evaluator command.</p>
 <div class="sect2">
 <h3 id="_using_scalamodule_run_as_a_task"><a class="anchor" href="#_using_scalamodule_run_as_a_task"></a>Using ScalaModule.run as a task</h3>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-tasks-11-module-run-task.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/tasks/11-module-run-task">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-tasks-11-module-run-task.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/tasks/11-module-run-task">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, scalalib._
 
 object foo extends ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
@@ -1473,7 +1496,7 @@ object bar extends ScalaModule{
 </div>
 <div class="paragraph">
 <p>This example demonstrates using Mill <code>ScalaModule</code>s as build tasks: rather
-than defining the task logic in the <code>build.sc</code>, we instead put the build
+than defining the task logic in the <code>build.mill</code>, we instead put the build
 logic within the <code>bar</code> module as <code>bar/src/Bar.scala</code>. In this example, we use
 <code>Bar.scala</code> as a source-code pre-processor on the <code>foo</code> module source code:
 we override <code>foo.sources</code>, passing the <code>super.sources()</code> to <code>bar.run</code> along
@@ -1491,9 +1514,9 @@ Foo.value: HELLO</code></pre>
 <p>This example does a trivial string-replace of &quot;hello&quot; with &quot;HELLO&quot;, but is
 enough to demonstrate how you can use Mill <code>ScalaModule</code>s to implement your
 own arbitrarily complex transformations. This is useful for build logic that
-may not fit nicely inside a <code>build.sc</code> file, whether due to the sheer lines
+may not fit nicely inside a <code>build.mill</code> file, whether due to the sheer lines
 of code or due to dependencies that may conflict with the Mill classpath
-present in <code>build.sc</code></p>
+present in <code>build.mill</code></p>
 </div>
 </div>
 </div>

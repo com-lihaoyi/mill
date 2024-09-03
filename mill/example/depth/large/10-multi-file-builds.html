@@ -313,14 +313,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.0-M0-63-11d32c</span>
+    <span class="version">0.12.0-M0-64-9baac5</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="../../../0.11.12/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="../../../index.html">0.12.0-M0-63-11d32c</a>
+          <a href="../../../index.html">0.12.0-M0-64-9baac5</a>
         </li>
         <li class="version is-latest">
           <a href="../../../0.11.12/index.html">0.11.12</a>
@@ -360,9 +360,9 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-63-11d32c</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-64-9baac5</button>
   <div class="version-menu">
-    <a class="version is-current" href="10-module-sc.html">0.12.0-M0-63-11d32c</a>
+    <a class="version is-current" href="10-multi-file-builds.html">0.12.0-M0-64-9baac5</a>
     <a class="version is-missing" href="../../../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../../../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../../../0.11.10/index.html">0.11.10</a>
@@ -373,7 +373,7 @@
     <a class="version is-missing" href="../../../0.9.12/index.html">0.9.12</a>
   </div>
 </div>
-<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/example/depth/modules/10-module-sc.adoc">Edit this Page</a></div>
+<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/example/depth/large/10-multi-file-builds.adoc">Edit this Page</a></div>
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -381,9 +381,10 @@
 </aside>
 <article class="doc">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-modules-10-module-sc.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/modules/10-module-sc">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-large-10-multi-file-builds.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/large/10-multi-file-builds">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, scalalib._
 
 trait MyModule extends ScalaModule {
   def scalaVersion = &quot;2.13.11&quot;
@@ -391,38 +392,40 @@ trait MyModule extends ScalaModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/module.sc (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/modules/10-module-sc/foo/module.sc">browse</a>)</div>
+<div class="title">foo/package.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/large/10-multi-file-builds/foo/package.mill">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build.foo
+import mill._, scalalib._
 
-object build extends RootModule with MyModule {
-  def moduleDeps = Seq(bar.qux.module)
+object `package` extends RootModule with build.MyModule {
+  def moduleDeps = Seq(build.bar.qux.mymodule)
   def ivyDeps = Agg(ivy&quot;com.lihaoyi::mainargs:0.4.0&quot;)
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">bar/qux/module.sc (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/modules/10-module-sc/bar/qux/module.sc">browse</a>)</div>
+<div class="title">bar/qux/package.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/large/10-multi-file-builds/bar/qux/package.mill">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build.bar.qux
+import mill._, scalalib._
 
-object module extends build.MyModule {
+object mymodule extends build.MyModule {
   def ivyDeps = Agg(ivy&quot;com.lihaoyi::scalatags:0.8.2&quot;)
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Mill allows you to break up your <code>build.sc</code> file into smaller files by defining the
-build-related logic for any particular subfolder as a <code>module.sc</code> file in that subfolder.
+<p>Mill allows you to break up your <code>build.mill</code> file into smaller files by defining the
+build-related logic for any particular subfolder as a <code>package.mill</code> file in that subfolder.
 This can be very useful to keep large Mill builds maintainable, as each folder’s build logic
 gets co-located with the files that need to be built, and speeds up compilation of the
-build logic since each <code>build.sc</code> or <code>module.sc</code> file can be compiled independently when
+build logic since each <code>build.mill</code> or <code>package.mill</code> file can be compiled independently when
 it is modified without re-compiling all the others.</p>
 </div>
 <div class="paragraph">
-<p>In this example, the root <code>build.sc</code> only contains the <code>trait MyModule</code>, but it is
-<code>foo/module.sc</code> and <code>bar/qux/module.sc</code> that define modules using it. The modules
-defined in <code>foo/module.sc</code> and <code>bar/qux/module.sc</code> are automatically nested within
+<p>In this example, the root <code>build.mill</code> only contains the <code>trait MyModule</code>, but it is
+<code>foo/package.mill</code> and <code>bar/qux/package.mill</code> that define modules using it. The modules
+defined in <code>foo/package.mill</code> and <code>bar/qux/package.mill</code> are automatically nested within
 <code>foo</code> and <code>bar.qux</code> respectively, and can be referenced from the command line as below:</p>
 </div>
 <div class="listingblock">
@@ -430,15 +433,15 @@ defined in <code>foo/module.sc</code> and <code>bar/qux/module.sc</code> are aut
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill resolve __
 bar
 ...
-bar.qux.module
+bar.qux.mymodule
 ...
-bar.qux.module.compile
+bar.qux.mymodule.compile
 ...
 foo
 ...
 foo.compile
 
-&gt; ./mill bar.qux.module.compile
+&gt; ./mill bar.qux.mymodule.compile
 
 &gt; ./mill foo.compile
 
@@ -448,16 +451,16 @@ BarQux.value: &lt;p&gt;world&lt;/p&gt;</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Note that in this example, <code>foo/module.sc</code> defines <code>object build extends RootModule</code>,
-and so the name <code>.build</code> does not need to be provided at the command line. In contrast,
-<code>bar/qux/module.sc</code> defines <code>object module</code> that does not extend <code>RootModule</code>, and so
-we need to explicitly reference it with a <code>.module</code> suffix.</p>
+<p>Note that in this example, <code>foo/package.mill</code> defines <code>object module extends RootModule</code>,
+and so the name <code>.module</code> does not need to be provided at the command line. In contrast,
+<code>bar/qux/package.mill</code> defines <code>object mymodule</code> that does not extend <code>RootModule</code>, and so
+we need to explicitly reference it with a <code>.mymodule</code> suffix.</p>
 </div>
 <div class="paragraph">
-<p><code>module.sc</code> files are only discovered in direct subfolders of the root <code>build.sc</code> or
-subfolders of another folder containing a <code>module.sc</code>; Hence in this example, we need
-an <code>bar/module.sc</code> to be present for <code>bar/qux/module.sc</code> to be discovered, even
-though <code>bar/module.sc</code> is empty</p>
+<p><code>package.mill</code> files are only discovered in direct subfolders of the root <code>build.mill</code> or
+subfolders of another folder containing a <code>package.mill</code>; Hence in this example, we need
+an <code>bar/package.mill</code> to be present for <code>bar/qux/package.mill</code> to be discovered, even
+though <code>bar/package.mill</code> is empty</p>
 </div>
 </article>
   </div>

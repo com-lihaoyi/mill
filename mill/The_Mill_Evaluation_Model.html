@@ -316,14 +316,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.0-M0-63-11d32c</span>
+    <span class="version">0.12.0-M0-64-9baac5</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="0.11.12/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="index.html">0.12.0-M0-63-11d32c</a>
+          <a href="index.html">0.12.0-M0-64-9baac5</a>
         </li>
         <li class="version is-latest">
           <a href="0.11.12/index.html">0.11.12</a>
@@ -368,9 +368,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-63-11d32c</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-64-9baac5</button>
   <div class="version-menu">
-    <a class="version is-current" href="The_Mill_Evaluation_Model.html">0.12.0-M0-63-11d32c</a>
+    <a class="version is-current" href="The_Mill_Evaluation_Model.html">0.12.0-M0-64-9baac5</a>
     <a class="version" href="0.11.12/The_Mill_Evaluation_Model.html">0.11.12</a>
     <a class="version" href="0.11.11/The_Mill_Evaluation_Model.html">0.11.11</a>
     <a class="version" href="0.11.10/The_Mill_Evaluation_Model.html">0.11.10</a>
@@ -397,7 +397,7 @@
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p><strong>Compilation</strong>: Mill compiles the <code>build.sc</code> to classfiles, following the
+<p><strong>Compilation</strong>: Mill compiles the <code>build.mill</code> to classfiles, following the
 <a href="#_the_mill_bootstrapping_process">The Mill Bootstrapping Process</a> to eventually produce a <code>RootModule</code> object</p>
 </li>
 <li>
@@ -457,7 +457,7 @@ of. In general, we have found that having &quot;two places&quot; to put code - o
 and visualize their module hierarchy and task graph without running them: using
 <a href="Scala_Builtin_Commands.html#inspect" class="xref page">inspect</a>, <a href="Scala_Builtin_Commands.html#plan" class="xref page">plan</a>,
 <a href="Scala_Builtin_Commands.html#_visualize" class="xref page">visualize</a>, etc.. This helps keep your
-Mill build discoverable even as the <code>build.sc</code> codebase grows.</p>
+Mill build discoverable even as the <code>build.mill</code> codebase grows.</p>
 </div>
 </div>
 </div>
@@ -480,11 +480,11 @@ the overall workflow remains fast even for large projects:</p>
 incremental compiler <a href="https://github.com/sbt/zinc">Zinc</a>.</p>
 </li>
 <li>
-<p>If some of the files <code>build.sc</code> imported changed but not others, only the
+<p>If some of the files <code>build.mill</code> imported changed but not others, only the
 changed files are re-compiled before the <code>RootModule</code> is re-instantiated</p>
 </li>
 <li>
-<p>In the common case where <code>build.sc</code> was not changed at all, this step is
+<p>In the common case where <code>build.mill</code> was not changed at all, this step is
 skipped entirely and the <code>RootModule</code> object simply re-used from the last
 run.</p>
 </li>
@@ -535,7 +535,7 @@ at a method-level granularity via callgraph reachability analysis. See
 <div class="paragraph">
 <p>This approach to caching does assume a certain programming style inside your
 Mill build: we may-or-may-not re-instantiate the modules in your
-<code>build.sc</code> and we may-or-may-not re-execute any particular task depending on caching,
+<code>build.mill</code> and we may-or-may-not re-execute any particular task depending on caching,
 but your code needs to work either way. Furthermore, task <code>def</code>s and module `object`s in your
 build are instantiated lazily on-demand, and your code needs to work regardless
 of which order they are executed in. For code written in a typical Scala style,
@@ -564,20 +564,20 @@ is already present, and if not it downloads it to <code>~/.mill/download</code><
 </li>
 <li>
 <p>It instantiates an in-memory <code>MillBuildRootModule.BootstrapModule</code>,
-which is a hard-coded <code>build.sc</code> used for bootstrapping Mill</p>
+which is a hard-coded <code>build.mill</code> used for bootstrapping Mill</p>
 </li>
 <li>
-<p>If there is a meta-build present <code>mill-build/build.sc</code>, it processes that
+<p>If there is a meta-build present <code>mill-build/build.mill</code>, it processes that
 first and uses the <code>MillBuildRootModule</code> returned for the next steps.
 Otherwise it uses the <code>MillBuildRootModule.BootstrapModule</code> directly</p>
 </li>
 <li>
-<p>Mill evaluates the <code>MillBuildRootModule</code> to parse the <code>build.sc</code>, generate
+<p>Mill evaluates the <code>MillBuildRootModule</code> to parse the <code>build.mill</code>, generate
 a list of <code>ivyDeps</code> as well as appropriately wrapped Scala code that we can
 compile, and compiles it to classfiles</p>
 </li>
 <li>
-<p>Mill loads the compiled classfiles of the <code>build.sc</code> into a
+<p>Mill loads the compiled classfiles of the <code>build.mill</code> into a
 <code>java.lang.ClassLoader</code> to access it’s <code>RootModule</code></p>
 </li>
 </ol>
@@ -588,7 +588,7 @@ Mill bootstrapping process as well.</p>
 </div>
 <div class="paragraph">
 <p>In general, <code>.sc</code> files, <code>import $file</code>, and <code>import $ivy</code> can be thought of as
-a short-hand for configuring the meta-build living in <code>mill-build/build.sc</code>:</p>
+a short-hand for configuring the meta-build living in <code>mill-build/build.mill</code>:</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
@@ -598,13 +598,13 @@ living in <code>mill-build/src/</code></p>
 </li>
 <li>
 <p><code>import $ivy</code> is a short-hand for configurin the <code>def ivyDeps</code> in
-<code>mill-build/build.sc</code></p>
+<code>mill-build/build.mill</code></p>
 </li>
 </ol>
 </div>
 <div class="paragraph">
 <p>Most builds would not need the flexibility of a meta-build’s
-<code>mill-build/build.sc</code>, but it is there if necessary.</p>
+<code>mill-build/build.mill</code>, but it is there if necessary.</p>
 </div>
 <div class="paragraph">
 <p>Mill supports multiple levels of meta-builds for bootstrapping:</p>
@@ -612,14 +612,14 @@ living in <code>mill-build/src/</code></p>
 <div class="ulist">
 <ul>
 <li>
-<p>Just <code>build.sc</code></p>
+<p>Just <code>build.mill</code></p>
 </li>
 <li>
-<p>One level of meta-builds: <code>mill-build/build.sc</code> and <code>build.sc</code></p>
+<p>One level of meta-builds: <code>mill-build/build.mill</code> and <code>build.mill</code></p>
 </li>
 <li>
-<p>Two level of meta-builds: <code>mill-build/mill-build/build.sc</code>,
-<code>mill-build/build.sc</code> and <code>build.sc</code></p>
+<p>Two level of meta-builds: <code>mill-build/mill-build/build.mill</code>,
+<code>mill-build/build.mill</code> and <code>build.mill</code></p>
 </li>
 </ul>
 </div>

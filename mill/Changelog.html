@@ -315,14 +315,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.0-M0-63-11d32c</span>
+    <span class="version">0.12.0-M0-64-9baac5</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="0.11.12/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="index.html">0.12.0-M0-63-11d32c</a>
+          <a href="index.html">0.12.0-M0-64-9baac5</a>
         </li>
         <li class="version is-latest">
           <a href="0.11.12/index.html">0.11.12</a>
@@ -367,9 +367,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-63-11d32c</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-64-9baac5</button>
   <div class="version-menu">
-    <a class="version is-current" href="Changelog.html">0.12.0-M0-63-11d32c</a>
+    <a class="version is-current" href="Changelog.html">0.12.0-M0-64-9baac5</a>
     <a class="version" href="0.11.12/Changelog.html">0.11.12</a>
     <a class="version" href="0.11.11/Changelog.html">0.11.11</a>
     <a class="version" href="0.11.10/Changelog.html">0.11.10</a>
@@ -392,7 +392,7 @@
 <h2 id="main"><a class="anchor" href="#main"></a>main branch</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The upcoming 0.12.0 release is intended to bundle together all the breaking changes we
+<p>The upcoming 0.12.0 release is intended to bundle together breaking changes we
 need to do that do not break binary compatibility. It is expected to be followed by 0.13.x,
 which will contain further changes that <em>do</em> break binary compatibility. Due to binary
 compatibility, Mill plugins published for Mill 0.11.x can continue to be used without updating
@@ -410,14 +410,75 @@ how to either disable the breaking change with a flag or adjust your code to acc
 <div class="ulist">
 <ul>
 <li>
-<p>Builds can now be modularized into per-folder definitions by defining
-<code>module.sc</code> files in subfolders <a href="https://github.com/com-lihaoyi/mill/pull/3213">#3213</a></p>
+<p>Build file overhaul: Mill now uses <code>.mill</code> as its file extension, with some semantic changes
+from the old <code>.sc</code> files to allow better IDE support. The <code>.sc</code> extension is still supported
+and its semantics are largely unchanged the ease the migration, but you should convert your Mill
+configs to <code>.mill</code> files to benefit from Mill’s improved IDE experience going forward.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>This change removes the ability to define targets and modules in arbitrary scripts that
-you <code>import $file</code>. All targets and modules need to be moved to <code>module.sc</code> files in each
-subfolder</p>
+<p>The <code>build.sc</code> file has been renamed <code>build.mill</code> to prevent confusion with Ammonite/Scala-CLI scripts,
+and all associated <code>.sc</code> files have been renamed to <code>.mill</code>.</p>
+</li>
+<li>
+<p>All <code>.mill</code> files must have a <code>package</code> declaration,
+with <code>package build</code> for <code>.mill</code> files in the root folder and <code>package build.foo.bar</code> for <code>.mill</code> files in <code>foo/bar/</code>.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>The package declaration remains optional for legacy <code>.sc</code> files</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Only <code>foo.mill</code> files in folders directly containing a <code>build.mill</code> or <code>package.mill</code> can
+be imported via <code>import $file</code>.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>You need to create empty <code>package.mill</code> files in any folder containing scripts if they are not already
+adjacent to your <code>build.mill</code> in the root folder</p>
+</li>
+<li>
+<p><code>foo.sc</code> files can continue to be imported from arbitrary paths, to ease in the migration</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Builds can now be modularized into per-folder definitions by defining <code>package.mill</code> files in subfolders
+<a href="https://github.com/com-lihaoyi/mill/pull/3213">#3213</a>. You can no longer define targets and modules in arbitrary <code>foo.sc</code> files</p>
+<div class="ulist">
+<ul>
+<li>
+<p>All target and module definitions must be moved into <code>package.mill</code> files in each folder.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>$file</code> references in <code>.mill</code> files are now absolute from the project root, and thus <code>.^</code> to
+refer to parent package is no longer supported, for consistency with other programming environments</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>$file</code> references in old <code>.sc</code> files are unchanged and continue being relative, preserving the
+current behavior.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>RootModule</code>s can only be named <code>package</code>, e.g. <code>object foo extends RootModule</code> must now be
+named <code>`object `package</code> extends RootModule`.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>If you have an existing <code>RootModule</code>, you need to rename it <code>object <code>package</code> extends RootModule</code></p>
 </li>
 </ul>
 </div>
@@ -462,6 +523,10 @@ on individual parameters</p>
 <p>Dropped support for Java 8, Scala 2.11.x/3.1.x, and Scala-Native 0.4.x, following suit with the rest of the
 com-lihaoyi ecosystem. We now expect a minimum of Java 8, Scala 2.12.x/3.2.x, and Scala-Native 0.5.x</p>
 </li>
+<li>
+<p><code>--disable-callgraph-invalidation</code> is no longer supported. The flag is still accepted but is
+now a no-op.</p>
+</li>
 </ul>
 </div>
 </li>
@@ -474,9 +539,21 @@ com-lihaoyi ecosystem. We now expect a minimum of Java 8, Scala 2.12.x/3.2.x, an
 <a href="https://github.com/com-lihaoyi/mill/pull/3363">#3363</a> <a href="https://github.com/com-lihaoyi/mill/pull/3366">#3366</a> <a href="https://github.com/com-lihaoyi/mill/pull/3368">#3368</a> <a href="https://github.com/com-lihaoyi/mill/pull/3370">#3370</a></p>
 </li>
 <li>
-<p>Mill now publishes unit, integration, and example test fixtures for writing plugins <a href="https://github.com/com-lihaoyi/mill/pull/3398">#3398</a>
-for downstream plugin authors to use in testing their own Mill extensions. See the documentation for
-<a href="https://mill-build.org/mill/Writing_Mill_Plugins.html">Writing Mill Plugins</a> for more details</p>
+<p>Mill now publishes unit, integration, and example test fixtures for writing plugins as <code>mill-testkit</code>
+<a href="https://github.com/com-lihaoyi/mill/pull/3398">#3398</a> for downstream plugin authors to use in testing their own Mill extensions.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>See the documentation for
+<a href="https://mill-build.org/mill/Writing_Mill_Plugins.html">Writing Mill Plugins</a> for more details.</p>
+</li>
+<li>
+<p><code>mill-testkit</code> is experimental and does not provide the same stability or binary-compatibility
+guarantees as the rest of Mill. Nevertheless, if you are writing Mill plugins, please try it out
+and let us know what you think!</p>
+</li>
+</ul>
+</div>
 </li>
 <li>
 <p>Bump default Sonatype Maven Central publishing timeouts to 10 minutes to avoid

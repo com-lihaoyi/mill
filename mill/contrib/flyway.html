@@ -316,14 +316,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.0-M0-63-11d32c</span>
+    <span class="version">0.12.0-M0-64-9baac5</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="../0.11.12/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="../index.html">0.12.0-M0-63-11d32c</a>
+          <a href="../index.html">0.12.0-M0-64-9baac5</a>
         </li>
         <li class="version is-latest">
           <a href="../0.11.12/index.html">0.11.12</a>
@@ -369,9 +369,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-63-11d32c</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-64-9baac5</button>
   <div class="version-menu">
-    <a class="version is-current" href="flyway.html">0.12.0-M0-63-11d32c</a>
+    <a class="version is-current" href="flyway.html">0.12.0-M0-64-9baac5</a>
     <a class="version" href="../0.11.12/contrib/flyway.html">0.11.12</a>
     <a class="version" href="../0.11.11/contrib/flyway.html">0.11.11</a>
     <a class="version" href="../0.11.10/contrib/flyway.html">0.11.10</a>
@@ -398,9 +398,10 @@ The flyway module currently supports the most common flyway use cases with file 
 <p>Configure flyway by overriding settings in your module. For example</p>
 </div>
 <div class="listingblock">
-<div class="title"><code>build.sc</code></div>
+<div class="title"><code>build.mill</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, scalalib._
 
 import $ivy.`com.lihaoyi::mill-contrib-flyway:`
 import contrib.flyway.FlywayModule

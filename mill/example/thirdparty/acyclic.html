@@ -314,14 +314,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.0-M0-63-11d32c</span>
+    <span class="version">0.12.0-M0-64-9baac5</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="../../0.11.12/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="../../index.html">0.12.0-M0-63-11d32c</a>
+          <a href="../../index.html">0.12.0-M0-64-9baac5</a>
         </li>
         <li class="version is-latest">
           <a href="../../0.11.12/index.html">0.11.12</a>
@@ -361,9 +361,9 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-63-11d32c</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-64-9baac5</button>
   <div class="version-menu">
-    <a class="version is-current" href="acyclic.html">0.12.0-M0-63-11d32c</a>
+    <a class="version is-current" href="acyclic.html">0.12.0-M0-64-9baac5</a>
     <a class="version" href="../../0.11.12/example/thirdparty/acyclic.html">0.11.12</a>
     <a class="version" href="../../0.11.11/example/thirdparty/acyclic.html">0.11.11</a>
     <a class="version" href="../../0.11.10/example/thirdparty/acyclic.html">0.11.10</a>
@@ -382,40 +382,34 @@
 </aside>
 <article class="doc">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-thirdparty-acyclic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/thirdparty/acyclic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-thirdparty-acyclic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/thirdparty/acyclic">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._, publish._</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>acyclic test suite assumes files are on disk at specific paths relative to <code>os.pwd</code>.
-To avoid changing the test code, we instead copy the necessary files into the <code>os.pwd</code>
-when preparing the resources for test suite execution</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">os.copy.over(
-  interp.watch(mill.api.WorkspaceRoot.workspaceRoot / &quot;acyclic&quot;),
-  os.pwd / &quot;acyclic&quot;,
-  createFolders = true
-)
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._, publish._
+import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.3.1`
+import de.tobiasroeser.mill.vcs.version.VcsVersion
 
 object Deps {
-  def acyclic = ivy&quot;com.lihaoyi:::acyclic:0.3.6&quot;
-  def scalaCompiler(scalaVersion: String) = ivy&quot;org.scala-lang:scala-compiler:$scalaVersion&quot;
-  val utest = ivy&quot;com.lihaoyi::utest:0.8.4&quot;
+  def acyclicAgg(scalaVersion: String) =
+    Agg(ivy&quot;com.lihaoyi:::acyclic:0.3.6&quot;)</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">filter(_ ⇒ scalaVersion != &quot;2.13.10&quot; /* exclude unreleased versions, if any */ )</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def scalaCompiler(scalaVersion: String) = ivy&quot;org.scala-lang:scala-compiler:${scalaVersion}&quot;
+  val utest = ivy&quot;com.lihaoyi::utest:0.8.1&quot;
 }
 
 val crosses =
   Seq(&quot;2.11.12&quot;) ++
-  Range.inclusive(8, 17).map(&quot;2.12.&quot; + _) ++
-  Range.inclusive(0, 10).map(&quot;2.13.&quot; + _)
+    8.to(17).map(&quot;2.12.&quot; + _) ++
+    0.to(10).map(&quot;2.13.&quot; + _)
 
-object acyclic extends Cross[AcyclicModule](crosses)
-trait AcyclicModule extends CrossScalaModule with PublishModule {
-  def crossFullScalaVersion = true
-  def artifactName = &quot;acyclic&quot;
-  def publishVersion = &quot;1.3.3.7&quot;
+object acyclic extends Cross[AcyclicModule](crosses: _*)
+class AcyclicModule(val crossScalaVersion: String) extends CrossScalaModule with PublishModule {
+  override def crossFullScalaVersion = true
+  override def artifactName = &quot;acyclic&quot;
+  def publishVersion = VcsVersion.vcsState().format()
 
   def pomSettings = PomSettings(
     description = artifactName(),
@@ -423,57 +417,25 @@ trait AcyclicModule extends CrossScalaModule with PublishModule {
     url = &quot;https://github.com/com-lihaoyi/acyclic&quot;,
     licenses = Seq(License.MIT),
     versionControl = VersionControl.github(owner = &quot;com-lihaoyi&quot;, repo = &quot;acyclic&quot;),
-    developers = Seq(Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;))
+    developers = Seq(
+      Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;)
+    )
   )
+  override def compileIvyDeps =
+    Agg(Deps.scalaCompiler(crossScalaVersion)) ++
+      Deps.acyclicAgg(crossScalaVersion)
 
-  def compileIvyDeps = Agg(Deps.scalaCompiler(crossScalaVersion))
+  override def scalacPluginIvyDeps = Deps.acyclicAgg(crossScalaVersion)
 
-  object test extends ScalaTests with TestModule.Utest {
-    def sources = T.sources(millSourcePath / &quot;src&quot;, millSourcePath / &quot;resources&quot;)
-    def ivyDeps = Agg(Deps.utest, Deps.scalaCompiler(crossScalaVersion))
+  object test extends Tests with TestModule.Utest {
+    override def sources = T.sources(millSourcePath / &quot;src&quot;, millSourcePath / &quot;resources&quot;)
+    override def ivyDeps = Agg(
+      Deps.utest,
+      Deps.scalaCompiler(crossScalaVersion)
+    )
+    override def scalacPluginIvyDeps = Agg.empty[Dep]
   }
 }</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Acyclic is an example of a very small project that is a Scala compiler
-plugin. It is cross-built against all point versions of Scala from 2.11.12
-to 2.13.10, and has a dependency on the <code>org.scala-lang:scala-compiler</code></p>
-</div>
-<div class="paragraph">
-<p>Project home: <a href="https://github.com/com-lihaoyi/acyclic" class="bare">https://github.com/com-lihaoyi/acyclic</a></p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill resolve acyclic[_].compile
-acyclic[2.11.12].compile
-acyclic[2.12.10].compile
-acyclic[2.12.11].compile
-acyclic[2.12.12].compile
-acyclic[2.12.13].compile
-acyclic[2.12.14].compile
-acyclic[2.12.15].compile
-acyclic[2.12.16].compile
-acyclic[2.12.8].compile
-acyclic[2.12.9].compile
-acyclic[2.13.0].compile
-acyclic[2.13.1].compile
-acyclic[2.13.2].compile
-acyclic[2.13.3].compile
-acyclic[2.13.4].compile
-acyclic[2.13.5].compile
-acyclic[2.13.6].compile
-acyclic[2.13.7].compile
-acyclic[2.13.8].compile
-acyclic[2.13.9].compile
-
-&gt; ./mill acyclic[2.12.17].compile
-compiling 6 Scala sources...
-...
-
-&gt; ./mill acyclic[2.13.10].test.testLocal # acyclic tests need testLocal due to classloader assumptions
--------------------------------- Running Tests --------------------------------
-...</code></pre>
 </div>
 </div>
 </article>

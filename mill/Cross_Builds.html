@@ -316,14 +316,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.0-M0-63-11d32c</span>
+    <span class="version">0.12.0-M0-64-9baac5</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="0.11.12/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="index.html">0.12.0-M0-63-11d32c</a>
+          <a href="index.html">0.12.0-M0-64-9baac5</a>
         </li>
         <li class="version is-latest">
           <a href="0.11.12/index.html">0.11.12</a>
@@ -368,9 +368,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-63-11d32c</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-64-9baac5</button>
   <div class="version-menu">
-    <a class="version is-current" href="Cross_Builds.html">0.12.0-M0-63-11d32c</a>
+    <a class="version is-current" href="Cross_Builds.html">0.12.0-M0-64-9baac5</a>
     <a class="version" href="0.11.12/Cross_Builds.html">0.11.12</a>
     <a class="version" href="0.11.11/Cross_Builds.html">0.11.11</a>
     <a class="version" href="0.11.10/Cross_Builds.html">0.11.10</a>
@@ -403,11 +403,16 @@ config and building it across a variety of source folders.</p>
 <div class="sect1">
 <h2 id="_simple_cross_modules"><a class="anchor" href="#_simple_cross_modules"></a>Simple Cross Modules</h2>
 <div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-cross-1-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/cross/1-simple">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
+</div>
+</div>
 <div class="paragraph">
 <p>Mill handles cross-building of all sorts via the <code>Cross[T]</code> module.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-cross-1-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/cross/1-simple">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
@@ -469,9 +474,10 @@ be overridden.</p>
 <h2 id="_default_cross_modules"><a class="anchor" href="#_default_cross_modules"></a>Default Cross Modules</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-cross-11-default-cross-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/cross/11-default-cross-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-cross-11-default-cross-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/cross/11-default-cross-module">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._
 
 object foo extends Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
 
@@ -505,12 +511,17 @@ By default, this is the first cross value specified.</p>
 <div class="sect1">
 <h2 id="_cross_modules_source_paths"><a class="anchor" href="#_cross_modules_source_paths"></a>Cross Modules Source Paths</h2>
 <div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-cross-2-cross-source-path.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/cross/2-cross-source-path">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
+</div>
+</div>
 <div class="paragraph">
 <p>If you want to have dedicated <code>millSourcePath</code>s, you can add the cross
 parameters to it as follows:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-cross-2-cross-source-path.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/cross/2-cross-source-path">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
@@ -570,11 +581,16 @@ can do so by overriding <code>millSourcePath</code> as shown above.</p>
 <div class="sect1">
 <h2 id="_using_cross_modules_from_outside_targets"><a class="anchor" href="#_using_cross_modules_from_outside_targets"></a>Using Cross Modules from Outside Targets</h2>
 <div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-cross-3-outside-dependency.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/cross/3-outside-dependency">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
+</div>
+</div>
 <div class="paragraph">
 <p>You can refer to targets defined in cross-modules as follows:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-cross-3-outside-dependency.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/cross/3-outside-dependency">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
@@ -616,12 +632,17 @@ in <code>def qux</code>.</p>
 <div class="sect1">
 <h2 id="_using_cross_modules_from_other_cross_modules"><a class="anchor" href="#_using_cross_modules_from_other_cross_modules"></a>Using Cross Modules from other Cross Modules</h2>
 <div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-cross-4-cross-dependencies.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/cross/4-cross-dependencies">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
+</div>
+</div>
 <div class="paragraph">
 <p>Targets in cross-modules can use one another the same way they are used from
 external targets:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-cross-4-cross-dependencies.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/cross/4-cross-dependencies">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
@@ -670,12 +691,17 @@ of <code>foo</code>: <code>bar(&quot;2.10&quot;)</code> depends on <code>foo(&qu
 <div class="sect1">
 <h2 id="_multiple_cross_axes"><a class="anchor" href="#_multiple_cross_axes"></a>Multiple Cross Axes</h2>
 <div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-cross-5-multiple-cross-axes.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/cross/5-multiple-cross-axes">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
+</div>
+</div>
 <div class="paragraph">
 <p>You can have a cross-module with multiple inputs using the <code>Cross.Module2</code>
 trait:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-cross-5-multiple-cross-axes.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/cross/5-multiple-cross-axes">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
@@ -703,7 +729,7 @@ def bar = T { s&quot;hello ${foo(&quot;2.10&quot;, &quot;jvm&quot;).suffix()}&qu
 <p>This example shows off using a for-loop to generate a list of
 cross-key-tuples, as a <code>Seq[(String, String)]</code> that we then pass it into the
 <code>Cross</code> constructor. These can be referenced from the command line as shown
-below, or referenced in other parts of your <code>build.sc</code> as shown in <code>def bar</code>
+below, or referenced in other parts of your <code>build.mill</code> as shown in <code>def bar</code>
 above.</p>
 </div>
 <div class="paragraph">
@@ -732,12 +758,17 @@ above.</p>
 <div class="sect1">
 <h2 id="_extending_cross_modules"><a class="anchor" href="#_extending_cross_modules"></a>Extending Cross Modules</h2>
 <div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-cross-6-axes-extension.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/cross/6-axes-extension">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
+</div>
+</div>
 <div class="paragraph">
 <p>You can also take an existing cross module and extend it with additional cross
 axes as shown:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-cross-6-axes-extension.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/cross/6-axes-extension">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
@@ -792,9 +823,9 @@ for your own user-defined types that you wish to use in a Cross module</p>
 &gt; mill show foo3[b,2,false].param3
 &quot;Param Value: false&quot;
 
-&gt; sed -i.bak 's/, true//g' build.sc
+&gt; sed -i.bak 's/, true//g' build.mill
 
-&gt; sed -i.bak 's/, false//g' build.sc
+&gt; sed -i.bak 's/, false//g' build.mill
 
 &gt; mill show foo3[b,2,false].param3
 error: ...object foo3 extends Cross[FooModule3]((&quot;a&quot;, 1), (&quot;b&quot;, 2))
@@ -808,9 +839,10 @@ error: ...value _3 is not a member of (String, Int)</code></pre>
 <h2 id="_inner_cross_modules"><a class="anchor" href="#_inner_cross_modules"></a>Inner Cross Modules</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-cross-7-inner-cross-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/cross/7-inner-cross-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-cross-7-inner-cross-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/cross/7-inner-cross-module">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._
 
 trait MyModule extends Module{
   def crossValue: String
@@ -867,9 +899,10 @@ modules that take multiple inputs.</p>
 <h2 id="_cross_resolvers"><a class="anchor" href="#_cross_resolvers"></a>Cross Resolvers</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-cross-8-resolvers.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/cross/8-resolvers">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-cross-8-resolvers.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/cross/8-resolvers">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._
 
 trait MyModule extends Cross.Module[String] {
   implicit object resolver extends mill.define.Cross.Resolver[MyModule] {
@@ -954,9 +987,10 @@ metadata and files:</p>
 <h2 id="_dynamic_cross_modules"><a class="anchor" href="#_dynamic_cross_modules"></a>Dynamic Cross Modules</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-cross-9-dynamic-cross-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/cross/9-dynamic-cross-modules">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-cross-9-dynamic-cross-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/cross/9-dynamic-cross-modules">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, scalalib._
 
 val moduleNames = interp.watchValue(os.list(millSourcePath / &quot;modules&quot;).map(_.last))
 
@@ -1017,6 +1051,12 @@ cross-modules cannot depend on the output of any targets.</p>
 <div class="sect1">
 <h2 id="_use_case_static_blog"><a class="anchor" href="#_use_case_static_blog"></a>Use Case: Static Blog</h2>
 <div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-cross-10-static-blog.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/cross/10-static-blog">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
+</div>
+</div>
 <div class="paragraph">
 <p>The following example demonstrates a use case: using cross modules to
 turn files on disk into blog posts. To begin with, we import two third-party
@@ -1024,7 +1064,6 @@ libraries - Commonmark and Scalatags - to deal with Markdown parsing and
 HTML generation respectively:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-cross-10-static-blog.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/cross/10-static-blog">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $ivy.`com.lihaoyi::scalatags:0.12.0`, scalatags.Text.all._
 import $ivy.`com.atlassian.commonmark:commonmark:0.13.1`
