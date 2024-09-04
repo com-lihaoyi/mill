@@ -51,8 +51,6 @@ object FileImportGraph {
     var millImport = false
 
     def processScript(s: os.Path, useDummy: Boolean = false): Unit = {
-
-      pprint.log(s)
       val readFileEither = scala.util.Try {
         val content = if (useDummy) "" else os.read(s)
         val fileName = s.relativeTo(topLevelProjectRoot).toString
@@ -68,7 +66,7 @@ object FileImportGraph {
             val expectedImportSegments = expectedImportSegments0.map(backtickWrap).mkString(".")
             if (
               // Legacy `.sc` files have their package build be optional
-              s.last.endsWith(".mill") || s.last.endsWith(".mill.sc") &&
+              (s.last.endsWith(".mill") || s.last.endsWith(".mill.sc")) &&
               expectedImportSegments != importSegments &&
               // Root build.mill file has its `package build` be optional
               !(importSegments == "" && rootBuildFileNames.contains(s.last))
@@ -187,8 +185,6 @@ object FileImportGraph {
       .flatMap(os.list(_))
       .filter(_.last.endsWith(s".$buildFileExtension"))
 
-    pprint.log(buildFiles)
-    pprint.log(adjacentScripts)
     (buildFiles ++ adjacentScripts).foreach(processScript(_))
 
     new FileImportGraph(

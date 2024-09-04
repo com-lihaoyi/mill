@@ -17,9 +17,7 @@ object CodeGen {
       enclosingClasspath: Seq[os.Path],
       millTopLevelProjectRoot: os.Path
   ): Unit = {
-    println("generateScriptSources C")
     for (scriptSource <- scriptSources) {
-      // pprint.log(scriptSource)
       val scriptPath = scriptSource.path
       val specialNames = (nestedBuildFileNames ++ rootBuildFileNames).toSet
 
