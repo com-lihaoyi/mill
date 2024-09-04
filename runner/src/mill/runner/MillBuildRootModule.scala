@@ -111,9 +111,7 @@ class MillBuildRootModule()(implicit
   }
 
   def generateScriptSources: T[Seq[PathRef]] = T {
-    println("generateScriptSources A")
     val parsed = parseBuildFiles()
-    println("generateScriptSources B")
     if (parsed.errors.nonEmpty) Result.Failure(parsed.errors.mkString("\n"))
     else {
       CodeGen.generateWrappedSources(
