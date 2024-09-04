@@ -313,14 +313,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.0-M0-69-dd57a1</span>
+    <span class="version">0.12.0-M0-70-028abe</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="../../../0.11.12/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="../../../index.html">0.12.0-M0-69-dd57a1</a>
+          <a href="../../../index.html">0.12.0-M0-70-028abe</a>
         </li>
         <li class="version is-latest">
           <a href="../../../0.11.12/index.html">0.11.12</a>
@@ -360,9 +360,9 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-69-dd57a1</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-70-028abe</button>
   <div class="version-menu">
-    <a class="version is-current" href="1-compilation-execution-flags.html">0.12.0-M0-69-dd57a1</a>
+    <a class="version is-current" href="1-compilation-execution-flags.html">0.12.0-M0-70-028abe</a>
     <a class="version is-missing" href="../../../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../../../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../../../0.11.10/index.html">0.11.10</a>
@@ -383,46 +383,17 @@
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javalib-module-1-compilation-execution-flags.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javalib/module/1-compilation-execution-flags">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, javalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
 
 object `package` extends RootModule with JavaModule{
   def forkArgs = Seq(&quot;-Xmx4g&quot;, &quot;-Dmy.jvm.property=hello&quot;)
   def forkEnv = Map(&quot;MY_ENV_VAR&quot; -&gt; &quot;WORLD&quot;)
 }</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>By default,
-<code>run</code> runs the compiled code in a subprocess, and you can pass in JVM flags
-via <code>forkArgs</code> or environment-variables via <code>forkEnv</code>.</p>
-</div>
-<div class="paragraph">
-<p>You can also run your code via</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill foo.runLocal</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Which runs it in-process within an isolated classloader. This may be faster
-since you avoid the JVM startup, but does not support <code>forkArgs</code> or <code>forkEnv</code>.</p>
-</div>
-<div class="paragraph">
-<p>If you want to pass main-method arguments to <code>run</code> or <code>runLocal</code>, simply pass
-them after the <code>foo.run</code>/<code>foo.runLocal</code>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill foo.run arg1 arg2 arg3
-mill foo.runLocal arg1 arg2 arg3</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run
-hello WORLD</code></pre>
 </div>
 </div>
 </article>

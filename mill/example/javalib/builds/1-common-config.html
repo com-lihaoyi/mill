@@ -313,14 +313,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.0-M0-69-dd57a1</span>
+    <span class="version">0.12.0-M0-70-028abe</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="../../../0.11.12/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="../../../index.html">0.12.0-M0-69-dd57a1</a>
+          <a href="../../../index.html">0.12.0-M0-70-028abe</a>
         </li>
         <li class="version is-latest">
           <a href="../../../0.11.12/index.html">0.11.12</a>
@@ -360,9 +360,9 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-69-dd57a1</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-70-028abe</button>
   <div class="version-menu">
-    <a class="version is-current" href="1-common-config.html">0.12.0-M0-69-dd57a1</a>
+    <a class="version is-current" href="1-common-config.html">0.12.0-M0-70-028abe</a>
     <a class="version is-missing" href="../../../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../../../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../../../0.11.10/index.html">0.11.10</a>
@@ -385,12 +385,6 @@
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
 </div>
-</div>
-<div class="paragraph">
-<p>This example shows some of the common tasks you may want to override on a
-<code>ScalaModule</code>: specifying the <code>mainClass</code>, adding additional
-sources/resources, generating resources, and setting compilation/run
-options.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -456,59 +450,6 @@ a task of interest, such as <code>run</code>, you can visualize their relationsh
 </div>
 <div class="paragraph">
 <p>(right-click open in new tab to see full sized)</p>
-</div>
-<div class="paragraph">
-<p>Note the use of <code>millSourcePath</code>, <code>T.dest</code>, and <code>PathRef</code> when preforming
-various filesystem operations:</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p><code>millSourcePath</code> refers to the base path of the module. For the root
-module, this is the root of the repo, and for inner modules it would be
-the module path e.g. for module <code>foo.bar.qux</code> the <code>millSourcePath</code> would
-be <code>foo/bar/qux</code>. This can also be overriden if necessary</p>
-</li>
-<li>
-<p><code>T.dest</code> refers to the destination folder for a task in the <code>out/</code>
-folder. This is unique to each task, and can act as both a scratch space
-for temporary computations as well as a place to put &quot;output&quot; files,
-without worrying about filesystem conflicts with other tasks</p>
-</li>
-<li>
-<p><code>PathRef</code> is a way to return the <strong>contents</strong> of a file or folder, rather
-than just its path as a string. This ensures that downstream tasks
-properly invalidate when the contents changes even when the path stays
-the same</p>
-</li>
-</ol>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill run
-Foo2.value: &lt;h1&gt;hello2&lt;/h1&gt;
-Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
-FooA.value: hello A
-FooB.value: hello B
-FooC.value: hello C
-MyResource: My Resource Contents
-MyOtherResource: My Other Resource Contents
-my.custom.property: my-prop-value
-MY_CUSTOM_ENV: my-env-value
-
-&gt; mill show assembly
-&quot;.../out/assembly.dest/out.jar&quot;
-
-&gt; ./out/assembly.dest/out.jar # mac/linux
-Foo2.value: &lt;h1&gt;hello2&lt;/h1&gt;
-Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
-FooA.value: hello A
-FooB.value: hello B
-FooC.value: hello C
-MyResource: My Resource Contents
-MyOtherResource: My Other Resource Contents
-my.custom.property: my-prop-value</code></pre>
-</div>
 </div>
 </article>
   </div>
