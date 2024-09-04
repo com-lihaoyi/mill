@@ -8,13 +8,13 @@ object Foo {
     val fi = new InputReader(new java.io.FileInputStream(filePath))
     try {
       while (
-        fi.nextLine() match{
+        fi.nextLine() match {
           case null => false
           case line =>
             println(line)
             true
         }
-      )()
+      ) ()
     } finally {
       fi.close()
     }

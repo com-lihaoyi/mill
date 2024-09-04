@@ -1173,7 +1173,6 @@ trait IntegrationTestModule extends MillScalaModule {
 
   def moduleDeps = Seq(main.test, testkit, runner)
   def sources = T.sources(millSourcePath / "src")
-  def testRepoRoot: T[PathRef] = resources().head
 
   trait ModeModule extends ScalaModule with MillBaseTestsModule {
     def mode: String = millModuleSegments.parts.last
@@ -1184,7 +1183,6 @@ trait IntegrationTestModule extends MillScalaModule {
         IntegrationTestModule.this.forkEnv() ++
         Map(
           "MILL_INTEGRATION_SERVER_MODE" -> (mode == "local" || mode == "server").toString,
-          "MILL_INTEGRATION_REPO_ROOT" -> testRepoRoot().path.toString
         ) ++
         testReleaseEnv()
 
@@ -1256,16 +1254,16 @@ object example extends Module {
       this.millModuleSegments.parts.dropRight(1).last
     ).valuesToModules.get(List(crossValue))
 
-    def testRepoRoot = upstreamOpt match {
-      case None => T{ super.testRepoRoot() }
+    def resources = upstreamOpt match {
+      case None => T{ super.resources() }
       case Some(upstream) => T{
-        os.copy.over(super.testRepoRoot().path, T.dest)
         val upstreamRoot = upstream.testRepoRoot().path
+        os.copy.over(upstreamRoot, T.dest)
         val suffix = Seq("build.mill", "build.mill").find(s => os.exists(upstreamRoot / s)).head
         for(lines <- buildScLines()) {
           os.write.over(T.dest / suffix, lines.mkString("\n"))
         }
-        PathRef(T.dest)
+        Seq(PathRef(T.dest))
       }
     }
     def buildScLines = upstreamOpt match {
