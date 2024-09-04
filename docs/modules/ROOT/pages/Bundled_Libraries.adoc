@@ -1,4 +1,6 @@
-= External References
+= Bundled Libraries
+
+:page-aliases: External_References.adoc
 
 Mill comes bundled with a set of external Open Source libraries and projects.
 
