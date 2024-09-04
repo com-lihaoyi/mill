@@ -15,7 +15,8 @@ import ch.epfl.scala.bsp4j.{
 }
 import mill.T
 import mill.bsp.worker.Utils.sanitizeUri
-import mill.scalalib.JavaModule
+import mill.scalalib.api.CompilationResult
+import mill.scalalib.{JavaModule, TestModule}
 
 import java.util.concurrent.CompletableFuture
 import scala.jdk.CollectionConverters._
@@ -50,6 +51,10 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
       targetIds = _ => targetIds,
       tasks = {
         case m: JavaModule =>
+          val moduleSpecificTask = m match {
+            case m: TestModule => m.getTestEnvironmentVars()
+            case _ => m.compile
+          }
           T.task {
             (
               m.runClasspath(),
@@ -58,18 +63,51 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
               m.forkEnv(),
               m.mainClass(),
               m.zincWorker().worker(),
-              m.compile()
+              moduleSpecificTask()
             )
           }
       }
     ) {
-      // We ignore all non-JavaModule
+      case (
+            ev,
+            state,
+            id,
+            _: TestModule with JavaModule,
+            (
+              _,
+              forkArgs,
+              forkWorkingDir,
+              forkEnv,
+              _,
+              _,
+              testEnvVars: (String, String, String, Seq[String])
+            )
+          ) =>
+        val (mainClass, testRunnerClassPath, argsFile, classpath) = testEnvVars
+        val fullMainArgs: List[String] = List(testRunnerClassPath, argsFile)
+        val item = new JvmEnvironmentItem(
+          id,
+          classpath.asJava,
+          forkArgs.asJava,
+          forkWorkingDir.toString(),
+          forkEnv.asJava
+        )
+        item.setMainClasses(List(mainClass).map(new JvmMainClass(_, fullMainArgs.asJava)).asJava)
+        item
       case (
             ev,
             state,
             id,
             _: JavaModule,
-            (runClasspath, forkArgs, forkWorkingDir, forkEnv, mainClass, zincWorker, compile)
+            (
+              runClasspath,
+              forkArgs,
+              forkWorkingDir,
+              forkEnv,
+              mainClass,
+              zincWorker,
+              compile: CompilationResult
+            )
           ) =>
         val classpath = runClasspath.map(_.path).map(sanitizeUri)
         val item = new JvmEnvironmentItem(
