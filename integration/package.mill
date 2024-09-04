@@ -60,7 +60,7 @@ object `package` extends RootModule {
       def runClasspath = IntegrationCrossModuleBase.this.runClasspath()
       def localRunClasspath = IntegrationCrossModuleBase.this.localRunClasspath()
 
-      def compile: T[mill.scalalib.api.CompilationResult] = ??? // binary compatibility stub, not used
+      def compile: T[mill.scalalib.api.CompilationResult] = T{ mill.scalalib.api.CompilationResult(null, null) } // binary compatibility stub, not used
     }
     object local extends ModeModule
     object fork extends ModeModule
