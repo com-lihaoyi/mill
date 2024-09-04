@@ -27,25 +27,26 @@ import $file.ci.upload
 object `package` extends RootModule {
   // We compile the test code once and then offer multiple modes to
   // test it in the `test` CrossModule. We pass `test`'s sources to `lib` to
-  // and pass `lib`'s compile output back to `test`
-  trait IntegrationTestModule extends build.MillScalaModule {
-    def repoSlug: String
+  // and pass `lib`'s compile output back to `test`}
+
+  trait IntegrationTestModule extends Cross.Module[String] {
+    def millSourcePath = super.millSourcePath / crossValue
 
     def moduleDeps = Seq(build.main.test, build.testkit, build.runner)
-    def sources = T.sources(millSourcePath / "test" / "src")
-    def testRepoRoot: T[PathRef] = T.source(millSourcePath / "repo")
 
-    trait ModeModule extends ScalaModule with build.MillBaseTestsModule {
+    def resources: T[Seq[PathRef]]
+    def runClasspath: T[Seq[PathRef]]
+    def localRunClasspath: T[Seq[PathRef]]
+    def forkEnv: T[Map[String, String]]
+    trait ModeModule extends build.MillBaseTestsModule {
+
       def mode: String = millModuleSegments.parts.last
       def scalaVersion = build.Deps.scalaVersion
 
       def forkEnv =
         super.forkEnv() ++
           IntegrationTestModule.this.forkEnv() ++
-          Map(
-            "MILL_INTEGRATION_SERVER_MODE" -> (mode == "local" || mode == "server").toString,
-            "MILL_INTEGRATION_REPO_ROOT" -> testRepoRoot().path.toString
-          ) ++
+          Map("MILL_INTEGRATION_SERVER_MODE" -> (mode == "local" || mode == "server").toString) ++
           testReleaseEnv()
 
       def forkArgs = T { super.forkArgs() ++ build.dist.forkArgs() }
@@ -54,14 +55,12 @@ object `package` extends RootModule {
         if (mode == "local") T { Map("MILL_INTEGRATION_LAUNCHER" -> build.dist.launcher().path.toString()) }
         else T { Map("MILL_INTEGRATION_LAUNCHER" -> testMill().path.toString()) }
 
-      def compile = IntegrationTestModule.this.compile()
-      def moduleDeps = Seq(IntegrationTestModule.this)
-    }
-  }
+      def resources = IntegrationTestModule.this.resources()
+      def runClasspath = IntegrationTestModule.this.runClasspath()
+      def localRunClasspath = IntegrationTestModule.this.localRunClasspath()
 
-  trait IntegrationTestCrossModule extends IntegrationTestModule with Cross.Module[String] {
-    def repoSlug = crossValue
-    def millSourcePath = super.millSourcePath / repoSlug
+      def compile: T[mill.scalalib.api.CompilationResult] = T{ mill.scalalib.api.CompilationResult(null, null) } // binary compatibility stub, not used
+    }
 
     object local extends ModeModule
     object fork extends ModeModule
@@ -72,7 +71,9 @@ object `package` extends RootModule {
   object feature extends Cross[IntegrationCrossModule](build.listIn(millSourcePath / "feature"))
   object invalidation extends Cross[IntegrationCrossModule](build.listIn(millSourcePath / "invalidation"))
   object ide extends Cross[IntegrationCrossModule](build.listIn(millSourcePath / "ide"))
-  trait IntegrationCrossModule extends IntegrationTestCrossModule
+  trait IntegrationCrossModule extends build.MillScalaModule with IntegrationTestModule{
+    override def moduleDeps = super[IntegrationTestModule].moduleDeps
+  }
 
   /** Deploy freshly build mill for use in tests */
   def testMill: T[PathRef] = {

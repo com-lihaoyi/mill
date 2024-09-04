@@ -402,7 +402,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
 
   /** Default tests module. */
   lazy val test: MillScalaTests = new MillScalaTests {}
-  trait MillScalaTests extends ScalaTests with MillBaseTestsModule {
+  trait MillScalaTests extends ScalaTests with MillJavaModule with MillBaseTestsModule {
     def forkArgs = super.forkArgs() ++ outer.testArgs()
     def moduleDeps = outer.testModuleDeps
     def ivyDeps = super.ivyDeps() ++ outer.testIvyDeps()
@@ -410,7 +410,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
   }
 }
 
-trait MillBaseTestsModule extends MillJavaModule with TestModule {
+trait MillBaseTestsModule extends TestModule {
   def forkArgs = T {
     Seq(
       s"-DMILL_SCALA_2_13_VERSION=${Deps.scalaVersion}",

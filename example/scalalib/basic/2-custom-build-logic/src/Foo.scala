@@ -1,6 +1,6 @@
 package foo
 
-object Foo{
+object Foo {
 
   def getLineCount() = {
     scala.io.Source

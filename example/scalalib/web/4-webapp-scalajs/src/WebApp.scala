@@ -2,7 +2,7 @@ package webapp
 import scalatags.Text.all._
 import scalatags.Text.tags2
 
-object WebApp extends cask.MainRoutes{
+object WebApp extends cask.MainRoutes {
   override def port = 8082
   case class Todo(checked: Boolean, text: String)
 
@@ -50,7 +50,7 @@ object WebApp extends cask.MainRoutes{
   }
 
   def renderBody(state: String) = {
-    val filteredTodos = state match{
+    val filteredTodos = state match {
       case "all" => todos.zipWithIndex
       case "active" => todos.zipWithIndex.filter(!_._1.checked)
       case "completed" => todos.zipWithIndex.filter(_._1.checked)
@@ -67,9 +67,9 @@ object WebApp extends cask.MainRoutes{
           `type` := "checkbox",
           if (todos.filter(_.checked).size != 0) checked else ()
         ),
-        label(`for` := "toggle-all","Mark all as complete"),
+        label(`for` := "toggle-all", "Mark all as complete"),
         ul(cls := "todo-list")(
-          for((todo, index) <- filteredTodos) yield li(
+          for ((todo, index) <- filteredTodos) yield li(
             if (todo.checked) cls := "completed" else (),
             div(cls := "view")(
               input(
@@ -94,10 +94,9 @@ object WebApp extends cask.MainRoutes{
           li(cls := "todo-all")(
             a(if (state == "all") cls := "selected" else ())("All")
           ),
-          li(cls := "todo-active",
-            a(if (state == "active") cls := "selected" else ())("Active")
-          ),
-          li(cls := "todo-completed",
+          li(cls := "todo-active", a(if (state == "active") cls := "selected" else ())("Active")),
+          li(
+            cls := "todo-completed",
             a(if (state == "completed") cls := "selected" else ())("Completed")
           )
         ),
@@ -120,8 +119,8 @@ object WebApp extends cask.MainRoutes{
           tags2.section(cls := "todoapp", renderBody("all")),
           footer(cls := "info")(
             p("Double-click to edit a todo"),
-            p("Created by ", a(href := "http://todomvc.com","Li Haoyi")),
-            p("Part of ", a(href := "http://todomvc.com","TodoMVC"))
+            p("Created by ", a(href := "http://todomvc.com", "Li Haoyi")),
+            p("Part of ", a(href := "http://todomvc.com", "TodoMVC"))
           ),
           script(src := "/static/main.js")
         )

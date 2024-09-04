@@ -69,8 +69,8 @@ object `package` extends RootModule with Module {
       this.millModuleSegments.parts.dropRight(1).last
     ).valuesToModules.get(List(crossValue))
 
-    def testRepoRoot = upstreamOpt match {
-      case None => T{ super.testRepoRoot() }
+    def resources = upstreamOpt match {
+      case None => T{ Seq(super.testRepoRoot()) }
       case Some(upstream) => T{
         os.copy.over(super.testRepoRoot().path, T.dest)
         val upstreamRoot = upstream.testRepoRoot().path
@@ -78,7 +78,7 @@ object `package` extends RootModule with Module {
         for(lines <- buildScLines()) {
           os.write.over(T.dest / suffix, lines.mkString("\n"))
         }
-        PathRef(T.dest)
+        Seq(PathRef(T.dest))
       }
     }
     def buildScLines = upstreamOpt match {
@@ -118,14 +118,16 @@ object `package` extends RootModule with Module {
     }
   }
 
-  trait ExampleCrossModule extends build.integration.IntegrationTestCrossModule {
+  trait ExampleCrossModule extends build.integration.IntegrationTestModule {
     // disable scalafix because these example modules don't have sources causing it to misbehave
     def fix(args: String*): Command[Unit] = T.command {}
     def testRepoRoot: T[PathRef] = T.source(millSourcePath)
 
-    def compile = build.testkit.compile()
+    def resources = Seq(testRepoRoot())
+    def runClasspath = build.main.test.runClasspath()
+    def localRunClasspath = build.testkit.localRunClasspath()
 
-    def forkEnv = super.forkEnv() ++ Map(
+    def forkEnv = Map(
       "MILL_EXAMPLE_PARSED" -> upickle.default.write(parsed()),
       "LANG" -> "C"
     )
