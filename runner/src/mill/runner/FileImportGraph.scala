@@ -166,7 +166,8 @@ object FileImportGraph {
     val useDummy = rootBuildFiles.isEmpty
     val foundRootBuildFileName: String = rootBuildFiles.getOrElse(rootBuildFileNames.head)
 
-    val buildFileExtension = buildFileExtensions.find(ex => foundRootBuildFileName.endsWith(s".$ex")).get
+    val buildFileExtension =
+      buildFileExtensions.find(ex => foundRootBuildFileName.endsWith(s".$ex")).get
     val nestedBuildFileName = nestedBuildFileNames.find(_.endsWith(buildFileExtension)).get
 
     processScript(projectRoot / foundRootBuildFileName, useDummy)
