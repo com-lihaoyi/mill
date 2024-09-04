@@ -1,4 +1,5 @@
 package mill.testkit
+import mill.main.client.OutFiles.out
 
 trait IntegrationTesterBase {
   def workspaceSourcePath: os.Path
@@ -17,11 +18,8 @@ trait IntegrationTesterBase {
    */
   def initWorkspace(): Unit = {
     println(s"Copying integration test sources from $workspaceSourcePath to $workspacePath")
-    os.remove.all(workspacePath)
-    os.makeDir.all(workspacePath / os.up)
-    // somehow os.copy does not properly preserve symlinks
-    // os.copy(scriptSourcePath, workspacePath)
-    os.call(("cp", "-R", workspaceSourcePath, workspacePath))
+    os.list(workspacePath).foreach(os.remove.all(_))
+    os.list(workspaceSourcePath).filter(_.last != out).foreach(os.copy.into(_, workspacePath))
     os.remove.all(workspacePath / "out")
   }
 }
