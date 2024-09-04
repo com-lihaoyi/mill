@@ -72,6 +72,6 @@
 // *somewhere*.
 .Reference
 * xref:Mill_Design_Principles.adoc[]
-* xref:External_References.adoc[]
+* xref:Bundled_Libraries.adoc[]
 * {mill-doc-url}/api/latest/mill/index.html[Mill Scaladoc]
 * xref:Changelog.adoc[]
