@@ -1,0 +1,190 @@
+package build.main
+// imports
+import mill._
+import mill.scalalib._
+import mill.contrib.buildinfo.BuildInfo
+import mill.T
+import mill.define.Cross
+
+object `package` extends RootModule with build.MillStableScalaModule with BuildInfo {
+
+  def moduleDeps = Seq(eval, resolve, client)
+  def ivyDeps = Agg(
+    build.Deps.windowsAnsi,
+    build.Deps.mainargs,
+    build.Deps.coursierInterface,
+    build.Deps.requests,
+    build.Deps.logback
+  )
+
+  def compileIvyDeps = Agg(build.Deps.scalaReflect(scalaVersion()))
+
+  def buildInfoPackageName = "mill.main"
+
+  def buildInfoMembers = Seq(
+    BuildInfo.Value("scalaVersion", scalaVersion(), "Scala version used to compile mill core."),
+    BuildInfo.Value(
+      "workerScalaVersion212",
+      build.Deps.workerScalaVersion212,
+      "Scala 2.12 version used by some workers."
+    ),
+    BuildInfo.Value("millVersion", build.millVersion(), "Mill version."),
+    BuildInfo.Value("millBinPlatform", build.millBinPlatform(), "Mill binary platform version."),
+    BuildInfo.Value(
+      "millEmbeddedDeps",
+      (
+        T.traverse(
+            build.dist.recursiveModuleDeps.collect { case m: PublishModule => m }
+          )(
+            _.publishSelfDependency
+          )()
+          .map(artifact => s"${artifact.group}:${artifact.id}:${artifact.version}") ++
+          Lib.resolveDependenciesMetadata(
+              repositories = build.dist.repositoriesTask(),
+              build.dist.transitiveIvyDeps(),
+              Some(build.dist.mapDependencies()),
+              build.dist.resolutionCustomizer(),
+              Some(T.ctx()),
+              build.dist.coursierCacheCustomizer()
+            )._2.minDependencies.toSeq
+            .map(d => s"${d.module.organization.value}:${d.module.name.value}:${d.version}")
+        )
+        //      T.traverse(dev.moduleDeps)(_.publishSelfDependency)()
+        //        .map(artifact => s"${artifact.group}:${artifact.id}:${artifact.version}")
+        .mkString(","),
+      "Dependency artifacts embedded in mill assembly by default."
+    ),
+    BuildInfo.Value(
+      "millScalacPluginDeps",
+      build.Deps.millModuledefsString,
+      "Scalac compiler plugin dependencies to compile the build script."
+    )
+  )
+
+  object api extends build.MillStableScalaModule with BuildInfo {
+    def moduleDeps = Seq(client)
+    def buildInfoPackageName = "mill.api"
+    def buildInfoMembers = Seq(
+      BuildInfo.Value("millVersion", build.millVersion(), "Mill version."),
+      BuildInfo.Value("millDocUrl", build.Settings.docUrl, "Mill documentation url."),
+      BuildInfo.Value(
+        "millReportNewIssueUrl",
+        build.Settings.newIssueUrl,
+        "URL to create a new issue in Mills issue tracker."
+      )
+    )
+
+    def ivyDeps = Agg(
+      build.Deps.osLib,
+      build.Deps.upickle,
+      build.Deps.pprint,
+      build.Deps.fansi,
+      build.Deps.sbtTestInterface
+    )
+  }
+
+  object util extends build.MillStableScalaModule {
+    def moduleDeps = Seq(api, client)
+    def ivyDeps = Agg(build.Deps.coursier, build.Deps.jline)
+  }
+
+  object codesig extends build.MillPublishScalaModule {
+    override def ivyDeps = Agg(build.Deps.asmTree, build.Deps.osLib, build.Deps.pprint)
+    def moduleDeps = Seq(util)
+
+    override lazy val test: CodeSigTests = new CodeSigTests {}
+    trait CodeSigTests extends MillScalaTests {
+      val caseKeys = build.interp.watchValue(
+        os.walk(millSourcePath / "cases", maxDepth = 3)
+          .map(_.subRelativeTo(millSourcePath / "cases").segments)
+          .collect { case Seq(a, b, c) => s"$a-$b-$c" }
+      )
+
+      def testLogFolder = T { T.dest }
+
+      def caseEnvs[V](f1: CaseModule => Task[V])(s: String, f2: V => String) = {
+        T.traverse(caseKeys) { i => f1(cases(i)).map(v => s"MILL_TEST_${s}_$i" -> f2(v)) }
+      }
+      def forkEnv = T {
+        Map("MILL_TEST_LOGS" -> testLogFolder().toString) ++
+          caseEnvs(_.compile)("CLASSES", _.classes.path.toString)() ++
+          caseEnvs(_.compileClasspath)("CLASSPATH", _.map(_.path).mkString(","))() ++
+          caseEnvs(_.sources)("SOURCES", _.head.path.toString)()
+      }
+
+      object cases extends Cross[CaseModule](caseKeys)
+      trait CaseModule extends ScalaModule with Cross.Module[String] {
+        def caseName = crossValue
+        object external extends ScalaModule {
+          def scalaVersion = build.Deps.scalaVersion
+        }
+
+        def moduleDeps = Seq(external)
+
+        val Array(prefix, suffix, rest) = caseName.split("-", 3)
+        def millSourcePath = super.millSourcePath / prefix / suffix / rest
+        def scalaVersion = build.Deps.scalaVersion
+        def ivyDeps = T {
+          if (!caseName.contains("realistic") && !caseName.contains("sourcecode")) super.ivyDeps()
+          else Agg(
+            build.Deps.fastparse,
+            build.Deps.scalatags,
+            build.Deps.cask,
+            build.Deps.castor,
+            build.Deps.mainargs,
+            build.Deps.requests,
+            build.Deps.osLib,
+            build.Deps.upickle
+          )
+        }
+      }
+    }
+  }
+
+  object define extends build.MillStableScalaModule {
+    def moduleDeps = Seq(api, util)
+    def compileIvyDeps = Agg(build.Deps.scalaReflect(scalaVersion()))
+    def ivyDeps = Agg(
+      build.Deps.millModuledefs,
+      // Necessary so we can share the JNA classes throughout the build process
+      build.Deps.jna,
+      build.Deps.jnaPlatform,
+      build.Deps.jarjarabrams,
+      build.Deps.mainargs,
+      build.Deps.scalaparse
+    )
+  }
+
+  object eval extends build.MillStableScalaModule {
+    def moduleDeps = Seq(define)
+  }
+
+  object resolve extends build.MillStableScalaModule {
+    def moduleDeps = Seq(define)
+  }
+
+  object client extends build.MillPublishJavaModule with BuildInfo {
+    def buildInfoPackageName = "mill.main.client"
+    def buildInfoMembers = Seq(BuildInfo.Value("millVersion", build.millVersion(), "Mill version."))
+    def ivyDeps = Agg(build.Deps.junixsocket)
+
+    object test extends JavaModuleTests with TestModule.Junit4 {
+      def ivyDeps = Agg(
+        build.Deps.junitInterface,
+        build.Deps.lambdaTest,
+        build.Deps.commonsIO
+      )
+    }
+  }
+
+  object server extends build.MillPublishScalaModule {
+    def moduleDeps = Seq(client, api)
+  }
+  object graphviz extends build.MillPublishScalaModule {
+    def moduleDeps = Seq(build.main, build.scalalib)
+    def ivyDeps = Agg(build.Deps.jgraphtCore) ++ build.Deps.graphvizJava ++ build.Deps.javet
+  }
+
+  def testModuleDeps = super.testModuleDeps ++ Seq(build.testkit)
+}
+

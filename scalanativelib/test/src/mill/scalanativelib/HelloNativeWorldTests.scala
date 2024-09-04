@@ -79,7 +79,7 @@ object HelloNativeWorldTests extends TestSuite {
     override lazy val millDiscover: Discover[HelloNativeWorld.this.type] = Discover[this.type]
   }
 
-  val millSourcePath = os.pwd / "scalanativelib" / "test" / "resources" / "hello-native-world"
+  val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-native-world"
 
   def tests: Tests = Tests {
     test("compile") {

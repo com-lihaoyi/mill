@@ -31,7 +31,7 @@ trait HelloWorldTests extends TestSuite {
 
   }
 
-  def resourcePath = os.pwd / "contrib" / "twirllib" / "test" / "resources"
+  def resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER"))
   def compileClassfiles: Seq[os.RelPath] = Seq[os.RelPath](
     os.rel / "html" / "hello.template.scala",
     os.rel / "html" / "wrapper.template.scala",

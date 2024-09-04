@@ -1,4 +1,4 @@
-
+package build.ci
 import scalaj.http._
 import mainargs.main
 

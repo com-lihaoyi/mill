@@ -16,9 +16,7 @@ object JmhModuleTest extends TestSuite {
     override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
     override def jmhCoreVersion = "1.35"
   }
-
-  val testModuleSourcesPath: Path =
-    os.pwd / "contrib" / "jmh" / "test" / "resources" / "jmh"
+  val testModuleSourcesPath: Path = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "jmh"
 
   def tests = Tests {
     test("jmh") {

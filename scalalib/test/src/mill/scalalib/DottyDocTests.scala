@@ -32,7 +32,7 @@ object DottyDocTests extends TestSuite {
     }
   }
 
-  val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "dottydoc"
+  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "dottydoc"
 
   def tests: Tests = Tests {
     test("static") {

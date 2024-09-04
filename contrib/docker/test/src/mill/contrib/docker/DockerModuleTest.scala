@@ -45,8 +45,7 @@ object DockerModuleTest extends TestSuite {
 
   val testArtifactName = "mill-docker-contrib-test"
 
-  val testModuleSourcesPath: Path =
-    os.pwd / "contrib" / "docker" / "test" / "resources" / "docker"
+  val testModuleSourcesPath: Path = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "docker"
 
   val multineRegex = "\\R+".r
 
