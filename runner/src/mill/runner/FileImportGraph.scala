@@ -168,7 +168,8 @@ object FileImportGraph {
 
     val buildFileExtension =
       buildFileExtensions.find(ex => foundRootBuildFileName.endsWith(s".$ex")).get
-    val nestedBuildFileName = nestedBuildFileNames.find(_.endsWith(buildFileExtension)).get
+
+    val nestedBuildFileName = s"package.$buildFileExtension"
 
     processScript(projectRoot / foundRootBuildFileName, useDummy)
     val buildFiles = os
