@@ -123,6 +123,8 @@ object `package` extends RootModule with Module {
     def fix(args: String*): Command[Unit] = T.command {}
     def testRepoRoot: T[PathRef] = T.source(millSourcePath)
 
+    def resources = Seq.empty[PathRef]
+    def sources = Seq.empty[PathRef]
     def compile = build.testkit.compile()
 
     def forkEnv = super.forkEnv() ++ Map(
