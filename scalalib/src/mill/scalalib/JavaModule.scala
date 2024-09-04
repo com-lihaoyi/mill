@@ -7,7 +7,7 @@ import coursier.core.Resolution
 import coursier.parse.JavaOrScalaModule
 import coursier.parse.ModuleParser
 import coursier.util.ModuleMatcher
-import mainargs.Flag
+import mainargs.{Flag, arg}
 import mill.Agg
 import mill.api.{Ctx, JarManifest, MillException, PathRef, Result, internal}
 import mill.define.{Command, ModuleRef, Segment, Task, TaskModule}
@@ -950,7 +950,10 @@ trait JavaModule
   /**
    * Same as `runBackground`, but lets you specify a main class to run
    */
-  override def runMainBackground(mainClass: String, args: String*): Command[Unit] = {
+  override def runMainBackground(
+      @arg(positional = true) mainClass: String,
+      args: String*
+  ): Command[Unit] = {
     // overridden here for binary compatibility (0.11.x)
     super.runMainBackground(mainClass, args: _*)
   }
@@ -958,7 +961,10 @@ trait JavaModule
   /**
    * Same as `runLocal`, but lets you specify a main class to run
    */
-  override def runMainLocal(mainClass: String, args: String*): Command[Unit] = {
+  override def runMainLocal(
+      @arg(positional = true) mainClass: String,
+      args: String*
+  ): Command[Unit] = {
     // overridden here for binary compatibility (0.11.x)
     super.runMainLocal(mainClass, args: _*)
   }
@@ -966,7 +972,7 @@ trait JavaModule
   /**
    * Same as `run`, but lets you specify a main class to run
    */
-  override def runMain(mainClass: String, args: String*): Command[Unit] = {
+  override def runMain(@arg(positional = true) mainClass: String, args: String*): Command[Unit] = {
     // overridden here for binary compatibility (0.11.x)
     super.runMain(mainClass, args: _*)
   }
