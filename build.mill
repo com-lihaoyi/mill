@@ -410,7 +410,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
   }
 }
 
-trait MillBaseTestsModule extends MillJavaModule with TestModule {
+trait MillBaseTestsModule extends TestModule {
   def forkArgs = T {
     Seq(
       s"-DMILL_SCALA_2_13_VERSION=${Deps.scalaVersion}",
