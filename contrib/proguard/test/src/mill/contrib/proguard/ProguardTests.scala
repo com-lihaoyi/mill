@@ -24,8 +24,7 @@ object ProguardTests extends TestSuite {
 
   }
 
-  val testModuleSourcesPath: Path =
-    os.pwd / "contrib" / "proguard" / "test" / "resources" / "proguard"
+  val testModuleSourcesPath: Path = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "proguard"
 
   def tests: Tests = Tests {
     test("Proguard module") {

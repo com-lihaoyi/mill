@@ -86,8 +86,7 @@ object BuildInfoTests extends TestSuite {
     )
   }
 
-  val testModuleSourcesPath: Path =
-    os.pwd / "contrib" / "buildinfo" / "test" / "resources" / "buildinfo"
+  val testModuleSourcesPath: Path = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "buildinfo"
 
   def buildInfoSourcePath(eval: UnitTester) =
     eval.outPath / "buildInfoSources.dest" / "foo" / "BuildInfo.scala"

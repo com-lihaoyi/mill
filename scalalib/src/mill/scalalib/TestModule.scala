@@ -185,6 +185,8 @@ trait TestModule
       val mainArgs = Seq(testRunnerClasspathArg, argsFile.toString)
 
       os.makeDir(T.dest / "sandbox")
+      val resourceEnv =
+        Map(EnvVars.MILL_TEST_RESOURCE_FOLDER -> resources().map(_.path).mkString(";"))
       Jvm.runSubprocess(
         mainClass = "mill.testrunner.entrypoint.TestRunnerMain",
         classPath =
@@ -192,9 +194,7 @@ trait TestModule
             _.path
           ),
         jvmArgs = jvmArgs,
-        envArgs =
-          Map(EnvVars.MILL_TEST_RESOURCE_FOLDER -> resources().map(_.path).mkString(";")) ++
-            forkEnv(),
+        envArgs = forkEnv() ++ resourceEnv,
         mainArgs = mainArgs,
         workingDir = if (testSandboxWorkingDir()) T.dest / "sandbox" else forkWorkingDir(),
         useCpPassingJar = useArgsFile

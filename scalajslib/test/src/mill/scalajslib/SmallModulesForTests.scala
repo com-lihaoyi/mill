@@ -18,7 +18,7 @@ object SmallModulesForTests extends TestSuite {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  val millSourcePath = os.pwd / "scalajslib" / "test" / "resources" / "small-modules-for"
+  val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "small-modules-for"
 
   val evaluator = UnitTester(SmallModulesForModule, millSourcePath)
 

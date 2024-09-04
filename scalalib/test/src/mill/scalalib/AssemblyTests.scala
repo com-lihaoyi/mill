@@ -54,7 +54,7 @@ object AssemblyTests extends TestSuite {
 
   }
 
-  val sources = os.pwd / "scalalib" / "test" / "resources" / "assembly"
+  val sources = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "assembly"
 
   def runAssembly(file: os.Path, wd: os.Path, checkExe: Boolean = false): Unit = {
     println(s"File size: ${os.stat(file).size}")

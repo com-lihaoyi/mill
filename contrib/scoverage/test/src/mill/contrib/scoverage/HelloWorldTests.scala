@@ -21,7 +21,7 @@ trait HelloWorldTests extends utest.TestSuite {
   def isScala3: Boolean = testScalaVersion.startsWith("3.")
   def isScov3: Boolean = testScoverageVersion.startsWith("2.")
 
-  val resourcePath = os.pwd / "contrib" / "scoverage" / "test" / "resources" / "hello-world"
+  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world"
   val sbtResourcePath = resourcePath / os.up / "hello-world-sbt"
   val unmanagedFile = resourcePath / "unmanaged.xml"
 

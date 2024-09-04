@@ -78,7 +78,7 @@ object HelloJSWorldTests extends TestSuite {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  val millSourcePath = os.pwd / "scalajslib" / "test" / "resources" / "hello-js-world"
+  val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-js-world"
 
   def tests: Tests = Tests {
     test("compile") {

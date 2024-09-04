@@ -77,7 +77,7 @@ object PublishModuleTests extends TestSuite {
     }
   }
 
-  val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "publish"
+  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "publish"
 
   def tests: Tests = Tests {
     test("pom") {

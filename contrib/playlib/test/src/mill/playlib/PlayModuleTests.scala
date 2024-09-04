@@ -16,8 +16,7 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
       override def ivyDeps = T { super.ivyDeps() ++ Agg(ws()) }
     }
   }
-
-  val resourcePath: os.Path = os.pwd / "contrib" / "playlib" / "test" / "resources" / "playmulti"
+  val resourcePath: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "playmulti"
 
   def tests: Tests = Tests {
     test("layout") {
