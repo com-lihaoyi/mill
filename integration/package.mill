@@ -29,8 +29,6 @@ object `package` extends RootModule {
   // test it in the `test` CrossModule. We pass `test`'s sources to `lib` to
   // and pass `lib`'s compile output back to `test`
   trait IntegrationTestModule extends build.MillScalaModule {
-    def repoSlug: String
-
     def moduleDeps = Seq(build.main.test, build.testkit, build.runner)
     def sources = T.sources(millSourcePath / "src")
 
@@ -58,8 +56,7 @@ object `package` extends RootModule {
   }
 
   trait IntegrationTestCrossModule extends IntegrationTestModule with Cross.Module[String] {
-    def repoSlug = crossValue
-    def millSourcePath = super.millSourcePath / repoSlug
+    def millSourcePath = super.millSourcePath / crossValue
 
     object local extends ModeModule
     object fork extends ModeModule
