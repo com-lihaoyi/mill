@@ -316,8 +316,8 @@ trait MillJavaModule extends JavaModule {
 
   def testIvyDeps: T[Agg[Dep]] = Agg(Deps.TestDeps.utest)
   def testModuleDeps: Seq[JavaModule] =
-    if (this == main) Seq(main)
-    else Seq(this, main.test)
+    if (this == build.main) Seq(build.main)
+    else Seq(this, build.main.test)
 
   def writeLocalTestOverrides = T.task {
     for ((k, v) <- testTransitiveDeps()) {
@@ -706,7 +706,7 @@ def launcherScript(
 }
 
 object idea extends MillPublishScalaModule {
-  def moduleDeps = Seq(scalalib, runner)
+  def moduleDeps = Seq(build.scalalib, build.runner)
 }
 
 /**
@@ -717,27 +717,27 @@ object idea extends MillPublishScalaModule {
 object dist0 extends MillPublishJavaModule {
   // disable scalafix here because it crashes when a module has no sources
   def fix(args: String*): Command[Unit] = T.command {}
-  def moduleDeps = Seq(runner, idea)
+  def moduleDeps = Seq(build.runner, idea)
 
-  def testTransitiveDeps = runner.testTransitiveDeps() ++ Seq(
-    main.graphviz.testDep(),
-    runner.linenumbers.testDep(),
-    scalalib.backgroundwrapper.testDep(),
-    contrib.bloop.testDep(),
-    contrib.buildinfo.testDep(),
-    contrib.scoverage.testDep(),
-    contrib.scoverage.worker2.testDep(),
-    contrib.jmh.testDep(),
-    contrib.playlib.testDep(),
-    contrib.playlib.worker("2.8").testDep(),
-    bsp.worker.testDep(),
-    testkit.testDep()
+  def testTransitiveDeps = build.runner.testTransitiveDeps() ++ Seq(
+    build.main.graphviz.testDep(),
+    build.runner.linenumbers.testDep(),
+    build.scalalib.backgroundwrapper.testDep(),
+    build.contrib.bloop.testDep(),
+    build.contrib.buildinfo.testDep(),
+    build.contrib.scoverage.testDep(),
+    build.contrib.scoverage.worker2.testDep(),
+    build.contrib.jmh.testDep(),
+    build.contrib.playlib.testDep(),
+    build.contrib.playlib.worker("2.8").testDep(),
+    build.bsp.worker.testDep(),
+    build.testkit.testDep()
   )
 }
 
 object dist extends MillPublishJavaModule {
   def jar = rawAssembly()
-  def moduleDeps = Seq(runner, idea)
+  def moduleDeps = Seq(build.runner, idea)
 
   def testTransitiveDeps = dist0.testTransitiveDeps() ++ Seq(
     (s"com.lihaoyi-${dist.artifactId()}", dist0.runClasspath().map(_.path).mkString("\n"))
@@ -747,12 +747,12 @@ object dist extends MillPublishJavaModule {
 
   def forkArgs: T[Seq[String]] = T {
     val genIdeaArgs =
-      genTask(main.define)() ++
-        genTask(main.eval)() ++
-        genTask(main)() ++
-        genTask(scalalib)() ++
-        genTask(scalajslib)() ++
-        genTask(scalanativelib)()
+      genTask(build.main.define)() ++
+        genTask(build.main.eval)() ++
+        genTask(build.main)() ++
+        genTask(build.scalalib)() ++
+        genTask(build.scalajslib)() ++
+        genTask(build.scalanativelib)()
 
     testArgs() ++
       Seq(
@@ -925,7 +925,7 @@ def bootstrapLauncher = T {
 
 def exampleZips: T[Seq[PathRef]] = T {
   for {
-    exampleMod <- example.exampleModules
+    exampleMod <- build.example.exampleModules
     examplePath = exampleMod.millSourcePath
   } yield {
     val example = examplePath.subRelativeTo(T.workspace)
@@ -998,7 +998,7 @@ def validate(): Command[Unit] = {
   T.command {
     T.sequence(tasks)()
     mill.scalalib.scalafmt.ScalafmtModule.checkFormatAll(Tasks(sources))()
-    docs.localPages()
+    build.docs.localPages()
     ()
   }
 }
