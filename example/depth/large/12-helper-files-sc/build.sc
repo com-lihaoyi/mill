@@ -7,9 +7,9 @@ object `package` extends RootModule with MyModule{
     "MY_PROJECT_VERSION" -> versions.myProjectVersion,
   )
 }
-///** See Also: util.sc */
-///** See Also: foo/package.sc */
-///** See Also: foo/versions.sc */
+/** See Also: util.sc */
+/** See Also: foo/package.sc */
+/** See Also: foo/versions.sc */
 
 
 // To ease the migration from Mill 0.11.x, the older `.sc` file extension is also supported
