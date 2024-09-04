@@ -191,9 +191,10 @@ object Deps {
   val sonatypeCentralClient = ivy"com.lumidion::sonatype-central-client-requests:0.3.0"
 
   object RuntimeDeps {
-    val sbtTestInterface = ivy"com.github.sbt:junit-interface:0.13.2"
+    val errorProneCore = ivy"com.google.errorprone:error_prone_core:2.31.0"
     val jupiterInterface = ivy"com.github.sbt.junit:jupiter-interface:0.11.4"
-    def all = Seq(sbtTestInterface, jupiterInterface)
+    val sbtTestInterface = ivy"com.github.sbt:junit-interface:0.13.2"
+    def all = Seq(errorProneCore, jupiterInterface, sbtTestInterface)
   }
 
   /** Used to manage transitive versions. */
