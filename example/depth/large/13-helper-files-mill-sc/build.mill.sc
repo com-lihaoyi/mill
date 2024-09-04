@@ -8,9 +8,9 @@ object `package` extends RootModule with MyModule{
     "MY_PROJECT_VERSION" -> versions.myProjectVersion,
   )
 }
-///** See Also: util.mill */
-///** See Also: foo/package.mill */
-///** See Also: foo/versions.mill */
+///** See Also: util.mill.sc */
+///** See Also: foo/package.mill.sc */
+///** See Also: foo/versions.mill.sc */
 
 
 // Apart from having `package` files in subfolders to define modules, Mill
