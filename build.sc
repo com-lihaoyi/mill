@@ -1172,8 +1172,8 @@ trait IntegrationTestModule extends MillScalaModule {
   def repoSlug: String
 
   def moduleDeps = Seq(main.test, testkit, runner)
-  def sources = T.sources(millSourcePath / "test" / "src")
-  def testRepoRoot: T[PathRef] = T.source(millSourcePath / "repo")
+  def sources = T.sources(millSourcePath / "src")
+  def testRepoRoot: T[PathRef] = resources().head
 
   trait ModeModule extends ScalaModule with MillBaseTestsModule {
     def mode: String = millModuleSegments.parts.last
