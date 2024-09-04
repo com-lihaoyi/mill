@@ -34,9 +34,11 @@ object `package` extends RootModule {
 
     def moduleDeps = Seq(build.main.test, build.testkit, build.runner)
 
-    def testClasspath: T[Seq[PathRef]]
+    def resources: T[Seq[PathRef]]
+    def runClasspath: T[Seq[PathRef]]
+    def localRunClasspath: T[Seq[PathRef]]
     def forkEnv: T[Map[String, String]]
-    trait ModeModule extends ScalaModule with build.MillBaseTestsModule {
+    trait ModeModule extends build.MillBaseTestsModule {
       def mode: String = millModuleSegments.parts.last
       def scalaVersion = build.Deps.scalaVersion
 
@@ -54,8 +56,11 @@ object `package` extends RootModule {
         if (mode == "local") T { Map("MILL_INTEGRATION_LAUNCHER" -> build.dist.launcher().path.toString()) }
         else T { Map("MILL_INTEGRATION_LAUNCHER" -> testMill().path.toString()) }
 
-      def testClasspath = IntegrationCrossModuleBase.this.testClasspath()
+      def resources = IntegrationCrossModuleBase.this.resources()
+      def runClasspath = IntegrationCrossModuleBase.this.runClasspath()
+      def localRunClasspath = IntegrationCrossModuleBase.this.localRunClasspath()
 
+      def compile: T[mill.scalalib.api.CompilationResult] = ??? // binary compatibility stub, not used
     }
     object local extends ModeModule
     object fork extends ModeModule
@@ -68,7 +73,6 @@ object `package` extends RootModule {
   object ide extends Cross[IntegrationCrossModule](build.listIn(millSourcePath / "ide"))
   trait IntegrationCrossModule extends build.MillScalaModule with IntegrationCrossModuleBase{
     override def moduleDeps = super[IntegrationCrossModuleBase].moduleDeps
-    def testClasspath: T[Seq[PathRef]] = Seq(compile().classes)
   }
 
   /** Deploy freshly build mill for use in tests */

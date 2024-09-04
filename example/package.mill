@@ -123,7 +123,9 @@ object `package` extends RootModule with Module {
     def fix(args: String*): Command[Unit] = T.command {}
     def testRepoRoot: T[PathRef] = T.source(millSourcePath)
 
-    def testClasspath = Seq(build.testkit.compile().classes)
+    def resources = Seq(testRepoRoot())
+    def runClasspath = build.main.test.runClasspath()
+    def localRunClasspath = build.testkit.localRunClasspath()
 
     def forkEnv = Map(
       "MILL_EXAMPLE_PARSED" -> upickle.default.write(parsed()),
