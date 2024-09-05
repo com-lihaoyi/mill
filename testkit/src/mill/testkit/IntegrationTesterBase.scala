@@ -9,7 +9,8 @@ trait IntegrationTesterBase {
    * Mill build being tested. Contains the `build.mill` file, any application code, and
    * the `out/` folder containing the build output
    *
-   * Typically just `pwd`, which is a sandbox directory for test suites run using Mill.
+   * Typically a temp folder inside `pwd`, just in case there's some leftover
+   * files/processes from previous integration tests that may interfere with the current one
    */
   val workspacePath: os.Path = os.temp(dir = os.pwd)
 
