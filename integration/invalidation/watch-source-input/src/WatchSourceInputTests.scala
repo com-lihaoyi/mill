@@ -1,6 +1,6 @@
 package mill.integration
 
-import mill.testkit.{IntegrationTestSuite, IntegrationTester}
+import mill.testkit.{UtestIntegrationTestSuite, IntegrationTester}
 
 import mill.main.client.Util
 import utest._
@@ -20,7 +20,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
  * 4. `interp.watchValue`
  * 5. Implicitly watched files, like `build.mill`
  */
-object WatchSourceInputTests extends IntegrationTestSuite {
+object WatchSourceInputTests extends UtestIntegrationTestSuite {
 
   val maxDuration = 60000
   val tests: Tests = Tests {

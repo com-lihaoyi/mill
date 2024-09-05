@@ -1,10 +1,10 @@
 package mill.integration
 
-import mill.testkit.IntegrationTestSuite
+import mill.testkit.UtestIntegrationTestSuite
 
 import utest._
 
-object CodeSigScalaModuleTests extends IntegrationTestSuite {
+object CodeSigScalaModuleTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     def filterLines(out: String) = {
       out.linesIterator.filter(!_.contains("[info]")).toSet

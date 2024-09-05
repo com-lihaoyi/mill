@@ -1,10 +1,10 @@
 package mill.integration
 
-import mill.testkit.IntegrationTestSuite
+import mill.testkit.UtestIntegrationTestSuite
 import mill.bsp.Constants
 import utest._
 
-object BspInstallTests extends IntegrationTestSuite {
+object BspInstallTests extends UtestIntegrationTestSuite {
   val bsp4jVersion: String = sys.props.getOrElse("BSP4J_VERSION", ???)
 
   def tests: Tests = Tests {

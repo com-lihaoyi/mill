@@ -1,6 +1,6 @@
 package mill.integration
 
-import mill.testkit.{IntegrationTestSuite, IntegrationTester}
+import mill.testkit.{UtestIntegrationTestSuite, IntegrationTester}
 
 import mill.main.client.OutFiles._
 import mill.runner.RunnerState
@@ -13,7 +13,7 @@ import scala.util.matching.Regex
 // that the proper messages are reported, proper build classloaders are
 // re-used or invalidated, and the proper files end up getting watched
 // in all cases.
-object MultiLevelBuildTests extends IntegrationTestSuite {
+object MultiLevelBuildTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
 
     def runAssertSuccess(tester: IntegrationTester, expected: String) = {

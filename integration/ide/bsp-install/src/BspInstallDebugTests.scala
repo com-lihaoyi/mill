@@ -1,10 +1,10 @@
 package mill.integration
 
-import mill.testkit.IntegrationTestSuite
+import mill.testkit.UtestIntegrationTestSuite
 import mill.bsp.Constants
 import utest._
 
-object BspInstallDebugTests extends IntegrationTestSuite {
+object BspInstallDebugTests extends UtestIntegrationTestSuite {
 
   val bsp4jVersion: String = sys.props.getOrElse("BSP4J_VERSION", ???)
   // we purposely enable debugging in this simulated test env

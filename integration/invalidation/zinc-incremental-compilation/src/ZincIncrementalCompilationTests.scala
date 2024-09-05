@@ -1,11 +1,11 @@
 package mill.integration
 
-import mill.testkit.IntegrationTestSuite
+import mill.testkit.UtestIntegrationTestSuite
 
 import utest._
 
 // Regress test for issue https://github.com/com-lihaoyi/mill/issues/1901
-object ZincIncrementalCompilationTests extends IntegrationTestSuite {
+object ZincIncrementalCompilationTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test("incremental compilation only compiles changed files") - integrationTest { tester =>
       import tester._

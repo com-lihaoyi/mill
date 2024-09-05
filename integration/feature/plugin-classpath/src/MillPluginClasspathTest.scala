@@ -1,10 +1,10 @@
 package mill.integration
 
-import mill.testkit.IntegrationTestSuite
+import mill.testkit.UtestIntegrationTestSuite
 
 import utest._
 
-object MillPluginClasspathTest extends IntegrationTestSuite {
+object MillPluginClasspathTest extends UtestIntegrationTestSuite {
 
   val embeddedModules: Seq[(String, String)] = Seq(
     ("com.lihaoyi", "mill-main-client"),

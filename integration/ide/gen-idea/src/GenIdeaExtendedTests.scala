@@ -1,12 +1,12 @@
 package mill.integration
 
-import mill.testkit.IntegrationTestSuite
+import mill.testkit.UtestIntegrationTestSuite
 import utest._
 
 import scala.util.Try
 import os.Path
 
-object GenIdeaExtendedTests extends IntegrationTestSuite {
+object GenIdeaExtendedTests extends UtestIntegrationTestSuite {
 
   override def workspaceSourcePath: Path = super.workspaceSourcePath / "extended"
 

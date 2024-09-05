@@ -1,10 +1,10 @@
 package mill.integration
 
-import mill.testkit.IntegrationTestSuite
+import mill.testkit.UtestIntegrationTestSuite
 
 import utest._
 
-object ModuleInitErrorTests extends IntegrationTestSuite {
+object ModuleInitErrorTests extends UtestIntegrationTestSuite {
   def captureOutErr = true
   val tests: Tests = Tests {
     test("resolve") - integrationTest { tester =>

@@ -1,10 +1,10 @@
 package mill.integration
 
-import mill.testkit.IntegrationTestSuite
+import mill.testkit.UtestIntegrationTestSuite
 
 import utest._
 
-object CrossCollisionsTests extends IntegrationTestSuite {
+object CrossCollisionsTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test("detect-collision") - integrationTest { tester =>
       import tester._

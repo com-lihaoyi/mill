@@ -1,11 +1,11 @@
 package mill.integration
 
-import mill.testkit.IntegrationTestSuite
+import mill.testkit.UtestIntegrationTestSuite
 
 import utest._
 
 // Regress test for issue https://github.com/com-lihaoyi/mill/issues/1901
-object AuxiliaryClassFilesTests extends IntegrationTestSuite {
+object AuxiliaryClassFilesTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test("tasty files are deleted together with companion class files") - integrationTest {
       tester =>

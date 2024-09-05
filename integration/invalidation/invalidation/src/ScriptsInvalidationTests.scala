@@ -1,10 +1,10 @@
 package mill.integration
 
-import mill.testkit.{IntegrationTestSuite, IntegrationTester}
+import mill.testkit.{UtestIntegrationTestSuite, IntegrationTester}
 
 import utest._
 
-object ScriptsInvalidationTests extends IntegrationTestSuite {
+object ScriptsInvalidationTests extends UtestIntegrationTestSuite {
 
   def runTask(tester: IntegrationTester, task: String): Set[String] = {
     val res = tester.eval(task)

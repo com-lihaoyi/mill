@@ -3,11 +3,11 @@ package mill.integration
 import utest.{Tests, assert, _}
 
 import scala.util.Try
-import mill.testkit.IntegrationTestSuite
+import mill.testkit.UtestIntegrationTestSuite
 import GenIdeaUtils._
 import os.Path
 
-object GenIdeaTests extends IntegrationTestSuite {
+object GenIdeaTests extends UtestIntegrationTestSuite {
 
   override def workspaceSourcePath: Path = super.workspaceSourcePath / "hello-idea"
 

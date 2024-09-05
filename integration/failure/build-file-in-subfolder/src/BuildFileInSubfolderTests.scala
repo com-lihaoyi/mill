@@ -1,10 +1,10 @@
 package mill.integration
 
-import mill.testkit.IntegrationTestSuite
+import mill.testkit.UtestIntegrationTestSuite
 
 import utest._
 
-object BuildFileInSubfolderTests extends IntegrationTestSuite {
+object BuildFileInSubfolderTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test("success") - integrationTest { tester =>
       import tester._

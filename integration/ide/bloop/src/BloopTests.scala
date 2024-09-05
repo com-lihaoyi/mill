@@ -1,10 +1,10 @@
 package mill.integration
 
-import mill.testkit.IntegrationTestSuite
+import mill.testkit.UtestIntegrationTestSuite
 
 import utest._
 
-object BloopTests extends IntegrationTestSuite {
+object BloopTests extends UtestIntegrationTestSuite {
 
   val tests: Tests = Tests {
     test("test") - {
