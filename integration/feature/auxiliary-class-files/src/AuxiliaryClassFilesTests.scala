@@ -7,8 +7,7 @@ import utest._
 // Regress test for issue https://github.com/com-lihaoyi/mill/issues/1901
 object AuxiliaryClassFilesTests extends IntegrationTestSuite {
   val tests: Tests = Tests {
-    test("tasty files are deleted together with companion class files") {
-      initWorkspace()
+    test("tasty files are deleted together with companion class files") - integrationTest { tester => import tester._
       assert(eval("app.jvm.compile").isSuccess)
 
       val classes = workspacePath / "out" / "app" / "jvm" / "compile.dest" / "classes"
@@ -24,9 +23,7 @@ object AuxiliaryClassFilesTests extends IntegrationTestSuite {
       assert(secondRun == Seq.empty)
     }
 
-    test("compilation fails when deleting a class used by other files") {
-      initWorkspace()
-
+    test("compilation fails when deleting a class used by other files") - integrationTest { tester => import tester._
       os.write(workspacePath / "app" / "src" / "bar.scala", "object bar { println(foo) }")
       val firstRunSuccessful = eval("app.jvm.compile")
       assert(firstRunSuccessful.isSuccess)
@@ -52,8 +49,7 @@ object AuxiliaryClassFilesTests extends IntegrationTestSuite {
       assert(secondRun == Seq.empty)
     }
 
-    test("nir files are deleted together with companion class files") {
-      initWorkspace()
+    test("nir files are deleted together with companion class files") - integrationTest { tester => import tester._
       assert(eval("app.native.compile").isSuccess)
 
       val classes = workspacePath / "out" / "app" / "native" / "compile.dest" / "classes"
@@ -69,8 +65,7 @@ object AuxiliaryClassFilesTests extends IntegrationTestSuite {
       assert(secondRun == Seq.empty)
     }
 
-    test("sjsir files are deleted together with companion class files") {
-      initWorkspace()
+    test("sjsir files are deleted together with companion class files") - integrationTest { tester => import tester._
       assert(eval("app.js.compile").isSuccess)
 
       val classes = workspacePath / "out" / "app" / "js" / "compile.dest" / "classes"

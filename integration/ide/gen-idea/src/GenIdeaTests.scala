@@ -12,7 +12,7 @@ object GenIdeaTests extends IntegrationTestSuite {
   override def workspaceSourcePath: Path = super.workspaceSourcePath / "hello-idea"
 
   def tests: Tests = Tests {
-    test("helper assertPartialContentMatches works") {
+    test("helper assertPartialContentMatches works") - integrationTest { tester => import tester._
       val testContent =
         s"""line 1
            |line 2
@@ -51,8 +51,7 @@ object GenIdeaTests extends IntegrationTestSuite {
       ()
     }
 
-    test("genIdeaTests") {
-      initWorkspace()
+    test("genIdeaTests") - integrationTest { tester => import tester._
       val expectedBase = workspacePath / "idea"
       val resources = os.walk(expectedBase).filter(os.isFile).map(_.subRelativeTo(expectedBase))
 

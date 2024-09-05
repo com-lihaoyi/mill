@@ -24,11 +24,9 @@ object WatchSourceInputTests extends IntegrationTestSuite {
 
   val maxDuration = 60000
   val tests: Tests = Tests {
-    initWorkspace()
-
-    def awaitCompletionMarker(name: String) = {
+    def awaitCompletionMarker(tester: IntegrationTester, name: String) = {
       val maxTime = System.currentTimeMillis() + maxDuration
-      while (!os.exists(workspacePath / "out" / name)) {
+      while (!os.exists(tester.workspacePath / "out" / name)) {
         if (System.currentTimeMillis() > maxTime) {
           sys.error(s"awaitCompletionMarker($name) timed out")
         }
@@ -63,14 +61,14 @@ object WatchSourceInputTests extends IntegrationTestSuite {
       if (show) assert(shows == expectedShows.map('"' + _ + '"'))
     }
 
-    def testWatchSource(show: Boolean) =
+    def testWatchSource(tester: IntegrationTester, show: Boolean) =
       testBase(show) { (expectedOut, expectedErr, expectedShows) =>
         val showArgs = if (show) Seq("show") else Nil
-
+        import tester._
         val evalResult = Future { eval(("--watch", showArgs, "qux"), timeout = maxDuration) }
 
-        awaitCompletionMarker("initialized0")
-        awaitCompletionMarker("quxRan0")
+        awaitCompletionMarker(tester, "initialized0")
+        awaitCompletionMarker(tester, "quxRan0")
         expectedOut.append(
           "Setting up build.mill"
         )
@@ -83,7 +81,7 @@ object WatchSourceInputTests extends IntegrationTestSuite {
         )
 
         os.write.over(workspacePath / "foo1.txt", "edited-foo1")
-        awaitCompletionMarker("quxRan1")
+        awaitCompletionMarker(tester, "quxRan1")
         expectedErr.append(
           "Running qux foo contents edited-foo1 initial-foo2",
           "Running qux bar contents initial-bar"
@@ -93,7 +91,7 @@ object WatchSourceInputTests extends IntegrationTestSuite {
         )
 
         os.write.over(workspacePath / "foo2.txt", "edited-foo2")
-        awaitCompletionMarker("quxRan2")
+        awaitCompletionMarker(tester, "quxRan2")
         expectedErr.append(
           "Running qux foo contents edited-foo1 edited-foo2",
           "Running qux bar contents initial-bar"
@@ -103,7 +101,7 @@ object WatchSourceInputTests extends IntegrationTestSuite {
         )
 
         os.write.over(workspacePath / "bar.txt", "edited-bar")
-        awaitCompletionMarker("quxRan3")
+        awaitCompletionMarker(tester, "quxRan3")
         expectedErr.append(
           "Running qux foo contents edited-foo1 edited-foo2",
           "Running qux bar contents edited-bar"
@@ -113,7 +111,7 @@ object WatchSourceInputTests extends IntegrationTestSuite {
         )
 
         os.write.append(workspacePath / "build.mill", "\ndef unrelated = true")
-        awaitCompletionMarker("initialized1")
+        awaitCompletionMarker(tester, "initialized1")
         expectedOut.append(
           "Setting up build.mill"
           // These targets do not re-evaluate, because the change to the build
@@ -126,7 +124,7 @@ object WatchSourceInputTests extends IntegrationTestSuite {
         )
 
         os.write.over(workspacePath / "watchValue.txt", "exit")
-        awaitCompletionMarker("initialized2")
+        awaitCompletionMarker(tester, "initialized2")
         expectedOut.append("Setting up build.mill")
 
         Await.result(evalResult, Duration.apply(maxDuration, SECONDS))
@@ -135,18 +133,30 @@ object WatchSourceInputTests extends IntegrationTestSuite {
     test("sources") {
 
       // Make sure we clean up the workspace between retries
-      test("noshow") - retry(3) { if (!Util.isWindows) { initWorkspace(); testWatchSource(false) } }
-      test("show") - retry(3) { if (!Util.isWindows) { initWorkspace(); testWatchSource(true) } }
+      test("noshow") - integrationTest { tester => import tester._
+        retry(3) {
+          if (!Util.isWindows) {
+            testWatchSource(tester, false)
+          }
+        }
+      }
+      test("show") - integrationTest { tester => import tester._
+        retry(3) {
+          if (!Util.isWindows) {
+            testWatchSource(tester, true)
+          }
+        }
+      }
     }
 
-    def testWatchInput(show: Boolean) =
+    def testWatchInput(tester: IntegrationTester, show: Boolean) =
       testBase(show) { (expectedOut, expectedErr, expectedShows) =>
         val showArgs = if (show) Seq("show") else Nil
-
+        import tester._
         val evalResult = Future { eval(("--watch", showArgs, "lol"), timeout = maxDuration) }
 
-        awaitCompletionMarker("initialized0")
-        awaitCompletionMarker("lolRan0")
+        awaitCompletionMarker(tester, "initialized0")
+        awaitCompletionMarker(tester, "lolRan0")
         expectedOut.append(
           "Setting up build.mill"
         )
@@ -156,17 +166,17 @@ object WatchSourceInputTests extends IntegrationTestSuite {
         expectedShows.append("Running lol baz contents initial-baz")
 
         os.write.over(workspacePath / "baz.txt", "edited-baz")
-        awaitCompletionMarker("lolRan1")
+        awaitCompletionMarker(tester, "lolRan1")
         expectedErr.append("Running lol baz contents edited-baz")
         expectedShows.append("Running lol baz contents edited-baz")
 
         os.write.over(workspacePath / "watchValue.txt", "edited-watchValue")
-        awaitCompletionMarker("initialized1")
+        awaitCompletionMarker(tester, "initialized1")
         expectedOut.append("Setting up build.mill")
         expectedShows.append("Running lol baz contents edited-baz")
 
         os.write.over(workspacePath / "watchValue.txt", "exit")
-        awaitCompletionMarker("initialized2")
+        awaitCompletionMarker(tester, "initialized2")
         expectedOut.append("Setting up build.mill")
 
         Await.result(evalResult, Duration.apply(maxDuration, SECONDS))
@@ -175,8 +185,20 @@ object WatchSourceInputTests extends IntegrationTestSuite {
     test("input") {
 
       // Make sure we clean up the workspace between retries
-      test("noshow") - retry(3) { if (!Util.isWindows) { initWorkspace(); testWatchInput(false) } }
-      test("show") - retry(3) { if (!Util.isWindows) { initWorkspace(); testWatchInput(true) } }
+      test("noshow") - integrationTest { tester => import tester._
+        retry(3) {
+          if (!Util.isWindows) {
+            testWatchInput(tester, false)
+          }
+        }
+      }
+      test("show") - integrationTest { tester => import tester._
+        retry(3) {
+          if (!Util.isWindows) {
+            testWatchInput(tester, true)
+          }
+        }
+      }
     }
   }
 }

@@ -6,10 +6,8 @@ import utest._
 
 object CompileErrorTests extends IntegrationTestSuite {
   val tests: Tests = Tests {
-    initWorkspace()
-
-    test {
-      val res = eval("foo.scalaVersion")
+    test - integrationTest { tester => import tester._
+      val res = tester.eval("foo.scalaVersion")
 
       assert(res.isSuccess == false)
       assert(res.err.contains("""bar.mill:15:9: not found: value doesntExist"""))

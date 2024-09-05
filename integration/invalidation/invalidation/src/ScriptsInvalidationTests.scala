@@ -1,90 +1,81 @@
 package mill.integration
 
-import mill.testkit.IntegrationTestSuite
+import mill.testkit.{IntegrationTestSuite, IntegrationTester}
 
 import utest._
 
 object ScriptsInvalidationTests extends IntegrationTestSuite {
 
-  def runTask(task: String): Set[String] = {
-    val res = eval(task)
+  def runTask(tester: IntegrationTester, task: String): Set[String] = {
+    val res = tester.eval(task)
     assert(res.isSuccess)
     res.out.linesIterator.map(_.trim).toSet
   }
 
   val tests: Tests = Tests {
-    test("should not invalidate tasks in different untouched sc files") {
-      test("first run") {
-        initWorkspace()
+    test("should not invalidate tasks in different untouched sc files") - integrationTest { tester => import tester._
+      // first run
+      val result = runTask(tester, "task")
 
-        val result = runTask("task")
+      val expected = Set("a", "d", "b", "c")
 
-        val expected = Set("a", "d", "b", "c")
+      assert(result == expected)
 
-        assert(result == expected)
-      }
 
-      test("second run modifying script") {
-        modifyFile(
-          workspacePath / "build.mill",
-          _.replace("""println("task")""", """System.out.println("task2")""")
-        )
+      // second run modifying script
+      modifyFile(
+        workspacePath / "build.mill",
+        _.replace("""println("task")""", """System.out.println("task2")""")
+      )
 
-        val stdout = runTask("task")
+      val stdout = runTask(tester, "task")
 
-        assert(stdout.isEmpty)
-      }
+      assert(stdout.isEmpty)
     }
-    test("should invalidate tasks if leaf file is changed") {
-      test("first run") {
-        initWorkspace()
 
-        val result = runTask("task")
-        val expected = Set("a", "d", "b", "c")
+    test("should invalidate tasks if leaf file is changed") - integrationTest { tester => import tester._
+      // first run
 
-        assert(result == expected)
-      }
+      val result = runTask(tester, "task")
+      val expected = Set("a", "d", "b", "c")
 
-      test("second run modifying script") {
-        modifyFile(
-          workspacePath / "b" / "inputD.mill",
-          _.replace("""println("d")""", """System.out.println("d2")""")
-        )
+      assert(result == expected)
 
-        val result = runTask("task")
-        val expected = Set("d2", "b")
+      //  second run modifying script
+      modifyFile(
+        workspacePath / "b" / "inputD.mill",
+        _.replace("""println("d")""", """System.out.println("d2")""")
+      )
 
-        assert(result == expected)
-      }
+      val result2 = runTask(tester, "task")
+      val expected2 = Set("d2", "b")
+
+      assert(result2 == expected2)
+
     }
-    test("should handle submodules in scripts") {
-      test("first run") {
-        initWorkspace()
+    test("should handle submodules in scripts") - integrationTest { tester => import tester._
+      // first run
+      val result = runTask(tester, "module.task")
+      val expected = Set("a", "d", "b", "c", "task")
 
-        val result = runTask("module.task")
-        val expected = Set("a", "d", "b", "c", "task")
+      assert(result == expected)
 
-        assert(result == expected)
-      }
 
-      test("second run modifying script") {
-        modifyFile(
-          workspacePath / "build.mill",
-          _.replace("""println("task")""", """System.out.println("task2")""")
-        )
+      // second run modifying script
+      modifyFile(
+        workspacePath / "build.mill",
+        _.replace("""println("task")""", """System.out.println("task2")""")
+      )
 
-        val result = runTask("module.task")
-        val expected = Set("task2")
+      val result2 = runTask(tester, "module.task")
+      val expected2 = Set("task2")
 
-        assert(result == expected)
-      }
+      assert(result2 == expected2)
     }
-    test("should handle ammonite ^ imports") {
+    test("should handle ammonite ^ imports") - integrationTest { tester => import tester._
       retry(3) {
         // first run
-        initWorkspace()
-
-        val result = runTask("taskE")
+        val result = runTask(tester, "taskE")
         val expected = Set("a", "e", "taskE")
 
         assert(result == expected)
@@ -95,24 +86,22 @@ object ScriptsInvalidationTests extends IntegrationTestSuite {
           _.replace("""println("taskE")""", """System.out.println("taskE2")""")
         )
 
-        val result2 = runTask("taskE")
+        val result2 = runTask(tester, "taskE")
         val expected2 = Set("taskE2")
 
         assert(result2 == expected2)
       }
     }
-    test("should handle ammonite paths with symbols") {
-      initWorkspace()
+    test("should handle ammonite paths with symbols") - integrationTest { tester => import tester._
 
-      val result = runTask("taskSymbols")
+      val result = runTask(tester, "taskSymbols")
       val expected = Set("taskSymbols")
 
       assert(result == expected)
     }
-    test("should handle ammonite files with symbols") {
-      initWorkspace()
+    test("should handle ammonite files with symbols") - integrationTest { tester => import tester._
 
-      val result = runTask("taskSymbolsInFile")
+      val result = runTask(tester, "taskSymbolsInFile")
       val expected = Set("taskSymbolsInFile")
 
       assert(result == expected)

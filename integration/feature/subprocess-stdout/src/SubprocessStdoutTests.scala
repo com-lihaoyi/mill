@@ -6,9 +6,7 @@ import utest._
 
 object SubprocessStdoutTests extends IntegrationTestSuite {
   val tests: Tests = Tests {
-    initWorkspace()
-
-    test {
+    test - integrationTest { tester => import tester._
       val res1 = eval("inheritInterleaved", mergeErrIntoOut = true).out
       // Make sure that when a lot of printed/inherited stdout/stderr is printed
       // in quick succession, the output ordering is preserved and it doesn't get
@@ -62,7 +60,7 @@ object SubprocessStdoutTests extends IntegrationTestSuite {
       // up in the console somewhere and not disappear
       //
       val res2 = eval("inheritRaw", mergeErrIntoOut = true).out
-      if (!clientServerMode) {
+      if (!tester.clientServerMode) {
         // For `fork` tests, which represent `-i`/`--interactive`/`--no-server`, the output should
         // be properly ordered since it all comes directly from the stdout/stderr of the same process
         assert(

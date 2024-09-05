@@ -6,8 +6,7 @@ import utest._
 
 object ImportRepoTests extends IntegrationTestSuite {
   val tests: Tests = Tests {
-    initWorkspace()
-    test("test") - {
+    test("test") - integrationTest { tester => import tester._
       // Make sure, we propery parse a line:
       // ```
       //   import $repo.`file:///tmp/testrepo`

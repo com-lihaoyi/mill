@@ -6,8 +6,7 @@ import utest._
 
 object MillJvmOptsTests extends IntegrationTestSuite {
   val tests: Tests = Tests {
-    initWorkspace()
-    test("JVM options from file .mill-jvm-opts are properly read") {
+    test("JVM options from file .mill-jvm-opts are properly read") - integrationTest { tester => import tester._
       assert(eval("checkJvmOpts").isSuccess)
     }
   }

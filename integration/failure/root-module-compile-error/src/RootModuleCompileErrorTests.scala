@@ -6,9 +6,7 @@ import utest._
 
 object RootModuleCompileErrorTests extends IntegrationTestSuite {
   val tests: Tests = Tests {
-    initWorkspace()
-
-    test {
+    test - integrationTest { tester => import tester._
       val res = eval("foo.scalaVersion")
 
       assert(res.isSuccess == false)
