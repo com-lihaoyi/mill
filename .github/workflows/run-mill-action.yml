@@ -52,6 +52,9 @@ jobs:
       - name: chmod executable
         run: "chmod -R +x ."
 
+      - name: find .
+        run: "find ."
+
       - uses: coursier/cache-action@v6
 
       - uses: actions/setup-java@v4
@@ -68,9 +71,9 @@ jobs:
         run: ${{ inputs.buildcmd }}
         if: inputs.buildcmd != ''
 
-      - name: Run Mill '${{ inputs.millargs }}'
-        run:  ./mill -i -k ${{ inputs.millargs }}
-        if: inputs.millargs != '' && !startsWith(inputs.os, 'windows')
+#      - name: Run Mill '${{ inputs.millargs }}'
+#        run:  ./mill -i -k ${{ inputs.millargs }}
+#        if: inputs.millargs != '' && !startsWith(inputs.os, 'windows')
 
       - name: Run Mill (on Windows) '${{ inputs.millargs }}'
         run: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -ij1 __.resolvedIvyDeps; cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k ${{ inputs.millargs }}
