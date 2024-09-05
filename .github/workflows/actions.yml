@@ -92,14 +92,10 @@ jobs:
           - java-version: 11
             millargs: "'integration.{failure,feature,ide}[_].local.testCached'"
 
-            # These invalidation tests need to be exercised in all three execution modes
+            # These invalidation tests need to be exercised in both execution modes
             # to make sure they work with and without -i/--no-server being passed
           - java-version: 17
-            millargs: "'integration.invalidation[_].local.testCached'"
-          - java-version: 17
-            millargs: "'integration.invalidation[_].fork.testCached'"
-          - java-version: 17
-            millargs: "'integration.invalidation[_].server.testCached'"
+            millargs: "'integration.invalidation[_].{fork,server}.testCached'"
 
           # Check docsite compiles
           - java-version: 17
