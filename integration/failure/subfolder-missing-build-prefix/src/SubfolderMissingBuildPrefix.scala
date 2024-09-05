@@ -6,9 +6,7 @@ import utest._
 
 object SubfolderMissingBuildPrefix extends IntegrationTestSuite {
   val tests: Tests = Tests {
-    initWorkspace()
-
-    test("success") {
+    test("success") - integrationTest { tester => import tester._
       val res = eval(("resolve", "_"))
       assert(res.isSuccess == false)
       assert(res.err.contains("object y is not a member of package build_.sub"))

@@ -6,9 +6,7 @@ import utest._
 
 object ThingsOutsideTopLevelModuleTests extends IntegrationTestSuite {
   val tests: Tests = Tests {
-    initWorkspace()
-
-    test("success") {
+    test("success") - integrationTest { tester => import tester._
       val res = eval(("resolve", "_"))
       assert(!res.isSuccess)
       assert(

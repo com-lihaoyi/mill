@@ -9,8 +9,7 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
     def filterLines(out: String) = {
       out.linesIterator.filter(!_.contains("[info]")).toSet
     }
-    initWorkspace()
-    test("single") {
+    test("single") - integrationTest { tester => import tester._
       // Tests for fine-grained method-based invalidation within a single ScalaModule
 
       // Check normal behavior for initial run and subsequent fully-cached run
@@ -120,7 +119,7 @@ object CodeSigScalaModuleTests extends IntegrationTestSuite {
       )
     }
 
-    test("multiple") {
+    test("multiple") - integrationTest { tester => import tester._
       // Tests for fine-grained method-based invalidation between multiple ScalaModules,
       // some related and some not
 

@@ -6,8 +6,7 @@ import utest._
 
 object LargeProjectTests extends IntegrationTestSuite {
   val tests: Tests = Tests {
-    initWorkspace()
-    test("test") - {
+    test("test") - integrationTest { tester => import tester._
 
       assert(eval("foo.common.one.compile").isSuccess)
     }
