@@ -45,11 +45,13 @@ jobs:
 
       - uses: actions/download-artifact@v4
         if: ${{ !inputs.populate_cache }}
+        with:
+          name: ${{ inputs.os }}-artifact
 
       - name: Unzip Artifact
         run: |
-          unzip -l artifact
-          unzip artifact
+          unzip -l /home/runner/work/mill/mill/artifact
+          unzip /home/runner/work/mill/mill/artifact
         if: ${{ !inputs.populate_cache }}
 
       - uses: coursier/cache-action@v6
@@ -79,4 +81,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           path: .
+          name: ${{ inputs.os }}-artifact
         if: ${{ inputs.populate_cache }}
