@@ -6,19 +6,37 @@ import mill.scalalib.{Dep, DepSyntax, JavaModule}
 
 import java.io.File
 
+/**
+ * Integrated Error Prone into a [[JavaModule]].
+ *
+ * See https://errorprone.info/index
+ */
 trait ErrorProneModule extends JavaModule {
+
+  /** The `error-prone` version to use. Defaults to [[BuildInfo.errorProneVersion]]. */
   def errorProneVersion: T[String] = T.input {
     BuildInfo.errorProneVersion
   }
+
+  /**
+   * The dependencies of the `error-prone` compiler plugin.
+   */
   def errorProneDeps: T[Agg[Dep]] = T {
     Agg(
       ivy"com.google.errorprone:error_prone_core:${errorProneVersion()}"
     )
   }
+
+  /**
+   * The classpath of the `error-prone` compiler plugin.
+   */
   def errorProneClasspath: T[Agg[PathRef]] = T {
     resolveDeps(T.task { errorProneDeps().map(bindDependency()) })()
   }
 
+  /**
+   * Options used to enable and configure the `eror-prone` plugin in the Java compiler.
+   */
   def errorProneJavacEnableOptions: T[Seq[String]] = T {
     val processorPath = errorProneClasspath().map(_.path).mkString(File.pathSeparator)
     val enableOpts = Seq(
@@ -42,8 +60,16 @@ trait ErrorProneModule extends JavaModule {
     java17Options ++ enableOpts
   }
 
+  /**
+   * Options directly given to the `error-prone` processor.
+   *
+   * Those are documented as "flags" at https://errorprone.info/docs/flags
+   */
   def errorProneOptions: T[Seq[String]] = T { Seq.empty[String] }
 
+  /**
+   * Appends the [[errorProneJavacEnableOptions]] to the Java compiler options.
+   */
   override def javacOptions: T[Seq[String]] = T {
     val supOpts = super.javacOptions()
     val enableOpts = Option
