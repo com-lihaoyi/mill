@@ -50,6 +50,10 @@ jobs:
           name: ${{ inputs.os }}-artifact
 
       - name: Unzip Artifact
+        run: find .
+        if: ${{ !inputs.populate_cache }}
+
+      - name: Unzip Artifact
         run: |
           unzip -l /home/runner/work/mill/mill/artifact
           unzip /home/runner/work/mill/mill/artifact
