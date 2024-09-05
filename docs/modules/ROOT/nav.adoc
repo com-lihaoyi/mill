@@ -36,6 +36,7 @@
 * xref:Modules.adoc[]
 * xref:Cross_Builds.adoc[]
 * xref:Target_Query_Syntax.adoc[]
+* xref:Structuring_Large_Builds.adoc[]
 
 * xref:The_Mill_Evaluation_Model.adoc[]
 
