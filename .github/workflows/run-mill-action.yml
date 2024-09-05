@@ -52,9 +52,6 @@ jobs:
       - name: chmod executable
         run: "chmod -R +x ."
 
-      - name: find .
-        run: "find ."
-
       - uses: coursier/cache-action@v6
 
       - uses: actions/setup-java@v4
@@ -83,4 +80,5 @@ jobs:
         with:
           path: .
           name: ${{ inputs.os }}-artifact
+          include-hidden-files: true
         if: ${{ inputs.populate_cache }}
