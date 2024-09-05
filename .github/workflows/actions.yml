@@ -66,40 +66,40 @@ jobs:
         java-version: [11, 17]
         millargs:
           # Run unit and module tests on both oldest and newest Java versions
-          - '"{main,scalalib,testrunner,bsp}.__.test"'
+          - '"{main,scalalib,testrunner,bsp}.__.testCached"'
         include:
           # For most tests, run them arbitrarily on Java 11 or Java 17 on Linux, and
           # on the opposite version on Windows below, so we get decent coverage of
           # each test on each Java version and each operating system
           - java-version: 11
-            millargs: "'{scalajslib,scalanativelib}.__.test'"
+            millargs: "'{scalajslib,scalanativelib}.__.testCached'"
           - java-version: 17
-            millargs: "contrib._.test"
+            millargs: "contrib._.testCached"
 
           # Group these tests together to try and balance out the runtimes of each job
           # Just running in `local` mode since they shouldn't depend on the mode
           - java-version: 17
-            millargs: "'example.{javalib,scalalib}.__.local.test'"
+            millargs: "'example.{javalib,scalalib}.__.local.testCached'"
           - java-version: 11
-            millargs: "'example.thirdparty[{mockito,acyclic,commons-io}].local.test'"
+            millargs: "'example.thirdparty[{mockito,acyclic,commons-io}].local.testCached'"
           - java-version: 17
-            millargs: "'example.thirdparty[{fansi,jimfs,netty,gatling}].local.test'"
+            millargs: "'example.thirdparty[{fansi,jimfs,netty,gatling}].local.testCached'"
           - java-version: 11
-            millargs: "'example.{depth,extending}.__.local.test'"
+            millargs: "'example.{depth,extending}.__.local.testCached'"
 
             # Most of these integration tests should not depend on which mode they
             # are run in, so just run them in `local`
           - java-version: 11
-            millargs: "'integration.{failure,feature,ide}[_].local.test'"
+            millargs: "'integration.{failure,feature,ide}[_].local.testCached'"
 
             # These invalidation tests need to be exercised in all three execution modes
             # to make sure they work with and without -i/--no-server being passed
           - java-version: 17
-            millargs: "'integration.invalidation[_].local.test'"
+            millargs: "'integration.invalidation[_].local.testCached'"
           - java-version: 17
-            millargs: "'integration.invalidation[_].fork.test'"
+            millargs: "'integration.invalidation[_].fork.testCached'"
           - java-version: 17
-            millargs: "'integration.invalidation[_].server.test'"
+            millargs: "'integration.invalidation[_].server.testCached'"
 
           # Check docsite compiles
           - java-version: 17
@@ -135,19 +135,19 @@ jobs:
           # just run a subset of examples/ on Windows, because for some reason running
           # the whole suite can take hours on windows v.s. half an hour on linux
           - java-version: 11
-            millargs: '"{main,scalalib,bsp}.__.test"'
+            millargs: '"{main,scalalib,bsp}.__.testCached"'
           - java-version: 17
-            millargs: '"scalajslib.__.test"'
+            millargs: '"scalajslib.__.testCached"'
           - java-version: 11
-            millargs: '"example.scalalib.basic.__.fork.test"'
+            millargs: '"example.scalalib.basic.__.fork.testCached"'
           - java-version: 17
-            millargs: "'integration.feature[_].fork.test'"
+            millargs: "'integration.feature[_].fork.testCached'"
           - java-version: 11
-            millargs: "'integration.invalidation[_].server.test'"
+            millargs: "'integration.invalidation[_].server.testCached'"
           - java-version: 17
-            millargs: "'integration.failure[_].fork.test'"
+            millargs: "'integration.failure[_].fork.testCached'"
           - java-version: 11
-            millargs: "contrib.__.test"
+            millargs: "contrib.__.testCached"
 
     uses: ./.github/workflows/run-mill-action.yml
     with:
