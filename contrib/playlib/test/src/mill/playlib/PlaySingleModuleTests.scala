@@ -17,8 +17,7 @@ object PlaySingleModuleTests extends TestSuite with PlayTestSuite {
 
   def tests: Tests = Tests {
     test("layout") {
-      test("fromBuild") {
-        val eval = UnitTester(playsingle, resourcePath)
+      test("fromBuild") - UnitTester(playsingle, resourcePath).scoped{eval =>
         val Right(conf) = eval.apply(playsingle.conf)
         val Right(app) = eval.apply(playsingle.app)
         val Right(sources) = eval.apply(playsingle.sources)
@@ -41,8 +40,7 @@ object PlaySingleModuleTests extends TestSuite with PlayTestSuite {
         )
       }
     }
-    test("compile") {
-      val eval = UnitTester(playsingle, resourcePath)
+    test("compile") - UnitTester(playsingle, resourcePath).scoped{eval =>
       val eitherResult = eval.apply(playsingle.compile)
       val Right(result) = eitherResult
       val outputFiles = os.walk(result.value.classes.path).filter(os.isFile)

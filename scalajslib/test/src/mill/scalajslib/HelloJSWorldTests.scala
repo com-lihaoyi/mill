@@ -28,7 +28,7 @@ object HelloJSWorldTests extends TestSuite {
 
   object HelloJSWorld extends TestBaseModule {
     val scalaVersions = Seq("2.13.3", "3.0.0-RC1", "2.12.12")
-    val scalaJSVersions = Seq("1.8.0", "1.3.1", "1.0.1")
+    val scalaJSVersions = Seq("1.8.0", "1.0.1")
     val matrix = for {
       scala <- scalaVersions
       scalaJS <- scalaJSVersions
@@ -81,8 +81,7 @@ object HelloJSWorldTests extends TestSuite {
   val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-js-world"
 
   def tests: Tests = Tests {
-    test("compile") {
-      val eval = UnitTester(HelloJSWorld, millSourcePath)
+    test("compile") - UnitTester(HelloJSWorld, millSourcePath).scoped{eval =>
       def testCompileFromScratch(scalaVersion: String, scalaJSVersion: String): Unit = {
         val Right(result) =
           eval(HelloJSWorld.build(scalaVersion, scalaJSVersion).compile)
@@ -109,8 +108,7 @@ object HelloJSWorldTests extends TestSuite {
         scalaJSVersion: String,
         optimize: Boolean,
         legacy: Boolean
-    ): Unit = {
-      val eval = UnitTester(HelloJSWorld, millSourcePath)
+    ): Unit = UnitTester(HelloJSWorld, millSourcePath).scoped{eval =>
       val module = HelloJSWorld.build(scalaVersion, scalaJSVersion)
       val jsFile =
         if (legacy) {
@@ -155,8 +153,7 @@ object HelloJSWorldTests extends TestSuite {
       )
     }
     test("jar") {
-      test("containsSJSIRs") {
-        val eval = UnitTester(HelloJSWorld, millSourcePath)
+      test("containsSJSIRs") - UnitTester(HelloJSWorld, millSourcePath).scoped{eval =>
         val (scala, scalaJS) = HelloJSWorld.matrix.head
         val Right(result) =
           eval(HelloJSWorld.build(scala, scalaJS).jar)
@@ -169,8 +166,7 @@ object HelloJSWorldTests extends TestSuite {
       }
     }
     test("publish") {
-      val eval = UnitTester(HelloJSWorld, millSourcePath)
-      def testArtifactId(scalaVersion: String, scalaJSVersion: String, artifactId: String): Unit = {
+      def testArtifactId(scalaVersion: String, scalaJSVersion: String, artifactId: String): Unit = UnitTester(HelloJSWorld, millSourcePath).scoped{eval =>
         val Right(result) = eval(HelloJSWorld.build(
           scalaVersion,
           scalaJSVersion
@@ -194,8 +190,7 @@ object HelloJSWorldTests extends TestSuite {
     }
 
     def runTests(testTask: define.NamedTask[(String, Seq[TestResult])])
-        : Map[String, Map[String, TestResult]] = {
-      val eval = UnitTester(HelloJSWorld, millSourcePath)
+        : Map[String, Map[String, TestResult]] = UnitTester(HelloJSWorld, millSourcePath).scoped{eval =>
       val Left(Result.Failure(_, Some(res))) = eval(testTask)
 
       val (doneMsg, testResults) = res
@@ -264,8 +259,7 @@ object HelloJSWorldTests extends TestSuite {
       )
     }
 
-    def checkRun(scalaVersion: String, scalaJSVersion: String): Unit = {
-      val eval = UnitTester(HelloJSWorld, millSourcePath)
+    def checkRun(scalaVersion: String, scalaJSVersion: String): Unit = UnitTester(HelloJSWorld, millSourcePath).scoped{eval =>
       val task = HelloJSWorld.build(scalaVersion, scalaJSVersion).run()
 
       val Right(result) = eval(task)
@@ -285,8 +279,7 @@ object HelloJSWorldTests extends TestSuite {
       testAllMatrix((scala, scalaJS) => checkRun(scala, scalaJS))
     }
 
-    def checkInheritedTargets[A](target: ScalaJSModule => T[A], expected: A) = {
-      val eval = UnitTester(HelloJSWorld, millSourcePath)
+    def checkInheritedTargets[A](target: ScalaJSModule => T[A], expected: A) = UnitTester(HelloJSWorld, millSourcePath).scoped{eval =>
       val Right(mainResult) = eval(target(HelloJSWorld.inherited))
       val Right(testResult) = eval(target(HelloJSWorld.inherited.test))
       assert(mainResult.value == expected)

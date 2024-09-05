@@ -31,8 +31,7 @@ object ScalafmtTests extends TestSuite {
 
   def tests: Tests = Tests {
     test("scalafmt") {
-      def checkReformat(reformatCommand: mill.define.Command[Unit], buildSrcIncluded: Boolean) = {
-        val eval = UnitTester(ScalafmtTestModule, resourcePath)
+      def checkReformat(reformatCommand: mill.define.Command[Unit], buildSrcIncluded: Boolean) = UnitTester(ScalafmtTestModule, resourcePath).scoped{eval =>
         os.write(
           ScalafmtTestModule.millSourcePath / ".scalafmt.conf",
           s"""version = $scalafmtTestVersion

@@ -37,8 +37,7 @@ object GitlabModuleTests extends TestSuite {
 
   override def tests: Tests = Tests {
 
-    test("GitlabPublishModule produces sane error message") {
-      val eval = UnitTester(GitlabModule, null)
+    test("GitlabPublishModule produces sane error message") - UnitTester(GitlabModule, null).scoped{eval =>
       val e = eval(GitlabModule.gitlabHeaders(Map.empty))
 
       assertMatch(e) {
@@ -47,8 +46,7 @@ object GitlabModuleTests extends TestSuite {
       }
     }
 
-    test("GitlabMavenRepository produces sane error message") {
-      val eval = UnitTester(GLMvnRepo, null)
+    test("GitlabMavenRepository produces sane error message") - UnitTester(GLMvnRepo, null).scoped{eval =>
       val e = eval(GLMvnRepo.mavenRepository)
 
       assertMatch(e) {

@@ -410,8 +410,7 @@ object HelloWorldTests extends TestSuite {
   def tests: Tests = Tests {
     test("scalaVersion") {
 
-      test("fromBuild") {
-        val eval = UnitTester(HelloWorld, resourcePath)
+      test("fromBuild") - UnitTester(HelloWorld, resourcePath).scoped{eval =>
         val Right(result) = eval.apply(HelloWorld.core.scalaVersion)
 
         assert(
@@ -419,8 +418,7 @@ object HelloWorldTests extends TestSuite {
           result.evalCount > 0
         )
       }
-      test("override") {
-        val eval = UnitTester(HelloWorldScalaOverride, resourcePath)
+      test("override") - UnitTester(HelloWorldScalaOverride, resourcePath).scoped{eval =>
         val Right(result) = eval.apply(HelloWorldScalaOverride.core.scalaVersion)
 
         assert(
@@ -431,8 +429,7 @@ object HelloWorldTests extends TestSuite {
     }
 
     test("scalacOptions") {
-      test("emptyByDefault") {
-        val eval = UnitTester(HelloWorld, resourcePath)
+      test("emptyByDefault") - UnitTester(HelloWorld, resourcePath).scoped{eval =>
         val Right(result) = eval.apply(HelloWorld.core.scalacOptions)
 
         assert(
@@ -440,8 +437,7 @@ object HelloWorldTests extends TestSuite {
           result.evalCount > 0
         )
       }
-      test("override") {
-        val eval = UnitTester(HelloWorldFatalWarnings, resourcePath)
+      test("override") - UnitTester(HelloWorldFatalWarnings, resourcePath).scoped{eval =>
         val Right(result) = eval.apply(HelloWorldFatalWarnings.core.scalacOptions)
 
         assert(
@@ -452,24 +448,21 @@ object HelloWorldTests extends TestSuite {
     }
 
     test("scalaDocOptions") {
-      test("emptyByDefault") {
-        val eval = UnitTester(HelloWorld, resourcePath)
+      test("emptyByDefault") - UnitTester(HelloWorld, resourcePath).scoped{eval =>
         val Right(result) = eval.apply(HelloWorld.core.scalaDocOptions)
         assert(
           result.value.isEmpty,
           result.evalCount > 0
         )
       }
-      test("override") {
-        val eval = UnitTester(HelloWorldDocTitle, resourcePath)
+      test("override") - UnitTester(HelloWorldDocTitle, resourcePath).scoped{eval =>
         val Right(result) = eval.apply(HelloWorldDocTitle.core.scalaDocOptions)
         assert(
           result.value == Seq("-doc-title", "Hello World"),
           result.evalCount > 0
         )
       }
-      test("extend") {
-        val eval = UnitTester(HelloWorldWithDocVersion, resourcePath)
+      test("extend") - UnitTester(HelloWorldWithDocVersion, resourcePath).scoped{eval =>
         val Right(result) = eval.apply(HelloWorldWithDocVersion.core.scalaDocOptions)
         assert(
           result.value == Seq("-Ywarn-unused", "-Xfatal-warnings", "-doc-version", "1.2.3"),
@@ -477,11 +470,10 @@ object HelloWorldTests extends TestSuite {
         )
       }
       // make sure options are passed during ScalaDoc generation
-      test("docJarWithTitle") {
-        val eval = UnitTester(
-          HelloWorldDocTitle,
-          sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world"
-        )
+      test("docJarWithTitle") - UnitTester(
+        HelloWorldDocTitle,
+        sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world"
+      ).scoped{eval =>
         val Right(result) = eval.apply(HelloWorldDocTitle.core.docJar)
         assert(
           result.evalCount > 0,
@@ -490,27 +482,24 @@ object HelloWorldTests extends TestSuite {
           )
         )
       }
-      test("docJarWithVersion") {
-        val eval = UnitTester(
-          HelloWorldWithDocVersion,
-          sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world"
-        )
+      test("docJarWithVersion") - UnitTester(
+        HelloWorldWithDocVersion,
+        sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world"
+      ).scoped{eval =>
         // scaladoc generation fails because of "-Xfatal-warnings" flag
         val Left(Result.Failure(_, None)) = eval.apply(HelloWorldWithDocVersion.core.docJar)
       }
-      test("docJarOnlyVersion") {
-        val eval = UnitTester(
+      test("docJarOnlyVersion") - UnitTester(
           HelloWorldOnlyDocVersion,
           sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world"
-        )
+        ).scoped{eval =>
         // `docJar` requires the `compile` task to succeed (since the addition of Scaladoc 3)
         val Left(Result.Failure(_, None)) = eval.apply(HelloWorldOnlyDocVersion.core.docJar)
       }
     }
 
     test("scalacPluginClasspath") {
-      test("withMacroParadise") {
-        val eval = UnitTester(HelloWorldTypeLevel, resourcePath)
+      test("withMacroParadise") - UnitTester(HelloWorldTypeLevel, resourcePath).scoped{eval =>
         val Right(result) = eval.apply(HelloWorldTypeLevel.foo.scalacPluginClasspath)
         assert(
           result.value.nonEmpty,
@@ -520,242 +509,232 @@ object HelloWorldTests extends TestSuite {
       }
     }
 
-//    test("scalaDocPluginClasspath") {
-//      test("extend") {
-//        val eval = UnitTester(HelloWorldTypeLevel, sourceFileRoot = resourcePath)
-//        val Right(result) = eval.apply(HelloWorldTypeLevel.foo.scalaDocPluginClasspath)
-//        assert(
-//          result.value.iterator.nonEmpty,
-//          result.value.iterator.exists { pathRef => pathRef.path.segments.contains("scalamacros") },
-//          result.value.iterator.exists { pathRef => pathRef.path.segments.contains("genjavadoc") },
-//          result.evalCount > 0
-//        )
-//      }
-//    }
-//
-//    test("compile") {
-//      test("fromScratch") {
-//        val eval = UnitTester(HelloWorld, sourceFileRoot = resourcePath)
-//        val Right(result) = eval.apply(HelloWorld.core.compile)
-//
-//        val classesPath = eval.outPath / "core" / "compile.dest" / "classes"
-//        val analysisFile = result.value.analysisFile
-//        val outputFiles = os.walk(result.value.classes.path)
-//        val expectedClassfiles = compileClassfiles.map(classesPath / _)
-//        assert(
-//          result.value.classes.path == classesPath,
-//          os.exists(analysisFile),
-//          outputFiles.nonEmpty,
-//          outputFiles.forall(expectedClassfiles.contains),
-//          result.evalCount > 0
-//        )
-//
-//        // don't recompile if nothing changed
-//        val Right(result2) = eval.apply(HelloWorld.core.compile)
-//
-//        assert(result2.evalCount == 0)
-//
-//        // Make sure we *do not* end up compiling the compiler bridge, since
-//        // it's using a pre-compiled bridge value
-//        assert(!os.exists(
-//          eval.outPath / "mill" / "scalalib" / "ZincWorkerModule" / "worker.dest" / s"zinc-${zincVersion}"
-//        ))
-//      }
-//
-//      test("nonPreCompiledBridge") {
-//        val eval = UnitTester(HelloWorldNonPrecompiledBridge, sourceFileRoot = resourcePath)
-//        val Right(result) = eval.apply(HelloWorldNonPrecompiledBridge.core.compile)
-//
-//        val classesPath = eval.outPath / "core" / "compile.dest" / "classes"
-//
-//        val analysisFile = result.value.analysisFile
-//        val outputFiles = os.walk(result.value.classes.path)
-//        val expectedClassfiles = compileClassfiles.map(classesPath / _)
-//        assert(
-//          result.value.classes.path == classesPath,
-//          os.exists(analysisFile),
-//          outputFiles.nonEmpty,
-//          outputFiles.forall(expectedClassfiles.contains),
-//          result.evalCount > 0
-//        )
-//
-//        // don't recompile if nothing changed
-//        val Right(result2) = eval.apply(HelloWorldNonPrecompiledBridge.core.compile)
-//
-//        assert(result2.evalCount == 0)
-//
-//        // Make sure we *do* end up compiling the compiler bridge, since it's
-//        // *not* using a pre-compiled bridge value
-//        assert(os.exists(
-//          eval.outPath / "mill" / "scalalib" / "ZincWorkerModule" / "worker.dest" / s"zinc-${zincVersion}"
-//        ))
-//      }
-//
-//      test("recompileOnChange") {
-//        val eval = UnitTester(HelloWorld, sourceFileRoot = resourcePath)
-//        val Right(result) = eval.apply(HelloWorld.core.compile)
-//        assert(result.evalCount > 0)
-//
-//        os.write.append(HelloWorld.millSourcePath / "core" / "src" / "Main.scala", "\n")
-//
-//        val Right(result2) = eval.apply(HelloWorld.core.compile)
-//        assert(result2.evalCount > 0, result2.evalCount < result.evalCount)
-//      }
-//      test("failOnError") {
-//        val eval = UnitTester(HelloWorld, sourceFileRoot = resourcePath)
-//        os.write.append(HelloWorld.millSourcePath / "core" / "src" / "Main.scala", "val x: ")
-//
-//        val Left(Result.Failure("Compilation failed", _)) = eval.apply(HelloWorld.core.compile)
-//
-//        val paths = EvaluatorPaths.resolveDestPaths(eval.outPath, HelloWorld.core.compile)
-//
-//        assert(
-//          os.walk(paths.dest / "classes").isEmpty,
-//          !os.exists(paths.meta)
-//        )
-//        // Works when fixed
-//        os.write.over(
-//          HelloWorld.millSourcePath / "core" / "src" / "Main.scala",
-//          os.read(HelloWorld.millSourcePath / "core" / "src" / "Main.scala").dropRight(
-//            "val x: ".length
-//          )
-//        )
-//
-//        val Right(_) = eval.apply(HelloWorld.core.compile)
-//      }
-//      test("passScalacOptions") {
-//        val eval = UnitTester(HelloWorldFatalWarnings, sourceFileRoot = resourcePath)
-//        // compilation fails because of "-Xfatal-warnings" flag
-//        val Left(Result.Failure("Compilation failed", _)) =
-//          eval.apply(HelloWorldFatalWarnings.core.compile)
-//      }
-//    }
-//
-//    test("semanticDbData") {
-//      def semanticDbFiles: Set[os.SubPath] = Set(
-//        os.sub / "META-INF" / "semanticdb" / "core" / "src" / "Main.scala.semanticdb",
-//        os.sub / "META-INF" / "semanticdb" / "core" / "src" / "Result.scala.semanticdb"
-//      )
-//
-//      test("fromScratch") {
-//        val eval = UnitTester(SemanticWorld, sourceFileRoot = resourcePath)
-//        {
-//          println("first - expected full compile")
-//          val Right(result) = eval.apply(SemanticWorld.core.semanticDbData)
-//
-//          val dataPath = eval.outPath / "core" / "semanticDbData.dest" / "data"
-//          val outputFiles =
-//            os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
-//
-//          val expectedSemFiles = semanticDbFiles
-//          assert(
-//            result.value.path == dataPath,
-//            outputFiles.nonEmpty,
-//            outputFiles.toSet == expectedSemFiles,
-//            result.evalCount > 0,
-//            os.exists(dataPath / os.up / "zinc")
-//          )
-//        }
-//        {
-//          println("second - expected no compile")
-//          // don't recompile if nothing changed
-//          val Right(result2) = eval.apply(SemanticWorld.core.semanticDbData)
-//          assert(result2.evalCount == 0)
-//        }
-//      }
-//      test("incremental") {
-//        val eval = UnitTester(SemanticWorld, sourceFileRoot = resourcePath, debugEnabled = true)
-//        // create some more source file to have a reasonable low incremental change later
-//        val extraFiles = Seq("Second", "Third", "Fourth").map { f =>
-//          val file = eval.evaluator.workspace / "core" / "src" / "hello" / s"${f}.scala"
-//          os.write(
-//            file,
-//            s"""package hello
-//               |class ${f}
-//               |""".stripMargin,
-//            createFolders = true
-//          )
-//          val sem =
-//            os.sub / "META-INF" / "semanticdb" / "core" / "src" / "hello" / s"${f}.scala.semanticdb"
-//          (file, sem)
-//        }
-////        val resultFile = eval.evaluator.workspace / "core" / "src" / "Result.scala"
-//
-//        {
-//          println("first - expected full compile")
-//          val Right(result) = eval.apply(SemanticWorld.core.semanticDbData)
-//
-//          val dataPath = eval.outPath / "core" / "semanticDbData.dest" / "data"
-//          val outputFiles =
-//            os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
-//
-//          val expectedSemFiles = semanticDbFiles ++ extraFiles.map(_._2)
-//          assert(
-//            result.value.path == dataPath,
-//            outputFiles.toSet == expectedSemFiles,
-//            result.evalCount > 0
-//          )
-//        }
-//        // change nothing
-//        {
-//          println("second - expect no compile due to Mill caching")
-//          val Right(result2) = eval.apply(SemanticWorld.core.semanticDbData)
-//          assert(result2.evalCount == 0)
-//        }
-//
-//        // change one
-//        {
-//          println("third - expect inc compile of one file\n")
-//          os.write.append(extraFiles.head._1, "  ")
-//
-//          val Right(result) = eval.apply(SemanticWorld.core.semanticDbData)
-//          val outputFiles =
-//            os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
-//          val expectedFiles = semanticDbFiles ++ extraFiles.map(_._2)
-//          assert(
-//            outputFiles.toSet == expectedFiles,
-//            result.evalCount > 0
-//          )
-//        }
-//        // remove one
-//        {
-//          println("fourth - expect inc compile with one deleted file")
-//          os.remove(extraFiles.head._1)
-//
-//          val Right(result) = eval.apply(SemanticWorld.core.semanticDbData)
-//          val outputFiles =
-//            os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
-//          val expectedFiles = semanticDbFiles ++ extraFiles.map(_._2).drop(1)
-//          assert(
-//            outputFiles.toSet == expectedFiles,
-//            result.evalCount > 0
-//          )
-//        }
-//      }
-//    }
-//
-//    test("artifactNameCross") {
-//      val eval = UnitTester(CrossHelloWorld, sourceFileRoot = resourcePath)
-//      val Right(result) =
-//        eval.apply(CrossHelloWorld.core(scala213Version).artifactName)
-//      assert(result.value == "core")
-//    }
-//
-//    test("scala-33-depend-on-scala-32-works") {
-//      CrossModuleDeps.cuttingEdge(scala33Version).moduleDeps
-//    }
-//    test("scala-213-depend-on-scala-212-fails") {
-//      val message = intercept[Exception](
-//        CrossModuleDeps.cuttingEdge(scala213Version).moduleDeps
-//      ).getMessage
-//      assert(
-//        message == s"Unable to find compatible cross version between ${scala213Version} and 2.12.6,3.2.0"
-//      )
-//    }
+    test("scalaDocPluginClasspath") {
+      test("extend") - UnitTester(HelloWorldTypeLevel, sourceRoot = resourcePath).scoped{eval =>
+        val Right(result) = eval.apply(HelloWorldTypeLevel.foo.scalaDocPluginClasspath)
+        assert(
+          result.value.iterator.nonEmpty,
+          result.value.iterator.exists { pathRef => pathRef.path.segments.contains("scalamacros") },
+          result.value.iterator.exists { pathRef => pathRef.path.segments.contains("genjavadoc") },
+          result.evalCount > 0
+        )
+      }
+    }
+
+    test("compile") {
+      test("fromScratch") - UnitTester(HelloWorld, sourceRoot = resourcePath).scoped{eval =>
+        val Right(result) = eval.apply(HelloWorld.core.compile)
+
+        val classesPath = eval.outPath / "core" / "compile.dest" / "classes"
+        val analysisFile = result.value.analysisFile
+        val outputFiles = os.walk(result.value.classes.path)
+        val expectedClassfiles = compileClassfiles.map(classesPath / _)
+        assert(
+          result.value.classes.path == classesPath,
+          os.exists(analysisFile),
+          outputFiles.nonEmpty,
+          outputFiles.forall(expectedClassfiles.contains),
+          result.evalCount > 0
+        )
+
+        // don't recompile if nothing changed
+        val Right(result2) = eval.apply(HelloWorld.core.compile)
+
+        assert(result2.evalCount == 0)
+
+        // Make sure we *do not* end up compiling the compiler bridge, since
+        // it's using a pre-compiled bridge value
+        assert(!os.exists(
+          eval.outPath / "mill" / "scalalib" / "ZincWorkerModule" / "worker.dest" / s"zinc-${zincVersion}"
+        ))
+      }
+
+      test("nonPreCompiledBridge") - UnitTester(HelloWorldNonPrecompiledBridge, sourceRoot = resourcePath).scoped{eval =>
+        val Right(result) = eval.apply(HelloWorldNonPrecompiledBridge.core.compile)
+
+        val classesPath = eval.outPath / "core" / "compile.dest" / "classes"
+
+        val analysisFile = result.value.analysisFile
+        val outputFiles = os.walk(result.value.classes.path)
+        val expectedClassfiles = compileClassfiles.map(classesPath / _)
+        assert(
+          result.value.classes.path == classesPath,
+          os.exists(analysisFile),
+          outputFiles.nonEmpty,
+          outputFiles.forall(expectedClassfiles.contains),
+          result.evalCount > 0
+        )
+
+        // don't recompile if nothing changed
+        val Right(result2) = eval.apply(HelloWorldNonPrecompiledBridge.core.compile)
+
+        assert(result2.evalCount == 0)
+
+        // Make sure we *do* end up compiling the compiler bridge, since it's
+        // *not* using a pre-compiled bridge value
+        assert(os.exists(
+          eval.outPath / "mill" / "scalalib" / "ZincWorkerModule" / "worker.dest" / s"zinc-${zincVersion}"
+        ))
+      }
+
+      test("recompileOnChange") - UnitTester(HelloWorld, sourceRoot = resourcePath).scoped{eval =>
+        val Right(result) = eval.apply(HelloWorld.core.compile)
+        assert(result.evalCount > 0)
+
+        os.write.append(HelloWorld.millSourcePath / "core" / "src" / "Main.scala", "\n")
+
+        val Right(result2) = eval.apply(HelloWorld.core.compile)
+        assert(result2.evalCount > 0, result2.evalCount < result.evalCount)
+      }
+      test("failOnError") - UnitTester(HelloWorld, sourceRoot = resourcePath).scoped{eval =>
+        os.write.append(HelloWorld.millSourcePath / "core" / "src" / "Main.scala", "val x: ")
+
+        val Left(Result.Failure("Compilation failed", _)) = eval.apply(HelloWorld.core.compile)
+
+        val paths = EvaluatorPaths.resolveDestPaths(eval.outPath, HelloWorld.core.compile)
+
+        assert(
+          os.walk(paths.dest / "classes").isEmpty,
+          !os.exists(paths.meta)
+        )
+        // Works when fixed
+        os.write.over(
+          HelloWorld.millSourcePath / "core" / "src" / "Main.scala",
+          os.read(HelloWorld.millSourcePath / "core" / "src" / "Main.scala").dropRight(
+            "val x: ".length
+          )
+        )
+
+        val Right(_) = eval.apply(HelloWorld.core.compile)
+      }
+      test("passScalacOptions") - UnitTester(HelloWorldFatalWarnings, sourceRoot = resourcePath).scoped{eval =>
+        // compilation fails because of "-Xfatal-warnings" flag
+        val Left(Result.Failure("Compilation failed", _)) =
+          eval.apply(HelloWorldFatalWarnings.core.compile)
+      }
+    }
+
+    test("semanticDbData") {
+      def semanticDbFiles: Set[os.SubPath] = Set(
+        os.sub / "META-INF" / "semanticdb" / "core" / "src" / "Main.scala.semanticdb",
+        os.sub / "META-INF" / "semanticdb" / "core" / "src" / "Result.scala.semanticdb"
+      )
+
+      test("fromScratch") - UnitTester(SemanticWorld, sourceRoot = resourcePath).scoped{eval =>
+        {
+          println("first - expected full compile")
+          val Right(result) = eval.apply(SemanticWorld.core.semanticDbData)
+
+          val dataPath = eval.outPath / "core" / "semanticDbData.dest" / "data"
+          val outputFiles =
+            os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
+
+          val expectedSemFiles = semanticDbFiles
+          assert(
+            result.value.path == dataPath,
+            outputFiles.nonEmpty,
+            outputFiles.toSet == expectedSemFiles,
+            result.evalCount > 0,
+            os.exists(dataPath / os.up / "zinc")
+          )
+        }
+        {
+          println("second - expected no compile")
+          // don't recompile if nothing changed
+          val Right(result2) = eval.apply(SemanticWorld.core.semanticDbData)
+          assert(result2.evalCount == 0)
+        }
+      }
+      test("incremental") - UnitTester(SemanticWorld, sourceRoot = resourcePath, debugEnabled = true).scoped{eval =>
+        // create some more source file to have a reasonable low incremental change later
+        val extraFiles = Seq("Second", "Third", "Fourth").map { f =>
+          val file = eval.evaluator.workspace / "core" / "src" / "hello" / s"${f}.scala"
+          os.write(
+            file,
+            s"""package hello
+               |class ${f}
+               |""".stripMargin,
+            createFolders = true
+          )
+          val sem =
+            os.sub / "META-INF" / "semanticdb" / "core" / "src" / "hello" / s"${f}.scala.semanticdb"
+          (file, sem)
+        }
+//        val resultFile = eval.evaluator.workspace / "core" / "src" / "Result.scala"
+
+        {
+          println("first - expected full compile")
+          val Right(result) = eval.apply(SemanticWorld.core.semanticDbData)
+
+          val dataPath = eval.outPath / "core" / "semanticDbData.dest" / "data"
+          val outputFiles =
+            os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
+
+          val expectedSemFiles = semanticDbFiles ++ extraFiles.map(_._2)
+          assert(
+            result.value.path == dataPath,
+            outputFiles.toSet == expectedSemFiles,
+            result.evalCount > 0
+          )
+        }
+        // change nothing
+        {
+          println("second - expect no compile due to Mill caching")
+          val Right(result2) = eval.apply(SemanticWorld.core.semanticDbData)
+          assert(result2.evalCount == 0)
+        }
+
+        // change one
+        {
+          println("third - expect inc compile of one file\n")
+          os.write.append(extraFiles.head._1, "  ")
+
+          val Right(result) = eval.apply(SemanticWorld.core.semanticDbData)
+          val outputFiles =
+            os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
+          val expectedFiles = semanticDbFiles ++ extraFiles.map(_._2)
+          assert(
+            outputFiles.toSet == expectedFiles,
+            result.evalCount > 0
+          )
+        }
+        // remove one
+        {
+          println("fourth - expect inc compile with one deleted file")
+          os.remove(extraFiles.head._1)
+
+          val Right(result) = eval.apply(SemanticWorld.core.semanticDbData)
+          val outputFiles =
+            os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
+          val expectedFiles = semanticDbFiles ++ extraFiles.map(_._2).drop(1)
+          assert(
+            outputFiles.toSet == expectedFiles,
+            result.evalCount > 0
+          )
+        }
+      }
+    }
+
+    test("artifactNameCross") - UnitTester(CrossHelloWorld, sourceRoot = resourcePath).scoped{eval =>
+      val Right(result) =
+        eval.apply(CrossHelloWorld.core(scala213Version).artifactName)
+      assert(result.value == "core")
+    }
+
+    test("scala-33-depend-on-scala-32-works") {
+      CrossModuleDeps.cuttingEdge(scala33Version).moduleDeps
+    }
+    test("scala-213-depend-on-scala-212-fails") {
+      val message = intercept[Exception](
+        CrossModuleDeps.cuttingEdge(scala213Version).moduleDeps
+      ).getMessage
+      assert(
+        message == s"Unable to find compatible cross version between ${scala213Version} and 2.12.6,3.2.0"
+      )
+    }
 
     test("runMain") {
-      test("runMainObject") {
-        val eval = UnitTester(HelloWorld, resourcePath)
+      test("runMainObject") - UnitTester(HelloWorld, resourcePath).scoped{eval =>
         val runResult = eval.outPath / "core" / "runMain.dest" / "hello-mill"
 
         val Right(result) = eval.apply(HelloWorld.core.runMain("Main", runResult.toString))
@@ -783,27 +762,23 @@ object HelloWorldTests extends TestSuite {
           )
         }
 
-        test("v2123") - {
-          val eval = UnitTester(CrossHelloWorld, resourcePath)
+        test("v2123") - UnitTester(CrossHelloWorld, resourcePath).scoped { eval =>
           cross(eval, scala2123Version, s"${scala2123Version} leet")
+
         }
-        test("v2124") {
-          val eval = UnitTester(CrossHelloWorld, resourcePath)
+        test("v2124") - UnitTester(CrossHelloWorld, resourcePath).scoped{eval =>
           cross(eval, scala212Version, s"${scala212Version} leet")
         }
-        test("v2131") {
-          val eval = UnitTester(CrossHelloWorld, resourcePath)
+        test("v2131") - UnitTester(CrossHelloWorld, resourcePath).scoped{eval =>
           cross(eval, scala213Version, s"${scala213Version} idk")
         }
       }
 
-      test("notRunInvalidMainObject") {
-        val eval = UnitTester(HelloWorld, resourcePath)
+      test("notRunInvalidMainObject") - UnitTester(HelloWorld, resourcePath).scoped{eval =>
         val Left(Result.Failure("Subprocess failed", _)) =
           eval.apply(HelloWorld.core.runMain("Invalid"))
       }
-      test("notRunWhenCompileFailed") {
-        val eval = UnitTester(HelloWorld, resourcePath)
+      test("notRunWhenCompileFailed") - UnitTester(HelloWorld, resourcePath).scoped{eval =>
         os.write.append(HelloWorld.millSourcePath / "core" / "src" / "Main.scala", "val x: ")
 
         val Left(Result.Failure("Compilation failed", _)) =
@@ -813,8 +788,7 @@ object HelloWorldTests extends TestSuite {
     }
 
     test("forkRun") {
-      test("runIfMainClassProvided") {
-        val eval = UnitTester(HelloWorldWithMain, resourcePath)
+      test("runIfMainClassProvided") - UnitTester(HelloWorldWithMain, resourcePath).scoped{eval =>
         val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
         val Right(result) = eval.apply(
           HelloWorldWithMain.core.run(T.task(Args(runResult.toString)))
@@ -827,17 +801,14 @@ object HelloWorldTests extends TestSuite {
           os.read(runResult) == "hello rockjam, your age is: 25"
         )
       }
-      test("notRunWithoutMainClass") {
-
-        val eval = UnitTester(
-          HelloWorldWithoutMain,
-          sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world-no-main"
-        )
+      test("notRunWithoutMainClass") - UnitTester(
+        HelloWorldWithoutMain,
+        sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world-no-main"
+      ).scoped{eval =>
         val Left(Result.Failure(_, None)) = eval.apply(HelloWorldWithoutMain.core.run())
       }
 
-      test("runDiscoverMainClass") {
-        val eval = UnitTester(HelloWorldWithoutMain, resourcePath)
+      test("runDiscoverMainClass") - UnitTester(HelloWorldWithoutMain, resourcePath).scoped{eval =>
         // Make sure even if there isn't a main class defined explicitly, it gets
         // discovered by Zinc and used
         val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
@@ -855,8 +826,7 @@ object HelloWorldTests extends TestSuite {
     }
 
     test("run") {
-      test("runIfMainClassProvided") {
-        val eval = UnitTester(HelloWorldWithMain, resourcePath)
+      test("runIfMainClassProvided") - UnitTester(HelloWorldWithMain, resourcePath).scoped{eval =>
         val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
         val Right(result) = eval.apply(
           HelloWorldWithMain.core.runLocal(T.task(Args(runResult.toString)))
@@ -869,8 +839,7 @@ object HelloWorldTests extends TestSuite {
           os.read(runResult) == "hello rockjam, your age is: 25"
         )
       }
-      test("runWithDefaultMain") {
-        val eval = UnitTester(HelloWorldDefaultMain, resourcePath)
+      test("runWithDefaultMain") - UnitTester(HelloWorldDefaultMain, resourcePath).scoped{eval =>
         val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
         val Right(result) = eval.apply(
           HelloWorldDefaultMain.core.runLocal(T.task(Args(runResult.toString)))
@@ -883,18 +852,16 @@ object HelloWorldTests extends TestSuite {
           os.read(runResult) == "hello rockjam, your age is: 25"
         )
       }
-      test("notRunWithoutMainClass") {
-        val eval = UnitTester(
-          HelloWorldWithoutMain,
-          sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world-no-main"
-        )
+      test("notRunWithoutMainClass") - UnitTester(
+        HelloWorldWithoutMain,
+        sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world-no-main"
+      ).scoped{eval =>
         val Left(Result.Failure(_, None)) = eval.apply(HelloWorldWithoutMain.core.runLocal())
       }
     }
 
     test("jar") {
-      test("nonEmpty") {
-        val eval = UnitTester(HelloWorldWithMain, resourcePath)
+      test("nonEmpty") - UnitTester(HelloWorldWithMain, resourcePath).scoped{eval =>
         val Right(result) = eval.apply(HelloWorldWithMain.core.jar)
 
         assert(
@@ -922,8 +889,7 @@ object HelloWorldTests extends TestSuite {
         }
       }
 
-      test("logOutputToFile") {
-        val eval = UnitTester(HelloWorld, resourcePath)
+      test("logOutputToFile") - UnitTester(HelloWorld, resourcePath).scoped{eval =>
         val outPath = eval.outPath
         eval.apply(HelloWorld.core.compile)
 
@@ -933,8 +899,7 @@ object HelloWorldTests extends TestSuite {
     }
 
     test("assembly") {
-      test("assembly") {
-        val eval = UnitTester(HelloWorldWithMain, resourcePath)
+      test("assembly") - UnitTester(HelloWorldWithMain, resourcePath).scoped{eval =>
         val Right(result) = eval.apply(HelloWorldWithMain.core.assembly)
         assert(
           os.exists(result.value.path),
@@ -952,8 +917,7 @@ object HelloWorldTests extends TestSuite {
       }
 
       test("assemblyRules") {
-        def checkAppend[M <: mill.testkit.TestBaseModule](module: M, target: Target[PathRef]) = {
-          val eval = UnitTester(module, resourcePath)
+        def checkAppend[M <: mill.testkit.TestBaseModule](module: M, target: Target[PathRef]) = UnitTester(module, resourcePath).scoped{eval =>
           val Right(result) = eval.apply(target)
 
           Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
@@ -982,11 +946,10 @@ object HelloWorldTests extends TestSuite {
         def checkAppendMulti[M <: mill.testkit.TestBaseModule](
             module: M,
             target: Target[PathRef]
-        ): Unit = {
-          val eval = UnitTester(
+        ): Unit = UnitTester(
             module,
             sourceRoot = helloWorldMultiResourcePath
-          )
+          ).scoped{eval =>
           val Right(result) = eval.apply(target)
 
           Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
@@ -1009,11 +972,10 @@ object HelloWorldTests extends TestSuite {
         def checkAppendWithSeparator[M <: mill.testkit.TestBaseModule](
             module: M,
             target: Target[PathRef]
-        ): Unit = {
-          val eval = UnitTester(
+        ): Unit = UnitTester(
             module,
             sourceRoot = helloWorldMultiResourcePath
-          )
+          ).scoped{eval =>
           val Right(result) = eval.apply(target)
 
           Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
@@ -1050,8 +1012,7 @@ object HelloWorldTests extends TestSuite {
             module: M,
             target: Target[PathRef],
             resourcePath: os.Path = resourcePath
-        ) = {
-          val eval = UnitTester(module, resourcePath)
+        ) = UnitTester(module, resourcePath).scoped{eval =>
           val Right(result) = eval.apply(target)
 
           Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
@@ -1082,8 +1043,7 @@ object HelloWorldTests extends TestSuite {
             module: M,
             target: Target[PathRef],
             resourcePath: os.Path = resourcePath
-        ) = {
-          val eval = UnitTester(module, resourcePath)
+        ) = UnitTester(module, resourcePath).scoped{eval =>
           val Right(result) = eval.apply(target)
           Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
             assert(!jarEntries(jarFile).contains("akka/http/scaladsl/model/HttpEntity.class"))
@@ -1099,19 +1059,17 @@ object HelloWorldTests extends TestSuite {
             HelloWorldAkkaHttpRelocate.core.assembly
           )
 
-          test("run") {
-            val eval = UnitTester(
+          test("run") - UnitTester(
               HelloWorldAkkaHttpRelocate,
               sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world-deps"
-            )
-            val Right(result) = eval.apply(HelloWorldAkkaHttpRelocate.core.runMain("Main"))
+            ).scoped{eval =>
+          val Right(result) = eval.apply(HelloWorldAkkaHttpRelocate.core.runMain("Main"))
             assert(result.evalCount > 0)
           }
         }
 
         test("writeDownstreamWhenNoRule") {
-          test("withDeps") {
-            val eval = UnitTester(HelloWorldAkkaHttpNoRules, null)
+          test("withDeps") - UnitTester(HelloWorldAkkaHttpNoRules, null).scoped{eval =>
             val Right(result) = eval.apply(HelloWorldAkkaHttpNoRules.core.assembly)
 
             Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
@@ -1133,11 +1091,10 @@ object HelloWorldTests extends TestSuite {
             }
           }
 
-          test("multiModule") {
-            val eval = UnitTester(
+          test("multiModule") - UnitTester(
               HelloWorldMultiNoRules,
               sourceRoot = helloWorldMultiResourcePath
-            )
+            ).scoped{eval =>
             val Right(result) = eval.apply(HelloWorldMultiNoRules.core.assembly)
 
             Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
@@ -1156,8 +1113,7 @@ object HelloWorldTests extends TestSuite {
         }
       }
 
-      test("run") {
-        val eval = UnitTester(HelloWorldWithMain, resourcePath)
+      test("run") - UnitTester(HelloWorldWithMain, resourcePath).scoped{eval =>
         val Right(result) = eval.apply(HelloWorldWithMain.core.assembly)
 
         assert(
@@ -1175,8 +1131,7 @@ object HelloWorldTests extends TestSuite {
       }
     }
 
-    test("ivyDeps") {
-      val eval = UnitTester(HelloWorldIvyDeps, resourcePath)
+    test("ivyDeps") - UnitTester(HelloWorldIvyDeps, resourcePath).scoped{eval =>
       val Right(result) = eval.apply(HelloWorldIvyDeps.moduleA.runClasspath)
       assert(
         result.value.exists(_.path.last == "sourcecode_2.12-0.1.3.jar"),
@@ -1190,8 +1145,7 @@ object HelloWorldTests extends TestSuite {
       )
     }
 
-    test("typeLevel") {
-      val eval = UnitTester(HelloWorldTypeLevel, null)
+    test("typeLevel") - UnitTester(HelloWorldTypeLevel, null).scoped{eval =>
       val classPathsToCheck = Seq(
         HelloWorldTypeLevel.foo.runClasspath,
         HelloWorldTypeLevel.foo.ammoniteReplClasspath,
@@ -1219,24 +1173,22 @@ object HelloWorldTests extends TestSuite {
         // Scala 2.12 does not always work with Java 17+
         // make sure macros are applied when compiling/running
         val mod = HelloWorldMacros212
-        test("runMain") {
-          val eval = UnitTester(
+        test("runMain") - UnitTester(
             mod,
             sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world-macros"
-          )
-          if (Properties.isJavaAtLeast(17)) "skipped on Java 17+"
+          ).scoped{eval =>
+        if (Properties.isJavaAtLeast(17)) "skipped on Java 17+"
           else {
             val Right(result) = eval.apply(mod.core.runMain("Main"))
             assert(result.evalCount > 0)
           }
         }
         // make sure macros are applied when compiling during scaladoc generation
-        test("docJar") {
-          val eval = UnitTester(
+        test("docJar") - UnitTester(
             mod,
             sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world-macros"
-          )
-          if (Properties.isJavaAtLeast(17)) "skipped on Java 17+"
+          ).scoped{eval =>
+        if (Properties.isJavaAtLeast(17)) "skipped on Java 17+"
           else {
             val Right(result) = eval.apply(mod.core.docJar)
             assert(result.evalCount > 0)
@@ -1246,21 +1198,19 @@ object HelloWorldTests extends TestSuite {
       test("scala-2.13") {
         // make sure macros are applied when compiling/running
         val mod = HelloWorldMacros213
-        test("runMain") {
-          val eval = UnitTester(
+        test("runMain") - UnitTester(
             mod,
             sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world-macros"
-          )
-          val Right(result) = eval.apply(mod.core.runMain("Main"))
+          ).scoped{eval =>
+        val Right(result) = eval.apply(mod.core.runMain("Main"))
           assert(result.evalCount > 0)
         }
         // make sure macros are applied when compiling during scaladoc generation
-        test("docJar") {
-          val eval = UnitTester(
+        test("docJar") - UnitTester(
             mod,
             sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world-macros"
-          )
-          val Right(result) = eval.apply(mod.core.docJar)
+          ).scoped{eval =>
+        val Right(result) = eval.apply(mod.core.docJar)
           assert(result.evalCount > 0)
         }
       }
@@ -1268,47 +1218,46 @@ object HelloWorldTests extends TestSuite {
 
     test("flags") {
       // make sure flags are passed when compiling/running
-      test("runMain") {
-        val eval = UnitTester(
+      test("runMain") -UnitTester(
           HelloWorldFlags,
           sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world-flags"
-        )
-        val Right(result) = eval.apply(HelloWorldFlags.core.runMain("Main"))
+        ).scoped{eval =>
+      val Right(result) = eval.apply(HelloWorldFlags.core.runMain("Main"))
         assert(result.evalCount > 0)
       }
       // make sure flags are passed during ScalaDoc generation
-      test("docJar") {
-        val eval = UnitTester(
+      test("docJar") -UnitTester(
           HelloWorldFlags,
           sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world-flags"
-        )
-        val Right(result) = eval.apply(HelloWorldFlags.core.docJar)
+        ).scoped{eval =>
+      val Right(result) = eval.apply(HelloWorldFlags.core.docJar)
         assert(result.evalCount > 0)
       }
     }
     test("color-output") {
+
       val errStream = new ByteArrayOutputStream()
 
-      val eval = UnitTester(
+      UnitTester(
         HelloWorldColorOutput,
         sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world-color-output",
         errStream = new PrintStream(errStream, true)
-      )
-      val Left(Result.Failure("Compilation failed", _)) =
-        eval.apply(HelloWorldColorOutput.core.compile)
-      val output = errStream.toString
-      assert(output.contains(s"${Console.RED}!${Console.RESET}${Console.BLUE}I"))
-      assert(output.contains(
-        s"${Console.GREEN}example.Show[scala.Option[java.lang.String]]${Console.RESET}"
-      ))
+      ).scoped { eval =>
+        val Left(Result.Failure("Compilation failed", _)) =
+          eval.apply(HelloWorldColorOutput.core.compile)
+        val output = errStream.toString
+        assert(output.contains(s"${Console.RED}!${Console.RESET}${Console.BLUE}I"))
+        assert(output.contains(
+          s"${Console.GREEN}example.Show[scala.Option[java.lang.String]]${Console.RESET}"
+        ))
+      }
     }
 
-    test("scalacheck") {
-      val eval = UnitTester(
+    test("scalacheck") - UnitTester(
         HelloScalacheck,
         sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-scalacheck"
-      )
-      val Right(result) = eval.apply(HelloScalacheck.foo.test.test())
+      ).scoped{eval =>
+    val Right(result) = eval.apply(HelloScalacheck.foo.test.test())
       assert(
         result.evalCount > 0,
         result.value._2.map(_.selector) == Seq(
@@ -1320,17 +1269,16 @@ object HelloWorldTests extends TestSuite {
       )
     }
 
-    test("dotty213") {
-      val eval = UnitTester(
-        Dotty213,
-        sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "dotty213"
-      )
+    test("dotty213") -UnitTester(
+      Dotty213,
+      sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "dotty213"
+    ).scoped { eval =>
       val Right(result) = eval.apply(Dotty213.foo.run())
       assert(result.evalCount > 0)
     }
 
-    test("replAmmoniteMainClass") {
-      val eval = UnitTester(AmmoniteReplMainClass, null)
+
+    test("replAmmoniteMainClass") - UnitTester(AmmoniteReplMainClass, null).scoped{eval =>
       val Right(result) = eval.apply(AmmoniteReplMainClass.oldAmmonite.ammoniteMainClass)
       assert(result.value == "ammonite.Main")
       val Right(result2) = eval.apply(AmmoniteReplMainClass.newAmmonite.ammoniteMainClass)
@@ -1339,8 +1287,7 @@ object HelloWorldTests extends TestSuite {
 
     test("validated") {
       test("PathRef") {
-        def check(t: Target[PathRef], flip: Boolean) = {
-          val eval = UnitTester(ValidatedTarget, null)
+        def check(t: Target[PathRef], flip: Boolean) = UnitTester(ValidatedTarget, null).scoped{eval =>
           // we reconstruct faulty behavior
           val Right(result) = eval.apply(t)
           assert(
@@ -1359,8 +1306,7 @@ object HelloWorldTests extends TestSuite {
         test("checked") - check(ValidatedTarget.checkedPathRef, true)
       }
       test("SeqPathRef") {
-        def check(t: Target[Seq[PathRef]], flip: Boolean) {
-          val eval = UnitTester(ValidatedTarget, null)
+        def check(t: Target[Seq[PathRef]], flip: Boolean) = UnitTester(ValidatedTarget, null).scoped{eval =>
           // we reconstruct faulty behavior
           val Right(result) = eval.apply(t)
           assert(
@@ -1379,8 +1325,7 @@ object HelloWorldTests extends TestSuite {
         test("checked") - check(ValidatedTarget.checkedSeqPathRef, true)
       }
       test("AggPathRef") {
-        def check(t: Target[Agg[PathRef]], flip: Boolean) = {
-          val eval = UnitTester(ValidatedTarget, null)
+        def check(t: Target[Agg[PathRef]], flip: Boolean) = UnitTester(ValidatedTarget, null).scoped{eval =>
           // we reconstruct faulty behavior
           val Right(result) = eval.apply(t)
           assert(
@@ -1399,8 +1344,7 @@ object HelloWorldTests extends TestSuite {
         test("checked") - check(ValidatedTarget.checkedAggPathRef, true)
       }
       test("other") {
-        def check(t: Target[Tuple1[PathRef]], flip: Boolean) = {
-          val eval = UnitTester(ValidatedTarget, null)
+        def check(t: Target[Tuple1[PathRef]], flip: Boolean) = UnitTester(ValidatedTarget, null).scoped{eval =>
           // we reconstruct faulty behavior
           val Right(result) = eval.apply(t)
           assert(
@@ -1460,8 +1404,7 @@ object HelloWorldTests extends TestSuite {
         )
       }
 
-      test("modMod") {
-        val eval = UnitTester(MultiModuleClasspaths, resourcePath)
+      test("modMod") - UnitTester(MultiModuleClasspaths, resourcePath).scoped{eval =>
         // Make sure that `compileClasspath` has all the same things as `runClasspath`,
         // but without the `/resources`
         check(
@@ -1526,8 +1469,7 @@ object HelloWorldTests extends TestSuite {
         )
       }
 
-      test("modCompile") {
-        val eval = UnitTester(MultiModuleClasspaths, resourcePath)
+      test("modCompile") - UnitTester(MultiModuleClasspaths, resourcePath).scoped{eval =>
         // Mostly the same as `modMod` above, but with the dependency
         // from `qux` to `bar` being a `compileModuleDeps`
         check(
@@ -1591,8 +1533,7 @@ object HelloWorldTests extends TestSuite {
         )
       }
 
-      test("compileMod") {
-        val eval = UnitTester(MultiModuleClasspaths, resourcePath)
+      test("compileMod") - UnitTester(MultiModuleClasspaths, resourcePath).scoped{eval =>
         // Both the `runClasspath` and `compileClasspath` should not have `foo` on the
         // classpath, nor should it have the versions of libraries pulled in by `foo`
         // (e.g. `sourcecode-0.2.4`), because it is a `compileModuleDep` of an upstream

@@ -22,8 +22,7 @@ object FullOptESModuleTests extends TestSuite {
   val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-js-world"
 
   val tests: Tests = Tests {
-    test("fullOpt with ESModule moduleKind") {
-      val eval = UnitTester(FullOptESModuleModule, millSourcePath)
+    test("fullOpt with ESModule moduleKind") - UnitTester(FullOptESModuleModule, millSourcePath).scoped{eval =>
       val result = eval(FullOptESModuleModule.fullOptESModuleModule.fullOpt)
       assert(result.isRight)
     }

@@ -28,8 +28,7 @@ object ProguardTests extends TestSuite {
 
   def tests: Tests = Tests {
     test("Proguard module") {
-      test("should download proguard jars") {
-        val eval = UnitTester(proguard, testModuleSourcesPath)
+      test("should download proguard jars") - UnitTester(proguard, testModuleSourcesPath).scoped{eval =>
         val Right(result) = eval.apply(proguard.proguardClasspath)
         assert(
           result.value.iterator.toSeq.nonEmpty,
@@ -37,8 +36,7 @@ object ProguardTests extends TestSuite {
         )
       }
 
-      test("should create a proguarded jar") {
-        val eval = UnitTester(proguard, testModuleSourcesPath)
+      test("should create a proguarded jar") - UnitTester(proguard, testModuleSourcesPath).scoped{eval =>
         val Right(result) = eval.apply(proguard.proguard)
         assert(os.exists(result.value.path))
       }

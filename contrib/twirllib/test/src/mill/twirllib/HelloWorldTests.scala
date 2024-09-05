@@ -66,8 +66,7 @@ trait HelloWorldTests extends TestSuite {
   def tests: Tests = Tests {
     test("twirlVersion") {
 
-      test("fromBuild") {
-        val eval = UnitTester(HelloWorld, resourcePath / "hello-world")
+      test("fromBuild") - UnitTester(HelloWorld, resourcePath / "hello-world").scoped{eval =>
         val Right(result) =
           eval.apply(HelloWorld.core.twirlVersion)
 
@@ -79,79 +78,81 @@ trait HelloWorldTests extends TestSuite {
     }
     test("compileTwirl") {
       skipUnsupportedVersions {
-        val eval = UnitTester(HelloWorld, resourcePath / "hello-world", debugEnabled = true)
-        val res = eval.apply(HelloWorld.core.compileTwirl)
-        assert(res.isRight)
-        val Right(result) = res
+        UnitTester(HelloWorld, resourcePath / "hello-world", debugEnabled = true).scoped{eval =>
+          val res = eval.apply(HelloWorld.core.compileTwirl)
+          assert(res.isRight)
+          val Right(result) = res
 
-        val outputFiles = os.walk(result.value.classes.path).filter(_.last.endsWith(".scala"))
-        val expectedClassfiles = compileClassfiles.map(
-          eval.outPath / "core" / "compileTwirl.dest" / _
-        )
+          val outputFiles = os.walk(result.value.classes.path).filter(_.last.endsWith(".scala"))
+          val expectedClassfiles = compileClassfiles.map(
+            eval.outPath / "core" / "compileTwirl.dest" / _
+          )
 
-        assert(
-          result.value.classes.path == eval.outPath / "core" / "compileTwirl.dest",
-          outputFiles.nonEmpty,
-          outputFiles.forall(expectedClassfiles.contains),
-          outputFiles.size == 3,
-          result.evalCount > 0,
-          outputFiles.forall { p =>
-            val lines = os.read.lines(p).map(_.trim)
-            (expectedDefaultImports ++ testAdditionalImports.map(s => s"import $s")).forall(
-              lines.contains
-            )
-          },
-          outputFiles.filter(_.toString().contains("hello.template.scala")).forall { p =>
-            val lines = os.read.lines(p).map(_.trim)
-            val expectedClassDeclaration = s"class hello ${testConstructorAnnotations.mkString}"
-            lines.exists(_.startsWith(expectedClassDeclaration))
-          }
-        )
+          assert(
+            result.value.classes.path == eval.outPath / "core" / "compileTwirl.dest",
+            outputFiles.nonEmpty,
+            outputFiles.forall(expectedClassfiles.contains),
+            outputFiles.size == 3,
+            result.evalCount > 0,
+            outputFiles.forall { p =>
+              val lines = os.read.lines(p).map(_.trim)
+              (expectedDefaultImports ++ testAdditionalImports.map(s => s"import $s")).forall(
+                lines.contains
+              )
+            },
+            outputFiles.filter(_.toString().contains("hello.template.scala")).forall { p =>
+              val lines = os.read.lines(p).map(_.trim)
+              val expectedClassDeclaration = s"class hello ${testConstructorAnnotations.mkString}"
+              lines.exists(_.startsWith(expectedClassDeclaration))
+            }
+          )
 
-        // don't recompile if nothing changed
-        val Right(result2) =
-          eval.apply(HelloWorld.core.compileTwirl)
+          // don't recompile if nothing changed
+          val Right(result2) =
+            eval.apply(HelloWorld.core.compileTwirl)
 
-        assert(result2.evalCount == 0)
+          assert(result2.evalCount == 0)
+        }
       }
     }
 
     test("compileTwirlInclusiveDot") {
       skipUnsupportedVersions {
-        val eval = UnitTester(
+        UnitTester(
           HelloWorldWithInclusiveDot,
           sourceRoot = resourcePath / "hello-world-inclusive-dot"
-        )
+        ).scoped{eval =>
 
-        val Right(result) = eval.apply(HelloWorldWithInclusiveDot.core.compileTwirl)
+          val Right(result) = eval.apply(HelloWorldWithInclusiveDot.core.compileTwirl)
 
-        val outputFiles = os.walk(result.value.classes.path).filter(_.last.endsWith(".scala"))
-        val expectedClassfiles = compileClassfiles.map(name =>
-          eval.outPath / "core" / "compileTwirl.dest" / name / os.RelPath.up / name.last.replace(
-            ".template.scala",
-            "$$TwirlInclusiveDot.template.scala"
+          val outputFiles = os.walk(result.value.classes.path).filter(_.last.endsWith(".scala"))
+          val expectedClassfiles = compileClassfiles.map(name =>
+            eval.outPath / "core" / "compileTwirl.dest" / name / os.RelPath.up / name.last.replace(
+              ".template.scala",
+              "$$TwirlInclusiveDot.template.scala"
+            )
           )
-        )
 
-        println(s"outputFiles: $outputFiles")
+          println(s"outputFiles: $outputFiles")
 
-        assert(
-          result.value.classes.path == eval.outPath / "core" / "compileTwirl.dest",
-          outputFiles.nonEmpty,
-          outputFiles.forall(expectedClassfiles.contains),
-          outputFiles.size == 3,
-          result.evalCount > 0,
-          outputFiles.filter(_.toString().contains("hello.template.scala")).forall { p =>
-            val lines = os.read.lines(p).map(_.trim)
-            lines.exists(_.contains("$$TwirlInclusiveDot"))
-          }
-        )
+          assert(
+            result.value.classes.path == eval.outPath / "core" / "compileTwirl.dest",
+            outputFiles.nonEmpty,
+            outputFiles.forall(expectedClassfiles.contains),
+            outputFiles.size == 3,
+            result.evalCount > 0,
+            outputFiles.filter(_.toString().contains("hello.template.scala")).forall { p =>
+              val lines = os.read.lines(p).map(_.trim)
+              lines.exists(_.contains("$$TwirlInclusiveDot"))
+            }
+          )
 
-        // don't recompile if nothing changed
-        val Right(result2) =
-          eval.apply(HelloWorld.core.compileTwirl)
+          // don't recompile if nothing changed
+          val Right(result2) =
+            eval.apply(HelloWorld.core.compileTwirl)
 
-        assert(result2.evalCount == 0)
+          assert(result2.evalCount == 0)
+        }
       }
     }
   }

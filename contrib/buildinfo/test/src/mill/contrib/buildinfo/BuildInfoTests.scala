@@ -95,14 +95,12 @@ object BuildInfoTests extends TestSuite {
     eval.outPath / "buildInfoResources.dest" / "foo" / "BuildInfo.buildinfo.properties"
   def tests: Tests = Tests {
 
-    test("notCreateEmptySourcefile") {
-      val eval = UnitTester(EmptyBuildInfo, testModuleSourcesPath / "scala")
+    test("notCreateEmptySourcefile") - UnitTester(EmptyBuildInfo, testModuleSourcesPath / "scala").scoped{eval =>
       val Right(_) = eval.apply(EmptyBuildInfo.buildInfoSources)
       assert(!os.exists(buildInfoSourcePath(eval)))
     }
 
-    test("fileGeneration") {
-      val eval = UnitTester(BuildInfoComment, testModuleSourcesPath / "scala")
+    test("fileGeneration") - UnitTester(BuildInfoComment, testModuleSourcesPath / "scala").scoped{eval =>
       val Right(_) = eval.apply(BuildInfoComment.compile)
 
       // Make sure that the buildinfo Scala file buildinfo is created and buildinfo
@@ -135,8 +133,7 @@ object BuildInfoTests extends TestSuite {
       assert(buildInfoResource.contains(expectedResource))
     }
 
-    test("supportCustomSettings") {
-      val eval = UnitTester(BuildInfoSettings, testModuleSourcesPath / "scala")
+    test("supportCustomSettings") - UnitTester(BuildInfoSettings, testModuleSourcesPath / "scala").scoped{eval =>
       val Right(result) = eval.apply(BuildInfoSettings.buildInfoSources)
       val path = result.value.head.path
 
@@ -146,14 +143,12 @@ object BuildInfoTests extends TestSuite {
       assert(found.contains("object bar"))
     }
 
-    test("compile") {
-      val eval = UnitTester(BuildInfoPlain, testModuleSourcesPath / "scala")
+    test("compile") - UnitTester(BuildInfoPlain, testModuleSourcesPath / "scala").scoped{eval =>
       val Right(_) = eval.apply(BuildInfoPlain.compile)
       assert(true)
     }
 
-    test("run") {
-      val eval = UnitTester(BuildInfoPlain, testModuleSourcesPath / "scala")
+    test("run") - UnitTester(BuildInfoPlain, testModuleSourcesPath / "scala").scoped{eval =>
       val runResult = eval.outPath / "hello-mill"
       val Right(_) =
         eval.apply(BuildInfoPlain.run(T.task(Args(runResult.toString))))
@@ -164,14 +159,12 @@ object BuildInfoTests extends TestSuite {
       )
     }
 
-    test("scalajs") {
-      val eval = UnitTester(BuildInfoScalaJS, testModuleSourcesPath / "scala-simple")
+    test("scalajs") - UnitTester(BuildInfoScalaJS, testModuleSourcesPath / "scala-simple").scoped{eval =>
       val runResult = eval.outPath / "hello-mill"
       assert(eval.apply(BuildInfoScalaJS.fastLinkJS).isRight)
     }
 
-    test("static") {
-      val eval = UnitTester(BuildInfoStatic, testModuleSourcesPath / "scala")
+    test("static") - UnitTester(BuildInfoStatic, testModuleSourcesPath / "scala").scoped{eval =>
       // When `buildInfoStaticCompiled = true`, make sure we always create the
       // buildinfo Scala file and never create the resource file
       val runResult = eval.outPath / "hello-mill"
@@ -185,8 +178,7 @@ object BuildInfoTests extends TestSuite {
       assert(os.read(runResult) == scalaVersionString)
     }
 
-    test("java") {
-      val eval = UnitTester(BuildInfoJava, testModuleSourcesPath / "java")
+    test("java") - UnitTester(BuildInfoJava, testModuleSourcesPath / "java").scoped{eval =>
       val runResult = eval.outPath / "hello-mill"
       val Right(_) =
         eval.apply(BuildInfoJava.run(T.task(Args(runResult.toString))))
@@ -197,8 +189,7 @@ object BuildInfoTests extends TestSuite {
       )
     }
 
-    test("java-static") {
-      val eval = UnitTester(BuildInfoJavaStatic, testModuleSourcesPath / "java")
+    test("java-static") - UnitTester(BuildInfoJavaStatic, testModuleSourcesPath / "java").scoped{eval =>
       val runResult = eval.outPath / "hello-mill"
       val generatedSrc = eval.outPath / "buildInfoSources.dest" / "foo" / "BuildInfo.java"
       val Right(_) =
@@ -211,8 +202,7 @@ object BuildInfoTests extends TestSuite {
       )
     }
 
-    test("generatedSources must be a folder") {
-      val eval = UnitTester(BuildInfoPlain, testModuleSourcesPath / "scala")
+    test("generatedSources must be a folder") - UnitTester(BuildInfoPlain, testModuleSourcesPath / "scala").scoped{eval =>
       val buildInfoGeneratedSourcesFolder = eval.outPath / "buildInfoSources.dest"
       val Right(result) = eval.apply(BuildInfoPlain.generatedSources)
       assert(

@@ -35,8 +35,7 @@ object ScalaDoc3Tests extends TestSuite {
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "scaladoc3"
 
   def tests: Tests = Tests {
-    test("static") {
-      val eval = UnitTester(StaticDocsModule, resourcePath)
+    test("static") - UnitTester(StaticDocsModule, resourcePath).scoped{eval =>
       val Right(_) = eval.apply(StaticDocsModule.static.docJar)
       val dest = eval.outPath / "static" / "docJar.dest"
       assert(
@@ -48,8 +47,7 @@ object ScalaDoc3Tests extends TestSuite {
         os.exists(dest / "javadoc" / "api" / "pkg" / "SomeClass.html")
       )
     }
-    test("empty") {
-      val eval = UnitTester(EmptyDocsModule, resourcePath)
+    test("empty") - UnitTester(EmptyDocsModule, resourcePath).scoped{eval =>
       val Right(_) = eval.apply(EmptyDocsModule.empty.docJar)
       val dest = eval.outPath / "empty" / "docJar.dest"
       assert(
@@ -57,8 +55,7 @@ object ScalaDoc3Tests extends TestSuite {
         os.exists(dest / "javadoc" / "api" / "pkg" / "SomeClass.html")
       )
     }
-    test("multiple") {
-      val eval = UnitTester(MultiDocsModule, resourcePath)
+    test("multiple") - UnitTester(MultiDocsModule, resourcePath).scoped{eval =>
       val Right(_) = eval.apply(MultiDocsModule.multidocs.docJar)
       val dest = eval.outPath / "multidocs" / "docJar.dest"
       assert(
