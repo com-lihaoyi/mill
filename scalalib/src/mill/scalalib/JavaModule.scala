@@ -533,7 +533,11 @@ trait JavaModule
    * Resolved dependencies based on [[transitiveIvyDeps]] and [[transitiveCompileIvyDeps]].
    */
   def resolvedIvyDeps: T[Agg[PathRef]] = T {
-    defaultResolver().resolveDeps(transitiveCompileIvyDeps() ++ transitiveIvyDeps())
+    def resolvedIvyDeps0() = defaultResolver().resolveDeps(transitiveCompileIvyDeps() ++ transitiveIvyDeps())
+    try resolvedIvyDeps0()
+    catch{case e: java.nio.file.AccessDeniedException =>
+      resolvedIvyDeps0() // this is caused by a coursier race condition on windows, just retry
+    }
   }
 
   /**

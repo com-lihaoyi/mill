@@ -77,7 +77,7 @@ object Result {
     def flatMap[V](f: T => Result[V]): Failure[V] = {
       Failure(msg, value.flatMap(f(_).asSuccess.map(_.value)))
     }
-    override def toString = s"Failure($msg, $value)"
+    override def toString: String = s"Failure($msg, $value)"
   }
 
   /**
