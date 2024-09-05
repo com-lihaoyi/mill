@@ -68,30 +68,24 @@ jobs:
           # Run unit and module tests on both oldest and newest Java versions
           - '"{main,scalalib,testrunner,bsp}.__.test"'
         include:
-          # For most tests, run them arbitrarily on Java 8 or Java 17 on Linux, and
+          # For most tests, run them arbitrarily on Java 11 or Java 17 on Linux, and
           # on the opposite version on Windows below, so we get decent coverage of
           # each test on each Java version and each operating system
           - java-version: 11
-            millargs: '"scalajslib.__.test"'
-          - java-version: 11
-            millargs: '"scalanativelib.__.test"'
+            millargs: "'{scalajslib,scalanativelib}.__.test'"
           - java-version: 17
             millargs: "contrib._.test"
 
           # Group these tests together to try and balance out the runtimes of each job
           # Just running in `local` mode since they shouldn't depend on the mode
           - java-version: 17
-            millargs: "'example.javalib.__.local.test'"
-          - java-version: 17
-            millargs: "'example.scalalib.__.local.test'"
+            millargs: "'example.{javalib,scalalib}.__.local.test'"
           - java-version: 11
             millargs: "'example.thirdparty[{mockito,acyclic,commons-io}].local.test'"
           - java-version: 17
             millargs: "'example.thirdparty[{fansi,jimfs,netty,gatling}].local.test'"
           - java-version: 11
-            millargs: "'example.depth.__.local.test'"
-          - java-version: 17
-            millargs: "'example.extending.__.local.test'"
+            millargs: "'example.{depth,extending}.__.local.test'"
 
             # Most of these integration tests should not depend on which mode they
             # are run in, so just run them in `local`
