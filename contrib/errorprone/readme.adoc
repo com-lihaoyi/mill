@@ -1,4 +1,5 @@
 = Mill ErrorProne Plugin
+:page-aliases: Plugin_ErrorProne.adoc
 
 https://errorprone.info/index[Error Prone] augments the Java compiler's type checker and detect common mistakes at compile time.
 
