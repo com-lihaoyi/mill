@@ -46,6 +46,7 @@ jobs:
       - uses: actions/download-artifact@v4
         if: ${{ !inputs.populate_cache }}
         with:
+          path: artifact
           name: ${{ inputs.os }}-artifact
 
       - name: Unzip Artifact
