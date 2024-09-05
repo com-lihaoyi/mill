@@ -1,7 +1,7 @@
 package mill.testkit
 import utest._
 
-object ExampleTestSuite extends TestSuite {
+object UtestExampleTestSuite extends TestSuite {
   val workspaceSourcePath: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER"))
   val clientServerMode: Boolean = sys.env("MILL_INTEGRATION_SERVER_MODE").toBoolean
 

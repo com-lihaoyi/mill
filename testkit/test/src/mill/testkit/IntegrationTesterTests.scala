@@ -10,7 +10,7 @@ object IntegrationTesterTests extends TestSuite with IntegrationTestSuite {
   def tests: Tests = Tests {
 
     test("integration") {
-      integrationTest{ tester =>
+      integrationTest { tester =>
         val res1 = tester.eval("testTask")
         assert(res1.isSuccess)
         assert(res1.err.contains("compiling 1 Scala source")) // compiling the `build.mill`
