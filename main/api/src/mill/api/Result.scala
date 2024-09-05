@@ -74,8 +74,10 @@ object Result {
    */
   case class Failure[T](msg: String, value: Option[T] = None) extends Failing[T] {
     def map[V](f: T => V): Failure[V] = Result.Failure(msg, value.map(f(_)))
-    def flatMap[V](f: T => Result[V]): Failure[V] =
+    def flatMap[V](f: T => Result[V]): Failure[V] = {
       Failure(msg, value.flatMap(f(_).asSuccess.map(_.value)))
+    }
+    override def toString = s"Failure($msg, $value)"
   }
 
   /**

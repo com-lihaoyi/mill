@@ -104,7 +104,7 @@ object CodeGen {
           )
         }
 
-      os.write(dest, parts, createFolders = true)
+      os.write.over(dest, parts, createFolders = true)
     }
   }
 
