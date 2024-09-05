@@ -75,19 +75,19 @@ object AssemblyTests extends TestSuite {
   def tests: Tests = Tests {
     test("Assembly") {
       test("noExe") {
-        test("small") - UnitTester(TestCase, sourceRoot = sources).scoped{eval =>
+        test("small") - UnitTester(TestCase, sourceRoot = sources).scoped { eval =>
           val Right(result) = eval(TestCase.noExe.small.assembly)
           runAssembly(result.value.path, TestCase.millSourcePath)
 
         }
-        test("large") - UnitTester(TestCase, sourceRoot = sources).scoped{eval =>
+        test("large") - UnitTester(TestCase, sourceRoot = sources).scoped { eval =>
           val Right(result) = eval(TestCase.noExe.large.assembly)
           runAssembly(result.value.path, TestCase.millSourcePath)
 
         }
       }
       test("exe") {
-        test("small") - UnitTester(TestCase, sourceRoot = sources).scoped{eval =>
+        test("small") - UnitTester(TestCase, sourceRoot = sources).scoped { eval =>
           val Right(result) = eval(TestCase.exe.small.assembly)
           val originalPath = result.value.path
           val resolvedPath =
@@ -99,7 +99,7 @@ object AssemblyTests extends TestSuite {
           runAssembly(resolvedPath, TestCase.millSourcePath, checkExe = true)
         }
 
-        test("large-should-fail") - UnitTester(TestCase, sourceRoot = sources).scoped{eval =>
+        test("large-should-fail") - UnitTester(TestCase, sourceRoot = sources).scoped { eval =>
           val Left(Result.Failure(msg, Some(res))) = eval(TestCase.exe.large.assembly)
           val expectedMsg =
             """The created assembly jar contains more than 65535 ZIP entries.

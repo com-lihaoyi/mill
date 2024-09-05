@@ -25,7 +25,6 @@ object UnitTesterTests extends TestSuite {
       }
 
       UnitTester(build, resourcePath).scoped { eval =>
-
         val Right(result) = eval(build.testTask)
         assert(result.value == "HELLO WORLD SOURCE FILE")
       }

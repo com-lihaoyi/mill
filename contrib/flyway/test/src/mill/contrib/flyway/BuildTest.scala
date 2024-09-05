@@ -21,12 +21,12 @@ object BuildTest extends TestSuite {
   }
 
   def tests = Tests {
-    test("clean") - UnitTester(Build, null).scoped{eval =>
+    test("clean") - UnitTester(Build, null).scoped { eval =>
       val Right(result) = eval(Build.build.flywayClean())
       assert(result.evalCount > 0)
     }
 
-    test("migrate") - UnitTester(Build, null).scoped{eval =>
+    test("migrate") - UnitTester(Build, null).scoped { eval =>
       val Right(result) = eval(Build.build.flywayMigrate())
       assert(
         result.evalCount > 0,
@@ -39,7 +39,7 @@ object BuildTest extends TestSuite {
       )
     }
 
-    test("info") - UnitTester(Build, null).scoped{eval =>
+    test("info") - UnitTester(Build, null).scoped { eval =>
       val Right(result) = eval(Build.build.flywayInfo())
       assert(result.evalCount > 0)
     }

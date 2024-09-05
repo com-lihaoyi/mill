@@ -37,7 +37,10 @@ object GitlabModuleTests extends TestSuite {
 
   override def tests: Tests = Tests {
 
-    test("GitlabPublishModule produces sane error message") - UnitTester(GitlabModule, null).scoped{eval =>
+    test("GitlabPublishModule produces sane error message") - UnitTester(
+      GitlabModule,
+      null
+    ).scoped { eval =>
       val e = eval(GitlabModule.gitlabHeaders(Map.empty))
 
       assertMatch(e) {
@@ -46,13 +49,14 @@ object GitlabModuleTests extends TestSuite {
       }
     }
 
-    test("GitlabMavenRepository produces sane error message") - UnitTester(GLMvnRepo, null).scoped{eval =>
-      val e = eval(GLMvnRepo.mavenRepository)
+    test("GitlabMavenRepository produces sane error message") - UnitTester(GLMvnRepo, null).scoped {
+      eval =>
+        val e = eval(GLMvnRepo.mavenRepository)
 
-      assertMatch(e) {
-        case Left(Failure(s, _))
-            if s.startsWith("Token lookup for PACKAGE repository") =>
-      }
+        assertMatch(e) {
+          case Left(Failure(s, _))
+              if s.startsWith("Token lookup for PACKAGE repository") =>
+        }
     }
   }
 

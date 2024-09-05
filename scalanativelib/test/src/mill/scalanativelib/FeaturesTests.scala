@@ -16,7 +16,7 @@ object FeaturesTests extends TestSuite {
   val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "features"
 
   val tests: Tests = Tests {
-    test("incremental compilation works") - UnitTester(Features, millSourcePath).scoped{eval =>
+    test("incremental compilation works") - UnitTester(Features, millSourcePath).scoped { eval =>
       val Right(_) = eval(Features.nativeLink)
       val Right(result) = eval(Features.nativeWorkdir)
       assert(os.walk(result.value).exists(_.ext == "ll"))

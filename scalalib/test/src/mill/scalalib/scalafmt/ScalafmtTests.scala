@@ -31,72 +31,73 @@ object ScalafmtTests extends TestSuite {
 
   def tests: Tests = Tests {
     test("scalafmt") {
-      def checkReformat(reformatCommand: mill.define.Command[Unit], buildSrcIncluded: Boolean) = UnitTester(ScalafmtTestModule, resourcePath).scoped{eval =>
-        os.write(
-          ScalafmtTestModule.millSourcePath / ".scalafmt.conf",
-          s"""version = $scalafmtTestVersion
-             |runner.dialect = scala213
-             |""".stripMargin
-        )
-        val before = getProjectFiles(ScalafmtTestModule.core, eval)
-
-        // first reformat
-        val Right(_) = eval.apply(reformatCommand)
-
-        val firstReformat = getProjectFiles(ScalafmtTestModule.core, eval)
-
-        assert(
-          firstReformat("Main.scala").modifyTime > before("Main.scala").modifyTime,
-          firstReformat("Main.scala").content != before("Main.scala").content,
-          firstReformat("Person.scala").modifyTime > before("Person.scala").modifyTime,
-          firstReformat("Person.scala").content != before("Person.scala").content,
-          // resources files aren't modified
-          firstReformat("application.conf").modifyTime == before(
-            "application.conf"
-          ).modifyTime
-        )
-
-        if (buildSrcIncluded) {
-          assert(
-            firstReformat("util.sc").modifyTime > before("util.sc").modifyTime,
-            firstReformat("util.sc").content != before("util.sc").content
+      def checkReformat(reformatCommand: mill.define.Command[Unit], buildSrcIncluded: Boolean) =
+        UnitTester(ScalafmtTestModule, resourcePath).scoped { eval =>
+          os.write(
+            ScalafmtTestModule.millSourcePath / ".scalafmt.conf",
+            s"""version = $scalafmtTestVersion
+               |runner.dialect = scala213
+               |""".stripMargin
           )
-        } else {
+          val before = getProjectFiles(ScalafmtTestModule.core, eval)
+
+          // first reformat
+          val Right(_) = eval.apply(reformatCommand)
+
+          val firstReformat = getProjectFiles(ScalafmtTestModule.core, eval)
+
           assert(
-            firstReformat("util.sc").modifyTime == before("util.sc").modifyTime,
-            firstReformat("util.sc").content == before("util.sc").content
+            firstReformat("Main.scala").modifyTime > before("Main.scala").modifyTime,
+            firstReformat("Main.scala").content != before("Main.scala").content,
+            firstReformat("Person.scala").modifyTime > before("Person.scala").modifyTime,
+            firstReformat("Person.scala").content != before("Person.scala").content,
+            // resources files aren't modified
+            firstReformat("application.conf").modifyTime == before(
+              "application.conf"
+            ).modifyTime
+          )
+
+          if (buildSrcIncluded) {
+            assert(
+              firstReformat("util.sc").modifyTime > before("util.sc").modifyTime,
+              firstReformat("util.sc").content != before("util.sc").content
+            )
+          } else {
+            assert(
+              firstReformat("util.sc").modifyTime == before("util.sc").modifyTime,
+              firstReformat("util.sc").content == before("util.sc").content
+            )
+          }
+
+          // cached reformat
+          val Right(_) = eval.apply(reformatCommand)
+
+          val cached = getProjectFiles(ScalafmtTestModule.core, eval)
+
+          assert(
+            cached("Main.scala").modifyTime == firstReformat("Main.scala").modifyTime,
+            cached("Person.scala").modifyTime == firstReformat("Person.scala").modifyTime,
+            cached("util.sc").modifyTime == firstReformat("util.sc").modifyTime,
+            cached("application.conf").modifyTime == firstReformat(
+              "application.conf"
+            ).modifyTime
+          )
+
+          // reformat after change
+          os.write.over(cached("Main.scala").path, cached("Main.scala").content + "\n object Foo")
+
+          val Right(_) = eval.apply(reformatCommand)
+
+          val afterChange = getProjectFiles(ScalafmtTestModule.core, eval)
+
+          assert(
+            afterChange("Main.scala").modifyTime > cached("Main.scala").modifyTime,
+            afterChange("Person.scala").modifyTime == cached("Person.scala").modifyTime,
+            afterChange("application.conf").modifyTime == cached(
+              "application.conf"
+            ).modifyTime
           )
         }
-
-        // cached reformat
-        val Right(_) = eval.apply(reformatCommand)
-
-        val cached = getProjectFiles(ScalafmtTestModule.core, eval)
-
-        assert(
-          cached("Main.scala").modifyTime == firstReformat("Main.scala").modifyTime,
-          cached("Person.scala").modifyTime == firstReformat("Person.scala").modifyTime,
-          cached("util.sc").modifyTime == firstReformat("util.sc").modifyTime,
-          cached("application.conf").modifyTime == firstReformat(
-            "application.conf"
-          ).modifyTime
-        )
-
-        // reformat after change
-        os.write.over(cached("Main.scala").path, cached("Main.scala").content + "\n object Foo")
-
-        val Right(_) = eval.apply(reformatCommand)
-
-        val afterChange = getProjectFiles(ScalafmtTestModule.core, eval)
-
-        assert(
-          afterChange("Main.scala").modifyTime > cached("Main.scala").modifyTime,
-          afterChange("Person.scala").modifyTime == cached("Person.scala").modifyTime,
-          afterChange("application.conf").modifyTime == cached(
-            "application.conf"
-          ).modifyTime
-        )
-      }
 
       test("reformat") - checkReformat(ScalafmtTestModule.core.reformat(), false)
       test("reformatAll") - checkReformat(

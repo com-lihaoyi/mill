@@ -81,7 +81,7 @@ object HelloJSWorldTests extends TestSuite {
   val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-js-world"
 
   def tests: Tests = Tests {
-    test("compile") - UnitTester(HelloJSWorld, millSourcePath).scoped{eval =>
+    test("compile") - UnitTester(HelloJSWorld, millSourcePath).scoped { eval =>
       def testCompileFromScratch(scalaVersion: String, scalaJSVersion: String): Unit = {
         val Right(result) =
           eval(HelloJSWorld.build(scalaVersion, scalaJSVersion).compile)
@@ -108,7 +108,7 @@ object HelloJSWorldTests extends TestSuite {
         scalaJSVersion: String,
         optimize: Boolean,
         legacy: Boolean
-    ): Unit = UnitTester(HelloJSWorld, millSourcePath).scoped{eval =>
+    ): Unit = UnitTester(HelloJSWorld, millSourcePath).scoped { eval =>
       val module = HelloJSWorld.build(scalaVersion, scalaJSVersion)
       val jsFile =
         if (legacy) {
@@ -153,7 +153,7 @@ object HelloJSWorldTests extends TestSuite {
       )
     }
     test("jar") {
-      test("containsSJSIRs") - UnitTester(HelloJSWorld, millSourcePath).scoped{eval =>
+      test("containsSJSIRs") - UnitTester(HelloJSWorld, millSourcePath).scoped { eval =>
         val (scala, scalaJS) = HelloJSWorld.matrix.head
         val Right(result) =
           eval(HelloJSWorld.build(scala, scalaJS).jar)
@@ -166,13 +166,14 @@ object HelloJSWorldTests extends TestSuite {
       }
     }
     test("publish") {
-      def testArtifactId(scalaVersion: String, scalaJSVersion: String, artifactId: String): Unit = UnitTester(HelloJSWorld, millSourcePath).scoped{eval =>
-        val Right(result) = eval(HelloJSWorld.build(
-          scalaVersion,
-          scalaJSVersion
-        ).artifactMetadata)
-        assert(result.value.id == artifactId)
-      }
+      def testArtifactId(scalaVersion: String, scalaJSVersion: String, artifactId: String): Unit =
+        UnitTester(HelloJSWorld, millSourcePath).scoped { eval =>
+          val Right(result) = eval(HelloJSWorld.build(
+            scalaVersion,
+            scalaJSVersion
+          ).artifactMetadata)
+          assert(result.value.id == artifactId)
+        }
       test("artifactId_10") {
         testArtifactId(
           HelloJSWorld.scalaVersions.head,
@@ -190,16 +191,17 @@ object HelloJSWorldTests extends TestSuite {
     }
 
     def runTests(testTask: define.NamedTask[(String, Seq[TestResult])])
-        : Map[String, Map[String, TestResult]] = UnitTester(HelloJSWorld, millSourcePath).scoped{eval =>
-      val Left(Result.Failure(_, Some(res))) = eval(testTask)
+        : Map[String, Map[String, TestResult]] =
+      UnitTester(HelloJSWorld, millSourcePath).scoped { eval =>
+        val Left(Result.Failure(_, Some(res))) = eval(testTask)
 
-      val (doneMsg, testResults) = res
-      testResults
-        .groupBy(_.fullyQualifiedName)
-        .view
-        .mapValues(_.map(e => e.selector -> e).toMap)
-        .toMap
-    }
+        val (doneMsg, testResults) = res
+        testResults
+          .groupBy(_.fullyQualifiedName)
+          .view
+          .mapValues(_.map(e => e.selector -> e).toMap)
+          .toMap
+      }
 
     def checkUtest(scalaVersion: String, scalaJSVersion: String, cached: Boolean) = {
       val resultMap = runTests(
@@ -259,32 +261,34 @@ object HelloJSWorldTests extends TestSuite {
       )
     }
 
-    def checkRun(scalaVersion: String, scalaJSVersion: String): Unit = UnitTester(HelloJSWorld, millSourcePath).scoped{eval =>
-      val task = HelloJSWorld.build(scalaVersion, scalaJSVersion).run()
+    def checkRun(scalaVersion: String, scalaJSVersion: String): Unit =
+      UnitTester(HelloJSWorld, millSourcePath).scoped { eval =>
+        val task = HelloJSWorld.build(scalaVersion, scalaJSVersion).run()
 
-      val Right(result) = eval(task)
+        val Right(result) = eval(task)
 
-      val paths = EvaluatorPaths.resolveDestPaths(eval.outPath, task)
-      val log = os.read(paths.log)
-      assert(
-        result.evalCount > 0,
-        log.contains("node")
-        // TODO: reenable somehow
-        // In Scala.js 1.x, println's are sent to the stdout, not to the logger
-        // log.contains("Scala.js")
-      )
-    }
+        val paths = EvaluatorPaths.resolveDestPaths(eval.outPath, task)
+        val log = os.read(paths.log)
+        assert(
+          result.evalCount > 0,
+          log.contains("node")
+          // TODO: reenable somehow
+          // In Scala.js 1.x, println's are sent to the stdout, not to the logger
+          // log.contains("Scala.js")
+        )
+      }
 
     test("run") {
       testAllMatrix((scala, scalaJS) => checkRun(scala, scalaJS))
     }
 
-    def checkInheritedTargets[A](target: ScalaJSModule => T[A], expected: A) = UnitTester(HelloJSWorld, millSourcePath).scoped{eval =>
-      val Right(mainResult) = eval(target(HelloJSWorld.inherited))
-      val Right(testResult) = eval(target(HelloJSWorld.inherited.test))
-      assert(mainResult.value == expected)
-      assert(testResult.value == expected)
-    }
+    def checkInheritedTargets[A](target: ScalaJSModule => T[A], expected: A) =
+      UnitTester(HelloJSWorld, millSourcePath).scoped { eval =>
+        val Right(mainResult) = eval(target(HelloJSWorld.inherited))
+        val Right(testResult) = eval(target(HelloJSWorld.inherited.test))
+        assert(mainResult.value == expected)
+        assert(testResult.value == expected)
+      }
     test("test-scalacOptions") {
       checkInheritedTargets(_.scalacOptions, Seq("-deprecation"))
     }

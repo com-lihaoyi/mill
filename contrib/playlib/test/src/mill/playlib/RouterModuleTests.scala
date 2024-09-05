@@ -31,7 +31,7 @@ object RouterModuleTests extends TestSuite with PlayTestSuite {
     test("compileRouter") {
       matrix.foreach { case (scalaVersion, playVersion) =>
         skipUnsupportedVersions(playVersion) {
-          UnitTester(HelloWorld, resourcePath).scoped{eval =>
+          UnitTester(HelloWorld, resourcePath).scoped { eval =>
             val eitherResult = eval.apply(HelloWorld.core(scalaVersion, playVersion).compileRouter)
             val Right(result) = eitherResult
             val outputFiles = os.walk(result.value.classes.path).filter(os.isFile)
@@ -66,7 +66,7 @@ object RouterModuleTests extends TestSuite with PlayTestSuite {
     test("compileRouterInvalidRoutes") {
       matrix.foreach { case (scalaVersion, playVersion) =>
         skipUnsupportedVersions(playVersion) {
-          UnitTester(HelloWorld, invalidResourcePath).scoped{eval =>
+          UnitTester(HelloWorld, invalidResourcePath).scoped { eval =>
             val project = HelloWorld.core(scalaVersion, playVersion)
             val eitherResult = eval.apply(project.compileRouter)
             val Left(Failure(message, x)) = eitherResult
@@ -94,7 +94,7 @@ object RouterModuleTests extends TestSuite with PlayTestSuite {
     test("compileRouterInvalidSubRoutes") {
       matrix.foreach { case (scalaVersion, playVersion) =>
         skipUnsupportedVersions(playVersion) {
-          UnitTester(HelloWorld, invalidSubResourcePath).scoped{eval =>
+          UnitTester(HelloWorld, invalidSubResourcePath).scoped { eval =>
             val eitherResult = eval.apply(HelloWorld.core(scalaVersion, playVersion).compileRouter)
             val Left(Failure(message, x)) = eitherResult
             val playExpectedMessage =

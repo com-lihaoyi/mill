@@ -20,7 +20,7 @@ object JmhModuleTest extends TestSuite {
 
   def tests = Tests {
     test("jmh") {
-      test("listJmhBenchmarks") - UnitTester(jmh, testModuleSourcesPath).scoped{eval =>
+      test("listJmhBenchmarks") - UnitTester(jmh, testModuleSourcesPath).scoped { eval =>
         val paths = EvaluatorPaths.resolveDestPaths(eval.outPath, jmh.listJmhBenchmarks())
         val outFile = paths.dest / "benchmarks.out"
         val Right(result) = eval(jmh.listJmhBenchmarks("-o", outFile.toString))

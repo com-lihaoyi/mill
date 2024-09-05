@@ -66,7 +66,7 @@ trait HelloWorldTests extends TestSuite {
   def tests: Tests = Tests {
     test("twirlVersion") {
 
-      test("fromBuild") - UnitTester(HelloWorld, resourcePath / "hello-world").scoped{eval =>
+      test("fromBuild") - UnitTester(HelloWorld, resourcePath / "hello-world").scoped { eval =>
         val Right(result) =
           eval.apply(HelloWorld.core.twirlVersion)
 
@@ -78,7 +78,7 @@ trait HelloWorldTests extends TestSuite {
     }
     test("compileTwirl") {
       skipUnsupportedVersions {
-        UnitTester(HelloWorld, resourcePath / "hello-world", debugEnabled = true).scoped{eval =>
+        UnitTester(HelloWorld, resourcePath / "hello-world", debugEnabled = true).scoped { eval =>
           val res = eval.apply(HelloWorld.core.compileTwirl)
           assert(res.isRight)
           val Right(result) = res
@@ -121,8 +121,7 @@ trait HelloWorldTests extends TestSuite {
         UnitTester(
           HelloWorldWithInclusiveDot,
           sourceRoot = resourcePath / "hello-world-inclusive-dot"
-        ).scoped{eval =>
-
+        ).scoped { eval =>
           val Right(result) = eval.apply(HelloWorldWithInclusiveDot.core.compileTwirl)
 
           val outputFiles = os.walk(result.value.classes.path).filter(_.last.endsWith(".scala"))

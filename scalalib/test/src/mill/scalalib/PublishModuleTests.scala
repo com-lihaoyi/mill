@@ -81,7 +81,10 @@ object PublishModuleTests extends TestSuite {
 
   def tests: Tests = Tests {
     test("pom") {
-      test("should include scala-library dependency") - UnitTester(HelloWorldWithPublish, resourcePath).scoped{eval =>
+      test("should include scala-library dependency") - UnitTester(
+        HelloWorldWithPublish,
+        resourcePath
+      ).scoped { eval =>
         val Right(result) = eval.apply(HelloWorldWithPublish.core.pom)
 
         assert(
@@ -97,7 +100,7 @@ object PublishModuleTests extends TestSuite {
           (scalaLibrary \ "groupId").text == "org.scala-lang"
         )
       }
-      test("versionScheme") - UnitTester(HelloWorldWithPublish, resourcePath).scoped{eval =>
+      test("versionScheme") - UnitTester(HelloWorldWithPublish, resourcePath).scoped { eval =>
         val Right(result) = eval.apply(HelloWorldWithPublish.core.pom)
 
         assert(
@@ -143,7 +146,6 @@ object PublishModuleTests extends TestSuite {
             "SONATYPE_PASSWORD" -> "password"
           )
         ).scoped { eval =>
-
           val directValue = "direct:value"
           val Right(result) =
             eval.apply(HelloWorldWithPublish.core.checkSonatypeCreds(directValue))
@@ -156,7 +158,7 @@ object PublishModuleTests extends TestSuite {
       }
       test(
         "should throw exception if neither environment variables or direct argument were not passed"
-      ) - UnitTester(HelloWorldWithPublish, resourcePath).scoped{eval =>
+      ) - UnitTester(HelloWorldWithPublish, resourcePath).scoped { eval =>
         val Left(Result.Failure(msg, None)) =
           eval.apply(HelloWorldWithPublish.core.checkSonatypeCreds(""))
 
@@ -167,7 +169,10 @@ object PublishModuleTests extends TestSuite {
     }
 
     test("ivy") {
-      test("should include scala-library dependency") - UnitTester(HelloWorldWithPublish, resourcePath).scoped{eval =>
+      test("should include scala-library dependency") - UnitTester(
+        HelloWorldWithPublish,
+        resourcePath
+      ).scoped { eval =>
         val Right(result) = eval.apply(HelloWorldWithPublish.core.ivy)
 
         assert(
@@ -185,7 +190,7 @@ object PublishModuleTests extends TestSuite {
     }
 
     test("pom-packaging-type") - {
-      test("pom") - UnitTester(PomOnly, resourcePath).scoped{eval =>
+      test("pom") - UnitTester(PomOnly, resourcePath).scoped { eval =>
         val Right(result) = eval.apply(PomOnly.core.pom)
 //
 //        assert(

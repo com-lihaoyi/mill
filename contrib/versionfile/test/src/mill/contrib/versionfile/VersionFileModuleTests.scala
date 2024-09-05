@@ -15,7 +15,7 @@ object VersionFileModuleTests extends TestSuite {
       m: M,
       vf: M => VersionFileModule,
       versionText: String
-  ): UnitTester = UnitTester(m, null).scoped{eval =>
+  ): UnitTester = UnitTester(m, null).scoped { eval =>
     os.write.over(
       vf(m).millSourcePath / "version",
       versionText,
