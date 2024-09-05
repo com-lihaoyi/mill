@@ -49,24 +49,24 @@ object Discover {
     def applyImpl[T: Type](using Quotes): Expr[Discover] = {
       import quotes.reflect.*
       val seen = mutable.Set.empty[TypeRepr]
-      val crossSym = Symbol.requiredClass("mill.define.Cross")
-      val crossArg = crossSym.typeMembers.filter(_.isTypeParam).head
       val moduleSym = Symbol.requiredClass("mill.define.Module")
       val deprecatedSym = Symbol.requiredClass("scala.deprecated")
       def rec(tpe: TypeRepr): Unit = {
         if (seen.add(tpe)) {
           val typeSym = tpe.typeSymbol
           for {
-            // for some reason mill.define.Foreign has NoSymbol as type member.
+            // for some reason mill.define.Foreign has NoSymbol as field member.
             m <- typeSym.fieldMembers.filterNot(_ == Symbol.noSymbol).toList.sortBy(_.name.toString)
             memberTpe = m.termRef
             if memberTpe.baseClasses.contains(moduleSym)
-          } rec(memberTpe)
-
-          if (tpe.baseClasses.contains(crossSym)) {
-            val arg = tpe.memberType(crossArg)
-            val argSym = arg.typeSymbol
-            rec(tpe.memberType(argSym))
+          } {
+            rec(memberTpe)
+            memberTpe.asType match {
+              case '[mill.define.Cross[m]] =>
+                rec(TypeRepr.of[m])
+              case _ =>
+                () // no cross argument to extract
+            }
           }
         }
       }
