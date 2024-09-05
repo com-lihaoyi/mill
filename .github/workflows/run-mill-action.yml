@@ -46,12 +46,8 @@ jobs:
       - uses: actions/download-artifact@v4
         if: ${{ !inputs.populate_cache }}
         with:
-          path: artifact
+          path: .
           name: ${{ inputs.os }}-artifact
-
-      - name: Unzip Artifact
-        run: find .
-        if: ${{ !inputs.populate_cache }}
 
       - name: Unzip Artifact
         run: |
