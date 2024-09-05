@@ -76,6 +76,12 @@ trait TestModule
       testTask(T.task { args }, T.task { Seq.empty[String] })()
     }
 
+  def getTestEnvironmentVars(args: String*): Command[(String, String, String, Seq[String])] = {
+    T.command {
+      getTestEnvironmentVarsTask(T.task { args })()
+    }
+  }
+
   /**
    * Args to be used by [[testCached]].
    */
@@ -123,6 +129,40 @@ trait TestModule
    * If None is set, no file will be generated.
    */
   def testReportXml: T[Option[String]] = T(Some("test-report.xml"))
+
+  /**
+   * Returns a Tuple where the first element is the main-class, second and third are main-class-arguments and the forth is classpath
+   */
+  private def getTestEnvironmentVarsTask(args: Task[Seq[String]])
+      : Task[(String, String, String, Seq[String])] =
+    T.task {
+      val mainClass = "mill.testrunner.entrypoint.TestRunnerMain"
+      val outputPath = T.dest / "out.json"
+      val selectors = Seq.empty
+
+      val testArgs = TestArgs(
+        framework = testFramework(),
+        classpath = runClasspath().map(_.path),
+        arguments = args(),
+        sysProps = Map.empty,
+        outputPath = outputPath,
+        colored = T.log.colored,
+        testCp = testClasspath().map(_.path),
+        home = T.home,
+        globSelectors = selectors
+      )
+
+      val argsFile = T.dest / "testargs"
+      os.write(argsFile, upickle.default.write(testArgs))
+
+      val testRunnerClasspathArg =
+        zincWorker().scalalibClasspath()
+          .map(_.path.toNIO.toUri.toURL).mkString(",")
+
+      val cp = (runClasspath() ++ zincWorker().testrunnerEntrypointClasspath()).map(_.path.toString)
+
+      Result.Success((mainClass, testRunnerClasspathArg, argsFile.toString, cp))
+    }
 
   /**
    * Whether or not to use the test task destination folder as the working directory

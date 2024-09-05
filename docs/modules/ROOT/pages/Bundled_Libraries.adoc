@@ -1,4 +1,6 @@
-= External References
+= Bundled Libraries
+
+:page-aliases: External_References.adoc
 
 Mill comes bundled with a set of external Open Source libraries and projects.
 
@@ -39,7 +41,7 @@ ScalaDoc:: https://javadoc.io/doc/com.lihaoyi/requests_2.13/latest/index.html
 MainArgs is a small, dependency-free library for command line argument parsing
 in Scala.
 
-Mill uses MainArgs to handle argument parsing for `T.command`s that are run
+Mill uses MainArgs to handle argument parsing for ``T.command``s that are run
 from the command line.
 
 Project page:: https://github.com/com-lihaoyi/mainargs

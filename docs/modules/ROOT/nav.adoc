@@ -36,6 +36,7 @@
 * xref:Modules.adoc[]
 * xref:Cross_Builds.adoc[]
 * xref:Target_Query_Syntax.adoc[]
+* xref:Structuring_Large_Builds.adoc[]
 
 * xref:The_Mill_Evaluation_Model.adoc[]
 
@@ -72,6 +73,6 @@
 // *somewhere*.
 .Reference
 * xref:Mill_Design_Principles.adoc[]
-* xref:External_References.adoc[]
+* xref:Bundled_Libraries.adoc[]
 * {mill-doc-url}/api/latest/mill/index.html[Mill Scaladoc]
 * xref:Changelog.adoc[]
