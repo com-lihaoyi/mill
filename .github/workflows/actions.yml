@@ -42,6 +42,7 @@ jobs:
       millargs: __.compile
       populate_cache: true
   itest:
+    needs: build-linux
     strategy:
       fail-fast: false
       matrix:
@@ -65,6 +66,7 @@ jobs:
       buildcmd: ${{ matrix.buildcmd }}
 
   linux:
+    needs: build-linux
     strategy:
       fail-fast: false
       matrix:
@@ -123,6 +125,7 @@ jobs:
       millargs: ${{ matrix.millargs }}
 
   compiler-bridge:
+    needs: build-linux
     uses: ./.github/workflows/run-mill-action.yml
     with:
       java-version: '8'
@@ -130,18 +133,21 @@ jobs:
       env-bridge-versions: 'essential'
 
   format-check:
+    needs: build-linux
     uses: ./.github/workflows/run-mill-action.yml
     with:
       java-version: '11'
       millargs: mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources
 
   scalafix-check:
+    needs: build-linux
     uses: ./.github/workflows/run-mill-action.yml
     with:
       java-version: '11'
       millargs: -i -k __.fix --check
 
   bincompat-check:
+    needs: build-linux
     uses: ./.github/workflows/run-mill-action.yml
     with:
       java-version: '11'
@@ -149,6 +155,7 @@ jobs:
       continue-on-error: true
 
   windows:
+    needs: build-windows
     strategy:
       fail-fast: false
       matrix:
