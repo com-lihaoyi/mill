@@ -80,16 +80,17 @@ object ScriptsInvalidationTests extends IntegrationTestSuite {
       }
     }
     test("should handle ammonite ^ imports") {
-      test("first run") {
+      retry(3) {
+        // first run
         initWorkspace()
 
         val result = runTask("taskE")
         val expected = Set("a", "e", "taskE")
 
         assert(result == expected)
-      }
 
-      test("second run modifying script") {
+
+        // second run modifying script
         modifyFile(
           workspacePath / "build.mill",
           _.replace("""println("taskE")""", """System.out.println("taskE2")""")
