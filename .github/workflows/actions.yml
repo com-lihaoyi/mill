@@ -63,21 +63,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        java-version: [11, 17]
-        millargs:
-          # Run unit and module tests on both oldest and newest Java versions
-          - '"{main,scalalib,testrunner,bsp}.__.testCached"'
+
         include:
           # For most tests, run them arbitrarily on Java 11 or Java 17 on Linux, and
           # on the opposite version on Windows below, so we get decent coverage of
           # each test on each Java version and each operating system
+          # We also try to group tests together to manuaully balance out the runtimes of each jobs
+          - java-version: 17
+            millargs: "'{main,scalalib,testrunner,bsp}.__.testCached'"
           - java-version: 11
             millargs: "'{scalajslib,scalanativelib}.__.testCached'"
           - java-version: 17
             millargs: "contrib.__.testCached"
 
-          # Group these tests together to try and balance out the runtimes of each job
-          # Just running in `local` mode since they shouldn't depend on the mode
           - java-version: 17
             millargs: "'example.{javalib,scalalib}.__.local.testCached'"
           - java-version: 11
@@ -98,7 +96,7 @@ jobs:
             millargs: "'integration.invalidation[_].{fork,server}.testCached'"
 
           # Check docsite compiles
-          - java-version: 17
+          - java-version: 11
             millargs: docs.githubPages
 
 
