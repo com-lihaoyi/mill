@@ -49,16 +49,9 @@ jobs:
         include:
           # bootstrap tests
           - java-version: 11 # Have one job on oldest JVM
-            buildcmd: ci/test-mill-dev.sh
+            buildcmd: ci/test-mill-dev.sh && ci/test-mill-release.sh && ./mill -i -k __.ivyDepsTree && ./mill -i -k __.ivyDepsTree --withRuntime
           - java-version: 17 # Have one job on default JVM
-            buildcmd: ci/test-mill-release.sh
-          - java-version: 17
             buildcmd: ci/test-mill-bootstrap.sh
-          # Just some reporting to enable reasoning about library upgrades
-          - java-version: 11
-            buildcmd: |
-              ./mill -i -k __.ivyDepsTree
-              ./mill -i -k __.ivyDepsTree --withRuntime
 
     uses: ./.github/workflows/run-mill-action.yml
     with:
@@ -132,27 +125,12 @@ jobs:
       millargs: bridge.__.publishLocal
       env-bridge-versions: 'essential'
 
-  format-check:
+  format-scalafix-bincompat-check:
     needs: build-linux
     uses: ./.github/workflows/run-mill-action.yml
     with:
       java-version: '11'
-      millargs: mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources
-
-  scalafix-check:
-    needs: build-linux
-    uses: ./.github/workflows/run-mill-action.yml
-    with:
-      java-version: '11'
-      millargs: -i -k __.fix --check
-
-  bincompat-check:
-    needs: build-linux
-    uses: ./.github/workflows/run-mill-action.yml
-    with:
-      java-version: '11'
-      millargs: __.mimaReportBinaryIssues
-      continue-on-error: true
+      buildcmd: ./mill -i mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources + __.mimaReportBinaryIssues + __.fix --check
 
   windows:
     needs: build-windows
