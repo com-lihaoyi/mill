@@ -49,6 +49,9 @@ jobs:
           path: .
           name: ${{ inputs.os }}-artifact
 
+      - name: chmod executable
+        run: "chmod -R +x ."
+
       - uses: coursier/cache-action@v6
 
       - uses: actions/setup-java@v4
