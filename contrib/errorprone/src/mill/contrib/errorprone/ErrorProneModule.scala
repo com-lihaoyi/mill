@@ -18,13 +18,14 @@ trait ErrorProneModule extends JavaModule {
   def errorProneClasspath: T[Agg[PathRef]] = T {
     resolveDeps(T.task { errorProneDeps().map(bindDependency()) })()
   }
+
   def errorProneJavacEnableOptions: T[Seq[String]] = T {
     val processorPath = errorProneClasspath().map(_.path).mkString(File.pathSeparator)
-    val baseOpts = Seq(
+    val enableOpts = Seq(
       "-XDcompilePolicy=simple",
       "-processorpath",
       processorPath,
-      "-Xplugin:ErrorProne"
+      (Seq("-Xplugin:ErrorProne") ++ errorProneOptions()).mkString(" ")
     )
     val java17Options = Option.when(scala.util.Properties.isJavaAtLeast(16))(Seq(
       "--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
@@ -37,15 +38,18 @@ trait ErrorProneModule extends JavaModule {
       "--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED",
       "--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
       "--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED"
-    ).map(o => s"-J${o}"))
-    baseOpts ++ java17Options.toSeq.flatten
+    ).map(o => s"-J${o}")).toSeq.flatten
+    java17Options ++ enableOpts
   }
+
+  def errorProneOptions: T[Seq[String]] = T { Seq.empty[String] }
+
   override def javacOptions: T[Seq[String]] = T {
     val supOpts = super.javacOptions()
-    val additionalOpts = Option
+    val enableOpts = Option
       .when(!supOpts.exists(o => o.startsWith("-Xplugin:ErrorProne")))(
         errorProneJavacEnableOptions()
       )
-    supOpts ++ additionalOpts.toSeq.flatten
+    supOpts ++ enableOpts.toSeq.flatten
   }
 }
