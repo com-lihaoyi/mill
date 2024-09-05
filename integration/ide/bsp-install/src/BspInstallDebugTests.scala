@@ -1,18 +1,18 @@
 package mill.integration
 
-import mill.testkit.IntegrationTestSuite
+import mill.testkit.UtestIntegrationTestSuite
 import mill.bsp.Constants
 import utest._
 
-object BspInstallDebugTests extends IntegrationTestSuite {
+object BspInstallDebugTests extends UtestIntegrationTestSuite {
 
   val bsp4jVersion: String = sys.props.getOrElse("BSP4J_VERSION", ???)
   // we purposely enable debugging in this simulated test env
   override val debugLog: Boolean = true
 
   def tests: Tests = Tests {
-    test("BSP install forwards --debug option to server") {
-      initWorkspace()
+    test("BSP install forwards --debug option to server") - integrationTest { tester =>
+      import tester._
       eval("mill.bsp.BSP/install").isSuccess ==> true
       val jsonFile = workspacePath / Constants.bspDir / s"${Constants.serverName}.json"
       assert(os.exists(jsonFile))

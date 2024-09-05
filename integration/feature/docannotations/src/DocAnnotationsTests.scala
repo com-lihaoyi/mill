@@ -1,10 +1,10 @@
 package mill.integration
 
-import mill.testkit.IntegrationTestSuite
+import mill.testkit.UtestIntegrationTestSuite
 
 import utest._
 
-object DocAnnotationsTests extends IntegrationTestSuite {
+object DocAnnotationsTests extends UtestIntegrationTestSuite {
   def globMatches(glob: String, input: String): Boolean = {
     StringContext
       .glob(
@@ -16,8 +16,8 @@ object DocAnnotationsTests extends IntegrationTestSuite {
   }
 
   val tests: Tests = Tests {
-    initWorkspace()
-    test("test") - {
+    test("test") - integrationTest { tester =>
+      import tester._
       val res = eval(("inspect", "core.test.ivyDeps"))
       assert(res.isSuccess == true)
 

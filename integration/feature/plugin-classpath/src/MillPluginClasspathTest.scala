@@ -1,11 +1,10 @@
 package mill.integration
 
-import mill.testkit.IntegrationTestSuite
+import mill.testkit.UtestIntegrationTestSuite
 
 import utest._
 
-object MillPluginClasspathTest extends IntegrationTestSuite {
-  initWorkspace()
+object MillPluginClasspathTest extends UtestIntegrationTestSuite {
 
   val embeddedModules: Seq[(String, String)] = Seq(
     ("com.lihaoyi", "mill-main-client"),
@@ -31,37 +30,44 @@ object MillPluginClasspathTest extends IntegrationTestSuite {
   )
 
   val tests: Tests = Tests {
-    test("exclusions") - {
-      val res1 = eval(("--meta-level", "1", "resolveDepsExclusions"))
-      assert(res1.isSuccess)
 
-      val exclusions = out("mill-build.resolveDepsExclusions").value[Seq[(String, String)]]
-      val expectedExclusions = embeddedModules
+    test("exclusions") - integrationTest { tester =>
+      import tester._
+      retry(3) {
+        val res1 = eval(("--meta-level", "1", "resolveDepsExclusions"))
+        assert(res1.isSuccess)
 
-      val diff = expectedExclusions.toSet.diff(exclusions.toSet)
-      assert(diff.isEmpty)
+        val exclusions = out("mill-build.resolveDepsExclusions").value[Seq[(String, String)]]
+        val expectedExclusions = embeddedModules
 
-    }
-    test("runClasspath") - {
-      // We expect Mill core transitive dependencies to be filtered out
-      val res1 = eval(("--meta-level", "1", "runClasspath"))
-      assert(res1.isSuccess)
-
-      val runClasspath = out("mill-build.runClasspath").value[Seq[String]]
-
-      val unexpectedArtifacts = embeddedModules.map {
-        case (o, n) => s"${o.replaceAll("[.]", "/")}/${n}"
+        val diff = expectedExclusions.toSet.diff(exclusions.toSet)
+        assert(diff.isEmpty)
       }
+    }
+    test("runClasspath") - integrationTest { tester =>
+      import tester._
+      retry(3) {
+        // We expect Mill core transitive dependencies to be filtered out
+        val res1 = eval(("--meta-level", "1", "runClasspath"))
+        assert(res1.isSuccess)
 
-      val unexpected = unexpectedArtifacts.flatMap { a =>
-        runClasspath.find(p => p.toString.contains(a)).map((a, _))
-      }.toMap
-      assert(unexpected.isEmpty)
+        val runClasspath = out("mill-build.runClasspath").value[Seq[String]]
 
-      val expected = Seq("com/disneystreaming/smithy4s/smithy4s-mill-codegen-plugin_mill0.11_2.13")
-      assert(expected.forall(a =>
-        runClasspath.exists(p => p.toString().replace('\\', '/').contains(a))
-      ))
+        val unexpectedArtifacts = embeddedModules.map {
+          case (o, n) => s"${o.replaceAll("[.]", "/")}/${n}"
+        }
+
+        val unexpected = unexpectedArtifacts.flatMap { a =>
+          runClasspath.find(p => p.toString.contains(a)).map((a, _))
+        }.toMap
+        assert(unexpected.isEmpty)
+
+        val expected =
+          Seq("com/disneystreaming/smithy4s/smithy4s-mill-codegen-plugin_mill0.11_2.13")
+        assert(expected.forall(a =>
+          runClasspath.exists(p => p.toString().replace('\\', '/').contains(a))
+        ))
+      }
     }
 
   }

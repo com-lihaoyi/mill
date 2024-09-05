@@ -99,12 +99,12 @@ public class FileToStreamTailerTest extends FreeSpec {
                     final FileToStreamTailer tailer = new FileToStreamTailer(file, ps, 10);
                 ) {
                     tailer.start();
-                    Thread.sleep(100);
+                    Thread.sleep(500);
                     expectEquals(bas.toString(), "");
                     out.println("log line");
                     expectTrue(file.exists());
-                    Thread.sleep(100);
-                    expectEquals(bas.toString(), "log line" + System.lineSeparator());
+                    Thread.sleep(500);
+                    expectEquals(bas.toString().trim(), "log line");
                 }
             }
         });

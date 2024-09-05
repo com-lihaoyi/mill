@@ -9,15 +9,17 @@ trait IntegrationTesterBase {
    * Mill build being tested. Contains the `build.mill` file, any application code, and
    * the `out/` folder containing the build output
    *
-   * Typically just `pwd`, which is a sandbox directory for test suites run using Mill.
+   * Typically a temp folder inside `pwd`, just in case there's some leftover
+   * files/processes from previous integration tests that may interfere with the current one
    */
-  val workspacePath: os.Path = os.pwd
+  val workspacePath: os.Path = os.temp.dir(dir = os.pwd)
 
   /**
    * Initializes the workspace in preparation for integration testing
    */
   def initWorkspace(): Unit = {
     println(s"Copying integration test sources from $workspaceSourcePath to $workspacePath")
+    os.makeDir.all(workspacePath)
     os.list(workspacePath).foreach(os.remove.all(_))
     os.list(workspaceSourcePath).filter(_.last != out).foreach(os.copy.into(_, workspacePath))
     os.remove.all(workspacePath / "out")

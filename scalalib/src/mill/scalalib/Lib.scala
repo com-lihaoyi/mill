@@ -132,7 +132,9 @@ object Lib {
       root <- sources
       if os.exists(root.path)
       path <- (if (os.isDir(root.path)) os.walk(root.path) else Seq(root.path))
-      if os.isFile(path) && (extensions.exists(path.ext == _) && !isHiddenFile(path))
+      if os.isFile(path) && (extensions.exists(ex => path.last.endsWith(s".$ex")) && !isHiddenFile(
+        path
+      ))
     } yield path
   }
 

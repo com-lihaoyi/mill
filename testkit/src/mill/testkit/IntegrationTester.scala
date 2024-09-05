@@ -23,7 +23,8 @@ import scala.util.control.NonFatal
 class IntegrationTester(
     val clientServerMode: Boolean,
     val workspaceSourcePath: os.Path,
-    val millExecutable: os.Path
+    val millExecutable: os.Path,
+    override val debugLog: Boolean = false
 ) extends IntegrationTester.Impl {
   initWorkspace()
 }

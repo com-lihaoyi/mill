@@ -38,8 +38,12 @@ trait CoursierSupport {
   )(f: () => T): T = {
     val tried = Try(f())
     tried match {
-      case Failure(e: NoSuchFileException)
-          if retryCount > 0 && e.getMessage.contains("__sha1.computed") =>
+      case Failure(e)
+          if retryCount > 0
+            && e.getMessage.contains("__sha1.computed")
+            && (e.isInstanceOf[NoSuchFileException] || e.isInstanceOf[
+              java.nio.file.AccessDeniedException
+            ]) =>
         // this one is not detected by coursier itself, so we try-catch handle it
         // I assume, this happens when another coursier thread already moved or rename dthe temporary file
         ctx.foreach(_.log.debug(

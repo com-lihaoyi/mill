@@ -1,14 +1,13 @@
 package mill.integration
 
-import mill.testkit.IntegrationTestSuite
+import mill.testkit.UtestIntegrationTestSuite
 
 import utest._
 
-object CodeSigNestedTests extends IntegrationTestSuite {
+object CodeSigNestedTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
-    initWorkspace()
-
-    test("nested") {
+    test("nested") - integrationTest { tester =>
+      import tester._
       // Make sure the code-change invalidation works in more complex cases: multi-step
       // target graphs, targets inside module objects, targets inside module traits
 
@@ -190,7 +189,8 @@ object CodeSigNestedTests extends IntegrationTestSuite {
       assert(addedNewlinesInsideCurlies.out == "")
     }
 
-    test("trait") {
+    test("trait") - integrationTest { tester =>
+      import tester._
       val initial = eval("traitOuter.traitInner.inner")
       assert(
         initial.out.linesIterator.toSet == Set(

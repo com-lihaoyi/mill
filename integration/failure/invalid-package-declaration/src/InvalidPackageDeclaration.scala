@@ -1,15 +1,13 @@
 package mill.integration
 
-import mill.testkit.IntegrationTestSuite
+import mill.testkit.UtestIntegrationTestSuite
 
 import utest._
 
-object InvalidPackageDeclaration extends IntegrationTestSuite {
+object InvalidPackageDeclaration extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
-    initWorkspace()
-
-    test("success") {
-      val res = eval(("resolve", "_"))
+    test("success") - integrationTest { tester =>
+      val res = tester.eval(("resolve", "_"))
       assert(res.isSuccess == false)
       assert(res.err.contains(
         """Package declaration "package wrong" in build.mill does not match folder structure. Expected: "package build""""

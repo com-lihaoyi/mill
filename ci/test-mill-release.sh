@@ -19,3 +19,5 @@ test -d $EXAMPLE/out/foo/3.3.3/compile.dest
 (cd $EXAMPLE && ../../../../out/dist/assembly.dest/mill show "bar[2.13.8].assembly")
 
 test -f $EXAMPLE/out/bar/2.13.8/assembly.dest/out.jar
+
+(cd $EXAMPLE && ../../../../out/dist/assembly.dest/mill shutdown)
