@@ -1,20 +1,2 @@
 = Mill ErrorProne Plugin
 
-== Caveats / JVM Options
-
-If you're on Java 17 or newer, you need to add the following options to your `.mill-jvm-opts` file in your project directory.
-
-.Required options in `.mill-jvm-opts`
-----
---add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED
---add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED
---add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED
---add-exports=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED
---add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED
---add-exports=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED
---add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED
---add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED
---add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED
---add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED
-----
-

@@ -18,26 +18,34 @@ trait ErrorProneModule extends JavaModule {
   def errorProneClasspath: T[Agg[PathRef]] = T {
     resolveDeps(T.task { errorProneDeps().map(bindDependency()) })()
   }
-  def errorProneJavacOptions: T[Seq[String]] = T {
+  def errorProneJavacEnableOptions: T[Seq[String]] = T {
     val processorPath = errorProneClasspath().map(_.path).mkString(File.pathSeparator)
-    Seq(
+    val baseOpts = Seq(
       "-XDcompilePolicy=simple",
       "-processorpath",
       processorPath,
       "-Xplugin:ErrorProne"
     )
-//    val java17Options = Seq(
-//      "--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
-//      "--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED",
-//      "--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED",
-//      "--add-exports=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED",
-//      "--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED",
-//      "--add-exports=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED",
-//      "--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED",
-//      "--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED",
-//      "--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
-//      "--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED"
-//    )
+    val java17Options = Option.when(scala.util.Properties.isJavaAtLeast(16))(Seq(
+      "--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
+      "--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED",
+      "--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED",
+      "--add-exports=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED",
+      "--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED",
+      "--add-exports=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED",
+      "--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED",
+      "--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED",
+      "--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
+      "--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED"
+    ).map(o => s"-J${o}"))
+    baseOpts ++ java17Options.toSeq.flatten
   }
-  override def javacOptions: T[Seq[String]] = super.javacOptions() ++ errorProneJavacOptions()
+  override def javacOptions: T[Seq[String]] = T {
+    val supOpts = super.javacOptions()
+    val additionalOpts = Option
+      .when(!supOpts.exists(o => o.startsWith("-Xplugin:ErrorProne")))(
+        errorProneJavacEnableOptions()
+      )
+    supOpts ++ additionalOpts.toSeq.flatten
+  }
 }

@@ -22,13 +22,9 @@ object ErrorProneTests extends TestSuite {
     }
     test("errorprone") {
       test("compileFail") {
-        // we require additional JVM options, which we can't set at runtime, see contrib/errorprone/readme.adoc
-        if (scala.util.Properties.isJavaAtLeast(16)) "skipping test on Java 16+"
-        else {
-          val eval = UnitTester(errorProne, testModuleSourcesPath)
-          val res = eval(errorProne.compile)
-          assert(res.isLeft)
-        }
+        val eval = UnitTester(errorProne, testModuleSourcesPath)
+        val res = eval(errorProne.compile)
+        assert(res.isLeft)
       }
     }
   }
