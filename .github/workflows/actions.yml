@@ -141,11 +141,9 @@ jobs:
           - java-version: 11
             millargs: '"example.scalalib.basic.__.fork.testCached"'
           - java-version: 17
-            millargs: "'integration.feature[_].fork.testCached'"
+            millargs: "'integration.{feature,failure}[_].fork.testCached'"
           - java-version: 11
             millargs: "'integration.invalidation[_].server.testCached'"
-          - java-version: 17
-            millargs: "'integration.failure[_].fork.testCached'"
           - java-version: 11
             millargs: "contrib.__.testCached"
 
