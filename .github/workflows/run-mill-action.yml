@@ -50,6 +50,8 @@ jobs:
         run: |
           unzip -l artifact
           unzip artifact
+        if: ${{ !inputs.populate_cache }}
+
       - uses: coursier/cache-action@v6
 
       - uses: actions/setup-java@v4
