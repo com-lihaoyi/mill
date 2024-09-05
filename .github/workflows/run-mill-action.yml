@@ -38,6 +38,11 @@ jobs:
       MILL_COMPILER_BRIDGE_VERSIONS: ${{ inputs.env-bridge-versions }}
 
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+        if: ${{ inputs.populate_cache }}
+
       - uses: actions/download-artifact@v4
         if: ${{ !inputs.populate_cache }}
 
