@@ -28,7 +28,19 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-
+  build-linux:
+    uses: ./.github/workflows/run-mill-action.yml
+    with:
+      java-version: 11
+      millargs: __.compile
+      populate_cache: true
+  build-windows:
+    uses: ./.github/workflows/run-mill-action.yml
+    with:
+      os: windows-latest
+      java-version: 11
+      millargs: __.compile
+      populate_cache: true
   itest:
     strategy:
       fail-fast: false

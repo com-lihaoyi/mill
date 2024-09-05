@@ -18,6 +18,9 @@ on:
       continue-on-error:
         default: false
         type: boolean
+      populate_cache:
+        default: false
+        type: boolean
       timeout-minutes:
         default: 60
         type: number
@@ -35,9 +38,8 @@ jobs:
       MILL_COMPILER_BRIDGE_VERSIONS: ${{ inputs.env-bridge-versions }}
 
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        if: ${{ !inputs.populate_cache }}
 
       - uses: coursier/cache-action@v6
 
@@ -62,3 +64,8 @@ jobs:
       - name: Run Mill (on Windows) '${{ inputs.millargs }}'
         run: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -ij1 __.resolvedIvyDeps; cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k ${{ inputs.millargs }}
         if: inputs.millargs != '' && startsWith(inputs.os, 'windows')
+
+      - uses: actions/upload-artifact@v4
+        with:
+          path: .
+        if: ${{ inputs.populate_cache }}
