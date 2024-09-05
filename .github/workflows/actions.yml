@@ -70,7 +70,7 @@ jobs:
           # each test on each Java version and each operating system
           # We also try to group tests together to manuaully balance out the runtimes of each jobs
           - java-version: 17
-            millargs: "'{main,scalalib,testrunner,bsp}.__.testCached'"
+            millargs: "'{main,scalalib,testrunner,bsp,testkit}.__.testCached'"
           - java-version: 11
             millargs: "'{scalajslib,scalanativelib}.__.testCached'"
           - java-version: 17
