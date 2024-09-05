@@ -26,8 +26,8 @@ object BloopTests extends UtestIntegrationTestSuite {
       test("mill-build config should contain build.mill source") - integrationTest { tester =>
         import tester._
         val millBuildJsonFile = workspacePath / ".bloop" / "mill-build-.json"
-        val config = ujson.read(os.read.stream(millBuildJsonFile))
         val installResult: Boolean = eval("mill.contrib.bloop.Bloop/install").isSuccess
+        val config = ujson.read(os.read.stream(millBuildJsonFile))
         assert(installResult)
         assert(config("project")("sources").arr.exists(path =>
           os.Path(path.str).last == "build.mill"
