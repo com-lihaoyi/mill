@@ -96,7 +96,6 @@ object ScriptsInvalidationTests extends UtestIntegrationTestSuite {
       }
     }
     test("should handle ammonite paths with symbols") - integrationTest { tester =>
-      import tester._
 
       val result = runTask(tester, "taskSymbols")
       val expected = Set("taskSymbols")
@@ -104,7 +103,6 @@ object ScriptsInvalidationTests extends UtestIntegrationTestSuite {
       assert(result == expected)
     }
     test("should handle ammonite files with symbols") - integrationTest { tester =>
-      import tester._
 
       val result = runTask(tester, "taskSymbolsInFile")
       val expected = Set("taskSymbolsInFile")

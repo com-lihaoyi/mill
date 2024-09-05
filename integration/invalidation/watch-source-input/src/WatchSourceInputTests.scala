@@ -134,7 +134,6 @@ object WatchSourceInputTests extends UtestIntegrationTestSuite {
 
       // Make sure we clean up the workspace between retries
       test("noshow") - integrationTest { tester =>
-        import tester._
         retry(3) {
           if (!Util.isWindows) {
             testWatchSource(tester, false)
@@ -142,7 +141,6 @@ object WatchSourceInputTests extends UtestIntegrationTestSuite {
         }
       }
       test("show") - integrationTest { tester =>
-        import tester._
         retry(3) {
           if (!Util.isWindows) {
             testWatchSource(tester, true)
@@ -188,7 +186,6 @@ object WatchSourceInputTests extends UtestIntegrationTestSuite {
 
       // Make sure we clean up the workspace between retries
       test("noshow") - integrationTest { tester =>
-        import tester._
         retry(3) {
           if (!Util.isWindows) {
             testWatchInput(tester, false)
@@ -196,7 +193,6 @@ object WatchSourceInputTests extends UtestIntegrationTestSuite {
         }
       }
       test("show") - integrationTest { tester =>
-        import tester._
         retry(3) {
           if (!Util.isWindows) {
             testWatchInput(tester, true)

@@ -1,6 +1,5 @@
 package mill.testkit
 
-import os.Path
 
 abstract class UtestIntegrationTestSuite extends utest.TestSuite with IntegrationTestSuite {
   protected def workspaceSourcePath: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER"))

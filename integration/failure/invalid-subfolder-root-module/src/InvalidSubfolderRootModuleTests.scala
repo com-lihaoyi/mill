@@ -7,7 +7,6 @@ import utest._
 object InvalidSubfolderRootModuleTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test("success") - integrationTest { tester =>
-      import tester._
       val res = tester.eval(("resolve", "_"))
       assert(res.isSuccess == false)
       assert(res.err.contains("object `package` "))

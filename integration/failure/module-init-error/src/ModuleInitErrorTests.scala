@@ -8,7 +8,6 @@ object ModuleInitErrorTests extends UtestIntegrationTestSuite {
   def captureOutErr = true
   val tests: Tests = Tests {
     test("resolve") - integrationTest { tester =>
-      import tester._
       // Ensure that resolve works even of the modules containing the resolved
       // tasks are broken
       val res1 = tester.eval(("resolve", "foo.fooTarget"))

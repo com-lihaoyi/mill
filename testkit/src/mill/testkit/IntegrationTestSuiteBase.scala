@@ -1,7 +1,6 @@
 package mill.testkit
 
 import os.Path
-import utest._
 
 trait IntegrationTestSuite {
   protected def workspaceSourcePath: os.Path
@@ -10,7 +9,7 @@ trait IntegrationTestSuite {
   protected def millExecutable: Path
 
   def debugLog: Boolean = false
-  def integrationTest[T](t: IntegrationTester => T) = {
+  def integrationTest[T](t: IntegrationTester => T): T = {
     val tester =
       new IntegrationTester(clientServerMode, workspaceSourcePath, millExecutable, debugLog)
     try t(tester)

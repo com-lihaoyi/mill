@@ -7,7 +7,6 @@ import utest._
 object CompileErrorTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test - integrationTest { tester =>
-      import tester._
       val res = tester.eval("foo.scalaVersion")
 
       assert(res.isSuccess == false)

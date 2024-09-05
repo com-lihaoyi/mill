@@ -13,7 +13,6 @@ object GenIdeaTests extends UtestIntegrationTestSuite {
 
   def tests: Tests = Tests {
     test("helper assertPartialContentMatches works") - integrationTest { tester =>
-      import tester._
       val testContent =
         s"""line 1
            |line 2

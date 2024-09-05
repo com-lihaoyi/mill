@@ -7,7 +7,6 @@ import utest._
 object CrossCollisionsTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test("detect-collision") - integrationTest { tester =>
-      import tester._
       val res = tester.eval(("resolve", "foo._"))
       assert(!res.isSuccess)
       assert(res.err.contains("Cross module "))
