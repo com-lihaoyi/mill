@@ -6,7 +6,6 @@ import utest._
 
 object MillPluginClasspathTest extends IntegrationTestSuite {
 
-
   val embeddedModules: Seq[(String, String)] = Seq(
     ("com.lihaoyi", "mill-main-client"),
     ("com.lihaoyi", "mill-main-api_2.13"),
@@ -63,7 +62,8 @@ object MillPluginClasspathTest extends IntegrationTestSuite {
         }.toMap
         assert(unexpected.isEmpty)
 
-        val expected = Seq("com/disneystreaming/smithy4s/smithy4s-mill-codegen-plugin_mill0.11_2.13")
+        val expected =
+          Seq("com/disneystreaming/smithy4s/smithy4s-mill-codegen-plugin_mill0.11_2.13")
         assert(expected.forall(a =>
           runClasspath.exists(p => p.toString().replace('\\', '/').contains(a))
         ))
