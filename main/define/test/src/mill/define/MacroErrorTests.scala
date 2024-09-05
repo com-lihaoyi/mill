@@ -103,8 +103,7 @@ object MacroErrorTests extends TestSuite {
         val expectedMsg =
           "Target#apply() call cannot use `val n` defined within the Task{...} block"
         val err = compileError("""
-          given mill.define.Ctx = ???
-          new Module{
+          object foo extends TestBaseModule{
             def a = Task { 1 }
             val arr = Array(a)
             def b = {
@@ -122,8 +121,7 @@ object MacroErrorTests extends TestSuite {
         val expectedMsg =
           "Target#apply() call cannot use `val x` defined within the Task{...} block"
         val err = compileError("""
-          given mill.define.Ctx = ???
-          new Module{
+          object foo extends TestBaseModule{
             def a = Task { 1 }
             val arr = Array(a)
             def b = {
@@ -159,9 +157,25 @@ object MacroErrorTests extends TestSuite {
         }
       """
       )
-      assert(error.msg.contains("type mismatch;"))
-      assert(error.msg.contains("found   : Int"))
-      assert(error.msg.contains("required: String"))
+      assert(error.msg.contains("Cannot convert value to Cross.Factory[MyCrossModule]:"))
+      assert(error.msg.contains("- crossValue requires java.lang.String"))
+      assert(error.msg.contains("  but inner element of type scala.Int did not match."))
+    }
+
+    test("badCrossKeys2") {
+      val error = utest.compileError(
+        """
+        object foo extends TestBaseModule{
+          object cross extends Cross[MyCrossModule](Seq((1, 2), (2, 2), (3, 3)))
+          trait MyCrossModule extends Cross.Module2[String, Boolean]
+        }
+      """
+      )
+      assert(error.msg.contains("Cannot convert value to Cross.Factory[MyCrossModule]:"))
+      assert(error.msg.contains("- crossValue requires java.lang.String"))
+      assert(error.msg.contains("  but inner element of type (scala.Int, scala.Int) did not match at index 0."))
+      assert(error.msg.contains("- crossValue2 requires scala.Boolean"))
+      assert(error.msg.contains("  but inner element of type (scala.Int, scala.Int) did not match at index 1."))
     }
 
     test("invalidCrossType") {

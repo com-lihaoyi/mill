@@ -100,7 +100,8 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
   object define extends build.MillStableScalaModule {
     def moduleDeps = Seq(api, util)
     def compileIvyDeps = T {
-      if (scalaVersion().startsWith("3.")) Agg.empty else Agg(build.Deps.scalaReflect(scalaVersion()))
+      if (scalaVersion().startsWith("3.")) Agg(build.Deps.scalaCompiler(scalaVersion()))
+      else Agg(build.Deps.scalaReflect(scalaVersion()))
     }
     def ivyDeps = Agg(
       // Deps.millModuledefs, // TODO: port moduledefs to Scala 3
