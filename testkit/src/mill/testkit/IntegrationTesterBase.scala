@@ -11,7 +11,7 @@ trait IntegrationTesterBase {
    *
    * Typically just `pwd`, which is a sandbox directory for test suites run using Mill.
    */
-  val workspacePath: os.Path = os.pwd
+  val workspacePath: os.Path = os.temp(dir = os.pwd)
 
   /**
    * Initializes the workspace in preparation for integration testing
