@@ -133,15 +133,15 @@ object WatchSourceInputTests extends UtestIntegrationTestSuite {
     test("sources") {
 
       // Make sure we clean up the workspace between retries
-      test("noshow") - integrationTest { tester =>
-        retry(3) {
+      test("noshow") - retry(3) {
+        integrationTest { tester =>
           if (!Util.isWindows) {
             testWatchSource(tester, false)
           }
         }
       }
-      test("show") - integrationTest { tester =>
-        retry(3) {
+      test("show") - retry(3) {
+        integrationTest { tester =>
           if (!Util.isWindows) {
             testWatchSource(tester, true)
           }
@@ -185,15 +185,15 @@ object WatchSourceInputTests extends UtestIntegrationTestSuite {
     test("input") {
 
       // Make sure we clean up the workspace between retries
-      test("noshow") - integrationTest { tester =>
-        retry(3) {
+      test("noshow") - retry(3) {
+        integrationTest { tester =>
           if (!Util.isWindows) {
             testWatchInput(tester, false)
           }
         }
       }
-      test("show") - integrationTest { tester =>
-        retry(3) {
+      test("show") - retry(3) {
+        integrationTest { tester =>
           if (!Util.isWindows) {
             testWatchInput(tester, true)
           }
