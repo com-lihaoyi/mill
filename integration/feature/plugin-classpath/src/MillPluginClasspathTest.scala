@@ -31,7 +31,8 @@ object MillPluginClasspathTest extends IntegrationTestSuite {
 
   val tests: Tests = Tests {
 
-    test("exclusions") - integrationTest { tester => import tester._
+    test("exclusions") - integrationTest { tester =>
+      import tester._
       retry(3) {
         val res1 = eval(("--meta-level", "1", "resolveDepsExclusions"))
         assert(res1.isSuccess)
@@ -43,7 +44,8 @@ object MillPluginClasspathTest extends IntegrationTestSuite {
         assert(diff.isEmpty)
       }
     }
-    test("runClasspath") - integrationTest { tester => import tester._
+    test("runClasspath") - integrationTest { tester =>
+      import tester._
       retry(3) {
         // We expect Mill core transitive dependencies to be filtered out
         val res1 = eval(("--meta-level", "1", "runClasspath"))

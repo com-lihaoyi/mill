@@ -6,7 +6,8 @@ import utest._
 
 object NoModulesInHelperFileTests extends IntegrationTestSuite {
   val tests: Tests = Tests {
-    test("success") - integrationTest { tester => import tester._
+    test("success") - integrationTest { tester =>
+      import tester._
       val res = eval(("resolve", "_"))
       assert(res.isSuccess == false)
       assert(

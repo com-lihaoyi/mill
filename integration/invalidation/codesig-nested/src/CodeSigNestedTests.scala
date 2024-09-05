@@ -6,7 +6,8 @@ import utest._
 
 object CodeSigNestedTests extends IntegrationTestSuite {
   val tests: Tests = Tests {
-    test("nested") - integrationTest { tester => import tester._
+    test("nested") - integrationTest { tester =>
+      import tester._
       // Make sure the code-change invalidation works in more complex cases: multi-step
       // target graphs, targets inside module objects, targets inside module traits
 
@@ -188,7 +189,8 @@ object CodeSigNestedTests extends IntegrationTestSuite {
       assert(addedNewlinesInsideCurlies.out == "")
     }
 
-    test("trait") - integrationTest { tester => import tester._
+    test("trait") - integrationTest { tester =>
+      import tester._
       val initial = eval("traitOuter.traitInner.inner")
       assert(
         initial.out.linesIterator.toSet == Set(

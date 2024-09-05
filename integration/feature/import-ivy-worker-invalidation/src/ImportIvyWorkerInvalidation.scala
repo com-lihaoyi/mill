@@ -7,7 +7,8 @@ import utest._
 object ImportIvyWorkerInvalidation extends IntegrationTestSuite {
 
   val tests: Tests = Tests {
-    test - integrationTest { tester => import tester._
+    test - integrationTest { tester =>
+      import tester._
       assert(eval("app.compile").isSuccess)
       modifyFile(
         workspacePath / "build.mill",

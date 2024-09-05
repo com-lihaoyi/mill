@@ -6,7 +6,8 @@ import utest._
 
 object InvalidPackageDeclaration extends IntegrationTestSuite {
   val tests: Tests = Tests {
-    test("success") - integrationTest { tester => import tester._
+    test("success") - integrationTest { tester =>
+      import tester._
       val res = tester.eval(("resolve", "_"))
       assert(res.isSuccess == false)
       assert(res.err.contains(

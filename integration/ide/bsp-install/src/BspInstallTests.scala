@@ -8,7 +8,8 @@ object BspInstallTests extends IntegrationTestSuite {
   val bsp4jVersion: String = sys.props.getOrElse("BSP4J_VERSION", ???)
 
   def tests: Tests = Tests {
-    test("BSP install") - integrationTest { tester => import tester._
+    test("BSP install") - integrationTest { tester =>
+      import tester._
       assert(eval("mill.bsp.BSP/install").isSuccess)
       val jsonFile = workspacePath / Constants.bspDir / s"${Constants.serverName}.json"
       assert(os.exists(jsonFile))

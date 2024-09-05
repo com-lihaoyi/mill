@@ -11,7 +11,8 @@ object BspInstallDebugTests extends IntegrationTestSuite {
   override val debugLog: Boolean = true
 
   def tests: Tests = Tests {
-    test("BSP install forwards --debug option to server") - integrationTest { tester => import tester._
+    test("BSP install forwards --debug option to server") - integrationTest { tester =>
+      import tester._
       eval("mill.bsp.BSP/install").isSuccess ==> true
       val jsonFile = workspacePath / Constants.bspDir / s"${Constants.serverName}.json"
       assert(os.exists(jsonFile))

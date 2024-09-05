@@ -6,7 +6,8 @@ import utest._
 
 object SubprocessStdoutTests extends IntegrationTestSuite {
   val tests: Tests = Tests {
-    test - integrationTest { tester => import tester._
+    test - integrationTest { tester =>
+      import tester._
       val res1 = eval("inheritInterleaved", mergeErrIntoOut = true).out
       // Make sure that when a lot of printed/inherited stdout/stderr is printed
       // in quick succession, the output ordering is preserved and it doesn't get

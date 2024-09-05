@@ -16,7 +16,8 @@ object DocAnnotationsTests extends IntegrationTestSuite {
   }
 
   val tests: Tests = Tests {
-    test("test") - integrationTest { tester => import tester._
+    test("test") - integrationTest { tester =>
+      import tester._
       val res = eval(("inspect", "core.test.ivyDeps"))
       assert(res.isSuccess == true)
 

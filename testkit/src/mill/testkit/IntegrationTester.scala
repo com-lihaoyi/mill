@@ -30,6 +30,7 @@ class IntegrationTester(
 }
 
 object IntegrationTester {
+
   /**
    * A very simplified version of `os.CommandResult` meant for easily
    * performing assertions against.

@@ -6,7 +6,8 @@ import utest._
 
 object ParseErrorTests extends IntegrationTestSuite {
   val tests: Tests = Tests {
-    test - integrationTest { tester => import tester._
+    test - integrationTest { tester =>
+      import tester._
       val res = eval("foo.scalaVersion")
 
       assert(res.isSuccess == false)

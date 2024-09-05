@@ -9,11 +9,13 @@ object BspModulesTests extends IntegrationTestSuite {
 
   def tests: Tests = Tests {
     test("BSP module with foreign modules") {
-      test("can be installed") - integrationTest { tester => import tester._
+      test("can be installed") - integrationTest { tester =>
+        import tester._
         assert(eval("mill.bsp.BSP/install").isSuccess)
         os.exists(workspacePath / Constants.bspDir / s"${Constants.serverName}.json") ==> true
       }
-      test("ModuleUtils resolves all referenced transitive modules") - integrationTest { tester => import tester._
+      test("ModuleUtils resolves all referenced transitive modules") - integrationTest { tester =>
+        import tester._
         val res = eval("validate")
         assert(res.isSuccess)
         val file = workspacePath / "out" / "validate.dest" / "transitive-modules.json"

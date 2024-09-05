@@ -11,7 +11,8 @@ object GenIdeaExtendedTests extends IntegrationTestSuite {
   override def workspaceSourcePath: Path = super.workspaceSourcePath / "extended"
 
   def tests: Tests = Tests {
-    test("genIdeaTests") - integrationTest { tester => import tester._
+    test("genIdeaTests") - integrationTest { tester =>
+      import tester._
       val expectedBase = workspacePath / "idea"
       val resources = os.walk(expectedBase).filter(os.isFile).map(_.subRelativeTo(expectedBase))
 

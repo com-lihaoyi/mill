@@ -13,27 +13,29 @@ object ScriptsInvalidationTests extends IntegrationTestSuite {
   }
 
   val tests: Tests = Tests {
-    test("should not invalidate tasks in different untouched sc files") - integrationTest { tester => import tester._
-      // first run
-      val result = runTask(tester, "task")
+    test("should not invalidate tasks in different untouched sc files") - integrationTest {
+      tester =>
+        import tester._
+        // first run
+        val result = runTask(tester, "task")
 
-      val expected = Set("a", "d", "b", "c")
+        val expected = Set("a", "d", "b", "c")
 
-      assert(result == expected)
+        assert(result == expected)
 
+        // second run modifying script
+        modifyFile(
+          workspacePath / "build.mill",
+          _.replace("""println("task")""", """System.out.println("task2")""")
+        )
 
-      // second run modifying script
-      modifyFile(
-        workspacePath / "build.mill",
-        _.replace("""println("task")""", """System.out.println("task2")""")
-      )
+        val stdout = runTask(tester, "task")
 
-      val stdout = runTask(tester, "task")
-
-      assert(stdout.isEmpty)
+        assert(stdout.isEmpty)
     }
 
-    test("should invalidate tasks if leaf file is changed") - integrationTest { tester => import tester._
+    test("should invalidate tasks if leaf file is changed") - integrationTest { tester =>
+      import tester._
       // first run
 
       val result = runTask(tester, "task")
@@ -53,13 +55,13 @@ object ScriptsInvalidationTests extends IntegrationTestSuite {
       assert(result2 == expected2)
 
     }
-    test("should handle submodules in scripts") - integrationTest { tester => import tester._
+    test("should handle submodules in scripts") - integrationTest { tester =>
+      import tester._
       // first run
       val result = runTask(tester, "module.task")
       val expected = Set("a", "d", "b", "c", "task")
 
       assert(result == expected)
-
 
       // second run modifying script
       modifyFile(
@@ -72,7 +74,8 @@ object ScriptsInvalidationTests extends IntegrationTestSuite {
 
       assert(result2 == expected2)
     }
-    test("should handle ammonite ^ imports") - integrationTest { tester => import tester._
+    test("should handle ammonite ^ imports") - integrationTest { tester =>
+      import tester._
       retry(3) {
         // first run
         val result = runTask(tester, "taskE")
@@ -92,14 +95,16 @@ object ScriptsInvalidationTests extends IntegrationTestSuite {
         assert(result2 == expected2)
       }
     }
-    test("should handle ammonite paths with symbols") - integrationTest { tester => import tester._
+    test("should handle ammonite paths with symbols") - integrationTest { tester =>
+      import tester._
 
       val result = runTask(tester, "taskSymbols")
       val expected = Set("taskSymbols")
 
       assert(result == expected)
     }
-    test("should handle ammonite files with symbols") - integrationTest { tester => import tester._
+    test("should handle ammonite files with symbols") - integrationTest { tester =>
+      import tester._
 
       val result = runTask(tester, "taskSymbolsInFile")
       val expected = Set("taskSymbolsInFile")
