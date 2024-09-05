@@ -81,7 +81,7 @@ jobs:
         if: inputs.millargs != '' && startsWith(inputs.os, 'windows')
         shell: bash
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4.3.5
         with:
           path: .
           name: ${{ inputs.os }}-artifact
