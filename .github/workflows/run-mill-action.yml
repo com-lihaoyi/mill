@@ -46,6 +46,10 @@ jobs:
       - uses: actions/download-artifact@v4
         if: ${{ !inputs.populate_cache }}
 
+      - name: Unzip Artifact
+        run: |
+          unzip -l artifact
+          unzip artifact
       - uses: coursier/cache-action@v6
 
       - uses: actions/setup-java@v4
