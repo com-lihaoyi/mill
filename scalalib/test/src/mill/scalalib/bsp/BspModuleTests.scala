@@ -42,8 +42,7 @@ object BspModuleTests extends TestSuite {
 
   override def tests: Tests = Tests {
     test("bspCompileClasspath") {
-      test("single module") {
-        val eval = UnitTester(MultiBase, null)
+      test("single module") - UnitTester(MultiBase, null).scoped { eval =>
         val Right(result) = eval.apply(
           MultiBase.HelloBsp.bspCompileClasspath
         )
@@ -61,8 +60,7 @@ object BspModuleTests extends TestSuite {
           result.evalCount > 0
         )
       }
-      test("dependent module") {
-        val eval = UnitTester(MultiBase, null)
+      test("dependent module") - UnitTester(MultiBase, null).scoped { eval =>
         val Right(result) = eval.apply(
           MultiBase.HelloBsp2.bspCompileClasspath
         )
@@ -92,8 +90,7 @@ object BspModuleTests extends TestSuite {
       }
       test("interdependencies are fast") {
         test("reference (no BSP)") {
-          def runNoBsp(entry: Int, maxTime: Int) = {
-            val eval = UnitTester(InterDeps, null)
+          def runNoBsp(entry: Int, maxTime: Int) = UnitTester(InterDeps, null).scoped { eval =>
             val start = System.currentTimeMillis()
             val Right(_) = eval.apply(
               InterDeps.Mod(entry).compileClasspath
@@ -107,14 +104,15 @@ object BspModuleTests extends TestSuite {
           test("index 15") { runNoBsp(15, 30000) }
         }
         def run(entry: Int, maxTime: Int) = retry(3) {
-          val eval = UnitTester(InterDeps, null)
-          val start = System.currentTimeMillis()
-          val Right(_) = eval.apply(
-            InterDeps.Mod(entry).bspCompileClasspath
-          )
-          val timeSpent = System.currentTimeMillis() - start
-          assert(timeSpent < maxTime)
-          s"${timeSpent} msec"
+          UnitTester(InterDeps, null).scoped { eval =>
+            val start = System.currentTimeMillis()
+            val Right(_) = eval.apply(
+              InterDeps.Mod(entry).bspCompileClasspath
+            )
+            val timeSpent = System.currentTimeMillis() - start
+            assert(timeSpent < maxTime)
+            s"${timeSpent} msec"
+          }
         }
         test("index 1 (no deps)") { run(1, 500) }
         test("index 10") { run(10, 5000) }

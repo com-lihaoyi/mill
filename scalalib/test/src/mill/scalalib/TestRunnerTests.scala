@@ -64,8 +64,7 @@ object TestRunnerTests extends TestSuite {
   override def tests: Tests = Tests {
     test("TestRunner") - {
       test("utest") - {
-        test("test case lookup") {
-          val eval = UnitTester(testrunner, resourcePath)
+        test("test case lookup") - UnitTester(testrunner, resourcePath).scoped { eval =>
           val Right(result) = eval.apply(testrunner.utest.test())
           val test = result.value.asInstanceOf[(String, Seq[mill.testrunner.TestResult])]
           assert(
@@ -73,8 +72,7 @@ object TestRunnerTests extends TestSuite {
           )
           junitReportIn(eval.outPath, "utest").shouldHave(3 -> Status.Success)
         }
-        test("discoveredTestClasses") {
-          val eval = UnitTester(testrunner, resourcePath)
+        test("discoveredTestClasses") - UnitTester(testrunner, resourcePath).scoped { eval =>
           val Right(result) = eval.apply(testrunner.utest.discoveredTestClasses)
           val expected = Seq(
             "mill.scalalib.BarTests",
@@ -93,24 +91,19 @@ object TestRunnerTests extends TestSuite {
             )
           }
 
-          test("suffix") {
-            val eval = UnitTester(testrunner, resourcePath)
+          test("suffix") - UnitTester(testrunner, resourcePath).scoped { eval =>
             testOnly(eval, Seq("*arTests"), 2)
           }
-          test("prefix") {
-            val eval = UnitTester(testrunner, resourcePath)
+          test("prefix") - UnitTester(testrunner, resourcePath).scoped { eval =>
             testOnly(eval, Seq("mill.scalalib.FooT*"), 1)
           }
-          test("exactly") {
-            val eval = UnitTester(testrunner, resourcePath)
+          test("exactly") - UnitTester(testrunner, resourcePath).scoped { eval =>
             testOnly(eval, Seq("mill.scalalib.FooTests"), 1)
           }
-          test("multi") {
-            val eval = UnitTester(testrunner, resourcePath)
+          test("multi") - UnitTester(testrunner, resourcePath).scoped { eval =>
             testOnly(eval, Seq("*Bar*", "*bar*"), 2)
           }
-          test("noMatch") {
-            val eval = UnitTester(testrunner, resourcePath)
+          test("noMatch") - UnitTester(testrunner, resourcePath).scoped { eval =>
             val Left(Result.Failure(msg, _)) =
               eval.apply(testrunner.utest.testOnly("noMatch", "noMatch*2"))
             assert(
@@ -123,44 +116,41 @@ object TestRunnerTests extends TestSuite {
       test("doneMessage") {
         test("failure") {
           val outStream = new ByteArrayOutputStream()
-          val eval = UnitTester(
+          UnitTester(
             testrunner,
             outStream = new PrintStream(outStream, true),
             sourceRoot = resourcePath
-          )
-
-          val Left(Result.Failure(msg, _)) = eval(testrunner.doneMessageFailure.test())
-          val stdout = new String(outStream.toByteArray)
-          assert(stdout.contains("test failure done message"))
-          junitReportIn(eval.outPath, "doneMessageFailure").shouldHave(1 -> Status.Failure)
+          ).scoped { eval =>
+            val Left(Result.Failure(msg, _)) = eval(testrunner.doneMessageFailure.test())
+            val stdout = new String(outStream.toByteArray)
+            assert(stdout.contains("test failure done message"))
+            junitReportIn(eval.outPath, "doneMessageFailure").shouldHave(1 -> Status.Failure)
+          }
         }
         test("success") {
           val outStream = new ByteArrayOutputStream()
-          val eval = UnitTester(
+          UnitTester(
             testrunner,
             outStream = new PrintStream(outStream, true),
             sourceRoot = resourcePath
-          )
-
-          val Right(_) = eval(testrunner.doneMessageSuccess.test())
-          val stdout = new String(outStream.toByteArray)
-          assert(stdout.contains("test success done message"))
+          ).scoped { eval =>
+            val Right(_) = eval(testrunner.doneMessageSuccess.test())
+            val stdout = new String(outStream.toByteArray)
+            assert(stdout.contains("test success done message"))
+          }
         }
 
-        test("null") {
-          val eval = UnitTester(testrunner, resourcePath)
+        test("null") - UnitTester(testrunner, resourcePath).scoped { eval =>
           val Right(_) = eval(testrunner.doneMessageNull.test())
         }
       }
       test("ScalaTest") {
-        test("test") {
-          val eval = UnitTester(testrunner, resourcePath)
+        test("test") - UnitTester(testrunner, resourcePath).scoped { eval =>
           val Right(result) = eval(testrunner.scalatest.test())
           assert(result.value._2.size == 2)
           junitReportIn(eval.outPath, "scalatest").shouldHave(2 -> Status.Success)
         }
-        test("discoveredTestClasses") {
-          val eval = UnitTester(testrunner, resourcePath)
+        test("discoveredTestClasses") - UnitTester(testrunner, resourcePath).scoped { eval =>
           val Right(result) = eval.apply(testrunner.scalatest.discoveredTestClasses)
           val expected = Seq("mill.scalalib.ScalaTestSpec")
           assert(result.value == expected)
@@ -169,14 +159,12 @@ object TestRunnerTests extends TestSuite {
       }
 
       test("ZioTest") {
-        test("test") {
-          val eval = UnitTester(testrunner, resourcePath)
+        test("test") - UnitTester(testrunner, resourcePath).scoped { eval =>
           val Right(result) = eval(testrunner.ziotest.test())
           assert(result.value._2.size == 1)
           junitReportIn(eval.outPath, "ziotest").shouldHave(1 -> Status.Success)
         }
-        test("discoveredTestClasses") {
-          val eval = UnitTester(testrunner, resourcePath)
+        test("discoveredTestClasses") - UnitTester(testrunner, resourcePath).scoped { eval =>
           val Right(result) = eval.apply(testrunner.ziotest.discoveredTestClasses)
           val expected = Seq("mill.scalalib.ZioTestSpec")
           assert(result.value == expected)

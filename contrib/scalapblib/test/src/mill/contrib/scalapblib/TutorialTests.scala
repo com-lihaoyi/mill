@@ -71,8 +71,7 @@ object TutorialTests extends TestSuite {
   def tests: Tests = Tests {
     test("scalapbVersion") {
 
-      test("fromBuild") {
-        val eval = UnitTester(Tutorial, resourcePath)
+      test("fromBuild") - UnitTester(Tutorial, resourcePath).scoped { eval =>
         val Right(result) = eval.apply(Tutorial.core.scalaPBVersion)
 
         assert(
@@ -83,8 +82,7 @@ object TutorialTests extends TestSuite {
     }
 
     test("compileScalaPB") {
-      test("calledDirectly") {
-        val eval = UnitTester(Tutorial, resourcePath)
+      test("calledDirectly") - UnitTester(Tutorial, resourcePath).scoped { eval =>
         val Right(result) = eval.apply(Tutorial.core.compileScalaPB)
 
         val outPath = protobufOutPath(eval)
@@ -107,8 +105,10 @@ object TutorialTests extends TestSuite {
         assert(result2.evalCount == 0)
       }
 
-      test("calledWithSpecificFile") {
-        val eval = UnitTester(TutorialWithSpecificSources, resourcePath)
+      test("calledWithSpecificFile") - UnitTester(
+        TutorialWithSpecificSources,
+        resourcePath
+      ).scoped { eval =>
         val Right(result) = eval.apply(TutorialWithSpecificSources.core.compileScalaPB)
 
         val outPath = protobufOutPath(eval)
@@ -166,16 +166,18 @@ object TutorialTests extends TestSuite {
       /* This ensure that the `scalaPBProtocPath` is properly used.
        * As the given path is incorrect, the compilation should fail.
        */
-      test("calledWithWrongProtocFile") {
-        val eval = UnitTester(TutorialWithProtoc, resourcePath)
-        val result = eval.apply(TutorialWithProtoc.core.compileScalaPB)
-        assert(result.isLeft)
+      test("calledWithWrongProtocFile") - UnitTester(TutorialWithProtoc, resourcePath).scoped {
+        eval =>
+          val result = eval.apply(TutorialWithProtoc.core.compileScalaPB)
+          assert(result.isLeft)
       }
     }
 
     test("compilationArgs") {
-      test("calledWithAdditionalArgs") {
-        val eval = UnitTester(TutorialWithAdditionalArgs, resourcePath)
+      test("calledWithAdditionalArgs") - UnitTester(
+        TutorialWithAdditionalArgs,
+        resourcePath
+      ).scoped { eval =>
         val result =
           eval.apply(TutorialWithAdditionalArgs.core.scalaPBCompileOptions)
         result match {
