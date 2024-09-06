@@ -31,7 +31,7 @@ abstract class Server[T](
 
   val serverId: String = java.lang.Long.toHexString(scala.util.Random.nextLong())
   def serverLog0(s: String): Unit = {
-    if (running && checkServerIdFile()) {
+    if (running && checkServerIdFile().isEmpty) {
       os.write.append(serverDir / ServerFiles.serverLog, s"$s\n", createFolders = true)
     }
   }
@@ -91,8 +91,16 @@ abstract class Server[T](
 
   def watchServerIdFile(): Unit = {
     os.write.over(serverDir / ServerFiles.serverId, serverId)
+
     val serverIdThread = new Thread(
-      () => while (running && checkServerIdFile()) Thread.sleep(100),
+      () => while (running) {
+        checkServerIdFile()match{
+          case None => Thread.sleep(100)
+          case Some(msg) =>
+            serverLog(msg)
+            exitServer()
+        }
+      },
       "Server ID Checker Thread"
     )
     serverIdThread.start()
@@ -100,15 +108,12 @@ abstract class Server[T](
   def checkServerIdFile() = {
     Try(os.read(serverDir / ServerFiles.serverId)) match {
       case scala.util.Failure(e) =>
-        serverLog(s"serverId file missing: $e")
-        exitServer()
-        false
+        Some(s"serverId file missing: $e")
+
       case scala.util.Success(s) =>
-        if (s == serverId) true
+        if (s == serverId) None
         else {
-          serverLog(s"serverId file contents $s does not match serverId $serverId")
-          exitServer()
-          false
+          Some(s"serverId file contents $s does not match serverId $serverId")
         }
     }
 
