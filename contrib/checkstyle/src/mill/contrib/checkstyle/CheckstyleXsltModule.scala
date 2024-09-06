@@ -2,6 +2,7 @@ package mill
 package contrib.checkstyle
 
 import mill.api.PathRef
+import mill.util.JavaXml
 
 trait CheckstyleXsltModule extends CheckstyleModule {
 

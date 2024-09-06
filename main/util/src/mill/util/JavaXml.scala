@@ -1,4 +1,4 @@
-package mill.contrib.checkstyle
+package mill.util
 
 import javax.xml.transform.stream.StreamSource
 import javax.xml.transform.stream.StreamResult
