@@ -31,7 +31,7 @@ abstract class Server[T](
 
   val serverId: String = java.lang.Long.toHexString(scala.util.Random.nextLong())
   def serverLog0(s: String): Unit = {
-    if (running) {
+    if (running && checkServerIdFile()) {
       os.write.append(serverDir / ServerFiles.serverLog, s"$s\n", createFolders = true)
     }
   }
@@ -92,28 +92,26 @@ abstract class Server[T](
   def watchServerIdFile(): Unit = {
     os.write.over(serverDir / ServerFiles.serverId, serverId)
     val serverIdThread = new Thread(
-      () =>
-        while (
-          running && {
-            Thread.sleep(100)
-            Try(os.read(serverDir / ServerFiles.serverId)).toOption match {
-              case None =>
-                serverLog("serverId file missing")
-                exitServer()
-                false
-              case Some(s) =>
-                if (s == serverId) true
-                else {
-                  serverLog(s"serverId file contents $s does not match serverId $serverId")
-                  exitServer()
-                  false
-                }
-            }
-          }
-        ) (),
+      () => while (running && checkServerIdFile()) Thread.sleep(100),
       "Server ID Checker Thread"
     )
     serverIdThread.start()
+  }
+  def checkServerIdFile() = {
+    Try(os.read(serverDir / ServerFiles.serverId)) match {
+      case scala.util.Failure(e) =>
+        serverLog(s"serverId file missing: $e")
+        exitServer()
+        false
+      case scala.util.Success(s) =>
+        if (s == serverId) true
+        else {
+          serverLog(s"serverId file contents $s does not match serverId $serverId")
+          exitServer()
+          false
+        }
+    }
+
   }
 
   def interruptWithTimeout[T](close: () => Unit, t: () => T): Option[T] = {
