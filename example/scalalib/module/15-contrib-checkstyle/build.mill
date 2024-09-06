@@ -3,6 +3,7 @@ import mill._, scalalib._
 import $ivy.`com.lihaoyi::mill-contrib-checkstyle:`
 
 import mill.contrib.checkstyle._
+import com.etsy.sbt.checkstyle.CheckstyleSeverityLevel
 
 object `package` extends RootModule with CheckstyleModule {
   def checkstyleVersion = "9.3"
@@ -12,10 +13,9 @@ object `package` extends RootModule with CheckstyleModule {
 /** Usage
 
 > ./mill checkstyle # Run checkstyle to produce a report, optionally failing the build if violations are severe enough
-...
-foo.checkstyle: Checkstyle warning found in src/InputFileName1.java:2: Top-level class MyAnnotation1 has to reside in its own source file.
-foo.checkstyle: Checkstyle warning found in src/InputFileName1.java:13: Top-level class Enum1 has to reside in its own source file.
-foo.checkstyle: Checkstyle warning found in src/InputFileName1.java:26: Top-level class TestRequireThisEnum has to reside in its own source file.
-foo.checkstyle: 3 issue(s) found in Checkstyle report: out/checkstyle.dest/checkstyle-report.xml
+foo.checkstyle: Checkstyle warning found in ...src/InputFileName1.java:2: Top-level class MyAnnotation1 has to reside in its own source file.
+foo.checkstyle: Checkstyle warning found in ...src/InputFileName1.java:13: Top-level class Enum1 has to reside in its own source file.
+foo.checkstyle: Checkstyle warning found in ...src/InputFileName1.java:26: Top-level class TestRequireThisEnum has to reside in its own source file.
+foo.checkstyle: 3 issue(s) found in Checkstyle report: ...out/checkstyle.dest/checkstyle-report.xml
 */
 
