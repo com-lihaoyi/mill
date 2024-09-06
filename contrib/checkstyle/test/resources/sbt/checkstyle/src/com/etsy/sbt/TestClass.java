@@ -1,4 +1,4 @@
-package mill.contrib.checkstyle;
+package com.etsy.sbt;
 
 public class TestClass {
 

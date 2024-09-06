@@ -8,49 +8,38 @@ import utest._
 
 object CheckstyleModuleTest extends TestSuite {
 
-  import CheckstyleModule.Format
-  import CheckstyleModule.Format._
-
-  private def compatibility(vlo: String, vhi: String, format: Format, module: String): Unit = {
-    intercept[RuntimeException](generate(vlo, format, module))
-    assert(generate(vhi, format, module))
-  }
-
-  private object generate {
-
-    def apply(version: String, module: String): Boolean = {
-      Format.values.forall(apply(version, _, module))
-    }
-
-    def apply(version: String, format: Format, module: String): Boolean = {
-      object mod extends TestBaseModule with JavaModule with CheckstyleModule {
-        override def checkstyleVersion = version
-        override def checkstyleFormat = format
-      }
-      val eval = UnitTester(mod, root / module)
-      val Right(result) = eval(mod.checkstyle)
-      os.exists(result.value.path)
-    }
-
-    private val root = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER"))
-  }
-
   def tests = Tests {
-    test("checkstyle") {
-      test("compatibility") {
+    test("CheckstyleModule") {
+      test("compat") {
         test("plain") {
-          compatibility("6.2", "6.3", plain, "sbt-checkstyle")
+          format.compat("plain", os.rel / "sbt" / "checkstyle")("6.2")("6.3", "10.18.1")
         }
         test("sarif") {
-          compatibility("8.42", "8.43", sarif, "sbt-checkstyle")
+          format.compat("sarif", os.rel / "sbt" / "checkstyle")("8.42")("8.43", "10.18.1")
         }
         test("xml") {
-          compatibility("6.2", "6.3", xml, "sbt-checkstyle")
+          format.compat("xml", os.rel / "sbt" / "checkstyle")("6.2")("6.3", "10.18.1")
         }
       }
-      test("v10.18.1") {
-        assert(generate("10.18.1", "sbt-checkstyle"))
-      }
     }
+  }
+}
+
+private object format {
+
+  def compat(format: String, module: os.RelPath)(fail: String*)(pass: String*): Unit = {
+    fail.foreach(version => intercept[RuntimeException](exists(format, module, version)))
+    pass.foreach(version => assert(exists(format, module, version)))
+  }
+
+  def exists(format: String, module: os.RelPath, version: String): Boolean = {
+    object mod extends TestBaseModule with JavaModule with CheckstyleModule {
+      override def checkstyleVersion = version
+      override def checkstyleFormat = format
+    }
+    val root = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / module
+    val eval = UnitTester(mod, root)
+    val Right(result) = eval(mod.checkstyle)
+    os.exists(result.value.path)
   }
 }

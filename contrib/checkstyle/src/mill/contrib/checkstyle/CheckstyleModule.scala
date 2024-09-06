@@ -29,6 +29,7 @@ trait CheckstyleModule extends JavaModule {
       .result()
 
     T.log.info(s"generating checkstyle $fmt report ...")
+    args.foreach(s => T.log.debug(s"  $s"))
 
     val exit = Jvm.callSubprocess(
       mainClass = "com.puppycrawl.tools.checkstyle.Main",
@@ -42,14 +43,17 @@ trait CheckstyleModule extends JavaModule {
       T.log.info("checkstyle found no problems")
       T.log.info(s"  $out")
     } else if (exit > 0 && os.exists(out)) {
-      T.log.error(s"checkstyle found $exit problem(s)")
+      val msg = s"checkstyle found $exit problem(s)"
+
+      T.log.error(msg)
       T.log.error(s"  $out")
       if (thrw) {
-        throw new RuntimeException("checkstyle failed")
+        throw new RuntimeException(msg)
       }
     } else {
-      T.log.error(s"checkstyle exited with code $exit")
-      throw new RuntimeException("checkstyle crashed")
+      val msg = s"checkstyle aborted with code $exit"
+      T.log.error(msg)
+      throw new RuntimeException(msg)
     }
 
     PathRef(out)
@@ -62,11 +66,15 @@ trait CheckstyleModule extends JavaModule {
   }
 
   def checkstyleConfig: T[PathRef] = T.source {
-    millSourcePath / "checkstyle-config.xml"
+    checkstyleDir().path / "config.xml"
   }
 
-  def checkstyleFormat: T[CheckstyleModule.Format] = T {
-    CheckstyleModule.Format.plain
+  def checkstyleDir: T[PathRef] = T.source {
+    millSourcePath / "checkstyle"
+  }
+
+  def checkstyleFormat: T[String] = T {
+    "plain"
   }
 
   def checkstyleOptions: T[Seq[String]] = T {
@@ -75,7 +83,7 @@ trait CheckstyleModule extends JavaModule {
 
   def checkstyleOutput: T[String] = T {
     val fmt = checkstyleFormat()
-    val ext = if (fmt == CheckstyleModule.Format.plain) "txt" else fmt
+    val ext = if (fmt == "plain") "txt" else fmt
     s"report.$ext"
   }
 
@@ -86,18 +94,4 @@ trait CheckstyleModule extends JavaModule {
   def checkstyleVersion: T[String]
 
   private def isScala = this.isInstanceOf[ScalaModule]
-}
-
-object CheckstyleModule {
-
-  import upickle.default._
-
-  implicit val formatRW: ReadWriter[Format] =
-    implicitly[ReadWriter[String]].bimap(_.toString(), Format.withName(_))
-
-  type Format = Format.Value
-
-  object Format extends Enumeration {
-    val plain, sarif, xml = Value
-  }
 }
