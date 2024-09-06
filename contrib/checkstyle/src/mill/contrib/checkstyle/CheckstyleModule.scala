@@ -10,25 +10,25 @@ trait CheckstyleModule extends JavaModule {
   def checkstyle: T[PathRef] = T {
 
     val cp = checkstyleClasspath().map(_.path)
+    val opts = checkstyleOptions()
     val conf = checkstyleConfig()
     val fmt = checkstyleFormat()
     val out = T.dest / checkstyleOutput()
-    val opts = checkstyleOptions()
     val srcs = sources().map(_.path.toString())
-    val fail = checkstyleFail()
+    val thrw = checkstyleThrow()
 
     val args = Seq.newBuilder[String]
+      .++=(opts)
       .+=("-c")
       .+=(conf.path.toString())
       .+=("-f")
       .+=(fmt.toString())
       .+=("-o")
       .+=(out.toString())
-      .++=(opts)
       .++=(srcs)
       .result()
 
-    T.log.info("generating checkstyle report ...")
+    T.log.info(s"generating checkstyle $fmt report ...")
 
     val exit = Jvm.callSubprocess(
       mainClass = "com.puppycrawl.tools.checkstyle.Main",
@@ -36,19 +36,19 @@ trait CheckstyleModule extends JavaModule {
       mainArgs = args,
       workingDir = T.dest,
       check = false
-    ).exitCode.toByte
+    ).exitCode
 
     if (exit == 0) {
       T.log.info("checkstyle found no problems")
       T.log.info(s"  $out")
-    } else if (exit > 0) {
+    } else if (exit > 0 && os.exists(out)) {
       T.log.error(s"checkstyle found $exit problem(s)")
       T.log.error(s"  $out")
-      if (fail) {
+      if (thrw) {
         throw new RuntimeException("checkstyle failed")
       }
     } else {
-      T.log.error(s"checkstyle process exited with code $exit")
+      T.log.error(s"checkstyle exited with code $exit")
       throw new RuntimeException("checkstyle crashed")
     }
 
@@ -65,10 +65,6 @@ trait CheckstyleModule extends JavaModule {
     millSourcePath / "checkstyle-config.xml"
   }
 
-  def checkstyleFail: T[Boolean] = T {
-    true
-  }
-
   def checkstyleFormat: T[CheckstyleModule.Format] = T {
     CheckstyleModule.Format.plain
   }
@@ -81,6 +77,10 @@ trait CheckstyleModule extends JavaModule {
     val fmt = checkstyleFormat()
     val ext = if (fmt == CheckstyleModule.Format.plain) "txt" else fmt
     s"report.$ext"
+  }
+
+  def checkstyleThrow: T[Boolean] = T {
+    true
   }
 
   def checkstyleVersion: T[String]
