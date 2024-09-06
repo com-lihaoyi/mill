@@ -139,18 +139,6 @@ object IntegrationTester {
      * in-process Mill background servers
      */
     override def close(): Unit = {
-      if (clientServerMode) {
-        // try to stop the server
-        os.call(
-          cmd = (millExecutable, "shutdown"),
-          cwd = workspacePath,
-          stdin = os.Inherit,
-          stdout = os.Inherit,
-          stderr = os.Inherit,
-          env = millTestSuiteEnv
-        )
-      }
-
       removeServerIdFile()
     }
   }
