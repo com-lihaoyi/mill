@@ -220,7 +220,10 @@ class ExampleTester(
         }
 
         for (commandBlock <- commandBlocks) processCommandBlock(commandBlock)
-      } finally removeServerIdFile()
+      } finally {
+        if (clientServerMode) processCommand(Vector(), "./mill shutdown", check = false)
+        removeServerIdFile()
+      }
     }
   }
 }
