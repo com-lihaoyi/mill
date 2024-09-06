@@ -641,6 +641,9 @@ class ZincWorkerImpl(
   }
 
   override def close(): Unit = {
+    for(classLoader: java.net.URLClassLoader <- classloaderCache.flatMap(_._2.get)){
+      classLoader.close()
+    }
     classloaderCache.clear()
     javaOnlyCompilersCache.clear()
   }
