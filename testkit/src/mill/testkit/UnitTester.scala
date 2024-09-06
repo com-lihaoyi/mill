@@ -54,7 +54,7 @@ class UnitTester(
     debugEnabled: Boolean,
     env: Map[String, String],
     resetSourcePath: Boolean
-)(implicit fullName: sourcecode.FullName) {
+)(implicit fullName: sourcecode.FullName) extends AutoCloseable{
   val outPath: os.Path = module.millSourcePath / "out"
 
   if (resetSourcePath) {
