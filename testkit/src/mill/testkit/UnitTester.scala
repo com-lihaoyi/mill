@@ -181,12 +181,12 @@ class UnitTester(
     )
   }
 
-  def scoped[T](tester: UnitTester => T) = {
+  def scoped[T](tester: UnitTester => T): T = {
     try tester(this)
     finally close()
   }
 
-  def close() = {
+  def close(): Unit = {
     for ((_, Val(obsolete: AutoCloseable)) <- evaluator.workerCache.values) {
       obsolete.close()
     }
