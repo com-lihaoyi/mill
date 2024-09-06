@@ -141,18 +141,14 @@ object IntegrationTester {
     override def close(): Unit = {
       if (clientServerMode) {
         // try to stop the server
-        try {
-          os.call(
-            cmd = (millExecutable, "shutdown"),
-            cwd = workspacePath,
-            stdin = os.Inherit,
-            stdout = os.Inherit,
-            stderr = os.Inherit,
-            env = millTestSuiteEnv
-          )
-        } catch {
-          case NonFatal(e) =>
-        }
+        os.call(
+          cmd = (millExecutable, "shutdown"),
+          cwd = workspacePath,
+          stdin = os.Inherit,
+          stdout = os.Inherit,
+          stderr = os.Inherit,
+          env = millTestSuiteEnv
+        )
       }
 
       removeServerIdFile()
