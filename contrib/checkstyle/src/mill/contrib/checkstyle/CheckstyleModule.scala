@@ -26,13 +26,16 @@ trait CheckstyleModule extends JavaModule {
   /** The `checkstyle` version to use. Defaults to `10.18.1`. */
   def checkstyleVersion: T[String] = T.input { "10.18.1" }
 
-  /** The location of the `checkstyle`` configuration file */
+  /** The location of the `checkstyle` configuration file */
   def checkstyleConfigLocation: T[CheckstyleConfigLocation] = T.input {
     CheckstyleConfigLocation.File("checkstyle-config.xml")
   }
 
   /** An optional set of XSLT transformations to be applied to the checkstyle output */
   def checkstyleXsltTransformations: T[Option[Set[CheckstyleXSLTSettings]]] = T.input { None }
+
+  /** The severity level which should fail the build */
+  def checkstyleSeverityLevel: T[Option[CheckstyleSeverityLevel]] = T.input { None }
 
   /**
    * The dependencies of the `checkstyle` compiler plugin.
@@ -53,27 +56,17 @@ trait CheckstyleModule extends JavaModule {
   /**
    * Runs checkstyle
    *
-   * @param javaSource The Java source path.
    * @param outputFile The Checkstyle report output path.
-   * @param configLocation The Checkstyle config location.
-   * @param xsltTransformations XSLT transformations to apply.
-   * @param severityLevel The severity level used to fail the build.
    */
-  def checkstyle(
-      javaSource: PathRef,
-      resources: Seq[Path],
-      outputFile: PathRef,
-      configLocation: CheckstyleConfigLocation,
-      xsltTransformations: Option[Set[CheckstyleXSLTSettings]],
-      severityLevel: Option[CheckstyleSeverityLevel]
-  ) = T {
+  def checkstyle(outputFile: PathRef) = T {
     val outputLocation = outputFile.path
-    val targetFolder = outputFile.path.toNIO.getParent.toFile
+    val targetFolder = T.dest.toIO
     val configFile = targetFolder + "/checkstyle-config.xml"
-
     targetFolder.mkdirs()
 
-    val config = scala.xml.XML.loadString(configLocation.read(resources))
+    val config = scala.xml.XML.loadString(
+      checkstyleConfigLocation().read(compileClasspath().map(_.path).toSeq)
+    )
     scala.xml.XML.save(
       configFile,
       config,
@@ -92,12 +85,11 @@ trait CheckstyleModule extends JavaModule {
     val checkstyleArgs = Array(
       "-c",
       configFile, // checkstyle configuration file
-      javaSource.path.toString, // location of Java source file
       "-f",
       "xml", // output format
       "-o",
       outputLocation.toString // output file
-    )
+    ) ++ sources().map(_.toString) // location of Java source files
 
     Jvm.runSubprocess(
       mainClass = "com.puppycrawl.tools.checkstyle.Main",
@@ -106,18 +98,20 @@ trait CheckstyleModule extends JavaModule {
       workingDir = T.dest
     )
 
-    xsltTransformations match {
+    checkstyleXsltTransformations() match {
       case None => // Nothing to do
       case Some(xslt) => applyXSLT(outputLocation.toIO, xslt)
     }
 
-    if (outputLocation.toIO.exists && severityLevel.isDefined) {
-      val log = T.log
-      val issuesFound = processIssues(log, outputLocation, severityLevel.get)
+    checkstyleSeverityLevel().foreach { severityLevel =>
+      if (outputLocation.toIO.exists) {
+        val log = T.log
+        val issuesFound = processIssues(log, outputLocation, severityLevel)
 
-      if (issuesFound > 0) {
-        log.error(issuesFound + " issue(s) found in Checkstyle report: " + outputLocation + "")
-        sys.exit(1)
+        if (issuesFound > 0) {
+          log.error(issuesFound + " issue(s) found in Checkstyle report: " + outputLocation + "")
+          sys.exit(1)
+        }
       }
     }
   }
