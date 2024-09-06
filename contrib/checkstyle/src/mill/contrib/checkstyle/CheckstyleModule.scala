@@ -119,7 +119,6 @@ trait CheckstyleModule extends JavaModule {
 
         if (issuesFound > 0) {
           log.error(issuesFound + " issue(s) found in Checkstyle report: " + outputLocation + "")
-          sys.exit(1)
         }
       }
     }
