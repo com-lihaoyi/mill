@@ -191,9 +191,10 @@ object Deps {
   val sonatypeCentralClient = ivy"com.lumidion::sonatype-central-client-requests:0.3.0"
 
   object RuntimeDeps {
+    val checkstyle = ivy"com.puppycrawl.tools:checkstyle:6.15"
     val sbtTestInterface = ivy"com.github.sbt:junit-interface:0.13.2"
     val jupiterInterface = ivy"com.github.sbt.junit:jupiter-interface:0.11.4"
-    def all = Seq(sbtTestInterface, jupiterInterface)
+    def all = Seq(checkstyle, sbtTestInterface, jupiterInterface)
   }
 
   /** Used to manage transitive versions. */
