@@ -10,7 +10,7 @@ trait IntegrationTesterBase {
    * Mill build being tested. Contains the `build.mill` file, any application code, and
    * the `out/` folder containing the build output
    */
-  val workspacePath: os.Path = os.pwd
+  val workspacePath: os.Path = os.temp.dir(dir = os.pwd)
 
   /**
    * Initializes the workspace in preparation for integration testing
