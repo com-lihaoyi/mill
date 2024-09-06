@@ -23,9 +23,10 @@ import javax.xml.transform.stream.StreamSource
  */
 trait CheckstyleModule extends JavaModule {
 
-  /** The `checkstyle` version to use. Defaults to [[BuildInfo.checkstyleVersion]]. */
-  def checkstyleVersion: T[String] = T.input {
-    BuildInfo.checkstyleVersion
+  /** The `checkstyle` version to use. Defaults to `10.18.1`. */
+  def checkstyleVersion: T[String] = T.input { "10.18.1" }
+  def checkstyleConfigLocation: T[CheckstyleConfigLocation] = T.input {
+    CheckstyleConfigLocation.File("checkstyle-config.xml")
   }
 
   /**
