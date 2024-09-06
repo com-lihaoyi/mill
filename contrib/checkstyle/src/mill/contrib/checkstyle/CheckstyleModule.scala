@@ -57,8 +57,6 @@ trait CheckstyleModule extends JavaModule {
 
   /**
    * Runs checkstyle
-   *
-   * @param outputFile The Checkstyle report output path.
    */
   def checkstyle = T {
     val outputLocation = T.dest / "checkstyle-report.xml"
