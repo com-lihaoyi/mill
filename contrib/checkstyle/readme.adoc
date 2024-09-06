@@ -32,7 +32,8 @@ object checkstyle extends CheckstyleConfig {
   // Which version to use
   override def checkstyleVersion: T[String] = T.input { "10.18.1" }
 
-  // Where to get the checkstyle configuration from. Can be a file, URL or the name of a file on the classpath
+  // Where to get the checkstyle configuration from. Can be a file, URL or the name of a file on the classpath.
+  // Defaults to "checkstyle-config.xml" in the project workspace
   def checkstyleConfigLocation: T[CheckstyleConfigLocation] = T.input {
     CheckstyleConfigLocation.File((T.workspace / "checkstyle-config.xml").toString())
   }
