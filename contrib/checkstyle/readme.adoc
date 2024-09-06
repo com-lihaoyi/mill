@@ -1,0 +1,47 @@
+= Checkstyle
+
+Runs Checkstyle on your Java sources.
+
+Mix in `CheckstyleModule`
+
+.`build.mill`
+[source,scala]
+----
+package build
+import mill._, scalalib._
+
+import contrib.checkstyle.CheckstyleModule
+
+object foo extends JavaModule with CheckstyleModule {
+}
+----
+
+Then
+
+[source,bash]
+----
+$ mill foo.checkstyle
+$ less out/checkstyle.dest/checkstyle-report.xml
+----
+
+== Configuration
+
+[source,scala]
+----
+object checkstyle extends CheckstyleConfig {
+  // Which version to use
+  override def checkstyleVersion: T[String] = T.input { "10.18.1" }
+
+  // Where to get the checkstyle configuration from. Can be a file, URL or the name of a file on the classpath
+  def checkstyleConfigLocation: T[CheckstyleConfigLocation] = T.input {
+    CheckstyleConfigLocation.File((T.workspace / "checkstyle-config.xml").toString())
+  }
+
+  // XSLT transformations to apply to the checkstyle output
+  def checkstyleXsltTransformations: T[Option[Set[CheckstyleXSLTSettings]]] = T.input { None }
+
+  // A severity level at which we should fail the build
+  def checkstyleSeverityLevel: Option[CheckstyleSeverityLevel] = None
+}
+----
+
