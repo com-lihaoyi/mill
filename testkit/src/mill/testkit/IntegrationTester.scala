@@ -138,25 +138,7 @@ object IntegrationTester {
      * Tears down the workspace at the end of a test run, shutting down any
      * in-process Mill background servers
      */
-    override def close(): Unit = {
-      if (clientServerMode) {
-        // try to stop the server
-        try {
-          os.call(
-            cmd = (millExecutable, "shutdown"),
-            cwd = workspacePath,
-            stdin = os.Inherit,
-            stdout = os.Inherit,
-            stderr = os.Inherit,
-            env = millTestSuiteEnv
-          )
-        } catch {
-          case NonFatal(e) =>
-        }
-      }
-
-      removeServerIdFile()
-    }
+    override def close(): Unit = removeServerIdFile()
   }
 
 }
