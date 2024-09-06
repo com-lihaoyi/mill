@@ -18,11 +18,13 @@ object CheckstyleConfigLocation {
   case class URL(url: String) extends CheckstyleConfigLocation {
     override def read(resources: Seq[Path]): String = Source.fromURL(url).mkString
   }
+  object URL {
+    implicit val rw: ReadWriter[URL] = readwriter[String].bimap[URL](_.url, URL(_))
+  }
 
   case class File(path: String) extends CheckstyleConfigLocation {
     override def read(resources: Seq[Path]): String = Source.fromFile(path).mkString
   }
-
   object File {
     implicit val rw: ReadWriter[File] = readwriter[String].bimap[File](_.path, File(_))
   }
@@ -33,5 +35,9 @@ object CheckstyleConfigLocation {
       val loader = new java.net.URLClassLoader(classpath.toArray, getClass.getClassLoader)
       Source.fromInputStream(loader.getResourceAsStream(name)).mkString
     }
+  }
+  object Classpath {
+    implicit val rw: ReadWriter[Classpath] =
+      readwriter[String].bimap[Classpath](_.name, Classpath(_))
   }
 }

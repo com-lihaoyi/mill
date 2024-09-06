@@ -25,9 +25,14 @@ trait CheckstyleModule extends JavaModule {
 
   /** The `checkstyle` version to use. Defaults to `10.18.1`. */
   def checkstyleVersion: T[String] = T.input { "10.18.1" }
+
+  /** The location of the `checkstyle`` configuration file */
   def checkstyleConfigLocation: T[CheckstyleConfigLocation] = T.input {
     CheckstyleConfigLocation.File("checkstyle-config.xml")
   }
+
+  /** An optional set of XSLT transformations to be applied to the checkstyle output */
+  def checkstyleXsltTransformations: T[Option[Set[CheckstyleXSLTSettings]]] = T.input { None }
 
   /**
    * The dependencies of the `checkstyle` compiler plugin.
