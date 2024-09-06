@@ -147,7 +147,8 @@ object IntegrationTester {
           stdin = os.Inherit,
           stdout = os.Inherit,
           stderr = os.Inherit,
-          env = millTestSuiteEnv
+          env = millTestSuiteEnv,
+          check = false
         )
       }
 
