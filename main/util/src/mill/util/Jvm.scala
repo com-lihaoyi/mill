@@ -24,7 +24,8 @@ object Jvm extends CoursierSupport {
       envArgs: Map[String, String] = Map.empty,
       mainArgs: Seq[String] = Seq.empty,
       workingDir: os.Path = null,
-      streamOut: Boolean = true
+      streamOut: Boolean = true,
+      check: Boolean = false
   )(implicit ctx: Ctx): CommandResult = {
 
     val commandArgs =
@@ -36,7 +37,7 @@ object Jvm extends CoursierSupport {
     val workingDir1 = Option(workingDir).getOrElse(ctx.dest)
     os.makeDir.all(workingDir1)
 
-    os.proc(commandArgs).call(cwd = workingDir1, env = envArgs)
+    os.proc(commandArgs).call(cwd = workingDir1, env = envArgs, check = check)
   }
 
   /**

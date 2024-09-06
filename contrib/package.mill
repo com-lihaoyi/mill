@@ -226,4 +226,9 @@ object `package` extends RootModule {
     def compileModuleDeps = Seq(build.scalalib)
     def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib)
   }
+
+  object checkstyle extends ContribModule {
+    def compileModuleDeps = Seq(build.scalalib)
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib)
+  }
 }
