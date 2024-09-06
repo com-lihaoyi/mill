@@ -1,7 +1,11 @@
 package mill.contrib.checkstyle
 
 import com.etsy.sbt.checkstyle.CheckstyleSeverityLevel.CheckstyleSeverityLevel
-import com.etsy.sbt.checkstyle.{CheckstyleConfigLocation, CheckstyleSeverityLevel, CheckstyleXSLTSettings}
+import com.etsy.sbt.checkstyle.{
+  CheckstyleConfigLocation,
+  CheckstyleSeverityLevel,
+  CheckstyleXSLTSettings
+}
 import mill.api.{Logger, PathRef}
 import mill.{Agg, T}
 import mill.scalalib.{Dep, DepSyntax, JavaModule}
@@ -34,6 +38,13 @@ trait CheckstyleModule extends JavaModule {
   }
 
   /**
+   * Classpath to use to run `checkstyle`
+   */
+  def checkstyleClasspath = T {
+    defaultResolver().resolveDeps(checkstyleDeps())
+  }
+
+  /**
    * Runs checkstyle
    *
    * @param javaSource The Java source path.
@@ -42,8 +53,14 @@ trait CheckstyleModule extends JavaModule {
    * @param xsltTransformations XSLT transformations to apply.
    * @param severityLevel The severity level used to fail the build.
    */
-  def checkstyle(javaSource: PathRef, resources: Seq[Path], outputFile: PathRef, configLocation: CheckstyleConfigLocation,
-                 xsltTransformations: Option[Set[CheckstyleXSLTSettings]], severityLevel: Option[CheckstyleSeverityLevel], streams: TaskStreams): Unit = {
+  def checkstyle(
+      javaSource: PathRef,
+      resources: Seq[Path],
+      outputFile: PathRef,
+      configLocation: CheckstyleConfigLocation,
+      xsltTransformations: Option[Set[CheckstyleXSLTSettings]],
+      severityLevel: Option[CheckstyleSeverityLevel]
+  ) = T {
     val outputLocation = outputFile.path
     val targetFolder = outputFile.path.toNIO.getParent.toFile
     val configFile = targetFolder + "/checkstyle-config.xml"
@@ -51,21 +68,34 @@ trait CheckstyleModule extends JavaModule {
     targetFolder.mkdirs()
 
     val config = scala.xml.XML.loadString(configLocation.read(resources))
-    scala.xml.XML.save(configFile, config, "UTF-8", xmlDecl = true,
-      scala.xml.dtd.DocType("module", scala.xml.dtd.PublicID("-//Puppy Crawl//DTD Check Configuration 1.3//EN",
-        "http://www.puppycrawl.com/dtds/configuration_1_3.dtd"), Nil))
-
-    val checkstyleArgs = Array(
-      "-c", configFile, // checkstyle configuration file
-      javaSource.path.toString, // location of Java source file
-      "-f", "xml", // output format
-      "-o", outputLocation // output file
+    scala.xml.XML.save(
+      configFile,
+      config,
+      "UTF-8",
+      xmlDecl = true,
+      scala.xml.dtd.DocType(
+        "module",
+        scala.xml.dtd.PublicID(
+          "-//Puppy Crawl//DTD Check Configuration 1.3//EN",
+          "http://www.puppycrawl.com/dtds/configuration_1_3.dtd"
+        ),
+        Nil
+      )
     )
 
+    val checkstyleArgs = Array(
+      "-c",
+      configFile, // checkstyle configuration file
+      javaSource.path.toString, // location of Java source file
+      "-f",
+      "xml", // output format
+      "-o",
+      outputLocation.toString // output file
+    )
 
     Jvm.runSubprocess(
       mainClass = "com.puppycrawl.tools.checkstyle.Main",
-      classPath = checkstyleDeps.map(_),
+      classPath = checkstyleClasspath().map(_.path),
       mainArgs = checkstyleArgs,
       workingDir = T.dest
     )
@@ -76,7 +106,7 @@ trait CheckstyleModule extends JavaModule {
     }
 
     if (outputLocation.toIO.exists && severityLevel.isDefined) {
-      val log = streams.log
+      val log = T.log
       val issuesFound = processIssues(log, outputLocation, severityLevel.get)
 
       if (issuesFound > 0) {
@@ -94,21 +124,28 @@ trait CheckstyleModule extends JavaModule {
    * @param severityLevel The severity level at which to fail the build if style issues exist at that level
    * @return A count of the total number of issues processed
    */
-  private def processIssues(log: Logger, outputLocation: PathRef, severityLevel: CheckstyleSeverityLevel): Int = {
-    val report = scala.xml.XML.loadFile(outputLocation.path.toIO)
+  private def processIssues(
+      log: Logger,
+      outputLocation: Path,
+      severityLevel: CheckstyleSeverityLevel
+  ): Int = {
+    val report = scala.xml.XML.loadFile(outputLocation.toIO)
     val checkstyleSeverityLevelIndex = CheckstyleSeverityLevel.values.toArray.indexOf(severityLevel)
-    val appliedCheckstyleSeverityLevels = CheckstyleSeverityLevel.values.drop(checkstyleSeverityLevelIndex)
-
+    val appliedCheckstyleSeverityLevels =
+      CheckstyleSeverityLevel.values.drop(checkstyleSeverityLevelIndex)
 
     (report \ "file").flatMap { file =>
       (file \ "error").map { error =>
         val severity = CheckstyleSeverityLevel.withName(error.attribute("severity").get.head.text)
         appliedCheckstyleSeverityLevels.contains(severity) match {
           case false => 0
-          case true => val lineNumber = error.attribute("line").get.head.text
+          case true =>
+            val lineNumber = error.attribute("line").get.head.text
             val filename = file.attribute("name").get.head.text
             val errorMessage = error.attribute("message").get.head.text
-            log.error("Checkstyle " + severity + " found in " + filename + ":" + lineNumber + ": " + errorMessage)
+            log.error(
+              "Checkstyle " + severity + " found in " + filename + ":" + lineNumber + ": " + errorMessage
+            )
             1
         }
       }
