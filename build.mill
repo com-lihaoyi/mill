@@ -159,6 +159,7 @@ object Deps {
     ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${millModuledefsVersion}"
   // can't use newer versions, as these need higher Java versions
   val testng = ivy"org.testng:testng:7.5.1"
+  val saxon = ivy"net.sf.saxon:Saxon-HE:12.5"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   // last scalafmt release supporting Java 8 is 3.7.15

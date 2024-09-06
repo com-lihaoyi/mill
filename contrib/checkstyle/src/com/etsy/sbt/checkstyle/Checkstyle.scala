@@ -2,8 +2,11 @@ package com.etsy.sbt.checkstyle
 
 import com.etsy.sbt.checkstyle.CheckstyleSeverityLevel._
 import mill.T
+import mill.api.{Logger, PathRef}
 import mill.util.Jvm
+import net.sf.saxon.s9api.Processor
 
+import java.io.File
 import javax.xml.transform.stream.StreamSource
 
 /**
@@ -22,7 +25,7 @@ object Checkstyle {
    * @param xsltTransformations XSLT transformations to apply.
    * @param severityLevel The severity level used to fail the build.
    */
-  def checkstyle(javaSource: File, resources: Seq[File], outputFile: File, configLocation: CheckstyleConfigLocation,
+  def checkstyle(javaSource: PathRef, resources: Seq[PathRef], outputFile: PathRef, configLocation: CheckstyleConfigLocation,
                  xsltTransformations: Option[Set[CheckstyleXSLTSettings]], severityLevel: Option[CheckstyleSeverityLevel], streams: TaskStreams): Unit = {
     val outputLocation = outputFile.absolutePath
     val targetFolder = outputFile.getParentFile
@@ -69,13 +72,13 @@ object Checkstyle {
   /**
    * Processes style issues found by Checkstyle, returning a count of the number of issues
    *
-   * @param log The SBT Logger
+   * @param log The Mill Logger
    * @param outputLocation The location of the Checkstyle report
    * @param severityLevel The severity level at which to fail the build if style issues exist at that level
    * @return A count of the total number of issues processed
    */
-  private def processIssues(log: Logger, outputLocation: String, severityLevel: CheckstyleSeverityLevel): Int = {
-    val report = scala.xml.XML.loadFile(file(outputLocation))
+  private def processIssues(log: Logger, outputLocation: PathRef, severityLevel: CheckstyleSeverityLevel): Int = {
+    val report = scala.xml.XML.loadFile(outputLocation.path.toIO)
     val checkstyleSeverityLevelIndex = CheckstyleSeverityLevel.values.toArray.indexOf(severityLevel)
     val appliedCheckstyleSeverityLevels = CheckstyleSeverityLevel.values.drop(checkstyleSeverityLevelIndex)
 

@@ -234,5 +234,6 @@ object `package` extends RootModule {
     def buildInfoPackageName = "mill.contrib.checkstyle"
     def buildInfoObjectName = "BuildInfo"
     def buildInfoMembers = Seq(BuildInfo.Value("checkstyleVersion", Deps.RuntimeDeps.checkstyle.version))
+    def ivyDeps = Agg(build.Deps.saxon)
   }
 }
