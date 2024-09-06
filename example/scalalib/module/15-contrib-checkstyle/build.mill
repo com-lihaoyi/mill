@@ -13,9 +13,10 @@ object `package` extends RootModule with CheckstyleModule {
 /** Usage
 
 > ./mill checkstyle # Run checkstyle to produce a report, optionally failing the build if violations are severe enough
-foo.checkstyle: Checkstyle warning found in ...src/InputFileName1.java:2: Top-level class MyAnnotation1 has to reside in its own source file.
-foo.checkstyle: Checkstyle warning found in ...src/InputFileName1.java:13: Top-level class Enum1 has to reside in its own source file.
-foo.checkstyle: Checkstyle warning found in ...src/InputFileName1.java:26: Top-level class TestRequireThisEnum has to reside in its own source file.
-foo.checkstyle: 3 issue(s) found in Checkstyle report: ...out/checkstyle.dest/checkstyle-report.xml
+Checkstyle warning found in ...src/InputFileName1.java:2: Top-level class MyAnnotation1 has to reside in its own source file.
+Checkstyle warning found in ...src/InputFileName1.java:13: Top-level class Enum1 has to reside in its own source file.
+Checkstyle warning found in ...src/InputFileName1.java:26: Top-level class TestRequireThisEnum has to reside in its own source file.
+3 issue(s) found in Checkstyle report: ...out/checkstyle.dest/checkstyle-report.xml
+error: ...Checkstyle issues found
 */
 
