@@ -6,7 +6,7 @@ import com.etsy.sbt.checkstyle.{
   CheckstyleSeverityLevel,
   CheckstyleXSLTSettings
 }
-import mill.api.{Logger, PathRef}
+import mill.api.Logger
 import mill.{Agg, T}
 import mill.scalalib.{Dep, DepSyntax, JavaModule}
 import mill.util.Jvm
@@ -15,6 +15,8 @@ import os.Path
 
 import java.io.File
 import javax.xml.transform.stream.StreamSource
+import scala.xml.{Elem, SAXParser}
+import scala.xml.factory.XMLLoader
 
 /**
  * Integrate Checkstyle into a [[JavaModule]].
@@ -28,7 +30,7 @@ trait CheckstyleModule extends JavaModule {
 
   /** The location of the `checkstyle` configuration file */
   def checkstyleConfigLocation: T[CheckstyleConfigLocation] = T.input {
-    CheckstyleConfigLocation.File("checkstyle-config.xml")
+    CheckstyleConfigLocation.File((T.workspace / "checkstyle-config.xml").toString())
   }
 
   /** An optional set of XSLT transformations to be applied to the checkstyle output */
@@ -59,14 +61,21 @@ trait CheckstyleModule extends JavaModule {
    * @param outputFile The Checkstyle report output path.
    */
   def checkstyle = T {
-    val outputLocation = T.dest / "checkstyle-target"
+    val outputLocation = T.dest / "checkstyle-report.xml"
     val targetFolder = T.dest.toIO
     val configFile = targetFolder + "/checkstyle-config.xml"
     targetFolder.mkdirs()
 
-    val config = scala.xml.XML.loadString(
-      checkstyleConfigLocation().read(compileClasspath().map(_.path).toSeq)
-    )
+    object XML extends XMLLoader[Elem] {
+      override def parser: SAXParser = {
+        val f = javax.xml.parsers.SAXParserFactory.newInstance()
+        f.setFeature("http://apache.org/xml/features/disallow-doctype-decl", false);
+        f.newSAXParser()
+      }
+    }
+
+    val config =
+      XML.loadString(checkstyleConfigLocation().read(compileClasspath().map(_.path).toSeq))
     scala.xml.XML.save(
       configFile,
       config,
@@ -88,8 +97,8 @@ trait CheckstyleModule extends JavaModule {
       "-f",
       "xml", // output format
       "-o",
-      T.dest.toString() // output file
-    ) ++ sources().map(_.toString) // location of Java source files
+      outputLocation.toString() // output file
+    ) ++ sources().map(_.path.toString) // location of Java source files
 
     Jvm.runSubprocess(
       mainClass = "com.puppycrawl.tools.checkstyle.Main",
