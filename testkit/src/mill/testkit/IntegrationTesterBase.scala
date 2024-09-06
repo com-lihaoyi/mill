@@ -1,5 +1,6 @@
 package mill.testkit
-import mill.main.client.OutFiles.out
+import mill.main.client.OutFiles.{out, millWorker}
+import mill.main.client.ServerFiles.serverId
 
 trait IntegrationTesterBase {
   def workspaceSourcePath: os.Path
@@ -23,5 +24,18 @@ trait IntegrationTesterBase {
     os.list(workspacePath).foreach(os.remove.all(_))
     os.list(workspaceSourcePath).filter(_.last != out).foreach(os.copy.into(_, workspacePath))
     os.remove.all(workspacePath / "out")
+  }
+
+  /**
+   * Remove any ID files to try and force them to exit
+   */
+  def removeServerIdFile() = {
+    val serverIdFiles = for {
+      outPath <- os.list.stream(workspacePath / out)
+      if outPath.last.startsWith(millWorker)
+    } yield outPath / serverId
+
+    serverIdFiles.foreach(os.remove(_))
+    Thread.sleep(500) // give a moment for the server to notice the file is gone and exit
   }
 }

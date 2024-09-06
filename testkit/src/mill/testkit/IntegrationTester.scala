@@ -154,6 +154,8 @@ object IntegrationTester {
           case NonFatal(e) =>
         }
       }
+
+      removeServerIdFile()
     }
   }
 
