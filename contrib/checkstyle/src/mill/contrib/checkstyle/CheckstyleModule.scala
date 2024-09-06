@@ -58,8 +58,8 @@ trait CheckstyleModule extends JavaModule {
    *
    * @param outputFile The Checkstyle report output path.
    */
-  def checkstyle(outputFile: PathRef) = T {
-    val outputLocation = outputFile.path
+  def checkstyle = T {
+    val outputLocation = T.dest / "checkstyle-target"
     val targetFolder = T.dest.toIO
     val configFile = targetFolder + "/checkstyle-config.xml"
     targetFolder.mkdirs()
@@ -88,7 +88,7 @@ trait CheckstyleModule extends JavaModule {
       "-f",
       "xml", // output format
       "-o",
-      outputLocation.toString // output file
+      T.dest.toString() // output file
     ) ++ sources().map(_.toString) // location of Java source files
 
     Jvm.runSubprocess(
