@@ -35,7 +35,7 @@ trait CheckstyleModule extends JavaModule {
   def checkstyleXsltTransformations: T[Option[Set[CheckstyleXSLTSettings]]] = T.input { None }
 
   /** The severity level which should fail the build */
-  def checkstyleSeverityLevel: T[Option[CheckstyleSeverityLevel]] = T.input { None }
+  def checkstyleSeverityLevel: Option[CheckstyleSeverityLevel] = None
 
   /**
    * The dependencies of the `checkstyle` compiler plugin.
@@ -103,7 +103,7 @@ trait CheckstyleModule extends JavaModule {
       case Some(xslt) => applyXSLT(outputLocation.toIO, xslt)
     }
 
-    checkstyleSeverityLevel().foreach { severityLevel =>
+    checkstyleSeverityLevel.foreach { severityLevel =>
       if (outputLocation.toIO.exists) {
         val log = T.log
         val issuesFound = processIssues(log, outputLocation, severityLevel)

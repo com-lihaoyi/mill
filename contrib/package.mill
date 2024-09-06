@@ -228,7 +228,7 @@ object `package` extends RootModule {
     def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib)
   }
 
-  object checkstyle extends ContribModule with BuildInfo {
+  object checkstyle extends ContribModule {
     def compileModuleDeps = Seq(build.scalalib)
     def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib)
     def ivyDeps = Agg(build.Deps.saxon)
