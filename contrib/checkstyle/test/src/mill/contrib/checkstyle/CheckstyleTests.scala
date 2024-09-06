@@ -9,35 +9,25 @@ import utest._
 
 object CheckstyleTests extends TestSuite {
 
-  object noCheckstyle extends TestBaseModule with JavaModule {}
   object checkstyle extends TestBaseModule with JavaModule with CheckstyleModule {}
-  object checkstyleCustom extends TestBaseModule with JavaModule with CheckstyleModule {
+  object checkstyleFatal extends TestBaseModule with JavaModule with CheckstyleModule {
     override def checkstyleSeverityLevel: Option[CheckstyleSeverityLevel] =
       Some(CheckstyleSeverityLevel.Info)
   }
 
-  val testModuleSourcesPath: Path = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "simple"
+  val testModuleSourcesPath: Path = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "checkstyle"
 
   def tests = Tests {
-    test("reference") {
-      test("compile") {
-        val eval = UnitTester(noCheckstyle, testModuleSourcesPath)
-        val res = eval(noCheckstyle.compile)
-        assert(res.isRight)
-      }
-    }
     test("checkstyle") {
-      test("compileFail") {
-        val eval = UnitTester(checkstyle, testModuleSourcesPath)
-        val res = eval(checkstyle.compile)
-        assert(res.isLeft)
-      }
-      test("compileWarn") {
-        val eval = UnitTester(checkstyleCustom, testModuleSourcesPath, debugEnabled = true)
-        val Right(opts) = eval(checkstyleCustom.javacOptions)
-        assert(opts.value.exists(_.contains("-XepAllErrorsAsWarnings")))
-        val res = eval(checkstyleCustom.compile)
+      test("report") {
+        val eval = UnitTester(checkstyle, testModuleSourcesPath, debugEnabled = true)
+        val res = eval(checkstyle.checkstyle)
         assert(res.isRight)
+      }
+      test("fatal") {
+        val eval = UnitTester(checkstyleFatal, testModuleSourcesPath)
+        val res = eval(checkstyleFatal.checkstyle)
+        assert(res.isLeft)
       }
     }
   }
