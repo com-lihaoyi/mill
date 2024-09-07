@@ -62,8 +62,8 @@ trait CheckstyleModule extends JavaModule {
     checkstyleDir().path / "config.xml"
   }
 
-  def checkstyleDir: T[PathRef] = T.source {
-    millSourcePath / "checkstyle"
+  def checkstyleDir: T[PathRef] = T {
+    PathRef(millSourcePath / "checkstyle")
   }
 
   def checkstyleFormat: T[String] = T {
