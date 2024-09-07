@@ -130,7 +130,7 @@ trait RunModule extends WithZincWorker {
 
   def runner: Task[RunModule.Runner] = T.task {
     new RunModule.RunnerImpl(
-      mainClass(),
+      finalMainClassOpt(),
       runClasspath().map(_.path),
       forkArgs(),
       forkEnv(),
@@ -262,7 +262,7 @@ object RunModule {
     )(implicit ctx: Ctx): Unit
   }
   private class RunnerImpl(
-      mainClass0: Option[String],
+      mainClass0: Either[String, String],
       runClasspath: Seq[os.Path],
       forkArgs0: Seq[String],
       forkEnv0: Map[String, String],
@@ -278,7 +278,7 @@ object RunModule {
         useCpPassingJar: java.lang.Boolean = null
     )(implicit ctx: Ctx): Unit = {
       Jvm.runSubprocess(
-        Option(mainClass).orElse(mainClass0).getOrElse("Please specify a main class"),
+        Option(mainClass).getOrElse(mainClass0.fold(sys.error, identity)),
         runClasspath,
         Option(forkArgs).getOrElse(forkArgs0),
         Option(forkEnv).getOrElse(forkEnv0),
