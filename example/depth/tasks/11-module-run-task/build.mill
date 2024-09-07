@@ -1,15 +1,15 @@
 package build
 import mill._, scalalib._
+import mill.util.Jvm
 
 object foo extends ScalaModule {
   def scalaVersion = "2.13.8"
   def moduleDeps = Seq(bar)
   def ivyDeps = Agg(ivy"com.lihaoyi::mainargs:0.4.0")
 
-  def barWorkingDir = T{ T.dest }
   def sources = T{
-    bar.run(T.task(Args(barWorkingDir(), super.sources().map(_.path))))()
-    Seq(PathRef(barWorkingDir()))
+    bar.runner().run(args = super.sources().map(_.path.toString))
+    Seq(PathRef(T.dest))
   }
 }
 
@@ -22,9 +22,9 @@ object bar extends ScalaModule{
 // than defining the task logic in the `build.mill`, we instead put the build
 // logic within the `bar` module as `bar/src/Bar.scala`. In this example, we use
 // `Bar.scala` as a source-code pre-processor on the `foo` module source code:
-// we override `foo.sources`, passing the `super.sources()` to `bar.run` along
-// with a `barWorkingDir`, and returning a `PathRef(barWorkingDir())` as the
-// new `foo.sources`.
+// we override `foo.sources`, passing the `super.sources()` and `bar.runClasspath`
+// to `bar.runner().run` along with a `T.dest`, and returning a `PathRef(T.dest)`
+// as the new `foo.sources`.
 
 /** Usage
 
@@ -40,3 +40,23 @@ Foo.value: HELLO
 // may not fit nicely inside a `build.mill` file, whether due to the sheer lines
 // of code or due to dependencies that may conflict with the Mill classpath
 // present in `build.mill`
+//
+// `bar.runner().run` by default inherits the `mainClass`, `forkEnv`, `forkArgs`,
+// from the owning module `bar`, and the working directory from the calling task's
+// `T.dest`. You can also pass in these parameters explicitly to `run()` as named
+// arguments if you wish to override the defaults
+//
+// [source,scala]
+// ----
+// trait Runner{
+//   def run(args: Seq[String],
+//           mainClass: String = null,
+//           forkArgs: Seq[String] = null,
+//           forkEnv: Map[String, String] = null,
+//           workingDir: os.Path = null,
+//           useCpPassingJar: java.lang.Boolean = null)
+//          (implicit ctx: Ctx): Unit
+// }
+// ----
+
+

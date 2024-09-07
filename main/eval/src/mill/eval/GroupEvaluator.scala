@@ -131,7 +131,8 @@ private[mill] trait GroupEvaluator {
           counterMsg = counterMsg,
           zincProblemReporter,
           testReporter,
-          logger
+          logger,
+          terminal.task.asWorker.nonEmpty
         )
         GroupEvaluator.Results(newResults, newEvaluated.toSeq, null, inputsHash, -1)
 
@@ -180,7 +181,8 @@ private[mill] trait GroupEvaluator {
                   counterMsg = counterMsg,
                   zincProblemReporter,
                   testReporter,
-                  logger
+                  logger,
+                  terminal.task.asWorker.nonEmpty
                 )
               }
 
@@ -220,7 +222,8 @@ private[mill] trait GroupEvaluator {
       counterMsg: String,
       reporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
-      logger: mill.api.Logger
+      logger: mill.api.Logger,
+      isWorker: Boolean
   ): (Map[Task[_], TaskResult[(Val, Int)]], mutable.Buffer[Task[_]]) = {
 
     def computeAll(enableTicker: Boolean) = {
@@ -317,8 +320,15 @@ private[mill] trait GroupEvaluator {
       // tasks that call `os.proc` or `T.dest` without actually doing anything with
       // the folder will leave empty folders around cluttering the disk
       this.synchronized {
-        for (p <- usedDest if os.list.stream(p).headOption.isEmpty) os.remove(p)
+        for {
+          p <- usedDest
+          if os.list.stream(p).headOption.isEmpty
+          // workers can be used after they return their value and
+          // may need to continue working with their `T.dest`,
+          if !isWorker
+        } os.remove(p)
       }
+
       multiLogger.close()
       (newResults, newEvaluated)
     }

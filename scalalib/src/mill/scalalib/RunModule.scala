@@ -122,21 +122,21 @@ trait RunModule extends WithZincWorker {
    */
   def runForkedTask(mainClass: Task[String], args: Task[Args] = T.task(Args())): Task[Unit] =
     T.task {
-      try Result.Success(
-          Jvm.runSubprocess(
-            mainClass(),
-            runClasspath().map(_.path),
-            forkArgs(),
-            forkEnv(),
-            args().value,
-            workingDir = forkWorkingDir(),
-            useCpPassingJar = runUseArgsFile()
-          )
-        )
+      try Result.Success(runner().run(args().value))
       catch {
         case NonFatal(_) => Result.Failure("Subprocess failed")
       }
     }
+
+  def runner: Task[RunModule.Runner] = T.task {
+    new RunModule.RunnerImpl(
+      finalMainClass(),
+      runClasspath().map(_.path),
+      forkArgs(),
+      forkEnv(),
+      runUseArgsFile()
+    )
+  }
 
   def runLocalTask(mainClass: Task[String], args: Task[Args] = T.task(Args())): Task[Unit] =
     T.task {
@@ -248,4 +248,48 @@ trait RunModule extends WithZincWorker {
     (procId, procTombstone, token)
   }
 
+}
+
+object RunModule {
+  trait Runner {
+    def run(
+        args: Seq[String],
+        mainClass: String = null,
+        forkArgs: Seq[String] = null,
+        forkEnv: Map[String, String] = null,
+        workingDir: os.Path = null,
+        useCpPassingJar: java.lang.Boolean = null
+    )(implicit ctx: Ctx): Unit
+  }
+  private class RunnerImpl(
+      mainClass0: String,
+      runClasspath: Seq[os.Path],
+      forkArgs0: Seq[String],
+      forkEnv0: Map[String, String],
+      useCpPassingJar0: Boolean
+  ) extends Runner {
+
+    def run(
+        args: Seq[String],
+        mainClass: String = null,
+        forkArgs: Seq[String] = null,
+        forkEnv: Map[String, String] = null,
+        workingDir: os.Path = null,
+        useCpPassingJar: java.lang.Boolean = null
+    )(implicit ctx: Ctx): Unit = {
+      Jvm.runSubprocess(
+        Option(mainClass).getOrElse(mainClass0),
+        runClasspath,
+        Option(forkArgs).getOrElse(forkArgs0),
+        Option(forkEnv).getOrElse(forkEnv0),
+        args,
+        Option(workingDir).getOrElse(ctx.dest),
+        background = false,
+        Option(useCpPassingJar) match {
+          case Some(b) => b
+          case None => useCpPassingJar0
+        }
+      )
+    }
+  }
 }
