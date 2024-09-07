@@ -10,6 +10,7 @@ import mill.util._
 import java.io.PrintStream
 import java.lang.reflect.Method
 import scala.collection.mutable
+import scala.concurrent.ExecutionContext
 import scala.reflect.NameTransformer.encode
 import scala.util.control.NonFatal
 import scala.util.{DynamicVariable, Using}
@@ -79,7 +80,8 @@ private[mill] trait GroupEvaluator {
       testReporter: TestReporter,
       logger: ColorLogger,
       classToTransitiveClasses: Map[Class[_], IndexedSeq[Class[_]]],
-      allTransitiveClassMethods: Map[Class[_], Map[String, Method]]
+      allTransitiveClassMethods: Map[Class[_], Map[String, Method]],
+      executionContext: ExecutionContext
   ): GroupEvaluator.Results = synchronizedEval(
     terminal,
     onCollision =
@@ -162,7 +164,8 @@ private[mill] trait GroupEvaluator {
           counterMsg = counterMsg,
           zincProblemReporter,
           testReporter,
-          logger
+          logger,
+          executionContext
         )
         GroupEvaluator.Results(newResults, newEvaluated.toSeq, null, inputsHash, -1)
 
@@ -211,7 +214,8 @@ private[mill] trait GroupEvaluator {
                   counterMsg = counterMsg,
                   zincProblemReporter,
                   testReporter,
-                  logger
+                  logger,
+                  executionContext = executionContext
                 )
               }
 
@@ -251,7 +255,8 @@ private[mill] trait GroupEvaluator {
       counterMsg: String,
       reporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
-      logger: mill.api.Logger
+      logger: mill.api.Logger,
+      executionContext: ExecutionContext
   ): (Map[Task[_], TaskResult[(Val, Int)]], mutable.Buffer[Task[_]]) = {
 
     def computeAll(enableTicker: Boolean) = {
@@ -315,7 +320,8 @@ private[mill] trait GroupEvaluator {
               reporter = reporter,
               testReporter = testReporter,
               workspace = workspace,
-              systemExit = systemExit
+              systemExit = systemExit,
+              executionContext = executionContext
             ) with mill.api.Ctx.Jobs {
               override def jobs: Int = effectiveThreadCount
             }
