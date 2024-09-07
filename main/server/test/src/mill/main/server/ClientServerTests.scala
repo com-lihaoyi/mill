@@ -17,7 +17,8 @@ object ClientServerTests extends TestSuite {
 
   val ENDL = System.lineSeparator()
   class EchoServer(override val serverId: String, serverDir: os.Path, locks: Locks)
-      extends Server[Option[Int]](serverDir, 1000, locks, testLogEvenWhenServerIdWrong = true) with Runnable {
+      extends Server[Option[Int]](serverDir, 1000, locks, testLogEvenWhenServerIdWrong = true)
+      with Runnable {
     override def exitServer() = {
       serverLog("exiting server")
       super.exitServer()

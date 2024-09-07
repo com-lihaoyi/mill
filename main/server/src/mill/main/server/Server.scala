@@ -112,7 +112,7 @@ abstract class Server[T](
       case scala.util.Failure(e) => Some(s"serverId file missing")
 
       case scala.util.Success(s) =>
-        Option.when(s != serverId){
+        Option.when(s != serverId) {
           s"serverId file contents $s does not match serverId $serverId"
         }
     }
