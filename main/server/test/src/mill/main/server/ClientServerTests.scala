@@ -176,7 +176,7 @@ object ClientServerTests extends TestSuite {
       }
     }
     test("dontLogWhenOutFolderDeleted") - retry(3) {
-      val tester = new Tester(testLogEvenWhenServerIdWrong = true)
+      val tester = new Tester(testLogEvenWhenServerIdWrong = false)
       val res1 = tester(args = Array("world"))
 
       assert(
