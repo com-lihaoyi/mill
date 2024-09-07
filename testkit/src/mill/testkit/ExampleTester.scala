@@ -215,7 +215,8 @@ class ExampleTester(
     retryOnTimeout(3) {
       try {
         try os.remove.all(workspacePath / "out")
-        catch {case e: Throwable =>
+        catch {
+          case e: Throwable =>
           /*do nothing*/
         }
 
