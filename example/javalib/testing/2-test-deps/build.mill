@@ -1,6 +1,5 @@
-package build
 //// SNIPPET:BUILD
-
+package build
 import mill._, javalib._
 
 object qux extends JavaModule {

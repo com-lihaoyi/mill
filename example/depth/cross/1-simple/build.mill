@@ -1,6 +1,5 @@
-package build
 // Mill handles cross-building of all sorts via the `Cross[T]` module.
-
+package build
 import mill._
 
 object foo extends Cross[FooModule]("2.10", "2.11", "2.12")

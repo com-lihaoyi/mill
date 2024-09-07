@@ -1,10 +1,9 @@
-package build
 // If you want to use additional dependencies at runtime or override
 // dependencies and their versions at runtime, you can do so with
 // `runIvyDeps`.
 
 //// SNIPPET:BUILD1
-
+package build
 import mill._, scalalib._
 
 object foo extends ScalaModule {

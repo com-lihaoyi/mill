@@ -1,7 +1,6 @@
-package build
 // Targets in cross-modules can use one another the same way they are used from
 // external targets:
-
+package build
 import mill._
 
 object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
