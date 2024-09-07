@@ -33,6 +33,7 @@ private[mill] trait GroupEvaluator {
   def scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])]
   def methodCodeHashSignatures: Map[String, Int]
   def disableCallgraphInvalidation: Boolean
+  def systemExit: Int => Nothing
 
   lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] = methodCodeHashSignatures
     .toSeq
@@ -313,7 +314,8 @@ private[mill] trait GroupEvaluator {
               env = env,
               reporter = reporter,
               testReporter = testReporter,
-              workspace = workspace
+              workspace = workspace,
+              systemExit = systemExit
             ) with mill.api.Ctx.Jobs {
               override def jobs: Int = effectiveThreadCount
             }

@@ -197,7 +197,11 @@ abstract class Server[T](
               env.asScala.toMap,
               idle = _,
               userSpecifiedProperties.asScala.toMap,
-              initialSystemProperties
+              initialSystemProperties,
+              systemExit = exitCode => {
+                os.write.over(serverDir / ServerFiles.exitCode, exitCode.toString)
+                sys.exit(exitCode)
+              }
             )
 
             stateCache = newStateCache
@@ -246,7 +250,8 @@ abstract class Server[T](
       env: Map[String, String],
       setIdle: Boolean => Unit,
       userSpecifiedProperties: Map[String, String],
-      initialSystemProperties: Map[String, String]
+      initialSystemProperties: Map[String, String],
+      systemExit: Int => Nothing
   ): (Boolean, T)
 
 }
