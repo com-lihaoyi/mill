@@ -69,11 +69,13 @@ jobs:
         if: inputs.buildcmd != ''
 
       - name: Run Mill '${{ inputs.millargs }}'
-        run:  ./mill -i -k ${{ inputs.millargs }}
+        # mill unit and integration tests are very heavyweight, so only run
+        # 3 threads on the 4 core Github Actions workers to leave some slack
+        run:  ./mill -i -j3 -k ${{ inputs.millargs }}
         if: inputs.millargs != '' && !startsWith(inputs.os, 'windows')
 
       - name: Run Mill (on Windows) '${{ inputs.millargs }}'
-        run: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -k ${{ inputs.millargs }}
+        run: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -j3 -k ${{ inputs.millargs }}
         if: inputs.millargs != '' && startsWith(inputs.os, 'windows')
 
       - name: Run Mill (on Windows) Worker Cleanup
