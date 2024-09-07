@@ -3,13 +3,9 @@ package mill.eval
 import mill.api.BlockableExecutionContext
 
 import java.util.concurrent.ForkJoinPool.ManagedBlocker
-import scala.concurrent.ExecutionContext
 import java.util.concurrent.{
   ExecutorService,
   ForkJoinPool,
-  LinkedBlockingQueue,
-  ThreadPoolExecutor,
-  TimeUnit
 }
 
 private object ExecutionContexts {
@@ -35,15 +31,15 @@ private object ExecutionContexts {
     val threadPool: ExecutorService = forkJoinPool
 
     def blocking[T](t: => T): T = {
-      @volatile var res: T = null.asInstanceOf[T]
+      @volatile var res: Option[T] = None
       ForkJoinPool.managedBlock(new ManagedBlocker {
         def block(): Boolean = {
-          res = t
-          false
+          if (res.isEmpty) res = Some(t)
+          true
         }
-        def isReleasable: Boolean = false
+        def isReleasable: Boolean = res.nonEmpty
       })
-      res
+      res.get
     }
 
     def execute(runnable: Runnable): Unit = threadPool.submit(runnable)
