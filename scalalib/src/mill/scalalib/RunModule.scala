@@ -122,7 +122,7 @@ trait RunModule extends WithZincWorker {
    */
   def runForkedTask(mainClass: Task[String], args: Task[Args] = T.task(Args())): Task[Unit] =
     T.task {
-      try Result.Success(runner().run(args().value))
+      try Result.Success(runner().run(args().value, mainClass()))
       catch {
         case NonFatal(_) => Result.Failure("Subprocess failed")
       }
@@ -130,7 +130,7 @@ trait RunModule extends WithZincWorker {
 
   def runner: Task[RunModule.Runner] = T.task {
     new RunModule.RunnerImpl(
-      finalMainClass(),
+      mainClass(),
       runClasspath().map(_.path),
       forkArgs(),
       forkEnv(),
@@ -262,7 +262,7 @@ object RunModule {
     )(implicit ctx: Ctx): Unit
   }
   private class RunnerImpl(
-      mainClass0: String,
+      mainClass0: Option[String],
       runClasspath: Seq[os.Path],
       forkArgs0: Seq[String],
       forkEnv0: Map[String, String],
@@ -278,7 +278,7 @@ object RunModule {
         useCpPassingJar: java.lang.Boolean = null
     )(implicit ctx: Ctx): Unit = {
       Jvm.runSubprocess(
-        Option(mainClass).getOrElse(mainClass0),
+        Option(mainClass).orElse(mainClass0).getOrElse("Please specify a main class"),
         runClasspath,
         Option(forkArgs).getOrElse(forkArgs0),
         Option(forkEnv).getOrElse(forkEnv0),
