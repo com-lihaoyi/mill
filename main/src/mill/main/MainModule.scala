@@ -396,7 +396,8 @@ trait MainModule extends BaseModule0 {
    */
   def shutdown(): Command[Unit] = Target.command {
     Target.log.info("Shutting down Mill server...")
-    System.exit(0)
+    Target.ctx.systemExit(0)
+    ()
   }
 
   /**

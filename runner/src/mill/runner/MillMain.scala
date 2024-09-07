@@ -75,7 +75,8 @@ object MillMain {
           env = System.getenv().asScala.toMap,
           setIdle = b => (),
           userSpecifiedProperties0 = Map(),
-          initialSystemProperties = sys.props.toMap
+          initialSystemProperties = sys.props.toMap,
+          systemExit = i => sys.exit(i)
         )
       catch handleMillException(runnerStreams.err, ())
       finally {
@@ -93,7 +94,8 @@ object MillMain {
       env: Map[String, String],
       setIdle: Boolean => Unit,
       userSpecifiedProperties0: Map[String, String],
-      initialSystemProperties: Map[String, String]
+      initialSystemProperties: Map[String, String],
+      systemExit: Int => Nothing
   ): (Boolean, RunnerState) = {
     val printLoggerState = new PrintLogger.State()
     val streams = PrintLogger.wrapSystemStreams(streams0, printLoggerState)
@@ -233,7 +235,8 @@ object MillMain {
                         disableCallgraphInvalidation = config.disableCallgraphInvalidation.value,
                         needBuildSc = needBuildSc(config),
                         requestedMetaLevel = config.metaLevel,
-                        config.allowPositionalCommandArgs.value
+                        config.allowPositionalCommandArgs.value,
+                        systemExit = systemExit
                       ).evaluate()
                     }
                   )

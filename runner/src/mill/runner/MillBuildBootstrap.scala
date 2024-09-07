@@ -41,7 +41,8 @@ class MillBuildBootstrap(
     disableCallgraphInvalidation: Boolean,
     needBuildSc: Boolean,
     requestedMetaLevel: Option[Int],
-    allowPositionalCommandArgs: Boolean
+    allowPositionalCommandArgs: Boolean,
+    systemExit: Int => Nothing
 ) {
   import MillBuildBootstrap._
 
@@ -351,7 +352,8 @@ class MillBuildBootstrap(
       threadCount = threadCount,
       methodCodeHashSignatures = methodCodeHashSignatures,
       disableCallgraphInvalidation = disableCallgraphInvalidation,
-      allowPositionalCommandArgs = allowPositionalCommandArgs
+      allowPositionalCommandArgs = allowPositionalCommandArgs,
+      systemExit = systemExit
     )
   }
 

@@ -117,7 +117,8 @@ class Ctx(
     val env: Map[String, String],
     val reporter: Int => Option[CompileProblemReporter],
     val testReporter: TestReporter,
-    val workspace: os.Path
+    val workspace: os.Path,
+    val systemExit: Int => Nothing
 ) extends Ctx.Dest
     with Ctx.Log
     with Ctx.Args
@@ -125,6 +126,18 @@ class Ctx(
     with Ctx.Env
     with Ctx.Workspace {
 
+  def this(
+      args: IndexedSeq[_],
+      dest0: () => os.Path,
+      log: Logger,
+      home: os.Path,
+      env: Map[String, String],
+      reporter: Int => Option[CompileProblemReporter],
+      testReporter: TestReporter,
+      workspace: os.Path
+  ) = {
+    this(args, dest0, log, home, env, reporter, testReporter, workspace, i => ???)
+  }
   def dest: os.Path = dest0()
   def arg[T](index: Int): T = {
     if (index >= 0 && index < args.length) args(index).asInstanceOf[T]
