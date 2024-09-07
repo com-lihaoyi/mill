@@ -196,7 +196,7 @@ trait TestModule
       parallel: Boolean = false
   ): Task[(String, Seq[TestResult])] =
     T.task {
-      val outputPath = T.dest / "out.json"
+
       val useArgsFile = testUseArgsFile()
 
       val (jvmArgs, props: Map[String, String]) =
@@ -225,7 +225,8 @@ trait TestModule
       val resourceEnv =
         Map(EnvVars.MILL_TEST_RESOURCE_FOLDER -> resources().map(_.path).mkString(";"))
 
-      def runTestSubprocess(selectors2: Seq[String], argsFile: os.Path, sandbox: os.Path) = {
+      def runTestSubprocess(selectors2: Seq[String], base: os.Path) = {
+        val outputPath = base / "out.json"
         val testArgs = TestArgs(
           framework = testFramework(),
           classpath = runClasspath().map(_.path),
@@ -238,9 +239,11 @@ trait TestModule
           globSelectors = selectors2
         )
 
-        os.write(argsFile, upickle.default.write(testArgs))
+        val argsFile = base / "testargs"
+        val sandbox = base / "sandbox"
+        os.write(argsFile, upickle.default.write(testArgs), createFolders = true)
 
-        os.makeDir(sandbox)
+        os.makeDir.all(sandbox)
 
         Jvm.runSubprocess(
           mainClass = "mill.testrunner.entrypoint.TestRunnerMain",
@@ -254,36 +257,34 @@ trait TestModule
           workingDir = if (testSandboxWorkingDir()) sandbox else forkWorkingDir(),
           useCpPassingJar = useArgsFile
         )
+
         if (!os.exists(outputPath)) Left(s"Test reporting Failed: ${outputPath} does not exist")
         else Right(upickle.default.read[(String, Seq[TestResult])](ujson.read(outputPath.toIO)))
       }
 
-      val res: Either[String, (String, Seq[TestResult])] =
-        if (!parallel) runTestSubprocess(selectors, T.dest / "testargs", T.dest / "sandbox")
+      val subprocessResult: Either[String, (String, Seq[TestResult])] =
+        if (!parallel) runTestSubprocess(selectors, T.dest)
         else {
-
           implicit val ec = T.ctx.executionContext
           val futures =
             for (testClassName <- discoveredTestClasses()) yield Future {
-              runTestSubprocess(
-                Seq(testClassName),
-                T.dest / "testargs" / testClassName,
-                T.dest / "sandbox" / testClassName
-              )
+              (testClassName, runTestSubprocess(Seq(testClassName), T.dest / testClassName))
             }
 
           val outputs = T.ctx.executionContext.blocking {
             Await.result(Future.sequence(futures), Duration.Inf)
           }
 
-          val (lefts, rights) = outputs.partitionMap(identity)
-          if (lefts.nonEmpty) Left(lefts.mkString("\n"))
-          else {
-            Right((rights.map(_._1).mkString("\n"), rights.flatMap(_._2)))
+          val (lefts, rights) = outputs.partitionMap {
+            case (name, Left(v)) => Left(name + " " + v)
+            case (name, Right((msg, results))) => Right((name + " " + msg, results))
           }
+
+          if (lefts.nonEmpty) Left(lefts.mkString("\n"))
+          else Right((rights.map(_._1).mkString("\n"), rights.flatMap(_._2)))
         }
 
-      res match {
+      subprocessResult match {
         case Left(errMsg) => Result.Failure(errMsg)
         case Right((doneMsg, results)) =>
           try {
