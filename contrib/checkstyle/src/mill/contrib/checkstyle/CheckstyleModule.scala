@@ -17,16 +17,9 @@ trait CheckstyleModule extends JavaModule {
     val srcs = sources().map(_.path.toString())
     val thrw = checkstyleThrow()
 
-    val args = Seq.newBuilder[String]
-      .++=(opts)
-      .+=("-c")
-      .+=(conf.path.toString())
-      .+=("-f")
-      .+=(fmt.toString())
-      .+=("-o")
-      .+=(out.toString())
-      .++=(srcs)
-      .result()
+    val args = opts ++
+      Seq("-c", conf.path.toString(), "-f", fmt, "-o", out.toString()) ++
+      srcs
 
     T.log.info(s"generating checkstyle $fmt report ...")
     args.foreach(s => T.log.debug(s"  $s"))
