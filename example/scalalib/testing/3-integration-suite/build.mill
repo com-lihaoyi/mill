@@ -1,10 +1,9 @@
-package build
 // You can also define test suites with different names other than `test`. For example,
 // the build below defines a test suite with the name `integration`, in addition
 // to that named `test`.
 
 //// SNIPPET:BUILD3
-
+package build
 import mill._, scalalib._
 
 object qux extends ScalaModule {
