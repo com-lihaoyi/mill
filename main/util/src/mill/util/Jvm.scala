@@ -24,8 +24,7 @@ object Jvm extends CoursierSupport {
       envArgs: Map[String, String] = Map.empty,
       mainArgs: Seq[String] = Seq.empty,
       workingDir: os.Path = null,
-      streamOut: Boolean = true,
-      check: Boolean = false
+      streamOut: Boolean = true
   )(implicit ctx: Ctx): CommandResult = {
 
     val commandArgs =
@@ -37,7 +36,31 @@ object Jvm extends CoursierSupport {
     val workingDir1 = Option(workingDir).getOrElse(ctx.dest)
     os.makeDir.all(workingDir1)
 
-    os.proc(commandArgs).call(cwd = workingDir1, env = envArgs, check = check)
+    os.proc(commandArgs).call(cwd = workingDir1, env = envArgs)
+  }
+
+  /**
+   * A version of [[Jvm.callSubprocess]] that does not raise an exception on a non-zero exit.
+   */
+  def callSubprocessUnchecked(
+    mainClass: String,
+    classPath: Agg[os.Path],
+    jvmArgs: Seq[String] = Seq.empty,
+    envArgs: Map[String, String] = Map.empty,
+    mainArgs: Seq[String] = Seq.empty,
+    workingDir: os.Path = null
+  )(implicit ctx: Ctx): CommandResult = {
+
+    val commandArgs =
+      Vector(javaExe) ++
+        jvmArgs ++
+        Vector("-cp", classPath.iterator.mkString(java.io.File.pathSeparator), mainClass) ++
+        mainArgs
+
+    val workingDir1 = Option(workingDir).getOrElse(ctx.dest)
+    os.makeDir.all(workingDir1)
+
+    os.proc(commandArgs).call(cwd = workingDir1, env = envArgs, check = false)
   }
 
   /**

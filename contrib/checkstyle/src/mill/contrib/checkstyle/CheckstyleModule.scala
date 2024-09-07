@@ -33,12 +33,11 @@ trait CheckstyleModule extends JavaModule {
     T.log.info(s"generating checkstyle $format report ...")
     T.log.debug(s"running checkstyle with $args")
 
-    val errs = Jvm.callSubprocess(
+    val errs = Jvm.callSubprocessUnchecked(
       mainClass = "com.puppycrawl.tools.checkstyle.Main",
       classPath = classpath,
       mainArgs = args,
-      workingDir = T.dest,
-      check = false
+      workingDir = T.dest
     ).exitCode
 
     if (errs == 0) {
