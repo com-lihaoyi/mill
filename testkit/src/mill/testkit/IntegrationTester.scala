@@ -148,6 +148,7 @@ object IntegrationTester {
           stdout = os.Inherit,
           stderr = os.Inherit,
           env = millTestSuiteEnv,
+          check = false
         )
       }
 
