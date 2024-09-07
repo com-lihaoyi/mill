@@ -40,17 +40,20 @@ object bar extends MyModule
 //
 // - `foo.test` runs in `out/foo/test/test.dest/`
 // - `bar.test` runs in `out/bar/test/test.dest/`
+//
+// As a result, each test's `generated.html` file is written to its own dedicated
+// working directory, without colliding with each other on disk:
 
 /** Usage
 
 > find . | grep generated.html
-.../out/foo/test/test.dest/foo.FooTests/sandbox/generated.html
-.../out/bar/test/test.dest/bar.BarTests/sandbox/generated.html
+.../out/foo/test/test.dest/sandbox/generated.html
+.../out/bar/test/test.dest/sandbox/generated.html
 
-> cat out/foo/test/test.dest/foo.FooTests/sandbox/generated.html
+> cat out/foo/test/test.dest/sandbox/generated.html
 <h1>hello</h1>
 
-> cat out/bar/test/test.dest/bar.BarTests/sandbox/generated.html
+> cat out/bar/test/test.dest/sandbox/generated.html
 <p>world</p>
 
 */

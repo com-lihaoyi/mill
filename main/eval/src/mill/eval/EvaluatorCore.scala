@@ -68,7 +68,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       logger: ColorLogger,
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
-      ec: BlockableExecutionContext,
+      ec: ExecutionContext with AutoCloseable,
       contextLoggerMsg0: Int => String,
       serialCommandExec: Boolean
   ): Evaluator.Results = {
@@ -91,7 +91,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       precomputeMethodNamesPerClass(sortedGroups)
 
     def evaluateTerminals(terminals: Seq[Terminal], contextLoggerMsg: Int => String)(implicit
-        executionContext: BlockableExecutionContext
+        ec: ExecutionContext
     ) = {
       // We walk the task graph in topological order and schedule the futures
       // to run asynchronously. During this walk, we store the scheduled futures
@@ -126,8 +126,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
               testReporter = testReporter,
               logger = contextLogger,
               classToTransitiveClasses,
-              allTransitiveClassMethods,
-              executionContext
+              allTransitiveClassMethods
             )
 
             if (failFast && res.newResults.values.exists(_.result.asSuccess.isEmpty))

@@ -5,7 +5,7 @@
 // the filesystem operations of other tasks that may be occurring in parallel.
 //
 //
-// == `T.dest`
+// === `T.dest`
 // The standard way of working with a task's `.dest/` folder is through the `T.dest`
 // property. This is available within any task, and gives you access to the
 // `out/<module-names>/<task-name>.dest/` folder to use. The `.dest/` folder for
@@ -24,7 +24,7 @@ object foo extends Module{
 */
 
 
-// == Task `os.pwd` redirection
+// === Task `os.pwd` redirection
 // Mill also redirects the `os.pwd` property from https://github.com/com-lihaoyi/os-lib[OS-Lib],
 // such that that also points towards a running task's own `.dest/` folder
 
@@ -48,7 +48,7 @@ def osProcTask = T {
 .../out/osProcTask.dest
 */
 
-// == Non-task `os.pwd` redirection
+// === Non-task `os.pwd` redirection
 //
 // Lastly, there is the possibily of calling `os.pwd` outside of a task. When outside of
 // a task there is no `.dest/` folder associated, so instead Mill will redirect `os.pwd`
@@ -63,7 +63,7 @@ def externalPwdTask = T { println(externalPwd.toString) }
 */
 
 
-// == Limitations of Mill's Sandboxing
+// === Limitations of Mill's Sandboxing
 //
 // Mill's approach to filesystem sandboxing is designed to avoid accidental interference
 // between different Mill tasks. It is not designed to block intentional misbehavior, and

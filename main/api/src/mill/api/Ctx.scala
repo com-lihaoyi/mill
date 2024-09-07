@@ -118,8 +118,7 @@ class Ctx(
     val reporter: Int => Option[CompileProblemReporter],
     val testReporter: TestReporter,
     val workspace: os.Path,
-    val systemExit: Int => Nothing,
-    val executionContext: BlockableExecutionContext
+    val systemExit: Int => Nothing
 ) extends Ctx.Dest
     with Ctx.Log
     with Ctx.Args
@@ -137,7 +136,7 @@ class Ctx(
       testReporter: TestReporter,
       workspace: os.Path
   ) = {
-    this(args, dest0, log, home, env, reporter, testReporter, workspace, i => ???, null)
+    this(args, dest0, log, home, env, reporter, testReporter, workspace, i => ???)
   }
   def dest: os.Path = dest0()
   def arg[T](index: Int): T = {

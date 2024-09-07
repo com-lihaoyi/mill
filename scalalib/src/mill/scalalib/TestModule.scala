@@ -12,8 +12,6 @@ import sbt.testing.Status
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.time.{Instant, LocalDateTime, ZoneId}
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
 import scala.xml.Elem
 
 trait TestModule
@@ -100,13 +98,6 @@ trait TestModule
   }
 
   /**
-   * Make this test module each individual test classes in parallel in separate JVMs
-   * and sandbox folders. Setting it to `false` will fall back to running all
-   * test classes in this module in a single JVM in a single sandbox folder
-   */
-  def testParallelizeClasses: T[Boolean] = true
-
-  /**
    * Discovers and runs the module's tests in a subprocess, reporting the
    * results to the console.
    * Arguments before "--" will be used as wildcard selector to select
@@ -188,9 +179,10 @@ trait TestModule
    */
   protected def testTask(
       args: Task[Seq[String]],
-      globSelectors: Task[Seq[String]]): Task[(String, Seq[TestResult])] =
+      globSelectors: Task[Seq[String]]
+  ): Task[(String, Seq[TestResult])] =
     T.task {
-
+      val outputPath = T.dest / "out.json"
       val useArgsFile = testUseArgsFile()
 
       val (jvmArgs, props: Map[String, String]) =
@@ -212,87 +204,59 @@ trait TestModule
 
       val selectors = globSelectors()
 
+      val testArgs = TestArgs(
+        framework = testFramework(),
+        classpath = runClasspath().map(_.path),
+        arguments = args(),
+        sysProps = props,
+        outputPath = outputPath,
+        colored = T.log.colored,
+        testCp = testClasspath().map(_.path),
+        home = T.home,
+        globSelectors = selectors
+      )
+
       val testRunnerClasspathArg = zincWorker().scalalibClasspath()
         .map(_.path.toNIO.toUri.toURL)
         .mkString(",")
 
+      val argsFile = T.dest / "testargs"
+      os.write(argsFile, upickle.default.write(testArgs))
+      val mainArgs = Seq(testRunnerClasspathArg, argsFile.toString)
+
+      os.makeDir(T.dest / "sandbox")
       val resourceEnv =
         Map(EnvVars.MILL_TEST_RESOURCE_FOLDER -> resources().map(_.path).mkString(";"))
+      Jvm.runSubprocess(
+        mainClass = "mill.testrunner.entrypoint.TestRunnerMain",
+        classPath =
+          (runClasspath() ++ zincWorker().testrunnerEntrypointClasspath()).map(
+            _.path
+          ),
+        jvmArgs = jvmArgs,
+        envArgs = forkEnv() ++ resourceEnv,
+        mainArgs = mainArgs,
+        workingDir = if (testSandboxWorkingDir()) T.dest / "sandbox" else forkWorkingDir(),
+        useCpPassingJar = useArgsFile
+      )
 
-      def runTestSubprocess(selectors2: Seq[String], base: os.Path) = {
-        val outputPath = base / "out.json"
-        val testArgs = TestArgs(
-          framework = testFramework(),
-          classpath = runClasspath().map(_.path),
-          arguments = args(),
-          sysProps = props,
-          outputPath = outputPath,
-          colored = T.log.colored,
-          testCp = testClasspath().map(_.path),
-          home = T.home,
-          globSelectors = selectors2
-        )
-
-        val argsFile = base / "testargs"
-        val sandbox = base / "sandbox"
-        os.write(argsFile, upickle.default.write(testArgs), createFolders = true)
-
-        os.makeDir.all(sandbox)
-
-        Jvm.runSubprocess(
-          mainClass = "mill.testrunner.entrypoint.TestRunnerMain",
-          classPath =
-            (runClasspath() ++ zincWorker().testrunnerEntrypointClasspath()).map(
-              _.path
-            ),
-          jvmArgs = jvmArgs,
-          envArgs = forkEnv() ++ resourceEnv,
-          mainArgs = Seq(testRunnerClasspathArg, argsFile.toString),
-          workingDir = if (testSandboxWorkingDir()) sandbox else forkWorkingDir(),
-          useCpPassingJar = useArgsFile
-        )
-
-        if (!os.exists(outputPath)) Left(s"Test reporting Failed: ${outputPath} does not exist")
-        else Right(upickle.default.read[(String, Seq[TestResult])](ujson.read(outputPath.toIO)))
-      }
-
-      val subprocessResult: Either[String, (String, Seq[TestResult])] =
-        if (!testParallelizeClasses()) runTestSubprocess(selectors, T.dest)
-        else {
-          implicit val ec = T.ctx.executionContext
-          val futures =
-            for (testClassName <- discoveredTestClasses()) yield Future {
-              (testClassName, runTestSubprocess(Seq(testClassName), T.dest / testClassName))
-            }
-
-          val outputs = T.ctx.executionContext.blocking {
-            Await.result(Future.sequence(futures), Duration.Inf)
+      if (!os.exists(outputPath)) Result.Failure("Test execution failed.")
+      else
+        try {
+          val jsonOutput = ujson.read(outputPath.toIO)
+          val (doneMsg, results) = {
+            upickle.default.read[(String, Seq[TestResult])](jsonOutput)
           }
-
-          val (lefts, rights) = outputs.partitionMap {
-            case (name, Left(v)) => Left(name + " " + v)
-            case (name, Right((msg, results))) => Right((name + " " + msg, results))
-          }
-
-          if (lefts.nonEmpty) Left(lefts.mkString("\n"))
-          else Right((rights.map(_._1).mkString("\n"), rights.flatMap(_._2)))
+          if (results.isEmpty && selectors.nonEmpty) {
+            // no tests ran but we expected some to run, as we applied a filter (e.g. via `testOnly`)
+            Result.Failure(
+              s"Test selector does not match any test: ${selectors.mkString(" ")}" + "\nRun discoveredTestClasses to see available tests"
+            )
+          } else TestModule.handleResults(doneMsg, results, T.ctx(), testReportXml())
+        } catch {
+          case e: Throwable =>
+            Result.Failure("Test reporting failed: " + e)
         }
-
-      subprocessResult match {
-        case Left(errMsg) => Result.Failure(errMsg)
-        case Right((doneMsg, results)) =>
-          try {
-            if (results.isEmpty && selectors.nonEmpty) {
-              // no tests ran but we expected some to run, as we applied a filter (e.g. via `testOnly`)
-              Result.Failure(
-                s"Test selector does not match any test: ${selectors.mkString(" ")}" + "\nRun discoveredTestClasses to see available tests"
-              )
-            } else TestModule.handleResults(doneMsg, results, T.ctx(), testReportXml())
-          } catch {
-            case e: Throwable =>
-              Result.Failure("Test reporting failed: " + e)
-          }
-      }
     }
 
   /**

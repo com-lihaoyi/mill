@@ -80,8 +80,7 @@ private[mill] trait GroupEvaluator {
       testReporter: TestReporter,
       logger: ColorLogger,
       classToTransitiveClasses: Map[Class[_], IndexedSeq[Class[_]]],
-      allTransitiveClassMethods: Map[Class[_], Map[String, Method]],
-      executionContext: BlockableExecutionContext
+      allTransitiveClassMethods: Map[Class[_], Map[String, Method]]
   ): GroupEvaluator.Results = synchronizedEval(
     terminal,
     onCollision =
@@ -164,8 +163,7 @@ private[mill] trait GroupEvaluator {
           counterMsg = counterMsg,
           zincProblemReporter,
           testReporter,
-          logger,
-          executionContext
+          logger
         )
         GroupEvaluator.Results(newResults, newEvaluated.toSeq, null, inputsHash, -1)
 
@@ -214,8 +212,7 @@ private[mill] trait GroupEvaluator {
                   counterMsg = counterMsg,
                   zincProblemReporter,
                   testReporter,
-                  logger,
-                  executionContext = executionContext
+                  logger
                 )
               }
 
@@ -255,8 +252,7 @@ private[mill] trait GroupEvaluator {
       counterMsg: String,
       reporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
-      logger: mill.api.Logger,
-      executionContext: BlockableExecutionContext
+      logger: mill.api.Logger
   ): (Map[Task[_], TaskResult[(Val, Int)]], mutable.Buffer[Task[_]]) = {
 
     def computeAll(enableTicker: Boolean) = {
@@ -319,8 +315,7 @@ private[mill] trait GroupEvaluator {
               reporter = reporter,
               testReporter = testReporter,
               workspace = workspace,
-              systemExit = systemExit,
-              executionContext = executionContext
+              systemExit = systemExit
             ) with mill.api.Ctx.Jobs {
               override def jobs: Int = effectiveThreadCount
             }
