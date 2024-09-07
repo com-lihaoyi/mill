@@ -27,6 +27,7 @@ trait IntegrationTesterBase {
    * Remove any ID files to try and force them to exit
    */
   def removeServerIdFile() = {
+    println("removeServerIdFile")
     val serverIdFiles = for {
       outPath <- os.list.stream(workspacePath / out)
       if outPath.last.startsWith(millWorker)
