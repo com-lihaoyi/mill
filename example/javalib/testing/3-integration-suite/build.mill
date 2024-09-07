@@ -6,5 +6,4 @@ object qux extends JavaModule {
   object integration extends JavaTests with TestModule.Junit5
 }
 
-// This example also demonstrates using Junit 5 instead of Junit 4,
-// with
+// This example also demonstrates using Junit 5 instead of Junit 4
