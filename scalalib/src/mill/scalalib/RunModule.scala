@@ -122,7 +122,9 @@ trait RunModule extends WithZincWorker {
    */
   def runForkedTask(mainClass: Task[String], args: Task[Args] = T.task(Args())): Task[Unit] =
     T.task {
-      try Result.Success(runner().run(args().value, mainClass()))
+      try Result.Success(
+        runner().run(args = args().value, mainClass = mainClass(), workingDir = forkWorkingDir())
+      )
       catch {
         case NonFatal(_) => Result.Failure("Subprocess failed")
       }
