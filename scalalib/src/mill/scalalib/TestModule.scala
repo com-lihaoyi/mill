@@ -99,9 +99,12 @@ trait TestModule
     testTask(testCachedArgs, T.task { Seq.empty[String] })()
   }
 
-  def testCachedPar: T[(String, Seq[TestResult])] = T {
-    testTask(testCachedArgs, T.task { Seq.empty[String] }, parallel = true)()
-  }
+  /**
+   * Make this test module each individual suites in parallel in separate JVMs
+   * and sandbox folders. Setting it to `false` will fall back to running all
+   * test suites in this module in a single JVM in a single sandbox folder
+   */
+  def testParallelizeSuites: T[Boolean] = true
 
   /**
    * Discovers and runs the module's tests in a subprocess, reporting the
@@ -180,21 +183,12 @@ trait TestModule
    */
   def testSandboxWorkingDir: T[Boolean] = true
 
-  protected def testTask(
-      args: Task[Seq[String]],
-      globSelectors: Task[Seq[String]]
-  ): Task[(String, Seq[TestResult])] = {
-    testTask(args, globSelectors, parallel = false)
-  }
-
   /**
    * The actual task shared by `test`-tasks that runs test in a forked JVM.
    */
   protected def testTask(
       args: Task[Seq[String]],
-      globSelectors: Task[Seq[String]],
-      parallel: Boolean = false
-  ): Task[(String, Seq[TestResult])] =
+      globSelectors: Task[Seq[String]]): Task[(String, Seq[TestResult])] =
     T.task {
 
       val useArgsFile = testUseArgsFile()
@@ -263,7 +257,7 @@ trait TestModule
       }
 
       val subprocessResult: Either[String, (String, Seq[TestResult])] =
-        if (!parallel) runTestSubprocess(selectors, T.dest)
+        if (!testParallelizeSuites()) runTestSubprocess(selectors, T.dest)
         else {
           implicit val ec = T.ctx.executionContext
           val futures =
