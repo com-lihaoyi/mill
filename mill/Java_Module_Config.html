@@ -320,14 +320,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.0-M0-77-588e1b</span>
+    <span class="version">0.12.0-M0-78-57166c</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="0.11.12/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="index.html">0.12.0-M0-77-588e1b</a>
+          <a href="index.html">0.12.0-M0-78-57166c</a>
         </li>
         <li class="version is-latest">
           <a href="0.11.12/index.html">0.11.12</a>
@@ -372,9 +372,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-77-588e1b</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-78-57166c</button>
   <div class="version-menu">
-    <a class="version is-current" href="Java_Module_Config.html">0.12.0-M0-77-588e1b</a>
+    <a class="version is-current" href="Java_Module_Config.html">0.12.0-M0-78-57166c</a>
     <a class="version" href="0.11.12/Java_Module_Config.html">0.11.12</a>
     <a class="version" href="0.11.11/Java_Module_Config.html">0.11.11</a>
     <a class="version" href="0.11.10/Java_Module_Config.html">0.11.10</a>
@@ -420,12 +420,8 @@ for <code>JavaModule</code>.</p>
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javalib-module-1-compilation-execution-flags.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javalib/module/1-compilation-execution-flags">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, javalib._
 
 object `package` extends RootModule with JavaModule{
   def forkArgs = Seq(&quot;-Xmx4g&quot;, &quot;-Dmy.jvm.property=hello&quot;)
@@ -441,12 +437,8 @@ object `package` extends RootModule with JavaModule{
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javalib-module-2-ivy-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javalib/module/2-ivy-deps">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, javalib._
 
 object `package` extends RootModule with JavaModule {
   def ivyDeps = Agg(
@@ -469,12 +461,8 @@ JSONified using Jackson: [&quot;i&quot;,&quot;am&quot;,&quot;cow&quot;]</code></
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javalib-module-3-run-compile-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javalib/module/3-run-compile-deps">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, javalib._
 
 object foo extends JavaModule {
   def moduleDeps = Seq(bar)
@@ -506,12 +494,8 @@ object foo extends JavaModule {
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javalib-module-5-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javalib/module/5-resources">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, javalib._
 
 object foo extends JavaModule {
   object test extends JavaTests with TestModule.Junit4 {
@@ -681,12 +665,8 @@ Test bar.HelloWorldTest.testSimple finished...
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javalib-module-7-docjar.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javalib/module/7-docjar">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, javalib._
 
 object foo extends JavaModule {
   def javadocOptions = Seq(&quot;-quiet&quot;)
@@ -701,12 +681,8 @@ object foo extends JavaModule {
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javalib-module-8-unmanaged-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javalib/module/8-unmanaged-jars">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, javalib._
 
 object `package` extends RootModule with JavaModule {
   def unmanagedClasspath = T {
@@ -724,12 +700,8 @@ object `package` extends RootModule with JavaModule {
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javalib-module-9-main-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javalib/module/9-main-class">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, javalib._
 
 object `package` extends RootModule with JavaModule {
   def mainClass = Some(&quot;foo.Qux&quot;)
@@ -744,12 +716,8 @@ object `package` extends RootModule with JavaModule {
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javalib-module-10-downloading-non-maven-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javalib/module/10-downloading-non-maven-jars">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, javalib._
 
 object `package` extends RootModule with JavaModule {
   def unmanagedClasspath = T {
@@ -772,12 +740,8 @@ object `package` extends RootModule with JavaModule {
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javalib-module-11-assembly-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javalib/module/11-assembly-config">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, javalib._
 import mill.javalib.Assembly._
 
 object foo extends JavaModule {
@@ -806,12 +770,8 @@ object bar extends JavaModule {
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-javalib-module-12-repository-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/javalib/module/12-repository-config">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, javalib._
 import mill.define.ModuleRef
 import coursier.maven.MavenRepository
 

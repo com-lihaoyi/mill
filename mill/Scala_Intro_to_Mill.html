@@ -320,14 +320,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.0-M0-77-588e1b</span>
+    <span class="version">0.12.0-M0-78-57166c</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="0.11.12/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="index.html">0.12.0-M0-77-588e1b</a>
+          <a href="index.html">0.12.0-M0-78-57166c</a>
         </li>
         <li class="version is-latest">
           <a href="0.11.12/index.html">0.11.12</a>
@@ -371,9 +371,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-77-588e1b</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-78-57166c</button>
   <div class="version-menu">
-    <a class="version is-current" href="Scala_Intro_to_Mill.html">0.12.0-M0-77-588e1b</a>
+    <a class="version is-current" href="Scala_Intro_to_Mill.html">0.12.0-M0-78-57166c</a>
     <a class="version" href="0.11.12/Scala_Intro_to_Mill.html">0.11.12</a>
     <a class="version" href="0.11.11/Scala_Intro_to_Mill.html">0.11.11</a>
     <a class="version is-missing" href="0.11.10/index.html">0.11.10</a>
@@ -399,7 +399,7 @@ gtag('config', 'AW-16649289906');
 </script>
 <div class="imageblock kroki">
 <div class="content">
-<img src="_images/diag-3783561d5a250c8bc333a8cade2e31486dbee9d4.svg" alt="Diagram" />
+<img src="_images/diag-8a3104fa721cc0899d657d7f130da66aa8bf2c84.svg" alt="Diagram" />
 </div>
 </div>
 <div class="paragraph">
@@ -534,12 +534,8 @@ using Mill and its supporting libraries to the fullest:</p>
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-scalalib-basic-1-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/scalalib/basic/1-simple">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, scalalib._
 
 object `package` extends RootModule with ScalaModule {
   def scalaVersion = &quot;2.13.11&quot;
@@ -677,12 +673,6 @@ time.</p>
 <div class="sect1">
 <h2 id="_custom_build_logic"><a class="anchor" href="#_custom_build_logic"></a>Custom Build Logic</h2>
 <div class="sectionbody">
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-scalalib-basic-2-custom-build-logic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/scalalib/basic/2-custom-build-logic">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
-</div>
-</div>
 <div class="paragraph">
 <p>Mill makes it very easy to customize your build graph, overriding portions
 of it with custom logic. In this example, we override the JVM <code>resources</code> of
@@ -691,8 +681,10 @@ single generated text file containing the line count of all the source files
 in that module</p>
 </div>
 <div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-scalalib-basic-2-custom-build-logic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/scalalib/basic/2-custom-build-logic">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, scalalib._
 
 object `package` extends RootModule with ScalaModule {
   def scalaVersion = &quot;2.13.11&quot;
@@ -776,12 +768,8 @@ maintainable even as the complexity of your project grows.</p>
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-scalalib-basic-3-multi-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/scalalib/basic/3-multi-module">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, scalalib._
 
 trait MyModule extends ScalaModule {
   def scalaVersion = &quot;2.13.11&quot;
@@ -1015,7 +1003,7 @@ Tasks that depend on each other can’t be processed in parallel.</p>
 <div class="listingblock">
 <div class="title">Output of <code>mill --help</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.12.0-M0-77-588e1b
+<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.12.0-M0-78-57166c
 usage: mill [options] [[target [target-options]] [+ [target ...]]]
   -D --define &lt;k=v&gt;                 Define (or overwrite) a system property.
   -b --bell                         Ring the bell once if the run completes successfully, twice if
