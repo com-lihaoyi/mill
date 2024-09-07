@@ -288,32 +288,31 @@ private[mill] trait GroupEvaluator {
 
         override def rawOutputStream: PrintStream = logger.rawOutputStream
       }
-      // This is used to track the usage of `T.dest` in more than one Task
-      // But it's not really clear what issue we try to prevent here
-      // Vice versa, being able to use T.dest in multiple `T.task`
-      // is rather essential to split up larger tasks into small parts
-      // So I like to disable this detection for now
-      var usedDest = Option.empty[(Task[_], Array[StackTraceElement])]
+
+      var usedDest = Option.empty[os.Path]
       for (task <- nonEvaluatedTargets) {
         newEvaluated.append(task)
         val targetInputValues = task.inputs
           .map { x => newResults.getOrElse(x, results(x).result) }
           .collect { case Result.Success((v, _)) => v }
 
+        def makeDest() = this.synchronized{
+          paths match {
+            case Some(dest) =>
+              if (usedDest.isEmpty) os.makeDir.all(dest.dest)
+              usedDest = Some(dest.dest)
+              dest.dest
+
+            case None => throw new Exception("No `dest` folder available here")
+          }
+        }
+
         val res = {
           if (targetInputValues.length != task.inputs.length) Result.Skipped
           else {
             val args = new mill.api.Ctx(
               args = targetInputValues.map(_.value).toIndexedSeq,
-              dest0 = () =>
-                paths match {
-                  case Some(dest) =>
-                    if (usedDest.isEmpty) os.makeDir.all(dest.dest)
-                    usedDest = Some((task, new Exception().getStackTrace))
-                    dest.dest
-
-                  case None => throw new Exception("No `dest` folder available here")
-                },
+              dest0 = () => makeDest(),
               log = multiLogger,
               home = home,
               env = env,
@@ -326,19 +325,28 @@ private[mill] trait GroupEvaluator {
               override def jobs: Int = effectiveThreadCount
             }
 
-            mill.api.SystemStreams.withStreams(multiLogger.systemStreams) {
-              try task.evaluate(args).map(Val(_))
-              catch {
-                case f: Result.Failing[Val] => f
-                case NonFatal(e) =>
-                  Result.Exception(
-                    e,
-                    new OuterStack(new Exception().getStackTrace.toIndexedSeq)
-                  )
+            os.dynamicPwdFunction.withValue(() => makeDest()) {
+              mill.api.SystemStreams.withStreams(multiLogger.systemStreams) {
+                try task.evaluate(args).map(Val(_))
+                catch {
+                  case f: Result.Failing[Val] => f
+                  case NonFatal(e) =>
+                    Result.Exception(
+                      e,
+                      new OuterStack(new Exception().getStackTrace.toIndexedSeq)
+                    )
+                }
               }
             }
           }
         }
+
+        // Remove any empty `dest/` folders to tidy up the filesystem. Otherwise
+        // tasks that call `os.proc` or `T.dest` without actually doing anything with
+        // the folder will leave empty folders around cluttering the disk
+//        this.synchronized{
+//          for(p <- usedDest if os.list(p).isEmpty) os.remove(p)
+//        }
 
         newResults(task) = for (v <- res) yield {
           (
