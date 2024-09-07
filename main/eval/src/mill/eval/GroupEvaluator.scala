@@ -13,7 +13,7 @@ import scala.collection.mutable
 import scala.reflect.NameTransformer.encode
 import scala.util.control.NonFatal
 import scala.util.hashing.MurmurHash3
-import scala.util.{DynamicVariable, Using}
+import scala.util.DynamicVariable
 
 /**
  * Logic around evaluating a single group, which is a collection of [[Task]]s
@@ -316,8 +316,8 @@ private[mill] trait GroupEvaluator {
       // Remove any empty `.dest/` folders to tidy up the filesystem. Otherwise
       // tasks that call `os.proc` or `T.dest` without actually doing anything with
       // the folder will leave empty folders around cluttering the disk
-      this.synchronized{
-        for(p <- usedDest if os.list.stream(p).headOption.isEmpty) os.remove(p)
+      this.synchronized {
+        for (p <- usedDest if os.list.stream(p).headOption.isEmpty) os.remove(p)
       }
       multiLogger.close()
       (newResults, newEvaluated)
