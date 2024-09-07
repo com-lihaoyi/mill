@@ -216,11 +216,7 @@ class ExampleTester(
       try {
         try os.remove.all(workspacePath / "out")
         catch {case e: Throwable =>
-          Thread.sleep(100) // try twice to remove the out folder
-          try os.remove.all(workspacePath / "out")
-          catch{case e: Throwable =>
-            /*do nothing*/
-          }
+          /*do nothing*/
         }
 
         for (commandBlock <- commandBlocks) processCommandBlock(commandBlock)
