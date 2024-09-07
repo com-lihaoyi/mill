@@ -320,14 +320,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.0-M0-78-57166c</span>
+    <span class="version">0.12.0-M0-79-8cfa7e</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="0.11.12/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="index.html">0.12.0-M0-78-57166c</a>
+          <a href="index.html">0.12.0-M0-79-8cfa7e</a>
         </li>
         <li class="version is-latest">
           <a href="0.11.12/index.html">0.11.12</a>
@@ -372,9 +372,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-78-57166c</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-79-8cfa7e</button>
   <div class="version-menu">
-    <a class="version is-current" href="Scala_Build_Examples.html">0.12.0-M0-78-57166c</a>
+    <a class="version is-current" href="Scala_Build_Examples.html">0.12.0-M0-79-8cfa7e</a>
     <a class="version" href="0.11.12/Scala_Build_Examples.html">0.11.12</a>
     <a class="version" href="0.11.11/Scala_Build_Examples.html">0.11.11</a>
     <a class="version" href="0.11.10/Scala_Build_Examples.html">0.11.10</a>
@@ -1372,32 +1372,39 @@ demonstrating how Mill can be used to build code outside of tiny example codebas
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-thirdparty-acyclic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/thirdparty/acyclic">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._, publish._
-import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.3.1`
-import de.tobiasroeser.mill.vcs.version.VcsVersion
-
-object Deps {
-  def acyclicAgg(scalaVersion: String) =
-    Agg(ivy&quot;com.lihaoyi:::acyclic:0.3.6&quot;)</code></pre>
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, scalalib._, publish._</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>acyclic test suite assumes files are on disk at specific paths relative to <code>os.pwd</code>.
+To avoid changing the test code, we instead copy the necessary files into the <code>os.pwd</code>
+when preparing the resources for test suite execution</p>
 </div>
 <div class="listingblock">
-<div class="title">filter(_ ⇒ scalaVersion != &quot;2.13.10&quot; /* exclude unreleased versions, if any */ )</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def scalaCompiler(scalaVersion: String) = ivy&quot;org.scala-lang:scala-compiler:${scalaVersion}&quot;
-  val utest = ivy&quot;com.lihaoyi::utest:0.8.1&quot;
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">os.copy.over(
+  interp.watch(mill.api.WorkspaceRoot.workspaceRoot / &quot;acyclic&quot;),
+  os.pwd / &quot;acyclic&quot;,
+  createFolders = true
+)
+
+object Deps {
+  def acyclic = ivy&quot;com.lihaoyi:::acyclic:0.3.6&quot;
+  def scalaCompiler(scalaVersion: String) = ivy&quot;org.scala-lang:scala-compiler:$scalaVersion&quot;
+  val utest = ivy&quot;com.lihaoyi::utest:0.8.4&quot;
 }
 
 val crosses =
   Seq(&quot;2.11.12&quot;) ++
-    8.to(17).map(&quot;2.12.&quot; + _) ++
-    0.to(10).map(&quot;2.13.&quot; + _)
+  Range.inclusive(8, 17).map(&quot;2.12.&quot; + _) ++
+  Range.inclusive(0, 10).map(&quot;2.13.&quot; + _)
 
-object acyclic extends Cross[AcyclicModule](crosses: _*)
-class AcyclicModule(val crossScalaVersion: String) extends CrossScalaModule with PublishModule {
-  override def crossFullScalaVersion = true
-  override def artifactName = &quot;acyclic&quot;
-  def publishVersion = VcsVersion.vcsState().format()
+object acyclic extends Cross[AcyclicModule](crosses)
+trait AcyclicModule extends CrossScalaModule with PublishModule {
+  def crossFullScalaVersion = true
+  def artifactName = &quot;acyclic&quot;
+  def publishVersion = &quot;1.3.3.7&quot;
 
   def pomSettings = PomSettings(
     description = artifactName(),
@@ -1405,25 +1412,57 @@ class AcyclicModule(val crossScalaVersion: String) extends CrossScalaModule with
     url = &quot;https://github.com/com-lihaoyi/acyclic&quot;,
     licenses = Seq(License.MIT),
     versionControl = VersionControl.github(owner = &quot;com-lihaoyi&quot;, repo = &quot;acyclic&quot;),
-    developers = Seq(
-      Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;)
-    )
+    developers = Seq(Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;))
   )
-  override def compileIvyDeps =
-    Agg(Deps.scalaCompiler(crossScalaVersion)) ++
-      Deps.acyclicAgg(crossScalaVersion)
 
-  override def scalacPluginIvyDeps = Deps.acyclicAgg(crossScalaVersion)
+  def compileIvyDeps = Agg(Deps.scalaCompiler(crossScalaVersion))
 
-  object test extends Tests with TestModule.Utest {
-    override def sources = T.sources(millSourcePath / &quot;src&quot;, millSourcePath / &quot;resources&quot;)
-    override def ivyDeps = Agg(
-      Deps.utest,
-      Deps.scalaCompiler(crossScalaVersion)
-    )
-    override def scalacPluginIvyDeps = Agg.empty[Dep]
+  object test extends ScalaTests with TestModule.Utest {
+    def sources = T.sources(millSourcePath / &quot;src&quot;, millSourcePath / &quot;resources&quot;)
+    def ivyDeps = Agg(Deps.utest, Deps.scalaCompiler(crossScalaVersion))
   }
 }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Acyclic is an example of a very small project that is a Scala compiler
+plugin. It is cross-built against all point versions of Scala from 2.11.12
+to 2.13.10, and has a dependency on the <code>org.scala-lang:scala-compiler</code></p>
+</div>
+<div class="paragraph">
+<p>Project home: <a href="https://github.com/com-lihaoyi/acyclic" class="bare">https://github.com/com-lihaoyi/acyclic</a></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill resolve acyclic[_].compile
+acyclic[2.11.12].compile
+acyclic[2.12.10].compile
+acyclic[2.12.11].compile
+acyclic[2.12.12].compile
+acyclic[2.12.13].compile
+acyclic[2.12.14].compile
+acyclic[2.12.15].compile
+acyclic[2.12.16].compile
+acyclic[2.12.8].compile
+acyclic[2.12.9].compile
+acyclic[2.13.0].compile
+acyclic[2.13.1].compile
+acyclic[2.13.2].compile
+acyclic[2.13.3].compile
+acyclic[2.13.4].compile
+acyclic[2.13.5].compile
+acyclic[2.13.6].compile
+acyclic[2.13.7].compile
+acyclic[2.13.8].compile
+acyclic[2.13.9].compile
+
+&gt; ./mill acyclic[2.12.17].compile
+compiling 6 Scala sources...
+...
+
+&gt; ./mill acyclic[2.13.10].test.testLocal # acyclic tests need testLocal due to classloader assumptions
+-------------------------------- Running Tests --------------------------------
+...</code></pre>
 </div>
 </div>
 </div>
@@ -1432,36 +1471,15 @@ class AcyclicModule(val crossScalaVersion: String) extends CrossScalaModule with
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-thirdparty-fansi.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/thirdparty/fansi">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._, scalajslib._, scalanativelib._, publish._
-import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.3.1`
-import de.tobiasroeser.mill.vcs.version.VcsVersion
-import $ivy.`com.github.lolgab::mill-mima::0.0.19`
-import com.github.lolgab.mill.mima._
-import mill.scalalib.api.Util.isScala3
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, scalalib._, scalajslib._, scalanativelib._, publish._
 
 val dottyCommunityBuildVersion = sys.props.get(&quot;dottyVersion&quot;).toList
 
-val scalaVersions =
-  &quot;2.12.17&quot; :: &quot;2.13.8&quot; :: &quot;2.11.12&quot; :: &quot;3.1.3&quot; :: dottyCommunityBuildVersion
+val scalaVersions = Seq(&quot;2.12.17&quot;, &quot;2.13.8&quot;, &quot;2.11.12&quot;, &quot;3.1.3&quot;) ++ dottyCommunityBuildVersion
 
-val scalaJSVersions = scalaVersions.map((_, &quot;1.10.1&quot;))
-val scalaNativeVersions = scalaVersions.map((_, &quot;0.4.5&quot;))
-
-trait MimaCheck extends Mima {
-  def mimaPreviousVersions = VcsVersion.vcsState().lastTag.toSeq
-}
-
-trait FansiModule extends PublishModule with MimaCheck {
-  def artifactName = &quot;fansi&quot;
-
-  def publishVersion = VcsVersion.vcsState().format()
-
-  def crossScalaVersion: String
-
-  // Temporary until the next version of Mima gets released with
-  // https://github.com/lightbend/mima/issues/693 included in the release.
-  def mimaPreviousArtifacts =
-    if(isScala3(crossScalaVersion)) Agg.empty[Dep] else super.mimaPreviousArtifacts()
+trait FansiModule extends PublishModule with CrossScalaModule with PlatformScalaModule {
+  def publishVersion = &quot;1.3.3.7&quot;
 
   def pomSettings = PomSettings(
     description = artifactName(),
@@ -1469,78 +1487,86 @@ trait FansiModule extends PublishModule with MimaCheck {
     url = &quot;https://github.com/com-lihaoyi/Fansi&quot;,
     licenses = Seq(License.MIT),
     versionControl = VersionControl.github(owner = &quot;com-lihaoyi&quot;, repo = &quot;fansi&quot;),
-    developers = Seq(
-      Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;)
-    )
+    developers = Seq(Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;))
   )
-}
-trait FansiMainModule extends CrossScalaModule {
-  def millSourcePath = super.millSourcePath / offset
+
   def ivyDeps = Agg(ivy&quot;com.lihaoyi::sourcecode::0.3.0&quot;)
-  def offset: os.RelPath = os.rel
-  def sources = T.sources(
-    super.sources()
-      .flatMap(source =&gt;
-        Seq(
-          PathRef(source.path / os.up / source.path.last),
-          PathRef(source.path / os.up / os.up / source.path.last),
-        )
-      )
-  )
-}
 
-
-trait FansiTestModule extends ScalaModule with TestModule.Utest {
-  def crossScalaVersion: String
-  def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest::0.8.1&quot;)
-  def offset: os.RelPath = os.rel
-  def millSourcePath = super.millSourcePath / os.up
-
-  def sources = T.sources(
-    super.sources()
-      .++(CrossModuleBase.scalaVersionPaths(crossScalaVersion, s =&gt; millSourcePath / s&quot;src-$s&quot; ))
-      .flatMap(source =&gt;
-        Seq(
-          PathRef(source.path / os.up / &quot;test&quot; / source.path.last),
-          PathRef(source.path / os.up / os.up / &quot;test&quot; / source.path.last),
-        )
-      )
-      .distinct
-  )
+  trait FansiTests extends ScalaTests with TestModule.Utest {
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest::0.8.4&quot;)
+  }
 }
 
 object fansi extends Module {
-  object jvm extends Cross[JvmFansiModule](scalaVersions:_*)
-  class JvmFansiModule(val crossScalaVersion: String)
-    extends FansiMainModule with ScalaModule with FansiModule {
-    object test extends Tests with FansiTestModule{
-      val crossScalaVersion = JvmFansiModule.this.crossScalaVersion
-    }
+  object jvm extends Cross[JvmFansiModule](scalaVersions)
+  trait JvmFansiModule extends FansiModule with ScalaModule {
+    object test extends FansiTests with ScalaTests
   }
 
-  object js extends Cross[JsFansiModule](scalaJSVersions:_*)
-  class JsFansiModule(val crossScalaVersion: String, crossJSVersion: String)
-    extends FansiMainModule with ScalaJSModule with FansiModule {
-    def offset = os.up
-    def scalaJSVersion = crossJSVersion
-    object test extends Tests with FansiTestModule{
-      def offset = os.up
-      val crossScalaVersion = JsFansiModule.this.crossScalaVersion
-    }
+  object js extends Cross[JsFansiModule](scalaVersions)
+  trait JsFansiModule extends FansiModule with ScalaJSModule {
+    def scalaJSVersion = &quot;1.16.0&quot;
+    object test extends FansiTests with ScalaJSTests
   }
 
-  object native extends Cross[NativeFansiModule](scalaNativeVersions:_*)
-  class NativeFansiModule(val crossScalaVersion: String, crossScalaNativeVersion: String)
-    extends FansiMainModule with ScalaNativeModule with FansiModule {
-    def offset = os.up
-
-    def scalaNativeVersion = crossScalaNativeVersion
-    object test extends Tests with FansiTestModule{
-      def offset = os.up
-      val crossScalaVersion = NativeFansiModule.this.crossScalaVersion
-    }
+  object native extends Cross[NativeFansiModule](scalaVersions)
+  trait NativeFansiModule extends FansiModule with ScalaNativeModule {
+    def scalaNativeVersion = &quot;0.4.5&quot;
+    object test extends FansiTests with ScalaNativeTests
   }
 }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Fansi is an example of a small library that is cross built against every
+minor version of Scala (including Scala 3.x) and every platform: JVM, JS,
+and Native.
+Both the library and the test suite are duplicated across all
+entries in the {version}x{platform} matrix, and you can select which one you
+want to compile, test, or publish</p>
+</div>
+<div class="paragraph">
+<p>Project home: <a href="https://github.com/com-lihaoyi/fansi" class="bare">https://github.com/com-lihaoyi/fansi</a></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill resolve __.compile
+fansi.js[2.11.12].test.compile
+fansi.js[2.12.17].compile
+fansi.js[2.12.17].test.compile
+fansi.js[2.13.8].compile
+fansi.js[2.13.8].test.compile
+fansi.js[3.1.3].compile
+fansi.js[3.1.3].test.compile
+fansi.jvm[2.11.12].compile
+fansi.jvm[2.11.12].test.compile
+fansi.jvm[2.12.17].compile
+fansi.jvm[2.12.17].test.compile
+fansi.jvm[2.13.8].compile
+fansi.jvm[2.13.8].test.compile
+fansi.jvm[3.1.3].compile
+fansi.jvm[3.1.3].test.compile
+fansi.native[2.11.12].compile
+fansi.native[2.11.12].test.compile
+fansi.native[2.12.17].compile
+fansi.native[2.12.17].test.compile
+fansi.native[2.13.8].compile
+fansi.native[2.13.8].test.compile
+fansi.native[3.1.3].compile
+fansi.native[3.1.3].test.compile
+
+&gt; ./mill fansi.jvm[2.12.17].compile
+compiling 1 Scala source...
+...
+
+&gt; ./mill fansi.js[2.13.8].test
+Starting process: node
+-------------------------------- Running Tests --------------------------------
+...
+
+&gt; ./mill fansi.native[3.1.3].publishLocal
+Publishing Artifact(com.lihaoyi,fansi_native0.4_3,1.3.3.7) to ivy repo...
+...</code></pre>
 </div>
 </div>
 </div>
