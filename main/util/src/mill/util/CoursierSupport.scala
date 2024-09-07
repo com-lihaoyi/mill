@@ -18,6 +18,16 @@ trait CoursierSupport {
   private val CoursierRetryCount = 5
   private val CoursierRetryWait = 100
 
+  private def retryableCoursierError(s: String) = s match {
+    case s"${_}concurrent download${_}" => true
+    case s"${_}checksum not found${_}" => true
+    case s"${_}download error${_}" => true
+    case s"${_}The process cannot access the file because it is being used by another process${_}" =>
+      true
+    case s"${_}->${_}__sha1.computed" => true
+    case _ => false
+  }
+
   /**
    * Somewhat generic way to retry some action and a Workaround for https://github.com/com-lihaoyi/mill/issues/1028
    *
@@ -33,45 +43,30 @@ trait CoursierSupport {
   @tailrec
   private def retry[T](
       retryCount: Int = CoursierRetryCount,
-      ctx: Option[Ctx.Log],
+      debug: String => Unit,
       errorMsgExtractor: T => Seq[String]
   )(f: () => T): T = {
     val tried = Try(f())
     tried match {
-      case Failure(e)
-          if retryCount > 0
-            && e.getMessage.contains("__sha1.computed")
-            && (e.isInstanceOf[NoSuchFileException] || e.isInstanceOf[
-              java.nio.file.AccessDeniedException
-            ]) =>
+      case Failure(e) if retryCount > 0 && retryableCoursierError(e.getMessage) =>
         // this one is not detected by coursier itself, so we try-catch handle it
         // I assume, this happens when another coursier thread already moved or rename dthe temporary file
-        ctx.foreach(_.log.debug(
-          s"Detected a concurrent download issue in coursier. Attempting a retry (${retryCount} left)"
-        ))
+        debug(s"Attempting to retry coursier failure (${retryCount} left): ${e.getMessage}")
         Thread.sleep(CoursierRetryWait)
-        retry(retryCount - 1, ctx, errorMsgExtractor)(f)
+        retry(retryCount - 1, debug, errorMsgExtractor)(f)
+
       case Success(res) if retryCount > 0 =>
         val errors = errorMsgExtractor(res)
-        if (errors.exists(e => e.contains("concurrent download"))) {
-          ctx.foreach(_.log.debug(
-            s"Detected a concurrent download issue in coursier. Attempting a retry (${retryCount} left)"
-          ))
-          Thread.sleep(CoursierRetryWait)
-          retry(retryCount - 1, ctx, errorMsgExtractor)(f)
-        } else if (errors.exists(e => e.contains("checksum not found"))) {
-          ctx.foreach(_.log.debug(
-            s"Detected a checksum download issue in coursier. Attempting a retry (${retryCount} left)"
-          ))
-          Thread.sleep(CoursierRetryWait)
-          retry(retryCount - 1, ctx, errorMsgExtractor)(f)
-        } else if (errors.exists(e => e.contains("download error"))) {
-          ctx.foreach(_.log.debug(
-            s"Detected a download error by coursier. Attempting a retry (${retryCount} left)"
-          ))
-          Thread.sleep(CoursierRetryWait)
-          retry(retryCount - 1, ctx, errorMsgExtractor)(f)
-        } else res
+        errors.filter(retryableCoursierError) match {
+          case Nil => res
+          case retryable =>
+            for (r <- retryable) {
+              debug(s"Attempting to retry coursier failure (${retryCount} left): $r")
+            }
+            Thread.sleep(CoursierRetryWait)
+            retry(retryCount - 1, debug, errorMsgExtractor)(f)
+        }
+
       case r => r.get
     }
   }
@@ -188,7 +183,7 @@ trait CoursierSupport {
         )
 
       val (errors, successes) = retry(
-        ctx = ctx,
+        debug = ctx.map(c => c.log.debug(_)).getOrElse(_ => ()),
         errorMsgExtractor = (res: (Seq[ArtifactError], Seq[File])) => res._1.map(_.describe)
       ) {
         () => load(sourceOrJar)
@@ -259,7 +254,10 @@ trait CoursierSupport {
     import scala.concurrent.ExecutionContext.Implicits.global
 
     val resolution =
-      retry(ctx = ctx, errorMsgExtractor = (r: Resolution) => r.errors.flatMap(_._2)) {
+      retry(
+        debug = ctx.map(c => c.log.debug(_)).getOrElse(_ => ()),
+        errorMsgExtractor = (r: Resolution) => r.errors.flatMap(_._2)
+      ) {
         () => start.process.run(fetch).unsafeRun()
       }
 
