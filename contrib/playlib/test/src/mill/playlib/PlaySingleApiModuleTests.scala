@@ -17,8 +17,7 @@ object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
 
   def tests: Tests = Tests {
     test("playVersion") {
-      test("fromBuild") {
-        val eval = UnitTester(playsingleapi, resourcePath)
+      test("fromBuild") - UnitTester(playsingleapi, resourcePath).scoped { eval =>
         val Right(result) = eval.apply(playsingleapi.playVersion)
         assert(
           result.value == testPlay28,
@@ -27,8 +26,7 @@ object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
       }
     }
     test("layout") {
-      test("fromBuild") {
-        val eval = UnitTester(playsingleapi, resourcePath)
+      test("fromBuild") - UnitTester(playsingleapi, resourcePath).scoped { eval =>
         val Right(conf) = eval.apply(playsingleapi.conf)
         val Right(app) = eval.apply(playsingleapi.app)
         val Right(sources) = eval.apply(playsingleapi.sources)
@@ -55,8 +53,7 @@ object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
         )
       }
     }
-    test("compile") {
-      val eval = UnitTester(playsingleapi, resourcePath)
+    test("compile") - UnitTester(playsingleapi, resourcePath).scoped { eval =>
       val eitherResult = eval.apply(playsingleapi.compile)
       val Right(result) = eitherResult
       val outputFiles = os.walk(result.value.classes.path).filter(os.isFile)

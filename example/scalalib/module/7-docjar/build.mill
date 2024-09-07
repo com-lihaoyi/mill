@@ -1,10 +1,9 @@
-package build
 // To generate API documenation you can use the `docJar` task on the module you'd
 // like to create the documenation for, configured via `scalaDocOptions` or
 // `javadocOptions`:
 
 //// SNIPPET:BUILD
-
+package build
 import mill._, scalalib._
 
 object foo extends ScalaModule {

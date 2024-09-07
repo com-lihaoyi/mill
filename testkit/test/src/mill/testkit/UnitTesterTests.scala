@@ -12,9 +12,10 @@ object UnitTesterTests extends TestSuite {
         def testTask = T { "test" }
       }
 
-      val eval = UnitTester(build, resourcePath)
-      val Right(result) = eval(build.testTask)
-      assert(result.value == "test")
+      UnitTester(build, resourcePath).scoped { eval =>
+        val Right(result) = eval(build.testTask)
+        assert(result.value == "test")
+      }
     }
 
     test("sources") {
@@ -23,10 +24,10 @@ object UnitTesterTests extends TestSuite {
         def testTask = T { os.read(testSource().path).toUpperCase() }
       }
 
-      val eval = UnitTester(build, resourcePath)
-
-      val Right(result) = eval(build.testTask)
-      assert(result.value == "HELLO WORLD SOURCE FILE")
+      UnitTester(build, resourcePath).scoped { eval =>
+        val Right(result) = eval(build.testTask)
+        assert(result.value == "HELLO WORLD SOURCE FILE")
+      }
     }
   }
 }

@@ -1,6 +1,6 @@
-package build
 // You can also take an existing cross module and extend it with additional cross
 // axes as shown:
+package build
 import mill._
 
 object foo extends Cross[FooModule]("a", "b")

@@ -641,6 +641,19 @@ class ZincWorkerImpl(
   }
 
   override def close(): Unit = {
+    val closeableClassloaders = classloaderCache
+      .flatMap(_._2.get)
+      .collect { case v: AutoCloseable => v }
+
+    val urlClassLoaders =
+      classloaderCache.flatMap(_._2.get).collect { case t: java.net.URLClassLoader => t }
+
+    // Make sure we at least pick up all the URLClassLoaders, since we know those are
+    // AutoCloseable, although there may be other AutoCloseable classloaders as well
+    assert(urlClassLoaders.toSet[AutoCloseable].subsetOf(closeableClassloaders.toSet))
+
+    closeableClassloaders.foreach(_.close())
+
     classloaderCache.clear()
     javaOnlyCompilersCache.clear()
   }

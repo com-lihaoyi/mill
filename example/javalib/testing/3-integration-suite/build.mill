@@ -1,5 +1,5 @@
-package build
 //// SNIPPET:BUILD3
+package build
 import mill._, javalib._
 object qux extends JavaModule {
   object test extends JavaTests with TestModule.Junit5

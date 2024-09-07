@@ -21,14 +21,18 @@ object ScalaVersionsRangesTests extends TestSuite {
     os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "scala-versions-ranges"
 
   val tests = Tests {
-    test("main with Scala 2.12- and 2.13+ specific code") {
-      val eval = UnitTester(ScalaVersionsRanges, resourcePath)
+    test("main with Scala 2.12- and 2.13+ specific code") - UnitTester(
+      ScalaVersionsRanges,
+      resourcePath
+    ).scoped { eval =>
       ScalaVersionsRanges.core.crossModules.map { c =>
         val Right(_) = eval(c.run())
       }
     }
-    test("test with Scala 2.12- and 2.13+ specific code") {
-      val eval = UnitTester(ScalaVersionsRanges, resourcePath)
+    test("test with Scala 2.12- and 2.13+ specific code") - UnitTester(
+      ScalaVersionsRanges,
+      resourcePath
+    ).scoped { eval =>
       ScalaVersionsRanges.core.crossModules.map { c =>
         val Right(_) = eval(c.test.test())
       }

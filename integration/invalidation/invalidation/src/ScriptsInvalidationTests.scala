@@ -74,9 +74,10 @@ object ScriptsInvalidationTests extends UtestIntegrationTestSuite {
 
       assert(result2 == expected2)
     }
-    test("should handle ammonite ^ imports") - integrationTest { tester =>
-      import tester._
-      retry(3) {
+    test("should handle ammonite ^ imports") - retry(3) {
+      integrationTest { tester =>
+        import tester._
+
         // first run
         val result = runTask(tester, "taskE")
         val expected = Set("a", "e", "taskE")
