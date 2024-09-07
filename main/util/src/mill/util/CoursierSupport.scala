@@ -25,7 +25,6 @@ trait CoursierSupport {
     case s"${_}The process cannot access the file because it is being used by another process${_}" =>
       true
     case s"${_}->${_}__sha1.computed" => true
-     
     case _ => false
   }
 
