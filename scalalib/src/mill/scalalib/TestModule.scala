@@ -12,6 +12,8 @@ import sbt.testing.Status
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.time.{Instant, LocalDateTime, ZoneId}
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
 import scala.xml.Elem
 
 trait TestModule
@@ -178,10 +180,13 @@ trait TestModule
    */
   def testSandboxWorkingDir: T[Boolean] = true
 
-  protected def testTask(args: Task[Seq[String]],
-                         globSelectors: Task[Seq[String]]): Task[(String, Seq[TestResult])] = {
+  protected def testTask(
+      args: Task[Seq[String]],
+      globSelectors: Task[Seq[String]]
+  ): Task[(String, Seq[TestResult])] = {
     testTask(args, globSelectors, parallel = false)
   }
+
   /**
    * The actual task shared by `test`-tasks that runs test in a forked JVM.
    */
@@ -220,10 +225,7 @@ trait TestModule
       val resourceEnv =
         Map(EnvVars.MILL_TEST_RESOURCE_FOLDER -> resources().map(_.path).mkString(";"))
 
-
-      def runTestSubprocess(selectors2: Seq[String],
-                            argsFile: os.Path,
-                            sandbox: os.Path) = {
+      def runTestSubprocess(selectors2: Seq[String], argsFile: os.Path, sandbox: os.Path) = {
         val testArgs = TestArgs(
           framework = testFramework(),
           classpath = runClasspath().map(_.path),
@@ -252,38 +254,50 @@ trait TestModule
           workingDir = if (testSandboxWorkingDir()) sandbox else forkWorkingDir(),
           useCpPassingJar = useArgsFile
         )
+        if (!os.exists(outputPath)) Left(s"Test reporting Failed: ${outputPath} does not exist")
+        else Right(upickle.default.read[(String, Seq[TestResult])](ujson.read(outputPath.toIO)))
       }
 
-      if (!parallel) {
-        runTestSubprocess(selectors, T.dest / "testargs", T.dest / "sandbox")
+      val res: Either[String, (String, Seq[TestResult])] =
+        if (!parallel) runTestSubprocess(selectors, T.dest / "testargs", T.dest / "sandbox")
+        else {
 
-      } else{
-        for(testClassName <- discoveredTestClasses()) yield scala.concurrent.Future{
-          runTestSubprocess(
-            Seq(testClassName),
-            T.dest / "testargs" / testClassName,
-            T.dest / "sandbox" / testClassName
-          )
-        }(T.ctx.executionContext)
-      }
+          implicit val ec = T.ctx.executionContext
+          val futures =
+            for (testClassName <- discoveredTestClasses()) yield Future {
+              runTestSubprocess(
+                Seq(testClassName),
+                T.dest / "testargs" / testClassName,
+                T.dest / "sandbox" / testClassName
+              )
+            }
 
-      if (!os.exists(outputPath)) Result.Failure("Test execution failed.")
-      else
-        try {
-          val jsonOutput = ujson.read(outputPath.toIO)
-          val (doneMsg, results) = {
-            upickle.default.read[(String, Seq[TestResult])](jsonOutput)
+          val outputs = T.ctx.executionContext.blocking {
+            Await.result(Future.sequence(futures), Duration.Inf)
           }
-          if (results.isEmpty && selectors.nonEmpty) {
-            // no tests ran but we expected some to run, as we applied a filter (e.g. via `testOnly`)
-            Result.Failure(
-              s"Test selector does not match any test: ${selectors.mkString(" ")}" + "\nRun discoveredTestClasses to see available tests"
-            )
-          } else TestModule.handleResults(doneMsg, results, T.ctx(), testReportXml())
-        } catch {
-          case e: Throwable =>
-            Result.Failure("Test reporting failed: " + e)
+
+          val (lefts, rights) = outputs.partitionMap(identity)
+          if (lefts.nonEmpty) Left(lefts.mkString("\n"))
+          else {
+            Right((rights.map(_._1).mkString("\n"), rights.flatMap(_._2)))
+          }
         }
+
+      res match {
+        case Left(errMsg) => Result.Failure(errMsg)
+        case Right((doneMsg, results)) =>
+          try {
+            if (results.isEmpty && selectors.nonEmpty) {
+              // no tests ran but we expected some to run, as we applied a filter (e.g. via `testOnly`)
+              Result.Failure(
+                s"Test selector does not match any test: ${selectors.mkString(" ")}" + "\nRun discoveredTestClasses to see available tests"
+              )
+            } else TestModule.handleResults(doneMsg, results, T.ctx(), testReportXml())
+          } catch {
+            case e: Throwable =>
+              Result.Failure("Test reporting failed: " + e)
+          }
+      }
     }
 
   /**

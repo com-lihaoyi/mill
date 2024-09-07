@@ -81,7 +81,7 @@ private[mill] trait GroupEvaluator {
       logger: ColorLogger,
       classToTransitiveClasses: Map[Class[_], IndexedSeq[Class[_]]],
       allTransitiveClassMethods: Map[Class[_], Map[String, Method]],
-      executionContext: ExecutionContext
+      executionContext: BlockableExecutionContext
   ): GroupEvaluator.Results = synchronizedEval(
     terminal,
     onCollision =
@@ -256,7 +256,7 @@ private[mill] trait GroupEvaluator {
       reporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
       logger: mill.api.Logger,
-      executionContext: ExecutionContext
+      executionContext: BlockableExecutionContext
   ): (Map[Task[_], TaskResult[(Val, Int)]], mutable.Buffer[Task[_]]) = {
 
     def computeAll(enableTicker: Boolean) = {

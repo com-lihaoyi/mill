@@ -119,7 +119,7 @@ class Ctx(
     val testReporter: TestReporter,
     val workspace: os.Path,
     val systemExit: Int => Nothing,
-    val executionContext: scala.concurrent.ExecutionContext
+    val executionContext: BlockableExecutionContext
 ) extends Ctx.Dest
     with Ctx.Log
     with Ctx.Args
@@ -137,7 +137,7 @@ class Ctx(
       testReporter: TestReporter,
       workspace: os.Path
   ) = {
-    this(args, dest0, log, home, env, reporter, testReporter, workspace, i => ???, scala.concurrent.ExecutionContext.global)
+    this(args, dest0, log, home, env, reporter, testReporter, workspace, i => ???, null)
   }
   def dest: os.Path = dest0()
   def arg[T](index: Int): T = {
