@@ -35,11 +35,11 @@ trait CheckstyleXsltModule extends CheckstyleModule {
     val xslt = checkstyleXsltDir().path
     T.log.info("scanning for transforms ...")
     T.log.info(s"  $xslt")
-    os.walk(xslt, maxDepth = 1)
+    os.list(xslt)
       .iterator
       .filter(os.isDir)
       .flatMap { ext =>
-        os.walk(ext, maxDepth = 1)
+        os.list(ext)
           .iterator
           .filter(_.ext == "xml")
           .map(path => PathRef(path) -> Seq(s"${path.baseName}.${ext.baseName}"))
