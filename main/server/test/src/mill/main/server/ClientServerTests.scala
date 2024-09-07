@@ -17,7 +17,7 @@ object ClientServerTests extends TestSuite {
 
   val ENDL = System.lineSeparator()
   class EchoServer(override val serverId: String, serverDir: os.Path, locks: Locks)
-      extends Server[Option[Int]](serverDir, 1000, locks) with Runnable {
+      extends Server[Option[Int]](serverDir, 1000, locks, testLogEvenWhenServerIdWrong = true) with Runnable {
     override def exitServer() = {
       serverLog("exiting server")
       super.exitServer()
@@ -155,6 +155,7 @@ object ClientServerTests extends TestSuite {
         )
 
         // Make sure if we delete the out dir, the server notices and exits
+        Thread.sleep(500)
         os.remove.all(res3.outDir)
         Thread.sleep(500)
 

@@ -21,7 +21,8 @@ import scala.util.Try
 abstract class Server[T](
     serverDir: os.Path,
     acceptTimeoutMillis: Int,
-    locks: Locks
+    locks: Locks,
+    testLogEvenWhenServerIdWrong: Boolean = false
 ) {
 
   @volatile var running = true
@@ -31,7 +32,7 @@ abstract class Server[T](
 
   val serverId: String = java.lang.Long.toHexString(scala.util.Random.nextLong())
   def serverLog0(s: String): Unit = {
-    if (running && checkServerIdFile().isEmpty) {
+    if (running && (testLogEvenWhenServerIdWrong || checkServerIdFile().isEmpty)) {
       os.write.append(serverDir / ServerFiles.serverLog, s"$s\n", createFolders = true)
     }
   }
@@ -109,7 +110,7 @@ abstract class Server[T](
   def checkServerIdFile(): Option[String] = {
     Try(os.read(serverDir / ServerFiles.serverId)) match {
       case scala.util.Failure(e) =>
-        Some(s"serverId file missing: $e")
+        Some(s"serverId file missing")
 
       case scala.util.Success(s) =>
         if (s == serverId) None
