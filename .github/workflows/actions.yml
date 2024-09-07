@@ -101,7 +101,7 @@ jobs:
 
           # Check docsite compiles
           - java-version: 11
-            millargs: docs.githubPages
+            buildcmd: git fetch --tags && ./mill -i docs.githubPages
 
 
     uses: ./.github/workflows/run-mill-action.yml
