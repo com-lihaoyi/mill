@@ -7,7 +7,6 @@ import coursier.{Dependency, Repository, Resolution}
 import mill.api.{Ctx, PathRef, Result}
 import mill.api.Loose.Agg
 import java.io.File
-import java.nio.file.NoSuchFileException
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.util.{Failure, Success, Try}
