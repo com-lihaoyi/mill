@@ -49,7 +49,7 @@ Foo.value: HELLO
 // [source,scala]
 // ----
 // trait Runner{
-//   def run(args: Seq[String],
+//   def run(args: os.Shellable,
 //           mainClass: String = null,
 //           forkArgs: Seq[String] = null,
 //           forkEnv: Map[String, String] = null,
