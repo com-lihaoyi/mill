@@ -109,13 +109,11 @@ abstract class Server[T](
   }
   def checkServerIdFile(): Option[String] = {
     Try(os.read(serverDir / ServerFiles.serverId)) match {
-      case scala.util.Failure(e) =>
-        Some(s"serverId file missing")
+      case scala.util.Failure(e) => Some(s"serverId file missing")
 
       case scala.util.Success(s) =>
-        if (s == serverId) None
-        else {
-          Some(s"serverId file contents $s does not match serverId $serverId")
+        Option.when(s != serverId){
+          s"serverId file contents $s does not match serverId $serverId"
         }
     }
 
