@@ -97,6 +97,10 @@ trait TestModule
     testTask(testCachedArgs, T.task { Seq.empty[String] })()
   }
 
+  def testCachedPar: T[(String, Seq[TestResult])] = T {
+    testTask(testCachedArgs, T.task { Seq.empty[String] }, parallel = true)()
+  }
+
   /**
    * Discovers and runs the module's tests in a subprocess, reporting the
    * results to the console.
@@ -174,12 +178,17 @@ trait TestModule
    */
   def testSandboxWorkingDir: T[Boolean] = true
 
+  protected def testTask(args: Task[Seq[String]],
+                         globSelectors: Task[Seq[String]]): Task[(String, Seq[TestResult])] = {
+    testTask(args, globSelectors, parallel = false)
+  }
   /**
    * The actual task shared by `test`-tasks that runs test in a forked JVM.
    */
   protected def testTask(
       args: Task[Seq[String]],
-      globSelectors: Task[Seq[String]]
+      globSelectors: Task[Seq[String]],
+      parallel: Boolean = false
   ): Task[(String, Seq[TestResult])] =
     T.task {
       val outputPath = T.dest / "out.json"
@@ -204,41 +213,59 @@ trait TestModule
 
       val selectors = globSelectors()
 
-      val testArgs = TestArgs(
-        framework = testFramework(),
-        classpath = runClasspath().map(_.path),
-        arguments = args(),
-        sysProps = props,
-        outputPath = outputPath,
-        colored = T.log.colored,
-        testCp = testClasspath().map(_.path),
-        home = T.home,
-        globSelectors = selectors
-      )
-
       val testRunnerClasspathArg = zincWorker().scalalibClasspath()
         .map(_.path.toNIO.toUri.toURL)
         .mkString(",")
 
-      val argsFile = T.dest / "testargs"
-      os.write(argsFile, upickle.default.write(testArgs))
-      val mainArgs = Seq(testRunnerClasspathArg, argsFile.toString)
-
-      os.makeDir(T.dest / "sandbox")
       val resourceEnv =
         Map(EnvVars.MILL_TEST_RESOURCE_FOLDER -> resources().map(_.path).mkString(";"))
-      Jvm.runSubprocess(
-        mainClass = "mill.testrunner.entrypoint.TestRunnerMain",
-        classPath =
-          (runClasspath() ++ zincWorker().testrunnerEntrypointClasspath()).map(
-            _.path
-          ),
-        jvmArgs = jvmArgs,
-        envArgs = forkEnv() ++ resourceEnv,
-        mainArgs = mainArgs,
-        workingDir = if (testSandboxWorkingDir()) T.dest / "sandbox" else forkWorkingDir(),
-        useCpPassingJar = useArgsFile
-      )
+
+
+      def runTestSubprocess(selectors2: Seq[String],
+                            argsFile: os.Path,
+                            sandbox: os.Path) = {
+        val testArgs = TestArgs(
+          framework = testFramework(),
+          classpath = runClasspath().map(_.path),
+          arguments = args(),
+          sysProps = props,
+          outputPath = outputPath,
+          colored = T.log.colored,
+          testCp = testClasspath().map(_.path),
+          home = T.home,
+          globSelectors = selectors2
+        )
+
+        os.write(argsFile, upickle.default.write(testArgs))
+
+        os.makeDir(sandbox)
+
+        Jvm.runSubprocess(
+          mainClass = "mill.testrunner.entrypoint.TestRunnerMain",
+          classPath =
+            (runClasspath() ++ zincWorker().testrunnerEntrypointClasspath()).map(
+              _.path
+            ),
+          jvmArgs = jvmArgs,
+          envArgs = forkEnv() ++ resourceEnv,
+          mainArgs = Seq(testRunnerClasspathArg, argsFile.toString),
+          workingDir = if (testSandboxWorkingDir()) sandbox else forkWorkingDir(),
+          useCpPassingJar = useArgsFile
+        )
+      }
+
+      if (!parallel) {
+        runTestSubprocess(selectors, T.dest / "testargs", T.dest / "sandbox")
+
+      } else{
+        for(testClassName <- discoveredTestClasses()) yield scala.concurrent.Future{
+          runTestSubprocess(
+            Seq(testClassName),
+            T.dest / "testargs" / testClassName,
+            T.dest / "sandbox" / testClassName
+          )
+        }(T.ctx.executionContext)
+      }
 
       if (!os.exists(outputPath)) Result.Failure("Test execution failed.")
       else

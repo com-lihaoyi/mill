@@ -21,7 +21,7 @@ private object ExecutionContexts {
    * and AutoCloseable support
    */
   class ThreadPool(threadCount: Int) extends ExecutionContext with AutoCloseable {
-    val threadPool: ExecutorService = java.util.concurrent.Executors.newFixedThreadPool(threadCount)
+    val threadPool: ExecutorService = java.util.concurrent.Executors.newWorkStealingPool(threadCount)
     def execute(runnable: Runnable): Unit = threadPool.submit(runnable)
     def reportFailure(t: Throwable): Unit = {}
     def close(): Unit = threadPool.shutdown()
