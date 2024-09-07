@@ -12,6 +12,7 @@ import java.lang.reflect.Method
 import scala.collection.mutable
 import scala.reflect.NameTransformer.encode
 import scala.util.control.NonFatal
+import scala.util.hashing.MurmurHash3
 import scala.util.{DynamicVariable, Using}
 
 /**
@@ -43,32 +44,6 @@ private[mill] trait GroupEvaluator {
   val effectiveThreadCount: Int =
     this.threadCount.getOrElse(Runtime.getRuntime().availableProcessors())
 
-  /**
-   * Synchronize evaluations of the same terminal task.
-   * This isn't necessarily needed for normal Mill executions,
-   * but in an BSP context, where multiple requests where handled concurrently in the same Mill instance,
-   * evaluating the same task concurrently  can happen.
-   *
-   * We don't synchronize multiple Mill-instances (e.g. run in two shells)
-   * or multiple evaluator-instances (which should have different `out`-dirs anyway.
-   */
-  private object synchronizedEval {
-    private val keyLock = new KeyLock[Segments]()
-    def apply[T](terminal: Terminal, onCollision: Option[() => Unit] = None)(f: => T): T =
-      terminal match {
-        case t: Terminal.Task[_] =>
-          // A un-labelled terminal task won't be synchronized
-          // as there is no filesystem cache region assigned to it
-          f
-        case Terminal.Labelled(_, segments) =>
-          // A labelled terminal needs synchronization due to
-          // a shared cache region in the filesystem
-          Using.resource(keyLock.lock(segments, onCollision)) { _ =>
-            f
-          }
-      }
-  }
-
   // those result which are inputs but not contained in this terminal group
   def evaluateGroupCached(
       terminal: Terminal,
@@ -80,20 +55,14 @@ private[mill] trait GroupEvaluator {
       logger: ColorLogger,
       classToTransitiveClasses: Map[Class[_], IndexedSeq[Class[_]]],
       allTransitiveClassMethods: Map[Class[_], Map[String, Method]]
-  ): GroupEvaluator.Results = synchronizedEval(
-    terminal,
-    onCollision =
-      Some(() => logger.debug(s"Waiting for concurrently executing task ${terminal.render}"))
-  ) {
+  ): GroupEvaluator.Results = {
 
-    val externalInputsHash = scala.util.hashing.MurmurHash3.orderedHash(
+    val externalInputsHash = MurmurHash3.orderedHash(
       group.items.flatMap(_.inputs).filter(!group.contains(_))
         .flatMap(results(_).result.asSuccess.map(_.value._2))
     )
 
-    val sideHashes = scala.util.hashing.MurmurHash3.orderedHash(
-      group.iterator.map(_.sideHash)
-    )
+    val sideHashes = MurmurHash3.orderedHash(group.iterator.map(_.sideHash))
 
     val scriptsHash = group
       .iterator
@@ -335,13 +304,6 @@ private[mill] trait GroupEvaluator {
           }
         }
 
-        // Remove any empty `dest/` folders to tidy up the filesystem. Otherwise
-        // tasks that call `os.proc` or `T.dest` without actually doing anything with
-        // the folder will leave empty folders around cluttering the disk
-//        this.synchronized{
-//          for(p <- usedDest if os.list(p).isEmpty) os.remove(p)
-//        }
-
         newResults(task) = for (v <- res) yield {
           (
             v,
@@ -349,6 +311,13 @@ private[mill] trait GroupEvaluator {
             else v.##
           )
         }
+      }
+
+      // Remove any empty `.dest/` folders to tidy up the filesystem. Otherwise
+      // tasks that call `os.proc` or `T.dest` without actually doing anything with
+      // the folder will leave empty folders around cluttering the disk
+      this.synchronized{
+        for(p <- usedDest if os.list.stream(p).headOption.isEmpty) os.remove(p)
       }
       multiLogger.close()
       (newResults, newEvaluated)
@@ -359,7 +328,7 @@ private[mill] trait GroupEvaluator {
     if (!failFast) maybeTargetLabel.foreach { targetLabel =>
       val taskFailed = newResults.exists(task => !task._2.isInstanceOf[Success[_]])
       if (taskFailed) {
-        logger.error(s"[${counterMsg}] ${targetLabel} failed")
+        logger.error(s"[$counterMsg] $targetLabel failed")
       }
     }
 
