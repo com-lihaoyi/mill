@@ -37,7 +37,8 @@ object ClientServerTests extends TestSuite {
         env: Map[String, String],
         setIdle: Boolean => Unit,
         systemProperties: Map[String, String],
-        initialSystemProperties: Map[String, String]
+        initialSystemProperties: Map[String, String],
+        systemExit: Int => Nothing
     ) = {
 
       val reader = new BufferedReader(new InputStreamReader(streams.in))
