@@ -100,7 +100,8 @@ class UnitTester(
     env = env,
     methodCodeHashSignatures = Map(),
     disableCallgraphInvalidation = false,
-    allowPositionalCommandArgs = false
+    allowPositionalCommandArgs = false,
+    systemExit = i => ???
   )
 
   def apply(args: String*): Either[Result.Failing[_], UnitTester.Result[Seq[_]]] = {

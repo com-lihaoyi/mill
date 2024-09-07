@@ -56,7 +56,8 @@ class MillServerMain(
       env: Map[String, String],
       setIdle: Boolean => Unit,
       userSpecifiedProperties: Map[String, String],
-      initialSystemProperties: Map[String, String]
+      initialSystemProperties: Map[String, String],
+      systemExit: Int => Nothing
   ): (Boolean, RunnerState) = {
     try MillMain.main0(
         args = args,
@@ -67,7 +68,8 @@ class MillServerMain(
         env = env,
         setIdle = setIdle,
         userSpecifiedProperties0 = userSpecifiedProperties,
-        initialSystemProperties = initialSystemProperties
+        initialSystemProperties = initialSystemProperties,
+        systemExit = systemExit
       )
     catch MillMain.handleMillException(streams.err, stateCache)
   }

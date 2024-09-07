@@ -93,19 +93,20 @@ abstract class Server[T](
     os.write.over(serverDir / ServerFiles.serverId, serverId)
 
     val serverIdThread = new Thread(
-      () => while (running) {
-        checkServerIdFile()match{
-          case None => Thread.sleep(100)
-          case Some(msg) =>
-            serverLog(msg)
-            exitServer()
-        }
-      },
+      () =>
+        while (running) {
+          checkServerIdFile() match {
+            case None => Thread.sleep(100)
+            case Some(msg) =>
+              serverLog(msg)
+              exitServer()
+          }
+        },
       "Server ID Checker Thread"
     )
     serverIdThread.start()
   }
-  def checkServerIdFile() = {
+  def checkServerIdFile(): Option[String] = {
     Try(os.read(serverDir / ServerFiles.serverId)) match {
       case scala.util.Failure(e) =>
         Some(s"serverId file missing: $e")
@@ -197,7 +198,11 @@ abstract class Server[T](
               env.asScala.toMap,
               idle = _,
               userSpecifiedProperties.asScala.toMap,
-              initialSystemProperties
+              initialSystemProperties,
+              systemExit = exitCode => {
+                os.write.over(serverDir / ServerFiles.exitCode, exitCode.toString)
+                sys.exit(exitCode)
+              }
             )
 
             stateCache = newStateCache
@@ -246,7 +251,8 @@ abstract class Server[T](
       env: Map[String, String],
       setIdle: Boolean => Unit,
       userSpecifiedProperties: Map[String, String],
-      initialSystemProperties: Map[String, String]
+      initialSystemProperties: Map[String, String],
+      systemExit: Int => Nothing
   ): (Boolean, T)
 
 }

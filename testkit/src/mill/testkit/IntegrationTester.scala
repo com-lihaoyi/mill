@@ -4,8 +4,6 @@ import mill.eval.Evaluator
 import mill.resolve.SelectMode
 import ujson.Value
 
-import scala.util.control.NonFatal
-
 /**
  * Helper meant for executing Mill integration tests, which runs Mill in a subprocess
  * against a folder with a `build.mill` and project files. Provides APIs such as [[eval]]
