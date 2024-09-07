@@ -216,8 +216,7 @@ class ExampleTester(
       try {
         try os.remove.all(workspacePath / "out")
         catch {
-          case e: Throwable =>
-          /*do nothing*/
+          case e: Throwable => /*do nothing*/
         }
 
         for (commandBlock <- commandBlocks) processCommandBlock(commandBlock)
