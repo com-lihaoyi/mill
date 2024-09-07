@@ -10,7 +10,6 @@ import mill.util._
 import java.io.PrintStream
 import java.lang.reflect.Method
 import scala.collection.mutable
-import scala.concurrent.ExecutionContext
 import scala.reflect.NameTransformer.encode
 import scala.util.control.NonFatal
 import scala.util.{DynamicVariable, Using}
@@ -292,7 +291,7 @@ private[mill] trait GroupEvaluator {
           .map { x => newResults.getOrElse(x, results(x).result) }
           .collect { case Result.Success((v, _)) => v }
 
-        def makeDest() = this.synchronized{
+        def makeDest() = this.synchronized {
           paths match {
             case Some(dest) =>
               if (usedDest.isEmpty) os.makeDir.all(dest.dest)
