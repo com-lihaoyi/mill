@@ -4,7 +4,6 @@ import mainargs.arg
 import mill.api.JsonFormatters.pathReadWrite
 import mill.api.{Ctx, PathRef, Result}
 import mill.define.{Command, Task}
-import mill.main.client.EnvVars
 import mill.util.Jvm
 import mill.{Agg, Args, T}
 import os.{Path, ProcessOutput}
@@ -123,8 +122,8 @@ trait RunModule extends WithZincWorker {
   def runForkedTask(mainClass: Task[String], args: Task[Args] = T.task(Args())): Task[Unit] =
     T.task {
       try Result.Success(
-        runner().run(args = args().value, mainClass = mainClass(), workingDir = forkWorkingDir())
-      )
+          runner().run(args = args().value, mainClass = mainClass(), workingDir = forkWorkingDir())
+        )
       catch {
         case NonFatal(_) => Result.Failure("Subprocess failed")
       }
@@ -151,24 +150,14 @@ trait RunModule extends WithZincWorker {
 
   def runBackgroundTask(mainClass: Task[String], args: Task[Args] = T.task(Args())): Task[Unit] =
     T.task {
-      doRunBackground(
-        taskDest = T.dest,
-        runClasspath = runClasspath(),
-        zwBackgroundWrapperClasspath = zincWorker().backgroundWrapperClasspath(),
-        forkArgs = forkArgs(),
-        forkEnv = forkEnv(),
-        finalMainClass = mainClass(),
-        forkWorkingDir = forkWorkingDir(),
-        runUseArgsFile = runUseArgsFile(),
-        backgroundOutputs = backgroundOutputs(T.dest)
-      )(args().value: _*)(T.ctx())
-
-      // Make sure to sleep a bit in the Mill test suite to allow the servers we
-      // start time to initialize before we proceed with the following commands
-      if (T.env.contains(EnvVars.MILL_TEST_SUITE)) {
-        println("runBackgroundTask SLEEPING 10000")
-        Thread.sleep(5000)
-      }
+      runner().run(
+        args = args().value,
+        mainClass = mainClass(),
+        workingDir = forkWorkingDir(),
+        extraRunClasspath = zincWorker().backgroundWrapperClasspath().map(_.path).toSeq,
+        background = true,
+        runBackgroundLogToConsole = runBackgroundLogToConsole
+      )
     }
 
   /**
@@ -181,11 +170,6 @@ trait RunModule extends WithZincWorker {
    */
   // TODO: make this a task, to be more dynamic
   def runBackgroundLogToConsole: Boolean = true
-
-  private def backgroundOutputs(dest: os.Path): Option[(ProcessOutput, ProcessOutput)] = {
-    if (runBackgroundLogToConsole) Some((os.Inherit, os.Inherit))
-    else Jvm.defaultBackgroundOutputs(dest)
-  }
 
   protected def doRunBackground(
       taskDest: Path,
@@ -260,7 +244,10 @@ object RunModule {
         forkArgs: Seq[String] = null,
         forkEnv: Map[String, String] = null,
         workingDir: os.Path = null,
-        useCpPassingJar: java.lang.Boolean = null
+        useCpPassingJar: java.lang.Boolean = null,
+        extraRunClasspath: Seq[os.Path] = Nil,
+        background: Boolean = false,
+        runBackgroundLogToConsole: Boolean = false
     )(implicit ctx: Ctx): Unit
   }
   private class RunnerImpl(
@@ -277,20 +264,24 @@ object RunModule {
         forkArgs: Seq[String] = null,
         forkEnv: Map[String, String] = null,
         workingDir: os.Path = null,
-        useCpPassingJar: java.lang.Boolean = null
+        useCpPassingJar: java.lang.Boolean = null,
+        extraRunClasspath: Seq[os.Path] = Nil,
+        background: Boolean = false,
+        runBackgroundLogToConsole: Boolean = false
     )(implicit ctx: Ctx): Unit = {
       Jvm.runSubprocess(
         Option(mainClass).getOrElse(mainClass0.fold(sys.error, identity)),
-        runClasspath,
+        runClasspath ++ extraRunClasspath,
         Option(forkArgs).getOrElse(forkArgs0),
         Option(forkEnv).getOrElse(forkEnv0),
         args,
         Option(workingDir).getOrElse(ctx.dest),
-        background = false,
+        background = background,
         Option(useCpPassingJar) match {
           case Some(b) => b
           case None => useCpPassingJar0
-        }
+        },
+        runBackgroundLogToConsole = runBackgroundLogToConsole
       )
     }
   }
