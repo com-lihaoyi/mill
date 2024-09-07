@@ -239,7 +239,7 @@ trait RunModule extends WithZincWorker {
 object RunModule {
   trait Runner {
     def run(
-        args: Seq[String],
+        args: os.Shellable,
         mainClass: String = null,
         forkArgs: Seq[String] = null,
         forkEnv: Map[String, String] = null,
@@ -259,7 +259,7 @@ object RunModule {
   ) extends Runner {
 
     def run(
-        args: Seq[String],
+        args: os.Shellable,
         mainClass: String = null,
         forkArgs: Seq[String] = null,
         forkEnv: Map[String, String] = null,
@@ -274,7 +274,7 @@ object RunModule {
         runClasspath ++ extraRunClasspath,
         Option(forkArgs).getOrElse(forkArgs0),
         Option(forkEnv).getOrElse(forkEnv0),
-        args,
+        args.value,
         Option(workingDir).getOrElse(ctx.dest),
         background = background,
         Option(useCpPassingJar) match {

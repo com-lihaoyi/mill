@@ -8,7 +8,7 @@ object foo extends ScalaModule {
   def ivyDeps = Agg(ivy"com.lihaoyi::mainargs:0.4.0")
 
   def sources = T{
-    bar.runner().run(args = super.sources().map(_.path.toString))
+    bar.runner().run(args = super.sources())
     Seq(PathRef(T.dest))
   }
 }
