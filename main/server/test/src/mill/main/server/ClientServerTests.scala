@@ -16,8 +16,12 @@ import utest._
 object ClientServerTests extends TestSuite {
 
   val ENDL = System.lineSeparator()
-  class EchoServer(override val serverId: String, serverDir: os.Path, locks: Locks, testLogEvenWhenServerIdWrong: Boolean)
-      extends Server[Option[Int]](serverDir, 1000, locks, testLogEvenWhenServerIdWrong)
+  class EchoServer(
+      override val serverId: String,
+      serverDir: os.Path,
+      locks: Locks,
+      testLogEvenWhenServerIdWrong: Boolean
+  ) extends Server[Option[Int]](serverDir, 1000, locks, testLogEvenWhenServerIdWrong)
       with Runnable {
     override def exitServer() = {
       serverLog("exiting server")
@@ -93,7 +97,12 @@ object ClientServerTests extends TestSuite {
         def initServer(serverDir: String, b: Boolean, locks: Locks) = {
           val serverId = "server-" + nextServerId
           nextServerId += 1
-          new Thread(new EchoServer(serverId, os.Path(serverDir, os.pwd), locks, testLogEvenWhenServerIdWrong)).start()
+          new Thread(new EchoServer(
+            serverId,
+            os.Path(serverDir, os.pwd),
+            locks,
+            testLogEvenWhenServerIdWrong
+          )).start()
         }
       }.acquireLocksAndRun(outDir.relativeTo(os.pwd).toString)
 
