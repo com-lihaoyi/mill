@@ -3,15 +3,11 @@
 
 Allows https://checkstyle.org/[Checkstyle], a development tool to help programmers write Java code that adheres to a coding standard, to be used in Mill builds.
 
-== CheckstyleModule
-
 === Format Version Compatibility Matrix
-[%header,cols="1,1,1",width=66%]
+[%header,cols="1,1",width=50%]
 |===
-|Format|Min|Max (tested)
-|plain|6.3|10.18.1
-|sarif|8.42|10.18.1
-|xml|6.3|10.18.1
+|Format|Version(+)
+|plain|6.3
+|sarif|8.42
+|xml|6.3
 |===
-
-== CheckstyleXsltModule

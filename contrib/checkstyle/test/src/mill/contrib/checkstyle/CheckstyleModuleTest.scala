@@ -8,38 +8,60 @@ import utest._
 
 object CheckstyleModuleTest extends TestSuite {
 
+  val res = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER"))
+  val ver = "10.18.1"
+
   def tests = Tests {
-    test("CheckstyleModule") {
-      test("compat") {
-        test("plain") {
-          format.compat("plain", os.rel / "sbt" / "checkstyle")("6.2")("6.3", "10.18.1")
-        }
-        test("sarif") {
-          format.compat("sarif", os.rel / "sbt" / "checkstyle")("8.42")("8.43", "10.18.1")
-        }
-        test("xml") {
-          format.compat("xml", os.rel / "sbt" / "checkstyle")("6.2")("6.3", "10.18.1")
-        }
+    val src = "sbt-checkstyle"
+
+    test("checkstyle") {
+      test("plain") {
+        cs("plain", "6.2") - src
+        cs("plain", "6.3") + src
+        cs("plain") + src
+      }
+      test("sarif") {
+        cs("sarif", "8.42") - src
+        cs("sarif", "8.43") + src
+        cs("sarif") + src
+      }
+      test("xml") {
+        cs("xml", "6.2") - src
+        cs("xml", "6.3") + src
+        cs("xml") + src
+        cs("xml") + "sbt-checkstyle-xslt"
       }
     }
   }
-}
 
-private object format {
+  case class cs(format: String, version: String = ver) {
 
-  def compat(format: String, module: os.RelPath)(fail: String*)(pass: String*): Unit = {
-    fail.foreach(version => intercept[RuntimeException](exists(format, module, version)))
-    pass.foreach(version => assert(exists(format, module, version)))
-  }
-
-  def exists(format: String, module: os.RelPath, version: String): Boolean = {
-    object mod extends TestBaseModule with JavaModule with CheckstyleModule {
-      override def checkstyleVersion = version
-      override def checkstyleFormat = format
+    def -(src: String) = intercept[RuntimeException] {
+      passed(src)
     }
-    val root = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / module
-    val eval = UnitTester(mod, root)
-    val Right(result) = eval(mod.checkstyle)
-    os.exists(result.value.path)
+
+    def +(src: String) = assert {
+      passed(src)
+    }
+
+    def passed(src: String) = {
+
+      object mod extends TestBaseModule with JavaModule with CheckstyleModule {
+        override def checkstyleFormat = format
+        override def checkstyleVersion = version
+      }
+
+      val eval = UnitTester(mod, res / src)
+      val Right(outputs) = eval(mod.checkstyle)
+      val Right(report) = eval(mod.checkstyleReport)
+      val Right(reports) = eval(mod.checkstyleTransforms)
+
+      val reported = outputs.value.exists(_.path.endsWith(os.rel / report.value))
+      val transformed = reports.value.forall {
+        case (_, rel) => outputs.value.exists(_.path.endsWith(os.rel / rel))
+      }
+
+      reported & transformed
+    }
   }
 }
