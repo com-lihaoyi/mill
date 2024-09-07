@@ -100,11 +100,11 @@ trait TestModule
   }
 
   /**
-   * Make this test module each individual suites in parallel in separate JVMs
+   * Make this test module each individual test classes in parallel in separate JVMs
    * and sandbox folders. Setting it to `false` will fall back to running all
-   * test suites in this module in a single JVM in a single sandbox folder
+   * test classes in this module in a single JVM in a single sandbox folder
    */
-  def testParallelizeSuites: T[Boolean] = true
+  def testParallelizeClasses: T[Boolean] = true
 
   /**
    * Discovers and runs the module's tests in a subprocess, reporting the
@@ -257,7 +257,7 @@ trait TestModule
       }
 
       val subprocessResult: Either[String, (String, Seq[TestResult])] =
-        if (!testParallelizeSuites()) runTestSubprocess(selectors, T.dest)
+        if (!testParallelizeClasses()) runTestSubprocess(selectors, T.dest)
         else {
           implicit val ec = T.ctx.executionContext
           val futures =
