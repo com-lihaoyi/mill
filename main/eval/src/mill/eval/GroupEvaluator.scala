@@ -316,19 +316,6 @@ private[mill] trait GroupEvaluator {
         }
       }
 
-      // Remove any empty `.dest/` folders to tidy up the filesystem. Otherwise
-      // tasks that call `os.proc` or `T.dest` without actually doing anything with
-      // the folder will leave empty folders around cluttering the disk
-      this.synchronized {
-        for {
-          p <- usedDest
-          if os.list.stream(p).headOption.isEmpty
-          // workers can be used after they return their value and
-          // may need to continue working with their `T.dest`,
-          if !isWorker
-        } os.remove(p)
-      }
-
       multiLogger.close()
       (newResults, newEvaluated)
     }
