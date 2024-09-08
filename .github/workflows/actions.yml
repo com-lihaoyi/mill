@@ -34,6 +34,7 @@ jobs:
       java-version: 11
       millargs: __.compile
       populate_cache: true
+
   build-windows:
     uses: ./.github/workflows/run-mill-action.yml
     with:
@@ -46,9 +47,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with: { fetch-depth: 0 }
-
-      - run: git fetch --tags && ./mill -i docs.githubPages
+      - run: git fetch --tags
+      - run: ./mill -i docs.githubPages
 
   compiler-bridge:
     needs: build-linux
