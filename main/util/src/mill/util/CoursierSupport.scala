@@ -14,7 +14,6 @@ trait CoursierSupport {
   import CoursierSupport._
 
   private val CoursierRetryCount = 5
-  
 
   private def retryableCoursierError(s: String) = s match {
     case s"${_}concurrent download${_}" => true

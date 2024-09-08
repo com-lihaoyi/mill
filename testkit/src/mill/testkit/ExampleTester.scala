@@ -2,7 +2,6 @@ package mill.testkit
 import mill.util.Util
 import utest._
 
-
 /**
  * A variant of [[IntegrationTester]], [[ExampleTester]] works the same way
  * except the commands used to test the project come from a `/** Usage ... */`
@@ -59,7 +58,7 @@ object ExampleTester {
       millExecutable,
       bashExecutable,
       workspacePath
-    )
+    ).run()
   }
 
   def defaultBashExecutable(): String = {
@@ -183,13 +182,14 @@ class ExampleTester(
   }
 
   def run(): Any = {
-    os.copy.over(millExecutable, workspacePath / "mill")
+    os.makeDir.all(workspacePath)
     val parsed = ExampleParser(workspaceSourcePath)
     val usageComment = parsed.collect { case ("example", txt) => txt }.mkString("\n\n")
     val commandBlocks = ("\n" + usageComment.trim).split("\n> ").filter(_.nonEmpty)
 
     try {
       initWorkspace()
+      os.copy.over(millExecutable, workspacePath / "mill")
       for (commandBlock <- commandBlocks) processCommandBlock(commandBlock)
     } finally {
       if (clientServerMode) processCommand(Vector(), "./mill shutdown", check = false)

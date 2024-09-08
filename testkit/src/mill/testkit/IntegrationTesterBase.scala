@@ -33,12 +33,14 @@ trait IntegrationTesterBase {
    * Remove any ID files to try and force them to exit
    */
   def removeServerIdFile(): Unit = {
-    val serverIdFiles = for {
-      outPath <- os.list.stream(workspacePath / out)
-      if outPath.last.startsWith(millWorker)
-    } yield outPath / serverId
+    if (os.exists(workspacePath / out)) {
+      val serverIdFiles = for {
+        outPath <- os.list.stream(workspacePath / out)
+        if outPath.last.startsWith(millWorker)
+      } yield outPath / serverId
 
-    serverIdFiles.foreach(os.remove(_))
-    Thread.sleep(500) // give a moment for the server to notice the file is gone and exit
+      serverIdFiles.foreach(os.remove(_))
+      Thread.sleep(500) // give a moment for the server to notice the file is gone and exit
+    }
   }
 }
