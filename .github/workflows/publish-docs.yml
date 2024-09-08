@@ -1,3 +1,7 @@
+# Runs every commit that lands in main, but the default landing page is the last
+# stable published tag. You have to navigate in the UI to find the latest docs for
+# what's in main but not yet released, but it's there for those who want it
+
 name: Publish Docs
 on:
   push:
@@ -12,8 +16,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+        with: {fetch-depth: 0}
 
       - uses: coursier/cache-action@v6
 
