@@ -500,7 +500,6 @@ class ZincWorkerImpl(
       if (compileToJar) ctx.dest / "classes.jar"
       else ctx.dest / "classes"
 
-
     if (ctx.log.debugEnabled) {
       ctx.log.debug(
         s"""Compiling:
