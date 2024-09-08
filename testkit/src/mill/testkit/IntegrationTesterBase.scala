@@ -10,6 +10,11 @@ trait IntegrationTesterBase {
    * The working directory of the integration test suite, which is the root of the
    * Mill build being tested. Contains the `build.mill` file, any application code, and
    * the `out/` folder containing the build output
+   *
+   * Each integration test that runs in the same [[baseWorkspacePath]] is given a new folder
+   * for isolation purposes; even though we try our best to clean up the processes and files
+   * from each Mill run, it still doesn't work 100%, and re-using the same folder can cause
+   * non-deterministic interference and flakiness
    */
   val workspacePath: os.Path = {
     Iterator
