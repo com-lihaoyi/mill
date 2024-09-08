@@ -89,16 +89,17 @@ trait CheckstyleModule extends JavaModule {
     ).exitCode
 
     if (errs == 0) {
-      T.log.info(s"checkstyle found no error, details in $report")
+      T.log.info("checkstyle passed")
     } else if (errs > 0 && os.exists(report)) {
-      val msg = s"checkstyle found $errs error(s), details in $report"
+      T.log.error(s"checkstyle found $errs error(s), details in $report")
       if (_throw) {
-        throw new RuntimeException(msg)
-      } else {
-        T.log.error(msg)
+        throw new RuntimeException(s"checkstyle found $errs error(s)")
       }
     } else {
-      throw new RuntimeException(s"checkstyle exit($errs)")
+      T.log.error(
+        s"checkstyle aborted, please check plugin settings or try a different Checkstyle version"
+      )
+      throw new UnsupportedOperationException(s"checkstyle exit($errs)")
     }
 
     PathRef(report)
