@@ -105,7 +105,7 @@ trait TestModule
    * test classes in this module in a single JVM in a single sandbox folder
    */
   def testForkGrouping: T[Seq[Seq[String]]] = T  {
-    discoveredTestClasses().sorted.grouped(5).toSeq
+    discoveredTestClasses().sorted.grouped(1).toSeq
   }
 
   /**
