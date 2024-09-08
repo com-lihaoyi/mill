@@ -16,23 +16,19 @@ trait CheckstyleModule extends JavaModule {
 
     val dst = T.dest
 
-    val report = checkstyleReport().path
-    val format = checkstyleFormat()
-    val transforms = checkstyleTransforms()
-    val transformer = checkstyleTransformer(format)
-
-    val transformations = transformer.fold(Seq.empty[PathRef]) { transformer =>
-      val f = transformer(report)
-      transforms.map {
-        case (ref, rel) =>
-          val transform = ref.path
-          val out = dst / rel
-          T.log.info(s"transforming checkstyle report using $transform")
-          f(transform, out)
-          T.log.info(s"transformed checkstyle report to $out")
-          PathRef(out)
-      }.toSeq
-    }
+    val transformations =
+      checkstyleTransformer(checkstyleFormat()).fold(Seq.empty[PathRef]) { transformer =>
+        val f = transformer(checkstyleReport().path)
+        checkstyleTransforms().map {
+          case (ref, rel) =>
+            val transform = ref.path
+            val out = dst / rel
+            T.log.info(s"transforming checkstyle report using $transform")
+            f(transform, out)
+            T.log.info(s"transformed checkstyle report to $out")
+            PathRef(out)
+        }.toSeq
+      }
 
     transformations
   }
@@ -66,24 +62,25 @@ trait CheckstyleModule extends JavaModule {
   }
 
   def checkstyleReport: T[PathRef] = T {
-    val classpath = checkstyleClasspath().map(_.path)
-    val options = checkstyleOptions()
-    val config = checkstyleConfig()
-    val format = checkstyleFormat()
-    val inputs = sources().map(_.path.toString())
-    val _throw = checkstyleThrow()
     val report = T.dest / checkstyleOutput()
 
-    val args = options ++
-      Seq("-c", config.path.toString(), "-f", format, "-o", report.toString()) ++
-      inputs
+    val args = checkstyleOptions() ++
+      Seq(
+        "-c",
+        checkstyleConfig().path.toString(),
+        "-f",
+        checkstyleFormat(),
+        "-o",
+        report.toString()
+      ) ++
+      sources().map(_.path.toString())
 
-    T.log.info(s"generating checkstyle $format report ...")
+    T.log.info("generating checkstyle report ...")
     T.log.debug(s"running checkstyle with $args")
 
     val errs = Jvm.callSubprocessUnchecked(
       mainClass = "com.puppycrawl.tools.checkstyle.Main",
-      classPath = classpath,
+      classPath = checkstyleClasspath().map(_.path),
       mainArgs = args,
       workingDir = T.dest
     ).exitCode
@@ -92,7 +89,7 @@ trait CheckstyleModule extends JavaModule {
       T.log.info("checkstyle passed")
     } else if (errs > 0 && os.exists(report)) {
       T.log.error(s"checkstyle found $errs error(s), details in $report")
-      if (_throw) {
+      if (checkstyleThrow()) {
         throw new RuntimeException(s"checkstyle found $errs error(s)")
       }
     } else {
