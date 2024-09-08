@@ -134,11 +134,8 @@ private[mill] trait GroupEvaluator {
           zincProblemReporter,
           testReporter,
           logger,
-<<<<<<< HEAD
-          executionContext
-=======
+          executionContext,
           terminal.task.asWorker.nonEmpty
->>>>>>> main
         )
         GroupEvaluator.Results(newResults, newEvaluated.toSeq, null, inputsHash, -1)
 
@@ -188,11 +185,8 @@ private[mill] trait GroupEvaluator {
                   zincProblemReporter,
                   testReporter,
                   logger,
-<<<<<<< HEAD
-                  executionContext = executionContext
-=======
+                  executionContext = executionContext,
                   terminal.task.asWorker.nonEmpty
->>>>>>> main
                 )
               }
 
@@ -233,11 +227,8 @@ private[mill] trait GroupEvaluator {
       reporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
       logger: mill.api.Logger,
-<<<<<<< HEAD
-      executionContext: BlockableExecutionContext
-=======
+      executionContext: BlockableExecutionContext,
       isWorker: Boolean
->>>>>>> main
   ): (Map[Task[_], TaskResult[(Val, Int)]], mutable.Buffer[Task[_]]) = {
 
     def computeAll(enableTicker: Boolean) = {
