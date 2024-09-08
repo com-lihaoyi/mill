@@ -317,12 +317,6 @@ trait MainModule extends BaseModule0 {
    * will clean everything.
    */
   def clean(evaluator: Evaluator, targets: String*): Command[Seq[PathRef]] = Target.command {
-    if (evaluator.effectiveThreadCount > 1) {
-      evaluator.baseLogger.error(
-        "The clean target in parallel mode might result in unexpected effects"
-      )
-    }
-
     val rootDir = evaluator.outPath
 
     val KeepPattern = "(mill-.+)".r.anchored
