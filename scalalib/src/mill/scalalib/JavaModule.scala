@@ -907,6 +907,7 @@ trait JavaModule
     super.run(args)
   }
 
+  @deprecated("Binary compat shim, use `.runner().run(..., background=true)`", "Mill 0.12.0")
   override protected def doRunBackground(
       taskDest: Path,
       runClasspath: Seq[PathRef],

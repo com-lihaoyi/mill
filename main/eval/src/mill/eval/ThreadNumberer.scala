@@ -7,6 +7,7 @@ private class ThreadNumberer() {
   private val threadIds = collection.mutable.Map.empty[Thread, Int]
 
   def getThreadId(thread: Thread): Int = synchronized {
-    threadIds.getOrElseUpdate(thread, threadIds.size)
+    // start thread IDs from 1 so they're easier to count
+    threadIds.getOrElseUpdate(thread, threadIds.size + 1)
   }
 }

@@ -29,8 +29,7 @@ on:
         type: string
 
 jobs:
-  build:
-
+  run:
     runs-on: ${{ inputs.os }}
     continue-on-error: ${{ inputs.continue-on-error }}
     timeout-minutes: ${{ inputs.timeout-minutes }}
@@ -39,8 +38,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
         if: ${{ inputs.populate_cache }}
 
       - uses: actions/download-artifact@v4
