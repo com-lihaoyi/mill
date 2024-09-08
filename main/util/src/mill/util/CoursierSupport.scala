@@ -4,8 +4,9 @@ import coursier.cache.ArtifactError
 import coursier.parse.RepositoryParser
 import coursier.util.{Gather, Task}
 import coursier.{Dependency, Repository, Resolution}
-import mill.api.{Ctx, PathRef, Result}
+import mill.api.{Ctx, PathRef, Result, Retry}
 import mill.api.Loose.Agg
+
 import java.io.File
 import scala.annotation.tailrec
 import scala.collection.mutable
@@ -39,34 +40,25 @@ trait CoursierSupport {
    * @tparam T The result type of the computation
    * @return The result of the computation. If the computation was retries and finally succeeded, proviously occured errors will not be included in the result.
    */
-  @tailrec
   private def retry[T](
       retryCount: Int = CoursierRetryCount,
       debug: String => Unit,
       errorMsgExtractor: T => Seq[String]
-  )(f: () => T): T = {
-    val tried = Try(f())
-    tried match {
-      case Failure(e) if retryCount > 0 && retryableCoursierError(e.getMessage) =>
-        // this one is not detected by coursier itself, so we try-catch handle it
-        // I assume, this happens when another coursier thread already moved or rename dthe temporary file
-        debug(s"Attempting to retry coursier failure (${retryCount} left): ${e.getMessage}")
-        Thread.sleep(CoursierRetryWait)
-        retry(retryCount - 1, debug, errorMsgExtractor)(f)
-
-      case Success(res) if retryCount > 0 =>
-        val errors = errorMsgExtractor(res)
-        errors.filter(retryableCoursierError) match {
-          case Nil => res
-          case retryable =>
-            for (r <- retryable) {
-              debug(s"Attempting to retry coursier failure (${retryCount} left): $r")
-            }
-            Thread.sleep(CoursierRetryWait)
-            retry(retryCount - 1, debug, errorMsgExtractor)(f)
-        }
-
-      case r => r.get
+  )(f: () => T): T = Retry(
+    count = retryCount,
+    filter = { (i, ex) =>
+      if (!retryableCoursierError(ex.getMessage))false
+      else {
+        debug(s"Attempting to retry coursier failure (${i} left): ${ex.getMessage}")
+        true
+      }
+    }
+  ) {
+    val res = f()
+    val errors = errorMsgExtractor(res)
+    errors.filter(retryableCoursierError) match {
+      case Nil => res
+      case retryable => throw new Exception(retryable.mkString("\n"))
     }
   }
 

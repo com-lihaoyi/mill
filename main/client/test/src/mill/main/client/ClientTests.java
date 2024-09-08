@@ -1,6 +1,5 @@
 package mill.main.client;
 
-import static de.tobiasroeser.lambdatest.Expect.expectEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -58,8 +57,8 @@ public class ClientTests {
         Util.writeString(o, example);
         ByteArrayInputStream i = new ByteArrayInputStream(o.toByteArray());
         String s = Util.readString(i);
-        expectEquals(example, s, "String as bytes: ["+example.getBytes()+"] differs from expected: ["+s.getBytes()+"]");
-        expectEquals(i.available(), 0);
+        assertEquals(example, s, "String as bytes: ["+example.getBytes()+"] differs from expected: ["+s.getBytes()+"]");
+        assertEquals(i.available(), 0);
     }
 
     public byte[] readSamples(String ...samples) throws Exception{

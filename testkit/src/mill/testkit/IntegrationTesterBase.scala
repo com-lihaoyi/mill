@@ -1,5 +1,6 @@
 package mill.testkit
-import mill.main.client.OutFiles.{out, millWorker}
+import mill.api.Retry
+import mill.main.client.OutFiles.{millWorker, out}
 import mill.main.client.ServerFiles.serverId
 
 trait IntegrationTesterBase {
@@ -18,9 +19,14 @@ trait IntegrationTesterBase {
   def initWorkspace(): Unit = {
     println(s"Copying integration test sources from $workspaceSourcePath to $workspacePath")
     os.makeDir.all(workspacePath)
+    Retry(){
+      val tmp = os.temp.dir()
+      if (os.exists(workspacePath / out)) os.move.into(workspacePath / out, tmp)
+      os.remove.all(tmp)
+    }
+
     os.list(workspacePath).foreach(os.remove.all(_))
     os.list(workspaceSourcePath).filter(_.last != out).foreach(os.copy.into(_, workspacePath))
-    os.remove.all(workspacePath / "out")
   }
 
   /**
