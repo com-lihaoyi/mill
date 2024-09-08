@@ -108,6 +108,7 @@ jobs:
     with:
       java-version: ${{ matrix.java-version }}
       millargs: ${{ matrix.millargs }}
+      buildcmd: ${{ matrix.buildcmd }}
 
   compiler-bridge:
     needs: build-linux
