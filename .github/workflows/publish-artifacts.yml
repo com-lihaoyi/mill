@@ -72,4 +72,4 @@ jobs:
           java-version: '11'
           distribution: temurin
 
-      - run: ./mill -i uploadToGithub $REPO_ACCESS_TOKEN
+      - run: ./mill -i uploadToGithub --authKey $REPO_ACCESS_TOKEN
