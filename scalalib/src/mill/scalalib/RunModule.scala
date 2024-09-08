@@ -150,9 +150,10 @@ trait RunModule extends WithZincWorker {
 
   def runBackgroundTask(mainClass: Task[String], args: Task[Args] = T.task(Args())): Task[Unit] =
     T.task {
+      val (procId, procTombstone, token) = backgroundSetup(T.dest)
       runner().run(
-        args = args().value,
-        mainClass = mainClass(),
+        args = Seq(procId.toString, procTombstone.toString, token, mainClass()) ++ args().value,
+        mainClass = "mill.scalalib.backgroundwrapper.BackgroundWrapper",
         workingDir = forkWorkingDir(),
         extraRunClasspath = zincWorker().backgroundWrapperClasspath().map(_.path).toSeq,
         background = true,
