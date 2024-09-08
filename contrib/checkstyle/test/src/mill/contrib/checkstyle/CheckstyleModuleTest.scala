@@ -52,13 +52,14 @@ object CheckstyleModuleTest extends TestSuite {
       }
 
       val eval = UnitTester(mod, res / src)
-      val Right(outputs) = eval(mod.checkstyle)
+      val Right(output) = eval(mod.checkstyleOutput)
+      val Right(transforms) = eval(mod.checkstyleTransforms)
       val Right(report) = eval(mod.checkstyleReport)
-      val Right(reports) = eval(mod.checkstyleTransforms)
+      val Right(transformations) = eval(mod.checkstyle)
 
-      val reported = outputs.value.exists(_.path.endsWith(os.rel / report.value))
-      val transformed = reports.value.forall {
-        case (_, rel) => outputs.value.exists(_.path.endsWith(os.rel / rel))
+      val reported = report.value.path.endsWith(os.rel / output.value)
+      val transformed = transforms.value.forall {
+        case (_, rel) => transformations.value.exists(_.path.endsWith(os.rel / rel))
       }
 
       reported & transformed

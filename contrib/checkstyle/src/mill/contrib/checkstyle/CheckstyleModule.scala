@@ -16,15 +16,63 @@ trait CheckstyleModule extends JavaModule {
 
     val dst = T.dest
 
+    val report = checkstyleReport().path
+    val format = checkstyleFormat()
+    val transforms = checkstyleTransforms()
+    val transformer = checkstyleTransformer(format)
+
+    val transformations = transformer.fold(Seq.empty[PathRef]) { transformer =>
+      val f = transformer(report)
+      transforms.map {
+        case (ref, rel) =>
+          val transform = ref.path
+          val out = dst / rel
+          T.log.info(s"transforming checkstyle report using $transform")
+          f(transform, out)
+          T.log.info(s"transformed checkstyle report to $out")
+          PathRef(out)
+      }.toSeq
+    }
+
+    transformations
+  }
+
+  def checkstyleClasspath: T[Loose.Agg[PathRef]] = T {
+    defaultResolver().resolveDeps(
+      Agg(ivy"com.puppycrawl.tools:checkstyle:${checkstyleVersion()}")
+    )
+  }
+
+  def checkstyleConfig: T[PathRef] = T.source {
+    checkstyleDir().path / "config.xml"
+  }
+
+  def checkstyleDir: T[PathRef] = T {
+    PathRef(millSourcePath / "checkstyle")
+  }
+
+  def checkstyleFormat: T[String] = T {
+    "xml"
+  }
+
+  def checkstyleOptions: T[Seq[String]] = T {
+    if (isScala) Seq("-x", ".*[\\.]scala") else Seq.empty
+  }
+
+  def checkstyleOutput: T[String] = T {
+    val fmt = checkstyleFormat()
+    val ext = if (fmt == "plain") "txt" else fmt
+    s"report.$ext"
+  }
+
+  def checkstyleReport: T[PathRef] = T {
     val classpath = checkstyleClasspath().map(_.path)
     val options = checkstyleOptions()
     val config = checkstyleConfig()
     val format = checkstyleFormat()
-    val report = dst / checkstyleReport()
     val inputs = sources().map(_.path.toString())
     val _throw = checkstyleThrow()
-    val transforms = checkstyleTransforms()
-    val transformer = checkstyleTransformer(format)
+    val report = T.dest / checkstyleOutput()
 
     val args = options ++
       Seq("-c", config.path.toString(), "-f", format, "-o", report.toString()) ++
@@ -53,48 +101,7 @@ trait CheckstyleModule extends JavaModule {
       throw new RuntimeException(s"checkstyle exit($errs)")
     }
 
-    val reports = transformer.fold(Seq.empty[PathRef]) { transformer =>
-      val f = transformer(report)
-      transforms.map {
-        case (ref, rel) =>
-          val transform = ref.path
-          val out = dst / rel
-          T.log.info(s"transforming checkstyle report using $transform")
-          f(transform, out)
-          T.log.info(s"transformed checkstyle report to $out")
-          PathRef(out)
-      }.toSeq
-    }
-
-    PathRef(report) +: reports
-  }
-
-  def checkstyleClasspath: T[Loose.Agg[PathRef]] = T {
-    defaultResolver().resolveDeps(
-      Agg(ivy"com.puppycrawl.tools:checkstyle:${checkstyleVersion()}")
-    )
-  }
-
-  def checkstyleConfig: T[PathRef] = T.source {
-    checkstyleDir().path / "config.xml"
-  }
-
-  def checkstyleDir: T[PathRef] = T {
-    PathRef(millSourcePath / "checkstyle")
-  }
-
-  def checkstyleFormat: T[String] = T {
-    "xml"
-  }
-
-  def checkstyleOptions: T[Seq[String]] = T {
-    if (isScala) Seq("-x", ".*[\\.]scala") else Seq.empty
-  }
-
-  def checkstyleReport: T[String] = T {
-    val fmt = checkstyleFormat()
-    val ext = if (fmt == "plain") "txt" else fmt
-    s"report.$ext"
+    PathRef(report)
   }
 
   /**
