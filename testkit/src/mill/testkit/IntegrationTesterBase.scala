@@ -18,7 +18,7 @@ trait IntegrationTesterBase {
    */
   val workspacePath: os.Path = {
     Iterator
-      .iterate(1)(_+1)
+      .iterate(1)(_ + 1)
       .map(i => baseWorkspacePath / s"run-$i")
       .find(!os.exists(_))
       .head

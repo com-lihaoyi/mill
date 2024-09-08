@@ -16,7 +16,7 @@ object UtestExampleTestSuite extends TestSuite {
         ExampleTester.run(
           clientServerMode,
           workspaceSourcePath,
-          millExecutable,
+          millExecutable
         )
       }
     }
