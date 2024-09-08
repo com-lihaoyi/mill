@@ -1,0 +1,166 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC "-//Puppy Crawl//DTD Check Configuration 1.3//EN" "http://www.puppycrawl.com/dtds/configuration_1_3.dtd">
+
+<module name="Checker">
+
+  <!-- no explicit TAB characters in source code plz (set editor to use spaces) -->
+  <module name="FileTabCharacter" />
+
+  <module name="TreeWalker">
+    <!-- Enforce standard Java field, class, method naming conventions -->
+    <module name="ConstantName" />
+    <module name="LocalFinalVariableName" />
+    <module name="LocalVariableName" />
+    <module name="MethodName" />
+    <module name="MemberName" />
+    <module name="TypeName" />
+    <module name="StaticVariableName" />
+
+    <!-- no import org.whoever.* -->
+    <!-- <module name="AvoidStarImport" /> -->
+
+    <!-- Don't allow most kinds of empty blocks -->
+    <module name="EmptyBlock">
+      <!-- empty blocks for catch and instance init are allowed -->
+      <property name="tokens"
+        value="LITERAL_DO,LITERAL_ELSE,LITERAL_FINALLY,LITERAL_IF,LITERAL_FOR,LITERAL_TRY,LITERAL_WHILE" />
+    </module>
+
+    <!-- left curl braces at EOL of block declaration stmt, max line len 120 chars -->
+    <!--
+    <module name="LeftCurly">
+      <property name="maxLineLength" value="120" />
+    </module>
+  -->
+
+    <!-- line length; start gentle and tighten this up later perhaps -->
+    <!--
+    <module name="LineLength">
+      <property name="max" value="120" />
+    </module>
+  -->
+
+    <!-- Java Generic param decls do not require whitespace inside of angle brackets -->
+    <module name="GenericWhitespace" />
+
+    <!-- no whitespace just after enter or before exit parens block i.e. if (good != bad) { ... } -->
+    <module name="ParenPad" />
+
+    <!-- Use whitespace after paren-based typecase, semicolon, or comma unless at EOL -->
+    <module name="WhitespaceAfter" />
+
+    <!-- Use whitespace around typical tokens like = sign. Empty method/class decl should use { }
+    and so on -->
+    <module name="WhitespaceAround" />
+
+    <!-- stmts that form blocks need to use curlies always (like if..else) -->
+    <!-- <module name="NeedBraces" /> -->
+
+    <!-- anonymous non-static blocks inline should be avoided and are often cut/paste/debug errors -->
+    <module name="AvoidNestedBlocks" />
+
+    <!-- Utility classes w/all-static methods should not have public ctors -->
+    <module name="HideUtilityClassConstructor" />
+
+    <!-- defining an equals() method w/o Overriding Object#equals properly will give you master
+    course in debugging -->
+    <module name="CovariantEquals" />
+
+    <!-- ALWAYS override Object#hashCode when you override Object#equals and vice versa -->
+    <module name="EqualsHashCode" />
+
+    <!-- Warn us when same-name declarations shadow decl's from the enclosing scope -->
+    <module name="HiddenField">
+      <property name="tokens" value="VARIABLE_DEF" />
+      <property name="ignoreConstructorParameter" value="true" />
+      <property name="ignoreSetter" value="true" />
+    </module>
+
+    <!-- Make sure all switch stmts have a matching default case at the end of the switch block -->
+    <module name="MissingSwitchDefault" />
+    <module name="DefaultComesLast" />
+
+    <!-- make sure the index of a for loop is not modified inside that loop -->
+    <module name="ModifiedControlVariable" />
+
+    <!-- all Java string equality must be checked with Object#equals not == -->
+    <module name="StringLiteralEquality" />
+
+    <!-- Avoid nested for loops beyond depth 3, O(n^3) is shitty enough -->
+    <module name="NestedForDepth">
+      <property name="max" value="3" />
+    </module>
+
+    <!-- Don't every use/modify Object#clone its basically broken in Java -->
+    <module name="NoClone" />
+
+    <!-- if class overrides finalize() (better be good reason) then better call super.finalize() -->
+    <module name="SuperFinalize" />
+
+    <!-- Make sure every java class is declared in an associated package, you can't import top-level
+    class decls -->
+    <module name="PackageDeclaration" />
+
+    <!-- Java declaration order for classes: static fields, fields, ctor, methods -->
+    <!-- <module name="DeclarationOrder" /> -->
+
+    <!-- ensure that all casse fall-throughs that aren't marked /* fallthru */ on the next case stmt
+    warn us -->
+    <!-- <module name="FallThrough" /> -->
+
+    <!-- Only allow 1 occurance of a String literal without warning (should just use constant at
+    that point) -->
+    <!--
+    <module name="MultipleStringLiterals">
+      <property name="ignoreStringsRegexp" value='^(("")|(", ")|("\t")|("\n"))$' />
+    </module>
+  -->
+
+    <!-- one variable decl per line/stmt -->
+    <module name="MultipleVariableDeclarations" />
+
+    <!-- get rid of extra parens without risking pilot error -->
+    <!-- <module name="UnnecessaryParentheses"/> -->
+
+    <!-- one stmt per line -->
+    <module name="OneStatementPerLine" />
+
+    <!-- no redundant import stmts -->
+    <module name="RedundantImport" />
+
+    <!-- don't import classes that are never used in the code -->
+    <module name="UnusedImports">
+      <property name="processJavadoc" value="false" />
+    </module>
+
+    <!-- Warns on stray TODO: 's so that we can track leftover tasks etc. -->
+    <!-- <module name="TodoComment" /> -->
+
+    <!-- Java will do dumb stuff if you aren't explicit: 0 == int, 0L == long, 0l == confusing -->
+    <module name="UpperEll" />
+
+    <!-- normalize our code indentation at 2 or 0 spaces -->
+    <!--  * GENERATES MANY WARNINGS (10k+) *
+    <module name="Indentation">
+      <property name="basicOffset" value="2" />
+      <property name="caseIndent" value="0" />
+      <property name="braceAdjustment" value="0" />
+      <property name="throwsIndent" value="2" />
+    </module>
+    -->
+
+    <!-- Outermost type declaration and Java file name must match -->
+    <module name="OuterTypeFilename" />
+
+    <!-- Java interfaces always have public static final fields and public methods -->
+    <!-- <module name="RedundantModifier"/> -->
+
+  </module> <!-- END TreeWalker -->
+
+</module> <!-- END Checker -->
+
+<!-- TEMPLATE PARAMETERIZED CHECK
+    <module name="">
+      <property name="" value="" />
+    </module>
+  -->

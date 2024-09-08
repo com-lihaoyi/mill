@@ -24,7 +24,8 @@ object Jvm extends CoursierSupport {
       envArgs: Map[String, String] = Map.empty,
       mainArgs: Seq[String] = Seq.empty,
       workingDir: os.Path = null,
-      streamOut: Boolean = true
+      streamOut: Boolean = true,
+      check: Boolean = true
   )(implicit ctx: Ctx): CommandResult = {
 
     val commandArgs =
@@ -36,31 +37,23 @@ object Jvm extends CoursierSupport {
     val workingDir1 = Option(workingDir).getOrElse(ctx.dest)
     os.makeDir.all(workingDir1)
 
-    os.proc(commandArgs).call(cwd = workingDir1, env = envArgs)
+    os.proc(commandArgs).call(cwd = workingDir1, env = envArgs, check = check)
   }
 
   /**
-   * A version of [[Jvm.callSubprocess]] that does not raise an exception on a non-zero exit.
+   * Runs a JVM subprocess with the given configuration and returns a
+   * [[os.CommandResult]] with it's aggregated output and error streams
    */
-  def callSubprocessUnchecked(
+  def callSubprocess(
       mainClass: String,
       classPath: Agg[os.Path],
-      jvmArgs: Seq[String] = Seq.empty,
-      envArgs: Map[String, String] = Map.empty,
-      mainArgs: Seq[String] = Seq.empty,
-      workingDir: os.Path = null
+      jvmArgs: Seq[String],
+      envArgs: Map[String, String],
+      mainArgs: Seq[String],
+      workingDir: os.Path,
+      streamOut: Boolean
   )(implicit ctx: Ctx): CommandResult = {
-
-    val commandArgs =
-      Vector(javaExe) ++
-        jvmArgs ++
-        Vector("-cp", classPath.iterator.mkString(java.io.File.pathSeparator), mainClass) ++
-        mainArgs
-
-    val workingDir1 = Option(workingDir).getOrElse(ctx.dest)
-    os.makeDir.all(workingDir1)
-
-    os.proc(commandArgs).call(cwd = workingDir1, env = envArgs, check = false)
+    callSubprocess(mainClass, classPath, jvmArgs, envArgs, mainArgs, workingDir, streamOut, true)
   }
 
   /**

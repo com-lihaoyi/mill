@@ -1,92 +1,154 @@
 package mill
 package contrib.checkstyle
 
-import mill.scalalib.JavaModule
+import mill.api.Result
+import mill.scalalib.{JavaModule, ScalaModule}
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import utest._
 
 object CheckstyleModuleTest extends TestSuite {
 
-  val res = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER"))
-  val ver = "10.18.1"
+  val resources = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER"))
 
   def tests = Tests {
 
     test("checkstyle") {
 
-      test("plain") {
+      test("format") {
 
-        test("compatibility") {
-          cs("plain", "6.3") passes "compatible"
-          cs("plain", "6.2") fails "compatible"
+        test("plain") {
+          assert(
+            cs("plain").checkJava(resources / "compatible-java"),
+            cs("plain").checkJava(
+              resources / "sbt-checkstyle",
+              "Utility classes should not have a public or default constructor"
+            ),
+            cs("plain").checkScala(resources / "compatible-scala")
+          )
         }
 
-        test("default") {
-          cs("plain") passes "compatible"
-          cs("plain") fails "sbt-checkstyle"
+        test("sarif") {
+          assert(
+            cs("sarif").checkJava(resources / "compatible-java"),
+            cs("sarif").checkJava(
+              resources / "sbt-checkstyle",
+              "Utility classes should not have a public or default constructor"
+            ),
+            cs("sarif").checkScala(resources / "compatible-scala")
+          )
+        }
+
+        test("xml") {
+          assert(
+            cs("xml").checkJava(resources / "compatible-java"),
+            cs("xml").checkJava(
+              resources / "sbt-checkstyle",
+              "Utility classes should not have a public or default constructor"
+            ),
+            cs("xml").checkJava(
+              resources / "sbt-checkstyle-xslt",
+              "Utility classes should not have a public or default constructor"
+            ),
+            cs("xml").checkScala(resources / "compatible-scala")
+          )
         }
       }
 
-      test("sarif") {
+      test("options") {
 
-        test("compatibility") {
-          cs("sarif", "8.43") passes "compatible"
-          cs("sarif", "8.42") fails "compatible"
-        }
-
-        test("default") {
-          cs("sarif") passes "compatible"
-          cs("sarif") fails "sbt-checkstyle"
-        }
+        assert(
+          // Checkstyle exits with org.apache.commons.cli.UnrecognizedOptionException for any option
+          // cs("xml", "6.3", options = Seq("-d")).checkJava(resources / "compatible-java"),
+          cs("xml", options = Seq("-d")).checkJava(resources / "compatible-java")
+        )
       }
 
-      test("xml") {
+      test("version") {
 
-        test("compatibility") {
-          cs("xml", "6.3") passes "compatible"
-          cs("xml", "6.2") fails "compatible"
+        test("plain") {
+          assert(
+            // instead of exiting Checkstyle generates a report with a cryptic error
+            cs("plain", "6.2").checkJava(resources / "compatible-java", "File not found"),
+            cs("plain", "6.3").checkJava(resources / "compatible-java")
+          )
         }
 
-        test("default") {
-          cs("xml") passes "compatible"
-          cs("xml") fails "sbt-checkstyle"
-          cs("xml") fails "sbt-checkstyle-xslt"
+        test("sarif") {
+          intercept[UnsupportedOperationException](
+            cs("sarif", "8.42").checkJava(resources / "compatible-java")
+          )
+          assert(
+            cs("sarif", "8.43").checkJava(resources / "compatible-java")
+          )
+        }
+
+        test("xml") {
+          assert(
+            // instead of exiting Checkstyle generates a report with a cryptic error
+            cs("xml", "6.2").checkJava(resources / "compatible-java", "File not found"),
+            cs("xml", "6.3").checkJava(resources / "compatible-java")
+          )
         }
       }
     }
   }
 
-  case class cs(format: String, version: String = ver) {
+  case class cs(format: String, version: String = "10.18.1", options: Seq[String] = Nil) {
 
-    def fails(src: String) = intercept[RuntimeException] {
-      succeeded(src)
+    def check(
+        module: TestBaseModule with CheckstyleModule,
+        modulePath: os.Path,
+        expectedErrors: Seq[String]
+    ): Boolean = {
+      val eval = UnitTester(module, modulePath)
+
+      eval(module.checkstyle).fold(
+        {
+          case Result.Exception(cause, _) => throw cause
+          case failure => throw failure
+        },
+        checkstyle => {
+
+          val Checkstyle(errors, report, transformations) = checkstyle.value
+
+          val Right(transforms) = eval(module.checkstyleTransforms)
+
+          val reported = os.exists(report.path)
+          val transformed = transforms.value.forall {
+            case (_, relPath) => transformations.exists(_.path.endsWith(os.rel / relPath))
+          }
+          val validated = errors == expectedErrors.length && (expectedErrors.isEmpty || {
+            val lines = os.read.lines(report.path)
+            expectedErrors.forall(expected => lines.exists(_.contains(expected)))
+          })
+
+          reported & transformed & validated
+        }
+      )
     }
 
-    def passes(src: String) = assert {
-      succeeded(src)
-    }
+    def checkJava(modulePath: os.Path, expectedErrors: String*): Boolean = {
 
-    def succeeded(src: String) = {
-
-      object mod extends TestBaseModule with JavaModule with CheckstyleModule {
+      object module extends TestBaseModule with JavaModule with CheckstyleModule {
         override def checkstyleFormat = format
+        override def checkstyleOptions = options
         override def checkstyleVersion = version
       }
 
-      val eval = UnitTester(mod, res / src)
+      check(module, modulePath, expectedErrors)
+    }
 
-      val Right(output) = eval(mod.checkstyleOutput)
-      val Right(transforms) = eval(mod.checkstyleTransforms)
-      val Right(report) = eval(mod.checkstyleReport)
-      val Right(transformations) = eval(mod.checkstyle)
+    def checkScala(modulePath: os.Path, expectedErrors: String*): Boolean = {
 
-      val reported = report.value.path.endsWith(os.rel / output.value)
-      val transformed = transforms.value.forall {
-        case (_, rel) => transformations.value.exists(_.path.endsWith(os.rel / rel))
+      object module extends TestBaseModule with ScalaModule with CheckstyleModule {
+        override def checkstyleFormat = format
+        override def checkstyleOptions = options
+        override def checkstyleVersion = version
+        override def scalaVersion = sys.props("MILL_SCALA_2_13_VERSION")
       }
 
-      reported & transformed
+      check(module, modulePath, expectedErrors)
     }
   }
 }

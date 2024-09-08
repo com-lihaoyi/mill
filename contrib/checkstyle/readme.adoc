@@ -1,13 +1,36 @@
 = Checkstyle
 :page-aliases: Plugin_Checkstyle.adoc
 
-Allows https://checkstyle.org/[Checkstyle], a development tool to help programmers write Java code that adheres to a coding standard, to be used in Mill builds.
+Performs quality checks on Java source files using https://checkstyle.org[Checkstyle] and generates reports from these checks.
 
-=== Format Version Compatibility Matrix
-[%header,cols="1,1",width=50%]
-|===
-|Format|Version(+)
-|plain|6.3
-|sarif|8.42
-|xml|6.3
-|===
+Transformations to be applied on the Checkstyle report are detected automatically.
+[source,scala]
+----
+/*
+checkstyle
+   ├─ html
+   │   ├─ xslt0.xml
+   │   └─ xslt1.xml
+   ├─ pdf
+   │   ├─ xslt1.xml
+   │   └─ xslt2.xml
+   └─ config.xml
+
+The directory structure above results in the following mapping:
+ - checkstyle/html/xslt0.xml -> xslt0.html
+ - checkstyle/html/xslt1.xml -> xslt1.html
+ - checkstyle/pdf/xslt1.xml  -> xslt1.pdf
+ - checkstyle/pdf/xslt2.xml  -> xslt2.pdf
+ */
+----
+
+== Usage
+1. Define a module that extends `mill.contrib.checkstyle.CheckstyleModule`.
+2. Define a https://checkstyle.org/config.html[configuration] file `checkstyle` `/` `config.xml`.
+3. Optionally, define transformations under `checkstyle` directory.
+4. Run the `checkstyle` task to generate report(s).
+
+== Limitations
+- Only `xml` transformations are supported.
+- `plain` and `xml` formats require version `6.3` or above.
+- Specifying `checkstyleOptions` for legacy versions might result in failures.
