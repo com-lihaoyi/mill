@@ -1,12 +1,7 @@
 package mill.testkit
-import mill.api.Retry
 import mill.util.Util
 import utest._
 
-import java.util.concurrent.{Executors, TimeoutException}
-import scala.annotation.tailrec
-import scala.concurrent.duration.DurationInt
-import scala.concurrent.duration.FiniteDuration
 
 /**
  * A variant of [[IntegrationTester]], [[ExampleTester]] works the same way
@@ -66,7 +61,6 @@ object ExampleTester {
       workspacePath
     )
   }
-
 
   def defaultBashExecutable(): String = {
     if (!mill.main.client.Util.isWindows) "bash"

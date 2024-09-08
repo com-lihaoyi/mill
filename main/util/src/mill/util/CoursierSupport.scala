@@ -8,15 +8,13 @@ import mill.api.{Ctx, PathRef, Result, Retry}
 import mill.api.Loose.Agg
 
 import java.io.File
-import scala.annotation.tailrec
 import scala.collection.mutable
-import scala.util.{Failure, Success, Try}
 
 trait CoursierSupport {
   import CoursierSupport._
 
   private val CoursierRetryCount = 5
-  private val CoursierRetryWait = 100
+  
 
   private def retryableCoursierError(s: String) = s match {
     case s"${_}concurrent download${_}" => true
@@ -48,7 +46,7 @@ trait CoursierSupport {
   )(f: () => T): T = Retry(
     count = retryCount,
     filter = { (i, ex) =>
-      if (!retryableCoursierError(ex.getMessage))false
+      if (!retryableCoursierError(ex.getMessage)) false
       else {
         debug(s"Attempting to retry coursier failure (${i} left): ${ex.getMessage}")
         true

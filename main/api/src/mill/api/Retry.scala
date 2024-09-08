@@ -4,11 +4,14 @@ import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Promise}
 
-case class Retry(count: Int = 5,
-                 backoffMillis: Long = 10,
-                 backoffMultiplier: Double = 2.0,
-                 timeoutMillis: Long = -1,
-                 filter: (Int, Throwable) => Boolean = (_, _) => true) {
+case class Retry(
+    count: Int = 5,
+    backoffMillis: Long = 10,
+    backoffMultiplier: Double = 2.0,
+    timeoutMillis: Long = -1,
+    filter: (Int, Throwable) => Boolean = (_, _) => true
+) {
+
   /**
    * Generic retry functionality
    *
@@ -32,8 +35,8 @@ case class Retry(count: Int = 5,
   def indexed[T](t: Int => T): T = {
     def rec(retryCount: Int, currentBackoffMillis: Long): T = {
       try {
-        if(timeoutMillis == -1) t(retryCount)
-        else{
+        if (timeoutMillis == -1) t(retryCount)
+        else {
           val result = Promise[T]
           val thread = new Thread(() => {
             result.complete(scala.util.Try(t(retryCount)))
@@ -41,8 +44,7 @@ case class Retry(count: Int = 5,
           thread.start()
           Await.result(result.future, Duration.apply(timeoutMillis, TimeUnit.MILLISECONDS))
         }
-      }
-      catch {
+      } catch {
         case e: Throwable if retryCount < count && filter(retryCount + 1, e) =>
           Thread.sleep(currentBackoffMillis)
           rec(retryCount + 1, (currentBackoffMillis * backoffMultiplier).toInt)
@@ -52,4 +54,3 @@ case class Retry(count: Int = 5,
     rec(0, backoffMillis)
   }
 }
-

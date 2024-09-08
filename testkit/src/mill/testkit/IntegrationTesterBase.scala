@@ -19,7 +19,7 @@ trait IntegrationTesterBase {
   def initWorkspace(): Unit = {
     println(s"Copying integration test sources from $workspaceSourcePath to $workspacePath")
     os.makeDir.all(workspacePath)
-    Retry(){
+    Retry() {
       val tmp = os.temp.dir()
       if (os.exists(workspacePath / out)) os.move.into(workspacePath / out, tmp)
       os.remove.all(tmp)

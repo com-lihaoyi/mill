@@ -2,17 +2,17 @@ package mill.api
 
 import utest._
 
-
 object RetryTests extends TestSuite {
   val tests: Tests = Tests {
     test("fail") {
       var count = 0
       try {
-        Retry(){
+        Retry() {
           count += 1
           throw new Exception("boom")
         }
-      } catch{case ex =>
+      } catch {
+        case ex =>
           assert(ex.getMessage == "boom")
       }
 
@@ -20,7 +20,7 @@ object RetryTests extends TestSuite {
     }
     test("succeed") {
       var count = 0
-      Retry(){
+      Retry() {
         count += 1
         if (count < 3) throw new Exception("boom")
       }
@@ -34,13 +34,14 @@ object RetryTests extends TestSuite {
             case (i, ex: RuntimeException) => true
             case _ => false
           }
-        ){
+        ) {
           count += 1
           if (count < 3) throw new RuntimeException("boom")
           else throw new Exception("foo")
         }
-      } catch{case e: Exception =>
-        assert(e.getMessage == "foo")
+      } catch {
+        case e: Exception =>
+          assert(e.getMessage == "foo")
       }
       assert(count == 3)
     }
