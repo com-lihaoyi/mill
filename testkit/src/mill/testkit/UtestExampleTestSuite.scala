@@ -1,5 +1,8 @@
 package mill.testkit
+import mill.api.Retry
 import utest._
+
+import scala.concurrent.duration.DurationInt
 
 object UtestExampleTestSuite extends TestSuite {
   val workspaceSourcePath: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER"))
@@ -9,7 +12,13 @@ object UtestExampleTestSuite extends TestSuite {
   val tests: Tests = Tests {
 
     test("exampleTest") {
-      new ExampleTester(clientServerMode, workspaceSourcePath, millExecutable).run()
+      Retry(count = 3, timeoutMillis = 5.minutes.toMillis) {
+        ExampleTester.run(
+          clientServerMode,
+          workspaceSourcePath,
+          millExecutable
+        )
+      }
     }
   }
 }

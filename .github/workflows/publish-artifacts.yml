@@ -51,7 +51,7 @@ jobs:
 
       - uses: actions/setup-java@v4
         with:
-          java-version: 11
+          java-version: '11'
           distribution: temurin
 
       - run: ci/release-maven.sh
@@ -73,7 +73,7 @@ jobs:
 
       - uses: actions/setup-java@v4
         with:
-          java-version: 11
+          java-version: '11'
           distribution: temurin
 
       - run: ./mill -i uploadToGithub $REPO_ACCESS_TOKEN
