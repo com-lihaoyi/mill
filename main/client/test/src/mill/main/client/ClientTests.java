@@ -61,7 +61,7 @@ public class ClientTests {
         Util.writeString(o, example);
         ByteArrayInputStream i = new ByteArrayInputStream(o.toByteArray());
         String s = Util.readString(i);
-        assertEquals(example, s, "String as bytes: ["+example.getBytes()+"] differs from expected: ["+s.getBytes()+"]");
+        assertEquals(example, s);
         assertEquals(i.available(), 0);
     }
 
