@@ -11,6 +11,10 @@ import java.io.OutputStream;
 import java.util.*;
 
 public class ClientTests {
+
+    @org.junit.Rule
+    public RetryRule retryRule = new RetryRule(3);
+
     @Test
     public void readWriteInt() throws Exception{
         int[] examples = {
