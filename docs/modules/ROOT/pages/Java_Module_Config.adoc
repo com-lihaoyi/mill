@@ -88,3 +88,6 @@ If you are using millw, a more permanent solution could be to set the environmen
 
 include::example/javalib/module/13-jni.adoc[]
 
+=== Using the ErrorProne plugin to detect code problems
+
+include::example/javalib/module/14-error-prone.adoc[]
