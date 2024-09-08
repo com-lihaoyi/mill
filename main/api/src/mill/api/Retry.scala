@@ -4,7 +4,11 @@ import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Promise}
 
-object Retry {
+case class Retry(count: Int = 5,
+                 backoffMillis: Long = 10,
+                 backoffMultiplier: Double = 2.0,
+                 timeoutMillis: Long = -1,
+                 filter: (Int, Throwable) => Boolean = (_, _) => true) {
   /**
    * Generic retry functionality
    *
@@ -21,18 +25,18 @@ object Retry {
    * @return the value of evaluating [[t]], or throws an exception if evaluating
    *         [[t]] fails more than [[count]] times
    */
-  def apply[T](count: Int = 5,
-               backoffMillis: Long = 10,
-               backoffMultiplier: Double = 2.0,
-               timeoutMillis: Long = -1,
-               filter: (Int, Throwable) => Boolean = (_, _) => true)(t: => T): T = {
+  def apply[T](t: => T): T = {
+    indexed(i => t)
+  }
+
+  def indexed[T](t: Int => T): T = {
     def rec(retryCount: Int, currentBackoffMillis: Long): T = {
       try {
-        if(timeoutMillis == -1) t
+        if(timeoutMillis == -1) t(retryCount)
         else{
           val result = Promise[T]
           val thread = new Thread(() => {
-            result.complete(scala.util.Try(t))
+            result.complete(scala.util.Try(t(retryCount)))
           })
           thread.start()
           Await.result(result.future, Duration.apply(timeoutMillis, TimeUnit.MILLISECONDS))

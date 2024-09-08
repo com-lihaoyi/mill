@@ -55,14 +55,18 @@ object ExampleTester {
       clientServerMode: Boolean,
       workspaceSourcePath: os.Path,
       millExecutable: os.Path,
-      bashExecutable: String = defaultBashExecutable()
-  ): Unit =
+      bashExecutable: String = defaultBashExecutable(),
+      workspacePath: os.Path = os.pwd
+  ): Unit = {
     new ExampleTester(
       clientServerMode,
       workspaceSourcePath,
       millExecutable,
-      bashExecutable
-    ).run()
+      bashExecutable,
+      workspacePath
+    )
+  }
+
 
   def defaultBashExecutable(): String = {
     if (!mill.main.client.Util.isWindows) "bash"
@@ -74,12 +78,9 @@ class ExampleTester(
     clientServerMode: Boolean,
     val workspaceSourcePath: os.Path,
     millExecutable: os.Path,
-    bashExecutable: String = ExampleTester.defaultBashExecutable()
+    bashExecutable: String = ExampleTester.defaultBashExecutable(),
+    val workspacePath: os.Path
 ) extends IntegrationTesterBase {
-
-  os.copy.over(millExecutable, workspacePath / "mill")
-
-  val testTimeout: FiniteDuration = 5.minutes
 
   def processCommandBlock(commandBlock: String): Unit = {
     val commandBlockLines = commandBlock.linesIterator.toVector
@@ -188,18 +189,17 @@ class ExampleTester(
   }
 
   def run(): Any = {
+    os.copy.over(millExecutable, workspacePath / "mill")
     val parsed = ExampleParser(workspaceSourcePath)
     val usageComment = parsed.collect { case ("example", txt) => txt }.mkString("\n\n")
     val commandBlocks = ("\n" + usageComment.trim).split("\n> ").filter(_.nonEmpty)
 
-    Retry(count = 3, timeoutMillis = testTimeout.toMillis) {
-      try {
-        initWorkspace()
-        for (commandBlock <- commandBlocks) processCommandBlock(commandBlock)
-      } finally {
-        if (clientServerMode) processCommand(Vector(), "./mill shutdown", check = false)
-        removeServerIdFile()
-      }
+    try {
+      initWorkspace()
+      for (commandBlock <- commandBlocks) processCommandBlock(commandBlock)
+    } finally {
+      if (clientServerMode) processCommand(Vector(), "./mill shutdown", check = false)
+      removeServerIdFile()
     }
   }
 }
