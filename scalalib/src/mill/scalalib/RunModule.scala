@@ -172,6 +172,7 @@ trait RunModule extends WithZincWorker {
   // TODO: make this a task, to be more dynamic
   def runBackgroundLogToConsole: Boolean = true
 
+  @deprecated("Binary compat shim, use `.runner().run(..., background=true)`", "Mill 0.12.0")
   protected def doRunBackground(
       taskDest: Path,
       runClasspath: Seq[PathRef],
