@@ -2,11 +2,6 @@ package mill.testkit
 import mill.util.Util
 import utest._
 
-import java.util.concurrent.{Executors, TimeoutException}
-import scala.annotation.tailrec
-import scala.concurrent.duration.DurationInt
-import scala.concurrent.duration.FiniteDuration
-
 /**
  * A variant of [[IntegrationTester]], [[ExampleTester]] works the same way
  * except the commands used to test the project come from a `/** Usage ... */`
@@ -54,14 +49,17 @@ object ExampleTester {
       clientServerMode: Boolean,
       workspaceSourcePath: os.Path,
       millExecutable: os.Path,
-      bashExecutable: String = defaultBashExecutable()
-  ): Unit =
+      bashExecutable: String = defaultBashExecutable(),
+      workspacePath: os.Path = os.pwd
+  ): Unit = {
     new ExampleTester(
       clientServerMode,
       workspaceSourcePath,
       millExecutable,
-      bashExecutable
+      bashExecutable,
+      workspacePath
     ).run()
+  }
 
   def defaultBashExecutable(): String = {
     if (!mill.main.client.Util.isWindows) "bash"
@@ -73,33 +71,9 @@ class ExampleTester(
     clientServerMode: Boolean,
     val workspaceSourcePath: os.Path,
     millExecutable: os.Path,
-    bashExecutable: String = ExampleTester.defaultBashExecutable()
+    bashExecutable: String = ExampleTester.defaultBashExecutable(),
+    val baseWorkspacePath: os.Path
 ) extends IntegrationTesterBase {
-  initWorkspace()
-
-  os.copy.over(millExecutable, workspacePath / "mill")
-
-  val testTimeout: FiniteDuration = 5.minutes
-
-  // Integration tests sometime hang on CI
-  // The idea is to just abort and retry them after a reasonable amount of time
-  @tailrec final def retryOnTimeout[T](n: Int)(body: => T): T = {
-
-    // We use Java Future here, as it supports cancellation
-    val executor = Executors.newFixedThreadPool(1)
-    val fut = executor.submit { () => body }
-
-    try fut.get(testTimeout.length, testTimeout.unit)
-    catch {
-      case e: TimeoutException =>
-        fut.cancel(true)
-        if (n > 0) {
-          Console.err.println(s"Timeout occurred (${testTimeout}). Retrying..")
-          retryOnTimeout(n - 1)(body)
-        } else throw e
-    }
-
-  }
 
   def processCommandBlock(commandBlock: String): Unit = {
     val commandBlockLines = commandBlock.linesIterator.toVector
@@ -208,22 +182,18 @@ class ExampleTester(
   }
 
   def run(): Any = {
+    os.makeDir.all(workspacePath)
     val parsed = ExampleParser(workspaceSourcePath)
     val usageComment = parsed.collect { case ("example", txt) => txt }.mkString("\n\n")
     val commandBlocks = ("\n" + usageComment.trim).split("\n> ").filter(_.nonEmpty)
 
-    retryOnTimeout(3) {
-      try {
-        try os.remove.all(workspacePath / "out")
-        catch {
-          case e: Throwable => /*do nothing*/
-        }
-
-        for (commandBlock <- commandBlocks) processCommandBlock(commandBlock)
-      } finally {
-        if (clientServerMode) processCommand(Vector(), "./mill shutdown", check = false)
-        removeServerIdFile()
-      }
+    try {
+      initWorkspace()
+      os.copy.over(millExecutable, workspacePath / "mill")
+      for (commandBlock <- commandBlocks) processCommandBlock(commandBlock)
+    } finally {
+      if (clientServerMode) processCommand(Vector(), "./mill shutdown", check = false)
+      removeServerIdFile()
     }
   }
 }

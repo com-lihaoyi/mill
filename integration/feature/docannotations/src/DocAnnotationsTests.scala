@@ -76,12 +76,13 @@ object DocAnnotationsTests extends UtestIntegrationTestSuite {
             |    args <str>...
             |
             |Inputs:
-            |    core.finalMainClass
+            |    core.finalMainClassOpt
             |    core.runClasspath
             |    core.forkArgs
             |    core.forkEnv
-            |    core.forkWorkingDir
             |    core.runUseArgsFile
+            |    core.finalMainClass
+            |    core.forkWorkingDir
             |""",
           run
         )

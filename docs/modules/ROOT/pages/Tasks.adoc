@@ -80,6 +80,6 @@ xref:Scala_Builtin_Commands.adoc#_show[show].
 If you want a way to run Mill commands and programmatically manipulate the
 tasks and outputs, you do so with your own evaluator command.
 
-=== Using ScalaModule.run as a task
+== Using ScalaModule.run as a task
 
 include::example/depth/tasks/11-module-run-task.adoc[]

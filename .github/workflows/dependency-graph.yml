@@ -7,6 +7,7 @@ on:
 
 jobs:
   submit-dependency-graph:
+    # doesn't work on Mill 0.12.x yet
     #if: github.repository == 'com-lihaoyi/mill' && github.ref == 'refs/heads/main'
     if: false
     runs-on: ubuntu-latest

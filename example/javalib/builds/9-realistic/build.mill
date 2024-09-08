@@ -62,7 +62,7 @@ object qux extends MyModule
 // ----
 //
 // Also note how you can use ``trait``s to bundle together common combinations of
-// modules: `My=Module` not only defines a `JavaModule` with some common
+// modules: `MyModule` not only defines a `JavaModule` with some common
 // configuration, but it also defines a `object test` module within it with its
 // own configuration. This is a very useful technique for managing the often
 // repetitive module structure in a typical project
