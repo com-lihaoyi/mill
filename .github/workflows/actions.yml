@@ -47,7 +47,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: git fetch --tags
+        with: { fetch-depth: 0 }
+
       - run: ./mill -i docs.githubPages
 
   compiler-bridge:
