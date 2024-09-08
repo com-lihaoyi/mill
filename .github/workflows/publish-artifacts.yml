@@ -10,12 +10,8 @@ name: Publish Artifacts
 
 on:
   push:
-    branches:
-      - main
     tags:
       - '**'
-  pull_request:
-  merge_group:
   workflow_dispatch:
 
 # cancel older runs of a pull request;
@@ -27,7 +23,7 @@ concurrency:
 jobs:
   publish-sonatype:
     # when in master repo, publish all tags and manual runs on main
-    if: github.repository == 'com-lihaoyi/mill' && (startsWith( github.ref, 'refs/tags/') || (github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' ) )
+    if: github.repository == 'com-lihaoyi/mill'
     runs-on: ubuntu-latest
 
     # only run one publish job for the same sha at the same time
@@ -58,7 +54,7 @@ jobs:
 
   release-github:
     # when in master repo, publish all tags and manual runs on main
-    if: github.repository == 'com-lihaoyi/mill' && (startsWith( github.ref, 'refs/tags/') || (github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' ) )
+    if: github.repository == 'com-lihaoyi/mill'
     needs: publish-sonatype
     runs-on: ubuntu-latest
 
@@ -76,4 +72,4 @@ jobs:
           java-version: '11'
           distribution: temurin
 
-      - run: ./mill -i uploadToGithub $REPO_ACCESS_TOKEN
+      - run: ./mill -i uploadToGithub --authKey $REPO_ACCESS_TOKEN
