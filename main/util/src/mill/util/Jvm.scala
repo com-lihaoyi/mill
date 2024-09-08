@@ -43,12 +43,12 @@ object Jvm extends CoursierSupport {
    * A version of [[Jvm.callSubprocess]] that does not raise an exception on a non-zero exit.
    */
   def callSubprocessUnchecked(
-    mainClass: String,
-    classPath: Agg[os.Path],
-    jvmArgs: Seq[String] = Seq.empty,
-    envArgs: Map[String, String] = Map.empty,
-    mainArgs: Seq[String] = Seq.empty,
-    workingDir: os.Path = null
+      mainClass: String,
+      classPath: Agg[os.Path],
+      jvmArgs: Seq[String] = Seq.empty,
+      envArgs: Map[String, String] = Map.empty,
+      mainArgs: Seq[String] = Seq.empty,
+      workingDir: os.Path = null
   )(implicit ctx: Ctx): CommandResult = {
 
     val commandArgs =
