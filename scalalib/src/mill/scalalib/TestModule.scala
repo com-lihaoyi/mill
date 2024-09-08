@@ -104,7 +104,9 @@ trait TestModule
    * and sandbox folders. Setting it to `false` will fall back to running all
    * test classes in this module in a single JVM in a single sandbox folder
    */
-  def testParallelizeClasses: T[Boolean] = true
+  def testForkGrouping: T[Seq[Seq[String]]] = T  {
+    discoveredTestClasses().sorted.grouped(5).toSeq
+  }
 
   /**
    * Discovers and runs the module's tests in a subprocess, reporting the
@@ -256,18 +258,18 @@ trait TestModule
         else Right(upickle.default.read[(String, Seq[TestResult])](ujson.read(outputPath.toIO)))
       }
 
-      val subprocessResult: Either[String, (String, Seq[TestResult])] =
-        if (!testParallelizeClasses()) runTestSubprocess(selectors, T.dest)
-        else {
+      val testClassLists = testForkGrouping()
+      val subprocessResult: Either[String, (String, Seq[TestResult])] = testClassLists match{
+        case Seq(singleTestClassList) => runTestSubprocess(singleTestClassList, T.dest)
+        case multipleTestClassLists =>
           implicit val ec = T.ctx.executionContext
           val futures =
-            for (testClassName <- discoveredTestClasses()) yield Future {
-              (testClassName, runTestSubprocess(Seq(testClassName), T.dest / testClassName))
+            for ((testClassList, i) <- multipleTestClassLists.zipWithIndex) yield Future {
+              val groupLabel = s"group-$i"
+              (groupLabel, runTestSubprocess(testClassList, T.dest / groupLabel))
             }
 
-          val outputs = T.ctx.executionContext.blocking {
-            Await.result(Future.sequence(futures), Duration.Inf)
-          }
+          val outputs = T.ctx.executionContext.await(Future.sequence(futures))
 
           val (lefts, rights) = outputs.partitionMap {
             case (name, Left(v)) => Left(name + " " + v)
@@ -276,7 +278,7 @@ trait TestModule
 
           if (lefts.nonEmpty) Left(lefts.mkString("\n"))
           else Right((rights.map(_._1).mkString("\n"), rights.flatMap(_._2)))
-        }
+      }
 
       subprocessResult match {
         case Left(errMsg) => Result.Failure(errMsg)
