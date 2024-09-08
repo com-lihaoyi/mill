@@ -50,6 +50,21 @@ jobs:
 
       - run: git fetch --tags && ./mill -i docs.githubPages
 
+  compiler-bridge:
+    needs: build-linux
+    uses: ./.github/workflows/run-mill-action.yml
+    with:
+      java-version: '8'
+      millargs: bridge.__.publishLocal
+      env-bridge-versions: 'essential'
+
+  lint-autofix:
+    needs: build-linux
+    uses: ./.github/workflows/run-mill-action.yml
+    with:
+      java-version: '11'
+      buildcmd: ./mill -i mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources + __.mimaReportBinaryIssues + __.fix --check
+
   itest:
     needs: build-linux
     strategy:
@@ -112,21 +127,6 @@ jobs:
     with:
       java-version: ${{ matrix.java-version }}
       millargs: ${{ matrix.millargs }}
-
-  compiler-bridge:
-    needs: build-linux
-    uses: ./.github/workflows/run-mill-action.yml
-    with:
-      java-version: '8'
-      millargs: bridge.__.publishLocal
-      env-bridge-versions: 'essential'
-
-  lint-autofix:
-    needs: build-linux
-    uses: ./.github/workflows/run-mill-action.yml
-    with:
-      java-version: '11'
-      buildcmd: ./mill -i mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources + __.mimaReportBinaryIssues + __.fix --check
 
   windows:
     needs: build-windows
