@@ -25,7 +25,7 @@ import utest._
  * 2. Output lines can be prefixed by `error: ` to indicate we expect that
  *    command to fail.
  *
- * 3. `..` can be used to indicate wildcards, which match anything. These can
+ * 3. `...` can be used to indicate wildcards, which match anything. These can
  *    be used alone as the entire line, or in the middle of another line
  *
  * 4. Every line of stdout/stderr output by the command must match at least
