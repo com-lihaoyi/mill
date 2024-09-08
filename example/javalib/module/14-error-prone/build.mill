@@ -1,5 +1,5 @@
 // When adding the `ErrorPromeModule` to your `JavaModule`,
-// the `error-prone` compile plugin automatically detects various kind of programming errors.
+// the `error-prone` compiler plugin automatically detects various kind of programming errors.
 
 package build
 import mill._, javalib._
