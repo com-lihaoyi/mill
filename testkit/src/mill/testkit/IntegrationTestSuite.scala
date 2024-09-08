@@ -15,7 +15,7 @@ trait IntegrationTestSuite {
       workspaceSourcePath,
       millExecutable,
       debugLog,
-      workspacePath = os.pwd
+      baseWorkspacePath = os.pwd
     )
     try t(tester)
     finally tester.close()

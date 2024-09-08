@@ -23,7 +23,7 @@ class IntegrationTester(
     val workspaceSourcePath: os.Path,
     val millExecutable: os.Path,
     override val debugLog: Boolean = false,
-    val workspacePath: os.Path = os.pwd
+    val baseWorkspacePath: os.Path = os.pwd
 ) extends IntegrationTester.Impl {
   initWorkspace()
 }

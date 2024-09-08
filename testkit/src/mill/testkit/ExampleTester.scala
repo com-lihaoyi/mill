@@ -72,7 +72,7 @@ class ExampleTester(
     val workspaceSourcePath: os.Path,
     millExecutable: os.Path,
     bashExecutable: String = ExampleTester.defaultBashExecutable(),
-    val workspacePath: os.Path
+    val baseWorkspacePath: os.Path
 ) extends IntegrationTesterBase {
 
   def processCommandBlock(commandBlock: String): Unit = {

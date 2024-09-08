@@ -12,12 +12,11 @@ object UtestExampleTestSuite extends TestSuite {
   val tests: Tests = Tests {
 
     test("exampleTest") {
-      Retry(count = 3, timeoutMillis = 5.minutes.toMillis).indexed { i =>
+      Retry(count = 3, timeoutMillis = 5.minutes.toMillis) {
         ExampleTester.run(
           clientServerMode,
           workspaceSourcePath,
           millExecutable,
-          workspacePath = os.pwd / s"run-$i"
         )
       }
     }
