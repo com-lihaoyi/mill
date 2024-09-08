@@ -9,7 +9,7 @@ on:
       - main
 jobs:
   publishDocs:
-    if: github.repository == 'com-lihaoyi/mill' && github.ref == 'refs/heads/main'
+    if: github.repository == 'com-lihaoyi/mill'
     runs-on: ubuntu-latest
     env:
       REPO_DEPLOY_KEY: ${{ secrets.REPO_DEPLOY_KEY }}
