@@ -20,15 +20,8 @@ object Assembly {
 
   private object Streamable {
     def bytes(is: InputStream): Array[Byte] = {
-      val buffer = new Array[Byte](8192)
       val out = new java.io.ByteArrayOutputStream
-      var read = 0
-      while ({
-        read = is.read(buffer)
-        read != -1
-      }) {
-        out.write(buffer, 0, read)
-      }
+      IO.stream(is, out)
       out.close()
       out.toByteArray
     }

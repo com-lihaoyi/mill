@@ -15,16 +15,9 @@ object `package` extends RootModule with build.MillPublishScalaModule {
     build.scalajslib,
     build.scalanativelib,
     build.bsp,
-    // linenumbers,
     build.main.codesig,
     build.main.server,
     client
   )
   def skipPreviousVersions: T[Seq[String]] = Seq("0.11.0-M7")
-
-  object linenumbers extends build.MillPublishScalaModule {
-    def moduleDeps = Seq(build.main.client)
-    def scalaVersion = build.Deps.scalaVersion
-    def ivyDeps = Agg(build.Deps.scalaCompiler(scalaVersion()))
-  }
 }
