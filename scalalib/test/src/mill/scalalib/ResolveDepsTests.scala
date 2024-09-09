@@ -17,12 +17,12 @@ object ResolveDepsTests extends TestSuite {
   )
 
   def assertRoundTrip(deps: Agg[Dep], simplified: Boolean) = {
-    for(dep <- deps) {
+    for (dep <- deps) {
       val unparsed = Dep.unparse(dep)
       if (simplified) {
         assert(unparsed.nonEmpty)
         assert(Dep.parse(unparsed.get) == dep)
-      }else {
+      } else {
         assert(unparsed.isEmpty)
       }
       assert(upickle.default.read[Dep](upickle.default.write(dep)) == dep)

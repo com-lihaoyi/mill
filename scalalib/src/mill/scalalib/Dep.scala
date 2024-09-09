@@ -132,18 +132,18 @@ object Dep {
     val mod = dep.dep.module.name.value
     val ver = dep.dep.version
 
-    val classifierAttr = dep.dep.attributes.classifier.value match{
+    val classifierAttr = dep.dep.attributes.classifier.value match {
       case "" => ""
       case s => s";classifier=$s"
     }
 
-    val typeAttr = dep.dep.attributes.`type`.value match{
+    val typeAttr = dep.dep.attributes.`type`.value match {
       case "" => ""
       case s => s";type=$s"
     }
     val attrs = classifierAttr + typeAttr
 
-    val prospective = dep.cross match{
+    val prospective = dep.cross match {
       case CrossVersion.Constant("", false) => s"$org:$mod:$ver$attrs"
       case CrossVersion.Constant("", true) => s"$org:$mod::$ver$attrs"
       case CrossVersion.Binary(false) => s"$org::$mod:$ver$attrs"
@@ -155,7 +155,7 @@ object Dep {
 
     Option.when(parse(prospective) == dep)(prospective)
   }
-  val rw0: RW[Dep] = macroRW
+  private val rw0: RW[Dep] = macroRW
   implicit val rw: RW[Dep] = upickle.default.readwriter[ujson.Value].bimap[Dep](
     (dep: Dep) => unparse(dep).map(ujson.Str(_)).getOrElse(upickle.default.writeJs[Dep](dep)(rw0)),
     {
