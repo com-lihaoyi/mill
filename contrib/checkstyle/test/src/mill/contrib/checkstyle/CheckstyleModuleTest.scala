@@ -118,7 +118,7 @@ object CheckstyleModuleTest extends TestSuite {
               val dp = definition.path
               val op = output.path
 
-              s"${dp.baseName}.${(dp / os.up).last}" == op.last
+              dp.baseName == op.baseName && op.ext == (dp / os.up).last
           }
           val validated = errors == expectedErrors.length && (expectedErrors.isEmpty || {
             val lines = os.read.lines(report.path)

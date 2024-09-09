@@ -140,7 +140,10 @@ trait CheckstyleModule extends JavaModule {
    * */
    * }}}
    */
-  def getCheckstyleTransformations(definitionDir: os.Path, outputDir: os.Path): Set[CheckstyleTransformation] =
+  def getCheckstyleTransformations(
+      definitionDir: os.Path,
+      outputDir: os.Path
+  ): Set[CheckstyleTransformation] =
     os.list(definitionDir)
       .iterator
       .filter(os.isDir)
@@ -148,7 +151,12 @@ trait CheckstyleModule extends JavaModule {
         os.list(ext)
           .iterator
           .filter(os.isFile)
-          .map(transform => CheckstyleTransformation(PathRef(transform), PathRef(outputDir / s"${transform.baseName}.${ext.baseName}")))
+          .map(transform =>
+            CheckstyleTransformation(
+              PathRef(transform),
+              PathRef(outputDir / s"${transform.baseName}.${ext.baseName}")
+            )
+          )
       }
       .toSet
 
