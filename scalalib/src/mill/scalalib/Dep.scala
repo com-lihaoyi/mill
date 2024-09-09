@@ -262,6 +262,9 @@ object BoundDep {
 
   // Use literal JSON strings for common cases so that files
   // containing serialized dependencies can be easier to skim
+  //
+  // `BoundDep` is basically a `Dep` with `cross=CrossVersion.Constant("", false)`,
+  // so we can re-use most of `Dep`'s serialization logic
   implicit val jsonify: upickle.default.ReadWriter[BoundDep] = upickle.default.readwriter[ujson.Value].bimap[BoundDep](
     bdep => {
       Dep.unparse(Dep(bdep.dep, CrossVersion.Constant("", false), bdep.force)) match{
