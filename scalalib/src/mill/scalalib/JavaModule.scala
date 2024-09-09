@@ -108,8 +108,8 @@ trait JavaModule
           case mains =>
             Left(
               s"Multiple main classes found (${mains.mkString(",")}) " +
-              "please explicitly specify which one to use by overriding `mainClass` " +
-              "or using `runMain <main-class> <...args>` instead of `run`"
+                "please explicitly specify which one to use by overriding `mainClass` " +
+                "or using `runMain <main-class> <...args>` instead of `run`"
             )
         }
     }
