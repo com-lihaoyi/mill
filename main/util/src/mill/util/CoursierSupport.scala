@@ -33,16 +33,7 @@ trait CoursierSupport {
       retryCount: Int = CoursierRetryCount,
       debug: String => Unit,
       errorMsgExtractor: T => Seq[String]
-  )(f: () => T): T = Retry(
-    count = retryCount,
-    filter = { (i, ex) =>
-      if (!retryableCoursierError(ex.getMessage)) false
-      else {
-        debug(s"Attempting to retry coursier failure (${i} left): ${ex.getMessage}")
-        true
-      }
-    }
-  ) {
+  )(f: () => T): T = {
     val res = f()
     val errors = errorMsgExtractor(res)
     errors.filter(retryableCoursierError) match {
