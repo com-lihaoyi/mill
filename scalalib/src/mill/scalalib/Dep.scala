@@ -156,6 +156,9 @@ object Dep {
     Option.when(parse(prospective) == dep)(prospective)
   }
   private val rw0: RW[Dep] = macroRW
+
+  // Use literal JSON strings for common cases so that files
+  // containing serialized dependencies can be easier to skim
   implicit val rw: RW[Dep] = upickle.default.readwriter[ujson.Value].bimap[Dep](
     (dep: Dep) => unparse(dep).map(ujson.Str(_)).getOrElse(upickle.default.writeJs[Dep](dep)(rw0)),
     {
@@ -252,5 +255,22 @@ case class BoundDep(
 
 object BoundDep {
   @unused private implicit val depFormat: RW[Dependency] = mill.scalalib.JsonFormatters.depFormat
-  implicit val jsonify: upickle.default.ReadWriter[BoundDep] = upickle.default.macroRW
+  private val jsonify0: upickle.default.ReadWriter[BoundDep] = upickle.default.macroRW
+
+  // Use literal JSON strings for common cases so that files
+  // containing serialized dependencies can be easier to skim
+  implicit val jsonify: upickle.default.ReadWriter[BoundDep] = upickle.default.readwriter[ujson.Value].bimap[BoundDep](
+    bdep => {
+      Dep.unparse(Dep(bdep.dep, CrossVersion.Constant("", false), bdep.force)) match{
+        case None => upickle.default.writeJs(bdep)(jsonify0)
+        case Some(s) => ujson.Str(s)
+      }
+    },
+    {
+      case ujson.Str(s) =>
+        val dep = Dep.parse(s)
+        BoundDep(dep.dep, dep.force)
+      case v =>  upickle.default.read[BoundDep](v)(jsonify0)
+    }
+  )
 }
