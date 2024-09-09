@@ -54,16 +54,15 @@ object foo extends Module {
 
   trait MyModule extends JavaModule with CheckstyleModule {
 
-    def checkstyleDir = {
-      // TODO how to detect project root directory from any nested module?
-      val root: os.Path = ???
-      api.PathRef(root / "checkstyle")
+    def checkstyleDir = T {
+      api.PathRef(T.workspace / "checkstyle")
     }
   }
 }
 ----
 
 == Limitations
+
 - Transformations are not supported for `plain` and `sarif` formats.
 - Version `6.3` or above is required for `plain` and `xml` formats.
 - Using `checkstyleOptions` with legacy versions might cause failures.
