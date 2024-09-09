@@ -331,14 +331,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.0-M0-92-9b2840</span>
+    <span class="version">0.12.0-M0-93-914375</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="0.11.12/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="index.html">0.12.0-M0-92-9b2840</a>
+          <a href="index.html">0.12.0-M0-93-914375</a>
         </li>
         <li class="version is-latest">
           <a href="0.11.12/index.html">0.11.12</a>
@@ -383,9 +383,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-92-9b2840</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-93-914375</button>
   <div class="version-menu">
-    <a class="version is-current" href="Changelog.html">0.12.0-M0-92-9b2840</a>
+    <a class="version is-current" href="Changelog.html">0.12.0-M0-93-914375</a>
     <a class="version" href="0.11.12/Changelog.html">0.11.12</a>
     <a class="version" href="0.11.11/Changelog.html">0.11.11</a>
     <a class="version" href="0.11.10/Changelog.html">0.11.10</a>
@@ -426,12 +426,17 @@ how to either disable the breaking change with a flag or adjust your code to acc
 <div class="ulist">
 <ul>
 <li>
-<p>Build file overhaul: Mill now uses <code>.mill</code> as its file extension, with some semantic changes
+<p>Build file overhaul: Mill’s build file management has been overhauled to better support
+large projects. See <a href="https://mill-build.org/mill/Structuring_Large_Builds.html">Structuring Large Builds</a>
+for details</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Mill now uses <code>.mill</code> as its file extension, with some semantic changes
 from the old <code>.sc</code> files to allow better IDE support. The <code>.sc</code> extension is still supported
 and its semantics are largely unchanged the ease the migration, but you should convert your Mill
 configs to <code>.mill</code> files to benefit from Mill’s improved IDE experience going forward.</p>
-<div class="ulist">
-<ul>
+</li>
 <li>
 <p>The <code>build.sc</code> file has been renamed <code>build.mill</code> to prevent confusion with Ammonite/Scala-CLI scripts,
 and all associated <code>.sc</code> files have been renamed to <code>.mill</code>.</p>
@@ -490,7 +495,7 @@ current behavior.</p>
 </li>
 <li>
 <p><code>RootModule</code>s can only be named <code>package</code>, e.g. <code>object foo extends RootModule</code> must now be
-named <code>`object `package</code> extends RootModule`.</p>
+named <code>object <code>package</code> extends RootModule</code>.</p>
 <div class="ulist">
 <ul>
 <li>
@@ -513,7 +518,8 @@ which always run serially at the end <a href="https://github.com/com-lihaoyi/mil
 <li>
 <p>Mill uses empty sandbox folders as the working directory for running its own code and
 <a href="https://github.com/com-lihaoyi/mill/pull/3367">#3367</a> and test suites <a href="https://github.com/com-lihaoyi/mill/pull/3347">#3347</a>, to avoid accidental interference
-between tasks and tests due to parallelism</p>
+between tasks and tests due to parallelism. See <a href="https://mill-build.org/mill/Mill_Sandboxing.html">Mill Sandboxing</a>
+for details</p>
 <div class="ulist">
 <ul>
 <li>
@@ -537,7 +543,7 @@ on individual parameters</p>
 </li>
 <li>
 <p>Dropped support for Java 8, Scala 2.11.x/3.1.x, and Scala-Native 0.4.x, following suit with the rest of the
-com-lihaoyi ecosystem. We now expect a minimum of Java 8, Scala 2.12.x/3.2.x, and Scala-Native 0.5.x</p>
+com-lihaoyi ecosystem. We now expect a minimum of Java 11, Scala 2.12.x/3.2.x, and Scala-Native 0.5.x</p>
 </li>
 <li>
 <p><code>--disable-callgraph-invalidation</code> is no longer supported. The flag is still accepted but is
