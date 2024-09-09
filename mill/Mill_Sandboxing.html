@@ -331,14 +331,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.0-M0-97-f582b7</span>
+    <span class="version">0.12.0-RC1-1-f020c2</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="0.11.12/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="index.html">0.12.0-M0-97-f582b7</a>
+          <a href="index.html">0.12.0-RC1-1-f020c2</a>
         </li>
         <li class="version is-latest">
           <a href="0.11.12/index.html">0.11.12</a>
@@ -383,9 +383,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-M0-97-f582b7</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC1-1-f020c2</button>
   <div class="version-menu">
-    <a class="version is-current" href="Mill_Sandboxing.html">0.12.0-M0-97-f582b7</a>
+    <a class="version is-current" href="Mill_Sandboxing.html">0.12.0-RC1-1-f020c2</a>
     <a class="version is-missing" href="0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="0.11.10/index.html">0.11.10</a>
@@ -423,7 +423,7 @@ property. This is available within any task, and gives you access to the
 each task is lazily initialized when <code>T.dest</code> is referenced and used:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-sandbox-1-task.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/sandbox/1-task">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC1/0.12.0-RC1-example-depth-sandbox-1-task.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC1//example/depth/sandbox/1-task">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -521,7 +521,7 @@ following build with two modules <code>foo</code> and <code>bar</code>, and thei
 <code>foo.test</code> and <code>bar.test</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-M0/0.12.0-M0-example-depth-sandbox-2-test.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/sandbox/2-test">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC1/0.12.0-RC1-example-depth-sandbox-2-test.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC1//example/depth/sandbox/2-test">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -543,7 +543,7 @@ logic in their corresponding non-test module, but also do some basic filesystem
 operations at the same time, writing out a <code>generated.html</code> file and then reading it:</p>
 </div>
 <div class="listingblock">
-<div class="title">foo/src/foo/Foo.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/sandbox/2-test/foo/src/foo/Foo.java">browse</a>)</div>
+<div class="title">foo/src/foo/Foo.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC1//example/depth/sandbox/2-test/foo/src/foo/Foo.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
 
@@ -555,7 +555,7 @@ public class Foo {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/src/foo/FooTests.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/sandbox/2-test/foo/test/src/foo/FooTests.java">browse</a>)</div>
+<div class="title">foo/test/src/foo/FooTests.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC1//example/depth/sandbox/2-test/foo/test/src/foo/FooTests.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
 
@@ -575,7 +575,7 @@ public class FooTests {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">bar/src/bar/Bar.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/sandbox/2-test/bar/src/bar/Bar.java">browse</a>)</div>
+<div class="title">bar/src/bar/Bar.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC1//example/depth/sandbox/2-test/bar/src/bar/Bar.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package bar;
 
@@ -587,7 +587,7 @@ public class Bar {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">bar/test/src/bar/BarTests.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-M0//example/depth/sandbox/2-test/bar/test/src/bar/BarTests.java">browse</a>)</div>
+<div class="title">bar/test/src/bar/BarTests.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC1//example/depth/sandbox/2-test/bar/test/src/bar/BarTests.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package bar;
 
