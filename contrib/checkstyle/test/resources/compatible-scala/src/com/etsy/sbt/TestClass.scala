@@ -1,1 +1,3 @@
-// no content since file should be ignored
+package com.etsy.sbt
+
+object TestClass

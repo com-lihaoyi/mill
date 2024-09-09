@@ -36,4 +36,4 @@ Transformations:
 == Limitations
 - Only `xml` transformations are supported.
 - `plain` and `xml` formats require version `6.3` or above.
-- Specifying `checkstyleOptions` for legacy versions might result in failures.
+- `checkstyleOptions` for legacy versions might result in failures.
