@@ -28,12 +28,42 @@ Transformations:
 ----
 
 == Usage
-1. Define a module that extends `mill.contrib.checkstyle.CheckstyleModule`.
+
+To use this plugin in a Java/Scala module,
+
+1. Extend `mill.contrib.checkstyle.CheckstyleModule`.
 2. Define a https://checkstyle.org/config.html[configuration] file `checkstyle` `/` `config.xml`.
 3. Optionally, define transformations under `checkstyle` directory.
 4. Run the `checkstyle` task to generate report(s).
 
+To use this plugin with a configuration shared across modules, adapt the following example.
+
+[source,scala]
+----
+import mill._
+import mill.contrib.checkstyle.CheckstyleModule
+import mill.scalalib._
+
+object foo extends Module {
+
+  object bar extends MyModule
+  object baz extends Module {
+    object fizz extends MyModule
+    object buzz extends MyModule
+  }
+
+  trait MyModule extends JavaModule with CheckstyleModule {
+
+    def checkstyleDir = {
+      // TODO how to detect project root directory from any nested module?
+      val root: os.Path = ???
+      api.PathRef(root / "checkstyle")
+    }
+  }
+}
+----
+
 == Limitations
-- Only `xml` transformations are supported.
-- `plain` and `xml` formats require version `6.3` or above.
-- `checkstyleOptions` for legacy versions might result in failures.
+- Transformations are not supported for `plain` and `sarif` formats.
+- Version `6.3` or above is required for `plain` and `xml` formats.
+- Using `checkstyleOptions` with legacy versions might cause failures.
