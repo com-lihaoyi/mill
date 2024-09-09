@@ -5,20 +5,15 @@ import mill.api.{Loose, PathRef}
 import mill.scalalib.{DepSyntax, JavaModule}
 import mill.util.Jvm
 
-import javax.xml.transform.TransformerFactory
-import javax.xml.transform.stream.{StreamResult, StreamSource}
-
 /**
  * Performs quality checks on Java source files using [[https://checkstyle.org/ Checkstyle]] and generates reports from these checks.
  */
 trait CheckstyleModule extends JavaModule {
 
-  import CheckstyleModule._
-
   /**
-   * Generates a [[Checkstyle]].
+   * Generates a [[CheckstyleOutput]].
    */
-  def checkstyle: T[Checkstyle] = T {
+  def checkstyle: T[CheckstyleOutput] = T {
 
     val dest = T.dest
 
@@ -60,20 +55,16 @@ trait CheckstyleModule extends JavaModule {
       throw new UnsupportedOperationException(s"checkstyle exit($exit)")
     }
     val transformations =
-      checkstyleTransformer(format).fold(Seq.empty[PathRef]) { transformer =>
-        val f = transformer(report)
-        checkstyleTransforms().map {
-          case (ref, rel) =>
-            val transform = ref.path
-            val out = dest / rel
-            T.log.info(s"transforming checkstyle report using $transform")
-            f(transform, out)
-            T.log.info(s"transformed checkstyle report to $out")
-            PathRef(out)
-        }.toSeq
+      getCheckstyleTransformer(report).fold(Set.empty[CheckstyleTransformation]) { processor =>
+        getCheckstyleTransformations(checkstyleDir().path, dest).map { transformation =>
+          T.log.info(s"transforming checkstyle report with ${transformation.definition}")
+          processor(transformation)
+          T.log.info(s"transformed checkstyle report to ${transformation.output}")
+          transformation
+        }
       }
 
-    Checkstyle(errors, PathRef(report), transformations)
+    CheckstyleOutput(errors, PathRef(report), transformations)
   }
 
   /**
@@ -116,80 +107,54 @@ trait CheckstyleModule extends JavaModule {
   }
 
   /**
-   * Returns a [[Transformer transformer]] for `format`, if supported.
+   * Checkstyle version. Defaults to `10.18.1`.
    */
-  def checkstyleTransformer(format: String): Option[Transformer] =
-    Option.when(format == "xml")(XmlTransformer)
+  def checkstyleVersion: T[String] = T {
+    "10.18.1"
+  }
 
   /**
-   * A set of [[Transform transformation]]s to be applied on a `checkstyle` report.
+   * Returns a set of [[CheckstyleTransformation]]s found under `definitionDir`.
    *
-   * The implementation scans for files under the [[checkstyleDir]].
    * The selection process is best illustrated with an example.
    * {{{
    * /*
+   * Directory structure:
    *
-   * checkstyle
-   *    ├─ html
-   *    │   ├─ xslt0.xml
-   *    │   └─ xslt1.xml
-   *    ├─ pdf
-   *    │   ├─ xslt1.xml
-   *    │   └─ xslt2.xml
-   *    └─ config.xml
+   *    definitionDir
+   *        ├─ html
+   *        │   ├─ xslt0.xml
+   *        │   └─ xslt1.xml
+   *        ├─ pdf
+   *        │   ├─ xslt1.xml
+   *        │   └─ xslt2.xml
+   *        └─ config.xml
    *
-   * The directory structure above results in the following mapping:
-   *  - checkstyle/html/xslt0.xml -> xslt0.html
-   *  - checkstyle/html/xslt1.xml -> xslt1.html
-   *  - checkstyle/pdf/xslt1.xml  -> xslt1.pdf
-   *  - checkstyle/pdf/xslt2.xml  -> xslt2.pdf
+   * Transformations:
+   *
+   *  - definitionDir/checkstyle/html/xslt0.xml -> outputDir/xslt0.html
+   *  - definitionDir/checkstyle/html/xslt1.xml -> outputDir/xslt1.html
+   *  - definitionDir/checkstyle/pdf/xslt1.xml  -> outputDir/xslt1.pdf
+   *  - definitionDir/checkstyle/pdf/xslt2.xml  -> outputDir/xslt2.pdf
    *
    * */
    * }}}
    */
-  def checkstyleTransforms: T[Set[Transform]] = T[Set[Transform]] {
-    val dir = checkstyleDir().path
-
-    T.log.info(s"scanning for transformation files in $dir")
-    os.list(dir)
+  def getCheckstyleTransformations(definitionDir: os.Path, outputDir: os.Path): Set[CheckstyleTransformation] =
+    os.list(definitionDir)
       .iterator
       .filter(os.isDir)
       .flatMap { ext =>
         os.list(ext)
           .iterator
           .filter(os.isFile)
-          .map(transform => PathRef(transform) -> Seq(s"${transform.baseName}.${ext.baseName}"))
+          .map(transform => CheckstyleTransformation(PathRef(transform), PathRef(outputDir / s"${transform.baseName}.${ext.baseName}")))
       }
       .toSet
-  }
 
   /**
-   * Checkstyle version. Defaults to `10.18.1`.
+   * Returns a [[CheckstyleTransformer]] for the Checkstyle `report`, if supported.
    */
-  def checkstyleVersion: T[String] = T {
-    "10.18.1"
-  }
-}
-
-object CheckstyleModule {
-
-  /** A path to a transformation and a relative path for it's output. */
-  type Transform = (PathRef, Seq[String])
-
-  /** A function that performs a transformation. */
-  type Transformer = os.Path => (os.Path, os.Path) => Unit
-
-  val XmlTransformer: Transformer = {
-    def result(path: os.Path): StreamResult =
-      new StreamResult(os.write.outputStream(path, createFolders = true))
-
-    def source(path: os.Path): StreamSource =
-      new StreamSource(path.getInputStream)
-
-    input =>
-      (transform, output) =>
-        TransformerFactory.newInstance()
-          .newTransformer(source(transform))
-          .transform(source(input), result(output))
-  }
+  def getCheckstyleTransformer(report: os.Path): Option[CheckstyleTransformer] =
+    Option.when(report.ext == "xml")(CheckstyleTransformer.xml(report))
 }

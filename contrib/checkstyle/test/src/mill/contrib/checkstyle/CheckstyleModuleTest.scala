@@ -19,38 +19,38 @@ object CheckstyleModuleTest extends TestSuite {
 
         test("plain") {
           assert(
-            cs("plain").checkJava(resources / "compatible-java"),
-            cs("plain").checkJava(
+            Checker("plain").checkJava(resources / "compatible-java"),
+            Checker("plain").checkJava(
               resources / "sbt-checkstyle",
               "Utility classes should not have a public or default constructor"
             ),
-            cs("plain").checkScala(resources / "compatible-scala")
+            Checker("plain").checkScala(resources / "compatible-scala")
           )
         }
 
         test("sarif") {
           assert(
-            cs("sarif").checkJava(resources / "compatible-java"),
-            cs("sarif").checkJava(
+            Checker("sarif").checkJava(resources / "compatible-java"),
+            Checker("sarif").checkJava(
               resources / "sbt-checkstyle",
               "Utility classes should not have a public or default constructor"
             ),
-            cs("sarif").checkScala(resources / "compatible-scala")
+            Checker("sarif").checkScala(resources / "compatible-scala")
           )
         }
 
         test("xml") {
           assert(
-            cs("xml").checkJava(resources / "compatible-java"),
-            cs("xml").checkJava(
+            Checker("xml").checkJava(resources / "compatible-java"),
+            Checker("xml").checkJava(
               resources / "sbt-checkstyle",
               "Utility classes should not have a public or default constructor"
             ),
-            cs("xml").checkJava(
+            Checker("xml").checkJava(
               resources / "sbt-checkstyle-xslt",
               "Utility classes should not have a public or default constructor"
             ),
-            cs("xml").checkScala(resources / "compatible-scala")
+            Checker("xml").checkScala(resources / "compatible-scala")
           )
         }
       }
@@ -60,7 +60,7 @@ object CheckstyleModuleTest extends TestSuite {
         assert(
           // Checkstyle exits with org.apache.commons.cli.UnrecognizedOptionException for any option
           // cs("xml", "6.3", options = Seq("-d")).checkJava(resources / "compatible-java"),
-          cs("xml", options = Seq("-d")).checkJava(resources / "compatible-java")
+          Checker("xml", options = Seq("-d")).checkJava(resources / "compatible-java")
         )
       }
 
@@ -69,32 +69,32 @@ object CheckstyleModuleTest extends TestSuite {
         test("plain") {
           assert(
             // instead of exiting Checkstyle generates a report with a cryptic error
-            cs("plain", "6.2").checkJava(resources / "compatible-java", "File not found"),
-            cs("plain", "6.3").checkJava(resources / "compatible-java")
+            Checker("plain", "6.2").checkJava(resources / "compatible-java", "File not found"),
+            Checker("plain", "6.3").checkJava(resources / "compatible-java")
           )
         }
 
         test("sarif") {
           intercept[UnsupportedOperationException](
-            cs("sarif", "8.42").checkJava(resources / "compatible-java")
+            Checker("sarif", "8.42").checkJava(resources / "compatible-java")
           )
           assert(
-            cs("sarif", "8.43").checkJava(resources / "compatible-java")
+            Checker("sarif", "8.43").checkJava(resources / "compatible-java")
           )
         }
 
         test("xml") {
           assert(
             // instead of exiting Checkstyle generates a report with a cryptic error
-            cs("xml", "6.2").checkJava(resources / "compatible-java", "File not found"),
-            cs("xml", "6.3").checkJava(resources / "compatible-java")
+            Checker("xml", "6.2").checkJava(resources / "compatible-java", "File not found"),
+            Checker("xml", "6.3").checkJava(resources / "compatible-java")
           )
         }
       }
     }
   }
 
-  case class cs(format: String, version: String = "10.18.1", options: Seq[String] = Nil) {
+  case class Checker(format: String, version: String = "10.18.1", options: Seq[String] = Nil) {
 
     def check(
         module: TestBaseModule with CheckstyleModule,
@@ -110,13 +110,15 @@ object CheckstyleModuleTest extends TestSuite {
         },
         checkstyle => {
 
-          val Checkstyle(errors, report, transformations) = checkstyle.value
-
-          val Right(transforms) = eval(module.checkstyleTransforms)
+          val CheckstyleOutput(errors, report, transformations) = checkstyle.value
 
           val reported = os.exists(report.path)
-          val transformed = transforms.value.forall {
-            case (_, relPath) => transformations.exists(_.path.endsWith(os.rel / relPath))
+          val transformed = transformations.forall {
+            case CheckstyleTransformation(definition, output) =>
+              val dp = definition.path
+              val op = output.path
+
+              s"${dp.baseName}.${(dp / os.up).last}" == op.last
           }
           val validated = errors == expectedErrors.length && (expectedErrors.isEmpty || {
             val lines = os.read.lines(report.path)
