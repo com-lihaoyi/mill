@@ -1,11 +1,7 @@
 package mill.contrib.checkstyle
 
 import com.etsy.sbt.checkstyle.CheckstyleSeverityLevel.CheckstyleSeverityLevel
-import com.etsy.sbt.checkstyle.{
-  CheckstyleConfigLocation,
-  CheckstyleSeverityLevel,
-  CheckstyleXSLTSettings
-}
+import com.etsy.sbt.checkstyle.{CheckstyleConfigLocation, CheckstyleSeverityLevel, CheckstyleXSLTSettings}
 import mill.api.Logger
 import mill.{Agg, T}
 import mill.scalalib.{Dep, DepSyntax, JavaModule}
@@ -15,6 +11,7 @@ import os.Path
 
 import java.io.File
 import javax.xml.transform.stream.StreamSource
+import scala.collection.compat.immutable.ArraySeq
 import scala.xml.{Elem, SAXParser}
 import scala.xml.factory.XMLLoader
 
@@ -61,7 +58,7 @@ trait CheckstyleModule extends JavaModule {
   def checkstyle = T {
     val targetFolder = T.dest
     val outputLocation = targetFolder / "checkstyle-report.xml"
-    val configFile = targetFolder + "/checkstyle-config.xml"
+    val configFile = targetFolder / "checkstyle-config.xml"
 
     os.makeDir.all(targetFolder)
 
@@ -76,7 +73,7 @@ trait CheckstyleModule extends JavaModule {
     val config =
       XML.loadString(checkstyleConfigLocation().read(compileClasspath().map(_.path).toSeq))
     scala.xml.XML.save(
-      configFile,
+      configFile.toString(),
       config,
       "UTF-8",
       xmlDecl = true,
@@ -92,7 +89,7 @@ trait CheckstyleModule extends JavaModule {
 
     val checkstyleArgs = Array(
       "-c",
-      configFile, // checkstyle configuration file
+      configFile.toString(), // checkstyle configuration file
       "-f",
       "xml", // output format
       "-o",
@@ -102,7 +99,7 @@ trait CheckstyleModule extends JavaModule {
     Jvm.runSubprocess(
       mainClass = "com.puppycrawl.tools.checkstyle.Main",
       classPath = checkstyleClasspath().map(_.path),
-      mainArgs = checkstyleArgs,
+      mainArgs = ArraySeq.unsafeWrapArray(checkstyleArgs),
       workingDir = T.dest
     )
 
@@ -114,7 +111,7 @@ trait CheckstyleModule extends JavaModule {
         val issuesFound = processIssues(log, outputLocation, severityLevel)
 
         if (issuesFound > 0) {
-          log.error(issuesFound + " issue(s) found in Checkstyle report: " + outputLocation + "")
+          log.error(s"$issuesFound issue(s) found in Checkstyle report:  $outputLocation")
           throw new RuntimeException("Checkstyle issues found")
         }
       }
