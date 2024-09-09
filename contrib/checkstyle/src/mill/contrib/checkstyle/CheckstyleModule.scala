@@ -59,10 +59,11 @@ trait CheckstyleModule extends JavaModule {
    * Runs checkstyle
    */
   def checkstyle = T {
-    val outputLocation = T.dest / "checkstyle-report.xml"
-    val targetFolder = T.dest.toIO
+    val targetFolder = T.dest
+    val outputLocation = targetFolder / "checkstyle-report.xml"
     val configFile = targetFolder + "/checkstyle-config.xml"
-    targetFolder.mkdirs()
+
+    os.makeDir.all(targetFolder)
 
     object XML extends XMLLoader[Elem] {
       override def parser: SAXParser = {
