@@ -30,10 +30,7 @@ object CheckstyleModuleTest extends TestSuite {
         val reported = os.exists(report.path)
         val transformed = transformations.forall {
           case CheckstyleTransformation(definition, output) =>
-            val dp = definition.path
-            val op = output.path
-
-            dp.baseName == op.baseName && op.ext == (dp / os.up).last
+            definition.path.baseName == output.path.baseName && output.path.ext == (definition.path / os.up).last
         }
         val validated = errors == expectedErrors.length && (expectedErrors.isEmpty || {
           val lines = os.read.lines(report.path)
@@ -82,7 +79,7 @@ object CheckstyleModuleTest extends TestSuite {
 
   def tests = Tests {
 
-    test("checkstyle") {
+    test("settings") {
 
       test("format") {
 

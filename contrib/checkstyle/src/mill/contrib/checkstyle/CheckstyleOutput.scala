@@ -7,9 +7,13 @@ import mill.api.PathRef
  *
  * @param errors number of errors found
  * @param report Checkstyle report
- * @param outputs [[CheckstyleTransformation]]s applied on `report`
+ * @param transformations [[CheckstyleTransformation]]s applied on `report`
  */
-case class CheckstyleOutput(errors: Int, report: PathRef, outputs: Set[CheckstyleTransformation])
+case class CheckstyleOutput(
+    errors: Int,
+    report: PathRef,
+    transformations: Set[CheckstyleTransformation]
+)
 object CheckstyleOutput {
 
   import upickle.default._

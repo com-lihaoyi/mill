@@ -153,10 +153,10 @@ trait CheckstyleModule extends JavaModule {
         os.list(ext)
           .iterator
           .filter(os.isFile)
-          .map(transform =>
+          .map(definition =>
             CheckstyleTransformation(
-              PathRef(transform),
-              PathRef(outputDir / s"${transform.baseName}.${ext.baseName}")
+              PathRef(definition),
+              PathRef(outputDir / s"${definition.baseName}.${ext.baseName}")
             )
           )
       }

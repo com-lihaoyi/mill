@@ -65,4 +65,4 @@ object foo extends Module {
 
 - Transformations are not supported for `plain` and `sarif` formats.
 - Version `6.3` or above is required for `plain` and `xml` formats.
-- Using `checkstyleOptions` with legacy versions might cause failures.
+- Setting `checkstyleOptions` with legacy versions might cause failures.
