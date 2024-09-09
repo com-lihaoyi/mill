@@ -160,10 +160,11 @@ object Dep {
   // Use literal JSON strings for common cases so that files
   // containing serialized dependencies can be easier to skim
   implicit val rw: RW[Dep] = upickle.default.readwriter[ujson.Value].bimap[Dep](
-    (dep: Dep) => unparse(dep) match{
-      case Some(s) => ujson.Str(s)
-      case None => upickle.default.writeJs[Dep](dep)(rw0)
-    },
+    (dep: Dep) =>
+      unparse(dep) match {
+        case Some(s) => ujson.Str(s)
+        case None => upickle.default.writeJs[Dep](dep)(rw0)
+      },
     {
       case s: ujson.Str => parse(s.value)
       case v: ujson.Value => upickle.default.read[Dep](v)(rw0)
@@ -265,18 +266,19 @@ object BoundDep {
   //
   // `BoundDep` is basically a `Dep` with `cross=CrossVersion.Constant("", false)`,
   // so we can re-use most of `Dep`'s serialization logic
-  implicit val jsonify: upickle.default.ReadWriter[BoundDep] = upickle.default.readwriter[ujson.Value].bimap[BoundDep](
-    bdep => {
-      Dep.unparse(Dep(bdep.dep, CrossVersion.Constant("", false), bdep.force)) match{
-        case None => upickle.default.writeJs(bdep)(jsonify0)
-        case Some(s) => ujson.Str(s)
+  implicit val jsonify: upickle.default.ReadWriter[BoundDep] =
+    upickle.default.readwriter[ujson.Value].bimap[BoundDep](
+      bdep => {
+        Dep.unparse(Dep(bdep.dep, CrossVersion.Constant("", false), bdep.force)) match {
+          case None => upickle.default.writeJs(bdep)(jsonify0)
+          case Some(s) => ujson.Str(s)
+        }
+      },
+      {
+        case ujson.Str(s) =>
+          val dep = Dep.parse(s)
+          BoundDep(dep.dep, dep.force)
+        case v => upickle.default.read[BoundDep](v)(jsonify0)
       }
-    },
-    {
-      case ujson.Str(s) =>
-        val dep = Dep.parse(s)
-        BoundDep(dep.dep, dep.force)
-      case v =>  upickle.default.read[BoundDep](v)(jsonify0)
-    }
-  )
+    )
 }
