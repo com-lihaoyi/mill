@@ -54,14 +54,14 @@ object ResolveDepsTests extends TestSuite {
 
     test("excludeTransitiveDeps") {
       val deps = Agg(ivy"com.lihaoyi::pprint:0.5.3".exclude("com.lihaoyi" -> "fansi_2.12"))
-      assertRoundTrip(deps, simplified = false)
+      assertRoundTrip(deps, simplified = true)
       val Success(paths) = evalDeps(deps)
       assert(!paths.exists(_.path.toString.contains("fansi_2.12")))
     }
 
     test("excludeTransitiveDepsByOrg") {
       val deps = Agg(ivy"com.lihaoyi::pprint:0.5.3".excludeOrg("com.lihaoyi"))
-      assertRoundTrip(deps, simplified = false)
+      assertRoundTrip(deps, simplified = true)
       val Success(paths) = evalDeps(deps)
       assert(!paths.exists(path =>
         path.path.toString.contains("com/lihaoyi") && !path.path.toString.contains("pprint_2.12")
@@ -70,7 +70,7 @@ object ResolveDepsTests extends TestSuite {
 
     test("excludeTransitiveDepsByName") {
       val deps = Agg(ivy"com.lihaoyi::pprint:0.5.3".excludeName("fansi_2.12"))
-      assertRoundTrip(deps, simplified = false)
+      assertRoundTrip(deps, simplified = true)
       val Success(paths) = evalDeps(deps)
       assert(!paths.exists(_.path.toString.contains("fansi_2.12")))
     }
