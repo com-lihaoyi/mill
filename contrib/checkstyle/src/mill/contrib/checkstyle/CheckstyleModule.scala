@@ -58,7 +58,7 @@ trait CheckstyleModule extends JavaModule {
     }
     val transformations =
       getCheckstyleTransformer(report).fold(Set.empty[CheckstyleTransformation]) { processor =>
-        getCheckstyleTransformations(checkstyleDir().path, dest).map { transformation =>
+        checkstyleTransformations().map { transformation =>
           T.log.info(s"transforming checkstyle report with ${transformation.definition}")
           processor(transformation)
           T.log.info(s"transformed checkstyle report to ${transformation.output}")
@@ -109,21 +109,15 @@ trait CheckstyleModule extends JavaModule {
   }
 
   /**
-   * Checkstyle version. Defaults to `10.18.1`.
-   */
-  def checkstyleVersion: T[String] = T {
-    "10.18.1"
-  }
-
-  /**
-   * Returns a set of [[CheckstyleTransformation]]s found under `definitionDir`.
+   * Defines a set of [[CheckstyleTransformation]]s.
    *
+   * The implementation identifies transformations from the contents of [[checkstyleDir]].
    * The selection process is best illustrated with an example.
    * {{{
    * /*
    * Directory structure:
    *
-   *    definitionDir
+   *    checkstyle
    *        ├─ html
    *        │   ├─ xslt0.xml
    *        │   └─ xslt1.xml
@@ -134,36 +128,53 @@ trait CheckstyleModule extends JavaModule {
    *
    * Transformations:
    *
-   *  - definitionDir/checkstyle/html/xslt0.xml -> outputDir/xslt0.html
-   *  - definitionDir/checkstyle/html/xslt1.xml -> outputDir/xslt1.html
-   *  - definitionDir/checkstyle/pdf/xslt1.xml  -> outputDir/xslt1.pdf
-   *  - definitionDir/checkstyle/pdf/xslt2.xml  -> outputDir/xslt2.pdf
+   *  - checkstyle/html/xslt0.xml -> xslt0.html
+   *  - checkstyle/html/xslt1.xml -> xslt1.html
+   *  - checkstyle/pdf/xslt1.xml  -> xslt1.pdf
+   *  - checkstyle/pdf/xslt2.xml  -> xslt2.pdf
    *
    * */
    * }}}
    */
-  def getCheckstyleTransformations(
-      definitionDir: os.Path,
-      outputDir: os.Path
-  ): Set[CheckstyleTransformation] =
-    os.list(definitionDir)
-      .iterator
-      .filter(os.isDir)
-      .flatMap { ext =>
-        os.list(ext)
-          .iterator
-          .filter(os.isFile)
-          .map(definition =>
-            CheckstyleTransformation(
-              PathRef(definition),
-              PathRef(outputDir / s"${definition.baseName}.${ext.baseName}")
+  def checkstyleTransformations: T[Set[CheckstyleTransformation]] = T {
+    val definitionDir = checkstyleDir().path
+    val outputDir = T.dest
+
+    val transformations = if (os.exists(definitionDir)) {
+      T.log.info(s"scanning $definitionDir for transformations ...")
+      os.list(definitionDir)
+        .iterator
+        .filter(os.isDir)
+        .flatMap { ext =>
+          os.list(ext)
+            .iterator
+            .filter(os.isFile)
+            .map(definition =>
+              CheckstyleTransformation(
+                PathRef(definition),
+                PathRef(outputDir / s"${definition.baseName}.${ext.baseName}")
+              )
             )
-          )
-      }
-      .toSet
+        }
+        .toSet
+    } else {
+      Set.empty[CheckstyleTransformation]
+    }
+
+    T.log.info(s"found ${transformations.size} transformation(s)")
+
+    transformations
+  }
 
   /**
-   * Returns a [[CheckstyleTransformer]] for the Checkstyle `report`, if supported.
+   * Checkstyle version. Defaults to `10.18.1`.
+   */
+  def checkstyleVersion: T[String] = T {
+    "10.18.1"
+  }
+
+  /**
+   * A [[CheckstyleTransformer]] for the Checkstyle `report`, if transformations are supported.
    */
   def getCheckstyleTransformer(report: os.Path): Option[CheckstyleTransformer] =
     Option.when(report.ext == "xml")(CheckstyleTransformer.xml(report))
