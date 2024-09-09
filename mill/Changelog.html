@@ -331,14 +331,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.0-RC1-4-172b61</span>
+    <span class="version">0.12.0-RC1-7-369d26</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="0.11.12/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="index.html">0.12.0-RC1-4-172b61</a>
+          <a href="index.html">0.12.0-RC1-7-369d26</a>
         </li>
         <li class="version is-latest">
           <a href="0.11.12/index.html">0.11.12</a>
@@ -383,9 +383,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC1-4-172b61</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC1-7-369d26</button>
   <div class="version-menu">
-    <a class="version is-current" href="Changelog.html">0.12.0-RC1-4-172b61</a>
+    <a class="version is-current" href="Changelog.html">0.12.0-RC1-7-369d26</a>
     <a class="version" href="0.11.12/Changelog.html">0.11.12</a>
     <a class="version" href="0.11.11/Changelog.html">0.11.11</a>
     <a class="version" href="0.11.10/Changelog.html">0.11.10</a>
@@ -409,12 +409,18 @@
 <div class="sectionbody">
 <div class="paragraph">
 <p>The upcoming 0.12.0 release focuses on improving the scalability of Mill builds: in terms
-of performance, code organization, adherence to best practices, and community. Notably:</p>
+of performance, code organization, adherence to best practices, and community. RC1 is intended
+to give people a time to try out the major changes so that any issues can be resolved before the
+release of 0.12.0 final (targeting end-September 2024).</p>
+</div>
+<div class="paragraph">
+<p>Major changes:</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Mill now runs tasks parallel by default, with an opt-out.</p>
+<p>Mill now runs tasks parallel by default, rather than opt-in. As every computer is multicore these days, and
+even laptops have 8-12 cores, Mill ensures you make the most of them when building your projects</p>
 </li>
 <li>
 <p>Mill now allows for <a href="https://mill-build.org/mill/Structuring_Large_Builds.html">Modularizing Large Builds</a>
@@ -620,6 +626,26 @@ on large projects <a href="https://github.com/com-lihaoyi/mill/pull/3388">#3388<
 <p>Improvements to <code>visualize</code> and <code>visualizePlan</code> such that they no longer need to be
 prefixed with <code>show</code> and no longer need a separate <code>graphviz</code>/<code>dot</code> install on Mac-OSX
 <a href="https://github.com/com-lihaoyi/mill/pull/3438">#3438</a></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>Example Upgrade PRs</strong></p>
+<div class="ulist">
+<ul>
+<li>
+<p>The following PRs are example upgrades of Mill from 0.11.x to 0.12.0-RC1 for various projects in the <code>com.lihaoyi</code> ecosystem.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Trivial upgrades that just needed to bump a version: <a href="https://github.com/com-lihaoyi/geny/pull/87" class="bare">https://github.com/com-lihaoyi/geny/pull/87</a> , <a href="https://github.com/com-lihaoyi/sourcecode/pull/175" class="bare">https://github.com/com-lihaoyi/sourcecode/pull/175</a>, <a href="https://github.com/com-lihaoyi/fansi/pull/107" class="bare">https://github.com/com-lihaoyi/fansi/pull/107</a>, <a href="https://github.com/com-lihaoyi/PPrint/pull/141" class="bare">https://github.com/com-lihaoyi/PPrint/pull/141</a>, <a href="https://github.com/com-lihaoyi/mainargs/pull/159/files" class="bare">https://github.com/com-lihaoyi/mainargs/pull/159/files</a>, <a href="https://github.com/com-lihaoyi/fastparse/pull/319" class="bare">https://github.com/com-lihaoyi/fastparse/pull/319</a>, <a href="https://github.com/com-lihaoyi/scalatags/pull/284" class="bare">https://github.com/com-lihaoyi/scalatags/pull/284</a></p>
+</li>
+<li>
+<p>Less trivial upgrades, needing to make use of <code>MILL_TEST_RESOURCE_FOLDER</code> or other explicit path references to be compatible with test sandboxing: <a href="https://github.com/com-lihaoyi/requests-scala/pull/174" class="bare">https://github.com/com-lihaoyi/requests-scala/pull/174</a>, <a href="https://github.com/com-lihaoyi/upickle/pull/627" class="bare">https://github.com/com-lihaoyi/upickle/pull/627</a>, <a href="https://github.com/com-lihaoyi/os-lib/pull/300" class="bare">https://github.com/com-lihaoyi/os-lib/pull/300</a></p>
+</li>
+</ul>
+</div>
 </li>
 </ul>
 </div>
