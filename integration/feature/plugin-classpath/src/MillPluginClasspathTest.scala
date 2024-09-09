@@ -11,7 +11,6 @@ object MillPluginClasspathTest extends UtestIntegrationTestSuite {
     ("com.lihaoyi", "mill-main-api_2.13"),
     ("com.lihaoyi", "mill-main-util_2.13"),
     ("com.lihaoyi", "mill-main-codesig_2.13"),
-    ("com.lihaoyi", "mill-runner-linenumbers_2.13"),
     ("com.lihaoyi", "mill-bsp_2.13"),
     ("com.lihaoyi", "mill-scalanativelib-worker-api_2.13"),
     ("com.lihaoyi", "mill-testrunner-entrypoint"),
