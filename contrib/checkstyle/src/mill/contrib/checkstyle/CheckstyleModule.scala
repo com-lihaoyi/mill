@@ -47,7 +47,9 @@ trait CheckstyleModule extends JavaModule {
     } else if (errors > 0 && os.exists(report)) {
       T.log.error(s"checkstyle found $errors error(s), details in $report")
     } else {
-      // errors is always 255, assuming byte value is the exit code
+      // errors is always 255 ?
+      // is the byte value of -1 being converted to an unsigned int somewhere in the call stack ???
+      // have to throw here, might as well use the byte value
       val exit = errors.toByte
       T.log.error(
         s"checkstyle exit($exit), please check plugin settings or try with another version"
