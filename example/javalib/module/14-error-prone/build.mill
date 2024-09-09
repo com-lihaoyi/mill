@@ -1,5 +1,6 @@
-// When adding the `ErrorPromeModule` to your `JavaModule`,
+// When adding the xref:contrib/errorprone.adoc[`ErrorPromeModule`] to your `JavaModule`,
 // the `error-prone` compiler plugin automatically detects various kind of programming errors.
+
 
 package build
 import mill._, javalib._
@@ -28,4 +29,4 @@ object `package` extends RootModule with JavaModule with ErrorProneModule {
 [warn]               ^
 */
 
-
+// Find more details on the xref:contrib/errorprone.adoc[ErrorProne plugin page].

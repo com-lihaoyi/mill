@@ -18,7 +18,7 @@ ifdef::env-github[]
 :warning-caption: :warning:
 endif::[]
 
-{link-github}/actions/workflows/actions.yml[image:{link-github}/actions/workflows/actions.yml/badge.svg[Build and Release]]
+{link-github}/actions/workflows/run-tests.yml[image:{link-github}/actions/workflows/run-tests.yml/badge.svg[Build and Release]]
 https://index.scala-lang.org/com-lihaoyi/mill/mill-main[image:https://index.scala-lang.org/com-lihaoyi/mill/mill-main/latest.svg[Mill]]
 https://www.patreon.com/lihaoyi[image:https://img.shields.io/badge/patreon-sponsor-ff69b4.svg[Patreon]]
 
@@ -317,7 +317,11 @@ how to either disable the breaking change with a flag or adjust your code to acc
 * *Breaking Changes*
 
 
-** Build file overhaul: Mill now uses `.mill` as its file extension, with some semantic changes
+** Build file overhaul: Mill's build file management has been overhauled to better support 
+large projects. See https://mill-build.org/mill/Structuring_Large_Builds.html[Structuring Large Builds]
+for details
+
+*** Mill now uses `.mill` as its file extension, with some semantic changes
 from the old `.sc` files to allow better IDE support. The `.sc` extension is still supported
 and its semantics are largely unchanged the ease the migration, but you should convert your Mill
 configs to `.mill` files to benefit from Mill's improved IDE experience going forward.
@@ -350,7 +354,7 @@ refer to parent package is no longer supported, for consistency with other progr
 current behavior.
 
 ** ``RootModule``s can only be named `package`, e.g. `object foo extends RootModule` must now be
-named ``object `package` extends RootModule`.
+named ``object `package` extends RootModule``.
 
 *** If you have an existing `RootModule`, you need to rename it ``object `package` extends RootModule``
 
@@ -361,7 +365,8 @@ which always run serially at the end {link-pr}/3265[#3265]
 
 ** Mill uses empty sandbox folders as the working directory for running its own code and
 {link-pr}/3367[#3367] and test suites {link-pr}/3347[#3347], to avoid accidental interference
-between tasks and tests due to parallelism
+between tasks and tests due to parallelism. See https://mill-build.org/mill/Mill_Sandboxing.html[Mill Sandboxing] 
+for details
 
 *** This can be disabled by adding `def testSandboxWorkingDir = false` in your test module
 
@@ -373,7 +378,7 @@ between tasks and tests due to parallelism
   on individual parameters
 
 ** Dropped support for Java 8, Scala 2.11.x/3.1.x, and Scala-Native 0.4.x, following suit with the rest of the 
-com-lihaoyi ecosystem. We now expect a minimum of Java 8, Scala 2.12.x/3.2.x, and Scala-Native 0.5.x
+com-lihaoyi ecosystem. We now expect a minimum of Java 11, Scala 2.12.x/3.2.x, and Scala-Native 0.5.x
 
 ** `--disable-callgraph-invalidation` is no longer supported. The flag is still accepted but is
 now a no-op.
@@ -383,11 +388,11 @@ now a no-op.
 ** Overhaul the Mill client-server protocol to improve robustness
 {link-pr}/3363[#3363] {link-pr}/3366[#3366] {link-pr}/3368[#3368] {link-pr}/3370[#3370]
 
-** Mill now publishes unit, integration, and example test fixtures for writing plugins as `mill-testkit`
+** Mill now has explicitly supported workflows for third-party plugin authors, and 
+publishes unit, integration, and example test fixtures for writing plugins as `mill-testkit`
 {link-pr}/3398[#3398] for downstream plugin authors to use in testing their own Mill extensions.
 
-*** See the documentation for
-https://mill-build.org/mill/Writing_Mill_Plugins.html[Writing Mill Plugins] for more details.
+*** See https://mill-build.org/mill/Writing_Mill_Plugins.html[Writing Mill Plugins] for more details.
 
 *** `mill-testkit` is experimental and does not provide the same stability or binary-compatibility
 guarantees as the rest of Mill. Nevertheless, if you are writing Mill plugins, please try it out
