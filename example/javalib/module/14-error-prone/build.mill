@@ -1,0 +1,31 @@
+// When adding the `ErrorPromeModule` to your `JavaModule`,
+// the `error-prone` compiler plugin automatically detects various kind of programming errors.
+
+package build
+import mill._, javalib._
+import mill.contrib.errorprone._
+
+import $ivy.`com.lihaoyi::mill-contrib-errorprone:`
+
+object `package` extends RootModule with JavaModule with ErrorProneModule {
+  def errorProneOptions = Seq("-XepAllErrorsAsWarnings")
+}
+
+/** See Also: src/example/ShortSet.java */
+
+/** Usage
+
+> ./mill show errorProneOptions
+[
+  "-XepAllErrorsAsWarnings"
+]
+
+> ./mill compile
+[warn] .../src/example/ShortSet.java:11:15:  [CollectionIncompatibleType] Argument 'i - 1' should not be passed to this method; its type int is not compatible with its collection's type argument Short
+[warn]       s.remove(i - 1);
+[warn]               ^    (see https://errorprone.info/bugpattern/CollectionIncompatibleType)
+[warn] 1 warning
+[warn]               ^
+*/
+
+

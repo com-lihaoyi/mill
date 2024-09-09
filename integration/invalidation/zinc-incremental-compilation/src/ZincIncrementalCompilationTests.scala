@@ -1,15 +1,15 @@
 package mill.integration
 
-import mill.testkit.IntegrationTestSuite
+import mill.testkit.UtestIntegrationTestSuite
 
 import utest._
 
 // Regress test for issue https://github.com/com-lihaoyi/mill/issues/1901
-object ZincIncrementalCompilationTests extends IntegrationTestSuite {
+object ZincIncrementalCompilationTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
-    initWorkspace()
-    test("incremental compilation only compiles changed files") {
-      val successful = eval("app.compile")
+    test("incremental compilation only compiles changed files") - integrationTest { tester =>
+      import tester._
+      val successful = tester.eval("app.compile")
       assert(successful.isSuccess)
 
       val appSrc = workspacePath / "app" / "src" / "main" / "scala" / "App.scala"
@@ -25,7 +25,7 @@ object ZincIncrementalCompilationTests extends IntegrationTestSuite {
       println("** second run **")
       os.write.append(appSrc, "\n ")
 
-      val succ2nd = eval("app.compile")
+      val succ2nd = tester.eval("app.compile")
       assert(succ2nd.isSuccess)
 
       val appSrcInfo2 = os.stat(appSrc)

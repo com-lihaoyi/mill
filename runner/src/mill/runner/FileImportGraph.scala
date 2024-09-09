@@ -51,7 +51,6 @@ object FileImportGraph {
     var millImport = false
 
     def processScript(s: os.Path, useDummy: Boolean = false): Unit = {
-
       val readFileEither = scala.util.Try {
         val content = if (useDummy) "" else os.read(s)
         val fileName = s.relativeTo(topLevelProjectRoot).toString
@@ -67,7 +66,7 @@ object FileImportGraph {
             val expectedImportSegments = expectedImportSegments0.map(backtickWrap).mkString(".")
             if (
               // Legacy `.sc` files have their package build be optional
-              s.ext == "mill" &&
+              (s.last.endsWith(".mill") || s.last.endsWith(".mill.sc")) &&
               expectedImportSegments != importSegments &&
               // Root build.mill file has its `package build` be optional
               !(importSegments == "" && rootBuildFileNames.contains(s.last))
@@ -137,7 +136,7 @@ object FileImportGraph {
           case ImportTree(Seq(("$file", end0), rest @ _*), mapping, start, end) =>
             // Only recursively explore imports from legacy `.sc` files, as new `.mill` files
             // do file discovery via scanning folders containing `package.mill` files
-            if (s.ext == "sc") {
+            if (s.last.endsWith(".sc") && !s.last.endsWith(".mill.sc")) {
               val nextPaths = mapping.map { case (lhs, rhs) =>
                 nextPathFor(s, rest.map(_._1) :+ lhs)
               }
@@ -167,8 +166,10 @@ object FileImportGraph {
     val useDummy = rootBuildFiles.isEmpty
     val foundRootBuildFileName: String = rootBuildFiles.getOrElse(rootBuildFileNames.head)
 
-    val buildFileExtension = buildFileExtensions.find(foundRootBuildFileName.endsWith).get
-    val nestedBuildFileName = nestedBuildFileNames.find(_.endsWith(buildFileExtension)).get
+    val buildFileExtension =
+      buildFileExtensions.find(ex => foundRootBuildFileName.endsWith(s".$ex")).get
+
+    val nestedBuildFileName = s"package.$buildFileExtension"
 
     processScript(projectRoot / foundRootBuildFileName, useDummy)
     val buildFiles = os
@@ -184,7 +185,7 @@ object FileImportGraph {
 
     val adjacentScripts = (projectRoot +: buildFiles.map(_ / os.up))
       .flatMap(os.list(_))
-      .filter(_.ext == buildFileExtension)
+      .filter(_.last.endsWith(s".$buildFileExtension"))
 
     (buildFiles ++ adjacentScripts).foreach(processScript(_))
 

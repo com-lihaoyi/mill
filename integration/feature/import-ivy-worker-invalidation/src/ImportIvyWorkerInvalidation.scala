@@ -1,14 +1,14 @@
 package mill.integration
 
-import mill.testkit.IntegrationTestSuite
+import mill.testkit.UtestIntegrationTestSuite
 
 import utest._
 
-object ImportIvyWorkerInvalidation extends IntegrationTestSuite {
+object ImportIvyWorkerInvalidation extends UtestIntegrationTestSuite {
 
   val tests: Tests = Tests {
-    test {
-      initWorkspace()
+    test - integrationTest { tester =>
+      import tester._
       assert(eval("app.compile").isSuccess)
       modifyFile(
         workspacePath / "build.mill",

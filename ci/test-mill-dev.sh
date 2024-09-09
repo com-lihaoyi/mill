@@ -16,3 +16,5 @@ test -d $EXAMPLE/out/foo/3.3.3/compile.dest
 ./mill -i dist.run $EXAMPLE show "bar[2.13.8].assembly"
 
 test -f $EXAMPLE/out/bar/2.13.8/assembly.dest/out.jar
+
+./mill -i dist.run $EXAMPLE shutdown

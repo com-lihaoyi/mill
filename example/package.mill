@@ -48,6 +48,7 @@ object `package` extends RootModule with Module {
     object modules extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "modules"))
     object cross extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "cross"))
     object large extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "large"))
+    object sandbox extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "sandbox"))
   }
 
   object extending extends Module {
@@ -216,6 +217,7 @@ object `package` extends RootModule with Module {
       )
       os.remove.all(T.dest / "merged" / ".mill-version")
 
+      os.remove.all(T.dest / "merged" / "build.sc")
       PathRef(T.dest / "merged")
     }
   }

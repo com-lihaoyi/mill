@@ -57,7 +57,9 @@ trait ScalafmtModule extends JavaModule {
       file <- {
         if (os.isDir(pathRef.path)) {
           os.walk(pathRef.path).filter(file =>
-            os.isFile(file) && (file.ext == "scala" || buildFileExtensions.contains(file.ext))
+            os.isFile(file) && (file.ext == "scala" || buildFileExtensions.exists(ex =>
+              file.last.endsWith(s".$ex")
+            ))
           )
         } else {
           Seq(pathRef.path)

@@ -81,8 +81,10 @@ object PublishModuleTests extends TestSuite {
 
   def tests: Tests = Tests {
     test("pom") {
-      test("should include scala-library dependency") {
-        val eval = UnitTester(HelloWorldWithPublish, resourcePath)
+      test("should include scala-library dependency") - UnitTester(
+        HelloWorldWithPublish,
+        resourcePath
+      ).scoped { eval =>
         val Right(result) = eval.apply(HelloWorldWithPublish.core.pom)
 
         assert(
@@ -98,8 +100,7 @@ object PublishModuleTests extends TestSuite {
           (scalaLibrary \ "groupId").text == "org.scala-lang"
         )
       }
-      test("versionScheme") {
-        val eval = UnitTester(HelloWorldWithPublish, resourcePath)
+      test("versionScheme") - UnitTester(HelloWorldWithPublish, resourcePath).scoped { eval =>
         val Right(result) = eval.apply(HelloWorldWithPublish.core.pom)
 
         assert(
@@ -117,47 +118,47 @@ object PublishModuleTests extends TestSuite {
       test(
         "should retrieve credentials from environment variables if direct argument is empty"
       ) {
-        val eval = UnitTester(
+        UnitTester(
           HelloWorldWithPublish,
           sourceRoot = resourcePath,
           env = Evaluator.defaultEnv ++ Seq(
             "SONATYPE_USERNAME" -> "user",
             "SONATYPE_PASSWORD" -> "password"
           )
-        )
-        val Right(result) =
-          eval.apply(HelloWorldWithPublish.core.checkSonatypeCreds(""))
+        ).scoped { eval =>
+          val Right(result) =
+            eval.apply(HelloWorldWithPublish.core.checkSonatypeCreds(""))
 
-        assert(
-          result.value == "user:password",
-          result.evalCount > 0
-        )
+          assert(
+            result.value == "user:password",
+            result.evalCount > 0
+          )
+        }
       }
       test(
         "should prefer direct argument as credentials over environment variables"
       ) {
-        val eval = UnitTester(
+        UnitTester(
           HelloWorldWithPublish,
           sourceRoot = resourcePath,
           env = Evaluator.defaultEnv ++ Seq(
             "SONATYPE_USERNAME" -> "user",
             "SONATYPE_PASSWORD" -> "password"
           )
-        )
+        ).scoped { eval =>
+          val directValue = "direct:value"
+          val Right(result) =
+            eval.apply(HelloWorldWithPublish.core.checkSonatypeCreds(directValue))
 
-        val directValue = "direct:value"
-        val Right(result) =
-          eval.apply(HelloWorldWithPublish.core.checkSonatypeCreds(directValue))
-
-        assert(
-          result.value == directValue,
-          result.evalCount > 0
-        )
+          assert(
+            result.value == directValue,
+            result.evalCount > 0
+          )
+        }
       }
       test(
         "should throw exception if neither environment variables or direct argument were not passed"
-      ) {
-        val eval = UnitTester(HelloWorldWithPublish, resourcePath)
+      ) - UnitTester(HelloWorldWithPublish, resourcePath).scoped { eval =>
         val Left(Result.Failure(msg, None)) =
           eval.apply(HelloWorldWithPublish.core.checkSonatypeCreds(""))
 
@@ -168,8 +169,10 @@ object PublishModuleTests extends TestSuite {
     }
 
     test("ivy") {
-      test("should include scala-library dependency") {
-        val eval = UnitTester(HelloWorldWithPublish, resourcePath)
+      test("should include scala-library dependency") - UnitTester(
+        HelloWorldWithPublish,
+        resourcePath
+      ).scoped { eval =>
         val Right(result) = eval.apply(HelloWorldWithPublish.core.ivy)
 
         assert(
@@ -187,8 +190,7 @@ object PublishModuleTests extends TestSuite {
     }
 
     test("pom-packaging-type") - {
-      test("pom") {
-        val eval = UnitTester(PomOnly, resourcePath)
+      test("pom") - UnitTester(PomOnly, resourcePath).scoped { eval =>
         val Right(result) = eval.apply(PomOnly.core.pom)
 //
 //        assert(

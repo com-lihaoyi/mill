@@ -18,18 +18,17 @@ object CodeGen {
       millTopLevelProjectRoot: os.Path
   ): Unit = {
     for (scriptSource <- scriptSources) {
-      // pprint.log(scriptSource)
       val scriptPath = scriptSource.path
       val specialNames = (nestedBuildFileNames ++ rootBuildFileNames).toSet
 
       val isBuildScript = specialNames(scriptPath.last)
       val scriptFolderPath = scriptPath / os.up
 
-      if (scriptFolderPath == projectRoot && scriptPath.baseName == "package") {
+      if (scriptFolderPath == projectRoot && scriptPath.last.split('.').head == "package") {
         throw Result.Failure(s"Mill ${scriptPath.last} files can only be in subfolders")
       }
 
-      if (scriptFolderPath != projectRoot && scriptPath.baseName == "build") {
+      if (scriptFolderPath != projectRoot && scriptPath.last.split('.').head == "build") {
         throw Result.Failure(s"Mill ${scriptPath.last} files can only be in the project root")
       }
 
@@ -86,7 +85,7 @@ object CodeGen {
         if (!isBuildScript) {
           s"""$pkgLine
              |$aliasImports
-             |object ${backtickWrap(scriptPath.baseName)} {
+             |object ${backtickWrap(scriptPath.last.split('.').head)} {
              |$markerComment
              |$scriptCode
              |}""".stripMargin
@@ -105,7 +104,7 @@ object CodeGen {
           )
         }
 
-      os.write(dest, parts, createFolders = true)
+      os.write.over(dest, parts, createFolders = true)
     }
   }
 

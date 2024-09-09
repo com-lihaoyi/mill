@@ -1,9 +1,9 @@
-package build
 // == Example `build.mill`
 //
 // The following examples will be assuming the `build.mill` file given below:
 
 //// SNIPPET:BUILD
+package build
 import mill._, scalalib._
 
 trait MyModule extends ScalaModule {

@@ -63,8 +63,7 @@ object MainModuleTests extends TestSuite {
   override def tests: Tests = Tests {
 
     test("inspect") {
-      val eval = UnitTester(mainModule, null)
-      test("single") {
+      test("single") - UnitTester(mainModule, null).scoped { eval =>
         val res = eval.evaluator.evaluate(Agg(mainModule.inspect(eval.evaluator, "hello")))
         val Result.Success(Val(value: String)) = res.rawValues.head
         assert(
@@ -73,7 +72,7 @@ object MainModuleTests extends TestSuite {
           value.contains("MainModuleTests.scala:")
         )
       }
-      test("multi") {
+      test("multi") - UnitTester(mainModule, null).scoped { eval =>
         val res =
           eval.evaluator.evaluate(Agg(mainModule.inspect(eval.evaluator, "hello", "hello2")))
         val Result.Success(Val(value: String)) = res.rawValues.head
@@ -84,7 +83,7 @@ object MainModuleTests extends TestSuite {
           value.contains("\n\nhello2(")
         )
       }
-      test("command") {
+      test("command") - UnitTester(mainModule, null).scoped { eval =>
         val Right(result) = eval.apply("inspect", "helloCommand")
 
         val Seq(res: String) = result.value

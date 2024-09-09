@@ -1,18 +1,18 @@
 package mill.integration
 
-import mill.testkit.IntegrationTestSuite
+import mill.testkit.UtestIntegrationTestSuite
 import utest._
 
 import scala.util.Try
 import os.Path
 
-object GenIdeaExtendedTests extends IntegrationTestSuite {
+object GenIdeaExtendedTests extends UtestIntegrationTestSuite {
 
   override def workspaceSourcePath: Path = super.workspaceSourcePath / "extended"
 
   def tests: Tests = Tests {
-    test("genIdeaTests") {
-      initWorkspace()
+    test("genIdeaTests") - integrationTest { tester =>
+      import tester._
       val expectedBase = workspacePath / "idea"
       val resources = os.walk(expectedBase).filter(os.isFile).map(_.subRelativeTo(expectedBase))
 

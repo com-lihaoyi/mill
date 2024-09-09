@@ -1,5 +1,5 @@
-package build
 //// SNIPPET:BUILD
+package build
 import mill._, javalib._
 
 trait MyModule extends JavaModule{

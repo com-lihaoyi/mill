@@ -141,6 +141,9 @@ public class ProxyStream{
                             flush();
                         }
                     }
+                } catch (org.newsclub.net.unix.ConnectionResetSocketException e) {
+                    // This happens when you run mill shutdown and the server exits gracefully
+                    break;
                 } catch (IOException e) {
                     e.printStackTrace();
                     System.exit(1);

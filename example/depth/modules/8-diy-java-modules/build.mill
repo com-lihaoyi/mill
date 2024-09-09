@@ -1,8 +1,7 @@
-package build
 // This section puts together what we've learned about ``Task``s and ``Module``s
 // so far into a worked example: implementing our own minimal version of
 // `mill.scalalib.JavaModule` from first principles.
-
+package build
 import mill._
 
 trait DiyJavaModule extends Module{

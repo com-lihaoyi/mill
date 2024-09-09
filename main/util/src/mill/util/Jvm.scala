@@ -100,7 +100,8 @@ object Jvm extends CoursierSupport {
       mainArgs: Seq[String] = Seq.empty,
       workingDir: os.Path = null,
       background: Boolean = false,
-      useCpPassingJar: Boolean = false
+      useCpPassingJar: Boolean = false,
+      runBackgroundLogToConsole: Boolean = false
   )(implicit ctx: Ctx): Unit = {
     runSubprocessWithBackgroundOutputs(
       mainClass,
@@ -109,10 +110,34 @@ object Jvm extends CoursierSupport {
       envArgs,
       mainArgs,
       workingDir,
-      if (background) defaultBackgroundOutputs(ctx.dest) else None,
+      if (!background) None
+      else if (runBackgroundLogToConsole) Some((os.Inherit, os.Inherit))
+      else Jvm.defaultBackgroundOutputs(ctx.dest),
       useCpPassingJar
     )
   }
+
+  // bincompat shim
+  def runSubprocess(
+      mainClass: String,
+      classPath: Agg[os.Path],
+      jvmArgs: Seq[String],
+      envArgs: Map[String, String],
+      mainArgs: Seq[String],
+      workingDir: os.Path,
+      background: Boolean,
+      useCpPassingJar: Boolean
+  )(implicit ctx: Ctx): Unit =
+    runSubprocess(
+      mainClass,
+      classPath,
+      jvmArgs,
+      envArgs,
+      mainArgs,
+      workingDir,
+      background,
+      useCpPassingJar
+    )
 
   /**
    * Runs a JVM subprocess with the given configuration and streams

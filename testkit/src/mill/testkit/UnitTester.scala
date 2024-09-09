@@ -54,7 +54,7 @@ class UnitTester(
     debugEnabled: Boolean,
     env: Map[String, String],
     resetSourcePath: Boolean
-)(implicit fullName: sourcecode.FullName) {
+)(implicit fullName: sourcecode.FullName) extends AutoCloseable {
   val outPath: os.Path = module.millSourcePath / "out"
 
   if (resetSourcePath) {
@@ -100,7 +100,8 @@ class UnitTester(
     env = env,
     methodCodeHashSignatures = Map(),
     disableCallgraphInvalidation = false,
-    allowPositionalCommandArgs = false
+    allowPositionalCommandArgs = false,
+    systemExit = i => ???
   )
 
   def apply(args: String*): Either[Result.Failing[_], UnitTester.Result[Seq[_]]] = {
@@ -181,4 +182,14 @@ class UnitTester(
     )
   }
 
+  def scoped[T](tester: UnitTester => T): T = {
+    try tester(this)
+    finally close()
+  }
+
+  def close(): Unit = {
+    for ((_, Val(obsolete: AutoCloseable)) <- evaluator.workerCache.values) {
+      obsolete.close()
+    }
+  }
 }

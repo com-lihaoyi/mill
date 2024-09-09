@@ -1,5 +1,5 @@
-package build
 //// SNIPPET:BUILD1
+package build
 import mill._, scalalib._
 
 object foo extends ScalaModule {
