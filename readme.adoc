@@ -305,10 +305,10 @@ endif::[]
 The upcoming 0.12.0 release focuses on improving the scalability of Mill builds: in terms
 of performance, code organization, adherence to best practices, and community. Notably:
 
-1. Mill runs tasks parallel by default, with an opt-out.
+1. Mill now runs tasks parallel by default, with an opt-out.
 2. Mill now allows for https://mill-build.org/mill/Structuring_Large_Builds.html[Modularizing Large Builds]
    into multiple `package.mill` files, to help support large codebases
-3. Mill runs itself, tasks, and tests in https://mill-build.org/mill/Mill_Sandboxing.html[Mill Sandbox Folders]
+3. Mill now runs itself, tasks, and tests in https://mill-build.org/mill/Mill_Sandboxing.html[Sandbox Folders]
    by default to mitigate the risk of filesystem-based race conditions due to parallelism
 4. Mill now provides official support for
    https://mill-build.org/mill/Writing_Mill_Plugins.html[Writing Mill Plugins], with tested
