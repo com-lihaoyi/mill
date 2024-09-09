@@ -398,7 +398,7 @@ com-lihaoyi ecosystem. We now expect a minimum of Java 11, Scala 2.12.x/3.2.x, a
 ** `--disable-callgraph-invalidation` is no longer supported. The flag is still accepted but is
 now a no-op.
 
-* Other Changes
+* *Other Changes*
 
 ** Overhaul the Mill client-server protocol to improve robustness
 {link-pr}/3363[#3363] {link-pr}/3366[#3366] {link-pr}/3368[#3368] {link-pr}/3370[#3370]
@@ -432,7 +432,7 @@ prefixed with `show` and no longer need a separate `graphviz`/`dot` install on M
 
 *** Trivial upgrades that just needed to bump a version: https://github.com/com-lihaoyi/geny/pull/87 , https://github.com/com-lihaoyi/sourcecode/pull/175, https://github.com/com-lihaoyi/fansi/pull/107, https://github.com/com-lihaoyi/PPrint/pull/141, https://github.com/com-lihaoyi/mainargs/pull/159/files, https://github.com/com-lihaoyi/fastparse/pull/319, https://github.com/com-lihaoyi/scalatags/pull/284
 
-*** Less trivial upgrades, needing to make use of `MILL_TEST_RESOURCE_FOLDER` or other explicit path references to be compatible with test sandboxing: https://github.com/com-lihaoyi/requests-scala/pull/174, https://github.com/com-lihaoyi/upickle/pull/627, https://github.com/com-lihaoyi/os-lib/pull/300
+*** Less trivial upgrades, needing to make use of `MILL_TEST_RESOURCE_FOLDER` or other explicit path references to be compatible with test sandboxing: https://github.com/com-lihaoyi/requests-scala/pull/174, https://github.com/com-lihaoyi/upickle/pull/627, https://github.com/com-lihaoyi/os-lib/pull/300, https://github.com/com-lihaoyi/scalasql/pull/30
 
 [#0-11-12]
 === 0.11.12 - 2024-08-20
