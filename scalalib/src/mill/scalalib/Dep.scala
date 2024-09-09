@@ -144,23 +144,26 @@ object Dep {
     val attrs = classifierAttr + typeAttr
 
     val prospective = dep.cross match {
-      case CrossVersion.Constant("", false) => s"$org:$mod:$ver$attrs"
-      case CrossVersion.Constant("", true) => s"$org:$mod::$ver$attrs"
-      case CrossVersion.Binary(false) => s"$org::$mod:$ver$attrs"
-      case CrossVersion.Binary(true) => s"$org::$mod::$ver$attrs"
-      case CrossVersion.Full(false) => s"$org:::$mod:$ver$attrs"
-      case CrossVersion.Full(true) => s"$org:::$mod::$ver$attrs"
-      case CrossVersion.Constant(v, _) => ""
+      case CrossVersion.Constant("", false) => Some(s"$org:$mod:$ver$attrs")
+      case CrossVersion.Constant("", true) => Some(s"$org:$mod::$ver$attrs")
+      case CrossVersion.Binary(false) => Some(s"$org::$mod:$ver$attrs")
+      case CrossVersion.Binary(true) => Some(s"$org::$mod::$ver$attrs")
+      case CrossVersion.Full(false) => Some(s"$org:::$mod:$ver$attrs")
+      case CrossVersion.Full(true) => Some(s"$org:::$mod::$ver$attrs")
+      case CrossVersion.Constant(v, _) => None
     }
 
-    Option.when(parse(prospective) == dep)(prospective)
+    prospective.filter(parse(_) == dep)
   }
   private val rw0: RW[Dep] = macroRW
 
   // Use literal JSON strings for common cases so that files
   // containing serialized dependencies can be easier to skim
   implicit val rw: RW[Dep] = upickle.default.readwriter[ujson.Value].bimap[Dep](
-    (dep: Dep) => unparse(dep).map(ujson.Str(_)).getOrElse(upickle.default.writeJs[Dep](dep)(rw0)),
+    (dep: Dep) => unparse(dep) match{
+      case Some(s) => ujson.Str(s)
+      case None => upickle.default.writeJs[Dep](dep)(rw0)
+    },
     {
       case s: ujson.Str => parse(s.value)
       case v: ujson.Value => upickle.default.read[Dep](v)(rw0)
