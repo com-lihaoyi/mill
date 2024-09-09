@@ -68,12 +68,11 @@ To begin, you just need a JVM installed, and the
 
 == IntelliJ Setup
 
-If you are using IntelliJ IDEA to edit Mill's Scala code, you can create the IntelliJ project files via:
+If you are using IntelliJ IDEA to edit Mill's Scala code, IntelliJ's built in BSP support should
+be sufficient to load the Mill project, but you need to set up the file association from
+`*.mill` as Scala source files manually in the following settings:
 
-[source,bash]
-----
-./mill -j 0 mill.idea.GenIdea/idea
-----
+* `Settings` / `Editor` / `File Types` / `Scala`, add the pattern `*.mill`
 
 == Manual & Automated Testing
 
@@ -426,8 +425,6 @@ prefixed with `show` and no longer need a separate `graphviz`/`dot` install on M
 *** Trivial upgrades that just needed to bump a version: https://github.com/com-lihaoyi/geny/pull/87 , https://github.com/com-lihaoyi/sourcecode/pull/175, https://github.com/com-lihaoyi/fansi/pull/107, https://github.com/com-lihaoyi/PPrint/pull/141, https://github.com/com-lihaoyi/mainargs/pull/159/files, https://github.com/com-lihaoyi/fastparse/pull/319, https://github.com/com-lihaoyi/scalatags/pull/284
 
 *** Less trivial upgrades, needing to make use of `MILL_TEST_RESOURCE_FOLDER` or other explicit path references to be compatible with test sandboxing: https://github.com/com-lihaoyi/requests-scala/pull/174, https://github.com/com-lihaoyi/upickle/pull/627, https://github.com/com-lihaoyi/os-lib/pull/300
-
-*** https://github.com/com-lihaoyi/os-lib/pull/300
 
 [#0-11-12]
 === 0.11.12 - 2024-08-20
