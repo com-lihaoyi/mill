@@ -1,7 +1,11 @@
 package mill.contrib.checkstyle
 
 import com.etsy.sbt.checkstyle.CheckstyleSeverityLevel.CheckstyleSeverityLevel
-import com.etsy.sbt.checkstyle.{CheckstyleConfigLocation, CheckstyleSeverityLevel, CheckstyleXSLTSettings}
+import com.etsy.sbt.checkstyle.{
+  CheckstyleConfigLocation,
+  CheckstyleSeverityLevel,
+  CheckstyleXSLTSettings
+}
 import mill.api.Logger
 import mill.{Agg, T}
 import mill.scalalib.{Dep, DepSyntax, JavaModule}
