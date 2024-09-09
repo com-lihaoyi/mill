@@ -34,7 +34,7 @@ trait CheckstyleModule extends JavaModule {
   }
 
   /** An optional set of XSLT transformations to be applied to the checkstyle output */
-  def checkstyleXsltTransformations: T[Option[Set[CheckstyleXSLTSettings]]] = T.input { None }
+  def checkstyleXsltTransformations: Set[CheckstyleXSLTSettings] = Set.empty[CheckstyleXSLTSettings]
 
   /** The severity level which should fail the build */
   def checkstyleSeverityLevel: Option[CheckstyleSeverityLevel] = None
@@ -106,10 +106,7 @@ trait CheckstyleModule extends JavaModule {
       workingDir = T.dest
     )
 
-    checkstyleXsltTransformations() match {
-      case None => // Nothing to do
-      case Some(xslt) => applyXSLT(outputLocation.toIO, xslt)
-    }
+    applyXSLT(outputLocation.toIO, checkstyleXsltTransformations)
 
     checkstyleSeverityLevel.foreach { severityLevel =>
       if (outputLocation.toIO.exists) {
