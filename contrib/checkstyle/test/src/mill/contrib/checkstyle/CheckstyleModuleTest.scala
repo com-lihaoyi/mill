@@ -162,7 +162,7 @@ object CheckstyleModuleTest extends TestSuite {
 
       test("cannot set options for legacy version") {
         intercept[RuntimeException](
-          testJava(resources / "compatible-java", "xml", "6.3", options = Seq("-d"))
+          testJava(resources / "compatible-java", version = "6.3", options = Seq("-d"))
         )
       }
     }
