@@ -329,14 +329,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.0-RC1-7-369d26</span>
+    <span class="version">0.12.0-RC1-8-3b42cd</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="../../../0.11.12/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="../../../index.html">0.12.0-RC1-7-369d26</a>
+          <a href="../../../index.html">0.12.0-RC1-8-3b42cd</a>
         </li>
         <li class="version is-latest">
           <a href="../../../0.11.12/index.html">0.11.12</a>
@@ -376,9 +376,9 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC1-7-369d26</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC1-8-3b42cd</button>
   <div class="version-menu">
-    <a class="version is-current" href="2-primary-tasks.html">0.12.0-RC1-7-369d26</a>
+    <a class="version is-current" href="2-primary-tasks.html">0.12.0-RC1-8-3b42cd</a>
     <a class="version is-missing" href="../../../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../../../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../../../0.11.10/index.html">0.11.10</a>
@@ -456,9 +456,14 @@ def lineCount: T[Int] = T {
 }</code></pre>
 </div>
 </div>
-<div class="imageblock kroki">
+<div class="literalblock kroki-error">
 <div class="content">
-<img src="../../../_images/diag-33a0725be37eddc6658f9d8c1d80f8735c88f881.svg" alt="Diagram" />
+<pre>digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+  sources -&gt; allSources -&gt; lineCount
+  sources [color=white]
+}</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -577,9 +582,16 @@ def jar = T {
 }</code></pre>
 </div>
 </div>
-<div class="imageblock kroki">
+<div class="literalblock kroki-error">
 <div class="content">
-<img src="../../../_images/diag-df1a84c313e8b66679e19b33303e6f9bfa93e69b.svg" alt="Diagram" />
+<pre>digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+  allSources -&gt; classFiles -&gt; jar
+  resources -&gt; jar
+  allSources [color=white]
+  resources [color=white]
+}</pre>
 </div>
 </div>
 <div class="listingblock">
@@ -633,9 +645,14 @@ def hugeFileName = T{
 }</code></pre>
 </div>
 </div>
-<div class="imageblock kroki">
+<div class="literalblock kroki-error">
 <div class="content">
-<img src="../../../_images/diag-51dc4c55a8a863d078baaddc299357e759363bd4.svg" alt="Diagram" />
+<pre>digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+  allSources -&gt; largeFile-&gt; hugeFileName
+  allSources [color=white]
+}</pre>
 </div>
 </div>
 <div class="listingblock">
@@ -675,9 +692,14 @@ def summarizeClassFileStats = T{
 }</code></pre>
 </div>
 </div>
-<div class="imageblock kroki">
+<div class="literalblock kroki-error">
 <div class="content">
-<img src="../../../_images/diag-92644512b00b3ff050cbcf980292a049ec819fa5.svg" alt="Diagram" />
+<pre>digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+  classFiles -&gt; summarizedClassFileStats
+  classFiles [color=white]
+}</pre>
 </div>
 </div>
 <div class="listingblock">
@@ -706,9 +728,16 @@ def summarizeClassFileStats = T{
 }</code></pre>
 </div>
 </div>
-<div class="imageblock kroki">
+<div class="literalblock kroki-error">
 <div class="content">
-<img src="../../../_images/diag-435d38aa16feb53ce9c5c3696bfc41c46d8d8cae.svg" alt="Diagram" />
+<pre>digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+  classFiles -&gt; run
+  resources -&gt; run
+  classFiles [color=white]
+  resources [color=white]
+}</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -808,9 +837,14 @@ trait Bar extends Foo {
 object bar extends Bar</code></pre>
 </div>
 </div>
-<div class="imageblock kroki">
+<div class="literalblock kroki-error">
 <div class="content">
-<img src="../../../_images/diag-33412e17b2bcfe88a8e185a846ec073a5f9cdc41.svg" alt="Diagram" />
+<pre>digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+  &quot;bar.sourceRoots.super&quot; -&gt; &quot;bar.sourceRoots&quot; -&gt; &quot;bar.sourceContents&quot;
+  &quot;bar.additionalSources&quot; -&gt; &quot;bar.sourceRoots&quot;
+}</pre>
 </div>
 </div>
 <div class="listingblock">
