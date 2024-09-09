@@ -228,10 +228,6 @@ object `package` extends RootModule {
     def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib)
   }
 
-  object checkstyle extends ContribModule {
-    def compileModuleDeps = Seq(build.scalalib)
-    def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib)
-
   object errorprone extends ContribModule with BuildInfo {
     def compileModuleDeps = Seq(build.scalalib)
     def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib)
