@@ -23,6 +23,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Jobs are listed in rough order of priority: if multiple jobs fail, the first job
+  # in the list should be the one that's most worth looking into
   build-linux:
     uses: ./.github/workflows/run-mill-action.yml
     with:
@@ -45,38 +47,6 @@ jobs:
         with: { fetch-depth: 0 }
 
       - run: ./mill -i docs.githubPages
-
-  compiler-bridge:
-    needs: build-linux
-    uses: ./.github/workflows/run-mill-action.yml
-    with:
-      java-version: '11'
-      millargs: bridge.__.publishLocal
-      env-bridge-versions: 'essential'
-
-  lint-autofix:
-    needs: build-linux
-    uses: ./.github/workflows/run-mill-action.yml
-    with:
-      java-version: '11'
-      buildcmd: ./mill -i mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources + __.mimaReportBinaryIssues + __.fix --check
-
-  itest:
-    needs: build-linux
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          # bootstrap tests
-          - java-version: '11' # Have one job on oldest JVM
-            buildcmd: ci/test-mill-dev.sh && ci/test-mill-release.sh && ./mill -i -k __.ivyDepsTree && ./mill -i -k __.ivyDepsTree --withRuntime
-          - java-version: 17 # Have one job on default JVM
-            buildcmd: ci/test-mill-bootstrap.sh
-
-    uses: ./.github/workflows/run-mill-action.yml
-    with:
-      java-version: ${{ matrix.java-version }}
-      buildcmd: ${{ matrix.buildcmd }}
 
   linux:
     needs: build-linux
@@ -148,3 +118,38 @@ jobs:
       os: windows-latest
       java-version: ${{ matrix.java-version }}
       millargs: ${{ matrix.millargs }}
+
+  itest:
+    needs: build-linux
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # bootstrap tests
+          - java-version: '11' # Have one job on oldest JVM
+            buildcmd: ci/test-mill-dev.sh && ci/test-mill-release.sh && ./mill -i -k __.ivyDepsTree && ./mill -i -k __.ivyDepsTree --withRuntime
+          - java-version: 17 # Have one job on default JVM
+            buildcmd: ci/test-mill-bootstrap.sh
+
+    uses: ./.github/workflows/run-mill-action.yml
+    with:
+      java-version: ${{ matrix.java-version }}
+      buildcmd: ${{ matrix.buildcmd }}
+
+  # Rarely breaks so run it near the end
+  compiler-bridge:
+    needs: build-linux
+    uses: ./.github/workflows/run-mill-action.yml
+    with:
+      java-version: '11'
+      millargs: bridge.__.publishLocal
+      env-bridge-versions: 'essential'
+
+  # Scalafmt, Mima, and Scalafix job runs last because it's the least important:
+  # usually just a automated or mechanical manual fix to do before merging
+  lint-autofix:
+    needs: build-linux
+    uses: ./.github/workflows/run-mill-action.yml
+    with:
+      java-version: '11'
+      buildcmd: ./mill -i mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources + __.mimaReportBinaryIssues + __.fix --check
