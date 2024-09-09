@@ -24,6 +24,7 @@ import mill.scalanativelib.api._
 import mill.scalanativelib.worker.{ScalaNativeWorkerExternalModule, api => workerApi}
 import mill.T
 import mill.api.PathRef
+import mill.main.client.EnvVars
 
 trait ScalaNativeModule extends ScalaModule { outer =>
   def scalaNativeVersion: T[String]
@@ -352,7 +353,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
 
     val (close, framework) = scalaNativeBridge().getFramework(
       nativeLink().toIO,
-      forkEnv(),
+      forkEnv() ++ Map(EnvVars.MILL_TEST_RESOURCE_FOLDER -> resources().map(_.path).mkString(";")),
       toWorkerApi(logLevel()),
       testFramework()
     )
