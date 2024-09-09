@@ -10,10 +10,16 @@ For more details about coursier, refer to the {link-coursier-doc}[coursier docum
 
 == Dependencies in General
 
-Mill dependencies have the form:
+Mill dependencies have the simple form:
 
 ----
 ivy"{organization}:{name}:{version}"
+----
+
+Additional attributes are also supported:
+
+----
+ivy"{organization}:{name}:{version}[;{attribute}={value}]*"
 ----
 
 When working in other Java and Scala projects, you will find some synonyms, which typically all mean the same.
@@ -225,6 +231,15 @@ def deps = Agg(
 
 You can also use `.excludeOrg` or `excludeName`:
 
+There is also a short notation available:
+
+.Example: Shot notation to exclude `fansi_2.12` library from transitive dependency set of `pprint`.
+[source,scala]
+----
+def deps = Agg(
+  ivy"com.lihaoyi::pprint:0.5.3;exclude=com.lihaoyi:fansi_2.12"
+)
+----
 
 .Example: Exclude all `com.lihaoyi` libraries from transitive dependency set of `pprint`.
 [source,scala]

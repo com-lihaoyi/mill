@@ -106,14 +106,17 @@ object Dep {
   implicit def parse(signature: String): Dep = {
     val parts = signature.split(';')
     val module = parts.head
+    var exclusions = Seq.empty[(String, String)]
     val attributes = parts.tail.foldLeft(coursier.Attributes()) { (as, s) =>
       s.split('=') match {
         case Array("classifier", v) => as.withClassifier(coursier.Classifier(v))
         case Array("type", v) => as.withType(coursier.Type(v))
+        case Array("exclude", s"${org}:${name}") => exclusions ++= Seq((org, name)); as
         case Array(k, v) => throw new Exception(s"Unrecognized attribute: [$s]")
         case _ => throw new Exception(s"Unable to parse attribute specifier: [$s]")
       }
     }
+
     (module.split(':') match {
       case Array(a, b, c) => Dep(a, b, c, cross = empty(platformed = false))
       case Array(a, b, "", c) => Dep(a, b, c, cross = empty(platformed = true))
@@ -122,7 +125,9 @@ object Dep {
       case Array(a, "", "", b, c) => Dep(a, b, c, cross = Full(platformed = false))
       case Array(a, "", "", b, "", c) => Dep(a, b, c, cross = Full(platformed = true))
       case _ => throw new Exception(s"Unable to parse signature: [$signature]")
-    }).configure(attributes = attributes)
+    })
+      .exclude(exclusions.sorted: _*)
+      .configure(attributes = attributes)
   }
 
   @unused private implicit val depFormat: RW[Dependency] = mill.scalalib.JsonFormatters.depFormat
@@ -141,7 +146,11 @@ object Dep {
       case "" => ""
       case s => s";type=$s"
     }
-    val attrs = classifierAttr + typeAttr
+
+    val excludeAttr =
+      dep.dep.exclusions().toSeq.sorted.map(e => s";exclude=${e._1.value}:${e._2.value}").mkString
+
+    val attrs = classifierAttr + typeAttr + excludeAttr
 
     val prospective = dep.cross match {
       case CrossVersion.Constant("", false) => Some(s"$org:$mod:$ver$attrs")
