@@ -177,7 +177,7 @@ object HelloNativeWorldTests extends TestSuite {
       val argParserTests = resultMap("hellotest.ArgsParserTests")
 
       assert(
-        mainTests.size == 2,
+        mainTests.size == 3,
         mainTests("hellotest.MainTests.vmName.containNative").status == "Success",
         mainTests("hellotest.MainTests.vmName.containScala").status == "Success",
         argParserTests.size == 2,
