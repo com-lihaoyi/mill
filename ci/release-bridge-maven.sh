@@ -11,8 +11,6 @@ rm gpg_key
 # Build all artifacts
 ./mill -i __.publishArtifacts
 
-export MILL_BUILD_COMPILER_BRIDGES=true
-
 # Publish all artifacts
 ./mill -i \
     mill.scalalib.PublishModule/publishAll \

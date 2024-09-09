@@ -124,6 +124,53 @@ object Dep {
       case _ => throw new Exception(s"Unable to parse signature: [$signature]")
     }).configure(attributes = attributes)
   }
+
+  @unused private implicit val depFormat: RW[Dependency] = mill.scalalib.JsonFormatters.depFormat
+
+  def unparse(dep: Dep): Option[String] = {
+    val org = dep.dep.module.organization.value
+    val mod = dep.dep.module.name.value
+    val ver = dep.dep.version
+
+    val classifierAttr = dep.dep.attributes.classifier.value match {
+      case "" => ""
+      case s => s";classifier=$s"
+    }
+
+    val typeAttr = dep.dep.attributes.`type`.value match {
+      case "" => ""
+      case s => s";type=$s"
+    }
+    val attrs = classifierAttr + typeAttr
+
+    val prospective = dep.cross match {
+      case CrossVersion.Constant("", false) => Some(s"$org:$mod:$ver$attrs")
+      case CrossVersion.Constant("", true) => Some(s"$org:$mod::$ver$attrs")
+      case CrossVersion.Binary(false) => Some(s"$org::$mod:$ver$attrs")
+      case CrossVersion.Binary(true) => Some(s"$org::$mod::$ver$attrs")
+      case CrossVersion.Full(false) => Some(s"$org:::$mod:$ver$attrs")
+      case CrossVersion.Full(true) => Some(s"$org:::$mod::$ver$attrs")
+      case CrossVersion.Constant(v, _) => None
+    }
+
+    prospective.filter(parse(_) == dep)
+  }
+  private val rw0: RW[Dep] = macroRW
+
+  // Use literal JSON strings for common cases so that files
+  // containing serialized dependencies can be easier to skim
+  implicit val rw: RW[Dep] = upickle.default.readwriter[ujson.Value].bimap[Dep](
+    (dep: Dep) =>
+      unparse(dep) match {
+        case Some(s) => ujson.Str(s)
+        case None => upickle.default.writeJs[Dep](dep)(rw0)
+      },
+    {
+      case s: ujson.Str => parse(s.value)
+      case v: ujson.Value => upickle.default.read[Dep](v)(rw0)
+    }
+  )
+
   def apply(
       org: String,
       name: String,
@@ -140,8 +187,7 @@ object Dep {
       force
     )
   }
-  @unused private implicit val depFormat: RW[Dependency] = mill.scalalib.JsonFormatters.depFormat
-  implicit def rw: RW[Dep] = macroRW
+
 }
 
 sealed trait CrossVersion {
@@ -213,5 +259,26 @@ case class BoundDep(
 
 object BoundDep {
   @unused private implicit val depFormat: RW[Dependency] = mill.scalalib.JsonFormatters.depFormat
-  implicit val jsonify: upickle.default.ReadWriter[BoundDep] = upickle.default.macroRW
+  private val jsonify0: upickle.default.ReadWriter[BoundDep] = upickle.default.macroRW
+
+  // Use literal JSON strings for common cases so that files
+  // containing serialized dependencies can be easier to skim
+  //
+  // `BoundDep` is basically a `Dep` with `cross=CrossVersion.Constant("", false)`,
+  // so we can re-use most of `Dep`'s serialization logic
+  implicit val jsonify: upickle.default.ReadWriter[BoundDep] =
+    upickle.default.readwriter[ujson.Value].bimap[BoundDep](
+      bdep => {
+        Dep.unparse(Dep(bdep.dep, CrossVersion.Constant("", false), bdep.force)) match {
+          case None => upickle.default.writeJs(bdep)(jsonify0)
+          case Some(s) => ujson.Str(s)
+        }
+      },
+      {
+        case ujson.Str(s) =>
+          val dep = Dep.parse(s)
+          BoundDep(dep.dep, dep.force)
+        case v => upickle.default.read[BoundDep](v)(jsonify0)
+      }
+    )
 }

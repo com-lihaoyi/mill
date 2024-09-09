@@ -1,5 +1,5 @@
-package build
 //// SNIPPET:BUILD
+package build
 import mill._, javalib._, publish._
 
 object foo extends JavaModule with PublishModule {

@@ -41,7 +41,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
       def contextLoggerMsg(threadId: Int) =
         if (effectiveThreadCount == 1) ""
-        else s"[#${if (effectiveThreadCount > 9) f"$threadId%02d" else threadId}] "
+        else s"#${if (effectiveThreadCount > 9) f"$threadId%02d" else threadId} "
 
       try evaluate0(goals, logger, reporter, testReporter, ec, contextLoggerMsg, serialCommandExec)
       finally ec.close()

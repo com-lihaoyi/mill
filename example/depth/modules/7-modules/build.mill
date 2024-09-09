@@ -1,10 +1,9 @@
-package build
 // == Simple Modules
 //
 // The path to a Mill module from the root of your build file corresponds to the
 // path you would use to run tasks within that module from the command line. e.g.
 // for the following `build.mill`:
-
+package build
 import mill._
 
 object foo extends Module {

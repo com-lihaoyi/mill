@@ -1,4 +1,3 @@
-package build
 // Mill workers defined using `T.worker` are long-lived in-memory objects that
 // can persistent across multiple evaluations. These are similar to persistent
 // targets in that they let you cache things, but the fact that they let you
@@ -6,7 +5,7 @@ package build
 // flexibility: you are no longer limited to caching only serializable data
 // and paying the cost of serializing it to disk every evaluation. This example
 // uses a Worker to provide simple in-memory caching for compressed files.
-
+package build
 import mill._, scalalib._
 import java.util.Arrays
 import java.io.ByteArrayOutputStream

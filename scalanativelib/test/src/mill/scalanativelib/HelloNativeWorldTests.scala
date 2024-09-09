@@ -87,8 +87,7 @@ object HelloNativeWorldTests extends TestSuite {
           scalaVersion: String,
           scalaNativeVersion: String,
           mode: ReleaseMode
-      ): Unit = {
-        val eval = UnitTester(HelloNativeWorld, millSourcePath)
+      ): Unit = UnitTester(HelloNativeWorld, millSourcePath).scoped { eval =>
         val Right(result) =
           eval(HelloNativeWorld.build(
             scalaVersion,
@@ -120,8 +119,7 @@ object HelloNativeWorldTests extends TestSuite {
     }
 
     test("jar") {
-      test("containsNirs") {
-        val eval = UnitTester(HelloNativeWorld, millSourcePath)
+      test("containsNirs") - UnitTester(HelloNativeWorld, millSourcePath).scoped { eval =>
         val Right(result) =
           eval(HelloNativeWorld.build(
             scala213,
@@ -139,8 +137,7 @@ object HelloNativeWorldTests extends TestSuite {
           scalaNativeVersion: String,
           mode: ReleaseMode,
           artifactId: String
-      ): Unit = {
-        val eval = UnitTester(HelloNativeWorld, millSourcePath)
+      ): Unit = UnitTester(HelloNativeWorld, millSourcePath).scoped { eval =>
         val Right(result) = eval(
           HelloNativeWorld.build(
             scalaVersion,
@@ -153,17 +150,17 @@ object HelloNativeWorldTests extends TestSuite {
     }
 
     def runTests(testTask: define.NamedTask[(String, Seq[TestResult])])
-        : Map[String, Map[String, TestResult]] = {
-      val eval = UnitTester(HelloNativeWorld, millSourcePath)
-      val Left(Result.Failure(_, Some(res))) = eval(testTask)
+        : Map[String, Map[String, TestResult]] =
+      UnitTester(HelloNativeWorld, millSourcePath).scoped { eval =>
+        val Left(Result.Failure(_, Some(res))) = eval(testTask)
 
-      val (doneMsg, testResults) = res
-      testResults
-        .groupBy(_.fullyQualifiedName)
-        .view
-        .mapValues(_.map(e => e.selector -> e).toMap)
-        .toMap
-    }
+        val (doneMsg, testResults) = res
+        testResults
+          .groupBy(_.fullyQualifiedName)
+          .view
+          .mapValues(_.map(e => e.selector -> e).toMap)
+          .toMap
+      }
 
     def checkUtest(
         scalaVersion: String,
@@ -203,31 +200,31 @@ object HelloNativeWorldTests extends TestSuite {
       )
     }
 
-    def checkRun(scalaVersion: String, scalaNativeVersion: String, mode: ReleaseMode): Unit = {
-      val eval = UnitTester(HelloNativeWorld, millSourcePath)
-      val task =
-        HelloNativeWorld.build(scalaVersion, scalaNativeVersion, mode).nativeLink
-      val Right(result) = eval(task)
+    def checkRun(scalaVersion: String, scalaNativeVersion: String, mode: ReleaseMode): Unit =
+      UnitTester(HelloNativeWorld, millSourcePath).scoped { eval =>
+        val task =
+          HelloNativeWorld.build(scalaVersion, scalaNativeVersion, mode).nativeLink
+        val Right(result) = eval(task)
 
-      val paths = EvaluatorPaths.resolveDestPaths(eval.outPath, task)
-      val stdout = os.proc(paths.dest / "out").call().out.lines()
-      assert(
-        stdout.contains("Hello Scala Native"),
-        result.evalCount > 0
-      )
-    }
+        val paths = EvaluatorPaths.resolveDestPaths(eval.outPath, task)
+        val stdout = os.proc(paths.dest / "out").call().out.lines()
+        assert(
+          stdout.contains("Hello Scala Native"),
+          result.evalCount > 0
+        )
+      }
 
     test("run") {
       testAllMatrix((scala, scalaNative, releaseMode) => checkRun(scala, scalaNative, releaseMode))
     }
 
-    def checkInheritedTargets[A](target: ScalaNativeModule => T[A], expected: A) = {
-      val eval = UnitTester(HelloNativeWorld, millSourcePath)
-      val Right(mainResult) = eval(target(HelloNativeWorld.inherited))
-      val Right(testResult) = eval(target(HelloNativeWorld.inherited.test))
-      assert(mainResult.value == expected)
-      assert(testResult.value == expected)
-    }
+    def checkInheritedTargets[A](target: ScalaNativeModule => T[A], expected: A) =
+      UnitTester(HelloNativeWorld, millSourcePath).scoped { eval =>
+        val Right(mainResult) = eval(target(HelloNativeWorld.inherited))
+        val Right(testResult) = eval(target(HelloNativeWorld.inherited.test))
+        assert(mainResult.value == expected)
+        assert(testResult.value == expected)
+      }
     test("test-scalacOptions") {
       checkInheritedTargets(_.scalacOptions, Seq("-deprecation"))
     }

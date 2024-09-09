@@ -4,19 +4,27 @@ import coursier.cache.ArtifactError
 import coursier.parse.RepositoryParser
 import coursier.util.{Gather, Task}
 import coursier.{Dependency, Repository, Resolution}
-import mill.api.{Ctx, PathRef, Result}
+import mill.api.{Ctx, PathRef, Result, Retry}
 import mill.api.Loose.Agg
+
 import java.io.File
-import java.nio.file.NoSuchFileException
-import scala.annotation.tailrec
 import scala.collection.mutable
-import scala.util.{Failure, Success, Try}
 
 trait CoursierSupport {
   import CoursierSupport._
 
   private val CoursierRetryCount = 5
-  private val CoursierRetryWait = 100
+
+  private def retryableCoursierError(s: String) = s match {
+    case s"${_}concurrent download${_}" => true
+    case s"${_}checksum not found${_}" => true
+    case s"${_}download error${_}" => true
+    case s"${_}(Access is denied)${_}" => true
+    case s"${_}The process cannot access the file because it is being used by another process${_}" =>
+      true
+    case s"${_}->${_}__sha1.computed" => true
+    case _ => false
+  }
 
   /**
    * Somewhat generic way to retry some action and a Workaround for https://github.com/com-lihaoyi/mill/issues/1028
@@ -30,49 +38,25 @@ trait CoursierSupport {
    * @tparam T The result type of the computation
    * @return The result of the computation. If the computation was retries and finally succeeded, proviously occured errors will not be included in the result.
    */
-  @tailrec
   private def retry[T](
       retryCount: Int = CoursierRetryCount,
-      ctx: Option[Ctx.Log],
+      debug: String => Unit,
       errorMsgExtractor: T => Seq[String]
-  )(f: () => T): T = {
-    val tried = Try(f())
-    tried match {
-      case Failure(e)
-          if retryCount > 0
-            && e.getMessage.contains("__sha1.computed")
-            && (e.isInstanceOf[NoSuchFileException] || e.isInstanceOf[
-              java.nio.file.AccessDeniedException
-            ]) =>
-        // this one is not detected by coursier itself, so we try-catch handle it
-        // I assume, this happens when another coursier thread already moved or rename dthe temporary file
-        ctx.foreach(_.log.debug(
-          s"Detected a concurrent download issue in coursier. Attempting a retry (${retryCount} left)"
-        ))
-        Thread.sleep(CoursierRetryWait)
-        retry(retryCount - 1, ctx, errorMsgExtractor)(f)
-      case Success(res) if retryCount > 0 =>
-        val errors = errorMsgExtractor(res)
-        if (errors.exists(e => e.contains("concurrent download"))) {
-          ctx.foreach(_.log.debug(
-            s"Detected a concurrent download issue in coursier. Attempting a retry (${retryCount} left)"
-          ))
-          Thread.sleep(CoursierRetryWait)
-          retry(retryCount - 1, ctx, errorMsgExtractor)(f)
-        } else if (errors.exists(e => e.contains("checksum not found"))) {
-          ctx.foreach(_.log.debug(
-            s"Detected a checksum download issue in coursier. Attempting a retry (${retryCount} left)"
-          ))
-          Thread.sleep(CoursierRetryWait)
-          retry(retryCount - 1, ctx, errorMsgExtractor)(f)
-        } else if (errors.exists(e => e.contains("download error"))) {
-          ctx.foreach(_.log.debug(
-            s"Detected a download error by coursier. Attempting a retry (${retryCount} left)"
-          ))
-          Thread.sleep(CoursierRetryWait)
-          retry(retryCount - 1, ctx, errorMsgExtractor)(f)
-        } else res
-      case r => r.get
+  )(f: () => T): T = Retry(
+    count = retryCount,
+    filter = { (i, ex) =>
+      if (!retryableCoursierError(ex.getMessage)) false
+      else {
+        debug(s"Attempting to retry coursier failure (${i} left): ${ex.getMessage}")
+        true
+      }
+    }
+  ) {
+    val res = f()
+    val errors = errorMsgExtractor(res)
+    errors.filter(retryableCoursierError) match {
+      case Nil => res
+      case retryable => throw new Exception(retryable.mkString("\n"))
     }
   }
 
@@ -188,7 +172,7 @@ trait CoursierSupport {
         )
 
       val (errors, successes) = retry(
-        ctx = ctx,
+        debug = ctx.map(c => c.log.debug(_)).getOrElse(_ => ()),
         errorMsgExtractor = (res: (Seq[ArtifactError], Seq[File])) => res._1.map(_.describe)
       ) {
         () => load(sourceOrJar)
@@ -259,7 +243,10 @@ trait CoursierSupport {
     import scala.concurrent.ExecutionContext.Implicits.global
 
     val resolution =
-      retry(ctx = ctx, errorMsgExtractor = (r: Resolution) => r.errors.flatMap(_._2)) {
+      retry(
+        debug = ctx.map(c => c.log.debug(_)).getOrElse(_ => ()),
+        errorMsgExtractor = (r: Resolution) => r.errors.flatMap(_._2)
+      ) {
         () => start.process.run(fetch).unsafeRun()
       }
 

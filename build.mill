@@ -147,9 +147,8 @@ object Deps {
 
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.3"
   val commonsIO = ivy"commons-io:commons-io:2.16.1"
-  val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.8.0"
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.23.1"
-  val osLib = ivy"com.lihaoyi::os-lib:0.10.5"
+  val osLib = ivy"com.lihaoyi::os-lib:0.10.7-M1"
   val pprint = ivy"com.lihaoyi::pprint:0.9.0"
   val mainargs = ivy"com.lihaoyi::mainargs:0.7.4"
   val millModuledefsVersion = "0.11.0-M2"
@@ -192,9 +191,10 @@ object Deps {
   val sonatypeCentralClient = ivy"com.lumidion::sonatype-central-client-requests:0.3.0"
 
   object RuntimeDeps {
-    val sbtTestInterface = ivy"com.github.sbt:junit-interface:0.13.2"
+    val errorProneCore = ivy"com.google.errorprone:error_prone_core:2.31.0"
     val jupiterInterface = ivy"com.github.sbt.junit:jupiter-interface:0.11.4"
-    def all = Seq(sbtTestInterface, jupiterInterface)
+    val sbtTestInterface = ivy"com.github.sbt:junit-interface:0.13.2"
+    def all = Seq(errorProneCore, jupiterInterface, sbtTestInterface)
   }
 
   /** Used to manage transitive versions. */
@@ -731,6 +731,7 @@ object dist0 extends MillPublishJavaModule {
     build.contrib.jmh.testDep(),
     build.contrib.playlib.testDep(),
     build.contrib.playlib.worker("2.8").testDep(),
+    build.contrib.errorprone.testDep(),
     build.bsp.worker.testDep(),
     build.testkit.testDep()
   )

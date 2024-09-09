@@ -4,8 +4,6 @@ import mill.eval.Evaluator
 import mill.resolve.SelectMode
 import ujson.Value
 
-import scala.util.control.NonFatal
-
 /**
  * Helper meant for executing Mill integration tests, which runs Mill in a subprocess
  * against a folder with a `build.mill` and project files. Provides APIs such as [[eval]]
@@ -24,7 +22,8 @@ class IntegrationTester(
     val clientServerMode: Boolean,
     val workspaceSourcePath: os.Path,
     val millExecutable: os.Path,
-    override val debugLog: Boolean = false
+    override val debugLog: Boolean = false,
+    val baseWorkspacePath: os.Path = os.pwd
 ) extends IntegrationTester.Impl {
   initWorkspace()
 }
@@ -141,19 +140,18 @@ object IntegrationTester {
     override def close(): Unit = {
       if (clientServerMode) {
         // try to stop the server
-        try {
-          os.call(
-            cmd = (millExecutable, "shutdown"),
-            cwd = workspacePath,
-            stdin = os.Inherit,
-            stdout = os.Inherit,
-            stderr = os.Inherit,
-            env = millTestSuiteEnv
-          )
-        } catch {
-          case NonFatal(e) =>
-        }
+        os.call(
+          cmd = (millExecutable, "shutdown"),
+          cwd = workspacePath,
+          stdin = os.Inherit,
+          stdout = os.Inherit,
+          stderr = os.Inherit,
+          env = millTestSuiteEnv,
+          check = false
+        )
       }
+
+      removeServerIdFile()
     }
   }
 

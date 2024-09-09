@@ -1,4 +1,3 @@
-package build
 // There are three primary kinds of _Tasks_ that you should care about:
 //
 // * <<_sources>>, defined using `T.sources {...}`
@@ -6,7 +5,7 @@ package build
 // * <<_commands>>, defined using `T.command {...}`
 
 // === Sources
-
+package build
 
 import mill.{Module, T, _}
 

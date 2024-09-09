@@ -108,7 +108,8 @@ trait JavaModule
           case mains =>
             Left(
               s"Multiple main classes found (${mains.mkString(",")}) " +
-                "please explicitly specify which one to use by overriding mainClass"
+                "please explicitly specify which one to use by overriding `mainClass` " +
+                "or using `runMain <main-class> <...args>` instead of `run`"
             )
         }
     }
@@ -907,6 +908,7 @@ trait JavaModule
     super.run(args)
   }
 
+  @deprecated("Binary compat shim, use `.runner().run(..., background=true)`", "Mill 0.12.0")
   override protected def doRunBackground(
       taskDest: Path,
       runClasspath: Seq[PathRef],
