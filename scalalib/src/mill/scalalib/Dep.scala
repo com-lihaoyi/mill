@@ -124,6 +124,46 @@ object Dep {
       case _ => throw new Exception(s"Unable to parse signature: [$signature]")
     }).configure(attributes = attributes)
   }
+
+  @unused private implicit val depFormat: RW[Dependency] = mill.scalalib.JsonFormatters.depFormat
+
+  def unparse(dep: Dep): Option[String] = {
+    val org = dep.dep.module.organization.value
+    val mod = dep.dep.module.name.value
+    val ver = dep.dep.version
+
+    val classifierAttr = dep.dep.attributes.classifier.value match{
+      case "" => ""
+      case s => s";classifier=$s"
+    }
+
+    val typeAttr = dep.dep.attributes.`type`.value match{
+      case "" => ""
+      case s => s";type=$s"
+    }
+    val attrs = classifierAttr + typeAttr
+
+    val prospective = dep.cross match{
+      case CrossVersion.Constant("", false) => s"$org:$mod:$ver$attrs"
+      case CrossVersion.Constant("", true) => s"$org:$mod::$ver$attrs"
+      case CrossVersion.Binary(false) => s"$org::$mod:$ver$attrs"
+      case CrossVersion.Binary(true) => s"$org::$mod::$ver$attrs"
+      case CrossVersion.Full(false) => s"$org:::$mod:$ver$attrs"
+      case CrossVersion.Full(true) => s"$org:::$mod::$ver$attrs"
+      case CrossVersion.Constant(v, _) => ""
+    }
+
+    Option.when(parse(prospective) == dep)(prospective)
+  }
+  val rw0: RW[Dep] = macroRW
+  implicit val rw: RW[Dep] = upickle.default.readwriter[ujson.Value].bimap[Dep](
+    (dep: Dep) => unparse(dep).map(ujson.Str(_)).getOrElse(upickle.default.writeJs[Dep](dep)(rw0)),
+    {
+      case s: ujson.Str => parse(s.value)
+      case v: ujson.Value => upickle.default.read[Dep](v)(rw0)
+    }
+  )
+
   def apply(
       org: String,
       name: String,
@@ -140,8 +180,7 @@ object Dep {
       force
     )
   }
-  @unused private implicit val depFormat: RW[Dependency] = mill.scalalib.JsonFormatters.depFormat
-  implicit def rw: RW[Dep] = macroRW
+
 }
 
 sealed trait CrossVersion {
