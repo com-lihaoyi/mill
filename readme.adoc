@@ -299,23 +299,28 @@ endif::[]
 :link-milestone: {link-github}/milestone
 // find-replace-regex: https://github.com/com-lihaoyi/mill/pull/(\d*) -> {link-pr}/$1[#$1]
 
+[#0-12-0-RC1]
+=== 0.12.0-RC1
 
-[#main]
-=== main branch
+The upcoming 0.12.0 release focuses on improving the scalability of Mill builds: in terms
+of performance, code organization, adherence to best practices, and community. Notably:
 
-The upcoming 0.12.0 release is intended to bundle together breaking changes we
-need to do that do not break binary compatibility. It is expected to be followed by 0.13.x,
-which will contain further changes that _do_ break binary compatibility. Due to binary 
-compatibility, Mill plugins published for Mill 0.11.x can continue to be used without updating 
-them. 
+1. Mill runs tasks parallel by default, with an opt-out.
+2. Mill now allows for https://mill-build.org/mill/Structuring_Large_Builds.html[Modularizing Large Builds]
+   into multiple `package.mill` files, to help support large codebases
+3. Mill runs itself, tasks, and tests in https://mill-build.org/mill/Mill_Sandboxing.html[Mill Sandbox Folders]
+   by default to mitigate the risk of filesystem-based race conditions due to parallelism
+4. Mill now provides official support for
+   https://mill-build.org/mill/Writing_Mill_Plugins.html[Writing Mill Plugins], with tested
+   workflows and an official testkit to help you write and publish your own Mill plugins for others
+   to use
 
-Despite being binary compatible, 0.12.0 is a major release, and it should be expected to take
-some work to upgrade to. The breaking changes are listed below, with instructions provided on 
-how to either disable the breaking change with a flag or adjust your code to accommodate it. 
-
+0.12.x is binary compatible with 0.11.x, and so Mill plugins published for Mill 0.11.x can
+continue to be used without updating them. Although binary compatible, Mill 0.12.x does
+have breaking changes listed below with instructions provided on how to either disable the
+breaking change with a flag or adjust your code to accommodate it.
 
 * *Breaking Changes*
-
 
 ** Build file overhaul: Mill's build file management has been overhauled to better support 
 large projects. See https://mill-build.org/mill/Structuring_Large_Builds.html[Structuring Large Builds]
@@ -328,6 +333,9 @@ configs to `.mill` files to benefit from Mill's improved IDE experience going fo
 
 *** The `build.sc` file has been renamed `build.mill` to prevent confusion with Ammonite/Scala-CLI scripts,
 and all associated `.sc` files have been renamed to `.mill`.
+
+**** Until IntelliJ-Scala adds support for `.mill` files built in, you can add it yourself via
+`Settings / Editor / File Types / Scala` and add the pattern `*.mill`
 
 *** All `.mill` files must have a `package` declaration,
 with `package build` for `.mill` files in the root folder and `package build.foo.bar` for `.mill` files in `foo/bar/`.
