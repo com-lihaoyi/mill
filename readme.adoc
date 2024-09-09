@@ -302,13 +302,21 @@ endif::[]
 === 0.12.0-RC1 - 2024-09-09
 
 The upcoming 0.12.0 release focuses on improving the scalability of Mill builds: in terms
-of performance, code organization, adherence to best practices, and community. Notably:
+of performance, code organization, adherence to best practices, and community. RC1 is intended
+to give people a time to try out the major changes so that any issues can be resolved before the
+release of 0.12.0 final (targeting end-September 2024).
 
-1. Mill now runs tasks parallel by default, with an opt-out.
+Major changes:
+
+1. Mill now runs tasks parallel by default, rather than opt-in. As every computer is multicore these days, and
+   even laptops have 8-12 cores, Mill ensures you make the most of them when building your projects
+
 2. Mill now allows for https://mill-build.org/mill/Structuring_Large_Builds.html[Modularizing Large Builds]
    into multiple `package.mill` files, to help support large codebases
+
 3. Mill now runs itself, tasks, and tests in https://mill-build.org/mill/Mill_Sandboxing.html[Sandbox Folders]
    by default to mitigate the risk of filesystem-based race conditions due to parallelism
+
 4. Mill now provides official support for
    https://mill-build.org/mill/Writing_Mill_Plugins.html[Writing Mill Plugins], with tested
    workflows and an official testkit to help you write and publish your own Mill plugins for others
