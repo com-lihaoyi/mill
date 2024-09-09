@@ -1,5 +1,5 @@
 package build
-import mill._, scalalib._
+import mill._, javalib._
 import $ivy.`com.lihaoyi::mill-contrib-checkstyle:`
 
 import mill.contrib.checkstyle._
