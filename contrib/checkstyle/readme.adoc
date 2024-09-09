@@ -7,16 +7,17 @@ Transformations to be applied on the Checkstyle report are detected automaticall
 [source,scala]
 ----
 /*
+
 Directory structure:
 
-  checkstyle
-    ├─ html
-    │   ├─ xslt0.xml
-    │   └─ xslt1.xml
-    ├─ pdf
-    │   ├─ xslt1.xml
-    │   └─ xslt2.xml
-    └─ config.xml
+   checkstyle
+       ├─ html
+       │   ├─ xslt0.xml
+       │   └─ xslt1.xml
+       ├─ pdf
+       │   ├─ xslt1.xml
+       │   └─ xslt2.xml
+       └─ config.xml
 
 Transformations:
 
@@ -24,7 +25,8 @@ Transformations:
  - checkstyle/html/xslt1.xml -> xslt1.html
  - checkstyle/pdf/xslt1.xml  -> xslt1.pdf
  - checkstyle/pdf/xslt2.xml  -> xslt2.pdf
- */
+
+*/
 ----
 
 == Usage
