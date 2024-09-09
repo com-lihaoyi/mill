@@ -68,12 +68,11 @@ To begin, you just need a JVM installed, and the
 
 == IntelliJ Setup
 
-If you are using IntelliJ IDEA to edit Mill's Scala code, you can create the IntelliJ project files via:
+If you are using IntelliJ IDEA to edit Mill's Scala code, IntelliJ's built in BSP support should
+be sufficient to load the Mill project, but you need to set up the file association from
+`*.mill` as Scala source files manually in the following settings:
 
-[source,bash]
-----
-./mill -j 0 mill.idea.GenIdea/idea
-----
+* `Settings` / `Editor` / `File Types` / `Scala`, add the pattern `*.mill`
 
 == Manual & Automated Testing
 
@@ -300,16 +299,24 @@ endif::[]
 // find-replace-regex: https://github.com/com-lihaoyi/mill/pull/(\d*) -> {link-pr}/$1[#$1]
 
 [#0-12-0-RC1]
-=== 0.12.0-RC1
+=== 0.12.0-RC1 - 2024-09-09
 
 The upcoming 0.12.0 release focuses on improving the scalability of Mill builds: in terms
-of performance, code organization, adherence to best practices, and community. Notably:
+of performance, code organization, adherence to best practices, and community. RC1 is intended
+to give people a time to try out the major changes so that any issues can be resolved before the
+release of 0.12.0 final (targeting end-September 2024).
 
-1. Mill runs tasks parallel by default, with an opt-out.
+Major changes:
+
+1. Mill now runs tasks parallel by default, rather than opt-in. As every computer is multicore these days, and
+   even laptops have 8-12 cores, Mill ensures you make the most of them when building your projects
+
 2. Mill now allows for https://mill-build.org/mill/Structuring_Large_Builds.html[Modularizing Large Builds]
    into multiple `package.mill` files, to help support large codebases
-3. Mill runs itself, tasks, and tests in https://mill-build.org/mill/Mill_Sandboxing.html[Mill Sandbox Folders]
+
+3. Mill now runs itself, tasks, and tests in https://mill-build.org/mill/Mill_Sandboxing.html[Sandbox Folders]
    by default to mitigate the risk of filesystem-based race conditions due to parallelism
+
 4. Mill now provides official support for
    https://mill-build.org/mill/Writing_Mill_Plugins.html[Writing Mill Plugins], with tested
    workflows and an official testkit to help you write and publish your own Mill plugins for others
@@ -419,6 +426,13 @@ on large projects {link-pr}/3388[#3388]
 prefixed with `show` and no longer need a separate `graphviz`/`dot` install on Mac-OSX
 {link-pr}/3438[#3438]
 
+* *Example Upgrade PRs*
+
+** The following PRs are example upgrades of Mill from 0.11.x to 0.12.0-RC1 for various projects in the `com.lihaoyi` ecosystem. 
+
+*** Trivial upgrades that just needed to bump a version: https://github.com/com-lihaoyi/geny/pull/87 , https://github.com/com-lihaoyi/sourcecode/pull/175, https://github.com/com-lihaoyi/fansi/pull/107, https://github.com/com-lihaoyi/PPrint/pull/141, https://github.com/com-lihaoyi/mainargs/pull/159/files, https://github.com/com-lihaoyi/fastparse/pull/319, https://github.com/com-lihaoyi/scalatags/pull/284
+
+*** Less trivial upgrades, needing to make use of `MILL_TEST_RESOURCE_FOLDER` or other explicit path references to be compatible with test sandboxing: https://github.com/com-lihaoyi/requests-scala/pull/174, https://github.com/com-lihaoyi/upickle/pull/627, https://github.com/com-lihaoyi/os-lib/pull/300
 
 [#0-11-12]
 === 0.11.12 - 2024-08-20
