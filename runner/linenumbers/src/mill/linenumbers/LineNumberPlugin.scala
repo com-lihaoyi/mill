@@ -30,7 +30,7 @@ class LineNumberPlugin(val global: Global) extends Plugin {
 
 object LineNumberPlugin {
   def apply(g: Global)(unit: g.CompilationUnit): Unit = {
-    if (buildFileExtensions.exists(g.currentSource.file.hasExtension(_))) {
+    if (buildFileExtensions.exists(ex => g.currentSource.file.name.endsWith(s".$ex"))) {
 
       val str = new String(g.currentSource.content)
       val lines = str.linesWithSeparators.toVector

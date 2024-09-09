@@ -1,10 +1,9 @@
-package build
 // This example demonstrates how to write and test Mill plugin, and publish it to
 // Sonatype's Maven Central so it can be used by other developers over the internet
 // via xref:Import_File_And_Import_Ivy.adoc[import $ivy].
 
 // == Project Configuration
-
+package build
 import mill._, scalalib._, publish._
 import mill.main.BuildInfo.millVersion
 

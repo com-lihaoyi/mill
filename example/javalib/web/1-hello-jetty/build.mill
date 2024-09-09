@@ -19,7 +19,7 @@ object `package` extends RootModule with JavaModule {
 > mill test
 ...HelloJettyTest.testHelloJetty finished...
 
-> mill runBackground; sleep 2 # give time for server to start
+> mill runBackground
 
 > curl http://localhost:8085
 ...<h1>Hello, World!</h1>...

@@ -45,6 +45,7 @@ case class PathRef private (
 }
 
 object PathRef {
+  implicit def shellable(p: PathRef): os.Shellable = p.path
 
   /**
    * This class maintains a cache of already validated paths.

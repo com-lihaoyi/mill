@@ -16,8 +16,13 @@ import utest._
 object ClientServerTests extends TestSuite {
 
   val ENDL = System.lineSeparator()
-  class EchoServer(override val serverId: String, serverDir: os.Path, locks: Locks)
-      extends Server[Option[Int]](serverDir, 1000, locks) with Runnable {
+  class EchoServer(
+      override val serverId: String,
+      serverDir: os.Path,
+      locks: Locks,
+      testLogEvenWhenServerIdWrong: Boolean
+  ) extends Server[Option[Int]](serverDir, 1000, locks, testLogEvenWhenServerIdWrong)
+      with Runnable {
     override def exitServer() = {
       serverLog("exiting server")
       super.exitServer()
@@ -37,7 +42,8 @@ object ClientServerTests extends TestSuite {
         env: Map[String, String],
         setIdle: Boolean => Unit,
         systemProperties: Map[String, String],
-        initialSystemProperties: Map[String, String]
+        initialSystemProperties: Map[String, String],
+        systemExit: Int => Nothing
     ) = {
 
       val reader = new BufferedReader(new InputStreamReader(streams.in))
@@ -61,7 +67,7 @@ object ClientServerTests extends TestSuite {
     }
   }
 
-  class Tester {
+  class Tester(testLogEvenWhenServerIdWrong: Boolean) {
 
     var nextServerId: Int = 0
     val terminatedServers = collection.mutable.Set.empty[String]
@@ -91,7 +97,12 @@ object ClientServerTests extends TestSuite {
         def initServer(serverDir: String, b: Boolean, locks: Locks) = {
           val serverId = "server-" + nextServerId
           nextServerId += 1
-          new Thread(new EchoServer(serverId, os.Path(serverDir, os.pwd), locks)).start()
+          new Thread(new EchoServer(
+            serverId,
+            os.Path(serverDir, os.pwd),
+            locks,
+            testLogEvenWhenServerIdWrong
+          )).start()
         }
       }.acquireLocksAndRun(outDir.relativeTo(os.pwd).toString)
 
@@ -121,9 +132,11 @@ object ClientServerTests extends TestSuite {
   }
 
   def tests = Tests {
-    val tester = new Tester
-    test("hello") - retry(3) {
 
+    test("hello") - retry(3) {
+      // Continue logging when out folder is deleted so we can see the logs
+      // and ensure the correct code path is taken as the server exits
+      val tester = new Tester(testLogEvenWhenServerIdWrong = true)
       val res1 = tester(args = Array("world"))
 
       assert(
@@ -154,6 +167,7 @@ object ClientServerTests extends TestSuite {
         )
 
         // Make sure if we delete the out dir, the server notices and exits
+        Thread.sleep(500)
         os.remove.all(res3.outDir)
         Thread.sleep(500)
 
@@ -161,8 +175,28 @@ object ClientServerTests extends TestSuite {
         assert(res3.logsFor("exiting server") == Seq("server-1"))
       }
     }
+    test("dontLogWhenOutFolderDeleted") - retry(3) {
+      val tester = new Tester(testLogEvenWhenServerIdWrong = false)
+      val res1 = tester(args = Array("world"))
+
+      assert(
+        res1.out == s"helloworld$ENDL",
+        res1.err == s"HELLOworld$ENDL"
+      )
+
+      if (!Util.isWindows) {
+        // Make sure if we delete the `out/` folder, the server notices
+        // and exits and does not re-create the deleted `out/` folder
+        Thread.sleep(500)
+        os.remove.all(res1.outDir)
+        Thread.sleep(2000)
+
+        assert(!os.exists(res1.outDir))
+      }
+    }
 
     test("concurrency") {
+      val tester = new Tester(testLogEvenWhenServerIdWrong = false)
       // Make sure concurrently running client commands results in multiple processes
       // being spawned, running in different folders
       import concurrent._
@@ -187,6 +221,7 @@ object ClientServerTests extends TestSuite {
     }
 
     test("clientLockReleasedOnFailure") {
+      val tester = new Tester(testLogEvenWhenServerIdWrong = false)
       // When the client gets interrupted via Ctrl-C, we exit the server immediately. This
       // is because Mill ends up executing arbitrary JVM code, and there is no generic way
       // to interrupt such an execution. The two options are to leave the server running
@@ -212,6 +247,7 @@ object ClientServerTests extends TestSuite {
     }
 
     test("envVars") - retry(3) {
+      val tester = new Tester(testLogEvenWhenServerIdWrong = false)
       // Make sure the simple "have the client start a server and
       // exchange one message" workflow works from end to end.
 

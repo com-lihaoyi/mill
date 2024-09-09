@@ -1,15 +1,13 @@
 package mill.integration
 
-import mill.testkit.IntegrationTestSuite
+import mill.testkit.UtestIntegrationTestSuite
 
 import utest._
 
-object CrossCollisionsTests extends IntegrationTestSuite {
+object CrossCollisionsTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
-    initWorkspace()
-
-    test("detect-collision") {
-      val res = eval(("resolve", "foo._"))
+    test("detect-collision") - integrationTest { tester =>
+      val res = tester.eval(("resolve", "foo._"))
       assert(!res.isSuccess)
       assert(res.err.contains("Cross module "))
       assert(

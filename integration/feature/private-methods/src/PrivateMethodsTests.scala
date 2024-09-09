@@ -1,13 +1,13 @@
 package mill.integration
 
-import mill.testkit.IntegrationTestSuite
+import mill.testkit.UtestIntegrationTestSuite
 
 import utest._
 
-object PrivateMethodsTests extends IntegrationTestSuite {
+object PrivateMethodsTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
-    initWorkspace()
-    test("simple") {
+    test("simple") - integrationTest { tester =>
+      import tester._
       // Simple public target depending on private target works
       val pub = eval(("show", "pub"))
       assert(pub.out == "\"priv\"")

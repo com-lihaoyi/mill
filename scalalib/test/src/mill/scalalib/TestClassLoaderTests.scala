@@ -23,8 +23,10 @@ object TestClassLoaderTests extends TestSuite {
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "classloader-test"
 
   override def tests: Tests = Tests {
-    test("com.sun classes exist in tests classpath (Java 8 only)") {
-      val eval = UnitTester(testclassloader, resourcePath)
+    test("com.sun classes exist in tests classpath (Java 8 only)") - UnitTester(
+      testclassloader,
+      resourcePath
+    ).scoped { eval =>
       assert(eval.apply(testclassloader.test.test()).isRight)
     }
   }

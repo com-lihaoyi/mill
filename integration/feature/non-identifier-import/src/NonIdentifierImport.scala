@@ -1,13 +1,13 @@
 package mill.integration
 
-import mill.testkit.IntegrationTestSuite
+import mill.testkit.UtestIntegrationTestSuite
 
 import utest._
 
-object NonIdentifierImport extends IntegrationTestSuite {
+object NonIdentifierImport extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
-    initWorkspace()
-    test("test") - {
+    test("test") - integrationTest { tester =>
+      import tester._
       assert(eval("foo-bar-module.compile").isSuccess)
     }
   }

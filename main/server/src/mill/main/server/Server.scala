@@ -21,7 +21,8 @@ import scala.util.Try
 abstract class Server[T](
     serverDir: os.Path,
     acceptTimeoutMillis: Int,
-    locks: Locks
+    locks: Locks,
+    testLogEvenWhenServerIdWrong: Boolean = false
 ) {
 
   @volatile var running = true
@@ -31,7 +32,7 @@ abstract class Server[T](
 
   val serverId: String = java.lang.Long.toHexString(scala.util.Random.nextLong())
   def serverLog0(s: String): Unit = {
-    if (running) {
+    if (running && (testLogEvenWhenServerIdWrong || checkServerIdFile().isEmpty)) {
       os.write.append(serverDir / ServerFiles.serverLog, s"$s\n", createFolders = true)
     }
   }
@@ -91,29 +92,31 @@ abstract class Server[T](
 
   def watchServerIdFile(): Unit = {
     os.write.over(serverDir / ServerFiles.serverId, serverId)
+
     val serverIdThread = new Thread(
       () =>
-        while (
-          running && {
-            Thread.sleep(100)
-            Try(os.read(serverDir / ServerFiles.serverId)).toOption match {
-              case None =>
-                serverLog("serverId file missing")
-                exitServer()
-                false
-              case Some(s) =>
-                if (s == serverId) true
-                else {
-                  serverLog(s"serverId file contents $s does not match serverId $serverId")
-                  exitServer()
-                  false
-                }
-            }
+        while (running) {
+          checkServerIdFile() match {
+            case None => Thread.sleep(100)
+            case Some(msg) =>
+              serverLog(msg)
+              exitServer()
           }
-        ) (),
+        },
       "Server ID Checker Thread"
     )
     serverIdThread.start()
+  }
+  def checkServerIdFile(): Option[String] = {
+    Try(os.read(serverDir / ServerFiles.serverId)) match {
+      case scala.util.Failure(e) => Some(s"serverId file missing")
+
+      case scala.util.Success(s) =>
+        Option.when(s != serverId) {
+          s"serverId file contents $s does not match serverId $serverId"
+        }
+    }
+
   }
 
   def interruptWithTimeout[T](close: () => Unit, t: () => T): Option[T] = {
@@ -194,7 +197,11 @@ abstract class Server[T](
               env.asScala.toMap,
               idle = _,
               userSpecifiedProperties.asScala.toMap,
-              initialSystemProperties
+              initialSystemProperties,
+              systemExit = exitCode => {
+                os.write.over(serverDir / ServerFiles.exitCode, exitCode.toString)
+                sys.exit(exitCode)
+              }
             )
 
             stateCache = newStateCache
@@ -243,7 +250,8 @@ abstract class Server[T](
       env: Map[String, String],
       setIdle: Boolean => Unit,
       userSpecifiedProperties: Map[String, String],
-      initialSystemProperties: Map[String, String]
+      initialSystemProperties: Map[String, String],
+      systemExit: Int => Nothing
   ): (Boolean, T)
 
 }

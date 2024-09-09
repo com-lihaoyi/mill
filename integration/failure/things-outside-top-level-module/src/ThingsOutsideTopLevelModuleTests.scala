@@ -1,14 +1,13 @@
 package mill.integration
 
-import mill.testkit.IntegrationTestSuite
+import mill.testkit.UtestIntegrationTestSuite
 
 import utest._
 
-object ThingsOutsideTopLevelModuleTests extends IntegrationTestSuite {
+object ThingsOutsideTopLevelModuleTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
-    initWorkspace()
-
-    test("success") {
+    test("success") - integrationTest { tester =>
+      import tester._
       val res = eval(("resolve", "_"))
       assert(!res.isSuccess)
       assert(

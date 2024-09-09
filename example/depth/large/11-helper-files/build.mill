@@ -8,6 +8,7 @@ object `package` extends RootModule with MyModule{
     "MY_PROJECT_VERSION" -> versions.myProjectVersion,
   )
 }
+
 /** See Also: util.mill */
 /** See Also: foo/package.mill */
 /** See Also: foo/versions.mill */

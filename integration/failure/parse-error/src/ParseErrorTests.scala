@@ -1,14 +1,13 @@
 package mill.integration
 
-import mill.testkit.IntegrationTestSuite
+import mill.testkit.UtestIntegrationTestSuite
 
 import utest._
 
-object ParseErrorTests extends IntegrationTestSuite {
+object ParseErrorTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
-    initWorkspace()
-
-    test {
+    test - integrationTest { tester =>
+      import tester._
       val res = eval("foo.scalaVersion")
 
       assert(res.isSuccess == false)

@@ -496,6 +496,22 @@ class ZincWorkerImpl(
   )(implicit ctx: ZincWorkerApi.Ctx): Result[CompilationResult] = {
     os.makeDir.all(ctx.dest)
 
+    val classesDir =
+      if (compileToJar) ctx.dest / "classes.jar"
+      else ctx.dest / "classes"
+
+    if (ctx.log.debugEnabled) {
+      ctx.log.debug(
+        s"""Compiling:
+           |  javacOptions: ${javacOptions.map("'" + _ + "'").mkString(" ")}
+           |  scalacOptions: ${scalacOptions.map("'" + _ + "'").mkString(" ")}
+           |  sources: ${sources.map("'" + _ + "'").mkString(" ")}
+           |  classpath: ${compileClasspath.map("'" + _ + "'").mkString(" ")}
+           |  output: ${classesDir}"""
+          .stripMargin
+      )
+    }
+
     reporter.foreach(_.start())
 
     val consoleAppender = ConsoleAppender(
@@ -548,10 +564,6 @@ class ZincWorkerImpl(
     }
 
     val lookup = MockedLookup(analysisMap)
-
-    val classesDir =
-      if (compileToJar) ctx.dest / "classes.jar"
-      else ctx.dest / "classes"
 
     val store = fileAnalysisStore(ctx.dest / zincCache)
 
@@ -641,6 +653,19 @@ class ZincWorkerImpl(
   }
 
   override def close(): Unit = {
+    val closeableClassloaders = classloaderCache
+      .flatMap(_._2.get)
+      .collect { case v: AutoCloseable => v }
+
+    val urlClassLoaders =
+      classloaderCache.flatMap(_._2.get).collect { case t: java.net.URLClassLoader => t }
+
+    // Make sure we at least pick up all the URLClassLoaders, since we know those are
+    // AutoCloseable, although there may be other AutoCloseable classloaders as well
+    assert(urlClassLoaders.toSet[AutoCloseable].subsetOf(closeableClassloaders.toSet))
+
+    closeableClassloaders.foreach(_.close())
+
     classloaderCache.clear()
     javaOnlyCompilersCache.clear()
   }

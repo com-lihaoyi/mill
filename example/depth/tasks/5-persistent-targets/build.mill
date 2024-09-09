@@ -1,11 +1,10 @@
-package build
 // Persistent targets defined using `T.persistent` are similar to normal
 // ``Target``s, except their `T.dest` folder is not cleared before every
 // evaluation. This makes them useful for caching things on disk in a more
 // fine-grained manner than Mill's own Target-level caching.
 //
 // Below is a semi-realistic example of using a `T.persistent` target:
-
+package build
 import mill._, scalalib._
 import java.util.Arrays
 import java.io.ByteArrayOutputStream

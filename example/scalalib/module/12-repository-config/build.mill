@@ -1,9 +1,8 @@
-package build
 // By default, dependencies are resolved from maven central, but you can add
 // your own resolvers by overriding the `repositoriesTask` task in the module:
 
 //// SNIPPET:BUILD1
-
+package build
 import mill._, scalalib._
 import mill.define.ModuleRef
 import coursier.maven.MavenRepository

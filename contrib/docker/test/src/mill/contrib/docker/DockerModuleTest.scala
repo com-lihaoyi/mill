@@ -89,8 +89,7 @@ object DockerModuleTest extends TestSuite {
     }
 
     test("dockerfile contents") {
-      test("default options") {
-        val eval = UnitTester(Docker, null)
+      test("default options") - UnitTester(Docker, null).scoped { eval =>
         val Right(result) = eval(Docker.dockerDefault.dockerfile)
         val expected = multineRegex.replaceAllIn(
           """
@@ -106,8 +105,7 @@ object DockerModuleTest extends TestSuite {
         assert(dockerfileStringRefined == expected)
       }
 
-      test("all options") {
-        val eval = UnitTester(Docker, null)
+      test("all options") - UnitTester(Docker, null).scoped { eval =>
         val Right(result) = eval(Docker.dockerAll.dockerfile)
         val expected = multineRegex.replaceAllIn(
           """
@@ -132,8 +130,7 @@ object DockerModuleTest extends TestSuite {
         assert(dockerfileStringRefined == expected)
       }
 
-      test("extra jvm options") {
-        val eval = UnitTester(Docker, null)
+      test("extra jvm options") - UnitTester(Docker, null).scoped { eval =>
         val Right(result) = eval(Docker.dockerJvmOptions.dockerfile)
         val expected = multineRegex.replaceAllIn(
           """
