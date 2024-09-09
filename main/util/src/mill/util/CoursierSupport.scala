@@ -4,7 +4,7 @@ import coursier.cache.ArtifactError
 import coursier.parse.RepositoryParser
 import coursier.util.{Gather, Task}
 import coursier.{Dependency, Repository, Resolution}
-import mill.api.{Ctx, PathRef, Result, Retry}
+import mill.api.{Ctx, PathRef, Result}
 import mill.api.Loose.Agg
 
 import java.io.File
@@ -12,53 +12,6 @@ import scala.collection.mutable
 
 trait CoursierSupport {
   import CoursierSupport._
-
-  private val CoursierRetryCount = 5
-
-  private def retryableCoursierError(s: String) = s match {
-    case s"${_}concurrent download${_}" => true
-    case s"${_}checksum not found${_}" => true
-    case s"${_}download error${_}" => true
-    case s"${_}(Access is denied)${_}" => true
-    case s"${_}The process cannot access the file because it is being used by another process${_}" =>
-      true
-    case s"${_}->${_}__sha1.computed" => true
-    case _ => false
-  }
-
-  /**
-   * Somewhat generic way to retry some action and a Workaround for https://github.com/com-lihaoyi/mill/issues/1028
-   *
-   * Specifically build for coursier API interactions, which is known to have some concurrency issues which we handle on a known case basis.
-   *
-   * @param retryCount        The max retry count
-   * @param ctx               The context to use ot show log messages (if defined)
-   * @param errorMsgExtractor A generic way to get the error message of a run of `f`
-   * @param f                 The actual operation to retry, if it results in a known concurrency error
-   * @tparam T The result type of the computation
-   * @return The result of the computation. If the computation was retries and finally succeeded, proviously occured errors will not be included in the result.
-   */
-  private def retry[T](
-      retryCount: Int = CoursierRetryCount,
-      debug: String => Unit,
-      errorMsgExtractor: T => Seq[String]
-  )(f: () => T): T = Retry(
-    count = retryCount,
-    filter = { (i, ex) =>
-      if (!retryableCoursierError(ex.getMessage)) false
-      else {
-        debug(s"Attempting to retry coursier failure (${i} left): ${ex.getMessage}")
-        true
-      }
-    }
-  ) {
-    val res = f()
-    val errors = errorMsgExtractor(res)
-    errors.filter(retryableCoursierError) match {
-      case Nil => res
-      case retryable => throw new Exception(retryable.mkString("\n"))
-    }
-  }
 
   /**
    * Resolve dependencies using Coursier.
@@ -171,12 +124,7 @@ trait CoursierSupport {
           )
         )
 
-      val (errors, successes) = retry(
-        debug = ctx.map(c => c.log.debug(_)).getOrElse(_ => ()),
-        errorMsgExtractor = (res: (Seq[ArtifactError], Seq[File])) => res._1.map(_.describe)
-      ) {
-        () => load(sourceOrJar)
-      }
+      val (errors, successes) = load(sourceOrJar)
 
       if (errors.isEmpty) {
         Result.Success(
@@ -242,13 +190,7 @@ trait CoursierSupport {
 
     import scala.concurrent.ExecutionContext.Implicits.global
 
-    val resolution =
-      retry(
-        debug = ctx.map(c => c.log.debug(_)).getOrElse(_ => ()),
-        errorMsgExtractor = (r: Resolution) => r.errors.flatMap(_._2)
-      ) {
-        () => start.process.run(fetch).unsafeRun()
-      }
+    val resolution = start.process.run(fetch).unsafeRun()
 
     (deps.iterator.to(Seq), resolution)
   }
