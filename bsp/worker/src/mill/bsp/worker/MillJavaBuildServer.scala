@@ -27,7 +27,11 @@ private trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServe
           case _ => m.bspCompileClassesPath
         }
         T.task {
-          (classesPathTask(), m.javacOptions() ++ m.mandatoryJavacOptions(), m.bspCompileClasspath())
+          (
+            classesPathTask(),
+            m.javacOptions() ++ m.mandatoryJavacOptions(),
+            m.bspCompileClasspath()
+          )
         }
       }
     ) {
