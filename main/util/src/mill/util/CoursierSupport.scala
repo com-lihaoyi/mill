@@ -1,17 +1,32 @@
 package mill.util
 
-import coursier.cache.{ArtifactError, CacheLogger, FileCache}
+import coursier.cache.{CacheLogger, FileCache}
+import coursier.error.FetchError.DownloadingArtifacts
+import coursier.error.ResolutionError.CantDownloadModule
+import coursier.params.ResolutionParams
 import coursier.parse.RepositoryParser
-import coursier.util.{Artifact, Gather, Task}
-import coursier.{Classifier, Dependency, Repository, Resolution}
-import mill.api.{Ctx, PathRef, Result}
+import coursier.util.Task
+import coursier.{Artifacts, Classifier, Dependency, Repository, Resolution, Resolve}
 import mill.api.Loose.Agg
+import mill.api.{Ctx, PathRef, Result}
 
-import java.io.File
 import scala.collection.mutable
+import scala.util.chaining.scalaUtilChainingOps
 
 trait CoursierSupport {
   import CoursierSupport._
+
+  private def coursierCache(
+      ctx: Option[mill.api.Ctx.Log],
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]]
+  ) =
+    FileCache[Task]()
+      .pipe { cache =>
+        coursierCacheCustomizer.fold(cache)(c => c.apply(cache))
+      }
+      .pipe { cache =>
+        ctx.fold(cache)(c => cache.withLogger(new TickerResolutionLogger(c)))
+      }
 
   /**
    * Resolve dependencies using Coursier.
@@ -63,60 +78,36 @@ trait CoursierSupport {
     )
 
     resolutionRes.flatMap { resolution =>
-      val coursierCache0 = FileCache[Task]()
-      val coursierCache = coursierCacheCustomizer
-        .map(_(coursierCache0))
-        .getOrElse(coursierCache0)
+      val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
 
-      def load(artifacts: Seq[Artifact]): (Seq[ArtifactError], Seq[File]) = {
-        import scala.concurrent.ExecutionContext.Implicits.global
-        val loadedArtifacts = Gather[Task].gather(
-          for (a <- artifacts)
-            yield coursierCache.file(a).run.map(a.optional -> _)
-        ).unsafeRun()
+      val artifactsResultOrError = Artifacts(coursierCache0)
+        .withResolution(resolution)
+        .withClassifiers(
+          if (sources) Set(Classifier("sources"))
+          else Set.empty
+        )
+        .eitherResult()
 
-        val errors = loadedArtifacts.collect {
-          case (false, Left(x)) => x
-          case (true, Left(x)) if !x.notFound => x
-        }
-        val successes = loadedArtifacts.collect { case (_, Right(x)) => x }
-
-        (errors, successes)
-      }
-
-      val sourceOrJar =
-        if (sources) {
-          resolution.artifacts(
-            types = Set(coursier.Type.source, coursier.Type.javaSource),
-            classifiers = Some(Seq(Classifier("sources")))
+      artifactsResultOrError match {
+        case Left(error: DownloadingArtifacts) =>
+          val errorDetails = error.errors
+            .map(_._2)
+            .map(e => s"${System.lineSeparator()}  ${e.describe}")
+            .mkString
+          Result.Failure(
+            s"Failed to load ${if (sources) "source " else ""}dependencies" + errorDetails
           )
-        } else resolution.artifacts(
-          types = Set(
-            coursier.Type.jar,
-            coursier.Type.testJar,
-            coursier.Type.bundle,
-            coursier.Type("orbit"),
-            coursier.Type("eclipse-plugin"),
-            coursier.Type("maven-plugin")
+        case Left(error) =>
+          Result.Exception(error, new Result.OuterStack((new Exception).getStackTrace))
+        case Right(res) =>
+          Result.Success(
+            Agg.from(
+              res.files
+                .map(os.Path(_))
+                .filter(path => path.ext == "jar" && resolveFilter(path))
+                .map(PathRef(_, quick = true))
+            ) ++ localTestDeps.flatten
           )
-        )
-
-      val (errors, successes) = load(sourceOrJar)
-
-      if (errors.isEmpty) {
-        Result.Success(
-          Agg.from(
-            successes
-              .map(os.Path(_))
-              .filter(path => path.ext == "jar" && resolveFilter(path))
-              .map(PathRef(_, quick = true))
-          ) ++ localTestDeps.flatten
-        )
-      } else {
-        val errorDetails = errors.map(e => s"${System.lineSeparator()}  ${e.describe}").mkString
-        Result.Failure(
-          s"Failed to load ${if (sources) "source " else ""}dependencies" + errorDetails
-        )
       }
     }
   }
@@ -157,63 +148,59 @@ trait CoursierSupport {
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None
   ): Result[Resolution] = {
 
-    val cachePolicies = coursier.cache.CacheDefaults.cachePolicies
+    val rootDeps = deps.iterator
+      .map(d => mapDependencies.fold(d)(_.apply(d)))
+      .toSeq
 
     val forceVersions = force.iterator
       .map(mapDependencies.getOrElse(identity[Dependency](_)))
       .map { d => d.module -> d.version }
       .toMap
 
-    val start0 = Resolution()
-      .withRootDependencies(
-        deps.iterator.map(mapDependencies.getOrElse(identity[Dependency](_))).toSeq
-      )
-      .withForceVersions(forceVersions)
-      .withMapDependencies(mapDependencies)
+    val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
 
-    val start = customizer.getOrElse(identity[Resolution](_)).apply(start0)
+    val resolutionParams = ResolutionParams()
+      .withForceVersion(forceVersions)
 
-    val resolutionLogger = ctx.map(c => new TickerResolutionLogger(c))
-    val coursierCache0 = resolutionLogger match {
-      case None => FileCache[Task]().withCachePolicies(cachePolicies)
-      case Some(l) =>
-        FileCache[Task]()
-          .withCachePolicies(cachePolicies)
-          .withLogger(l)
-    }
-    val coursierCache = coursierCacheCustomizer
-      .map(_(coursierCache0))
-      .getOrElse(coursierCache0)
+    val resolve = Resolve()
+      .withCache(coursierCache0)
+      .withDependencies(rootDeps)
+      .withRepositories(repositories)
+      .withResolutionParams(resolutionParams)
+      .withMapDependenciesOpt(mapDependencies)
 
-    val fetches = coursierCache.fetchs
+    resolve.either() match {
+      case Left(error) =>
+        val cantDownloadErrors = error.errors.collect {
+          case cantDownload: CantDownloadModule => cantDownload
+        }
+        if (error.errors.length == cantDownloadErrors.length) {
+          val header =
+            s"""|
+                |Resolution failed for ${cantDownloadErrors.length} modules:
+                |--------------------------------------------
+                |""".stripMargin
 
-    val fetch = coursier.core.ResolutionProcess.fetch(repositories, fetches.head, fetches.tail)
+          val helpMessage =
+            s"""|
+                |--------------------------------------------
+                |
+                |For additional information on library dependencies, see the docs at
+                |${mill.api.BuildInfo.millDocUrl}/mill/Library_Dependencies.html""".stripMargin
 
-    import scala.concurrent.ExecutionContext.Implicits.global
-
-    val resolution = start.process.run(fetch).unsafeRun()
-
-    if (resolution.errors.isEmpty)
-      Result.Success(resolution)
-    else {
-      val header =
-        s"""|
-            |Resolution failed for ${resolution.errors.length} modules:
-            |--------------------------------------------
-            |""".stripMargin
-
-      val helpMessage =
-        s"""|
-            |--------------------------------------------
-            |
-            |For additional information on library dependencies, see the docs at
-            |${mill.api.BuildInfo.millDocUrl}/mill/Library_Dependencies.html""".stripMargin
-
-      val errLines = resolution.errors.map {
-        case ((module, vsn), errMsgs) => s"  ${module.trim}:$vsn \n\t" + errMsgs.mkString("\n\t")
-      }.mkString("\n")
-      val msg = header + errLines + "\n" + helpMessage + "\n"
-      Result.Failure(msg)
+          val errLines = cantDownloadErrors
+            .map { err =>
+              s"  ${err.module.trim}:${err.version} \n\t" +
+                err.perRepositoryErrors.mkString("\n\t")
+            }
+            .mkString("\n")
+          val msg = header + errLines + "\n" + helpMessage + "\n"
+          Result.Failure(msg)
+        } else
+          Result.Exception(error, new Result.OuterStack((new Exception).getStackTrace))
+      case Right(resolution0) =>
+        val resolution = customizer.fold(resolution0)(_.apply(resolution0))
+        Result.Success(resolution)
     }
   }
 
