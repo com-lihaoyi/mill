@@ -162,7 +162,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
     def classes(m: JavaModule) = out(m) / "classes"
 
     val javaConfig = T.task {
-      val opts = module.javacOptions() ++ module.managedJavacOptions()
+      val opts = module.javacOptions() ++ module.mandatoryJavacOptions()
       Some(Config.Java(options = opts.toList))
     }
 

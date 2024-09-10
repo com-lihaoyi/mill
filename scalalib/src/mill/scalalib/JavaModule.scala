@@ -164,7 +164,7 @@ trait JavaModule
   /**
    * Additional options for the java compiler derived from other module settings.
    */
-  def managedJavacOptions: T[Seq[String]] = T { Seq.empty[String] }
+  def mandatoryJavacOptions: T[Seq[String]] = T { Seq.empty[String] }
 
   /**
    *  The direct dependencies of this module.
@@ -428,7 +428,7 @@ trait JavaModule
         upstreamCompileOutput = upstreamCompileOutput(),
         sources = allSourceFiles().map(_.path),
         compileClasspath = compileClasspath().map(_.path),
-        javacOptions = javacOptions() ++ managedJavacOptions(),
+        javacOptions = javacOptions() ++ mandatoryJavacOptions(),
         reporter = T.reporter.apply(hashCode),
         reportCachedProblems = zincReportCachedProblems(),
         incrementalCompilation = zincIncrementalCompilation()

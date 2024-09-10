@@ -70,7 +70,7 @@ trait ErrorProneModule extends JavaModule {
   /**
    * Appends the [[errorProneJavacEnableOptions]] to the Java compiler options.
    */
-  override def managedJavacOptions: T[Seq[String]] = T {
-    super.managedJavacOptions() ++ errorProneJavacEnableOptions()
+  override def mandatoryJavacOptions: T[Seq[String]] = T {
+    super.mandatoryJavacOptions() ++ errorProneJavacEnableOptions()
   }
 }
