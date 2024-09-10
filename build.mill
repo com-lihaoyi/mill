@@ -188,6 +188,7 @@ object Deps {
   val requests = ivy"com.lihaoyi::requests:0.9.0"
   val logback = ivy"ch.qos.logback:logback-classic:1.5.7"
   val sonatypeCentralClient = ivy"com.lumidion::sonatype-central-client-requests:0.3.0"
+  val kotlinCompiler = ivy"org.jetbrains.kotlin:kotlin-compiler:1.9.24"
 
   object RuntimeDeps {
     val errorProneCore = ivy"com.google.errorprone:error_prone_core:2.31.0"
@@ -757,6 +758,7 @@ object dist extends MillPublishJavaModule {
         genTask(build.main.eval)() ++
         genTask(build.main)() ++
         genTask(build.scalalib)() ++
+        genTask(build.kotlinlib)() ++
         genTask(build.scalajslib)() ++
         genTask(build.scalanativelib)()
 

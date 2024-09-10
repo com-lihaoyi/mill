@@ -58,11 +58,11 @@ jobs:
           # For most tests, run them arbitrarily on Java 11 or Java 17 on Linux, and
           # on the opposite version on Windows below, so we get decent coverage of
           # each test on each Java version and each operating system
-          # We also try to group tests together to manuaully balance out the runtimes of each jobs
+          # We also try to group tests together to manually balance out the runtimes of each jobs
           - java-version: 17
             millargs: "'{main,scalalib,testrunner,bsp,testkit}.__.testCached'"
           - java-version: '11'
-            millargs: "'{scalajslib,scalanativelib}.__.testCached'"
+            millargs: "'{scalajslib,scalanativelib,kotlinlib}.__.testCached'"
           - java-version: 17
             millargs: "contrib.__.testCached"
 
