@@ -127,14 +127,16 @@ trait PublishModule extends JavaModule { outer =>
   def publishLocal(
       localIvyRepo: String = null,
       sources: Boolean = true,
-      doc: Boolean = true
+      doc: Boolean = true,
+      transitive: Boolean = true
   ): define.Command[Unit] = T.command {
     publishLocalTask(
       T.task {
         Option(localIvyRepo).map(os.Path(_, T.workspace))
       },
       sources,
-      doc
+      doc,
+      transitive
     )()
     Result.Success(())
   }
@@ -146,7 +148,8 @@ trait PublishModule extends JavaModule { outer =>
     val res = publishLocalTask(
       T.task(None),
       sources = true,
-      doc = true
+      doc = true,
+      transitive = true
     )()
     res.map(p => PathRef(p).withRevalidateOnce)
   }
@@ -154,31 +157,40 @@ trait PublishModule extends JavaModule { outer =>
   private def publishLocalTask(
       localIvyRepo: Task[Option[os.Path]],
       sources: Boolean,
-      doc: Boolean
-  ): Task[Seq[Path]] = {
-    val sourcesJarOpt =
-      if (sources) T.task(Some(sourceJar()))
-      else T.task(None)
-    val docJarOpt =
-      if (doc) T.task(Some(docJar()))
-      else T.task(None)
-
-    T.task {
-      val publisher = localIvyRepo() match {
-        case None => LocalIvyPublisher
-        case Some(path) => new LocalIvyPublisher(path)
+      doc: Boolean,
+      transitive: Boolean
+  ): Task[Seq[Path]] =
+    if (transitive) {
+      val publishTransitiveModuleDeps = transitiveModuleDeps.collect {
+        case p: PublishModule => p
       }
-      publisher.publishLocal(
-        jar = jar().path,
-        sourcesJarOpt = sourcesJarOpt().map(_.path),
-        docJarOpt = docJarOpt().map(_.path),
-        pom = pom().path,
-        ivy = ivy().path,
-        artifact = artifactMetadata(),
-        extras = extraPublish()
-      )
+      Target.traverse(publishTransitiveModuleDeps) { publishMod =>
+        publishMod.publishLocalTask(localIvyRepo, sources, doc, transitive = false)
+      }.map(_.flatten)
+    } else {
+      val sourcesJarOpt =
+        if (sources) T.task(Some(sourceJar()))
+        else T.task(None)
+      val docJarOpt =
+        if (doc) T.task(Some(docJar()))
+        else T.task(None)
+
+      T.task {
+        val publisher = localIvyRepo() match {
+          case None => LocalIvyPublisher
+          case Some(path) => new LocalIvyPublisher(path)
+        }
+        publisher.publishLocal(
+          jar = jar().path,
+          sourcesJarOpt = sourcesJarOpt().map(_.path),
+          docJarOpt = docJarOpt().map(_.path),
+          pom = pom().path,
+          ivy = ivy().path,
+          artifact = artifactMetadata(),
+          extras = extraPublish()
+        )
+      }
     }
-  }
 
   /**
    * Publish artifacts to a local Maven repository.
