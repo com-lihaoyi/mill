@@ -149,7 +149,7 @@ object CheckstyleModuleTest extends TestSuite {
           )
         )
 
-        intercept[RuntimeException](
+        intercept[UnsupportedOperationException](
           testJava(resources / "non-compatible", files = Seq("bad/path"))
         )
       }
@@ -231,7 +231,7 @@ object CheckstyleModuleTest extends TestSuite {
       }
 
       test("cannot set options for legacy version") {
-        intercept[RuntimeException](
+        intercept[UnsupportedOperationException](
           testJava(resources / "compatible-java", version = "6.3", options = Seq("-d"))
         )
       }
