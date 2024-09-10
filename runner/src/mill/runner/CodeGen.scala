@@ -153,9 +153,9 @@ object CodeGen {
         val newParent = if (segments.isEmpty) expectedParent else s"RootModule.Subfolder"
 
         var newScriptCode = scriptCode
-        newScriptCode = objectData.obj.applyTo(newScriptCode, "trait")
-        newScriptCode = objectData.name.applyTo(newScriptCode, wrapperObjectName)
         newScriptCode = objectData.parent.applyTo(newScriptCode, newParent)
+        newScriptCode = objectData.name.applyTo(newScriptCode, wrapperObjectName)
+        newScriptCode = objectData.obj.applyTo(newScriptCode, "abstract class")
 
         s"""$pkgLine
            |$aliasImports
@@ -219,7 +219,7 @@ object CodeGen {
        |  $childAliases
        |  override lazy val millDiscover: _root_.mill.define.Discover = _root_.mill.define.Discover[this.type]
        |}
-       |trait $wrapperObjectName $extendsClause {""".stripMargin
+       |abstract class $wrapperObjectName $extendsClause {""".stripMargin
 
   }
 
