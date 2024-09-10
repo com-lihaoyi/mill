@@ -35,6 +35,9 @@ object `package` extends RootModule with Module {
     object module extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "module"))
     object web extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "web"))
   }
+  object kotlinlib extends Module {
+    object basic extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "basic"))
+  }
   object scalalib extends Module {
     object basic extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "basic"))
     object builds extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "builds"))
@@ -79,7 +82,7 @@ object `package` extends RootModule with Module {
       case Some(upstream) => T{
         os.copy.over(super.testRepoRoot().path, T.dest)
         val upstreamRoot = upstream.testRepoRoot().path
-        val suffix = Seq("build.mill", "build.mill").find(s => os.exists(upstreamRoot / s)).head
+        val suffix = Seq("build.sc", "build.mill").find(s => os.exists(upstreamRoot / s)).head
         for(lines <- buildScLines()) {
           os.write.over(T.dest / suffix, lines.mkString("\n"))
         }
