@@ -162,7 +162,7 @@ trait JavaModule
   def javacOptions: T[Seq[String]] = T { Seq.empty[String] }
 
   /**
-   * Additional options for the java compiled derived from other module settings.
+   * Additional options for the java compiler derived from other module settings.
    */
   def managedJavacOptions: T[Seq[String]] = T { Seq.empty[String] }
 
