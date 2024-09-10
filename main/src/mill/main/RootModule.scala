@@ -45,7 +45,7 @@ object RootModule {
           fileName = millFile0,
           enclosing = Caller(null)
         )
-      ) with Module{
+      ) with Module {
     def millDiscover: Discover
   }
 

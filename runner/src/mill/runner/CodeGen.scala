@@ -197,7 +197,7 @@ object CodeGen {
   }
 
   def topBuildHeader(
-                      segments: Seq[String],
+      segments: Seq[String],
       scriptFolderPath: os.Path,
       millTopLevelProjectRoot: os.Path,
       childAliases: String
