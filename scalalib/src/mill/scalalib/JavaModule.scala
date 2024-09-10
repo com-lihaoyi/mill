@@ -35,7 +35,8 @@ trait JavaModule
     with BspModule
     with SemanticDbJavaModule { outer =>
 
-  def zincWorker: ModuleRef[ZincWorkerModule] = super.zincWorker
+  override def zincWorker: ModuleRef[ZincWorkerModule] = super.zincWorker
+  @nowarn
   type JavaTests = JavaModuleTests
   @deprecated("Use JavaTests instead", since = "Mill 0.11.10")
   trait JavaModuleTests extends JavaModule with TestModule {
@@ -159,6 +160,11 @@ trait JavaModule
    * Options to pass to the java compiler
    */
   def javacOptions: T[Seq[String]] = T { Seq.empty[String] }
+
+  /**
+   * Additional options for the java compiler derived from other module settings.
+   */
+  def mandatoryJavacOptions: T[Seq[String]] = T { Seq.empty[String] }
 
   /**
    *  The direct dependencies of this module.
@@ -422,7 +428,7 @@ trait JavaModule
         upstreamCompileOutput = upstreamCompileOutput(),
         sources = allSourceFiles().map(_.path),
         compileClasspath = compileClasspath().map(_.path),
-        javacOptions = javacOptions(),
+        javacOptions = javacOptions() ++ mandatoryJavacOptions(),
         reporter = T.reporter.apply(hashCode),
         reportCachedProblems = zincReportCachedProblems(),
         incrementalCompilation = zincIncrementalCompilation()

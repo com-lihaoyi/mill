@@ -6,14 +6,13 @@ import mill.util.Util.millProjectModule
 import mill.scalalib._
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import utest.framework.TestPath
 import utest.{TestSuite, Tests, assert, _}
 
 object TestNGTests extends TestSuite {
 
   object demo extends TestBaseModule with JavaModule {
 
-    object test extends JavaModuleTests {
+    object test extends JavaTests {
       def testngClasspath = T {
         millProjectModule(
           "mill-contrib-testng",
