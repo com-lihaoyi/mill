@@ -31,8 +31,8 @@ object Giter8Tests extends TestSuite {
         val files = Seq(
           os.sub / "build.mill",
           os.sub / "README.md",
-          os.sub / "hello" / "src" / "Hello.scala",
-          os.sub / "hello" / "test" / "src" / "MyTest.scala"
+          os.sub / "hello/src/Hello.scala",
+          os.sub / "hello/test/src/MyTest.scala"
         )
 
         assert(

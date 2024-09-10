@@ -21,7 +21,7 @@ object myplugin extends ScalaModule with PublishModule {
       def ivyDeps = Agg(ivy"com.lihaoyi:mill-dist:$millVersion")
       def mainClass = Some("mill.runner.client.MillClientMain")
       def resources = T{
-        val p = T.dest / "mill" / "local-test-overrides" / s"com.lihaoyi-${myplugin.artifactId()}"
+        val p = T.dest / "mill/local-test-overrides" / s"com.lihaoyi-${myplugin.artifactId()}"
         os.write(p, myplugin.localClasspath().map(_.path).mkString("\n"), createFolders = true)
         Seq(PathRef(T.dest))
       }

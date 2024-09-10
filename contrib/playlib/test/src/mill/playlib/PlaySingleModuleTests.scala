@@ -61,10 +61,10 @@ object PlaySingleModuleTests extends TestSuite with PlayTestSuite {
         os.RelPath("views/html/main$.class"),
         os.RelPath("views/html/main.class")
       ).map(
-        eval.outPath / "compile.dest" / "classes" / _
+        eval.outPath / "compile.dest/classes" / _
       )
       assert(
-        result.value.classes.path == eval.outPath / "compile.dest" / "classes",
+        result.value.classes.path == eval.outPath / "compile.dest/classes",
         outputFiles.nonEmpty,
         outputFiles.forall(expectedClassfiles.contains),
         outputFiles.size == 15,

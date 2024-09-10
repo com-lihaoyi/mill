@@ -170,9 +170,9 @@ abstract class MillBuildRootModule()(implicit
         },
         logger = new mill.codesig.Logger(Option.when(debugEnabled)(T.dest / "current")),
         prevTransitiveCallGraphHashesOpt = () =>
-          Option.when(os.exists(T.dest / "previous" / "result.json"))(
+          Option.when(os.exists(T.dest / "previous/result.json"))(
             upickle.default.read[Map[String, Int]](
-              os.read.stream(T.dest / "previous" / "result.json")
+              os.read.stream(T.dest / "previous/result.json")
             )
           )
       )
@@ -180,7 +180,7 @@ abstract class MillBuildRootModule()(implicit
     val result = codesig.transitiveCallGraphHashes
     if (debugEnabled) {
       os.write(
-        T.dest / "current" / "result.json",
+        T.dest / "current/result.json",
         upickle.default.stream(
           SortedMap.from(codesig.transitiveCallGraphHashes0.map { case (k, v) => (k.toString, v) }),
           indent = 4

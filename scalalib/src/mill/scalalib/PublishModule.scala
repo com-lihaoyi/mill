@@ -159,7 +159,7 @@ trait PublishModule extends JavaModule { outer =>
    * @param m2RepoPath The path to the local repository  as string (default: `$HOME/.m2repository`).
    * @return [[PathRef]]s to published files.
    */
-  def publishM2Local(m2RepoPath: String = (os.home / ".m2" / "repository").toString())
+  def publishM2Local(m2RepoPath: String = (os.home / ".m2/repository").toString())
       : Command[Seq[PathRef]] = T.command {
     publishM2LocalTask(T.task {
       os.Path(m2RepoPath, T.workspace)
@@ -172,7 +172,7 @@ trait PublishModule extends JavaModule { outer =>
    */
   def publishM2LocalCached: T[Seq[PathRef]] = T {
     publishM2LocalTask(T.task {
-      os.Path(os.home / ".m2" / "repository", T.workspace)
+      os.Path(os.home / ".m2/repository", T.workspace)
     })()
   }
 

@@ -477,7 +477,7 @@ object HelloWorldTests extends TestSuite {
         val Right(result) = eval.apply(HelloWorldDocTitle.core.docJar)
         assert(
           result.evalCount > 0,
-          os.read(eval.outPath / "core" / "docJar.dest" / "javadoc" / "index.html").contains(
+          os.read(eval.outPath / "core/docJar.dest/javadoc/index.html").contains(
             "<span id=\"doc-title\">Hello World"
           )
         )
@@ -525,7 +525,7 @@ object HelloWorldTests extends TestSuite {
       test("fromScratch") - UnitTester(HelloWorld, sourceRoot = resourcePath).scoped { eval =>
         val Right(result) = eval.apply(HelloWorld.core.compile)
 
-        val classesPath = eval.outPath / "core" / "compile.dest" / "classes"
+        val classesPath = eval.outPath / "core/compile.dest/classes"
         val analysisFile = result.value.analysisFile
         val outputFiles = os.walk(result.value.classes.path)
         val expectedClassfiles = compileClassfiles.map(classesPath / _)
@@ -545,7 +545,7 @@ object HelloWorldTests extends TestSuite {
         // Make sure we *do not* end up compiling the compiler bridge, since
         // it's using a pre-compiled bridge value
         assert(!os.exists(
-          eval.outPath / "mill" / "scalalib" / "ZincWorkerModule" / "worker.dest" / s"zinc-${zincVersion}"
+          eval.outPath / "mill/scalalib/ZincWorkerModule/worker.dest" / s"zinc-${zincVersion}"
         ))
       }
 
@@ -555,7 +555,7 @@ object HelloWorldTests extends TestSuite {
       ).scoped { eval =>
         val Right(result) = eval.apply(HelloWorldNonPrecompiledBridge.core.compile)
 
-        val classesPath = eval.outPath / "core" / "compile.dest" / "classes"
+        val classesPath = eval.outPath / "core/compile.dest/classes"
 
         val analysisFile = result.value.analysisFile
         val outputFiles = os.walk(result.value.classes.path)
@@ -576,7 +576,7 @@ object HelloWorldTests extends TestSuite {
         // Make sure we *do* end up compiling the compiler bridge, since it's
         // *not* using a pre-compiled bridge value
         assert(os.exists(
-          eval.outPath / "mill" / "scalalib" / "ZincWorkerModule" / "worker.dest" / s"zinc-${zincVersion}"
+          eval.outPath / "mill/scalalib/ZincWorkerModule/worker.dest" / s"zinc-${zincVersion}"
         ))
       }
 
@@ -584,13 +584,13 @@ object HelloWorldTests extends TestSuite {
         val Right(result) = eval.apply(HelloWorld.core.compile)
         assert(result.evalCount > 0)
 
-        os.write.append(HelloWorld.millSourcePath / "core" / "src" / "Main.scala", "\n")
+        os.write.append(HelloWorld.millSourcePath / "core/src/Main.scala", "\n")
 
         val Right(result2) = eval.apply(HelloWorld.core.compile)
         assert(result2.evalCount > 0, result2.evalCount < result.evalCount)
       }
       test("failOnError") - UnitTester(HelloWorld, sourceRoot = resourcePath).scoped { eval =>
-        os.write.append(HelloWorld.millSourcePath / "core" / "src" / "Main.scala", "val x: ")
+        os.write.append(HelloWorld.millSourcePath / "core/src/Main.scala", "val x: ")
 
         val Left(Result.Failure("Compilation failed", _)) = eval.apply(HelloWorld.core.compile)
 
@@ -602,8 +602,8 @@ object HelloWorldTests extends TestSuite {
         )
         // Works when fixed
         os.write.over(
-          HelloWorld.millSourcePath / "core" / "src" / "Main.scala",
-          os.read(HelloWorld.millSourcePath / "core" / "src" / "Main.scala").dropRight(
+          HelloWorld.millSourcePath / "core/src/Main.scala",
+          os.read(HelloWorld.millSourcePath / "core/src/Main.scala").dropRight(
             "val x: ".length
           )
         )
@@ -622,8 +622,8 @@ object HelloWorldTests extends TestSuite {
 
     test("semanticDbData") {
       def semanticDbFiles: Set[os.SubPath] = Set(
-        os.sub / "META-INF" / "semanticdb" / "core" / "src" / "Main.scala.semanticdb",
-        os.sub / "META-INF" / "semanticdb" / "core" / "src" / "Result.scala.semanticdb"
+        os.sub / "META-INF/semanticdb/core/src/Main.scala.semanticdb",
+        os.sub / "META-INF/semanticdb/core/src/Result.scala.semanticdb"
       )
 
       test("fromScratch") - UnitTester(SemanticWorld, sourceRoot = resourcePath).scoped { eval =>
@@ -631,7 +631,7 @@ object HelloWorldTests extends TestSuite {
           println("first - expected full compile")
           val Right(result) = eval.apply(SemanticWorld.core.semanticDbData)
 
-          val dataPath = eval.outPath / "core" / "semanticDbData.dest" / "data"
+          val dataPath = eval.outPath / "core/semanticDbData.dest/data"
           val outputFiles =
             os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
 
@@ -658,7 +658,7 @@ object HelloWorldTests extends TestSuite {
       ).scoped { eval =>
         // create some more source file to have a reasonable low incremental change later
         val extraFiles = Seq("Second", "Third", "Fourth").map { f =>
-          val file = eval.evaluator.workspace / "core" / "src" / "hello" / s"${f}.scala"
+          val file = eval.evaluator.workspace / "core/src/hello" / s"${f}.scala"
           os.write(
             file,
             s"""package hello
@@ -667,16 +667,16 @@ object HelloWorldTests extends TestSuite {
             createFolders = true
           )
           val sem =
-            os.sub / "META-INF" / "semanticdb" / "core" / "src" / "hello" / s"${f}.scala.semanticdb"
+            os.sub / "META-INF/semanticdb/core/src/hello" / s"${f}.scala.semanticdb"
           (file, sem)
         }
-//        val resultFile = eval.evaluator.workspace / "core" / "src" / "Result.scala"
+//        val resultFile = eval.evaluator.workspace / "core/src/Result.scala"
 
         {
           println("first - expected full compile")
           val Right(result) = eval.apply(SemanticWorld.core.semanticDbData)
 
-          val dataPath = eval.outPath / "core" / "semanticDbData.dest" / "data"
+          val dataPath = eval.outPath / "core/semanticDbData.dest/data"
           val outputFiles =
             os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
 
@@ -746,7 +746,7 @@ object HelloWorldTests extends TestSuite {
 
     test("runMain") {
       test("runMainObject") - UnitTester(HelloWorld, resourcePath).scoped { eval =>
-        val runResult = eval.outPath / "core" / "runMain.dest" / "hello-mill"
+        val runResult = eval.outPath / "core/runMain.dest/hello-mill"
 
         val Right(result) = eval.apply(HelloWorld.core.runMain("Main", runResult.toString))
         assert(result.evalCount > 0)
@@ -790,7 +790,7 @@ object HelloWorldTests extends TestSuite {
           eval.apply(HelloWorld.core.runMain("Invalid"))
       }
       test("notRunWhenCompileFailed") - UnitTester(HelloWorld, resourcePath).scoped { eval =>
-        os.write.append(HelloWorld.millSourcePath / "core" / "src" / "Main.scala", "val x: ")
+        os.write.append(HelloWorld.millSourcePath / "core/src/Main.scala", "val x: ")
 
         val Left(Result.Failure("Compilation failed", _)) =
           eval.apply(HelloWorld.core.runMain("Main"))
@@ -800,7 +800,7 @@ object HelloWorldTests extends TestSuite {
 
     test("forkRun") {
       test("runIfMainClassProvided") - UnitTester(HelloWorldWithMain, resourcePath).scoped { eval =>
-        val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
+        val runResult = eval.outPath / "core/run.dest/hello-mill"
         val Right(result) = eval.apply(
           HelloWorldWithMain.core.run(T.task(Args(runResult.toString)))
         )
@@ -823,7 +823,7 @@ object HelloWorldTests extends TestSuite {
         eval =>
           // Make sure even if there isn't a main class defined explicitly, it gets
           // discovered by Zinc and used
-          val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
+          val runResult = eval.outPath / "core/run.dest/hello-mill"
           val Right(result) = eval.apply(
             HelloWorldWithoutMain.core.run(T.task(Args(runResult.toString)))
           )
@@ -839,7 +839,7 @@ object HelloWorldTests extends TestSuite {
 
     test("run") {
       test("runIfMainClassProvided") - UnitTester(HelloWorldWithMain, resourcePath).scoped { eval =>
-        val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
+        val runResult = eval.outPath / "core/run.dest/hello-mill"
         val Right(result) = eval.apply(
           HelloWorldWithMain.core.runLocal(T.task(Args(runResult.toString)))
         )
@@ -852,7 +852,7 @@ object HelloWorldTests extends TestSuite {
         )
       }
       test("runWithDefaultMain") - UnitTester(HelloWorldDefaultMain, resourcePath).scoped { eval =>
-        val runResult = eval.outPath / "core" / "run.dest" / "hello-mill"
+        val runResult = eval.outPath / "core/run.dest/hello-mill"
         val Right(result) = eval.apply(
           HelloWorldDefaultMain.core.runLocal(T.task(Args(runResult.toString)))
         )
@@ -905,7 +905,7 @@ object HelloWorldTests extends TestSuite {
         val outPath = eval.outPath
         eval.apply(HelloWorld.core.compile)
 
-        val logFile = outPath / "core" / "compile.log"
+        val logFile = outPath / "core/compile.log"
         assert(os.exists(logFile))
       }
     }

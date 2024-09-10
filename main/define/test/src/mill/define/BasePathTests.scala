@@ -65,8 +65,8 @@ object BasePathTests extends TestSuite {
       }
       assert(
         overriddenBasePath.millSourcePath == os.pwd / "overriddenBasePathRootValue",
-        overriddenBasePath.nested.millSourcePath == os.pwd / "overriddenBasePathRootValue" / "nested" / "overriddenBasePathNested",
-        overriddenBasePath.nested.nested.millSourcePath == os.pwd / "overriddenBasePathRootValue" / "nested" / "overriddenBasePathNested" / "nested" / "overriddenBasePathDoubleNested"
+        overriddenBasePath.nested.millSourcePath == os.pwd / "overriddenBasePathRootValue/nested/overriddenBasePathNested",
+        overriddenBasePath.nested.nested.millSourcePath == os.pwd / "overriddenBasePathRootValue/nested/overriddenBasePathNested/nested/overriddenBasePathDoubleNested"
       )
     }
 

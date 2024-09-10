@@ -23,27 +23,27 @@ object MultiLevelBuildTests extends UtestIntegrationTestSuite {
     }
 
     def fooPaths(tester: IntegrationTester) = Seq(
-      tester.workspacePath / "foo" / "compile-resources",
-      tester.workspacePath / "foo" / "resources",
-      tester.workspacePath / "foo" / "src"
+      tester.workspacePath / "foo/compile-resources",
+      tester.workspacePath / "foo/resources",
+      tester.workspacePath / "foo/src"
     )
     def buildPaths(tester: IntegrationTester) = Seq(
       tester.workspacePath / "build.mill",
-      tester.workspacePath / "mill-build" / "compile-resources",
-      tester.workspacePath / "mill-build" / "resources",
-      tester.workspacePath / "mill-build" / "src"
+      tester.workspacePath / "mill-build/compile-resources",
+      tester.workspacePath / "mill-build/resources",
+      tester.workspacePath / "mill-build/src"
     )
     def buildPaths2(tester: IntegrationTester) = Seq(
-      tester.workspacePath / "mill-build" / "build.mill",
-      tester.workspacePath / "mill-build" / "mill-build" / "compile-resources",
-      tester.workspacePath / "mill-build" / "mill-build" / "resources",
-      tester.workspacePath / "mill-build" / "mill-build" / "src"
+      tester.workspacePath / "mill-build/build.mill",
+      tester.workspacePath / "mill-build/mill-build/compile-resources",
+      tester.workspacePath / "mill-build/mill-build/resources",
+      tester.workspacePath / "mill-build/mill-build/src"
     )
     def buildPaths3(tester: IntegrationTester) = Seq(
-      tester.workspacePath / "mill-build" / "mill-build" / "build.mill",
-      tester.workspacePath / "mill-build" / "mill-build" / "mill-build" / "compile-resources",
-      tester.workspacePath / "mill-build" / "mill-build" / "mill-build" / "resources",
-      tester.workspacePath / "mill-build" / "mill-build" / "mill-build" / "src"
+      tester.workspacePath / "mill-build/mill-build/build.mill",
+      tester.workspacePath / "mill-build/mill-build/mill-build/compile-resources",
+      tester.workspacePath / "mill-build/mill-build/mill-build/resources",
+      tester.workspacePath / "mill-build/mill-build/mill-build/src"
     )
 
     def loadFrames(tester: IntegrationTester, n: Int) = {
@@ -142,7 +142,7 @@ object MultiLevelBuildTests extends UtestIntegrationTestSuite {
       // which doesn't need generate a classloader which never changes
       checkChangedClassloaders(tester, null, true, true, true)
 
-      modifyFile(workspacePath / "foo" / "src" / "Example.scala", _.replace("!", "?"))
+      modifyFile(workspacePath / "foo/src/Example.scala", _.replace("!", "?"))
       runAssertSuccess(tester, "<h1>hello</h1><p>world</p><p>0.8.2</p>?")
       checkWatchedFiles(
         tester,
@@ -166,7 +166,7 @@ object MultiLevelBuildTests extends UtestIntegrationTestSuite {
       checkChangedClassloaders(tester, null, true, false, false)
 
       modifyFile(
-        workspacePath / "mill-build" / "build.mill",
+        workspacePath / "mill-build/build.mill",
         _.replace("def scalatagsVersion = ", "def scalatagsVersion = \"changed-\" + ")
       )
       runAssertSuccess(tester, "<h1>HELLO</h1><p>world</p><p>changed-0.8.2</p>?")
@@ -180,7 +180,7 @@ object MultiLevelBuildTests extends UtestIntegrationTestSuite {
       checkChangedClassloaders(tester, null, true, true, false)
 
       modifyFile(
-        workspacePath / "mill-build" / "mill-build" / "build.mill",
+        workspacePath / "mill-build/mill-build/build.mill",
         _.replace("0.8.2", "0.12.0")
       )
       runAssertSuccess(tester, "<h1>HELLO</h1><p>world</p><p>changed-0.12.0</p>?")
@@ -194,7 +194,7 @@ object MultiLevelBuildTests extends UtestIntegrationTestSuite {
       checkChangedClassloaders(tester, null, true, true, true)
 
       modifyFile(
-        workspacePath / "mill-build" / "mill-build" / "build.mill",
+        workspacePath / "mill-build/mill-build/build.mill",
         _.replace("0.12.0", "0.8.2")
       )
       runAssertSuccess(tester, "<h1>HELLO</h1><p>world</p><p>changed-0.8.2</p>?")
@@ -208,7 +208,7 @@ object MultiLevelBuildTests extends UtestIntegrationTestSuite {
       checkChangedClassloaders(tester, null, true, true, true)
 
       modifyFile(
-        workspacePath / "mill-build" / "build.mill",
+        workspacePath / "mill-build/build.mill",
         _.replace("def scalatagsVersion = \"changed-\" + ", "def scalatagsVersion = ")
       )
       runAssertSuccess(tester, "<h1>HELLO</h1><p>world</p><p>0.8.2</p>?")
@@ -232,7 +232,7 @@ object MultiLevelBuildTests extends UtestIntegrationTestSuite {
       )
       checkChangedClassloaders(tester, null, true, false, false)
 
-      modifyFile(workspacePath / "foo" / "src" / "Example.scala", _.replace("?", "!"))
+      modifyFile(workspacePath / "foo/src/Example.scala", _.replace("?", "!"))
       runAssertSuccess(tester, "<h1>hello</h1><p>world</p><p>0.8.2</p>!")
       checkWatchedFiles(
         tester,
@@ -272,13 +272,13 @@ object MultiLevelBuildTests extends UtestIntegrationTestSuite {
       checkChangedClassloaders(tester, null, null, null, null)
 
       fixParseError(workspacePath / "build.mill")
-      causeParseError(workspacePath / "mill-build" / "build.mill")
+      causeParseError(workspacePath / "mill-build/build.mill")
       evalCheckErr(tester, "\n1 targets failed", "\ngenerateScriptSources mill-build/build.mill")
       checkWatchedFiles(tester, Nil, Nil, buildPaths2(tester), Nil)
       checkChangedClassloaders(tester, null, null, null, null)
 
-      fixParseError(workspacePath / "mill-build" / "build.mill")
-      causeParseError(workspacePath / "mill-build" / "mill-build" / "build.mill")
+      fixParseError(workspacePath / "mill-build/build.mill")
+      causeParseError(workspacePath / "mill-build/mill-build/build.mill")
       evalCheckErr(
         tester,
         "\n1 targets failed",
@@ -287,13 +287,13 @@ object MultiLevelBuildTests extends UtestIntegrationTestSuite {
       checkWatchedFiles(tester, Nil, Nil, Nil, buildPaths3(tester))
       checkChangedClassloaders(tester, null, null, null, null)
 
-      fixParseError(workspacePath / "mill-build" / "mill-build" / "build.mill")
-      causeParseError(workspacePath / "mill-build" / "build.mill")
+      fixParseError(workspacePath / "mill-build/mill-build/build.mill")
+      causeParseError(workspacePath / "mill-build/build.mill")
       evalCheckErr(tester, "\n1 targets failed", "\ngenerateScriptSources mill-build/build.mill")
       checkWatchedFiles(tester, Nil, Nil, buildPaths2(tester), Nil)
       checkChangedClassloaders(tester, null, null, null, null)
 
-      fixParseError(workspacePath / "mill-build" / "build.mill")
+      fixParseError(workspacePath / "mill-build/build.mill")
       causeParseError(workspacePath / "build.mill")
       evalCheckErr(tester, "\n1 targets failed", "\ngenerateScriptSources build.mill")
       checkWatchedFiles(tester, Nil, buildPaths(tester), Nil, Nil)
@@ -341,37 +341,37 @@ object MultiLevelBuildTests extends UtestIntegrationTestSuite {
       checkWatchedFiles(tester, Nil, buildPaths(tester), buildPaths2(tester), buildPaths3(tester))
       checkChangedClassloaders(tester, null, null, false, false)
 
-      causeCompileError(workspacePath / "mill-build" / "build.mill")
+      causeCompileError(workspacePath / "mill-build/build.mill")
       evalCheckErr(
         tester,
         "\n1 targets failed",
-        (workspacePath / "mill-build" / "build.mill").toString,
+        (workspacePath / "mill-build/build.mill").toString,
         "not found: object doesnt"
       )
       checkWatchedFiles(tester, Nil, Nil, buildPaths2(tester), buildPaths3(tester))
       checkChangedClassloaders(tester, null, null, null, false)
 
-      causeCompileError(workspacePath / "mill-build" / "mill-build" / "build.mill")
+      causeCompileError(workspacePath / "mill-build/mill-build/build.mill")
       evalCheckErr(
         tester,
         "\n1 targets failed",
-        (workspacePath / "mill-build" / "mill-build" / "build.mill").toString,
+        (workspacePath / "mill-build/mill-build/build.mill").toString,
         "not found: object doesnt"
       )
       checkWatchedFiles(tester, Nil, Nil, Nil, buildPaths3(tester))
       checkChangedClassloaders(tester, null, null, null, null)
 
-      fixCompileError(workspacePath / "mill-build" / "mill-build" / "build.mill")
+      fixCompileError(workspacePath / "mill-build/mill-build/build.mill")
       evalCheckErr(
         tester,
         "\n1 targets failed",
-        (workspacePath / "mill-build" / "build.mill").toString,
+        (workspacePath / "mill-build/build.mill").toString,
         "not found: object doesnt"
       )
       checkWatchedFiles(tester, Nil, Nil, buildPaths2(tester), buildPaths3(tester))
       checkChangedClassloaders(tester, null, null, null, true)
 
-      fixCompileError(workspacePath / "mill-build" / "build.mill")
+      fixCompileError(workspacePath / "mill-build/build.mill")
       evalCheckErr(
         tester,
         "\n1 targets failed",
@@ -428,7 +428,7 @@ object MultiLevelBuildTests extends UtestIntegrationTestSuite {
       )
       checkChangedClassloaders(tester, null, true, false, false)
 
-      causeRuntimeError(workspacePath / "mill-build" / "build.mill")
+      causeRuntimeError(workspacePath / "mill-build/build.mill")
       evalCheckErr(
         tester,
         "\n1 targets failed",
@@ -438,7 +438,7 @@ object MultiLevelBuildTests extends UtestIntegrationTestSuite {
       checkWatchedFiles(tester, Nil, buildPaths(tester), buildPaths2(tester), buildPaths3(tester))
       checkChangedClassloaders(tester, null, null, true, false)
 
-      causeRuntimeError(workspacePath / "mill-build" / "mill-build" / "build.mill")
+      causeRuntimeError(workspacePath / "mill-build/mill-build/build.mill")
       evalCheckErr(
         tester,
         "\n1 targets failed",
@@ -448,7 +448,7 @@ object MultiLevelBuildTests extends UtestIntegrationTestSuite {
       checkWatchedFiles(tester, Nil, Nil, buildPaths2(tester), buildPaths3(tester))
       checkChangedClassloaders(tester, null, null, null, true)
 
-      fixRuntimeError(workspacePath / "mill-build" / "mill-build" / "build.mill")
+      fixRuntimeError(workspacePath / "mill-build/mill-build/build.mill")
       evalCheckErr(
         tester,
         "\n1 targets failed",
@@ -458,7 +458,7 @@ object MultiLevelBuildTests extends UtestIntegrationTestSuite {
       checkWatchedFiles(tester, Nil, buildPaths(tester), buildPaths2(tester), buildPaths3(tester))
       checkChangedClassloaders(tester, null, null, true, true)
 
-      fixRuntimeError(workspacePath / "mill-build" / "build.mill")
+      fixRuntimeError(workspacePath / "mill-build/build.mill")
       evalCheckErr(
         tester,
         "\n1 targets failed",

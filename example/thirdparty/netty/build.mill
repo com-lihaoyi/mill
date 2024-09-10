@@ -86,9 +86,9 @@ trait NettyModule extends NettyBaseModule{
 
 trait NettyJniModule extends NettyModule {
   def jniLibraryName: T[String]
-  def cSources = T.source(millSourcePath / "src" / "main" / "c")
+  def cSources = T.source(millSourcePath / "src/main/c")
   def resources = T{
-    os.copy(clang().path, T.dest / "META-INF" / "native" / jniLibraryName(), createFolders = true)
+    os.copy(clang().path, T.dest / "META-INF/native" / jniLibraryName(), createFolders = true)
     Seq(PathRef(T.dest))
   }
   def clang = T{
@@ -99,15 +99,15 @@ trait NettyJniModule extends NettyModule {
       )
       .toSeq
 
-    os.makeDir.all(T.dest  / "src" / "main" / "c")
-    os.proc("jar", "xf", sourceJar.path).call(cwd = T.dest  / "src" / "main" / "c")
+    os.makeDir.all(T.dest  / "src/main/c")
+    os.proc("jar", "xf", sourceJar.path).call(cwd = T.dest  / "src/main/c")
 
     os.proc(
       "clang",
       // CFLAGS
       "-O3", "-Werror", "-fno-omit-frame-pointer",
       "-Wunused-variable", "-fvisibility=hidden",
-      "-I" + (T.dest / "src" / "main" / "c"),
+      "-I" + (T.dest / "src/main/c"),
       "-I" + `transport-native-unix-common`.cHeaders().path,
       "-I" + sys.props("java.home") + "/include/",
       "-I" + sys.props("java.home") + "/include/darwin",
@@ -248,7 +248,7 @@ object common extends NettyModule{
     ivy"org.jctools:jctools-core:4.0.5",
   )
 
-  def script = T.source(millSourcePath / "src" / "main" / "script")
+  def script = T.source(millSourcePath / "src/main/script")
   def generatedSources0 = T{
     val shell = new groovy.lang.GroovyShell()
 
@@ -445,7 +445,7 @@ object `testsuite-http2` extends NettyTestSuiteModule{
 object `testsuite-native` extends NettyTestSuiteModule{
   def moduleDeps = Seq(`transport-native-kqueue`, `resolver-dns-native-macos`, `resolver-dns-classes-macos`, `transport-native-epoll`)
   def testModuleDeps = Seq(`resolver-dns-classes-macos`)
-  override def sources = T.sources( millSourcePath / "src" / "test" / "java" )
+  override def sources = T.sources( millSourcePath / "src/test/java" )
 }
 
 object `testsuite-native-image` extends NettyTestSuiteModule{
@@ -471,7 +471,7 @@ object `testsuite-osgi` extends NettyTestSuiteModule{
     transport, `transport-sctp`, `transport-udt`
   )
 
-  override def sources = T.sources( millSourcePath / "src" / "test" / "java" )
+  override def sources = T.sources( millSourcePath / "src/test/java" )
 
   def ivyDeps = super.ivyDeps() ++ Agg(
     ivy"org.apache.felix:org.apache.felix.configadmin:1.9.14",
@@ -484,7 +484,7 @@ object `testsuite-osgi` extends NettyTestSuiteModule{
 
 object `testsuite-shading` extends NettyTestSuiteModule{
   def moduleDeps = Seq(common)
-  override def sources = T.sources( millSourcePath / "src" / "test" / "java" )
+  override def sources = T.sources( millSourcePath / "src/test/java" )
 }
 
 object transport extends NettyModule{
@@ -533,7 +533,7 @@ object `transport-native-unix-common` extends NettyModule{
   def ivyDeps = Agg(ivy"org.junit.jupiter:junit-jupiter-api:5.9.0")
 
   def makefile = T.source(millSourcePath / "Makefile")
-  def cSources = T.source(millSourcePath / "src" / "main" / "c")
+  def cSources = T.source(millSourcePath / "src/main/c")
   def cHeaders = T{
     for(p <- os.walk(cSources().path) if p.ext == "h"){
       os.copy(p, T.dest / p.relativeTo(cSources().path), createFolders = true)
@@ -548,8 +548,8 @@ object `transport-native-unix-common` extends NettyModule{
     )().toSeq
 
     os.copy(makefile().path, T.dest / "Makefile")
-    os.copy(cSources().path, T.dest / "src" / "main" / "c", createFolders = true)
-    os.proc("jar", "xf", sourceJar.path).call(cwd = T.dest  / "src" / "main" / "c")
+    os.copy(cSources().path, T.dest / "src/main/c", createFolders = true)
+    os.proc("jar", "xf", sourceJar.path).call(cwd = T.dest  / "src/main/c")
 
     os.proc("make").call(
       cwd = T.dest,
