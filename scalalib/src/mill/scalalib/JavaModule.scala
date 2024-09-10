@@ -35,7 +35,8 @@ trait JavaModule
     with BspModule
     with SemanticDbJavaModule { outer =>
 
-  def zincWorker: ModuleRef[ZincWorkerModule] = super.zincWorker
+  override def zincWorker: ModuleRef[ZincWorkerModule] = super.zincWorker
+  @nowarn
   type JavaTests = JavaModuleTests
   @deprecated("Use JavaTests instead", since = "Mill 0.11.10")
   trait JavaModuleTests extends JavaModule with TestModule {
