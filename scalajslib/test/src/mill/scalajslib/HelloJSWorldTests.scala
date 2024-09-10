@@ -68,7 +68,6 @@ object HelloJSWorldTests extends TestSuite {
     object inherited extends ScalaJSModule {
       val (scala, scalaJS) = matrix.head
       def scalacOptions = Seq("-deprecation")
-      def mandatoryScalacOptions = Seq("-mandatory")
       def scalaOrganization = "org.example"
       def scalaVersion = scala
       def scalaJSVersion = scalaJS
@@ -291,9 +290,6 @@ object HelloJSWorldTests extends TestSuite {
       }
     test("test-scalacOptions") {
       checkInheritedTargets(_.scalacOptions, Seq("-deprecation"))
-    }
-    test("test-mandatoryScalacOptions") {
-      checkInheritedTargets(_.mandatoryScalacOptions, Seq("-mandatory"))
     }
     test("test-scalaOrganization") {
       checkInheritedTargets(_.scalaOrganization, "org.example")
