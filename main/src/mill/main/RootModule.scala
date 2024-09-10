@@ -26,7 +26,7 @@ abstract class RootModule()(implicit
 
 @internal
 object RootModule {
-  case class Info(millSourcePath0: os.Path, discover: Discover[_])
+  case class Info(millSourcePath0: os.Path, discover: Discover)
 
   abstract class Subfolder(path: String*)(implicit
       baseModuleInfo: RootModule.Info,

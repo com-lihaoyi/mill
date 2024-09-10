@@ -16,7 +16,7 @@ import scala.reflect.macros.blackbox
  * the `T.command` methods we find. This mapping from `Class[_]` to `MainData`
  * can then be used later to look up the `MainData` for any module.
  */
-case class Discover[T] private (
+case class Discover private (
     value: Map[
       Class[_],
       (Seq[String], Seq[mainargs.MainData[_, _]])
@@ -33,27 +33,27 @@ case class Discover[T] private (
         (Seq[String], Seq[mainargs.MainData[_, _]])
       ] = value,
       dummy: Int = dummy /* avoid conflict with Discover.apply(value: Map) below*/
-  ): Discover[T] = new Discover[T](value, dummy)
+  ): Discover = new Discover(value, dummy)
   @deprecated("Binary compatibility shim", "Mill 0.11.4")
-  private[define] def copy[T](value: Map[Class[_], Seq[mainargs.MainData[_, _]]]): Discover[T] = {
-    new Discover[T](value.view.mapValues((Nil, _)).toMap, dummy)
+  private[define] def copy(value: Map[Class[_], Seq[mainargs.MainData[_, _]]]): Discover = {
+    new Discover(value.view.mapValues((Nil, _)).toMap, dummy)
   }
 }
 
 object Discover {
-  def apply2[T](value: Map[Class[_], (Seq[String], Seq[mainargs.MainData[_, _]])]): Discover[T] =
-    new Discover[T](value)
+  def apply2[T](value: Map[Class[_], (Seq[String], Seq[mainargs.MainData[_, _]])]): Discover =
+    new Discover(value)
 
   @deprecated("Binary compatibility shim", "Mill 0.11.4")
-  def apply[T](value: Map[Class[_], Seq[mainargs.MainData[_, _]]]): Discover[T] =
-    new Discover[T](value.view.mapValues((Nil, _)).toMap)
+  def apply[T](value: Map[Class[_], Seq[mainargs.MainData[_, _]]]): Discover =
+    new Discover(value.view.mapValues((Nil, _)).toMap)
 
-  def apply[T]: Discover[T] = macro Router.applyImpl[T]
+  def apply[T]: Discover = macro Router.applyImpl[T]
 
   private class Router(val ctx: blackbox.Context) extends mainargs.Macros(ctx) {
     import c.universe._
 
-    def applyImpl[T: WeakTypeTag]: Expr[Discover[T]] = {
+    def applyImpl[T: WeakTypeTag]: Expr[Discover] = {
       val seen = mutable.Set.empty[Type]
       def rec(tpe: Type): Unit = {
         if (!seen(tpe)) {
@@ -141,8 +141,8 @@ object Discover {
         q"$lhs -> $overridesLambda"
       }
 
-      c.Expr[Discover[T]](
-        q"_root_.mill.define.Discover.apply2[${weakTypeOf[T]}](_root_.scala.collection.immutable.Map(..$mapping))"
+      c.Expr[Discover](
+        q"_root_.mill.define.Discover.apply2(_root_.scala.collection.immutable.Map(..$mapping))"
       )
     }
   }

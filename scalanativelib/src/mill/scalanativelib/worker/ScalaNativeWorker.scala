@@ -42,5 +42,5 @@ private[scalanativelib] class ScalaNativeWorker extends AutoCloseable {
 
 private[scalanativelib] object ScalaNativeWorkerExternalModule extends mill.define.ExternalModule {
   def scalaNativeWorker: Worker[ScalaNativeWorker] = T.worker { new ScalaNativeWorker() }
-  lazy val millDiscover: Discover[this.type] = Discover[this.type]
+  lazy val millDiscover: Discover = Discover[this.type]
 }

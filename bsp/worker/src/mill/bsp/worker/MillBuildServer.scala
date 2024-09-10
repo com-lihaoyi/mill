@@ -34,7 +34,7 @@ private class MillBuildServer(
 ) extends ExternalModule
     with BuildServer {
 
-  lazy val millDiscover: Discover[this.type] = Discover[this.type]
+  lazy val millDiscover: Discover = Discover[this.type]
 
   private[worker] var cancellator: Boolean => Unit = shutdownBefore => ()
   private[worker] var onSessionEnd: Option[BspServerResult => Unit] = None
@@ -567,7 +567,7 @@ private class MillBuildServer(
           case ((msg, cleaned), targetId) =>
             val (module, ev) = state.bspModulesById(targetId)
             val mainModule = new MainModule {
-              override implicit def millDiscover: Discover[_] = Discover[this.type]
+              override implicit def millDiscover: Discover = Discover[this.type]
             }
             val compileTargetName = (module.millModuleSegments ++ Label("compile")).render
             debug(s"about to clean: ${compileTargetName}")

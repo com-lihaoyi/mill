@@ -16,7 +16,7 @@ object DependencyUpdatesImpl {
       evaluator: Evaluator,
       ctx: Log with Home,
       rootModule: BaseModule,
-      discover: Discover[_],
+      discover: Discover,
       allowPreRelease: Boolean
   ): Seq[ModuleDependenciesUpdates] = {
 

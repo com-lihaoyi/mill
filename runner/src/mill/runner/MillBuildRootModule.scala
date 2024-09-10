@@ -274,8 +274,7 @@ object MillBuildRootModule {
         )
       ) {
 
-    override lazy val millDiscover: Discover[this.type] =
-      baseModuleInfo.discover.asInstanceOf[Discover[this.type]]
+    override lazy val millDiscover: Discover = baseModuleInfo.discover
   }
 
   case class Info(

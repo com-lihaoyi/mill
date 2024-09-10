@@ -155,7 +155,7 @@ object CodeGen {
           }
 
         var newScriptCode = scriptCode
-        newScriptCode = objectData.obj.applyTo(newScriptCode, "class")
+        newScriptCode = objectData.obj.applyTo(newScriptCode, "trait")
         newScriptCode = objectData.name.applyTo(newScriptCode, wrapperObjectName)
         newScriptCode = objectData.parent.applyTo(newScriptCode, newParent)
 
@@ -218,8 +218,9 @@ object CodeGen {
     // object initialization due to https://github.com/scala/scala3/issues/21444
     s"""object $wrapperObjectName extends $wrapperObjectName{
        |  $childAliases
+       |  override lazy val millDiscover = _root_.mill.define.Discover[this.type]
        |}
-       |class $wrapperObjectName $extendsClause {""".stripMargin
+       |trait $wrapperObjectName $extendsClause {""".stripMargin
 
   }
 

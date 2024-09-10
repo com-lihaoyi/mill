@@ -27,7 +27,7 @@ object MainModuleTests extends TestSuite {
       Map("1" -> "hello", "2" -> "world")
     }
     def helloCommand(x: Int, y: Task[String]) = T.command { (x, y(), hello()) }
-    override lazy val millDiscover: Discover[this.type] = Discover[this.type]
+    override lazy val millDiscover: Discover = Discover[this.type]
   }
 
   object cleanModule extends TestBaseModule with MainModule {

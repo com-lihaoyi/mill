@@ -23,7 +23,7 @@ object ExclusionsTests extends TestSuite {
         ivy"com.github.scopt:scopt_native0.4_2.13:4.0.1"
       )
     }
-    override lazy val millDiscover: Discover[Exclusions.this.type] = Discover[this.type]
+    override lazy val millDiscover: Discover = Discover[this.type]
   }
 
   val exclusionsEvaluator = UnitTester(Exclusions, null)
