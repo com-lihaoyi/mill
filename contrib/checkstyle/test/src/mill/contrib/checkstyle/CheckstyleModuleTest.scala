@@ -1,6 +1,7 @@
 package mill
 package contrib.checkstyle
 
+import mainargs.Leftover
 import mill.api.Result
 import mill.scalalib.{JavaModule, ScalaModule}
 import mill.testkit.UnitTester
@@ -14,30 +15,39 @@ object CheckstyleModuleTest extends TestSuite {
   def testCheckstyle(
       module: TestBaseModule with CheckstyleModule,
       modulePath: os.Path,
-      expectedErrors: Seq[String]
+      expectedViolations: Seq[String],
+      args: CheckstyleArgs
   ): Boolean = {
     val eval = UnitTester(module, modulePath)
 
-    eval(module.checkstyle).fold(
+    eval(module.checkstyle(args)).fold(
       {
         case Result.Exception(cause, _) => throw cause
         case failure => throw failure
       },
-      checkstyle => {
+      numViolations => {
 
-        val CheckstyleOutput(errors, report, transformations) = checkstyle.value
+        val Right(report) = eval(module.checkstyleReport)
 
-        val reported = os.exists(report.path)
-        val transformed = transformations.forall {
-          case CheckstyleTransformation(definition, output) =>
-            definition.path.baseName == output.path.baseName && output.path.ext == (definition.path / os.up).last
+        val reported = os.exists(report.value.path)
+        val countMatched = numViolations.value == expectedViolations.length
+
+        (args.stdout && !reported && countMatched) || {
+
+          val Right(transformedReports) = eval(module.checkstyleTransformedReports)
+
+          val transformed = transformedReports.value.forall {
+            case TransformedReport(transformation, report) =>
+              transformation.path.baseName == report.path.baseName &&
+              report.path.ext == (transformation.path / os.up).last
+          }
+          val validated = countMatched && (expectedViolations.isEmpty || {
+            val lines = os.read.lines(report.value.path)
+            expectedViolations.forall(expected => lines.exists(_.contains(expected)))
+          })
+
+          reported & transformed & validated
         }
-        val validated = errors == expectedErrors.length && (expectedErrors.isEmpty || {
-          val lines = os.read.lines(report.path)
-          expectedErrors.forall(expected => lines.exists(_.contains(expected)))
-        })
-
-        reported & transformed & validated
       }
     )
   }
@@ -47,7 +57,10 @@ object CheckstyleModuleTest extends TestSuite {
       format: String = "xml",
       version: String = "10.18.1",
       options: Seq[String] = Nil,
-      expectedErrors: Seq[String] = Seq.empty
+      expectedViolations: Seq[String] = Seq.empty,
+      check: Boolean = false,
+      stdout: Boolean = false,
+      files: Seq[String] = Seq.empty
   ): Boolean = {
 
     object module extends TestBaseModule with JavaModule with CheckstyleModule {
@@ -56,7 +69,12 @@ object CheckstyleModuleTest extends TestSuite {
       override def checkstyleVersion = version
     }
 
-    testCheckstyle(module, modulePath, expectedErrors)
+    testCheckstyle(
+      module,
+      modulePath,
+      expectedViolations,
+      CheckstyleArgs(check, stdout, Leftover(files: _*))
+    )
   }
 
   def testScala(
@@ -64,7 +82,10 @@ object CheckstyleModuleTest extends TestSuite {
       format: String = "xml",
       version: String = "10.18.1",
       options: Seq[String] = Nil,
-      expectedErrors: Seq[String] = Seq.empty
+      expectedViolations: Seq[String] = Seq.empty,
+      check: Boolean = false,
+      stdout: Boolean = false,
+      files: Seq[String] = Seq.empty
   ): Boolean = {
 
     object module extends TestBaseModule with ScalaModule with CheckstyleModule {
@@ -74,10 +95,65 @@ object CheckstyleModuleTest extends TestSuite {
       override def scalaVersion = sys.props("MILL_SCALA_2_13_VERSION")
     }
 
-    testCheckstyle(module, modulePath, expectedErrors)
+    testCheckstyle(
+      module,
+      modulePath,
+      expectedViolations,
+      CheckstyleArgs(check, stdout, Leftover(files: _*))
+    )
   }
 
   def tests = Tests {
+
+    test("arguments") {
+
+      test("check") {
+
+        intercept[RuntimeException](
+          testJava(resources / "non-compatible", check = true)
+        )
+      }
+
+      test("stdout") {
+
+        assert(
+          testJava(
+            resources / "non-compatible",
+            expectedViolations =
+              List.fill(2)("Array should contain trailing comma") :::
+                List.fill(2)("Empty statement"),
+            stdout = true
+          )
+        )
+      }
+
+      test("files") {
+
+        assert(
+          testJava(
+            resources / "non-compatible",
+            expectedViolations = List.fill(2)("Array should contain trailing comma"),
+            files = Seq("src/blocks")
+          ),
+          testJava(
+            resources / "non-compatible",
+            expectedViolations = List.fill(4)("Array should contain trailing comma"),
+            files = Seq("src/blocks", "src/blocks/ArrayTrailingComma.java")
+          ),
+          testJava(
+            resources / "non-compatible",
+            expectedViolations =
+              List.fill(2)("Array should contain trailing comma") :::
+                List.fill(2)("Empty statement"),
+            files = Seq("src/blocks", "src/coding")
+          )
+        )
+
+        intercept[RuntimeException](
+          testJava(resources / "non-compatible", files = Seq("bad/path"))
+        )
+      }
+    }
 
     test("settings") {
 
@@ -118,44 +194,38 @@ object CheckstyleModuleTest extends TestSuite {
 
       assert(
         testJava(
-          resources / "noncompatible",
-          expectedErrors = Seq(
-            "Array should contain trailing comma",
-            "Array should contain trailing comma",
-            "Empty statement",
-            "Empty statement"
-          )
+          resources / "non-compatible",
+          expectedViolations =
+            List.fill(2)("Array should contain trailing comma") ::: List.fill(2)("Empty statement")
         ),
         testJava(
           resources / "sbt-checkstyle",
-          expectedErrors = Seq(
-            "Utility classes should not have a public or default constructor"
-          )
+          expectedViolations =
+            "Utility classes should not have a public or default constructor" :: Nil
         ),
         testJava(
           resources / "sbt-checkstyle-xslt",
-          expectedErrors = Seq(
-            "Utility classes should not have a public or default constructor"
-          )
+          expectedViolations =
+            "Utility classes should not have a public or default constructor" :: Nil
         )
       )
     }
 
     test("limitations") {
 
-      test("report generated with cryptic error for incompatible version") {
+      test("report generated with unexpected violation for incompatible version") {
         assert(
           testJava(
             resources / "compatible-java",
             "plain",
             "6.2",
-            expectedErrors = Seq("File not found")
+            expectedViolations = "File not found" :: Nil
           ),
           testJava(
             resources / "compatible-java",
             "xml",
             "6.2",
-            expectedErrors = Seq("File not found")
+            expectedViolations = "File not found" :: Nil
           )
         )
       }

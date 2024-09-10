@@ -11,62 +11,66 @@ import mill.util.Jvm
 trait CheckstyleModule extends JavaModule {
 
   /**
-   * Generates a [[CheckstyleOutput]].
+   * Command that returns a value obtained by running [[https://checkstyle.org/ Checkstyle]].
+   *
+   * Checkstyle writes the output report at [[checkstyleReport]]. This is used to generate [[checkstyleTransformedReports]].
+   *
+   * @note [[sources]] are processed when no [[CheckstyleArgs.files]] are specified.
+   *
+   * @return number of violations, or, Checkstyle exit code
    */
-  def checkstyle: T[CheckstyleOutput] = T {
+  def checkstyle(@mainargs.arg checkstyleArgs: CheckstyleArgs): Command[Int] = T.command {
 
-    val dest = T.dest
+    val CheckstyleArgs(check, stdout, files) = checkstyleArgs
 
-    val format = checkstyleFormat()
-    val report = dest / s"checkstyle-report.$format"
-
+    val report = checkstyleReport().path
     val args = checkstyleOptions() ++
-      Seq(
-        "-c",
-        checkstyleConfig().path.toString(),
-        "-f",
-        format,
-        "-o",
-        report.toString()
-      ) ++
-      sources().map(_.path.toString())
+      Seq("-c", checkstyleConfig().path.toString()) ++
+      Seq("-f", checkstyleFormat()) ++
+      (if (stdout) Seq.empty else Seq("-o", report.toString())) ++
+      (if (files.value.isEmpty) sources().map(_.path.toString()) else files.value)
 
-    T.log.info("generating checkstyle report ...")
-    T.log.debug(s"running checkstyle with $args")
+    T.log.info("running checkstyle ...")
+    T.log.debug(s"with $args")
 
-    val errors = Jvm.callSubprocess(
+    val exitCode = Jvm.callSubprocess(
       mainClass = "com.puppycrawl.tools.checkstyle.Main",
       classPath = checkstyleClasspath().map(_.path),
       mainArgs = args,
-      workingDir = dest,
+      workingDir =
+        millSourcePath, // allows for passing relative paths for `files` like src/a/b/c
       check = false
     ).exitCode
 
-    if (errors == 0) {
-      T.log.info(s"checkstyle found no errors, details in $report")
-    } else if (errors > 0 && os.exists(report)) {
-      T.log.error(s"checkstyle found $errors error(s), details in $report")
-    } else {
-      // errors is always 255 ?
-      // is the byte value of -1 being converted to an unsigned int somewhere in the call stack ???
-      // have to throw here, might as well use the byte value
-      val exit = errors.toByte
-      T.log.error(
-        s"checkstyle exit($exit), please check plugin settings or try with another version"
-      )
-      throw new UnsupportedOperationException(s"checkstyle exit($exit)")
+    val reported = os.exists(report)
+    if (reported) {
+      T.log.info(s"generated checkstyle report at $report")
     }
-    val transformations =
-      getCheckstyleTransformer(report).fold(Set.empty[CheckstyleTransformation]) { processor =>
-        checkstyleTransformations().map { transformation =>
-          T.log.info(s"transforming checkstyle report with ${transformation.definition}")
-          processor(transformation)
-          T.log.info(s"transformed checkstyle report to ${transformation.output}")
-          transformation
+
+    if (exitCode == 0) {
+      T.log.info("checkstyle found no violation")
+    } else if (exitCode < 0 || !(reported || stdout)) {
+      T.log.error(
+        s"checkstyle exit($exitCode), please check command arguments, plugin settings or try with another version"
+      )
+      throw new UnsupportedOperationException(s"checkstyle exit($exitCode)")
+    } else if (check) {
+      throw new RuntimeException(s"checkstyle found $exitCode violation(s)")
+    } else {
+      T.log.error(s"checkstyle found $exitCode violation(s)")
+    }
+
+    if (reported) {
+      getCheckstyleReportGenerator(report).foreach { generator =>
+        checkstyleTransformedReports().foreach { t =>
+          T.log.info(s"transforming checkstyle report with ${t.transformation}")
+          generator(t)
+          T.log.info(s"generated transformed report at ${t.report}")
         }
       }
+    }
 
-    CheckstyleOutput(errors, PathRef(report), transformations)
+    exitCode
   }
 
   /**
@@ -102,17 +106,24 @@ trait CheckstyleModule extends JavaModule {
   /**
    * Additional arguments for Checkstyle.
    *
-   * @see [[https://checkstyle.org/cmdline.html#Command_line_usage CLI options]]
+   * @see [[https://checkstyle.org/cmdline.html#Command_line_usage Checkstyle CLI options]]
    */
   def checkstyleOptions: T[Seq[String]] = T {
     Seq.empty[String]
   }
 
   /**
-   * Defines a set of [[CheckstyleTransformation]]s.
+   * Checkstyle output report.
+   */
+  def checkstyleReport: T[PathRef] = T {
+    PathRef(T.dest / s"report.${checkstyleFormat()}")
+  }
+
+  /**
+   * [[TransformedReport]]s generated from [[checkstyleReport]].
    *
-   * The implementation identifies transformations from the contents of [[checkstyleDir]].
-   * The selection process is best illustrated with an example.
+   * The implementation loads transformations from [[checkstyleDir]].
+   * The identification process is best illustrated with an example.
    * {{{
    * /*
    * Directory structure:
@@ -136,34 +147,30 @@ trait CheckstyleModule extends JavaModule {
    * */
    * }}}
    */
-  def checkstyleTransformations: T[Set[CheckstyleTransformation]] = T {
-    val definitionDir = checkstyleDir().path
-    val outputDir = T.dest
+  def checkstyleTransformedReports: T[Set[TransformedReport]] = T {
+    val transformationDir = checkstyleDir().path
+    val reportDir = T.dest
 
-    val transformations = if (os.exists(definitionDir)) {
-      T.log.info(s"scanning $definitionDir for transformations ...")
-      os.list(definitionDir)
+    if (os.exists(transformationDir)) {
+      T.log.info(s"scanning for transformations under $transformationDir")
+      os.list(transformationDir)
         .iterator
         .filter(os.isDir)
         .flatMap { ext =>
           os.list(ext)
             .iterator
             .filter(os.isFile)
-            .map(definition =>
-              CheckstyleTransformation(
-                PathRef(definition),
-                PathRef(outputDir / s"${definition.baseName}.${ext.baseName}")
+            .map(transformation =>
+              TransformedReport(
+                PathRef(transformation),
+                PathRef(reportDir / s"${transformation.baseName}.${ext.baseName}")
               )
             )
         }
         .toSet
     } else {
-      Set.empty[CheckstyleTransformation]
+      Set.empty[TransformedReport]
     }
-
-    T.log.info(s"found ${transformations.size} transformation(s)")
-
-    transformations
   }
 
   /**
@@ -174,8 +181,8 @@ trait CheckstyleModule extends JavaModule {
   }
 
   /**
-   * A [[CheckstyleTransformer]] for the Checkstyle `report`, if transformations are supported.
+   * Returns a [[ReportGenerator]] for the Checkstyle `report`, if transformations are supported.
    */
-  def getCheckstyleTransformer(report: os.Path): Option[CheckstyleTransformer] =
-    Option.when(report.ext == "xml")(CheckstyleTransformer.xml(report))
+  def getCheckstyleReportGenerator(report: os.Path): Option[ReportGenerator] =
+    Option.when(report.ext == "xml")(ReportGenerator.xml(report))
 }

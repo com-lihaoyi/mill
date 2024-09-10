@@ -1,4 +1,4 @@
-package mill.contrib.checkstyle;
+package blocks;
 
 // https://checkstyle.org/checks/blocks/avoidnestedblocks.html#ArrayTrailingComma
 public class ArrayTrailingComma {

@@ -1,6 +1,6 @@
-package mill.contrib.checkstyle;
+package coding;
 
-// https://checkstyle.org/checks/blocks/avoidnestedblocks.html#EmptyStatement
+// https://checkstyle.org/checks/coding/emptystatement.html#EmptyStatement
 public class EmptyStatement {
 
     public class Example1 {

@@ -3,7 +3,7 @@
 
 Performs quality checks on Java source files using https://checkstyle.org[Checkstyle] and generates reports from these checks.
 
-Transformations to be applied on the Checkstyle report are detected automatically.
+Transformations (XSLT) to be applied on the Checkstyle report are detected automatically.
 [source,scala]
 ----
 /*
@@ -36,7 +36,7 @@ To use this plugin in a Java/Scala module,
 1. Extend `mill.contrib.checkstyle.CheckstyleModule`.
 2. Define a https://checkstyle.org/config.html[configuration] file `checkstyle` `/` `config.xml`.
 3. Optionally, define transformations under `checkstyle` directory.
-4. Run the `checkstyle` task to generate report(s).
+4. Run the `checkstyle` command to generate report(s).
 
 To use this plugin with a configuration shared across modules, adapt the following example.
 
@@ -62,6 +62,24 @@ object foo extends Module {
   }
 }
 ----
+
+== Arguments
+
+- control flags
+```
+// if an exception should be raised on violations
+checkstyle --check
+
+// if Checkstyle output should be written to console
+checkstyle --stdout
+```
+
+- process select file(s) or folder(s)
+```
+checkstyle src/a/b/c
+
+checkstyle --stdout src/a/b src/c/d
+```
 
 == Limitations
 
