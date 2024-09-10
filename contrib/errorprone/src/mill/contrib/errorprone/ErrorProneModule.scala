@@ -31,7 +31,7 @@ trait ErrorProneModule extends JavaModule {
    * The classpath of the `error-prone` compiler plugin.
    */
   def errorProneClasspath: T[Agg[PathRef]] = T {
-    resolveDeps(T.task { errorProneDeps().map(bindDependency()) })()
+    defaultResolver().resolveDeps(errorProneDeps())
   }
 
   /**
@@ -70,12 +70,7 @@ trait ErrorProneModule extends JavaModule {
   /**
    * Appends the [[errorProneJavacEnableOptions]] to the Java compiler options.
    */
-  override def javacOptions: T[Seq[String]] = T {
-    val supOpts = super.javacOptions()
-    val enableOpts = Option
-      .when(!supOpts.exists(o => o.startsWith("-Xplugin:ErrorProne")))(
-        errorProneJavacEnableOptions()
-      )
-    supOpts ++ enableOpts.toSeq.flatten
+  override def managedJavacOptions: T[Seq[String]] = T {
+    super.managedJavacOptions() ++ errorProneJavacEnableOptions()
   }
 }
