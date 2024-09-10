@@ -143,5 +143,5 @@ object SonatypeCentralPublishModule extends ExternalModule {
     Result.Success(SonatypeCredentials(username, password))
   }
 
-  lazy val millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
+  lazy val millDiscover: mill.define.Discover = mill.define.Discover[this.type]
 }

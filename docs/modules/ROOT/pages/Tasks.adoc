@@ -51,35 +51,6 @@ include::example/depth/tasks/5-persistent-targets.adoc[]
 include::example/depth/tasks/6-workers.adoc[]
 
 
-=== Evaluator Commands (experimental)
-
-_Evaluator Command are experimental and suspected to change.
-See {mill-github-url}/issues/502[issue #502] for details._
-
-You can define a command that takes in the current `Evaluator` as an argument,
-which you can use to inspect the entire build, or run arbitrary tasks.
-For example, here is the `mill.scalalib.GenIdea/idea` command which uses this
-to traverse the module-tree and generate an Intellij project config for your
-build.
-
-[source,scala]
-----
-def idea(ev: Evaluator) = T.command {
-  mill.scalalib.GenIdea(
-    implicitly,
-    ev.rootModule,
-    ev.discover
-  )
-}
-----
-
-Many built-in tools are implemented as custom evaluator commands:
-xref:Scala_Builtin_Commands.adoc#_inspect[inspect],
-xref:Scala_Builtin_Commands.adoc#_resolve[resolve],
-xref:Scala_Builtin_Commands.adoc#_show[show].
-If you want a way to run Mill commands and programmatically manipulate the
-tasks and outputs, you do so with your own evaluator command.
-
 == Using ScalaModule.run as a task
 
 include::example/depth/tasks/11-module-run-task.adoc[]

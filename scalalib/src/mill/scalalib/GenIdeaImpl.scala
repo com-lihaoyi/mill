@@ -18,7 +18,7 @@ case class GenIdeaImpl(
     evaluator: Evaluator,
     ctx: Log with Home,
     rootModule: BaseModule,
-    discover: Discover[_]
+    discover: Discover
 ) {
   import GenIdeaImpl._
 

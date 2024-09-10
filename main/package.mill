@@ -11,8 +11,8 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
   def moduleDeps = Seq(eval, resolve, client)
   def ivyDeps = Agg(
     build.Deps.windowsAnsi,
-    build.Deps.mainargs,
     build.Deps.coursierInterface,
+    build.Deps.mainargs,
     build.Deps.requests,
     build.Deps.logback
   )
@@ -76,6 +76,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
 
     def ivyDeps = Agg(
       build.Deps.osLib,
+      build.Deps.mainargs,
       build.Deps.upickle,
       build.Deps.pprint,
       build.Deps.fansi,

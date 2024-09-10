@@ -39,7 +39,8 @@ private class LeftoverTaskTokenReader[T](tokensReaderOfT: TokensReader.Leftover[
   def shortName = tokensReaderOfT.shortName
 }
 
-object TokenReaders {
+object TokenReaders extends TokenReaders0
+trait TokenReaders0 {
   implicit def millEvaluatorTokenReader[T]: mainargs.TokensReader[Evaluator] =
     new mill.main.EvaluatorTokenReader[T]()
 

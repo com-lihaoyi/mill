@@ -57,6 +57,10 @@ object `package` extends RootModule with Module {
     object plugins extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "plugins"))
   }
 
+  object external extends Module {
+    object libraries extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "libraries"))
+  }
+
   trait ExampleCrossModuleJava extends ExampleCrossModule {
 
     def upstreamCross(s: String) = s match {

@@ -22,38 +22,32 @@ abstract class RootModule()(implicit
       millModuleLine0,
       millFile0,
       Caller(null)
-    ) with mill.main.MainModule {
-
-  // Make BaseModule take the `millDiscover` as an implicit param, rather than
-  // defining it itself. That is so we can define it externally in the wrapper
-  // code and it have it automatically passed to both the wrapper BaseModule as
-  // well as any user-defined BaseModule that may be present, so the
-  // user-defined BaseModule can have a complete Discover[_] instance without
-  // needing to tediously call `override lazy val millDiscover = Discover[this.type]`
-  override lazy val millDiscover: Discover[this.type] =
-    baseModuleInfo.discover.asInstanceOf[Discover[this.type]]
-}
+    ) with mill.main.MainModule
 
 @internal
 object RootModule {
-  case class Info(millSourcePath0: os.Path, discover: Discover[_])
+  case class Info(millSourcePath0: os.Path, discover: Discover)
+  case class SubFolderInfo(value: Seq[String])
 
-  abstract class Subfolder(path: String*)(implicit
+  abstract class Subfolder()(implicit
       baseModuleInfo: RootModule.Info,
       millModuleLine0: sourcecode.Line,
-      millFile0: sourcecode.File
+      millFile0: sourcecode.File,
+      subFolderInfo: SubFolderInfo
   ) extends Module.BaseClass()(
         Ctx.make(
-          millModuleEnclosing0 = path.mkString("."),
+          millModuleEnclosing0 = subFolderInfo.value.mkString("."),
           millModuleLine0 = millModuleLine0,
           millModuleBasePath0 = Ctx.BasePath(baseModuleInfo.millSourcePath0 / os.up),
-          segments0 = Segments.labels(path.init: _*),
+          segments0 = Segments.labels(subFolderInfo.value.init: _*),
           external0 = Ctx.External(false),
           foreign0 = Ctx.Foreign(None),
           fileName = millFile0,
           enclosing = Caller(null)
         )
-      ) with Module
+      ) with Module {
+    def millDiscover: Discover
+  }
 
   @deprecated
   abstract class Foreign(foreign0: Option[Segments])(implicit
@@ -66,8 +60,5 @@ object RootModule {
         millModuleLine0,
         millFile0,
         Caller(null)
-      ) with mill.main.MainModule {
-
-    override implicit lazy val millDiscover: Discover[this.type] = Discover[this.type]
-  }
+      ) with mill.main.MainModule
 }
