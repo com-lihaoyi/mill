@@ -28,10 +28,10 @@ object ModuleTests extends TestSuite {
         zresult == Right(Result(30, 1)),
         os.read(check.evaluator.outPath / "z.json").contains("30"),
         os.read(
-          check.outPath / "mill" / "eval" / "ModuleTests" / "ExternalModule" / "x.json"
+          check.outPath / "mill/eval/ModuleTests/ExternalModule/x.json"
         ).contains("13"),
         os.read(
-          check.outPath / "mill" / "eval" / "ModuleTests" / "ExternalModule" / "inner" / "y.json"
+          check.outPath / "mill/eval/ModuleTests/ExternalModule/inner/y.json"
         ).contains("17")
       )
     }

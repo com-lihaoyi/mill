@@ -444,7 +444,7 @@ case class GenIdeaImpl(
         )
       ),
 //      Tuple2(
-//        os.sub / "mill_modules" / "mill-build.iml",
+//        os.sub / "mill_modules/mill-build.iml",
 //        rootXmlTemplate(allBuildLibraries.flatMap(lib => libraryNames(lib)))
 //      ),
       Tuple2(

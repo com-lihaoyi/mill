@@ -40,7 +40,7 @@ object MillMain {
       if (args.headOption == Option("--bsp")) {
         // In BSP mode, we use System.in/out for protocol communication
         // and all Mill output (stdout and stderr) goes to a dedicated file
-        val stderrFile = WorkspaceRoot.workspaceRoot / ".bsp" / "mill-bsp.stderr"
+        val stderrFile = WorkspaceRoot.workspaceRoot / ".bsp/mill-bsp.stderr"
         os.makeDir.all(stderrFile / os.up)
         val errFile = new PrintStream(new FileOutputStream(stderrFile.toIO, true))
         val errTee = new TeePrintStream(initialSystemStreams.err, errFile)
@@ -319,7 +319,7 @@ object MillMain {
 
   def checkMillVersionFromFile(projectDir: os.Path, stderr: PrintStream): Unit = {
     Seq(
-      projectDir / ".config" / "mill-version",
+      projectDir / ".config/mill-version",
       projectDir / ".mill-version"
     ).collectFirst {
       case f if os.exists(f) =>

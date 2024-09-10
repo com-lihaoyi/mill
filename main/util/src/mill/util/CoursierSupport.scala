@@ -87,7 +87,7 @@ trait CoursierSupport {
 
       val classpathResourceText =
         try Some(os.read(
-            os.resource(getClass.getClassLoader) / "mill" / "local-test-overrides" / classpathKey
+            os.resource(getClass.getClassLoader) / "mill/local-test-overrides" / classpathKey
           ))
         catch { case e: os.ResourceNotFoundException => None }
 

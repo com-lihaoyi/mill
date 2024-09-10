@@ -215,7 +215,7 @@ object SemanticDbJavaModule {
     os.makeDir.all(targetDir)
 
     val ups = sourceroot.segments.size
-    val semanticPath = os.rel / "META-INF" / "semanticdb"
+    val semanticPath = os.rel / "META-INF/semanticdb"
     val toClean = classesDir / semanticPath / sourceroot.segments.toSeq
 
     // copy over all found semanticdb-files into the target directory

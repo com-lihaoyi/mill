@@ -8,7 +8,7 @@ trait CrossSbtModule extends SbtModule with CrossModuleBase { outer =>
 
   override def sources: T[Seq[PathRef]] = T.sources {
     super.sources() ++ scalaVersionDirectoryNames.map(s =>
-      PathRef(millSourcePath / "src" / "main" / s"scala-$s")
+      PathRef(millSourcePath / "src/main" / s"scala-$s")
     )
   }
 
@@ -18,7 +18,7 @@ trait CrossSbtModule extends SbtModule with CrossModuleBase { outer =>
     override def millSourcePath = outer.millSourcePath
     override def sources = T.sources {
       super.sources() ++ scalaVersionDirectoryNames.map(s =>
-        PathRef(millSourcePath / "src" / "test" / s"scala-$s")
+        PathRef(millSourcePath / "src/test" / s"scala-$s")
       )
     }
   }

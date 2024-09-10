@@ -233,22 +233,22 @@ object MainModuleTests extends TestSuite {
         val r1 = ev.evaluator.evaluate(Agg(cleanModule.all))
         assert(r1.failing.keyCount == 0)
         checkExists(true)(
-          os.sub / "foo" / "target.json",
-          os.sub / "foo" / "target.dest" / "dummy.txt",
-          os.sub / "bar" / "target.json",
-          os.sub / "bar" / "target.dest" / "dummy.txt"
+          os.sub / "foo/target.json",
+          os.sub / "foo/target.dest/dummy.txt",
+          os.sub / "bar/target.json",
+          os.sub / "bar/target.dest/dummy.txt"
         )
 
         val r2 = ev.evaluator.evaluate(Agg(cleanModule.clean(ev.evaluator, "foo.target")))
         assert(r2.failing.keyCount == 0)
         checkExists(false)(
-          os.sub / "foo" / "target.log",
-          os.sub / "foo" / "target.json",
-          os.sub / "foo" / "target.dest" / "dummy.txt"
+          os.sub / "foo/target.log",
+          os.sub / "foo/target.json",
+          os.sub / "foo/target.dest/dummy.txt"
         )
         checkExists(true)(
-          os.sub / "bar" / "target.json",
-          os.sub / "bar" / "target.dest" / "dummy.txt"
+          os.sub / "bar/target.json",
+          os.sub / "bar/target.dest/dummy.txt"
         )
       }
 
@@ -256,21 +256,21 @@ object MainModuleTests extends TestSuite {
         val r1 = ev.evaluator.evaluate(Agg(cleanModule.all))
         assert(r1.failing.keyCount == 0)
         checkExists(true)(
-          os.sub / "foo" / "target.json",
-          os.sub / "foo" / "target.dest" / "dummy.txt",
-          os.sub / "bar" / "target.json",
-          os.sub / "bar" / "target.dest" / "dummy.txt"
+          os.sub / "foo/target.json",
+          os.sub / "foo/target.dest/dummy.txt",
+          os.sub / "bar/target.json",
+          os.sub / "bar/target.dest/dummy.txt"
         )
 
         val r2 = ev.evaluator.evaluate(Agg(cleanModule.clean(ev.evaluator, "bar")))
         assert(r2.failing.keyCount == 0)
         checkExists(true)(
-          os.sub / "foo" / "target.json",
-          os.sub / "foo" / "target.dest" / "dummy.txt"
+          os.sub / "foo/target.json",
+          os.sub / "foo/target.dest/dummy.txt"
         )
         checkExists(false)(
-          os.sub / "bar" / "target.json",
-          os.sub / "bar" / "target.dest" / "dummy.txt"
+          os.sub / "bar/target.json",
+          os.sub / "bar/target.dest/dummy.txt"
         )
       }
     }

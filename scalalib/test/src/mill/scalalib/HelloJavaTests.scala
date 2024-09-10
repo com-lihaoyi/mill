@@ -49,7 +49,7 @@ object HelloJavaTests extends TestSuite {
     }
     test("semanticDbData") {
       val expectedFile1 =
-        os.rel / "META-INF" / "semanticdb" / "core" / "src" / "Core.java.semanticdb"
+        os.rel / "META-INF/semanticdb/core/src/Core.java.semanticdb"
 
       test("fromScratch") {
         val eval = testEval()
@@ -57,7 +57,7 @@ object HelloJavaTests extends TestSuite {
 
         val outputFiles =
           os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
-        val dataPath = eval.outPath / "core" / "semanticDbData.dest" / "data"
+        val dataPath = eval.outPath / "core/semanticDbData.dest/data"
 
         assert(
           result.value.path == dataPath,
@@ -74,7 +74,7 @@ object HelloJavaTests extends TestSuite {
         val eval = testEval()
 
         // create a second source file
-        val secondFile = eval.evaluator.workspace / "core" / "src" / "hello" / "Second.java"
+        val secondFile = eval.evaluator.workspace / "core/src/hello/Second.java"
         os.write(
           secondFile,
           """package hello;
@@ -87,7 +87,7 @@ object HelloJavaTests extends TestSuite {
             |""".stripMargin,
           createFolders = true
         )
-        val thirdFile = eval.evaluator.workspace / "core" / "src" / "hello" / "Third.java"
+        val thirdFile = eval.evaluator.workspace / "core/src/hello/Third.java"
         os.write(
           thirdFile,
           """package hello;
@@ -102,14 +102,14 @@ object HelloJavaTests extends TestSuite {
         )
         val Right(result) = eval.apply(HelloJava.core.semanticDbData)
 
-        val dataPath = eval.outPath / "core" / "semanticDbData.dest" / "data"
+        val dataPath = eval.outPath / "core/semanticDbData.dest/data"
         val outputFiles =
           os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
 
         val expectedFile2 =
-          os.rel / "META-INF" / "semanticdb" / "core" / "src" / "hello" / "Second.java.semanticdb"
+          os.rel / "META-INF/semanticdb/core/src/hello/Second.java.semanticdb"
         val expectedFile3 =
-          os.rel / "META-INF" / "semanticdb" / "core" / "src" / "hello" / "Third.java.semanticdb"
+          os.rel / "META-INF/semanticdb/core/src/hello/Third.java.semanticdb"
         assert(
           result.value.path == dataPath,
           outputFiles.nonEmpty,
@@ -184,8 +184,8 @@ object HelloJavaTests extends TestSuite {
     test("failures") {
       val eval = testEval()
 
-      val mainJava = HelloJava.millSourcePath / "app" / "src" / "Main.java"
-      val coreJava = HelloJava.millSourcePath / "core" / "src" / "Core.java"
+      val mainJava = HelloJava.millSourcePath / "app/src/Main.java"
+      val coreJava = HelloJava.millSourcePath / "core/src/Core.java"
 
       val Right(_) = eval.apply(HelloJava.core.compile)
       val Right(_) = eval.apply(HelloJava.app.compile)

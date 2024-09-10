@@ -33,7 +33,7 @@ class LocalIvyPublisher(localIvyRepo: os.Path) {
       sourcesJar -> releaseDir / "srcs" / s"${artifact.id}-sources.jar",
       docJar -> releaseDir / "docs" / s"${artifact.id}-javadoc.jar",
       pom -> releaseDir / "poms" / s"${artifact.id}.pom",
-      ivy -> releaseDir / "ivys" / "ivy.xml"
+      ivy -> releaseDir / "ivys/ivy.xml"
     ) ++ extras.map { entry =>
       (
         entry.file.path,

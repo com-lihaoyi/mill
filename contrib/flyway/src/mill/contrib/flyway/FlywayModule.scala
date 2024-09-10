@@ -23,7 +23,7 @@ trait FlywayModule extends JavaModule {
   def flywayUser: T[String] = T("")
   def flywayPassword: T[String] = T("")
   def flywayFileLocations: T[Seq[PathRef]] = T {
-    resources().map(pr => PathRef(pr.path / "db" / "migration", pr.quick))
+    resources().map(pr => PathRef(pr.path / "db/migration", pr.quick))
   }
 
   def flywayDriverDeps: T[Agg[Dep]]
