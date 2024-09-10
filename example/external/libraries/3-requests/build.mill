@@ -1,5 +1,4 @@
-// Mill bundles Requests for you to use to make HTTP requests.
-// Requests-Scala is a Scala port of the popular Python Requests HTTP client.
+// Mill bundles Requests-Scala for you to use to make HTTP requests.
 // `Requests-Scala` lets you integrate your build with the world beyond your local
 // filesystem.
 //

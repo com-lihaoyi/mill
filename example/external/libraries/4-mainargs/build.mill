@@ -1,5 +1,4 @@
-// MainArgs is a small, dependency-free library for command line argument parsing
-// in Scala. Mill uses MainArgs to handle argument parsing for ``T.command``s that
+// Mill uses MainArgs to handle argument parsing for ``T.command``s that
 // are run from the command line.
 import mill._
 

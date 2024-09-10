@@ -1,6 +1,4 @@
-// OS-Lib is a simple, flexible, high-performance Scala interface to common OS
-// filesystem and subprocess APIs. Mill uses OS-Lib for all of its file system
-// and subprocess operations.
+// Mill uses OS-Lib for all of its file system and subprocess operations.
 //
 // === Sandbox Working Directories
 //

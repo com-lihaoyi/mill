@@ -1,4 +1,3 @@
-// uPickle: a simple Scala JSON and Binary (MessagePack) serialization library
 // Mill uses uPickle to cache target output to disk as JSON, and to output JSON
 // for third-party tools to consume. The output of every Mill target must be JSON
 // serializable via uPickle.
