@@ -215,9 +215,9 @@ object `package` extends RootModule with Module {
         mergeFolders = true,
         replaceExisting = true
       )
-      os.remove.all(T.dest / "merged" / ".mill-version")
+      os.remove.all(T.dest / "merged/.mill-version")
 
-      os.remove.all(T.dest / "merged" / "build.sc")
+      os.remove.all(T.dest / "merged/build.sc")
       PathRef(T.dest / "merged")
     }
   }

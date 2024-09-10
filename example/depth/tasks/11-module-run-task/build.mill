@@ -15,7 +15,7 @@ object foo extends ScalaModule {
 
 object bar extends ScalaModule{
   def scalaVersion = "2.13.8"
-  def ivyDeps = Agg(ivy"com.lihaoyi::os-lib:0.9.1")
+  def ivyDeps = Agg(ivy"com.lihaoyi::os-lib:0.10.7-M2")
 }
 
 // This example demonstrates using Mill ``ScalaModule``s as build tasks: rather

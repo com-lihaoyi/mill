@@ -5,7 +5,7 @@ import mill._, scalalib._
 object foo extends ScalaModule {
   def scalaVersion = "2.13.8"
   def ivyDeps = Agg(
-    ivy"com.lihaoyi::os-lib:0.9.1"
+    ivy"com.lihaoyi::os-lib:0.10.7-M2"
   )
 
   object test extends ScalaTests {

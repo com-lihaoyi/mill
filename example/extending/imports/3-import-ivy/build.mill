@@ -5,7 +5,7 @@ import $ivy.`com.lihaoyi::scalatags:0.12.0`, scalatags.Text.all._
 object `package` extends RootModule with ScalaModule {
   def scalaVersion = "2.13.8"
 
-  def ivyDeps = Agg(ivy"com.lihaoyi::os-lib:0.9.1")
+  def ivyDeps = Agg(ivy"com.lihaoyi::os-lib:0.10.7-M2")
   def htmlSnippet = T{ div(h1("hello"), p("world")).toString }
   def resources = T.sources{
     os.write(T.dest / "snippet.txt", htmlSnippet())
