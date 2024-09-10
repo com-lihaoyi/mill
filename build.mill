@@ -191,7 +191,7 @@ object Deps {
 
   object RuntimeDeps {
     val errorProneCore = ivy"com.google.errorprone:error_prone_core:2.31.0"
-    val jupiterInterface = ivy"com.github.sbt.junit:jupiter-interface:0.11.4"
+    val jupiterInterface = ivy"com.github.sbt.junit:jupiter-interface:0.13.0"
     val sbtTestInterface = ivy"com.github.sbt:junit-interface:0.13.2"
     def all = Seq(errorProneCore, jupiterInterface, sbtTestInterface)
   }
