@@ -522,6 +522,11 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
     ),
     ProblemFilter.exclude[InheritedNewAbstractMethodProblem](
       "mill.main.MainModule.mill$define$BaseModule0$_setter_$evalWatchedValues_="
+    ),
+
+    // https://github.com/com-lihaoyi/mill/pull/3503
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.scalalib.ScalaModule#ScalaTests.mill$scalalib$ScalaModule$ScalaTests$$super$mandatoryScalacOptions"
     )
   )
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
@@ -874,7 +879,6 @@ object dist extends MillPublishJavaModule {
     }
   }
 }
-
 
 /**
  * Build and install Mill locally.
