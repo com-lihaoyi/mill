@@ -66,15 +66,32 @@ object SystemStreams {
     val out = System.out
     val err = System.err
     try {
+      // If we are setting a stream back to its original value, make sure we reset
+      // `os.Inherit` to `os.InheritRaw` for that stream. This direct inheritance
+      // ensures that interactive applications involving console IO work, as the
+      // presence of a `PumpedProcess` would cause most interactive CLIs (e.g.
+      // scala console, REPL, etc.) to misbehave
+      val inheritIn =
+        if (systemStreams.in eq original.in) os.InheritRaw
+        else new PumpedProcessInput
+
+      val inheritOut =
+        if (systemStreams.out eq original.out) os.InheritRaw
+        else new PumpedProcessOutput(systemStreams.out)
+
+      val inheritErr =
+        if (systemStreams.err eq original.err) os.InheritRaw
+        else new PumpedProcessOutput(systemStreams.err)
+
       System.setIn(systemStreams.in)
       System.setOut(systemStreams.out)
       System.setErr(systemStreams.err)
       Console.withIn(systemStreams.in) {
         Console.withOut(systemStreams.out) {
           Console.withErr(systemStreams.err) {
-            os.Inherit.in.withValue(new PumpedProcessInput) {
-              os.Inherit.out.withValue(new PumpedProcessOutput(System.out)) {
-                os.Inherit.err.withValue(new PumpedProcessOutput(System.err)) {
+            os.Inherit.in.withValue(inheritIn) {
+              os.Inherit.out.withValue(inheritOut) {
+                os.Inherit.err.withValue(inheritErr) {
                   t
                 }
               }
