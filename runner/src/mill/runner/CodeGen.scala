@@ -166,6 +166,7 @@ object CodeGen {
            |$newScriptCode
            |object $wrapperObjectName extends $wrapperObjectName {
            |  $childAliases
+           |  override lazy val millDiscover = _root_.mill.define.Discover[this.type]
            |}""".stripMargin
       case None =>
         s"""$pkgLine
@@ -174,6 +175,7 @@ object CodeGen {
            |${topBuildHeader(segments, scriptFolderPath, millTopLevelProjectRoot, childAliases)}
            |$markerComment
            |$scriptCode
+           |override lazy val millDiscover = _root_.mill.define.Discover[this.type]
            |}""".stripMargin
 
     }
@@ -189,8 +191,7 @@ object CodeGen {
        |object MillMiscInfo extends MillBuildRootModule.MillMiscInfo(
        |  ${enclosingClasspath.map(p => literalize(p.toString))},
        |  ${literalize(scriptFolderPath.toString)},
-       |  ${literalize(millTopLevelProjectRoot.toString)},
-       |  _root_.mill.define.Discover[$wrapperObjectName.type]
+       |  ${literalize(millTopLevelProjectRoot.toString)}
        |)
        |import MillMiscInfo._
        |""".stripMargin

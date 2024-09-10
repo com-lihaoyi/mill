@@ -1,8 +1,6 @@
 package mill.runner
 
 import mainargs.{Flag, Leftover, arg}
-import mill.api.WorkspaceRoot
-import os.Path
 
 class MillCliConfig private (
     @arg(
@@ -317,14 +315,7 @@ object MillCliConfigParser {
   val customName: String = s"Mill Build Tool, version ${mill.main.BuildInfo.millVersion}"
   val customDoc = "usage: mill [options] [[target [target-options]] [+ [target ...]]]"
 
-  /**
-   * Additional [[mainargs.TokensReader]] instance to teach it how to read Ammonite paths
-   */
-  implicit object PathRead extends mainargs.TokensReader.Simple[os.Path] {
-    def shortName = "path"
-    def read(strs: Seq[String]): Either[String, Path] =
-      Right(os.Path(strs.last, WorkspaceRoot.workspaceRoot))
-  }
+  import mill.api.JsonFormatters._
 
   private[this] lazy val parser: ParserForClass[MillCliConfig] =
     mainargs.ParserForClass[MillCliConfig]

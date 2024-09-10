@@ -142,7 +142,7 @@ object Discover {
       }
 
       c.Expr[Discover[T]](
-        q"import _root_.mill.main.TokenReaders._; _root_.mill.define.Discover.apply2(_root_.scala.collection.immutable.Map(..$mapping))"
+        q"_root_.mill.define.Discover.apply2[${weakTypeOf[T]}](_root_.scala.collection.immutable.Map(..$mapping))"
       )
     }
   }

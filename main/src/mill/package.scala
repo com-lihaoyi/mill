@@ -1,4 +1,4 @@
-package object mill extends mill.api.JsonFormatters {
+package object mill extends mill.api.JsonFormatters with mill.main.TokenReaders0 {
   val T = define.Target
   type T[+T] = define.Target[T]
   val Target = define.Target

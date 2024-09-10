@@ -23,7 +23,7 @@ import scala.util.Try
  * calls within the scripts.
  */
 @internal
-class MillBuildRootModule()(implicit
+abstract class MillBuildRootModule()(implicit
     baseModuleInfo: RootModule.Info,
     millBuildRootModuleInfo: MillBuildRootModule.Info
 ) extends RootModule() with ScalaModule {
@@ -294,17 +294,16 @@ object MillBuildRootModule {
   class MillMiscInfo(
       enclosingClasspath: Seq[String],
       projectRoot: String,
-      topLevelProjectRoot: String,
-      discover: Discover[_]
+      topLevelProjectRoot: String
   ) {
-    implicit val millBuildRootModuleInfo: MillBuildRootModule.Info = MillBuildRootModule.Info(
+    implicit lazy val millBuildRootModuleInfo: MillBuildRootModule.Info = MillBuildRootModule.Info(
       enclosingClasspath.map(os.Path(_)),
       os.Path(projectRoot),
       os.Path(topLevelProjectRoot)
     )
-    implicit val millBaseModuleInfo: RootModule.Info = RootModule.Info(
+    implicit lazy val millBaseModuleInfo: RootModule.Info = RootModule.Info(
       millBuildRootModuleInfo.projectRoot,
-      discover
+      null
     )
   }
 }

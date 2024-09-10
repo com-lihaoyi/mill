@@ -22,17 +22,7 @@ abstract class RootModule()(implicit
       millModuleLine0,
       millFile0,
       Caller(null)
-    ) with mill.main.MainModule {
-
-  // Make BaseModule take the `millDiscover` as an implicit param, rather than
-  // defining it itself. That is so we can define it externally in the wrapper
-  // code and it have it automatically passed to both the wrapper BaseModule as
-  // well as any user-defined BaseModule that may be present, so the
-  // user-defined BaseModule can have a complete Discover[_] instance without
-  // needing to tediously call `override lazy val millDiscover = Discover[this.type]`
-  override lazy val millDiscover: Discover[this.type] =
-    baseModuleInfo.discover.asInstanceOf[Discover[this.type]]
-}
+    ) with mill.main.MainModule
 
 @internal
 object RootModule {
@@ -66,8 +56,5 @@ object RootModule {
         millModuleLine0,
         millFile0,
         Caller(null)
-      ) with mill.main.MainModule {
-
-    override implicit lazy val millDiscover: Discover[this.type] = Discover[this.type]
-  }
+      ) with mill.main.MainModule
 }
