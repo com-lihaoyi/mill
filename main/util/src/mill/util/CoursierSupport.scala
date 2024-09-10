@@ -52,7 +52,7 @@ trait CoursierSupport {
       }
     )
 
-    val (_, resolution) = resolveDependenciesMetadata(
+    val resolutionRes = resolveDependenciesMetadataSafe(
       repositories,
       remoteDeps,
       force,
@@ -61,29 +61,8 @@ trait CoursierSupport {
       ctx,
       coursierCacheCustomizer
     )
-    val errs = resolution.errors
 
-    if (errs.nonEmpty) {
-      val header =
-        s"""|
-            |Resolution failed for ${errs.length} modules:
-            |--------------------------------------------
-            |""".stripMargin
-
-      val helpMessage =
-        s"""|
-            |--------------------------------------------
-            |
-            |For additional information on library dependencies, see the docs at
-            |${mill.api.BuildInfo.millDocUrl}/mill/Library_Dependencies.html""".stripMargin
-
-      val errLines = errs.map {
-        case ((module, vsn), errMsgs) => s"  ${module.trim}:$vsn \n\t" + errMsgs.mkString("\n\t")
-      }.mkString("\n")
-      val msg = header + errLines + "\n" + helpMessage + "\n"
-      Result.Failure(msg)
-    } else {
-
+    resolutionRes.flatMap { resolution =>
       val coursierCache0 = FileCache[Task]().noCredentials
       val coursierCache = coursierCacheCustomizer
         .map(_(coursierCache0))
@@ -142,6 +121,10 @@ trait CoursierSupport {
     }
   }
 
+  @deprecated(
+    "Prefer resolveDependenciesMetadataSafe instead, which returns a Result instead of throwing exceptions",
+    "0.12.0"
+  )
   def resolveDependenciesMetadata(
       repositories: Seq[Repository],
       deps: IterableOnce[Dependency],
@@ -151,6 +134,28 @@ trait CoursierSupport {
       ctx: Option[mill.api.Ctx.Log] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None
   ): (Seq[Dependency], Resolution) = {
+    val deps0 = deps.iterator.toSeq
+    val res = resolveDependenciesMetadataSafe(
+      repositories,
+      deps0,
+      force,
+      mapDependencies,
+      customizer,
+      ctx,
+      coursierCacheCustomizer
+    )
+    (deps0, res.getOrThrow)
+  }
+
+  def resolveDependenciesMetadataSafe(
+      repositories: Seq[Repository],
+      deps: IterableOnce[Dependency],
+      force: IterableOnce[Dependency],
+      mapDependencies: Option[Dependency => Dependency] = None,
+      customizer: Option[Resolution => Resolution] = None,
+      ctx: Option[mill.api.Ctx.Log] = None,
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None
+  ): Result[Resolution] = {
 
     val cachePolicies = coursier.cache.CacheDefaults.cachePolicies
 
@@ -188,7 +193,28 @@ trait CoursierSupport {
 
     val resolution = start.process.run(fetch).unsafeRun()
 
-    (deps.iterator.to(Seq), resolution)
+    if (resolution.errors.isEmpty)
+      Result.Success(resolution)
+    else {
+      val header =
+        s"""|
+            |Resolution failed for ${resolution.errors.length} modules:
+            |--------------------------------------------
+            |""".stripMargin
+
+      val helpMessage =
+        s"""|
+            |--------------------------------------------
+            |
+            |For additional information on library dependencies, see the docs at
+            |${mill.api.BuildInfo.millDocUrl}/mill/Library_Dependencies.html""".stripMargin
+
+      val errLines = resolution.errors.map {
+        case ((module, vsn), errMsgs) => s"  ${module.trim}:$vsn \n\t" + errMsgs.mkString("\n\t")
+      }.mkString("\n")
+      val msg = header + errLines + "\n" + helpMessage + "\n"
+      Result.Failure(msg)
+    }
   }
 
 }
