@@ -61,6 +61,24 @@ object SystemStreams {
     def processOutput(processOut: => os.SubProcess.OutputStream): Some[InputPumper] =
       Some(new InputPumper(() => processOut.wrapped, () => dest, false, () => true))
   }
+
+  /**
+   * Resets all stdin/stdout/stder streams to their original values, and also
+   * restores the inheritance of streams for subprocesses so they can be used
+   * to run interactive programs
+   */
+  def withOriginalStreams[T](t: => T): T = {
+    withStreams(SystemStreams.original) {
+      os.Inherit.in.withValue(os.InheritRaw) {
+        os.Inherit.out.withValue(os.InheritRaw) {
+          os.Inherit.err.withValue(os.InheritRaw) {
+            t
+          }
+        }
+      }
+    }
+  }
+
   def withStreams[T](systemStreams: SystemStreams)(t: => T): T = {
     val in = System.in
     val out = System.out

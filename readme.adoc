@@ -145,7 +145,7 @@ You can reproduce any of the tests manually using `dist.run`, e.g.
 
 [source,bash]
 ----
-./mill dist.launcher && (cd example/basic/1-simple && ../../../out/dist/launcher.dest/run run --text hello)
+./mill dist.launcher && (cd example/scalalib/basic/1-simple && ../../../../out/dist/launcher.dest/run run --text hello)
 ----
 
 === Sub-Process Tests *with* Packaging/Publishing
@@ -158,7 +158,7 @@ You can reproduce these tests manually using `dist.assembly`:
 
 [source,bash]
 ----
-./mill dist.assembly && (cd example/basic/1-simple && ../../../out/dist/assembly.dest/mill run --text hello)
+./mill dist.assembly && (cd example/scalalib/basic/1-simple && ../../../../out/dist/assembly.dest/mill run --text hello)
 ----
 
 There are two flavors of these tests:

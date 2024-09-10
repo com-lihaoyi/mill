@@ -436,7 +436,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
       Result.Failure("console needs to be run with the -i/--interactive flag")
     } else {
       val useJavaCp = "-usejavacp"
-      SystemStreams.withStreams(SystemStreams.original) {
+      SystemStreams.withOriginalStreams {
         Jvm.runSubprocess(
           mainClass =
             if (ZincWorkerUtil.isDottyOrScala3(scalaVersion()))
@@ -510,7 +510,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     } else {
       val mainClass = ammoniteMainClass()
       T.log.debug(s"Using ammonite main class: ${mainClass}")
-      SystemStreams.withStreams(SystemStreams.original) {
+      SystemStreams.withOriginalStreams {
         Jvm.runSubprocess(
           mainClass = mainClass,
           classPath = ammoniteReplClasspath().map(_.path),
