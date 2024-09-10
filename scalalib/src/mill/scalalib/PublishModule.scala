@@ -318,11 +318,7 @@ trait PublishModule extends JavaModule { outer =>
     def defaultPublishJars: Task[Seq[(PathRef, PathRef => PublishInfo)]] = {
       pomPackagingType match {
         case PackagingType.Pom => Task.Anon(Seq())
-        case _ => Task.Anon(Seq(
-            (jar(), PublishInfo.jar _),
-            (sourceJar(), PublishInfo.sourcesJar _),
-            (docJar(), PublishInfo.docJar _)
-          ))
+        case _ => Task.Anon(Seq((jar(), PublishInfo.jar _)))
       }
     }
     Task {
@@ -349,10 +345,18 @@ trait PublishModule extends JavaModule { outer =>
    * @param localIvyRepo The local ivy repository.
    *                     If not defined, the default resolution is used (probably `$HOME/.ivy2/local`).
    */
-  def publishLocal(localIvyRepo: String = null): define.Command[Unit] = Task.Command {
-    publishLocalTask(Task.Anon {
-      Option(localIvyRepo).map(os.Path(_, Task.workspace))
-    })()
+  def publishLocal(
+      localIvyRepo: String = null,
+      sources: Boolean = true,
+      doc: Boolean = true
+  ): define.Command[Unit] = Task.Command {
+    publishLocalTask(
+      Task.Anon {
+        Option(localIvyRepo).map(os.Path(_, Task.workspace))
+      },
+      sources,
+      doc
+    )()
     Result.Success(())
   }
 
@@ -360,21 +364,40 @@ trait PublishModule extends JavaModule { outer =>
    * Publish artifacts the local ivy repository.
    */
   def publishLocalCached: T[Seq[PathRef]] = Task {
-    publishLocalTask(Task.Anon(None))().map(p => PathRef(p).withRevalidateOnce)
+    val res = publishLocalTask(
+      Task.Anon(None),
+      sources = true,
+      doc = true
+    )()
+    res.map(p => PathRef(p).withRevalidateOnce)
   }
 
-  private def publishLocalTask(localIvyRepo: Task[Option[os.Path]]): Task[Seq[Path]] = Task.Anon {
-    val publisher = localIvyRepo() match {
-      case None => LocalIvyPublisher
-      case Some(path) => new LocalIvyPublisher(path)
+  private def publishLocalTask(
+      localIvyRepo: Task[Option[os.Path]],
+      sources: Boolean,
+      doc: Boolean
+  ): Task[Seq[Path]] = {
+    val sourcesJarOpt =
+      if (sources) Task.Anon(Some(PublishInfo.sourcesJar(sourceJar())))
+      else Task.Anon(None)
+    val docJarOpt =
+      if (doc) Task.Anon(Some(PublishInfo.docJar(docJar())))
+      else Task.Anon(None)
+
+    Task.Anon {
+      val publisher = localIvyRepo() match {
+        case None => LocalIvyPublisher
+        case Some(path) => new LocalIvyPublisher(path)
+      }
+      val publishInfos =
+        defaultPublishInfos() ++ sourcesJarOpt().toSeq ++ docJarOpt().toSeq ++ extraPublish()
+      publisher.publishLocal(
+        pom = pom().path,
+        ivy = Right(ivy().path),
+        artifact = artifactMetadata(),
+        publishInfos = publishInfos
+      )
     }
-    val publishInfos = defaultPublishInfos() ++ extraPublish()
-    publisher.publishLocal(
-      pom = pom().path,
-      ivy = Right(ivy().path),
-      artifact = artifactMetadata(),
-      publishInfos = publishInfos
-    )
   }
 
   /**
@@ -408,7 +431,12 @@ trait PublishModule extends JavaModule { outer =>
 
   private def publishM2LocalTask(m2RepoPath: Task[os.Path]): Task[Seq[PathRef]] = Task.Anon {
     val path = m2RepoPath()
-    val publishInfos = defaultPublishInfos() ++ extraPublish()
+    val publishInfos = defaultPublishInfos() ++
+      Seq(
+        PublishInfo.sourcesJar(sourceJar()),
+        PublishInfo.docJar(docJar())
+      ) ++
+      extraPublish()
 
     new LocalM2Publisher(path)
       .publish(pom().path, artifactMetadata(), publishInfos)
