@@ -97,7 +97,7 @@ trait CheckstyleModule extends JavaModule {
   }
 
   /**
-   * Checkstyle report format. Defaults to `xml`.
+   * Checkstyle report format (` plain | sarif | xml `). Defaults to `xml`.
    */
   def checkstyleFormat: T[String] = T {
     "xml"
