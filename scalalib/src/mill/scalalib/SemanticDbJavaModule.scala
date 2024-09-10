@@ -20,7 +20,7 @@ trait SemanticDbJavaModule extends CoursierModule {
   def compile: T[mill.scalalib.api.CompilationResult]
   def bspBuildTarget: BspBuildTarget
   def javacOptions: T[Seq[String]]
-  def managedJavacOptions: T[Seq[String]]
+  def mandatoryJavacOptions: T[Seq[String]]
   def compileClasspath: T[Agg[PathRef]]
 
   def semanticDbVersion: T[String] = T.input {
@@ -100,7 +100,7 @@ trait SemanticDbJavaModule extends CoursierModule {
 
   def semanticDbData: T[PathRef] = T.persistent {
     val javacOpts = SemanticDbJavaModule.javacOptionsTask(
-      javacOptions() ++ managedJavacOptions(),
+      javacOptions() ++ mandatoryJavacOptions(),
       semanticDbJavaVersion()
     )
 
