@@ -26,7 +26,7 @@ private trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServe
             sem.bspCompiledClassesAndSemanticDbFiles
           case _ => m.bspCompileClassesPath
         }
-        T.task { (classesPathTask(), m.javacOptions(), m.bspCompileClasspath()) }
+        T.task { (classesPathTask(), m.javacOptions() ++ m.managedJavacOptions(), m.bspCompileClasspath()) }
       }
     ) {
       // We ignore all non-JavaModule

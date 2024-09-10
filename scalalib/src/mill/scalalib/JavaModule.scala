@@ -161,6 +161,11 @@ trait JavaModule
   def javacOptions: T[Seq[String]] = T { Seq.empty[String] }
 
   /**
+   * Additional options for the java compiled derived from other module settings.
+   */
+  def managedJavacOptions: T[Seq[String]] = T { Seq.empty[String] }
+
+  /**
    *  The direct dependencies of this module.
    *  This is meant to be overridden to add dependencies.
    *  To read the value, you should use [[moduleDepsChecked]] instead,
@@ -422,7 +427,7 @@ trait JavaModule
         upstreamCompileOutput = upstreamCompileOutput(),
         sources = allSourceFiles().map(_.path),
         compileClasspath = compileClasspath().map(_.path),
-        javacOptions = javacOptions(),
+        javacOptions = javacOptions() ++ managedJavacOptions(),
         reporter = T.reporter.apply(hashCode),
         reportCachedProblems = zincReportCachedProblems(),
         incrementalCompilation = zincIncrementalCompilation()
