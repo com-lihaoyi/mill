@@ -124,10 +124,18 @@ trait PublishModule extends JavaModule { outer =>
    * @param localIvyRepo The local ivy repository.
    *                     If not defined, the default resolution is used (probably `$HOME/.ivy2/local`).
    */
-  def publishLocal(localIvyRepo: String = null): define.Command[Unit] = T.command {
-    publishLocalTask(T.task {
-      Option(localIvyRepo).map(os.Path(_, T.workspace))
-    })()
+  def publishLocal(
+      localIvyRepo: String = null,
+      sources: Boolean = true,
+      doc: Boolean = true
+  ): define.Command[Unit] = T.command {
+    publishLocalTask(
+      T.task {
+        Option(localIvyRepo).map(os.Path(_, T.workspace))
+      },
+      sources,
+      doc
+    )()
     Result.Success(())
   }
 
@@ -135,23 +143,41 @@ trait PublishModule extends JavaModule { outer =>
    * Publish artifacts the local ivy repository.
    */
   def publishLocalCached: T[Seq[PathRef]] = T {
-    publishLocalTask(T.task(None))().map(p => PathRef(p).withRevalidateOnce)
+    val res = publishLocalTask(
+      T.task(None),
+      sources = true,
+      doc = true
+    )()
+    res.map(p => PathRef(p).withRevalidateOnce)
   }
 
-  private def publishLocalTask(localIvyRepo: Task[Option[os.Path]]): Task[Seq[Path]] = T.task {
-    val publisher = localIvyRepo() match {
-      case None => LocalIvyPublisher
-      case Some(path) => new LocalIvyPublisher(path)
+  private def publishLocalTask(
+      localIvyRepo: Task[Option[os.Path]],
+      sources: Boolean,
+      doc: Boolean
+  ): Task[Seq[Path]] = {
+    val sourcesJarOpt =
+      if (sources) T.task(Some(sourceJar()))
+      else T.task(None)
+    val docJarOpt =
+      if (doc) T.task(Some(docJar()))
+      else T.task(None)
+
+    T.task {
+      val publisher = localIvyRepo() match {
+        case None => LocalIvyPublisher
+        case Some(path) => new LocalIvyPublisher(path)
+      }
+      publisher.publishLocal(
+        jar = jar().path,
+        sourcesJarOpt = sourcesJarOpt().map(_.path),
+        docJarOpt = docJarOpt().map(_.path),
+        pom = pom().path,
+        ivy = ivy().path,
+        artifact = artifactMetadata(),
+        extras = extraPublish()
+      )
     }
-    publisher.publishLocal(
-      jar = jar().path,
-      sourcesJar = sourceJar().path,
-      docJar = docJar().path,
-      pom = pom().path,
-      ivy = ivy().path,
-      artifact = artifactMetadata(),
-      extras = extraPublish()
-    )
   }
 
   /**
