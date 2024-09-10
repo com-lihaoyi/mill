@@ -1,9 +1,9 @@
 package mill.util
 
-import coursier.cache.ArtifactError
+import coursier.cache.{ArtifactError, CacheLogger, FileCache}
 import coursier.parse.RepositoryParser
-import coursier.util.{Gather, Task}
-import coursier.{Dependency, Repository, Resolution}
+import coursier.util.{Artifact, Gather, Task}
+import coursier.{Classifier, Dependency, Repository, Resolution}
 import mill.api.{Ctx, PathRef, Result}
 import mill.api.Loose.Agg
 
@@ -22,18 +22,16 @@ trait CoursierSupport {
    */
   def resolveDependencies(
       repositories: Seq[Repository],
-      deps: IterableOnce[coursier.Dependency],
-      force: IterableOnce[coursier.Dependency],
+      deps: IterableOnce[Dependency],
+      force: IterableOnce[Dependency],
       sources: Boolean = false,
       mapDependencies: Option[Dependency => Dependency] = None,
-      customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
+      customizer: Option[Resolution => Resolution] = None,
       ctx: Option[mill.api.Ctx.Log] = None,
-      coursierCacheCustomizer: Option[
-        coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
-      ] = None,
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       resolveFilter: os.Path => Boolean = _ => true
   ): Result[Agg[PathRef]] = {
-    def isLocalTestDep(dep: coursier.Dependency): Option[Seq[PathRef]] = {
+    def isLocalTestDep(dep: Dependency): Option[Seq[PathRef]] = {
       val org = dep.module.organization.value
       val name = dep.module.name.value
       val classpathKey = s"$org-$name"
@@ -86,12 +84,12 @@ trait CoursierSupport {
       Result.Failure(msg)
     } else {
 
-      val coursierCache0 = coursier.cache.FileCache[Task]().noCredentials
-      val coursierCache = coursierCacheCustomizer.getOrElse(
-        identity[coursier.cache.FileCache[Task]](_)
-      ).apply(coursierCache0)
+      val coursierCache0 = FileCache[Task]().noCredentials
+      val coursierCache = coursierCacheCustomizer
+        .map(_(coursierCache0))
+        .getOrElse(coursierCache0)
 
-      def load(artifacts: Seq[coursier.util.Artifact]): (Seq[ArtifactError], Seq[File]) = {
+      def load(artifacts: Seq[Artifact]): (Seq[ArtifactError], Seq[File]) = {
         import scala.concurrent.ExecutionContext.Implicits.global
         val loadedArtifacts = Gather[Task].gather(
           for (a <- artifacts)
@@ -111,7 +109,7 @@ trait CoursierSupport {
         if (sources) {
           resolution.artifacts(
             types = Set(coursier.Type.source, coursier.Type.javaSource),
-            classifiers = Some(Seq(coursier.Classifier("sources")))
+            classifiers = Some(Seq(Classifier("sources")))
           )
         } else resolution.artifacts(
           types = Set(
@@ -146,14 +144,12 @@ trait CoursierSupport {
 
   def resolveDependenciesMetadata(
       repositories: Seq[Repository],
-      deps: IterableOnce[coursier.Dependency],
-      force: IterableOnce[coursier.Dependency],
+      deps: IterableOnce[Dependency],
+      force: IterableOnce[Dependency],
       mapDependencies: Option[Dependency => Dependency] = None,
-      customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
+      customizer: Option[Resolution => Resolution] = None,
       ctx: Option[mill.api.Ctx.Log] = None,
-      coursierCacheCustomizer: Option[
-        coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
-      ] = None
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None
   ): (Seq[Dependency], Resolution) = {
 
     val cachePolicies = coursier.cache.CacheDefaults.cachePolicies
@@ -174,15 +170,15 @@ trait CoursierSupport {
 
     val resolutionLogger = ctx.map(c => new TickerResolutionLogger(c))
     val coursierCache0 = resolutionLogger match {
-      case None => coursier.cache.FileCache[Task]().withCachePolicies(cachePolicies)
+      case None => FileCache[Task]().withCachePolicies(cachePolicies)
       case Some(l) =>
-        coursier.cache.FileCache[Task]()
+        FileCache[Task]()
           .withCachePolicies(cachePolicies)
           .withLogger(l)
     }
-    val coursierCache = coursierCacheCustomizer.getOrElse(
-      identity[coursier.cache.FileCache[Task]](_)
-    ).apply(coursierCache0)
+    val coursierCache = coursierCacheCustomizer
+      .map(_(coursierCache0))
+      .getOrElse(coursierCache0)
 
     val fetches = coursierCache.fetchs
 
@@ -206,8 +202,7 @@ object CoursierSupport {
    * In practice, this ticker output gets prefixed with the current target for which
    * dependencies are being resolved, using a [[mill.util.ProxyLogger]] subclass.
    */
-  private[CoursierSupport] class TickerResolutionLogger(ctx: Ctx.Log)
-      extends coursier.cache.CacheLogger {
+  private[CoursierSupport] class TickerResolutionLogger(ctx: Ctx.Log) extends CacheLogger {
     private[CoursierSupport] case class DownloadState(var current: Long, var total: Long)
 
     private[CoursierSupport] var downloads = new mutable.TreeMap[String, DownloadState]()
