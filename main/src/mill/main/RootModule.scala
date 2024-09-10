@@ -27,23 +27,27 @@ abstract class RootModule()(implicit
 @internal
 object RootModule {
   case class Info(millSourcePath0: os.Path, discover: Discover)
+  case class SubFolderInfo(value: Seq[String])
 
-  abstract class Subfolder(path: String*)(implicit
+  abstract class Subfolder()(implicit
       baseModuleInfo: RootModule.Info,
       millModuleLine0: sourcecode.Line,
-      millFile0: sourcecode.File
+      millFile0: sourcecode.File,
+      subFolderInfo: SubFolderInfo
   ) extends Module.BaseClass()(
         Ctx.make(
-          millModuleEnclosing0 = path.mkString("."),
+          millModuleEnclosing0 = subFolderInfo.value.mkString("."),
           millModuleLine0 = millModuleLine0,
           millModuleBasePath0 = Ctx.BasePath(baseModuleInfo.millSourcePath0 / os.up),
-          segments0 = Segments.labels(path.init: _*),
+          segments0 = Segments.labels(subFolderInfo.value.init: _*),
           external0 = Ctx.External(false),
           foreign0 = Ctx.Foreign(None),
           fileName = millFile0,
           enclosing = Caller(null)
         )
-      ) with Module
+      ) with Module{
+    def millDiscover: Discover
+  }
 
   @deprecated
   abstract class Foreign(foreign0: Option[Segments])(implicit
