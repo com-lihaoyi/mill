@@ -9,7 +9,7 @@ object `package` extends RootModule with KotlinModule {
   def mainClass = Some("foo.FooKt")
 
   def ivyDeps = Agg(
-    ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
+    ivy"com.github.ajalt.clikt:clikt-jvm:4.4.0",
     ivy"org.apache.commons:commons-text:1.12.0"
   )
 
@@ -29,7 +29,7 @@ object `package` extends RootModule with KotlinModule {
 //
 //// SNIPPET:DEPENDENCIES
 //
-// This example project uses two third-party dependencies - ArgParse4J for CLI
+// This example project uses two third-party dependencies - Clikt for CLI
 // argument parsing, Apache Commons Text for HTML escaping - and uses them to wrap a
 // given input string in HTML templates with proper escaping.
 //
@@ -75,7 +75,7 @@ Inputs:
 Compiling 1 Kotlin sources to...
 
 > ./mill run # run the main method, if any
-error: argument -t/--text is required
+error: Error: missing option --text
 ...
 
 > ./mill run --text hello
