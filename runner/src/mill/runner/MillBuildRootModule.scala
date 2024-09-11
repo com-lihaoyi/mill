@@ -139,14 +139,14 @@ abstract class MillBuildRootModule()(implicit
         upstreamClasspath = compileClasspath().toSeq.map(_.path),
         ignoreCall = { (callSiteOpt, calledSig) =>
           // We can ignore all calls to methods that look like Targets when traversing
-          // the call graph. We can fo this because we assume `def` Targets are pure,
+          // the call graph. We can do this because we assume `def` Targets are pure,
           // and so any changes in their behavior will be picked up by the runtime build
           // graph evaluator without needing to be accounted for in the post-compile
           // bytecode callgraph analysis.
-          def isSimpleTarget =
-            (calledSig.desc.ret.pretty == classOf[mill.define.Target[_]].getName ||
-              calledSig.desc.ret.pretty == classOf[mill.define.Worker[_]].getName) &&
-              calledSig.desc.args.isEmpty
+          def isSimpleTarget(desc: mill.codesig.JvmModel.Desc) =
+            (desc.ret.pretty == classOf[mill.define.Target[_]].getName ||
+              desc.ret.pretty == classOf[mill.define.Worker[_]].getName) &&
+              desc.args.isEmpty
 
           // We avoid ignoring method calls that are simple trait forwarders, because
           // we need the trait forwarders calls to be counted in order to wire up the
@@ -155,11 +155,24 @@ abstract class MillBuildRootModule()(implicit
           // somewhere else (e.g. `trait MyModuleTrait{ def myTarget }`). Only that one
           // step is necessary, after that the runtime build graph invalidation logic can
           // take over
-          def isForwarderCallsite =
-            callSiteOpt.nonEmpty &&
-              callSiteOpt.get.sig.name == (calledSig.name + "$") &&
-              callSiteOpt.get.sig.static &&
-              callSiteOpt.get.sig.desc.args.size == 1
+          def isForwarderCallsiteOrLambda =
+            callSiteOpt.nonEmpty && {
+              val callSiteSig = callSiteOpt.get.sig
+
+              (callSiteSig.name == (calledSig.name + "$") &&
+                callSiteSig.static &&
+                callSiteSig.desc.args.size == 1)
+              || (
+                // In Scala 3, lambdas are implemented by private instance methods,
+                // not static methods, so they fall through the crack of "isSimpleTarget".
+                // Here make the assumption that a zero-arg lambda called from a simpleTarget,
+                // should in fact be tracked. e.g. see `integration.invalidation[codesig-hello]`,
+                // where the body of the `def foo` target is a zero-arg lambda i.e. the argument
+                // of `Cacher.cachedTarget`.
+                // To be more precise I think ideally we should capture more information in the signature
+                isSimpleTarget(callSiteSig.desc) && calledSig.name.contains("$anonfun")
+              )
+            }
 
           // We ignore Commands for the same reason as we ignore Targets, and also because
           // their implementations get gathered up all the via the `Discover` macro, but this
@@ -169,7 +182,7 @@ abstract class MillBuildRootModule()(implicit
           def isCommand =
             calledSig.desc.ret.pretty == classOf[mill.define.Command[_]].getName
 
-          (isSimpleTarget && !isForwarderCallsite) || isCommand
+          (isSimpleTarget(calledSig.desc) && !isForwarderCallsiteOrLambda) || isCommand
         },
         logger = new mill.codesig.Logger(Option.when(debugEnabled)(T.dest / "current")),
         prevTransitiveCallGraphHashesOpt = () =>
