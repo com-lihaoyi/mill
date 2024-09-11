@@ -176,12 +176,12 @@ object Deps {
   val scalacScoverage2Domain = ivy"org.scoverage::scalac-scoverage-domain:${scoverage2Version}"
   val scalacScoverage2Serializer = ivy"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
   val scalaparse = ivy"com.lihaoyi::scalaparse:${fastparse.version}"
-  val scalatags = ivy"com.lihaoyi::scalatags:0.12.0"
+  val scalatags = ivy"com.lihaoyi::scalatags:0.12.0".withDottyCompat(scalaVersion)
   def scalaXml = ivy"org.scala-lang.modules::scala-xml:2.3.0"
   // keep in sync with doc/antora/antory.yml
   val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.9.9"
   val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.10.3"
-  val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.1"
+  val sourcecode = ivy"com.lihaoyi::sourcecode:0.4.3-M1"
   val upickle = ivy"com.lihaoyi::upickle:3.3.1"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.5"
   val zinc = ivy"org.scala-sbt::zinc:1.10.2".withDottyCompat(scalaVersion)

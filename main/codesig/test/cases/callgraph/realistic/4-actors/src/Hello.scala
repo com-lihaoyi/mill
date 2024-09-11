@@ -66,8 +66,6 @@ object Hello {
         "hello.DiskActor#run(java.lang.String)void"
     ],
     "hello.DiskActor#run(java.lang.String)void": [
-        "hello.DiskActor#logSize()int",
-        "hello.DiskActor#logSize_$eq(int)void",
         "hello.DiskActor#oldPath()os.Path"
     ],
     "hello.DiskActor.$lessinit$greater$default$2()int": [
