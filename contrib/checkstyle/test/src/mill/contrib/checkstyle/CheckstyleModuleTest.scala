@@ -57,69 +57,69 @@ object CheckstyleModuleTest extends TestSuite {
           testJava(resources / "non-compatible", sources = Seq("hope/this/path/does/not/exist"))
         )
       }
+    }
 
-      test("settings") {
+    test("settings") {
 
-        test("format") {
+      test("format") {
 
-          assert(
-            testJava(resources / "non-compatible", "plain", violations = violations),
-            testJava(resources / "non-compatible", "sarif", violations = violations),
-            testJava(resources / "non-compatible", "xml", violations = violations),
-            testJava(resources / "compatible-java", "plain"),
-            testJava(resources / "compatible-java", "sarif"),
-            testJava(resources / "compatible-java", "xml"),
-            testScala(resources / "compatible-scala", "plain"),
-            testScala(resources / "compatible-scala", "sarif"),
-            testScala(resources / "compatible-scala", "xml")
-          )
-        }
-
-        test("options") {
-
-          assert(
-            testJava(resources / "compatible-java", options = Seq("-d"))
-          )
-        }
-
-        test("version") {
-
-          assert(
-            testJava(resources / "compatible-java", "plain", "6.3"),
-            testJava(resources / "compatible-java", "sarif", "8.43"),
-            testJava(resources / "compatible-java", "xml", "6.3")
-          )
-
-          intercept[UnsupportedOperationException](
-            testJava(resources / "compatible-java", "sarif", "8.42")
-          )
-        }
+        assert(
+          testJava(resources / "non-compatible", "plain", violations = violations),
+          testJava(resources / "non-compatible", "sarif", violations = violations),
+          testJava(resources / "non-compatible", "xml", violations = violations),
+          testJava(resources / "compatible-java", "plain"),
+          testJava(resources / "compatible-java", "sarif"),
+          testJava(resources / "compatible-java", "xml"),
+          testScala(resources / "compatible-scala", "plain"),
+          testScala(resources / "compatible-scala", "sarif"),
+          testScala(resources / "compatible-scala", "xml")
+        )
       }
 
-      test("limitations") {
+      test("options") {
 
-        test("incompatible version generates report with unexpected violation") {
-          assert(
-            testJava(
-              resources / "compatible-java",
-              "plain",
-              "6.2",
-              violations = "File not found" :: Nil
-            ),
-            testJava(
-              resources / "compatible-java",
-              "xml",
-              "6.2",
-              violations = "File not found" :: Nil
-            )
-          )
-        }
+        assert(
+          testJava(resources / "compatible-java", options = Seq("-d"))
+        )
+      }
 
-        test("cannot set options for legacy version") {
-          intercept[UnsupportedOperationException](
-            testJava(resources / "compatible-java", version = "6.3", options = Seq("-d"))
+      test("version") {
+
+        assert(
+          testJava(resources / "compatible-java", "plain", "6.3"),
+          testJava(resources / "compatible-java", "sarif", "8.43"),
+          testJava(resources / "compatible-java", "xml", "6.3")
+        )
+
+        intercept[UnsupportedOperationException](
+          testJava(resources / "compatible-java", "sarif", "8.42")
+        )
+      }
+    }
+
+    test("limitations") {
+
+      test("incompatible version generates report with unexpected violation") {
+        assert(
+          testJava(
+            resources / "compatible-java",
+            "plain",
+            "6.2",
+            violations = Seq("File not found")
+          ),
+          testJava(
+            resources / "compatible-java",
+            "xml",
+            "6.2",
+            violations = Seq("File not found")
           )
-        }
+        )
+      }
+
+      test("cannot set options for legacy version") {
+        intercept[UnsupportedOperationException](
+          testJava(resources / "compatible-java", version = "6.3", options = Seq("-d"))
+        )
       }
     }
   }
