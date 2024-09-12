@@ -34,21 +34,21 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
       "millEmbeddedDeps",
       (
         T.traverse(
-            build.dist.recursiveModuleDeps.collect { case m: PublishModule => m }
-          )(
-            _.publishSelfDependency
-          )()
+          build.dist.recursiveModuleDeps.collect { case m: PublishModule => m }
+        )(
+          _.publishSelfDependency
+        )()
           .map(artifact => s"${artifact.group}:${artifact.id}:${artifact.version}") ++
           Lib.resolveDependenciesMetadata(
-              repositories = build.dist.repositoriesTask(),
-              build.dist.transitiveIvyDeps(),
-              Some(build.dist.mapDependencies()),
-              build.dist.resolutionCustomizer(),
-              Some(T.ctx()),
-              build.dist.coursierCacheCustomizer()
-            )._2.minDependencies.toSeq
+            repositories = build.dist.repositoriesTask(),
+            build.dist.transitiveIvyDeps(),
+            Some(build.dist.mapDependencies()),
+            build.dist.resolutionCustomizer(),
+            Some(T.ctx()),
+            build.dist.coursierCacheCustomizer()
+          )._2.minDependencies.toSeq
             .map(d => s"${d.module.organization.value}:${d.module.name.value}:${d.version}")
-        )
+      )
         //      T.traverse(dev.moduleDeps)(_.publishSelfDependency)()
         //        .map(artifact => s"${artifact.group}:${artifact.id}:${artifact.version}")
         .mkString(","),
@@ -187,4 +187,3 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
 
   def testModuleDeps = super.testModuleDeps ++ Seq(build.testkit)
 }
-
