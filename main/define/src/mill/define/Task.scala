@@ -278,6 +278,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
    * take arguments that are automatically converted to command-line
    * arguments, as long as an implicit [[mainargs.TokensReader]] is available.
    */
+  @deprecated("Creating command from tasks is deprecated. You most likely forget a parenthesis pair `()`", "Mill after 0.12.0-RC1")
   def command[T](t: Task[T])(implicit
       ctx: mill.define.Ctx,
       w: W[T],
