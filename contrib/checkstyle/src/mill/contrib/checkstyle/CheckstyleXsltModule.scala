@@ -75,7 +75,7 @@ trait CheckstyleXsltModule extends CheckstyleModule {
    * }}}
    */
   def checkstyleXsltReports: T[Set[CheckstyleXsltReport]] = T {
-    val dir = checkstyleXsltfFolder()
+    val dir = checkstyleXsltfFolder().path
 
     if (os.exists(dir)) {
       val dest = T.dest
