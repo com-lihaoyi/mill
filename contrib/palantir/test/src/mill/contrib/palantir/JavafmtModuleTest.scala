@@ -20,8 +20,16 @@ object JavafmtModuleTest extends TestSuite {
         checkState(
           afterFormat(module),
           walkFiles(expected / "palantir")
+        ),
+        checkState(
+          afterFormat(module, sources = Seq("src/Main.java")),
+          walkFiles(expected / "palantir")
         )
       )
+
+      intercept[RuntimeException] {
+        afterFormat(module, check = true)
+      }
     }
   }
 

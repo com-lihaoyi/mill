@@ -12,7 +12,7 @@ trait JavafmtModule extends PalantirModule {
 
     val _sources =
       if (leftover.value.isEmpty) sources().iterator.map(_.path)
-      else leftover.value.iterator.map(rel => millSourcePath / rel)
+      else leftover.value.iterator.map(rel => millSourcePath / os.RelPath(rel))
 
     if (check) {
       T.log.info("checking format in java sources ...")
