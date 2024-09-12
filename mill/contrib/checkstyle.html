@@ -1,0 +1,590 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Checkstyle :: The Mill Build Tool</title>
+    <meta name="generator" content="Antora 3.1.9" />
+    <link rel="stylesheet" href="../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
+  
+  </head><body class="article">
+  
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs" />
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">Source Code (GitHub)</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+        <a class="navbar-item" href="https://discord.com/channels/632150470000902164/940067748103487558">Chat</a>
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="mill" data-version="master">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+<ul class="nav-list">
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../Java_Intro_to_Mill.html">Introduction to Mill for Java</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../Java_Installation_IDE_Support.html">Installation and IDE Support</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../Java_Builtin_Commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../Java_Module_Config.html">Java Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../Java_Build_Examples.html">Java Build Examples</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../Testing_Java_Projects.html">Testing Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../Java_Web_Examples.html">Java Web Examples</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../Case_Study_Mill_vs_Maven.html">Case Study: Mill vs Maven</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../Case_Study_Mill_vs_Gradle.html">Case Study: Mill vs Gradle</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../Scala_Intro_to_Mill.html">Introduction to Mill for Scala</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../Scala_Installation_IDE_Support.html">Installation and IDE Support</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../Scala_Builtin_Commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../Scala_Module_Config.html">Scala Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../Scala_Build_Examples.html">Scala Build Examples</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../Testing_Scala_Projects.html">Testing Scala Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../Scala_Web_Examples.html">Scala Web Examples</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../Case_Study_Mill_vs_SBT.html">Case Study: Mill vs SBT</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../Library_Dependencies.html">Library Dependencies in Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../Out_Dir.html">The Output Directory</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../Tasks.html">Tasks</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../Modules.html">Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../Cross_Builds.html">Cross Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../Target_Query_Syntax.html">Target Query Syntax</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../Structuring_Large_Builds.html">Structuring Large Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../The_Mill_Evaluation_Model.html">The Mill Evaluation Model</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../Mill_Sandboxing.html">Mill Sandboxing</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Extending Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../Import_File_And_Import_Ivy.html">import $file and import $ivy</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../Using_Plugins.html">Using Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../Contrib_Plugins.html">Contrib Plugins</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="artifactory.html">Artifactory</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="bintray.html">Bintray</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="bloop.html">Bloop</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="buildinfo.html">BuildInfo</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="codeartifact.html">Codeartifact</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="docker.html">Docker</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="errorprone.html">Mill ErrorProne Plugin</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="flyway.html">Flyway</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="gitlab.html">Gitlab</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="jmh.html">JMH</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="playlib.html">Play Framework</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="proguard.html">Proguard</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="scalapblib.html">ScalaPB</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="scoverage.html">Scoverage</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="sonatypecentral.html">Sonatype Central</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="testng.html">TestNG</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="twirllib.html">Twirl</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="versionfile.html">Version file</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../Thirdparty_Plugins.html">Third-Party Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../Writing_Mill_Plugins.html">Writing Mill Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../The_Mill_Meta_Build.html">The Mill Meta-Build</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Reference</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../Mill_Design_Principles.html">Mill Design Principles</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../Bundled_Libraries.html">Bundled Libraries</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill/index.html">Mill Scaladoc</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../Changelog.html">Changelog</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Mill Documentation</span>
+    <span class="version">0.12.0-RC1-17-a02a3c</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <div class="title"><a href="../0.11.12/index.html">Mill Documentation</a></div>
+      <ul class="versions">
+        <li class="version is-current">
+          <a href="../index.html">0.12.0-RC1-17-a02a3c</a>
+        </li>
+        <li class="version is-latest">
+          <a href="../0.11.12/index.html">0.11.12</a>
+        </li>
+        <li class="version">
+          <a href="../0.11.11/index.html">0.11.11</a>
+        </li>
+        <li class="version">
+          <a href="../0.11.10/index.html">0.11.10</a>
+        </li>
+        <li class="version">
+          <a href="../0.11.0-M7/index.html">0.11.0-M7</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.15/index.html">0.10.15</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.12/index.html">0.10.12</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.0/index.html">0.10.0</a>
+        </li>
+        <li class="version">
+          <a href="../0.9.12/index.html">0.9.12</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../0.11.12/Java_Intro_to_Mill.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="../index.html">Mill Documentation</a></li>
+    <li><a href="checkstyle.html">Checkstyle</a></li>
+  </ul>
+</nav>
+<div class="page-versions">
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC1-17-a02a3c</button>
+  <div class="version-menu">
+    <a class="version is-current" href="checkstyle.html">0.12.0-RC1-17-a02a3c</a>
+    <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
+    <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
+    <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
+    <a class="version is-missing" href="../0.11.0-M7/index.html">0.11.0-M7</a>
+    <a class="version is-missing" href="../0.10.15/index.html">0.10.15</a>
+    <a class="version is-missing" href="../0.10.12/index.html">0.10.12</a>
+    <a class="version is-missing" href="../0.10.0/index.html">0.10.0</a>
+    <a class="version is-missing" href="../0.9.12/index.html">0.9.12</a>
+  </div>
+</div>
+<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/contrib/checkstyle.adoc">Edit this Page</a></div>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Checkstyle</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Performs quality checks on Java source files using <a href="https://checkstyle.org">Checkstyle</a> and generates reports from these checks.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_checkstylemodule"><a class="anchor" href="#_checkstylemodule"></a>CheckstyleModule</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To use this plugin in a Java/Scala module,</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Extend <code>mill.contrib.checkstyle.CheckstyleModule</code>.</p>
+</li>
+<li>
+<p>Define a <a href="https://checkstyle.org/config.html">configuration</a> file <code>checkstyle-config.xml</code>.</p>
+</li>
+<li>
+<p>Run the <code>checkstyle</code> command.</p>
+</li>
+</ol>
+</div>
+<div class="sect2">
+<h3 id="_checkstyle"><a class="anchor" href="#_checkstyle"></a>checkstyle</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>flags</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>// if an exception should be raised when violations are found
+checkstyle --check
+
+// if Checkstyle output report should be written to System.out
+checkstyle --stdout</pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>sources (optional)</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>// incorrect paths will cause a command failure
+// checkstyle a/b
+
+// you can specify paths relative to millSourcePath
+checkstyle src/a/b
+
+// process a single file
+checkstyle src/a/B.java
+
+// process multiple sources
+checkstyle src/a/b src/c/d src/e/F.java
+
+// process with flags
+checkstyle --check --stdout src/a/b src/c/d
+
+// process all module sources
+checkstyle</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_shared_configuration"><a class="anchor" href="#_shared_configuration"></a>Shared configuration</h3>
+<div class="paragraph">
+<p>To share <code>checkstyle-config.xml</code> across modules, adapt the following example.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+import mill.contrib.checkstyle.CheckstyleModule
+import mill.scalalib._
+
+object foo extends Module {
+
+  object bar extends MyModule
+  object baz extends Module {
+    object fizz extends MyModule
+    object buzz extends MyModule
+  }
+
+  trait MyModule extends JavaModule with CheckstyleModule {
+
+    override def checkstyleConfig = T {
+      api.PathRef(T.workspace / &quot;checkstyle-config.xml&quot;)
+    }
+  }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_limitations"><a class="anchor" href="#_limitations"></a>Limitations</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Version <code>6.3</code> or above is required for <code>plain</code> and <code>xml</code> formats.</p>
+</li>
+<li>
+<p>Setting <code>checkstyleOptions</code> might cause failures with legacy versions.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_checkstylexsltmodule"><a class="anchor" href="#_checkstylexsltmodule"></a>CheckstyleXsltModule</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This plugin extends the <code>mill.contrib.checkstyle.CheckstyleModule</code> with the ability to generate reports by applying <a href="https://www.w3.org/TR/xslt/">XSL Transformations</a> on a Checkstyle output report.</p>
+</div>
+<div class="sect2">
+<h3 id="_auto_detect_xsl_transformations"><a class="anchor" href="#_auto_detect_xsl_transformations"></a>Auto detect XSL Transformations</h3>
+<div class="paragraph">
+<p>XSLT files are detected automatically provided a prescribed directory structure is followed.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">/**
+ * checkstyle-xslt
+ *  ├─ html
+ *  │   ├─ xslt0.xml
+ *  │   └─ xslt1.xml
+ *  └─ pdf
+ *      ├─ xslt1.xml
+ *      └─ xslt2.xml
+ *
+ * html/xslt0.xml -&gt; xslt0.html
+ * html/xslt1.xml -&gt; xslt1.html
+ * pdf/xslt1.xml  -&gt; xslt1.pdf
+ * pdf/xslt2.xml  -&gt; xslt2.pdf
+ */</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_specify_xsl_transformations_manually"><a class="anchor" href="#_specify_xsl_transformations_manually"></a>Specify XSL Transformations manually</h3>
+<div class="paragraph">
+<p>For a custom setup, adapt the following example.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+import mill.api.PathRef
+import mill.contrib.checkstyle.CheckstyleXsltModule
+import mill.contrib.checkstyle.CheckstyleXsltReport
+import mill.scalalib._
+
+object foo extends JavaModule with CheckstyleXsltModule {
+
+    override def checkstyleXsltReports = T {
+      Set(
+        CheckstyleXsltReport(
+          PathRef(millSourcePath / &quot;checkstyle-no-frames.xml&quot;),
+          PathRef(T.dest / &quot;checkstyle-no-frames.html&quot;),
+        )
+      )
+  }
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</article>
+  </div>
+</main>
+</div>
+<script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
+<script async="async" src="../../_/js/vendor/highlight.js"></script>
+<script src="../../_/js/vendor/lunr.js"></script>
+<script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
+<script async="async" src="../../search-index.js"></script>
+  
+</body></html>
