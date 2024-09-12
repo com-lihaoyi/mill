@@ -161,10 +161,18 @@ object FileImportGraph {
     }
 
     val rootBuildFiles = rootBuildFileNames
-      .find(rootBuildFileName => os.exists(projectRoot / rootBuildFileName))
+      .filter(rootBuildFileName => os.exists(projectRoot / rootBuildFileName))
 
-    val useDummy = rootBuildFiles.isEmpty
-    val foundRootBuildFileName: String = rootBuildFiles.getOrElse(rootBuildFileNames.head)
+    val (useDummy, foundRootBuildFileName) = rootBuildFiles.toSeq match {
+      case Nil => (true, rootBuildFileNames.head)
+      case Seq(single) => (false, single)
+      case multiple =>
+        System.err.println(
+          "Multiple root build files found: " + multiple.mkString(",") +
+            ", picking " + multiple.head
+        )
+        (false, multiple.head)
+    }
 
     val buildFileExtension =
       buildFileExtensions.find(ex => foundRootBuildFileName.endsWith(s".$ex")).get
