@@ -311,7 +311,7 @@
       <div class="title"><a href="../0.11.12/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version">
-          <a href="../index.html">0.12.0-RC1-24-4d1851</a>
+          <a href="../index.html">0.12.0-RC1-25-558844</a>
         </li>
         <li class="version is-latest">
           <a href="../0.11.12/index.html">0.11.12</a>
@@ -358,7 +358,7 @@
 <div class="page-versions">
   <button class="version-menu-toggle" title="Show other versions of page">0.11.11</button>
   <div class="version-menu">
-    <a class="version" href="../Cross_Builds.html">0.12.0-RC1-24-4d1851</a>
+    <a class="version" href="../Cross_Builds.html">0.12.0-RC1-25-558844</a>
     <a class="version" href="../0.11.12/Cross_Builds.html">0.11.12</a>
     <a class="version is-current" href="Cross_Builds.html">0.11.11</a>
     <a class="version" href="../0.11.10/Cross_Builds.html">0.11.10</a>
@@ -407,31 +407,9 @@ trait FooModule extends Cross.Module[String] {
 }</code></pre>
 </div>
 </div>
-<div class="literalblock kroki-error">
+<div class="imageblock kroki">
 <div class="content">
-<pre>digraph G {
-  rankdir=LR
-  node [shape=box width=0 height=0 style=filled fillcolor=white]
-
-subgraph cluster_2 {
-    label=&quot;foo[2.12]&quot;
-    style=dashed
-    &quot;foo[2.12].suffix&quot; -&gt; &quot;foo[2.12].bigSuffix&quot;
-    &quot;foo[2.12].sources&quot;
-  }
-  subgraph cluster_1 {
-    label=&quot;foo[2.11]&quot;
-    style=dashed
-    &quot;foo[2.11].suffix&quot; -&gt; &quot;foo[2.11].bigSuffix&quot;
-    &quot;foo[2.11].sources&quot;
-  }
-  subgraph cluster_0 {
-    label=&quot;foo[2.10]&quot;
-    style=dashed
-    &quot;foo[2.10].suffix&quot; -&gt; &quot;foo[2.10].bigSuffix&quot;
-    &quot;foo[2.10].sources&quot;
-  }
-}</pre>
+<img src="_images/diag-21db9300f401465772ff4e288fd7051efa6416b4.svg" alt="Diagram" />
 </div>
 </div>
 <div class="paragraph">
