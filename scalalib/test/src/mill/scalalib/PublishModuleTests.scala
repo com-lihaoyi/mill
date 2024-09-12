@@ -163,7 +163,7 @@ object PublishModuleTests extends TestSuite {
           eval.apply(HelloWorldWithPublish.core.checkSonatypeCreds(""))
 
         assert(
-          msg.contains("Consider using SONATYPE_USERNAME/SONATYPE_PASSWORD environment variables")
+          msg.contains("Consider using MILL_SONATYPE_USERNAME/MILL_SONATYPE_PASSWORD environment variables")
         )
       }
     }
