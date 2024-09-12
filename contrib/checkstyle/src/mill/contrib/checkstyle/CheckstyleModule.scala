@@ -29,7 +29,7 @@ trait CheckstyleModule extends JavaModule {
       (if (leftover.value.nonEmpty) leftover.value else sources().map(_.path.toString()))
 
     T.log.info("running checkstyle ...")
-    T.log.info(s"with $args")
+    T.log.debug(s"with $args")
 
     val exitCode = Jvm.callSubprocess(
       mainClass = "com.puppycrawl.tools.checkstyle.Main",
