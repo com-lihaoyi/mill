@@ -48,6 +48,11 @@ trait CheckstyleXsltModule extends CheckstyleModule {
   final override def checkstyleFormat: T[String] = "xml"
 
   /**
+   * Folder containing the XSLT transformations. Defaults to `checkstyle-xslt` 
+   * in  the workspace root, but can be overriden on a per-module basis
+   */
+  def checkstyleXsltfFolder = T.source(T.workspace / "checkstyle-xslt")
+  /**
    * Set of [[CheckstyleXsltReport]]s.
    *
    * The default implementation maps XSLT files, under `checkstyle-xslt`, as depicted below:
@@ -69,7 +74,7 @@ trait CheckstyleXsltModule extends CheckstyleModule {
    * }}}
    */
   def checkstyleXsltReports: T[Set[CheckstyleXsltReport]] = T {
-    val dir = millSourcePath / "checkstyle-xslt"
+    val dir = checkstyleXsltfFolder()
 
     if (os.exists(dir)) {
       val dest = T.dest
