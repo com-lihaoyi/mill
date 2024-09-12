@@ -25,6 +25,20 @@ concurrency:
 jobs:
   # Jobs are listed in rough order of priority: if multiple jobs fail, the first job
   # in the list should be the one that's most worth looking into
+  autofix:
+    if: github.event_name == 'pull_request'
+    uses: ./.github/workflows/run-mill-action.yml
+    with:
+      java-version: '11'
+      buildcmd:
+        ./mill __.fix
+        ./mill mill.scalalib.scalafmt.ScalafmtModule/reformatAll __.sources
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git commit -am .
+        git push origin ${{ github.head_ref }}
+      populate_cache: true
+
   build-linux:
     uses: ./.github/workflows/run-mill-action.yml
     with:
