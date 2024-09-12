@@ -240,7 +240,7 @@ trait PublishModule extends JavaModule { outer =>
       // TODO: In mill 0.11, we may want to change to a String argument
       // which we can split at `,` symbols, as we do in `PublishModule.publishAll`.
       gpgArgs: Seq[String] = Seq.empty,
-      release: Boolean = false,
+      release: Boolean = true,
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000,
       awaitTimeout: Int = 120 * 1000,
