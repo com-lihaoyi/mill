@@ -1,18 +1,8 @@
 name: Draft Status
 
-# We run full CI on push builds to main and on all pull requests
-#
-# Manual builds (workflow_dispatch) to the main branch are also published
-#
-# To maximize bug-catching changes while keeping CI times reasonable, we run:
-# - All tests on Linux/Java17
-# - Fewer tests on Linux/Java11 and Windows/Java17
-# - Fewest tests on Windows/Java11
 permissions: write-all
 on:
   pull_request_target:
-
-# cancel older runs of a pull request;
 
 jobs:
   set_status:
