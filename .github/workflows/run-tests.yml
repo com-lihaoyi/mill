@@ -37,7 +37,7 @@ jobs:
           --data '{
             "state": "success",
             "context": "Link To External Action",
-            "target_url": "${{ github.event.workflow_run.html_url }}"
+            "target_url": "${{ github.event.pull_request.head.repo.clone_url }}/actions"
             }' \
   # Jobs are listed in rough order of priority: if multiple jobs fail, the first job
   # in the list should be the one that's most worth looking into
