@@ -8,7 +8,7 @@ name: Run Tests
 # - All tests on Linux/Java17
 # - Fewer tests on Linux/Java11 and Windows/Java17
 # - Fewest tests on Windows/Java11
-
+permissions: write-all
 on:
   push:
   pull_request:
