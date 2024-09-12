@@ -13,7 +13,7 @@ trait CheckstyleXsltModule extends CheckstyleModule {
    * Runs [[CheckstyleModule.checkstyle]] and uses [[CheckstyleModule.checkstyleOutput]] to generate [[checkstyleXsltReports]].
    */
   override def checkstyle(@mainargs.arg checkstyleArgs: CheckstyleArgs): Command[Int] = T.command {
-    val numViolations = super.checkstyle(checkstyleArgs)()
+    val numViolations = super.checkstyle(checkstyleArgs.copy(check = false, stdout = false))()
     val checkOutput = checkstyleOutput().path
 
     if (os.exists(checkOutput)) {
