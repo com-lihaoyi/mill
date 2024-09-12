@@ -321,13 +321,26 @@ object PublishModule extends ExternalModule {
    * Uses environment variables SONATYPE_USERNAME and SONATYPE_PASSWORD as
    * credentials.
    *
+   * @param publishArtifacts what artifacts you want to publish. Defaults to `__.publishArtifacts`
+   *                         which selects all `PublishModule`s in your build
    * @param sonatypeCreds Sonatype credentials in format username:password.
    *                      If specified, environment variables will be ignored.
    *                      <i>Note: consider using environment variables over this argument due
    *                      to security reasons.</i>
-   * @param gpgArgs       GPG arguments. Defaults to `--batch --yes -a -b`.
+   * @param signed
+   * @param gpgArgs       GPG arguments. Defaults to `--passphrase=$MILL_PGP_PASSPHRASE,--no-tty,--pienty-mode,loopback,--batch,--yes,-a,-b`.
    *                      Specifying this will override/remove the defaults.
    *                      Add the default args to your args to keep them.
+   * @param release Whether to release the artifacts after staging them
+   * @param sonatypeUri Sonatype URI to use. Defaults to `oss.sonatype.org`, newer projects
+   *                    may need to set it to https://s01.oss.sonatype.org/service/local
+   * @param sonatypeSnapshotUri Sonatype snapshot URI to use. Defaults to `oss.sonatype.org`, newer projects
+   *                            may need to set it to https://s01.oss.sonatype.org/content/repositories/snapshots
+   * @param readTimeout How long to wait before timing out network reads
+   * @param connectTimeout How long to wait before timing out network connections
+   * @param awaitTimeout How long to wait before timing out on failed uploads
+   * @param stagingRelease
+   * @return
    */
   def publishAll(
       publishArtifacts: Tasks[PublishModule.PublishData] =
@@ -373,8 +386,9 @@ object PublishModule extends ExternalModule {
 
   private def getSonatypeCredsFromEnv: Task[(String, String)] = T.task {
     (for {
-      username <- T.env.get(USERNAME_ENV_VARIABLE_NAME)
-      password <- T.env.get(PASSWORD_ENV_VARIABLE_NAME)
+      // Allow legacy environment variables as well
+      username <- T.env.get(USERNAME_ENV_VARIABLE_NAME).orElse(T.env.get("SONATYPE_USERNAME"))
+      password <- T.env.get(PASSWORD_ENV_VARIABLE_NAME).orElse(T.env.get("SONATYPE_PASSWORD"))
     } yield {
       Result.Success((username, password))
     }).getOrElse(
