@@ -1,59 +1,23 @@
 // Mill's sandboxing approach is best effort: while it tries to guide you into using
-// isolated sandbox folders, Mill cannot guarantee it, and in fact provides utilities
-// to reference the project root folder for scenarios where you may need it. This can
-// be useful for a variety of reasons:
+// isolated sandbox folders, Mill cannot guarantee it, and in fact provides the
+// `MILL_WORKSPACE_ROOT` environment variable to reference the project root folder
+// for scenarios where you may need it. This can be useful for a variety of reasons:
 //
 // * Migrating legacy applications that assume access to the workspace root
 // * Scenarios where writing the the original source repository is necessary:
 //   code auto-formatters, auto-fixers, auto-updaters. etc.
-
 //
-// === T.workspace
-//
-
+// `MILL_WORKSPACE_ROOT` can be used both in tasks:
 package build
 import mill._, javalib._
 
-def tWorkspaceTask = T { println(T.workspace) }
+def tWorkspaceTask = T { println(os.Path(sys.env.getOrElse("MILL_WORKSPACE_ROOT", os.pwd))) }
 
 /** Usage
 > ./mill tWorkspaceTask
 */
 
-
-// `T.workspace` can be used to access the workspace root from any task. This
-// can be useful for things like code auto-formatters or file auto-fixes which
-// need to read and write to the original source code, and not just generate
-// temporary files within sandbox folders.
-//
-// === build.millSourcePath
-//
-def buildMillSourcePathTask = T { println(build.millSourcePath) }
-//
-// `build.millSourcePath` returns the same value as `T.workspace`, but can be used
-// in module bodies rather than just in task bodies. This can be useful e.g. for
-// defining cross modules that depend on what files exist on disk:
-
-def moduleNames = interp.watchValue(os.list(build.millSourcePath / "modules").map(_.last))
-
-object modules extends Cross[FolderModule](moduleNames)
-trait FolderModule extends Cross.Module[String]{
-  def millSourcePath = super.millSourcePath / crossValue
-  def crossModuleTask = T{ println("Hello " + crossValue) }
-}
-
-/** Usage
-> ./mill resolve modules._
-modules[subfolder-a]
-modules[subfolder-b]
-modules[subfolder-c]
-
-> ./mill 'modules[subfolder-a].crossModuleTask'
-Hello subfolder-a
-*/
-
-
-// MILL_WORKSPACE_ROOT
+// `MILL_WORKSPACE_ROOT` as well as in tests:
 
 object foo extends JavaModule{
   object test extends JavaTests with TestModule.Junit4
@@ -81,15 +45,3 @@ object foo extends JavaModule{
 <h1>foo</h1>
 
 */
-
-//
-// === mill.api.WorkspaceRoot
-def workspaceRootTask = T { println(mill.api.WorkspaceRoot.workspaceRoot) }
-
-/** Usage
-> ./mill workspaceRootTask
-*/
-
-// `mill.api.WorkspaceRoot` can be used to access the workspace root from anywhere,
-// even when not inside a task. This is similar to `T.workspace`, but can be used
-// in helper libraries that are not running in the context of a task
