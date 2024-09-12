@@ -182,9 +182,7 @@ object CheckstyleModuleTest extends TestSuite {
       args: CheckstyleArgs
   ): Boolean = {
     val eval = UnitTester(module, modulePath)
-    val res = eval(module.checkstyle(args))
-    pprint.log(res)
-    res.fold(
+    eval(module.checkstyle(args)).fold(
       {
         case api.Result.Exception(cause, _) => throw cause
         case failure => throw failure
