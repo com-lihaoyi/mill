@@ -18,8 +18,12 @@ trait CheckstyleModule extends JavaModule {
    * @note [[sources]] are processed when no [[CheckstyleArgs.sources]] are specified.
    */
   def checkstyle(@mainargs.arg checkstyleArgs: CheckstyleArgs): Command[Int] = T.command {
+    val (output, exitCode) = checkstyle0(checkstyleArgs.stdout, checkstyleArgs.sources)()
 
-    val CheckstyleArgs(check, stdout, leftover) = checkstyleArgs
+    checkstyleHandleErrors(checkstyleArgs.stdout, checkstyleArgs.check, exitCode, output)
+  }
+
+  protected def checkstyle0(stdout: Boolean, leftover: mainargs.Leftover[String]) = T.task {
 
     val output = checkstyleOutput().path
     val args = checkstyleOptions() ++
@@ -39,6 +43,16 @@ trait CheckstyleModule extends JavaModule {
       streamOut = true,
       check = false
     ).exitCode
+
+    (output, exitCode)
+  }
+
+  protected def checkstyleHandleErrors(
+      stdout: Boolean,
+      check: Boolean,
+      exitCode: Int,
+      output: os.Path
+  )(implicit ctx: mill.api.Ctx) = {
 
     val reported = os.exists(output)
     if (reported) {

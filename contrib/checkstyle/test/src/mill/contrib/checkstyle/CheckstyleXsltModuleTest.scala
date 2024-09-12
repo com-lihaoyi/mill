@@ -47,7 +47,7 @@ object CheckstyleXsltModuleTest extends TestSuite {
   def testModule(module: TestBaseModule with CheckstyleXsltModule, modulePath: os.Path): Boolean = {
     val eval = UnitTester(module, modulePath)
 
-    eval(module.checkstyle(CheckstyleArgs(sources = Leftover()))).fold(
+    eval(module.checkstyle(CheckstyleArgs(check = false, sources = Leftover()))).fold(
       {
         case api.Result.Exception(cause, _) => throw cause
         case failure => throw failure
