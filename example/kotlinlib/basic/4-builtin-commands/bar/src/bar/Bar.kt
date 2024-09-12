@@ -1,9 +1,10 @@
 package bar
 
-import org.apache.commons.text.StringEscapeUtils
+import kotlinx.html.h1
+import kotlinx.html.stream.createHTML
 
 fun generateHtml(text: String): String {
-    return "<h1>" + StringEscapeUtils.escapeHtml4("world") + "</h1>"
+    return createHTML(prettyPrint = false).h1 { text("world")  }.toString()
 }
 
 fun main(args: Array<String>) {

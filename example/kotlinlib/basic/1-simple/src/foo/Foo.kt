@@ -1,6 +1,7 @@
 package foo
 
-import org.apache.commons.text.StringEscapeUtils
+import kotlinx.html.h1
+import kotlinx.html.stream.createHTML
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
@@ -14,7 +15,7 @@ class Foo: CliktCommand() {
 }
 
 fun generateHtml(text: String): String {
-    return "<h1>" + StringEscapeUtils.escapeHtml4(text) + "</h1>"
+    return createHTML(prettyPrint = false).h1 { text(text)  }.toString()
 }
 
 fun main(args: Array<String>) = Foo().main(args)
