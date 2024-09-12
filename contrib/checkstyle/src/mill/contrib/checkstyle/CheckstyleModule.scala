@@ -29,13 +29,14 @@ trait CheckstyleModule extends JavaModule {
       (if (leftover.value.nonEmpty) leftover.value else sources().map(_.path.toString()))
 
     T.log.info("running checkstyle ...")
-    T.log.debug(s"with $args")
+    T.log.info(s"with $args")
 
     val exitCode = Jvm.callSubprocess(
       mainClass = "com.puppycrawl.tools.checkstyle.Main",
       classPath = checkstyleClasspath().map(_.path),
       mainArgs = args,
       workingDir = millSourcePath, // allow passing relative paths for sources like src/a/b
+      streamOut = true,
       check = false
     ).exitCode
 
@@ -44,9 +45,8 @@ trait CheckstyleModule extends JavaModule {
       T.log.info(s"checkstyle output report at $output")
     }
 
-    if (exitCode == 0) {
-      T.log.info("checkstyle found no violation")
-    } else if (exitCode < 0 || !(reported || stdout)) {
+    if (exitCode == 0) {} // do nothing
+    else if (exitCode < 0 || !(reported || stdout)) {
       T.log.error(
         s"checkstyle exit($exitCode); please check command arguments, plugin settings or try with another version"
       )
@@ -73,7 +73,7 @@ trait CheckstyleModule extends JavaModule {
    * Checkstyle configuration file. Defaults to `checkstyle-config.xml`.
    */
   def checkstyleConfig: T[PathRef] = T {
-    PathRef(millSourcePath / "checkstyle-config.xml")
+    PathRef(T.workspace / "checkstyle-config.xml")
   }
 
   /**

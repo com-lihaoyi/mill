@@ -39,6 +39,7 @@ import $ivy.`com.lihaoyi::mill-contrib-bloop:`
 * xref:contrib/codeartifact.adoc[]
 * xref:contrib/docker.adoc[]
 * xref:contrib/errorprone.adoc[]
+* xref:contrib/checkstyle.adoc[]
 * xref:contrib/flyway.adoc[]
 * xref:contrib/gitlab.adoc[]
 * xref:contrib/jmh.adoc[]
