@@ -13,7 +13,8 @@ trait CheckstyleXsltModule extends CheckstyleModule {
    * Runs [[CheckstyleModule.checkstyle]] and uses [[CheckstyleModule.checkstyleOutput]] to generate [[checkstyleXsltReports]].
    */
   override def checkstyle(@mainargs.arg checkstyleArgs: CheckstyleArgs): Command[Int] = T.command {
-    val numViolations = super.checkstyle(checkstyleArgs)()
+    val (output, exitCode) = checkstyle0(false, checkstyleArgs.sources)()
+
     val checkOutput = checkstyleOutput().path
 
     if (os.exists(checkOutput)) {
@@ -38,15 +39,19 @@ trait CheckstyleXsltModule extends CheckstyleModule {
       }
     }
 
-    numViolations
+    checkstyleHandleErrors(checkstyleArgs.stdout, checkstyleArgs.check, exitCode, output)
   }
 
   /**
-   * `xml`
+   * Necessary in order to allow XSLT transformations on the results
    */
-  final override def checkstyleFormat: T[String] = T {
-    "xml"
-  }
+  final override def checkstyleFormat: T[String] = "xml"
+
+  /**
+   * Folder containing the XSLT transformations. Defaults to `checkstyle-xslt`
+   * in  the workspace root, but can be overriden on a per-module basis
+   */
+  def checkstyleXsltfFolder = T.source(T.workspace / "checkstyle-xslt")
 
   /**
    * Set of [[CheckstyleXsltReport]]s.
@@ -70,7 +75,7 @@ trait CheckstyleXsltModule extends CheckstyleModule {
    * }}}
    */
   def checkstyleXsltReports: T[Set[CheckstyleXsltReport]] = T {
-    val dir = millSourcePath / "checkstyle-xslt"
+    val dir = checkstyleXsltfFolder().path
 
     if (os.exists(dir)) {
       val dest = T.dest

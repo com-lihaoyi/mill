@@ -5,7 +5,7 @@ https://errorprone.info/index[Error Prone] augments the Java compiler's type che
 
 You just need to mix the `ErrorProneModule` into your `JavaModule` and it will automatically run with every compilation.
 
-.`build.mill.sc`: Enable `ErrorProne` in a module
+.`build.mill.scala`: Enable `ErrorProne` in a module
 [source,scala]
 ----
 package build

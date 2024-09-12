@@ -225,8 +225,10 @@ trait TestModule
       val mainArgs = Seq(testRunnerClasspathArg, argsFile.toString)
 
       os.makeDir(T.dest / "sandbox")
-      val resourceEnv =
-        Map(EnvVars.MILL_TEST_RESOURCE_FOLDER -> resources().map(_.path).mkString(";"))
+      val resourceEnv = Map(
+        EnvVars.MILL_TEST_RESOURCE_FOLDER -> resources().map(_.path).mkString(";"),
+        EnvVars.MILL_WORKSPACE_ROOT -> T.workspace.toString
+      )
       Jvm.runSubprocess(
         mainClass = "mill.testrunner.entrypoint.TestRunnerMain",
         classPath =

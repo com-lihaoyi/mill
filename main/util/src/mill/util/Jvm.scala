@@ -37,7 +37,13 @@ object Jvm extends CoursierSupport {
     val workingDir1 = Option(workingDir).getOrElse(ctx.dest)
     os.makeDir.all(workingDir1)
 
-    os.proc(commandArgs).call(cwd = workingDir1, env = envArgs, check = check)
+    os.proc(commandArgs)
+      .call(
+        cwd = workingDir1,
+        env = envArgs,
+        check = check,
+        stdout = if (streamOut) os.Inherit else os.Pipe
+      )
   }
 
   /**

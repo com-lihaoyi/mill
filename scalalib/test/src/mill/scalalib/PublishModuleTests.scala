@@ -47,7 +47,7 @@ object PublishModuleTests extends TestSuite {
       override def versionScheme = Some(VersionScheme.EarlySemVer)
 
       def checkSonatypeCreds(sonatypeCreds: String) = T.command {
-        PublishModule.checkSonatypeCreds(sonatypeCreds)
+        PublishModule.checkSonatypeCreds(sonatypeCreds)()
       }
     }
   }
@@ -163,7 +163,9 @@ object PublishModuleTests extends TestSuite {
           eval.apply(HelloWorldWithPublish.core.checkSonatypeCreds(""))
 
         assert(
-          msg.contains("Consider using SONATYPE_USERNAME/SONATYPE_PASSWORD environment variables")
+          msg.contains(
+            "Consider using MILL_SONATYPE_USERNAME/MILL_SONATYPE_PASSWORD environment variables"
+          )
         )
       }
     }

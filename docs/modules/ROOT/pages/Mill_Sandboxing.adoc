@@ -8,6 +8,10 @@ include::example/depth/sandbox/1-task.adoc[]
 
 include::example/depth/sandbox/2-test.adoc[]
 
+== Breaking Out Of Sandbox Folders
+
+include::example/depth/sandbox/3-breaking.adoc[]
+
 == Limitations
 
 Mill's approach to filesystem sandboxing is designed to avoid accidental interference
