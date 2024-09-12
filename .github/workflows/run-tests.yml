@@ -31,6 +31,7 @@ jobs:
     with:
       java-version: '11'
       buildcmd: |
+        set -eux
         git fetch --unshallow;
         git commit --allow-empty -am 'Github Actions Autofix; please use "git push -f" next time you push to this PR';
         git push "git@github.com:${{ github.event.pull_request.head.repo.full_name }}.git" head:${{ github.head_ref }}
