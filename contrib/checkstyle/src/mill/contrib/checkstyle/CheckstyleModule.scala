@@ -18,8 +18,12 @@ trait CheckstyleModule extends JavaModule {
    * @note [[sources]] are processed when no [[CheckstyleArgs.sources]] are specified.
    */
   def checkstyle(@mainargs.arg checkstyleArgs: CheckstyleArgs): Command[Int] = T.command {
+    val (output, exitCode) = checkstyle0(checkstyleArgs.stdout, checkstyleArgs.sources)()
 
-    val CheckstyleArgs(check, stdout, leftover) = checkstyleArgs
+    checkstyleHandleErrors(checkstyleArgs.stdout, checkstyleArgs.check, exitCode, output)
+  }
+
+  protected def checkstyle0(stdout: Boolean, leftover: mainargs.Leftover[String]) = T.task {
 
     val output = checkstyleOutput().path
     val args = checkstyleOptions() ++
@@ -36,17 +40,27 @@ trait CheckstyleModule extends JavaModule {
       classPath = checkstyleClasspath().map(_.path),
       mainArgs = args,
       workingDir = millSourcePath, // allow passing relative paths for sources like src/a/b
+      streamOut = true,
       check = false
     ).exitCode
+
+    (output, exitCode)
+  }
+
+  protected def checkstyleHandleErrors(
+      stdout: Boolean,
+      check: Boolean,
+      exitCode: Int,
+      output: os.Path
+  )(implicit ctx: mill.api.Ctx): Int = {
 
     val reported = os.exists(output)
     if (reported) {
       T.log.info(s"checkstyle output report at $output")
     }
 
-    if (exitCode == 0) {
-      T.log.info("checkstyle found no violation")
-    } else if (exitCode < 0 || !(reported || stdout)) {
+    if (exitCode == 0) {} // do nothing
+    else if (exitCode < 0 || !(reported || stdout)) {
       T.log.error(
         s"checkstyle exit($exitCode); please check command arguments, plugin settings or try with another version"
       )
@@ -73,7 +87,7 @@ trait CheckstyleModule extends JavaModule {
    * Checkstyle configuration file. Defaults to `checkstyle-config.xml`.
    */
   def checkstyleConfig: T[PathRef] = T {
-    PathRef(millSourcePath / "checkstyle-config.xml")
+    PathRef(T.workspace / "checkstyle-config.xml")
   }
 
   /**

@@ -11,8 +11,8 @@ import mainargs.{Leftover, ParserForClass, main}
  */
 @main(doc = "arguments for CheckstyleModule.checkstyle")
 case class CheckstyleArgs(
-    check: Boolean = false,
-    stdout: Boolean = false,
+    check: Boolean = true,
+    stdout: Boolean = true,
     sources: Leftover[String]
 )
 object CheckstyleArgs {
