@@ -63,7 +63,7 @@ trait CoursierSupport {
     )
 
     resolutionRes.flatMap { resolution =>
-      val coursierCache0 = FileCache[Task]().noCredentials
+      val coursierCache0 = FileCache[Task]()
       val coursierCache = coursierCacheCustomizer
         .map(_(coursierCache0))
         .getOrElse(coursierCache0)
