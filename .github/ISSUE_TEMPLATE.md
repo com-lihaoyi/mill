@@ -2,3 +2,4 @@ Please don't open issues for questions, but ask in our Discussions forum at http
 
 Mill installations via `coursier` or `cs` are unsupported.
 
+Pull requests shou
