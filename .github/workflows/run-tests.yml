@@ -41,7 +41,7 @@ jobs:
             "context": "unit test (kube)",
             "target_url": "${{ github.event.workflow_run.html_url }}"
             }' \
-          --fail
+          --fail-with-body
   # Jobs are listed in rough order of priority: if multiple jobs fail, the first job
   # in the list should be the one that's most worth looking into
   build-linux:
