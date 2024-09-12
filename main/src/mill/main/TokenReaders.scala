@@ -9,7 +9,7 @@ import mill.resolve.SimpleTaskTokenReader
 case class Tasks[T](value: Seq[mill.define.NamedTask[T]])
 
 object Tasks {
-  private[main] class TokenReader[T]() extends mainargs.TokensReader.Simple[Tasks[T]] {
+  private[mill] class TokenReader[T]() extends mainargs.TokensReader.Simple[Tasks[T]] {
     def shortName = "<tasks>"
     def read(s: Seq[String]): Either[String, Tasks[T]] = {
       Resolve.Tasks.resolve(
