@@ -52,6 +52,7 @@ trait CheckstyleXsltModule extends CheckstyleModule {
    * in  the workspace root, but can be overriden on a per-module basis
    */
   def checkstyleXsltfFolder = T.source(T.workspace / "checkstyle-xslt")
+
   /**
    * Set of [[CheckstyleXsltReport]]s.
    *
