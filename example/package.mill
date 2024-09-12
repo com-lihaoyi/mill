@@ -36,7 +36,7 @@ object `package` extends RootModule with Module {
     object web extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "web"))
   }
   object kotlinlib extends Module {
-    object basic extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "basic"))
+    object basic extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "basic"))
   }
   object scalalib extends Module {
     object basic extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "basic"))
@@ -62,6 +62,13 @@ object `package` extends RootModule with Module {
 
   object external extends Module {
     object libraries extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "libraries"))
+  }
+
+  trait ExampleCrossModuleKotlin extends ExampleCrossModuleJava {
+    override def lineTransform(line: String) = this.millModuleSegments.parts.last match {
+      case "4-builtin-commands" => line.replace("compile.dest/zinc", "compile.dest/kotlin.analysis.dummy")
+      case _ => line
+    }
   }
 
   trait ExampleCrossModuleJava extends ExampleCrossModule {
@@ -105,7 +112,7 @@ object `package` extends RootModule with Module {
             case s"//// SNIPPET:$name" =>
               current = Some(name)
               groupedLines(name) = mutable.Buffer()
-            case s => current.foreach(groupedLines(_).append(s))
+            case s => current.foreach(groupedLines(_).append(lineTransform(s)))
           }
 
           current = None
@@ -119,11 +126,13 @@ object `package` extends RootModule with Module {
                 Nil
               }
 
-            case s => if (current.nonEmpty) None else Some(s)
+            case s => if (current.nonEmpty) None else Some(lineTransform(s))
           }
         }
       }
     }
+
+    def lineTransform(line: String) = line
   }
 
   trait ExampleCrossModule extends build.integration.IntegrationTestModule {
