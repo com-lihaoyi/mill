@@ -72,15 +72,7 @@ case class PomSettings(
     developers: Seq[Developer],
     @deprecated("Value will be ignored. Use PublishModule.pomPackageingType instead", "Mill 0.11.8")
     packaging: String = PackagingType.Jar
-) {
-  if (licenses.isEmpty) {
-    sys.error("You must have a license set in your PomSettings or Sonatype will silently fail.")
-  } else if (developers.isEmpty) {
-    sys.error(
-      "You must have a at least one developer set in your PomSettings or Sonatype will silently fail."
-    )
-  }
-}
+)
 
 object PackagingType {
   val Pom = "pom"
