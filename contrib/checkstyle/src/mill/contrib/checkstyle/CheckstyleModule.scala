@@ -52,7 +52,7 @@ trait CheckstyleModule extends JavaModule {
       check: Boolean,
       exitCode: Int,
       output: os.Path
-  )(implicit ctx: mill.api.Ctx) = {
+  )(implicit ctx: mill.api.Ctx): Int = {
 
     val reported = os.exists(output)
     if (reported) {
