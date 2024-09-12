@@ -356,7 +356,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
       forkEnv() ++
         Map(
           EnvVars.MILL_TEST_RESOURCE_FOLDER -> resources().map(_.path).mkString(";"),
-          EnvVars.MILL_TEST_WORKSPACE_ROOT -> T.workspace.toString,
+          EnvVars.MILL_WORKSPACE_ROOT -> T.workspace.toString,
         ),
       toWorkerApi(logLevel()),
       testFramework()

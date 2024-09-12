@@ -53,7 +53,7 @@ Hello subfolder-a
 */
 
 
-// MILL_TEST_WORKSPACE_ROOT
+// MILL_WORKSPACE_ROOT
 
 object foo extends JavaModule{
   object test extends JavaTests with TestModule.Junit4
@@ -62,7 +62,7 @@ object foo extends JavaModule{
 /** See Also: foo/src/foo/Foo.java */
 /** See Also: foo/test/src/foo/FooTests.java */
 
-// Test suites can access the workspace root via the `MILL_TEST_WORKSPACE_ROOT`
+// Test suites can access the workspace root via the `MILL_WORKSPACE_ROOT`
 // environment variable:
 
 /** Usage

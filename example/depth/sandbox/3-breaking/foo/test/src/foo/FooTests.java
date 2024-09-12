@@ -8,7 +8,7 @@ import org.junit.Test;
 public class FooTests {
     @Test
     public void simple() throws Exception {
-        String workspaceRoot = System.getenv("MILL_TEST_WORKSPACE_ROOT");
+        String workspaceRoot = System.getenv("MILL_WORKSPACE_ROOT");
         for(Path subpath: Files.list(Paths.get(workspaceRoot)).collect(Collectors.toList())){
             String result = Foo.generateHtml(subpath.getFileName().toString());
             Path tmppath = Paths.get(subpath.getFileName() + ".html");
