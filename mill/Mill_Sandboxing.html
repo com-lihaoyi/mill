@@ -331,14 +331,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.0-RC1-17-a02a3c</span>
+    <span class="version">0.12.0-RC1-18-719146</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="0.11.12/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="index.html">0.12.0-RC1-17-a02a3c</a>
+          <a href="index.html">0.12.0-RC1-18-719146</a>
         </li>
         <li class="version is-latest">
           <a href="0.11.12/index.html">0.11.12</a>
@@ -383,9 +383,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC1-17-a02a3c</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC1-18-719146</button>
   <div class="version-menu">
-    <a class="version is-current" href="Mill_Sandboxing.html">0.12.0-RC1-17-a02a3c</a>
+    <a class="version is-current" href="Mill_Sandboxing.html">0.12.0-RC1-18-719146</a>
     <a class="version is-missing" href="0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="0.11.10/index.html">0.11.10</a>
@@ -569,7 +569,7 @@ public class FooTests {
         String result = Foo.generateHtml(&quot;hello&quot;);
         Path path = Paths.get(&quot;generated.html&quot;);
         Files.write(path, result.getBytes());
-        assertEquals(&quot;&lt;h1&gt;hello&lt;/h1&gt;&quot;, new String(Files.readAllBytes(path)));
+        assertEquals(&quot;&lt;h1&gt;hello&lt;/h1&gt;&quot;, Files.readString(path));
     }
 }</code></pre>
 </div>
@@ -601,7 +601,7 @@ public class BarTests {
         String result = Bar.generateHtml(&quot;world&quot;);
         Path path = Paths.get(&quot;generated.html&quot;);
         Files.write(path, result.getBytes());
-        assertEquals(&quot;&lt;p&gt;world&lt;/p&gt;&quot;, new String(Files.readAllBytes(path)));
+        assertEquals(&quot;&lt;p&gt;world&lt;/p&gt;&quot;, Files.readString(path));
     }
 }</code></pre>
 </div>
@@ -664,6 +664,114 @@ sandbox folder via <code>..</code> or from the root folder <code>/</code> or hom
 Nevertheless, it should add some simple guardrails to prevent many common
 causes of inter-test interference, letting your test suite run in parallel both
 quickly and reliably</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_breaking_out_of_sandbox_folders"><a class="anchor" href="#_breaking_out_of_sandbox_folders"></a>Breaking Out Of Sandbox Folders</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill’s sandboxing approach is best effort: while it tries to guide you into using
+isolated sandbox folders, Mill cannot guarantee it, and in fact provides the
+<code>MILL_WORKSPACE_ROOT</code> environment variable to reference the project root folder
+for scenarios where you may need it. This can be useful for a variety of reasons:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Migrating legacy applications that assume access to the workspace root</p>
+</li>
+<li>
+<p>Scenarios where writing the the original source repository is necessary:
+code auto-formatters, auto-fixers, auto-updaters. etc.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><code>MILL_WORKSPACE_ROOT</code> can be used both in tasks:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC1/0.12.0-RC1-example-depth-sandbox-3-breaking.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC1//example/depth/sandbox/3-breaking">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, javalib._
+
+def tWorkspaceTask = T { println(os.Path(sys.env(&quot;MILL_WORKSPACE_ROOT&quot;))) }</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill tWorkspaceTask</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>MILL_WORKSPACE_ROOT</code> as well as in tests:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo extends JavaModule{
+  object test extends JavaTests with TestModule.Junit4
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">foo/src/foo/Foo.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC1//example/depth/sandbox/3-breaking/foo/src/foo/Foo.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
+
+public class Foo {
+    public static String generateHtml(String text) {
+        return &quot;&lt;h1&gt;&quot; + text + &quot;&lt;/h1&gt;&quot;;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">foo/test/src/foo/FooTests.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC1//example/depth/sandbox/3-breaking/foo/test/src/foo/FooTests.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
+
+import java.util.stream.Collectors;
+import java.nio.file.*;
+import static org.junit.Assert.assertEquals;
+import org.junit.Test;
+
+public class FooTests {
+    @Test
+    public void simple() throws Exception {
+        String workspaceRoot = System.getenv(&quot;MILL_WORKSPACE_ROOT&quot;);
+
+        for(Path subpath: Files.list(Paths.get(workspaceRoot)).collect(Collectors.toList())){
+            String result = Foo.generateHtml(subpath.getFileName().toString());
+            Path tmppath = Paths.get(subpath.getFileName() + &quot;.html&quot;);
+            Files.write(tmppath, result.getBytes());
+            assertEquals(
+                &quot;&lt;h1&gt;&quot; + subpath.getFileName() + &quot;&lt;/h1&gt;&quot;,
+                Files.readString(tmppath)
+            );
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Test suites can access the workspace root via the <code>MILL_WORKSPACE_ROOT</code>
+environment variable:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill __.test</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; find . | grep .html
+...
+.../out/foo/test/test.dest/sandbox/foo.html
+
+&gt; cat out/foo/test/test.dest/sandbox/foo.html
+&lt;h1&gt;foo&lt;/h1&gt;</code></pre>
+</div>
 </div>
 </div>
 </div>
