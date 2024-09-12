@@ -2,4 +2,6 @@ Please don't open issues for questions, but ask in our Discussions forum at http
 
 Mill installations via `coursier` or `cs` are unsupported.
 
-Pull requests shou
+Pull requests should be kept as drafts until ready for review and final merge, to avoid
+being bottlenecked on the Github Actions budget of the Mill repo (Actions on draft PRs
+will instead run on the author's Github Actions budget)

@@ -28,6 +28,9 @@ jobs:
     permissions:
       statuses: write
     steps:
+      - name: Get PR source repository URL
+        run:
+          echo "Source Repository URL: ${{ github.event.pull_request.head.repo.clone_url }}"
       - name: Create status
         run: |
           curl --request POST \
