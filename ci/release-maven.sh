@@ -16,5 +16,4 @@ rm gpg_key
     mill.scalalib.PublishModule/publishAll \
     --gpgArgs --passphrase=$SONATYPE_PGP_PASSWORD,--no-tty,--pinentry-mode,loopback,--batch,--yes,-a,-b \
     --publishArtifacts __.publishArtifacts \
-    --release true \
-    --signed  true
+    --release true

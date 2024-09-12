@@ -3,6 +3,7 @@ package scalalib
 
 import mill.define.{Command, ExternalModule, Target, Task}
 import mill.api.{JarManifest, PathRef, Result}
+import mill.main.Tasks
 import mill.scalalib.PublishModule.checkSonatypeCreds
 import mill.scalalib.publish.SonatypeHelpers.{
   PASSWORD_ENV_VARIABLE_NAME,
@@ -241,9 +242,9 @@ trait PublishModule extends JavaModule { outer =>
       // which we can split at `,` symbols, as we do in `PublishModule.publishAll`.
       gpgArgs: Seq[String] = Seq.empty,
       release: Boolean = true,
-      readTimeout: Int = 60000,
-      connectTimeout: Int = 5000,
-      awaitTimeout: Int = 120 * 1000,
+      readTimeout: Int = 30 * 60 * 1000,
+      connectTimeout: Int = 30 * 60 * 1000,
+      awaitTimeout: Int = 30 * 60 * 1000,
       stagingRelease: Boolean = true
   ): define.Command[Unit] = T.command {
     val PublishModule.PublishData(artifactInfo, artifacts) = publishArtifacts()
@@ -306,16 +307,19 @@ object PublishModule extends ExternalModule {
    *                      Add the default args to your args to keep them.
    */
   def publishAll(
-      publishArtifacts: mill.main.Tasks[PublishModule.PublishData],
+      publishArtifacts: Tasks[PublishModule.PublishData] =
+        new Tasks.TokenReader[PublishModule.PublishData]()
+          .read(Seq("__.publishArtifacts"))
+          .getOrElse(sys.error("Unable to resolve __.publishArtifacts")),
       sonatypeCreds: String = "",
       signed: Boolean = true,
       gpgArgs: String = defaultGpgArgs.mkString(","),
-      release: Boolean = false,
+      release: Boolean = true,
       sonatypeUri: String = "https://oss.sonatype.org/service/local",
       sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots",
-      readTimeout: Int = 10 * 60 * 1000,
-      connectTimeout: Int = 10 * 60 * 1000,
-      awaitTimeout: Int = 10 * 60 * 1000,
+      readTimeout: Int = 30 * 60 * 1000,
+      connectTimeout: Int = 30 * 60 * 1000,
+      awaitTimeout: Int = 30 * 60 * 1000,
       stagingRelease: Boolean = true
   ): Command[Unit] = T.command {
     val x: Seq[(Seq[(os.Path, String)], Artifact)] = T.sequence(publishArtifacts.value)().map {
