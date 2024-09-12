@@ -14,6 +14,12 @@ public class EnvVars {
     public static final String MILL_TEST_RESOURCE_FOLDER = "MILL_TEST_RESOURCE_FOLDER";
 
     /**
+     * Available in test modules for users to find the root folder of the mill project on disk.
+     * Not intended for common usage, but sometimes necessary.
+     */
+    public static final String MILL_TEST_WORKSPACE_ROOT = "MILL_TEST_WORKSPACE_ROOT";
+
+    /**
      * How long the Mill background server should run before timing out from inactivity
      */
     public static final String MILL_SERVER_TIMEOUT_MILLIS = "MILL_SERVER_TIMEOUT_MILLIS";

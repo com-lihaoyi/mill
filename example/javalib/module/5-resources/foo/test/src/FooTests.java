@@ -28,8 +28,8 @@ public class FooTests {
 
     // Use `MILL_TEST_RESOURCE_FOLDER` to read `test-file-b.txt` from filesystem
     Path testFileResourceDir = Paths.get(System.getenv("MILL_TEST_RESOURCE_FOLDER"));
-    String testFileResourceText = new String(
-            Files.readAllBytes(testFileResourceDir.resolve("test-file-b.txt"))
+    String testFileResourceText = Files.readString(
+        testFileResourceDir.resolve("test-file-b.txt")
     );
     assertEquals("Test Hello World Resource File B", testFileResourceText);
 
@@ -44,8 +44,8 @@ public class FooTests {
 
     // Use the `OTHER_FILES_FOLDER` configured in your build to access the
     // files in `foo/test/other-files/`.
-    String otherFileText = new String(
-            Files.readAllBytes(Paths.get(System.getenv("OTHER_FILES_FOLDER"), "other-file.txt"))
+    String otherFileText = Files.readString(
+        Paths.get(System.getenv("OTHER_FILES_FOLDER"), "other-file.txt")
     );
     assertEquals("Other Hello World File", otherFileText);
   }
