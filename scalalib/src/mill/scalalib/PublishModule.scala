@@ -221,7 +221,7 @@ trait PublishModule extends JavaModule { outer =>
 
   /**
    * Publish all given artifacts to Sonatype.
-   * Uses environment variables SONATYPE_USERNAME and SONATYPE_PASSWORD as
+   * Uses environment variables MILL_SONATYPE_USERNAME and MILL_SONATYPE_PASSWORD as
    * credentials.
    *
    * @param sonatypeCreds Sonatype credentials in format username:password.
@@ -248,12 +248,14 @@ trait PublishModule extends JavaModule { outer =>
       stagingRelease: Boolean = true
   ): define.Command[Unit] = T.command {
     val PublishModule.PublishData(artifactInfo, artifacts) = publishArtifacts()
+    PublishModule.pgpImportSecretIfProvided(T.env)
     new SonatypePublisher(
       sonatypeUri,
       sonatypeSnapshotUri,
       checkSonatypeCreds(sonatypeCreds)(),
       signed,
-      if (gpgArgs.isEmpty) PublishModule.defaultGpgArgs else gpgArgs,
+      if (gpgArgs.isEmpty) PublishModule.defaultGpgArgsForPassphrase(T.env.get("PGP_PASSPHRASE"))
+      else gpgArgs,
       readTimeout,
       connectTimeout,
       T.log,
@@ -279,7 +281,28 @@ trait PublishModule extends JavaModule { outer =>
 }
 
 object PublishModule extends ExternalModule {
-  val defaultGpgArgs: Seq[String] = Seq("--batch", "--yes", "-a", "-b")
+  val defaultGpgArgs: Seq[String] = defaultGpgArgsForPassphrase(None)
+  def pgpImportSecretIfProvided(env: Map[String, String]): Unit = {
+    for (secret <- env.get("MILL_PGP_SECRET_BASE64")) {
+      os.call(
+        ("gpg", "--import", "--no-tty", "--batch", "--yes"),
+        stdin = java.util.Base64.getDecoder.decode(secret)
+      )
+    }
+  }
+
+  def defaultGpgArgsForPassphrase(passphrase: Option[String]): Seq[String] = {
+    passphrase.map("--passphrase=" + _).toSeq ++
+      Seq(
+        "--no-tty",
+        "--pinentry-mode",
+        "loopback",
+        "--batch",
+        "--yes",
+        "-a",
+        "-b"
+      )
+  }
 
   case class PublishData(meta: Artifact, payload: Seq[(PathRef, String)]) {
 
@@ -313,7 +336,7 @@ object PublishModule extends ExternalModule {
           .getOrElse(sys.error("Unable to resolve __.publishArtifacts")),
       sonatypeCreds: String = "",
       signed: Boolean = true,
-      gpgArgs: String = defaultGpgArgs.mkString(","),
+      gpgArgs: String = "",
       release: Boolean = true,
       sonatypeUri: String = "https://oss.sonatype.org/service/local",
       sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots",
@@ -325,12 +348,16 @@ object PublishModule extends ExternalModule {
     val x: Seq[(Seq[(os.Path, String)], Artifact)] = T.sequence(publishArtifacts.value)().map {
       case PublishModule.PublishData(a, s) => (s.map { case (p, f) => (p.path, f) }, a)
     }
+
+    pgpImportSecretIfProvided(T.env)
+
     new SonatypePublisher(
       sonatypeUri,
       sonatypeSnapshotUri,
       checkSonatypeCreds(sonatypeCreds)(),
       signed,
-      getFinalGpgArgs(gpgArgs),
+      if (gpgArgs.isEmpty) defaultGpgArgsForPassphrase(T.env.get("MILL_PGP_PASSPHRASE"))
+      else gpgArgs.split(','),
       readTimeout,
       connectTimeout,
       T.log,
@@ -342,15 +369,6 @@ object PublishModule extends ExternalModule {
       release,
       x: _*
     )
-  }
-
-  private[mill] def getFinalGpgArgs(initialGpgArgs: String): Seq[String] = {
-    val argsAsString = if (initialGpgArgs.isEmpty) {
-      defaultGpgArgs.mkString(",")
-    } else {
-      initialGpgArgs
-    }
-    argsAsString.split(",").toIndexedSeq
   }
 
   private def getSonatypeCredsFromEnv: Task[(String, String)] = T.task {
