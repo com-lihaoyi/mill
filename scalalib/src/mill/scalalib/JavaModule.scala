@@ -872,11 +872,11 @@ trait JavaModule
                 transitiveCompileIvyDeps() ++ runIvyDeps().map(bindDependency())
               },
               validModules
-            )
+            )()
           }
         case (Flag(true), Flag(false)) =>
           T.command {
-            printDepsTree(args.inverse.value, transitiveCompileIvyDeps, validModules)
+            printDepsTree(args.inverse.value, transitiveCompileIvyDeps, validModules)()
           }
         case (Flag(false), Flag(true)) =>
           T.command {
@@ -884,11 +884,11 @@ trait JavaModule
               args.inverse.value,
               T.task { runIvyDeps().map(bindDependency()) },
               validModules
-            )
+            )()
           }
         case _ =>
           T.command {
-            printDepsTree(args.inverse.value, T.task { Agg.empty[BoundDep] }, validModules)
+            printDepsTree(args.inverse.value, T.task { Agg.empty[BoundDep] }, validModules)()
           }
       }
     } else {
@@ -958,7 +958,7 @@ trait JavaModule
    */
   def runBackground(args: String*): Command[Unit] = {
     val task = runBackgroundTask(finalMainClass, T.task { Args(args) })
-    T.command { task }
+    T.command { task() }
   }
 
   /**
