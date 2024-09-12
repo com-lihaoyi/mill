@@ -54,17 +54,20 @@ private[dependency] object VersionsFinder {
 
       val metadataLoaders = repos.flatMap(MetadataLoaderFactory(_))
 
-      val (dependencies, _) =
-        Lib.resolveDependenciesMetadata(
-          repositories = repos,
-          deps = (deps ++ compileIvyDeps ++ runIvyDeps).map(bindDependency),
-          mapDependencies = Some(mapDeps),
-          customizer = custom,
-          coursierCacheCustomizer = cacheCustom,
-          ctx = Some(T.log)
-        )
-
-      (javaModule, metadataLoaders, dependencies)
+      val dependencies = (deps ++ compileIvyDeps ++ runIvyDeps)
+        .map(bindDependency)
+        .iterator
+        .toSeq
+      Lib.resolveDependenciesMetadataSafe(
+        repositories = repos,
+        deps = dependencies,
+        mapDependencies = Some(mapDeps),
+        customizer = custom,
+        coursierCacheCustomizer = cacheCustom,
+        ctx = Some(T.log)
+      ).map { _ =>
+        (javaModule, metadataLoaders, dependencies.map(_.dep))
+      }
     }
 
   private def resolveVersions(progres: Progress)(
