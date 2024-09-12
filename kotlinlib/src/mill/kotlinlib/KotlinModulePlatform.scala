@@ -30,18 +30,20 @@ trait KotlinModulePlatform extends JavaModule {
    * Default is derived from [[kotlinCompilerIvyDeps]].
    */
   def kotlinCompilerClasspath: T[Seq[PathRef]] = T {
-    resolveDeps(T.task { kotlinCompilerIvyDeps().map(bindDependency()) })().toSeq ++ kotlinWorkerClasspath()
+    resolveDeps(
+      T.task { kotlinCompilerIvyDeps().map(bindDependency()) }
+    )().toSeq ++ kotlinWorkerClasspath()
   }
 
   private[kotlinlib] def internalCompileJavaFiles(
-                                                worker: ZincWorkerApi,
-                                                upstreamCompileOutput: Seq[CompilationResult],
-                                                javaSourceFiles: Seq[os.Path],
-                                                compileCp: Agg[os.Path],
-                                                javacOptions: Seq[String],
-                                                compileProblemReporter: Option[CompileProblemReporter],
-                                                reportOldProblems: Boolean
-                                              )(implicit ctx: ZincWorkerApi.Ctx): Result[CompilationResult] = {
+      worker: ZincWorkerApi,
+      upstreamCompileOutput: Seq[CompilationResult],
+      javaSourceFiles: Seq[os.Path],
+      compileCp: Agg[os.Path],
+      javacOptions: Seq[String],
+      compileProblemReporter: Option[CompileProblemReporter],
+      reportOldProblems: Boolean
+  )(implicit ctx: ZincWorkerApi.Ctx): Result[CompilationResult] = {
     worker.compileJava(
       upstreamCompileOutput = upstreamCompileOutput,
       sources = javaSourceFiles,

@@ -5,7 +5,7 @@ import mill.define.{Discover, ExternalModule, Module, Worker}
 
 trait KotlinWorkerModule extends Module {
   def kotlinWorkerManager: Worker[KotlinWorkerManager] = T.worker {
-   new KotlinWorkerManagerImpl(T.ctx())
+    new KotlinWorkerManagerImpl(T.ctx())
   }
 }
 

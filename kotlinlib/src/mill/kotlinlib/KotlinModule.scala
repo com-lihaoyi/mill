@@ -61,7 +61,7 @@ trait KotlinModule extends JavaModule with KotlinModulePlatform { outer =>
    * Default is derived from [[kotlinCompilerVersion]].
    */
   override def kotlinCompilerIvyDeps: T[Agg[Dep]] = T {
-      Agg(ivy"org.jetbrains.kotlin:kotlin-compiler:${kotlinCompilerVersion()}") ++
+    Agg(ivy"org.jetbrains.kotlin:kotlin-compiler:${kotlinCompilerVersion()}") ++
 //      (
 //        if (Seq("1.0.", "1.1.", "1.2").exists(prefix => kotlinVersion().startsWith(prefix)))
 //          Agg(ivy"org.jetbrains.kotlin:kotlin-runtime:${kotlinCompilerVersion()}")
@@ -110,80 +110,84 @@ trait KotlinModule extends JavaModule with KotlinModulePlatform { outer =>
   /**
    * The actual Kotlin compile task (used by [[compile]] and [[kotlincHelp]]).
    */
-  protected def kotlinCompileTask(extraKotlinArgs: Seq[String] = Seq()): Task[CompilationResult] = T.task {
-    val ctx = T.ctx()
-    val dest = ctx.dest
-    val classes = dest / "classes"
-    os.makeDir.all(classes)
+  protected def kotlinCompileTask(extraKotlinArgs: Seq[String] = Seq()): Task[CompilationResult] =
+    T.task {
+      val ctx = T.ctx()
+      val dest = ctx.dest
+      val classes = dest / "classes"
+      os.makeDir.all(classes)
 
-    val javaSourceFiles = allJavaSourceFiles().map(_.path)
-    val kotlinSourceFiles = allKotlinSourceFiles().map(_.path)
+      val javaSourceFiles = allJavaSourceFiles().map(_.path)
+      val kotlinSourceFiles = allKotlinSourceFiles().map(_.path)
 
-    val isKotlin = kotlinSourceFiles.nonEmpty
-    val isJava = javaSourceFiles.nonEmpty
-    val isMixed = isKotlin && isJava
+      val isKotlin = kotlinSourceFiles.nonEmpty
+      val isJava = javaSourceFiles.nonEmpty
+      val isMixed = isKotlin && isJava
 
-    val compileCp = compileClasspath().map(_.path).filter(os.exists)
-    val updateCompileOutput = upstreamCompileOutput()
+      val compileCp = compileClasspath().map(_.path).filter(os.exists)
+      val updateCompileOutput = upstreamCompileOutput()
 
-    def compileJava: Result[CompilationResult] = {
-      ctx.log.info(
-        s"Compiling ${javaSourceFiles.size} Java sources to ${classes} ..."
-      )
-      // The compile step is lazy, but its dependencies are not!
-      internalCompileJavaFiles(
-        worker = zincWorkerRef().worker(),
-        upstreamCompileOutput = updateCompileOutput,
-        javaSourceFiles = javaSourceFiles,
-        compileCp = compileCp,
-        javacOptions = javacOptions(),
-        compileProblemReporter = ctx.reporter(hashCode),
-        reportOldProblems = internalReportOldProblems()
-      )
-    }
-
-    if (isMixed || isKotlin) {
-      ctx.log.info(
-        s"Compiling ${kotlinSourceFiles.size} Kotlin sources to ${classes} ..."
-      )
-      val compilerArgs: Seq[String] = Seq(
-        // destdir
-        Seq("-d", classes.toIO.getAbsolutePath()),
-        // classpath
-        when(compileCp.iterator.nonEmpty)("-classpath", compileCp.iterator.mkString(File.pathSeparator)),
-        kotlincOptions(),
-        extraKotlinArgs,
-        // parameters
-        (kotlinSourceFiles ++ javaSourceFiles).map(_.toIO.getAbsolutePath())
-      ).flatten
-
-      val workerResult = kotlinWorkerTask().compile(compilerArgs: _*)
-
-      val analysisFile = dest / "kotlin.analysis.dummy"
-      os.write(target = analysisFile, data = "", createFolders = true)
-
-      workerResult match {
-        case Result.Success(_) =>
-          val cr = CompilationResult(analysisFile, PathRef(classes))
-          if (!isJava) {
-            // pure Kotlin project
-            cr
-          } else {
-            // also run Java compiler and use it's returned result
-            compileJava
-          }
-        case Result.Failure(reason, _) =>
-          Result.Failure(reason, Some(CompilationResult(analysisFile, PathRef(classes))))
-        case e: Result.Exception => e
-        case Result.Aborted => Result.Aborted
-        case Result.Skipped => Result.Skipped
-        //      case x => x
+      def compileJava: Result[CompilationResult] = {
+        ctx.log.info(
+          s"Compiling ${javaSourceFiles.size} Java sources to ${classes} ..."
+        )
+        // The compile step is lazy, but its dependencies are not!
+        internalCompileJavaFiles(
+          worker = zincWorkerRef().worker(),
+          upstreamCompileOutput = updateCompileOutput,
+          javaSourceFiles = javaSourceFiles,
+          compileCp = compileCp,
+          javacOptions = javacOptions(),
+          compileProblemReporter = ctx.reporter(hashCode),
+          reportOldProblems = internalReportOldProblems()
+        )
       }
-    } else {
-      // it's Java only
-      compileJava
+
+      if (isMixed || isKotlin) {
+        ctx.log.info(
+          s"Compiling ${kotlinSourceFiles.size} Kotlin sources to ${classes} ..."
+        )
+        val compilerArgs: Seq[String] = Seq(
+          // destdir
+          Seq("-d", classes.toIO.getAbsolutePath()),
+          // classpath
+          when(compileCp.iterator.nonEmpty)(
+            "-classpath",
+            compileCp.iterator.mkString(File.pathSeparator)
+          ),
+          kotlincOptions(),
+          extraKotlinArgs,
+          // parameters
+          (kotlinSourceFiles ++ javaSourceFiles).map(_.toIO.getAbsolutePath())
+        ).flatten
+
+        val workerResult = kotlinWorkerTask().compile(compilerArgs: _*)
+
+        val analysisFile = dest / "kotlin.analysis.dummy"
+        os.write(target = analysisFile, data = "", createFolders = true)
+
+        workerResult match {
+          case Result.Success(_) =>
+            val cr = CompilationResult(analysisFile, PathRef(classes))
+            if (!isJava) {
+              // pure Kotlin project
+              cr
+            } else {
+              // also run Java compiler and use it's returned result
+              compileJava
+            }
+          case Result.Failure(reason, _) =>
+            Result.Failure(reason, Some(CompilationResult(analysisFile, PathRef(classes))))
+          case e: Result.Exception => e
+          case Result.Aborted => Result.Aborted
+          case Result.Skipped => Result.Skipped
+          //      case x => x
+        }
+      } else {
+        // it's Java only
+        compileJava
+      }
     }
-  }
 
   /**
    * Additional Kotlin compiler options to be used by [[compile]].
