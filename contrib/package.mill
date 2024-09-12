@@ -235,4 +235,9 @@ object `package` extends RootModule {
     def buildInfoObjectName = "BuildInfo"
     def buildInfoMembers = Seq(BuildInfo.Value("errorProneVersion", Deps.RuntimeDeps.errorProneCore.version))
   }
+
+  object checkstyle extends ContribModule {
+    def compileModuleDeps = Seq(build.scalalib)
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib)
+  }
 }
