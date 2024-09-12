@@ -19,8 +19,8 @@ jobs:
           --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
           --header 'content-type: application/json' \
           --data '{
-            "state": "pending",
-            "context": "Link to Draft CI",
+            "state": "{{ github.event.workflow_run.conclusion }}",
+            "context": "Link to Fork CI",
             "target_url": "${{ github.event.workflow_run.html_url }}"
             }' \
           --fail-with-body

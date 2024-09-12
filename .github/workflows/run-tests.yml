@@ -8,8 +8,11 @@ name: Run Tests
 # - All tests on Linux/Java17
 # - Fewer tests on Linux/Java11 and Windows/Java17
 # - Fewest tests on Windows/Java11
+
 on:
   push:
+    branches:
+      - main
   pull_request:
   workflow_dispatch:
 
@@ -23,7 +26,6 @@ jobs:
   # Jobs are listed in rough order of priority: if multiple jobs fail, the first job
   # in the list should be the one that's most worth looking into
   build-linux:
-    if: github.event.pull_request.draft == false
     uses: ./.github/workflows/run-mill-action.yml
     with:
       java-version: '11'
@@ -31,7 +33,6 @@ jobs:
       populate_cache: true
 
   build-windows:
-    if: github.event.pull_request.draft == false
     uses: ./.github/workflows/run-mill-action.yml
     with:
       os: windows-latest
@@ -40,7 +41,6 @@ jobs:
       populate_cache: true
 
   test-docs:
-    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
