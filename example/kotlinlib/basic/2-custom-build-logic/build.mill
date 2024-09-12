@@ -19,5 +19,9 @@ object `package` extends RootModule with KotlinModule {
     Seq(PathRef(T.dest))
   }
 
-  object test extends KotlinModuleTests with TestModule.Junit4
+  object test extends KotlinModuleTests with TestModule.Junit5 {
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
+    )
+  }
 }

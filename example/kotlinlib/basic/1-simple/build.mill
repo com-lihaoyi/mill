@@ -13,9 +13,9 @@ object `package` extends RootModule with KotlinModule {
     ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0"
   )
 
-  object test extends KotlinModuleTests with TestModule.Junit4{
+  object test extends KotlinModuleTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"com.google.guava:guava:33.3.0-jre"
+      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
     )
   }
 }

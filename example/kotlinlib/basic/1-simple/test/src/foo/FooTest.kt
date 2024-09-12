@@ -1,18 +1,15 @@
 package foo
 
-import com.google.common.html.HtmlEscapers.htmlEscaper
 import foo.generateHtml
-import org.junit.Assert.assertEquals
-import org.junit.Test
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 
-class FooTest {
-    @Test
-    fun testSimple() {
-        assertEquals(generateHtml("hello"), "<h1>hello</h1>")
+class FooTest : FunSpec({
+    test("testSimple") {
+        generateHtml("hello") shouldBe "<h1>hello</h1>"
     }
 
-    @Test
-    fun testEscaping() {
-        assertEquals(generateHtml("<hello>"), "<h1>" + htmlEscaper().escape("<hello>") + "</h1>")
+    test("testEscaping") {
+        generateHtml("<hello>") shouldBe "<h1>&lt;hello&gt;</h1>"
     }
-}
+})

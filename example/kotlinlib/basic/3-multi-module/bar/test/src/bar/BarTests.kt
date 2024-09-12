@@ -1,20 +1,18 @@
 package bar
 
 import bar.generateHtml
-import org.junit.Assert.assertEquals
-import org.junit.Test
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 
-class BarTests {
+class BarTests : FunSpec({
 
-    @Test
-    fun simple() {
+    test("simple") {
         val result = generateHtml("hello")
-        assertEquals("<h1>hello</h1>", result)
+        result shouldBe "<h1>hello</h1>"
     }
 
-    @Test
-    fun escaping() {
+    test("escaping") {
         val result = generateHtml("<hello>")
-        assertEquals("<h1>&lt;hello&gt;</h1>", result)
+        result shouldBe "<h1>&lt;hello&gt;</h1>"
     }
-}
+})
