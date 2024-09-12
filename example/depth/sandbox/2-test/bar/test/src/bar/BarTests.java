@@ -10,6 +10,6 @@ public class BarTests {
         String result = Bar.generateHtml("world");
         Path path = Paths.get("generated.html");
         Files.write(path, result.getBytes());
-        assertEquals("<p>world</p>", new String(Files.readAllBytes(path)));
+        assertEquals("<p>world</p>", Files.readString(path));
     }
 }

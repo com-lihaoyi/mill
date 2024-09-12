@@ -13,6 +13,7 @@ public class EnvVars {
      */
     public static final String MILL_TEST_RESOURCE_FOLDER = "MILL_TEST_RESOURCE_FOLDER";
 
+
     /**
      * How long the Mill background server should run before timing out from inactivity
      */
@@ -24,7 +25,10 @@ public class EnvVars {
     // INTERNAL ENVIRONMENT VARIABLES
     /**
      * Used to pass the Mill workspace root from the client to the server, so
-     * the server code can access it despite it not being os.pwd
+     * the server code can access it despite it not being os.pwd.
+     *
+     * Also available in test modules for users to find the root folder of the
+     * mill project on disk. Not intended for common usage, but sometimes necessary.
      */
     public static final String MILL_WORKSPACE_ROOT = "MILL_WORKSPACE_ROOT";
 
