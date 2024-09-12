@@ -11,7 +11,7 @@
 package build
 import mill._, javalib._
 
-def tWorkspaceTask = T { println(os.Path(sys.env.getOrElse("MILL_WORKSPACE_ROOT", os.pwd))) }
+def tWorkspaceTask = T { println(os.Path(sys.env("MILL_WORKSPACE_ROOT"))) }
 
 /** Usage
 > ./mill tWorkspaceTask
