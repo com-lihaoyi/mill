@@ -10,7 +10,7 @@ This page will discuss common topics around working with test suites using the M
 
 == ErrorProne
 
-include::example/javalib/linting/1-errorprone.adoc[]
+include::example/javalib/linting/1-error-prone.adoc[]
 
 == Checkstyle
 
