@@ -30,7 +30,6 @@ on:
 
 jobs:
   run:
-    if: github.event.pull_request.draft == false
     runs-on: ${{ inputs.os }}
     continue-on-error: ${{ inputs.continue-on-error }}
     timeout-minutes: ${{ inputs.timeout-minutes }}
