@@ -30,11 +30,10 @@ jobs:
     uses: ./.github/workflows/run-mill-action.yml
     with:
       java-version: '11'
-      buildcmd:
-        ./mill __.fix;
+      buildcmd: |
         ./mill mill.scalalib.scalafmt.ScalafmtModule/reformatAll __.sources;
         git commit -am 'Github Actions Autofix; please use `git push -f` next time you push to this PR';
-        git push origin ${{ github.head_ref }}
+        git push "git@github.com:${{ github.event.pull_request.head.repo.full_name }}.git" ${{ github.head_ref }}
       populate_cache: true
 
   build-linux:
