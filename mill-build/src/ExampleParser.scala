@@ -6,7 +6,7 @@ object ExampleParser {
     val states = collection.mutable.Buffer("scala")
     val chunks = collection.mutable.Buffer(collection.mutable.Buffer.empty[String])
 
-    val rootBuildFileNames = Seq("build.sc", "build.mill", "build.mill.sc")
+    val rootBuildFileNames = Seq("build.sc", "build.mill", "build.mill.scala")
     val buildFile = rootBuildFileNames.map(testRepoRoot / _).find(os.exists)
     for (line <- os.read.lines(buildFile.get)) {
       val (newState, restOpt) = line match {
