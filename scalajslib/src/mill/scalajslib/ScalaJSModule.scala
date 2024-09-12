@@ -144,7 +144,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     )
   }
 
-  override def runLocal(args: Task[Args] = T.task(Args())): Command[Unit] = T.command { run(args)() }
+  override def runLocal(args: Task[Args] = T.task(Args())): Command[Unit] =
+    T.command { run(args)() }
 
   override def run(args: Task[Args] = T.task(Args())): Command[Unit] = T.command {
     if (args().value.nonEmpty) {
