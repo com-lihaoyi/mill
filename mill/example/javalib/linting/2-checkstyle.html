@@ -104,6 +104,10 @@
   </li>
 
   <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../../Linting_Java_Projects.html">Linting Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="../../../Java_Web_Examples.html">Java Web Examples</a>
   </li>
 
@@ -242,6 +246,10 @@
   </li>
 
   <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../../../contrib/checkstyle.html">Checkstyle</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../../../contrib/flyway.html">Flyway</a>
   </li>
 
@@ -329,14 +337,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.0-RC1-18-719146</span>
+    <span class="version">0.12.0-RC1-19-2e5b64</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="../../../0.11.12/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="../../../index.html">0.12.0-RC1-18-719146</a>
+          <a href="../../../index.html">0.12.0-RC1-19-2e5b64</a>
         </li>
         <li class="version is-latest">
           <a href="../../../0.11.12/index.html">0.11.12</a>
@@ -376,9 +384,9 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC1-18-719146</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC1-19-2e5b64</button>
   <div class="version-menu">
-    <a class="version is-current" href="14-error-prone.html">0.12.0-RC1-18-719146</a>
+    <a class="version is-current" href="2-checkstyle.html">0.12.0-RC1-19-2e5b64</a>
     <a class="version is-missing" href="../../../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../../../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../../../0.11.10/index.html">0.11.10</a>
@@ -389,68 +397,54 @@
     <a class="version is-missing" href="../../../0.9.12/index.html">0.9.12</a>
   </div>
 </div>
-<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/example/javalib/module/14-error-prone.adoc">Edit this Page</a></div>
+<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/example/javalib/linting/2-checkstyle.adoc">Edit this Page</a></div>
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<div class="paragraph">
-<p>When adding the <a href="../../../contrib/errorprone.html" class="xref page"><code>ErrorPromeModule</code></a> to your <code>JavaModule</code>,
-the <code>error-prone</code> compiler plugin automatically detects various kind of programming errors.</p>
-</div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC1/0.12.0-RC1-example-javalib-module-14-error-prone.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC1//example/javalib/module/14-error-prone">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC1/0.12.0-RC1-example-javalib-linting-2-checkstyle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC1//example/javalib/linting/2-checkstyle">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
-import mill.contrib.errorprone._
+import $ivy.`com.lihaoyi::mill-contrib-checkstyle:`
 
-import $ivy.`com.lihaoyi::mill-contrib-errorprone:`
+import mill.contrib.checkstyle._
 
-object `package` extends RootModule with JavaModule with ErrorProneModule {
-  def errorProneOptions = Seq(&quot;-XepAllErrorsAsWarnings&quot;)
-}</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">src/example/ShortSet.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC1//example/javalib/module/14-error-prone/src/example/ShortSet.java">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package example;
-
-import java.util.HashSet;
-import java.util.Set;
-
-public class ShortSet {
-  public static void main (String[] args) {
-    Set&lt;Short&gt; s = new HashSet&lt;&gt;();
-    for (short i = 0; i &lt; 100; i++) {
-      s.add(i);
-      s.remove(i - 1);
-    }
-    System.out.println(s.size());
-  }
+object `package` extends RootModule with CheckstyleModule {
+  def checkstyleVersion = &quot;9.3&quot;
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show errorProneOptions
-[
-  &quot;-XepAllErrorsAsWarnings&quot;
-]
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill checkstyle # run checkstyle to produce a report, defaults to warning without error
+...src/InputWhitespaceCharacters.java:3:23: Line contains a tab character...
+...src/InputWhitespaceCharacters.java:16:3: Line contains a tab character...
+...src/InputFileName1.java:2:1: Top-level class MyAnnotation1 has to reside in its own source file...
+...src/InputFileName1.java:13:1: Top-level class Enum1 has to reside in its own source file...
+...src/InputFileName1.java:26:1: Top-level class TestRequireThisEnum has to reside in its own source file...
+Audit done.
 
-&gt; ./mill compile
-[warn] .../src/example/ShortSet.java:11:15:  [CollectionIncompatibleType] Argument 'i - 1' should not be passed to this method; its type int is not compatible with its collection's type argument Short
-[warn]       s.remove(i - 1);
-[warn]               ^    (see https://errorprone.info/bugpattern/CollectionIncompatibleType)
-[warn] 1 warning
-[warn]               ^</code></pre>
+&gt; sed -i.bak 's/warning/error/g' checkstyle-config.xml # make checkstyle error on violations
+
+&gt; ./mill checkstyle
+error: ...src/InputWhitespaceCharacters.java:3:23: Line contains a tab character...
+...src/InputWhitespaceCharacters.java:16:3: Line contains a tab character...
+...src/InputFileName1.java:2:1: Top-level class MyAnnotation1 has to reside in its own source file...
+...src/InputFileName1.java:13:1: Top-level class Enum1 has to reside in its own source file...
+...src/InputFileName1.java:26:1: Top-level class TestRequireThisEnum has to reside in its own source file...
+Audit done.
+
+&gt; sed -i.bak 's/\t/    /g' src/InputWhitespaceCharacters.java
+
+&gt; rm src/InputFileName1.java
+
+&gt; ./mill checkstyle # after fixing the violations, checkstyle no longer errors
+Audit done.</code></pre>
 </div>
-</div>
-<div class="paragraph">
-<p>Find more details on the <a href="../../../contrib/errorprone.html" class="xref page">ErrorProne plugin page</a>.</p>
 </div>
 </article>
   </div>
