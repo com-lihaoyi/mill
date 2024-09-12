@@ -4,12 +4,14 @@ package build.kotlinlib
 import mill._
 import mill.scalalib._
 
-object `package` extends RootModule with build.MillStableScalaModule {
+// TODO change MillPublishScalaModule to MillStableScalaModule after mill version with kotlinlib is released,
+//  because currently there is no previous artifact version
+object `package` extends RootModule with build.MillPublishScalaModule {
 
   def moduleDeps = Seq(build.main, build.scalalib, build.testrunner, worker)
   def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(worker.impl.testDep())
 
-  trait MillKotlinModule extends build.MillStableScalaModule {
+  trait MillKotlinModule extends build.MillPublishScalaModule {
     override def javacOptions = {
       val release =
         if (scala.util.Properties.isJavaAtLeast(11)) Seq("-release", "8")
@@ -25,7 +27,7 @@ object `package` extends RootModule with build.MillStableScalaModule {
       build.Deps.osLib
     )
 
-    object impl extends MillKotlinModule with build.MillPublishScalaModule {
+    object impl extends MillKotlinModule {
       override def moduleDeps: Seq[PublishModule] = Seq(worker)
       override def compileIvyDeps: T[Agg[Dep]] = Agg(
         build.Deps.osLib,
