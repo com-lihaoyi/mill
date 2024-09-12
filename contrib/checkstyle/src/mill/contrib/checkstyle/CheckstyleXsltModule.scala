@@ -48,7 +48,7 @@ trait CheckstyleXsltModule extends CheckstyleModule {
   final override def checkstyleFormat: T[String] = "xml"
 
   /**
-   * Folder containing the XSLT transformations. Defaults to `checkstyle-xslt` 
+   * Folder containing the XSLT transformations. Defaults to `checkstyle-xslt`
    * in  the workspace root, but can be overriden on a per-module basis
    */
   def checkstyleXsltfFolder = T.source(T.workspace / "checkstyle-xslt")
