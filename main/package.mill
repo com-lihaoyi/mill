@@ -39,7 +39,10 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
           _.publishSelfDependency
         )()
           .map(artifact => s"${artifact.group}:${artifact.id}:${artifact.version}") ++
+          // change to this when bumping Mill:
+          //   Lib.resolveDependenciesMetadataSafe(
           Lib.resolveDependenciesMetadata(
+<<<<<<< format-code
             repositories = build.dist.repositoriesTask(),
             build.dist.transitiveIvyDeps(),
             Some(build.dist.mapDependencies()),
@@ -47,6 +50,17 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
             Some(T.ctx()),
             build.dist.coursierCacheCustomizer()
           )._2.minDependencies.toSeq
+=======
+              repositories = build.dist.repositoriesTask(),
+              build.dist.transitiveIvyDeps(),
+              Some(build.dist.mapDependencies()),
+              build.dist.resolutionCustomizer(),
+              Some(T.ctx()),
+              build.dist.coursierCacheCustomizer()
+            )._2.minDependencies.toSeq
+            // change to this when bumping Mill
+            //   ).getOrThrow.minDependencies.toSeq
+>>>>>>> main
             .map(d => s"${d.module.organization.value}:${d.module.name.value}:${d.version}")
       )
         //      T.traverse(dev.moduleDeps)(_.publishSelfDependency)()

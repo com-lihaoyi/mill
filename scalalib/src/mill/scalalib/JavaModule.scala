@@ -2,7 +2,6 @@ package mill
 package scalalib
 
 import coursier.Repository
-import coursier.core.Dependency
 import coursier.core.Resolution
 import coursier.parse.JavaOrScalaModule
 import coursier.parse.ModuleParser
@@ -540,13 +539,7 @@ trait JavaModule
    * Resolved dependencies based on [[transitiveIvyDeps]] and [[transitiveCompileIvyDeps]].
    */
   def resolvedIvyDeps: T[Agg[PathRef]] = T {
-    def resolvedIvyDeps0() =
-      defaultResolver().resolveDeps(transitiveCompileIvyDeps() ++ transitiveIvyDeps())
-    try resolvedIvyDeps0()
-    catch {
-      case e: java.nio.file.AccessDeniedException =>
-        resolvedIvyDeps0() // this is caused by a coursier race condition on windows, just retry
-    }
+    defaultResolver().resolveDeps(transitiveCompileIvyDeps() ++ transitiveIvyDeps())
   }
 
   /**
@@ -817,16 +810,17 @@ trait JavaModule
       whatDependsOn: List[JavaOrScalaModule]
   ): Task[Unit] =
     T.task {
-      val (flattened: Seq[Dependency], resolution: Resolution) = Lib.resolveDependenciesMetadata(
+      val dependencies = (additionalDeps() ++ transitiveIvyDeps()).iterator.to(Seq)
+      val resolution: Resolution = Lib.resolveDependenciesMetadataSafe(
         repositoriesTask(),
-        additionalDeps() ++ transitiveIvyDeps(),
+        dependencies,
         Some(mapDependencies()),
         customizer = resolutionCustomizer(),
         coursierCacheCustomizer = coursierCacheCustomizer()
-      )
+      ).getOrThrow
 
       val roots = whatDependsOn match {
-        case List() => flattened
+        case List() => dependencies.map(_.dep)
         case _ =>
           // We don't really care what scalaVersions is set as here since the user
           // will be passing in `_2.13` or `._3` anyways. Or it may even be a java

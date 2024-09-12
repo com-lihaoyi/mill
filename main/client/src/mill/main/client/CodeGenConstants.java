@@ -21,17 +21,17 @@ public class CodeGenConstants {
     /**
      * The name of the root build file
      */
-    final public static String[] rootBuildFileNames = {"build.mill", "build.mill.sc", "build.sc"};
+    final public static String[] rootBuildFileNames = {"build.mill", "build.mill.scala", "build.sc"};
 
     /**
      * The name of any sub-folder build files
      */
-    final public static String[] nestedBuildFileNames = {"package.mill", "package.mill.sc", "package.sc"};
+    final public static String[] nestedBuildFileNames = {"package.mill", "package.mill.scala", "package.sc"};
 
     /**
      * The extensions used by build files
      */
-    final public static String[] buildFileExtensions = {"mill", "mill.sc", "sc"};
+    final public static String[] buildFileExtensions = {"mill", "mill.scala", "sc"};
 
     /**
      * The user-facing name for the root of the module tree.
