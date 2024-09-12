@@ -1,6 +1,5 @@
 package mill.scalalib.publish
 
-import mill.api.Result
 import mill.scalalib.Dep
 
 case class Artifact(group: String, id: String, version: String) {
