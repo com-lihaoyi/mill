@@ -1,23 +1,25 @@
 // Mill's sandboxing approach is best effort: while it tries to guide you into using
 // isolated sandbox folders, Mill cannot guarantee it, and in fact provides the
-// `MILL_WORKSPACE_ROOT` environment variable to reference the project root folder
-// for scenarios where you may need it. This can be useful for a variety of reasons:
+// `T.workspace` property and `MILL_WORKSPACE_ROOT` environment variable to reference the
+// project root folder for scenarios where you may need it. This can be useful for a variety
+// of reasons:
 //
 // * Migrating legacy applications that assume access to the workspace root
 // * Scenarios where writing the the original source repository is necessary:
 //   code auto-formatters, auto-fixers, auto-updaters. etc.
 //
-// `MILL_WORKSPACE_ROOT` can be used both in tasks:
+// `T.workspace` can be used in tasks:
 package build
 import mill._, javalib._
 
-def tWorkspaceTask = T { println(os.Path(sys.env("MILL_WORKSPACE_ROOT"))) }
+def tWorkspaceTask = T { println(T.workspace) }
 
 /** Usage
 > ./mill tWorkspaceTask
 */
 
-// `MILL_WORKSPACE_ROOT` as well as in tests:
+// Whereas `MILL_WORKSPACE_ROOT` as well as in tests, which can access the
+// workspace root via the `MILL_WORKSPACE_ROOT` environment variable
 
 object foo extends JavaModule{
   object test extends JavaTests with TestModule.Junit4
@@ -25,9 +27,6 @@ object foo extends JavaModule{
 
 /** See Also: foo/src/foo/Foo.java */
 /** See Also: foo/test/src/foo/FooTests.java */
-
-// Test suites can access the workspace root via the `MILL_WORKSPACE_ROOT`
-// environment variable:
 
 /** Usage
 > ./mill __.test

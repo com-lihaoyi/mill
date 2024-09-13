@@ -79,7 +79,7 @@ trait RunModule extends WithZincWorker {
    * Runs this module's code in a subprocess and waits for it to finish
    */
   def run(args: Task[Args] = T.task(Args())): Command[Unit] = T.command {
-    runForkedTask(finalMainClass, args)
+    runForkedTask(finalMainClass, args)()
   }
 
   /**
@@ -89,7 +89,7 @@ trait RunModule extends WithZincWorker {
    * in a bad state.
    */
   def runLocal(args: Task[Args] = T.task(Args())): Command[Unit] = T.command {
-    runLocalTask(finalMainClass, args)
+    runLocalTask(finalMainClass, args)()
   }
 
   /**
@@ -97,7 +97,7 @@ trait RunModule extends WithZincWorker {
    */
   def runMain(@arg(positional = true) mainClass: String, args: String*): Command[Unit] = {
     val task = runForkedTask(T.task { mainClass }, T.task { Args(args) })
-    T.command { task }
+    T.command { task() }
   }
 
   /**
@@ -105,7 +105,7 @@ trait RunModule extends WithZincWorker {
    */
   def runMainBackground(@arg(positional = true) mainClass: String, args: String*): Command[Unit] = {
     val task = runBackgroundTask(T.task { mainClass }, T.task { Args(args) })
-    T.command { task }
+    T.command { task() }
   }
 
   /**
@@ -113,7 +113,7 @@ trait RunModule extends WithZincWorker {
    */
   def runMainLocal(@arg(positional = true) mainClass: String, args: String*): Command[Unit] = {
     val task = runLocalTask(T.task { mainClass }, T.task { Args(args) })
-    T.command { task }
+    T.command { task() }
   }
 
   /**

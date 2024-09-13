@@ -25,6 +25,10 @@ object Lib {
   def depToBoundDep(dep: Dep, scalaVersion: String, platformSuffix: String = ""): BoundDep =
     BoundDep(depToDependency(dep, scalaVersion, platformSuffix), dep.force)
 
+  @deprecated(
+    "Prefer resolveDependenciesMetadataSafe instead, which returns a Result instead of throwing exceptions",
+    "0.12.0"
+  )
   def resolveDependenciesMetadata(
       repositories: Seq[Repository],
       deps: IterableOnce[BoundDep],
@@ -35,8 +39,30 @@ object Lib {
         coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
       ] = None
   ): (Seq[Dependency], Resolution) = {
+    val deps0 = deps.iterator.toSeq
+    val res = resolveDependenciesMetadataSafe(
+      repositories,
+      deps0,
+      mapDependencies,
+      customizer,
+      ctx,
+      coursierCacheCustomizer
+    )
+    (deps0.map(_.dep), res.getOrThrow)
+  }
+
+  def resolveDependenciesMetadataSafe(
+      repositories: Seq[Repository],
+      deps: IterableOnce[BoundDep],
+      mapDependencies: Option[Dependency => Dependency] = None,
+      customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
+      ctx: Option[Ctx.Log] = None,
+      coursierCacheCustomizer: Option[
+        coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
+      ] = None
+  ): Result[Resolution] = {
     val depSeq = deps.iterator.toSeq
-    mill.util.Jvm.resolveDependenciesMetadata(
+    mill.util.Jvm.resolveDependenciesMetadataSafe(
       repositories = repositories,
       deps = depSeq.map(_.dep),
       force = depSeq.filter(_.force).map(_.dep),

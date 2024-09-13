@@ -20,7 +20,7 @@ trait PlayApiModule extends Dependencies with Router with Server {
     override def sources = T.sources { millSourcePath }
   }
 
-  def start(args: Task[Args] = T.task(Args())) = T.command { run(args) }
+  def start(args: Task[Args] = T.task(Args())) = T.command { run(args)() }
 
 }
 trait PlayModule extends PlayApiModule with Static with Twirl {
