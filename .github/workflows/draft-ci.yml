@@ -21,7 +21,7 @@ jobs:
           --header 'content-type: application/json' \
           --data '{
             "state": "pending",
-            "context": "Draft CI / run (pull_request_target)",
+            "context": "Draft CI / link",
             "target_url": "${{ github.event.pull_request.head.repo.html_url }}/commits/${{github.event.pull_request.head.ref}}",
             "description": "use github actions on your repo fork until this PR is ready for review"
             }' \
