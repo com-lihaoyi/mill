@@ -26,6 +26,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  set_status:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Echo Concurrency Key
+        run: echo 'cancel-old-pr-runs-${{ github.workflow }}-${{ github.head_ref || github.run_id }}'
   # Jobs are listed in rough order of priority: if multiple jobs fail, the first job
   # in the list should be the one that's most worth looking into
   build-linux:
