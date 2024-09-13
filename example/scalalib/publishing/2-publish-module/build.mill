@@ -38,4 +38,3 @@ Publishing Artifact(com.lihaoyi,foo_2.13,0.0.1) to ivy repo...
 // is useful as a lightweight way of testing out the published artifacts, without
 // the setup overhead and long latencies of publishing artifacts globally accessible
 // to anyone in the world.
-
