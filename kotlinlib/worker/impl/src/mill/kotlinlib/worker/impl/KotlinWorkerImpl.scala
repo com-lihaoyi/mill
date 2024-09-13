@@ -1,3 +1,7 @@
+/*
+ * Copyright 2020-Present Original lefou/mill-kotlin repository contributors.
+ */
+
 package mill.kotlinlib.worker.impl
 
 import mill.api.{Ctx, Result}

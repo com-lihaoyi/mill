@@ -1,3 +1,7 @@
+/*
+ * Copyright 2020-Present Original lefou/mill-kotlin repository contributors.
+ */
+
 package hello;
 
 public class JavaHello {
