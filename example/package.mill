@@ -66,6 +66,8 @@ object `package` extends RootModule with Module {
 
   trait ExampleCrossModuleKotlin extends ExampleCrossModuleJava {
     override def lineTransform(line: String) = this.millModuleSegments.parts.last match {
+      case "3-multi-module" => line.replace("bar.BarTests.simple", "bar.BarTestssimple")
+        .replace("bar.BarTests.escaping", "bar.BarTestsescaping")
       case "4-builtin-commands" => line.replace("compile.dest/zinc", "compile.dest/kotlin.analysis.dummy")
       case _ => line
     }
