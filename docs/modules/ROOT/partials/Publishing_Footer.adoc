@@ -46,7 +46,7 @@ export MILL_PGP_PASSPHRASE=...
 
 You can publish all eligible modules in your Mill project as follows:
 
-[source,scala]
+[source,bash]
 ----
 mill mill.scalalib.PublishModule/publishAll
 ----
