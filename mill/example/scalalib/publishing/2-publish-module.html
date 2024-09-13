@@ -32,7 +32,7 @@
         <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
-        <a class="navbar-item" href="https://discord.com/channels/632150470000902164/940067748103487558">Chat</a>
+        <a class="navbar-item" href="https://discord.gg/mMVxRMZc">Chat</a>
 
             <!--
         <a class="navbar-item" href="#">Home</a>
@@ -108,6 +108,10 @@
   </li>
 
   <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../../Publishing_Java_Projects.html">Publishing Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="../../../Java_Web_Examples.html">Java Web Examples</a>
   </li>
 
@@ -144,6 +148,10 @@
 
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="../../../Testing_Scala_Projects.html">Testing Scala Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../../Publishing_Scala_Projects.html">Publishing Scala Projects</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -337,14 +345,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.0-RC1-27-39e367</span>
+    <span class="version">0.12.0-RC1-29-7b4468</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="../../../0.11.12/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="../../../index.html">0.12.0-RC1-27-39e367</a>
+          <a href="../../../index.html">0.12.0-RC1-29-7b4468</a>
         </li>
         <li class="version is-latest">
           <a href="../../../0.11.12/index.html">0.11.12</a>
@@ -384,9 +392,9 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC1-27-39e367</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC1-29-7b4468</button>
   <div class="version-menu">
-    <a class="version is-current" href="6-publish-module.html">0.12.0-RC1-27-39e367</a>
+    <a class="version is-current" href="2-publish-module.html">0.12.0-RC1-29-7b4468</a>
     <a class="version is-missing" href="../../../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../../../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../../../0.11.10/index.html">0.11.10</a>
@@ -397,7 +405,7 @@
     <a class="version is-missing" href="../../../0.9.12/index.html">0.9.12</a>
   </div>
 </div>
-<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/example/javalib/builds/6-publish-module.adoc">Edit this Page</a></div>
+<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/example/scalalib/publishing/2-publish-module.adoc">Edit this Page</a></div>
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -405,12 +413,13 @@
 </aside>
 <article class="doc">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC1/0.12.0-RC1-example-javalib-builds-6-publish-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC1//example/javalib/builds/6-publish-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC1/0.12.0-RC1-example-scalalib-publishing-2-publish-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC1//example/scalalib/publishing/2-publish-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, javalib._, publish._
+import mill._, scalalib._, publish._
 
-object foo extends JavaModule with PublishModule {
+object foo extends ScalaModule with PublishModule {
+  def scalaVersion = &quot;2.13.8&quot;
   def publishVersion = &quot;0.0.1&quot;
 
   def pomSettings = PomSettings(
@@ -425,7 +434,7 @@ object foo extends JavaModule with PublishModule {
 </div>
 </div>
 <div class="paragraph">
-<p>This is an example <code>JavaModule</code> with added publishing capabilities via
+<p>This is an example <code>ScalaModule</code> with added publishing capabilities via
 <code>PublishModule</code>. This requires that you define an additional
 <code>publishVersion</code> and <code>pomSettings</code> with the relevant metadata, and provides
 the <code>.publishLocal</code> and <code>publishSigned</code> tasks for publishing locally to the
@@ -433,9 +442,18 @@ machine or to the central maven repository</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.publishLocal
-Publishing Artifact(com.lihaoyi,foo,0.0.1) to ivy repo...</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.publishLocal # publish specific modules
+
+&gt; mill __.publishLocal # publish every eligible module
+Publishing Artifact(com.lihaoyi,foo_2.13,0.0.1) to ivy repo...</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p><code>publishLocal</code> publishes the artifacts to the <code>~/.ivy2/local</code> folder on your
+machine, allowing them to be resolved by other projects and build tools. This
+is useful as a lightweight way of testing out the published artifacts, without
+the setup overhead and long latencies of publishing artifacts globally accessible
+to anyone in the world.</p>
 </div>
 </article>
   </div>
