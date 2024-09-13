@@ -26,6 +26,8 @@ jobs:
     steps:
       - name: echo
         run: echo cancel-old-pr-runs-${{ github.workflow }}-${{ github.ref_name }}
+      - name: sleep
+        run: sleep 100
 
 #  # Jobs are listed in rough order of priority: if multiple jobs fail, the first job
 #  # in the list should be the one that's most worth looking into
