@@ -22,7 +22,7 @@ on:
 # cancel older runs of a pull request;
 # this will not cancel anything for normal git pushes
 concurrency:
-  group: cancel-old-pr-runs-${{ github.workflow }}-${{ github.head_ref }}
+  group: cancel-old-pr-runs-${{ github.workflow }}-${{ github.ref_name }}
   cancel-in-progress: true
 
 jobs:
@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Echo Concurrency Key
-        run: echo 'cancel-old-pr-runs-${{ github.workflow }}-${{ github.head_ref }}'
+        run: echo 'cancel-old-pr-runs-${{ github.workflow }}-${{ github.ref_name }}'
   # Jobs are listed in rough order of priority: if multiple jobs fail, the first job
   # in the list should be the one that's most worth looking into
   build-linux:
