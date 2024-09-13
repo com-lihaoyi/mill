@@ -24,82 +24,108 @@ object foo extends ScalaModule with PublishModule {
 
 /** Usage
 
-> mill foo.publishLocal
+> mill foo.publishLocal # publish specific modules
+
+> mill __.publishLocal # publish every eligible module
 Publishing Artifact(com.lihaoyi,foo_2.13,0.0.1) to ivy repo...
 
 */
 
 //// SNIPPET:END
 
-// The `artifactName` defaults to the name of your module (in this case `foo`)
-// but can be overridden. The `organization` is defined in `pomSettings`.
-//
-// You may also check and update the values of `sonatypeUri` and `sonatypeSnapshotUri`,
-// which may not be correct if you have a newer Sonatype account (when created after Feb. 2021).
-//
-// === Releases
-//
-// Once you've mixed in `PublishModule`, you can publish your project's modules to maven
-// central via:
-//
-// [source,bash]
-// ----
-// export MILL_SONATYPE_USERNAME=...
-// export MILL_SONATYPE_PASSWORD=...
-// export MILL_PGP_SECRET_BASE64=...
-// export MILL_PGP_PASSPHRASE=...
-//
-// mill mill.scalalib.PublishModule/publishAll
-// ----
-//
-// You can also specify individual modules you want to publish via a selector:
-// [source,bash]
-// ----
-// mill mill.scalalib.PublishModule/publishAll foo.publishArtifacts
-// ----
-//
-// The default URL for publishing to sonatype's Maven Central is `oss.sonatype.org`.
-// Newer projects registered on sonatype may need to publish using `s01.oss.sonatype.org`.
-// In that case, you can pass in a `--sonatypeUri`:
-//
-// [source,bash]
-// ----
-// mill mill.scalalib.PublishModule/publishAll \
-//         --sonatypeUri https://s01.oss.sonatype.org/service/local
-// ----
-//
-// This also allows you to publish to your own internal corporate sonatype deployment,
-// by passing in `--sonatypeUri example.company.com` instead.
-//
-// [NOTE]
-// --
-// Since Feb. 2021 any new Sonatype accounts have been created on
-// `s01.oss.sonatype.org`, so you'll want to ensure you set the relevant URIs to match.
-//
-// The symptom of using the "wrong" URL for publishling is typically a 403 error code, in response to the publish request.
-//
-// See https://central.sonatype.org/publish/publish-guide/#releasing-to-central
-//
-// Typically
-//
-// * `https://s01.oss.sonatype.org/service/local` - for the `--sonatypeUri`
-// * `https://s01.oss.sonatype.org/content/repositories/snapshots` - for `sonatypeSnapshotUri`
-//
-// --
-//
-// === Non-Staging Releases (classic Maven uploads)
-//
-// If the site does not support staging releases as `oss.sonatype.org` and `s01.oss.sonatype.org` do (for
-// example, a self-hosted OSS nexus site), you can pass in the
-// `--stagingRelease false` option to simply upload release artifacts to corresponding
-// maven path under `sonatypeUri` instead of staging path.
-//
-// [source,bash]
-// ----
-// mill mill.scalalib.PublishModule/publishAll \
-//         foo.publishArtifacts \
-//         lihaoyi:$SONATYPE_PASSWORD \
-//         --sonatypeUri http://example.company.com/release \
-//         --stagingRelease false
-// ----
-//
+// `publishLocal` publishes the artifacts to the `~/.ivy2/local` folder on your
+// machine, allowing them to be resolved by other projects and build tools. This
+// is useful as a lightweight way of testing out the published artifacts, without
+// the setup overhead and long latencies of publishing artifacts globally accessible
+// to anyone in the world.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

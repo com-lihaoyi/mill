@@ -8,17 +8,8 @@ gtag('config', 'AW-16649289906');
 
 This page will discuss common topics around publishing your Java projects for others to use
 
-
-== Publishing to Sonatype Maven Central
+== Publishing Locally
 
 include::example/javalib/publishing/2-publish-module.adoc[]
 
-== Publishing to other repositories
-
-While Sonatype Maven Central is the default publish repository for JVM ecosystem projects,
-there are also others that you can use. Mill supports these largely through contrib plugins:
-
-* xref:contrib/codeartifact.adoc[]
-* xref:contrib/artifactory.adoc[]
-* xref:contrib/bintray.adoc[]
-* xref:contrib/sonatypecentral.adoc[]
+include::partial$Publishing_Footer.adoc[]
