@@ -9,31 +9,32 @@ object PalantirJavaFormatModuleTest extends TestSuite {
 
   def tests: Tests = Tests {
 
-    // root folder for module
-    val module: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER"))
+    // root folder for modules
+    val modules: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER"))
 
     // root folder with directories containing state of sources after formatting for different test cases
-    val expected: os.Path = module / os.up / "expected"
+    val expected: os.Path = modules / os.up / "expected-sources"
 
     test("javafmt") {
       assert(
         checkState(
-          afterFormat(module),
-          walkFiles(expected / "palantir")
+          afterFormat(modules / "palantir"),
+          expected / "palantir"
         ),
         checkState(
-          afterFormat(module, sources = Seq("src/Main.java")),
-          walkFiles(expected / "palantir")
+          afterFormat(modules / "palantir", sourceFilters = Seq("src/Main.java")),
+          expected / "palantir"
         )
       )
 
       intercept[RuntimeException] {
-        afterFormat(module, check = true)
+        afterFormat(modules / "palantir", check = true)
       }
     }
   }
 
-  def checkState(actualFiles: Seq[os.Path], expectedFiles: Seq[os.Path]): Boolean = {
+  def checkState(actualFiles: Seq[os.Path], expectedRoot: os.Path): Boolean = {
+    val expectedFiles = walkFiles(expectedRoot)
     actualFiles.length == expectedFiles.length &&
     actualFiles.iterator.zip(expectedFiles.iterator).forall {
       case (actual, expected) =>
@@ -46,34 +47,26 @@ object PalantirJavaFormatModuleTest extends TestSuite {
   def afterFormat(
       moduleRoot: os.Path,
       version: String = "2.50.0",
-      styleOverride: Option[String] = Some("palantir"),
-      skipSortImports: Boolean = false,
-      skipUnusedImports: Boolean = false,
-      skipReflowingLongStrings: Boolean = false,
       check: Boolean = false,
-      sources: Seq[String] = Seq.empty
+      sourceFilters: Seq[String] = Seq.empty
   ): Seq[os.Path] = {
 
     object mod extends TestBaseModule with ScalaModule with PalantirJavaFormatModule {
-      override def palantirOptions: T[PalantirJavaFormatOptions] =
-        PalantirJavaFormatOptions(styleOverride, skipSortImports, skipUnusedImports, skipReflowingLongStrings)
-
-      override def palantirVersion: T[String] = version
-
+      override def palantirjavaformatVersion: T[String] = version
       override def scalaVersion: T[String] = sys.props("MILL_SCALA_2_13_VERSION")
     }
 
     val eval = UnitTester(mod, moduleRoot)
 
-    eval(mod.javafmt(check, mainargs.Leftover(sources: _*))).fold(
+    eval(mod.javafmt(check, mainargs.Leftover(sourceFilters: _*))).fold(
       {
         case api.Result.Exception(cause, _) => throw cause
         case failure => throw failure
       },
       { _ =>
-        val Right(moduleSources) = eval(mod.sources)
+        val Right(sources) = eval(mod.sources)
 
-        moduleSources.value.flatMap(ref => walkFiles(ref.path))
+        sources.value.flatMap(ref => walkFiles(ref.path))
       }
     )
   }
