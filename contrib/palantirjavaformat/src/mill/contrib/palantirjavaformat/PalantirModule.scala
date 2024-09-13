@@ -1,5 +1,5 @@
 package mill
-package contrib.palantir
+package contrib.palantirjavaformat
 
 import mill.api.{Loose, PathRef}
 import mill.scalalib.{DepSyntax, JavaModule}
@@ -12,8 +12,8 @@ trait PalantirModule extends JavaModule {
     )
   }
 
-  def palantirOptions: T[PalantirOptions] = T {
-    PalantirOptions()
+  def palantirOptions: T[PalantirJavaFormatOptions] = T {
+    PalantirJavaFormatOptions()
   }
 
   /**
@@ -40,9 +40,9 @@ object PalantirModule {
   )
 
   def mainArgs(
-      sources: IterableOnce[os.Path],
-      options: PalantirOptions,
-      check: Boolean = false
+                sources: IterableOnce[os.Path],
+                options: PalantirJavaFormatOptions,
+                check: Boolean = false
   ): Seq[String] = {
 
     val args = Seq.newBuilder[String]

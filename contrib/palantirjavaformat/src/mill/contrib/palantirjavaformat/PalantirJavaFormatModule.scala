@@ -1,9 +1,9 @@
 package mill
-package contrib.palantir
+package contrib.palantirjavaformat
 
 import mill.util.Jvm
 
-trait JavafmtModule extends PalantirModule {
+trait PalantirJavaFormatModule extends PalantirModule {
 
   def javafmt(
       @mainargs.arg check: Boolean = false,

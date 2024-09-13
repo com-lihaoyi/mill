@@ -1,11 +1,11 @@
 package mill
-package contrib.palantir
+package contrib.palantirjavaformat
 
 import mill.scalalib.ScalaModule
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest._
 
-object JavafmtModuleTest extends TestSuite {
+object PalantirJavaFormatModuleTest extends TestSuite {
 
   def tests: Tests = Tests {
 
@@ -54,9 +54,9 @@ object JavafmtModuleTest extends TestSuite {
       sources: Seq[String] = Seq.empty
   ): Seq[os.Path] = {
 
-    object mod extends TestBaseModule with ScalaModule with JavafmtModule {
-      override def palantirOptions: T[PalantirOptions] =
-        PalantirOptions(styleOverride, skipSortImports, skipUnusedImports, skipReflowingLongStrings)
+    object mod extends TestBaseModule with ScalaModule with PalantirJavaFormatModule {
+      override def palantirOptions: T[PalantirJavaFormatOptions] =
+        PalantirJavaFormatOptions(styleOverride, skipSortImports, skipUnusedImports, skipReflowingLongStrings)
 
       override def palantirVersion: T[String] = version
 
