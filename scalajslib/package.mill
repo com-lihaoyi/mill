@@ -23,7 +23,10 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
 
     Seq(
       BuildInfo.Value("scalajsEnvNodejs", formatDep(build.Deps.Scalajs_1.scalajsEnvNodejs)),
-      BuildInfo.Value("scalajsEnvJsdomNodejs", formatDep(build.Deps.Scalajs_1.scalajsEnvJsdomNodejs)),
+      BuildInfo.Value(
+        "scalajsEnvJsdomNodejs",
+        formatDep(build.Deps.Scalajs_1.scalajsEnvJsdomNodejs)
+      ),
       BuildInfo.Value(
         "scalajsEnvExoegoJsdomNodejs",
         formatDep(build.Deps.Scalajs_1.scalajsEnvExoegoJsdomNodejs)

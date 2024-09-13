@@ -3,6 +3,7 @@ import mill.util.Jvm
 import mill._, scalalib._
 import build.contrib
 import de.tobiasroeser.mill.vcs.version.VcsVersion
+
 /** Generates the mill documentation with Antora. */
 object `package` extends RootModule {
   // This module isn't really a ScalaModule, but we use it to generate
@@ -36,7 +37,7 @@ object `package` extends RootModule {
   }
 
   def runAntora(npmDir: os.Path, workDir: os.Path, args: Seq[String])(implicit
-                                                                      ctx: mill.api.Ctx.Log
+      ctx: mill.api.Ctx.Log
   ) = {
 
     prepareAntora(npmDir)
@@ -102,11 +103,11 @@ object `package` extends RootModule {
   }
 
   def sanitizeAntoraYml(
-                         dest: os.Path,
-                         version: String,
-                         millVersion: String,
-                         millLastTag: String
-                       ): Unit = {
+      dest: os.Path,
+      version: String,
+      millVersion: String,
+      millLastTag: String
+  ): Unit = {
     val isPreRelease = (millVersion != millLastTag) || Seq("-M", "-RC").exists(millVersion.contains)
     val lines = os.read(dest / "antora.yml").linesIterator.map {
       case s"version:$_" =>
@@ -247,11 +248,11 @@ object `package` extends RootModule {
   }
 
   def sanitizeDevUrls(
-                       dir: os.Path,
-                       sourceDir: os.Path,
-                       newSourceDir: os.Path,
-                       baseDir: os.Path
-                     ): Unit = {
+      dir: os.Path,
+      sourceDir: os.Path,
+      newSourceDir: os.Path,
+      baseDir: os.Path
+  ): Unit = {
 
     val pathToRemove = sourceDir.relativeTo(baseDir).toString()
     val replacePath = newSourceDir.relativeTo(baseDir).toString()
