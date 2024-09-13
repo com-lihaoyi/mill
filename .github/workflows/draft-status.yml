@@ -20,7 +20,7 @@ jobs:
           --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
           --header 'content-type: application/json' \
           --data '{
-            "state": "{{ github.event.workflow_run.conclusion }}",
+            "state": "${{ github.event.workflow_run.conclusion }}",
             "context": "Link to Fork CI",
             "target_url": "${{ github.event.workflow_run.html_url }}"
             }' \
