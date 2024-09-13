@@ -16,6 +16,7 @@ jobs:
     steps:
       - name: Get PR source repository URL
         run: |
+          echo ${{ github.event.action }}
           echo ${{ github.event.action == 'ready_for_review' }}
           echo "${{ github.event.pull_request.head.repo.html_url }}/commits/${{github.event.pull_request.head.ref}}"
       - name: Create status
