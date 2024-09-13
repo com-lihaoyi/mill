@@ -6,15 +6,16 @@ package mill
 package kotlinlib
 
 import mill.api.{PathRef, Result}
-import mill.define.{Command, Task}
+import mill.define.{Command, ModuleRef, Task}
 import mill.kotlinlib.worker.api.KotlinWorker
-import mill.scalalib.api.CompilationResult
-import mill.scalalib.{Dep, DepSyntax, JavaModule, Lib}
+import mill.scalalib.api.{CompilationResult, ZincWorkerApi}
+import mill.scalalib.{Dep, DepSyntax, JavaModule, Lib, ZincWorkerModule}
+import mill.util.Util.millProjectModule
 import mill.{Agg, T}
 
 import java.io.File
 
-trait KotlinModule extends JavaModule with KotlinModulePlatform { outer =>
+trait KotlinModule extends JavaModule { outer =>
 
   /**
    * All individual source files fed into the compiler.
@@ -60,11 +61,35 @@ trait KotlinModule extends JavaModule with KotlinModulePlatform { outer =>
    */
   def kotlinCompilerVersion: T[String] = T { kotlinVersion() }
 
+  type CompileProblemReporter = mill.api.CompileProblemReporter
+
+  protected def zincWorkerRef: ModuleRef[ZincWorkerModule] = zincWorker
+
+  protected def kotlinWorkerRef: ModuleRef[KotlinWorkerModule] = ModuleRef(KotlinWorkerModule)
+
+  private[kotlinlib] def kotlinWorkerClasspath = T {
+    millProjectModule(
+      "mill-kotlinlib-worker-impl",
+      repositoriesTask(),
+      resolveFilter = _.toString.contains("mill-kotlinlib-worker-impl")
+    )
+  }
+
+  /**
+   * The Java classpath resembling the Kotlin compiler.
+   * Default is derived from [[kotlinCompilerIvyDeps]].
+   */
+  def kotlinCompilerClasspath: T[Seq[PathRef]] = T {
+    resolveDeps(
+      T.task { kotlinCompilerIvyDeps().map(bindDependency()) }
+    )().toSeq ++ kotlinWorkerClasspath()
+  }
+
   /**
    * The Ivy/Coursier dependencies resembling the Kotlin compiler.
    * Default is derived from [[kotlinCompilerVersion]].
    */
-  override def kotlinCompilerIvyDeps: T[Agg[Dep]] = T {
+  def kotlinCompilerIvyDeps: T[Agg[Dep]] = T {
     Agg(ivy"org.jetbrains.kotlin:kotlin-compiler:${kotlinCompilerVersion()}") ++
 //      (
 //        if (Seq("1.0.", "1.1.", "1.2").exists(prefix => kotlinVersion().startsWith(prefix)))
@@ -205,6 +230,27 @@ trait KotlinModule extends JavaModule with KotlinModulePlatform { outer =>
         kotlinVersion().split("[.]", 3).take(2).mkString(".")
       )
   }
+
+  private[kotlinlib] def internalCompileJavaFiles(
+      worker: ZincWorkerApi,
+      upstreamCompileOutput: Seq[CompilationResult],
+      javaSourceFiles: Seq[os.Path],
+      compileCp: Agg[os.Path],
+      javacOptions: Seq[String],
+      compileProblemReporter: Option[CompileProblemReporter],
+      reportOldProblems: Boolean
+  )(implicit ctx: ZincWorkerApi.Ctx): Result[CompilationResult] = {
+    worker.compileJava(
+      upstreamCompileOutput = upstreamCompileOutput,
+      sources = javaSourceFiles,
+      compileClasspath = compileCp,
+      javacOptions = javacOptions,
+      reporter = compileProblemReporter,
+      reportCachedProblems = reportOldProblems
+    )
+  }
+
+  private[kotlinlib] def internalReportOldProblems: Task[Boolean] = zincReportCachedProblems
 
   /**
    * A test sub-module linked to its parent module best suited for unit-tests.
