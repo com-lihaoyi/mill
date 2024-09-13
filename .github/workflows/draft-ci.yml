@@ -23,6 +23,6 @@ jobs:
             "state": "pending",
             "context": "Draft CI / link",
             "target_url": "${{ github.event.pull_request.head.repo.html_url }}/commits/${{github.event.pull_request.head.ref}}",
-            "description": "use github actions on your repo fork until this PR is ready for review"
+            "description": "use CI on your repo fork (link on right) until this PR is ready for review"
             }' \
           --fail-with-body
