@@ -12,6 +12,11 @@ name: Run Tests
 on:
   push:
   pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
   workflow_dispatch:
 
 # cancel older runs of a pull request;
