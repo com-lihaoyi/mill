@@ -311,7 +311,7 @@
       <div class="title"><a href="index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version">
-          <a href="../index.html">0.12.0-RC1-26-b5e556</a>
+          <a href="../index.html">0.12.0-RC1-27-39e367</a>
         </li>
         <li class="version is-current is-latest">
           <a href="index.html">0.11.12</a>
@@ -358,7 +358,7 @@
 <div class="page-versions">
   <button class="version-menu-toggle" title="Show other versions of page">0.11.12</button>
   <div class="version-menu">
-    <a class="version" href="../Cross_Builds.html">0.12.0-RC1-26-b5e556</a>
+    <a class="version" href="../Cross_Builds.html">0.12.0-RC1-27-39e367</a>
     <a class="version is-current" href="Cross_Builds.html">0.11.12</a>
     <a class="version" href="../0.11.11/Cross_Builds.html">0.11.11</a>
     <a class="version" href="../0.11.10/Cross_Builds.html">0.11.10</a>
@@ -819,9 +819,32 @@ trait FooModule extends Cross.Module[String] {
 def baz = T { s&quot;hello ${foo(&quot;a&quot;).bar.param()}&quot; }</code></pre>
 </div>
 </div>
-<div class="imageblock kroki">
+<div class="literalblock kroki-error">
 <div class="content">
-<img src="_images/diag-acf9df9e2f8f5b8bef63d8551ad041ee4534881e.svg" alt="Diagram" />
+<pre>digraph G {
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+  &quot;root-module&quot; [style=dashed]
+  foo [style=dashed]
+  &quot;foo[a]&quot; [style=dashed]
+  &quot;foo[b]&quot; [style=dashed]
+  &quot;foo[a].bar&quot; [style=dashed]
+  &quot;foo[a].qux&quot; [style=dashed]
+  &quot;foo[b].bar&quot; [style=dashed]
+  &quot;foo[b].qux&quot; [style=dashed]
+  &quot;root-module&quot; -&gt; foo -&gt; &quot;foo[a]&quot; [style=dashed]
+  foo -&gt; &quot;foo[b]&quot;  [style=dashed]
+  &quot;foo[a]&quot; -&gt; &quot;foo[a].bar&quot; [style=dashed]
+  &quot;foo[a]&quot; -&gt; &quot;foo[a].qux&quot; [style=dashed]
+  &quot;foo[b]&quot; -&gt; &quot;foo[b].bar&quot; [style=dashed]
+  &quot;foo[b]&quot; -&gt; &quot;foo[b].qux&quot; [style=dashed]
+  &quot;foo[a].bar&quot; -&gt; &quot;foo[a].bar.name&quot; [style=dashed]
+  &quot;foo[a].bar&quot; -&gt; &quot;foo[a].bar.param&quot; [style=dashed]
+  &quot;foo[a].qux&quot; -&gt; &quot;...&quot; [style=invis]
+  &quot;foo[b].bar&quot; -&gt; &quot;...&quot; [style=invis]
+  &quot;foo[b].qux&quot; -&gt; &quot;...&quot; [style=invis]
+  &quot;...&quot; [color=white]
+  &quot;foo[a].bar.name&quot; -&gt; &quot;foo[a].bar.param&quot; [constraint=false]
+}</pre>
 </div>
 </div>
 <div class="paragraph">
