@@ -6,7 +6,7 @@ on:
 
 jobs:
   set_status:
-    if: github.event.pull_request.draft == true
+    if: 'github.event.pull_request.draft == true && github.event.type != 'ready_to_review'"
     runs-on: ubuntu-latest
     permissions: write-all 
     steps:
