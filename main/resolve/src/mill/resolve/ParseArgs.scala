@@ -114,9 +114,9 @@ object ParseArgs {
       case (h, rest) => Segments(h +: rest)
     }
 
-    P(simpleQuery ~ ("/" ~/ simpleQuery).? ~ End).map {
-      case (q, None) => (None, q)
-      case (q, Some(q2)) => (Some(q), q2)
+    P(simpleQuery ~ "/".!.? ~ simpleQuery.? ~ End).map {
+      case (q, _, None) => (None, q)
+      case (q, _, Some(q2)) => (Some(q), q2)
     }
   }
 }

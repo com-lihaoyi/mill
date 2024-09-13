@@ -280,7 +280,8 @@ trait PublishModule extends JavaModule { outer =>
   }
 }
 
-object PublishModule extends ExternalModule {
+object PublishModule extends ExternalModule with TaskModule{
+  def defaultCommandName(): String = "publishAll"
   val defaultGpgArgs: Seq[String] = defaultGpgArgsForPassphrase(None)
   def pgpImportSecretIfProvided(env: Map[String, String]): Unit = {
     for (secret <- env.get("MILL_PGP_SECRET_BASE64")) {

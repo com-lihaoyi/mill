@@ -70,7 +70,8 @@ trait ScalafmtModule extends JavaModule {
 
 }
 
-object ScalafmtModule extends ExternalModule with ScalafmtModule {
+object ScalafmtModule extends ExternalModule with ScalafmtModule with TaskModule {
+  override def defaultCommandName(): String = "reformatAll"
 
   def reformatAll(@arg(positional = true) sources: mill.main.Tasks[Seq[PathRef]]): Command[Unit] =
     T.command {
