@@ -3,12 +3,16 @@ name: Draft CI
 permissions: write-all
 on:
   pull_request_target:
+    types:
+      - opened
+      - reopened
+      - synchronize
 
 jobs:
   run:
     if: github.event.pull_request.draft == true
     runs-on: ubuntu-latest
-    permissions: write-all 
+    permissions: write-all
     steps:
       - name: Get PR source repository URL
         run:
