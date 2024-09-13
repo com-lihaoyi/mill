@@ -25,7 +25,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: echo
-        run: echo cancel-old-pr-runs-${{ github.workflow }}-${{ github.ref_name }}
+        run: echo ${{ github.workflow }}-${{ github.ref_name }}
+      - name: echo2
+        run: echo ${{ github.head_ref || github.run_id }}
       - name: sleep
         run: sleep 100
 
