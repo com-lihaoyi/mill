@@ -37,70 +37,39 @@ Publishing Artifact(com.lihaoyi,foo_2.13,0.0.1) to ivy repo...
 // You may also check and update the values of `sonatypeUri` and `sonatypeSnapshotUri`,
 // which may not be correct if you have a newer Sonatype account (when created after Feb. 2021).
 //
-// === Staging Releases
+// === Releases
 //
-// Once you've mixed in `PublishModule`, you can publish your libraries to maven
+// Once you've mixed in `PublishModule`, you can publish your project's modules to maven
 // central via:
 //
 // [source,bash]
 // ----
-// mill mill.scalalib.PublishModule/publishAll \
-//         foo.publishArtifacts \
-//         lihaoyi:$SONATYPE_PASSWORD \
-//         --gpgArgs --passphrase=$GPG_PASSWORD,--batch,--yes,-a,-b
+// export MILL_SONATYPE_USERNAME=...
+// export MILL_SONATYPE_PASSWORD=...
+// export MILL_PGP_SECRET_BASE64=...
+// export MILL_PGP_PASSPHRASE=...
+//
+// mill mill.scalalib.PublishModule/publishAll
 // ----
 //
-// This uploads them to `oss.sonatype.org` where you can log-in and stage/release
-// them manually. You can also pass in the `--release true` flag to perform the
-// staging/release automatically:
+// You can also specify individual modules you want to publish via a selector:
+// [source,bash]
+// ----
+// mill mill.scalalib.PublishModule/publishAll foo.publishArtifacts
+// ----
 //
-// [NOTE]
-// --
-// Recent versions of `gpg` (versions 2.1 and above) require an additional argument
-// in order to accept a passphrase on the command line. Add `--pinentry-mode=loopback` to the
-// comma-separated list of `gpg` arguments after `--gpgArgs`, so it becomes
-// `--passphrase=$GPG_PASSWORD,--batch,--yes,-a,-b,--pinentry-mode=loopback`. Without the additional
-// argument, you may see errors like `gpg: signing failed: Inappropriate ioctl for device`.
-//
-// Sonatype credentials can be passed via environment variables (`SONATYPE_USERNAME`
-// and `SONATYPE_PASSWORD`) or by passing second or `--sonatypeCreds` argument in format
-// `username:password`. Consider using environment variables over the direct CLI passing
-// due to security risks.
-// --
+// The default URL for publishing to sonatype's Maven Central is `oss.sonatype.org`.
+// Newer projects registered on sonatype may need to publish using `s01.oss.sonatype.org`.
+// In that case, you can pass in a `--sonatypeUri`:
 //
 // [source,bash]
 // ----
 // mill mill.scalalib.PublishModule/publishAll \
-//         foo.publishArtifacts \
-//         lihaoyi:$SONATYPE_PASSWORD \
-//         --gpgArgs --passphrase=$GPG_PASSWORD,--batch,--yes,-a,-b \
-//         --release true
+//         --sonatypeUri https://s01.oss.sonatype.org/service/local
 // ----
 //
-// If you want to publish/release multiple modules, you can use the `_` or `__`
-// wildcard syntax:
-//
-// [source,bash]
-// ----
-// mill mill.scalalib.PublishModule/publishAll \
-//         __.publishArtifacts \
-//         lihaoyi:$SONATYPE_PASSWORD \
-//         --gpgArgs --passphrase=$GPG_PASSWORD,--batch,--yes,-a,-b \
-//         --release true
-// ----
-//
-// To publish to repository other than `oss.sonaytype.org` such as internal hosted
-// nexus at `example.company.com`, you can pass in the `--sonatypeUri` and
-// `--sonatypeSnapshotUri` parameters to uploads to different site:
-//
-// [source,bash]
-// ----
-// mill mill.scalalib.PublishModule/publishAll \
-//         foo.publishArtifacts \
-//         lihaoyi:$SONATYPE_PASSWORD \
-//         --sonatypeUri http://example.company.com/release \
-//         --sonatypeSnaphostUri http://example.company.com/snapshot
-// ----
+// This also allows you to publish to your own internal corporate sonatype deployment,
+// by passing in `--sonatypeUri example.company.com` instead.
 //
 // [NOTE]
 // --
