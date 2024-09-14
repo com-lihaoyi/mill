@@ -166,6 +166,21 @@
 
   <li class="nav-item is-active" data-depth="0">
     <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../../../Kotlin_Intro_to_Mill.html">Introduction to Mill for Kotlin</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../../Kotlin_Installation_IDE_Support.html">Installation and IDE Support</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../../Kotlin_Builtin_Commands.html">Built-in Commands</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
     <span class="nav-text">Mill In Depth</span>
 <ul class="nav-list">
 
@@ -345,14 +360,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.0-RC1-30-756dd3</span>
+    <span class="version">0.12.0-RC1-31-081d69</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="../../../0.11.12/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="../../../index.html">0.12.0-RC1-30-756dd3</a>
+          <a href="../../../index.html">0.12.0-RC1-31-081d69</a>
         </li>
         <li class="version is-latest">
           <a href="../../../0.11.12/index.html">0.11.12</a>
@@ -392,9 +407,9 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC1-30-756dd3</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC1-31-081d69</button>
   <div class="version-menu">
-    <a class="version is-current" href="12-repository-config.html">0.12.0-RC1-30-756dd3</a>
+    <a class="version is-current" href="12-repository-config.html">0.12.0-RC1-31-081d69</a>
     <a class="version is-missing" href="../../../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../../../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../../../0.11.10/index.html">0.11.10</a>
@@ -412,6 +427,10 @@
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
+<div class="paragraph">
+<p>By default, dependencies are resolved from maven central, but you can add
+your own resolvers by overriding the <code>repositoriesTask</code> task in the module:</p>
+</div>
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC1/0.12.0-RC1-example-javalib-module-12-repository-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC1//example/javalib/module/12-repository-config">browse</a>)</div>
 <div class="content">
@@ -435,6 +454,42 @@ object foo extends JavaModule {
 }</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>Mill read <a href="https://get-coursier.io/">coursier</a> config files automatically.</p>
+</div>
+<div class="paragraph">
+<p>It is possible to setup mirror with <code>mirror.properties</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">central.from=https://repo1.maven.org/maven2
+central.to=http://example.com:8080/nexus/content/groups/public</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note theses default config file locatations:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Linux: <code>~/.config/coursier/mirror.properties</code></p>
+</li>
+<li>
+<p>MacOS: <code>~/Library/Preferences/Coursier/mirror.properties</code></p>
+</li>
+<li>
+<p>Windows: <code>C:\Users\&lt;user_name&gt;\AppData\Roaming\Coursier\config\mirror.properties</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>You can also set the environment variable <code>COURSIER_MIRRORS</code> or the jvm property <code>coursier.mirrors</code> to specify config file location.</p>
+</div>
+<div class="paragraph">
+<p>To add custom resolvers to the initial bootstrap of the build, you can create a
+custom <code>ZincWorkerModule</code>, and override the <code>zincWorker</code> method in your
+<code>ScalaModule</code> by pointing it to that custom object:</p>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object CustomZincWorkerModule extends ZincWorkerModule with CoursierModule {
@@ -447,6 +502,13 @@ object bar extends JavaModule {
 
   def repositoriesTask = T.task { super.repositoriesTask() ++ sonatypeReleases }
 }</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.run --text hello
+
+&gt; ./mill bar.compile</code></pre>
 </div>
 </div>
 </article>

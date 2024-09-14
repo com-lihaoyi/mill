@@ -169,6 +169,21 @@
 
   <li class="nav-item is-active" data-depth="0">
     <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="Kotlin_Intro_to_Mill.html">Introduction to Mill for Kotlin</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Kotlin_Installation_IDE_Support.html">Installation and IDE Support</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Kotlin_Builtin_Commands.html">Built-in Commands</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
     <span class="nav-text">Mill In Depth</span>
 <ul class="nav-list">
 
@@ -348,14 +363,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.0-RC1-30-756dd3</span>
+    <span class="version">0.12.0-RC1-31-081d69</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="0.11.12/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="index.html">0.12.0-RC1-30-756dd3</a>
+          <a href="index.html">0.12.0-RC1-31-081d69</a>
         </li>
         <li class="version is-latest">
           <a href="0.11.12/index.html">0.11.12</a>
@@ -400,9 +415,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC1-30-756dd3</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC1-31-081d69</button>
   <div class="version-menu">
-    <a class="version is-current" href="Java_Builtin_Commands.html">0.12.0-RC1-30-756dd3</a>
+    <a class="version is-current" href="Java_Builtin_Commands.html">0.12.0-RC1-31-081d69</a>
     <a class="version" href="0.11.12/Java_Builtin_Commands.html">0.11.12</a>
     <a class="version" href="0.11.11/Java_Builtin_Commands.html">0.11.11</a>
     <a class="version" href="0.11.10/Java_Builtin_Commands.html">0.11.10</a>
@@ -421,9 +436,11 @@
 </aside>
 <article class="doc">
 <h1 class="page">Built-in Commands</h1>
+<div id="preamble">
+<div class="sectionbody">
 <div class="paragraph">
 <p>Mill comes with a number of useful commands out of the box. These are listed
-in the Scaladoc:</p>
+in the API Docs:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -436,6 +453,14 @@ in the Scaladoc:</p>
 <p>Mill’s built-in commands are typically not directly related to building your
 application code, but instead are utilities that help you understand and work
 with your Mill build.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_example_build_mill"><a class="anchor" href="#_example_build_mill"></a>Example <code>build.mill</code></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following examples will be assuming the <code>build.mill</code> file given below:</p>
 </div>
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC1/0.12.0-RC1-example-javalib-basic-4-builtin-commands.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC1//example/javalib/basic/4-builtin-commands">browse</a>)</div>
@@ -460,6 +485,409 @@ object bar extends MyModule{
     ivy&quot;org.apache.commons:commons-text:1.12.0&quot;
   )
 }</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_resolve"><a class="anchor" href="#_resolve"></a>resolve</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>resolve</code> lists the tasks that match a particular query, without running them.
+This is useful for &quot;dry running&quot; an <code>mill</code> command to see what would be run
+before you run them, or to explore what modules or tasks are available
+from the command line using <code>resolve _</code>, <code>resolve foo._</code>, etc.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill resolve _
+foo
+bar
+clean
+inspect
+path
+plan
+resolve
+show
+shutdown
+version
+visualize
+visualizePlan
+
+&gt; mill resolve _.compile
+foo.compile
+
+&gt; mill resolve foo._
+foo.allSourceFiles
+foo.allSources
+foo.artifactId
+foo.artifactName
+...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also use the special wildcards <code>_</code> as a placeholder for a single segment
+and <code>__</code> as a placeholder for many segments.
+Lists within curly braces (<code>{</code>, <code>}</code>) are also supported.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill resolve foo.{compile,run}
+&gt; mill resolve &quot;foo.{compile,run}&quot;
+&gt; mill resolve foo.compile foo.run
+&gt; mill resolve _.compile  # list the compile tasks for every top-level module
+&gt; mill resolve __.compile # list the compile tasks for every module
+&gt; mill resolve _          # list every top level module and task
+&gt; mill resolve foo._      # list every task directly within the foo module
+&gt; mill resolve __         # list every module and task recursively</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_inspect"><a class="anchor" href="#_inspect"></a>inspect</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>inspect</code> is a more verbose version of <a href="#_resolve">resolve</a>. In addition to printing
+out the name of one-or-more tasks, it also displays its source location and a
+list of input tasks. This is very useful for debugging and interactively
+exploring the structure of your build from the command line.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill inspect foo.run
+foo.run(RunModule...)
+    Runs this module's code in a subprocess and waits for it to finish
+Inputs:
+    foo.finalMainClass
+    foo.runClasspath
+    foo.forkArgs
+    foo.forkWorkingDir
+    foo.runUseArgsFile</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>While <code>inspect</code> also works with the same <code>_</code>/<code>__</code> wildcard/query syntax
+that <a href="#_resolve">resolve</a> do, the most common use case is to inspect one task at a
+time.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_show"><a class="anchor" href="#_show"></a>show</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By default, Mill does not print out the metadata from evaluating a task.
+Most people would not be interested in e.g. viewing the metadata related to
+incremental compilation: they just want to compile their code! However, if you
+want to inspect the build to debug problems, you can make Mill show you the
+metadata output for a task using the <code>show</code> command:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo.sources
+[
+  &quot;.../foo/src&quot;
+]
+
+&gt; mill show foo.allSourceFiles
+[
+  &quot;.../foo/src.../Foo...&quot;
+]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>show</code> is not just for showing configuration values. All tasks return values
+that can be shown with <code>show</code>.
+E.g. <code>compile</code> returns the paths to the <code>classes</code> folder and <code>analysisFile</code>
+file produced by the compilation:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo.compile
+{
+  &quot;analysisFile&quot;: &quot;.../out/foo/compile.dest/zinc&quot;,
+  &quot;classes&quot;: &quot;.../out/foo/compile.dest/classes&quot;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>show</code> is generally useful as a debugging tool, to see what is going on in your build:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo.sources
+[
+  &quot;.../foo/src&quot;
+]
+
+&gt; mill show foo.compileClasspath
+[
+  ...
+  &quot;.../foo/compile-resources&quot;
+]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>show</code> is also useful for interacting with Mill from external tools, since the
+JSON it outputs is structured and easily parsed and manipulated.</p>
+</div>
+<div class="paragraph">
+<p>When <code>show</code> is used with multiple targets, its output will slightly change to a
+JSON array, containing all the results of the given targets.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show 'foo.{sources,compileClasspath}'
+{
+  &quot;foo.sources&quot;: [
+    &quot;.../foo/src&quot;
+  ],
+  &quot;foo.compileClasspath&quot;: [
+    ...
+    &quot;.../foo/compile-resources&quot;
+  ]
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_shownamed"><a class="anchor" href="#_shownamed"></a>showNamed</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Same as <code>show</code>, but the output will always be structured in a JSON
+dictionary, whether there is one or more targets in the selection</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill showNamed 'foo.{sources,compileClasspath}'
+{
+  &quot;foo.sources&quot;: [
+    &quot;.../foo/src&quot;
+  ],
+  &quot;foo.compileClasspath&quot;: [
+    ...
+    &quot;.../foo/compile-resources&quot;
+  ]
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_path"><a class="anchor" href="#_path"></a>path</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>mill path</code> prints out a dependency chain between the first task and the
+second. It is very useful for exploring the build graph and trying to figure
+out how data gets from one task to another, or trying to figure out why
+running <code>mill foo</code> ends up running another task <code>bar</code> that you didn’t
+expect it to.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill path foo.assembly foo.sources
+foo.sources
+foo.allSources
+foo.allSourceFiles
+foo.compile
+foo.finalMainClassOpt
+foo.prependShellScript
+foo.assembly</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If there are multiple possible dependency chains, one of them is picked
+arbitrarily.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_plan"><a class="anchor" href="#_plan"></a>plan</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>mill plan foo</code> shows which tasks would be evaluated if you ran <code>mill foo</code>,
+and in what order, but without actually running them. This is a useful tool for
+debugging your build: e.g. if you suspect a task <code>foo</code> is running things that
+it shouldn’t be running, a quick <code>mill plan</code> will list out all the upstream
+tasks that <code>foo</code> needs to run, and you can then follow up with <code>mill path</code> on
+any individual upstream task to see exactly how <code>foo</code> depends on it.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill plan foo.compileClasspath
+foo.transitiveCompileClasspath
+foo.compileResources
+foo.unmanagedClasspath
+...
+foo.compileIvyDeps
+...
+foo.ivyDeps
+foo.transitiveIvyDeps
+foo.compileClasspath</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_clean"><a class="anchor" href="#_clean"></a>clean</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>clean</code> deletes all the cached outputs of previously executed tasks.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill clean</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>clean</code> without arguments cleans the entire project.
+It also accepts arguments to clean entire modules, or specific tasks.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill clean             # clean all outputs
+&gt; mill clean foo         # clean all outputs for module 'foo' (including nested modules)
+&gt; mill clean foo.compile # only clean outputs for task 'compile' in module 'foo'
+&gt; mill clean foo.{compile,run}
+&gt; mill clean &quot;foo.{compile,run}&quot;
+&gt; mill clean foo.compile foo.run
+&gt; mill clean _.compile
+&gt; mill clean __.compile</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_search_for_dependency_updates"><a class="anchor" href="#_search_for_dependency_updates"></a>Search for dependency updates</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill can search for updated versions of your project’s dependencies, if
+available from your project’s configured repositories. Note that it uses
+heuristics based on common versioning schemes, so it may not work as expected for
+dependencies with particularly weird version numbers.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill mill.scalalib.Dependency/showUpdates
+
+&gt; mill mill.scalalib.Dependency/showUpdates --allowPreRelease true # also show pre-release versions</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Current limitations:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Only works for <code>JavaModule</code> modules (including <code>ScalaModule</code>s,
+<code>CrossScalaModule</code>s, etc.) and Maven repositories.</p>
+</li>
+<li>
+<p>Always applies to all modules in the build.</p>
+</li>
+<li>
+<p>Doesn’t apply to <code>$ivy</code> dependencies used in the build definition itself.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_visualize"><a class="anchor" href="#_visualize"></a>visualize</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill visualize foo._
+[
+  &quot;.../out/visualize.dest/out.txt&quot;,
+  &quot;.../out/visualize.dest/out.dot&quot;,
+  &quot;.../out/visualize.dest/out.json&quot;,
+  &quot;.../out/visualize.dest/out.png&quot;,
+  &quot;.../out/visualize.dest/out.svg&quot;
+]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>mill show visualize</code> takes a subset of the Mill build graph (e.g. <code>core._</code>
+is every task directly under the <code>core</code> module) and draws out their
+relationships in <code>.svg</code> and <code>.png</code> form for you to inspect. It also generates
+<code>.txt</code>, <code>.dot</code> and <code>.json</code> for easy processing by downstream tools.</p>
+</div>
+<div class="paragraph">
+<p>The above command generates the following diagram (right-click open in new tab to see full sized):</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/VisualizeJava.svg" alt="VisualizeJava.svg" />
+</div>
+</div>
+<div class="paragraph">
+<p><code>visualize</code> can be very handy for trying to understand the dependency graph of
+tasks within your Mill build.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_visualizeplan"><a class="anchor" href="#_visualizeplan"></a>visualizePlan</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show visualizePlan foo.run
+[
+  &quot;.../out/visualizePlan.dest/out.txt&quot;,
+  &quot;.../out/visualizePlan.dest/out.dot&quot;,
+  &quot;.../out/visualizePlan.dest/out.json&quot;,
+  &quot;.../out/visualizePlan.dest/out.png&quot;,
+  &quot;.../out/visualizePlan.dest/out.svg&quot;
+]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>mill show visualizePlan</code> is similar to <code>mill show visualize</code> except that it
+shows a graph of the entire build plan, including tasks not directly resolved
+by the query. Tasks directly resolved are shown with a solid border, and
+dependencies are shown with a dotted border.</p>
+</div>
+<div class="paragraph">
+<p>The above command generates the following diagram (right-click open in new tab to see full sized):</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/VisualizePlanJava.svg" alt="VisualizePlanJava.svg" />
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_running_mill_with_custom_jvm_options"><a class="anchor" href="#_running_mill_with_custom_jvm_options"></a>Running Mill with custom JVM options</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>It’s possible to pass JVM options to the Mill launcher. To do this you need to
+create a <code>.mill-jvm-opts</code> file in your project’s root. This file should contain
+JVM options, one per line.</p>
+</div>
+<div class="paragraph">
+<p>For example, if your build requires a lot of memory and bigger stack size, your
+<code>.mill-jvm-opts</code> could look like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>-Xss10m
+-Xmx10G</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The file name for passing JVM options to the Mill launcher is configurable. If
+for some reason you don’t want to use <code>.mill-jvm-opts</code> file name, add
+<code>MILL_JVM_OPTS_PATH</code> environment variable with any other file name.</p>
+</div>
+<hr />
+<div class="paragraph">
+<p>Come by our <a href="https://discord.gg/mMVxRMZc">Discord Channel</a>
+if you want to ask questions or say hi!</p>
+</div>
 </div>
 </div>
 <nav class="pagination">
