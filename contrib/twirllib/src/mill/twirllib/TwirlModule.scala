@@ -36,7 +36,7 @@ trait TwirlModule extends mill.Module { twirlModule =>
   private def scalaParserCombinatorsVersion: T[String] = twirlScalaVersion.map {
     case v if v.startsWith("2.") => "1.1.2"
     case _ => "2.3.0"
-  }
+  }()
 
   /**
    * @since Mill after 0.10.5
@@ -57,7 +57,7 @@ trait TwirlModule extends mill.Module { twirlModule =>
    * @since Mill after 0.10.5
    */
   trait TwirlResolver extends CoursierModule {
-    override def resolveCoursierDependency: Task[Dep => Dependency] = Task.Anon { d: Dep =>
+    override def resolveCoursierDependency: Task[Dep => Dependency] = Task.Anon { (d: Dep) =>
       Lib.depToDependency(d, twirlScalaVersion())
     }
 

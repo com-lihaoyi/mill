@@ -29,7 +29,10 @@ object MultiModuleTests extends TestSuite {
       override def millSourcePath = MultiModule.millSourcePath / "shared"
     }
 
-    override lazy val millDiscover = Discover[this.type]
+    override lazy val millDiscover = {
+      import mill.main.TokenReaders.given
+      Discover[this.type]
+    }
   }
 
   val evaluator = UnitTester(MultiModule, sourcePath)

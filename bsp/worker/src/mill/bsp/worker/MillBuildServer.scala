@@ -633,7 +633,7 @@ private class MillBuildServer(
       State
   ) => V): CompletableFuture[V] = {
     val prefix = hint.split(" ").head
-    completable(hint) { state: State =>
+    completable(hint) { (state: State) =>
       val ids = state.filterNonSynthetic(targetIds(state).asJava).asScala
       val tasksSeq = ids.flatMap { id =>
         val (m, ev) = state.bspModulesById(id)
