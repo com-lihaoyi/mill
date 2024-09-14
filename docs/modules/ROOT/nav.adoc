@@ -27,6 +27,10 @@
 * xref:Scala_Web_Examples.adoc[]
 * xref:Case_Study_Mill_vs_SBT.adoc[]
 
+.xref:Kotlin_Intro_to_Mill.adoc[]
+* xref:Kotlin_Installation_IDE_Support.adoc[]
+* xref:Kotlin_Builtin_Commands.adoc[]
+
 // This section is all about developing a deeper understanding of specific
 // topics in Mill. This is the opposite of `Quick Start` above: while we touch
 // on some end-user use cases, it is only to motivate the Mill features that we

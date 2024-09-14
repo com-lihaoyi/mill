@@ -12,7 +12,7 @@
 // what Mill is, hopefully have downloaded an example to try out, and be
 // interested in learning more about the Mill build tool
 
-= Introduction to Mill for Java
+= Introduction to Mill for Kotlin
 
 ++++
 <script>
@@ -20,32 +20,29 @@ gtag('config', 'AW-16649289906');
 </script>
 ++++
 
-:page-aliases: index.adoc, Intro_to_Mill.adoc, Intro_to_Mill_for_Java.adoc
-
-:language: Java
+:language: Kotlin
 
 include::partial$Intro_to_Mill_Header.adoc[]
 
-Mill is used to build some real-world Java projects, such as the
-https://github.com/swaldman/c3p0[C3P0 JDBC Connection Pool], and
-can be used for applications built on top of common Java frameworks like
-xref:Java_Web_Examples.adoc#_spring_boot_todomvc_app[Spring Boot] or
-xref:Java_Web_Examples.adoc#_micronaut_todomvc_app[Micronaut].
 
 include::partial$Intro_Maven_Gradle_Comparison.adoc[]
 
+Mill's Kotlin support originated as the third-party plugin
+https://github.com/lefou/mill-kotlin[lefou/mill-kotlin], which was later included with
+the main Mill codebase.
+
 include::partial$Intro_to_Mill_BlogVideo.adoc[]
 
-== Simple Java Module
+== Simple Kotlin Module
 
-include::example/javalib/basic/1-simple.adoc[]
+include::example/kotlinlib/basic/1-simple.adoc[]
 
 == Custom Build Logic
 
-include::example/javalib/basic/2-custom-build-logic.adoc[]
+include::example/kotlinlib/basic/2-custom-build-logic.adoc[]
 
 == Multi-Module Project
 
-include::example/javalib/basic/3-multi-module.adoc[]
+include::example/kotlinlib/basic/3-multi-module.adoc[]
 
 include::partial$Intro_to_Mill_Footer.adoc[]
