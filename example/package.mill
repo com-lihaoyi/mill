@@ -89,6 +89,16 @@ object `package` extends RootModule with Module {
     val upstreamOpt = upstreamCross(this.millModuleSegments.parts.dropRight(1).last)
       .flatMap(_.valuesToModules.get(List(crossValue)))
 
+    def testRepoRoot = T{
+      os.copy(super.testRepoRoot().path, T.dest, mergeFolders = true)
+      for(suffix <- Seq("build.sc", "build.mill", "build.mill.scala")){
+        for (lines <- buildScLines() if os.exists(T.dest / suffix)) {
+          os.write.over(T.dest / suffix, lines.mkString("\n"))
+        }
+      }
+      PathRef(T.dest)
+    }
+
     def resources = upstreamOpt match {
       case None => T{ Seq(super.testRepoRoot()) }
       case Some(upstream) => T{
