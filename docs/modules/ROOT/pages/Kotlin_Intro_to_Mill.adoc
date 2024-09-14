@@ -1,0 +1,48 @@
+
+// Author Notes:
+//
+// This is the first page a user is expected to land on when learning about
+// Mill. It is designed to be a quick, broad overview to get someone started:
+// what is Mill, why should they care, and what some simple Mill builds look
+// like and how to use them. We intentionally touch shallowly on a lot of
+// topics without giving them a proper discussion, since the other pages have
+// plenty of space to go in-depth.
+//
+// By the end of this page, a prospective Mill user should be familiar with
+// what Mill is, hopefully have downloaded an example to try out, and be
+// interested in learning more about the Mill build tool
+
+= Introduction to Mill for Kotlin
+
+++++
+<script>
+gtag('config', 'AW-16649289906');
+</script>
+++++
+
+:language: Kotlin
+
+include::partial$Intro_to_Mill_Header.adoc[]
+
+
+include::partial$Intro_Maven_Gradle_Comparison.adoc[]
+
+Mill's Kotlin support originated as the third-party plugin
+https://github.com/lefou/mill-kotlin[lefou/mill-kotlin], which was later included with
+the main Mill codebase.
+
+include::partial$Intro_to_Mill_BlogVideo.adoc[]
+
+== Simple Kotlin Module
+
+include::example/kotlinlib/basic/1-simple.adoc[]
+
+== Custom Build Logic
+
+include::example/kotlinlib/basic/2-custom-build-logic.adoc[]
+
+== Multi-Module Project
+
+include::example/kotlinlib/basic/3-multi-module.adoc[]
+
+include::partial$Intro_to_Mill_Footer.adoc[]

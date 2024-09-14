@@ -21,11 +21,14 @@ object MainTests extends TestSuite {
       test("resource") {
         val expected = new java.util.ArrayList[Path]()
         expected.add(Paths.get(sys.env("MILL_TEST_RESOURCE_FOLDER") + "/hello-resource.txt"))
-        val listed = Files.list(Paths.get(sys.env("MILL_TEST_RESOURCE_FOLDER"))).collect(Collectors.toList())
+        val listed =
+          Files.list(Paths.get(sys.env("MILL_TEST_RESOURCE_FOLDER"))).collect(Collectors.toList())
         assert(listed == expected)
         assert(
-          Files.readString(Paths.get(sys.env("MILL_TEST_RESOURCE_FOLDER") + "/hello-resource.txt")) ==
-          "hello world resource text"
+          Files.readString(
+            Paths.get(sys.env("MILL_TEST_RESOURCE_FOLDER") + "/hello-resource.txt")
+          ) ==
+            "hello world resource text"
         )
       }
     }

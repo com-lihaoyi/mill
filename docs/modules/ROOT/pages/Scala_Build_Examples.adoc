@@ -40,10 +40,6 @@ include::example/scalalib/builds/3-override-tasks.adoc[]
 
 include::example/scalalib/builds/4-nested-modules.adoc[]
 
-== Publish Module
-
-include::example/scalalib/builds/6-publish-module.adoc[]
-
 == Cross-Scala-Version Modules
 
 include::example/scalalib/builds/7-cross-scala-version.adoc[]

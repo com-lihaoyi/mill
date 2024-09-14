@@ -1,3 +1,12 @@
+// Mill comes with a number of useful commands out of the box. These are listed
+// in the API Docs:
+//
+// * {mill-doc-url}/api/latest/mill/main/MainModule.html[mill.main.MainModule]
+//
+// Mill's built-in commands are typically not directly related to building your
+// application code, but instead are utilities that help you understand and work
+// with your Mill build.
+//
 // == Example `build.mill`
 //
 // The following examples will be assuming the `build.mill` file given below:
@@ -357,6 +366,6 @@ foo.compileClasspath
 //
 // ---
 //
-// Come by our https://discord.com/channels/632150470000902164/940067748103487558[Discord Channel]
+// Come by our https://discord.gg/mMVxRMZc[Discord Channel]
 // if you want to ask questions or say hi!
 //

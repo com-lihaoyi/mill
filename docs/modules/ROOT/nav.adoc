@@ -10,7 +10,7 @@
 * xref:Java_Build_Examples.adoc[]
 * xref:Testing_Java_Projects.adoc[]
 * xref:Linting_Java_Projects.adoc[]
-// * xref:Publishing_Java_Projects.adoc[]
+* xref:Publishing_Java_Projects.adoc[]
 * xref:Java_Web_Examples.adoc[]
 * xref:Case_Study_Mill_vs_Maven.adoc[]
 * xref:Case_Study_Mill_vs_Gradle.adoc[]
@@ -22,9 +22,13 @@
 * xref:Scala_Build_Examples.adoc[]
 * xref:Testing_Scala_Projects.adoc[]
 * xref:Linting_Scala_Projects.adoc[]
-// * xref:Publishing_Scala_Projects.adoc[]
+* xref:Publishing_Scala_Projects.adoc[]
 * xref:Scala_Web_Examples.adoc[]
 * xref:Case_Study_Mill_vs_SBT.adoc[]
+
+.xref:Kotlin_Intro_to_Mill.adoc[]
+* xref:Kotlin_Installation_IDE_Support.adoc[]
+* xref:Kotlin_Builtin_Commands.adoc[]
 
 // This section is all about developing a deeper understanding of specific
 // topics in Mill. This is the opposite of `Quick Start` above: while we touch
