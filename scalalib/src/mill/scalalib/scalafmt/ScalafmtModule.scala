@@ -75,7 +75,7 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule with TaskModule
   override def defaultCommandName(): String = "reformatAll"
 
   def reformatAll(@arg(positional = true) sources: Tasks[Seq[PathRef]] =
-                  Tasks.resolveMainDefault("__.sources")) =
+    Tasks.resolveMainDefault("__.sources")) =
     T.command {
       val files = T.sequence(sources.value)().flatMap(filesToFormat)
       ScalafmtWorkerModule
@@ -87,8 +87,7 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule with TaskModule
     }
 
   def checkFormatAll(@arg(positional = true) sources: Tasks[Seq[PathRef]] =
-                     Tasks.resolveMainDefault("__.sources"))
-      : Command[Unit] =
+    Tasks.resolveMainDefault("__.sources")): Command[Unit] =
     T.command {
       val files = T.sequence(sources.value)().flatMap(filesToFormat)
       ScalafmtWorkerModule
