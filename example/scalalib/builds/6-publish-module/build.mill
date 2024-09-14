@@ -44,7 +44,7 @@ Publishing Artifact(com.lihaoyi,foo_2.13,0.0.1) to ivy repo...
 //
 // [source,bash]
 // ----
-// mill mill.scalalib.PublishModule/publishAll \
+// mill mill.scalalib.PublishModule/ \
 //         foo.publishArtifacts \
 //         lihaoyi:$SONATYPE_PASSWORD \
 //         --gpgArgs --passphrase=$GPG_PASSWORD,--batch,--yes,-a,-b
@@ -70,7 +70,7 @@ Publishing Artifact(com.lihaoyi,foo_2.13,0.0.1) to ivy repo...
 //
 // [source,bash]
 // ----
-// mill mill.scalalib.PublishModule/publishAll \
+// mill mill.scalalib.PublishModule/ \
 //         foo.publishArtifacts \
 //         lihaoyi:$SONATYPE_PASSWORD \
 //         --gpgArgs --passphrase=$GPG_PASSWORD,--batch,--yes,-a,-b \
@@ -82,7 +82,7 @@ Publishing Artifact(com.lihaoyi,foo_2.13,0.0.1) to ivy repo...
 //
 // [source,bash]
 // ----
-// mill mill.scalalib.PublishModule/publishAll \
+// mill mill.scalalib.PublishModule/ \
 //         __.publishArtifacts \
 //         lihaoyi:$SONATYPE_PASSWORD \
 //         --gpgArgs --passphrase=$GPG_PASSWORD,--batch,--yes,-a,-b \
@@ -95,7 +95,7 @@ Publishing Artifact(com.lihaoyi,foo_2.13,0.0.1) to ivy repo...
 //
 // [source,bash]
 // ----
-// mill mill.scalalib.PublishModule/publishAll \
+// mill mill.scalalib.PublishModule/ \
 //         foo.publishArtifacts \
 //         lihaoyi:$SONATYPE_PASSWORD \
 //         --sonatypeUri http://example.company.com/release \
@@ -127,7 +127,7 @@ Publishing Artifact(com.lihaoyi,foo_2.13,0.0.1) to ivy repo...
 //
 // [source,bash]
 // ----
-// mill mill.scalalib.PublishModule/publishAll \
+// mill mill.scalalib.PublishModule/ \
 //         foo.publishArtifacts \
 //         lihaoyi:$SONATYPE_PASSWORD \
 //         --sonatypeUri http://example.company.com/release \

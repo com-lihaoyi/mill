@@ -1,0 +1,21 @@
+= Linting Scala Projects
+
+++++
+<script>
+gtag('config', 'AW-16649289906');
+</script>
+++++
+
+This page will discuss common topics around maintaining the code quality of Scala
+codebases using the Mill build tool
+
+== Autoformatting and Enforcement
+
+include::example/scalalib/linting/1-scalafmt.adoc[]
+
+== Scoverage Code Coverage
+
+Mill supports Java code coverage analysis via the Scoverage contrib plugin. See the
+contrib plugin documentation for more details:
+
+* xref:contrib/scoverage.adoc[]

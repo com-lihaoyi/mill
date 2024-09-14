@@ -98,8 +98,8 @@ object ParseArgsTests extends TestSuite {
           ParseArgs(input, if (multiSelect) SelectMode.Multi else SelectMode.Separated)
 
         val selectors = selectors0.map {
-          case (Some(v1), v2) => (Some(v1.value), v2.value)
-          case (None, v2) => (None, v2.value)
+          case (Some(v1), Some(v2)) => (Some(v1.value), v2.value)
+          case (None, Some(v2)) => (None, v2.value)
         }
         assert(
           selectors == expectedSelectors,
@@ -237,8 +237,8 @@ object ParseArgsTests extends TestSuite {
         val actual = parsed.map {
           case (selectors0, args) =>
             val selectors = selectors0.map {
-              case (Some(v1), v2) => (Some(v1.value), v2.value)
-              case (None, v2) => (None, v2.value)
+              case (Some(v1), Some(v2)) => (Some(v1.value), v2.value)
+              case (None, Some(v2)) => (None, v2.value)
             }
             (selectors, args)
         }

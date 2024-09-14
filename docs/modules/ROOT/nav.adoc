@@ -21,6 +21,7 @@
 * xref:Scala_Module_Config.adoc[]
 * xref:Scala_Build_Examples.adoc[]
 * xref:Testing_Scala_Projects.adoc[]
+* xref:Linting_Scala_Projects.adoc[]
 // * xref:Publishing_Scala_Projects.adoc[]
 * xref:Scala_Web_Examples.adoc[]
 * xref:Case_Study_Mill_vs_SBT.adoc[]

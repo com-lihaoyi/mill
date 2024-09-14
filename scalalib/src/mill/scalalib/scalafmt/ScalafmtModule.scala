@@ -3,9 +3,10 @@ package mill.scalalib.scalafmt
 import mill._
 import mill.main.client.CodeGenConstants.buildFileExtensions
 import mill.api.Result
-import mill.define.{ExternalModule, Discover}
+import mill.define.{Discover, ExternalModule}
 import mill.scalalib._
 import mainargs.arg
+import mill.main.Tasks
 
 trait ScalafmtModule extends JavaModule {
 
@@ -73,7 +74,8 @@ trait ScalafmtModule extends JavaModule {
 object ScalafmtModule extends ExternalModule with ScalafmtModule with TaskModule {
   override def defaultCommandName(): String = "reformatAll"
 
-  def reformatAll(@arg(positional = true) sources: mill.main.Tasks[Seq[PathRef]]): Command[Unit] =
+  def reformatAll(@arg(positional = true) sources: Tasks[Seq[PathRef]] =
+                  Tasks.resolveMainDefault("__.sources")) =
     T.command {
       val files = T.sequence(sources.value)().flatMap(filesToFormat)
       ScalafmtWorkerModule
@@ -84,7 +86,8 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule with TaskModule
         )
     }
 
-  def checkFormatAll(@arg(positional = true) sources: mill.main.Tasks[Seq[PathRef]])
+  def checkFormatAll(@arg(positional = true) sources: Tasks[Seq[PathRef]] =
+                     Tasks.resolveMainDefault("__.sources"))
       : Command[Unit] =
     T.command {
       val files = T.sequence(sources.value)().flatMap(filesToFormat)
