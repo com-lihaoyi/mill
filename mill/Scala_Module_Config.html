@@ -154,6 +154,10 @@
   </li>
 
   <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Linting_Scala_Projects.html">Linting Scala Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Publishing_Scala_Projects.html">Publishing Scala Projects</a>
   </li>
 
@@ -363,14 +367,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.0-RC1-31-081d69</span>
+    <span class="version">0.12.0-RC1-32-ac9d9b</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="0.11.12/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="index.html">0.12.0-RC1-31-081d69</a>
+          <a href="index.html">0.12.0-RC1-32-ac9d9b</a>
         </li>
         <li class="version is-latest">
           <a href="0.11.12/index.html">0.11.12</a>
@@ -415,9 +419,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC1-31-081d69</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC1-32-ac9d9b</button>
   <div class="version-menu">
-    <a class="version is-current" href="Scala_Module_Config.html">0.12.0-RC1-31-081d69</a>
+    <a class="version is-current" href="Scala_Module_Config.html">0.12.0-RC1-32-ac9d9b</a>
     <a class="version" href="0.11.12/Scala_Module_Config.html">0.11.12</a>
     <a class="version" href="0.11.11/Scala_Module_Config.html">0.11.11</a>
     <a class="version" href="0.11.10/Scala_Module_Config.html">0.11.10</a>
@@ -1388,42 +1392,6 @@ sources as browsable from the <code>unidocSourceUrl</code> base (e.g. on Github)
 
 &gt; ./mill show foo.unidocSite</code></pre>
 </div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_reformatting_your_code"><a class="anchor" href="#_reformatting_your_code"></a>Reformatting your code</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Mill supports code formatting via <a href="https://scalameta.org/scalafmt/">scalafmt</a> out of the box.</p>
-</div>
-<div class="paragraph">
-<p>To have a formatting per-module you need to make your module extend <code>mill.scalalib.scalafmt.ScalafmtModule</code>:</p>
-</div>
-<div class="listingblock">
-<div class="title"><code>build.mill</code></div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._, scalafmt._
-
-object foo extends ScalaModule with ScalafmtModule {
-  def scalaVersion = &quot;2.13.14&quot;
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Now you can reformat code with <code>mill foo.reformat</code> command, or only check for misformatted files with <code>mill foo.checkFormat</code>.</p>
-</div>
-<div class="paragraph">
-<p>You can also reformat your project’s code globally with <code>mill mill.scalalib.scalafmt.ScalafmtModule/reformatAll __.sources</code> command,
-or only check the code’s format with <code>mill mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources</code>.
-It will reformat all sources that matches <code>__.sources</code> query.</p>
-</div>
-<div class="paragraph">
-<p>If you add a <code>.scalafmt.conf</code> file at the root of you project, it will be used
-to configure formatting. It can contain a <code>version</code> key to specify the scalafmt
-version used to format your code. See the
-<a href="https://scalameta.org/scalafmt/docs/configuration.html">scalafmt configuration documentation</a>
-for details.</p>
 </div>
 </div>
 </div>
