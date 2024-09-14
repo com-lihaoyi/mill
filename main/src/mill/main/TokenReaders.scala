@@ -9,7 +9,7 @@ import mill.resolve.SimpleTaskTokenReader
 case class Tasks[T](value: Seq[mill.define.NamedTask[T]])
 
 object Tasks {
-  def resolveMainDefault[T](tokens: String*) = {
+  def resolveMainDefault[T](tokens: String*): Tasks[T] = {
     new Tasks.TokenReader[T]()
       .read(tokens)
       .getOrElse(sys.error("Unable to resolve: " + tokens.mkString(" ")))

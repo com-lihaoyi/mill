@@ -201,8 +201,8 @@ object ParseArgsTests extends TestSuite {
           List(
             (
               List(
-                None -> Segments(Seq(Label("core"), Label("compile"))),
-                None -> Segments(Seq(Label("application"), Label("compile")))
+                None -> Some(Segments(Seq(Label("core"), Label("compile")))),
+                None -> Some(Segments(Seq(Label("application"), Label("compile"))))
               ),
               Nil
             )
