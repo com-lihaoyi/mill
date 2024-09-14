@@ -6,7 +6,8 @@ gtag('config', 'AW-16649289906');
 </script>
 ++++
 
-This page will discuss common topics around working with test suites using the Mill build tool
+This page will discuss common topics around enforcing the code quality of Java
+codebases using the Mill build tool
 
 == ErrorProne
 

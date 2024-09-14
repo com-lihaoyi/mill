@@ -48,14 +48,14 @@ You can publish all eligible modules in your Mill project as follows:
 
 [source,bash]
 ----
-mill mill.scalalib.PublishModule/publishAll
+mill mill.scalalib.PublishModule/
 ----
 
 You can also specify individual modules you want to publish via a selector:
 
 [source,bash]
 ----
-mill mill.scalalib.PublishModule/publishAll foo.publishArtifacts
+mill mill.scalalib.PublishModule/ foo.publishArtifacts
 ----
 
 The default URL for publishing to sonatype's Maven Central is `oss.sonatype.org`.
@@ -64,7 +64,7 @@ In that case, you can pass in a `--sonatypeUri`:
 
 [source,bash]
 ----
-mill mill.scalalib.PublishModule/publishAll \
+mill mill.scalalib.PublishModule/ \
         --sonatypeUri https://s01.oss.sonatype.org/service/local
 ----
 
@@ -108,7 +108,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-      - run: ./mill mill.scalalib.PublishModule/publishAll
+      - run: ./mill mill.scalalib.PublishModule/
         env:
           MILL_PGP_PASSPHRASE: ${{ secrets.MILL_PGP_PASSPHRASE }}
           MILL_PGP_SECRET_BASE64: ${{ secrets.MILL_PGP_SECRET_BASE64 }}
@@ -131,7 +131,7 @@ maven path under `sonatypeUri` instead of staging path.
 
 [source,bash]
 ----
-mill mill.scalalib.PublishModule/publishAll \
+mill mill.scalalib.PublishModule/ \
         foo.publishArtifacts \
         lihaoyi:$SONATYPE_PASSWORD \
         --sonatypeUri http://example.company.com/release \
