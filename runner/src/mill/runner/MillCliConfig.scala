@@ -63,7 +63,8 @@ class MillCliConfig private (
       short = 'j',
       doc =
         """Allow processing N targets in parallel.
-           Use 1 to disable parallel and 0 to use as much threads as available processors."""
+           Use 1 to disable parallel and 0 to use as much threads as available processors.
+           For fractional inputs (e.g. 50% of available processors), use a decimal number followed by C (e.g. 0.5C)."""
     )
     val threadCountRaw: Option[String],
     @arg(
