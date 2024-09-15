@@ -65,7 +65,7 @@ class MillCliConfig private (
         """Allow processing N targets in parallel.
            Use 1 to disable parallel and 0 to use as much threads as available processors."""
     )
-    val threadCountRaw: Option[Int],
+    val threadCountRaw: Option[String],
     @arg(
       name = "import",
       doc = """Additional ivy dependencies to load into mill, e.g. plugins."""
@@ -175,7 +175,7 @@ object MillCliConfig {
       debugLog: Flag = Flag(),
       keepGoing: Flag = Flag(),
       extraSystemProperties: Map[String, String] = Map(),
-      threadCountRaw: Option[Int] = None,
+      threadCountRaw: Option[String] = None,
       imports: Seq[String] = Seq(),
       interactive: Flag = Flag(),
       help: Flag = Flag(),
@@ -224,7 +224,7 @@ object MillCliConfig {
       debugLog: Flag,
       keepGoing: Flag,
       extraSystemProperties: Map[String, String],
-      threadCountRaw: Option[Int],
+      threadCountRaw: Option[String],
       imports: Seq[String],
       interactive: Flag,
       help: Flag,
@@ -273,7 +273,7 @@ object MillCliConfig {
       debugLog: Flag,
       keepGoing: Flag,
       extraSystemProperties: Map[String, String],
-      threadCountRaw: Option[Int],
+      threadCountRaw: Option[String],
       imports: Seq[String],
       interactive: Flag,
       help: Flag,
