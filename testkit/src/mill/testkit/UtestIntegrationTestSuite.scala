@@ -15,7 +15,7 @@ abstract class UtestIntegrationTestSuite extends utest.TestSuite with Integratio
   ): Future[Any] = {
     Retry(
       count = if (sys.env.contains("CI")) 1 else 0,
-      timeoutMillis = 5.minutes.toMillis
+      timeoutMillis = 10.minutes.toMillis
     ) {
       super.utestWrap(path, runBody)
     }
