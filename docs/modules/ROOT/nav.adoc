@@ -40,15 +40,14 @@
 .Mill In Depth
 * xref:Library_Dependencies.adoc[]
 * xref:Out_Dir.adoc[]
+* xref:Target_Query_Syntax.adoc[]
 * xref:Tasks.adoc[]
 * xref:Modules.adoc[]
 * xref:Cross_Builds.adoc[]
-* xref:Target_Query_Syntax.adoc[]
 * xref:Structuring_Large_Builds.adoc[]
-
-* xref:The_Mill_Evaluation_Model.adoc[]
 * xref:Mill_Sandboxing.adoc[]
-
+* xref:Bundled_Libraries.adoc[]
+* xref:The_Mill_Evaluation_Model.adoc[]
 // This section talks about Mill plugins. While it could theoretically fit in
 // either section above, it is probably an important enough topic it is worth
 // breaking out on its own
@@ -85,6 +84,5 @@
 // *somewhere*.
 .Reference
 * xref:Mill_Design_Principles.adoc[]
-* xref:Bundled_Libraries.adoc[]
 * {mill-doc-url}/api/latest/mill/index.html[Mill Scaladoc]
 * xref:Changelog.adoc[]
