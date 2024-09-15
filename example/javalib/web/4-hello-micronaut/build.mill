@@ -57,7 +57,8 @@ trait MicronautModule extends MavenModule{
 // Although Mill does not have a built in `MicronautModule`, this example shows how easy
 // it is to define it yourself as `trait MicronautModule`: setting up the annotation processor
 // classpath as a `JavaModule` and setting up the annotation via `javacOptions`. Once defined,
-// you can then use `MicronautModule` in your build just like you.
+// you can then use `MicronautModule` in your build just like you can use any builtin
+// `trait` like `JavaModule`.
 //
 // The `MicronautModule` shown here does not implement the full functionality of the micronaut
 // CLI; in particular, support for Micronaut AOT compilation is missing. But it easily can be
