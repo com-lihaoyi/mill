@@ -3,7 +3,7 @@ package mill.runner
 import java.io.{FileOutputStream, PipedInputStream, PrintStream}
 import java.util.Locale
 import scala.jdk.CollectionConverters._
-import scala.util.Properties
+import scala.util.{Failure, Properties, Success, Try}
 import mill.java9rtexport.Export
 import mill.api.{MillException, SystemStreams, WorkspaceRoot, internal}
 import mill.bsp.{BspContext, BspServerResult}
@@ -169,6 +169,7 @@ object MillMain {
 
             // special BSP mode, in which we spawn a server and register the current evaluator when-ever we start to eval a dedicated command
             val bspMode = config.bsp.value && config.leftoverArgs.value.isEmpty
+            val maybeThreadCount = parseThreadCount(config.threadCountRaw)
 
             val (success, nextStateCache) = {
               if (config.repl.value) {
@@ -179,15 +180,14 @@ object MillMain {
                 logger.error("A target must be provided.")
                 (false, stateCache)
 
+              } else if (maybeThreadCount.isFailure) {
+                logger.error(maybeThreadCount.failed.get.getMessage)
+                (false, stateCache)
               } else {
                 val userSpecifiedProperties =
                   userSpecifiedProperties0 ++ config.extraSystemProperties
 
-                val threadCount = config.threadCountRaw match {
-                  case None => None
-                  case Some(0) => None
-                  case Some(n) => Some(n)
-                }
+                val threadCount = Some(maybeThreadCount.get)
 
                 if (mill.main.client.Util.isJava9OrAbove) {
                   val rt = config.home / Export.rtJarName
@@ -272,6 +272,27 @@ object MillMain {
             (success, nextStateCache)
         }
       }
+    }
+  }
+
+  private def parseThreadCount(threadCountRaw: Option[String]): Try[Int] = {
+    val cores = Runtime.getRuntime.availableProcessors()
+    def err(detail: String) = new Exception(
+      s"Invalid value \"${threadCountRaw.getOrElse("")}\" for flag -j/--jobs: $detail")
+    (threadCountRaw match {
+      case None => Success(cores)
+      case Some(s"${n}C") => n.toDoubleOption.map(Success(_))
+        .getOrElse(Failure(err("Failed to find a float number before \"C\".")))
+        .map(m => (m * cores).toInt)
+      case Some(s"C-${n}") => n.toIntOption.map(Success(_))
+        .getOrElse(Failure(err("Failed to find a int number after \"C-\".")))
+        .map(cores - _)
+      case Some(n) => n.toIntOption.map(Success(_))
+        .getOrElse(Failure(err("Failed to find a int number")))
+    }).flatMap {
+      case x if x < 0 => Failure(err("Calculated cores to use is a negative number."))
+      case 0 => Success(cores) // use all cores if 0
+      case x => Success(x)
     }
   }
 
