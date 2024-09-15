@@ -39,6 +39,7 @@ object `package` extends RootModule with Module {
   }
   object kotlinlib extends Module {
     object basic extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "basic"))
+    object builds extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "builds"))
   }
   object scalalib extends Module {
     object basic extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "basic"))
