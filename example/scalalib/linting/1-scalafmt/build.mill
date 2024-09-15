@@ -5,7 +5,7 @@ object `package` extends RootModule with ScalaModule {
   def scalaVersion = "2.13.11"
 }
 
-/** See Also .scalafmt.conf */
+/** See Also: .scalafmt.conf */
 
 // Mill supports code formatting via https://scalameta.org/scalafmt/[scalafmt] out of the box.
 // You can reformat your project's code globally with `mill mill.scalalib.scalafmt.ScalafmtModule/` command,
