@@ -13,6 +13,8 @@ import mill.util.PrintLogger
 import java.lang.reflect.InvocationTargetException
 import scala.util.control.NonFatal
 
+import scala.util.Try
+
 @internal
 object MillMain {
 
@@ -183,10 +185,30 @@ object MillMain {
                 val userSpecifiedProperties =
                   userSpecifiedProperties0 ++ config.extraSystemProperties
 
-                val threadCount = config.threadCountRaw match {
+                val threadCount: Option[Int] = config.threadCountRaw match {
                   case None => None
-                  case Some(0) => None
-                  case Some(n) => Some(n)
+                  case Some(threadCountStr) => {
+                    Try(threadCountStr.toInt).toOption match {
+                      case Some(0) => None
+                      case Some(n) => Some(n)
+                      case _ =>
+                        logger.errorStream.println(s"Thread count may be a fraction of cores: $threadCountStr")
+                        Try(threadCountStr.toFloat).toOption match {
+                          case Some(n) => {
+                            val cores = Runtime.getRuntime.availableProcessors()
+                            val threads = Math.round(n * cores)
+                            logger.errorStream.println(s"Fractional thread count is $threads ($n * $cores)")
+                            if (threads > 0) Some(threads.toInt)
+                            else {
+                              None
+                            }
+                          }
+                          case _ =>
+                            logger.errorStream.println(s"Thread count must be either an integer number of cores OR a fraction of cores: $threadCountStr")
+                            None
+                        }
+                    }
+                  }
                 }
 
                 if (mill.main.client.Util.isJava9OrAbove) {
