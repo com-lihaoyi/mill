@@ -28,8 +28,10 @@ object GenIdeaUtils {
       )
     }
     println(
-      s"Checking ${expectedResourcePath.relativeTo(workspacePath)} ... ${if (check.isSuccess) "OK"
-        else "FAILED"}"
+      s"Checking ${expectedResourcePath.relativeTo(workspacePath)} ... ${
+          if (check.isSuccess) "OK"
+          else "FAILED"
+        }"
     )
     check.get
   }
