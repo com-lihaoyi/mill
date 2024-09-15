@@ -278,17 +278,18 @@ object MillMain {
   private def parseThreadCount(threadCountRaw: Option[String]): Try[Int] = {
     val cores = Runtime.getRuntime.availableProcessors()
     def err(detail: String) = new Exception(
-      s"Invalid value \"${threadCountRaw.getOrElse("")}\" for flag -j/--jobs: $detail")
+      s"Invalid value \"${threadCountRaw.getOrElse("")}\" for flag -j/--jobs: $detail"
+    )
     (threadCountRaw match {
       case None => Success(cores)
       case Some(s"${n}C") => n.toDoubleOption.map(Success(_))
-        .getOrElse(Failure(err("Failed to find a float number before \"C\".")))
-        .map(m => (m * cores).toInt)
+          .getOrElse(Failure(err("Failed to find a float number before \"C\".")))
+          .map(m => (m * cores).toInt)
       case Some(s"C-${n}") => n.toIntOption.map(Success(_))
-        .getOrElse(Failure(err("Failed to find a int number after \"C-\".")))
-        .map(cores - _)
+          .getOrElse(Failure(err("Failed to find a int number after \"C-\".")))
+          .map(cores - _)
       case Some(n) => n.toIntOption.map(Success(_))
-        .getOrElse(Failure(err("Failed to find a int number")))
+          .getOrElse(Failure(err("Failed to find a int number")))
     }).flatMap {
       case x if x < 0 => Failure(err("Calculated cores to use is a negative number."))
       case 0 => Success(cores) // use all cores if 0
