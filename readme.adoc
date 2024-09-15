@@ -298,6 +298,49 @@ endif::[]
 :link-milestone: {link-github}/milestone
 // find-replace-regex: https://github.com/com-lihaoyi/mill/pull/(\d*) -> {link-pr}/$1[#$1]
 
+[#0-12-0-RC2]
+=== 0.12.0-RC2 - 2024-09-16
+
+Changes since 0.12.0-RC1
+
+* Support `exclude` attribute in `Dep` parser. You can give exclusions with `;exclude=org:name`
+  or `;exclude=org:*` or `;exclude=*:name` {link-pr}/3492[#3492]
+
+* Fix `ScalaModule#console` by properly inheriting streams {link-pr}/3500[#3500]
+
+* Adjust codegen to allow custom ``mainargs.TokensReader``s, and include a
+  `mainargs.TokensReader[os.Path]` by default for convenience {link-pr}/3504[#3504]
+
+* Update to https://github.com/com-lihaoyi/os-lib?tab=readme-ov-file#0-10-7[OS-Lib 0.10.7] to
+  allow concise multi-segment sub-paths; you can now write `os.pwd / "foo/bar/qux"` rather than
+  `os.pwd / "foo" / "bar" / "qux"`
+
+* Add `JavaModule.mandatoryJavacOptions`. Those are not propagated to the inner test
+  traits intentionally, since those options are typically configured by other means,
+  e.g. dedicated targets. {link-pr}/3503[#3503]
+
+* Add plugins to run Checkstyle and generate reports {link-pr}/3516[#3516]
+
+* Simplified ``PublishModule``'s publishing setup via  {link-pr}/3523[#3523]. You can now
+  run `mill mill.scalalib.PublishModule/` with the proper environment variables (below) and
+  it should do the right thing by default
+
+** Prefix all environment variables with `MILL_`:
+   `MILL_SONATYPE_USERNAME`, `MILL_SONATYPE_PASSWORD`,
+   `MILL_PGP_SECRET_BASE64`, `MILL_PGP_PASSPHRASE` to try and add some
+   rudimentary ownership and namespacing
+
+* Allow external modules to have a `defaultCommandName` {link-pr}/3545[#3545]. This has
+  been applied to `ScalafmtModule` and `PublishModule`, so you can
+  now autoformat your code via `mill mill.scalalib.ScalafmtModule/` and publish it via
+  `mill mill.scalalib.PublishModule/` without needing the `/reformatAll __.sources`
+  or `/publishAll __.publishArtifacts` suffix
+
+* Integrated Kotlin integration as a first partly module and add example documentation
+  {link-pr}/3514[#3514]. This is still pretty spartan, but we expect to flesh it out over time
+
+* Move `.mill.sc` alternate file extension to `.mill.scala` {link-pr}/3521[#3521]
+
 [#0-12-0-RC1]
 === 0.12.0-RC1 - 2024-09-09
 
