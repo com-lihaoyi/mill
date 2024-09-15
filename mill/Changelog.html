@@ -385,9 +385,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC1-40-effc43</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-2-2ea59a</button>
   <div class="version-menu">
-    <a class="version is-current" href="Changelog.html">0.12.0-RC1-40-effc43</a>
+    <a class="version is-current" href="Changelog.html">0.12.0-RC2-2-2ea59a</a>
     <a class="version" href="0.11.12/Changelog.html">0.11.12</a>
     <a class="version" href="0.11.11/Changelog.html">0.11.11</a>
     <a class="version" href="0.11.10/Changelog.html">0.11.10</a>
@@ -406,6 +406,71 @@
 </aside>
 <article class="doc">
 <h1 class="page">Changelog</h1>
+<div class="sect1">
+<h2 id="0-12-0-RC2"><a class="anchor" href="#0-12-0-RC2"></a>0.12.0-RC2 - 2024-09-16</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Changes since 0.12.0-RC1</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Support <code>exclude</code> attribute in <code>Dep</code> parser. You can give exclusions with <code>;exclude=org:name</code>
+or <code>;exclude=org:*</code> or <code>;exclude=*:name</code> <a href="https://github.com/com-lihaoyi/mill/pull/3492">#3492</a></p>
+</li>
+<li>
+<p>Fix <code>ScalaModule#console</code> by properly inheriting streams <a href="https://github.com/com-lihaoyi/mill/pull/3500">#3500</a></p>
+</li>
+<li>
+<p>Adjust codegen to allow custom <code>mainargs.TokensReader</code>s, and include a
+<code>mainargs.TokensReader[os.Path]</code> by default for convenience <a href="https://github.com/com-lihaoyi/mill/pull/3504">#3504</a></p>
+</li>
+<li>
+<p>Update to <a href="https://github.com/com-lihaoyi/os-lib?tab=readme-ov-file#0-10-7">OS-Lib 0.10.7</a> to
+allow concise multi-segment sub-paths; you can now write <code>os.pwd / &quot;foo/bar/qux&quot;</code> rather than
+<code>os.pwd / &quot;foo&quot; / &quot;bar&quot; / &quot;qux&quot;</code></p>
+</li>
+<li>
+<p>Add <code>JavaModule.mandatoryJavacOptions</code>. Those are not propagated to the inner test
+traits intentionally, since those options are typically configured by other means,
+e.g. dedicated targets. <a href="https://github.com/com-lihaoyi/mill/pull/3503">#3503</a></p>
+</li>
+<li>
+<p>Add plugins to run Checkstyle and generate reports <a href="https://github.com/com-lihaoyi/mill/pull/3516">#3516</a></p>
+</li>
+<li>
+<p>Simplified <code>PublishModule</code>'s publishing setup via  <a href="https://github.com/com-lihaoyi/mill/pull/3523">#3523</a>. You can now
+run <code>mill mill.scalalib.PublishModule/</code> with the proper environment variables (below) and
+it should do the right thing by default</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Prefix all environment variables with <code>MILL_</code>:
+<code>MILL_SONATYPE_USERNAME</code>, <code>MILL_SONATYPE_PASSWORD</code>,
+<code>MILL_PGP_SECRET_BASE64</code>, <code>MILL_PGP_PASSPHRASE</code> to try and add some
+rudimentary ownership and namespacing</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Allow external modules to have a <code>defaultCommandName</code> <a href="https://github.com/com-lihaoyi/mill/pull/3545">#3545</a>. This has
+been applied to <code>ScalafmtModule</code> and <code>PublishModule</code>, so you can
+now autoformat your code via <code>mill mill.scalalib.ScalafmtModule/</code> and publish it via
+<code>mill mill.scalalib.PublishModule/</code> without needing the <code>/reformatAll <em>.sources</em></code>
+or <code>/publishAll .publishArtifacts</code> suffix</p>
+</li>
+<li>
+<p>Integrated Kotlin integration as a first partly module and add example documentation
+<a href="https://github.com/com-lihaoyi/mill/pull/3514">#3514</a>. This is still pretty spartan, but we expect to flesh it out over time</p>
+</li>
+<li>
+<p>Move <code>.mill.sc</code> alternate file extension to <code>.mill.scala</code> <a href="https://github.com/com-lihaoyi/mill/pull/3521">#3521</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
 <div class="sect1">
 <h2 id="0-12-0-RC1"><a class="anchor" href="#0-12-0-RC1"></a>0.12.0-RC1 - 2024-09-09</h2>
 <div class="sectionbody">
