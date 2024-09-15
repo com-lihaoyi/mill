@@ -12,7 +12,7 @@
 // what Mill is, hopefully have downloaded an example to try out, and be
 // interested in learning more about the Mill build tool
 
-= Introduction to Mill for Java
+= Building Java Projects with Mill
 
 ++++
 <script>
