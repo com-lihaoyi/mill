@@ -1,0 +1,69 @@
+package build
+
+import mill._, kotlinlib._
+import mill.util.Jvm
+import mill.api.Loose
+
+object `package` extends RootModule with KotlinModule {
+
+  def kotlinVersion = "1.9.24"
+
+  // TODO extract this as ktlint module, similar to CheckstyleModule
+  /**
+   * Runs [[https://pinterest.github.io/ktlint/latest/install/integrations/ ktlint]]
+   */
+  def ktlint(): Command[Unit] = T.command {
+    val exitCode = ktlint0()()
+
+    ktlintHandleErrors(exitCode)
+  }
+
+  private def ktlint0() = T.task {
+
+    T.log.info("running ktlint ...")
+
+    Jvm.callSubprocess(
+      mainClass = "com.pinterest.ktlint.Main",
+      classPath = ktlintClasspath().map(_.path),
+      mainArgs = Seq.empty,
+      workingDir = millSourcePath, // allow passing relative paths for sources like src/a/b
+      streamOut = true,
+      check = false
+    ).exitCode
+  }
+
+  private def ktlintHandleErrors(exitCode: Int)(implicit ctx: mill.api.Ctx) = {
+
+    if (exitCode == 0) {} // do nothing
+    else {
+      throw new RuntimeException(s"ktlint exited abnormally with exit code = $exitCode")
+    }
+  }
+
+  /**
+   * Classpath for running Dekekt.
+   */
+  private def ktlintClasspath: T[Loose.Agg[PathRef]] = T {
+    defaultResolver().resolveDeps(
+      Agg(ivy"com.pinterest.ktlint:ktlint-cli:${ktlintVersion()}")
+    )
+  }
+
+  /**
+   * ktlint version.
+   */
+  private def ktlintVersion: T[String] = T {
+    "1.3.1"
+  }
+}
+
+/** Usage
+
+> ./mill ktlint # run ktlint to produce a report, defaults to warning without error
+error: ...src/example/FooWrong.kt:6:28: Missing newline before ")" (standard:parameter-list-wrapping)...
+...src/example/FooWrong.kt:6:28: Newline expected before closing parenthesis (standard:function-signature)...
+...src/example/FooWrong.kt:6:28: Missing trailing comma before ")" (standard:trailing-comma-on-declaration-site)...
+> rm src/example/FooWrong.kt
+
+> ./mill ktlint # after fixing the violations, ktlint no longer errors
+*/
