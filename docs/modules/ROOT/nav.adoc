@@ -48,6 +48,7 @@
 * xref:Mill_Sandboxing.adoc[]
 * xref:Bundled_Libraries.adoc[]
 * xref:The_Mill_Evaluation_Model.adoc[]
+
 // This section talks about Mill plugins. While it could theoretically fit in
 // either section above, it is probably an important enough topic it is worth
 // breaking out on its own
