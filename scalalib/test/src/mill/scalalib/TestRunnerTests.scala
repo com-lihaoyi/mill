@@ -7,7 +7,6 @@ import mill.{Agg, T}
 import os.Path
 import sbt.testing.Status
 import utest._
-import utest.framework.TestPath
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 import scala.xml.{Elem, NodeSeq, XML}
@@ -147,14 +146,45 @@ object TestRunnerTests extends TestSuite {
       test("ScalaTest") {
         test("test") - UnitTester(testrunner, resourcePath).scoped { eval =>
           val Right(result) = eval(testrunner.scalatest.test())
-          assert(result.value._2.size == 2)
-          junitReportIn(eval.outPath, "scalatest").shouldHave(2 -> Status.Success)
+          assert(result.value._2.size == 3)
+          junitReportIn(eval.outPath, "scalatest").shouldHave(3 -> Status.Success)
         }
         test("discoveredTestClasses") - UnitTester(testrunner, resourcePath).scoped { eval =>
           val Right(result) = eval.apply(testrunner.scalatest.discoveredTestClasses)
           val expected = Seq("mill.scalalib.ScalaTestSpec")
           assert(result.value == expected)
           expected
+        }
+
+        test("testOnly") - {
+          def testOnly(eval: UnitTester, args: Seq[String], size: Int) = {
+            val Right(result) = eval.apply(testrunner.scalatest.testOnly(args: _*))
+            val testOnly = result.value.asInstanceOf[(String, Seq[mill.testrunner.TestResult])]
+            assert(
+              testOnly._2.size == size
+            )
+          }
+          test("all") - UnitTester(testrunner, resourcePath).scoped { eval =>
+            testOnly(eval, Seq("mill.scalalib.ScalaTestSpec"), 3)
+          }
+          test("include") - UnitTester(testrunner, resourcePath).scoped { eval =>
+            testOnly(eval, Seq("mill.scalalib.ScalaTestSpec", "--", "-n", "tagged"), 1)
+          }
+          test("exclude") - UnitTester(testrunner, resourcePath).scoped { eval =>
+            testOnly(eval, Seq("mill.scalalib.ScalaTestSpec", "--", "-l", "tagged"), 2)
+          }
+          test("includeAndExclude") - UnitTester(testrunner, resourcePath).scoped { eval =>
+            val Left(Result.Failure(msg, _)) =
+              eval.apply(testrunner.scalatest.testOnly(
+                "mill.scalalib.ScalaTestSpec",
+                "--",
+                "-n",
+                "tagged",
+                "-l",
+                "tagged"
+              ))
+            assert(msg.contains("Test selector does not match any test"))
+          }
         }
       }
 
