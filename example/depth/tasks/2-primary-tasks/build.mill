@@ -329,7 +329,7 @@ Expected Signature: run
   args <str>...
 ...
 
-> ./mill --allow-positional-command-args run foo.Foo hello world # this succeeds due to --allow-positional-command-args
+> ./mill --allow-positional run foo.Foo hello world # this succeeds due to --allow-positional
 Foo.value: 31337
 args: hello world
 foo.txt resource: My Example Text
