@@ -102,7 +102,7 @@ case class MillCliConfig(
     )
     silent: Flag = Flag(),
     @arg(
-      name = "target",
+      name = "task",
       doc = """The name or a pattern of the tasks(s) you want to build."""
     )
     leftoverArgs: Leftover[String] = Leftover(),
