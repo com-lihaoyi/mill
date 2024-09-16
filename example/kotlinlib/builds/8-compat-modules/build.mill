@@ -2,13 +2,11 @@
 package build
 import mill._, kotlinlib._
 
-object foo extends KotlinModule with MavenModule {
+object foo extends KotlinModule with KotlinMavenModule {
 
   def kotlinVersion = "1.9.24"
 
-  def mainClass = Some("foo.FooKt")
-
-  object test extends KotlinModuleTests with MavenTests with TestModule.Junit5 {
+  object test extends KotlinMavenModuleTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
     )
@@ -16,10 +14,11 @@ object foo extends KotlinModule with MavenModule {
 }
 
 
-// `MavenModule` is a variant of `JavaModule`
+// `KotlinMavenModule` is a variant of `KotlinModule`
 // that uses the more verbose folder layout of Maven, SBT, and other tools:
 //
 // - `foo/src/main/java`
+// - `foo/src/main/kotlin`
 // - `foo/src/test/java`
 //
 // Rather than Mill's

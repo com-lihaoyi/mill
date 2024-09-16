@@ -6,6 +6,6 @@ import io.kotest.matchers.shouldBe
 class FooTests : FunSpec({
     test("hello") {
         val result = hello()
-        result shouldBe "Hello World"
+        result shouldBe "Hello World, Earth"
     }
 })
