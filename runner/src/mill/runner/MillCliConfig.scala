@@ -146,7 +146,7 @@ task cheat sheet:
   mill foo.run --arg 1           # run the main method of the module `foo` and pass in `--arg 1`
   mill -i foo.console            # run the Scala console for the module `foo` (if it is a ScalaModule)
 
-  mill foo.__.test               # run tests in module within `foo` (recursively)
+  mill foo.__.test               # run tests in modules nested within `foo` (recursively)
   mill foo.test arg1 arg2        # run tests in the `foo` module passing in test arguments `arg1 arg2`
   mill foo.test + bar.test       # run tests in the `foo` module and `bar` module
   mill '{foo,bar,qux}.test'      # run tests in the `foo` module, `bar` module, and `qux` module
@@ -171,7 +171,7 @@ options:
 
   lazy val shortUsageText: String =
     customName +
-      "Please enter a task to evaluate" +
+      "Please specify a task to evaluate" +
       customDoc +
       "\nRun `mill --help` for more details"
 
