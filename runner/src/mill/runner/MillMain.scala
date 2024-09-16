@@ -276,7 +276,7 @@ object MillMain {
     }
   }
 
-  private def parseThreadCount(threadCountRaw: Option[String], availableCores: Int): Either[String, Int] = {
+  private[runner] def parseThreadCount(threadCountRaw: Option[String], availableCores: Int): Either[String, Int] = {
     def err(detail: String) = s"Invalid value \"${threadCountRaw.getOrElse("")}\" for flag -j/--jobs: $detail"
     (threadCountRaw match {
       case None => Right(availableCores)
