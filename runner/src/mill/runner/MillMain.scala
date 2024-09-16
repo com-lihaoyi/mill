@@ -285,20 +285,17 @@ object MillMain {
       s"Invalid value \"${threadCountRaw.getOrElse("")}\" for flag -j/--jobs: $detail"
     (threadCountRaw match {
       case None => Right(availableCores)
+      case Some("0") => Right(availableCores)
       case Some(s"${n}C") => n.toDoubleOption
           .toRight(err("Failed to find a float number before \"C\"."))
-          .map(_ * availableCores)
-          .map {
-            case x if x > 0 && x < 1 => 1
-            case x => x.toInt
-          }
+          .map(m => (m * availableCores).toInt)
       case Some(s"C-${n}") => n.toIntOption
           .toRight(err("Failed to find a int number after \"C-\"."))
           .map(availableCores - _)
       case Some(n) => n.toIntOption
           .toRight(err("Failed to find a int number"))
     }).flatMap {
-      case x if x <= 0 => Left(err("Calculated cores to use should be a positive number."))
+      case x if x < 1 => Right(1)
       case x => Right(x)
     }
   }

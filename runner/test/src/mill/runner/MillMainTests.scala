@@ -24,14 +24,8 @@ object MillMainTests extends TestSuite {
         assertParseErr(MillMain.parseThreadCount(Some("1.0"), 10), "Failed to find a int number")
         assertParseErr(MillMain.parseThreadCount(Some("1.1"), 10), "Failed to find a int number")
         assertParseErr(MillMain.parseThreadCount(Some("0.1"), 10), "Failed to find a int number")
-        assertParseErr(
-          MillMain.parseThreadCount(Some("0"), 10),
-          "Calculated cores to use should be a positive number."
-        )
-        assertParseErr(
-          MillMain.parseThreadCount(Some("-1"), 10),
-          "Calculated cores to use should be a positive number."
-        )
+        assert(MillMain.parseThreadCount(Some("0"), 10) == Right(10))
+        assert(MillMain.parseThreadCount(Some("-1"), 10) == Right(1))
       }
 
       test("parse fraction number") {
@@ -42,11 +36,7 @@ object MillMainTests extends TestSuite {
         assert(MillMain.parseThreadCount(Some("1.0C"), 10) == Right(10))
         assert(MillMain.parseThreadCount(Some("1.5C"), 10) == Right(15))
         assert(MillMain.parseThreadCount(Some("0.09C"), 10) == Right(1))
-
-        assertParseErr(
-          MillMain.parseThreadCount(Some("-0.5C"), 10),
-          "Calculated cores to use should be a positive number"
-        )
+        assert(MillMain.parseThreadCount(Some("-0.5C"), 10) == Right(1))
         assertParseErr(
           MillMain.parseThreadCount(Some("0.5.4C"), 10),
           "Failed to find a float number before \"C\""
@@ -55,15 +45,8 @@ object MillMainTests extends TestSuite {
 
       test("parse subtraction") {
         assert(MillMain.parseThreadCount(Some("C-1"), 10) == Right(9))
-
-        assertParseErr(
-          MillMain.parseThreadCount(Some("C-10"), 10),
-          "Calculated cores to use should be a positive number."
-        )
-        assertParseErr(
-          MillMain.parseThreadCount(Some("C-11"), 10),
-          "Calculated cores to use should be a positive number."
-        )
+        assert(MillMain.parseThreadCount(Some("C-10"), 10) == Right(1))
+        assert(MillMain.parseThreadCount(Some("C-11"), 10) == Right(1))
 
         assertParseErr(
           MillMain.parseThreadCount(Some("C-1.1"), 10),

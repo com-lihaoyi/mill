@@ -70,6 +70,8 @@ class MillCliConfig private (
            3. "C-" followed by an integer N indicates uses (all available cores - N).
               e.g. "C-1" leaves 1 core and uses all the other cores.
 
+           If calculated result is less than 1, will round up to 1. This doesn't include pass in 0 directly.
+
            Use 1 to disable parallel and 0 to use as much threads as available processors."""
     )
     val threadCountRaw: Option[String],
