@@ -170,7 +170,7 @@ options:
     mainargs.ParserForClass[MillCliConfig]
 
   lazy val shortUsageText: String =
-    "Please specify a task to evaluate" +
+    "Please specify a task to evaluate\n" +
       customDoc +
       "\nRun `mill --help` for more details"
 
