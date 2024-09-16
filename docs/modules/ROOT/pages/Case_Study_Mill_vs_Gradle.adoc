@@ -38,7 +38,7 @@ For comparison purposes, I disabled the Gradle subprojects that we did not fully
 
 For the benchmarks below, each provided number is the median wall time of three consecutive runs
 on my M1 Macbook Pro. While ad-hoc, these benchmarks are enough to give you a flavor of how
-Mill's performance compares to Maven:
+Mill's performance compares to Gradle:
 
 [cols="1,1,1,1"]
 |===
@@ -52,7 +52,7 @@ Mill's performance compares to Maven:
 |===
 
 The column on the right shows the speedups of how much faster Mill is compared to the
-equivalent Maven workflow. In most cases,  Mill is 5-10x faster than Gradle. Below, we
+equivalent Gradle workflow. In most cases,  Mill is 5-10x faster than Gradle. Below, we
 will go into more detail of each benchmark: how they were run, what they mean, and how
 we can explain the difference in performing the same task with the two different build tools.
 
