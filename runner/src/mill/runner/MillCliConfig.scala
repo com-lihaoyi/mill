@@ -103,8 +103,8 @@ case class MillCliConfig(
     disableCallgraph: Flag = Flag(),
     @arg(
       doc =
-        """Select a meta-build level to run the given targets. Level 0 is the normal project,
-           level 1 the first meta-build, and so on. The last level is a synthetic meta-build used for bootstrapping"""
+        """Select a meta-level to run the given targets. Level 0 is the main project in `build.mill`,
+           level 1 the first meta-build in `mill-build/build.mill`, etc."""
     )
     metaLevel: Option[Int] = None,
     @arg(doc = "Allows command args to be passed positionally without `--arg` by default")
@@ -131,7 +131,7 @@ target cheat sheet:
 ./mill -i foo.console            # run the Scala console for the module `foo` (if it is a ScalaModule)
 
 ./mill foo.__.test               # run tests in module within `foo` (recursively)
-./mill foo.test arg1 arg2 arg3   # run tests in the `foo` module passing in test arguments `arg1 arg2 arg3`
+./mill foo.test arg1 arg2        # run tests in the `foo` module passing in test arguments `arg1 arg2`
 ./mill foo.test + bar.test       # run tests in the `foo` module and `bar` module
 ./mill '{foo,bar,qux}.test'      # run tests in the `foo` module, `bar` module, and `qux` module
 
@@ -142,8 +142,8 @@ target cheat sheet:
 ./mill clean foo.assembly        # delete the output of `foo.assembly` to force re-evaluation
 ./mill clean                     # delete the output of the entire build to force force re-evaluation
 
-./mill path foo.run foo.sources  # print the dependency chain showing how `foo.run` depends on `foo.sources`
-./mill visualize __.compile      # show how the various `compile` tasks in each module depend on one another
+./mill path foo.run foo.sources  # print the task chain showing how `foo.run` depends on `foo.sources`
+./mill visualize __.compile      # show how the `compile` tasks in each module depend on one another
 
 options:
 """
