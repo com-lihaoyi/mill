@@ -108,7 +108,7 @@ object MillMain {
             (false, RunnerState.empty)
 
           case Right(config) if config.help.value =>
-            streams.out.println(MillCliConfigParser.usageText)
+            streams.out.println(MillCliConfigParser.longUsageText)
             (true, RunnerState.empty)
 
           case Right(config) if config.showVersion.value =>
@@ -160,7 +160,10 @@ object MillMain {
               streams,
               config,
               mainInteractive,
-              enableTicker = if (config.disableTicker.value) Some(false) else config.enableTicker,
+              enableTicker =
+                config.ticker
+                  .orElse(config.enableTicker)
+                  .orElse(Option.when(config.disableTicker.value)(false)),
               printLoggerState
             )
             if (!config.silent.value) {
@@ -178,8 +181,9 @@ object MillMain {
                 (false, stateCache)
 
               } else if (!bspMode && config.leftoverArgs.value.isEmpty) {
-                logger.error("A target must be provided.")
-                (false, stateCache)
+                println(MillCliConfigParser.shortUsageText)
+
+                (true, stateCache)
 
               } else if (maybeThreadCount.isLeft) {
                 logger.error(maybeThreadCount.swap.toOption.get)
@@ -234,10 +238,10 @@ object MillMain {
                         targetsAndParams = targetsAndParams,
                         prevRunnerState = prevState.getOrElse(stateCache),
                         logger = logger,
-                        disableCallgraphInvalidation = config.disableCallgraphInvalidation.value,
+                        disableCallgraph = config.disableCallgraph.value,
                         needBuildSc = needBuildSc(config),
                         requestedMetaLevel = config.metaLevel,
-                        config.allowPositionalCommandArgs.value,
+                        config.allowPositional.value,
                         systemExit = systemExit
                       ).evaluate()
                     }

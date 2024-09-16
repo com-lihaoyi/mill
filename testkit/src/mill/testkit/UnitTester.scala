@@ -99,7 +99,7 @@ class UnitTester(
     threadCount = threads,
     env = env,
     methodCodeHashSignatures = Map(),
-    disableCallgraphInvalidation = false,
+    disableCallgraph = false,
     allowPositionalCommandArgs = false,
     systemExit = i => ???
   )
