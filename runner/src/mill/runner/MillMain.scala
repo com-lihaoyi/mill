@@ -169,7 +169,8 @@ object MillMain {
 
             // special BSP mode, in which we spawn a server and register the current evaluator when-ever we start to eval a dedicated command
             val bspMode = config.bsp.value && config.leftoverArgs.value.isEmpty
-            val maybeThreadCount = parseThreadCount(config.threadCountRaw, Runtime.getRuntime.availableProcessors())
+            val maybeThreadCount =
+              parseThreadCount(config.threadCountRaw, Runtime.getRuntime.availableProcessors())
 
             val (success, nextStateCache) = {
               if (config.repl.value) {
@@ -276,8 +277,12 @@ object MillMain {
     }
   }
 
-  private[runner] def parseThreadCount(threadCountRaw: Option[String], availableCores: Int): Either[String, Int] = {
-    def err(detail: String) = s"Invalid value \"${threadCountRaw.getOrElse("")}\" for flag -j/--jobs: $detail"
+  private[runner] def parseThreadCount(
+      threadCountRaw: Option[String],
+      availableCores: Int
+  ): Either[String, Int] = {
+    def err(detail: String) =
+      s"Invalid value \"${threadCountRaw.getOrElse("")}\" for flag -j/--jobs: $detail"
     (threadCountRaw match {
       case None => Right(availableCores)
       case Some(s"${n}C") => n.toDoubleOption
