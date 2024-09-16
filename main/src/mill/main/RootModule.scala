@@ -3,6 +3,7 @@ package mill.main
 import mill.api.internal
 import mill.define.{BaseModule, Ctx, Caller, Discover, Module, Segments}
 import scala.annotation.compileTimeOnly
+
 /**
  * Used to mark a module in your `build.mill` as a top-level module, so it's
  * targets and commands can be run directly e.g. via `mill run` rather than
@@ -22,7 +23,7 @@ abstract class RootModule()(implicit
       millModuleLine0,
       millFile0,
       Caller(null)
-    ) with mill.main.MainModule{
+    ) with mill.main.MainModule {
 
   // Dummy `millDiscover` defined but never actually used and overriden by codegen.
   // Provided for IDEs to think that one is available and not show errors in
@@ -33,7 +34,7 @@ abstract class RootModule()(implicit
 @internal
 object RootModule {
   case class Info(millSourcePath0: os.Path, discover: Discover)
-  object Info{
+  object Info {
     // Dummy `RootModule.Info` available in implicit scope but never actually used.
     // as it is provided by the codegen. Defined for IDEs to think that one is available
     // and not show errors in build.mill/package.mill even though they can't see the codegen
