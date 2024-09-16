@@ -385,9 +385,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-8-b9b643</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-9-0c44ff</button>
   <div class="version-menu">
-    <a class="version is-current" href="Java_Intro_to_Mill.html">0.12.0-RC2-8-b9b643</a>
+    <a class="version is-current" href="Java_Intro_to_Mill.html">0.12.0-RC2-9-0c44ff</a>
     <a class="version" href="0.11.12/Java_Intro_to_Mill.html">0.11.12</a>
     <a class="version" href="0.11.11/Java_Intro_to_Mill.html">0.11.11</a>
     <a class="version is-missing" href="0.11.10/index.html">0.11.10</a>
@@ -1025,56 +1025,67 @@ Tasks that depend on each other can’t be processed in parallel.</p>
 <h2 id="_command_line_usage"><a class="anchor" href="#_command_line_usage"></a>Command-line usage</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill is a command-line tool and supports various options.</p>
-</div>
-<div class="paragraph">
-<p>Run <code>mill --help</code> for a complete list of options</p>
+<p>Mill is a command-line tool and supports various options. Run <code>mill --help</code> for
+a complete list of options and a cheat-sheet of how to work with tasks:</p>
 </div>
 <div class="listingblock">
 <div class="title">Output of <code>mill --help</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.12.0-RC2-8-b9b643
-usage: mill [options] [[target [target-options]] [+ [target ...]]]
-  -D --define &lt;k=v&gt;                 Define (or overwrite) a system property.
-  -b --bell                         Ring the bell once if the run completes successfully, twice if
-                                    it fails.
-  --bsp                             Enable BSP server mode.
-  --color &lt;bool&gt;                    Enable or disable colored output; by default colors are enabled
-                                    in both REPL and scripts mode if the console is interactive, and
-                                    disabled otherwise.
-  -d --debug                        Show debug output on STDOUT
-  --disable-callgraph-invalidation  Disable the fine-grained callgraph-based target invalidation in
-                                    response to code changes, and instead fall back to the previous
-                                    coarse-grained implementation relying on the script `import
-                                    $file` graph
-  --disable-ticker                  Disable ticker log (e.g. short-lived prints of stages and
-                                    progress bars).
-  --enable-ticker &lt;bool&gt;            Enable ticker log (e.g. short-lived prints of stages and
-                                    progress bars).
-  -h --home &lt;path&gt;                  (internal) The home directory of internally used Ammonite script
-                                    engine; where it looks for config and caches.
-  --help                            Print this help message and exit.
-  -i --interactive                  Run Mill in interactive mode, suitable for opening REPLs and
-                                    taking user input. This implies --no-server and no mill server
-                                    will be used. Must be the first argument.
-  --import &lt;str&gt;                    Additional ivy dependencies to load into mill, e.g. plugins.
-  -j --jobs &lt;int&gt;                   Allow processing N targets in parallel. Use 1 to disable
-                                    parallel and 0 to use as much threads as available processors.
-  -k --keep-going                   Continue build, even after build failures.
-  --meta-level &lt;int&gt;                Experimental: Select a meta-build level to run the given
-                                    targets. Level 0 is the normal project, level 1 the first
-                                    meta-build, and so on. The last level is the built-in synthetic
-                                    meta-build which Mill uses to bootstrap the project.
-  --no-server                       Run Mill in single-process mode. In this mode, no Mill server
-                                    will be started or used. Must be the first argument.
-  -s --silent                       Make ivy logs during script import resolution go silent instead
-                                    of printing; though failures will still throw exception.
-  -v --version                      Show mill version information and exit.
-  -w --watch                        Watch and re-run your scripts when they change.
-  target &lt;str&gt;...                   The name or a pattern of the target(s) you want to build,
-                                    followed by any parameters you wish to pass to those targets. To
-                                    specify multiple target names or patterns, use the `+`
-                                    separator.</code></pre>
+<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.12.0-RC2-9-0c44ff
+Usage: mill [options] task [task-options] [+ task ...]
+
+task cheat sheet:
+  mill resolve _                 # see all top-level tasks and modules
+  mill resolve __.compile        # see all `compile` tasks in any module (recursively)
+
+  mill foo.bar.compile           # compile the module `foo.bar`
+
+  mill foo.run --arg 1           # run the main method of the module `foo` and pass in `--arg 1`
+  mill -i foo.console            # run the Scala console for the module `foo` (if it is a ScalaModule)
+
+  mill foo.__.test               # run tests in modules nested within `foo` (recursively)
+  mill foo.test arg1 arg2        # run tests in the `foo` module passing in test arguments `arg1 arg2`
+  mill foo.test + bar.test       # run tests in the `foo` module and `bar` module
+  mill '{foo,bar,qux}.test'      # run tests in the `foo` module, `bar` module, and `qux` module
+
+  mill foo.assembly              # generate an executable assembly of the module `foo`
+  mill show foo.assembly         # print the output path of the assembly of module `foo`
+  mill inspect foo.assembly      # show docs and metadata for the `assembly` task on module `foo`
+
+  mill clean foo.assembly        # delete the output of `foo.assembly` to force re-evaluation
+  mill clean                     # delete the output of the entire build to force re-evaluation
+
+  mill path foo.run foo.sources  # print the task chain showing how `foo.run` depends on `foo.sources`
+  mill visualize __.compile      # show how the `compile` tasks in each module depend on one another
+
+options:
+  -D --define &lt;k=v&gt;    Define (or overwrite) a system property.
+  --allow-positional   Allows command args to be passed positionally without `--arg` by default
+  -b --bell            Ring the bell once if the run completes successfully, twice if it fails.
+  --bsp                Enable BSP server mode.
+  --color &lt;bool&gt;       Toggle colored output; by default enabled only if the console is interactive
+  -d --debug           Show debug output on STDOUT
+  --disable-callgraph  Disables fine-grained invalidation of tasks based on analyzing code changes.
+                       If passed, you need to manually run `clean` yourself after build changes.
+  --help               Print this help message and exit.
+  -i --interactive     Run Mill in interactive mode, suitable for opening REPLs and taking user
+                       input. This implies --no-server. Must be the first argument.
+  --import &lt;str&gt;       Additional ivy dependencies to load into mill, e.g. plugins.
+  -j --jobs &lt;str&gt;      The number of parallel threads. It can be an integer e.g. `5` meaning 5
+                       threads, an expression e.g. `0.5C` meaning half as many threads as available
+                       cores, or `C-2` meaning 2 threads less than the number of cores. `1` disables
+                       parallelism and `0` (the default) uses 1 thread per core.
+  -k --keep-going      Continue build, even after build failures.
+  --meta-level &lt;int&gt;   Select a meta-level to run the given tasks. Level 0 is the main project in
+                       `build.mill`, level 1 the first meta-build in `mill-build/build.mill`, etc.
+  --no-server          Run without a background server. Must be the first argument.
+  -s --silent          Make ivy logs during script import resolution go silent instead of printing
+  --ticker &lt;bool&gt;      Enable ticker log (e.g. short-lived prints of stages and progress bars).
+  -v --version         Show mill version information and exit.
+  -w --watch           Watch and re-run the given tasks when when their inputs change.
+  task &lt;str&gt;...        The name or a pattern of the tasks(s) you want to build.
+
+Please see the documentation at https://mill-build.org for more details</code></pre>
 </div>
 </div>
 <div class="paragraph">
