@@ -77,7 +77,7 @@ case class MillCliConfig(
     help: Flag,
     @arg(
       short = 'w',
-      doc = """Watch and re-run your scripts when they change."""
+      doc = """Watch and re-run the given tasks when when their inputs change."""
     )
     watch: Flag = Flag(),
     @arg(
