@@ -21,16 +21,17 @@ object MillMainTests extends TestSuite {
         assert(MillMain.parseThreadCount(Some("1"), 10) == Right(1))
         assert(MillMain.parseThreadCount(Some("11"), 10) == Right(11))
 
-        assertParseErr(MillMain.parseThreadCount(Some("1.0"), 10),
-          "Failed to find a int number")
-        assertParseErr(MillMain.parseThreadCount(Some("1.1"), 10),
-          "Failed to find a int number")
-        assertParseErr(MillMain.parseThreadCount(Some("0.1"), 10),
-          "Failed to find a int number")
-        assertParseErr(MillMain.parseThreadCount(Some("0"), 10),
-          "Calculated cores to use should be a positive number.")
-        assertParseErr(MillMain.parseThreadCount(Some("-1"), 10),
-          "Calculated cores to use should be a positive number.")
+        assertParseErr(MillMain.parseThreadCount(Some("1.0"), 10), "Failed to find a int number")
+        assertParseErr(MillMain.parseThreadCount(Some("1.1"), 10), "Failed to find a int number")
+        assertParseErr(MillMain.parseThreadCount(Some("0.1"), 10), "Failed to find a int number")
+        assertParseErr(
+          MillMain.parseThreadCount(Some("0"), 10),
+          "Calculated cores to use should be a positive number."
+        )
+        assertParseErr(
+          MillMain.parseThreadCount(Some("-1"), 10),
+          "Calculated cores to use should be a positive number."
+        )
       }
 
       test("parse fraction number") {
@@ -41,33 +42,51 @@ object MillMainTests extends TestSuite {
         assert(MillMain.parseThreadCount(Some("1.0C"), 10) == Right(10))
         assert(MillMain.parseThreadCount(Some("1.5C"), 10) == Right(15))
 
-        assertParseErr(MillMain.parseThreadCount(Some("0.09C"), 10),
-          "Calculated cores to use should be a positive number")
-        assertParseErr(MillMain.parseThreadCount(Some("-0.5C"), 10),
-          "Calculated cores to use should be a positive number")
-        assertParseErr(MillMain.parseThreadCount(Some("0.5.4C"), 10),
-          "Failed to find a float number before \"C\"")
+        assertParseErr(
+          MillMain.parseThreadCount(Some("0.09C"), 10),
+          "Calculated cores to use should be a positive number"
+        )
+        assertParseErr(
+          MillMain.parseThreadCount(Some("-0.5C"), 10),
+          "Calculated cores to use should be a positive number"
+        )
+        assertParseErr(
+          MillMain.parseThreadCount(Some("0.5.4C"), 10),
+          "Failed to find a float number before \"C\""
+        )
       }
 
       test("parse subtraction") {
         assert(MillMain.parseThreadCount(Some("C-1"), 10) == Right(9))
 
-        assertParseErr(MillMain.parseThreadCount(Some("C-10"), 10),
-          "Calculated cores to use should be a positive number.")
-        assertParseErr(MillMain.parseThreadCount(Some("C-11"), 10),
-          "Calculated cores to use should be a positive number.")
+        assertParseErr(
+          MillMain.parseThreadCount(Some("C-10"), 10),
+          "Calculated cores to use should be a positive number."
+        )
+        assertParseErr(
+          MillMain.parseThreadCount(Some("C-11"), 10),
+          "Calculated cores to use should be a positive number."
+        )
 
-        assertParseErr(MillMain.parseThreadCount(Some("C-1.1"), 10),
-          "Failed to find a int number after \"C-\"")
-        assertParseErr(MillMain.parseThreadCount(Some("11-C"), 10),
-          "Failed to find a float number before \"C\"")
+        assertParseErr(
+          MillMain.parseThreadCount(Some("C-1.1"), 10),
+          "Failed to find a int number after \"C-\""
+        )
+        assertParseErr(
+          MillMain.parseThreadCount(Some("11-C"), 10),
+          "Failed to find a float number before \"C\""
+        )
       }
 
       test("parse invalid input") {
-        assertParseErr(MillMain.parseThreadCount(Some("CCCC"), 10),
-          "Failed to find a float number before \"C\"")
-        assertParseErr(MillMain.parseThreadCount(Some("abcdefg"), 10),
-          "Failed to find a int number")
+        assertParseErr(
+          MillMain.parseThreadCount(Some("CCCC"), 10),
+          "Failed to find a float number before \"C\""
+        )
+        assertParseErr(
+          MillMain.parseThreadCount(Some("abcdefg"), 10),
+          "Failed to find a int number"
+        )
       }
 
     }
