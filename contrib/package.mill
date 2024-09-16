@@ -102,9 +102,7 @@ object `package` extends RootModule {
   }
 
   object scoverage extends ContribModule {
-    object api extends build.MillPublishScalaModule {
-      def compileModuleDeps = Seq(build.main.api)
-    }
+    object api extends build.MillPublishJavaModule
 
     def moduleDeps = Seq(scoverage.api)
     def compileModuleDeps = Seq(build.scalalib)
@@ -126,7 +124,6 @@ object `package` extends RootModule {
 
     // Worker for Scoverage 2.0
     object worker2 extends build.MillPublishScalaModule {
-      def compileModuleDeps = Seq(build.main.api)
       def moduleDeps = Seq(scoverage.api)
       def testDepPaths = Task { Seq(compile().classes) }
       def compileIvyDeps = Task {
