@@ -3,7 +3,9 @@ package mill.runner
 import mainargs.{Flag, Leftover, arg}
 
 case class MillCliConfig(
+    @deprecated("No longer used", "Mill 0.12.0")
     @arg(
+      hidden = true,
       short = 'h',
       doc =
         """(internal) The home directory where Mill looks for config and caches."""
@@ -31,12 +33,25 @@ case class MillCliConfig(
       doc = """Ring the bell once if the run completes successfully, twice if it fails."""
     )
     ringBell: Flag = Flag(),
+    @deprecated("No longer supported, use `--ticker false`", "Mill 0.12.0")
+    @arg(
+      hidden = true,
+      doc =
+        """Disable ticker log (e.g. short-lived prints of stages and progress bars)."""
+    )
+    disableTicker: Flag,
     @arg(
       doc =
         """Enable ticker log (e.g. short-lived prints of stages and progress bars)."""
     )
-
     ticker: Option[Boolean] = None,
+    @deprecated("No longer supported, use `--ticker false`", "Mill 0.12.0")
+    @arg(
+      hidden = true,
+      doc =
+        """Enable ticker log (e.g. short-lived prints of stages and progress bars)."""
+    )
+    enableTicker: Option[Boolean] = None,
     @arg(name = "debug", short = 'd', doc = "Show debug output on STDOUT")
     debugLog: Flag = Flag(),
     @arg(
@@ -120,7 +135,8 @@ object MillCliConfigParser {
   val customName: String = s"Mill Build Tool, version ${mill.main.BuildInfo.millVersion}"
   val customDoc = """
 usage: mill [options] [[target [target-options]] [+ [target ...]]]
-
+"""
+  val cheatSheet = """
 target cheat sheet:
 ./mill resolve _                 # see all top-level tasks and modules
 ./mill resolve __.compile        # see all `compile` tasks in any module (recursively)
@@ -153,9 +169,15 @@ options:
   private[this] lazy val parser: ParserForClass[MillCliConfig] =
     mainargs.ParserForClass[MillCliConfig]
 
-  lazy val usageText: String =
+  lazy val shortUsageText: String =
     customName +
       customDoc +
+      "\nRun `./mill --help` for more details"
+
+  lazy val longUsageText: String =
+    customName +
+      customDoc +
+      cheatSheet +
       parser.helpText(customName = "", totalWidth = 100).stripPrefix("\n") +
       "\nPlease see the documentation at https://mill-build.org for more details"
 

@@ -108,7 +108,7 @@ object MillMain {
             (false, RunnerState.empty)
 
           case Right(config) if config.help.value =>
-            streams.out.println(MillCliConfigParser.usageText)
+            streams.out.println(MillCliConfigParser.longUsageText)
             (true, RunnerState.empty)
 
           case Right(config) if config.showVersion.value =>
@@ -160,7 +160,10 @@ object MillMain {
               streams,
               config,
               mainInteractive,
-              enableTicker = config.ticker,
+              enableTicker =
+                config.ticker
+                  .orElse(config.enableTicker)
+                  .orElse(Option.when(config.disableTicker.value)(false)),
               printLoggerState
             )
             if (!config.silent.value) {
@@ -176,7 +179,7 @@ object MillMain {
                 (false, stateCache)
 
               } else if (!bspMode && config.leftoverArgs.value.isEmpty) {
-                println(MillCliConfigParser.usageText)
+                println(MillCliConfigParser.shortUsageText)
 
                 (true, stateCache)
 
