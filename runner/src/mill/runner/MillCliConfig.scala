@@ -2,13 +2,13 @@ package mill.runner
 
 import mainargs.{Flag, Leftover, arg}
 
-case class MillCliConfig (
+case class MillCliConfig(
     @arg(
       short = 'h',
       doc =
         """(internal) The home directory where Mill looks for config and caches."""
     )
-    val home: os.Path,
+    home: os.Path = mill.api.Ctx.defaultHome,
     // We need to keep it, otherwise, a given --repl would be silently parsed as target and result in misleading error messages.
     // Instead we fail programmatically when this flag is set.
     @deprecated("No longer supported.", "Mill 0.11.0-M8")
@@ -16,40 +16,40 @@ case class MillCliConfig (
       hidden = true,
       doc = """This flag is no longer supported."""
     )
-    val repl: Flag,
+    repl: Flag = Flag(),
     @arg(
       doc = """Run without a background server. Must be the first argument."""
     )
-    val noServer: Flag,
+    noServer: Flag = Flag(),
     @arg(doc = """Enable BSP server mode.""")
-    val bsp: Flag,
+    bsp: Flag,
     @arg(name = "version", short = 'v', doc = "Show mill version information and exit.")
-    val showVersion: Flag,
+    showVersion: Flag = Flag(),
     @arg(
       name = "bell",
       short = 'b',
       doc = """Ring the bell once if the run completes successfully, twice if it fails."""
     )
-    val ringBell: Flag,
+    ringBell: Flag = Flag(),
     @arg(
       doc =
         """Enable ticker log (e.g. short-lived prints of stages and progress bars)."""
     )
 
-    val ticker: Option[Boolean],
+    ticker: Option[Boolean] = None,
     @arg(name = "debug", short = 'd', doc = "Show debug output on STDOUT")
-    val debugLog: Flag,
+    debugLog: Flag = Flag(),
     @arg(
       short = 'k',
       doc = """Continue build, even after build failures."""
     )
-    val keepGoing: Flag,
+    keepGoing: Flag = Flag(),
     @arg(
       name = "define",
       short = 'D',
       doc = """Define (or overwrite) a system property."""
     )
-    val extraSystemProperties: Map[String, String],
+    extraSystemProperties: Map[String, String] = Map(),
     @arg(
       name = "jobs",
       short = 'j',
@@ -60,45 +60,40 @@ case class MillCliConfig (
            meaning 2 threads less than the number of cores. `1` disables
            parallelism and `0` (the default) uses 1 thread per core."""
     )
-    val threadCountRaw: Option[Int],
+    threadCountRaw: Option[Int] = None,
     @arg(
       name = "import",
       doc = """Additional ivy dependencies to load into mill, e.g. plugins."""
     )
-    val imports: Seq[String],
+    imports: Seq[String] = Nil,
     @arg(
       short = 'i',
       doc =
         """Run Mill in interactive mode, suitable for opening REPLs and taking user input.
           This implies --no-server. Must be the first argument."""
     )
-    val interactive: Flag,
+    interactive: Flag = Flag(),
     @arg(doc = "Print this help message and exit.")
-    val help: Flag,
+    help: Flag,
     @arg(
       short = 'w',
       doc = """Watch and re-run your scripts when they change."""
     )
-    val watch: Flag,
+    watch: Flag = Flag(),
     @arg(
       short = 's',
       doc =
         """Make ivy logs during script import resolution go silent instead of printing;
            though failures will still throw exception."""
     )
-    val silent: Flag,
+    silent: Flag = Flag(),
     @arg(
       name = "target",
-      doc =
-        """The name or a pattern of the target(s) you want to build."""
+      doc = """The name or a pattern of the target(s) you want to build."""
     )
-    val leftoverArgs: Leftover[String],
-    @arg(
-      doc =
-        """Enable or disable colored output; by default colors are enabled in both REPL and scripts mode if
-           the console is interactive, and disabled otherwise."""
-    )
-    val color: Option[Boolean],
+    leftoverArgs: Leftover[String] = Leftover(),
+    @arg(doc = """Toggle colored output; by default enabled only if the console is interactive""")
+    color: Option[Boolean] = None,
     @arg(
       name = "disable-callgraph",
       doc = """
@@ -106,15 +101,15 @@ case class MillCliConfig (
         need to manually run `clean` yourself after build changes.
       """
     )
-    val disableCallgraph: Flag,
+    disableCallgraph: Flag = Flag(),
     @arg(
       doc =
         """Select a meta-build level to run the given targets. Level 0 is the normal project,
            level 1 the first meta-build, and so on. The last level is a synthetic meta-build used for bootstrapping"""
     )
-    val metaLevel: Option[Int],
+    metaLevel: Option[Int] = None,
     @arg(doc = "Allows command args to be passed positionally without `--arg` by default")
-    val allowPositional: Flag
+    allowPositional: Flag = Flag()
 ) {
   override def toString: String = Seq(
     "home" -> home,
@@ -186,7 +181,8 @@ options:
   lazy val usageText: String =
     customName +
       customDoc +
-      parser.helpText(customName="", totalWidth=100).stripPrefix("\n").stripSuffix("\n")
+      parser.helpText(customName = "", totalWidth = 100).stripPrefix("\n") +
+      "\nPlease see the documentation at https://mill-build.org for more details"
 
   def parse(args: Array[String]): Either[String, MillCliConfig] = {
     parser.constructEither(
