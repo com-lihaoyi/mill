@@ -156,7 +156,7 @@ task cheat sheet:
   mill inspect foo.assembly      # show docs and metadata for the `assembly` task on module `foo`
 
   mill clean foo.assembly        # delete the output of `foo.assembly` to force re-evaluation
-  mill clean                     # delete the output of the entire build to force force re-evaluation
+  mill clean                     # delete the output of the entire build to force re-evaluation
 
   mill path foo.run foo.sources  # print the task chain showing how `foo.run` depends on `foo.sources`
   mill visualize __.compile      # show how the `compile` tasks in each module depend on one another
