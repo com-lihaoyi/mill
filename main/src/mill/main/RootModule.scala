@@ -22,7 +22,9 @@ abstract class RootModule()(implicit
       millModuleLine0,
       millFile0,
       Caller(null)
-    ) with mill.main.MainModule
+    ) with mill.main.MainModule{
+  def millDiscover: Discover = sys.error("RootModule#millDiscover must be overriden")
+}
 
 @internal
 object RootModule {
