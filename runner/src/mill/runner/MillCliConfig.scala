@@ -2,7 +2,7 @@ package mill.runner
 
 import mainargs.{Flag, Leftover, arg}
 
-class MillCliConfig private (
+case class MillCliConfig (
     @arg(
       short = 'h',
       doc =
@@ -18,7 +18,7 @@ class MillCliConfig private (
     )
     val repl: Flag,
     @arg(
-      doc = """Run Mill in single-process mode without a background server. Must be the first argument."""
+      doc = """Run without a background server. Must be the first argument."""
     )
     val noServer: Flag,
     @arg(doc = """Enable BSP server mode.""")
@@ -70,7 +70,7 @@ class MillCliConfig private (
       short = 'i',
       doc =
         """Run Mill in interactive mode, suitable for opening REPLs and taking user input.
-          This implies --no-server and no mill server will be used. Must be the first argument."""
+          This implies --no-server. Must be the first argument."""
     )
     val interactive: Flag,
     @arg(doc = "Print this help message and exit.")
@@ -102,7 +102,7 @@ class MillCliConfig private (
     @arg(
       name = "disable-callgraph",
       doc = """
-        Disables fine-grained invalidation of tasks based on analyzing code changes. If passed, you will
+        Disables fine-grained invalidation of tasks based on analyzing code changes. If passed, you
         need to manually run `clean` yourself after build changes.
       """
     )
@@ -141,153 +141,6 @@ class MillCliConfig private (
   ).map(p => s"${p._1}=${p._2}").mkString(getClass().getSimpleName + "(", ",", ")")
 }
 
-object MillCliConfig {
-  /*
-   * mainargs requires us to keep this apply method in sync with the private ctr of the class.
-   * mainargs is designed to work with case classes,
-   * but case classes can't be evolved in a binary compatible fashion.
-   * mainargs parses the class ctr for its internal model,
-   * but uses the companion's apply to actually create an instance of the config class,
-   * hence we need both in sync.
-   */
-  def apply(
-      home: os.Path = mill.api.Ctx.defaultHome,
-      @deprecated("No longer supported.", "Mill 0.11.0-M8")
-      repl: Flag = Flag(),
-      noServer: Flag = Flag(),
-      bsp: Flag = Flag(),
-      showVersion: Flag = Flag(),
-      ringBell: Flag = Flag(),
-      ticker: Option[Boolean] = None,
-      debugLog: Flag = Flag(),
-      keepGoing: Flag = Flag(),
-      extraSystemProperties: Map[String, String] = Map(),
-      threadCountRaw: Option[Int] = None,
-      imports: Seq[String] = Seq(),
-      interactive: Flag = Flag(),
-      help: Flag = Flag(),
-      watch: Flag = Flag(),
-      silent: Flag = Flag(),
-      leftoverArgs: Leftover[String] = Leftover(),
-      color: Option[Boolean] = None,
-      disableCallgraph: Flag = Flag(),
-      metaLevel: Option[Int] = None,
-      allowPositional: Flag = Flag()
-  ): MillCliConfig = new MillCliConfig(
-    home = home,
-    repl = repl,
-    noServer = noServer,
-    bsp = bsp,
-    showVersion = showVersion,
-    ringBell = ringBell,
-    ticker = ticker,
-    debugLog = debugLog,
-    keepGoing = keepGoing,
-    extraSystemProperties = extraSystemProperties,
-    threadCountRaw = threadCountRaw,
-    imports = imports,
-    interactive = interactive,
-    help = help,
-    watch = watch,
-    silent = silent,
-    leftoverArgs = leftoverArgs,
-    color = color,
-    disableCallgraph,
-    metaLevel = metaLevel,
-    allowPositional = allowPositional
-  )
-  @deprecated("Bin-compat shim", "Mill after 0.11.12")
-  def apply(
-      home: os.Path,
-      @deprecated("No longer supported.", "Mill 0.11.0-M8")
-      repl: Flag,
-      noServer: Flag,
-      bsp: Flag,
-      showVersion: Flag,
-      ringBell: Flag,
-      ticker: Option[Boolean],
-      debugLog: Flag,
-      keepGoing: Flag,
-      extraSystemProperties: Map[String, String],
-      threadCountRaw: Option[Int],
-      imports: Seq[String],
-      interactive: Flag,
-      help: Flag,
-      watch: Flag,
-      silent: Flag,
-      leftoverArgs: Leftover[String],
-      color: Option[Boolean],
-      disableCallgraphInvalidation: Flag,
-      metaLevel: Option[Int]
-  ): MillCliConfig = new MillCliConfig(
-    home = home,
-    repl = repl,
-    noServer = noServer,
-    bsp = bsp,
-    showVersion = showVersion,
-    ringBell = ringBell,
-    ticker = ticker,
-    debugLog = debugLog,
-    keepGoing = keepGoing,
-    extraSystemProperties = extraSystemProperties,
-    threadCountRaw = threadCountRaw,
-    imports = imports,
-    interactive = interactive,
-    help = help,
-    watch = watch,
-    silent = silent,
-    leftoverArgs = leftoverArgs,
-    color = color,
-    disableCallgraphInvalidation,
-    metaLevel = metaLevel,
-    allowPositional = Flag()
-  )
-
-  @deprecated("Bin-compat shim", "Mill after 0.11.0")
-  private[runner] def apply(
-      home: os.Path,
-      @deprecated("No longer supported.", "Mill 0.11.0-M8")
-      repl: Flag,
-      noServer: Flag,
-      bsp: Flag,
-      showVersion: Flag,
-      ringBell: Flag,
-      ticker: Option[Boolean],
-      debugLog: Flag,
-      keepGoing: Flag,
-      extraSystemProperties: Map[String, String],
-      threadCountRaw: Option[Int],
-      imports: Seq[String],
-      interactive: Flag,
-      help: Flag,
-      watch: Flag,
-      silent: Flag,
-      noDefaultPredef: Flag,
-      leftoverArgs: Leftover[String],
-      color: Option[Boolean],
-      predefFile: Option[os.Path]
-  ): MillCliConfig = apply(
-    home,
-    repl,
-    noServer,
-    bsp,
-    showVersion,
-    ringBell,
-    ticker,
-    debugLog,
-    keepGoing,
-    extraSystemProperties,
-    threadCountRaw,
-    imports,
-    interactive,
-    help,
-    watch,
-    silent,
-    leftoverArgs,
-    color
-  )
-}
-
 import mainargs.ParserForClass
 
 // We want this in a separate source file, but to avoid stale --help output due
@@ -299,7 +152,6 @@ object MillCliConfigParser {
 usage: mill [options] [[target [target-options]] [+ [target ...]]]
 
 target cheat sheet:
-
 ./mill resolve _                 # see all top-level tasks and modules
 ./mill resolve __.compile        # see all `compile` tasks in any module (recursively)
 
@@ -314,7 +166,6 @@ target cheat sheet:
 ./mill '{foo,bar,qux}.test'      # run tests in the `foo` module, `bar` module, and `qux` module
 
 ./mill foo.assembly              # generate an executable assembly of the module `foo`
-
 ./mill show foo.assembly         # print the output path of the assembly of module `foo`
 ./mill inspect foo.assembly      # show docs and metadata for the `assembly` task on module `foo`
 
@@ -324,14 +175,18 @@ target cheat sheet:
 ./mill path foo.run foo.sources  # print the dependency chain showing how `foo.run` depends on `foo.sources`
 ./mill visualize __.compile      # show how the various `compile` tasks in each module depend on one another
 
-options:"""
+options:
+"""
 
   import mill.api.JsonFormatters._
 
   private[this] lazy val parser: ParserForClass[MillCliConfig] =
     mainargs.ParserForClass[MillCliConfig]
 
-  lazy val usageText: String = customName + "\n" + customDoc + parser.helpText(customName="", totalWidth=120)
+  lazy val usageText: String =
+    customName +
+      customDoc +
+      parser.helpText(customName="", totalWidth=100).stripPrefix("\n").stripSuffix("\n")
 
   def parse(args: Array[String]): Either[String, MillCliConfig] = {
     parser.constructEither(
