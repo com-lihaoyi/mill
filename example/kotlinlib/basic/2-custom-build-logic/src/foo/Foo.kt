@@ -8,12 +8,10 @@ fun getLineCount(): String? {
             .getResourceAsStream("line-count.txt")
             .readAllBytes()
             .toString(Charsets.UTF_8)
-        )
     } catch (e: IOException) {
         null
     }
 }
 
-fun main() {
-    println("Line Count: " + getLineCount())
-}
+fun main() = println("Line Count: " + getLineCount())
+
