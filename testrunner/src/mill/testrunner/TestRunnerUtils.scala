@@ -126,7 +126,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
           yield new TaskDef(
             cls.getName.stripSuffix("$"),
             fingerprint,
-            true,
+            false,
             Array(new SuiteSelector)
           )
       )

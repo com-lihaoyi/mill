@@ -138,28 +138,28 @@ usage: mill [options] [[target [target-options]] [+ [target ...]]]
 """
   val cheatSheet = """
 target cheat sheet:
-./mill resolve _                 # see all top-level tasks and modules
-./mill resolve __.compile        # see all `compile` tasks in any module (recursively)
+  ./mill resolve _                 # see all top-level tasks and modules
+  ./mill resolve __.compile        # see all `compile` tasks in any module (recursively)
 
-./mill foo.bar.compile           # compile the module `foo.bar`
+  ./mill foo.bar.compile           # compile the module `foo.bar`
 
-./mill foo.run --arg 1           # run the main method of the module `foo` and pass in `--arg 1`
-./mill -i foo.console            # run the Scala console for the module `foo` (if it is a ScalaModule)
+  ./mill foo.run --arg 1           # run the main method of the module `foo` and pass in `--arg 1`
+  ./mill -i foo.console            # run the Scala console for the module `foo` (if it is a ScalaModule)
 
-./mill foo.__.test               # run tests in module within `foo` (recursively)
-./mill foo.test arg1 arg2        # run tests in the `foo` module passing in test arguments `arg1 arg2`
-./mill foo.test + bar.test       # run tests in the `foo` module and `bar` module
-./mill '{foo,bar,qux}.test'      # run tests in the `foo` module, `bar` module, and `qux` module
+  ./mill foo.__.test               # run tests in module within `foo` (recursively)
+  ./mill foo.test arg1 arg2        # run tests in the `foo` module passing in test arguments `arg1 arg2`
+  ./mill foo.test + bar.test       # run tests in the `foo` module and `bar` module
+  ./mill '{foo,bar,qux}.test'      # run tests in the `foo` module, `bar` module, and `qux` module
 
-./mill foo.assembly              # generate an executable assembly of the module `foo`
-./mill show foo.assembly         # print the output path of the assembly of module `foo`
-./mill inspect foo.assembly      # show docs and metadata for the `assembly` task on module `foo`
+  ./mill foo.assembly              # generate an executable assembly of the module `foo`
+  ./mill show foo.assembly         # print the output path of the assembly of module `foo`
+  ./mill inspect foo.assembly      # show docs and metadata for the `assembly` task on module `foo`
 
-./mill clean foo.assembly        # delete the output of `foo.assembly` to force re-evaluation
-./mill clean                     # delete the output of the entire build to force force re-evaluation
+  ./mill clean foo.assembly        # delete the output of `foo.assembly` to force re-evaluation
+  ./mill clean                     # delete the output of the entire build to force force re-evaluation
 
-./mill path foo.run foo.sources  # print the task chain showing how `foo.run` depends on `foo.sources`
-./mill visualize __.compile      # show how the `compile` tasks in each module depend on one another
+  ./mill path foo.run foo.sources  # print the task chain showing how `foo.run` depends on `foo.sources`
+  ./mill visualize __.compile      # show how the `compile` tasks in each module depend on one another
 
 options:
 """
