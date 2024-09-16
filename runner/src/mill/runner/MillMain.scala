@@ -294,10 +294,7 @@ object MillMain {
           .map(availableCores - _)
       case Some(n) => n.toIntOption
           .toRight(err("Failed to find a int number"))
-    }).flatMap {
-      case x if x < 1 => Right(1)
-      case x => Right(x)
-    }
+    }).map { x => if (x < 1) 1 else x }
   }
 
   def getLogger(
