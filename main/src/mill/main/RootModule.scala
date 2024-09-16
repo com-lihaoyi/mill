@@ -2,7 +2,7 @@ package mill.main
 
 import mill.api.internal
 import mill.define.{BaseModule, Ctx, Caller, Discover, Module, Segments}
-
+import scala.annotation.compileTimeOnly
 /**
  * Used to mark a module in your `build.mill` as a top-level module, so it's
  * targets and commands can be run directly e.g. via `mill run` rather than
@@ -27,6 +27,11 @@ abstract class RootModule()(implicit
 @internal
 object RootModule {
   case class Info(millSourcePath0: os.Path, discover: Discover)
+  object Info{
+    @compileTimeOnly("RootModule can only be instantiated in a build.mill or package.mill file")
+    implicit def dummyInfo: Info = ???
+  }
+
   case class SubFolderInfo(value: Seq[String])
 
   abstract class Subfolder()(implicit
