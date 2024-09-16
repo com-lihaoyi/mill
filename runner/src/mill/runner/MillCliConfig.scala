@@ -83,8 +83,7 @@ case class MillCliConfig(
     @arg(
       short = 's',
       doc =
-        """Make ivy logs during script import resolution go silent instead of printing;
-           though failures will still throw exception."""
+        """Make ivy logs during script import resolution go silent instead of printing"""
     )
     silent: Flag = Flag(),
     @arg(
@@ -110,31 +109,7 @@ case class MillCliConfig(
     metaLevel: Option[Int] = None,
     @arg(doc = "Allows command args to be passed positionally without `--arg` by default")
     allowPositional: Flag = Flag()
-) {
-  override def toString: String = Seq(
-    "home" -> home,
-    "repl" -> repl,
-    "noServer" -> noServer,
-    "bsp" -> bsp,
-    "showVersion" -> showVersion,
-    "ringBell" -> ringBell,
-    "ticker" -> ticker,
-    "debugLog" -> debugLog,
-    "keepGoing" -> keepGoing,
-    "extraSystemProperties" -> extraSystemProperties,
-    "threadCountRaw" -> threadCountRaw,
-    "imports" -> imports,
-    "interactive" -> interactive,
-    "help" -> help,
-    "watch" -> watch,
-    "silent" -> silent,
-    "leftoverArgs" -> leftoverArgs,
-    "color" -> color,
-    "disableCallgraph" -> disableCallgraph,
-    "metaLevel" -> metaLevel,
-    "allowPositional" -> allowPositional
-  ).map(p => s"${p._1}=${p._2}").mkString(getClass().getSimpleName + "(", ",", ")")
-}
+)
 
 import mainargs.ParserForClass
 
