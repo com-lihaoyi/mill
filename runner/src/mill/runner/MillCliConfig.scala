@@ -6,8 +6,7 @@ class MillCliConfig private (
     @arg(
       short = 'h',
       doc =
-        """(internal) The home directory of internally used Ammonite script engine;
-           where it looks for config and caches."""
+        """(internal) The home directory where Mill looks for config and caches."""
     )
     val home: os.Path,
     // We need to keep it, otherwise, a given --repl would be silently parsed as target and result in misleading error messages.
@@ -19,9 +18,7 @@ class MillCliConfig private (
     )
     val repl: Flag,
     @arg(
-      doc = """Run Mill in single-process mode.
-               In this mode, no Mill server will be started or used.
-               Must be the first argument."""
+      doc = """Run Mill in single-process mode without a background server. Must be the first argument."""
     )
     val noServer: Flag,
     @arg(doc = """Enable BSP server mode.""")
@@ -36,15 +33,10 @@ class MillCliConfig private (
     val ringBell: Flag,
     @arg(
       doc =
-        """Disable ticker log (e.g. short-lived prints of stages and progress bars)."""
-    )
-    val disableTicker: Flag,
-    @arg(
-      doc =
         """Enable ticker log (e.g. short-lived prints of stages and progress bars)."""
     )
 
-    val enableTicker: Option[Boolean],
+    val ticker: Option[Boolean],
     @arg(name = "debug", short = 'd', doc = "Show debug output on STDOUT")
     val debugLog: Flag,
     @arg(
@@ -62,8 +54,11 @@ class MillCliConfig private (
       name = "jobs",
       short = 'j',
       doc =
-        """Allow processing N targets in parallel.
-           Use 1 to disable parallel and 0 to use as much threads as available processors."""
+        """The number of parallel threads. It can be an integer e.g. `5`
+           meaning 5 threads, an expression e.g. `0.5C` meaning
+           half as many threads as available cores, or `C-2`
+           meaning 2 threads less than the number of cores. `1` disables
+           parallelism and `0` (the default) uses 1 thread per core."""
     )
     val threadCountRaw: Option[Int],
     @arg(
@@ -95,37 +90,31 @@ class MillCliConfig private (
     @arg(
       name = "target",
       doc =
-        """The name or a pattern of the target(s) you want to build,
-           followed by any parameters you wish to pass to those targets.
-           To specify multiple target names or patterns, use the `+` separator."""
+        """The name or a pattern of the target(s) you want to build."""
     )
     val leftoverArgs: Leftover[String],
     @arg(
       doc =
-        """Enable or disable colored output; by default colors are enabled
-          in both REPL and scripts mode if the console is interactive, and disabled
-          otherwise."""
+        """Enable or disable colored output; by default colors are enabled in both REPL and scripts mode if
+           the console is interactive, and disabled otherwise."""
     )
     val color: Option[Boolean],
     @arg(
-      doc =
-        """Disable the fine-grained callgraph-based target invalidation in response to
-           code changes, and instead fall back to the previous coarse-grained implementation
-           relying on the script `import $file` graph"""
+      name = "disable-callgraph",
+      doc = """
+        Disables fine-grained invalidation of tasks based on analyzing code changes. If passed, you will
+        need to manually run `clean` yourself after build changes.
+      """
     )
-    val disableCallgraphInvalidation: Flag,
+    val disableCallgraph: Flag,
     @arg(
       doc =
-        """Experimental: Select a meta-build level to run the given targets.
-           Level 0 is the normal project, level 1 the first meta-build, and so on.
-           The last level is the built-in synthetic meta-build which Mill uses to bootstrap the project."""
+        """Select a meta-build level to run the given targets. Level 0 is the normal project,
+           level 1 the first meta-build, and so on. The last level is a synthetic meta-build used for bootstrapping"""
     )
     val metaLevel: Option[Int],
-    @arg(
-      doc =
-        """"""
-    )
-    val allowPositionalCommandArgs: Flag
+    @arg(doc = "Allows command args to be passed positionally without `--arg` by default")
+    val allowPositional: Flag
 ) {
   override def toString: String = Seq(
     "home" -> home,
@@ -134,8 +123,7 @@ class MillCliConfig private (
     "bsp" -> bsp,
     "showVersion" -> showVersion,
     "ringBell" -> ringBell,
-    "disableTicker" -> disableTicker,
-    "enableTicker" -> enableTicker,
+    "ticker" -> ticker,
     "debugLog" -> debugLog,
     "keepGoing" -> keepGoing,
     "extraSystemProperties" -> extraSystemProperties,
@@ -147,9 +135,9 @@ class MillCliConfig private (
     "silent" -> silent,
     "leftoverArgs" -> leftoverArgs,
     "color" -> color,
-    "disableCallgraphInvalidation" -> disableCallgraphInvalidation,
+    "disableCallgraph" -> disableCallgraph,
     "metaLevel" -> metaLevel,
-    "allowPositionalCommandArgs" -> allowPositionalCommandArgs
+    "allowPositional" -> allowPositional
   ).map(p => s"${p._1}=${p._2}").mkString(getClass().getSimpleName + "(", ",", ")")
 }
 
@@ -170,8 +158,7 @@ object MillCliConfig {
       bsp: Flag = Flag(),
       showVersion: Flag = Flag(),
       ringBell: Flag = Flag(),
-      disableTicker: Flag = Flag(),
-      enableTicker: Option[Boolean] = None,
+      ticker: Option[Boolean] = None,
       debugLog: Flag = Flag(),
       keepGoing: Flag = Flag(),
       extraSystemProperties: Map[String, String] = Map(),
@@ -183,9 +170,9 @@ object MillCliConfig {
       silent: Flag = Flag(),
       leftoverArgs: Leftover[String] = Leftover(),
       color: Option[Boolean] = None,
-      disableCallgraphInvalidation: Flag = Flag(),
+      disableCallgraph: Flag = Flag(),
       metaLevel: Option[Int] = None,
-      allowPositionalCommandArgs: Flag = Flag()
+      allowPositional: Flag = Flag()
   ): MillCliConfig = new MillCliConfig(
     home = home,
     repl = repl,
@@ -193,8 +180,7 @@ object MillCliConfig {
     bsp = bsp,
     showVersion = showVersion,
     ringBell = ringBell,
-    disableTicker = disableTicker,
-    enableTicker = enableTicker,
+    ticker = ticker,
     debugLog = debugLog,
     keepGoing = keepGoing,
     extraSystemProperties = extraSystemProperties,
@@ -206,9 +192,9 @@ object MillCliConfig {
     silent = silent,
     leftoverArgs = leftoverArgs,
     color = color,
-    disableCallgraphInvalidation,
+    disableCallgraph,
     metaLevel = metaLevel,
-    allowPositionalCommandArgs = allowPositionalCommandArgs
+    allowPositional = allowPositional
   )
   @deprecated("Bin-compat shim", "Mill after 0.11.12")
   def apply(
@@ -219,8 +205,7 @@ object MillCliConfig {
       bsp: Flag,
       showVersion: Flag,
       ringBell: Flag,
-      disableTicker: Flag,
-      enableTicker: Option[Boolean],
+      ticker: Option[Boolean],
       debugLog: Flag,
       keepGoing: Flag,
       extraSystemProperties: Map[String, String],
@@ -241,8 +226,7 @@ object MillCliConfig {
     bsp = bsp,
     showVersion = showVersion,
     ringBell = ringBell,
-    disableTicker = disableTicker,
-    enableTicker = enableTicker,
+    ticker = ticker,
     debugLog = debugLog,
     keepGoing = keepGoing,
     extraSystemProperties = extraSystemProperties,
@@ -256,7 +240,7 @@ object MillCliConfig {
     color = color,
     disableCallgraphInvalidation,
     metaLevel = metaLevel,
-    allowPositionalCommandArgs = Flag()
+    allowPositional = Flag()
   )
 
   @deprecated("Bin-compat shim", "Mill after 0.11.0")
@@ -268,8 +252,7 @@ object MillCliConfig {
       bsp: Flag,
       showVersion: Flag,
       ringBell: Flag,
-      disableTicker: Flag,
-      enableTicker: Option[Boolean],
+      ticker: Option[Boolean],
       debugLog: Flag,
       keepGoing: Flag,
       extraSystemProperties: Map[String, String],
@@ -290,8 +273,7 @@ object MillCliConfig {
     bsp,
     showVersion,
     ringBell,
-    disableTicker,
-    enableTicker,
+    ticker,
     debugLog,
     keepGoing,
     extraSystemProperties,
@@ -313,15 +295,43 @@ import mainargs.ParserForClass
 // see https://github.com/com-lihaoyi/mill/issues/2315
 object MillCliConfigParser {
   val customName: String = s"Mill Build Tool, version ${mill.main.BuildInfo.millVersion}"
-  val customDoc = "usage: mill [options] [[target [target-options]] [+ [target ...]]]"
+  val customDoc = """
+usage: mill [options] [[target [target-options]] [+ [target ...]]]
+
+target cheat sheet:
+
+./mill resolve _                 # see all top-level tasks and modules
+./mill resolve __.compile        # see all `compile` tasks in any module (recursively)
+
+./mill foo.bar.compile           # compile the module `foo.bar`
+
+./mill foo.run --arg 1           # run the main method of the module `foo` and pass in `--arg 1`
+./mill -i foo.console            # run the Scala console for the module `foo` (if it is a ScalaModule)
+
+./mill foo.__.test               # run tests in module within `foo` (recursively)
+./mill foo.test arg1 arg2 arg3   # run tests in the `foo` module passing in test arguments `arg1 arg2 arg3`
+./mill foo.test + bar.test       # run tests in the `foo` module and `bar` module
+./mill '{foo,bar,qux}.test'      # run tests in the `foo` module, `bar` module, and `qux` module
+
+./mill foo.assembly              # generate an executable assembly of the module `foo`
+
+./mill show foo.assembly         # print the output path of the assembly of module `foo`
+./mill inspect foo.assembly      # show docs and metadata for the `assembly` task on module `foo`
+
+./mill clean foo.assembly        # delete the output of `foo.assembly` to force re-evaluation
+./mill clean                     # delete the output of the entire build to force force re-evaluation
+
+./mill path foo.run foo.sources  # print the dependency chain showing how `foo.run` depends on `foo.sources`
+./mill visualize __.compile      # show how the various `compile` tasks in each module depend on one another
+
+options:"""
 
   import mill.api.JsonFormatters._
 
   private[this] lazy val parser: ParserForClass[MillCliConfig] =
     mainargs.ParserForClass[MillCliConfig]
 
-  lazy val usageText: String =
-    parser.helpText(customName = customName, customDoc = customDoc)
+  lazy val usageText: String = customName + "\n" + customDoc + parser.helpText(customName="", totalWidth=120)
 
   def parse(args: Array[String]): Either[String, MillCliConfig] = {
     parser.constructEither(

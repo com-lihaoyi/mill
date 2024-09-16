@@ -73,10 +73,6 @@ usage: mill [options] [[target [target-options]] [+ [target ...]]]
                                     in both REPL and scripts mode if the console is interactive, and
                                     disabled otherwise.
   -d --debug                        Show debug output on STDOUT
-  --disable-callgraph-invalidation  Disable the fine-grained callgraph-based target invalidation in
-                                    response to code changes, and instead fall back to the previous
-                                    coarse-grained implementation relying on the script `import
-                                    $file` graph
   --disable-ticker                  Disable ticker log (e.g. short-lived prints of stages and
                                     progress bars).
   --enable-ticker <bool>            Enable ticker log (e.g. short-lived prints of stages and

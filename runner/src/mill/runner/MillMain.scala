@@ -160,7 +160,7 @@ object MillMain {
               streams,
               config,
               mainInteractive,
-              enableTicker = if (config.disableTicker.value) Some(false) else config.enableTicker,
+              enableTicker = config.ticker,
               printLoggerState
             )
             if (!config.silent.value) {
@@ -176,8 +176,9 @@ object MillMain {
                 (false, stateCache)
 
               } else if (!bspMode && config.leftoverArgs.value.isEmpty) {
-                logger.error("A target must be provided.")
-                (false, stateCache)
+                println(MillCliConfigParser.usageText)
+
+                (true, stateCache)
 
               } else {
                 val userSpecifiedProperties =
@@ -232,10 +233,10 @@ object MillMain {
                         targetsAndParams = targetsAndParams,
                         prevRunnerState = prevState.getOrElse(stateCache),
                         logger = logger,
-                        disableCallgraphInvalidation = config.disableCallgraphInvalidation.value,
+                        disableCallgraph = config.disableCallgraph.value,
                         needBuildSc = needBuildSc(config),
                         requestedMetaLevel = config.metaLevel,
-                        config.allowPositionalCommandArgs.value,
+                        config.allowPositional.value,
                         systemExit = systemExit
                       ).evaluate()
                     }
