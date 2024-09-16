@@ -41,11 +41,8 @@ object MillMainTests extends TestSuite {
         assert(MillMain.parseThreadCount(Some(".5C"), 10) == Right(5))
         assert(MillMain.parseThreadCount(Some("1.0C"), 10) == Right(10))
         assert(MillMain.parseThreadCount(Some("1.5C"), 10) == Right(15))
+        assert(MillMain.parseThreadCount(Some("0.09C"), 10) == Right(1))
 
-        assertParseErr(
-          MillMain.parseThreadCount(Some("0.09C"), 10),
-          "Calculated cores to use should be a positive number"
-        )
         assertParseErr(
           MillMain.parseThreadCount(Some("-0.5C"), 10),
           "Calculated cores to use should be a positive number"

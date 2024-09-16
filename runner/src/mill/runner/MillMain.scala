@@ -287,7 +287,11 @@ object MillMain {
       case None => Right(availableCores)
       case Some(s"${n}C") => n.toDoubleOption
           .toRight(err("Failed to find a float number before \"C\"."))
-          .map(m => (m * availableCores).toInt)
+          .map(_ * availableCores)
+          .map {
+            case x if x > 0 && x < 1 => 1
+            case x => x.toInt
+          }
       case Some(s"C-${n}") => n.toIntOption
           .toRight(err("Failed to find a int number after \"C-\"."))
           .map(availableCores - _)
