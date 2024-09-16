@@ -134,7 +134,7 @@ import mainargs.ParserForClass
 object MillCliConfigParser {
   val customName: String = s"Mill Build Tool, version ${mill.main.BuildInfo.millVersion}"
   val customDoc = """
-usage: mill [options] [[target [target-options]] [+ [target ...]]]
+usage: mill [options] target [target-options] [+ target ...]
 """
   val cheatSheet = """
 target cheat sheet:
