@@ -75,7 +75,7 @@ case class MillCliConfig(
            meaning 2 threads less than the number of cores. `1` disables
            parallelism and `0` (the default) uses 1 thread per core."""
     )
-    threadCountRaw: Option[Int] = None,
+    threadCountRaw: Option[String] = None,
     @arg(
       name = "import",
       doc = """Additional ivy dependencies to load into mill, e.g. plugins."""
