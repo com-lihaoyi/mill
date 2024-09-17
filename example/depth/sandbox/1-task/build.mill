@@ -15,7 +15,7 @@ package build
 import mill._
 
 object foo extends Module{
-  def tDestTask = T { println(T.dest.toString) }
+  def tDestTask = Task { println(T.dest.toString) }
 }
 
 /** Usage
@@ -28,7 +28,7 @@ object foo extends Module{
 // Mill also redirects the `os.pwd` property from https://github.com/com-lihaoyi/os-lib[OS-Lib],
 // such that that also points towards a running task's own `.dest/` folder
 
-def osPwdTask = T { println(os.pwd.toString) }
+def osPwdTask = Task { println(os.pwd.toString) }
 
 /** Usage
 > ./mill osPwdTask
@@ -39,7 +39,7 @@ def osPwdTask = T { println(os.pwd.toString) }
 // as well. In the example below, we can see the `python3` subprocess we spawn prints
 // its `os.getcwd()`, which is our `osProcTask.dest/` sandbox folder:
 
-def osProcTask = T {
+def osProcTask = Task {
   println(os.call(("python3", "-c", "import os; print(os.getcwd())"), cwd = T.dest).out.trim())
 }
 
@@ -55,7 +55,7 @@ def osProcTask = T {
 // towards an empty `sandbox/` folder in `out/mill-worker.../`:
 
 val externalPwd = os.pwd
-def externalPwdTask = T { println(externalPwd.toString) }
+def externalPwdTask = Task { println(externalPwd.toString) }
 
 /** Usage
 > ./mill externalPwdTask

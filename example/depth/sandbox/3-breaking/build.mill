@@ -12,7 +12,7 @@
 package build
 import mill._, javalib._
 
-def tWorkspaceTask = T { println(T.workspace) }
+def tWorkspaceTask = Task { println(T.workspace) }
 
 /** Usage
 > ./mill tWorkspaceTask

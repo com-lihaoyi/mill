@@ -6,7 +6,7 @@ object `package` extends RootModule with JavaModule {
   def nativeSources = T.sources(millSourcePath / "native-src")
 
   // Auto-generate JNI `.h` files from Java classes using Javac
-  def nativeHeaders = T {
+  def nativeHeaders = Task {
     os.proc(Jvm.jdkTool("javac"), "-h", T.dest, "-d", T.dest.toString, allSourceFiles().map(_.path)).call()
     PathRef(T.dest)
   }

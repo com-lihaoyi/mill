@@ -19,7 +19,7 @@ object foo extends JavaModule {
     Seq(PathRef(T.dest))
   }
 
-  def compile = T {
+  def compile = Task {
     println("Compiling...")
     super.compile()
   }

@@ -11,7 +11,7 @@ trait DiyJavaModule extends Module{
   def upstream: T[Seq[PathRef]] = T{ T.traverse(moduleDeps)(_.classPath)().flatten }
   def sources = T.source(millSourcePath / "src")
 
-  def compile = T {
+  def compile = Task {
     val allSources = os.walk(sources().path)
     val cpFlag = Seq("-cp", upstream().map(_.path).mkString(":"))
     os.proc("javac", cpFlag, allSources, "-d", T.dest).call()
@@ -20,7 +20,7 @@ trait DiyJavaModule extends Module{
 
   def classPath = T{ Seq(compile()) ++ upstream() }
 
-  def assembly = T {
+  def assembly = Task {
     for(cp <- classPath()) os.copy(cp.path, T.dest, mergeFolders = true)
 
     val mainFlags = mainClass().toSeq.flatMap(Seq("-e", _))

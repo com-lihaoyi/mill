@@ -10,7 +10,7 @@ object `package` extends RootModule with ScalaModule {
     ivy"com.lihaoyi::os-lib:0.10.7"
   )
 
-  def resources = T {
+  def resources = Task {
     val hashMapping = for {
       resourceRoot <- super.resources()
       path <- os.walk(resourceRoot.path)

@@ -30,7 +30,7 @@ object `package` extends RootModule with ScalaModule {
   }
 
   // Generate sources at build time
-  def generatedSources: T[Seq[PathRef]] = T {
+  def generatedSources: T[Seq[PathRef]] = Task {
     for(name <- Seq("A", "B", "C")) os.write(
       T.dest / s"Foo$name.scala",
       s"""

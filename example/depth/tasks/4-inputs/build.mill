@@ -18,7 +18,7 @@ def myInput = T.input {
 // that target does not have any `Task` inputs and so will never re-compute
 // even if the external `git` status changes:
 
-def gitStatusTarget = T {
+def gitStatusTarget = Task {
   "v-" +
   os.proc("git", "log", "-1", "--pretty=format:%h-%B ")
     .call(cwd = T.workspace)
@@ -56,7 +56,7 @@ def gitStatusInput = T.input {
     .text()
     .trim()
 }
-def gitStatusTarget2 = T { "v-" + gitStatusInput() }
+def gitStatusTarget2 = Task { "v-" + gitStatusInput() }
 
 // This makes `gitStatusInput` to always re-evaluate every build, and only if
 // the output of `gitStatusInput` changes will `gitStatusTarget2` re-compute

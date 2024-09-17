@@ -9,7 +9,7 @@ trait HelloWorldModule extends scalalib.ScalaModule {
   override def scalaVersion = "2.13.6"
   object test extends ScalaTests with TestModule.Utest
 
-  override def generatedSources = T {
+  override def generatedSources = Task {
     Seq(PathRef(T.dest / "classes"))
   }
 

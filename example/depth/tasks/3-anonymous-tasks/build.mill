@@ -7,7 +7,7 @@ def anonTask(fileName: String): Task[String] = T.task {
   os.read(data().path / fileName)
 }
 
-def helloFileData = T { anonTask("hello.txt")() }
+def helloFileData = Task { anonTask("hello.txt")() }
 def printFileData(fileName: String) = T.command {
   println(anonTask(fileName)())
 }

@@ -22,7 +22,7 @@ trait MyModule extends JavaModule with PublishModule {
 object foo extends MyModule {
   def moduleDeps = Seq(bar, qux)
 
-  def generatedSources = T {
+  def generatedSources = Task {
     os.write(
       T.dest / "Version.java",
       s"""

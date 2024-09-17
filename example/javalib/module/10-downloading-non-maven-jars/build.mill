@@ -3,7 +3,7 @@ package build
 import mill._, javalib._
 
 object `package` extends RootModule with JavaModule {
-  def unmanagedClasspath = T {
+  def unmanagedClasspath = Task {
     os.write(
       T.dest / "fastjavaio.jar",
       requests.get.stream(

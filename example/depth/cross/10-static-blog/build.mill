@@ -67,7 +67,7 @@ def index = T{
 // Lastly we copy the individual post HTML files and the `index.html` file
 // into a single target's `.dest` folder, and return it:
 
-def dist = T {
+def dist = Task {
   for (post <- T.traverse(post.crossModules)(_.render)()) {
     os.copy(post.path, T.dest / "post" / post.path.last, createFolders = true)
   }

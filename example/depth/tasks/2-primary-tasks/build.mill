@@ -1,7 +1,7 @@
 // There are three primary kinds of _Tasks_ that you should care about:
 //
 // * <<_sources>>, defined using `T.sources {...}`
-// * <<_targets>>, defined using `T {...}`
+// * <<_targets>>, defined using `Task {...}`
 // * <<_commands>>, defined using `T.command {...}`
 
 // === Sources
@@ -25,13 +25,13 @@ def resources = T.source { millSourcePath / "resources" }
 
 // === Targets
 
-def allSources = T {
+def allSources = Task {
   os.walk(sources().path)
     .filter(_.ext == "java")
     .map(PathRef(_))
 }
 
-def lineCount: T[Int] = T {
+def lineCount: T[Int] = Task {
   println("Computing line count")
   allSources()
     .map(p => os.read.lines(p.path).size)
@@ -48,9 +48,9 @@ def lineCount: T[Int] = T {
 // }
 // ....
 //
-// ``Target``s are defined using the `def foo = T {...}` syntax, and dependencies
+// ``Target``s are defined using the `def foo = Task {...}` syntax, and dependencies
 // on other targets are defined using `foo()` to extract the value from them.
-// Apart from the `foo()` calls, the `T {...}` block contains arbitrary code that
+// Apart from the `foo()` calls, the `Task {...}` block contains arbitrary code that
 // does some work and returns a result.
 //
 // The `os.walk` and `os.read.lines` statements above are from the
@@ -81,7 +81,7 @@ Computing line count
 // not cause it to recompute:
 
 // ```diff
-//  def lineCount: T[Int] = T {
+//  def lineCount: T[Int] = Task {
 //   println("Computing line count")
 //+  // Hello World
 //   allSources()
@@ -94,7 +94,7 @@ Computing line count
 // next time it is invoked:
 //
 // ```diff
-//   def lineCount: T[Int] = T {
+//   def lineCount: T[Int] = Task {
 //-  println("Computing line count")
 //+  println("Computing line count!!!")
 //   allSources()
@@ -123,7 +123,7 @@ Computing line count
 // folder and return a `PathRef()` that referencing the files or folders
 // you want to return:
 
-def classFiles = T {
+def classFiles = Task {
   println("Generating classfiles")
 
   os.proc("javac", allSources().map(_.path), "-d", T.dest)
@@ -132,7 +132,7 @@ def classFiles = T {
   PathRef(T.dest)
 }
 
-def jar = T {
+def jar = Task {
   println("Generating jar")
   os.copy(classFiles().path, T.dest, mergeFolders = true)
   os.copy(resources().path, T.dest, mergeFolders = true)
@@ -186,7 +186,7 @@ Generating jar
 // in `def largeFile` running even though the `largeFile()` branch of the
 // `if` conditional does not get used:
 
-def largeFile = T {
+def largeFile = Task {
   println("Finding Largest File")
   allSources()
     .map(_.path)
@@ -368,7 +368,7 @@ trait Foo extends Module {
 
 trait Bar extends Foo {
   def additionalSources = T.sources(millSourcePath / "src2")
-  def sourceRoots = T { super.sourceRoots() ++ additionalSources() }
+  def sourceRoots = Task { super.sourceRoots() ++ additionalSources() }
 }
 
 object bar extends Bar
