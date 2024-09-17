@@ -1,8 +1,10 @@
 package mill.eval
 
 import mill.api.BlockableExecutionContext
+import mill.util.{FileLogger, MultiLogger}
+import os.Path
 
-import scala.concurrent.{Future, Await}
+import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
 import java.util.concurrent.ForkJoinPool.ManagedBlocker
 import java.util.concurrent.{ExecutorService, ForkJoinPool}
@@ -15,10 +17,12 @@ private object ExecutionContexts {
    * Future code into nice single-threaded code without needing to rewrite it
    */
   object RunNow extends BlockableExecutionContext {
-    def await[T](t: => Future[T]): T = Await.result(t, Duration.Inf)
+    def await[T](t: Future[T]): T = Await.result(t, Duration.Inf)
     def execute(runnable: Runnable): Unit = runnable.run()
     def reportFailure(cause: Throwable): Unit = {}
     def close(): Unit = () // do nothing
+
+    def sandboxedFuture[T](dest: Path)(t: => T)(implicit ctx: mill.api.Ctx): Future[T] = Future.successful(t)
   }
 
   /**
@@ -26,7 +30,7 @@ private object ExecutionContexts {
    * and AutoCloseable support
    */
   class ThreadPool(threadCount: Int) extends BlockableExecutionContext {
-    def await[T](t: => Future[T]): T = blocking { Await.result(t, Duration.Inf) }
+    def await[T](t: Future[T]): T = blocking { Await.result(t, Duration.Inf) }
     val forkJoinPool: ForkJoinPool = new ForkJoinPool(threadCount)
     val threadPool: ExecutorService = forkJoinPool
 
@@ -42,8 +46,56 @@ private object ExecutionContexts {
       res.get
     }
 
-    def execute(runnable: Runnable): Unit = threadPool.submit(runnable)
+    def execute(runnable: Runnable): Unit = {
+      // By default any child task inherits the pwd and system streams from the
+      // context which submitted it
+      lazy val submitterPwd = os.pwd
+      lazy val submitterStreams = new mill.api.SystemStreams(System.out, System.err, System.in)
+      threadPool.submit(new Runnable{
+        def run() = {
+          os.dynamicPwdFunction.withValue(() => submitterPwd) {
+            mill.api.SystemStreams.withStreams(submitterStreams) {
+              runnable.run()
+            }
+          }
+        }
+      })
+    }
+
     def reportFailure(t: Throwable): Unit = {}
     def close(): Unit = threadPool.shutdown()
+
+    /**
+     * A variant of `scala.concurrent.Future{...}` that sets the `pwd` to a different
+     * folder [[dest]] and duplicates the logging streams to [[dest]].log while evaluating
+     * [[t]], to avoid conflict with other tasks that may be running concurrently
+     */
+    def sandboxedFuture[T](dest: Path)(t: => T)(implicit ctx: mill.api.Ctx): Future[T] = {
+      val logger = ctx.log
+      var destInitialized: Boolean = false
+      def makeDest() = synchronized{
+        if (!destInitialized) {
+          os.makeDir.all(dest)
+          destInitialized = true
+        }
+
+        dest
+      }
+      val multiLogger = new MultiLogger(
+        logger.colored,
+        logger,
+        // we always enable debug here, to get some more context in log files
+        new FileLogger(logger.colored, dest / os.up / s"${dest.last}.log", debugEnabled = true),
+        logger.systemStreams.in,
+        debugEnabled = logger.debugEnabled
+      )
+      Future {
+        os.dynamicPwdFunction.withValue(() => makeDest()) {
+          mill.api.SystemStreams.withStreams(multiLogger.systemStreams) {
+            t
+          }
+        }
+      }(this)
+    }
   }
 }

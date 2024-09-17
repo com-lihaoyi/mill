@@ -94,7 +94,6 @@ private[scalalib] object TestModuleUtil {
     val subprocessResult: Either[String, (String, Seq[TestResult])] = filteredClassLists match {
       case Seq(singleTestClassList) => runTestSubprocess(singleTestClassList, T.dest)
       case multipleTestClassLists =>
-        implicit val ec = T.ctx.executionContext
 
         val hasMultiClassGroup = multipleTestClassLists.exists(_.length > 1)
         val futures = multipleTestClassLists.zipWithIndex.map { case (testClassList, i) =>
@@ -105,10 +104,12 @@ private[scalalib] object TestModuleUtil {
             case multiple => s"group-$i"
           }
 
-          Future { (groupLabel, runTestSubprocess(testClassList, T.dest / groupLabel)) }
+          T.ctx.executionContext.sandboxedFuture(T.dest / groupLabel) {
+            (groupLabel, runTestSubprocess(testClassList, T.dest / groupLabel))
+          }
         }
 
-        val outputs = T.ctx.executionContext.await(Future.sequence(futures))
+        val outputs = T.ctx.executionContext.awaitAll(futures)
 
         val (lefts, rights) = outputs.partitionMap {
           case (name, Left(v)) => Left(name + " " + v)

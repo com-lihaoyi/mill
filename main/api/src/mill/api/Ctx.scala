@@ -145,3 +145,13 @@ class Ctx(
     else throw new IndexOutOfBoundsException(s"Index $index outside of range 0 - ${args.length}")
   }
 }
+
+import scala.concurrent.{Future, ExecutionContext}
+trait BlockableExecutionContext extends ExecutionContext with AutoCloseable {
+  def await[T](t: Future[T]): T
+  def awaitAll[T](t: Seq[Future[T]]): Seq[T] = {
+    implicit val ec = this
+    await(Future.sequence(t))
+  }
+  def sandboxedFuture[T](dest: os.Path)(t: => T)(implicit ctx: mill.api.Ctx):Future[T]
+}
