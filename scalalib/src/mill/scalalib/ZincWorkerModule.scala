@@ -76,7 +76,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
             scalaCompilerBridgeJar(x, y, repositoriesTask())
               .asSuccess
               .getOrElse(
-                throw new Exception(s"Failed to load compiler bridge for $x $y")
+                throw Result.Failure(s"Failed to load compiler bridge for $x $y")
               )
               .value
         )),

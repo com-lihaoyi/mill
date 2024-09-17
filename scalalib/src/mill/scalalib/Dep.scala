@@ -1,12 +1,11 @@
 package mill.scalalib
 
-import upickle.default.{macroRW, ReadWriter => RW}
+import coursier.core.{Configuration, Dependency}
 import mill.scalalib.CrossVersion._
-import coursier.core.Dependency
 import mill.scalalib.api.ZincWorkerUtil
+import upickle.default.{macroRW, ReadWriter => RW}
 
 import scala.annotation.unused
-import coursier.core.Configuration
 
 case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
   require(

@@ -1,6 +1,7 @@
 package mill.scalalib
 
 import mill.T
+import mill.api.Result
 import mill.define.Cross
 import mill.define.Cross.Resolver
 import mill.scalalib.api.ZincWorkerUtil
@@ -31,7 +32,7 @@ trait CrossModuleBase extends ScalaModule with Cross.Module[String] {
           )
           .collectFirst { case x => x }
           .getOrElse(
-            throw new Exception(
+            throw Result.Failure(
               s"Unable to find compatible cross version between $crossScalaVersion and " +
                 c.crossModules.map(_.crossScalaVersion).mkString(",")
             )
