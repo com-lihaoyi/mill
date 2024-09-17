@@ -59,8 +59,7 @@ object Task extends TaskBase {
    * Violating that invariant can result in confusing mis-behaviors
    */
   def Persistent[T](t: Result[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
-  macro Target.Internal.persistentImpl[T]
-
+    macro Target.Internal.persistentImpl[T]
 
   /**
    * A specialization of [[InputImpl]] defined via `Task.Sources`, [[SourcesImpl]]
@@ -73,20 +72,20 @@ object Task extends TaskBase {
    * [[TargetImpl]]s need to be invalidated and re-computed.
    */
   def Sources(values: Result[os.Path]*)(implicit ctx: mill.define.Ctx): Target[Seq[PathRef]] =
-  macro Target.Internal.sourcesImpl1
+    macro Target.Internal.sourcesImpl1
 
   def Sources(values: Result[Seq[PathRef]])(implicit ctx: mill.define.Ctx): Target[Seq[PathRef]] =
-  macro Target.Internal.sourcesImpl2
+    macro Target.Internal.sourcesImpl2
 
   /**
    * Similar to [[Source]], but only for a single source file or folder. Defined
    * using `Task.Source`.
    */
   def Source(value: Result[os.Path])(implicit ctx: mill.define.Ctx): Target[PathRef] =
-  macro Target.Internal.sourceImpl1
+    macro Target.Internal.sourceImpl1
 
   def Source(value: Result[PathRef])(implicit ctx: mill.define.Ctx): Target[PathRef] =
-  macro Target.Internal.sourceImpl2
+    macro Target.Internal.sourceImpl2
 
   /**
    * [[InputImpl]]s, normally defined using `Task.Input`, are [[NamedTask]]s that
@@ -105,10 +104,10 @@ object Task extends TaskBase {
    * used for detecting changes to source files.
    */
   def Input[T](value: Result[T])(implicit
-                                 w: upickle.default.Writer[T],
-                                 ctx: mill.define.Ctx
+      w: upickle.default.Writer[T],
+      ctx: mill.define.Ctx
   ): Target[T] =
-  macro Target.Internal.inputImpl[T]
+    macro Target.Internal.inputImpl[T]
 
   /**
    * [[Command]]s are only [[NamedTask]]s defined using
@@ -118,11 +117,10 @@ object Task extends TaskBase {
    * arguments, as long as an implicit [[mainargs.TokensReader]] is available.
    */
   def Command[T](t: Result[T])(implicit
-                               w: W[T],
-                               ctx: mill.define.Ctx,
-                               cls: EnclosingClass
+      w: W[T],
+      ctx: mill.define.Ctx,
+      cls: EnclosingClass
   ): Command[T] = macro Target.Internal.commandImpl[T]
-
 
   /**
    * [[Worker]] is a [[NamedTask]] that lives entirely in-memory, defined using
@@ -139,7 +137,7 @@ object Task extends TaskBase {
    * what in-memory state the worker may have.
    */
   def Worker[T](t: Result[T])(implicit ctx: mill.define.Ctx): Worker[T] =
-  macro Target.Internal.workerImpl2[T]
+    macro Target.Internal.workerImpl2[T]
 
   /**
    * Creates an anonymous `Task`. These depend on other tasks and
@@ -242,46 +240,45 @@ trait Target[+T] extends NamedTask[T]
 object Target extends TaskBase {
   @deprecated("Use Task.Persistent instead", "Mill after 0.12.0-RC1")
   def persistent[T](t: Result[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
-  macro Target.Internal.persistentImpl[T]
+    macro Target.Internal.persistentImpl[T]
 
   @deprecated("Use Task.Sources instead", "Mill after 0.12.0-RC1")
   def sources(values: Result[os.Path]*)(implicit ctx: mill.define.Ctx): Target[Seq[PathRef]] =
-  macro Target.Internal.sourcesImpl1
+    macro Target.Internal.sourcesImpl1
   @deprecated("Use Task.Sources instead", "Mill after 0.12.0-RC1")
   def sources(values: Result[Seq[PathRef]])(implicit ctx: mill.define.Ctx): Target[Seq[PathRef]] =
-  macro Target.Internal.sourcesImpl2
-
+    macro Target.Internal.sourcesImpl2
 
   @deprecated("Use Task.Source instead", "Mill after 0.12.0-RC1")
   def source(value: Result[os.Path])(implicit ctx: mill.define.Ctx): Target[PathRef] =
-  macro Target.Internal.sourceImpl1
+    macro Target.Internal.sourceImpl1
 
   @deprecated("Use Task.Source instead", "Mill after 0.12.0-RC1")
   def source(value: Result[PathRef])(implicit ctx: mill.define.Ctx): Target[PathRef] =
-  macro Target.Internal.sourceImpl2
+    macro Target.Internal.sourceImpl2
 
   @deprecated("Use Task.Input instead", "Mill after 0.12.0-RC1")
   def input[T](value: Result[T])(implicit
-                                 w: upickle.default.Writer[T],
-                                 ctx: mill.define.Ctx
+      w: upickle.default.Writer[T],
+      ctx: mill.define.Ctx
   ): Target[T] =
-  macro Target.Internal.inputImpl[T]
+    macro Target.Internal.inputImpl[T]
 
   @deprecated(
     "Creating a command from a task is deprecated. You most likely forgot a parenthesis pair `()`",
     "Mill after 0.12.0-RC1"
   )
   def command[T](t: Task[T])(implicit
-                             ctx: mill.define.Ctx,
-                             w: W[T],
-                             cls: EnclosingClass
+      ctx: mill.define.Ctx,
+      w: W[T],
+      cls: EnclosingClass
   ): Command[T] = macro Target.Internal.commandFromTask[T]
 
   @deprecated("Use Task.Command instead", "Mill after 0.12.0-RC1")
   def command[T](t: Result[T])(implicit
-                               w: W[T],
-                               ctx: mill.define.Ctx,
-                               cls: EnclosingClass
+      w: W[T],
+      ctx: mill.define.Ctx,
+      cls: EnclosingClass
   ): Command[T] = macro Target.Internal.commandImpl[T]
 
   @deprecated(
@@ -289,15 +286,14 @@ object Target extends TaskBase {
     "Mill after 0.12.0-RC1"
   )
   def worker[T](t: Task[T])(implicit ctx: mill.define.Ctx): Worker[T] =
-  macro Target.Internal.workerImpl1[T]
+    macro Target.Internal.workerImpl1[T]
 
   @deprecated("Use Task.Worker instead", "Mill after 0.12.0-RC1")
   def worker[T](t: Result[T])(implicit ctx: mill.define.Ctx): Worker[T] =
-  macro Target.Internal.workerImpl2[T]
+    macro Target.Internal.workerImpl2[T]
 
   @deprecated("Use Task.Anon instead", "Mill after 0.12.0-RC2")
   def task[T](t: Result[T]): Task[T] = macro Applicative.impl[Task, T, mill.api.Ctx]
-
 
   @deprecated(
     "Creating a target from a task is deprecated. You most likely forgot a parenthesis pair `()`",
