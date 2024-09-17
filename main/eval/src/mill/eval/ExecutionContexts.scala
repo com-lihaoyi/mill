@@ -5,10 +5,7 @@ import mill.api.BlockableExecutionContext
 import scala.concurrent.{Future, Await}
 import scala.concurrent.duration.Duration
 import java.util.concurrent.ForkJoinPool.ManagedBlocker
-import java.util.concurrent.{
-  ExecutorService,
-  ForkJoinPool,
-}
+import java.util.concurrent.{ExecutorService, ForkJoinPool}
 
 private object ExecutionContexts {
 
@@ -29,7 +26,7 @@ private object ExecutionContexts {
    * and AutoCloseable support
    */
   class ThreadPool(threadCount: Int) extends BlockableExecutionContext {
-    def await[T](t: => Future[T]): T = blocking{ Await.result(t, Duration.Inf) }
+    def await[T](t: => Future[T]): T = blocking { Await.result(t, Duration.Inf) }
     val forkJoinPool: ForkJoinPool = new ForkJoinPool(threadCount)
     val threadPool: ExecutorService = forkJoinPool
 

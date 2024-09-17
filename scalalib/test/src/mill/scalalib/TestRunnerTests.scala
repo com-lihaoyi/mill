@@ -113,7 +113,11 @@ object TestRunnerTests extends TestSuite {
               testrunner.utest -> Set("out.json", "sandbox", "test-report.xml", "testargs"),
               // When there are multiple test groups with one test class each, we
               // put each test group in a subfolder with the number of the class
-              testrunnerGrouping.utest -> Set("mill.scalalib.BarTests", "mill.scalalib.FoobarTests", "test-report.xml")
+              testrunnerGrouping.utest -> Set(
+                "mill.scalalib.BarTests",
+                "mill.scalalib.FoobarTests",
+                "test-report.xml"
+              )
             )
           )
           test("all") - tester.testOnly(
@@ -124,11 +128,16 @@ object TestRunnerTests extends TestSuite {
               // When there are multiple test groups some with multiple test classes, we put each
               // test group in a subfolder with the index of the group, and for any test groups
               // with only one test class we append the name of the class
-              testrunnerGrouping.utest -> Set("group-0", "group-1-mill.scalalib.FoobarTests", "test-report.xml")
+              testrunnerGrouping.utest -> Set(
+                "group-0",
+                "group-1-mill.scalalib.FoobarTests",
+                "test-report.xml"
+              )
             )
           )
           test("noMatch") - tester.testOnly0 { (eval, mod) =>
-            val Left(Result.Failure(msg, _)) = eval.apply(mod.utest.testOnly("noMatch", "noMatch*2"))
+            val Left(Result.Failure(msg, _)) =
+              eval.apply(mod.utest.testOnly("noMatch", "noMatch*2"))
             assert(
               msg == "Test selector does not match any test: noMatch noMatch*2\nRun discoveredTestClasses to see available tests"
             )
@@ -184,8 +193,14 @@ object TestRunnerTests extends TestSuite {
           val tester = new TestOnlyTester(_.scalatest)
 
           test("all") - tester.testOnly(Seq("mill.scalalib.ScalaTestSpec"), 3)
-          test("include") - tester.testOnly(Seq("mill.scalalib.ScalaTestSpec", "--", "-n", "tagged"), 1)
-          test("exclude") - tester.testOnly(Seq("mill.scalalib.ScalaTestSpec", "--", "-l", "tagged"), 2)
+          test("include") - tester.testOnly(
+            Seq("mill.scalalib.ScalaTestSpec", "--", "-n", "tagged"),
+            1
+          )
+          test("exclude") - tester.testOnly(
+            Seq("mill.scalalib.ScalaTestSpec", "--", "-l", "tagged"),
+            2
+          )
           test("includeAndExclude") - tester.testOnly0 { (eval, mod) =>
             val Left(Result.Failure(msg, _)) =
               eval.apply(mod.scalatest.testOnly(
@@ -217,22 +232,28 @@ object TestRunnerTests extends TestSuite {
     }
   }
 
-  class TestOnlyTester(m: TestRunnerTestModule => TestModule){
+  class TestOnlyTester(m: TestRunnerTestModule => TestModule) {
     def testOnly0(f: (UnitTester, TestRunnerTestModule) => Unit) = {
-      for(mod <- Seq(testrunner, testrunnerGrouping)) {
-        UnitTester(mod, resourcePath).scoped{eval => f(eval, mod) }
+      for (mod <- Seq(testrunner, testrunnerGrouping)) {
+        UnitTester(mod, resourcePath).scoped { eval => f(eval, mod) }
       }
     }
-    def testOnly(args: Seq[String], size: Int, expectedFileListing: Map[TestModule, Set[String]] = Map()) = {
-      testOnly0{ (eval, mod) =>
+    def testOnly(
+        args: Seq[String],
+        size: Int,
+        expectedFileListing: Map[TestModule, Set[String]] = Map()
+    ) = {
+      testOnly0 { (eval, mod) =>
         val Right(result) = eval.apply(m(mod).testOnly(args: _*))
         val testOnly = result.value
-        if (expectedFileListing.nonEmpty){
+        if (expectedFileListing.nonEmpty) {
           val dest = eval.outPath / m(mod).toString / "testOnly.dest"
           val sortedListed = os.list(dest).map(_.last).sorted
           val sortedExpected = expectedFileListing(m(mod)).toSeq.sorted
           assert(sortedListed == sortedExpected)
         }
+        // Regardless of whether tests are grouped or not, the same
+        // number of test results appear at the end
         assert(testOnly._2.size == size)
       }
     }

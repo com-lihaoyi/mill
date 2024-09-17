@@ -1,20 +1,11 @@
 package mill.scalalib
 
 import mill.api.{Ctx, PathRef, Result}
-import mill.main.client.EnvVars
 import mill.define.{Command, Task, TaskModule}
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.testrunner.{Framework, TestArgs, TestResult, TestRunner, TestRunnerUtils}
 import mill.util.Jvm
 import mill.{Agg, T}
-import sbt.testing.Status
-
-import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
-import java.time.{Instant, LocalDateTime, ZoneId}
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
-import scala.xml.Elem
 
 trait TestModule
     extends TestModule.JavaModuleBase
@@ -105,7 +96,7 @@ trait TestModule
    * sequentially, but can be overriden to split them into separate groups that run
    * in parallel.
    */
-  def testForkGrouping: T[Seq[Seq[String]]] = T  {
+  def testForkGrouping: T[Seq[Seq[String]]] = T {
     Seq(discoveredTestClasses())
   }
 
@@ -344,7 +335,8 @@ object TestModule {
       ctx: Ctx.Env with Ctx.Dest,
       testReportXml: Option[String],
       props: Option[Map[String, String]] = None
-  ): Result[(String, Seq[TestResult])] = TestModuleUtil.handleResults(doneMsg, results, ctx, testReportXml, props)
+  ): Result[(String, Seq[TestResult])] =
+    TestModuleUtil.handleResults(doneMsg, results, ctx, testReportXml, props)
 
   trait JavaModuleBase extends BspModule {
     def ivyDeps: T[Agg[Dep]] = Agg.empty[Dep]

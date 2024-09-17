@@ -10,7 +10,6 @@ import mill.util._
 import java.io.PrintStream
 import java.lang.reflect.Method
 import scala.collection.mutable
-import scala.concurrent.ExecutionContext
 import scala.reflect.NameTransformer.encode
 import scala.util.control.NonFatal
 import scala.util.hashing.MurmurHash3

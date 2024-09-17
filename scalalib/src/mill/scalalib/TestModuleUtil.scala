@@ -13,26 +13,26 @@ import java.time.{Instant, LocalDateTime, ZoneId}
 import scala.concurrent.{Future}
 import scala.xml.Elem
 
-private[scalalib] object TestModuleUtil{
-  def runTests(useArgsFile: Boolean,
-               forkArgs: Seq[String],
-               selectors: Seq[String],
-               scalalibClasspath: Agg[PathRef],
-               resources: Seq[PathRef],
-               testFramework: String,
-               runClasspath: Seq[PathRef],
-               testClasspath: Seq[PathRef],
-               args: Seq[String],
-               testClassLists: Seq[Seq[String]],
-               testrunnerEntrypointClasspath: Agg[PathRef],
-               forkEnv: Map[String, String],
-               testSandboxWorkingDir: Boolean,
-               forkWorkingDir: os.Path,
-               testReportXml: Option[String])
-              (implicit ctx: mill.api.Ctx) = {
+private[scalalib] object TestModuleUtil {
+  def runTests(
+      useArgsFile: Boolean,
+      forkArgs: Seq[String],
+      selectors: Seq[String],
+      scalalibClasspath: Agg[PathRef],
+      resources: Seq[PathRef],
+      testFramework: String,
+      runClasspath: Seq[PathRef],
+      testClasspath: Seq[PathRef],
+      args: Seq[String],
+      testClassLists: Seq[Seq[String]],
+      testrunnerEntrypointClasspath: Agg[PathRef],
+      forkEnv: Map[String, String],
+      testSandboxWorkingDir: Boolean,
+      forkWorkingDir: os.Path,
+      testReportXml: Option[String]
+  )(implicit ctx: mill.api.Ctx) = {
 
     val (jvmArgs, props: Map[String, String]) = loadArgsAndProps(useArgsFile, forkArgs)
-
 
     val testRunnerClasspathArg = scalalibClasspath
       .map(_.path.toNIO.toUri.toURL)
@@ -80,7 +80,6 @@ private[scalalib] object TestModuleUtil{
       else Right(upickle.default.read[(String, Seq[TestResult])](ujson.read(outputPath.toIO)))
     }
 
-
     val globFilter = TestRunnerUtils.globFilter(selectors)
 
     def doesNotMatchError = Result.Failure(
@@ -92,22 +91,21 @@ private[scalalib] object TestModuleUtil{
 
     if (selectors.nonEmpty && filteredClassLists.isEmpty) throw doesNotMatchError
 
-
-    val subprocessResult: Either[String, (String, Seq[TestResult])] = filteredClassLists match{
+    val subprocessResult: Either[String, (String, Seq[TestResult])] = filteredClassLists match {
       case Seq(singleTestClassList) => runTestSubprocess(singleTestClassList, T.dest)
       case multipleTestClassLists =>
         implicit val ec = T.ctx.executionContext
 
         val hasMultiClassGroup = multipleTestClassLists.exists(_.length > 1)
-        val futures = multipleTestClassLists.zipWithIndex.map{ case (testClassList, i) =>
-          val groupLabel = testClassList match{
+        val futures = multipleTestClassLists.zipWithIndex.map { case (testClassList, i) =>
+          val groupLabel = testClassList match {
             case Seq(single) =>
               if (hasMultiClassGroup) s"group-$i-$single"
               else single
             case multiple => s"group-$i"
           }
 
-          Future {(groupLabel, runTestSubprocess(testClassList, T.dest / groupLabel))}
+          Future { (groupLabel, runTestSubprocess(testClassList, T.dest / groupLabel)) }
         }
 
         val outputs = T.ctx.executionContext.await(Future.sequence(futures))
@@ -132,7 +130,6 @@ private[scalalib] object TestModuleUtil{
     }
   }
 
-
   private def loadArgsAndProps(useArgsFile: Boolean, forkArgs: Seq[String]) = {
     if (useArgsFile) {
       val (props, jvmArgs) = forkArgs.partition(_.startsWith("-D"))
@@ -153,15 +150,15 @@ private[scalalib] object TestModuleUtil{
 
   @deprecated("Use other overload instead", "Mill after 0.10.2")
   private[scalalib] def handleResults(
-                     doneMsg: String,
-                     results: Seq[TestResult]
-                   ): Result[(String, Seq[TestResult])] = handleResults(doneMsg, results, None)
+      doneMsg: String,
+      results: Seq[TestResult]
+  ): Result[(String, Seq[TestResult])] = handleResults(doneMsg, results, None)
 
   private[scalalib] def handleResults(
-                     doneMsg: String,
-                     results: Seq[TestResult],
-                     ctx: Option[Ctx.Env]
-                   ): Result[(String, Seq[TestResult])] = {
+      doneMsg: String,
+      results: Seq[TestResult],
+      ctx: Option[Ctx.Env]
+  ): Result[(String, Seq[TestResult])] = {
 
     val badTests: Seq[TestResult] =
       results.filter(x => Set("Error", "Failure").contains(x.status))
@@ -176,21 +173,21 @@ private[scalalib] object TestModuleUtil{
         else s"\n  and ${badTests.length - reportCount} more ..."
 
       val msg = s"${badTests.size} tests failed: ${badTests
-        .take(reportCount)
-        .map(t => s"${t.fullyQualifiedName} ${t.selector}")
-        .mkString("\n  ", "\n  ", "")}$suffix"
+          .take(reportCount)
+          .map(t => s"${t.fullyQualifiedName} ${t.selector}")
+          .mkString("\n  ", "\n  ", "")}$suffix"
 
       Result.Failure(msg, Some((doneMsg, results)))
     }
   }
 
   private[scalalib] def handleResults(
-                     doneMsg: String,
-                     results: Seq[TestResult],
-                     ctx: Ctx.Env with Ctx.Dest,
-                     testReportXml: Option[String],
-                     props: Option[Map[String, String]] = None
-                   ): Result[(String, Seq[TestResult])] = {
+      doneMsg: String,
+      results: Seq[TestResult],
+      ctx: Ctx.Env with Ctx.Dest,
+      testReportXml: Option[String],
+      props: Option[Map[String, String]] = None
+  ): Result[(String, Seq[TestResult])] = {
     for {
       fileName <- testReportXml
       path = ctx.dest / fileName
@@ -206,19 +203,18 @@ private[scalalib] object TestModuleUtil{
   private val SkippedStates =
     Set(Status.Ignored.name(), Status.Skipped.name(), Status.Pending.name())
 
-
   private[scalalib] def genTestXmlReport(
-                                          results0: Seq[TestResult],
-                                          timestamp: Instant,
-                                          props: Map[String, String]
-                                        ): Option[Elem] = {
+      results0: Seq[TestResult],
+      timestamp: Instant,
+      props: Map[String, String]
+  ): Option[Elem] = {
     def durationAsString(value: Long) = (value / 1000d).toString
     def testcaseName(testResult: TestResult) =
       testResult.selector.replace(s"${testResult.fullyQualifiedName}.", "")
 
     def properties: Elem = {
       val ps = props.map { case (key, value) =>
-          <property name={key} value={value}/>
+        <property name={key} value={value}/>
       }
       <properties>
         {ps}
@@ -240,8 +236,8 @@ private[scalalib] object TestModuleUtil{
                  failures={testResults.count(_.status == FailureStatus).toString}
                  errors={testResults.count(_.status == ErrorStatus).toString}
                  skipped={
-                 testResults.count(testResult => SkippedStates.contains(testResult.status)).toString
-                 }
+        testResults.count(testResult => SkippedStates.contains(testResult.status)).toString
+      }
                  time={durationAsString(testResults.map(_.duration).sum)}
                  timestamp={formatTimestamp(timestamp)}>
         {properties}
@@ -254,14 +250,13 @@ private[scalalib] object TestModuleUtil{
                   failures={results0.count(_.status == FailureStatus).toString}
                   errors={results0.count(_.status == ErrorStatus).toString}
                   skipped={
-                  results0.count(testResult => SkippedStates.contains(testResult.status)).toString
-                  }
+        results0.count(testResult => SkippedStates.contains(testResult.status)).toString
+      }
                   time={durationAsString(results0.map(_.duration).sum)}>
         {suites}
       </testsuites>
     if (results0.nonEmpty) Some(xml) else None
   }
-
 
   private def formatTimestamp(timestamp: Instant): String = {
     DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(
@@ -275,8 +270,8 @@ private[scalalib] object TestModuleUtil{
   private def testCaseStatus(e: TestResult): Option[Elem] = {
     val trace: String = e.exceptionTrace.map(stackTraceTrace =>
       stackTraceTrace.map(t =>
-          s"${t.getClassName}.${t.getMethodName}(${t.getFileName}:${t.getLineNumber})"
-        )
+        s"${t.getClassName}.${t.getMethodName}(${t.getFileName}:${t.getLineNumber})"
+      )
         .mkString(
           s"${e.exceptionName.getOrElse("")}: ${e.exceptionMsg.getOrElse("")}\n    at ",
           "\n    at ",

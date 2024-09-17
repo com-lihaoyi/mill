@@ -247,7 +247,11 @@ object TestModuleUtilTests extends TestSuite {
         </testsuites>
       assertEquals(
         expectedReport,
-        TestModuleUtil.genTestXmlReport(Seq(succeededTestResult, failedTestResult), instant, Map.empty)
+        TestModuleUtil.genTestXmlReport(
+          Seq(succeededTestResult, failedTestResult),
+          instant,
+          Map.empty
+        )
       )
     }
     test("multi test suites") - {
