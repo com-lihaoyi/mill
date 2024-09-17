@@ -10,7 +10,6 @@ import sbt.testing.Status
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.time.{Instant, LocalDateTime, ZoneId}
-import scala.concurrent.{Future}
 import scala.xml.Elem
 
 private[scalalib] object TestModuleUtil {
@@ -94,7 +93,6 @@ private[scalalib] object TestModuleUtil {
     val subprocessResult: Either[String, (String, Seq[TestResult])] = filteredClassLists match {
       case Seq(singleTestClassList) => runTestSubprocess(singleTestClassList, T.dest)
       case multipleTestClassLists =>
-
         val hasMultiClassGroup = multipleTestClassLists.exists(_.length > 1)
         val futures = multipleTestClassLists.zipWithIndex.map { case (testClassList, i) =>
           val groupLabel = testClassList match {

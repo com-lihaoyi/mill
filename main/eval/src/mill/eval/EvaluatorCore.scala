@@ -90,10 +90,11 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     val (classToTransitiveClasses, allTransitiveClassMethods) =
       precomputeMethodNamesPerClass(sortedGroups)
 
-    def evaluateTerminals(terminals: Seq[Terminal],
-                          contextLoggerMsg: Int => String,
-                          forkExecutionContext: BlockableExecutionContext)
-                         (implicit taskExecutionContext: BlockableExecutionContext) = {
+    def evaluateTerminals(
+        terminals: Seq[Terminal],
+        contextLoggerMsg: Int => String,
+        forkExecutionContext: BlockableExecutionContext
+    )(implicit taskExecutionContext: BlockableExecutionContext) = {
       // We walk the task graph in topological order and schedule the futures
       // to run asynchronously. During this walk, we store the scheduled futures
       // in a dictionary. When scheduling each future, we are guaranteed that the

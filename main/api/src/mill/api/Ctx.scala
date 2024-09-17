@@ -153,5 +153,5 @@ trait BlockableExecutionContext extends ExecutionContext with AutoCloseable {
     implicit val ec = this
     await(Future.sequence(t))
   }
-  def sandboxedFuture[T](dest: os.Path)(t: => T)(implicit ctx: mill.api.Ctx):Future[T]
+  def sandboxedFuture[T](dest: os.Path)(t: => T)(implicit ctx: mill.api.Ctx): Future[T]
 }

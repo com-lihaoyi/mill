@@ -22,7 +22,8 @@ private object ExecutionContexts {
     def reportFailure(cause: Throwable): Unit = {}
     def close(): Unit = () // do nothing
 
-    def sandboxedFuture[T](dest: Path)(t: => T)(implicit ctx: mill.api.Ctx): Future[T] = Future.successful(t)
+    def sandboxedFuture[T](dest: Path)(t: => T)(implicit ctx: mill.api.Ctx): Future[T] =
+      Future.successful(t)
   }
 
   /**
@@ -51,7 +52,7 @@ private object ExecutionContexts {
       // context which submitted it
       lazy val submitterPwd = os.pwd
       lazy val submitterStreams = new mill.api.SystemStreams(System.out, System.err, System.in)
-      threadPool.submit(new Runnable{
+      threadPool.submit(new Runnable {
         def run() = {
           os.dynamicPwdFunction.withValue(() => submitterPwd) {
             mill.api.SystemStreams.withStreams(submitterStreams) {
@@ -73,7 +74,7 @@ private object ExecutionContexts {
     def sandboxedFuture[T](dest: Path)(t: => T)(implicit ctx: mill.api.Ctx): Future[T] = {
       val logger = ctx.log
       var destInitialized: Boolean = false
-      def makeDest() = synchronized{
+      def makeDest() = synchronized {
         if (!destInitialized) {
           os.makeDir.all(dest)
           destInitialized = true
