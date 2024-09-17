@@ -1,11 +1,12 @@
 package mill.kotlinlib
 
 import mill.T
+import mill.javalib.MavenModule
 
 /**
  * A [[KotlinModule]] with a Maven compatible directory layout.
  */
-trait KotlinMavenModule extends KotlinModule { outer =>
+trait KotlinMavenModule extends KotlinModule with MavenModule {
   override def sources = T.sources(
     millSourcePath / "src/main/java",
     millSourcePath / "src/main/kotlin"
@@ -14,9 +15,8 @@ trait KotlinMavenModule extends KotlinModule { outer =>
     millSourcePath / "src/main/resources"
   }
 
-  trait KotlinMavenModuleTests extends KotlinModuleTests {
-    override def millSourcePath = outer.millSourcePath
-    override def intellijModulePath: os.Path = outer.millSourcePath / "src/test"
+  trait KotlinMavenModuleTests extends KotlinModuleTests with MavenTests {
+    override def intellijModulePath: os.Path = millSourcePath / "src/test"
 
     override def sources = T.sources(
       millSourcePath / "src/test/java",
