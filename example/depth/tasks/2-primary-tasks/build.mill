@@ -2,7 +2,7 @@
 //
 // * <<_sources>>, defined using `Task.Sources {...}`
 // * <<_targets>>, defined using `Task {...}`
-// * <<_commands>>, defined using `Task.command {...}`
+// * <<_commands>>, defined using `Task.Command {...}`
 
 // === Sources
 package build
@@ -266,7 +266,7 @@ def summarizeClassFileStats = T{
 
 // === Commands
 
-def run(mainClass: String, args: String*) = Task.command {
+def run(mainClass: String, args: String*) = Task.Command {
   os.proc(
       "java",
       "-cp", s"${classFiles().path}:${resources().path}",
@@ -288,11 +288,11 @@ def run(mainClass: String, args: String*) = Task.command {
 // }
 // ....
 
-// Defined using `Task.command {...}` syntax, ``Command``s can run arbitrary code, with
+// Defined using `Task.Command {...}` syntax, ``Command``s can run arbitrary code, with
 // dependencies declared using the same `foo()` syntax (e.g. `classFiles()` above).
 // Commands can be parametrized, but their output is not cached, so they will
 // re-evaluate every time even if none of their inputs have changed.
-// A command with no parameter is defined as `def myCommand() = Task.command {...}`.
+// A command with no parameter is defined as `def myCommand() = Task.Command {...}`.
 // It is a compile error if `()` is missing.
 //
 // Targets can take command line params, parsed by the https://github.com/com-lihaoyi/mainargs[MainArgs]

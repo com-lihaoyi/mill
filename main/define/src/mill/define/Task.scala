@@ -295,7 +295,7 @@ object Target extends TaskBase {
   def worker[T](t: Result[T])(implicit ctx: mill.define.Ctx): Worker[T] =
   macro Target.Internal.workerImpl2[T]
 
-  @deprecated("Use Task.anon instead", "Mill after 0.12.0-RC2")
+  @deprecated("Use Task.Anon instead", "Mill after 0.12.0-RC2")
   def task[T](t: Result[T]): Task[T] = macro Applicative.impl[Task, T, mill.api.Ctx]
 
 

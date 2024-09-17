@@ -1,8 +1,8 @@
-// Mill uses MainArgs to handle argument parsing for ``Task.command``s that
+// Mill uses MainArgs to handle argument parsing for ``Task.Command``s that
 // are run from the command line.
 import mill._
 
-def commandSimple(str: String, i: Int, bool: Boolean = true) = Task.command{
+def commandSimple(str: String, i: Int, bool: Boolean = true) = Task.Command{
   println(s"$str $i $bool")
 }
 
@@ -26,7 +26,7 @@ hello 123 true
 // supports parsing OS-Lib ``os.Path``s from the command line:
 
 
-def commandTakingPath(path: os.Path) = Task.command{
+def commandTakingPath(path: os.Path) = Task.Command{
   println(path)
 }
 
@@ -54,7 +54,7 @@ implicit object LettersOrDigitsTokensReader
   }
 }
 
-def commandCustomArg(custom: LettersOrDigits) = Task.command{
+def commandCustomArg(custom: LettersOrDigits) = Task.Command{
   println("hello " + custom.value)
 }
 
@@ -82,7 +82,7 @@ error: Invalid argument --custom <letters-or-digits> failed to parse "123?abc"..
 // command as part of another target, while passing it the value of an upstream
 // target:
 
-def commandTakingTask(str: Task[String]) = Task.command{
+def commandTakingTask(str: Task[String]) = Task.Command{
   val result = "arg: " + str()
   println(result)
   result
@@ -125,7 +125,7 @@ def targetCallingCommand = T{
 import mill.eval.{Evaluator, Terminal}
 import mill.resolve.{Resolve, SelectMode}
 
-def customPlanCommand(evaluator: Evaluator, targets: String*) = Task.command {
+def customPlanCommand(evaluator: Evaluator, targets: String*) = Task.Command {
   Resolve.Tasks.resolve(
     evaluator.rootModule,
     targets,

@@ -24,7 +24,7 @@ object foo extends JavaModule {
     super.compile()
   }
 
-  def run(args: Task[Args] = Task.anon(Args())) = Task.command {
+  def run(args: Task[Args] = Task.Anon(Args())) = Task.Command {
     println("Running..." + args().value.mkString(" "))
     super.run(args)()
   }

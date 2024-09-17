@@ -37,7 +37,7 @@ object `package` extends RootModule with JavaModule {
 
   def forkArgs: T[Seq[String]] = Seq(s"-Dmy.line.count=${lineCount()}")
 
-  def printLineCount() = Task.command { println(lineCount()) }
+  def printLineCount() = Task.Command { println(lineCount()) }
 }
 
 //// SNIPPET:COMMANDS

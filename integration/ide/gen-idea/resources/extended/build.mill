@@ -18,7 +18,7 @@ trait HelloWorldModule extends scalalib.ScalaModule {
   }
 
   def ideaJavaModuleFacets(ideaConfigVersion: Int): Task[Seq[JavaFacet]] =
-    Task.anon {
+    Task.Anon {
       ideaConfigVersion match {
         case 4 =>
           Seq(
@@ -46,7 +46,7 @@ trait HelloWorldModule extends scalalib.ScalaModule {
 
   override def ideaConfigFiles(
       ideaConfigVersion: Int
-  ): Task[Seq[IdeaConfigFile]] = Task.anon {
+  ): Task[Seq[IdeaConfigFile]] = Task.Anon {
     ideaConfigVersion match {
       case 4 =>
         Seq(

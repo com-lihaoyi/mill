@@ -17,7 +17,7 @@ object HelloBsp extends HelloBspModule {
   override def unmanagedClasspath: T[Agg[PathRef]] = Agg(build.proj3.jar())
 }
 
-def validate() = Task.command {
+def validate() = Task.Command {
   val transitiveModules = mill.scalalib.internal.JavaModuleUtils.transitiveModules(build)
   val file = Task.dest / "transitive-modules.json"
   val moduleNames = transitiveModules.map(m =>
