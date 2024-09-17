@@ -37,7 +37,7 @@ trait FlywayModule extends JavaModule {
       .filter(_.nonEmpty)
       .map(key -> _)
 
-  def flywayInstance = Task.worker {
+  def flywayInstance = Task.Worker {
     val jdbcClassloader = new URLClassLoader(jdbcClasspath().map(_.path.toIO.toURI.toURL).toArray)
 
     val configProps = Map(flyway.URL -> flywayUrl()) ++

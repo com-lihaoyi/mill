@@ -5,7 +5,7 @@ import mill.define.{NamedTask, Segment, Segments}
 /**
  * A terminal or terminal target is some important work unit, that in most cases has a name (Right[Labelled])
  * or was directly called by the user (Left[Task]).
- * It's a T, Task.worker, Task.Input, Task.Source, Task.Sources, Task.Persistent
+ * It's a T, Task.Worker, Task.Input, Task.Source, Task.Sources, Task.Persistent
  */
 sealed trait Terminal {
   def render: String

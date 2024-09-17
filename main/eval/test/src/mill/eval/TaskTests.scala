@@ -33,22 +33,22 @@ trait TaskTests extends TestSuite {
     var workerCloseCount = 0
     // Explicitly instantiate `Function1` objects to make sure we get
     // different instances each time
-    def staticWorker: Worker[Int => Int] = Task.worker {
+    def staticWorker: Worker[Int => Int] = Task.Worker {
       new Function1[Int, Int] {
         def apply(v1: Int) = v1 + 1
       }
     }
-    def changeOnceWorker: Worker[Int => Int] = Task.worker {
+    def changeOnceWorker: Worker[Int => Int] = Task.Worker {
       new Function1[Int, Int] {
         def apply(v1: Int): Int = changeOnceInput() + v1
       }
     }
-    def noisyWorker: Worker[Int => Int] = Task.worker {
+    def noisyWorker: Worker[Int => Int] = Task.Worker {
       new Function1[Int, Int] {
         def apply(v1: Int) = input() + v1
       }
     }
-    def noisyClosableWorker: Worker[(Int => Int) with AutoCloseable] = Task.worker {
+    def noisyClosableWorker: Worker[(Int => Int) with AutoCloseable] = Task.Worker {
       new Function1[Int, Int] with AutoCloseable {
         override def apply(v1: Int) = input() + v1
         override def close(): Unit = workerCloseCount += 1

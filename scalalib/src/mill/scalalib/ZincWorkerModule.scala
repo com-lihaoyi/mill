@@ -45,7 +45,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
 
   def zincLogDebug: T[Boolean] = Task.Input(T.ctx().log.debugEnabled)
 
-  def worker: Worker[ZincWorkerApi] = Task.worker {
+  def worker: Worker[ZincWorkerApi] = Task.Worker {
     val jobs = T.ctx() match {
       case j: Ctx.Jobs => j.jobs
       case _ => 1

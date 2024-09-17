@@ -4,7 +4,7 @@ import mill.{Module, Task}
 import mill.define.{Discover, ExternalModule, Worker}
 
 trait RouteCompilerWorkerModule extends Module {
-  def routeCompilerWorker: Worker[RouteCompilerWorker] = Task.worker {
+  def routeCompilerWorker: Worker[RouteCompilerWorker] = Task.Worker {
     new RouteCompilerWorker()
   }
 }

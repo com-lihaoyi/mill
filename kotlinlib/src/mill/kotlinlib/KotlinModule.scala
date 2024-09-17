@@ -110,7 +110,7 @@ trait KotlinModule extends JavaModule { outer =>
   }
 
 //  @Deprecated("Use kotlinWorkerTask instead, as this does not need to be cached as Worker")
-//  def kotlinWorker: Worker[KotlinWorker] = Task.worker {
+//  def kotlinWorker: Worker[KotlinWorker] = Task.Worker {
 //    kotlinWorkerTask()
 //  }
 

@@ -39,6 +39,6 @@ class ScoverageReportWorker extends AutoCloseable {
 object ScoverageReportWorker extends ExternalModule {
 
   def scoverageReportWorker: Worker[ScoverageReportWorker] =
-    Task.worker { new ScoverageReportWorker() }
+    Task.Worker { new ScoverageReportWorker() }
   lazy val millDiscover: Discover = Discover[this.type]
 }

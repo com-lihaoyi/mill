@@ -76,7 +76,7 @@ the overall workflow remains fast even for large projects:
       allowing for finer-grained caching than Mill's default target-by-target
       caching and invalidation
 
-    * xref:Tasks.adoc#_workers[Task.worker]s are kept in-memory between runs where possible, and only
+    * xref:Tasks.adoc#_workers[Task.Worker]s are kept in-memory between runs where possible, and only
       invalidated if their input ``Task``s change as well.
 
     * ``Task``s in general are invalidated if the code they depend on changes,
