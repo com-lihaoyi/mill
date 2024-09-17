@@ -1,6 +1,6 @@
 package mill.idea
 
-import mill.T
+import mill.{T, Task}
 import mill.api.Result
 import mill.define.{Command, Discover, ExternalModule}
 import mill.eval.Evaluator

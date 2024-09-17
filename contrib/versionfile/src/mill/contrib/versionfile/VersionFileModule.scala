@@ -8,10 +8,10 @@ trait VersionFileModule extends Module {
   def versionFile: T[PathRef] = T.source(millSourcePath / "version")
 
   /** The current version. */
-  def currentVersion: T[Version] = T { Version.of(os.read(versionFile().path).trim) }
+  def currentVersion: T[Version] = Task { Version.of(os.read(versionFile().path).trim) }
 
   /** The release version. */
-  def releaseVersion: T[Version] = T { currentVersion().asRelease }
+  def releaseVersion: T[Version] = Task { currentVersion().asRelease }
 
   /** The next snapshot version. */
   def nextVersion(bump: String): Task[Version] = T.task { currentVersion().asSnapshot.bump(bump) }
@@ -43,7 +43,7 @@ trait VersionFileModule extends Module {
     )
 
   /** Procs for tagging current version and committing changes. */
-  def tag = T {
+  def tag = Task {
     Seq(
       os.proc("git", "commit", "-am", generateCommitMessage(currentVersion())),
       os.proc("git", "tag", currentVersion().toString)
@@ -51,7 +51,7 @@ trait VersionFileModule extends Module {
   }
 
   /** Procs for committing changes and pushing. */
-  def push = T {
+  def push = Task {
     Seq(
       os.proc("git", "commit", "-am", generateCommitMessage(currentVersion())),
       os.proc("git", "push", "origin", "master", "--tags")

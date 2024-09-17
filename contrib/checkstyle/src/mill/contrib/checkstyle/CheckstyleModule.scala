@@ -77,7 +77,7 @@ trait CheckstyleModule extends JavaModule {
   /**
    * Classpath for running Checkstyle.
    */
-  def checkstyleClasspath: T[Loose.Agg[PathRef]] = T {
+  def checkstyleClasspath: T[Loose.Agg[PathRef]] = Task {
     defaultResolver().resolveDeps(
       Agg(ivy"com.puppycrawl.tools:checkstyle:${checkstyleVersion()}")
     )
@@ -86,35 +86,35 @@ trait CheckstyleModule extends JavaModule {
   /**
    * Checkstyle configuration file. Defaults to `checkstyle-config.xml`.
    */
-  def checkstyleConfig: T[PathRef] = T {
+  def checkstyleConfig: T[PathRef] = Task {
     PathRef(T.workspace / "checkstyle-config.xml")
   }
 
   /**
    * Checkstyle output format (` plain | sarif | xml `). Defaults to `plain`.
    */
-  def checkstyleFormat: T[String] = T {
+  def checkstyleFormat: T[String] = Task {
     "plain"
   }
 
   /**
    * Additional arguments for Checkstyle.
    */
-  def checkstyleOptions: T[Seq[String]] = T {
+  def checkstyleOptions: T[Seq[String]] = Task {
     Seq.empty[String]
   }
 
   /**
    * Checkstyle output report.
    */
-  def checkstyleOutput: T[PathRef] = T {
+  def checkstyleOutput: T[PathRef] = Task {
     PathRef(T.dest / s"checkstyle-output.${checkstyleFormat()}")
   }
 
   /**
    * Checkstyle version.
    */
-  def checkstyleVersion: T[String] = T {
+  def checkstyleVersion: T[String] = Task {
     "10.18.1"
   }
 }

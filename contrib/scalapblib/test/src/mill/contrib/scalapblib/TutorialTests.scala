@@ -34,7 +34,7 @@ object TutorialTests extends TestSuite {
 
   object TutorialWithAdditionalArgs extends TutorialBase {
     object core extends TutorialModule {
-      override def scalaPBAdditionalArgs = T {
+      override def scalaPBAdditionalArgs = Task {
         Seq(
           "--additional-test=..."
         )

@@ -5,7 +5,7 @@ import mill.scalajslib.api
 import mill.scalajslib.worker.{api => workerApi}
 import mill.api.{Ctx, Result, internal}
 import mill.define.{Discover, Worker}
-import mill.{Agg, T}
+import mill.{Agg, T, Task}
 
 @internal
 private[scalajslib] class ScalaJSWorker extends AutoCloseable {

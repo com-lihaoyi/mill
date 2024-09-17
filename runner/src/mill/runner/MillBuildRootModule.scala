@@ -50,7 +50,7 @@ abstract class MillBuildRootModule()(implicit
       .toSeq
   }
 
-  def parseBuildFiles: T[FileImportGraph] = T {
+  def parseBuildFiles: T[FileImportGraph] = Task {
     scriptSources()
     MillBuildRootModule.parseBuildFiles(millBuildRootModuleInfo)
   }
@@ -87,7 +87,7 @@ abstract class MillBuildRootModule()(implicit
     imports
   }
 
-  override def ivyDeps = T {
+  override def ivyDeps = Task {
     Agg.from(
       MillIvy.processMillIvyDepSignature(parseBuildFiles().ivyDeps)
         .map(mill.scalalib.Dep.parse)
@@ -95,7 +95,7 @@ abstract class MillBuildRootModule()(implicit
       Agg(ivy"com.lihaoyi::mill-moduledefs:${Versions.millModuledefsVersion}")
   }
 
-  override def runIvyDeps = T {
+  override def runIvyDeps = Task {
     val imports = cliImports()
     val ivyImports = imports.collect { case s"ivy:$rest" => rest }
     Agg.from(
@@ -106,11 +106,11 @@ abstract class MillBuildRootModule()(implicit
 
   override def platformSuffix: T[String] = s"_mill${BuildInfo.millBinPlatform}"
 
-  override def generatedSources: T[Seq[PathRef]] = T {
+  override def generatedSources: T[Seq[PathRef]] = Task {
     generateScriptSources()
   }
 
-  def generateScriptSources: T[Seq[PathRef]] = T {
+  def generateScriptSources: T[Seq[PathRef]] = Task {
     val parsed = parseBuildFiles()
     if (parsed.errors.nonEmpty) Result.Failure(parsed.errors.mkString("\n"))
     else {
@@ -190,19 +190,19 @@ abstract class MillBuildRootModule()(implicit
     result
   }
 
-  override def sources: T[Seq[PathRef]] = T {
+  override def sources: T[Seq[PathRef]] = Task {
     scriptSources() ++ {
       if (parseBuildFiles().millImport) super.sources()
       else Seq.empty[PathRef]
     }
   }
 
-  override def resources: T[Seq[PathRef]] = T {
+  override def resources: T[Seq[PathRef]] = Task {
     if (parseBuildFiles().millImport) super.resources()
     else Seq.empty[PathRef]
   }
 
-  override def allSourceFiles: T[Seq[PathRef]] = T {
+  override def allSourceFiles: T[Seq[PathRef]] = Task {
     val candidates = Lib.findSourceFiles(allSources(), Seq("scala", "java") ++ buildFileExtensions)
     // We need to unlist those files, which we replaced by generating wrapper scripts
     val filesToExclude = Lib.findSourceFiles(scriptSources(), buildFileExtensions)
@@ -218,7 +218,7 @@ abstract class MillBuildRootModule()(implicit
    * By default, these are the dependencies, which Mill provides itself (via [[unmanagedClasspath]]).
    * We exclude them to avoid incompatible or duplicate artifacts on the classpath.
    */
-  protected def resolveDepsExclusions: T[Seq[(String, String)]] = T {
+  protected def resolveDepsExclusions: T[Seq[(String, String)]] = Task {
     Lib.millAssemblyEmbeddedDeps.toSeq.map(d =>
       (d.dep.module.organization.value, d.dep.module.name.value)
     )
@@ -228,7 +228,7 @@ abstract class MillBuildRootModule()(implicit
     super.bindDependency().apply(dep).exclude(resolveDepsExclusions(): _*)
   }
 
-  override def unmanagedClasspath: T[Agg[PathRef]] = T {
+  override def unmanagedClasspath: T[Agg[PathRef]] = Task {
     enclosingClasspath() ++ lineNumberPluginClasspath()
   }
 
@@ -236,7 +236,7 @@ abstract class MillBuildRootModule()(implicit
     ivy"com.lihaoyi:::scalac-mill-moduledefs-plugin:${Versions.millModuledefsVersion}"
   )
 
-  override def scalacOptions: T[Seq[String]] = T {
+  override def scalacOptions: T[Seq[String]] = Task {
     super.scalacOptions() ++
       Seq(
         "-Xplugin:" + lineNumberPluginClasspath().map(_.path).mkString(","),
@@ -251,7 +251,7 @@ abstract class MillBuildRootModule()(implicit
   override def scalacPluginClasspath: T[Agg[PathRef]] =
     super.scalacPluginClasspath() ++ lineNumberPluginClasspath()
 
-  def lineNumberPluginClasspath: T[Agg[PathRef]] = T {
+  def lineNumberPluginClasspath: T[Agg[PathRef]] = Task {
     millProjectModule("mill-runner-linenumbers", repositoriesTask())
   }
 

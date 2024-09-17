@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import mainargs.Flag
-import mill.T
+import mill.{T, Task}
 import mill.define.Command
 
 trait OfflineSupportModule extends mill.Module {

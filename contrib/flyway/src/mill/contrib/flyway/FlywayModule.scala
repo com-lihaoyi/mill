@@ -10,7 +10,7 @@ import org.flywaydb.core.internal.configuration.{ConfigUtils => flyway}
 import org.flywaydb.core.internal.info.MigrationInfoDumper
 import scala.jdk.CollectionConverters._
 
-import mill.{Agg, T}
+import mill.{Agg, T, Task}
 import mill.api.PathRef
 import mill.define.Command
 import mill.scalalib.{Dep, JavaModule}
@@ -22,13 +22,13 @@ trait FlywayModule extends JavaModule {
   def flywayUrl: T[String]
   def flywayUser: T[String] = T("")
   def flywayPassword: T[String] = T("")
-  def flywayFileLocations: T[Seq[PathRef]] = T {
+  def flywayFileLocations: T[Seq[PathRef]] = Task {
     resources().map(pr => PathRef(pr.path / "db/migration", pr.quick))
   }
 
   def flywayDriverDeps: T[Agg[Dep]]
 
-  def jdbcClasspath = T {
+  def jdbcClasspath = Task {
     defaultResolver().resolveDeps(flywayDriverDeps())
   }
 

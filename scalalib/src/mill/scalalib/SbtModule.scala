@@ -1,6 +1,6 @@
 package mill.scalalib
 
-import mill.T
+import mill.{T, Task}
 
 import scala.annotation.nowarn
 

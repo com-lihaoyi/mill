@@ -1,7 +1,7 @@
 package mill.eval
 
 import utest._
-import mill.T
+import mill.{T, Task}
 import mill.define.{Module, Worker}
 import mill.testkit.UnitTester
 import mill.testkit.UnitTester.Result
@@ -23,7 +23,7 @@ trait TaskTests extends TestSuite {
       superBuildInputCount
     }
 
-    def superBuildTargetOverrideWithInput = T {
+    def superBuildTargetOverrideWithInput = Task {
       1234
     }
   }
@@ -67,8 +67,8 @@ trait TaskTests extends TestSuite {
       count += 1
       count
     }
-    def taskInput = T { input() }
-    def taskNoInput = T { task() }
+    def taskInput = Task { input() }
+    def taskNoInput = Task { task() }
 
     def persistent = T.persistent {
       input() // force re-computation
@@ -76,14 +76,14 @@ trait TaskTests extends TestSuite {
       os.write.append(T.dest / "count", "hello\n")
       os.read.lines(T.dest / "count").length
     }
-    def nonPersistent = T {
+    def nonPersistent = Task {
       input() // force re-computation
       os.makeDir.all(T.dest)
       os.write.append(T.dest / "count", "hello\n")
       os.read.lines(T.dest / "count").length
     }
 
-    def staticWorkerDownstream = T {
+    def staticWorkerDownstream = Task {
       val w = staticWorker()
       w.apply(1)
     }
@@ -91,27 +91,27 @@ trait TaskTests extends TestSuite {
     def reevalTrigger = T.input {
       new Object().hashCode()
     }
-    def staticWorkerDownstreamReeval = T {
+    def staticWorkerDownstreamReeval = Task {
       val w = staticWorker()
       reevalTrigger()
       w.apply(1)
     }
 
-    def noisyWorkerDownstream = T {
+    def noisyWorkerDownstream = Task {
       val w = noisyWorker()
       w.apply(1)
     }
-    def noisyClosableWorkerDownstream = T {
+    def noisyClosableWorkerDownstream = Task {
       val w = noisyClosableWorker()
       w.apply(1)
     }
-    def changeOnceWorkerDownstream = T {
+    def changeOnceWorkerDownstream = Task {
       val w = changeOnceWorker()
       w.apply(1)
     }
 
-    override def superBuildInputOverrideWithConstant = T { 123 }
-    override def superBuildInputOverrideUsingSuper = T {
+    override def superBuildInputOverrideWithConstant = Task { 123 }
+    override def superBuildInputOverrideUsingSuper = Task {
       123 + super.superBuildInputOverrideUsingSuper()
     }
 
@@ -124,8 +124,8 @@ trait TaskTests extends TestSuite {
     // Reproduction of issue https://github.com/com-lihaoyi/mill/issues/2958
     object repro2958 extends Module {
       val task1 = T.task { "task1" }
-      def task2 = T { task1() }
-      def task3 = T { task1() }
+      def task2 = Task { task1() }
+      def task3 = Task { task1() }
       def command() = T.command {
         val t2 = task2()
         val t3 = task3()

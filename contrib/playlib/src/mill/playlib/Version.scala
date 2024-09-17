@@ -1,6 +1,6 @@
 package mill.playlib
 
-import mill.T
+import mill.{T, Task}
 import mill.define.Module
 import mill.scalalib._
 
@@ -8,7 +8,7 @@ private[playlib] trait Version extends Module {
 
   def playVersion: T[String]
 
-  private[playlib] def playMinorVersion: T[String] = T {
+  private[playlib] def playMinorVersion: T[String] = Task {
     playVersion().split('.').take(2).mkString(".")
   }
 

@@ -6,7 +6,7 @@ import java.nio.file.attribute.BasicFileAttributes
 import java.util
 
 import mill.scalalib.{Lib, ScalaModule}
-import mill.{PathRef, T}
+import mill.{PathRef, T, Task}
 
 trait Static extends ScalaModule {
 
@@ -20,7 +20,7 @@ trait Static extends ScalaModule {
   /**
    * Resource base path of packaged assets (path they will appear in in the jar)
    */
-  def assetsPath = T { "public" }
+  def assetsPath = Task { "public" }
 
   /**
    *  Directories to include assets from
@@ -30,7 +30,7 @@ trait Static extends ScalaModule {
   /*
   Collected static assets for the project
    */
-  def staticAssets = T {
+  def staticAssets = Task {
     val toPath = os.Path(assetsPath(), T.dest)
     assetSources().foreach { pathRef =>
       val fromPath = pathRef.path
@@ -46,14 +46,14 @@ trait Static extends ScalaModule {
   /**
    * webjar dependencies - created from transitive ivy deps
    */
-  def webJarDeps = T {
+  def webJarDeps = Task {
     transitiveIvyDeps().filter(_.dep.module.organization.value == "org.webjars")
   }
 
   /**
    * jar files of web jars
    */
-  def webJars = T {
+  def webJars = Task {
     Lib.resolveDependencies(
       repositoriesTask(),
       webJarDeps()
@@ -63,7 +63,7 @@ trait Static extends ScalaModule {
   /**
    * webjar resources extracted from their source jars with version from path removed
    */
-  def webJarResources = T {
+  def webJarResources = Task {
     extractWebJars(webJars().toSeq, os.Path(assetsPath(), T.dest) / "lib")
     PathRef(T.dest)
   }

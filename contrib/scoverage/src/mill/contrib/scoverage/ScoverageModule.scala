@@ -64,7 +64,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
 
   private def isScala3: Task[Boolean] = T.task { ZincWorkerUtil.isScala3(outer.scalaVersion()) }
 
-  def scoverageRuntimeDeps: T[Agg[Dep]] = T {
+  def scoverageRuntimeDeps: T[Agg[Dep]] = Task {
     if (isScala3()) {
       Agg.empty
     } else {
@@ -72,7 +72,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     }
   }
 
-  def scoveragePluginDeps: T[Agg[Dep]] = T {
+  def scoveragePluginDeps: T[Agg[Dep]] = Task {
     val sv = scoverageVersion()
     if (isScala3()) {
       Agg.empty
@@ -107,7 +107,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     }
   }
 
-  private def scoverageReporterIvyDeps: T[Agg[Dep]] = T {
+  private def scoverageReporterIvyDeps: T[Agg[Dep]] = Task {
     checkVersions()
 
     val sv = scoverageVersion()
@@ -140,16 +140,16 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     }
   }
 
-  def scoverageToolsClasspath: T[Agg[PathRef]] = T {
+  def scoverageToolsClasspath: T[Agg[PathRef]] = Task {
     scoverageReportWorkerClasspath() ++
       defaultResolver().resolveDeps(scoverageReporterIvyDeps())
   }
 
-  def scoverageClasspath: T[Agg[PathRef]] = T {
+  def scoverageClasspath: T[Agg[PathRef]] = Task {
     defaultResolver().resolveDeps(scoveragePluginDeps())
   }
 
-  def scoverageReportWorkerClasspath: T[Agg[PathRef]] = T {
+  def scoverageReportWorkerClasspath: T[Agg[PathRef]] = Task {
     val isScov2 = isScoverage2()
 
     val workerArtifact =
@@ -185,26 +185,26 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     }
 
     override def compileResources: T[Seq[PathRef]] = outer.compileResources
-    override def generatedSources: Target[Seq[PathRef]] = T { outer.generatedSources() }
-    override def allSources: Target[Seq[PathRef]] = T { outer.allSources() }
+    override def generatedSources: Target[Seq[PathRef]] = Task { outer.generatedSources() }
+    override def allSources: Target[Seq[PathRef]] = Task { outer.allSources() }
     override def moduleDeps: Seq[JavaModule] = outer.moduleDeps
     override def compileModuleDeps: Seq[JavaModule] = outer.compileModuleDeps
     override def sources: T[Seq[PathRef]] = T.sources { outer.sources() }
     override def resources: T[Seq[PathRef]] = T.sources { outer.resources() }
-    override def scalaVersion = T { outer.scalaVersion() }
+    override def scalaVersion = Task { outer.scalaVersion() }
     override def repositoriesTask: Task[Seq[Repository]] = T.task { outer.repositoriesTask() }
-    override def compileIvyDeps: Target[Agg[Dep]] = T { outer.compileIvyDeps() }
+    override def compileIvyDeps: Target[Agg[Dep]] = Task { outer.compileIvyDeps() }
     override def ivyDeps: Target[Agg[Dep]] =
-      T { outer.ivyDeps() ++ outer.scoverageRuntimeDeps() }
-    override def unmanagedClasspath: Target[Agg[PathRef]] = T { outer.unmanagedClasspath() }
+      Task { outer.ivyDeps() ++ outer.scoverageRuntimeDeps() }
+    override def unmanagedClasspath: Target[Agg[PathRef]] = Task { outer.unmanagedClasspath() }
 
     /** Add the scoverage scalac plugin. */
     override def scalacPluginIvyDeps: Target[Loose.Agg[Dep]] =
-      T { outer.scalacPluginIvyDeps() ++ outer.scoveragePluginDeps() }
+      Task { outer.scalacPluginIvyDeps() ++ outer.scoveragePluginDeps() }
 
     /** Add the scoverage specific plugin settings (`dataDir`). */
     override def scalacOptions: Target[Seq[String]] =
-      T {
+      Task {
         val extras =
           if (isScala3()) {
             Seq(s"-coverage-out:${data().path.toIO.getPath()}")
@@ -232,7 +232,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
      * classes folder by the outer.scoverage classes folder and adding the
      * scoverage runtime dependency.
      */
-    override def runClasspath: T[Seq[PathRef]] = T {
+    override def runClasspath: T[Seq[PathRef]] = Task {
       val outerClassesPath = outer.compile().classes
       val outerScoverageClassesPath = outer.scoverage.compile().classes
       (super.runClasspath().map { path =>

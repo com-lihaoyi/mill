@@ -20,7 +20,7 @@ trait KotlinModule extends JavaModule { outer =>
   /**
    * All individual source files fed into the compiler.
    */
-  override def allSourceFiles = T {
+  override def allSourceFiles = Task {
     Lib.findSourceFiles(allSources(), Seq("kt", "kts", "java")).map(PathRef(_))
   }
 
@@ -28,7 +28,7 @@ trait KotlinModule extends JavaModule { outer =>
    * All individual Java source files fed into the compiler.
    * Subset of [[allSourceFiles]].
    */
-  def allJavaSourceFiles = T {
+  def allJavaSourceFiles = Task {
     allSourceFiles().filter(_.path.ext.toLowerCase() == "java")
   }
 
@@ -36,7 +36,7 @@ trait KotlinModule extends JavaModule { outer =>
    * All individual Kotlin source files fed into the compiler.
    * Subset of [[allSourceFiles]].
    */
-  def allKotlinSourceFiles = T {
+  def allKotlinSourceFiles = Task {
     allSourceFiles().filter(path => Seq("kt", "kts").exists(path.path.ext.toLowerCase() == _))
   }
 
@@ -49,7 +49,7 @@ trait KotlinModule extends JavaModule { outer =>
    * The dependencies of this module.
    * Defaults to add the kotlin-stdlib dependency matching the [[kotlinVersion]].
    */
-  override def mandatoryIvyDeps: T[Agg[Dep]] = T {
+  override def mandatoryIvyDeps: T[Agg[Dep]] = Task {
     super.mandatoryIvyDeps() ++ Agg(
       ivy"org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion()}"
     )
@@ -59,7 +59,7 @@ trait KotlinModule extends JavaModule { outer =>
    * The version of the Kotlin compiler to be used.
    * Default is derived from [[kotlinVersion]].
    */
-  def kotlinCompilerVersion: T[String] = T { kotlinVersion() }
+  def kotlinCompilerVersion: T[String] = Task { kotlinVersion() }
 
   type CompileProblemReporter = mill.api.CompileProblemReporter
 
@@ -67,7 +67,7 @@ trait KotlinModule extends JavaModule { outer =>
 
   protected def kotlinWorkerRef: ModuleRef[KotlinWorkerModule] = ModuleRef(KotlinWorkerModule)
 
-  private[kotlinlib] def kotlinWorkerClasspath = T {
+  private[kotlinlib] def kotlinWorkerClasspath = Task {
     millProjectModule(
       "mill-kotlinlib-worker-impl",
       repositoriesTask(),
@@ -79,7 +79,7 @@ trait KotlinModule extends JavaModule { outer =>
    * The Java classpath resembling the Kotlin compiler.
    * Default is derived from [[kotlinCompilerIvyDeps]].
    */
-  def kotlinCompilerClasspath: T[Seq[PathRef]] = T {
+  def kotlinCompilerClasspath: T[Seq[PathRef]] = Task {
     resolveDeps(
       T.task { kotlinCompilerIvyDeps().map(bindDependency()) }
     )().toSeq ++ kotlinWorkerClasspath()
@@ -89,7 +89,7 @@ trait KotlinModule extends JavaModule { outer =>
    * The Ivy/Coursier dependencies resembling the Kotlin compiler.
    * Default is derived from [[kotlinCompilerVersion]].
    */
-  def kotlinCompilerIvyDeps: T[Agg[Dep]] = T {
+  def kotlinCompilerIvyDeps: T[Agg[Dep]] = Task {
     Agg(ivy"org.jetbrains.kotlin:kotlin-compiler:${kotlinCompilerVersion()}") ++
 //      (
 //        if (Seq("1.0.", "1.1.", "1.2").exists(prefix => kotlinVersion().startsWith(prefix)))
@@ -121,7 +121,7 @@ trait KotlinModule extends JavaModule { outer =>
   /**
    * Compiles all the sources to JVM class files.
    */
-  override def compile: T[CompilationResult] = T {
+  override def compile: T[CompilationResult] = Task {
     kotlinCompileTask()()
   }
 
@@ -221,7 +221,7 @@ trait KotlinModule extends JavaModule { outer =>
   /**
    * Additional Kotlin compiler options to be used by [[compile]].
    */
-  def kotlincOptions: T[Seq[String]] = T {
+  def kotlincOptions: T[Seq[String]] = Task {
     Seq("-no-stdlib") ++
       when(!kotlinVersion().startsWith("1.0"))(
         "-language-version",
@@ -256,9 +256,9 @@ trait KotlinModule extends JavaModule { outer =>
    * A test sub-module linked to its parent module best suited for unit-tests.
    */
   trait KotlinModuleTests extends JavaModuleTests with KotlinModule {
-    override def kotlinVersion: T[String] = T { outer.kotlinVersion() }
-    override def kotlinCompilerVersion: T[String] = T { outer.kotlinCompilerVersion() }
-    override def kotlincOptions: T[Seq[String]] = T { outer.kotlincOptions() }
+    override def kotlinVersion: T[String] = Task { outer.kotlinVersion() }
+    override def kotlinCompilerVersion: T[String] = Task { outer.kotlinCompilerVersion() }
+    override def kotlincOptions: T[Seq[String]] = Task { outer.kotlincOptions() }
     override def defaultCommandName(): String = super.defaultCommandName()
   }
 

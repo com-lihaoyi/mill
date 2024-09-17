@@ -61,7 +61,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
     def linkerMode: T[Option[BloopConfig.LinkerMode]] = None
 
     object bloop extends MillModule {
-      def config = T {
+      def config = Task {
         new BloopOps(self).bloop.config()
       }
     }
@@ -85,7 +85,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
     override def millOuterCtx = jm.millOuterCtx
 
     object bloop extends MillModule {
-      def config = T { outer.bloopConfig(jm) }
+      def config = Task { outer.bloopConfig(jm) }
 
       def writeConfigFile(): Command[(String, PathRef)] = T.command {
         os.makeDir.all(bloopDir)
@@ -96,7 +96,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
       }
 
       @deprecated("Use writeConfigFile instead.", "Mill after 0.10.9")
-      def writeConfig: Target[(String, PathRef)] = T {
+      def writeConfig: Target[(String, PathRef)] = Task {
         writeConfigFile()()
       }
     }

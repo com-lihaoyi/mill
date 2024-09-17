@@ -13,7 +13,7 @@ import ch.epfl.scala.bsp4j.{
   JvmTestEnvironmentParams,
   JvmTestEnvironmentResult
 }
-import mill.T
+import mill.{T, Task}
 import mill.bsp.worker.Utils.sanitizeUri
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.{JavaModule, TestModule}

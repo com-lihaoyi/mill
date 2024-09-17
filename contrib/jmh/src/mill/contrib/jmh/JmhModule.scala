@@ -50,7 +50,7 @@ trait JmhModule extends JavaModule {
   def listJmhBenchmarks(args: String*) = runJmh(("-l" +: args): _*)
 
   def compileGeneratedSources =
-    T {
+    Task {
       val dest = T.ctx().dest
       val (sourcesDir, _) = generateBenchmarkSources()
       val sources = os.walk(sourcesDir).filter(os.isFile)
@@ -70,7 +70,7 @@ trait JmhModule extends JavaModule {
 
   // returns sources and resources directories
   def generateBenchmarkSources =
-    T {
+    Task {
       val dest = T.ctx().dest
 
       val sourcesDir = dest / "jmh_sources"
@@ -95,7 +95,7 @@ trait JmhModule extends JavaModule {
       (sourcesDir, resourcesDir)
     }
 
-  def generatorDeps = T {
+  def generatorDeps = Task {
     defaultResolver().resolveDeps(
       Agg(ivy"org.openjdk.jmh:jmh-generator-bytecode:${jmhGeneratorByteCodeVersion()}")
     )

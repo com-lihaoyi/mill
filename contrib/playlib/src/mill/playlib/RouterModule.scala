@@ -5,13 +5,13 @@ import mill.util.Util.millProjectModule
 import mill.playlib.api.RouteCompilerType
 import mill.scalalib._
 import mill.scalalib.api._
-import mill.{Agg, T}
+import mill.{Agg, T, Task}
 
 trait RouterModule extends ScalaModule with Version {
 
   def routes: T[Seq[PathRef]] = T.sources { millSourcePath / "routes" }
 
-  def routeFiles = T {
+  def routeFiles = Task {
     val paths = routes().flatMap(file => os.walk(file.path))
     val routeFiles = paths.filter(_.ext == "routes") ++ paths.filter(_.last == "routes")
     routeFiles.map(f => PathRef(f))
@@ -45,7 +45,7 @@ trait RouterModule extends ScalaModule with Version {
    */
   def generatorType: RouteCompilerType = RouteCompilerType.InjectedGenerator
 
-  def routerClasspath: T[Agg[PathRef]] = T {
+  def routerClasspath: T[Agg[PathRef]] = Task {
     defaultResolver().resolveDeps(
       playMinorVersion() match {
         case "2.6" | "2.7" | "2.8" =>
@@ -74,7 +74,7 @@ trait RouterModule extends ScalaModule with Version {
     )
   }
 
-  def playRouteCompilerWorkerClasspath = T {
+  def playRouteCompilerWorkerClasspath = Task {
     millProjectModule(
       s"mill-contrib-playlib-worker-${playMinorVersion()}",
       repositoriesTask(),
@@ -85,15 +85,15 @@ trait RouterModule extends ScalaModule with Version {
     )
   }
 
-  def playRouterToolsClasspath = T {
+  def playRouterToolsClasspath = Task {
     playRouteCompilerWorkerClasspath() ++ routerClasspath()
   }
 
-  def routerClasses = T {
+  def routerClasses = Task {
     Seq(compileRouter().classes)
   }
 
-  override def generatedSources = T {
+  override def generatedSources = Task {
     super.generatedSources() ++ routerClasses()
   }
 }

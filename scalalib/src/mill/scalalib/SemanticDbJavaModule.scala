@@ -6,7 +6,7 @@ import mill.main.BuildInfo
 import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerUtil}
 import mill.scalalib.bsp.BspBuildTarget
 import mill.util.Version
-import mill.{Agg, T}
+import mill.{Agg, T, Task}
 
 import scala.util.Properties
 
@@ -43,7 +43,7 @@ trait SemanticDbJavaModule extends CoursierModule {
 
   def semanticDbScalaVersion: T[String] = BuildInfo.scalaVersion
 
-  protected def semanticDbPluginIvyDeps: T[Agg[Dep]] = T {
+  protected def semanticDbPluginIvyDeps: T[Agg[Dep]] = Task {
     val sv = semanticDbScalaVersion()
     val semDbVersion = semanticDbVersion()
     if (!ZincWorkerUtil.isScala3(sv) && semDbVersion.isEmpty) {
@@ -63,7 +63,7 @@ trait SemanticDbJavaModule extends CoursierModule {
     }
   }
 
-  private def semanticDbJavaPluginIvyDeps: T[Agg[Dep]] = T {
+  private def semanticDbJavaPluginIvyDeps: T[Agg[Dep]] = Task {
     val sv = semanticDbJavaVersion()
     if (sv.isEmpty) {
       val msg =
@@ -83,18 +83,18 @@ trait SemanticDbJavaModule extends CoursierModule {
   /**
    * Scalac options to activate the compiler plugins.
    */
-  protected def semanticDbEnablePluginScalacOptions: T[Seq[String]] = T {
+  protected def semanticDbEnablePluginScalacOptions: T[Seq[String]] = Task {
     val resolvedJars = defaultResolver().resolveDeps(
       semanticDbPluginIvyDeps().map(_.exclude("*" -> "*"))
     )
     resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path}").toSeq
   }
 
-  protected def semanticDbPluginClasspath: T[Agg[PathRef]] = T {
+  protected def semanticDbPluginClasspath: T[Agg[PathRef]] = Task {
     defaultResolver().resolveDeps(semanticDbPluginIvyDeps())
   }
 
-  protected def resolvedSemanticDbJavaPluginIvyDeps: T[Agg[PathRef]] = T {
+  protected def resolvedSemanticDbJavaPluginIvyDeps: T[Agg[PathRef]] = Task {
     defaultResolver().resolveDeps(semanticDbJavaPluginIvyDeps())
   }
 
@@ -125,7 +125,7 @@ trait SemanticDbJavaModule extends CoursierModule {
   }
 
   // keep in sync with bspCompiledClassesAndSemanticDbFiles
-  def compiledClassesAndSemanticDbFiles: Target[PathRef] = T {
+  def compiledClassesAndSemanticDbFiles: Target[PathRef] = Task {
     val dest = T.dest
     val classes = compile().classes.path
     val sems = semanticDbData().path
@@ -139,7 +139,7 @@ trait SemanticDbJavaModule extends CoursierModule {
     if (
       compiledClassesAndSemanticDbFiles.ctx.enclosing == s"${classOf[SemanticDbJavaModule].getName}#compiledClassesAndSemanticDbFiles"
     ) {
-      T {
+      Task {
         T.log.debug(
           s"compiledClassesAndSemanticDbFiles target was not overridden, assuming hard-coded classes directory for target ${compiledClassesAndSemanticDbFiles}"
         )
@@ -150,7 +150,7 @@ trait SemanticDbJavaModule extends CoursierModule {
         )
       }
     } else {
-      T {
+      Task {
         T.log.debug(
           s"compiledClassesAndSemanticDbFiles target was overridden, need to actually execute compilation to get the compiled classes directory for target ${compiledClassesAndSemanticDbFiles}"
         )

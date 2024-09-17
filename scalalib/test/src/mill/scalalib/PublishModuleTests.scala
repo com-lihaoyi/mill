@@ -1,6 +1,6 @@
 package mill.scalalib
 
-import mill.{Agg, T}
+import mill.{Agg, T, Task}
 import mill.api.{PathRef, Result}
 import mill.eval.Evaluator
 import mill.scalalib.publish.{
@@ -25,7 +25,7 @@ object PublishModuleTests extends TestSuite {
 
   trait HelloScalaModule extends ScalaModule {
     def scalaVersion = scala212Version
-    override def semanticDbVersion: T[String] = T {
+    override def semanticDbVersion: T[String] = Task {
       // The latest semanticDB release for Scala 2.12.6
       "4.1.9"
     }
@@ -71,9 +71,9 @@ object PublishModuleTests extends TestSuite {
         ivy"org.slf4j:slf4j-api:2.0.7"
       )
       // ensure, these target wont be called
-      override def jar: T[PathRef] = T { ???.asInstanceOf[PathRef] }
-      override def docJar: T[PathRef] = T { ???.asInstanceOf[PathRef] }
-      override def sourceJar: T[PathRef] = T { ???.asInstanceOf[PathRef] }
+      override def jar: T[PathRef] = Task { ???.asInstanceOf[PathRef] }
+      override def docJar: T[PathRef] = Task { ???.asInstanceOf[PathRef] }
+      override def sourceJar: T[PathRef] = Task { ???.asInstanceOf[PathRef] }
     }
   }
 

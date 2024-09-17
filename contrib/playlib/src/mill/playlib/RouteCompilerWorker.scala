@@ -3,7 +3,7 @@ package mill.playlib
 import mill.api.{Ctx, PathRef, Result}
 import mill.playlib.api.{RouteCompilerType, RouteCompilerWorkerApi}
 import mill.scalalib.api.CompilationResult
-import mill.{Agg, T}
+import mill.{Agg, T, Task}
 
 private[playlib] class RouteCompilerWorker extends AutoCloseable {
 

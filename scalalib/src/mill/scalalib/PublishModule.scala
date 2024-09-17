@@ -55,9 +55,9 @@ trait PublishModule extends JavaModule { outer =>
    *
    * @since Mill after 0.10.0-M5
    */
-  def versionScheme: Target[Option[VersionScheme]] = T { None }
+  def versionScheme: Target[Option[VersionScheme]] = Task { None }
 
-  def publishSelfDependency: Target[Artifact] = T {
+  def publishSelfDependency: Target[Artifact] = Task {
     Artifact(pomSettings().organization, artifactId(), publishVersion())
   }
 
@@ -81,7 +81,7 @@ trait PublishModule extends JavaModule { outer =>
       compileModulePomDeps.map(Dependency(_, Scope.Provided))
   }
 
-  def pom: Target[PathRef] = T {
+  def pom: Target[PathRef] = Task {
     val pom = Pom(
       artifactMetadata(),
       publishXmlDeps(),
@@ -95,28 +95,28 @@ trait PublishModule extends JavaModule { outer =>
     PathRef(pomPath)
   }
 
-  def ivy: Target[PathRef] = T {
+  def ivy: Target[PathRef] = Task {
     val ivy = Ivy(artifactMetadata(), publishXmlDeps(), extraPublish())
     val ivyPath = T.dest / "ivy.xml"
     os.write.over(ivyPath, ivy)
     PathRef(ivyPath)
   }
 
-  def artifactMetadata: Target[Artifact] = T {
+  def artifactMetadata: Target[Artifact] = Task {
     Artifact(pomSettings().organization, artifactId(), publishVersion())
   }
 
   /**
    * Extra artifacts to publish.
    */
-  def extraPublish: Target[Seq[PublishInfo]] = T { Seq.empty[PublishInfo] }
+  def extraPublish: Target[Seq[PublishInfo]] = Task { Seq.empty[PublishInfo] }
 
   /**
    * Properties to be published with the published pom/ivy XML.
    * Use `super.publishProperties() ++` when overriding to avoid losing default properties.
    * @since Mill after 0.10.0-M5
    */
-  def publishProperties: Target[Map[String, String]] = T {
+  def publishProperties: Target[Map[String, String]] = Task {
     versionScheme().map(_.toProperty).toMap
   }
 
@@ -135,7 +135,7 @@ trait PublishModule extends JavaModule { outer =>
   /**
    * Publish artifacts the local ivy repository.
    */
-  def publishLocalCached: T[Seq[PathRef]] = T {
+  def publishLocalCached: T[Seq[PathRef]] = Task {
     publishLocalTask(T.task(None))().map(p => PathRef(p).withRevalidateOnce)
   }
 
@@ -171,7 +171,7 @@ trait PublishModule extends JavaModule { outer =>
    * Publish artifacts to the local Maven repository.
    * @return [[PathRef]]s to published files.
    */
-  def publishM2LocalCached: T[Seq[PathRef]] = T {
+  def publishM2LocalCached: T[Seq[PathRef]] = Task {
     publishM2LocalTask(T.task {
       os.Path(os.home / ".m2/repository", T.workspace)
     })()
@@ -208,7 +208,7 @@ trait PublishModule extends JavaModule { outer =>
           )
         }
     }
-    T {
+    Task {
       val baseName = baseNameTask()
       PublishModule.PublishData(
         meta = artifactMetadata(),
@@ -266,7 +266,7 @@ trait PublishModule extends JavaModule { outer =>
     ).publish(artifacts.map { case (a, b) => (a.path, b) }, artifactInfo, release)
   }
 
-  override def manifest: T[JarManifest] = T {
+  override def manifest: T[JarManifest] = Task {
     import java.util.jar.Attributes.Name
     val pom = pomSettings()
     super.manifest().add(

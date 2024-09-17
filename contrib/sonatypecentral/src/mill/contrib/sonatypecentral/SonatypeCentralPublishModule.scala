@@ -21,15 +21,15 @@ import mill.scalalib.publish.SonatypeHelpers.{
 }
 
 trait SonatypeCentralPublishModule extends PublishModule {
-  def sonatypeCentralGpgArgs: T[String] = T { defaultGpgArgs.mkString(",") }
+  def sonatypeCentralGpgArgs: T[String] = Task { defaultGpgArgs.mkString(",") }
 
-  def sonatypeCentralConnectTimeout: T[Int] = T { defaultConnectTimeout }
+  def sonatypeCentralConnectTimeout: T[Int] = Task { defaultConnectTimeout }
 
-  def sonatypeCentralReadTimeout: T[Int] = T { defaultReadTimeout }
+  def sonatypeCentralReadTimeout: T[Int] = Task { defaultReadTimeout }
 
-  def sonatypeCentralAwaitTimeout: T[Int] = T { defaultAwaitTimeout }
+  def sonatypeCentralAwaitTimeout: T[Int] = Task { defaultAwaitTimeout }
 
-  def sonatypeCentralShouldRelease: T[Boolean] = T { true }
+  def sonatypeCentralShouldRelease: T[Boolean] = Task { true }
 
   def publishSonatypeCentral(
       username: String = defaultCredentials,

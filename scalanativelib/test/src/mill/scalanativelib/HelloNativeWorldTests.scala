@@ -48,7 +48,7 @@ object HelloNativeWorldTests extends TestSuite {
     trait RootModule extends HelloNativeWorldModule {
       override def artifactName = "hello-native-world"
       def scalaNativeVersion = sNativeVersion
-      def releaseMode = T { mode }
+      def releaseMode = Task { mode }
       def pomSettings = PomSettings(
         organization = "com.lihaoyi",
         description = "hello native world ready for real world publishing",

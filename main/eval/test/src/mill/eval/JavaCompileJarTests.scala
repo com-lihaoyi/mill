@@ -2,7 +2,7 @@ package mill.eval
 
 import mill.util.{Jvm, TestUtil}
 import mill.api.Ctx.Dest
-import mill.T
+import mill.{T, Task}
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import mill.api.Strict.Agg
@@ -38,13 +38,13 @@ object JavaCompileJarTests extends TestSuite {
         def readme = T.source { readmePath }
         def sourceRoot = T.sources { sourceRootPath }
         def resourceRoot = T.sources { resourceRootPath }
-        def allSources = T { sourceRoot().flatMap(p => os.walk(p.path)).map(mill.api.PathRef(_)) }
-        def classFiles = T { compileAll(allSources()) }
-        def jar = T {
+        def allSources = Task { sourceRoot().flatMap(p => os.walk(p.path)).map(mill.api.PathRef(_)) }
+        def classFiles = Task { compileAll(allSources()) }
+        def jar = Task {
           Jvm.createJar(Loose.Agg(classFiles().path, readme().path) ++ resourceRoot().map(_.path))
         }
         // Test createJar() with optional file filter.
-        def filterJar(fileFilter: (os.Path, os.RelPath) => Boolean) = T {
+        def filterJar(fileFilter: (os.Path, os.RelPath) => Boolean) = Task {
           Jvm.createJar(
             Loose.Agg(classFiles().path, readme().path) ++ resourceRoot().map(_.path),
             JarManifest.MillDefault,

@@ -1,6 +1,6 @@
 package mill.contrib.buildinfo
 
-import mill.T
+import mill.{T, Task}
 import mill.api.PathRef
 import mill.scalalib.{JavaModule, ScalaModule}
 import mill.scalanativelib.ScalaNativeModule
@@ -39,7 +39,7 @@ trait BuildInfo extends JavaModule {
     if (buildInfoStaticCompiled) super.resources
     else T.sources { super.resources() ++ Seq(buildInfoResources()) }
 
-  def buildInfoResources = T {
+  def buildInfoResources = Task {
     val p = new java.util.Properties
     for (v <- buildInfoMembers()) p.setProperty(v.key, v.value)
 
@@ -59,11 +59,11 @@ trait BuildInfo extends JavaModule {
 
   private def isScala = this.isInstanceOf[ScalaModule]
 
-  override def generatedSources = T {
+  override def generatedSources = Task {
     super.generatedSources() ++ buildInfoSources()
   }
 
-  def buildInfoSources = T {
+  def buildInfoSources = Task {
     if (buildInfoMembers().isEmpty) Nil
     else {
       val code = if (buildInfoStaticCompiled) BuildInfo.staticCompiledCodegen(

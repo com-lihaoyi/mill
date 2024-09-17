@@ -57,12 +57,12 @@ trait UnidocModule extends ScalaModule {
     }
   }
 
-  def unidocLocal = T {
+  def unidocLocal = Task {
     unidocCommon(true)()
     PathRef(T.dest)
   }
 
-  def unidocSite = T {
+  def unidocSite = Task {
     unidocCommon(false)()
     for {
       sourceUrl <- unidocSourceUrl()

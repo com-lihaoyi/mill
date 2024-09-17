@@ -12,9 +12,9 @@ trait BintrayPublishModule extends PublishModule {
 
   def bintrayRepo: String
 
-  def bintrayPackage = T { artifactId() }
+  def bintrayPackage = Task { artifactId() }
 
-  def bintrayPublishArtifacts: T[BintrayPublishData] = T {
+  def bintrayPublishArtifacts: T[BintrayPublishData] = Task {
     val PublishModule.PublishData(artifactInfo, artifacts) = publishArtifacts()
     BintrayPublishData(artifactInfo, artifacts, bintrayPackage())
   }

@@ -98,7 +98,7 @@ trait DockerModule { outer: JavaModule =>
      */
     def executable: T[String] = "docker"
 
-    def dockerfile: T[String] = T {
+    def dockerfile: T[String] = Task {
       val jarName = assembly().path.last
       val labelRhs = labels()
         .map { case (k, v) =>
@@ -149,7 +149,7 @@ trait DockerModule { outer: JavaModule =>
       (pullBaseImage(), imageHash())
     }
 
-    final def build = T {
+    final def build = Task {
       val dest = T.dest
 
       val asmPath = outer.assembly().path

@@ -1,6 +1,6 @@
 package mill.contrib.scoverage
 
-import mill.{Agg, T}
+import mill.{Agg, T, Task}
 import mill.api.{ClassLoader, Ctx, PathRef}
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi
 import mill.define.{Discover, ExternalModule, Worker}

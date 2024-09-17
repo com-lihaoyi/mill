@@ -29,7 +29,7 @@ trait TestModule
    * The classpath containing the tests. This is most likely the output of the compilation target.
    * By default this uses the result of [[localRunClasspath]], which is most likely the result of a local compilation.
    */
-  def testClasspath: T[Seq[PathRef]] = T { localRunClasspath() }
+  def testClasspath: T[Seq[PathRef]] = Task { localRunClasspath() }
 
   /**
    * The test framework to use.
@@ -47,7 +47,7 @@ trait TestModule
    */
   def testFramework: T[String]
 
-  def discoveredTestClasses: T[Seq[String]] = T {
+  def discoveredTestClasses: T[Seq[String]] = Task {
     val classes = Jvm.inprocess(
       runClasspath().map(_.path),
       classLoaderOverrideSbtTesting = true,
@@ -85,7 +85,7 @@ trait TestModule
   /**
    * Args to be used by [[testCached]].
    */
-  def testCachedArgs: T[Seq[String]] = T { Seq[String]() }
+  def testCachedArgs: T[Seq[String]] = Task { Seq[String]() }
 
   /**
    * Discovers and runs the module's tests in a subprocess, reporting the
@@ -93,7 +93,7 @@ trait TestModule
    * If no input has changed since the last run, no test were executed.
    * @see [[test()]]
    */
-  def testCached: T[(String, Seq[TestResult])] = T {
+  def testCached: T[(String, Seq[TestResult])] = Task {
     testTask(testCachedArgs, T.task { Seq.empty[String] })()
   }
 
@@ -122,7 +122,7 @@ trait TestModule
    * Controls whether the TestRunner should receive it's arguments via an args-file instead of a as long parameter list.
    * Defaults to what `runUseArgsFile` return.
    */
-  def testUseArgsFile: T[Boolean] = T { runUseArgsFile() || scala.util.Properties.isWin }
+  def testUseArgsFile: T[Boolean] = Task { runUseArgsFile() || scala.util.Properties.isWin }
 
   /**
    * Sets the file name for the generated JUnit-compatible test report.
@@ -298,7 +298,7 @@ object TestModule {
    */
   trait TestNg extends TestModule {
     override def testFramework: T[String] = "mill.testng.TestNGFramework"
-    override def ivyDeps: T[Agg[Dep]] = T {
+    override def ivyDeps: T[Agg[Dep]] = Task {
       super.ivyDeps() ++ Agg(
         ivy"com.lihaoyi:mill-contrib-testng:${mill.api.BuildInfo.millVersion}"
       )
@@ -311,7 +311,7 @@ object TestModule {
    */
   trait Junit4 extends TestModule {
     override def testFramework: T[String] = "com.novocode.junit.JUnitFramework"
-    override def ivyDeps: T[Agg[Dep]] = T {
+    override def ivyDeps: T[Agg[Dep]] = Task {
       super.ivyDeps() ++ Agg(ivy"${mill.scalalib.api.Versions.sbtTestInterface}")
     }
   }
@@ -322,7 +322,7 @@ object TestModule {
    */
   trait Junit5 extends TestModule {
     override def testFramework: T[String] = "com.github.sbt.junit.jupiter.api.JupiterFramework"
-    override def ivyDeps: T[Agg[Dep]] = T {
+    override def ivyDeps: T[Agg[Dep]] = Task {
       super.ivyDeps() ++ Agg(ivy"${mill.scalalib.api.Versions.jupiterInterface}")
     }
   }
@@ -341,7 +341,7 @@ object TestModule {
    */
   trait Specs2 extends ScalaModuleBase with TestModule {
     override def testFramework: T[String] = "org.specs2.runner.Specs2Framework"
-    override def scalacOptions = T {
+    override def scalacOptions = Task {
       super.scalacOptions() ++ Seq("-Yrangepos")
     }
   }
@@ -430,7 +430,7 @@ object TestModule {
 
   trait JavaModuleBase extends BspModule {
     def ivyDeps: T[Agg[Dep]] = Agg.empty[Dep]
-    def resources: T[Seq[PathRef]] = T { Seq.empty[PathRef] }
+    def resources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
   }
 
   trait ScalaModuleBase extends mill.Module {

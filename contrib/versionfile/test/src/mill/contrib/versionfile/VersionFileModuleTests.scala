@@ -1,6 +1,6 @@
 package mill.contrib.versionfile
 
-import mill.T
+import mill.{T, Task}
 import mill.testkit.{UnitTester, TestBaseModule}
 import utest.{TestSuite, Tests, assert, assertMatch, test}
 import utest.framework.TestPath
