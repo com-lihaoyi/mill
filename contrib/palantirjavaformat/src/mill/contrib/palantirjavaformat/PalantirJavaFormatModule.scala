@@ -44,7 +44,7 @@ trait PalantirJavaFormatModule extends JavaModule {
     val exitCode = Jvm.callSubprocess(
       mainClass = PalantirJavaFormatModule.mainClass,
       classPath = palantirjavaformatClasspath().map(_.path),
-      jvmArgs = PalantirJavaFormatModule.jvmArgs,
+      jvmArgs = palantirjavaformatJvmArgs(),
       mainArgs = args,
       workingDir = T.dest,
       check = false
@@ -65,6 +65,25 @@ trait PalantirJavaFormatModule extends JavaModule {
   }
 
   /**
+   * JVM arguments for running Palantir. Defaults to values prescribed in
+   * "[[https://github.com/palantir/palantir-java-format/issues/548 Broken on Java 16]]".
+   */
+  def palantirjavaformatJvmArgs: T[Seq[String]] = T {
+    Seq(
+      "--add-exports",
+      "jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
+      "--add-exports",
+      "jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED",
+      "--add-exports",
+      "jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED",
+      "--add-exports",
+      "jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED",
+      "--add-exports",
+      "jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED"
+    )
+  }
+
+  /**
    * Path to options file for Palantir. Defaults to [[millSourcePath]] `/` `palantirjavaformat.options`.
    */
   def palantirjavaformatOptions: T[PathRef] = T.source {
@@ -79,20 +98,6 @@ trait PalantirJavaFormatModule extends JavaModule {
   }
 }
 object PalantirJavaFormatModule {
-
-  // https://github.com/palantir/palantir-java-format/issues/548
-  private[palantirjavaformat] val jvmArgs: Seq[String] = Seq(
-    "--add-exports",
-    "jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
-    "--add-exports",
-    "jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED",
-    "--add-exports",
-    "jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED",
-    "--add-exports",
-    "jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED",
-    "--add-exports",
-    "jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED"
-  )
 
   private[palantirjavaformat] def mainArgs(
       sources: IterableOnce[os.Path],
@@ -125,4 +130,3 @@ object PalantirJavaFormatModule {
 
   private[palantirjavaformat] def mainClass: String = "com.palantir.javaformat.java.Main"
 }
-
