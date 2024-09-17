@@ -25,7 +25,7 @@ object foo extends ScalaModule {
     super.compile()
   }
 
-  def run(args: Task[Args] = Task.task(Args())) = Task.command {
+  def run(args: Task[Args] = Task.anon(Args())) = Task.command {
     println("Foo running..." + args().value.mkString(" "))
     super.run(args)()
   }

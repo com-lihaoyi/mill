@@ -43,7 +43,7 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] {
   def self: Task[T] = this
 }
 
-object Task extends TargetBase {
+object Task extends TaskBase {
   @deprecated(
     "Creating a target from a task is deprecated. You most likely forgot a parenthesis pair `()`",
     "Mill after 0.12.0-RC1"
@@ -134,7 +134,7 @@ trait NamedTask[+T] extends Task[T] {
  */
 trait Target[+T] extends NamedTask[T]
 
-object Target extends TargetBase {
+object Target extends TaskBase {
   @deprecated(
     "Creating a target from a task is deprecated. You most likely forgot a parenthesis pair `()`",
     "Mill after 0.12.0-RC1"
@@ -421,7 +421,7 @@ object Target extends TargetBase {
  * define the tasks, while methods like `T.`[[dest]], `T.`[[log]] or
  * `T.`[[env]] provide the core APIs that are provided to a task implementation
  */
-class TargetBase extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
+class TaskBase extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
 
   /**
    * `T.dest` is a unique `os.Path` (e.g. `out/classFiles.dest/` or `out/run.dest/`)
@@ -596,13 +596,16 @@ class TargetBase extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
   def worker[T](t: Result[T])(implicit ctx: mill.define.Ctx): Worker[T] =
     macro Target.Internal.workerImpl2[T]
 
+
+  @deprecated("Use Task.anon instead", "Mill after 0.12.0-RC2")
+  def task[T](t: Result[T]): Task[T] = macro Applicative.impl[Task, T, mill.api.Ctx]
   /**
    * Creates an anonymous `Task`. These depend on other tasks and
    * be-depended-upon by other tasks, but cannot be run directly from the
    * command line and do not perform any caching. Typically used as helpers to
    * implement `T{...}` targets.
    */
-  def task[T](t: Result[T]): Task[T] = macro Applicative.impl[Task, T, mill.api.Ctx]
+  def anon[T](t: Result[T]): Task[T] = macro Applicative.impl[Task, T, mill.api.Ctx]
 
   /**
    * Converts a `Seq[Task[T]]` into a `Task[Seq[T]]`

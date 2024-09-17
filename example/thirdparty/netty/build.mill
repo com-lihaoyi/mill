@@ -543,7 +543,7 @@ object `transport-native-unix-common` extends NettyModule{
 
   def make = T{
     val Seq(sourceJar) = resolveDeps(
-      deps = Task.task(Agg(ivy"io.netty:netty-jni-util:0.0.9.Final").map(bindDependency())),
+      deps = Task.anon(Agg(ivy"io.netty:netty-jni-util:0.0.9.Final").map(bindDependency())),
       sources = true
     )().toSeq
 
