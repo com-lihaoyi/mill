@@ -13,8 +13,6 @@ package object kotlinlib {
   type Dep = mill.scalalib.Dep
   val Dep = mill.scalalib.Dep
 
-  type MavenModule = mill.scalalib.MavenModule
-
   type TestModule = mill.scalalib.TestModule
   val TestModule = mill.scalalib.TestModule
 
