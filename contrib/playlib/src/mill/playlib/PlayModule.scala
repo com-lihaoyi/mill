@@ -4,6 +4,7 @@ import mill.define.Task
 import mill.playlib.api.Versions
 import mill.scalalib._
 import mill.{Agg, Args, T}
+import mill.define.Target
 
 trait PlayApiModule extends Dependencies with Router with Server {
   trait PlayTests extends ScalaTests with TestModule.ScalaTest {
@@ -24,7 +25,7 @@ trait PlayApiModule extends Dependencies with Router with Server {
 
 }
 trait PlayModule extends PlayApiModule with Static with Twirl {
-  override def twirlVersion = Task {
+  override def twirlVersion: Target[String] = Task {
     playMinorVersion() match {
       case "2.6" => "1.3.16"
       case "2.7" => "1.4.2"

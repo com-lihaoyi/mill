@@ -1,6 +1,6 @@
 package mill.scalalib.giter8
 
-import mill.{T, Task}
+import mill.T
 import mill.define.{Command, Discover, ExternalModule}
 import mill.util.Jvm
 import mill.scalalib.api.ZincWorkerUtil

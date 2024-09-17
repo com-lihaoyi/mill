@@ -14,13 +14,14 @@ import mill.util.Util.millProjectModule
 import mill.{Agg, T}
 
 import java.io.File
+import mill.define.Target
 
 trait KotlinModule extends JavaModule { outer =>
 
   /**
    * All individual source files fed into the compiler.
    */
-  override def allSourceFiles = Task {
+  override def allSourceFiles: Target[Seq[PathRef]] = Task {
     Lib.findSourceFiles(allSources(), Seq("kt", "kts", "java")).map(PathRef(_))
   }
 
@@ -28,7 +29,7 @@ trait KotlinModule extends JavaModule { outer =>
    * All individual Java source files fed into the compiler.
    * Subset of [[allSourceFiles]].
    */
-  def allJavaSourceFiles = Task {
+  def allJavaSourceFiles: Target[Seq[PathRef]] = Task {
     allSourceFiles().filter(_.path.ext.toLowerCase() == "java")
   }
 
@@ -36,7 +37,7 @@ trait KotlinModule extends JavaModule { outer =>
    * All individual Kotlin source files fed into the compiler.
    * Subset of [[allSourceFiles]].
    */
-  def allKotlinSourceFiles = Task {
+  def allKotlinSourceFiles: Target[Seq[PathRef]] = Task {
     allSourceFiles().filter(path => Seq("kt", "kts").exists(path.path.ext.toLowerCase() == _))
   }
 

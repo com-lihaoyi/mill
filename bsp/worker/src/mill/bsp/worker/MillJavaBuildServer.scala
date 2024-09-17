@@ -6,7 +6,7 @@ import ch.epfl.scala.bsp4j.{
   JavacOptionsParams,
   JavacOptionsResult
 }
-import mill.{T, Task}
+import mill.T
 import mill.bsp.worker.Utils.sanitizeUri
 import mill.scalalib.{JavaModule, SemanticDbJavaModule}
 

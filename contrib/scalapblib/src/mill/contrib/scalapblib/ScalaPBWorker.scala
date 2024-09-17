@@ -4,7 +4,7 @@ package contrib.scalapblib
 import java.io.File
 
 import mill.api.PathRef
-import mill.{T, Task}
+import mill.T
 import mill.define.{Discover, ExternalModule, Worker}
 
 class ScalaPBWorker extends AutoCloseable {

@@ -4,7 +4,7 @@
 
 package mill.kotlinlib
 
-import mill.{T, Task}
+import mill.T
 import mill.define.{Discover, ExternalModule, Module, Worker}
 
 trait KotlinWorkerModule extends Module {

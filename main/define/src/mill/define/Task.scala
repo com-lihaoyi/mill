@@ -43,19 +43,19 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] {
   def self: Task[T] = this
 }
 
-object Task extends TargetBase{
+object Task extends TargetBase {
   @deprecated(
     "Creating a target from a task is deprecated. You most likely forgot a parenthesis pair `()`",
     "Mill after 0.12.0-RC1"
   )
   def apply[T](t: Task[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
-  macro Target.Internal.targetTaskImpl[T]
+    macro Target.Internal.targetTaskImpl[T]
 
-  implicit def apply[T](t: T)(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
-  macro Target.Internal.targetImpl[T]
+  def apply[T](t: T)(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
+    macro Target.Internal.targetImpl[T]
 
-  implicit def apply[T](t: Result[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
-  macro Target.Internal.targetResultImpl[T]
+  def apply[T](t: Result[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
+    macro Target.Internal.targetResultImpl[T]
 
   abstract class Ops[+T] { this: Task[T] =>
     def map[V](f: T => V): Task[V] = new Task.Mapped(this, f)
@@ -134,13 +134,14 @@ trait NamedTask[+T] extends Task[T] {
  */
 trait Target[+T] extends NamedTask[T]
 
-object Target extends TargetBase{
+object Target extends TargetBase {
   @deprecated(
     "Creating a target from a task is deprecated. You most likely forgot a parenthesis pair `()`",
     "Mill after 0.12.0-RC1"
   )
   def apply[T](t: Task[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
-  macro Target.Internal.targetTaskImpl[T]
+    macro Target.Internal.targetTaskImpl[T]
+
   /**
    * A target is the most common [[Task]] a user would encounter, commonly
    * defined using the `def foo = T{...}` syntax. [[TargetImpl]]s require that their
@@ -148,10 +149,10 @@ object Target extends TargetBase{
    * return value to disk, only re-computing if upstream [[Task]]s change
    */
   implicit def apply[T](t: T)(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
-  macro Internal.targetImpl[T]
+    macro Internal.targetImpl[T]
 
   implicit def apply[T](t: Result[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
-  macro Internal.targetResultImpl[T]
+    macro Internal.targetResultImpl[T]
 
   object Internal {
     private def isPrivateTargetOption(c: Context): c.Expr[Option[Boolean]] = {
@@ -161,8 +162,8 @@ object Target extends TargetBase{
     }
 
     def targetImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T])(
-      rw: c.Expr[RW[T]],
-      ctx: c.Expr[mill.define.Ctx]
+        rw: c.Expr[RW[T]],
+        ctx: c.Expr[mill.define.Ctx]
     ): c.Expr[Target[T]] = {
       import c.universe._
 
@@ -183,8 +184,8 @@ object Target extends TargetBase{
     }
 
     def targetResultImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[Result[T]])(
-      rw: c.Expr[RW[T]],
-      ctx: c.Expr[mill.define.Ctx]
+        rw: c.Expr[RW[T]],
+        ctx: c.Expr[mill.define.Ctx]
     ): c.Expr[Target[T]] = {
       import c.universe._
 
@@ -203,8 +204,8 @@ object Target extends TargetBase{
     }
 
     def targetTaskImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[Task[T]])(
-      rw: c.Expr[RW[T]],
-      ctx: c.Expr[mill.define.Ctx]
+        rw: c.Expr[RW[T]],
+        ctx: c.Expr[mill.define.Ctx]
     ): c.Expr[Target[T]] = {
       import c.universe._
 
@@ -223,7 +224,7 @@ object Target extends TargetBase{
     }
 
     def sourcesImpl1(c: Context)(values: c.Expr[Result[os.Path]]*)(ctx: c.Expr[mill.define.Ctx])
-    : c.Expr[Target[Seq[PathRef]]] = {
+        : c.Expr[Target[Seq[PathRef]]] = {
       import c.universe._
       val wrapped =
         for (value <- values.toList)
@@ -245,7 +246,7 @@ object Target extends TargetBase{
     }
 
     def sourcesImpl2(c: Context)(values: c.Expr[Result[Seq[PathRef]]])(ctx: c.Expr[mill.define.Ctx])
-    : c.Expr[Target[Seq[PathRef]]] = {
+        : c.Expr[Target[Seq[PathRef]]] = {
       import c.universe._
 
       val taskIsPrivate = isPrivateTargetOption(c)
@@ -262,7 +263,7 @@ object Target extends TargetBase{
     }
 
     def sourceImpl1(c: Context)(value: c.Expr[Result[os.Path]])(ctx: c.Expr[mill.define.Ctx])
-    : c.Expr[Target[PathRef]] = {
+        : c.Expr[Target[PathRef]] = {
       import c.universe._
 
       val wrapped =
@@ -284,7 +285,7 @@ object Target extends TargetBase{
     }
 
     def sourceImpl2(c: Context)(value: c.Expr[Result[PathRef]])(ctx: c.Expr[mill.define.Ctx])
-    : c.Expr[Target[PathRef]] = {
+        : c.Expr[Target[PathRef]] = {
       import c.universe._
 
       val taskIsPrivate = isPrivateTargetOption(c)
@@ -301,8 +302,8 @@ object Target extends TargetBase{
     }
 
     def inputImpl[T: c.WeakTypeTag](c: Context)(value: c.Expr[T])(
-      w: c.Expr[upickle.default.Writer[T]],
-      ctx: c.Expr[mill.define.Ctx]
+        w: c.Expr[upickle.default.Writer[T]],
+        ctx: c.Expr[mill.define.Ctx]
     ): c.Expr[Target[T]] = {
       import c.universe._
 
@@ -321,9 +322,9 @@ object Target extends TargetBase{
     }
 
     def commandFromTask[T: c.WeakTypeTag](c: Context)(t: c.Expr[Task[T]])(
-      ctx: c.Expr[mill.define.Ctx],
-      w: c.Expr[W[T]],
-      cls: c.Expr[EnclosingClass]
+        ctx: c.Expr[mill.define.Ctx],
+        w: c.Expr[W[T]],
+        cls: c.Expr[EnclosingClass]
     ): c.Expr[Command[T]] = {
       import c.universe._
 
@@ -341,9 +342,9 @@ object Target extends TargetBase{
     }
 
     def commandImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T])(
-      w: c.Expr[W[T]],
-      ctx: c.Expr[mill.define.Ctx],
-      cls: c.Expr[EnclosingClass]
+        w: c.Expr[W[T]],
+        ctx: c.Expr[mill.define.Ctx],
+        cls: c.Expr[EnclosingClass]
     ): c.Expr[Command[T]] = {
       import c.universe._
 
@@ -361,7 +362,7 @@ object Target extends TargetBase{
     }
 
     def workerImpl1[T: c.WeakTypeTag](c: Context)(t: c.Expr[Task[T]])(ctx: c.Expr[mill.define.Ctx])
-    : c.Expr[Worker[T]] = {
+        : c.Expr[Worker[T]] = {
       import c.universe._
 
       val taskIsPrivate = isPrivateTargetOption(c)
@@ -374,7 +375,7 @@ object Target extends TargetBase{
     }
 
     def workerImpl2[T: c.WeakTypeTag](c: Context)(t: c.Expr[T])(ctx: c.Expr[mill.define.Ctx])
-    : c.Expr[Worker[T]] = {
+        : c.Expr[Worker[T]] = {
       import c.universe._
 
       val taskIsPrivate = isPrivateTargetOption(c)
@@ -391,8 +392,8 @@ object Target extends TargetBase{
     }
 
     def persistentImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T])(
-      rw: c.Expr[RW[T]],
-      ctx: c.Expr[mill.define.Ctx]
+        rw: c.Expr[RW[T]],
+        ctx: c.Expr[mill.define.Ctx]
     ): c.Expr[PersistentImpl[T]] = {
       import c.universe._
 
@@ -412,6 +413,7 @@ object Target extends TargetBase{
   }
 
 }
+
 /**
  * The [[mill.define.Target]] companion object, usually aliased as [[T]],
  * provides most of the helper methods and macros used to build task graphs.

@@ -34,7 +34,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     override def scalacPluginIvyDeps: Target[Agg[Dep]] = outer.scalacPluginIvyDeps()
     override def scalacPluginClasspath: Target[Agg[PathRef]] = outer.scalacPluginClasspath()
     override def scalacOptions: Target[Seq[String]] = outer.scalacOptions()
-    override def mandatoryScalacOptions: Target[Seq[String]] = Task { super.mandatoryScalacOptions() }
+    override def mandatoryScalacOptions: Target[Seq[String]] =
+      Task { super.mandatoryScalacOptions() }
   }
 
   /**

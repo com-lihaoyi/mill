@@ -1,6 +1,6 @@
 package mill.playlib
 
-import mill.{Agg, T, Task}
+import mill.{Agg, Task}
 import mill.scalalib._
 
 private[playlib] trait Dependencies extends ScalaModule with Version {

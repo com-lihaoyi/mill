@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import mill.api.PathRef
-import mill.{T, Task}
+import mill.T
 
 /**
  * A [[ScalaModule]] which is suited to be used with [[mill.define.Cross]].

@@ -35,7 +35,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def scalaJSWorkerVersion = Task { ZincWorkerUtil.scalaJSWorkerVersion(scalaJSVersion()) }
 
-  override def scalaLibraryIvyDeps = Task {
+  override def scalaLibraryIvyDeps: Target[Loose.Agg[Dep]] = Task {
     val deps = super.scalaLibraryIvyDeps()
     if (ZincWorkerUtil.isScala3(scalaVersion())) {
       // Since Dotty/Scala3, Scala.JS is published with a platform suffix
@@ -216,7 +216,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     )
   }
 
-  override def mandatoryScalacOptions = Task {
+  override def mandatoryScalacOptions: Target[Seq[String]] = Task {
     // Don't add flag twice, e.g. if a test suite inherits it both directly
     // ScalaJSModule as well as from the enclosing non-test ScalaJSModule
     val scalajsFlag =

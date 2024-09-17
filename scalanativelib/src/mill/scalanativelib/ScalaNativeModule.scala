@@ -34,7 +34,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   type ScalaNativeModuleTests = ScalaNativeTests
   trait ScalaNativeTests extends ScalaTests with TestScalaNativeModule {
     override def scalaNativeVersion = outer.scalaNativeVersion()
-    override def releaseMode = Task { outer.releaseMode() }
+    override def releaseMode: Target[ReleaseMode] = Task { outer.releaseMode() }
     override def logLevel: Target[NativeLogLevel] = outer.logLevel()
   }
 
@@ -85,7 +85,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     ) ++ scalaVersionSpecific
   }
 
-  override def scalaLibraryIvyDeps = Task {
+  override def scalaLibraryIvyDeps: Target[Agg[Dep]] = Task {
     super.scalaLibraryIvyDeps().map(dep =>
       dep.copy(cross = dep.cross match {
         case c: CrossVersion.Constant => c.copy(platformed = false)
@@ -187,7 +187,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   }
 
   // Whether to link `@stub` methods, or ignore them
-  def nativeLinkStubs = Task { false }
+  def nativeLinkStubs: Target[Boolean] = Task { false }
 
   /**
    * Shall the resource files be embedded in the resulting binary file? Allows
@@ -195,13 +195,13 @@ trait ScalaNativeModule extends ScalaModule { outer =>
    *  not embed files with certain extensions, including ".c", ".h", ".scala"
    *  and ".class".
    */
-  def nativeEmbedResources = Task { false }
+  def nativeEmbedResources: Target[Boolean] = Task { false }
 
   /** Shall we use the incremental compilation? */
-  def nativeIncrementalCompilation = Task { false }
+  def nativeIncrementalCompilation: Target[Boolean] = Task { false }
 
   /** Shall linker dump intermediate NIR after every phase? */
-  def nativeDump = Task { false }
+  def nativeDump: Target[Boolean] = Task { false }
 
   // The LTO mode to use used during a release build
   protected def nativeLTOInput: Target[Option[LTO]] = T.input {

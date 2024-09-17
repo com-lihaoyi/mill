@@ -5,6 +5,7 @@ import mill.api.Result
 import scalalib._
 import mill.contrib.bintray.BintrayPublishModule.checkBintrayCreds
 import mill.define.{ExternalModule, Task}
+import mill.define.Target
 
 trait BintrayPublishModule extends PublishModule {
 
@@ -12,7 +13,7 @@ trait BintrayPublishModule extends PublishModule {
 
   def bintrayRepo: String
 
-  def bintrayPackage = Task { artifactId() }
+  def bintrayPackage: Target[String] = Task { artifactId() }
 
   def bintrayPublishArtifacts: T[BintrayPublishData] = Task {
     val PublishModule.PublishData(artifactInfo, artifacts) = publishArtifacts()
