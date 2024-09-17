@@ -1,7 +1,7 @@
 package mill.scalanativelib.worker
 
 import mill.define.{Discover, Worker}
-import mill.{Agg, PathRef, T}
+import mill.{Agg, PathRef, Task}
 import mill.scalanativelib.worker.{api => workerApi}
 
 private[scalanativelib] class ScalaNativeWorker extends AutoCloseable {
@@ -41,6 +41,6 @@ private[scalanativelib] class ScalaNativeWorker extends AutoCloseable {
 }
 
 private[scalanativelib] object ScalaNativeWorkerExternalModule extends mill.define.ExternalModule {
-  def scalaNativeWorker: Worker[ScalaNativeWorker] = T.worker { new ScalaNativeWorker() }
+  def scalaNativeWorker: Worker[ScalaNativeWorker] = Task.worker { new ScalaNativeWorker() }
   lazy val millDiscover: Discover = Discover[this.type]
 }

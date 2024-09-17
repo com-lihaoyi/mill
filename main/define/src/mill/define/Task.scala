@@ -99,8 +99,8 @@ object Task extends TaskBase {
 
 /**
  * Represents a task that can be referenced by its path segments. `T{...}`
- * targets, `T.input`, `T.worker`, etc. but not including anonymous
- * `T.task` or `T.traverse` etc. instances
+ * targets, `Task.Input`, `Task.worker`, etc. but not including anonymous
+ * `Task.Anon` or `T.traverse` etc. instances
  */
 trait NamedTask[+T] extends Task[T] {
 
@@ -452,7 +452,7 @@ class TaskBase extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
 
   /**
    * `T.env` is the environment variable map passed to the Mill command when
-   * it is run; typically used inside a `T.input` to ensure any changes in
+   * it is run; typically used inside a `Task.Input` to ensure any changes in
    * the env vars are properly detected.
    *
    * Note that you should not use `sys.env`, as Mill's long-lived server
@@ -485,64 +485,72 @@ class TaskBase extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
    */
   def workspace(implicit ctx: mill.api.Ctx): os.Path = ctx.workspace
 
+  @deprecated("Use Task.Persistent instead", "Mill after 0.12.0-RC1")
+  def persistent[T](t: Result[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
+    macro Target.Internal.persistentImpl[T]
+
   /**
    * [[PersistentImpl]] are a flavor of [[TargetImpl]], normally defined using
-   * the `T.persistent{...}` syntax. The main difference is that while
+   * the `Task.Persistent{...}` syntax. The main difference is that while
    * [[TargetImpl]] deletes the `T.dest` folder in between runs,
    * [[PersistentImpl]] preserves it. This lets the user make use of files on
    * disk that persistent between runs of the task, e.g. to implement their own
    * fine-grained caching beyond what Mill provides by default.
    *
-   * Note that the user defining a `T.persistent` task is taking on the
+   * Note that the user defining a `Task.Persistent` task is taking on the
    * responsibility of ensuring that their implementation is idempotent, i.e.
    * that it computes the same result whether or not there is data in `T.dest`.
    * Violating that invariant can result in confusing mis-behaviors
    */
-  def persistent[T](t: Result[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
+  def Persistent[T](t: Result[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
     macro Target.Internal.persistentImpl[T]
 
-  /**
-   * A specialization of [[InputImpl]] defined via `T.sources`, [[SourcesImpl]]
-   * uses [[PathRef]]s to compute a signature for a set of source files and
-   * folders.
-   *
-   * This is most used when detecting changes in source code: when you edit a
-   * file and run `mill compile`, it is the `T.sources` that re-computes the
-   * signature for you source files/folders and decides whether or not downstream
-   * [[TargetImpl]]s need to be invalidated and re-computed.
-   */
+  @deprecated("Use Task.Sources instead", "Mill after 0.12.0-RC1")
   def sources(values: Result[os.Path]*)(implicit ctx: mill.define.Ctx): Target[Seq[PathRef]] =
     macro Target.Internal.sourcesImpl1
-
+  @deprecated("Use Task.Sources instead", "Mill after 0.12.0-RC1")
   def sources(values: Result[Seq[PathRef]])(implicit ctx: mill.define.Ctx): Target[Seq[PathRef]] =
     macro Target.Internal.sourcesImpl2
 
   /**
-   * Similar to [[Source]], but only for a single source file or folder. Defined
-   * using `T.source`.
+   * A specialization of [[InputImpl]] defined via `Task.Sources`, [[SourcesImpl]]
+   * uses [[PathRef]]s to compute a signature for a set of source files and
+   * folders.
+   *
+   * This is most used when detecting changes in source code: when you edit a
+   * file and run `mill compile`, it is the `Task.Sources` that re-computes the
+   * signature for you source files/folders and decides whether or not downstream
+   * [[TargetImpl]]s need to be invalidated and re-computed.
    */
+  def Sources(values: Result[os.Path]*)(implicit ctx: mill.define.Ctx): Target[Seq[PathRef]] =
+    macro Target.Internal.sourcesImpl1
+
+  def Sources(values: Result[Seq[PathRef]])(implicit ctx: mill.define.Ctx): Target[Seq[PathRef]] =
+    macro Target.Internal.sourcesImpl2
+
+  /**
+   * Similar to [[Source]], but only for a single source file or folder. Defined
+   * using `Task.Source`.
+   */
+  @deprecated("Use Task.Source instead", "Mill after 0.12.0-RC1")
   def source(value: Result[os.Path])(implicit ctx: mill.define.Ctx): Target[PathRef] =
     macro Target.Internal.sourceImpl1
 
+  @deprecated("Use Task.Source instead", "Mill after 0.12.0-RC1")
   def source(value: Result[PathRef])(implicit ctx: mill.define.Ctx): Target[PathRef] =
     macro Target.Internal.sourceImpl2
 
   /**
-   * [[InputImpl]]s, normally defined using `T.input`, are [[NamedTask]]s that
-   * re-evaluate every time Mill is run. This is in contrast to [[TargetImpl]]s
-   * which only re-evaluate when upstream tasks change.
-   *
-   * [[InputImpl]]s are useful when you want to capture some input to the Mill
-   * build graph that comes from outside: maybe from an environment variable, a
-   * JVM system property, the hash returned by `git rev-parse HEAD`. Reading
-   * these external mutable variables inside a `T{...}` [[TargetImpl]] will
-   * incorrectly cache them forever. Reading them inside a `T.input{...}`
-   * will re-compute them every time, and only if the value changes would it
-   * continue to invalidate downstream [[TargetImpl]]s
-   *
-   * The most common case of [[InputImpl]] is [[SourceImpl]] and [[SourcesImpl]],
-   * used for detecting changes to source files.
+   * Similar to [[Source]], but only for a single source file or folder. Defined
+   * using `Task.Source`.
    */
+  def Source(value: Result[os.Path])(implicit ctx: mill.define.Ctx): Target[PathRef] =
+    macro Target.Internal.sourceImpl1
+
+  def Source(value: Result[PathRef])(implicit ctx: mill.define.Ctx): Target[PathRef] =
+    macro Target.Internal.sourceImpl2
+
+  @deprecated("Use Task.Input instead", "Mill after 0.12.0-RC1")
   def input[T](value: Result[T])(implicit
       w: upickle.default.Writer[T],
       ctx: mill.define.Ctx
@@ -550,12 +558,27 @@ class TaskBase extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
     macro Target.Internal.inputImpl[T]
 
   /**
-   * [[Command]]s are only [[NamedTask]]s defined using
-   * `def foo() = T.command{...}` and are typically called from the
-   * command-line. Unlike other [[NamedTask]]s, [[Command]]s can be defined to
-   * take arguments that are automatically converted to command-line
-   * arguments, as long as an implicit [[mainargs.TokensReader]] is available.
+   * [[InputImpl]]s, normally defined using `Task.Input`, are [[NamedTask]]s that
+   * re-evaluate every time Mill is run. This is in contrast to [[TargetImpl]]s
+   * which only re-evaluate when upstream tasks change.
+   *
+   * [[InputImpl]]s are useful when you want to capture some input to the Mill
+   * build graph that comes from outside: maybe from an environment variable, a
+   * JVM system property, the hash returned by `git rev-parse HEAD`. Reading
+   * these external mutable variables inside a `T{...}` [[TargetImpl]] will
+   * incorrectly cache them forever. Reading them inside a `Task.Input{...}`
+   * will re-compute them every time, and only if the value changes would it
+   * continue to invalidate downstream [[TargetImpl]]s
+   *
+   * The most common case of [[InputImpl]] is [[SourceImpl]] and [[SourcesImpl]],
+   * used for detecting changes to source files.
    */
+  def Input[T](value: Result[T])(implicit
+      w: upickle.default.Writer[T],
+      ctx: mill.define.Ctx
+  ): Target[T] =
+    macro Target.Internal.inputImpl[T]
+
   @deprecated(
     "Creating a command from a task is deprecated. You most likely forgot a parenthesis pair `()`",
     "Mill after 0.12.0-RC1"
@@ -566,6 +589,7 @@ class TaskBase extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
       cls: EnclosingClass
   ): Command[T] = macro Target.Internal.commandFromTask[T]
 
+  @deprecated("Use Task.Command instead", "Mill after 0.12.0-RC1")
   def command[T](t: Result[T])(implicit
       w: W[T],
       ctx: mill.define.Ctx,
@@ -573,8 +597,32 @@ class TaskBase extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
   ): Command[T] = macro Target.Internal.commandImpl[T]
 
   /**
+   * [[Command]]s are only [[NamedTask]]s defined using
+   * `def foo() = Task.Command{...}` and are typically called from the
+   * command-line. Unlike other [[NamedTask]]s, [[Command]]s can be defined to
+   * take arguments that are automatically converted to command-line
+   * arguments, as long as an implicit [[mainargs.TokensReader]] is available.
+   */
+  def Command[T](t: Result[T])(implicit
+      w: W[T],
+      ctx: mill.define.Ctx,
+      cls: EnclosingClass
+  ): Command[T] = macro Target.Internal.commandImpl[T]
+
+  @deprecated(
+    "Creating a worker from a task is deprecated. You most likely forgot a parenthesis pair `()`",
+    "Mill after 0.12.0-RC1"
+  )
+  def worker[T](t: Task[T])(implicit ctx: mill.define.Ctx): Worker[T] =
+    macro Target.Internal.workerImpl1[T]
+
+  @deprecated("Use Task.Worker instead", "Mill after 0.12.0-RC1")
+  def worker[T](t: Result[T])(implicit ctx: mill.define.Ctx): Worker[T] =
+    macro Target.Internal.workerImpl2[T]
+
+  /**
    * [[Worker]] is a [[NamedTask]] that lives entirely in-memory, defined using
-   * `T.worker{...}`. The value returned by `T.worker{...}` is long-lived,
+   * `Task.worker{...}`. The value returned by `Task.worker{...}` is long-lived,
    * persisting as long as the Mill process is kept alive (e.g. via `--watch`,
    * or via its default `MillServerMain` server process). This allows the user to
    * perform in-memory caching that is even more aggressive than the disk-based
@@ -586,26 +634,19 @@ class TaskBase extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
    * responsibility of ensuring the implementation is idempotent regardless of
    * what in-memory state the worker may have.
    */
-  @deprecated(
-    "Creating a worker from a task is deprecated. You most likely forgot a parenthesis pair `()`",
-    "Mill after 0.12.0-RC1"
-  )
-  def worker[T](t: Task[T])(implicit ctx: mill.define.Ctx): Worker[T] =
-    macro Target.Internal.workerImpl1[T]
-
-  def worker[T](t: Result[T])(implicit ctx: mill.define.Ctx): Worker[T] =
+  def Worker[T](t: Result[T])(implicit ctx: mill.define.Ctx): Worker[T] =
     macro Target.Internal.workerImpl2[T]
-
 
   @deprecated("Use Task.anon instead", "Mill after 0.12.0-RC2")
   def task[T](t: Result[T]): Task[T] = macro Applicative.impl[Task, T, mill.api.Ctx]
+
   /**
    * Creates an anonymous `Task`. These depend on other tasks and
    * be-depended-upon by other tasks, but cannot be run directly from the
    * command line and do not perform any caching. Typically used as helpers to
    * implement `T{...}` targets.
    */
-  def anon[T](t: Result[T]): Task[T] = macro Applicative.impl[Task, T, mill.api.Ctx]
+  def Anon[T](t: Result[T]): Task[T] = macro Applicative.impl[Task, T, mill.api.Ctx]
 
   /**
    * Converts a `Seq[Task[T]]` into a `Task[Seq[T]]`

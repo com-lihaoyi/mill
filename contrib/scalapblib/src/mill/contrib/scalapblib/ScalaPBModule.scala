@@ -51,7 +51,7 @@ trait ScalaPBModule extends ScalaModule {
 
   def scalaPBProtocPath: T[Option[String]] = Task { None }
 
-  def scalaPBSources: T[Seq[PathRef]] = T.sources {
+  def scalaPBSources: T[Seq[PathRef]] = Task.Sources {
     millSourcePath / "protobuf"
   }
 
@@ -80,7 +80,7 @@ trait ScalaPBModule extends ScalaModule {
     )
   }
 
-  def scalaPBIncludePath: T[Seq[PathRef]] = T.sources { Seq.empty[PathRef] }
+  def scalaPBIncludePath: T[Seq[PathRef]] = Task.Sources { Seq.empty[PathRef] }
 
   private def scalaDepsPBIncludePath = if (scalaPBSearchDeps) Task { Seq(scalaPBUnpackProto()) }
   else Task { Seq.empty[PathRef] }
@@ -126,7 +126,7 @@ trait ScalaPBModule extends ScalaModule {
     )
   }
 
-  def compileScalaPB: T[PathRef] = T.persistent {
+  def compileScalaPB: T[PathRef] = Task.Persistent {
     ScalaPBWorkerApi.scalaPBWorker()
       .compile(
         scalaPBClasspath(),

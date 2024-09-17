@@ -81,7 +81,7 @@ trait KotlinModule extends JavaModule { outer =>
    */
   def kotlinCompilerClasspath: T[Seq[PathRef]] = Task {
     resolveDeps(
-      T.task { kotlinCompilerIvyDeps().map(bindDependency()) }
+      Task.Anon { kotlinCompilerIvyDeps().map(bindDependency()) }
     )().toSeq ++ kotlinWorkerClasspath()
   }
 
@@ -110,11 +110,11 @@ trait KotlinModule extends JavaModule { outer =>
   }
 
 //  @Deprecated("Use kotlinWorkerTask instead, as this does not need to be cached as Worker")
-//  def kotlinWorker: Worker[KotlinWorker] = T.worker {
+//  def kotlinWorker: Worker[KotlinWorker] = Task.worker {
 //    kotlinWorkerTask()
 //  }
 
-  def kotlinWorkerTask: Task[KotlinWorker] = T.task {
+  def kotlinWorkerTask: Task[KotlinWorker] = Task.Anon {
     kotlinWorkerRef().kotlinWorkerManager().get(kotlinCompilerClasspath())
   }
 
@@ -129,7 +129,7 @@ trait KotlinModule extends JavaModule { outer =>
    * Runs the Kotlin compiler with the `-help` argument to show you the built-in cmdline help.
    * You might want to add additional arguments like `-X` to see extra help.
    */
-  def kotlincHelp(args: String*): Command[Unit] = T.command {
+  def kotlincHelp(args: String*): Command[Unit] = Task.Command {
     kotlinCompileTask(Seq("-help") ++ args)()
     ()
   }
@@ -140,7 +140,7 @@ trait KotlinModule extends JavaModule { outer =>
    * The actual Kotlin compile task (used by [[compile]] and [[kotlincHelp]]).
    */
   protected def kotlinCompileTask(extraKotlinArgs: Seq[String] = Seq()): Task[CompilationResult] =
-    T.task {
+    Task.Anon {
       val ctx = T.ctx()
       val dest = ctx.dest
       val classes = dest / "classes"

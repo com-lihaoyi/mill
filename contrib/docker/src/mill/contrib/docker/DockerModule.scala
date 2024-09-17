@@ -137,7 +137,7 @@ trait DockerModule { outer: JavaModule =>
          |ENTRYPOINT [$quotedEntryPointArgs]""".stripMargin
     }
 
-    private def pullAndHash = T.input {
+    private def pullAndHash = Task.Input {
       def imageHash() =
         os.proc(executable(), "images", "--no-trunc", "--quiet", baseImage())
           .call(stderr = os.Inherit).out.text().trim
@@ -187,7 +187,7 @@ trait DockerModule { outer: JavaModule =>
       tags()
     }
 
-    final def push() = T.command {
+    final def push() = Task.Command {
       val tags = build()
       tags.foreach(t =>
         os.proc(executable(), "push", t).call(stdout = os.Inherit, stderr = os.Inherit)

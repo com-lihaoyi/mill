@@ -308,7 +308,7 @@ object HelloWorldTests extends TestSuite {
   }
 
   object ValidatedTarget extends TestBaseModule {
-    private def mkDirWithFile = T.task {
+    private def mkDirWithFile = Task.Anon {
       os.write(T.dest / "dummy", "dummy", createFolders = true)
       PathRef(T.dest)
     }
@@ -803,7 +803,7 @@ object HelloWorldTests extends TestSuite {
       test("runIfMainClassProvided") - UnitTester(HelloWorldWithMain, resourcePath).scoped { eval =>
         val runResult = eval.outPath / "core/run.dest/hello-mill"
         val Right(result) = eval.apply(
-          HelloWorldWithMain.core.run(T.task(Args(runResult.toString)))
+          HelloWorldWithMain.core.run(Task.Anon(Args(runResult.toString)))
         )
 
         assert(result.evalCount > 0)
@@ -826,7 +826,7 @@ object HelloWorldTests extends TestSuite {
           // discovered by Zinc and used
           val runResult = eval.outPath / "core/run.dest/hello-mill"
           val Right(result) = eval.apply(
-            HelloWorldWithoutMain.core.run(T.task(Args(runResult.toString)))
+            HelloWorldWithoutMain.core.run(Task.Anon(Args(runResult.toString)))
           )
 
           assert(result.evalCount > 0)
@@ -842,7 +842,7 @@ object HelloWorldTests extends TestSuite {
       test("runIfMainClassProvided") - UnitTester(HelloWorldWithMain, resourcePath).scoped { eval =>
         val runResult = eval.outPath / "core/run.dest/hello-mill"
         val Right(result) = eval.apply(
-          HelloWorldWithMain.core.runLocal(T.task(Args(runResult.toString)))
+          HelloWorldWithMain.core.runLocal(Task.Anon(Args(runResult.toString)))
         )
 
         assert(result.evalCount > 0)
@@ -855,7 +855,7 @@ object HelloWorldTests extends TestSuite {
       test("runWithDefaultMain") - UnitTester(HelloWorldDefaultMain, resourcePath).scoped { eval =>
         val runResult = eval.outPath / "core/run.dest/hello-mill"
         val Right(result) = eval.apply(
-          HelloWorldDefaultMain.core.runLocal(T.task(Args(runResult.toString)))
+          HelloWorldDefaultMain.core.runLocal(Task.Anon(Args(runResult.toString)))
         )
 
         assert(result.evalCount > 0)

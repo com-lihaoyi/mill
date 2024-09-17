@@ -1,6 +1,6 @@
 package mill.scalalib
 
-import mill.T
+import mill.Task
 
 import scala.annotation.nowarn
 
@@ -11,10 +11,10 @@ import scala.annotation.nowarn
  */
 trait MavenModule extends JavaModule { outer =>
 
-  override def sources = T.sources(
+  override def sources = Task.Sources(
     millSourcePath / "src/main/java"
   )
-  override def resources = T.sources {
+  override def resources = Task.Sources {
     millSourcePath / "src/main/resources"
   }
 
@@ -25,10 +25,10 @@ trait MavenModule extends JavaModule { outer =>
     override def millSourcePath = outer.millSourcePath
     override def intellijModulePath: os.Path = outer.millSourcePath / "src/test"
 
-    override def sources = T.sources(
+    override def sources = Task.Sources(
       millSourcePath / "src/test/java"
     )
-    override def resources = T.sources {
+    override def resources = Task.Sources {
       millSourcePath / "src/test/resources"
     }
   }

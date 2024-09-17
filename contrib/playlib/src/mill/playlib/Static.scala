@@ -13,7 +13,7 @@ trait Static extends ScalaModule {
   /**
    * project resources including configuration, webjars and static assets
    */
-  override def resources = T.sources {
+  override def resources = Task.Sources {
     super.resources() :+ webJarResources() :+ staticAssets()
   }
 
@@ -25,7 +25,7 @@ trait Static extends ScalaModule {
   /**
    *  Directories to include assets from
    */
-  def assetSources = T.sources { millSourcePath / assetsPath() }
+  def assetSources = Task.Sources { millSourcePath / assetsPath() }
 
   /*
   Collected static assets for the project

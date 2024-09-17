@@ -108,7 +108,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     ).map(t => (scalaNativeWorkerClasspath() ++ t))
   }
 
-  private[scalanativelib] def scalaNativeBridge = T.task {
+  private[scalanativelib] def scalaNativeBridge = Task.Anon {
     ScalaNativeWorkerExternalModule.scalaNativeWorker().bridge(bridgeFullClassPath())
   }
 
@@ -139,7 +139,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     }
   }
 
-  protected def releaseModeInput: T[Option[ReleaseMode]] = T.input {
+  protected def releaseModeInput: T[Option[ReleaseMode]] = Task.Input {
     readEnvVariable[ReleaseMode](T.env, "SCALANATIVE_MODE", ReleaseMode.values, _.value)
   }
 
@@ -164,7 +164,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   }
 
   // GC choice, either "none", "boehm", "immix" or "commix"
-  protected def nativeGCInput: T[Option[String]] = T.input {
+  protected def nativeGCInput: T[Option[String]] = Task.Input {
     T.env.get("SCALANATIVE_GC")
   }
 
@@ -204,14 +204,14 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   def nativeDump: T[Boolean] = Task { false }
 
   // The LTO mode to use used during a release build
-  protected def nativeLTOInput: T[Option[LTO]] = T.input {
+  protected def nativeLTOInput: T[Option[LTO]] = Task.Input {
     readEnvVariable[LTO](T.env, "SCALANATIVE_LTO", LTO.values, _.value)
   }
 
   def nativeLTO: T[LTO] = Task { nativeLTOInput().getOrElse(LTO.None) }
 
   // Shall we optimize the resulting NIR code?
-  protected def nativeOptimizeInput: T[Option[Boolean]] = T.input {
+  protected def nativeOptimizeInput: T[Option[Boolean]] = Task.Input {
     readEnvVariable[Boolean](T.env, "SCALANATIVE_OPTIMIZE", Seq(true, false), _.toString)
   }
 
@@ -220,7 +220,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   /** Build target for current compilation */
   def nativeBuildTarget: T[BuildTarget] = Task { BuildTarget.Application }
 
-  private def nativeConfig: Task[NativeConfig] = T.task {
+  private def nativeConfig: Task[NativeConfig] = Task.Anon {
     val classpath = runClasspath().map(_.path).filter(_.toIO.exists).toList
 
     scalaNativeBridge().config(
@@ -273,7 +273,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   }
 
   // Runs the native binary
-  override def run(args: Task[Args] = T.task(Args())) = T.command {
+  override def run(args: Task[Args] = Task.Anon(Args())) = Task.Command {
     Jvm.runSubprocess(
       commandArgs = Vector(nativeLink().toString) ++ args().value,
       envArgs = forkEnv(),
@@ -282,7 +282,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   }
 
   @internal
-  override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = T.task {
+  override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = Task.Anon {
     Some((
       ScalaBuildTarget.dataKind,
       ScalaBuildTarget(
@@ -331,7 +331,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
         bridgeFullClassPath
       )
       else Seq()
-    T.command {
+    Task.Command {
       super.prepareOffline(all)()
       T.sequence(tasks)()
       ()
@@ -345,11 +345,12 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
 trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
   override def resources: T[Seq[PathRef]] = super[ScalaNativeModule].resources
-  override def testLocal(args: String*) = T.command { test(args: _*)() }
+  override def testLocal(args: String*): Command[(String, Seq[TestResult])] =
+    Task.Command { test(args: _*)() }
   override protected def testTask(
       args: Task[Seq[String]],
       globSeletors: Task[Seq[String]]
-  ): Task[(String, Seq[TestResult])] = T.task {
+  ): Task[(String, Seq[TestResult])] = Task.Anon {
 
     val (close, framework) = scalaNativeBridge().getFramework(
       nativeLink().toIO,

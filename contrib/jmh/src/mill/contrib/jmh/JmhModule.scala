@@ -36,7 +36,7 @@ trait JmhModule extends JavaModule {
   def ivyDeps = super.ivyDeps() ++ Agg(ivy"org.openjdk.jmh:jmh-core:${jmhCoreVersion()}")
 
   def runJmh(args: String*) =
-    T.command {
+    Task.Command {
       val (_, resources) = generateBenchmarkSources()
       Jvm.runSubprocess(
         "org.openjdk.jmh.Main",

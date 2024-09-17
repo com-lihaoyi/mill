@@ -680,7 +680,7 @@ __New features__
 __Fixes and Improvements__
 
 * Better detect Windows Subsystem for Linux environments {link-pr}/2901[#2901]
-* Avoid evaluating `T.input`s twice {link-pr}/2952[#2952]
+* Avoid evaluating `Task.Input`s twice {link-pr}/2952[#2952]
 * Deduplicate (anonymous) tasks in results {link-pr}/2959[#2959]
 * Synchronize `evaluateGroupCached` to avoid concurrent access to cache  {link-pr}/2980[#2980]
 * Properly sanitize Windows reserved names and symbols in evaluator paths {link-pr}/2964[#2964], {link-pr}/2965[#2965]
@@ -979,7 +979,7 @@ It is now significantly lazier, resulting in less of the module tree being un-ne
 `run` to be easily used in the implementation of other tasks
 {link-pr}/2452[#2452]
 
-* ``T.input``s are now watched properly with `--watch`, and trigger re-evaluations when the watched value changes {link-pr}/2489[#2489]
+* ``Task.Input``s are now watched properly with `--watch`, and trigger re-evaluations when the watched value changes {link-pr}/2489[#2489]
 
 * Support for Java 20 {link-pr}/2501[#2501]
 
@@ -994,7 +994,7 @@ It is now significantly lazier, resulting in less of the module tree being un-ne
 * Enabled compilation warnings in `build.sc`
 {link-pr}/2519[#2519]
 
-* Print out the CLI flags when inspecting ``T.command``s
+* Print out the CLI flags when inspecting ``Task.Command``s
 {link-pr}/2522[#2522]
 
 _For details refer to
@@ -1020,7 +1020,7 @@ folder in the Mill repo, containing common build setups demonstrating Mill featu
 
 * Add some helpers to simplify cross-version/cross-platform modules {#2406}[{link-pr}/2406]
 
-* You can now override `T{...}` ``Target``s with `T.source` or `T.sources`, and vice versa {link-pr}/2402[#2402]
+* You can now override `T{...}` ``Target``s with `Task.Source` or `Task.Sources`, and vice versa {link-pr}/2402[#2402]
 
 * Removed the Ammonite script runner dependency used to evaluate `build.sc`
 files and instead compile them using Mill {link-pr}/2377[#2377]
@@ -1916,7 +1916,7 @@ and the {link-compare}/0.7.0\...0.7.1[list of commits]._
 * `build.sc` files now uses Scala 2.13.2
 * Avoid duplicate target resolution with `mill resolve __`
 * Add ability to pass GPG arguments to publish via `--gpgArgs`
-* `-w`/`--watch` now works for `T.source` targets
+* `-w`/`--watch` now works for `Task.Source` targets
 
 _For details refer to {link-milestone}/37?closed=1[milestone 0.7.0]
 and the {link-compare}/0.6.3\...0.7.0[list of commits]._

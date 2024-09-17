@@ -1,18 +1,18 @@
-// Persistent targets defined using `Task.persistent` are similar to normal
+// Persistent targets defined using `Task.Persistent` are similar to normal
 // ``Target``s, except their `Task.dest` folder is not cleared before every
 // evaluation. This makes them useful for caching things on disk in a more
 // fine-grained manner than Mill's own Target-level caching.
 //
-// Below is a semi-realistic example of using a `Task.persistent` target:
+// Below is a semi-realistic example of using a `Task.Persistent` target:
 package build
 import mill._, scalalib._
 import java.util.Arrays
 import java.io.ByteArrayOutputStream
 import java.util.zip.GZIPOutputStream
 
-def data = Task.source(millSourcePath / "data")
+def data = Task.Source(millSourcePath / "data")
 
-def compressedData = Task.persistent{
+def compressedData = Task.Persistent{
   println("Evaluating compressedData")
   os.makeDir.all(Task.dest / "cache")
   os.remove.all(Task.dest / "compressed")
@@ -51,7 +51,7 @@ def compressBytes(input: Array[Byte]) = {
 // Since persistent targets have long-lived state on disk that lives beyond a
 // single evaluation, this raises the possibility of the disk contents getting
 // into a bad state and causing all future evaluations to fail. It is left up
-// to the person implementing the `Task.persistent` to ensure their implementation
+// to the person implementing the `Task.Persistent` to ensure their implementation
 // is eventually consistent. You can also use `mill clean` to manually purge
 // the disk contents to start fresh.
 

@@ -63,7 +63,7 @@ import $ivy.`net.mlbox::mill-antlr:0.1.0`
 import net.mlbox.millantlr.AntlrModule
 
 object foo extends ScalaModule with AntlrModule {
-  override def antlrGrammarSources = T.sources {
+  override def antlrGrammarSources = Task.Sources {
     Seq(os.pwd/"someGrammar.g4").map(PathRef(_))
   }
 }

@@ -108,7 +108,7 @@ object VersionFileModuleTests extends TestSuite {
 
       test("setVersion") - workspaceTest(versions: _*) { eval =>
         val expected = Version.Release(1, 2, 4)
-        eval(TestModule.versionFile.setVersion(T.task(expected)))
+        eval(TestModule.versionFile.setVersion(Task.Anon(expected)))
         val Right(actual) = eval(TestModule.versionFile.currentVersion)
         assert(actual.value == expected)
       }

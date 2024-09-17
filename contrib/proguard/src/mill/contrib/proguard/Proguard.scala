@@ -53,7 +53,7 @@ trait Proguard extends ScalaModule {
    * Defaults to the `java.home` system property.
    * Keep in sync with [[java9RtJar]]-
    */
-  def javaHome: T[PathRef] = T.input {
+  def javaHome: T[PathRef] = Task.Input {
     PathRef(Path(sys.props("java.home")))
   }
 

@@ -20,12 +20,12 @@ object MacroErrorTests extends TestSuite {
       test("command") {
         val e = compileError("""
           object foo extends TestBaseModule{
-            def w = T.command{1}
+            def w = Task.Command{1}
           }
           mill.define.Discover[foo.type]
         """)
         assert(
-          e.msg.contains("`T.command` definitions must have 1 parameter list"),
+          e.msg.contains("`Task.Command` definitions must have 1 parameter list"),
           e.pos.contains("def w = ")
         )
       }
@@ -45,7 +45,7 @@ object MacroErrorTests extends TestSuite {
       test("input") {
         val e = compileError("""
           object foo extends TestBaseModule{
-            def y() = T.input{1}
+            def y() = Task.Input{1}
           }
           mill.define.Discover[foo.type]
         """)
@@ -57,7 +57,7 @@ object MacroErrorTests extends TestSuite {
       test("sources") {
         val e = compileError("""
           object foo extends TestBaseModule{
-            def z() = T.sources{os.pwd}
+            def z() = Task.Sources{os.pwd}
           }
           mill.define.Discover[foo.type]
         """)
@@ -69,7 +69,7 @@ object MacroErrorTests extends TestSuite {
       test("persistent") {
         val e = compileError("""
           object foo extends TestBaseModule{
-            def a() = T.persistent{1}
+            def a() = Task.Persistent{1}
           }
           mill.define.Discover[foo.type]
         """)

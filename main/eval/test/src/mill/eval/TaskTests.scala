@@ -13,12 +13,12 @@ trait TaskTests extends TestSuite {
 
     var superBuildInputCount = 0
 
-    def superBuildInputOverrideWithConstant = T.input {
+    def superBuildInputOverrideWithConstant = Task.Input {
       superBuildInputCount += 1
       superBuildInputCount
     }
 
-    def superBuildInputOverrideUsingSuper = T.input {
+    def superBuildInputOverrideUsingSuper = Task.Input {
       superBuildInputCount += 1
       superBuildInputCount
     }
@@ -33,44 +33,44 @@ trait TaskTests extends TestSuite {
     var workerCloseCount = 0
     // Explicitly instantiate `Function1` objects to make sure we get
     // different instances each time
-    def staticWorker: Worker[Int => Int] = T.worker {
+    def staticWorker: Worker[Int => Int] = Task.worker {
       new Function1[Int, Int] {
         def apply(v1: Int) = v1 + 1
       }
     }
-    def changeOnceWorker: Worker[Int => Int] = T.worker {
+    def changeOnceWorker: Worker[Int => Int] = Task.worker {
       new Function1[Int, Int] {
         def apply(v1: Int): Int = changeOnceInput() + v1
       }
     }
-    def noisyWorker: Worker[Int => Int] = T.worker {
+    def noisyWorker: Worker[Int => Int] = Task.worker {
       new Function1[Int, Int] {
         def apply(v1: Int) = input() + v1
       }
     }
-    def noisyClosableWorker: Worker[(Int => Int) with AutoCloseable] = T.worker {
+    def noisyClosableWorker: Worker[(Int => Int) with AutoCloseable] = Task.worker {
       new Function1[Int, Int] with AutoCloseable {
         override def apply(v1: Int) = input() + v1
         override def close(): Unit = workerCloseCount += 1
       }
     }
-    def changeOnceInput = T.input {
+    def changeOnceInput = Task.Input {
       val ret = changeOnceCount
       if (changeOnceCount != 1) changeOnceCount = 1
       ret
     }
-    def input = T.input {
+    def input = Task.Input {
       count += 1
       count
     }
-    def task = T.task {
+    def task = Task.Anon {
       count += 1
       count
     }
     def taskInput = Task { input() }
     def taskNoInput = Task { task() }
 
-    def persistent = T.persistent {
+    def persistent = Task.Persistent {
       input() // force re-computation
       os.makeDir.all(T.dest)
       os.write.append(T.dest / "count", "hello\n")
@@ -88,7 +88,7 @@ trait TaskTests extends TestSuite {
       w.apply(1)
     }
 
-    def reevalTrigger = T.input {
+    def reevalTrigger = Task.Input {
       new Object().hashCode()
     }
     def staticWorkerDownstreamReeval = Task {
@@ -116,17 +116,17 @@ trait TaskTests extends TestSuite {
     }
 
     var superBuildTargetOverrideWithInputCount = 0
-    override def superBuildTargetOverrideWithInput = T.input {
+    override def superBuildTargetOverrideWithInput = Task.Input {
       superBuildTargetOverrideWithInputCount += 1
       superBuildTargetOverrideWithInputCount
     }
 
     // Reproduction of issue https://github.com/com-lihaoyi/mill/issues/2958
     object repro2958 extends Module {
-      val task1 = T.task { "task1" }
+      val task1 = Task.Anon { "task1" }
       def task2 = Task { task1() }
       def task3 = Task { task1() }
-      def command() = T.command {
+      def command() = Task.Command {
         val t2 = task2()
         val t3 = task3()
         s"${t2},${t3}"

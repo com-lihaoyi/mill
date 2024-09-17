@@ -35,7 +35,7 @@ object foo extends ScalaModule {
 // You can re-define targets and commands to override them, and use `super` if you
 // want to refer to the originally defined task. The above example shows how to
 // override `compile` and `run` to add additional logging messages, and we
-// override `sources` which was `Task.sources` for the `src/` folder with a plain
+// override `sources` which was `Task.Sources` for the `src/` folder with a plain
 // `T{...}` target that generates the  necessary source files on-the-fly.
 //
 // Note that this example *replaces* your `src/` folder with the generated

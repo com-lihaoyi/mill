@@ -86,7 +86,7 @@ trait NettyModule extends NettyBaseModule{
 
 trait NettyJniModule extends NettyModule {
   def jniLibraryName: T[String]
-  def cSources = Task.source(millSourcePath / "src/main/c")
+  def cSources = Task.Source(millSourcePath / "src/main/c")
   def resources = T{
     os.copy(clang().path, Task.dest / "META-INF/native" / jniLibraryName(), createFolders = true)
     Seq(PathRef(Task.dest))
@@ -248,7 +248,7 @@ object common extends NettyModule{
     ivy"org.jctools:jctools-core:4.0.5",
   )
 
-  def script = Task.source(millSourcePath / "src/main/script")
+  def script = Task.Source(millSourcePath / "src/main/script")
   def generatedSources0 = T{
     val shell = new groovy.lang.GroovyShell()
 
@@ -445,7 +445,7 @@ object `testsuite-http2` extends NettyTestSuiteModule{
 object `testsuite-native` extends NettyTestSuiteModule{
   def moduleDeps = Seq(`transport-native-kqueue`, `resolver-dns-native-macos`, `resolver-dns-classes-macos`, `transport-native-epoll`)
   def testModuleDeps = Seq(`resolver-dns-classes-macos`)
-  override def sources = Task.sources( millSourcePath / "src/test/java" )
+  override def sources = Task.Sources( millSourcePath / "src/test/java" )
 }
 
 object `testsuite-native-image` extends NettyTestSuiteModule{
@@ -471,7 +471,7 @@ object `testsuite-osgi` extends NettyTestSuiteModule{
     transport, `transport-sctp`, `transport-udt`
   )
 
-  override def sources = Task.sources( millSourcePath / "src/test/java" )
+  override def sources = Task.Sources( millSourcePath / "src/test/java" )
 
   def ivyDeps = super.ivyDeps() ++ Agg(
     ivy"org.apache.felix:org.apache.felix.configadmin:1.9.14",
@@ -484,7 +484,7 @@ object `testsuite-osgi` extends NettyTestSuiteModule{
 
 object `testsuite-shading` extends NettyTestSuiteModule{
   def moduleDeps = Seq(common)
-  override def sources = Task.sources( millSourcePath / "src/test/java" )
+  override def sources = Task.Sources( millSourcePath / "src/test/java" )
 }
 
 object transport extends NettyModule{
@@ -532,8 +532,8 @@ object `transport-native-unix-common` extends NettyModule{
   def moduleDeps = Seq(common, buffer, transport)
   def ivyDeps = Agg(ivy"org.junit.jupiter:junit-jupiter-api:5.9.0")
 
-  def makefile = Task.source(millSourcePath / "Makefile")
-  def cSources = Task.source(millSourcePath / "src/main/c")
+  def makefile = Task.Source(millSourcePath / "Makefile")
+  def cSources = Task.Source(millSourcePath / "src/main/c")
   def cHeaders = T{
     for(p <- os.walk(cSources().path) if p.ext == "h"){
       os.copy(p, Task.dest / p.relativeTo(cSources().path), createFolders = true)

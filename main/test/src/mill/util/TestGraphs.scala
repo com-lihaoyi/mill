@@ -123,10 +123,10 @@ class TestGraphs() {
   //               _/
   // change - task2
   object separateGroups extends TestBaseModule {
-    val task1 = T.task { 1 }
+    val task1 = Task.Anon { 1 }
     def left = Task { task1() }
     val change = test()
-    val task2 = T.task { change() }
+    val task2 = Task.Anon { change() }
     def right = Task { task1() + task2() + left() + 1 }
 
   }
@@ -134,24 +134,24 @@ class TestGraphs() {
   object moduleInitError extends TestBaseModule {
     def rootTarget = Task { println("Running rootTarget"); "rootTarget Result" }
     def rootCommand(@arg(positional = true) s: String) =
-      T.command { println(s"Running rootCommand $s") }
+      Task.Command { println(s"Running rootCommand $s") }
 
     object foo extends Module {
       def fooTarget = Task { println(s"Running fooTarget"); 123 }
       def fooCommand(@arg(positional = true) s: String) =
-        T.command { println(s"Running fooCommand $s") }
+        Task.Command { println(s"Running fooCommand $s") }
       throw new Exception("Foo Boom")
     }
 
     object bar extends Module {
       def barTarget = Task { println(s"Running barTarget"); "barTarget Result" }
       def barCommand(@arg(positional = true) s: String) =
-        T.command { println(s"Running barCommand $s") }
+        Task.Command { println(s"Running barCommand $s") }
 
       object qux extends Module {
         def quxTarget = Task { println(s"Running quxTarget"); "quxTarget Result" }
         def quxCommand(@arg(positional = true) s: String) =
-          T.command { println(s"Running quxCommand $s") }
+          Task.Command { println(s"Running quxCommand $s") }
         throw new Exception("Qux Boom")
       }
     }
@@ -164,7 +164,7 @@ class TestGraphs() {
     object foo extends Module {
       def fooTarget = Task { println(s"Running fooTarget"); 123 }
       def fooCommand(@arg(positional = true) s: String) =
-        T.command { println(s"Running fooCommand $s") }
+        Task.Command { println(s"Running fooCommand $s") }
       throw new Exception("Foo Boom")
     }
 
@@ -173,7 +173,7 @@ class TestGraphs() {
         println(s"Running barTarget")
         s"${foo.fooTarget()} barTarget Result"
       }
-      def barCommand(@arg(positional = true) s: String) = T.command {
+      def barCommand(@arg(positional = true) s: String) = Task.Command {
         foo.fooCommand(s)()
         println(s"Running barCommand $s")
       }
@@ -263,7 +263,7 @@ object TestGraphs {
   //     /        \
   // task -------- right
   object triangleTask extends TestBaseModule {
-    val task = T.task { 1 }
+    val task = Task.Anon { 1 }
     def left = Task { task() }
     def right = Task { task() + left() + 1 }
   }
@@ -272,7 +272,7 @@ object TestGraphs {
   //     /
   // task -------- right
   object multiTerminalGroup extends TestBaseModule {
-    val task = T.task { 1 }
+    val task = Task.Anon { 1 }
     def left = Task { task() }
     def right = Task { task() }
   }
@@ -281,10 +281,10 @@ object TestGraphs {
   //      /        \           \
   // task1 -------- right ----- task2
   object multiTerminalBoundary extends TestBaseModule {
-    val task1 = T.task { 1 }
+    val task1 = Task.Anon { 1 }
     def left = Task { task1() }
     def right = Task { task1() + left() + 1 }
-    val task2 = T.task { left() + right() }
+    val task2 = Task.Anon { left() + right() }
   }
 
   trait CanNest extends Module {
@@ -317,19 +317,19 @@ object TestGraphs {
 
   trait BaseModule extends Module {
     def foo = Task { Seq("base") }
-    def cmd(i: Int) = T.command { Seq("base" + i) }
+    def cmd(i: Int) = Task.Command { Seq("base" + i) }
   }
 
   object canOverrideSuper extends TestBaseModule with BaseModule {
     override def foo = Task { super.foo() ++ Seq("object") }
-    override def cmd(i: Int) = T.command { super.cmd(i)() ++ Seq("object" + i) }
+    override def cmd(i: Int) = Task.Command { super.cmd(i)() ++ Seq("object" + i) }
     override lazy val millDiscover: Discover = Discover[this.type]
   }
 
   trait TraitWithModule extends Module { outer =>
     object TraitModule extends Module {
       def testFrameworks = Task { Seq("mill.UTestFramework") }
-      def test() = T.command { () /*donothing*/ }
+      def test() = Task.Command { () /*donothing*/ }
     }
   }
 
@@ -340,18 +340,18 @@ object TestGraphs {
 
   object nullTasks extends TestBaseModule {
     val nullString: String = null
-    def nullTask1 = T.task { nullString }
-    def nullTask2 = T.task { nullTask1() }
+    def nullTask1 = Task.Anon { nullString }
+    def nullTask2 = Task.Anon { nullTask1() }
 
     def nullTarget1 = Task { nullString }
     def nullTarget2 = Task { nullTarget1() }
     def nullTarget3 = Task { nullTask1() }
     def nullTarget4 = Task { nullTask2() }
 
-    def nullCommand1() = T.command { nullString }
-    def nullCommand2() = T.command { nullTarget1() }
-    def nullCommand3() = T.command { nullTask1() }
-    def nullCommand4() = T.command { nullTask2() }
+    def nullCommand1() = Task.Command { nullString }
+    def nullCommand2() = Task.Command { nullTarget1() }
+    def nullCommand3() = Task.Command { nullTask1() }
+    def nullCommand4() = Task.Command { nullTask2() }
 
     override lazy val millDiscover: Discover = Discover[this.type]
   }
@@ -364,7 +364,7 @@ object TestGraphs {
 
       object test2 extends TaskModule {
         override def defaultCommandName() = "test2"
-        def test2() = T.command {}
+        def test2() = Task.Command {}
       }
     }
 
@@ -375,7 +375,7 @@ object TestGraphs {
     object test4 extends TaskModule {
       override def defaultCommandName() = "test4"
 
-      def test4() = T.command {}
+      def test4() = Task.Command {}
     }
     override lazy val millDiscover: Discover = Discover[this.type]
   }
@@ -521,7 +521,7 @@ object TestGraphs {
         def platform = crossValue
         override def defaultCommandName(): String = "suffixCmd"
         def suffixCmd(@arg(positional = true) suffix: String = "default"): Command[String] =
-          T.command {
+          Task.Command {
             scalaVersion + "_" + platform + "_" + suffix
           }
       }

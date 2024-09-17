@@ -9,7 +9,7 @@ import mill.{Agg, T, Task}
 
 trait RouterModule extends ScalaModule with Version {
 
-  def routes: T[Seq[PathRef]] = T.sources { millSourcePath / "routes" }
+  def routes: T[Seq[PathRef]] = Task.Sources { millSourcePath / "routes" }
 
   def routeFiles = Task {
     val paths = routes().flatMap(file => os.walk(file.path))
@@ -60,7 +60,7 @@ trait RouterModule extends ScalaModule with Version {
 
   protected val routeCompilerWorker: RouteCompilerWorkerModule = RouteCompilerWorkerModule
 
-  def compileRouter: T[CompilationResult] = T.persistent {
+  def compileRouter: T[CompilationResult] = Task.Persistent {
     T.log.debug(s"compiling play routes with ${playVersion()} worker")
     routeCompilerWorker.routeCompilerWorker().compile(
       routerClasspath = playRouterToolsClasspath(),

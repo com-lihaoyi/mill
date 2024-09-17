@@ -106,11 +106,11 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def scalaJSToolsClasspath = Task { scalaJSWorkerClasspath() ++ scalaJSLinkerClasspath() }
 
-  def fastLinkJS: T[Report] = T.persistent {
+  def fastLinkJS: T[Report] = Task.Persistent {
     linkTask(isFullLinkJS = false, forceOutJs = false)()
   }
 
-  def fullLinkJS: T[Report] = T.persistent {
+  def fullLinkJS: T[Report] = Task.Persistent {
     linkTask(isFullLinkJS = true, forceOutJs = false)()
   }
 
@@ -124,7 +124,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     getReportMainFilePathRef(linkTask(isFullLinkJS = true, forceOutJs = true)())
   }
 
-  private def linkTask(isFullLinkJS: Boolean, forceOutJs: Boolean): Task[Report] = T.task {
+  private def linkTask(isFullLinkJS: Boolean, forceOutJs: Boolean): Task[Report] = Task.Anon {
     linkJs(
       worker = ScalaJSWorkerExternalModule.scalaJSWorker(),
       toolsClasspath = scalaJSToolsClasspath(),
@@ -144,10 +144,10 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     )
   }
 
-  override def runLocal(args: Task[Args] = T.task(Args())): Command[Unit] =
-    T.command { run(args)() }
+  override def runLocal(args: Task[Args] = Task.Anon(Args())): Command[Unit] =
+    Task.Command { run(args)() }
 
-  override def run(args: Task[Args] = T.task(Args())): Command[Unit] = T.command {
+  override def run(args: Task[Args] = Task.Anon(Args())): Command[Unit] = Task.Command {
     if (args().value.nonEmpty) {
       T.log.error("Passing command line arguments to run is not supported by Scala.js.")
     }
@@ -167,12 +167,12 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   override def runMainLocal(
       @arg(positional = true) mainClass: String,
       args: String*
-  ): Command[Unit] = T.command[Unit] {
+  ): Command[Unit] = Task.Command[Unit] {
     mill.api.Result.Failure("runMain is not supported in Scala.js")
   }
 
   override def runMain(@arg(positional = true) mainClass: String, args: String*): Command[Unit] =
-    T.command[Unit] {
+    Task.Command[Unit] {
       mill.api.Result.Failure("runMain is not supported in Scala.js")
     }
 
@@ -315,7 +315,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     val tasks =
       if (all.value) Seq(scalaJSToolsClasspath)
       else Seq()
-    T.command {
+    Task.Command {
       super.prepareOffline(all)()
       T.sequence(tasks)()
       ()
@@ -323,7 +323,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   }
 
   @internal
-  override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = T.task {
+  override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = Task.Anon {
     Some((
       ScalaBuildTarget.dataKind,
       ScalaBuildTarget(
@@ -354,7 +354,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
     )
   }
 
-  def fastLinkJSTest: T[Report] = T.persistent {
+  def fastLinkJSTest: T[Report] = Task.Persistent {
     linkJs(
       worker = ScalaJSWorkerExternalModule.scalaJSWorker(),
       toolsClasspath = scalaJSToolsClasspath(),
@@ -375,12 +375,12 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
   }
 
   override def testLocal(args: String*): Command[(String, Seq[TestResult])] =
-    T.command { test(args: _*)() }
+    Task.Command { test(args: _*)() }
 
   override protected def testTask(
       args: Task[Seq[String]],
       globSelectors: Task[Seq[String]]
-  ): Task[(String, Seq[TestResult])] = T.task {
+  ): Task[(String, Seq[TestResult])] = Task.Anon {
 
     val (close, framework) = ScalaJSWorkerExternalModule.scalaJSWorker().getFramework(
       scalaJSToolsClasspath(),

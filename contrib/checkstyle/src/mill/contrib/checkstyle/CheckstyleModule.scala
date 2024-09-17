@@ -17,13 +17,13 @@ trait CheckstyleModule extends JavaModule {
    *
    * @note [[sources]] are processed when no [[CheckstyleArgs.sources]] are specified.
    */
-  def checkstyle(@mainargs.arg checkstyleArgs: CheckstyleArgs): Command[Int] = T.command {
+  def checkstyle(@mainargs.arg checkstyleArgs: CheckstyleArgs): Command[Int] = Task.Command {
     val (output, exitCode) = checkstyle0(checkstyleArgs.stdout, checkstyleArgs.sources)()
 
     checkstyleHandleErrors(checkstyleArgs.stdout, checkstyleArgs.check, exitCode, output)
   }
 
-  protected def checkstyle0(stdout: Boolean, leftover: mainargs.Leftover[String]) = T.task {
+  protected def checkstyle0(stdout: Boolean, leftover: mainargs.Leftover[String]) = Task.Anon {
 
     val output = checkstyleOutput().path
     val args = checkstyleOptions() ++

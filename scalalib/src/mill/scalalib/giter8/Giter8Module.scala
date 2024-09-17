@@ -1,6 +1,6 @@
 package mill.scalalib.giter8
 
-import mill.T
+import mill.{T, Task}
 import mill.define.{Command, Discover, ExternalModule}
 import mill.util.Jvm
 import mill.scalalib.api.ZincWorkerUtil
@@ -14,7 +14,7 @@ object Giter8Module extends ExternalModule with Giter8Module {
 
 trait Giter8Module extends CoursierModule {
 
-  def init(args: String*): Command[Unit] = T.command {
+  def init(args: String*): Command[Unit] = Task.Command {
     T.log.info("Creating a new project...")
     val giter8Dependencies = defaultResolver().resolveDeps {
       val scalaBinVersion = ZincWorkerUtil.scalaBinaryVersion(BuildInfo.scalaVersion)

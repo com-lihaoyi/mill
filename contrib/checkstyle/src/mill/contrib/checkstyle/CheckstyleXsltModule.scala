@@ -12,35 +12,38 @@ trait CheckstyleXsltModule extends CheckstyleModule {
   /**
    * Runs [[CheckstyleModule.checkstyle]] and uses [[CheckstyleModule.checkstyleOutput]] to generate [[checkstyleXsltReports]].
    */
-  override def checkstyle(@mainargs.arg checkstyleArgs: CheckstyleArgs): Command[Int] = T.command {
-    val (output, exitCode) = checkstyle0(false, checkstyleArgs.sources)()
+  override def checkstyle(@mainargs.arg checkstyleArgs: CheckstyleArgs): Command[Int] =
+    Task.Command {
+      val (output, exitCode) = checkstyle0(false, checkstyleArgs.sources)()
 
-    val checkOutput = checkstyleOutput().path
+      val checkOutput = checkstyleOutput().path
 
-    if (os.exists(checkOutput)) {
-      checkstyleXsltReports().foreach {
-        case CheckstyleXsltReport(xslt, output) =>
-          val xsltSource = new StreamSource(xslt.path.getInputStream)
-          xsltSource.setSystemId(xslt.path.toIO) // so that relative URI references can be resolved
+      if (os.exists(checkOutput)) {
+        checkstyleXsltReports().foreach {
+          case CheckstyleXsltReport(xslt, output) =>
+            val xsltSource = new StreamSource(xslt.path.getInputStream)
+            xsltSource.setSystemId(
+              xslt.path.toIO
+            ) // so that relative URI references can be resolved
 
-          val checkSource =
-            new StreamSource(checkOutput.getInputStream)
+            val checkSource =
+              new StreamSource(checkOutput.getInputStream)
 
-          val outputResult =
-            new StreamResult(os.write.outputStream(output.path, createFolders = true))
+            val outputResult =
+              new StreamResult(os.write.outputStream(output.path, createFolders = true))
 
-          T.log.info(s"transforming checkstyle output report with $xslt")
+            T.log.info(s"transforming checkstyle output report with $xslt")
 
-          TransformerFactory.newInstance()
-            .newTransformer(xsltSource)
-            .transform(checkSource, outputResult)
+            TransformerFactory.newInstance()
+              .newTransformer(xsltSource)
+              .transform(checkSource, outputResult)
 
-          T.log.info(s"transformed output report at $output")
+            T.log.info(s"transformed output report at $output")
+        }
       }
-    }
 
-    checkstyleHandleErrors(checkstyleArgs.stdout, checkstyleArgs.check, exitCode, output)
-  }
+      checkstyleHandleErrors(checkstyleArgs.stdout, checkstyleArgs.check, exitCode, output)
+    }
 
   /**
    * Necessary in order to allow XSLT transformations on the results
@@ -51,7 +54,7 @@ trait CheckstyleXsltModule extends CheckstyleModule {
    * Folder containing the XSLT transformations. Defaults to `checkstyle-xslt`
    * in  the workspace root, but can be overriden on a per-module basis
    */
-  def checkstyleXsltfFolder = T.source(T.workspace / "checkstyle-xslt")
+  def checkstyleXsltfFolder = Task.Source(T.workspace / "checkstyle-xslt")
 
   /**
    * Set of [[CheckstyleXsltReport]]s.

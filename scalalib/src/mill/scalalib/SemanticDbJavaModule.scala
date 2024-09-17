@@ -23,7 +23,7 @@ trait SemanticDbJavaModule extends CoursierModule {
   def mandatoryJavacOptions: T[Seq[String]]
   def compileClasspath: T[Agg[PathRef]]
 
-  def semanticDbVersion: T[String] = T.input {
+  def semanticDbVersion: T[String] = Task.Input {
     val builtin = SemanticDbJavaModule.buildTimeSemanticDbVersion
     val requested = T.env.getOrElse[String](
       "SEMANTICDB_VERSION",
@@ -32,7 +32,7 @@ trait SemanticDbJavaModule extends CoursierModule {
     Version.chooseNewest(requested, builtin)(Version.IgnoreQualifierOrdering)
   }
 
-  def semanticDbJavaVersion: T[String] = T.input {
+  def semanticDbJavaVersion: T[String] = Task.Input {
     val builtin = SemanticDbJavaModule.buildTimeJavaSemanticDbVersion
     val requested = T.env.getOrElse[String](
       "JAVASEMANTICDB_VERSION",
@@ -98,7 +98,7 @@ trait SemanticDbJavaModule extends CoursierModule {
     defaultResolver().resolveDeps(semanticDbJavaPluginIvyDeps())
   }
 
-  def semanticDbData: T[PathRef] = T.persistent {
+  def semanticDbData: T[PathRef] = Task.Persistent {
     val javacOpts = SemanticDbJavaModule.javacOptionsTask(
       javacOptions() ++ mandatoryJavacOptions(),
       semanticDbJavaVersion()

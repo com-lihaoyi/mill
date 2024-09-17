@@ -62,7 +62,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    */
   def scalaVersion: T[String]
 
-  override def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = T.task {
+  override def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = Task.Anon {
     super.mapDependencies().andThen { d: coursier.Dependency =>
       val artifacts =
         if (ZincWorkerUtil.isDotty(scalaVersion()))
@@ -83,12 +83,12 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   }
 
   override def resolveCoursierDependency: Task[Dep => coursier.Dependency] =
-    T.task {
+    Task.Anon {
       Lib.depToDependency(_: Dep, scalaVersion(), platformSuffix())
     }
 
   override def resolvePublishDependency: Task[Dep => publish.Dependency] =
-    T.task {
+    Task.Anon {
       publish.Artifact.fromDep(
         _: Dep,
         scalaVersion(),
@@ -108,7 +108,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         """The option to pass to the scala compiler, e.g. "-Xlint:help". Default: "-help""""
       )
       args: String*
-  ): Command[Unit] = T.command {
+  ): Command[Unit] = Task.Command {
     val sv = scalaVersion()
 
     // TODO: do we need to handle compiler plugins?
@@ -267,7 +267,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   }
 
   // Keep in sync with [[bspCompileClassesPath]]
-  override def compile: T[CompilationResult] = T.persistent {
+  override def compile: T[CompilationResult] = Task.Persistent {
     val sv = scalaVersion()
     if (sv == "2.12.4") T.log.error(
       """Attention: Zinc is known to not work properly for Scala version 2.12.4.
@@ -312,7 +312,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
       }
     }
 
-  override def docSources: T[Seq[PathRef]] = T.sources {
+  override def docSources: T[Seq[PathRef]] = Task.Sources {
     if (
       ZincWorkerUtil.isScala3(scalaVersion()) && !ZincWorkerUtil.isScala3Milestone(scalaVersion())
     ) Seq(compile().classes)
@@ -432,7 +432,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    * Opens up a Scala console with your module and all dependencies present,
    * for you to test and operate your code interactively.
    */
-  def console(): Command[Unit] = T.command {
+  def console(): Command[Unit] = Task.Command {
     if (!Util.isInteractive()) {
       Result.Failure("console needs to be run with the -i/--interactive flag")
     } else {
@@ -492,7 +492,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   }
 
   @internal
-  private[scalalib] def ammoniteMainClass: Task[String] = T.task {
+  private[scalalib] def ammoniteMainClass: Task[String] = Task.Anon {
     Version(ammoniteVersion()) match {
       case v: ValidVersion if Version.versionOrdering.compare(v, Version("2.4.1")) <= 0 =>
         "ammonite.Main"
@@ -505,7 +505,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    * for you to test and operate your code interactively.
    * Use [[ammoniteVersion]] to customize the Ammonite version to use.
    */
-  def repl(replOptions: String*): Command[Unit] = T.command {
+  def repl(replOptions: String*): Command[Unit] = Task.Command {
     if (T.log.inStream == DummyInputStream) {
       Result.Failure("repl needs to be run with the -i/--interactive flag")
     } else {
@@ -559,7 +559,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
       if (all.value) Seq(ammonite)
       else Seq()
 
-    T.command {
+    Task.Command {
       super.prepareOffline(all)()
       // resolve the compile bridge jar
       defaultResolver().resolveDeps(
@@ -590,7 +590,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   )
 
   @internal
-  override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = T.task {
+  override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = Task.Anon {
     Some((
       "scala",
       ScalaBuildTarget(
@@ -622,7 +622,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     )
   }
 
-  override def semanticDbData: T[PathRef] = T.persistent {
+  override def semanticDbData: T[PathRef] = Task.Persistent {
     val sv = scalaVersion()
 
     val scalacOptions = (

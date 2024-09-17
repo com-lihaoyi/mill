@@ -25,7 +25,7 @@ trait TwirlModule extends mill.Module { twirlModule =>
     }
   }
 
-  def twirlSources: T[Seq[PathRef]] = T.sources {
+  def twirlSources: T[Seq[PathRef]] = Task.Sources {
     millSourcePath / "views"
   }
 
@@ -57,7 +57,7 @@ trait TwirlModule extends mill.Module { twirlModule =>
    * @since Mill after 0.10.5
    */
   trait TwirlResolver extends CoursierModule {
-    override def resolveCoursierDependency: Task[Dep => Dependency] = T.task { d: Dep =>
+    override def resolveCoursierDependency: Task[Dep => Dependency] = Task.Anon { d: Dep =>
       Lib.depToDependency(d, twirlScalaVersion())
     }
 
@@ -88,7 +88,7 @@ trait TwirlModule extends mill.Module { twirlModule =>
 
   def twirlInclusiveDot: Boolean = false
 
-  def compileTwirl: T[mill.scalalib.api.CompilationResult] = T.persistent {
+  def compileTwirl: T[mill.scalalib.api.CompilationResult] = Task.Persistent {
     TwirlWorkerApi.twirlWorker
       .compile(
         twirlClasspath(),

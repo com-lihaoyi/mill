@@ -5,7 +5,7 @@ import mill._
 trait VersionFileModule extends Module {
 
   /** The file containing the current version. */
-  def versionFile: T[PathRef] = T.source(millSourcePath / "version")
+  def versionFile: T[PathRef] = Task.Source(millSourcePath / "version")
 
   /** The current version. */
   def currentVersion: T[Version] = Task { Version.of(os.read(versionFile().path).trim) }
@@ -14,24 +14,25 @@ trait VersionFileModule extends Module {
   def releaseVersion: T[Version] = Task { currentVersion().asRelease }
 
   /** The next snapshot version. */
-  def nextVersion(bump: String): Task[Version] = T.task { currentVersion().asSnapshot.bump(bump) }
+  def nextVersion(bump: String): Task[Version] =
+    Task.Anon { currentVersion().asSnapshot.bump(bump) }
 
   /** Writes the release version to file. */
-  def setReleaseVersion(): Command[Unit] = T.command {
+  def setReleaseVersion(): Command[Unit] = Task.Command {
     setVersionTask(releaseVersion)()
   }
 
   /** Writes the next snapshot version to file. */
-  def setNextVersion(bump: String): Command[Unit] = T.command {
+  def setNextVersion(bump: String): Command[Unit] = Task.Command {
     setVersionTask(nextVersion(bump))()
   }
 
   /** Writes the given version to file. */
-  def setVersion(version: Task[Version]): Command[Unit] = T.command {
+  def setVersion(version: Task[Version]): Command[Unit] = Task.Command {
     setVersionTask(version)()
   }
 
-  protected def setVersionTask(version: Task[Version]) = T.task {
+  protected def setVersionTask(version: Task[Version]) = Task.Anon {
     T.log.info(generateCommitMessage(version()))
     writeVersionToFile(versionFile(), version())
   }
@@ -82,7 +83,7 @@ trait VersionFileModule extends Module {
 object VersionFileModule extends define.ExternalModule {
 
   /** Executes the given processes. */
-  def exec(procs: mill.main.Tasks[Seq[os.proc]]) = T.command {
+  def exec(procs: mill.main.Tasks[Seq[os.proc]]) = Task.Command {
     for {
       procs <- T.sequence(procs.value)()
       proc <- procs

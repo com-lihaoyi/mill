@@ -26,7 +26,7 @@ val posts = interp.watchValue {
 
 object post extends Cross[PostModule](posts)
 trait PostModule extends Cross.Module[String]{
-  def source = Task.source(millSourcePath / crossValue)
+  def source = Task.Source(millSourcePath / crossValue)
   def render = T{
     val doc = Parser.builder().build().parse(os.read(source().path))
     val title = mdNameToTitle(crossValue)
@@ -46,11 +46,11 @@ trait PostModule extends Cross.Module[String]{
 
 // The last page we need to generate is the index page, listing out the various
 // blog posts and providing links so we can navigate into them. To do this, we
-// need to wrap the `posts` value in a `Task.input`, as it can change depending on
+// need to wrap the `posts` value in a `Task.Input`, as it can change depending on
 // what `os.list` finds on disk. After that, it's straightforward to render the
 // `index.html` file we want:
 
-def postsInput = Task.input{ posts }
+def postsInput = Task.Input{ posts }
 
 def renderIndexEntry(mdName: String) = {
   h2(a(mdNameToTitle(mdName), href := ("post/" + mdNameToHtml(mdName))))

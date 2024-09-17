@@ -30,7 +30,7 @@ object BSP extends ExternalModule with CoursierModule {
    * reason, the message and stacktrace of the exception will be
    * printed to stdout.
    */
-  def install(jobs: Int = 1): Command[(PathRef, ujson.Value)] = T.command {
+  def install(jobs: Int = 1): Command[(PathRef, ujson.Value)] = Task.Command {
     // we create a file containing the additional jars to load
     val libUrls = bspWorkerLibs().map(_.path.toNIO.toUri.toURL).iterator.toSeq
     val cpFile =
@@ -50,7 +50,7 @@ object BSP extends ExternalModule with CoursierModule {
    * @return The server result, indicating if mill should re-run this command or just exit.
    */
   def startSession(allBootstrapEvaluators: Evaluator.AllBootstrapEvaluators)
-      : Command[BspServerResult] = T.command {
+      : Command[BspServerResult] = Task.Command {
     T.log.errorStream.println("BSP/startSession: Starting BSP session")
     val res = BspContext.bspServerHandle.runSession(allBootstrapEvaluators.value)
     T.log.errorStream.println(s"BSP/startSession: Finished BSP session, result: ${res}")

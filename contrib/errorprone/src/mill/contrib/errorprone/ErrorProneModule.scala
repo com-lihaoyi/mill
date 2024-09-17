@@ -14,7 +14,7 @@ import java.io.File
 trait ErrorProneModule extends JavaModule {
 
   /** The `error-prone` version to use. Defaults to [[BuildInfo.errorProneVersion]]. */
-  def errorProneVersion: T[String] = T.input {
+  def errorProneVersion: T[String] = Task.Input {
     BuildInfo.errorProneVersion
   }
 

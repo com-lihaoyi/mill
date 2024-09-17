@@ -186,7 +186,7 @@ object FailureTests extends TestSuite {
         def left = Task { +T.dest.toString.length + T.dest.toString.length }
 
         // Using `T.ctx(  ).dest` once in two different tasks is ok
-        val task = T.task { T.dest.toString.length }
+        val task = Task.Anon { T.dest.toString.length }
         def right = Task { task() + left() + T.dest.toString().length }
       }
 

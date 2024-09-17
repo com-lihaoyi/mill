@@ -11,7 +11,7 @@ trait UnidocModule extends ScalaModule {
 
   def unidocVersion: T[Option[String]] = None
 
-  def unidocCommon(local: Boolean) = T.task {
+  def unidocCommon(local: Boolean) = Task.Anon {
     def unidocCompileClasspath =
       Seq(compile().classes) ++ T.traverse(moduleDeps)(_.compileClasspath)().flatten
 

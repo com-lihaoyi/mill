@@ -35,9 +35,9 @@ object JavaCompileJarTests extends TestSuite {
         //           resourceRoot ---->  jar
         //                                ^
         //           readmePath---------- |
-        def readme = T.source { readmePath }
-        def sourceRoot = T.sources { sourceRootPath }
-        def resourceRoot = T.sources { resourceRootPath }
+        def readme = Task.Source { readmePath }
+        def sourceRoot = Task.Sources { sourceRootPath }
+        def resourceRoot = Task.Sources { resourceRootPath }
         def allSources =
           Task { sourceRoot().flatMap(p => os.walk(p.path)).map(mill.api.PathRef(_)) }
         def classFiles = Task { compileAll(allSources()) }
@@ -53,7 +53,7 @@ object JavaCompileJarTests extends TestSuite {
           )
         }
 
-        def run(mainClsName: String) = T.command {
+        def run(mainClsName: String) = Task.Command {
           os.proc("java", "-Duser.language=en", "-cp", classFiles().path, mainClsName)
             .call(stderr = os.Pipe)
         }
@@ -98,7 +98,7 @@ object JavaCompileJarTests extends TestSuite {
       append(resourceRootPath / "hello.txt", " ")
       check(targets = Agg(jar), expected = Agg(jar))
 
-      // Touching the readme.md, defined as `T.source`, forces a jar rebuid
+      // Touching the readme.md, defined as `Task.Source`, forces a jar rebuid
       append(readmePath, " ")
       check(targets = Agg(jar), expected = Agg(jar))
 

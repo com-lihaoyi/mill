@@ -43,9 +43,9 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
     )
   }
 
-  def zincLogDebug: T[Boolean] = T.input(T.ctx().log.debugEnabled)
+  def zincLogDebug: T[Boolean] = Task.Input(T.ctx().log.debugEnabled)
 
-  def worker: Worker[ZincWorkerApi] = T.worker {
+  def worker: Worker[ZincWorkerApi] = Task.worker {
     val jobs = T.ctx() match {
       case j: Ctx.Jobs => j.jobs
       case _ => 1
@@ -167,14 +167,14 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
     } else dep
   }
 
-  override def prepareOffline(all: Flag): Command[Unit] = T.command {
+  override def prepareOffline(all: Flag): Command[Unit] = Task.Command {
     super.prepareOffline(all)()
     classpath()
     ()
   }
 
   def prepareOfflineCompiler(scalaVersion: String, scalaOrganization: String): Command[Unit] =
-    T.command {
+    Task.Command {
       classpath()
       scalaCompilerBridgeJar(scalaVersion, scalaOrganization, repositoriesTask())
       ()

@@ -51,7 +51,7 @@ trait JavaModule
     override def zincWorker: ModuleRef[ZincWorkerModule] = outer.zincWorker
     override def skipIdea: Boolean = outer.skipIdea
     override def runUseArgsFile: T[Boolean] = Task { outer.runUseArgsFile() }
-    override def sources = T.sources {
+    override def sources = Task.Sources {
       for (src <- outer.sources()) yield {
         PathRef(this.millSourcePath / src.path.relativeTo(outer.millSourcePath))
       }
@@ -87,7 +87,7 @@ trait JavaModule
   }
 
   def defaultCommandName(): String = "run"
-  def resolvePublishDependency: Task[Dep => publish.Dependency] = T.task {
+  def resolvePublishDependency: Task[Dep => publish.Dependency] = Task.Anon {
     Artifact.fromDepJava(_: Dep)
   }
 
@@ -245,7 +245,7 @@ trait JavaModule
    * Show the module dependencies.
    * @param recursive If `true` include all recursive module dependencies, else only show direct dependencies.
    */
-  def showModuleDeps(recursive: Boolean = false): Command[Unit] = T.command {
+  def showModuleDeps(recursive: Boolean = false): Command[Unit] = Task.Command {
     val normalDeps = if (recursive) recursiveModuleDeps else moduleDepsChecked
     val compileDeps =
       if (recursive) compileModuleDepsChecked.flatMap(_.transitiveModuleDeps).distinct
@@ -309,7 +309,7 @@ trait JavaModule
    */
   def transitiveCompileClasspath: T[Agg[PathRef]] = Task {
     T.traverse(transitiveModuleCompileModuleDeps)(m =>
-      T.task { m.localCompileClasspath() ++ Agg(m.compile().classes) }
+      Task.Anon { m.localCompileClasspath() ++ Agg(m.compile().classes) }
     )().flatten
   }
 
@@ -322,7 +322,7 @@ trait JavaModule
   @internal
   def bspTransitiveCompileClasspath: T[Agg[UnresolvedPath]] = Task {
     T.traverse(transitiveModuleCompileModuleDeps)(m =>
-      T.task {
+      Task.Anon {
         m.localCompileClasspath().map(p => UnresolvedPath.ResolvedPath(p.path)) ++
           Agg(m.bspCompileClassesPath())
       }
@@ -363,20 +363,20 @@ trait JavaModule
   /**
    * The folders where the source files for this module live
    */
-  def sources: T[Seq[PathRef]] = T.sources { millSourcePath / "src" }
+  def sources: T[Seq[PathRef]] = Task.Sources { millSourcePath / "src" }
 
   /**
    * The folders where the resource files for this module live.
    * If you need resources to be seen by the compiler, use [[compileResources]].
    */
-  def resources: T[Seq[PathRef]] = T.sources { millSourcePath / "resources" }
+  def resources: T[Seq[PathRef]] = Task.Sources { millSourcePath / "resources" }
 
   /**
    * The folders where the compile time resource files for this module live.
    * If your resources files do not necessarily need to be seen by the compiler,
    * you should use [[resources]] instead.
    */
-  def compileResources: T[Seq[PathRef]] = T.sources { millSourcePath / "compile-resources" }
+  def compileResources: T[Seq[PathRef]] = Task.Sources { millSourcePath / "compile-resources" }
 
   /**
    * Folders containing source files that are generated rather than
@@ -401,7 +401,7 @@ trait JavaModule
    * If `true`, we always show problems (errors, warnings, infos) found in all source files, even when they have not changed since the previous incremental compilation.
    * When `false`, we report only problems for files which we re-compiled.
    */
-  def zincReportCachedProblems: T[Boolean] = T.input {
+  def zincReportCachedProblems: T[Boolean] = Task.Input {
     sys.props.getOrElse(
       "mill.scalalib.JavaModule.zincReportCachedProblems",
       "false"
@@ -420,7 +420,7 @@ trait JavaModule
    *
    * Keep in sync with [[bspCompileClassesPath]]
    */
-  def compile: T[mill.scalalib.api.CompilationResult] = T.persistent {
+  def compile: T[mill.scalalib.api.CompilationResult] = Task.Persistent {
     zincWorker()
       .worker()
       .compileJava(
@@ -675,7 +675,7 @@ trait JavaModule
    * Typically includes the source files to generate documentation from.
    * @see [[docResources]]
    */
-  def docSources: T[Seq[PathRef]] = T.sources(allSources())
+  def docSources: T[Seq[PathRef]] = Task.Sources(allSources())
 
   /**
    * Extra directories to be copied into the documentation.
@@ -684,7 +684,7 @@ trait JavaModule
    * on the doc tool that is actually used.
    * @see [[docSources]]
    */
-  def docResources: T[Seq[PathRef]] = T.sources(millSourcePath / "docs")
+  def docResources: T[Seq[PathRef]] = Task.Sources(millSourcePath / "docs")
 
   /**
    * Control whether `docJar`-target should use a file to pass command line arguments to the javadoc tool.
@@ -809,7 +809,7 @@ trait JavaModule
       additionalDeps: Task[Agg[BoundDep]],
       whatDependsOn: List[JavaOrScalaModule]
   ): Task[Unit] =
-    T.task {
+    Task.Anon {
       val dependencies = (additionalDeps() ++ transitiveIvyDeps()).iterator.to(Seq)
       val resolution: Resolution = Lib.resolveDependenciesMetadataSafe(
         repositoriesTask(),
@@ -859,34 +859,34 @@ trait JavaModule
     if (invalidModules.isEmpty) {
       (args.withCompile, args.withRuntime) match {
         case (Flag(true), Flag(true)) =>
-          T.command {
+          Task.Command {
             printDepsTree(
               args.inverse.value,
-              T.task {
+              Task.Anon {
                 transitiveCompileIvyDeps() ++ runIvyDeps().map(bindDependency())
               },
               validModules
             )()
           }
         case (Flag(true), Flag(false)) =>
-          T.command {
+          Task.Command {
             printDepsTree(args.inverse.value, transitiveCompileIvyDeps, validModules)()
           }
         case (Flag(false), Flag(true)) =>
-          T.command {
+          Task.Command {
             printDepsTree(
               args.inverse.value,
-              T.task { runIvyDeps().map(bindDependency()) },
+              Task.Anon { runIvyDeps().map(bindDependency()) },
               validModules
             )()
           }
         case _ =>
-          T.command {
-            printDepsTree(args.inverse.value, T.task { Agg.empty[BoundDep] }, validModules)()
+          Task.Command {
+            printDepsTree(args.inverse.value, Task.Anon { Agg.empty[BoundDep] }, validModules)()
           }
       }
     } else {
-      T.command {
+      Task.Command {
         val msg = invalidModules.mkString("\n")
         Result.Failure[Unit](msg)
       }
@@ -898,12 +898,12 @@ trait JavaModule
     super.runUseArgsFile()
   }
 
-  override def runLocal(args: Task[Args] = T.task(Args())): Command[Unit] = {
+  override def runLocal(args: Task[Args] = Task.Anon(Args())): Command[Unit] = {
     // overridden here for binary compatibility (0.11.x)
     super.runLocal(args)
   }
 
-  override def run(args: Task[Args] = T.task(Args())): Command[Unit] = {
+  override def run(args: Task[Args] = Task.Anon(Args())): Command[Unit] = {
     // overridden here for binary compatibility (0.11.x)
     super.run(args)
   }
@@ -951,8 +951,8 @@ trait JavaModule
    * that would otherwise run forever
    */
   def runBackground(args: String*): Command[Unit] = {
-    val task = runBackgroundTask(finalMainClass, T.task { Args(args) })
-    T.command { task() }
+    val task = runBackgroundTask(finalMainClass, Task.Anon { Args(args) })
+    Task.Command { task() }
   }
 
   /**
@@ -1024,13 +1024,13 @@ trait JavaModule
   override def prepareOffline(all: Flag): Command[Unit] = {
     val tasks =
       if (all.value) Seq(
-        T.task {
+        Task.Anon {
           defaultResolver().resolveDeps(
             transitiveCompileIvyDeps() ++ transitiveIvyDeps(),
             sources = true
           )
         },
-        T.task {
+        Task.Anon {
           defaultResolver().resolveDeps(
             runIvyDeps().map(bindDependency()) ++ transitiveIvyDeps(),
             sources = true
@@ -1039,7 +1039,7 @@ trait JavaModule
       )
       else Seq()
 
-    T.command {
+    Task.Command {
       super.prepareOffline(all)()
       resolvedIvyDeps()
       zincWorker().prepareOffline(all)()
@@ -1057,7 +1057,7 @@ trait JavaModule
   )
 
   @internal
-  override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = T.task {
+  override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = Task.Anon {
     Some((
       JvmBuildTarget.dataKind,
       JvmBuildTarget(

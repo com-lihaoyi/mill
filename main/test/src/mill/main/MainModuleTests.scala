@@ -26,7 +26,7 @@ object MainModuleTests extends TestSuite {
       Console.err.println("Hello2 Console Stderr")
       Map("1" -> "hello", "2" -> "world")
     }
-    def helloCommand(x: Int, y: Task[String]) = T.command { (x, y(), hello()) }
+    def helloCommand(x: Int, y: Task[String]) = Task.Command { (x, y(), hello()) }
     override lazy val millDiscover: Discover = Discover[this.type]
   }
 

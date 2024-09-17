@@ -1,6 +1,6 @@
 // There are three primary kinds of _Tasks_ that you should care about:
 //
-// * <<_sources>>, defined using `Task.sources {...}`
+// * <<_sources>>, defined using `Task.Sources {...}`
 // * <<_targets>>, defined using `Task {...}`
 // * <<_commands>>, defined using `Task.command {...}`
 
@@ -9,17 +9,17 @@ package build
 
 import mill.{Module, T, _}
 
-def sources = Task.source { millSourcePath / "src" }
-def resources = Task.source { millSourcePath / "resources" }
+def sources = Task.Source { millSourcePath / "src" }
+def resources = Task.Source { millSourcePath / "resources" }
 
 
-// ``Source``s are defined using `Task.source{...}` taking one `os.Path`, or `Task.sources{...}`,
+// ``Source``s are defined using `Task.Source{...}` taking one `os.Path`, or `Task.Sources{...}`,
 // taking multiple ``os.Path``s as arguments. A ``Source``'s':
 // its build signature/`hashCode` depends not just on the path
 // it refers to (e.g. `foo/bar/baz`) but also the MD5 hash of the filesystem
 // tree under that path.
 //
-// `Task.source` and `Task.sources` are most common inputs in any Mill build:
+// `Task.Source` and `Task.Sources` are most common inputs in any Mill build:
 // they watch source files and folders and cause downstream targets to
 // re-compute if a change is detected.
 
@@ -352,11 +352,11 @@ foo.txt resource: My Example Text
 
 // Tasks can be overriden, with the overriden task callable via `super`.
 // You can also override a task with a different type of task, e.g. below
-// we override `sourceRoots` which is a `Task.sources` with a `T{}` target:
+// we override `sourceRoots` which is a `Task.Sources` with a `T{}` target:
 //
 
 trait Foo extends Module {
-  def sourceRoots = Task.sources(millSourcePath / "src")
+  def sourceRoots = Task.Sources(millSourcePath / "src")
   def sourceContents = T{
     sourceRoots()
       .flatMap(pref => os.walk(pref.path))
@@ -367,7 +367,7 @@ trait Foo extends Module {
 }
 
 trait Bar extends Foo {
-  def additionalSources = Task.sources(millSourcePath / "src2")
+  def additionalSources = Task.Sources(millSourcePath / "src2")
   def sourceRoots = Task { super.sourceRoots() ++ additionalSources() }
 }
 

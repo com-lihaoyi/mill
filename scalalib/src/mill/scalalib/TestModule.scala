@@ -72,13 +72,13 @@ trait TestModule
    * @see [[testCached]]
    */
   def test(args: String*): Command[(String, Seq[TestResult])] =
-    T.command {
-      testTask(T.task { args }, T.task { Seq.empty[String] })()
+    Task.Command {
+      testTask(Task.Anon { args }, Task.Anon { Seq.empty[String] })()
     }
 
   def getTestEnvironmentVars(args: String*): Command[(String, String, String, Seq[String])] = {
-    T.command {
-      getTestEnvironmentVarsTask(T.task { args })()
+    Task.Command {
+      getTestEnvironmentVarsTask(Task.Anon { args })()
     }
   }
 
@@ -94,7 +94,7 @@ trait TestModule
    * @see [[test()]]
    */
   def testCached: T[(String, Seq[TestResult])] = Task {
-    testTask(testCachedArgs, T.task { Seq.empty[String] })()
+    testTask(testCachedArgs, Task.Anon { Seq.empty[String] })()
   }
 
   /**
@@ -113,8 +113,8 @@ trait TestModule
         val (s, t) = args.splitAt(pos)
         (s, t.tail)
     }
-    T.command {
-      testTask(T.task { testArgs }, T.task { selector })()
+    Task.Command {
+      testTask(Task.Anon { testArgs }, Task.Anon { selector })()
     }
   }
 
@@ -135,7 +135,7 @@ trait TestModule
    */
   private def getTestEnvironmentVarsTask(args: Task[Seq[String]])
       : Task[(String, String, String, Seq[String])] =
-    T.task {
+    Task.Anon {
       val mainClass = "mill.testrunner.entrypoint.TestRunnerMain"
       val outputPath = T.dest / "out.json"
       val selectors = Seq.empty
@@ -181,7 +181,7 @@ trait TestModule
       args: Task[Seq[String]],
       globSelectors: Task[Seq[String]]
   ): Task[(String, Seq[TestResult])] =
-    T.task {
+    Task.Anon {
       val outputPath = T.dest / "out.json"
       val useArgsFile = testUseArgsFile()
 
@@ -265,7 +265,7 @@ trait TestModule
    * Discovers and runs the module's tests in-process in an isolated classloader,
    * reporting the results to the console
    */
-  def testLocal(args: String*): Command[(String, Seq[TestResult])] = T.command {
+  def testLocal(args: String*): Command[(String, Seq[TestResult])] = Task.Command {
     val (doneMsg, results) = TestRunner.runTestFramework(
       Framework.framework(testFramework()),
       runClasspath().map(_.path),

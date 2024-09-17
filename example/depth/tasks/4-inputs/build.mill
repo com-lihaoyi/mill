@@ -1,14 +1,14 @@
 package build
 import mill._
 
-def myInput = Task.input {
+def myInput = Task.Input {
   os.proc("git", "rev-parse", "HEAD").call(cwd = Task.workspace)
     .out
     .text()
     .trim()
 }
 
-// A generalization of <<_sources>>, ``Task.input``s are tasks that re-evaluate
+// A generalization of <<_sources>>, ``Task.Input``s are tasks that re-evaluate
 // _every time_ (unlike <<_anonymous_tasks>>), containing an
 // arbitrary block of code.
 //
@@ -47,9 +47,9 @@ def gitStatusTarget = Task {
 // `gitStatusTarget` will continue to use any previously cached value, and
 // ``gitStatusTarget``'s output will  be out of date!
 
-// To fix this, you can wrap your `git log` in a `Task.input`:
+// To fix this, you can wrap your `git log` in a `Task.Input`:
 
-def gitStatusInput = Task.input {
+def gitStatusInput = Task.Input {
   os.proc("git", "log", "-1", "--pretty=format:%h-%B ")
     .call(cwd = Task.workspace)
     .out
@@ -75,7 +75,7 @@ def gitStatusTarget2 = Task { "v-" + gitStatusInput() }
 
 */
 
-// Note that because ``Task.input``s re-evaluate every time, you should ensure that the
-// code you put in `Task.input` runs quickly. Ideally it should just be a simple check
+// Note that because ``Task.Input``s re-evaluate every time, you should ensure that the
+// code you put in `Task.Input` runs quickly. Ideally it should just be a simple check
 // "did anything change?" and any heavy-lifting should be delegated to downstream
 // targets where it can be cached if possible.

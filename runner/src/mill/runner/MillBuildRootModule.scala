@@ -14,6 +14,7 @@ import mill.main.{BuildInfo, RootModule}
 
 import scala.collection.immutable.SortedMap
 import scala.util.Try
+import mill.define.Target
 
 /**
  * Mill module for pre-processing a Mill `build.mill` and related files and then
@@ -43,7 +44,7 @@ abstract class MillBuildRootModule()(implicit
    * All script files (that will get wrapped later)
    * @see [[generateScriptSources]]
    */
-  def scriptSources = T.sources {
+  def scriptSources: Target[Seq[PathRef]] = Task.Sources {
     MillBuildRootModule.parseBuildFiles(millBuildRootModuleInfo)
       .seenScripts
       .keys.map(PathRef(_))
@@ -56,7 +57,7 @@ abstract class MillBuildRootModule()(implicit
   }
 
   override def repositoriesTask: Task[Seq[Repository]] = {
-    val importedRepos = T.task {
+    val importedRepos = Task.Anon {
       val repos = parseBuildFiles().repos.map { case (repo, srcFile) =>
         val relFile = Try {
           srcFile.relativeTo(T.workspace)
@@ -74,12 +75,12 @@ abstract class MillBuildRootModule()(implicit
       }
     }
 
-    T.task {
+    Task.Anon {
       super.repositoriesTask() ++ importedRepos()
     }
   }
 
-  def cliImports: T[Seq[String]] = T.input {
+  def cliImports: T[Seq[String]] = Task.Input {
     val imports = CliImports.value
     if (imports.nonEmpty) {
       T.log.debug(s"Using cli-provided runtime imports: ${imports.mkString(", ")}")
@@ -126,7 +127,7 @@ abstract class MillBuildRootModule()(implicit
     }
   }
 
-  def methodCodeHashSignatures: T[Map[String, Int]] = T.persistent {
+  def methodCodeHashSignatures: T[Map[String, Int]] = Task.Persistent {
     os.remove.all(T.dest / "previous")
     if (os.exists(T.dest / "current")) os.move.over(T.dest / "current", T.dest / "previous")
     val debugEnabled = T.log.debugEnabled
@@ -209,7 +210,7 @@ abstract class MillBuildRootModule()(implicit
     candidates.filterNot(filesToExclude.contains).map(PathRef(_))
   }
 
-  def enclosingClasspath = T.sources {
+  def enclosingClasspath: Target[Seq[PathRef]] = Task.Sources {
     millBuildRootModuleInfo.enclosingClasspath.map(p => mill.api.PathRef(p, quick = true))
   }
 
@@ -224,7 +225,7 @@ abstract class MillBuildRootModule()(implicit
     )
   }
 
-  override def bindDependency: Task[Dep => BoundDep] = T.task { dep: Dep =>
+  override def bindDependency: Task[Dep => BoundDep] = Task.Anon { dep: Dep =>
     super.bindDependency().apply(dep).exclude(resolveDepsExclusions(): _*)
   }
 
@@ -256,7 +257,7 @@ abstract class MillBuildRootModule()(implicit
   }
 
   /** Used in BSP IntelliJ, which can only work with directories */
-  def dummySources: Sources = T.sources(T.dest)
+  def dummySources: Sources = Task.Sources(T.dest)
 }
 
 object MillBuildRootModule {
