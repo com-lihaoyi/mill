@@ -6,7 +6,7 @@ import utest._
 import java.time.Instant
 import scala.xml._
 
-object TestModuleTests extends TestSuite {
+object TestModuleUtilTests extends TestSuite {
 
   override def tests: Tests = Tests {
     val timestamp = "2024-05-23T12:20:04"
@@ -37,7 +37,7 @@ object TestModuleTests extends TestSuite {
         </testsuites>
       assertEquals(
         expectedReport,
-        TestModule.genTestXmlReport(Seq(succeededTestResult), instant, Map.empty)
+        TestModuleUtil.genTestXmlReport(Seq(succeededTestResult), instant, Map.empty)
       )
     }
     val failedTestResult: TestResult = TestResult(
@@ -79,7 +79,7 @@ object TestModuleTests extends TestSuite {
         </testsuites>
       assertEquals(
         expectedReport,
-        TestModule.genTestXmlReport(Seq(failedTestResult), instant, Map.empty)
+        TestModuleUtil.genTestXmlReport(Seq(failedTestResult), instant, Map.empty)
       )
     }
     test("fail - empty message") - {
@@ -106,7 +106,7 @@ object TestModuleTests extends TestSuite {
       )
       assertEquals(
         expectedReport,
-        TestModule.genTestXmlReport(Seq(testResult), instant, Map.empty)
+        TestModuleUtil.genTestXmlReport(Seq(testResult), instant, Map.empty)
       )
     }
     val errorTestResult: TestResult = TestResult(
@@ -148,7 +148,7 @@ object TestModuleTests extends TestSuite {
         </testsuites>
       assertEquals(
         expectedReport,
-        TestModule.genTestXmlReport(Seq(errorTestResult), instant, Map.empty)
+        TestModuleUtil.genTestXmlReport(Seq(errorTestResult), instant, Map.empty)
       )
     }
     test("error - empty message") - {
@@ -175,7 +175,7 @@ object TestModuleTests extends TestSuite {
       )
       assertEquals(
         expectedReport,
-        TestModule.genTestXmlReport(Seq(testResult), instant, Map.empty)
+        TestModuleUtil.genTestXmlReport(Seq(testResult), instant, Map.empty)
       )
     }
     test("skipped") - {
@@ -227,7 +227,7 @@ object TestModuleTests extends TestSuite {
 
       assertEquals(
         expectedReport,
-        TestModule.genTestXmlReport(
+        TestModuleUtil.genTestXmlReport(
           Seq(skippedTestResult, ignoredTestResult, pendingTestResult),
           instant,
           Map.empty
@@ -247,7 +247,7 @@ object TestModuleTests extends TestSuite {
         </testsuites>
       assertEquals(
         expectedReport,
-        TestModule.genTestXmlReport(Seq(succeededTestResult, failedTestResult), instant, Map.empty)
+        TestModuleUtil.genTestXmlReport(Seq(succeededTestResult, failedTestResult), instant, Map.empty)
       )
     }
     test("multi test suites") - {
@@ -281,7 +281,7 @@ object TestModuleTests extends TestSuite {
       )
       assertEquals(
         expectedReport,
-        TestModule.genTestXmlReport(
+        TestModuleUtil.genTestXmlReport(
           Seq(succeededTestResult, testSuite2TestResult, failedTestResult),
           instant,
           Map.empty
