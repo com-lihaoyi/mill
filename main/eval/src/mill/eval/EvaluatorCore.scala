@@ -90,9 +90,10 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     val (classToTransitiveClasses, allTransitiveClassMethods) =
       precomputeMethodNamesPerClass(sortedGroups)
 
-    def evaluateTerminals(terminals: Seq[Terminal], contextLoggerMsg: Int => String)(implicit
-        executionContext: BlockableExecutionContext
-    ) = {
+    def evaluateTerminals(terminals: Seq[Terminal],
+                          contextLoggerMsg: Int => String,
+                          forkExecutionContext: BlockableExecutionContext)
+                         (implicit taskExecutionContext: BlockableExecutionContext) = {
       // We walk the task graph in topological order and schedule the futures
       // to run asynchronously. During this walk, we store the scheduled futures
       // in a dictionary. When scheduling each future, we are guaranteed that the
@@ -127,7 +128,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
               logger = contextLogger,
               classToTransitiveClasses,
               allTransitiveClassMethods,
-              executionContext
+              forkExecutionContext
             )
 
             if (failFast && res.newResults.values.exists(_.result.asSuccess.isEmpty))
@@ -183,9 +184,11 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       // We want to skip the non-deterministic thread prefix in our test suite
       // since all it would do is clutter the testing logic trying to match on it
       if (sys.env.contains(EnvVars.MILL_TEST_SUITE)) _ => ""
-      else contextLoggerMsg0
+      else contextLoggerMsg0,
+      ec
     )(ec)
-    evaluateTerminals(leafCommands, _ => "")(ExecutionContexts.RunNow)
+
+    evaluateTerminals(leafCommands, _ => "", ec)(ExecutionContexts.RunNow)
 
     val finishedOptsMap = terminals0
       .map(t => (t, Await.result(futures(t), duration.Duration.Inf)))
