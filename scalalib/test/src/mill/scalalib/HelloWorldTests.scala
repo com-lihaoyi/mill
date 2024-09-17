@@ -206,7 +206,7 @@ object HelloWorldTests extends TestSuite {
 
   object HelloWorldScalaOverride extends TestBaseModule {
     object core extends HelloWorldModule {
-      override def scalaVersion: Target[String] = scala213Version
+      override def scalaVersion: T[String] = scala213Version
     }
   }
 
@@ -930,7 +930,7 @@ object HelloWorldTests extends TestSuite {
       }
 
       test("assemblyRules") {
-        def checkAppend[M <: mill.testkit.TestBaseModule](module: M, target: Target[PathRef]) =
+        def checkAppend[M <: mill.testkit.TestBaseModule](module: M, target: T[PathRef]) =
           UnitTester(module, resourcePath).scoped { eval =>
             val Right(result) = eval.apply(target)
 
@@ -959,7 +959,7 @@ object HelloWorldTests extends TestSuite {
 
         def checkAppendMulti[M <: mill.testkit.TestBaseModule](
             module: M,
-            target: Target[PathRef]
+            target: T[PathRef]
         ): Unit = UnitTester(
           module,
           sourceRoot = helloWorldMultiResourcePath
@@ -985,7 +985,7 @@ object HelloWorldTests extends TestSuite {
 
         def checkAppendWithSeparator[M <: mill.testkit.TestBaseModule](
             module: M,
-            target: Target[PathRef]
+            target: T[PathRef]
         ): Unit = UnitTester(
           module,
           sourceRoot = helloWorldMultiResourcePath
@@ -1024,7 +1024,7 @@ object HelloWorldTests extends TestSuite {
 
         def checkExclude[M <: mill.testkit.TestBaseModule](
             module: M,
-            target: Target[PathRef],
+            target: T[PathRef],
             resourcePath: os.Path = resourcePath
         ) = UnitTester(module, resourcePath).scoped { eval =>
           val Right(result) = eval.apply(target)
@@ -1055,7 +1055,7 @@ object HelloWorldTests extends TestSuite {
 
         def checkRelocate[M <: mill.testkit.TestBaseModule](
             module: M,
-            target: Target[PathRef],
+            target: T[PathRef],
             resourcePath: os.Path = resourcePath
         ) = UnitTester(module, resourcePath).scoped { eval =>
           val Right(result) = eval.apply(target)
@@ -1300,7 +1300,7 @@ object HelloWorldTests extends TestSuite {
 
     test("validated") {
       test("PathRef") {
-        def check(t: Target[PathRef], flip: Boolean) = UnitTester(ValidatedTarget, null).scoped {
+        def check(t: T[PathRef], flip: Boolean) = UnitTester(ValidatedTarget, null).scoped {
           eval =>
             // we reconstruct faulty behavior
             val Right(result) = eval.apply(t)
@@ -1320,7 +1320,7 @@ object HelloWorldTests extends TestSuite {
         test("checked") - check(ValidatedTarget.checkedPathRef, true)
       }
       test("SeqPathRef") {
-        def check(t: Target[Seq[PathRef]], flip: Boolean) =
+        def check(t: T[Seq[PathRef]], flip: Boolean) =
           UnitTester(ValidatedTarget, null).scoped { eval =>
             // we reconstruct faulty behavior
             val Right(result) = eval.apply(t)
@@ -1340,7 +1340,7 @@ object HelloWorldTests extends TestSuite {
         test("checked") - check(ValidatedTarget.checkedSeqPathRef, true)
       }
       test("AggPathRef") {
-        def check(t: Target[Agg[PathRef]], flip: Boolean) =
+        def check(t: T[Agg[PathRef]], flip: Boolean) =
           UnitTester(ValidatedTarget, null).scoped { eval =>
             // we reconstruct faulty behavior
             val Right(result) = eval.apply(t)
@@ -1360,7 +1360,7 @@ object HelloWorldTests extends TestSuite {
         test("checked") - check(ValidatedTarget.checkedAggPathRef, true)
       }
       test("other") {
-        def check(t: Target[Tuple1[PathRef]], flip: Boolean) =
+        def check(t: T[Tuple1[PathRef]], flip: Boolean) =
           UnitTester(ValidatedTarget, null).scoped { eval =>
             // we reconstruct faulty behavior
             val Right(result) = eval.apply(t)

@@ -1,7 +1,7 @@
 package mill
 package scalalib
 
-import mill.define.{Command, ExternalModule, Target, Task}
+import mill.define.{Command, ExternalModule, Task}
 import mill.api.{JarManifest, PathRef, Result}
 import mill.main.Tasks
 import mill.scalalib.PublishModule.checkSonatypeCreds
@@ -55,9 +55,9 @@ trait PublishModule extends JavaModule { outer =>
    *
    * @since Mill after 0.10.0-M5
    */
-  def versionScheme: Target[Option[VersionScheme]] = Task { None }
+  def versionScheme: T[Option[VersionScheme]] = Task { None }
 
-  def publishSelfDependency: Target[Artifact] = Task {
+  def publishSelfDependency: T[Artifact] = Task {
     Artifact(pomSettings().organization, artifactId(), publishVersion())
   }
 
@@ -81,7 +81,7 @@ trait PublishModule extends JavaModule { outer =>
       compileModulePomDeps.map(Dependency(_, Scope.Provided))
   }
 
-  def pom: Target[PathRef] = Task {
+  def pom: T[PathRef] = Task {
     val pom = Pom(
       artifactMetadata(),
       publishXmlDeps(),
@@ -95,28 +95,28 @@ trait PublishModule extends JavaModule { outer =>
     PathRef(pomPath)
   }
 
-  def ivy: Target[PathRef] = Task {
+  def ivy: T[PathRef] = Task {
     val ivy = Ivy(artifactMetadata(), publishXmlDeps(), extraPublish())
     val ivyPath = T.dest / "ivy.xml"
     os.write.over(ivyPath, ivy)
     PathRef(ivyPath)
   }
 
-  def artifactMetadata: Target[Artifact] = Task {
+  def artifactMetadata: T[Artifact] = Task {
     Artifact(pomSettings().organization, artifactId(), publishVersion())
   }
 
   /**
    * Extra artifacts to publish.
    */
-  def extraPublish: Target[Seq[PublishInfo]] = Task { Seq.empty[PublishInfo] }
+  def extraPublish: T[Seq[PublishInfo]] = Task { Seq.empty[PublishInfo] }
 
   /**
    * Properties to be published with the published pom/ivy XML.
    * Use `super.publishProperties() ++` when overriding to avoid losing default properties.
    * @since Mill after 0.10.0-M5
    */
-  def publishProperties: Target[Map[String, String]] = Task {
+  def publishProperties: T[Map[String, String]] = Task {
     versionScheme().map(_.toProperty).toMap
   }
 

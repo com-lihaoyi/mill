@@ -4,7 +4,7 @@ package scalanativelib
 import mainargs.Flag
 import mill.api.Loose.Agg
 import mill.api.{Result, internal}
-import mill.define.{Command, Target, Task}
+import mill.define.{Command, Task}
 import mill.util.Jvm
 import mill.util.Util.millProjectModule
 import mill.scalalib.api.ZincWorkerUtil
@@ -34,8 +34,8 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   type ScalaNativeModuleTests = ScalaNativeTests
   trait ScalaNativeTests extends ScalaTests with TestScalaNativeModule {
     override def scalaNativeVersion = outer.scalaNativeVersion()
-    override def releaseMode: Target[ReleaseMode] = Task { outer.releaseMode() }
-    override def logLevel: Target[NativeLogLevel] = outer.logLevel()
+    override def releaseMode: T[ReleaseMode] = Task { outer.releaseMode() }
+    override def logLevel: T[NativeLogLevel] = outer.logLevel()
   }
 
   def scalaNativeBinaryVersion =
@@ -85,7 +85,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     ) ++ scalaVersionSpecific
   }
 
-  override def scalaLibraryIvyDeps: Target[Agg[Dep]] = Task {
+  override def scalaLibraryIvyDeps: T[Agg[Dep]] = Task {
     super.scalaLibraryIvyDeps().map(dep =>
       dep.copy(cross = dep.cross match {
         case c: CrossVersion.Constant => c.copy(platformed = false)
@@ -118,7 +118,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     )
   }
 
-  def logLevel: Target[NativeLogLevel] = Task { NativeLogLevel.Info }
+  def logLevel: T[NativeLogLevel] = Task { NativeLogLevel.Info }
 
   private def readEnvVariable[T](
       env: Map[String, String],
@@ -139,11 +139,11 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     }
   }
 
-  protected def releaseModeInput: Target[Option[ReleaseMode]] = T.input {
+  protected def releaseModeInput: T[Option[ReleaseMode]] = T.input {
     readEnvVariable[ReleaseMode](T.env, "SCALANATIVE_MODE", ReleaseMode.values, _.value)
   }
 
-  def releaseMode: Target[ReleaseMode] = Task {
+  def releaseMode: T[ReleaseMode] = Task {
     releaseModeInput().getOrElse(ReleaseMode.Debug)
   }
 
@@ -164,7 +164,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   }
 
   // GC choice, either "none", "boehm", "immix" or "commix"
-  protected def nativeGCInput: Target[Option[String]] = T.input {
+  protected def nativeGCInput: T[Option[String]] = T.input {
     T.env.get("SCALANATIVE_GC")
   }
 
@@ -174,7 +174,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     )
   }
 
-  def nativeTarget: Target[Option[String]] = Task { None }
+  def nativeTarget: T[Option[String]] = Task { None }
 
   // Options that are passed to clang during compilation
   def nativeCompileOptions = Task {
@@ -187,7 +187,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   }
 
   // Whether to link `@stub` methods, or ignore them
-  def nativeLinkStubs: Target[Boolean] = Task { false }
+  def nativeLinkStubs: T[Boolean] = Task { false }
 
   /**
    * Shall the resource files be embedded in the resulting binary file? Allows
@@ -195,30 +195,30 @@ trait ScalaNativeModule extends ScalaModule { outer =>
    *  not embed files with certain extensions, including ".c", ".h", ".scala"
    *  and ".class".
    */
-  def nativeEmbedResources: Target[Boolean] = Task { false }
+  def nativeEmbedResources: T[Boolean] = Task { false }
 
   /** Shall we use the incremental compilation? */
-  def nativeIncrementalCompilation: Target[Boolean] = Task { false }
+  def nativeIncrementalCompilation: T[Boolean] = Task { false }
 
   /** Shall linker dump intermediate NIR after every phase? */
-  def nativeDump: Target[Boolean] = Task { false }
+  def nativeDump: T[Boolean] = Task { false }
 
   // The LTO mode to use used during a release build
-  protected def nativeLTOInput: Target[Option[LTO]] = T.input {
+  protected def nativeLTOInput: T[Option[LTO]] = T.input {
     readEnvVariable[LTO](T.env, "SCALANATIVE_LTO", LTO.values, _.value)
   }
 
-  def nativeLTO: Target[LTO] = Task { nativeLTOInput().getOrElse(LTO.None) }
+  def nativeLTO: T[LTO] = Task { nativeLTOInput().getOrElse(LTO.None) }
 
   // Shall we optimize the resulting NIR code?
-  protected def nativeOptimizeInput: Target[Option[Boolean]] = T.input {
+  protected def nativeOptimizeInput: T[Option[Boolean]] = T.input {
     readEnvVariable[Boolean](T.env, "SCALANATIVE_OPTIMIZE", Seq(true, false), _.toString)
   }
 
-  def nativeOptimize: Target[Boolean] = Task { nativeOptimizeInput().getOrElse(true) }
+  def nativeOptimize: T[Boolean] = Task { nativeOptimizeInput().getOrElse(true) }
 
   /** Build target for current compilation */
-  def nativeBuildTarget: Target[BuildTarget] = Task { BuildTarget.Application }
+  def nativeBuildTarget: T[BuildTarget] = Task { BuildTarget.Application }
 
   private def nativeConfig: Task[NativeConfig] = T.task {
     val classpath = runClasspath().map(_.path).filter(_.toIO.exists).toList

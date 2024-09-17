@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import mill.api.{PathRef, Result, experimental}
-import mill.define.{ModuleRef, Target}
+import mill.define.ModuleRef
 import mill.main.BuildInfo
 import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerUtil}
 import mill.scalalib.bsp.BspBuildTarget
@@ -125,7 +125,7 @@ trait SemanticDbJavaModule extends CoursierModule {
   }
 
   // keep in sync with bspCompiledClassesAndSemanticDbFiles
-  def compiledClassesAndSemanticDbFiles: Target[PathRef] = Task {
+  def compiledClassesAndSemanticDbFiles: T[PathRef] = Task {
     val dest = T.dest
     val classes = compile().classes.path
     val sems = semanticDbData().path
@@ -135,7 +135,7 @@ trait SemanticDbJavaModule extends CoursierModule {
   }
 
   // keep in sync with compiledClassesAndSemanticDbFiles
-  def bspCompiledClassesAndSemanticDbFiles: Target[UnresolvedPath] = {
+  def bspCompiledClassesAndSemanticDbFiles: T[UnresolvedPath] = {
     if (
       compiledClassesAndSemanticDbFiles.ctx.enclosing == s"${classOf[SemanticDbJavaModule].getName}#compiledClassesAndSemanticDbFiles"
     ) {

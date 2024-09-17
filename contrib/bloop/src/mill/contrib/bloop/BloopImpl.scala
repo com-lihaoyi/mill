@@ -96,7 +96,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
       }
 
       @deprecated("Use writeConfigFile instead.", "Mill after 0.10.9")
-      def writeConfig: Target[(String, PathRef)] = Task {
+      def writeConfig: T[(String, PathRef)] = Task {
         writeConfigFile()()
       }
     }

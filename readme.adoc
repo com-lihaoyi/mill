@@ -583,7 +583,7 @@ __New features__
 * Pass auxiliary class files to zinc, so they are deleted together  {link-pr}/3072[#3072]
 * BSP: Handle new `JvmCompileClasspath` request  {link-pr}/3086[#3086]
 * Add support for Cobertura XML report task to help integration  {link-pr}/3093[#3093]
-* Support Scala.js minify via `scalaJSMinify: Target[String]`  {link-pr}/3094[#3094]
+* Support Scala.js minify via `scalaJSMinify: T[String]`  {link-pr}/3094[#3094]
 * Restructure `TestModule`, add `RunModule`   {link-pr}/3064[#3064]
 * Move `run`-targets into `RunModule`  {link-pr}/3090[#3090]
 * `TestModule`: Support generation of JUnit-compatible xml report  {link-pr}/3099[#3099] {link-pr}/3172[#3172] {link-pr}/3135[#3135] {link-pr}/3184[#3184]

@@ -79,7 +79,7 @@ abstract class MillBuildRootModule()(implicit
     }
   }
 
-  def cliImports: Target[Seq[String]] = T.input {
+  def cliImports: T[Seq[String]] = T.input {
     val imports = CliImports.value
     if (imports.nonEmpty) {
       T.log.debug(s"Using cli-provided runtime imports: ${imports.mkString(", ")}")
