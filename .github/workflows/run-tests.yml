@@ -25,6 +25,18 @@ concurrency:
 jobs:
   # Jobs are listed in rough order of priority: if multiple jobs fail, the first job
   # in the list should be the one that's most worth looking into
+  autofix:
+    if: github.event_name == 'pull_request'
+    uses: ./.github/workflows/run-mill-action.yml
+    with:
+      java-version: '11'
+      buildcmd: |
+        set -eux;
+        git fetch --unshallow;
+        git commit --allow-empty -am 'Github Actions Autofix; please use "git push -f" next time you push to this PR';
+        git push "git@github.com:${{ github.event.pull_request.head.repo.full_name }}.git" HEAD:${{ github.head_ref }}
+      populate_cache: true
+
   build-linux:
     uses: ./.github/workflows/run-mill-action.yml
     with:
