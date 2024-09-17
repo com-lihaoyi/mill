@@ -395,7 +395,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       Agg(compile().classes.path),
       args(),
       T.testReporter,
-      TestRunnerUtils.globFilter(globSelectors())
+      cls => TestRunnerUtils.globFilter(globSelectors())(cls.getName)
     )
     val res = TestModule.handleResults(doneMsg, results, T.ctx(), testReportXml())
     // Hack to try and let the Node.js subprocess finish streaming it's stdout

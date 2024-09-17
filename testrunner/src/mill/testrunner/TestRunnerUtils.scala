@@ -186,7 +186,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
     (doneMessage, results.toSeq)
   }
 
-  def globFilter(selectors: Seq[String]): Class[_] => Boolean = {
+  def globFilter(selectors: Seq[String]): String => Boolean = {
     val filters = selectors.map { str =>
       if (str == "*") (_: String) => true
       else if (str.indexOf('*') == -1) (s: String) => s == str
@@ -202,11 +202,10 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
       }
     }
 
-    if (filters.isEmpty) (_: Class[_]) => true
-    else
-      (clz: Class[_]) => {
-        val name = clz.getName.stripSuffix("$")
-        filters.exists(f => f(name))
-      }
+    if (filters.isEmpty) _ => true
+    else { className =>
+      val name = className.stripSuffix("$")
+      filters.exists(f => f(name))
+    }
   }
 }

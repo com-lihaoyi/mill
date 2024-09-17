@@ -188,7 +188,8 @@ trait TestModule
    */
   protected def testTask(
       args: Task[Seq[String]],
-      globSelectors: Task[Seq[String]]): Task[(String, Seq[TestResult])] =
+      globSelectors: Task[Seq[String]]
+  ): Task[(String, Seq[TestResult])] =
     T.task {
 
       val useArgsFile = testUseArgsFile()
@@ -259,18 +260,24 @@ trait TestModule
       }
 
       val testClassLists = testForkGrouping()
+      val globFilter = TestRunnerUtils.globFilter(selectors)
+
       val subprocessResult: Either[String, (String, Seq[TestResult])] = testClassLists match{
-        case Seq(singleTestClassList) => runTestSubprocess(singleTestClassList, T.dest)
+        case Seq(singleTestClassList) => runTestSubprocess(singleTestClassList.filter(globFilter), T.dest)
         case multipleTestClassLists =>
           implicit val ec = T.ctx.executionContext
-          val futures =
-            for ((testClassList, i) <- multipleTestClassLists.zipWithIndex) yield Future {
-              val groupLabel = testClassList match{
-                case Seq(single) => single
-                case multiple => s"group-$i"
-              }
-              (groupLabel, runTestSubprocess(testClassList, T.dest / groupLabel))
+          val futures = multipleTestClassLists.zipWithIndex.flatMap{ case (testClassList, i) =>
+            val groupLabel = testClassList match{
+              case Seq(single) => single
+              case multiple => s"group-$i"
             }
+            pprint.log(testClassList)
+
+            val filteredClassList = testClassList.filter(globFilter)
+            Option.when(filteredClassList.nonEmpty) {
+              Future {(groupLabel, runTestSubprocess(filteredClassList, T.dest / groupLabel))}
+            }
+          }
 
           val outputs = T.ctx.executionContext.await(Future.sequence(futures))
 

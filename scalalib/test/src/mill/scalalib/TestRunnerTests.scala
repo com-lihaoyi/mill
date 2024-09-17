@@ -85,9 +85,7 @@ object TestRunnerTests extends TestSuite {
           def testOnly(eval: UnitTester, args: Seq[String], size: Int) = {
             val Right(result) = eval.apply(testrunner.utest.testOnly(args: _*))
             val testOnly = result.value.asInstanceOf[(String, Seq[mill.testrunner.TestResult])]
-            assert(
-              testOnly._2.size == size
-            )
+            assert(testOnly._2.size == size)
           }
 
           test("suffix") - UnitTester(testrunner, resourcePath).scoped { eval =>

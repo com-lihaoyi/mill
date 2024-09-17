@@ -368,7 +368,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
       Agg(compile().classes.path),
       args(),
       T.testReporter,
-      TestRunnerUtils.globFilter(globSeletors())
+      cls => TestRunnerUtils.globFilter(globSeletors())(cls.getName)
     )
     val res = TestModule.handleResults(doneMsg, results, T.ctx(), testReportXml())
     // Hack to try and let the Scala Native subprocess finish streaming it's stdout
