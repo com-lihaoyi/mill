@@ -23,6 +23,6 @@ class LoggingHeadersFilter implements Ordered {
 
     @Override
     public int getOrder() {
-        return ServerFilterPhase.FIRSTask.order();
+        return ServerFilterPhase.FIRST.order();
     }
 }
