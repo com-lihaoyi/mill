@@ -104,9 +104,9 @@ object BloopTests extends TestSuite {
 
         // Ensuring that bloop config generation didn't trigger compilation
         assert(os.exists(workspaceOut / "scalaModule"))
-        assert(!os.exists(workspaceOut / "scalaModule" / "compile"))
+        assert(!os.exists(workspaceOut / "scalaModule/compile"))
         assert(os.exists(workspaceOut / "scalaModule2"))
-        assert(!os.exists(workspaceOut / "scalaModule2" / "compile"))
+        assert(!os.exists(workspaceOut / "scalaModule2/compile"))
       }
 
       test("scalaModule") {
@@ -126,7 +126,7 @@ object BloopTests extends TestSuite {
 
         assert(name == "scalaModule")
         assert(workspaceDir == Some(workdir.wrapped))
-        assert(sources == List(workdir / "scalaModule" / "src"))
+        assert(sources == List(workdir / "scalaModule/src"))
         assert(options.contains("-language:higherKinds"))
         assert(version == "2.12.8")
         assert(
@@ -171,7 +171,7 @@ object BloopTests extends TestSuite {
         val mainModuleClasspath = scalaModuleConfig.project.classpath
         assert(name == "scalaModule.test")
         assert(workspaceDir == Some(workdir.wrapped))
-        assert(sources == List(workdir / "scalaModule" / "test" / "src"))
+        assert(sources == List(workdir / "scalaModule/test/src"))
         assert(framework == "utest.runner.Framework")
         assert(dep == "scalaModule")
         assert(
@@ -228,7 +228,7 @@ object BloopTests extends TestSuite {
 
         assert(name == "scalajsModule")
         assert(workspaceDir == Some(workdir.wrapped))
-        assert(sources == List(workdir / "scalajsModule" / "src"))
+        assert(sources == List(workdir / "scalajsModule/src"))
         assert(version == build.scalajsModule.sv)
         assert(platform.config.emitSourceMaps)
         assert(platform.config.kind == BloopConfig.ModuleKindJS.CommonJSModule)
@@ -237,7 +237,7 @@ object BloopTests extends TestSuite {
       test("scalanativeModule") {
         scalanativeModuleConfig match {
           case None =>
-            val exists = os.exists(workdir / ".bloop" / "scalanativeModule.json")
+            val exists = os.exists(workdir / ".bloop/scalanativeModule.json")
             assert(exists == false)
           case Some(scalanativeModuleConfig) =>
             val p = scalanativeModuleConfig.project
@@ -252,14 +252,14 @@ object BloopTests extends TestSuite {
 
             assert(name == "scalanativeModule")
             assert(workspaceDir == Some(workdir.wrapped))
-            assert(sources == List(workdir / "scalanativeModule" / "src"))
+            assert(sources == List(workdir / "scalanativeModule/src"))
             assert(version == build.scalanativeModule.sv)
             assert(platform.config.mode == BloopConfig.LinkerMode.Debug)
             assert(platform.config.clang == clang.value.toNIO)
         }
       }
       test("skipped") {
-        val exists = os.exists(workdir / ".bloop" / "skippedModule.json")
+        val exists = os.exists(workdir / ".bloop/skippedModule.json")
         assert(exists == false)
       }
     }

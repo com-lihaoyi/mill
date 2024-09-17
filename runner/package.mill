@@ -11,6 +11,7 @@ object `package` extends RootModule with build.MillPublishScalaModule {
 
   def moduleDeps = Seq(
     build.scalalib,
+    build.kotlinlib,
     build.scalajslib,
     build.scalanativelib,
     build.bsp,

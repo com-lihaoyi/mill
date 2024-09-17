@@ -73,7 +73,7 @@ trait JarOps {
     os.remove.all(jar)
 
     val seen = mutable.Set.empty[os.RelPath]
-    seen.add(os.sub / "META-INF" / "MANIFEST.MF")
+    seen.add(os.sub / "META-INF/MANIFEST.MF")
 
     val jarStream = new JarOutputStream(
       new BufferedOutputStream(new FileOutputStream(jar.toIO)),

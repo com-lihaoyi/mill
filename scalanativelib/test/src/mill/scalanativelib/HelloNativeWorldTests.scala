@@ -60,7 +60,7 @@ object HelloNativeWorldTests extends TestSuite {
       )
 
       object test extends ScalaNativeTests with TestModule.Utest {
-        override def sources = T.sources { millSourcePath / "src" / "utest" }
+        override def sources = T.sources { millSourcePath / "src/utest" }
         override def ivyDeps = super.ivyDeps() ++ Agg(
           ivy"com.lihaoyi::utest::$utestVersion"
         )
@@ -76,7 +76,7 @@ object HelloNativeWorldTests extends TestSuite {
       object test extends ScalaNativeTests with TestModule.Utest
     }
 
-    override lazy val millDiscover: Discover[HelloNativeWorld.this.type] = Discover[this.type]
+    override lazy val millDiscover: Discover = Discover[this.type]
   }
 
   val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-native-world"
@@ -177,7 +177,7 @@ object HelloNativeWorldTests extends TestSuite {
       val argParserTests = resultMap("hellotest.ArgsParserTests")
 
       assert(
-        mainTests.size == 2,
+        mainTests.size == 3,
         mainTests("hellotest.MainTests.vmName.containNative").status == "Success",
         mainTests("hellotest.MainTests.vmName.containScala").status == "Success",
         argParserTests.size == 2,

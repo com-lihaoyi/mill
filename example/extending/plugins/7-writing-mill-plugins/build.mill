@@ -21,7 +21,7 @@ object myplugin extends ScalaModule with PublishModule {
       def ivyDeps = Agg(ivy"com.lihaoyi:mill-dist:$millVersion")
       def mainClass = Some("mill.runner.client.MillClientMain")
       def resources = T{
-        val p = T.dest / "mill" / "local-test-overrides" / s"com.lihaoyi-${myplugin.artifactId()}"
+        val p = T.dest / "mill/local-test-overrides" / s"com.lihaoyi-${myplugin.artifactId()}"
         os.write(p, myplugin.localClasspath().map(_.path).mkString("\n"), createFolders = true)
         Seq(PathRef(T.dest))
       }
@@ -190,6 +190,6 @@ Publishing Artifact(com.lihaoyi,myplugin_2.13,0.0.2) to ivy repo...
 // Mill plugins are JVM libraries like any other library written in Java or Scala. Thus they
 // are published the same way: by extending `PublishModule` and defining the module's `publishVersion`
 // and `pomSettings`. Once done, you can publish the plugin locally via `publishLocal` below,
-// or to Maven Central via `mill.scalalib.public.PublishModule/publishAll`for other developers to
+// or to Maven Central via `mill.scalalib.public.PublishModule/`for other developers to
 // use.
 

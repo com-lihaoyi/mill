@@ -100,5 +100,5 @@ object BintrayPublishModule extends ExternalModule {
     }
   }
 
-  lazy val millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
+  lazy val millDiscover: mill.define.Discover = mill.define.Discover[this.type]
 }

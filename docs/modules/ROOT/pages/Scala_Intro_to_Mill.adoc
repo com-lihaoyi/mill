@@ -11,7 +11,7 @@
 // what Mill is, hopefully have downloaded an example to try out, and be
 // interested in learning more about the Mill build tool
 
-= Introduction to Mill for Scala
+= Building Scala Projects with Mill
 
 ++++
 <script>

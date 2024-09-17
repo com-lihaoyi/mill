@@ -11,8 +11,8 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
   def moduleDeps = Seq(eval, resolve, client)
   def ivyDeps = Agg(
     build.Deps.windowsAnsi,
-    build.Deps.mainargs,
     build.Deps.coursierInterface,
+    build.Deps.mainargs,
     build.Deps.requests,
     build.Deps.logback
   )
@@ -34,21 +34,25 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
       "millEmbeddedDeps",
       (
         T.traverse(
-            build.dist.recursiveModuleDeps.collect { case m: PublishModule => m }
-          )(
-            _.publishSelfDependency
-          )()
+          build.dist.recursiveModuleDeps.collect { case m: PublishModule => m }
+        )(
+          _.publishSelfDependency
+        )()
           .map(artifact => s"${artifact.group}:${artifact.id}:${artifact.version}") ++
+          // change to this when bumping Mill:
+          //   Lib.resolveDependenciesMetadataSafe(
           Lib.resolveDependenciesMetadata(
-              repositories = build.dist.repositoriesTask(),
-              build.dist.transitiveIvyDeps(),
-              Some(build.dist.mapDependencies()),
-              build.dist.resolutionCustomizer(),
-              Some(T.ctx()),
-              build.dist.coursierCacheCustomizer()
-            )._2.minDependencies.toSeq
+            repositories = build.dist.repositoriesTask(),
+            build.dist.transitiveIvyDeps(),
+            Some(build.dist.mapDependencies()),
+            build.dist.resolutionCustomizer(),
+            Some(T.ctx()),
+            build.dist.coursierCacheCustomizer()
+          )._2.minDependencies.toSeq
+          // change to this when bumping Mill
+          //   ).getOrThrow.minDependencies.toSeq
             .map(d => s"${d.module.organization.value}:${d.module.name.value}:${d.version}")
-        )
+      )
         //      T.traverse(dev.moduleDeps)(_.publishSelfDependency)()
         //        .map(artifact => s"${artifact.group}:${artifact.id}:${artifact.version}")
         .mkString(","),
@@ -76,6 +80,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
 
     def ivyDeps = Agg(
       build.Deps.osLib,
+      build.Deps.mainargs,
       build.Deps.upickle,
       build.Deps.pprint,
       build.Deps.fansi,
@@ -186,4 +191,3 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
 
   def testModuleDeps = super.testModuleDeps ++ Seq(build.testkit)
 }
-

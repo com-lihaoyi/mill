@@ -16,8 +16,8 @@ object `package` extends RootModule with AppScalaModule {
   def resources = T{
     os.makeDir(T.dest / "webapp")
     val jsPath = client.fastLinkJS().dest.path
-    os.copy(jsPath / "main.js", T.dest / "webapp" / "main.js")
-    os.copy(jsPath / "main.js.map", T.dest / "webapp" / "main.js.map")
+    os.copy(jsPath / "main.js", T.dest / "webapp/main.js")
+    os.copy(jsPath / "main.js.map", T.dest / "webapp/main.js.map")
     super.resources() ++ Seq(PathRef(T.dest))
   }
 

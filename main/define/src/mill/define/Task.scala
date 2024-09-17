@@ -204,6 +204,10 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
   implicit def apply[T](t: Result[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
     macro Internal.targetResultImpl[T]
 
+  @deprecated(
+    "Creating a target from a task is deprecated. You most likely forgot a parenthesis pair `()`",
+    "Mill after 0.12.0-RC1"
+  )
   def apply[T](t: Task[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
     macro Internal.targetTaskImpl[T]
 
@@ -278,6 +282,10 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
    * take arguments that are automatically converted to command-line
    * arguments, as long as an implicit [[mainargs.TokensReader]] is available.
    */
+  @deprecated(
+    "Creating a command from a task is deprecated. You most likely forgot a parenthesis pair `()`",
+    "Mill after 0.12.0-RC1"
+  )
   def command[T](t: Task[T])(implicit
       ctx: mill.define.Ctx,
       w: W[T],
@@ -304,6 +312,10 @@ object Target extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
    * responsibility of ensuring the implementation is idempotent regardless of
    * what in-memory state the worker may have.
    */
+  @deprecated(
+    "Creating a worker from a task is deprecated. You most likely forgot a parenthesis pair `()`",
+    "Mill after 0.12.0-RC1"
+  )
   def worker[T](t: Task[T])(implicit ctx: mill.define.Ctx): Worker[T] =
     macro Internal.workerImpl1[T]
 

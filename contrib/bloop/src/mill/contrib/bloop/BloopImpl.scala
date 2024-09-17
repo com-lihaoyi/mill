@@ -161,8 +161,10 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
     def out(m: JavaModule) = bloopDir / "out" / name(m)
     def classes(m: JavaModule) = out(m) / "classes"
 
-    val javaConfig =
-      module.javacOptions.map(opts => Some(Config.Java(options = opts.toList)))
+    val javaConfig = T.task {
+      val opts = module.javacOptions() ++ module.mandatoryJavacOptions()
+      Some(Config.Java(options = opts.toList))
+    }
 
     // //////////////////////////////////////////////////////////////////////////
     // Scalac
@@ -442,5 +444,5 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
     }
   }
 
-  lazy val millDiscover: Discover[this.type] = Discover[this.type]
+  lazy val millDiscover: Discover = Discover[this.type]
 }

@@ -18,7 +18,7 @@ object BspModulesTests extends UtestIntegrationTestSuite {
         import tester._
         val res = eval("validate")
         assert(res.isSuccess)
-        val file = workspacePath / "out" / "validate.dest" / "transitive-modules.json"
+        val file = workspacePath / "out/validate.dest/transitive-modules.json"
         assert(os.exists(file))
         val readModules = os.read.lines(file).sorted
         val expectedModules = Seq(

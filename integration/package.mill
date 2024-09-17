@@ -23,7 +23,6 @@ import $meta._
 import $file.ci.shared
 import $file.ci.upload
 
-
 object `package` extends RootModule {
   // We compile the test code once and then offer multiple modes to
   // test it in the `test` CrossModule. We pass `test`'s sources to `lib` to
@@ -52,14 +51,16 @@ object `package` extends RootModule {
       def forkArgs = T { super.forkArgs() ++ build.dist.forkArgs() }
 
       def testReleaseEnv =
-        if (mode == "local") T { Map("MILL_INTEGRATION_LAUNCHER" -> build.dist.launcher().path.toString()) }
+        if (mode == "local")
+          T { Map("MILL_INTEGRATION_LAUNCHER" -> build.dist.launcher().path.toString()) }
         else T { Map("MILL_INTEGRATION_LAUNCHER" -> testMill().path.toString()) }
 
       def resources = IntegrationTestModule.this.resources()
       def runClasspath = IntegrationTestModule.this.runClasspath()
       def localRunClasspath = IntegrationTestModule.this.localRunClasspath()
 
-      def compile: T[mill.scalalib.api.CompilationResult] = T{ mill.scalalib.api.CompilationResult(null, null) } // binary compatibility stub, not used
+      def compile: T[mill.scalalib.api.CompilationResult] =
+        T { mill.scalalib.api.CompilationResult(null, null) } // binary compatibility stub, not used
     }
 
     object local extends ModeModule
@@ -69,9 +70,10 @@ object `package` extends RootModule {
 
   object failure extends Cross[IntegrationCrossModule](build.listIn(millSourcePath / "failure"))
   object feature extends Cross[IntegrationCrossModule](build.listIn(millSourcePath / "feature"))
-  object invalidation extends Cross[IntegrationCrossModule](build.listIn(millSourcePath / "invalidation"))
+  object invalidation
+      extends Cross[IntegrationCrossModule](build.listIn(millSourcePath / "invalidation"))
   object ide extends Cross[IntegrationCrossModule](build.listIn(millSourcePath / "ide"))
-  trait IntegrationCrossModule extends build.MillScalaModule with IntegrationTestModule{
+  trait IntegrationCrossModule extends build.MillScalaModule with IntegrationTestModule {
     override def moduleDeps = super[IntegrationTestModule].moduleDeps
   }
 

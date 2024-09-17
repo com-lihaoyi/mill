@@ -20,6 +20,7 @@ trait SemanticDbJavaModule extends CoursierModule {
   def compile: T[mill.scalalib.api.CompilationResult]
   def bspBuildTarget: BspBuildTarget
   def javacOptions: T[Seq[String]]
+  def mandatoryJavacOptions: T[Seq[String]]
   def compileClasspath: T[Agg[PathRef]]
 
   def semanticDbVersion: T[String] = T.input {
@@ -98,7 +99,10 @@ trait SemanticDbJavaModule extends CoursierModule {
   }
 
   def semanticDbData: T[PathRef] = T.persistent {
-    val javacOpts = SemanticDbJavaModule.javacOptionsTask(javacOptions(), semanticDbJavaVersion())
+    val javacOpts = SemanticDbJavaModule.javacOptionsTask(
+      javacOptions() ++ mandatoryJavacOptions(),
+      semanticDbJavaVersion()
+    )
 
     // we currently assume, we don't do incremental java compilation
     os.remove.all(T.dest / "classes")
@@ -215,7 +219,7 @@ object SemanticDbJavaModule {
     os.makeDir.all(targetDir)
 
     val ups = sourceroot.segments.size
-    val semanticPath = os.rel / "META-INF" / "semanticdb"
+    val semanticPath = os.rel / "META-INF/semanticdb"
     val toClean = classesDir / semanticPath / sourceroot.segments.toSeq
 
     // copy over all found semanticdb-files into the target directory

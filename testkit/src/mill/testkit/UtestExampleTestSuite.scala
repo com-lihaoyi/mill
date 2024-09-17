@@ -12,7 +12,10 @@ object UtestExampleTestSuite extends TestSuite {
   val tests: Tests = Tests {
 
     test("exampleTest") {
-      Retry(count = 3, timeoutMillis = 5.minutes.toMillis) {
+      Retry(
+        count = if (sys.env.contains("CI")) 1 else 0,
+        timeoutMillis = 10.minutes.toMillis
+      ) {
         ExampleTester.run(
           clientServerMode,
           workspaceSourcePath,

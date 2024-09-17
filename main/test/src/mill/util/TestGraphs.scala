@@ -323,7 +323,7 @@ object TestGraphs {
   object canOverrideSuper extends TestBaseModule with BaseModule {
     override def foo = T { super.foo() ++ Seq("object") }
     override def cmd(i: Int) = T.command { super.cmd(i)() ++ Seq("object" + i) }
-    override lazy val millDiscover: Discover[this.type] = Discover[this.type]
+    override lazy val millDiscover: Discover = Discover[this.type]
   }
 
   trait TraitWithModule extends Module { outer =>
@@ -335,7 +335,7 @@ object TestGraphs {
 
   // Make sure nested objects inherited from traits work
   object TraitWithModuleObject extends TestBaseModule with TraitWithModule {
-    override lazy val millDiscover: Discover[this.type] = Discover[this.type]
+    override lazy val millDiscover: Discover = Discover[this.type]
   }
 
   object nullTasks extends TestBaseModule {
@@ -353,7 +353,7 @@ object TestGraphs {
     def nullCommand3() = T.command { nullTask1() }
     def nullCommand4() = T.command { nullTask2() }
 
-    override lazy val millDiscover: Discover[this.type] = Discover[this.type]
+    override lazy val millDiscover: Discover = Discover[this.type]
   }
 
   object duplicates extends TestBaseModule {
@@ -377,7 +377,7 @@ object TestGraphs {
 
       def test4() = T.command {}
     }
-    override lazy val millDiscover: Discover[this.type] = Discover[this.type]
+    override lazy val millDiscover: Discover = Discover[this.type]
   }
 
   object singleCross extends TestBaseModule {
@@ -511,7 +511,7 @@ object TestGraphs {
   object nestedTaskCrosses extends TestBaseModule {
     // this is somehow necessary to let Discover see our inner (default) commands
     // I expected, that the identical inherited `millDiscover` is enough, but it isn't
-    override lazy val millDiscover: Discover[this.type] = Discover[this.type]
+    override lazy val millDiscover: Discover = Discover[this.type]
     object cross1 extends mill.Cross[Cross1]("210", "211", "212")
     trait Cross1 extends mill.Cross.Module[String] {
       def scalaVersion = crossValue

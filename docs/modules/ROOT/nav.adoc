@@ -9,10 +9,9 @@
 * xref:Java_Module_Config.adoc[]
 * xref:Java_Build_Examples.adoc[]
 * xref:Testing_Java_Projects.adoc[]
-// * xref:Publishing_Java_Projects.adoc[]
+* xref:Linting_Java_Projects.adoc[]
+* xref:Publishing_Java_Projects.adoc[]
 * xref:Java_Web_Examples.adoc[]
-* xref:Case_Study_Mill_vs_Maven.adoc[]
-* xref:Case_Study_Mill_vs_Gradle.adoc[]
 
 .xref:Scala_Intro_to_Mill.adoc[]
 * xref:Scala_Installation_IDE_Support.adoc[]
@@ -20,8 +19,17 @@
 * xref:Scala_Module_Config.adoc[]
 * xref:Scala_Build_Examples.adoc[]
 * xref:Testing_Scala_Projects.adoc[]
-// * xref:Publishing_Scala_Projects.adoc[]
+* xref:Linting_Scala_Projects.adoc[]
+* xref:Publishing_Scala_Projects.adoc[]
 * xref:Scala_Web_Examples.adoc[]
+
+.xref:Kotlin_Intro_to_Mill.adoc[]
+* xref:Kotlin_Installation_IDE_Support.adoc[]
+* xref:Kotlin_Builtin_Commands.adoc[]
+
+.Build Tool Comparisons
+* xref:Case_Study_Mill_vs_Maven.adoc[]
+* xref:Case_Study_Mill_vs_Gradle.adoc[]
 * xref:Case_Study_Mill_vs_SBT.adoc[]
 
 // This section is all about developing a deeper understanding of specific
@@ -32,14 +40,14 @@
 .Mill In Depth
 * xref:Library_Dependencies.adoc[]
 * xref:Out_Dir.adoc[]
+* xref:Target_Query_Syntax.adoc[]
 * xref:Tasks.adoc[]
 * xref:Modules.adoc[]
 * xref:Cross_Builds.adoc[]
-* xref:Target_Query_Syntax.adoc[]
 * xref:Structuring_Large_Builds.adoc[]
-
-* xref:The_Mill_Evaluation_Model.adoc[]
 * xref:Mill_Sandboxing.adoc[]
+* xref:Bundled_Libraries.adoc[]
+* xref:The_Mill_Evaluation_Model.adoc[]
 
 // This section talks about Mill plugins. While it could theoretically fit in
 // either section above, it is probably an important enough topic it is worth
@@ -55,6 +63,8 @@
 ** xref:contrib/buildinfo.adoc[]
 ** xref:contrib/codeartifact.adoc[]
 ** xref:contrib/docker.adoc[]
+** xref:contrib/errorprone.adoc[]
+** xref:contrib/checkstyle.adoc[]
 ** xref:contrib/flyway.adoc[]
 ** xref:contrib/gitlab.adoc[]
 ** xref:contrib/jmh.adoc[]
@@ -62,6 +72,7 @@
 ** xref:contrib/proguard.adoc[]
 ** xref:contrib/scalapblib.adoc[]
 ** xref:contrib/scoverage.adoc[]
+** xref:contrib/sonatypecentral.adoc[]
 ** xref:contrib/testng.adoc[]
 ** xref:contrib/twirllib.adoc[]
 ** xref:contrib/versionfile.adoc[]
@@ -74,6 +85,5 @@
 // *somewhere*.
 .Reference
 * xref:Mill_Design_Principles.adoc[]
-* xref:Bundled_Libraries.adoc[]
 * {mill-doc-url}/api/latest/mill/index.html[Mill Scaladoc]
 * xref:Changelog.adoc[]

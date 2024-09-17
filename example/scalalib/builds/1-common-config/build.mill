@@ -13,7 +13,7 @@ object `package` extends RootModule with ScalaModule {
   // You can have arbitrary numbers of third-party dependencies
   def ivyDeps = Agg(
     ivy"com.lihaoyi::scalatags:0.8.2",
-    ivy"com.lihaoyi::os-lib:0.9.1",
+    ivy"com.lihaoyi::os-lib:0.10.7",
   )
 
   // Choose a main class to use for `.run` if there are multiple present

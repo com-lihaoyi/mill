@@ -2,7 +2,6 @@ package mill
 package scalalib
 
 import coursier.Repository
-import coursier.core.Dependency
 import coursier.core.Resolution
 import coursier.parse.JavaOrScalaModule
 import coursier.parse.ModuleParser
@@ -35,7 +34,8 @@ trait JavaModule
     with BspModule
     with SemanticDbJavaModule { outer =>
 
-  def zincWorker: ModuleRef[ZincWorkerModule] = super.zincWorker
+  override def zincWorker: ModuleRef[ZincWorkerModule] = super.zincWorker
+  @nowarn
   type JavaTests = JavaModuleTests
   @deprecated("Use JavaTests instead", since = "Mill 0.11.10")
   trait JavaModuleTests extends JavaModule with TestModule {
@@ -108,7 +108,8 @@ trait JavaModule
           case mains =>
             Left(
               s"Multiple main classes found (${mains.mkString(",")}) " +
-                "please explicitly specify which one to use by overriding mainClass"
+                "please explicitly specify which one to use by overriding `mainClass` " +
+                "or using `runMain <main-class> <...args>` instead of `run`"
             )
         }
     }
@@ -158,6 +159,11 @@ trait JavaModule
    * Options to pass to the java compiler
    */
   def javacOptions: T[Seq[String]] = T { Seq.empty[String] }
+
+  /**
+   * Additional options for the java compiler derived from other module settings.
+   */
+  def mandatoryJavacOptions: T[Seq[String]] = T { Seq.empty[String] }
 
   /**
    *  The direct dependencies of this module.
@@ -421,7 +427,7 @@ trait JavaModule
         upstreamCompileOutput = upstreamCompileOutput(),
         sources = allSourceFiles().map(_.path),
         compileClasspath = compileClasspath().map(_.path),
-        javacOptions = javacOptions(),
+        javacOptions = javacOptions() ++ mandatoryJavacOptions(),
         reporter = T.reporter.apply(hashCode),
         reportCachedProblems = zincReportCachedProblems(),
         incrementalCompilation = zincIncrementalCompilation()
@@ -533,13 +539,7 @@ trait JavaModule
    * Resolved dependencies based on [[transitiveIvyDeps]] and [[transitiveCompileIvyDeps]].
    */
   def resolvedIvyDeps: T[Agg[PathRef]] = T {
-    def resolvedIvyDeps0() =
-      defaultResolver().resolveDeps(transitiveCompileIvyDeps() ++ transitiveIvyDeps())
-    try resolvedIvyDeps0()
-    catch {
-      case e: java.nio.file.AccessDeniedException =>
-        resolvedIvyDeps0() // this is caused by a coursier race condition on windows, just retry
-    }
+    defaultResolver().resolveDeps(transitiveCompileIvyDeps() ++ transitiveIvyDeps())
   }
 
   /**
@@ -810,16 +810,17 @@ trait JavaModule
       whatDependsOn: List[JavaOrScalaModule]
   ): Task[Unit] =
     T.task {
-      val (flattened: Seq[Dependency], resolution: Resolution) = Lib.resolveDependenciesMetadata(
+      val dependencies = (additionalDeps() ++ transitiveIvyDeps()).iterator.to(Seq)
+      val resolution: Resolution = Lib.resolveDependenciesMetadataSafe(
         repositoriesTask(),
-        additionalDeps() ++ transitiveIvyDeps(),
+        dependencies,
         Some(mapDependencies()),
         customizer = resolutionCustomizer(),
         coursierCacheCustomizer = coursierCacheCustomizer()
-      )
+      ).getOrThrow
 
       val roots = whatDependsOn match {
-        case List() => flattened
+        case List() => dependencies.map(_.dep)
         case _ =>
           // We don't really care what scalaVersions is set as here since the user
           // will be passing in `_2.13` or `._3` anyways. Or it may even be a java
@@ -865,11 +866,11 @@ trait JavaModule
                 transitiveCompileIvyDeps() ++ runIvyDeps().map(bindDependency())
               },
               validModules
-            )
+            )()
           }
         case (Flag(true), Flag(false)) =>
           T.command {
-            printDepsTree(args.inverse.value, transitiveCompileIvyDeps, validModules)
+            printDepsTree(args.inverse.value, transitiveCompileIvyDeps, validModules)()
           }
         case (Flag(false), Flag(true)) =>
           T.command {
@@ -877,11 +878,11 @@ trait JavaModule
               args.inverse.value,
               T.task { runIvyDeps().map(bindDependency()) },
               validModules
-            )
+            )()
           }
         case _ =>
           T.command {
-            printDepsTree(args.inverse.value, T.task { Agg.empty[BoundDep] }, validModules)
+            printDepsTree(args.inverse.value, T.task { Agg.empty[BoundDep] }, validModules)()
           }
       }
     } else {
@@ -951,7 +952,7 @@ trait JavaModule
    */
   def runBackground(args: String*): Command[Unit] = {
     val task = runBackgroundTask(finalMainClass, T.task { Args(args) })
-    T.command { task }
+    T.command { task() }
   }
 
   /**

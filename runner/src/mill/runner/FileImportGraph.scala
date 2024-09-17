@@ -66,7 +66,7 @@ object FileImportGraph {
             val expectedImportSegments = expectedImportSegments0.map(backtickWrap).mkString(".")
             if (
               // Legacy `.sc` files have their package build be optional
-              (s.last.endsWith(".mill") || s.last.endsWith(".mill.sc")) &&
+              (s.last.endsWith(".mill") || s.last.endsWith(".mill.scala")) &&
               expectedImportSegments != importSegments &&
               // Root build.mill file has its `package build` be optional
               !(importSegments == "" && rootBuildFileNames.contains(s.last))
@@ -136,7 +136,7 @@ object FileImportGraph {
           case ImportTree(Seq(("$file", end0), rest @ _*), mapping, start, end) =>
             // Only recursively explore imports from legacy `.sc` files, as new `.mill` files
             // do file discovery via scanning folders containing `package.mill` files
-            if (s.last.endsWith(".sc") && !s.last.endsWith(".mill.sc")) {
+            if (s.last.endsWith(".sc") && !s.last.endsWith(".mill.scala")) {
               val nextPaths = mapping.map { case (lhs, rhs) =>
                 nextPathFor(s, rest.map(_._1) :+ lhs)
               }
@@ -161,10 +161,18 @@ object FileImportGraph {
     }
 
     val rootBuildFiles = rootBuildFileNames
-      .find(rootBuildFileName => os.exists(projectRoot / rootBuildFileName))
+      .filter(rootBuildFileName => os.exists(projectRoot / rootBuildFileName))
 
-    val useDummy = rootBuildFiles.isEmpty
-    val foundRootBuildFileName: String = rootBuildFiles.getOrElse(rootBuildFileNames.head)
+    val (useDummy, foundRootBuildFileName) = rootBuildFiles.toSeq match {
+      case Nil => (true, rootBuildFileNames.head)
+      case Seq(single) => (false, single)
+      case multiple =>
+        System.err.println(
+          "Multiple root build files found: " + multiple.mkString(",") +
+            ", picking " + multiple.head
+        )
+        (false, multiple.head)
+    }
 
     val buildFileExtension =
       buildFileExtensions.find(ex => foundRootBuildFileName.endsWith(s".$ex")).get

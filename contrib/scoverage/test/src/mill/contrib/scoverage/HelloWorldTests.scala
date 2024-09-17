@@ -55,7 +55,7 @@ trait HelloWorldTests extends utest.TestSuite {
       def scalaVersion = testScalaVersion
       def scoverageVersion = testScoverageVersion
 
-      object test extends SbtModuleTests with ScoverageTests with TestModule.ScalaTest {
+      object test extends SbtTests with ScoverageTests with TestModule.ScalaTest {
         override def ivyDeps = Agg(ivy"org.scalatest::scalatest:${testScalatestVersion}")
       }
     }

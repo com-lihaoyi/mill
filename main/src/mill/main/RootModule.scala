@@ -2,6 +2,7 @@ package mill.main
 
 import mill.api.internal
 import mill.define.{BaseModule, Ctx, Caller, Discover, Module, Segments}
+import scala.annotation.compileTimeOnly
 
 /**
  * Used to mark a module in your `build.mill` as a top-level module, so it's
@@ -24,36 +25,44 @@ abstract class RootModule()(implicit
       Caller(null)
     ) with mill.main.MainModule {
 
-  // Make BaseModule take the `millDiscover` as an implicit param, rather than
-  // defining it itself. That is so we can define it externally in the wrapper
-  // code and it have it automatically passed to both the wrapper BaseModule as
-  // well as any user-defined BaseModule that may be present, so the
-  // user-defined BaseModule can have a complete Discover[_] instance without
-  // needing to tediously call `override lazy val millDiscover = Discover[this.type]`
-  override lazy val millDiscover: Discover[this.type] =
-    baseModuleInfo.discover.asInstanceOf[Discover[this.type]]
+  // Dummy `millDiscover` defined but never actually used and overriden by codegen.
+  // Provided for IDEs to think that one is available and not show errors in
+  // build.mill/package.mill even though they can't see the codegen
+  def millDiscover: Discover = sys.error("RootModule#millDiscover must be overriden")
 }
 
 @internal
 object RootModule {
-  case class Info(millSourcePath0: os.Path, discover: Discover[_])
+  case class Info(millSourcePath0: os.Path, discover: Discover)
+  object Info {
+    // Dummy `RootModule.Info` available in implicit scope but never actually used.
+    // as it is provided by the codegen. Defined for IDEs to think that one is available
+    // and not show errors in build.mill/package.mill even though they can't see the codegen
+    @compileTimeOnly("RootModule can only be instantiated in a build.mill or package.mill file")
+    implicit def dummyInfo: Info = sys.error("implicit RootModule.Info must be provided")
+  }
 
-  abstract class Subfolder(path: String*)(implicit
+  case class SubFolderInfo(value: Seq[String])
+
+  abstract class Subfolder()(implicit
       baseModuleInfo: RootModule.Info,
       millModuleLine0: sourcecode.Line,
-      millFile0: sourcecode.File
+      millFile0: sourcecode.File,
+      subFolderInfo: SubFolderInfo
   ) extends Module.BaseClass()(
         Ctx.make(
-          millModuleEnclosing0 = path.mkString("."),
+          millModuleEnclosing0 = subFolderInfo.value.mkString("."),
           millModuleLine0 = millModuleLine0,
           millModuleBasePath0 = Ctx.BasePath(baseModuleInfo.millSourcePath0 / os.up),
-          segments0 = Segments.labels(path.init: _*),
+          segments0 = Segments.labels(subFolderInfo.value.init: _*),
           external0 = Ctx.External(false),
           foreign0 = Ctx.Foreign(None),
           fileName = millFile0,
           enclosing = Caller(null)
         )
-      ) with Module
+      ) with Module {
+    def millDiscover: Discover
+  }
 
   @deprecated
   abstract class Foreign(foreign0: Option[Segments])(implicit
@@ -66,8 +75,5 @@ object RootModule {
         millModuleLine0,
         millFile0,
         Caller(null)
-      ) with mill.main.MainModule {
-
-    override implicit lazy val millDiscover: Discover[this.type] = Discover[this.type]
-  }
+      ) with mill.main.MainModule
 }

@@ -45,7 +45,7 @@ class SonatypeCentralPublisher(
     val (_, releases) = mappings.partition(_._1.isSnapshot)
 
     val releaseGroups = releases.groupBy(_._1.group)
-    val wd = os.pwd / "out" / "publish-central"
+    val wd = os.pwd / "out/publish-central"
     os.makeDir.all(wd)
 
     singleBundleName.fold {

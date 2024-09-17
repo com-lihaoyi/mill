@@ -3,6 +3,7 @@ package scalalib
 
 import mill.define.{Command, ExternalModule, Target, Task}
 import mill.api.{JarManifest, PathRef, Result}
+import mill.main.Tasks
 import mill.scalalib.PublishModule.checkSonatypeCreds
 import mill.scalalib.publish.SonatypeHelpers.{
   PASSWORD_ENV_VARIABLE_NAME,
@@ -159,7 +160,7 @@ trait PublishModule extends JavaModule { outer =>
    * @param m2RepoPath The path to the local repository  as string (default: `$HOME/.m2repository`).
    * @return [[PathRef]]s to published files.
    */
-  def publishM2Local(m2RepoPath: String = (os.home / ".m2" / "repository").toString())
+  def publishM2Local(m2RepoPath: String = (os.home / ".m2/repository").toString())
       : Command[Seq[PathRef]] = T.command {
     publishM2LocalTask(T.task {
       os.Path(m2RepoPath, T.workspace)
@@ -172,7 +173,7 @@ trait PublishModule extends JavaModule { outer =>
    */
   def publishM2LocalCached: T[Seq[PathRef]] = T {
     publishM2LocalTask(T.task {
-      os.Path(os.home / ".m2" / "repository", T.workspace)
+      os.Path(os.home / ".m2/repository", T.workspace)
     })()
   }
 
@@ -220,7 +221,7 @@ trait PublishModule extends JavaModule { outer =>
 
   /**
    * Publish all given artifacts to Sonatype.
-   * Uses environment variables SONATYPE_USERNAME and SONATYPE_PASSWORD as
+   * Uses environment variables MILL_SONATYPE_USERNAME and MILL_SONATYPE_PASSWORD as
    * credentials.
    *
    * @param sonatypeCreds Sonatype credentials in format username:password.
@@ -240,19 +241,21 @@ trait PublishModule extends JavaModule { outer =>
       // TODO: In mill 0.11, we may want to change to a String argument
       // which we can split at `,` symbols, as we do in `PublishModule.publishAll`.
       gpgArgs: Seq[String] = Seq.empty,
-      release: Boolean = false,
-      readTimeout: Int = 60000,
-      connectTimeout: Int = 5000,
-      awaitTimeout: Int = 120 * 1000,
+      release: Boolean = true,
+      readTimeout: Int = 30 * 60 * 1000,
+      connectTimeout: Int = 30 * 60 * 1000,
+      awaitTimeout: Int = 30 * 60 * 1000,
       stagingRelease: Boolean = true
   ): define.Command[Unit] = T.command {
     val PublishModule.PublishData(artifactInfo, artifacts) = publishArtifacts()
+    PublishModule.pgpImportSecretIfProvided(T.env)
     new SonatypePublisher(
       sonatypeUri,
       sonatypeSnapshotUri,
       checkSonatypeCreds(sonatypeCreds)(),
       signed,
-      if (gpgArgs.isEmpty) PublishModule.defaultGpgArgs else gpgArgs,
+      if (gpgArgs.isEmpty) PublishModule.defaultGpgArgsForPassphrase(T.env.get("PGP_PASSPHRASE"))
+      else gpgArgs,
       readTimeout,
       connectTimeout,
       T.log,
@@ -277,8 +280,30 @@ trait PublishModule extends JavaModule { outer =>
   }
 }
 
-object PublishModule extends ExternalModule {
-  val defaultGpgArgs: Seq[String] = Seq("--batch", "--yes", "-a", "-b")
+object PublishModule extends ExternalModule with TaskModule {
+  def defaultCommandName(): String = "publishAll"
+  val defaultGpgArgs: Seq[String] = defaultGpgArgsForPassphrase(None)
+  def pgpImportSecretIfProvided(env: Map[String, String]): Unit = {
+    for (secret <- env.get("MILL_PGP_SECRET_BASE64")) {
+      os.call(
+        ("gpg", "--import", "--no-tty", "--batch", "--yes"),
+        stdin = java.util.Base64.getDecoder.decode(secret)
+      )
+    }
+  }
+
+  def defaultGpgArgsForPassphrase(passphrase: Option[String]): Seq[String] = {
+    passphrase.map("--passphrase=" + _).toSeq ++
+      Seq(
+        "--no-tty",
+        "--pinentry-mode",
+        "loopback",
+        "--batch",
+        "--yes",
+        "-a",
+        "-b"
+      )
+  }
 
   case class PublishData(meta: Artifact, payload: Seq[(PathRef, String)]) {
 
@@ -297,36 +322,54 @@ object PublishModule extends ExternalModule {
    * Uses environment variables SONATYPE_USERNAME and SONATYPE_PASSWORD as
    * credentials.
    *
+   * @param publishArtifacts what artifacts you want to publish. Defaults to `__.publishArtifacts`
+   *                         which selects all `PublishModule`s in your build
    * @param sonatypeCreds Sonatype credentials in format username:password.
    *                      If specified, environment variables will be ignored.
    *                      <i>Note: consider using environment variables over this argument due
    *                      to security reasons.</i>
-   * @param gpgArgs       GPG arguments. Defaults to `--batch --yes -a -b`.
+   * @param signed
+   * @param gpgArgs       GPG arguments. Defaults to `--passphrase=$MILL_PGP_PASSPHRASE,--no-tty,--pienty-mode,loopback,--batch,--yes,-a,-b`.
    *                      Specifying this will override/remove the defaults.
    *                      Add the default args to your args to keep them.
+   * @param release Whether to release the artifacts after staging them
+   * @param sonatypeUri Sonatype URI to use. Defaults to `oss.sonatype.org`, newer projects
+   *                    may need to set it to https://s01.oss.sonatype.org/service/local
+   * @param sonatypeSnapshotUri Sonatype snapshot URI to use. Defaults to `oss.sonatype.org`, newer projects
+   *                            may need to set it to https://s01.oss.sonatype.org/content/repositories/snapshots
+   * @param readTimeout How long to wait before timing out network reads
+   * @param connectTimeout How long to wait before timing out network connections
+   * @param awaitTimeout How long to wait before timing out on failed uploads
+   * @param stagingRelease
+   * @return
    */
   def publishAll(
-      publishArtifacts: mill.main.Tasks[PublishModule.PublishData],
+      publishArtifacts: Tasks[PublishModule.PublishData] =
+        Tasks.resolveMainDefault("__.publishArtifacts"),
       sonatypeCreds: String = "",
       signed: Boolean = true,
-      gpgArgs: String = defaultGpgArgs.mkString(","),
-      release: Boolean = false,
+      gpgArgs: String = "",
+      release: Boolean = true,
       sonatypeUri: String = "https://oss.sonatype.org/service/local",
       sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots",
-      readTimeout: Int = 10 * 60 * 1000,
-      connectTimeout: Int = 10 * 60 * 1000,
-      awaitTimeout: Int = 10 * 60 * 1000,
+      readTimeout: Int = 30 * 60 * 1000,
+      connectTimeout: Int = 30 * 60 * 1000,
+      awaitTimeout: Int = 30 * 60 * 1000,
       stagingRelease: Boolean = true
   ): Command[Unit] = T.command {
     val x: Seq[(Seq[(os.Path, String)], Artifact)] = T.sequence(publishArtifacts.value)().map {
       case PublishModule.PublishData(a, s) => (s.map { case (p, f) => (p.path, f) }, a)
     }
+
+    pgpImportSecretIfProvided(T.env)
+
     new SonatypePublisher(
       sonatypeUri,
       sonatypeSnapshotUri,
       checkSonatypeCreds(sonatypeCreds)(),
       signed,
-      getFinalGpgArgs(gpgArgs),
+      if (gpgArgs.isEmpty) defaultGpgArgsForPassphrase(T.env.get("MILL_PGP_PASSPHRASE"))
+      else gpgArgs.split(','),
       readTimeout,
       connectTimeout,
       T.log,
@@ -340,19 +383,11 @@ object PublishModule extends ExternalModule {
     )
   }
 
-  private[mill] def getFinalGpgArgs(initialGpgArgs: String): Seq[String] = {
-    val argsAsString = if (initialGpgArgs.isEmpty) {
-      defaultGpgArgs.mkString(",")
-    } else {
-      initialGpgArgs
-    }
-    argsAsString.split(",").toIndexedSeq
-  }
-
   private def getSonatypeCredsFromEnv: Task[(String, String)] = T.task {
     (for {
-      username <- T.env.get(USERNAME_ENV_VARIABLE_NAME)
-      password <- T.env.get(PASSWORD_ENV_VARIABLE_NAME)
+      // Allow legacy environment variables as well
+      username <- T.env.get(USERNAME_ENV_VARIABLE_NAME).orElse(T.env.get("SONATYPE_USERNAME"))
+      password <- T.env.get(PASSWORD_ENV_VARIABLE_NAME).orElse(T.env.get("SONATYPE_PASSWORD"))
     } yield {
       Result.Success((username, password))
     }).getOrElse(
@@ -379,5 +414,5 @@ object PublishModule extends ExternalModule {
       }
     }
 
-  lazy val millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
+  lazy val millDiscover: mill.define.Discover = mill.define.Discover[this.type]
 }

@@ -126,7 +126,7 @@ object Resolve {
       val invoked = invokeCommand0(
         p,
         r.segments.parts.last,
-        rootModule.millDiscover.asInstanceOf[Discover[mill.define.Module]],
+        rootModule.millDiscover.asInstanceOf[Discover],
         args,
         nullCommandDefaults,
         allowPositionalCommandArgs
@@ -139,7 +139,7 @@ object Resolve {
   private def invokeCommand0(
       target: mill.define.Module,
       name: String,
-      discover: Discover[mill.define.Module],
+      discover: Discover,
       rest: Seq[String],
       nullCommandDefaults: Boolean,
       allowPositionalCommandArgs: Boolean
@@ -241,7 +241,7 @@ trait Resolve[T] {
             resolveNonEmptyAndHandle(
               args,
               rootModuleSels,
-              sel,
+              sel.getOrElse(Segments()),
               nullCommandDefaults,
               allowPositionalCommandArgs
             )

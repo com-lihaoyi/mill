@@ -43,7 +43,7 @@ object NodeJSConfigTests extends TestSuite {
       override def jsEnvConfig = T { JsEnvConfig.NodeJs(args = nodeArgs) }
 
       object `test-utest` extends ScalaJSTests with TestModule.Utest {
-        override def sources = T.sources { millSourcePath / "src" / "utest" }
+        override def sources = T.sources { millSourcePath / "src/utest" }
         override def ivyDeps = Agg(
           ivy"com.lihaoyi::utest::$utestVersion"
         )
@@ -58,7 +58,7 @@ object NodeJSConfigTests extends TestSuite {
 
   val helloWorldEvaluator = UnitTester(HelloJSWorld, millSourcePath)
 
-  val mainObject = helloWorldEvaluator.outPath / "src" / "Main.scala"
+  val mainObject = helloWorldEvaluator.outPath / "src/Main.scala"
 
   def tests: Tests = Tests {
     def checkLog(command: define.Command[_], nodeArgs: List[String], notNodeArgs: List[String]) = {

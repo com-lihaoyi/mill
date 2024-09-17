@@ -17,6 +17,7 @@ import mill.resolve.SelectMode
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.define.Cross
+import build.Deps
 
 // plugins and dependencies
 import $meta._
@@ -159,7 +160,8 @@ object `package` extends RootModule {
 
   object buildinfo extends ContribModule {
     def compileModuleDeps = Seq(build.scalalib, build.scalajslib, build.scalanativelib)
-    def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib, build.scalajslib, build.scalanativelib)
+    def testModuleDeps =
+      super.testModuleDeps ++ Seq(build.scalalib, build.scalajslib, build.scalanativelib)
   }
 
   object proguard extends ContribModule {
@@ -223,6 +225,20 @@ object `package` extends RootModule {
   }
 
   object jmh extends ContribModule {
+    def compileModuleDeps = Seq(build.scalalib)
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib)
+  }
+
+  object errorprone extends ContribModule with BuildInfo {
+    def compileModuleDeps = Seq(build.scalalib)
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib)
+    def buildInfoPackageName = "mill.contrib.errorprone"
+    def buildInfoObjectName = "BuildInfo"
+    def buildInfoMembers =
+      Seq(BuildInfo.Value("errorProneVersion", Deps.RuntimeDeps.errorProneCore.version))
+  }
+
+  object checkstyle extends ContribModule {
     def compileModuleDeps = Seq(build.scalalib)
     def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib)
   }

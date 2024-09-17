@@ -1,7 +1,6 @@
 package mill
 package contrib.scalapblib
 
-import coursier.MavenRepository
 import coursier.core.Version
 import mill.api.{IO, Loose, PathRef}
 import mill.scalalib.Lib.resolveDependencies
@@ -75,10 +74,7 @@ trait ScalaPBModule extends ScalaModule {
 
   def scalaPBClasspath: T[Loose.Agg[PathRef]] = T {
     resolveDependencies(
-      Seq(
-        coursier.LocalRepositories.ivy2Local,
-        MavenRepository("https://repo1.maven.org/maven2")
-      ),
+      repositoriesTask(),
       Seq(ivy"com.thesamet.scalapb::scalapbc:${scalaPBVersion()}")
         .map(Lib.depToBoundDep(_, "2.13.1"))
     )

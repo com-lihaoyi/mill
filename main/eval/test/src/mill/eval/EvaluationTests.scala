@@ -225,7 +225,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
 
         val public = os.read(checker.evaluator.outPath / "foo.json")
         val overridden = os.read(
-          checker.evaluator.outPath / "foo.super" / "BaseModule.json"
+          checker.evaluator.outPath / "foo.super/BaseModule.json"
         )
         assert(
           public.contains("base"),
@@ -252,7 +252,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
 
         val public = os.read(checker.evaluator.outPath / "cmd.json")
         val overridden = os.read(
-          checker.evaluator.outPath / "cmd.super" / "BaseModule.json"
+          checker.evaluator.outPath / "cmd.super/BaseModule.json"
         )
         assert(
           public.contains("base1"),
@@ -367,14 +367,14 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
       )
 
       assert(
-        os.read(checker.evaluator.outPath / "m" / "f.super" / "X.json")
+        os.read(checker.evaluator.outPath / "m/f.super/X.json")
           .contains(" 1,")
       )
       assert(
-        os.read(checker.evaluator.outPath / "m" / "f.super" / "A.json")
+        os.read(checker.evaluator.outPath / "m/f.super/A.json")
           .contains(" 3,")
       )
-      assert(os.read(checker.evaluator.outPath / "m" / "f.json").contains(" 6,"))
+      assert(os.read(checker.evaluator.outPath / "m/f.json").contains(" 6,"))
     }
     utest.test("stackableOverrides2") {
       // When the supers have the same name, qualify them until they are distinct
@@ -389,14 +389,14 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
       )
 
       assert(
-        os.read(checker.evaluator.outPath / "m" / "f.super" / "A" / "X.json")
+        os.read(checker.evaluator.outPath / "m/f.super/A/X.json")
           .contains(" 1,")
       )
       assert(
-        os.read(checker.evaluator.outPath / "m" / "f.super" / "B" / "X.json")
+        os.read(checker.evaluator.outPath / "m/f.super/B/X.json")
           .contains(" 3,")
       )
-      assert(os.read(checker.evaluator.outPath / "m" / "f.json").contains(" 6,"))
+      assert(os.read(checker.evaluator.outPath / "m/f.json").contains(" 6,"))
     }
     utest.test("stackableOverrides3") {
       // When the supers have the same name, qualify them until they are distinct
@@ -411,14 +411,14 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
       )
 
       assert(
-        os.read(checker.evaluator.outPath / "m" / "f.super" / "A" / "X.json")
+        os.read(checker.evaluator.outPath / "m/f.super/A/X.json")
           .contains(" 1,")
       )
       assert(
-        os.read(checker.evaluator.outPath / "m" / "f.super" / "X.json")
+        os.read(checker.evaluator.outPath / "m/f.super/X.json")
           .contains(" 3,")
       )
-      assert(os.read(checker.evaluator.outPath / "m" / "f.json").contains(" 6,"))
+      assert(os.read(checker.evaluator.outPath / "m/f.json").contains(" 6,"))
     }
     utest.test("privateTasksInMixedTraits") {
       // Make sure we can have private cached targets in different trait with the same name,

@@ -33,9 +33,9 @@ trait HelloWorldTests extends TestSuite {
 
   def resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER"))
   def compileClassfiles: Seq[os.RelPath] = Seq[os.RelPath](
-    os.rel / "html" / "hello.template.scala",
-    os.rel / "html" / "wrapper.template.scala",
-    os.rel / "svg" / "test.template.scala"
+    os.rel / "html/hello.template.scala",
+    os.rel / "html/wrapper.template.scala",
+    os.rel / "svg/test.template.scala"
   )
 
   def expectedDefaultImports: Seq[String] = Seq(
@@ -85,11 +85,11 @@ trait HelloWorldTests extends TestSuite {
 
           val outputFiles = os.walk(result.value.classes.path).filter(_.last.endsWith(".scala"))
           val expectedClassfiles = compileClassfiles.map(
-            eval.outPath / "core" / "compileTwirl.dest" / _
+            eval.outPath / "core/compileTwirl.dest" / _
           )
 
           assert(
-            result.value.classes.path == eval.outPath / "core" / "compileTwirl.dest",
+            result.value.classes.path == eval.outPath / "core/compileTwirl.dest",
             outputFiles.nonEmpty,
             outputFiles.forall(expectedClassfiles.contains),
             outputFiles.size == 3,
@@ -126,7 +126,7 @@ trait HelloWorldTests extends TestSuite {
 
           val outputFiles = os.walk(result.value.classes.path).filter(_.last.endsWith(".scala"))
           val expectedClassfiles = compileClassfiles.map(name =>
-            eval.outPath / "core" / "compileTwirl.dest" / name / os.RelPath.up / name.last.replace(
+            eval.outPath / "core/compileTwirl.dest" / name / os.RelPath.up / name.last.replace(
               ".template.scala",
               "$$TwirlInclusiveDot.template.scala"
             )
@@ -135,7 +135,7 @@ trait HelloWorldTests extends TestSuite {
           println(s"outputFiles: $outputFiles")
 
           assert(
-            result.value.classes.path == eval.outPath / "core" / "compileTwirl.dest",
+            result.value.classes.path == eval.outPath / "core/compileTwirl.dest",
             outputFiles.nonEmpty,
             outputFiles.forall(expectedClassfiles.contains),
             outputFiles.size == 3,

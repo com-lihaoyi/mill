@@ -28,13 +28,13 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   @deprecated("use ScalaTests", "0.11.0")
   type ScalaModuleTests = ScalaTests
 
-  trait ScalaTests extends JavaModuleTests with ScalaModule {
+  trait ScalaTests extends JavaTests with ScalaModule {
     override def scalaOrganization: Target[String] = outer.scalaOrganization()
     override def scalaVersion: Target[String] = outer.scalaVersion()
     override def scalacPluginIvyDeps: Target[Agg[Dep]] = outer.scalacPluginIvyDeps()
     override def scalacPluginClasspath: Target[Agg[PathRef]] = outer.scalacPluginClasspath()
     override def scalacOptions: Target[Seq[String]] = outer.scalacOptions()
-    override def mandatoryScalacOptions: Target[Seq[String]] = outer.mandatoryScalacOptions()
+    override def mandatoryScalacOptions: Target[Seq[String]] = T { super.mandatoryScalacOptions() }
   }
 
   /**
@@ -279,7 +279,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         upstreamCompileOutput = upstreamCompileOutput(),
         sources = allSourceFiles().map(_.path),
         compileClasspath = compileClasspath().map(_.path),
-        javacOptions = javacOptions(),
+        javacOptions = javacOptions() ++ mandatoryJavacOptions(),
         scalaVersion = sv,
         scalaOrganization = scalaOrganization(),
         scalacOptions = allScalacOptions(),

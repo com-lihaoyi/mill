@@ -45,7 +45,7 @@ object ScriptsInvalidationTests extends UtestIntegrationTestSuite {
 
       //  second run modifying script
       modifyFile(
-        workspacePath / "b" / "inputD.mill",
+        workspacePath / "b/inputD.mill",
         _.replace("""println("d")""", """System.out.println("d2")""")
       )
 

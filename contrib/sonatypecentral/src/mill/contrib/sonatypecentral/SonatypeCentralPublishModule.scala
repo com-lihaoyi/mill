@@ -13,7 +13,7 @@ import mill.contrib.sonatypecentral.SonatypeCentralPublishModule.{
   getPublishingTypeFromReleaseFlag,
   getSonatypeCredentials
 }
-import mill.scalalib.PublishModule.{defaultGpgArgs, getFinalGpgArgs}
+import mill.scalalib.PublishModule.defaultGpgArgs
 import mill.scalalib.publish.Artifact
 import mill.scalalib.publish.SonatypeHelpers.{
   PASSWORD_ENV_VARIABLE_NAME,
@@ -40,10 +40,13 @@ trait SonatypeCentralPublishModule extends PublishModule {
       val fileMapping = publishData.withConcretePath._1
       val artifact = publishData.meta
       val finalCredentials = getSonatypeCredentials(username, password)()
-
+      PublishModule.pgpImportSecretIfProvided(T.env)
       val publisher = new SonatypeCentralPublisher(
         credentials = finalCredentials,
-        gpgArgs = getFinalGpgArgs(sonatypeCentralGpgArgs()),
+        gpgArgs = sonatypeCentralGpgArgs() match {
+          case "" => PublishModule.defaultGpgArgsForPassphrase(T.env.get("PGP_PASSPHRASE"))
+          case gpgArgs => gpgArgs.split(",").toIndexedSeq
+        },
         connectTimeout = sonatypeCentralConnectTimeout(),
         readTimeout = sonatypeCentralReadTimeout(),
         log = T.log,
@@ -86,10 +89,13 @@ object SonatypeCentralPublishModule extends ExternalModule {
 
     val finalBundleName = if (bundleName.isEmpty) None else Some(bundleName)
     val finalCredentials = getSonatypeCredentials(username, password)()
-
+    PublishModule.pgpImportSecretIfProvided(T.env)
     val publisher = new SonatypeCentralPublisher(
       credentials = finalCredentials,
-      gpgArgs = getFinalGpgArgs(gpgArgs),
+      gpgArgs = gpgArgs match {
+        case "" => PublishModule.defaultGpgArgsForPassphrase(T.env.get("PGP_PASSPHRASE"))
+        case gpgArgs => gpgArgs.split(",").toIndexedSeq
+      },
       connectTimeout = connectTimeout,
       readTimeout = readTimeout,
       log = T.log,
@@ -143,5 +149,5 @@ object SonatypeCentralPublishModule extends ExternalModule {
     Result.Success(SonatypeCredentials(username, password))
   }
 
-  lazy val millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
+  lazy val millDiscover: mill.define.Discover = mill.define.Discover[this.type]
 }

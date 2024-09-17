@@ -14,8 +14,8 @@ object `package` extends RootModule with ScalaModule {
     val jsPath = client.fastLinkJS().dest.path
     // Move main.js[.map]into the proper filesystem position
     // in the resource folder for the web server code to pick up
-    os.copy(jsPath / "main.js", T.dest / "webapp" / "main.js")
-    os.copy(jsPath / "main.js.map", T.dest / "webapp" / "main.js.map")
+    os.copy(jsPath / "main.js", T.dest / "webapp/main.js")
+    os.copy(jsPath / "main.js.map", T.dest / "webapp/main.js.map")
     super.resources() ++ Seq(PathRef(T.dest))
   }
 

@@ -40,7 +40,7 @@ object MillMain {
       if (args.headOption == Option("--bsp")) {
         // In BSP mode, we use System.in/out for protocol communication
         // and all Mill output (stdout and stderr) goes to a dedicated file
-        val stderrFile = WorkspaceRoot.workspaceRoot / ".bsp" / "mill-bsp.stderr"
+        val stderrFile = WorkspaceRoot.workspaceRoot / ".bsp/mill-bsp.stderr"
         os.makeDir.all(stderrFile / os.up)
         val errFile = new PrintStream(new FileOutputStream(stderrFile.toIO, true))
         val errTee = new TeePrintStream(initialSystemStreams.err, errFile)
@@ -108,7 +108,7 @@ object MillMain {
             (false, RunnerState.empty)
 
           case Right(config) if config.help.value =>
-            streams.out.println(MillCliConfigParser.usageText)
+            streams.out.println(MillCliConfigParser.longUsageText)
             (true, RunnerState.empty)
 
           case Right(config) if config.showVersion.value =>
@@ -160,7 +160,10 @@ object MillMain {
               streams,
               config,
               mainInteractive,
-              enableTicker = if (config.disableTicker.value) Some(false) else config.enableTicker,
+              enableTicker =
+                config.ticker
+                  .orElse(config.enableTicker)
+                  .orElse(Option.when(config.disableTicker.value)(false)),
               printLoggerState
             )
             if (!config.silent.value) {
@@ -169,6 +172,8 @@ object MillMain {
 
             // special BSP mode, in which we spawn a server and register the current evaluator when-ever we start to eval a dedicated command
             val bspMode = config.bsp.value && config.leftoverArgs.value.isEmpty
+            val maybeThreadCount =
+              parseThreadCount(config.threadCountRaw, Runtime.getRuntime.availableProcessors())
 
             val (success, nextStateCache) = {
               if (config.repl.value) {
@@ -176,18 +181,19 @@ object MillMain {
                 (false, stateCache)
 
               } else if (!bspMode && config.leftoverArgs.value.isEmpty) {
-                logger.error("A target must be provided.")
+                println(MillCliConfigParser.shortUsageText)
+
+                (true, stateCache)
+
+              } else if (maybeThreadCount.isLeft) {
+                logger.error(maybeThreadCount.swap.toOption.get)
                 (false, stateCache)
 
               } else {
                 val userSpecifiedProperties =
                   userSpecifiedProperties0 ++ config.extraSystemProperties
 
-                val threadCount = config.threadCountRaw match {
-                  case None => None
-                  case Some(0) => None
-                  case Some(n) => Some(n)
-                }
+                val threadCount = Some(maybeThreadCount.toOption.get)
 
                 if (mill.main.client.Util.isJava9OrAbove) {
                   val rt = config.home / Export.rtJarName
@@ -232,10 +238,10 @@ object MillMain {
                         targetsAndParams = targetsAndParams,
                         prevRunnerState = prevState.getOrElse(stateCache),
                         logger = logger,
-                        disableCallgraphInvalidation = config.disableCallgraphInvalidation.value,
+                        disableCallgraph = config.disableCallgraph.value,
                         needBuildSc = needBuildSc(config),
                         requestedMetaLevel = config.metaLevel,
-                        config.allowPositionalCommandArgs.value,
+                        config.allowPositional.value,
                         systemExit = systemExit
                       ).evaluate()
                     }
@@ -273,6 +279,26 @@ object MillMain {
         }
       }
     }
+  }
+
+  private[runner] def parseThreadCount(
+      threadCountRaw: Option[String],
+      availableCores: Int
+  ): Either[String, Int] = {
+    def err(detail: String) =
+      s"Invalid value \"${threadCountRaw.getOrElse("")}\" for flag -j/--jobs: $detail"
+    (threadCountRaw match {
+      case None => Right(availableCores)
+      case Some("0") => Right(availableCores)
+      case Some(s"${n}C") => n.toDoubleOption
+          .toRight(err("Failed to find a float number before \"C\"."))
+          .map(m => (m * availableCores).toInt)
+      case Some(s"C-${n}") => n.toIntOption
+          .toRight(err("Failed to find a int number after \"C-\"."))
+          .map(availableCores - _)
+      case Some(n) => n.toIntOption
+          .toRight(err("Failed to find a int number"))
+    }).map { x => if (x < 1) 1 else x }
   }
 
   def getLogger(
@@ -319,7 +345,7 @@ object MillMain {
 
   def checkMillVersionFromFile(projectDir: os.Path, stderr: PrintStream): Unit = {
     Seq(
-      projectDir / ".config" / "mill-version",
+      projectDir / ".config/mill-version",
       projectDir / ".mill-version"
     ).collectFirst {
       case f if os.exists(f) =>

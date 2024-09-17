@@ -50,7 +50,7 @@ object HelloJSWorldTests extends TestSuite {
       )
 
       object `test-utest` extends ScalaJSTests with TestModule.Utest {
-        override def sources = T.sources { millSourcePath / "src" / "utest" }
+        override def sources = T.sources { millSourcePath / "src/utest" }
         val utestVersion = if (ZincWorkerUtil.isScala3(crossScalaVersion)) "0.7.7" else "0.7.5"
         override def ivyDeps = Agg(
           ivy"com.lihaoyi::utest::$utestVersion"
@@ -58,7 +58,7 @@ object HelloJSWorldTests extends TestSuite {
       }
 
       object `test-scalatest` extends ScalaJSTests with TestModule.ScalaTest {
-        override def sources = T.sources { millSourcePath / "src" / "scalatest" }
+        override def sources = T.sources { millSourcePath / "src/scalatest" }
         override def ivyDeps = Agg(
           ivy"org.scalatest::scalatest::3.1.2"
         )
@@ -68,7 +68,6 @@ object HelloJSWorldTests extends TestSuite {
     object inherited extends ScalaJSModule {
       val (scala, scalaJS) = matrix.head
       def scalacOptions = Seq("-deprecation")
-      def mandatoryScalacOptions = Seq("-mandatory")
       def scalaOrganization = "org.example"
       def scalaVersion = scala
       def scalaJSVersion = scalaJS
@@ -291,9 +290,6 @@ object HelloJSWorldTests extends TestSuite {
       }
     test("test-scalacOptions") {
       checkInheritedTargets(_.scalacOptions, Seq("-deprecation"))
-    }
-    test("test-mandatoryScalacOptions") {
-      checkInheritedTargets(_.mandatoryScalacOptions, Seq("-mandatory"))
     }
     test("test-scalaOrganization") {
       checkInheritedTargets(_.scalaOrganization, "org.example")

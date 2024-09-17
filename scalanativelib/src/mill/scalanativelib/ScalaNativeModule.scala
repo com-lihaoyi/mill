@@ -24,6 +24,7 @@ import mill.scalanativelib.api._
 import mill.scalanativelib.worker.{ScalaNativeWorkerExternalModule, api => workerApi}
 import mill.T
 import mill.api.PathRef
+import mill.main.client.EnvVars
 
 trait ScalaNativeModule extends ScalaModule { outer =>
   def scalaNativeVersion: T[String]
@@ -344,7 +345,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
 trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
   override def resources: T[Seq[PathRef]] = super[ScalaNativeModule].resources
-  override def testLocal(args: String*) = T.command { test(args: _*) }
+  override def testLocal(args: String*) = T.command { test(args: _*)() }
   override protected def testTask(
       args: Task[Seq[String]],
       globSeletors: Task[Seq[String]]
@@ -352,7 +353,11 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
 
     val (close, framework) = scalaNativeBridge().getFramework(
       nativeLink().toIO,
-      forkEnv(),
+      forkEnv() ++
+        Map(
+          EnvVars.MILL_TEST_RESOURCE_FOLDER -> resources().map(_.path).mkString(";"),
+          EnvVars.MILL_WORKSPACE_ROOT -> T.workspace.toString
+        ),
       toWorkerApi(logLevel()),
       testFramework()
     )

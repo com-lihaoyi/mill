@@ -100,12 +100,10 @@ trait TestModule
   }
 
   /**
-   * Make this test module each individual test classes in parallel in separate JVMs
-   * and sandbox folders. Setting it to `false` will fall back to running all
-   * test classes in this module in a single JVM in a single sandbox folder
+   * How
    */
   def testForkGrouping: T[Seq[Seq[String]]] = T  {
-    discoveredTestClasses().sorted.grouped(1).toSeq
+    Seq(discoveredTestClasses())
   }
 
   /**
@@ -218,8 +216,10 @@ trait TestModule
         .map(_.path.toNIO.toUri.toURL)
         .mkString(",")
 
-      val resourceEnv =
-        Map(EnvVars.MILL_TEST_RESOURCE_FOLDER -> resources().map(_.path).mkString(";"))
+      val resourceEnv = Map(
+        EnvVars.MILL_TEST_RESOURCE_FOLDER -> resources().map(_.path).mkString(";"),
+        EnvVars.MILL_WORKSPACE_ROOT -> T.workspace.toString
+      )
 
       def runTestSubprocess(selectors2: Seq[String], base: os.Path) = {
         val outputPath = base / "out.json"
@@ -265,7 +265,10 @@ trait TestModule
           implicit val ec = T.ctx.executionContext
           val futures =
             for ((testClassList, i) <- multipleTestClassLists.zipWithIndex) yield Future {
-              val groupLabel = s"group-$i"
+              val groupLabel = testClassList match{
+                case Seq(single) => single
+                case multiple => s"group-$i"
+              }
               (groupLabel, runTestSubprocess(testClassList, T.dest / groupLabel))
             }
 

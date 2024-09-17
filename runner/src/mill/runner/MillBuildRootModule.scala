@@ -23,7 +23,7 @@ import scala.util.Try
  * calls within the scripts.
  */
 @internal
-class MillBuildRootModule()(implicit
+abstract class MillBuildRootModule()(implicit
     baseModuleInfo: RootModule.Info,
     millBuildRootModuleInfo: MillBuildRootModule.Info
 ) extends RootModule() with ScalaModule {
@@ -170,9 +170,9 @@ class MillBuildRootModule()(implicit
         },
         logger = new mill.codesig.Logger(Option.when(debugEnabled)(T.dest / "current")),
         prevTransitiveCallGraphHashesOpt = () =>
-          Option.when(os.exists(T.dest / "previous" / "result.json"))(
+          Option.when(os.exists(T.dest / "previous/result.json"))(
             upickle.default.read[Map[String, Int]](
-              os.read.stream(T.dest / "previous" / "result.json")
+              os.read.stream(T.dest / "previous/result.json")
             )
           )
       )
@@ -180,7 +180,7 @@ class MillBuildRootModule()(implicit
     val result = codesig.transitiveCallGraphHashes
     if (debugEnabled) {
       os.write(
-        T.dest / "current" / "result.json",
+        T.dest / "current/result.json",
         upickle.default.stream(
           SortedMap.from(codesig.transitiveCallGraphHashes0.map { case (k, v) => (k.toString, v) }),
           indent = 4
@@ -274,8 +274,7 @@ object MillBuildRootModule {
         )
       ) {
 
-    override lazy val millDiscover: Discover[this.type] =
-      baseModuleInfo.discover.asInstanceOf[Discover[this.type]]
+    override lazy val millDiscover: Discover = baseModuleInfo.discover
   }
 
   case class Info(
@@ -295,16 +294,19 @@ object MillBuildRootModule {
       enclosingClasspath: Seq[String],
       projectRoot: String,
       topLevelProjectRoot: String,
-      discover: Discover[_]
+      segments: Seq[String]
   ) {
-    implicit val millBuildRootModuleInfo: MillBuildRootModule.Info = MillBuildRootModule.Info(
+    implicit lazy val millBuildRootModuleInfo: MillBuildRootModule.Info = MillBuildRootModule.Info(
       enclosingClasspath.map(os.Path(_)),
       os.Path(projectRoot),
       os.Path(topLevelProjectRoot)
     )
-    implicit val millBaseModuleInfo: RootModule.Info = RootModule.Info(
+    implicit lazy val millBaseModuleInfo: RootModule.Info = RootModule.Info(
       millBuildRootModuleInfo.projectRoot,
-      discover
+      null
+    )
+    implicit lazy val subfolderInfo: RootModule.SubFolderInfo = RootModule.SubFolderInfo(
+      segments
     )
   }
 }

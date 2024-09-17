@@ -24,7 +24,8 @@ object Jvm extends CoursierSupport {
       envArgs: Map[String, String] = Map.empty,
       mainArgs: Seq[String] = Seq.empty,
       workingDir: os.Path = null,
-      streamOut: Boolean = true
+      streamOut: Boolean = true,
+      check: Boolean = true
   )(implicit ctx: Ctx): CommandResult = {
 
     val commandArgs =
@@ -36,7 +37,29 @@ object Jvm extends CoursierSupport {
     val workingDir1 = Option(workingDir).getOrElse(ctx.dest)
     os.makeDir.all(workingDir1)
 
-    os.proc(commandArgs).call(cwd = workingDir1, env = envArgs)
+    os.proc(commandArgs)
+      .call(
+        cwd = workingDir1,
+        env = envArgs,
+        check = check,
+        stdout = if (streamOut) os.Inherit else os.Pipe
+      )
+  }
+
+  /**
+   * Runs a JVM subprocess with the given configuration and returns a
+   * [[os.CommandResult]] with it's aggregated output and error streams
+   */
+  def callSubprocess(
+      mainClass: String,
+      classPath: Agg[os.Path],
+      jvmArgs: Seq[String],
+      envArgs: Map[String, String],
+      mainArgs: Seq[String],
+      workingDir: os.Path,
+      streamOut: Boolean
+  )(implicit ctx: Ctx): CommandResult = {
+    callSubprocess(mainClass, classPath, jvmArgs, envArgs, mainArgs, workingDir, streamOut, true)
   }
 
   /**

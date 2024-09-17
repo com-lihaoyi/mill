@@ -2,7 +2,6 @@
 :idprefix:
 :idseparator: -
 :link-github: https://github.com/com-lihaoyi/mill
-:link-gitter: https://gitter.im/lihaoyi/mill
 :link-current-doc-site: https://mill-build.org
 :link-mill-moduledefs: https://github.com/com-lihaoyi/mill-moduledefs
 :example-scala-version: 3.3.4
@@ -19,8 +18,7 @@ ifdef::env-github[]
 :warning-caption: :warning:
 endif::[]
 
-{link-github}/actions/workflows/actions.yml[image:{link-github}/actions/workflows/actions.yml/badge.svg[Build and Release]]
-{link-gitter}?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge[image:https://badges.gitter.im/Join%20Chat.svg[Gitter Chat]]
+{link-github}/actions/workflows/run-tests.yml[image:{link-github}/actions/workflows/run-tests.yml/badge.svg[Build and Release]]
 https://index.scala-lang.org/com-lihaoyi/mill/mill-main[image:https://index.scala-lang.org/com-lihaoyi/mill/mill-main/latest.svg[Mill]]
 https://www.patreon.com/lihaoyi[image:https://img.shields.io/badge/patreon-sponsor-ff69b4.svg[Patreon]]
 
@@ -70,12 +68,11 @@ To begin, you just need a JVM installed, and the
 
 == IntelliJ Setup
 
-If you are using IntelliJ IDEA to edit Mill's Scala code, you can create the IntelliJ project files via:
+If you are using IntelliJ IDEA to edit Mill's Scala code, IntelliJ's built in BSP support should
+be sufficient to load the Mill project, but you need to set up the file association from
+`*.mill` as Scala source files manually in the following settings:
 
-[source,bash]
-----
-./mill -j 0 mill.idea.GenIdea/idea
-----
+* `Settings` / `Editor` / `File Types` / `Scala`, add the pattern `*.mill`
 
 == Manual & Automated Testing
 
@@ -301,31 +298,94 @@ endif::[]
 :link-milestone: {link-github}/milestone
 // find-replace-regex: https://github.com/com-lihaoyi/mill/pull/(\d*) -> {link-pr}/$1[#$1]
 
+[#0-12-0-RC2]
+=== 0.12.0-RC2 - 2024-09-16
 
-[#main]
-=== main branch
+Changes since 0.12.0-RC1
 
-The upcoming 0.12.0 release is intended to bundle together breaking changes we
-need to do that do not break binary compatibility. It is expected to be followed by 0.13.x,
-which will contain further changes that _do_ break binary compatibility. Due to binary 
-compatibility, Mill plugins published for Mill 0.11.x can continue to be used without updating 
-them. 
+* Support `exclude` attribute in `Dep` parser. You can give exclusions with `;exclude=org:name`
+  or `;exclude=org:*` or `;exclude=*:name` {link-pr}/3492[#3492]
 
-Despite being binary compatible, 0.12.0 is a major release, and it should be expected to take
-some work to upgrade to. The breaking changes are listed below, with instructions provided on 
-how to either disable the breaking change with a flag or adjust your code to accommodate it. 
+* Fix `ScalaModule#console` by properly inheriting streams {link-pr}/3500[#3500]
 
+* Adjust codegen to allow custom ``mainargs.TokensReader``s, and include a
+  `mainargs.TokensReader[os.Path]` by default for convenience {link-pr}/3504[#3504]
+
+* Update to https://github.com/com-lihaoyi/os-lib?tab=readme-ov-file#0-10-7[OS-Lib 0.10.7] to
+  allow concise multi-segment sub-paths; you can now write `os.pwd / "foo/bar/qux"` rather than
+  `os.pwd / "foo" / "bar" / "qux"`
+
+* Add `JavaModule.mandatoryJavacOptions`. Those are not propagated to the inner test
+  traits intentionally, since those options are typically configured by other means,
+  e.g. dedicated targets. {link-pr}/3503[#3503]
+
+* Add plugins to run Checkstyle and generate reports {link-pr}/3516[#3516]
+
+* Simplified ``PublishModule``'s publishing setup via  {link-pr}/3523[#3523]. You can now
+  run `mill mill.scalalib.PublishModule/` with the proper environment variables (below) and
+  it should do the right thing by default
+
+** Prefix all environment variables with `MILL_`:
+   `MILL_SONATYPE_USERNAME`, `MILL_SONATYPE_PASSWORD`,
+   `MILL_PGP_SECRET_BASE64`, `MILL_PGP_PASSPHRASE` to try and add some
+   rudimentary ownership and namespacing
+
+* Allow external modules to have a `defaultCommandName` {link-pr}/3545[#3545]. This has
+  been applied to `ScalafmtModule` and `PublishModule`, so you can
+  now autoformat your code via `mill mill.scalalib.ScalafmtModule/` and publish it via
+  `mill mill.scalalib.PublishModule/` without needing the `/reformatAll __.sources`
+  or `/publishAll __.publishArtifacts` suffix
+
+* Integrated Kotlin integration as a first partly module and add example documentation
+  {link-pr}/3514[#3514]. This is still pretty spartan, but we expect to flesh it out over time
+
+* Move `.mill.sc` alternate file extension to `.mill.scala` {link-pr}/3521[#3521]
+
+[#0-12-0-RC1]
+=== 0.12.0-RC1 - 2024-09-09
+
+The upcoming 0.12.0 release focuses on improving the scalability of Mill builds: in terms
+of performance, code organization, adherence to best practices, and community. RC1 is intended
+to give people a time to try out the major changes so that any issues can be resolved before the
+release of 0.12.0 final (targeting end-September 2024).
+
+Major changes:
+
+1. Mill now runs tasks parallel by default, rather than opt-in. As every computer is multicore these days, and
+   even laptops have 8-12 cores, Mill ensures you make the most of them when building your projects
+
+2. Mill now allows for https://mill-build.org/mill/Structuring_Large_Builds.html[Modularizing Large Builds]
+   into multiple `package.mill` files, to help support large codebases
+
+3. Mill now runs itself, tasks, and tests in https://mill-build.org/mill/Mill_Sandboxing.html[Sandbox Folders]
+   by default to mitigate the risk of filesystem-based race conditions due to parallelism
+
+4. Mill now provides official support for
+   https://mill-build.org/mill/Writing_Mill_Plugins.html[Writing Mill Plugins], with tested
+   workflows and an official testkit to help you write and publish your own Mill plugins for others
+   to use
+
+0.12.x is binary compatible with 0.11.x, and so Mill plugins published for Mill 0.11.x can
+continue to be used without updating them. Although binary compatible, Mill 0.12.x does
+have breaking changes listed below with instructions provided on how to either disable the
+breaking change with a flag or adjust your code to accommodate it.
 
 * *Breaking Changes*
 
+** Build file overhaul: Mill's build file management has been overhauled to better support 
+large projects. See https://mill-build.org/mill/Structuring_Large_Builds.html[Structuring Large Builds]
+for details
 
-** Build file overhaul: Mill now uses `.mill` as its file extension, with some semantic changes
+*** Mill now uses `.mill` as its file extension, with some semantic changes
 from the old `.sc` files to allow better IDE support. The `.sc` extension is still supported
 and its semantics are largely unchanged the ease the migration, but you should convert your Mill
 configs to `.mill` files to benefit from Mill's improved IDE experience going forward.
 
 *** The `build.sc` file has been renamed `build.mill` to prevent confusion with Ammonite/Scala-CLI scripts,
 and all associated `.sc` files have been renamed to `.mill`.
+
+**** Until IntelliJ-Scala adds support for `.mill` files built in, you can add it yourself via
+`Settings / Editor / File Types / Scala` and add the pattern `*.mill`
 
 *** All `.mill` files must have a `package` declaration,
 with `package build` for `.mill` files in the root folder and `package build.foo.bar` for `.mill` files in `foo/bar/`.
@@ -352,7 +412,7 @@ refer to parent package is no longer supported, for consistency with other progr
 current behavior.
 
 ** ``RootModule``s can only be named `package`, e.g. `object foo extends RootModule` must now be
-named ``object `package` extends RootModule`.
+named ``object `package` extends RootModule``.
 
 *** If you have an existing `RootModule`, you need to rename it ``object `package` extends RootModule``
 
@@ -363,7 +423,8 @@ which always run serially at the end {link-pr}/3265[#3265]
 
 ** Mill uses empty sandbox folders as the working directory for running its own code and
 {link-pr}/3367[#3367] and test suites {link-pr}/3347[#3347], to avoid accidental interference
-between tasks and tests due to parallelism
+between tasks and tests due to parallelism. See https://mill-build.org/mill/Mill_Sandboxing.html[Mill Sandboxing] 
+for details
 
 *** This can be disabled by adding `def testSandboxWorkingDir = false` in your test module
 
@@ -375,21 +436,21 @@ between tasks and tests due to parallelism
   on individual parameters
 
 ** Dropped support for Java 8, Scala 2.11.x/3.1.x, and Scala-Native 0.4.x, following suit with the rest of the 
-com-lihaoyi ecosystem. We now expect a minimum of Java 8, Scala 2.12.x/3.2.x, and Scala-Native 0.5.x
+com-lihaoyi ecosystem. We now expect a minimum of Java 11, Scala 2.12.x/3.2.x, and Scala-Native 0.5.x
 
 ** `--disable-callgraph-invalidation` is no longer supported. The flag is still accepted but is
 now a no-op.
 
-* Other Changes
+* *Other Changes*
 
 ** Overhaul the Mill client-server protocol to improve robustness
 {link-pr}/3363[#3363] {link-pr}/3366[#3366] {link-pr}/3368[#3368] {link-pr}/3370[#3370]
 
-** Mill now publishes unit, integration, and example test fixtures for writing plugins as `mill-testkit`
+** Mill now has explicitly supported workflows for third-party plugin authors, and 
+publishes unit, integration, and example test fixtures for writing plugins as `mill-testkit`
 {link-pr}/3398[#3398] for downstream plugin authors to use in testing their own Mill extensions.
 
-*** See the documentation for
-https://mill-build.org/mill/Writing_Mill_Plugins.html[Writing Mill Plugins] for more details.
+*** See https://mill-build.org/mill/Writing_Mill_Plugins.html[Writing Mill Plugins] for more details.
 
 *** `mill-testkit` is experimental and does not provide the same stability or binary-compatibility
 guarantees as the rest of Mill. Nevertheless, if you are writing Mill plugins, please try it out
@@ -408,6 +469,13 @@ on large projects {link-pr}/3388[#3388]
 prefixed with `show` and no longer need a separate `graphviz`/`dot` install on Mac-OSX
 {link-pr}/3438[#3438]
 
+* *Example Upgrade PRs*
+
+** The following PRs are example upgrades of Mill from 0.11.x to 0.12.0-RC1 for various projects in the `com.lihaoyi` ecosystem. 
+
+*** Trivial upgrades that just needed to bump a version: https://github.com/com-lihaoyi/geny/pull/87 , https://github.com/com-lihaoyi/sourcecode/pull/175, https://github.com/com-lihaoyi/fansi/pull/107, https://github.com/com-lihaoyi/PPrint/pull/141, https://github.com/com-lihaoyi/mainargs/pull/159/files, https://github.com/com-lihaoyi/fastparse/pull/319, https://github.com/com-lihaoyi/scalatags/pull/284
+
+*** Less trivial upgrades, needing to make use of `MILL_TEST_RESOURCE_FOLDER` or other explicit path references to be compatible with test sandboxing: https://github.com/com-lihaoyi/requests-scala/pull/174, https://github.com/com-lihaoyi/upickle/pull/627, https://github.com/com-lihaoyi/os-lib/pull/300, https://github.com/com-lihaoyi/scalasql/pull/30
 
 [#0-11-12]
 === 0.11.12 - 2024-08-20
