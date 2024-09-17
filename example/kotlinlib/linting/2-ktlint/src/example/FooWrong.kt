@@ -1,11 +1,12 @@
 package example;
 
-class foo {
+class FooWrong {
 
     fun someFun(one: String,
                 two: String) = Unit
 
     companion object {
-        const val LINE = "veryyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyylongline"
+        const val LINE = "veryyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"        +
+                "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyylongline"
     }
 }

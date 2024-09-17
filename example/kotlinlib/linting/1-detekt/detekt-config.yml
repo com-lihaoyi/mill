@@ -1,3 +1,4 @@
+# taken from https://github.com/detekt/detekt/blob/v1.23.7/detekt-core/src/main/resources/default-detekt-config.yml
 build:
   maxIssues: 0
   excludeCorrectable: false
