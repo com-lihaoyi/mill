@@ -24,7 +24,7 @@ object foo extends MyModule {
 
   def generatedSources = Task {
     os.write(
-      T.dest / "Version.java",
+      Task.dest / "Version.java",
       s"""
          |package foo;
          |public class Version {
@@ -34,7 +34,7 @@ object foo extends MyModule {
          |}
       """.stripMargin
     )
-    Seq(PathRef(T.dest))
+    Seq(PathRef(Task.dest))
   }
 }
 

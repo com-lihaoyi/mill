@@ -10,7 +10,7 @@ trait HelloWorldModule extends scalalib.ScalaModule {
   object test extends ScalaTests with TestModule.Utest
 
   override def generatedSources = Task {
-    Seq(PathRef(T.dest / "classes"))
+    Seq(PathRef(Task.dest / "classes"))
   }
 
   object subScala3 extends scalalib.ScalaModule {
@@ -18,7 +18,7 @@ trait HelloWorldModule extends scalalib.ScalaModule {
   }
 
   def ideaJavaModuleFacets(ideaConfigVersion: Int): Task[Seq[JavaFacet]] =
-    T.task {
+    Task.task {
       ideaConfigVersion match {
         case 4 =>
           Seq(
@@ -46,7 +46,7 @@ trait HelloWorldModule extends scalalib.ScalaModule {
 
   override def ideaConfigFiles(
       ideaConfigVersion: Int
-  ): Task[Seq[IdeaConfigFile]] = T.task {
+  ): Task[Seq[IdeaConfigFile]] = Task.task {
     ideaConfigVersion match {
       case 4 =>
         Seq(

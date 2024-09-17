@@ -12,7 +12,7 @@ object foo extends ScalaModule {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
     def testFramework = "utest.runner.Framework"
 
-    def otherFiles = T.source(millSourcePath / "other-files")
+    def otherFiles = Task.source(millSourcePath / "other-files")
 
     def forkEnv = super.forkEnv() ++ Map(
       "OTHER_FILES_FOLDER" -> otherFiles().path.toString
@@ -48,7 +48,7 @@ object foo extends ScalaModule {
 //   packaged for deployment via `.assembly`
 //
 // * Apart from `resources/`, you can provide additional folders to your test suite
-//   by defining a `T.source` (`otherFiles` above) and passing it to `forkEnv`. This
+//   by defining a `Task.source` (`otherFiles` above) and passing it to `forkEnv`. This
 //   provide the folder path as an environment variable that the test can make use of
 //
 // Example application code demonstrating the techniques above can be seen below:

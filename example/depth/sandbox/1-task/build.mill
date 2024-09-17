@@ -5,17 +5,17 @@
 // the filesystem operations of other tasks that may be occurring in parallel.
 //
 //
-// === `T.dest`
-// The standard way of working with a task's `.dest/` folder is through the `T.dest`
+// === `Task.dest`
+// The standard way of working with a task's `.dest/` folder is through the `Task.dest`
 // property. This is available within any task, and gives you access to the
 // `out/<module-names>/<task-name>.dest/` folder to use. The `.dest/` folder for
-// each task is lazily initialized when `T.dest` is referenced and used:
+// each task is lazily initialized when `Task.dest` is referenced and used:
 
 package build
 import mill._
 
 object foo extends Module{
-  def tDestTask = Task { println(T.dest.toString) }
+  def tDestTask = Task { println(Task.dest.toString) }
 }
 
 /** Usage
@@ -40,7 +40,7 @@ def osPwdTask = Task { println(os.pwd.toString) }
 // its `os.getcwd()`, which is our `osProcTask.dest/` sandbox folder:
 
 def osProcTask = Task {
-  println(os.call(("python3", "-c", "import os; print(os.getcwd())"), cwd = T.dest).out.trim())
+  println(os.call(("python3", "-c", "import os; print(os.getcwd())"), cwd = Task.dest).out.trim())
 }
 
 /** Usage

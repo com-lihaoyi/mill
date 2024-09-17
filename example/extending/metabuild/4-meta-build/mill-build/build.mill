@@ -7,7 +7,7 @@ object `package` extends MillBuildRootModule{
 
   def generatedSources = Task {
     os.write(
-      T.dest / "DepVersions.scala",
+      Task.dest / "DepVersions.scala",
       s"""
          |package millbuild
          |object DepVersions{
@@ -15,6 +15,6 @@ object `package` extends MillBuildRootModule{
          |}
       """.stripMargin
     )
-    super.generatedSources() ++ Seq(PathRef(T.dest))
+    super.generatedSources() ++ Seq(PathRef(Task.dest))
   }
 }

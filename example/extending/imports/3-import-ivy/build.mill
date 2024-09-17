@@ -7,9 +7,9 @@ object `package` extends RootModule with ScalaModule {
 
   def ivyDeps = Agg(ivy"com.lihaoyi::os-lib:0.10.7")
   def htmlSnippet = T{ div(h1("hello"), p("world")).toString }
-  def resources = T.sources{
-    os.write(T.dest / "snippet.txt", htmlSnippet())
-    super.resources() ++ Seq(PathRef(T.dest))
+  def resources = Task.sources{
+    os.write(Task.dest / "snippet.txt", htmlSnippet())
+    super.resources() ++ Seq(PathRef(Task.dest))
   }
 }
 

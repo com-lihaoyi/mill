@@ -8,7 +8,7 @@ trait HelloBspModule extends ScalaModule {
   object test extends ScalaTests with TestModule.Utest
 
   override def generatedSources = Task {
-    Seq(PathRef(T.ctx().dest / "classes"))
+    Seq(PathRef(Task.ctx().dest / "classes"))
   }
 }
 

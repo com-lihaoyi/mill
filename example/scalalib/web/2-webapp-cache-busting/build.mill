@@ -15,14 +15,14 @@ object `package` extends RootModule with ScalaModule {
       resourceRoot <- super.resources()
       path <- os.walk(resourceRoot.path)
       if os.isFile(path)
-    } yield hashFile(path, resourceRoot.path, T.dest)
+    } yield hashFile(path, resourceRoot.path, Task.dest)
 
     os.write(
-      T.dest / "hashed-resource-mapping.json",
+      Task.dest / "hashed-resource-mapping.json",
       upickle.default.write(hashMapping.toMap, indent = 4)
     )
 
-    Seq(PathRef(T.dest))
+    Seq(PathRef(Task.dest))
   }
 
   object test extends ScalaTests {
