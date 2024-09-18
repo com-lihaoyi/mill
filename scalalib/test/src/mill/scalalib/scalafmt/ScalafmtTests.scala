@@ -3,8 +3,10 @@ package mill.scalalib.scalafmt
 import mill._
 import mill.main.Tasks
 import mill.scalalib.ScalaModule
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import utest._
+import utest.framework.TestPath
 
 object ScalafmtTests extends TestSuite {
 
