@@ -1,4 +1,6 @@
 package build
+import $packages._
+
 import mill._, scalalib._
 
 trait MyModule extends ScalaModule {
@@ -16,6 +18,7 @@ trait MyModule extends ScalaModule {
 // build logic since each `build.mill` or `package.mill` file can be compiled independently when
 // it is modified without re-compiling all the others.
 //
+// Usage of sub-folder `package.mill` files is enabled by the magic import `import $packages._`
 //
 // In this example, the root `build.mill` only contains the `trait MyModule`, but it is
 // `foo/package.mill` and `bar/qux/package.mill` that define modules using it. The modules
