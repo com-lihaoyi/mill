@@ -42,7 +42,7 @@ trait PalantirJavaFormatModule extends JavaModule {
   }
 
   /**
-   * Classpath for running Palantir.
+   * Classpath for running Palantir Java Format.
    */
   def palantirjavaformatClasspath: T[Loose.Agg[PathRef]] = T {
     defaultResolver().resolveDeps(
@@ -51,7 +51,7 @@ trait PalantirJavaFormatModule extends JavaModule {
   }
 
   /**
-   * JVM arguments for running Palantir. Defaults to values prescribed in
+   * JVM arguments for running Palantir Java Format. Defaults to values prescribed in
    * "[[https://github.com/palantir/palantir-java-format/issues/548 Broken on Java 16]]".
    */
   def palantirjavaformatJvmArgs: T[Seq[String]] = T {
@@ -70,14 +70,14 @@ trait PalantirJavaFormatModule extends JavaModule {
   }
 
   /**
-   * Path to options file for Palantir. Defaults to [[millSourcePath]] `/` `palantirjavaformat.options`.
+   * Path to options file for Palantir Java Format CLI. Defaults to `millSourcePath` `/` `palantirjavaformat.options`.
    */
-  def palantirjavaformatOptions: T[PathRef] = T.source {
+  def palantirjavaformatOptions: T[PathRef] = T.source(
     millSourcePath / "palantirjavaformat.options"
-  }
+  )
 
   /**
-   * Palantir version. Defaults to `2.50.0`.
+   * Palantir Java Format version. Defaults to `2.50.0`.
    */
   def palantirjavaformatVersion: T[String] = T {
     "2.50.0"
@@ -177,4 +177,11 @@ object PalantirJavaFormatModule extends ExternalModule with PalantirJavaFormatMo
 
     args.result()
   }
+
+  /**
+   * Path to options file for Palantir Java Format CLI at `T.workspace` `/` `palantirjavaformat.options`.
+   */
+  override def palantirjavaformatOptions: T[PathRef] = T.source(
+    T.workspace / "palantirjavaformat.options"
+  )
 }

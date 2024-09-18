@@ -19,6 +19,10 @@ object PalantirJavaFormatModuleTest extends TestSuite {
     test("javafmt") {
       assert(
         checkState(
+          afterFormat(modules / "google"),
+          expected / "google"
+        ),
+        checkState(
           afterFormat(modules / "palantir"),
           expected / "palantir"
         ),
@@ -36,13 +40,17 @@ object PalantirJavaFormatModuleTest extends TestSuite {
     test("formatAll") {
       assert(
         checkState(
+          afterFormatAll(modules / "google"),
+          expected / "google"
+        ),
+        checkState(
           afterFormatAll(modules / "palantir"),
           expected / "palantir"
         )
       )
 
       intercept[RuntimeException] {
-        afterFormatAll(modules / "palantir", check = true)
+        afterFormatAll(modules / "google", check = true)
       }
     }
   }
@@ -51,11 +59,11 @@ object PalantirJavaFormatModuleTest extends TestSuite {
     val expectedFiles = walkFiles(expectedRoot)
     actualFiles.length == expectedFiles.length &&
     actualFiles.iterator.zip(expectedFiles.iterator).forall {
-      case (actual, expected) =>
-        val left = os.read(actual)
-        val right = os.read(expected)
-        if (left != right) println(left)
-        left == right
+      case (actualFile, expectedFile) =>
+        val actual = os.read(actualFile)
+        val expected = os.read(expectedFile)
+        if (actual != expected) println(actualFile)
+        actual == expected
     }
   }
 

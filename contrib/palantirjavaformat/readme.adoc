@@ -47,35 +47,12 @@ Alternatively, to use Aosp style,
 
 If no options file is present, the https://github.com/palantir/palantir-java-format/blob/dae9be4b84e2bd4d7ea346c6374fda47eee7118f/palantir-java-format/src/main/java/com/palantir/javaformat/java/Main.java#L99[default style] (Google) is used.
 
-To share options across modules, adapt the following example.
-[source,scala]
-----
-import mill._
-import mill.contrib.palantirjavaformat.PalantirJavaFormatModule
-import mill.scalalib._
-
-object foo extends Module {
-
-  object bar extends MyModule
-  object baz extends Module {
-    object fizz extends MyModule
-    object buzz extends MyModule
-  }
-
-  trait MyModule extends JavaModule with PalantirJavaFormatModule {
-
-    override def palantirjavaformatOptions = T {
-      api.PathRef(T.workspace / "palantirjavaformat.options")
-    }
-  }
-}
-----
-
 === Limitations
-The following options are used by the plugin and should not be specified in the options file:
+- The following options are used by the plugin and should not be specified in the options file:
 [source,txt]
 ----
 --dry-run
 --set-exit-if-changed
 --replace
 ----
+- When using `javafmtAll`, the options, if any, must be specified in `T.workspace` `/` `palantirjavaformat.options`.
