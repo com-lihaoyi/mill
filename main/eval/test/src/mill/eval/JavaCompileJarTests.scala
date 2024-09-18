@@ -2,7 +2,7 @@ package mill.eval
 
 import mill.util.{Jvm, TestUtil}
 import mill.api.Ctx.Dest
-import mill.T
+import mill.{T, Task}
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import mill.api.Strict.Agg
@@ -35,16 +35,17 @@ object JavaCompileJarTests extends TestSuite {
         //           resourceRoot ---->  jar
         //                                ^
         //           readmePath---------- |
-        def readme = T.source { readmePath }
-        def sourceRoot = T.sources { sourceRootPath }
-        def resourceRoot = T.sources { resourceRootPath }
-        def allSources = T { sourceRoot().flatMap(p => os.walk(p.path)).map(mill.api.PathRef(_)) }
-        def classFiles = T { compileAll(allSources()) }
-        def jar = T {
+        def readme = Task.Source { readmePath }
+        def sourceRoot = Task.Sources { sourceRootPath }
+        def resourceRoot = Task.Sources { resourceRootPath }
+        def allSources =
+          Task { sourceRoot().flatMap(p => os.walk(p.path)).map(mill.api.PathRef(_)) }
+        def classFiles = Task { compileAll(allSources()) }
+        def jar = Task {
           Jvm.createJar(Loose.Agg(classFiles().path, readme().path) ++ resourceRoot().map(_.path))
         }
         // Test createJar() with optional file filter.
-        def filterJar(fileFilter: (os.Path, os.RelPath) => Boolean) = T {
+        def filterJar(fileFilter: (os.Path, os.RelPath) => Boolean) = Task {
           Jvm.createJar(
             Loose.Agg(classFiles().path, readme().path) ++ resourceRoot().map(_.path),
             JarManifest.MillDefault,
@@ -52,7 +53,7 @@ object JavaCompileJarTests extends TestSuite {
           )
         }
 
-        def run(mainClsName: String) = T.command {
+        def run(mainClsName: String) = Task.Command {
           os.proc("java", "-Duser.language=en", "-cp", classFiles().path, mainClsName)
             .call(stderr = os.Pipe)
         }
@@ -97,7 +98,7 @@ object JavaCompileJarTests extends TestSuite {
       append(resourceRootPath / "hello.txt", " ")
       check(targets = Agg(jar), expected = Agg(jar))
 
-      // Touching the readme.md, defined as `T.source`, forces a jar rebuid
+      // Touching the readme.md, defined as `Task.Source`, forces a jar rebuid
       append(readmePath, " ")
       check(targets = Agg(jar), expected = Agg(jar))
 

@@ -5,13 +5,13 @@ import mill._
 
 object foo extends Cross[FooModule]("a", "b")
 trait FooModule extends Cross.Module[String] {
-  def param1 = T { "Param Value: " + crossValue }
+  def param1 = Task { "Param Value: " + crossValue }
 }
 
 object foo2 extends Cross[FooModule2](("a", 1), ("b", 2))
 trait FooModule2 extends Cross.Module2[String, Int] {
-  def param1 = T { "Param Value: " + crossValue }
-  def param2 = T { "Param Value: " + crossValue2 }
+  def param1 = Task { "Param Value: " + crossValue }
+  def param2 = Task { "Param Value: " + crossValue2 }
 }
 
 object foo3 extends Cross[FooModule3](("a", 1, true), ("b", 2, false))

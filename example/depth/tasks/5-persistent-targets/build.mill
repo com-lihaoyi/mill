@@ -1,27 +1,27 @@
-// Persistent targets defined using `T.persistent` are similar to normal
-// ``Target``s, except their `T.dest` folder is not cleared before every
+// Persistent targets defined using `Task.Persistent` are similar to normal
+// ``Target``s, except their `Task.dest` folder is not cleared before every
 // evaluation. This makes them useful for caching things on disk in a more
 // fine-grained manner than Mill's own Target-level caching.
 //
-// Below is a semi-realistic example of using a `T.persistent` target:
+// Below is a semi-realistic example of using a `Task.Persistent` target:
 package build
 import mill._, scalalib._
 import java.util.Arrays
 import java.io.ByteArrayOutputStream
 import java.util.zip.GZIPOutputStream
 
-def data = T.source(millSourcePath / "data")
+def data = Task.Source(millSourcePath / "data")
 
-def compressedData = T.persistent{
+def compressedData = Task.Persistent{
   println("Evaluating compressedData")
-  os.makeDir.all(T.dest / "cache")
-  os.remove.all(T.dest / "compressed")
+  os.makeDir.all(Task.dest / "cache")
+  os.remove.all(Task.dest / "compressed")
 
   for(p <- os.list(data().path)){
-    val compressedPath = T.dest / "compressed" / s"${p.last}.gz"
+    val compressedPath = Task.dest / "compressed" / s"${p.last}.gz"
     val bytes = os.read.bytes(p)
     val hash = Arrays.hashCode(bytes)
-    val cachedPath = T.dest / "cache" / hash.toHexString
+    val cachedPath = Task.dest / "cache" / hash.toHexString
     if (!os.exists(cachedPath)) {
       println("Compressing: " + p.last)
       os.write(cachedPath, compressBytes(bytes))
@@ -31,7 +31,7 @@ def compressedData = T.persistent{
     os.copy(cachedPath, compressedPath, createFolders = true)
   }
 
-  os.list(T.dest / "compressed").map(PathRef(_))
+  os.list(Task.dest / "compressed").map(PathRef(_))
 }
 
 def compressBytes(input: Array[Byte]) = {
@@ -51,7 +51,7 @@ def compressBytes(input: Array[Byte]) = {
 // Since persistent targets have long-lived state on disk that lives beyond a
 // single evaluation, this raises the possibility of the disk contents getting
 // into a bad state and causing all future evaluations to fail. It is left up
-// to the person implementing the `T.persistent` to ensure their implementation
+// to the person implementing the `Task.Persistent` to ensure their implementation
 // is eventually consistent. You can also use `mill clean` to manually purge
 // the disk contents to start fresh.
 

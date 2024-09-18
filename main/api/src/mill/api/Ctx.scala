@@ -63,7 +63,7 @@ object Ctx {
 
     /**
      * `T.env` is the environment variable map passed to the Mill command when
-     * it is run; typically used inside a `T.input` to ensure any changes in
+     * it is run; typically used inside a `Task.Input` to ensure any changes in
      * the env vars are properly detected.
      *
      * Note that you should not use `sys.env`, as Mill's long-lived server

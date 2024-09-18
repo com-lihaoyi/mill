@@ -1,6 +1,6 @@
 package mill.scalalib
 
-import mill.{Agg, T}
+import mill.{Agg, T, Task}
 
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
@@ -12,7 +12,7 @@ object TestClassLoaderTests extends TestSuite {
     def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
 
     object test extends ScalaTests with TestModule.Utest {
-      override def ivyDeps = T {
+      override def ivyDeps = Task {
         super.ivyDeps() ++ Agg(
           ivy"com.lihaoyi::utest:${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}"
         )

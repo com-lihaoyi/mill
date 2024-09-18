@@ -25,7 +25,7 @@ object HelloWorldTests extends TestSuite {
 
   trait HelloWorldModule extends scalalib.ScalaModule {
     def scalaVersion = scala212Version
-    override def semanticDbVersion: T[String] = T {
+    override def semanticDbVersion: T[String] = Task {
       // The latest semanticDB release for Scala 2.12.6
       "4.1.9"
     }
@@ -76,7 +76,7 @@ object HelloWorldTests extends TestSuite {
 
   object HelloWorldScalaOverride extends TestBaseModule {
     object core extends HelloWorldModule {
-      override def scalaVersion: Target[String] = scala213Version
+      override def scalaVersion: T[String] = scala213Version
     }
   }
 

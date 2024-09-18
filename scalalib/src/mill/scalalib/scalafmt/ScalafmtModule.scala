@@ -10,7 +10,7 @@ import mill.main.Tasks
 
 trait ScalafmtModule extends JavaModule {
 
-  def reformat(): Command[Unit] = T.command {
+  def reformat(): Command[Unit] = Task.Command {
     ScalafmtWorkerModule
       .worker()
       .reformat(
@@ -19,7 +19,7 @@ trait ScalafmtModule extends JavaModule {
       )
   }
 
-  def checkFormat(): Command[Unit] = T.command {
+  def checkFormat(): Command[Unit] = Task.Command {
     ScalafmtWorkerModule
       .worker()
       .checkFormat(
@@ -28,13 +28,13 @@ trait ScalafmtModule extends JavaModule {
       )
   }
 
-  def scalafmtConfig: T[Seq[PathRef]] = T.sources(
+  def scalafmtConfig: T[Seq[PathRef]] = Task.Sources(
     T.workspace / ".scalafmt.conf",
     os.pwd / ".scalafmt.conf"
   )
 
   // TODO: Do we want provide some defaults or write a default file?
-  private[ScalafmtModule] def resolvedScalafmtConfig: Task[PathRef] = T.task {
+  private[ScalafmtModule] def resolvedScalafmtConfig: Task[PathRef] = Task.Anon {
     val locs = scalafmtConfig()
     locs.find(p => os.exists(p.path)) match {
       case None => Result.Failure(
@@ -76,7 +76,7 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule with TaskModule
 
   def reformatAll(@arg(positional = true) sources: Tasks[Seq[PathRef]] =
     Tasks.resolveMainDefault("__.sources")) =
-    T.command {
+    Task.Command {
       val files = T.sequence(sources.value)().flatMap(filesToFormat)
       ScalafmtWorkerModule
         .worker()
@@ -88,7 +88,7 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule with TaskModule
 
   def checkFormatAll(@arg(positional = true) sources: Tasks[Seq[PathRef]] =
     Tasks.resolveMainDefault("__.sources")): Command[Unit] =
-    T.command {
+    Task.Command {
       val files = T.sequence(sources.value)().flatMap(filesToFormat)
       ScalafmtWorkerModule
         .worker()

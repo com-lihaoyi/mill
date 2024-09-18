@@ -1,7 +1,7 @@
 package mill.contrib.errorprone
 
 import mill.api.PathRef
-import mill.{Agg, T}
+import mill.{Agg, T, Task}
 import mill.scalalib.{Dep, DepSyntax, JavaModule}
 
 import java.io.File
@@ -14,14 +14,14 @@ import java.io.File
 trait ErrorProneModule extends JavaModule {
 
   /** The `error-prone` version to use. Defaults to [[BuildInfo.errorProneVersion]]. */
-  def errorProneVersion: T[String] = T.input {
+  def errorProneVersion: T[String] = Task.Input {
     BuildInfo.errorProneVersion
   }
 
   /**
    * The dependencies of the `error-prone` compiler plugin.
    */
-  def errorProneDeps: T[Agg[Dep]] = T {
+  def errorProneDeps: T[Agg[Dep]] = Task {
     Agg(
       ivy"com.google.errorprone:error_prone_core:${errorProneVersion()}"
     )
@@ -30,14 +30,14 @@ trait ErrorProneModule extends JavaModule {
   /**
    * The classpath of the `error-prone` compiler plugin.
    */
-  def errorProneClasspath: T[Agg[PathRef]] = T {
+  def errorProneClasspath: T[Agg[PathRef]] = Task {
     defaultResolver().resolveDeps(errorProneDeps())
   }
 
   /**
    * Options used to enable and configure the `eror-prone` plugin in the Java compiler.
    */
-  def errorProneJavacEnableOptions: T[Seq[String]] = T {
+  def errorProneJavacEnableOptions: T[Seq[String]] = Task {
     val processorPath = errorProneClasspath().map(_.path).mkString(File.pathSeparator)
     val enableOpts = Seq(
       "-XDcompilePolicy=simple",
@@ -65,12 +65,12 @@ trait ErrorProneModule extends JavaModule {
    *
    * Those are documented as "flags" at https://errorprone.info/docs/flags
    */
-  def errorProneOptions: T[Seq[String]] = T { Seq.empty[String] }
+  def errorProneOptions: T[Seq[String]] = Task { Seq.empty[String] }
 
   /**
    * Appends the [[errorProneJavacEnableOptions]] to the Java compiler options.
    */
-  override def mandatoryJavacOptions: T[Seq[String]] = T {
+  override def mandatoryJavacOptions: T[Seq[String]] = Task {
     super.mandatoryJavacOptions() ++ errorProneJavacEnableOptions()
   }
 }

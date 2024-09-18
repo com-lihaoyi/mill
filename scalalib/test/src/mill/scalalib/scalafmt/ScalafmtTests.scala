@@ -20,7 +20,7 @@ object ScalafmtTests extends TestSuite {
     object core extends ScalaModule with ScalafmtModule with BuildSrcModule {
       def scalaVersion: T[String] = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
 
-      def buildSources: T[Seq[PathRef]] = T.sources {
+      def buildSources: T[Seq[PathRef]] = Task.Sources {
         millSourcePath / "util.sc"
       }
 

@@ -19,7 +19,7 @@ object foo extends ScalaModule {
     ivy"com.lihaoyi::mainargs:0.6.2"
   )
 
-  def repositoriesTask = T.task {
+  def repositoriesTask = Task.Anon {
     super.repositoriesTask() ++ sonatypeReleases
   }
 }
@@ -51,7 +51,7 @@ object foo extends ScalaModule {
 //// SNIPPET:BUILD2
 
 object CustomZincWorkerModule extends ZincWorkerModule with CoursierModule {
-  def repositoriesTask = T.task { super.repositoriesTask() ++ sonatypeReleases }
+  def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }
 }
 
 object bar extends ScalaModule {
@@ -59,7 +59,7 @@ object bar extends ScalaModule {
   def zincWorker = ModuleRef(CustomZincWorkerModule)
   // ... rest of your build definitions
 
-  def repositoriesTask = T.task {super.repositoriesTask() ++ sonatypeReleases}
+  def repositoriesTask = Task.Anon {super.repositoriesTask() ++ sonatypeReleases}
 }
 
 //// SNIPPET:END
