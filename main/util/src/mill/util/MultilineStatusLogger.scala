@@ -13,7 +13,6 @@ class MultilineStatusLogger(
     override val debugEnabled: Boolean,
 ) extends ColorLogger {
   import MultilineStatusLogger._
-  AnsiNav(systemStreams0.err).saveCursor()
   val systemStreams = wrapSystemStreams(systemStreams0)
 
   val current = collection.mutable.SortedMap.empty[Int, Seq[Status]]
@@ -32,14 +31,9 @@ class MultilineStatusLogger(
       .toList
   }
   def currentHeight: Int = currentPrompt.length
-
+  var previousHeight: Int = currentHeight
   private def log0(s: String) = {
     systemStreams.err.println(s)
-  }
-
-  private def printClear(nav: AnsiNav, lines: Seq[String]) = {
-    for(line <- lines) nav.output.println(line)
-    nav.output.flush()
   }
 
   def info(s: String): Unit = synchronized { log0(s); systemStreams0.err.flush() }
@@ -49,11 +43,10 @@ class MultilineStatusLogger(
   def ticker(s: String): Unit = synchronized {
 
     val threadId = Thread.currentThread().getId.toInt
-
-    if (s.contains("<END>")) current(threadId) = current(threadId).init
-    else current(threadId) = current.getOrElse(threadId, Nil) :+ Status(System.currentTimeMillis(), s)
-
-    systemStreams.err.write(Array[Byte]())
+    writeAndUpdatePrompt(systemStreams0.err) {
+      if (s.contains("<END>")) current(threadId) = current(threadId).init
+      else current(threadId) = current.getOrElse(threadId, Nil) :+ Status(System.currentTimeMillis(), s)
+    }
   }
 
 
@@ -71,37 +64,29 @@ class MultilineStatusLogger(
     )
   }
 
+  def writeAndUpdatePrompt[T](wrapped: PrintStream)(t: => T): T = {
+    AnsiNav(wrapped).up(previousHeight)
+    AnsiNav(wrapped).left(9999)
+    AnsiNav(wrapped).clearScreen(0)
+    val res = t
+    for(line <- currentPrompt) wrapped.println(line)
+    previousHeight = currentHeight
+    wrapped.flush()
+    res
+  }
+
   class StateStream(wrapped: PrintStream) extends OutputStream {
 
-    def wrapWrite[T](t: => T): T = {
-      AnsiNav(wrapped).restoreCursor()
-      AnsiNav(wrapped).saveCursor()
-      AnsiNav(wrapped).down(1)
-      AnsiNav(wrapped).clearScreen(0)
-      AnsiNav(wrapped).restoreCursor()
-      val res = t
-      AnsiNav(wrapped).saveCursor()
-      AnsiNav(wrapped).down(1)
-      printClear(AnsiNav(wrapped), currentPrompt)
-      AnsiNav(wrapped).restoreCursor()
-      AnsiNav(wrapped).saveCursor()
-      flush()
-      res
-    }
-
     override def write(b: Array[Byte]): Unit = synchronized {
-      wrapWrite(write(b))
-      flush()
+      writeAndUpdatePrompt(wrapped)(write(b))
     }
 
     override def write(b: Array[Byte], off: Int, len: Int): Unit = synchronized {
-      wrapWrite(wrapped.write(b, off, len))
-      flush()
+      writeAndUpdatePrompt(wrapped)(wrapped.write(b, off, len))
     }
 
     override def write(b: Int): Unit = synchronized {
-      wrapWrite(wrapped.write(b))
-      flush()
+      writeAndUpdatePrompt(wrapped)(wrapped.write(b))
     }
 
     override def flush(): Unit = synchronized {
@@ -113,5 +98,3 @@ class MultilineStatusLogger(
 object MultilineStatusLogger {
   case class Status(startTimeMillis: Long, text: String)
 }
-
-

@@ -1,11 +1,9 @@
 package mill.util
 
-import java.io.{PrintStream, OutputStream, OutputStreamWriter, Writer}
+import java.io.PrintStream
 
 // Reference https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797
 case class AnsiNav(output: PrintStream) {
-  def saveCursor() = output.print("\u001b7")
-  def restoreCursor() = output.print("\u001b8")
   def control(n: Int, c: Char): Unit = output.print("\u001b[" + n + c)
 
   /**
