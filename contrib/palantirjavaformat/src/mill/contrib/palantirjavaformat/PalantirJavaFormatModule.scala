@@ -26,7 +26,7 @@ trait PalantirJavaFormatModule extends JavaModule {
   def javafmt(
       @mainargs.arg check: Boolean = false,
       sources: mainargs.Leftover[String]
-  ): Command[Unit] = T.command {
+  ): Command[Unit] = Task.Command {
 
     val _sources =
       if (sources.value.isEmpty) this.sources()
@@ -72,7 +72,7 @@ trait PalantirJavaFormatModule extends JavaModule {
   /**
    * Path to options file for Palantir Java Format CLI. Defaults to `millSourcePath` `/` `palantirjavaformat.options`.
    */
-  def palantirjavaformatOptions: T[PathRef] = T.source(
+  def palantirjavaformatOptions: T[PathRef] = Task.Source(
     millSourcePath / "palantirjavaformat.options"
   )
 
@@ -95,7 +95,7 @@ object PalantirJavaFormatModule extends ExternalModule with PalantirJavaFormatMo
   def formatAll(
       @mainargs.arg check: Boolean = false,
       @mainargs.arg(positional = true) sources: Tasks[Seq[PathRef]]
-  ): Command[Unit] = T.command {
+  ): Command[Unit] = Task.Command {
 
     val _sources = T.sequence(sources.value)().iterator.flatten
 
@@ -181,7 +181,7 @@ object PalantirJavaFormatModule extends ExternalModule with PalantirJavaFormatMo
   /**
    * Path to options file for Palantir Java Format CLI at `T.workspace` `/` `palantirjavaformat.options`.
    */
-  override def palantirjavaformatOptions: T[PathRef] = T.source(
+  override def palantirjavaformatOptions: T[PathRef] = Task.Source(
     T.workspace / "palantirjavaformat.options"
   )
 }
