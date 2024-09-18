@@ -160,8 +160,7 @@ object `package` extends RootModule {
 
   object buildinfo extends ContribModule {
     def compileModuleDeps = Seq(build.scalalib, build.scalajslib, build.scalanativelib)
-    def testModuleDeps =
-      super.testModuleDeps ++ Seq(build.scalalib, build.scalajslib, build.scalanativelib)
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib, build.scalajslib, build.scalanativelib)
   }
 
   object proguard extends ContribModule {
@@ -234,8 +233,7 @@ object `package` extends RootModule {
     def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib)
     def buildInfoPackageName = "mill.contrib.errorprone"
     def buildInfoObjectName = "BuildInfo"
-    def buildInfoMembers =
-      Seq(BuildInfo.Value("errorProneVersion", Deps.RuntimeDeps.errorProneCore.version))
+    def buildInfoMembers = Seq(BuildInfo.Value("errorProneVersion", Deps.RuntimeDeps.errorProneCore.version))
   }
 
   object checkstyle extends ContribModule {
