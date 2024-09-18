@@ -242,83 +242,83 @@ private[mill] trait GroupEvaluator {
         inputResults.forall(_.result.isInstanceOf[Result.Success[_]])
       }
 
-      val tickerPrefix = maybeTargetLabel.map { targetLabel =>
-        val prefix = s"[$counterMsg] $targetLabel "
-        if (logRun && enableTicker) logger.ticker(prefix)
-        prefix + "| "
+      val tickerPrefix = maybeTargetLabel.collect {
+        case targetLabel if logRun && enableTicker => s"$counterMsg $targetLabel "
       }
-
-      val multiLogger = new ProxyLogger(resolveLogger(paths.map(_.log), logger)) {
-        override def ticker(s: String): Unit = {
-          if (enableTicker) super.ticker(tickerPrefix.getOrElse("") + s)
-          else () // do nothing
-        }
-
-        override def rawOutputStream: PrintStream = logger.rawOutputStream
-      }
-
-      var usedDest = Option.empty[os.Path]
-      for (task <- nonEvaluatedTargets) {
-        newEvaluated.append(task)
-        val targetInputValues = task.inputs
-          .map { x => newResults.getOrElse(x, results(x).result) }
-          .collect { case Result.Success((v, _)) => v }
-
-        def makeDest() = this.synchronized {
-          paths match {
-            case Some(dest) =>
-              if (usedDest.isEmpty) os.makeDir.all(dest.dest)
-              usedDest = Some(dest.dest)
-              dest.dest
-
-            case None => throw new Exception("No `dest` folder available here")
+      logger.withTicker(tickerPrefix) {
+        val multiLogger = new ProxyLogger(resolveLogger(paths.map(_.log), logger)) {
+          override def ticker(s: String): Unit = {
+            if (enableTicker) super.ticker(tickerPrefix.getOrElse("") + s)
+            else () // do nothing
           }
+
+          override def rawOutputStream: PrintStream = logger.rawOutputStream
         }
 
-        val res = {
-          if (targetInputValues.length != task.inputs.length) Result.Skipped
-          else {
-            val args = new mill.api.Ctx(
-              args = targetInputValues.map(_.value).toIndexedSeq,
-              dest0 = () => makeDest(),
-              log = multiLogger,
-              home = home,
-              env = env,
-              reporter = reporter,
-              testReporter = testReporter,
-              workspace = workspace,
-              systemExit = systemExit
-            ) with mill.api.Ctx.Jobs {
-              override def jobs: Int = effectiveThreadCount
-            }
+        var usedDest = Option.empty[os.Path]
+        for (task <- nonEvaluatedTargets) {
+          newEvaluated.append(task)
+          val targetInputValues = task.inputs
+            .map { x => newResults.getOrElse(x, results(x).result) }
+            .collect { case Result.Success((v, _)) => v }
 
-            os.dynamicPwdFunction.withValue(() => makeDest()) {
-              mill.api.SystemStreams.withStreams(multiLogger.systemStreams) {
-                try task.evaluate(args).map(Val(_))
-                catch {
-                  case f: Result.Failing[Val] => f
-                  case NonFatal(e) =>
-                    Result.Exception(
-                      e,
-                      new OuterStack(new Exception().getStackTrace.toIndexedSeq)
-                    )
+          def makeDest() = this.synchronized {
+            paths match {
+              case Some(dest) =>
+                if (usedDest.isEmpty) os.makeDir.all(dest.dest)
+                usedDest = Some(dest.dest)
+                dest.dest
+
+              case None => throw new Exception("No `dest` folder available here")
+            }
+          }
+
+          val res = {
+            if (targetInputValues.length != task.inputs.length) Result.Skipped
+            else {
+              val args = new mill.api.Ctx(
+                args = targetInputValues.map(_.value).toIndexedSeq,
+                dest0 = () => makeDest(),
+                log = multiLogger,
+                home = home,
+                env = env,
+                reporter = reporter,
+                testReporter = testReporter,
+                workspace = workspace,
+                systemExit = systemExit
+              ) with mill.api.Ctx.Jobs {
+                override def jobs: Int = effectiveThreadCount
+              }
+
+              os.dynamicPwdFunction.withValue(() => makeDest()) {
+                mill.api.SystemStreams.withStreams(multiLogger.systemStreams) {
+                  try task.evaluate(args).map(Val(_))
+                  catch {
+                    case f: Result.Failing[Val] => f
+                    case NonFatal(e) =>
+                      Result.Exception(
+                        e,
+                        new OuterStack(new Exception().getStackTrace.toIndexedSeq)
+                      )
+                  }
                 }
               }
             }
           }
+
+          newResults(task) = for (v <- res) yield {
+            (
+              v,
+              if (task.isInstanceOf[Worker[_]]) inputsHash
+              else v.##
+            )
+          }
+
         }
 
-        newResults(task) = for (v <- res) yield {
-          (
-            v,
-            if (task.isInstanceOf[Worker[_]]) inputsHash
-            else v.##
-          )
-        }
+        multiLogger.close()
+        (newResults, newEvaluated)
       }
-
-      multiLogger.close()
-      (newResults, newEvaluated)
     }
 
     val (newResults, newEvaluated) = computeAll(enableTicker = true)

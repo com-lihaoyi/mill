@@ -44,6 +44,14 @@ trait Logger {
   def info(s: String): Unit
   def error(s: String): Unit
   def ticker(s: String): Unit
+  def withTicker[T](s: Option[String])(t: => T): T = s match{
+    case None => t
+    case Some(s) =>
+      ticker(s)
+      try t
+      finally ticker("<END>")
+  }
+
   def debug(s: String): Unit
 
   /**

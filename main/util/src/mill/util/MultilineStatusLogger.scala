@@ -17,47 +17,62 @@ class MultilineStatusLogger(
   val nav = new AnsiNav(p)
 
   val current = collection.mutable.SortedMap.empty[Int, Seq[Status]]
-  def currentPrompt: String = {
+  def currentPrompt: Seq[String] = {
     val now = System.currentTimeMillis()
     current
-      .map{case (threadId, statuses) =>
+      .collect{case (threadId, statuses) if statuses.nonEmpty =>
         val statusesString = statuses
           .map{status =>
             val runtimeSeconds = ((now - status.startTimeMillis) / 1000).toInt
             s"${runtimeSeconds}s ${status.text}"
           }.mkString(" / ")
-        s"#$threadId $statusesString"
+        s"| $statusesString"
       }
-      .mkString("\n")
+      .toList
   }
-  def currentHeight: Int = currentPrompt.linesIterator.length
+  def currentHeight: Int = currentPrompt.length
 
-  def info(s: String): Unit = synchronized {
+  private def updateUI() = {
+//    println("-"*80 + currentHeight)
     nav.up(currentHeight)
     nav.left(9999)
-    systemStreams.err.println(currentPrompt)
+    p.flush()
+  }
+  private def log0(s: String) = {
+    updateUI()
+    printClear(s +: currentPrompt)
+  }
+  private def printClear(lines: Seq[String]) = {
+    for(line <- lines){
+      nav.clearLine(0)
+      p.println(line)
+    }
   }
 
-  def error(s: String): Unit = synchronized {
-    nav.up(currentHeight)
-    nav.left(9999)
-    systemStreams.err.println(currentPrompt)
-  }
+  def info(s: String): Unit = synchronized { log0(s); p.flush() }
 
-  def threadStatus(threadId: Int, text: String) = text match {
-    case null => current(threadId) = current(threadId).init
-    case _ => current(threadId) = current.getOrElse(threadId, Nil) :+ Status(System.currentTimeMillis(), text)
-  }
+  def error(s: String): Unit = synchronized { log0(s); p.flush() }
 
-  def ticker(s: String): Unit = ???
+  def ticker(s: String): Unit = synchronized {
+    updateUI()
+    val prevHeight = currentHeight
+    val threadId = Thread.currentThread().getId.toInt
+    if (s.contains("<END>")) current(threadId) = current(threadId).init
+    else current(threadId) = current.getOrElse(threadId, Nil) :+ Status(System.currentTimeMillis(), s)
+
+    val verticalSpacerHeight = prevHeight - currentHeight
+    printClear(currentPrompt)
+    if (verticalSpacerHeight > 0){
+      val verticalSpacer = Seq.fill(verticalSpacerHeight)("")
+      printClear(verticalSpacer)
+      nav.up(verticalSpacerHeight)
+    }
+    p.flush()
+  }
 
 
   def debug(s: String): Unit = synchronized {
-    if (debugEnabled) {
-      nav.up(currentHeight)
-      nav.left(9999)
-      systemStreams.err.println(currentPrompt)
-    }
+    if (debugEnabled) log0(s)
   }
 
   override def rawOutputStream: PrintStream = systemStreams.out
