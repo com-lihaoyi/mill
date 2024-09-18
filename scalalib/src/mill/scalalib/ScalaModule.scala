@@ -586,7 +586,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
     languageIds = Seq(BspModule.LanguageId.Java, BspModule.LanguageId.Scala),
     canCompile = true,
-    canRun = true
+    canRun = !super.bspBuildTarget.canTest
   )
 
   @internal

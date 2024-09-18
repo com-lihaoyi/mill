@@ -280,6 +280,7 @@ trait TestModule
     val parent = super.bspBuildTarget
     parent.copy(
       canTest = true,
+      canRun = false,
       tags = Seq(BspModule.Tag.Test)
     )
   }
