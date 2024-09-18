@@ -1,9 +1,12 @@
 package mill.util
 
-import java.io.Writer
+import java.io.{PrintStream, OutputStream, OutputStreamWriter, Writer}
 
-class AnsiNav(output: Writer) {
-  def control(n: Int, c: Char): Unit = output.write("\u001b[" + n + c)
+// Reference https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797
+case class AnsiNav(output: PrintStream) {
+  def saveCursor() = output.print("\u001b7")
+  def restoreCursor() = output.print("\u001b8")
+  def control(n: Int, c: Char): Unit = output.print("\u001b[" + n + c)
 
   /**
    * Move up `n` squares

@@ -313,7 +313,7 @@ object MillMain {
       enableTicker = enableTicker.getOrElse(mainInteractive),
       infoColor = colors.info,
       errorColor = colors.error,
-      systemStreams = streams,
+      systemStreams0 = streams,
       debugEnabled = config.debugLog.value
     )
     logger
