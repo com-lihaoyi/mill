@@ -1,6 +1,7 @@
 package mill
 package contrib.palantirjavaformat
 
+import mill.main.Tasks
 import mill.scalalib.ScalaModule
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest._
@@ -22,13 +23,26 @@ object PalantirJavaFormatModuleTest extends TestSuite {
           expected / "palantir"
         ),
         checkState(
-          afterFormat(modules / "palantir", sourceFilters = Seq("src/Main.java")),
+          afterFormat(modules / "palantir", sources = Seq("src/Main.java")),
           expected / "palantir"
         )
       )
 
       intercept[RuntimeException] {
         afterFormat(modules / "palantir", check = true)
+      }
+    }
+
+    test("formatAll") {
+      assert(
+        checkState(
+          afterFormatAll(modules / "palantir"),
+          expected / "palantir"
+        )
+      )
+
+      intercept[RuntimeException] {
+        afterFormatAll(modules / "palantir", check = true)
       }
     }
   }
@@ -40,6 +54,7 @@ object PalantirJavaFormatModuleTest extends TestSuite {
       case (actual, expected) =>
         val left = os.read(actual)
         val right = os.read(expected)
+        if (left != right) println(left)
         left == right
     }
   }
@@ -48,29 +63,48 @@ object PalantirJavaFormatModuleTest extends TestSuite {
       moduleRoot: os.Path,
       version: String = "2.50.0",
       check: Boolean = false,
-      sourceFilters: Seq[String] = Seq.empty
+      sources: Seq[String] = Seq.empty
   ): Seq[os.Path] = {
 
-    object mod extends TestBaseModule with ScalaModule with PalantirJavaFormatModule {
+    object module extends TestBaseModule with ScalaModule with PalantirJavaFormatModule {
       override def palantirjavaformatVersion: T[String] = version
       override def scalaVersion: T[String] = sys.props("MILL_SCALA_2_13_VERSION")
     }
 
-    val eval = UnitTester(mod, moduleRoot)
+    val eval = UnitTester(module, moduleRoot)
 
-    eval(mod.javafmt(check, mainargs.Leftover(sourceFilters: _*))).fold(
+    eval(module.javafmt(check, mainargs.Leftover(sources: _*))).fold(
       {
         case api.Result.Exception(cause, _) => throw cause
         case failure => throw failure
       },
       { _ =>
-        val Right(sources) = eval(mod.sources)
+        val Right(sources) = eval(module.sources)
 
         sources.value.flatMap(ref => walkFiles(ref.path))
       }
     )
   }
 
+  def afterFormatAll(modulesRoot: os.Path, check: Boolean = false): Seq[os.Path] = {
+
+    object module extends TestBaseModule with ScalaModule {
+      override def scalaVersion: T[String] = sys.props("MILL_SCALA_2_13_VERSION")
+    }
+
+    val eval = UnitTester(module, modulesRoot)
+    eval(PalantirJavaFormatModule.formatAll(check, Tasks(Seq(module.sources)))).fold(
+      {
+        case api.Result.Exception(cause, _) => throw cause
+        case failure => throw failure
+      },
+      { _ =>
+        val Right(sources) = eval(module.sources)
+        sources.value.flatMap(ref => walkFiles(ref.path))
+      }
+    )
+  }
+
   def walkFiles(root: os.Path): Seq[os.Path] =
-    os.walk(root, includeTarget = true).filter(os.isFile)
+    os.walk(root).filter(os.isFile)
 }

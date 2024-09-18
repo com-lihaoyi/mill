@@ -3,6 +3,8 @@ package contrib.palantirjavaformat
 
 import mill.api.Loose
 import mill.api.PathRef
+import mill.define.{Discover, ExternalModule}
+import mill.main.Tasks
 import mill.scalalib.DepSyntax
 import mill.scalalib.JavaModule
 import mill.util.Jvm
@@ -26,33 +28,17 @@ trait PalantirJavaFormatModule extends JavaModule {
       sources: mainargs.Leftover[String]
   ): Command[Unit] = T.command {
 
-    if (check) {
-      T.log.info("checking format in java sources ...")
-    } else {
-      T.log.info("formatting java sources ...")
-    }
+    val _sources =
+      if (sources.value.isEmpty) this.sources()
+      else sources.value.iterator.map(rel => PathRef(millSourcePath / os.RelPath(rel)))
 
-    val args = PalantirJavaFormatModule.mainArgs(
-      if (sources.value.isEmpty) this.sources().iterator.map(_.path)
-      else sources.value.iterator.map(rel => millSourcePath / os.RelPath(rel)),
-      palantirjavaformatOptions().path,
-      check
+    PalantirJavaFormatModule.palantirAction(
+      _sources,
+      check,
+      palantirjavaformatOptions(),
+      palantirjavaformatClasspath(),
+      palantirjavaformatJvmArgs()
     )
-
-    T.log.debug(s"running palantirjavaformat with $args")
-
-    val exitCode = Jvm.callSubprocess(
-      mainClass = PalantirJavaFormatModule.mainClass,
-      classPath = palantirjavaformatClasspath().map(_.path),
-      jvmArgs = palantirjavaformatJvmArgs(),
-      mainArgs = args,
-      workingDir = T.dest,
-      check = false
-    ).exitCode
-
-    if (check && exitCode != 0) {
-      throw new RuntimeException(s"palantirjavaformat exit($exitCode), format error(s) found")
-    }
   }
 
   /**
@@ -97,17 +83,77 @@ trait PalantirJavaFormatModule extends JavaModule {
     "2.50.0"
   }
 }
-object PalantirJavaFormatModule {
+object PalantirJavaFormatModule extends ExternalModule with PalantirJavaFormatModule {
 
-  private[palantirjavaformat] def mainArgs(
-      sources: IterableOnce[os.Path],
-      options: os.Path,
-      check: Boolean = false
+  /**
+   * Formats Java source files.
+   *
+   * @param check if an exception should be raised when formatting errors are found
+   *              - when `true`, files are not formatted
+   * @param sources list of [[JavaModule]] sources to process
+   */
+  def formatAll(
+      @mainargs.arg check: Boolean = false,
+      @mainargs.arg(positional = true) sources: Tasks[Seq[PathRef]]
+  ): Command[Unit] = T.command {
+
+    val _sources = T.sequence(sources.value)().iterator.flatten
+
+    palantirAction(
+      _sources,
+      check,
+      palantirjavaformatOptions(),
+      palantirjavaformatClasspath(),
+      palantirjavaformatJvmArgs()
+    )
+  }
+
+  lazy val millDiscover: Discover = Discover[this.type]
+
+  private[palantirjavaformat] def palantirAction(
+      sources: IterableOnce[PathRef],
+      check: Boolean,
+      options: PathRef,
+      classPath: Loose.Agg[PathRef],
+      jvmArgs: Seq[String]
+  )(implicit ctx: api.Ctx): Unit = {
+
+    if (check) {
+      ctx.log.info("checking format in java sources ...")
+    } else {
+      ctx.log.info("formatting java sources ...")
+    }
+
+    val mainArgs = palantirArgs(sources, check, options)
+
+    ctx.log.debug(s"running palantirjavaformat with $mainArgs")
+
+    val exitCode = Jvm.callSubprocess(
+      mainClass = "com.palantir.javaformat.java.Main",
+      classPath = classPath.map(_.path),
+      jvmArgs = jvmArgs,
+      mainArgs = mainArgs,
+      workingDir = ctx.dest,
+      check = false
+    ).exitCode
+
+    if (check && exitCode != 0) {
+      ctx.log.error(
+        "palantirjavaformat aborted due to format error(s) (or invalid plugin settings/palantirjavaformat options)"
+      )
+      throw new RuntimeException(s"palantirjavaformat exit($exitCode)")
+    }
+  }
+
+  private def palantirArgs(
+      sources: IterableOnce[PathRef],
+      check: Boolean,
+      options: PathRef
   ): Seq[String] = {
 
     val args = Seq.newBuilder[String]
 
-    if (os.exists(options)) args += s"@$options"
+    if (os.exists(options.path)) args += s"@${options.path}"
 
     if (check) {
       // do not overwrite files and exit(1) if formatting changes were detected
@@ -120,6 +166,7 @@ object PalantirJavaFormatModule {
     args ++=
       sources
         .iterator
+        .map(_.path)
         .flatMap(os.walk(_, includeTarget = true))
         .filter(os.isFile)
         .filter(_.ext == "java")
@@ -127,6 +174,4 @@ object PalantirJavaFormatModule {
 
     args.result()
   }
-
-  private[palantirjavaformat] def mainClass: String = "com.palantir.javaformat.java.Main"
 }
