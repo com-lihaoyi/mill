@@ -385,9 +385,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-18-f7cbe8</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-20-b5e04d</button>
   <div class="version-menu">
-    <a class="version is-current" href="Structuring_Large_Builds.html">0.12.0-RC2-18-f7cbe8</a>
+    <a class="version is-current" href="Structuring_Large_Builds.html">0.12.0-RC2-20-b5e04d</a>
     <a class="version is-missing" href="0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="0.11.10/index.html">0.11.10</a>
@@ -413,6 +413,8 @@
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-depth-large-10-multi-file-builds.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/depth/large/10-multi-file-builds">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import $packages._
+
 import mill._, scalalib._
 
 trait MyModule extends ScalaModule {
@@ -450,6 +452,9 @@ This can be very useful to keep large Mill builds maintainable, as each folderâ€
 gets co-located with the files that need to be built, and speeds up compilation of the
 build logic since each <code>build.mill</code> or <code>package.mill</code> file can be compiled independently when
 it is modified without re-compiling all the others.</p>
+</div>
+<div class="paragraph">
+<p>Usage of sub-folder <code>package.mill</code> files is enabled by the magic import <code>import $packages._</code></p>
 </div>
 <div class="paragraph">
 <p>In this example, the root <code>build.mill</code> only contains the <code>trait MyModule</code>, but it is
@@ -500,9 +505,11 @@ though <code>bar/package.mill</code> is empty</p>
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-depth-large-11-helper-files.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/depth/large/11-helper-files">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import $packages._
 import mill._, scalalib._
 import $file.foo.versions
 import $file.util.MyModule
+
 object `package` extends RootModule with MyModule{
   def forkEnv = Map(
     &quot;MY_SCALA_VERSION&quot; -&gt; build.scalaVersion(),
@@ -593,8 +600,10 @@ Foo Env build.foo.versions.myProjectVersion: 0.0.1</code></pre>
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-depth-large-12-helper-files-sc.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/depth/large/12-helper-files-sc">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+import $packages._
 import $file.foo.versions
 import $file.util, util.MyModule
+
 object `package` extends RootModule with MyModule{
   def forkEnv = Map(
     &quot;MY_SCALA_VERSION&quot; -&gt; build.scalaVersion(),
