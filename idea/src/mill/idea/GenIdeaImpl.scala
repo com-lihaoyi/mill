@@ -131,65 +131,65 @@ case class GenIdeaImpl(
           case (path, mod) => {
 
             // same as input of resolvedIvyDeps
-            val allIvyDeps = T.task {
+            val allIvyDeps = Task.Anon {
               mod.transitiveIvyDeps() ++ mod.transitiveCompileIvyDeps()
             }
 
             val scalaCompilerClasspath = mod match {
               case x: ScalaModule => x.scalaCompilerClasspath
               case _ =>
-                T.task {
+                Task.Anon {
                   Agg.empty[PathRef]
                 }
             }
 
-            val externalLibraryDependencies = T.task {
+            val externalLibraryDependencies = Task.Anon {
               mod.defaultResolver().resolveDeps(mod.mandatoryIvyDeps())
             }
 
-            val externalDependencies = T.task {
+            val externalDependencies = Task.Anon {
               mod.resolvedIvyDeps() ++
                 T.traverse(mod.transitiveModuleDeps)(_.unmanagedClasspath)().flatten
             }
-            val extCompileIvyDeps = T.task {
+            val extCompileIvyDeps = Task.Anon {
               mod.defaultResolver().resolveDeps(mod.compileIvyDeps())
             }
             val extRunIvyDeps = mod.resolvedRunIvyDeps
 
-            val externalSources = T.task {
+            val externalSources = Task.Anon {
               mod.resolveDeps(allIvyDeps, sources = true)()
             }
 
             val (scalacPluginsIvyDeps, allScalacOptions, scalaVersion) = mod match {
               case mod: ScalaModule => (
-                  T.task(mod.scalacPluginIvyDeps()),
-                  T.task(mod.allScalacOptions()),
-                  T.task { Some(mod.scalaVersion()) }
+                  Task.Anon(mod.scalacPluginIvyDeps()),
+                  Task.Anon(mod.allScalacOptions()),
+                  Task.Anon { Some(mod.scalaVersion()) }
                 )
               case _ => (
-                  T.task(Agg[Dep]()),
-                  T.task(Seq[String]()),
-                  T.task(None)
+                  Task.Anon(Agg[Dep]()),
+                  Task.Anon(Seq[String]()),
+                  Task.Anon(None)
                 )
             }
 
-            val scalacPluginDependencies = T.task {
+            val scalacPluginDependencies = Task.Anon {
               mod.defaultResolver().resolveDeps(scalacPluginsIvyDeps())
             }
 
-            val facets = T.task {
+            val facets = Task.Anon {
               mod.ideaJavaModuleFacets(ideaConfigVersion)()
             }
 
-            val configFileContributions = T.task {
+            val configFileContributions = Task.Anon {
               mod.ideaConfigFiles(ideaConfigVersion)()
             }
 
-            val compilerOutput = T.task {
+            val compilerOutput = Task.Anon {
               mod.ideaCompileOutput()
             }
 
-            T.task {
+            Task.Anon {
               val resolvedCp: Agg[Scoped[os.Path]] =
                 externalDependencies().map(_.path).map(Scoped(_, None)) ++
                   extCompileIvyDeps()

@@ -21,21 +21,21 @@ import mill.scalalib.publish.SonatypeHelpers.{
 }
 
 trait SonatypeCentralPublishModule extends PublishModule {
-  def sonatypeCentralGpgArgs: T[String] = T { defaultGpgArgs.mkString(",") }
+  def sonatypeCentralGpgArgs: T[String] = Task { defaultGpgArgs.mkString(",") }
 
-  def sonatypeCentralConnectTimeout: T[Int] = T { defaultConnectTimeout }
+  def sonatypeCentralConnectTimeout: T[Int] = Task { defaultConnectTimeout }
 
-  def sonatypeCentralReadTimeout: T[Int] = T { defaultReadTimeout }
+  def sonatypeCentralReadTimeout: T[Int] = Task { defaultReadTimeout }
 
-  def sonatypeCentralAwaitTimeout: T[Int] = T { defaultAwaitTimeout }
+  def sonatypeCentralAwaitTimeout: T[Int] = Task { defaultAwaitTimeout }
 
-  def sonatypeCentralShouldRelease: T[Boolean] = T { true }
+  def sonatypeCentralShouldRelease: T[Boolean] = Task { true }
 
   def publishSonatypeCentral(
       username: String = defaultCredentials,
       password: String = defaultCredentials
   ): define.Command[Unit] =
-    T.command {
+    Task.Command {
       val publishData = publishArtifacts()
       val fileMapping = publishData.withConcretePath._1
       val artifact = publishData.meta
@@ -80,7 +80,7 @@ object SonatypeCentralPublishModule extends ExternalModule {
       connectTimeout: Int = defaultConnectTimeout,
       awaitTimeout: Int = defaultAwaitTimeout,
       bundleName: String = ""
-  ): Command[Unit] = T.command {
+  ): Command[Unit] = Task.Command {
 
     val artifacts: Seq[(Seq[(os.Path, String)], Artifact)] =
       T.sequence(publishArtifacts.value)().map {
@@ -122,7 +122,7 @@ object SonatypeCentralPublishModule extends ExternalModule {
       credentialParameterValue: String,
       credentialName: String,
       envVariableName: String
-  ): Task[String] = T.task {
+  ): Task[String] = Task.Anon {
     if (credentialParameterValue.nonEmpty) {
       Result.Success(credentialParameterValue)
     } else {
@@ -141,7 +141,7 @@ object SonatypeCentralPublishModule extends ExternalModule {
   private def getSonatypeCredentials(
       usernameParameterValue: String,
       passwordParameterValue: String
-  ): Task[SonatypeCredentials] = T.task {
+  ): Task[SonatypeCredentials] = Task.Anon {
     val username =
       getSonatypeCredential(usernameParameterValue, "username", USERNAME_ENV_VARIABLE_NAME)()
     val password =

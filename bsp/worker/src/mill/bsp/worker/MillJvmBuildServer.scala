@@ -13,7 +13,7 @@ import ch.epfl.scala.bsp4j.{
   JvmTestEnvironmentParams,
   JvmTestEnvironmentResult
 }
-import mill.T
+import mill.Task
 import mill.bsp.worker.Utils.sanitizeUri
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.{JavaModule, TestModule}
@@ -55,7 +55,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
             case m: TestModule => m.getTestEnvironmentVars()
             case _ => m.compile
           }
-          T.task {
+          Task.Anon {
             (
               m.runClasspath(),
               m.forkArgs(),

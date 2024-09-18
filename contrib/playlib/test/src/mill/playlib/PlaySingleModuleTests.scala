@@ -1,6 +1,6 @@
 package mill.playlib
 
-import mill.T
+import mill.{T, Task}
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.{TestSuite, Tests, assert, _}
 
@@ -8,8 +8,8 @@ object PlaySingleModuleTests extends TestSuite with PlayTestSuite {
 
   object playsingle extends TestBaseModule with PlayModule with SingleModule {
     override val millSourcePath = os.temp() // workaround problem in `SingleModule`
-    override def playVersion = T { testPlay28 }
-    override def scalaVersion = T { sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???) }
+    override def playVersion = Task { testPlay28 }
+    override def scalaVersion = Task { sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???) }
     object test extends PlayTests
   }
 

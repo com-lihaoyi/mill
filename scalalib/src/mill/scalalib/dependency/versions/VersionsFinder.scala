@@ -40,7 +40,7 @@ private[dependency] object VersionsFinder {
   private def resolveDeps(progress: Progress)(
       javaModule: JavaModule
   ): Task[ResolvedDependencies] =
-    T.task {
+    Task.Anon {
       T.log.ticker(s"Resolving dependencies [${progress.next()}/${progress.count}]: ${javaModule}")
 
       val bindDependency = javaModule.bindDependency()
@@ -72,7 +72,7 @@ private[dependency] object VersionsFinder {
 
   private def resolveVersions(progres: Progress)(
       resolvedDependencies: ResolvedDependencies
-  ): Task[ModuleDependenciesVersions] = T.task {
+  ): Task[ModuleDependenciesVersions] = Task.Anon {
     val (javaModule, metadataLoaders, dependencies) = resolvedDependencies
 
     val versions = dependencies.map { dependency =>

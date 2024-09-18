@@ -15,8 +15,8 @@ object `package` extends RootModule with KotlinModule {
 
   /** Generate resources using lineCount of sources */
   override def resources = T{
-    os.write(T.dest / "line-count.txt", "" + lineCount())
-    Seq(PathRef(T.dest))
+    os.write(Task.dest / "line-count.txt", "" + lineCount())
+    Seq(PathRef(Task.dest))
   }
 
   object test extends KotlinModuleTests with TestModule.Junit5 {
