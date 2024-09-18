@@ -8,7 +8,7 @@ import mill.java9rtexport.Export
 import mill.api.{MillException, SystemStreams, WorkspaceRoot, internal}
 import mill.bsp.{BspContext, BspServerResult}
 import mill.main.BuildInfo
-import mill.util.PrintLogger
+import mill.util.{MultilineStatusLogger, PrintLogger}
 
 import java.lang.reflect.InvocationTargetException
 import scala.util.control.NonFatal
@@ -97,8 +97,7 @@ object MillMain {
       initialSystemProperties: Map[String, String],
       systemExit: Int => Nothing
   ): (Boolean, RunnerState) = {
-    val printLoggerState = new PrintLogger.State()
-    val streams = PrintLogger.wrapSystemStreams(streams0, printLoggerState)
+    val streams = streams0
     SystemStreams.withStreams(streams) {
       os.SubProcess.env.withValue(env) {
         MillCliConfigParser.parse(args) match {
@@ -164,7 +163,6 @@ object MillMain {
                 config.ticker
                   .orElse(config.enableTicker)
                   .orElse(Option.when(config.disableTicker.value)(false)),
-              printLoggerState
             )
             if (!config.silent.value) {
               checkMillVersionFromFile(WorkspaceRoot.workspaceRoot, streams.err)
@@ -306,20 +304,17 @@ object MillMain {
       config: MillCliConfig,
       mainInteractive: Boolean,
       enableTicker: Option[Boolean],
-      printLoggerState: PrintLogger.State
-  ): PrintLogger = {
+  ): MultilineStatusLogger = {
     val colored = config.color.getOrElse(mainInteractive)
     val colors = if (colored) mill.util.Colors.Default else mill.util.Colors.BlackWhite
 
-    val logger = new mill.util.PrintLogger(
+    val logger = new MultilineStatusLogger(
       colored = colored,
       enableTicker = enableTicker.getOrElse(mainInteractive),
       infoColor = colors.info,
       errorColor = colors.error,
       systemStreams = streams,
-      debugEnabled = config.debugLog.value,
-      context = "",
-      printLoggerState
+      debugEnabled = config.debugLog.value
     )
     logger
   }
