@@ -378,9 +378,9 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-14-cc5d70</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-16-34876b</button>
   <div class="version-menu">
-    <a class="version is-current" href="12-repository-config.html">0.12.0-RC2-14-cc5d70</a>
+    <a class="version is-current" href="12-repository-config.html">0.12.0-RC2-16-34876b</a>
     <a class="version is-missing" href="../../../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../../../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../../../0.11.10/index.html">0.11.10</a>
@@ -422,7 +422,7 @@ object foo extends ScalaModule {
     ivy&quot;com.lihaoyi::mainargs:0.6.2&quot;
   )
 
-  def repositoriesTask = T.task {
+  def repositoriesTask = Task.Anon {
     super.repositoriesTask() ++ sonatypeReleases
   }
 }</code></pre>
@@ -467,7 +467,7 @@ custom <code>ZincWorkerModule</code>, and override the <code>zincWorker</code> m
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object CustomZincWorkerModule extends ZincWorkerModule with CoursierModule {
-  def repositoriesTask = T.task { super.repositoriesTask() ++ sonatypeReleases }
+  def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }
 }
 
 object bar extends ScalaModule {
@@ -475,7 +475,7 @@ object bar extends ScalaModule {
   def zincWorker = ModuleRef(CustomZincWorkerModule)
   // ... rest of your build definitions
 
-  def repositoriesTask = T.task {super.repositoriesTask() ++ sonatypeReleases}
+  def repositoriesTask = Task.Anon {super.repositoriesTask() ++ sonatypeReleases}
 }</code></pre>
 </div>
 </div>

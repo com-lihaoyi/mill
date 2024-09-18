@@ -385,9 +385,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-14-cc5d70</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-16-34876b</button>
   <div class="version-menu">
-    <a class="version is-current" href="Java_Intro_to_Mill.html">0.12.0-RC2-14-cc5d70</a>
+    <a class="version is-current" href="Java_Intro_to_Mill.html">0.12.0-RC2-16-34876b</a>
     <a class="version" href="0.11.12/Java_Intro_to_Mill.html">0.11.12</a>
     <a class="version" href="0.11.11/Java_Intro_to_Mill.html">0.11.11</a>
     <a class="version is-missing" href="0.11.10/index.html">0.11.10</a>
@@ -723,8 +723,8 @@ object `package` extends RootModule with JavaModule {
 
   /** Generate resources using lineCount of sources */
   override def resources = T{
-    os.write(T.dest / &quot;line-count.txt&quot;, &quot;&quot; + lineCount())
-    Seq(PathRef(T.dest))
+    os.write(Task.dest / &quot;line-count.txt&quot;, &quot;&quot; + lineCount())
+    Seq(PathRef(Task.dest))
   }
 }</code></pre>
 </div>
@@ -1031,7 +1031,7 @@ a complete list of options and a cheat-sheet of how to work with tasks:</p>
 <div class="listingblock">
 <div class="title">Output of <code>mill --help</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.12.0-RC2-14-cc5d70
+<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.12.0-RC2-16-34876b
 Usage: mill [options] task [task-options] [+ task ...]
 
 task cheat sheet:

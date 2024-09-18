@@ -378,9 +378,9 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-14-cc5d70</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-16-34876b</button>
   <div class="version-menu">
-    <a class="version is-current" href="5-multiple-cross-axes.html">0.12.0-RC2-14-cc5d70</a>
+    <a class="version is-current" href="5-multiple-cross-axes.html">0.12.0-RC2-16-34876b</a>
     <a class="version is-missing" href="../../../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../../../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../../../0.11.10/index.html">0.11.10</a>
@@ -417,10 +417,10 @@ val crossMatrix = for {
 object foo extends mill.Cross[FooModule](crossMatrix)
 trait FooModule extends Cross.Module2[String, String] {
   val (crossVersion, platform) = (crossValue, crossValue2)
-  def suffix = T { &quot;_&quot; + crossVersion + &quot;_&quot; + platform }
+  def suffix = Task { &quot;_&quot; + crossVersion + &quot;_&quot; + platform }
 }
 
-def bar = T { s&quot;hello ${foo(&quot;2.10&quot;, &quot;jvm&quot;).suffix()}&quot; }</code></pre>
+def bar = Task { s&quot;hello ${foo(&quot;2.10&quot;, &quot;jvm&quot;).suffix()}&quot; }</code></pre>
 </div>
 </div>
 <div class="imageblock kroki">

@@ -378,9 +378,9 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-14-cc5d70</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-16-34876b</button>
   <div class="version-menu">
-    <a class="version is-current" href="3-override-tasks.html">0.12.0-RC2-14-cc5d70</a>
+    <a class="version is-current" href="3-override-tasks.html">0.12.0-RC2-16-34876b</a>
     <a class="version is-missing" href="../../../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../../../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../../../0.11.10/index.html">0.11.10</a>
@@ -409,7 +409,7 @@ object foo extends ScalaModule {
 
   def sources = T{
     os.write(
-      T.dest / &quot;Foo.scala&quot;,
+      Task.dest / &quot;Foo.scala&quot;,
       &quot;&quot;&quot;package foo
 object Foo {
   def main(args: Array[String]): Unit = {
@@ -418,15 +418,15 @@ object Foo {
 }
       &quot;&quot;&quot;.stripMargin
     )
-    Seq(PathRef(T.dest))
+    Seq(PathRef(Task.dest))
   }
 
-  def compile = T {
+  def compile = Task {
     println(&quot;Compiling...&quot;)
     super.compile()
   }
 
-  def run(args: Task[Args] = T.task(Args())) = T.command {
+  def run(args: Task[Args] = Task.Anon(Args())) = Task.Command {
     println(&quot;Running...&quot; + args().value.mkString(&quot; &quot;))
     super.run(args)()
   }
@@ -437,7 +437,7 @@ object Foo {
 <p>You can re-define targets and commands to override them, and use <code>super</code> if you
 want to refer to the originally defined task. The above example shows how to
 override <code>compile</code> and <code>run</code> to add additional logging messages, and we
-override <code>sources</code> which was <code>T.sources</code> for the <code>src/</code> folder with a plain
+override <code>sources</code> which was <code>Task.Sources</code> for the <code>src/</code> folder with a plain
 <code>T{…​}</code> target that generates the  necessary source files on-the-fly.</p>
 </div>
 <div class="paragraph">
@@ -452,8 +452,8 @@ include the original source folder:</p>
   def scalaVersion = &quot;2.13.8&quot;
 
   def generatedSources = T{
-    os.write(T.dest / &quot;Foo.scala&quot;, &quot;&quot;&quot;...&quot;&quot;&quot;)
-    Seq(PathRef(T.dest))
+    os.write(Task.dest / &quot;Foo.scala&quot;, &quot;&quot;&quot;...&quot;&quot;&quot;)
+    Seq(PathRef(Task.dest))
   }
 }
 
@@ -461,8 +461,8 @@ object foo3 extends ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
 
   def sources = T{
-    os.write(T.dest / &quot;Foo.scala&quot;, &quot;&quot;&quot;...&quot;&quot;&quot;)
-    super.sources() ++ Seq(PathRef(T.dest))
+    os.write(Task.dest / &quot;Foo.scala&quot;, &quot;&quot;&quot;...&quot;&quot;&quot;)
+    super.sources() ++ Seq(PathRef(Task.dest))
   }
 }</code></pre>
 </div>

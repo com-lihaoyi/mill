@@ -386,9 +386,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-14-cc5d70</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-16-34876b</button>
   <div class="version-menu">
-    <a class="version is-current" href="Modules.html">0.12.0-RC2-14-cc5d70</a>
+    <a class="version is-current" href="Modules.html">0.12.0-RC2-16-34876b</a>
     <a class="version" href="0.11.12/Modules.html">0.11.12</a>
     <a class="version" href="0.11.11/Modules.html">0.11.11</a>
     <a class="version" href="0.11.10/Modules.html">0.11.10</a>
@@ -446,9 +446,9 @@ for the following <code>build.mill</code>:</p>
 import mill._
 
 object foo extends Module {
-  def bar = T { &quot;hello&quot; }
+  def bar = Task { &quot;hello&quot; }
   object qux extends Module {
-    def baz = T { &quot;world&quot; }
+    def baz = Task { &quot;world&quot; }
   }
 }</code></pre>
 </div>
@@ -499,7 +499,7 @@ with additional <code>def</code>s, etc.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">trait FooModule extends Module {
   def bar: T[String] // required override
-  def qux = T { bar() + &quot; world&quot; }
+  def qux = Task { bar() + &quot; world&quot; }
 }
 
 object foo1 extends FooModule{
@@ -508,7 +508,7 @@ object foo1 extends FooModule{
 }
 object foo2 extends FooModule {
   def bar = &quot;hi&quot;
-  def baz = T { qux() + &quot; I am Cow&quot; } // add a new `def`
+  def baz = Task { qux() + &quot; I am Cow&quot; } // add a new `def`
 }</code></pre>
 </div>
 </div>
@@ -565,8 +565,8 @@ module expects its input files to be on disk.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">trait MyModule extends Module{
-  def sources = T.source(millSourcePath / &quot;sources&quot;)
-  def target = T { &quot;hello &quot; + os.list(sources().path).map(os.read(_)).mkString(&quot; &quot;) }
+  def sources = Task.Source(millSourcePath / &quot;sources&quot;)
+  def target = Task { &quot;hello &quot; + os.list(sources().path).map(os.read(_)).mkString(&quot; &quot;) }
 }
 
 object outer extends MyModule {
@@ -681,26 +681,26 @@ trait DiyJavaModule extends Module{
   def moduleDeps: Seq[DiyJavaModule] = Nil
   def mainClass: T[Option[String]] = None
 
-  def upstream: T[Seq[PathRef]] = T{ T.traverse(moduleDeps)(_.classPath)().flatten }
-  def sources = T.source(millSourcePath / &quot;src&quot;)
+  def upstream: T[Seq[PathRef]] = T{ Task.traverse(moduleDeps)(_.classPath)().flatten }
+  def sources = Task.Source(millSourcePath / &quot;src&quot;)
 
-  def compile = T {
+  def compile = Task {
     val allSources = os.walk(sources().path)
     val cpFlag = Seq(&quot;-cp&quot;, upstream().map(_.path).mkString(&quot;:&quot;))
-    os.proc(&quot;javac&quot;, cpFlag, allSources, &quot;-d&quot;, T.dest).call()
-    PathRef(T.dest)
+    os.proc(&quot;javac&quot;, cpFlag, allSources, &quot;-d&quot;, Task.dest).call()
+    PathRef(Task.dest)
   }
 
   def classPath = T{ Seq(compile()) ++ upstream() }
 
-  def assembly = T {
-    for(cp &lt;- classPath()) os.copy(cp.path, T.dest, mergeFolders = true)
+  def assembly = Task {
+    for(cp &lt;- classPath()) os.copy(cp.path, Task.dest, mergeFolders = true)
 
     val mainFlags = mainClass().toSeq.flatMap(Seq(&quot;-e&quot;, _))
-    os.proc(&quot;jar&quot;, &quot;-c&quot;, mainFlags, &quot;-f&quot;, T.dest / s&quot;assembly.jar&quot;, &quot;.&quot;)
-      .call(cwd = T.dest)
+    os.proc(&quot;jar&quot;, &quot;-c&quot;, mainFlags, &quot;-f&quot;, Task.dest / s&quot;assembly.jar&quot;, &quot;.&quot;)
+      .call(cwd = Task.dest)
 
-    PathRef(T.dest / s&quot;assembly.jar&quot;)
+    PathRef(Task.dest / s&quot;assembly.jar&quot;)
   }
 }</code></pre>
 </div>
@@ -726,12 +726,12 @@ change the shape of the task graph during evaluation, whereas <code>moduleDeps</
 defines  module dependencies that determine the shape of the graph.</p>
 </li>
 <li>
-<p>Using <code>T.traverse</code> to recursively gather the upstream classpath. This is
+<p>Using <code>Task.traverse</code> to recursively gather the upstream classpath. This is
 necessary to convert the <code>Seq[T[V]]</code> into a <code>T[Seq[V]]</code> that we can work
 with inside our targets</p>
 </li>
 <li>
-<p>We use the <code>millSourcePath</code> together with <code>T.workspace</code> to infer a default
+<p>We use the <code>millSourcePath</code> together with <code>Task.workspace</code> to infer a default
 name for the jar of each module. Users can override it if they want, but
 having a default is very convenient</p>
 </li>
@@ -884,7 +884,7 @@ import mill._
 
 object Bar extends mill.define.ExternalModule {
   def baz = T { 1 }
-  def qux() = T.command { println(baz() + 1) }
+  def qux() = Task.Command { println(baz() + 1) }
 
   lazy val millDiscover = mill.define.Discover[this.type]
 }</code></pre>
@@ -907,7 +907,7 @@ that is shared by the entire build: for example,
 <code>mill.scalalib.ZincWorkerApi/zincWorker</code> provides a shared Scala compilation
 service &amp; cache that is shared between all <code>ScalaModule</code>s, and
 <code>mill.scalalib.GenIdea/idea</code> lets you generate IntelliJ projects without
-needing to define your own <code>T.command</code> in your <code>build.mill</code> file</p>
+needing to define your own <code>Task.Command</code> in your <code>build.mill</code> file</p>
 </div>
 </div>
 </div>

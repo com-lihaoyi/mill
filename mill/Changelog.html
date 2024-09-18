@@ -385,9 +385,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-14-cc5d70</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-16-34876b</button>
   <div class="version-menu">
-    <a class="version is-current" href="Changelog.html">0.12.0-RC2-14-cc5d70</a>
+    <a class="version is-current" href="Changelog.html">0.12.0-RC2-16-34876b</a>
     <a class="version" href="0.11.12/Changelog.html">0.11.12</a>
     <a class="version" href="0.11.11/Changelog.html">0.11.11</a>
     <a class="version" href="0.11.10/Changelog.html">0.11.10</a>
@@ -893,7 +893,7 @@ and the <a href="https://github.com/com-lihaoyi/mill/compare/0.11.8...0.11.9">li
 <p>Add support for Cobertura XML report task to help integration  <a href="https://github.com/com-lihaoyi/mill/pull/3093">#3093</a></p>
 </li>
 <li>
-<p>Support Scala.js minify via <code>scalaJSMinify: Target[String]</code>  <a href="https://github.com/com-lihaoyi/mill/pull/3094">#3094</a></p>
+<p>Support Scala.js minify via <code>scalaJSMinify: T[String]</code>  <a href="https://github.com/com-lihaoyi/mill/pull/3094">#3094</a></p>
 </li>
 <li>
 <p>Restructure <code>TestModule</code>, add <code>RunModule</code>   <a href="https://github.com/com-lihaoyi/mill/pull/3064">#3064</a></p>
@@ -1106,7 +1106,7 @@ and the <a href="https://github.com/com-lihaoyi/mill/compare/0.11.7...0.11.8">li
 <p>Better detect Windows Subsystem for Linux environments <a href="https://github.com/com-lihaoyi/mill/pull/2901">#2901</a></p>
 </li>
 <li>
-<p>Avoid evaluating `T.input`s twice <a href="https://github.com/com-lihaoyi/mill/pull/2952">#2952</a></p>
+<p>Avoid evaluating `Task.Input`s twice <a href="https://github.com/com-lihaoyi/mill/pull/2952">#2952</a></p>
 </li>
 <li>
 <p>Deduplicate (anonymous) tasks in results <a href="https://github.com/com-lihaoyi/mill/pull/2959">#2959</a></p>
@@ -1540,7 +1540,7 @@ It is now significantly lazier, resulting in less of the module tree being un-ne
 <a href="https://github.com/com-lihaoyi/mill/pull/2452">#2452</a></p>
 </li>
 <li>
-<p><code>T.input</code>s are now watched properly with <code>--watch</code>, and trigger re-evaluations when the watched value changes <a href="https://github.com/com-lihaoyi/mill/pull/2489">#2489</a></p>
+<p><code>Task.Input</code>s are now watched properly with <code>--watch</code>, and trigger re-evaluations when the watched value changes <a href="https://github.com/com-lihaoyi/mill/pull/2489">#2489</a></p>
 </li>
 <li>
 <p>Support for Java 20 <a href="https://github.com/com-lihaoyi/mill/pull/2501">#2501</a></p>
@@ -1560,7 +1560,7 @@ It is now significantly lazier, resulting in less of the module tree being un-ne
 <a href="https://github.com/com-lihaoyi/mill/pull/2519">#2519</a></p>
 </li>
 <li>
-<p>Print out the CLI flags when inspecting <code>T.command</code>s
+<p>Print out the CLI flags when inspecting <code>Task.Command</code>s
 <a href="https://github.com/com-lihaoyi/mill/pull/2522">#2522</a></p>
 </li>
 </ul>
@@ -1595,7 +1595,7 @@ folder in the Mill repo, containing common build setups demonstrating Mill featu
 <p>Add some helpers to simplify cross-version/cross-platform modules {#2406}[<a href="https://github.com/com-lihaoyi/mill/pull/2406" class="bare">https://github.com/com-lihaoyi/mill/pull/2406</a>]</p>
 </li>
 <li>
-<p>You can now override <code>T{…​}</code> <code>Target</code>s with <code>T.source</code> or <code>T.sources</code>, and vice versa <a href="https://github.com/com-lihaoyi/mill/pull/2402">#2402</a></p>
+<p>You can now override <code>T{…​}</code> <code>Target</code>s with <code>Task.Source</code> or <code>Task.Sources</code>, and vice versa <a href="https://github.com/com-lihaoyi/mill/pull/2402">#2402</a></p>
 </li>
 <li>
 <p>Removed the Ammonite script runner dependency used to evaluate <code>build.sc</code>
@@ -3160,7 +3160,7 @@ and the <a href="https://github.com/com-lihaoyi/mill/compare/0.7.0...0.7.1">list
 <p>Add ability to pass GPG arguments to publish via <code>--gpgArgs</code></p>
 </li>
 <li>
-<p><code>-w</code>/<code>--watch</code> now works for <code>T.source</code> targets</p>
+<p><code>-w</code>/<code>--watch</code> now works for <code>Task.Source</code> targets</p>
 </li>
 </ul>
 </div>

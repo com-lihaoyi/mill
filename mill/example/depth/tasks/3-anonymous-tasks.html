@@ -378,9 +378,9 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-14-cc5d70</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-16-34876b</button>
   <div class="version-menu">
-    <a class="version is-current" href="3-anonymous-tasks.html">0.12.0-RC2-14-cc5d70</a>
+    <a class="version is-current" href="3-anonymous-tasks.html">0.12.0-RC2-16-34876b</a>
     <a class="version is-missing" href="../../../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../../../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../../../0.11.10/index.html">0.11.10</a>
@@ -404,20 +404,20 @@
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, define.Task
 
-def data = T.source(millSourcePath / &quot;data&quot;)
+def data = Task.Source(millSourcePath / &quot;data&quot;)
 
-def anonTask(fileName: String): Task[String] = T.task {
+def anonTask(fileName: String): Task[String] = Task.Anon {
   os.read(data().path / fileName)
 }
 
-def helloFileData = T { anonTask(&quot;hello.txt&quot;)() }
-def printFileData(fileName: String) = T.command {
+def helloFileData = Task { anonTask(&quot;hello.txt&quot;)() }
+def printFileData(fileName: String) = Task.Command {
   println(anonTask(fileName)())
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>You can define anonymous tasks using the <code>T.task {…​}</code> syntax. These are
+<p>You can define anonymous tasks using the <code>Task.Anon {…​}</code> syntax. These are
 not runnable from the command-line, but can be used to share common code you
 find yourself repeating in <code>Target</code>s and <code>Command</code>s.</p>
 </div>

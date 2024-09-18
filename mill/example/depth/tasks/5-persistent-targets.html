@@ -378,9 +378,9 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-14-cc5d70</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-16-34876b</button>
   <div class="version-menu">
-    <a class="version is-current" href="5-persistent-targets.html">0.12.0-RC2-14-cc5d70</a>
+    <a class="version is-current" href="5-persistent-targets.html">0.12.0-RC2-16-34876b</a>
     <a class="version is-missing" href="../../../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../../../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../../../0.11.10/index.html">0.11.10</a>
@@ -399,13 +399,13 @@
 </aside>
 <article class="doc">
 <div class="paragraph">
-<p>Persistent targets defined using <code>T.persistent</code> are similar to normal
-<code>Target</code>s, except their <code>T.dest</code> folder is not cleared before every
+<p>Persistent targets defined using <code>Task.Persistent</code> are similar to normal
+<code>Target</code>s, except their <code>Task.dest</code> folder is not cleared before every
 evaluation. This makes them useful for caching things on disk in a more
 fine-grained manner than Mill’s own Target-level caching.</p>
 </div>
 <div class="paragraph">
-<p>Below is a semi-realistic example of using a <code>T.persistent</code> target:</p>
+<p>Below is a semi-realistic example of using a <code>Task.Persistent</code> target:</p>
 </div>
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-depth-tasks-5-persistent-targets.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/depth/tasks/5-persistent-targets">browse</a>)</div>
@@ -416,18 +416,18 @@ import java.util.Arrays
 import java.io.ByteArrayOutputStream
 import java.util.zip.GZIPOutputStream
 
-def data = T.source(millSourcePath / &quot;data&quot;)
+def data = Task.Source(millSourcePath / &quot;data&quot;)
 
-def compressedData = T.persistent{
+def compressedData = Task.Persistent{
   println(&quot;Evaluating compressedData&quot;)
-  os.makeDir.all(T.dest / &quot;cache&quot;)
-  os.remove.all(T.dest / &quot;compressed&quot;)
+  os.makeDir.all(Task.dest / &quot;cache&quot;)
+  os.remove.all(Task.dest / &quot;compressed&quot;)
 
   for(p &lt;- os.list(data().path)){
-    val compressedPath = T.dest / &quot;compressed&quot; / s&quot;${p.last}.gz&quot;
+    val compressedPath = Task.dest / &quot;compressed&quot; / s&quot;${p.last}.gz&quot;
     val bytes = os.read.bytes(p)
     val hash = Arrays.hashCode(bytes)
-    val cachedPath = T.dest / &quot;cache&quot; / hash.toHexString
+    val cachedPath = Task.dest / &quot;cache&quot; / hash.toHexString
     if (!os.exists(cachedPath)) {
       println(&quot;Compressing: &quot; + p.last)
       os.write(cachedPath, compressBytes(bytes))
@@ -437,7 +437,7 @@ def compressedData = T.persistent{
     os.copy(cachedPath, compressedPath, createFolders = true)
   }
 
-  os.list(T.dest / &quot;compressed&quot;).map(PathRef(_))
+  os.list(Task.dest / &quot;compressed&quot;).map(PathRef(_))
 }
 
 def compressBytes(input: Array[Byte]) = {
@@ -460,7 +460,7 @@ unnecessarily re-compressed when <code>compressedData</code> evaluates.</p>
 <p>Since persistent targets have long-lived state on disk that lives beyond a
 single evaluation, this raises the possibility of the disk contents getting
 into a bad state and causing all future evaluations to fail. It is left up
-to the person implementing the <code>T.persistent</code> to ensure their implementation
+to the person implementing the <code>Task.Persistent</code> to ensure their implementation
 is eventually consistent. You can also use <code>mill clean</code> to manually purge
 the disk contents to start fresh.</p>
 </div>

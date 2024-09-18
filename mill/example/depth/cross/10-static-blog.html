@@ -378,9 +378,9 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-14-cc5d70</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-16-34876b</button>
   <div class="version-menu">
-    <a class="version is-current" href="10-static-blog.html">0.12.0-RC2-14-cc5d70</a>
+    <a class="version is-current" href="10-static-blog.html">0.12.0-RC2-16-34876b</a>
     <a class="version is-missing" href="../../../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../../../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../../../0.11.10/index.html">0.11.10</a>
@@ -435,7 +435,7 @@ val posts = interp.watchValue {
 
 object post extends Cross[PostModule](posts)
 trait PostModule extends Cross.Module[String]{
-  def source = T.source(millSourcePath / crossValue)
+  def source = Task.Source(millSourcePath / crossValue)
   def render = T{
     val doc = Parser.builder().build().parse(os.read(source().path))
     val title = mdNameToTitle(crossValue)
@@ -448,8 +448,8 @@ trait PostModule extends Cross.Module[String]{
       )
     )
 
-    os.write(T.dest /  mdNameToHtml(crossValue), rendered)
-    PathRef(T.dest / mdNameToHtml(crossValue))
+    os.write(Task.dest /  mdNameToHtml(crossValue), rendered)
+    PathRef(Task.dest / mdNameToHtml(crossValue))
   }
 }</code></pre>
 </div>
@@ -457,13 +457,13 @@ trait PostModule extends Cross.Module[String]{
 <div class="paragraph">
 <p>The last page we need to generate is the index page, listing out the various
 blog posts and providing links so we can navigate into them. To do this, we
-need to wrap the <code>posts</code> value in a <code>T.input</code>, as it can change depending on
+need to wrap the <code>posts</code> value in a <code>Task.Input</code>, as it can change depending on
 what <code>os.list</code> finds on disk. After that, it’s straightforward to render the
 <code>index.html</code> file we want:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def postsInput = T.input{ posts }
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def postsInput = Task.Input{ posts }
 
 def renderIndexEntry(mdName: String) = {
   h2(a(mdNameToTitle(mdName), href := (&quot;post/&quot; + mdNameToHtml(mdName))))
@@ -473,8 +473,8 @@ def index = T{
   val rendered = doctype(&quot;html&quot;)(
     html(body(h1(&quot;Blog&quot;), postsInput().map(renderIndexEntry)))
   )
-  os.write(T.dest / &quot;index.html&quot;, rendered)
-  PathRef(T.dest / &quot;index.html&quot;)
+  os.write(Task.dest / &quot;index.html&quot;, rendered)
+  PathRef(Task.dest / &quot;index.html&quot;)
 }</code></pre>
 </div>
 </div>
@@ -484,12 +484,12 @@ into a single target’s <code>.dest</code> folder, and return it:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def dist = T {
-  for (post &lt;- T.traverse(post.crossModules)(_.render)()) {
-    os.copy(post.path, T.dest / &quot;post&quot; / post.path.last, createFolders = true)
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def dist = Task {
+  for (post &lt;- Task.traverse(post.crossModules)(_.render)()) {
+    os.copy(post.path, Task.dest / &quot;post&quot; / post.path.last, createFolders = true)
   }
-  os.copy(index().path, T.dest / &quot;index.html&quot;)
-  PathRef(T.dest)
+  os.copy(index().path, Task.dest / &quot;index.html&quot;)
+  PathRef(Task.dest)
 }</code></pre>
 </div>
 </div>

@@ -385,9 +385,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-14-cc5d70</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-16-34876b</button>
   <div class="version-menu">
-    <a class="version is-current" href="Mill_Sandboxing.html">0.12.0-RC2-14-cc5d70</a>
+    <a class="version is-current" href="Mill_Sandboxing.html">0.12.0-RC2-16-34876b</a>
     <a class="version is-missing" href="0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="0.11.10/index.html">0.11.10</a>
@@ -417,12 +417,12 @@ folders, which are unique to each task and thus guaranteed not to collide with
 the filesystem operations of other tasks that may be occurring in parallel.</p>
 </div>
 <div class="sect2">
-<h3 id="_t_dest"><a class="anchor" href="#_t_dest"></a><code>T.dest</code></h3>
+<h3 id="_task_dest"><a class="anchor" href="#_task_dest"></a><code>Task.dest</code></h3>
 <div class="paragraph">
-<p>The standard way of working with a task’s <code>.dest/</code> folder is through the <code>T.dest</code>
+<p>The standard way of working with a task’s <code>.dest/</code> folder is through the <code>Task.dest</code>
 property. This is available within any task, and gives you access to the
 <code>out/&lt;module-names&gt;/&lt;task-name&gt;.dest/</code> folder to use. The <code>.dest/</code> folder for
-each task is lazily initialized when <code>T.dest</code> is referenced and used:</p>
+each task is lazily initialized when <code>Task.dest</code> is referenced and used:</p>
 </div>
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-depth-sandbox-1-task.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/depth/sandbox/1-task">browse</a>)</div>
@@ -431,7 +431,7 @@ each task is lazily initialized when <code>T.dest</code> is referenced and used:
 import mill._
 
 object foo extends Module{
-  def tDestTask = T { println(T.dest.toString) }
+  def tDestTask = Task { println(Task.dest.toString) }
 }</code></pre>
 </div>
 </div>
@@ -450,7 +450,7 @@ such that that also points towards a running task’s own <code>.dest/</code> fo
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def osPwdTask = T { println(os.pwd.toString) }</code></pre>
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def osPwdTask = Task { println(os.pwd.toString) }</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -466,8 +466,8 @@ its <code>os.getcwd()</code>, which is our <code>osProcTask.dest/</code> sandbox
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def osProcTask = T {
-  println(os.call((&quot;python3&quot;, &quot;-c&quot;, &quot;import os; print(os.getcwd())&quot;), cwd = T.dest).out.trim())
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def osProcTask = Task {
+  println(os.call((&quot;python3&quot;, &quot;-c&quot;, &quot;import os; print(os.getcwd())&quot;), cwd = Task.dest).out.trim())
 }</code></pre>
 </div>
 </div>
@@ -488,7 +488,7 @@ towards an empty <code>sandbox/</code> folder in <code>out/mill-worker…​/</c
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">val externalPwd = os.pwd
-def externalPwdTask = T { println(externalPwd.toString) }</code></pre>
+def externalPwdTask = Task { println(externalPwd.toString) }</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -675,7 +675,7 @@ quickly and reliably</p>
 <div class="paragraph">
 <p>Mill’s sandboxing approach is best effort: while it tries to guide you into using
 isolated sandbox folders, Mill cannot guarantee it, and in fact provides the
-<code>T.workspace</code> property and <code>MILL_WORKSPACE_ROOT</code> environment variable to reference the
+<code>Task.workspace</code> property and <code>MILL_WORKSPACE_ROOT</code> environment variable to reference the
 project root folder for scenarios where you may need it. This can be useful for a variety
 of reasons:</p>
 </div>
@@ -691,7 +691,7 @@ code auto-formatters, auto-fixers, auto-updaters. etc.</p>
 </ul>
 </div>
 <div class="paragraph">
-<p><code>T.workspace</code> can be used in tasks:</p>
+<p><code>Task.workspace</code> can be used in tasks:</p>
 </div>
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-depth-sandbox-3-breaking.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/depth/sandbox/3-breaking">browse</a>)</div>
@@ -699,7 +699,7 @@ code auto-formatters, auto-fixers, auto-updaters. etc.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
 
-def tWorkspaceTask = T { println(T.workspace) }</code></pre>
+def tWorkspaceTask = Task { println(Task.workspace) }</code></pre>
 </div>
 </div>
 <div class="listingblock">

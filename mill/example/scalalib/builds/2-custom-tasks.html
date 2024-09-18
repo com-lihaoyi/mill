@@ -378,9 +378,9 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-14-cc5d70</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-16-34876b</button>
   <div class="version-menu">
-    <a class="version is-current" href="2-custom-tasks.html">0.12.0-RC2-14-cc5d70</a>
+    <a class="version is-current" href="2-custom-tasks.html">0.12.0-RC2-16-34876b</a>
     <a class="version is-missing" href="../../../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../../../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../../../0.11.10/index.html">0.11.10</a>
@@ -425,7 +425,7 @@ object `package` extends RootModule with ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
   def ivyDeps = Agg(ivy&quot;com.lihaoyi::mainargs:0.4.0&quot;)
 
-  def generatedSources: T[Seq[PathRef]] = T {
+  def generatedSources: T[Seq[PathRef]] = Task {
     val prettyIvyDeps = for(ivyDep &lt;- ivyDeps()) yield {
       val org = ivyDep.dep.module.organization.value
       val name = ivyDep.dep.module.name.value
@@ -433,7 +433,7 @@ object `package` extends RootModule with ScalaModule {
       s&quot;&quot;&quot;(&quot;$org&quot;, &quot;$name&quot;, &quot;$version&quot;)&quot;&quot;&quot;
     }
     os.write(
-      T.dest / s&quot;MyDeps.scala&quot;,
+      Task.dest / s&quot;MyDeps.scala&quot;,
       s&quot;&quot;&quot;
 package foo
 object MyDeps {
@@ -444,10 +444,10 @@ object MyDeps {
       &quot;&quot;&quot;.stripMargin
     )
 
-    Seq(PathRef(T.dest))
+    Seq(PathRef(Task.dest))
   }
 
-  def lineCount: T[Int] = T {
+  def lineCount: T[Int] = Task {
     sources()
       .flatMap(pathRef =&gt; os.walk(pathRef.path))
       .filter(_.ext == &quot;scala&quot;)
@@ -457,12 +457,12 @@ object MyDeps {
 
   def forkArgs: T[Seq[String]] = Seq(s&quot;-Dmy.line.count=${lineCount()}&quot;)
 
-  def printLineCount() = T.command { println(lineCount()) }
+  def printLineCount() = Task.Command { println(lineCount()) }
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Mill lets you define new cached Targets using the <code>T {…​}</code> syntax,
+<p>Mill lets you define new cached Targets using the <code>Task {…​}</code> syntax,
 depending on existing Targets e.g. <code>foo.sources</code> via the <code>foo.sources()</code>
 syntax to extract their current value, as shown in <code>lineCount</code> above. The
 return-type of a Target has to be JSON-serializable (using
@@ -499,15 +499,15 @@ my.line.count: 14
 download files using <code>requests.get</code>, shell-out to Webpack
 to compile some Javascript, generate sources to feed into a compiler, or
 create some custom jar/zip assembly with the files you want , all of these
-can simply be custom targets with your code running in the <code>T {…​}</code> block.</p>
+can simply be custom targets with your code running in the <code>Task {…​}</code> block.</p>
 </div>
 <div class="paragraph">
 <p>You can create arbitrarily long chains of dependent targets, and Mill will
 handle the re-evaluation and caching of the targets' output for you.
-Mill also provides you a <code>T.dest</code> folder for you to use as scratch space or
+Mill also provides you a <code>Task.dest</code> folder for you to use as scratch space or
 to store files you want to return: all files a task creates should live
-within <code>T.dest</code>, and any files you want to modify should be copied into
-<code>T.dest</code> before being modified. That ensures that the files belonging to a
+within <code>Task.dest</code>, and any files you want to modify should be copied into
+<code>Task.dest</code> before being modified. That ensures that the files belonging to a
 particular target all live in one place, avoiding file-name conflicts and
 letting Mill automatically invalidate the files when the target’s inputs
 change.</p>

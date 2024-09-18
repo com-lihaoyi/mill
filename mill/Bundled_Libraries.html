@@ -385,9 +385,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-14-cc5d70</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-16-34876b</button>
   <div class="version-menu">
-    <a class="version is-current" href="Bundled_Libraries.html">0.12.0-RC2-14-cc5d70</a>
+    <a class="version is-current" href="Bundled_Libraries.html">0.12.0-RC2-16-34876b</a>
     <a class="version is-missing" href="0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="0.11.10/index.html">0.11.10</a>
@@ -666,10 +666,10 @@ compile the Remote APIs source code as part of our build:</p>
 def remoteApisZip = T{
   println(&quot;downloading bazel-remote-apis sources...&quot;)
   os.write(
-    T.dest / &quot;source.zip&quot;,
+    Task.dest / &quot;source.zip&quot;,
     requests.get(&quot;https://github.com/bazelbuild/remote-apis/archive/refs/tags/v2.2.0.zip&quot;)
   )
-  PathRef(T.dest / &quot;source.zip&quot;)
+  PathRef(Task.dest / &quot;source.zip&quot;)
 }
 
 def bazel = T{
@@ -679,27 +679,27 @@ def bazel = T{
     else &quot;bazel-5.4.1-linux-x86_64&quot;
 
   os.write(
-    T.dest / &quot;bazel&quot;,
+    Task.dest / &quot;bazel&quot;,
     requests.get(s&quot;https://github.com/bazelbuild/bazel/releases/download/5.4.1/$fileName&quot;)
   )
-  os.perms.set(T.dest / &quot;bazel&quot;, &quot;rwxrwxrwx&quot;)
-  PathRef(T.dest / &quot;bazel&quot;)
+  os.perms.set(Task.dest / &quot;bazel&quot;, &quot;rwxrwxrwx&quot;)
+  PathRef(Task.dest / &quot;bazel&quot;)
 }
 
 def compiledRemoteApis = T{
   val javaBuildTarget = &quot;build/bazel/remote/execution/v2:remote_execution_java_proto&quot;
-  os.call((&quot;unzip&quot;, remoteApisZip().path, &quot;-d&quot;, T.dest))
-  os.call((bazel().path, &quot;build&quot;, javaBuildTarget), cwd = T.dest / &quot;remote-apis-2.2.0&quot;)
+  os.call((&quot;unzip&quot;, remoteApisZip().path, &quot;-d&quot;, Task.dest))
+  os.call((bazel().path, &quot;build&quot;, javaBuildTarget), cwd = Task.dest / &quot;remote-apis-2.2.0&quot;)
 
   val queried = os.call(
     (bazel().path, &quot;cquery&quot;, javaBuildTarget, &quot;--output=files&quot;),
-    cwd = T.dest / &quot;remote-apis-2.2.0&quot;
+    cwd = Task.dest / &quot;remote-apis-2.2.0&quot;
   )
 
   queried
     .out
     .lines()
-    .map(line =&gt; PathRef(T.dest / &quot;remote-apis-2.2.0&quot; / os.SubPath(line)))
+    .map(line =&gt; PathRef(Task.dest / &quot;remote-apis-2.2.0&quot; / os.SubPath(line)))
 }</code></pre>
 </div>
 </div>
@@ -788,7 +788,7 @@ servers, and so on. So this works out surprisingly well in practice.</p>
 </dl>
 </div>
 <div class="paragraph">
-<p>Mill uses MainArgs to handle argument parsing for <code>T.command</code>s that
+<p>Mill uses MainArgs to handle argument parsing for <code>Task.Command</code>s that
 are run from the command line.</p>
 </div>
 <div class="listingblock">
@@ -796,7 +796,7 @@ are run from the command line.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
-def commandSimple(str: String, i: Int, bool: Boolean = true) = T.command{
+def commandSimple(str: String, i: Int, bool: Boolean = true) = Task.Command{
   println(s&quot;$str $i $bool&quot;)
 }</code></pre>
 </div>
@@ -822,7 +822,7 @@ supports parsing OS-Lib <code>os.Path</code>s from the command line:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def commandTakingPath(path: os.Path) = T.command{
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def commandTakingPath(path: os.Path) = Task.Command{
   println(path)
 }</code></pre>
 </div>
@@ -853,7 +853,7 @@ implicit object LettersOrDigitsTokensReader
   }
 }
 
-def commandCustomArg(custom: LettersOrDigits) = T.command{
+def commandCustomArg(custom: LettersOrDigits) = Task.Command{
   println(&quot;hello &quot; + custom.value)
 }</code></pre>
 </div>
@@ -885,7 +885,7 @@ target:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def commandTakingTask(str: Task[String]) = T.command{
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def commandTakingTask(str: Task[String]) = Task.Command{
   val result = &quot;arg: &quot; + str()
   println(result)
   result
@@ -934,7 +934,7 @@ and plan out what would be necessary to run them</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.eval.{Evaluator, Terminal}
 import mill.resolve.{Resolve, SelectMode}
 
-def customPlanCommand(evaluator: Evaluator, targets: String*) = T.command {
+def customPlanCommand(evaluator: Evaluator, targets: String*) = Task.Command {
   Resolve.Tasks.resolve(
     evaluator.rootModule,
     targets,

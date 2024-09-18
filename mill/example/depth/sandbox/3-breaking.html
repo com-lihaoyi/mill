@@ -378,9 +378,9 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-14-cc5d70</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-16-34876b</button>
   <div class="version-menu">
-    <a class="version is-current" href="3-breaking.html">0.12.0-RC2-14-cc5d70</a>
+    <a class="version is-current" href="3-breaking.html">0.12.0-RC2-16-34876b</a>
     <a class="version is-missing" href="../../../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../../../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../../../0.11.10/index.html">0.11.10</a>
@@ -401,7 +401,7 @@
 <div class="paragraph">
 <p>Mill’s sandboxing approach is best effort: while it tries to guide you into using
 isolated sandbox folders, Mill cannot guarantee it, and in fact provides the
-<code>T.workspace</code> property and <code>MILL_WORKSPACE_ROOT</code> environment variable to reference the
+<code>Task.workspace</code> property and <code>MILL_WORKSPACE_ROOT</code> environment variable to reference the
 project root folder for scenarios where you may need it. This can be useful for a variety
 of reasons:</p>
 </div>
@@ -417,7 +417,7 @@ code auto-formatters, auto-fixers, auto-updaters. etc.</p>
 </ul>
 </div>
 <div class="paragraph">
-<p><code>T.workspace</code> can be used in tasks:</p>
+<p><code>Task.workspace</code> can be used in tasks:</p>
 </div>
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-depth-sandbox-3-breaking.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/depth/sandbox/3-breaking">browse</a>)</div>
@@ -425,7 +425,7 @@ code auto-formatters, auto-fixers, auto-updaters. etc.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
 
-def tWorkspaceTask = T { println(T.workspace) }</code></pre>
+def tWorkspaceTask = Task { println(Task.workspace) }</code></pre>
 </div>
 </div>
 <div class="listingblock">

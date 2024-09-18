@@ -387,9 +387,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-14-cc5d70</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-16-34876b</button>
   <div class="version-menu">
-    <a class="version is-current" href="gitlab.html">0.12.0-RC2-14-cc5d70</a>
+    <a class="version is-current" href="gitlab.html">0.12.0-RC2-16-34876b</a>
     <a class="version" href="../0.11.12/contrib/gitlab.html">0.11.12</a>
     <a class="version" href="../0.11.11/contrib/gitlab.html">0.11.11</a>
     <a class="version" href="../0.11.10/contrib/gitlab.html">0.11.10</a>
@@ -593,7 +593,7 @@ import mill.api.Result.Success
 
 override def gitlabHeaders(
     props: Map[String, String] // System properties
-  ): Task[GitlabAuthHeaders] = T.task {
+  ): Task[GitlabAuthHeaders] = Task.Anon {
   // This uses default lookup and ads custom headers
   val access = tokenLookup.resolveGitlabToken(T.env, props, T.workspace)
   val accessHeader = access.fold(_ =&gt; Seq.empty[(String, String)], _.headers)
@@ -636,7 +636,7 @@ import $ivy.`com.lihaoyi::mill-contrib-gitlab:`
 import mill.contrib.gitlab._
 
 // DON'T DO THIS
-def repositoriesTask = T.task {
+def repositoriesTask = Task.Anon {
   super.repositoriesTask() ++ Seq(
     MavenRepository(&quot;https://gitlab.local/api/v4/projects/42/packages/maven&quot;,
       Some(Authentication(Seq((&quot;Private-Token&quot;, &quot;&lt;&lt;private-token&gt;&gt;&quot;))))))
@@ -659,7 +659,7 @@ provides trait <code>GitlabMavenRepository</code> to ease that.</p>
 }
 
 object myModule extends ScalaModule {
-  def repositoriesTask = T.task {
+  def repositoriesTask = Task.Anon {
     super.repositoriesTask() ++
       Seq(
         MavenRepository(&quot;https://oss.sonatype.org/content/repositories/releases&quot;),

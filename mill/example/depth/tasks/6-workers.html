@@ -378,9 +378,9 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-14-cc5d70</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-16-34876b</button>
   <div class="version-menu">
-    <a class="version is-current" href="6-workers.html">0.12.0-RC2-14-cc5d70</a>
+    <a class="version is-current" href="6-workers.html">0.12.0-RC2-16-34876b</a>
     <a class="version is-missing" href="../../../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../../../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../../../0.11.10/index.html">0.11.10</a>
@@ -399,7 +399,7 @@
 </aside>
 <article class="doc">
 <div class="paragraph">
-<p>Mill workers defined using <code>T.worker</code> are long-lived in-memory objects that
+<p>Mill workers defined using <code>Task.Worker</code> are long-lived in-memory objects that
 can persistent across multiple evaluations. These are similar to persistent
 targets in that they let you cache things, but the fact that they let you
 cache the worker object in-memory allows for greater performance and
@@ -416,19 +416,19 @@ import java.util.Arrays
 import java.io.ByteArrayOutputStream
 import java.util.zip.GZIPOutputStream
 
-def data = T.source(millSourcePath / &quot;data&quot;)
+def data = Task.Source(millSourcePath / &quot;data&quot;)
 
-def compressWorker = T.worker{ new CompressWorker(T.dest) }
+def compressWorker = Task.Worker{ new CompressWorker(Task.dest) }
 
 def compressedData = T{
   println(&quot;Evaluating compressedData&quot;)
   for(p &lt;- os.list(data().path)){
     os.write(
-      T.dest / s&quot;${p.last}.gz&quot;,
+      Task.dest / s&quot;${p.last}.gz&quot;,
       compressWorker().compress(p.last, os.read.bytes(p))
     )
   }
-  os.list(T.dest).map(PathRef(_))
+  os.list(Task.dest).map(PathRef(_))
 }
 
 class CompressWorker(dest: os.Path){
@@ -484,7 +484,7 @@ workers after every command. Commands run repeatedly using <code>--watch</code> 
 also preserve the workers between them.</p>
 </div>
 <div class="paragraph">
-<p>Workers can also make use of their <code>T.dest</code> folder as a cache that persist
+<p>Workers can also make use of their <code>Task.dest</code> folder as a cache that persist
 when the worker shuts down, as a second layer of caching. The example usage
 below demonstrates how using the <code>--no-server</code> flag will make the worker
 read from its disk cache, where it would have normally read from its
@@ -540,7 +540,7 @@ class MyWorker() extends AutoCloseable {
   override def close() = { /* cleanup and free resources */ }
 }
 
-def myWorker = T.worker { new MyWorker() }</code></pre>
+def myWorker = Task.Worker { new MyWorker() }</code></pre>
 </div>
 </div>
 </div>

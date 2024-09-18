@@ -379,9 +379,9 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-14-cc5d70</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-16-34876b</button>
   <div class="version-menu">
-    <a class="version is-current" href="netty.html">0.12.0-RC2-14-cc5d70</a>
+    <a class="version is-current" href="netty.html">0.12.0-RC2-16-34876b</a>
     <a class="version" href="../../0.11.12/example/thirdparty/netty.html">0.11.12</a>
     <a class="version" href="../../0.11.11/example/thirdparty/netty.html">0.11.11</a>
     <a class="version is-missing" href="../../0.11.10/index.html">0.11.10</a>
@@ -470,7 +470,7 @@ trait NettyBaseTestSuiteModule extends NettyBaseModule with TestModule.Junit5{
   def compile = T{
     // Hack to satisfy fragile tests that look for /test-classes/ in the file paths
     val sup = super.compile()
-    val testClasses = T.dest / &quot;test-classes&quot;
+    val testClasses = Task.dest / &quot;test-classes&quot;
     if (os.exists(sup.classes.path)) os.copy(sup.classes.path, testClasses, createFolders = true)
     sup.copy(classes = PathRef(testClasses))
   }
@@ -495,10 +495,10 @@ trait NettyModule extends NettyBaseModule{
 
 trait NettyJniModule extends NettyModule {
   def jniLibraryName: T[String]
-  def cSources = T.source(millSourcePath / &quot;src/main/c&quot;)
+  def cSources = Task.Source(millSourcePath / &quot;src/main/c&quot;)
   def resources = T{
-    os.copy(clang().path, T.dest / &quot;META-INF/native&quot; / jniLibraryName(), createFolders = true)
-    Seq(PathRef(T.dest))
+    os.copy(clang().path, Task.dest / &quot;META-INF/native&quot; / jniLibraryName(), createFolders = true)
+    Seq(PathRef(Task.dest))
   }
   def clang = T{
     val Seq(sourceJar) = defaultResolver()
@@ -508,15 +508,15 @@ trait NettyJniModule extends NettyModule {
       )
       .toSeq
 
-    os.makeDir.all(T.dest  / &quot;src/main/c&quot;)
-    os.proc(&quot;jar&quot;, &quot;xf&quot;, sourceJar.path).call(cwd = T.dest  / &quot;src/main/c&quot;)
+    os.makeDir.all(Task.dest  / &quot;src/main/c&quot;)
+    os.proc(&quot;jar&quot;, &quot;xf&quot;, sourceJar.path).call(cwd = Task.dest  / &quot;src/main/c&quot;)
 
     os.proc(
       &quot;clang&quot;,
       // CFLAGS
       &quot;-O3&quot;, &quot;-Werror&quot;, &quot;-fno-omit-frame-pointer&quot;,
       &quot;-Wunused-variable&quot;, &quot;-fvisibility=hidden&quot;,
-      &quot;-I&quot; + (T.dest / &quot;src/main/c&quot;),
+      &quot;-I&quot; + (Task.dest / &quot;src/main/c&quot;),
       &quot;-I&quot; + `transport-native-unix-common`.cHeaders().path,
       &quot;-I&quot; + sys.props(&quot;java.home&quot;) + &quot;/include/&quot;,
       &quot;-I&quot; + sys.props(&quot;java.home&quot;) + &quot;/include/darwin&quot;,
@@ -531,9 +531,9 @@ trait NettyJniModule extends NettyModule {
       &quot;-DPIC&quot;,
       // sources
       os.list(cSources().path)
-    ).call(cwd = T.dest, env = Map(&quot;MACOSX_DEPLOYMENT_TARGET&quot; -&gt; &quot;10.9&quot;))
+    ).call(cwd = Task.dest, env = Map(&quot;MACOSX_DEPLOYMENT_TARGET&quot; -&gt; &quot;10.9&quot;))
 
-    PathRef(T.dest / &quot;a.out&quot;)
+    PathRef(Task.dest / &quot;a.out&quot;)
   }
 }
 
@@ -657,19 +657,19 @@ object common extends NettyModule{
     ivy&quot;org.jctools:jctools-core:4.0.5&quot;,
   )
 
-  def script = T.source(millSourcePath / &quot;src/main/script&quot;)
+  def script = Task.Source(millSourcePath / &quot;src/main/script&quot;)
   def generatedSources0 = T{
     val shell = new groovy.lang.GroovyShell()
 
     val context = new java.util.HashMap[String, Object]
-    context.put(&quot;collection.template.dir&quot;, T.workspace + &quot;/common/src/main/templates&quot;)
-    context.put(&quot;collection.template.test.dir&quot;, T.workspace + &quot;/common/src/test/templates&quot;)
-    context.put(&quot;collection.src.dir&quot;, (T.dest / &quot;src&quot;).toString)
-    context.put(&quot;collection.testsrc.dir&quot;, (T.dest / &quot;testsrc&quot;).toString)
+    context.put(&quot;collection.template.dir&quot;, Task.workspace + &quot;/common/src/main/templates&quot;)
+    context.put(&quot;collection.template.test.dir&quot;, Task.workspace + &quot;/common/src/test/templates&quot;)
+    context.put(&quot;collection.src.dir&quot;, (Task.dest / &quot;src&quot;).toString)
+    context.put(&quot;collection.testsrc.dir&quot;, (Task.dest / &quot;testsrc&quot;).toString)
     shell.setProperty(&quot;properties&quot;, context)
     shell.setProperty(&quot;ant&quot;, new groovy.ant.AntBuilder())
     shell.evaluate((script().path / &quot;codegen.groovy&quot;).toIO)
-    (PathRef(T.dest / &quot;src&quot;), PathRef(T.dest / &quot;testsrc&quot;))
+    (PathRef(Task.dest / &quot;src&quot;), PathRef(Task.dest / &quot;testsrc&quot;))
   }
 
   def generatedSources = T{ Seq(generatedSources0()._1)}
@@ -813,21 +813,21 @@ object `testsuite-http2` extends NettyTestSuiteModule{
     val isOSX = sys.props(&quot;os.name&quot;).toLowerCase.contains(&quot;mac&quot;)
     val binaryName = if (isOSX) &quot;h2spec_darwin_amd64.tar.gz&quot; else &quot;h2spec_linux_amd64.tar.gz&quot;
     val url = s&quot;https://github.com/summerwind/h2spec/releases/download/v2.6.0/$binaryName&quot;
-    os.write(T.dest / &quot;h2spec.tar.gz&quot;, requests.get(url))
+    os.write(Task.dest / &quot;h2spec.tar.gz&quot;, requests.get(url))
 
-    os.proc(&quot;tar&quot;, &quot;xzf&quot;, T.dest / &quot;h2spec.tar.gz&quot;).call(cwd = T.dest)
-    PathRef(T.dest / &quot;h2spec&quot;)
+    os.proc(&quot;tar&quot;, &quot;xzf&quot;, Task.dest / &quot;h2spec.tar.gz&quot;).call(cwd = Task.dest)
+    PathRef(Task.dest / &quot;h2spec&quot;)
   }
-  override def test(args: String*) = T.command{
+  override def test(args: String*) = Task.Command{
     val server = os.proc(assembly().path).spawn(stdout = os.Inherit)
     try {
       Thread.sleep(1000) // let the server start up
 
-      os.proc(h2Spec().path, &quot;-p9000&quot;, &quot;--junit-report&quot;, T.dest / &quot;report.xml&quot;)
+      os.proc(h2Spec().path, &quot;-p9000&quot;, &quot;--junit-report&quot;, Task.dest / &quot;report.xml&quot;)
         .call(stdout = os.Inherit, check = false)
 
       // Use the Scala XML library to parse and fish out the data we want from the report
-      val xmlFile = scala.xml.XML.loadFile((T.dest / &quot;report.xml&quot;).toIO)
+      val xmlFile = scala.xml.XML.loadFile((Task.dest / &quot;report.xml&quot;).toIO)
       val testCasesWithErrors = (xmlFile \\ &quot;testcase&quot;).filter { testcase =&gt;
         (testcase \\ &quot;error&quot;).nonEmpty
       }
@@ -858,7 +858,7 @@ object `testsuite-http2` extends NettyTestSuiteModule{
 object `testsuite-native` extends NettyTestSuiteModule{
   def moduleDeps = Seq(`transport-native-kqueue`, `resolver-dns-native-macos`, `resolver-dns-classes-macos`, `transport-native-epoll`)
   def testModuleDeps = Seq(`resolver-dns-classes-macos`)
-  override def sources = T.sources( millSourcePath / &quot;src/test/java&quot; )
+  override def sources = Task.Sources( millSourcePath / &quot;src/test/java&quot; )
 }
 
 object `testsuite-native-image` extends NettyTestSuiteModule{
@@ -884,7 +884,7 @@ object `testsuite-osgi` extends NettyTestSuiteModule{
     transport, `transport-sctp`, `transport-udt`
   )
 
-  override def sources = T.sources( millSourcePath / &quot;src/test/java&quot; )
+  override def sources = Task.Sources( millSourcePath / &quot;src/test/java&quot; )
 
   def ivyDeps = super.ivyDeps() ++ Agg(
     ivy&quot;org.apache.felix:org.apache.felix.configadmin:1.9.14&quot;,
@@ -897,7 +897,7 @@ object `testsuite-osgi` extends NettyTestSuiteModule{
 
 object `testsuite-shading` extends NettyTestSuiteModule{
   def moduleDeps = Seq(common)
-  override def sources = T.sources( millSourcePath / &quot;src/test/java&quot; )
+  override def sources = Task.Sources( millSourcePath / &quot;src/test/java&quot; )
 }
 
 object transport extends NettyModule{
@@ -945,27 +945,27 @@ object `transport-native-unix-common` extends NettyModule{
   def moduleDeps = Seq(common, buffer, transport)
   def ivyDeps = Agg(ivy&quot;org.junit.jupiter:junit-jupiter-api:5.9.0&quot;)
 
-  def makefile = T.source(millSourcePath / &quot;Makefile&quot;)
-  def cSources = T.source(millSourcePath / &quot;src/main/c&quot;)
+  def makefile = Task.Source(millSourcePath / &quot;Makefile&quot;)
+  def cSources = Task.Source(millSourcePath / &quot;src/main/c&quot;)
   def cHeaders = T{
     for(p &lt;- os.walk(cSources().path) if p.ext == &quot;h&quot;){
-      os.copy(p, T.dest / p.relativeTo(cSources().path), createFolders = true)
+      os.copy(p, Task.dest / p.relativeTo(cSources().path), createFolders = true)
     }
-    PathRef(T.dest)
+    PathRef(Task.dest)
   }
 
   def make = T{
     val Seq(sourceJar) = resolveDeps(
-      deps = T.task(Agg(ivy&quot;io.netty:netty-jni-util:0.0.9.Final&quot;).map(bindDependency())),
+      deps = Task.Anon(Agg(ivy&quot;io.netty:netty-jni-util:0.0.9.Final&quot;).map(bindDependency())),
       sources = true
     )().toSeq
 
-    os.copy(makefile().path, T.dest / &quot;Makefile&quot;)
-    os.copy(cSources().path, T.dest / &quot;src/main/c&quot;, createFolders = true)
-    os.proc(&quot;jar&quot;, &quot;xf&quot;, sourceJar.path).call(cwd = T.dest  / &quot;src/main/c&quot;)
+    os.copy(makefile().path, Task.dest / &quot;Makefile&quot;)
+    os.copy(cSources().path, Task.dest / &quot;src/main/c&quot;, createFolders = true)
+    os.proc(&quot;jar&quot;, &quot;xf&quot;, sourceJar.path).call(cwd = Task.dest  / &quot;src/main/c&quot;)
 
     os.proc(&quot;make&quot;).call(
-      cwd = T.dest,
+      cwd = Task.dest,
       env = Map(
         &quot;CC&quot; -&gt; &quot;clang&quot;,
         &quot;AR&quot; -&gt; &quot;ar&quot;,
@@ -991,7 +991,7 @@ object `transport-native-unix-common` extends NettyModule{
     )
 
 
-    (PathRef(T.dest / &quot;lib-out&quot;), PathRef(T.dest / &quot;obj-out&quot;))
+    (PathRef(Task.dest / &quot;lib-out&quot;), PathRef(Task.dest / &quot;obj-out&quot;))
   }
 }
 object `transport-native-unix-common-tests` extends NettyTestSuiteModule{

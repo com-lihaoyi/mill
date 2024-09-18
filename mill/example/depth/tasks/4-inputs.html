@@ -378,9 +378,9 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-14-cc5d70</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-16-34876b</button>
   <div class="version-menu">
-    <a class="version is-current" href="4-inputs.html">0.12.0-RC2-14-cc5d70</a>
+    <a class="version is-current" href="4-inputs.html">0.12.0-RC2-16-34876b</a>
     <a class="version is-missing" href="../../../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../../../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../../../0.11.10/index.html">0.11.10</a>
@@ -404,8 +404,8 @@
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
 
-def myInput = T.input {
-  os.proc(&quot;git&quot;, &quot;rev-parse&quot;, &quot;HEAD&quot;).call(cwd = T.workspace)
+def myInput = Task.Input {
+  os.proc(&quot;git&quot;, &quot;rev-parse&quot;, &quot;HEAD&quot;).call(cwd = Task.workspace)
     .out
     .text()
     .trim()
@@ -413,7 +413,7 @@ def myInput = T.input {
 </div>
 </div>
 <div class="paragraph">
-<p>A generalization of <a href="#_sources">[_sources]</a>, <code>T.input</code>s are tasks that re-evaluate
+<p>A generalization of <a href="#_sources">[_sources]</a>, <code>Task.Input</code>s are tasks that re-evaluate
 <em>every time</em> (unlike <a href="#_anonymous_tasks">[_anonymous_tasks]</a>), containing an
 arbitrary block of code.</p>
 </div>
@@ -426,10 +426,10 @@ even if the external <code>git</code> status changes:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def gitStatusTarget = T {
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def gitStatusTarget = Task {
   &quot;v-&quot; +
   os.proc(&quot;git&quot;, &quot;log&quot;, &quot;-1&quot;, &quot;--pretty=format:%h-%B &quot;)
-    .call(cwd = T.workspace)
+    .call(cwd = Task.workspace)
     .out
     .text()
     .trim()
@@ -457,18 +457,18 @@ not know to re-evaluate when your <code>git log</code> <em>does</em> change. Thi
 <code>gitStatusTarget</code>'s output will  be out of date!</p>
 </div>
 <div class="paragraph">
-<p>To fix this, you can wrap your <code>git log</code> in a <code>T.input</code>:</p>
+<p>To fix this, you can wrap your <code>git log</code> in a <code>Task.Input</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def gitStatusInput = T.input {
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def gitStatusInput = Task.Input {
   os.proc(&quot;git&quot;, &quot;log&quot;, &quot;-1&quot;, &quot;--pretty=format:%h-%B &quot;)
-    .call(cwd = T.workspace)
+    .call(cwd = Task.workspace)
     .out
     .text()
     .trim()
 }
-def gitStatusTarget2 = T { &quot;v-&quot; + gitStatusInput() }</code></pre>
+def gitStatusTarget2 = Task { &quot;v-&quot; + gitStatusInput() }</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -489,8 +489,8 @@ the output of <code>gitStatusInput</code> changes will <code>gitStatusTarget2</c
 </div>
 </div>
 <div class="paragraph">
-<p>Note that because <code>T.input</code>s re-evaluate every time, you should ensure that the
-code you put in <code>T.input</code> runs quickly. Ideally it should just be a simple check
+<p>Note that because <code>Task.Input</code>s re-evaluate every time, you should ensure that the
+code you put in <code>Task.Input</code> runs quickly. Ideally it should just be a simple check
 &quot;did anything change?&quot; and any heavy-lifting should be delegated to downstream
 targets where it can be cached if possible.</p>
 </div>

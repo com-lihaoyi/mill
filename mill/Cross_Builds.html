@@ -386,9 +386,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-14-cc5d70</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-16-34876b</button>
   <div class="version-menu">
-    <a class="version is-current" href="Cross_Builds.html">0.12.0-RC2-14-cc5d70</a>
+    <a class="version is-current" href="Cross_Builds.html">0.12.0-RC2-16-34876b</a>
     <a class="version" href="0.11.12/Cross_Builds.html">0.11.12</a>
     <a class="version" href="0.11.11/Cross_Builds.html">0.11.11</a>
     <a class="version" href="0.11.10/Cross_Builds.html">0.11.10</a>
@@ -432,9 +432,9 @@ import mill._
 
 object foo extends Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
 trait FooModule extends Cross.Module[String] {
-  def suffix = T { &quot;_&quot; + crossValue }
-  def bigSuffix = T { &quot;[[[&quot; + suffix() + &quot;]]]&quot; }
-  def sources = T.sources(millSourcePath)
+  def suffix = Task { &quot;_&quot; + crossValue }
+  def bigSuffix = Task { &quot;[[[&quot; + suffix() + &quot;]]]&quot; }
+  def sources = Task.Sources(millSourcePath)
 }</code></pre>
 </div>
 </div>
@@ -496,7 +496,7 @@ import mill._
 object foo extends Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
 
 trait FooModule extends Cross.Module[String] {
-  def suffix = T { &quot;_&quot; + crossValue }
+  def suffix = Task { &quot;_&quot; + crossValue }
 }
 
 object bar extends Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;) {
@@ -538,7 +538,7 @@ import mill._
 object foo extends Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
 trait FooModule extends Cross.Module[String] {
   def millSourcePath = super.millSourcePath / crossValue
-  def sources = T.sources(millSourcePath)
+  def sources = Task.Sources(millSourcePath)
 }</code></pre>
 </div>
 </div>
@@ -602,12 +602,12 @@ import mill._
 
 object foo extends Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
 trait FooModule extends Cross.Module[String] {
-  def suffix = T { &quot;_&quot; + crossValue }
+  def suffix = Task { &quot;_&quot; + crossValue }
 }
 
-def bar = T { s&quot;hello ${foo(&quot;2.10&quot;).suffix()}&quot; }
+def bar = Task { s&quot;hello ${foo(&quot;2.10&quot;).suffix()}&quot; }
 
-def qux = T { s&quot;hello ${foo(&quot;2.10&quot;).suffix()} world ${foo(&quot;2.12&quot;).suffix()}&quot; }</code></pre>
+def qux = Task { s&quot;hello ${foo(&quot;2.10&quot;).suffix()} world ${foo(&quot;2.12&quot;).suffix()}&quot; }</code></pre>
 </div>
 </div>
 <div class="imageblock kroki">
@@ -650,12 +650,12 @@ import mill._
 
 object foo extends mill.Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
 trait FooModule extends Cross.Module[String] {
-  def suffix = T { &quot;_&quot; + crossValue }
+  def suffix = Task { &quot;_&quot; + crossValue }
 }
 
 object bar extends mill.Cross[BarModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
 trait BarModule extends Cross.Module[String] {
-  def bigSuffix = T { &quot;[[[&quot; + foo(crossValue).suffix() + &quot;]]]&quot; }
+  def bigSuffix = Task { &quot;[[[&quot; + foo(crossValue).suffix() + &quot;]]]&quot; }
 }</code></pre>
 </div>
 </div>
@@ -712,10 +712,10 @@ val crossMatrix = for {
 object foo extends mill.Cross[FooModule](crossMatrix)
 trait FooModule extends Cross.Module2[String, String] {
   val (crossVersion, platform) = (crossValue, crossValue2)
-  def suffix = T { &quot;_&quot; + crossVersion + &quot;_&quot; + platform }
+  def suffix = Task { &quot;_&quot; + crossVersion + &quot;_&quot; + platform }
 }
 
-def bar = T { s&quot;hello ${foo(&quot;2.10&quot;, &quot;jvm&quot;).suffix()}&quot; }</code></pre>
+def bar = Task { s&quot;hello ${foo(&quot;2.10&quot;, &quot;jvm&quot;).suffix()}&quot; }</code></pre>
 </div>
 </div>
 <div class="imageblock kroki">
@@ -768,13 +768,13 @@ import mill._
 
 object foo extends Cross[FooModule](&quot;a&quot;, &quot;b&quot;)
 trait FooModule extends Cross.Module[String] {
-  def param1 = T { &quot;Param Value: &quot; + crossValue }
+  def param1 = Task { &quot;Param Value: &quot; + crossValue }
 }
 
 object foo2 extends Cross[FooModule2]((&quot;a&quot;, 1), (&quot;b&quot;, 2))
 trait FooModule2 extends Cross.Module2[String, Int] {
-  def param1 = T { &quot;Param Value: &quot; + crossValue }
-  def param2 = T { &quot;Param Value: &quot; + crossValue2 }
+  def param1 = Task { &quot;Param Value: &quot; + crossValue }
+  def param2 = Task { &quot;Param Value: &quot; + crossValue2 }
 }
 
 object foo3 extends Cross[FooModule3]((&quot;a&quot;, 1, true), (&quot;b&quot;, 2, false))
@@ -841,7 +841,7 @@ import mill._
 trait MyModule extends Module{
   def crossValue: String
   def name: T[String]
-  def param = T { name() + &quot; Param Value: &quot; + crossValue }
+  def param = Task { name() + &quot; Param Value: &quot; + crossValue }
 }
 
 object foo extends Cross[FooModule](&quot;a&quot;, &quot;b&quot;)
@@ -854,7 +854,7 @@ trait FooModule extends Cross.Module[String] {
   }
 }
 
-def baz = T { s&quot;hello ${foo(&quot;a&quot;).bar.param()}&quot; }</code></pre>
+def baz = Task { s&quot;hello ${foo(&quot;a&quot;).bar.param()}&quot; }</code></pre>
 </div>
 </div>
 <div class="imageblock kroki">
@@ -906,12 +906,12 @@ trait MyModule extends Cross.Module[String] {
 
 object foo extends mill.Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
 trait FooModule extends MyModule {
-  def suffix = T { &quot;_&quot; + crossValue }
+  def suffix = Task { &quot;_&quot; + crossValue }
 }
 
 object bar extends mill.Cross[BarModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
 trait BarModule extends MyModule {
-  def bigSuffix = T { &quot;[[[&quot; + foo().suffix() + &quot;]]]&quot; }
+  def bigSuffix = Task { &quot;[[[&quot; + foo().suffix() + &quot;]]]&quot; }
 }</code></pre>
 </div>
 </div>
@@ -1082,7 +1082,7 @@ val posts = interp.watchValue {
 
 object post extends Cross[PostModule](posts)
 trait PostModule extends Cross.Module[String]{
-  def source = T.source(millSourcePath / crossValue)
+  def source = Task.Source(millSourcePath / crossValue)
   def render = T{
     val doc = Parser.builder().build().parse(os.read(source().path))
     val title = mdNameToTitle(crossValue)
@@ -1095,8 +1095,8 @@ trait PostModule extends Cross.Module[String]{
       )
     )
 
-    os.write(T.dest /  mdNameToHtml(crossValue), rendered)
-    PathRef(T.dest / mdNameToHtml(crossValue))
+    os.write(Task.dest /  mdNameToHtml(crossValue), rendered)
+    PathRef(Task.dest / mdNameToHtml(crossValue))
   }
 }</code></pre>
 </div>
@@ -1104,13 +1104,13 @@ trait PostModule extends Cross.Module[String]{
 <div class="paragraph">
 <p>The last page we need to generate is the index page, listing out the various
 blog posts and providing links so we can navigate into them. To do this, we
-need to wrap the <code>posts</code> value in a <code>T.input</code>, as it can change depending on
+need to wrap the <code>posts</code> value in a <code>Task.Input</code>, as it can change depending on
 what <code>os.list</code> finds on disk. After that, it’s straightforward to render the
 <code>index.html</code> file we want:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def postsInput = T.input{ posts }
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def postsInput = Task.Input{ posts }
 
 def renderIndexEntry(mdName: String) = {
   h2(a(mdNameToTitle(mdName), href := (&quot;post/&quot; + mdNameToHtml(mdName))))
@@ -1120,8 +1120,8 @@ def index = T{
   val rendered = doctype(&quot;html&quot;)(
     html(body(h1(&quot;Blog&quot;), postsInput().map(renderIndexEntry)))
   )
-  os.write(T.dest / &quot;index.html&quot;, rendered)
-  PathRef(T.dest / &quot;index.html&quot;)
+  os.write(Task.dest / &quot;index.html&quot;, rendered)
+  PathRef(Task.dest / &quot;index.html&quot;)
 }</code></pre>
 </div>
 </div>
@@ -1131,12 +1131,12 @@ into a single target’s <code>.dest</code> folder, and return it:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def dist = T {
-  for (post &lt;- T.traverse(post.crossModules)(_.render)()) {
-    os.copy(post.path, T.dest / &quot;post&quot; / post.path.last, createFolders = true)
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def dist = Task {
+  for (post &lt;- Task.traverse(post.crossModules)(_.render)()) {
+    os.copy(post.path, Task.dest / &quot;post&quot; / post.path.last, createFolders = true)
   }
-  os.copy(index().path, T.dest / &quot;index.html&quot;)
-  PathRef(T.dest)
+  os.copy(index().path, Task.dest / &quot;index.html&quot;)
+  PathRef(Task.dest)
 }</code></pre>
 </div>
 </div>

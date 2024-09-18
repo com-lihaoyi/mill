@@ -378,9 +378,9 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-14-cc5d70</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-16-34876b</button>
   <div class="version-menu">
-    <a class="version is-current" href="2-primary-tasks.html">0.12.0-RC2-14-cc5d70</a>
+    <a class="version is-current" href="2-primary-tasks.html">0.12.0-RC2-16-34876b</a>
     <a class="version is-missing" href="../../../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../../../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../../../0.11.10/index.html">0.11.10</a>
@@ -404,13 +404,13 @@
 <div class="ulist">
 <ul>
 <li>
-<p><a href="#_sources">Sources</a>, defined using <code>T.sources {…​}</code></p>
+<p><a href="#_sources">Sources</a>, defined using <code>Task.Sources {…​}</code></p>
 </li>
 <li>
-<p><a href="#_targets">Targets</a>, defined using <code>T {…​}</code></p>
+<p><a href="#_targets">Targets</a>, defined using <code>Task {…​}</code></p>
 </li>
 <li>
-<p><a href="#_commands">Commands</a>, defined using <code>T.command {…​}</code></p>
+<p><a href="#_commands">Commands</a>, defined using <code>Task.Command {…​}</code></p>
 </li>
 </ul>
 </div>
@@ -423,19 +423,19 @@
 
 import mill.{Module, T, _}
 
-def sources = T.source { millSourcePath / &quot;src&quot; }
-def resources = T.source { millSourcePath / &quot;resources&quot; }</code></pre>
+def sources = Task.Source { millSourcePath / &quot;src&quot; }
+def resources = Task.Source { millSourcePath / &quot;resources&quot; }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p><code>Source</code>s are defined using <code>T.source{…​}</code> taking one <code>os.Path</code>, or <code>T.sources{…​}</code>,
+<p><code>Source</code>s are defined using <code>Task.Source{…​}</code> taking one <code>os.Path</code>, or <code>Task.Sources{…​}</code>,
 taking multiple <code>os.Path</code>s as arguments. A <code>Source</code>'s':
 its build signature/<code>hashCode</code> depends not just on the path
 it refers to (e.g. <code>foo/bar/baz</code>) but also the MD5 hash of the filesystem
 tree under that path.</p>
 </div>
 <div class="paragraph">
-<p><code>T.source</code> and <code>T.sources</code> are most common inputs in any Mill build:
+<p><code>Task.Source</code> and <code>Task.Sources</code> are most common inputs in any Mill build:
 they watch source files and folders and cause downstream targets to
 re-compute if a change is detected.</p>
 </div>
@@ -444,13 +444,13 @@ re-compute if a change is detected.</p>
 <h3 id="_targets"><a class="anchor" href="#_targets"></a>Targets</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def allSources = T {
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def allSources = Task {
   os.walk(sources().path)
     .filter(_.ext == &quot;java&quot;)
     .map(PathRef(_))
 }
 
-def lineCount: T[Int] = T {
+def lineCount: T[Int] = Task {
   println(&quot;Computing line count&quot;)
   allSources()
     .map(p =&gt; os.read.lines(p.path).size)
@@ -464,9 +464,9 @@ def lineCount: T[Int] = T {
 </div>
 </div>
 <div class="paragraph">
-<p><code>Target</code>s are defined using the <code>def foo = T {…​}</code> syntax, and dependencies
+<p><code>Target</code>s are defined using the <code>def foo = Task {…​}</code> syntax, and dependencies
 on other targets are defined using <code>foo()</code> to extract the value from them.
-Apart from the <code>foo()</code> calls, the <code>T {…​}</code> block contains arbitrary code that
+Apart from the <code>foo()</code> calls, the <code>Task {…​}</code> block contains arbitrary code that
 does some work and returns a result.</p>
 </div>
 <div class="paragraph">
@@ -505,7 +505,7 @@ not cause it to recompute:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-diff hljs" data-lang="diff"> def lineCount: T[Int] = T {
+<pre class="highlightjs highlight"><code class="language-diff hljs" data-lang="diff"> def lineCount: T[Int] = Task {
   println(&quot;Computing line count&quot;)
 +  // Hello World
   allSources()
@@ -520,7 +520,7 @@ next time it is invoked:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-diff hljs" data-lang="diff">  def lineCount: T[Int] = T {
+<pre class="highlightjs highlight"><code class="language-diff hljs" data-lang="diff">  def lineCount: T[Int] = Task {
 -  println(&quot;Computing line count&quot;)
 +  println(&quot;Computing line count!!!&quot;)
   allSources()
@@ -547,35 +547,35 @@ external tools. See the uPickle library documentation for more details:</p>
 </ul>
 </div>
 <div class="sect3">
-<h4 id="_t_dest"><a class="anchor" href="#_t_dest"></a>T.dest</h4>
+<h4 id="_task_dest"><a class="anchor" href="#_task_dest"></a>Task.dest</h4>
 <div class="paragraph">
-<p>Each target, e.g. <code>classFiles</code>, is assigned a <a href="https://mill-build.org/api/latest/mill/api/Ctx.html#dest:os.Path">T.dest</a>
+<p>Each target, e.g. <code>classFiles</code>, is assigned a <a href="https://mill-build.org/api/latest/mill/api/Ctx.html#dest:os.Path">Task.dest</a>
 folder e.g. <code>out/classFiles.dest/</code> on disk as scratch space &amp; to store its
 output files , and its returned metadata is automatically JSON-serialized
 and stored at <code>out/classFiles.json</code>. If you want to return a file or a set
-of files as the result of a <code>Target</code>, write them to disk within your <code>T.dest</code>
+of files as the result of a <code>Target</code>, write them to disk within your <code>Task.dest</code>
 folder and return a <code>PathRef()</code> that referencing the files or folders
 you want to return:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def classFiles = T {
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def classFiles = Task {
   println(&quot;Generating classfiles&quot;)
 
-  os.proc(&quot;javac&quot;, allSources().map(_.path), &quot;-d&quot;, T.dest)
-    .call(cwd = T.dest)
+  os.proc(&quot;javac&quot;, allSources().map(_.path), &quot;-d&quot;, Task.dest)
+    .call(cwd = Task.dest)
 
-  PathRef(T.dest)
+  PathRef(Task.dest)
 }
 
-def jar = T {
+def jar = Task {
   println(&quot;Generating jar&quot;)
-  os.copy(classFiles().path, T.dest, mergeFolders = true)
-  os.copy(resources().path, T.dest, mergeFolders = true)
+  os.copy(classFiles().path, Task.dest, mergeFolders = true)
+  os.copy(resources().path, Task.dest, mergeFolders = true)
 
-  os.proc(&quot;jar&quot;, &quot;-cfe&quot;, T.dest / &quot;foo.jar&quot;, &quot;foo.Foo&quot;, &quot;.&quot;).call(cwd = T.dest)
+  os.proc(&quot;jar&quot;, &quot;-cfe&quot;, Task.dest / &quot;foo.jar&quot;, &quot;foo.Foo&quot;, &quot;.&quot;).call(cwd = Task.dest)
 
-  PathRef(T.dest / &quot;foo.jar&quot;)
+  PathRef(Task.dest / &quot;foo.jar&quot;)
 }</code></pre>
 </div>
 </div>
@@ -600,8 +600,8 @@ This is to stop you from accidentally reading and writing files to the base repo
 which would cause problems with Mill’s caches not invalidating properly or files from different
 tasks colliding and causing issues.
 You should never use <code>os.pwd</code> or rely on the process working directory, and always explicitly
-use <code>T.dest</code> or the <code>.path</code> of upstream <code>PathRef</code>s when accessing files. In the rare case where
-you truly need the Mill project root folder, you can access it via <code>T.workspace</code></p>
+use <code>Task.dest</code> or the <code>.path</code> of upstream <code>PathRef</code>s when accessing files. In the rare case where
+you truly need the Mill project root folder, you can access it via <code>Task.workspace</code></p>
 </div>
 </div>
 <div class="sect3">
@@ -621,7 +621,7 @@ in <code>def largeFile</code> running even though the <code>largeFile()</code> b
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def largeFile = T {
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def largeFile = Task {
   println(&quot;Finding Largest File&quot;)
   allSources()
     .map(_.path)
@@ -697,7 +697,7 @@ def summarizeClassFileStats = T{
 <h3 id="_commands"><a class="anchor" href="#_commands"></a>Commands</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def run(mainClass: String, args: String*) = T.command {
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def run(mainClass: String, args: String*) = Task.Command {
   os.proc(
       &quot;java&quot;,
       &quot;-cp&quot;, s&quot;${classFiles().path}:${resources().path}&quot;,
@@ -714,11 +714,11 @@ def summarizeClassFileStats = T{
 </div>
 </div>
 <div class="paragraph">
-<p>Defined using <code>T.command {…​}</code> syntax, <code>Command</code>s can run arbitrary code, with
+<p>Defined using <code>Task.Command {…​}</code> syntax, <code>Command</code>s can run arbitrary code, with
 dependencies declared using the same <code>foo()</code> syntax (e.g. <code>classFiles()</code> above).
 Commands can be parametrized, but their output is not cached, so they will
 re-evaluate every time even if none of their inputs have changed.
-A command with no parameter is defined as <code>def myCommand() = T.command {…​}</code>.
+A command with no parameter is defined as <code>def myCommand() = Task.Command {…​}</code>.
 It is a compile error if <code>()</code> is missing.</p>
 </div>
 <div class="paragraph">
@@ -787,12 +787,12 @@ path for consumption by external tools.</p>
 <div class="paragraph">
 <p>Tasks can be overriden, with the overriden task callable via <code>super</code>.
 You can also override a task with a different type of task, e.g. below
-we override <code>sourceRoots</code> which is a <code>T.sources</code> with a <code>T{}</code> target:</p>
+we override <code>sourceRoots</code> which is a <code>Task.Sources</code> with a <code>T{}</code> target:</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">trait Foo extends Module {
-  def sourceRoots = T.sources(millSourcePath / &quot;src&quot;)
+  def sourceRoots = Task.Sources(millSourcePath / &quot;src&quot;)
   def sourceContents = T{
     sourceRoots()
       .flatMap(pref =&gt; os.walk(pref.path))
@@ -803,8 +803,8 @@ we override <code>sourceRoots</code> which is a <code>T.sources</code> with a <c
 }
 
 trait Bar extends Foo {
-  def additionalSources = T.sources(millSourcePath / &quot;src2&quot;)
-  def sourceRoots = T { super.sourceRoots() ++ additionalSources() }
+  def additionalSources = Task.Sources(millSourcePath / &quot;src2&quot;)
+  def sourceRoots = Task { super.sourceRoots() ++ additionalSources() }
 }
 
 object bar extends Bar</code></pre>
