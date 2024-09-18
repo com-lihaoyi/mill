@@ -9,7 +9,7 @@ import mill.api.{PathRef, Result}
 import mill.define.{Command, ModuleRef, Task}
 import mill.kotlinlib.worker.api.KotlinWorker
 import mill.scalalib.api.{CompilationResult, ZincWorkerApi}
-import mill.scalalib.{Dep, DepSyntax, JavaModule, Lib, ZincWorkerModule}
+import mill.scalalib.{JavaModule, Lib, ZincWorkerModule}
 import mill.util.Util.millProjectModule
 import mill.{Agg, T}
 
