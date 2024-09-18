@@ -1,0 +1,23 @@
+package build
+import mill._, javalib._
+import $ivy.`com.lihaoyi::mill-contrib-palantirjavaformat:`
+
+import mill.contrib.palantirjavaformat._
+
+object `package` extends RootModule with PalantirJavaFormatModule {
+}
+
+/** Usage
+
+> ./mill javafmt --check                # check Java source files for formatting errors
+...: checking format in java sources ...
+.../src/A.java
+...: palantirjavaformat aborted due to format error(s) (or invalid plugin settings/palantirjavaformat options)
+
+> ./mill javafmt src/A.java             # format Java source file
+
+> ./mill javafmt                        # alternatively, format all Java source files
+
+*/
+
+// Find more details on the xref:contrib/palantirjavaformat.adoc[Palantir Java Format plugin page].
