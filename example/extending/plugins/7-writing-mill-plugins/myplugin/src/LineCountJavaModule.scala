@@ -15,7 +15,7 @@ trait LineCountJavaModule extends mill.javalib.JavaModule{
 
   /** Generate resources using lineCount of sources */
   override def resources = T{
-    os.write(T.dest / lineCountResourceFileName(), "" + lineCount())
-    super.resources() ++ Seq(PathRef(T.dest))
+    os.write(Task.dest / lineCountResourceFileName(), "" + lineCount())
+    super.resources() ++ Seq(PathRef(Task.dest))
   }
 }

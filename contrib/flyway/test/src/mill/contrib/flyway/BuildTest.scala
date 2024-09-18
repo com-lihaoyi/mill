@@ -11,7 +11,7 @@ object BuildTest extends TestSuite {
     object build extends FlywayModule {
 
       val resourceFolder = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER"))
-      override def resources = T.sources(resourceFolder)
+      override def resources = Task.Sources(resourceFolder)
 
       def h2 = ivy"com.h2database:h2:2.1.214"
 

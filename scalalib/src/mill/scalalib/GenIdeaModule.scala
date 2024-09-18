@@ -23,15 +23,15 @@ trait GenIdeaModule extends Module {
    * @return
    */
   def ideaJavaModuleFacets(ideaConfigVersion: Int): Task[Seq[JavaFacet]] =
-    T.task { Seq[JavaFacet]() }
+    Task.Anon { Seq[JavaFacet]() }
 
   /**
    * Contribute components to idea config files.
    */
   def ideaConfigFiles(ideaConfigVersion: Int): Task[Seq[IdeaConfigFile]] =
-    T.task { Seq[IdeaConfigFile]() }
+    Task.Anon { Seq[IdeaConfigFile]() }
 
-  def ideaCompileOutput: T[PathRef] = T.persistent {
+  def ideaCompileOutput: T[PathRef] = Task.Persistent {
     PathRef(T.dest / "classes")
   }
 

@@ -1,6 +1,6 @@
 package mill.contrib.errorprone
 
-import mill.T
+import mill.{T, Task}
 import mill.scalalib.JavaModule
 import mill.testkit.{TestBaseModule, UnitTester}
 import os.Path
