@@ -241,7 +241,7 @@ trait Resolve[T] {
             resolveNonEmptyAndHandle(
               args,
               rootModuleSels,
-              sel,
+              sel.getOrElse(Segments()),
               nullCommandDefaults,
               allowPositionalCommandArgs
             )

@@ -18,10 +18,10 @@ import mill._
 def remoteApisZip = T{
   println("downloading bazel-remote-apis sources...")
   os.write(
-    T.dest / "source.zip",
+    Task.dest / "source.zip",
     requests.get("https://github.com/bazelbuild/remote-apis/archive/refs/tags/v2.2.0.zip")
   )
-  PathRef(T.dest / "source.zip")
+  PathRef(Task.dest / "source.zip")
 }
 
 def bazel = T{
@@ -31,27 +31,27 @@ def bazel = T{
     else "bazel-5.4.1-linux-x86_64"
 
   os.write(
-    T.dest / "bazel",
+    Task.dest / "bazel",
     requests.get(s"https://github.com/bazelbuild/bazel/releases/download/5.4.1/$fileName")
   )
-  os.perms.set(T.dest / "bazel", "rwxrwxrwx")
-  PathRef(T.dest / "bazel")
+  os.perms.set(Task.dest / "bazel", "rwxrwxrwx")
+  PathRef(Task.dest / "bazel")
 }
 
 def compiledRemoteApis = T{
   val javaBuildTarget = "build/bazel/remote/execution/v2:remote_execution_java_proto"
-  os.call(("unzip", remoteApisZip().path, "-d", T.dest))
-  os.call((bazel().path, "build", javaBuildTarget), cwd = T.dest / "remote-apis-2.2.0")
+  os.call(("unzip", remoteApisZip().path, "-d", Task.dest))
+  os.call((bazel().path, "build", javaBuildTarget), cwd = Task.dest / "remote-apis-2.2.0")
 
   val queried = os.call(
     (bazel().path, "cquery", javaBuildTarget, "--output=files"),
-    cwd = T.dest / "remote-apis-2.2.0"
+    cwd = Task.dest / "remote-apis-2.2.0"
   )
 
   queried
     .out
     .lines()
-    .map(line => PathRef(T.dest / "remote-apis-2.2.0" / os.SubPath(line)))
+    .map(line => PathRef(Task.dest / "remote-apis-2.2.0" / os.SubPath(line)))
 }
 
 // In the execution example below, we can see the first time we ask for `compiledRemoteApis`,

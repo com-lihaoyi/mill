@@ -298,6 +298,49 @@ endif::[]
 :link-milestone: {link-github}/milestone
 // find-replace-regex: https://github.com/com-lihaoyi/mill/pull/(\d*) -> {link-pr}/$1[#$1]
 
+[#0-12-0-RC2]
+=== 0.12.0-RC2 - 2024-09-16
+
+Changes since 0.12.0-RC1
+
+* Support `exclude` attribute in `Dep` parser. You can give exclusions with `;exclude=org:name`
+  or `;exclude=org:*` or `;exclude=*:name` {link-pr}/3492[#3492]
+
+* Fix `ScalaModule#console` by properly inheriting streams {link-pr}/3500[#3500]
+
+* Adjust codegen to allow custom ``mainargs.TokensReader``s, and include a
+  `mainargs.TokensReader[os.Path]` by default for convenience {link-pr}/3504[#3504]
+
+* Update to https://github.com/com-lihaoyi/os-lib?tab=readme-ov-file#0-10-7[OS-Lib 0.10.7] to
+  allow concise multi-segment sub-paths; you can now write `os.pwd / "foo/bar/qux"` rather than
+  `os.pwd / "foo" / "bar" / "qux"`
+
+* Add `JavaModule.mandatoryJavacOptions`. Those are not propagated to the inner test
+  traits intentionally, since those options are typically configured by other means,
+  e.g. dedicated targets. {link-pr}/3503[#3503]
+
+* Add plugins to run Checkstyle and generate reports {link-pr}/3516[#3516]
+
+* Simplified ``PublishModule``'s publishing setup via  {link-pr}/3523[#3523]. You can now
+  run `mill mill.scalalib.PublishModule/` with the proper environment variables (below) and
+  it should do the right thing by default
+
+** Prefix all environment variables with `MILL_`:
+   `MILL_SONATYPE_USERNAME`, `MILL_SONATYPE_PASSWORD`,
+   `MILL_PGP_SECRET_BASE64`, `MILL_PGP_PASSPHRASE` to try and add some
+   rudimentary ownership and namespacing
+
+* Allow external modules to have a `defaultCommandName` {link-pr}/3545[#3545]. This has
+  been applied to `ScalafmtModule` and `PublishModule`, so you can
+  now autoformat your code via `mill mill.scalalib.ScalafmtModule/` and publish it via
+  `mill mill.scalalib.PublishModule/` without needing the `/reformatAll __.sources`
+  or `/publishAll __.publishArtifacts` suffix
+
+* Integrated Kotlin integration as a first partly module and add example documentation
+  {link-pr}/3514[#3514]. This is still pretty spartan, but we expect to flesh it out over time
+
+* Move `.mill.sc` alternate file extension to `.mill.scala` {link-pr}/3521[#3521]
+
 [#0-12-0-RC1]
 === 0.12.0-RC1 - 2024-09-09
 
@@ -540,7 +583,7 @@ __New features__
 * Pass auxiliary class files to zinc, so they are deleted together  {link-pr}/3072[#3072]
 * BSP: Handle new `JvmCompileClasspath` request  {link-pr}/3086[#3086]
 * Add support for Cobertura XML report task to help integration  {link-pr}/3093[#3093]
-* Support Scala.js minify via `scalaJSMinify: Target[String]`  {link-pr}/3094[#3094]
+* Support Scala.js minify via `scalaJSMinify: T[String]`  {link-pr}/3094[#3094]
 * Restructure `TestModule`, add `RunModule`   {link-pr}/3064[#3064]
 * Move `run`-targets into `RunModule`  {link-pr}/3090[#3090]
 * `TestModule`: Support generation of JUnit-compatible xml report  {link-pr}/3099[#3099] {link-pr}/3172[#3172] {link-pr}/3135[#3135] {link-pr}/3184[#3184]
@@ -637,7 +680,7 @@ __New features__
 __Fixes and Improvements__
 
 * Better detect Windows Subsystem for Linux environments {link-pr}/2901[#2901]
-* Avoid evaluating `T.input`s twice {link-pr}/2952[#2952]
+* Avoid evaluating `Task.Input`s twice {link-pr}/2952[#2952]
 * Deduplicate (anonymous) tasks in results {link-pr}/2959[#2959]
 * Synchronize `evaluateGroupCached` to avoid concurrent access to cache  {link-pr}/2980[#2980]
 * Properly sanitize Windows reserved names and symbols in evaluator paths {link-pr}/2964[#2964], {link-pr}/2965[#2965]
@@ -936,7 +979,7 @@ It is now significantly lazier, resulting in less of the module tree being un-ne
 `run` to be easily used in the implementation of other tasks
 {link-pr}/2452[#2452]
 
-* ``T.input``s are now watched properly with `--watch`, and trigger re-evaluations when the watched value changes {link-pr}/2489[#2489]
+* ``Task.Input``s are now watched properly with `--watch`, and trigger re-evaluations when the watched value changes {link-pr}/2489[#2489]
 
 * Support for Java 20 {link-pr}/2501[#2501]
 
@@ -951,7 +994,7 @@ It is now significantly lazier, resulting in less of the module tree being un-ne
 * Enabled compilation warnings in `build.sc`
 {link-pr}/2519[#2519]
 
-* Print out the CLI flags when inspecting ``T.command``s
+* Print out the CLI flags when inspecting ``Task.Command``s
 {link-pr}/2522[#2522]
 
 _For details refer to
@@ -977,7 +1020,7 @@ folder in the Mill repo, containing common build setups demonstrating Mill featu
 
 * Add some helpers to simplify cross-version/cross-platform modules {#2406}[{link-pr}/2406]
 
-* You can now override `T{...}` ``Target``s with `T.source` or `T.sources`, and vice versa {link-pr}/2402[#2402]
+* You can now override `T{...}` ``Target``s with `Task.Source` or `Task.Sources`, and vice versa {link-pr}/2402[#2402]
 
 * Removed the Ammonite script runner dependency used to evaluate `build.sc`
 files and instead compile them using Mill {link-pr}/2377[#2377]
@@ -1873,7 +1916,7 @@ and the {link-compare}/0.7.0\...0.7.1[list of commits]._
 * `build.sc` files now uses Scala 2.13.2
 * Avoid duplicate target resolution with `mill resolve __`
 * Add ability to pass GPG arguments to publish via `--gpgArgs`
-* `-w`/`--watch` now works for `T.source` targets
+* `-w`/`--watch` now works for `Task.Source` targets
 
 _For details refer to {link-milestone}/37?closed=1[milestone 0.7.0]
 and the {link-compare}/0.6.3\...0.7.0[list of commits]._

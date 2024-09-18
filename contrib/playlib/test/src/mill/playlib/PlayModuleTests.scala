@@ -13,7 +13,7 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
       override def playVersion = crossPlayVersion
       override def scalaVersion = crossScalaVersion
       object test extends PlayTests
-      override def ivyDeps = T { super.ivyDeps() ++ Agg(ws()) }
+      override def ivyDeps = Task { super.ivyDeps() ++ Agg(ws()) }
     }
   }
   val resourcePath: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "playmulti"

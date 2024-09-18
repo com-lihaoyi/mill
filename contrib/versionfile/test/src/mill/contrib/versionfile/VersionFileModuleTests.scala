@@ -1,6 +1,6 @@
 package mill.contrib.versionfile
 
-import mill.T
+import mill.{T, Task}
 import mill.testkit.{UnitTester, TestBaseModule}
 import utest.{TestSuite, Tests, assert, assertMatch, test}
 import utest.framework.TestPath
@@ -108,7 +108,7 @@ object VersionFileModuleTests extends TestSuite {
 
       test("setVersion") - workspaceTest(versions: _*) { eval =>
         val expected = Version.Release(1, 2, 4)
-        eval(TestModule.versionFile.setVersion(T.task(expected)))
+        eval(TestModule.versionFile.setVersion(Task.Anon(expected)))
         val Right(actual) = eval(TestModule.versionFile.currentVersion)
         assert(actual.value == expected)
       }

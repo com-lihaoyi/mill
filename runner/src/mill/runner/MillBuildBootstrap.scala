@@ -38,7 +38,7 @@ class MillBuildBootstrap(
     targetsAndParams: Seq[String],
     prevRunnerState: RunnerState,
     logger: ColorLogger,
-    disableCallgraphInvalidation: Boolean,
+    disableCallgraph: Boolean,
     needBuildSc: Boolean,
     requestedMetaLevel: Option[Int],
     allowPositionalCommandArgs: Boolean,
@@ -351,7 +351,7 @@ class MillBuildBootstrap(
       failFast = !keepGoing,
       threadCount = threadCount,
       methodCodeHashSignatures = methodCodeHashSignatures,
-      disableCallgraphInvalidation = disableCallgraphInvalidation,
+      disableCallgraph = disableCallgraph,
       allowPositionalCommandArgs = allowPositionalCommandArgs,
       systemExit = systemExit
     )

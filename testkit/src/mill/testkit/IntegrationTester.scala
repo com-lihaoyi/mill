@@ -1,5 +1,6 @@
 package mill.testkit
 
+import mill.define.Segments
 import mill.eval.Evaluator
 import mill.resolve.SelectMode
 import ujson.Value
@@ -107,7 +108,7 @@ object IntegrationTester {
         val Seq((List(selector), _)) =
           mill.resolve.ParseArgs.apply(Seq(selector0), SelectMode.Separated).getOrElse(???)
 
-        val segments = selector._2.value.flatMap(_.pathSegments)
+        val segments = selector._2.getOrElse(Segments()).value.flatMap(_.pathSegments)
         os.read(workspacePath / "out" / segments.init / s"${segments.last}.json")
       }
 

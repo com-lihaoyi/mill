@@ -9,7 +9,7 @@ object foo extends ScalaModule {
 
   def sources = T{
     bar.runner().run(args = super.sources())
-    Seq(PathRef(T.dest))
+    Seq(PathRef(Task.dest))
   }
 }
 
@@ -23,7 +23,7 @@ object bar extends ScalaModule{
 // logic within the `bar` module as `bar/src/Bar.scala`. In this example, we use
 // `Bar.scala` as a source-code pre-processor on the `foo` module source code:
 // we override `foo.sources`, passing the `super.sources()` and `bar.runClasspath`
-// to `bar.runner().run` along with a `T.dest`, and returning a `PathRef(T.dest)`
+// to `bar.runner().run` along with a `Task.dest`, and returning a `PathRef(Task.dest)`
 // as the new `foo.sources`.
 
 /** Usage
@@ -43,7 +43,7 @@ Foo.value: HELLO
 //
 // `bar.runner().run` by default inherits the `mainClass`, `forkEnv`, `forkArgs`,
 // from the owning module `bar`, and the working directory from the calling task's
-// `T.dest`. You can also pass in these parameters explicitly to `run()` as named
+// `Task.dest`. You can also pass in these parameters explicitly to `run()` as named
 // arguments if you wish to override the defaults
 //
 // [source,scala]

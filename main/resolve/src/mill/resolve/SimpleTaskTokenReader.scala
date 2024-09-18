@@ -4,7 +4,7 @@ import mainargs.TokensReader
 import mill.define.{Target, Task}
 
 /**
- * Transparently handle `Task[T]` like simple `T` but lift the result into a T.task.
+ * Transparently handle `Task[T]` like simple `T` but lift the result into a Task.Anon.
  */
 class SimpleTaskTokenReader[T](tokensReaderOfT: TokensReader.Simple[T])
     extends mainargs.TokensReader.Simple[Task[T]] {

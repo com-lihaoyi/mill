@@ -4,4 +4,4 @@ set -eu
 
 ./mill -i installLocal
 
-./target/mill-release -i mill.scalalib.PublishModule/publishAll
+./target/mill-release -i mill.scalalib.PublishModule/

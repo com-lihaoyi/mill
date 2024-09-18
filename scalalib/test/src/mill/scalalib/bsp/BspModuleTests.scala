@@ -2,7 +2,7 @@ package mill.scalalib.bsp
 
 import mill.define.Cross
 import mill.eval.EvaluatorPaths
-import mill.{Agg, T}
+import mill.{Agg, T, Task}
 import mill.scalalib.{DepSyntax, JavaModule, ScalaModule}
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule

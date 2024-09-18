@@ -37,11 +37,6 @@ include::example/javalib/builds/3-override-tasks.adoc[]
 
 include::example/javalib/builds/4-nested-modules.adoc[]
 
-== Publish Module
-
-include::example/javalib/builds/6-publish-module.adoc[]
-
-
 == Maven-Compatible Modules
 
 include::example/javalib/builds/8-compat-modules.adoc[]

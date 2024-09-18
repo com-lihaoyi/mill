@@ -1,0 +1,38 @@
+package build.kotlinlib
+
+// imports
+import mill._
+import mill.scalalib._
+
+// TODO change MillPublishScalaModule to MillStableScalaModule after mill version with kotlinlib is released,
+//  because currently there is no previous artifact version
+object `package` extends RootModule with build.MillPublishScalaModule {
+
+  def moduleDeps = Seq(build.main, build.scalalib, build.testrunner, worker)
+  def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(worker.impl.testDep())
+
+  trait MillKotlinModule extends build.MillPublishScalaModule {
+    override def javacOptions = {
+      val release =
+        if (scala.util.Properties.isJavaAtLeast(11)) Seq("-release", "8")
+        else Seq("-source", "1.8", "-target", "1.8")
+      release ++ Seq("-encoding", "UTF-8", "-deprecation")
+    }
+  }
+
+  object worker extends MillKotlinModule {
+    def moduleDeps = Seq(build.main, build.testrunner)
+
+    override def compileIvyDeps: T[Agg[Dep]] = Agg(
+      build.Deps.osLib
+    )
+
+    object impl extends MillKotlinModule {
+      override def moduleDeps: Seq[PublishModule] = Seq(worker)
+      override def compileIvyDeps: T[Agg[Dep]] = Agg(
+        build.Deps.osLib,
+        build.Deps.kotlinCompiler
+      )
+    }
+  }
+}
