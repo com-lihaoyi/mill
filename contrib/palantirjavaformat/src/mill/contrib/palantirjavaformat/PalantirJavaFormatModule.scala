@@ -10,7 +10,7 @@ import mill.scalalib.JavaModule
 import mill.util.Jvm
 
 /**
- * Formats Java source files using [[https://github.com/palantir/palantir-java-format/ Palantir]].
+ * Formats Java source files using [[https://github.com/palantir/palantir-java-format Palantir Java Format]].
  */
 trait PalantirJavaFormatModule extends JavaModule {
 
@@ -153,8 +153,10 @@ object PalantirJavaFormatModule extends ExternalModule with PalantirJavaFormatMo
 
     val args = Seq.newBuilder[String]
 
+    // https://github.com/palantir/palantir-java-format/blob/dae9be4b84e2bd4d7ea346c6374fda47eee7118f/palantir-java-format/src/main/java/com/palantir/javaformat/java/CommandLineOptionsParser.java#L199
     if (os.exists(options.path)) args += s"@${options.path}"
 
+    // https://github.com/palantir/palantir-java-format/blob/dae9be4b84e2bd4d7ea346c6374fda47eee7118f/palantir-java-format/src/main/java/com/palantir/javaformat/java/CommandLineOptions.java#L27
     if (check) {
       // do not overwrite files and exit(1) if formatting changes were detected
       args += "--dry-run" += "--set-exit-if-changed"
@@ -163,6 +165,7 @@ object PalantirJavaFormatModule extends ExternalModule with PalantirJavaFormatMo
       args += "--replace"
     }
 
+    // https://github.com/palantir/palantir-java-format/blob/dae9be4b84e2bd4d7ea346c6374fda47eee7118f/palantir-java-format/src/main/java/com/palantir/javaformat/java/CommandLineOptionsParser.java#L49
     args ++=
       sources
         .iterator

@@ -1,0 +1,81 @@
+= Plantir Java Format
+:page-aliases: Plugin_Plantir_Java_Format.adoc
+
+Formats Java source files using https://github.com/palantir/palantir-java-format[Palantir Java Format].
+
+== javafmt
+
+To use this plugin in a Java/Scala module, extend `mill.contrib.palantirjavaformat.PalantirJavaFormatModule` and run `javafmt`.
+
+[source,sh]
+----
+# format all source files
+mill mymodule.javafmt
+
+# if an exception should be raised when formatting errors are found (no files are modified)
+mill mymodule.javafmt --check
+
+# format only some file(s) or folder(s) (path must be relative to millSourcePath)
+mill mymodule.javafmt src/a/b src/c/d
+----
+
+== javafmtAll
+Alternatively, format Java source files in any module using `javafmtAll`.
+[source,sh]
+----
+# check format in all modules
+mill mill.contrib.palantirjavaformat.PalantirJavaFormatModule/javafmtAll --check __.sources
+
+# format files in all modules
+mill mill.contrib.palantirjavaformat.PalantirJavaFormatModule/javafmtAll __.sources
+----
+
+== palantirjavaformatOptions
+Palantir Java Format https://github.com/palantir/palantir-java-format/blob/dae9be4b84e2bd4d7ea346c6374fda47eee7118f/palantir-java-format/src/main/java/com/palantir/javaformat/java/CommandLineOptions.java#L27[CLI options] can be specified in a file (`millSourcePath` `/` `palantirjavaformat.options`).
+
+To use Palantir style,
+[source,txt]
+----
+--palantir
+----
+
+Alternatively, to use Aosp style,
+[source,txt]
+----
+--aosp
+----
+
+If no options file is present, the https://github.com/palantir/palantir-java-format/blob/dae9be4b84e2bd4d7ea346c6374fda47eee7118f/palantir-java-format/src/main/java/com/palantir/javaformat/java/Main.java#L99[default style] (Google) is used.
+
+To share options across modules, adapt the following example.
+[source,scala]
+----
+import mill._
+import mill.contrib.palantirjavaformat.PalantirJavaFormatModule
+import mill.scalalib._
+
+object foo extends Module {
+
+  object bar extends MyModule
+  object baz extends Module {
+    object fizz extends MyModule
+    object buzz extends MyModule
+  }
+
+  trait MyModule extends JavaModule with PalantirJavaFormatModule {
+
+    override def palantirjavaformatOptions = T {
+      api.PathRef(T.workspace / "palantirjavaformat.options")
+    }
+  }
+}
+----
+
+=== Limitations
+The following options are used by the plugin and should not be specified in the options file:
+[source,txt]
+----
+--dry-run
+--set-exit-if-changed
+--replace
+----
