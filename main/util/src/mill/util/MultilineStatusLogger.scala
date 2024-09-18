@@ -11,27 +11,50 @@ class MultilineStatusLogger(
     override val errorColor: fansi.Attrs,
     systemStreams0: SystemStreams,
     override val debugEnabled: Boolean,
-) extends ColorLogger {
+) extends ColorLogger with AutoCloseable{
+  val startTimeMillis = System.currentTimeMillis()
   import MultilineStatusLogger._
-  val systemStreams = wrapSystemStreams(systemStreams0)
+  val systemStreams = new SystemStreams(
+    new PrintStream(new StateStream(systemStreams0.out)),
+    new PrintStream(new StateStream(systemStreams0.err)),
+    systemStreams0.in
+  )
 
+  override def close() = running = false
+  @volatile var running = true
+  @volatile var dirty = false
+
+  val thread = new Thread(new Runnable{
+    def run(): Unit = {
+      while(running) {
+        Thread.sleep(1000)
+        synchronized{
+          writeAndUpdatePrompt(systemStreams0.err) {/*donothing*/}
+        }
+      }
+    }
+  })
+
+  thread.start()
+
+  def renderSeconds(millis: Long) =  (millis / 1000).toInt match{
+    case 0 => ""
+    case n => s" ${n}s"
+  }
   val current = collection.mutable.SortedMap.empty[Int, Seq[Status]]
   def currentPrompt: Seq[String] = {
     val now = System.currentTimeMillis()
-    List("="*80) ++
+    List("="*80 + renderSeconds(now - startTimeMillis)) ++
     current
       .collect{case (threadId, statuses) if statuses.nonEmpty =>
         val statusesString = statuses
-          .map{status =>
-            val runtimeSeconds = ((now - status.startTimeMillis) / 1000).toInt
-            s"${runtimeSeconds}s ${status.text}"
-          }.mkString(" / ")
-        s"| $statusesString"
+          .map{status => status.text + renderSeconds(now - status.startTimeMillis)}
+          .mkString(" / ")
+        statusesString
       }
       .toList
   }
   def currentHeight: Int = currentPrompt.length
-  var previousHeight: Int = currentHeight
   private def log0(s: String) = {
     systemStreams.err.println(s)
   }
@@ -56,21 +79,14 @@ class MultilineStatusLogger(
 
 
   override def rawOutputStream: PrintStream = systemStreams0.out
-  def wrapSystemStreams(systemStreams0: SystemStreams): SystemStreams = {
-    new SystemStreams(
-      new PrintStream(new StateStream(systemStreams0.out)),
-      new PrintStream(new StateStream(systemStreams0.err)),
-      systemStreams0.in
-    )
-  }
 
-  def writeAndUpdatePrompt[T](wrapped: PrintStream)(t: => T): T = {
-    AnsiNav(wrapped).up(previousHeight)
+
+  private def writeAndUpdatePrompt[T](wrapped: PrintStream)(t: => T): T = {
     AnsiNav(wrapped).left(9999)
     AnsiNav(wrapped).clearScreen(0)
     val res = t
     for(line <- currentPrompt) wrapped.println(line)
-    previousHeight = currentHeight
+    AnsiNav(wrapped).up(currentHeight)
     wrapped.flush()
     res
   }
