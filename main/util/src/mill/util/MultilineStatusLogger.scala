@@ -14,9 +14,10 @@ class MultilineStatusLogger(
 ) extends ColorLogger with AutoCloseable{
   val startTimeMillis = System.currentTimeMillis()
   import MultilineStatusLogger._
+
   val systemStreams = new SystemStreams(
-    new PrintStream(new StateStream(systemStreams0.out)),
-    new PrintStream(new StateStream(systemStreams0.err)),
+    new PrintStream(new BufferedOutputStream(new StateStream(systemStreams0.out))),
+    new PrintStream(new BufferedOutputStream(new StateStream(systemStreams0.err))),
     systemStreams0.in
   )
 
@@ -24,7 +25,7 @@ class MultilineStatusLogger(
   @volatile var running = true
   @volatile var dirty = false
 
-  val thread = new Thread(new Runnable{
+  val secondsTickerThread = new Thread(new Runnable{
     def run(): Unit = {
       while(running) {
         Thread.sleep(1000)
@@ -35,7 +36,20 @@ class MultilineStatusLogger(
     }
   })
 
-  thread.start()
+  secondsTickerThread.start()
+  val bufferFlusherThread = new Thread(new Runnable{
+    def run(): Unit = {
+      while(running) {
+        Thread.sleep(10)
+        synchronized{
+          systemStreams.err.flush()
+          systemStreams.out.flush()
+        }
+      }
+    }
+  })
+
+  bufferFlusherThread.start()
 
   def renderSeconds(millis: Long) =  (millis / 1000).toInt match{
     case 0 => ""
