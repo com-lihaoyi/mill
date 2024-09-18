@@ -29,7 +29,7 @@ private object ResolveCore {
 
   object Resolved {
     case class Module(segments: Segments, cls: Class[_]) extends Resolved
-    case class Target(segments: Segments) extends Resolved
+    case class NamedTask(segments: Segments) extends Resolved
     case class Command(segments: Segments) extends Resolved
   }
 
@@ -327,7 +327,7 @@ private object ResolveCore {
         .map(
           _.map {
             case (Resolved.Module(s, cls), _) => Resolved.Module(segments ++ s, cls)
-            case (Resolved.Target(s), _) => Resolved.Target(segments ++ s)
+            case (Resolved.NamedTask(s), _) => Resolved.NamedTask(segments ++ s)
             case (Resolved.Command(s), _) => Resolved.Command(segments ++ s)
           }
             .toSet
@@ -376,10 +376,10 @@ private object ResolveCore {
       }
     }
 
-    val targets = Reflect
-      .reflect(cls, classOf[Target[_]], namePred, noParams = true)
+    val namedTasks = Reflect
+      .reflect(cls, classOf[NamedTask[_]], namePred, noParams = true)
       .map { m =>
-        Resolved.Target(Segments.labels(decode(m.getName))) ->
+        Resolved.NamedTask(Segments.labels(decode(m.getName))) ->
           None
       }
 
@@ -388,7 +388,7 @@ private object ResolveCore {
       .map(m => decode(m.getName))
       .map { name => Resolved.Command(Segments.labels(name)) -> None }
 
-    modulesOrErr.map(_ ++ targets ++ commands)
+    modulesOrErr.map(_ ++ namedTasks ++ commands)
   }
 
   def notFoundResult(

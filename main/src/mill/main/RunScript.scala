@@ -62,7 +62,7 @@ object RunScript {
       case 0 =>
         val nameAndJson = for (t <- targets.toSeq) yield {
           t match {
-            case t: mill.define.NamedTask[_] =>
+            case t: mill.define.NamedTask[_] if t.writerOpt.isDefined || t.asWorker.isDefined =>
               val jsonFile = EvaluatorPaths.resolveDestPaths(evaluator.outPath, t).meta
               val metadata = upickle.default.read[Evaluator.Cached](ujson.read(jsonFile.toIO))
               Some((t.toString, metadata.value))

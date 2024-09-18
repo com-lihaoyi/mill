@@ -375,6 +375,15 @@ private[mill] trait GroupEvaluator {
       .map { w =>
         upickle.default.writeJs(v.value)(w.asInstanceOf[upickle.default.Writer[Any]])
       }
+      .orElse {
+        labelled.task.asWorker.map { w =>
+          ujson.Obj(
+            "worker" -> ujson.Str(labelled.segments.render),
+            "toString" -> ujson.Str(v.value.toString),
+            "inputsHash" -> ujson.Num(inputsHash)
+          )
+        }
+      }
 
     for (json <- terminalResult) {
       os.write.over(
