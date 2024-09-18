@@ -386,9 +386,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-20-b5e04d</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-21-2dc343</button>
   <div class="version-menu">
-    <a class="version is-current" href="Thirdparty_Plugins.html">0.12.0-RC2-20-b5e04d</a>
+    <a class="version is-current" href="Thirdparty_Plugins.html">0.12.0-RC2-21-2dc343</a>
     <a class="version" href="0.11.12/Thirdparty_Plugins.html">0.11.12</a>
     <a class="version" href="0.11.11/Thirdparty_Plugins.html">0.11.11</a>
     <a class="version" href="0.11.10/Thirdparty_Plugins.html">0.11.10</a>
@@ -1712,6 +1712,42 @@ object app extends MavenModule with SpringBootModule {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># Package as executable Spring-Boot Application
 $ mill app.springBootAssembly</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_squery"><a class="anchor" href="#_squery"></a>Squery</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Source code generator for <a href="https://github.com/sake92/squery/">Squery</a> SQL library boilerplate.</p>
+</div>
+<div class="paragraph">
+<p>Project home: <a href="https://github.com/sake92/squery" class="bare">https://github.com/sake92/squery</a></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $ivy.`ba.sake::mill-squery-generator_mill0.11:0.6.2`
+import mill._
+import mill.scalalib._
+import ba.sake.squery.generator._
+import ba.sake.squery.generator.mill.SqueryGeneratorModule
+
+object app extends ScalaModule with SqueryGeneratorModule {
+  // use T.input(T.ctx.env(&quot;MY_ENV_VAR&quot;)) to set sensitive variables like password etc
+  def squeryJdbcUrl = &quot;jdbc:...&quot;
+  def squeryUsername = &quot;..&quot;
+  def squeryPassword = &quot;..&quot;
+  def squerySchemas = Seq(&quot;myschema&quot; -&gt; &quot;com.mypackage.myschema&quot;)
+
+  // override to tweak codegen settings
+  def squeryGeneratorConfig: T[SqueryGeneratorConfig] = ...</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># Generate source files
+$ ./mill root.squeryGenerate</code></pre>
 </div>
 </div>
 </div>
