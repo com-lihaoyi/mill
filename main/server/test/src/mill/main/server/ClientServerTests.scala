@@ -9,6 +9,8 @@ import mill.api.SystemStreams
 import scala.jdk.CollectionConverters._
 import utest._
 
+import java.nio.file.Path
+
 /**
  * Exercises the client-server logic in memory, using in-memory locks
  * and in-memory clients and servers
@@ -94,7 +96,7 @@ object ClientServerTests extends TestSuite {
         memoryLocks,
         forceFailureForTestingMillisDelay
       ) {
-        def initServer(serverDir: String, b: Boolean, locks: Locks) = {
+        def initServer(serverDir: Path, b: Boolean, locks: Locks) = {
           val serverId = "server-" + nextServerId
           nextServerId += 1
           new Thread(new EchoServer(
