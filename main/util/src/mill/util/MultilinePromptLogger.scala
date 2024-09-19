@@ -5,16 +5,17 @@ import mill.api.SystemStreams
 import java.io._
 import scala.collection.mutable
 
-class MultilinePromptLogger(
+private[mill] class MultilinePromptLogger(
     override val colored: Boolean,
     val enableTicker: Boolean,
     override val infoColor: fansi.Attrs,
     override val errorColor: fansi.Attrs,
     systemStreams0: SystemStreams,
-    override val debugEnabled: Boolean
+    override val debugEnabled: Boolean,
+    titleText: String,
 ) extends ColorLogger with AutoCloseable {
   import MultilinePromptLogger._
-  private val state = new State(enableTicker, systemStreams0, System.currentTimeMillis())
+  private val state = new State(titleText, enableTicker, systemStreams0, System.currentTimeMillis())
   val systemStreams = new SystemStreams(
     new PrintStream(new StateStream(systemStreams0.out)),
     new PrintStream(new StateStream(systemStreams0.err)),
@@ -96,7 +97,7 @@ class MultilinePromptLogger(
   }
 }
 
-object MultilinePromptLogger {
+private object MultilinePromptLogger {
   /**
    * How often to update the multiline status prompt on the terminal.
    * Too frequent is bad because it causes a lot of visual noise,
@@ -113,10 +114,13 @@ object MultilinePromptLogger {
 
   private case class Status(startTimeMillis: Long, text: String, var removedTimeMillis: Long)
 
-  private class State(enableTicker: Boolean, systemStreams0: SystemStreams, startTimeMillis: Long) {
+  private class State(titleText: String,
+                      enableTicker: Boolean,
+                      systemStreams0: SystemStreams,
+                      startTimeMillis: Long) {
     private val statuses = collection.mutable.SortedMap.empty[Int, Status]
 
-    private var header = ""
+    private var headerPrefix = ""
     // Pre-compute the prelude and current prompt as byte arrays so that
     // writing them out is fast, since they get written out very frequently
     private val writePreludeBytes: Array[Byte] = (AnsiNav.clearScreen(0) + AnsiNav.left(9999)).getBytes
@@ -132,31 +136,27 @@ object MultilinePromptLogger {
       }
       // Limit to <120 chars wide
       val maxWidth = 119
+      val headerSuffix = renderSeconds(now - startTimeMillis)
 
-      val totalSecondsStr = renderSeconds(now - startTimeMillis)
-      val divider = "=" * (maxWidth - header.length - totalSecondsStr.length - 4)
-      val currentPrompt = List(s"  $header $divider $totalSecondsStr") ++
-        statuses
-          .collect {
-            case (threadId, status) =>
-              val statusesString = status.text + " " + renderSeconds(now - status.startTimeMillis)
+      val header = renderHeader(headerPrefix, titleText, headerSuffix, maxWidth)
+      val body = statuses
+        .collect {
+          case (threadId, status) =>
+            splitShorten(
+              status.text + " " + renderSeconds(now - status.startTimeMillis),
+              maxWidth
+            )
+        }
+        .toList
 
-              if (statusesString.length <= maxWidth) statusesString
-              else {
-                val ellipses = "..."
-                val halfWidth = (maxWidth - ellipses.length) / 2
-                statusesString.take(halfWidth) + ellipses + statusesString.takeRight(halfWidth)
-              }
-          }
-          .toList
-
-      val currentHeight = currentPrompt.length
+      val currentPrompt = header :: body
+      val currentHeight = body.length + 1
       currentPromptBytes =
         (AnsiNav.clearScreen(0) + currentPrompt.mkString("\n") + "\n" + AnsiNav.up(currentHeight)).getBytes
     }
 
     def updateGlobal(s: String): Unit = synchronized{
-      header = s
+      headerPrefix = s
       updatePromptBytes()
     }
     def updateCurrent(sOpt: Option[String]): Unit = synchronized {
@@ -185,6 +185,33 @@ object MultilinePromptLogger {
     private def renderSeconds(millis: Long) = (millis / 1000).toInt match {
       case 0 => ""
       case n => s"${n}s"
+    }
+  }
+
+  def renderHeader(headerPrefix0: String, titleText0: String, headerSuffix0: String, maxWidth: Int) = {
+    val headerPrefixStr = s"  $headerPrefix0 "
+    val headerSuffixStr = s" $headerSuffix0"
+    val titleText = s" $titleText0 "
+    val maxTitleLength = maxWidth - headerPrefixStr.length - headerSuffixStr.length
+    val shortenedTitle = splitShorten(titleText, maxTitleLength)
+
+    val nonDividerLength = headerPrefixStr.length + headerSuffixStr.length + shortenedTitle.length
+    val divider = "=" * (maxWidth - nonDividerLength)
+    val (divider1, divider2) = divider.splitAt(divider.length / 2)
+    val headerString = headerPrefixStr + divider1 + shortenedTitle + divider2 + headerSuffixStr
+    assert(
+      headerString.length == maxWidth,
+      s"${pprint.apply(headerString)} is length ${headerString.length}, requires $maxWidth"
+    )
+    headerString
+  }
+
+  def splitShorten(s: String, maxLength: Int) = {
+    if (s.length <= maxLength) s
+    else {
+      val ellipses = "..."
+      val halfWidth = (maxLength - ellipses.length) / 2
+      s.take(halfWidth) + ellipses + s.takeRight(halfWidth)
     }
   }
 

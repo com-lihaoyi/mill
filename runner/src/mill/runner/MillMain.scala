@@ -332,7 +332,8 @@ object MillMain {
         infoColor = colors.info,
         errorColor = colors.error,
         systemStreams0 = streams,
-        debugEnabled = config.debugLog.value
+        debugEnabled = config.debugLog.value,
+        titleText = config.leftoverArgs.value.mkString(" ")
       )
     }
 
