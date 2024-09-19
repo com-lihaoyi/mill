@@ -16,8 +16,8 @@ class MultilineStatusLogger(
   import MultilineStatusLogger._
 
   val systemStreams = new SystemStreams(
-    new PrintStream(new BufferedOutputStream(new StateStream(systemStreams0.out))),
-    new PrintStream(new BufferedOutputStream(new StateStream(systemStreams0.err))),
+    new PrintStream(new StateStream(systemStreams0.out)),
+    new PrintStream(new StateStream(systemStreams0.err)),
     systemStreams0.in
   )
 
@@ -108,8 +108,8 @@ class MultilineStatusLogger(
 
 
   private def writeAndUpdatePrompt[T](wrapped: PrintStream)(t: => T): T = {
-    AnsiNav(wrapped).left(9999)
     AnsiNav(wrapped).clearScreen(0)
+    AnsiNav(wrapped).left(9999)
     val res = t
     wrapped.println(currentPromptString)
     AnsiNav(wrapped).up(currentHeight)
