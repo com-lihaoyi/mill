@@ -21,10 +21,7 @@ class MultilinePromptLogger(
     systemStreams0.in
   )
 
-  override def close(): Unit = {
-    state.refreshPrompt()
-    stopped = true
-  }
+  override def close(): Unit = stopped = true
 
   @volatile var stopped = false
   @volatile var paused = false
@@ -112,7 +109,7 @@ object MultilinePromptLogger {
       val maxWidth = 119
       val now = System.currentTimeMillis()
       val totalSecondsStr = renderSeconds(now - startTimeMillis)
-      val currentPrompt = List("=" * (maxWidth - totalSecondsStr.length)) ++
+      val currentPrompt = List("=" * (maxWidth - totalSecondsStr.length - 1) + totalSecondsStr) ++
         current
           .collect {
             case (threadId, statuses) if statuses.nonEmpty =>
