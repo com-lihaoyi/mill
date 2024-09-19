@@ -82,14 +82,14 @@ public class MillProcessLauncher {
             () -> {
                 try {
 
-                while(true){
-                    Files.write(
-                        serverDir.resolve(ServerFiles.terminfo),
-                        (term.getWidth() + " " + term.getHeight()).getBytes()
-                    );
+                    while(true){
+                        Files.write(
+                            serverDir.resolve(ServerFiles.terminfo),
+                            (term.getWidth() + " " + term.getHeight()).getBytes()
+                        );
 
                         Thread.sleep(100);
-                }
+                    }
                 }catch (Exception e){}
             },
             "TermInfoPropagatorThread"

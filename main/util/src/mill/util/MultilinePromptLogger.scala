@@ -46,19 +46,21 @@ private[mill] class MultilinePromptLogger(
     finally paused = false
   }
 
-  val promptUpdaterThread = new Thread(() => {
+  val promptUpdaterThread = new Thread(() =>
     while (!stopped) {
       Thread.sleep(promptUpdateIntervalMillis)
       if (!paused) {
         synchronized {
-          val s"$termWidth0 $termHeight0" = os.read(terminfoPath)
-          termWidth = termWidth0.toInt
-          termHeight = termHeight0.toInt
+          try {
+            val s"$termWidth0 $termHeight0" = os.read(terminfoPath)
+            termWidth = termWidth0.toInt
+            termHeight = termHeight0.toInt
+          } catch{case e: Exception => /*donothing*/}
           state.refreshPrompt()
         }
       }
     }
-  })
+  )
 
   promptUpdaterThread.start()
 
@@ -128,7 +130,7 @@ private object MultilinePromptLogger {
   private val statusRemovalDelayMillis = 500
   private val statusRemovalDelayMillis2 = 2500
 
-  private case class Status(startTimeMillis: Long,
+  private[mill] case class Status(startTimeMillis: Long,
                             text: String,
                             var removedTimeMillis: Long)
 
@@ -162,39 +164,23 @@ private object MultilinePromptLogger {
       // the statuses to only show the header alone
       if (ending) statuses.clear()
 
-      // -1 to leave a bit of buffer
-      val maxWidth = consoleWidth() - 1
-      // -2 to account for 1 line header and 1 line `more threads`
-      val maxHeight = math.max(1, consoleHeight() / 3 - 2)
-      val headerSuffix = renderSeconds(now - startTimeMillis)
-
-      val header = renderHeader(headerPrefix, titleText, headerSuffix, maxWidth)
-      val body0 = statuses
-        .collect {
-          case (threadId, status) =>
-            if (now - status.removedTimeMillis > statusRemovalDelayMillis) ""
-            else splitShorten(
-              status.text + " " + renderSeconds(now - status.startTimeMillis),
-              maxWidth
-            )
-        }
-        .toList
-        .sortBy(_.isEmpty)
-
-      val body =
-        if (body0.length < maxHeight) body0
-        else body0.take(maxHeight) ++ Seq(s"... and ${body0.length - maxHeight} more threads")
-
-      val currentPrompt = header :: body
-      val currentHeight = body.length + 1
+      val currentPromptLines = renderPrompt(
+        consoleWidth(),
+        consoleHeight(),
+        now,
+        startTimeMillis,
+        headerPrefix,
+        titleText,
+        statuses
+      )
       // For the ending prompt, leave the cursor at the bottom rather than scrolling back up.
       // We do not want further output to overwrite the header as it will no longer re-render
-      val backUp = if (ending) "" else AnsiNav.up(currentHeight)
+      val backUp = if (ending) "" else AnsiNav.up(currentPromptLines.length)
+
       currentPromptBytes = (
         AnsiNav.clearScreen(0) +
-        currentPrompt.mkString("\n") +
-        "\n" +
-        backUp
+          currentPromptLines.mkString("\n") + "\n" +
+          backUp
       ).getBytes
     }
 
@@ -225,10 +211,43 @@ private object MultilinePromptLogger {
       if (enableTicker) systemStreams0.err.write(currentPromptBytes)
     }
 
-    private def renderSeconds(millis: Long) = (millis / 1000).toInt match {
-      case 0 => ""
-      case n => s"${n}s"
-    }
+  }
+  private def renderSeconds(millis: Long) = (millis / 1000).toInt match {
+    case 0 => ""
+    case n => s"${n}s"
+  }
+
+  def renderPrompt(consoleWidth: Int,
+                   consoleHeight: Int,
+                   now: Long,
+                   startTimeMillis: Long,
+                   headerPrefix: String,
+                   titleText: String,
+                   statuses: collection.SortedMap[Int, Status]) = {
+    // -1 to leave a bit of buffer
+    val maxWidth = consoleWidth - 1
+    // -2 to account for 1 line header and 1 line `more threads`
+    val maxHeight = math.max(1, consoleHeight / 3 - 2)
+    val headerSuffix = renderSeconds(now - startTimeMillis)
+
+    val header = renderHeader(headerPrefix, titleText, headerSuffix, maxWidth)
+    val body0 = statuses
+      .collect {
+        case (threadId, status) =>
+          if (now - status.removedTimeMillis > statusRemovalDelayMillis) ""
+          else splitShorten(
+            status.text + " " + renderSeconds(now - status.startTimeMillis),
+            maxWidth
+          )
+      }
+      .toList
+      .sortBy(_.isEmpty)
+
+    val body =
+      if (body0.length <= maxHeight) body0
+      else body0.take(maxHeight) ++ Seq(s"... and ${body0.length - maxHeight} more threads")
+
+    header :: body
   }
 
   def renderHeader(

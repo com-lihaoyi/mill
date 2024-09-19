@@ -2,6 +2,8 @@ package mill.util
 
 import utest._
 
+import scala.collection.immutable.SortedMap
+
 object MultilinePromptLoggerTests extends TestSuite {
 
   val tests = Tests {
@@ -104,6 +106,114 @@ object MultilinePromptLoggerTests extends TestSuite {
         60,
         expected = "  PREFIX_LONG = TITLE_A...TUVWXYZ =================== SUFFIX"
       )
+    }
+
+    test("renderPrompt"){
+      import MultilinePromptLogger.{renderPrompt, Status}
+      val now = System.currentTimeMillis()
+      test("simple") {
+        val rendered = renderPrompt(
+          consoleWidth = 60,
+          consoleHeight = 20,
+          now = now,
+          startTimeMillis = now - 1337000,
+          headerPrefix = "123/456",
+          titleText = "__.compile",
+          statuses = SortedMap(
+            0 -> Status(now - 1000, "hello", Long.MaxValue),
+            1 -> Status(now - 2000, "world", Long.MaxValue),
+            //          2 -> Status(now - 3000, "i am cow", Long.MaxValue),
+            //          3 -> Status(now - 4000, "hear me moo", Long.MaxValue)
+          )
+        )
+        val expected = List(
+          "  123/456 =============== __.compile ================ 1337s",
+          "hello 1s",
+          "world 2s"
+        )
+        assert(rendered == expected)
+      }
+
+      test("maxWithoutTruncation") {
+        val rendered = renderPrompt(
+          consoleWidth = 60,
+          consoleHeight = 20,
+          now = now,
+          startTimeMillis = now - 1337000,
+          headerPrefix = "123/456",
+          titleText = "__.compile.abcdefghijklmn",
+          statuses = SortedMap(
+            0 -> Status(now - 1000, "hello1234567890abcefghijklmnopqrstuvwxyz1234567890123456", Long.MaxValue),
+            1 -> Status(now - 2000, "world", Long.MaxValue),
+            2 -> Status(now - 3000, "i am cow", Long.MaxValue),
+            3 -> Status(now - 4000, "hear me moo", Long.MaxValue),
+          )
+        )
+
+        val expected = List(
+          "  123/456 ======== __.compile.abcdefghijklmn ======== 1337s",
+          "hello1234567890abcefghijklmnopqrstuvwxyz1234567890123456 1s",
+          "world 2s",
+          "i am cow 3s",
+          "hear me moo 4s"
+        )
+        assert(rendered == expected)
+      }
+      test("minAfterTruncation") {
+        val rendered = renderPrompt(
+          consoleWidth = 60,
+          consoleHeight = 20,
+          now = now,
+          startTimeMillis = now - 1337000,
+          headerPrefix = "123/456",
+          titleText = "__.compile.abcdefghijklmno",
+          statuses = SortedMap(
+            0 -> Status(now - 1000, "hello1234567890abcefghijklmnopqrstuvwxyz12345678901234567", Long.MaxValue),
+            1 -> Status(now - 2000, "world", Long.MaxValue),
+            2 -> Status(now - 3000, "i am cow", Long.MaxValue),
+            3 -> Status(now - 4000, "hear me moo", Long.MaxValue),
+            4 -> Status(now - 5000, "i weight twice as much as you", Long.MaxValue),
+          )
+        )
+
+        val expected =  List(
+          "  123/456 ======= __.compile....efghijklmno ========= 1337s",
+          "hello1234567890abcefghijklmn...stuvwxyz12345678901234567 1s",
+          "world 2s",
+          "i am cow 3s",
+          "hear me moo 4s",
+          "... and 1 more threads"
+        )
+        assert(rendered == expected)
+      }
+
+      test("truncated") {
+        val rendered = renderPrompt(
+          consoleWidth = 60,
+          consoleHeight = 20,
+          now = now,
+          startTimeMillis = now - 1337000,
+          headerPrefix = "123/456",
+          titleText = "__.compile.abcdefghijklmnopqrstuvwxyz1234567890",
+          statuses = SortedMap(
+            0 -> Status(now - 1000, "hello1234567890abcefghijklmnopqrstuvwxyz" * 3, Long.MaxValue),
+            1 -> Status(now - 2000, "world", Long.MaxValue),
+            2 -> Status(now - 3000, "i am cow", Long.MaxValue),
+            3 -> Status(now - 4000, "hear me moo", Long.MaxValue),
+            4 -> Status(now - 5000, "i weigh twice as much as you", Long.MaxValue),
+            5 -> Status(now - 6000, "and i look good on the barbecue", Long.MaxValue),
+          )
+        )
+        val expected = List(
+          "  123/456  __.compile....z1234567890 ================ 1337s",
+          "hello1234567890abcefghijklmn...abcefghijklmnopqrstuvwxyz 1s",
+          "world 2s",
+          "i am cow 3s",
+          "hear me moo 4s",
+          "... and 2 more threads"
+        )
+        assert(rendered == expected)
+      }
     }
   }
 }
