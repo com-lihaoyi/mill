@@ -1,6 +1,7 @@
 package mill.util
 
 import mill.api.SystemStreams
+import mill.main.client.ProxyStream
 
 import java.io._
 
@@ -34,9 +35,21 @@ private[mill] class MultilinePromptLogger(
         termWidth.isDefined
       )
   )
+
+  val pipeIn = new PipedInputStream()
+  val pipeOut = new PipedOutputStream()
+
+  pipeIn.connect(pipeOut)
+
+  val proxyOut = new ProxyStream.Output(pipeOut, ProxyStream.OUT)
+  val proxyErr = new ProxyStream.Output(pipeOut, ProxyStream.ERR)
+  val pumper = new ProxyStream.Pumper(pipeIn, systemStreams0.out, systemStreams0.err)
+
+  new Thread(pumper).start()
+
   val systemStreams = new SystemStreams(
-    new PrintStream(new StateStream(systemStreams0.out)),
-    new PrintStream(new StateStream(systemStreams0.err)),
+    new PrintStream(new StateStream(proxyOut)/*new StateStream(systemStreams0.out)*/),
+    new PrintStream(new StateStream(proxyErr)/*new StateStream(systemStreams0.err)*/),
     systemStreams0.in
   )
 
@@ -106,7 +119,7 @@ private[mill] class MultilinePromptLogger(
 
   override def rawOutputStream: PrintStream = systemStreams0.out
 
-  private class StateStream(wrapped: PrintStream) extends OutputStream {
+  private class StateStream(wrapped: OutputStream) extends OutputStream {
     override def write(b: Array[Byte], off: Int, len: Int): Unit = synchronized {
       lastIndexOfNewline(b, off, len) match {
         case -1 => wrapped.write(b, off, len)
@@ -233,7 +246,7 @@ private object MultilinePromptLogger {
       updatePromptBytes()
     }
 
-    def writeWithPrompt[T](wrapped: PrintStream)(t: => T): T = synchronized {
+    def writeWithPrompt[T](wrapped: OutputStream)(t: => T): T = synchronized {
       if (enableTicker) wrapped.write(writePreludeBytes)
       val res = t
       if (enableTicker) wrapped.write(currentPromptBytes)
