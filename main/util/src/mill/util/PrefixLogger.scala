@@ -51,6 +51,7 @@ class PrefixLogger(
     outStream0 = Some(outStream),
     errStream0 = Some(systemStreams.err)
   )
+  def endTicker(): Unit = logger0.endTicker()
 }
 
 object PrefixLogger {

@@ -23,4 +23,5 @@ class ProxyLogger(logger: Logger) extends Logger {
   override def close(): Unit = logger.close()
 
   override def rawOutputStream: PrintStream = logger.rawOutputStream
+  def endTicker(): Unit = logger.endTicker()
 }

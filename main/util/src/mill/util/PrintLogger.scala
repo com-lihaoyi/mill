@@ -78,6 +78,7 @@ class PrintLogger(
   }
 
   override def rawOutputStream: PrintStream = systemStreams.out
+  def endTicker(): Unit = ()
 }
 
 object PrintLogger {

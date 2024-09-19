@@ -14,14 +14,7 @@ class MultilinePromptLogger(
     override val debugEnabled: Boolean
 ) extends ColorLogger with AutoCloseable {
   import MultilinePromptLogger._
-  private val state = new State(systemStreams0, System.currentTimeMillis())
-  override def withTicker[T](s: Option[String])(t: => T): T = s match {
-    case None => t
-    case Some(s) =>
-      ticker(s)
-      try t
-      finally ticker("<END>")
-  }
+  private val state = new State(enableTicker, systemStreams0, System.currentTimeMillis())
   val systemStreams = new SystemStreams(
     new PrintStream(new StateStream(systemStreams0.out)),
     new PrintStream(new StateStream(systemStreams0.err)),
@@ -56,10 +49,14 @@ class MultilinePromptLogger(
 
   def error(s: String): Unit = synchronized { systemStreams.err.println(s) }
 
+  override def endTicker(): Unit = synchronized {
+    state.updateCurrent(None)
+    state.refreshPrompt()
+  }
+
   def ticker(s: String): Unit = synchronized {
-    state.writeWithPrompt(systemStreams0.err) {
-      state.updateCurrent(s)
-    }
+    state.updateCurrent(Some(s))
+    state.refreshPrompt()
   }
 
   def debug(s: String): Unit = synchronized {
@@ -99,7 +96,7 @@ class MultilinePromptLogger(
 object MultilinePromptLogger {
   case class Status(startTimeMillis: Long, text: String)
 
-  private class State(systemStreams0: SystemStreams, startTimeMillis: Long) {
+  private class State(enableTicker: Boolean, systemStreams0: SystemStreams, startTimeMillis: Long) {
     val current: mutable.SortedMap[Int, Seq[Status]] =
       collection.mutable.SortedMap.empty[Int, Seq[Status]]
 
@@ -125,24 +122,28 @@ object MultilinePromptLogger {
         (currentPrompt.mkString("\n") + "\n" + AnsiNav.up(currentHeight)).getBytes
     }
 
-    def updateCurrent(s: String): Unit = synchronized {
+    def updateCurrent(sOpt: Option[String]): Unit = synchronized {
       val threadId = Thread.currentThread().getId.toInt
-      if (s.endsWith("<END>")) current(threadId) = current(threadId).init
-      else current(threadId) =
-        current.getOrElse(threadId, Nil) :+ Status(System.currentTimeMillis(), s)
+
+      sOpt match {
+        case None => current.remove(threadId)
+        case Some(s) =>
+          current(threadId) =
+            current.getOrElse(threadId, Nil) :+ Status(System.currentTimeMillis(), s)
+      }
       updatePromptBytes()
     }
 
     def writeWithPrompt[T](wrapped: PrintStream)(t: => T): T = synchronized {
-      wrapped.write(writePreludeBytes)
+      if (enableTicker) wrapped.write(writePreludeBytes)
       val res = t
-      wrapped.write(currentPromptBytes)
+      if (enableTicker) wrapped.write(currentPromptBytes)
       res
     }
 
     def refreshPrompt(): Unit = synchronized {
       updatePromptBytes()
-      systemStreams0.err.write(currentPromptBytes)
+      if (enableTicker) systemStreams0.err.write(currentPromptBytes)
     }
 
     private def renderSeconds(millis: Long) = (millis / 1000).toInt match {

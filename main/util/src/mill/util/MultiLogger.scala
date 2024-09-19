@@ -42,6 +42,11 @@ class MultiLogger(
   }
 
   override def rawOutputStream: PrintStream = systemStreams.out
+
+  override def endTicker(): Unit = {
+    logger1.endTicker()
+    logger2.endTicker()
+  }
 }
 
 class MultiStream(stream1: OutputStream, stream2: OutputStream)

@@ -245,7 +245,14 @@ private[mill] trait GroupEvaluator {
       val tickerPrefix = maybeTargetLabel.collect {
         case targetLabel if logRun && enableTicker => s"$counterMsg $targetLabel "
       }
-      logger.withTicker(tickerPrefix) {
+      def withTicker[T](s: Option[String])(t: => T): T = s match {
+        case None => t
+        case Some(s) =>
+          logger.ticker(s)
+          try t
+          finally logger.endTicker()
+      }
+      withTicker(tickerPrefix) {
         val multiLogger = new ProxyLogger(resolveLogger(paths.map(_.log), logger)) {
           override def ticker(s: String): Unit = {
             if (enableTicker) super.ticker(tickerPrefix.getOrElse("") + s)
