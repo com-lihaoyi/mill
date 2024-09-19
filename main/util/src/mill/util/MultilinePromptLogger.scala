@@ -244,8 +244,8 @@ private object MultilinePromptLogger {
       .sortBy(_.isEmpty)
 
     val body =
-      if (body0.length <= maxHeight) body0
-      else body0.take(maxHeight) ++ Seq(s"... and ${body0.length - maxHeight} more threads")
+      if (body0.count(_.nonEmpty) <= maxHeight) body0.take(maxHeight)
+      else body0.take(maxHeight - 1) ++ Seq(s"... and ${body0.length - maxHeight + 1} more threads")
 
     header :: body
   }

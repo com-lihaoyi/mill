@@ -179,8 +179,7 @@ object MultilinePromptLoggerTests extends TestSuite {
           "hello1234567890abcefghijklmn...stuvwxyz12345678901234567 1s",
           "world 2s",
           "i am cow 3s",
-          "hear me moo 4s",
-          "... and 1 more threads"
+          "... and 2 more threads"
         )
         assert(rendered == expected)
       }
@@ -207,8 +206,7 @@ object MultilinePromptLoggerTests extends TestSuite {
           "hello1234567890abcefghijklmn...abcefghijklmnopqrstuvwxyz 1s",
           "world 2s",
           "i am cow 3s",
-          "hear me moo 4s",
-          "... and 2 more threads"
+          "... and 3 more threads"
         )
         assert(rendered == expected)
       }
@@ -216,7 +214,7 @@ object MultilinePromptLoggerTests extends TestSuite {
       test("removalDelay") {
         val rendered = renderPrompt(
           consoleWidth = 60,
-          consoleHeight = 20,
+          consoleHeight = 23,
           now = now,
           startTimeMillis = now - 1337000,
           headerPrefix = "123/456",
@@ -234,14 +232,13 @@ object MultilinePromptLoggerTests extends TestSuite {
             5 -> Status(now - 6000, "and i look good on the barbecue", now - MultilinePromptLogger.statusRemovalDelayMillis2 + 1),
           )
         )
-        pprint.log(rendered)
         val expected = List(
           "  123/456  __.compile....z1234567890 ================ 1337s",
           "hello1234567890abcefghijklmn...abcefghijklmnopqrstuvwxyz 1s",
           "world 2s",
           "i am cow 3s",
-          "hear me moo 4s",
-          "... and 2 more threads"
+          "",
+          ""
         )
         assert(rendered == expected)
       }
