@@ -112,8 +112,11 @@ private object MultilinePromptLogger {
    * those occurrences even further.
    */
   private val statusRemovalDelayMillis = 500
+  private val statusRemovalDelayMillis2 = 5000
 
-  private case class Status(startTimeMillis: Long, text: String, var removedTimeMillis: Long)
+  private case class Status(startTimeMillis: Long,
+                            text: String,
+                            var removedTimeMillis: Long)
 
   private class State(
       titleText: String,
@@ -134,7 +137,7 @@ private object MultilinePromptLogger {
       val now = System.currentTimeMillis()
       for (k <- statuses.keySet) {
         val removedTime = statuses(k).removedTimeMillis
-        if (removedTime != -1 && now - removedTime > statusRemovalDelayMillis){
+        if (removedTime != -1 && now - removedTime > statusRemovalDelayMillis2){
           statuses.remove(k)
         }
       }
@@ -153,12 +156,14 @@ private object MultilinePromptLogger {
       val body0 = statuses
         .collect {
           case (threadId, status) =>
-            splitShorten(
+            if (now - status.removedTimeMillis > statusRemovalDelayMillis) ""
+            else splitShorten(
               status.text + " " + renderSeconds(now - status.startTimeMillis),
               maxWidth
             )
         }
         .toList
+        .sortBy(_.isEmpty)
 
       val body =
         if (body0.length < maxHeight) body0
