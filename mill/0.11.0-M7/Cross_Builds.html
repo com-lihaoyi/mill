@@ -1,26 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Cross Builds :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.11.12/Cross_Builds.html">
-    <link rel="prev" href="Modules.html">
-    <link rel="next" href="Extending_Mill.html">
-    <meta name="generator" content="Antora 3.1.9">
-    <link rel="stylesheet" href="../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.11.12/Cross_Builds.html" />
+    <link rel="prev" href="Modules.html" />
+    <link rel="next" href="Extending_Mill.html" />
+    <meta name="generator" content="Antora 3.1.9" />
+    <link rel="stylesheet" href="../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
+  
+  </head><body class="article">
+  
 <header class="header">
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -261,7 +262,7 @@
 <div class="page-versions">
   <button class="version-menu-toggle" title="Show other versions of page">0.11.0-M7</button>
   <div class="version-menu">
-    <a class="version" href="../Cross_Builds.html">0.12.0-RC2-21-2dc343</a>
+    <a class="version" href="../Cross_Builds.html">0.12.0-RC2-22-92a721</a>
     <a class="version" href="../0.11.12/Cross_Builds.html">0.11.12</a>
     <a class="version" href="../0.11.11/Cross_Builds.html">0.11.11</a>
     <a class="version" href="../0.11.10/Cross_Builds.html">0.11.10</a>
@@ -297,7 +298,7 @@
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
-object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
+object foo extends mill.Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
 class FooModule(crossVersion: String) extends Module {
   def suffix = T { crossVersion }
   def bigSuffix = T { suffix().toUpperCase() }
@@ -305,7 +306,7 @@ class FooModule(crossVersion: String) extends Module {
 </div>
 </div>
 <div class="paragraph">
-<p>This defines three copies of <code>FooModule</code>: <code>"210"</code>, <code>"211"</code> and <code>"212"</code>, each of which has their own <code>suffix</code> target. You can then run them via</p>
+<p>This defines three copies of <code>FooModule</code>: <code>&quot;210&quot;</code>, <code>&quot;211&quot;</code> and <code>&quot;212&quot;</code>, each of which has their own <code>suffix</code> target. You can then run them via</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -319,7 +320,7 @@ mill show foo[2.12].bigSuffix</code></pre>
 </div>
 <div class="admonitionblock note">
 <table>
-<tr>
+<tbody><tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
@@ -331,12 +332,12 @@ mill show foo[2.12].bigSuffix</code></pre>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-zsh hljs" data-lang="zsh">mill show foo\[2.10\].suffix
 mill show 'foo[2.10].suffix'
-mill show "foo[2.10].suffix"</code></pre>
+mill show &quot;foo[2.10].suffix&quot;</code></pre>
 </div>
 </div>
 </td>
 </tr>
-</table>
+</tbody></table>
 </div>
 <div class="paragraph">
 <p>The <code>suffix</code> targets will have the corresponding output paths for their
@@ -346,15 +347,15 @@ metadata and files:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">out/
 ├── foo/
-│   ├── 2.10/
-│   │   ├── bigSuffix.json
-│   │   └── suffix.json
-│   ├── 2.11/
-│   │   ├── bigSuffix.json
-│   │   └── suffix.json
-│   └── 2.12/
-│       ├── bigSuffix.json
-│       └── suffix.json</code></pre>
+│&nbsp;&nbsp; ├── 2.10/
+│&nbsp;&nbsp; │&nbsp;&nbsp; ├── bigSuffix.json
+│&nbsp;&nbsp; │&nbsp;&nbsp; └── suffix.json
+│&nbsp;&nbsp; ├── 2.11/
+│&nbsp;&nbsp; │&nbsp;&nbsp; ├── bigSuffix.json
+│&nbsp;&nbsp; │&nbsp;&nbsp; └── suffix.json
+│&nbsp;&nbsp; └── 2.12/
+│&nbsp;&nbsp;     ├── bigSuffix.json
+│&nbsp;&nbsp;     └── suffix.json</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -364,7 +365,7 @@ metadata and files:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
-object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
+object foo extends mill.Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
 class FooModule(crossVersion: String) extends Module {
   def millSourcePath = super.millSourcePath / crossVersion
 }</code></pre>
@@ -372,7 +373,7 @@ class FooModule(crossVersion: String) extends Module {
 </div>
 <div class="admonitionblock note">
 <table>
-<tr>
+<tbody><tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
@@ -387,7 +388,7 @@ class FooModule(crossVersion: String) extends Module {
 </div>
 </td>
 </tr>
-</table>
+</tbody></table>
 </div>
 <div class="paragraph">
 <p>You can also have a cross-build with multiple inputs:</p>
@@ -397,14 +398,14 @@ class FooModule(crossVersion: String) extends Module {
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
 val crossMatrix = for {
-  crossVersion &lt;- Seq("210", "211", "212")
-  platform &lt;- Seq("jvm", "js", "native")
-  if !(platform == "native" &amp;&amp; crossVersion != "212")
+  crossVersion &lt;- Seq(&quot;210&quot;, &quot;211&quot;, &quot;212&quot;)
+  platform &lt;- Seq(&quot;jvm&quot;, &quot;js&quot;, &quot;native&quot;)
+  if !(platform == &quot;native&quot; &amp;&amp; crossVersion != &quot;212&quot;)
 } yield (crossVersion, platform)
 
 object foo extends mill.Cross[FooModule](crossMatrix:_*)
 class FooModule(crossVersion: String, platform: String) extends Module {
-  def suffix = T { crossVersion + "_" + platform }
+  def suffix = T { crossVersion + &quot;_&quot; + platform }
 }</code></pre>
 </div>
 </div>
@@ -419,13 +420,13 @@ This creates the following modules each with their own <code>suffix</code> targe
 [1/1] showNamed
 [1/1] showNamed &gt; [7/7] foo[212,native].suffix
 {
-  "foo[210,jvm].suffix": "210_jvm",
-  "foo[210,js].suffix": "210_js",
-  "foo[211,jvm].suffix": "211_jvm",
-  "foo[211,js].suffix": "211_js",
-  "foo[212,jvm].suffix": "212_jvm",
-  "foo[212,js].suffix": "212_js",
-  "foo[212,native].suffix": "212_native"
+  &quot;foo[210,jvm].suffix&quot;: &quot;210_jvm&quot;,
+  &quot;foo[210,js].suffix&quot;: &quot;210_js&quot;,
+  &quot;foo[211,jvm].suffix&quot;: &quot;211_jvm&quot;,
+  &quot;foo[211,js].suffix&quot;: &quot;211_js&quot;,
+  &quot;foo[212,jvm].suffix&quot;: &quot;212_jvm&quot;,
+  &quot;foo[212,js].suffix&quot;: &quot;212_js&quot;,
+  &quot;foo[212,native].suffix&quot;: &quot;212_native&quot;
 }</code></pre>
 </div>
 </div>
@@ -441,16 +442,16 @@ This creates the following modules each with their own <code>suffix</code> targe
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
-object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
+object foo extends mill.Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
 class FooModule(crossVersion: String) extends Module {
   def suffix = T { crossVersion }
 }
 
-def bar = T { s"hello ${foo("2.10").suffix}" }</code></pre>
+def bar = T { s&quot;hello ${foo(&quot;2.10&quot;).suffix}&quot; }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Here, <code>foo("2.10")</code> references the <code>"2.10"</code> instance of <code>FooModule</code>. You can
+<p>Here, <code>foo(&quot;2.10&quot;)</code> references the <code>&quot;2.10&quot;</code> instance of <code>FooModule</code>. You can
 refer to whatever versions of the cross-module you want, even using multiple
 versions of the cross-module in the same target:</p>
 </div>
@@ -458,12 +459,12 @@ versions of the cross-module in the same target:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
-object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
+object foo extends mill.Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
 class FooModule(crossVersion: String) extends Module {
   def suffix = T { crossVersion }
 }
 
-def bar = T { s"hello ${foo("2.10").suffix} world ${foo("2.12").suffix}" }</code></pre>
+def bar = T { s&quot;hello ${foo(&quot;2.10&quot;).suffix} world ${foo(&quot;2.12&quot;).suffix}&quot; }</code></pre>
 </div>
 </div>
 </div>
@@ -478,12 +479,12 @@ def bar = T { s"hello ${foo("2.10").suffix} world ${foo("2.12").suffix}" }</code
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
-object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
+object foo extends mill.Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
 class FooModule(crossVersion: String) extends Module {
   def suffix = T { crossVersion }
 }
 
-object bar extends mill.Cross[BarModule]("2.10", "2.11", "2.12")
+object bar extends mill.Cross[BarModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
 class BarModule(crossVersion: String) extends Module {
   def bigSuffix = T { foo(crossVersion).suffix().toUpperCase() }
 }</code></pre>
@@ -511,9 +512,9 @@ mill show bar[2.12].bigSuffix</code></pre>
 [1/1] showNamed
 [1/1] showNamed &gt; [3/3] foo[2.12].suffix
 {
-  "foo[2.10].suffix": "2.10",
-  "foo[2.11].suffix": "2.11",
-  "foo[2.12].suffix": "2.12"
+  &quot;foo[2.10].suffix&quot;: &quot;2.10&quot;,
+  &quot;foo[2.11].suffix&quot;: &quot;2.11&quot;,
+  &quot;foo[2.12].suffix&quot;: &quot;2.12&quot;
 }</code></pre>
 </div>
 </div>
@@ -537,14 +538,14 @@ trait MyModule extends Module {
   }
 }
 
-object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
+object foo extends mill.Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
 class FooModule(val crossVersion: String) extends MyModule {
   def suffix = T { crossVersion }
 }
 
-object bar extends mill.Cross[BarModule]("2.10", "2.11", "2.12")
+object bar extends mill.Cross[BarModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
 class BarModule(val crossVersion: String) extends MyModule {
-  def longSuffix = T { "_" + foo().suffix() }
+  def longSuffix = T { &quot;_&quot; + foo().suffix() }
 }</code></pre>
 </div>
 </div>
@@ -563,9 +564,9 @@ E.g. the <code>resolver</code> for <code>mill.scalalib.CrossSbtModule</code> loo
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async src="../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async src="../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../search-index.js"></script>
+  
+</body></html>
