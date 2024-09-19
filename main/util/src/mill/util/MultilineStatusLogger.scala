@@ -54,7 +54,7 @@ class MultilineStatusLogger(
 
   private val current = collection.mutable.SortedMap.empty[Int, Seq[Status]]
 
-  var currentPromptBytes = Array[Byte]()
+  private var currentPromptBytes = Array[Byte]()
   private def log0(s: String) = {
     systemStreams.err.println(s)
   }
