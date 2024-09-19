@@ -44,8 +44,8 @@ trait Logger {
   def info(s: String): Unit
   def error(s: String): Unit
   def ticker(s: String): Unit
-  def globalTicker(s: String): Unit
-  def endTicker(): Unit
+  def globalTicker(s: String): Unit = ()
+  def endTicker(): Unit = ()
 
   def debug(s: String): Unit
 

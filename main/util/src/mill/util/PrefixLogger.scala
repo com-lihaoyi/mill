@@ -51,8 +51,8 @@ class PrefixLogger(
     outStream0 = Some(outStream),
     errStream0 = Some(systemStreams.err)
   )
-  def endTicker(): Unit = logger0.endTicker()
-  def globalTicker(s: String): Unit = logger0.globalTicker(s)
+  override def endTicker(): Unit = logger0.endTicker()
+  override def globalTicker(s: String): Unit = logger0.globalTicker(s)
 }
 
 object PrefixLogger {

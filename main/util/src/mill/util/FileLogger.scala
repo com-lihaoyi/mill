@@ -54,6 +54,4 @@ class FileLogger(
   }
 
   override def rawOutputStream: PrintStream = outputStream
-  def endTicker(): Unit = ()
-  def globalTicker(s: String): Unit = ()
 }

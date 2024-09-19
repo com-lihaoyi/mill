@@ -69,7 +69,7 @@ object IntegrationTester {
 
       val debugArgs = Option.when(debugLog)("--debug")
 
-      val shellable: os.Shellable = (millExecutable, "--disable-ticker", serverArgs, debugArgs, cmd)
+      val shellable: os.Shellable = (millExecutable, serverArgs, "--disable-ticker", debugArgs, cmd)
       val res0 = os.call(
         cmd = shellable,
         env = env,

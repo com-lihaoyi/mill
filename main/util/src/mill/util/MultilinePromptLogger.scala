@@ -51,7 +51,7 @@ private[mill] class MultilinePromptLogger(
   def info(s: String): Unit = synchronized { systemStreams.err.println(s) }
 
   def error(s: String): Unit = synchronized { systemStreams.err.println(s) }
-  def globalTicker(s: String): Unit = {
+  override def globalTicker(s: String): Unit = {
     state.updateGlobal(s)
   }
   override def endTicker(): Unit = synchronized {

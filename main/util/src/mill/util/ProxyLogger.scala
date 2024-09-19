@@ -23,6 +23,6 @@ class ProxyLogger(logger: Logger) extends Logger {
   override def close(): Unit = logger.close()
 
   override def rawOutputStream: PrintStream = logger.rawOutputStream
-  def endTicker(): Unit = logger.endTicker()
-  def globalTicker(s: String): Unit = logger.globalTicker(s)
+  override def endTicker(): Unit = logger.endTicker()
+  override def globalTicker(s: String): Unit = logger.globalTicker(s)
 }
