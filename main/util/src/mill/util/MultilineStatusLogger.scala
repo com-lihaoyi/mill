@@ -22,7 +22,7 @@ class MultilineStatusLogger(
   )
 
   override def close() = stopped = true
-  @volatile var stopped = true
+  @volatile var stopped = false
   @volatile var paused = false
   override def withPaused[T](t: => T) = {
     paused = true
@@ -36,7 +36,9 @@ class MultilineStatusLogger(
         Thread.sleep(1000)
         if (!paused) {
           synchronized{
+            updatePromptBytes()
             writeAndUpdatePrompt(systemStreams0.err) {/*donothing*/}
+            systemStreams0.err.flush()
           }
         }
       }
@@ -44,41 +46,15 @@ class MultilineStatusLogger(
   })
 
   secondsTickerThread.start()
-  val bufferFlusherThread = new Thread(new Runnable{
-    def run(): Unit = {
-      while(!stopped) {
-        Thread.sleep(10)
-        if (!paused) {
-          synchronized {
-            systemStreams.err.flush()
-            systemStreams.out.flush()
-          }
-        }
-      }
-    }
-  })
 
-  bufferFlusherThread.start()
-
-  def renderSeconds(millis: Long) =  (millis / 1000).toInt match{
+  private def renderSeconds(millis: Long) =  (millis / 1000).toInt match{
     case 0 => ""
     case n => s" ${n}s"
   }
-  val current = collection.mutable.SortedMap.empty[Int, Seq[Status]]
-  def currentPrompt: Seq[String] = {
-    val now = System.currentTimeMillis()
-    List("="*80 + renderSeconds(now - startTimeMillis)) ++
-    current
-      .collect{case (threadId, statuses) if statuses.nonEmpty =>
-        val statusesString = statuses
-          .map{status => status.text + renderSeconds(now - status.startTimeMillis)}
-          .mkString(" / ")
-        statusesString
-      }
-      .toList
-  }
-  var currentPromptString = ""
-  def currentHeight: Int = currentPrompt.length
+
+  private val current = collection.mutable.SortedMap.empty[Int, Seq[Status]]
+
+  var currentPromptBytes = Array[Byte]()
   private def log0(s: String) = {
     systemStreams.err.println(s)
   }
@@ -94,26 +70,37 @@ class MultilineStatusLogger(
       if (s.contains("<END>")) current(threadId) = current(threadId).init
       else current(threadId) = current.getOrElse(threadId, Nil) :+ Status(System.currentTimeMillis(), s)
 
-      currentPromptString = currentPrompt.mkString("\n")
+      updatePromptBytes()
     }
   }
+  private def updatePromptBytes() = {
+    val now = System.currentTimeMillis()
+    val currentPrompt = List("="*80 + renderSeconds(now - startTimeMillis)) ++
+      current
+        .collect{case (threadId, statuses) if statuses.nonEmpty =>
+          val statusesString = statuses
+            .map{status => status.text + renderSeconds(now - status.startTimeMillis)}
+            .mkString(" / ")
+          statusesString
+        }
+        .toList
 
+    val currentHeight = currentPrompt.length
+    currentPromptBytes = (currentPrompt.mkString("\n") + "\n" + AnsiNav.up(currentHeight)).getBytes
+  }
 
   def debug(s: String): Unit = synchronized {
     if (debugEnabled) log0(s)
   }
 
-
   override def rawOutputStream: PrintStream = systemStreams0.out
 
+  private val writePreludeBytes = (AnsiNav.clearScreen(0) + AnsiNav.left(9999)).getBytes
 
   private def writeAndUpdatePrompt[T](wrapped: PrintStream)(t: => T): T = {
-    AnsiNav(wrapped).clearScreen(0)
-    AnsiNav(wrapped).left(9999)
+    wrapped.write(writePreludeBytes)
     val res = t
-    wrapped.println(currentPromptString)
-    AnsiNav(wrapped).up(currentHeight)
-    wrapped.flush()
+    wrapped.write(currentPromptBytes)
     res
   }
 
