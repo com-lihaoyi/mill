@@ -138,12 +138,15 @@ private object MultilinePromptLogger {
           statuses.remove(k)
         }
       }
-      // Limit to <120 chars wide
-      val maxWidth = 119
+
+      // -1 to leave a bit of buffer
+      val maxWidth = ConsoleDim.width() - 1
+      // -2 to account for 1 line header and 1 line `more threads`
+      val maxHeight = math.max(1, ConsoleDim.height() / 3 - 2)
       val headerSuffix = renderSeconds(now - startTimeMillis)
 
       val header = renderHeader(headerPrefix, titleText, headerSuffix, maxWidth)
-      val body = statuses
+      val body0 = statuses
         .collect {
           case (threadId, status) =>
             splitShorten(
@@ -152,6 +155,10 @@ private object MultilinePromptLogger {
             )
         }
         .toList
+
+      val body =
+        if (body0.length < maxHeight) body0
+        else body0.take(maxHeight) ++ Seq(s"... and ${body0.length - maxHeight} more threads")
 
       val currentPrompt = header :: body
       val currentHeight = body.length + 1
@@ -234,5 +241,11 @@ private object MultilinePromptLogger {
       else index -= 1
     }
     ???
+  }
+
+  object ConsoleDim {
+    private val terminal = org.jline.terminal.TerminalBuilder.terminal()
+    def width(): Int = terminal.getWidth
+    def height(): Int = terminal.getHeight
   }
 }
