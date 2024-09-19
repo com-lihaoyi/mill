@@ -11,10 +11,21 @@ private[mill] class MultilinePromptLogger(
     override val errorColor: fansi.Attrs,
     systemStreams0: SystemStreams,
     override val debugEnabled: Boolean,
-    titleText: String
+    titleText: String,
+    terminfoPath: os.Path
 ) extends ColorLogger with AutoCloseable {
   import MultilinePromptLogger._
-  private val state = new State(titleText, enableTicker, systemStreams0, System.currentTimeMillis())
+
+  var termWidth = 119
+  var termHeight = 50
+  private val state = new State(
+    titleText,
+    enableTicker,
+    systemStreams0,
+    System.currentTimeMillis(),
+    () => termWidth,
+    () => termHeight
+  )
   val systemStreams = new SystemStreams(
     new PrintStream(new StateStream(systemStreams0.out)),
     new PrintStream(new StateStream(systemStreams0.err)),
@@ -40,6 +51,9 @@ private[mill] class MultilinePromptLogger(
       Thread.sleep(promptUpdateIntervalMillis)
       if (!paused) {
         synchronized {
+          val s"$termWidth0 $termHeight0" = os.read(terminfoPath)
+          termWidth = termWidth0.toInt
+          termHeight = termHeight0.toInt
           state.refreshPrompt()
         }
       }
@@ -112,7 +126,7 @@ private object MultilinePromptLogger {
    * those occurrences even further.
    */
   private val statusRemovalDelayMillis = 500
-  private val statusRemovalDelayMillis2 = 5000
+  private val statusRemovalDelayMillis2 = 2500
 
   private case class Status(startTimeMillis: Long,
                             text: String,
@@ -122,7 +136,9 @@ private object MultilinePromptLogger {
       titleText: String,
       enableTicker: Boolean,
       systemStreams0: SystemStreams,
-      startTimeMillis: Long
+      startTimeMillis: Long,
+      consoleWidth: () => Int,
+      consoleHeight: () => Int,
   ) {
     private val statuses = collection.mutable.SortedMap.empty[Int, Status]
 
@@ -147,9 +163,9 @@ private object MultilinePromptLogger {
       if (ending) statuses.clear()
 
       // -1 to leave a bit of buffer
-      val maxWidth = ConsoleDim.width() - 1
+      val maxWidth = consoleWidth() - 1
       // -2 to account for 1 line header and 1 line `more threads`
-      val maxHeight = math.max(1, ConsoleDim.height() / 3 - 2)
+      val maxHeight = math.max(1, consoleHeight() / 3 - 2)
       val headerSuffix = renderSeconds(now - startTimeMillis)
 
       val header = renderHeader(headerPrefix, titleText, headerSuffix, maxWidth)
@@ -259,11 +275,5 @@ private object MultilinePromptLogger {
       else index -= 1
     }
     ???
-  }
-
-  object ConsoleDim {
-    private val terminal = org.jline.terminal.TerminalBuilder.terminal()
-    def width(): Int = terminal.getWidth
-    def height(): Int = terminal.getHeight
   }
 }

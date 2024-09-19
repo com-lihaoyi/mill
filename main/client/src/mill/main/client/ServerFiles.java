@@ -67,4 +67,9 @@ public class ServerFiles {
      * Where the server's stderr is piped to
      */
     final public static String stderr = "stderr";
+
+    /**
+     * Terminal information
+     */
+    final public static String terminfo = "terminfo";
 }

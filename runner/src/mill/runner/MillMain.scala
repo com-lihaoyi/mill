@@ -8,6 +8,7 @@ import mill.java9rtexport.Export
 import mill.api.{MillException, SystemStreams, WorkspaceRoot, internal}
 import mill.bsp.{BspContext, BspServerResult}
 import mill.main.BuildInfo
+import mill.main.client.ServerFiles
 import mill.util.{MultilinePromptLogger, PrintLogger}
 
 import java.lang.reflect.InvocationTargetException
@@ -67,7 +68,7 @@ object MillMain {
 
     val (result, _) =
       try main0(
-          args = args,
+          args = args.tail,
           stateCache = RunnerState.empty,
           mainInteractive = mill.util.Util.isInteractive(),
           streams0 = runnerStreams,
@@ -76,7 +77,8 @@ object MillMain {
           setIdle = b => (),
           userSpecifiedProperties0 = Map(),
           initialSystemProperties = sys.props.toMap,
-          systemExit = i => sys.exit(i)
+          systemExit = i => sys.exit(i),
+          serverDir = os.Path(args.head)
         )
       catch handleMillException(runnerStreams.err, ())
       finally {
@@ -95,7 +97,8 @@ object MillMain {
       setIdle: Boolean => Unit,
       userSpecifiedProperties0: Map[String, String],
       initialSystemProperties: Map[String, String],
-      systemExit: Int => Nothing
+      systemExit: Int => Nothing,
+      serverDir: os.Path
   ): (Boolean, RunnerState) = {
     val printLoggerState = new PrintLogger.State()
     val streams = streams0
@@ -163,7 +166,8 @@ object MillMain {
                 config.ticker
                   .orElse(config.enableTicker)
                   .orElse(Option.when(config.disableTicker.value)(false)),
-              printLoggerState
+              printLoggerState,
+              serverDir
             )
             try {
               if (!config.silent.value) {
@@ -309,7 +313,8 @@ object MillMain {
       config: MillCliConfig,
       mainInteractive: Boolean,
       enableTicker: Option[Boolean],
-      printLoggerState: PrintLogger.State
+      printLoggerState: PrintLogger.State,
+      serverDir: os.Path
   ): mill.util.ColorLogger = {
     val colored = config.color.getOrElse(mainInteractive)
     val colors = if (colored) mill.util.Colors.Default else mill.util.Colors.BlackWhite
@@ -333,7 +338,8 @@ object MillMain {
         errorColor = colors.error,
         systemStreams0 = streams,
         debugEnabled = config.debugLog.value,
-        titleText = config.leftoverArgs.value.mkString(" ")
+        titleText = config.leftoverArgs.value.mkString(" "),
+        terminfoPath = serverDir / ServerFiles.terminfo
       )
     }
 
