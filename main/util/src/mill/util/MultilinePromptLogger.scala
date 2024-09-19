@@ -210,13 +210,15 @@ private object MultilinePromptLogger {
     val headerPrefixStr = s"  $headerPrefix0 "
     val headerSuffixStr = s" $headerSuffix0"
     val titleText = s" $titleText0 "
-    val maxTitleLength = maxWidth - headerPrefixStr.length - headerSuffixStr.length
+    // -12 just to ensure we always have some ==== divider on each side of the title
+    val maxTitleLength = maxWidth - math.max(headerPrefixStr.length, headerSuffixStr.length) * 2 - 12
     val shortenedTitle = splitShorten(titleText, maxTitleLength)
 
-    val nonDividerLength = headerPrefixStr.length + headerSuffixStr.length + shortenedTitle.length
-    val divider = "=" * (maxWidth - nonDividerLength)
-    val (divider1, divider2) = divider.splitAt(divider.length / 2)
-    val headerString = headerPrefixStr + divider1 + shortenedTitle + divider2 + headerSuffixStr
+    // +2 to offset the title a bit to the right so it looks centered, as
+    // the `headerPrefixStr` is usually longer than `headerSuffixStr`,
+    val leftDivider = "=" * ((maxWidth / 2) - (titleText.length / 2) - headerPrefixStr.length + 2)
+    val rightDivider = "=" * (maxWidth - headerPrefixStr.length - leftDivider.length - shortenedTitle.length - headerSuffixStr.length)
+    val headerString = headerPrefixStr + leftDivider + shortenedTitle + rightDivider + headerSuffixStr
     assert(
       headerString.length == maxWidth,
       s"${pprint.apply(headerString)} is length ${headerString.length}, requires $maxWidth"
