@@ -22,7 +22,7 @@ private[mill] class MultilinePromptLogger(
   )
 
   override def close(): Unit = {
-    state.refreshPrompt()
+    state.refreshPrompt(ending = true)
     stopped = true
   }
 
@@ -130,14 +130,18 @@ private object MultilinePromptLogger {
       (AnsiNav.clearScreen(0) + AnsiNav.left(9999)).getBytes
     private var currentPromptBytes: Array[Byte] = Array[Byte]()
 
-    private def updatePromptBytes() = {
+    private def updatePromptBytes(ending: Boolean = false) = {
       val now = System.currentTimeMillis()
       for (k <- statuses.keySet) {
         val removedTime = statuses(k).removedTimeMillis
-        if (removedTime != -1 && now - removedTime > statusRemovalDelayMillis) {
+        if (removedTime != -1 && now - removedTime > statusRemovalDelayMillis){
           statuses.remove(k)
         }
       }
+
+      // For the ending prompt, make sure we clear out all
+      // the statuses to only show the header alone
+      if (ending) statuses.clear()
 
       // -1 to leave a bit of buffer
       val maxWidth = ConsoleDim.width() - 1
@@ -162,10 +166,15 @@ private object MultilinePromptLogger {
 
       val currentPrompt = header :: body
       val currentHeight = body.length + 1
-      currentPromptBytes =
-        (AnsiNav.clearScreen(0) + currentPrompt.mkString("\n") + "\n" + AnsiNav.up(
-          currentHeight
-        )).getBytes
+      // For the ending prompt, leave the cursor at the bottom rather than scrolling back up.
+      // We do not want further output to overwrite the header as it will no longer re-render
+      val backUp = if (ending) "" else AnsiNav.up(currentHeight)
+      currentPromptBytes = (
+        AnsiNav.clearScreen(0) +
+        currentPrompt.mkString("\n") +
+        "\n" +
+        backUp
+      ).getBytes
     }
 
     def updateGlobal(s: String): Unit = synchronized {
@@ -190,8 +199,8 @@ private object MultilinePromptLogger {
       res
     }
 
-    def refreshPrompt(): Unit = synchronized {
-      updatePromptBytes()
+    def refreshPrompt(ending: Boolean = false): Unit = synchronized {
+      updatePromptBytes(ending)
       if (enableTicker) systemStreams0.err.write(currentPromptBytes)
     }
 
