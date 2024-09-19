@@ -137,7 +137,7 @@ private object MultilinePromptLogger {
       val now = System.currentTimeMillis()
       for (k <- statuses.keySet) {
         val removedTime = statuses(k).removedTimeMillis
-        if (removedTime != -1 && now - removedTime > statusRemovalDelayMillis2){
+        if (now - removedTime > statusRemovalDelayMillis2){
           statuses.remove(k)
         }
       }
@@ -192,7 +192,7 @@ private object MultilinePromptLogger {
       val now = System.currentTimeMillis()
       sOpt match {
         case None => statuses.get(threadId).foreach(_.removedTimeMillis = now)
-        case Some(s) => statuses(threadId) = Status(now, s, -1)
+        case Some(s) => statuses(threadId) = Status(now, s, Long.MaxValue)
       }
       updatePromptBytes()
     }
