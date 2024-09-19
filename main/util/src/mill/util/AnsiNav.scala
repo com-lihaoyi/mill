@@ -1,30 +1,30 @@
 package mill.util
 
-import java.io.PrintStream
+import java.io.Writer
 
 // Reference https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797
-case class AnsiNav(output: PrintStream) {
-  def control(n: Int, c: Char): Unit = output.print(AnsiNav.control(n, c))
+class AnsiNav(output: Writer) {
+  def control(n: Int, c: Char): Unit = output.write(AnsiNav.control(n, c))
 
   /**
    * Move up `n` squares
    */
-  def up(n: Int): Any = if (n != 0) control(n, 'A')
+  def up(n: Int): Any = if (n != 0) output.write(AnsiNav.up(n))
 
   /**
    * Move down `n` squares
    */
-  def down(n: Int): Any = if (n != 0) control(n, 'B')
+  def down(n: Int): Any = if (n != 0) output.write(AnsiNav.down(n))
 
   /**
    * Move right `n` squares
    */
-  def right(n: Int): Any = if (n != 0) control(n, 'C')
+  def right(n: Int): Any = if (n != 0) output.write(AnsiNav.right(n))
 
   /**
    * Move left `n` squares
    */
-  def left(n: Int): Any = if (n != 0) control(n, 'D')
+  def left(n: Int): Any = if (n != 0) output.write(AnsiNav.left(n))
 
   /**
    * Clear the screen
@@ -33,7 +33,7 @@ case class AnsiNav(output: PrintStream) {
    * n=1: clear from cursor to start of screen
    * n=2: clear entire screen
    */
-  def clearScreen(n: Int): Unit = control(n, 'J')
+  def clearScreen(n: Int): Unit = output.write(AnsiNav.clearScreen(n))
 
   /**
    * Clear the current line
@@ -42,9 +42,9 @@ case class AnsiNav(output: PrintStream) {
    * n=1: clear from cursor to start of line
    * n=2: clear entire line
    */
-  def clearLine(n: Int): Unit = control(n, 'K')
-
+  def clearLine(n: Int): Unit = output.write(AnsiNav.clearLine(n))
 }
+
 object AnsiNav {
   def control(n: Int, c: Char): String = "\u001b[" + n + c
   def up(n: Int): String = if (n != 0) control(n, 'A') else ""

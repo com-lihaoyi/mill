@@ -15,7 +15,13 @@ class MultilinePromptLogger(
 ) extends ColorLogger with AutoCloseable {
   import MultilinePromptLogger._
   private val state = new State(systemStreams0, System.currentTimeMillis())
-
+  override def withTicker[T](s: Option[String])(t: => T): T = s match {
+    case None => t
+    case Some(s) =>
+      ticker(s)
+      try t
+      finally ticker("<END>")
+  }
   val systemStreams = new SystemStreams(
     new PrintStream(new StateStream(systemStreams0.out)),
     new PrintStream(new StateStream(systemStreams0.err)),

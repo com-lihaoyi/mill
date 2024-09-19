@@ -48,8 +48,7 @@ trait Logger {
     case None => t
     case Some(s) =>
       ticker(s)
-      try t
-      finally ticker("<END>")
+      t
   }
 
   def debug(s: String): Unit

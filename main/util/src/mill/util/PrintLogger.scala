@@ -33,12 +33,13 @@ class PrintLogger(
           systemStreams.err.println()
           systemStreams.err.println(infoColor(s))
         case PrintLogger.State.Ticker =>
+          val p = new PrintWriter(systemStreams.err)
           // Need to make this more "atomic"
-          val nav = new AnsiNav(systemStreams.err)
+          val nav = new AnsiNav(p)
           nav.up(1)
           nav.clearLine(2)
           nav.left(9999)
-          systemStreams.err.flush()
+          p.flush()
 
           systemStreams.err.println(infoColor(s))
       }

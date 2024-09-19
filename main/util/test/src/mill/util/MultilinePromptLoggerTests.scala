@@ -2,7 +2,7 @@ package mill.util
 
 import utest._
 
-object MultilineStatusLoggerTests extends TestSuite {
+object MultilinePromptLoggerTests extends TestSuite {
 
   val tests = Tests {
     test {
