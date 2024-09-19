@@ -84,7 +84,7 @@ private[mill] class MultilinePromptLogger(
     }
   )
 
-  promptUpdaterThread.start()
+  if (enableTicker) promptUpdaterThread.start()
 
   def info(s: String): Unit = synchronized { systemStreams.err.println(s) }
 
