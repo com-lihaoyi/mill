@@ -20,7 +20,9 @@ trait TwirlModule extends mill.Module { twirlModule =>
    */
   def twirlScalaVersion: T[String] = Task {
     twirlVersion() match {
-      case s"1.$minor.$_" if minor.toIntOption.exists(_ < 4) => BuildInfo.workerScalaVersion212
+      case s"1.$minor.$_" if minor.toIntOption.exists(_ < 6) =>
+        if minor.toIntOption.exists(_ < 4) then BuildInfo.workerScalaVersion212
+        else BuildInfo.workerScalaVersion213
       case _ => BuildInfo.scalaVersion
     }
   }

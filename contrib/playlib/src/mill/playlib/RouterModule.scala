@@ -81,7 +81,7 @@ trait RouterModule extends ScalaModule with Version {
       artifactSuffix = playMinorVersion() match {
         case "2.6" => "_2.12"
         case "2.7" | "2.8" => "_2.13"
-        case _ => "_2.13"
+        case _ => "_3"
       }
     )
   }
