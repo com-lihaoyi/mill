@@ -28,6 +28,11 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
   def buildInfoMembers = Seq(
     BuildInfo.Value("scalaVersion", scalaVersion(), "Scala version used to compile mill core."),
     BuildInfo.Value(
+      "workerScalaVersion213",
+      build.Deps.scala2Version,
+      "Scala 2.13 version used by some workers."
+    ),
+    BuildInfo.Value(
       "workerScalaVersion212",
       build.Deps.workerScalaVersion212,
       "Scala 2.12 version used by some workers."

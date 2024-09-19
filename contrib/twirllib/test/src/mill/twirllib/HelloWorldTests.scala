@@ -7,6 +7,7 @@ import utest.{TestSuite, Tests, assert, _}
 
 trait HelloWorldTests extends TestSuite {
   val testTwirlVersion: String
+  val wildcard: String
 
   trait HelloWorldModule extends mill.twirllib.TwirlModule {
     def twirlVersion = testTwirlVersion
@@ -39,8 +40,8 @@ trait HelloWorldTests extends TestSuite {
   )
 
   def expectedDefaultImports: Seq[String] = Seq(
-    "import _root_.play.twirl.api.TwirlFeatureImports._",
-    "import _root_.play.twirl.api.TwirlHelperImports._",
+    s"import _root_.play.twirl.api.TwirlFeatureImports.$wildcard",
+    s"import _root_.play.twirl.api.TwirlHelperImports.$wildcard",
     "import _root_.play.twirl.api.Html",
     "import _root_.play.twirl.api.JavaScript",
     "import _root_.play.twirl.api.Txt",
@@ -48,8 +49,8 @@ trait HelloWorldTests extends TestSuite {
   )
 
   def testAdditionalImports: Seq[String] = Seq(
-    "mill.twirl.test.AdditionalImport1._",
-    "mill.twirl.test.AdditionalImport2._"
+    s"mill.twirl.test.AdditionalImport1.$wildcard",
+    s"mill.twirl.test.AdditionalImport2.$wildcard"
   )
 
   def testConstructorAnnotations = Seq(
@@ -159,13 +160,17 @@ trait HelloWorldTests extends TestSuite {
 
 object HelloWorldTests1_3 extends HelloWorldTests {
   override val testTwirlVersion = "1.3.16"
+  override val wildcard = "_"
 }
 object HelloWorldTests1_5 extends HelloWorldTests {
   override val testTwirlVersion = "1.5.2"
+  override val wildcard = "_"
 }
 object HelloWorldTests1_6 extends HelloWorldTests {
   override val testTwirlVersion = "1.6.2"
+  override val wildcard = "*"
 }
 object HelloWorldTests2_0 extends HelloWorldTests {
   override val testTwirlVersion = "2.0.1"
+  override val wildcard = "*"
 }
