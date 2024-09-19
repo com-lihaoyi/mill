@@ -130,7 +130,7 @@ case class MillCliConfig(
         status at the command line and falls back to the legacy ticker
       """
     )
-    disablePrompt: Flag = Flag(),
+    disablePrompt: Flag = Flag()
 )
 
 import mainargs.ParserForClass

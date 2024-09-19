@@ -9,7 +9,7 @@ case class AnsiNav(output: PrintStream) {
   /**
    * Move up `n` squares
    */
-  def up(n: Int): Any = if (n != 0)  control(n, 'A')
+  def up(n: Int): Any = if (n != 0) control(n, 'A')
 
   /**
    * Move down `n` squares
@@ -19,13 +19,12 @@ case class AnsiNav(output: PrintStream) {
   /**
    * Move right `n` squares
    */
-  def right(n: Int): Any = if (n != 0)  control(n, 'C')
-
+  def right(n: Int): Any = if (n != 0) control(n, 'C')
 
   /**
    * Move left `n` squares
    */
-  def left(n: Int): Any = if (n != 0)  control(n, 'D')
+  def left(n: Int): Any = if (n != 0) control(n, 'D')
 
   /**
    * Clear the screen
@@ -46,12 +45,12 @@ case class AnsiNav(output: PrintStream) {
   def clearLine(n: Int): Unit = control(n, 'K')
 
 }
-object AnsiNav{
+object AnsiNav {
   def control(n: Int, c: Char): String = "\u001b[" + n + c
   def up(n: Int): String = if (n != 0) control(n, 'A') else ""
   def down(n: Int): String = if (n != 0) control(n, 'B') else ""
-  def right(n: Int): String = if (n != 0)  control(n, 'C') else ""
-  def left(n: Int): String = if (n != 0)  control(n, 'D') else ""
+  def right(n: Int): String = if (n != 0) control(n, 'C') else ""
+  def left(n: Int): String = if (n != 0) control(n, 'D') else ""
   def clearScreen(n: Int): String = control(n, 'J')
   def clearLine(n: Int): String = control(n, 'K')
 }

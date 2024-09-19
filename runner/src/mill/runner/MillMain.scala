@@ -141,11 +141,11 @@ object MillMain {
             (false, RunnerState.empty)
 
           case Right(config)
-            if Seq(
-              config.interactive.value,
-              config.noServer.value,
-              config.bsp.value
-            ).count(identity) > 1 =>
+              if Seq(
+                config.interactive.value,
+                config.noServer.value,
+                config.bsp.value
+              ).count(identity) > 1 =>
             streams.err.println(
               "Only one of -i/--interactive, --no-server or --bsp may be given"
             )
@@ -251,7 +251,9 @@ object MillMain {
 
                     bspContext.foreach { ctx =>
                       repeatForBsp =
-                        BspContext.bspServerHandle.lastResult == Some(BspServerResult.ReloadWorkspace)
+                        BspContext.bspServerHandle.lastResult == Some(
+                          BspServerResult.ReloadWorkspace
+                        )
                       logger.error(
                         s"`$bspCmd` returned with ${BspContext.bspServerHandle.lastResult}"
                       )
@@ -325,7 +327,7 @@ object MillMain {
         context = "",
         printLoggerState
       )
-    }else {
+    } else {
       new MultilinePromptLogger(
         colored = colored,
         enableTicker = enableTicker.getOrElse(mainInteractive),
