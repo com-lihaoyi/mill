@@ -35,9 +35,9 @@ class MultilinePromptLogger(
     finally paused = false
   }
 
-  val secondsTickerThread = new Thread(() => {
+  val promptUpdaterThread = new Thread(() => {
     while (!stopped) {
-      Thread.sleep(1000)
+      Thread.sleep(100)
       if (!paused) {
         synchronized {
           state.refreshPrompt()
@@ -46,23 +46,20 @@ class MultilinePromptLogger(
     }
   })
 
-  secondsTickerThread.start()
+  promptUpdaterThread.start()
 
   def info(s: String): Unit = synchronized { systemStreams.err.println(s) }
 
   def error(s: String): Unit = synchronized { systemStreams.err.println(s) }
   def globalTicker(s: String): Unit = {
     state.updateGlobal(s)
-    state.refreshPrompt()
   }
   override def endTicker(): Unit = synchronized {
     state.updateCurrent(None)
-    state.refreshPrompt()
   }
 
   def ticker(s: String): Unit = synchronized {
     state.updateCurrent(Some(s))
-    state.refreshPrompt()
   }
 
   def debug(s: String): Unit = synchronized {
