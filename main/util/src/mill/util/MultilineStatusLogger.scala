@@ -108,15 +108,18 @@ class MultilineStatusLogger(
   class StateStream(wrapped: PrintStream) extends OutputStream {
 
     override def write(b: Array[Byte]): Unit = synchronized {
-      writeAndUpdatePrompt(wrapped)(write(b))
+      if (b.last == '\n') writeAndUpdatePrompt(wrapped)(write(b))
+      else write(b)
     }
 
     override def write(b: Array[Byte], off: Int, len: Int): Unit = synchronized {
-      writeAndUpdatePrompt(wrapped)(wrapped.write(b, off, len))
+      if (b(off + len - 1) == '\n') writeAndUpdatePrompt(wrapped)(wrapped.write(b, off, len))
+      else wrapped.write(b, off, len)
     }
 
     override def write(b: Int): Unit = synchronized {
-      writeAndUpdatePrompt(wrapped)(wrapped.write(b))
+      if (b == '\n') writeAndUpdatePrompt(wrapped)(wrapped.write(b))
+      else wrapped.write(b)
     }
 
     override def flush(): Unit = synchronized {
