@@ -68,7 +68,7 @@ class UnitTester(
 
   object logger extends mill.util.PrintLogger(
         colored = true,
-        enableTicker = true,
+        enableTicker = false,
         mill.util.Colors.Default.info,
         mill.util.Colors.Default.error,
         new SystemStreams(out = outStream, err = errStream, in = inStream),

@@ -1043,6 +1043,39 @@ object app extends MavenModule with SpringBootModule {
 $ mill app.springBootAssembly
 ----
 
+
+== Squery
+
+Source code generator for https://github.com/sake92/squery/[Squery] SQL library boilerplate.
+
+Project home: https://github.com/sake92/squery
+
+[source,scala,subs="attributes,verbatim"]
+----
+import $ivy.`ba.sake::mill-squery-generator_mill0.11:0.6.2`
+import mill._
+import mill.scalalib._
+import ba.sake.squery.generator._
+import ba.sake.squery.generator.mill.SqueryGeneratorModule
+
+object app extends ScalaModule with SqueryGeneratorModule {
+  // use T.input(T.ctx.env("MY_ENV_VAR")) to set sensitive variables like password etc
+  def squeryJdbcUrl = "jdbc:..."
+  def squeryUsername = ".."
+  def squeryPassword = ".."
+  def squerySchemas = Seq("myschema" -> "com.mypackage.myschema")
+
+  // override to tweak codegen settings
+  def squeryGeneratorConfig: T[SqueryGeneratorConfig] = ...
+----
+
+[source,shell]
+----
+# Generate source files
+$ ./mill root.squeryGenerate
+----
+
+
 == Universal Packager
 
 Support universal archive packaging for Java application with Mill, ported from sbt-native-packager.
