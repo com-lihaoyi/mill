@@ -223,8 +223,10 @@ private object MultilinePromptLogger {
     val maxTitleLength = maxWidth - math.max(headerPrefixStr.length, headerSuffixStr.length) * 2 - 12
     val shortenedTitle = splitShorten(titleText, maxTitleLength)
 
-    // +2 to offset the title a bit to the right so it looks centered, as
-    // the `headerPrefixStr` is usually longer than `headerSuffixStr`,
+    // +2 to offset the title a bit to the right so it looks centered, as the `headerPrefixStr`
+    // is usually longer than `headerSuffixStr`. We use a fixed offset rather than dynamically
+    // offsetting by `headerPrefixStr.length` to prevent the title from shifting left and right
+    // as the `headerPrefixStr` changes, even at the expense of it not being perfectly centered.
     val leftDivider = "=" * ((maxWidth / 2) - (titleText.length / 2) - headerPrefixStr.length + 2)
     val rightDivider = "=" * (maxWidth - headerPrefixStr.length - leftDivider.length - shortenedTitle.length - headerSuffixStr.length)
     val headerString = headerPrefixStr + leftDivider + shortenedTitle + rightDivider + headerSuffixStr
