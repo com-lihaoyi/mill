@@ -141,6 +141,7 @@ object Deps {
   )
 
   val jline = ivy"org.jline:jline:3.26.3"
+  val jansi = ivy"org.fusesource.jansi:jansi:2.4.1"
   val jnaVersion = "5.14.0"
   val jna = ivy"net.java.dev.jna:jna:${jnaVersion}"
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:${jnaVersion}"

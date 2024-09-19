@@ -54,7 +54,7 @@ object MultilineStatusLoggerTests extends TestSuite {
       for(sample <- allSampleByteArrays){
         for(start <- Range(0, sample.length)){
           for(len <- Range(0, sample.length - start)){
-            val found = MultilineStatusLogger.lastIndexOfNewline(sample, start, len)
+            val found = MultilinePromptLogger.lastIndexOfNewline(sample, start, len)
             val expected0 = sample.slice(start, start + len).lastIndexOf('\n')
             val expected = expected0 + start
             def assertMsg = s"found:$found, expected$expected, sample:${sample.toSeq}, start:$start, len:$len"

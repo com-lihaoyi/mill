@@ -8,7 +8,8 @@ import mill.java9rtexport.Export
 import mill.api.{MillException, SystemStreams, WorkspaceRoot, internal}
 import mill.bsp.{BspContext, BspServerResult}
 import mill.main.BuildInfo
-import mill.util.{MultilineStatusLogger, PrintLogger}
+import mill.util.{MultilinePromptLogger, PrintLogger}
+import org.fusesource.jansi.AnsiConsole
 
 import java.lang.reflect.InvocationTargetException
 import scala.util.control.NonFatal
@@ -34,6 +35,7 @@ object MillMain {
   }
 
   def main(args: Array[String]): Unit = {
+    AnsiConsole.systemInstall()
     val initialSystemStreams = new SystemStreams(System.out, System.err, System.in)
     // setup streams
     val (runnerStreams, cleanupStreams, bspLog) =
@@ -97,6 +99,7 @@ object MillMain {
       initialSystemProperties: Map[String, String],
       systemExit: Int => Nothing
   ): (Boolean, RunnerState) = {
+    val printLoggerState = new PrintLogger.State()
     val streams = streams0
     SystemStreams.withStreams(streams) {
       os.SubProcess.env.withValue(env) {
@@ -111,33 +114,25 @@ object MillMain {
             (true, RunnerState.empty)
 
           case Right(config) if config.showVersion.value =>
-            def p(k: String, d: String = "<unknown>") = System.getProperty(k, d)
-
+            def prop(k: String) = System.getProperty(k, s"<unknown $k>")
+            val javaVersion = prop("java.version")
+            val javaVendor = prop("java.vendor")
+            val javaHome = prop("java.home")
+            val fileEncoding = prop("file.encoding")
+            val osName = prop("os.name")
+            val osVersion = prop("os.version")
+            val osArch = prop("os.arch")
             streams.out.println(
               s"""Mill Build Tool version ${BuildInfo.millVersion}
-                 |Java version: ${p("java.version", "<unknown Java version")}, vendor: ${
-                p(
-                  "java.vendor",
-                  "<unknown Java vendor"
-                )
-              }, runtime: ${p("java.home", "<unknown runtime")}
-                 |Default locale: ${Locale.getDefault()}, platform encoding: ${
-                p(
-                  "file.encoding",
-                  "<unknown encoding>"
-                )
-              }
-                 |OS name: "${p("os.name")}", version: ${p("os.version")}, arch: ${
-                p(
-                  "os.arch"
-                )
-              }""".stripMargin
+                 |Java version: $javaVersion, vendor: $javaVendor, runtime: $javaHome
+                 |Default locale: ${Locale.getDefault()}, platform encoding: $fileEncoding
+                 |OS name: "$osName", version: $osVersion, arch: $osArch""".stripMargin
             )
             (true, RunnerState.empty)
 
           case Right(config)
-            if (
-              config.interactive.value || config.noServer.value || config.bsp.value
+              if (
+                config.interactive.value || config.noServer.value || config.bsp.value
               ) && streams.in.getClass == classOf[PipedInputStream] =>
             // because we have stdin as dummy, we assume we were already started in server process
             streams.err.println(
@@ -170,6 +165,7 @@ object MillMain {
                 config.ticker
                   .orElse(config.enableTicker)
                   .orElse(Option.when(config.disableTicker.value)(false)),
+              printLoggerState
             )
             try {
               if (!config.silent.value) {
@@ -313,18 +309,33 @@ object MillMain {
       config: MillCliConfig,
       mainInteractive: Boolean,
       enableTicker: Option[Boolean],
-  ): MultilineStatusLogger = {
+      printLoggerState: PrintLogger.State
+  ): mill.util.ColorLogger = {
     val colored = config.color.getOrElse(mainInteractive)
     val colors = if (colored) mill.util.Colors.Default else mill.util.Colors.BlackWhite
 
-    val logger = new MultilineStatusLogger(
-      colored = colored,
-      enableTicker = enableTicker.getOrElse(mainInteractive),
-      infoColor = colors.info,
-      errorColor = colors.error,
-      systemStreams0 = streams,
-      debugEnabled = config.debugLog.value
-    )
+    val logger = if (config.disablePrompt.value) {
+      new mill.util.PrintLogger(
+        colored = colored,
+        enableTicker = enableTicker.getOrElse(mainInteractive),
+        infoColor = colors.info,
+        errorColor = colors.error,
+        systemStreams = streams,
+        debugEnabled = config.debugLog.value,
+        context = "",
+        printLoggerState
+      )
+    }else {
+      new MultilinePromptLogger(
+        colored = colored,
+        enableTicker = enableTicker.getOrElse(mainInteractive),
+        infoColor = colors.info,
+        errorColor = colors.error,
+        systemStreams0 = streams,
+        debugEnabled = config.debugLog.value
+      )
+    }
+
     logger
   }
 
