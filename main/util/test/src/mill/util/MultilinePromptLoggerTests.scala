@@ -122,8 +122,6 @@ object MultilinePromptLoggerTests extends TestSuite {
           statuses = SortedMap(
             0 -> Status(now - 1000, "hello", Long.MaxValue),
             1 -> Status(now - 2000, "world", Long.MaxValue),
-            //          2 -> Status(now - 3000, "i am cow", Long.MaxValue),
-            //          3 -> Status(now - 4000, "hear me moo", Long.MaxValue)
           )
         )
         val expected = List(
@@ -204,6 +202,39 @@ object MultilinePromptLoggerTests extends TestSuite {
             5 -> Status(now - 6000, "and i look good on the barbecue", Long.MaxValue),
           )
         )
+        val expected = List(
+          "  123/456  __.compile....z1234567890 ================ 1337s",
+          "hello1234567890abcefghijklmn...abcefghijklmnopqrstuvwxyz 1s",
+          "world 2s",
+          "i am cow 3s",
+          "hear me moo 4s",
+          "... and 2 more threads"
+        )
+        assert(rendered == expected)
+      }
+
+      test("removalDelay") {
+        val rendered = renderPrompt(
+          consoleWidth = 60,
+          consoleHeight = 20,
+          now = now,
+          startTimeMillis = now - 1337000,
+          headerPrefix = "123/456",
+          titleText = "__.compile.abcdefghijklmnopqrstuvwxyz1234567890",
+          statuses = SortedMap(
+            // Not yet removed, should be shown
+            0 -> Status(now - 1000, "hello1234567890abcefghijklmnopqrstuvwxyz" * 3, Long.MaxValue),
+            // These are removed but are still within the `statusRemovalDelayMillis` window, so still shown
+            1 -> Status(now - 2000, "world", now - MultilinePromptLogger.statusRemovalDelayMillis + 1),
+            2 -> Status(now - 3000, "i am cow", now - MultilinePromptLogger.statusRemovalDelayMillis + 1),
+            // Removed but already outside the `statusRemovalDelayMillis` window, not shown, but not
+            // yet removed, so rendered as blank lines to prevent terminal jumping around too much
+            3 -> Status(now - 4000, "hear me moo", now - MultilinePromptLogger.statusRemovalDelayMillis2 + 1),
+            4 -> Status(now - 5000, "i weigh twice as much as you", now - MultilinePromptLogger.statusRemovalDelayMillis2 + 1),
+            5 -> Status(now - 6000, "and i look good on the barbecue", now - MultilinePromptLogger.statusRemovalDelayMillis2 + 1),
+          )
+        )
+        pprint.log(rendered)
         val expected = List(
           "  123/456  __.compile....z1234567890 ================ 1337s",
           "hello1234567890abcefghijklmn...abcefghijklmnopqrstuvwxyz 1s",

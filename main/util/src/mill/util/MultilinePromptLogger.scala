@@ -127,8 +127,8 @@ private object MultilinePromptLogger {
    * is even more distracting than changing the contents of a line, so we want to minimize
    * those occurrences even further.
    */
-  private val statusRemovalDelayMillis = 500
-  private val statusRemovalDelayMillis2 = 2500
+  val statusRemovalDelayMillis = 500
+  val statusRemovalDelayMillis2 = 2500
 
   private[mill] case class Status(startTimeMillis: Long,
                             text: String,
