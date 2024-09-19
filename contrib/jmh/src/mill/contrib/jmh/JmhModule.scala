@@ -72,7 +72,7 @@ trait JmhModule extends JavaModule {
   def generateBenchmarkSources =
     Task {
       val dest = T.ctx().dest
-
+      val javacOpts = javacOptions().toSeq
       val sourcesDir = dest / "jmh_sources"
       val resourcesDir = dest / "jmh_resources"
 
@@ -89,7 +89,8 @@ trait JmhModule extends JavaModule {
           sourcesDir.toString,
           resourcesDir.toString,
           "default"
-        )
+        ),
+        jvmArgs = javacOpts
       )
 
       (sourcesDir, resourcesDir)
