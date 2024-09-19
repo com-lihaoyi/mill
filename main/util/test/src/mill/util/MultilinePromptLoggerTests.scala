@@ -57,7 +57,7 @@ object MultilinePromptLoggerTests extends TestSuite {
         }
       }
     }
-    test("renderHeader"){
+    test("renderHeader") {
       import MultilinePromptLogger.renderHeader
 
       def check(prefix: String, title: String, suffix: String, maxWidth: Int, expected: String) = {
@@ -108,8 +108,8 @@ object MultilinePromptLoggerTests extends TestSuite {
       )
     }
 
-    test("renderPrompt"){
-      import MultilinePromptLogger.{renderPrompt, Status}
+    test("renderPrompt") {
+      import MultilinePromptLogger._
       val now = System.currentTimeMillis()
       test("simple") {
         val rendered = renderPrompt(
@@ -121,7 +121,7 @@ object MultilinePromptLoggerTests extends TestSuite {
           titleText = "__.compile",
           statuses = SortedMap(
             0 -> Status(now - 1000, "hello", Long.MaxValue),
-            1 -> Status(now - 2000, "world", Long.MaxValue),
+            1 -> Status(now - 2000, "world", Long.MaxValue)
           )
         )
         val expected = List(
@@ -141,10 +141,14 @@ object MultilinePromptLoggerTests extends TestSuite {
           headerPrefix = "123/456",
           titleText = "__.compile.abcdefghijklmn",
           statuses = SortedMap(
-            0 -> Status(now - 1000, "hello1234567890abcefghijklmnopqrstuvwxyz1234567890123456", Long.MaxValue),
+            0 -> Status(
+              now - 1000,
+              "hello1234567890abcefghijklmnopqrstuvwxyz1234567890123456",
+              Long.MaxValue
+            ),
             1 -> Status(now - 2000, "world", Long.MaxValue),
             2 -> Status(now - 3000, "i am cow", Long.MaxValue),
-            3 -> Status(now - 4000, "hear me moo", Long.MaxValue),
+            3 -> Status(now - 4000, "hear me moo", Long.MaxValue)
           )
         )
 
@@ -166,15 +170,19 @@ object MultilinePromptLoggerTests extends TestSuite {
           headerPrefix = "123/456",
           titleText = "__.compile.abcdefghijklmno",
           statuses = SortedMap(
-            0 -> Status(now - 1000, "hello1234567890abcefghijklmnopqrstuvwxyz12345678901234567", Long.MaxValue),
+            0 -> Status(
+              now - 1000,
+              "hello1234567890abcefghijklmnopqrstuvwxyz12345678901234567",
+              Long.MaxValue
+            ),
             1 -> Status(now - 2000, "world", Long.MaxValue),
             2 -> Status(now - 3000, "i am cow", Long.MaxValue),
             3 -> Status(now - 4000, "hear me moo", Long.MaxValue),
-            4 -> Status(now - 5000, "i weight twice as much as you", Long.MaxValue),
+            4 -> Status(now - 5000, "i weight twice as much as you", Long.MaxValue)
           )
         )
 
-        val expected =  List(
+        val expected = List(
           "  123/456 ======= __.compile....efghijklmno ========= 1337s",
           "hello1234567890abcefghijklmn...stuvwxyz12345678901234567 1s",
           "world 2s",
@@ -198,7 +206,7 @@ object MultilinePromptLoggerTests extends TestSuite {
             2 -> Status(now - 3000, "i am cow", Long.MaxValue),
             3 -> Status(now - 4000, "hear me moo", Long.MaxValue),
             4 -> Status(now - 5000, "i weigh twice as much as you", Long.MaxValue),
-            5 -> Status(now - 6000, "and i look good on the barbecue", Long.MaxValue),
+            5 -> Status(now - 6000, "and i look good on the barbecue", Long.MaxValue)
           )
         )
         val expected = List(
@@ -223,13 +231,13 @@ object MultilinePromptLoggerTests extends TestSuite {
             // Not yet removed, should be shown
             0 -> Status(now - 1000, "hello1234567890abcefghijklmnopqrstuvwxyz" * 3, Long.MaxValue),
             // These are removed but are still within the `statusRemovalDelayMillis` window, so still shown
-            1 -> Status(now - 2000, "world", now - MultilinePromptLogger.statusRemovalDelayMillis + 1),
-            2 -> Status(now - 3000, "i am cow", now - MultilinePromptLogger.statusRemovalDelayMillis + 1),
+            1 -> Status(now - 2000, "world", now - statusRemovalDelayMillis + 1),
+            2 -> Status(now - 3000, "i am cow", now - statusRemovalDelayMillis + 1),
             // Removed but already outside the `statusRemovalDelayMillis` window, not shown, but not
             // yet removed, so rendered as blank lines to prevent terminal jumping around too much
-            3 -> Status(now - 4000, "hear me moo", now - MultilinePromptLogger.statusRemovalDelayMillis2 + 1),
-            4 -> Status(now - 5000, "i weigh twice as much as you", now - MultilinePromptLogger.statusRemovalDelayMillis2 + 1),
-            5 -> Status(now - 6000, "and i look good on the barbecue", now - MultilinePromptLogger.statusRemovalDelayMillis2 + 1),
+            3 -> Status(now - 4000, "hear me moo", now - statusRemovalDelayMillis2 + 1),
+            4 -> Status(now - 5000, "i weigh twice", now - statusRemovalDelayMillis2 + 1),
+            5 -> Status(now - 6000, "as much as you", now - statusRemovalDelayMillis2 + 1)
           )
         )
         val expected = List(

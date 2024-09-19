@@ -16,15 +16,23 @@ private[mill] class MultilinePromptLogger(
 ) extends ColorLogger with AutoCloseable {
   import MultilinePromptLogger._
 
-  var termWidth = 119
-  var termHeight = 50
+  val termWidth0 = 119
+  val termHeight0 = 50
+  var termWidth: Option[Int] = None
+  var termHeight: Option[Int] = None
+  readTerminalDims()
+
   private val state = new State(
     titleText,
     enableTicker,
     systemStreams0,
     System.currentTimeMillis(),
-    () => termWidth,
-    () => termHeight
+    () =>
+      Tuple3(
+        termWidth.getOrElse(termWidth0),
+        termHeight.getOrElse(termHeight0),
+        termWidth.isDefined
+      )
   )
   val systemStreams = new SystemStreams(
     new PrintStream(new StateStream(systemStreams0.out)),
@@ -46,16 +54,30 @@ private[mill] class MultilinePromptLogger(
     finally paused = false
   }
 
+  def readTerminalDims(): Unit = {
+    try {
+      val s"$termWidth0 $termHeight0" = os.read(terminfoPath)
+      termWidth = termWidth0.toInt match {
+        case -1 => None
+        case n => Some(n)
+      }
+      termHeight = termHeight0.toInt match {
+        case -1 => None
+        case n => Some(n)
+      }
+    } catch { case e: Exception => /*donothing*/ }
+  }
+
   val promptUpdaterThread = new Thread(() =>
     while (!stopped) {
-      Thread.sleep(promptUpdateIntervalMillis)
+      Thread.sleep(
+        if (termWidth.isDefined) promptUpdateIntervalMillis
+        else nonInteractivePromptUpdateIntervalMillis
+      )
+
       if (!paused) {
         synchronized {
-          try {
-            val s"$termWidth0 $termHeight0" = os.read(terminfoPath)
-            termWidth = termWidth0.toInt
-            termHeight = termHeight0.toInt
-          } catch{case e: Exception => /*donothing*/}
+          readTerminalDims()
           state.refreshPrompt()
         }
       }
@@ -122,6 +144,15 @@ private object MultilinePromptLogger {
   private val promptUpdateIntervalMillis = 100
 
   /**
+   * How often to update the multiline status prompt in noninteractive scenarios,
+   * e.g. background job logs or piped to a log file. Much less frequent than the
+   * interactive scenario because we cannot rely on ANSI codes to over-write the
+   * previous prompt, so we have to be a lot more conservative to avoid spamming
+   * the logs
+   */
+  private val nonInteractivePromptUpdateIntervalMillis = 10000
+
+  /**
    * Add some extra latency delay to the process of removing an entry from the status
    * prompt entirely, because removing an entry changes the height of the prompt, which
    * is even more distracting than changing the contents of a line, so we want to minimize
@@ -130,17 +161,14 @@ private object MultilinePromptLogger {
   val statusRemovalDelayMillis = 500
   val statusRemovalDelayMillis2 = 2500
 
-  private[mill] case class Status(startTimeMillis: Long,
-                            text: String,
-                            var removedTimeMillis: Long)
+  private[mill] case class Status(startTimeMillis: Long, text: String, var removedTimeMillis: Long)
 
   private class State(
       titleText: String,
       enableTicker: Boolean,
       systemStreams0: SystemStreams,
       startTimeMillis: Long,
-      consoleWidth: () => Int,
-      consoleHeight: () => Int,
+      consoleDims: () => (Int, Int, Boolean)
   ) {
     private val statuses = collection.mutable.SortedMap.empty[Int, Status]
 
@@ -155,7 +183,7 @@ private object MultilinePromptLogger {
       val now = System.currentTimeMillis()
       for (k <- statuses.keySet) {
         val removedTime = statuses(k).removedTimeMillis
-        if (now - removedTime > statusRemovalDelayMillis2){
+        if (now - removedTime > statusRemovalDelayMillis2) {
           statuses.remove(k)
         }
       }
@@ -164,9 +192,11 @@ private object MultilinePromptLogger {
       // the statuses to only show the header alone
       if (ending) statuses.clear()
 
+      val (consoleWidth, consoleHeight, consoleInteractive) = consoleDims()
+      // don't show prompt for non-interactive terminal
       val currentPromptLines = renderPrompt(
-        consoleWidth(),
-        consoleHeight(),
+        consoleWidth,
+        consoleHeight,
         now,
         startTimeMillis,
         headerPrefix,
@@ -177,11 +207,15 @@ private object MultilinePromptLogger {
       // We do not want further output to overwrite the header as it will no longer re-render
       val backUp = if (ending) "" else AnsiNav.up(currentPromptLines.length)
 
-      currentPromptBytes = (
-        AnsiNav.clearScreen(0) +
-          currentPromptLines.mkString("\n") + "\n" +
-          backUp
-      ).getBytes
+      val currentPromptStr =
+        if (!consoleInteractive) currentPromptLines.mkString("\n")
+        else {
+          AnsiNav.clearScreen(0) +
+            currentPromptLines.mkString("\n") + "\n" +
+            backUp
+        }
+
+      currentPromptBytes = currentPromptStr.getBytes
     }
 
     def updateGlobal(s: String): Unit = synchronized {
@@ -217,13 +251,15 @@ private object MultilinePromptLogger {
     case n => s"${n}s"
   }
 
-  def renderPrompt(consoleWidth: Int,
-                   consoleHeight: Int,
-                   now: Long,
-                   startTimeMillis: Long,
-                   headerPrefix: String,
-                   titleText: String,
-                   statuses: collection.SortedMap[Int, Status]) = {
+  def renderPrompt(
+      consoleWidth: Int,
+      consoleHeight: Int,
+      now: Long,
+      startTimeMillis: Long,
+      headerPrefix: String,
+      titleText: String,
+      statuses: collection.SortedMap[Int, Status]
+  ): List[String] = {
     // -1 to leave a bit of buffer
     val maxWidth = consoleWidth - 1
     // -2 to account for 1 line header and 1 line `more threads`
@@ -260,7 +296,8 @@ private object MultilinePromptLogger {
     val headerSuffixStr = s" $headerSuffix0"
     val titleText = s" $titleText0 "
     // -12 just to ensure we always have some ==== divider on each side of the title
-    val maxTitleLength = maxWidth - math.max(headerPrefixStr.length, headerSuffixStr.length) * 2 - 12
+    val maxTitleLength =
+      maxWidth - math.max(headerPrefixStr.length, headerSuffixStr.length) * 2 - 12
     val shortenedTitle = splitShorten(titleText, maxTitleLength)
 
     // +2 to offset the title a bit to the right so it looks centered, as the `headerPrefixStr`
@@ -268,8 +305,10 @@ private object MultilinePromptLogger {
     // offsetting by `headerPrefixStr.length` to prevent the title from shifting left and right
     // as the `headerPrefixStr` changes, even at the expense of it not being perfectly centered.
     val leftDivider = "=" * ((maxWidth / 2) - (titleText.length / 2) - headerPrefixStr.length + 2)
-    val rightDivider = "=" * (maxWidth - headerPrefixStr.length - leftDivider.length - shortenedTitle.length - headerSuffixStr.length)
-    val headerString = headerPrefixStr + leftDivider + shortenedTitle + rightDivider + headerSuffixStr
+    val rightDivider =
+      "=" * (maxWidth - headerPrefixStr.length - leftDivider.length - shortenedTitle.length - headerSuffixStr.length)
+    val headerString =
+      headerPrefixStr + leftDivider + shortenedTitle + rightDivider + headerSuffixStr
     assert(
       headerString.length == maxWidth,
       s"${pprint.apply(headerString)} is length ${headerString.length}, requires $maxWidth"

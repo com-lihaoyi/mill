@@ -57,7 +57,7 @@ class MillServerMain(
       setIdle: Boolean => Unit,
       userSpecifiedProperties: Map[String, String],
       initialSystemProperties: Map[String, String],
-      systemExit: Int => Nothing,
+      systemExit: Int => Nothing
   ): (Boolean, RunnerState) = {
     try MillMain.main0(
         args = args,
