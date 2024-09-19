@@ -3,7 +3,6 @@ package mill.util
 import mill.api.SystemStreams
 
 import java.io._
-import scala.collection.mutable
 
 private[mill] class MultilinePromptLogger(
     override val colored: Boolean,
@@ -12,7 +11,7 @@ private[mill] class MultilinePromptLogger(
     override val errorColor: fansi.Attrs,
     systemStreams0: SystemStreams,
     override val debugEnabled: Boolean,
-    titleText: String,
+    titleText: String
 ) extends ColorLogger with AutoCloseable {
   import MultilinePromptLogger._
   private val state = new State(titleText, enableTicker, systemStreams0, System.currentTimeMillis())
@@ -98,12 +97,14 @@ private[mill] class MultilinePromptLogger(
 }
 
 private object MultilinePromptLogger {
+
   /**
    * How often to update the multiline status prompt on the terminal.
    * Too frequent is bad because it causes a lot of visual noise,
    * but too infrequent results in latency. 10 times per second seems reasonable
    */
   private val promptUpdateIntervalMillis = 100
+
   /**
    * Add some extra latency delay to the process of removing an entry from the status
    * prompt entirely, because removing an entry changes the height of the prompt, which
@@ -114,23 +115,26 @@ private object MultilinePromptLogger {
 
   private case class Status(startTimeMillis: Long, text: String, var removedTimeMillis: Long)
 
-  private class State(titleText: String,
-                      enableTicker: Boolean,
-                      systemStreams0: SystemStreams,
-                      startTimeMillis: Long) {
+  private class State(
+      titleText: String,
+      enableTicker: Boolean,
+      systemStreams0: SystemStreams,
+      startTimeMillis: Long
+  ) {
     private val statuses = collection.mutable.SortedMap.empty[Int, Status]
 
     private var headerPrefix = ""
     // Pre-compute the prelude and current prompt as byte arrays so that
     // writing them out is fast, since they get written out very frequently
-    private val writePreludeBytes: Array[Byte] = (AnsiNav.clearScreen(0) + AnsiNav.left(9999)).getBytes
+    private val writePreludeBytes: Array[Byte] =
+      (AnsiNav.clearScreen(0) + AnsiNav.left(9999)).getBytes
     private var currentPromptBytes: Array[Byte] = Array[Byte]()
 
     private def updatePromptBytes() = {
       val now = System.currentTimeMillis()
-      for(k <- statuses.keySet){
+      for (k <- statuses.keySet) {
         val removedTime = statuses(k).removedTimeMillis
-        if (removedTime != -1 && now - removedTime > statusRemovalDelayMillis){
+        if (removedTime != -1 && now - removedTime > statusRemovalDelayMillis) {
           statuses.remove(k)
         }
       }
@@ -152,10 +156,12 @@ private object MultilinePromptLogger {
       val currentPrompt = header :: body
       val currentHeight = body.length + 1
       currentPromptBytes =
-        (AnsiNav.clearScreen(0) + currentPrompt.mkString("\n") + "\n" + AnsiNav.up(currentHeight)).getBytes
+        (AnsiNav.clearScreen(0) + currentPrompt.mkString("\n") + "\n" + AnsiNav.up(
+          currentHeight
+        )).getBytes
     }
 
-    def updateGlobal(s: String): Unit = synchronized{
+    def updateGlobal(s: String): Unit = synchronized {
       headerPrefix = s
       updatePromptBytes()
     }
@@ -188,7 +194,12 @@ private object MultilinePromptLogger {
     }
   }
 
-  def renderHeader(headerPrefix0: String, titleText0: String, headerSuffix0: String, maxWidth: Int) = {
+  def renderHeader(
+      headerPrefix0: String,
+      titleText0: String,
+      headerSuffix0: String,
+      maxWidth: Int
+  ): String = {
     val headerPrefixStr = s"  $headerPrefix0 "
     val headerSuffixStr = s" $headerSuffix0"
     val titleText = s" $titleText0 "
@@ -206,7 +217,7 @@ private object MultilinePromptLogger {
     headerString
   }
 
-  def splitShorten(s: String, maxLength: Int) = {
+  def splitShorten(s: String, maxLength: Int): String = {
     if (s.length <= maxLength) s
     else {
       val ellipses = "..."
