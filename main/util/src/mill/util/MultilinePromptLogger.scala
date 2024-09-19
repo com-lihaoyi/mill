@@ -113,7 +113,9 @@ object MultilinePromptLogger {
               val statusesString = statuses
                 .map { status => status.text + renderSeconds(now - status.startTimeMillis) }
                 .mkString(" / ")
-              statusesString
+              // Limit to 99 chars wide
+              if (statusesString.length <= 99) statusesString
+              else statusesString.take(43) + "..." + statusesString.takeRight(43)
           }
           .toList
 
