@@ -21,16 +21,23 @@ class MultilineStatusLogger(
     systemStreams0.in
   )
 
-  override def close() = running = false
-  @volatile var running = true
-  @volatile var dirty = false
+  override def close() = stopped = true
+  @volatile var stopped = true
+  @volatile var paused = false
+  override def withPaused[T](t: => T) = {
+    paused = true
+    try t
+    finally paused = false
+  }
 
   val secondsTickerThread = new Thread(new Runnable{
     def run(): Unit = {
-      while(running) {
+      while(!stopped) {
         Thread.sleep(1000)
-        synchronized{
-          writeAndUpdatePrompt(systemStreams0.err) {/*donothing*/}
+        if (!paused) {
+          synchronized{
+            writeAndUpdatePrompt(systemStreams0.err) {/*donothing*/}
+          }
         }
       }
     }
@@ -39,11 +46,13 @@ class MultilineStatusLogger(
   secondsTickerThread.start()
   val bufferFlusherThread = new Thread(new Runnable{
     def run(): Unit = {
-      while(running) {
+      while(!stopped) {
         Thread.sleep(10)
-        synchronized{
-          systemStreams.err.flush()
-          systemStreams.out.flush()
+        if (!paused) {
+          synchronized {
+            systemStreams.err.flush()
+            systemStreams.out.flush()
+          }
         }
       }
     }
@@ -68,6 +77,7 @@ class MultilineStatusLogger(
       }
       .toList
   }
+  var currentPromptString = ""
   def currentHeight: Int = currentPrompt.length
   private def log0(s: String) = {
     systemStreams.err.println(s)
@@ -83,6 +93,8 @@ class MultilineStatusLogger(
     writeAndUpdatePrompt(systemStreams0.err) {
       if (s.contains("<END>")) current(threadId) = current(threadId).init
       else current(threadId) = current.getOrElse(threadId, Nil) :+ Status(System.currentTimeMillis(), s)
+
+      currentPromptString = currentPrompt.mkString("\n")
     }
   }
 
@@ -99,7 +111,7 @@ class MultilineStatusLogger(
     AnsiNav(wrapped).left(9999)
     AnsiNav(wrapped).clearScreen(0)
     val res = t
-    for(line <- currentPrompt) wrapped.println(line)
+    wrapped.println(currentPromptString)
     AnsiNav(wrapped).up(currentHeight)
     wrapped.flush()
     res
@@ -107,14 +119,15 @@ class MultilineStatusLogger(
 
   class StateStream(wrapped: PrintStream) extends OutputStream {
 
-    override def write(b: Array[Byte]): Unit = synchronized {
-      if (b.last == '\n') writeAndUpdatePrompt(wrapped)(write(b))
-      else write(b)
-    }
+    override def write(b: Array[Byte]): Unit = synchronized { write(b, 0, b.length) }
 
     override def write(b: Array[Byte], off: Int, len: Int): Unit = synchronized {
-      if (b(off + len - 1) == '\n') writeAndUpdatePrompt(wrapped)(wrapped.write(b, off, len))
-      else wrapped.write(b, off, len)
+      lastIndexOfNewline(b, off, len) match{
+        case -1 => write(b)
+        case n =>
+          writeAndUpdatePrompt(wrapped)(write(b, 0, n))
+          write(b, n, b.length - n)
+      }
     }
 
     override def write(b: Int): Unit = synchronized {
@@ -130,4 +143,15 @@ class MultilineStatusLogger(
 
 object MultilineStatusLogger {
   case class Status(startTimeMillis: Long, text: String)
+
+  def lastIndexOfNewline(b: Array[Byte], off: Int, len: Int): Int = {
+    var index = off + len - 1
+    while (true) {
+      if (index < off) return -1
+      else if (b(index) == '\n') return index
+      else index -= 1
+    }
+    ???
+  }
+
 }

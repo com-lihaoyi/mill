@@ -61,4 +61,5 @@ trait Logger {
   def debugEnabled: Boolean = false
 
   def close(): Unit = ()
+  def withPaused[T](t: => T) = t
 }
