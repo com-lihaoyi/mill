@@ -70,12 +70,13 @@ private[mill] class MultilinePromptLogger(
   def readTerminalDims(): Unit = {
     try {
       val s"$termWidth0 $termHeight0" = os.read(terminfoPath)
+
       termWidth = termWidth0.toInt match {
-        case -1 => None
+        case -1 | 0 => None
         case n => Some(n)
       }
       termHeight = termHeight0.toInt match {
-        case -1 => None
+        case -1 | 0 => None
         case n => Some(n)
       }
     } catch { case e: Exception => /*donothing*/ }
