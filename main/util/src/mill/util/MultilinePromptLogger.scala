@@ -113,15 +113,15 @@ object MultilinePromptLogger {
               val statusesString = statuses
                 .map { status => status.text + renderSeconds(now - status.startTimeMillis) }
                 .mkString(" / ")
-              // Limit to 99 chars wide
-              if (statusesString.length <= 99) statusesString
-              else statusesString.take(43) + "..." + statusesString.takeRight(43)
+              // Limit to <120 chars wide
+              if (statusesString.length <= 119) statusesString
+              else statusesString.take(58) + "..." + statusesString.takeRight(58)
           }
           .toList
 
       val currentHeight = currentPrompt.length
       currentPromptBytes =
-        (currentPrompt.mkString("\n") + "\n" + AnsiNav.up(currentHeight)).getBytes
+        (AnsiNav.clearScreen(0) + currentPrompt.mkString("\n") + "\n" + AnsiNav.up(currentHeight)).getBytes
     }
 
     def updateCurrent(sOpt: Option[String]): Unit = synchronized {
