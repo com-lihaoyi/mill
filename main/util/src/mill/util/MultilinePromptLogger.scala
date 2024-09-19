@@ -21,7 +21,10 @@ class MultilinePromptLogger(
     systemStreams0.in
   )
 
-  override def close(): Unit = stopped = true
+  override def close(): Unit = {
+    state.refreshPrompt()
+    stopped = true
+  }
 
   @volatile var stopped = false
   @volatile var paused = false
@@ -48,7 +51,10 @@ class MultilinePromptLogger(
   def info(s: String): Unit = synchronized { systemStreams.err.println(s) }
 
   def error(s: String): Unit = synchronized { systemStreams.err.println(s) }
-
+  def globalTicker(s: String): Unit = {
+    state.updateGlobal(s)
+    state.refreshPrompt()
+  }
   override def endTicker(): Unit = synchronized {
     state.updateCurrent(None)
     state.refreshPrompt()
@@ -97,24 +103,26 @@ object MultilinePromptLogger {
   case class Status(startTimeMillis: Long, text: String)
 
   private class State(enableTicker: Boolean, systemStreams0: SystemStreams, startTimeMillis: Long) {
-    val current = collection.mutable.SortedMap.empty[Int, Seq[Status]]
+    private val current = collection.mutable.SortedMap.empty[Int, Seq[Status]]
 
+    private var header = ""
     // Pre-compute the prelude and current prompt as byte arrays so that
     // writing them out is fast, since they get written out very frequently
-    val writePreludeBytes: Array[Byte] = (AnsiNav.clearScreen(0) + AnsiNav.left(9999)).getBytes
-    var currentPromptBytes: Array[Byte] = Array[Byte]()
+    private val writePreludeBytes: Array[Byte] = (AnsiNav.clearScreen(0) + AnsiNav.left(9999)).getBytes
+    private var currentPromptBytes: Array[Byte] = Array[Byte]()
 
     private def updatePromptBytes() = {
       // Limit to <120 chars wide
       val maxWidth = 119
       val now = System.currentTimeMillis()
       val totalSecondsStr = renderSeconds(now - startTimeMillis)
-      val currentPrompt = List("=" * (maxWidth - totalSecondsStr.length - 1) + totalSecondsStr) ++
+      val divider = "=" * (maxWidth - header.length - totalSecondsStr.length - 4)
+      val currentPrompt = List(s"  $header $divider $totalSecondsStr") ++
         current
           .collect {
             case (threadId, statuses) if statuses.nonEmpty =>
               val statusesString = statuses
-                .map { status => status.text + renderSeconds(now - status.startTimeMillis) }
+                .map { status => status.text + " " + renderSeconds(now - status.startTimeMillis) }
                 .mkString(" / ")
 
               if (statusesString.length <= maxWidth) statusesString
@@ -131,6 +139,10 @@ object MultilinePromptLogger {
         (AnsiNav.clearScreen(0) + currentPrompt.mkString("\n") + "\n" + AnsiNav.up(currentHeight)).getBytes
     }
 
+    def updateGlobal(s: String): Unit = synchronized{
+      header = s
+      updatePromptBytes()
+    }
     def updateCurrent(sOpt: Option[String]): Unit = synchronized {
       val threadId = Thread.currentThread().getId.toInt
 
@@ -157,7 +169,7 @@ object MultilinePromptLogger {
 
     private def renderSeconds(millis: Long) = (millis / 1000).toInt match {
       case 0 => ""
-      case n => s" ${n}s"
+      case n => s"${n}s"
     }
   }
 

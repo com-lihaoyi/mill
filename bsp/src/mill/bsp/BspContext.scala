@@ -61,6 +61,7 @@ private[mill] class BspContext(
 
       override def rawOutputStream: PrintStream = systemStreams.out
       override def endTicker() = ()
+      def globalTicker(s: String): Unit = ()
     }
 
     BspWorker(mill.api.WorkspaceRoot.workspaceRoot, home, log).flatMap { worker =>

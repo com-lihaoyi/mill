@@ -47,6 +47,10 @@ class MultiLogger(
     logger1.endTicker()
     logger2.endTicker()
   }
+  def globalTicker(s: String): Unit = {
+    logger1.globalTicker(s)
+    logger2.globalTicker(s)
+  }
 }
 
 class MultiStream(stream1: OutputStream, stream2: OutputStream)

@@ -20,4 +20,5 @@ object DummyLogger extends Logger {
   def debug(s: String) = ()
   override val debugEnabled: Boolean = false
   def endTicker(): Unit = ()
+  def globalTicker(s: String): Unit = ()
 }

@@ -243,7 +243,8 @@ private[mill] trait GroupEvaluator {
       }
 
       val tickerPrefix = maybeTargetLabel.collect {
-        case targetLabel if logRun && enableTicker => s"$counterMsg $targetLabel "
+//        case targetLabel if logRun && enableTicker => s"$counterMsg $targetLabel "
+        case targetLabel if logRun && enableTicker => targetLabel
       }
       def withTicker[T](s: Option[String])(t: => T): T = s match {
         case None => t

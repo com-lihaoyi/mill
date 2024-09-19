@@ -52,6 +52,7 @@ class PrefixLogger(
     errStream0 = Some(systemStreams.err)
   )
   def endTicker(): Unit = logger0.endTicker()
+  def globalTicker(s: String): Unit = logger0.globalTicker(s)
 }
 
 object PrefixLogger {
