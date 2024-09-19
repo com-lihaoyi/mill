@@ -21,7 +21,10 @@ class MultilinePromptLogger(
     systemStreams0.in
   )
 
-  override def close(): Unit = stopped = true
+  override def close(): Unit = {
+    state.refreshPrompt()
+    stopped = true
+  }
 
   @volatile var stopped = false
   @volatile var paused = false
@@ -97,25 +100,32 @@ object MultilinePromptLogger {
   case class Status(startTimeMillis: Long, text: String)
 
   private class State(enableTicker: Boolean, systemStreams0: SystemStreams, startTimeMillis: Long) {
-    val current: mutable.SortedMap[Int, Seq[Status]] =
-      collection.mutable.SortedMap.empty[Int, Seq[Status]]
+    val current = collection.mutable.SortedMap.empty[Int, Seq[Status]]
 
     // Pre-compute the prelude and current prompt as byte arrays so that
     // writing them out is fast, since they get written out very frequently
     val writePreludeBytes: Array[Byte] = (AnsiNav.clearScreen(0) + AnsiNav.left(9999)).getBytes
     var currentPromptBytes: Array[Byte] = Array[Byte]()
+
     private def updatePromptBytes() = {
+      // Limit to <120 chars wide
+      val maxWidth = 119
       val now = System.currentTimeMillis()
-      val currentPrompt = List("=" * 80 + renderSeconds(now - startTimeMillis)) ++
+      val totalSecondsStr = renderSeconds(now - startTimeMillis)
+      val currentPrompt = List("=" * (maxWidth - totalSecondsStr.length)) ++
         current
           .collect {
             case (threadId, statuses) if statuses.nonEmpty =>
               val statusesString = statuses
                 .map { status => status.text + renderSeconds(now - status.startTimeMillis) }
                 .mkString(" / ")
-              // Limit to <120 chars wide
-              if (statusesString.length <= 119) statusesString
-              else statusesString.take(58) + "..." + statusesString.takeRight(58)
+
+              if (statusesString.length <= maxWidth) statusesString
+              else {
+                val ellipses = "..."
+                val halfWidth = (maxWidth - ellipses.length) / 2
+                statusesString.take(halfWidth) + ellipses + statusesString.takeRight(halfWidth)
+              }
           }
           .toList
 
