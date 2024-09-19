@@ -122,13 +122,16 @@ class MultilineStatusLogger(
     override def write(b: Array[Byte]): Unit = synchronized { write(b, 0, b.length) }
 
     override def write(b: Array[Byte], off: Int, len: Int): Unit = synchronized {
+
       lastIndexOfNewline(b, off, len) match{
-        case -1 => write(b)
-        case n =>
-          writeAndUpdatePrompt(wrapped)(write(b, 0, n))
-          write(b, n, b.length - n)
+        case -1 => wrapped.write(b, off, len)
+        case lastNewlineIndex =>
+          val indexOfCharAfterNewline = lastNewlineIndex + 1
+          writeAndUpdatePrompt(wrapped)(wrapped.write(b, off, indexOfCharAfterNewline - off))
+          wrapped.write(b, indexOfCharAfterNewline, off + len - indexOfCharAfterNewline)
       }
     }
+
 
     override def write(b: Int): Unit = synchronized {
       if (b == '\n') writeAndUpdatePrompt(wrapped)(wrapped.write(b))
