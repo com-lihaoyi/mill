@@ -9,7 +9,6 @@ import mill.api.{MillException, SystemStreams, WorkspaceRoot, internal}
 import mill.bsp.{BspContext, BspServerResult}
 import mill.main.BuildInfo
 import mill.util.{MultilinePromptLogger, PrintLogger}
-import org.fusesource.jansi.AnsiConsole
 
 import java.lang.reflect.InvocationTargetException
 import scala.util.control.NonFatal
@@ -35,7 +34,6 @@ object MillMain {
   }
 
   def main(args: Array[String]): Unit = {
-    AnsiConsole.systemInstall()
     val initialSystemStreams = new SystemStreams(System.out, System.err, System.in)
     // setup streams
     val (runnerStreams, cleanupStreams, bspLog) =

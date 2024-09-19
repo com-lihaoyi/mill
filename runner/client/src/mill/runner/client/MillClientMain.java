@@ -2,7 +2,6 @@ package mill.runner.client;
 
 import java.util.Arrays;
 import mill.main.client.ServerLauncher;
-import org.fusesource.jansi.AnsiConsole;
 import mill.main.client.Util;
 import mill.main.client.lock.Locks;
 import mill.main.client.OutFiles;
@@ -14,7 +13,6 @@ import mill.main.client.ServerCouldNotBeStarted;
  */
 public class MillClientMain {
     public static void main(String[] args) throws Exception {
-        AnsiConsole.systemInstall();
         boolean runNoServer = false;
         if (args.length > 0) {
             String firstArg = args[0];
