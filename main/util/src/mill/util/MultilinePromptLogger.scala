@@ -17,20 +17,16 @@ private[mill] class MultilinePromptLogger(
 ) extends ColorLogger with AutoCloseable {
   import MultilinePromptLogger._
 
-  private var termWidth: Option[Int] = None
-  private var termHeight: Option[Int] = None
+  private var termDimensions: (Option[Int], Option[Int]) = (None, None)
 
-  for((w, h) <- readTerminalDims(terminfoPath)) {
-    termWidth = w
-    termHeight = h
-  }
+  readTerminalDims(terminfoPath).foreach(termDimensions = _)
 
   private val state = new State(
     titleText,
     enableTicker,
     systemStreams0,
     System.currentTimeMillis(),
-    () => (termWidth, termHeight)
+    () => termDimensions
   )
 
   private val streams = new Streams(enableTicker, systemStreams0, () => state.currentPromptBytes)
@@ -41,16 +37,13 @@ private[mill] class MultilinePromptLogger(
   val promptUpdaterThread = new Thread(() =>
     while (!stopped) {
       Thread.sleep(
-        if (termWidth.isDefined) promptUpdateIntervalMillis
+        if (termDimensions._1.isDefined) promptUpdateIntervalMillis
         else nonInteractivePromptUpdateIntervalMillis
       )
 
       if (!paused) {
         synchronized {
-          for((w, h) <- readTerminalDims(terminfoPath)) {
-            termWidth = w
-            termHeight = h
-          }
+          readTerminalDims(terminfoPath).foreach(termDimensions = _)
           state.refreshPrompt()
         }
       }
