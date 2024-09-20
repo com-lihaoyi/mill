@@ -403,9 +403,9 @@ trait MainModule extends BaseModule0 {
       Seq("mill.initmodule.InitModule/init") ++ args,
       SelectMode.Separated
     ) match {
-      case Right((_,Right(Seq((result,_))))) => result.toString
+      case Right((_, Right(Seq((result, _))))) => result.toString
       case Left(failStr) => failStr
-      case Right((_,Left(failStr))) => failStr
+      case Right((_, Left(failStr))) => failStr
     }
 
   }
