@@ -410,8 +410,16 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
  */
 trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModule { outer =>
   def scalaVersion = Deps.scalaVersion
-  def scalapVersion = T { Deps.scala2Version }
-  def scalafixScalaBinaryVersion = ZincWorkerUtil.scalaBinaryVersion(scalaVersion())
+  def scalapVersion: T[String] = Deps.scala2Version
+  def scalafixScalaBinaryVersion = T {
+    def sv = scalaVersion()
+    if (ZincWorkerUtil.isScala3(sv)) "2.13"
+    else ZincWorkerUtil.scalaBinaryVersion(sv)
+  }
+
+  def scalafixConfig = T {
+    if (ZincWorkerUtil.isScala3(scalaVersion())) Some(T.workspace / ".scalafix-3.conf") else None
+  }
   def semanticDbVersion = Deps.semanticDBscala.version
   def scalacOptions =
     super.scalacOptions() ++ Seq(
