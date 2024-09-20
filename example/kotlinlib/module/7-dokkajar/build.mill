@@ -1,0 +1,22 @@
+package build
+import mill._, kotlinlib._
+
+object foo extends KotlinModule {
+
+  def kotlinVersion = "1.9.24"
+
+}
+
+/** Usage
+
+> ./mill show foo.dokkaJar
+...
+...Generation completed successfully...
+
+> unzip -p out/foo/dokkaJar.dest/out.jar root/foo/index.html
+...
+...My Awesome Docs for class Foo...
+...
+...My Awesome Docs for class Bar...
+
+*/

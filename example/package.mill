@@ -41,6 +41,7 @@ object `package` extends RootModule with Module {
     object basic extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "basic"))
     object builds extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "builds"))
     object linting extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "linting"))
+    object module extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "module"))
   }
   object scalalib extends Module {
     object basic extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "basic"))
@@ -75,6 +76,7 @@ object `package` extends RootModule with Module {
       case "3-multi-module" => line.replace("bar.BarTests.simple", "bar.BarTestssimple")
         .replace("bar.BarTests.escaping", "bar.BarTestsescaping")
       case "4-builtin-commands" => line.replace("compile.dest/zinc", "compile.dest/kotlin.analysis.dummy")
+      case "5-resources" => line.replace("FooTests.simple", "FooTestssimple")
       case _ => line
     }
   }
