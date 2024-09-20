@@ -321,7 +321,6 @@ private[mill] trait GroupEvaluator {
               else v.##
             )
           }
-
         }
 
         multiLogger.close()

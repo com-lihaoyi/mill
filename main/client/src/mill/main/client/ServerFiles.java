@@ -69,7 +69,7 @@ public class ServerFiles {
     final public static String stderr = "stderr";
 
     /**
-     * Terminal information
+     * Terminal information that we need to propagate from client to server
      */
     final public static String terminfo = "terminfo";
 }

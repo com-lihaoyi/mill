@@ -307,8 +307,8 @@ private object MultilinePromptLogger {
   ): List[String] = {
     // -1 to leave a bit of buffer
     val maxWidth = consoleWidth - 1
-    // -2 to account for 1 line header and 1 line `more threads`
-    val maxHeight = math.max(1, consoleHeight / 3 - 2)
+    // -1 to account for header
+    val maxHeight = math.max(1, consoleHeight / 3 - 1)
     val headerSuffix = renderSeconds(now - startTimeMillis)
 
     val header = renderHeader(headerPrefix, titleText, headerSuffix, maxWidth)

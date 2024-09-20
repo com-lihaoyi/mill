@@ -122,7 +122,8 @@ object MultilinePromptLoggerTests extends TestSuite {
           statuses = SortedMap(
             0 -> Status(now - 1000, "hello", Long.MaxValue),
             1 -> Status(now - 2000, "world", Long.MaxValue)
-          )
+          ),
+          interactive = true
         )
         val expected = List(
           "  123/456 =============== __.compile ================ 1337s",
@@ -143,21 +144,24 @@ object MultilinePromptLoggerTests extends TestSuite {
           statuses = SortedMap(
             0 -> Status(
               now - 1000,
-              "hello1234567890abcefghijklmnopqrstuvwxyz1234567890123456",
+              "#1 hello1234567890abcefghijklmnopqrstuvwxyz1234567890123",
               Long.MaxValue
             ),
-            1 -> Status(now - 2000, "world", Long.MaxValue),
-            2 -> Status(now - 3000, "i am cow", Long.MaxValue),
-            3 -> Status(now - 4000, "hear me moo", Long.MaxValue)
-          )
+            1 -> Status(now - 2000, "#2 world", Long.MaxValue),
+            2 -> Status(now - 3000, "#3 i am cow", Long.MaxValue),
+            3 -> Status(now - 4000, "#4 hear me moo", Long.MaxValue),
+            4 -> Status(now - 5000, "#5 i weigh twice as much as you", Long.MaxValue)
+          ),
+          interactive = true
         )
 
         val expected = List(
           "  123/456 ======== __.compile.abcdefghijklmn ======== 1337s",
-          "hello1234567890abcefghijklmnopqrstuvwxyz1234567890123456 1s",
-          "world 2s",
-          "i am cow 3s",
-          "hear me moo 4s"
+          "#1 hello1234567890abcefghijklmnopqrstuvwxyz1234567890123 1s",
+          "#2 world 2s",
+          "#3 i am cow 3s",
+          "#4 hear me moo 4s",
+          "#5 i weigh twice as much as you 5s"
         )
         assert(rendered == expected)
       }
@@ -172,21 +176,24 @@ object MultilinePromptLoggerTests extends TestSuite {
           statuses = SortedMap(
             0 -> Status(
               now - 1000,
-              "hello1234567890abcefghijklmnopqrstuvwxyz12345678901234567",
+              "#1 hello1234567890abcefghijklmnopqrstuvwxyz12345678901234",
               Long.MaxValue
             ),
-            1 -> Status(now - 2000, "world", Long.MaxValue),
-            2 -> Status(now - 3000, "i am cow", Long.MaxValue),
-            3 -> Status(now - 4000, "hear me moo", Long.MaxValue),
-            4 -> Status(now - 5000, "i weight twice as much as you", Long.MaxValue)
-          )
+            1 -> Status(now - 2000, "#2 world", Long.MaxValue),
+            2 -> Status(now - 3000, "#3 i am cow", Long.MaxValue),
+            3 -> Status(now - 4000, "#4 hear me moo", Long.MaxValue),
+            4 -> Status(now - 5000, "#5 i weigh twice as much as you", Long.MaxValue),
+            5 -> Status(now - 6000, "#6 and I look good on the barbecue", Long.MaxValue)
+          ),
+          interactive = true
         )
 
         val expected = List(
           "  123/456 ======= __.compile....efghijklmno ========= 1337s",
-          "hello1234567890abcefghijklmn...stuvwxyz12345678901234567 1s",
-          "world 2s",
-          "i am cow 3s",
+          "#1 hello1234567890abcefghijk...pqrstuvwxyz12345678901234 1s",
+          "#2 world 2s",
+          "#3 i am cow 3s",
+          "#4 hear me moo 4s",
           "... and 2 more threads"
         )
         assert(rendered == expected)
@@ -201,19 +208,22 @@ object MultilinePromptLoggerTests extends TestSuite {
           headerPrefix = "123/456",
           titleText = "__.compile.abcdefghijklmnopqrstuvwxyz1234567890",
           statuses = SortedMap(
-            0 -> Status(now - 1000, "hello1234567890abcefghijklmnopqrstuvwxyz" * 3, Long.MaxValue),
-            1 -> Status(now - 2000, "world", Long.MaxValue),
-            2 -> Status(now - 3000, "i am cow", Long.MaxValue),
-            3 -> Status(now - 4000, "hear me moo", Long.MaxValue),
-            4 -> Status(now - 5000, "i weigh twice as much as you", Long.MaxValue),
-            5 -> Status(now - 6000, "and i look good on the barbecue", Long.MaxValue)
-          )
+            0 -> Status(now - 1000, "#1 hello1234567890abcefghijklmnopqrstuvwxyz" * 3, Long.MaxValue),
+            1 -> Status(now - 2000, "#2 world", Long.MaxValue),
+            2 -> Status(now - 3000, "#3 i am cow", Long.MaxValue),
+            3 -> Status(now - 4000, "#4 hear me moo", Long.MaxValue),
+            4 -> Status(now - 5000, "#5 i weigh twice as much as you", Long.MaxValue),
+            5 -> Status(now - 6000, "#6 and i look good on the barbecue", Long.MaxValue),
+            6 -> Status(now - 7000, "#7 yoghurt curds cream cheese and butter", Long.MaxValue)
+          ),
+          interactive = true
         )
         val expected = List(
           "  123/456  __.compile....z1234567890 ================ 1337s",
-          "hello1234567890abcefghijklmn...abcefghijklmnopqrstuvwxyz 1s",
-          "world 2s",
-          "i am cow 3s",
+          "#1 hello1234567890abcefghijk...abcefghijklmnopqrstuvwxyz 1s",
+          "#2 world 2s",
+          "#3 i am cow 3s",
+          "#4 hear me moo 4s",
           "... and 3 more threads"
         )
         assert(rendered == expected)
@@ -229,24 +239,63 @@ object MultilinePromptLoggerTests extends TestSuite {
           titleText = "__.compile.abcdefghijklmnopqrstuvwxyz1234567890",
           statuses = SortedMap(
             // Not yet removed, should be shown
-            0 -> Status(now - 1000, "hello1234567890abcefghijklmnopqrstuvwxyz" * 3, Long.MaxValue),
+            0 -> Status(now - 1000, "#1 hello1234567890abcefghijklmnopqrstuvwxyz" * 3, Long.MaxValue),
             // These are removed but are still within the `statusRemovalDelayMillis` window, so still shown
-            1 -> Status(now - 2000, "world", now - statusRemovalHideDelayMillis + 1),
-            2 -> Status(now - 3000, "i am cow", now - statusRemovalHideDelayMillis + 1),
+            1 -> Status(now - 2000, "#2 world", now - statusRemovalHideDelayMillis + 1),
+            2 -> Status(now - 3000, "#3 i am cow", now - statusRemovalHideDelayMillis + 1),
             // Removed but already outside the `statusRemovalDelayMillis` window, not shown, but not
             // yet removed, so rendered as blank lines to prevent terminal jumping around too much
-            3 -> Status(now - 4000, "hear me moo", now - statusRemovalRemoveDelayMillis + 1),
-            4 -> Status(now - 5000, "i weigh twice", now - statusRemovalRemoveDelayMillis + 1),
-            5 -> Status(now - 6000, "as much as you", now - statusRemovalRemoveDelayMillis + 1)
-          )
+            3 -> Status(now - 4000, "#4 hear me moo", now - statusRemovalRemoveDelayMillis + 1),
+            4 -> Status(now - 5000, "#5i weigh twice", now - statusRemovalRemoveDelayMillis + 1),
+            5 -> Status(now - 6000, "#6 as much as you", now - statusRemovalRemoveDelayMillis + 1),
+            6 -> Status(now - 7000, "#7 and I look good on the barbecue", now - statusRemovalRemoveDelayMillis + 1)
+          ),
+          interactive = true
         )
+
         val expected = List(
           "  123/456  __.compile....z1234567890 ================ 1337s",
-          "hello1234567890abcefghijklmn...abcefghijklmnopqrstuvwxyz 1s",
-          "world 2s",
-          "i am cow 3s",
+          "#1 hello1234567890abcefghijk...abcefghijklmnopqrstuvwxyz 1s",
+          "#2 world 2s",
+          "#3 i am cow 3s",
+          "",
           "",
           ""
+        )
+
+        assert(rendered == expected)
+      }
+
+      test("nonInteractive") {
+        val rendered = renderPrompt(
+          consoleWidth = 60,
+          consoleHeight = 23,
+          now = now,
+          startTimeMillis = now - 1337000,
+          headerPrefix = "123/456",
+          titleText = "__.compile.abcdefghijklmnopqrstuvwxyz1234567890",
+          statuses = SortedMap(
+            // Not yet removed, should be shown
+            0 -> Status(now - 1000, "#1 hello1234567890abcefghijklmnopqrstuvwxyz" * 3, Long.MaxValue),
+            // These are removed but are still within the `statusRemovalDelayMillis` window, so still shown
+            1 -> Status(now - 2000, "#2 world", now - statusRemovalHideDelayMillis + 1),
+            2 -> Status(now - 3000, "#3 i am cow", now - statusRemovalHideDelayMillis + 1),
+            // Removed but already outside the `statusRemovalDelayMillis` window, not shown, but not
+            // yet removed, so rendered as blank lines to prevent terminal jumping around too much
+            3 -> Status(now - 4000, "#4 hear me moo", now - statusRemovalRemoveDelayMillis + 1),
+            4 -> Status(now - 5000, "#5 i weigh twice", now - statusRemovalRemoveDelayMillis + 1),
+            5 -> Status(now - 6000, "#6 as much as you", now - statusRemovalRemoveDelayMillis + 1)
+          ),
+          interactive = false
+        )
+
+        // Make sure
+        val expected = List(
+          "  123/456  __.compile....z1234567890 ================ 1337s",
+          "#1 hello1234567890abcefghijk...abcefghijklmnopqrstuvwxyz 1s",
+          "#2 world 2s",
+          "#3 i am cow 3s",
+          "==========================================================="
         )
         assert(rendered == expected)
       }

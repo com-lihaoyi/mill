@@ -102,9 +102,7 @@ public class ProxyStream{
         private InputStream src;
         private OutputStream destOut;
         private OutputStream destErr;
-        public Pumper(InputStream src,
-                      OutputStream destOut,
-                      OutputStream destErr){
+        public Pumper(InputStream src, OutputStream destOut, OutputStream destErr){
             this.src = src;
             this.destOut = destOut;
             this.destErr = destErr;
