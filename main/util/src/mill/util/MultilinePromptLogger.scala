@@ -38,18 +38,28 @@ private[mill] class MultilinePromptLogger(
 
   val pipeIn = new PipedInputStream()
   val pipeOut = new PipedOutputStream()
-
+  pipeIn.available()
   pipeIn.connect(pipeOut)
 
   val proxyOut = new ProxyStream.Output(pipeOut, ProxyStream.OUT)
   val proxyErr = new ProxyStream.Output(pipeOut, ProxyStream.ERR)
-  val pumper = new ProxyStream.Pumper(pipeIn, systemStreams0.out, systemStreams0.err)
+  val pumper = new ProxyStream.Pumper(pipeIn, systemStreams0.out, systemStreams0.err){
+    override def preRead(src: InputStream): Unit = {
+      if (src.available() == 0){
+        if (enableTicker) systemStreams0.err.write(state.currentPromptBytes)
+      }
+    }
+
+    override def preWrite(): Unit = {
+      systemStreams0.err.write(state.writePreludeBytes)
+    }
+  }
 
   new Thread(pumper).start()
 
   val systemStreams = new SystemStreams(
-    new PrintStream(new StateStream(proxyOut)/*new StateStream(systemStreams0.out)*/),
-    new PrintStream(new StateStream(proxyErr)/*new StateStream(systemStreams0.err)*/),
+    new PrintStream(proxyOut),
+    new PrintStream(proxyErr),
     systemStreams0.in
   )
 
@@ -119,33 +129,6 @@ private[mill] class MultilinePromptLogger(
   }
 
   override def rawOutputStream: PrintStream = systemStreams0.out
-
-  private class StateStream(wrapped: OutputStream) extends OutputStream {
-    override def write(b: Array[Byte], off: Int, len: Int): Unit = synchronized {
-      lastIndexOfNewline(b, off, len) match {
-        case -1 => wrapped.write(b, off, len)
-        case lastNewlineIndex =>
-          val indexOfCharAfterNewline = lastNewlineIndex + 1
-          // We look for the last newline in the output and use that as an anchor, since
-          // we know that after a newline the cursor is at column zero, and column zero
-          // is the only place we can reliably position the cursor since the saveCursor and
-          // restoreCursor ANSI codes do not work well in the presence of scrolling
-          state.writeWithPrompt(wrapped) {
-            wrapped.write(b, off, indexOfCharAfterNewline - off)
-          }
-          wrapped.write(b, indexOfCharAfterNewline, off + len - indexOfCharAfterNewline)
-      }
-    }
-
-    override def write(b: Int): Unit = synchronized {
-      if (b == '\n') state.writeWithPrompt(wrapped)(wrapped.write(b))
-      else wrapped.write(b)
-    }
-
-    override def flush(): Unit = synchronized {
-      wrapped.flush()
-    }
-  }
 }
 
 private object MultilinePromptLogger {
@@ -189,9 +172,9 @@ private object MultilinePromptLogger {
     private var headerPrefix = ""
     // Pre-compute the prelude and current prompt as byte arrays so that
     // writing them out is fast, since they get written out very frequently
-    private val writePreludeBytes: Array[Byte] =
-      (AnsiNav.clearScreen(0) + AnsiNav.left(9999)).getBytes
-    private var currentPromptBytes: Array[Byte] = Array[Byte]()
+    val writePreludeBytes: Array[Byte] =
+      AnsiNav.clearScreen(0).getBytes
+    @volatile var currentPromptBytes: Array[Byte] = Array[Byte]()
 
     private def updatePromptBytes(ending: Boolean = false) = {
       val now = System.currentTimeMillis()
