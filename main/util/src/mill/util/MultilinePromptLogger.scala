@@ -212,15 +212,17 @@ private object MultilinePromptLogger {
         titleText,
         statuses
       )
-      // For the ending prompt, leave the cursor at the bottom rather than scrolling back up.
+      // For the ending prompt, leave the cursor at the bottom rather than scrolling back left/up.
       // We do not want further output to overwrite the header as it will no longer re-render
-      val backUp = if (ending) "" else AnsiNav.up(currentPromptLines.length)
+      val backUp =
+        if (ending) ""
+        else AnsiNav.left(9999) + AnsiNav.up(currentPromptLines.length - 1)
 
       val currentPromptStr =
         if (termWidth0.isEmpty) currentPromptLines.mkString("\n")
         else {
           AnsiNav.clearScreen(0) +
-            currentPromptLines.mkString("\n") + "\n" +
+            currentPromptLines.mkString("\n") +
             backUp
         }
 
@@ -305,9 +307,10 @@ private object MultilinePromptLogger {
       // put all empty strings last since those are less important and can be ignored
       .sortBy(x => (x.isEmpty, x))
 
+    val nonEmptyBodyCount = body0.count(_.nonEmpty)
     val body =
-      if (body0.count(_.nonEmpty) <= maxHeight) body0.take(maxHeight)
-      else body0.take(maxHeight - 1) ++ Seq(s"... and ${body0.length - maxHeight + 1} more threads")
+      if (nonEmptyBodyCount <= maxHeight) body0.take(maxHeight)
+      else body0.take(maxHeight - 1) ++ Seq(s"... and ${nonEmptyBodyCount - maxHeight + 1} more threads")
 
     header :: body
   }
