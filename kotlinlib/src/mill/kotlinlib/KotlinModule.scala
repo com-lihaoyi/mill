@@ -5,11 +5,12 @@
 package mill
 package kotlinlib
 
-import mill.api.{PathRef, Result}
+import mill.api.{Loose, PathRef, Result}
 import mill.define.{Command, ModuleRef, Task}
 import mill.kotlinlib.worker.api.KotlinWorker
 import mill.scalalib.api.{CompilationResult, ZincWorkerApi}
 import mill.scalalib.{JavaModule, Lib, ZincWorkerModule}
+import mill.util.Jvm
 import mill.util.Util.millProjectModule
 import mill.{Agg, T}
 
@@ -132,6 +133,83 @@ trait KotlinModule extends JavaModule { outer =>
   def kotlincHelp(args: String*): Command[Unit] = Task.Command {
     kotlinCompileTask(Seq("-help") ++ args)()
     ()
+  }
+
+  override def docJar: T[PathRef] = T[PathRef] {
+    T.log.info("docJar task shouldn't be used for Kotlin modules, using dokkaJar instead")
+    dokkaJar()
+  }
+
+  /**
+   * The documentation jar, containing all the Dokka files, for
+   * publishing to Maven Central
+   */
+  def dokkaJar: T[PathRef] = T[PathRef] {
+    val outDir = T.dest
+
+    val dokkaDir = outDir / "dokka"
+    os.makeDir.all(dokkaDir)
+
+    val files = Lib.findSourceFiles(docSources(), Seq("java", "kt"))
+
+    if (files.nonEmpty) {
+      val pluginClasspathOption = Seq(
+        "-pluginsClasspath",
+        dokkaPluginsClasspath().map(_.path).mkString(";")
+      )
+
+      val options = dokkaOptions() ++
+        Seq("-outputDir", dokkaDir.toString()) ++
+        pluginClasspathOption ++
+        Seq("-sourceSet", s"-src $millSourcePath")
+
+      T.log.info("dokka options: " + options)
+
+      Jvm.runSubprocess(
+        mainClass = "",
+        classPath = Agg.empty,
+        jvmArgs = Seq("-jar", dokkaCliClasspath().head.path.toString()),
+        mainArgs = options
+      )
+    }
+
+    Jvm.createJar(Agg(dokkaDir))(outDir)
+  }
+
+  /**
+   * Additional options to be used by the Dokka tool.
+   * You should not set the `-outputDir` setting for specifying the target directory,
+   * as that is done in the [[dokkaJar]] target.
+   */
+  def dokkaOptions: T[Seq[String]] = Task { Seq[String]() }
+
+  /**
+   * Dokka version.
+   */
+  def dokkaVersion: T[String] = T {
+    "1.9.20"
+  }
+
+  /**
+   * Classpath for running Dokka.
+   */
+  private def dokkaCliClasspath: T[Loose.Agg[PathRef]] = T {
+    defaultResolver().resolveDeps(
+      Agg(
+        ivy"org.jetbrains.dokka:dokka-cli:${dokkaVersion()}"
+      )
+    )
+  }
+
+  private def dokkaPluginsClasspath: T[Loose.Agg[PathRef]] = T {
+    defaultResolver().resolveDeps(
+      Agg(
+        ivy"org.jetbrains.dokka:dokka-base:${dokkaVersion()}",
+        ivy"org.jetbrains.dokka:analysis-kotlin-descriptors:${dokkaVersion()}",
+        ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:0.8.0",
+        ivy"org.freemarker:freemarker:2.3.31"
+      )
+    )
   }
 
   protected def when(cond: Boolean)(args: String*): Seq[String] = if (cond) args else Seq()
