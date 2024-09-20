@@ -395,15 +395,12 @@ trait MainModule extends BaseModule0 {
   }
 
   /**
-   * The `init` command generates a project based on a Giter8 template. It
-   * prompts you to enter project name and creates a folder with that name.
-   * You can use it to quickly generate a starter project. There are lots of
-   * templates out there for many frameworks and tools!
+   * The `init` command downloads specified example from mill releases page and extracts it to working directory.
    */
   def init(evaluator: Evaluator, args: String*): Command[Unit] = Target.command {
     RunScript.evaluateTasksNamed(
       evaluator,
-      Seq("mill.scalalib.giter8.Giter8Module/init") ++ args,
+      Seq("mill.init.InitModule/init") ++ args,
       SelectMode.Separated
     )
 

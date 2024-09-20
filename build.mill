@@ -714,6 +714,41 @@ object idea extends MillPublishScalaModule {
   def moduleDeps = Seq(build.scalalib, build.runner)
 }
 
+object init extends MillPublishScalaModule {
+  def moduleDeps = Seq(build.main)
+
+  override def resources = T.sources { super.resources() ++ Seq(exampleList()) }
+
+  def exampleList: T[PathRef] = T {
+    val data:Seq[(os.SubPath,String)] = build.examplePathsWithArtifactName().map{ case (path,str) =>
+      val downloadUrl = build.Settings.projectUrl + "/releases/download/" + millVersion() + "/" + str + ".zip"
+      val subPath = path.subRelativeTo(T.workspace / "example")
+      (subPath,downloadUrl)
+    }
+
+    val sortedData = data.sortBy { case (p1,_)=>
+      p1.segments match {
+        case init :+ last => (init.mkString("/"),last.takeWhile(_.isDigit).toIntOption.getOrElse(0))
+      }
+    }
+
+    val stream = os.write.outputStream(T.dest / "exampleList.txt")
+    val writer = new java.io.OutputStreamWriter(stream)
+    try {
+      val json = upickle.default.writeTo(sortedData.map{case (p,s)=>(p.toString(),s)},writer)
+      PathRef(T.dest)
+    } catch{
+      case ex:Throwable => T.log.error(ex.toString);throw ex
+    } finally{
+      writer.close()
+      stream.close()
+    }
+
+  }
+
+}
+
+
 /**
  * Version of [[dist]] meant for local integration testing within the Mill
  * repo. Looks mostly the same as [[dist]], except it does not have a reference
@@ -744,7 +779,7 @@ object dist0 extends MillPublishJavaModule {
 
 object dist extends MillPublishJavaModule {
   def jar = rawAssembly()
-  def moduleDeps = Seq(build.runner, idea)
+  def moduleDeps = Seq(build.runner, idea, init)
 
   def testTransitiveDeps = dist0.testTransitiveDeps() ++ Seq(
     (s"com.lihaoyi-${dist.artifactId()}", dist0.runClasspath().map(_.path).mkString("\n"))
@@ -930,13 +965,20 @@ def bootstrapLauncher = T {
   PathRef(outputPath)
 }
 
-def exampleZips: T[Seq[PathRef]] = T {
+def examplePathsWithArtifactName:Task[Seq[(os.Path,String)]] = T.task{
   for {
     exampleMod <- build.example.exampleModules
-    examplePath = exampleMod.millSourcePath
+    path = exampleMod.millSourcePath
   } yield {
-    val example = examplePath.subRelativeTo(T.workspace)
-    val exampleStr = millVersion() + "-" + example.segments.mkString("-")
+    val example = path.subRelativeTo(T.workspace)
+    val artifactName = millVersion() + "-" + example.segments.mkString("-")
+    (path, artifactName)
+  }
+}
+
+
+def exampleZips: T[Seq[PathRef]] = T{
+  examplePathsWithArtifactName().map{ case (examplePath, exampleStr) =>
     os.copy(examplePath, T.dest / exampleStr, createFolders = true)
     os.write(T.dest / exampleStr / ".mill-version", millLastTag())
     os.copy(bootstrapLauncher().path, T.dest / exampleStr / "mill")
