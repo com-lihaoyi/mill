@@ -400,7 +400,7 @@ trait MainModule extends BaseModule0 {
   def init(evaluator: Evaluator, args: String*): Command[Unit] = Target.command {
     RunScript.evaluateTasksNamed(
       evaluator,
-      Seq("mill.init.InitModule/init") ++ args,
+      Seq("mill.initmodule.InitModule/init") ++ args,
       SelectMode.Separated
     )
 

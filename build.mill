@@ -714,7 +714,7 @@ object idea extends MillPublishScalaModule {
   def moduleDeps = Seq(build.scalalib, build.runner)
 }
 
-object init extends MillPublishScalaModule {
+object initmodule extends MillPublishScalaModule {
   def moduleDeps = Seq(build.main)
 
   override def resources = T.sources { super.resources() ++ Seq(exampleList()) }
@@ -779,7 +779,7 @@ object dist0 extends MillPublishJavaModule {
 
 object dist extends MillPublishJavaModule {
   def jar = rawAssembly()
-  def moduleDeps = Seq(build.runner, idea, init)
+  def moduleDeps = Seq(build.runner, idea, initmodule)
 
   def testTransitiveDeps = dist0.testTransitiveDeps() ++ Seq(
     (s"com.lihaoyi-${dist.artifactId()}", dist0.runClasspath().map(_.path).mkString("\n"))

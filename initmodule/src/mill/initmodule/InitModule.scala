@@ -1,4 +1,4 @@
-package mill.init
+package mill.initmodule
 
 import mill.define.{Discover, ExternalModule}
 import mill.{Command, T, Module}
