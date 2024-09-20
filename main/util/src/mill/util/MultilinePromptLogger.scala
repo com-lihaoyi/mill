@@ -85,6 +85,7 @@ private object MultilinePromptLogger {
 
   private val defaultTermWidth = 119
   private val defaultTermHeight = 50
+
   /**
    * How often to update the multiline status prompt on the terminal.
    * Too frequent is bad because it causes a lot of visual noise,
@@ -121,9 +122,11 @@ private object MultilinePromptLogger {
 
   private val clearScreenToEndBytes: Array[Byte] = AnsiNav.clearScreen(0).getBytes
 
-  private class Streams(enableTicker: Boolean,
-                        systemStreams0: SystemStreams,
-                        currentPromptBytes: () => Array[Byte]){
+  private class Streams(
+      enableTicker: Boolean,
+      systemStreams0: SystemStreams,
+      currentPromptBytes: () => Array[Byte]
+  ) {
 
     // We force both stdout and stderr streams into a single `Piped*Stream` pair via
     // `ProxyStream`, as we need to preserve the ordering of writes to each individual
@@ -141,8 +144,9 @@ private object MultilinePromptLogger {
       systemStreams0.in
     )
 
-    val pumper = new ProxyStream.Pumper(pipeIn, systemStreams0.out, systemStreams0.err){
-      object PumperState extends Enumeration{
+    val pumper: pumper = new pumper
+    class pumper extends ProxyStream.Pumper(pipeIn, systemStreams0.out, systemStreams0.err) {
+      object PumperState extends Enumeration {
         val init, prompt, cleared = Value
       }
       var pumperState = PumperState.init
@@ -151,7 +155,7 @@ private object MultilinePromptLogger {
         // and there is no more stuff to print. This helps us printing the prompt on
         // every small write when most such prompts will get immediately over-written
         // by subsequent writes
-        if (enableTicker && src.available() == 0){
+        if (enableTicker && src.available() == 0) {
           systemStreams0.err.write(currentPromptBytes())
           pumperState = PumperState.prompt
         }
@@ -168,7 +172,7 @@ private object MultilinePromptLogger {
     val pumperThread = new Thread(pumper)
     pumperThread.start()
 
-    def close() = {
+    def close(): Unit = {
       pipeIn.close()
       pipeOut.close()
     }
@@ -256,7 +260,7 @@ private object MultilinePromptLogger {
     case n => s"${n}s"
   }
 
-  def readTerminalDims(terminfoPath: os.Path) = {
+  def readTerminalDims(terminfoPath: os.Path): Option[(Option[Int], Option[Int])] = {
     try {
       val s"$termWidth0 $termHeight0" = os.read(terminfoPath)
       Some(
@@ -271,7 +275,7 @@ private object MultilinePromptLogger {
           }
         )
       )
-    }catch{case e => None}
+    } catch { case e => None }
   }
 
   def renderPrompt(
@@ -307,7 +311,9 @@ private object MultilinePromptLogger {
     val nonEmptyBodyCount = body0.count(_.nonEmpty)
     val body =
       if (nonEmptyBodyCount <= maxHeight) body0.take(maxHeight)
-      else body0.take(maxHeight - 1) ++ Seq(s"... and ${nonEmptyBodyCount - maxHeight + 1} more threads")
+      else body0.take(maxHeight - 1) ++ Seq(
+        s"... and ${nonEmptyBodyCount - maxHeight + 1} more threads"
+      )
 
     header :: body
   }
