@@ -53,7 +53,7 @@ object Report {
         val _3: Option[String] = p.productElement(2).asInstanceOf[Option[String]]
         val _4: ModuleKind = p.productElement(3).asInstanceOf[ModuleKind]
 
-        Module.apply(_1,_2,_3,_4)
+        Module.apply(_1, _2, _3, _4)
       }
     }
   }
@@ -72,7 +72,7 @@ object Report {
       val _1: Iterable[Report.Module] = p.productElement(0).asInstanceOf[Iterable[Report.Module]]
       val _2: mill.PathRef = p.productElement(1).asInstanceOf[mill.PathRef]
 
-      Report.apply(_1,_2)
+      Report.apply(_1, _2)
     }
   }
 }

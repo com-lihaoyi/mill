@@ -1,15 +1,44 @@
 package mill.scalalib.worker
 
 import mill.api.Loose.Agg
-import mill.api.{CompileProblemReporter, DummyOutputStream, KeyedLockedCache, PathRef, Result, internal}
+import mill.api.{
+  CompileProblemReporter,
+  DummyOutputStream,
+  KeyedLockedCache,
+  PathRef,
+  Result,
+  internal
+}
 import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerApi, ZincWorkerUtil}
-import sbt.internal.inc.{Analysis, CompileFailed, FreshCompilerCache, ManagedLoggedReporter, MappedFileConverter, ScalaInstance, Stamps, ZincUtil, javac}
+import sbt.internal.inc.{
+  Analysis,
+  CompileFailed,
+  FreshCompilerCache,
+  ManagedLoggedReporter,
+  MappedFileConverter,
+  ScalaInstance,
+  Stamps,
+  ZincUtil,
+  javac
+}
 import sbt.internal.inc.classpath.ClasspathUtil
 import sbt.internal.inc.consistent.ConsistentFileAnalysisStore
 import sbt.internal.util.{ConsoleAppender, ConsoleOut}
 import sbt.mill.SbtLoggerUtils
 import xsbti.compile.analysis.ReadWriteMappers
-import xsbti.compile.{AnalysisContents, AnalysisStore, AuxiliaryClassFileExtension, ClasspathOptions, CompileAnalysis, CompileOrder, Compilers, IncOptions, JavaTools, MiniSetup, PreviousResult}
+import xsbti.compile.{
+  AnalysisContents,
+  AnalysisStore,
+  AuxiliaryClassFileExtension,
+  ClasspathOptions,
+  CompileAnalysis,
+  CompileOrder,
+  Compilers,
+  IncOptions,
+  JavaTools,
+  MiniSetup,
+  PreviousResult
+}
 import xsbti.{PathBasedFile, VirtualFile}
 
 import java.io.{File, PrintWriter}
@@ -502,7 +531,7 @@ class ZincWorkerImpl(
     def mkNewReporter(mapper: (xsbti.Position => xsbti.Position) | Null) = reporter match {
       case None =>
         new ManagedLoggedReporter(10, logger) with RecordingReporter
-          with TransformingReporter(ctx.log.colored, mapper) {}
+          with TransformingReporter(mapper) {}
       case Some(forwarder) =>
         new ManagedLoggedReporter(10, logger)
           with ForwardingReporter(forwarder)
@@ -660,7 +689,8 @@ object ZincWorkerImpl {
 
     /** Transforms positions of problems if coming from a build file. */
     private def lookup(buildSources: Map[String, xsbti.Position => xsbti.Position])(
-        oldPos: xsbti.Position): xsbti.Position = {
+        oldPos: xsbti.Position
+    ): xsbti.Position = {
       val src = oldPos.sourcePath()
       if src.isPresent then {
         buildSources.get(src.get()) match {
@@ -679,22 +709,26 @@ object ZincWorkerImpl {
             vf.id().endsWith(s".$ex")
           )
 
-        sources.collect({ case vf if isBuild(vf) =>
-          val str = new String(Streamable.bytes(vf.input()), StandardCharsets.UTF_8)
+        sources.collect({
+          case vf if isBuild(vf) =>
+            val str = new String(Streamable.bytes(vf.input()), StandardCharsets.UTF_8)
 
-          val lines = str.linesWithSeparators.toVector
-          val adjustedFile = lines
-            .collectFirst { case s"//MILL_ORIGINAL_FILE_PATH=$rest" => rest.trim }
-            .getOrElse(sys.error(vf.id()))
+            val lines = str.linesWithSeparators.toVector
+            val adjustedFile = lines
+              .collectFirst { case s"//MILL_ORIGINAL_FILE_PATH=$rest" => rest.trim }
+              .getOrElse(sys.error(vf.id()))
 
-          vf.id() -> remap(lines, adjustedFile)
+            vf.id() -> remap(lines, adjustedFile)
         })
       }
 
       if buildSources0.nonEmpty then lookup(buildSources0.toMap) else null
     }
 
-    private def remap(lines: Vector[String], adjustedFile: String): xsbti.Position => xsbti.Position = {
+    private def remap(
+        lines: Vector[String],
+        adjustedFile: String
+    ): xsbti.Position => xsbti.Position = {
       val markerLine = lines.indexWhere(_.startsWith(userCodeStartMarker))
 
       val topWrapperLen = lines.take(markerLine + 1).map(_.length).sum
@@ -708,7 +742,14 @@ object ZincWorkerImpl {
       def inner(pos0: xsbti.Position): xsbti.Position = {
         if userCode(pos0.startOffset()) || userCode(pos0.offset()) then {
           val IArray(line, offset, startOffset, endOffset, startLine, endLine) =
-            IArray(pos0.line(), pos0.offset(), pos0.startOffset(), pos0.endOffset(), pos0.startLine(), pos0.endLine())
+            IArray(
+              pos0.line(),
+              pos0.offset(),
+              pos0.startOffset(),
+              pos0.endOffset(),
+              pos0.startLine(),
+              pos0.endLine()
+            )
               .map(intValue(_, 1) - 1)
 
           InterfaceUtil.position(
@@ -724,10 +765,9 @@ object ZincWorkerImpl {
             startLine0 = Some(startLine - markerLine),
             startColumn0 = InterfaceUtil.jo2o(pos0.startColumn()),
             endLine0 = Some(endLine - markerLine),
-            endColumn0 = InterfaceUtil.jo2o(pos0.endColumn()),
+            endColumn0 = InterfaceUtil.jo2o(pos0.endColumn())
           )
-        }
-        else {
+        } else {
           pos0
         }
       }
@@ -736,7 +776,8 @@ object ZincWorkerImpl {
     }
   }
 
-  private trait ForwardingReporter(forwarder: CompileProblemReporter) extends ManagedLoggedReporter {
+  private trait ForwardingReporter(forwarder: CompileProblemReporter)
+      extends ManagedLoggedReporter {
     override def logError(problem: xsbti.Problem): Unit = {
       forwarder.logError(new ZincProblem(problem))
       super.logError(problem)
@@ -807,7 +848,7 @@ object ZincWorkerImpl {
           rendered = rendered,
           diagnosticCode = InterfaceUtil.jo2o(problem0.diagnosticCode()),
           diagnosticRelatedInformation = anyToList(related),
-          actions = anyToList(actions),
+          actions = anyToList(actions)
         )
       else
         problem0
@@ -902,13 +943,15 @@ object ZincWorkerImpl {
 
     /** Implements a transformation that returns the same list if the mapper has no effect */
     private def transformActions(
-                          actions0: java.util.List[xsbti.Action],
-                          mapper: xsbti.Position => xsbti.Position): JOrSList[xsbti.Action] = {
+        actions0: java.util.List[xsbti.Action],
+        mapper: xsbti.Position => xsbti.Position
+    ): JOrSList[xsbti.Action] = {
       if actions0.iterator().asScala.exists(a =>
-        a.edit().changes().iterator().asScala.exists(e =>
-          mapper(e.position()) ne e.position()
+          a.edit().changes().iterator().asScala.exists(e =>
+            mapper(e.position()) ne e.position()
+          )
         )
-      ) then {
+      then {
         actions0.iterator().asScala.map(transformAction(_, mapper)).toList
       } else {
         actions0
@@ -917,8 +960,9 @@ object ZincWorkerImpl {
 
     /** Implements a transformation that returns the same list if the mapper has no effect */
     private def transformRelateds(
-                           related0: java.util.List[xsbti.DiagnosticRelatedInformation],
-                           mapper: xsbti.Position => xsbti.Position): JOrSList[xsbti.DiagnosticRelatedInformation] = {
+        related0: java.util.List[xsbti.DiagnosticRelatedInformation],
+        mapper: xsbti.Position => xsbti.Position
+    ): JOrSList[xsbti.DiagnosticRelatedInformation] = {
 
       if related0.iterator().asScala.exists(r => mapper(r.position()) ne r.position()) then
         related0.iterator().asScala.map(transformRelated(_, mapper)).toList
@@ -927,12 +971,16 @@ object ZincWorkerImpl {
     }
 
     private def transformRelated(
-                          related0: xsbti.DiagnosticRelatedInformation,
-                          mapper: xsbti.Position => xsbti.Position): xsbti.DiagnosticRelatedInformation = {
+        related0: xsbti.DiagnosticRelatedInformation,
+        mapper: xsbti.Position => xsbti.Position
+    ): xsbti.DiagnosticRelatedInformation = {
       InterfaceUtil.diagnosticRelatedInformation(mapper(related0.position()), related0.message())
     }
 
-    private def transformAction(action0: xsbti.Action, mapper: xsbti.Position => xsbti.Position): xsbti.Action = {
+    private def transformAction(
+        action0: xsbti.Action,
+        mapper: xsbti.Position => xsbti.Position
+    ): xsbti.Action = {
       InterfaceUtil.action(
         title = action0.title(),
         description = InterfaceUtil.jo2o(action0.description()),
@@ -940,13 +988,19 @@ object ZincWorkerImpl {
       )
     }
 
-    private def transformEdit(edit0: xsbti.WorkspaceEdit, mapper: xsbti.Position => xsbti.Position): xsbti.WorkspaceEdit = {
+    private def transformEdit(
+        edit0: xsbti.WorkspaceEdit,
+        mapper: xsbti.Position => xsbti.Position
+    ): xsbti.WorkspaceEdit = {
       InterfaceUtil.workspaceEdit(
         edit0.changes().iterator().asScala.map(transformTEdit(_, mapper)).toList
       )
     }
 
-    private def transformTEdit(edit0: xsbti.TextEdit, mapper: xsbti.Position => xsbti.Position): xsbti.TextEdit = {
+    private def transformTEdit(
+        edit0: xsbti.TextEdit,
+        mapper: xsbti.Position => xsbti.Position
+    ): xsbti.TextEdit = {
       InterfaceUtil.textEdit(
         position = mapper(edit0.position()),
         newText = edit0.newText()

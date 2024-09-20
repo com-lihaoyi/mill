@@ -2,7 +2,6 @@ package mill.scalalib
 
 import upickle.default.{ReadWriter => RW}
 
-
 trait JsonFormatters {
   import JsonFormatters.mirrors.given
 
@@ -36,16 +35,18 @@ object JsonFormatters extends JsonFormatters {
     given Mirror_coursier_core_Publication: Mirror.Product with {
       final type MirroredMonoType = coursier.core.Publication
       final type MirroredType = coursier.core.Publication
-      final type MirroredElemTypes = (String, coursier.core.Type, coursier.core.Extension, coursier.core.Classifier)
+      final type MirroredElemTypes =
+        (String, coursier.core.Type, coursier.core.Extension, coursier.core.Classifier)
       final type MirroredElemLabels = ("name", "type", "ext", "classifier")
 
       final def fromProduct(p: scala.Product): coursier.core.Publication = {
         val _1: String = p.productElement(0).asInstanceOf[String]
         val _2: coursier.core.Type = p.productElement(1).asInstanceOf[coursier.core.Type]
         val _3: coursier.core.Extension = p.productElement(2).asInstanceOf[coursier.core.Extension]
-        val _4: coursier.core.Classifier = p.productElement(3).asInstanceOf[coursier.core.Classifier]
+        val _4: coursier.core.Classifier =
+          p.productElement(3).asInstanceOf[coursier.core.Classifier]
 
-        coursier.core.Publication.apply(_1,_2,_3,_4)
+        coursier.core.Publication.apply(_1, _2, _3, _4)
       }
     }
 
@@ -65,34 +66,56 @@ object JsonFormatters extends JsonFormatters {
     given Mirror_coursier_core_Module: Mirror.Product with {
       final type MirroredMonoType = coursier.core.Module
       final type MirroredType = coursier.core.Module
-      final type MirroredElemTypes = (coursier.core.Organization, coursier.core.ModuleName, Map[String, String])
+      final type MirroredElemTypes =
+        (coursier.core.Organization, coursier.core.ModuleName, Map[String, String])
       final type MirroredElemLabels = ("organization", "name", "attributes")
 
       final def fromProduct(p: scala.Product): coursier.core.Module = {
-        val _1: coursier.core.Organization = p.productElement(0).asInstanceOf[coursier.core.Organization]
-        val _2: coursier.core.ModuleName = p.productElement(1).asInstanceOf[coursier.core.ModuleName]
+        val _1: coursier.core.Organization =
+          p.productElement(0).asInstanceOf[coursier.core.Organization]
+        val _2: coursier.core.ModuleName =
+          p.productElement(1).asInstanceOf[coursier.core.ModuleName]
         val _3: Map[String, String] = p.productElement(2).asInstanceOf[Map[String, String]]
 
-        coursier.core.Module.apply(_1,_2,_3)
+        coursier.core.Module.apply(_1, _2, _3)
       }
     }
 
     given Mirror_coursier_core_Dependency: Mirror.Product with {
       final type MirroredMonoType = coursier.core.Dependency
       final type MirroredType = coursier.core.Dependency
-      final type MirroredElemTypes = (coursier.core.Module, String, coursier.core.Configuration, coursier.core.MinimizedExclusions, coursier.core.Publication, Boolean, Boolean)
-      final type MirroredElemLabels = ("module", "version", "configuration", "minimizedExclusions", "publication", "optional", "transitive")
+      final type MirroredElemTypes = (
+          coursier.core.Module,
+          String,
+          coursier.core.Configuration,
+          coursier.core.MinimizedExclusions,
+          coursier.core.Publication,
+          Boolean,
+          Boolean
+      )
+      final type MirroredElemLabels = (
+          "module",
+          "version",
+          "configuration",
+          "minimizedExclusions",
+          "publication",
+          "optional",
+          "transitive"
+      )
 
       final def fromProduct(p: scala.Product): coursier.core.Dependency = {
         val _1: coursier.core.Module = p.productElement(0).asInstanceOf[coursier.core.Module]
         val _2: String = p.productElement(1).asInstanceOf[String]
-        val _3: coursier.core.Configuration = p.productElement(2).asInstanceOf[coursier.core.Configuration]
-        val _4: coursier.core.MinimizedExclusions = p.productElement(3).asInstanceOf[coursier.core.MinimizedExclusions]
-        val _5: coursier.core.Publication = p.productElement(4).asInstanceOf[coursier.core.Publication]
+        val _3: coursier.core.Configuration =
+          p.productElement(2).asInstanceOf[coursier.core.Configuration]
+        val _4: coursier.core.MinimizedExclusions =
+          p.productElement(3).asInstanceOf[coursier.core.MinimizedExclusions]
+        val _5: coursier.core.Publication =
+          p.productElement(4).asInstanceOf[coursier.core.Publication]
         val _6: Boolean = p.productElement(5).asInstanceOf[Boolean]
         val _7: Boolean = p.productElement(6).asInstanceOf[Boolean]
 
-        coursier.core.Dependency.apply(_1,_2,_3,_4,_5,_6,_7)
+        coursier.core.Dependency.apply(_1, _2, _3, _4, _5, _6, _7)
       }
     }
 
@@ -103,7 +126,8 @@ object JsonFormatters extends JsonFormatters {
       final type MirroredElemLabels = "data" *: EmptyTuple
 
       final def fromProduct(p: scala.Product): coursier.core.MinimizedExclusions = {
-        val _1: coursier.core.MinimizedExclusions.ExclusionData = p.productElement(0).asInstanceOf[coursier.core.MinimizedExclusions.ExclusionData]
+        val _1: coursier.core.MinimizedExclusions.ExclusionData =
+          p.productElement(0).asInstanceOf[coursier.core.MinimizedExclusions.ExclusionData]
 
         coursier.core.MinimizedExclusions.apply(_1)
       }
@@ -112,15 +136,25 @@ object JsonFormatters extends JsonFormatters {
     given Mirror_coursier_core_MinimizedExclusions_ExcludeSpecific: Mirror.Product with {
       final type MirroredMonoType = coursier.core.MinimizedExclusions.ExcludeSpecific
       final type MirroredType = coursier.core.MinimizedExclusions.ExcludeSpecific
-      final type MirroredElemTypes = (Set[coursier.core.Organization], Set[coursier.core.ModuleName], Set[(coursier.core.Organization, coursier.core.ModuleName)])
+      final type MirroredElemTypes = (
+          Set[coursier.core.Organization],
+          Set[coursier.core.ModuleName],
+          Set[(coursier.core.Organization, coursier.core.ModuleName)]
+      )
       final type MirroredElemLabels = ("byOrg", "byModule", "specific")
 
       final def fromProduct(p: scala.Product): coursier.core.MinimizedExclusions.ExcludeSpecific = {
-        val _1: Set[coursier.core.Organization] = p.productElement(0).asInstanceOf[Set[coursier.core.Organization]]
-        val _2: Set[coursier.core.ModuleName] = p.productElement(1).asInstanceOf[Set[coursier.core.ModuleName]]
-        val _3: Set[(coursier.core.Organization, coursier.core.ModuleName)] = p.productElement(2).asInstanceOf[Set[(coursier.core.Organization, coursier.core.ModuleName)]]
+        val _1: Set[coursier.core.Organization] =
+          p.productElement(0).asInstanceOf[Set[coursier.core.Organization]]
+        val _2: Set[coursier.core.ModuleName] =
+          p.productElement(1).asInstanceOf[Set[coursier.core.ModuleName]]
+        val _3: Set[(coursier.core.Organization, coursier.core.ModuleName)] =
+          p.productElement(2).asInstanceOf[Set[(
+              coursier.core.Organization,
+              coursier.core.ModuleName
+          )]]
 
-        coursier.core.MinimizedExclusions.ExcludeSpecific.apply(_1,_2,_3)
+        coursier.core.MinimizedExclusions.ExcludeSpecific.apply(_1, _2, _3)
       }
     }
 
@@ -132,9 +166,10 @@ object JsonFormatters extends JsonFormatters {
 
       final def fromProduct(p: scala.Product): coursier.core.Attributes = {
         val _1: coursier.core.Type = p.productElement(0).asInstanceOf[coursier.core.Type]
-        val _2: coursier.core.Classifier = p.productElement(1).asInstanceOf[coursier.core.Classifier]
+        val _2: coursier.core.Classifier =
+          p.productElement(1).asInstanceOf[coursier.core.Classifier]
 
-        coursier.core.Attributes.apply(_1,_2)
+        coursier.core.Attributes.apply(_1, _2)
       }
     }
 

@@ -15,7 +15,8 @@ object ModuleKind {
   implicit def rw: RW[ModuleKind] = macroRW
 
   // GENERATED CODE BY ci/scripts/manual_mirror_gen.sc - DO NOT EDIT
-  private type SingletonMirrorProxy[T <: AnyRef & Singleton] = Mirror.SingletonProxy { val value: T }
+  private type SingletonMirrorProxy[T <: AnyRef & Singleton] =
+    Mirror.SingletonProxy { val value: T }
   private def genSingletonMirror[T <: AnyRef & Singleton](ref: T): SingletonMirrorProxy[T] =
     new Mirror.SingletonProxy(ref).asInstanceOf[SingletonMirrorProxy[T]]
   private given Mirror_NoModule: SingletonMirrorProxy[NoModule.type] =
@@ -48,7 +49,8 @@ object ESVersion {
   implicit val rw: RW[ESVersion] = macroRW[ESVersion]
 
   // GENERATED CODE BY ci/scripts/manual_mirror_gen.sc - DO NOT EDIT
-  private type SingletonMirrorProxy[T <: AnyRef & Singleton] = Mirror.SingletonProxy { val value: T }
+  private type SingletonMirrorProxy[T <: AnyRef & Singleton] =
+    Mirror.SingletonProxy { val value: T }
   private def genSingletonMirror[T <: AnyRef & Singleton](ref: T): SingletonMirrorProxy[T] =
     new Mirror.SingletonProxy(ref).asInstanceOf[SingletonMirrorProxy[T]]
   private given Mirror_ES2015: SingletonMirrorProxy[ES2015.type] =
@@ -289,7 +291,6 @@ object JsEnvConfig {
 
         final def fromProduct(p: scala.Product): SafariOptions = {
 
-
           SafariOptions.apply()
         }
       }
@@ -396,7 +397,8 @@ object OutputPatterns {
     final type MirroredMonoType = OutputPatterns
     final type MirroredType = OutputPatterns
     final type MirroredElemTypes = (String, String, String, String, String)
-    final type MirroredElemLabels = ("jsFile", "sourceMapFile", "moduleName", "jsFileURI", "sourceMapURI")
+    final type MirroredElemLabels =
+      ("jsFile", "sourceMapFile", "moduleName", "jsFileURI", "sourceMapURI")
 
     final def fromProduct(p: scala.Product): OutputPatterns = {
       val _1: String = p.productElement(0).asInstanceOf[String]
@@ -405,7 +407,7 @@ object OutputPatterns {
       val _4: String = p.productElement(3).asInstanceOf[String]
       val _5: String = p.productElement(4).asInstanceOf[String]
 
-      OutputPatterns.apply(_1,_2,_3,_4,_5)
+      OutputPatterns.apply(_1, _2, _3, _4, _5)
     }
   }
 }

@@ -71,9 +71,10 @@ object JarManifest {
 
     final def fromProduct(p: scala.Product): JarManifest = {
       val _1: Map[String, String] = p.productElement(0).asInstanceOf[Map[String, String]]
-      val _2: Map[String, Map[String, String]] = p.productElement(1).asInstanceOf[Map[String, Map[String, String]]]
+      val _2: Map[String, Map[String, String]] =
+        p.productElement(1).asInstanceOf[Map[String, Map[String, String]]]
 
-      JarManifest.apply(_1,_2)
+      JarManifest.apply(_1, _2)
     }
   }
 

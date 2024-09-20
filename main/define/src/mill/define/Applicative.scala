@@ -43,11 +43,21 @@ object Applicative {
     def traverseCtx[I, R](xs: Seq[W[I]])(f: (IndexedSeq[I], Ctx) => Z[R]): T[R]
   }
 
-  def impl[M[_]: Type, Q[_]: Type, Z[_]: Type, T: Type, Ctx: Type](using Quotes)(caller: Expr[TraverseCtxHolder], t: Expr[Z[T]]): Expr[M[T]] = {
+  def impl[M[_]: Type, Q[_]: Type, Z[_]: Type, T: Type, Ctx: Type](using
+      Quotes
+  )(caller: Expr[TraverseCtxHolder], t: Expr[Z[T]]): Expr[M[T]] = {
     import quotes.reflect.*
-    impl0(using quotes)(caller.asTerm, t.asTerm)(using Type.of[M], Type.of[Q], Type.of[Z], Type.of[T], Type.of[Ctx])
+    impl0(using quotes)(caller.asTerm, t.asTerm)(using
+      Type.of[M],
+      Type.of[Q],
+      Type.of[Z],
+      Type.of[T],
+      Type.of[Ctx]
+    )
   }
-  def impl0[M[_]: Type, Q[_]: Type, Z[_]: Type, T: Type, Ctx: Type](using Quotes)(caller: quotes.reflect.Tree, t: quotes.reflect.Tree): Expr[M[T]] = {
+  def impl0[M[_]: Type, Q[_]: Type, Z[_]: Type, T: Type, Ctx: Type](using
+      Quotes
+  )(caller: quotes.reflect.Tree, t: quotes.reflect.Tree): Expr[M[T]] = {
     import quotes.reflect.*
 
     val targetApplySym = TypeRepr.of[Applyable[Nothing, ?]].typeSymbol.methodMember("apply").head
@@ -60,28 +70,32 @@ object Applicative {
         override def foldTree(x: Set[Symbol], tree: Tree)(owner: Symbol): Set[Symbol] = tree match
           case tree: Definition => foldOverTree(x + tree.symbol, tree)(owner)
           case tree => foldOverTree(x, tree)(owner)
-    }.foldTree(Set.empty, tree)(Symbol.spliceOwner)
+      }.foldTree(Set.empty, tree)(Symbol.spliceOwner)
 
     def visitAllTrees(tree: Tree)(f: Tree => Unit): Unit =
       new TreeTraverser {
         override def traverseTree(tree: Tree)(owner: Symbol): Unit =
           f(tree)
           traverseTreeChildren(tree)(owner)
-    }.traverseTree(tree)(Symbol.spliceOwner)
+      }.traverseTree(tree)(Symbol.spliceOwner)
 
     val defs = extractDefs(t)
 
     var hasErrors = false
 
-    def transformed(itemsRef: Expr[IndexedSeq[Any]], ctxRef: Expr[Ctx]): (Expr[Z[T]], Expr[List[Q[Any]]]) = {
+    def transformed(
+        itemsRef: Expr[IndexedSeq[Any]],
+        ctxRef: Expr[Ctx]
+    ): (Expr[Z[T]], Expr[List[Q[Any]]]) = {
       val exprs = collection.mutable.Buffer.empty[Tree]
       val treeMap = new TreeMap {
 
         override def transformTerm(tree: Term)(owner: Symbol): Term = tree match
           // case t @ '{$fun.apply()($handler)}
-          case t @ Apply(Apply(sel @ Select(fun, "apply"), Nil), List(handler)) if sel.symbol == targetApplySym =>
+          case t @ Apply(Apply(sel @ Select(fun, "apply"), Nil), List(handler))
+              if sel.symbol == targetApplySym =>
             val localDefs = extractDefs(fun)
-            visitAllTrees(t){ x =>
+            visitAllTrees(t) { x =>
               val sym = x.symbol
               if (sym != Symbol.noSymbol && defs(sym) && !localDefs(sym)) {
                 hasErrors = true
@@ -103,9 +117,10 @@ object Applicative {
                 // val itemsIdent = Ident(itemsSym)
                 // exprs.append(q"$fun")
                 exprs += fun
-                '{$itemsRef(${Expr(exprs.size - 1)}).asInstanceOf[tt]}.asTerm
-          case t if t.symbol.exists
-              && t.symbol.annotations.exists(_.tpe =:= TypeRepr.of[mill.api.Ctx.ImplicitStub]) =>
+                '{ $itemsRef(${ Expr(exprs.size - 1) }).asInstanceOf[tt] }.asTerm
+          case t
+              if t.symbol.exists
+                && t.symbol.annotations.exists(_.tpe =:= TypeRepr.of[mill.api.Ctx.ImplicitStub]) =>
             // val tempIdent = Ident(ctxSym)
             // c.internal.setType(tempIdent, t.tpe)
             // c.internal.setFlag(ctxSym, (1L << 44).asInstanceOf[c.universe.FlagSet])
@@ -126,19 +141,19 @@ object Applicative {
     val (callback, exprsList) = {
       var exprsExpr: Expr[List[Q[Any]]] | Null = null
       val cb = '{ (items: IndexedSeq[Any], ctx: Ctx) =>
-          ${
-            val (body, exprs) = transformed('items, 'ctx)
-            exprsExpr = exprs
-            body
-          }
+        ${
+          val (body, exprs) = transformed('items, 'ctx)
+          exprsExpr = exprs
+          body
+        }
       }
       (cb, exprsExpr.nn)
     }
 
     if hasErrors then
-      '{throw new RuntimeException("stub implementation - macro expansion had errors")}
+      '{ throw new RuntimeException("stub implementation - macro expansion had errors") }
     else
-      '{${callerExpr}.traverseCtx[Any, T]($exprsList)($callback).asInstanceOf[M[T]]}
+      '{ ${ callerExpr }.traverseCtx[Any, T]($exprsList)($callback).asInstanceOf[M[T]] }
   }
 
 }

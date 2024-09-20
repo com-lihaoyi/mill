@@ -36,7 +36,11 @@ object SpanningForest {
       .groupMap(_._1)(_._2)
 
     ResolvedCalls.breadthFirst(rootChangedNodeIndices) { index =>
-      val nextIndices = downstreamGraphEdges.getOrElse(index, Array[Int]()) // needed to add explicit type for Scala 3.5.0-RC6
+      val nextIndices =
+        downstreamGraphEdges.getOrElse(
+          index,
+          Array[Int]()
+        ) // needed to add explicit type for Scala 3.5.0-RC6
       // We build up the spanningForest during a normal breadth first search,
       // using the `nodeMapping` to quickly find an vertice's tree node so we
       // can add children to it. We need to duplicate the `seen.contains` logic

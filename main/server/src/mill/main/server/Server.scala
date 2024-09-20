@@ -56,7 +56,8 @@ abstract class Server[T](
                   serverLog("handling run")
                   try handleRun(sock, initialSystemProperties)
                   catch {
-                    case e: Throwable => serverLog(e.toString + "\n" + e.getStackTrace.mkString("\n"))
+                    case e: Throwable =>
+                      serverLog(e.toString + "\n" + e.getStackTrace.mkString("\n"))
                   } finally sock.close();
                   true
               }

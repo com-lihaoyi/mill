@@ -34,5 +34,5 @@ object VersionScheme {
   implicit val rwStrict: ReadWriter[Strict.type] = macroRW
 
   // edit @bishabosha: why was it `.type`, I assume it is meant to infer a sum type?
-  implicit val rwVersionScheme: ReadWriter[VersionScheme/*.type*/] = macroRW
+  implicit val rwVersionScheme: ReadWriter[VersionScheme /*.type*/ ] = macroRW
 }

@@ -38,7 +38,7 @@ case class Retry(
         if (timeoutMillis == -1) t(retryCount)
         else {
           val result = Promise[T]
-          val thread = new Thread({() =>
+          val thread = new Thread({ () =>
             result.complete(scala.util.Try(t(retryCount)))
           }: Runnable)
           thread.start()

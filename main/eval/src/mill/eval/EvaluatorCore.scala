@@ -277,22 +277,23 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       .flatMap(_._2)
       .toSet
 
-    val allTransitiveClassMethods: Map[Class[?], Map[String, java.lang.reflect.Method]] = allTransitiveClasses
-      .map { cls =>
-        val cMangledName = cls.getName.replace('.', '$')
-        cls -> cls.getDeclaredMethods
-          .flatMap { m =>
-            Seq(
-              m.getName -> m,
-              // Handle scenarios where private method names get mangled when they are
-              // not really JVM-private due to being accessed by Scala nested objects
-              // or classes https://github.com/scala/bug/issues/9306
-              m.getName.stripPrefix(cMangledName + "$$") -> m,
-              m.getName.stripPrefix(cMangledName + "$") -> m
-            )
-          }.toMap
-      }
-      .toMap
+    val allTransitiveClassMethods: Map[Class[?], Map[String, java.lang.reflect.Method]] =
+      allTransitiveClasses
+        .map { cls =>
+          val cMangledName = cls.getName.replace('.', '$')
+          cls -> cls.getDeclaredMethods
+            .flatMap { m =>
+              Seq(
+                m.getName -> m,
+                // Handle scenarios where private method names get mangled when they are
+                // not really JVM-private due to being accessed by Scala nested objects
+                // or classes https://github.com/scala/bug/issues/9306
+                m.getName.stripPrefix(cMangledName + "$$") -> m,
+                m.getName.stripPrefix(cMangledName + "$") -> m
+              )
+            }.toMap
+        }
+        .toMap
 
     (classToTransitiveClasses, allTransitiveClassMethods)
   }

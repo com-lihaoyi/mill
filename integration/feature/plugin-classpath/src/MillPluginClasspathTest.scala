@@ -7,7 +7,8 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext
 import java.util.concurrent.atomic.AtomicReference
 
-/**Trait that provides a `skip` method that can be used to skip a test, the test will pass.
+/**
+ * Trait that provides a `skip` method that can be used to skip a test, the test will pass.
  * Used to assert that a test still compiles, and is intended to be re-enabled later,
  * but is temporarily prevented from running for a suitable reason.
  * At the end of a suite, print a summary of the number of skipped tests, and their names.
@@ -17,7 +18,8 @@ trait UTestIgnore(name: String) extends utest.TestSuite {
 
   val skipList = AtomicReference(List.empty[String])
 
-  private final class SkipException(val name: String) extends Exception with scala.util.control.NoStackTrace
+  private final class SkipException(val name: String) extends Exception
+      with scala.util.control.NoStackTrace
 
   def skip(op: => Any)(using path: utest.framework.TestPath): Nothing = {
     throw new SkipException(name + "." + path.value.mkString("."))
@@ -25,12 +27,17 @@ trait UTestIgnore(name: String) extends utest.TestSuite {
 
   private def red(str: String) = Console.RED + str + Console.RESET
 
-  override def utestWrap(path: Seq[String], runBody: => Future[Any])(implicit ec: ExecutionContext): Future[Any] = {
-    super.utestWrap(path, runBody.recoverWith {
-      case e: SkipException =>
-        skipList.updateAndGet(e.name :: _)
-        Future.successful(())
-    })
+  override def utestWrap(path: Seq[String], runBody: => Future[Any])(implicit
+      ec: ExecutionContext
+  ): Future[Any] = {
+    super.utestWrap(
+      path,
+      runBody.recoverWith {
+        case e: SkipException =>
+          skipList.updateAndGet(e.name :: _)
+          Future.successful(())
+      }
+    )
   }
 
   override def utestAfterAll(): Unit = {
@@ -46,7 +53,7 @@ trait UTestIgnore(name: String) extends utest.TestSuite {
 }
 
 object MillPluginClasspathTest extends UtestIntegrationTestSuite
-  with UTestIgnore("mill.integration.MillPluginClasspathTest") {
+    with UTestIgnore("mill.integration.MillPluginClasspathTest") {
 
   val embeddedModules: Seq[(String, String)] = Seq(
     ("com.lihaoyi", "mill-main-client"),

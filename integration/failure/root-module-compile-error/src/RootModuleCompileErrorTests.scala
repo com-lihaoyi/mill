@@ -16,8 +16,12 @@ object RootModuleCompileErrorTests extends UtestIntegrationTestSuite {
         // For now these error messages still show generated/mangled code; not ideal, but it'll do
         assert(res.err.contains("""build.mill:7:50"""))
         assert(res.err.contains("""Not found: type UnknownRootModule"""))
-        assert(res.err.contains("""abstract class package_  extends RootModule with UnknownRootModule {"""))
-        assert(res.err.contains("""                                                 ^^^^^^^^^^^^^^^^^"""))
+        assert(res.err.contains(
+          """abstract class package_  extends RootModule with UnknownRootModule {"""
+        ))
+        assert(
+          res.err.contains("""                                                 ^^^^^^^^^^^^^^^^^""")
+        )
       }
 
       locally {

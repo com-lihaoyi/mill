@@ -173,9 +173,13 @@ object MacroErrorTests extends TestSuite {
       )
       assert(error.msg.contains("Cannot convert value to Cross.Factory[MyCrossModule]:"))
       assert(error.msg.contains("- crossValue requires java.lang.String"))
-      assert(error.msg.contains("  but inner element of type (scala.Int, scala.Int) did not match at index 0."))
+      assert(error.msg.contains(
+        "  but inner element of type (scala.Int, scala.Int) did not match at index 0."
+      ))
       assert(error.msg.contains("- crossValue2 requires scala.Boolean"))
-      assert(error.msg.contains("  but inner element of type (scala.Int, scala.Int) did not match at index 1."))
+      assert(error.msg.contains(
+        "  but inner element of type (scala.Int, scala.Int) did not match at index 1."
+      ))
     }
 
     test("invalidCrossType") {

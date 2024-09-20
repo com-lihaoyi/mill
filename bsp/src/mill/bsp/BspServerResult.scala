@@ -31,7 +31,8 @@ object BspServerResult {
     upickle.default.macroRW
 
   // GENERATED CODE BY ci/scripts/manual_mirror_gen.sc - DO NOT EDIT
-  private type SingletonMirrorProxy[T <: AnyRef & Singleton] = Mirror.SingletonProxy { val value: T }
+  private type SingletonMirrorProxy[T <: AnyRef & Singleton] =
+    Mirror.SingletonProxy { val value: T }
   private def genSingletonMirror[T <: AnyRef & Singleton](ref: T): SingletonMirrorProxy[T] =
     new Mirror.SingletonProxy(ref).asInstanceOf[SingletonMirrorProxy[T]]
   private given Mirror_ReloadWorkspace: SingletonMirrorProxy[ReloadWorkspace.type] =

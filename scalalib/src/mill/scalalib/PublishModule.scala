@@ -62,7 +62,8 @@ trait PublishModule extends JavaModule { outer =>
   }
 
   def publishXmlDeps: Task[Agg[Dependency]] = Task.Anon {
-    val ivyPomDeps = (ivyDeps() ++ mandatoryIvyDeps()).map(resolvePublishDependency.apply().apply(_))
+    val ivyPomDeps =
+      (ivyDeps() ++ mandatoryIvyDeps()).map(resolvePublishDependency.apply().apply(_))
 
     val compileIvyPomDeps = compileIvyDeps()
       .map(resolvePublishDependency.apply().apply(_))
