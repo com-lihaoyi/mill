@@ -71,7 +71,7 @@ public class MillProcessLauncher {
         ProcessBuilder builder,
         Path serverDir
     ) throws Exception {
-        Terminal term = TerminalBuilder.terminal();
+        Terminal term = TerminalBuilder.builder().dumb(true).build();
         Path sandbox = serverDir.resolve(ServerFiles.sandbox);
         Files.createDirectories(sandbox);
         Files.write(

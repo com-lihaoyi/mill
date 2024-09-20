@@ -78,7 +78,7 @@ private[mill] class MultilinePromptLogger(
   override def rawOutputStream: PrintStream = systemStreams0.out
 
   override def close(): Unit = {
-    state.refreshPrompt(ending = true)
+    if (enableTicker) state.refreshPrompt(ending = true)
     streams.close()
     stopped = true
   }
