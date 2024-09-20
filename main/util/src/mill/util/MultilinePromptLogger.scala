@@ -23,7 +23,6 @@ private[mill] class MultilinePromptLogger(
 
   private val state = new State(
     titleText,
-    enableTicker,
     systemStreams0,
     System.currentTimeMillis(),
     () => termDimensions
@@ -108,11 +107,13 @@ private object MultilinePromptLogger {
    * is even more distracting than changing the contents of a line, so we want to minimize
    * those occurrences even further.
    */
-  val statusRemovalHideDelayMillis = 250
+  val statusRemovalHideDelayMillis = 500
 
   /**
    * How long to wait before actually removing the blank line left by a removed status
-   * and reducing the height of the prompt.
+   * and reducing the height of the prompt. Having the prompt change height is even more
+   * distracting than having entries in the prompt disappear, so give it a longer timeout
+   * so it happens less.
    */
   val statusRemovalRemoveDelayMillis = 2000
 
@@ -174,12 +175,10 @@ private object MultilinePromptLogger {
   }
   private class State(
       titleText: String,
-      enableTicker: Boolean,
       systemStreams0: SystemStreams,
       startTimeMillis: Long,
       consoleDims: () => (Option[Int], Option[Int])
   ) {
-    var promptDirty = false
     private val statuses = collection.mutable.SortedMap.empty[Int, Status]
 
     private var headerPrefix = ""
@@ -212,26 +211,28 @@ private object MultilinePromptLogger {
         titleText,
         statuses
       )
-      // For the ending prompt, leave the cursor at the bottom rather than scrolling back left/up.
-      // We do not want further output to overwrite the header as it will no longer re-render
-      val backUp =
-        if (ending) ""
-        else AnsiNav.left(9999) + AnsiNav.up(currentPromptLines.length - 1)
 
       val currentPromptStr =
-        if (termWidth0.isEmpty) currentPromptLines.mkString("\n")
+        if (termWidth0.isEmpty) currentPromptLines.mkString("\n") + "\n"
         else {
+          // For the ending prompt, leave the cursor at the bottom on a new line rather than
+          // scrolling back left/up. We do not want further output to overwrite the header as
+          // it will no longer re-render
+          val backUp =
+            if (ending) "\n"
+            else AnsiNav.left(9999) + AnsiNav.up(currentPromptLines.length - 1)
+
           AnsiNav.clearScreen(0) +
             currentPromptLines.mkString("\n") +
             backUp
         }
 
       currentPromptBytes = currentPromptStr.getBytes
+
     }
 
     def updateGlobal(s: String): Unit = synchronized {
       headerPrefix = s
-      promptDirty = true
     }
     def updateCurrent(sOpt: Option[String]): Unit = synchronized {
       val threadId = Thread.currentThread().getId.toInt
@@ -241,16 +242,12 @@ private object MultilinePromptLogger {
         case None => statuses.get(threadId).foreach(_.removedTimeMillis = now)
         case Some(s) => statuses(threadId) = Status(now, s, Long.MaxValue)
       }
-      promptDirty = true
     }
 
     def refreshPrompt(ending: Boolean = false): Unit = synchronized {
-      if (promptDirty || ending) {
-        promptDirty = false
-        updatePromptBytes(ending)
+      updatePromptBytes(ending)
 
-        systemStreams0.err.write(currentPromptBytes)
-      }
+      systemStreams0.err.write(currentPromptBytes)
     }
   }
 
