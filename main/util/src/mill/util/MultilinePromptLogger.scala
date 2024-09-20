@@ -80,8 +80,8 @@ private[mill] class MultilinePromptLogger(
   override def rawOutputStream: PrintStream = systemStreams0.out
 
   override def close(): Unit = {
-    streams.close()
     state.refreshPrompt(ending = true)
+    streams.close()
     stopped = true
   }
 
@@ -185,6 +185,7 @@ private object MultilinePromptLogger {
       startTimeMillis: Long,
       consoleDims: () => (Option[Int], Option[Int])
   ) {
+    var promptDirty = false
     private val statuses = collection.mutable.SortedMap.empty[Int, Status]
 
     private var headerPrefix = ""
@@ -234,7 +235,7 @@ private object MultilinePromptLogger {
 
     def updateGlobal(s: String): Unit = synchronized {
       headerPrefix = s
-      updatePromptBytes()
+      promptDirty = true
     }
     def updateCurrent(sOpt: Option[String]): Unit = synchronized {
       val threadId = Thread.currentThread().getId.toInt
@@ -244,12 +245,16 @@ private object MultilinePromptLogger {
         case None => statuses.get(threadId).foreach(_.removedTimeMillis = now)
         case Some(s) => statuses(threadId) = Status(now, s, Long.MaxValue)
       }
-      updatePromptBytes()
+      promptDirty = true
     }
 
     def refreshPrompt(ending: Boolean = false): Unit = synchronized {
-      updatePromptBytes(ending)
-      if (enableTicker) systemStreams0.err.write(currentPromptBytes)
+      if (promptDirty || ending) {
+        promptDirty = false
+        updatePromptBytes(ending)
+
+        systemStreams0.err.write(currentPromptBytes)
+      }
     }
   }
 
@@ -302,7 +307,9 @@ private object MultilinePromptLogger {
           )
       }
       .toList
-      .sortBy(_.isEmpty)
+      // Sort alphabetically because the `#nn` prefix is part of the string, and then
+      // put all empty strings last since those are less important and can be ignored
+      .sortBy(x => (x.isEmpty, x))
 
     val body =
       if (body0.count(_.nonEmpty) <= maxHeight) body0.take(maxHeight)
