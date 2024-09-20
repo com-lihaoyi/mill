@@ -8,9 +8,15 @@ object MillInitTests extends UtestIntegrationTestSuite {
   def tests: Tests = Tests {
     test("Mill init works") - integrationTest { tester =>
       import tester._
-      eval(("init", "com-lihaoyi/mill-scala-hello.g8", "--name=example")).isSuccess ==> true
-      val projFile = workspacePath / "example/build.sc"
-      assert(os.exists(projFile))
+      val res = eval("init")
+      res.isSuccess ==> true
+      val firstProj = res.out.split("\n")(1)
+      val downloaded = eval(("init",firstProj))
+      downloaded.isSuccess ==> true
+      val paths = os.walk(path = workspacePath,maxDepth = 1)
+      val extractedDir = paths.find(_.last.endsWith(firstProj.replace("/","-")))
+      extractedDir.isDefined ==> true
+      assert(os.exists(extractedDir.get / "build.mill"))
     }
   }
 }
