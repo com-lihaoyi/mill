@@ -145,7 +145,8 @@ public class ClientTests {
         ByteArrayOutputStream dest2 = new ByteArrayOutputStream();
         ProxyStream.Pumper pumper = new ProxyStream.Pumper(
                 new ByteArrayInputStream(bytes),
-                dest1, dest2
+                dest1, dest2,
+            true
         );
         pumper.run();
         assertTrue(Arrays.equals(samples1, dest1.toByteArray()));

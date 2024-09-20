@@ -102,12 +102,15 @@ public class ProxyStream{
         private InputStream src;
         private OutputStream destOut;
         private OutputStream destErr;
+        private boolean exitOnClose;
         public Pumper(InputStream src,
                       OutputStream destOut,
-                      OutputStream destErr){
+                      OutputStream destErr,
+                      boolean exitOnClose){
             this.src = src;
             this.destOut = destOut;
             this.destErr = destErr;
+            this.exitOnClose = exitOnClose;
         }
 
         public void preRead(InputStream src){}
@@ -155,8 +158,13 @@ public class ProxyStream{
                     // This happens when you run mill shutdown and the server exits gracefully
                     break;
                 } catch (IOException e) {
-                    e.printStackTrace();
-                    System.exit(1);
+                    // This happens when the upstream pipe was closed
+                    if (exitOnClose){
+                        e.printStackTrace();
+                        System.exit(1);
+                    }else{
+                        break;
+                    }
                 }
             }
 

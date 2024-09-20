@@ -77,7 +77,7 @@ private[mill] class MultilinePromptLogger(
 
   override def rawOutputStream: PrintStream = systemStreams0.out
 
-  override def close(): Unit = {
+  override def close(): Unit = synchronized {
     if (enableTicker) state.refreshPrompt(ending = true)
     streams.close()
     stopped = true
@@ -152,7 +152,7 @@ private object MultilinePromptLogger {
     )
 
     val pumper: pumper = new pumper
-    class pumper extends ProxyStream.Pumper(pipeIn, systemStreams0.out, systemStreams0.err) {
+    class pumper extends ProxyStream.Pumper(pipeIn, systemStreams0.out, systemStreams0.err, false) {
       object PumperState extends Enumeration {
         val init, prompt, cleared = Value
       }
@@ -181,8 +181,10 @@ private object MultilinePromptLogger {
     pumperThread.start()
 
     def close(): Unit = {
+      pipeOut.flush()
       pipeIn.close()
-      pipeOut.close()
+      // Not sure why this causes problems
+      // pipeOut.close()
     }
   }
   private class State(
