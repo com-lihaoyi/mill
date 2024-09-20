@@ -403,12 +403,34 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
   def javacOptions = Seq("-source", "1.8", "-target", "1.8", "-encoding", "UTF-8")
 }
 
+/* Until scalafix-interfaces releases a version that can reflectively load Scalafix for
+ * Scala 3, we need to skip Scalafix for Scala 3 modules.
+ *
+ * @see https://github.com/scalacenter/scalafix/blob/24078c391ae1f9e823489afe008318bcc13ae90d/scalafix-interfaces/src/main/java/scalafix/interfaces/Scalafix.java#L133
+*/
+trait SkipScalafix extends ScalafixModule { self: ScalaModule =>
+
+  def millModuleScalaVersion: String
+
+  def fix(args: String*): Command[Unit] = {
+    if (millModuleScalaVersion.startsWith("3.")) {
+      T.command {
+        T.log.info(s"Skipping scalafix for Scala 3 module $self")
+        mill.api.Result.Success(())
+      }
+    } else {
+      super.fix(args: _*)
+    }
+  }
+}
+
 /**
  * Some custom scala settings and test convenience
  */
-trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModule { outer =>
-  def scalaVersion = Deps.scalaVersion
-  def scalapVersion = T { Deps.scala2Version }
+trait MillScalaModule extends ScalaModule with MillJavaModule with SkipScalafix { outer =>
+  def millModuleScalaVersion: String = Deps.scalaVersion
+  final def scalaVersion = millModuleScalaVersion
+  def scalapVersion: T[String] = Deps.scala2Version
   def scalafixScalaBinaryVersion = ZincWorkerUtil.scalaBinaryVersion(scalaVersion())
   def semanticDbVersion = Deps.semanticDBscala.version
   def scalacOptions =
