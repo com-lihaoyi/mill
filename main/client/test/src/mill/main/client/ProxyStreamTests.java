@@ -72,8 +72,7 @@ public class ProxyStreamTests {
         ProxyStream.Pumper pumper = new ProxyStream.Pumper(
                 pipedInputStream,
                 new TeeOutputStream(destOut, destCombined),
-                new TeeOutputStream(destErr, destCombined),
-            true
+                new TeeOutputStream(destErr, destCombined)
         );
 
 

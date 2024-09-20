@@ -160,7 +160,7 @@ public abstract class ServerLauncher {
 
             InputStream outErr = ioSocket.getInputStream();
             OutputStream in = ioSocket.getOutputStream();
-            ProxyStream.Pumper outPumper = new ProxyStream.Pumper(outErr, stdout, stderr, true);
+            ProxyStream.Pumper outPumper = new ProxyStream.Pumper(outErr, stdout, stderr);
             InputPumper inPump = new InputPumper(() -> stdin, () -> in, true);
             Thread outPumperThread = new Thread(outPumper, "outPump");
             outPumperThread.setDaemon(true);

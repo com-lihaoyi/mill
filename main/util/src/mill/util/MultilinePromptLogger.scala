@@ -151,8 +151,7 @@ private object MultilinePromptLogger {
       systemStreams0.in
     )
 
-    val pumper: pumper = new pumper
-    class pumper extends ProxyStream.Pumper(pipeIn, systemStreams0.out, systemStreams0.err, false) {
+    object pumper extends ProxyStream.Pumper(pipeIn, systemStreams0.out, systemStreams0.err) {
       object PumperState extends Enumeration {
         val init, prompt, cleared = Value
       }
@@ -181,10 +180,9 @@ private object MultilinePromptLogger {
     pumperThread.start()
 
     def close(): Unit = {
-      pipeOut.flush()
       pipeIn.close()
-      // Not sure why this causes problems
-      // pipeOut.close()
+      pipeOut.close()
+      pumperThread.join()
     }
   }
   private class State(

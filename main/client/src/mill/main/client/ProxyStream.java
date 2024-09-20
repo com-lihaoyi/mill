@@ -102,15 +102,12 @@ public class ProxyStream{
         private InputStream src;
         private OutputStream destOut;
         private OutputStream destErr;
-        private boolean exitOnClose;
         public Pumper(InputStream src,
                       OutputStream destOut,
-                      OutputStream destErr,
-                      boolean exitOnClose){
+                      OutputStream destErr){
             this.src = src;
             this.destOut = destOut;
             this.destErr = destErr;
-            this.exitOnClose = exitOnClose;
         }
 
         public void preRead(InputStream src){}
@@ -159,18 +156,13 @@ public class ProxyStream{
                     break;
                 } catch (IOException e) {
                     // This happens when the upstream pipe was closed
-                    if (exitOnClose){
-                        e.printStackTrace();
-                        System.exit(1);
-                    }else{
-                        break;
-                    }
+                    break;
                 }
             }
 
             try {
-                destOut.close();
-                destErr.close();
+                destOut.flush();
+                destErr.flush();
             } catch(IOException e) {}
         }
 
