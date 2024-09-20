@@ -1,0 +1,93 @@
+diff --git a/build.mill b/build.mill
+index 4fad3481fa..2f2bfd9e32 100644
+--- a/build.mill
++++ b/build.mill
+@@ -228,12 +229,13 @@ object Deps {
+   }
+ }
+
+-def millVersion: T[String] = T { VcsVersion.vcsState().format() }
++def millVersion: T[String] = T { "0.13.0-SCALA3" } //T { VcsVersion.vcsState().format() }
+
+ def millLastTag: T[String] = T {
+-  VcsVersion.vcsState().lastTag.getOrElse(
+-    sys.error("No (last) git tag found. Your git history seems incomplete!")
+-  )
++  "0.12.0-RC2"
++  // VcsVersion.vcsState().lastTag.getOrElse(
++  //   sys.error("No (last) git tag found. Your git history seems incomplete!")
++  // )
+ }
+
+ def millBinPlatform: T[String] = T {
+diff --git a/docs/package.mill b/docs/package.mill
+index 8ff6287d88..85472f8bb1 100644
+--- a/docs/package.mill
++++ b/docs/package.mill
+@@ -127,7 +127,7 @@ object `package` extends RootModule {
+     os.write.over(dest / "antora.yml", (lines ++ newLines).mkString("\n"))
+   }
+
+-  def githubPagesPlaybookText(authorMode: Boolean) = T.task { extraSources: Seq[os.Path] =>
++  def githubPagesPlaybookText(authorMode: Boolean) = T.task { (extraSources: Seq[os.Path]) =>
+     val taggedSources = for (path <- extraSources) yield {
+       s"""    - url: ${build.baseDir}
+          |      start_path: ${path.relativeTo(build.baseDir)}
+@@ -192,23 +192,23 @@ object `package` extends RootModule {
+   }
+
+   def githubPages: T[PathRef] = T {
+-    generatePages(authorMode = false)().apply(oldDocSources().map(_.path))
++    generatePages(authorMode = false).apply().apply(oldDocSources().map(_.path))
+   }
+
+   def localPages = T {
+-    val pages = generatePages(authorMode = true)().apply(oldDocSources().map(_.path))
++    val pages = generatePages(authorMode = true).apply().apply(oldDocSources().map(_.path))
+     T.log.outputStream.println(
+       s"You can browse the local pages at: ${(pages.path / "index.html").toNIO.toUri()}"
+     )
+   }
+   def fastPages = T {
+-    val pages = generatePages(authorMode = true)().apply(Nil)
++    val pages = generatePages(authorMode = true).apply().apply(Nil)
+     T.log.outputStream.println(
+       s"You can browse the local pages at: ${(pages.path / "index.html").toNIO.toUri()}"
+     )
+   }
+
+-  def generatePages(authorMode: Boolean) = T.task { extraSources: Seq[os.Path] =>
++  def generatePages(authorMode: Boolean) = T.task { (extraSources: Seq[os.Path]) =>
+     T.log.errorStream.println("Creating Antora playbook ...")
+     // dependency to sources
+     source()
+@@ -217,7 +217,7 @@ object `package` extends RootModule {
+     val siteDir = docSite / "site"
+     os.write(
+       target = playbook,
+-      data = githubPagesPlaybookText(authorMode)().apply(extraSources),
++      data = githubPagesPlaybookText(authorMode).apply().apply(extraSources),
+       createFolders = true
+     )
+     T.log.errorStream.println("Running Antora ...")
+diff --git a/mill-build/build.mill b/mill-build/build.mill
+index 356e9306d2..3dcfda144b 100644
+--- a/mill-build/build.mill
++++ b/mill-build/build.mill
+@@ -4,12 +4,12 @@ import mill.scalalib._
+
+ object `package` extends MillBuildRootModule {
+   override def ivyDeps = Agg(
+-    ivy"org.scalaj::scalaj-http:2.4.2",
+-    ivy"de.tototec::de.tobiasroeser.mill.vcs.version::0.4.0",
+-    ivy"com.github.lolgab::mill-mima::0.1.1",
++    ivy"org.scalaj::scalaj-http:2.4.2".withDottyCompat(scalaVersion()),
++    ivy"de.tototec::de.tobiasroeser.mill.vcs.version::0.4.0".withDottyCompat(scalaVersion()),
++    ivy"com.github.lolgab::mill-mima::0.1.1".withDottyCompat(scalaVersion()),
+     ivy"net.sourceforge.htmlcleaner:htmlcleaner:2.29",
+     // TODO: implement empty version for ivy deps as we do in import parser
+     ivy"com.lihaoyi::mill-contrib-buildinfo:${mill.api.BuildInfo.millVersion}",
+-    ivy"com.goyeau::mill-scalafix::0.4.1"
++    ivy"com.goyeau::mill-scalafix::0.4.1".withDottyCompat(scalaVersion())
+   )
+ }
