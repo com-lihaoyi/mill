@@ -36,10 +36,11 @@ private[mill] class MultilinePromptLogger(
 
   val promptUpdaterThread = new Thread(() =>
     while (!stopped) {
-      Thread.sleep(
+      val promptUpdateInterval =
         if (termDimensions._1.isDefined) promptUpdateIntervalMillis
         else nonInteractivePromptUpdateIntervalMillis
-      )
+
+      Thread.sleep(promptUpdateInterval)
 
       if (!paused) {
         synchronized {
