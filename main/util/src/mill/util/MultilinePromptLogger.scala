@@ -172,7 +172,8 @@ private object MultilinePromptLogger {
         // Before any write, make sure we clear the terminal of any prompt that was
         // written earlier and not yet cleared, so the following output can be written
         // to a clean section of the terminal
-        if (interactive() && pumperState != PumperState.cleared) systemStreams0.err.write(clearScreenToEndBytes)
+        if (interactive() && pumperState != PumperState.cleared)
+          systemStreams0.err.write(clearScreenToEndBytes)
         pumperState = PumperState.cleared
       }
     }
@@ -190,6 +191,7 @@ private object MultilinePromptLogger {
       startTimeMillis: Long,
       consoleDims: () => (Option[Int], Option[Int])
   ) {
+    var lastRenderedPromptHash = 0
     private val statuses = collection.mutable.SortedMap.empty[Int, Status]
 
     private var headerPrefix = ""
@@ -257,9 +259,16 @@ private object MultilinePromptLogger {
     }
 
     def refreshPrompt(ending: Boolean = false): Unit = synchronized {
-      updatePromptBytes(ending)
 
-      systemStreams0.err.write(currentPromptBytes)
+      // For non-interactive jobs, we only want to print the new prompt if the contents
+      // differs from the previous prompt, since the prompts do not overwrite each other
+      // in log files and printing large numbers of identical prompts is spammy and useless
+      lazy val statusesHashCode = statuses.hashCode
+      if (consoleDims()._1.nonEmpty || statusesHashCode != lastRenderedPromptHash) {
+        lastRenderedPromptHash = statusesHashCode
+        updatePromptBytes(ending)
+        systemStreams0.err.write(currentPromptBytes)
+      }
     }
   }
 
@@ -305,14 +314,14 @@ private object MultilinePromptLogger {
     val header = renderHeader(headerPrefix, titleText, headerSuffix, maxWidth)
     val body0 = statuses
       .map {
-        case (threadId, status)  =>
+        case (threadId, status) =>
           if (now - status.removedTimeMillis > statusRemovalHideDelayMillis) ""
           else splitShorten(
             status.text + " " + renderSeconds(now - status.startTimeMillis),
             maxWidth
           )
       }
-      // For background or CI jobs,we do not need to preserve the height of the prompt
+      // For non-interactive jobs, we do not need to preserve the height of the prompt
       // between renderings, since consecutive prompts do not appear at the same place
       // in the log file. Thus we can aggressively remove all blank spacer lines
       .filter(_.nonEmpty || interactive)
@@ -328,7 +337,7 @@ private object MultilinePromptLogger {
         s"... and ${nonEmptyBodyCount - maxHeight + 1} more threads"
       )
 
-    // For background or CI jobs, the prompt won't be at the bottom of the terminal but
+    // For non-interactive jobs, the prompt won't be at the bottom of the terminal but
     // will instead be in the middle of a big log file with logs above and below, so we
     // need some kind of footer to tell the reader when the prompt ends and logs begin
     val footer = Option.when(!interactive)("=" * maxWidth).toList
