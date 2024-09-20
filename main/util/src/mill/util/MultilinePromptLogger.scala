@@ -17,87 +17,26 @@ private[mill] class MultilinePromptLogger(
 ) extends ColorLogger with AutoCloseable {
   import MultilinePromptLogger._
 
-  var termWidth: Option[Int] = None
-  var termHeight: Option[Int] = None
-  readTerminalDims()
+  private var termWidth: Option[Int] = None
+  private var termHeight: Option[Int] = None
+
+  for((w, h) <- readTerminalDims(terminfoPath)) {
+    termWidth = w
+    termHeight = h
+  }
 
   private val state = new State(
     titleText,
     enableTicker,
     systemStreams0,
     System.currentTimeMillis(),
-    () =>
-      Tuple3(
-        termWidth.getOrElse(defaultTermWidth),
-        termHeight.getOrElse(defaultTermHeight),
-        termWidth.isDefined
-      )
+    () => (termWidth, termHeight)
   )
 
-  val pipeIn = new PipedInputStream()
-  val pipeOut = new PipedOutputStream()
-  pipeIn.available()
-  pipeIn.connect(pipeOut)
-
-  val proxyOut = new ProxyStream.Output(pipeOut, ProxyStream.OUT)
-  val proxyErr = new ProxyStream.Output(pipeOut, ProxyStream.ERR)
-  val pumper = new ProxyStream.Pumper(pipeIn, systemStreams0.out, systemStreams0.err){
-    object PumperState extends Enumeration{
-      val init, prompt, cleared = Value
-    }
-    var pumperState = PumperState.init
-    override def preRead(src: InputStream): Unit = {
-      if (enableTicker && src.available() == 0){
-        systemStreams0.err.write(state.currentPromptBytes)
-        pumperState = PumperState.prompt
-      }
-    }
-
-    override def preWrite(): Unit = {
-      // Before any write, make sure we clear the terminal of any prompt that was
-      // written earlier and not yet cleared, so the following output can be written
-      // to a clean section of the terminal
-      if (pumperState != PumperState.cleared) systemStreams0.err.write(clearScreenToEndBytes)
-      pumperState = PumperState.cleared
-    }
-  }
-
-  new Thread(pumper).start()
-
-  val systemStreams = new SystemStreams(
-    new PrintStream(proxyOut),
-    new PrintStream(proxyErr),
-    systemStreams0.in
-  )
-
-  override def close(): Unit = {
-    state.refreshPrompt(ending = true)
-    stopped = true
-  }
+  private val streams = new Streams(enableTicker, systemStreams0, () => state.currentPromptBytes)
 
   @volatile var stopped = false
   @volatile var paused = false
-
-  override def withPaused[T](t: => T): T = {
-    paused = true
-    try t
-    finally paused = false
-  }
-
-  def readTerminalDims(): Unit = {
-    try {
-      val s"$termWidth0 $termHeight0" = os.read(terminfoPath)
-
-      termWidth = termWidth0.toInt match {
-        case -1 | 0 => None
-        case n => Some(n)
-      }
-      termHeight = termHeight0.toInt match {
-        case -1 | 0 => None
-        case n => Some(n)
-      }
-    } catch { case e: Exception => /*donothing*/ }
-  }
 
   val promptUpdaterThread = new Thread(() =>
     while (!stopped) {
@@ -108,7 +47,10 @@ private[mill] class MultilinePromptLogger(
 
       if (!paused) {
         synchronized {
-          readTerminalDims()
+          for((w, h) <- readTerminalDims(terminfoPath)) {
+            termWidth = w
+            termHeight = h
+          }
           state.refreshPrompt()
         }
       }
@@ -117,31 +59,39 @@ private[mill] class MultilinePromptLogger(
 
   if (enableTicker) promptUpdaterThread.start()
 
+  override def withPaused[T](t: => T): T = {
+    paused = true
+    try t
+    finally paused = false
+  }
+
   def info(s: String): Unit = synchronized { systemStreams.err.println(s) }
 
   def error(s: String): Unit = synchronized { systemStreams.err.println(s) }
-  override def globalTicker(s: String): Unit = {
-    state.updateGlobal(s)
-  }
-  override def endTicker(): Unit = synchronized {
-    state.updateCurrent(None)
-  }
 
-  def ticker(s: String): Unit = synchronized {
-    state.updateCurrent(Some(s))
-  }
+  override def globalTicker(s: String): Unit = synchronized { state.updateGlobal(s) }
 
-  def debug(s: String): Unit = synchronized {
-    if (debugEnabled) systemStreams.err.println(s)
-  }
+  override def endTicker(): Unit = synchronized { state.updateCurrent(None) }
+
+  def ticker(s: String): Unit = synchronized { state.updateCurrent(Some(s)) }
+
+  def debug(s: String): Unit = synchronized { if (debugEnabled) systemStreams.err.println(s) }
 
   override def rawOutputStream: PrintStream = systemStreams0.out
+
+  override def close(): Unit = {
+    streams.close()
+    state.refreshPrompt(ending = true)
+    stopped = true
+  }
+
+  def systemStreams = streams.systemStreams
 }
 
 private object MultilinePromptLogger {
 
-  val defaultTermWidth = 119
-  val defaultTermHeight = 50
+  private val defaultTermWidth = 119
+  private val defaultTermHeight = 50
   /**
    * How often to update the multiline status prompt on the terminal.
    * Too frequent is bad because it causes a lot of visual noise,
@@ -164,19 +114,76 @@ private object MultilinePromptLogger {
    * is even more distracting than changing the contents of a line, so we want to minimize
    * those occurrences even further.
    */
-  val statusRemovalDelayMillis = 500
-  val statusRemovalDelayMillis2 = 2500
+  val statusRemovalHideDelayMillis = 250
+
+  /**
+   * How long to wait before actually removing the blank line left by a removed status
+   * and reducing the height of the prompt.
+   */
+  val statusRemovalRemoveDelayMillis = 2000
 
   private[mill] case class Status(startTimeMillis: Long, text: String, var removedTimeMillis: Long)
 
   private val clearScreenToEndBytes: Array[Byte] = AnsiNav.clearScreen(0).getBytes
 
+  private class Streams(enableTicker: Boolean,
+                        systemStreams0: SystemStreams,
+                        currentPromptBytes: () => Array[Byte]){
+
+    // We force both stdout and stderr streams into a single `Piped*Stream` pair via
+    // `ProxyStream`, as we need to preserve the ordering of writes to each individual
+    // stream, and also need to know when *both* streams are quiescent so that we can
+    // print the prompt at the bottom
+    val pipeIn = new PipedInputStream()
+    val pipeOut = new PipedOutputStream()
+    pipeIn.available()
+    pipeIn.connect(pipeOut)
+    val proxyOut = new ProxyStream.Output(pipeOut, ProxyStream.OUT)
+    val proxyErr = new ProxyStream.Output(pipeOut, ProxyStream.ERR)
+    val systemStreams = new SystemStreams(
+      new PrintStream(proxyOut),
+      new PrintStream(proxyErr),
+      systemStreams0.in
+    )
+
+    val pumper = new ProxyStream.Pumper(pipeIn, systemStreams0.out, systemStreams0.err){
+      object PumperState extends Enumeration{
+        val init, prompt, cleared = Value
+      }
+      var pumperState = PumperState.init
+      override def preRead(src: InputStream): Unit = {
+        // Only bother printing the propmt after the streams have become quiescent
+        // and there is no more stuff to print. This helps us printing the prompt on
+        // every small write when most such prompts will get immediately over-written
+        // by subsequent writes
+        if (enableTicker && src.available() == 0){
+          systemStreams0.err.write(currentPromptBytes())
+          pumperState = PumperState.prompt
+        }
+      }
+
+      override def preWrite(): Unit = {
+        // Before any write, make sure we clear the terminal of any prompt that was
+        // written earlier and not yet cleared, so the following output can be written
+        // to a clean section of the terminal
+        if (pumperState != PumperState.cleared) systemStreams0.err.write(clearScreenToEndBytes)
+        pumperState = PumperState.cleared
+      }
+    }
+    val pumperThread = new Thread(pumper)
+    pumperThread.start()
+
+    def close() = {
+      pipeIn.close()
+      pipeOut.close()
+    }
+  }
   private class State(
       titleText: String,
       enableTicker: Boolean,
       systemStreams0: SystemStreams,
       startTimeMillis: Long,
-      consoleDims: () => (Int, Int, Boolean)
+      consoleDims: () => (Option[Int], Option[Int])
   ) {
     private val statuses = collection.mutable.SortedMap.empty[Int, Status]
 
@@ -190,7 +197,7 @@ private object MultilinePromptLogger {
       val now = System.currentTimeMillis()
       for (k <- statuses.keySet) {
         val removedTime = statuses(k).removedTimeMillis
-        if (now - removedTime > statusRemovalDelayMillis2) {
+        if (now - removedTime > statusRemovalRemoveDelayMillis) {
           statuses.remove(k)
         }
       }
@@ -199,11 +206,11 @@ private object MultilinePromptLogger {
       // the statuses to only show the header alone
       if (ending) statuses.clear()
 
-      val (consoleWidth, consoleHeight, consoleInteractive) = consoleDims()
+      val (termWidth0, termHeight0) = consoleDims()
       // don't show prompt for non-interactive terminal
       val currentPromptLines = renderPrompt(
-        consoleWidth,
-        consoleHeight,
+        termWidth0.getOrElse(defaultTermWidth),
+        termHeight0.getOrElse(defaultTermHeight),
         now,
         startTimeMillis,
         headerPrefix,
@@ -215,7 +222,7 @@ private object MultilinePromptLogger {
       val backUp = if (ending) "" else AnsiNav.up(currentPromptLines.length)
 
       val currentPromptStr =
-        if (!consoleInteractive) currentPromptLines.mkString("\n")
+        if (termWidth0.isEmpty) currentPromptLines.mkString("\n")
         else {
           AnsiNav.clearScreen(0) +
             currentPromptLines.mkString("\n") + "\n" +
@@ -251,6 +258,24 @@ private object MultilinePromptLogger {
     case n => s"${n}s"
   }
 
+  def readTerminalDims(terminfoPath: os.Path) = {
+    try {
+      val s"$termWidth0 $termHeight0" = os.read(terminfoPath)
+      Some(
+        Tuple2(
+          termWidth0.toInt match {
+            case -1 | 0 => None
+            case n => Some(n)
+          },
+          termHeight0.toInt match {
+            case -1 | 0 => None
+            case n => Some(n)
+          }
+        )
+      )
+    }catch{case e => None}
+  }
+
   def renderPrompt(
       consoleWidth: Int,
       consoleHeight: Int,
@@ -270,7 +295,7 @@ private object MultilinePromptLogger {
     val body0 = statuses
       .collect {
         case (threadId, status) =>
-          if (now - status.removedTimeMillis > statusRemovalDelayMillis) ""
+          if (now - status.removedTimeMillis > statusRemovalHideDelayMillis) ""
           else splitShorten(
             status.text + " " + renderSeconds(now - status.startTimeMillis),
             maxWidth

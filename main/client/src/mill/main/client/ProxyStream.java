@@ -149,7 +149,6 @@ public class ProxyStream{
                                 case ProxyStream.OUT: destOut.write(buffer, 0, offset); break;
                                 case ProxyStream.ERR: destErr.write(buffer, 0, offset); break;
                             }
-                            flush();
                         }
                     }
                 } catch (org.newsclub.net.unix.ConnectionResetSocketException e) {

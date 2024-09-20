@@ -231,13 +231,13 @@ object MultilinePromptLoggerTests extends TestSuite {
             // Not yet removed, should be shown
             0 -> Status(now - 1000, "hello1234567890abcefghijklmnopqrstuvwxyz" * 3, Long.MaxValue),
             // These are removed but are still within the `statusRemovalDelayMillis` window, so still shown
-            1 -> Status(now - 2000, "world", now - statusRemovalDelayMillis + 1),
-            2 -> Status(now - 3000, "i am cow", now - statusRemovalDelayMillis + 1),
+            1 -> Status(now - 2000, "world", now - statusRemovalHideDelayMillis + 1),
+            2 -> Status(now - 3000, "i am cow", now - statusRemovalHideDelayMillis + 1),
             // Removed but already outside the `statusRemovalDelayMillis` window, not shown, but not
             // yet removed, so rendered as blank lines to prevent terminal jumping around too much
-            3 -> Status(now - 4000, "hear me moo", now - statusRemovalDelayMillis2 + 1),
-            4 -> Status(now - 5000, "i weigh twice", now - statusRemovalDelayMillis2 + 1),
-            5 -> Status(now - 6000, "as much as you", now - statusRemovalDelayMillis2 + 1)
+            3 -> Status(now - 4000, "hear me moo", now - statusRemovalRemoveDelayMillis + 1),
+            4 -> Status(now - 5000, "i weigh twice", now - statusRemovalRemoveDelayMillis + 1),
+            5 -> Status(now - 6000, "as much as you", now - statusRemovalRemoveDelayMillis + 1)
           )
         )
         val expected = List(
