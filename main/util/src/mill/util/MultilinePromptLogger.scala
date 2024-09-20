@@ -17,8 +17,6 @@ private[mill] class MultilinePromptLogger(
 ) extends ColorLogger with AutoCloseable {
   import MultilinePromptLogger._
 
-  val termWidth0 = 119
-  val termHeight0 = 50
   var termWidth: Option[Int] = None
   var termHeight: Option[Int] = None
   readTerminalDims()
@@ -30,8 +28,8 @@ private[mill] class MultilinePromptLogger(
     System.currentTimeMillis(),
     () =>
       Tuple3(
-        termWidth.getOrElse(termWidth0),
-        termHeight.getOrElse(termHeight0),
+        termWidth.getOrElse(defaultTermWidth),
+        termHeight.getOrElse(defaultTermHeight),
         termWidth.isDefined
       )
   )
@@ -44,14 +42,23 @@ private[mill] class MultilinePromptLogger(
   val proxyOut = new ProxyStream.Output(pipeOut, ProxyStream.OUT)
   val proxyErr = new ProxyStream.Output(pipeOut, ProxyStream.ERR)
   val pumper = new ProxyStream.Pumper(pipeIn, systemStreams0.out, systemStreams0.err){
+    object PumperState extends Enumeration{
+      val init, prompt, cleared = Value
+    }
+    var pumperState = PumperState.init
     override def preRead(src: InputStream): Unit = {
-      if (src.available() == 0){
-        if (enableTicker) systemStreams0.err.write(state.currentPromptBytes)
+      if (enableTicker && src.available() == 0){
+        systemStreams0.err.write(state.currentPromptBytes)
+        pumperState = PumperState.prompt
       }
     }
 
     override def preWrite(): Unit = {
-      systemStreams0.err.write(state.writePreludeBytes)
+      // Before any write, make sure we clear the terminal of any prompt that was
+      // written earlier and not yet cleared, so the following output can be written
+      // to a clean section of the terminal
+      if (pumperState != PumperState.cleared) systemStreams0.err.write(clearScreenToEndBytes)
+      pumperState = PumperState.cleared
     }
   }
 
@@ -133,6 +140,8 @@ private[mill] class MultilinePromptLogger(
 
 private object MultilinePromptLogger {
 
+  val defaultTermWidth = 119
+  val defaultTermHeight = 50
   /**
    * How often to update the multiline status prompt on the terminal.
    * Too frequent is bad because it causes a lot of visual noise,
@@ -160,6 +169,8 @@ private object MultilinePromptLogger {
 
   private[mill] case class Status(startTimeMillis: Long, text: String, var removedTimeMillis: Long)
 
+  private val clearScreenToEndBytes: Array[Byte] = AnsiNav.clearScreen(0).getBytes
+
   private class State(
       titleText: String,
       enableTicker: Boolean,
@@ -172,8 +183,7 @@ private object MultilinePromptLogger {
     private var headerPrefix = ""
     // Pre-compute the prelude and current prompt as byte arrays so that
     // writing them out is fast, since they get written out very frequently
-    val writePreludeBytes: Array[Byte] =
-      AnsiNav.clearScreen(0).getBytes
+
     @volatile var currentPromptBytes: Array[Byte] = Array[Byte]()
 
     private def updatePromptBytes(ending: Boolean = false) = {
@@ -230,19 +240,12 @@ private object MultilinePromptLogger {
       updatePromptBytes()
     }
 
-    def writeWithPrompt[T](wrapped: OutputStream)(t: => T): T = synchronized {
-      if (enableTicker) wrapped.write(writePreludeBytes)
-      val res = t
-      if (enableTicker) wrapped.write(currentPromptBytes)
-      res
-    }
-
     def refreshPrompt(ending: Boolean = false): Unit = synchronized {
       updatePromptBytes(ending)
       if (enableTicker) systemStreams0.err.write(currentPromptBytes)
     }
-
   }
+
   private def renderSeconds(millis: Long) = (millis / 1000).toInt match {
     case 0 => ""
     case n => s"${n}s"
