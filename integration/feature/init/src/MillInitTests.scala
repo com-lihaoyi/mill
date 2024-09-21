@@ -18,6 +18,7 @@ object MillInitTests extends UtestIntegrationTestSuite {
       val downloaded = eval(("init", firstProj))
       println("downloaded.out: |" +downloaded.out.toString)
       println("downloaded.err: |" +downloaded.err.toString)
+
       downloaded.isSuccess ==> true
 
       val outDir = out("init")
