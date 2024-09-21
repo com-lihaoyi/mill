@@ -222,7 +222,7 @@ object Deps {
   }
 }
 
-def millVersion: T[String] = T { "0.12.0-RC2" }
+def millVersion: T[String] = T { VcsVersion.vcsState().format() }
 
 def millLastTag: T[String] = T {
   VcsVersion.vcsState().lastTag.getOrElse(
