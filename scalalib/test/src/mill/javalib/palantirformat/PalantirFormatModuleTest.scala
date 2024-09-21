@@ -15,7 +15,8 @@ object PalantirFormatModuleTest extends TestSuite {
       (root / "before", root / "after")
     }
 
-    test("javafmt") {
+    test("palantirformat") {
+
       assert(
         checkState(
           afterFormat(before / "google"),
@@ -31,12 +32,13 @@ object PalantirFormatModuleTest extends TestSuite {
         )
       )
 
-      intercept[RuntimeException] {
+      intercept[RuntimeException](
         afterFormat(before / "palantir", check = true)
-      }
+      )
     }
 
     test("formatAll") {
+
       assert(
         checkState(
           afterFormatAll(before / "google"),
@@ -48,9 +50,23 @@ object PalantirFormatModuleTest extends TestSuite {
         )
       )
 
-      intercept[RuntimeException] {
+      intercept[RuntimeException](
         afterFormatAll(before / "google", check = true)
-      }
+      )
+    }
+
+    test("example") {
+
+      intercept[RuntimeException](
+        afterFormat(before / "example", check = true)
+      )
+
+      assert(
+        checkState(
+          afterFormat(before / "example"),
+          after / "example"
+        )
+      )
     }
   }
 
