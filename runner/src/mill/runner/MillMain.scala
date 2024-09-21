@@ -34,7 +34,7 @@ object MillMain {
       (false, onError)
   }
 
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]): Unit = SystemStreams.withTopLevelSystemStreamProxy {
     val initialSystemStreams = new SystemStreams(System.out, System.err, System.in)
     // setup streams
     val (runnerStreams, cleanupStreams, bspLog) =
