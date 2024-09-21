@@ -8,12 +8,10 @@ object `package` extends RootModule with PalantirFormatModule {
 
 /** Usage
 
-> ./mill palantirformat --check                # check Java source files for formatting errors
-...checking format in java sources ...
-...src/A.java
-error...palantirformat aborted due to format error(s) (or invalid plugin settings/palantirformat options)
+> ./mill palantirformat                                                 # format all Java source files
+...formatting java sources ...
 
-> ./mill palantirformat                        # format all Java source files
+> ./mill mill.javalib.palantirformat.PalantirFormatModule/ __.sources   # format all Java source files in existing modules
 ...formatting java sources ...
 */
 
