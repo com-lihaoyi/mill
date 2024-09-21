@@ -11,10 +11,13 @@ import mill.scalalib.api.Versions
 import mill.main.client.OutFiles._
 import mill.main.client.CodeGenConstants.buildFileExtensions
 import mill.main.{BuildInfo, RootModule}
+import mill.runner.worker.ScalaCompilerWorker
+import mill.runner.worker.api.ScalaCompilerWorkerApi
 
 import scala.collection.immutable.SortedMap
 import scala.util.Try
 import mill.define.Target
+import mill.runner.worker.api.MillScalaParser
 
 /**
  * Mill module for pre-processing a Mill `build.mill` and related files and then
@@ -26,8 +29,9 @@ import mill.define.Target
 @internal
 abstract class MillBuildRootModule()(implicit
     baseModuleInfo: RootModule.Info,
-    millBuildRootModuleInfo: MillBuildRootModule.Info
-) extends RootModule() with ScalaModule {
+    millBuildRootModuleInfo: MillBuildRootModule.Info,
+    scalaCompilerResolver: ScalaCompilerWorker.Resolver
+) extends RootModule() with ScalaModule /*with WithScalaCompilerWorker*/ {
   override def bspDisplayName0: String = millBuildRootModuleInfo
     .projectRoot
     .relativeTo(millBuildRootModuleInfo.topLevelProjectRoot)
@@ -45,7 +49,7 @@ abstract class MillBuildRootModule()(implicit
    * @see [[generateScriptSources]]
    */
   def scriptSources: Target[Seq[PathRef]] = Task.Sources {
-    MillBuildRootModule.parseBuildFiles(millBuildRootModuleInfo)
+    MillBuildRootModule.parseBuildFiles(compilerWorker(), millBuildRootModuleInfo)
       .seenScripts
       .keys.map(PathRef(_))
       .toSeq
@@ -53,7 +57,11 @@ abstract class MillBuildRootModule()(implicit
 
   def parseBuildFiles: T[FileImportGraph] = Task {
     scriptSources()
-    MillBuildRootModule.parseBuildFiles(millBuildRootModuleInfo)
+    MillBuildRootModule.parseBuildFiles(compilerWorker(), millBuildRootModuleInfo)
+  }
+
+  private[runner] def compilerWorker: Worker[ScalaCompilerWorkerApi] = Task.Worker {
+    scalaCompilerResolver.resolve()
   }
 
   override def repositoriesTask: Task[Seq[Repository]] = {
@@ -122,9 +130,11 @@ abstract class MillBuildRootModule()(implicit
         parsed.seenScripts,
         T.dest,
         millBuildRootModuleInfo.enclosingClasspath,
+        scalaCompilerResolver.classpath,
         millBuildRootModuleInfo.topLevelProjectRoot,
         millBuildRootModuleInfo.output,
-        isScala3
+        isScala3,
+        compilerWorker()
       )
       Result.Success(Seq(PathRef(T.dest)))
     }
@@ -287,7 +297,8 @@ object MillBuildRootModule {
       topLevelProjectRoot0: os.Path,
       projectRoot: os.Path,
       output: os.Path,
-      enclosingClasspath: Seq[os.Path]
+      enclosingClasspath: Seq[os.Path],
+      scalaCompilerWorker: ScalaCompilerWorker.ResolvedWorker
   )(implicit baseModuleInfo: RootModule.Info) extends MillBuildRootModule()(
         implicitly,
         MillBuildRootModule.Info(
@@ -295,7 +306,8 @@ object MillBuildRootModule {
           projectRoot,
           output,
           topLevelProjectRoot0
-        )
+        ),
+        scalaCompilerWorker.constResolver
       ) {
 
     override lazy val millDiscover: Discover = baseModuleInfo.discover
@@ -308,8 +320,12 @@ object MillBuildRootModule {
       topLevelProjectRoot: os.Path
   )
 
-  def parseBuildFiles(millBuildRootModuleInfo: MillBuildRootModule.Info): FileImportGraph = {
+  def parseBuildFiles(
+      parser: MillScalaParser,
+      millBuildRootModuleInfo: MillBuildRootModule.Info
+  ): FileImportGraph = {
     FileImportGraph.parseBuildFiles(
+      parser,
       millBuildRootModuleInfo.topLevelProjectRoot,
       millBuildRootModuleInfo.projectRoot / os.up,
       millBuildRootModuleInfo.output
@@ -318,6 +334,7 @@ object MillBuildRootModule {
 
   class MillMiscInfo(
       enclosingClasspath: Seq[String],
+      compilerWorkerClasspath: Seq[String],
       projectRoot: String,
       output: String,
       topLevelProjectRoot: String,
@@ -329,6 +346,12 @@ object MillBuildRootModule {
       os.Path(output),
       os.Path(topLevelProjectRoot)
     )
+    implicit lazy val millRunnerScalaCompilerWorker: ScalaCompilerWorker.Resolver = {
+      ScalaCompilerWorker.Resolver(
+        compilerWorkerClasspath.map(os.Path(_)),
+        (home, cp) => ScalaCompilerWorker.reflect(cp)(using home)
+      )
+    }
     implicit lazy val millBaseModuleInfo: RootModule.Info = RootModule.Info(
       millBuildRootModuleInfo.projectRoot,
       null

@@ -4,14 +4,7 @@ import mill.api.internal
 import mill.util.Util.newLine
 
 import scala.collection.mutable
-
-@internal
-case class ImportTree(
-    prefix: Seq[(String, Int)],
-    mappings: Seq[(String, Option[String])],
-    start: Int,
-    end: Int
-)
+import mill.runner.worker.api.{MillScalaParser, ImportTree, ObjectData, Snip}
 
 /**
  * Fastparse parser that extends the Scalaparse parser to handle `build.mill` and
@@ -19,10 +12,19 @@ case class ImportTree(
  * statements into [[ImportTree]] structures for the [[MillBuildRootModule]] to use
  */
 @internal
-object Parsers {
+object Scala2Parsers extends MillScalaParser { outer =>
   import fastparse._
   import ScalaWhitespace._
   import scalaparse.Scala._
+
+  // def debugParsers: MillScalaParser = new:
+  //   def parseImportHooksWithIndices(stmts: Seq[String]): Seq[(String, Seq[ImportTree])] =
+  //     outer.parseImportHooksWithIndices(stmts)
+  //   def splitScript(rawCode: String, fileName: String): Either[String, (Seq[String], Seq[String])] =
+  //     val res = outer.splitScript(rawCode, fileName)
+  //     res.flatMap(success =>
+  //       Left(s"Debug: (actually successful): $success")
+  //     )
 
   def ImportSplitter[$: P]: P[Seq[ImportTree]] = {
     def IdParser = P((Id | Underscore).!).map(s => if (s(0) == '`') s.drop(1).dropRight(1) else s)
@@ -112,6 +114,79 @@ object Parsers {
       case f: Parsed.Failure => Left(formatFastparseError(fileName, rawCode, f))
       case s: Parsed.Success[(Option[Seq[String]], String, Seq[String])] =>
         Right(s.value._1.toSeq.flatten -> (Seq(s.value._2) ++ s.value._3))
+    }
+  }
+
+  override def parseObjectData(rawCode: String): Seq[ObjectData] = {
+    val instrument = new ObjectDataInstrument(rawCode)
+    // ignore errors in parsing, the file was already parsed successfully in `splitScript`
+    val _ = fastparse.parse(rawCode, CompilationUnit(using _), instrument = instrument)
+    instrument.objectData.toSeq
+  }
+
+  private case class Snippet(var text: String = null, var start: Int = -1, var end: Int = -1)
+      extends Snip
+
+  private case class ObjectDataImpl(obj: Snippet, name: Snippet, parent: Snippet)
+      extends ObjectData {
+    def endMarker: Option[Snip] = None
+    def finalStat: Option[(String, Snip)] = None // in scala 2 we do not need to inject anything
+  }
+
+  // Use Fastparse's Instrument API to identify top-level `object`s during a parse
+  // and fish out the start/end indices and text for parts of the code that we need
+  // to mangle and replace
+  private class ObjectDataInstrument(scriptCode: String) extends fastparse.internal.Instrument {
+    val objectData: mutable.Buffer[ObjectDataImpl] = mutable.Buffer.empty[ObjectDataImpl]
+    val current: mutable.ArrayDeque[(String, Int)] = collection.mutable.ArrayDeque[(String, Int)]()
+    def matches(stack: String*)(t: => Unit): Unit = if (current.map(_._1) == stack) { t }
+    def beforeParse(parser: String, index: Int): Unit = {
+      current.append((parser, index))
+      matches("CompilationUnit", "StatementBlock", "TmplStat", "BlockDef", "ObjDef") {
+        objectData.append(ObjectDataImpl(Snippet(), Snippet(), Snippet()))
+      }
+    }
+    def afterParse(parser: String, index: Int, success: Boolean): Unit = {
+      if (success) {
+        def saveSnippet(s: Snippet) = {
+          s.text = scriptCode.slice(current.last._2, index)
+          s.start = current.last._2
+          s.end = index
+        }
+        matches("CompilationUnit", "StatementBlock", "TmplStat", "BlockDef", "ObjDef", "`object`") {
+          saveSnippet(objectData.last.obj)
+        }
+        matches("CompilationUnit", "StatementBlock", "TmplStat", "BlockDef", "ObjDef", "Id") {
+          saveSnippet(objectData.last.name)
+        }
+        matches(
+          "CompilationUnit",
+          "StatementBlock",
+          "TmplStat",
+          "BlockDef",
+          "ObjDef",
+          "DefTmpl",
+          "AnonTmpl",
+          "NamedTmpl",
+          "Constrs",
+          "Constr",
+          "AnnotType",
+          "SimpleType",
+          "BasicType",
+          "TypeId",
+          "StableId",
+          "IdPath",
+          "Id"
+        ) {
+          if (objectData.last.parent.text == null) saveSnippet(objectData.last.parent)
+        }
+      } else {
+        matches("CompilationUnit", "StatementBlock", "TmplStat", "BlockDef", "ObjDef") {
+          objectData.remove(objectData.length - 1)
+        }
+      }
+
+      current.removeLast()
     }
   }
 }

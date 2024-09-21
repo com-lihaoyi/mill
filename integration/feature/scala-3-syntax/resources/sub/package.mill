@@ -1,0 +1,6 @@
+package build.sub
+
+import mill.*
+
+def subCommand(): Command[Unit] = Task.Command:
+  println("Hello, sub-world!")
