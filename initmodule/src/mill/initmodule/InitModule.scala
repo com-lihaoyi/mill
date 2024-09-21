@@ -2,7 +2,6 @@ package mill.initmodule
 
 import mill.define.{Discover, ExternalModule}
 import mill.{Command, Module, T}
-import os.Path
 
 import java.io.IOException
 import scala.util.{Failure, Success, Try, Using}
@@ -36,7 +35,7 @@ trait InitModule extends Module {
             val msg =
               "Run init with one of the following examples as an argument to download and extract example:\n"
             val message = msg + exampleIds.mkString("\n")
-            Success(exampleIds, message)
+            Success((exampleIds, message))
           case Some(value) =>
             val result: Try[(Seq[String], String)] = for {
               url <- examples.toMap.get(value).toRight(new Exception(
