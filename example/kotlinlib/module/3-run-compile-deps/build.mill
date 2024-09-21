@@ -12,7 +12,7 @@ object foo extends KotlinModule {
     ivy"org.eclipse.jetty:jetty-server:9.4.42.v20210604",
     ivy"org.eclipse.jetty:jetty-servlet:9.4.42.v20210604"
   )
-  def mainClass = Some("bar.Bar")
+  def mainClass = Some("bar.BarKt")
 }
 
 //// SNIPPET:BUILD2
