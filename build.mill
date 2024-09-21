@@ -720,7 +720,7 @@ object initmodule extends MillPublishScalaModule {
   override def resources = T.sources { super.resources() ++ Seq(exampleList()) }
 
   def exampleList: T[PathRef] = T {
-    val data:Seq[(os.SubPath,String)] = build.examplePathsWithArtifactName().map{ case (path,str) =>
+    val data:Seq[(os.SubPath,String)] = build.examplePathsWithArtifactName(millLastTag()).map{ case (path,str) =>
       val downloadUrl = build.Settings.projectUrl + "/releases/download/" + millLastTag() + "/" + str + ".zip"
       val subPath = path.subRelativeTo(T.workspace / "example")
       (subPath,downloadUrl)
@@ -965,20 +965,20 @@ def bootstrapLauncher = T {
   PathRef(outputPath)
 }
 
-def examplePathsWithArtifactName:Task[Seq[(os.Path,String)]] = T.task{
+def examplePathsWithArtifactName(forVersion:String):Task[Seq[(os.Path,String)]] = T.task{
   for {
     exampleMod <- build.example.exampleModules
     path = exampleMod.millSourcePath
   } yield {
     val example = path.subRelativeTo(T.workspace)
-    val artifactName = millVersion() + "-" + example.segments.mkString("-")
+    val artifactName = forVersion + "-" + example.segments.mkString("-")
     (path, artifactName)
   }
 }
 
 
 def exampleZips: T[Seq[PathRef]] = T{
-  examplePathsWithArtifactName().map{ case (examplePath, exampleStr) =>
+  examplePathsWithArtifactName(millVersion()).map{ case (examplePath, exampleStr) =>
     os.copy(examplePath, T.dest / exampleStr, createFolders = true)
     os.write(T.dest / exampleStr / ".mill-version", millLastTag())
     os.copy(bootstrapLauncher().path, T.dest / exampleStr / "mill")
