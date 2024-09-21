@@ -3,7 +3,6 @@ package mill.api
 import java.io.{InputStream, OutputStream, PrintStream}
 import mill.main.client.InputPumper
 
-import java.util.concurrent.atomic.AtomicInteger
 import scala.util.DynamicVariable
 
 /**
@@ -31,11 +30,13 @@ object SystemStreams {
    * stdout/stderr/stdin.
    */
   def isOriginal(): Boolean = {
-    (System.out eq original.out) &&
-    (System.err eq original.err) &&
-    (System.in eq original.in) &&
-    (Console.out eq original.out) &&
-    (Console.err eq original.err)
+    (Console.out eq original.out) && (Console.err eq original.err)
+    // We do not check System.* for equality because they are always overridden by
+    // `ThreadLocalStreams`
+    //    (System.out eq original.out) &&
+    //    (System.err eq original.err) &&
+    //    (System.in eq original.in) &&
+
 
     // We do not check `Console.in` for equality, because `Console.withIn` always wraps
     // `Console.in` in a `new BufferedReader` each time, and so it is impossible to check

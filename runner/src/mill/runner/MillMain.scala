@@ -250,7 +250,6 @@ object MillMain {
                         ).evaluate()
                       }
                     )
-
                     bspContext.foreach { ctx =>
                       repeatForBsp =
                         BspContext.bspServerHandle.lastResult == Some(
@@ -273,6 +272,7 @@ object MillMain {
                   loopRes
                 }
               }
+
               if (config.ringBell.value) {
                 if (success) println("\u0007")
                 else {
