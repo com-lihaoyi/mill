@@ -110,7 +110,6 @@ public class ProxyStream{
 
         public void preRead(InputStream src){}
 
-
         public void preWrite(){}
 
         public void run() {

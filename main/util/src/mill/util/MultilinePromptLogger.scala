@@ -176,11 +176,14 @@ private object MultilinePromptLogger {
         pumperState = PumperState.cleared
       }
     }
+
     val pumperThread = new Thread(pumper)
     pumperThread.start()
 
     def close(): Unit = {
-      pipeIn.close()
+      // Close the write side of the pipe first but do not close the read side, so
+      // the `pumperThread` can continue reading remaining text in the pipe buffer
+      // before terminating on its own
       pipeOut.close()
       pumperThread.join()
     }
