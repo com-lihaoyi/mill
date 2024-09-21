@@ -10,12 +10,24 @@ object MillInitTests extends UtestIntegrationTestSuite {
       import tester._
       val res = eval("init")
       res.isSuccess ==> true
-      val firstProj = res.out.split("\n")(1)
+
+      val exampleListOut = out("init")
+      val parsed = exampleListOut.json.arr.map(_.str)
+
+      val firstProj = parsed.head
       val downloaded = eval(("init", firstProj))
       downloaded.isSuccess ==> true
-      val paths = os.walk(path = workspacePath, maxDepth = 1)
+
+      val outDir = out("init")
+      val parsedOutDir = outDir.json.arr.map(_.str).head
+
+      val downloadedParentDir = os.Path(parsedOutDir)
+
+      val paths = os.walk(path = downloadedParentDir, maxDepth = 1)
       val extractedDir = paths.find(_.last.endsWith(firstProj.replace("/", "-")))
-      extractedDir.isDefined ==> true
+
+      assert(extractedDir.isDefined)
+
       assert(os.exists(extractedDir.get / "build.mill"))
     }
   }

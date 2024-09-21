@@ -397,17 +397,16 @@ trait MainModule extends BaseModule0 {
   /**
    * The `init` command downloads specified example from mill releases page and extracts it to working directory.
    */
-  def init(evaluator: Evaluator, args: String*): Command[String] = Target.command {
+  def init(evaluator: Evaluator, args: String*): Command[ujson.Value] = Target.command {
     RunScript.evaluateTasksNamed(
       evaluator,
       Seq("mill.initmodule.InitModule/init") ++ args,
       SelectMode.Separated
     ) match {
-      case Right((_, Right(Seq((result, _))))) => result.toString
-      case Left(failStr) => failStr
-      case Right((_, Left(failStr))) => failStr
+      case Left(failStr) => throw new Exception(failStr)
+      case Right((_, Right(Seq((_, Some((_, jsonableResult))))))) => jsonableResult
+      case Right((_, Left(failStr))) => throw new Exception(failStr)
     }
-
   }
 
   private type VizWorker = (
