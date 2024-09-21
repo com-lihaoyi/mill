@@ -115,9 +115,7 @@ object SystemStreams {
     val err = System.err
 
     try {
-      System.setIn(ThreadLocalStreams.In)
-      System.setOut(ThreadLocalStreams.Out)
-      System.setErr(ThreadLocalStreams.Err)
+      setTopLevelSystemStreamProxy()
       t
     } finally {
       System.setErr(err)
@@ -125,8 +123,19 @@ object SystemStreams {
       System.setIn(in)
     }
   }
+  def setTopLevelSystemStreamProxy() = {
+    // Make sure to initialize `Console` to cache references to the original
+    // `System.{in,out,err}` streams before we redirect them
+    Console.out
+    Console.err
+    Console.in
+    System.setIn(ThreadLocalStreams.In)
+    System.setOut(ThreadLocalStreams.Out)
+    System.setErr(ThreadLocalStreams.Err)
+  }
 
-  private object ThreadLocalStreams{
+
+  private[mill] object ThreadLocalStreams{
     val current = new DynamicVariable(original)
 
     object Out extends PrintStream(new ProxyOutputStream{ def delegate() = current.value.out})
