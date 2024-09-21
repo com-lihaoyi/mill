@@ -42,7 +42,7 @@ trait InitModule extends Module {
                 s"Example [$value] is not present in examples list"
               )).toTry
               path <- Try(mill.util.Util.downloadUnpackZip(url, os.rel)(T.workspace)).recoverWith(
-                _ => Failure(new IOException(s"Couldn't download example: [$value]"))
+                ex => Failure(new IOException(s"Couldn't download example: [$value];\n ${ex.getMessage}"))
               )
               _ = Try(os.remove(T.workspace / "tmp.zip"))
             } yield (Seq(path.path.toString()), s"Example downloaded to [${path.path.toString}]")
