@@ -61,13 +61,13 @@ trait PalantirFormatModule extends JavaModule with PalantirFormatBaseModule {
    * Formats Java source files.
    *
    * @param check if an exception should be raised when formatting errors are found
-   *              - when `true`, files are not formatted
+   *              - when set, files are not formatted
    * @param sources list of file or folder path(s) to be processed
    *                - path must be relative to [[millSourcePath]]
    *                - when empty, all [[sources]] are processed
    */
   def palantirformat(
-      @mainargs.arg check: Boolean = false,
+      check: mainargs.Flag = mainargs.Flag(value = false),
       sources: mainargs.Leftover[String]
   ): Command[Unit] = Task.Command {
 
@@ -77,7 +77,7 @@ trait PalantirFormatModule extends JavaModule with PalantirFormatBaseModule {
 
     PalantirFormatModule.palantirAction(
       _sources,
-      check,
+      check.value,
       palantirformatOptions(),
       palantirformatClasspath(),
       palantirformatJvmArgs()
@@ -92,11 +92,11 @@ object PalantirFormatModule extends ExternalModule with PalantirFormatBaseModule
    * Formats Java source files.
    *
    * @param check if an exception should be raised when formatting errors are found
-   *              - when `true`, files are not formatted
+   *              - when set, files are not formatted
    * @param sources list of [[JavaModule]] sources to process
    */
   def formatAll(
-      @mainargs.arg check: Boolean = false,
+      check: mainargs.Flag = mainargs.Flag(value = false),
       @mainargs.arg(positional = true) sources: Tasks[Seq[PathRef]]
   ): Command[Unit] = Task.Command {
 
@@ -104,7 +104,7 @@ object PalantirFormatModule extends ExternalModule with PalantirFormatBaseModule
 
     palantirAction(
       _sources,
-      check,
+      check.value,
       palantirformatOptions(),
       palantirformatClasspath(),
       palantirformatJvmArgs()
