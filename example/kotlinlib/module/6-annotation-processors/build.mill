@@ -24,7 +24,7 @@ object foo extends KotlinModule {
   }
 
   def kotlincOptions = super.kotlincOptions() ++ Seq(
-    s"-Xplugin=${processors().map(_.path).head}"
+    s"-Xplugin=${processors().head.path}"
   )
 
   object test extends KotlinModuleTests with TestModule.Junit5 {
@@ -34,11 +34,11 @@ object foo extends KotlinModule {
   }
 }
 
-/**
- * Usage
- *
- * > ./mill foo.test
- * Test foo.ProjectTestsimple started
- * Test foo.ProjectTestsimple finished...
- * ...
- */
+/** Usage
+
+> ./mill foo.test
+Test foo.ProjectTestsimple started
+Test foo.ProjectTestsimple finished...
+...
+
+*/
