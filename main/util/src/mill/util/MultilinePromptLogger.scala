@@ -246,6 +246,7 @@ private object MultilinePromptLogger {
     }
 
     def updateGlobal(s: String): Unit = synchronized {
+      statuses.clear()
       headerPrefix = s
     }
     def updateCurrent(sOpt: Option[String]): Unit = synchronized {
