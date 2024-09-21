@@ -135,16 +135,12 @@ trait KotlinModule extends JavaModule { outer =>
     ()
   }
 
-  override def docJar: T[PathRef] = T[PathRef] {
-    T.log.info("docJar task shouldn't be used for Kotlin modules, using dokkaJar instead")
-    dokkaJar()
-  }
-
   /**
-   * The documentation jar, containing all the Dokka files, for
-   * publishing to Maven Central
+   * The documentation jar, containing all the Dokka HTML files, for
+   * publishing to Maven Central. You can control Dokka version by using [[dokkaVersion]]
+   * and option by using [[dokkaOptions]].
    */
-  def dokkaJar: T[PathRef] = T[PathRef] {
+  override def docJar: T[PathRef] = T[PathRef] {
     val outDir = T.dest
 
     val dokkaDir = outDir / "dokka"
@@ -179,7 +175,7 @@ trait KotlinModule extends JavaModule { outer =>
   /**
    * Additional options to be used by the Dokka tool.
    * You should not set the `-outputDir` setting for specifying the target directory,
-   * as that is done in the [[dokkaJar]] target.
+   * as that is done in the [[docJar]] target.
    */
   def dokkaOptions: T[Seq[String]] = Task { Seq[String]() }
 

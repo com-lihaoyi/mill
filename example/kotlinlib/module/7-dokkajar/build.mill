@@ -1,3 +1,7 @@
+// To generate API documenation you can use the `docJar` task on the module you'd
+// like to create the documenation for, configured via `dokkaOptions`:
+
+//// SNIPPET:BUILD
 package build
 import mill._, kotlinlib._
 
@@ -7,13 +11,15 @@ object foo extends KotlinModule {
 
 }
 
+//// SNIPPET:END
+
 /** Usage
 
-> ./mill show foo.dokkaJar
+> ./mill show foo.docJar
 ...
 ...Generation completed successfully...
 
-> unzip -p out/foo/dokkaJar.dest/out.jar root/foo/index.html
+> unzip -p out/foo/docJar.dest/out.jar root/foo/index.html
 ...
 ...My Awesome Docs for class Foo...
 ...
