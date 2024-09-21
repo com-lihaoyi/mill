@@ -1,3 +1,5 @@
+package com.google.googlejavaformat.java.test
+
 object A {
 
 // plugin should ignore non Java file

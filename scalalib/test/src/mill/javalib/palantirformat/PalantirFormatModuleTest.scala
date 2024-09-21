@@ -1,56 +1,55 @@
 package mill
-package contrib.palantirjavaformat
+package javalib.palantirformat
 
 import mill.main.Tasks
 import mill.scalalib.ScalaModule
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest._
 
-object PalantirJavaFormatModuleTest extends TestSuite {
+object PalantirFormatModuleTest extends TestSuite {
 
   def tests: Tests = Tests {
 
-    // root folder for modules
-    val modules: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER"))
-
-    // root folder with directories containing state of sources after formatting for different test cases
-    val expected: os.Path = modules / os.up / "expected-sources"
+    val (before, after) = {
+      val root = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "javalib" / "palantirformat"
+      (root / "before", root / "after")
+    }
 
     test("javafmt") {
       assert(
         checkState(
-          afterFormat(modules / "google"),
-          expected / "google"
+          afterFormat(before / "google"),
+          after / "google"
         ),
         checkState(
-          afterFormat(modules / "palantir"),
-          expected / "palantir"
+          afterFormat(before / "palantir"),
+          after / "palantir"
         ),
         checkState(
-          afterFormat(modules / "palantir", sources = Seq("src/Main.java")),
-          expected / "palantir"
+          afterFormat(before / "palantir", sources = Seq("src/Main.java")),
+          after / "palantir"
         )
       )
 
       intercept[RuntimeException] {
-        afterFormat(modules / "palantir", check = true)
+        afterFormat(before / "palantir", check = true)
       }
     }
 
     test("formatAll") {
       assert(
         checkState(
-          afterFormatAll(modules / "google"),
-          expected / "google"
+          afterFormatAll(before / "google"),
+          after / "google"
         ),
         checkState(
-          afterFormatAll(modules / "palantir"),
-          expected / "palantir"
+          afterFormatAll(before / "palantir"),
+          after / "palantir"
         )
       )
 
       intercept[RuntimeException] {
-        afterFormatAll(modules / "google", check = true)
+        afterFormatAll(before / "google", check = true)
       }
     }
   }
@@ -62,7 +61,6 @@ object PalantirJavaFormatModuleTest extends TestSuite {
       case (actualFile, expectedFile) =>
         val actual = os.read(actualFile)
         val expected = os.read(expectedFile)
-        if (actual != expected) println(actualFile)
         actual == expected
     }
   }
@@ -74,14 +72,14 @@ object PalantirJavaFormatModuleTest extends TestSuite {
       sources: Seq[String] = Seq.empty
   ): Seq[os.Path] = {
 
-    object module extends TestBaseModule with ScalaModule with PalantirJavaFormatModule {
-      override def palantirjavaformatVersion: T[String] = version
+    object module extends TestBaseModule with ScalaModule with PalantirFormatModule {
+      override def palantirformatVersion: T[String] = version
       override def scalaVersion: T[String] = sys.props("MILL_SCALA_2_13_VERSION")
     }
 
     val eval = UnitTester(module, moduleRoot)
 
-    eval(module.javafmt(check, mainargs.Leftover(sources: _*))).fold(
+    eval(module.palantirformat(check, mainargs.Leftover(sources: _*))).fold(
       {
         case api.Result.Exception(cause, _) => throw cause
         case failure => throw failure
@@ -101,7 +99,7 @@ object PalantirJavaFormatModuleTest extends TestSuite {
     }
 
     val eval = UnitTester(module, modulesRoot)
-    eval(PalantirJavaFormatModule.formatAll(check, Tasks(Seq(module.sources)))).fold(
+    eval(PalantirFormatModule.formatAll(check, Tasks(Seq(module.sources)))).fold(
       {
         case api.Result.Exception(cause, _) => throw cause
         case failure => throw failure

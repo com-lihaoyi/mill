@@ -1,52 +1,20 @@
 package mill
-package contrib.palantirjavaformat
+package javalib.palantirformat
 
-import mill.api.Loose
-import mill.api.PathRef
+import mill.api.{Loose, PathRef}
 import mill.define.{Discover, ExternalModule}
 import mill.main.Tasks
-import mill.scalalib.DepSyntax
-import mill.scalalib.JavaModule
+import mill.scalalib.{CoursierModule, DepSyntax, JavaModule}
 import mill.util.Jvm
 
-/**
- * Formats Java source files using [[https://github.com/palantir/palantir-java-format Palantir Java Format]].
- */
-trait PalantirJavaFormatModule extends JavaModule {
-
-  /**
-   * Formats Java source files.
-   *
-   * @param check if an exception should be raised when formatting errors are found
-   *              - when `true`, files are not formatted
-   * @param sources list of file or folder path(s) to be processed
-   *                - path must be relative to [[millSourcePath]]
-   *                - when empty, all [[sources]] are processed
-   */
-  def javafmt(
-      @mainargs.arg check: Boolean = false,
-      sources: mainargs.Leftover[String]
-  ): Command[Unit] = Task.Command {
-
-    val _sources =
-      if (sources.value.isEmpty) this.sources()
-      else sources.value.iterator.map(rel => PathRef(millSourcePath / os.RelPath(rel)))
-
-    PalantirJavaFormatModule.palantirAction(
-      _sources,
-      check,
-      palantirjavaformatOptions(),
-      palantirjavaformatClasspath(),
-      palantirjavaformatJvmArgs()
-    )
-  }
+trait PalantirFormatBaseModule extends CoursierModule {
 
   /**
    * Classpath for running Palantir Java Format.
    */
-  def palantirjavaformatClasspath: T[Loose.Agg[PathRef]] = T {
+  def palantirformatClasspath: T[Loose.Agg[PathRef]] = T {
     defaultResolver().resolveDeps(
-      Agg(ivy"com.palantir.javaformat:palantir-java-format:${palantirjavaformatVersion()}")
+      Agg(ivy"com.palantir.javaformat:palantir-java-format:${palantirformatVersion()}")
     )
   }
 
@@ -54,7 +22,7 @@ trait PalantirJavaFormatModule extends JavaModule {
    * JVM arguments for running Palantir Java Format. Defaults to values prescribed in
    * "[[https://github.com/palantir/palantir-java-format/issues/548 Broken on Java 16]]".
    */
-  def palantirjavaformatJvmArgs: T[Seq[String]] = T {
+  def palantirformatJvmArgs: T[Seq[String]] = T {
     Seq(
       "--add-exports",
       "jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
@@ -70,20 +38,55 @@ trait PalantirJavaFormatModule extends JavaModule {
   }
 
   /**
-   * Path to options file for Palantir Java Format CLI. Defaults to `millSourcePath` `/` `palantirjavaformat.options`.
+   * Path to options file for Palantir Java Format CLI. Defaults to `millSourcePath` `/` `palantirformat.options`.
    */
-  def palantirjavaformatOptions: T[PathRef] = Task.Source(
-    millSourcePath / "palantirjavaformat.options"
+  def palantirformatOptions: T[PathRef] = Task.Source(
+    millSourcePath / "palantirformat.options"
   )
 
   /**
    * Palantir Java Format version. Defaults to `2.50.0`.
    */
-  def palantirjavaformatVersion: T[String] = T {
+  def palantirformatVersion: T[String] = T {
     "2.50.0"
   }
 }
-object PalantirJavaFormatModule extends ExternalModule with PalantirJavaFormatModule {
+
+/**
+ * Formats Java source files using [[https://github.com/palantir/palantir-java-format Palantir Java Format]].
+ */
+trait PalantirFormatModule extends JavaModule with PalantirFormatBaseModule {
+
+  /**
+   * Formats Java source files.
+   *
+   * @param check if an exception should be raised when formatting errors are found
+   *              - when `true`, files are not formatted
+   * @param sources list of file or folder path(s) to be processed
+   *                - path must be relative to [[millSourcePath]]
+   *                - when empty, all [[sources]] are processed
+   */
+  def palantirformat(
+      @mainargs.arg check: Boolean = false,
+      sources: mainargs.Leftover[String]
+  ): Command[Unit] = Task.Command {
+
+    val _sources =
+      if (sources.value.isEmpty) this.sources()
+      else sources.value.iterator.map(rel => PathRef(millSourcePath / os.RelPath(rel)))
+
+    PalantirFormatModule.palantirAction(
+      _sources,
+      check,
+      palantirformatOptions(),
+      palantirformatClasspath(),
+      palantirformatJvmArgs()
+    )
+  }
+}
+object PalantirFormatModule extends ExternalModule with PalantirFormatBaseModule with TaskModule {
+
+  override def defaultCommandName(): String = "formatAll"
 
   /**
    * Formats Java source files.
@@ -102,15 +105,15 @@ object PalantirJavaFormatModule extends ExternalModule with PalantirJavaFormatMo
     palantirAction(
       _sources,
       check,
-      palantirjavaformatOptions(),
-      palantirjavaformatClasspath(),
-      palantirjavaformatJvmArgs()
+      palantirformatOptions(),
+      palantirformatClasspath(),
+      palantirformatJvmArgs()
     )
   }
 
   lazy val millDiscover: Discover = Discover[this.type]
 
-  private[palantirjavaformat] def palantirAction(
+  private[palantirformat] def palantirAction(
       sources: IterableOnce[PathRef],
       check: Boolean,
       options: PathRef,
@@ -126,7 +129,7 @@ object PalantirJavaFormatModule extends ExternalModule with PalantirJavaFormatMo
 
     val mainArgs = palantirArgs(sources, check, options)
 
-    ctx.log.debug(s"running palantirjavaformat with $mainArgs")
+    ctx.log.debug(s"running palantirformat with $mainArgs")
 
     val exitCode = Jvm.callSubprocess(
       mainClass = "com.palantir.javaformat.java.Main",
@@ -139,9 +142,9 @@ object PalantirJavaFormatModule extends ExternalModule with PalantirJavaFormatMo
 
     if (check && exitCode != 0) {
       ctx.log.error(
-        "palantirjavaformat aborted due to format error(s) (or invalid plugin settings/palantirjavaformat options)"
+        "palantirformat aborted due to format error(s) (or invalid plugin settings/palantirformat options)"
       )
-      throw new RuntimeException(s"palantirjavaformat exit($exitCode)")
+      throw new RuntimeException(s"palantirformat exit($exitCode)")
     }
   }
 
@@ -179,9 +182,9 @@ object PalantirJavaFormatModule extends ExternalModule with PalantirJavaFormatMo
   }
 
   /**
-   * Path to options file for Palantir Java Format CLI at `T.workspace` `/` `palantirjavaformat.options`.
+   * Path to options file for Palantir Java Format CLI at `T.workspace` `/` `palantirformat.options`.
    */
-  override def palantirjavaformatOptions: T[PathRef] = Task.Source(
-    T.workspace / "palantirjavaformat.options"
+  override def palantirformatOptions: T[PathRef] = Task.Source(
+    T.workspace / "palantirformat.options"
   )
 }

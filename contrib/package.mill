@@ -242,9 +242,4 @@ object `package` extends RootModule {
     def compileModuleDeps = Seq(build.scalalib)
     def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib)
   }
-
-  object palantirjavaformat extends ContribModule {
-    def compileModuleDeps = Seq(build.scalalib)
-    def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib)
-  }
 }
