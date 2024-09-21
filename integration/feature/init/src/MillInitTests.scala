@@ -16,6 +16,8 @@ object MillInitTests extends UtestIntegrationTestSuite {
 
       val firstProj = parsed.head
       val downloaded = eval(("init", firstProj))
+      println("downloaded.out: |" +downloaded.out.toString)
+      println("downloaded.err: |" +downloaded.err.toString)
       downloaded.isSuccess ==> true
 
       val outDir = out("init")
@@ -32,3 +34,7 @@ object MillInitTests extends UtestIntegrationTestSuite {
     }
   }
 }
+//integration.feature[init].fork.testCached
+//integration.feature[init].local.testCached
+//integration.feature[init].server.testCached
+//integration.feature[init].test.testCached
