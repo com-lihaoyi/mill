@@ -154,7 +154,8 @@ object SystemStreams {
       override def available(): Int = delegate().available()
       override def reset(): Unit = delegate().reset()
       override def skip(n: Long): Long = delegate().skip(n)
-      override def skipNBytes(n: Long): Unit = delegate().skipNBytes(n)
+      // Not present in some versions of Java
+      //      override def skipNBytes(n: Long): Unit = delegate().skipNBytes(n)
       override def close(): Unit = delegate().close()
       override def transferTo(out: OutputStream): Long = delegate().transferTo(out)
     }
