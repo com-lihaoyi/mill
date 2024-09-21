@@ -686,6 +686,8 @@ object ZincWorkerImpl {
     import sbt.util.InterfaceUtil
 
     private val userCodeStartMarker = "//MILL_USER_CODE_START_MARKER"
+    private val splicedCodeStartMarker = "//MILL_SPLICED_CODE_START_MARKER"
+    private val splicedCodeEndMarker = "//MILL_SPLICED_CODE_END_MARKER"
 
     /** Transforms positions of problems if coming from a build file. */
     private def lookup(buildSources: Map[String, xsbti.Position => xsbti.Position])(
@@ -751,6 +753,9 @@ object ZincWorkerImpl {
       def userCode(offset: java.util.Optional[Integer]): Boolean =
         intValue(offset, -1) > topWrapperLen
 
+      def postSplice(offset: Int): Boolean =
+        existsSplicedMarker && offset > splicedMarkerLen
+
       def inner(pos0: xsbti.Position): xsbti.Position = {
         if userCode(pos0.startOffset()) || userCode(pos0.offset()) then {
           val IArray(line, offset, startOffset, endOffset, startLine, endLine) =
@@ -771,18 +776,18 @@ object ZincWorkerImpl {
               (markerLine, topWrapperLen)
 
           InterfaceUtil.position(
-            line0 = Some(line - markerLine),
+            line0 = Some(line - baseLine),
             content = pos0.lineContent(),
-            offset0 = Some(offset - topWrapperLen),
+            offset0 = Some(offset - baseOffset),
             pointer0 = InterfaceUtil.jo2o(pos0.pointer()),
             pointerSpace0 = InterfaceUtil.jo2o(pos0.pointerSpace()),
             sourcePath0 = originPath,
             sourceFile0 = originFile,
-            startOffset0 = Some(startOffset - topWrapperLen),
-            endOffset0 = Some(endOffset - topWrapperLen),
-            startLine0 = Some(startLine - markerLine),
+            startOffset0 = Some(startOffset - baseOffset),
+            endOffset0 = Some(endOffset - baseOffset),
+            startLine0 = Some(startLine - baseLine),
             startColumn0 = InterfaceUtil.jo2o(pos0.startColumn()),
-            endLine0 = Some(endLine - markerLine),
+            endLine0 = Some(endLine - baseLine),
             endColumn0 = InterfaceUtil.jo2o(pos0.endColumn())
           )
         } else {

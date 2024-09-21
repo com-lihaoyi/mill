@@ -1,0 +1,42 @@
+package build
+import $meta._
+import mill.{Task, Command, RootModule, Cross}, Task.Anon
+import $packages._
+import $file.foo.Box
+import $file.foo.{given Box[Int]}
+
+object `package` extends RootModule:
+
+  def someTopLevelCommand(): Command[Unit] = Task.Command:
+    println(s"Hello, world! ${summon[Box[Int]]}")
+  end someTopLevelCommand
+
+  given Cross.ToSegments[DayValue](d => List(d.toString))
+
+  given mainargs.TokensReader.Simple[DayValue] with
+    def shortName = "day"
+    def read(strs: Seq[String]) =
+      try
+        Right(DayValue.withName(strs.head))
+      catch
+        case _: Exception => Left("not a day")
+
+  type DayValue = DayValue.Value
+  object DayValue extends Enumeration:
+    val Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday = Value
+
+  object day extends Cross[DayModule](DayValue.values.toSeq)
+
+  def anyDay(myDay: DayValue): Command[Unit] = Task.Command:
+    println(s"Today is $myDay")
+  end anyDay
+
+  trait DayModule extends Cross.Module[DayValue]:
+    def myDay: DayValue = crossValue
+
+    def day(): Command[Unit] = Task.Command:
+      println(s"Today is $myDay")
+    end day
+  end DayModule
+
+end `package`

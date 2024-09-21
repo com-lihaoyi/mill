@@ -51,7 +51,7 @@ object RootModuleCompileErrorTests extends UtestIntegrationTestSuite {
       }
 
       locally {
-        assert(res.err.contains("""build.mill:11:22"""))
+        assert(res.err.contains("""build.mill:12:22"""))
         assert(res.err.contains("""Not found: type UnknownAfterModule"""))
         assert(res.err.contains("""object after extends UnknownAfterModule"""))
         assert(res.err.contains("""                     ^^^^^^^^^^^^^^^^^^"""))
@@ -72,7 +72,7 @@ object RootModuleCompileErrorTests extends UtestIntegrationTestSuite {
       }
 
       locally {
-        assert(res.err.replace('\\', '/').contains("""foo/package.mill:10:22"""))
+        assert(res.err.replace('\\', '/').contains("""foo/package.mill:11:22"""))
         assert(res.err.contains("""Not found: type UnknownAfterFooModule"""))
         assert(res.err.contains("""object after extends UnknownAfterFooModule"""))
         assert(res.err.contains("""                     ^^^^^^^^^^^^^^^^^^^^^"""))

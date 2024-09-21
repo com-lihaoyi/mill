@@ -2,8 +2,36 @@ package build.runner
 // imports
 import mill._
 import mill.T
+import mill.scalalib.PublishModule
+import mill.contrib.buildinfo.BuildInfo
 
-object `package` extends RootModule with build.MillPublishScalaModule {
+object `package` extends RootModule with build.MillPublishScalaModule with BuildInfo {
+
+  object `worker-api` extends build.MillPublishScalaModule {
+    // def ivyDeps = Agg(build.Deps.osLib)
+  }
+
+  object worker extends build.MillPublishScalaModule {
+    def moduleDeps = Seq(`worker-api`)
+    def ivyDeps = Agg(build.Deps.scalaCompiler(scalaVersion()))
+
+    private[runner] def bootstrapDeps = T.task {
+      val moduleDep = {
+        val m = artifactMetadata()
+        s"${m.group}:${m.id}:${m.version}"
+      }
+      val boundIvys = transitiveIvyDeps()
+      val nameFilter = "scala(.*)-compiler(.*)".r
+      Agg(moduleDep) ++ boundIvys.collect {
+        case dep if nameFilter.matches(dep.name) => s"${dep.organization}:${dep.name}:${dep.version}"
+      }
+    }
+
+    def reportDeps() = T.command {
+      bootstrapDeps().foreach(d => T.log.info(s"ivy dep: $d"))
+    }
+  }
+
   object client extends build.MillPublishJavaModule {
     def buildInfoPackageName = "mill.runner.client"
     def moduleDeps = Seq(build.main.client)
@@ -17,7 +45,18 @@ object `package` extends RootModule with build.MillPublishScalaModule {
     build.bsp,
     build.main.codesig,
     build.main.server,
-    client
+    client,
+    `worker-api`,
   )
   def skipPreviousVersions: T[Seq[String]] = Seq("0.11.0-M7")
+
+  def buildInfoPackageName = "mill.runner.worker"
+
+  def buildInfoMembers = Seq(
+    BuildInfo.Value(
+      "bootstrapDeps",
+      worker.bootstrapDeps().mkString(";"),
+      "Depedendencies used to bootstrap the scala compiler worker."
+    )
+  )
 }

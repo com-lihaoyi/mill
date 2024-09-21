@@ -35,22 +35,24 @@ abstract class RootModule()(implicit
 object RootModule {
   class Info(
       val enclosingClasspath: Seq[os.Path],
+      val compilerWorkerClasspath: Seq[os.Path],
       val projectRoot: os.Path,
       val output: os.Path,
       val topLevelProjectRoot: os.Path
   ) {
     def this(
         enclosingClasspath0: Seq[String],
+        compilerWorkerClasspath0: Seq[String],
         projectRoot0: String,
         output0: String,
         topLevelProjectRoot0: String
     ) = this(
       enclosingClasspath0.map(os.Path(_)),
+      compilerWorkerClasspath0.map(os.Path(_)),
       os.Path(projectRoot0),
       os.Path(output0),
       os.Path(topLevelProjectRoot0)
     )
-
     implicit val millMiscInfo: Info = this
   }
 

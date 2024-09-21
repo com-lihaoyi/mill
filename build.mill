@@ -827,7 +827,8 @@ object dist0 extends MillPublishJavaModule {
     build.contrib.playlib.testDep(),
     build.contrib.playlib.worker("2.8").testDep(),
     build.bsp.worker.testDep(),
-    build.testkit.testDep()
+    build.testkit.testDep(),
+    build.runner.worker.testDep(),
   )
 }
 
