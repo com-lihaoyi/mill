@@ -22,16 +22,16 @@ class PrefixLogger(
 
   val systemStreams = new SystemStreams(
     out = outStream0.getOrElse(
-//      new PrintStream(new LinePrefixOutputStream(
-//        infoColor(context).render,
+      new PrintStream(new LinePrefixOutputStream(
+        infoColor(context).render,
         logger0.systemStreams.out
-//      ))
+      ))
     ),
     err = errStream0.getOrElse(
-//      new PrintStream(new LinePrefixOutputStream(
-//        infoColor(context).render,
+      new PrintStream(new LinePrefixOutputStream(
+        infoColor(context).render,
         logger0.systemStreams.err
-//      ))
+      ))
     ),
     logger0.systemStreams.in
   )
