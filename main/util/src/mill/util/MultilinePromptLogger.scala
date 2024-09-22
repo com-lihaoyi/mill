@@ -1,7 +1,7 @@
 package mill.util
 
 import mill.api.SystemStreams
-import mill.main.client.ProxyStream
+import mill.main.client.{DebugLog, ProxyStream}
 
 import java.io._
 
@@ -139,19 +139,16 @@ private object MultilinePromptLogger {
     // `ProxyStream`, as we need to preserve the ordering of writes to each individual
     // stream, and also need to know when *both* streams are quiescent so that we can
     // print the prompt at the bottom
-    val pipeIn = new PipedInputStream()
-    val pipeOut = new PipedOutputStream()
-    pipeIn.available()
-    pipeIn.connect(pipeOut)
-    val proxyOut = new ProxyStream.Output(pipeOut, ProxyStream.OUT)
-    val proxyErr = new ProxyStream.Output(pipeOut, ProxyStream.ERR)
+    val pipe = new PipeStreams()
+    val proxyOut = new ProxyStream.Output(pipe.output, ProxyStream.OUT)
+    val proxyErr = new ProxyStream.Output(pipe.output, ProxyStream.ERR)
     val systemStreams = new SystemStreams(
       new PrintStream(proxyOut),
       new PrintStream(proxyErr),
       systemStreams0.in
     )
 
-    object pumper extends ProxyStream.Pumper(pipeIn, systemStreams0.out, systemStreams0.err) {
+    object pumper extends ProxyStream.Pumper(pipe.input, systemStreams0.out, systemStreams0.err) {
       object PumperState extends Enumeration {
         val init, prompt, cleared = Value
       }
@@ -180,11 +177,13 @@ private object MultilinePromptLogger {
     val pumperThread = new Thread(pumper)
     pumperThread.start()
 
+    Thread.sleep(100)
     def close(): Unit = {
       // Close the write side of the pipe first but do not close the read side, so
       // the `pumperThread` can continue reading remaining text in the pipe buffer
       // before terminating on its own
-      pipeOut.close()
+      ProxyStream.sendEnd(pipe.output)
+      pipe.output.close()
       pumperThread.join()
     }
   }
