@@ -1,7 +1,7 @@
 package mill.main.client;
 
 /**
- * Central place containing all the files that live inside the `out/mill-worker-*` folder
+ * Central place containing all the files that live inside the `out/mill-serer-*` folder
  * and documentation about what they do
  */
 public class ServerFiles {
@@ -9,14 +9,14 @@ public class ServerFiles {
     final public static String sandbox = "sandbox";
 
     /**
-     * Ensures only a single client is manipulating each mill-worker folder at
+     * Ensures only a single client is manipulating each mill-server folder at
      * a time, either spawning the server or submitting a command. Also used by
      * the server to detect when a client disconnects, so it can terminate execution
      */
     final public static String clientLock = "clientLock";
 
     /**
-     * Lock file ensuring a single server is running in a particular mill-worker
+     * Lock file ensuring a single server is running in a particular mill-server
      * folder. If multiple servers are spawned in the same folder, only one takes
      * the lock and the others fail to do so and terminate immediately.
      */
