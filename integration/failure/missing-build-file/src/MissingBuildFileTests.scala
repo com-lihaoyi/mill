@@ -11,6 +11,5 @@ object MissingBuildFileTests extends UtestIntegrationTestSuite {
       assert(!res.isSuccess)
       val s"${prefix}build.mill file not found in $msg. Are you in a Mill project folder?" = res.err
     }
-    getClass.getResource()
   }
 }
