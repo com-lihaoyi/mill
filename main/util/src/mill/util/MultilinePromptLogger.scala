@@ -1,7 +1,7 @@
 package mill.util
 
 import mill.api.SystemStreams
-import mill.main.client.{DebugLog, ProxyStream}
+import mill.main.client.ProxyStream
 
 import java.io._
 

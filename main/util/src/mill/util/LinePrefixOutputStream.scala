@@ -45,5 +45,5 @@ class LinePrefixOutputStream(
     buffer.reset()
     super.flush()
   }
-  override def close() = out.close()
+  override def close(): Unit = out.close()
 }

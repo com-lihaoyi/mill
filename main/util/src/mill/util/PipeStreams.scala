@@ -20,20 +20,19 @@ class PipeStreams(val bufferSize: Int = 1024) { pipe =>
   val input: InputStream = Input
   private object Input extends InputStream {
 
-    private[PipeStreams] def receive(b: Int): Unit = synchronized{
+    private[PipeStreams] def receive(b: Int): Unit = synchronized {
       checkStateForReceive()
       if (in == out) awaitSpace()
       if (in < 0) {
         in = 0
         out = 0
       }
-      buffer(in) = (b & 0xFF).toByte
+      buffer(in) = (b & 0xff).toByte
       in += 1
       if (in >= buffer.length) in = 0
     }
 
-
-    private[PipeStreams] def receive(b: Array[Byte], off0: Int, len: Int): Unit = synchronized{
+    private[PipeStreams] def receive(b: Array[Byte], off0: Int, len: Int): Unit = synchronized {
       var off = off0
       checkStateForReceive()
       var bytesToTransfer = len
@@ -46,8 +45,7 @@ class PipeStreams(val bufferSize: Int = 1024) { pipe =>
             in = 0
             out = 0
             nextTransferAmount = buffer.length - in
-          }
-          else {
+          } else {
             nextTransferAmount = out - in
           }
         }
@@ -61,11 +59,9 @@ class PipeStreams(val bufferSize: Int = 1024) { pipe =>
       }
     }
 
-
     private def checkStateForReceive(): Unit = {
       if (closedByWriter || closedByReader) throw new IOException("Pipe closed")
     }
-
 
     private def awaitSpace(): Unit = {
       while (in == out) {
@@ -83,8 +79,9 @@ class PipeStreams(val bufferSize: Int = 1024) { pipe =>
     private def notifyWaitCatch() = {
       notifyAll()
       try wait(1000)
-      catch { case ex: InterruptedException =>
-        throw new java.io.InterruptedIOException
+      catch {
+        case ex: InterruptedException =>
+          throw new java.io.InterruptedIOException
       }
     }
 
@@ -97,7 +94,7 @@ class PipeStreams(val bufferSize: Int = 1024) { pipe =>
         notifyWaitCatch()
       }
 
-      val ret = buffer(out) & 0xFF
+      val ret = buffer(out) & 0xff
       out += 1
       if (out >= buffer.length) out = 0
       if (in == out) in = -1 /* now empty */
@@ -105,7 +102,7 @@ class PipeStreams(val bufferSize: Int = 1024) { pipe =>
       ret
     }
 
-    override def read(b: Array[Byte], off: Int, len0: Int): Int = synchronized{
+    override def read(b: Array[Byte], off: Int, len0: Int): Int = synchronized {
       var len = len0
       if (b == null) throw new NullPointerException
       else if (off < 0 || len < 0 || len > b.length - off) throw new IndexOutOfBoundsException
@@ -134,7 +131,7 @@ class PipeStreams(val bufferSize: Int = 1024) { pipe =>
       rlen
     }
 
-    override def available(): Int = synchronized{
+    override def available(): Int = synchronized {
       if (in < 0) 0
       else if (in == out) buffer.length
       else if (in > out) in - out
@@ -148,25 +145,27 @@ class PipeStreams(val bufferSize: Int = 1024) { pipe =>
       }
     }
 
-    override def readNBytes(b: Array[Byte], off: Int, len: Int): Int = synchronized{ super.readNBytes(b, off, len) }
+    override def readNBytes(b: Array[Byte], off: Int, len: Int): Int =
+      synchronized { super.readNBytes(b, off, len) }
 
-    override def readNBytes(len: Int): Array[Byte] = synchronized{ super.readNBytes(len) }
+    override def readNBytes(len: Int): Array[Byte] = synchronized { super.readNBytes(len) }
 
-    override def readAllBytes(): Array[Byte] = synchronized{ super.readAllBytes() }
+    override def readAllBytes(): Array[Byte] = synchronized { super.readAllBytes() }
 
-    override def transferTo(out: OutputStream): Long = synchronized{ super.transferTo(out) }
+    override def transferTo(out: OutputStream): Long = synchronized { super.transferTo(out) }
   }
 
   val output: OutputStream = Output
   private object Output extends OutputStream {
     override def write(b: Int): Unit = synchronized { Input.receive(b) }
-    override def write(b: Array[Byte]): Unit = synchronized{ super.write(b) }
+    override def write(b: Array[Byte]): Unit = synchronized { super.write(b) }
     override def write(b: Array[Byte], off: Int, len: Int): Unit = synchronized {
       if (b == null) throw new NullPointerException
-      else if ((off < 0) || (off > b.length) || (len < 0) || ((off + len) > b.length) || ((off + len) < 0)) {
+      else if (
+        (off < 0) || (off > b.length) || (len < 0) || ((off + len) > b.length) || ((off + len) < 0)
+      ) {
         throw new IndexOutOfBoundsException
-      }
-      else if (len != 0) Input.receive(b, off, len)
+      } else if (len != 0) Input.receive(b, off, len)
     }
 
     override def flush(): Unit = Input.synchronized { Input.notifyAll() }

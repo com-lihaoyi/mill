@@ -37,7 +37,6 @@ object SystemStreams {
     //    (System.err eq original.err) &&
     //    (System.in eq original.in) &&
 
-
     // We do not check `Console.in` for equality, because `Console.withIn` always wraps
     // `Console.in` in a `new BufferedReader` each time, and so it is impossible to check
     // whether it is original or not. We just have to assume that it is kept in sync with
@@ -100,7 +99,6 @@ object SystemStreams {
     }
   }
 
-
   /**
    * Manages the global override of `System.{in,out,err}`. Overrides of those streams are
    * global, so we cannot just override them per-use-site in a multithreaded environment
@@ -123,7 +121,7 @@ object SystemStreams {
       System.setIn(in)
     }
   }
-  def setTopLevelSystemStreamProxy() = {
+  def setTopLevelSystemStreamProxy(): Unit = {
     // Make sure to initialize `Console` to cache references to the original
     // `System.{in,out,err}` streams before we redirect them
     Console.out
@@ -134,15 +132,14 @@ object SystemStreams {
     System.setErr(ThreadLocalStreams.Err)
   }
 
-
-  private[mill] object ThreadLocalStreams{
+  private[mill] object ThreadLocalStreams {
     val current = new DynamicVariable(original)
 
-    object Out extends PrintStream(new ProxyOutputStream{ def delegate() = current.value.out})
-    object Err extends PrintStream(new ProxyOutputStream{ def delegate() = current.value.err })
-    object In extends ProxyInputStream{ def delegate() = current.value.in}
+    object Out extends PrintStream(new ProxyOutputStream { def delegate() = current.value.out })
+    object Err extends PrintStream(new ProxyOutputStream { def delegate() = current.value.err })
+    object In extends ProxyInputStream { def delegate() = current.value.in }
 
-    abstract class ProxyOutputStream extends OutputStream{
+    abstract class ProxyOutputStream extends OutputStream {
       def delegate(): OutputStream
       override def write(b: Array[Byte], off: Int, len: Int): Unit = delegate().write(b, off, len)
       override def write(b: Array[Byte]): Unit = delegate().write(b)
@@ -150,12 +147,13 @@ object SystemStreams {
       override def flush(): Unit = delegate().flush()
       override def close(): Unit = delegate().close()
     }
-    abstract class ProxyInputStream extends InputStream{
+    abstract class ProxyInputStream extends InputStream {
       def delegate(): InputStream
       override def read(): Int = delegate().read()
       override def read(b: Array[Byte], off: Int, len: Int): Int = delegate().read(b, off, len)
       override def read(b: Array[Byte]): Int = delegate().read(b)
-      override def readNBytes(b: Array[Byte], off: Int, len: Int): Int = delegate().readNBytes(b, off, len)
+      override def readNBytes(b: Array[Byte], off: Int, len: Int): Int =
+        delegate().readNBytes(b, off, len)
       override def readNBytes(len: Int): Array[Byte] = delegate().readNBytes(len)
       override def readAllBytes(): Array[Byte] = delegate().readAllBytes()
       override def mark(readlimit: Int): Unit = delegate().mark(readlimit)

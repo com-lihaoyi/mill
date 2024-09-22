@@ -7,10 +7,9 @@ import scala.concurrent._
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.duration.Duration._
 
-
 object PipeStreamsTests extends TestSuite {
   val tests = Tests {
-    test("hello"){ // Single write and read works
+    test("hello") { // Single write and read works
       val pipe = new PipeStreams()
       val data = Array[Byte](1, 2, 3, 4, 5, 0, 3)
       assert(data.length < pipe.bufferSize)
@@ -22,20 +21,19 @@ object PipeStreamsTests extends TestSuite {
       out ==> data
     }
 
-    test("multiple"){ // Single sequential write and read works
+    test("multiple") { // Single sequential write and read works
       val pipe = new PipeStreams()
       val chunkSize = 10
       val chunkCount = 100
-      for(i <- Range(0, chunkCount)){
+      for (i <- Range(0, chunkCount)) {
         pipe.output.write(Array.fill(chunkSize)(i.toByte))
       }
 
-
-      for(i <- Range(0, chunkCount)){
+      for (i <- Range(0, chunkCount)) {
         pipe.input.readNBytes(chunkSize) ==> Array.fill(chunkSize)(i.toByte)
       }
     }
-    test("concurrentWriteRead"){ // Single sequential write and read works
+    test("concurrentWriteRead") { // Single sequential write and read works
       val pipe = new PipeStreams(bufferSize = 13)
       val chunkSize = 20
       val chunkCount = 100
@@ -58,42 +56,43 @@ object PipeStreamsTests extends TestSuite {
       val expected = Seq.tabulate(chunkCount)(i => Array.fill(chunkSize)(i.toByte).toSeq)
       result ==> expected
     }
-    test("multiThreadWrite"){ // multiple writes across different threads followed by read
+    test("multiThreadWrite") { // multiple writes across different threads followed by read
       val chunkSize = 10
       val chunkCount = 100
       val pipe = new PipeStreams()
       assert(chunkSize * chunkCount < pipe.bufferSize)
       val writerPool = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(40))
-      val writeFutures = for(i <- Range(0, chunkCount)) yield Future{
-        pipe.output.write(Array.fill(chunkSize)(i.toByte))
-      }(writerPool)
+      val writeFutures =
+        for (i <- Range(0, chunkCount)) yield Future {
+          pipe.output.write(Array.fill(chunkSize)(i.toByte))
+        }(writerPool)
 
       Await.ready(Future.sequence(writeFutures), Inf)
 
       val out = pipe.input.readNBytes(chunkSize * chunkCount)
 
       val expectedLists =
-        for(i <- Range(0, chunkCount))
+        for (i <- Range(0, chunkCount))
           yield Array.fill(chunkSize)(i.toByte).toSeq
 
       val sortedGroups = out.toSeq.grouped(chunkSize).toSeq.sortBy(_.head).toVector
 
       sortedGroups ==> expectedLists
     }
-    test("multiThreadWriteConcurrentRead"){ // multiple writes across different threads interleaved by reads
+    test("multiThreadWriteConcurrentRead") { // multiple writes across different threads interleaved by reads
       val chunkSize = 20
       val chunkCount = 100
       val pipe = new PipeStreams(bufferSize = 113)
       assert(chunkSize * chunkCount > pipe.bufferSize)
       val writerPool = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(40))
-      for(i <- Range(0, chunkCount)) yield Future{
+      for (i <- Range(0, chunkCount)) yield Future {
         pipe.output.write(Array.fill(chunkSize)(i.toByte))
       }(writerPool)
 
       val out = pipe.input.readNBytes(chunkSize * chunkCount)
 
       val expectedLists =
-        for(i <- Range(0, chunkCount))
+        for (i <- Range(0, chunkCount))
           yield Array.fill(chunkSize)(i.toByte).toSeq
 
       val sortedGroups = out.toSeq.grouped(chunkSize).toSeq.sortBy(_.head).toVector

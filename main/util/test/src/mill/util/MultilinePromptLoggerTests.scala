@@ -208,7 +208,11 @@ object MultilinePromptLoggerTests extends TestSuite {
           headerPrefix = "123/456",
           titleText = "__.compile.abcdefghijklmnopqrstuvwxyz1234567890",
           statuses = SortedMap(
-            0 -> Status(now - 1000, "#1 hello1234567890abcefghijklmnopqrstuvwxyz" * 3, Long.MaxValue),
+            0 -> Status(
+              now - 1000,
+              "#1 hello1234567890abcefghijklmnopqrstuvwxyz" * 3,
+              Long.MaxValue
+            ),
             1 -> Status(now - 2000, "#2 world", Long.MaxValue),
             2 -> Status(now - 3000, "#3 i am cow", Long.MaxValue),
             3 -> Status(now - 4000, "#4 hear me moo", Long.MaxValue),
@@ -239,7 +243,11 @@ object MultilinePromptLoggerTests extends TestSuite {
           titleText = "__.compile.abcdefghijklmnopqrstuvwxyz1234567890",
           statuses = SortedMap(
             // Not yet removed, should be shown
-            0 -> Status(now - 1000, "#1 hello1234567890abcefghijklmnopqrstuvwxyz" * 3, Long.MaxValue),
+            0 -> Status(
+              now - 1000,
+              "#1 hello1234567890abcefghijklmnopqrstuvwxyz" * 3,
+              Long.MaxValue
+            ),
             // These are removed but are still within the `statusRemovalDelayMillis` window, so still shown
             1 -> Status(now - 2000, "#2 world", now - statusRemovalHideDelayMillis + 1),
             2 -> Status(now - 3000, "#3 i am cow", now - statusRemovalHideDelayMillis + 1),
@@ -248,7 +256,11 @@ object MultilinePromptLoggerTests extends TestSuite {
             3 -> Status(now - 4000, "#4 hear me moo", now - statusRemovalRemoveDelayMillis + 1),
             4 -> Status(now - 5000, "#5i weigh twice", now - statusRemovalRemoveDelayMillis + 1),
             5 -> Status(now - 6000, "#6 as much as you", now - statusRemovalRemoveDelayMillis + 1),
-            6 -> Status(now - 7000, "#7 and I look good on the barbecue", now - statusRemovalRemoveDelayMillis + 1)
+            6 -> Status(
+              now - 7000,
+              "#7 and I look good on the barbecue",
+              now - statusRemovalRemoveDelayMillis + 1
+            )
           ),
           interactive = true
         )
@@ -276,7 +288,11 @@ object MultilinePromptLoggerTests extends TestSuite {
           titleText = "__.compile.abcdefghijklmnopqrstuvwxyz1234567890",
           statuses = SortedMap(
             // Not yet removed, should be shown
-            0 -> Status(now - 1000, "#1 hello1234567890abcefghijklmnopqrstuvwxyz" * 3, Long.MaxValue),
+            0 -> Status(
+              now - 1000,
+              "#1 hello1234567890abcefghijklmnopqrstuvwxyz" * 3,
+              Long.MaxValue
+            ),
             // These are removed but are still within the `statusRemovalDelayMillis` window, so still shown
             1 -> Status(now - 2000, "#2 world", now - statusRemovalHideDelayMillis + 1),
             2 -> Status(now - 3000, "#3 i am cow", now - statusRemovalHideDelayMillis + 1),
