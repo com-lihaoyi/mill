@@ -42,6 +42,8 @@ object `package` extends RootModule with Module {
     object builds extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "builds"))
     object linting extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "linting"))
     object module extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "module"))
+    object publishing extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "publishing"))
+    object testing extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "testing"))
   }
   object scalalib extends Module {
     object basic extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "basic"))
@@ -77,6 +79,16 @@ object `package` extends RootModule with Module {
         .replace("bar.BarTests.escaping", "bar.BarTestsescaping")
       case "4-builtin-commands" => line.replace("compile.dest/zinc", "compile.dest/kotlin.analysis.dummy")
       case "5-resources" => line.replace("FooTests.simple", "FooTestssimple")
+      case "1-test-suite" => line
+        .replace("mill bar.test bar.BarTests.hello", "kotest_filter_tests='hello' kotest_filter_specs='bar.BarTests' ./mill bar.test")
+        .replace("FooTests.hello", "FooTestshello")
+        .replace("FooTests.world", "FooTestsworld")
+        .replace("BarTests.hello", "BarTestshello")
+        .replace("BarTests.world", "BarTestsworld")
+        .replace("compiling 1 ... source...", "Compiling 1 ... source...")
+      case "2-test-deps" => line
+        .replace("qux.QuxTests.simple", "qux.QuxTestssimple")
+        .replace("baz.BazTests.simple", "baz.BazTestssimple")
       case _ => line
     }
   }
