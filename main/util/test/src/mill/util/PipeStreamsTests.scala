@@ -63,7 +63,7 @@ object PipeStreamsTests extends TestSuite {
       val chunkCount = 100
       val pipe = new PipeStreams()
       assert(chunkSize * chunkCount < pipe.bufferSize)
-      val writerPool = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(100))
+      val writerPool = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(40))
       val writeFutures = for(i <- Range(0, chunkCount)) yield Future{
         pipe.output.write(Array.fill(chunkSize)(i.toByte))
       }(writerPool)
@@ -85,7 +85,7 @@ object PipeStreamsTests extends TestSuite {
       val chunkCount = 100
       val pipe = new PipeStreams(bufferSize = 113)
       assert(chunkSize * chunkCount > pipe.bufferSize)
-      val writerPool = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(100))
+      val writerPool = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(40))
       for(i <- Range(0, chunkCount)) yield Future{
         pipe.output.write(Array.fill(chunkSize)(i.toByte))
       }(writerPool)
