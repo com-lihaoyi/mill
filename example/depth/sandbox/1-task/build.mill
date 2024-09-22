@@ -59,7 +59,7 @@ def externalPwdTask = Task { println(externalPwd.toString) }
 
 /** Usage
 > ./mill externalPwdTask
-.../out/mill-server-.../sandbox/sandbox
+.../out/mill-server/.../sandbox/sandbox
 */
 
 
