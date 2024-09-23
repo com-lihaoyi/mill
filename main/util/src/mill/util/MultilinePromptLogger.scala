@@ -68,7 +68,7 @@ private[mill] class MultilinePromptLogger(
   def error(s: String): Unit = synchronized { systemStreams.err.println(s) }
 
   override def globalTicker(s: String): Unit = synchronized { state.updateGlobal(s) }
-  override def clearAllTickers(): Unit = synchronized{ state.clearStatuses() }
+  override def clearAllTickers(): Unit = synchronized { state.clearStatuses() }
   override def endTicker(): Unit = synchronized { state.updateCurrent(None) }
 
   def ticker(s: String): Unit = synchronized { state.updateCurrent(Some(s)) }
