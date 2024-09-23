@@ -29,11 +29,11 @@ import scala.util.Try
  * import mill.contrib.scoverage.ScoverageModule
  *
  * Object foo extends ScoverageModule  {
- *   def scalaVersion = "2.12.9"
- *   def scoverageVersion = "1.4.0"
+ *   def scalaVersion = "2.13.15"
+ *   def scoverageVersion = "2.1.1"
  *
  *   object test extends ScoverageTests {
- *     def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.5")
+ *     def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.2.19")
  *     def testFrameworks = Seq("org.scalatest.tools.Framework")
  *   }
  * }
@@ -77,16 +77,12 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     if (isScala3()) {
       Agg.empty
     } else {
-      if (isScoverage2()) {
-        Agg(
-          ivy"org.scoverage:::scalac-scoverage-plugin:${sv}",
-          ivy"org.scoverage::scalac-scoverage-domain:${sv}",
-          ivy"org.scoverage::scalac-scoverage-serializer:${sv}",
-          ivy"org.scoverage::scalac-scoverage-reporter:${sv}"
-        )
-      } else {
-        Agg(ivy"org.scoverage:::scalac-scoverage-plugin:${sv}")
-      }
+      Agg(
+        ivy"org.scoverage:::scalac-scoverage-plugin:${sv}",
+        ivy"org.scoverage::scalac-scoverage-domain:${sv}",
+        ivy"org.scoverage::scalac-scoverage-serializer:${sv}",
+        ivy"org.scoverage::scalac-scoverage-reporter:${sv}"
+      )
     }
   }
 
@@ -94,14 +90,9 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     val sv = scalaVersion()
     val isSov2 = scoverageVersion().startsWith("2.")
     (sv.split('.'), isSov2) match {
+      case(_, false) => Result.Failure("Scoverage 1.x is no longer supported. Please use Scoverage 2.x")
       case (Array("3", "0" | "1", _*), _) => Result.Failure(
-          "Scala 3.0 and 3.1 is not supported by Scoverage. You have to update to at least Scala 3.2 and Scoverage 2.0"
-        )
-      case (Array("3", _*), false) => Result.Failure(
-          "Scoverage 1.x does not support Scala 3. You have to update to at least Scala 3.2 and Scoverage 2.0"
-        )
-      case (Array("2", "11", _*), true) => Result.Failure(
-          "Scoverage 2.x is not compatible with Scala 2.11. Consider using Scoverage 1.x or switch to a newer Scala version."
+          "Scala 3.0 and 3.1 is not supported by Scoverage. You have to update to at least Scala 3.2"
         )
       case _ =>
     }
@@ -113,31 +104,14 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     val sv = scoverageVersion()
     val millScalaVersion = BuildInfo.scalaVersion
 
-    if (sv.startsWith("1.")) {
-      // In Scoverage 1.x, the reporting API is included in the plugin jar
-      val scalaVersion = millScalaVersion.split("[.]", 4).toList.take(3) match {
-        // Scoverage 1 is not released for Scala > 2.13.8, but we don't need to compiler specific code,
-        // only the reporter API, which does not depend on the Compiler API, so using another full Scala version
-        // should be safe
-        case "2" :: "13" :: c :: _ if Try(c.toInt).getOrElse(0) > 8 =>
-          val v = "2.13.8"
-          T.log.outputStream.println(
-            s"Detected an unsupported Scala version (${millScalaVersion}). Using Scala version ${v} to resolve scoverage ${sv} reporting API."
-          )
-          v
-        case _ => millScalaVersion
-      }
-      Agg(ivy"org.scoverage:scalac-scoverage-plugin_${scalaVersion}:${sv}")
-    } else {
-      // we need to resolve with same Scala version used for Mill, not the project Scala version
-      val scalaBinVersion = ZincWorkerUtil.scalaBinaryVersion(millScalaVersion)
-      // In Scoverage 2.x, the reporting API is no longer bundled in the plugin jar
-      Agg(
-        ivy"org.scoverage:scalac-scoverage-domain_${scalaBinVersion}:${sv}",
-        ivy"org.scoverage:scalac-scoverage-serializer_${scalaBinVersion}:${sv}",
-        ivy"org.scoverage:scalac-scoverage-reporter_${scalaBinVersion}:${sv}"
-      )
-    }
+    // we need to resolve with same Scala version used for Mill, not the project Scala version
+    val scalaBinVersion = ZincWorkerUtil.scalaBinaryVersion(millScalaVersion)
+    // In Scoverage 2.x, the reporting API is no longer bundled in the plugin jar
+    Agg(
+      ivy"org.scoverage:scalac-scoverage-domain_${scalaBinVersion}:${sv}",
+      ivy"org.scoverage:scalac-scoverage-serializer_${scalaBinVersion}:${sv}",
+      ivy"org.scoverage:scalac-scoverage-reporter_${scalaBinVersion}:${sv}"
+    )
   }
 
   def scoverageToolsClasspath: T[Agg[PathRef]] = Task {
@@ -150,11 +124,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
   }
 
   def scoverageReportWorkerClasspath: T[Agg[PathRef]] = Task {
-    val isScov2 = isScoverage2()
-
-    val workerArtifact =
-      if (isScov2) "mill-contrib-scoverage-worker2"
-      else "mill-contrib-scoverage-worker"
+    val workerArtifact = "mill-contrib-scoverage-worker2"
 
     millProjectModule(
       workerArtifact,
@@ -209,9 +179,10 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
           if (isScala3()) {
             Seq(s"-coverage-out:${data().path.toIO.getPath()}")
           } else {
-            val base = s"-P:scoverage:dataDir:${data().path.toIO.getPath()}"
-            if (isScoverage2()) Seq(base, s"-P:scoverage:sourceRoot:${T.workspace}")
-            else Seq(base)
+            Seq(
+              s"-P:scoverage:dataDir:${data().path.toIO.getPath()}",
+              s"-P:scoverage:sourceRoot:${T.workspace}"
+            )
           }
 
         outer.scalacOptions() ++ extras

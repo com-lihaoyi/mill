@@ -110,7 +110,7 @@ object `package` extends RootModule {
     def compileModuleDeps = Seq(build.scalalib)
 
     def testTransitiveDeps =
-      super.testTransitiveDeps() ++ Seq(worker.testDep(), worker2.testDep())
+      super.testTransitiveDeps() ++ Seq(worker2.testDep())
 
     def testArgs = T {
       super.testArgs() ++
@@ -126,19 +126,6 @@ object `package` extends RootModule {
     def testModuleDeps =
       super.testModuleDeps ++
         Seq(build.scalalib, build.scalajslib, build.scalanativelib, build.contrib.buildinfo)
-
-    // Worker for Scoverage 1.x
-    object worker extends build.MillPublishScalaModule {
-      // scoverage is on an old Scala version which doesnt support scalafix
-      def fix(args: String*): Command[Unit] = T.command {}
-      def compileModuleDeps = Seq(build.main.api)
-      def moduleDeps = Seq(scoverage.api)
-      def testDepPaths = T { Seq(compile().classes) }
-
-      // compile-time only, need to provide the correct scoverage version at runtime
-      def compileIvyDeps = Agg(build.Deps.scalacScoveragePlugin)
-      def scalaVersion = build.Deps.scalaVersionForScoverageWorker1
-    }
 
     // Worker for Scoverage 2.0
     object worker2 extends build.MillPublishScalaModule {
