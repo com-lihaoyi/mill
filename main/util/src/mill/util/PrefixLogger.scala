@@ -8,12 +8,12 @@ import java.io.PrintStream
 
 class PrefixLogger(
     val logger0: ColorLogger,
-    context: String,
+    context0: String,
     tickerContext: String = "",
     outStream0: Option[PrintStream] = None,
     errStream0: Option[PrintStream] = None
 ) extends ColorLogger {
-
+  val context = if(context0 == "") "" else context0 + " "
   override def toString = s"PrefixLogger($logger0, ${literalize(context)}, ${literalize(tickerContext)})"
   def this(logger0: ColorLogger, context: String, tickerContext: String) =
     this(logger0, context, tickerContext, None, None)
@@ -27,13 +27,15 @@ class PrefixLogger(
     out = outStream0.getOrElse(
       new PrintStream(new LinePrefixOutputStream(
         infoColor(context).render,
-        logger0.systemStreams.out
+        logger0.systemStreams.out,
+        () => reportPrefix(context0)
       ))
     ),
     err = errStream0.getOrElse(
       new PrintStream(new LinePrefixOutputStream(
         infoColor(context).render,
-        logger0.systemStreams.err
+        logger0.systemStreams.err,
+        () => reportPrefix(context0)
       ))
     ),
     logger0.systemStreams.in
@@ -41,19 +43,32 @@ class PrefixLogger(
 
   override def rawOutputStream = logger0.rawOutputStream
 
-  override def info(s: String): Unit = logger0.info(context + s)
-  override def error(s: String): Unit = logger0.error(context + s)
+  override def info(s: String): Unit = {
+    reportPrefix(context0)
+    logger0.info(infoColor(context) + s)
+  }
+  override def error(s: String): Unit = {
+    reportPrefix(context0)
+    logger0.error(infoColor(context) + s)
+  }
   override def ticker(s: String): Unit = logger0.ticker(context + tickerContext + s)
-  override def debug(s: String): Unit = logger0.debug(context + s)
+  override def ticker(identifier: String, identSuffix: String, message: String): Unit = logger0.ticker(identifier, identSuffix, message)
+  override def debug(s: String): Unit = {
+    reportPrefix(context0)
+    logger0.debug(infoColor(context) + s)
+  }
   override def debugEnabled: Boolean = logger0.debugEnabled
 
   override def withOutStream(outStream: PrintStream): PrefixLogger = new PrefixLogger(
     logger0.withOutStream(outStream),
-    context,
-    tickerContext,
+    infoColor(context).toString(),
+    infoColor(tickerContext).toString(),
     outStream0 = Some(outStream),
     errStream0 = Some(systemStreams.err)
   )
+  override def reportPrefix(s: String) = {
+    logger0.reportPrefix(s)
+  }
   override def endTicker(): Unit = logger0.endTicker()
   override def globalTicker(s: String): Unit = logger0.globalTicker(s)
 }

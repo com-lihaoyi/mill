@@ -31,6 +31,11 @@ class MultiLogger(
     logger2.ticker(s)
   }
 
+  override def ticker(identifier: String, identSuffix: String, message: String): Unit = {
+    logger1.ticker(identifier, identSuffix, message)
+    logger2.ticker(identifier, identSuffix, message)
+  }
+
   def debug(s: String): Unit = {
     logger1.debug(s)
     logger2.debug(s)
@@ -39,6 +44,10 @@ class MultiLogger(
   override def close(): Unit = {
     logger1.close()
     logger2.close()
+  }
+  override def reportPrefix(s: String): Unit = {
+    logger1.reportPrefix(s)
+    logger2.reportPrefix(s)
   }
 
   override def rawOutputStream: PrintStream = systemStreams.out

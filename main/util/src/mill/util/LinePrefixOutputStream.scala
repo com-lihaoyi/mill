@@ -13,7 +13,8 @@ import java.io.{ByteArrayOutputStream, OutputStream}
  */
 class LinePrefixOutputStream(
     linePrefix: String,
-    out: OutputStream
+    out: OutputStream,
+    reportPrefix: () => Unit
 ) extends OutputStream {
 
   private[this] val linePrefixBytes = linePrefix.getBytes("UTF-8")
@@ -25,6 +26,7 @@ class LinePrefixOutputStream(
     if (isNewLine && linePrefixNonEmpty) {
       isNewLine = false
       buffer.write(linePrefixBytes)
+      reportPrefix()
     }
   }
 

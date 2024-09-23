@@ -50,6 +50,7 @@ private[mill] trait GroupEvaluator {
       group: Agg[Task[_]],
       results: Map[Task[_], TaskResult[(Val, Int)]],
       counterMsg: String,
+      identSuffix: String,
       zincProblemReporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
       logger: ColorLogger,
@@ -63,6 +64,7 @@ private[mill] trait GroupEvaluator {
     )
 
     val sideHashes = MurmurHash3.orderedHash(group.iterator.map(_.sideHash))
+
 
     val scriptsHash =
       if (disableCallgraph) 0
@@ -114,6 +116,7 @@ private[mill] trait GroupEvaluator {
                 }
               )
 
+
             methodCodeHashSignatures.get(expectedName) ++ constructorHashes
         }
         .flatten
@@ -130,10 +133,10 @@ private[mill] trait GroupEvaluator {
           paths = None,
           maybeTargetLabel = None,
           counterMsg = counterMsg,
+          identSuffix = identSuffix,
           zincProblemReporter,
           testReporter,
           logger,
-          terminal.task.asWorker.nonEmpty
         )
         GroupEvaluator.Results(newResults, newEvaluated.toSeq, null, inputsHash, -1)
 
@@ -180,10 +183,10 @@ private[mill] trait GroupEvaluator {
                   paths = Some(paths),
                   maybeTargetLabel = Some(targetLabel),
                   counterMsg = counterMsg,
+                  identSuffix = identSuffix,
                   zincProblemReporter,
                   testReporter,
                   logger,
-                  terminal.task.asWorker.nonEmpty
                 )
               }
 
@@ -221,10 +224,10 @@ private[mill] trait GroupEvaluator {
       paths: Option[EvaluatorPaths],
       maybeTargetLabel: Option[String],
       counterMsg: String,
+      identSuffix: String,
       reporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
       logger: mill.api.Logger,
-      isWorker: Boolean
   ): (Map[Task[_], TaskResult[(Val, Int)]], mutable.Buffer[Task[_]]) = {
 
     def computeAll(enableTicker: Boolean) = {
@@ -248,14 +251,14 @@ private[mill] trait GroupEvaluator {
       def withTicker[T](s: Option[String])(t: => T): T = s match {
         case None => t
         case Some(s) =>
-          logger.ticker(s)
+          logger.ticker(counterMsg, identSuffix, s)
           try t
           finally logger.endTicker()
       }
       withTicker(tickerPrefix) {
         val multiLogger = new ProxyLogger(resolveLogger(paths.map(_.log), logger)) {
           override def ticker(s: String): Unit = {
-            if (enableTicker) super.ticker(tickerPrefix.map(_ + " ").getOrElse("") + s)
+            if (enableTicker) super.ticker(s)
             else () // do nothing
           }
 

@@ -75,6 +75,22 @@ private[mill] class MultilinePromptLogger(
 
   def ticker(s: String): Unit = synchronized { state.updateCurrent(Some(s)) }
 
+  override def reportPrefix(s: String): Unit = synchronized {
+    if (!reportedIdentifiers(s)) {
+      reportedIdentifiers.add(s)
+      for ((identSuffix, message) <- seenIdentifiers.get(s)) {
+        systemStreams.err.println(infoColor(s"$identSuffix $message"))
+      }
+    }
+  }
+
+  private val seenIdentifiers = collection.mutable.Map.empty[String, (String, String)]
+  private val reportedIdentifiers = collection.mutable.Set.empty[String]
+  override def ticker(identifier: String, identSuffix: String, message: String): Unit = synchronized {
+    seenIdentifiers(identifier) = (identSuffix, message)
+    super.ticker(infoColor(identifier).toString(), identSuffix, message)
+
+  }
   def debug(s: String): Unit = synchronized { if (debugEnabled) systemStreams.err.println(s) }
 
   override def rawOutputStream: PrintStream = systemStreams0.out
@@ -229,7 +245,8 @@ private object MultilinePromptLogger {
         headerPrefix,
         titleText,
         statuses,
-        interactive = consoleDims()._1.nonEmpty
+        interactive = consoleDims()._1.nonEmpty,
+        ending = ending
       )
 
       val currentPromptStr =
@@ -308,7 +325,8 @@ private object MultilinePromptLogger {
       headerPrefix: String,
       titleText: String,
       statuses: collection.SortedMap[Int, Status],
-      interactive: Boolean
+      interactive: Boolean,
+      ending: Boolean = false
   ): List[String] = {
     // -1 to leave a bit of buffer
     val maxWidth = consoleWidth - 1
@@ -316,7 +334,7 @@ private object MultilinePromptLogger {
     val maxHeight = math.max(1, consoleHeight / 3 - 1)
     val headerSuffix = renderSeconds(now - startTimeMillis)
 
-    val header = renderHeader(headerPrefix, titleText, headerSuffix, maxWidth)
+    val header = renderHeader(headerPrefix, titleText, headerSuffix, maxWidth, ending)
     val body0 = statuses
       .map {
         case (threadId, status) =>
@@ -354,9 +372,10 @@ private object MultilinePromptLogger {
       headerPrefix0: String,
       titleText0: String,
       headerSuffix0: String,
-      maxWidth: Int
+      maxWidth: Int,
+      ending: Boolean = false
   ): String = {
-    val headerPrefixStr = s"  $headerPrefix0 "
+    val headerPrefixStr = if (ending) s"$headerPrefix0 " else s"  $headerPrefix0 "
     val headerSuffixStr = s" $headerSuffix0"
     val titleText = s" $titleText0 "
     // -12 just to ensure we always have some ==== divider on each side of the title
