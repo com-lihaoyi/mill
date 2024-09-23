@@ -1,6 +1,8 @@
 package mill.util
 
 import mill.api.SystemStreams
+import mill.main.client.DebugLog
+import pprint.Util.literalize
 
 import java.io.PrintStream
 
@@ -12,6 +14,7 @@ class PrefixLogger(
     errStream0: Option[PrintStream] = None
 ) extends ColorLogger {
 
+  override def toString = s"PrefixLogger($logger0, ${literalize(context)}, ${literalize(tickerContext)})"
   def this(logger0: ColorLogger, context: String, tickerContext: String) =
     this(logger0, context, tickerContext, None, None)
 

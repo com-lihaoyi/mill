@@ -2,6 +2,7 @@ package mill.util
 
 import mill.api.SystemStreams
 import mill.main.client.ProxyStream
+import pprint.Util.literalize
 
 import java.io._
 
@@ -15,6 +16,7 @@ private[mill] class MultilinePromptLogger(
     titleText: String,
     terminfoPath: os.Path
 ) extends ColorLogger with AutoCloseable {
+  override def toString = s"MultilinePromptLogger(${literalize(titleText)}"
   import MultilinePromptLogger._
 
   private var termDimensions: (Option[Int], Option[Int]) = (None, None)
@@ -141,7 +143,7 @@ private object MultilinePromptLogger {
     // print the prompt at the bottom
     val pipe = new PipeStreams()
     val proxyOut = new ProxyStream.Output(pipe.output, ProxyStream.OUT)
-    val proxyErr = new ProxyStream.Output(pipe.output, ProxyStream.ERR)
+    val proxyErr: ProxyStream.Output = new ProxyStream.Output(pipe.output, ProxyStream.ERR)
     val systemStreams = new SystemStreams(
       new PrintStream(proxyOut),
       new PrintStream(proxyErr),

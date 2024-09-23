@@ -30,6 +30,7 @@ class PipeStreams(val bufferSize: Int = 1024) { pipe =>
       buffer(in) = (b & 0xff).toByte
       in += 1
       if (in >= buffer.length) in = 0
+      notifyAll()
     }
 
     private[PipeStreams] def receive(b: Array[Byte], off0: Int, len: Int): Unit = synchronized {
@@ -57,6 +58,7 @@ class PipeStreams(val bufferSize: Int = 1024) { pipe =>
         in += nextTransferAmount
         if (in >= buffer.length) in = 0
       }
+      notifyAll()
     }
 
     private def checkStateForReceive(): Unit = {
@@ -168,7 +170,7 @@ class PipeStreams(val bufferSize: Int = 1024) { pipe =>
       } else if (len != 0) Input.receive(b, off, len)
     }
 
-    override def flush(): Unit = Input.synchronized { Input.notifyAll() }
+    override def flush(): Unit = ()
     override def close(): Unit = Input.receivedLast()
   }
 }

@@ -9,6 +9,7 @@ import java.io.PrintStream
  * used as a base class for wrappers that modify logging behavior.
  */
 class ProxyLogger(logger: Logger) extends Logger {
+  override def toString = s"ProxyLogger($logger)"
   def colored = logger.colored
 
   lazy val systemStreams = logger.systemStreams

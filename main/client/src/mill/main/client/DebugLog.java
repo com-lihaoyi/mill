@@ -9,12 +9,10 @@ import java.nio.file.*;
  */
 public class DebugLog{
     synchronized public static void println(String s){
+        Path path = Paths.get(System.getProperty("user.home"), "mill-debug-log.txt");
         try {
-            Files.writeString(
-                Paths.get(System.getProperty("user.home"), "mill-debug-log.txt"),
-                s + "\n",
-                StandardOpenOption.APPEND
-            );
+            if (!Files.exists(path)) Files.createFile(path);
+            Files.writeString(path, s + "\n", StandardOpenOption.APPEND);
         }catch (IOException e){
             throw new RuntimeException(e);
         }

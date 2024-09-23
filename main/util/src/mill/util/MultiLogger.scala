@@ -11,7 +11,7 @@ class MultiLogger(
     val inStream0: InputStream,
     override val debugEnabled: Boolean
 ) extends Logger {
-
+  override def toString = s"MultiLogger($logger1, $logger2)"
   lazy val systemStreams = new SystemStreams(
     new MultiStream(logger1.systemStreams.out, logger2.systemStreams.out),
     new MultiStream(logger1.systemStreams.err, logger2.systemStreams.err),

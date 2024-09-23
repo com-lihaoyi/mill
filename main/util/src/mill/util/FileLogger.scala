@@ -11,6 +11,7 @@ class FileLogger(
     override val debugEnabled: Boolean,
     append: Boolean = false
 ) extends Logger {
+  override def toString = s"FileLogger($file)"
   private[this] var outputStreamUsed: Boolean = false
 
   lazy val fileStream: PrintStream = {
