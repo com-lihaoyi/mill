@@ -17,7 +17,7 @@ trait InitModule extends Module {
 
   val msg =
     "Run init with one of the following examples as an argument to download and extract example:\n"
-  def moduleNotExistMsg(id:String): String = s"Example [$id] is not present in examples list"
+  def moduleNotExistMsg(id: String): String = s"Example [$id] is not present in examples list"
 
   /**
    * @return Seq of example names or Seq with path to parent dir where downloaded example was unpacked
@@ -36,9 +36,12 @@ trait InitModule extends Module {
               url <- examples.toMap.get(value).toRight(new Exception(
                 moduleNotExistMsg(value)
               )).toTry
-              path <- Try(mill.util.Util.downloadUnpackZip(url, os.rel)(T.workspace)).recoverWith(
-                ex => Failure(new IOException(s"Couldn't download example: [$value];\n ${ex.getMessage}"))
-              )
+              path <-
+                Try(mill.util.Util.downloadUnpackZip(url, os.rel)(T.workspace)).recoverWith(ex =>
+                  Failure(
+                    new IOException(s"Couldn't download example: [$value];\n ${ex.getMessage}")
+                  )
+                )
               _ = Try(os.remove(T.workspace / "tmp.zip"))
             } yield (Seq(path.path.toString()), s"Example downloaded to [${path.path.toString}]")
 
