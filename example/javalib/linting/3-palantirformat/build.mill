@@ -1,0 +1,26 @@
+package build
+
+import mill._
+import mill.javalib.palantirformat._
+
+object `package` extends RootModule with PalantirFormatModule {
+}
+
+/** See Also: src/A.java */
+
+/** Usage
+
+> ./mill palantirformat --check                                         # check should fail initially
+...checking format in java sources ...
+...src/A.java
+error: ...palantirformat aborted due to format error(s) (or invalid plugin settings/palantirformat options)
+
+> ./mill palantirformat                                                 # format all Java source files
+...formatting java sources ...
+
+> ./mill palantirformat --check                                         # check should succeed now
+...checking format in java sources ...
+
+> ./mill mill.javalib.palantirformat.PalantirFormatModule/ __.sources   # alternatively, use external module to check/format
+...formatting java sources ...
+*/
