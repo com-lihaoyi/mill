@@ -160,7 +160,6 @@ private object MultilinePromptLogger {
         // by subsequent writes
         if (enableTicker && src.available() == 0) {
           if (interactive()) {
-            DebugLog.println("prompt")
             systemStreams0.err.write(currentPromptBytes())
           }
           pumperState = PumperState.prompt
@@ -168,7 +167,6 @@ private object MultilinePromptLogger {
       }
 
       override def preWrite(): Unit = {
-        DebugLog.println("write")
         // Before any write, make sure we clear the terminal of any prompt that was
         // written earlier and not yet cleared, so the following output can be written
         // to a clean section of the terminal
