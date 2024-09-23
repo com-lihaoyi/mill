@@ -1,7 +1,7 @@
 package mill.util
 
 import mill.api.SystemStreams
-import mill.main.client.ProxyStream
+import mill.main.client.{DebugLog, ProxyStream}
 
 import java.io._
 
@@ -68,7 +68,7 @@ private[mill] class MultilinePromptLogger(
   def error(s: String): Unit = synchronized { systemStreams.err.println(s) }
 
   override def globalTicker(s: String): Unit = synchronized { state.updateGlobal(s) }
-
+  override def clearAllTickers(): Unit = synchronized{ state.clearStatuses() }
   override def endTicker(): Unit = synchronized { state.updateCurrent(None) }
 
   def ticker(s: String): Unit = synchronized { state.updateCurrent(Some(s)) }
@@ -159,12 +159,16 @@ private object MultilinePromptLogger {
         // every small write when most such prompts will get immediately over-written
         // by subsequent writes
         if (enableTicker && src.available() == 0) {
-          if (interactive()) systemStreams0.err.write(currentPromptBytes())
+          if (interactive()) {
+            DebugLog.println("prompt")
+            systemStreams0.err.write(currentPromptBytes())
+          }
           pumperState = PumperState.prompt
         }
       }
 
       override def preWrite(): Unit = {
+        DebugLog.println("write")
         // Before any write, make sure we clear the terminal of any prompt that was
         // written earlier and not yet cleared, so the following output can be written
         // to a clean section of the terminal
@@ -193,7 +197,7 @@ private object MultilinePromptLogger {
       startTimeMillis: Long,
       consoleDims: () => (Option[Int], Option[Int])
   ) {
-    var lastRenderedPromptHash = 0
+    private var lastRenderedPromptHash = 0
     private val statuses = collection.mutable.SortedMap.empty[Int, Status]
 
     private var headerPrefix = ""
@@ -247,10 +251,8 @@ private object MultilinePromptLogger {
 
     }
 
-    def updateGlobal(s: String): Unit = synchronized {
-      statuses.clear()
-      headerPrefix = s
-    }
+    def clearStatuses(): Unit = synchronized { statuses.clear() }
+    def updateGlobal(s: String): Unit = synchronized { headerPrefix = s }
     def updateCurrent(sOpt: Option[String]): Unit = synchronized {
       val threadId = Thread.currentThread().getId.toInt
 

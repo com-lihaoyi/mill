@@ -188,6 +188,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     )(ec)
     evaluateTerminals(leafCommands, _ => "")(ExecutionContexts.RunNow)
 
+    logger.clearAllTickers()
     val finishedOptsMap = terminals0
       .map(t => (t, Await.result(futures(t), duration.Duration.Inf)))
       .toMap

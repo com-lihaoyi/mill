@@ -333,7 +333,7 @@ object MillMain {
     } else {
       new MultilinePromptLogger(
         colored = colored,
-        enableTicker = enableTicker.getOrElse(mainInteractive),
+        enableTicker = enableTicker.getOrElse(true),
         infoColor = colors.info,
         errorColor = colors.error,
         systemStreams0 = streams,

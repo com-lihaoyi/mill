@@ -3,11 +3,11 @@ package mill.util
 import java.io.{IOException, InputStream, OutputStream}
 
 /**
- * Fork of `java.io.Piped{Input,Output}Stream` that allows reads and writes.
- * to come from separate threads. Really the same logic just with the assertions
- * on thread liveness removed, added some synchronization to ensure atomic
- * writes, and somewhat cleaned up as a single object rather than two loose
- * objects you have to connect together.
+ * Fork of `java.io.Piped{Input,Output}Stream` that allows writes to come from
+ * separate threads. Really the same logic just with the assertions on thread
+ * liveness removed, added some synchronization to ensure atomic writes, and
+ * somewhat cleaned up as a single object rather than two loose objects you have
+ * to connect together.
  */
 class PipeStreams(val bufferSize: Int = 1024) { pipe =>
 
