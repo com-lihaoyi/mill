@@ -65,7 +65,7 @@ object MillMain {
     if (Properties.isWin && System.console() != null)
       io.github.alexarchambault.windowsansi.WindowsAnsi.setup()
 
-    val (result, _) =
+    val (success, runnerState) =
       try main0(
           args = args,
           stateCache = RunnerState.empty,
@@ -78,11 +78,12 @@ object MillMain {
           initialSystemProperties = sys.props.toMap,
           systemExit = i => sys.exit(i)
         )
-      catch handleMillException(runnerStreams.err, ())
+      catch handleMillException(runnerStreams.err, RunnerState.empty)
       finally {
         cleanupStreams.foreach(_.close())
       }
-    System.exit(if (result) 0 else 1)
+    runnerState.close()
+    System.exit(if (success) 0 else 1)
   }
 
   def main0(

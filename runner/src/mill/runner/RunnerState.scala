@@ -7,6 +7,8 @@ import upickle.default.{ReadWriter, macroRW}
 import mill.eval.Evaluator
 import mill.main.RootModule
 
+import java.io.Closeable
+
 /**
  * This contains a list of frames each representing cached data from a single
  * level of `build.mill` evaluation:
@@ -31,13 +33,15 @@ case class RunnerState(
     bootstrapModuleOpt: Option[RootModule],
     frames: Seq[RunnerState.Frame],
     errorOpt: Option[String]
-) {
+) extends Closeable {
   def add(
       frame: RunnerState.Frame = RunnerState.Frame.empty,
       errorOpt: Option[String] = None
   ): RunnerState = {
     this.copy(frames = Seq(frame) ++ frames, errorOpt = errorOpt)
   }
+  def close(): Unit =
+    frames.foreach(_.close())
 }
 
 object RunnerState {
@@ -62,7 +66,7 @@ object RunnerState {
       runClasspath: Seq[PathRef],
       compileOutput: Option[PathRef],
       evaluator: Option[Evaluator]
-  ) {
+  ) extends Closeable {
 
     def loggedData: Frame.Logged = {
       Frame.Logged(
@@ -76,6 +80,9 @@ object RunnerState {
         runClasspath.hashCode()
       )
     }
+
+    def close(): Unit =
+      evaluator.foreach(_.close())
   }
 
   object Frame {

@@ -6,6 +6,8 @@ import mill.define.{BaseModule, Segments, Task}
 import mill.eval.Evaluator.{Results, formatFailing}
 import mill.util.{ColorLogger, MultiBiMap}
 
+import java.io.Closeable
+
 import scala.annotation.nowarn
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
@@ -14,7 +16,7 @@ import scala.util.DynamicVariable
 /**
  * Public facing API of the Mill evaluation logic.
  */
-trait Evaluator {
+trait Evaluator extends Closeable {
   def baseLogger: ColorLogger
   def rootModule: BaseModule
   def effectiveThreadCount: Int
