@@ -15,12 +15,9 @@ trait InitModule extends Module {
   type ExampleUrl = String
   type ExampleId = String
 
-  private def usingExamples[T](fun: Seq[(ExampleId, ExampleUrl)] => T): Try[T] =
-    Using(getClass.getClassLoader.getResourceAsStream("exampleList.txt")) { exampleList =>
-      val reader = upickle.default.reader[Seq[(ExampleId, ExampleUrl)]]
-      val exampleNames: Seq[(ExampleId, ExampleUrl)] = upickle.default.read(exampleList)(reader)
-      fun(exampleNames)
-    }
+  val msg =
+    "Run init with one of the following examples as an argument to download and extract example:\n"
+  def moduleNotExistMsg(id:String): String = s"Example [$id] is not present in examples list"
 
   /**
    * @return Seq of example names or Seq with path to parent dir where downloaded example was unpacked
@@ -32,14 +29,12 @@ trait InitModule extends Module {
         val result: Try[(Seq[String], String)] = exampleId match {
           case None =>
             val exampleIds: Seq[ExampleId] = examples.map { case (exampleId, _) => exampleId }
-            val msg =
-              "Run init with one of the following examples as an argument to download and extract example:\n"
             val message = msg + exampleIds.mkString("\n")
             Success((exampleIds, message))
           case Some(value) =>
             val result: Try[(Seq[String], String)] = for {
               url <- examples.toMap.get(value).toRight(new Exception(
-                s"Example [$value] is not present in examples list"
+                moduleNotExistMsg(value)
               )).toTry
               path <- Try(mill.util.Util.downloadUnpackZip(url, os.rel)(T.workspace)).recoverWith(
                 ex => Failure(new IOException(s"Couldn't download example: [$value];\n ${ex.getMessage}"))
@@ -58,5 +53,11 @@ trait InitModule extends Module {
           T.log.error(exception.getMessage)
           throw exception
       }
+    }
+  private def usingExamples[T](fun: Seq[(ExampleId, ExampleUrl)] => T): Try[T] =
+    Using(getClass.getClassLoader.getResourceAsStream("exampleList.txt")) { exampleList =>
+      val reader = upickle.default.reader[Seq[(ExampleId, ExampleUrl)]]
+      val exampleNames: Seq[(ExampleId, ExampleUrl)] = upickle.default.read(exampleList)(reader)
+      fun(exampleNames)
     }
 }
