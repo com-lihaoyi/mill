@@ -170,6 +170,26 @@
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Kotlin_Builtin_Commands.html">Built-in Commands</a>
   </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Kotlin_Module_Config.html">Kotlin Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Kotlin_Build_Examples.html">Kotlin Build Examples</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Testing_Kotlin_Projects.html">Testing Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Linting_Kotlin_Projects.html">Linting Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Publishing_Kotlin_Projects.html">Publishing Kotlin Projects</a>
+  </li>
 </ul>
   </li>
 
@@ -385,9 +405,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-27-adb19d</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-28-b06486</button>
   <div class="version-menu">
-    <a class="version is-current" href="Linting_Scala_Projects.html">0.12.0-RC2-27-adb19d</a>
+    <a class="version is-current" href="Linting_Scala_Projects.html">0.12.0-RC2-28-b06486</a>
     <a class="version is-missing" href="0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="0.11.10/index.html">0.11.10</a>
@@ -498,6 +518,74 @@ object Foo {
 <div class="sect1">
 <h2 id="_scoverage_code_coverage"><a class="anchor" href="#_scoverage_code_coverage"></a>Scoverage Code Coverage</h2>
 <div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-scalalib-linting-2-contrib-scoverage.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/scalalib/linting/2-contrib-scoverage">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, scalalib._
+import $ivy.`com.lihaoyi::mill-contrib-scoverage:`
+
+import mill.contrib.scoverage._
+
+object `package` extends RootModule with ScoverageModule {
+  def scoverageVersion = &quot;2.1.0&quot;
+  def scalaVersion = &quot;2.13.11&quot;
+  def ivyDeps = Agg(
+    ivy&quot;com.lihaoyi::scalatags:0.12.0&quot;,
+    ivy&quot;com.lihaoyi::mainargs:0.6.2&quot;
+  )
+
+  object test extends ScoverageTests /*with TestModule.Utest */{
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
+    def testFramework = &quot;utest.runner.Framework&quot;
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is a basic Mill build for a single <code>ScalaModule</code>, enhanced with
+Scoverage plugin. The root module extends the <code>ScoverageModule</code> and
+specifies the version of scoverage version to use here: <code>2.1.0</code>. This
+version can be changed if there is a newer one. Now you can call the
+scoverage targets to produce coverage reports.
+The sub test module extends <code>ScoverageTests</code> to transform the
+execution of the various testXXX targets to use scoverage and produce
+coverage data.
+This lets us perform the coverage operations but before that you
+must first run the test.
+<code>./mill test</code> then <code>./mill scoverage.consoleReport</code> and get your
+coverage into your console output.</p>
+</div>
+<div class="paragraph">
+<p>You can download this example project using the <strong>download</strong> link above
+if you want to try out the commands below yourself. The only requirement is
+that you have some version of the JVM installed; the <code>./mill</code> script takes
+care of any further dependencies that need to be downloaded.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill test # Run the tests and produce the coverage data
+...
++ foo.FooTests...simple ...  &lt;h1&gt;hello&lt;/h1&gt;
++ foo.FooTests...escaping ...  &lt;h1&gt;&amp;lt;hello&amp;gt;&lt;/h1&gt;
+
+&gt; ./mill resolve scoverage._ # List what tasks are available to run from scoverage
+...
+scoverage.consoleReport
+...
+scoverage.htmlReport
+...
+scoverage.xmlCoberturaReport
+...
+scoverage.xmlReport
+...
+
+&gt; ./mill scoverage.consoleReport
+...
+Statement coverage.: 16.67%
+Branch coverage....: 100.00%</code></pre>
+</div>
+</div>
 <div class="paragraph">
 <p>Mill supports Scala code coverage analysis via the Scoverage contrib plugin. See the
 contrib plugin documentation for more details:</p>

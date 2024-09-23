@@ -170,6 +170,26 @@
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="Kotlin_Builtin_Commands.html">Built-in Commands</a>
   </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Kotlin_Module_Config.html">Kotlin Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Kotlin_Build_Examples.html">Kotlin Build Examples</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Testing_Kotlin_Projects.html">Testing Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Linting_Kotlin_Projects.html">Linting Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Publishing_Kotlin_Projects.html">Publishing Kotlin Projects</a>
+  </li>
 </ul>
   </li>
 
@@ -385,9 +405,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-27-adb19d</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-28-b06486</button>
   <div class="version-menu">
-    <a class="version is-current" href="Bundled_Libraries.html">0.12.0-RC2-27-adb19d</a>
+    <a class="version is-current" href="Bundled_Libraries.html">0.12.0-RC2-28-b06486</a>
     <a class="version is-missing" href="0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="0.11.10/index.html">0.11.10</a>
@@ -440,7 +460,7 @@ as part of its <a href="Mill_Sandboxing.html" class="xref page">Mill Sandboxing<
 interference between tasks:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-external-libraries-1-oslib.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/external/libraries/1-oslib">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-depth-libraries-1-oslib.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/depth/libraries/1-oslib">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
@@ -526,7 +546,7 @@ need to be recomputed</p>
 collections types (<code>Seq</code>s, <code>List</code>s, <code>Tuple</code>s, etc.) are serializable by default.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-external-libraries-2-upickle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/external/libraries/2-upickle">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-depth-libraries-2-upickle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/depth/libraries/2-upickle">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
@@ -659,7 +679,7 @@ are downloaded once and cached for later use.</p>
 compile the Remote APIs source code as part of our build:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-external-libraries-3-requests.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/external/libraries/3-requests">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-depth-libraries-3-requests.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/depth/libraries/3-requests">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
@@ -718,19 +738,19 @@ Analyzing: ...
 ...
 INFO: Build completed successfully...
 [
-  &quot;ref:.../bazel-out/darwin_arm64-fastbuild/bin/build/bazel/semver/libsemver_proto-speed.jar&quot;,
-  &quot;ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/com_google_protobuf/libduration_proto-speed.jar&quot;,
-  &quot;ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/com_google_protobuf/libtimestamp_proto-speed.jar&quot;,
-  &quot;ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/com_google_protobuf/libwrappers_proto-speed.jar&quot;,
-  &quot;ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/googleapis/libgoogle_api_http_proto-speed.jar&quot;,
-  &quot;ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/com_google_protobuf/libdescriptor_proto-speed.jar&quot;,
-  &quot;ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/googleapis/libgoogle_api_annotations_proto-speed.jar&quot;,
-  &quot;ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/com_google_protobuf/libany_proto-speed.jar&quot;,
-  &quot;ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/googleapis/libgoogle_rpc_status_proto-speed.jar&quot;,
-  &quot;ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/com_google_protobuf/libempty_proto-speed.jar&quot;,
-  &quot;ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/googleapis/libgoogle_longrunning_operations_proto-speed.jar&quot;,
-  &quot;ref:.../bazel-out/darwin_arm64-fastbuild/bin/build/bazel/remote/execution/v2/libremote_execution_proto-speed.jar&quot;,
-  &quot;ref:.../bazel-out/darwin_arm64-fastbuild/bin/build/bazel/remote/execution/v2/remote_execution_proto-speed-src.jar&quot;
+  &quot;ref:.../bazel-out/...fastbuild/bin/build/bazel/semver/libsemver_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libduration_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libtimestamp_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libwrappers_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_api_http_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libdescriptor_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_api_annotations_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libany_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_rpc_status_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libempty_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_longrunning_operations_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/build/bazel/remote/execution/v2/libremote_execution_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/build/bazel/remote/execution/v2/remote_execution_proto-speed-src.jar&quot;
 ]</code></pre>
 </div>
 </div>
@@ -742,19 +762,19 @@ the Bazel invocation are skipped and the earlier output directly and immediately
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show compiledRemoteApis
 [
-  &quot;ref:.../bazel-out/darwin_arm64-fastbuild/bin/build/bazel/semver/libsemver_proto-speed.jar&quot;,
-  &quot;ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/com_google_protobuf/libduration_proto-speed.jar&quot;,
-  &quot;ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/com_google_protobuf/libtimestamp_proto-speed.jar&quot;,
-  &quot;ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/com_google_protobuf/libwrappers_proto-speed.jar&quot;,
-  &quot;ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/googleapis/libgoogle_api_http_proto-speed.jar&quot;,
-  &quot;ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/com_google_protobuf/libdescriptor_proto-speed.jar&quot;,
-  &quot;ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/googleapis/libgoogle_api_annotations_proto-speed.jar&quot;,
-  &quot;ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/com_google_protobuf/libany_proto-speed.jar&quot;,
-  &quot;ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/googleapis/libgoogle_rpc_status_proto-speed.jar&quot;,
-  &quot;ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/com_google_protobuf/libempty_proto-speed.jar&quot;,
-  &quot;ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/googleapis/libgoogle_longrunning_operations_proto-speed.jar&quot;,
-  &quot;ref:.../bazel-out/darwin_arm64-fastbuild/bin/build/bazel/remote/execution/v2/libremote_execution_proto-speed.jar&quot;,
-  &quot;ref:.../bazel-out/darwin_arm64-fastbuild/bin/build/bazel/remote/execution/v2/remote_execution_proto-speed-src.jar&quot;
+  &quot;ref:.../bazel-out/...fastbuild/bin/build/bazel/semver/libsemver_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libduration_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libtimestamp_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libwrappers_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_api_http_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libdescriptor_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_api_annotations_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libany_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_rpc_status_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libempty_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_longrunning_operations_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/build/bazel/remote/execution/v2/libremote_execution_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/build/bazel/remote/execution/v2/remote_execution_proto-speed-src.jar&quot;
 ]</code></pre>
 </div>
 </div>
@@ -792,7 +812,7 @@ servers, and so on. So this works out surprisingly well in practice.</p>
 are run from the command line.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-external-libraries-4-mainargs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/external/libraries/4-mainargs">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-depth-libraries-4-mainargs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/depth/libraries/4-mainargs">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
@@ -831,47 +851,6 @@ supports parsing OS-Lib <code>os.Path</code>s from the command line:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill commandTakingPath --path foo/bar/baz.txt
 ...foo/bar/baz.txt</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_custom_main_argument_parsers"><a class="anchor" href="#_custom_main_argument_parsers"></a>Custom Main Argument Parsers</h3>
-<div class="paragraph">
-<p>You can define your own custom types and use them as command line arguments,
-as long as you define an <code>implicit mainargs.TokensReader[T]</code> for that type.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">class LettersOrDigits(val value: String)
-
-implicit object LettersOrDigitsTokensReader
-  extends mainargs.TokensReader.Simple[LettersOrDigits] {
-  def shortName = &quot;letters-or-digits&quot;
-  def read(strs: Seq[String]) = {
-    if (strs.last.forall(_.isLetterOrDigit)) Right(new LettersOrDigits(strs.last))
-    else Left(&quot;non-letter/digit characters&quot;)
-  }
-}
-
-def commandCustomArg(custom: LettersOrDigits) = Task.Command{
-  println(&quot;hello &quot; + custom.value)
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Above, we show an example where we have a custom <code>class LettersOrDigits</code> type,
-where the <code>implicit object LettersOrDigitsTokensReader</code> does some basic validation
-to raise an error if the argument contains characters that are not etters or digits:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill commandCustomArg --custom 123abc
-hello 123abc
-
-&gt; ./mill commandCustomArg --custom 123?abc
-error: Invalid argument --custom &lt;letters-or-digits&gt; failed to parse &quot;123?abc&quot;...
-...due to non-letter/digit characters
-...</code></pre>
 </div>
 </div>
 </div>
