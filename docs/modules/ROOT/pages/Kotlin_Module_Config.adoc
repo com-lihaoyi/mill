@@ -1,4 +1,4 @@
-= Java Module Configuration
+= Kotlin Module Configuration
 
 ++++
 <script>
@@ -7,56 +7,56 @@ gtag('config', 'AW-16649289906');
 ++++
 
 This page goes into more detail about the various configuration options
-for `JavaModule`.
+for `KotlinModule`.
 
 Many of the APIs covered here are listed in the API documentation:
 
-* {mill-doc-url}/api/latest/mill/scalalib/JavaModule.html[mill.javalib.JavaModule]
+* {mill-doc-url}/api/latest/mill/kotlinlib/KotlinModule.html[mill.kotlinlib.KotlinModule]
 
 
 == Compilation & Execution Flags
 
-include::example/javalib/module/1-compilation-execution-flags.adoc[]
+include::example/kotlinlib/module/1-compilation-execution-flags.adoc[]
 
 == Adding Ivy Dependencies
 
-include::example/javalib/module/2-ivy-deps.adoc[]
+include::example/kotlinlib/module/2-ivy-deps.adoc[]
 
 == Runtime and Compile-time Dependencies
 
-include::example/javalib/module/3-run-compile-deps.adoc[]
+include::example/kotlinlib/module/3-run-compile-deps.adoc[]
 
 == Classpath and Filesystem Resources
 
-include::example/javalib/module/5-resources.adoc[]
+include::example/kotlinlib/module/5-resources.adoc[]
 
-== Annotation Processors
+== Kotlin Compiler Plugins
 
-include::example/javalib/module/6-annotation-processors.adoc[]
+include::example/kotlinlib/module/6-kotlin-compiler-plugins.adoc[]
 
 == Javadoc Config
 
-include::example/javalib/module/7-docjar.adoc[]
+include::example/kotlinlib/module/7-docjar.adoc[]
 
 == Unmanaged Jars
 
-include::example/javalib/module/8-unmanaged-jars.adoc[]
+include::example/kotlinlib/module/8-unmanaged-jars.adoc[]
 
 == Specifying the Main Class
 
-include::example/javalib/module/9-main-class.adoc[]
+include::example/kotlinlib/module/9-main-class.adoc[]
 
 == Downloading Non-Maven Jars
 
-include::example/javalib/module/10-downloading-non-maven-jars.adoc[]
+include::example/kotlinlib/module/10-downloading-non-maven-jars.adoc[]
 
 == Customizing the Assembly
 
-include::example/javalib/module/11-assembly-config.adoc[]
+include::example/kotlinlib/module/11-assembly-config.adoc[]
 
 == Repository Config
 
-include::example/javalib/module/12-repository-config.adoc[]
+include::example/kotlinlib/module/12-repository-config.adoc[]
 
 === Maven Central: Blocked!
 
@@ -86,5 +86,5 @@ If you are using millw, a more permanent solution could be to set the environmen
 
 == Native C Code with JNI
 
-include::example/javalib/module/13-jni.adoc[]
+include::example/kotlinlib/module/13-jni.adoc[]
 

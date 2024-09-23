@@ -30,7 +30,7 @@ object bar extends ScalaModule {
 // instance `reference.conf` files from library dependencies).
 //
 // By default mill excludes all `+*.sf+`, `+*.dsa+`, `+*.rsa+`, and
-// `META-INF/MANIFESTask.MF` files from assembly, and concatenates all
+// `META-INF/MANIFEST.MF` files from assembly, and concatenates all
 // `reference.conf` files. You can also define your own merge/exclude rules.
 
 /** Usage

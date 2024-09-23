@@ -1,5 +1,5 @@
 // To generate API documenation you can use the `docJar` task on the module you'd
-// like to create the documenation for, configured via `dokkaOptions`:
+// like to create the documentation for, configured via `dokkaOptions`:
 
 //// SNIPPET:BUILD
 package build
@@ -11,7 +11,6 @@ object foo extends KotlinModule {
 
 }
 
-//// SNIPPET:END
 
 /** Usage
 
@@ -26,3 +25,7 @@ object foo extends KotlinModule {
 ...My Awesome Docs for class Bar...
 
 */
+
+//// SNIPPET:END
+
+//// SNIPPET:SCALA3

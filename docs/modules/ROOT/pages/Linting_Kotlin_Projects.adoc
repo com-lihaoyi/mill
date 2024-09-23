@@ -1,0 +1,18 @@
+= Linting Kotlin Projects
+
+++++
+<script>
+gtag('config', 'AW-16649289906');
+</script>
+++++
+
+This page will discuss common topics around enforcing the code quality of Kotlin
+codebases using the Mill build tool
+
+== Detekt
+
+include::example/kotlinlib/linting/1-detekt.adoc[]
+
+== KtLint
+
+include::example/kotlinlib/linting/2-ktlint.adoc[]
