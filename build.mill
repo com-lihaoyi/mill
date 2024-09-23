@@ -53,8 +53,6 @@ object Deps {
   // When updating, run "Publish Bridges" Github Actions for the new version
   // and then add to it `bridgeScalaVersions`
   val scalaVersion = "2.13.14"
-  // Scoverage 1.x will not get releases for newer Scala versions
-  val scalaVersionForScoverageWorker1 = "2.13.8"
   // The Scala 2.12.x version to use for some workers
   val workerScalaVersion212 = "2.12.19"
 
@@ -163,13 +161,11 @@ object Deps {
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.8.3"
   def scalap(scalaVersion: String) = ivy"org.scala-lang:scalap:${scalaVersion}"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
-  val scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
   val scoverage2Version = "2.1.1"
   val scalacScoverage2Plugin = ivy"org.scoverage:::scalac-scoverage-plugin:${scoverage2Version}"
   val scalacScoverage2Reporter = ivy"org.scoverage::scalac-scoverage-reporter:${scoverage2Version}"
   val scalacScoverage2Domain = ivy"org.scoverage::scalac-scoverage-domain:${scoverage2Version}"
-  val scalacScoverage2Serializer =
-    ivy"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
+  val scalacScoverage2Serializer = ivy"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
   val scalaparse = ivy"com.lihaoyi::scalaparse:${fastparse.version}"
   val scalatags = ivy"com.lihaoyi::scalatags:0.12.0"
   def scalaXml = ivy"org.scala-lang.modules::scala-xml:2.3.0"
@@ -243,7 +239,7 @@ def millBinPlatform: T[String] = T {
 def baseDir = build.millSourcePath
 
 val essentialBridgeScalaVersions =
-  Seq(Deps.scalaVersion, Deps.scalaVersionForScoverageWorker1, Deps.workerScalaVersion212)
+  Seq(Deps.scalaVersion, Deps.workerScalaVersion212)
 // published compiler bridges
 val bridgeScalaVersions = Seq(
   // Our version of Zinc doesn't work with Scala 2.12.0 and 2.12.4 compiler

@@ -9,8 +9,6 @@ import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.{Dep, DepSyntax, JavaModule, ScalaModule}
 import mill.util.Util.millProjectModule
 
-import scala.util.Try
-
 /**
  * Adds targets to a [[mill.scalalib.ScalaModule]] to create test coverage reports.
  *
@@ -60,8 +58,6 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
    */
   def scoverageVersion: T[String]
 
-  private def isScoverage2: Task[Boolean] = Task.Anon { scoverageVersion().startsWith("2.") }
-
   private def isScala3: Task[Boolean] = Task.Anon { ZincWorkerUtil.isScala3(outer.scalaVersion()) }
 
   def scoverageRuntimeDeps: T[Agg[Dep]] = Task {
@@ -90,7 +86,8 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     val sv = scalaVersion()
     val isSov2 = scoverageVersion().startsWith("2.")
     (sv.split('.'), isSov2) match {
-      case(_, false) => Result.Failure("Scoverage 1.x is no longer supported. Please use Scoverage 2.x")
+      case (_, false) =>
+        Result.Failure("Scoverage 1.x is no longer supported. Please use Scoverage 2.x")
       case (Array("3", "0" | "1", _*), _) => Result.Failure(
           "Scala 3.0 and 3.1 is not supported by Scoverage. You have to update to at least Scala 3.2"
         )
