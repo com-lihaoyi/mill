@@ -173,7 +173,7 @@ object CodeGen {
            |${topBuildHeader(segments, scriptFolderPath, millTopLevelProjectRoot, childAliases)}
            |$markerComment
            |$scriptCode
-           |  override lazy val millDiscover: _root_.mill.define.Discover = _root_.mill.define.Discover[this.type]
+           |override lazy val millDiscover: _root_.mill.define.Discover = _root_.mill.define.Discover[$wrapperObjectName.type]
            |}""".stripMargin
 
     }
@@ -218,8 +218,9 @@ object CodeGen {
     // object initialization due to https://github.com/scala/scala3/issues/21444
     s"""object $wrapperObjectName extends $wrapperObjectName{
        |  $childAliases
+       |
        |}
-       |abstract class $wrapperObjectName $extendsClause {""".stripMargin
+       |abstract class $wrapperObjectName $extendsClause { this: $wrapperObjectName.type => """.stripMargin
 
   }
 
