@@ -255,7 +255,7 @@ private[mill] trait GroupEvaluator {
       withTicker(tickerPrefix) {
         val multiLogger = new ProxyLogger(resolveLogger(paths.map(_.log), logger)) {
           override def ticker(s: String): Unit = {
-            if (enableTicker) super.ticker(tickerPrefix.getOrElse("") + s)
+            if (enableTicker) super.ticker(tickerPrefix.map(_ + " ").getOrElse("") + s)
             else () // do nothing
           }
 
