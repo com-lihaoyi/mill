@@ -18,31 +18,19 @@ Many of the APIs covered here are listed in the API documentation:
 * {mill-doc-url}/api/latest/mill/main/RootModule.html[`mill.kotlinlib.RootModule`]
 * {mill-doc-url}/api/latest/mill/scalalib/TestModule$.html[`mill.kotlinlib.TestModule`]
 * {mill-doc-url}/api/latest/mill/scalalib/PublishModule.html[`mill.kotlinlib.PublishModule`]
-* {mill-doc-url}/api/latest/mill/scalalib/MavenModule.html[`mill.kotlinlib.MavenModule`]
-* {mill-doc-url}/api/latest/mill/kotlinlib/kotlinlib.html[`mill.kotlinlib.KotlinLib`]
-
-== Common Configuration Overrides
-
-include::example/kotlinlib/builds/1-common-config.adoc[]
-
-== Custom Tasks
-
-include::example/kotlinlib/builds/2-custom-tasks.adoc[]
-
-== Overriding Tasks
-
-include::example/kotlinlib/builds/3-override-tasks.adoc[]
+* {mill-doc-url}/api/latest/mill/kotlinlib/KotlinMavenModule.html[`mill.kotlinlib.KotlinMavenModule`]
+* {mill-doc-url}/api/latest/mill/kotlinlib/KotlinModule.html[`mill.kotlinlib.KotlinModule`]
 
 == Nesting Modules
 
-include::example/kotlinlib/builds/4-nested-modules.adoc[]
+include::example/kotlinlib/builds/1-nested-modules.adoc[]
 
 == Maven-Compatible Modules
 
-include::example/kotlinlib/builds/8-compat-modules.adoc[]
+include::example/kotlinlib/builds/2-compat-modules.adoc[]
 
 
 == Realistic Kotlin Example Project
 
-include::example/kotlinlib/builds/9-realistic.adoc[]
+include::example/kotlinlib/builds/4-realistic.adoc[]
 
