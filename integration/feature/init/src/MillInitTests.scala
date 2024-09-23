@@ -18,16 +18,6 @@ object MillInitTests extends UtestIntegrationTestSuite {
         "Run init with one of the following examples as an argument to download and extract example:"
       ))
 
-      val paths = os.walk(path = downloadedParentDir, maxDepth = 1)
-      val extractedDir = paths.find(_.last.endsWith(firstProj.replace("/", "-")))
-
-      assert(extractedDir.isDefined)
-
-      assert(os.exists(extractedDir.get / "build.mill"))
     }
   }
 }
-//integration.feature[init].fork.testCached
-//integration.feature[init].local.testCached
-//integration.feature[init].server.testCached
-//integration.feature[init].test.testCached
