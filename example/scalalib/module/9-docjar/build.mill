@@ -1,5 +1,5 @@
 // To generate API documenation you can use the `docJar` task on the module you'd
-// like to create the documenation for, configured via `scalaDocOptions` or
+// like to create the documentation for, configured via `scalaDocOptions` or
 // `javadocOptions`:
 
 //// SNIPPET:BUILD
@@ -12,7 +12,6 @@ object foo extends ScalaModule {
   def scalaDocOptions = Seq("-siteroot", "mydocs", "-no-link-warnings")
 }
 
-//// SNIPPET:END
 
 /** Usage
 
@@ -23,6 +22,8 @@ object foo extends ScalaModule {
 ...My Awesome Docs for class Foo...
 
 */
+
+//// SNIPPET:END
 
 //// SNIPPET:SCALA3
 
