@@ -57,5 +57,9 @@ public class OutFiles {
      */
     final public static String millNoServer = "mill-no-server";
 
+    /**
+     * Lock file used for exclusive access to the Mill output directory
+     */
+    final public static String millLock = "mill-lock";
 
 }

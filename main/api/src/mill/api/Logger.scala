@@ -2,6 +2,8 @@ package mill.api
 
 import java.io.{Closeable, InputStream, PrintStream}
 
+import mill.main.client.lock.{Lock, Locked}
+
 /**
  * The standard logging interface of the Mill build tool.
  *
@@ -78,5 +80,15 @@ trait Logger extends Closeable {
     setPromptLine()
     try t
     finally removePromptLine()
+  }
+
+  def waitForLock(lock: Lock): Locked = {
+    val tryLocked = lock.tryLock()
+    if (tryLocked.isLocked())
+      tryLocked
+    else {
+      info("Another Mill process is running tasks, waiting for it to be done...")
+      lock.lock()
+    }
   }
 }

@@ -9,6 +9,7 @@ import mill.api.{MillException, SystemStreams, WorkspaceRoot, internal}
 import mill.bsp.{BspContext, BspServerResult}
 import mill.main.BuildInfo
 import mill.main.client.{OutFiles, ServerFiles}
+import mill.main.client.lock.Lock
 import mill.util.{PromptLogger, PrintLogger, Colors}
 
 import java.lang.reflect.InvocationTargetException
@@ -210,6 +211,10 @@ object MillMain {
                     .map(_ => Seq(bspCmd))
                     .getOrElse(config.leftoverArgs.value.toList)
 
+                val out = os.Path(OutFiles.out, WorkspaceRoot.workspaceRoot)
+                val outLock =
+                  if (config.noBuildLock.value || bspContext.isDefined) Lock.dummy()
+                  else Lock.file((out / OutFiles.millLock).toString)
                 var repeatForBsp = true
                 var loopRes: (Boolean, RunnerState) = (false, RunnerState.empty)
                 while (repeatForBsp) {
@@ -236,10 +241,13 @@ object MillMain {
                         colored = colored,
                         colors = colors
                       )
-                      Using.resource(logger) { _ =>
+                      Using.resources(
+                        logger,
+                        logger.waitForLock(outLock)
+                      ) { (_, _) =>
                         new MillBuildBootstrap(
                           projectRoot = WorkspaceRoot.workspaceRoot,
-                          output = os.Path(OutFiles.out, WorkspaceRoot.workspaceRoot),
+                          output = out,
                           home = config.home,
                           keepGoing = config.keepGoing.value,
                           imports = config.imports,
