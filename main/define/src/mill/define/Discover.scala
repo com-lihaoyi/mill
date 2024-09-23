@@ -142,7 +142,7 @@ object Discover {
       }
 
       c.Expr[Discover](
-        q"_root_.mill.define.Discover.apply2(_root_.scala.collection.immutable.Map(..$mapping))"
+        q"import mill.api.JsonFormatters._; _root_.mill.define.Discover.apply2(_root_.scala.collection.immutable.Map(..$mapping))"
       )
     }
   }
