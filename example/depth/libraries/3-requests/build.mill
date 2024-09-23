@@ -68,19 +68,19 @@ Analyzing: ...
 ...
 INFO: Build completed successfully...
 [
-  "ref:.../bazel-out/darwin_arm64-fastbuild/bin/build/bazel/semver/libsemver_proto-speed.jar",
-  "ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/com_google_protobuf/libduration_proto-speed.jar",
-  "ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/com_google_protobuf/libtimestamp_proto-speed.jar",
-  "ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/com_google_protobuf/libwrappers_proto-speed.jar",
-  "ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/googleapis/libgoogle_api_http_proto-speed.jar",
-  "ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/com_google_protobuf/libdescriptor_proto-speed.jar",
-  "ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/googleapis/libgoogle_api_annotations_proto-speed.jar",
-  "ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/com_google_protobuf/libany_proto-speed.jar",
-  "ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/googleapis/libgoogle_rpc_status_proto-speed.jar",
-  "ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/com_google_protobuf/libempty_proto-speed.jar",
-  "ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/googleapis/libgoogle_longrunning_operations_proto-speed.jar",
-  "ref:.../bazel-out/darwin_arm64-fastbuild/bin/build/bazel/remote/execution/v2/libremote_execution_proto-speed.jar",
-  "ref:.../bazel-out/darwin_arm64-fastbuild/bin/build/bazel/remote/execution/v2/remote_execution_proto-speed-src.jar"
+  "ref:.../bazel-out/...fastbuild/bin/build/bazel/semver/libsemver_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libduration_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libtimestamp_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libwrappers_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_api_http_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libdescriptor_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_api_annotations_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libany_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_rpc_status_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libempty_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_longrunning_operations_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/build/bazel/remote/execution/v2/libremote_execution_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/build/bazel/remote/execution/v2/remote_execution_proto-speed-src.jar"
 ]
 */
 
@@ -90,19 +90,19 @@ INFO: Build completed successfully...
 /** Usage
 > ./mill show compiledRemoteApis
 [
-  "ref:.../bazel-out/darwin_arm64-fastbuild/bin/build/bazel/semver/libsemver_proto-speed.jar",
-  "ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/com_google_protobuf/libduration_proto-speed.jar",
-  "ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/com_google_protobuf/libtimestamp_proto-speed.jar",
-  "ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/com_google_protobuf/libwrappers_proto-speed.jar",
-  "ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/googleapis/libgoogle_api_http_proto-speed.jar",
-  "ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/com_google_protobuf/libdescriptor_proto-speed.jar",
-  "ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/googleapis/libgoogle_api_annotations_proto-speed.jar",
-  "ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/com_google_protobuf/libany_proto-speed.jar",
-  "ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/googleapis/libgoogle_rpc_status_proto-speed.jar",
-  "ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/com_google_protobuf/libempty_proto-speed.jar",
-  "ref:.../bazel-out/darwin_arm64-fastbuild/bin/external/googleapis/libgoogle_longrunning_operations_proto-speed.jar",
-  "ref:.../bazel-out/darwin_arm64-fastbuild/bin/build/bazel/remote/execution/v2/libremote_execution_proto-speed.jar",
-  "ref:.../bazel-out/darwin_arm64-fastbuild/bin/build/bazel/remote/execution/v2/remote_execution_proto-speed-src.jar"
+  "ref:.../bazel-out/...fastbuild/bin/build/bazel/semver/libsemver_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libduration_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libtimestamp_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libwrappers_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_api_http_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libdescriptor_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_api_annotations_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libany_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_rpc_status_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libempty_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_longrunning_operations_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/build/bazel/remote/execution/v2/libremote_execution_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/build/bazel/remote/execution/v2/remote_execution_proto-speed-src.jar"
 ]
 
 */
