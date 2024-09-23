@@ -9,13 +9,13 @@ object foo extends JavaModule {
 
 /** Usage
 
- > ./mill show foo.docJar
+> ./mill show foo.docJar
 
- > unzip -p out/foo/docJar.dest/out.jar foo/Foo.html
- ...
- ...My Awesome Docs for class Foo...
+> unzip -p out/foo/docJar.dest/out.jar foo/Foo.html
+...
+...My Awesome Docs for class Foo...
 
- */
+*/
 
 //// SNIPPET:SCALA3
 
