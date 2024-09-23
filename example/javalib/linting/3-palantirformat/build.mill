@@ -1,10 +1,17 @@
+// Mill supports auto-formatting Java code via the
+// https://github.com/palantir/palantir-java-format[Palantir Java Format] project. This can
+// be used on a per-module basis by inheriting from `PalantirFormatModule` and running the
+// `palanatirformat` command on that module, or on a global basis by running
+// `mill.javalib.palantirformat.PalantirFormatModule/`. You can also use `--check` if you wish
+// to error if the code is not formatted, which is useful in CI validation jobs to ensure
+// code is formatted before merging.
+
 package build
 
 import mill._
 import mill.javalib.palantirformat._
 
-object `package` extends RootModule with PalantirFormatModule {
-}
+object `package` extends RootModule with PalantirFormatModule
 
 /** See Also: src/A.java */
 
