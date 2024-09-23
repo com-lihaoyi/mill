@@ -37,44 +37,6 @@ def commandTakingPath(path: os.Path) = Task.Command{
 
 */
 
-
-// === Custom Main Argument Parsers
-//
-// You can define your own custom types and use them as command line arguments,
-// as long as you define an `implicit mainargs.TokensReader[T]` for that type.
-
-class LettersOrDigits(val value: String)
-
-implicit object LettersOrDigitsTokensReader
-  extends mainargs.TokensReader.Simple[LettersOrDigits] {
-  def shortName = "letters-or-digits"
-  def read(strs: Seq[String]) = {
-    if (strs.last.forall(_.isLetterOrDigit)) Right(new LettersOrDigits(strs.last))
-    else Left("non-letter/digit characters")
-  }
-}
-
-def commandCustomArg(custom: LettersOrDigits) = Task.Command{
-  println("hello " + custom.value)
-}
-
-// Above, we show an example where we have a custom `class LettersOrDigits` type,
-// where the `implicit object LettersOrDigitsTokensReader` does some basic validation
-// to raise an error if the argument contains characters that are not etters or digits:
-
-/** Usage
-
-> ./mill commandCustomArg --custom 123abc
-hello 123abc
-
-> ./mill commandCustomArg --custom 123?abc
-error: Invalid argument --custom <letters-or-digits> failed to parse "123?abc"...
-...due to non-letter/digit characters
-...
-
-*/
-
-
 // === `Task`
 //
 // Mill allows commands to take ``Task[T]``s as parameters anywhere they can

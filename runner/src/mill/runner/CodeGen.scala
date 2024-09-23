@@ -173,7 +173,7 @@ object CodeGen {
            |${topBuildHeader(segments, scriptFolderPath, millTopLevelProjectRoot, childAliases)}
            |$markerComment
            |$scriptCode
-           |override lazy val millDiscover: _root_.mill.define.Discover = _root_.mill.define.Discover[$wrapperObjectName.type]
+           |override lazy val millDiscover: _root_.mill.define.Discover = _root_.mill.define.Discover[$wrapperObjectName]
            |}""".stripMargin
 
     }
@@ -220,7 +220,7 @@ object CodeGen {
        |  $childAliases
        |
        |}
-       |abstract class $wrapperObjectName $extendsClause { this: $wrapperObjectName.type => """.stripMargin
+       |abstract class $wrapperObjectName $extendsClause { """.stripMargin
 
   }
 
