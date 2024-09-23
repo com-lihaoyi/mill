@@ -1,6 +1,5 @@
 package mill.util
 
-import mill.main.client.DebugLog
 
 import java.io.{ByteArrayOutputStream, OutputStream}
 
