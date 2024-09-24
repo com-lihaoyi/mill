@@ -20,13 +20,15 @@ object MultilinePromptLoggerTests extends TestSuite {
       debugEnabled = false,
       titleText = "TITLE",
       terminfoPath = terminfoPath,
-      currentTimeMillis = now
+      currentTimeMillis = now,
+      autoUpdate = false
     )
     val prefixLogger = new PrefixLogger(promptLogger, "[1]")
     (baos, promptLogger, prefixLogger)
   }
 
   def check(baos: ByteArrayOutputStream, width: Int = 80)(expected: String*) = {
+    Thread.sleep(200)
     val finalBaos = new ByteArrayOutputStream()
     val pumper =
       new ProxyStream.Pumper(new ByteArrayInputStream(baos.toByteArray), finalBaos, finalBaos)
@@ -90,6 +92,10 @@ object MultilinePromptLoggerTests extends TestSuite {
       val (baos, promptLogger, prefixLogger) = setup(() => now, os.temp("80 40"))
 
       promptLogger.globalTicker("123/456")
+      promptLogger.refreshPrompt()
+      check(baos)(
+        "  123/456 ============================ TITLE ================================= ",
+      )
       promptLogger.ticker("[1]", "[1/456]", "my-task")
 
       now += 10000

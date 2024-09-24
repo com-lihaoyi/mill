@@ -23,7 +23,8 @@ private[mill] class MultilinePromptLogger(
     override val debugEnabled: Boolean,
     titleText: String,
     terminfoPath: os.Path,
-    currentTimeMillis: () => Long
+    currentTimeMillis: () => Long,
+    autoUpdate: Boolean = true
 ) extends ColorLogger with AutoCloseable {
   override def toString: String = s"MultilinePromptLogger(${literalize(titleText)}"
   import MultilinePromptLogger._
@@ -68,7 +69,7 @@ private[mill] class MultilinePromptLogger(
   )
 
   def refreshPrompt(): Unit = state.refreshPrompt()
-  if (enableTicker) promptUpdaterThread.start()
+  if (enableTicker && autoUpdate) promptUpdaterThread.start()
 
   override def withPaused[T](t: => T): T = {
     paused = true
