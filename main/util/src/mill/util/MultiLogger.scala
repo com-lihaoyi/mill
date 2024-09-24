@@ -64,6 +64,8 @@ class MultiLogger(
     logger1.globalTicker(s)
     logger2.globalTicker(s)
   }
+
+  override def withPromptPaused[T](t: => T): T = logger1.withPromptPaused(logger2.withPromptPaused(t))
 }
 
 class MultiStream(stream1: OutputStream, stream2: OutputStream)

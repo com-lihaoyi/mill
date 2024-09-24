@@ -60,5 +60,10 @@ trait Logger {
   def debugEnabled: Boolean = false
 
   def close(): Unit = ()
-  def withPaused[T](t: => T) = t
+
+  /**
+   * Used to disable the terminal UI prompt without a certain block of code so you
+   * can run stuff like REPLs or other output-sensitive code in a clean terminal
+   */
+  def withPromptPaused[T](t: => T) = t
 }

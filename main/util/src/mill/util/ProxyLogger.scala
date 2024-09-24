@@ -33,4 +33,5 @@ class ProxyLogger(logger: Logger) extends Logger {
   override def rawOutputStream: PrintStream = logger.rawOutputStream
   private[mill] override def endTicker(): Unit = logger.endTicker()
   private[mill] override def globalTicker(s: String): Unit = logger.globalTicker(s)
+  override def withPromptPaused[T](t: => T): T = logger.withPromptPaused(t)
 }

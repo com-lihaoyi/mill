@@ -437,7 +437,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
       Result.Failure("console needs to be run with the -i/--interactive flag")
     } else {
       val useJavaCp = "-usejavacp"
-      T.log.withPaused {
+      T.log.withPromptPaused {
         SystemStreams.withStreams(SystemStreams.original) {
           Jvm.runSubprocess(
             mainClass =

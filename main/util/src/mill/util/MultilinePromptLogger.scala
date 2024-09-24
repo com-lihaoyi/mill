@@ -71,9 +71,14 @@ private[mill] class MultilinePromptLogger(
   def refreshPrompt(): Unit = state.refreshPrompt()
   if (enableTicker && autoUpdate) promptUpdaterThread.start()
 
-  override def withPaused[T](t: => T): T = {
+  override def withPromptPaused[T](t: => T): T = {
     paused = true
-    try t
+
+    try {
+      // Clear the prompt so the code in `t` has a blank terminal to work with
+      rawOutputStream.write(AnsiNav.clearScreen(0).getBytes)
+      t
+    }
     finally paused = false
   }
 
