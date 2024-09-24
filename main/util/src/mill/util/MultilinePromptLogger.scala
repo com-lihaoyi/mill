@@ -16,7 +16,7 @@ import MultilinePromptLoggerUtil._
 
 private[mill] class MultilinePromptLogger(
     override val colored: Boolean,
-    val enableTicker: Boolean,
+    override val enableTicker: Boolean,
     override val infoColor: fansi.Attrs,
     override val errorColor: fansi.Attrs,
     systemStreams0: SystemStreams,
@@ -77,7 +77,7 @@ private[mill] class MultilinePromptLogger(
     try {
       // Clear the prompt so the code in `t` has a blank terminal to work with
       rawOutputStream.write(AnsiNav.clearScreen(0).getBytes)
-      SystemStreams.withStreams(SystemStreams.original){
+      SystemStreams.withStreams(SystemStreams.original) {
         t
       }
     } finally paused = false

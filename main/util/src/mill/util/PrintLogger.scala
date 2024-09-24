@@ -5,7 +5,7 @@ import mill.api.SystemStreams
 
 class PrintLogger(
     override val colored: Boolean,
-    val enableTicker: Boolean,
+    override val enableTicker: Boolean,
     override val infoColor: fansi.Attrs,
     override val errorColor: fansi.Attrs,
     val systemStreams: SystemStreams,

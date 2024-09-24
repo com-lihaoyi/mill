@@ -66,4 +66,6 @@ trait Logger {
    * can run stuff like REPLs or other output-sensitive code in a clean terminal
    */
   def withPromptPaused[T](t: => T) = t
+
+  def enableTicker: Boolean = false
 }

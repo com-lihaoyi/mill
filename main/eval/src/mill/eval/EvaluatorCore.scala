@@ -122,7 +122,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
             val contextLogger = PrefixLogger(
               out = logger,
-              context = countMsg,
+              context = if (logger.enableTicker) countMsg else "",
               tickerContext = GroupEvaluator.dynamicTickerPrefix.value
             )
 

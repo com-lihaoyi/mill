@@ -78,6 +78,8 @@ class PrefixLogger(
   private[mill] override def globalTicker(s: String): Unit = logger0.globalTicker(s)
 
   override def withPromptPaused[T](t: => T): T = logger0.withPromptPaused(t)
+
+  override def enableTicker = logger0.enableTicker
 }
 
 object PrefixLogger {

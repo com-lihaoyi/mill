@@ -54,4 +54,5 @@ class FileLogger(
       outputStream.close()
   }
   override def rawOutputStream: PrintStream = outputStream
+
 }

@@ -71,7 +71,7 @@ trait MainModule extends BaseModule0 {
    */
   def version(): Command[String] = Target.command {
     val res = BuildInfo.millVersion
-    Task.log.withPromptPaused{
+    Task.log.withPromptPaused {
       println(res)
     }
     res
@@ -91,7 +91,7 @@ trait MainModule extends BaseModule0 {
       case Left(err) => Result.Failure(err)
       case Right(resolvedSegmentsList) =>
         val resolvedStrings = resolvedSegmentsList.map(_.render)
-        Task.log.withPromptPaused{
+        Task.log.withPromptPaused {
           resolvedStrings.sorted.foreach(println)
         }
         Result.Success(resolvedStrings)
