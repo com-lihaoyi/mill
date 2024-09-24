@@ -78,8 +78,7 @@ private[mill] class MultilinePromptLogger(
       // Clear the prompt so the code in `t` has a blank terminal to work with
       rawOutputStream.write(AnsiNav.clearScreen(0).getBytes)
       t
-    }
-    finally paused = false
+    } finally paused = false
   }
 
   def info(s: String): Unit = synchronized { systemStreams.err.println(s) }

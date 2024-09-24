@@ -6,7 +6,7 @@ import mill.api.{Ctx, Logger, PathRef, Result}
 import mill.eval.{Evaluator, EvaluatorPaths, Terminal}
 import mill.resolve.{Resolve, SelectMode}
 import mill.resolve.SelectMode.Separated
-import mill.util.{AnsiNav, Watchable}
+import mill.util.Watchable
 import pprint.{Renderer, Tree, Truncated}
 
 import scala.collection.mutable
@@ -49,7 +49,7 @@ object MainModule {
       case Right((watched, Right(res))) =>
         val output = f(res)
         watched.foreach(watch0)
-        log.withPromptPaused{
+        log.withPromptPaused {
           log.rawOutputStream.println(output.render(indent = 2))
         }
         Result.Success(output)
