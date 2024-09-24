@@ -1,7 +1,7 @@
 package mill.main.client;
 
 /**
- * Central place containing all the files that live inside the `out/mill-serer-*` folder
+ * Central place containing all the files that live inside the `out/mill-server-*` folder
  * and documentation about what they do
  */
 public class ServerFiles {

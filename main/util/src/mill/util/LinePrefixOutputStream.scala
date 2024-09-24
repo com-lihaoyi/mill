@@ -16,7 +16,7 @@ class LinePrefixOutputStream(
     out: OutputStream,
     reportPrefix: () => Unit
 ) extends OutputStream {
-
+  def this(linePrefix: String, out: OutputStream) = this(linePrefix, out, () => ())
   private[this] val linePrefixBytes = linePrefix.getBytes("UTF-8")
   private[this] val linePrefixNonEmpty = linePrefixBytes.length != 0
   private[this] var isNewLine = true
