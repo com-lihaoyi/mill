@@ -77,7 +77,9 @@ private[mill] class MultilinePromptLogger(
     try {
       // Clear the prompt so the code in `t` has a blank terminal to work with
       rawOutputStream.write(AnsiNav.clearScreen(0).getBytes)
-      t
+      SystemStreams.withStreams(SystemStreams.original){
+        t
+      }
     } finally paused = false
   }
 
