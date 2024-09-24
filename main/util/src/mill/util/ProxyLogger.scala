@@ -17,16 +17,20 @@ class ProxyLogger(logger: Logger) extends Logger {
   def info(s: String): Unit = logger.info(s)
   def error(s: String): Unit = logger.error(s)
   def ticker(s: String): Unit = logger.ticker(s)
-  override def ticker(identifier: String, identSuffix: String, message: String): Unit =
+  private[mill] override def ticker(
+      identifier: String,
+      identSuffix: String,
+      message: String
+  ): Unit =
     logger.ticker(identifier, identSuffix, message)
   def debug(s: String): Unit = logger.debug(s)
 
   override def debugEnabled: Boolean = logger.debugEnabled
 
   override def close(): Unit = logger.close()
-  override def reportPrefix(s: String): Unit = logger.reportPrefix(s)
+  private[mill] override def reportPrefix(s: String): Unit = logger.reportPrefix(s)
 
   override def rawOutputStream: PrintStream = logger.rawOutputStream
-  override def endTicker(): Unit = logger.endTicker()
-  override def globalTicker(s: String): Unit = logger.globalTicker(s)
+  private[mill] override def endTicker(): Unit = logger.endTicker()
+  private[mill] override def globalTicker(s: String): Unit = logger.globalTicker(s)
 }

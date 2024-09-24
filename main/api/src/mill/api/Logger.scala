@@ -44,12 +44,12 @@ trait Logger {
   def info(s: String): Unit
   def error(s: String): Unit
   def ticker(s: String): Unit
-  def reportPrefix(s: String): Unit = ()
-  def ticker(identifier: String, identSuffix: String, message: String): Unit =
+  private[mill] def reportPrefix(s: String): Unit = ()
+  private[mill] def ticker(identifier: String, identSuffix: String, message: String): Unit =
     ticker(s"$identifier $message")
-  def globalTicker(s: String): Unit = ()
-  def clearAllTickers(): Unit = ()
-  def endTicker(): Unit = ()
+  private[mill] def globalTicker(s: String): Unit = ()
+  private[mill] def clearAllTickers(): Unit = ()
+  private[mill] def endTicker(): Unit = ()
 
   def debug(s: String): Unit
 

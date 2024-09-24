@@ -27,8 +27,12 @@ object MultilinePromptLoggerTests extends TestSuite {
     (baos, promptLogger, prefixLogger)
   }
 
-  def check(baos: ByteArrayOutputStream, width: Int = 80)(expected: String*) = {
-    Thread.sleep(200)
+  def check(
+      promptLogger: MultilinePromptLogger,
+      baos: ByteArrayOutputStream,
+      width: Int = 80
+  )(expected: String*) = {
+    promptLogger.streamsAwaitPumperEmpty()
     val finalBaos = new ByteArrayOutputStream()
     val pumper =
       new ProxyStream.Pumper(new ByteArrayInputStream(baos.toByteArray), finalBaos, finalBaos)
@@ -63,7 +67,7 @@ object MultilinePromptLoggerTests extends TestSuite {
       now += 10000
       promptLogger.close()
 
-      check(baos, width = 999 /*log file has no line wrapping*/ )(
+      check(promptLogger, baos, width = 999 /*log file has no line wrapping*/ )(
         // Make sure that the first time a prefix is reported,
         // we print the verbose prefix along with the ticker string
         "[1/456] my-task",
@@ -93,8 +97,8 @@ object MultilinePromptLoggerTests extends TestSuite {
 
       promptLogger.globalTicker("123/456")
       promptLogger.refreshPrompt()
-      check(baos)(
-        "  123/456 ============================ TITLE ================================= ",
+      check(promptLogger, baos)(
+        "  123/456 ============================ TITLE ================================= "
       )
       promptLogger.ticker("[1]", "[1/456]", "my-task")
 
@@ -102,39 +106,72 @@ object MultilinePromptLoggerTests extends TestSuite {
 
       prefixLogger.outputStream.println("HELLO")
 
-      promptLogger.refreshPrompt()
-      check(baos)(
+      promptLogger.refreshPrompt() // Need to call `refreshPrompt()` for prompt to change
+      // First time we log with the prefix `[1]`, make sure we print out the title line
+      // `[1/456] my-task` so the viewer knows what `[1]` refers to
+      check(promptLogger, baos)(
         "[1/456] my-task",
         "[1] HELLO",
         "  123/456 ============================ TITLE ============================== 10s",
         "[1] my-task 10s"
       )
-      prefixLogger.outputStream.println("WORLD")
 
-      promptLogger.refreshPrompt()
-      check(baos)(
+      prefixLogger.outputStream.println("WORLD")
+      // Prompt doesn't change, no need to call `refreshPrompt()` for it to be
+      // re-rendered below the latest prefixed output. Subsequent log line with `[1]`
+      // prefix does not re-render title line `[1/456] ...`
+      check(promptLogger, baos)(
         "[1/456] my-task",
         "[1] HELLO",
         "[1] WORLD",
         "  123/456 ============================ TITLE ============================== 10s",
         "[1] my-task 10s"
       )
+      val t = new Thread(() => {
+        val newPrefixLogger = new PrefixLogger(promptLogger, "[2]")
+        newPrefixLogger.ticker("[2]", "[2/456]", "my-task-new")
+        newPrefixLogger.errorStream.println("I AM COW")
+        newPrefixLogger.errorStream.println("HEAR ME MOO")
+      })
+      t.start()
+      t.join()
+
+      promptLogger.refreshPrompt()
+      check(promptLogger, baos)(
+        "[1/456] my-task",
+        "[1] HELLO",
+        "[1] WORLD",
+        "[2/456] my-task-new",
+        "[2] I AM COW",
+        "[2] HEAR ME MOO",
+        "  123/456 ============================ TITLE ============================== 10s",
+        "[1] my-task 10s",
+        "[2] my-task-new "
+      )
+
       promptLogger.endTicker()
 
       now += 10000
       promptLogger.refreshPrompt()
-      check(baos)(
+      check(promptLogger, baos)(
         "[1/456] my-task",
         "[1] HELLO",
         "[1] WORLD",
-        "  123/456 ============================ TITLE ============================== 20s"
+        "[2/456] my-task-new",
+        "[2] I AM COW",
+        "[2] HEAR ME MOO",
+        "  123/456 ============================ TITLE ============================== 20s",
+        "[2] my-task-new 10s"
       )
       now += 10000
       promptLogger.close()
-      check(baos)(
+      check(promptLogger, baos)(
         "[1/456] my-task",
         "[1] HELLO",
         "[1] WORLD",
+        "[2/456] my-task-new",
+        "[2] I AM COW",
+        "[2] HEAR ME MOO",
         "123/456 ============================== TITLE ============================== 30s"
       )
     }

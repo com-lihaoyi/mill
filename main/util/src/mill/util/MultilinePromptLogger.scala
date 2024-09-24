@@ -96,6 +96,7 @@ private[mill] class MultilinePromptLogger(
     }
   }
 
+  def streamsAwaitPumperEmpty(): Unit = streams.awaitPumperEmpty()
   private val seenIdentifiers = collection.mutable.Map.empty[String, (String, String)]
   private val reportedIdentifiers = collection.mutable.Set.empty[String]
   override def ticker(identifier: String, identSuffix: String, message: String): Unit =
@@ -139,6 +140,9 @@ object MultilinePromptLogger {
       systemStreams0.in
     )
 
+    def awaitPumperEmpty(): Unit = {
+      while (pipe.input.available() != 0) Thread.sleep(10)
+    }
     object pumper extends ProxyStream.Pumper(pipe.input, systemStreams0.out, systemStreams0.err) {
       object PumperState extends Enumeration {
         val init, prompt, cleared = Value

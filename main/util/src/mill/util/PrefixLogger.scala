@@ -52,7 +52,11 @@ class PrefixLogger(
     logger0.error(infoColor(context) + s)
   }
   override def ticker(s: String): Unit = logger0.ticker(context + tickerContext + s)
-  override def ticker(identifier: String, identSuffix: String, message: String): Unit =
+  private[mill] override def ticker(
+      identifier: String,
+      identSuffix: String,
+      message: String
+  ): Unit =
     logger0.ticker(identifier, identSuffix, message)
   override def debug(s: String): Unit = {
     if (debugEnabled) reportPrefix(context0)
@@ -67,11 +71,11 @@ class PrefixLogger(
     outStream0 = Some(outStream),
     errStream0 = Some(systemStreams.err)
   )
-  override def reportPrefix(s: String): Unit = {
+  private[mill] override def reportPrefix(s: String): Unit = {
     logger0.reportPrefix(s)
   }
-  override def endTicker(): Unit = logger0.endTicker()
-  override def globalTicker(s: String): Unit = logger0.globalTicker(s)
+  private[mill] override def endTicker(): Unit = logger0.endTicker()
+  private[mill] override def globalTicker(s: String): Unit = logger0.globalTicker(s)
 }
 
 object PrefixLogger {
