@@ -407,9 +407,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-30-89bce5</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-31-64ee6f</button>
   <div class="version-menu">
-    <a class="version is-current" href="scoverage.html">0.12.0-RC2-30-89bce5</a>
+    <a class="version is-current" href="scoverage.html">0.12.0-RC2-31-64ee6f</a>
     <a class="version" href="../0.11.12/contrib/scoverage.html">0.11.12</a>
     <a class="version" href="../0.11.11/contrib/scoverage.html">0.11.11</a>
     <a class="version" href="../0.11.10/contrib/scoverage.html">0.11.10</a>
@@ -449,11 +449,11 @@ import $ivy.`com.lihaoyi::mill-contrib-scoverage:`
 import mill.contrib.scoverage.ScoverageModule
 
 object foo extends ScoverageModule  {
-  def scalaVersion = &quot;2.12.9&quot;
-  def scoverageVersion = &quot;1.4.0&quot;
+  def scalaVersion = &quot;2.13.15&quot;
+  def scoverageVersion = &quot;2.1.1&quot;
 
   object test extends ScoverageTests with TestModule.ScalaTest {
-    def ivyDeps = Agg(ivy&quot;org.scalatest::scalatest:3.0.8&quot;)
+    def ivyDeps = Agg(ivy&quot;org.scalatest::scalatest:3.2.19&quot;)
   }
 }</code></pre>
 </div>
