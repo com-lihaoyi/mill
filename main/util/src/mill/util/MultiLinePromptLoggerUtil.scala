@@ -66,16 +66,16 @@ private object MultilinePromptLoggerUtil {
   }
 
   def renderPrompt(
-                    consoleWidth: Int,
-                    consoleHeight: Int,
-                    now: Long,
-                    startTimeMillis: Long,
-                    headerPrefix: String,
-                    titleText: String,
-                    statuses: collection.SortedMap[Int, Status],
-                    interactive: Boolean,
-                    ending: Boolean = false
-                  ): List[String] = {
+      consoleWidth: Int,
+      consoleHeight: Int,
+      now: Long,
+      startTimeMillis: Long,
+      headerPrefix: String,
+      titleText: String,
+      statuses: collection.SortedMap[Int, Status],
+      interactive: Boolean,
+      ending: Boolean = false
+  ): List[String] = {
     // -1 to leave a bit of buffer
     val maxWidth = consoleWidth - 1
     // -1 to account for header
@@ -117,13 +117,13 @@ private object MultilinePromptLoggerUtil {
   }
 
   def renderHeader(
-                    headerPrefix0: String,
-                    titleText0: String,
-                    headerSuffix0: String,
-                    maxWidth: Int,
-                    ending: Boolean = false,
-                    interactive: Boolean = true
-                  ): String = {
+      headerPrefix0: String,
+      titleText0: String,
+      headerSuffix0: String,
+      maxWidth: Int,
+      ending: Boolean = false,
+      interactive: Boolean = true
+  ): String = {
     val headerPrefixStr = if (!interactive || ending) s"$headerPrefix0 " else s"  $headerPrefix0 "
     val headerSuffixStr = s" $headerSuffix0"
     val titleText = s" $titleText0 "
@@ -167,4 +167,3 @@ private object MultilinePromptLoggerUtil {
     ???
   }
 }
-

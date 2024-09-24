@@ -1,7 +1,6 @@
 package mill.util
 
 import mill.api.SystemStreams
-import mill.main.client.DebugLog
 import pprint.Util.literalize
 
 import java.io.PrintStream
@@ -13,8 +12,9 @@ class PrefixLogger(
     outStream0: Option[PrintStream] = None,
     errStream0: Option[PrintStream] = None
 ) extends ColorLogger {
-  val context = if(context0 == "") "" else context0 + " "
-  override def toString = s"PrefixLogger($logger0, ${literalize(context)}, ${literalize(tickerContext)})"
+  val context: String = if (context0 == "") "" else context0 + " "
+  override def toString: String =
+    s"PrefixLogger($logger0, ${literalize(context)}, ${literalize(tickerContext)})"
   def this(logger0: ColorLogger, context: String, tickerContext: String) =
     this(logger0, context, tickerContext, None, None)
 
@@ -52,7 +52,8 @@ class PrefixLogger(
     logger0.error(infoColor(context) + s)
   }
   override def ticker(s: String): Unit = logger0.ticker(context + tickerContext + s)
-  override def ticker(identifier: String, identSuffix: String, message: String): Unit = logger0.ticker(identifier, identSuffix, message)
+  override def ticker(identifier: String, identSuffix: String, message: String): Unit =
+    logger0.ticker(identifier, identSuffix, message)
   override def debug(s: String): Unit = {
     if (debugEnabled) reportPrefix(context0)
     logger0.debug(infoColor(context) + s)
@@ -66,7 +67,7 @@ class PrefixLogger(
     outStream0 = Some(outStream),
     errStream0 = Some(systemStreams.err)
   )
-  override def reportPrefix(s: String) = {
+  override def reportPrefix(s: String): Unit = {
     logger0.reportPrefix(s)
   }
   override def endTicker(): Unit = logger0.endTicker()

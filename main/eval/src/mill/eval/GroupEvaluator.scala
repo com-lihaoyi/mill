@@ -65,7 +65,6 @@ private[mill] trait GroupEvaluator {
 
     val sideHashes = MurmurHash3.orderedHash(group.iterator.map(_.sideHash))
 
-
     val scriptsHash =
       if (disableCallgraph) 0
       else group
@@ -116,7 +115,6 @@ private[mill] trait GroupEvaluator {
                 }
               )
 
-
             methodCodeHashSignatures.get(expectedName) ++ constructorHashes
         }
         .flatten
@@ -136,7 +134,7 @@ private[mill] trait GroupEvaluator {
           identSuffix = identSuffix,
           zincProblemReporter,
           testReporter,
-          logger,
+          logger
         )
         GroupEvaluator.Results(newResults, newEvaluated.toSeq, null, inputsHash, -1)
 
@@ -186,7 +184,7 @@ private[mill] trait GroupEvaluator {
                   identSuffix = identSuffix,
                   zincProblemReporter,
                   testReporter,
-                  logger,
+                  logger
                 )
               }
 
@@ -227,7 +225,7 @@ private[mill] trait GroupEvaluator {
       identSuffix: String,
       reporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
-      logger: mill.api.Logger,
+      logger: mill.api.Logger
   ): (Map[Task[_], TaskResult[(Val, Int)]], mutable.Buffer[Task[_]]) = {
 
     def computeAll(enableTicker: Boolean) = {

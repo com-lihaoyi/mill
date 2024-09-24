@@ -4,13 +4,12 @@ import utest._
 
 import java.io.ByteArrayOutputStream
 
-
 object LinePrefixOutputStreamTests extends TestSuite {
   val tests = Tests {
     test("charByChar") {
       val baos = new ByteArrayOutputStream()
       val lpos = new LinePrefixOutputStream("PREFIX", baos)
-      for(b <- "hello\nworld\n!".getBytes()) lpos.write(b)
+      for (b <- "hello\nworld\n!".getBytes()) lpos.write(b)
       lpos.flush()
       assert(baos.toString == "PREFIXhello\nPREFIXworld\nPREFIX!")
     }
@@ -18,7 +17,7 @@ object LinePrefixOutputStreamTests extends TestSuite {
     test("charByCharTrailingNewline") {
       val baos = new ByteArrayOutputStream()
       val lpos = new LinePrefixOutputStream("PREFIX", baos)
-      for(b <- "hello\nworld\n".getBytes()) lpos.write(b)
+      for (b <- "hello\nworld\n".getBytes()) lpos.write(b)
       lpos.flush()
       assert(baos.toString == "PREFIXhello\nPREFIXworld\n")
     }
@@ -44,9 +43,9 @@ object LinePrefixOutputStreamTests extends TestSuite {
     }
 
     test("ranges") {
-      for(str <- Seq("hello\nworld\n")){
+      for (str <- Seq("hello\nworld\n")) {
         val arr = str.getBytes()
-        for(i1 <- Range(0, arr.length)) {
+        for (i1 <- Range(0, arr.length)) {
           for (i2 <- Range(i1, arr.length)) {
             for (i3 <- Range(i2, arr.length)) {
               val baos = new ByteArrayOutputStream()
@@ -61,8 +60,6 @@ object LinePrefixOutputStreamTests extends TestSuite {
           }
         }
       }
-
-
 
     }
   }

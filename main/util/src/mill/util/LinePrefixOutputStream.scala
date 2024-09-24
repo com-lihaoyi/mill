@@ -1,6 +1,5 @@
 package mill.util
 
-
 import java.io.{ByteArrayOutputStream, OutputStream}
 
 /**
@@ -29,7 +28,7 @@ class LinePrefixOutputStream(
     }
   }
 
-  def writeOutBuffer() = {
+  def writeOutBuffer(): Unit = {
     if (buffer.size() > 0) reportPrefix()
     out.synchronized { buffer.writeTo(out) }
     buffer.reset()
@@ -51,7 +50,7 @@ class LinePrefixOutputStream(
       i += 1
     }
 
-    if (math.min(i, max) - start > 0){
+    if (math.min(i, max) - start > 0) {
       writeLinePrefixIfNecessary()
       buffer.write(b, start, math.min(i, max) - start)
       if (b(max - 1) == '\n') writeOutBuffer()

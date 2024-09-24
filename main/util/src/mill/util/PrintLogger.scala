@@ -13,7 +13,7 @@ class PrintLogger(
     val context: String,
     printLoggerState: PrintLogger.State
 ) extends ColorLogger {
-  override def toString = s"PrintLogger($colored, $enableTicker)"
+  override def toString: String = s"PrintLogger($colored, $enableTicker)"
   def info(s: String): Unit = synchronized {
     printLoggerState.value = PrintLogger.State.Newline
     systemStreams.err.println(infoColor(context + s))

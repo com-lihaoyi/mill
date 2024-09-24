@@ -307,7 +307,7 @@ object MultilinePromptLoggerUtilTests extends TestSuite {
         // Make sure the non-interactive prompt does not show the blank lines,
         // and it contains a footer line to mark the end of the prompt in logs
         val expected = List(
-          "  123/456  __.compile....z1234567890 ================ 1337s",
+          "123/456  __.compile.ab...xyz1234567890 ============== 1337s",
           "#1 hello1234567890abcefghijk...abcefghijklmnopqrstuvwxyz 1s",
           "#2 world 2s",
           "#3 i am cow 3s",

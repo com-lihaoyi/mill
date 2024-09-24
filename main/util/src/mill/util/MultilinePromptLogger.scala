@@ -2,12 +2,17 @@ package mill.util
 
 import mill.api.SystemStreams
 import mill.main.client.ProxyStream
-import mill.util.MultilinePromptLoggerUtil.{Status, clearScreenToEndBytes, defaultTermHeight, defaultTermWidth, renderPrompt}
+import mill.util.MultilinePromptLoggerUtil.{
+  Status,
+  clearScreenToEndBytes,
+  defaultTermHeight,
+  defaultTermWidth,
+  renderPrompt
+}
 import pprint.Util.literalize
 
 import java.io._
 import MultilinePromptLoggerUtil._
-
 
 private[mill] class MultilinePromptLogger(
     override val colored: Boolean,
@@ -20,7 +25,7 @@ private[mill] class MultilinePromptLogger(
     terminfoPath: os.Path,
     currentTimeMillis: () => Long
 ) extends ColorLogger with AutoCloseable {
-  override def toString = s"MultilinePromptLogger(${literalize(titleText)}"
+  override def toString: String = s"MultilinePromptLogger(${literalize(titleText)}"
   import MultilinePromptLogger._
 
   private var termDimensions: (Option[Int], Option[Int]) = (None, None)
@@ -62,7 +67,7 @@ private[mill] class MultilinePromptLogger(
     }
   )
 
-  def refreshPrompt() = state.refreshPrompt()
+  def refreshPrompt(): Unit = state.refreshPrompt()
   if (enableTicker) promptUpdaterThread.start()
 
   override def withPaused[T](t: => T): T = {
@@ -92,11 +97,12 @@ private[mill] class MultilinePromptLogger(
 
   private val seenIdentifiers = collection.mutable.Map.empty[String, (String, String)]
   private val reportedIdentifiers = collection.mutable.Set.empty[String]
-  override def ticker(identifier: String, identSuffix: String, message: String): Unit = synchronized {
-    seenIdentifiers(identifier) = (identSuffix, message)
-    super.ticker(infoColor(identifier).toString(), identSuffix, message)
+  override def ticker(identifier: String, identSuffix: String, message: String): Unit =
+    synchronized {
+      seenIdentifiers(identifier) = (identSuffix, message)
+      super.ticker(infoColor(identifier).toString(), identSuffix, message)
 
-  }
+    }
   def debug(s: String): Unit = synchronized { if (debugEnabled) systemStreams.err.println(s) }
 
   override def rawOutputStream: PrintStream = systemStreams0.out
@@ -110,14 +116,14 @@ private[mill] class MultilinePromptLogger(
   def systemStreams = streams.systemStreams
 }
 
-object MultilinePromptLogger{
+object MultilinePromptLogger {
 
   private class Streams(
-                         enableTicker: Boolean,
-                         systemStreams0: SystemStreams,
-                         currentPromptBytes: () => Array[Byte],
-                         interactive: () => Boolean
-                       ) {
+      enableTicker: Boolean,
+      systemStreams0: SystemStreams,
+      currentPromptBytes: () => Array[Byte],
+      interactive: () => Boolean
+  ) {
 
     // We force both stdout and stderr streams into a single `Piped*Stream` pair via
     // `ProxyStream`, as we need to preserve the ordering of writes to each individual
@@ -174,12 +180,12 @@ object MultilinePromptLogger{
     }
   }
   private class State(
-                       titleText: String,
-                       systemStreams0: SystemStreams,
-                       startTimeMillis: Long,
-                       consoleDims: () => (Option[Int], Option[Int]),
-                       currentTimeMillis: () => Long
-                     ) {
+      titleText: String,
+      systemStreams0: SystemStreams,
+      startTimeMillis: Long,
+      consoleDims: () => (Option[Int], Option[Int]),
+      currentTimeMillis: () => Long
+  ) {
     private var lastRenderedPromptHash = 0
     private val statuses = collection.mutable.SortedMap.empty[Int, Status]
 
