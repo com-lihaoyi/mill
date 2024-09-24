@@ -99,7 +99,7 @@ object RunnerState {
     )
     implicit val loggedRw: ReadWriter[Logged] = macroRW
 
-    def empty: Frame = Frame(Map.empty, Nil, Nil, Map.empty, None, Nil, None, null)
+    def empty: Frame = Frame(Map.empty, Nil, Nil, Map.empty, None, Nil, None, None)
   }
 
 }
