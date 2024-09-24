@@ -137,6 +137,19 @@ object MultilinePromptLoggerTests extends TestSuite {
         t.writeAll(s"1234567890\nabcdef${AnsiNav.up(1)}${AnsiNav.left(3)}X${AnsiNav.clearScreen(0)}")
         t.grid ==> Seq("123X")
       }
+      test("wrapUpClearLine") {
+        val t = new TestTerminal(width = 10)
+        t.writeAll(s"1234567890abcdef${AnsiNav.up(1)}${AnsiNav.left(3)}X${AnsiNav.clearLine(0)}")
+        t.grid ==> Seq(
+          "123X",
+          "abcdef",
+        )
+      }
+      test("wrapUpClearScreen") {
+        val t = new TestTerminal(width = 10)
+        t.writeAll(s"1234567890abcdef${AnsiNav.up(1)}${AnsiNav.left(3)}X${AnsiNav.clearScreen(0)}")
+        t.grid ==> Seq("123X")
+      }
     }
   }
 }
