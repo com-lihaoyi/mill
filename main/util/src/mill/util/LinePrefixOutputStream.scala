@@ -26,12 +26,12 @@ class LinePrefixOutputStream(
     if (isNewLine && linePrefixNonEmpty) {
       isNewLine = false
       buffer.write(linePrefixBytes)
-      reportPrefix()
     }
   }
 
   def writeOutBuffer() = {
-    out.synchronized { out.write(buffer.toByteArray) }
+    if (buffer.size() > 0) reportPrefix()
+    out.synchronized { buffer.writeTo(out) }
     buffer.reset()
   }
 

@@ -54,7 +54,7 @@ class PrefixLogger(
   override def ticker(s: String): Unit = logger0.ticker(context + tickerContext + s)
   override def ticker(identifier: String, identSuffix: String, message: String): Unit = logger0.ticker(identifier, identSuffix, message)
   override def debug(s: String): Unit = {
-    reportPrefix(context0)
+    if (debugEnabled) reportPrefix(context0)
     logger0.debug(infoColor(context) + s)
   }
   override def debugEnabled: Boolean = logger0.debugEnabled
