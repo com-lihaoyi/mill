@@ -13,3 +13,5 @@ mill.iml
 bsp.log
 lowered.hnir
 .dotty-ide*
+keystore.jks
+__build/

@@ -9,9 +9,6 @@ object app extends JavaModule {
   // Path to Java sources
   def sources = T.sources { os.pwd / "java" }
 
-  // Path to resource files (res/)
-  def resources = T.sources { os.pwd / "res" }
-
   // Path to __build folder
   def build_path = T.sources { os.pwd / "__build" }
 
@@ -43,8 +40,22 @@ object app extends JavaModule {
 
   // Android Build Tools and SDK paths
   def scalaVersion = "2.13.14"
-  def targetSdkVersion = "34"
+  def targetSdkVersion = "35"
   def minSdkVersion = "9"
+
+
+  //checking system whether windows or linux based
+  val isWindows = sys.props("os.name").toLowerCase.contains("windows")
+  val d8Command = if (isWindows) "d8.bat" else "d8"
+  val apksignerCommand = if (isWindows) "apksigner.bat" else "apksigner"
+
+  // Add android.jar from the SDK to the compile classpath
+  override def compileClasspath = T {
+    super.compileClasspath() ++ Agg(
+      PathRef(sdkDir() / "platforms" / "android-35" / "android.jar")  // Replace with your desired API level
+    )
+  }
+
 
   // Task to generate R.java using aapt
   def generateResources = T {
@@ -57,14 +68,13 @@ object app extends JavaModule {
       "-m",
       "-J",
       build_path().head.path / "gen",
-      "-S",
-      resources().head.path, // Using the first path in resources()
       "-M",
       androidManifest(),
       "-I",
-      s"${sdkDir()}/platforms/android-34/android.jar"
+      s"${sdkDir()}/platforms/android-35/android.jar"
     ).call()
-    T.dest
+    T.dest / "gen"
+
   }
 
   // Task to compile Java files
@@ -73,7 +83,7 @@ object app extends JavaModule {
     os.proc(
       "javac",
       "-classpath",
-      s"${sdkDir()}/platforms/android-34/android.jar",
+      s"${sdkDir()}/platforms/android-35/android.jar",
       "-d",
       build_path().head.path / "obj",
       os.walk(build_path().head.path / "gen").filter(_.ext == "java"), // Compile generated R.java
@@ -86,7 +96,7 @@ object app extends JavaModule {
   def createJar = T {
     compileJava()
     os.proc(
-      "d8.bat",
+      d8Command,
       os.walk(build_path().head.path / "obj").filter(_.ext == "class"),
       "--output",
       build_path().head.path / "apk" / "my_classes.jar",
@@ -99,9 +109,9 @@ object app extends JavaModule {
   def createDex = T {
     createJar()
     os.proc(
-      "d8.bat",
+      d8Command,
       build_path().head.path / "apk" / "my_classes.jar",
-      s"${sdkDir()}/platforms/android-34/android.jar",
+      s"${sdkDir()}/platforms/android-35/android.jar",
       "--output",
       build_path().head.path / "apk"
     ).call()
@@ -117,10 +127,8 @@ object app extends JavaModule {
       "-f",
       "-M",
       androidManifest(),
-      "-S",
-      resources().head.path, // Using the first path in resources()
       "-I",
-      s"${sdkDir()}/platforms/android-34/android.jar",
+      s"${sdkDir()}/platforms/android-35/android.jar",
       "-F",
       build_path().head.path / "helloworld.unsigned.apk",
       build_path().head.path / "apk"
@@ -142,26 +150,46 @@ object app extends JavaModule {
     T.dest / "helloworld.aligned.apk"
   }
 
-  // Task to sign the APK
+  // Task to create the keystore and sign the APK
   def create = T {
+    val keystorePath = build_path().head.path / "keystore.jks"
+
+    // Step 1: Generate the keystore if it doesn't exist
+    if (!os.exists(keystorePath)) {
+      os.proc(
+        "keytool",
+        "-genkeypair",
+        "-keystore", keystorePath,
+        "-alias", "androidkey",
+        "-dname", "CN=MILL, OU=MILL, O=MILL, L=MILL, S=MILL, C=IN",
+        "-validity", "10000",
+        "-keyalg", "RSA",
+        "-keysize", "2048",
+        "-storepass", "android",
+        "-keypass", "android"
+      ).call()
+    }
+
+    // Step 2: Align the APK (this function should handle APK alignment)
     alignApk()
+
+    // Step 3: Sign the APK using the generated keystore
     os.proc(
-      "apksigner.bat",
+      apksignerCommand,
       "sign",
-      "--ks",
-      os.pwd / "keystore.jks",
-      "--ks-key-alias",
-      "androidkey",
-      "--ks-pass",
-      "pass:android",
-      "--key-pass",
-      "pass:android",
-      "--out",
-      build_path().head.path / "helloworld.apk",
+      "--ks", keystorePath,
+      "--ks-key-alias", "androidkey",
+      "--ks-pass", "pass:android",
+      "--key-pass", "pass:android",
+      "--out", build_path().head.path / "helloworld.apk",
       build_path().head.path / "helloworld.aligned.apk"
     ).call()
     T.dest / "helloworld.apk"
   }
+
+  // Override the compile task to include resource generation before compiling Java files
+  override def compile = T {
+    val _ = create()
+    super.compile()
+  }
 }
-
-

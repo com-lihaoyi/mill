@@ -1,0 +1,470 @@
+{
+    "version": "1.4.0",
+    "project": {
+        "name": "root-module",
+        "directory": "C:\\Users\\pheno\\IdeaProjects\\mill\\mill-build",
+        "workspaceDir": "C:\\Users\\pheno\\IdeaProjects\\mill\\mill-build",
+        "sources": [
+            "C:\\Users\\pheno\\IdeaProjects\\mill\\build.sc",
+            "C:\\Users\\pheno\\IdeaProjects\\mill\\mill-build\\out\\generateScriptSources.dest"
+        ],
+        "dependencies": [
+            
+        ],
+        "classpath": [
+            "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\scalaj\\scalaj-http_2.13\\2.4.2\\scalaj-http_2.13-2.4.2.jar",
+            "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\de\\tototec\\de.tobiasroeser.mill.vcs.version_mill0.11_2.13\\0.4.0\\de.tobiasroeser.mill.vcs.version_mill0.11_2.13-0.4.0.jar",
+            "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\com\\github\\lolgab\\mill-mima_mill0.11_2.13\\0.1.1\\mill-mima_mill0.11_2.13-0.1.1.jar",
+            "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\net\\sourceforge\\htmlcleaner\\htmlcleaner\\2.29\\htmlcleaner-2.29.jar",
+            "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\com\\lihaoyi\\mill-contrib-buildinfo_2.13\\0.11.4\\mill-contrib-buildinfo_2.13-0.11.4.jar",
+            "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\com\\goyeau\\mill-scalafix_mill0.11_2.13\\0.4.1\\mill-scalafix_mill0.11_2.13-0.4.1.jar",
+            "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\scala-lang\\scala-library\\2.13.10\\scala-library-2.13.10.jar",
+            "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\com\\github\\lolgab\\mill-mima-worker-api_2.13\\0.1.1\\mill-mima-worker-api_2.13-0.1.1.jar",
+            "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\jdom\\jdom2\\2.0.6.1\\jdom2-2.0.6.1.jar",
+            "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\com\\lihaoyi\\mill-moduledefs_2.13\\0.10.9\\mill-moduledefs_2.13-0.10.9.jar",
+            "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\ch\\epfl\\scala\\scalafix-interfaces\\0.12.1\\scalafix-interfaces-0.12.1.jar",
+            "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\scala-lang\\modules\\scala-collection-compat_2.13\\2.12.0\\scala-collection-compat_2.13-2.12.0.jar",
+            "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\scala-lang\\modules\\scala-java8-compat_2.13\\1.0.2\\scala-java8-compat_2.13-1.0.2.jar",
+            "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\scala-lang\\scala-compiler\\2.13.10\\scala-compiler-2.13.10.jar",
+            "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\com\\lihaoyi\\sourcecode_2.13\\0.3.0\\sourcecode_2.13-0.3.0.jar",
+            "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\io\\get-coursier\\interface\\1.0.19\\interface-1.0.19.jar",
+            "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\scala-lang\\scala-reflect\\2.13.10\\scala-reflect-2.13.10.jar",
+            "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\io\\github\\java-diff-utils\\java-diff-utils\\4.12\\java-diff-utils-4.12.jar",
+            "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\jline\\jline\\3.21.0\\jline-3.21.0.jar",
+            "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\net\\java\\dev\\jna\\jna\\5.9.0\\jna-5.9.0.jar",
+            "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\slf4j\\slf4j-api\\1.7.36\\slf4j-api-1.7.36.jar",
+            "C:\\Users\\pheno\\IdeaProjects\\mill\\mill-build\\out\\mill-launcher\\0.11.4.jar",
+            "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\com\\lihaoyi\\mill-runner-linenumbers_2.13\\0.11.4\\mill-runner-linenumbers_2.13-0.11.4.jar",
+            "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\scala-lang\\scala-compiler\\2.13.11\\scala-compiler-2.13.11.jar",
+            "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\scala-lang\\scala-library\\2.13.11\\scala-library-2.13.11.jar",
+            "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\com\\lihaoyi\\mill-moduledefs_2.13\\0.10.9\\mill-moduledefs_2.13-0.10.9.jar",
+            "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\scala-lang\\scala-reflect\\2.13.11\\scala-reflect-2.13.11.jar",
+            "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\io\\github\\java-diff-utils\\java-diff-utils\\4.12\\java-diff-utils-4.12.jar",
+            "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\jline\\jline\\3.22.0\\jline-3.22.0.jar",
+            "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\net\\java\\dev\\jna\\jna\\5.13.0\\jna-5.13.0.jar",
+            "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\com\\lihaoyi\\sourcecode_2.13\\0.3.0\\sourcecode_2.13-0.3.0.jar"
+        ],
+        "out": "C:\\Users\\pheno\\IdeaProjects\\mill\\mill-build\\.bloop\\out\\root-module",
+        "classesDir": "C:\\Users\\pheno\\IdeaProjects\\mill\\mill-build\\.bloop\\out\\root-module\\classes",
+        "resources": [
+            
+        ],
+        "scala": {
+            "organization": "org.scala-lang",
+            "name": "scala-compiler",
+            "version": "2.13.10",
+            "options": [
+                "-Xplugin:C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\com\\lihaoyi\\scalac-mill-moduledefs-plugin_2.13.10\\0.10.9\\scalac-mill-moduledefs-plugin_2.13.10-0.10.9.jar",
+                "-Xplugin:C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\com\\lihaoyi\\mill-runner-linenumbers_2.13\\0.11.4\\mill-runner-linenumbers_2.13-0.11.4.jar,C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\scala-lang\\scala-compiler\\2.13.11\\scala-compiler-2.13.11.jar,C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\scala-lang\\scala-library\\2.13.11\\scala-library-2.13.11.jar,C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\com\\lihaoyi\\mill-moduledefs_2.13\\0.10.9\\mill-moduledefs_2.13-0.10.9.jar,C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\scala-lang\\scala-reflect\\2.13.11\\scala-reflect-2.13.11.jar,C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\io\\github\\java-diff-utils\\java-diff-utils\\4.12\\java-diff-utils-4.12.jar,C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\jline\\jline\\3.22.0\\jline-3.22.0.jar,C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\net\\java\\dev\\jna\\jna\\5.13.0\\jna-5.13.0.jar,C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\com\\lihaoyi\\sourcecode_2.13\\0.3.0\\sourcecode_2.13-0.3.0.jar",
+                "-deprecation",
+                "-Xplugin-require:mill-linenumber-plugin"
+            ],
+            "jars": [
+                "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\scala-lang\\scala-compiler\\2.13.10\\scala-compiler-2.13.10.jar",
+                "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\scala-lang\\scala-reflect\\2.13.10\\scala-reflect-2.13.10.jar",
+                "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\scala-lang\\scala-library\\2.13.10\\scala-library-2.13.10.jar",
+                "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\io\\github\\java-diff-utils\\java-diff-utils\\4.12\\java-diff-utils-4.12.jar",
+                "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\jline\\jline\\3.21.0\\jline-3.21.0.jar",
+                "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\net\\java\\dev\\jna\\jna\\5.9.0\\jna-5.9.0.jar"
+            ]
+        },
+        "java": {
+            "options": [
+                
+            ]
+        },
+        "platform": {
+            "name": "jvm",
+            "config": {
+                "home": "C:\\Program Files\\Java\\jdk-17",
+                "options": [
+                    "-Duser.dir=C:\\Users\\pheno\\IdeaProjects\\mill\\mill-build"
+                ]
+            },
+            "mainClass": [
+                
+            ],
+            "classpath": [
+                "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\com\\lihaoyi\\mill-contrib-bloop_2.13\\0.11.4\\mill-contrib-bloop_2.13-0.11.4.jar",
+                "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\scalaj\\scalaj-http_2.13\\2.4.2\\scalaj-http_2.13-2.4.2.jar",
+                "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\de\\tototec\\de.tobiasroeser.mill.vcs.version_mill0.11_2.13\\0.4.0\\de.tobiasroeser.mill.vcs.version_mill0.11_2.13-0.4.0.jar",
+                "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\com\\github\\lolgab\\mill-mima_mill0.11_2.13\\0.1.1\\mill-mima_mill0.11_2.13-0.1.1.jar",
+                "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\net\\sourceforge\\htmlcleaner\\htmlcleaner\\2.29\\htmlcleaner-2.29.jar",
+                "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\com\\lihaoyi\\mill-contrib-buildinfo_2.13\\0.11.4\\mill-contrib-buildinfo_2.13-0.11.4.jar",
+                "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\com\\goyeau\\mill-scalafix_mill0.11_2.13\\0.4.1\\mill-scalafix_mill0.11_2.13-0.4.1.jar",
+                "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\scala-lang\\scala-library\\2.13.10\\scala-library-2.13.10.jar",
+                "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\ch\\epfl\\scala\\bloop-config_2.13\\1.5.5\\bloop-config_2.13-1.5.5.jar",
+                "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\com\\lihaoyi\\mill-moduledefs_2.13\\0.10.9\\mill-moduledefs_2.13-0.10.9.jar",
+                "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\com\\github\\lolgab\\mill-mima-worker-api_2.13\\0.1.1\\mill-mima-worker-api_2.13-0.1.1.jar",
+                "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\jdom\\jdom2\\2.0.6.1\\jdom2-2.0.6.1.jar",
+                "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\ch\\epfl\\scala\\scalafix-interfaces\\0.12.1\\scalafix-interfaces-0.12.1.jar",
+                "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\scala-lang\\modules\\scala-collection-compat_2.13\\2.12.0\\scala-collection-compat_2.13-2.12.0.jar",
+                "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\scala-lang\\modules\\scala-java8-compat_2.13\\1.0.2\\scala-java8-compat_2.13-1.0.2.jar",
+                "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\scala-lang\\scala-compiler\\2.13.10\\scala-compiler-2.13.10.jar",
+                "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\com\\lihaoyi\\sourcecode_2.13\\0.3.0\\sourcecode_2.13-0.3.0.jar",
+                "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\io\\get-coursier\\interface\\1.0.19\\interface-1.0.19.jar",
+                "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\scala-lang\\scala-reflect\\2.13.10\\scala-reflect-2.13.10.jar",
+                "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\io\\github\\java-diff-utils\\java-diff-utils\\4.12\\java-diff-utils-4.12.jar",
+                "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\jline\\jline\\3.21.0\\jline-3.21.0.jar",
+                "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\net\\java\\dev\\jna\\jna\\5.9.0\\jna-5.9.0.jar",
+                "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\slf4j\\slf4j-api\\1.7.36\\slf4j-api-1.7.36.jar",
+                "C:\\Users\\pheno\\IdeaProjects\\mill\\mill-build\\out\\mill-launcher\\0.11.4.jar",
+                "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\com\\lihaoyi\\mill-runner-linenumbers_2.13\\0.11.4\\mill-runner-linenumbers_2.13-0.11.4.jar",
+                "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\scala-lang\\scala-compiler\\2.13.11\\scala-compiler-2.13.11.jar",
+                "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\scala-lang\\scala-library\\2.13.11\\scala-library-2.13.11.jar",
+                "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\com\\lihaoyi\\mill-moduledefs_2.13\\0.10.9\\mill-moduledefs_2.13-0.10.9.jar",
+                "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\scala-lang\\scala-reflect\\2.13.11\\scala-reflect-2.13.11.jar",
+                "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\io\\github\\java-diff-utils\\java-diff-utils\\4.12\\java-diff-utils-4.12.jar",
+                "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\jline\\jline\\3.22.0\\jline-3.22.0.jar",
+                "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\net\\java\\dev\\jna\\jna\\5.13.0\\jna-5.13.0.jar",
+                "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\com\\lihaoyi\\sourcecode_2.13\\0.3.0\\sourcecode_2.13-0.3.0.jar"
+            ],
+            "resources": [
+                
+            ]
+        },
+        "resolution": {
+            "modules": [
+                {
+                    "organization": "com.github.lolgab",
+                    "name": "mill-mima-worker-api_2.13",
+                    "version": "0.1.1",
+                    "artifacts": [
+                        {
+                            "name": "mill-mima-worker-api_2.13",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\com\\github\\lolgab\\mill-mima-worker-api_2.13\\0.1.1\\mill-mima-worker-api_2.13-0.1.1.jar"
+                        },
+                        {
+                            "name": "mill-mima-worker-api_2.13",
+                            "classifier": "sources",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\com\\github\\lolgab\\mill-mima-worker-api_2.13\\0.1.1\\mill-mima-worker-api_2.13-0.1.1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang.modules",
+                    "name": "scala-collection-compat_2.13",
+                    "version": "2.12.0",
+                    "artifacts": [
+                        {
+                            "name": "scala-collection-compat_2.13",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\scala-lang\\modules\\scala-collection-compat_2.13\\2.12.0\\scala-collection-compat_2.13-2.12.0.jar"
+                        },
+                        {
+                            "name": "scala-collection-compat_2.13",
+                            "classifier": "sources",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\scala-lang\\modules\\scala-collection-compat_2.13\\2.12.0\\scala-collection-compat_2.13-2.12.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.github.java-diff-utils",
+                    "name": "java-diff-utils",
+                    "version": "4.12",
+                    "artifacts": [
+                        {
+                            "name": "java-diff-utils",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\io\\github\\java-diff-utils\\java-diff-utils\\4.12\\java-diff-utils-4.12.jar"
+                        },
+                        {
+                            "name": "java-diff-utils",
+                            "classifier": "sources",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\io\\github\\java-diff-utils\\java-diff-utils\\4.12\\java-diff-utils-4.12-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.slf4j",
+                    "name": "slf4j-api",
+                    "version": "1.7.36",
+                    "artifacts": [
+                        {
+                            "name": "slf4j-api",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\slf4j\\slf4j-api\\1.7.36\\slf4j-api-1.7.36.jar"
+                        },
+                        {
+                            "name": "slf4j-api",
+                            "classifier": "sources",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\slf4j\\slf4j-api\\1.7.36\\slf4j-api-1.7.36-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.get-coursier",
+                    "name": "interface",
+                    "version": "1.0.19",
+                    "artifacts": [
+                        {
+                            "name": "interface",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\io\\get-coursier\\interface\\1.0.19\\interface-1.0.19.jar"
+                        },
+                        {
+                            "name": "interface",
+                            "classifier": "sources",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\io\\get-coursier\\interface\\1.0.19\\interface-1.0.19-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-library",
+                    "version": "2.13.14",
+                    "artifacts": [
+                        {
+                            "name": "scala-library",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\scala-lang\\scala-library\\2.13.14\\scala-library-2.13.14.jar"
+                        },
+                        {
+                            "name": "scala-library",
+                            "classifier": "sources",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\scala-lang\\scala-library\\2.13.14\\scala-library-2.13.14-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.goyeau",
+                    "name": "mill-scalafix_mill0.11_2.13",
+                    "version": "0.4.1",
+                    "artifacts": [
+                        {
+                            "name": "mill-scalafix_mill0.11_2.13",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\com\\goyeau\\mill-scalafix_mill0.11_2.13\\0.4.1\\mill-scalafix_mill0.11_2.13-0.4.1.jar"
+                        },
+                        {
+                            "name": "mill-scalafix_mill0.11_2.13",
+                            "classifier": "sources",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\com\\goyeau\\mill-scalafix_mill0.11_2.13\\0.4.1\\mill-scalafix_mill0.11_2.13-0.4.1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scalaj",
+                    "name": "scalaj-http_2.13",
+                    "version": "2.4.2",
+                    "artifacts": [
+                        {
+                            "name": "scalaj-http_2.13",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\scalaj\\scalaj-http_2.13\\2.4.2\\scalaj-http_2.13-2.4.2.jar"
+                        },
+                        {
+                            "name": "scalaj-http_2.13",
+                            "classifier": "sources",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\scalaj\\scalaj-http_2.13\\2.4.2\\scalaj-http_2.13-2.4.2-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.lihaoyi",
+                    "name": "mill-moduledefs_2.13",
+                    "version": "0.10.9",
+                    "artifacts": [
+                        {
+                            "name": "mill-moduledefs_2.13",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\com\\lihaoyi\\mill-moduledefs_2.13\\0.10.9\\mill-moduledefs_2.13-0.10.9.jar"
+                        },
+                        {
+                            "name": "mill-moduledefs_2.13",
+                            "classifier": "sources",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\com\\lihaoyi\\mill-moduledefs_2.13\\0.10.9\\mill-moduledefs_2.13-0.10.9-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.jline",
+                    "name": "jline",
+                    "version": "3.21.0",
+                    "artifacts": [
+                        {
+                            "name": "jline",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\jline\\jline\\3.21.0\\jline-3.21.0.jar"
+                        },
+                        {
+                            "name": "jline",
+                            "classifier": "sources",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\jline\\jline\\3.21.0\\jline-3.21.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "net.sourceforge.htmlcleaner",
+                    "name": "htmlcleaner",
+                    "version": "2.29",
+                    "artifacts": [
+                        {
+                            "name": "htmlcleaner",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\net\\sourceforge\\htmlcleaner\\htmlcleaner\\2.29\\htmlcleaner-2.29.jar"
+                        },
+                        {
+                            "name": "htmlcleaner",
+                            "classifier": "sources",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\net\\sourceforge\\htmlcleaner\\htmlcleaner\\2.29\\htmlcleaner-2.29-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.lihaoyi",
+                    "name": "sourcecode_2.13",
+                    "version": "0.3.0",
+                    "artifacts": [
+                        {
+                            "name": "sourcecode_2.13",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\com\\lihaoyi\\sourcecode_2.13\\0.3.0\\sourcecode_2.13-0.3.0.jar"
+                        },
+                        {
+                            "name": "sourcecode_2.13",
+                            "classifier": "sources",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\com\\lihaoyi\\sourcecode_2.13\\0.3.0\\sourcecode_2.13-0.3.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "net.java.dev.jna",
+                    "name": "jna",
+                    "version": "5.9.0",
+                    "artifacts": [
+                        {
+                            "name": "jna",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\net\\java\\dev\\jna\\jna\\5.9.0\\jna-5.9.0.jar"
+                        },
+                        {
+                            "name": "jna",
+                            "classifier": "sources",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\net\\java\\dev\\jna\\jna\\5.9.0\\jna-5.9.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "de.tototec",
+                    "name": "de.tobiasroeser.mill.vcs.version_mill0.11_2.13",
+                    "version": "0.4.0",
+                    "artifacts": [
+                        {
+                            "name": "de.tobiasroeser.mill.vcs.version_mill0.11_2.13",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\de\\tototec\\de.tobiasroeser.mill.vcs.version_mill0.11_2.13\\0.4.0\\de.tobiasroeser.mill.vcs.version_mill0.11_2.13-0.4.0.jar"
+                        },
+                        {
+                            "name": "de.tobiasroeser.mill.vcs.version_mill0.11_2.13",
+                            "classifier": "sources",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\de\\tototec\\de.tobiasroeser.mill.vcs.version_mill0.11_2.13\\0.4.0\\de.tobiasroeser.mill.vcs.version_mill0.11_2.13-0.4.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-reflect",
+                    "version": "2.13.10",
+                    "artifacts": [
+                        {
+                            "name": "scala-reflect",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\scala-lang\\scala-reflect\\2.13.10\\scala-reflect-2.13.10.jar"
+                        },
+                        {
+                            "name": "scala-reflect",
+                            "classifier": "sources",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\scala-lang\\scala-reflect\\2.13.10\\scala-reflect-2.13.10-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang.modules",
+                    "name": "scala-java8-compat_2.13",
+                    "version": "1.0.2",
+                    "artifacts": [
+                        {
+                            "name": "scala-java8-compat_2.13",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\scala-lang\\modules\\scala-java8-compat_2.13\\1.0.2\\scala-java8-compat_2.13-1.0.2.jar"
+                        },
+                        {
+                            "name": "scala-java8-compat_2.13",
+                            "classifier": "sources",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\scala-lang\\modules\\scala-java8-compat_2.13\\1.0.2\\scala-java8-compat_2.13-1.0.2-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "ch.epfl.scala",
+                    "name": "scalafix-interfaces",
+                    "version": "0.12.1",
+                    "artifacts": [
+                        {
+                            "name": "scalafix-interfaces",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\ch\\epfl\\scala\\scalafix-interfaces\\0.12.1\\scalafix-interfaces-0.12.1.jar"
+                        },
+                        {
+                            "name": "scalafix-interfaces",
+                            "classifier": "sources",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\ch\\epfl\\scala\\scalafix-interfaces\\0.12.1\\scalafix-interfaces-0.12.1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-compiler",
+                    "version": "2.13.10",
+                    "artifacts": [
+                        {
+                            "name": "scala-compiler",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\scala-lang\\scala-compiler\\2.13.10\\scala-compiler-2.13.10.jar"
+                        },
+                        {
+                            "name": "scala-compiler",
+                            "classifier": "sources",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\scala-lang\\scala-compiler\\2.13.10\\scala-compiler-2.13.10-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.github.lolgab",
+                    "name": "mill-mima_mill0.11_2.13",
+                    "version": "0.1.1",
+                    "artifacts": [
+                        {
+                            "name": "mill-mima_mill0.11_2.13",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\com\\github\\lolgab\\mill-mima_mill0.11_2.13\\0.1.1\\mill-mima_mill0.11_2.13-0.1.1.jar"
+                        },
+                        {
+                            "name": "mill-mima_mill0.11_2.13",
+                            "classifier": "sources",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\com\\github\\lolgab\\mill-mima_mill0.11_2.13\\0.1.1\\mill-mima_mill0.11_2.13-0.1.1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.jdom",
+                    "name": "jdom2",
+                    "version": "2.0.6.1",
+                    "artifacts": [
+                        {
+                            "name": "jdom2",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\jdom\\jdom2\\2.0.6.1\\jdom2-2.0.6.1.jar"
+                        },
+                        {
+                            "name": "jdom2",
+                            "classifier": "sources",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\org\\jdom\\jdom2\\2.0.6.1\\jdom2-2.0.6.1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.lihaoyi",
+                    "name": "mill-contrib-buildinfo_2.13",
+                    "version": "0.11.4",
+                    "artifacts": [
+                        {
+                            "name": "mill-contrib-buildinfo_2.13",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\com\\lihaoyi\\mill-contrib-buildinfo_2.13\\0.11.4\\mill-contrib-buildinfo_2.13-0.11.4.jar"
+                        },
+                        {
+                            "name": "mill-contrib-buildinfo_2.13",
+                            "classifier": "sources",
+                            "path": "C:\\Users\\pheno\\AppData\\Local\\Coursier\\cache\\v1\\https\\repo1.maven.org\\maven2\\com\\lihaoyi\\mill-contrib-buildinfo_2.13\\0.11.4\\mill-contrib-buildinfo_2.13-0.11.4-sources.jar"
+                        }
+                    ]
+                }
+            ]
+        },
+        "tags": [
+            "library"
+        ]
+    }
+}
