@@ -17,7 +17,8 @@ private[mill] class MultilinePromptLogger(
     systemStreams0: SystemStreams,
     override val debugEnabled: Boolean,
     titleText: String,
-    terminfoPath: os.Path
+    terminfoPath: os.Path,
+    currentTimeMillis: () => Long
 ) extends ColorLogger with AutoCloseable {
   override def toString = s"MultilinePromptLogger(${literalize(titleText)}"
   import MultilinePromptLogger._
@@ -29,8 +30,9 @@ private[mill] class MultilinePromptLogger(
   private val state = new State(
     titleText,
     systemStreams0,
-    System.currentTimeMillis(),
-    () => termDimensions
+    currentTimeMillis(),
+    () => termDimensions,
+    currentTimeMillis
   )
 
   private val streams = new Streams(
@@ -54,12 +56,13 @@ private[mill] class MultilinePromptLogger(
       if (!paused) {
         synchronized {
           readTerminalDims(terminfoPath).foreach(termDimensions = _)
-          state.refreshPrompt()
+          refreshPrompt()
         }
       }
     }
   )
 
+  def refreshPrompt() = state.refreshPrompt()
   if (enableTicker) promptUpdaterThread.start()
 
   override def withPaused[T](t: => T): T = {
@@ -174,7 +177,8 @@ object MultilinePromptLogger{
                        titleText: String,
                        systemStreams0: SystemStreams,
                        startTimeMillis: Long,
-                       consoleDims: () => (Option[Int], Option[Int])
+                       consoleDims: () => (Option[Int], Option[Int]),
+                       currentTimeMillis: () => Long
                      ) {
     private var lastRenderedPromptHash = 0
     private val statuses = collection.mutable.SortedMap.empty[Int, Status]
@@ -186,7 +190,7 @@ object MultilinePromptLogger{
     @volatile var currentPromptBytes: Array[Byte] = Array[Byte]()
 
     private def updatePromptBytes(ending: Boolean = false) = {
-      val now = System.currentTimeMillis()
+      val now = currentTimeMillis()
       for (k <- statuses.keySet) {
         val removedTime = statuses(k).removedTimeMillis
         if (now - removedTime > statusRemovalRemoveDelayMillis) {
@@ -236,7 +240,7 @@ object MultilinePromptLogger{
     def updateCurrent(sOpt: Option[String]): Unit = synchronized {
       val threadId = Thread.currentThread().getId.toInt
 
-      val now = System.currentTimeMillis()
+      val now = currentTimeMillis()
       sOpt match {
         case None => statuses.get(threadId).foreach(_.removedTimeMillis = now)
         case Some(s) => statuses(threadId) = Status(now, s, Long.MaxValue)

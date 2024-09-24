@@ -82,7 +82,7 @@ private object MultilinePromptLoggerUtil {
     val maxHeight = math.max(1, consoleHeight / 3 - 1)
     val headerSuffix = renderSeconds(now - startTimeMillis)
 
-    val header = renderHeader(headerPrefix, titleText, headerSuffix, maxWidth, ending)
+    val header = renderHeader(headerPrefix, titleText, headerSuffix, maxWidth, ending, interactive)
     val body0 = statuses
       .map {
         case (threadId, status) =>
@@ -121,9 +121,10 @@ private object MultilinePromptLoggerUtil {
                     titleText0: String,
                     headerSuffix0: String,
                     maxWidth: Int,
-                    ending: Boolean = false
+                    ending: Boolean = false,
+                    interactive: Boolean = true
                   ): String = {
-    val headerPrefixStr = if (ending) s"$headerPrefix0 " else s"  $headerPrefix0 "
+    val headerPrefixStr = if (!interactive || ending) s"$headerPrefix0 " else s"  $headerPrefix0 "
     val headerSuffixStr = s" $headerSuffix0"
     val titleText = s" $titleText0 "
     // -12 just to ensure we always have some ==== divider on each side of the title

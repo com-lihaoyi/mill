@@ -339,7 +339,8 @@ object MillMain {
         systemStreams0 = streams,
         debugEnabled = config.debugLog.value,
         titleText = config.leftoverArgs.value.mkString(" "),
-        terminfoPath = serverDir / ServerFiles.terminfo
+        terminfoPath = serverDir / ServerFiles.terminfo,
+        currentTimeMillis = () => System.currentTimeMillis()
       )
     }
 
