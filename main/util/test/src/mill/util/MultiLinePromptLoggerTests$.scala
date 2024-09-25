@@ -5,13 +5,13 @@ import mill.main.client.ProxyStream
 import utest._
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, PrintStream}
-object MultilinePromptLoggerTests extends TestSuite {
+object MultiLinePromptLoggerTests$ extends TestSuite {
 
   def setup(now: () => Long, terminfoPath: os.Path) = {
     val baos = new ByteArrayOutputStream()
     val baosOut = new PrintStream(new ProxyStream.Output(baos, ProxyStream.OUT))
     val baosErr = new PrintStream(new ProxyStream.Output(baos, ProxyStream.ERR))
-    val promptLogger = new MultilinePromptLogger(
+    val promptLogger = new MultiLinePromptLogger(
       colored = false,
       enableTicker = true,
       infoColor = fansi.Attrs.Empty,
@@ -28,9 +28,9 @@ object MultilinePromptLoggerTests extends TestSuite {
   }
 
   def check(
-      promptLogger: MultilinePromptLogger,
-      baos: ByteArrayOutputStream,
-      width: Int = 80
+             promptLogger: MultiLinePromptLogger,
+             baos: ByteArrayOutputStream,
+             width: Int = 80
   )(expected: String*) = {
     promptLogger.streamsAwaitPumperEmpty()
     val finalBaos = new ByteArrayOutputStream()

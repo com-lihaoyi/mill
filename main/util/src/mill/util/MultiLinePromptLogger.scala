@@ -14,7 +14,7 @@ import pprint.Util.literalize
 import java.io._
 import MultilinePromptLoggerUtil._
 
-private[mill] class MultilinePromptLogger(
+private[mill] class MultiLinePromptLogger(
     override val colored: Boolean,
     override val enableTicker: Boolean,
     override val infoColor: fansi.Attrs,
@@ -27,7 +27,7 @@ private[mill] class MultilinePromptLogger(
     autoUpdate: Boolean = true
 ) extends ColorLogger with AutoCloseable {
   override def toString: String = s"MultilinePromptLogger(${literalize(titleText)}"
-  import MultilinePromptLogger._
+  import MultiLinePromptLogger._
 
   private var termDimensions: (Option[Int], Option[Int]) = (None, None)
 
@@ -124,7 +124,7 @@ private[mill] class MultilinePromptLogger(
   def systemStreams = streams.systemStreams
 }
 
-object MultilinePromptLogger {
+object MultiLinePromptLogger {
 
   private class Streams(
       enableTicker: Boolean,
