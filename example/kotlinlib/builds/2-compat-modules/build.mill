@@ -20,6 +20,7 @@ object foo extends KotlinModule with KotlinMavenModule {
 // - `foo/src/main/java`
 // - `foo/src/main/kotlin`
 // - `foo/src/test/java`
+// - `foo/src/test/kotlin`
 //
 // Rather than Mill's
 //

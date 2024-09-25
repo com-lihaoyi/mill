@@ -7,7 +7,6 @@ import de.tobiasroeser.mill.vcs.version.VcsVersion
 import com.goyeau.mill.scalafix.ScalafixModule
 import mill._
 import mill.api.JarManifest
-import mill.define.NamedTask
 import mill.main.Tasks
 import mill.scalalib._
 import mill.scalalib.api.ZincWorkerUtil
@@ -61,6 +60,7 @@ object `package` extends RootModule with Module {
     object cross extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "cross"))
     object large extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "large"))
     object sandbox extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "sandbox"))
+    object libraries extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "libraries"))
   }
 
   object extending extends Module {
@@ -69,26 +69,13 @@ object `package` extends RootModule with Module {
     object plugins extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "plugins"))
   }
 
-  object external extends Module {
-    object libraries extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "libraries"))
-  }
-
   trait ExampleCrossModuleKotlin extends ExampleCrossModuleJava {
     override def lineTransform(line: String) = this.millModuleSegments.parts.last match {
-      case "3-multi-module" => line.replace("bar.BarTests.simple", "bar.BarTestssimple")
-        .replace("bar.BarTests.escaping", "bar.BarTestsescaping")
-      case "4-builtin-commands" => line.replace("compile.dest/zinc", "compile.dest/kotlin.analysis.dummy")
-      case "5-resources" => line.replace("FooTests.simple", "FooTestssimple")
+      case "4-builtin-commands" =>
+        line.replace("compile.dest/zinc", "compile.dest/kotlin.analysis.dummy")
       case "1-test-suite" => line
         .replace("mill bar.test bar.BarTests.hello", "kotest_filter_tests='hello' kotest_filter_specs='bar.BarTests' ./mill bar.test")
-        .replace("FooTests.hello", "FooTestshello")
-        .replace("FooTests.world", "FooTestsworld")
-        .replace("BarTests.hello", "BarTestshello")
-        .replace("BarTests.world", "BarTestsworld")
         .replace("compiling 1 ... source...", "Compiling 1 ... source...")
-      case "2-test-deps" => line
-        .replace("qux.QuxTests.simple", "qux.QuxTestssimple")
-        .replace("baz.BazTests.simple", "baz.BazTestssimple")
       case _ => line
     }
   }

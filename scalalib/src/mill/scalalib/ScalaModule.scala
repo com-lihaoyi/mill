@@ -631,7 +631,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
       allScalacOptions() ++
         semanticDbEnablePluginScalacOptions() ++ {
           if (ZincWorkerUtil.isScala3(sv)) {
-            Seq("-Xsemanticdb")
+            Seq("-Xsemanticdb", s"-sourceroot:${T.workspace}")
           } else {
             Seq(
               "-Yrangepos",

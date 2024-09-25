@@ -16,49 +16,62 @@ Many of the APIs covered here are listed in the Scaladoc:
 * {mill-doc-url}/api/latest/mill/scalalib/ScalaModule.html[mill.scalalib.ScalaModule]
 
 
+== Common Configuration Overrides
+
+include::example/scalalib/module/1-common-config.adoc[]
+
+== Custom Tasks
+
+include::example/scalalib/module/2-custom-tasks.adoc[]
+
+== Overriding Tasks
+
+include::example/scalalib/module/3-override-tasks.adoc[]
+
+
 == Compilation & Execution Flags
 
-include::example/scalalib/module/1-compilation-execution-flags.adoc[]
+include::example/scalalib/module/4-compilation-execution-flags.adoc[]
 
 == Adding Ivy Dependencies
 
-include::example/scalalib/module/2-ivy-deps.adoc[]
+include::example/scalalib/module/5-ivy-deps.adoc[]
 
 == Runtime and Compile-time Dependencies
 
-include::example/scalalib/module/3-run-compile-deps.adoc[]
+include::example/scalalib/module/6-run-compile-deps.adoc[]
 
 == Classpath and Filesystem Resources
 
-include::example/scalalib/module/5-resources.adoc[]
+include::example/scalalib/module/7-resources.adoc[]
 
 == Scala Compiler Plugins
 
-include::example/scalalib/module/6-scala-compiler-plugins.adoc[]
+include::example/scalalib/module/8-scala-compiler-plugins.adoc[]
 
 == Scaladoc Config
 
-include::example/scalalib/module/7-docjar.adoc[]
+include::example/scalalib/module/9-docjar.adoc[]
 
 == Unmanaged Jars
 
-include::example/scalalib/module/8-unmanaged-jars.adoc[]
+include::example/scalalib/module/10-unmanaged-jars.adoc[]
 
 == Specifying the Main Class
 
-include::example/scalalib/module/9-main-class.adoc[]
+include::example/scalalib/module/11-main-class.adoc[]
 
 == Downloading Non-Maven Jars
 
-include::example/scalalib/module/10-downloading-non-maven-jars.adoc[]
+include::example/scalalib/module/12-downloading-non-maven-jars.adoc[]
 
 == Customizing the Assembly
 
-include::example/scalalib/module/11-assembly-config.adoc[]
+include::example/scalalib/module/13-assembly-config.adoc[]
 
 == Repository Config
 
-include::example/scalalib/module/12-repository-config.adoc[]
+include::example/scalalib/module/14-repository-config.adoc[]
 
 == Maven Central: Blocked!
 
@@ -84,13 +97,10 @@ The idea is to set an environment variable COURSIER_REPOSITORIES (see coursier d
 
 If you are using millw, a more permanent solution could be to set the environment variable at the top of the millw script, or as a user environment variable etc.
 
-== Scoverage
-
-include::example/scalalib/module/13-contrib-scoverage.adoc[]
 
 == Unidoc
 
-include::example/scalalib/module/14-unidoc.adoc[]
+include::example/scalalib/module/15-unidoc.adoc[]
 
 
 == Using the Ammonite Repl / Scala console
