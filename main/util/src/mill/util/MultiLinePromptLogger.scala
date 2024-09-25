@@ -262,16 +262,25 @@ private[mill] object MultiLinePromptLogger {
       val threadId = Thread.currentThread().getId.toInt
 
       val now = currentTimeMillis()
+      def stillTransitioning(status: Status) = {
+        status.beginTransitionTime + statusRemovalHideDelayMillis > now
+      }
       val sOptEntry = sOpt.map(StatusEntry(_, now))
       statuses.updateWith(threadId){
-        case None => Some(Status(sOptEntry, now, None))
+        case None =>
+          statuses.find{case (k, v) => v.next.isEmpty && stillTransitioning(v)} match{
+            case Some((reusableKey, reusableValue)) =>
+              statuses.remove(reusableKey)
+              Some(reusableValue.copy(next = sOptEntry))
+            case None => Some(Status(sOptEntry, now, None))
+          }
+
         case Some(existing) =>
           Some(
-            // If already performing a transition, do not update the `prevTransitionTime`
+            // If still performing a transition, do not update the `prevTransitionTime`
             // since we do not want to delay the transition that is already in progress
-            if (existing.beginTransitionTime + statusRemovalHideDelayMillis > now) {
-              existing.copy(next = sOptEntry)
-            } else {
+            if (stillTransitioning(existing)) existing.copy(next = sOptEntry)
+            else {
               existing.copy(
                 next = sOptEntry,
                 beginTransitionTime = now,

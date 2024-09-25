@@ -273,5 +273,56 @@ object MultiLinePromptLoggerTests extends TestSuite {
         ""
       )
     }
+
+    test("sequentialShortLived") {
+      // Make sure that when we have multiple sequential tasks being run on different threads,
+      // we still end up showing some kind of task in progress in the ticker, even though the
+      // tasks on each thread are short-lived enough they would not normally get shown if run
+      // alone.
+      @volatile var now = 0L
+      val (baos, promptLogger, prefixLogger) = setup(() => now, os.temp("80 40"))
+
+      promptLogger.globalTicker("123/456")
+      promptLogger.refreshPrompt()
+      check(promptLogger, baos)(
+        "  123/456 ============================ TITLE ================================= "
+      )
+      promptLogger.ticker("[1]", "[1/456]", "my-task")
+
+      now += 100
+
+      promptLogger.refreshPrompt()
+      check(promptLogger, baos)(
+        "  123/456 ============================ TITLE ================================= "
+      )
+
+      promptLogger.endTicker()
+
+      val newTaskThread = new Thread(() => {
+        promptLogger.ticker("[2]", "[2/456]", "my-task-new")
+        now += 100
+        promptLogger.endTicker()
+      })
+      newTaskThread.start()
+      newTaskThread.join()
+
+      promptLogger.refreshPrompt()
+      check(promptLogger, baos)(
+        "  123/456 ============================ TITLE ================================= "
+      )
+
+
+      val newTaskThread2 = new Thread(() => {
+        promptLogger.ticker("[2]", "[2/456]", "my-task-new")
+        now += 100
+      })
+      newTaskThread2.start()
+      newTaskThread2.join()
+      promptLogger.refreshPrompt()
+      check(promptLogger, baos)(
+        "  123/456 ============================ TITLE ================================= ",
+        "[2] my-task-new "
+      )
+    }
   }
 }

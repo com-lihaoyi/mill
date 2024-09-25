@@ -28,7 +28,7 @@ private object MultilinePromptLoggerUtil {
    * is even more distracting than changing the contents of a line, so we want to minimize
    * those occurrences even further.
    */
-  val statusRemovalHideDelayMillis = 500
+  val statusRemovalHideDelayMillis = 250
 
   /**
    * How long to wait before actually removing the blank line left by a removed status
