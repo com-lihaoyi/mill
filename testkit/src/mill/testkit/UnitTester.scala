@@ -188,8 +188,6 @@ class UnitTester(
   }
 
   def close(): Unit = {
-    for ((_, Val(obsolete: AutoCloseable)) <- evaluator.workerCache.values) {
-      obsolete.close()
-    }
+    evaluator.close()
   }
 }

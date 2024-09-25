@@ -27,6 +27,26 @@ object MainModuleTests extends TestSuite {
       Map("1" -> "hello", "2" -> "world")
     }
     def helloCommand(x: Int, y: Task[String]) = Task.Command { (x, y(), hello()) }
+
+    class TheWorker extends AutoCloseable {
+      var closed = false
+      def close(): Unit = {
+        closed = true
+      }
+      override def toString(): String =
+        s"TheWorker(closed = $closed)@${Integer.toHexString(System.identityHashCode(this))}"
+    }
+    var theWorkerOpt = Option.empty[TheWorker]
+    def helloWorker = Task.Worker {
+      theWorkerOpt.getOrElse {
+        val worker = new TheWorker
+        theWorkerOpt = Some(worker)
+        worker
+      }
+    }
+    def useHelloWorker = Task {
+      helloWorker().toString
+    }
     override lazy val millDiscover: Discover = Discover[this.type]
   }
 
@@ -272,6 +292,18 @@ object MainModuleTests extends TestSuite {
           os.sub / "bar/target.json",
           os.sub / "bar/target.dest/dummy.txt"
         )
+      }
+    }
+
+    test("resources") {
+      test("worker") {
+        mainModule.theWorkerOpt = None
+        UnitTester(mainModule, null).scoped { eval =>
+          val res = eval.evaluator.evaluate(Agg(mainModule.show(eval.evaluator, "useHelloWorker")))
+          assert(res.rawValues.head.asSuccess.nonEmpty)
+        }
+        assert(mainModule.theWorkerOpt.exists(_.closed))
+        mainModule.theWorkerOpt = None
       }
     }
   }

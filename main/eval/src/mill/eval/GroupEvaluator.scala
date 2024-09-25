@@ -19,7 +19,7 @@ import scala.util.DynamicVariable
  * Logic around evaluating a single group, which is a collection of [[Task]]s
  * with a single [[Terminal]].
  */
-private[mill] trait GroupEvaluator {
+private[mill] trait GroupEvaluator extends AutoCloseable {
   def home: os.Path
   def workspace: os.Path
   def outPath: os.Path
@@ -471,6 +471,18 @@ private[mill] trait GroupEvaluator {
         case _ => None // worker not cached or obsolete
       }
   }
+
+  def close(): Unit =
+    workerCache.synchronized {
+      workerCache
+        .valuesIterator
+        .map(_._2.value)
+        .collect {
+          case c: AutoCloseable => c
+        }
+        .foreach(_.close())
+      workerCache.clear()
+    }
 }
 
 private[mill] object GroupEvaluator {
