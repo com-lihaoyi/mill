@@ -3,6 +3,7 @@ package mill.main
 import mill.api.{PathRef, Result, Val}
 import mill.{Agg, T, Task}
 import mill.define.{Cross, Discover, Module}
+import mill.main.client.OutFiles
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import utest.{TestSuite, Tests, assert, test}
@@ -404,6 +405,55 @@ object MainModuleTests extends TestSuite {
         val r4 = ev.evaluator.evaluate(Agg(workerModule.clean(ev.evaluator, "bazz[1].theWorker")))
         assert(r4.failing.keyCount == 0)
         assert(workers.size == 2)
+      }
+
+      test("single-target via rm") {
+        val workers = new mutable.HashSet[TestWorker]
+        val workerModule = new WorkerModule(workers)
+        val ev = UnitTester(workerModule, null)
+
+        ev.evaluator.evaluate(Agg(workerModule.foo.theWorker))
+          .ensuring(_.failing.keyCount == 0)
+        assert(workers.size == 1)
+
+        val originalFooWorker = workers.head
+
+        ev.evaluator.evaluate(Agg(workerModule.bar.theWorker))
+          .ensuring(_.failing.keyCount == 0)
+        assert(workers.size == 2)
+        assert(workers.exists(_ eq originalFooWorker))
+
+        val originalBarWorker = workers.filter(_ ne originalFooWorker).head
+
+        ev.evaluator.evaluate(Agg(workerModule.foo.theWorker))
+          .ensuring(_.failing.keyCount == 0)
+        assert(workers.size == 2)
+        assert(workers.exists(_ eq originalFooWorker))
+
+        ev.evaluator.evaluate(Agg(workerModule.bar.theWorker))
+          .ensuring(_.failing.keyCount == 0)
+        assert(workers.size == 2)
+        assert(workers.exists(_ eq originalBarWorker))
+
+        val outDir = os.Path(OutFiles.out, workerModule.millSourcePath)
+
+        assert(!originalFooWorker.closed)
+        os.remove(outDir / "foo/theWorker.json")
+
+        ev.evaluator.evaluate(Agg(workerModule.foo.theWorker))
+          .ensuring(_.failing.keyCount == 0)
+        assert(workers.size == 2)
+        assert(!workers.exists(_ eq originalFooWorker))
+        assert(originalFooWorker.closed)
+
+        assert(!originalBarWorker.closed)
+        os.remove(outDir / "bar/theWorker.json")
+
+        ev.evaluator.evaluate(Agg(workerModule.bar.theWorker))
+          .ensuring(_.failing.keyCount == 0)
+        assert(workers.size == 2)
+        assert(!workers.exists(_ eq originalBarWorker))
+        assert(originalBarWorker.closed)
       }
 
       test("single-module") {
