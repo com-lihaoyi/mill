@@ -124,7 +124,7 @@ private[mill] class MultiLinePromptLogger(
   def systemStreams = streams.systemStreams
 }
 
-object MultiLinePromptLogger {
+private[mill] object MultiLinePromptLogger {
 
   private class Streams(
       enableTicker: Boolean,
@@ -180,7 +180,6 @@ object MultiLinePromptLogger {
     val pumperThread = new Thread(pumper)
     pumperThread.start()
 
-    Thread.sleep(100)
     def close(): Unit = {
       // Close the write side of the pipe first but do not close the read side, so
       // the `pumperThread` can continue reading remaining text in the pipe buffer
