@@ -110,7 +110,10 @@ object MultiLinePromptLoggerUtilTests extends TestSuite {
     test("renderPrompt") {
       import MultiLinePromptLogger._
       val now = System.currentTimeMillis()
-      def renderPromptTest(interactive: Boolean, titleText: String = "__.compile")(statuses: (Int, Status)*) = {
+      def renderPromptTest(
+          interactive: Boolean,
+          titleText: String = "__.compile"
+      )(statuses: (Int, Status)*) = {
         renderPrompt(
           consoleWidth = 60,
           consoleHeight = 20,
@@ -125,8 +128,8 @@ object MultiLinePromptLoggerUtilTests extends TestSuite {
       }
       test("simple") {
         val rendered = renderPromptTest(interactive = true)(
-            0 -> Status(Some(StatusEntry("hello", now - 1000)), 0, None),
-            1 -> Status(Some(StatusEntry("world", now - 2000)), 0, None)
+          0 -> Status(Some(StatusEntry("hello", now - 1000)), 0, None),
+          1 -> Status(Some(StatusEntry("world", now - 2000)), 0, None)
         )
         val expected = List(
           "  123/456 =============== __.compile ================ 1337s",
@@ -137,22 +140,21 @@ object MultiLinePromptLoggerUtilTests extends TestSuite {
       }
 
       test("maxWithoutTruncation") {
-        val rendered = renderPromptTest(interactive = true, titleText = "__.compile.abcdefghijklmn")(
-          0 -> Status(
-            Some(StatusEntry(
-              "#1 hello1234567890abcefghijklmnopqrstuvwxyz1234567890123",
-            now - 1000,
-            ))
-
-            ,
-            0,
-            None
-          ),
-          1 -> Status(Some(StatusEntry("#2 world", now - 2000)), 0, None),
-          2 -> Status(Some(StatusEntry("#3 i am cow", now - 3000)), 0, None),
-          3 -> Status(Some(StatusEntry("#4 hear me moo", now - 4000)), 0, None),
-          4 -> Status(Some(StatusEntry("#5 i weigh twice as much as you", now - 5000)), 0, None)
-        )
+        val rendered =
+          renderPromptTest(interactive = true, titleText = "__.compile.abcdefghijklmn")(
+            0 -> Status(
+              Some(StatusEntry(
+                "#1 hello1234567890abcefghijklmnopqrstuvwxyz1234567890123",
+                now - 1000
+              )),
+              0,
+              None
+            ),
+            1 -> Status(Some(StatusEntry("#2 world", now - 2000)), 0, None),
+            2 -> Status(Some(StatusEntry("#3 i am cow", now - 3000)), 0, None),
+            3 -> Status(Some(StatusEntry("#4 hear me moo", now - 4000)), 0, None),
+            4 -> Status(Some(StatusEntry("#5 i weigh twice as much as you", now - 5000)), 0, None)
+          )
 
         val expected = List(
           "  123/456 ======== __.compile.abcdefghijklmn ======== 1337s",
@@ -165,18 +167,26 @@ object MultiLinePromptLoggerUtilTests extends TestSuite {
         assert(rendered == expected)
       }
       test("minAfterTruncation") {
-        val rendered = renderPromptTest(interactive = true, titleText = "__.compile.abcdefghijklmno")(
-          0 -> Status(
-            Some(StatusEntry("#1 hello1234567890abcefghijklmnopqrstuvwxyz12345678901234", now - 1000)),
-            0,
-            None
-          ),
-          1 -> Status(Some(StatusEntry("#2 world", now - 2000)), 0, None),
-          2 -> Status(Some(StatusEntry("#3 i am cow", now - 3000)), 0, None),
-          3 -> Status(Some(StatusEntry("#4 hear me moo", now - 4000)), 0, None),
-          4 -> Status(Some(StatusEntry("#5 i weigh twice as much as you", now - 5000)), 0, None),
-          5 -> Status(Some(StatusEntry("#6 and I look good on the barbecue", now - 6000)), 0, None)
-        )
+        val rendered =
+          renderPromptTest(interactive = true, titleText = "__.compile.abcdefghijklmno")(
+            0 -> Status(
+              Some(StatusEntry(
+                "#1 hello1234567890abcefghijklmnopqrstuvwxyz12345678901234",
+                now - 1000
+              )),
+              0,
+              None
+            ),
+            1 -> Status(Some(StatusEntry("#2 world", now - 2000)), 0, None),
+            2 -> Status(Some(StatusEntry("#3 i am cow", now - 3000)), 0, None),
+            3 -> Status(Some(StatusEntry("#4 hear me moo", now - 4000)), 0, None),
+            4 -> Status(Some(StatusEntry("#5 i weigh twice as much as you", now - 5000)), 0, None),
+            5 -> Status(
+              Some(StatusEntry("#6 and I look good on the barbecue", now - 6000)),
+              0,
+              None
+            )
+          )
 
         val expected = List(
           "  123/456 ======= __.compile....efghijklmno ========= 1337s",
@@ -190,18 +200,25 @@ object MultiLinePromptLoggerUtilTests extends TestSuite {
       }
 
       test("truncated") {
-        val rendered = renderPromptTest(interactive = true, titleText = "__.compile.abcdefghijklmnopqrstuvwxyz1234567890")(
+        val rendered = renderPromptTest(
+          interactive = true,
+          titleText = "__.compile.abcdefghijklmnopqrstuvwxyz1234567890"
+        )(
           0 -> Status(
             Some(StatusEntry("#1 hello1234567890abcefghijklmnopqrstuvwxyz" * 3, now - 1000)),
-              0,
-              None
+            0,
+            None
           ),
           1 -> Status(Some(StatusEntry("#2 world", now - 2000)), 0, None),
           2 -> Status(Some(StatusEntry("#3 i am cow", now - 3000)), 0, None),
           3 -> Status(Some(StatusEntry("#4 hear me moo", now - 4000)), 0, None),
           4 -> Status(Some(StatusEntry("#5 i weigh twice as much as you", now - 5000)), 0, None),
           5 -> Status(Some(StatusEntry("#6 and i look good on the barbecue", now - 6000)), 0, None),
-          6 -> Status(Some(StatusEntry("#7 yoghurt curds cream cheese and butter", now - 7000)), 0, None)
+          6 -> Status(
+            Some(StatusEntry("#7 yoghurt curds cream cheese and butter", now - 7000)),
+            0,
+            None
+          )
         )
         val expected = List(
           "  123/456  __.compile....z1234567890 ================ 1337s",
@@ -215,7 +232,10 @@ object MultiLinePromptLoggerUtilTests extends TestSuite {
       }
 
       test("removalDelay") {
-        val rendered = renderPromptTest(interactive = true, titleText = "__.compile.abcdefghijklmnopqrstuvwxyz1234567890")(
+        val rendered = renderPromptTest(
+          interactive = true,
+          titleText = "__.compile.abcdefghijklmnopqrstuvwxyz1234567890"
+        )(
           // Not yet removed, should be shown
           0 -> Status(
             Some(StatusEntry("#1 hello1234567890abcefghijklmnopqrstuvwxyz" * 3, now - 1000)),
@@ -223,17 +243,33 @@ object MultiLinePromptLoggerUtilTests extends TestSuite {
             None
           ),
           // This is removed but are still within the transition window, so still shown
-          2 -> Status(None, now - statusRemovalHideDelayMillis + 1, Some(StatusEntry("#3 i am cow", now - 3000))),
+          2 -> Status(
+            None,
+            now - statusRemovalHideDelayMillis + 1,
+            Some(StatusEntry("#3 i am cow", now - 3000))
+          ),
           // Removed but already outside the `statusRemovalDelayMillis` window, not shown, but not
           // yet removed, so rendered as blank lines to prevent terminal jumping around too much
-          3 -> Status(None, now - statusRemovalRemoveDelayMillis + 1, Some(StatusEntry("#4 hear me moo", now - 4000))),
-          4 -> Status(None, now - statusRemovalRemoveDelayMillis + 1, Some(StatusEntry("#5 i weigh twice", now - 5000))),
-          5 -> Status(None, now - statusRemovalRemoveDelayMillis + 1, Some(StatusEntry("#6 as much as you", now - 6000))),
+          3 -> Status(
+            None,
+            now - statusRemovalRemoveDelayMillis + 1,
+            Some(StatusEntry("#4 hear me moo", now - 4000))
+          ),
+          4 -> Status(
+            None,
+            now - statusRemovalRemoveDelayMillis + 1,
+            Some(StatusEntry("#5 i weigh twice", now - 5000))
+          ),
+          5 -> Status(
+            None,
+            now - statusRemovalRemoveDelayMillis + 1,
+            Some(StatusEntry("#6 as much as you", now - 6000))
+          ),
           // This one would be rendered as a blank line, but because of the max prompt height
           // controlled by the `consoleHeight` it ends up being silently truncated
           6 -> Status(
             None,
-            now - statusRemovalRemoveDelayMillis + 1             ,
+            now - statusRemovalRemoveDelayMillis + 1,
             Some(StatusEntry("#7 and I look good on the barbecue", now - 7000))
           )
         )
@@ -250,7 +286,10 @@ object MultiLinePromptLoggerUtilTests extends TestSuite {
         assert(rendered == expected)
       }
       test("removalFinal") {
-        val rendered = renderPromptTest(interactive = true, titleText = "__.compile.abcdefghijklmnopqrstuvwxyz1234567890")(
+        val rendered = renderPromptTest(
+          interactive = true,
+          titleText = "__.compile.abcdefghijklmnopqrstuvwxyz1234567890"
+        )(
           // Not yet removed, should be shown
           0 -> Status(
             Some(StatusEntry("#1 hello1234567890abcefghijklmnopqrstuvwxyz" * 3, now - 1000)),
@@ -258,22 +297,33 @@ object MultiLinePromptLoggerUtilTests extends TestSuite {
             None
           ),
           // This is removed a long time ago, so it is totally removed
-          1 -> Status(None, now - statusRemovalRemoveDelayMillis - 1, Some(StatusEntry("#2 world", now - 2000))),
+          1 -> Status(
+            None,
+            now - statusRemovalRemoveDelayMillis - 1,
+            Some(StatusEntry("#2 world", now - 2000))
+          ),
           // This is removed but are still within the transition window, so still shown
-          2 -> Status(None, now - statusRemovalHideDelayMillis + 1, Some(StatusEntry("#3 i am cow", now - 3000))),
+          2 -> Status(
+            None,
+            now - statusRemovalHideDelayMillis + 1,
+            Some(StatusEntry("#3 i am cow", now - 3000))
+          )
         )
 
         val expected = List(
           "  123/456  __.compile....z1234567890 ================ 1337s",
           "#1 hello1234567890abcefghijk...abcefghijklmnopqrstuvwxyz 1s",
-          "#3 i am cow 3s",
+          "#3 i am cow 3s"
         )
 
         assert(rendered == expected)
       }
 
       test("nonInteractive") {
-        val rendered = renderPromptTest(interactive = false, titleText = "__.compile.abcdefghijklmnopqrstuvwxyz1234567890")(
+        val rendered = renderPromptTest(
+          interactive = false,
+          titleText = "__.compile.abcdefghijklmnopqrstuvwxyz1234567890"
+        )(
           // Not yet removed, should be shown
           0 -> Status(
             Some(StatusEntry("#1 hello1234567890abcefghijklmnopqrstuvwxyz" * 3, now - 1000)),
@@ -281,13 +331,33 @@ object MultiLinePromptLoggerUtilTests extends TestSuite {
             None
           ),
           // These are removed but are still within the `statusRemovalDelayMillis` window, so still shown
-          1 -> Status(None, now - statusRemovalHideDelayMillis + 1, Some(StatusEntry("#2 world", now - 2000))),
-          2 -> Status(None, now - statusRemovalHideDelayMillis + 1, Some(StatusEntry("#3 i am cow", now - 3000))),
+          1 -> Status(
+            None,
+            now - statusRemovalHideDelayMillis + 1,
+            Some(StatusEntry("#2 world", now - 2000))
+          ),
+          2 -> Status(
+            None,
+            now - statusRemovalHideDelayMillis + 1,
+            Some(StatusEntry("#3 i am cow", now - 3000))
+          ),
           // Removed but already outside the `statusRemovalDelayMillis` window, not shown, but not
           // yet removed, so rendered as blank lines to prevent terminal jumping around too much
-          3 -> Status(None, now - statusRemovalRemoveDelayMillis - 1, Some(StatusEntry("#4 hear me moo", now - 4000))),
-          4 -> Status(None, now - statusRemovalRemoveDelayMillis - 1, Some(StatusEntry("#5 i weigh twice", now - 5000))),
-          5 -> Status(None, now - statusRemovalRemoveDelayMillis - 1, Some(StatusEntry("#6 as much as you", now - 6000)))
+          3 -> Status(
+            None,
+            now - statusRemovalRemoveDelayMillis - 1,
+            Some(StatusEntry("#4 hear me moo", now - 4000))
+          ),
+          4 -> Status(
+            None,
+            now - statusRemovalRemoveDelayMillis - 1,
+            Some(StatusEntry("#5 i weigh twice", now - 5000))
+          ),
+          5 -> Status(
+            None,
+            now - statusRemovalRemoveDelayMillis - 1,
+            Some(StatusEntry("#6 as much as you", now - 6000))
+          )
         )
 
         // Make sure the non-interactive prompt does not show the blank lines,

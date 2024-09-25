@@ -38,7 +38,6 @@ private object MultilinePromptLoggerUtil {
    */
   val statusRemovalRemoveDelayMillis = 2000
 
-
   private[mill] case class StatusEntry(text: String, startTimeMillis: Long)
 
   /**
@@ -46,7 +45,11 @@ private object MultilinePromptLoggerUtil {
    * we want to buffer up status transitions to debounce them. Which status entry is currently
    * shown depends on the [[beginTransitionTime]] and other heuristics
    */
-  private[mill] case class Status(next: Option[StatusEntry], beginTransitionTime: Long, prev: Option[StatusEntry])
+  private[mill] case class Status(
+      next: Option[StatusEntry],
+      beginTransitionTime: Long,
+      prev: Option[StatusEntry]
+  )
 
   private[mill] val clearScreenToEndBytes: Array[Byte] = AnsiNav.clearScreen(0).getBytes
 
@@ -99,15 +102,19 @@ private object MultilinePromptLoggerUtil {
           // rendering them as an empty line for `statusRemovalRemoveDelayMillis` to try
           // and maintain prompt height and stop it from bouncing up and down
           if (
-              status.prev.nonEmpty &&
-              status.next.isEmpty &&
-              status.beginTransitionTime + statusRemovalHideDelayMillis  < now &&
-              status.beginTransitionTime > now - statusRemovalRemoveDelayMillis
-          ){
+            status.prev.nonEmpty &&
+            status.next.isEmpty &&
+            status.beginTransitionTime + statusRemovalHideDelayMillis < now &&
+            status.beginTransitionTime > now - statusRemovalRemoveDelayMillis
+          ) {
             Some("")
           } else {
-            val textOpt = if (status.beginTransitionTime + statusRemovalHideDelayMillis < now) status.next else status.prev
-            textOpt.map(t => splitShorten(t.text + " " + renderSeconds(now - t.startTimeMillis), maxWidth))
+            val textOpt = if (status.beginTransitionTime + statusRemovalHideDelayMillis < now)
+              status.next
+            else status.prev
+            textOpt.map(t =>
+              splitShorten(t.text + " " + renderSeconds(now - t.startTimeMillis), maxWidth)
+            )
           }
       }
       // For non-interactive jobs, we do not need to preserve the height of the prompt

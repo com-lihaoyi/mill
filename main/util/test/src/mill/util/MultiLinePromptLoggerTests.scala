@@ -28,9 +28,9 @@ object MultiLinePromptLoggerTests extends TestSuite {
   }
 
   def check(
-             promptLogger: MultiLinePromptLogger,
-             baos: ByteArrayOutputStream,
-             width: Int = 80
+      promptLogger: MultiLinePromptLogger,
+      baos: ByteArrayOutputStream,
+      width: Int = 80
   )(expected: String*) = {
     promptLogger.streamsAwaitPumperEmpty()
     val finalBaos = new ByteArrayOutputStream()
@@ -172,15 +172,13 @@ object MultiLinePromptLoggerTests extends TestSuite {
         "[3] hello short lived",
         "[3] goodbye short lived",
         "  123/456 ============================ TITLE ============================== 10s",
-        "[1] my-task 10s",
+        "[1] my-task 10s"
       )
 
       shortLivedSemaphore.synchronized(shortLivedSemaphore.notify())
       shortLivedThread.join()
 
       now += 1000
-
-
 
       // my-task-new appears by now, but my-task-short-lived has already ended and never appears
       promptLogger.refreshPrompt()
@@ -196,7 +194,7 @@ object MultiLinePromptLoggerTests extends TestSuite {
         "[3] goodbye short lived",
         "  123/456 ============================ TITLE ============================== 11s",
         "[1] my-task 11s",
-        "[2] my-task-new 1s",
+        "[2] my-task-new 1s"
       )
 
       promptLogger.endTicker()
@@ -217,7 +215,7 @@ object MultiLinePromptLoggerTests extends TestSuite {
         "[3] goodbye short lived",
         "  123/456 ============================ TITLE ============================== 11s",
         "[1] my-task 11s",
-        "[2] my-task-new 1s",
+        "[2] my-task-new 1s"
       )
 
       now += 1000
@@ -255,7 +253,7 @@ object MultiLinePromptLoggerTests extends TestSuite {
         "[3] hello short lived",
         "[3] goodbye short lived",
         "  123/456 ============================ TITLE ============================== 22s",
-        "[2] my-task-new 12s",
+        "[2] my-task-new 12s"
       )
       now += 10000
       promptLogger.close()
@@ -310,7 +308,6 @@ object MultiLinePromptLoggerTests extends TestSuite {
       check(promptLogger, baos)(
         "  123/456 ============================ TITLE ================================= "
       )
-
 
       val newTaskThread2 = new Thread(() => {
         promptLogger.ticker("[2]", "[2/456]", "my-task-new")

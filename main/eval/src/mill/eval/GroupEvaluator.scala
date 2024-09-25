@@ -62,7 +62,7 @@ private[mill] trait GroupEvaluator {
       case Terminal.Task(task) => None
       case t: Terminal.Labelled[_] => Some(Terminal.printTerm(t))
     }
-      // should we log progress?
+    // should we log progress?
     val logRun = targetLabel.isDefined && {
       val inputResults = for {
         target <- group.indexed.filterNot(results.contains)
@@ -135,8 +135,8 @@ private[mill] trait GroupEvaluator {
                   constructorHashSignatures.get(m.getClass.getName) match {
                     case Some(Seq((singleMethod, hash))) => hash
                     case Some(multiple) => throw new MillException(
-                      s"Multiple constructors found for module $m: ${multiple.mkString(",")}"
-                    )
+                        s"Multiple constructors found for module $m: ${multiple.mkString(",")}"
+                      )
                     case None => 0
                   }
                 )
@@ -195,8 +195,6 @@ private[mill] trait GroupEvaluator {
             case _ =>
               // uncached
               if (labelled.task.flushDest) os.remove.all(paths.dest)
-
-
 
               val (newResults, newEvaluated) =
                 GroupEvaluator.dynamicTickerPrefix.withValue(s"[$counterMsg] $targetLabel > ") {
@@ -259,7 +257,6 @@ private[mill] trait GroupEvaluator {
       val newResults = mutable.Map.empty[Task[_], Result[(Val, Int)]]
 
       val nonEvaluatedTargets = group.indexed.filterNot(results.contains)
-
 
       val multiLogger = new ProxyLogger(resolveLogger(paths.map(_.log), logger)) {
         override def ticker(s: String): Unit = {
@@ -333,7 +330,6 @@ private[mill] trait GroupEvaluator {
       multiLogger.close()
       (newResults, newEvaluated)
     }
-
 
     val (newResults, newEvaluated) = computeAll()
 

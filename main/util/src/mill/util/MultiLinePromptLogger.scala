@@ -266,9 +266,9 @@ private[mill] object MultiLinePromptLogger {
         status.beginTransitionTime + statusRemovalHideDelayMillis > now
       }
       val sOptEntry = sOpt.map(StatusEntry(_, now))
-      statuses.updateWith(threadId){
+      statuses.updateWith(threadId) {
         case None =>
-          statuses.find{case (k, v) => v.next.isEmpty && stillTransitioning(v)} match{
+          statuses.find { case (k, v) => v.next.isEmpty && stillTransitioning(v) } match {
             case Some((reusableKey, reusableValue)) =>
               statuses.remove(reusableKey)
               Some(reusableValue.copy(next = sOptEntry))
