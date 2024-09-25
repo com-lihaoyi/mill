@@ -38,7 +38,17 @@ private object MultilinePromptLoggerUtil {
    */
   val statusRemovalRemoveDelayMillis = 2000
 
-  private[mill] case class Status(startTimeMillis: Long, text: String, var removedTimeMillis: Long)
+
+  private[mill] case class Status(text: String, startTimeMillis: Long, removedTimeMillis: Long){
+    def shouldRender(now: Long): Option[String] = {
+      if (removedTimeMillis == Long.MaxValue) {
+        Option.when(now - startTimeMillis > statusRemovalHideDelayMillis)(text)
+      } else{
+        if (now - removedTimeMillis > statusRemovalRemoveDelayMillis) None
+        else Option.when(now - startTimeMillis > statusRemovalHideDelayMillis)(text)
+      }
+    }
+  }
 
   private[mill] val clearScreenToEndBytes: Array[Byte] = AnsiNav.clearScreen(0).getBytes
 

@@ -258,7 +258,7 @@ private[mill] object MultiLinePromptLogger {
 
       val now = currentTimeMillis()
       sOpt match {
-        case None => statuses.get(threadId).foreach(_.removedTimeMillis = now)
+        case None => statuses.updateWith(threadId)(_.map(_.copy(removedTimeMillis = now)))
         case Some(s) => statuses(threadId) = Status(now, s, Long.MaxValue)
       }
     }
