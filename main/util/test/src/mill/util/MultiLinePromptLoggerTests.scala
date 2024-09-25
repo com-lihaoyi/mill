@@ -38,6 +38,7 @@ object MultiLinePromptLoggerTests extends TestSuite {
       new ProxyStream.Pumper(new ByteArrayInputStream(baos.toByteArray), finalBaos, finalBaos)
     pumper.run()
     val term = new TestTerminal(width)
+    term.writeAll(finalBaos.toString)
     val lines = term.grid
 
     assert(lines == expected)
