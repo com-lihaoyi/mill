@@ -1,6 +1,6 @@
 package mill.util
 
-import java.io.{ByteArrayOutputStream, OutputStream}
+import java.io.{ByteArrayOutputStream, FilterOutputStream, OutputStream}
 
 /**
  * Prefixes the first and each new line with a dynamically provided prefix,
@@ -14,7 +14,7 @@ class LinePrefixOutputStream(
     linePrefix: String,
     out: OutputStream,
     reportPrefix: () => Unit
-) extends OutputStream {
+) extends FilterOutputStream(out) {
   def this(linePrefix: String, out: OutputStream) = this(linePrefix, out, () => ())
   private[this] val linePrefixBytes = linePrefix.getBytes("UTF-8")
   private[this] val linePrefixNonEmpty = linePrefixBytes.length != 0
