@@ -5,7 +5,7 @@ import mill.main.client.ProxyStream
 import utest._
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, PrintStream}
-object MultiLinePromptLoggerTests$ extends TestSuite {
+object MultiLinePromptLoggerTests extends TestSuite {
 
   def setup(now: () => Long, terminfoPath: os.Path) = {
     val baos = new ByteArrayOutputStream()
@@ -40,6 +40,7 @@ object MultiLinePromptLoggerTests$ extends TestSuite {
     val term = new TestTerminal(width)
     term.writeAll(finalBaos.toString)
     val lines = term.grid
+
     assert(lines == expected)
   }
 
@@ -87,7 +88,8 @@ object MultiLinePromptLoggerTests$ extends TestSuite {
         "======================================================================================================================",
         // Closing the prompt prints the prompt one last time with an updated time elapsed
         "123/456 ================================================== TITLE ================================================= 30s",
-        "======================================================================================================================"
+        "======================================================================================================================",
+        ""
       )
     }
 
@@ -127,15 +129,37 @@ object MultiLinePromptLoggerTests$ extends TestSuite {
         "  123/456 ============================ TITLE ============================== 10s",
         "[1] my-task 10s"
       )
-      val t = new Thread(() => {
+
+      // Adding new ticker entries doesn't appear immediately,
+      // Only after some time has passed do we start displaying the new ticker entry,
+      // to ensure it is meaningful to read and not just something that will flash and disappear
+      val newTaskThread = new Thread(() => {
         val newPrefixLogger = new PrefixLogger(promptLogger, "[2]")
         newPrefixLogger.ticker("[2]", "[2/456]", "my-task-new")
         newPrefixLogger.errorStream.println("I AM COW")
         newPrefixLogger.errorStream.println("HEAR ME MOO")
       })
-      t.start()
-      t.join()
+      newTaskThread.start()
+      newTaskThread.join()
 
+      // For short-lived ticker entries that are removed quickly, they never
+      // appear in the prompt at all even though they can run and generate logs
+      val shortLivedSemaphore = new Object()
+      val shortLivedThread = new Thread(() => {
+        val newPrefixLogger = new PrefixLogger(promptLogger, "[3]")
+        newPrefixLogger.ticker("[3]", "[3/456]", "my-task-short-lived")
+        newPrefixLogger.errorStream.println("hello short lived")
+        shortLivedSemaphore.synchronized(shortLivedSemaphore.notify())
+
+        newPrefixLogger.errorStream.println("goodbye short lived")
+
+        shortLivedSemaphore.synchronized(shortLivedSemaphore.wait())
+        newPrefixLogger.endTicker()
+      })
+      shortLivedThread.start()
+      shortLivedSemaphore.synchronized(shortLivedSemaphore.wait())
+
+      // my-task-new does not appear yet because it is too new
       promptLogger.refreshPrompt()
       check(promptLogger, baos)(
         "[1/456] my-task",
@@ -144,14 +168,42 @@ object MultiLinePromptLoggerTests$ extends TestSuite {
         "[2/456] my-task-new",
         "[2] I AM COW",
         "[2] HEAR ME MOO",
+        "[3/456] my-task-short-lived",
+        "[3] hello short lived",
+        "[3] goodbye short lived",
         "  123/456 ============================ TITLE ============================== 10s",
         "[1] my-task 10s",
-        "[2] my-task-new "
+      )
+
+      shortLivedSemaphore.synchronized(shortLivedSemaphore.notify())
+      shortLivedThread.join()
+
+      now += 1000
+
+
+      println("X" * 100)
+      // my-task-new appears by now, but my-task-short-lived has already ended and never appears
+      promptLogger.refreshPrompt()
+      check(promptLogger, baos)(
+        "[1/456] my-task",
+        "[1] HELLO",
+        "[1] WORLD",
+        "[2/456] my-task-new",
+        "[2] I AM COW",
+        "[2] HEAR ME MOO",
+        "[3/456] my-task-short-lived",
+        "[3] hello short lived",
+        "[3] goodbye short lived",
+        "  123/456 ============================ TITLE ============================== 11s",
+        "[1] my-task 11s",
+        "[2] my-task-new 1s",
       )
 
       promptLogger.endTicker()
 
-      now += 10000
+      now += 100
+
+      // Even after ending my-task, it remains on the ticker for a moment before being removed
       promptLogger.refreshPrompt()
       check(promptLogger, baos)(
         "[1/456] my-task",
@@ -160,8 +212,50 @@ object MultiLinePromptLoggerTests$ extends TestSuite {
         "[2/456] my-task-new",
         "[2] I AM COW",
         "[2] HEAR ME MOO",
-        "  123/456 ============================ TITLE ============================== 20s",
-        "[2] my-task-new 10s"
+        "[3/456] my-task-short-lived",
+        "[3] hello short lived",
+        "[3] goodbye short lived",
+        "  123/456 ============================ TITLE ============================== 11s",
+        "[1] my-task 11s",
+        "[2] my-task-new 1s",
+      )
+
+      now += 1000
+
+      // When my-task disappears from the ticker, it leaves a blank line for a
+      // moment to preserve the height of the prompt
+      promptLogger.refreshPrompt()
+      check(promptLogger, baos)(
+        "[1/456] my-task",
+        "[1] HELLO",
+        "[1] WORLD",
+        "[2/456] my-task-new",
+        "[2] I AM COW",
+        "[2] HEAR ME MOO",
+        "[3/456] my-task-short-lived",
+        "[3] hello short lived",
+        "[3] goodbye short lived",
+        "  123/456 ============================ TITLE ============================== 12s",
+        "[2] my-task-new 2s",
+        ""
+      )
+
+      now += 10000
+
+      // Only after more time does the prompt shrink back
+      promptLogger.refreshPrompt()
+      check(promptLogger, baos)(
+        "[1/456] my-task",
+        "[1] HELLO",
+        "[1] WORLD",
+        "[2/456] my-task-new",
+        "[2] I AM COW",
+        "[2] HEAR ME MOO",
+        "[3/456] my-task-short-lived",
+        "[3] hello short lived",
+        "[3] goodbye short lived",
+        "  123/456 ============================ TITLE ============================== 22s",
+        "[2] my-task-new 12s",
       )
       now += 10000
       promptLogger.close()
@@ -172,7 +266,11 @@ object MultiLinePromptLoggerTests$ extends TestSuite {
         "[2/456] my-task-new",
         "[2] I AM COW",
         "[2] HEAR ME MOO",
-        "123/456 ============================== TITLE ============================== 30s"
+        "[3/456] my-task-short-lived",
+        "[3] hello short lived",
+        "[3] goodbye short lived",
+        "123/456 ============================== TITLE ============================== 32s",
+        ""
       )
     }
   }

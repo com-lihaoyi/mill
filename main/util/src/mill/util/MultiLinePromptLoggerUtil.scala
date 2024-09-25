@@ -39,16 +39,14 @@ private object MultilinePromptLoggerUtil {
   val statusRemovalRemoveDelayMillis = 2000
 
 
-  private[mill] case class Status(text: String, startTimeMillis: Long, removedTimeMillis: Long){
-    def shouldRender(now: Long): Option[String] = {
-      if (removedTimeMillis == Long.MaxValue) {
-        Option.when(now - startTimeMillis > statusRemovalHideDelayMillis)(text)
-      } else{
-        if (now - removedTimeMillis > statusRemovalRemoveDelayMillis) None
-        else Option.when(now - startTimeMillis > statusRemovalHideDelayMillis)(text)
-      }
-    }
-  }
+  private[mill] case class StatusEntry(text: String, startTimeMillis: Long)
+
+  /**
+   * Represents a line in the prompt. Stores up to two separate [[StatusEntry]]s, because
+   * we want to buffer up status transitions to debounce them. Which status entry is currently
+   * shown depends on the [[beginTransitionTime]] and other heuristics
+   */
+  private[mill] case class Status(next: Option[StatusEntry], beginTransitionTime: Long, prev: Option[StatusEntry])
 
   private[mill] val clearScreenToEndBytes: Array[Byte] = AnsiNav.clearScreen(0).getBytes
 
@@ -93,14 +91,24 @@ private object MultilinePromptLoggerUtil {
     val headerSuffix = renderSeconds(now - startTimeMillis)
 
     val header = renderHeader(headerPrefix, titleText, headerSuffix, maxWidth, ending, interactive)
+
     val body0 = statuses
-      .map {
+      .flatMap {
         case (threadId, status) =>
-          if (now - status.removedTimeMillis > statusRemovalHideDelayMillis) ""
-          else splitShorten(
-            status.text + " " + renderSeconds(now - status.startTimeMillis),
-            maxWidth
-          )
+          // For statuses that have completed transitioning from Some to None, continue
+          // rendering them as an empty line for `statusRemovalRemoveDelayMillis` to try
+          // and maintain prompt height and stop it from bouncing up and down
+          if (
+              status.prev.nonEmpty &&
+              status.next.isEmpty &&
+              status.beginTransitionTime + statusRemovalHideDelayMillis  < now &&
+              status.beginTransitionTime > now - statusRemovalRemoveDelayMillis
+          ){
+            Some("")
+          } else {
+            val textOpt = if (status.beginTransitionTime + statusRemovalHideDelayMillis < now) status.next else status.prev
+            textOpt.map(t => splitShorten(t.text + " " + renderSeconds(now - t.startTimeMillis), maxWidth))
+          }
       }
       // For non-interactive jobs, we do not need to preserve the height of the prompt
       // between renderings, since consecutive prompts do not appear at the same place

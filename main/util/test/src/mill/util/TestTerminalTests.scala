@@ -52,8 +52,8 @@ class TestTerminal(width: Int) {
       case normal => // normal text
         if (normal.head == '\n') {
           cursorX = 0
-          if (cursorY >= grid.length) grid.append("")
           cursorY += 1
+          if (cursorY >= grid.length) grid.append("")
         } else {
           if (cursorX == width) {
             cursorX = 0
@@ -92,6 +92,14 @@ object TestTerminalTests extends TestSuite {
       t.grid ==> Seq(
         "12345",
         "67890"
+      )
+    }
+    test("trailingNewline") {
+      val t = new TestTerminal(width = 10)
+      t.writeAll("12345\n")
+      t.grid ==> Seq(
+        "12345",
+        ""
       )
     }
     test("wrapNewline") {

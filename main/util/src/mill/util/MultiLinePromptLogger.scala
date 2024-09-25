@@ -76,10 +76,15 @@ private[mill] class MultiLinePromptLogger(
 
     try {
       // Clear the prompt so the code in `t` has a blank terminal to work with
+      outputStream.flush()
+      errorStream.flush()
       rawOutputStream.write(AnsiNav.clearScreen(0).getBytes)
-      SystemStreams.withStreams(SystemStreams.original) {
+      val res = SystemStreams.withStreams(SystemStreams.original) {
         t
       }
+      SystemStreams.original.out.flush()
+      SystemStreams.original.err.flush()
+      res
     } finally paused = false
   }
 
@@ -208,8 +213,8 @@ private[mill] object MultiLinePromptLogger {
     private def updatePromptBytes(ending: Boolean = false) = {
       val now = currentTimeMillis()
       for (k <- statuses.keySet) {
-        val removedTime = statuses(k).removedTimeMillis
-        if (now - removedTime > statusRemovalRemoveDelayMillis) {
+        val removedTime = statuses(k).beginTransitionTime
+        if (statuses(k).next.isEmpty && (now - removedTime > statusRemovalRemoveDelayMillis)) {
           statuses.remove(k)
         }
       }
@@ -257,9 +262,22 @@ private[mill] object MultiLinePromptLogger {
       val threadId = Thread.currentThread().getId.toInt
 
       val now = currentTimeMillis()
-      sOpt match {
-        case None => statuses.updateWith(threadId)(_.map(_.copy(removedTimeMillis = now)))
-        case Some(s) => statuses(threadId) = Status(now, s, Long.MaxValue)
+      val sOptEntry = sOpt.map(StatusEntry(_, now))
+      statuses.updateWith(threadId){
+        case None => Some(Status(sOptEntry, now, None))
+        case Some(existing) =>
+          Some(
+            // If already performing a transition, do not update the `prevTransitionTime`
+            // since we do not want to delay the transition that is already in progress
+            if (existing.beginTransitionTime >= now) existing.copy(next = sOptEntry)
+            else {
+              existing.copy(
+                next = sOptEntry,
+                beginTransitionTime = now,
+                prev = existing.next
+              )
+            }
+          )
       }
     }
 
@@ -268,6 +286,7 @@ private[mill] object MultiLinePromptLogger {
       // For non-interactive jobs, we only want to print the new prompt if the contents
       // differs from the previous prompt, since the prompts do not overwrite each other
       // in log files and printing large numbers of identical prompts is spammy and useless
+
       lazy val statusesHashCode = statuses.hashCode
       if (consoleDims()._1.nonEmpty || statusesHashCode != lastRenderedPromptHash) {
         lastRenderedPromptHash = statusesHashCode
