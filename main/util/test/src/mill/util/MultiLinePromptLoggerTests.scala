@@ -181,7 +181,7 @@ object MultiLinePromptLoggerTests extends TestSuite {
       now += 1000
 
 
-      println("X" * 100)
+
       // my-task-new appears by now, but my-task-short-lived has already ended and never appears
       promptLogger.refreshPrompt()
       check(promptLogger, baos)(
@@ -201,7 +201,7 @@ object MultiLinePromptLoggerTests extends TestSuite {
 
       promptLogger.endTicker()
 
-      now += 100
+      now += 10
 
       // Even after ending my-task, it remains on the ticker for a moment before being removed
       promptLogger.refreshPrompt()

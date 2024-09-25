@@ -269,8 +269,9 @@ private[mill] object MultiLinePromptLogger {
           Some(
             // If already performing a transition, do not update the `prevTransitionTime`
             // since we do not want to delay the transition that is already in progress
-            if (existing.beginTransitionTime >= now) existing.copy(next = sOptEntry)
-            else {
+            if (existing.beginTransitionTime + statusRemovalHideDelayMillis > now) {
+              existing.copy(next = sOptEntry)
+            } else {
               existing.copy(
                 next = sOptEntry,
                 beginTransitionTime = now,
