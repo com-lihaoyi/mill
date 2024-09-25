@@ -79,12 +79,9 @@ private[mill] class MultiLinePromptLogger(
       outputStream.flush()
       errorStream.flush()
       rawOutputStream.write(AnsiNav.clearScreen(0).getBytes)
-      val res = SystemStreams.withStreams(SystemStreams.original) {
+      SystemStreams.withStreams(systemStreams0) {
         t
       }
-      SystemStreams.original.out.flush()
-      SystemStreams.original.err.flush()
-      res
     } finally paused = false
   }
 
