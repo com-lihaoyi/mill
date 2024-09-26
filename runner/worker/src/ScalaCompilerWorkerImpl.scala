@@ -29,6 +29,7 @@ import dotty.tools.dotc.reporting.StoreReporter
 import dotty.tools.dotc.reporting.UniqueMessagePositions
 import dotty.tools.dotc.util.Property
 import dotty.tools.dotc.util.SourceFile
+import dotty.tools.dotc.util.Spans.Span
 import mill.runner.worker.api.ImportTree
 import mill.runner.worker.api.ObjectData
 import mill.runner.worker.api.ScalaCompilerWorkerApi
@@ -162,26 +163,30 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
 
       // parser that will enter a template body, but then not parse nested templates
       val parser = new Parsers.Parser(ctx.source) {
-        // var inTemplate = false
+        var inTemplate = false
 
-        // val outlineParser: OutlineParser = new OutlineParser(ctx.source) {
-        //   override val in = in0
-        // }
+        val outlineParser: OutlineParser = new OutlineParser(ctx.source) {
+          override val in = in0
+        }
 
         override val in = in0
 
-        // override def blockExpr(): untpd.Tree = outlineParser.blockExpr()
+        override def atSpan[T <: Positioned](span: Span)(t: T): T =
+          if t == untpd.EmptyTree || t == untpd.EmptyValDef then t
+          else super.atSpan(span)(t)
 
-        // override def templateBody(parents: List[untpd.Tree], rewriteWithColon: Boolean) =
-        //   if inTemplate then outlineParser.templateBody(parents, rewriteWithColon)
-        //   else {
-        //     try {
-        //       inTemplate = true
-        //       super.templateBody(parents, rewriteWithColon)
-        //     } finally {
-        //       inTemplate = false
-        //     }
-        //   }
+        override def blockExpr(): untpd.Tree = outlineParser.blockExpr()
+
+        override def templateBody(parents: List[untpd.Tree], rewriteWithColon: Boolean) =
+          if inTemplate then outlineParser.templateBody(parents, rewriteWithColon)
+          else {
+            try {
+              inTemplate = true
+              super.templateBody(parents, rewriteWithColon)
+            } finally {
+              inTemplate = false
+            }
+          }
       }
       parser.templateOpt(untpd.emptyConstructor)
     }
