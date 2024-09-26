@@ -1,7 +1,7 @@
 package foo
 object Foo{
-  val x = 123
+  val value = 123
   def main(args: Array[String]): Unit= {
-    println("hello world " + Bar.value)
+    println("hello " + Bar)
   }
 }

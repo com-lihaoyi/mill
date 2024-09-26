@@ -1,4 +1,4 @@
 package foo
 object Bar{
-  val value = Foo.value + 1
+  val value = Foo + " world"
 }
