@@ -405,9 +405,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-39-2adfe2</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-40-41ef50</button>
   <div class="version-menu">
-    <a class="version is-current" href="Linting_Scala_Projects.html">0.12.0-RC2-39-2adfe2</a>
+    <a class="version is-current" href="Linting_Scala_Projects.html">0.12.0-RC2-40-41ef50</a>
     <a class="version is-missing" href="0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="0.11.10/index.html">0.11.10</a>
@@ -617,6 +617,101 @@ for more details:</p>
 <p><a href="https://github.com/joan38/mill-scalafix" class="bare">https://github.com/joan38/mill-scalafix</a></p>
 </li>
 </ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_acyclic_files_enforcement"><a class="anchor" href="#_acyclic_files_enforcement"></a>Acyclic Files Enforcement</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="https://github.com/com-lihaoyi/acyclic">Acyclic</a> is a Scala compiler plugin that
+detects circular dependencies between files within a module. This can be very
+useful for ensuring code quality at a high-level:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>While most linters can be concern themselves at a micro-level with formatting
+and whitespace, acyclic is concerned at a macro-level with how your codebase
+is structured into different files</p>
+</li>
+<li>
+<p>While most linters satisfied by tweaking whitespace, circular dependencies may
+need significant refactorings like dependency-injection or
+interface-implementation-separation to resolve.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>As a Scala compiler plugin, Acyclic can be enabled on any <code>ScalaModule</code> by
+adding its <code>compileIvyDeps,</code> <code>scalacPluginIvyDeps</code>, and <code>scalacOptions</code> as
+shown below:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-scalalib-linting-3-acyclic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/scalalib/linting/3-acyclic">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, scalalib._
+
+object `package` extends RootModule with ScalaModule {
+  def scalaVersion = &quot;2.13.11&quot;
+  def compileIvyDeps = Agg(ivy&quot;com.lihaoyi:::acyclic:0.3.15&quot;)
+  def scalacPluginIvyDeps = Agg(ivy&quot;com.lihaoyi:::acyclic:0.3.15&quot;)
+  def scalacOptions = Seq(&quot;-P:acyclic:force&quot;)
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">src/Foo.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/scalalib/linting/3-acyclic/src/Foo.scala">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
+object Foo{
+  val value = 123
+  def main(args: Array[String]): Unit= {
+    println(&quot;hello &quot; + Bar)
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">src/Bar.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/scalalib/linting/3-acyclic/src/Bar.scala">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
+object Bar{
+  val value = Foo + &quot; world&quot;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Here we have a single <code>ScalaModule</code> with two files: <code>Foo.scala</code> and <code>Bar.scala</code>.
+<code>Bar</code> and <code>Foo</code> both depend on each other, which usually indicates an issue:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill compile
+error: Unwanted cyclic dependency
+...src/Bar.scala...
+  val value = Foo + &quot; world&quot;
+              ^
+symbol: object Foo
+...src/Foo.scala...
+    println(&quot;hello &quot; + Bar)
+                       ^
+symbol: object Bar</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Usually the code should be refactored such that references between files
+is only one way. For this example, we remove the reference to <code>Foo</code> in <code>Bar.scala</code>,
+which allows the code to compile:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; sed -i.bak 's/Foo/Bar/g' src/Bar.scala
+
+&gt; ./mill compile
+done compiling</code></pre>
+</div>
 </div>
 </div>
 </div>
