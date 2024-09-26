@@ -41,10 +41,10 @@ object Resolve {
         allowPositionalCommandArgs: Boolean
     ) = {
       val taskList = resolved.map {
-        case r: Resolved.Target =>
+        case r: Resolved.NamedTask =>
           val instantiated = ResolveCore
             .instantiateModule(rootModule, r.segments.init)
-            .flatMap(instantiateTarget(r, _))
+            .flatMap(instantiateNamedTask(r, _))
 
           instantiated.map(Some(_))
 
@@ -76,7 +76,7 @@ object Resolve {
 
               directChildrenOrErr.flatMap(directChildren =>
                 directChildren.head match {
-                  case r: Resolved.Target => instantiateTarget(r, value).map(Some(_))
+                  case r: Resolved.NamedTask => instantiateNamedTask(r, value).map(Some(_))
                   case r: Resolved.Command =>
                     instantiateCommand(
                       rootModule,
@@ -104,13 +104,16 @@ object Resolve {
       items.distinctBy(_.ctx.segments)
   }
 
-  private def instantiateTarget(r: Resolved.Target, p: Module): Either[String, Target[_]] = {
+  private def instantiateNamedTask(
+      r: Resolved.NamedTask,
+      p: Module
+  ): Either[String, NamedTask[_]] = {
     val definition = Reflect
-      .reflect(p.getClass, classOf[Target[_]], _ == r.segments.parts.last, true)
+      .reflect(p.getClass, classOf[NamedTask[_]], _ == r.segments.parts.last, true)
       .head
 
     ResolveCore.catchWrapException(
-      definition.invoke(p).asInstanceOf[Target[_]]
+      definition.invoke(p).asInstanceOf[NamedTask[_]]
     )
   }
 

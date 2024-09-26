@@ -4,6 +4,8 @@ package mill.main.client;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
  * Logic to capture a pair of streams (typically stdout and stderr), combining
@@ -106,11 +108,16 @@ public class ProxyStream{
             this.destErr = destErr;
         }
 
+        public void preRead(InputStream src){}
+
+        public void preWrite(){}
+
         public void run() {
 
             byte[] buffer = new byte[1024];
             while (true) {
                 try {
+                    this.preRead(src);
                     int header = src.read();
                     // -1 means socket was closed, 0 means a ProxyStream.END was sent. Note
                     // that only header values > 0 represent actual data to read:
@@ -124,6 +131,7 @@ public class ProxyStream{
                         int offset = 0;
                         int delta = -1;
                         while (offset < quantity) {
+                            this.preRead(src);
                             delta = src.read(buffer, offset, quantity - offset);
                             if (delta == -1) {
                                 break;
@@ -133,26 +141,25 @@ public class ProxyStream{
                         }
 
                         if (delta != -1) {
+                            this.preWrite();
                             switch(stream){
                                 case ProxyStream.OUT: destOut.write(buffer, 0, offset); break;
                                 case ProxyStream.ERR: destErr.write(buffer, 0, offset); break;
                             }
-
-                            flush();
                         }
                     }
                 } catch (org.newsclub.net.unix.ConnectionResetSocketException e) {
                     // This happens when you run mill shutdown and the server exits gracefully
                     break;
                 } catch (IOException e) {
-                    e.printStackTrace();
-                    System.exit(1);
+                    // This happens when the upstream pipe was closed
+                    break;
                 }
             }
 
             try {
-                destOut.close();
-                destErr.close();
+                destOut.flush();
+                destErr.flush();
             } catch(IOException e) {}
         }
 

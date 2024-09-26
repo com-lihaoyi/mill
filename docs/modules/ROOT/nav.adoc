@@ -26,6 +26,11 @@
 .xref:Kotlin_Intro_to_Mill.adoc[]
 * xref:Kotlin_Installation_IDE_Support.adoc[]
 * xref:Kotlin_Builtin_Commands.adoc[]
+* xref:Kotlin_Module_Config.adoc[]
+* xref:Kotlin_Build_Examples.adoc[]
+* xref:Testing_Kotlin_Projects.adoc[]
+* xref:Linting_Kotlin_Projects.adoc[]
+* xref:Publishing_Kotlin_Projects.adoc[]
 
 .Build Tool Comparisons
 * xref:Case_Study_Mill_vs_Maven.adoc[]

@@ -2,6 +2,5 @@
 
 set -eu
 
-./mill -i installLocal
 
-./target/mill-release -i mill.scalalib.PublishModule/
+./mill -i mill.scalalib.PublishModule/
