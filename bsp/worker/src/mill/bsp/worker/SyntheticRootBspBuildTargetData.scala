@@ -5,7 +5,6 @@ import mill.bsp.worker.Utils.{makeBuildTarget, sanitizeUri}
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.scalalib.bsp.BspModule.Tag
 
-import java.util.UUID
 import scala.jdk.CollectionConverters._
 import ch.epfl.scala.bsp4j.BuildTarget
 
@@ -15,11 +14,11 @@ import ch.epfl.scala.bsp4j.BuildTarget
  */
 class SyntheticRootBspBuildTargetData(topLevelProjectRoot: os.Path) {
   val id: BuildTargetIdentifier = new BuildTargetIdentifier(
-    Utils.sanitizeUri(topLevelProjectRoot / s"synth-build-target-${UUID.randomUUID()}")
+    Utils.sanitizeUri(topLevelProjectRoot / "mill-synthetic-root-target")
   )
 
   val bt: BspBuildTarget = BspBuildTarget(
-    displayName = Some(topLevelProjectRoot.last + "-root"),
+    displayName = Some("mill-synthetic-root"),
     baseDirectory = Some(topLevelProjectRoot),
     tags = Seq(Tag.Manual),
     languageIds = Seq.empty,
