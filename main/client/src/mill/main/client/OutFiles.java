@@ -41,11 +41,12 @@ public class OutFiles {
      * Subfolder of `out/` that contains the machinery necessary for a single Mill background
      * server: metadata files, pipes, logs, etc.
      */
-    final public static String millWorker = "mill-worker-";
+    final public static String millServer = "mill-server";
 
     /**
      * Subfolder of `out/` used to contain the Mill subprocess when run in no-server mode
      */
     final public static String millNoServer = "mill-no-server";
+
 
 }
