@@ -149,7 +149,14 @@ private[mill] trait GroupEvaluator {
 
         val cached = loadCachedJson(logger, inputsHash, labelled, paths)
 
-        val upToDateWorker = loadUpToDateWorker(logger, inputsHash, labelled)
+        val upToDateWorker = loadUpToDateWorker(
+          logger,
+          inputsHash,
+          labelled,
+          forceDiscard =
+            // worker metadata file removed by user, let's recompute the worker
+            cached.isEmpty
+        )
 
         upToDateWorker.map((_, inputsHash)) orElse cached.flatMap(_._2) match {
           case Some((v, hashCode)) =>
@@ -444,7 +451,8 @@ private[mill] trait GroupEvaluator {
   private def loadUpToDateWorker(
       logger: ColorLogger,
       inputsHash: Int,
-      labelled: Terminal.Labelled[_]
+      labelled: Terminal.Labelled[_],
+      forceDiscard: Boolean
   ): Option[Val] = {
     labelled.task.asWorker
       .flatMap { w =>
@@ -454,7 +462,7 @@ private[mill] trait GroupEvaluator {
       }
       .flatMap {
         case (cachedHash, upToDate)
-            if cachedHash == workerCacheHash(inputsHash) =>
+            if cachedHash == workerCacheHash(inputsHash) && !forceDiscard =>
           Some(upToDate) // worker cached and up-to-date
 
         case (_, Val(obsolete: AutoCloseable)) =>

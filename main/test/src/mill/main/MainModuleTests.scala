@@ -3,11 +3,14 @@ package mill.main
 import mill.api.{PathRef, Result, Val}
 import mill.{Agg, T, Task}
 import mill.define.{Cross, Discover, Module}
+import mill.main.client.OutFiles
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import utest.{TestSuite, Tests, assert, test}
 
 import java.io.{ByteArrayOutputStream, PrintStream}
+
+import scala.collection.mutable
 
 object MainModuleTests extends TestSuite {
 
@@ -69,6 +72,55 @@ object MainModuleTests extends TestSuite {
       bazz("1").target()
       bazz("2").target()
       bazz("3").target()
+    }
+  }
+
+  class TestWorker(val name: String, workers: mutable.HashSet[TestWorker]) extends AutoCloseable {
+
+    workers.synchronized {
+      workers.add(this)
+    }
+
+    var closed = false
+    def close(): Unit =
+      if (!closed) {
+        workers.synchronized {
+          workers.remove(this)
+        }
+        closed = true
+      }
+
+    override def toString(): String =
+      s"TestWorker($name)@${Integer.toHexString(System.identityHashCode(this))}"
+  }
+
+  class WorkerModule(workers: mutable.HashSet[TestWorker]) extends TestBaseModule with MainModule {
+
+    trait Cleanable extends Module {
+      def theWorker = Task.Worker {
+        new TestWorker("shared", workers)
+      }
+    }
+
+    object foo extends Cleanable {
+      object sub extends Cleanable
+    }
+    object bar extends Cleanable {
+      def theWorker = Task.Worker {
+        new TestWorker("bar", workers)
+      }
+    }
+    object bazz extends Cross[Bazz]("1", "2", "3")
+    trait Bazz extends Cleanable with Cross.Module[String]
+
+    def all = Task {
+      foo.theWorker()
+      bar.theWorker()
+      bazz("1").theWorker()
+      bazz("2").theWorker()
+      bazz("3").theWorker()
+
+      ()
     }
   }
 
@@ -315,6 +367,115 @@ object MainModuleTests extends TestSuite {
           os.sub / "bar/target.json",
           os.sub / "bar/target.dest/dummy.txt"
         )
+      }
+    }
+
+    test("cleanWorker") {
+      test("all") {
+        val workers = new mutable.HashSet[TestWorker]
+        val workerModule = new WorkerModule(workers)
+        val ev = UnitTester(workerModule, null)
+
+        val r1 = ev.evaluator.evaluate(Agg(workerModule.all))
+        assert(r1.failing.keyCount == 0)
+        assert(workers.size == 5)
+
+        val r2 = ev.evaluator.evaluate(Agg(workerModule.clean(ev.evaluator)))
+        assert(r2.failing.keyCount == 0)
+        assert(workers.isEmpty)
+      }
+
+      test("single-target") {
+        val workers = new mutable.HashSet[TestWorker]
+        val workerModule = new WorkerModule(workers)
+        val ev = UnitTester(workerModule, null)
+
+        val r1 = ev.evaluator.evaluate(Agg(workerModule.all))
+        assert(r1.failing.keyCount == 0)
+        assert(workers.size == 5)
+
+        val r2 = ev.evaluator.evaluate(Agg(workerModule.clean(ev.evaluator, "foo.theWorker")))
+        assert(r2.failing.keyCount == 0)
+        assert(workers.size == 4)
+
+        val r3 = ev.evaluator.evaluate(Agg(workerModule.clean(ev.evaluator, "bar.theWorker")))
+        assert(r3.failing.keyCount == 0)
+        assert(workers.size == 3)
+
+        val r4 = ev.evaluator.evaluate(Agg(workerModule.clean(ev.evaluator, "bazz[1].theWorker")))
+        assert(r4.failing.keyCount == 0)
+        assert(workers.size == 2)
+      }
+
+      test("single-target via rm") {
+        val workers = new mutable.HashSet[TestWorker]
+        val workerModule = new WorkerModule(workers)
+        val ev = UnitTester(workerModule, null)
+
+        ev.evaluator.evaluate(Agg(workerModule.foo.theWorker))
+          .ensuring(_.failing.keyCount == 0)
+        assert(workers.size == 1)
+
+        val originalFooWorker = workers.head
+
+        ev.evaluator.evaluate(Agg(workerModule.bar.theWorker))
+          .ensuring(_.failing.keyCount == 0)
+        assert(workers.size == 2)
+        assert(workers.exists(_ eq originalFooWorker))
+
+        val originalBarWorker = workers.filter(_ ne originalFooWorker).head
+
+        ev.evaluator.evaluate(Agg(workerModule.foo.theWorker))
+          .ensuring(_.failing.keyCount == 0)
+        assert(workers.size == 2)
+        assert(workers.exists(_ eq originalFooWorker))
+
+        ev.evaluator.evaluate(Agg(workerModule.bar.theWorker))
+          .ensuring(_.failing.keyCount == 0)
+        assert(workers.size == 2)
+        assert(workers.exists(_ eq originalBarWorker))
+
+        val outDir = os.Path(OutFiles.out, workerModule.millSourcePath)
+
+        assert(!originalFooWorker.closed)
+        os.remove(outDir / "foo/theWorker.json")
+
+        ev.evaluator.evaluate(Agg(workerModule.foo.theWorker))
+          .ensuring(_.failing.keyCount == 0)
+        assert(workers.size == 2)
+        assert(!workers.exists(_ eq originalFooWorker))
+        assert(originalFooWorker.closed)
+
+        assert(!originalBarWorker.closed)
+        os.remove(outDir / "bar/theWorker.json")
+
+        ev.evaluator.evaluate(Agg(workerModule.bar.theWorker))
+          .ensuring(_.failing.keyCount == 0)
+        assert(workers.size == 2)
+        assert(!workers.exists(_ eq originalBarWorker))
+        assert(originalBarWorker.closed)
+      }
+
+      test("single-module") {
+        val workers = new mutable.HashSet[TestWorker]
+        val workerModule = new WorkerModule(workers)
+        val ev = UnitTester(workerModule, null)
+
+        val r1 = ev.evaluator.evaluate(Agg(workerModule.all))
+        assert(r1.failing.keyCount == 0)
+        assert(workers.size == 5)
+
+        val r2 = ev.evaluator.evaluate(Agg(workerModule.clean(ev.evaluator, "foo")))
+        assert(r2.failing.keyCount == 0)
+        assert(workers.size == 4)
+
+        val r3 = ev.evaluator.evaluate(Agg(workerModule.clean(ev.evaluator, "bar")))
+        assert(r3.failing.keyCount == 0)
+        assert(workers.size == 3)
+
+        val r4 = ev.evaluator.evaluate(Agg(workerModule.clean(ev.evaluator, "bazz[1]")))
+        assert(r4.failing.keyCount == 0)
+        assert(workers.size == 2)
       }
     }
   }
