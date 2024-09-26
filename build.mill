@@ -744,7 +744,7 @@ object initmodule extends MillPublishScalaModule {
       val libSortCriterium = sortCriterium(libOpt,libsSortOrder)
       val categorySortCriterium = sortCriterium(categoryOpt,categoriesSortOrder)
       val nameSortCriterium = nameOpt.flatMap(_.takeWhile(_.isDigit).toIntOption).getOrElse(Int.MinValue)
-      (libSortCriterium,categorySortCriterium,nameSortCriterium)
+      (libSortCriterium,libOpt,categorySortCriterium,categoryOpt,nameSortCriterium,nameOpt)
     }
 
     val stream = os.write.outputStream(T.dest / "exampleList.txt")
