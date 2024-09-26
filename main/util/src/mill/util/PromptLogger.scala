@@ -38,7 +38,8 @@ private[mill] class PromptLogger(
     systemStreams0,
     currentTimeMillis(),
     () => termDimensions,
-    currentTimeMillis
+    currentTimeMillis,
+    infoColor
   )
 
   private val streams = new Streams(
@@ -200,7 +201,8 @@ private[mill] object PromptLogger {
       systemStreams0: SystemStreams,
       startTimeMillis: Long,
       consoleDims: () => (Option[Int], Option[Int]),
-      currentTimeMillis: () => Long
+      currentTimeMillis: () => Long,
+      infoColor: fansi.Attrs
   ) {
     private var lastRenderedPromptHash = 0
     private val statuses = collection.mutable.SortedMap.empty[String, Status]
@@ -235,6 +237,7 @@ private[mill] object PromptLogger {
         titleText,
         statuses,
         interactive = consoleDims()._1.nonEmpty,
+        infoColor = infoColor,
         ending = ending
       )
 

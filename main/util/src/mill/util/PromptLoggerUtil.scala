@@ -85,6 +85,7 @@ private object PromptLoggerUtil {
       titleText: String,
       statuses: collection.SortedMap[String, Status],
       interactive: Boolean,
+      infoColor: fansi.Attrs,
       ending: Boolean = false
   ): List[String] = {
     // -1 to leave a bit of buffer
@@ -120,7 +121,7 @@ private object PromptLoggerUtil {
                 if (t.detail == "") ""
                 else splitShorten(" " + t.detail, maxWidth - mainText.length)
 
-              mainText + detail
+              mainText + infoColor(detail)
             }
           }
       }
