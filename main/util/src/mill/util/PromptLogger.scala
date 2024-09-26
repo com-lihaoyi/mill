@@ -92,30 +92,30 @@ private[mill] class PromptLogger(
 
   override def globalTicker(s: String): Unit = synchronized { state.updateGlobal(s) }
   override def clearAllTickers(): Unit = synchronized { state.clearStatuses() }
-  override def endTicker(key: String): Unit = synchronized { state.updateCurrent(key, None) }
+  override def endTicker(key: Seq[String]): Unit = synchronized { state.updateCurrent(key, None) }
 
   def ticker(s: String): Unit = ()
-  override def ticker(key: String, s: String): Unit = {
+  override def ticker(key: Seq[String], s: String): Unit = {
     state.updateDetail(key, s)
   }
 
-  override def reportPrefix(key: String): Unit = synchronized {
+  override def reportPrefix(key: Seq[String]): Unit = synchronized {
     if (!reportedIdentifiers(key)) {
       reportedIdentifiers.add(key)
       for ((verboseKeySuffix, message) <- seenIdentifiers.get(key)) {
-        systemStreams.err.println(infoColor(s"[$key$verboseKeySuffix] $message"))
+        systemStreams.err.println(infoColor(s"[${key.mkString("-")}$verboseKeySuffix] $message"))
       }
     }
   }
 
   def streamsAwaitPumperEmpty(): Unit = streams.awaitPumperEmpty()
-  private val seenIdentifiers = collection.mutable.Map.empty[String, (String, String)]
-  private val reportedIdentifiers = collection.mutable.Set.empty[String]
-  override def promptLine(key: String, verboseKeySuffix: String, message: String): Unit =
+  private val seenIdentifiers = collection.mutable.Map.empty[Seq[String], (String, String)]
+  private val reportedIdentifiers = collection.mutable.Set.empty[Seq[String]]
+  override def promptLine(key: Seq[String], verboseKeySuffix: String, message: String): Unit =
     synchronized {
-      state.updateCurrent(key, Some(s"[$key$verboseKeySuffix] $message"))
+      state.updateCurrent(key, Some(s"[${key.mkString("-")}] $message"))
       seenIdentifiers(key) = (verboseKeySuffix, message)
-      super.promptLine(infoColor(key).toString(), verboseKeySuffix, message)
+      super.promptLine(key.map(infoColor(_).toString()), verboseKeySuffix, message)
 
     }
   def debug(s: String): Unit = synchronized { if (debugEnabled) systemStreams.err.println(s) }
@@ -205,7 +205,23 @@ private[mill] object PromptLogger {
       infoColor: fansi.Attrs
   ) {
     private var lastRenderedPromptHash = 0
-    private val statuses = collection.mutable.SortedMap.empty[String, Status]
+
+    private implicit def seqOrdering = new Ordering[Seq[String]]{
+      def compare(xs: Seq[String], ys: Seq[String]): Int = {
+        xs.lengthCompare(ys) match{
+          case 0 =>
+            val iter = xs.iterator.zip(ys)
+            while(iter.nonEmpty){
+              val (x, y) = iter.next()
+              if (x > y) return 1
+              else if (y > x) return -1
+            }
+            return 0
+          case n => n
+        }
+      }
+    }
+    private val statuses = collection.mutable.SortedMap.empty[Seq[String], Status]
 
     private var headerPrefix = ""
     // Pre-compute the prelude and current prompt as byte arrays so that
@@ -235,7 +251,7 @@ private[mill] object PromptLogger {
         startTimeMillis,
         s"[$headerPrefix]",
         titleText,
-        statuses,
+        statuses.toSeq.map{case (k, v) => (k.mkString("-"), v)},
         interactive = consoleDims()._1.nonEmpty,
         infoColor = infoColor,
         ending = ending
@@ -263,11 +279,11 @@ private[mill] object PromptLogger {
     def clearStatuses(): Unit = synchronized { statuses.clear() }
     def updateGlobal(s: String): Unit = synchronized { headerPrefix = s }
 
-    def updateDetail(key: String, detail: String): Unit = synchronized {
+    def updateDetail(key: Seq[String], detail: String): Unit = synchronized {
       statuses.updateWith(key)(_.map(se => se.copy(next = se.next.map(_.copy(detail = detail)))))
     }
 
-    def updateCurrent(key: String, sOpt: Option[String]): Unit = synchronized {
+    def updateCurrent(key: Seq[String], sOpt: Option[String]): Unit = synchronized {
 
       val now = currentTimeMillis()
       def stillTransitioning(status: Status) = {

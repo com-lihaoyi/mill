@@ -31,18 +31,18 @@ class MultiLogger(
     logger2.ticker(s)
   }
 
-  override def ticker(key: String, s: String): Unit = {
+  override def ticker(key: Seq[String], s: String): Unit = {
     logger1.ticker(key, s)
     logger2.ticker(key, s)
   }
 
   private[mill] override def promptLine(
-      identifier: String,
+      key: Seq[String],
       verboseKeySuffix: String,
       message: String
   ): Unit = {
-    logger1.promptLine(identifier, verboseKeySuffix, message)
-    logger2.promptLine(identifier, verboseKeySuffix, message)
+    logger1.promptLine(key, verboseKeySuffix, message)
+    logger2.promptLine(key, verboseKeySuffix, message)
   }
 
   private[mill] override def promptLine(): Unit = {
@@ -59,14 +59,14 @@ class MultiLogger(
     logger1.close()
     logger2.close()
   }
-  private[mill] override def reportPrefix(s: String): Unit = {
-    logger1.reportPrefix(s)
-    logger2.reportPrefix(s)
+  private[mill] override def reportPrefix(key: Seq[String]): Unit = {
+    logger1.reportPrefix(key)
+    logger2.reportPrefix(key)
   }
 
   override def rawOutputStream: PrintStream = systemStreams.out
 
-  private[mill] override def endTicker(key: String): Unit = {
+  private[mill] override def endTicker(key: Seq[String]): Unit = {
     logger1.endTicker(key)
     logger2.endTicker(key)
   }

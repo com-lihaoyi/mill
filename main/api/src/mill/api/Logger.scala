@@ -44,14 +44,14 @@ trait Logger {
   def info(s: String): Unit
   def error(s: String): Unit
   def ticker(s: String): Unit
-  def ticker(key: String, s: String): Unit = ticker(s)
-  private[mill] def reportPrefix(s: String): Unit = ()
-  private[mill] def promptLine(key: String, verboseKeySuffix: String, message: String): Unit =
-    ticker(s"$key $message")
+  def ticker(key: Seq[String], s: String): Unit = ticker(s)
+  private[mill] def reportPrefix(key: Seq[String]): Unit = ()
+  private[mill] def promptLine(key: Seq[String], verboseKeySuffix: String, message: String): Unit =
+    ticker(s"${key.mkString("-")} $message")
   private[mill] def promptLine(): Unit = ()
   private[mill] def globalTicker(s: String): Unit = ()
   private[mill] def clearAllTickers(): Unit = ()
-  private[mill] def endTicker(key: String): Unit = ()
+  private[mill] def endTicker(key: Seq[String]): Unit = ()
   private[mill] def endTicker(): Unit = ()
 
   def debug(s: String): Unit

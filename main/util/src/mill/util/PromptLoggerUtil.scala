@@ -83,7 +83,7 @@ private object PromptLoggerUtil {
       startTimeMillis: Long,
       headerPrefix: String,
       titleText: String,
-      statuses: collection.SortedMap[String, Status],
+      statuses: Iterable[(String, Status)],
       interactive: Boolean,
       infoColor: fansi.Attrs,
       ending: Boolean = false
@@ -132,7 +132,7 @@ private object PromptLoggerUtil {
       .toList
       // Sort alphabetically because the `#nn` prefix is part of the string, and then
       // put all empty strings last since those are less important and can be ignored
-      .sortBy(x => (x.isEmpty, x))
+      .sortBy(x => x.isEmpty)
 
     val nonEmptyBodyCount = body0.count(_.nonEmpty)
     val body =

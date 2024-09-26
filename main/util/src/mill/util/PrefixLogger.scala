@@ -7,18 +7,18 @@ import java.io.PrintStream
 
 class PrefixLogger(
     val logger0: ColorLogger,
-    key: String,
+    key: Seq[String],
     tickerContext: String = "",
     outStream0: Option[PrintStream] = None,
     errStream0: Option[PrintStream] = None,
     verboseKeySuffix: String = "",
     message: String = ""
 ) extends ColorLogger {
-  val linePrefix: String = if (key == "") "" else s"[$key] "
+  val linePrefix: String = if (key == "") "" else s"[${key.mkString("-")}] "
   override def toString: String =
     s"PrefixLogger($logger0, ${literalize(linePrefix)}, ${literalize(tickerContext)})"
   def this(logger0: ColorLogger, context: String, tickerContext: String) =
-    this(logger0, context, tickerContext, None, None)
+    this(logger0, Seq(context), tickerContext, None, None)
 
   override def colored = logger0.colored
 
@@ -54,10 +54,10 @@ class PrefixLogger(
     logger0.error(infoColor(linePrefix) + s)
   }
   override def ticker(s: String): Unit = ticker(key, s)
-  override def ticker(key: String, s: String): Unit = logger0.ticker(key, s)
+  override def ticker(key: Seq[String], s: String): Unit = logger0.ticker(key, s)
 
   private[mill] override def promptLine(
-      key: String,
+      key: Seq[String],
       verboseKeySuffix: String,
       message: String
   ): Unit =
@@ -74,13 +74,13 @@ class PrefixLogger(
 
   override def withOutStream(outStream: PrintStream): PrefixLogger = new PrefixLogger(
     logger0.withOutStream(outStream),
-    infoColor(linePrefix).toString(),
+    Seq(infoColor(linePrefix).toString()),
     infoColor(tickerContext).toString(),
     outStream0 = Some(outStream),
     errStream0 = Some(systemStreams.err)
   )
-  private[mill] override def reportPrefix(s: String): Unit = logger0.reportPrefix(s)
-  private[mill] override def endTicker(key: String): Unit = logger0.endTicker(key)
+  private[mill] override def reportPrefix(key: Seq[String]): Unit = logger0.reportPrefix(key)
+  private[mill] override def endTicker(key: Seq[String]): Unit = logger0.endTicker(key)
   private[mill] override def endTicker(): Unit = endTicker(key)
   private[mill] override def globalTicker(s: String): Unit = logger0.globalTicker(s)
 
@@ -91,7 +91,7 @@ class PrefixLogger(
   override def subLogger(path: os.Path, subKeySuffix: String, message: String): Logger = {
     new PrefixLogger(
       logger0,
-      key + subKeySuffix,
+      key :+ subKeySuffix,
       tickerContext,
       outStream0,
       errStream0,
