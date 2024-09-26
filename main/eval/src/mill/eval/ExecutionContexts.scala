@@ -1,7 +1,6 @@
 package mill.eval
 
 import mill.api.BlockableExecutionContext
-import mill.util.{FileLogger, MultiLogger, PrefixLogger}
 import os.Path
 
 import scala.concurrent.{Await, Future}
@@ -22,7 +21,9 @@ private object ExecutionContexts {
     def reportFailure(cause: Throwable): Unit = {}
     def close(): Unit = () // do nothing
 
-    def sandboxedFuture[T](dest: Path, key: String, message: String)(t: => T)(implicit ctx: mill.api.Ctx): Future[T] =
+    def sandboxedFuture[T](dest: Path, key: String, message: String)(t: => T)(implicit
+        ctx: mill.api.Ctx
+    ): Future[T] =
       Future.successful(t)
   }
 
@@ -71,7 +72,9 @@ private object ExecutionContexts {
      * folder [[dest]] and duplicates the logging streams to [[dest]].log while evaluating
      * [[t]], to avoid conflict with other tasks that may be running concurrently
      */
-    def sandboxedFuture[T](dest: Path, key: String, message: String)(t: => T)(implicit ctx: mill.api.Ctx): Future[T] = {
+    def sandboxedFuture[T](dest: Path, key: String, message: String)(t: => T)(implicit
+        ctx: mill.api.Ctx
+    ): Future[T] = {
       val logger = ctx.log.subLogger(dest / os.up / s"${dest.last}.log", key, message)
 
       var destInitialized: Boolean = false
@@ -84,7 +87,7 @@ private object ExecutionContexts {
         dest
       }
       Future {
-        logger.withTicker{
+        logger.withTicker {
           os.dynamicPwdFunction.withValue(() => makeDest()) {
             mill.api.SystemStreams.withStreams(logger.systemStreams) {
               t

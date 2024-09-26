@@ -6,14 +6,14 @@ import pprint.Util.literalize
 import java.io.PrintStream
 
 class PrefixLogger(
-                    val logger0: ColorLogger,
-                    key: String,
-                    tickerContext: String = "",
-                    outStream0: Option[PrintStream] = None,
-                    errStream0: Option[PrintStream] = None,
-                    verboseKeySuffix: String = "",
-                    message: String = ""
-  ) extends ColorLogger {
+    val logger0: ColorLogger,
+    key: String,
+    tickerContext: String = "",
+    outStream0: Option[PrintStream] = None,
+    errStream0: Option[PrintStream] = None,
+    verboseKeySuffix: String = "",
+    message: String = ""
+) extends ColorLogger {
   val linePrefix: String = if (key == "") "" else s"[$key] "
   override def toString: String =
     s"PrefixLogger($logger0, ${literalize(linePrefix)}, ${literalize(tickerContext)})"
@@ -56,7 +56,11 @@ class PrefixLogger(
   override def ticker(s: String): Unit = ticker(key, s)
   override def ticker(key: String, s: String): Unit = logger0.ticker(key, s)
 
-  private[mill] override def promptLine(key: String, verboseKeySuffix: String, message: String): Unit =
+  private[mill] override def promptLine(
+      key: String,
+      verboseKeySuffix: String,
+      message: String
+  ): Unit =
     logger0.promptLine(key, verboseKeySuffix, message)
 
   private[mill] override def promptLine(): Unit =

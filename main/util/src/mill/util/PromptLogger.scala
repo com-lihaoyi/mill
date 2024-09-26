@@ -233,7 +233,7 @@ private[mill] object PromptLogger {
         termHeight0.getOrElse(defaultTermHeight),
         now,
         startTimeMillis,
-        headerPrefix,
+        s"[$headerPrefix]",
         titleText,
         statuses,
         interactive = consoleDims()._1.nonEmpty,

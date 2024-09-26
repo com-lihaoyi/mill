@@ -45,17 +45,17 @@ private[mill] trait GroupEvaluator {
 
   // those result which are inputs but not contained in this terminal group
   def evaluateGroupCached(
-                           terminal: Terminal,
-                           group: Agg[Task[_]],
-                           results: Map[Task[_], TaskResult[(Val, Int)]],
-                           countMsg: String,
-                           verboseKeySuffix: String,
-                           zincProblemReporter: Int => Option[CompileProblemReporter],
-                           testReporter: TestReporter,
-                           logger: ColorLogger,
-                           classToTransitiveClasses: Map[Class[_], IndexedSeq[Class[_]]],
-                           allTransitiveClassMethods: Map[Class[_], Map[String, Method]],
-                           executionContext: BlockableExecutionContext
+      terminal: Terminal,
+      group: Agg[Task[_]],
+      results: Map[Task[_], TaskResult[(Val, Int)]],
+      countMsg: String,
+      verboseKeySuffix: String,
+      zincProblemReporter: Int => Option[CompileProblemReporter],
+      testReporter: TestReporter,
+      logger: ColorLogger,
+      classToTransitiveClasses: Map[Class[_], IndexedSeq[Class[_]]],
+      allTransitiveClassMethods: Map[Class[_], Map[String, Method]],
+      executionContext: BlockableExecutionContext
   ): GroupEvaluator.Results = {
 
     val targetLabel = terminal match {
@@ -141,7 +141,7 @@ private[mill] trait GroupEvaluator {
             zincProblemReporter,
             testReporter,
             logger,
-            executionContext,
+            executionContext
           )
           GroupEvaluator.Results(newResults, newEvaluated.toSeq, null, inputsHash, -1)
 
@@ -197,7 +197,7 @@ private[mill] trait GroupEvaluator {
                     zincProblemReporter,
                     testReporter,
                     logger,
-                    executionContext,
+                    executionContext
                   )
                 }
 
@@ -239,7 +239,7 @@ private[mill] trait GroupEvaluator {
       reporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
       logger: mill.api.Logger,
-      executionContext: BlockableExecutionContext,
+      executionContext: BlockableExecutionContext
   ): (Map[Task[_], TaskResult[(Val, Int)]], mutable.Buffer[Task[_]]) = {
 
     def computeAll() = {

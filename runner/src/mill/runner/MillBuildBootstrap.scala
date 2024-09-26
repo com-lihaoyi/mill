@@ -1,6 +1,6 @@
 package mill.runner
 
-import mill.util.{ColorLogger, PrefixLogger, Watchable}
+import mill.util.{ColorLogger, Watchable}
 import mill.main.BuildInfo
 import mill.main.client.CodeGenConstants._
 import mill.api.{PathRef, Val, internal}
@@ -333,9 +333,8 @@ class MillBuildBootstrap(
       depth: Int
   ): Evaluator = {
 
-    val bootLogPrefix =
-      if (depth == 0) ""
-      else "[" + (Seq.fill(depth - 1)(millBuild) ++ Seq("build.mill")).mkString("/") + "] "
+    if (depth == 0) ""
+    else "[" + (Seq.fill(depth - 1)(millBuild) ++ Seq("build.mill")).mkString("/") + "] "
 
     mill.eval.EvaluatorImpl(
       home,
