@@ -103,6 +103,16 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       for (terminal <- terminals) {
         val deps = interGroupDeps(terminal)
         futures(terminal) = Future.sequence(deps.map(futures)).map { upstreamValues =>
+          val paddedCount = count
+            .getAndIncrement()
+            .toString
+            .reverse
+            .padTo(terminals.size.toString.length, '0')
+            .reverse
+          val countMsg = s"[$paddedCount]"
+
+          val counterMsg = s"[$paddedCount/${terminals0.size}]"
+          logger.globalTicker(counterMsg)
           if (failed.get()) None
           else {
             val upstreamResults = upstreamValues
@@ -111,11 +121,10 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
               .toMap
 
             val startTime = System.nanoTime() / 1000
-            val threadId = threadNumberer.getThreadId(Thread.currentThread())
-            val counterMsg = s"${count.getAndIncrement()}/${terminals.size}"
+
             val contextLogger = PrefixLogger(
               out = logger,
-              context = contextLoggerMsg(threadId),
+              context = if (logger.enableTicker) countMsg else "",
               tickerContext = GroupEvaluator.dynamicTickerPrefix.value
             )
 
@@ -123,7 +132,8 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
               terminal = terminal,
               group = sortedGroups.lookupKey(terminal),
               results = upstreamResults,
-              counterMsg = counterMsg,
+              counterMsg = countMsg,
+              identSuffix = counterMsg,
               zincProblemReporter = reporter,
               testReporter = testReporter,
               logger = contextLogger,
@@ -191,6 +201,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
     evaluateTerminals(leafCommands, _ => "", ec)(ExecutionContexts.RunNow)
 
+    logger.clearAllTickers()
     val finishedOptsMap = terminals0
       .map(t => (t, Await.result(futures(t), duration.Duration.Inf)))
       .toMap

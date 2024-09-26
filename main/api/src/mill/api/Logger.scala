@@ -44,6 +44,14 @@ trait Logger {
   def info(s: String): Unit
   def error(s: String): Unit
   def ticker(s: String): Unit
+  def ticker(key: String, s: String): Unit = ticker(s)
+  private[mill] def reportPrefix(s: String): Unit = ()
+  private[mill] def promptLine(key: String, identSuffix: String, message: String): Unit =
+    ticker(s"$key $message")
+  private[mill] def globalTicker(s: String): Unit = ()
+  private[mill] def clearAllTickers(): Unit = ()
+  private[mill] def endTicker(key: String): Unit = ()
+
   def debug(s: String): Unit
 
   /**
@@ -53,4 +61,12 @@ trait Logger {
   def debugEnabled: Boolean = false
 
   def close(): Unit = ()
+
+  /**
+   * Used to disable the terminal UI prompt without a certain block of code so you
+   * can run stuff like REPLs or other output-sensitive code in a clean terminal
+   */
+  def withPromptPaused[T](t: => T) = t
+
+  def enableTicker: Boolean = false
 }

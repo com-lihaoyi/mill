@@ -9,21 +9,21 @@ Mill comes bundled with a set of external Open Source libraries and projects.
 Project page:: https://github.com/com-lihaoyi/os-lib
 ScalaDoc:: https://javadoc.io/doc/com.lihaoyi/os-lib_2.13/latest/index.html
 
-include::example/external/libraries/1-oslib.adoc[]
+include::example/depth/libraries/1-oslib.adoc[]
 
 == uPickle
 
 Project page:: https://github.com/com-lihaoyi/upickle
 ScalaDoc:: https://javadoc.io/doc/com.lihaoyi/upickle_2.13/latest/index.html
 
-include::example/external/libraries/2-upickle.adoc[]
+include::example/depth/libraries/2-upickle.adoc[]
 
 == Requests-Scala
 
 Project page:: https://github.com/com-lihaoyi/requests-scala
 ScalaDoc:: https://javadoc.io/doc/com.lihaoyi/requests_2.13/latest/index.html
 
-include::example/external/libraries/3-requests.adoc[]
+include::example/depth/libraries/3-requests.adoc[]
 
 == MainArgs
 
@@ -31,7 +31,7 @@ include::example/external/libraries/3-requests.adoc[]
 Project page:: https://github.com/com-lihaoyi/mainargs
 Scaladoc:: https://javadoc.io/doc/com.lihaoyi/mainargs_2.13/latest/index.html
 
-include::example/external/libraries/4-mainargs.adoc[]
+include::example/depth/libraries/4-mainargs.adoc[]
 
 == Coursier
 

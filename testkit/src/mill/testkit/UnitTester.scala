@@ -18,8 +18,8 @@ object UnitTester {
       sourceRoot: os.Path,
       failFast: Boolean = false,
       threads: Option[Int] = Some(1),
-      outStream: PrintStream = System.out,
-      errStream: PrintStream = System.err,
+      outStream: PrintStream = Console.out,
+      errStream: PrintStream = Console.err,
       inStream: InputStream = DummyInputStream,
       debugEnabled: Boolean = false,
       env: Map[String, String] = Evaluator.defaultEnv,
@@ -68,7 +68,7 @@ class UnitTester(
 
   object logger extends mill.util.PrintLogger(
         colored = true,
-        enableTicker = true,
+        enableTicker = false,
         mill.util.Colors.Default.info,
         mill.util.Colors.Default.error,
         new SystemStreams(out = outStream, err = errStream, in = inStream),

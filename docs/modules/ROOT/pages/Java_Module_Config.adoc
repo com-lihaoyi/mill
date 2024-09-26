@@ -11,52 +11,64 @@ for `JavaModule`.
 
 Many of the APIs covered here are listed in the API documentation:
 
-* {mill-doc-url}/api/latest/mill/scalalib/JavaModule.html[mill.javaalib.JavaModule]
+* {mill-doc-url}/api/latest/mill/scalalib/JavaModule.html[mill.javalib.JavaModule]
+
+== Common Configuration Overrides
+
+include::example/javalib/module/1-common-config.adoc[]
+
+== Custom Tasks
+
+include::example/javalib/module/2-custom-tasks.adoc[]
+
+== Overriding Tasks
+
+include::example/javalib/module/3-override-tasks.adoc[]
 
 
 == Compilation & Execution Flags
 
-include::example/javalib/module/1-compilation-execution-flags.adoc[]
+include::example/javalib/module/4-compilation-execution-flags.adoc[]
 
 == Adding Ivy Dependencies
 
-include::example/javalib/module/2-ivy-deps.adoc[]
+include::example/javalib/module/5-ivy-deps.adoc[]
 
 == Runtime and Compile-time Dependencies
 
-include::example/javalib/module/3-run-compile-deps.adoc[]
+include::example/javalib/module/6-run-compile-deps.adoc[]
 
 == Classpath and Filesystem Resources
 
-include::example/javalib/module/5-resources.adoc[]
+include::example/javalib/module/7-resources.adoc[]
 
 == Annotation Processors
 
-include::example/javalib/module/6-annotation-processors.adoc[]
+include::example/javalib/module/8-annotation-processors.adoc[]
 
 == Javadoc Config
 
-include::example/javalib/module/7-docjar.adoc[]
+include::example/javalib/module/9-docjar.adoc[]
 
 == Unmanaged Jars
 
-include::example/javalib/module/8-unmanaged-jars.adoc[]
+include::example/javalib/module/10-unmanaged-jars.adoc[]
 
 == Specifying the Main Class
 
-include::example/javalib/module/9-main-class.adoc[]
+include::example/javalib/module/11-main-class.adoc[]
 
 == Downloading Non-Maven Jars
 
-include::example/javalib/module/10-downloading-non-maven-jars.adoc[]
+include::example/javalib/module/12-downloading-non-maven-jars.adoc[]
 
 == Customizing the Assembly
 
-include::example/javalib/module/11-assembly-config.adoc[]
+include::example/javalib/module/13-assembly-config.adoc[]
 
 == Repository Config
 
-include::example/javalib/module/12-repository-config.adoc[]
+include::example/javalib/module/14-repository-config.adoc[]
 
 === Maven Central: Blocked!
 
@@ -86,5 +98,5 @@ If you are using millw, a more permanent solution could be to set the environmen
 
 == Native C Code with JNI
 
-include::example/javalib/module/13-jni.adoc[]
+include::example/javalib/module/15-jni.adoc[]
 

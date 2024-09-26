@@ -15,6 +15,8 @@ include::example/scalalib/linting/1-scalafmt.adoc[]
 
 == Scoverage Code Coverage
 
+include::example/scalalib/linting/2-contrib-scoverage.adoc[]
+
 Mill supports Scala code coverage analysis via the Scoverage contrib plugin. See the
 contrib plugin documentation for more details:
 

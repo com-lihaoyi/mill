@@ -1,6 +1,6 @@
 package mill.testkit
 import mill.api.Retry
-import mill.main.client.OutFiles.{millWorker, out}
+import mill.main.client.OutFiles.{millServer, out}
 import mill.main.client.ServerFiles.serverId
 
 trait IntegrationTesterBase {
@@ -49,7 +49,7 @@ trait IntegrationTesterBase {
     if (os.exists(workspacePath / out)) {
       val serverIdFiles = for {
         outPath <- os.list.stream(workspacePath / out)
-        if outPath.last.startsWith(millWorker)
+        if outPath.last.startsWith(millServer)
       } yield outPath / serverId
 
       serverIdFiles.foreach(os.remove(_))

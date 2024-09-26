@@ -19,4 +19,5 @@ object DummyLogger extends Logger {
   def ticker(s: String) = ()
   def debug(s: String) = ()
   override val debugEnabled: Boolean = false
+
 }
