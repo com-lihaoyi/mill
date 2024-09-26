@@ -91,9 +91,9 @@ private[mill] class MultiLinePromptLogger(
 
   override def globalTicker(s: String): Unit = synchronized { state.updateGlobal(s) }
   override def clearAllTickers(): Unit = synchronized { state.clearStatuses() }
-  override def endTicker(): Unit = synchronized { state.updateCurrent(None) }
+  override def endTicker(key: String): Unit = synchronized { state.updateCurrent(key, None) }
 
-  def ticker(s: String): Unit = synchronized { state.updateCurrent(Some(s)) }
+  def ticker(s: String): Unit = ()
 
   override def reportPrefix(s: String): Unit = synchronized {
     if (!reportedIdentifiers(s)) {
@@ -107,10 +107,11 @@ private[mill] class MultiLinePromptLogger(
   def streamsAwaitPumperEmpty(): Unit = streams.awaitPumperEmpty()
   private val seenIdentifiers = collection.mutable.Map.empty[String, (String, String)]
   private val reportedIdentifiers = collection.mutable.Set.empty[String]
-  override def ticker(identifier: String, identSuffix: String, message: String): Unit =
+  override def ticker(key: String, identSuffix: String, message: String): Unit =
     synchronized {
-      seenIdentifiers(identifier) = (identSuffix, message)
-      super.ticker(infoColor(identifier).toString(), identSuffix, message)
+      state.updateCurrent(key, Some(s"$key $message"))
+      seenIdentifiers(key) = (identSuffix, message)
+      super.ticker(infoColor(key).toString(), identSuffix, message)
 
     }
   def debug(s: String): Unit = synchronized { if (debugEnabled) systemStreams.err.println(s) }
@@ -199,7 +200,7 @@ private[mill] object MultiLinePromptLogger {
       currentTimeMillis: () => Long
   ) {
     private var lastRenderedPromptHash = 0
-    private val statuses = collection.mutable.SortedMap.empty[Int, Status]
+    private val statuses = collection.mutable.SortedMap.empty[String, Status]
 
     private var headerPrefix = ""
     // Pre-compute the prelude and current prompt as byte arrays so that
@@ -255,15 +256,14 @@ private[mill] object MultiLinePromptLogger {
 
     def clearStatuses(): Unit = synchronized { statuses.clear() }
     def updateGlobal(s: String): Unit = synchronized { headerPrefix = s }
-    def updateCurrent(sOpt: Option[String]): Unit = synchronized {
-      val threadId = Thread.currentThread().getId.toInt
+    def updateCurrent(key: String, sOpt: Option[String]): Unit = synchronized {
 
       val now = currentTimeMillis()
       def stillTransitioning(status: Status) = {
         status.beginTransitionTime + statusRemovalHideDelayMillis > now
       }
       val sOptEntry = sOpt.map(StatusEntry(_, now))
-      statuses.updateWith(threadId) {
+      statuses.updateWith(key) {
         case None =>
           statuses.find { case (k, v) => v.next.isEmpty && stillTransitioning(v) } match {
             case Some((reusableKey, reusableValue)) =>

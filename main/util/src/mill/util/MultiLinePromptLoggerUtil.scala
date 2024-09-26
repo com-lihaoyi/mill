@@ -83,7 +83,7 @@ private object MultilinePromptLoggerUtil {
       startTimeMillis: Long,
       headerPrefix: String,
       titleText: String,
-      statuses: collection.SortedMap[Int, Status],
+      statuses: collection.SortedMap[String, Status],
       interactive: Boolean,
       ending: Boolean = false
   ): List[String] = {

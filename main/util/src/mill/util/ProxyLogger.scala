@@ -17,12 +17,8 @@ class ProxyLogger(logger: Logger) extends Logger {
   def info(s: String): Unit = logger.info(s)
   def error(s: String): Unit = logger.error(s)
   def ticker(s: String): Unit = logger.ticker(s)
-  private[mill] override def ticker(
-      identifier: String,
-      identSuffix: String,
-      message: String
-  ): Unit =
-    logger.ticker(identifier, identSuffix, message)
+  private[mill] override def ticker(key: String, identSuffix: String, message: String): Unit =
+    logger.ticker(key, identSuffix, message)
   def debug(s: String): Unit = logger.debug(s)
 
   override def debugEnabled: Boolean = logger.debugEnabled
@@ -31,7 +27,7 @@ class ProxyLogger(logger: Logger) extends Logger {
   private[mill] override def reportPrefix(s: String): Unit = logger.reportPrefix(s)
 
   override def rawOutputStream: PrintStream = logger.rawOutputStream
-  private[mill] override def endTicker(): Unit = logger.endTicker()
+  private[mill] override def endTicker(key: String): Unit = logger.endTicker(key)
   private[mill] override def globalTicker(s: String): Unit = logger.globalTicker(s)
   override def withPromptPaused[T](t: => T): T = logger.withPromptPaused(t)
 

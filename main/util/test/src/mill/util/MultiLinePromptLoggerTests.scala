@@ -63,7 +63,7 @@ object MultiLinePromptLoggerTests extends TestSuite {
 
         prefixLogger.outputStream.println("WORLD")
 
-        promptLogger.endTicker()
+        promptLogger.endTicker("[1]")
 
         now += 10000
         promptLogger.refreshPrompt()
@@ -137,31 +137,17 @@ object MultiLinePromptLoggerTests extends TestSuite {
         // Adding new ticker entries doesn't appear immediately,
         // Only after some time has passed do we start displaying the new ticker entry,
         // to ensure it is meaningful to read and not just something that will flash and disappear
-        val newTaskThread = new Thread(() => {
-          val newPrefixLogger = new PrefixLogger(promptLogger, "[2]")
-          newPrefixLogger.ticker("[2]", "[2/456]", "my-task-new")
-          newPrefixLogger.errorStream.println("I AM COW")
-          newPrefixLogger.errorStream.println("HEAR ME MOO")
-        })
-        newTaskThread.start()
-        newTaskThread.join()
+        val newPrefixLogger2 = new PrefixLogger(promptLogger, "[2]")
+        newPrefixLogger2.ticker("[2]", "[2/456]", "my-task-new")
+        newPrefixLogger2.errorStream.println("I AM COW")
+        newPrefixLogger2.errorStream.println("HEAR ME MOO")
 
         // For short-lived ticker entries that are removed quickly, they never
         // appear in the prompt at all even though they can run and generate logs
-        val shortLivedSemaphore = new Object()
-        val shortLivedThread = new Thread(() => {
-          val newPrefixLogger = new PrefixLogger(promptLogger, "[3]")
-          newPrefixLogger.ticker("[3]", "[3/456]", "my-task-short-lived")
-          newPrefixLogger.errorStream.println("hello short lived")
-          shortLivedSemaphore.synchronized(shortLivedSemaphore.notify())
-
-          newPrefixLogger.errorStream.println("goodbye short lived")
-
-          shortLivedSemaphore.synchronized(shortLivedSemaphore.wait())
-          newPrefixLogger.endTicker()
-        })
-        shortLivedThread.start()
-        shortLivedSemaphore.synchronized(shortLivedSemaphore.wait())
+        val newPrefixLogger3 = new PrefixLogger(promptLogger, "[3]")
+        newPrefixLogger3.ticker("[3]", "[3/456]", "my-task-short-lived")
+        newPrefixLogger3.errorStream.println("hello short lived")
+        newPrefixLogger3.errorStream.println("goodbye short lived")
 
         // my-task-new does not appear yet because it is too new
         promptLogger.refreshPrompt()
@@ -179,8 +165,7 @@ object MultiLinePromptLoggerTests extends TestSuite {
           "[1] my-task 10s"
         )
 
-        shortLivedSemaphore.synchronized(shortLivedSemaphore.notify())
-        shortLivedThread.join()
+        newPrefixLogger3.endTicker("[3]")
 
         now += 1000
 
@@ -201,7 +186,7 @@ object MultiLinePromptLoggerTests extends TestSuite {
           "[2] my-task-new 1s"
         )
 
-        promptLogger.endTicker()
+        promptLogger.endTicker("[1]")
 
         now += 10
 
@@ -300,12 +285,12 @@ object MultiLinePromptLoggerTests extends TestSuite {
           "  123/456 ============================ TITLE ================================= "
         )
 
-        promptLogger.endTicker()
+        promptLogger.endTicker("[1]")
 
         val newTaskThread = new Thread(() => {
           promptLogger.ticker("[2]", "[2/456]", "my-task-new")
           now += 100
-          promptLogger.endTicker()
+          promptLogger.endTicker("[2]")
         })
         newTaskThread.start()
         newTaskThread.join()

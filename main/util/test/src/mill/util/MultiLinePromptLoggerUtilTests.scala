@@ -121,7 +121,7 @@ object MultiLinePromptLoggerUtilTests extends TestSuite {
           startTimeMillis = now - 1337000,
           headerPrefix = "123/456",
           titleText = titleText,
-          statuses = SortedMap(statuses: _*),
+          statuses = SortedMap(statuses.map{case (k, v) => (k.toString, v)}: _*),
           interactive = interactive
         )
 

@@ -53,11 +53,11 @@ class PrefixLogger(
   }
   override def ticker(s: String): Unit = logger0.ticker(context + tickerContext + s)
   private[mill] override def ticker(
-      identifier: String,
-      identSuffix: String,
-      message: String
+                                     key: String,
+                                     identSuffix: String,
+                                     message: String
   ): Unit =
-    logger0.ticker(identifier, identSuffix, message)
+    logger0.ticker(key, identSuffix, message)
   override def debug(s: String): Unit = {
     if (debugEnabled) reportPrefix(context0)
     logger0.debug(infoColor(context) + s)
@@ -74,7 +74,7 @@ class PrefixLogger(
   private[mill] override def reportPrefix(s: String): Unit = {
     logger0.reportPrefix(s)
   }
-  private[mill] override def endTicker(): Unit = logger0.endTicker()
+  private[mill] override def endTicker(key: String): Unit = logger0.endTicker(key)
   private[mill] override def globalTicker(s: String): Unit = logger0.globalTicker(s)
 
   override def withPromptPaused[T](t: => T): T = logger0.withPromptPaused(t)

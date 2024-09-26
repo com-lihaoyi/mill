@@ -45,11 +45,11 @@ trait Logger {
   def error(s: String): Unit
   def ticker(s: String): Unit
   private[mill] def reportPrefix(s: String): Unit = ()
-  private[mill] def ticker(identifier: String, identSuffix: String, message: String): Unit =
-    ticker(s"$identifier $message")
+  private[mill] def ticker(key: String, identSuffix: String, message: String): Unit =
+    ticker(s"$key $message")
   private[mill] def globalTicker(s: String): Unit = ()
   private[mill] def clearAllTickers(): Unit = ()
-  private[mill] def endTicker(): Unit = ()
+  private[mill] def endTicker(key: String): Unit = ()
 
   def debug(s: String): Unit
 

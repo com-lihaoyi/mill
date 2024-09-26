@@ -80,7 +80,7 @@ private[mill] trait GroupEvaluator {
       case Some(s) =>
         logger.ticker(counterMsg, identSuffix, s)
         try t
-        finally logger.endTicker()
+        finally logger.endTicker(counterMsg)
     }
 
     withTicker(Some(tickerPrefix)) {

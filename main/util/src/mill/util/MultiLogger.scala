@@ -56,9 +56,9 @@ class MultiLogger(
 
   override def rawOutputStream: PrintStream = systemStreams.out
 
-  private[mill] override def endTicker(): Unit = {
-    logger1.endTicker()
-    logger2.endTicker()
+  private[mill] override def endTicker(key: String): Unit = {
+    logger1.endTicker(key)
+    logger2.endTicker(key)
   }
   private[mill] override def globalTicker(s: String): Unit = {
     logger1.globalTicker(s)
