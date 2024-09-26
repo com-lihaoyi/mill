@@ -162,26 +162,26 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
 
       // parser that will enter a template body, but then not parse nested templates
       val parser = new Parsers.Parser(ctx.source) {
-        var inTemplate = false
+        // var inTemplate = false
 
-        val outlineParser: OutlineParser = new OutlineParser(ctx.source) {
-          override val in = in0
-        }
+        // val outlineParser: OutlineParser = new OutlineParser(ctx.source) {
+        //   override val in = in0
+        // }
 
         override val in = in0
 
-        override def blockExpr(): untpd.Tree = outlineParser.blockExpr()
+        // override def blockExpr(): untpd.Tree = outlineParser.blockExpr()
 
-        override def templateBody(parents: List[untpd.Tree], rewriteWithColon: Boolean) =
-          if inTemplate then outlineParser.templateBody(parents, rewriteWithColon)
-          else {
-            try {
-              inTemplate = true
-              super.templateBody(parents, rewriteWithColon)
-            } finally {
-              inTemplate = false
-            }
-          }
+        // override def templateBody(parents: List[untpd.Tree], rewriteWithColon: Boolean) =
+        //   if inTemplate then outlineParser.templateBody(parents, rewriteWithColon)
+        //   else {
+        //     try {
+        //       inTemplate = true
+        //       super.templateBody(parents, rewriteWithColon)
+        //     } finally {
+        //       inTemplate = false
+        //     }
+        //   }
       }
       parser.templateOpt(untpd.emptyConstructor)
     }
