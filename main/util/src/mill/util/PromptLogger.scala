@@ -79,7 +79,7 @@ private[mill] class PromptLogger(
       // Clear the prompt so the code in `t` has a blank terminal to work with
       outputStream.flush()
       errorStream.flush()
-      rawOutputStream.write(AnsiNav.clearScreen(0).getBytes)
+      systemStreams0.err.write(AnsiNav.clearScreen(0).getBytes)
       SystemStreams.withStreams(systemStreams0) {
         t
       }

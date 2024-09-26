@@ -333,9 +333,6 @@ class MillBuildBootstrap(
       depth: Int
   ): Evaluator = {
 
-    if (depth == 0) ""
-    else "[" + (Seq.fill(depth - 1)(millBuild) ++ Seq("build.mill")).mkString("/") + "] "
-
     mill.eval.EvaluatorImpl(
       home,
       projectRoot,

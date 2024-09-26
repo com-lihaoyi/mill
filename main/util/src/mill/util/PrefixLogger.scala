@@ -14,7 +14,7 @@ class PrefixLogger(
     verboseKeySuffix: String = "",
     message: String = ""
 ) extends ColorLogger {
-  val linePrefix: String = if (key == "") "" else s"[${key.mkString("-")}] "
+  val linePrefix: String = if (key.isEmpty) "" else s"[${key.mkString("-")}] "
   override def toString: String =
     s"PrefixLogger($logger0, ${literalize(linePrefix)}, ${literalize(tickerContext)})"
   def this(logger0: ColorLogger, context: String, tickerContext: String) =
