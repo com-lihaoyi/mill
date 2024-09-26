@@ -164,7 +164,6 @@ object `package` extends RootModule with Module {
     def localRunClasspath = build.testkit.localRunClasspath()
 
     def forkEnv = Map(
-      "MILL_EXAMPLE_PARSED" -> upickle.default.write(parsed()),
       "LANG" -> "C"
     )
 
