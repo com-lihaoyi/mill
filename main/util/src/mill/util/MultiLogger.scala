@@ -38,11 +38,11 @@ class MultiLogger(
 
   private[mill] override def promptLine(
       identifier: String,
-      verboseKey: String,
+      verboseKeySuffix: String,
       message: String
   ): Unit = {
-    logger1.promptLine(identifier, verboseKey, message)
-    logger2.promptLine(identifier, verboseKey, message)
+    logger1.promptLine(identifier, verboseKeySuffix, message)
+    logger2.promptLine(identifier, verboseKeySuffix, message)
   }
 
   private[mill] override def promptLine(): Unit = {

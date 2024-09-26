@@ -46,7 +46,7 @@ trait Logger {
   def ticker(s: String): Unit
   def ticker(key: String, s: String): Unit = ticker(s)
   private[mill] def reportPrefix(s: String): Unit = ()
-  private[mill] def promptLine(key: String, verboseKey: String, message: String): Unit =
+  private[mill] def promptLine(key: String, verboseKeySuffix: String, message: String): Unit =
     ticker(s"$key $message")
   private[mill] def promptLine(): Unit = ()
   private[mill] def globalTicker(s: String): Unit = ()
@@ -72,7 +72,7 @@ trait Logger {
 
   def enableTicker: Boolean = false
 
-  def subLogger(path: os.Path, key: String, message: String): Logger = this
+  def subLogger(path: os.Path, verboseKeySuffix: String, message: String): Logger = this
 
   def withTicker[T](t: => T): T = {
     promptLine()

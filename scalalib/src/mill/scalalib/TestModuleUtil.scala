@@ -105,7 +105,7 @@ private[scalalib] object TestModuleUtil {
             case multiple => s"group-$i"
           }
 
-          T.ctx.executionContext.sandboxedFuture(T.dest / groupLabel, s"[$i]", groupLabel) {
+          T.ctx.executionContext.sandboxedFuture(T.dest / groupLabel, "-" + i, groupLabel) {
             (groupLabel, runTestSubprocess(testClassList, T.dest / groupLabel))
           }
         }

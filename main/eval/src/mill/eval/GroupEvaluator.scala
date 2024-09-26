@@ -45,17 +45,17 @@ private[mill] trait GroupEvaluator {
 
   // those result which are inputs but not contained in this terminal group
   def evaluateGroupCached(
-      terminal: Terminal,
-      group: Agg[Task[_]],
-      results: Map[Task[_], TaskResult[(Val, Int)]],
-      counterMsg: String,
-      verboseKey: String,
-      zincProblemReporter: Int => Option[CompileProblemReporter],
-      testReporter: TestReporter,
-      logger: ColorLogger,
-      classToTransitiveClasses: Map[Class[_], IndexedSeq[Class[_]]],
-      allTransitiveClassMethods: Map[Class[_], Map[String, Method]],
-      executionContext: BlockableExecutionContext
+                           terminal: Terminal,
+                           group: Agg[Task[_]],
+                           results: Map[Task[_], TaskResult[(Val, Int)]],
+                           countMsg: String,
+                           verboseKeySuffix: String,
+                           zincProblemReporter: Int => Option[CompileProblemReporter],
+                           testReporter: TestReporter,
+                           logger: ColorLogger,
+                           classToTransitiveClasses: Map[Class[_], IndexedSeq[Class[_]]],
+                           allTransitiveClassMethods: Map[Class[_], Map[String, Method]],
+                           executionContext: BlockableExecutionContext
   ): GroupEvaluator.Results = {
 
     val targetLabel = terminal match {
@@ -136,8 +136,8 @@ private[mill] trait GroupEvaluator {
             inputsHash,
             paths = None,
             maybeTargetLabel = None,
-            counterMsg = counterMsg,
-            verboseKey = verboseKey,
+            counterMsg = countMsg,
+            verboseKeySuffix = verboseKeySuffix,
             zincProblemReporter,
             testReporter,
             logger,
@@ -185,15 +185,15 @@ private[mill] trait GroupEvaluator {
               if (labelled.task.flushDest) os.remove.all(paths.dest)
 
               val (newResults, newEvaluated) =
-                GroupEvaluator.dynamicTickerPrefix.withValue(s"[$counterMsg] $targetLabel > ") {
+                GroupEvaluator.dynamicTickerPrefix.withValue(s"[$countMsg] $targetLabel > ") {
                   evaluateGroup(
                     group,
                     results,
                     inputsHash,
                     paths = Some(paths),
                     maybeTargetLabel = targetLabel,
-                    counterMsg = counterMsg,
-                    verboseKey = verboseKey,
+                    counterMsg = countMsg,
+                    verboseKeySuffix = verboseKeySuffix,
                     zincProblemReporter,
                     testReporter,
                     logger,
@@ -235,7 +235,7 @@ private[mill] trait GroupEvaluator {
       paths: Option[EvaluatorPaths],
       maybeTargetLabel: Option[String],
       counterMsg: String,
-      verboseKey: String,
+      verboseKeySuffix: String,
       reporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
       logger: mill.api.Logger,

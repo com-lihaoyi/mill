@@ -57,7 +57,6 @@ private[mill] class PromptLogger(
       val promptUpdateInterval =
         if (termDimensions._1.isDefined) promptUpdateIntervalMillis
         else nonInteractivePromptUpdateIntervalMillis
-      mill.main.client.DebugLog.println(s"promptUpdaterThread " + promptUpdateInterval)
 
       Thread.sleep(promptUpdateInterval)
 
@@ -100,11 +99,11 @@ private[mill] class PromptLogger(
     state.updateDetail(key, s)
   }
 
-  override def reportPrefix(s: String): Unit = synchronized {
-    if (!reportedIdentifiers(s)) {
-      reportedIdentifiers.add(s)
-      for ((verboseKey, message) <- seenIdentifiers.get(s)) {
-        systemStreams.err.println(infoColor(s"$verboseKey $message"))
+  override def reportPrefix(key: String): Unit = synchronized {
+    if (!reportedIdentifiers(key)) {
+      reportedIdentifiers.add(key)
+      for ((verboseKeySuffix, message) <- seenIdentifiers.get(key)) {
+        systemStreams.err.println(infoColor(s"[$key$verboseKeySuffix] $message"))
       }
     }
   }
@@ -112,11 +111,11 @@ private[mill] class PromptLogger(
   def streamsAwaitPumperEmpty(): Unit = streams.awaitPumperEmpty()
   private val seenIdentifiers = collection.mutable.Map.empty[String, (String, String)]
   private val reportedIdentifiers = collection.mutable.Set.empty[String]
-  override def promptLine(key: String, verboseKey: String, message: String): Unit =
+  override def promptLine(key: String, verboseKeySuffix: String, message: String): Unit =
     synchronized {
-      state.updateCurrent(key, Some(s"$key $message"))
-      seenIdentifiers(key) = (verboseKey, message)
-      super.promptLine(infoColor(key).toString(), verboseKey, message)
+      state.updateCurrent(key, Some(s"[$key$verboseKeySuffix] $message"))
+      seenIdentifiers(key) = (verboseKeySuffix, message)
+      super.promptLine(infoColor(key).toString(), verboseKeySuffix, message)
 
     }
   def debug(s: String): Unit = synchronized { if (debugEnabled) systemStreams.err.println(s) }

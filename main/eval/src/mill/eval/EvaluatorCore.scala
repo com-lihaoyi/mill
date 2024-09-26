@@ -103,16 +103,15 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       for (terminal <- terminals) {
         val deps = interGroupDeps(terminal)
         futures(terminal) = Future.sequence(deps.map(futures)).map { upstreamValues =>
-          val paddedCount = count
+          val countMsg = count
             .getAndIncrement()
             .toString
             .reverse
             .padTo(terminals.size.toString.length, '0')
             .reverse
-          val countMsg = s"[$paddedCount]"
 
-          val counterMsg = s"[$paddedCount/${terminals0.size}]"
-          logger.globalTicker(counterMsg)
+          val verboseKeySuffix = s"/${terminals0.size}"
+          logger.globalTicker(s"$countMsg$verboseKeySuffix")
           if (failed.get()) None
           else {
             val upstreamResults = upstreamValues
@@ -143,9 +142,9 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
             val contextLogger = new PrefixLogger(
               logger0 = logger,
-              context0 = if (logger.enableTicker) countMsg else "",
+              key = if (logger.enableTicker) countMsg else "",
               tickerContext = GroupEvaluator.dynamicTickerPrefix.value,
-              verboseKey = counterMsg,
+              verboseKeySuffix = verboseKeySuffix,
               message = tickerPrefix
             )
 
@@ -153,8 +152,8 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
               terminal = terminal,
               group = sortedGroups.lookupKey(terminal),
               results = upstreamResults,
-              counterMsg = countMsg,
-              verboseKey = counterMsg,
+              countMsg = countMsg,
+              verboseKeySuffix = verboseKeySuffix,
               zincProblemReporter = reporter,
               testReporter = testReporter,
               logger = contextLogger,
