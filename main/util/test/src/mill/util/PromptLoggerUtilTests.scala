@@ -3,10 +3,25 @@ package mill.util
 import utest._
 
 import scala.collection.immutable.SortedMap
-import MultilinePromptLoggerUtil._
+import PromptLoggerUtil._
 object PromptLoggerUtilTests extends TestSuite {
 
   val tests = Tests {
+    test("splitShorten") {
+      splitShorten("hello world", 12) ==> "hello world"
+      splitShorten("hello world", 11) ==> "hello world"
+      splitShorten("hello world", 10) ==> "hell...rld"
+      splitShorten("hello world", 9) ==> "hel...rld"
+      splitShorten("hello world", 8) ==> "hel...ld"
+      splitShorten("hello world", 7) ==> "he...ld"
+      splitShorten("hello world", 6) ==> "he...d"
+      splitShorten("hello world", 5) ==> "h...d"
+      splitShorten("hello world", 4) ==> "h..."
+      splitShorten("hello world", 3) ==> "..."
+      splitShorten("hello world", 2) ==> ".."
+      splitShorten("hello world", 1) ==> "."
+      splitShorten("hello world", 0) ==> ""
+    }
     test("lastIndexOfNewline") {
       // Fuzz test to make sure our custom fast `lastIndexOfNewline` logic behaves
       // the same as a slower generic implementation using `.slice.lastIndexOf`
@@ -69,7 +84,7 @@ object PromptLoggerUtilTests extends TestSuite {
       test("simple") - check(
         "PREFIX",
         "TITLE",
-        "SUFFIX",
+        " SUFFIX",
         60,
         expected = "  PREFIX ==================== TITLE ================= SUFFIX"
       )
@@ -77,7 +92,7 @@ object PromptLoggerUtilTests extends TestSuite {
       test("short") - check(
         "PREFIX",
         "TITLE",
-        "SUFFIX",
+        " SUFFIX",
         40,
         expected = "  PREFIX ========== TITLE ======= SUFFIX"
       )
@@ -85,30 +100,29 @@ object PromptLoggerUtilTests extends TestSuite {
       test("shorter") - check(
         "PREFIX",
         "TITLE",
-        "SUFFIX",
+        " SUFFIX",
         25,
-        expected = "  PREFIX ==...==== SUFFIX"
+        expected = "  PREFIX ========= SUFFIX"
       )
 
       test("truncateTitle") - check(
         "PREFIX",
         "TITLE_ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        "SUFFIX",
+        " SUFFIX",
         60,
-        expected = "  PREFIX ====== TITLE_ABCDEF...OPQRSTUVWXYZ ========= SUFFIX"
+        expected = "  PREFIX ====== TITLE_ABCDEFG...OPQRSTUVWXYZ ======== SUFFIX"
       )
 
       test("asymmetricTruncateTitle") - check(
         "PREFIX_LONG",
         "TITLE_ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        "SUFFIX",
+        " SUFFIX",
         60,
-        expected = "  PREFIX_LONG = TITLE_A...TUVWXYZ =================== SUFFIX"
+        expected = "  PREFIX_LONG = TITLE_AB...TUVWXYZ ================== SUFFIX"
       )
     }
 
     test("renderPrompt") {
-      import MultiLinePromptLogger._
       val now = System.currentTimeMillis()
       def renderPromptTest(
           interactive: Boolean,
@@ -121,7 +135,7 @@ object PromptLoggerUtilTests extends TestSuite {
           startTimeMillis = now - 1337000,
           headerPrefix = "123/456",
           titleText = titleText,
-          statuses = SortedMap(statuses.map{case (k, v) => (k.toString, v)}: _*),
+          statuses = SortedMap(statuses.map { case (k, v) => (k.toString, v) }: _*),
           interactive = interactive
         )
 
@@ -227,6 +241,38 @@ object PromptLoggerUtilTests extends TestSuite {
           "#3 i am cow 3s",
           "#4 hear me moo 4s",
           "... and 3 more threads"
+        )
+        assert(rendered == expected)
+      }
+      test("detail") {
+        val rendered = renderPromptTest(interactive = true)(
+          0 -> Status(Some(StatusEntry("1 hello", now - 1000, "")), 0, None),
+          1 -> Status(Some(StatusEntry("2 world", now - 2000, "HELLO")), 0, None),
+          2 -> Status(
+            Some(StatusEntry(
+              "3 truncated-detail",
+              now - 3000,
+              "HELLO WORLD abcdefghijklmnopqrstuvwxyz1234567890"
+            )),
+            0,
+            None
+          ),
+          3 -> Status(
+            Some(StatusEntry(
+              "4 long-status-eliminated-detail-abcdefghijklmnopqrstuvwxyz1234567890",
+              now - 4000,
+              "HELLO"
+            )),
+            0,
+            None
+          )
+        )
+        val expected = List(
+          "  123/456 =============== __.compile ================ 1337s",
+          "1 hello 1s", // no detail
+          "2 world 2s HELLO", // simple detail
+          "3 truncated-detail 3s HELLO WORLD abcde...tuvwxyz1234567890", // truncated detail
+          "4 long-status-eliminated-det...lmnopqrstuvwxyz1234567890 4s"
         )
         assert(rendered == expected)
       }

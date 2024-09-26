@@ -11,7 +11,7 @@ object PromptLoggerTests extends TestSuite {
     val baos = new ByteArrayOutputStream()
     val baosOut = new PrintStream(new ProxyStream.Output(baos, ProxyStream.OUT))
     val baosErr = new PrintStream(new ProxyStream.Output(baos, ProxyStream.ERR))
-    val promptLogger = new MultiLinePromptLogger(
+    val promptLogger = new PromptLogger(
       colored = false,
       enableTicker = true,
       infoColor = fansi.Attrs.Empty,
@@ -28,7 +28,7 @@ object PromptLoggerTests extends TestSuite {
   }
 
   def check(
-      promptLogger: MultiLinePromptLogger,
+      promptLogger: PromptLogger,
       baos: ByteArrayOutputStream,
       width: Int = 80
   )(expected: String*) = {
@@ -104,7 +104,7 @@ object PromptLoggerTests extends TestSuite {
         promptLogger.globalTicker("123/456")
         promptLogger.refreshPrompt()
         check(promptLogger, baos)(
-          "  123/456 ============================ TITLE ================================= "
+          "  123/456 ============================ TITLE =================================="
         )
         promptLogger.promptLine("[1]", "[1/456]", "my-task")
 
@@ -274,7 +274,7 @@ object PromptLoggerTests extends TestSuite {
         promptLogger.globalTicker("123/456")
         promptLogger.refreshPrompt()
         check(promptLogger, baos)(
-          "  123/456 ============================ TITLE ================================= "
+          "  123/456 ============================ TITLE =================================="
         )
         promptLogger.promptLine("[1]", "[1/456]", "my-task")
 
@@ -282,7 +282,7 @@ object PromptLoggerTests extends TestSuite {
 
         promptLogger.refreshPrompt()
         check(promptLogger, baos)(
-          "  123/456 ============================ TITLE ================================= "
+          "  123/456 ============================ TITLE =================================="
         )
 
         promptLogger.endTicker("[1]")
@@ -297,7 +297,7 @@ object PromptLoggerTests extends TestSuite {
 
         promptLogger.refreshPrompt()
         check(promptLogger, baos)(
-          "  123/456 ============================ TITLE ================================= "
+          "  123/456 ============================ TITLE =================================="
         )
 
         val newTaskThread2 = new Thread(() => {
@@ -308,8 +308,42 @@ object PromptLoggerTests extends TestSuite {
         newTaskThread2.join()
         promptLogger.refreshPrompt()
         check(promptLogger, baos)(
-          "  123/456 ============================ TITLE ================================= ",
-          "[2] my-task-new "
+          "  123/456 ============================ TITLE ==================================",
+          "[2] my-task-new"
+        )
+      }
+    }
+    test("detail") {
+      if (!Util.windowsPlatform) {
+        // Make sure that when we have multiple sequential tasks being run on different threads,
+        // we still end up showing some kind of task in progress in the ticker, even though the
+        // tasks on each thread are short-lived enough they would not normally get shown if run
+        // alone.
+        @volatile var now = 0L
+        val (baos, promptLogger, prefixLogger) = setup(() => now, os.temp("80 40"))
+
+        promptLogger.globalTicker("123/456")
+        promptLogger.refreshPrompt()
+
+        promptLogger.promptLine("[1]", "[1/456]", "my-task")
+        prefixLogger.ticker("detail")
+        now += 1000
+        promptLogger.refreshPrompt()
+        check(promptLogger, baos)(
+          "  123/456 ============================ TITLE =============================== 1s",
+          "[1] my-task 1s detail"
+        )
+        prefixLogger.ticker("detail-too-long-gets-truncated-abcdefghijklmnopqrstuvwxyz1234567890")
+        promptLogger.refreshPrompt()
+        check(promptLogger, baos)(
+          "  123/456 ============================ TITLE =============================== 1s",
+          "[1] my-task 1s detail-too-long-gets-truncated...fghijklmnopqrstuvwxyz1234567890"
+        )
+        promptLogger.endTicker("[1]")
+        now += 10000
+        promptLogger.refreshPrompt()
+        check(promptLogger, baos)(
+          "  123/456 ============================ TITLE ============================== 11s"
         )
       }
     }

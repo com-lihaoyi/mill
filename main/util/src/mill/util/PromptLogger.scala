@@ -2,7 +2,7 @@ package mill.util
 
 import mill.api.SystemStreams
 import mill.main.client.ProxyStream
-import mill.util.MultilinePromptLoggerUtil.{
+import mill.util.PromptLoggerUtil.{
   Status,
   clearScreenToEndBytes,
   defaultTermHeight,
@@ -12,9 +12,9 @@ import mill.util.MultilinePromptLoggerUtil.{
 import pprint.Util.literalize
 
 import java.io._
-import MultilinePromptLoggerUtil._
+import PromptLoggerUtil._
 
-private[mill] class MultiLinePromptLogger(
+private[mill] class PromptLogger(
     override val colored: Boolean,
     override val enableTicker: Boolean,
     override val infoColor: fansi.Attrs,
@@ -27,7 +27,7 @@ private[mill] class MultiLinePromptLogger(
     autoUpdate: Boolean = true
 ) extends ColorLogger with AutoCloseable {
   override def toString: String = s"MultilinePromptLogger(${literalize(titleText)}"
-  import MultiLinePromptLogger._
+  import PromptLogger._
 
   private var termDimensions: (Option[Int], Option[Int]) = (None, None)
 
@@ -94,6 +94,9 @@ private[mill] class MultiLinePromptLogger(
   override def endTicker(key: String): Unit = synchronized { state.updateCurrent(key, None) }
 
   def ticker(s: String): Unit = ()
+  def ticker(key: String, s: String): Unit = {
+    state.updateDetail(key, s)
+  }
 
   override def reportPrefix(s: String): Unit = synchronized {
     if (!reportedIdentifiers(s)) {
@@ -127,7 +130,7 @@ private[mill] class MultiLinePromptLogger(
   def systemStreams = streams.systemStreams
 }
 
-private[mill] object MultiLinePromptLogger {
+private[mill] object PromptLogger {
 
   private class Streams(
       enableTicker: Boolean,
@@ -256,13 +259,18 @@ private[mill] object MultiLinePromptLogger {
 
     def clearStatuses(): Unit = synchronized { statuses.clear() }
     def updateGlobal(s: String): Unit = synchronized { headerPrefix = s }
+
+    def updateDetail(key: String, detail: String): Unit = synchronized {
+      statuses.updateWith(key)(_.map(se => se.copy(next = se.next.map(_.copy(detail = detail)))))
+    }
+
     def updateCurrent(key: String, sOpt: Option[String]): Unit = synchronized {
 
       val now = currentTimeMillis()
       def stillTransitioning(status: Status) = {
         status.beginTransitionTime + statusRemovalHideDelayMillis > now
       }
-      val sOptEntry = sOpt.map(StatusEntry(_, now))
+      val sOptEntry = sOpt.map(StatusEntry(_, now, ""))
       statuses.updateWith(key) {
         case None =>
           statuses.find { case (k, v) => v.next.isEmpty && stillTransitioning(v) } match {

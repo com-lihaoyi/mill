@@ -9,7 +9,7 @@ import mill.api.{MillException, SystemStreams, WorkspaceRoot, internal}
 import mill.bsp.{BspContext, BspServerResult}
 import mill.main.BuildInfo
 import mill.main.client.ServerFiles
-import mill.util.{MultiLinePromptLogger, PrintLogger}
+import mill.util.{PromptLogger, PrintLogger}
 
 import java.lang.reflect.InvocationTargetException
 import scala.util.control.NonFatal
@@ -331,7 +331,7 @@ object MillMain {
         printLoggerState
       )
     } else {
-      new MultiLinePromptLogger(
+      new PromptLogger(
         colored = colored,
         enableTicker = enableTicker.getOrElse(true),
         infoColor = colors.info,

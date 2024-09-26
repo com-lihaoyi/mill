@@ -1,6 +1,6 @@
 package mill.util
 
-private object MultilinePromptLoggerUtil {
+private object PromptLoggerUtil {
 
   private[mill] val defaultTermWidth = 119
   private[mill] val defaultTermHeight = 50
@@ -38,7 +38,7 @@ private object MultilinePromptLoggerUtil {
    */
   val statusRemovalRemoveDelayMillis = 2000
 
-  private[mill] case class StatusEntry(text: String, startTimeMillis: Long)
+  private[mill] case class StatusEntry(text: String, startTimeMillis: Long, detail: String = "")
 
   /**
    * Represents a line in the prompt. Stores up to two separate [[StatusEntry]]s, because
@@ -53,9 +53,9 @@ private object MultilinePromptLoggerUtil {
 
   private[mill] val clearScreenToEndBytes: Array[Byte] = AnsiNav.clearScreen(0).getBytes
 
-  private def renderSeconds(millis: Long) = (millis / 1000).toInt match {
+  private def renderSecondsSuffix(millis: Long) = (millis / 1000).toInt match {
     case 0 => ""
-    case n => s"${n}s"
+    case n => s" ${n}s"
   }
 
   def readTerminalDims(terminfoPath: os.Path): Option[(Option[Int], Option[Int])] = {
@@ -91,7 +91,7 @@ private object MultilinePromptLoggerUtil {
     val maxWidth = consoleWidth - 1
     // -1 to account for header
     val maxHeight = math.max(1, consoleHeight / 3 - 1)
-    val headerSuffix = renderSeconds(now - startTimeMillis)
+    val headerSuffix = renderSecondsSuffix(now - startTimeMillis)
 
     val header = renderHeader(headerPrefix, titleText, headerSuffix, maxWidth, ending, interactive)
 
@@ -112,9 +112,16 @@ private object MultilinePromptLoggerUtil {
             val textOpt = if (status.beginTransitionTime + statusRemovalHideDelayMillis < now)
               status.next
             else status.prev
-            textOpt.map(t =>
-              splitShorten(t.text + " " + renderSeconds(now - t.startTimeMillis), maxWidth)
-            )
+            textOpt.map { t =>
+              val seconds = renderSecondsSuffix(now - t.startTimeMillis)
+              val mainText = splitShorten(t.text + seconds, maxWidth)
+
+              val detail =
+                if (t.detail == "") ""
+                else splitShorten(" " + t.detail, maxWidth - mainText.length)
+
+              mainText + detail
+            }
           }
       }
       // For non-interactive jobs, we do not need to preserve the height of the prompt
@@ -150,7 +157,7 @@ private object MultilinePromptLoggerUtil {
       interactive: Boolean = true
   ): String = {
     val headerPrefixStr = if (!interactive || ending) s"$headerPrefix0 " else s"  $headerPrefix0 "
-    val headerSuffixStr = s" $headerSuffix0"
+    val headerSuffixStr = headerSuffix0
     val titleText = s" $titleText0 "
     // -12 just to ensure we always have some ==== divider on each side of the title
     val maxTitleLength =
@@ -177,8 +184,10 @@ private object MultilinePromptLoggerUtil {
     if (s.length <= maxLength) s
     else {
       val ellipses = "..."
-      val halfWidth = (maxLength - ellipses.length) / 2
-      s.take(halfWidth) + ellipses + s.takeRight(halfWidth)
+      val nonEllipsesLength = maxLength - ellipses.length
+      val halfWidth = nonEllipsesLength / 2
+      val halfWidth2 = nonEllipsesLength - halfWidth
+      s.take(halfWidth2) + ellipses.take(maxLength) + s.takeRight(halfWidth)
     }
   }
 

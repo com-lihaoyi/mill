@@ -7,7 +7,6 @@ import mill.define._
 import mill.eval.Evaluator.TaskResult
 import mill.util._
 
-import java.io.PrintStream
 import java.lang.reflect.Method
 import scala.collection.mutable
 import scala.reflect.NameTransformer.encode
