@@ -52,8 +52,7 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
     for
       tree <- liftErrors(MillParsers.outlineCompilationUnit(source))
       split <- liftErrors(splitTrees(tree))
-    yield
-      split
+    yield split
   }
 
   def liftErrors[T](op: Context ?=> T)(using Context): Either[List[String], T] =
@@ -105,6 +104,7 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
 
   /** MillParsers contains the code for parsing objects and imports from text. */
   private object MillParsers {
+
     /** Dotty parsers need to be synchronized */
     private object ParseLock extends java.util.concurrent.locks.ReentrantLock {
 
