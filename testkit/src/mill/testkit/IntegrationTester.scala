@@ -91,7 +91,11 @@ object IntegrationTester {
       )
     }
 
-    def millTestSuiteEnv: Map[String, String] = Map("MILL_TEST_SUITE" -> this.getClass().toString())
+    def millTestSuiteEnv: Map[String, String] =
+      Map("MILL_TEST_SUITE" -> this.getClass().toString()) ++
+        sys.props.get("TEST_SCALA_2_13_VERSION")
+          .map("TEST_SCALA_2_13_VERSION" -> _)
+          .toSeq
 
     /**
      * Helpers to read the `.json` metadata files belonging to a particular task
