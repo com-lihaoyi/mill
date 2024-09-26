@@ -87,7 +87,7 @@ private object ExecutionContexts {
         dest
       }
       Future {
-        logger.withTicker {
+        logger.withPrompt {
           os.dynamicPwdFunction.withValue(() => makeDest()) {
             mill.api.SystemStreams.withStreams(logger.systemStreams) {
               t

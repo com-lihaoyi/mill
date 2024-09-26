@@ -72,9 +72,9 @@ trait Logger {
 
   def enableTicker: Boolean = false
 
-  def subLogger(path: os.Path, verboseKeySuffix: String, message: String): Logger = this
+  private[mill] def subLogger(path: os.Path, verboseKeySuffix: String, message: String): Logger = this
 
-  def withTicker[T](t: => T): T = {
+  private[mill] def withPrompt[T](t: => T): T = {
     setPromptLine()
     try t
     finally removePromptLine()

@@ -63,7 +63,7 @@ private[mill] trait GroupEvaluator {
       case t: Terminal.Labelled[_] => Some(Terminal.printTerm(t))
     }
 
-    logger.withTicker {
+    logger.withPrompt {
       val externalInputsHash = MurmurHash3.orderedHash(
         group.items.flatMap(_.inputs).filter(!group.contains(_))
           .flatMap(results(_).result.asSuccess.map(_.value._2))
