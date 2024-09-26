@@ -33,6 +33,8 @@ private class MillBuildServer(
 ) extends ExternalModule
     with BuildServer {
 
+  import MillBuildServer._
+
   lazy val millDiscover: Discover = Discover[this.type]
 
   private[worker] var cancellator: Boolean => Unit = shutdownBefore => ()
@@ -154,7 +156,7 @@ private class MillBuildServer(
   override def workspaceBuildTargets(): CompletableFuture[WorkspaceBuildTargetsResult] =
     completableTasksWithState(
       "workspaceBuildTargets",
-      targetIds = _.bspModulesById.keySet.toSeq,
+      targetIds = _.bspModulesIdList.map(_._1),
       tasks = { case m: BspModule => m.bspBuildTargetData }
     ) { (ev, state, id, m: BspModule, bspBuildTargetData) =>
       val depsIds = m match {
@@ -253,7 +255,7 @@ private class MillBuildServer(
   override def buildTargetInverseSources(p: InverseSourcesParams)
       : CompletableFuture[InverseSourcesResult] = {
     completable(s"buildtargetInverseSources ${p}") { state =>
-      val tasksEvaluators = state.bspModulesById.iterator.collect {
+      val tasksEvaluators = state.bspModulesIdList.iterator.collect {
         case (id, (m: JavaModule, ev)) =>
           Task.Anon {
             val src = m.allSourceFiles()
@@ -265,7 +267,7 @@ private class MillBuildServer(
       }.toSeq
 
       val ids = tasksEvaluators
-        .groupMap(_._2)(_._1)
+        .groupList(_._2)(_._1)
         .flatMap { case (ev, ts) => ev.evalOrThrow()(ts) }
         .flatten
         .toSeq
@@ -643,8 +645,9 @@ private class MillBuildServer(
       }
 
       val evaluated = tasksSeq
+        .toSeq
         // group by evaluator (different root module)
-        .groupMap(_._2)(_._1)
+        .groupList(_._2)(_._1)
         .map { case ((ev, id), ts) =>
           val results = ev.evaluate(ts)
           val failures = results.results.collect {
@@ -771,5 +774,16 @@ private class MillBuildServer(
 
   override def onRunReadStdin(params: ReadParams): Unit = {
     debug("onRunReadStdin is current unsupported")
+  }
+}
+
+private object MillBuildServer {
+  private implicit class OrderedGroupMap[A](private val seq: Seq[A]) extends AnyVal {
+    def groupList[K, B](key: A => K)(f: A => B): scala.collection.immutable.Seq[(K, Seq[B])] = {
+      val keyIndices = seq.map(key).distinct.zipWithIndex.toMap
+      seq.groupMap(key)(f)
+        .toSeq
+        .sortBy { case (k, _) => keyIndices(k) }
+    }
   }
 }
