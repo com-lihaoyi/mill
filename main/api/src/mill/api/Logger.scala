@@ -42,8 +42,10 @@ trait Logger {
   def inStream: InputStream = systemStreams.in
 
   def info(s: String): Unit
+  def debug(s: String): Unit
   def error(s: String): Unit
   def ticker(s: String): Unit
+  
   private[mill] def setPromptDetail(key: Seq[String], s: String): Unit = ticker(s)
   private[mill] def reportKey(key: Seq[String]): Unit = ()
   private[mill] def setPromptLine(key: Seq[String], verboseKeySuffix: String, message: String): Unit =
@@ -54,7 +56,7 @@ trait Logger {
   private[mill] def removePromptLine(key: Seq[String]): Unit = ()
   private[mill] def removePromptLine(): Unit = ()
 
-  def debug(s: String): Unit
+
 
   /**
    * @since Mill 0.10.5
