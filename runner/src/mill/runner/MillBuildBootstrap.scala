@@ -343,7 +343,7 @@ class MillBuildBootstrap(
       recOut(projectRoot, depth),
       recOut(projectRoot, depth),
       rootModule,
-      PrefixLogger(logger, "", tickerContext = bootLogPrefix),
+      logger,
       classLoaderSigHash = millClassloaderSigHash,
       classLoaderIdentityHash = millClassloaderIdentityHash,
       workerCache = workerCache.to(collection.mutable.Map),

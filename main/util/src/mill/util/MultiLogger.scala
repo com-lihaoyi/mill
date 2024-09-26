@@ -38,11 +38,16 @@ class MultiLogger(
 
   private[mill] override def promptLine(
       identifier: String,
-      identSuffix: String,
+      verboseKey: String,
       message: String
   ): Unit = {
-    logger1.promptLine(identifier, identSuffix, message)
-    logger2.promptLine(identifier, identSuffix, message)
+    logger1.promptLine(identifier, verboseKey, message)
+    logger2.promptLine(identifier, verboseKey, message)
+  }
+
+  private[mill] override def promptLine(): Unit = {
+    logger1.promptLine()
+    logger2.promptLine()
   }
 
   def debug(s: String): Unit = {
@@ -65,6 +70,10 @@ class MultiLogger(
     logger1.endTicker(key)
     logger2.endTicker(key)
   }
+  private[mill] override def endTicker(): Unit = {
+    logger1.endTicker()
+    logger2.endTicker()
+  }
   private[mill] override def globalTicker(s: String): Unit = {
     logger1.globalTicker(s)
     logger2.globalTicker(s)
@@ -74,6 +83,16 @@ class MultiLogger(
     logger1.withPromptPaused(logger2.withPromptPaused(t))
 
   override def enableTicker: Boolean = logger1.enableTicker || logger2.enableTicker
+
+  override def subLogger(path: os.Path, key: String, message: String): Logger = {
+    new MultiLogger(
+      colored,
+      logger1.subLogger(path, key, message),
+      logger2.subLogger(path, key, message),
+      inStream0,
+      debugEnabled
+    )
+  }
 }
 
 class MultiStream(stream1: OutputStream, stream2: OutputStream)

@@ -1,7 +1,7 @@
 package mill.eval
 
 import mill.api.BlockableExecutionContext
-import mill.util.{ColorLogger, FileLogger, MultiLogger, PrefixLogger}
+import mill.util.{FileLogger, MultiLogger, PrefixLogger}
 import os.Path
 
 import scala.concurrent.{Await, Future}
@@ -22,7 +22,7 @@ private object ExecutionContexts {
     def reportFailure(cause: Throwable): Unit = {}
     def close(): Unit = () // do nothing
 
-    def sandboxedFuture[T](dest: Path)(t: => T)(implicit ctx: mill.api.Ctx): Future[T] =
+    def sandboxedFuture[T](dest: Path, key: String, message: String)(t: => T)(implicit ctx: mill.api.Ctx): Future[T] =
       Future.successful(t)
   }
 
@@ -71,8 +71,9 @@ private object ExecutionContexts {
      * folder [[dest]] and duplicates the logging streams to [[dest]].log while evaluating
      * [[t]], to avoid conflict with other tasks that may be running concurrently
      */
-    def sandboxedFuture[T](dest: Path)(t: => T)(implicit ctx: mill.api.Ctx): Future[T] = {
-      val logger = ctx.log.subLogger(scala.util.Random.nextInt().toString)
+    def sandboxedFuture[T](dest: Path, key: String, message: String)(t: => T)(implicit ctx: mill.api.Ctx): Future[T] = {
+      val logger = ctx.log.subLogger(dest / os.up / s"${dest.last}.log", key, message)
+
       var destInitialized: Boolean = false
       def makeDest() = synchronized {
         if (!destInitialized) {
@@ -82,18 +83,12 @@ private object ExecutionContexts {
 
         dest
       }
-      val multiLogger = new MultiLogger(
-        logger.colored,
-        logger,
-        // we always enable debug here, to get some more context in log files
-        new FileLogger(logger.colored, dest / os.up / s"${dest.last}.log", debugEnabled = true),
-        logger.systemStreams.in,
-        debugEnabled = logger.debugEnabled
-      )
       Future {
-        os.dynamicPwdFunction.withValue(() => makeDest()) {
-          mill.api.SystemStreams.withStreams(multiLogger.systemStreams) {
-            t
+        logger.withTicker{
+          os.dynamicPwdFunction.withValue(() => makeDest()) {
+            mill.api.SystemStreams.withStreams(logger.systemStreams) {
+              t
+            }
           }
         }
       }(this)

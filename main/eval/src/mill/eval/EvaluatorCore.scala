@@ -121,11 +121,32 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
               .toMap
 
             val startTime = System.nanoTime() / 1000
+            val targetLabel = terminal match {
+              case Terminal.Task(task) => None
+              case t: Terminal.Labelled[_] => Some(Terminal.printTerm(t))
+            }
 
-            val contextLogger = PrefixLogger(
-              out = logger,
-              context = if (logger.enableTicker) countMsg else "",
-              tickerContext = GroupEvaluator.dynamicTickerPrefix.value
+            val group = sortedGroups.lookupKey(terminal)
+
+            // should we log progress?
+            val logRun = targetLabel.isDefined && {
+              val inputResults = for {
+                target <- group.indexed.filterNot(upstreamResults.contains)
+                item <- target.inputs.filterNot(group.contains)
+              } yield upstreamResults(item).map(_._1)
+              inputResults.forall(_.result.isInstanceOf[Result.Success[_]])
+            }
+
+            val tickerPrefix = terminal.render.collect {
+              case targetLabel if logRun && logger.enableTicker => targetLabel
+            }
+
+            val contextLogger = new PrefixLogger(
+              logger0 = logger,
+              context0 = if (logger.enableTicker) countMsg else "",
+              tickerContext = GroupEvaluator.dynamicTickerPrefix.value,
+              verboseKey = counterMsg,
+              message = tickerPrefix
             )
 
             val res = evaluateGroupCached(
@@ -133,7 +154,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
               group = sortedGroups.lookupKey(terminal),
               results = upstreamResults,
               counterMsg = countMsg,
-              identSuffix = counterMsg,
+              verboseKey = counterMsg,
               zincProblemReporter = reporter,
               testReporter = testReporter,
               logger = contextLogger,

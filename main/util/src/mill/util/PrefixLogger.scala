@@ -1,6 +1,6 @@
 package mill.util
 
-import mill.api.SystemStreams
+import mill.api.{Logger, SystemStreams}
 import pprint.Util.literalize
 
 import java.io.PrintStream
@@ -10,8 +10,10 @@ class PrefixLogger(
     context0: String,
     tickerContext: String = "",
     outStream0: Option[PrintStream] = None,
-    errStream0: Option[PrintStream] = None
-) extends ColorLogger {
+    errStream0: Option[PrintStream] = None,
+    verboseKey: String = "",
+    message: String = ""
+  ) extends ColorLogger {
   val context: String = if (context0 == "") "" else context0 + " "
   override def toString: String =
     s"PrefixLogger($logger0, ${literalize(context)}, ${literalize(tickerContext)})"
@@ -54,8 +56,11 @@ class PrefixLogger(
   override def ticker(s: String): Unit = ticker(context0, s)
   override def ticker(key: String, s: String): Unit = logger0.ticker(key, s)
 
-  private[mill] override def promptLine(key: String, identSuffix: String, message: String): Unit =
-    logger0.promptLine(key, identSuffix, message)
+  private[mill] override def promptLine(key: String, verboseKey: String, message: String): Unit =
+    logger0.promptLine(key, verboseKey, message)
+
+  private[mill] override def promptLine(): Unit =
+    promptLine(context0, verboseKey, message)
 
   override def debug(s: String): Unit = {
     if (debugEnabled) reportPrefix(context0)
@@ -74,11 +79,24 @@ class PrefixLogger(
     logger0.reportPrefix(s)
   }
   private[mill] override def endTicker(key: String): Unit = logger0.endTicker(key)
+  private[mill] override def endTicker(): Unit = endTicker(context0)
   private[mill] override def globalTicker(s: String): Unit = logger0.globalTicker(s)
 
   override def withPromptPaused[T](t: => T): T = logger0.withPromptPaused(t)
 
   override def enableTicker = logger0.enableTicker
+
+  override def subLogger(path: os.Path, key: String, message: String): Logger = {
+    new PrefixLogger(
+      logger0,
+      context + key,
+      tickerContext,
+      outStream0,
+      errStream0,
+      verboseKey + " " + key,
+      message
+    )
+  }
 }
 
 object PrefixLogger {

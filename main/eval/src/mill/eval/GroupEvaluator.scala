@@ -49,7 +49,7 @@ private[mill] trait GroupEvaluator {
       group: Agg[Task[_]],
       results: Map[Task[_], TaskResult[(Val, Int)]],
       counterMsg: String,
-      identSuffix: String,
+      verboseKey: String,
       zincProblemReporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
       logger: ColorLogger,
@@ -62,28 +62,8 @@ private[mill] trait GroupEvaluator {
       case Terminal.Task(task) => None
       case t: Terminal.Labelled[_] => Some(Terminal.printTerm(t))
     }
-    // should we log progress?
-    val logRun = targetLabel.isDefined && {
-      val inputResults = for {
-        target <- group.indexed.filterNot(results.contains)
-        item <- target.inputs.filterNot(group.contains)
-      } yield results(item).map(_._1)
-      inputResults.forall(_.result.isInstanceOf[Result.Success[_]])
-    }
 
-    val tickerPrefix = terminal.render.collect {
-      case targetLabel if logRun && logger.enableTicker => targetLabel
-    }
-
-    def withTicker[T](s: Option[String])(t: => T): T = s match {
-      case None => t
-      case Some(s) =>
-        logger.promptLine(counterMsg, identSuffix, s)
-        try t
-        finally logger.endTicker(counterMsg)
-    }
-
-    withTicker(Some(tickerPrefix)) {
+    logger.withTicker {
       val externalInputsHash = MurmurHash3.orderedHash(
         group.items.flatMap(_.inputs).filter(!group.contains(_))
           .flatMap(results(_).result.asSuccess.map(_.value._2))
@@ -157,7 +137,7 @@ private[mill] trait GroupEvaluator {
             paths = None,
             maybeTargetLabel = None,
             counterMsg = counterMsg,
-            identSuffix = identSuffix,
+            verboseKey = verboseKey,
             zincProblemReporter,
             testReporter,
             logger,
@@ -213,7 +193,7 @@ private[mill] trait GroupEvaluator {
                     paths = Some(paths),
                     maybeTargetLabel = targetLabel,
                     counterMsg = counterMsg,
-                    identSuffix = identSuffix,
+                    verboseKey = verboseKey,
                     zincProblemReporter,
                     testReporter,
                     logger,
@@ -255,7 +235,7 @@ private[mill] trait GroupEvaluator {
       paths: Option[EvaluatorPaths],
       maybeTargetLabel: Option[String],
       counterMsg: String,
-      identSuffix: String,
+      verboseKey: String,
       reporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
       logger: mill.api.Logger,

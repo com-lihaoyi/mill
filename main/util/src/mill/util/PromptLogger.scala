@@ -26,7 +26,7 @@ private[mill] class PromptLogger(
     currentTimeMillis: () => Long,
     autoUpdate: Boolean = true
 ) extends ColorLogger with AutoCloseable {
-  override def toString: String = s"MultilinePromptLogger(${literalize(titleText)}"
+  override def toString: String = s"PromptLogger(${literalize(titleText)})"
   import PromptLogger._
 
   private var termDimensions: (Option[Int], Option[Int]) = (None, None)
@@ -57,6 +57,7 @@ private[mill] class PromptLogger(
       val promptUpdateInterval =
         if (termDimensions._1.isDefined) promptUpdateIntervalMillis
         else nonInteractivePromptUpdateIntervalMillis
+      mill.main.client.DebugLog.println(s"promptUpdaterThread " + promptUpdateInterval)
 
       Thread.sleep(promptUpdateInterval)
 
@@ -102,8 +103,8 @@ private[mill] class PromptLogger(
   override def reportPrefix(s: String): Unit = synchronized {
     if (!reportedIdentifiers(s)) {
       reportedIdentifiers.add(s)
-      for ((identSuffix, message) <- seenIdentifiers.get(s)) {
-        systemStreams.err.println(infoColor(s"$identSuffix $message"))
+      for ((verboseKey, message) <- seenIdentifiers.get(s)) {
+        systemStreams.err.println(infoColor(s"$verboseKey $message"))
       }
     }
   }
@@ -111,11 +112,11 @@ private[mill] class PromptLogger(
   def streamsAwaitPumperEmpty(): Unit = streams.awaitPumperEmpty()
   private val seenIdentifiers = collection.mutable.Map.empty[String, (String, String)]
   private val reportedIdentifiers = collection.mutable.Set.empty[String]
-  override def promptLine(key: String, identSuffix: String, message: String): Unit =
+  override def promptLine(key: String, verboseKey: String, message: String): Unit =
     synchronized {
       state.updateCurrent(key, Some(s"$key $message"))
-      seenIdentifiers(key) = (identSuffix, message)
-      super.promptLine(infoColor(key).toString(), identSuffix, message)
+      seenIdentifiers(key) = (verboseKey, message)
+      super.promptLine(infoColor(key).toString(), verboseKey, message)
 
     }
   def debug(s: String): Unit = synchronized { if (debugEnabled) systemStreams.err.println(s) }
