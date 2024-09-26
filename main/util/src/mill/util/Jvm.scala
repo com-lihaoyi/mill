@@ -87,7 +87,7 @@ object Jvm extends CoursierSupport {
    * it's stdout and stderr to the console.
    * @param mainClass The main class to run
    * @param classPath The classpath
-   * @param JvmArgs Arguments given to the forked JVM
+   * @param jvmArgs Arguments given to the forked JVM
    * @param envArgs Environment variables used when starting the forked JVM
    * @param workingDir The working directory to be used by the forked JVM
    * @param background `true` if the forked JVM should be spawned in background
@@ -150,7 +150,7 @@ object Jvm extends CoursierSupport {
    * it's stdout and stderr to the console.
    * @param mainClass The main class to run
    * @param classPath The classpath
-   * @param JvmArgs Arguments given to the forked JVM
+   * @param jvmArgs Arguments given to the forked JVM
    * @param envArgs Environment variables used when starting the forked JVM
    * @param workingDir The working directory to be used by the forked JVM
    * @param backgroundOutputs If the subprocess should run in the background, a Tuple of ProcessOutputs containing out and err respectively. Specify None for nonbackground processes.
@@ -186,10 +186,17 @@ object Jvm extends CoursierSupport {
         classPath
       }
 
+    val cpArgument = if (cp.nonEmpty) {
+      Vector("-cp", cp.iterator.mkString(java.io.File.pathSeparator))
+    } else Seq.empty
+    val mainClassArgument = if (mainClass.nonEmpty) {
+      Seq(mainClass)
+    } else Seq.empty
     val args =
       Vector(javaExe) ++
         jvmArgs ++
-        Vector("-cp", cp.iterator.mkString(java.io.File.pathSeparator), mainClass) ++
+        cpArgument ++
+        mainClassArgument ++
         mainArgs
 
     ctx.log.debug(s"Run subprocess with args: ${args.map(a => s"'${a}'").mkString(" ")}")

@@ -1,14 +1,15 @@
 package mill.main
 
-import mill.api.{Ctx, Logger, PathRef, Result}
-import mill.define._
+
+import java.util.concurrent.LinkedBlockingQueue
+import mill.define.{BaseModule0, Command, NamedTask, Segments, Target, Task}
+import mill.api.{Ctx, Logger, PathRef, Result, Val}
 import mill.eval.{Evaluator, EvaluatorPaths, Terminal}
 import mill.resolve.SelectMode.Separated
 import mill.resolve.{Resolve, SelectMode}
 import mill.util.Watchable
 import pprint.{Renderer, Tree, Truncated}
 
-import java.util.concurrent.LinkedBlockingQueue
 import scala.collection.mutable
 
 object MainModule {
@@ -49,7 +50,9 @@ object MainModule {
       case Right((watched, Right(res))) =>
         val output = f(res)
         watched.foreach(watch0)
-        log.rawOutputStream.println(output.render(indent = 2))
+        log.withPromptPaused {
+          println(output.render(indent = 2))
+        }
         Result.Success(output)
     }
   }
@@ -69,7 +72,9 @@ trait MainModule extends BaseModule0 {
    */
   def version(): Command[String] = Target.command {
     val res = BuildInfo.millVersion
-    println(res)
+    Task.log.withPromptPaused {
+      println(res)
+    }
     res
   }
 
@@ -87,7 +92,9 @@ trait MainModule extends BaseModule0 {
       case Left(err) => Result.Failure(err)
       case Right(resolvedSegmentsList) =>
         val resolvedStrings = resolvedSegmentsList.map(_.render)
-        resolvedStrings.sorted.foreach(Target.log.outputStream.println)
+        Task.log.withPromptPaused {
+          resolvedStrings.sorted.foreach(println)
+        }
         Result.Success(resolvedStrings)
     }
   }
@@ -101,7 +108,9 @@ trait MainModule extends BaseModule0 {
       case Left(err) => Result.Failure(err)
       case Right(success) =>
         val renderedTasks = success.map(_.segments.render)
-        renderedTasks.foreach(Target.log.outputStream.println)
+        Task.log.withPromptPaused {
+          renderedTasks.foreach(println)
+        }
         Result.Success(renderedTasks)
     }
   }
@@ -164,8 +173,9 @@ trait MainModule extends BaseModule0 {
               val labels = list
                 .collect { case n: NamedTask[_] => n.ctx.segments.render }
 
-              labels.foreach(Target.log.outputStream.println(_))
-
+              Task.log.withPromptPaused {
+                labels.foreach(println)
+              }
               Result.Success(labels)
           }
       }
@@ -285,7 +295,9 @@ trait MainModule extends BaseModule0 {
         for { str <- truncated ++ Iterator("\n") } sb.append(str)
         sb.toString()
       }).mkString("\n")
-      Target.log.outputStream.println(output)
+      Task.log.withPromptPaused {
+        println(output)
+      }
       fansi.Str(output).plainText
     }
   }
@@ -329,14 +341,14 @@ trait MainModule extends BaseModule0 {
 
     val pathsToRemove =
       if (targets.isEmpty)
-        Right(os.list(rootDir).filterNot(keepPath))
+        Right((os.list(rootDir).filterNot(keepPath), List(mill.define.Segments())))
       else
         mill.resolve.Resolve.Segments.resolve(
           evaluator.rootModule,
           targets,
           SelectMode.Multi
         ).map { ts =>
-          ts.flatMap { segments =>
+          val allPaths = ts.flatMap { segments =>
             val evPaths = EvaluatorPaths.resolveDestPaths(rootDir, segments)
             val paths = Seq(evPaths.dest, evPaths.meta, evPaths.log)
             val potentialModulePath = rootDir / EvaluatorPaths.makeSegmentStrings(segments)
@@ -349,12 +361,21 @@ trait MainModule extends BaseModule0 {
               paths :+ potentialModulePath
             } else paths
           }
+          (allPaths, ts)
         }
 
     pathsToRemove match {
       case Left(err) =>
         Result.Failure(err)
-      case Right(paths) =>
+      case Right((paths, allSegments)) =>
+        for {
+          workerSegments <- evaluator.workerCache.keys.toList
+          if allSegments.exists(workerSegments.startsWith)
+          (_, Val(closeable: AutoCloseable)) <- evaluator.mutableWorkerCache.remove(workerSegments)
+        } {
+          closeable.close()
+        }
+
         val existing = paths.filter(p => os.exists(p))
         Target.log.debug(s"Cleaning ${existing.size} paths ...")
         existing.foreach(os.remove.all)
@@ -447,7 +468,9 @@ trait MainModule extends BaseModule0 {
       in.put((rs, allRs, ctx.dest))
       val res = out.take()
       res.map { v =>
-        println(upickle.default.write(v.map(_.path.toString()), indent = 2))
+        ctx.log.withPromptPaused {
+          println(upickle.default.write(v.map(_.path.toString()), indent = 2))
+        }
         v
       }
     }

@@ -8,7 +8,7 @@ import mill.eval.Evaluator
 import mill.main.RunScript
 import mill.resolve.SelectMode
 import mill.define.{BaseModule, Discover, Segments}
-import mill.main.client.OutFiles._
+import mill.main.client.OutFiles.{millBuild, millRunnerState}
 
 import java.net.URLClassLoader
 
@@ -30,6 +30,7 @@ import java.net.URLClassLoader
 @internal
 class MillBuildBootstrap(
     projectRoot: os.Path,
+    output: os.Path,
     home: os.Path,
     keepGoing: Boolean,
     imports: Seq[String],
@@ -46,7 +47,7 @@ class MillBuildBootstrap(
 ) {
   import MillBuildBootstrap._
 
-  val millBootClasspath: Seq[os.Path] = prepareMillBootClasspath(projectRoot / out)
+  val millBootClasspath: Seq[os.Path] = prepareMillBootClasspath(output)
   val millBootClasspathPathRefs: Seq[PathRef] = millBootClasspath.map(PathRef(_, quick = true))
 
   def evaluate(): Watching.Result[RunnerState] = CliImports.withValue(imports) {
@@ -54,7 +55,7 @@ class MillBuildBootstrap(
 
     for ((frame, depth) <- runnerState.frames.zipWithIndex) {
       os.write.over(
-        recOut(projectRoot, depth) / millRunnerState,
+        recOut(output, depth) / millRunnerState,
         upickle.default.write(frame.loggedData, indent = 4),
         createFolders = true
       )
@@ -102,7 +103,8 @@ class MillBuildBootstrap(
       } else {
         val parsedScriptFiles = FileImportGraph.parseBuildFiles(
           projectRoot,
-          recRoot(projectRoot, depth) / os.up
+          recRoot(projectRoot, depth) / os.up,
+          output
         )
 
         if (parsedScriptFiles.millImport) evaluateRec(depth + 1)
@@ -111,6 +113,7 @@ class MillBuildBootstrap(
             new MillBuildRootModule.BootstrapModule(
               projectRoot,
               recRoot(projectRoot, depth),
+              output,
               millBootClasspath
             )(
               mill.main.RootModule.Info(
@@ -340,8 +343,8 @@ class MillBuildBootstrap(
     mill.eval.EvaluatorImpl(
       home,
       projectRoot,
-      recOut(projectRoot, depth),
-      recOut(projectRoot, depth),
+      recOut(output, depth),
+      recOut(output, depth),
       rootModule,
       PrefixLogger(logger, "", tickerContext = bootLogPrefix),
       classLoaderSigHash = millClassloaderSigHash,
@@ -422,8 +425,8 @@ object MillBuildBootstrap {
     projectRoot / Seq.fill(depth)(millBuild)
   }
 
-  def recOut(projectRoot: os.Path, depth: Int): os.Path = {
-    projectRoot / out / Seq.fill(depth)(millBuild)
+  def recOut(output: os.Path, depth: Int): os.Path = {
+    output / Seq.fill(depth)(millBuild)
   }
 
 }

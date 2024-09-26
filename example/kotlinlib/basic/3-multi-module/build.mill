@@ -1,6 +1,6 @@
 //// SNIPPET:BUILD
 package build
-import mill._, kotlinlib._, scalalib._
+import mill._, kotlinlib._
 
 trait MyModule extends KotlinModule {
 

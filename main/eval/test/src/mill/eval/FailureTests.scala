@@ -1,6 +1,6 @@
 package mill.eval
 
-import mill.T
+import mill.{T, Task}
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import mill.api.Result.OuterStack
@@ -183,11 +183,11 @@ object FailureTests extends TestSuite {
     test("multipleUsesOfDest") {
       object build extends TestBaseModule {
         // Using `T.ctx(  ).dest` twice in a single task is ok
-        def left = T { +T.dest.toString.length + T.dest.toString.length }
+        def left = Task { +T.dest.toString.length + T.dest.toString.length }
 
         // Using `T.ctx(  ).dest` once in two different tasks is ok
-        val task = T.task { T.dest.toString.length }
-        def right = T { task() + left() + T.dest.toString().length }
+        val task = Task.Anon { T.dest.toString.length }
+        def right = Task { task() + left() + T.dest.toString().length }
       }
 
       val check = UnitTester(build, null)

@@ -113,6 +113,22 @@ object DocAnnotationsTests extends UtestIntegrationTestSuite {
         )
       )
 
+      assert(eval(("inspect", "core.test.theWorker")).isSuccess)
+      val theWorkerInspect = out("inspect").json.str
+
+      assert(
+        globMatches(
+          """core.test.theWorker(build.mill:...)
+            |    -> The worker <-
+            |
+            |    *The worker*
+            |
+            |Inputs:
+            |""".stripMargin,
+          theWorkerInspect
+        )
+      )
+
       // Make sure both kebab-case and camelCase flags work, even though the
       // docs from `inspect` only show the kebab-case version
       assert(eval(("core.ivyDepsTree", "--withCompile", "--withRuntime")).isSuccess)

@@ -3,22 +3,22 @@ package mill.eval
 import mill.testkit.UnitTester
 import mill.testkit.UnitTester.Result
 import mill.testkit.TestBaseModule
-import mill.T
+import mill.{T, Task}
 import mill.define.Discover
 
 import utest._
 
 object TestExternalModule extends mill.define.ExternalModule with mill.define.TaskModule {
   def defaultCommandName = "x"
-  def x = T { 13 }
+  def x = Task { 13 }
   object inner extends mill.Module {
-    def y = T { 17 }
+    def y = Task { 17 }
   }
   lazy val millDiscover = Discover[this.type]
 }
 object ModuleTests extends TestSuite {
   object Build extends TestBaseModule {
-    def z = T { TestExternalModule.x() + TestExternalModule.inner.y() }
+    def z = Task { TestExternalModule.x() + TestExternalModule.inner.y() }
   }
   val tests = Tests {
     test("externalModuleCalls") {
@@ -47,7 +47,7 @@ object ModuleTests extends TestSuite {
 
       object Build extends mill.define.ExternalModule {
 
-        def z = T { TestExternalModule.x() + TestExternalModule.inner.y() }
+        def z = Task { TestExternalModule.x() + TestExternalModule.inner.y() }
         lazy val millDiscover = Discover[this.type]
       }
 

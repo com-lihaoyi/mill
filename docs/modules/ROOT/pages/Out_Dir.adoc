@@ -5,7 +5,7 @@ Mill puts all its output in the top-level `out/` folder.
 == Structure of the `out/` Directory
 
 The `out/` folder contains all the generated files & metadata for your build.
-It holds some files needed to manage Mill's longer running server instances (`out/mill-worker-*`) as well as a directory and file structure resembling the project's module structure.
+It holds some files needed to manage Mill's longer running server instances (`out/mill-server/*`) as well as a directory and file structure resembling the project's module structure.
 
 .Example of the `out/` directory after running `mill main.compile`
 [source,text]
@@ -47,7 +47,7 @@ out/
 │   ├── unmanagedClasspath.json
 │   └── upstreamCompileOutput.json
 ├── mill-profile.json
-└── mill-worker-VpZubuAK6LQHHN+3ojh1LsTZqWY=-1/
+└── mill-server/VpZubuAK6LQHHN+3ojh1LsTZqWY=-1/
 ----
 
 <1> The `main` directory contains all files associated with target and submodules of the `main` module.
@@ -109,5 +109,9 @@ This is very useful if Mill is being unexpectedly slow, and you want to find out
 `mill-chrome-profile.json`::
  This file is only written if you run Mill in parallel mode, e.g. `mill --jobs 4`. This file can be opened in Google Chrome with the built-in `tracing:` protocol even while Mill is still running, so you get a nice chart of what's going on in parallel.
 
-`mill-worker-*/`::
+`mill-server/*`::
  Each Mill server instance needs to keep some temporary files in one of these directories. Deleting it will also terminate the associated server instance, if it is still running.
+
+== Using another location than the `out/` directory
+
+include::example/depth/out-dir/1-custom-out.adoc[]

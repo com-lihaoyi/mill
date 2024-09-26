@@ -21,30 +21,19 @@ Many of the APIs covered here are listed in the API documentation:
 * {mill-doc-url}/api/latest/mill/scalalib/MavenModule.html[`mill.scalalib.MavenModule`]
 * {mill-doc-url}/api/latest/mill/scalalib/JavaModule.html[`mill.scalalib.JavaModule`]
 
-== Common Configuration Overrides
-
-include::example/javalib/builds/1-common-config.adoc[]
-
-== Custom Tasks
-
-include::example/javalib/builds/2-custom-tasks.adoc[]
-
-== Overriding Tasks
-
-include::example/javalib/builds/3-override-tasks.adoc[]
 
 == Nesting Modules
 
-include::example/javalib/builds/4-nested-modules.adoc[]
+include::example/javalib/builds/1-nested-modules.adoc[]
 
 == Maven-Compatible Modules
 
-include::example/javalib/builds/8-compat-modules.adoc[]
+include::example/javalib/builds/2-compat-modules.adoc[]
 
 
 == Realistic Java Example Project
 
-include::example/javalib/builds/9-realistic.adoc[]
+include::example/javalib/builds/4-realistic.adoc[]
 
 
 == Example Builds for Real Projects

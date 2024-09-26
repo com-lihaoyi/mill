@@ -9,6 +9,7 @@ gtag('config', 'AW-16649289906');
 This page will discuss common topics around enforcing the code quality of Java
 codebases using the Mill build tool
 
+
 == ErrorProne
 
 include::example/javalib/linting/1-error-prone.adoc[]
@@ -16,6 +17,10 @@ include::example/javalib/linting/1-error-prone.adoc[]
 == Checkstyle
 
 include::example/javalib/linting/2-checkstyle.adoc[]
+
+== AutoFormatting with Palantir Java Format
+
+include::example/javalib/linting/3-palantirformat.adoc[]
 
 == Jacoco Code Coverage
 

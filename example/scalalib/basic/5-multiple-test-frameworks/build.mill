@@ -34,8 +34,8 @@ test2.test
 
 > mill test
 ...
-+ foo.FooTests.simple ...  <h1>hello</h1>
-+ foo.FooTests.escaping ...  <h1>&lt;hello&gt;</h1>
++ foo.FooTests...simple ...  <h1>hello</h1>
++ foo.FooTests...escaping ...  <h1>&lt;hello&gt;</h1>
 Tests: 2, Passed: 2, Failed: 0
 > mill test2
 ...

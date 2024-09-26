@@ -10,7 +10,10 @@ object `package` extends RootModule {
   // consolidated documentation using the Scaladoc tool.
   object site extends UnidocModule {
     def scalaVersion = build.Deps.scalaVersion
-    def moduleDeps = build.millInternal.modules.collect { case m: build.MillStableScalaModule => m }
+    def moduleDeps = build.millInternal.modules.collect {
+      case m: build.MillStableScalaModule => m
+      case m: JavaModule if m eq build.kotlinlib => m
+    }
     def unidocSourceUrl = T {
       val sha = VcsVersion.vcsState().currentRevision
       Some(s"${build.Settings.projectUrl}/blob/$sha")
