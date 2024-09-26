@@ -364,28 +364,36 @@ private[mill] trait GroupEvaluator {
       inputsHash: Int,
       labelled: Terminal.Labelled[_]
   ): Unit = {
-    labelled.task.asWorker match {
-      case Some(w) =>
-        workerCache.synchronized {
-          workerCache.update(w.ctx.segments, (workerCacheHash(inputsHash), v))
-        }
-      case None =>
-        val terminalResult = labelled
-          .task
-          .writerOpt
-          .asInstanceOf[Option[upickle.default.Writer[Any]]]
-          .map { w => upickle.default.writeJs(v.value)(w) }
+    for (w <- labelled.task.asWorker)
+      workerCache.synchronized {
+        workerCache.update(w.ctx.segments, (workerCacheHash(inputsHash), v))
+      }
 
-        for (json <- terminalResult) {
-          os.write.over(
-            metaPath,
-            upickle.default.stream(
-              Evaluator.Cached(json, hashCode, inputsHash),
-              indent = 4
-            ),
-            createFolders = true
+    val terminalResult = labelled
+      .task
+      .writerOpt
+      .map { w =>
+        upickle.default.writeJs(v.value)(w.asInstanceOf[upickle.default.Writer[Any]])
+      }
+      .orElse {
+        labelled.task.asWorker.map { w =>
+          ujson.Obj(
+            "worker" -> ujson.Str(labelled.segments.render),
+            "toString" -> ujson.Str(v.value.toString),
+            "inputsHash" -> ujson.Num(inputsHash)
           )
         }
+      }
+
+    for (json <- terminalResult) {
+      os.write.over(
+        metaPath,
+        upickle.default.stream(
+          Evaluator.Cached(json, hashCode, inputsHash),
+          indent = 4
+        ),
+        createFolders = true
+      )
     }
   }
 

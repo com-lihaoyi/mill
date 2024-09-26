@@ -27,6 +27,18 @@ object MainModuleTests extends TestSuite {
       Map("1" -> "hello", "2" -> "world")
     }
     def helloCommand(x: Int, y: Task[String]) = Task.Command { (x, y(), hello()) }
+
+    /**
+     * The hello worker
+     */
+    def helloWorker = Task.Worker {
+      // non-JSON-serializable, but everything should work fine nonetheless
+      new AutoCloseable {
+        def close() = ()
+        override def toString =
+          "theHelloWorker"
+      }
+    }
     override lazy val millDiscover: Discover = Discover[this.type]
   }
 
@@ -90,6 +102,17 @@ object MainModuleTests extends TestSuite {
         assert(
           res.startsWith("helloCommand("),
           res.contains("MainModuleTests.scala:"),
+          res.contains("hello")
+        )
+      }
+      test("worker") - UnitTester(mainModule, null).scoped { eval =>
+        val Right(result) = eval.apply("inspect", "helloWorker")
+
+        val Seq(res: String) = result.value
+        assert(
+          res.startsWith("helloWorker("),
+          res.contains("MainModuleTests.scala:"),
+          res.contains("The hello worker"),
           res.contains("hello")
         )
       }
@@ -173,6 +196,14 @@ object MainModuleTests extends TestSuite {
         val Seq(res) = result.value
         assert(res == ujson.Arr(1337, "lol", ujson.Arr("hello", "world")))
       }
+
+      test("worker") {
+        val Right(result) = evaluator.apply("show", "helloWorker")
+        val Seq(res: ujson.Obj) = result.value
+        assert(res("toString").str == "theHelloWorker")
+        assert(res("worker").str == "helloWorker")
+        assert(res("inputsHash").numOpt.isDefined)
+      }
     }
 
     test("showNamed") {
@@ -206,6 +237,18 @@ object MainModuleTests extends TestSuite {
           "hello" -> ujson.Arr.from(Seq("hello", "world")),
           "hello2" -> ujson.Obj.from(Map("1" -> "hello", "2" -> "world"))
         )))
+      }
+    }
+
+    test("resolve") {
+      UnitTester(mainModule, null).scoped { eval =>
+        val Right(result) = eval.apply("resolve", "_")
+
+        val Seq(res: Seq[String]) = result.value
+        assert(res.contains("hello"))
+        assert(res.contains("hello2"))
+        assert(res.contains("helloCommand"))
+        assert(res.contains("helloWorker"))
       }
     }
 
