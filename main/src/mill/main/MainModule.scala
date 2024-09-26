@@ -1,14 +1,14 @@
 package mill.main
 
-import java.util.concurrent.LinkedBlockingQueue
-import mill.define.{BaseModule0, Command, NamedTask, Segments, Target, Task}
 import mill.api.{Ctx, Logger, PathRef, Result}
+import mill.define._
 import mill.eval.{Evaluator, EvaluatorPaths, Terminal}
-import mill.resolve.{Resolve, SelectMode}
 import mill.resolve.SelectMode.Separated
+import mill.resolve.{Resolve, SelectMode}
 import mill.util.Watchable
 import pprint.{Renderer, Tree, Truncated}
 
+import java.util.concurrent.LinkedBlockingQueue
 import scala.collection.mutable
 
 object MainModule {
@@ -181,6 +181,7 @@ trait MainModule extends BaseModule0 {
         resolveParents
       )
     }
+
     def pprintTask(t: NamedTask[_], evaluator: Evaluator): Tree.Lazy = {
       val seen = mutable.Set.empty[Task[_]]
 
@@ -413,7 +414,6 @@ trait MainModule extends BaseModule0 {
           Seq("mill.scalalib.giter8.Giter8Module/init") ++ args,
           SelectMode.Separated
         )
-
       else
         RunScript.evaluateTasksNamed(
           evaluator,

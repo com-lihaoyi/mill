@@ -19,7 +19,7 @@ trait InitModule extends Module {
   type ExampleUrl = String
   type ExampleId = String
 
-  val msg =
+  val msg: String =
     """Run `mill init <example-id>` with one of the following examples as an argument to download and extract example.
       |Run `mill init --show-all` to see full list of examples.
       |Run `mill init <Giter8 template>` to generate project from Giter8 template.""".stripMargin
@@ -28,21 +28,25 @@ trait InitModule extends Module {
   /**
    * @return Seq of example names or Seq with path to parent dir where downloaded example was unpacked
    */
-  def init(@mainargs.arg(positional = true, short = 'e') exampleId: Option[ExampleId],
-           @arg(name = "show-all") showAll: Flag = Flag()): Command[Seq[String]] =
+  def init(
+      @mainargs.arg(positional = true, short = 'e') exampleId: Option[ExampleId],
+      @arg(name = "show-all") showAll: Flag = Flag()
+  ): Command[Seq[String]] =
     T.command {
       usingExamples { examples =>
         val result: Try[(Seq[String], String)] = exampleId match {
           case None =>
             val exampleIds: Seq[ExampleId] = examples.map { case (exampleId, _) => exampleId }
-            def fullMessage(exampleIds: Seq[ExampleId]) = msg + "\n\n" + exampleIds.mkString("\n") + "\n\n" +  msg
+            def fullMessage(exampleIds: Seq[ExampleId]) =
+              msg + "\n\n" + exampleIds.mkString("\n") + "\n\n" + msg
             if (showAll.value)
               Success((exampleIds, fullMessage(exampleIds)))
             else {
-              val toShow = List("basic","builds","web")
-              val filteredIds = exampleIds.filter(_.split('/').lift.apply(1).exists(toShow.contains))
+              val toShow = List("basic", "builds", "web")
+              val filteredIds =
+                exampleIds.filter(_.split('/').lift.apply(1).exists(toShow.contains))
               Success((filteredIds, fullMessage(filteredIds)))
-              }
+            }
           case Some(value) =>
             val result: Try[(Seq[String], String)] = for {
               url <- examples.toMap.get(value).toRight(new Exception(
@@ -54,7 +58,10 @@ trait InitModule extends Module {
               }
               downloadDir = T.workspace
               downloadPath = downloadDir / extractedDirName
-              _ <- if (os.exists(downloadPath) ) Failure(new IOException(s"Can't download example, because extraction directory [$downloadPath] already exist")) else Success(())
+              _ <- if (os.exists(downloadPath)) Failure(new IOException(
+                s"Can't download example, because extraction directory [$downloadPath] already exist"
+              ))
+              else Success(())
               path <-
                 Try({
                   val tmpName = UUID.randomUUID().toString + ".zip"
