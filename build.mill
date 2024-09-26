@@ -980,20 +980,20 @@ def bootstrapLauncher = T {
   PathRef(outputPath)
 }
 
-def examplePathsWithArtifactName(forVersion:T[String]):Task[Seq[(os.Path,String)]] = T.task{
+def examplePathsWithArtifactName:Task[Seq[(os.Path,String)]] = T.task{
   for {
     exampleMod <- build.example.exampleModules
     path = exampleMod.millSourcePath
   } yield {
     val example = path.subRelativeTo(T.workspace)
-    val artifactName = forVersion() + "-" + example.segments.mkString("-")
+    val artifactName = millVersion() + "-" + example.segments.mkString("-")
     (path, artifactName)
   }
 }
 
 
 def exampleZips: T[Seq[PathRef]] = T{
-  examplePathsWithArtifactName(millVersion)().map{ case (examplePath, exampleStr) =>
+  examplePathsWithArtifactName().map{ case (examplePath, exampleStr) =>
     os.copy(examplePath, T.dest / exampleStr, createFolders = true)
     os.write(T.dest / exampleStr / ".mill-version", millLastTag())
     os.copy(bootstrapLauncher().path, T.dest / exampleStr / "mill")
