@@ -43,7 +43,11 @@ object FileImportGraph {
    * starting from `build.mill`, collecting the information necessary to
    * instantiate the [[MillRootModule]]
    */
-  def parseBuildFiles(topLevelProjectRoot: os.Path, projectRoot: os.Path): FileImportGraph = {
+  def parseBuildFiles(
+      topLevelProjectRoot: os.Path,
+      projectRoot: os.Path,
+      output: os.Path
+  ): FileImportGraph = {
     val seenScripts = mutable.Map.empty[os.Path, String]
     val seenIvy = mutable.Set.empty[String]
     val seenRepo = mutable.ListBuffer.empty[(String, os.Path)]
@@ -193,7 +197,7 @@ object FileImportGraph {
             projectRoot,
             followLinks = true,
             skip = p =>
-              p == projectRoot / out ||
+              p == output ||
                 p == projectRoot / millBuild ||
                 (os.isDir(p) && !os.exists(p / nestedBuildFileName))
           )
