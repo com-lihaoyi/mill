@@ -406,9 +406,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-35-fd46d8</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-36-178031</button>
   <div class="version-menu">
-    <a class="version is-current" href="Out_Dir.html">0.12.0-RC2-35-fd46d8</a>
+    <a class="version is-current" href="Out_Dir.html">0.12.0-RC2-36-178031</a>
     <a class="version" href="0.11.12/Out_Dir.html">0.11.12</a>
     <a class="version" href="0.11.11/Out_Dir.html">0.11.11</a>
     <a class="version" href="0.11.10/Out_Dir.html">0.11.10</a>
@@ -439,7 +439,7 @@
 <div class="sectionbody">
 <div class="paragraph">
 <p>The <code>out/</code> folder contains all the generated files &amp; metadata for your build.
-It holds some files needed to manage Mill’s longer running server instances (<code>out/mill-worker-*</code>) as well as a directory and file structure resembling the project’s module structure.</p>
+It holds some files needed to manage Mill’s longer running server instances (<code>out/mill-server/*</code>) as well as a directory and file structure resembling the project’s module structure.</p>
 </div>
 <div class="listingblock">
 <div class="title">Example of the <code>out/</code> directory after running <code>mill main.compile</code></div>
@@ -481,7 +481,7 @@ It holds some files needed to manage Mill’s longer running server instances (<
 │   ├── unmanagedClasspath.json
 │   └── upstreamCompileOutput.json
 ├── mill-profile.json
-└── mill-worker-VpZubuAK6LQHHN+3ojh1LsTZqWY=-1/</code></pre>
+└── mill-server/VpZubuAK6LQHHN+3ojh1LsTZqWY=-1/</code></pre>
 </div>
 </div>
 <div class="colist arabic">
@@ -591,7 +591,7 @@ This is very useful if Mill is being unexpectedly slow, and you want to find out
 <dd>
 <p>This file is only written if you run Mill in parallel mode, e.g. <code>mill --jobs 4</code>. This file can be opened in Google Chrome with the built-in <code>tracing:</code> protocol even while Mill is still running, so you get a nice chart of what’s going on in parallel.</p>
 </dd>
-<dt class="hdlist1"><code>mill-worker-*/</code></dt>
+<dt class="hdlist1"><code>mill-server/*</code></dt>
 <dd>
 <p>Each Mill server instance needs to keep some temporary files in one of these directories. Deleting it will also terminate the associated server instance, if it is still running.</p>
 </dd>
