@@ -44,7 +44,7 @@ trait Logger {
   def info(s: String): Unit
   def error(s: String): Unit
   def ticker(s: String): Unit
-  def ticker(key: String, s: String): Unit
+  def ticker(key: String, s: String): Unit = ticker(s)
   private[mill] def reportPrefix(s: String): Unit = ()
   private[mill] def promptLine(key: String, identSuffix: String, message: String): Unit =
     ticker(s"$key $message")

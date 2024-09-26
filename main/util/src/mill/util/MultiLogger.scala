@@ -31,7 +31,7 @@ class MultiLogger(
     logger2.ticker(s)
   }
 
-  def ticker(key: String, s: String): Unit = {
+  override def ticker(key: String, s: String): Unit = {
     logger1.ticker(key, s)
     logger2.ticker(key, s)
   }
