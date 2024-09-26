@@ -720,16 +720,31 @@ object initmodule extends MillPublishScalaModule {
   override def resources = T.sources { super.resources() ++ Seq(exampleList()) }
 
   def exampleList: T[PathRef] = T {
-    val data:Seq[(os.SubPath,String)] = build.examplePathsWithArtifactName(millVersion)().map{ case (path,str) =>
+    val data:Seq[(os.SubPath,String)] = build.examplePathsWithArtifactName().map{ case (path,str) =>
       val downloadUrl = build.Settings.projectUrl + "/releases/download/" + millVersion() + "/" + str + ".zip"
       val subPath = path.subRelativeTo(T.workspace / "example")
       (subPath,downloadUrl)
     }
 
+    val libsSortOrder = List("scalalib","javalib","kotlinlib","extending","external","thirdparty","depth")
+    val categoriesSortOrder = List("basic","builds","web")
+
+    def sortCriterium(strOpt: Option[String],sortOrderList:List[String]):Int =
+      strOpt.flatMap{ str =>
+        val idx = sortOrderList.indexOf(str)
+        Option.when(idx >= 0)(idx)
+      }.getOrElse(Int.MaxValue)
+
     val sortedData = data.sortBy { case (p1,_)=>
-      p1.segments match {
-        case init :+ last => (init.mkString("/"),last.takeWhile(_.isDigit).toIntOption.getOrElse(0))
-      }
+      val segmentsReversed = p1.segments.reverse.lift
+      val libOpt = segmentsReversed(2)
+      val categoryOpt = segmentsReversed(1)
+      val nameOpt = segmentsReversed(0)
+
+      val libSortCriterium = sortCriterium(libOpt,libsSortOrder)
+      val categorySortCriterium = sortCriterium(categoryOpt,categoriesSortOrder)
+      val nameSortCriterium = nameOpt.flatMap(_.takeWhile(_.isDigit).toIntOption).getOrElse(Int.MinValue)
+      (libSortCriterium,categorySortCriterium,nameSortCriterium)
     }
 
     val stream = os.write.outputStream(T.dest / "exampleList.txt")
