@@ -2,7 +2,7 @@ package mill.main
 
 import java.util.concurrent.LinkedBlockingQueue
 import mill.define.{BaseModule0, Command, NamedTask, Segments, Target, Task}
-import mill.api.{Ctx, Logger, PathRef, Result}
+import mill.api.{Ctx, Logger, PathRef, Result, Val}
 import mill.eval.{Evaluator, EvaluatorPaths, Terminal}
 import mill.resolve.{Resolve, SelectMode}
 import mill.resolve.SelectMode.Separated
@@ -339,14 +339,14 @@ trait MainModule extends BaseModule0 {
 
     val pathsToRemove =
       if (targets.isEmpty)
-        Right(os.list(rootDir).filterNot(keepPath))
+        Right((os.list(rootDir).filterNot(keepPath), List(mill.define.Segments())))
       else
         mill.resolve.Resolve.Segments.resolve(
           evaluator.rootModule,
           targets,
           SelectMode.Multi
         ).map { ts =>
-          ts.flatMap { segments =>
+          val allPaths = ts.flatMap { segments =>
             val evPaths = EvaluatorPaths.resolveDestPaths(rootDir, segments)
             val paths = Seq(evPaths.dest, evPaths.meta, evPaths.log)
             val potentialModulePath = rootDir / EvaluatorPaths.makeSegmentStrings(segments)
@@ -359,12 +359,21 @@ trait MainModule extends BaseModule0 {
               paths :+ potentialModulePath
             } else paths
           }
+          (allPaths, ts)
         }
 
     pathsToRemove match {
       case Left(err) =>
         Result.Failure(err)
-      case Right(paths) =>
+      case Right((paths, allSegments)) =>
+        for {
+          workerSegments <- evaluator.workerCache.keys.toList
+          if allSegments.exists(workerSegments.startsWith)
+          (_, Val(closeable: AutoCloseable)) <- evaluator.mutableWorkerCache.remove(workerSegments)
+        } {
+          closeable.close()
+        }
+
         val existing = paths.filter(p => os.exists(p))
         Target.log.debug(s"Cleaning ${existing.size} paths ...")
         existing.foreach(os.remove.all)
