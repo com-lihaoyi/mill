@@ -78,7 +78,7 @@ private[mill] trait GroupEvaluator {
     def withTicker[T](s: Option[String])(t: => T): T = s match {
       case None => t
       case Some(s) =>
-        logger.ticker(counterMsg, identSuffix, s)
+        logger.promptLine(counterMsg, identSuffix, s)
         try t
         finally logger.endTicker(counterMsg)
     }
@@ -258,14 +258,7 @@ private[mill] trait GroupEvaluator {
 
       val nonEvaluatedTargets = group.indexed.filterNot(results.contains)
 
-      val multiLogger = new ProxyLogger(resolveLogger(paths.map(_.log), logger)) {
-        override def ticker(s: String): Unit = {
-          if (enableTicker) super.ticker(s)
-          else () // do nothing
-        }
-
-        override def rawOutputStream: PrintStream = logger.rawOutputStream
-      }
+      val multiLogger = resolveLogger(paths.map(_.log), logger)
 
       var usedDest = Option.empty[os.Path]
       for (task <- nonEvaluatedTargets) {

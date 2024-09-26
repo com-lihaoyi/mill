@@ -52,12 +52,10 @@ class PrefixLogger(
     logger0.error(infoColor(context) + s)
   }
   override def ticker(s: String): Unit = logger0.ticker(context + tickerContext + s)
-  private[mill] override def ticker(
-                                     key: String,
-                                     identSuffix: String,
-                                     message: String
-  ): Unit =
-    logger0.ticker(key, identSuffix, message)
+
+  private[mill] override def promptLine(key: String, identSuffix: String, message: String): Unit =
+    logger0.promptLine(key, identSuffix, message)
+
   override def debug(s: String): Unit = {
     if (debugEnabled) reportPrefix(context0)
     logger0.debug(infoColor(context) + s)

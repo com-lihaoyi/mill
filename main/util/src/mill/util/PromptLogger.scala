@@ -107,11 +107,11 @@ private[mill] class MultiLinePromptLogger(
   def streamsAwaitPumperEmpty(): Unit = streams.awaitPumperEmpty()
   private val seenIdentifiers = collection.mutable.Map.empty[String, (String, String)]
   private val reportedIdentifiers = collection.mutable.Set.empty[String]
-  override def ticker(key: String, identSuffix: String, message: String): Unit =
+  override def promptLine(key: String, identSuffix: String, message: String): Unit =
     synchronized {
       state.updateCurrent(key, Some(s"$key $message"))
       seenIdentifiers(key) = (identSuffix, message)
-      super.ticker(infoColor(key).toString(), identSuffix, message)
+      super.promptLine(infoColor(key).toString(), identSuffix, message)
 
     }
   def debug(s: String): Unit = synchronized { if (debugEnabled) systemStreams.err.println(s) }

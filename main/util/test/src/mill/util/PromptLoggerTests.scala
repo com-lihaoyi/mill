@@ -5,7 +5,7 @@ import mill.main.client.ProxyStream
 import utest._
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, PrintStream}
-object MultiLinePromptLoggerTests extends TestSuite {
+object PromptLoggerTests extends TestSuite {
 
   def setup(now: () => Long, terminfoPath: os.Path) = {
     val baos = new ByteArrayOutputStream()
@@ -53,7 +53,7 @@ object MultiLinePromptLoggerTests extends TestSuite {
         val (baos, promptLogger, prefixLogger) = setup(() => now, os.temp())
 
         promptLogger.globalTicker("123/456")
-        promptLogger.ticker("[1]", "[1/456]", "my-task")
+        promptLogger.promptLine("[1]", "[1/456]", "my-task")
 
         now += 10000
 
@@ -106,7 +106,7 @@ object MultiLinePromptLoggerTests extends TestSuite {
         check(promptLogger, baos)(
           "  123/456 ============================ TITLE ================================= "
         )
-        promptLogger.ticker("[1]", "[1/456]", "my-task")
+        promptLogger.promptLine("[1]", "[1/456]", "my-task")
 
         now += 10000
 
@@ -138,14 +138,14 @@ object MultiLinePromptLoggerTests extends TestSuite {
         // Only after some time has passed do we start displaying the new ticker entry,
         // to ensure it is meaningful to read and not just something that will flash and disappear
         val newPrefixLogger2 = new PrefixLogger(promptLogger, "[2]")
-        newPrefixLogger2.ticker("[2]", "[2/456]", "my-task-new")
+        newPrefixLogger2.promptLine("[2]", "[2/456]", "my-task-new")
         newPrefixLogger2.errorStream.println("I AM COW")
         newPrefixLogger2.errorStream.println("HEAR ME MOO")
 
         // For short-lived ticker entries that are removed quickly, they never
         // appear in the prompt at all even though they can run and generate logs
         val newPrefixLogger3 = new PrefixLogger(promptLogger, "[3]")
-        newPrefixLogger3.ticker("[3]", "[3/456]", "my-task-short-lived")
+        newPrefixLogger3.promptLine("[3]", "[3/456]", "my-task-short-lived")
         newPrefixLogger3.errorStream.println("hello short lived")
         newPrefixLogger3.errorStream.println("goodbye short lived")
 
@@ -276,7 +276,7 @@ object MultiLinePromptLoggerTests extends TestSuite {
         check(promptLogger, baos)(
           "  123/456 ============================ TITLE ================================= "
         )
-        promptLogger.ticker("[1]", "[1/456]", "my-task")
+        promptLogger.promptLine("[1]", "[1/456]", "my-task")
 
         now += 100
 
@@ -288,7 +288,7 @@ object MultiLinePromptLoggerTests extends TestSuite {
         promptLogger.endTicker("[1]")
 
         val newTaskThread = new Thread(() => {
-          promptLogger.ticker("[2]", "[2/456]", "my-task-new")
+          promptLogger.promptLine("[2]", "[2/456]", "my-task-new")
           now += 100
           promptLogger.endTicker("[2]")
         })
@@ -301,7 +301,7 @@ object MultiLinePromptLoggerTests extends TestSuite {
         )
 
         val newTaskThread2 = new Thread(() => {
-          promptLogger.ticker("[2]", "[2/456]", "my-task-new")
+          promptLogger.promptLine("[2]", "[2/456]", "my-task-new")
           now += 100
         })
         newTaskThread2.start()

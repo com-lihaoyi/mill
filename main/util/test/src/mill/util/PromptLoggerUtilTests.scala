@@ -4,7 +4,7 @@ import utest._
 
 import scala.collection.immutable.SortedMap
 import MultilinePromptLoggerUtil._
-object MultiLinePromptLoggerUtilTests extends TestSuite {
+object PromptLoggerUtilTests extends TestSuite {
 
   val tests = Tests {
     test("lastIndexOfNewline") {

@@ -31,13 +31,13 @@ class MultiLogger(
     logger2.ticker(s)
   }
 
-  private[mill] override def ticker(
+  private[mill] override def promptLine(
       identifier: String,
       identSuffix: String,
       message: String
   ): Unit = {
-    logger1.ticker(identifier, identSuffix, message)
-    logger2.ticker(identifier, identSuffix, message)
+    logger1.promptLine(identifier, identSuffix, message)
+    logger2.promptLine(identifier, identSuffix, message)
   }
 
   def debug(s: String): Unit = {

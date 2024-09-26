@@ -17,8 +17,8 @@ class ProxyLogger(logger: Logger) extends Logger {
   def info(s: String): Unit = logger.info(s)
   def error(s: String): Unit = logger.error(s)
   def ticker(s: String): Unit = logger.ticker(s)
-  private[mill] override def ticker(key: String, identSuffix: String, message: String): Unit =
-    logger.ticker(key, identSuffix, message)
+  private[mill] override def promptLine(key: String, identSuffix: String, message: String): Unit =
+    logger.promptLine(key, identSuffix, message)
   def debug(s: String): Unit = logger.debug(s)
 
   override def debugEnabled: Boolean = logger.debugEnabled
