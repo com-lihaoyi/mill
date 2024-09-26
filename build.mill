@@ -776,7 +776,30 @@ object dist extends MillPublishJavaModule {
     val isWin = scala.util.Properties.isWin
     val outputPath = T.dest / (if (isWin) "run.bat" else "run")
 
-    os.write(outputPath, prependShellScript())
+    val prependShellScript = {
+      val (millArgs, otherArgs) =
+        forkArgs().partition(arg => arg.startsWith("-DMILL") && !arg.startsWith("-DMILL_VERSION"))
+      // Pass Mill options via file, due to small max args limit in Windows
+      val vmOptionsFile = T.dest / "mill.properties"
+      val millOptionsContent =
+        millArgs.map(_.drop(2).replace("\\", "/")).mkString(
+          "\r\n"
+        ) // drop -D prefix, replace \ with /
+      os.write(vmOptionsFile, millOptionsContent)
+      val jvmArgs = otherArgs ++ List(
+        s"-DMILL_OPTIONS_PATH=$vmOptionsFile",
+        s"-Dmill.main.cli=$outputPath"
+      )
+      val classpath = runClasspath().map(_.path.toString)
+      launcherScript(
+        jvmArgs,
+        jvmArgs,
+        classpath,
+        Agg(pathingJar().path.toString) // TODO not working yet on Windows! see #791
+      )
+    }
+
+    os.write(outputPath, prependShellScript)
     if (!isWin) os.perms.set(outputPath, "rwxrwxrwx")
 
     PathRef(outputPath)
@@ -822,26 +845,6 @@ object dist extends MillPublishJavaModule {
     val raw = rawAssembly().path
     os.copy(raw, T.dest / raw.last)
     PathRef(T.dest / raw.last)
-  }
-
-  def prependShellScript = T {
-    val (millArgs, otherArgs) =
-      forkArgs().partition(arg => arg.startsWith("-DMILL") && !arg.startsWith("-DMILL_VERSION"))
-    // Pass Mill options via file, due to small max args limit in Windows
-    val vmOptionsFile = T.dest / "mill.properties"
-    val millOptionsContent =
-      millArgs.map(_.drop(2).replace("\\", "/")).mkString(
-        "\r\n"
-      ) // drop -D prefix, replace \ with /
-    os.write(vmOptionsFile, millOptionsContent)
-    val jvmArgs = otherArgs ++ List(s"-DMILL_OPTIONS_PATH=$vmOptionsFile")
-    val classpath = runClasspath().map(_.path.toString)
-    launcherScript(
-      jvmArgs,
-      jvmArgs,
-      classpath,
-      Agg(pathingJar().path.toString) // TODO not working yet on Windows! see #791
-    )
   }
 
   def pathingJar = T {

@@ -191,7 +191,7 @@ public class MillProcessLauncher {
         // sys props
         final Properties sysProps = System.getProperties();
         for (final String k : sysProps.stringPropertyNames()) {
-            if (k.startsWith("MILL_") && !"MILL_CLASSPATH".equals(k)) {
+            if ((k.startsWith("MILL_") && !"MILL_CLASSPATH".equals(k)) || k.startsWith("mill.")) {
                 vmOptions.add("-D" + k + "=" + sysProps.getProperty(k));
             }
         }
