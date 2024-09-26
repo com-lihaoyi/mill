@@ -1,7 +1,7 @@
 package mill.eval
 
 import mill.api.BlockableExecutionContext
-import mill.util.{FileLogger, MultiLogger}
+import mill.util.{ColorLogger, FileLogger, MultiLogger, PrefixLogger}
 import os.Path
 
 import scala.concurrent.{Await, Future}
@@ -72,7 +72,7 @@ private object ExecutionContexts {
      * [[t]], to avoid conflict with other tasks that may be running concurrently
      */
     def sandboxedFuture[T](dest: Path)(t: => T)(implicit ctx: mill.api.Ctx): Future[T] = {
-      val logger = ctx.log
+      val logger = ctx.log.subLogger(scala.util.Random.nextInt().toString)
       var destInitialized: Boolean = false
       def makeDest() = synchronized {
         if (!destInitialized) {

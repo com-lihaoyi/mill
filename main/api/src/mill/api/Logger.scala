@@ -69,4 +69,6 @@ trait Logger {
   def withPromptPaused[T](t: => T) = t
 
   def enableTicker: Boolean = false
+
+  def subLogger(key: String): Logger = this
 }
