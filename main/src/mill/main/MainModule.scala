@@ -1,6 +1,5 @@
 package mill.main
 
-
 import java.util.concurrent.LinkedBlockingQueue
 import mill.define.{BaseModule0, Command, NamedTask, Segments, Target, Task}
 import mill.api.{Ctx, Logger, PathRef, Result, Val}
