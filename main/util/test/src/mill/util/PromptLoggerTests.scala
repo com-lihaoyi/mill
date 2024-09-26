@@ -22,7 +22,7 @@ object PromptLoggerTests extends TestSuite {
       terminfoPath = terminfoPath,
       currentTimeMillis = now,
       autoUpdate = false
-    ){
+    ) {
       // For testing purposes, wait till the system is quiescent before re-printing
       // the prompt, to try and keep the test executions deterministics
       override def refreshPrompt(): Unit = {
