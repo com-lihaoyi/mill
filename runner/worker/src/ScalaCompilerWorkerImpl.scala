@@ -120,7 +120,14 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
     }
 
     def outlineCompilationUnit(source: SourceFile)(using Context): untpd.Tree = ParseLock.sync {
-      OutlineParser(source).parse()
+      val parser = new OutlineParser(source) {
+
+        /** A Mill compilation unit is effectively a package followed by a template body */
+        override def topStatSeq(outermost: Boolean): List[untpd.Tree] =
+          blockStatSeq()
+      }
+
+      parser.parse()
     }
 
     def importStatement(source: SourceFile)(using Context): List[untpd.Tree] = ParseLock.sync {
@@ -395,26 +402,20 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
       case Nil => ()
     }
 
-    def compilationUnit(from: Int, trees: List[untpd.Tree]): Unit = {
+    def compilationUnit(from: Int, depth: Int, trees: List[untpd.Tree]): Unit = {
       trees match {
         case untpd.PackageDef(pid, stats) :: Nil =>
           val span = pid.sourcePos.span
           if span.exists && MillParsers.nextTokenIsntBlock(span.end) then
             if span.isSynthetic then
-              assert(inEmptyPackage, "Synthetic package should only be in the empty package.")
+              assert(inEmptyPackage && depth == 0, "unexpected synthetic package")
               // dotty will always insert a package `<empty>` if there is no package declaration,
               // or if there is an import before the package declaration.
               // we should ignore this package
-              compilationUnit(span.end, stats)
+              compilationUnit(span.end, depth + 1, stats)
             else {
-              if inEmptyPackage then
-                report.error(
-                  syntaxError("A package declaration must be first in a Mill build file"),
-                  pid.sourcePos
-                )
-              else
-                topLevelPkgs += pid.show
-              compilationUnit(span.end, stats)
+              topLevelPkgs += pid.show
+              compilationUnit(span.end, depth + 1, stats)
             }
           else
             report.error(syntaxError(s"Mill forbids packages to introduce a block."), pid.sourcePos)
@@ -423,7 +424,7 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
       }
     }
 
-    compilationUnit(0, tree :: Nil)
+    compilationUnit(0, 0, tree :: Nil)
 
     (topLevelPkgs.result(), topLevelStats.result())
   }
