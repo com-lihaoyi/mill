@@ -11,13 +11,27 @@ trait JUnitTests extends TestModule.Junit4 {
   def task = Task {
     "???"
   }
+
+  /**
+   * *The worker*
+   */
+  def theWorker = Task.Worker {
+    ()
+  }
 }
 
 /**
  * The Core Module Docz!
  */
 object core extends JavaModule {
-  object test extends JavaTests with JUnitTests
+  object test extends JavaTests with JUnitTests {
+    /**
+     * -> The worker <-
+     */
+    def theWorker = Task.Worker {
+      ()
+    }
+  }
 
   /**
    * Core Target Docz!

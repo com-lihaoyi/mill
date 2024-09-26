@@ -149,7 +149,14 @@ private[mill] trait GroupEvaluator {
 
         val cached = loadCachedJson(logger, inputsHash, labelled, paths)
 
-        val upToDateWorker = loadUpToDateWorker(logger, inputsHash, labelled)
+        val upToDateWorker = loadUpToDateWorker(
+          logger,
+          inputsHash,
+          labelled,
+          forceDiscard =
+            // worker metadata file removed by user, let's recompute the worker
+            cached.isEmpty
+        )
 
         upToDateWorker.map((_, inputsHash)) orElse cached.flatMap(_._2) match {
           case Some((v, hashCode)) =>
@@ -364,28 +371,36 @@ private[mill] trait GroupEvaluator {
       inputsHash: Int,
       labelled: Terminal.Labelled[_]
   ): Unit = {
-    labelled.task.asWorker match {
-      case Some(w) =>
-        workerCache.synchronized {
-          workerCache.update(w.ctx.segments, (workerCacheHash(inputsHash), v))
-        }
-      case None =>
-        val terminalResult = labelled
-          .task
-          .writerOpt
-          .asInstanceOf[Option[upickle.default.Writer[Any]]]
-          .map { w => upickle.default.writeJs(v.value)(w) }
+    for (w <- labelled.task.asWorker)
+      workerCache.synchronized {
+        workerCache.update(w.ctx.segments, (workerCacheHash(inputsHash), v))
+      }
 
-        for (json <- terminalResult) {
-          os.write.over(
-            metaPath,
-            upickle.default.stream(
-              Evaluator.Cached(json, hashCode, inputsHash),
-              indent = 4
-            ),
-            createFolders = true
+    val terminalResult = labelled
+      .task
+      .writerOpt
+      .map { w =>
+        upickle.default.writeJs(v.value)(w.asInstanceOf[upickle.default.Writer[Any]])
+      }
+      .orElse {
+        labelled.task.asWorker.map { w =>
+          ujson.Obj(
+            "worker" -> ujson.Str(labelled.segments.render),
+            "toString" -> ujson.Str(v.value.toString),
+            "inputsHash" -> ujson.Num(inputsHash)
           )
         }
+      }
+
+    for (json <- terminalResult) {
+      os.write.over(
+        metaPath,
+        upickle.default.stream(
+          Evaluator.Cached(json, hashCode, inputsHash),
+          indent = 4
+        ),
+        createFolders = true
+      )
     }
   }
 
@@ -436,7 +451,8 @@ private[mill] trait GroupEvaluator {
   private def loadUpToDateWorker(
       logger: ColorLogger,
       inputsHash: Int,
-      labelled: Terminal.Labelled[_]
+      labelled: Terminal.Labelled[_],
+      forceDiscard: Boolean
   ): Option[Val] = {
     labelled.task.asWorker
       .flatMap { w =>
@@ -446,7 +462,7 @@ private[mill] trait GroupEvaluator {
       }
       .flatMap {
         case (cachedHash, upToDate)
-            if cachedHash == workerCacheHash(inputsHash) =>
+            if cachedHash == workerCacheHash(inputsHash) && !forceDiscard =>
           Some(upToDate) // worker cached and up-to-date
 
         case (_, Val(obsolete: AutoCloseable)) =>
