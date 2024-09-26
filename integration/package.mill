@@ -74,6 +74,9 @@ object `package` extends RootModule {
   object ide extends Cross[IntegrationCrossModule](build.listIn(millSourcePath / "ide"))
   trait IntegrationCrossModule extends build.MillScalaModule with IntegrationTestModule {
     override def moduleDeps = super[IntegrationTestModule].moduleDeps
+    def forkEnv = super.forkEnv() ++ Seq(
+      "MILL_PROJECT_ROOT" -> T.workspace.toString
+    )
   }
 
   /** Deploy freshly build mill for use in tests */
