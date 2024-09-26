@@ -35,7 +35,7 @@ import mill._
 
 object Bar extends mill.define.ExternalModule {
   def baz = T { 1 }
-  def qux() = T.command { println(baz() + 1) }
+  def qux() = Task.Command { println(baz() + 1) }
 
   lazy val millDiscover = mill.define.Discover[this.type]
 }
@@ -56,4 +56,4 @@ that is shared by the entire build: for example,
 `mill.scalalib.ZincWorkerApi/zincWorker` provides a shared Scala compilation
 service & cache that is shared between all ``ScalaModule``s, and
 `mill.scalalib.GenIdea/idea` lets you generate IntelliJ projects without
-needing to define your own `T.command` in your `build.mill` file
+needing to define your own `Task.Command` in your `build.mill` file

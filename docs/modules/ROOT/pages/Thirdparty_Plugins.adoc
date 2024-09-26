@@ -63,7 +63,7 @@ import $ivy.`net.mlbox::mill-antlr:0.1.0`
 import net.mlbox.millantlr.AntlrModule
 
 object foo extends ScalaModule with AntlrModule {
-  override def antlrGrammarSources = T.sources {
+  override def antlrGrammarSources = Task.Sources {
     Seq(os.pwd/"someGrammar.g4").map(PathRef(_))
   }
 }
@@ -1042,6 +1042,39 @@ object app extends MavenModule with SpringBootModule {
 # Package as executable Spring-Boot Application
 $ mill app.springBootAssembly
 ----
+
+
+== Squery
+
+Source code generator for https://github.com/sake92/squery/[Squery] SQL library boilerplate.
+
+Project home: https://github.com/sake92/squery
+
+[source,scala,subs="attributes,verbatim"]
+----
+import $ivy.`ba.sake::mill-squery-generator_mill0.11:0.6.2`
+import mill._
+import mill.scalalib._
+import ba.sake.squery.generator._
+import ba.sake.squery.generator.mill.SqueryGeneratorModule
+
+object app extends ScalaModule with SqueryGeneratorModule {
+  // use T.input(T.ctx.env("MY_ENV_VAR")) to set sensitive variables like password etc
+  def squeryJdbcUrl = "jdbc:..."
+  def squeryUsername = ".."
+  def squeryPassword = ".."
+  def squerySchemas = Seq("myschema" -> "com.mypackage.myschema")
+
+  // override to tweak codegen settings
+  def squeryGeneratorConfig: T[SqueryGeneratorConfig] = ...
+----
+
+[source,shell]
+----
+# Generate source files
+$ ./mill root.squeryGenerate
+----
+
 
 == Universal Packager
 

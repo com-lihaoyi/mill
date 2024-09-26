@@ -5,7 +5,7 @@ set -eux
 # Build Mill
 ./mill -i dist.assembly
 
-EXAMPLE=example/scalalib/builds/9-realistic
+EXAMPLE=example/scalalib/builds/4-realistic
 
 rm -rf $EXAMPLE/out
 

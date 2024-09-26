@@ -2,7 +2,7 @@ package mill
 package kotlinlib
 
 import mill.api.Result
-import mill.scalalib.{DepSyntax, TestModule}
+import mill.scalalib.TestModule
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest._
 

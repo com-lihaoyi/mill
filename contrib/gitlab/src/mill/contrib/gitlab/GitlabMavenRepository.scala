@@ -12,7 +12,7 @@ trait GitlabMavenRepository {
   def tokenLookup: GitlabTokenLookup = new GitlabTokenLookup {} // For token discovery
   def gitlabRepository: GitlabPackageRepository // For package discovery
 
-  def mavenRepository: Task[MavenRepository] = T.task {
+  def mavenRepository: Task[MavenRepository] = Task.Anon {
 
     val gitlabAuth = tokenLookup.resolveGitlabToken(T.env, sys.props.toMap, T.workspace)
       .map(auth => Authentication(auth.headers))

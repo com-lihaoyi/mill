@@ -16,7 +16,7 @@ trait GitlabPublishModule extends PublishModule { outer =>
 
   def gitlabHeaders(
       systemProps: Map[String, String] = sys.props.toMap
-  ): Task[GitlabAuthHeaders] = T.task {
+  ): Task[GitlabAuthHeaders] = Task.Anon {
     val auth = tokenLookup.resolveGitlabToken(T.env, systemProps, T.workspace)
     auth match {
       case Left(msg) =>
@@ -30,7 +30,7 @@ trait GitlabPublishModule extends PublishModule { outer =>
   def publishGitlab(
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000
-  ): define.Command[Unit] = T.command {
+  ): define.Command[Unit] = Task.Command {
 
     val gitlabRepo = publishRepository
 
@@ -58,7 +58,7 @@ object GitlabPublishModule extends ExternalModule {
       publishArtifacts: mill.main.Tasks[PublishModule.PublishData],
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000
-  ): Command[Unit] = T.command {
+  ): Command[Unit] = Task.Command {
     val repo = ProjectRepository(gitlabRoot, projectId)
     val auth = GitlabAuthHeaders.privateToken(personalToken)
 

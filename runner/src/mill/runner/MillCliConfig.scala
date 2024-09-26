@@ -123,7 +123,14 @@ case class MillCliConfig(
     )
     metaLevel: Option[Int] = None,
     @arg(doc = "Allows command args to be passed positionally without `--arg` by default")
-    allowPositional: Flag = Flag()
+    allowPositional: Flag = Flag(),
+    @arg(
+      doc = """
+        Disables the new multi-line status prompt used for showing thread
+        status at the command line and falls back to the legacy ticker
+      """
+    )
+    disablePrompt: Flag = Flag()
 )
 
 import mainargs.ParserForClass

@@ -1,0 +1,23 @@
+package build
+
+import mill._
+import kotlinlib.KotlinModule
+import kotlinlib.contrib.detekt.DetektModule
+
+object `package` extends RootModule with KotlinModule with DetektModule {
+
+  def kotlinVersion = "1.9.24"
+
+}
+
+/** See Also: src/example/Foo.kt */
+
+/** Usage
+
+> ./mill detekt
+error: ...Foo.kt:5:5: Function main is nested too deeply. [NestedBlockDepth]
+
+> ./mill detekt --check false
+...Foo.kt:5:5: Function main is nested too deeply. [NestedBlockDepth]
+
+*/
