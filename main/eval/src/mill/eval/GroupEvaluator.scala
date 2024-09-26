@@ -180,7 +180,7 @@ private[mill] trait GroupEvaluator {
             inputsHash,
             labelled,
             forceDiscard =
-            // worker metadata file removed by user, let's recompute the worker
+              // worker metadata file removed by user, let's recompute the worker
               cached.isEmpty
           )
 
