@@ -31,23 +31,23 @@ class MultiLogger(
     logger2.ticker(s)
   }
 
-  override def ticker(key: Seq[String], s: String): Unit = {
-    logger1.ticker(key, s)
-    logger2.ticker(key, s)
+  override def setPromptDetail(key: Seq[String], s: String): Unit = {
+    logger1.setPromptDetail(key, s)
+    logger2.setPromptDetail(key, s)
   }
 
-  private[mill] override def promptLine(
+  private[mill] override def setPromptLine(
       key: Seq[String],
       verboseKeySuffix: String,
       message: String
   ): Unit = {
-    logger1.promptLine(key, verboseKeySuffix, message)
-    logger2.promptLine(key, verboseKeySuffix, message)
+    logger1.setPromptLine(key, verboseKeySuffix, message)
+    logger2.setPromptLine(key, verboseKeySuffix, message)
   }
 
-  private[mill] override def promptLine(): Unit = {
-    logger1.promptLine()
-    logger2.promptLine()
+  private[mill] override def setPromptLine(): Unit = {
+    logger1.setPromptLine()
+    logger2.setPromptLine()
   }
 
   def debug(s: String): Unit = {
@@ -59,24 +59,24 @@ class MultiLogger(
     logger1.close()
     logger2.close()
   }
-  private[mill] override def reportPrefix(key: Seq[String]): Unit = {
-    logger1.reportPrefix(key)
-    logger2.reportPrefix(key)
+  private[mill] override def reportKey(key: Seq[String]): Unit = {
+    logger1.reportKey(key)
+    logger2.reportKey(key)
   }
 
   override def rawOutputStream: PrintStream = systemStreams.out
 
-  private[mill] override def endTicker(key: Seq[String]): Unit = {
-    logger1.endTicker(key)
-    logger2.endTicker(key)
+  private[mill] override def removePromptLine(key: Seq[String]): Unit = {
+    logger1.removePromptLine(key)
+    logger2.removePromptLine(key)
   }
-  private[mill] override def endTicker(): Unit = {
-    logger1.endTicker()
-    logger2.endTicker()
+  private[mill] override def removePromptLine(): Unit = {
+    logger1.removePromptLine()
+    logger2.removePromptLine()
   }
-  private[mill] override def globalTicker(s: String): Unit = {
-    logger1.globalTicker(s)
-    logger2.globalTicker(s)
+  private[mill] override def setPromptLeftHeader(s: String): Unit = {
+    logger1.setPromptLeftHeader(s)
+    logger2.setPromptLeftHeader(s)
   }
 
   override def withPromptPaused[T](t: => T): T =

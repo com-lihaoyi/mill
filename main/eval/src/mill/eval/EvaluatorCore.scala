@@ -111,7 +111,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
             .reverse
 
           val verboseKeySuffix = s"/${terminals0.size}"
-          logger.globalTicker(s"$countMsg$verboseKeySuffix")
+          logger.setPromptLeftHeader(s"$countMsg$verboseKeySuffix")
           if (failed.get()) None
           else {
             val upstreamResults = upstreamValues
@@ -221,7 +221,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
     evaluateTerminals(leafCommands, _ => "", ec)(ExecutionContexts.RunNow)
 
-    logger.clearAllTickers()
+    logger.clearPrompt()
     val finishedOptsMap = terminals0
       .map(t => (t, Await.result(futures(t), duration.Duration.Inf)))
       .toMap

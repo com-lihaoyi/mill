@@ -90,16 +90,16 @@ private[mill] class PromptLogger(
 
   def error(s: String): Unit = synchronized { systemStreams.err.println(s) }
 
-  override def globalTicker(s: String): Unit = synchronized { state.updateGlobal(s) }
-  override def clearAllTickers(): Unit = synchronized { state.clearStatuses() }
-  override def endTicker(key: Seq[String]): Unit = synchronized { state.updateCurrent(key, None) }
+  override def setPromptLeftHeader(s: String): Unit = synchronized { state.updateGlobal(s) }
+  override def clearPrompt(): Unit = synchronized { state.clearStatuses() }
+  override def removePromptLine(key: Seq[String]): Unit = synchronized { state.updateCurrent(key, None) }
 
   def ticker(s: String): Unit = ()
-  override def ticker(key: Seq[String], s: String): Unit = {
+  override def setPromptDetail(key: Seq[String], s: String): Unit = {
     state.updateDetail(key, s)
   }
 
-  override def reportPrefix(key: Seq[String]): Unit = synchronized {
+  override def reportKey(key: Seq[String]): Unit = synchronized {
     if (!reportedIdentifiers(key)) {
       reportedIdentifiers.add(key)
       for ((verboseKeySuffix, message) <- seenIdentifiers.get(key)) {
@@ -111,11 +111,11 @@ private[mill] class PromptLogger(
   def streamsAwaitPumperEmpty(): Unit = streams.awaitPumperEmpty()
   private val seenIdentifiers = collection.mutable.Map.empty[Seq[String], (String, String)]
   private val reportedIdentifiers = collection.mutable.Set.empty[Seq[String]]
-  override def promptLine(key: Seq[String], verboseKeySuffix: String, message: String): Unit =
+  override def setPromptLine(key: Seq[String], verboseKeySuffix: String, message: String): Unit =
     synchronized {
       state.updateCurrent(key, Some(s"[${key.mkString("-")}] $message"))
       seenIdentifiers(key) = (verboseKeySuffix, message)
-      super.promptLine(key.map(infoColor(_).toString()), verboseKeySuffix, message)
+      super.setPromptLine(key.map(infoColor(_).toString()), verboseKeySuffix, message)
 
     }
   def debug(s: String): Unit = synchronized { if (debugEnabled) systemStreams.err.println(s) }

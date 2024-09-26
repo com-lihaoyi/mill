@@ -24,7 +24,7 @@ class PrintLogger(
     systemStreams.err.println((infoColor(context) ++ errorColor(s)).render)
   }
 
-  override def ticker(key: Seq[String], s: String): Unit = synchronized { ticker(s) }
+  override def setPromptDetail(key: Seq[String], s: String): Unit = synchronized { ticker(s) }
   def ticker(s: String): Unit = synchronized {
     if (enableTicker) {
       printLoggerState.value match {

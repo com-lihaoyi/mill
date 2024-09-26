@@ -44,15 +44,15 @@ trait Logger {
   def info(s: String): Unit
   def error(s: String): Unit
   def ticker(s: String): Unit
-  def ticker(key: Seq[String], s: String): Unit = ticker(s)
-  private[mill] def reportPrefix(key: Seq[String]): Unit = ()
-  private[mill] def promptLine(key: Seq[String], verboseKeySuffix: String, message: String): Unit =
+  private[mill] def setPromptDetail(key: Seq[String], s: String): Unit = ticker(s)
+  private[mill] def reportKey(key: Seq[String]): Unit = ()
+  private[mill] def setPromptLine(key: Seq[String], verboseKeySuffix: String, message: String): Unit =
     ticker(s"${key.mkString("-")} $message")
-  private[mill] def promptLine(): Unit = ()
-  private[mill] def globalTicker(s: String): Unit = ()
-  private[mill] def clearAllTickers(): Unit = ()
-  private[mill] def endTicker(key: Seq[String]): Unit = ()
-  private[mill] def endTicker(): Unit = ()
+  private[mill] def setPromptLine(): Unit = ()
+  private[mill] def setPromptLeftHeader(s: String): Unit = ()
+  private[mill] def clearPrompt(): Unit = ()
+  private[mill] def removePromptLine(key: Seq[String]): Unit = ()
+  private[mill] def removePromptLine(): Unit = ()
 
   def debug(s: String): Unit
 
@@ -75,8 +75,8 @@ trait Logger {
   def subLogger(path: os.Path, verboseKeySuffix: String, message: String): Logger = this
 
   def withTicker[T](t: => T): T = {
-    promptLine()
+    setPromptLine()
     try t
-    finally endTicker()
+    finally removePromptLine()
   }
 }

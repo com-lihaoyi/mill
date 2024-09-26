@@ -19,6 +19,10 @@ class PrefixLogger(
     s"PrefixLogger($logger0, ${literalize(linePrefix)}, ${literalize(tickerContext)})"
   def this(logger0: ColorLogger, context: String, tickerContext: String) =
     this(logger0, Seq(context), tickerContext, None, None)
+  def this(logger0: ColorLogger, context: String, tickerContext: String,
+           outStream0: Option[PrintStream],
+           errStream0: Option[PrintStream]) =
+    this(logger0, Seq(context), tickerContext, outStream0, errStream0, "", "")
 
   override def colored = logger0.colored
 
@@ -30,14 +34,14 @@ class PrefixLogger(
       new PrintStream(new LinePrefixOutputStream(
         infoColor(linePrefix).render,
         logger0.systemStreams.out,
-        () => reportPrefix(key)
+        () => reportKey(key)
       ))
     ),
     err = errStream0.getOrElse(
       new PrintStream(new LinePrefixOutputStream(
         infoColor(linePrefix).render,
         logger0.systemStreams.err,
-        () => reportPrefix(key)
+        () => reportKey(key)
       ))
     ),
     logger0.systemStreams.in
@@ -46,28 +50,28 @@ class PrefixLogger(
   override def rawOutputStream = logger0.rawOutputStream
 
   override def info(s: String): Unit = {
-    reportPrefix(key)
+    reportKey(key)
     logger0.info(infoColor(linePrefix) + s)
   }
   override def error(s: String): Unit = {
-    reportPrefix(key)
+    reportKey(key)
     logger0.error(infoColor(linePrefix) + s)
   }
-  override def ticker(s: String): Unit = ticker(key, s)
-  override def ticker(key: Seq[String], s: String): Unit = logger0.ticker(key, s)
+  override def ticker(s: String): Unit = setPromptDetail(key, s)
+  override def setPromptDetail(key: Seq[String], s: String): Unit = logger0.setPromptDetail(key, s)
 
-  private[mill] override def promptLine(
+  private[mill] override def setPromptLine(
       key: Seq[String],
       verboseKeySuffix: String,
       message: String
   ): Unit =
-    logger0.promptLine(key, verboseKeySuffix, message)
+    logger0.setPromptLine(key, verboseKeySuffix, message)
 
-  private[mill] override def promptLine(): Unit =
-    promptLine(key, verboseKeySuffix, message)
+  private[mill] override def setPromptLine(): Unit =
+    setPromptLine(key, verboseKeySuffix, message)
 
   override def debug(s: String): Unit = {
-    if (debugEnabled) reportPrefix(key)
+    if (debugEnabled) reportKey(key)
     logger0.debug(infoColor(linePrefix) + s)
   }
   override def debugEnabled: Boolean = logger0.debugEnabled
@@ -79,10 +83,10 @@ class PrefixLogger(
     outStream0 = Some(outStream),
     errStream0 = Some(systemStreams.err)
   )
-  private[mill] override def reportPrefix(key: Seq[String]): Unit = logger0.reportPrefix(key)
-  private[mill] override def endTicker(key: Seq[String]): Unit = logger0.endTicker(key)
-  private[mill] override def endTicker(): Unit = endTicker(key)
-  private[mill] override def globalTicker(s: String): Unit = logger0.globalTicker(s)
+  private[mill] override def reportKey(key: Seq[String]): Unit = logger0.reportKey(key)
+  private[mill] override def removePromptLine(key: Seq[String]): Unit = logger0.removePromptLine(key)
+  private[mill] override def removePromptLine(): Unit = removePromptLine(key)
+  private[mill] override def setPromptLeftHeader(s: String): Unit = logger0.setPromptLeftHeader(s)
 
   override def withPromptPaused[T](t: => T): T = logger0.withPromptPaused(t)
 
