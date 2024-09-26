@@ -2,8 +2,5 @@
 
 set -eu
 
-./mill -i installLocal
 
-ci/patch-mill-bootstrap.sh
-
-./target/mill-release -i mill.scalalib.PublishModule/
+./mill -i mill.scalalib.PublishModule/
