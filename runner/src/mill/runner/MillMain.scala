@@ -8,7 +8,7 @@ import mill.java9rtexport.Export
 import mill.api.{MillException, SystemStreams, WorkspaceRoot, internal}
 import mill.bsp.{BspContext, BspServerResult}
 import mill.main.BuildInfo
-import mill.main.client.ServerFiles
+import mill.main.client.{OutFiles, ServerFiles}
 import mill.util.{PromptLogger, PrintLogger}
 
 import java.lang.reflect.InvocationTargetException
@@ -234,6 +234,7 @@ object MillMain {
 
                         new MillBuildBootstrap(
                           projectRoot = WorkspaceRoot.workspaceRoot,
+                          output = os.Path(OutFiles.out, WorkspaceRoot.workspaceRoot),
                           home = config.home,
                           keepGoing = config.keepGoing.value,
                           imports = config.imports,

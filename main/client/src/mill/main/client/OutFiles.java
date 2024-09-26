@@ -5,10 +5,19 @@ package mill.main.client;
  * and documentation about what they do
  */
 public class OutFiles {
+
+    final private static String envOutOrNull = System.getenv(EnvVars.MILL_OUTPUT_DIR);
+
+    /**
+     * Default hard-coded value for the Mill `out/` folder path. Unless you know
+     * what you are doing, you should favor using [[out]] instead.
+     */
+    final public static String defaultOut = "out";
+
     /**
      * Path of the Mill `out/` folder
      */
-    final public static String out = "out";
+    final public static String out = envOutOrNull == null ? defaultOut : envOutOrNull;
 
     /**
      * Path of the Mill "meta-build", used to compile the `build.sc` file so we can

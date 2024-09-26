@@ -22,6 +22,13 @@ public class EnvVars {
 
     public static final String MILL_JVM_OPTS_PATH = "MILL_JVM_OPTS_PATH";
 
+
+    /**
+     * Output directory where Mill workers' state and Mill tasks output should be
+     * written to
+     */
+    public static final String MILL_OUTPUT_DIR = "MILL_OUTPUT_DIR";
+
     // INTERNAL ENVIRONMENT VARIABLES
     /**
      * Used to pass the Mill workspace root from the client to the server, so
