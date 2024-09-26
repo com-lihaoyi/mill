@@ -92,7 +92,8 @@ private[mill] class PromptLogger(
 
   override def setPromptLeftHeader(s: String): Unit = synchronized { state.updateGlobal(s) }
   override def clearPrompt(): Unit = synchronized { state.clearStatuses() }
-  override def removePromptLine(key: Seq[String]): Unit = synchronized { state.updateCurrent(key, None) }
+  override def removePromptLine(key: Seq[String]): Unit =
+    synchronized { state.updateCurrent(key, None) }
 
   def ticker(s: String): Unit = ()
   override def setPromptDetail(key: Seq[String], s: String): Unit = {
@@ -206,12 +207,12 @@ private[mill] object PromptLogger {
   ) {
     private var lastRenderedPromptHash = 0
 
-    private implicit def seqOrdering = new Ordering[Seq[String]]{
+    private implicit def seqOrdering = new Ordering[Seq[String]] {
       def compare(xs: Seq[String], ys: Seq[String]): Int = {
-        xs.lengthCompare(ys) match{
+        xs.lengthCompare(ys) match {
           case 0 =>
             val iter = xs.iterator.zip(ys)
-            while(iter.nonEmpty){
+            while (iter.nonEmpty) {
               val (x, y) = iter.next()
               if (x > y) return 1
               else if (y > x) return -1
@@ -251,7 +252,7 @@ private[mill] object PromptLogger {
         startTimeMillis,
         s"[$headerPrefix]",
         titleText,
-        statuses.toSeq.map{case (k, v) => (k.mkString("-"), v)},
+        statuses.toSeq.map { case (k, v) => (k.mkString("-"), v) },
         interactive = consoleDims()._1.nonEmpty,
         infoColor = infoColor,
         ending = ending

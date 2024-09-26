@@ -19,9 +19,13 @@ class PrefixLogger(
     s"PrefixLogger($logger0, ${literalize(linePrefix)}, ${literalize(tickerContext)})"
   def this(logger0: ColorLogger, context: String, tickerContext: String) =
     this(logger0, Seq(context), tickerContext, None, None)
-  def this(logger0: ColorLogger, context: String, tickerContext: String,
-           outStream0: Option[PrintStream],
-           errStream0: Option[PrintStream]) =
+  def this(
+      logger0: ColorLogger,
+      context: String,
+      tickerContext: String,
+      outStream0: Option[PrintStream],
+      errStream0: Option[PrintStream]
+  ) =
     this(logger0, Seq(context), tickerContext, outStream0, errStream0, "", "")
 
   override def colored = logger0.colored
@@ -84,7 +88,8 @@ class PrefixLogger(
     errStream0 = Some(systemStreams.err)
   )
   private[mill] override def reportKey(key: Seq[String]): Unit = logger0.reportKey(key)
-  private[mill] override def removePromptLine(key: Seq[String]): Unit = logger0.removePromptLine(key)
+  private[mill] override def removePromptLine(key: Seq[String]): Unit =
+    logger0.removePromptLine(key)
   private[mill] override def removePromptLine(): Unit = removePromptLine(key)
   private[mill] override def setPromptLeftHeader(s: String): Unit = logger0.setPromptLeftHeader(s)
 

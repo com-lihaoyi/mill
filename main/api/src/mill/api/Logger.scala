@@ -45,18 +45,20 @@ trait Logger {
   def debug(s: String): Unit
   def error(s: String): Unit
   def ticker(s: String): Unit
-  
+
   private[mill] def setPromptDetail(key: Seq[String], s: String): Unit = ticker(s)
   private[mill] def reportKey(key: Seq[String]): Unit = ()
-  private[mill] def setPromptLine(key: Seq[String], verboseKeySuffix: String, message: String): Unit =
+  private[mill] def setPromptLine(
+      key: Seq[String],
+      verboseKeySuffix: String,
+      message: String
+  ): Unit =
     ticker(s"${key.mkString("-")} $message")
   private[mill] def setPromptLine(): Unit = ()
   private[mill] def setPromptLeftHeader(s: String): Unit = ()
   private[mill] def clearPrompt(): Unit = ()
   private[mill] def removePromptLine(key: Seq[String]): Unit = ()
   private[mill] def removePromptLine(): Unit = ()
-
-
 
   /**
    * @since Mill 0.10.5
@@ -74,7 +76,8 @@ trait Logger {
 
   def enableTicker: Boolean = false
 
-  private[mill] def subLogger(path: os.Path, verboseKeySuffix: String, message: String): Logger = this
+  private[mill] def subLogger(path: os.Path, verboseKeySuffix: String, message: String): Logger =
+    this
 
   private[mill] def withPrompt[T](t: => T): T = {
     setPromptLine()
