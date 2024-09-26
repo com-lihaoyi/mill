@@ -71,9 +71,17 @@ object `package` extends RootModule {
   object feature extends Cross[IntegrationCrossModule](build.listIn(millSourcePath / "feature"))
   object invalidation
       extends Cross[IntegrationCrossModule](build.listIn(millSourcePath / "invalidation"))
-  object ide extends Cross[IntegrationCrossModule](build.listIn(millSourcePath / "ide"))
+  object ide extends Cross[Ide](build.listIn(millSourcePath / "ide"))
   trait IntegrationCrossModule extends build.MillScalaModule with IntegrationTestModule {
     override def moduleDeps = super[IntegrationTestModule].moduleDeps
+    def forkEnv = super.forkEnv() ++ Seq(
+      "MILL_PROJECT_ROOT" -> T.workspace.toString
+    )
+  }
+  trait Ide extends IntegrationCrossModule {
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      build.Deps.bsp4j
+    )
   }
 
   /** Deploy freshly build mill for use in tests */

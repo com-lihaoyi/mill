@@ -5,6 +5,8 @@ import mill.bsp.Constants
 import utest._
 
 object BspInstallDebugTests extends UtestIntegrationTestSuite {
+  override protected def workspaceSourcePath: os.Path =
+    super.workspaceSourcePath / "project"
 
   val bsp4jVersion: String = sys.props.getOrElse("BSP4J_VERSION", ???)
   // we purposely enable debugging in this simulated test env

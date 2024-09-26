@@ -1,0 +1,328 @@
+{
+  "items": [
+    {
+      "target": {
+        "uri": "file:///workspace/hello-java"
+      },
+      "modules": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-scala"
+      },
+      "modules": [
+        {
+          "name": "org.scala-lang:scala-library",
+          "version": "<scala-version>"
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/mill-build"
+      },
+      "modules": [
+        {
+          "name": "com.lihaoyi:mill-moduledefs_2.13",
+          "version": "0.11.0-M2"
+        },
+        {
+          "name": "org.scala-lang:scala-library",
+          "version": "<scala-version>"
+        },
+        {
+          "name": "unmanaged-scala-library-<scala-version>.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-mill-moduledefs_2.13-0.11.0-M2.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-scalafmt-dynamic_2.13-3.8.3.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-scala-xml_2.13-2.3.0.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-windows-ansi-0.0.5.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-interface-1.0.19.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-mainargs_2.13-0.7.4.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-requests_2.13-0.9.0.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-logback-classic-1.5.7.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-jna-5.14.0.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-jna-platform-5.14.0.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-jarjar-abrams-core_2.13-1.14.0.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-scalaparse_2.13-3.1.1.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-os-lib_2.13-0.10.7.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-upickle_2.13-3.3.1.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-pprint_2.13-0.9.0.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-fansi_2.13-0.5.0.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-test-interface-1.0.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-jline-3.26.3.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-coursier_2.13-2.1.13.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-scala-compiler-<scala-version>.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-asm-tree-9.7.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-sourcecode_2.13-0.4.0.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-scalafmt-interfaces-3.8.3.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-scalafmt-sysops_2.13-3.8.3.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-config-1.4.3.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-jansi-1.18.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-slf4j-api-2.0.15.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-scala-collection-compat_2.13-2.12.0.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-geny_2.13-1.1.1.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-logback-core-1.5.7.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-jarjar-1.14.0.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-scala-reflect-<scala-version>.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-fastparse_2.13-3.1.1.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-ujson_2.13-3.3.1.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-upack_2.13-3.3.1.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-upickle-implicits_2.13-3.3.1.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-junixsocket-native-common-2.10.0.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-junixsocket-common-2.10.0.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-jsoniter-scala-core_2.13-2.13.5.2.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-coursier-core_2.13-2.1.13.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-coursier-cache_2.13-2.1.13.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-coursier-proxy-setup-2.1.13.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-java-diff-utils-4.12.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-asm-9.7.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-scala-parallel-collections_2.13-1.0.4.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-asm-commons-9.6.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-commons-lang3-3.14.0.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-upickle-core_2.13-3.3.1.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-concurrent-reference-hash-map-1.1.0.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-coursier-util_2.13-2.1.13.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-windows-jni-utils-0.3.3.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-plexus-archiver-4.9.0.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-plexus-container-default-2.1.1.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-config_2.13-0.2.1.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-javax.inject-1.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-plexus-utils-4.0.0.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-plexus-io-3.4.1.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-commons-io-2.16.1.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-commons-compress-1.26.2.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-snappy-0.4.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-xz-1.9.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-zstd-jni-1.5.5-10.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-plexus-classworlds-2.6.0.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-xbean-reflect-3.7.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-commons-codec-1.17.0.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-classes",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-resources",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-buildInfoResources.dest",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-exampleList.dest",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-runClasspath.dest",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-sourcecode_2.13-0.3.0.jar",
+          "version": ""
+        },
+        {
+          "name": "unmanaged-compile-resources",
+          "version": ""
+        }
+      ]
+    }
+  ]
+}
