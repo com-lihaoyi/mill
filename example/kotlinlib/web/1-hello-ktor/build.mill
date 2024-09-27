@@ -22,7 +22,7 @@ object `package` extends RootModule with KotlinModule {
 }
 
 // This example demonstrates how to set up a simple webserver 
-// serving a single "<h1>Hello, World!</h1>" web page using Kotlin and KTor
+// serving a single "<h1>Hello, World!</h1>" web page using Kotlin and Ktor
 
 /** Usage
 
