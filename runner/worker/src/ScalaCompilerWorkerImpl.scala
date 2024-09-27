@@ -39,6 +39,7 @@ import mill.runner.worker.api.Snip
 import java.io.File
 import java.net.URLClassLoader
 import scala.concurrent.duration.span
+import dotty.tools.dotc.util.SourcePosition
 
 final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
 
@@ -51,8 +52,8 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
       source: SourceFile
   ): Either[List[String], (Seq[String], Seq[String])] = MillDriver.unitContext(source) {
     for
-      tree <- liftErrors(MillParsers.outlineCompilationUnit(source))
-      split <- liftErrors(splitTrees(tree))
+      trees <- liftErrors(MillParsers.outlineCompilationUnit(source))
+      split <- liftErrors(splitTrees(trees))
     yield split
   }
 
@@ -87,10 +88,10 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
   }
 
   def parseObjects(source: SourceFile): Seq[ObjectData] = MillDriver.unitContext(source) {
-    val tree = MillParsers.outlineCompilationUnit(source)
+    val trees = MillParsers.outlineCompilationUnit(source)
     // syntax was already checked in splitScript, so any errors would suggest a bug
     assert(!ctx.reporter.hasErrors, "valid script parsing should not have errors.")
-    objectDatas(tree)
+    objectDatas(trees)
   }
 
   private case class Snippet(text: String = null, start: Int = -1, end: Int = -1) extends Snip
@@ -120,34 +121,37 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
       }
     }
 
-    def outlineCompilationUnit(source: SourceFile)(using Context): untpd.Tree = ParseLock.sync {
-      val parser = new OutlineParser(source) {
+    def outlineCompilationUnit(source: SourceFile)(using Context): List[untpd.Tree] =
+      ParseLock.sync {
+        val parser = new OutlineParser(source) {
 
-        /**
-         * This is an outline parser, so will skip template bodies anyway,
-         * however in our override of `topStatSeq` we redirect to `templateStatSeq`,
-         * which expects an initial self-type. Mill scripts do not have self-types.
-         * By immediately returning an empty `ValDef` then the parser will not
-         * consume any user-written top-level self type, and instead emit
-         * the expected syntax error.
-         */
-        override def selfType(): untpd.ValDef =
-          untpd.EmptyValDef
+          /**
+           * This is an outline parser, so will skip template bodies anyway,
+           * however in our override of `topStatSeq` we redirect to `templateStatSeq`,
+           * which expects an initial self-type. Mill scripts do not have self-types.
+           * By immediately returning an empty `ValDef` then the parser will not
+           * consume any user-written top-level self type, and instead emit
+           * the expected syntax error.
+           */
+          override def selfType(): untpd.ValDef =
+            untpd.EmptyValDef
 
-        /**
-         * A Mill compilation unit is effectively a package declaration followed by statements
-         * that will be spliced into a template body.
-         * So we can emulate this by parsing a standard compilation unit - so reading the outer packages,
-         * and then as soon as we would drop down to "top-level" statements we then switch to
-         * parsing the body of the `RootModule` object, but we should not allow a self-type.
-         */
-        override def topStatSeq(outermost: Boolean): List[untpd.Tree] =
-          val (_, stats) = templateStatSeq()
-          stats
+          /**
+           * A Mill compilation unit is effectively a package declaration followed by statements
+           * that will be spliced into a template body.
+           * So we can emulate this by parsing a standard compilation unit - so reading the outer packages,
+           * and then as soon as we would drop down to "top-level" statements we then switch to
+           * parsing the body of the `RootModule` object, but we should not allow a self-type.
+           */
+          override def topStatSeq(outermost: Boolean): List[untpd.Tree] =
+            val (_, stats) = templateStatSeq()
+            stats
+        }
+
+        parser.parse() match
+          case untpd.Thicket(trees) => Trees.flatten(trees)
+          case tree => tree :: Nil
       }
-
-      parser.parse()
-    }
 
     def importStatement(source: SourceFile)(using Context): List[untpd.Tree] = ParseLock.sync {
       val parser = OutlineParser(source)
@@ -187,32 +191,24 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
     private def outlineTemplate(offset: Int)(using Context): untpd.Template = ParseLock.sync {
       val in0 = Scanner(ctx.source, startFrom = offset)
 
+      val outlineParser: OutlineParser = new OutlineParser(ctx.source) {
+        override val in = in0
+
+        override def atSpan[T <: Positioned](span: Span)(t: T): T =
+          if t == untpd.EmptyTree || t == untpd.EmptyValDef then t
+          else super.atSpan(span)(t)
+      }
+
       // parser that will enter a template body, but then not parse nested templates
       val parser = new Parsers.Parser(ctx.source) {
-        var inTemplate = false
-
-        val outlineParser: OutlineParser = new OutlineParser(ctx.source) {
-          override val in = in0
-        }
-
         override val in = in0
 
         override def atSpan[T <: Positioned](span: Span)(t: T): T =
           if t == untpd.EmptyTree || t == untpd.EmptyValDef then t
           else super.atSpan(span)(t)
 
-        override def blockExpr(): untpd.Tree = outlineParser.blockExpr()
-
-        override def templateBody(parents: List[untpd.Tree], rewriteWithColon: Boolean) =
-          if inTemplate then outlineParser.templateBody(parents, rewriteWithColon)
-          else {
-            try {
-              inTemplate = true
-              super.templateBody(parents, rewriteWithColon)
-            } finally {
-              inTemplate = false
-            }
-          }
+        override def templateStatSeq(): (untpd.ValDef, List[untpd.Tree]) =
+          outlineParser.templateStatSeq()
       }
       parser.templateOpt(untpd.emptyConstructor)
     }
@@ -225,21 +221,26 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
       override protected def explain(using Context): String = ""
     }
 
-  private def objectDatas(tree: untpd.Tree)(using Context): Seq[ObjectDataImpl] = {
+  private def objectDatas(trees: List[untpd.Tree])(using Context): Seq[ObjectDataImpl] = {
     val buf = Seq.newBuilder[ObjectDataImpl]
+    val content = ctx.source.content()
 
     def moduleDef(mdef: untpd.ModuleDef): Option[ObjectDataImpl] = {
       val untpd.ModuleDef(name, impl) = mdef
       impl.parents match
-        case parent :: _ =>
+        case parent :: _ if validSpan(parent.sourcePos) =>
+          val parent0 = {
+            val start0 = parent.sourcePos.start
+            val end0 = parent.sourcePos.end
+            val text = slice(start0, end0)
+            Snippet(text, start0, end0)
+          }
           val (name0, expanded) = {
-            val content = ctx.source.content()
             val start0 = mdef.sourcePos.point
             val nameStr = name.show
             val end0 = start0 + nameStr.length
-            if content.isDefinedAt(start0 - 1) && content(start0 - 1) == '`' && content.isDefinedAt(
-                end0 + 1
-              )
+            val backTickedBefore = content.isDefinedAt(start0 - 1) && content(start0 - 1) == '`'
+            if backTickedBefore && content.isDefinedAt(end0 + 1)
             then {
               val start1 = start0 - 1
               val end1 = end0 + 1
@@ -260,12 +261,6 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
             assert(text == "object", s"expected `object`, actually was `$text`")
             Snippet(text, start0, end0)
           }
-          val parent0 = {
-            val start0 = parent.sourcePos.start
-            val end0 = parent.sourcePos.end
-            val text = slice(start0, end0)
-            Snippet(text, start0, end0)
-          }
           val endMarker0 = {
             val endSpan = mdef.endSpan
             if endSpan.exists then
@@ -281,7 +276,8 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
           }
           val finalStat0 = {
             // find the whitespace before the first statement in the object
-            val body = MillParsers.outlineTemplateBody(name0.end)
+            val body =
+              MillParsers.outlineTemplateBody(name0.end).filter(stat => validSpan(stat.sourcePos))
             val leading0 = body.headOption.map({ stat =>
               val start0 = ctx.source.startOfLine(stat.sourcePos.start)
               val end0 = stat.sourcePos.start
@@ -306,7 +302,7 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
     }
 
     def topLevel(trees: List[untpd.Tree]): Unit = trees match {
-      case (mdef @ untpd.ModuleDef(_, _)) :: trees1 if mdef.sourcePos.span.exists =>
+      case (mdef @ untpd.ModuleDef(_, _)) :: trees1 if validSpan(mdef.sourcePos) =>
         for obj <- moduleDef(mdef) do
           buf += obj
         topLevel(trees1)
@@ -323,7 +319,7 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
         topLevel(trees)
     }
 
-    compilationUnit(tree :: Nil)
+    compilationUnit(trees)
 
     buf.result()
   }
@@ -362,7 +358,7 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
     }
 
     def loop(trees: List[untpd.Tree]): Unit = trees match {
-      case (head @ untpd.Import(prefix, sels)) :: trees1 if head.sourcePos.span.exists =>
+      case (head @ untpd.Import(_, _)) :: trees1 if validSpan(head.sourcePos) =>
         for tree <- importTree(head) do {
           buf += tree
         }
@@ -377,25 +373,33 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
     buf.result()
   }
 
+  private def validSpan(sourcePos: SourcePosition)(using Context): Boolean =
+    sourcePos.span.exists && !sourcePos.span.isSynthetic
+
   private def slice(start: Int, end: Int)(using Context): String =
     ctx.source.content.slice(start, end).mkString
 
-  private def splitTrees(tree: untpd.Tree)(using Context): (Seq[String], Seq[String]) = {
+  private def splitTrees(trees: List[untpd.Tree])(using Context): (Seq[String], Seq[String]) = {
     val content = ctx.source.content()
     val topLevelPkgs = Seq.newBuilder[String]
     val topLevelStats = Seq.newBuilder[String]
-    val inEmptyPackage = tree match {
-      case untpd.PackageDef(untpd.Ident(nme.EMPTY_PACKAGE), _) => true
-      case _ => false
+    val initialStats = trees match {
+      case untpd.PackageDef(untpd.Ident(nme.EMPTY_PACKAGE), stats) :: Nil =>
+        // dotty will always insert a package `<empty>` if there is no package declaration,
+        // or if there is an import before the package declaration.
+        // we should ignore this package
+        stats
+      case _ =>
+        trees // don't unwrap the package
     }
 
-    def syntheticImport(tree: untpd.Import): Boolean =
-      val span = tree.sourcePos.span
-      span.exists && MillParsers.nextTokenIsntImport(span.start)
+    def commaSeparatedImport(tree: untpd.Import): Boolean =
+      val pos = tree.sourcePos
+      validSpan(pos) && MillParsers.nextTokenIsntImport(pos.start)
 
     /** We need to pack consecutive imports where the following is synthetic */
     def importRest(start: Int, from: Int, trees: List[untpd.Tree]): Unit = trees match {
-      case (tree @ untpd.Import(_, _)) :: trees1 if syntheticImport(tree) =>
+      case (tree @ untpd.Import(_, _)) :: trees1 if commaSeparatedImport(tree) =>
         // import comes from a comma separated list of imports
         importRest(start, tree.sourcePos.end, trees1)
       case _ =>
@@ -406,18 +410,20 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
 
     def topLevel(from: Int, trees: List[untpd.Tree]): Unit = trees match {
       case tree :: trees1 =>
-        val span = tree.sourcePos.span
-        if span.exists then
-          topLevelStats += slice(from, span.start)
+        val pos = tree.sourcePos
+        if validSpan(pos) then
+          topLevelStats += slice(from, pos.start)
           tree match {
             case untpd.Import(_, _) =>
-              importRest(span.start, span.end, trees1)
+              importRest(pos.start, pos.end, trees1)
             case _ =>
-              topLevelStats += slice(span.start, span.end)
-              topLevel(span.end, trees1)
+              topLevelStats += slice(pos.start, pos.end)
+              topLevel(pos.end, trees1)
           }
         else
-          report.error(syntaxError(s"Synthetic span on tree ${tree.show}."), tree.sourcePos)
+          // TODO: let's check if this actually happens, if so, perhaps we should just ignore it
+          // i.e. if it's generated code, then nothing is lost by ignoring it.
+          report.error(syntaxError(s"unexpected tree ${tree.show}."), pos)
           topLevel(from, trees1)
       case Nil => ()
     }
@@ -432,21 +438,13 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
           literalPackageId(qual, acc1)
       }
 
-    def compilationUnit(from: Int, depth: Int, trees: List[untpd.Tree]): Unit = {
+    def compilationUnit(from: Int, trees: List[untpd.Tree]): Unit = {
       trees match {
-        case untpd.PackageDef(pid, stats) :: Nil =>
-          val span = pid.sourcePos.span
-          if span.exists && MillParsers.nextTokenIsntBlock(span.end) then
-            if span.isSynthetic then
-              assert(inEmptyPackage && depth == 0, "unexpected synthetic package")
-              // dotty will always insert a package `<empty>` if there is no package declaration,
-              // or if there is an import before the package declaration.
-              // we should ignore this package
-              compilationUnit(span.end, depth + 1, stats)
-            else {
-              topLevelPkgs += literalPackageId(pid, Nil)
-              compilationUnit(span.end, depth + 1, stats)
-            }
+        case untpd.PackageDef(pid, stats) :: Nil if validSpan(pid.sourcePos) =>
+          val end0 = pid.sourcePos.end
+          if MillParsers.nextTokenIsntBlock(end0) then
+            topLevelPkgs += literalPackageId(pid, Nil)
+            compilationUnit(end0, stats)
           else
             report.error(syntaxError(s"Mill forbids packages to introduce a block."), pid.sourcePos)
         case _ =>
@@ -454,7 +452,7 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
       }
     }
 
-    compilationUnit(0, 0, tree :: Nil)
+    compilationUnit(0, initialStats)
 
     (topLevelPkgs.result(), topLevelStats.result())
   }
