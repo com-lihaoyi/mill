@@ -45,7 +45,9 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
 
   def splitScript(rawCode: String, fileName: String): Either[String, (Seq[String], Seq[String])] = {
     val source = SourceFile.virtual(fileName, rawCode)
-    splitScriptSource(source).left.map(_.mkString("\n"))
+    def mergeErrors(errors: List[String]): String =
+      s"$fileName failed to parse:" + System.lineSeparator + errors.mkString(System.lineSeparator)
+    splitScriptSource(source).left.map(mergeErrors)
   }
 
   def splitScriptSource(
