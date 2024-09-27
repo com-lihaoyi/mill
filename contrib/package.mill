@@ -90,7 +90,7 @@ object `package` extends RootModule {
         Seq(PathRef(millSourcePath / os.up / "src-shared")) ++ super.sources()
       }
 
-      def millModuleScalaVersion = build.Deps.play(playBinary).scalaVersion
+      def scalaVersion = build.Deps.play(playBinary).scalaVersion
       def moduleDeps = Seq(playlib.api)
       def ivyDeps = Agg(build.Deps.osLib, build.Deps.play(playBinary).routesCompiler)
     }
