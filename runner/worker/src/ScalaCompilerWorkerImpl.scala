@@ -477,9 +477,6 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
   /** The MillDriver contains code for initializing a Context and reporting errors. */
   private object MillDriver extends Driver {
 
-    /** While just parsing it isn't necessary to refresh the context */
-    override protected val initCtx: Context = super.initCtx
-
     def renderErrors()(using Context): List[String] = {
       val errs = ctx.reporter.removeBufferedMessages.collect {
         case err: Diagnostic.Error => err
