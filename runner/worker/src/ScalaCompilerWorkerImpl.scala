@@ -363,6 +363,7 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
     ctx.source.content.slice(start, end).mkString
 
   private def splitTrees(tree: untpd.Tree)(using Context): (Seq[String], Seq[String]) = {
+    val content = ctx.source.content()
     val topLevelPkgs = Seq.newBuilder[String]
     val topLevelStats = Seq.newBuilder[String]
     val inEmptyPackage = tree match {
@@ -403,6 +404,16 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
       case Nil => ()
     }
 
+    def literalPackageId(pre: untpd.Tree, acc: List[String]): String =
+      pre match {
+        case id @ untpd.Ident(_) =>
+          val acc1 = slice(id.sourcePos.start, id.sourcePos.end) :: acc
+          acc1.mkString(".")
+        case sel @ untpd.Select(qual, _) =>
+          val acc1 = slice(sel.sourcePos.point, sel.sourcePos.end) :: acc
+          literalPackageId(qual, acc1)
+      }
+
     def compilationUnit(from: Int, depth: Int, trees: List[untpd.Tree]): Unit = {
       trees match {
         case untpd.PackageDef(pid, stats) :: Nil =>
@@ -415,7 +426,7 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
               // we should ignore this package
               compilationUnit(span.end, depth + 1, stats)
             else {
-              topLevelPkgs += pid.show
+              topLevelPkgs += literalPackageId(pid, Nil)
               compilationUnit(span.end, depth + 1, stats)
             }
           else
