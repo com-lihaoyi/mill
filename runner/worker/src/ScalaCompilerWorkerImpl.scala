@@ -4,6 +4,7 @@ import dotty.tools.dotc.CompilationUnit
 import dotty.tools.dotc.Compiler
 import dotty.tools.dotc.Driver
 import dotty.tools.dotc.ast.Positioned
+import dotty.tools.dotc.ast.Trees
 import dotty.tools.dotc.ast.untpd
 import dotty.tools.dotc.ast.untpd.ImportSelector
 import dotty.tools.dotc.core.Contexts.Context
@@ -163,7 +164,7 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
 
     /** read the statements of a template body */
     def outlineTemplateBody(offset: Int)(using Context): List[untpd.Tree] =
-      outlineTemplate(offset).body
+      Trees.flatten(outlineTemplate(offset).body)
 
     private def outlineTemplate(offset: Int)(using Context): untpd.Template = ParseLock.sync {
       val in0 = Scanner(ctx.source, startFrom = offset)
