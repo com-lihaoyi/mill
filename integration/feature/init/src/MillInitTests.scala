@@ -9,7 +9,7 @@ object MillInitTests extends UtestIntegrationTestSuite {
     test("Mill init works") - integrationTest { tester =>
       import tester._
       val msg =
-        """Run `mill init <example-id>` with one of the following examples as an argument to download and extract example.
+        """Run `mill init <example-id>` with one of these examples as an argument to download and extract example.
           |Run `mill init --show-all` to see full list of examples.
           |Run `mill init <Giter8 template>` to generate project from Giter8 template.""".stripMargin
       val res = eval("init")

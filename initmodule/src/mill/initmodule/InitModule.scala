@@ -20,10 +20,12 @@ trait InitModule extends Module {
   type ExampleId = String
 
   val msg: String =
-    """Run `mill init <example-id>` with one of the following examples as an argument to download and extract example.
+    """Run `mill init <example-id>` with one of these examples as an argument to download and extract example.
       |Run `mill init --show-all` to see full list of examples.
       |Run `mill init <Giter8 template>` to generate project from Giter8 template.""".stripMargin
   def moduleNotExistMsg(id: String): String = s"Example [$id] is not present in examples list"
+  def directoryExistsMsg(extractionTargetPath: String): String =
+    s"Can't download example, because extraction directory [$extractionTargetPath] already exist"
 
   /**
    * @return Seq of example names or Seq with path to parent dir where downloaded example was unpacked
@@ -53,13 +55,13 @@ trait InitModule extends Module {
                 moduleNotExistMsg(value)
               )).toTry
               extractedDirName = {
-                val zipName = url.reverse.takeWhile(_ != '/').reverse
+                val zipName = url.split('/').last
                 if (zipName.toLowerCase.endsWith(".zip")) zipName.dropRight(4) else zipName
               }
               downloadDir = T.workspace
               downloadPath = downloadDir / extractedDirName
               _ <- if (os.exists(downloadPath)) Failure(new IOException(
-                s"Can't download example, because extraction directory [$downloadPath] already exist"
+                directoryExistsMsg(downloadPath.toString)
               ))
               else Success(())
               path <-
