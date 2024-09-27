@@ -124,7 +124,7 @@ object Scala2Parsers extends MillScalaParser { outer =>
     instrument.objectData.toSeq
   }
 
-  private case class Snippet(var text: String = null, var start: Int = -1, var end: Int = -1)
+  private case class Snippet(var text: String | Null = null, var start: Int = -1, var end: Int = -1)
       extends Snip
 
   private case class ObjectDataImpl(obj: Snippet, name: Snippet, parent: Snippet)

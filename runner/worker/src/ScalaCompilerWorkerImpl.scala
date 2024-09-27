@@ -94,7 +94,8 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
     objectDatas(trees)
   }
 
-  private case class Snippet(text: String = null, start: Int = -1, end: Int = -1) extends Snip
+  private case class Snippet(text: String | Null = null, start: Int = -1, end: Int = -1)
+      extends Snip
 
   private case class ObjectDataImpl(
       obj: Snippet,
@@ -227,78 +228,77 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
 
     def moduleDef(mdef: untpd.ModuleDef): Option[ObjectDataImpl] = {
       val untpd.ModuleDef(name, impl) = mdef
-      impl.parents match
-        case parent :: _ if validSpan(parent.sourcePos) =>
-          val parent0 = {
+      val obj0 = {
+        val start0 = MillParsers.skipModsObjectOffset(mdef.sourcePos.start)
+        val end0 = start0 + "object".length()
+        val text = slice(start0, end0)
+        assert(text == "object", s"expected `object`, actually was `$text`")
+        Snippet(text, start0, end0)
+      }
+      val (name0, expanded) = {
+        val start0 = mdef.sourcePos.point
+        val nameStr = name.show
+        val end0 = start0 + nameStr.length
+        val backTickedBefore = content.isDefinedAt(start0 - 1) && content(start0 - 1) == '`'
+        if backTickedBefore && content.isDefinedAt(end0)
+        then {
+          val start1 = start0 - 1
+          val end1 = end0 + 1
+          val text = slice(start1, end1)
+          assert(text == s"`$nameStr`", s"expected {`$nameStr`}, actually was {$text}")
+          Snippet(text, start1, end1) -> true
+        } else {
+          val text = slice(start0, end0)
+          assert(text == nameStr, s"expected {$nameStr}, actually was {$text}")
+          Snippet(text, start0, end0) -> false
+        }
+      }
+      val parent0 = {
+        impl.parents match
+          case parent :: _ if validSpan(parent.sourcePos) =>
             val start0 = parent.sourcePos.start
             val end0 = parent.sourcePos.end
             val text = slice(start0, end0)
             Snippet(text, start0, end0)
-          }
-          val (name0, expanded) = {
-            val start0 = mdef.sourcePos.point
-            val nameStr = name.show
-            val end0 = start0 + nameStr.length
-            val backTickedBefore = content.isDefinedAt(start0 - 1) && content(start0 - 1) == '`'
-            if backTickedBefore && content.isDefinedAt(end0 + 1)
-            then {
-              val start1 = start0 - 1
-              val end1 = end0 + 1
-              val text = slice(start1, end1)
-              assert(text == s"`$nameStr`", s"expected {`$nameStr`}, actually was {$text}")
-              Snippet(text, start1, end1) -> true
-            } else {
-              val text = slice(start0, end0)
-              assert(text == nameStr, s"expected {$nameStr}, actually was {$text}")
-              Snippet(text, start0, end0) -> false
-            }
-          }
-          val objOffset = MillParsers.skipModsObjectOffset(mdef.sourcePos.start)
-          val obj0 = {
-            val start0 = objOffset
-            val end0 = start0 + "object".length()
-            val text = slice(start0, end0)
-            assert(text == "object", s"expected `object`, actually was `$text`")
-            Snippet(text, start0, end0)
-          }
-          val endMarker0 = {
-            val endSpan = mdef.endSpan
-            if endSpan.exists then
-              // Dotty bug - "end `package`" span is off by two characters
-              // i.e. it is computed by subtracting the name length from the end of span,
-              // ignoring backticks
-              val start0 = endSpan.start + (if expanded then -2 else 0)
-              val end0 = endSpan.end
-              val text = slice(start0, end0)
-              Some(Snippet(text, start0, end0))
-            else
-              None
-          }
-          val finalStat0 = {
-            // find the whitespace before the first statement in the object
-            val body =
-              MillParsers.outlineTemplateBody(name0.end).filter(stat => validSpan(stat.sourcePos))
-            val leading0 = body.headOption.map({ stat =>
-              val start0 = ctx.source.startOfLine(stat.sourcePos.start)
-              val end0 = stat.sourcePos.start
-              val leading = slice(start0, end0)
-              leading
-            })
-            val stat0 = body.lastOption.map(stat => {
-              val start0 = stat.sourcePos.end
-              val end0 = endMarker0.map(_.start).getOrElse(stat.sourcePos.end)
-              val text = slice(start0, end0)
-              Snippet(text, start0, end0)
-            })
-            for {
-              leading <- leading0
-              stat <- stat0
-            } yield (leading, stat)
-          }
-          val obj = ObjectDataImpl(obj0, name0, parent0, endMarker0, finalStat0)
-          Some(obj)
-        case parents0 =>
+          case _ =>
+            Snippet()
+      }
+      val endMarker0 = {
+        val endSpan = mdef.endSpan
+        if endSpan.exists then
+          // Dotty bug - "end `package`" span is off by two characters
+          // i.e. it is computed by subtracting the name length from the end of span,
+          // ignoring backticks
+          val start0 = endSpan.start + (if expanded then -2 else 0)
+          val end0 = endSpan.end
+          val text = slice(start0, end0)
+          Some(Snippet(text, start0, end0))
+        else
           None
+      }
+      val finalStat0 = {
+        // find the whitespace before the first statement in the object
+        val body =
+          MillParsers.outlineTemplateBody(name0.end).filter(stat => validSpan(stat.sourcePos))
+        val leading0 = body.headOption.map({ stat =>
+          val start0 = ctx.source.startOfLine(stat.sourcePos.start)
+          val end0 = stat.sourcePos.start
+          val leading = slice(start0, end0)
+          leading
+        })
+        val stat0 = body.lastOption.map(stat => {
+          val start0 = stat.sourcePos.end
+          val end0 = endMarker0.map(_.start).getOrElse(stat.sourcePos.end)
+          val text = slice(start0, end0)
+          Snippet(text, start0, end0)
+        })
+        for {
+          leading <- leading0
+          stat <- stat0
+        } yield (leading, stat)
+      }
+      val obj = ObjectDataImpl(obj0, name0, parent0, endMarker0, finalStat0)
+      Some(obj)
     }
 
     def topLevel(trees: List[untpd.Tree]): Unit = trees match {

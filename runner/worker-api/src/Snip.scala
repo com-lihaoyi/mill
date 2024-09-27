@@ -1,7 +1,7 @@
 package mill.runner.worker.api
 
 trait Snip {
-  def text: String
+  def text: String | Null
   def start: Int
   def end: Int
 
