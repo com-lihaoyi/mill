@@ -73,9 +73,9 @@ trait CoursierModule extends mill.Module {
    * The repositories used to resolved dependencies with [[resolveDeps()]].
    */
   def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
-    import scala.concurrent.ExecutionContext.Implicits.global
+    val resolve = Resolve()
     val repos = Await.result(
-      Resolve().finalRepositories.future(),
+      resolve.finalRepositories.future()(resolve.cache.ec),
       Duration.Inf
     )
     repos
