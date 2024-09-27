@@ -169,7 +169,9 @@ object Deps {
   }
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.8.3".withDottyCompat(scalaVersion)
   def scalap(scalaVersion: String) = ivy"org.scala-lang:scalap:${scalaVersion}"
-  def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
+  def scalaReflect(scalaVersion: String) =
+    if (ZincWorkerUtil.isScala3(scalaVersion)) ivy"org.scala-lang:scala-reflect:${Deps.scala2Version}"
+    else ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   val scoverage2Version = "2.1.1"
   val scalacScoverage2Plugin = ivy"org.scoverage:::scalac-scoverage-plugin:${scoverage2Version}"
   val scalacScoverage2Reporter = ivy"org.scoverage::scalac-scoverage-reporter:${scoverage2Version}"

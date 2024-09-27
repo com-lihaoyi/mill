@@ -3,7 +3,6 @@ package mill.define
 import mill.api.internal
 
 import scala.annotation.compileTimeOnly
-import scala.reflect.macros.blackbox.Context
 
 import scala.quoted.*
 

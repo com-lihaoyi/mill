@@ -1,8 +1,6 @@
 package mill.define
 
 import scala.collection.mutable
-import scala.language.experimental.macros
-import scala.reflect.macros.blackbox
 
 /**
  * Macro to walk the module tree and generate `mainargs` entrypoints for any

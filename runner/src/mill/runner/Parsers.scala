@@ -10,21 +10,15 @@ import mill.runner.worker.api.{MillScalaParser, ImportTree, ObjectData, Snip}
  * Fastparse parser that extends the Scalaparse parser to handle `build.mill` and
  * other script files, and also for subsequently parsing any magic import
  * statements into [[ImportTree]] structures for the [[MillBuildRootModule]] to use
+ *
+ * TODO: currently this is unused, perhaps we should keep it if we still allow setting
+ * scalaVersion in mill-build/build.mill files to scala 2?
  */
 @internal
 object Scala2Parsers extends MillScalaParser { outer =>
   import fastparse._
   import ScalaWhitespace._
   import scalaparse.Scala._
-
-  // def debugParsers: MillScalaParser = new:
-  //   def parseImportHooksWithIndices(stmts: Seq[String]): Seq[(String, Seq[ImportTree])] =
-  //     outer.parseImportHooksWithIndices(stmts)
-  //   def splitScript(rawCode: String, fileName: String): Either[String, (Seq[String], Seq[String])] =
-  //     val res = outer.splitScript(rawCode, fileName)
-  //     res.flatMap(success =>
-  //       Left(s"Debug: (actually successful): $success")
-  //     )
 
   def ImportSplitter[$: P]: P[Seq[ImportTree]] = {
     def IdParser = P((Id | Underscore).!).map(s => if (s(0) == '`') s.drop(1).dropRight(1) else s)

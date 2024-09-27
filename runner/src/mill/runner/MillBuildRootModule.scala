@@ -268,12 +268,7 @@ abstract class MillBuildRootModule()(implicit
   override def scalacOptions: T[Seq[String]] = Task {
     super.scalacOptions() ++
       Seq(
-        // "-Xplugin:" + lineNumberPluginClasspath().map(_.path).mkString(","),
         "-deprecation"
-        // Make sure we abort of the plugin is not found, to ensure any
-        // classpath/plugin-discovery issues are surfaced early rather than
-        // after hours of debugging
-        // "-Xplugin-require:mill-linenumber-plugin"
       )
   }
 

@@ -9,8 +9,6 @@ import TaskBase.TraverseCtxHolder
 import scala.language.implicitConversions
 import scala.quoted.*
 
-import scala.reflect.macros.blackbox.Context
-
 /**
  * Models a single node in the Mill build graph, with a list of inputs and a
  * single output of type [[T]].

@@ -4,7 +4,6 @@ import mill.api.Ctx.ImplicitStub
 import utest._
 
 import scala.annotation.compileTimeOnly
-import scala.language.experimental.macros
 import scala.language.implicitConversions
 
 object ApplicativeTests extends TestSuite {
