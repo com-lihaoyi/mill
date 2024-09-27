@@ -107,10 +107,10 @@ object Task extends TaskBase {
   ): Command[T] = macro Target.Internal.commandImpl[T]
 
   def Command(
-      t: NamedParameterOnlyDummy.type = NamedParameterOnlyDummy,
-      serial: Boolean = false
-  ): CommandFactory = new CommandFactory(serial)
-  class CommandFactory private[mill] (val serial: Boolean) extends TaskBase.TraverseCtxHolder {
+               t: NamedParameterOnlyDummy.type = NamedParameterOnlyDummy,
+               exclusive: Boolean = false
+  ): CommandFactory = new CommandFactory(exclusive)
+  class CommandFactory private[mill] (val exclusive: Boolean) extends TaskBase.TraverseCtxHolder {
     def apply[T](t: Result[T])(implicit
         w: W[T],
         ctx: mill.define.Ctx,
@@ -579,7 +579,7 @@ object Target extends TaskBase {
           w.splice,
           cls.splice.value,
           taskIsPrivate.splice,
-          serial = c.prefix.splice.asInstanceOf[Task.CommandFactory].serial
+          serial = c.prefix.splice.asInstanceOf[Task.CommandFactory].exclusive
         )
       )
     }

@@ -432,7 +432,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    * Opens up a Scala console with your module and all dependencies present,
    * for you to test and operate your code interactively.
    */
-  def console(): Command[Unit] = Task.Command(serial = true) {
+  def console(): Command[Unit] = Task.Command(exclusive = true) {
     if (!Util.isInteractive()) {
       Result.Failure("console needs to be run with the -i/--interactive flag")
     } else {
@@ -507,7 +507,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    * for you to test and operate your code interactively.
    * Use [[ammoniteVersion]] to customize the Ammonite version to use.
    */
-  def repl(replOptions: String*): Command[Unit] = Task.Command(serial = true) {
+  def repl(replOptions: String*): Command[Unit] = Task.Command(exclusive = true) {
     if (T.log.inStream == DummyInputStream) {
       Result.Failure("repl needs to be run with the -i/--interactive flag")
     } else {

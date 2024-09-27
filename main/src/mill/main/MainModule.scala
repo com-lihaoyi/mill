@@ -69,7 +69,7 @@ trait MainModule extends BaseModule0 {
   /**
    * Show the mill version.
    */
-  def version(): Command[String] = Task.Command(serial = true) {
+  def version(): Command[String] = Task.Command(exclusive = true) {
     val res = BuildInfo.millVersion
     Task.log.withPromptPaused {
       println(res)
@@ -81,7 +81,7 @@ trait MainModule extends BaseModule0 {
    * Resolves a mill query string and prints out the tasks it resolves to.
    */
   def resolve(evaluator: Evaluator, targets: String*): Command[List[String]] =
-    Task.Command(serial = true) {
+    Task.Command(exclusive = true) {
       val resolved = Resolve.Segments.resolve(
         evaluator.rootModule,
         targets,
@@ -104,7 +104,7 @@ trait MainModule extends BaseModule0 {
    * executed in what order, without actually executing them.
    */
   def plan(evaluator: Evaluator, targets: String*): Command[Array[String]] =
-    Task.Command(serial = true) {
+    Task.Command(exclusive = true) {
       plan0(evaluator, targets) match {
         case Left(err) => Result.Failure(err)
         case Right(success) =>
@@ -141,7 +141,7 @@ trait MainModule extends BaseModule0 {
       @mainargs.arg(positional = true) src: String,
       @mainargs.arg(positional = true) dest: String
   ): Command[List[String]] =
-    Task.Command(serial = true) {
+    Task.Command(exclusive = true) {
       val resolved = Resolve.Tasks.resolve(
         evaluator.rootModule,
         List(src, dest),
@@ -186,7 +186,7 @@ trait MainModule extends BaseModule0 {
    * Displays metadata about the given task without actually running it.
    */
   def inspect(evaluator: Evaluator, targets: String*): Command[String] =
-    Task.Command(serial = true) {
+    Task.Command(exclusive = true) {
 
       def resolveParents(c: Class[_]): Seq[Class[_]] = {
         Seq(c) ++ Option(c.getSuperclass).toSeq.flatMap(resolveParents) ++ c.getInterfaces.flatMap(
@@ -308,7 +308,7 @@ trait MainModule extends BaseModule0 {
    * to integrate Mill into external scripts and tooling.
    */
   def show(evaluator: Evaluator, targets: String*): Command[ujson.Value] =
-    Task.Command(serial = true) {
+    Task.Command(exclusive = true) {
       MainModule.show0(evaluator, targets, Target.log, interp.evalWatch0) { res =>
         res.flatMap(_._2) match {
           case Seq((k, singleValue)) => singleValue
@@ -322,7 +322,7 @@ trait MainModule extends BaseModule0 {
    * to integrate Mill into external scripts and tooling.
    */
   def showNamed(evaluator: Evaluator, targets: String*): Command[ujson.Value] =
-    Task.Command(serial = true) {
+    Task.Command(exclusive = true) {
       MainModule.show0(evaluator, targets, Target.log, interp.evalWatch0) { res =>
         ujson.Obj.from(res.flatMap(_._2))
       }
@@ -333,7 +333,7 @@ trait MainModule extends BaseModule0 {
    * will clean everything.
    */
   def clean(evaluator: Evaluator, targets: String*): Command[Seq[PathRef]] =
-    Task.Command(serial = true) {
+    Task.Command(exclusive = true) {
       val rootDir = evaluator.outPath
 
       val KeepPattern = "(mill-.+)".r.anchored
@@ -392,7 +392,7 @@ trait MainModule extends BaseModule0 {
    * Renders the dependencies between the given tasks as a SVG for you to look at
    */
   def visualize(evaluator: Evaluator, targets: String*): Command[Seq[PathRef]] =
-    Task.Command(serial = true) {
+    Task.Command(exclusive = true) {
       visualize0(evaluator, targets, Target.ctx(), mill.main.VisualizeModule.worker())
     }
 
@@ -400,7 +400,7 @@ trait MainModule extends BaseModule0 {
    * Renders the dependencies between the given tasks, and all their dependencies, as a SVG
    */
   def visualizePlan(evaluator: Evaluator, targets: String*): Command[Seq[PathRef]] =
-    Task.Command(serial = true) {
+    Task.Command(exclusive = true) {
       plan0(evaluator, targets) match {
         case Left(err) => Result.Failure(err)
         case Right(planResults) => visualize0(
@@ -416,7 +416,7 @@ trait MainModule extends BaseModule0 {
   /**
    * Shuts down mill's background server
    */
-  def shutdown(): Command[Unit] = Task.Command(serial = true) {
+  def shutdown(): Command[Unit] = Task.Command(exclusive = true) {
     Target.log.info("Shutting down Mill server...")
     Target.ctx.systemExit(0)
     ()
@@ -428,7 +428,7 @@ trait MainModule extends BaseModule0 {
    * You can use it to quickly generate a starter project. There are lots of
    * templates out there for many frameworks and tools!
    */
-  def init(evaluator: Evaluator, args: String*): Command[Unit] = Task.Command(serial = true) {
+  def init(evaluator: Evaluator, args: String*): Command[Unit] = Task.Command(exclusive = true) {
     RunScript.evaluateTasksNamed(
       evaluator,
       Seq("mill.scalalib.giter8.Giter8Module/init") ++ args,
