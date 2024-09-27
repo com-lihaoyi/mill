@@ -164,7 +164,7 @@ object Deps {
   val testng = ivy"org.testng:testng:7.5.1"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   def scalaCompiler(scalaVersion: String) = {
-    if (scalaVersion.startsWith("3.")) ivy"org.scala-lang:scala3-compiler_3:${scalaVersion}"
+    if (ZincWorkerUtil.isScala3(scalaVersion)) ivy"org.scala-lang:scala3-compiler_3:${scalaVersion}"
     else ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   }
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.8.3".withDottyCompat(scalaVersion)
@@ -435,21 +435,23 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with MillScalafixM
       "-Xlint:unused",
       "-Xlint:adapted-args"
     ) ++ (
-      if (scalaVersion().startsWith("3.")) Seq.empty
+      if (ZincWorkerUtil.isScala3(scalaVersion())) Seq.empty
       else Seq("-P:acyclic:force")
     )
 
   def scalacPluginIvyDeps = T {
-    def sv = scalaVersion()
-    def hasModuleDefs = sv.startsWith("2.13.") || sv.startsWith("3.")
+    val sv = scalaVersion()
+    val binaryVersion = ZincWorkerUtil.scalaBinaryVersion(sv)
+    val hasModuleDefs = binaryVersion == "2.13" || binaryVersion == "3"
     super.scalacPluginIvyDeps() ++
-      Agg.when(!sv.startsWith("3."))(Deps.acyclic) ++
+      Agg.when(binaryVersion != "3")(Deps.acyclic) ++
       Agg.when(hasModuleDefs)(Deps.millModuledefsPlugin)
   }
 
   def mandatoryIvyDeps = T {
-    def sv = scalaVersion()
-    def hasModuleDefs = sv.startsWith("2.13.") || sv.startsWith("3.")
+    val sv = scalaVersion()
+    val binaryVersion = ZincWorkerUtil.scalaBinaryVersion(sv)
+    val hasModuleDefs = binaryVersion == "2.13" || binaryVersion == "3"
     super.mandatoryIvyDeps() ++
       Agg.when(hasModuleDefs)(Deps.millModuledefs)
   }
@@ -630,7 +632,7 @@ trait BridgeModule extends MillPublishJavaModule with CrossScalaModule {
     ivy"org.scala-sbt:compiler-interface:${Deps.zinc.version}",
     ivy"org.scala-sbt:util-interface:${Deps.zinc.version}",
   ) ++ Agg(
-    if (crossScalaVersion.startsWith("3.")) ivy"org.scala-lang::scala3-compiler:${crossScalaVersion}"
+    if (ZincWorkerUtil.isScala3(crossScalaVersion)) ivy"org.scala-lang::scala3-compiler:${crossScalaVersion}"
     else ivy"org.scala-lang:scala-compiler:${crossScalaVersion}"
   )
 
@@ -640,7 +642,7 @@ trait BridgeModule extends MillPublishJavaModule with CrossScalaModule {
   }
 
   def compilerBridgeIvyDeps: T[Agg[Dep]] = Agg(
-    (if (crossScalaVersion.startsWith("3.")) ivy"org.scala-lang:scala3-sbt-bridge:${crossScalaVersion}"
+    (if (ZincWorkerUtil.isScala3(crossScalaVersion)) ivy"org.scala-lang:scala3-sbt-bridge:${crossScalaVersion}"
     else ivy"org.scala-sbt::compiler-bridge:${Deps.zinc.version}").exclude("*" -> "*")
   )
 

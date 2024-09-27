@@ -8,6 +8,7 @@ import mill.scalalib.{BoundDep, Dep, DepSyntax, Lib, ScalaModule}
 import mill.util.CoursierSupport
 import mill.util.Util.millProjectModule
 import mill.scalalib.api.Versions
+import mill.scalalib.api.ZincWorkerUtil
 import mill.main.client.OutFiles._
 import mill.main.client.CodeGenConstants.buildFileExtensions
 import mill.main.{BuildInfo, RootModule}
@@ -123,7 +124,6 @@ abstract class MillBuildRootModule()(implicit
     val parsed = parseBuildFiles()
     if (parsed.errors.nonEmpty) Result.Failure(parsed.errors.mkString("\n"))
     else {
-      val isScala3 = scalaVersion().startsWith("3.")
       CodeGen.generateWrappedSources(
         millBuildRootModuleInfo.projectRoot / os.up,
         scriptSources(),
@@ -133,7 +133,7 @@ abstract class MillBuildRootModule()(implicit
         scalaCompilerResolver.classpath,
         millBuildRootModuleInfo.topLevelProjectRoot,
         millBuildRootModuleInfo.output,
-        isScala3,
+        ZincWorkerUtil.isScala3(scalaVersion()),
         compilerWorker()
       )
       Result.Success(Seq(PathRef(T.dest)))
@@ -246,10 +246,11 @@ abstract class MillBuildRootModule()(implicit
    * We exclude them to avoid incompatible or duplicate artifacts on the classpath.
    */
   protected def resolveDepsExclusions: T[Seq[(String, String)]] = Task {
-    Lib.millAssemblyEmbeddedDeps.toSeq.flatMap(d =>
-      if d.dep.module.name.value == "scala-library" && scalaVersion().startsWith("3.") then None
+    Lib.millAssemblyEmbeddedDeps.toSeq.flatMap({ d =>
+      val isScala3 = ZincWorkerUtil.isScala3(scalaVersion())
+      if isScala3 && d.dep.module.name.value == "scala-library" then None
       else Some((d.dep.module.organization.value, d.dep.module.name.value))
-    )
+    })
   }
 
   override def bindDependency: Task[Dep => BoundDep] = Task.Anon { (dep: Dep) =>

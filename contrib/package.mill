@@ -132,7 +132,7 @@ object `package` extends RootModule {
           build.Deps.scalacScoverage2Reporter,
           build.Deps.scalacScoverage2Domain,
           build.Deps.scalacScoverage2Serializer
-        ) ++ Agg.when(!scalaVersion().startsWith("3."))(build.Deps.scalacScoverage2Plugin)
+        ) ++ Agg.when(!ZincWorkerUtil.isScala3(scalaVersion()))(build.Deps.scalacScoverage2Plugin)
       }
     }
   }

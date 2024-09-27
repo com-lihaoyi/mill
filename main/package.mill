@@ -5,6 +5,7 @@ import mill.scalalib._
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.define.Cross
+import mill.scalalib.api.ZincWorkerUtil
 
 object `package` extends RootModule with build.MillStableScalaModule with BuildInfo {
 
@@ -20,7 +21,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
   )
 
   def compileIvyDeps = T {
-    if (scalaVersion().startsWith("3.")) Agg.empty else Agg(build.Deps.scalaReflect(scalaVersion()))
+    if (ZincWorkerUtil.isScala3(scalaVersion())) Agg.empty else Agg(build.Deps.scalaReflect(scalaVersion()))
   }
 
   def buildInfoPackageName = "mill.main"
@@ -105,7 +106,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
   object define extends build.MillStableScalaModule {
     def moduleDeps = Seq(api, util)
     def compileIvyDeps = T {
-      if (scalaVersion().startsWith("3.")) Agg(build.Deps.scalaCompiler(scalaVersion()))
+      if (ZincWorkerUtil.isScala3(scalaVersion())) Agg(build.Deps.scalaCompiler(scalaVersion()))
       else Agg(build.Deps.scalaReflect(scalaVersion()))
     }
     def ivyDeps = Agg(
