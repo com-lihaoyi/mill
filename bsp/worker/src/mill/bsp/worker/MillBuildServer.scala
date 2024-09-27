@@ -23,6 +23,10 @@ import scala.reflect.ClassTag
 import scala.util.chaining.scalaUtilChainingOps
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
+
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.{ExecutorService, Executors, ThreadFactory}
+
 private class MillBuildServer(
     topLevelProjectRoot: os.Path,
     bspVersion: String,
@@ -31,11 +35,42 @@ private class MillBuildServer(
     logStream: PrintStream,
     canReload: Boolean
 ) extends ExternalModule
-    with BuildServer {
+    with BuildServer
+    with AutoCloseable {
 
   import MillBuildServer._
 
   lazy val millDiscover: Discover = Discover[this.type]
+
+  private var poolOpt = Option.empty[ExecutorService]
+  private val poolOptLock = new Object
+
+  private lazy val poolEc = {
+    val pool = poolOpt.getOrElse {
+      poolOptLock.synchronized {
+        poolOpt.getOrElse {
+          Executors.newCachedThreadPool(
+            new ThreadFactory {
+              val counter = new AtomicInteger
+              def newThread(runnable: Runnable): Thread = {
+                val t = new Thread(runnable, s"mill-bsp-${counter.incrementAndGet()}")
+                t.setDaemon(true)
+                t
+              }
+            }
+          )
+        }
+      }
+    }
+    scala.concurrent.ExecutionContext.fromExecutorService(pool)
+  }
+
+  override def close(): Unit =
+    if (poolOpt.isDefined)
+      poolOptLock.synchronized {
+        poolOpt.foreach(_.shutdown())
+        poolOpt = None
+      }
 
   private[worker] var cancellator: Boolean => Unit = shutdownBefore => ()
   private[worker] var onSessionEnd: Option[BspServerResult => Unit] = None
@@ -725,7 +760,7 @@ private class MillBuildServer(
           }
         case Failure(exception) =>
           future.completeExceptionally(exception)
-      }(scala.concurrent.ExecutionContext.global)
+      }(poolEc)
 
     }
 
