@@ -178,11 +178,7 @@ private class MillBuildServer(
           Some((dataKind, target))
 
         case Some((dataKind, d: JvmBuildTarget)) =>
-          val target = new bsp4j.JvmBuildTarget().tap { it =>
-            d.javaHome.foreach(jh => it.setJavaHome(jh.uri))
-            d.javaVersion.foreach(jv => it.setJavaVersion(jv))
-          }
-          Some((dataKind, target))
+          Some((dataKind, jvmBuildTarget(d)))
 
         case Some((dataKind, d)) =>
           debug(s"Unsupported dataKind=${dataKind} with value=${d}")
@@ -786,4 +782,10 @@ private object MillBuildServer {
         .sortBy { case (k, _) => keyIndices(k) }
     }
   }
+
+  def jvmBuildTarget(d: JvmBuildTarget): bsp4j.JvmBuildTarget =
+    new bsp4j.JvmBuildTarget().tap { it =>
+      d.javaHome.foreach(jh => it.setJavaHome(jh.uri))
+      d.javaVersion.foreach(jv => it.setJavaVersion(jv))
+    }
 }
