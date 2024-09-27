@@ -1,0 +1,20 @@
+2024.09.27 22:25:54 WARN  Flyway upgrade recommended: H2 2.3.230 is newer than this version of Flyway and support has not been tested. The latest supported version of H2 is 2.2.220.
+2024.09.27 22:25:54 INFO  no build target found for /Users/jmz13/ws/mill/example/kotlinlib/web/1-hello-ktor/build.sc. Using presentation compiler with project's scala-library version: 3.3.3
+2024.09.27 22:25:56 INFO  no build target found for /Users/jmz13/ws/mill/example/kotlinlib/web/1-hello-ktor/build.sc. Using presentation compiler with project's scala-library version: 3.3.3
+2024.09.27 22:26:04 INFO  no build target found for /Users/jmz13/ws/mill/example/kotlinlib/web/1-hello-ktor/build.sc. Using presentation compiler with project's scala-library version: 3.3.3
+2024.09.27 22:26:04 INFO  no build target found for /Users/jmz13/ws/mill/example/kotlinlib/web/1-hello-ktor/build.sc. Using presentation compiler with project's scala-library version: 3.3.3
+2024.09.27 22:26:14 INFO  no build target found for /Users/jmz13/ws/mill/example/kotlinlib/web/1-hello-ktor/build.sc. Using presentation compiler with project's scala-library version: 3.3.3
+2024.09.27 22:26:14 INFO  no build target found for /Users/jmz13/ws/mill/example/kotlinlib/web/1-hello-ktor/build.sc. Using presentation compiler with project's scala-library version: 3.3.3
+2024.09.27 22:26:37 INFO  no build target found for /Users/jmz13/ws/mill/example/kotlinlib/web/1-hello-ktor/build.sc. Using presentation compiler with project's scala-library version: 3.3.3
+2024.09.27 22:26:47 INFO  no build target found for /Users/jmz13/ws/mill/example/kotlinlib/web/1-hello-ktor/build.sc. Using presentation compiler with project's scala-library version: 3.3.3
+2024.09.27 22:26:47 INFO  no build target found for /Users/jmz13/ws/mill/example/kotlinlib/web/1-hello-ktor/build.sc. Using presentation compiler with project's scala-library version: 3.3.3
+2024.09.27 22:26:55 INFO  no build target found for /Users/jmz13/ws/mill/example/kotlinlib/web/1-hello-ktor/build.sc. Using presentation compiler with project's scala-library version: 3.3.3
+2024.09.27 22:27:02 INFO  no build target found for /Users/jmz13/ws/mill/example/kotlinlib/web/1-hello-ktor/build.sc. Using presentation compiler with project's scala-library version: 3.3.3
+2024.09.27 22:27:02 INFO  no build target found for /Users/jmz13/ws/mill/example/kotlinlib/web/1-hello-ktor/build.sc. Using presentation compiler with project's scala-library version: 3.3.3
+Sept 27, 2024 10:27:02 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 62
+2024.09.27 22:27:02 INFO  no build target found for /Users/jmz13/ws/mill/example/kotlinlib/web/1-hello-ktor/build.sc. Using presentation compiler with project's scala-library version: 3.3.3
+2024.09.27 22:27:04 INFO  no build target found for /Users/jmz13/ws/mill/example/kotlinlib/web/1-hello-ktor/build.sc. Using presentation compiler with project's scala-library version: 3.3.3
+2024.09.27 22:27:05 WARN  no build target for: /Users/jmz13/ws/mill/example/kotlinlib/web/1-hello-ktor/build.sc
+Sept 27, 2024 10:29:33 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 95

@@ -43,6 +43,7 @@ object `package` extends RootModule with Module {
     object module extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "module"))
     object publishing extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "publishing"))
     object testing extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "testing"))
+    object web extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "web"))
   }
   object scalalib extends Module {
     object basic extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "basic"))
