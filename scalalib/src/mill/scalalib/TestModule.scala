@@ -72,12 +72,12 @@ trait TestModule
    * @see [[testCached]]
    */
   def test(args: String*): Command[(String, Seq[TestResult])] =
-    Task.Command {
+    Task.ParallelCommand {
       testTask(Task.Anon { args }, Task.Anon { Seq.empty[String] })()
     }
 
   def getTestEnvironmentVars(args: String*): Command[(String, String, String, Seq[String])] = {
-    Task.Command {
+    Task.ParallelCommand {
       getTestEnvironmentVarsTask(Task.Anon { args })()
     }
   }
@@ -113,7 +113,7 @@ trait TestModule
         val (s, t) = args.splitAt(pos)
         (s, t.tail)
     }
-    Task.Command {
+    Task.ParallelCommand {
       testTask(Task.Anon { testArgs }, Task.Anon { selector })()
     }
   }
@@ -265,7 +265,7 @@ trait TestModule
    * Discovers and runs the module's tests in-process in an isolated classloader,
    * reporting the results to the console
    */
-  def testLocal(args: String*): Command[(String, Seq[TestResult])] = Task.Command {
+  def testLocal(args: String*): Command[(String, Seq[TestResult])] = Task.ParallelCommand {
     val (doneMsg, results) = TestRunner.runTestFramework(
       Framework.framework(testFramework()),
       runClasspath().map(_.path),

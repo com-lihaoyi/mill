@@ -123,6 +123,15 @@ object Task extends TaskBase {
   ): Command[T] = macro Target.Internal.commandImpl[T]
 
   /**
+   * [[ParallelCommand]] is a variant of [[Command]] that is safe to run in parallel
+   */
+  def ParallelCommand[T](t: Result[T])(implicit
+      w: W[T],
+      ctx: mill.define.Ctx,
+      cls: EnclosingClass
+  ): Command[T] = macro Target.Internal.parallelCommandImpl[T]
+
+  /**
    * [[Worker]] is a [[NamedTask]] that lives entirely in-memory, defined using
    * `Task.Worker{...}`. The value returned by `Task.Worker{...}` is long-lived,
    * persisting as long as the Mill process is kept alive (e.g. via `--watch`,
@@ -521,6 +530,27 @@ object Target extends TaskBase {
       )
     }
 
+    def parallelCommandImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T])(
+        w: c.Expr[W[T]],
+        ctx: c.Expr[mill.define.Ctx],
+        cls: c.Expr[EnclosingClass]
+    ): c.Expr[Command[T]] = {
+      import c.universe._
+
+      val taskIsPrivate = isPrivateTargetOption(c)
+
+      reify(
+        new Command[T](
+          Applicative.impl[Task, T, mill.api.Ctx](c)(t).splice,
+          ctx.splice,
+          w.splice,
+          cls.splice.value,
+          taskIsPrivate.splice,
+          parallelizable = true
+        )
+      )
+    }
+
     def workerImpl1[T: c.WeakTypeTag](c: Context)(t: c.Expr[Task[T]])(ctx: c.Expr[mill.define.Ctx])
         : c.Expr[Worker[T]] = {
       import c.universe._
@@ -693,8 +723,16 @@ class Command[+T](
     val ctx0: mill.define.Ctx,
     val writer: W[_],
     val cls: Class[_],
-    val isPrivate: Option[Boolean]
+    val isPrivate: Option[Boolean],
+    val parallelizable: Boolean
 ) extends NamedTask[T] {
+  def this(
+      t: Task[T],
+      ctx0: mill.define.Ctx,
+      writer: W[_],
+      cls: Class[_],
+      isPrivate: Option[Boolean]
+  ) = this(t, ctx0, writer, cls, isPrivate, false)
   override def asCommand: Some[Command[T]] = Some(this)
   // FIXME: deprecated return type: Change to Option
   override def writerOpt: Some[W[_]] = Some(writer)
