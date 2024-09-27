@@ -457,8 +457,23 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
     (topLevelPkgs.result(), topLevelStats.result())
   }
 
+  private object MillRendering extends MessageRendering {
+
+    /**
+     * Dotty has an off-by-one error with the column in rendering messages, fix it here
+     * (there is regression testing for this in `ParseErrorTests.scala`)
+     */
+    override protected def posFileStr(pos: SourcePosition): String =
+      val path = pos.source.file.path
+      if pos.exists then s"$path:${pos.line + 1}:${pos.column + 1}" else path
+
+    /** strip color from result */
+    override def messageAndPos(dia: Diagnostic)(using Context): String =
+      super.messageAndPos(dia).replaceAll("\u001B\\[[;\\d]*m", "")
+  }
+
   /** The MillDriver contains code for initializing a Context and reporting errors. */
-  private object MillDriver extends Driver with MessageRendering {
+  private object MillDriver extends Driver {
 
     /** While just parsing it isn't necessary to refresh the context */
     override protected val initCtx: Context = super.initCtx
@@ -468,7 +483,7 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
         case err: Diagnostic.Error => err
       }
       errs.map(d =>
-        messageAndPos(d).replaceAll("\u001B\\[[;\\d]*m", "")
+        MillRendering.messageAndPos(d)
       )
     }
 
