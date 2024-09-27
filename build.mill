@@ -1089,14 +1089,14 @@ def validate(): Command[Unit] = {
 }
 
 val dummyDeps: Seq[Dep] = Seq(
-  // Deps.DocDeps.millScip,
+  Deps.DocDeps.millScip,
   Deps.semanticDbJava,
-  // Deps.semanticDBscala,
+  Deps.semanticDBscala,
   Deps.TestDeps.scalaTest,
   Deps.TestDeps.zioTest,
-  // Deps.acyclic,
-  // Deps.scalacScoverage2Plugin,
-  // ivy"com.lihaoyi:::ammonite:${Deps.ammoniteVersion}"
+  Deps.acyclic,
+  Deps.scalacScoverage2Plugin,
+  ivy"com.lihaoyi:::ammonite:${Deps.ammoniteVersion}"
 ) ++ Deps.transitiveDeps ++ Deps.RuntimeDeps.all
 
 implicit object DepSegment extends Cross.ToSegments[Dep]({ dep =>
@@ -1110,6 +1110,6 @@ implicit object DepSegment extends Cross.ToSegments[Dep]({ dep =>
  */
 object dummy extends Cross[DependencyFetchDummy](dummyDeps)
 trait DependencyFetchDummy extends ScalaModule with Cross.Module[Dep] {
-  def scalaVersion = Deps.scalaVersion
+  def scalaVersion = Deps.scala2Version
   def compileIvyDeps = Agg(crossValue)
 }
