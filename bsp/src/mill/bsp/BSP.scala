@@ -1,6 +1,5 @@
 package mill.bsp
 
-import mill.given
 import mill.api.{Ctx, PathRef}
 import mill.{Agg, T, Task, given}
 import mill.define.{Command, Discover, ExternalModule}
