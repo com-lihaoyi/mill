@@ -88,7 +88,7 @@ trait TwirlModule extends mill.Module { twirlModule =>
 
   def twirlInclusiveDot: Boolean = false
 
-  def compileTwirl: T[mill.scalalib.api.CompilationResult] = Task.Persistent {
+  def compileTwirl: T[mill.scalalib.api.CompilationResult] = Task(persistent = true) {
     TwirlWorkerApi.twirlWorker
       .compile(
         twirlClasspath(),

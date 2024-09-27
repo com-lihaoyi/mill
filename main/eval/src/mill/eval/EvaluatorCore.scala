@@ -184,7 +184,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       case Terminal.Labelled(t, _) =>
         if (tasksTransitive.contains(t)) true
         else t match {
-          case t: Command[_] => t.parallelizable
+          case t: Command[_] => !t.serial
           case _ => false
         }
       case _ => !serialCommandExec

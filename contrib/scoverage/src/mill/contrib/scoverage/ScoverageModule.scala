@@ -146,7 +146,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
      * The persistent data dir used to store scoverage coverage data.
      * Use to store coverage data at compile-time and by the various report targets.
      */
-    def data: T[PathRef] = Task.Persistent {
+    def data: T[PathRef] = Task(persistent = true) {
       // via the persistent target, we ensure, the dest dir doesn't get cleared
       PathRef(T.dest)
     }

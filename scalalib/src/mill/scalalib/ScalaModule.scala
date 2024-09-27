@@ -267,7 +267,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   }
 
   // Keep in sync with [[bspCompileClassesPath]]
-  override def compile: T[CompilationResult] = Task.Persistent {
+  override def compile: T[CompilationResult] = Task(persistent = true) {
     val sv = scalaVersion()
     if (sv == "2.12.4") T.log.error(
       """Attention: Zinc is known to not work properly for Scala version 2.12.4.
@@ -432,7 +432,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    * Opens up a Scala console with your module and all dependencies present,
    * for you to test and operate your code interactively.
    */
-  def console(): Command[Unit] = Task.Command {
+  def console(): Command[Unit] = Task.Command(serial = true) {
     if (!Util.isInteractive()) {
       Result.Failure("console needs to be run with the -i/--interactive flag")
     } else {
@@ -507,7 +507,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    * for you to test and operate your code interactively.
    * Use [[ammoniteVersion]] to customize the Ammonite version to use.
    */
-  def repl(replOptions: String*): Command[Unit] = Task.Command {
+  def repl(replOptions: String*): Command[Unit] = Task.Command(serial = true) {
     if (T.log.inStream == DummyInputStream) {
       Result.Failure("repl needs to be run with the -i/--interactive flag")
     } else {
@@ -624,7 +624,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     )
   }
 
-  override def semanticDbData: T[PathRef] = Task.Persistent {
+  override def semanticDbData: T[PathRef] = Task(persistent = true) {
     val sv = scalaVersion()
 
     val scalacOptions = (
