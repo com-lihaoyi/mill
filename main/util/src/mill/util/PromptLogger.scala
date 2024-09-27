@@ -104,7 +104,9 @@ private[mill] class PromptLogger(
     if (!reportedIdentifiers(key)) {
       reportedIdentifiers.add(key)
       for ((verboseKeySuffix, message) <- seenIdentifiers.get(key)) {
-        systemStreams.err.println(infoColor(s"[${key.mkString("-")}$verboseKeySuffix] $message"))
+        if (enableTicker) {
+          systemStreams.err.println(infoColor(s"[${key.mkString("-")}$verboseKeySuffix] $message"))
+        }
       }
     }
   }
