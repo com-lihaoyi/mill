@@ -388,7 +388,7 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
         // dotty will always insert a package `<empty>` if there is no package declaration,
         // or if there is an import before the package declaration.
         // we should ignore this package
-        stats
+        Trees.flatten(stats) // could be EmptyTree
       case _ =>
         trees // don't unwrap the package
     }
@@ -408,7 +408,7 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
         topLevel(from, trees)
     }
 
-    def topLevel(from: Int, trees: List[untpd.Tree]): Unit = trees match {
+    def topLevel(from: Int, trees0: List[untpd.Tree]): Unit = trees0 match {
       case tree :: trees1 =>
         val pos = tree.sourcePos
         if validSpan(pos) then
