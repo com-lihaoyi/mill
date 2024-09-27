@@ -50,7 +50,7 @@ trait JsonFormatters {
         ujson.Obj(
           "declaringClass" -> ujson.Str(ste.getClassName),
           "methodName" -> ujson.Str(ste.getMethodName),
-          "fileName" -> ujson.Arr(Option(ste.getFileName()).map(ujson.Str(_)).toSeq: _*),
+          "fileName" -> ujson.Arr(Option(ste.getFileName()).map(ujson.Str(_)).toSeq*),
           "lineNumber" -> ujson.Num(ste.getLineNumber)
         ),
       json =>
@@ -62,7 +62,7 @@ trait JsonFormatters {
         )
     )
 
-  implicit def enumFormat[T <: java.lang.Enum[_]: ClassTag]: RW[T] =
+  implicit def enumFormat[T <: java.lang.Enum[?]: ClassTag]: RW[T] =
     upickle.default.readwriter[String].bimap(
       _.name(),
       (s: String) =>

@@ -433,12 +433,23 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with MillScalafixM
   def scalacOptions =
     super.scalacOptions() ++ Seq(
       "-deprecation",
-      "-feature",
-      "-Xlint:unused",
-      "-Xlint:adapted-args"
+      "-feature"
     ) ++ (
-      if (ZincWorkerUtil.isScala3(scalaVersion())) Seq.empty
-      else Seq("-P:acyclic:force")
+      if (ZincWorkerUtil.isScala3(scalaVersion())) Seq(
+        // "-Werror",
+        // "-Wunused:all",
+        // "-no-indent",
+        // "-Wvalue-discard",
+        // "-Wshadow:all",
+        // "-Wsafe-init",
+        // "-Wnonunit-statement",
+        // "-Wimplausible-patterns",
+      )
+      else Seq(
+        "-P:acyclic:force",
+        "-Xlint:unused",
+        "-Xlint:adapted-args"
+      )
     )
 
   def scalacPluginIvyDeps = T {

@@ -1,7 +1,6 @@
 package mill.runner.worker
 
 import dotty.tools.dotc.CompilationUnit
-import dotty.tools.dotc.Compiler
 import dotty.tools.dotc.Driver
 import dotty.tools.dotc.ast.Positioned
 import dotty.tools.dotc.ast.Trees
@@ -10,10 +9,7 @@ import dotty.tools.dotc.ast.untpd.ImportSelector
 import dotty.tools.dotc.core.Contexts.Context
 import dotty.tools.dotc.core.Contexts.ctx
 import dotty.tools.dotc.core.Contexts.inContext
-import dotty.tools.dotc.core.Phases.Phase
 import dotty.tools.dotc.core.StdNames.nme
-import dotty.tools.dotc.interfaces
-import dotty.tools.dotc.parsing.Parser
 import dotty.tools.dotc.parsing.Parsers
 import dotty.tools.dotc.parsing.Parsers.OutlineParser
 import dotty.tools.dotc.parsing.Scanners.Scanner
@@ -25,10 +21,8 @@ import dotty.tools.dotc.reporting.HideNonSensicalMessages
 import dotty.tools.dotc.reporting.Message
 import dotty.tools.dotc.reporting.MessageKind
 import dotty.tools.dotc.reporting.MessageRendering
-import dotty.tools.dotc.reporting.Profile
 import dotty.tools.dotc.reporting.StoreReporter
 import dotty.tools.dotc.reporting.UniqueMessagePositions
-import dotty.tools.dotc.util.Property
 import dotty.tools.dotc.util.SourceFile
 import dotty.tools.dotc.util.Spans.Span
 import mill.runner.worker.api.ImportTree
@@ -36,9 +30,6 @@ import mill.runner.worker.api.ObjectData
 import mill.runner.worker.api.ScalaCompilerWorkerApi
 import mill.runner.worker.api.Snip
 
-import java.io.File
-import java.net.URLClassLoader
-import scala.concurrent.duration.span
 import dotty.tools.dotc.util.SourcePosition
 
 final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
@@ -59,15 +50,16 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
     yield split
   }
 
-  def liftErrors[T](op: Context ?=> T)(using Context): Either[List[String], T] =
+  def liftErrors[T](op: Context ?=> T)(using Context): Either[List[String], T] = {
     val res = op
     if ctx.reporter.hasErrors then
       Left(MillDriver.renderErrors())
     else
       Right(res)
+  }
 
   def parseImportHooksWithIndices(stmts: Seq[String]): Seq[(String, Seq[ImportTree])] = {
-    for stmt <- stmts yield
+    for stmt <- stmts yield {
       val imports = {
         if stmt.startsWith("import") then
           parseImportTrees(SourceFile.virtual("<import>", stmt))
@@ -75,7 +67,7 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
           Nil
       }
       (stmt, imports)
-    end for
+    }
   }
 
   def parseImportTrees(source: SourceFile): Seq[ImportTree] = MillDriver.unitContext(source) {
@@ -124,7 +116,7 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
       }
     }
 
-    def outlineCompilationUnit(source: SourceFile)(using Context): List[untpd.Tree] =
+    def outlineCompilationUnit(source: SourceFile)(using Context): List[untpd.Tree] = {
       ParseLock.sync {
         val parser = new OutlineParser(source) {
 
@@ -146,15 +138,18 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
            * and then as soon as we would drop down to "top-level" statements we then switch to
            * parsing the body of the `RootModule` object, but we should not allow a self-type.
            */
-          override def topStatSeq(outermost: Boolean): List[untpd.Tree] =
+          override def topStatSeq(outermost: Boolean): List[untpd.Tree] = {
             val (_, stats) = templateStatSeq()
             stats
+          }
         }
 
-        parser.parse() match
+        parser.parse() match {
           case untpd.Thicket(trees) => Trees.flatten(trees)
           case tree => tree :: Nil
+        }
       }
+    }
 
     def importStatement(source: SourceFile)(using Context): List[untpd.Tree] = ParseLock.sync {
       val parser = OutlineParser(source)
@@ -197,18 +192,20 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
       val outlineParser: OutlineParser = new OutlineParser(ctx.source) {
         override val in = in0
 
-        override def atSpan[T <: Positioned](span: Span)(t: T): T =
+        override def atSpan[T <: Positioned](span: Span)(t: T): T = {
           if t == untpd.EmptyTree || t == untpd.EmptyValDef then t
           else super.atSpan(span)(t)
+        }
       }
 
       // parser that will enter a template body, but then not parse nested templates
       val parser = new Parsers.Parser(ctx.source) {
         override val in = in0
 
-        override def atSpan[T <: Positioned](span: Span)(t: T): T =
+        override def atSpan[T <: Positioned](span: Span)(t: T): T = {
           if t == untpd.EmptyTree || t == untpd.EmptyValDef then t
           else super.atSpan(span)(t)
+        }
 
         override def templateStatSeq(): (untpd.ValDef, List[untpd.Tree]) =
           outlineParser.templateStatSeq()
@@ -217,12 +214,13 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
     }
   }
 
-  private def syntaxError(msg0: String)(using Context): Message =
+  private def syntaxError(msg0: String)(using Context): Message = {
     new Message(ErrorMessageID.NoExplanationID) {
       override def kind: MessageKind = MessageKind.Syntax
       override protected def msg(using Context): String = msg0
       override protected def explain(using Context): String = ""
     }
+  }
 
   private def objectDatas(trees: List[untpd.Tree])(using Context): Seq[ObjectDataImpl] = {
     val buf = Seq.newBuilder[ObjectDataImpl]
@@ -256,7 +254,7 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
         }
       }
       val parent0 = {
-        impl.parents match
+        impl.parents match {
           case parent :: _ if validSpan(parent.sourcePos) =>
             val start0 = parent.sourcePos.start
             val end0 = parent.sourcePos.end
@@ -264,10 +262,11 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
             Snippet(text, start0, end0)
           case _ =>
             Snippet()
+        }
       }
       val endMarker0 = {
         val endSpan = mdef.endSpan
-        if endSpan.exists then
+        if endSpan.exists then {
           // Dotty bug - "end `package`" span is off by two characters
           // i.e. it is computed by subtracting the name length from the end of span,
           // ignoring backticks
@@ -275,8 +274,9 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
           val end0 = endSpan.end
           val text = slice(start0, end0)
           Some(Snippet(text, start0, end0))
-        else
+        } else {
           None
+        }
       }
       val finalStat0 = {
         // find the whitespace before the first statement in the object
@@ -329,18 +329,23 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
   private def importTrees(trees: List[untpd.Tree])(using Context): Seq[ImportTree] = {
     val buf = Seq.newBuilder[ImportTree]
 
-    def prefixAsSeq(pre: untpd.Tree, acc: List[(String, Int)]): Option[(Int, Seq[(String, Int)])] =
+    def prefixAsSeq(
+        pre: untpd.Tree,
+        acc: List[(String, Int)]
+    ): Option[(Int, Seq[(String, Int)])] = {
       pre match {
         case untpd.Ident(name) =>
           // the innermost part of an import prefix is always an `Ident`
-          name.show match
+          name.show match {
             case millName @ s"$$$_" =>
               Some(pre.sourcePos.start -> ((millName -> pre.sourcePos.end) :: acc))
             case _ => None // first index wasn't a $foo import, so ignore
+          }
         case untpd.Select(qual, name) =>
           // i.e. `Select(qual, name)` === `qual.name`
           prefixAsSeq(qual, (name.show -> pre.sourcePos.end) :: acc)
       }
+    }
 
     def importTree(tree: untpd.Import): Option[ImportTree] = {
       val untpd.Import(prefix, sels) = tree
@@ -382,7 +387,6 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
     ctx.source.content.slice(start, end).mkString
 
   private def splitTrees(trees: List[untpd.Tree])(using Context): (Seq[String], Seq[String]) = {
-    val content = ctx.source.content()
     val topLevelPkgs = Seq.newBuilder[String]
     val topLevelStats = Seq.newBuilder[String]
     val initialStats = trees match {
@@ -395,9 +399,10 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
         trees // don't unwrap the package
     }
 
-    def commaSeparatedImport(tree: untpd.Import): Boolean =
+    def commaSeparatedImport(tree: untpd.Import): Boolean = {
       val pos = tree.sourcePos
       validSpan(pos) && MillParsers.nextTokenIsntImport(pos.start)
+    }
 
     /** We need to pack consecutive imports where the following is synthetic */
     def importRest(start: Int, from: Int, trees: List[untpd.Tree]): Unit = trees match {
@@ -413,7 +418,7 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
     def topLevel(from: Int, trees0: List[untpd.Tree]): Unit = trees0 match {
       case tree :: trees1 =>
         val pos = tree.sourcePos
-        if validSpan(pos) then
+        if validSpan(pos) then {
           topLevelStats += slice(from, pos.start)
           tree match {
             case untpd.Import(_, _) =>
@@ -422,15 +427,16 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
               topLevelStats += slice(pos.start, pos.end)
               topLevel(pos.end, trees1)
           }
-        else
+        } else {
           // TODO: let's check if this actually happens, if so, perhaps we should just ignore it
           // i.e. if it's generated code, then nothing is lost by ignoring it.
           report.error(syntaxError(s"unexpected tree ${tree.show}."), pos)
           topLevel(from, trees1)
+        }
       case Nil => ()
     }
 
-    def literalPackageId(pre: untpd.Tree, acc: List[String]): String =
+    def literalPackageId(pre: untpd.Tree, acc: List[String]): String = {
       pre match {
         case id @ untpd.Ident(_) =>
           val acc1 = slice(id.sourcePos.start, id.sourcePos.end) :: acc
@@ -439,16 +445,18 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
           val acc1 = slice(sel.sourcePos.point, sel.sourcePos.end) :: acc
           literalPackageId(qual, acc1)
       }
+    }
 
     def compilationUnit(from: Int, trees: List[untpd.Tree]): Unit = {
       trees match {
         case untpd.PackageDef(pid, stats) :: Nil if validSpan(pid.sourcePos) =>
           val end0 = pid.sourcePos.end
-          if MillParsers.nextTokenIsntBlock(end0) then
+          if MillParsers.nextTokenIsntBlock(end0) then {
             topLevelPkgs += literalPackageId(pid, Nil)
             compilationUnit(end0, stats)
-          else
+          } else {
             report.error(syntaxError(s"Mill forbids packages to introduce a block."), pid.sourcePos)
+          }
         case _ =>
           topLevel(from, trees)
       }
@@ -465,9 +473,10 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
      * Dotty has an off-by-one error with the column in rendering messages, fix it here
      * (there is regression testing for this in `ParseErrorTests.scala`)
      */
-    override protected def posFileStr(pos: SourcePosition): String =
+    override protected def posFileStr(pos: SourcePosition): String = {
       val path = pos.source.file.path
       if pos.exists then s"$path:${pos.line + 1}:${pos.column + 1}" else path
+    }
 
     /** strip color from result */
     override def messageAndPos(dia: Diagnostic)(using Context): String =

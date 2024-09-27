@@ -173,7 +173,7 @@ object BuildInfo {
          |package ${buildInfoPackageName}
          |
          |object $buildInfoObjectName {
-         |  private[this] val buildInfoProperties: java.util.Properties = new java.util.Properties()
+         |  private val buildInfoProperties: java.util.Properties = new java.util.Properties()
          |
          |  {
          |    val buildInfoInputStream = getClass
