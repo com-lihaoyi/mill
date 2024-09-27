@@ -16,76 +16,8 @@ object app extends AndroidModule {
 
 /** Usage
 
-Set configuration with path and name options if user dont provides then use the default path and name
-
---path: The path to the configuration folder (default: path/to/1-hello-world/)
---name: The name of the app (default: helloWorld)
-
 > ./mill app.setConfig
-
-or ./mill app.setConfig --path path/to/configFolder --name appname
-
-Compile the project:
 
 > ./mill app.compile
 
-or ./mill __.compile
-
-Both commands will trigger the compilation process.
-
-Complete!
-
-Once the compile process finishes, the project will be built using the specified configuration.
-
-Note: Make sure to run mill app.setConfig before running the compile task, or you'll encounter a missing configuration error.
-
 */
-
-/**
- * ## Android APK Build Process
- *
- * This code automates the process of building an Android APK using the Mill build tool. 
- * It covers the entire build flow from resource generation to APK packaging, alignment, and signing.
- * 
- * ### Steps:
- * 
- * 1. **Setting up the Android SDK**
- *    - `downloadAndroidSdkComponents`
- *    - Downloads the Android SDK components (command-line tools, platform-tools, etc.) and sets up the environment.
- * 
- * 2. **Generating Android Resources**
- *    - `generateResources`
- *    - Compiles resources defined in the `AndroidManifest.xml` file using AAPT and generates necessary Java files.
- * 
- * 3. **Compiling Java Source Files**
- *    - `compileJava`
- *    - Compiles the user-defined Java source files and the Android-generated resources into class files.
- * 
- * 4. **Packaging into a JAR**
- *    - `createJar`
- *    - Packages the compiled Java class files into a JAR using the D8 tool. This JAR will later be converted into DEX format.
- * 
- * 5. **Converting JAR to DEX**
- *    - `createDex`
- *    - Converts the JAR file into an Android DEX file, which is executable on Android devices.
- * 
- * 6. **Creating the APK**
- *    - `createApk`
- *    - Packages the DEX file and resources into an unsigned APK.
- * 
- * 7. **Aligning the APK**
- *    - `alignApk`
- *    - Aligns the APK using the `zipalign` tool to optimize it for faster loading on Android devices.
- * 
- * 8. **Creating a Keystore**
- *    - `createKeystore`
- *    - Generates a keystore (if one doesn't already exist) for signing the APK.
- * 
- * 9. **Signing the APK**
- *    - `createApp`
- *    - Signs the APK with the keystore, creating a valid, installable APK for Android devices.
- * 
- * ### Process Flow:
- * 
- * `downloadAndroidSdkComponents` → `generateResources` → `compileJava` → `createJar` → `createDex` → `createApk` → `alignApk` → `createKeystore` → `createApp`
- */
