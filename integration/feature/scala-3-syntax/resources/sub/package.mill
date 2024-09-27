@@ -1,6 +1,12 @@
 package build.sub
 
+// TODO: add regression test for self-types
+// self: Int =>
 import mill.*
 
-def subCommand(): Command[Unit] = Task.Command:
+// expressions allowed at top-level
+assert(1 + 1 == 2)
+
+// modifiers also allowed at top-level
+private def subCommand(): Command[Unit] = Task.Command:
   println("Hello, sub-world!")

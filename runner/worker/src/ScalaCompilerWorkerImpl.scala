@@ -123,9 +123,27 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
     def outlineCompilationUnit(source: SourceFile)(using Context): untpd.Tree = ParseLock.sync {
       val parser = new OutlineParser(source) {
 
-        /** A Mill compilation unit is effectively a package followed by a template body */
+        /**
+         * This is an outline parser, so will skip template bodies anyway,
+         * however in our override of `topStatSeq` we redirect to `templateStatSeq`,
+         * which expects an initial self-type. Mill scripts do not have self-types.
+         * By immediately returning an empty `ValDef` then the parser will not
+         * consume any user-written top-level self type, and instead emit
+         * the expected syntax error.
+         */
+        override def selfType(): untpd.ValDef =
+          untpd.EmptyValDef
+
+        /**
+         * A Mill compilation unit is effectively a package declaration followed by statements
+         * that will be spliced into a template body.
+         * So we can emulate this by parsing a standard compilation unit - so reading the outer packages,
+         * and then as soon as we would drop down to "top-level" statements we then switch to
+         * parsing the body of the `RootModule` object, but we should not allow a self-type.
+         */
         override def topStatSeq(outermost: Boolean): List[untpd.Tree] =
-          blockStatSeq()
+          val (_, stats) = templateStatSeq()
+          stats
       }
 
       parser.parse()
