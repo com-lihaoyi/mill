@@ -175,6 +175,8 @@ private class MillBuildServer(
             bsp4j.ScalaPlatform.forValue(d.platform.number),
             d.jars.asJava
           )
+          for (jvmBuildTarget <- d.jvmBuildTarget)
+            target.setJvmBuildTarget(MillBuildServer.jvmBuildTarget(jvmBuildTarget))
           Some((dataKind, target))
 
         case Some((dataKind, d: JvmBuildTarget)) =>
