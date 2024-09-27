@@ -15,7 +15,8 @@ object CodeGen {
       allScriptCode: Map[os.Path, String],
       targetDest: os.Path,
       enclosingClasspath: Seq[os.Path],
-      millTopLevelProjectRoot: os.Path
+      millTopLevelProjectRoot: os.Path,
+      output: os.Path
   ): Unit = {
     for (scriptSource <- scriptSources) {
       val scriptPath = scriptSource.path
@@ -94,6 +95,7 @@ object CodeGen {
             projectRoot,
             enclosingClasspath,
             millTopLevelProjectRoot,
+            output,
             scriptPath,
             scriptFolderPath,
             childAliases,
@@ -112,6 +114,7 @@ object CodeGen {
       projectRoot: os.Path,
       enclosingClasspath: Seq[os.Path],
       millTopLevelProjectRoot: os.Path,
+      output: os.Path,
       scriptPath: os.Path,
       scriptFolderPath: os.Path,
       childAliases: String,
@@ -126,7 +129,8 @@ object CodeGen {
       segments,
       scriptFolderPath,
       enclosingClasspath,
-      millTopLevelProjectRoot
+      millTopLevelProjectRoot,
+      output
     )
 
     val instrument = new ObjectDataInstrument(scriptCode)
@@ -183,13 +187,15 @@ object CodeGen {
       segments: Seq[String],
       scriptFolderPath: os.Path,
       enclosingClasspath: Seq[os.Path],
-      millTopLevelProjectRoot: os.Path
+      millTopLevelProjectRoot: os.Path,
+      output: os.Path
   ): String = {
     s"""import _root_.mill.runner.MillBuildRootModule
        |@_root_.scala.annotation.nowarn
        |object MillMiscInfo extends MillBuildRootModule.MillMiscInfo(
        |  ${enclosingClasspath.map(p => literalize(p.toString))},
        |  ${literalize(scriptFolderPath.toString)},
+       |  ${literalize(output.toString)},
        |  ${literalize(millTopLevelProjectRoot.toString)},
        |  _root_.scala.Seq(${segments.map(pprint.Util.literalize(_)).mkString(", ")})
        |)

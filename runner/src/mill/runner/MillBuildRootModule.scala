@@ -121,7 +121,8 @@ abstract class MillBuildRootModule()(implicit
         parsed.seenScripts,
         T.dest,
         millBuildRootModuleInfo.enclosingClasspath,
-        millBuildRootModuleInfo.topLevelProjectRoot
+        millBuildRootModuleInfo.topLevelProjectRoot,
+        millBuildRootModuleInfo.output
       )
       Result.Success(Seq(PathRef(T.dest)))
     }
@@ -265,12 +266,14 @@ object MillBuildRootModule {
   class BootstrapModule(
       topLevelProjectRoot0: os.Path,
       projectRoot: os.Path,
+      output: os.Path,
       enclosingClasspath: Seq[os.Path]
   )(implicit baseModuleInfo: RootModule.Info) extends MillBuildRootModule()(
         implicitly,
         MillBuildRootModule.Info(
           enclosingClasspath,
           projectRoot,
+          output,
           topLevelProjectRoot0
         )
       ) {
@@ -281,25 +284,29 @@ object MillBuildRootModule {
   case class Info(
       enclosingClasspath: Seq[os.Path],
       projectRoot: os.Path,
+      output: os.Path,
       topLevelProjectRoot: os.Path
   )
 
   def parseBuildFiles(millBuildRootModuleInfo: MillBuildRootModule.Info): FileImportGraph = {
     FileImportGraph.parseBuildFiles(
       millBuildRootModuleInfo.topLevelProjectRoot,
-      millBuildRootModuleInfo.projectRoot / os.up
+      millBuildRootModuleInfo.projectRoot / os.up,
+      millBuildRootModuleInfo.output
     )
   }
 
   class MillMiscInfo(
       enclosingClasspath: Seq[String],
       projectRoot: String,
+      output: String,
       topLevelProjectRoot: String,
       segments: Seq[String]
   ) {
     implicit lazy val millBuildRootModuleInfo: MillBuildRootModule.Info = MillBuildRootModule.Info(
       enclosingClasspath.map(os.Path(_)),
       os.Path(projectRoot),
+      os.Path(output),
       os.Path(topLevelProjectRoot)
     )
     implicit lazy val millBaseModuleInfo: RootModule.Info = RootModule.Info(
