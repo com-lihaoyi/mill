@@ -579,7 +579,7 @@ object Target extends TaskBase {
           w.splice,
           cls.splice.value,
           taskIsPrivate.splice,
-          serial = c.prefix.splice.asInstanceOf[Task.CommandFactory].exclusive
+          exclusive = c.prefix.splice.asInstanceOf[Task.CommandFactory].exclusive
         )
       )
     }
@@ -762,7 +762,7 @@ class Command[+T](
     val writer: W[_],
     val cls: Class[_],
     val isPrivate: Option[Boolean],
-    val serial: Boolean
+    val exclusive: Boolean
 ) extends NamedTask[T] {
   def this(
       t: Task[T],
