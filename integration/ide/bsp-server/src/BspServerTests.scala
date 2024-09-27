@@ -51,9 +51,30 @@ object BspServerTests extends UtestIntegrationTestSuite {
             }
         }
 
-        val normalizedLocalValues =
-          normalizeLocalValuesForTesting(workspacePath) ++ scalaTransitiveSubstitutions ++ Seq(
-            scalaVersion -> "<scala-version>"
+        val kotlinVersion = sys.props.getOrElse("TEST_KOTLIN_VERSION", ???)
+        val kotlinTransitiveSubstitutions = {
+          val scalaFetchRes = coursierapi.Fetch.create()
+            .addDependencies(coursierapi.Dependency.of(
+              "org.jetbrains.kotlin",
+              "kotlin-stdlib",
+              kotlinVersion
+            ))
+            .fetchResult()
+          scalaFetchRes.getDependencies.asScala
+            .filter(dep => dep.getModule.getOrganization != "org.jetbrains.kotlin")
+            .map { dep =>
+              def basePath(version: String) =
+                s"${dep.getModule.getOrganization.split('.').mkString("/")}/${dep.getModule.getName}/$version/${dep.getModule.getName}-$version"
+              basePath(dep.getVersion) -> basePath(s"<${dep.getModule.getName}-version>")
+            }
+        }
+
+        val normalizedLocalValues = normalizeLocalValuesForTesting(workspacePath) ++
+          scalaTransitiveSubstitutions ++
+          kotlinTransitiveSubstitutions ++
+          Seq(
+            scalaVersion -> "<scala-version>",
+            kotlinVersion -> "<kotlin-version>"
           )
 
         compareWithGsonSnapshot(
