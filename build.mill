@@ -718,7 +718,7 @@ object initmodule extends MillPublishScalaModule {
 
   def exampleList: T[PathRef] = T {
     val data:Seq[(os.SubPath,String)] = build.examplePathsWithArtifactName().map{ case (path,str) =>
-      val downloadUrl = build.Settings.projectUrl + "/releases/download/" + millLastTag() + "/" + str + ".zip"
+      val downloadUrl = build.Settings.projectUrl + "/releases/download/" + millVersion() + "/" + str + ".zip"
       val subPath = path.subRelativeTo(T.workspace / "example")
       (subPath,downloadUrl)
     }
