@@ -107,8 +107,8 @@ object Task extends TaskBase {
   ): Command[T] = macro Target.Internal.commandImpl[T]
 
   def Command(
-               t: NamedParameterOnlyDummy.type = NamedParameterOnlyDummy,
-               exclusive: Boolean = false
+      t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
+      exclusive: Boolean = false
   ): CommandFactory = new CommandFactory(exclusive)
   class CommandFactory private[mill] (val exclusive: Boolean) extends TaskBase.TraverseCtxHolder {
     def apply[T](t: Result[T])(implicit
@@ -170,7 +170,7 @@ object Task extends TaskBase {
    * Violating that invariant can result in confusing mis-behaviors
    */
   def apply(
-      t: NamedParameterOnlyDummy.type = NamedParameterOnlyDummy,
+      t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
       persistent: Boolean = false
   ): ApplyFactory = new ApplyFactory(persistent)
   class ApplyFactory private[mill] (val persistent: Boolean) extends TaskBase.TraverseCtxHolder {
