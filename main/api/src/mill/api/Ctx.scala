@@ -119,7 +119,7 @@ class Ctx(
     val testReporter: TestReporter,
     val workspace: os.Path,
     val systemExit: Int => Nothing,
-    val executionContext: BlockableExecutionContext
+    val executionContext: TaskFutureApi
 ) extends Ctx.Dest
     with Ctx.Log
     with Ctx.Args
@@ -147,13 +147,13 @@ class Ctx(
 }
 
 import scala.concurrent.{Future, ExecutionContext}
-trait BlockableExecutionContext extends ExecutionContext with AutoCloseable {
+trait TaskFutureApi extends AutoCloseable { this: ExecutionContext =>
   def await[T](t: Future[T]): T
   def awaitAll[T](t: Seq[Future[T]]): Seq[T] = {
     implicit val ec = this
     await(Future.sequence(t))
   }
-  def sandboxedFuture[T](dest: os.Path, key: String, message: String)(t: => T)(implicit
-      ctx: mill.api.Ctx
+  def future[T](dest: os.Path, key: String, message: String)(t: => T)(implicit
+                                                                      ctx: mill.api.Ctx
   ): Future[T]
 }

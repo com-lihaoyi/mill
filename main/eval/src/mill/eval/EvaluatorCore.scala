@@ -64,13 +64,13 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
   }
 
   private def evaluate0(
-      goals: Agg[Task[_]],
-      logger: ColorLogger,
-      reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
-      testReporter: TestReporter = DummyTestReporter,
-      ec: BlockableExecutionContext,
-      contextLoggerMsg0: Int => String,
-      serialCommandExec: Boolean
+                         goals: Agg[Task[_]],
+                         logger: ColorLogger,
+                         reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
+                         testReporter: TestReporter = DummyTestReporter,
+                         ec: TaskFutureApi with ExecutionContext,
+                         contextLoggerMsg0: Int => String,
+                         serialCommandExec: Boolean
   ): Evaluator.Results = {
     os.makeDir.all(outPath)
     val chromeProfileLogger = new ChromeProfileLogger(outPath / millChromeProfile)
@@ -93,8 +93,8 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     def evaluateTerminals(
         terminals: Seq[Terminal],
         contextLoggerMsg: Int => String,
-        forkExecutionContext: BlockableExecutionContext
-    )(implicit taskExecutionContext: BlockableExecutionContext) = {
+        forkExecutionContext: TaskFutureApi with ExecutionContext
+    )(implicit taskExecutionContext: TaskFutureApi with ExecutionContext) = {
       // We walk the task graph in topological order and schedule the futures
       // to run asynchronously. During this walk, we store the scheduled futures
       // in a dictionary. When scheduling each future, we are guaranteed that the
