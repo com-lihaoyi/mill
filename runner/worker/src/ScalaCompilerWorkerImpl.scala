@@ -35,10 +35,15 @@ import dotty.tools.dotc.util.SourcePosition
 final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
 
   def splitScript(rawCode: String, fileName: String): Either[String, (Seq[String], Seq[String])] = {
-    val source = SourceFile.virtual(fileName, rawCode)
-    def mergeErrors(errors: List[String]): String =
-      s"$fileName failed to parse:" + System.lineSeparator + errors.mkString(System.lineSeparator)
-    splitScriptSource(source).left.map(mergeErrors)
+    try {
+      val source = SourceFile.virtual(fileName, rawCode)
+      def mergeErrors(errors: List[String]): String =
+        s"$fileName failed to parse:" + System.lineSeparator + errors.mkString(System.lineSeparator)
+      splitScriptSource(source).left.map(mergeErrors)
+    } catch {
+      case e: Throwable =>
+        Left(s"$fileName failed to parse: $e\n${e.getStackTrace.map(elem => s">  $elem").mkString("\n")}")
+    }
   }
 
   def splitScriptSource(
@@ -59,14 +64,19 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
   }
 
   def parseImportHooksWithIndices(stmts: Seq[String]): Seq[(String, Seq[ImportTree])] = {
-    for stmt <- stmts yield {
-      val imports = {
-        if stmt.startsWith("import") then
-          parseImportTrees(SourceFile.virtual("<import>", stmt))
-        else
-          Nil
+    try {
+      for stmt <- stmts yield {
+        val imports = {
+          if stmt.startsWith("import") then
+            parseImportTrees(SourceFile.virtual("<import>", stmt))
+          else
+            Nil
+        }
+        (stmt, imports)
       }
-      (stmt, imports)
+    } catch {
+      case e: Throwable =>
+        sys.error(s"Failed to parse import hooks: $e\n${e.getStackTrace.map(elem => s">  $elem").mkString("\n")}")
     }
   }
 
@@ -78,7 +88,12 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
   }
 
   def parseObjectData(rawCode: String): Seq[ObjectData] = {
-    parseObjects(SourceFile.virtual("<script>", rawCode))
+    try {
+      parseObjects(SourceFile.virtual("<script>", rawCode))
+    } catch {
+      case e: Throwable =>
+        sys.error(s"Failed to parse object data: $e\n${e.getStackTrace.map(elem => s">  $elem").mkString("\n")}")
+    }
   }
 
   def parseObjects(source: SourceFile): Seq[ObjectData] = MillDriver.unitContext(source) {
