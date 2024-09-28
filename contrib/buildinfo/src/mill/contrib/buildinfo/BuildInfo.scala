@@ -161,9 +161,10 @@ object BuildInfo {
         case v =>
           if (isScala)
             s"""${commentStr(v)}val ${v.key} = buildInfoProperties.getProperty("${v.key}")"""
-          else s"""${commentStr(
-              v
-            )}public static final java.lang.String ${v.key} = buildInfoProperties.getProperty("${v.key}");"""
+          else {
+            val propValue = s"""buildInfoProperties.getProperty("${v.key}")"""
+            s"""${commentStr(v)}public static final java.lang.String ${v.key} = $propValue;"""
+          }
       }
       .mkString("\n\n  ")
 

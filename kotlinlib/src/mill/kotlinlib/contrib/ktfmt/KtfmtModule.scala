@@ -1,0 +1,139 @@
+package mill
+package kotlinlib.contrib.ktfmt
+
+import mainargs.Leftover
+import mill.api.{Loose, PathRef}
+import mill.define.{Discover, ExternalModule}
+import mill.kotlinlib.{DepSyntax, KotlinModule}
+import mill.main.Tasks
+import mill.util.Jvm
+
+trait KtfmtBaseModule extends KotlinModule {
+
+  /**
+   * Classpath for running Ktfmt.
+   */
+  def ktfmtClasspath: T[Loose.Agg[PathRef]] = T {
+    defaultResolver().resolveDeps(
+      Agg(ivy"com.facebook:ktfmt:${ktfmtVersion()}")
+    )
+  }
+
+  /**
+   * Ktfmt version.
+   */
+  def ktfmtVersion: T[String] = T {
+    "0.52"
+  }
+
+  /**
+   * Additional arguments for Ktfmt. Check
+   * [[https://github.com/facebook/ktfmt/blob/main/core/src/main/java/com/facebook/ktfmt/cli/ParsedArgs.kt#L51 available options]].
+   */
+  def ktfmtOptions: T[Seq[String]] = T {
+    Seq.empty[String]
+  }
+}
+
+/**
+ * Performs formatting checks on Kotlin source files using [[https://github.com/facebook/ktfmt Ktfmt]].
+ */
+trait KtfmtModule extends KtfmtBaseModule {
+
+  /**
+   * Runs [[https://github.com/facebook/ktfmt Ktfmt]]
+   *
+   * @param ktfmtArgs arguments for the [[https://github.com/facebook/ktfmt Ktfmt]].
+   * @param sources list of sources to run  the tool on. If not provided, default module sources will be taken.
+   */
+  def ktfmt(
+      @mainargs.arg ktfmtArgs: KtfmtArgs,
+      @mainargs.arg(positional = true) sources: Leftover[String]
+  ): Command[Unit] = Task.Command {
+    val _sources = if (sources.value.isEmpty) {
+      this.sources()
+    } else {
+      sources.value.iterator.map(rel => PathRef(millSourcePath / os.RelPath(rel)))
+    }
+    KtfmtModule.ktfmtAction(
+      ktfmtArgs.style,
+      ktfmtArgs.format,
+      ktfmtArgs.removeUnusedImports,
+      _sources,
+      ktfmtClasspath(),
+      ktfmtOptions()
+    )
+  }
+}
+
+object KtfmtModule extends ExternalModule with KtfmtBaseModule with TaskModule {
+
+  def kotlinVersion = "1.9.24"
+
+  lazy val millDiscover: Discover = Discover[this.type]
+
+  override def defaultCommandName(): String = "formatAll"
+
+  /**
+   * Runs [[https://github.com/facebook/ktfmt Ktfmt]].
+   *
+   * @param ktfmtArgs formatting arguments
+   * @param sources list of [[KotlinModule]] to process
+   */
+  def formatAll(
+      @mainargs.arg ktfmtArgs: KtfmtArgs,
+      @mainargs.arg(positional = true) sources: Tasks[Seq[PathRef]]
+  ): Command[Unit] = Task.Command {
+    val _sources = T.sequence(sources.value)().iterator.flatten
+    ktfmtAction(
+      ktfmtArgs.style,
+      ktfmtArgs.format,
+      ktfmtArgs.removeUnusedImports,
+      _sources,
+      ktfmtClasspath(),
+      ktfmtOptions()
+    )
+  }
+
+  private def ktfmtAction(
+      style: String,
+      format: Boolean,
+      removeUnusedImports: Boolean,
+      sources: IterableOnce[PathRef],
+      classPath: Loose.Agg[PathRef],
+      options: Seq[String]
+  )(implicit ctx: api.Ctx): Unit = {
+
+    ctx.log.info("running ktfmt ...")
+
+    val args = Seq.newBuilder[String]
+    args ++= options
+    args += (style match {
+      case "kotlin" => "--kotlinlang-style"
+      case "google" => "--google-style"
+      case "meta" => "--meta-style"
+      case _ => throw new IllegalArgumentException(s"Unknown style ktfmt style: $style")
+    })
+    if (!format) {
+      args += "--dry-run"
+    }
+    if (!removeUnusedImports) {
+      args += "--do-not-remove-unused-imports"
+    }
+    args ++= sources.iterator.map(_.path.toString())
+
+    val exitCode = Jvm.callSubprocess(
+      mainClass = "com.facebook.ktfmt.cli.Main",
+      classPath = classPath.map(_.path),
+      mainArgs = args.result(),
+      workingDir = millSourcePath, // allow passing relative paths for sources like src/a/b
+      streamOut = true,
+      check = false
+    ).exitCode
+
+    if (exitCode == 0) {} // do nothing
+    else {
+      throw new RuntimeException(s"ktfmt exited abnormally with exit code = $exitCode")
+    }
+  }
+}

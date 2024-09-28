@@ -20,6 +20,10 @@ trait JUnitTests extends TestModule.Junit4 {
   }
 }
 
+trait foo
+
+object basic extends Module with foo
+
 /**
  * The Core Module Docz!
  */
@@ -36,6 +40,20 @@ object core extends JavaModule {
   /**
    * Core Target Docz!
    */
+  def target = Task {
+    import collection.JavaConverters._
+    println(this.getClass.getClassLoader.getResources("scalac-plugin.xml").asScala.toList)
+    "Hello!"
+  }
+}
+
+object core2 extends JavaModule
+
+object MyJavaTaskModule extends JavaModule {
+  override def moduleDeps: Seq[JavaModule] = Seq(core, core2)
+  def lineCount = T {
+    allSourceFiles().map(f => os.read.lines(f.path).size).sum
+  }
   def target = Task {
     import collection.JavaConverters._
     println(this.getClass.getClassLoader.getResources("scalac-plugin.xml").asScala.toList)
