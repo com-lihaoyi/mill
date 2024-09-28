@@ -1,234 +1,114 @@
-package mill.javalib.android 
+package mill.javalib.android
 
-import mill._
-import mill.scalalib._
-import mill.api.PathRef
+import mill.define._
 
-trait AndroidModule extends mill.Module with JavaModule {
-  var currentFolder: Option[os.Path] = None
+/**
+ * A trait representing an Android module within Mill build tool.
+ * This trait handles Android SDK installation, managing SDK tools,
+ * build tools, platform-specific libraries, and related utilities.
+ */
+trait AndroidModule extends Module {
 
-  var appName: String = "helloworld" 
+  /**
+   * URL from which the Android SDK command-line tools are downloaded.
+   */
+  val sdkUrl: String =
+    "https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip"
 
-  val androidBuildToolsVersion = "35.0.0"
-  
-  val androidPlatformVersion = "android-35"
-  
-  var sdkDir: os.Path = os.pwd
-  
-  var d8Path: os.Path = os.pwd
-  
-  val osName: String = sys.props("os.name").toLowerCase
-  val isWindows: Boolean = osName.contains("windows")
-  
-  var d8 = if (isWindows) {
-    os.rel / "build-tools" / androidBuildToolsVersion / "d8.bat"
-  } else {
-    os.rel / "build-tools" / androidBuildToolsVersion / "d8"
-  }
-  
-  var apksigner = if (isWindows) {
-    os.rel / "build-tools" / androidBuildToolsVersion / "apksigner.bat"
-  } else {
-    os.rel / "build-tools" / androidBuildToolsVersion / "apksigner"
-  }
+  /**
+   * Directory where the Android SDK will be installed.
+   * Default is the 'android-sdk' directory within the Mill source path.
+   */
+  val sdkDir: os.Path = millSourcePath / "android-sdk"
 
-  def setConfig(path: Option[String] = None, name: Option[String] = None) = T.command {
-    
-    val defaultPath = os.Path(millSourcePath.toString.replace("\\app", "\\")) 
-    val filePath = path.map(os.Path(_)).getOrElse(defaultPath) 
-    
-    if (!os.exists(filePath)) {
-      throw new java.io.IOException(s"Path $filePath does not exist!")
-    }
+  /**
+   * Path to the Android SDK command-line tools.
+   */
+  val toolsDir: os.Path = sdkDir / "cmdline-tools"
 
-    currentFolder = Some(filePath)
+  /**
+   * Version of the Android build tools to be used.
+   */
+  val buildToolsVersion: String = "35.0.0"
 
-    appName = name.getOrElse("helloworld")
-  }
+  /**
+   * Android platform version that will be targeted.
+   */
+  val platformVersion: String = "android-35"
 
-  def ensurePathIsSet(): os.Path = {
-    currentFolder match {
-      case Some(path) => path
-      case None =>
-        throw new RuntimeException("User path is not set! Please provide a valid path using 'app.setUserPath'")
-    }
-  }
+  /**
+   * Path to the Android build tools, based on the specified build tools version.
+   */
+  val buildToolsPath: os.Path = sdkDir / "build-tools" / buildToolsVersion
 
-  def commandLineToolsUrl: String = {
-    if (isWindows) {
-      "https://dl.google.com/android/repository/commandlinetools-win-11076708_latest.zip"
+  /**
+   * Path to the `android.jar` for the specified Android platform.
+   */
+  val androidJarPath: os.Path = sdkDir / "platforms" / platformVersion / "android.jar"
+
+  /**
+   * Path to the D8 Dex compiler, used for converting Java bytecode into Dalvik bytecode.
+   */
+  val d8: os.Path = buildToolsPath / "d8"
+
+  /**
+   * Path to the Android Asset Packaging Tool (AAPT), used for packaging Android apps.
+   */
+  val aapt: os.Path = buildToolsPath / "aapt"
+
+  /**
+   * Path to the Zipalign tool, used to optimize APKs for performance.
+   */
+  val zipalign: os.Path = buildToolsPath / "zipalign"
+
+  /**
+   * Path to the APK Signer tool, used for signing Android APK files.
+   */
+  val apksigner: os.Path = buildToolsPath / "apksigner"
+
+  /**
+   * Downloads and installs the Android SDK, including build tools and platform tools.
+   *
+   * This method performs the following steps:
+   * 1. Downloads the Android SDK command-line tools from the specified URL if not already downloaded.
+   * 2. Unzips the tools to the SDK directory and sets up necessary licenses.
+   * 3. Installs the required Android platform and build-tools using `sdkmanager`.
+   *
+   * If any of these steps have already been completed (e.g., tools are already installed),
+   * the method will skip those steps and exit early.
+   */
+  def installAndroidSdk(): Unit = {
+    // Step 1: Download the Android SDK command-line tools
+    val zipFile: os.Path = os.pwd / "commandlinetools-linux.zip"
+    if (!os.exists(zipFile)) {
+      os.write(zipFile, requests.get(sdkUrl).bytes)
     } else {
-      "https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip"
+      return // Exit the function if else block is executed
     }
-  }
 
-  def downloadAndroidSdkComponents: T[Unit] = T {
-    sdkDir = T.dest / "android-sdk"
-    os.makeDir.all(sdkDir)
-
-    val toolsZip = commandLineToolsUrl.split("/").last
-    val toolsPath = sdkDir / toolsZip
-
-    if (!os.exists(toolsPath)) {
-      println(s"Downloading command line tools from $commandLineToolsUrl...")
-      os.write(toolsPath, requests.get(commandLineToolsUrl).bytes)
-
-      if (isWindows) {
-        os.proc(
-          "powershell",
-          "Expand-Archive",
-          "-Path", toolsPath.toString,
-          "-DestinationPath", sdkDir.toString
-        ).call()
-      } else {
-        os.proc("unzip", toolsPath.toString, "-d", sdkDir.toString).call()
-      }
+    // Step 2: Unzip the SDK tools
+    if (!os.exists(toolsDir)) {
+      os.makeDir.all(toolsDir)
+      os.proc("unzip", zipFile, "-d", toolsDir).call()
+      val licensesDir: os.Path = sdkDir / "licenses"
+      os.makeDir.all(licensesDir)
+      os.write(licensesDir / "android-sdk-license", "24333f8a63b6825ea9c5514f83c2829b004d1fee")
     } else {
-      println("Command line tools already exist, skipping download.")
+      return // Exit the function if else block is executed
     }
 
-    val toolsPathUnzipped = sdkDir / "cmdline-tools" / "bin"
-    val sdkManagerPath = if (isWindows) {
-      toolsPathUnzipped / "sdkmanager.bat"
-    } else {
-      toolsPathUnzipped / "sdkmanager"
-    }
-
-    val licenseHash = "24333f8a63b6825ea9c5514f83c2829b004d1fee"
-    val licensesDir = sdkDir / "licenses"
-    os.makeDir.all(licensesDir)
-    os.write(licensesDir / "android-sdk-license", licenseHash)
-
-    os.proc(
-      sdkManagerPath.toString,
-      "--sdk_root=" + sdkDir.toString,
-      "platform-tools",
-      s"build-tools;$androidBuildToolsVersion",
-      s"platforms;$androidPlatformVersion"
-    ).call()
-  }
-
-  def generateResources = T {
-    downloadAndroidSdkComponents()
-    val aaptPath = sdkDir / "build-tools" / androidBuildToolsVersion / "aapt"
-    val genDir = T.dest / "gen"
-    os.makeDir.all(genDir)
-    os.proc(
-      aaptPath,
-      "package",
-      "-f",
-      "-m",
-      "-J", genDir,
-      "-M", ensurePathIsSet() / "AndroidManifest.xml",
-      "-I", sdkDir / "platforms" / androidPlatformVersion / "android.jar"
-    ).call()
-    PathRef(genDir)
-  }
-
-  def compileJava = T {
-    val genPath = generateResources().path
-    val objDir = T.dest / "obj"
-    os.makeDir.all(objDir)
-    os.proc(
-      "javac",
-      "-classpath", sdkDir / "platforms" / androidPlatformVersion / "android.jar",
-      "-d", objDir,
-      os.walk(genPath).filter(_.ext == "java"),
-      os.walk(ensurePathIsSet() / "java").filter(_.ext == "java")
-    ).call()
-    PathRef(objDir)
-  }
-
-  def createJar = T {
-    val compilePath = compileJava().path
-    d8Path = sdkDir / d8
-    val jarPath = T.dest / "my_classes.jar"
-    os.proc(
-      d8Path,
-      os.walk(compilePath).filter(_.ext == "class"),  
-      "--output", jarPath,
-      "--no-desugaring"  
-    ).call()
-    PathRef(jarPath)
-  }
-
-  def createDex = T {
-    val jarPath = createJar().path
-    val dexPath = T.dest
-    os.proc(
-      d8Path,
-      jarPath,
-      sdkDir / "platforms" / androidPlatformVersion / "android.jar",
-      "--output", dexPath
-    ).call()
-    PathRef(dexPath)
-  }
-
-  def createApk = T {
-    val dexPath = createDex().path
-    val aaptPath = sdkDir / "build-tools" / androidBuildToolsVersion / "aapt"
-    val apkPath = T.dest / s"${appName}.unsigned.apk"
-    os.proc(
-      aaptPath,
-      "package",
-      "-f",
-      "-M", ensurePathIsSet() / "AndroidManifest.xml",
-      "-I", sdkDir / "platforms" / androidPlatformVersion / "android.jar",
-      "-F", apkPath,
-      dexPath
-    ).call()
-    PathRef(apkPath)
-  }
-
-  def alignApk = T {
-    val createApkPath = createApk().path
-    val zipAlignPath = sdkDir / "build-tools" / androidBuildToolsVersion / "zipalign"
-    val alignedApkPath = T.dest / s"${appName}.aligned.apk"
-    os.proc(
-      zipAlignPath,
-      "-f",
-      "-p",
-      "4",
-      createApkPath,
-      alignedApkPath
-    ).call()
-    PathRef(alignedApkPath)
-  }
-
-  def createKeystore = T {
-    val keystorePath = T.dest / "keystore.jks"
-    if (!os.exists(keystorePath)) {
+    // Step 3: Install the required platforms and build-tools
+    val sdkManagerPath: os.Path = toolsDir / "cmdline-tools" / "bin" / "sdkmanager"
+    if (os.exists(sdkManagerPath)) {
       os.proc(
-        "keytool",
-        "-genkeypair",
-        "-keystore", keystorePath,
-        "-alias", "androidkey",
-        "-dname", "CN=MILL, OU=MILL, O=MILL, L=MILL, S=MILL, C=IN",
-        "-validity", "10000",
-        "-keyalg", "RSA",
-        "-keysize", "2048",
-        "-storepass", "android",
-        "-keypass", "android"
+        sdkManagerPath,
+        "--sdk_root=" + sdkDir.toString,
+        "platform-tools",
+        s"build-tools;$buildToolsVersion",
+        s"platforms;$platformVersion"
       ).call()
+    } else {
+      return // Exit the function if SDK manager is not found
     }
-    PathRef(keystorePath)
-  }
-
-  def createApp = T {
-    val apkAlignPath = alignApk().path
-    val keyStorePath = createKeystore().path
-    val apksignerPath: os.Path = sdkDir / apksigner
-    val signedApkPath = ensurePathIsSet() / s"${appName}.apk"
-    os.proc(
-      apksignerPath,
-      "sign",
-      "--ks", keyStorePath,
-      "--ks-key-alias", "androidkey",
-      "--ks-pass", "pass:android",
-      "--key-pass", "pass:android",
-      "--out", signedApkPath,
-      apkAlignPath
-    ).call()
-    PathRef(signedApkPath)
   }
 }

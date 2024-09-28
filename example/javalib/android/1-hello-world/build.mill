@@ -5,18 +5,132 @@ import requests._
 import mill.javalib.android.AndroidModule
 
 object app extends AndroidModule {
-  override def compile = T {
-    // Ensure the user has set the path before compiling
-    val path = ensurePathIsSet()
-    // Now we can proceed with the compile logic, using the valid path
+
+  val currentFolder = os.Path(millSourcePath.toString.replace("app", ""))
+  val appName = "HelloWorld"
+  
+  def generateResources = T {
+    installAndroidSdk()
+    val genDir = T.dest / "gen"
+    os.makeDir.all(genDir)
+    os.proc(
+      aapt,
+      "package",
+      "-f",
+      "-m",
+      "-J", genDir,
+      "-M", currentFolder / "AndroidManifest.xml",
+      "-I", androidJarPath
+    ).call()
+    PathRef(genDir)
+  }
+
+  def compileJava = T {
+    val objDir = T.dest / "obj"
+    os.makeDir.all(objDir)
+    os.proc(
+      "javac",
+      "-classpath", androidJarPath,
+      "-d", objDir,
+      os.walk(generateResources().path).filter(_.ext == "java"),
+      os.walk(currentFolder / "java").filter(_.ext == "java")
+    ).call()
+    PathRef(objDir)
+  }
+
+  def createJar = T {
+    val jarPath = T.dest / "my_classes.jar"
+    os.proc(
+      d8,
+      os.walk(compileJava().path).filter(_.ext == "class"),  
+      "--output", jarPath,
+      "--no-desugaring"  
+    ).call()
+    PathRef(jarPath)
+  }
+
+  def createDex = T {
+    val dexPath = T.dest
+    os.proc(
+      d8,
+      createJar().path,
+      androidJarPath,
+      "--output", dexPath
+    ).call()
+    PathRef(dexPath)
+  }
+
+  def createApk = T {
+    val apkPath = T.dest / s"${appName}.unsigned.apk"
+    os.proc(
+      aapt,
+      "package",
+      "-f",
+      "-M", currentFolder / "AndroidManifest.xml",
+      "-I", androidJarPath,
+      "-F", apkPath,
+      createDex().path
+    ).call()
+    PathRef(apkPath)
+  }
+
+  def alignApk = T {
+    val alignedApkPath = T.dest / s"${appName}.aligned.apk"
+    os.proc(
+      zipalign,
+      "-f",
+      "-p",
+      "4",
+      createApk().path,
+      alignedApkPath
+    ).call()
+    PathRef(alignedApkPath)
+  }
+
+  def createKeystore = T {
+    val keystorePath = T.dest / "keystore.jks"
+    if (!os.exists(keystorePath)) {
+      os.proc(
+        "keytool",
+        "-genkeypair",
+        "-keystore", keystorePath,
+        "-alias", "androidkey",
+        "-dname", "CN=MILL, OU=MILL, O=MILL, L=MILL, S=MILL, C=IN",
+        "-validity", "10000",
+        "-keyalg", "RSA",
+        "-keysize", "2048",
+        "-storepass", "android",
+        "-keypass", "android"
+      ).call()
+    }
+    PathRef(keystorePath)
+  }
+
+  def createApp = T {
+    val signedApkPath = currentFolder / s"${appName}.apk"
+    os.proc(
+      apksigner,
+      "sign",
+      "--ks", createKeystore().path,
+      "--ks-key-alias", "androidkey",
+      "--ks-pass", "pass:android",
+      "--key-pass", "pass:android",
+      "--out", signedApkPath,
+      alignApk().path
+    ).call()
+    PathRef(signedApkPath)
+  }
+
+
+  def compile = T {
+    if (!os.exists(currentFolder)) {
+      throw new java.io.IOException(s"Path $currentFolder does not exist!")
+    }
     createApp() // Create the APK as part of the compilation process
-    super.compile()
   }
 }
 
 /** Usage
-
-> ./mill app.setConfig
 
 > ./mill app.compile
 
