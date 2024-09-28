@@ -1,17 +1,36 @@
 package mill.main
 
-import java.util.concurrent.LinkedBlockingQueue
-import mill.define.{BaseModule0, Command, NamedTask, Segments, Target, Task}
-import mill.api.{Ctx, Logger, PathRef, Result, Val}
+import mill.api.{Ctx, _}
+import mill.define.{BaseModule0, Command, NamedTask, Segments, Target, Task, _}
 import mill.eval.{Evaluator, EvaluatorPaths, Terminal}
+import mill.moduledefs.Scaladoc
 import mill.resolve.SelectMode.Separated
 import mill.resolve.{Resolve, SelectMode}
-import mill.util.Watchable
+import mill.util.{Util, Watchable}
 import pprint.{Renderer, Tree, Truncated}
 
+import java.util.concurrent.LinkedBlockingQueue
 import scala.collection.mutable
+import scala.reflect.NameTransformer.decode
 
 object MainModule {
+
+  def resolveTasks[T](
+      evaluator: Evaluator,
+      targets: Seq[String],
+      selectMode: SelectMode,
+      resolveToModuleTasks: Boolean = false
+  )(f: List[NamedTask[Any]] => T): Result[T] = {
+    Resolve.Tasks.resolve(
+      evaluator.rootModule,
+      targets,
+      selectMode,
+      resolveToModuleTasks = resolveToModuleTasks
+    ) match {
+      case Left(err) => Result.Failure(err)
+      case Right(tasks) => Result.Success(f(tasks))
+    }
+  }
 
   def resolveTasks[T](
       evaluator: Evaluator,
@@ -184,7 +203,6 @@ trait MainModule extends BaseModule0 {
    * Displays metadata about the given task without actually running it.
    */
   def inspect(evaluator: Evaluator, targets: String*): Command[String] = Target.command {
-
     def resolveParents(c: Class[_]): Seq[Class[_]] = {
       Seq(c) ++ Option(c.getSuperclass).toSeq.flatMap(resolveParents) ++ c.getInterfaces.flatMap(
         resolveParents
@@ -276,28 +294,82 @@ trait MainModule extends BaseModule0 {
       }
     }
 
-    MainModule.resolveTasks(evaluator, targets, SelectMode.Multi) { tasks =>
-      val output = (for {
-        task <- tasks
-        tree = pprintTask(task, evaluator)
-        defaults = pprint.PPrinter()
-        renderer = new Renderer(
-          defaults.defaultWidth,
-          defaults.colorApplyPrefix,
-          defaults.colorLiteral,
-          defaults.defaultIndent
-        )
-        rendered = renderer.rec(tree, 0, 0).iter
-        truncated = new Truncated(rendered, defaults.defaultWidth, defaults.defaultHeight)
-      } yield {
-        val sb = new StringBuilder()
-        for { str <- truncated ++ Iterator("\n") } sb.append(str)
-        sb.toString()
-      }).mkString("\n")
-      Task.log.withPromptPaused {
-        println(output)
+    def pprintModule(t: ModuleTask[_], evaluator: Evaluator): Tree.Lazy = {
+      val cls = t.module.getClass
+      val annotation = cls.getAnnotation(classOf[Scaladoc])
+      val scaladocOpt = Option.when(annotation != null)(
+        Util.cleanupScaladoc(annotation.value).map("\n    " + _).mkString
+      )
+      val fileName = t.ctx.fileName.split('/').last.split('\\').last
+      val parents = cls.getInterfaces ++ Option(cls.getSuperclass).toSeq
+      val inheritedModules =
+        parents.distinct.filter(classOf[Module].isAssignableFrom(_)).map(_.getSimpleName)
+      val moduleDepsOpt = cls.getMethods.find(m => decode(m.getName) == "moduleDeps").map(
+        _.invoke(t.module).asInstanceOf[Seq[Module]]
+      ).filter(_.nonEmpty)
+      val defaultTaskOpt = t.module match {
+        case taskMod: TaskModule => Some(s"${t.module}.${taskMod.defaultCommandName()}")
+        case _ => None
       }
-      fansi.Str(output).plainText
+      val methodMap = evaluator.rootModule.millDiscover.value
+      val tasksOpt = methodMap.get(cls).map {
+        case (_, _, tasks) => tasks.map(task => s"${t.module}.$task")
+      }
+      pprint.Tree.Lazy { ctx =>
+        Iterator(
+          ctx.applyPrefixColor(t.module.toString).toString,
+          s"($fileName:${t.ctx.lineNum})"
+        ) ++ Iterator(scaladocOpt).flatten ++ Iterator(
+          "\n\n",
+          ctx.applyPrefixColor("Inherited Modules").toString,
+          ": ",
+          inheritedModules.mkString(", ")
+        ) ++ moduleDepsOpt.fold(Iterator.empty[String])(deps =>
+          Iterator(
+            "\n\n",
+            ctx.applyPrefixColor("Module Dependencies").toString,
+            ": ",
+            deps.mkString(", ")
+          )
+        ) ++ defaultTaskOpt.fold(Iterator.empty[String])(task =>
+          Iterator("\n\n", ctx.applyPrefixColor("Default Task").toString, ": ", task)
+        ) ++ tasksOpt.fold(Iterator.empty[String])(tasks =>
+          Iterator(
+            "\n\n",
+            ctx.applyPrefixColor("Tasks").toString,
+            ": ",
+            tasks.mkString(", ")
+          )
+        )
+      }
+    }
+
+    MainModule.resolveTasks(evaluator, targets, SelectMode.Multi, resolveToModuleTasks = true) {
+      tasks =>
+        val output = (for {
+          task <- tasks
+          tree = task match {
+            case t: ModuleTask[_] => pprintModule(t, evaluator)
+            case t => pprintTask(t, evaluator)
+          }
+          defaults = pprint.PPrinter()
+          renderer = new Renderer(
+            defaults.defaultWidth,
+            defaults.colorApplyPrefix,
+            defaults.colorLiteral,
+            defaults.defaultIndent
+          )
+          rendered = renderer.rec(tree, 0, 0).iter
+          truncated = new Truncated(rendered, defaults.defaultWidth, defaults.defaultHeight)
+        } yield {
+          val sb = new StringBuilder()
+          for { str <- truncated ++ Iterator("\n") } sb.append(str)
+          sb.toString()
+        }).mkString("\n")
+        Task.log.withPromptPaused {
+          println(output)
+        }
+        fansi.Str(output).plainText
     }
   }
 

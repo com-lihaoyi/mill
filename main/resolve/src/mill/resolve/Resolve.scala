@@ -6,6 +6,7 @@ import mill.define.{
   Command,
   Discover,
   Module,
+  ModuleTask,
   NamedTask,
   Reflect,
   Segments,
@@ -23,7 +24,8 @@ object Resolve {
         args: Seq[String],
         selector: Segments,
         nullCommandDefaults: Boolean,
-        allowPositionalCommandArgs: Boolean
+        allowPositionalCommandArgs: Boolean,
+        resolveToModuleTasks: Boolean
     ) = {
       Right(resolved.map(_.segments))
     }
@@ -38,14 +40,14 @@ object Resolve {
         args: Seq[String],
         selector: Segments,
         nullCommandDefaults: Boolean,
-        allowPositionalCommandArgs: Boolean
+        allowPositionalCommandArgs: Boolean,
+        resolveToModuleTasks: Boolean
     ) = {
       val taskList = resolved.map {
         case r: Resolved.NamedTask =>
           val instantiated = ResolveCore
             .instantiateModule(rootModule, r.segments.init)
             .flatMap(instantiateNamedTask(r, _))
-
           instantiated.map(Some(_))
 
         case r: Resolved.Command =>
@@ -61,12 +63,12 @@ object Resolve {
                 allowPositionalCommandArgs
               )
             }
-
           instantiated.map(Some(_))
 
         case r: Resolved.Module =>
           ResolveCore.instantiateModule(rootModule, r.segments).flatMap {
-            case value: TaskModule =>
+            case value if resolveToModuleTasks => Right(Some(ModuleTask(value)))
+            case value: TaskModule if !resolveToModuleTasks =>
               val directChildrenOrErr = ResolveCore.resolveDirectChildren(
                 rootModule,
                 value.getClass,
@@ -147,7 +149,7 @@ object Resolve {
       nullCommandDefaults: Boolean,
       allowPositionalCommandArgs: Boolean
   ): Iterable[Either[String, Command[_]]] = for {
-    (cls, (names, entryPoints)) <- discover.value
+    (cls, (names, entryPoints, _)) <- discover.value
     if cls.isAssignableFrom(target.getClass)
     ep <- entryPoints
     if ep.name == name
@@ -211,30 +213,34 @@ trait Resolve[T] {
       args: Seq[String],
       segments: Segments,
       nullCommandDefaults: Boolean,
-      allowPositionalCommandArgs: Boolean
+      allowPositionalCommandArgs: Boolean,
+      resolveToModuleTasks: Boolean
   ): Either[String, Seq[T]]
 
   def resolve(
       rootModule: BaseModule,
       scriptArgs: Seq[String],
       selectMode: SelectMode,
-      allowPositionalCommandArgs: Boolean = false
+      allowPositionalCommandArgs: Boolean = false,
+      resolveToModuleTasks: Boolean = false
   ): Either[String, List[T]] = {
-    resolve0(rootModule, scriptArgs, selectMode, allowPositionalCommandArgs)
+    resolve0(rootModule, scriptArgs, selectMode, allowPositionalCommandArgs, resolveToModuleTasks)
   }
+
   def resolve(
       rootModule: BaseModule,
       scriptArgs: Seq[String],
       selectMode: SelectMode
   ): Either[String, List[T]] = {
-    resolve0(rootModule, scriptArgs, selectMode, false)
+    resolve0(rootModule, scriptArgs, selectMode, false, false)
   }
 
   private[mill] def resolve0(
       rootModule: BaseModule,
       scriptArgs: Seq[String],
       selectMode: SelectMode,
-      allowPositionalCommandArgs: Boolean
+      allowPositionalCommandArgs: Boolean,
+      resolveToModuleTasks: Boolean
   ): Either[String, List[T]] = {
     val nullCommandDefaults = selectMode == SelectMode.Multi
     val resolvedGroups = ParseArgs(scriptArgs, selectMode).flatMap { groups =>
@@ -246,7 +252,8 @@ trait Resolve[T] {
               rootModuleSels,
               sel.getOrElse(Segments()),
               nullCommandDefaults,
-              allowPositionalCommandArgs
+              allowPositionalCommandArgs,
+              resolveToModuleTasks
             )
           }
         }
@@ -268,7 +275,8 @@ trait Resolve[T] {
       rootModule: BaseModule,
       sel: Segments,
       nullCommandDefaults: Boolean,
-      allowPositionalCommandArgs: Boolean
+      allowPositionalCommandArgs: Boolean,
+      resolveToModuleTasks: Boolean
   ): Either[String, Seq[T]] = {
     val rootResolved = ResolveCore.Resolved.Module(Segments(), rootModule.getClass)
     val resolved =
@@ -300,7 +308,8 @@ trait Resolve[T] {
         args,
         sel,
         nullCommandDefaults,
-        allowPositionalCommandArgs
+        allowPositionalCommandArgs,
+        resolveToModuleTasks
       ))
   }
 
