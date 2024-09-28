@@ -440,7 +440,8 @@ class ZincWorkerImpl(
     val combinedCompilerClasspath = compilerClasspath ++ scalacPluginClasspath
     val javacRuntimeOptions = javacOptions.filter(filterJavacRuntimeOptions)
     val compilersSig =
-      combinedCompilerClasspath.hashCode() + scalaVersion.hashCode() + scalaOrganization.hashCode() + javacRuntimeOptions.hashCode()
+      combinedCompilerClasspath.hashCode() + scalaVersion.hashCode() +
+        scalaOrganization.hashCode() + javacRuntimeOptions.hashCode()
     val combinedCompilerJars = combinedCompilerClasspath.iterator.map(_.path.toIO).toArray
 
     val compiledCompilerBridge = compileBridgeIfNeeded(
