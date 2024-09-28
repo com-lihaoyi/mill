@@ -23,7 +23,7 @@ private object ExecutionContexts {
     def close(): Unit = () // do nothing
 
     def future[T](dest: Path, key: String, message: String)(t: => T)(implicit
-                                                                     ctx: mill.api.Ctx
+        ctx: mill.api.Ctx
     ): Future[T] =
       Future.successful(t)
   }
@@ -74,7 +74,7 @@ private object ExecutionContexts {
      * [[t]], to avoid conflict with other tasks that may be running concurrently
      */
     def future[T](dest: Path, key: String, message: String)(t: => T)(implicit
-                                                                     ctx: mill.api.Ctx
+        ctx: mill.api.Ctx
     ): Future[T] = {
       val logger = ctx.log.subLogger(dest / os.up / s"${dest.last}.log", key, message)
 

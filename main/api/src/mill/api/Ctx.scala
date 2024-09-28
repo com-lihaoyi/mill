@@ -154,6 +154,6 @@ trait TaskFutureApi extends AutoCloseable { this: ExecutionContext =>
     await(Future.sequence(t))
   }
   def future[T](dest: os.Path, key: String, message: String)(t: => T)(implicit
-                                                                      ctx: mill.api.Ctx
+      ctx: mill.api.Ctx
   ): Future[T]
 }

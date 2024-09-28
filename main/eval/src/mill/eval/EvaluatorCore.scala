@@ -64,13 +64,13 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
   }
 
   private def evaluate0(
-                         goals: Agg[Task[_]],
-                         logger: ColorLogger,
-                         reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
-                         testReporter: TestReporter = DummyTestReporter,
-                         ec: TaskFutureApi with ExecutionContext,
-                         contextLoggerMsg0: Int => String,
-                         serialCommandExec: Boolean
+      goals: Agg[Task[_]],
+      logger: ColorLogger,
+      reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
+      testReporter: TestReporter = DummyTestReporter,
+      ec: TaskFutureApi with ExecutionContext,
+      contextLoggerMsg0: Int => String,
+      serialCommandExec: Boolean
   ): Evaluator.Results = {
     os.makeDir.all(outPath)
     val chromeProfileLogger = new ChromeProfileLogger(outPath / millChromeProfile)
