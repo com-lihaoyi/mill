@@ -1,13 +1,14 @@
 package mill.javalib.android
 
 import mill.define._
+import mill.scalalib.JavaModule
 
 /**
  * A trait representing an Android module within Mill build tool.
  * This trait handles Android SDK installation, managing SDK tools,
  * build tools, platform-specific libraries, and related utilities.
  */
-trait AndroidModule extends Module {
+trait AndroidSdkModule extends Module with JavaModule {
 
   /**
    * URL from which the Android SDK command-line tools are downloaded.
@@ -18,6 +19,9 @@ trait AndroidModule extends Module {
   /**
    * Directory where the Android SDK will be installed.
    * Default is the 'android-sdk' directory within the Mill source path.
+   * why millSourcePath ? Because we need to install android sdk files inside current directory.
+   * why val used everywhere ? Because we need proper immutable or constant paths.
+   * why def not used ? because it updates value on each call and we need constant path.
    */
   val sdkDir: os.Path = millSourcePath / "android-sdk"
 
@@ -79,11 +83,11 @@ trait AndroidModule extends Module {
    */
   def installAndroidSdk(): Unit = {
     // Step 1: Download the Android SDK command-line tools
-    val zipFile: os.Path = os.pwd / "commandlinetools-linux.zip"
+    val zipFile: os.Path = os.pwd / "commandlinetools.zip"
     if (!os.exists(zipFile)) {
       os.write(zipFile, requests.get(sdkUrl).bytes)
     } else {
-      return // Exit the function if else block is executed
+      return // Exit the function if else block is executed, used to protect from error
     }
 
     // Step 2: Unzip the SDK tools
@@ -94,7 +98,7 @@ trait AndroidModule extends Module {
       os.makeDir.all(licensesDir)
       os.write(licensesDir / "android-sdk-license", "24333f8a63b6825ea9c5514f83c2829b004d1fee")
     } else {
-      return // Exit the function if else block is executed
+      return // Exit the function if else block is executed, used to protect from error
     }
 
     // Step 3: Install the required platforms and build-tools
@@ -108,7 +112,7 @@ trait AndroidModule extends Module {
         s"platforms;$platformVersion"
       ).call()
     } else {
-      return // Exit the function if SDK manager is not found
+      return // Exit the function if else block is executed, used to protect from error
     }
   }
 }
