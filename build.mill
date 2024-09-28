@@ -437,7 +437,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with MillScalafixM
     ) ++ (
       if (ZincWorkerUtil.isScala3(scalaVersion())) Seq(
         // "-Werror",
-        // "-Wunused:all",
+        "-Wunused:all",
         // "-no-indent",
         // "-Wvalue-discard",
         // "-Wshadow:all",

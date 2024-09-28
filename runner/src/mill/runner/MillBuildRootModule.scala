@@ -6,7 +6,6 @@ import mill.api.{PathRef, Result, internal}
 import mill.define.{Discover, Task}
 import mill.scalalib.{BoundDep, Dep, DepSyntax, Lib, ScalaModule}
 import mill.util.CoursierSupport
-import mill.util.Util.millProjectModule
 import mill.scalalib.api.Versions
 import mill.scalalib.api.ZincWorkerUtil
 import mill.main.client.OutFiles._

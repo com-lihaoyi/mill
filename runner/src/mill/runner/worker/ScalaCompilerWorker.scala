@@ -1,11 +1,9 @@
 package mill.runner.worker
 
-import mill.define.{Discover, Worker}
-import mill.{Agg, PathRef, Task, Module, T}
+import mill.{Agg, PathRef}
 import mill.runner.worker.{api => workerApi}
 import mill.api.Result
 
-import java.util.concurrent.atomic.AtomicReference
 import mill.api.Result.catchWrapException
 import mill.api.internal
 

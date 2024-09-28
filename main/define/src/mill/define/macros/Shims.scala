@@ -1,8 +1,6 @@
 package mill.define.macros
 
 import scala.quoted.*
-import scala.annotation.compileTimeOnly
-import java.util.ServiceLoader
 import scala.annotation.experimental
 
 trait ShimService[Q <: Quotes] {
@@ -44,20 +42,13 @@ object ShimService {
   private class DottyInternal(val quotes: QuotesImpl) {
     import dotty.tools.dotc
     import dotty.tools.dotc.ast.tpd.Tree
-    import dotty.tools.dotc.ast.untpd
     import dotty.tools.dotc.ast.tpd
-    import dotty.tools.dotc.core.StdNames.nme
     import dotty.tools.dotc.core.Contexts.Context
-    import dotty.tools.dotc.core.Contexts.ctx
     import dotty.tools.dotc.core.Types
     import quotes.reflect.TypeRepr
-    import quotes.reflect.Tree
-    import quotes.reflect.DefDef
     import quotes.reflect.Statement
     import quotes.reflect.ClassDef
     import quotes.reflect.Symbol
-    import quotes.reflect.Flags
-    import quotes.reflect.Position
     import dotty.tools.dotc.core.Decorators.*
 
     given Context = quotes.ctx
@@ -98,10 +89,6 @@ object ShimService {
       tpd.ClassDefWithParents(cls.asClass, ctor, parents, body)
     }
 
-    private def withDefaultPos[T <: Tree](fn: Context ?=> T): T =
-      fn(using ctx.withSource(Position.ofMacroExpansion.source)).withSpan(
-        Position.ofMacroExpansion.span
-      )
   }
 
   @experimental

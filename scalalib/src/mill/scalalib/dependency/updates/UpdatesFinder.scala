@@ -31,7 +31,6 @@ package mill.scalalib.dependency.updates
 import mill.scalalib.dependency.versions._
 
 import scala.collection.SortedSet
-import coursier.core.Repository.Complete.Input.Ver
 
 private[dependency] object UpdatesFinder {
 

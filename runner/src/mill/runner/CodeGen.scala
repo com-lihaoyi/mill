@@ -5,7 +5,6 @@ import mill.api.{PathRef, Result}
 import mill.runner.FileImportGraph.backtickWrap
 import pprint.Util.literalize
 
-import scala.collection.mutable
 import mill.runner.worker.api.MillScalaParser
 
 object CodeGen {

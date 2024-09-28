@@ -1,7 +1,5 @@
 package mill.define
 
-import scala.quoted.*
-
 case class Caller(value: Any)
 object Caller {
   def apply()(implicit c: Caller) = c.value
