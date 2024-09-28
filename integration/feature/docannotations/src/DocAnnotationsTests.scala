@@ -1,7 +1,6 @@
 package mill.integration
 
 import mill.testkit.UtestIntegrationTestSuite
-
 import utest._
 
 object DocAnnotationsTests extends UtestIntegrationTestSuite {
@@ -133,6 +132,53 @@ object DocAnnotationsTests extends UtestIntegrationTestSuite {
       // docs from `inspect` only show the kebab-case version
       assert(eval(("core.ivyDepsTree", "--withCompile", "--withRuntime")).isSuccess)
       assert(eval(("core.ivyDepsTree", "--with-compile", "--with-runtime")).isSuccess)
+
+      assert(eval(("inspect", "basic")).isSuccess)
+      val basicInspect = out("inspect").json.str
+      assert(
+        globMatches(
+          """basic(build.mill:...)
+            |
+            |Inherited Modules: Module
+            |""",
+          basicInspect
+        )
+      )
+
+      assert(eval(("inspect", "core")).isSuccess)
+      val coreInspect = out("inspect").json.str
+      assert(
+        globMatches(
+          """core(build.mill:...)
+            |    The Core Module Docz!
+            |
+            |Inherited Modules: JavaModule
+            |
+            |Default Task: core.run
+            |
+            |Tasks: core.target
+            |""",
+          coreInspect
+        )
+      )
+
+      assert(eval(("inspect", "MyJavaTaskModule")).isSuccess)
+      val jtmInspect = out("inspect").json.str
+      assert(
+        globMatches(
+          """MyJavaTaskModule(build.mill:...)
+            |
+            |Inherited Modules: JavaModule
+            |
+            |Module Dependencies: core, core2
+            |
+            |Default Task: MyJavaTaskModule.run
+            |
+            |Tasks: MyJavaTaskModule.lineCount, MyJavaTaskModule.target
+            |""",
+          jtmInspect
+        )
+      )
     }
   }
 }

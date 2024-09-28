@@ -53,6 +53,7 @@ object ResolveTests extends TestSuite {
         module,
         selectorStrings,
         SelectMode.Separated,
+        false,
         false
       )
     }
@@ -62,6 +63,7 @@ object ResolveTests extends TestSuite {
         module,
         selectorStrings,
         SelectMode.Separated,
+        false,
         false
       ).map(_.map(_.render))
     }
