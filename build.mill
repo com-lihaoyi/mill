@@ -16,6 +16,8 @@ import mill.resolve.SelectMode
 import mill.T
 import mill.define.Cross
 
+import scala.util.matching.Regex
+
 // plugins and dependencies
 import $meta._
 import $file.ci.shared
@@ -717,8 +719,20 @@ object initmodule extends MillPublishScalaModule {
   override def resources = T.sources { super.resources() ++ Seq(exampleList()) }
 
   def exampleList: T[PathRef] = T {
+
+    val versionPattern: Regex = "\\d+\\.\\d+\\.\\d+".r
+    val rcPattern: Regex = "-RC\\d+".r
+
+    val millVer:String = millVersion()
+    val lastTag = versionPattern.findFirstMatchIn(millVer) match {
+      case Some(verMatch) =>
+        val maybeRC = rcPattern.findFirstIn(verMatch.after)
+        verMatch.matched + maybeRC.getOrElse("")
+      case None => "0.0.0"
+    }
+
     val data:Seq[(os.SubPath,String)] = build.examplePathsWithArtifactName().map{ case (path,str) =>
-      val downloadUrl = build.Settings.projectUrl + "/releases/download/" + millVersion() + "/" + str + ".zip"
+      val downloadUrl = build.Settings.projectUrl + "/releases/download/" + lastTag + "/" + str + ".zip"
       val subPath = path.subRelativeTo(T.workspace / "example")
       (subPath,downloadUrl)
     }
