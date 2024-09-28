@@ -111,3 +111,7 @@ This is very useful if Mill is being unexpectedly slow, and you want to find out
 
 `mill-server/*`::
  Each Mill server instance needs to keep some temporary files in one of these directories. Deleting it will also terminate the associated server instance, if it is still running.
+
+== Using another location than the `out/` directory
+
+include::example/depth/out-dir/1-custom-out.adoc[]

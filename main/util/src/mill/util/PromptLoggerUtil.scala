@@ -171,7 +171,10 @@ private object PromptLoggerUtil {
     // as the `headerPrefixStr` changes, even at the expense of it not being perfectly centered.
     val leftDivider = "=" * ((maxWidth / 2) - (titleText.length / 2) - headerPrefixStr.length + 2)
     val rightDivider =
-      "=" * (maxWidth - headerPrefixStr.length - leftDivider.length - shortenedTitle.length - headerSuffixStr.length)
+      "=" * (
+        maxWidth - headerPrefixStr.length - leftDivider.length -
+          shortenedTitle.length - headerSuffixStr.length
+      )
     val headerString =
       headerPrefixStr + leftDivider + shortenedTitle + rightDivider + headerSuffixStr
     assert(
