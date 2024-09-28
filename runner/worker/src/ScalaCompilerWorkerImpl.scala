@@ -35,15 +35,10 @@ import dotty.tools.dotc.util.SourcePosition
 final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
 
   def splitScript(rawCode: String, fileName: String): Either[String, (Seq[String], Seq[String])] = {
-    try {
-      val source = SourceFile.virtual(fileName, rawCode)
-      def mergeErrors(errors: List[String]): String =
-        s"$fileName failed to parse:" + System.lineSeparator + errors.mkString(System.lineSeparator)
-      splitScriptSource(source).left.map(mergeErrors)
-    } catch {
-      case e: Throwable =>
-        Left(s"$fileName failed to parse: $e\n${e.getStackTrace.map(elem => s">  $elem").mkString("\n")}")
-    }
+    val source = SourceFile.virtual(fileName, rawCode)
+    def mergeErrors(errors: List[String]): String =
+      s"$fileName failed to parse:" + System.lineSeparator + errors.mkString(System.lineSeparator)
+    splitScriptSource(source).left.map(mergeErrors)
   }
 
   def splitScriptSource(
@@ -64,19 +59,14 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
   }
 
   def parseImportHooksWithIndices(stmts: Seq[String]): Seq[(String, Seq[ImportTree])] = {
-    try {
-      for stmt <- stmts yield {
-        val imports = {
-          if stmt.startsWith("import") then
-            parseImportTrees(SourceFile.virtual("<import>", stmt))
-          else
-            Nil
-        }
-        (stmt, imports)
+    for stmt <- stmts yield {
+      val imports = {
+        if stmt.startsWith("import") then
+          parseImportTrees(SourceFile.virtual("<import>", stmt))
+        else
+          Nil
       }
-    } catch {
-      case e: Throwable =>
-        sys.error(s"Failed to parse import hooks: $e\n${e.getStackTrace.map(elem => s">  $elem").mkString("\n")}")
+      (stmt, imports)
     }
   }
 
@@ -88,12 +78,7 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
   }
 
   def parseObjectData(rawCode: String): Seq[ObjectData] = {
-    try {
-      parseObjects(SourceFile.virtual("<script>", rawCode))
-    } catch {
-      case e: Throwable =>
-        sys.error(s"Failed to parse object data: $e\n${e.getStackTrace.map(elem => s">  $elem").mkString("\n")}")
-    }
+    parseObjects(SourceFile.virtual("<script>", rawCode))
   }
 
   def parseObjects(source: SourceFile): Seq[ObjectData] = MillDriver.unitContext(source) {
@@ -131,9 +116,16 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
       }
     }
 
+    trait MillParserCommon extends Parsers.Parser {
+      override def atSpan[T <: Positioned](span: Span)(t: T): T = {
+        if t == untpd.EmptyTree || t == untpd.EmptyValDef then t
+        else super.atSpan(span)(t)
+      }
+    }
+
     def outlineCompilationUnit(source: SourceFile)(using Context): List[untpd.Tree] = {
       ParseLock.sync {
-        val parser = new OutlineParser(source) {
+        val parser = new OutlineParser(source) with MillParserCommon {
 
           /**
            * This is an outline parser, so will skip template bodies anyway,
@@ -167,7 +159,7 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
     }
 
     def importStatement(source: SourceFile)(using Context): List[untpd.Tree] = ParseLock.sync {
-      val parser = OutlineParser(source)
+      val parser = new OutlineParser(source) with MillParserCommon {}
       if parser.in.token == Tokens.IMPORT then
         parser.importClause()
       else
@@ -189,7 +181,7 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
     /** read the offset of the `object` keyword in a Module declaration */
     def skipModsObjectOffset(offset: Int)(using Context): Int = ParseLock.sync {
       val in0 = Scanner(ctx.source, startFrom = offset)
-      val parser = new OutlineParser(ctx.source) {
+      val parser = new OutlineParser(ctx.source) with MillParserCommon {
         override val in = in0
       }
       val _ = parser.defAnnotsMods(Tokens.modifierTokens)
@@ -204,23 +196,13 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
     private def outlineTemplate(offset: Int)(using Context): untpd.Template = ParseLock.sync {
       val in0 = Scanner(ctx.source, startFrom = offset)
 
-      val outlineParser: OutlineParser = new OutlineParser(ctx.source) {
+      val outlineParser: OutlineParser = new OutlineParser(ctx.source) with MillParserCommon {
         override val in = in0
-
-        override def atSpan[T <: Positioned](span: Span)(t: T): T = {
-          if t == untpd.EmptyTree || t == untpd.EmptyValDef then t
-          else super.atSpan(span)(t)
-        }
       }
 
       // parser that will enter a template body, but then not parse nested templates
-      val parser = new Parsers.Parser(ctx.source) {
+      val parser = new Parsers.Parser(ctx.source) with MillParserCommon {
         override val in = in0
-
-        override def atSpan[T <: Positioned](span: Span)(t: T): T = {
-          if t == untpd.EmptyTree || t == untpd.EmptyValDef then t
-          else super.atSpan(span)(t)
-        }
 
         override def templateStatSeq(): (untpd.ValDef, List[untpd.Tree]) =
           outlineParser.templateStatSeq()
