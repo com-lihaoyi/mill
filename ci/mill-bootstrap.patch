@@ -1,8 +1,8 @@
 diff --git a/build.mill b/build.mill
-index ee468f6f0c..d38621f141 100644
+index 7db07f0194..6b4e943315 100644
 --- a/build.mill
 +++ b/build.mill
-@@ -225,12 +225,13 @@ object Deps {
+@@ -227,12 +227,13 @@ object Deps {
    }
  }
 
