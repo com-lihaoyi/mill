@@ -12,9 +12,9 @@ import mill.javalib.android.AndroidSdkModule
  */
 trait AndroidAppModule extends AndroidSdkModule with JavaModule {
 
-  /** 
-   * The current working folder for the project, derived from `millSourcePath` 
-   * by replacing "app" with an empty string. 
+  /**
+   * The current working folder for the project, derived from `millSourcePath`
+   * by replacing "app" with an empty string.
    */
   var currentFolder: os.Path = os.Path(millSourcePath.toString.replace("app", ""))
 
@@ -25,15 +25,13 @@ trait AndroidAppModule extends AndroidSdkModule with JavaModule {
 
   /**
    * Generates the Android resources needed for the project.
-   * 
-   * This method uses the `aapt` tool to generate R.java files based on the 
+   * This method uses the `aapt` tool to generate R.java files based on the
    * `AndroidManifest.xml` in the `currentFolder` and the resources available.
-   * 
    * @return A `PathRef` pointing to the directory containing the generated resources.
    */
-  def generateResources = T {
+  def generateResources: T[PathRef] = T {
     installAndroidSdk()
-    val genDir = T.dest / "gen"
+    val genDir: os.Path = T.dest / "gen"
     os.makeDir.all(genDir)
     os.proc(
       aapt,
@@ -52,14 +50,12 @@ trait AndroidAppModule extends AndroidSdkModule with JavaModule {
 
   /**
    * Compiles the Java code along with the generated Android resources.
-   * 
-   * Uses the `javac` compiler to compile the `.java` source files from both 
+   * Uses the `javac` compiler to compile the `.java` source files from both
    * the `generateResources` task and the `currentFolder/java` folder.
-   * 
    * @return A `PathRef` pointing to the directory containing compiled `.class` files.
    */
-  def compileJava = T {
-    val objDir = T.dest / "obj"
+  def compileJava: T[PathRef] = T {
+    val objDir: os.Path = T.dest / "obj"
     os.makeDir.all(objDir)
     os.proc(
       "javac",
@@ -75,14 +71,12 @@ trait AndroidAppModule extends AndroidSdkModule with JavaModule {
 
   /**
    * Creates a JAR file containing the compiled Java classes.
-   * 
-   * This method uses the `d8` tool to package compiled classes into a `.jar` 
+   * This method uses the `d8` tool to package compiled classes into a `.jar`
    * file with desugaring disabled.
-   * 
    * @return A `PathRef` pointing to the generated `.jar` file.
    */
-  def createJar = T {
-    val jarPath = T.dest / "my_classes.jar"
+  def createJar: T[PathRef] = T {
+    val jarPath: os.Path = T.dest / "my_classes.jar"
     os.proc(
       d8,
       os.walk(compileJava().path).filter(_.ext == "class"),
@@ -95,13 +89,11 @@ trait AndroidAppModule extends AndroidSdkModule with JavaModule {
 
   /**
    * Creates a DEX file by converting the compiled JAR file.
-   * 
    * Uses the `d8` tool to convert the classes into the Android DEX format.
-   * 
    * @return A `PathRef` pointing to the directory containing the generated DEX file.
    */
-  def createDex = T {
-    val dexPath = T.dest
+  def createDex: T[PathRef] = T {
+    val dexPath: os.Path = T.dest
     os.proc(
       d8,
       createJar().path,
@@ -114,13 +106,11 @@ trait AndroidAppModule extends AndroidSdkModule with JavaModule {
 
   /**
    * Creates an unsigned APK from the compiled Java classes and resources.
-   * 
    * Uses the `aapt` tool to package the application into an APK file.
-   * 
    * @return A `PathRef` pointing to the unsigned APK file.
    */
-  def createApk = T {
-    val apkPath = T.dest / s"${appName}.unsigned.apk"
+  def createApk: T[PathRef] = T {
+    val apkPath: os.Path = T.dest / s"${appName}.unsigned.apk"
     os.proc(
       aapt,
       "package",
@@ -138,13 +128,11 @@ trait AndroidAppModule extends AndroidSdkModule with JavaModule {
 
   /**
    * Aligns the APK to optimize it for installation on Android devices.
-   * 
    * Uses the `zipalign` tool to align the APK.
-   * 
    * @return A `PathRef` pointing to the aligned APK file.
    */
-  def alignApk = T {
-    val alignedApkPath = T.dest / s"${appName}.aligned.apk"
+  def alignApk: T[PathRef] = T {
+    val alignedApkPath: os.Path = T.dest / s"${appName}.aligned.apk"
     os.proc(
       zipalign,
       "-f",
@@ -158,13 +146,11 @@ trait AndroidAppModule extends AndroidSdkModule with JavaModule {
 
   /**
    * Creates a keystore if one does not already exist.
-   * 
    * This method uses the `keytool` utility to generate a new keystore and key pair.
-   * 
    * @return A `PathRef` pointing to the generated keystore.
    */
-  def createKeystore = T {
-    val keystorePath = T.dest / "keystore.jks"
+  def createKeystore: T[PathRef] = T {
+    val keystorePath: os.Path = T.dest / "keystore.jks"
     if (!os.exists(keystorePath)) {
       os.proc(
         "keytool",
@@ -192,13 +178,11 @@ trait AndroidAppModule extends AndroidSdkModule with JavaModule {
 
   /**
    * Signs the APK using the generated or existing keystore.
-   * 
    * This method uses the `apksigner` tool to sign the APK with the keystore.
-   * 
    * @return A `PathRef` pointing to the signed APK file.
    */
-  def createApp = T {
-    val signedApkPath = currentFolder / s"${appName}.apk"
+  def createApp: T[PathRef] = T {
+    val signedApkPath: os.Path = currentFolder / s"${appName}.apk"
     os.proc(
       apksigner,
       "sign",
