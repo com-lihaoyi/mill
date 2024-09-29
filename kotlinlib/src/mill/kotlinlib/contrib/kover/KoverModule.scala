@@ -5,10 +5,18 @@
 package mill
 package kotlinlib.contrib.kover
 
-import mill.api.PathRef
+import mill.api.{Loose, PathRef}
 import mill.api.Result.Success
+import mill.define.{Discover, ExternalModule}
+import mill.eval.Evaluator
 import mill.kotlinlib.contrib.kover.ReportType.{Html, Xml}
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, TestModule, Versions}
+import mill.resolve.{Resolve, SelectMode}
+import mill.scalalib.api.CompilationResult
+import mill.util.Jvm
+import os.Path
+
+import java.util.Locale
 
 /**
  * Adds targets to a [[mill.kotlinlib.KotlinModule]] to create test coverage reports.
@@ -34,9 +42,9 @@ import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, TestModule, Versions}
  * In addition to the normal tasks available to your Kotlin module, Kover
  * Module introduce a few new tasks and changes the behavior of an existing one.
  *
- * - mill foo.test               # tests your project and collects metrics on code coverage
- * - mill foo.kover.htmlReport   # uses the metrics collected by a previous test run to generate a coverage report in html format
- * - mill foo.kover.xmlReport    # uses the metrics collected by a previous test run to generate a coverage report in xml format
+ * - ./mill foo.test               # tests your project and collects metrics on code coverage
+ * - ./mill foo.kover.htmlReport   # uses the metrics collected by a previous test run to generate a coverage report in html format
+ * - ./mill foo.kover.xmlReport    # uses the metrics collected by a previous test run to generate a coverage report in xml format
  *
  * The measurement data by default is available at `out/foo/kover/koverDataDir.dest/`,
  * the html report is saved in `out/foo/kover/htmlReport.dest/`,
@@ -62,7 +70,7 @@ trait KoverModule extends KotlinModule { outer =>
         reportType: ReportType
     ): Task[PathRef] = Task.Anon {
       val reportPath = PathRef(T.dest).path / reportName
-      KoverReport.runKoverCli(
+      Kover.runKoverCli(
         sourcePaths = outer.allSources().map(_.path),
         compiledPaths = Seq(outer.compile().classes.path),
         binaryReportsPaths = Seq(outer.koverBinaryReport().path),
@@ -71,7 +79,6 @@ trait KoverModule extends KotlinModule { outer =>
         koverCliClasspath().map(_.path),
         T.dest
       )
-      PathRef(reportPath)
     }
 
     def htmlReport(): Command[PathRef] = Task.Command { doReport(Html)() }
@@ -104,4 +111,119 @@ trait KoverModule extends KotlinModule { outer =>
         )
     }
   }
+}
+
+/**
+ * Allows the aggregation of coverage reports across multi-module projects.
+ *
+ * Once tests have been run across all modules, this collects reports from
+ * all modules that extend [[KoverModule]].
+ *
+ * - ./mill __.test                                              # run tests for all modules
+ * - ./mill mill.kotlinlib.contrib.kover.Kover/htmlReportAll     # generates report in html format for all modules
+ * - ./mill mill.kotlinlib.contrib.kover.Kover/xmlReportAll      # generates report in xml format for all modules
+ *
+ * The aggregated report will be available at either `out/mill/kotlinlib/contrib/kover/Kover/htmlReportAll.dest/`
+ * for html reports or `out/mill/kotlinlib/contrib/kover/Kover/xmlReportAll.dest/` for xml reports.
+ */
+object Kover extends ExternalModule with KoverReportBaseModule {
+
+  lazy val millDiscover: Discover = Discover[this.type]
+
+  def htmlReportAll(evaluator: Evaluator): Command[PathRef] = Task.Command {
+    koverReportTask(
+      evaluator = evaluator,
+      reportType = ReportType.Html
+    )()
+  }
+
+  def xmlReportAll(evaluator: Evaluator): Command[PathRef] = Task.Command {
+    koverReportTask(
+      evaluator = evaluator,
+      reportType = ReportType.Xml
+    )()
+  }
+
+  private def koverReportTask(
+      evaluator: mill.eval.Evaluator,
+      sources: String = "__:KotlinModule:^TestModule.allSources",
+      compiled: String = "__:KotlinModule:^TestModule.compile",
+      binaryReports: String = "__.koverBinaryReport",
+      reportType: ReportType
+  ): Task[PathRef] = {
+    val sourcesTasks: Seq[Task[Seq[PathRef]]] = resolveTasks(sources, evaluator)
+    val compiledTasks: Seq[Task[CompilationResult]] = resolveTasks(compiled, evaluator)
+    val binaryReportTasks: Seq[Task[PathRef]] = resolveTasks(binaryReports, evaluator)
+
+    Task.Anon {
+
+      val sourcePaths: Seq[Path] =
+        T.sequence(sourcesTasks)().flatten.map(_.path).filter(
+          os.exists
+        )
+      val compiledPaths: Seq[Path] =
+        T.sequence(compiledTasks)().map(_.classes.path).filter(
+          os.exists
+        )
+      val binaryReportsPaths: Seq[Path] =
+        T.sequence(binaryReportTasks)().map(_.path).filter(
+          os.exists
+        )
+
+      val reportDir = PathRef(T.dest).path / reportName
+
+      runKoverCli(
+        sourcePaths,
+        compiledPaths,
+        binaryReportsPaths,
+        reportDir,
+        reportType,
+        koverCliClasspath().map(_.path),
+        T.dest
+      )
+    }
+  }
+
+  private[kover] def runKoverCli(
+      sourcePaths: Seq[Path],
+      compiledPaths: Seq[Path],
+      binaryReportsPaths: Seq[Path],
+      // will be treated as a dir in case of HTML, and as file in case of XML
+      reportPath: Path,
+      reportType: ReportType,
+      classpath: Loose.Agg[Path],
+      workingDir: os.Path
+  )(implicit ctx: api.Ctx): PathRef = {
+    val args = Seq.newBuilder[String]
+    args += "report"
+    args ++= binaryReportsPaths.map(_.toString())
+
+    args ++= sourcePaths.flatMap(path => Seq("--src", path.toString()))
+    args ++= compiledPaths.flatMap(path => Seq("--classfiles", path.toString()))
+    val output = if (reportType == Xml) {
+      s"${reportPath.toString()}.xml"
+    } else reportPath.toString()
+    args ++= Seq(s"--${reportType.toString.toLowerCase(Locale.US)}", output)
+    Jvm.runSubprocess(
+      mainClass = "kotlinx.kover.cli.MainKt",
+      classPath = classpath,
+      jvmArgs = Seq.empty[String],
+      mainArgs = args.result(),
+      workingDir = workingDir
+    )
+    PathRef(os.Path(output))
+  }
+
+  private def resolveTasks[T](tasks: String, evaluator: Evaluator): Seq[Task[T]] =
+    if (tasks.trim().isEmpty) Seq.empty
+    else Resolve.Tasks.resolve(evaluator.rootModule, Seq(tasks), SelectMode.Multi) match {
+      case Left(err) => throw new Exception(err)
+      case Right(tasks) => tasks.asInstanceOf[Seq[Task[T]]]
+    }
+}
+
+sealed trait ReportType
+object ReportType {
+  final case object Html extends ReportType
+  final case object Xml extends ReportType
 }
