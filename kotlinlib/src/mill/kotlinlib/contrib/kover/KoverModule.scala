@@ -166,9 +166,16 @@ object Kover extends ExternalModule with KoverReportBaseModule {
           os.exists
         )
       val binaryReportsPaths: Seq[Path] =
-        T.sequence(binaryReportTasks)().map(_.path).filter(
-          os.exists
-        )
+        T.sequence(binaryReportTasks)().map(_.path)
+          .filter(path => {
+            val exists = os.exists(path)
+            if (!exists) {
+              T.log.error(
+                s"Kover binary report $path doesn't exist. Did you run tests for the module?."
+              )
+            }
+            exists
+          })
 
       val reportDir = PathRef(T.dest).path / reportName
 
