@@ -369,3 +369,40 @@ foo.compileClasspath
 // Come by our https://discord.gg/MNAXQMAr[Discord Channel]
 // if you want to ask questions or say hi!
 //
+//
+// == init
+
+/** Usage
+> mill init
+Run `mill init <example-id>` with one of these examples as an argument to download and extract example.
+Run `mill init --show-all` to see full list of examples.
+Run `mill init <Giter8 template>` to generate project from Giter8 template.
+...
+scalalib/basic/1-simple
+...
+scalalib/web/1-todo-webapp
+scalalib/web/2-webapp-cache-busting
+scalalib/web/3-scalajs-module
+scalalib/web/4-webapp-scalajs
+scalalib/web/5-webapp-scalajs-shared
+...
+javalib/basic/1-simple
+...
+javalib/builds/4-realistic
+...
+javalib/web/1-hello-jetty
+javalib/web/2-hello-spring-boot
+javalib/web/3-todo-spring-boot
+javalib/web/4-hello-micronaut
+javalib/web/5-todo-micronaut
+kotlinlib/basic/1-simple
+...
+kotlinlib/builds/4-realistic
+...
+kotlinlib/web/1-hello-ktor
+*/
+
+// The `init` command generates a project based on a Mill example project or
+// a Giter8 template. You can use it to quickly generate a starter project.
+// There are lots of templates out there for many frameworks and tools!
+
