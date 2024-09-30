@@ -46,8 +46,9 @@ class LinePrefixOutputStream(
         isNewLine = true
         start = i
         writeOutBuffer()
+      } else {
+        i += 1
       }
-      i += 1
     }
 
     if (math.min(i, max) - start > 0) {

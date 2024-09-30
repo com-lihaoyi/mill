@@ -4,22 +4,3 @@
 
 
 include::example/scalalib/basic/4-builtin-commands.adoc[]
-
-== init
-
-[source,bash]
-----
-> mill -i init com-lihaoyi/mill-scala-hello.g8
-....
-A minimal Scala project.
-
-name [Scala Seed Project]: hello
-
-Template applied in ./hello
-----
-
-The `init` command generates a project based on a Giter8 template.
-It prompts you to enter project name and creates a folder with that name.
-You can use it to quickly generate a starter project.
-There are lots of templates out there for many frameworks and tools!
-

@@ -42,6 +42,17 @@ object LinePrefixOutputStreamTests extends TestSuite {
       assert(baos.toString == "PREFIXhello\nPREFIXworld\n")
     }
 
+    test("allAtOnceDoubleNewline") {
+      val baos = new ByteArrayOutputStream()
+      val lpos = new LinePrefixOutputStream("PREFIX", baos)
+      val arr = "hello\n\nworld\n\n".getBytes()
+      lpos.write(arr)
+      lpos.flush()
+
+      val expected = "PREFIXhello\nPREFIX\nPREFIXworld\nPREFIX\n"
+      assert(baos.toString == expected)
+    }
+
     test("ranges") {
       for (str <- Seq("hello\nworld\n")) {
         val arr = str.getBytes()

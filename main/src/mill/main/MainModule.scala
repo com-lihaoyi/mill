@@ -496,20 +496,37 @@ trait MainModule extends BaseModule0 {
   }
 
   /**
-   * The `init` command generates a project based on a Giter8 template. It
-   * prompts you to enter project name and creates a folder with that name.
-   * You can use it to quickly generate a starter project. There are lots of
-   * templates out there for many frameworks and tools!
+   * The `init` allows you to quickly generate a starter project.
+   *
+   * If you run it without arguments, it displays the list of available examples.
+   *
+   * If you pass one of listed examples, it downloads specified example from mill releases page and extracts it to working directory.
+   *
+   * If you pass a g8 template, it will generate a project based on a Giter8 template.
+   * It prompts you to enter project name and creates a folder with that name.
+   * There are lots of templates out there for many frameworks and tools!
    */
-  def init(evaluator: Evaluator, args: String*): Command[Unit] = Task.Command(exclusive = true) {
-    RunScript.evaluateTasksNamed(
-      evaluator,
-      Seq("mill.scalalib.giter8.Giter8Module/init") ++ args,
-      SelectMode.Separated
-    )
-
-    ()
-  }
+  def init(evaluator: Evaluator, args: String*): Command[ujson.Value] =
+    Task.Command(exclusive = true) {
+      val evaluated =
+        if (args.headOption.exists(_.toLowerCase.endsWith(".g8")))
+          RunScript.evaluateTasksNamed(
+            evaluator,
+            Seq("mill.scalalib.giter8.Giter8Module/init") ++ args,
+            SelectMode.Separated
+          )
+        else
+          RunScript.evaluateTasksNamed(
+            evaluator,
+            Seq("mill.init.InitModule/init") ++ args,
+            SelectMode.Separated
+          )
+      evaluated match {
+        case Left(failStr) => throw new Exception(failStr)
+        case Right((_, Right(Seq((_, Some((_, jsonableResult))))))) => jsonableResult
+        case Right((_, Left(failStr))) => throw new Exception(failStr)
+      }
+    }
 
   private type VizWorker = (
       LinkedBlockingQueue[(scala.Seq[_], scala.Seq[_], os.Path)],

@@ -16,6 +16,8 @@ import mill.resolve.SelectMode
 import mill.T
 import mill.define.Cross
 
+import scala.util.matching.Regex
+
 // plugins and dependencies
 import $meta._
 import $file.ci.shared
@@ -743,7 +745,7 @@ object dist0 extends MillPublishJavaModule {
 
 object dist extends MillPublishJavaModule {
   def jar = rawAssembly()
-  def moduleDeps = Seq(build.runner, idea)
+  def moduleDeps = Seq(build.runner, idea, build.main.init)
 
   def testTransitiveDeps = dist0.testTransitiveDeps() ++ Seq(
     (s"com.lihaoyi-${dist.artifactId()}", dist0.runClasspath().map(_.path).mkString("\n"))
@@ -929,13 +931,20 @@ def bootstrapLauncher = T {
   PathRef(outputPath)
 }
 
-def exampleZips: T[Seq[PathRef]] = T {
+def examplePathsWithArtifactName:Task[Seq[(os.Path,String)]] = T.task{
   for {
     exampleMod <- build.example.exampleModules
-    examplePath = exampleMod.millSourcePath
+    path = exampleMod.millSourcePath
   } yield {
-    val example = examplePath.subRelativeTo(T.workspace)
-    val exampleStr = millVersion() + "-" + example.segments.mkString("-")
+    val example = path.subRelativeTo(T.workspace)
+    val artifactName = millVersion() + "-" + example.segments.mkString("-")
+    (path, artifactName)
+  }
+}
+
+
+def exampleZips: T[Seq[PathRef]] = T{
+  examplePathsWithArtifactName().map{ case (examplePath, exampleStr) =>
     os.copy(examplePath, T.dest / exampleStr, createFolders = true)
     os.write(T.dest / exampleStr / ".mill-version", millLastTag())
     os.copy(bootstrapLauncher().path, T.dest / exampleStr / "mill")
