@@ -67,6 +67,11 @@ object BspServerTests extends UtestIntegrationTestSuite {
         )
 
         val targetIds = buildTargets.getTargets.asScala.map(_.getId).asJava
+        val metaBuildTargetId = new b.BuildTargetIdentifier(
+          (workspacePath / "mill-build").toNIO.toUri.toASCIIString.stripSuffix("/")
+        )
+        assert(targetIds.contains(metaBuildTargetId))
+        val targetIdsSubset = targetIds.asScala.filter(_ != metaBuildTargetId).asJava
 
         compareWithGsonSnapshot(
           buildServer
@@ -78,7 +83,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
         compareWithGsonSnapshot(
           buildServer
-            .buildTargetDependencySources(new b.DependencySourcesParams(targetIds))
+            .buildTargetDependencySources(new b.DependencySourcesParams(targetIdsSubset))
             .get(),
           snapshotsPath / "build-targets-dependency-sources.json",
           normalizedLocalValues = normalizedLocalValues
@@ -86,7 +91,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
         compareWithGsonSnapshot(
           buildServer
-            .buildTargetDependencyModules(new b.DependencyModulesParams(targetIds))
+            .buildTargetDependencyModules(new b.DependencyModulesParams(targetIdsSubset))
             .get(),
           snapshotsPath / "build-targets-dependency-modules.json",
           normalizedLocalValues = normalizedLocalValues
@@ -110,7 +115,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
         compareWithGsonSnapshot(
           buildServer
-            .buildTargetJvmRunEnvironment(new b.JvmRunEnvironmentParams(targetIds))
+            .buildTargetJvmRunEnvironment(new b.JvmRunEnvironmentParams(targetIdsSubset))
             .get(),
           snapshotsPath / "build-targets-jvm-run-environments.json",
           normalizedLocalValues = normalizedLocalValues
@@ -118,7 +123,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
         compareWithGsonSnapshot(
           buildServer
-            .buildTargetJvmTestEnvironment(new b.JvmTestEnvironmentParams(targetIds))
+            .buildTargetJvmTestEnvironment(new b.JvmTestEnvironmentParams(targetIdsSubset))
             .get(),
           snapshotsPath / "build-targets-jvm-test-environments.json",
           normalizedLocalValues = normalizedLocalValues
@@ -126,7 +131,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
         compareWithGsonSnapshot(
           buildServer
-            .buildTargetJvmCompileClasspath(new b.JvmCompileClasspathParams(targetIds))
+            .buildTargetJvmCompileClasspath(new b.JvmCompileClasspathParams(targetIdsSubset))
             .get(),
           snapshotsPath / "build-targets-compile-classpaths.json",
           normalizedLocalValues = normalizedLocalValues
@@ -134,7 +139,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
         compareWithGsonSnapshot(
           buildServer
-            .buildTargetJavacOptions(new b.JavacOptionsParams(targetIds))
+            .buildTargetJavacOptions(new b.JavacOptionsParams(targetIdsSubset))
             .get(),
           snapshotsPath / "build-targets-javac-options.json",
           normalizedLocalValues = normalizedLocalValues
@@ -142,7 +147,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
         compareWithGsonSnapshot(
           buildServer
-            .buildTargetScalacOptions(new b.ScalacOptionsParams(targetIds))
+            .buildTargetScalacOptions(new b.ScalacOptionsParams(targetIdsSubset))
             .get(),
           snapshotsPath / "build-targets-scalac-options.json",
           normalizedLocalValues = normalizedLocalValues
