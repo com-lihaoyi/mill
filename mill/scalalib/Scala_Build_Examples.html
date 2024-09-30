@@ -405,9 +405,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-56-612a28</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-57-799270</button>
   <div class="version-menu">
-    <a class="version is-current" href="Scala_Build_Examples.html">0.12.0-RC2-56-612a28</a>
+    <a class="version is-current" href="Scala_Build_Examples.html">0.12.0-RC2-57-799270</a>
     <a class="version" href="../0.11.12/Scala_Build_Examples.html">0.11.12</a>
     <a class="version" href="../0.11.11/Scala_Build_Examples.html">0.11.11</a>
     <a class="version" href="../0.11.10/Scala_Build_Examples.html">0.11.10</a>
@@ -426,38 +426,58 @@
 </aside>
 <article class="doc">
 <h1 class="page">Scala Build Examples</h1>
+<div id="preamble">
+<div class="sectionbody">
+<script>
+gtag('config', 'AW-16649289906');
+</script>
 <div class="paragraph">
-<p>gtag('config', 'AW-16649289906');
-&lt;/script&gt;</p>
-</div>
-On this page, we will explore the Mill build tool via a series of simple Scala
+<p>On this page, we will explore the Mill build tool via a series of simple Scala
 example projects. Each project demonstrates one particular feature of the Mill
 build tool, and is also an executable codebase you can download and run. By the
 end of this page, you will be familiar with how to configure Mill to work with
-realistic Scala codebases: cross-building, testing, and publishing them.
-
-
-Many of the APIs covered here are listed in the Scaladoc:
-
-* {mill-doc-url}/api/latest/mill/scalalib/ScalaModule.html[`mill.scalalib.ScalaModule`]
-* {mill-doc-url}/api/latest/mill/main/RootModule.html[`mill.scalalib.RootModule`]
-* {mill-doc-url}/api/latest/mill/scalalib/TestModule$.html[`mill.scalalib.TestModule`]
-* {mill-doc-url}/api/latest/mill/scalalib/PublishModule.html[`mill.scalalib.PublishModule`]
-* {mill-doc-url}/api/latest/mill/scalalib/CrossScalaModule.html[`mill.scalalib.CrossScalaModule`]
-* {mill-doc-url}/api/latest/mill/scalalib/SbtModule.html[`mill.scalalib.SbtModule`]
-* {mill-doc-url}/api/latest/mill/scalalib/CrossSbtModule.html[`mill.scalalib.CrossSbtModule`]
-* {mill-doc-url}/api/latest/mill/scalalib/JavaModule.html[`mill.scalalib.JavaModule`]
-
-== Nesting Modules
-
-// SNIPPET:BUILD
-
-
-.build.mill ({mill-download-url}/0.12.0-RC2-example-scalalib-builds-1-nested-modules.zip[download], {mill-example-url}/example/scalalib/builds/1-nested-modules[browse])
-[source,scala,subs=&quot;attributes,verbatim&quot;]
-----
-
-package build
+realistic Scala codebases: cross-building, testing, and publishing them.</p>
+</div>
+<div class="paragraph">
+<p>Many of the APIs covered here are listed in the Scaladoc:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://mill-build.org/api/latest/mill/scalalib/ScalaModule.html"><code>mill.scalalib.ScalaModule</code></a></p>
+</li>
+<li>
+<p><a href="https://mill-build.org/api/latest/mill/main/RootModule.html"><code>mill.scalalib.RootModule</code></a></p>
+</li>
+<li>
+<p><a href="https://mill-build.org/api/latest/mill/scalalib/TestModule$.html"><code>mill.scalalib.TestModule</code></a></p>
+</li>
+<li>
+<p><a href="https://mill-build.org/api/latest/mill/scalalib/PublishModule.html"><code>mill.scalalib.PublishModule</code></a></p>
+</li>
+<li>
+<p><a href="https://mill-build.org/api/latest/mill/scalalib/CrossScalaModule.html"><code>mill.scalalib.CrossScalaModule</code></a></p>
+</li>
+<li>
+<p><a href="https://mill-build.org/api/latest/mill/scalalib/SbtModule.html"><code>mill.scalalib.SbtModule</code></a></p>
+</li>
+<li>
+<p><a href="https://mill-build.org/api/latest/mill/scalalib/CrossSbtModule.html"><code>mill.scalalib.CrossSbtModule</code></a></p>
+</li>
+<li>
+<p><a href="https://mill-build.org/api/latest/mill/scalalib/JavaModule.html"><code>mill.scalalib.JavaModule</code></a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_nesting_modules"><a class="anchor" href="#_nesting_modules"></a>Nesting Modules</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-scalalib-builds-1-nested-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/scalalib/builds/1-nested-modules">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
 
 trait MyModule extends ScalaModule {
@@ -479,57 +499,55 @@ object foo extends MyModule {
 
 object baz extends MyModule {
   def moduleDeps = Seq(foo.bar, foo.qux, foo)
-}
-----
-
-// SNIPPET:END
-
-Modules can be nested arbitrarily deeply within each other. The outer module
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Modules can be nested arbitrarily deeply within each other. The outer module
 can be the same kind of module as the ones within, or it can be a plain
-`Module` if we just need a wrapper to put the modules in without any tasks
-defined on the wrapper.
-
-The outer module can also depend on the inner module (as shown above),
-and vice versa, but not both at the same.
-
-Running tasks on the nested modules requires the full module path
-`foo.bar.run`
-
-
-[source,bash,subs=&quot;attributes,verbatim&quot;]
-----
-&gt; mill resolve __.run
+<code>Module</code> if we just need a wrapper to put the modules in without any tasks
+defined on the wrapper.</p>
+</div>
+<div class="paragraph">
+<p>The outer module can also depend on the inner module (as shown above),
+and vice versa, but not both at the same.</p>
+</div>
+<div class="paragraph">
+<p>Running tasks on the nested modules requires the full module path
+<code>foo.bar.run</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill resolve __.run
 foo.bar.run
 foo.qux.run
 baz.run
 
 &gt; mill foo.run --bar-text hello --qux-text world --foo-text today
-Bar.value: <h1>hello</h1>
-Qux.value: <p>world</p>
-Foo.value: <p>today</p>
+Bar.value: &lt;h1&gt;hello&lt;/h1&gt;
+Qux.value: &lt;p&gt;world&lt;/p&gt;
+Foo.value: &lt;p&gt;today&lt;/p&gt;
 
 &gt; mill baz.run --bar-text hello --qux-text world --foo-text today --baz-text yay
-Bar.value: <h1>hello</h1>
-Qux.value: <p>world</p>
-Foo.value: <p>today</p>
-Baz.value: <p>yay</p>
+Bar.value: &lt;h1&gt;hello&lt;/h1&gt;
+Qux.value: &lt;p&gt;world&lt;/p&gt;
+Foo.value: &lt;p&gt;today&lt;/p&gt;
+Baz.value: &lt;p&gt;yay&lt;/p&gt;
 
 &gt; mill foo.qux.run --bar-text hello --qux-text world
-Bar.value: <h1>hello</h1>
-Qux.value: <p>world</p>
-----
-
-
-== SBT-Compatible Modules
-
-// SNIPPET:ALL
-
-
-.build.mill ({mill-download-url}/0.12.0-RC2-example-scalalib-builds-2-compat-modules.zip[download], {mill-example-url}/example/scalalib/builds/2-compat-modules[browse])
-[source,scala,subs=&quot;attributes,verbatim&quot;]
-----
-
-package build
+Bar.value: &lt;h1&gt;hello&lt;/h1&gt;
+Qux.value: &lt;p&gt;world&lt;/p&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_sbt_compatible_modules"><a class="anchor" href="#_sbt_compatible_modules"></a>SBT-Compatible Modules</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-scalalib-builds-2-compat-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/scalalib/builds/2-compat-modules">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
 
 object foo extends SbtModule {
@@ -547,32 +565,56 @@ trait BarModule extends CrossSbtModule {
     def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
   }
-}
-----
-
-`SbtModule`/`CrossSbtModule` are variants of `ScalaModule`/`CrossScalaModule`
-that use the more verbose folder layout of SBT, Maven, and other tools:
-
-- `foo/src/main/scala`
-- `foo/src/main/scala-2.12`
-- `foo/src/main/scala-2.13`
-- `foo/src/test/scala`
-
-Rather than Mill's
-
-- `foo/src`
-- `foo/src-2.12`
-- `foo/src-2.13`
-- `foo/test/src`
-
-This is especially useful if you are migrating from SBT to Mill (or vice
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>SbtModule</code>/<code>CrossSbtModule</code> are variants of <code>ScalaModule</code>/<code>CrossScalaModule</code>
+that use the more verbose folder layout of SBT, Maven, and other tools:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>foo/src/main/scala</code></p>
+</li>
+<li>
+<p><code>foo/src/main/scala-2.12</code></p>
+</li>
+<li>
+<p><code>foo/src/main/scala-2.13</code></p>
+</li>
+<li>
+<p><code>foo/src/test/scala</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Rather than Mill’s</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>foo/src</code></p>
+</li>
+<li>
+<p><code>foo/src-2.12</code></p>
+</li>
+<li>
+<p><code>foo/src-2.13</code></p>
+</li>
+<li>
+<p><code>foo/test/src</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This is especially useful if you are migrating from SBT to Mill (or vice
 versa), during which a particular module may be built using both SBT and
-Mill at the same time
-
-
-[source,bash,subs=&quot;attributes,verbatim&quot;]
-----
-&gt; mill foo.compile
+Mill at the same time</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.compile
 compiling 1 Scala source...
 
 &gt; mill foo.test.compile
@@ -588,18 +630,18 @@ compiling 1 Scala source...
 Bar.value: Hello World Scala library version 2.13.8...
 
 &gt; mill bar[2.12.17].run
-Bar.value: Hello World Scala library version 2.12.17...
-----
-
-
-== Cross-Scala-Version Modules
-
-
-.build.mill ({mill-download-url}/0.12.0-RC2-example-scalalib-builds-3-cross-scala-version.zip[download], {mill-example-url}/example/scalalib/builds/3-cross-scala-version[browse])
-[source,scala,subs=&quot;attributes,verbatim&quot;]
-----
-
-package build
+Bar.value: Hello World Scala library version 2.12.17...</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_cross_scala_version_modules"><a class="anchor" href="#_cross_scala_version_modules"></a>Cross-Scala-Version Modules</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-scalalib-builds-3-cross-scala-version.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/scalalib/builds/3-cross-scala-version">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
 
 val scalaVersions = Seq(&quot;2.12.17&quot;, &quot;2.13.8&quot;)
@@ -610,23 +652,24 @@ trait FooModule extends CrossScalaModule{
 }
 
 object bar extends Cross[BarModule](scalaVersions)
-trait BarModule extends CrossScalaModule
-----
-
-This is an example of cross-building a module across multiple Scala
-versions. Each module is replaced by a `Cross` module, which is given a list
+trait BarModule extends CrossScalaModule</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is an example of cross-building a module across multiple Scala
+versions. Each module is replaced by a <code>Cross</code> module, which is given a list
 of strings you want the cross-module to be replicated for. You can then
 specify the cross-modules with square brackets when you want to run tasks on
-them.
-
-`CrossScalaModule` supports both shared sources within `src/` as well as
-version specific sources in `src-x/`, `src-x.y/`, or `src-x.y.z/` that
-apply to the cross-module with that version prefix.
-
-
-[source,bash,subs=&quot;attributes,verbatim&quot;]
-----
-&gt; mill resolve __.run
+them.</p>
+</div>
+<div class="paragraph">
+<p><code>CrossScalaModule</code> supports both shared sources within <code>src/</code> as well as
+version specific sources in <code>src-x/</code>, <code>src-x.y/</code>, or <code>src-x.y.z/</code> that
+apply to the cross-module with that version prefix.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill resolve __.run
 foo[2.12.17].run
 foo[2.13.8].run
 bar[2.12.17].run
@@ -645,38 +688,35 @@ Specific code for Scala 2.x
 Specific code for Scala 2.13.x
 
 &gt; mill bar[2.13.8].run
-Bar.value: bar-value
-----
-``CrossScalaModule``s can depend on each other using `moduleDeps`, but require
-the `()` suffix in `moduleDeps` to select the appropriate instance of the
-cross-module to depend on. You can also pass the `crossScalaVersion`
-explicitly to select the right version of the cross-module:
-
-
-
-[source,scala,subs=&quot;attributes,verbatim&quot;]
-----
-
-object foo2 extends Cross[Foo2Module](scalaVersions)
+Bar.value: bar-value</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>CrossScalaModule</code>s can depend on each other using <code>moduleDeps</code>, but require
+the <code>()</code> suffix in <code>moduleDeps</code> to select the appropriate instance of the
+cross-module to depend on. You can also pass the <code>crossScalaVersion</code>
+explicitly to select the right version of the cross-module:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo2 extends Cross[Foo2Module](scalaVersions)
 trait Foo2Module extends CrossScalaModule{
   def moduleDeps = Seq(bar(crossScalaVersion))
 }
 
 object bar2 extends Cross[Bar2Module](scalaVersions)
-trait Bar2Module extends CrossScalaModule
-----
-
-
-== Realistic Scala Example Project
-
-// SNIPPET:ALL
-
-
-.build.mill ({mill-download-url}/0.12.0-RC2-example-scalalib-builds-4-realistic.zip[download], {mill-example-url}/example/scalalib/builds/4-realistic[browse])
-[source,scala,subs=&quot;attributes,verbatim&quot;]
-----
-
-package build
+trait Bar2Module extends CrossScalaModule</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_realistic_scala_example_project"><a class="anchor" href="#_realistic_scala_example_project"></a>Realistic Scala Example Project</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-scalalib-builds-4-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/scalalib/builds/4-realistic">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._, publish._
 
 trait MyModule extends PublishModule {
@@ -725,43 +765,55 @@ trait BarModule extends MyScalaModule {
   def moduleDeps = Seq(qux)
 }
 
-object qux extends JavaModule with MyModule
-----
-
-A semi-realistic build setup, combining all the individual Mill concepts:
-
-- Two `CrossScalaModules` compiled against two Scala versions, that depend on
-  each other as well as on a `JavaModule`
-
-- With unit testing and publishing set up
-
-- With version-specific sources
-
-- With generated sources to include the `publishVersion` as a string in the
-  code, so it can be printed at runtime
-
-Note that for multi-module builds like this, using queries to run tasks on
-multiple targets at once can be very convenient:
-
-----
-__.test
-__.publishLocal
-----
-
-Also note that ``ScalaModule``s can depend on ``JavaModule``s, and
+object qux extends JavaModule with MyModule</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A semi-realistic build setup, combining all the individual Mill concepts:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Two <code>CrossScalaModules</code> compiled against two Scala versions, that depend on
+each other as well as on a <code>JavaModule</code></p>
+</li>
+<li>
+<p>With unit testing and publishing set up</p>
+</li>
+<li>
+<p>With version-specific sources</p>
+</li>
+<li>
+<p>With generated sources to include the <code>publishVersion</code> as a string in the
+code, so it can be printed at runtime</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Note that for multi-module builds like this, using queries to run tasks on
+multiple targets at once can be very convenient:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>__.test
+__.publishLocal</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Also note that <code>ScalaModule</code>s can depend on <code>JavaModule</code>s, and
 when multiple inter-dependent modules are published they automatically will
-include the inter-module dependencies in the publish metadata.
-
-Also note how you can use ``trait``s to bundle together common combinations of
-modules: `MyScalaModule` not only defines a `ScalaModule` with some common
-configuration, but it also defines a `object test` module within it with its
+include the inter-module dependencies in the publish metadata.</p>
+</div>
+<div class="paragraph">
+<p>Also note how you can use <code>trait</code>s to bundle together common combinations of
+modules: <code>MyScalaModule</code> not only defines a <code>ScalaModule</code> with some common
+configuration, but it also defines a <code>object test</code> module within it with its
 own configuration. This is a very useful technique for managing the often
-repetitive module structure in a typical project
-
-
-[source,bash,subs=&quot;attributes,verbatim&quot;]
-----
-&gt; mill resolve __.run
+repetitive module structure in a typical project</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill resolve __.run
 bar[2.13.8].run
 bar[2.13.8].test.run
 bar[3.3.3].run
@@ -774,12 +826,12 @@ qux.run
 
 &gt; mill foo[2.13.8].run
 foo version 0.0.1
-Foo.value: <h1>hello</h1>
-Bar.value: <p>world Specific code for Scala 2.x</p>
+Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
+Bar.value: &lt;p&gt;world Specific code for Scala 2.x&lt;/p&gt;
 Qux.value: 31337
 
 &gt; mill bar[3.3.3].test
-+ bar.BarTests.test ... <p>world Specific code for Scala 3.x</p>
++ bar.BarTests.test ... &lt;p&gt;world Specific code for Scala 3.x&lt;/p&gt;
 
 &gt; mill qux.run
 Qux.value: 31337
@@ -787,10 +839,10 @@ Qux.value: 31337
 &gt; mill __.compile
 
 &gt; mill __.test
-+ bar.BarTests.test ... <p>world Specific code for Scala 2.x</p>
-+ bar.BarTests.test ... <p>world Specific code for Scala 3.x</p>
-+ foo.FooTests.test ... <h1>hello</h1>
-+ foo.FooTests.test ... <h1>hello</h1>
++ bar.BarTests.test ... &lt;p&gt;world Specific code for Scala 2.x&lt;/p&gt;
++ bar.BarTests.test ... &lt;p&gt;world Specific code for Scala 3.x&lt;/p&gt;
++ foo.FooTests.test ... &lt;h1&gt;hello&lt;/h1&gt;
++ foo.FooTests.test ... &lt;h1&gt;hello&lt;/h1&gt;
 
 &gt; mill __.publishLocal
 Publishing Artifact(com.lihaoyi,foo_2.13,0.0.1) to ivy repo...
@@ -804,38 +856,37 @@ Publishing Artifact(com.lihaoyi,qux,0.0.1) to ivy repo...
 
 &gt; ./out/foo/2.13.8/assembly.dest/out.jar # mac/linux
 foo version 0.0.1
-Foo.value: <h1>hello</h1>
-Bar.value: <p>world Specific code for Scala 2.x</p>
-Qux.value: 31337
-----
-
-
-== Example Builds for Real Projects
-
-Mill comes bundled with example builds for real-world open-source projects,
-demonstrating how Mill can be used to build code outside of tiny example codebases:
-
-=== Acyclic
-
-
-.build.mill ({mill-download-url}/0.12.0-RC2-example-thirdparty-acyclic.zip[download], {mill-example-url}/example/thirdparty/acyclic[browse])
-[source,scala,subs=&quot;attributes,verbatim&quot;]
-----
-
-package build
-import mill._, scalalib._, publish._
-----
-
-acyclic test suite assumes files are on disk at specific paths relative to `os.pwd`.
-To avoid changing the test code, we instead copy the necessary files into the `os.pwd`
-when preparing the resources for test suite execution
-
-
-
-[source,scala,subs=&quot;attributes,verbatim&quot;]
-----
-
-os.copy.over(
+Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
+Bar.value: &lt;p&gt;world Specific code for Scala 2.x&lt;/p&gt;
+Qux.value: 31337</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_example_builds_for_real_projects"><a class="anchor" href="#_example_builds_for_real_projects"></a>Example Builds for Real Projects</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill comes bundled with example builds for real-world open-source projects,
+demonstrating how Mill can be used to build code outside of tiny example codebases:</p>
+</div>
+<div class="sect2">
+<h3 id="_acyclic"><a class="anchor" href="#_acyclic"></a>Acyclic</h3>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-thirdparty-acyclic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/thirdparty/acyclic">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, scalalib._, publish._</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>acyclic test suite assumes files are on disk at specific paths relative to <code>os.pwd</code>.
+To avoid changing the test code, we instead copy the necessary files into the <code>os.pwd</code>
+when preparing the resources for test suite execution</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">os.copy.over(
   interp.watch(mill.api.WorkspaceRoot.workspaceRoot / &quot;acyclic&quot;),
   os.pwd / &quot;acyclic&quot;,
   createFolders = true
@@ -873,19 +924,20 @@ trait AcyclicModule extends CrossScalaModule with PublishModule {
     def sources = Task.Sources(millSourcePath / &quot;src&quot;, millSourcePath / &quot;resources&quot;)
     def ivyDeps = Agg(Deps.utest, Deps.scalaCompiler(crossScalaVersion))
   }
-}
-----
-
-Acyclic is an example of a very small project that is a Scala compiler
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Acyclic is an example of a very small project that is a Scala compiler
 plugin. It is cross-built against all point versions of Scala from 2.11.12
-to 2.13.10, and has a dependency on the `org.scala-lang:scala-compiler`
-
-Project home: https://github.com/com-lihaoyi/acyclic
-
-
-[source,bash,subs=&quot;attributes,verbatim&quot;]
-----
-&gt; ./mill resolve acyclic[_].compile
+to 2.13.10, and has a dependency on the <code>org.scala-lang:scala-compiler</code></p>
+</div>
+<div class="paragraph">
+<p>Project home: <a href="https://github.com/com-lihaoyi/acyclic" class="bare">https://github.com/com-lihaoyi/acyclic</a></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill resolve acyclic[_].compile
 acyclic[2.11.12].compile
 acyclic[2.12.10].compile
 acyclic[2.12.11].compile
@@ -913,17 +965,16 @@ compiling 6 Scala sources...
 
 &gt; ./mill acyclic[2.13.10].test.testLocal # acyclic tests need testLocal due to classloader assumptions
 -------------------------------- Running Tests --------------------------------
-...
-----
-
-=== Fansi
-
-
-.build.mill ({mill-download-url}/0.12.0-RC2-example-thirdparty-fansi.zip[download], {mill-example-url}/example/thirdparty/fansi[browse])
-[source,scala,subs=&quot;attributes,verbatim&quot;]
-----
-
-package build
+...</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_fansi"><a class="anchor" href="#_fansi"></a>Fansi</h3>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-thirdparty-fansi.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/thirdparty/fansi">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._, scalajslib._, scalanativelib._, publish._
 
 val dottyCommunityBuildVersion = sys.props.get(&quot;dottyVersion&quot;).toList
@@ -966,22 +1017,23 @@ object fansi extends Module {
     def scalaNativeVersion = &quot;0.4.5&quot;
     object test extends FansiTests with ScalaNativeTests
   }
-}
-----
-
-Fansi is an example of a small library that is cross built against every
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Fansi is an example of a small library that is cross built against every
 minor version of Scala (including Scala 3.x) and every platform: JVM, JS,
 and Native.
 Both the library and the test suite are duplicated across all
 entries in the {version}x{platform} matrix, and you can select which one you
-want to compile, test, or publish
-
-Project home: https://github.com/com-lihaoyi/fansi
-
-
-[source,bash,subs=&quot;attributes,verbatim&quot;]
-----
-&gt; ./mill resolve __.compile
+want to compile, test, or publish</p>
+</div>
+<div class="paragraph">
+<p>Project home: <a href="https://github.com/com-lihaoyi/fansi" class="bare">https://github.com/com-lihaoyi/fansi</a></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill resolve __.compile
 fansi.js[2.11.12].test.compile
 fansi.js[2.12.17].compile
 fansi.js[2.12.17].test.compile
@@ -1017,25 +1069,38 @@ Starting process: node
 
 &gt; ./mill fansi.native[3.1.3].publishLocal
 Publishing Artifact(com.lihaoyi,fansi_native0.4_3,1.3.3.7) to ivy repo...
-...
-----
-
-== Real World Mill Builds
-
-=== Ammonite
-
-https://github.com/com-lihaoyi/Ammonite[Ammonite] is an ergonomic Scala REPL.
-
-=== Scala-CLI
-
-https://github.com/VirtusLab/scala-cli[Scala-CLI] is the primary CLI tool that
-runs when you enter `scala` in the terminal. It is able to compile, test, run,
-and package your Scala code in a variety of different ways
-
-=== Coursier
-
-https://github.com/coursier/coursier[Coursier] is a fast JVM dependency resolver,
-used in many build tools down resolve and download third party dependencies
+...</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_real_world_mill_builds"><a class="anchor" href="#_real_world_mill_builds"></a>Real World Mill Builds</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_ammonite"><a class="anchor" href="#_ammonite"></a>Ammonite</h3>
+<div class="paragraph">
+<p><a href="https://github.com/com-lihaoyi/Ammonite">Ammonite</a> is an ergonomic Scala REPL.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_scala_cli"><a class="anchor" href="#_scala_cli"></a>Scala-CLI</h3>
+<div class="paragraph">
+<p><a href="https://github.com/VirtusLab/scala-cli">Scala-CLI</a> is the primary CLI tool that
+runs when you enter <code>scala</code> in the terminal. It is able to compile, test, run,
+and package your Scala code in a variety of different ways</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_coursier"><a class="anchor" href="#_coursier"></a>Coursier</h3>
+<div class="paragraph">
+<p><a href="https://github.com/coursier/coursier">Coursier</a> is a fast JVM dependency resolver,
+used in many build tools down resolve and download third party dependencies</p>
+</div>
+</div>
+</div>
+</div>
 <nav class="pagination">
   <span class="prev"><a href="Scala_Module_Config.html">Scala Module Configuration</a></span>
   <span class="next"><a href="Testing_Scala_Projects.html">Testing Scala Projects</a></span>

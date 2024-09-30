@@ -404,9 +404,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-56-612a28</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-57-799270</button>
   <div class="version-menu">
-    <a class="version is-current" href="Kotlin_Build_Examples.html">0.12.0-RC2-56-612a28</a>
+    <a class="version is-current" href="Kotlin_Build_Examples.html">0.12.0-RC2-57-799270</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
@@ -425,33 +425,49 @@
 </aside>
 <article class="doc">
 <h1 class="page">Kotlin Build Examples</h1>
+<div id="preamble">
+<div class="sectionbody">
+<script>
+gtag('config', 'AW-16649289906');
+</script>
 <div class="paragraph">
-<p>gtag('config', 'AW-16649289906');
-&lt;/script&gt;</p>
-</div>
-On this page, we will explore the Mill build tool via a series of simple Kotlin
+<p>On this page, we will explore the Mill build tool via a series of simple Kotlin
 example projects. Each project demonstrates one particular feature of the Mill
 build tool, and is also an executable codebase you can download and run. By the
 end of this page, you will be familiar with how to configure Mill to work with
-realistic Kotlin codebases: cross-building, testing, and publishing them.
-
-
-Many of the APIs covered here are listed in the API documentation:
-
-* {mill-doc-url}/api/latest/mill/main/RootModule.html[`mill.kotlinlib.RootModule`]
-* {mill-doc-url}/api/latest/mill/scalalib/TestModule$.html[`mill.kotlinlib.TestModule`]
-* {mill-doc-url}/api/latest/mill/scalalib/PublishModule.html[`mill.kotlinlib.PublishModule`]
-* {mill-doc-url}/api/latest/mill/kotlinlib/KotlinMavenModule.html[`mill.kotlinlib.KotlinMavenModule`]
-* {mill-doc-url}/api/latest/mill/kotlinlib/KotlinModule.html[`mill.kotlinlib.KotlinModule`]
-
-== Nesting Modules
-
-
-.build.mill ({mill-download-url}/0.12.0-RC2-example-kotlinlib-builds-1-nested-modules.zip[download], {mill-example-url}/example/kotlinlib/builds/1-nested-modules[browse])
-[source,scala,subs=&quot;attributes,verbatim&quot;]
-----
-
-package build
+realistic Kotlin codebases: cross-building, testing, and publishing them.</p>
+</div>
+<div class="paragraph">
+<p>Many of the APIs covered here are listed in the API documentation:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://mill-build.org/api/latest/mill/main/RootModule.html"><code>mill.kotlinlib.RootModule</code></a></p>
+</li>
+<li>
+<p><a href="https://mill-build.org/api/latest/mill/scalalib/TestModule$.html"><code>mill.kotlinlib.TestModule</code></a></p>
+</li>
+<li>
+<p><a href="https://mill-build.org/api/latest/mill/scalalib/PublishModule.html"><code>mill.kotlinlib.PublishModule</code></a></p>
+</li>
+<li>
+<p><a href="https://mill-build.org/api/latest/mill/kotlinlib/KotlinMavenModule.html"><code>mill.kotlinlib.KotlinMavenModule</code></a></p>
+</li>
+<li>
+<p><a href="https://mill-build.org/api/latest/mill/kotlinlib/KotlinModule.html"><code>mill.kotlinlib.KotlinModule</code></a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_nesting_modules"><a class="anchor" href="#_nesting_modules"></a>Nesting Modules</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-kotlinlib-builds-1-nested-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/kotlinlib/builds/1-nested-modules">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
 
 trait MyModule extends KotlinModule {
@@ -481,52 +497,55 @@ object baz extends MyModule {
   def moduleDeps = Seq(foo.bar, foo.qux, foo)
 
   def mainClass = Some(&quot;baz.BazKt&quot;)
-}
-----
-
-Modules can be nested arbitrarily deeply within each other. The outer module
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Modules can be nested arbitrarily deeply within each other. The outer module
 can be the same kind of module as the ones within, or it can be a plain
-`Module` if we just need a wrapper to put the modules in without any tasks
-defined on the wrapper.
-
-The outer module can also depend on the inner module (as shown above),
-and vice versa, but not both at the same.
-
-Running tasks on the nested modules requires the full module path
-`foo.bar.run`
-
-
-[source,bash,subs=&quot;attributes,verbatim&quot;]
-----
-&gt; mill resolve __.run
+<code>Module</code> if we just need a wrapper to put the modules in without any tasks
+defined on the wrapper.</p>
+</div>
+<div class="paragraph">
+<p>The outer module can also depend on the inner module (as shown above),
+and vice versa, but not both at the same.</p>
+</div>
+<div class="paragraph">
+<p>Running tasks on the nested modules requires the full module path
+<code>foo.bar.run</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill resolve __.run
 foo.bar.run
 foo.qux.run
 baz.run
 
 &gt; mill foo.run --bar-text hello --qux-text world --foo-text today
-Bar.value: <h1>hello</h1>
-Qux.value: <p>world</p>
-Foo.value: <p>today</p>
+Bar.value: &lt;h1&gt;hello&lt;/h1&gt;
+Qux.value: &lt;p&gt;world&lt;/p&gt;
+Foo.value: &lt;p&gt;today&lt;/p&gt;
 
 &gt; mill baz.run --bar-text hello --qux-text world --foo-text today --baz-text yay
-Bar.value: <h1>hello</h1>
-Qux.value: <p>world</p>
-Foo.value: <p>today</p>
-Baz.value: <p>yay</p>
+Bar.value: &lt;h1&gt;hello&lt;/h1&gt;
+Qux.value: &lt;p&gt;world&lt;/p&gt;
+Foo.value: &lt;p&gt;today&lt;/p&gt;
+Baz.value: &lt;p&gt;yay&lt;/p&gt;
 
 &gt; mill foo.qux.run --bar-text hello --qux-text world
-Bar.value: <h1>hello</h1>
-Qux.value: <p>world</p>
-----
-
-== Maven-Compatible Modules
-
-
-.build.mill ({mill-download-url}/0.12.0-RC2-example-kotlinlib-builds-2-compat-modules.zip[download], {mill-example-url}/example/kotlinlib/builds/2-compat-modules[browse])
-[source,scala,subs=&quot;attributes,verbatim&quot;]
-----
-
-package build
+Bar.value: &lt;h1&gt;hello&lt;/h1&gt;
+Qux.value: &lt;p&gt;world&lt;/p&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_maven_compatible_modules"><a class="anchor" href="#_maven_compatible_modules"></a>Maven-Compatible Modules</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-kotlinlib-builds-2-compat-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/kotlinlib/builds/2-compat-modules">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
 
 object foo extends KotlinModule with KotlinMavenModule {
@@ -538,30 +557,50 @@ object foo extends KotlinModule with KotlinMavenModule {
       ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;
     )
   }
-}
-----
-
-`KotlinMavenModule` is a variant of `KotlinModule`
-that uses the more verbose folder layout of Maven, SBT, and other tools:
-
-- `foo/src/main/java`
-- `foo/src/main/kotlin`
-- `foo/src/test/java`
-- `foo/src/test/kotlin`
-
-Rather than Mill's
-
-- `foo/src`
-- `foo/test/src`
-
-This is especially useful if you are migrating from Maven to Mill (or vice
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>KotlinMavenModule</code> is a variant of <code>KotlinModule</code>
+that uses the more verbose folder layout of Maven, SBT, and other tools:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>foo/src/main/java</code></p>
+</li>
+<li>
+<p><code>foo/src/main/kotlin</code></p>
+</li>
+<li>
+<p><code>foo/src/test/java</code></p>
+</li>
+<li>
+<p><code>foo/src/test/kotlin</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Rather than Mill’s</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>foo/src</code></p>
+</li>
+<li>
+<p><code>foo/test/src</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This is especially useful if you are migrating from Maven to Mill (or vice
 versa), during which a particular module may be built using both Maven and
-Mill at the same time
-
-
-[source,bash,subs=&quot;attributes,verbatim&quot;]
-----
-&gt; mill foo.compile
+Mill at the same time</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.compile
 Compiling 1 Kotlin source...
 
 &gt; mill foo.test.compile
@@ -571,18 +610,18 @@ Compiling 1 Kotlin source...
 ...foo.FooTestshello ...
 
 &gt; mill foo.test
-...foo.FooTestshello ...
-----
-
-
-== Realistic Kotlin Example Project
-
-
-.build.mill ({mill-download-url}/0.12.0-RC2-example-kotlinlib-builds-4-realistic.zip[download], {mill-example-url}/example/kotlinlib/builds/4-realistic[browse])
-[source,scala,subs=&quot;attributes,verbatim&quot;]
-----
-
-package build
+...foo.FooTestshello ...</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_realistic_kotlin_example_project"><a class="anchor" href="#_realistic_kotlin_example_project"></a>Realistic Kotlin Example Project</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-kotlinlib-builds-4-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/kotlinlib/builds/4-realistic">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._, publish._
 
 trait MyModule extends KotlinModule with PublishModule {
@@ -634,36 +673,46 @@ object bar extends MyModule {
 
 object qux extends MyModule {
   def mainClass = Some(&quot;qux.QuxKt&quot;)
-}
-----
-
-A semi-realistic build setup, combining all the individual Mill concepts:
-
-- Three `KotlinModule`s that depend on each other
-
-- With unit testing and publishing set up
-
-- With generated sources to include the `publishVersion` as a string in the
-  code, so it can be printed at runtime
-
-Note that for multi-module builds like this, using queries to run tasks on
-multiple targets at once can be very convenient:
-
-----
-__.test
-__.publishLocal
-----
-
-Also note how you can use ``trait``s to bundle together common combinations of
-modules: `MyModule` not only defines a `KotlinModule` with some common
-configuration, but it also defines a `object test` module within it with its
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A semi-realistic build setup, combining all the individual Mill concepts:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Three `KotlinModule`s that depend on each other</p>
+</li>
+<li>
+<p>With unit testing and publishing set up</p>
+</li>
+<li>
+<p>With generated sources to include the <code>publishVersion</code> as a string in the
+code, so it can be printed at runtime</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Note that for multi-module builds like this, using queries to run tasks on
+multiple targets at once can be very convenient:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>__.test
+__.publishLocal</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Also note how you can use <code>trait</code>s to bundle together common combinations of
+modules: <code>MyModule</code> not only defines a <code>KotlinModule</code> with some common
+configuration, but it also defines a <code>object test</code> module within it with its
 own configuration. This is a very useful technique for managing the often
-repetitive module structure in a typical project
-
-
-[source,bash,subs=&quot;attributes,verbatim&quot;]
-----
-&gt; mill resolve __.run
+repetitive module structure in a typical project</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill resolve __.run
 bar.run
 bar.test.run
 foo.run
@@ -672,8 +721,8 @@ qux.run
 
 &gt; mill foo.run
 foo version 0.0.1
-Foo.value: <h1>hello</h1>
-Bar.value: <p>world</p>
+Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
+Bar.value: &lt;p&gt;world&lt;/p&gt;
 Qux.value: 31337
 
 &gt; mill bar.test
@@ -699,10 +748,13 @@ Publishing Artifact(com.lihaoyi,qux,0.0.1) to ivy repo...
 
 &gt; ./out/foo/assembly.dest/out.jar # mac/linux
 foo version 0.0.1
-Foo.value: <h1>hello</h1>
-Bar.value: <p>world</p>
-Qux.value: 31337
-----
+Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
+Bar.value: &lt;p&gt;world&lt;/p&gt;
+Qux.value: 31337</code></pre>
+</div>
+</div>
+</div>
+</div>
 <nav class="pagination">
   <span class="prev"><a href="Kotlin_Module_Config.html">Kotlin Module Configuration</a></span>
   <span class="next"><a href="Testing_Kotlin_Projects.html">Testing Kotlin Projects</a></span>

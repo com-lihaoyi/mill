@@ -404,9 +404,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-56-612a28</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-57-799270</button>
   <div class="version-menu">
-    <a class="version is-current" href="Testing_Kotlin_Projects.html">0.12.0-RC2-56-612a28</a>
+    <a class="version is-current" href="Testing_Kotlin_Projects.html">0.12.0-RC2-57-799270</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
@@ -425,20 +425,23 @@
 </aside>
 <article class="doc">
 <h1 class="page">Testing Kotlin Projects</h1>
+<div id="preamble">
+<div class="sectionbody">
+<script>
+gtag('config', 'AW-16649289906');
+</script>
 <div class="paragraph">
-<p>gtag('config', 'AW-16649289906');
-&lt;/script&gt;</p>
+<p>This page will discuss common topics around working with test suites using the Mill build tool</p>
 </div>
-This page will discuss common topics around working with test suites using the Mill build tool
-
-== Defining Unit Test Suites
-
-
-.build.mill ({mill-download-url}/0.12.0-RC2-example-kotlinlib-testing-1-test-suite.zip[download], {mill-example-url}/example/kotlinlib/testing/1-test-suite[browse])
-[source,scala,subs=&quot;attributes,verbatim&quot;]
-----
-
-package build
+</div>
+</div>
+<div class="sect1">
+<h2 id="_defining_unit_test_suites"><a class="anchor" href="#_defining_unit_test_suites"></a>Defining Unit Test Suites</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-kotlinlib-testing-1-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/kotlinlib/testing/1-test-suite">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
 
 object foo extends KotlinModule {
@@ -458,21 +461,21 @@ object foo extends KotlinModule {
     // This is needed because of the &quot;mockito-kotlin&quot;
     def kotlincOptions = super.kotlincOptions() ++ Seq(&quot;-jvm-target&quot;, &quot;11&quot;)
   }
-}
-----
-
-This build defines a single module with a test suite, configured to use
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This build defines a single module with a test suite, configured to use
 &quot;JUnit&quot; + &quot;Kotest&quot; as the testing framework, along with Mockito. Test suites are themselves
-``KotlinModule``s, nested within the enclosing module,
+<code>KotlinModule</code>s, nested within the enclosing module,
 and have all the normal tasks like
-`foo.test.compile` available to run, but with an additional `.test` task
+<code>foo.test.compile</code> available to run, but with an additional <code>.test</code> task
 that runs the tests. You can also run the test suite directly, in which case
-it will run the `.test` task as the default task for that module.
-
-
-[source,bash,subs=&quot;attributes,verbatim&quot;]
-----
-&gt; mill foo.compile
+it will run the <code>.test</code> task as the default task for that module.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.compile
 Compiling 1 ... source...
 
 &gt; mill foo.test.compile
@@ -484,25 +487,43 @@ Compiling 1 ... source...
 
 &gt; mill foo.test
 ...foo.FooTests...hello ...
-...foo.FooTests...world ...
-----
-For convenience, you can also use one of the predefined test frameworks:
-
-* `TestModule.Junit4`
-* `TestModule.Junit5`
-* `TestModule.TestNg`
-* `TestModule.Munit`
-* `TestModule.ScalaTest`
-* `TestModule.Specs2`
-* `TestModule.Utest`
-* `TestModule.ZioTest`
-
-
-
-[source,scala,subs=&quot;attributes,verbatim&quot;]
-----
-
-object bar extends KotlinModule {
+...foo.FooTests...world ...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For convenience, you can also use one of the predefined test frameworks:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>TestModule.Junit4</code></p>
+</li>
+<li>
+<p><code>TestModule.Junit5</code></p>
+</li>
+<li>
+<p><code>TestModule.TestNg</code></p>
+</li>
+<li>
+<p><code>TestModule.Munit</code></p>
+</li>
+<li>
+<p><code>TestModule.ScalaTest</code></p>
+</li>
+<li>
+<p><code>TestModule.Specs2</code></p>
+</li>
+<li>
+<p><code>TestModule.Utest</code></p>
+</li>
+<li>
+<p><code>TestModule.ZioTest</code></p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bar extends KotlinModule {
 
   def mainClass = Some(&quot;bar.BarKt&quot;)
 
@@ -517,112 +538,139 @@ object bar extends KotlinModule {
     // This is needed because of the &quot;mockito-kotlin&quot;
     def kotlincOptions = super.kotlincOptions() ++ Seq(&quot;-jvm-target&quot;, &quot;11&quot;)
   }
-}
-----
-
-
-[source,bash,subs=&quot;attributes,verbatim&quot;]
-----
-&gt; mill bar.test
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill bar.test
 ...bar.BarTests...hello ...
-...bar.BarTests...world ...
-----
-You can also select multiple test suites in one command using Mill's
-xref:depth/Target_Query_Syntax.adoc[Target Query Syntax]
-
-
-[source,bash,subs=&quot;attributes,verbatim&quot;]
-----
-&gt; mill __.test
+...bar.BarTests...world ...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also select multiple test suites in one command using Mill’s
+<a href="../depth/Target_Query_Syntax.html" class="xref page">Target Query Syntax</a></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill __.test
 ...bar.BarTests...hello ...
 ...bar.BarTests...world ...
 ...foo.FooTests...hello ...
 ...foo.FooTests...world ...
-...
-----
-Mill provides three ways of running tests
-
-* `foo.test.test`: runs tests in a subprocess in an empty `sandbox/` folder.
-
-* `foo.test.testCached`: runs the tests in an empty `sandbox/` folder and caches the results
-  if successful. Also allows multiple test modules to be run in parallel e.g. via `mill __.testCached`
-
-* `foo.test.testLocal`: runs tests in an isolated classloader as part of the main Mill process.
-  This can be faster than `.test`, but is less flexible (e.g. you cannot pass `forkEnv`)
-  and more prone to interference (due to sharing the `sandbox/` folder provided by the
-  Mill process)
-
-
-[source,bash,subs=&quot;attributes,verbatim&quot;]
-----
-&gt; mill bar.test.test
-
-&gt; mill bar.test.testCached
-
-&gt; mill bar.test.testLocal
-----
-Mill provides three ways of running tests
-
-* `foo.test.test`: runs tests in a subprocess in an empty `sandbox/` folder, and
-  `forkArg` and `forkEnv` can be overridden to pass JVM flags &amp; environment variables.
-
-* `foo.test.testCached`: runs the tests in an empty `sandbox/` folder and caches the results
-  if successful. Also allows multiple test modules to be run in parallel e.g. via
-  `mill __.testCached`. Again, `forkEnv` and `forkArgs` can be configured.
-
-* `foo.test.testLocal`: runs tests in an isolated classloader as part of the main Mill process.
-  This can be faster than `.test`, but is less flexible (e.g. you cannot pass `forkEnv`)
-  and more prone to interference (due to sharing the `sandbox/` folder provided by the
-  Mill process)
-
-
-[source,bash,subs=&quot;attributes,verbatim&quot;]
-----
-&gt; mill bar.test.test
+...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Mill provides three ways of running tests</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>foo.test.test</code>: runs tests in a subprocess in an empty <code>sandbox/</code> folder.</p>
+</li>
+<li>
+<p><code>foo.test.testCached</code>: runs the tests in an empty <code>sandbox/</code> folder and caches the results
+if successful. Also allows multiple test modules to be run in parallel e.g. via <code>mill __.testCached</code></p>
+</li>
+<li>
+<p><code>foo.test.testLocal</code>: runs tests in an isolated classloader as part of the main Mill process.
+This can be faster than <code>.test</code>, but is less flexible (e.g. you cannot pass <code>forkEnv</code>)
+and more prone to interference (due to sharing the <code>sandbox/</code> folder provided by the
+Mill process)</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill bar.test.test
 
 &gt; mill bar.test.testCached
 
-&gt; mill bar.test.testLocal
-----
+&gt; mill bar.test.testLocal</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Mill provides three ways of running tests</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>foo.test.test</code>: runs tests in a subprocess in an empty <code>sandbox/</code> folder, and
+<code>forkArg</code> and <code>forkEnv</code> can be overridden to pass JVM flags &amp; environment variables.</p>
+</li>
+<li>
+<p><code>foo.test.testCached</code>: runs the tests in an empty <code>sandbox/</code> folder and caches the results
+if successful. Also allows multiple test modules to be run in parallel e.g. via
+<code>mill __.testCached</code>. Again, <code>forkEnv</code> and <code>forkArgs</code> can be configured.</p>
+</li>
+<li>
+<p><code>foo.test.testLocal</code>: runs tests in an isolated classloader as part of the main Mill process.
+This can be faster than <code>.test</code>, but is less flexible (e.g. you cannot pass <code>forkEnv</code>)
+and more prone to interference (due to sharing the <code>sandbox/</code> folder provided by the
+Mill process)</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill bar.test.test
 
-*Note that Mill runs tests with the working directory set to an empty `sandbox/` folder by default*.
+&gt; mill bar.test.testCached
+
+&gt; mill bar.test.testLocal</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Note that Mill runs tests with the working directory set to an empty <code>sandbox/</code> folder by default</strong>.
 Tests can access files from their resource directory via the environment variable
-`MILL_TEST_RESOURCE_FOLDER` which provides the path to the resource folder, and additional
-paths can be provided to test via `forkEnv`. See
-xref:javalib/Java_Module_Config.adoc#_classpath_and_filesystem_resources[Classpath and Filesystem Resources]
-for more details.
-
-If you want to pass any arguments to the test framework, simply put them after
-`foo.test` in the command line. e.g. {utest-github-url}[uTest]
-lets you pass in a selector to decide which test to run, which in Mill would be:
-
-
-[source,bash,subs=&quot;attributes,verbatim&quot;]
-----
-&gt; kotest_filter_tests='hello' kotest_filter_specs='bar.BarTests' ./mill bar.test
-...bar.BarTests...hello ...
-----
-
-
-== Test Dependencies
-
-[IMPORTANT]
---
-_Mill has no `test`-scoped dependencies!_
---
-
-You might be used to test-scoped dependencies from other build tools like
+<code>MILL_TEST_RESOURCE_FOLDER</code> which provides the path to the resource folder, and additional
+paths can be provided to test via <code>forkEnv</code>. See
+<a href="../javalib/Java_Module_Config.html#_classpath_and_filesystem_resources" class="xref page">Classpath and Filesystem Resources</a>
+for more details.</p>
+</div>
+<div class="paragraph">
+<p>If you want to pass any arguments to the test framework, simply put them after
+<code>foo.test</code> in the command line. e.g. <a href="https://github.com/com-lihaoyi/utest">uTest</a>
+lets you pass in a selector to decide which test to run, which in Mill would be:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; kotest_filter_tests='hello' kotest_filter_specs='bar.BarTests' ./mill bar.test
+...bar.BarTests...hello ...</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_test_dependencies"><a class="anchor" href="#_test_dependencies"></a>Test Dependencies</h2>
+<div class="sectionbody">
+<div class="admonitionblock important">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><em>Mill has no <code>test</code>-scoped dependencies!</em></p>
+</div>
+</td>
+</tr>
+</tbody></table>
+</div>
+<div class="paragraph">
+<p>You might be used to test-scoped dependencies from other build tools like
 Maven, Gradle or sbt. As test modules in Mill are just regular modules,
-there is no special need for a dedicated test-scope. You can use `ivyDeps`
-and `runIvyDeps` to declare dependencies in test modules, and test modules
-can use their `moduleDeps` to also depend on each other
-
-
-.build.mill ({mill-download-url}/0.12.0-RC2-example-kotlinlib-testing-2-test-deps.zip[download], {mill-example-url}/example/kotlinlib/testing/2-test-deps[browse])
-[source,scala,subs=&quot;attributes,verbatim&quot;]
-----
-
-package build
+there is no special need for a dedicated test-scope. You can use <code>ivyDeps</code>
+and <code>runIvyDeps</code> to declare dependencies in test modules, and test modules
+can use their <code>moduleDeps</code> to also depend on each other</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-kotlinlib-testing-2-test-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/kotlinlib/testing/2-test-deps">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
 
 object qux extends KotlinModule {
@@ -650,18 +698,18 @@ object baz extends KotlinModule {
       ivy&quot;com.google.guava:guava:33.3.0-jre&quot;
     )
   }
-}
-----
-
-In this example, not only does `qux` depend on `baz`, but we also make
-`qux.test` depend on `baz.test`. That lets `qux.test` make use of the
-`BazTestUtils` class that `baz.test` defines, allowing us to re-use this
-test helper throughout multiple modules' test suites
-
-
-[source,bash,subs=&quot;attributes,verbatim&quot;]
-----
-&gt; ./mill qux.test
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this example, not only does <code>qux</code> depend on <code>baz</code>, but we also make
+<code>qux.test</code> depend on <code>baz.test</code>. That lets <code>qux.test</code> make use of the
+<code>BazTestUtils</code> class that <code>baz.test</code> defines, allowing us to re-use this
+test helper throughout multiple modules' test suites</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill qux.test
 Using BazTestUtils.bazAssertEquals
 ... qux.QuxTests...simple ...
 ...
@@ -669,21 +717,23 @@ Using BazTestUtils.bazAssertEquals
 &gt; ./mill baz.test
 Using BazTestUtils.bazAssertEquals
 ... baz.BazTests...simple ...
-...
-----
-
-== Defining Integration Test Suites
-
-You can also define test suites with different names other than `test`. For example,
-the build below defines a test suite with the name `integration`, in addition
-to that named `test`.
-
-
-.build.mill ({mill-download-url}/0.12.0-RC2-example-kotlinlib-testing-3-integration-suite.zip[download], {mill-example-url}/example/kotlinlib/testing/3-integration-suite[browse])
-[source,scala,subs=&quot;attributes,verbatim&quot;]
-----
-
-package build
+...</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_defining_integration_test_suites"><a class="anchor" href="#_defining_integration_test_suites"></a>Defining Integration Test Suites</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can also define test suites with different names other than <code>test</code>. For example,
+the build below defines a test suite with the name <code>integration</code>, in addition
+to that named <code>test</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-kotlinlib-testing-3-integration-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/kotlinlib/testing/3-integration-suite">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
 object qux extends KotlinModule {
 
@@ -699,39 +749,42 @@ object qux extends KotlinModule {
       ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;
     )
   }
-}
-----
-
-The integration suite is just another regular test module within the parent KotlinModule
-(This example also demonstrates using Junit 5 instead of Junit 4)
-
-These two test modules will expect their sources to be in their respective `foo/test` and
-`foo/integration` folder respectively
-
-
-[source,bash,subs=&quot;attributes,verbatim&quot;]
-----
-&gt; mill 'qux.{test,integration}' # run both test suites
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The integration suite is just another regular test module within the parent KotlinModule
+(This example also demonstrates using Junit 5 instead of Junit 4)</p>
+</div>
+<div class="paragraph">
+<p>These two test modules will expect their sources to be in their respective <code>foo/test</code> and
+<code>foo/integration</code> folder respectively</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill 'qux.{test,integration}' # run both test suites
 ...qux.QuxTests...hello...
 ...qux.QuxTests...world...
 ...qux.QuxIntegrationTests...helloworld...
 
-&gt; mill __.integration.testCached # run all integration test suites
-----
-
-== Test Grouping
-
-Test Grouping is an opt-in feature that allows you to take a single
+&gt; mill __.integration.testCached # run all integration test suites</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_test_grouping"><a class="anchor" href="#_test_grouping"></a>Test Grouping</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Test Grouping is an opt-in feature that allows you to take a single
 test module and group the test classes such that each group will
-execute in parallel when you call `test`. Test grouping is enabled
-by overriding `def testForkGrouping`, as shown below:
-
-
-.build.mill ({mill-download-url}/0.12.0-RC2-example-kotlinlib-testing-4-test-grouping.zip[download], {mill-example-url}/example/kotlinlib/testing/4-test-grouping[browse])
-[source,scala,subs=&quot;attributes,verbatim&quot;]
-----
-
-package build
+execute in parallel when you call <code>test</code>. Test grouping is enabled
+by overriding <code>def testForkGrouping</code>, as shown below:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-kotlinlib-testing-4-test-grouping.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/kotlinlib/testing/4-test-grouping">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
 
 object foo extends KotlinModule {
@@ -750,14 +803,13 @@ object foo extends KotlinModule {
 
     def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
   }
-}
-----
-
-
-.foo/test/src/foo/HelloTests.kt ({mill-example-url}/example/kotlinlib/testing/4-test-grouping/foo/test/src/foo/HelloTests.kt[browse])
-[source,scala,subs=&quot;attributes,verbatim&quot;]
-----
-package foo
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">foo/test/src/foo/HelloTests.kt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/kotlinlib/testing/4-test-grouping/foo/test/src/foo/HelloTests.kt">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.string.shouldStartWith
@@ -770,13 +822,13 @@ class HelloTests : FunSpec({
         java.lang.Thread.sleep(1000)
         println(&quot;Testing Hello Completed&quot;)
     }
-})
-----
-
-.foo/test/src/foo/WorldTests.kt ({mill-example-url}/example/kotlinlib/testing/4-test-grouping/foo/test/src/foo/WorldTests.kt[browse])
-[source,scala,subs=&quot;attributes,verbatim&quot;]
-----
-package foo
+})</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">foo/test/src/foo/WorldTests.kt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/kotlinlib/testing/4-test-grouping/foo/test/src/foo/WorldTests.kt">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.string.shouldEndWith
@@ -789,18 +841,19 @@ class WorldTests : FunSpec({
         java.lang.Thread.sleep(1000)
         println(&quot;Testing World Completed&quot;)
     }
-})
-----
-In this example, we have one test module `foo.test`, and two test classes
-`HelloTests` and `WorldTests`. By default, all test classes in the same
-module run sequentially in the same JVM, but with `testForkGrouping` we can break up the
+})</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this example, we have one test module <code>foo.test</code>, and two test classes
+<code>HelloTests</code> and <code>WorldTests</code>. By default, all test classes in the same
+module run sequentially in the same JVM, but with <code>testForkGrouping</code> we can break up the
 module and run each test class in parallel in separate JVMs, each with their own
-separate `sandbox` folder and `.log` file:
-
-
-[source,bash,subs=&quot;attributes,verbatim&quot;]
-----
-&gt; mill foo.test
+separate <code>sandbox</code> folder and <code>.log</code> file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.test
 
 &gt; find out/foo/test/test.dest
 ...
@@ -808,21 +861,27 @@ out/foo/test/test.dest/foo.HelloTests.log
 out/foo/test/test.dest/foo.HelloTests/sandbox
 out/foo/test/test.dest/foo.WorldTests.log
 out/foo/test/test.dest/foo.WorldTests/sandbox
-out/foo/test/test.dest/test-report.xml
-----
-Test grouping allows you to run tests in parallel while keeping things deterministic and
+out/foo/test/test.dest/test-report.xml</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Test grouping allows you to run tests in parallel while keeping things deterministic and
 debuggable: parallel test groups will not write over each others files in their
 sandbox, and each one will have a separate set of logs that can be easily read
-without the others mixed in
-
-In this example, `def testForkGrouping = discoveredTestClasses().grouped(1).toSeq` assigns
+without the others mixed in</p>
+</div>
+<div class="paragraph">
+<p>In this example, <code>def testForkGrouping = discoveredTestClasses().grouped(1).toSeq</code> assigns
 each test class to its own group, running in its own JVM. This comes with some overhead
 on a per-JVM basis, so if your test classes are numerous and small you may want to assign
-multiple test classes per group. You can also configure `testForkGrouping` to choose which
+multiple test classes per group. You can also configure <code>testForkGrouping</code> to choose which
 test classes you want to run together and which to run alone: e.g. if some test classes
 are much slower than others, you may want to put the slow test classes each in its own
 group to reduce latency, while grouping multiple fast test classes together to reduce the
-per-group overhead of spinning up a separate JVM.
+per-group overhead of spinning up a separate JVM.</p>
+</div>
+</div>
+</div>
 <nav class="pagination">
   <span class="prev"><a href="Kotlin_Build_Examples.html">Kotlin Build Examples</a></span>
   <span class="next"><a href="Linting_Kotlin_Projects.html">Linting Kotlin Projects</a></span>

@@ -404,9 +404,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-56-612a28</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-57-799270</button>
   <div class="version-menu">
-    <a class="version is-current" href="Linting_Java_Projects.html">0.12.0-RC2-56-612a28</a>
+    <a class="version is-current" href="Linting_Java_Projects.html">0.12.0-RC2-57-799270</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
@@ -425,25 +425,28 @@
 </aside>
 <article class="doc">
 <h1 class="page">Linting Java Projects</h1>
+<div id="preamble">
+<div class="sectionbody">
+<script>
+gtag('config', 'AW-16649289906');
+</script>
 <div class="paragraph">
-<p>gtag('config', 'AW-16649289906');
-&lt;/script&gt;</p>
+<p>This page will discuss common topics around enforcing the code quality of Java
+codebases using the Mill build tool</p>
 </div>
-This page will discuss common topics around enforcing the code quality of Java
-codebases using the Mill build tool
-
-
-== Linting with ErrorProne
-
-When adding the xref:contrib/errorprone.adoc[`ErrorPromeModule`] to your `JavaModule`,
-the `error-prone` compiler plugin automatically detects various kind of programming errors.
-
-
-.build.mill ({mill-download-url}/0.12.0-RC2-example-javalib-linting-1-error-prone.zip[download], {mill-example-url}/example/javalib/linting/1-error-prone[browse])
-[source,scala,subs=&quot;attributes,verbatim&quot;]
-----
-
-package build
+</div>
+</div>
+<div class="sect1">
+<h2 id="_linting_with_errorprone"><a class="anchor" href="#_linting_with_errorprone"></a>Linting with ErrorProne</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When adding the <a href="../contrib/errorprone.html" class="xref page"><code>ErrorPromeModule</code></a> to your <code>JavaModule</code>,
+the <code>error-prone</code> compiler plugin automatically detects various kind of programming errors.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-javalib-linting-1-error-prone.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/javalib/linting/1-error-prone">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
 import mill.contrib.errorprone._
 
@@ -451,33 +454,32 @@ import $ivy.`com.lihaoyi::mill-contrib-errorprone:`
 
 object `package` extends RootModule with JavaModule with ErrorProneModule {
   def errorProneOptions = Seq(&quot;-XepAllErrorsAsWarnings&quot;)
-}
-----
-
-
-.src/example/ShortSet.java ({mill-example-url}/example/javalib/linting/1-error-prone/src/example/ShortSet.java[browse])
-[source,scala,subs=&quot;attributes,verbatim&quot;]
-----
-package example;
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">src/example/ShortSet.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/javalib/linting/1-error-prone/src/example/ShortSet.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package example;
 
 import java.util.HashSet;
 import java.util.Set;
 
 public class ShortSet {
   public static void main (String[] args) {
-    Set<short> s = new HashSet&lt;&gt;();
+    Set&lt;Short&gt; s = new HashSet&lt;&gt;();
     for (short i = 0; i &lt; 100; i++) {
       s.add(i);
       s.remove(i - 1);
     }
     System.out.println(s.size());
   }
-}
-----
-
-[source,bash,subs=&quot;attributes,verbatim&quot;]
-----
-&gt; ./mill show errorProneOptions
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show errorProneOptions
 [
   &quot;-XepAllErrorsAsWarnings&quot;
 ]
@@ -487,18 +489,21 @@ public class ShortSet {
 [warn]       s.remove(i - 1);
 [warn]               ^    (see https://errorprone.info/bugpattern/CollectionIncompatibleType)
 [warn] 1 warning
-[warn]               ^
-----
-Find more details on the xref:contrib/errorprone.adoc[ErrorProne plugin page].
-
-== Linting with Checkstyle
-
-
-.build.mill ({mill-download-url}/0.12.0-RC2-example-javalib-linting-2-checkstyle.zip[download], {mill-example-url}/example/javalib/linting/2-checkstyle[browse])
-[source,scala,subs=&quot;attributes,verbatim&quot;]
-----
-
-package build
+[warn]               ^</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Find more details on the <a href="../contrib/errorprone.html" class="xref page">ErrorProne plugin page</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_linting_with_checkstyle"><a class="anchor" href="#_linting_with_checkstyle"></a>Linting with Checkstyle</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-javalib-linting-2-checkstyle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/javalib/linting/2-checkstyle">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
 import $ivy.`com.lihaoyi::mill-contrib-checkstyle:`
 
@@ -506,13 +511,12 @@ import mill.contrib.checkstyle._
 
 object `package` extends RootModule with CheckstyleModule {
   def checkstyleVersion = &quot;9.3&quot;
-}
-----
-
-
-[source,bash,subs=&quot;attributes,verbatim&quot;]
-----
-&gt; ./mill checkstyle # run checkstyle to produce a report, defaults to warning without error
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill checkstyle # run checkstyle to produce a report, defaults to warning without error
 ...src/InputWhitespaceCharacters.java:3:23: Line contains a tab character...
 ...src/InputWhitespaceCharacters.java:16:3: Line contains a tab character...
 ...src/InputFileName1.java:2:1: Top-level class MyAnnotation1 has to reside in its own source file...
@@ -535,47 +539,48 @@ Audit done.
 &gt; rm src/InputFileName1.java
 
 &gt; ./mill checkstyle # after fixing the violations, checkstyle no longer errors
-Audit done.
-----
-
-== AutoFormatting with Palantir Java Format
-
-Mill supports auto-formatting Java code via the
-https://github.com/palantir/palantir-java-format[Palantir Java Format] project. This can
-be used on a per-module basis by inheriting from `PalantirFormatModule` and running the
-`palanatirformat` command on that module, or on a global basis by running
-`mill.javalib.palantirformat.PalantirFormatModule/`. You can also use `--check` if you wish
+Audit done.</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_autoformatting_with_palantir_java_format"><a class="anchor" href="#_autoformatting_with_palantir_java_format"></a>AutoFormatting with Palantir Java Format</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill supports auto-formatting Java code via the
+<a href="https://github.com/palantir/palantir-java-format">Palantir Java Format</a> project. This can
+be used on a per-module basis by inheriting from <code>PalantirFormatModule</code> and running the
+<code>palanatirformat</code> command on that module, or on a global basis by running
+<code>mill.javalib.palantirformat.PalantirFormatModule/</code>. You can also use <code>--check</code> if you wish
 to error if the code is not formatted, which is useful in CI validation jobs to ensure
-code is formatted before merging.
-
-
-.build.mill ({mill-download-url}/0.12.0-RC2-example-javalib-linting-3-palantirformat.zip[download], {mill-example-url}/example/javalib/linting/3-palantirformat[browse])
-[source,scala,subs=&quot;attributes,verbatim&quot;]
-----
-
-package build
+code is formatted before merging.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-javalib-linting-3-palantirformat.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/javalib/linting/3-palantirformat">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
 import mill._
 import mill.javalib.palantirformat._
 
-object `package` extends RootModule with PalantirFormatModule
-----
-
-
-.src/A.java ({mill-example-url}/example/javalib/linting/3-palantirformat/src/A.java[browse])
-[source,scala,subs=&quot;attributes,verbatim&quot;]
-----
-public class A {
+object `package` extends RootModule with PalantirFormatModule</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">src/A.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/javalib/linting/3-palantirformat/src/A.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">public class A {
 
     public static void main(String[] args) {
     System.out.println(&quot;hello&quot;); // indentation should be fixed
     }
-}
-----
-
-[source,bash,subs=&quot;attributes,verbatim&quot;]
-----
-&gt; ./mill palantirformat --check                                         # check should fail initially
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill palantirformat --check                                         # check should fail initially
 ...checking format in java sources ...
 ...src/A.java
 error: ...palantirformat aborted due to format error(s) (or invalid plugin settings/palantirformat options)
@@ -587,20 +592,32 @@ error: ...palantirformat aborted due to format error(s) (or invalid plugin setti
 ...checking format in java sources ...
 
 &gt; ./mill mill.javalib.palantirformat.PalantirFormatModule/ __.sources   # alternatively, use external module to check/format
-...formatting java sources ...
-----
-
-== Code Coverage with Jacoco
-
-Mill supports Java code coverage analysis via the mill-jacoco plugin. See the
-plugin repository documentation for more details:
-
-* https://github.com/lefou/mill-jacoco
+...formatting java sources ...</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_code_coverage_with_jacoco"><a class="anchor" href="#_code_coverage_with_jacoco"></a>Code Coverage with Jacoco</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill supports Java code coverage analysis via the mill-jacoco plugin. See the
+plugin repository documentation for more details:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/lefou/mill-jacoco" class="bare">https://github.com/lefou/mill-jacoco</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
 <nav class="pagination">
   <span class="prev"><a href="Testing_Java_Projects.html">Testing Java Projects</a></span>
   <span class="next"><a href="Publishing_Java_Projects.html">Publishing Java Projects</a></span>
 </nav>
-</short></article>
+</article>
   </div>
 </main>
 </div>

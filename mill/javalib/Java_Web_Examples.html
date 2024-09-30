@@ -404,9 +404,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-56-612a28</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-57-799270</button>
   <div class="version-menu">
-    <a class="version is-current" href="Java_Web_Examples.html">0.12.0-RC2-56-612a28</a>
+    <a class="version is-current" href="Java_Web_Examples.html">0.12.0-RC2-57-799270</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
@@ -425,21 +425,24 @@
 </aside>
 <article class="doc">
 <h1 class="page">Java Web Examples</h1>
+<div id="preamble">
+<div class="sectionbody">
+<script>
+gtag('config', 'AW-16649289906');
+</script>
 <div class="paragraph">
-<p>gtag('config', 'AW-16649289906');
-&lt;/script&gt;</p>
+<p>This page contains examples of using Mill as a build tool for web-applications.
+It covers setting up a basic backend server with a variety of server frameworks</p>
 </div>
-This page contains examples of using Mill as a build tool for web-applications.
-It covers setting up a basic backend server with a variety of server frameworks
-
-== Jetty Hello World App
-
-
-.build.mill ({mill-download-url}/0.12.0-RC2-example-javalib-web-1-hello-jetty.zip[download], {mill-example-url}/example/javalib/web/1-hello-jetty[browse])
-[source,scala,subs=&quot;attributes,verbatim&quot;]
-----
-
-package build
+</div>
+</div>
+<div class="sect1">
+<h2 id="_jetty_hello_world_app"><a class="anchor" href="#_jetty_hello_world_app"></a>Jetty Hello World App</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-javalib-web-1-hello-jetty.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/javalib/web/1-hello-jetty">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
 
 object `package` extends RootModule with JavaModule {
@@ -449,35 +452,35 @@ object `package` extends RootModule with JavaModule {
   )
 
   object test extends JavaTests with TestModule.Junit4
-}
-----
-
-This example demonstrates how to set up a simple Jetty webserver,
-able to handle a single HTTP request at `/` and reply with a single response.
-
-
-[source,bash,subs=&quot;attributes,verbatim&quot;]
-----
-&gt; mill test
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example demonstrates how to set up a simple Jetty webserver,
+able to handle a single HTTP request at <code>/</code> and reply with a single response.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill test
 ...HelloJettyTest.testHelloJetty finished...
 
 &gt; mill runBackground
 
 &gt; curl http://localhost:8085
-...<h1>Hello, World!</h1>...
+...&lt;h1&gt;Hello, World!&lt;/h1&gt;...
 
-&gt; mill clean runBackground
-----
-
-
-== Spring Boot Hello World App
-
-
-.build.mill ({mill-download-url}/0.12.0-RC2-example-javalib-web-2-hello-spring-boot.zip[download], {mill-example-url}/example/javalib/web/2-hello-spring-boot[browse])
-[source,scala,subs=&quot;attributes,verbatim&quot;]
-----
-
-package build
+&gt; mill clean runBackground</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_spring_boot_hello_world_app"><a class="anchor" href="#_spring_boot_hello_world_app"></a>Spring Boot Hello World App</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-javalib-web-2-hello-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/javalib/web/2-hello-spring-boot">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
 
 object `package` extends RootModule with JavaModule {
@@ -491,34 +494,35 @@ object `package` extends RootModule with JavaModule {
       ivy&quot;org.springframework.boot:spring-boot-starter-test:2.5.6&quot;
     )
   }
-}
-----
-
-This example demonstrates how to set up a simple Spring Boot webserver,
-able to handle a single HTTP request at `/` and reply with a single response.
-
-
-[source,bash,subs=&quot;attributes,verbatim&quot;]
-----
-&gt; mill test
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example demonstrates how to set up a simple Spring Boot webserver,
+able to handle a single HTTP request at <code>/</code> and reply with a single response.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill test
 ...com.example.HelloSpringBootTest#shouldReturnDefaultMessage() finished...
 
 &gt; mill runBackground
 
 &gt; curl http://localhost:8086
-...<h1>Hello, World!</h1>...
+...&lt;h1&gt;Hello, World!&lt;/h1&gt;...
 
-&gt; mill clean runBackground
-----
-
-== Spring Boot TodoMvc App
-
-
-.build.mill ({mill-download-url}/0.12.0-RC2-example-javalib-web-3-todo-spring-boot.zip[download], {mill-example-url}/example/javalib/web/3-todo-spring-boot[browse])
-[source,scala,subs=&quot;attributes,verbatim&quot;]
-----
-
-package build
+&gt; mill clean runBackground</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_spring_boot_todomvc_app"><a class="anchor" href="#_spring_boot_todomvc_app"></a>Spring Boot TodoMvc App</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-javalib-web-3-todo-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/javalib/web/3-todo-spring-boot">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
 
 object `package` extends RootModule with JavaModule {
@@ -558,23 +562,36 @@ object `package` extends RootModule with JavaModule {
       ivy&quot;org.postgresql:postgresql:42.6.0&quot;,
     )
   }
-}
-----
-
-This is a larger example using Spring Boot, implementing the well known
-https://todomvc.com/[TodoMVC] example app. Apart from running a webserver,
-this example also demonstrates:
-
-* Serving HTML templates using Thymeleaf
-* Serving static Javascript and CSS using Webjars
-* Querying a SQL database using JPA and H2
-* Unit testing using a H2 in-memory database
-* Integration testing using Testcontainers Postgres in Docker
-
-
-[source,bash,subs=&quot;attributes,verbatim&quot;]
-----
-&gt; mill test
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is a larger example using Spring Boot, implementing the well known
+<a href="https://todomvc.com/">TodoMVC</a> example app. Apart from running a webserver,
+this example also demonstrates:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Serving HTML templates using Thymeleaf</p>
+</li>
+<li>
+<p>Serving static Javascript and CSS using Webjars</p>
+</li>
+<li>
+<p>Querying a SQL database using JPA and H2</p>
+</li>
+<li>
+<p>Unit testing using a H2 in-memory database</p>
+</li>
+<li>
+<p>Integration testing using Testcontainers Postgres in Docker</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill test
 ...com.example.TodomvcTests#homePageLoads() finished...
 ...com.example.TodomvcTests#addNewTodoItem() finished...
 
@@ -585,19 +602,20 @@ this example also demonstrates:
 &gt; mill test.runBackground
 
 &gt; curl http://localhost:8087
-...<h1>todos</h1>...
+...&lt;h1&gt;todos&lt;/h1&gt;...
 
-&gt; mill clean runBackground
-----
-
-== Micronaut Hello World App
-
-
-.build.mill ({mill-download-url}/0.12.0-RC2-example-javalib-web-4-hello-micronaut.zip[download], {mill-example-url}/example/javalib/web/4-hello-micronaut[browse])
-[source,scala,subs=&quot;attributes,verbatim&quot;]
-----
-
-package build
+&gt; mill clean runBackground</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_micronaut_hello_world_app"><a class="anchor" href="#_micronaut_hello_world_app"></a>Micronaut Hello World App</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-javalib-web-4-hello-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/javalib/web/4-hello-micronaut">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
 
 object `package` extends RootModule with MicronautModule {
@@ -643,30 +661,33 @@ trait MicronautModule extends MavenModule{
     &quot;-Amicronaut.processing.module=todo&quot;,
     &quot;-Amicronaut.processing.annotations=example.micronaut.*&quot;,
   )
-}
-----
-
-This example demonstrates how to set up a simple Micronaut example service,
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example demonstrates how to set up a simple Micronaut example service,
 using the code from the
-https://guides.micronaut.io/latest/creating-your-first-micronaut-app.html[Micronaut Tutorial].
-
-To preserve compatibility with the file layout from the example project, we use `MavenModule`,
-which follows the `src/main/java` and `src/test/java` folder convention.
-
-Although Mill does not have a built in `MicronautModule`, this example shows how easy
-it is to define it yourself as `trait MicronautModule`: setting up the annotation processor
-classpath as a `JavaModule` and setting up the annotation via `javacOptions`. Once defined,
-you can then use `MicronautModule` in your build just like you can use any builtin
-`trait` like `JavaModule`.
-
-The `MicronautModule` shown here does not implement the full functionality of the micronaut
+<a href="https://guides.micronaut.io/latest/creating-your-first-micronaut-app.html">Micronaut Tutorial</a>.</p>
+</div>
+<div class="paragraph">
+<p>To preserve compatibility with the file layout from the example project, we use <code>MavenModule</code>,
+which follows the <code>src/main/java</code> and <code>src/test/java</code> folder convention.</p>
+</div>
+<div class="paragraph">
+<p>Although Mill does not have a built in <code>MicronautModule</code>, this example shows how easy
+it is to define it yourself as <code>trait MicronautModule</code>: setting up the annotation processor
+classpath as a <code>JavaModule</code> and setting up the annotation via <code>javacOptions</code>. Once defined,
+you can then use <code>MicronautModule</code> in your build just like you can use any builtin
+<code>trait</code> like <code>JavaModule</code>.</p>
+</div>
+<div class="paragraph">
+<p>The <code>MicronautModule</code> shown here does not implement the full functionality of the micronaut
 CLI; in particular, support for Micronaut AOT compilation is missing. But it easily can be
-extended with more features as necessary.
-
-
-[source,bash,subs=&quot;attributes,verbatim&quot;]
-----
-&gt; mill test
+extended with more features as necessary.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill test
 ...example.micronaut.HelloControllerTest#testHello()...
 
 &gt; mill runBackground
@@ -674,17 +695,18 @@ extended with more features as necessary.
 &gt; curl http://localhost:8088/hello
 ...Hello World...
 
-&gt; mill clean runBackground
-----
-
-== Micronaut TodoMvc App
-
-
-.build.mill ({mill-download-url}/0.12.0-RC2-example-javalib-web-5-todo-micronaut.zip[download], {mill-example-url}/example/javalib/web/5-todo-micronaut[browse])
-[source,scala,subs=&quot;attributes,verbatim&quot;]
-----
-
-package build
+&gt; mill clean runBackground</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_micronaut_todomvc_app"><a class="anchor" href="#_micronaut_todomvc_app"></a>Micronaut TodoMvc App</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-javalib-web-5-todo-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/javalib/web/5-todo-micronaut">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
 
 object `package` extends RootModule with MicronautModule {
@@ -747,29 +769,45 @@ trait MicronautModule extends MavenModule{
     &quot;-Amicronaut.processing.module=todo&quot;,
     &quot;-Amicronaut.processing.annotations=example.micronaut.*&quot;,
   )
-}
-----
-
-This example is a more complete example using Micronaut, adapted from
-https://github.com/sdelamo/todomvc. On top of the `MicronautModule` and
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example is a more complete example using Micronaut, adapted from
+<a href="https://github.com/sdelamo/todomvc" class="bare">https://github.com/sdelamo/todomvc</a>. On top of the <code>MicronautModule</code> and
 annotation processing demonstrated by the previous example, this example
-shows how a &quot;full stack&quot; web application using Micronaut looks like:
-
-* Thymeleaf for HTML templating
-* Webjars for Javascript and CSS
-* HTMX for interactivity
-* Database interactions using JDBC and H2
-* Controllers, Repositories, Entities, Forms
-* A more detailed test suite
-
-Again, the example `MicronautModule` is by no means complete, but it demonstrates
-how Mill can be integrated with Micronaut's annotation processors and configuration,
-and can be extended to cover additional functionality in future
-
-
-[source,bash,subs=&quot;attributes,verbatim&quot;]
-----
-&gt; mill test
+shows how a &quot;full stack&quot; web application using Micronaut looks like:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Thymeleaf for HTML templating</p>
+</li>
+<li>
+<p>Webjars for Javascript and CSS</p>
+</li>
+<li>
+<p>HTMX for interactivity</p>
+</li>
+<li>
+<p>Database interactions using JDBC and H2</p>
+</li>
+<li>
+<p>Controllers, Repositories, Entities, Forms</p>
+</li>
+<li>
+<p>A more detailed test suite</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Again, the example <code>MicronautModule</code> is by no means complete, but it demonstrates
+how Mill can be integrated with Micronaut’s annotation processors and configuration,
+and can be extended to cover additional functionality in future</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill test
 ...example.micronaut.LearnJsonTest...
 ...example.micronaut.TodoTest...
 ...example.micronaut.TodoItemMapperTest...
@@ -779,10 +817,13 @@ and can be extended to cover additional functionality in future
 &gt; mill runBackground
 
 &gt; curl http://localhost:8089
- ...<h1>todos</h1>...
+ ...&lt;h1&gt;todos&lt;/h1&gt;...
 
-&gt; mill clean runBackground
-----
+&gt; mill clean runBackground</code></pre>
+</div>
+</div>
+</div>
+</div>
 <nav class="pagination">
   <span class="prev"><a href="Publishing_Java_Projects.html">Publishing Java Projects</a></span>
   <span class="next"><a href="../scalalib/Scala_Intro_to_Mill.html">Building Scala Projects with Mill</a></span>

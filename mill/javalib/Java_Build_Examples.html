@@ -405,9 +405,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-56-612a28</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-57-799270</button>
   <div class="version-menu">
-    <a class="version is-current" href="Java_Build_Examples.html">0.12.0-RC2-56-612a28</a>
+    <a class="version is-current" href="Java_Build_Examples.html">0.12.0-RC2-57-799270</a>
     <a class="version" href="../0.11.12/Java_Build_Examples.html">0.11.12</a>
     <a class="version" href="../0.11.11/Java_Build_Examples.html">0.11.11</a>
     <a class="version" href="../0.11.10/Java_Build_Examples.html">0.11.10</a>
@@ -426,34 +426,49 @@
 </aside>
 <article class="doc">
 <h1 class="page">Java Build Examples</h1>
+<div id="preamble">
+<div class="sectionbody">
+<script>
+gtag('config', 'AW-16649289906');
+</script>
 <div class="paragraph">
-<p>gtag('config', 'AW-16649289906');
-&lt;/script&gt;</p>
-</div>
-On this page, we will explore the Mill build tool via a series of simple Java
+<p>On this page, we will explore the Mill build tool via a series of simple Java
 example projects. Each project demonstrates one particular feature of the Mill
 build tool, and is also an executable codebase you can download and run. By the
 end of this page, you will be familiar with how to configure Mill to work with
-realistic Java codebases: cross-building, testing, and publishing them.
-
-
-Many of the APIs covered here are listed in the API documentation:
-
-* {mill-doc-url}/api/latest/mill/main/RootModule.html[`mill.scalalib.RootModule`]
-* {mill-doc-url}/api/latest/mill/scalalib/TestModule$.html[`mill.scalalib.TestModule`]
-* {mill-doc-url}/api/latest/mill/scalalib/PublishModule.html[`mill.scalalib.PublishModule`]
-* {mill-doc-url}/api/latest/mill/scalalib/MavenModule.html[`mill.scalalib.MavenModule`]
-* {mill-doc-url}/api/latest/mill/scalalib/JavaModule.html[`mill.scalalib.JavaModule`]
-
-
-== Nesting Modules
-
-
-.build.mill ({mill-download-url}/0.12.0-RC2-example-javalib-builds-1-nested-modules.zip[download], {mill-example-url}/example/javalib/builds/1-nested-modules[browse])
-[source,scala,subs=&quot;attributes,verbatim&quot;]
-----
-
-package build
+realistic Java codebases: cross-building, testing, and publishing them.</p>
+</div>
+<div class="paragraph">
+<p>Many of the APIs covered here are listed in the API documentation:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://mill-build.org/api/latest/mill/main/RootModule.html"><code>mill.scalalib.RootModule</code></a></p>
+</li>
+<li>
+<p><a href="https://mill-build.org/api/latest/mill/scalalib/TestModule$.html"><code>mill.scalalib.TestModule</code></a></p>
+</li>
+<li>
+<p><a href="https://mill-build.org/api/latest/mill/scalalib/PublishModule.html"><code>mill.scalalib.PublishModule</code></a></p>
+</li>
+<li>
+<p><a href="https://mill-build.org/api/latest/mill/scalalib/MavenModule.html"><code>mill.scalalib.MavenModule</code></a></p>
+</li>
+<li>
+<p><a href="https://mill-build.org/api/latest/mill/scalalib/JavaModule.html"><code>mill.scalalib.JavaModule</code></a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_nesting_modules"><a class="anchor" href="#_nesting_modules"></a>Nesting Modules</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-javalib-builds-1-nested-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/javalib/builds/1-nested-modules">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
 
 trait MyModule extends JavaModule {
@@ -474,78 +489,97 @@ object foo extends MyModule {
 
 object baz extends MyModule {
   def moduleDeps = Seq(foo.bar, foo.qux, foo)
-}
-----
-
-Modules can be nested arbitrarily deeply within each other. The outer module
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Modules can be nested arbitrarily deeply within each other. The outer module
 can be the same kind of module as the ones within, or it can be a plain
-`Module` if we just need a wrapper to put the modules in without any tasks
-defined on the wrapper.
-
-The outer module can also depend on the inner module (as shown above),
-and vice versa, but not both at the same.
-
-Running tasks on the nested modules requires the full module path
-`foo.bar.run`
-
-
-[source,bash,subs=&quot;attributes,verbatim&quot;]
-----
-&gt; mill resolve __.run
+<code>Module</code> if we just need a wrapper to put the modules in without any tasks
+defined on the wrapper.</p>
+</div>
+<div class="paragraph">
+<p>The outer module can also depend on the inner module (as shown above),
+and vice versa, but not both at the same.</p>
+</div>
+<div class="paragraph">
+<p>Running tasks on the nested modules requires the full module path
+<code>foo.bar.run</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill resolve __.run
 foo.bar.run
 foo.qux.run
 baz.run
 
 &gt; mill foo.run --bar-text hello --qux-text world --foo-text today
-Bar.value: <h1>hello</h1>
-Qux.value: <p>world</p>
-Foo.value: <p>today</p>
+Bar.value: &lt;h1&gt;hello&lt;/h1&gt;
+Qux.value: &lt;p&gt;world&lt;/p&gt;
+Foo.value: &lt;p&gt;today&lt;/p&gt;
 
 &gt; mill baz.run --bar-text hello --qux-text world --foo-text today --baz-text yay
-Bar.value: <h1>hello</h1>
-Qux.value: <p>world</p>
-Foo.value: <p>today</p>
-Baz.value: <p>yay</p>
+Bar.value: &lt;h1&gt;hello&lt;/h1&gt;
+Qux.value: &lt;p&gt;world&lt;/p&gt;
+Foo.value: &lt;p&gt;today&lt;/p&gt;
+Baz.value: &lt;p&gt;yay&lt;/p&gt;
 
 &gt; mill foo.qux.run --bar-text hello --qux-text world
-Bar.value: <h1>hello</h1>
-Qux.value: <p>world</p>
-----
-
-== Maven-Compatible Modules
-
-
-.build.mill ({mill-download-url}/0.12.0-RC2-example-javalib-builds-2-compat-modules.zip[download], {mill-example-url}/example/javalib/builds/2-compat-modules[browse])
-[source,scala,subs=&quot;attributes,verbatim&quot;]
-----
-
-package build
+Bar.value: &lt;h1&gt;hello&lt;/h1&gt;
+Qux.value: &lt;p&gt;world&lt;/p&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_maven_compatible_modules"><a class="anchor" href="#_maven_compatible_modules"></a>Maven-Compatible Modules</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-javalib-builds-2-compat-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/javalib/builds/2-compat-modules">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
 
 object foo extends MavenModule {
   object test extends MavenTests with TestModule.Junit4
-}
-----
-
-`MavenModule` is a variant of `JavaModule`
-that uses the more verbose folder layout of Maven, SBT, and other tools:
-
-- `foo/src/main/java`
-- `foo/src/test/java`
-
-Rather than Mill's
-
-- `foo/src`
-- `foo/test/src`
-
-This is especially useful if you are migrating from Maven to Mill (or vice
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>MavenModule</code> is a variant of <code>JavaModule</code>
+that uses the more verbose folder layout of Maven, SBT, and other tools:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>foo/src/main/java</code></p>
+</li>
+<li>
+<p><code>foo/src/test/java</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Rather than Mill’s</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>foo/src</code></p>
+</li>
+<li>
+<p><code>foo/test/src</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This is especially useful if you are migrating from Maven to Mill (or vice
 versa), during which a particular module may be built using both Maven and
-Mill at the same time
-
-
-[source,bash,subs=&quot;attributes,verbatim&quot;]
-----
-&gt; mill foo.compile
+Mill at the same time</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.compile
 compiling 1 Java source...
 
 &gt; mill foo.test.compile
@@ -555,18 +589,18 @@ compiling 1 Java source...
 ...foo.FooTests.hello ...
 
 &gt; mill foo.test
-...foo.FooTests.hello ...
-----
-
-
-== Realistic Java Example Project
-
-
-.build.mill ({mill-download-url}/0.12.0-RC2-example-javalib-builds-4-realistic.zip[download], {mill-example-url}/example/javalib/builds/4-realistic[browse])
-[source,scala,subs=&quot;attributes,verbatim&quot;]
-----
-
-package build
+...foo.FooTests.hello ...</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_realistic_java_example_project"><a class="anchor" href="#_realistic_java_example_project"></a>Realistic Java Example Project</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-javalib-builds-4-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/javalib/builds/4-realistic">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._, publish._
 
 trait MyModule extends JavaModule with PublishModule {
@@ -609,36 +643,46 @@ object bar extends MyModule {
   def moduleDeps = Seq(qux)
 }
 
-object qux extends MyModule
-----
-
-A semi-realistic build setup, combining all the individual Mill concepts:
-
-- Three `JavaModule`s that depend on each other
-
-- With unit testing and publishing set up
-
-- With generated sources to include the `publishVersion` as a string in the
-  code, so it can be printed at runtime
-
-Note that for multi-module builds like this, using queries to run tasks on
-multiple targets at once can be very convenient:
-
-----
-__.test
-__.publishLocal
-----
-
-Also note how you can use ``trait``s to bundle together common combinations of
-modules: `MyModule` not only defines a `JavaModule` with some common
-configuration, but it also defines a `object test` module within it with its
+object qux extends MyModule</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A semi-realistic build setup, combining all the individual Mill concepts:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Three `JavaModule`s that depend on each other</p>
+</li>
+<li>
+<p>With unit testing and publishing set up</p>
+</li>
+<li>
+<p>With generated sources to include the <code>publishVersion</code> as a string in the
+code, so it can be printed at runtime</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Note that for multi-module builds like this, using queries to run tasks on
+multiple targets at once can be very convenient:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>__.test
+__.publishLocal</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Also note how you can use <code>trait</code>s to bundle together common combinations of
+modules: <code>MyModule</code> not only defines a <code>JavaModule</code> with some common
+configuration, but it also defines a <code>object test</code> module within it with its
 own configuration. This is a very useful technique for managing the often
-repetitive module structure in a typical project
-
-
-[source,bash,subs=&quot;attributes,verbatim&quot;]
-----
-&gt; mill resolve __.run
+repetitive module structure in a typical project</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill resolve __.run
 bar.run
 bar.test.run
 foo.run
@@ -647,8 +691,8 @@ qux.run
 
 &gt; mill foo.run
 foo version 0.0.1
-Foo.value: <h1>hello</h1>
-Bar.value: <p>world</p>
+Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
+Bar.value: &lt;p&gt;world&lt;/p&gt;
 Qux.value: 31337
 
 &gt; mill bar.test
@@ -674,25 +718,26 @@ Publishing Artifact(com.lihaoyi,qux,0.0.1) to ivy repo...
 
 &gt; ./out/foo/assembly.dest/out.jar # mac/linux
 foo version 0.0.1
-Foo.value: <h1>hello</h1>
-Bar.value: <p>world</p>
-Qux.value: 31337
-----
-
-
-== Example Builds for Real Projects
-
-Mill comes bundled with example builds for real-world open-source projects,
-demonstrating how Mill can be used to build code outside of tiny example codebases:
-
-=== JimFS
-
-
-.build.mill ({mill-download-url}/0.12.0-RC2-example-thirdparty-jimfs.zip[download], {mill-example-url}/example/thirdparty/jimfs[browse])
-[source,scala,subs=&quot;attributes,verbatim&quot;]
-----
-
-package build
+Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
+Bar.value: &lt;p&gt;world&lt;/p&gt;
+Qux.value: 31337</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_example_builds_for_real_projects"><a class="anchor" href="#_example_builds_for_real_projects"></a>Example Builds for Real Projects</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill comes bundled with example builds for real-world open-source projects,
+demonstrating how Mill can be used to build code outside of tiny example codebases:</p>
+</div>
+<div class="sect2">
+<h3 id="_jimfs"><a class="anchor" href="#_jimfs"></a>JimFS</h3>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-thirdparty-jimfs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/thirdparty/jimfs">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._, publish._
 
 def sharedCompileIvyDeps = T{
@@ -734,38 +779,39 @@ object jimfs extends PublishModule with MavenModule {
 
     def testFramework = &quot;com.novocode.junit.JUnitFramework&quot;
   }
-}
-----
-
-JimFS is a small Java library implementing an in-memory filesystem. It is commonly
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>JimFS is a small Java library implementing an in-memory filesystem. It is commonly
 used in test suites to validate filesystem operations without needing to write
-to disk.
-
-It has a relatively simple codebase structure, a single module and test suite.
+to disk.</p>
+</div>
+<div class="paragraph">
+<p>It has a relatively simple codebase structure, a single module and test suite.
 It has a number of compile-time-only dependencies shared between the library and
 test suite. One wrinkle is that it uses annotation processors as part of its build,
-which Mill supports by providing the relevant `ivyDeps` of the annotation processor
-and providing `javacOptions` to invoke it.
-
-Project home: https://github.com/google/jimfs
-
-
-[source,bash,subs=&quot;attributes,verbatim&quot;]
-----
-&gt; ./mill jimfs.test
+which Mill supports by providing the relevant <code>ivyDeps</code> of the annotation processor
+and providing <code>javacOptions</code> to invoke it.</p>
+</div>
+<div class="paragraph">
+<p>Project home: <a href="https://github.com/google/jimfs" class="bare">https://github.com/google/jimfs</a></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill jimfs.test
 Test run com.google.common.jimfs.FileTest started
 Test run com.google.common.jimfs.FileTest finished: 0 failed, 0 ignored, 7 total...
-...
-----
-
-=== Apache Commons IO
-
-
-.build.mill ({mill-download-url}/0.12.0-RC2-example-thirdparty-commons-io.zip[download], {mill-example-url}/example/thirdparty/commons-io[browse])
-[source,scala,subs=&quot;attributes,verbatim&quot;]
-----
-
-package build
+...</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_apache_commons_io"><a class="anchor" href="#_apache_commons_io"></a>Apache Commons IO</h3>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-thirdparty-commons-io.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/thirdparty/commons-io">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._, publish._
 import $ivy.`com.lihaoyi::mill-contrib-jmh:$MILL_VERSION`
 import contrib.jmh.JmhModule
@@ -798,22 +844,24 @@ object `package` extends RootModule with PublishModule with MavenModule {
       ivy&quot;org.openjdk.jmh:jmh-generator-annprocess:1.37&quot;,
     )
   }
-}
-----
-
-The Apache Commons IO library contains utility classes, stream implementations, file filters,
-file comparators, endian transformation classes, and much more.
-
-The core library `commonsio` is dependency-free, but the test suite `commonsio.test`
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The Apache Commons IO library contains utility classes, stream implementations, file filters,
+file comparators, endian transformation classes, and much more.</p>
+</div>
+<div class="paragraph">
+<p>The core library <code>commonsio</code> is dependency-free, but the test suite <code>commonsio.test</code>
 as a number of libraries included. It also ships with JMH benchmarks, which Mill
-supports via the built in JMH plugin
-
-Project home: https://github.com/apache/commons-io
-
-
-[source,bash,subs=&quot;attributes,verbatim&quot;]
-----
-&gt; ./mill compile
+supports via the built in JMH plugin</p>
+</div>
+<div class="paragraph">
+<p>Project home: <a href="https://github.com/apache/commons-io" class="bare">https://github.com/apache/commons-io</a></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill compile
 compiling 254 Java sources...
 ...
 
@@ -836,15 +884,24 @@ Benchmark                                                                Mode  C
 PathUtilsContentEqualsBenchmark.testCurrent_fileContentEquals              ss    5 ...
 PathUtilsContentEqualsBenchmark.testCurrent_fileContentEquals_Blackhole    ss    5 ...
 PathUtilsContentEqualsBenchmark.testProposal_contentEquals                 ss    5 ...
-PathUtilsContentEqualsBenchmark.testProposal_contentEquals_Blackhole       ss    5 ...
-----
-
-== Real World Mill Builds
-
-=== C3P0
-
-https://github.com/swaldman/c3p0[C3P0] is a JDBC connection pooling library
-written in Java, built using the Mill build tool.
+PathUtilsContentEqualsBenchmark.testProposal_contentEquals_Blackhole       ss    5 ...</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_real_world_mill_builds"><a class="anchor" href="#_real_world_mill_builds"></a>Real World Mill Builds</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_c3p0"><a class="anchor" href="#_c3p0"></a>C3P0</h3>
+<div class="paragraph">
+<p><a href="https://github.com/swaldman/c3p0">C3P0</a> is a JDBC connection pooling library
+written in Java, built using the Mill build tool.</p>
+</div>
+</div>
+</div>
+</div>
 <nav class="pagination">
   <span class="prev"><a href="Java_Module_Config.html">Java Module Configuration</a></span>
   <span class="next"><a href="Testing_Java_Projects.html">Testing Java Projects</a></span>

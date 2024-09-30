@@ -404,9 +404,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-56-612a28</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-57-799270</button>
   <div class="version-menu">
-    <a class="version is-current" href="Linting_Kotlin_Projects.html">0.12.0-RC2-56-612a28</a>
+    <a class="version is-current" href="Linting_Kotlin_Projects.html">0.12.0-RC2-57-799270</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
@@ -425,22 +425,24 @@
 </aside>
 <article class="doc">
 <h1 class="page">Linting Kotlin Projects</h1>
+<div id="preamble">
+<div class="sectionbody">
+<script>
+gtag('config', 'AW-16649289906');
+</script>
 <div class="paragraph">
-<p>gtag('config', 'AW-16649289906');
-&lt;/script&gt;</p>
+<p>This page will discuss common topics around enforcing the code quality of Kotlin
+codebases using the Mill build tool</p>
 </div>
-This page will discuss common topics around enforcing the code quality of Kotlin
-codebases using the Mill build tool
-
-
-== Linting with Detekt
-
-
-.build.mill ({mill-download-url}/0.12.0-RC2-example-kotlinlib-linting-1-detekt.zip[download], {mill-example-url}/example/kotlinlib/linting/1-detekt[browse])
-[source,scala,subs=&quot;attributes,verbatim&quot;]
-----
-
-package build
+</div>
+</div>
+<div class="sect1">
+<h2 id="_linting_with_detekt"><a class="anchor" href="#_linting_with_detekt"></a>Linting with Detekt</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-kotlinlib-linting-1-detekt.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/kotlinlib/linting/1-detekt">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
 import mill._
 import kotlinlib.KotlinModule
@@ -450,14 +452,13 @@ object `package` extends RootModule with KotlinModule with DetektModule {
 
   def kotlinVersion = &quot;1.9.24&quot;
 
-}
-----
-
-
-.src/example/Foo.kt ({mill-example-url}/example/kotlinlib/linting/1-detekt/src/example/Foo.kt[browse])
-[source,scala,subs=&quot;attributes,verbatim&quot;]
-----
-package example
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">src/example/Foo.kt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/kotlinlib/linting/1-detekt/src/example/Foo.kt">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package example
 
 import java.util.Random
 
@@ -475,26 +476,27 @@ fun main() {
             }
         }
     }
-}
-----
-
-[source,bash,subs=&quot;attributes,verbatim&quot;]
-----
-&gt; ./mill detekt
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill detekt
 error: ...Foo.kt:5:5: Function main is nested too deeply. [NestedBlockDepth]
 
 &gt; ./mill detekt --check false
-...Foo.kt:5:5: Function main is nested too deeply. [NestedBlockDepth]
-----
-
-== Linting with KtLint
-
-
-.build.mill ({mill-download-url}/0.12.0-RC2-example-kotlinlib-linting-2-ktlint.zip[download], {mill-example-url}/example/kotlinlib/linting/2-ktlint[browse])
-[source,scala,subs=&quot;attributes,verbatim&quot;]
-----
-
-package build
+...Foo.kt:5:5: Function main is nested too deeply. [NestedBlockDepth]</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_linting_with_ktlint"><a class="anchor" href="#_linting_with_ktlint"></a>Linting with KtLint</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-kotlinlib-linting-2-ktlint.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/kotlinlib/linting/2-ktlint">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
 import mill._
 import mill.util.Jvm
@@ -508,29 +510,29 @@ object `package` extends RootModule with KotlinModule with KtlintModule {
 
   def ktlintConfig = Some(PathRef(T.workspace / &quot;.editorconfig&quot;))
 
-}
-----
-
-
-[source,bash,subs=&quot;attributes,verbatim&quot;]
-----
-&gt; ./mill ktlint # run ktlint to produce a report, defaults to warning without error
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill ktlint # run ktlint to produce a report, defaults to warning without error
 error: ...src/example/FooWrong.kt:6:28: Missing newline before &quot;)&quot; (standard:parameter-list-wrapping)...
 ...src/example/FooWrong.kt:6:28: Newline expected before closing parenthesis (standard:function-signature)...
 ...src/example/FooWrong.kt:6:28: Missing trailing comma before &quot;)&quot; (standard:trailing-comma-on-declaration-site)...
 &gt; ./mill ktlint --format true
 
-&gt; ./mill ktlint # after fixing the violations, ktlint no longer errors
-----
-
-== Autoformatting with KtFmt
-
-
-.build.mill ({mill-download-url}/0.12.0-RC2-example-kotlinlib-linting-3-ktfmt.zip[download], {mill-example-url}/example/kotlinlib/linting/3-ktfmt[browse])
-[source,scala,subs=&quot;attributes,verbatim&quot;]
-----
-
-package build
+&gt; ./mill ktlint # after fixing the violations, ktlint no longer errors</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_autoformatting_with_ktfmt"><a class="anchor" href="#_autoformatting_with_ktfmt"></a>Autoformatting with KtFmt</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-kotlinlib-linting-3-ktfmt.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/kotlinlib/linting/3-ktfmt">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
 import mill._
 import mill.util.Jvm
@@ -542,29 +544,29 @@ object `package` extends RootModule with KotlinModule with KtfmtModule {
 
   def kotlinVersion = &quot;1.9.24&quot;
 
-}
-----
-
-
-[source,bash,subs=&quot;attributes,verbatim&quot;]
-----
-&gt; ./mill ktfmt --format=false # run ktfmt to produce a list of files which should be formatter
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill ktfmt --format=false # run ktfmt to produce a list of files which should be formatter
 ...src/example/FooWrong.kt...
 &gt; ./mill ktfmt # running without arguments will format all files
 Done formatting ...src/example/FooWrong.kt
 &gt; ./mill ktfmt # after fixing the violations, ktfmt no longer prints any file
 
-&gt; ./mill mill.kotlinlib.ktfmt.KtfmtModule/ __.sources   # alternatively, use external module to check/format
-----
-
-== Code Coverage with Kover
-
-
-.build.mill ({mill-download-url}/0.12.0-RC2-example-kotlinlib-linting-4-kover.zip[download], {mill-example-url}/example/kotlinlib/linting/4-kover[browse])
-[source,scala,subs=&quot;attributes,verbatim&quot;]
-----
-
-package build
+&gt; ./mill mill.kotlinlib.ktfmt.KtfmtModule/ __.sources   # alternatively, use external module to check/format</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_code_coverage_with_kover"><a class="anchor" href="#_code_coverage_with_kover"></a>Code Coverage with Kover</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-kotlinlib-linting-4-kover.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/kotlinlib/linting/4-kover">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
 import mill._, kotlinlib._
 import kotlinlib.kover.KoverModule
@@ -591,28 +593,28 @@ object `package` extends RootModule with KotlinModule with KoverModule {
     def kotlinVersion = &quot;1.9.24&quot;
     object test extends KotlinModuleTests with KotestTests with KoverTests
   }
-}
-----
-
-This is a basic Mill build for a single `KotlinModule`, enhanced with
-Kover module. The root module extends the `KoverModule` and
-specifies the version of Kover version to use here: `0.8.3`. This
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is a basic Mill build for a single <code>KotlinModule</code>, enhanced with
+Kover module. The root module extends the <code>KoverModule</code> and
+specifies the version of Kover version to use here: <code>0.8.3</code>. This
 version can be changed if there is a newer one. Now you can call the
 Kover targets to produce coverage reports.
-The sub test module extends `KoverTests` to transform the
+The sub test module extends <code>KoverTests</code> to transform the
 execution of the various testXXX targets to use Kover and produce
 coverage data.
 This lets us perform the coverage operations but before that you
 must first run the test.
-`./mill test` then `./mill show kover.htmlReport` and get your
+<code>./mill test</code> then <code>./mill show kover.htmlReport</code> and get your
 coverage in HTML format.
 Also reports for all modules can be collected in a single place by
-running `./mill show mill.kotlinlib.kover.Kover/htmlReportAll`.
-
-
-[source,bash,subs=&quot;attributes,verbatim&quot;]
-----
-&gt; ./mill test # Run the tests and produce the coverage data
+running <code>./mill show mill.kotlinlib.kover.Kover/htmlReportAll</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill test # Run the tests and produce the coverage data
 ...
 ... foo.FooTestskotlin - success started
 
@@ -637,8 +639,11 @@ kover.xmlReport
 
 &gt; cat out/mill/kotlinlib/kover/Kover/htmlReportAll.dest/kover-report/index.html
 ...
-...Kover HTML Report: Overall Coverage Summary...
-----
+...Kover HTML Report: Overall Coverage Summary...</code></pre>
+</div>
+</div>
+</div>
+</div>
 <nav class="pagination">
   <span class="prev"><a href="Testing_Kotlin_Projects.html">Testing Kotlin Projects</a></span>
   <span class="next"><a href="Publishing_Kotlin_Projects.html">Publishing Kotlin Projects</a></span>
