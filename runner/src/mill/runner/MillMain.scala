@@ -158,7 +158,6 @@ object MillMain {
             (false, RunnerState.empty)
 
           case Right(config) =>
-
             if (!config.silent.value) {
               checkMillVersionFromFile(WorkspaceRoot.workspaceRoot, streams.err)
             }
@@ -232,22 +231,22 @@ object MillMain {
                         serverDir
                       )
                       try new MillBuildBootstrap(
-                        projectRoot = WorkspaceRoot.workspaceRoot,
-                        output = os.Path(OutFiles.out, WorkspaceRoot.workspaceRoot),
-                        home = config.home,
-                        keepGoing = config.keepGoing.value,
-                        imports = config.imports,
-                        env = env,
-                        threadCount = threadCount,
-                        targetsAndParams = targetsAndParams,
-                        prevRunnerState = prevState.getOrElse(stateCache),
-                        logger = logger,
-                        disableCallgraph = config.disableCallgraph.value,
-                        needBuildSc = needBuildSc(config),
-                        requestedMetaLevel = config.metaLevel,
-                        config.allowPositional.value,
-                        systemExit = systemExit
-                      ).evaluate()
+                          projectRoot = WorkspaceRoot.workspaceRoot,
+                          output = os.Path(OutFiles.out, WorkspaceRoot.workspaceRoot),
+                          home = config.home,
+                          keepGoing = config.keepGoing.value,
+                          imports = config.imports,
+                          env = env,
+                          threadCount = threadCount,
+                          targetsAndParams = targetsAndParams,
+                          prevRunnerState = prevState.getOrElse(stateCache),
+                          logger = logger,
+                          disableCallgraph = config.disableCallgraph.value,
+                          needBuildSc = needBuildSc(config),
+                          requestedMetaLevel = config.metaLevel,
+                          config.allowPositional.value,
+                          systemExit = systemExit
+                        ).evaluate()
                       finally {
                         logger.close()
                       }
