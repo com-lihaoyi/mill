@@ -4,7 +4,7 @@
 
 The ((plugins)) in this section are hosted in the Mill git tree and developed / maintained by the community.
 
-For details about including plugins in your `build.mill` read xref:extending/Using_Plugins.adoc[Using Mill Plugins].
+For details about including plugins in your `build.mill` read xref:extending/using-plugins.adoc[Using Mill Plugins].
 
 [CAUTION]
 --
@@ -35,7 +35,6 @@ import $ivy.`com.lihaoyi::mill-contrib-bloop:`
 * xref:contrib/bintray.adoc[]
 * xref:contrib/bloop.adoc[]
 * xref:contrib/buildinfo.adoc[]
-* xref:Plugin_BSP.adoc[]
 * xref:contrib/codeartifact.adoc[]
 * xref:contrib/docker.adoc[]
 * xref:contrib/errorprone.adoc[]

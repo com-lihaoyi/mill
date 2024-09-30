@@ -3,39 +3,39 @@
 // but we intentionally skim over them and do not go into depth: the focus is
 // on end user goals and how to achieve them.
 
-.xref:javalib/Java_Intro_to_Mill.adoc[]
-* xref:javalib/Java_Installation_IDE_Support.adoc[]
-* xref:javalib/Java_Builtin_Commands.adoc[]
-* xref:javalib/Java_Module_Config.adoc[]
-* xref:javalib/Java_Build_Examples.adoc[]
-* xref:javalib/Testing_Java_Projects.adoc[]
-* xref:javalib/Linting_Java_Projects.adoc[]
-* xref:javalib/Publishing_Java_Projects.adoc[]
-* xref:javalib/Java_Web_Examples.adoc[]
+.xref:javalib/intro.adoc[]
+* xref:javalib/installation-ide.adoc[]
+* xref:javalib/builtin-commands.adoc[]
+* xref:javalib/module-config.adoc[]
+* xref:javalib/build-examples.adoc[]
+* xref:javalib/testing.adoc[]
+* xref:javalib/linting.adoc[]
+* xref:javalib/publishing.adoc[]
+* xref:javalib/web-examples.adoc[]
 
-.xref:scalalib/Scala_Intro_to_Mill.adoc[]
-* xref:scalalib/Scala_Installation_IDE_Support.adoc[]
-* xref:scalalib/Scala_Builtin_Commands.adoc[]
-* xref:scalalib/Scala_Module_Config.adoc[]
-* xref:scalalib/Scala_Build_Examples.adoc[]
-* xref:scalalib/Testing_Scala_Projects.adoc[]
-* xref:scalalib/Linting_Scala_Projects.adoc[]
-* xref:scalalib/Publishing_Scala_Projects.adoc[]
-* xref:scalalib/Scala_Web_Examples.adoc[]
+.xref:scalalib/intro.adoc[]
+* xref:scalalib/installation-ide.adoc[]
+* xref:scalalib/builtin-commands.adoc[]
+* xref:scalalib/module-config.adoc[]
+* xref:scalalib/build-examples.adoc[]
+* xref:scalalib/testing.adoc[]
+* xref:scalalib/linting.adoc[]
+* xref:scalalib/publishing.adoc[]
+* xref:scalalib/web-examples.adoc[]
 
-.xref:kotlinlib/Kotlin_Intro_to_Mill.adoc[]
-* xref:kotlinlib/Kotlin_Installation_IDE_Support.adoc[]
-* xref:kotlinlib/Kotlin_Builtin_Commands.adoc[]
-* xref:kotlinlib/Kotlin_Module_Config.adoc[]
-* xref:kotlinlib/Kotlin_Build_Examples.adoc[]
-* xref:kotlinlib/Testing_Kotlin_Projects.adoc[]
-* xref:kotlinlib/Linting_Kotlin_Projects.adoc[]
-* xref:kotlinlib/Publishing_Kotlin_Projects.adoc[]
+.xref:kotlinlib/intro.adoc[]
+* xref:kotlinlib/installation-ide.adoc[]
+* xref:kotlinlib/builtin-commands.adoc[]
+* xref:kotlinlib/module-config.adoc[]
+* xref:kotlinlib/build-examples.adoc[]
+* xref:kotlinlib/testing.adoc[]
+* xref:kotlinlib/linting.adoc[]
+* xref:kotlinlib/publishing.adoc[]
 
 .Build Tool Comparisons
-* xref:comparisons/Case_Study_Mill_vs_Maven.adoc[]
-* xref:comparisons/Case_Study_Mill_vs_Gradle.adoc[]
-* xref:comparisons/Case_Study_Mill_vs_SBT.adoc[]
+* xref:comparisons/maven.adoc[]
+* xref:comparisons/gradle.adoc[]
+* xref:comparisons/sbt[]
 
 // This section is all about developing a deeper understanding of specific
 // topics in Mill. This is the opposite of `Quick Start` above: while we touch
@@ -43,24 +43,24 @@
 // want to present to the reader. The focus is on Mill's design and
 // functionality.
 .Mill In Depth
-* xref:depth/Library_Dependencies.adoc[]
-* xref:depth/Out_Dir.adoc[]
-* xref:depth/Target_Query_Syntax.adoc[]
-* xref:depth/Tasks.adoc[]
-* xref:depth/Modules.adoc[]
-* xref:depth/Cross_Builds.adoc[]
-* xref:depth/Structuring_Large_Builds.adoc[]
-* xref:depth/Mill_Sandboxing.adoc[]
-* xref:depth/Bundled_Libraries.adoc[]
-* xref:depth/The_Mill_Evaluation_Model.adoc[]
+* xref:depth/library-deps.adoc[]
+* xref:depth/out-dir.adoc[]
+* xref:depth/query-syntax.adoc[]
+* xref:depth/tasks.adoc[]
+* xref:depth/modules.adoc[]
+* xref:depth/cross-builds.adoc[]
+* xref:depth/large-builds.adoc[]
+* xref:depth/sandboxing.adoc[]
+* xref:depth/bundled-libraries.adoc[]
+* xref:depth/evaluation-model.adoc[]
 
 // This section talks about Mill plugins. While it could theoretically fit in
 // either section above, it is probably an important enough topic it is worth
 // breaking out on its own
 .Extending Mill
-* xref:extending/Import_File_And_Import_Ivy.adoc[]
-* xref:extending/Using_Plugins.adoc[]
-* xref:extending/Contrib_Plugins.adoc[]
+* xref:extending/import-ivy.adoc[]
+* xref:extending/using-plugins.adoc[]
+* xref:extending/contrib-plugins.adoc[]
 // See also the list in Contrib_Plugins.adoc
 ** xref:contrib/artifactory.adoc[]
 ** xref:contrib/bintray.adoc[]
@@ -81,14 +81,14 @@
 ** xref:contrib/testng.adoc[]
 ** xref:contrib/twirllib.adoc[]
 ** xref:contrib/versionfile.adoc[]
-* xref:extending/Thirdparty_Plugins.adoc[]
-* xref:extending/Writing_Mill_Plugins.adoc[]
-* xref:extending/The_Mill_Meta_Build.adoc[]
+* xref:extending/thirdparty-plugins.adoc[]
+* xref:extending/writing-plugins.adoc[]
+* xref:extending/meta-build.adoc[]
 
 // Reference pages that a typical user would not typically read top-to-bottom,
 // but may need to look up once in a while, and thus should be written down
 // *somewhere*.
 .Reference
-* xref:reference/Mill_Design_Principles.adoc[]
+* xref:reference/design-principles.adoc[]
 * {mill-doc-url}/api/latest/mill/index.html[Mill Scaladoc]
-* xref:reference/Changelog.adoc[]
+* xref:reference/changelog.adoc[]
