@@ -2,7 +2,7 @@ package mill.kotlinlib.detekt
 
 import mill._
 import mill.api.{Loose, PathRef}
-import mill.kotlinlib.{DepSyntax, KotlinModule}
+import mill.kotlinlib.{DepSyntax, KotlinModule, Versions}
 import mill.util.Jvm
 
 /**
@@ -75,7 +75,7 @@ trait DetektModule extends KotlinModule {
    * Detekt version.
    */
   def detektVersion: T[String] = T {
-    "1.23.7"
+    Versions.detektVersion
   }
 
   /**
