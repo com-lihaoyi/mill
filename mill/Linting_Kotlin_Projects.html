@@ -160,7 +160,7 @@
 
   <li class="nav-item" data-depth="0">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="Kotlin_Intro_to_Mill.html">Building Kotlin Projects with Mill</a>
+    <a class="nav-link" href="Kotlin_Intro_to_Mill.html">(Experimental) Kotlin with Mill</a>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
@@ -400,14 +400,14 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="index.html">Mill Documentation</a></li>
-    <li><a href="Kotlin_Intro_to_Mill.html">Building Kotlin Projects with Mill</a></li>
+    <li><a href="Kotlin_Intro_to_Mill.html">(Experimental) Kotlin with Mill</a></li>
     <li><a href="Linting_Kotlin_Projects.html">Linting Kotlin Projects</a></li>
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-52-9fde9b</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-53-50b445</button>
   <div class="version-menu">
-    <a class="version is-current" href="Linting_Kotlin_Projects.html">0.12.0-RC2-52-9fde9b</a>
+    <a class="version is-current" href="Linting_Kotlin_Projects.html">0.12.0-RC2-53-50b445</a>
     <a class="version is-missing" href="0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="0.11.10/index.html">0.11.10</a>
@@ -438,7 +438,7 @@ codebases using the Mill build tool</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_detekt"><a class="anchor" href="#_detekt"></a>Detekt</h2>
+<h2 id="_linting_with_detekt"><a class="anchor" href="#_linting_with_detekt"></a>Linting with Detekt</h2>
 <div class="sectionbody">
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-kotlinlib-linting-1-detekt.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/kotlinlib/linting/1-detekt">browse</a>)</div>
@@ -492,7 +492,7 @@ error: ...Foo.kt:5:5: Function main is nested too deeply. [NestedBlockDepth]
 </div>
 </div>
 <div class="sect1">
-<h2 id="_ktlint"><a class="anchor" href="#_ktlint"></a>KtLint</h2>
+<h2 id="_linting_with_ktlint"><a class="anchor" href="#_linting_with_ktlint"></a>Linting with KtLint</h2>
 <div class="sectionbody">
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-kotlinlib-linting-2-ktlint.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/kotlinlib/linting/2-ktlint">browse</a>)</div>
@@ -523,6 +523,124 @@ error: ...src/example/FooWrong.kt:6:28: Missing newline before &quot;)&quot; (st
 &gt; ./mill ktlint --format true
 
 &gt; ./mill ktlint # after fixing the violations, ktlint no longer errors</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_autoformatting_with_ktfmt"><a class="anchor" href="#_autoformatting_with_ktfmt"></a>Autoformatting with KtFmt</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-kotlinlib-linting-3-ktfmt.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/kotlinlib/linting/3-ktfmt">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill._
+import mill.util.Jvm
+import mill.api.Loose
+import kotlinlib.KotlinModule
+import kotlinlib.contrib.ktfmt.KtfmtModule
+
+object `package` extends RootModule with KotlinModule with KtfmtModule {
+
+  def kotlinVersion = &quot;1.9.24&quot;
+
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill ktfmt --format=false # run ktfmt to produce a list of files which should be formatter
+...src/example/FooWrong.kt...
+&gt; ./mill ktfmt # running without arguments will format all files
+Done formatting ...src/example/FooWrong.kt
+&gt; ./mill ktfmt # after fixing the violations, ktfmt no longer prints any file
+
+&gt; ./mill mill.kotlinlib.contrib.ktfmt.KtfmtModule/ __.sources   # alternatively, use external module to check/format</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_code_coverage_with_kover"><a class="anchor" href="#_code_coverage_with_kover"></a>Code Coverage with Kover</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-kotlinlib-linting-4-kover.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/kotlinlib/linting/4-kover">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill._, kotlinlib._
+import kotlinlib.contrib.kover.KoverModule
+
+object `package` extends RootModule with KotlinModule with KoverModule {
+
+  trait KotestTests extends TestModule.Junit5 {
+    override def forkArgs: T[Seq[String]] = Task {
+      super.forkArgs() ++ Seq(&quot;-Dkotest.framework.classpath.scanning.autoscan.disable=true&quot;)
+
+    }
+    override def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;
+    )
+  }
+
+  def kotlinVersion = &quot;1.9.24&quot;
+
+  override def koverVersion = &quot;0.8.3&quot;
+
+  object test extends KotlinModuleTests with KotestTests with KoverTests
+
+  object bar extends KotlinModule with KoverModule {
+    def kotlinVersion = &quot;1.9.24&quot;
+    object test extends KotlinModuleTests with KotestTests with KoverTests
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is a basic Mill build for a single <code>KotlinModule</code>, enhanced with
+Kover module. The root module extends the <code>KoverModule</code> and
+specifies the version of Kover version to use here: <code>0.8.3</code>. This
+version can be changed if there is a newer one. Now you can call the
+Kover targets to produce coverage reports.
+The sub test module extends <code>KoverTests</code> to transform the
+execution of the various testXXX targets to use Kover and produce
+coverage data.
+This lets us perform the coverage operations but before that you
+must first run the test.
+<code>./mill test</code> then <code>./mill show kover.htmlReport</code> and get your
+coverage in HTML format.
+Also reports for all modules can be collected in a single place by
+running <code>./mill show mill.kotlinlib.contrib.kover.Kover/htmlReportAll</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill test # Run the tests and produce the coverage data
+...
+... foo.FooTestskotlin - success started
+
+&gt; ./mill resolve kover._ # List what tasks are available to run from kover
+...
+kover.htmlReport
+...
+kover.xmlReport
+...
+
+&gt; ./mill show kover.htmlReport
+...
+...out/kover/htmlReport.dest/kover-report...
+
+&gt; cat out/kover/htmlReport.dest/kover-report/index.html
+...
+...Kover HTML Report: Overall Coverage Summary...
+
+&gt; ./mill show mill.kotlinlib.contrib.kover.Kover/htmlReportAll # collect reports from all modules
+...
+...out/mill/kotlinlib/contrib/kover/Kover/htmlReportAll.dest/kover-report...
+
+&gt; cat out/mill/kotlinlib/contrib/kover/Kover/htmlReportAll.dest/kover-report/index.html
+...
+...Kover HTML Report: Overall Coverage Summary...</code></pre>
 </div>
 </div>
 </div>

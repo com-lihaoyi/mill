@@ -160,7 +160,7 @@
 
   <li class="nav-item" data-depth="0">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="Kotlin_Intro_to_Mill.html">Building Kotlin Projects with Mill</a>
+    <a class="nav-link" href="Kotlin_Intro_to_Mill.html">(Experimental) Kotlin with Mill</a>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
@@ -405,9 +405,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-52-9fde9b</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-53-50b445</button>
   <div class="version-menu">
-    <a class="version is-current" href="Linting_Scala_Projects.html">0.12.0-RC2-52-9fde9b</a>
+    <a class="version is-current" href="Linting_Scala_Projects.html">0.12.0-RC2-53-50b445</a>
     <a class="version is-missing" href="0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="0.11.10/index.html">0.11.10</a>
@@ -438,163 +438,7 @@ codebases using the Mill build tool</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_autoformatting_and_enforcement"><a class="anchor" href="#_autoformatting_and_enforcement"></a>Autoformatting and Enforcement</h2>
-<div class="sectionbody">
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-scalalib-linting-1-scalafmt.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/scalalib/linting/1-scalafmt">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, scalalib._
-
-object `package` extends RootModule with ScalaModule {
-  def scalaVersion = &quot;2.13.11&quot;
-}</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">.scalafmt.conf (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/scalalib/linting/1-scalafmt/.scalafmt.conf">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala"># Newer versions won't work with Java 8!
-version = &quot;3.7.15&quot;
-runner.dialect = scala213</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Mill supports code formatting via <a href="https://scalameta.org/scalafmt/">scalafmt</a> out of the box.
-You can reformat your project’s code globally with <code>mill mill.scalalib.scalafmt.ScalafmtModule/</code> command,
-specific modules via <code>mill mill.scalalib.scalafmt.ScalafmtModule/ '{foo,bar}.sources</code>
-or only check the code’s format with <code>+mill mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll</code>.
-By default, ScalaFmt checks for a <code>.scalafmt.conf</code> file at the root of repository.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; cat src/Foo.scala # initial poorly formatted source code
-package foo
-object Foo{
-def main(args:
-Array[String
-]
-):Unit=
-{println(&quot;hello world&quot;)
-}
-}
-
-
-&gt; mill mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll
-error: ...Found 1 misformatted files
-
-&gt; mill mill.scalalib.scalafmt.ScalafmtModule/
-
-&gt; cat src/Foo.scala
-package foo
-object Foo {
-  def main(args: Array[String]): Unit = { println(&quot;hello world&quot;) }
-}
-
-&gt; mill mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll
-Everything is formatted already</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>You can modify <code>.scalafmt.conf</code> to adjust the formatting as desired:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; echo &quot;maxColumn: 50&quot; &gt;&gt; .scalafmt.conf
-
-&gt; mill mill.scalalib.scalafmt.ScalafmtModule/
-
-&gt; cat src/Foo.scala
-package foo
-object Foo {
-  def main(args: Array[String]): Unit = {
-    println(&quot;hello world&quot;)
-  }
-}</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_scoverage_code_coverage"><a class="anchor" href="#_scoverage_code_coverage"></a>Scoverage Code Coverage</h2>
-<div class="sectionbody">
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-scalalib-linting-2-contrib-scoverage.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/scalalib/linting/2-contrib-scoverage">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, scalalib._
-import $ivy.`com.lihaoyi::mill-contrib-scoverage:`
-
-import mill.contrib.scoverage._
-
-object `package` extends RootModule with ScoverageModule {
-  def scoverageVersion = &quot;2.1.0&quot;
-  def scalaVersion = &quot;2.13.11&quot;
-  def ivyDeps = Agg(
-    ivy&quot;com.lihaoyi::scalatags:0.12.0&quot;,
-    ivy&quot;com.lihaoyi::mainargs:0.6.2&quot;
-  )
-
-  object test extends ScoverageTests /*with TestModule.Utest */{
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
-    def testFramework = &quot;utest.runner.Framework&quot;
-  }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This is a basic Mill build for a single <code>ScalaModule</code>, enhanced with
-Scoverage plugin. The root module extends the <code>ScoverageModule</code> and
-specifies the version of scoverage version to use here: <code>2.1.0</code>. This
-version can be changed if there is a newer one. Now you can call the
-scoverage targets to produce coverage reports.
-The sub test module extends <code>ScoverageTests</code> to transform the
-execution of the various testXXX targets to use scoverage and produce
-coverage data.
-This lets us perform the coverage operations but before that you
-must first run the test.
-<code>./mill test</code> then <code>./mill scoverage.consoleReport</code> and get your
-coverage into your console output.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill test # Run the tests and produce the coverage data
-...
-+ foo.FooTests...simple ...  &lt;h1&gt;hello&lt;/h1&gt;
-+ foo.FooTests...escaping ...  &lt;h1&gt;&amp;lt;hello&amp;gt;&lt;/h1&gt;
-
-&gt; ./mill resolve scoverage._ # List what tasks are available to run from scoverage
-...
-scoverage.consoleReport
-...
-scoverage.htmlReport
-...
-scoverage.xmlCoberturaReport
-...
-scoverage.xmlReport
-...
-
-&gt; ./mill scoverage.consoleReport
-...
-Statement coverage.: 16.67%
-Branch coverage....: 100.00%</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Mill supports Scala code coverage analysis via the Scoverage contrib plugin. See the
-contrib plugin documentation for more details:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><a href="contrib/scoverage.html" class="xref page">Scoverage</a></p>
-</li>
-</ul>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_scalafix_autofixes"><a class="anchor" href="#_scalafix_autofixes"></a>Scalafix Autofixes</h2>
+<h2 id="_linting_and_autofixing_with_scalafix"><a class="anchor" href="#_linting_and_autofixing_with_scalafix"></a>Linting and Autofixing with Scalafix</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Scalafix is a tool that analyzes your Scala source code, performing intelligent analyses and
@@ -615,7 +459,7 @@ for more details:</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_acyclic_files_enforcement"><a class="anchor" href="#_acyclic_files_enforcement"></a>Acyclic Files Enforcement</h2>
+<h2 id="_linting_with_acyclic_files_enforcement"><a class="anchor" href="#_linting_with_acyclic_files_enforcement"></a>Linting with Acyclic Files Enforcement</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p><a href="https://github.com/com-lihaoyi/acyclic">Acyclic</a> is a Scala compiler plugin that
@@ -706,6 +550,162 @@ which allows the code to compile:</p>
 &gt; ./mill compile
 done compiling</code></pre>
 </div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_autoformatting_with_scalafmt"><a class="anchor" href="#_autoformatting_with_scalafmt"></a>Autoformatting with ScalaFmt</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-scalalib-linting-1-scalafmt.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/scalalib/linting/1-scalafmt">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, scalalib._
+
+object `package` extends RootModule with ScalaModule {
+  def scalaVersion = &quot;2.13.11&quot;
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">.scalafmt.conf (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/scalalib/linting/1-scalafmt/.scalafmt.conf">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala"># Newer versions won't work with Java 8!
+version = &quot;3.7.15&quot;
+runner.dialect = scala213</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Mill supports code formatting via <a href="https://scalameta.org/scalafmt/">scalafmt</a> out of the box.
+You can reformat your project’s code globally with <code>mill mill.scalalib.scalafmt.ScalafmtModule/</code> command,
+specific modules via <code>mill mill.scalalib.scalafmt.ScalafmtModule/ '{foo,bar}.sources</code>
+or only check the code’s format with <code>+mill mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll</code>.
+By default, ScalaFmt checks for a <code>.scalafmt.conf</code> file at the root of repository.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; cat src/Foo.scala # initial poorly formatted source code
+package foo
+object Foo{
+def main(args:
+Array[String
+]
+):Unit=
+{println(&quot;hello world&quot;)
+}
+}
+
+
+&gt; mill mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll
+error: ...Found 1 misformatted files
+
+&gt; mill mill.scalalib.scalafmt.ScalafmtModule/
+
+&gt; cat src/Foo.scala
+package foo
+object Foo {
+  def main(args: Array[String]): Unit = { println(&quot;hello world&quot;) }
+}
+
+&gt; mill mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll
+Everything is formatted already</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can modify <code>.scalafmt.conf</code> to adjust the formatting as desired:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; echo &quot;maxColumn: 50&quot; &gt;&gt; .scalafmt.conf
+
+&gt; mill mill.scalalib.scalafmt.ScalafmtModule/
+
+&gt; cat src/Foo.scala
+package foo
+object Foo {
+  def main(args: Array[String]): Unit = {
+    println(&quot;hello world&quot;)
+  }
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_code_coverage_with_scoverage"><a class="anchor" href="#_code_coverage_with_scoverage"></a>Code Coverage with Scoverage</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-scalalib-linting-2-contrib-scoverage.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/scalalib/linting/2-contrib-scoverage">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, scalalib._
+import $ivy.`com.lihaoyi::mill-contrib-scoverage:`
+
+import mill.contrib.scoverage._
+
+object `package` extends RootModule with ScoverageModule {
+  def scoverageVersion = &quot;2.1.0&quot;
+  def scalaVersion = &quot;2.13.11&quot;
+  def ivyDeps = Agg(
+    ivy&quot;com.lihaoyi::scalatags:0.12.0&quot;,
+    ivy&quot;com.lihaoyi::mainargs:0.6.2&quot;
+  )
+
+  object test extends ScoverageTests /*with TestModule.Utest */{
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
+    def testFramework = &quot;utest.runner.Framework&quot;
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is a basic Mill build for a single <code>ScalaModule</code>, enhanced with
+Scoverage plugin. The root module extends the <code>ScoverageModule</code> and
+specifies the version of scoverage version to use here: <code>2.1.0</code>. This
+version can be changed if there is a newer one. Now you can call the
+scoverage targets to produce coverage reports.
+The sub test module extends <code>ScoverageTests</code> to transform the
+execution of the various testXXX targets to use scoverage and produce
+coverage data.
+This lets us perform the coverage operations but before that you
+must first run the test.
+<code>./mill test</code> then <code>./mill scoverage.consoleReport</code> and get your
+coverage into your console output.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill test # Run the tests and produce the coverage data
+...
++ foo.FooTests...simple ...  &lt;h1&gt;hello&lt;/h1&gt;
++ foo.FooTests...escaping ...  &lt;h1&gt;&amp;lt;hello&amp;gt;&lt;/h1&gt;
+
+&gt; ./mill resolve scoverage._ # List what tasks are available to run from scoverage
+...
+scoverage.consoleReport
+...
+scoverage.htmlReport
+...
+scoverage.xmlCoberturaReport
+...
+scoverage.xmlReport
+...
+
+&gt; ./mill scoverage.consoleReport
+...
+Statement coverage.: 16.67%
+Branch coverage....: 100.00%</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Mill supports Scala code coverage analysis via the Scoverage contrib plugin. See the
+contrib plugin documentation for more details:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="contrib/scoverage.html" class="xref page">Scoverage</a></p>
+</li>
+</ul>
 </div>
 </div>
 </div>
