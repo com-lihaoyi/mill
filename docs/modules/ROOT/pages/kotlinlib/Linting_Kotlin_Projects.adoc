@@ -1,5 +1,6 @@
 = Linting Kotlin Projects
 :page-aliases: Linting_Kotlin_Projects.adoc
+
 ++++
 <script>
 gtag('config', 'AW-16649289906');
