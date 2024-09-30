@@ -517,7 +517,7 @@ trait MainModule extends BaseModule0 {
       else
         RunScript.evaluateTasksNamed(
           evaluator,
-          Seq("mill.initmodule.InitModule/init") ++ args,
+          Seq("mill.init.InitModule/init") ++ args,
           SelectMode.Separated
         )
     evaluated match {

@@ -1,4 +1,4 @@
-package mill.initmodule
+package mill.init
 
 import mainargs.{Flag, arg}
 import mill.api.IO

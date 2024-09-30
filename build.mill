@@ -745,7 +745,7 @@ object dist0 extends MillPublishJavaModule {
 
 object dist extends MillPublishJavaModule {
   def jar = rawAssembly()
-  def moduleDeps = Seq(build.runner, idea, build.initmodule)
+  def moduleDeps = Seq(build.runner, idea, build.main.init)
 
   def testTransitiveDeps = dist0.testTransitiveDeps() ++ Seq(
     (s"com.lihaoyi-${dist.artifactId()}", dist0.runClasspath().map(_.path).mkString("\n"))

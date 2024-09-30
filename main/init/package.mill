@@ -1,4 +1,4 @@
-package build.initmodule
+package build.main.init
 
 import mill._
 import scala.util.matching.Regex

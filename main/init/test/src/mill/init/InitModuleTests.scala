@@ -1,4 +1,4 @@
-package mill.initmodule
+package mill.init
 
 import mill.api.{PathRef, Result, Val}
 import mill.{Agg, T}
