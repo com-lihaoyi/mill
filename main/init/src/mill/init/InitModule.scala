@@ -59,7 +59,7 @@ trait InitModule extends Module {
             println(s"Unpacking example...")
             val unpackPath = IO.unpackZip(downloaded, os.rel)
             val extractedPath = T.dest / extractedDirName
-            val conflicting = for{
+            val conflicting = for {
               p <- os.walk(extractedPath)
               val rel = p.relativeTo(extractedPath)
               if os.exists(T.workspace / rel)
@@ -68,11 +68,11 @@ trait InitModule extends Module {
             if (conflicting.nonEmpty) {
               throw new Exception(
                 "Unable to unpack example because it conflicts with existing file: " +
-                conflicting.mkString(", ")
+                  conflicting.mkString(", ")
               )
             }
 
-            for(p <- os.walk(extractedPath)){
+            for (p <- os.walk(extractedPath)) {
               println(p.relativeTo(extractedPath))
             }
 
@@ -86,7 +86,7 @@ trait InitModule extends Module {
             (
               Seq(unpackPath.path.toString()),
               s"Example download and unpacked to [${T.workspace}]; " +
-              "See `build.mill` for an explanation of this example and instructions on how to use it"
+                "See `build.mill` for an explanation of this example and instructions on how to use it"
             )
         }
       } match {
