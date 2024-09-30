@@ -105,6 +105,14 @@ object Ctx {
   class ImplicitStub extends StaticAnnotation
 
   trait Fork{
+    /**
+     * Provides APIs for Mill tasks to spawn `async` "future" computations that
+     * can be `await`ed upon to yield their result. Unlike other thread pools or
+     * `Executor`s, `fork.async` spawns futures that follow Mill's `-j`/`--jobs` config,
+     * sandbox their `os.pwd` in separate folders, and integrate with Mill's terminal
+     * logging prefixes and prompt so a user can easily see what futures are running
+     * and what logs belong to each future.
+     */
     def fork: Fork.Impl
   }
 
@@ -112,10 +120,30 @@ object Ctx {
     import scala.concurrent.Future
     import scala.concurrent.ExecutionContext
     trait Api {
+      /**
+       * Awaits for the result for the given async future and returns the resultant value
+       */
       def await[T](t: Future[T]): T
-
+      /**
+       * Awaits for the result for multiple async futures and returns the resultant values
+       */
       def awaitAll[T](t: Seq[Future[T]]): Seq[T]
 
+      /**
+       * Spawns an async workflow. Mill async futures require additional metadata
+       * to sandbox, store logs, and integrate them into Mills terminal prompt logger
+       *
+       * @param dest The "sandbox" folder that will contain the `os.pwd` and the `pwd` for
+       *             any subprocesses spawned within the async future. Also provides the
+       *             path for the log file (dest + ".log") for any stdout/stderr printlns
+       *             that occur within that future
+       * @param key The short prefix, typically a number ("1", "2", "3", etc.) that will be
+       *            used to prefix all log lines emitted within this async future in the
+       *            terminal to allow them to be distinguished from other logs
+       * @param message A one-line summary of what this async future is doing, used in the
+       *                terminal prompt to display what this future is currently computing.
+       * @param t The body of the async future
+       */
       def async[T](dest: os.Path,
                    key: String,
                    message: String)
