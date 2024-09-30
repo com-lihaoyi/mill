@@ -1,0 +1,840 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Testing Kotlin Projects :: The Mill Build Tool</title>
+    <link rel="prev" href="Kotlin_Build_Examples.html" />
+    <link rel="next" href="Linting_Kotlin_Projects.html" />
+    <meta name="generator" content="Antora 3.1.9" />
+    <link rel="stylesheet" href="../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
+  
+  </head><body class="article">
+  
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs" />
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">Source Code (GitHub)</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+        <a class="navbar-item" href="https://discord.gg/MNAXQMAr">Chat</a>
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="mill" data-version="master">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javalib/Java_Intro_to_Mill.html">Building Java Projects with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../javalib/Java_Installation_IDE_Support.html">Installation and IDE Support</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../javalib/Java_Builtin_Commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../javalib/Java_Module_Config.html">Java Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../javalib/Java_Build_Examples.html">Java Build Examples</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../javalib/Testing_Java_Projects.html">Testing Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../javalib/Linting_Java_Projects.html">Linting Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../javalib/Publishing_Java_Projects.html">Publishing Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../javalib/Java_Web_Examples.html">Java Web Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../scalalib/Scala_Intro_to_Mill.html">Building Scala Projects with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../scalalib/Scala_Installation_IDE_Support.html">Installation and IDE Support</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../scalalib/Scala_Builtin_Commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../scalalib/Scala_Module_Config.html">Scala Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../scalalib/Scala_Build_Examples.html">Scala Build Examples</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../scalalib/Testing_Scala_Projects.html">Testing Scala Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../scalalib/Linting_Scala_Projects.html">Linting Scala Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../scalalib/Publishing_Scala_Projects.html">Publishing Scala Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../scalalib/Scala_Web_Examples.html">Scala Web Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="Kotlin_Intro_to_Mill.html">(Experimental) Kotlin with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Kotlin_Installation_IDE_Support.html">Installation and IDE Support</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Kotlin_Builtin_Commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Kotlin_Module_Config.html">Kotlin Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Kotlin_Build_Examples.html">Kotlin Build Examples</a>
+  </li>
+
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="Testing_Kotlin_Projects.html">Testing Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Linting_Kotlin_Projects.html">Linting Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Publishing_Kotlin_Projects.html">Publishing Kotlin Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Build Tool Comparisons</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../comparisons/Case_Study_Mill_vs_Maven.html">Case Study: Mill vs Maven</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../comparisons/Case_Study_Mill_vs_Gradle.html">Case Study: Mill vs Gradle</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../comparisons/Case_Study_Mill_vs_SBT.html">Case Study: Mill vs SBT</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../depth/Library_Dependencies.html">Library Dependencies in Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../depth/Out_Dir.html">The Output Directory</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../depth/Target_Query_Syntax.html">Target Query Syntax</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../depth/Tasks.html">Tasks</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../depth/Modules.html">Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../depth/Cross_Builds.html">Cross Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../depth/Structuring_Large_Builds.html">Structuring Large Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../depth/Mill_Sandboxing.html">Mill Sandboxing</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../depth/Bundled_Libraries.html">Bundled Libraries</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../depth/The_Mill_Evaluation_Model.html">The Mill Evaluation Model</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Extending Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../extending/Import_File_And_Import_Ivy.html">import $file and import $ivy</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../extending/Using_Plugins.html">Using Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../extending/Contrib_Plugins.html">Contrib Plugins</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../contrib/artifactory.html">Artifactory</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../contrib/bintray.html">Bintray</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../contrib/bloop.html">Bloop</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../contrib/docker.html">Docker</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../contrib/errorprone.html">Mill ErrorProne Plugin</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../contrib/checkstyle.html">Checkstyle</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../contrib/flyway.html">Flyway</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../contrib/gitlab.html">Gitlab</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../contrib/jmh.html">JMH</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../contrib/playlib.html">Play Framework</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../contrib/proguard.html">Proguard</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../contrib/scalapblib.html">ScalaPB</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../contrib/scoverage.html">Scoverage</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../contrib/testng.html">TestNG</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../contrib/twirllib.html">Twirl</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../contrib/versionfile.html">Version file</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../extending/Thirdparty_Plugins.html">Third-Party Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../extending/Writing_Mill_Plugins.html">Writing Mill Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../extending/The_Mill_Meta_Build.html">The Mill Meta-Build</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Reference</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../reference/Mill_Design_Principles.html">Mill Design Principles</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill/index.html">Mill Scaladoc</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../reference/Changelog.html">reference/Changelog.adoc</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="../index.html">Mill Documentation</a></li>
+    <li><a href="Kotlin_Intro_to_Mill.html">(Experimental) Kotlin with Mill</a></li>
+    <li><a href="Testing_Kotlin_Projects.html">Testing Kotlin Projects</a></li>
+  </ul>
+</nav>
+<div class="page-versions">
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-56-612a28</button>
+  <div class="version-menu">
+    <a class="version is-current" href="Testing_Kotlin_Projects.html">0.12.0-RC2-56-612a28</a>
+    <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
+    <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
+    <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
+    <a class="version is-missing" href="../0.11.0-M7/index.html">0.11.0-M7</a>
+    <a class="version is-missing" href="../0.10.15/index.html">0.10.15</a>
+    <a class="version is-missing" href="../0.10.12/index.html">0.10.12</a>
+    <a class="version is-missing" href="../0.10.0/index.html">0.10.0</a>
+    <a class="version is-missing" href="../0.9.12/index.html">0.9.12</a>
+  </div>
+</div>
+<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/kotlinlib/Testing_Kotlin_Projects.adoc">Edit this Page</a></div>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Testing Kotlin Projects</h1>
+<div class="paragraph">
+<p>gtag('config', 'AW-16649289906');
+&lt;/script&gt;</p>
+</div>
+This page will discuss common topics around working with test suites using the Mill build tool
+
+== Defining Unit Test Suites
+
+
+.build.mill ({mill-download-url}/0.12.0-RC2-example-kotlinlib-testing-1-test-suite.zip[download], {mill-example-url}/example/kotlinlib/testing/1-test-suite[browse])
+[source,scala,subs=&quot;attributes,verbatim&quot;]
+----
+
+package build
+import mill._, kotlinlib._
+
+object foo extends KotlinModule {
+
+  def mainClass = Some(&quot;foo.FooKt&quot;)
+
+  def kotlinVersion = &quot;1.9.24&quot;
+
+  object test extends KotlinModuleTests {
+    def testFramework = &quot;com.github.sbt.junit.jupiter.api.JupiterFramework&quot;
+    def ivyDeps = Agg(
+      ivy&quot;com.github.sbt.junit:jupiter-interface:0.11.4&quot;,
+      ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;,
+      ivy&quot;org.mockito.kotlin:mockito-kotlin:5.4.0&quot;
+    )
+
+    // This is needed because of the &quot;mockito-kotlin&quot;
+    def kotlincOptions = super.kotlincOptions() ++ Seq(&quot;-jvm-target&quot;, &quot;11&quot;)
+  }
+}
+----
+
+This build defines a single module with a test suite, configured to use
+&quot;JUnit&quot; + &quot;Kotest&quot; as the testing framework, along with Mockito. Test suites are themselves
+``KotlinModule``s, nested within the enclosing module,
+and have all the normal tasks like
+`foo.test.compile` available to run, but with an additional `.test` task
+that runs the tests. You can also run the test suite directly, in which case
+it will run the `.test` task as the default task for that module.
+
+
+[source,bash,subs=&quot;attributes,verbatim&quot;]
+----
+&gt; mill foo.compile
+Compiling 1 ... source...
+
+&gt; mill foo.test.compile
+Compiling 1 ... source...
+
+&gt; mill foo.test.test
+...foo.FooTests...hello ...
+...foo.FooTests...world ...
+
+&gt; mill foo.test
+...foo.FooTests...hello ...
+...foo.FooTests...world ...
+----
+For convenience, you can also use one of the predefined test frameworks:
+
+* `TestModule.Junit4`
+* `TestModule.Junit5`
+* `TestModule.TestNg`
+* `TestModule.Munit`
+* `TestModule.ScalaTest`
+* `TestModule.Specs2`
+* `TestModule.Utest`
+* `TestModule.ZioTest`
+
+
+
+[source,scala,subs=&quot;attributes,verbatim&quot;]
+----
+
+object bar extends KotlinModule {
+
+  def mainClass = Some(&quot;bar.BarKt&quot;)
+
+  def kotlinVersion = &quot;1.9.24&quot;
+
+  object test extends KotlinModuleTests with TestModule.Junit5 {
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;,
+      ivy&quot;org.mockito.kotlin:mockito-kotlin:5.4.0&quot;
+    )
+
+    // This is needed because of the &quot;mockito-kotlin&quot;
+    def kotlincOptions = super.kotlincOptions() ++ Seq(&quot;-jvm-target&quot;, &quot;11&quot;)
+  }
+}
+----
+
+
+[source,bash,subs=&quot;attributes,verbatim&quot;]
+----
+&gt; mill bar.test
+...bar.BarTests...hello ...
+...bar.BarTests...world ...
+----
+You can also select multiple test suites in one command using Mill's
+xref:depth/Target_Query_Syntax.adoc[Target Query Syntax]
+
+
+[source,bash,subs=&quot;attributes,verbatim&quot;]
+----
+&gt; mill __.test
+...bar.BarTests...hello ...
+...bar.BarTests...world ...
+...foo.FooTests...hello ...
+...foo.FooTests...world ...
+...
+----
+Mill provides three ways of running tests
+
+* `foo.test.test`: runs tests in a subprocess in an empty `sandbox/` folder.
+
+* `foo.test.testCached`: runs the tests in an empty `sandbox/` folder and caches the results
+  if successful. Also allows multiple test modules to be run in parallel e.g. via `mill __.testCached`
+
+* `foo.test.testLocal`: runs tests in an isolated classloader as part of the main Mill process.
+  This can be faster than `.test`, but is less flexible (e.g. you cannot pass `forkEnv`)
+  and more prone to interference (due to sharing the `sandbox/` folder provided by the
+  Mill process)
+
+
+[source,bash,subs=&quot;attributes,verbatim&quot;]
+----
+&gt; mill bar.test.test
+
+&gt; mill bar.test.testCached
+
+&gt; mill bar.test.testLocal
+----
+Mill provides three ways of running tests
+
+* `foo.test.test`: runs tests in a subprocess in an empty `sandbox/` folder, and
+  `forkArg` and `forkEnv` can be overridden to pass JVM flags &amp; environment variables.
+
+* `foo.test.testCached`: runs the tests in an empty `sandbox/` folder and caches the results
+  if successful. Also allows multiple test modules to be run in parallel e.g. via
+  `mill __.testCached`. Again, `forkEnv` and `forkArgs` can be configured.
+
+* `foo.test.testLocal`: runs tests in an isolated classloader as part of the main Mill process.
+  This can be faster than `.test`, but is less flexible (e.g. you cannot pass `forkEnv`)
+  and more prone to interference (due to sharing the `sandbox/` folder provided by the
+  Mill process)
+
+
+[source,bash,subs=&quot;attributes,verbatim&quot;]
+----
+&gt; mill bar.test.test
+
+&gt; mill bar.test.testCached
+
+&gt; mill bar.test.testLocal
+----
+
+*Note that Mill runs tests with the working directory set to an empty `sandbox/` folder by default*.
+Tests can access files from their resource directory via the environment variable
+`MILL_TEST_RESOURCE_FOLDER` which provides the path to the resource folder, and additional
+paths can be provided to test via `forkEnv`. See
+xref:javalib/Java_Module_Config.adoc#_classpath_and_filesystem_resources[Classpath and Filesystem Resources]
+for more details.
+
+If you want to pass any arguments to the test framework, simply put them after
+`foo.test` in the command line. e.g. {utest-github-url}[uTest]
+lets you pass in a selector to decide which test to run, which in Mill would be:
+
+
+[source,bash,subs=&quot;attributes,verbatim&quot;]
+----
+&gt; kotest_filter_tests='hello' kotest_filter_specs='bar.BarTests' ./mill bar.test
+...bar.BarTests...hello ...
+----
+
+
+== Test Dependencies
+
+[IMPORTANT]
+--
+_Mill has no `test`-scoped dependencies!_
+--
+
+You might be used to test-scoped dependencies from other build tools like
+Maven, Gradle or sbt. As test modules in Mill are just regular modules,
+there is no special need for a dedicated test-scope. You can use `ivyDeps`
+and `runIvyDeps` to declare dependencies in test modules, and test modules
+can use their `moduleDeps` to also depend on each other
+
+
+.build.mill ({mill-download-url}/0.12.0-RC2-example-kotlinlib-testing-2-test-deps.zip[download], {mill-example-url}/example/kotlinlib/testing/2-test-deps[browse])
+[source,scala,subs=&quot;attributes,verbatim&quot;]
+----
+
+package build
+import mill._, kotlinlib._
+
+object qux extends KotlinModule {
+
+  def kotlinVersion = &quot;1.9.24&quot;
+
+  def moduleDeps = Seq(baz)
+
+  object test extends KotlinModuleTests with TestModule.Junit5 {
+    def moduleDeps = super.moduleDeps ++ Seq(baz.test)
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;,
+      ivy&quot;com.google.guava:guava:33.3.0-jre&quot;
+    )
+  }
+}
+
+object baz extends KotlinModule {
+
+  def kotlinVersion = &quot;1.9.24&quot;
+
+  object test extends KotlinModuleTests with TestModule.Junit5 {
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;,
+      ivy&quot;com.google.guava:guava:33.3.0-jre&quot;
+    )
+  }
+}
+----
+
+In this example, not only does `qux` depend on `baz`, but we also make
+`qux.test` depend on `baz.test`. That lets `qux.test` make use of the
+`BazTestUtils` class that `baz.test` defines, allowing us to re-use this
+test helper throughout multiple modules' test suites
+
+
+[source,bash,subs=&quot;attributes,verbatim&quot;]
+----
+&gt; ./mill qux.test
+Using BazTestUtils.bazAssertEquals
+... qux.QuxTests...simple ...
+...
+
+&gt; ./mill baz.test
+Using BazTestUtils.bazAssertEquals
+... baz.BazTests...simple ...
+...
+----
+
+== Defining Integration Test Suites
+
+You can also define test suites with different names other than `test`. For example,
+the build below defines a test suite with the name `integration`, in addition
+to that named `test`.
+
+
+.build.mill ({mill-download-url}/0.12.0-RC2-example-kotlinlib-testing-3-integration-suite.zip[download], {mill-example-url}/example/kotlinlib/testing/3-integration-suite[browse])
+[source,scala,subs=&quot;attributes,verbatim&quot;]
+----
+
+package build
+import mill._, kotlinlib._
+object qux extends KotlinModule {
+
+  def kotlinVersion = &quot;1.9.24&quot;
+
+  object test extends KotlinModuleTests with TestModule.Junit5 {
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;
+    )
+  }
+  object integration extends KotlinModuleTests with TestModule.Junit5 {
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;
+    )
+  }
+}
+----
+
+The integration suite is just another regular test module within the parent KotlinModule
+(This example also demonstrates using Junit 5 instead of Junit 4)
+
+These two test modules will expect their sources to be in their respective `foo/test` and
+`foo/integration` folder respectively
+
+
+[source,bash,subs=&quot;attributes,verbatim&quot;]
+----
+&gt; mill 'qux.{test,integration}' # run both test suites
+...qux.QuxTests...hello...
+...qux.QuxTests...world...
+...qux.QuxIntegrationTests...helloworld...
+
+&gt; mill __.integration.testCached # run all integration test suites
+----
+
+== Test Grouping
+
+Test Grouping is an opt-in feature that allows you to take a single
+test module and group the test classes such that each group will
+execute in parallel when you call `test`. Test grouping is enabled
+by overriding `def testForkGrouping`, as shown below:
+
+
+.build.mill ({mill-download-url}/0.12.0-RC2-example-kotlinlib-testing-4-test-grouping.zip[download], {mill-example-url}/example/kotlinlib/testing/4-test-grouping[browse])
+[source,scala,subs=&quot;attributes,verbatim&quot;]
+----
+
+package build
+import mill._, kotlinlib._
+
+object foo extends KotlinModule {
+
+  def mainClass = Some(&quot;foo.FooKt&quot;)
+
+  def kotlinVersion = &quot;1.9.24&quot;
+
+  object test extends KotlinModuleTests {
+    def testFramework = &quot;com.github.sbt.junit.jupiter.api.JupiterFramework&quot;
+    def ivyDeps = Agg(
+      ivy&quot;com.github.sbt.junit:jupiter-interface:0.11.4&quot;,
+      ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;,
+      ivy&quot;org.mockito.kotlin:mockito-kotlin:5.4.0&quot;
+    )
+
+    def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
+  }
+}
+----
+
+
+.foo/test/src/foo/HelloTests.kt ({mill-example-url}/example/kotlinlib/testing/4-test-grouping/foo/test/src/foo/HelloTests.kt[browse])
+[source,scala,subs=&quot;attributes,verbatim&quot;]
+----
+package foo
+
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.string.shouldStartWith
+
+class HelloTests : FunSpec({
+    test(&quot;hello&quot;) {
+        println(&quot;Testing Hello&quot;)
+        val result = Foo().hello()
+        result shouldStartWith &quot;Hello&quot;
+        java.lang.Thread.sleep(1000)
+        println(&quot;Testing Hello Completed&quot;)
+    }
+})
+----
+
+.foo/test/src/foo/WorldTests.kt ({mill-example-url}/example/kotlinlib/testing/4-test-grouping/foo/test/src/foo/WorldTests.kt[browse])
+[source,scala,subs=&quot;attributes,verbatim&quot;]
+----
+package foo
+
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.string.shouldEndWith
+
+class WorldTests : FunSpec({
+    test(&quot;world&quot;) {
+        println(&quot;Testing World&quot;)
+        val result = Foo().hello()
+        result shouldEndWith &quot;World&quot;
+        java.lang.Thread.sleep(1000)
+        println(&quot;Testing World Completed&quot;)
+    }
+})
+----
+In this example, we have one test module `foo.test`, and two test classes
+`HelloTests` and `WorldTests`. By default, all test classes in the same
+module run sequentially in the same JVM, but with `testForkGrouping` we can break up the
+module and run each test class in parallel in separate JVMs, each with their own
+separate `sandbox` folder and `.log` file:
+
+
+[source,bash,subs=&quot;attributes,verbatim&quot;]
+----
+&gt; mill foo.test
+
+&gt; find out/foo/test/test.dest
+...
+out/foo/test/test.dest/foo.HelloTests.log
+out/foo/test/test.dest/foo.HelloTests/sandbox
+out/foo/test/test.dest/foo.WorldTests.log
+out/foo/test/test.dest/foo.WorldTests/sandbox
+out/foo/test/test.dest/test-report.xml
+----
+Test grouping allows you to run tests in parallel while keeping things deterministic and
+debuggable: parallel test groups will not write over each others files in their
+sandbox, and each one will have a separate set of logs that can be easily read
+without the others mixed in
+
+In this example, `def testForkGrouping = discoveredTestClasses().grouped(1).toSeq` assigns
+each test class to its own group, running in its own JVM. This comes with some overhead
+on a per-JVM basis, so if your test classes are numerous and small you may want to assign
+multiple test classes per group. You can also configure `testForkGrouping` to choose which
+test classes you want to run together and which to run alone: e.g. if some test classes
+are much slower than others, you may want to put the slow test classes each in its own
+group to reduce latency, while grouping multiple fast test classes together to reduce the
+per-group overhead of spinning up a separate JVM.
+<nav class="pagination">
+  <span class="prev"><a href="Kotlin_Build_Examples.html">Kotlin Build Examples</a></span>
+  <span class="next"><a href="Linting_Kotlin_Projects.html">Linting Kotlin Projects</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
+<script async="async" src="../../_/js/vendor/highlight.js"></script>
+<script src="../../_/js/vendor/lunr.js"></script>
+<script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
+<script async="async" src="../../search-index.js"></script>
+  
+</body></html>

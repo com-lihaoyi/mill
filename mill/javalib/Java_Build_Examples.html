@@ -1,0 +1,862 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Java Build Examples :: The Mill Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/mill/0.11.12/Java_Build_Examples.html" />
+    <link rel="prev" href="Java_Module_Config.html" />
+    <link rel="next" href="Testing_Java_Projects.html" />
+    <meta name="generator" content="Antora 3.1.9" />
+    <link rel="stylesheet" href="../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
+  
+  </head><body class="article">
+  
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs" />
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">Source Code (GitHub)</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+        <a class="navbar-item" href="https://discord.gg/MNAXQMAr">Chat</a>
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="mill" data-version="master">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="Java_Intro_to_Mill.html">Building Java Projects with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Java_Installation_IDE_Support.html">Installation and IDE Support</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Java_Builtin_Commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Java_Module_Config.html">Java Module Configuration</a>
+  </li>
+
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="Java_Build_Examples.html">Java Build Examples</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Testing_Java_Projects.html">Testing Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Linting_Java_Projects.html">Linting Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Publishing_Java_Projects.html">Publishing Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Java_Web_Examples.html">Java Web Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../scalalib/Scala_Intro_to_Mill.html">Building Scala Projects with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../scalalib/Scala_Installation_IDE_Support.html">Installation and IDE Support</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../scalalib/Scala_Builtin_Commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../scalalib/Scala_Module_Config.html">Scala Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../scalalib/Scala_Build_Examples.html">Scala Build Examples</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../scalalib/Testing_Scala_Projects.html">Testing Scala Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../scalalib/Linting_Scala_Projects.html">Linting Scala Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../scalalib/Publishing_Scala_Projects.html">Publishing Scala Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../scalalib/Scala_Web_Examples.html">Scala Web Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../kotlinlib/Kotlin_Intro_to_Mill.html">(Experimental) Kotlin with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../kotlinlib/Kotlin_Installation_IDE_Support.html">Installation and IDE Support</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../kotlinlib/Kotlin_Builtin_Commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../kotlinlib/Kotlin_Module_Config.html">Kotlin Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../kotlinlib/Kotlin_Build_Examples.html">Kotlin Build Examples</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../kotlinlib/Testing_Kotlin_Projects.html">Testing Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../kotlinlib/Linting_Kotlin_Projects.html">Linting Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../kotlinlib/Publishing_Kotlin_Projects.html">Publishing Kotlin Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Build Tool Comparisons</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../comparisons/Case_Study_Mill_vs_Maven.html">Case Study: Mill vs Maven</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../comparisons/Case_Study_Mill_vs_Gradle.html">Case Study: Mill vs Gradle</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../comparisons/Case_Study_Mill_vs_SBT.html">Case Study: Mill vs SBT</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../depth/Library_Dependencies.html">Library Dependencies in Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../depth/Out_Dir.html">The Output Directory</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../depth/Target_Query_Syntax.html">Target Query Syntax</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../depth/Tasks.html">Tasks</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../depth/Modules.html">Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../depth/Cross_Builds.html">Cross Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../depth/Structuring_Large_Builds.html">Structuring Large Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../depth/Mill_Sandboxing.html">Mill Sandboxing</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../depth/Bundled_Libraries.html">Bundled Libraries</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../depth/The_Mill_Evaluation_Model.html">The Mill Evaluation Model</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Extending Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../extending/Import_File_And_Import_Ivy.html">import $file and import $ivy</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../extending/Using_Plugins.html">Using Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../extending/Contrib_Plugins.html">Contrib Plugins</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../contrib/artifactory.html">Artifactory</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../contrib/bintray.html">Bintray</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../contrib/bloop.html">Bloop</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../contrib/docker.html">Docker</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../contrib/errorprone.html">Mill ErrorProne Plugin</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../contrib/checkstyle.html">Checkstyle</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../contrib/flyway.html">Flyway</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../contrib/gitlab.html">Gitlab</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../contrib/jmh.html">JMH</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../contrib/playlib.html">Play Framework</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../contrib/proguard.html">Proguard</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../contrib/scalapblib.html">ScalaPB</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../contrib/scoverage.html">Scoverage</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../contrib/testng.html">TestNG</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../contrib/twirllib.html">Twirl</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../contrib/versionfile.html">Version file</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../extending/Thirdparty_Plugins.html">Third-Party Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../extending/Writing_Mill_Plugins.html">Writing Mill Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../extending/The_Mill_Meta_Build.html">The Mill Meta-Build</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Reference</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../reference/Mill_Design_Principles.html">Mill Design Principles</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill/index.html">Mill Scaladoc</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../reference/Changelog.html">reference/Changelog.adoc</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="../index.html">Mill Documentation</a></li>
+    <li><a href="Java_Intro_to_Mill.html">Building Java Projects with Mill</a></li>
+    <li><a href="Java_Build_Examples.html">Java Build Examples</a></li>
+  </ul>
+</nav>
+<div class="page-versions">
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-56-612a28</button>
+  <div class="version-menu">
+    <a class="version is-current" href="Java_Build_Examples.html">0.12.0-RC2-56-612a28</a>
+    <a class="version" href="../0.11.12/Java_Build_Examples.html">0.11.12</a>
+    <a class="version" href="../0.11.11/Java_Build_Examples.html">0.11.11</a>
+    <a class="version" href="../0.11.10/Java_Build_Examples.html">0.11.10</a>
+    <a class="version is-missing" href="../0.11.0-M7/index.html">0.11.0-M7</a>
+    <a class="version is-missing" href="../0.10.15/index.html">0.10.15</a>
+    <a class="version is-missing" href="../0.10.12/index.html">0.10.12</a>
+    <a class="version is-missing" href="../0.10.0/index.html">0.10.0</a>
+    <a class="version is-missing" href="../0.9.12/index.html">0.9.12</a>
+  </div>
+</div>
+<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/javalib/Java_Build_Examples.adoc">Edit this Page</a></div>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Java Build Examples</h1>
+<div class="paragraph">
+<p>gtag('config', 'AW-16649289906');
+&lt;/script&gt;</p>
+</div>
+On this page, we will explore the Mill build tool via a series of simple Java
+example projects. Each project demonstrates one particular feature of the Mill
+build tool, and is also an executable codebase you can download and run. By the
+end of this page, you will be familiar with how to configure Mill to work with
+realistic Java codebases: cross-building, testing, and publishing them.
+
+
+Many of the APIs covered here are listed in the API documentation:
+
+* {mill-doc-url}/api/latest/mill/main/RootModule.html[`mill.scalalib.RootModule`]
+* {mill-doc-url}/api/latest/mill/scalalib/TestModule$.html[`mill.scalalib.TestModule`]
+* {mill-doc-url}/api/latest/mill/scalalib/PublishModule.html[`mill.scalalib.PublishModule`]
+* {mill-doc-url}/api/latest/mill/scalalib/MavenModule.html[`mill.scalalib.MavenModule`]
+* {mill-doc-url}/api/latest/mill/scalalib/JavaModule.html[`mill.scalalib.JavaModule`]
+
+
+== Nesting Modules
+
+
+.build.mill ({mill-download-url}/0.12.0-RC2-example-javalib-builds-1-nested-modules.zip[download], {mill-example-url}/example/javalib/builds/1-nested-modules[browse])
+[source,scala,subs=&quot;attributes,verbatim&quot;]
+----
+
+package build
+import mill._, javalib._
+
+trait MyModule extends JavaModule {
+  def ivyDeps = Agg(
+    ivy&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;,
+    ivy&quot;org.apache.commons:commons-text:1.12.0&quot;
+  )
+}
+
+object foo extends MyModule {
+  def moduleDeps = Seq(bar, qux)
+
+  object bar extends MyModule
+  object qux extends MyModule {
+    def moduleDeps = Seq(bar)
+  }
+}
+
+object baz extends MyModule {
+  def moduleDeps = Seq(foo.bar, foo.qux, foo)
+}
+----
+
+Modules can be nested arbitrarily deeply within each other. The outer module
+can be the same kind of module as the ones within, or it can be a plain
+`Module` if we just need a wrapper to put the modules in without any tasks
+defined on the wrapper.
+
+The outer module can also depend on the inner module (as shown above),
+and vice versa, but not both at the same.
+
+Running tasks on the nested modules requires the full module path
+`foo.bar.run`
+
+
+[source,bash,subs=&quot;attributes,verbatim&quot;]
+----
+&gt; mill resolve __.run
+foo.bar.run
+foo.qux.run
+baz.run
+
+&gt; mill foo.run --bar-text hello --qux-text world --foo-text today
+Bar.value: <h1>hello</h1>
+Qux.value: <p>world</p>
+Foo.value: <p>today</p>
+
+&gt; mill baz.run --bar-text hello --qux-text world --foo-text today --baz-text yay
+Bar.value: <h1>hello</h1>
+Qux.value: <p>world</p>
+Foo.value: <p>today</p>
+Baz.value: <p>yay</p>
+
+&gt; mill foo.qux.run --bar-text hello --qux-text world
+Bar.value: <h1>hello</h1>
+Qux.value: <p>world</p>
+----
+
+== Maven-Compatible Modules
+
+
+.build.mill ({mill-download-url}/0.12.0-RC2-example-javalib-builds-2-compat-modules.zip[download], {mill-example-url}/example/javalib/builds/2-compat-modules[browse])
+[source,scala,subs=&quot;attributes,verbatim&quot;]
+----
+
+package build
+import mill._, javalib._
+
+object foo extends MavenModule {
+  object test extends MavenTests with TestModule.Junit4
+}
+----
+
+`MavenModule` is a variant of `JavaModule`
+that uses the more verbose folder layout of Maven, SBT, and other tools:
+
+- `foo/src/main/java`
+- `foo/src/test/java`
+
+Rather than Mill's
+
+- `foo/src`
+- `foo/test/src`
+
+This is especially useful if you are migrating from Maven to Mill (or vice
+versa), during which a particular module may be built using both Maven and
+Mill at the same time
+
+
+[source,bash,subs=&quot;attributes,verbatim&quot;]
+----
+&gt; mill foo.compile
+compiling 1 Java source...
+
+&gt; mill foo.test.compile
+compiling 1 Java source...
+
+&gt; mill foo.test.test
+...foo.FooTests.hello ...
+
+&gt; mill foo.test
+...foo.FooTests.hello ...
+----
+
+
+== Realistic Java Example Project
+
+
+.build.mill ({mill-download-url}/0.12.0-RC2-example-javalib-builds-4-realistic.zip[download], {mill-example-url}/example/javalib/builds/4-realistic[browse])
+[source,scala,subs=&quot;attributes,verbatim&quot;]
+----
+
+package build
+import mill._, javalib._, publish._
+
+trait MyModule extends JavaModule with PublishModule {
+  def publishVersion = &quot;0.0.1&quot;
+
+  def pomSettings = PomSettings(
+    description = &quot;Hello&quot;,
+    organization = &quot;com.lihaoyi&quot;,
+    url = &quot;https://github.com/lihaoyi/example&quot;,
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github(&quot;lihaoyi&quot;, &quot;example&quot;),
+    developers = Seq(Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;))
+  )
+
+  def ivyDeps = Agg(ivy&quot;org.apache.commons:commons-text:1.12.0&quot;)
+
+  object test extends JavaTests with TestModule.Junit4
+}
+
+object foo extends MyModule {
+  def moduleDeps = Seq(bar, qux)
+
+  def generatedSources = Task {
+    os.write(
+      Task.dest / &quot;Version.java&quot;,
+      s&quot;&quot;&quot;
+package foo;
+public class Version {
+    public static String value() {
+        return &quot;${publishVersion()}&quot;;
+    }
+}
+      &quot;&quot;&quot;.stripMargin
+    )
+    Seq(PathRef(Task.dest))
+  }
+}
+
+object bar extends MyModule {
+  def moduleDeps = Seq(qux)
+}
+
+object qux extends MyModule
+----
+
+A semi-realistic build setup, combining all the individual Mill concepts:
+
+- Three `JavaModule`s that depend on each other
+
+- With unit testing and publishing set up
+
+- With generated sources to include the `publishVersion` as a string in the
+  code, so it can be printed at runtime
+
+Note that for multi-module builds like this, using queries to run tasks on
+multiple targets at once can be very convenient:
+
+----
+__.test
+__.publishLocal
+----
+
+Also note how you can use ``trait``s to bundle together common combinations of
+modules: `MyModule` not only defines a `JavaModule` with some common
+configuration, but it also defines a `object test` module within it with its
+own configuration. This is a very useful technique for managing the often
+repetitive module structure in a typical project
+
+
+[source,bash,subs=&quot;attributes,verbatim&quot;]
+----
+&gt; mill resolve __.run
+bar.run
+bar.test.run
+foo.run
+foo.test.run
+qux.run
+
+&gt; mill foo.run
+foo version 0.0.1
+Foo.value: <h1>hello</h1>
+Bar.value: <p>world</p>
+Qux.value: 31337
+
+&gt; mill bar.test
+...bar.BarTests.test ...
+
+&gt; mill qux.run
+Qux.value: 31337
+
+&gt; mill __.compile
+
+&gt; mill __.test
+...bar.BarTests.test ...
+...foo.FooTests.test ...
+
+&gt; mill __.publishLocal
+Publishing Artifact(com.lihaoyi,foo,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,bar,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,qux,0.0.1) to ivy repo...
+...
+
+&gt; mill show foo.assembly # mac/linux
+&quot;.../out/foo/assembly.dest/out.jar&quot;
+
+&gt; ./out/foo/assembly.dest/out.jar # mac/linux
+foo version 0.0.1
+Foo.value: <h1>hello</h1>
+Bar.value: <p>world</p>
+Qux.value: 31337
+----
+
+
+== Example Builds for Real Projects
+
+Mill comes bundled with example builds for real-world open-source projects,
+demonstrating how Mill can be used to build code outside of tiny example codebases:
+
+=== JimFS
+
+
+.build.mill ({mill-download-url}/0.12.0-RC2-example-thirdparty-jimfs.zip[download], {mill-example-url}/example/thirdparty/jimfs[browse])
+[source,scala,subs=&quot;attributes,verbatim&quot;]
+----
+
+package build
+import mill._, javalib._, publish._
+
+def sharedCompileIvyDeps = T{
+  Agg(
+    ivy&quot;com.google.auto.service:auto-service:1.0.1&quot;,
+    ivy&quot;com.google.code.findbugs:jsr305:3.0.2&quot;,
+    ivy&quot;org.checkerframework:checker-compat-qual:2.5.5&quot;,
+    ivy&quot;com.ibm.icu:icu4j:73.1&quot;,
+  )
+}
+
+
+object jimfs extends PublishModule with MavenModule {
+  def publishVersion = &quot;1.3.3.7&quot;
+
+  def pomSettings = PomSettings(
+    description = artifactName(),
+    organization = &quot;com.google&quot;,
+    url = &quot;https://github.com/google/jimfs&quot;,
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github(owner = &quot;google&quot;, repo = &quot;jimfs&quot;),
+    developers = Nil
+  )
+
+  def ivyDeps = sharedCompileIvyDeps() ++ Agg(
+    ivy&quot;com.google.guava:guava:31.1-android&quot;,
+  )
+
+  def javacOptions = Seq(&quot;-processor&quot;, &quot;com.google.auto.service.processor.AutoServiceProcessor&quot;)
+
+  object test extends MavenTests {
+    def ivyDeps = sharedCompileIvyDeps() ++ Agg(
+      ivy&quot;junit:junit:4.13.2&quot;,
+      ivy&quot;com.google.guava:guava-testlib:31.1-android&quot;,
+      ivy&quot;com.google.truth:truth:1.1.3&quot;,
+      ivy&quot;com.github.sbt:junit-interface:0.13.2&quot;,
+      ivy&quot;com.ibm.icu:icu4j:73.1&quot;,
+    )
+
+    def testFramework = &quot;com.novocode.junit.JUnitFramework&quot;
+  }
+}
+----
+
+JimFS is a small Java library implementing an in-memory filesystem. It is commonly
+used in test suites to validate filesystem operations without needing to write
+to disk.
+
+It has a relatively simple codebase structure, a single module and test suite.
+It has a number of compile-time-only dependencies shared between the library and
+test suite. One wrinkle is that it uses annotation processors as part of its build,
+which Mill supports by providing the relevant `ivyDeps` of the annotation processor
+and providing `javacOptions` to invoke it.
+
+Project home: https://github.com/google/jimfs
+
+
+[source,bash,subs=&quot;attributes,verbatim&quot;]
+----
+&gt; ./mill jimfs.test
+Test run com.google.common.jimfs.FileTest started
+Test run com.google.common.jimfs.FileTest finished: 0 failed, 0 ignored, 7 total...
+...
+----
+
+=== Apache Commons IO
+
+
+.build.mill ({mill-download-url}/0.12.0-RC2-example-thirdparty-commons-io.zip[download], {mill-example-url}/example/thirdparty/commons-io[browse])
+[source,scala,subs=&quot;attributes,verbatim&quot;]
+----
+
+package build
+import mill._, javalib._, publish._
+import $ivy.`com.lihaoyi::mill-contrib-jmh:$MILL_VERSION`
+import contrib.jmh.JmhModule
+
+object `package` extends RootModule with PublishModule with MavenModule {
+  def publishVersion = &quot;2.17.0-SNAPSHOT&quot;
+
+  def pomSettings = PomSettings(
+    description = artifactName(),
+    organization = &quot;org.apache.commons&quot;,
+    url = &quot;https://github.com/apache/commons-io&quot;,
+    licenses = Seq(License.`Apache-2.0`),
+    versionControl = VersionControl.github(owner = &quot;apache&quot;, repo = &quot;commons-io&quot;),
+    developers = Nil
+  )
+
+  object test extends MavenTests with TestModule.Junit5 with  JmhModule{
+    def testSandboxWorkingDir = false
+    def jmhCoreVersion = &quot;1.37&quot;
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy&quot;org.junit.jupiter:junit-jupiter:5.10.3&quot;,
+      ivy&quot;org.junit-pioneer:junit-pioneer:1.9.1&quot;,
+      ivy&quot;net.bytebuddy:byte-buddy:1.14.18&quot;,
+      ivy&quot;net.bytebuddy:byte-buddy-agent:1.14.18&quot;,
+      ivy&quot;org.mockito:mockito-inline:4.11.0&quot;,
+      ivy&quot;com.google.jimfs:jimfs:1.3.0&quot;,
+      ivy&quot;org.apache.commons:commons-lang3:3.14.0&quot;,
+      ivy&quot;commons-codec:commons-codec:1.17.1&quot;,
+      ivy&quot;org.openjdk.jmh:jmh-core:1.37&quot;,
+      ivy&quot;org.openjdk.jmh:jmh-generator-annprocess:1.37&quot;,
+    )
+  }
+}
+----
+
+The Apache Commons IO library contains utility classes, stream implementations, file filters,
+file comparators, endian transformation classes, and much more.
+
+The core library `commonsio` is dependency-free, but the test suite `commonsio.test`
+as a number of libraries included. It also ships with JMH benchmarks, which Mill
+supports via the built in JMH plugin
+
+Project home: https://github.com/apache/commons-io
+
+
+[source,bash,subs=&quot;attributes,verbatim&quot;]
+----
+&gt; ./mill compile
+compiling 254 Java sources...
+...
+
+&gt; ./mill test.compile
+compiling 261 Java sources...
+...
+
+&gt; ./mill test.testOnly org.apache.commons.io.FileUtilsTest
+Test org.apache.commons.io.FileUtilsTest#testCopyFile1() started
+Test org.apache.commons.io.FileUtilsTest#testCopyFile1() finished, took ...
+...
+
+&gt; ./mill test.testOnly org.apache.commons.io.FileSystemTest
+Test org.apache.commons.io.FileSystemTest#testIsLegalName() started
+Test org.apache.commons.io.FileSystemTest#testIsLegalName() finished, took ...
+...
+
+&gt; ./mill test.runJmh '.*PathUtilsContentEqualsBenchmark' -bm SingleShotTime
+Benchmark                                                                Mode  Cnt ...
+PathUtilsContentEqualsBenchmark.testCurrent_fileContentEquals              ss    5 ...
+PathUtilsContentEqualsBenchmark.testCurrent_fileContentEquals_Blackhole    ss    5 ...
+PathUtilsContentEqualsBenchmark.testProposal_contentEquals                 ss    5 ...
+PathUtilsContentEqualsBenchmark.testProposal_contentEquals_Blackhole       ss    5 ...
+----
+
+== Real World Mill Builds
+
+=== C3P0
+
+https://github.com/swaldman/c3p0[C3P0] is a JDBC connection pooling library
+written in Java, built using the Mill build tool.
+<nav class="pagination">
+  <span class="prev"><a href="Java_Module_Config.html">Java Module Configuration</a></span>
+  <span class="next"><a href="Testing_Java_Projects.html">Testing Java Projects</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
+<script async="async" src="../../_/js/vendor/highlight.js"></script>
+<script src="../../_/js/vendor/lunr.js"></script>
+<script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
+<script async="async" src="../../search-index.js"></script>
+  
+</body></html>
