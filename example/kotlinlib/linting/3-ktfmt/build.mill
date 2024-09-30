@@ -4,7 +4,7 @@ import mill._
 import mill.util.Jvm
 import mill.api.Loose
 import kotlinlib.KotlinModule
-import kotlinlib.contrib.ktfmt.KtfmtModule
+import kotlinlib.ktfmt.KtfmtModule
 
 object `package` extends RootModule with KotlinModule with KtfmtModule {
 
@@ -20,6 +20,6 @@ object `package` extends RootModule with KotlinModule with KtfmtModule {
 Done formatting ...src/example/FooWrong.kt
 > ./mill ktfmt # after fixing the violations, ktfmt no longer prints any file
 
-> ./mill mill.kotlinlib.contrib.ktfmt.KtfmtModule/ __.sources   # alternatively, use external module to check/format
+> ./mill mill.kotlinlib.ktfmt.KtfmtModule/ __.sources   # alternatively, use external module to check/format
 
 */

@@ -2,14 +2,14 @@
  * Some parts of this code are taken from lefou/mill-jacoco. Copyright 2021-Present Tobias Roeser.
  */
 
-package mill
-package kotlinlib.contrib.kover
+package mill.kotlinlib.kover
 
+import mill._
 import mill.api.{Loose, PathRef}
 import mill.api.Result.Success
 import mill.define.{Discover, ExternalModule}
 import mill.eval.Evaluator
-import mill.kotlinlib.contrib.kover.ReportType.{Html, Xml}
+import ReportType.{Html, Xml}
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, TestModule, Versions}
 import mill.resolve.{Resolve, SelectMode}
 import mill.scalalib.api.CompilationResult
@@ -30,7 +30,7 @@ import java.util.Locale
  *
  * {{{
  * import mill.kotlinlib.KotlinModule
- * import mill.kotlinlib.contrib.kover.KoverModule
+ * import mill.kotlinlib.kover.KoverModule
  *
  * object foo extends KotlinModule with KoverModule {
  *   def kotlinVersion = "2.0.20"
@@ -121,8 +121,8 @@ trait KoverModule extends KotlinModule { outer =>
  * all modules that extend [[KoverModule]].
  *
  * - ./mill __.test                                              # run tests for all modules
- * - ./mill mill.kotlinlib.contrib.kover.Kover/htmlReportAll     # generates report in html format for all modules
- * - ./mill mill.kotlinlib.contrib.kover.Kover/xmlReportAll      # generates report in xml format for all modules
+ * - ./mill mill.kotlinlib.kover.Kover/htmlReportAll     # generates report in html format for all modules
+ * - ./mill mill.kotlinlib.kover.Kover/xmlReportAll      # generates report in xml format for all modules
  *
  * The aggregated report will be available at either `out/mill/kotlinlib/contrib/kover/Kover/htmlReportAll.dest/`
  * for html reports or `out/mill/kotlinlib/contrib/kover/Kover/xmlReportAll.dest/` for xml reports.

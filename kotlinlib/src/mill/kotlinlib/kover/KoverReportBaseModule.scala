@@ -2,9 +2,9 @@
  * Some parts of this code are taken from lefou/mill-jacoco. Copyright 2021-Present Tobias Roeser.
  */
 
-package mill
-package kotlinlib.contrib.kover
+package mill.kotlinlib.kover
 
+import mill._
 import mill.api.Result.Success
 import mill.api.{Loose, PathRef}
 import mill.kotlinlib.{Dep, DepSyntax, Versions}
