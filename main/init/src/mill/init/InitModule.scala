@@ -76,6 +76,8 @@ trait InitModule extends Module {
               println(p.relativeTo(extractedPath))
             }
 
+            // Remove any existing bootstrap script since the example will come with one
+            os.remove(T.workspace / "mill")
             os.copy.apply(extractedPath, T.workspace, mergeFolders = true)
 
             // Make sure the `./mill` launcher is executable
