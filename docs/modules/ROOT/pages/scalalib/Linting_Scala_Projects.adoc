@@ -1,5 +1,7 @@
 = Linting Scala Projects
 
+:page-aliases: Linting_Scala_Projects.adoc
+
 ++++
 <script>
 gtag('config', 'AW-16649289906');
