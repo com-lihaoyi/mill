@@ -23,15 +23,15 @@ for more details:
 
 == Linting with Acyclic Files Enforcement
 
-include::example/scalalib/linting/3-acyclic.adoc[]
+include::partial$example/scalalib/linting/3-acyclic.adoc[]
 
 == Autoformatting with ScalaFmt
 
-include::example/scalalib/linting/1-scalafmt.adoc[]
+include::partial$example/scalalib/linting/1-scalafmt.adoc[]
 
 == Code Coverage with Scoverage
 
-include::example/scalalib/linting/2-contrib-scoverage.adoc[]
+include::partial$example/scalalib/linting/2-contrib-scoverage.adoc[]
 
 Mill supports Scala code coverage analysis via the Scoverage contrib plugin. See the
 contrib plugin documentation for more details:
