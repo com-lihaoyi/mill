@@ -1,0 +1,27 @@
+= Testing Java Projects
+:page-aliases: Testing_Java_Projects.adoc
+
+++++
+<script>
+gtag('config', 'AW-16649289906');
+</script>
+++++
+
+This page will discuss common topics around working with test suites using the Mill build tool
+
+== Defining Unit Test Suites
+
+include::partial$example/javalib/testing/1-test-suite.adoc[]
+
+
+== Test Dependencies
+
+include::partial$example/javalib/testing/2-test-deps.adoc[]
+
+== Defining Integration Test Suites
+
+include::partial$example/javalib/testing/3-integration-suite.adoc[]
+
+== Test Grouping
+
+include::partial$example/javalib/testing/4-test-grouping.adoc[]
