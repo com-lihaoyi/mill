@@ -42,7 +42,7 @@ private[mill] class PromptLogger(
     infoColor
   )
 
-  private val streams = new Streams(
+  private val streamManager = new StreamManager(
     enableTicker,
     systemStreams0,
     () => state.currentPromptBytes,
@@ -62,8 +62,12 @@ private[mill] class PromptLogger(
 
       if (!paused) {
         synchronized {
-          readTerminalDims(terminfoPath).foreach(termDimensions = _)
-          refreshPrompt()
+          // Double check the lock so if this was closed during the
+          // `Thread.sleep`, we skip refreshing the prompt this loop
+          if (!stopped) {
+            readTerminalDims(terminfoPath).foreach(termDimensions = _)
+            refreshPrompt()
+          }
         }
       }
     }
@@ -111,7 +115,7 @@ private[mill] class PromptLogger(
     }
   }
 
-  def streamsAwaitPumperEmpty(): Unit = streams.awaitPumperEmpty()
+  def streamsAwaitPumperEmpty(): Unit = streamManager.awaitPumperEmpty()
   private val seenIdentifiers = collection.mutable.Map.empty[Seq[String], (String, String)]
   private val reportedIdentifiers = collection.mutable.Set.empty[Seq[String]]
   override def setPromptLine(key: Seq[String], verboseKeySuffix: String, message: String): Unit =
@@ -125,18 +129,23 @@ private[mill] class PromptLogger(
 
   override def rawOutputStream: PrintStream = systemStreams0.out
 
-  override def close(): Unit = synchronized {
-    if (enableTicker) state.refreshPrompt(ending = true)
-    streams.close()
-    stopped = true
+  override def close(): Unit = {
+    synchronized {
+      if (enableTicker) state.refreshPrompt(ending = true)
+      streamManager.close()
+      stopped = true
+    }
+    // Needs to be outside the lock so we don't deadlock with `promptUpdaterThread`
+    // trying to take the lock one last time before exiting
+    promptUpdaterThread.join()
   }
 
-  def systemStreams = streams.systemStreams
+  def systemStreams = streamManager.systemStreams
 }
 
 private[mill] object PromptLogger {
 
-  private class Streams(
+  private class StreamManager(
       enableTicker: Boolean,
       systemStreams0: SystemStreams,
       currentPromptBytes: () => Array[Byte],
