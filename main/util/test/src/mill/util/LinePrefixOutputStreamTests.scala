@@ -50,8 +50,6 @@ object LinePrefixOutputStreamTests extends TestSuite {
       lpos.flush()
 
       val expected = "PREFIXhello\nPREFIX\nPREFIXworld\nPREFIX\n"
-      pprint.log(expected)
-      pprint.log(baos.toString)
       assert(baos.toString == expected)
     }
 
