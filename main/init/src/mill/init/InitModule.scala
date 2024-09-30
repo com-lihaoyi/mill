@@ -36,52 +36,32 @@ trait InitModule extends Module {
   ): Command[Seq[String]] =
     T.command {
       usingExamples { examples =>
-        val result: Try[(Seq[String], String)] = exampleId match {
+        exampleId match {
           case None =>
             val exampleIds: Seq[ExampleId] = examples.map { case (exampleId, _) => exampleId }
             def fullMessage(exampleIds: Seq[ExampleId]) =
               msg + "\n\n" + exampleIds.mkString("\n") + "\n\n" + msg
-            if (showAll.value)
-              Success((exampleIds, fullMessage(exampleIds)))
+            if (showAll.value) (exampleIds, fullMessage(exampleIds))
             else {
               val toShow = List("basic", "builds", "web")
-              val filteredIds =
-                exampleIds.filter(_.split('/').lift.apply(1).exists(toShow.contains))
-              Success((filteredIds, fullMessage(filteredIds)))
-            }
-          case Some(value) =>
-            val result: Try[(Seq[String], String)] = for {
-              url <- examples.toMap.get(value).toRight(new Exception(
-                moduleNotExistMsg(value)
-              )).toTry
-              extractedDirName = {
-                val zipName = url.split('/').last
-                if (zipName.toLowerCase.endsWith(".zip")) zipName.dropRight(4) else zipName
-              }
-              downloadDir = T.workspace
-              downloadPath = downloadDir / extractedDirName
-              _ <- if (os.exists(downloadPath)) Failure(new IOException(
-                directoryExistsMsg(downloadPath.toString)
-              ))
-              else Success(())
-              path <-
-                Try({
-                  val tmpName = UUID.randomUUID().toString + ".zip"
-                  val downloaded = download(url, os.rel / tmpName)(downloadDir)
-                  val unpacked = IO.unpackZip(downloaded.path, os.rel)(downloadDir)
-                  Try(os.remove(downloaded.path))
-                  unpacked
-                }).recoverWith(ex =>
-                  Failure(
-                    new IOException(s"Couldn't download example: [$value];\n ${ex.getMessage}")
-                  )
-                )
-            } yield (Seq(path.path.toString()), s"Example downloaded to [$downloadPath]")
+              val filteredIds = exampleIds
+                .filter(_.split('/').lift.apply(1).exists(toShow.contains))
 
-            result
+              (filteredIds, fullMessage(filteredIds))
+            }
+
+          case Some(value) =>
+            val url = examples.toMap.get(value).getOrElse(sys.error(moduleNotExistMsg(value)))
+            val zipName = url.split('/').last
+            val extractedDirName =
+              if (zipName.toLowerCase.endsWith(".zip")) zipName.dropRight(4) else zipName
+
+            val downloaded = os.temp(requests.get(url))
+            val path = IO.unpackZip(downloaded, os.rel)
+
+            (Seq(path.path.toString()), s"Example downloaded to [$path]")
         }
-        result
-      }.flatten match {
+      } match {
         case Success((ret, msg)) =>
           T.log.outputStream.println(msg)
           ret
