@@ -1,5 +1,4 @@
-package mill
-package kotlinlib.contrib.ktlint
+package mill.kotlinlib.ktlint
 
 import mill.api.{Loose, PathRef}
 import mill.kotlinlib.{DepSyntax, KotlinModule}

@@ -1,4 +1,4 @@
-package mill.kotlinlib.contrib.detekt
+package mill.kotlinlib.detekt
 
 import mainargs.{ParserForClass, main}
 

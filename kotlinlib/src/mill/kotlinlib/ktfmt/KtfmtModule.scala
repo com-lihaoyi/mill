@@ -1,5 +1,4 @@
-package mill
-package kotlinlib.contrib.ktfmt
+package mill.kotlinlib.ktfmt
 
 import mainargs.Leftover
 import mill.api.{Loose, PathRef}

@@ -1,5 +1,4 @@
-package mill
-package kotlinlib.contrib.detekt
+package mill.kotlinlib.detekt
 
 import mill.api.{Loose, PathRef}
 import mill.kotlinlib.{DepSyntax, KotlinModule}

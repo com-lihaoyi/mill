@@ -1,4 +1,4 @@
-package mill.kotlinlib.contrib.ktlint
+package mill.kotlinlib.ktlint
 
 import mainargs.{ParserForClass, main}
 

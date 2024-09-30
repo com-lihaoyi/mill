@@ -3,6 +3,7 @@ package mill.kotlinlib.contrib.ktfmt
 import mainargs.Leftover
 import mill.{T, api}
 import mill.kotlinlib.KotlinModule
+import mill.kotlinlib.ktfmt.{KtfmtArgs, KtfmtModule}
 import mill.main.Tasks
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.{TestSuite, Tests, assert, test}

@@ -2,14 +2,13 @@
  * Some parts of this code are taken from lefou/mill-jacoco. Copyright 2021-Present Tobias Roeser.
  */
 
-package mill
-package kotlinlib.contrib.kover
+package mill.kotlinlib.kover
 
 import mill.api.{Loose, PathRef}
 import mill.api.Result.Success
 import mill.define.{Discover, ExternalModule}
 import mill.eval.Evaluator
-import mill.kotlinlib.contrib.kover.ReportType.{Html, Xml}
+import ReportType.{Html, Xml}
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, TestModule, Versions}
 import mill.resolve.{Resolve, SelectMode}
 import mill.scalalib.api.CompilationResult
