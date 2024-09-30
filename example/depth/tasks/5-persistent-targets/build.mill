@@ -12,7 +12,7 @@ import java.util.zip.GZIPOutputStream
 
 def data = Task.Source(millSourcePath / "data")
 
-def compressedData = Task.Persistent{
+def compressedData = Task(persistent = true) {
   println("Evaluating compressedData")
   os.makeDir.all(Task.dest / "cache")
   os.remove.all(Task.dest / "compressed")

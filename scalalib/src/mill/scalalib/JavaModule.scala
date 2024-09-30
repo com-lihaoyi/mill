@@ -420,7 +420,7 @@ trait JavaModule
    *
    * Keep in sync with [[bspCompileClassesPath]]
    */
-  def compile: T[mill.scalalib.api.CompilationResult] = Task.Persistent {
+  def compile: T[mill.scalalib.api.CompilationResult] = Task(persistent = true) {
     zincWorker()
       .worker()
       .compileJava(
