@@ -1,0 +1,6 @@
+= Built-in Commands
+
+:page-aliases: Scala_Builtin_Commands.adoc,
+
+
+include::partial$example/scalalib/basic/4-builtin-commands.adoc[]

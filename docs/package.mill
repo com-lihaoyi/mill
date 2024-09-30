@@ -74,7 +74,7 @@ object `package` extends RootModule {
 
     for ((name, pref) <- renderedExamples) os.copy(
       pref.path,
-      pagesWd / "example" / os.SubPath(s"$name.adoc"),
+      partialsWd / "example" / os.SubPath(s"$name.adoc"),
       createFolders = true
     )
 

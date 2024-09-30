@@ -1,0 +1,17 @@
+= Publishing Scala Projects
+
+:page-aliases: Publishing_Scala_Projects.adoc
+
+++++
+<script>
+gtag('config', 'AW-16649289906');
+</script>
+++++
+
+This page will discuss common topics around publishing your Scala projects for others to use
+
+== Publishing Locally
+
+include::partial$example/scalalib/publishing/2-publish-module.adoc[]
+
+include::partial$Publishing_Footer.adoc[]

@@ -66,7 +66,7 @@ object bar extends ScalaModule {
 */
 
 // You can also select multiple test suites in one command using Mill's
-// xref:Target_Query_Syntax.adoc[Target Query Syntax]
+// xref:depth/Target_Query_Syntax.adoc[Target Query Syntax]
 
 /** Usage
 
@@ -129,7 +129,7 @@ object bar extends ScalaModule {
 // Tests can access files from their resource directory via the environment variable
 // `MILL_TEST_RESOURCE_FOLDER` which provides the path to the resource folder, and additional
 // paths can be provided to test via `forkEnv`. See
-// xref:Java_Module_Config.adoc#_classpath_and_filesystem_resources[Classpath and Filesystem Resources]
+// xref:javalib/Java_Module_Config.adoc#_classpath_and_filesystem_resources[Classpath and Filesystem Resources]
 // for more details.
 //
 // If you want to pass any arguments to the test framework, simply put them after

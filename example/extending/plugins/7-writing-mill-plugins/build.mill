@@ -1,6 +1,6 @@
 // This example demonstrates how to write and test Mill plugin, and publish it to
 // Sonatype's Maven Central so it can be used by other developers over the internet
-// via xref:Import_File_And_Import_Ivy.adoc[import $ivy].
+// via xref:extending/Import_File_And_Import_Ivy.adoc[import $ivy].
 
 // == Project Configuration
 package build
@@ -44,7 +44,7 @@ object myplugin extends ScalaModule with PublishModule {
 // Mill plugins are fundamentally just JVM libraries that depend on Mill. Any vanilla JVM
 // library (whether written in Java or Scala) can be used in a Mill `build.mill` file via
 // `import $ivy`, but Mill plugins tend to integrate with Mill by defining a
-// xref:Modules.adoc#_trait_modules[trait for modules in your `build.mill` to inherit from].
+// xref:depth/Modules.adoc#_trait_modules[trait for modules in your `build.mill` to inherit from].
 //
 // The above `build.mill` file sets up a `object myplugin extends ScalaModule` not just to
 // compile your Mill plugin project, but also to run automated tests using `mill-testkit`,

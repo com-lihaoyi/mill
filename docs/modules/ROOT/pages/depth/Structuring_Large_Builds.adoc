@@ -1,0 +1,17 @@
+= Structuring Large Builds
+
+:page-aliases: Structuring_Large_Builds.adoc
+
+== Multi-file Builds
+
+include::partial$example/depth/large/10-multi-file-builds.adoc[]
+
+== Helper Files
+
+include::partial$example/depth/large/11-helper-files.adoc[]
+
+== Legacy `.sc` extension
+
+include::partial$example/depth/large/12-helper-files-sc.adoc[]
+
+

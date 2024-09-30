@@ -4,7 +4,7 @@
 //
 // One thing to note about Mill's usage of OS-Lib is that Mill sets the `os.pwd`
 // and for filesystem operations and subprocesses to each task's `.dest` folder,
-// as part of its xref:Mill_Sandboxing.adoc[] efforts to prevent accidental
+// as part of its xref:depth/Mill_Sandboxing.adoc[] efforts to prevent accidental
 // interference between tasks:
 
 import mill._

@@ -1,3 +1,0 @@
-= Writing Mill Plugins
-
-include::example/extending/plugins/7-writing-mill-plugins.adoc[]
