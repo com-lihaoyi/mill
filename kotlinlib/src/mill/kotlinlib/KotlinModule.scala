@@ -11,7 +11,7 @@ import mill.kotlinlib.bsp.KotlinBuildTarget
 import mill.kotlinlib.worker.api.KotlinWorker
 import mill.scalalib.api.{CompilationResult, ZincWorkerApi}
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
-import mill.scalalib.{JavaModule, Lib, ZincWorkerModule}
+import mill.scalalib.{JavaModule, Lib, ScalaModule, ZincWorkerModule}
 import mill.util.Jvm
 import mill.util.Util.millProjectModule
 import mill.{Agg, T}
@@ -328,32 +328,89 @@ trait KotlinModule extends JavaModule { outer =>
 
   private[kotlinlib] def internalReportOldProblems: Task[Boolean] = zincReportCachedProblems
 
+  private def assumeIntellijScala(
+      clientDisplayName: String,
+      clientSupportedLanguages: Seq[String]
+  ): Boolean =
+    clientDisplayName == KotlinModule.intelliJDisplayName &&
+      !clientSupportedLanguages.contains(BspModule.LanguageId.Kotlin)
+
   @internal
   def bspBuildTarget(
       clientDisplayName: String,
       clientSupportedLanguages: Seq[String]
   ): BspBuildTarget = super.bspBuildTarget(clientDisplayName, clientSupportedLanguages).copy(
-    languageIds = Seq(BspModule.LanguageId.Java, BspModule.LanguageId.Kotlin),
+    languageIds =
+      if (assumeIntellijScala(clientDisplayName, clientSupportedLanguages))
+        // Mark the module as a Scala one, so that intellij-scala handles it (and deals fine with Kotlin code)
+        Seq(BspModule.LanguageId.Java, BspModule.LanguageId.Scala, BspModule.LanguageId.Kotlin)
+      else
+        Seq(BspModule.LanguageId.Java, BspModule.LanguageId.Kotlin),
     canCompile = true,
     canRun = true
   )
+
+  /**
+   * Classpath of the Scala Compiler, to be passed to IntelliJ
+   */
+  def kotlinIntellijScalaCompilerClasspath: T[Agg[PathRef]] =
+    this match {
+      case scalaMod: ScalaModule => Task { scalaMod.scalaCompilerClasspath() }
+      case _ =>
+        Task {
+          defaultResolver().resolveDeps(
+            mill.scalalib.Lib.scalaCompilerIvyDeps(
+              "org.scala-lang",
+              scala.util.Properties.versionNumberString
+            ) ++
+              mill.scalalib.Lib.scalaRuntimeIvyDeps(
+                "org.scala-lang",
+                scala.util.Properties.versionNumberString
+              )
+          )
+        }
+    }
 
   @internal
   override def bspBuildTargetData(
       clientDisplayName: String,
       clientSupportedLanguages: Seq[String]
-  ): Task[Option[(String, AnyRef)]] = Task.Anon {
-    Some((
-      "kotlin", // from https://github.com/JetBrains/hirschgarten/blob/da332f97a3ff34a2698b9edec58f66aab55d26e4/server/server/src/main/kotlin/org/jetbrains/bsp/bazel/server/sync/languages/kotlin/KotlinLanguagePlugin.kt#L22
-      KotlinBuildTarget(
-        languageVersion = kotlinVersion(),
-        apiVersion = kotlinCompilerVersion(), // ???
-        kotlincOptions = kotlincOptions(),
-        associates = Nil, // ???
-        jvmBuildTarget = Some(jvmBuildTarget)
-      )
-    ))
-  }
+  ): Task[Option[(String, AnyRef)]] =
+    if (assumeIntellijScala(clientDisplayName, clientSupportedLanguages))
+      this match {
+        case scalaMod: ScalaModule =>
+          scalaMod.bspBuildTargetData(clientDisplayName, clientSupportedLanguages)
+        case _ =>
+          Task.Anon {
+            Some((
+              "scala",
+              mill.scalalib.bsp.ScalaBuildTarget(
+                scalaOrganization = "org.scala-lang",
+                scalaVersion = scala.util.Properties.versionNumberString,
+                scalaBinaryVersion = mill.scalalib.api.ZincWorkerUtil.scalaBinaryVersion(
+                  scala.util.Properties.versionNumberString
+                ),
+                platform = mill.scalalib.bsp.ScalaPlatform.JVM,
+                jars =
+                  kotlinIntellijScalaCompilerClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq,
+                jvmBuildTarget = Some(jvmBuildTarget)
+              )
+            ))
+          }
+      }
+    else
+      Task.Anon {
+        Some((
+          "kotlin", // from https://github.com/JetBrains/hirschgarten/blob/da332f97a3ff34a2698b9edec58f66aab55d26e4/server/server/src/main/kotlin/org/jetbrains/bsp/bazel/server/sync/languages/kotlin/KotlinLanguagePlugin.kt#L22
+          KotlinBuildTarget(
+            languageVersion = kotlinVersion(),
+            apiVersion = kotlinCompilerVersion(), // ???
+            kotlincOptions = kotlincOptions(),
+            associates = Nil, // ???
+            jvmBuildTarget = Some(jvmBuildTarget)
+          )
+        ))
+      }
 
   /**
    * A test sub-module linked to its parent module best suited for unit-tests.
@@ -365,4 +422,8 @@ trait KotlinModule extends JavaModule { outer =>
     override def defaultCommandName(): String = super.defaultCommandName()
   }
 
+}
+
+object KotlinModule {
+  def intelliJDisplayName = "IntelliJ-BSP"
 }

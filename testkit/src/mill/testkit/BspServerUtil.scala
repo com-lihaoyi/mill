@@ -101,10 +101,14 @@ object BspServerUtil {
   trait MillBuildServer extends b.BuildServer with b.JvmBuildServer
       with b.JavaBuildServer with b.ScalaBuildServer
 
+  def defaultClientDisplayName = "Mill Integration"
+  def defaultClientSupportedLanguages = Seq("java", "scala", "kotlin")
   def withBspServer[T](
       workspacePath: os.Path,
       millTestSuiteEnv: Map[String, String],
-      client: b.BuildClient = dummyBuildClient
+      client: b.BuildClient = dummyBuildClient,
+      clientDisplayName: String = defaultClientDisplayName,
+      clientSupportedLanguages: Seq[String] = defaultClientSupportedLanguages
   )(f: (MillBuildServer, b.InitializeBuildResult) => T): T = {
 
     val jsonFile = workspacePath / Constants.bspDir / s"${Constants.serverName}.json"
@@ -143,11 +147,11 @@ object BspServerUtil {
 
       val initRes = buildServer.buildInitialize(
         new b.InitializeBuildParams(
-          "Mill Integration",
+          clientDisplayName,
           BuildInfo.millVersion,
           b.Bsp4j.PROTOCOL_VERSION,
           workspacePath.toNIO.toUri.toASCIIString,
-          new b.BuildClientCapabilities(List("scala", "java", "kotlin").asJava)
+          new b.BuildClientCapabilities(clientSupportedLanguages.asJava)
         )
       ).get()
 
