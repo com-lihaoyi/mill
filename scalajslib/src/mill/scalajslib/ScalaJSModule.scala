@@ -106,11 +106,11 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def scalaJSToolsClasspath = Task { scalaJSWorkerClasspath() ++ scalaJSLinkerClasspath() }
 
-  def fastLinkJS: T[Report] = Task.Persistent {
+  def fastLinkJS: T[Report] = Task(persistent = true) {
     linkTask(isFullLinkJS = false, forceOutJs = false)()
   }
 
-  def fullLinkJS: T[Report] = Task.Persistent {
+  def fullLinkJS: T[Report] = Task(persistent = true) {
     linkTask(isFullLinkJS = true, forceOutJs = false)()
   }
 
@@ -354,7 +354,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
     )
   }
 
-  def fastLinkJSTest: T[Report] = Task.Persistent {
+  def fastLinkJSTest: T[Report] = Task(persistent = true) {
     linkJs(
       worker = ScalaJSWorkerExternalModule.scalaJSWorker(),
       toolsClasspath = scalaJSToolsClasspath(),

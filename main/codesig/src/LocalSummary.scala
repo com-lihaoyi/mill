@@ -271,38 +271,42 @@ object LocalSummary {
         descriptor: String,
         isInterface: Boolean
     ): Unit = {
-      val call = st.MethodCall(
-        JCls.fromSlashed(owner),
-        opcode match {
-          case Opcodes.INVOKESTATIC => InvokeType.Static
-          case Opcodes.INVOKESPECIAL => InvokeType.Special
-          case Opcodes.INVOKEVIRTUAL => InvokeType.Virtual
-          case Opcodes.INVOKEINTERFACE => InvokeType.Virtual
-        },
-        name,
-        st.Desc.read(descriptor)
-      )
+      // Skip analyzing array methods like `.clone()` or `.hashCode()`, since they always
+      // provided by the standard library and do not contribute to the program's call graph
+      if (owner(0) != '[') {
+        val call = st.MethodCall(
+          JCls.fromSlashed(owner),
+          opcode match {
+            case Opcodes.INVOKESTATIC => InvokeType.Static
+            case Opcodes.INVOKESPECIAL => InvokeType.Special
+            case Opcodes.INVOKEVIRTUAL => InvokeType.Virtual
+            case Opcodes.INVOKEINTERFACE => InvokeType.Virtual
+          },
+          name,
+          st.Desc.read(descriptor)
+        )
 
-      // HACK: we skip any constants that get passed to `sourcecode.Line()`,
-      // because we use that extensively in definig Mill targets but it is
-      // generally not something we want to affect the output of a build
-      val sourcecodeLineCall = st.MethodCall(
-        JCls.fromSlashed("sourcecode/Line"),
-        InvokeType.Special,
-        "<init>",
-        st.Desc.read("(I)V")
-      )
-      if (call == sourcecodeLineCall) discardPreviousInsn()
+        // HACK: we skip any constants that get passed to `sourcecode.Line()`,
+        // because we use that extensively in definig Mill targets but it is
+        // generally not something we want to affect the output of a build
+        val sourcecodeLineCall = st.MethodCall(
+          JCls.fromSlashed("sourcecode/Line"),
+          InvokeType.Special,
+          "<init>",
+          st.Desc.read("(I)V")
+        )
+        if (call == sourcecodeLineCall) discardPreviousInsn()
 
-      hash(opcode)
-      hash(name.hashCode)
-      hash(owner.hashCode)
-      hash(descriptor.hashCode)
-      hash(isInterface.hashCode)
+        hash(opcode)
+        hash(name.hashCode)
+        hash(owner.hashCode)
+        hash(descriptor.hashCode)
+        hash(isInterface.hashCode)
 
-      storeCallEdge(call)
-      clinitCall(owner)
-      completeHash()
+        storeCallEdge(call)
+        clinitCall(owner)
+        completeHash()
+      }
     }
 
     override def visitMultiANewArrayInsn(descriptor: String, numDimensions: Int): Unit = {

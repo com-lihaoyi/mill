@@ -126,7 +126,7 @@ trait ScalaPBModule extends ScalaModule {
     )
   }
 
-  def compileScalaPB: T[PathRef] = Task.Persistent {
+  def compileScalaPB: T[PathRef] = Task(persistent = true) {
     ScalaPBWorkerApi.scalaPBWorker()
       .compile(
         scalaPBClasspath(),

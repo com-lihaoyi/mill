@@ -2,14 +2,21 @@ package build.kotlinlib
 
 // imports
 import mill._
+import mill.contrib.buildinfo.BuildInfo
 import mill.scalalib._
 
 // TODO change MillPublishScalaModule to MillStableScalaModule after mill version with kotlinlib is released,
 //  because currently there is no previous artifact version
-object `package` extends RootModule with build.MillPublishScalaModule {
+object `package` extends RootModule with build.MillPublishScalaModule with BuildInfo {
 
   def moduleDeps = Seq(build.main, build.scalalib, build.testrunner, worker)
   def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(worker.impl.testDep())
+
+  def buildInfoPackageName = "mill.kotlinlib"
+  def buildInfoObjectName = "Versions"
+  def buildInfoMembers = Seq(
+    BuildInfo.Value("koverVersion", build.Deps.koverVersion, "Version of Kover.")
+  )
 
   trait MillKotlinModule extends build.MillPublishScalaModule {
     override def javacOptions = {

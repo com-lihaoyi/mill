@@ -31,7 +31,7 @@ trait GenIdeaModule extends Module {
   def ideaConfigFiles(ideaConfigVersion: Int): Task[Seq[IdeaConfigFile]] =
     Task.Anon { Seq[IdeaConfigFile]() }
 
-  def ideaCompileOutput: T[PathRef] = Task.Persistent {
+  def ideaCompileOutput: T[PathRef] = Task(persistent = true) {
     PathRef(T.dest / "classes")
   }
 
