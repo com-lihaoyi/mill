@@ -12,10 +12,20 @@ import java.io.{ByteArrayOutputStream, PrintStream}
 import scala.xml.{Elem, NodeSeq, XML}
 
 object TestRunnerTests extends TestSuite {
-  object testrunner extends TestBaseModule with ScalaModule {
+  object testrunner extends TestRunnerTestModule {
+    def computeTestForkGrouping(x: Seq[String]) = Seq(x)
+  }
+
+  object testrunnerGrouping extends TestRunnerTestModule {
+    def computeTestForkGrouping(x: Seq[String]) = x.sorted.grouped(2).toSeq
+  }
+
+  trait TestRunnerTestModule extends TestBaseModule with ScalaModule {
+    def computeTestForkGrouping(x: Seq[String]): Seq[Seq[String]]
     def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
 
     object utest extends ScalaTests with TestModule.Utest {
+      override def testForkGrouping = computeTestForkGrouping(discoveredTestClasses())
       override def ivyDeps = Task {
         super.ivyDeps() ++ Agg(
           ivy"com.lihaoyi::utest:${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}"
@@ -24,6 +34,7 @@ object TestRunnerTests extends TestSuite {
     }
 
     object scalatest extends ScalaTests with TestModule.ScalaTest {
+      override def testForkGrouping = computeTestForkGrouping(discoveredTestClasses())
       override def ivyDeps = Task {
         super.ivyDeps() ++ Agg(
           ivy"org.scalatest::scalatest:${sys.props.getOrElse("TEST_SCALATEST_VERSION", ???)}"
@@ -49,6 +60,7 @@ object TestRunnerTests extends TestSuite {
     }
 
     object ziotest extends ScalaTests with TestModule.ZioTest {
+      override def testForkGrouping = computeTestForkGrouping(discoveredTestClasses())
       override def ivyDeps = Task {
         super.ivyDeps() ++ Agg(
           ivy"dev.zio::zio-test:${sys.props.getOrElse("TEST_ZIOTEST_VERSION", ???)}",
@@ -82,29 +94,50 @@ object TestRunnerTests extends TestSuite {
           expected
         }
         test("testOnly") - {
-          def testOnly(eval: UnitTester, args: Seq[String], size: Int) = {
-            val Right(result) = eval.apply(testrunner.utest.testOnly(args: _*))
-            val testOnly = result.value.asInstanceOf[(String, Seq[mill.testrunner.TestResult])]
-            assert(
-              testOnly._2.size == size
+          val tester = new TestOnlyTester(_.utest)
+          test("suffix") - tester.testOnly(Seq("*arTests"), 2)
+          test("prefix") - tester.testOnly(Seq("mill.scalalib.FooT*"), 1)
+          test("exactly") - tester.testOnly(
+            Seq("mill.scalalib.FooTests"),
+            1,
+            Map(
+              testrunner.utest -> Set("out.json", "sandbox", "test-report.xml", "testargs"),
+              // When there is only one test group with test classes, we do not put it in a subfolder
+              testrunnerGrouping.utest -> Set("out.json", "sandbox", "test-report.xml", "testargs")
             )
-          }
-
-          test("suffix") - UnitTester(testrunner, resourcePath).scoped { eval =>
-            testOnly(eval, Seq("*arTests"), 2)
-          }
-          test("prefix") - UnitTester(testrunner, resourcePath).scoped { eval =>
-            testOnly(eval, Seq("mill.scalalib.FooT*"), 1)
-          }
-          test("exactly") - UnitTester(testrunner, resourcePath).scoped { eval =>
-            testOnly(eval, Seq("mill.scalalib.FooTests"), 1)
-          }
-          test("multi") - UnitTester(testrunner, resourcePath).scoped { eval =>
-            testOnly(eval, Seq("*Bar*", "*bar*"), 2)
-          }
-          test("noMatch") - UnitTester(testrunner, resourcePath).scoped { eval =>
+          )
+          test("multi") - tester.testOnly(
+            Seq("*Bar*", "*bar*"),
+            2,
+            Map(
+              testrunner.utest -> Set("out.json", "sandbox", "test-report.xml", "testargs"),
+              // When there are multiple test groups with one test class each, we
+              // put each test group in a subfolder with the number of the class
+              testrunnerGrouping.utest -> Set(
+                "mill.scalalib.BarTests",
+                "mill.scalalib.FoobarTests",
+                "test-report.xml"
+              )
+            )
+          )
+          test("all") - tester.testOnly(
+            Seq("*"),
+            3,
+            Map(
+              testrunner.utest -> Set("out.json", "sandbox", "test-report.xml", "testargs"),
+              // When there are multiple test groups some with multiple test classes, we put each
+              // test group in a subfolder with the index of the group, and for any test groups
+              // with only one test class we append the name of the class
+              testrunnerGrouping.utest -> Set(
+                "group-0",
+                "group-1-mill.scalalib.FoobarTests",
+                "test-report.xml"
+              )
+            )
+          )
+          test("noMatch") - tester.testOnly0 { (eval, mod) =>
             val Left(Result.Failure(msg, _)) =
-              eval.apply(testrunner.utest.testOnly("noMatch", "noMatch*2"))
+              eval.apply(mod.utest.testOnly("noMatch", "noMatch*2"))
             assert(
               msg == "Test selector does not match any test: noMatch noMatch*2\nRun discoveredTestClasses to see available tests"
             )
@@ -157,25 +190,20 @@ object TestRunnerTests extends TestSuite {
         }
 
         test("testOnly") - {
-          def testOnly(eval: UnitTester, args: Seq[String], size: Int) = {
-            val Right(result) = eval.apply(testrunner.scalatest.testOnly(args: _*))
-            val testOnly = result.value.asInstanceOf[(String, Seq[mill.testrunner.TestResult])]
-            assert(
-              testOnly._2.size == size
-            )
-          }
-          test("all") - UnitTester(testrunner, resourcePath).scoped { eval =>
-            testOnly(eval, Seq("mill.scalalib.ScalaTestSpec"), 3)
-          }
-          test("include") - UnitTester(testrunner, resourcePath).scoped { eval =>
-            testOnly(eval, Seq("mill.scalalib.ScalaTestSpec", "--", "-n", "tagged"), 1)
-          }
-          test("exclude") - UnitTester(testrunner, resourcePath).scoped { eval =>
-            testOnly(eval, Seq("mill.scalalib.ScalaTestSpec", "--", "-l", "tagged"), 2)
-          }
-          test("includeAndExclude") - UnitTester(testrunner, resourcePath).scoped { eval =>
+          val tester = new TestOnlyTester(_.scalatest)
+
+          test("all") - tester.testOnly(Seq("mill.scalalib.ScalaTestSpec"), 3)
+          test("include") - tester.testOnly(
+            Seq("mill.scalalib.ScalaTestSpec", "--", "-n", "tagged"),
+            1
+          )
+          test("exclude") - tester.testOnly(
+            Seq("mill.scalalib.ScalaTestSpec", "--", "-l", "tagged"),
+            2
+          )
+          test("includeAndExclude") - tester.testOnly0 { (eval, mod) =>
             val Left(Result.Failure(msg, _)) =
-              eval.apply(testrunner.scalatest.testOnly(
+              eval.apply(mod.scalatest.testOnly(
                 "mill.scalalib.ScalaTestSpec",
                 "--",
                 "-n",
@@ -204,6 +232,32 @@ object TestRunnerTests extends TestSuite {
     }
   }
 
+  class TestOnlyTester(m: TestRunnerTestModule => TestModule) {
+    def testOnly0(f: (UnitTester, TestRunnerTestModule) => Unit) = {
+      for (mod <- Seq(testrunner, testrunnerGrouping)) {
+        UnitTester(mod, resourcePath).scoped { eval => f(eval, mod) }
+      }
+    }
+    def testOnly(
+        args: Seq[String],
+        size: Int,
+        expectedFileListing: Map[TestModule, Set[String]] = Map()
+    ) = {
+      testOnly0 { (eval, mod) =>
+        val Right(result) = eval.apply(m(mod).testOnly(args: _*))
+        val testOnly = result.value
+        if (expectedFileListing.nonEmpty) {
+          val dest = eval.outPath / m(mod).toString / "testOnly.dest"
+          val sortedListed = os.list(dest).map(_.last).sorted
+          val sortedExpected = expectedFileListing(m(mod)).toSeq.sorted
+          assert(sortedListed == sortedExpected)
+        }
+        // Regardless of whether tests are grouped or not, the same
+        // number of test results appear at the end
+        assert(testOnly._2.size == size)
+      }
+    }
+  }
   trait JUnitReportMatch {
     def shouldHave(statuses: (Int, Status)*): Unit
   }

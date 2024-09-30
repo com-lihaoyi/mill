@@ -20,3 +20,7 @@ include::example/javalib/testing/2-test-deps.adoc[]
 == Defining Integration Test Suites
 
 include::example/javalib/testing/3-integration-suite.adoc[]
+
+== Test Grouping
+
+include::example/javalib/testing/4-test-grouping.adoc[]

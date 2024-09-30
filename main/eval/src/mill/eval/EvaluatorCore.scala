@@ -6,7 +6,6 @@ import mill.api._
 import mill.define._
 import mill.eval.Evaluator.TaskResult
 import mill.main.client.OutFiles._
-import mill.main.client.EnvVars
 import mill.util._
 
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
@@ -68,7 +67,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       logger: ColorLogger,
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
-      ec: ExecutionContext with AutoCloseable,
+      ec: mill.api.Ctx.Fork.Impl,
       contextLoggerMsg0: Int => String,
       serialCommandExec: Boolean
   ): Evaluator.Results = {
@@ -90,9 +89,10 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     val (classToTransitiveClasses, allTransitiveClassMethods) =
       precomputeMethodNamesPerClass(sortedGroups)
 
-    def evaluateTerminals(terminals: Seq[Terminal], contextLoggerMsg: Int => String)(implicit
-        ec: ExecutionContext
-    ) = {
+    def evaluateTerminals(
+        terminals: Seq[Terminal],
+        forkExecutionContext: mill.api.Ctx.Fork.Impl
+    )(implicit taskExecutionContext: mill.api.Ctx.Fork.Impl) = {
       // We walk the task graph in topological order and schedule the futures
       // to run asynchronously. During this walk, we store the scheduled futures
       // in a dictionary. When scheduling each future, we are guaranteed that the
@@ -101,16 +101,15 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       for (terminal <- terminals) {
         val deps = interGroupDeps(terminal)
         futures(terminal) = Future.sequence(deps.map(futures)).map { upstreamValues =>
-          val paddedCount = count
+          val countMsg = count
             .getAndIncrement()
             .toString
             .reverse
             .padTo(terminals.size.toString.length, '0')
             .reverse
-          val countMsg = s"[$paddedCount]"
 
-          val counterMsg = s"[$paddedCount/${terminals0.size}]"
-          logger.globalTicker(counterMsg)
+          val verboseKeySuffix = s"/${terminals0.size}"
+          logger.setPromptLeftHeader(s"$countMsg$verboseKeySuffix")
           if (failed.get()) None
           else {
             val upstreamResults = upstreamValues
@@ -119,24 +118,46 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
               .toMap
 
             val startTime = System.nanoTime() / 1000
+            val targetLabel = terminal match {
+              case Terminal.Task(task) => None
+              case t: Terminal.Labelled[_] => Some(Terminal.printTerm(t))
+            }
 
-            val contextLogger = PrefixLogger(
-              out = logger,
-              context = if (logger.enableTicker) countMsg else "",
-              tickerContext = GroupEvaluator.dynamicTickerPrefix.value
+            val group = sortedGroups.lookupKey(terminal)
+
+            // should we log progress?
+            val logRun = targetLabel.isDefined && {
+              val inputResults = for {
+                target <- group.indexed.filterNot(upstreamResults.contains)
+                item <- target.inputs.filterNot(group.contains)
+              } yield upstreamResults(item).map(_._1)
+              inputResults.forall(_.result.isInstanceOf[Result.Success[_]])
+            }
+
+            val tickerPrefix = terminal.render.collect {
+              case targetLabel if logRun && logger.enableTicker => targetLabel
+            }
+
+            val contextLogger = new PrefixLogger(
+              logger0 = logger,
+              key = if (logger.enableTicker) Seq(countMsg) else Nil,
+              tickerContext = GroupEvaluator.dynamicTickerPrefix.value,
+              verboseKeySuffix = verboseKeySuffix,
+              message = tickerPrefix
             )
 
             val res = evaluateGroupCached(
               terminal = terminal,
               group = sortedGroups.lookupKey(terminal),
               results = upstreamResults,
-              counterMsg = countMsg,
-              identSuffix = counterMsg,
+              countMsg = countMsg,
+              verboseKeySuffix = verboseKeySuffix,
               zincProblemReporter = reporter,
               testReporter = testReporter,
               logger = contextLogger,
               classToTransitiveClasses,
-              allTransitiveClassMethods
+              allTransitiveClassMethods,
+              forkExecutionContext
             )
 
             if (failFast && res.newResults.values.exists(_.result.asSuccess.isEmpty))
@@ -194,14 +215,12 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     // given but run the commands in linear order
     evaluateTerminals(
       tasks,
-      // We want to skip the non-deterministic thread prefix in our test suite
-      // since all it would do is clutter the testing logic trying to match on it
-      if (sys.env.contains(EnvVars.MILL_TEST_SUITE)) _ => ""
-      else contextLoggerMsg0
+      ec
     )(ec)
-    evaluateTerminals(leafSerialCommands, _ => "")(ExecutionContexts.RunNow)
 
-    logger.clearAllTickers()
+    evaluateTerminals(leafSerialCommands, ec)(ExecutionContexts.RunNow)
+
+    logger.clearPrompt()
     val finishedOptsMap = terminals0
       .map(t => (t, Await.result(futures(t), duration.Duration.Inf)))
       .toMap

@@ -42,17 +42,23 @@ trait Logger {
   def inStream: InputStream = systemStreams.in
 
   def info(s: String): Unit
+  def debug(s: String): Unit
   def error(s: String): Unit
   def ticker(s: String): Unit
-  def ticker(key: String, s: String): Unit = ticker(s)
-  private[mill] def reportPrefix(s: String): Unit = ()
-  private[mill] def promptLine(key: String, identSuffix: String, message: String): Unit =
-    ticker(s"$key $message")
-  private[mill] def globalTicker(s: String): Unit = ()
-  private[mill] def clearAllTickers(): Unit = ()
-  private[mill] def endTicker(key: String): Unit = ()
 
-  def debug(s: String): Unit
+  private[mill] def setPromptDetail(key: Seq[String], s: String): Unit = ticker(s)
+  private[mill] def reportKey(key: Seq[String]): Unit = ()
+  private[mill] def setPromptLine(
+      key: Seq[String],
+      verboseKeySuffix: String,
+      message: String
+  ): Unit =
+    ticker(s"${key.mkString("-")} $message")
+  private[mill] def setPromptLine(): Unit = ()
+  private[mill] def setPromptLeftHeader(s: String): Unit = ()
+  private[mill] def clearPrompt(): Unit = ()
+  private[mill] def removePromptLine(key: Seq[String]): Unit = ()
+  private[mill] def removePromptLine(): Unit = ()
 
   /**
    * @since Mill 0.10.5
@@ -69,4 +75,13 @@ trait Logger {
   def withPromptPaused[T](t: => T) = t
 
   def enableTicker: Boolean = false
+
+  private[mill] def subLogger(path: os.Path, verboseKeySuffix: String, message: String): Logger =
+    this
+
+  private[mill] def withPrompt[T](t: => T): T = {
+    setPromptLine()
+    try t
+    finally removePromptLine()
+  }
 }

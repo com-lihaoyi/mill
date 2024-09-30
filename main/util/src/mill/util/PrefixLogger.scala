@@ -1,22 +1,32 @@
 package mill.util
 
-import mill.api.SystemStreams
+import mill.api.{Logger, SystemStreams}
 import pprint.Util.literalize
 
 import java.io.PrintStream
 
 class PrefixLogger(
     val logger0: ColorLogger,
-    context0: String,
+    key: Seq[String],
     tickerContext: String = "",
     outStream0: Option[PrintStream] = None,
-    errStream0: Option[PrintStream] = None
+    errStream0: Option[PrintStream] = None,
+    verboseKeySuffix: String = "",
+    message: String = ""
 ) extends ColorLogger {
-  val context: String = if (context0 == "") "" else context0 + " "
+  val linePrefix: String = if (key.isEmpty) "" else s"[${key.mkString("-")}] "
   override def toString: String =
-    s"PrefixLogger($logger0, ${literalize(context)}, ${literalize(tickerContext)})"
+    s"PrefixLogger($logger0, ${literalize(linePrefix)}, ${literalize(tickerContext)})"
   def this(logger0: ColorLogger, context: String, tickerContext: String) =
-    this(logger0, context, tickerContext, None, None)
+    this(logger0, Seq(context), tickerContext, None, None)
+  def this(
+      logger0: ColorLogger,
+      context: String,
+      tickerContext: String,
+      outStream0: Option[PrintStream],
+      errStream0: Option[PrintStream]
+  ) =
+    this(logger0, Seq(context), tickerContext, outStream0, errStream0, "", "")
 
   override def colored = logger0.colored
 
@@ -26,16 +36,16 @@ class PrefixLogger(
   val systemStreams = new SystemStreams(
     out = outStream0.getOrElse(
       new PrintStream(new LinePrefixOutputStream(
-        infoColor(context).render,
+        infoColor(linePrefix).render,
         logger0.systemStreams.out,
-        () => reportPrefix(context0)
+        () => reportKey(key)
       ))
     ),
     err = errStream0.getOrElse(
       new PrintStream(new LinePrefixOutputStream(
-        infoColor(context).render,
+        infoColor(linePrefix).render,
         logger0.systemStreams.err,
-        () => reportPrefix(context0)
+        () => reportKey(key)
       ))
     ),
     logger0.systemStreams.in
@@ -44,41 +54,60 @@ class PrefixLogger(
   override def rawOutputStream = logger0.rawOutputStream
 
   override def info(s: String): Unit = {
-    reportPrefix(context0)
-    logger0.info(infoColor(context) + s)
+    reportKey(key)
+    logger0.info(infoColor(linePrefix) + s)
   }
   override def error(s: String): Unit = {
-    reportPrefix(context0)
-    logger0.error(infoColor(context) + s)
+    reportKey(key)
+    logger0.error(infoColor(linePrefix) + s)
   }
-  override def ticker(s: String): Unit = ticker(context0, s)
-  override def ticker(key: String, s: String): Unit = logger0.ticker(key, s)
+  override def ticker(s: String): Unit = setPromptDetail(key, s)
+  override def setPromptDetail(key: Seq[String], s: String): Unit = logger0.setPromptDetail(key, s)
 
-  private[mill] override def promptLine(key: String, identSuffix: String, message: String): Unit =
-    logger0.promptLine(key, identSuffix, message)
+  private[mill] override def setPromptLine(
+      key: Seq[String],
+      verboseKeySuffix: String,
+      message: String
+  ): Unit =
+    logger0.setPromptLine(key, verboseKeySuffix, message)
+
+  private[mill] override def setPromptLine(): Unit =
+    setPromptLine(key, verboseKeySuffix, message)
 
   override def debug(s: String): Unit = {
-    if (debugEnabled) reportPrefix(context0)
-    logger0.debug(infoColor(context) + s)
+    if (debugEnabled) reportKey(key)
+    logger0.debug(infoColor(linePrefix) + s)
   }
   override def debugEnabled: Boolean = logger0.debugEnabled
 
   override def withOutStream(outStream: PrintStream): PrefixLogger = new PrefixLogger(
     logger0.withOutStream(outStream),
-    infoColor(context).toString(),
+    Seq(infoColor(linePrefix).toString()),
     infoColor(tickerContext).toString(),
     outStream0 = Some(outStream),
     errStream0 = Some(systemStreams.err)
   )
-  private[mill] override def reportPrefix(s: String): Unit = {
-    logger0.reportPrefix(s)
-  }
-  private[mill] override def endTicker(key: String): Unit = logger0.endTicker(key)
-  private[mill] override def globalTicker(s: String): Unit = logger0.globalTicker(s)
+  private[mill] override def reportKey(key: Seq[String]): Unit = logger0.reportKey(key)
+  private[mill] override def removePromptLine(key: Seq[String]): Unit =
+    logger0.removePromptLine(key)
+  private[mill] override def removePromptLine(): Unit = removePromptLine(key)
+  private[mill] override def setPromptLeftHeader(s: String): Unit = logger0.setPromptLeftHeader(s)
 
   override def withPromptPaused[T](t: => T): T = logger0.withPromptPaused(t)
 
   override def enableTicker = logger0.enableTicker
+
+  override def subLogger(path: os.Path, subKeySuffix: String, message: String): Logger = {
+    new PrefixLogger(
+      logger0,
+      key :+ subKeySuffix,
+      tickerContext,
+      outStream0,
+      errStream0,
+      verboseKeySuffix,
+      message
+    )
+  }
 }
 
 object PrefixLogger {

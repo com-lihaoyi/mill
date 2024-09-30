@@ -1,18 +1,11 @@
 package mill.scalalib
 
 import mill.api.{Ctx, PathRef, Result}
-import mill.main.client.EnvVars
 import mill.define.{Command, Task, TaskModule}
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.testrunner.{Framework, TestArgs, TestResult, TestRunner, TestRunnerUtils}
 import mill.util.Jvm
 import mill.{Agg, T}
-import sbt.testing.Status
-
-import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
-import java.time.{Instant, LocalDateTime, ZoneId}
-import scala.xml.Elem
 
 trait TestModule
     extends TestModule.JavaModuleBase
@@ -95,6 +88,16 @@ trait TestModule
    */
   def testCached: T[(String, Seq[TestResult])] = Task {
     testTask(testCachedArgs, Task.Anon { Seq.empty[String] })()
+  }
+
+  /**
+   * How the test classes in this module will be split into multiple JVM processes
+   * and run in parallel during testing. Defaults to all of them running in one process
+   * sequentially, but can be overriden to split them into separate groups that run
+   * in parallel.
+   */
+  def testForkGrouping: T[Seq[Seq[String]]] = T {
+    Seq(discoveredTestClasses())
   }
 
   /**
@@ -182,83 +185,23 @@ trait TestModule
       globSelectors: Task[Seq[String]]
   ): Task[(String, Seq[TestResult])] =
     Task.Anon {
-      val outputPath = T.dest / "out.json"
-      val useArgsFile = testUseArgsFile()
-
-      val (jvmArgs, props: Map[String, String]) =
-        if (useArgsFile) {
-          val (props, jvmArgs) = forkArgs().partition(_.startsWith("-D"))
-          val sysProps =
-            props
-              .map(_.drop(2).split("[=]", 2))
-              .map {
-                case Array(k, v) => k -> v
-                case Array(k) => k -> ""
-              }
-              .toMap
-
-          jvmArgs -> sysProps
-        } else {
-          forkArgs() -> Map()
-        }
-
-      val selectors = globSelectors()
-
-      val testArgs = TestArgs(
-        framework = testFramework(),
-        classpath = runClasspath().map(_.path),
-        arguments = args(),
-        sysProps = props,
-        outputPath = outputPath,
-        colored = T.log.colored,
-        testCp = testClasspath().map(_.path),
-        home = T.home,
-        globSelectors = selectors
+      TestModuleUtil.runTests(
+        testUseArgsFile(),
+        forkArgs(),
+        globSelectors(),
+        zincWorker().scalalibClasspath(),
+        resources(),
+        testFramework(),
+        runClasspath(),
+        testClasspath(),
+        args(),
+        testForkGrouping(),
+        zincWorker().testrunnerEntrypointClasspath(),
+        forkEnv(),
+        testSandboxWorkingDir(),
+        forkWorkingDir(),
+        testReportXml()
       )
-
-      val testRunnerClasspathArg = zincWorker().scalalibClasspath()
-        .map(_.path.toNIO.toUri.toURL)
-        .mkString(",")
-
-      val argsFile = T.dest / "testargs"
-      os.write(argsFile, upickle.default.write(testArgs))
-      val mainArgs = Seq(testRunnerClasspathArg, argsFile.toString)
-
-      os.makeDir(T.dest / "sandbox")
-      val resourceEnv = Map(
-        EnvVars.MILL_TEST_RESOURCE_FOLDER -> resources().map(_.path).mkString(";"),
-        EnvVars.MILL_WORKSPACE_ROOT -> T.workspace.toString
-      )
-      Jvm.runSubprocess(
-        mainClass = "mill.testrunner.entrypoint.TestRunnerMain",
-        classPath =
-          (runClasspath() ++ zincWorker().testrunnerEntrypointClasspath()).map(
-            _.path
-          ),
-        jvmArgs = jvmArgs,
-        envArgs = forkEnv() ++ resourceEnv,
-        mainArgs = mainArgs,
-        workingDir = if (testSandboxWorkingDir()) T.dest / "sandbox" else forkWorkingDir(),
-        useCpPassingJar = useArgsFile
-      )
-
-      if (!os.exists(outputPath)) Result.Failure("Test execution failed.")
-      else
-        try {
-          val jsonOutput = ujson.read(outputPath.toIO)
-          val (doneMsg, results) = {
-            upickle.default.read[(String, Seq[TestResult])](jsonOutput)
-          }
-          if (results.isEmpty && selectors.nonEmpty) {
-            // no tests ran but we expected some to run, as we applied a filter (e.g. via `testOnly`)
-            Result.Failure(
-              s"Test selector does not match any test: ${selectors.mkString(" ")}" + "\nRun discoveredTestClasses to see available tests"
-            )
-          } else TestModule.handleResults(doneMsg, results, T.ctx(), testReportXml())
-        } catch {
-          case e: Throwable =>
-            Result.Failure("Test reporting failed: " + e)
-        }
     }
 
   /**
@@ -286,11 +229,6 @@ trait TestModule
 }
 
 object TestModule {
-  private val FailedTestReportCount = 5
-  private val ErrorStatus = Status.Error.name()
-  private val FailureStatus = Status.Failure.name()
-  private val SkippedStates =
-    Set(Status.Ignored.name(), Status.Skipped.name(), Status.Pending.name())
 
   /**
    * TestModule using TestNG Framework to run tests.
@@ -389,28 +327,7 @@ object TestModule {
       doneMsg: String,
       results: Seq[TestResult],
       ctx: Option[Ctx.Env]
-  ): Result[(String, Seq[TestResult])] = {
-
-    val badTests: Seq[TestResult] =
-      results.filter(x => Set("Error", "Failure").contains(x.status))
-    if (badTests.isEmpty) {
-      Result.Success((doneMsg, results))
-    } else {
-      val reportCount =
-        if (ctx.fold(false)(_.env.contains("CI"))) badTests.length
-        else FailedTestReportCount
-      val suffix =
-        if (badTests.length <= reportCount) ""
-        else s"\n  and ${badTests.length - reportCount} more ..."
-
-      val msg = s"${badTests.size} tests failed: ${badTests
-          .take(reportCount)
-          .map(t => s"${t.fullyQualifiedName} ${t.selector}")
-          .mkString("\n  ", "\n  ", "")}$suffix"
-
-      Result.Failure(msg, Some((doneMsg, results)))
-    }
-  }
+  ): Result[(String, Seq[TestResult])] = TestModuleUtil.handleResults(doneMsg, results, ctx)
 
   def handleResults(
       doneMsg: String,
@@ -418,15 +335,8 @@ object TestModule {
       ctx: Ctx.Env with Ctx.Dest,
       testReportXml: Option[String],
       props: Option[Map[String, String]] = None
-  ): Result[(String, Seq[TestResult])] = {
-    for {
-      fileName <- testReportXml
-      path = ctx.dest / fileName
-      xml <- genTestXmlReport(results, Instant.now(), props.getOrElse(Map.empty))
-      _ = scala.xml.XML.save(path.toString(), xml, xmlDecl = true)
-    } yield ()
-    handleResults(doneMsg, results, Some(ctx))
-  }
+  ): Result[(String, Seq[TestResult])] =
+    TestModuleUtil.handleResults(doneMsg, results, ctx, testReportXml, props)
 
   trait JavaModuleBase extends BspModule {
     def ivyDeps: T[Agg[Dep]] = Agg.empty[Dep]
@@ -437,94 +347,4 @@ object TestModule {
     def scalacOptions: T[Seq[String]] = Seq.empty[String]
   }
 
-  private[scalalib] def genTestXmlReport(
-      results0: Seq[TestResult],
-      timestamp: Instant,
-      props: Map[String, String]
-  ): Option[Elem] = {
-    def durationAsString(value: Long) = (value / 1000d).toString
-    def testcaseName(testResult: TestResult) =
-      testResult.selector.replace(s"${testResult.fullyQualifiedName}.", "")
-
-    def properties: Elem = {
-      val ps = props.map { case (key, value) =>
-        <property name={key} value={value}/>
-      }
-      <properties>
-        {ps}
-      </properties>
-    }
-
-    val suites = results0.groupBy(_.fullyQualifiedName).map { case (fqn, testResults) =>
-      val cases = testResults.map { testResult =>
-        val testName = testcaseName(testResult)
-        <testcase classname={testResult.fullyQualifiedName}
-                  name={testName}
-                  time={durationAsString(testResult.duration)}>
-          {testCaseStatus(testResult).orNull}
-        </testcase>
-      }
-
-      <testsuite name={fqn}
-                 tests={testResults.length.toString}
-                 failures={testResults.count(_.status == FailureStatus).toString}
-                 errors={testResults.count(_.status == ErrorStatus).toString}
-                 skipped={
-        testResults.count(testResult => SkippedStates.contains(testResult.status)).toString
-      }
-                 time={durationAsString(testResults.map(_.duration).sum)}
-                 timestamp={formatTimestamp(timestamp)}>
-        {properties}
-        {cases}
-      </testsuite>
-    }
-    // todo add the parent module name
-    val xml =
-      <testsuites tests={results0.size.toString}
-                  failures={results0.count(_.status == FailureStatus).toString}
-                  errors={results0.count(_.status == ErrorStatus).toString}
-                  skipped={
-        results0.count(testResult => SkippedStates.contains(testResult.status)).toString
-      }
-                  time={durationAsString(results0.map(_.duration).sum)}>
-        {suites}
-      </testsuites>
-    if (results0.nonEmpty) Some(xml) else None
-  }
-
-  private def formatTimestamp(timestamp: Instant): String = {
-    DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(
-      LocalDateTime.ofInstant(
-        timestamp.truncatedTo(ChronoUnit.SECONDS),
-        ZoneId.of("UTC")
-      )
-    )
-  }
-
-  private def testCaseStatus(e: TestResult): Option[Elem] = {
-    val trace: String = e.exceptionTrace.map(stackTraceTrace =>
-      stackTraceTrace.map(t =>
-        s"${t.getClassName}.${t.getMethodName}(${t.getFileName}:${t.getLineNumber})"
-      )
-        .mkString(
-          s"${e.exceptionName.getOrElse("")}: ${e.exceptionMsg.getOrElse("")}\n    at ",
-          "\n    at ",
-          ""
-        )
-    ).getOrElse("")
-    e.status match {
-      case ErrorStatus if (e.exceptionMsg.isDefined && e.exceptionName.isDefined) =>
-        Some(<error message={e.exceptionMsg.get} type={e.exceptionName.get}>
-          {trace}
-        </error>)
-      case ErrorStatus => Some(<error message="No Exception or message provided"/>)
-      case FailureStatus if (e.exceptionMsg.isDefined && e.exceptionName.isDefined) =>
-        Some(<failure message={e.exceptionMsg.get} type={e.exceptionName.get}>
-          {trace}
-        </failure>)
-      case FailureStatus => Some(<failure message="No Exception or message provided"/>)
-      case s if SkippedStates.contains(s) => Some(<skipped/>)
-      case _ => None
-    }
-  }
 }
