@@ -9,20 +9,8 @@ gtag('config', 'AW-16649289906');
 This page will discuss common topics around maintaining the code quality of Scala
 codebases using the Mill build tool
 
-== Autoformatting and Enforcement
 
-include::example/scalalib/linting/1-scalafmt.adoc[]
-
-== Scoverage Code Coverage
-
-include::example/scalalib/linting/2-contrib-scoverage.adoc[]
-
-Mill supports Scala code coverage analysis via the Scoverage contrib plugin. See the
-contrib plugin documentation for more details:
-
-* xref:contrib/scoverage.adoc[]
-
-== Scalafix Autofixes
+== Linting and Autofixing with Scalafix
 
 Scalafix is a tool that analyzes your Scala source code, performing intelligent analyses and
 code quality checks, and is often able to automatically fix the issues that it discovers.
@@ -33,6 +21,19 @@ for more details:
 
 * https://github.com/joan38/mill-scalafix
 
-== Acyclic Files Enforcement
+== Linting with Acyclic Files Enforcement
 
 include::example/scalalib/linting/3-acyclic.adoc[]
+
+== Autoformatting with ScalaFmt
+
+include::example/scalalib/linting/1-scalafmt.adoc[]
+
+== Code Coverage with Scoverage
+
+include::example/scalalib/linting/2-contrib-scoverage.adoc[]
+
+Mill supports Scala code coverage analysis via the Scoverage contrib plugin. See the
+contrib plugin documentation for more details:
+
+* xref:contrib/scoverage.adoc[]
