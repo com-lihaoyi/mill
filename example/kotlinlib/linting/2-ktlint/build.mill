@@ -4,7 +4,7 @@ import mill._
 import mill.util.Jvm
 import mill.api.Loose
 import kotlinlib.KotlinModule
-import kotlinlib.contrib.ktlint.KtlintModule
+import kotlinlib.ktlint.KtlintModule
 
 object `package` extends RootModule with KotlinModule with KtlintModule {
 

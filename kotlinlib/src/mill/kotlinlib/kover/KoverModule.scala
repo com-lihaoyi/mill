@@ -30,7 +30,7 @@ import java.util.Locale
  *
  * {{{
  * import mill.kotlinlib.KotlinModule
- * import mill.kotlinlib.contrib.kover.KoverModule
+ * import mill.kotlinlib.kover.KoverModule
  *
  * object foo extends KotlinModule with KoverModule {
  *   def kotlinVersion = "2.0.20"
@@ -121,8 +121,8 @@ trait KoverModule extends KotlinModule { outer =>
  * all modules that extend [[KoverModule]].
  *
  * - ./mill __.test                                              # run tests for all modules
- * - ./mill mill.kotlinlib.contrib.kover.Kover/htmlReportAll     # generates report in html format for all modules
- * - ./mill mill.kotlinlib.contrib.kover.Kover/xmlReportAll      # generates report in xml format for all modules
+ * - ./mill mill.kotlinlib.kover.Kover/htmlReportAll     # generates report in html format for all modules
+ * - ./mill mill.kotlinlib.kover.Kover/xmlReportAll      # generates report in xml format for all modules
  *
  * The aggregated report will be available at either `out/mill/kotlinlib/contrib/kover/Kover/htmlReportAll.dest/`
  * for html reports or `out/mill/kotlinlib/contrib/kover/Kover/xmlReportAll.dest/` for xml reports.

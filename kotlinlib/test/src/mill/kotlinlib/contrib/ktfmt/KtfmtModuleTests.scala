@@ -1,4 +1,4 @@
-package mill.kotlinlib.contrib.ktfmt
+package mill.kotlinlib.ktfmt
 
 import mainargs.Leftover
 import mill.{T, api}

@@ -1,4 +1,4 @@
-package mill.kotlinlib.contrib.kover
+package mill.kotlinlib.kover
 
 import mill.kotlinlib.{DepSyntax, KotlinModule}
 import mill.kotlinlib.TestModule

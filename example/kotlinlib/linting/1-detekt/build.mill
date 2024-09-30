@@ -2,7 +2,7 @@ package build
 
 import mill._
 import kotlinlib.KotlinModule
-import kotlinlib.contrib.detekt.DetektModule
+import kotlinlib.detekt.DetektModule
 
 object `package` extends RootModule with KotlinModule with DetektModule {
 

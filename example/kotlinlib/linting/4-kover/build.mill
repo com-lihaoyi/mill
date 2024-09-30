@@ -1,7 +1,7 @@
 package build
 
 import mill._, kotlinlib._
-import kotlinlib.contrib.kover.KoverModule
+import kotlinlib.kover.KoverModule
 
 object `package` extends RootModule with KotlinModule with KoverModule {
 
@@ -40,7 +40,7 @@ object `package` extends RootModule with KotlinModule with KoverModule {
 // `./mill test` then `./mill show kover.htmlReport` and get your
 // coverage in HTML format.
 // Also reports for all modules can be collected in a single place by
-// running `./mill show mill.kotlinlib.contrib.kover.Kover/htmlReportAll`.
+// running `./mill show mill.kotlinlib.kover.Kover/htmlReportAll`.
 
 /** Usage
 
@@ -63,7 +63,7 @@ kover.xmlReport
 ...
 ...Kover HTML Report: Overall Coverage Summary...
 
-> ./mill show mill.kotlinlib.contrib.kover.Kover/htmlReportAll # collect reports from all modules
+> ./mill show mill.kotlinlib.kover.Kover/htmlReportAll # collect reports from all modules
 ...
 ...out/mill/kotlinlib/contrib/kover/Kover/htmlReportAll.dest/kover-report...
 
