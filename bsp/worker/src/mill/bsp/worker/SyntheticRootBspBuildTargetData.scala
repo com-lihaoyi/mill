@@ -41,7 +41,9 @@ object SyntheticRootBspBuildTargetData {
       workspaceDir: os.Path
   ): Option[SyntheticRootBspBuildTargetData] = {
     def containsWorkspaceDir(path: Option[os.Path]) = path.exists(workspaceDir.startsWith)
-    if (existingModules.exists { m => containsWorkspaceDir(m.bspBuildTarget.baseDirectory) }) None
+    if (
+      existingModules.exists { m => containsWorkspaceDir(m.bspBuildTarget("", Nil).baseDirectory) }
+    ) None
     else Some(new SyntheticRootBspBuildTargetData(workspaceDir))
   }
 }
