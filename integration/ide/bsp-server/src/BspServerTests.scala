@@ -63,6 +63,11 @@ object BspServerTests extends UtestIntegrationTestSuite {
         )
 
         val targetIds = buildTargets.getTargets.asScala.map(_.getId).asJava
+        val metaBuildTargetId = new b.BuildTargetIdentifier(
+          (workspacePath / "mill-build").toNIO.toUri.toASCIIString.stripSuffix("/")
+        )
+        assert(targetIds.contains(metaBuildTargetId))
+        val targetIdsSubset = targetIds.asScala.filter(_ != metaBuildTargetId).asJava
 
         val buildTargetSources = buildServer
           .buildTargetSources(new b.SourcesParams(targetIds))
@@ -74,7 +79,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
         )
 
         val buildTargetDependencySources = buildServer
-          .buildTargetDependencySources(new b.DependencySourcesParams(targetIds))
+          .buildTargetDependencySources(new b.DependencySourcesParams(targetIdsSubset))
           .get()
         compareWithGsonFixture(
           buildTargetDependencySources,
@@ -83,7 +88,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
         )
 
         val buildTargetDependencyModules = buildServer
-          .buildTargetDependencyModules(new b.DependencyModulesParams(targetIds))
+          .buildTargetDependencyModules(new b.DependencyModulesParams(targetIdsSubset))
           .get()
         compareWithGsonFixture(
           buildTargetDependencyModules,
@@ -110,7 +115,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
         )
 
         val buildTargetJvmRunEnvironments = buildServer
-          .buildTargetJvmRunEnvironment(new b.JvmRunEnvironmentParams(targetIds))
+          .buildTargetJvmRunEnvironment(new b.JvmRunEnvironmentParams(targetIdsSubset))
           .get()
         compareWithGsonFixture(
           buildTargetJvmRunEnvironments,
@@ -119,7 +124,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
         )
 
         val buildTargetJvmTestEnvironments = buildServer
-          .buildTargetJvmTestEnvironment(new b.JvmTestEnvironmentParams(targetIds))
+          .buildTargetJvmTestEnvironment(new b.JvmTestEnvironmentParams(targetIdsSubset))
           .get()
         compareWithGsonFixture(
           buildTargetJvmTestEnvironments,
@@ -128,7 +133,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
         )
 
         val buildTargetJvmCompileClasspaths = buildServer
-          .buildTargetJvmCompileClasspath(new b.JvmCompileClasspathParams(targetIds))
+          .buildTargetJvmCompileClasspath(new b.JvmCompileClasspathParams(targetIdsSubset))
           .get()
         compareWithGsonFixture(
           buildTargetJvmCompileClasspaths,
@@ -137,7 +142,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
         )
 
         val buildTargetJavacOptions = buildServer
-          .buildTargetJavacOptions(new b.JavacOptionsParams(targetIds))
+          .buildTargetJavacOptions(new b.JavacOptionsParams(targetIdsSubset))
           .get()
         compareWithGsonFixture(
           buildTargetJavacOptions,
@@ -146,7 +151,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
         )
 
         val buildTargetScalacOptions = buildServer
-          .buildTargetScalacOptions(new b.ScalacOptionsParams(targetIds))
+          .buildTargetScalacOptions(new b.ScalacOptionsParams(targetIdsSubset))
           .get()
         compareWithGsonFixture(
           buildTargetScalacOptions,
