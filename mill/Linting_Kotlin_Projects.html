@@ -405,9 +405,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-53-50b445</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-54-d23f3c</button>
   <div class="version-menu">
-    <a class="version is-current" href="Linting_Kotlin_Projects.html">0.12.0-RC2-53-50b445</a>
+    <a class="version is-current" href="Linting_Kotlin_Projects.html">0.12.0-RC2-54-d23f3c</a>
     <a class="version is-missing" href="0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="0.11.10/index.html">0.11.10</a>
@@ -447,7 +447,7 @@ codebases using the Mill build tool</p>
 
 import mill._
 import kotlinlib.KotlinModule
-import kotlinlib.contrib.detekt.DetektModule
+import kotlinlib.detekt.DetektModule
 
 object `package` extends RootModule with KotlinModule with DetektModule {
 
@@ -503,7 +503,7 @@ import mill._
 import mill.util.Jvm
 import mill.api.Loose
 import kotlinlib.KotlinModule
-import kotlinlib.contrib.ktlint.KtlintModule
+import kotlinlib.ktlint.KtlintModule
 
 object `package` extends RootModule with KotlinModule with KtlintModule {
 
@@ -539,7 +539,7 @@ import mill._
 import mill.util.Jvm
 import mill.api.Loose
 import kotlinlib.KotlinModule
-import kotlinlib.contrib.ktfmt.KtfmtModule
+import kotlinlib.ktfmt.KtfmtModule
 
 object `package` extends RootModule with KotlinModule with KtfmtModule {
 
@@ -556,7 +556,7 @@ object `package` extends RootModule with KotlinModule with KtfmtModule {
 Done formatting ...src/example/FooWrong.kt
 &gt; ./mill ktfmt # after fixing the violations, ktfmt no longer prints any file
 
-&gt; ./mill mill.kotlinlib.contrib.ktfmt.KtfmtModule/ __.sources   # alternatively, use external module to check/format</code></pre>
+&gt; ./mill mill.kotlinlib.ktfmt.KtfmtModule/ __.sources   # alternatively, use external module to check/format</code></pre>
 </div>
 </div>
 </div>
@@ -570,7 +570,7 @@ Done formatting ...src/example/FooWrong.kt
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
 import mill._, kotlinlib._
-import kotlinlib.contrib.kover.KoverModule
+import kotlinlib.kover.KoverModule
 
 object `package` extends RootModule with KotlinModule with KoverModule {
 
@@ -611,7 +611,7 @@ must first run the test.
 <code>./mill test</code> then <code>./mill show kover.htmlReport</code> and get your
 coverage in HTML format.
 Also reports for all modules can be collected in a single place by
-running <code>./mill show mill.kotlinlib.contrib.kover.Kover/htmlReportAll</code>.</p>
+running <code>./mill show mill.kotlinlib.kover.Kover/htmlReportAll</code>.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -634,11 +634,11 @@ kover.xmlReport
 ...
 ...Kover HTML Report: Overall Coverage Summary...
 
-&gt; ./mill show mill.kotlinlib.contrib.kover.Kover/htmlReportAll # collect reports from all modules
+&gt; ./mill show mill.kotlinlib.kover.Kover/htmlReportAll # collect reports from all modules
 ...
-...out/mill/kotlinlib/contrib/kover/Kover/htmlReportAll.dest/kover-report...
+...out/mill/kotlinlib/kover/Kover/htmlReportAll.dest/kover-report...
 
-&gt; cat out/mill/kotlinlib/contrib/kover/Kover/htmlReportAll.dest/kover-report/index.html
+&gt; cat out/mill/kotlinlib/kover/Kover/htmlReportAll.dest/kover-report/index.html
 ...
 ...Kover HTML Report: Overall Coverage Summary...</code></pre>
 </div>
