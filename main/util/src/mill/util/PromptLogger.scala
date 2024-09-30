@@ -26,7 +26,7 @@ private[mill] class PromptLogger(
     currentTimeMillis: () => Long,
     autoUpdate: Boolean = true
 ) extends ColorLogger with AutoCloseable {
-  override def toString: String = s"MultilinePromptLogger(${literalize(titleText)}"
+  override def toString: String = s"PromptLogger(${literalize(titleText)})"
   import PromptLogger._
 
   private var termDimensions: (Option[Int], Option[Int]) = (None, None)
@@ -79,7 +79,7 @@ private[mill] class PromptLogger(
       // Clear the prompt so the code in `t` has a blank terminal to work with
       outputStream.flush()
       errorStream.flush()
-      rawOutputStream.write(AnsiNav.clearScreen(0).getBytes)
+      systemStreams0.err.write(AnsiNav.clearScreen(0).getBytes)
       SystemStreams.withStreams(systemStreams0) {
         t
       }
@@ -90,32 +90,35 @@ private[mill] class PromptLogger(
 
   def error(s: String): Unit = synchronized { systemStreams.err.println(s) }
 
-  override def globalTicker(s: String): Unit = synchronized { state.updateGlobal(s) }
-  override def clearAllTickers(): Unit = synchronized { state.clearStatuses() }
-  override def endTicker(key: String): Unit = synchronized { state.updateCurrent(key, None) }
+  override def setPromptLeftHeader(s: String): Unit = synchronized { state.updateGlobal(s) }
+  override def clearPrompt(): Unit = synchronized { state.clearStatuses() }
+  override def removePromptLine(key: Seq[String]): Unit =
+    synchronized { state.updateCurrent(key, None) }
 
   def ticker(s: String): Unit = ()
-  override def ticker(key: String, s: String): Unit = {
+  override def setPromptDetail(key: Seq[String], s: String): Unit = {
     state.updateDetail(key, s)
   }
 
-  override def reportPrefix(s: String): Unit = synchronized {
-    if (!reportedIdentifiers(s)) {
-      reportedIdentifiers.add(s)
-      for ((identSuffix, message) <- seenIdentifiers.get(s)) {
-        systemStreams.err.println(infoColor(s"$identSuffix $message"))
+  override def reportKey(key: Seq[String]): Unit = synchronized {
+    if (!reportedIdentifiers(key)) {
+      reportedIdentifiers.add(key)
+      for ((verboseKeySuffix, message) <- seenIdentifiers.get(key)) {
+        if (enableTicker) {
+          systemStreams.err.println(infoColor(s"[${key.mkString("-")}$verboseKeySuffix] $message"))
+        }
       }
     }
   }
 
   def streamsAwaitPumperEmpty(): Unit = streams.awaitPumperEmpty()
-  private val seenIdentifiers = collection.mutable.Map.empty[String, (String, String)]
-  private val reportedIdentifiers = collection.mutable.Set.empty[String]
-  override def promptLine(key: String, identSuffix: String, message: String): Unit =
+  private val seenIdentifiers = collection.mutable.Map.empty[Seq[String], (String, String)]
+  private val reportedIdentifiers = collection.mutable.Set.empty[Seq[String]]
+  override def setPromptLine(key: Seq[String], verboseKeySuffix: String, message: String): Unit =
     synchronized {
-      state.updateCurrent(key, Some(s"$key $message"))
-      seenIdentifiers(key) = (identSuffix, message)
-      super.promptLine(infoColor(key).toString(), identSuffix, message)
+      state.updateCurrent(key, Some(s"[${key.mkString("-")}] $message"))
+      seenIdentifiers(key) = (verboseKeySuffix, message)
+      super.setPromptLine(key.map(infoColor(_).toString()), verboseKeySuffix, message)
 
     }
   def debug(s: String): Unit = synchronized { if (debugEnabled) systemStreams.err.println(s) }
@@ -205,7 +208,23 @@ private[mill] object PromptLogger {
       infoColor: fansi.Attrs
   ) {
     private var lastRenderedPromptHash = 0
-    private val statuses = collection.mutable.SortedMap.empty[String, Status]
+
+    private implicit def seqOrdering = new Ordering[Seq[String]] {
+      def compare(xs: Seq[String], ys: Seq[String]): Int = {
+        xs.lengthCompare(ys) match {
+          case 0 =>
+            val iter = xs.iterator.zip(ys)
+            while (iter.nonEmpty) {
+              val (x, y) = iter.next()
+              if (x > y) return 1
+              else if (y > x) return -1
+            }
+            return 0
+          case n => n
+        }
+      }
+    }
+    private val statuses = collection.mutable.SortedMap.empty[Seq[String], Status]
 
     private var headerPrefix = ""
     // Pre-compute the prelude and current prompt as byte arrays so that
@@ -233,9 +252,9 @@ private[mill] object PromptLogger {
         termHeight0.getOrElse(defaultTermHeight),
         now,
         startTimeMillis,
-        headerPrefix,
+        s"[$headerPrefix]",
         titleText,
-        statuses,
+        statuses.toSeq.map { case (k, v) => (k.mkString("-"), v) },
         interactive = consoleDims()._1.nonEmpty,
         infoColor = infoColor,
         ending = ending
@@ -263,11 +282,11 @@ private[mill] object PromptLogger {
     def clearStatuses(): Unit = synchronized { statuses.clear() }
     def updateGlobal(s: String): Unit = synchronized { headerPrefix = s }
 
-    def updateDetail(key: String, detail: String): Unit = synchronized {
+    def updateDetail(key: Seq[String], detail: String): Unit = synchronized {
       statuses.updateWith(key)(_.map(se => se.copy(next = se.next.map(_.copy(detail = detail)))))
     }
 
-    def updateCurrent(key: String, sOpt: Option[String]): Unit = synchronized {
+    def updateCurrent(key: Seq[String], sOpt: Option[String]): Unit = synchronized {
 
       val now = currentTimeMillis()
       def stillTransitioning(status: Status) = {

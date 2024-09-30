@@ -192,7 +192,7 @@ object WatchSourceInputTests extends UtestIntegrationTestSuite {
           }
         }
       }
-      test("show") - retry(3) {
+      test("show") - /*retry(3) */ {
         integrationTest { tester =>
           if (!Util.isWindows) {
             testWatchInput(tester, true)

@@ -54,5 +54,7 @@ class FileLogger(
       outputStream.close()
   }
   override def rawOutputStream: PrintStream = outputStream
-
+  override def subLogger(path: os.Path, verboseKeySuffix: String, message: String): Logger = {
+    new FileLogger(colored, path, debugEnabled, append)
+  }
 }

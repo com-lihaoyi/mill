@@ -31,18 +31,23 @@ class MultiLogger(
     logger2.ticker(s)
   }
 
-  override def ticker(key: String, s: String): Unit = {
-    logger1.ticker(key, s)
-    logger2.ticker(key, s)
+  override def setPromptDetail(key: Seq[String], s: String): Unit = {
+    logger1.setPromptDetail(key, s)
+    logger2.setPromptDetail(key, s)
   }
 
-  private[mill] override def promptLine(
-      identifier: String,
-      identSuffix: String,
+  private[mill] override def setPromptLine(
+      key: Seq[String],
+      verboseKeySuffix: String,
       message: String
   ): Unit = {
-    logger1.promptLine(identifier, identSuffix, message)
-    logger2.promptLine(identifier, identSuffix, message)
+    logger1.setPromptLine(key, verboseKeySuffix, message)
+    logger2.setPromptLine(key, verboseKeySuffix, message)
+  }
+
+  private[mill] override def setPromptLine(): Unit = {
+    logger1.setPromptLine()
+    logger2.setPromptLine()
   }
 
   def debug(s: String): Unit = {
@@ -54,26 +59,40 @@ class MultiLogger(
     logger1.close()
     logger2.close()
   }
-  private[mill] override def reportPrefix(s: String): Unit = {
-    logger1.reportPrefix(s)
-    logger2.reportPrefix(s)
+  private[mill] override def reportKey(key: Seq[String]): Unit = {
+    logger1.reportKey(key)
+    logger2.reportKey(key)
   }
 
   override def rawOutputStream: PrintStream = systemStreams.out
 
-  private[mill] override def endTicker(key: String): Unit = {
-    logger1.endTicker(key)
-    logger2.endTicker(key)
+  private[mill] override def removePromptLine(key: Seq[String]): Unit = {
+    logger1.removePromptLine(key)
+    logger2.removePromptLine(key)
   }
-  private[mill] override def globalTicker(s: String): Unit = {
-    logger1.globalTicker(s)
-    logger2.globalTicker(s)
+  private[mill] override def removePromptLine(): Unit = {
+    logger1.removePromptLine()
+    logger2.removePromptLine()
+  }
+  private[mill] override def setPromptLeftHeader(s: String): Unit = {
+    logger1.setPromptLeftHeader(s)
+    logger2.setPromptLeftHeader(s)
   }
 
   override def withPromptPaused[T](t: => T): T =
     logger1.withPromptPaused(logger2.withPromptPaused(t))
 
   override def enableTicker: Boolean = logger1.enableTicker || logger2.enableTicker
+
+  override def subLogger(path: os.Path, key: String, message: String): Logger = {
+    new MultiLogger(
+      colored,
+      logger1.subLogger(path, key, message),
+      logger2.subLogger(path, key, message),
+      inStream0,
+      debugEnabled
+    )
+  }
 }
 
 class MultiStream(stream1: OutputStream, stream2: OutputStream)

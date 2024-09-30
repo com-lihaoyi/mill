@@ -17,19 +17,25 @@ class ProxyLogger(logger: Logger) extends Logger {
   def info(s: String): Unit = logger.info(s)
   def error(s: String): Unit = logger.error(s)
   def ticker(s: String): Unit = logger.ticker(s)
-  override def ticker(key: String, s: String): Unit = logger.ticker(key, s)
-  private[mill] override def promptLine(key: String, identSuffix: String, message: String): Unit =
-    logger.promptLine(key, identSuffix, message)
+  override def setPromptDetail(key: Seq[String], s: String): Unit = logger.setPromptDetail(key, s)
+  private[mill] override def setPromptLine(): Unit = logger.setPromptLine()
+  private[mill] override def setPromptLine(
+      key: Seq[String],
+      verboseKeySuffix: String,
+      message: String
+  ): Unit =
+    logger.setPromptLine(key, verboseKeySuffix, message)
   def debug(s: String): Unit = logger.debug(s)
 
   override def debugEnabled: Boolean = logger.debugEnabled
 
   override def close(): Unit = logger.close()
-  private[mill] override def reportPrefix(s: String): Unit = logger.reportPrefix(s)
+  private[mill] override def reportKey(key: Seq[String]): Unit = logger.reportKey(key)
 
   override def rawOutputStream: PrintStream = logger.rawOutputStream
-  private[mill] override def endTicker(key: String): Unit = logger.endTicker(key)
-  private[mill] override def globalTicker(s: String): Unit = logger.globalTicker(s)
+  private[mill] override def removePromptLine(key: Seq[String]): Unit = logger.removePromptLine(key)
+  private[mill] override def removePromptLine(): Unit = logger.removePromptLine()
+  private[mill] override def setPromptLeftHeader(s: String): Unit = logger.setPromptLeftHeader(s)
   override def withPromptPaused[T](t: => T): T = logger.withPromptPaused(t)
 
   override def enableTicker = logger.enableTicker

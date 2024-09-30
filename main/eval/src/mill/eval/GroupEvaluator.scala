@@ -48,41 +48,22 @@ private[mill] trait GroupEvaluator {
       terminal: Terminal,
       group: Agg[Task[_]],
       results: Map[Task[_], TaskResult[(Val, Int)]],
-      counterMsg: String,
-      identSuffix: String,
+      countMsg: String,
+      verboseKeySuffix: String,
       zincProblemReporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
       logger: ColorLogger,
       classToTransitiveClasses: Map[Class[_], IndexedSeq[Class[_]]],
-      allTransitiveClassMethods: Map[Class[_], Map[String, Method]]
+      allTransitiveClassMethods: Map[Class[_], Map[String, Method]],
+      executionContext: mill.api.Ctx.Fork.Api
   ): GroupEvaluator.Results = {
 
     val targetLabel = terminal match {
       case Terminal.Task(task) => None
       case t: Terminal.Labelled[_] => Some(Terminal.printTerm(t))
     }
-    // should we log progress?
-    val logRun = targetLabel.isDefined && {
-      val inputResults = for {
-        target <- group.indexed.filterNot(results.contains)
-        item <- target.inputs.filterNot(group.contains)
-      } yield results(item).map(_._1)
-      inputResults.forall(_.result.isInstanceOf[Result.Success[_]])
-    }
 
-    val tickerPrefix = terminal.render.collect {
-      case targetLabel if logRun && logger.enableTicker => targetLabel
-    }
-
-    def withTicker[T](s: Option[String])(t: => T): T = s match {
-      case None => t
-      case Some(s) =>
-        logger.promptLine(counterMsg, identSuffix, s)
-        try t
-        finally logger.endTicker(counterMsg)
-    }
-
-    withTicker(Some(tickerPrefix)) {
+    logger.withPrompt {
       val externalInputsHash = MurmurHash3.orderedHash(
         group.items.flatMap(_.inputs).filter(!group.contains(_))
           .flatMap(results(_).result.asSuccess.map(_.value._2))
@@ -155,11 +136,12 @@ private[mill] trait GroupEvaluator {
             inputsHash,
             paths = None,
             maybeTargetLabel = None,
-            counterMsg = counterMsg,
-            identSuffix = identSuffix,
+            counterMsg = countMsg,
+            verboseKeySuffix = verboseKeySuffix,
             zincProblemReporter,
             testReporter,
-            logger
+            logger,
+            executionContext
           )
           GroupEvaluator.Results(newResults, newEvaluated.toSeq, null, inputsHash, -1)
 
@@ -203,18 +185,19 @@ private[mill] trait GroupEvaluator {
               if (labelled.task.flushDest) os.remove.all(paths.dest)
 
               val (newResults, newEvaluated) =
-                GroupEvaluator.dynamicTickerPrefix.withValue(s"[$counterMsg] $targetLabel > ") {
+                GroupEvaluator.dynamicTickerPrefix.withValue(s"[$countMsg] $targetLabel > ") {
                   evaluateGroup(
                     group,
                     results,
                     inputsHash,
                     paths = Some(paths),
                     maybeTargetLabel = targetLabel,
-                    counterMsg = counterMsg,
-                    identSuffix = identSuffix,
+                    counterMsg = countMsg,
+                    verboseKeySuffix = verboseKeySuffix,
                     zincProblemReporter,
                     testReporter,
-                    logger
+                    logger,
+                    executionContext
                   )
                 }
 
@@ -252,10 +235,11 @@ private[mill] trait GroupEvaluator {
       paths: Option[EvaluatorPaths],
       maybeTargetLabel: Option[String],
       counterMsg: String,
-      identSuffix: String,
+      verboseKeySuffix: String,
       reporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
-      logger: mill.api.Logger
+      logger: mill.api.Logger,
+      executionContext: mill.api.Ctx.Fork.Api
   ): (Map[Task[_], TaskResult[(Val, Int)]], mutable.Buffer[Task[_]]) = {
 
     def computeAll() = {
@@ -296,7 +280,8 @@ private[mill] trait GroupEvaluator {
               reporter = reporter,
               testReporter = testReporter,
               workspace = workspace,
-              systemExit = systemExit
+              systemExit = systemExit,
+              fork = executionContext
             ) with mill.api.Ctx.Jobs {
               override def jobs: Int = effectiveThreadCount
             }
