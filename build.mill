@@ -937,7 +937,7 @@ def examplePathsWithArtifactName:Task[Seq[(os.Path,String)]] = T.task{
     path = exampleMod.millSourcePath
   } yield {
     val example = path.subRelativeTo(T.workspace)
-    val artifactName = millVersion() + "-" + example.segments.mkString("-")
+    val artifactName = millLastTag() + "-" + example.segments.mkString("-")
     (path, artifactName)
   }
 }

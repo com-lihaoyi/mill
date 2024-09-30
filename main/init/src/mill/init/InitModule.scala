@@ -53,12 +53,14 @@ trait InitModule extends Module {
           case Some(value) =>
             val url = examples.toMap.get(value).getOrElse(sys.error(moduleNotExistMsg(value)))
             val zipName = url.split('/').last
-            val extractedDirName =
-              if (zipName.toLowerCase.endsWith(".zip")) zipName.dropRight(4) else zipName
-
+            val extractedDirName = zipName.stripSuffix(".zip")
             val downloaded = os.temp(requests.get(url))
             val path = IO.unpackZip(downloaded, os.rel)
 
+            os.copy.apply(T.dest / extractedDirName, T.workspace, mergeFolders = true)
+
+            // Make sure the `./mill` launcher is executable
+            os.perms.set(T.workspace / "mill", "rwxrwxrwx")
             (Seq(path.path.toString()), s"Example downloaded to [$path]")
         }
       } match {
