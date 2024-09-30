@@ -56,6 +56,6 @@ include::example/depth/tasks/6-workers.adoc[]
 
 include::example/depth/tasks/11-module-run-task.adoc[]
 
-=== (Experimental) Forking Concurrent Futures within Tasks
+== (Experimental) Forking Concurrent Futures within Tasks
 
 include::example/depth/tasks/7-forking-futures.adoc[]

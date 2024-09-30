@@ -6,7 +6,6 @@ import mill.api._
 import mill.define._
 import mill.eval.Evaluator.TaskResult
 import mill.main.client.OutFiles._
-import mill.main.client.EnvVars
 import mill.util._
 
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
@@ -92,7 +91,6 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
     def evaluateTerminals(
         terminals: Seq[Terminal],
-        contextLoggerMsg: Int => String,
         forkExecutionContext: mill.api.Ctx.Fork.Impl
     )(implicit taskExecutionContext: mill.api.Ctx.Fork.Impl) = {
       // We walk the task graph in topological order and schedule the futures
@@ -217,14 +215,10 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     // given but run the commands in linear order
     evaluateTerminals(
       tasks,
-      // We want to skip the non-deterministic thread prefix in our test suite
-      // since all it would do is clutter the testing logic trying to match on it
-      if (sys.env.contains(EnvVars.MILL_TEST_SUITE)) _ => ""
-      else contextLoggerMsg0,
       ec
     )(ec)
 
-    evaluateTerminals(leafSerialCommands, _ => "")(ExecutionContexts.RunNow)
+    evaluateTerminals(leafSerialCommands, ec)(ExecutionContexts.RunNow)
 
     logger.clearPrompt()
     val finishedOptsMap = terminals0
