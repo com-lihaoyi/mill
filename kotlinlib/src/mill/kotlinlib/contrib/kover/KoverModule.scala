@@ -59,10 +59,11 @@ trait KoverModule extends KotlinModule { outer =>
     Success[String](T.env.getOrElse("KOVER_VERSION", Versions.koverVersion))
   }
 
-  def koverBinaryReport: T[PathRef] =
-    Task.Persistent { PathRef(koverDataDir().path / "kover-report.ic") }
+  def koverBinaryReport: T[PathRef] = Task(persistent = true) {
+    PathRef(koverDataDir().path / "kover-report.ic")
+  }
 
-  def koverDataDir: T[PathRef] = Task.Persistent { PathRef(T.dest) }
+  def koverDataDir: T[PathRef] = Task(persistent = true) { PathRef(T.dest) }
 
   object kover extends Module with KoverReportBaseModule {
 
