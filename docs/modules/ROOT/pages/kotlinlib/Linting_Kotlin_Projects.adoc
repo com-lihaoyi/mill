@@ -17,13 +17,13 @@ include::partial$example/kotlinlib/linting/1-detekt.adoc[]
 
 == Linting with KtLint
 
-include::example/kotlinlib/linting/2-ktlint.adoc[]
+include::partial$example/kotlinlib/linting/2-ktlint.adoc[]
 
 == Autoformatting with KtFmt
 
-include::example/kotlinlib/linting/3-ktfmt.adoc[]
+include::partial$example/kotlinlib/linting/3-ktfmt.adoc[]
 
 == Code Coverage with Kover
 
-include::example/kotlinlib/linting/4-kover.adoc[]
+include::partial$example/kotlinlib/linting/4-kover.adoc[]
 
