@@ -104,7 +104,8 @@ object Ctx {
    */
   class ImplicitStub extends StaticAnnotation
 
-  trait Fork{
+  trait Fork {
+
     /**
      * Provides APIs for Mill tasks to spawn `async` "future" computations that
      * can be `await`ed upon to yield their result. Unlike other thread pools or
@@ -121,10 +122,12 @@ object Ctx {
     import scala.concurrent.Future
     import scala.concurrent.ExecutionContext
     trait Api {
+
       /**
        * Awaits for the result for the given async future and returns the resultant value
        */
       def await[T](t: Future[T]): T
+
       /**
        * Awaits for the result for multiple async futures and returns the resultant values
        */
@@ -145,14 +148,12 @@ object Ctx {
        *                terminal prompt to display what this future is currently computing.
        * @param t The body of the async future
        */
-      def async[T](dest: os.Path,
-                   key: String,
-                   message: String)
-                  (t: => T)
-                  (implicit ctx: mill.api.Ctx): Future[T]
+      def async[T](dest: os.Path, key: String, message: String)(t: => T)(implicit
+          ctx: mill.api.Ctx
+      ): Future[T]
     }
 
-    trait Impl extends Api with ExecutionContext with AutoCloseable{
+    trait Impl extends Api with ExecutionContext with AutoCloseable {
       def awaitAll[T](t: Seq[Future[T]]): Seq[T] = {
         implicit val ec = this
         await(Future.sequence(t))
@@ -201,4 +202,3 @@ class Ctx(
     else throw new IndexOutOfBoundsException(s"Index $index outside of range 0 - ${args.length}")
   }
 }
-

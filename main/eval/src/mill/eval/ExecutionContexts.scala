@@ -20,7 +20,7 @@ private object ExecutionContexts {
     def close(): Unit = () // do nothing
 
     def async[T](dest: Path, key: String, message: String)(t: => T)(implicit
-                                                                    ctx: mill.api.Ctx
+        ctx: mill.api.Ctx
     ): Future[T] =
       Future.successful(t)
   }
@@ -29,7 +29,7 @@ private object ExecutionContexts {
    * A simple thread-pool-based ExecutionContext with configurable thread count
    * and AutoCloseable support
    */
-  class ThreadPool(threadCount: Int) extends mill.api.Ctx.Fork.Impl{
+  class ThreadPool(threadCount: Int) extends mill.api.Ctx.Fork.Impl {
     def await[T](t: Future[T]): T = blocking { Await.result(t, Duration.Inf) }
     val forkJoinPool: ForkJoinPool = new ForkJoinPool(threadCount)
     val threadPool: ExecutorService = forkJoinPool
@@ -71,7 +71,7 @@ private object ExecutionContexts {
      * [[t]], to avoid conflict with other tasks that may be running concurrently
      */
     def async[T](dest: Path, key: String, message: String)(t: => T)(implicit
-                                                                    ctx: mill.api.Ctx
+        ctx: mill.api.Ctx
     ): Future[T] = {
       val logger = ctx.log.subLogger(dest / os.up / s"${dest.last}.log", key, message)
 
