@@ -6,7 +6,7 @@ import scala.util.matching.Regex
 object `package` extends RootModule with build.MillPublishScalaModule {
   def moduleDeps = Seq(build.main)
 
-  override def resources = T.sources {
+  override def resources = T {
     super.resources() ++ Seq(exampleList())
   }
 
