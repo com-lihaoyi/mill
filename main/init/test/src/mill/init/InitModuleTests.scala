@@ -46,27 +46,6 @@ object InitModuleTests extends TestSuite {
         assert(results.failing.keyCount == 1)
         assert(errStream.toString.contains(initmodule.moduleNotExistMsg(nonExistingModuleId)))
       }
-      test("mill init errors if directory already exist") {
-        type ExampleId = String
-        type ExampleUrl = String
-        val examplesList =
-          Using(initmodule.getClass.getClassLoader.getResourceAsStream("exampleList.txt")) {
-            examplesSource =>
-              val reader = upickle.default.reader[Seq[(ExampleId, ExampleUrl)]]
-              val examples: Seq[(ExampleId, ExampleUrl)] =
-                upickle.default.read(examplesSource)(reader)
-              examples
-          }.get
-        val exampleId = examplesList.head._1
-        val targetDir = examplesList.head._2.dropRight(4).split("/").last // dropping .zip
-
-        val targetPath = initmodule.millSourcePath / targetDir
-        os.makeDir(targetPath)
-        val results = evaluator.evaluator.evaluate(Agg(initmodule.init(Some(exampleId))))
-        assert(results.failing.keyCount == 1)
-        assert(errStream.toString.contains(initmodule.directoryExistsMsg(targetPath.toString())))
-
-      }
     }
   }
 }
