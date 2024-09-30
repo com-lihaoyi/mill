@@ -190,6 +190,7 @@ object Deps {
   val koverVersion = "0.8.3"
   val ktfmtVersion = "0.52"
   val detektVersion = "1.23.7"
+  val dokkaVersion = "1.9.20"
 
   object RuntimeDeps {
     val errorProneCore = ivy"com.google.errorprone:error_prone_core:2.31.0"
