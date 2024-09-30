@@ -52,16 +52,40 @@ trait InitModule extends Module {
 
           case Some(value) =>
             val url = examples.toMap.get(value).getOrElse(sys.error(moduleNotExistMsg(value)))
+            println(s"Downloading example from $url...")
             val zipName = url.split('/').last
             val extractedDirName = zipName.stripSuffix(".zip")
             val downloaded = os.temp(requests.get(url))
-            val path = IO.unpackZip(downloaded, os.rel)
+            println(s"Unpacking example...")
+            val unpackPath = IO.unpackZip(downloaded, os.rel)
+            val extractedPath = T.dest / extractedDirName
+            val conflicting = for{
+              p <- os.walk(extractedPath)
+              val rel = p.relativeTo(extractedPath)
+              if os.exists(T.workspace / rel)
+            } yield rel
 
-            os.copy.apply(T.dest / extractedDirName, T.workspace, mergeFolders = true)
+            if (conflicting.nonEmpty) {
+              throw new Exception(
+                "Unable to unpack example because it conflicts with existing file: " +
+                conflicting.mkString(", ")
+              )
+            }
+
+            for(p <- os.walk(extractedPath)){
+              println(p.relativeTo(extractedPath))
+            }
+
+            os.copy.apply(extractedPath, T.workspace, mergeFolders = true)
 
             // Make sure the `./mill` launcher is executable
             os.perms.set(T.workspace / "mill", "rwxrwxrwx")
-            (Seq(path.path.toString()), s"Example downloaded to [$path]")
+
+            (
+              Seq(unpackPath.path.toString()),
+              s"Example download and unpacked to [${T.workspace}]; " +
+              "See `build.mill` for an explanation of this example and instructions on how to use it"
+            )
         }
       } match {
         case Success((ret, msg)) =>
