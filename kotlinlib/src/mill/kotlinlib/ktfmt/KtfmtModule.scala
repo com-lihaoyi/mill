@@ -4,11 +4,12 @@ import mill._
 import mainargs.Leftover
 import mill.api.{Loose, PathRef}
 import mill.define.{Discover, ExternalModule}
-import mill.kotlinlib.{DepSyntax, KotlinModule, Versions}
+import mill.kotlinlib.{DepSyntax, Versions}
 import mill.main.Tasks
+import mill.scalalib.JavaModule
 import mill.util.Jvm
 
-trait KtfmtBaseModule extends KotlinModule {
+trait KtfmtBaseModule extends JavaModule {
 
   /**
    * Classpath for running Ktfmt.
@@ -67,8 +68,6 @@ trait KtfmtModule extends KtfmtBaseModule {
 }
 
 object KtfmtModule extends ExternalModule with KtfmtBaseModule with TaskModule {
-
-  def kotlinVersion = "1.9.24"
 
   lazy val millDiscover: Discover = Discover[this.type]
 
