@@ -406,9 +406,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-48-bda5da</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-51-5e51a3</button>
   <div class="version-menu">
-    <a class="version is-current" href="Tasks.html">0.12.0-RC2-48-bda5da</a>
+    <a class="version is-current" href="Tasks.html">0.12.0-RC2-51-5e51a3</a>
     <a class="version" href="0.11.12/Tasks.html">0.11.12</a>
     <a class="version" href="0.11.11/Tasks.html">0.11.11</a>
     <a class="version" href="0.11.10/Tasks.html">0.11.10</a>
@@ -1529,6 +1529,83 @@ arguments if you wish to override the defaults</p>
          (implicit ctx: Ctx): Unit
 }</code></pre>
 </div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_experimental_forking_concurrent_futures_within_tasks"><a class="anchor" href="#_experimental_forking_concurrent_futures_within_tasks"></a>(Experimental) Forking Concurrent Futures within Tasks</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill provides the <code>T.fork.async</code> and <code>T.fork.await</code> APIs for spawning async
+futures within a task and aggregating their results later:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-depth-tasks-7-forking-futures.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/depth/tasks/7-forking-futures">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill._
+
+def taskSpawningFutures = Task {
+  val f1 = T.fork.async(dest = T.dest / &quot;future-1&quot;, key = &quot;1&quot;, message = &quot;First Future&quot;){
+    println(&quot;Running First Future inside &quot; + os.pwd)
+    Thread.sleep(3000)
+    val res = 1
+    println(&quot;Finished First Future&quot;)
+    res
+  }
+  val f2 = T.fork.async(dest = T.dest / &quot;future-2&quot;, key = &quot;2&quot;, message = &quot;Second Future&quot;){
+    println(&quot;Running Second Future inside &quot; + os.pwd)
+    Thread.sleep(3000)
+    val res = 2
+    println(&quot;Finished Second Future&quot;)
+    res
+  }
+
+  T.fork.await(f1) + T.fork.await(f2)
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show taskSpawningFutures
+[1] Running First Future inside .../out/taskSpawningFutures.dest/future-1
+[2] Running Second Future inside .../out/taskSpawningFutures.dest/future-2
+[1] Finished First Future
+[2] Finished Second Future
+3</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>T.fork.async</code> takes several parameters in addition to the code block to be run:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>dest</code> is a folder for which the async future is to be run, overriding <code>os.pwd</code>
+for the duration of the future</p>
+</li>
+<li>
+<p><code>key</code> is a short prefix prepended to log lines to let you easily identify the future’s
+log lines and distinguish them from logs of other futures and tasks running concurrently</p>
+</li>
+<li>
+<p><code>message</code> is a one-line description of what the future is doing</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Futures spawned by <code>T.fork.async</code> count towards Mill’s <code>-j</code>/<code>--jobs</code> concurrency limit
+(which defaults to one-per-core), so you can freely use <code>T.fork.async</code> without worrying
+about spawning too many concurrent threads and causing CPU or memory contention. <code>T.fork</code>
+uses Java’s built in <code>ForkJoinPool</code> and <code>ManagedBlocker</code> infrastructure under the hood
+to effectively manage the number of running threads.</p>
+</div>
+<div class="paragraph">
+<p>While <code>scala.concurrent</code> and <code>java.util.concurrent</code> can also be used to spawn thread
+pools and run async futures, <code>T.fork</code> provides a way to do so that integrates with Mill’s
+existing concurrency, sandboxing and logging systems. Thus you should always prefer to
+run async futures on <code>T.fork</code> whenever possible.</p>
 </div>
 </div>
 </div>

@@ -398,9 +398,9 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-48-bda5da</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-51-5e51a3</button>
   <div class="version-menu">
-    <a class="version is-current" href="4-builtin-commands.html">0.12.0-RC2-48-bda5da</a>
+    <a class="version is-current" href="4-builtin-commands.html">0.12.0-RC2-51-5e51a3</a>
     <a class="version is-missing" href="../../../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../../../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../../../0.11.10/index.html">0.11.10</a>
@@ -865,6 +865,47 @@ for some reason you don’t want to use <code>.mill-jvm-opts</code> file name, a
 <div class="paragraph">
 <p>Come by our <a href="https://discord.gg/MNAXQMAr">Discord Channel</a>
 if you want to ask questions or say hi!</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_init"><a class="anchor" href="#_init"></a>init</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill init
+Run `mill init &lt;example-id&gt;` with one of these examples as an argument to download and extract example.
+Run `mill init --show-all` to see full list of examples.
+Run `mill init &lt;Giter8 template&gt;` to generate project from Giter8 template.
+...
+scalalib/basic/1-simple
+...
+scalalib/web/1-todo-webapp
+scalalib/web/2-webapp-cache-busting
+scalalib/web/3-scalajs-module
+scalalib/web/4-webapp-scalajs
+scalalib/web/5-webapp-scalajs-shared
+...
+javalib/basic/1-simple
+...
+javalib/builds/4-realistic
+...
+javalib/web/1-hello-jetty
+javalib/web/2-hello-spring-boot
+javalib/web/3-todo-spring-boot
+javalib/web/4-hello-micronaut
+javalib/web/5-todo-micronaut
+kotlinlib/basic/1-simple
+...
+kotlinlib/builds/4-realistic
+...
+kotlinlib/web/1-hello-ktor</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>init</code> command generates a project based on a Mill example project or
+a Giter8 template. You can use it to quickly generate a starter project.
+There are lots of templates out there for many frameworks and tools!</p>
 </div>
 </div>
 </div>
