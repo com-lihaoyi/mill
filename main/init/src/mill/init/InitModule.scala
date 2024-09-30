@@ -3,11 +3,8 @@ package mill.init
 import mainargs.{Flag, arg}
 import mill.api.IO
 import mill.define.{Discover, ExternalModule}
-import mill.util.Util.download
 import mill.{Command, Module, T}
 
-import java.io.IOException
-import java.util.UUID
 import scala.util.{Failure, Success, Try, Using}
 
 object InitModule extends ExternalModule with InitModule {
