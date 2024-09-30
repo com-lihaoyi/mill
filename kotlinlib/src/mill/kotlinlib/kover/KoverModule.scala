@@ -4,6 +4,7 @@
 
 package mill.kotlinlib.kover
 
+import mill._
 import mill.api.{Loose, PathRef}
 import mill.api.Result.Success
 import mill.define.{Discover, ExternalModule}

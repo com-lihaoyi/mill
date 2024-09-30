@@ -1,5 +1,6 @@
 package mill.kotlinlib.detekt
 
+import mill._
 import mill.api.{Loose, PathRef}
 import mill.kotlinlib.{DepSyntax, KotlinModule}
 import mill.util.Jvm

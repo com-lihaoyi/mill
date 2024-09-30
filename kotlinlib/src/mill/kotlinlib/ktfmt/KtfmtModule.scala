@@ -1,5 +1,6 @@
 package mill.kotlinlib.ktfmt
 
+import mill._
 import mainargs.Leftover
 import mill.api.{Loose, PathRef}
 import mill.define.{Discover, ExternalModule}
