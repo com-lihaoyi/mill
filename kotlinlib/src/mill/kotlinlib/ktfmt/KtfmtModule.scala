@@ -4,7 +4,7 @@ import mill._
 import mainargs.Leftover
 import mill.api.{Loose, PathRef}
 import mill.define.{Discover, ExternalModule}
-import mill.kotlinlib.{DepSyntax, KotlinModule}
+import mill.kotlinlib.{DepSyntax, KotlinModule, Versions}
 import mill.main.Tasks
 import mill.util.Jvm
 
@@ -23,7 +23,7 @@ trait KtfmtBaseModule extends KotlinModule {
    * Ktfmt version.
    */
   def ktfmtVersion: T[String] = T {
-    "0.52"
+    Versions.ktfmtVersion
   }
 
   /**

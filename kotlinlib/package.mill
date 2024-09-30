@@ -15,7 +15,8 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
   def buildInfoPackageName = "mill.kotlinlib"
   def buildInfoObjectName = "Versions"
   def buildInfoMembers = Seq(
-    BuildInfo.Value("koverVersion", build.Deps.koverVersion, "Version of Kover.")
+    BuildInfo.Value("koverVersion", build.Deps.koverVersion, "Version of Kover."),
+    BuildInfo.Value("ktfmtVersion", build.Deps.ktfmtVersion, "Version of Ktfmt.")
   )
 
   trait MillKotlinModule extends build.MillPublishScalaModule {
