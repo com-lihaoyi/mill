@@ -59,7 +59,7 @@ object Watching {
 
     val watchedValueStr = if (watchedValues == 0) "" else s" and $watchedValues other values"
 
-    streams.out.println(
+    streams.err.println(
       s"Watching for changes to ${watchedPaths.size} paths$watchedValueStr... (Enter to re-run, Ctrl-C to exit)"
     )
 
