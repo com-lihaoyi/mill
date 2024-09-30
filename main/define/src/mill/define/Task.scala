@@ -646,6 +646,12 @@ class TaskBase extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
   def workspace(implicit ctx: mill.api.Ctx): os.Path = ctx.workspace
 
   /**
+   * Provides the `.fork.async` and `.fork.await` APIs for spawning and joining
+   * async futures within your task in a Mill-friendly mannter
+   */
+  def fork(implicit ctx: mill.api.Ctx): mill.api.Ctx.Fork.Api = ctx.fork
+
+  /**
    * Converts a `Seq[Task[T]]` into a `Task[Seq[T]]`
    */
   def sequence[T](source: Seq[Task[T]]): Task[Seq[T]] = new Task.Sequence[T](source)

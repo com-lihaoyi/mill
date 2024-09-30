@@ -116,6 +116,7 @@ object Ctx {
     def fork: Fork.Impl
   }
 
+  @experimental
   object Fork {
     import scala.concurrent.Future
     import scala.concurrent.ExecutionContext
@@ -174,7 +175,7 @@ class Ctx(
     val testReporter: TestReporter,
     val workspace: os.Path,
     val systemExit: Int => Nothing,
-    val fork: Ctx.Fork.Api
+    @experimental val fork: Ctx.Fork.Api
 ) extends Ctx.Dest
     with Ctx.Log
     with Ctx.Args

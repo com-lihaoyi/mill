@@ -48,9 +48,14 @@ include::example/depth/tasks/4-inputs.adoc[]
 include::example/depth/tasks/5-persistent-targets.adoc[]
 
 === Workers
+
 include::example/depth/tasks/6-workers.adoc[]
 
 
 == Using ScalaModule.run as a task
 
 include::example/depth/tasks/11-module-run-task.adoc[]
+
+=== (Experimental) Forking Concurrent Futures within Tasks
+
+include::example/depth/tasks/7-forking-futures.adoc[]
