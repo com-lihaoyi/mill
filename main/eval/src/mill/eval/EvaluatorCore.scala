@@ -68,7 +68,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       logger: ColorLogger,
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
-      ec: TaskFutureApi with ExecutionContext,
+      ec: mill.api.Ctx.Fork.Impl,
       contextLoggerMsg0: Int => String,
       serialCommandExec: Boolean
   ): Evaluator.Results = {
@@ -93,8 +93,8 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     def evaluateTerminals(
         terminals: Seq[Terminal],
         contextLoggerMsg: Int => String,
-        forkExecutionContext: TaskFutureApi with ExecutionContext
-    )(implicit taskExecutionContext: TaskFutureApi with ExecutionContext) = {
+        forkExecutionContext: mill.api.Ctx.Fork.Impl
+    )(implicit taskExecutionContext: mill.api.Ctx.Fork.Impl) = {
       // We walk the task graph in topological order and schedule the futures
       // to run asynchronously. During this walk, we store the scheduled futures
       // in a dictionary. When scheduling each future, we are guaranteed that the

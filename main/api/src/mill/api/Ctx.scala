@@ -103,6 +103,33 @@ object Ctx {
    * Marker annotation.
    */
   class ImplicitStub extends StaticAnnotation
+
+  trait Fork{
+    def fork: Fork.Impl
+  }
+
+  object Fork {
+    import scala.concurrent.Future
+    import scala.concurrent.ExecutionContext
+    trait Api {
+      def await[T](t: Future[T]): T
+
+      def awaitAll[T](t: Seq[Future[T]]): Seq[T]
+
+      def async[T](dest: os.Path,
+                   key: String,
+                   message: String)
+                  (t: => T)
+                  (implicit ctx: mill.api.Ctx): Future[T]
+    }
+
+    trait Impl extends Api with ExecutionContext with AutoCloseable{
+      def awaitAll[T](t: Seq[Future[T]]): Seq[T] = {
+        implicit val ec = this
+        await(Future.sequence(t))
+      }
+    }
+  }
 }
 
 /**
@@ -119,7 +146,7 @@ class Ctx(
     val testReporter: TestReporter,
     val workspace: os.Path,
     val systemExit: Int => Nothing,
-    val executionContext: TaskFutureApi
+    val fork: Ctx.Fork.Api
 ) extends Ctx.Dest
     with Ctx.Log
     with Ctx.Args
@@ -146,14 +173,3 @@ class Ctx(
   }
 }
 
-import scala.concurrent.{Future, ExecutionContext}
-trait TaskFutureApi extends AutoCloseable { this: ExecutionContext =>
-  def await[T](t: Future[T]): T
-  def awaitAll[T](t: Seq[Future[T]]): Seq[T] = {
-    implicit val ec = this
-    await(Future.sequence(t))
-  }
-  def future[T](dest: os.Path, key: String, message: String)(t: => T)(implicit
-      ctx: mill.api.Ctx
-  ): Future[T]
-}

@@ -1,11 +1,8 @@
 package mill.eval
 
-import mill.api.TaskFutureApi
 import os.Path
-
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
-import scala.concurrent.ExecutionContext
 import java.util.concurrent.ForkJoinPool.ManagedBlocker
 import java.util.concurrent.{ExecutorService, ForkJoinPool}
 
@@ -16,14 +13,14 @@ private object ExecutionContexts {
    * spawning a separate thread or thread-pool. Used to turn parallel-async
    * Future code into nice single-threaded code without needing to rewrite it
    */
-  object RunNow extends TaskFutureApi with ExecutionContext {
+  object RunNow extends mill.api.Ctx.Fork.Impl {
     def await[T](t: Future[T]): T = Await.result(t, Duration.Inf)
     def execute(runnable: Runnable): Unit = runnable.run()
     def reportFailure(cause: Throwable): Unit = {}
     def close(): Unit = () // do nothing
 
-    def future[T](dest: Path, key: String, message: String)(t: => T)(implicit
-        ctx: mill.api.Ctx
+    def async[T](dest: Path, key: String, message: String)(t: => T)(implicit
+                                                                    ctx: mill.api.Ctx
     ): Future[T] =
       Future.successful(t)
   }
@@ -32,7 +29,7 @@ private object ExecutionContexts {
    * A simple thread-pool-based ExecutionContext with configurable thread count
    * and AutoCloseable support
    */
-  class ThreadPool(threadCount: Int) extends TaskFutureApi with ExecutionContext {
+  class ThreadPool(threadCount: Int) extends mill.api.Ctx.Fork.Impl{
     def await[T](t: Future[T]): T = blocking { Await.result(t, Duration.Inf) }
     val forkJoinPool: ForkJoinPool = new ForkJoinPool(threadCount)
     val threadPool: ExecutorService = forkJoinPool
@@ -73,8 +70,8 @@ private object ExecutionContexts {
      * folder [[dest]] and duplicates the logging streams to [[dest]].log while evaluating
      * [[t]], to avoid conflict with other tasks that may be running concurrently
      */
-    def future[T](dest: Path, key: String, message: String)(t: => T)(implicit
-        ctx: mill.api.Ctx
+    def async[T](dest: Path, key: String, message: String)(t: => T)(implicit
+                                                                    ctx: mill.api.Ctx
     ): Future[T] = {
       val logger = ctx.log.subLogger(dest / os.up / s"${dest.last}.log", key, message)
 

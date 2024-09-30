@@ -55,7 +55,7 @@ private[mill] trait GroupEvaluator {
       logger: ColorLogger,
       classToTransitiveClasses: Map[Class[_], IndexedSeq[Class[_]]],
       allTransitiveClassMethods: Map[Class[_], Map[String, Method]],
-      executionContext: TaskFutureApi
+      executionContext: mill.api.Ctx.Fork.Api
   ): GroupEvaluator.Results = {
 
     val targetLabel = terminal match {
@@ -239,7 +239,7 @@ private[mill] trait GroupEvaluator {
       reporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
       logger: mill.api.Logger,
-      executionContext: TaskFutureApi
+      executionContext: mill.api.Ctx.Fork.Api
   ): (Map[Task[_], TaskResult[(Val, Int)]], mutable.Buffer[Task[_]]) = {
 
     def computeAll() = {
@@ -281,7 +281,7 @@ private[mill] trait GroupEvaluator {
               testReporter = testReporter,
               workspace = workspace,
               systemExit = systemExit,
-              executionContext = executionContext
+              fork = executionContext
             ) with mill.api.Ctx.Jobs {
               override def jobs: Int = effectiveThreadCount
             }

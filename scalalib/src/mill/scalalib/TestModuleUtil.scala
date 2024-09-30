@@ -105,12 +105,12 @@ private[scalalib] object TestModuleUtil {
             case multiple => s"group-$i"
           }
 
-          T.ctx.executionContext.future(T.dest / groupLabel, "" + i, groupLabel) {
+          T.ctx.fork.async(T.dest / groupLabel, "" + i, groupLabel) {
             (groupLabel, runTestSubprocess(testClassList, T.dest / groupLabel))
           }
         }
 
-        val outputs = T.ctx.executionContext.awaitAll(futures)
+        val outputs = T.ctx.fork.awaitAll(futures)
 
         val (lefts, rights) = outputs.partitionMap {
           case (name, Left(v)) => Left(name + " " + v)
