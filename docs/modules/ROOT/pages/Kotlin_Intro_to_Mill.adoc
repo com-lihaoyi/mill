@@ -12,7 +12,7 @@
 // what Mill is, hopefully have downloaded an example to try out, and be
 // interested in learning more about the Mill build tool
 
-= Building Kotlin Projects with Mill
+= (Experimental) Kotlin with Mill
 
 ++++
 <script>
