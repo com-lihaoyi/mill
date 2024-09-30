@@ -203,8 +203,13 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     val (_, tasksTransitive0) = Plan.plan(Agg.from(tasks0.map(_.task)))
 
     val tasksTransitive = tasksTransitive0.toSet
-    val (tasks, leafCommands) = terminals0.partition {
-      case Terminal.Labelled(t, _) if tasksTransitive.contains(t) => true
+    val (tasks, leafSerialCommands) = terminals0.partition {
+      case Terminal.Labelled(t, _) =>
+        if (tasksTransitive.contains(t)) true
+        else t match {
+          case t: Command[_] => !t.exclusive
+          case _ => false
+        }
       case _ => !serialCommandExec
     }
 
@@ -219,7 +224,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       ec
     )(ec)
 
-    evaluateTerminals(leafCommands, _ => "", ec)(ExecutionContexts.RunNow)
+    evaluateTerminals(leafSerialCommands, _ => "")(ExecutionContexts.RunNow)
 
     logger.clearPrompt()
     val finishedOptsMap = terminals0

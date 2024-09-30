@@ -128,7 +128,7 @@ abstract class MillBuildRootModule()(implicit
     }
   }
 
-  def methodCodeHashSignatures: T[Map[String, Int]] = Task.Persistent {
+  def methodCodeHashSignatures: T[Map[String, Int]] = Task(persistent = true) {
     os.remove.all(T.dest / "previous")
     if (os.exists(T.dest / "current")) os.move.over(T.dest / "current", T.dest / "previous")
     val debugEnabled = T.log.debugEnabled

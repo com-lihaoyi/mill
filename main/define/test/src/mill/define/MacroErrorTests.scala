@@ -69,7 +69,7 @@ object MacroErrorTests extends TestSuite {
       test("persistent") {
         val e = compileError("""
           object foo extends TestBaseModule{
-            def a() = Task.Persistent{1}
+            def a() = Task(persistent = true){1}
           }
           mill.define.Discover[foo.type]
         """)

@@ -46,22 +46,6 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] {
 object Task extends TaskBase {
 
   /**
-   * [[PersistentImpl]] are a flavor of [[TargetImpl]], normally defined using
-   * the `Task.Persistent{...}` syntax. The main difference is that while
-   * [[TargetImpl]] deletes the `T.dest` folder in between runs,
-   * [[PersistentImpl]] preserves it. This lets the user make use of files on
-   * disk that persistent between runs of the task, e.g. to implement their own
-   * fine-grained caching beyond what Mill provides by default.
-   *
-   * Note that the user defining a `Task.Persistent` task is taking on the
-   * responsibility of ensuring that their implementation is idempotent, i.e.
-   * that it computes the same result whether or not there is data in `T.dest`.
-   * Violating that invariant can result in confusing mis-behaviors
-   */
-  def Persistent[T](t: Result[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
-    macro Target.Internal.persistentImpl[T]
-
-  /**
    * A specialization of [[InputImpl]] defined via `Task.Sources`, [[SourcesImpl]]
    * uses [[PathRef]]s to compute a signature for a set of source files and
    * folders.
@@ -122,6 +106,18 @@ object Task extends TaskBase {
       cls: EnclosingClass
   ): Command[T] = macro Target.Internal.commandImpl[T]
 
+  def Command(
+      t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
+      exclusive: Boolean = false
+  ): CommandFactory = new CommandFactory(exclusive)
+  class CommandFactory private[mill] (val exclusive: Boolean) extends TaskBase.TraverseCtxHolder {
+    def apply[T](t: Result[T])(implicit
+        w: W[T],
+        ctx: mill.define.Ctx,
+        cls: EnclosingClass
+    ): Command[T] = macro Target.Internal.serialCommandImpl[T]
+  }
+
   /**
    * [[Worker]] is a [[NamedTask]] that lives entirely in-memory, defined using
    * `Task.Worker{...}`. The value returned by `Task.Worker{...}` is long-lived,
@@ -159,6 +155,30 @@ object Task extends TaskBase {
 
   def apply[T](t: Result[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
     macro Target.Internal.targetResultImpl[T]
+
+  /**
+   * Persistent tasks are defined using
+   * the `Task(persistent = true){...}` syntax. The main difference is that while
+   * [[TargetImpl]] deletes the `T.dest` folder in between runs,
+   * [[PersistentImpl]] preserves it. This lets the user make use of files on
+   * disk that persistent between runs of the task, e.g. to implement their own
+   * fine-grained caching beyond what Mill provides by default.
+   *
+   * Note that the user defining a `Task(persistent = true)` task is taking on the
+   * responsibility of ensuring that their implementation is idempotent, i.e.
+   * that it computes the same result whether or not there is data in `T.dest`.
+   * Violating that invariant can result in confusing mis-behaviors
+   */
+  def apply(
+      t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
+      persistent: Boolean = false
+  ): ApplyFactory = new ApplyFactory(persistent)
+  class ApplyFactory private[mill] (val persistent: Boolean) extends TaskBase.TraverseCtxHolder {
+    def apply[T](t: Result[T])(implicit
+        rw: RW[T],
+        ctx: mill.define.Ctx
+    ): Target[T] = macro Target.Internal.persistentTargetResultImpl[T]
+  }
 
   abstract class Ops[+T] { this: Task[T] =>
     def map[V](f: T => V): Task[V] = new Task.Mapped(this, f)
@@ -238,7 +258,7 @@ trait NamedTask[+T] extends Task[T] {
 trait Target[+T] extends NamedTask[T]
 
 object Target extends TaskBase {
-  @deprecated("Use Task.Persistent instead", "Mill after 0.12.0-RC1")
+  @deprecated("Use Task(persistent = true){...} instead", "Mill after 0.12.0-RC1")
   def persistent[T](t: Result[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
     macro Target.Internal.persistentImpl[T]
 
@@ -360,6 +380,28 @@ object Target extends TaskBase {
             taskIsPrivate.splice
           )
         )
+      )
+    }
+    def persistentTargetResultImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[Result[T]])(
+        rw: c.Expr[RW[T]],
+        ctx: c.Expr[mill.define.Ctx]
+    ): c.Expr[Target[T]] = {
+      import c.universe._
+
+      val taskIsPrivate = isPrivateTargetOption(c)
+
+      mill.moduledefs.Cacher.impl0[Target[T]](c)(
+        reify {
+          val s1 = Applicative.impl0[Task, T, mill.api.Ctx](c)(t.tree).splice
+          val c1 = ctx.splice
+          val r1 = rw.splice
+          val t1 = taskIsPrivate.splice
+          if (c.prefix.splice.asInstanceOf[Task.ApplyFactory].persistent) {
+            new PersistentImpl[T](s1, c1, r1, t1)
+          } else {
+            new TargetImpl[T](s1, c1, r1, t1)
+          }
+        }
       )
     }
 
@@ -521,6 +563,27 @@ object Target extends TaskBase {
       )
     }
 
+    def serialCommandImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T])(
+        w: c.Expr[W[T]],
+        ctx: c.Expr[mill.define.Ctx],
+        cls: c.Expr[EnclosingClass]
+    ): c.Expr[Command[T]] = {
+      import c.universe._
+
+      val taskIsPrivate = isPrivateTargetOption(c)
+
+      reify(
+        new Command[T](
+          Applicative.impl[Task, T, mill.api.Ctx](c)(t).splice,
+          ctx.splice,
+          w.splice,
+          cls.splice.value,
+          taskIsPrivate.splice,
+          exclusive = c.prefix.splice.asInstanceOf[Task.CommandFactory].exclusive
+        )
+      )
+    }
+
     def workerImpl1[T: c.WeakTypeTag](c: Context)(t: c.Expr[Task[T]])(ctx: c.Expr[mill.define.Ctx])
         : c.Expr[Worker[T]] = {
       import c.universe._
@@ -581,7 +644,8 @@ object Target extends TaskBase {
  * define the tasks, while methods like `T.`[[dest]], `T.`[[log]] or
  * `T.`[[env]] provide the core APIs that are provided to a task implementation
  */
-class TaskBase extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
+class TaskBase extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx]
+    with TaskBase.TraverseCtxHolder {
 
   /**
    * `T.dest` is a unique `os.Path` (e.g. `out/classFiles.dest/` or `out/run.dest/`)
@@ -662,16 +726,20 @@ class TaskBase extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
   def traverse[T, V](source: Seq[T])(f: T => Task[V]): Task[Seq[V]] = {
     new Task.Sequence[V](source.map(f))
   }
+}
 
-  /**
-   * A variant of [[traverse]] that also provides the [[mill.api.Ctx]] to the
-   * function [[f]]
-   */
-  def traverseCtx[I, R](xs: Seq[Task[I]])(f: (IndexedSeq[I], mill.api.Ctx) => Result[R])
-      : Task[R] = {
-    new Task.TraverseCtx[I, R](xs, f)
+object TaskBase {
+  trait TraverseCtxHolder {
+
+    /**
+     * A variant of [[traverse]] that also provides the [[mill.api.Ctx]] to the
+     * function [[f]]
+     */
+    def traverseCtx[I, R](xs: Seq[Task[I]])(f: (IndexedSeq[I], mill.api.Ctx) => Result[R])
+        : Task[R] = {
+      new Task.TraverseCtx[I, R](xs, f)
+    }
   }
-
 }
 
 class TargetImpl[+T](
@@ -699,8 +767,16 @@ class Command[+T](
     val ctx0: mill.define.Ctx,
     val writer: W[_],
     val cls: Class[_],
-    val isPrivate: Option[Boolean]
+    val isPrivate: Option[Boolean],
+    val exclusive: Boolean
 ) extends NamedTask[T] {
+  def this(
+      t: Task[T],
+      ctx0: mill.define.Ctx,
+      writer: W[_],
+      cls: Class[_],
+      isPrivate: Option[Boolean]
+  ) = this(t, ctx0, writer, cls, isPrivate, false)
   override def asCommand: Some[Command[T]] = Some(this)
   // FIXME: deprecated return type: Change to Option
   override def writerOpt: Some[W[_]] = Some(writer)

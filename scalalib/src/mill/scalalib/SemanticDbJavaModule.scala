@@ -98,7 +98,7 @@ trait SemanticDbJavaModule extends CoursierModule {
     defaultResolver().resolveDeps(semanticDbJavaPluginIvyDeps())
   }
 
-  def semanticDbData: T[PathRef] = Task.Persistent {
+  def semanticDbData: T[PathRef] = Task(persistent = true) {
     val javacOpts = SemanticDbJavaModule.javacOptionsTask(
       javacOptions() ++ mandatoryJavacOptions(),
       semanticDbJavaVersion()

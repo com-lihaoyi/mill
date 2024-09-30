@@ -70,7 +70,7 @@ trait TaskTests extends TestSuite {
     def taskInput = Task { input() }
     def taskNoInput = Task { task() }
 
-    def persistent = Task.Persistent {
+    def persistent = Task(persistent = true) {
       input() // force re-computation
       os.makeDir.all(T.dest)
       os.write.append(T.dest / "count", "hello\n")
