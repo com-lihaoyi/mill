@@ -398,9 +398,9 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-47-bf8180</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-48-bda5da</button>
   <div class="version-menu">
-    <a class="version is-current" href="5-persistent-targets.html">0.12.0-RC2-47-bf8180</a>
+    <a class="version is-current" href="5-persistent-targets.html">0.12.0-RC2-48-bda5da</a>
     <a class="version is-missing" href="../../../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../../../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../../../0.11.10/index.html">0.11.10</a>
@@ -438,7 +438,7 @@ import java.util.zip.GZIPOutputStream
 
 def data = Task.Source(millSourcePath / &quot;data&quot;)
 
-def compressedData = Task.Persistent{
+def compressedData = Task(persistent = true) {
   println(&quot;Evaluating compressedData&quot;)
   os.makeDir.all(Task.dest / &quot;cache&quot;)
   os.remove.all(Task.dest / &quot;compressed&quot;)
