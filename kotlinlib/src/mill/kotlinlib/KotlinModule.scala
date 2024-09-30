@@ -316,7 +316,10 @@ trait KotlinModule extends JavaModule { outer =>
   private[kotlinlib] def internalReportOldProblems: Task[Boolean] = zincReportCachedProblems
 
   @internal
-  override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
+  def bspBuildTarget(
+      clientDisplayName: String,
+      clientSupportedLanguages: Seq[String]
+  ): BspBuildTarget = super.bspBuildTarget(clientDisplayName, clientSupportedLanguages).copy(
     languageIds = Seq(BspModule.LanguageId.Java, BspModule.LanguageId.Kotlin),
     canCompile = true,
     canRun = true

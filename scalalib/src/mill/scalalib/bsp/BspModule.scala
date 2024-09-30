@@ -17,7 +17,10 @@ trait BspModule extends Module {
 
   /** Use to fill most fields of `BuildTarget`. */
   @internal
-  def bspBuildTarget: BspBuildTarget = BspBuildTarget(
+  def bspBuildTarget(
+      clientDisplayName: String,
+      clientSupportedLanguages: Seq[String]
+  ): BspBuildTarget = BspBuildTarget(
     displayName = Some(bspDisplayName),
     baseDirectory = Some(millSourcePath),
     tags = Seq(Tag.Library, Tag.Application),
@@ -36,7 +39,10 @@ trait BspModule extends Module {
    * - [[ScalaBuildTarget]]
    */
   @internal
-  def bspBuildTargetData: Task[Option[(String, AnyRef)]] = Task.Anon { None }
+  def bspBuildTargetData(
+      clientDisplayName: String,
+      clientSupportedLanguages: Seq[String]
+  ): Task[Option[(String, AnyRef)]] = Task.Anon { None }
 
 }
 
