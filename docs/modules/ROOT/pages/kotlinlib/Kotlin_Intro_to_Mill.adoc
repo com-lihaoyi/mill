@@ -13,7 +13,6 @@
 // interested in learning more about the Mill build tool
 
 = (Experimental) Kotlin with Mill
-
 :page-aliases: Kotlin_Intro_to_Mill.adoc
 
 ++++

@@ -1,5 +1,4 @@
 = Publishing Java Projects
-
 :page-aliases: Publishing_Java_Projects.adoc
 ++++
 <script>

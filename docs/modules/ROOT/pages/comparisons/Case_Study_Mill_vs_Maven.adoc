@@ -1,5 +1,4 @@
 = Case Study: Mill vs Maven
-
 :page-aliases: Case_Study_Mill_vs_Maven.adoc
 
 ++++

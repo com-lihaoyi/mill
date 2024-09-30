@@ -1,5 +1,4 @@
 = Linting Java Projects
-
 :page-aliases: Linting_Java_Projects.adoc
 ++++
 <script>

@@ -1,5 +1,4 @@
 = Cross Builds
-
 :page-aliases: Cross_Builds.adoc
 
 Cross-building refers to taking the same sources and configuration and building

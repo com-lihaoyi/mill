@@ -1,5 +1,4 @@
 = Testing Java Projects
-
 :page-aliases: Testing_Java_Projects.adoc
 
 ++++

@@ -1,5 +1,4 @@
 = Structuring Large Builds
-
 :page-aliases: Structuring_Large_Builds.adoc
 
 == Multi-file Builds

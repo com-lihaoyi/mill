@@ -1,5 +1,4 @@
 = The Mill Meta-Build
-
 :page-aliases: The_Mill_Meta_Build.adoc
 
 The meta-build manages the compilation of the `build.mill`.

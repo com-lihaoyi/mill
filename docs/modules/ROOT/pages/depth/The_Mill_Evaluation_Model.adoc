@@ -1,5 +1,4 @@
 = The Mill Evaluation Model
-
 :page-aliases: The_Mill_Evaluation_Model.adoc
 
 Evaluating a Mill target typically goes through the following phases:

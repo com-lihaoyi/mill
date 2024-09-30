@@ -1,5 +1,4 @@
 = Java Build Examples
-
 :page-aliases: Java_Build_Examples.adoc
 ++++
 <script>

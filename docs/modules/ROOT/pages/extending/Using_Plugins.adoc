@@ -1,5 +1,4 @@
 = Using Plugins
-
 :page-aliases: Using_Plugins.adoc
 Mill plugins are ordinary jars and are loaded as any other external dependency with the xref:extending/Import_File_And_Import_Ivy.adoc[`import $ivy` mechanism].
 

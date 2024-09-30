@@ -1,5 +1,4 @@
 = Kotlin Build Examples
-
 :page-aliases: Kotlin_Build_Examples.adoc
 ++++
 <script>

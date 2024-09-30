@@ -1,5 +1,4 @@
 = Target Query Syntax
-
 :page-aliases: Target_Query_Syntax.adoc
 
 When interacting with Mill from the CLI, you often need to select targets or modules.

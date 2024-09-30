@@ -1,5 +1,4 @@
 = Mill Sandboxing
-
 :page-aliases: Mill_Sandboxing.adoc
 
 == Task Sandboxing

@@ -1,5 +1,4 @@
 = Java Module Configuration
-
 :page-aliases: Java_Module_Config.adoc
 
 ++++

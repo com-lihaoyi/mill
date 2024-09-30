@@ -1,5 +1,4 @@
 = Modules
-
 :page-aliases: Modules.adoc
 `mill.Module` serves two main purposes:
 

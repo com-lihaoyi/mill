@@ -1,5 +1,4 @@
 = Publishing Kotlin Projects
-
 :page-aliases: Publishing_Kotlin_Projects.adoc
 
 ++++

@@ -1,5 +1,4 @@
 = Linting Scala Projects
-
 :page-aliases: Linting_Scala_Projects.adoc
 
 ++++

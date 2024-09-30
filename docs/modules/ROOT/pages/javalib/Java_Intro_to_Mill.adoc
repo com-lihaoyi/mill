@@ -13,8 +13,7 @@
 // interested in learning more about the Mill build tool
 
 = Building Java Projects with Mill
-
-:page-aliases: Java_Intro_to_Mill.adoc
+:page-aliases: index.adoc, Intro_to_Mill.adoc, Intro_to_Mill_for_Java.adoc, Java_Intro_to_Mill.adoc
 
 ++++
 <script>
@@ -22,7 +21,6 @@ gtag('config', 'AW-16649289906');
 </script>
 ++++
 
-:page-aliases: index.adoc, Intro_to_Mill.adoc, Intro_to_Mill_for_Java.adoc
 
 :language: Java
 :language-small: java

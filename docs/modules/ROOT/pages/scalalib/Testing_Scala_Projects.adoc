@@ -1,5 +1,4 @@
 = Testing Scala Projects
-
 :page-aliases: Testing_Scala_Projects.adoc
 
 ++++

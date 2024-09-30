@@ -1,5 +1,4 @@
 = Scala Build Examples
-
 :page-aliases: Scala_Build_Examples.adoc
 ++++
 <script>

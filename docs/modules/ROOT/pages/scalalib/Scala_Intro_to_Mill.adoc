@@ -12,6 +12,7 @@
 // interested in learning more about the Mill build tool
 
 = Building Scala Projects with Mill
+:page-aliases: Intro_to_Mill_for_Scala.adoc, Scala_Intro_to_Mill.adoc
 
 ++++
 <script>
@@ -19,7 +20,6 @@ gtag('config', 'AW-16649289906');
 </script>
 ++++
 
-:page-aliases: index.adoc, Intro_to_Mill.adoc, Intro_to_Mill_for_Scala.adoc, Scala_Intro_to_Mill.adoc
 
 :language: Scala
 :language-small: scala

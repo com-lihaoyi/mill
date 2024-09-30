@@ -1,4 +1,5 @@
 = Scala Module Configuration
+:page-aliases: Configuring_Mill.adoc, Scala_Module_Config.adoc
 
 ++++
 <script>
@@ -6,7 +7,6 @@ gtag('config', 'AW-16649289906');
 </script>
 ++++
 
-:page-aliases: Configuring_Mill.adoc, Scala_Module_Config.adoc
 
 This page goes into more detail about the various configuration options
 for `ScalaModule`.

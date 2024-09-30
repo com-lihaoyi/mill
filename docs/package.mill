@@ -139,7 +139,7 @@ object `package` extends RootModule {
     s"""site:
        |  title: The Mill Build Tool
        |  url: ${if (authorMode) s"${T.dest}/site" else build.Settings.docUrl}
-       |  start_page: mill::Java_Intro_to_Mill.adoc
+       |  start_page: mill::javalib/Java_Intro_to_Mill.adoc
        |  keys:
        |    google_analytics: 'G-1C582ZJR85'
        |

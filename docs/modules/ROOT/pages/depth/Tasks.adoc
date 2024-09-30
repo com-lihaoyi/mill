@@ -1,5 +1,4 @@
 = Tasks
-
 :page-aliases: Tasks.adoc
 
 One of Mill's core abstractions is its _Task Graph_: this is how Mill defines,

@@ -1,5 +1,4 @@
 = Testing Kotlin Projects
-
 :page-aliases: Testing_Kotlin_Projects.adoc
 ++++
 <script>

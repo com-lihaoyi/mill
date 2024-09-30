@@ -1,5 +1,4 @@
 = Case Study: Mill vs Gradle
-
 :page-aliases: Case_Study_Mill_vs_Gradle.adoc
 
 ++++

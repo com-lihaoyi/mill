@@ -1,5 +1,4 @@
 = Kotlin Module Configuration
-
 :page-aliases: Kotlin_Module_Config.adoc
 
 ++++

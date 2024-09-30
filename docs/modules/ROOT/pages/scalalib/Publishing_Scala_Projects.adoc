@@ -1,5 +1,4 @@
 = Publishing Scala Projects
-
 :page-aliases: Publishing_Scala_Projects.adoc
 
 ++++
