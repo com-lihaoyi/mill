@@ -91,8 +91,11 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
     def evaluateTerminals(
         terminals: Seq[Terminal],
-        forkExecutionContext: mill.api.Ctx.Fork.Impl
-    )(implicit taskExecutionContext: mill.api.Ctx.Fork.Impl) = {
+        forkExecutionContext: mill.api.Ctx.Fork.Impl,
+        serial: Boolean
+    ) = {
+      val taskExecutionContext =
+        if (serial) ExecutionContexts.RunNow else forkExecutionContext
       // We walk the task graph in topological order and schedule the futures
       // to run asynchronously. During this walk, we store the scheduled futures
       // in a dictionary. When scheduling each future, we are guaranteed that the
@@ -215,10 +218,11 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     // given but run the commands in linear order
     evaluateTerminals(
       tasks,
-      ec
-    )(ec)
+      ec,
+      serial = false
+    )
 
-    evaluateTerminals(leafSerialCommands, ec)(ExecutionContexts.RunNow)
+    evaluateTerminals(leafSerialCommands, ec, serial = true)
 
     logger.clearPrompt()
     val finishedOptsMap = terminals0

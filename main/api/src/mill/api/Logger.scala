@@ -72,7 +72,7 @@ trait Logger {
    * Used to disable the terminal UI prompt without a certain block of code so you
    * can run stuff like REPLs or other output-sensitive code in a clean terminal
    */
-  def withPromptPaused[T](t: => T) = t
+  private[mill] def withPromptPaused[T](t: => T) = t
 
   def enableTicker: Boolean = false
 

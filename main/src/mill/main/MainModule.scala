@@ -68,9 +68,7 @@ object MainModule {
       case Right((watched, Right(res))) =>
         val output = f(res)
         watched.foreach(watch0)
-        log.withPromptPaused {
-          println(output.render(indent = 2))
-        }
+        println(output.render(indent = 2))
         Result.Success(output)
     }
   }
@@ -90,9 +88,7 @@ trait MainModule extends BaseModule0 {
    */
   def version(): Command[String] = Task.Command(exclusive = true) {
     val res = BuildInfo.millVersion
-    Task.log.withPromptPaused {
-      println(res)
-    }
+    println(res)
     res
   }
 
@@ -111,9 +107,7 @@ trait MainModule extends BaseModule0 {
         case Left(err) => Result.Failure(err)
         case Right(resolvedSegmentsList) =>
           val resolvedStrings = resolvedSegmentsList.map(_.render)
-          Task.log.withPromptPaused {
-            resolvedStrings.sorted.foreach(println)
-          }
+          resolvedStrings.sorted.foreach(println)
           Result.Success(resolvedStrings)
       }
     }
@@ -128,9 +122,7 @@ trait MainModule extends BaseModule0 {
         case Left(err) => Result.Failure(err)
         case Right(success) =>
           val renderedTasks = success.map(_.segments.render)
-          Task.log.withPromptPaused {
-            renderedTasks.foreach(println)
-          }
+          renderedTasks.foreach(println)
           Result.Success(renderedTasks)
       }
     }
@@ -193,9 +185,7 @@ trait MainModule extends BaseModule0 {
               val labels = list
                 .collect { case n: NamedTask[_] => n.ctx.segments.render }
 
-              Task.log.withPromptPaused {
-                labels.foreach(println)
-              }
+              labels.foreach(println)
               Result.Success(labels)
           }
       }
@@ -369,9 +359,7 @@ trait MainModule extends BaseModule0 {
             for { str <- truncated ++ Iterator("\n") } sb.append(str)
             sb.toString()
           }).mkString("\n")
-          Task.log.withPromptPaused {
-            println(output)
-          }
+          println(output)
           fansi.Str(output).plainText
       }
     }
@@ -548,9 +536,7 @@ trait MainModule extends BaseModule0 {
       in.put((rs, allRs, ctx.dest))
       val res = out.take()
       res.map { v =>
-        ctx.log.withPromptPaused {
-          println(upickle.default.write(v.map(_.path.toString()), indent = 2))
-        }
+        println(upickle.default.write(v.map(_.path.toString()), indent = 2))
         v
       }
     }
