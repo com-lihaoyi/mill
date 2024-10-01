@@ -160,19 +160,7 @@ object MillMain {
           case Right(config) =>
             val colored = config.color.getOrElse(mainInteractive)
             val colors = if (colored) mill.util.Colors.Default else mill.util.Colors.BlackWhite
-            val logger = getLogger(
-              streams,
-              config,
-              mainInteractive,
-              enableTicker =
-                config.ticker
-                  .orElse(config.enableTicker)
-                  .orElse(Option.when(config.disableTicker.value)(false)),
-              printLoggerState,
-              serverDir,
-              colored,
-              colors
-            )
+
             if (!config.silent.value) {
               checkMillVersionFromFile(WorkspaceRoot.workspaceRoot, streams.err)
             }
@@ -275,7 +263,7 @@ object MillMain {
                       BspContext.bspServerHandle.lastResult == Some(
                         BspServerResult.ReloadWorkspace
                       )
-                    logger.error(
+                    streams.err.println(
                       s"`$bspCmd` returned with ${BspContext.bspServerHandle.lastResult}"
                     )
                   }
