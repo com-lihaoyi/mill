@@ -694,7 +694,7 @@ object ZincWorkerImpl {
     protected val cache =
       new java.util.concurrent.ConcurrentHashMap[A, SoftReference[B]]
 
-    def getOrElseCreate(a: A)(create: => B) =
+    def getOrElseCreate(a: A)(create: => B): B =
       cache.compute(
         a,
         {
