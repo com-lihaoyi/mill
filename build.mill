@@ -201,7 +201,7 @@ object Deps {
     ivy"org.apache.ant:ant:1.10.14",
     ivy"commons-io:commons-io:2.16.1",
     ivy"com.google.code.gson:gson:2.11.0",
-    ivy"com.google.protobuf:protobuf-java:4.28.0",
+    ivy"com.google.protobuf:protobuf-java:4.28.2",
     ivy"com.google.guava:guava:33.3.0-jre",
     ivy"org.yaml:snakeyaml:2.2",
     ivy"org.apache.commons:commons-compress:1.26.2"
