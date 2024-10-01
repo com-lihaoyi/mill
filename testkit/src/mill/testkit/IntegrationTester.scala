@@ -95,6 +95,9 @@ object IntegrationTester {
       Map("MILL_TEST_SUITE" -> this.getClass().toString()) ++
         sys.props.get("MILL_TEST_SCALA_2_13_VERSION")
           .map("MILL_TEST_SCALA_2_13_VERSION" -> _)
+          .toSeq ++
+        sys.props.get("MILL_TEST_KOTLIN_VERSION")
+          .map("MILL_TEST_KOTLIN_VERSION" -> _)
           .toSeq
 
     /**
