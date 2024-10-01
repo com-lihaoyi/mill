@@ -35,7 +35,7 @@
 .Build Tool Comparisons
 * xref:comparisons/maven.adoc[]
 * xref:comparisons/gradle.adoc[]
-* xref:comparisons/sbt[]
+* xref:comparisons/sbt.adoc[]
 
 // This section is all about developing a deeper understanding of specific
 // topics in Mill. This is the opposite of `Quick Start` above: while we touch

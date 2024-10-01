@@ -1,4 +1,5 @@
-== Changelog
+// Commented out because it gets picked up from the include below
+// == Changelog
 :page-aliases: Changelog.adoc
 
 include::partial$project-readme.adoc[tag=changelog,leveloffset=-1]
