@@ -591,12 +591,17 @@ case class GenIdeaImpl(
             val languageLevel =
               scalaVersion.map(_.split("[.]", 3).take(2).mkString("Scala_", "_", ""))
 
+            val cpFilter: os.Path => Boolean = mod match {
+              case _: ScalaJSModule => entry => !entry.last.startsWith("scala3-library_3")
+              case _ => _ => true
+            }
+
             Tuple2(
               os.sub / "libraries" / libraryNameToFileSystemPathPart(nameAndVersion, "xml"),
               scalaSdkTemplate(
                 name = nameAndVersion,
                 languageLevel = languageLevel,
-                scalaCompilerClassPath = compilerClasspath,
+                scalaCompilerClassPath = compilerClasspath.filter(cpFilter),
                 // FIXME: fill in these fields
                 compilerBridgeJar = None,
                 scaladocExtraClasspath = None
