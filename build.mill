@@ -187,16 +187,35 @@ object Deps {
   val logback = ivy"ch.qos.logback:logback-classic:1.5.7"
   val sonatypeCentralClient = ivy"com.lumidion::sonatype-central-client-requests:0.3.0"
   val kotlinCompiler = ivy"org.jetbrains.kotlin:kotlin-compiler:1.9.24"
-  val koverVersion = "0.8.3"
-  val ktfmtVersion = "0.52"
-  val detektVersion = "1.23.7"
-  val dokkaVersion = "1.9.20"
 
   object RuntimeDeps {
     val errorProneCore = ivy"com.google.errorprone:error_prone_core:2.31.0"
     val jupiterInterface = ivy"com.github.sbt.junit:jupiter-interface:0.11.4"
     val sbtTestInterface = ivy"com.github.sbt:junit-interface:0.13.2"
-    def all = Seq(errorProneCore, jupiterInterface, sbtTestInterface)
+    val koverVersion = "0.8.3"
+    val koverCli = ivy"org.jetbrains.kotlinx:kover-cli:$koverVersion"
+    val koverJvmAgent = ivy"org.jetbrains.kotlinx:kover-jvm-agent:$koverVersion"
+    val ktfmtVersion = "0.52"
+    val ktfmt = ivy"com.facebook:ktfmt:$ktfmtVersion"
+    val detektVersion = "1.23.7"
+    val detektCli = ivy"io.gitlab.arturbosch.detekt:detekt-cli:$detektVersion"
+    val dokkaVersion = "1.9.20"
+    val dokkaCli = ivy"org.jetbrains.dokka:dokka-cli:$dokkaVersion"
+    val dokkaBase = ivy"org.jetbrains.dokka:dokka-base:$dokkaVersion"
+    val dokkaAnalysisDescriptors = ivy"org.jetbrains.dokka:analysis-kotlin-descriptors:$dokkaVersion"
+
+    def all = Seq(
+      errorProneCore,
+      jupiterInterface,
+      sbtTestInterface,
+      koverCli,
+      koverJvmAgent,
+      ktfmt,
+      detektCli,
+      dokkaCli,
+      dokkaBase,
+      dokkaAnalysisDescriptors
+    )
   }
 
   /** Used to manage transitive versions. */
