@@ -35,8 +35,12 @@ object BspServerTests extends UtestIntegrationTestSuite {
       .toSeq
   }
 
-  def tests: Tests = Tests {
-    test("requestSnapshots") - integrationTest { tester =>
+  def serverTest(
+      clientDisplayName: String = defaultClientDisplayName,
+      clientSupportedLanguages: Seq[String] = defaultClientSupportedLanguages,
+      workspaceBuildTargetsFixtureSuffix: String = ""
+  ): Unit =
+    integrationTest { tester =>
       import tester._
       eval(
         "mill.bsp.BSP/install",
@@ -48,7 +52,9 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
       withBspServer(
         workspacePath,
-        millTestSuiteEnv
+        millTestSuiteEnv,
+        clientDisplayName = clientDisplayName,
+        clientSupportedLanguages = clientSupportedLanguages
       ) { (buildServer, initRes) =>
         val scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
         val scalaTransitiveSubstitutions = substitutions(
@@ -90,7 +96,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
         val buildTargets = buildServer.workspaceBuildTargets().get()
         compareWithGsonSnapshot(
           buildTargets,
-          snapshotsPath / "workspace-build-targets.json",
+          snapshotsPath / s"workspace-build-targets$workspaceBuildTargetsFixtureSuffix.json",
           normalizedLocalValues = normalizedLocalValues
         )
 
@@ -182,5 +188,16 @@ object BspServerTests extends UtestIntegrationTestSuite {
         )
       }
     }
+
+  def tests: Tests = Tests {
+    test("requestSnapshots") - serverTest()
+    test("intellijRequestSnapshots") - serverTest(
+      clientDisplayName = "IntelliJ-BSP"
+    )
+    test("intellijScalaRequestSnapshots") - serverTest(
+      clientDisplayName = "IntelliJ-BSP",
+      clientSupportedLanguages = Seq("java", "scala"),
+      workspaceBuildTargetsFixtureSuffix = "-intellij-scala"
+    )
   }
 }

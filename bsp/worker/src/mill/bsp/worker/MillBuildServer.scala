@@ -10,6 +10,7 @@ import mill.define.Segment.Label
 import mill.define.{Args, Discover, ExternalModule, Task}
 import mill.eval.Evaluator
 import mill.eval.Evaluator.TaskResult
+import mill.kotlinlib.bsp.KotlinBuildTarget
 import mill.main.MainModule
 import mill.runner.MillBuildRootModule
 import mill.scalalib.bsp.{BspModule, JvmBuildTarget, ScalaBuildTarget}
@@ -182,6 +183,16 @@ private class MillBuildServer(
           )
           for (jvmBuildTarget <- d.jvmBuildTarget)
             target.setJvmBuildTarget(MillBuildServer.jvmBuildTarget(jvmBuildTarget))
+          Some((dataKind, target))
+
+        case Some((dataKind, d: KotlinBuildTarget)) =>
+          val target = new protocol.KotlinBuildTarget(
+            d.languageVersion,
+            d.apiVersion,
+            d.kotlincOptions.asJava,
+            d.associates.map(uri => new BuildTargetIdentifier(uri.toASCIIString)).asJava,
+            d.jvmBuildTarget.map(MillBuildServer.jvmBuildTarget).orNull
+          )
           Some((dataKind, target))
 
         case Some((dataKind, d: JvmBuildTarget)) =>
