@@ -86,8 +86,9 @@ private[mill] class PromptLogger(
 
   override def setPromptLeftHeader(s: String): Unit = synchronized { state.updateGlobal(s) }
   override def clearPromptStatuses(): Unit = synchronized { state.clearStatuses() }
-  override def removePromptLine(key: Seq[String]): Unit =
-    synchronized { state.updateCurrent(key, None) }
+  override def removePromptLine(key: Seq[String]): Unit = synchronized {
+    state.updateCurrent(key, None)
+  }
 
   def ticker(s: String): Unit = ()
   override def setPromptDetail(key: Seq[String], s: String): Unit = {
@@ -112,9 +113,8 @@ private[mill] class PromptLogger(
     synchronized {
       state.updateCurrent(key, Some(s"[${key.mkString("-")}] $message"))
       seenIdentifiers(key) = (verboseKeySuffix, message)
-      super.setPromptLine(key.map(infoColor(_).toString()), verboseKeySuffix, message)
-
     }
+
   def debug(s: String): Unit = synchronized { if (debugEnabled) systemStreams.err.println(s) }
 
   override def rawOutputStream: PrintStream = systemStreams0.out
