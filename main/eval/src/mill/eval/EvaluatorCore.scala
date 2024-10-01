@@ -150,22 +150,20 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
               noPrefix = serial
             )
 
-            def wrap[T](t: => T): T = if (serial) contextLogger.withPromptPaused(t) else t
-            val res = wrap {
-              evaluateGroupCached(
-                terminal = terminal,
-                group = sortedGroups.lookupKey(terminal),
-                results = upstreamResults,
-                countMsg = countMsg,
-                verboseKeySuffix = verboseKeySuffix,
-                zincProblemReporter = reporter,
-                testReporter = testReporter,
-                logger = contextLogger,
-                classToTransitiveClasses,
-                allTransitiveClassMethods,
-                forkExecutionContext
-              )
-            }
+            val res = evaluateGroupCached(
+              terminal = terminal,
+              group = sortedGroups.lookupKey(terminal),
+              results = upstreamResults,
+              countMsg = countMsg,
+              verboseKeySuffix = verboseKeySuffix,
+              zincProblemReporter = reporter,
+              testReporter = testReporter,
+              logger = contextLogger,
+              classToTransitiveClasses,
+              allTransitiveClassMethods,
+              forkExecutionContext,
+              serial
+            )
 
             if (failFast && res.newResults.values.exists(_.result.asSuccess.isEmpty))
               failed.set(true)
