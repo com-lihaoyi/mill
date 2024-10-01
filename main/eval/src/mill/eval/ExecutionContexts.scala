@@ -41,11 +41,8 @@ private object ExecutionContexts {
 
     val threadPool: ExecutorService = executor
 
-    private var threadCount = threadCount0
     def updateThreadCount(delta: Int): Unit = synchronized {
-      threadCount += delta
-      executor.setMaximumPoolSize(threadCount)
-      executor.setCorePoolSize(threadCount)
+      executor.setMaximumPoolSize(executor.getMaximumPoolSize + delta)
     }
     def blocking[T](t: => T): T = {
       updateThreadCount(1)
