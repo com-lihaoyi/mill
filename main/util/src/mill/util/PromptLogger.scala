@@ -59,7 +59,8 @@ private[mill] class PromptLogger(
         if (termDimensions._1.isDefined) promptUpdateIntervalMillis
         else nonInteractivePromptUpdateIntervalMillis
 
-      Thread.sleep(promptUpdateInterval)
+      try Thread.sleep(promptUpdateInterval)
+      catch { case e: InterruptedException => /*do nothing*/ }
 
       if (!paused) {
         synchronized {
@@ -85,8 +86,9 @@ private[mill] class PromptLogger(
 
   override def setPromptLeftHeader(s: String): Unit = synchronized { state.updateGlobal(s) }
   override def clearPromptStatuses(): Unit = synchronized { state.clearStatuses() }
-  override def removePromptLine(key: Seq[String]): Unit =
-    synchronized { state.updateCurrent(key, None) }
+  override def removePromptLine(key: Seq[String]): Unit = synchronized {
+    state.updateCurrent(key, None)
+  }
 
   def ticker(s: String): Unit = ()
   override def setPromptDetail(key: Seq[String], s: String): Unit = {
@@ -111,9 +113,8 @@ private[mill] class PromptLogger(
     synchronized {
       state.updateCurrent(key, Some(s"[${key.mkString("-")}] $message"))
       seenIdentifiers(key) = (verboseKeySuffix, message)
-      super.setPromptLine(key.map(infoColor(_).toString()), verboseKeySuffix, message)
-
     }
+
   def debug(s: String): Unit = synchronized { if (debugEnabled) systemStreams.err.println(s) }
 
   override def rawOutputStream: PrintStream = systemStreams0.out
@@ -126,6 +127,7 @@ private[mill] class PromptLogger(
     }
     // Needs to be outside the lock so we don't deadlock with `promptUpdaterThread`
     // trying to take the lock one last time before exiting
+    promptUpdaterThread.interrupt()
     promptUpdaterThread.join()
   }
 
@@ -140,7 +142,7 @@ private[mill] class PromptLogger(
         // After the prompt gets paused, wait until the `promptUpdaterThread` marks
         // `pauseNoticed = true`, so we can be sure it's done printing out prompt updates for
         // now and we can proceed with running `t` without any last updates slipping through
-        while (!pauseNoticed) Thread.sleep(1)
+        while (!pauseNoticed) Thread.sleep(2)
         // Clear the prompt so the code in `t` has a blank terminal to work with
         systemStreams0.err.write(AnsiNav.clearScreen(0).getBytes)
         systemStreams0.err.flush()
@@ -174,7 +176,7 @@ private[mill] object PromptLogger {
     )
 
     def awaitPumperEmpty(): Unit = {
-      while (pipe.input.available() != 0) Thread.sleep(10)
+      while (pipe.input.available() != 0) Thread.sleep(2)
     }
     object pumper extends ProxyStream.Pumper(pipe.input, systemStreams0.out, systemStreams0.err) {
       object PumperState extends Enumeration {

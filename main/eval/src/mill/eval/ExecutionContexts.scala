@@ -1,10 +1,10 @@
 package mill.eval
 
 import os.Path
+
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
-import java.util.concurrent.ForkJoinPool.ManagedBlocker
-import java.util.concurrent.{ExecutorService, ForkJoinPool}
+import java.util.concurrent.{ExecutorService, LinkedBlockingQueue, ThreadPoolExecutor, TimeUnit}
 
 private object ExecutionContexts {
 
@@ -29,21 +29,32 @@ private object ExecutionContexts {
    * A simple thread-pool-based ExecutionContext with configurable thread count
    * and AutoCloseable support
    */
-  class ThreadPool(threadCount: Int) extends mill.api.Ctx.Fork.Impl {
+  class ThreadPool(threadCount0: Int) extends mill.api.Ctx.Fork.Impl {
     def await[T](t: Future[T]): T = blocking { Await.result(t, Duration.Inf) }
-    val forkJoinPool: ForkJoinPool = new ForkJoinPool(threadCount)
-    val threadPool: ExecutorService = forkJoinPool
+    val executor: ThreadPoolExecutor = new ThreadPoolExecutor(
+      threadCount0,
+      threadCount0,
+      0,
+      TimeUnit.SECONDS,
+      new LinkedBlockingQueue[Runnable]()
+    )
+
+    val threadPool: ExecutorService = executor
+
+    def updateThreadCount(delta: Int): Unit = synchronized {
+      if (delta > 0) {
+        executor.setMaximumPoolSize(executor.getMaximumPoolSize + delta)
+        executor.setCorePoolSize(executor.getCorePoolSize + delta)
+      } else {
+        executor.setCorePoolSize(executor.getCorePoolSize + delta)
+        executor.setMaximumPoolSize(executor.getMaximumPoolSize + delta)
+      }
+    }
 
     def blocking[T](t: => T): T = {
-      @volatile var res: Option[T] = None
-      ForkJoinPool.managedBlock(new ManagedBlocker {
-        def block(): Boolean = {
-          if (res.isEmpty) res = Some(t)
-          true
-        }
-        def isReleasable: Boolean = res.nonEmpty
-      })
-      res.get
+      updateThreadCount(1)
+      try t
+      finally updateThreadCount(-1)
     }
 
     def execute(runnable: Runnable): Unit = {
