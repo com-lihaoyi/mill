@@ -94,7 +94,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
         forkExecutionContext: mill.api.Ctx.Fork.Impl,
         serial: Boolean
     ) = {
-      val taskExecutionContext =
+      implicit val taskExecutionContext =
         if (serial) ExecutionContexts.RunNow else forkExecutionContext
       // We walk the task graph in topological order and schedule the futures
       // to run asynchronously. During this walk, we store the scheduled futures
@@ -141,13 +141,19 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
               case targetLabel if logRun && logger.enableTicker => targetLabel
             }
 
-            val contextLogger = new PrefixLogger(
-              logger0 = logger,
-              key = if (logger.enableTicker) Seq(countMsg) else Nil,
-              tickerContext = GroupEvaluator.dynamicTickerPrefix.value,
-              verboseKeySuffix = verboseKeySuffix,
-              message = tickerPrefix
-            )
+            val contextLogger =
+              if (serial) {
+                logger.clearPromptHeader()
+                logger
+              } else {
+                new PrefixLogger(
+                  logger0 = logger,
+                  key = if (logger.enableTicker) Seq(countMsg) else Nil,
+                  tickerContext = GroupEvaluator.dynamicTickerPrefix.value,
+                  verboseKeySuffix = verboseKeySuffix,
+                  message = tickerPrefix
+                )
+              }
 
             val res = evaluateGroupCached(
               terminal = terminal,
@@ -160,7 +166,8 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
               logger = contextLogger,
               classToTransitiveClasses,
               allTransitiveClassMethods,
-              forkExecutionContext
+              forkExecutionContext,
+              serial = serial
             )
 
             if (failFast && res.newResults.values.exists(_.result.asSuccess.isEmpty))
@@ -224,7 +231,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
     evaluateTerminals(leafSerialCommands, ec, serial = true)
 
-    logger.clearPrompt()
+    logger.clearPromptStatuses()
     val finishedOptsMap = terminals0
       .map(t => (t, Await.result(futures(t), duration.Duration.Inf)))
       .toMap

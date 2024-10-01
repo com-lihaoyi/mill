@@ -106,6 +106,14 @@ object Task extends TaskBase {
       cls: EnclosingClass
   ): Command[T] = macro Target.Internal.commandImpl[T]
 
+  /**
+   * @param exclusive Exclusive commands run serially at the end of an evaluation,
+   *                  without any other tasks running parallel, and without the
+   *                  terminal logging prefixes that are applied to normal tasks.
+   *                  These are normally used for "top level" commands which are
+   *                  run directly to perform some action or display some output
+   *                  to the user.
+   */
   def Command(
       t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
       exclusive: Boolean = false

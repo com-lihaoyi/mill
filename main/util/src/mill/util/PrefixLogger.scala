@@ -92,9 +92,7 @@ class PrefixLogger(
     logger0.removePromptLine(key)
   private[mill] override def removePromptLine(): Unit = removePromptLine(key)
   private[mill] override def setPromptLeftHeader(s: String): Unit = logger0.setPromptLeftHeader(s)
-
-  override def withPromptPaused[T](t: => T): T = logger0.withPromptPaused(t)
-
+  private[mill] override def clearPromptHeader(): Unit = logger0.clearPromptHeader()
   override def enableTicker = logger0.enableTicker
 
   override def subLogger(path: os.Path, subKeySuffix: String, message: String): Logger = {
