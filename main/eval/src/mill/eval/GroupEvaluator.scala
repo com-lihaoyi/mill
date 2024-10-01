@@ -55,8 +55,7 @@ private[mill] trait GroupEvaluator {
       logger: ColorLogger,
       classToTransitiveClasses: Map[Class[_], IndexedSeq[Class[_]]],
       allTransitiveClassMethods: Map[Class[_], Map[String, Method]],
-      executionContext: mill.api.Ctx.Fork.Api,
-      serial: Boolean
+      executionContext: mill.api.Ctx.Fork.Api
   ): GroupEvaluator.Results = {
 
     val targetLabel = terminal match {
@@ -142,8 +141,7 @@ private[mill] trait GroupEvaluator {
             zincProblemReporter,
             testReporter,
             logger,
-            executionContext,
-            serial
+            executionContext
           )
           GroupEvaluator.Results(newResults, newEvaluated.toSeq, null, inputsHash, -1)
 
@@ -199,8 +197,7 @@ private[mill] trait GroupEvaluator {
                     zincProblemReporter,
                     testReporter,
                     logger,
-                    executionContext,
-                    serial
+                    executionContext
                   )
                 }
 
@@ -242,8 +239,7 @@ private[mill] trait GroupEvaluator {
       reporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
       logger: mill.api.Logger,
-      executionContext: mill.api.Ctx.Fork.Api,
-      serial: Boolean
+      executionContext: mill.api.Ctx.Fork.Api
   ): (Map[Task[_], TaskResult[(Val, Int)]], mutable.Buffer[Task[_]]) = {
 
     def computeAll() = {
@@ -290,28 +286,18 @@ private[mill] trait GroupEvaluator {
               override def jobs: Int = effectiveThreadCount
             }
 
-            def wrap[T](t: => T): T =
-              if (serial) t
-              else {
-                mill.api.SystemStreams.withStreams(multiLogger.systemStreams) {
-                  t
+            os.dynamicPwdFunction.withValue(() => makeDest()) {
+              mill.api.SystemStreams.withStreams(multiLogger.systemStreams) {
+                try task.evaluate(args).map(Val(_))
+                catch {
+                  case f: Result.Failing[Val] => f
+                  case NonFatal(e) =>
+                    Result.Exception(
+                      e,
+                      new OuterStack(new Exception().getStackTrace.toIndexedSeq)
+                    )
                 }
               }
-
-            wrap {
-              try {
-                os.dynamicPwdFunction.withValue(() => makeDest()) {
-                  task.evaluate(args).map(Val(_))
-                }
-              } catch {
-                case f: Result.Failing[Val] => f
-                case NonFatal(e) =>
-                  Result.Exception(
-                    e,
-                    new OuterStack(new Exception().getStackTrace.toIndexedSeq)
-                  )
-              }
-
             }
           }
         }

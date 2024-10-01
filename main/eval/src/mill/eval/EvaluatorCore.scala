@@ -141,19 +141,14 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
               case targetLabel if logRun && logger.enableTicker => targetLabel
             }
 
-            val contextLogger =
-              if (serial) {
-                logger.clearPromptHeader()
-                logger
-              } else {
-                new PrefixLogger(
-                  logger0 = logger,
-                  key = if (logger.enableTicker) Seq(countMsg) else Nil,
-                  tickerContext = GroupEvaluator.dynamicTickerPrefix.value,
-                  verboseKeySuffix = verboseKeySuffix,
-                  message = tickerPrefix
-                )
-              }
+            val contextLogger = new PrefixLogger(
+              logger0 = logger,
+              key = if (!logger.enableTicker) Nil else Seq(countMsg),
+              tickerContext = GroupEvaluator.dynamicTickerPrefix.value,
+              verboseKeySuffix = verboseKeySuffix,
+              message = tickerPrefix,
+              noPrefix = serial
+            )
 
             val res = evaluateGroupCached(
               terminal = terminal,
@@ -166,8 +161,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
               logger = contextLogger,
               classToTransitiveClasses,
               allTransitiveClassMethods,
-              forkExecutionContext,
-              serial = serial
+              forkExecutionContext
             )
 
             if (failFast && res.newResults.values.exists(_.result.asSuccess.isEmpty))
