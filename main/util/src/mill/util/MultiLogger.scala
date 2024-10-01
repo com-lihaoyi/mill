@@ -49,10 +49,6 @@ class MultiLogger(
     logger1.setPromptLine()
     logger2.setPromptLine()
   }
-  private[mill] override def clearPromptHeader(): Unit = {
-    logger1.clearPromptHeader()
-    logger2.clearPromptHeader()
-  }
 
   def debug(s: String): Unit = {
     logger1.debug(s)

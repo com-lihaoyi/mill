@@ -82,10 +82,6 @@ private[mill] class PromptLogger(
 
   override def setPromptLeftHeader(s: String): Unit = synchronized { state.updateGlobal(s) }
   override def clearPromptStatuses(): Unit = synchronized { state.clearStatuses() }
-  override def clearPromptHeader(): Unit = {
-    systemStreams0.err.write(AnsiNav.clearScreen(0).getBytes)
-    systemStreams0.err.flush()
-  }
   override def removePromptLine(key: Seq[String]): Unit =
     synchronized { state.updateCurrent(key, None) }
 
