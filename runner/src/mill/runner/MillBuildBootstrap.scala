@@ -3,7 +3,7 @@ package mill.runner
 import mill.util.{ColorLogger, PrefixLogger, Watchable}
 import mill.main.BuildInfo
 import mill.main.client.CodeGenConstants._
-import mill.api.{PathRef, Val, internal}
+import mill.api.{PathRef, SystemStreams, Val, internal}
 import mill.eval.Evaluator
 import mill.main.RunScript
 import mill.resolve.SelectMode
@@ -356,7 +356,8 @@ class MillBuildBootstrap(
       methodCodeHashSignatures = methodCodeHashSignatures,
       disableCallgraph = disableCallgraph,
       allowPositionalCommandArgs = allowPositionalCommandArgs,
-      systemExit = systemExit
+      systemExit = systemExit,
+      exclusiveSystemStreams = SystemStreams.original
     )
   }
 

@@ -79,9 +79,13 @@ class MultiLogger(
     logger2.setPromptLeftHeader(s)
   }
 
+  private[mill] override def withPromptPaused[T](t: => T): T = {
+    logger1.withPromptPaused(logger2.withPromptPaused(t))
+  }
+
   override def enableTicker: Boolean = logger1.enableTicker || logger2.enableTicker
 
-  override def subLogger(path: os.Path, key: String, message: String): Logger = {
+  private[mill] override def subLogger(path: os.Path, key: String, message: String): Logger = {
     new MultiLogger(
       colored,
       logger1.subLogger(path, key, message),

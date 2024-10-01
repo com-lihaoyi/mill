@@ -59,6 +59,7 @@ trait Logger {
   private[mill] def clearPromptStatuses(): Unit = ()
   private[mill] def removePromptLine(key: Seq[String]): Unit = ()
   private[mill] def removePromptLine(): Unit = ()
+  private[mill] def withPromptPaused[T](t: => T): T = t
 
   /**
    * @since Mill 0.10.5

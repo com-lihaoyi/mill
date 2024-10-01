@@ -101,7 +101,8 @@ class UnitTester(
     methodCodeHashSignatures = Map(),
     disableCallgraph = false,
     allowPositionalCommandArgs = false,
-    systemExit = i => ???
+    systemExit = i => ???,
+    exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream)
   )
 
   def apply(args: String*): Either[Result.Failing[_], UnitTester.Result[Seq[_]]] = {

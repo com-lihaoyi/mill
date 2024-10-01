@@ -51,6 +51,7 @@ private[mill] class PromptLogger(
 
   @volatile var stopped = false
   @volatile var paused = false
+  @volatile var pauseNoticed = false
 
   val promptUpdaterThread = new Thread(() =>
     while (!stopped) {
@@ -69,6 +70,8 @@ private[mill] class PromptLogger(
             refreshPrompt()
           }
         }
+      } else {
+        pauseNoticed = true
       }
     }
   )
@@ -127,6 +130,25 @@ private[mill] class PromptLogger(
   }
 
   def systemStreams = streamManager.systemStreams
+
+  private[mill] override def withPromptPaused[T](t: => T): T = {
+    if (!enableTicker) t
+    else {
+      pauseNoticed = false
+      paused = true
+      try {
+        // After the prompt gets paused, wait until the `promptUpdaterThread` marks
+        // `pauseNoticed = true`, so we can be sure it's done printing out prompt updates for
+        // now and we can proceed with running `t` without any last updates slipping through
+        while (!pauseNoticed) Thread.sleep(1)
+        // Clear the prompt so the code in `t` has a blank terminal to work with
+        systemStreams0.err.write(AnsiNav.clearScreen(0).getBytes)
+        systemStreams0.err.flush()
+        t
+
+      } finally paused = false
+    }
+  }
 }
 
 private[mill] object PromptLogger {

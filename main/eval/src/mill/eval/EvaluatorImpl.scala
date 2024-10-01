@@ -1,6 +1,6 @@
 package mill.eval
 
-import mill.api.{CompileProblemReporter, Strict, TestReporter, Val}
+import mill.api.{CompileProblemReporter, Strict, SystemStreams, TestReporter, Val}
 import mill.api.Strict.Agg
 import mill.define._
 import mill.util._
@@ -30,7 +30,8 @@ private[mill] case class EvaluatorImpl(
     methodCodeHashSignatures: Map[String, Int],
     override val disableCallgraph: Boolean,
     override val allowPositionalCommandArgs: Boolean,
-    val systemExit: Int => Nothing
+    val systemExit: Int => Nothing,
+    val exclusiveSystemStreams: SystemStreams
 ) extends Evaluator with EvaluatorCore {
   import EvaluatorImpl._
 
