@@ -92,10 +92,10 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     def evaluateTerminals(
         terminals: Seq[Terminal],
         forkExecutionContext: mill.api.Ctx.Fork.Impl,
-        serial: Boolean
+        exclusive: Boolean
     ) = {
       implicit val taskExecutionContext =
-        if (serial) ExecutionContexts.RunNow else forkExecutionContext
+        if (exclusive) ExecutionContexts.RunNow else forkExecutionContext
       // We walk the task graph in topological order and schedule the futures
       // to run asynchronously. During this walk, we store the scheduled futures
       // in a dictionary. When scheduling each future, we are guaranteed that the
@@ -147,7 +147,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
               tickerContext = GroupEvaluator.dynamicTickerPrefix.value,
               verboseKeySuffix = verboseKeySuffix,
               message = tickerPrefix,
-              noPrefix = serial
+              noPrefix = exclusive
             )
 
             val res = evaluateGroupCached(
@@ -162,7 +162,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
               classToTransitiveClasses,
               allTransitiveClassMethods,
               forkExecutionContext,
-              serial
+              exclusive
             )
 
             if (failFast && res.newResults.values.exists(_.result.asSuccess.isEmpty))
@@ -206,7 +206,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     val (_, tasksTransitive0) = Plan.plan(Agg.from(tasks0.map(_.task)))
 
     val tasksTransitive = tasksTransitive0.toSet
-    val (tasks, leafSerialCommands) = terminals0.partition {
+    val (tasks, leafExclusiveCommands) = terminals0.partition {
       case Terminal.Labelled(t, _) =>
         if (tasksTransitive.contains(t)) true
         else t match {
@@ -221,10 +221,10 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     evaluateTerminals(
       tasks,
       ec,
-      serial = false
+      exclusive = false
     )
 
-    evaluateTerminals(leafSerialCommands, ec, serial = true)
+    evaluateTerminals(leafExclusiveCommands, ec, exclusive = true)
 
     logger.clearPromptStatuses()
     val finishedOptsMap = terminals0

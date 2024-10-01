@@ -34,6 +34,7 @@ private[mill] trait GroupEvaluator {
   def methodCodeHashSignatures: Map[String, Int]
   def disableCallgraph: Boolean
   def systemExit: Int => Nothing
+  def exclusiveSystemStreams: SystemStreams
 
   lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] = methodCodeHashSignatures
     .toSeq
@@ -56,7 +57,7 @@ private[mill] trait GroupEvaluator {
       classToTransitiveClasses: Map[Class[_], IndexedSeq[Class[_]]],
       allTransitiveClassMethods: Map[Class[_], Map[String, Method]],
       executionContext: mill.api.Ctx.Fork.Api,
-      serial: Boolean
+      exclusive: Boolean
   ): GroupEvaluator.Results = {
 
     val targetLabel = terminal match {
@@ -143,7 +144,7 @@ private[mill] trait GroupEvaluator {
             testReporter,
             logger,
             executionContext,
-            serial
+            exclusive
           )
           GroupEvaluator.Results(newResults, newEvaluated.toSeq, null, inputsHash, -1)
 
@@ -200,7 +201,7 @@ private[mill] trait GroupEvaluator {
                     testReporter,
                     logger,
                     executionContext,
-                    serial
+                    exclusive
                   )
                 }
 
@@ -243,7 +244,7 @@ private[mill] trait GroupEvaluator {
       testReporter: TestReporter,
       logger: mill.api.Logger,
       executionContext: mill.api.Ctx.Fork.Api,
-      serial: Boolean
+      exclusive: Boolean
   ): (Map[Task[_], TaskResult[(Val, Int)]], mutable.Buffer[Task[_]]) = {
 
     def computeAll() = {
@@ -293,12 +294,12 @@ private[mill] trait GroupEvaluator {
             def wrap[T](t: => T): T = {
 
               val (streams, destFunc) =
-                if (serial) (SystemStreams.original, () => workspace)
+                if (exclusive) (exclusiveSystemStreams, () => workspace)
                 else (multiLogger.systemStreams, () => makeDest())
 
               os.dynamicPwdFunction.withValue(destFunc) {
                 SystemStreams.withStreams(streams) {
-                  if (serial) {
+                  if (exclusive) {
                     logger.reportKey(Seq(counterMsg))
                     logger.withPromptPaused { t }
                   } else t
