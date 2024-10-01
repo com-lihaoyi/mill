@@ -11,6 +11,8 @@ import scala.xml.{Node, XML}
 
 object KoverModuleTests extends TestSuite {
 
+  val kotlinVersion = "1.9.24"
+
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "contrib" / "kover"
 
   object module extends TestBaseModule {
@@ -26,18 +28,18 @@ object KoverModuleTests extends TestSuite {
     }
 
     object foo extends KotlinModule with KoverModule {
-      def kotlinVersion = "1.9.24"
+      def kotlinVersion = KoverModuleTests.kotlinVersion
       object test extends KotlinModuleTests with module.KotestTestModule with KoverTests
     }
 
     object bar extends KotlinModule with KoverModule {
-      def kotlinVersion = "1.9.24"
+      def kotlinVersion = KoverModuleTests.kotlinVersion
       object test extends KotlinModuleTests with module.KotestTestModule with KoverTests
     }
 
     // module not instrumented with Kover
     object qux extends KotlinModule {
-      def kotlinVersion = "1.9.24"
+      def kotlinVersion = KoverModuleTests.kotlinVersion
       object test extends KotlinModuleTests with module.KotestTestModule
     }
   }
