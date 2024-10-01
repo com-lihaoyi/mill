@@ -151,7 +151,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
             )
 
             def wrap[T](t: => T): T = if (serial) contextLogger.withPromptPaused(t) else t
-            val res = wrap{
+            val res = wrap {
               evaluateGroupCached(
                 terminal = terminal,
                 group = sortedGroups.lookupKey(terminal),

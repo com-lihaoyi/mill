@@ -128,7 +128,6 @@ private[mill] class PromptLogger(
 
   def systemStreams = streamManager.systemStreams
 
-
   private[mill] override def withPromptPaused[T](t: => T): T = {
     paused = true
 

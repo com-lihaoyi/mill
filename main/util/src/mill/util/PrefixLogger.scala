@@ -98,7 +98,11 @@ class PrefixLogger(
   private[mill] override def setPromptLeftHeader(s: String): Unit = logger0.setPromptLeftHeader(s)
   override def enableTicker = logger0.enableTicker
 
-  private[mill] override def subLogger(path: os.Path, subKeySuffix: String, message: String): Logger = {
+  private[mill] override def subLogger(
+      path: os.Path,
+      subKeySuffix: String,
+      message: String
+  ): Logger = {
     new PrefixLogger(
       logger0,
       key :+ subKeySuffix,
