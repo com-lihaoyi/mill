@@ -28,7 +28,7 @@ There are two kind of segments: _label segments_ and _cross segments_.
 
 _Label segments_ are the components of a target path and have the same restriction as Scala identifiers.
 They must start with a letter and may contain letters, numbers and a limited set of special characters `-` (dash), `_` (underscore).
-They are used to denote Mill modules, tasks, but in the case of xref:depth/Modules.adoc#external-modules[external modules] their Scala package names.
+They are used to denote Mill modules, tasks, but in the case of xref:depth/modules.adoc#external-modules[external modules] their Scala package names.
 
 _Cross segments_ start with a label segment but contain additional square brackets (`[`, `]`]) and are used to denote cross module and their parameters.
 
@@ -133,7 +133,7 @@ There is a subtile difference between the expansion of <<enumerations,enumeratio
 
 For all the former versions, Mill parses them into a complex but single target selector path and subsequent parameters are used for all resolved targets.
 
-Whereas the `+` start a completely new selector path to which you can also provide a different parameter list. This is important when using xref:depth/Tasks.adoc#commands[command targets] which can accept their own parameters. The `JavaModule.run` command is an example.
+Whereas the `+` start a completely new selector path to which you can also provide a different parameter list. This is important when using xref:depth/tasks.adoc#commands[command targets] which can accept their own parameters. The `JavaModule.run` command is an example.
 
 ----
 > mill foo.run hello                         # <1>

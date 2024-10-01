@@ -6,9 +6,9 @@ Evaluating a Mill target typically goes through the following phases:
 1. *Compilation*: Mill compiles the `build.mill` to classfiles, following the
 <<_the_mill_bootstrapping_process>> to eventually produce a `RootModule` object
 
-2. *Resolution*: Mill resolves the list of xref:depth/Tasks.adoc[] given from the command line,
+2. *Resolution*: Mill resolves the list of xref:depth/tasks.adoc[] given from the command line,
    e.g. `resolve _` or `foo.compile` or `{bar,qux}.__.test`, to a list of
-   concrete `Task` objects nested on xref:depth/Modules.adoc[] within the `RootModule` along
+   concrete `Task` objects nested on xref:depth/modules.adoc[] within the `RootModule` along
    with their transitive dependencies
 
     * In the process, the relevant Mill ``Module``s  are lazily instantiated
@@ -39,8 +39,8 @@ of. In general, we have found that having "two places" to put code - outside of
 
 The hard boundary between these two phases is what lets users easily query
 and visualize their module hierarchy and task graph without running them: using
-xref:scalalib/Scala_Builtin_Commands.adoc#inspect[inspect], xref:scalalib/Scala_Builtin_Commands.adoc#plan[plan],
-xref:scalalib/Scala_Builtin_Commands.adoc#_visualize[visualize], etc.. This helps keep your
+xref:scalalib/builtin-commands.adoc#inspect[inspect], xref:scalalib/builtin-commands.adoc#plan[plan],
+xref:scalalib/builtin-commands.adoc#_visualize[visualize], etc.. This helps keep your
 Mill build discoverable even as the `build.mill` codebase grows.
 
 == Caching at Each Layer of the Evaluation Model
@@ -70,14 +70,14 @@ the overall workflow remains fast even for large projects:
 
     * ``Task``s are evaluated in dependency order
 
-    * xref:depth/Tasks.adoc#_targets[Target]s only re-evaluate if their input ``Task``s
+    * xref:depth/tasks.adoc#_targets[Target]s only re-evaluate if their input ``Task``s
      change.
 
-    * xref:depth/Tasks.adoc#_persistent_targets[Task.Persistent]s preserve the `T.dest` folder on disk between runs,
+    * xref:depth/tasks.adoc#_persistent_targets[Task.Persistent]s preserve the `T.dest` folder on disk between runs,
       allowing for finer-grained caching than Mill's default target-by-target
       caching and invalidation
 
-    * xref:depth/Tasks.adoc#_workers[Task.Worker]s are kept in-memory between runs where possible, and only
+    * xref:depth/tasks.adoc#_workers[Task.Worker]s are kept in-memory between runs where possible, and only
       invalidated if their input ``Task``s change as well.
 
     * ``Task``s in general are invalidated if the code they depend on changes,
@@ -141,5 +141,5 @@ Mill supports multiple levels of meta-builds for bootstrapping:
 - Two level of meta-builds: `mill-build/mill-build/build.mill`,
   `mill-build/build.mill` and `build.mill`
 
-xref:extending/The_Mill_Meta_Build.adoc[The Mill Meta Build] works through a simple use case
+xref:extending/meta-build.adoc[The Mill Meta Build] works through a simple use case
 and example for meta-builds.

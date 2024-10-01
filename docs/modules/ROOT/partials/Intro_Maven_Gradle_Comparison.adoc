@@ -8,7 +8,7 @@ are mature widely-used tools, they have fundamental limitations in their design
 https://www.bruceeckel.com/2021/01/02/the-problem-with-gradle/[Gradle Design]) that make
 them difficult to improve upon incrementally.
 
-xref:comparisons/Case_Study_Mill_vs_Maven.adoc[Compared to Maven]:
+xref:comparisons/maven.adoc[Compared to Maven]:
 
 * **Mill follows Maven's innovation of good built-in defaults**: Mill's built-in
   ``JavaModule``s follow Maven's "convention over configuration" style. Small mill
@@ -28,7 +28,7 @@ xref:comparisons/Case_Study_Mill_vs_Maven.adoc[Compared to Maven]:
   tend to get slow: a Maven `clean install` taking over a minute might take just a 
   few seconds in Mill.
 
-xref:comparisons/Case_Study_Mill_vs_Gradle.adoc[Compared to Gradle]:
+xref:comparisons/gradle.adoc[Compared to Gradle]:
 
 * **Mill follows Gradle's conciseness**: Rather than pages and pages of verbose XML, every
   line in a Mill build is meaningful. e.g. adding a dependency is 1 line in
@@ -42,10 +42,10 @@ xref:comparisons/Case_Study_Mill_vs_Gradle.adoc[Compared to Gradle]:
   tool, and more time focusing on the things that really matter to your project.
 
 * **Mill enforces best practices by default**. All Mill tasks are cached by default, even
-  custom tasks. All Mill tasks write their output to disk xref:depth/Out_Dir.adoc[a
+  custom tasks. All Mill tasks write their output to disk xref:depth/out-dir.adoc[a
   standard place]. All task inter-dependencies are automatically captured, without
   needing manual annotation. All Mill builds are incremental, not just tasks but also
-  xref:depth/The_Mill_Evaluation_Model.adoc#_caching_at_each_layer_of_the_evaluation_model[configuration
+  xref:depth/evaluation-model.adoc#_caching_at_each_layer_of_the_evaluation_model[configuration
   and other phases]. Where Gradle requires considerable
   https://docs.gradle.org/current/userguide/incremental_build.html[effort and expertise]
   to maintain your build, Mill automates it so the
