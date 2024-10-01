@@ -91,8 +91,11 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
     def evaluateTerminals(
         terminals: Seq[Terminal],
-        forkExecutionContext: mill.api.Ctx.Fork.Impl
-    )(implicit taskExecutionContext: mill.api.Ctx.Fork.Impl) = {
+        forkExecutionContext: mill.api.Ctx.Fork.Impl,
+        serial: Boolean
+    ) = {
+      implicit val taskExecutionContext =
+        if (serial) ExecutionContexts.RunNow else forkExecutionContext
       // We walk the task graph in topological order and schedule the futures
       // to run asynchronously. During this walk, we store the scheduled futures
       // in a dictionary. When scheduling each future, we are guaranteed that the
@@ -140,10 +143,11 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
             val contextLogger = new PrefixLogger(
               logger0 = logger,
-              key = if (logger.enableTicker) Seq(countMsg) else Nil,
+              key = if (!logger.enableTicker) Nil else Seq(countMsg),
               tickerContext = GroupEvaluator.dynamicTickerPrefix.value,
               verboseKeySuffix = verboseKeySuffix,
-              message = tickerPrefix
+              message = tickerPrefix,
+              noPrefix = serial
             )
 
             val res = evaluateGroupCached(
@@ -215,12 +219,13 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     // given but run the commands in linear order
     evaluateTerminals(
       tasks,
-      ec
-    )(ec)
+      ec,
+      serial = false
+    )
 
-    evaluateTerminals(leafSerialCommands, ec)(ExecutionContexts.RunNow)
+    evaluateTerminals(leafSerialCommands, ec, serial = true)
 
-    logger.clearPrompt()
+    logger.clearPromptStatuses()
     val finishedOptsMap = terminals0
       .map(t => (t, Await.result(futures(t), duration.Duration.Inf)))
       .toMap

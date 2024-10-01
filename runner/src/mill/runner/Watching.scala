@@ -1,8 +1,9 @@
 package mill.runner
 
 import mill.api.internal
-import mill.util.Watchable
+import mill.util.{Colors, Watchable}
 import mill.api.SystemStreams
+
 import java.io.InputStream
 import scala.annotation.tailrec
 
@@ -19,7 +20,8 @@ object Watching {
       watch: Boolean,
       streams: SystemStreams,
       setIdle: Boolean => Unit,
-      evaluate: Option[T] => Result[T]
+      evaluate: Option[T] => Result[T],
+      colors: Colors
   ): (Boolean, T) = {
     var prevState: Option[T] = None
     while (true) {
@@ -41,7 +43,7 @@ object Watching {
 
       val alreadyStale = watchables.exists(!_.validate())
       if (!alreadyStale) {
-        Watching.watchAndWait(streams, setIdle, streams.in, watchables)
+        Watching.watchAndWait(streams, setIdle, streams.in, watchables, colors)
       }
     }
     ???
@@ -51,7 +53,8 @@ object Watching {
       streams: SystemStreams,
       setIdle: Boolean => Unit,
       stdin: InputStream,
-      watched: Seq[Watchable]
+      watched: Seq[Watchable],
+      colors: Colors
   ): Unit = {
     setIdle(true)
     val watchedPaths = watched.collect { case p: Watchable.Path => p.p.path }
@@ -60,7 +63,9 @@ object Watching {
     val watchedValueStr = if (watchedValues == 0) "" else s" and $watchedValues other values"
 
     streams.err.println(
-      s"Watching for changes to ${watchedPaths.size} paths$watchedValueStr... (Enter to re-run, Ctrl-C to exit)"
+      colors.info(
+        s"Watching for changes to ${watchedPaths.size} paths$watchedValueStr... (Enter to re-run, Ctrl-C to exit)"
+      ).toString
     )
 
     statWatchWait(watched, stdin)

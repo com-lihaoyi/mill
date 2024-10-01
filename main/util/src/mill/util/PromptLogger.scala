@@ -76,26 +76,12 @@ private[mill] class PromptLogger(
   def refreshPrompt(): Unit = state.refreshPrompt()
   if (enableTicker && autoUpdate) promptUpdaterThread.start()
 
-  override def withPromptPaused[T](t: => T): T = {
-    paused = true
-
-    try {
-      // Clear the prompt so the code in `t` has a blank terminal to work with
-      outputStream.flush()
-      errorStream.flush()
-      systemStreams0.err.write(AnsiNav.clearScreen(0).getBytes)
-      SystemStreams.withStreams(systemStreams0) {
-        t
-      }
-    } finally paused = false
-  }
-
   def info(s: String): Unit = synchronized { systemStreams.err.println(s) }
 
   def error(s: String): Unit = synchronized { systemStreams.err.println(s) }
 
   override def setPromptLeftHeader(s: String): Unit = synchronized { state.updateGlobal(s) }
-  override def clearPrompt(): Unit = synchronized { state.clearStatuses() }
+  override def clearPromptStatuses(): Unit = synchronized { state.clearStatuses() }
   override def removePromptLine(key: Seq[String]): Unit =
     synchronized { state.updateCurrent(key, None) }
 

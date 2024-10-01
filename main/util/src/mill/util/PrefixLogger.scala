@@ -12,9 +12,13 @@ class PrefixLogger(
     outStream0: Option[PrintStream] = None,
     errStream0: Option[PrintStream] = None,
     verboseKeySuffix: String = "",
-    message: String = ""
+    message: String = "",
+    // Disable printing the prefix, but continue reporting the `key` to `reportKey`. Used
+    // for `exclusive` commands where we don't want the prefix but we do want the header
+    // above the output of every command that gets run so we can see who the output belongs to
+    noPrefix: Boolean = false
 ) extends ColorLogger {
-  val linePrefix: String = if (key.isEmpty) "" else s"[${key.mkString("-")}] "
+  val linePrefix: String = if (noPrefix || key.isEmpty) "" else s"[${key.mkString("-")}] "
   override def toString: String =
     s"PrefixLogger($logger0, ${literalize(linePrefix)}, ${literalize(tickerContext)})"
   def this(logger0: ColorLogger, context: String, tickerContext: String) =
@@ -92,9 +96,6 @@ class PrefixLogger(
     logger0.removePromptLine(key)
   private[mill] override def removePromptLine(): Unit = removePromptLine(key)
   private[mill] override def setPromptLeftHeader(s: String): Unit = logger0.setPromptLeftHeader(s)
-
-  override def withPromptPaused[T](t: => T): T = logger0.withPromptPaused(t)
-
   override def enableTicker = logger0.enableTicker
 
   override def subLogger(path: os.Path, subKeySuffix: String, message: String): Logger = {

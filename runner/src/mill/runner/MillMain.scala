@@ -9,7 +9,7 @@ import mill.api.{MillException, SystemStreams, WorkspaceRoot, internal}
 import mill.bsp.{BspContext, BspServerResult}
 import mill.main.BuildInfo
 import mill.main.client.{OutFiles, ServerFiles}
-import mill.util.{PromptLogger, PrintLogger}
+import mill.util.{PromptLogger, PrintLogger, Colors}
 
 import java.lang.reflect.InvocationTargetException
 import scala.util.control.NonFatal
@@ -158,6 +158,9 @@ object MillMain {
             (false, RunnerState.empty)
 
           case Right(config) =>
+            val colored = config.color.getOrElse(mainInteractive)
+            val colors = if (colored) mill.util.Colors.Default else mill.util.Colors.BlackWhite
+
             if (!config.silent.value) {
               checkMillVersionFromFile(WorkspaceRoot.workspaceRoot, streams.err)
             }
@@ -228,7 +231,9 @@ object MillMain {
                             .orElse(config.enableTicker)
                             .orElse(Option.when(config.disableTicker.value)(false)),
                         printLoggerState,
-                        serverDir
+                        serverDir,
+                        colored = colored,
+                        colors = colors
                       )
                       try new MillBuildBootstrap(
                           projectRoot = WorkspaceRoot.workspaceRoot,
@@ -250,7 +255,8 @@ object MillMain {
                       finally {
                         logger.close()
                       }
-                    }
+                    },
+                    colors = colors
                   )
                   bspContext.foreach { ctx =>
                     repeatForBsp =
@@ -261,6 +267,7 @@ object MillMain {
                       s"`$bspCmd` returned with ${BspContext.bspServerHandle.lastResult}"
                     )
                   }
+
                   loopRes = (isSuccess, evalStateOpt)
                 } // while repeatForBsp
                 bspContext.foreach { ctx =>
@@ -315,10 +322,10 @@ object MillMain {
       mainInteractive: Boolean,
       enableTicker: Option[Boolean],
       printLoggerState: PrintLogger.State,
-      serverDir: os.Path
+      serverDir: os.Path,
+      colored: Boolean,
+      colors: Colors
   ): mill.util.ColorLogger = {
-    val colored = config.color.getOrElse(mainInteractive)
-    val colors = if (colored) mill.util.Colors.Default else mill.util.Colors.BlackWhite
 
     val logger = if (config.disablePrompt.value) {
       new mill.util.PrintLogger(

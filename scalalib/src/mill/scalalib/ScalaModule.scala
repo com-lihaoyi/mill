@@ -437,23 +437,21 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
       Result.Failure("console needs to be run with the -i/--interactive flag")
     } else {
       val useJavaCp = "-usejavacp"
-      T.log.withPromptPaused {
-        SystemStreams.withStreams(SystemStreams.original) {
-          Jvm.runSubprocess(
-            mainClass =
-              if (ZincWorkerUtil.isDottyOrScala3(scalaVersion()))
-                "dotty.tools.repl.Main"
-              else
-                "scala.tools.nsc.MainGenericRunner",
-            classPath = runClasspath().map(_.path) ++ scalaCompilerClasspath().map(
-              _.path
-            ),
-            jvmArgs = forkArgs(),
-            envArgs = forkEnv(),
-            mainArgs = Seq(useJavaCp) ++ consoleScalacOptions().filterNot(Set(useJavaCp)),
-            workingDir = forkWorkingDir()
-          )
-        }
+      SystemStreams.withStreams(SystemStreams.original) {
+        Jvm.runSubprocess(
+          mainClass =
+            if (ZincWorkerUtil.isDottyOrScala3(scalaVersion()))
+              "dotty.tools.repl.Main"
+            else
+              "scala.tools.nsc.MainGenericRunner",
+          classPath = runClasspath().map(_.path) ++ scalaCompilerClasspath().map(
+            _.path
+          ),
+          jvmArgs = forkArgs(),
+          envArgs = forkEnv(),
+          mainArgs = Seq(useJavaCp) ++ consoleScalacOptions().filterNot(Set(useJavaCp)),
+          workingDir = forkWorkingDir()
+        )
       }
       Result.Success(())
     }
