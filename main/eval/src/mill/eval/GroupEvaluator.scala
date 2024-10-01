@@ -301,8 +301,7 @@ private[mill] trait GroupEvaluator {
                   if (serial) {
                     logger.reportKey(Seq(counterMsg))
                     logger.withPromptPaused { t }
-                  }
-                  else t
+                  } else t
                 }
               }
             }
