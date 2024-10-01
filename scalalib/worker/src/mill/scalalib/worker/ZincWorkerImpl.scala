@@ -66,7 +66,7 @@ class ZincWorkerImpl(
 ) extends ZincWorkerApi with AutoCloseable {
   private val zincLogLevel = if (zincLogDebug) sbt.util.Level.Debug else sbt.util.Level.Info
   private[this] val ic = new sbt.internal.inc.IncrementalCompilerImpl()
-  private val javaOnlyCompilersCache = mutable.Map.empty[Seq[String], SoftReference[Compilers]]
+  private val javaOnlyCompilersCache = new ZincWorkerImpl.Cache[Seq[String], Compilers]
 
   private val filterJavacRuntimeOptions: String => Boolean = opt => opt.startsWith("-J")
 
@@ -74,41 +74,37 @@ class ZincWorkerImpl(
     // Only options relevant for the compiler runtime influence the cached instance
     val javacRuntimeOptions = javacOptions.filter(filterJavacRuntimeOptions)
 
-    javaOnlyCompilersCache.get(javacRuntimeOptions) match {
-      case Some(SoftReference(compilers)) => compilers
-      case _ =>
-        // Keep the classpath as written by the user
-        val classpathOptions = ClasspathOptions.of(
-          /*bootLibrary*/ false,
-          /*compiler*/ false,
-          /*extra*/ false,
-          /*autoBoot*/ false,
-          /*filterLibrary*/ false
-        )
+    javaOnlyCompilersCache.getOrElseCreate(javacRuntimeOptions) {
+      // Keep the classpath as written by the user
+      val classpathOptions = ClasspathOptions.of(
+        /*bootLibrary*/ false,
+        /*compiler*/ false,
+        /*extra*/ false,
+        /*autoBoot*/ false,
+        /*filterLibrary*/ false
+      )
 
-        val dummyFile = new java.io.File("")
-        // Zinc does not have an entry point for Java-only compilation, so we need
-        // to make up a dummy ScalaCompiler instance.
-        val scalac = ZincUtil.scalaCompiler(
-          new ScalaInstance(
-            version = "",
-            loader = null,
-            loaderCompilerOnly = null,
-            loaderLibraryOnly = null,
-            libraryJars = Array(dummyFile),
-            compilerJars = Array(dummyFile),
-            allJars = new Array(0),
-            explicitActual = Some("")
-          ),
-          dummyFile,
-          classpathOptions // this is used for javac too
-        )
+      val dummyFile = new java.io.File("")
+      // Zinc does not have an entry point for Java-only compilation, so we need
+      // to make up a dummy ScalaCompiler instance.
+      val scalac = ZincUtil.scalaCompiler(
+        new ScalaInstance(
+          version = "",
+          loader = null,
+          loaderCompilerOnly = null,
+          loaderLibraryOnly = null,
+          libraryJars = Array(dummyFile),
+          compilerJars = Array(dummyFile),
+          allJars = new Array(0),
+          explicitActual = Some("")
+        ),
+        dummyFile,
+        classpathOptions // this is used for javac too
+      )
 
-        val javaTools = getLocalOrCreateJavaTools(javacRuntimeOptions)
+      val javaTools = getLocalOrCreateJavaTools(javacRuntimeOptions)
 
-        val compilers = ic.compilers(javaTools, scalac)
-        javaOnlyCompilersCache.update(javacRuntimeOptions, SoftReference(compilers))
-        compilers
+      ic.compilers(javaTools, scalac)
     }
   }
 
@@ -407,26 +403,20 @@ class ZincWorkerImpl(
   // for now this just grows unbounded; YOLO
   // But at least we do not prevent unloading/garbage collecting of classloaders
   private[this] val classloaderCache =
-    collection.mutable.LinkedHashMap.empty[Long, SoftReference[ClassLoader]]
+    new ZincWorkerImpl.AutoCloseableCache[Long, ClassLoader]
 
   def getCachedClassLoader(compilersSig: Long, combinedCompilerJars: Array[java.io.File])(implicit
       ctx: ZincWorkerApi.Ctx
   ): ClassLoader = {
-    classloaderCache.synchronized {
-      classloaderCache.get(compilersSig) match {
-        case Some(SoftReference(cl)) => cl
-        case _ =>
-          // the Scala compiler must load the `xsbti.*` classes from the same loader than `ZincWorkerImpl`
-          val sharedPrefixes = Seq("xsbti")
-          val cl = mill.api.ClassLoader.create(
-            combinedCompilerJars.map(_.toURI.toURL).toSeq,
-            parent = null,
-            sharedLoader = getClass.getClassLoader,
-            sharedPrefixes
-          )
-          classloaderCache.update(compilersSig, SoftReference(cl))
-          cl
-      }
+    classloaderCache.getOrElseCreate(compilersSig) {
+      // the Scala compiler must load the `xsbti.*` classes from the same loader than `ZincWorkerImpl`
+      val sharedPrefixes = Seq("xsbti")
+      mill.api.ClassLoader.create(
+        combinedCompilerJars.map(_.toURI.toURL).toSeq,
+        parent = null,
+        sharedLoader = getClass.getClassLoader,
+        sharedPrefixes
+      )
     }
   }
 
@@ -654,19 +644,6 @@ class ZincWorkerImpl(
   }
 
   override def close(): Unit = {
-    val closeableClassloaders = classloaderCache
-      .flatMap(_._2.get)
-      .collect { case v: AutoCloseable => v }
-
-    val urlClassLoaders =
-      classloaderCache.flatMap(_._2.get).collect { case t: java.net.URLClassLoader => t }
-
-    // Make sure we at least pick up all the URLClassLoaders, since we know those are
-    // AutoCloseable, although there may be other AutoCloseable classloaders as well
-    assert(urlClassLoaders.toSet[AutoCloseable].subsetOf(closeableClassloaders.toSet))
-
-    closeableClassloaders.foreach(_.close())
-
     classloaderCache.clear()
     javaOnlyCompilersCache.clear()
   }
@@ -707,5 +684,37 @@ object ZincWorkerImpl {
       seenModules = List(),
       toAnalyze = List((List(start), deps(start).toList))
     ).reverse
+  }
+
+  private class AutoCloseableCache[A, B <: AnyRef] extends Cache[A, B] {
+    override def clear(): Unit = {
+      import scala.jdk.CollectionConverters._
+
+      cache
+        .values()
+        .iterator()
+        .asScala
+        .foreach { case SoftReference(v: AutoCloseable) =>
+          v.close()
+        }
+
+      super.clear()
+    }
+  }
+
+  private class Cache[A, B <: AnyRef] {
+    protected val cache =
+      new java.util.concurrent.ConcurrentHashMap[A, SoftReference[B]]
+
+    def getOrElseCreate(a: A)(create: => B) =
+      cache.compute(
+        a,
+        {
+          case (_, v @ SoftReference(_)) => v
+          case _ => SoftReference(create)
+        }
+      )()
+
+    def clear(): Unit = cache.clear()
   }
 }

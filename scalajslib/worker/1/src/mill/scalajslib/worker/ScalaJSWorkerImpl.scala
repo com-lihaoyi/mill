@@ -22,7 +22,6 @@ import org.scalajs.jsenv.{Input, JSEnv, RunConfig}
 import org.scalajs.testing.adapter.TestAdapter
 import org.scalajs.testing.adapter.{TestAdapterInitializer => TAI}
 
-import scala.collection.mutable
 import scala.ref.SoftReference
 
 import com.armanbilge.sjsimportmap.ImportMappedIRFile
@@ -44,16 +43,22 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
     case _ => true
   }
   private object ScalaJSLinker {
-    private val irFileCache = StandardImpl.irFileCache()
-    private val cache = mutable.Map.empty[LinkerInput, SoftReference[(Linker, IRFileCache.Cache)]]
-    def reuseOrCreate(input: LinkerInput): (Linker, IRFileCache.Cache) = cache.get(input) match {
-      case Some(SoftReference((linker, irFileCacheCache))) => (linker, irFileCacheCache)
-      case _ =>
-        val newResult = createLinker(input)
-        cache.update(input, SoftReference(newResult))
-        newResult
+    private class Cache[A, B <: AnyRef] {
+      protected val cache = new java.util.concurrent.ConcurrentHashMap[A, SoftReference[B]]
+
+      def getOrElseCreate(a: A)(create: => B) =
+        cache.compute(
+          a,
+          {
+            case (_, v @ SoftReference(_)) => v
+            case _                         => SoftReference(create)
+          }
+        )()
     }
-    private def createLinker(input: LinkerInput): (Linker, IRFileCache.Cache) = {
+    private val irFileCache = StandardImpl.irFileCache()
+    private val cache = new Cache[LinkerInput, (Linker, IRFileCache.Cache)]
+
+    def reuseOrCreate(input: LinkerInput): (Linker, IRFileCache.Cache) = cache.getOrElseCreate(input) {
       val semantics = input.isFullLinkJS match {
         case true => Semantics.Defaults.optimized
         case false => Semantics.Defaults
@@ -234,16 +239,16 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
         if (useLegacy) {
           val jsFileName = "out.js"
           val jsFile = new File(dest, jsFileName).toPath()
-          var linkerOutput = LinkerOutput(PathOutputFile(jsFile))
+          var linkerOutput = (LinkerOutput(PathOutputFile(jsFile)): @scala.annotation.nowarn("cat=deprecation"))
             .withJSFileURI(java.net.URI.create(jsFile.getFileName.toString))
           val sourceMapNameOpt = Option.when(sourceMap)(s"${jsFile.getFileName}.map")
           sourceMapNameOpt.foreach { sourceMapName =>
             val sourceMapFile = jsFile.resolveSibling(sourceMapName)
             linkerOutput = linkerOutput
-              .withSourceMap(PathOutputFile(sourceMapFile))
+              .withSourceMap(PathOutputFile(sourceMapFile): @scala.annotation.nowarn("cat=deprecation"))
               .withSourceMapURI(java.net.URI.create(sourceMapFile.getFileName.toString))
           }
-          linker.link(irFiles, moduleInitializers, linkerOutput, logger).map {
+          (linker.link(irFiles, moduleInitializers, linkerOutput, logger): @scala.annotation.nowarn("cat=deprecation")).map {
             file =>
               Report(
                 publicModules = Seq(Report.Module(
