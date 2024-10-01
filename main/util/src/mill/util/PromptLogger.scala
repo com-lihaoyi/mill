@@ -127,6 +127,22 @@ private[mill] class PromptLogger(
   }
 
   def systemStreams = streamManager.systemStreams
+
+
+  private[mill] override def withPromptPaused[T](t: => T): T = {
+    paused = true
+
+    try {
+      // Clear the prompt so the code in `t` has a blank terminal to work with
+      outputStream.flush()
+      errorStream.flush()
+      systemStreams0.err.write(AnsiNav.clearScreen(0).getBytes)
+      SystemStreams.withStreams(systemStreams0) {
+        t
+      }
+    } finally paused = false
+  }
+
 }
 
 private[mill] object PromptLogger {

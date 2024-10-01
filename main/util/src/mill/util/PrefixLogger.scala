@@ -98,7 +98,7 @@ class PrefixLogger(
   private[mill] override def setPromptLeftHeader(s: String): Unit = logger0.setPromptLeftHeader(s)
   override def enableTicker = logger0.enableTicker
 
-  override def subLogger(path: os.Path, subKeySuffix: String, message: String): Logger = {
+  private[mill] override def subLogger(path: os.Path, subKeySuffix: String, message: String): Logger = {
     new PrefixLogger(
       logger0,
       key :+ subKeySuffix,
@@ -109,6 +109,7 @@ class PrefixLogger(
       message
     )
   }
+  private[mill] override def withPromptPaused[T](t: => T): T = logger0.withPromptPaused(t)
 }
 
 object PrefixLogger {
