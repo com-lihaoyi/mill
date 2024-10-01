@@ -183,7 +183,7 @@ trait KotlinModule extends JavaModule { outer =>
    * Dokka version.
    */
   def dokkaVersion: T[String] = T {
-    "1.9.20"
+    Versions.dokkaVersion
   }
 
   /**

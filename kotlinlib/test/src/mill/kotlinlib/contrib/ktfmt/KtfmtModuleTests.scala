@@ -9,6 +9,9 @@ import mill.testkit.{TestBaseModule, UnitTester}
 import utest.{TestSuite, Tests, assert, test}
 
 object KtfmtModuleTests extends TestSuite {
+
+  val kotlinVersion = "1.9.24"
+
   def tests: Tests = Tests {
 
     val (before, after) = {
@@ -95,7 +98,7 @@ object KtfmtModuleTests extends TestSuite {
   ): Seq[os.Path] = {
 
     object module extends TestBaseModule with KotlinModule with KtfmtModule {
-      override def kotlinVersion: T[String] = "1.9.24"
+      override def kotlinVersion: T[String] = KtfmtModuleTests.kotlinVersion
     }
 
     val eval = UnitTester(module, moduleRoot)
@@ -123,7 +126,7 @@ object KtfmtModuleTests extends TestSuite {
   def afterFormatAll(modulesRoot: os.Path, format: Boolean = true): Seq[os.Path] = {
 
     object module extends TestBaseModule with KotlinModule {
-      override def kotlinVersion: T[String] = "1.9.24"
+      override def kotlinVersion: T[String] = KtfmtModuleTests.kotlinVersion
     }
 
     val eval = UnitTester(module, modulesRoot)
