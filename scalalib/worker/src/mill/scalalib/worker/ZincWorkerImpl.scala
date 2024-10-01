@@ -686,22 +686,10 @@ object ZincWorkerImpl {
     ).reverse
   }
 
-  private class AutoCloseableCache[A, B <: AnyRef] extends Cache[A, B] {
-    override def clear(): Unit = {
-      import scala.jdk.CollectionConverters._
-
-      cache
-        .values()
-        .iterator()
-        .asScala
-        .foreach { case SoftReference(v: AutoCloseable) =>
-          v.close()
-        }
-
-      super.clear()
-    }
-  }
-
+  /**
+   * In memory cache backed by a ConcurrentHashMap[A, SoftReference[B]]
+   * `SoftReference`s allow the GC to free values when memory is scarce
+   */
   private class Cache[A, B <: AnyRef] {
     protected val cache =
       new java.util.concurrent.ConcurrentHashMap[A, SoftReference[B]]
@@ -716,5 +704,22 @@ object ZincWorkerImpl {
       )()
 
     def clear(): Unit = cache.clear()
+  }
+
+  /** Cache that closes all `AutoClosable` values when `clear`ed */
+  private class AutoCloseableCache[A, B <: AnyRef] extends Cache[A, B] {
+    override def clear(): Unit = {
+      import scala.jdk.CollectionConverters._
+
+      cache
+        .values()
+        .iterator()
+        .asScala
+        .foreach { case SoftReference(v: AutoCloseable) =>
+          v.close()
+        }
+
+      super.clear()
+    }
   }
 }
