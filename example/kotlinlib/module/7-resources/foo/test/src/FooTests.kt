@@ -24,14 +24,14 @@ class FooTests : FunSpec({
         }
         testClasspathResourceText shouldBe "Test Hello World Resource File A"
 
-        // Use `MILL_TEST_RESOURCE_FOLDER` to read `test-file-b.txt` from filesystem
-        val testFileResourceDir = Paths.get(System.getenv("MILL_TEST_RESOURCE_FOLDER"))
+        // Use `MILL_TEST_RESOURCE_DIR` to read `test-file-b.txt` from filesystem
+        val testFileResourceDir = Paths.get(System.getenv("MILL_TEST_RESOURCE_DIR"))
         val testFileResourceText = Files.readString(
             testFileResourceDir.resolve("test-file-b.txt")
         )
         testFileResourceText shouldBe "Test Hello World Resource File B"
 
-        // Use `MILL_TEST_RESOURCE_FOLDER` to list files available in resource folder
+        // Use `MILL_TEST_RESOURCE_DIR` to list files available in resource folder
         val actualFiles = Files.list(testFileResourceDir).toList().sorted()
         val expectedFiles = listOf(
             testFileResourceDir.resolve("test-file-a.txt"),
@@ -39,10 +39,10 @@ class FooTests : FunSpec({
         )
         actualFiles shouldBe expectedFiles
 
-        // Use the `OTHER_FILES_FOLDER` configured in your build to access the
+        // Use the `OTHER_FILES_DIR` configured in your build to access the
         // files in `foo/test/other-files/`.
         val otherFileText = Files.readString(
-            Paths.get(System.getenv("OTHER_FILES_FOLDER"), "other-file.txt")
+            Paths.get(System.getenv("OTHER_FILES_DIR"), "other-file.txt")
         )
         otherFileText shouldBe "Other Hello World File"
     }

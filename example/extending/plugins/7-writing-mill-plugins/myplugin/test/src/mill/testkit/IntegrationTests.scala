@@ -10,7 +10,7 @@ object IntegrationTests extends TestSuite {
 
     test("integration") {
       pprint.log(sys.env("MILL_EXECUTABLE_PATH"))
-      val resourceFolder = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER"))
+      val resourceFolder = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
       val tester = new IntegrationTester(
         clientServerMode = true,
         workspaceSourcePath = resourceFolder / "integration-test-project",

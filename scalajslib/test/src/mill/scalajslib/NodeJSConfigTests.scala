@@ -54,7 +54,7 @@ object NodeJSConfigTests extends TestSuite {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-js-world"
+  val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-js-world"
 
   val helloWorldEvaluator = UnitTester(HelloJSWorld, millSourcePath)
 

@@ -25,7 +25,7 @@ object ScalaColorOutputTests extends TestSuite {
 
       UnitTester(
         HelloWorldColorOutput,
-        sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world-color-output",
+        sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-color-output",
         errStream = new PrintStream(errStream, true)
       ).scoped { eval =>
         val Left(Result.Failure("Compilation failed", _)) =

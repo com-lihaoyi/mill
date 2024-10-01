@@ -32,7 +32,7 @@ object DottyDocTests extends TestSuite {
     }
   }
 
-  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "dottydoc"
+  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "dottydoc"
 
   def tests: Tests = Tests {
     test("static") - UnitTester(StaticDocsModule, resourcePath).scoped { eval =>

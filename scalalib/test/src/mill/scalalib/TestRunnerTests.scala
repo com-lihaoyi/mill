@@ -70,7 +70,7 @@ object TestRunnerTests extends TestSuite {
     }
   }
 
-  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "testrunner"
+  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "testrunner"
 
   override def tests: Tests = Tests {
     test("TestRunner") - {

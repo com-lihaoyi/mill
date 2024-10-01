@@ -10,7 +10,7 @@ object foo extends KotlinModule {
     def otherFiles = T.source(millSourcePath / "other-files")
 
     def forkEnv = super.forkEnv() ++ Map(
-      "OTHER_FILES_FOLDER" -> otherFiles().path.toString
+      "OTHER_FILES_DIR" -> otherFiles().path.toString
     )
 
     def ivyDeps = super.ivyDeps() ++ Agg(

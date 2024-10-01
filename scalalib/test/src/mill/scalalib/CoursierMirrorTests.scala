@@ -8,7 +8,7 @@ import utest.framework.TestPath
 
 object CoursierMirrorTests extends TestSuite {
 
-  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "coursier"
+  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "coursier"
 
   object CoursierTest extends TestBaseModule {
     object core extends ScalaModule {

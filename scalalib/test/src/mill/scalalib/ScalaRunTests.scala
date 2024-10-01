@@ -104,7 +104,7 @@ object ScalaRunTests extends TestSuite {
       }
       test("notRunWithoutMainClass") - UnitTester(
         HelloWorldWithoutMain,
-        sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world-no-main"
+        sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-no-main"
       ).scoped { eval =>
         val Left(Result.Failure(_, None)) = eval.apply(HelloWorldWithoutMain.core.run())
       }
@@ -156,7 +156,7 @@ object ScalaRunTests extends TestSuite {
       }
       test("notRunWithoutMainClass") - UnitTester(
         HelloWorldWithoutMain,
-        sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world-no-main"
+        sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-no-main"
       ).scoped { eval =>
         val Left(Result.Failure(_, None)) = eval.apply(HelloWorldWithoutMain.core.runLocal())
       }

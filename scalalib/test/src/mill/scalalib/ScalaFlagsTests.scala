@@ -21,7 +21,7 @@ object ScalaFlagsTests extends TestSuite {
       // make sure flags are passed when compiling/running
       test("runMain") - UnitTester(
         HelloWorldFlags,
-        sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world-flags"
+        sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-flags"
       ).scoped { eval =>
         val Right(result) = eval.apply(HelloWorldFlags.core.runMain("Main"))
         assert(result.evalCount > 0)
@@ -29,7 +29,7 @@ object ScalaFlagsTests extends TestSuite {
       // make sure flags are passed during ScalaDoc generation
       test("docJar") - UnitTester(
         HelloWorldFlags,
-        sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world-flags"
+        sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-flags"
       ).scoped { eval =>
         val Right(result) = eval.apply(HelloWorldFlags.core.docJar)
         assert(result.evalCount > 0)

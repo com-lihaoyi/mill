@@ -38,7 +38,7 @@ private[scalalib] object TestModuleUtil {
       .mkString(",")
 
     val resourceEnv = Map(
-      EnvVars.MILL_TEST_RESOURCE_FOLDER -> resources.map(_.path).mkString(";"),
+      EnvVars.MILL_TEST_RESOURCE_DIR -> resources.map(_.path).mkString(";"),
       EnvVars.MILL_WORKSPACE_ROOT -> T.workspace.toString
     )
 

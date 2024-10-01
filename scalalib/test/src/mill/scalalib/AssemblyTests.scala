@@ -54,7 +54,7 @@ object AssemblyTests extends TestSuite {
 
   }
 
-  val sources = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "assembly"
+  val sources = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "assembly"
 
   def runAssembly(file: os.Path, wd: os.Path, checkExe: Boolean = false): Unit = {
     println(s"File size: ${os.stat(file).size}")

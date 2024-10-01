@@ -36,7 +36,7 @@ object ScalaMacrosTests extends TestSuite {
         val mod = HelloWorldMacros212
         test("runMain") - UnitTester(
           mod,
-          sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world-macros"
+          sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-macros"
         ).scoped { eval =>
           if (Properties.isJavaAtLeast(17)) "skipped on Java 17+"
           else {
@@ -47,7 +47,7 @@ object ScalaMacrosTests extends TestSuite {
         // make sure macros are applied when compiling during scaladoc generation
         test("docJar") - UnitTester(
           mod,
-          sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world-macros"
+          sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-macros"
         ).scoped { eval =>
           if (Properties.isJavaAtLeast(17)) "skipped on Java 17+"
           else {
@@ -61,7 +61,7 @@ object ScalaMacrosTests extends TestSuite {
         val mod = HelloWorldMacros213
         test("runMain") - UnitTester(
           mod,
-          sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world-macros"
+          sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-macros"
         ).scoped { eval =>
           val Right(result) = eval.apply(mod.core.runMain("Main"))
           assert(result.evalCount > 0)
@@ -69,7 +69,7 @@ object ScalaMacrosTests extends TestSuite {
         // make sure macros are applied when compiling during scaladoc generation
         test("docJar") - UnitTester(
           mod,
-          sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world-macros"
+          sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-macros"
         ).scoped { eval =>
           val Right(result) = eval.apply(mod.core.docJar)
           assert(result.evalCount > 0)

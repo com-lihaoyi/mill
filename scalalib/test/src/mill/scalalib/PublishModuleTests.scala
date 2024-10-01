@@ -77,7 +77,7 @@ object PublishModuleTests extends TestSuite {
     }
   }
 
-  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "publish"
+  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "publish"
 
   def tests: Tests = Tests {
     test("pom") {

@@ -26,14 +26,14 @@ public class FooTests {
     }
     assertEquals("Test Hello World Resource File A", testClasspathResourceText);
 
-    // Use `MILL_TEST_RESOURCE_FOLDER` to read `test-file-b.txt` from filesystem
-    Path testFileResourceDir = Paths.get(System.getenv("MILL_TEST_RESOURCE_FOLDER"));
+    // Use `MILL_TEST_RESOURCE_DIR` to read `test-file-b.txt` from filesystem
+    Path testFileResourceDir = Paths.get(System.getenv("MILL_TEST_RESOURCE_DIR"));
     String testFileResourceText = Files.readString(
         testFileResourceDir.resolve("test-file-b.txt")
     );
     assertEquals("Test Hello World Resource File B", testFileResourceText);
 
-    // Use `MILL_TEST_RESOURCE_FOLDER` to list files available in resource folder
+    // Use `MILL_TEST_RESOURCE_DIR` to list files available in resource folder
     List<Path> actualFiles = new ArrayList<>(Files.list(testFileResourceDir).toList());
     actualFiles.sort(Path::compareTo);
     List<Path> expectedFiles = List.of(
@@ -42,10 +42,10 @@ public class FooTests {
     );
     assertEquals(expectedFiles, actualFiles);
 
-    // Use the `OTHER_FILES_FOLDER` configured in your build to access the
+    // Use the `OTHER_FILES_DIR` configured in your build to access the
     // files in `foo/test/other-files/`.
     String otherFileText = Files.readString(
-        Paths.get(System.getenv("OTHER_FILES_FOLDER"), "other-file.txt")
+        Paths.get(System.getenv("OTHER_FILES_DIR"), "other-file.txt")
     );
     assertEquals("Other Hello World File", otherFileText);
   }

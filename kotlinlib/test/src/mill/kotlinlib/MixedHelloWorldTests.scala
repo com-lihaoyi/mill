@@ -29,7 +29,7 @@ object MixedHelloWorldTests extends TestSuite {
   }
 
   val resourcePath =
-    os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "mixed-code-hello-world-kotlin"
+    os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "mixed-code-hello-world-kotlin"
 
   def testEval() = UnitTester(MixedHelloWorldKotlin, resourcePath)
   def tests: Tests = Tests {

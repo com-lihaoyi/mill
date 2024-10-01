@@ -11,7 +11,7 @@ import scala.xml.{Node, XML}
 
 object KoverModuleTests extends TestSuite {
 
-  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "contrib" / "kover"
+  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "contrib" / "kover"
 
   object module extends TestBaseModule {
 

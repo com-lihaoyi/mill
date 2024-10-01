@@ -22,7 +22,7 @@ object RouterModuleTests extends TestSuite with PlayTestSuite {
 
   }
 
-  val resourceFolder = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER"))
+  val resourceFolder = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
   val resourcePath: os.Path = resourceFolder / "hello-world"
   val invalidResourcePath: os.Path = resourceFolder / "invalid"
   val invalidSubResourcePath: os.Path = resourceFolder / "invalidsub"
