@@ -135,7 +135,7 @@ object TestRunnerTestUtils {
   }
 }
 
-object UtestTestRunnerTests {
+object UtestTestRunnerTests extends TestSuite {
   import TestRunnerTestUtils._
   override def tests: Tests = Tests {
     test("utest") - {
@@ -244,7 +244,7 @@ object UtestTestRunnerTests {
 
 }
 
-object ScalatestTestRunnerTests {
+object ScalatestTestRunnerTests extends TestSuite {
   import TestRunnerTestUtils._
   override def tests: Tests = Tests {
     test("ScalaTest") {
@@ -291,7 +291,7 @@ object ScalatestTestRunnerTests {
 
 }
 
-object ZiotestTestRunnerTests {
+object ZiotestTestRunnerTests extends TestSuite {
   import TestRunnerTestUtils._
   override def tests: Tests = Tests {
     test("ZioTest") {

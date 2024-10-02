@@ -96,13 +96,10 @@ private[scalalib] object TestModuleUtil {
       case Nil => runTestSubprocess(Nil, T.dest)
       case Seq(singleTestClassList) => runTestSubprocess(singleTestClassList, T.dest)
       case multipleTestClassLists =>
-        val hasMultiClassGroup = multipleTestClassLists.exists(_.length > 1)
         val futures = multipleTestClassLists.zipWithIndex.map { case (testClassList, i) =>
           val groupLabel = testClassList match {
-            case Seq(single) =>
-              if (hasMultiClassGroup) s"group-$i-$single"
-              else single
-            case multiple => s"group-$i"
+            case Seq(single) => single
+            case multiple => multiple.mkString(", ") + s" (${multiple.length} suites)"
           }
 
           T.fork.async(T.dest / groupLabel, "" + i, groupLabel) {
