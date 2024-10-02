@@ -193,8 +193,8 @@ object UtestTestRunnerTests extends TestSuite {
             // test group in a subfolder with the index of the group, and for any test groups
             // with only one test class we append the name of the class
             testrunnerGrouping.utest -> Set(
-              "group-0",
-              "group-1-mill.scalalib.FoobarTests",
+              "group-0-mill.scalalib.BarTests",
+              "mill.scalalib.FoobarTests",
               "test-report.xml"
             )
           )

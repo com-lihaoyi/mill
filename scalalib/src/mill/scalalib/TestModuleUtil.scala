@@ -97,14 +97,19 @@ private[scalalib] object TestModuleUtil {
       case Seq(singleTestClassList) => runTestRunnerSubprocess(singleTestClassList, T.dest)
       case multipleTestClassLists =>
         val futures = multipleTestClassLists.zipWithIndex.map { case (testClassList, i) =>
-          val groupLabel = testClassList match {
+          val groupPromptMessage = testClassList match {
             case Seq(single) => single
             case multiple =>
               collapseTestClassNames(multiple).mkString(", ") + s", ${multiple.length} suites"
           }
 
-          T.fork.async(T.dest / groupLabel, "" + i, groupLabel) {
-            (groupLabel, runTestRunnerSubprocess(testClassList, T.dest / groupLabel))
+          val folderName = testClassList match {
+            case Seq(single) => single
+            case multiple => s"group-$i-${multiple.head}"
+          }
+
+          T.fork.async(T.dest / folderName, "" + i, groupPromptMessage) {
+            (folderName, runTestRunnerSubprocess(testClassList, T.dest / folderName))
           }
         }
 
