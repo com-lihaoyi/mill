@@ -99,11 +99,13 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
     }.map { f => (cls, f) }
   }
 
-  def getTestTasks(framework: Framework,
-                   args: Seq[String],
-                   classFilter: Class[_] => Boolean,
-                   cl: ClassLoader,
-                   testClassfilePath: Loose.Agg[Path]) = {
+  def getTestTasks(
+      framework: Framework,
+      args: Seq[String],
+      classFilter: Class[_] => Boolean,
+      cl: ClassLoader,
+      testClassfilePath: Loose.Agg[Path]
+  ) = {
 
     val runner = framework.runner(args.toArray, Array[String](), cl)
     val testClasses = discoverTests(cl, framework, testClassfilePath)
@@ -127,8 +129,9 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
     (runner, tasks)
   }
 
-  def runTasks(tasks: Seq[Task], testReporter: TestReporter, runner: Runner)
-              (implicit ctx: Ctx.Log with Ctx.Home) = {
+  def runTasks(tasks: Seq[Task], testReporter: TestReporter, runner: Runner)(implicit
+      ctx: Ctx.Log with Ctx.Home
+  ) = {
     val events = new ConcurrentLinkedQueue[Event]()
     val doneMessage = {
 
@@ -198,7 +201,6 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
 
     val framework = frameworkInstances(cl)
 
-
     val (runner, tasks) = getTestTasks(framework, args, classFilter, cl, testClassfilePath)
 
     val (doneMessage, results) = runTasks(tasks, testReporter, runner)
@@ -211,7 +213,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
       testClassfilePath: Loose.Agg[Path],
       args: Seq[String],
       classFilter: Class[_] => Boolean,
-      cl: ClassLoader,
+      cl: ClassLoader
   ): Array[String] = {
     val framework = frameworkInstances(cl)
     val (runner, tasks) = getTestTasks(framework, args, classFilter, cl, testClassfilePath)

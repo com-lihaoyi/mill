@@ -4,7 +4,6 @@ import mill._
 import mill.util.Jvm
 import mill.testkit.{UnitTester, TestBaseModule}
 
-
 trait AssemblyTestUtils {
 
   object TestCase extends TestBaseModule {

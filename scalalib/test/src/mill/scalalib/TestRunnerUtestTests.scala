@@ -11,7 +11,6 @@ import utest._
 import java.io.{ByteArrayOutputStream, PrintStream}
 import scala.xml.{Elem, NodeSeq, XML}
 
-
 object TestRunnerUtestTests extends TestSuite {
   import TestRunnerTestUtils._
   override def tests: Tests = Tests {

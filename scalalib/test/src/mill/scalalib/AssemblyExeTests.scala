@@ -10,7 +10,6 @@ import utest._
 // - https://github.com/com-lihaoyi/mill/issues/528
 // - https://github.com/com-lihaoyi/mill/issues/2650
 
-
 object AssemblyExeTests extends TestSuite with AssemblyTestUtils {
 
   def tests: Tests = Tests {
