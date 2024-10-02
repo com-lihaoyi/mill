@@ -15,7 +15,7 @@ object KtfmtModuleTests extends TestSuite {
   def tests: Tests = Tests {
 
     val (before, after) = {
-      val root = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "contrib" / "ktfmt"
+      val root = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "contrib" / "ktfmt"
       (root / "before", root / "after")
     }
 

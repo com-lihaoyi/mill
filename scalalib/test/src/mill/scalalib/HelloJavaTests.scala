@@ -25,7 +25,7 @@ object HelloJavaTests extends TestSuite {
       }
     }
   }
-  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-java"
+  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-java"
 
   def testEval() = UnitTester(HelloJava, resourcePath)
   def tests: Tests = Tests {

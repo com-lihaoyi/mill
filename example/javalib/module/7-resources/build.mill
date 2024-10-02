@@ -7,7 +7,7 @@ object foo extends JavaModule {
     def otherFiles = Task.Source(millSourcePath / "other-files")
 
     def forkEnv = super.forkEnv() ++ Map(
-      "OTHER_FILES_FOLDER" -> otherFiles().path.toString
+      "OTHER_FILES_DIR" -> otherFiles().path.toString
     )
   }
 }

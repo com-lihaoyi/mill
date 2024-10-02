@@ -5,7 +5,7 @@ import utest._
 object IntegrationTesterTests extends TestSuite with IntegrationTestSuite {
   def clientServerMode = true
   def workspaceSourcePath =
-    os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "integration-test-example-project"
+    os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "integration-test-example-project"
   def millExecutable = os.Path(sys.env("MILL_EXECUTABLE_PATH"))
   def tests: Tests = Tests {
 

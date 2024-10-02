@@ -16,7 +16,7 @@ object ErrorProneTests extends TestSuite {
     ))
   }
 
-  val testModuleSourcesPath: Path = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "simple"
+  val testModuleSourcesPath: Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "simple"
 
   def tests = Tests {
     test("reference") {

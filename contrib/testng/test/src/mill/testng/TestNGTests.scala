@@ -37,7 +37,7 @@ object TestNGTests extends TestSuite {
 
   }
 
-  val resourcePath: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "demo"
+  val resourcePath: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "demo"
 
   def tests: Tests = Tests {
     test("TestNG") {

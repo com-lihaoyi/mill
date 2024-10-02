@@ -11,7 +11,7 @@ public class EnvVars {
      * in a convenient fashion. If multiple resource folders are provided on the classpath,
      * they are provided as a comma-separated list
      */
-    public static final String MILL_TEST_RESOURCE_FOLDER = "MILL_TEST_RESOURCE_FOLDER";
+    public static final String MILL_TEST_RESOURCE_DIR = "MILL_TEST_RESOURCE_DIR";
 
 
     /**

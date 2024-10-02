@@ -55,7 +55,7 @@ object TutorialTests extends TestSuite {
     }
   }
 
-  val resourcePath: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER"))
+  val resourcePath: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
 
   def protobufOutPath(eval: UnitTester): os.Path =
     eval.outPath / "core/compileScalaPB.dest/com/example/tutorial"

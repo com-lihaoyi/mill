@@ -41,7 +41,7 @@ object EsModuleRemapTests extends TestSuite {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "esModuleRemap"
+  val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "esModuleRemap"
 
   val tests: Tests = Tests {
     test("should remap the esmodule") {

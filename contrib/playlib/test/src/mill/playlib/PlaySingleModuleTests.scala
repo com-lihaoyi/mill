@@ -13,7 +13,7 @@ object PlaySingleModuleTests extends TestSuite with PlayTestSuite {
     object test extends PlayTests
   }
 
-  val resourcePath: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "playsingle"
+  val resourcePath: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "playsingle"
 
   def tests: Tests = Tests {
     test("layout") {

@@ -5,7 +5,7 @@ import utest._
 
 object UnitTesterTests extends TestSuite {
 
-  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "unit-test-example-project"
+  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "unit-test-example-project"
   def tests: Tests = Tests {
     test("simple") {
       object build extends TestBaseModule {

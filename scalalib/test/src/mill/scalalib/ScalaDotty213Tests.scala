@@ -17,7 +17,7 @@ object ScalaDotty213Tests extends TestSuite {
 
     test("dotty213") - UnitTester(
       Dotty213,
-      sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "dotty213"
+      sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "dotty213"
     ).scoped { eval =>
       val Right(result) = eval.apply(Dotty213.foo.run())
       assert(result.evalCount > 0)

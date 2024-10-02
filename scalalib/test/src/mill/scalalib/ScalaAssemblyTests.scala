@@ -148,7 +148,7 @@ object ScalaAssemblyTests extends TestSuite {
           }
 
         val helloWorldMultiResourcePath =
-          os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world-multi"
+          os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-multi"
 
         def checkAppendMulti[M <: mill.testkit.TestBaseModule](
             module: M,
@@ -268,7 +268,7 @@ object ScalaAssemblyTests extends TestSuite {
 
           test("run") - UnitTester(
             HelloWorldAkkaHttpRelocate,
-            sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world-deps"
+            sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-deps"
           ).scoped { eval =>
             val Right(result) = eval.apply(HelloWorldAkkaHttpRelocate.core.runMain("Main"))
             assert(result.evalCount > 0)

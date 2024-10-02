@@ -10,7 +10,7 @@ object CheckstyleModuleTest extends TestSuite {
 
   def tests: Tests = Tests {
 
-    val resources: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER"))
+    val resources: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
 
     // violations (for version 10.18.1) in "non-compatible" module
     val violations: Seq[String] =

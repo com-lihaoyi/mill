@@ -7,7 +7,7 @@ import mill.scalalib._
 import mill.testkit.{UnitTester, TestBaseModule}
 import utest._
 object MultiModuleTests extends TestSuite {
-  val sourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "multi-module"
+  val sourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "multi-module"
 
   object MultiModule extends TestBaseModule {
     trait BaseModule extends ScalaJSModule {

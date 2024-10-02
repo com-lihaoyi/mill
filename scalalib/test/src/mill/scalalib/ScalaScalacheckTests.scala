@@ -21,7 +21,7 @@ object ScalaScalacheckTests extends TestSuite {
 
     test("scalacheck") - UnitTester(
       HelloScalacheck,
-      sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-scalacheck"
+      sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-scalacheck"
     ).scoped { eval =>
       val Right(result) = eval.apply(HelloScalacheck.foo.test.test())
       assert(

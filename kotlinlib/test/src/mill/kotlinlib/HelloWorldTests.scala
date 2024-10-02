@@ -28,7 +28,7 @@ object HelloWorldTests extends TestSuite {
     object main extends Cross[MainCross](kotlinVersions)
   }
 
-  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world-kotlin"
+  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-kotlin"
 
   def testEval() = UnitTester(HelloWorldKotlin, resourcePath)
   def tests: Tests = Tests {

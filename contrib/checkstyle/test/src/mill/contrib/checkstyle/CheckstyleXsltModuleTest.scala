@@ -10,7 +10,7 @@ object CheckstyleXsltModuleTest extends TestSuite {
 
   def tests: Tests = Tests {
 
-    val resources: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER"))
+    val resources: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
 
     test("checkstyle generates XSLT output reports") {
 
