@@ -405,9 +405,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-67-72497f</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-68-e46c93</button>
   <div class="version-menu">
-    <a class="version is-current" href="module-config.html">0.12.0-RC2-67-72497f</a>
+    <a class="version is-current" href="module-config.html">0.12.0-RC2-68-e46c93</a>
     <a class="version" href="../0.11.12/Java_Module_Config.html">0.11.12</a>
     <a class="version" href="../0.11.11/Java_Module_Config.html">0.11.11</a>
     <a class="version" href="../0.11.10/Java_Module_Config.html">0.11.10</a>
@@ -960,7 +960,7 @@ object foo extends JavaModule {
     def otherFiles = Task.Source(millSourcePath / &quot;other-files&quot;)
 
     def forkEnv = super.forkEnv() ++ Map(
-      &quot;OTHER_FILES_FOLDER&quot; -&gt; otherFiles().path.toString
+      &quot;OTHER_FILES_DIR&quot; -&gt; otherFiles().path.toString
     )
   }
 }</code></pre>
@@ -977,7 +977,7 @@ object foo extends JavaModule {
 <p>This section discusses how tests can depend on resources locally on disk.
 Mill provides two ways to do this: via the JVM classpath resources, and via
 the resource folder which is made available as the environment variable
-<code>MILL_TEST_RESOURCE_FOLDER</code>;</p>
+<code>MILL_TEST_RESOURCE_DIR</code>;</p>
 </div>
 <div class="ulist">
 <ul>
@@ -988,10 +988,10 @@ an assembly jar for deployment. But they do not allow you to list folders
 or perform other filesystem operations.</p>
 </li>
 <li>
-<p>The <strong>resource folder</strong>, available via <code>MILL_TEST_RESOURCE_FOLDER</code>, gives you
+<p>The <strong>resource folder</strong>, available via <code>MILL_TEST_RESOURCE_DIR</code>, gives you
 access to the folder path of the resources on disk. This is useful in allowing
 you to list and otherwise manipulate the filesystem, which you cannot do with
-<strong>classpath resources</strong>. However, the <code>MILL_TEST_RESOURCE_FOLDER</code> only exists
+<strong>classpath resources</strong>. However, the <code>MILL_TEST_RESOURCE_DIR</code> only exists
 when running tests using Mill, and is not available when executing applications
 packaged for deployment via <code>.assembly</code></p>
 </li>
@@ -1074,14 +1074,14 @@ public class FooTests {
     }
     assertEquals(&quot;Test Hello World Resource File A&quot;, testClasspathResourceText);
 
-    // Use `MILL_TEST_RESOURCE_FOLDER` to read `test-file-b.txt` from filesystem
-    Path testFileResourceDir = Paths.get(System.getenv(&quot;MILL_TEST_RESOURCE_FOLDER&quot;));
+    // Use `MILL_TEST_RESOURCE_DIR` to read `test-file-b.txt` from filesystem
+    Path testFileResourceDir = Paths.get(System.getenv(&quot;MILL_TEST_RESOURCE_DIR&quot;));
     String testFileResourceText = Files.readString(
         testFileResourceDir.resolve(&quot;test-file-b.txt&quot;)
     );
     assertEquals(&quot;Test Hello World Resource File B&quot;, testFileResourceText);
 
-    // Use `MILL_TEST_RESOURCE_FOLDER` to list files available in resource folder
+    // Use `MILL_TEST_RESOURCE_DIR` to list files available in resource folder
     List&lt;Path&gt; actualFiles = new ArrayList&lt;&gt;(Files.list(testFileResourceDir).toList());
     actualFiles.sort(Path::compareTo);
     List&lt;Path&gt; expectedFiles = List.of(
@@ -1090,10 +1090,10 @@ public class FooTests {
     );
     assertEquals(expectedFiles, actualFiles);
 
-    // Use the `OTHER_FILES_FOLDER` configured in your build to access the
+    // Use the `OTHER_FILES_DIR` configured in your build to access the
     // files in `foo/test/other-files/`.
     String otherFileText = Files.readString(
-        Paths.get(System.getenv(&quot;OTHER_FILES_FOLDER&quot;), &quot;other-file.txt&quot;)
+        Paths.get(System.getenv(&quot;OTHER_FILES_DIR&quot;), &quot;other-file.txt&quot;)
     );
     assertEquals(&quot;Other Hello World File&quot;, otherFileText);
   }
