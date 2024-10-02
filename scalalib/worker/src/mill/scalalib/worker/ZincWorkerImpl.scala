@@ -402,8 +402,7 @@ class ZincWorkerImpl(
 
   // for now this just grows unbounded; YOLO
   // But at least we do not prevent unloading/garbage collecting of classloaders
-  private[this] val classloaderCache =
-    new ZincWorkerImpl.AutoCloseableCache[Long, ClassLoader]
+  private[this] val classloaderCache = new ZincWorkerImpl.Cache[Long, ClassLoader]
 
   def getCachedClassLoader(compilersSig: Long, combinedCompilerJars: Array[java.io.File])(implicit
       ctx: ZincWorkerApi.Ctx
@@ -644,7 +643,7 @@ class ZincWorkerImpl(
   }
 
   override def close(): Unit = {
-    classloaderCache.clear()
+    classloaderCache.clear(closeAutoCloseables = true)
     javaOnlyCompilersCache.clear()
   }
 }
@@ -703,23 +702,20 @@ object ZincWorkerImpl {
         }
       )()
 
-    def clear(): Unit = cache.clear()
-  }
+    import scala.jdk.CollectionConverters._
+    def clear(closeAutoCloseables: Boolean): Unit = {
 
-  /** Cache that closes all `AutoClosable` values when `clear`ed */
-  private class AutoCloseableCache[A, B <: AnyRef] extends Cache[A, B] {
-    override def clear(): Unit = {
-      import scala.jdk.CollectionConverters._
+      if (closeAutoCloseables) {
+        cache
+          .values()
+          .iterator()
+          .asScala
+          .foreach { case SoftReference(v: AutoCloseable) =>
+            v.close()
+          }
+      }
 
-      cache
-        .values()
-        .iterator()
-        .asScala
-        .foreach { case SoftReference(v: AutoCloseable) =>
-          v.close()
-        }
-
-      super.clear()
+      cache.clear()
     }
   }
 }
