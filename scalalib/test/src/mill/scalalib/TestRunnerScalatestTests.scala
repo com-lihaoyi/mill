@@ -5,7 +5,6 @@ import mill.testkit.UnitTester
 import sbt.testing.Status
 import utest._
 
-
 object TestRunnerScalatestTests extends TestSuite {
   import TestRunnerTestUtils._
   override def tests: Tests = Tests {
@@ -19,7 +18,7 @@ object TestRunnerScalatestTests extends TestSuite {
       val expected = Seq(
         "mill.scalalib.ScalaTestSpec",
         "mill.scalalib.ScalaTestSpec2",
-        "mill.scalalib.ScalaTestSpec3",
+        "mill.scalalib.ScalaTestSpec3"
       )
       assert(result.value == expected)
       expected
@@ -34,7 +33,7 @@ object TestRunnerScalatestTests extends TestSuite {
         Map(
           // No test grouping is triggered because we only run one test class
           testrunner.scalatest -> Set("out.json", "sandbox", "test-report.xml", "testargs"),
-          testrunnerGrouping.scalatest -> Set("out.json", "sandbox", "test-report.xml", "testargs"),
+          testrunnerGrouping.scalatest -> Set("out.json", "sandbox", "test-report.xml", "testargs")
         )
       )
 
@@ -61,8 +60,7 @@ object TestRunnerScalatestTests extends TestSuite {
       )
       test("specific") - tester.testOnly(
         Seq("mill.scalalib.ScalaTestSpec", "--", "-z", "should have size 0"),
-        1,
-
+        1
       )
       test("specificMulti") - tester.testOnly(
         Seq("*", "--", "-z", "should have size 0"),

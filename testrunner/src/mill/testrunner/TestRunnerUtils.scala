@@ -105,7 +105,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
       classFilter: Class[_] => Boolean,
       cl: ClassLoader,
       testClassfilePath: Loose.Agg[Path]
-  ) = {
+  ): (Runner, Array[Task]) = {
 
     val runner = framework.runner(args.toArray, Array[String](), cl)
     val testClasses = discoverTests(cl, framework, testClassfilePath)
@@ -131,7 +131,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
 
   def runTasks(tasks: Seq[Task], testReporter: TestReporter, runner: Runner)(implicit
       ctx: Ctx.Log with Ctx.Home
-  ) = {
+  ): (String, Iterator[TestResult]) = {
     val events = new ConcurrentLinkedQueue[Event]()
     val doneMessage = {
 
