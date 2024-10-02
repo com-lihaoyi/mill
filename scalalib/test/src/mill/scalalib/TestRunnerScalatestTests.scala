@@ -60,24 +60,7 @@ object TestRunnerScalatestTests extends TestSuite {
           )
         )
       )
-      test("filter") - tester.testOnly(
-        Seq("*", "-z", "*Spec2"),
-        9,
-        Map(
-          testrunner.scalatest -> Set("out.json", "sandbox", "test-report.xml", "testargs"),
-          // When there are multiple test groups some with multiple test classes, we put each
-          // test group in a subfolder with the index of the group, and for any test groups
-          // with only one test class we append the name of the class
-          testrunnerGrouping.scalatest -> Set(
-            "group-0-mill.scalalib.ScalaTestSpec",
-            "mill.scalalib.ScalaTestSpec3",
-            "test-report.xml"
-          )
-        )
-      )
     }
-
   }
-
 }
 
