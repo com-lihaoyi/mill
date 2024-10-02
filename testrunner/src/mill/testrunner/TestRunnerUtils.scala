@@ -99,43 +99,38 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
     }.map { f => (cls, f) }
   }
 
-  def runTestFramework0(
-      frameworkInstances: ClassLoader => Framework,
-      testClassfilePath: Loose.Agg[Path],
-      args: Seq[String],
-      classFilter: Class[_] => Boolean,
-      cl: ClassLoader,
-      testReporter: TestReporter
-  )(implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[TestResult]) = {
+  def getTestTasks(framework: Framework,
+                   args: Seq[String],
+                   classFilter: Class[_] => Boolean,
+                   cl: ClassLoader,
+                   testClassfilePath: Loose.Agg[Path]) = {
 
-    val framework = frameworkInstances(cl)
+    val runner = framework.runner(args.toArray, Array[String](), cl)
+    val testClasses = discoverTests(cl, framework, testClassfilePath)
+      // I think this is a bug in sbt-junit-interface. AFAICT, JUnit is not
+      // meant to pick up non-static inner classes as test suites, and doing
+      // so makes the jimfs test suite fail
+      //
+      // https://stackoverflow.com/a/17468590
+      .filter { case (c, f) => !c.isMemberClass }
+
+    val tasks = runner.tasks(
+      for ((cls, fingerprint) <- testClasses.iterator.toArray if classFilter(cls))
+        yield new TaskDef(
+          cls.getName.stripSuffix("$"),
+          fingerprint,
+          false,
+          Array(new SuiteSelector)
+        )
+    )
+
+    (runner, tasks)
+  }
+
+  def runTasks(tasks: Seq[Task], testReporter: TestReporter, runner: Runner)
+              (implicit ctx: Ctx.Log with Ctx.Home) = {
     val events = new ConcurrentLinkedQueue[Event]()
-
     val doneMessage = {
-      val runner = framework.runner(args.toArray, Array[String](), cl)
-      val testClasses = discoverTests(cl, framework, testClassfilePath)
-        // I think this is a bug in sbt-junit-interface. AFAICT, JUnit is not
-        // meant to pick up non-static inner classes as test suites, and doing
-        // so makes the jimfs test suite fail
-        //
-        // https://stackoverflow.com/a/17468590
-        .filter { case (c, f) => !c.isMemberClass }
-
-      // Some test frameworks throw an error here if they cannot find any tests, but
-      // Mill with `testForkGrouping` may break up a test module into multiple groups
-      // some of which may correctly be empty, since Mill cannot reason about the `args`
-      // that the test framework may use to filter the test classes. So we just swallow
-      // the exception here and leave it to Mill to report an error if all of the test
-      // groups all reported empty results
-      val tasks = try runner.tasks(
-        for ((cls, fingerprint) <- testClasses.iterator.toArray if classFilter(cls))
-          yield new TaskDef(
-            cls.getName.stripSuffix("$"),
-            fingerprint,
-            false,
-            Array(new SuiteSelector)
-          )
-      ) catch{case e: Exception => Array.empty[Task]}
 
       val taskQueue = tasks.to(mutable.Queue)
       while (taskQueue.nonEmpty) {
@@ -189,7 +184,38 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
       )
     }
 
+    (doneMessage, results)
+  }
+
+  def runTestFramework0(
+      frameworkInstances: ClassLoader => Framework,
+      testClassfilePath: Loose.Agg[Path],
+      args: Seq[String],
+      classFilter: Class[_] => Boolean,
+      cl: ClassLoader,
+      testReporter: TestReporter
+  )(implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[TestResult]) = {
+
+    val framework = frameworkInstances(cl)
+
+
+    val (runner, tasks) = getTestTasks(framework, args, classFilter, cl, testClassfilePath)
+
+    val (doneMessage, results) = runTasks(tasks, testReporter, runner)
+
     (doneMessage, results.toSeq)
+  }
+
+  def getTestTasks0(
+      frameworkInstances: ClassLoader => Framework,
+      testClassfilePath: Loose.Agg[Path],
+      args: Seq[String],
+      classFilter: Class[_] => Boolean,
+      cl: ClassLoader,
+  ): Array[String] = {
+    val framework = frameworkInstances(cl)
+    val (runner, tasks) = getTestTasks(framework, args, classFilter, cl, testClassfilePath)
+    tasks.map(_.taskDef().fullyQualifiedName())
   }
 
   def globFilter(selectors: Seq[String]): String => Boolean = {

@@ -2,7 +2,7 @@ package mill.scalalib
 
 import mill.api.{Ctx, PathRef, Result}
 import mill.main.client.EnvVars
-import mill.testrunner.{TestArgs, TestResult, TestRunnerUtils}
+import mill.testrunner.{Framework, TestArgs, TestResult, TestRunnerUtils}
 import mill.util.Jvm
 import mill.{Agg, T}
 import sbt.testing.Status
@@ -42,7 +42,7 @@ private[scalalib] object TestModuleUtil {
       EnvVars.MILL_WORKSPACE_ROOT -> T.workspace.toString
     )
 
-    def runTestSubprocess(selectors2: Seq[String], base: os.Path) = {
+    def runTestRunnerSubprocess(selectors2: Seq[String], base: os.Path) = {
       val outputPath = base / "out.json"
       val testArgs = TestArgs(
         framework = testFramework,
@@ -86,15 +86,30 @@ private[scalalib] object TestModuleUtil {
         "\nRun discoveredTestClasses to see available tests"
     )
 
-    val filteredClassLists = testClassLists.map(_.filter(globFilter)).filter(_.nonEmpty)
+    val filteredClassLists0 = testClassLists.map(_.filter(globFilter)).filter(_.nonEmpty)
 
+    val discoveredTests = Jvm.inprocess(
+      (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
+      classLoaderOverrideSbtTesting = true,
+      isolated = true,
+      closeContextClassLoaderWhenDone = false,
+      TestRunnerUtils.getTestTasks0(
+        Framework.framework(testFramework),
+        testClasspath.map(_.path),
+        args,
+        cls => globFilter(cls.getName),
+        _
+      )
+    ).toSet
+
+    val filteredClassLists = filteredClassLists0.map(_.filter(discoveredTests)).filter(_.nonEmpty)
     if (selectors.nonEmpty && filteredClassLists.isEmpty) throw doesNotMatchError
 
     val subprocessResult: Either[String, (String, Seq[TestResult])] = filteredClassLists match {
       // When no tests at all are discovered, run at least one test JVM
       // process to go through the test framework setup/teardown logic
-      case Nil => runTestSubprocess(Nil, T.dest)
-      case Seq(singleTestClassList) => runTestSubprocess(singleTestClassList, T.dest)
+      case Nil => runTestRunnerSubprocess(Nil, T.dest)
+      case Seq(singleTestClassList) => runTestRunnerSubprocess(singleTestClassList, T.dest)
       case multipleTestClassLists =>
         val futures = multipleTestClassLists.zipWithIndex.map { case (testClassList, i) =>
           val groupLabel = testClassList match {
@@ -103,7 +118,7 @@ private[scalalib] object TestModuleUtil {
           }
 
           T.fork.async(T.dest / groupLabel, "" + i, groupLabel) {
-            (groupLabel, runTestSubprocess(testClassList, T.dest / groupLabel))
+            (groupLabel, runTestRunnerSubprocess(testClassList, T.dest / groupLabel))
           }
         }
 
@@ -121,11 +136,6 @@ private[scalalib] object TestModuleUtil {
     subprocessResult match {
       case Left(errMsg) => Result.Failure(errMsg)
       case Right((doneMsg, results)) =>
-        // We throw an error if no tests are found and either `selectors` or `args` are
-        // passed in. This indicates that a user was trying to specify a test to run, v.s.
-        // the common case where no args are passed and the user just wants to "run
-        // everything" and doesn't mind if some modules' "everything" is empty.
-        if (results.isEmpty && (selectors.nonEmpty || args.nonEmpty)) throw doesNotMatchError
         try handleResults(doneMsg, results, T.ctx(), testReportXml)
         catch {
           case e: Throwable => Result.Failure("Test reporting failed: " + e)
