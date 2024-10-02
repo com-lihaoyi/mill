@@ -102,7 +102,7 @@ object Util {
     Option(sys.props(key)) // System property has priority
       .orElse(Option(LongMillProps.getProperty(key)))
 
-  def leftPad(s: String, targetLength: Int, char: Char) = {
+  def leftPad(s: String, targetLength: Int, char: Char): String = {
     char.toString * (targetLength - s.length) + s
   }
 }
