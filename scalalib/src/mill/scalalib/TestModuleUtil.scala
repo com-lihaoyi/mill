@@ -88,27 +88,32 @@ private[scalalib] object TestModuleUtil {
 
     val filteredClassLists0 = testClassLists.map(_.filter(globFilter)).filter(_.nonEmpty)
 
-    // We run test discovery via the test framework's own argument parsing and filtering
-    // logic once in memory before we potentially fork off multiple test groups that will
-    // each do the same thing and then run tests. This duplication is necessary so we can
-    // skip test groups that we know will be empty, which is important because even an empty
-    // test group requires spawning a JVM which can take 1+ seconds to realize there are no
-    // tests to run and shut down
-    val discoveredTests = Jvm.inprocess(
-      (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
-      classLoaderOverrideSbtTesting = true,
-      isolated = true,
-      closeContextClassLoaderWhenDone = false,
-      TestRunnerUtils.getTestTasks0(
-        Framework.framework(testFramework),
-        testClasspath.map(_.path),
-        args,
-        cls => globFilter(cls.getName),
-        _
-      )
-    ).toSet
+    val filteredClassLists =
+      if (filteredClassLists0.size == 1) filteredClassLists0
+      else {
+        // If test grouping is enabled and multiple test groups are detected, we need to
+        // run test discovery via the test framework's own argument parsing and filtering
+        // logic once in memory before we potentially fork off multiple test groups that will
+        // each do the same thing and then run tests. This duplication is necessary so we can
+        // skip test groups that we know will be empty, which is important because even an empty
+        // test group requires spawning a JVM which can take 1+ seconds to realize there are no
+        // tests to run and shut down
+        val discoveredTests = Jvm.inprocess(
+          (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
+          classLoaderOverrideSbtTesting = true,
+          isolated = true,
+          closeContextClassLoaderWhenDone = false,
+          TestRunnerUtils.getTestTasks0(
+            Framework.framework(testFramework),
+            testClasspath.map(_.path),
+            args,
+            cls => globFilter(cls.getName),
+            _
+          )
+        ).toSet
 
-    val filteredClassLists = filteredClassLists0.map(_.filter(discoveredTests)).filter(_.nonEmpty)
+        filteredClassLists0.map(_.filter(discoveredTests)).filter(_.nonEmpty)
+      }
     if (selectors.nonEmpty && filteredClassLists.isEmpty) throw doesNotMatchError
 
     val subprocessResult: Either[String, (String, Seq[TestResult])] = filteredClassLists match {
