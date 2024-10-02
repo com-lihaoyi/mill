@@ -34,17 +34,23 @@ object `package` extends RootModule with KotlinModule {
   }
 }
 
-// This example demonstrates how to set up a simple webserver
-// serving a single "<h1>Hello, World!</h1>" web page using Kotlin and Ktor
+// This example implementing the well known
+// https://todomvc.com/[TodoMVC] example app using Kotlin and Ktor. Apart from running a webserver,
+// this example also demonstrates:
+//
+// * Serving HTML templates using Thymeleaf
+// * Serving static Javascript and CSS using Webjars
+// * Querying a SQL database using Exposed
+// * Testing using a H2 in-memory database
 
 /** Usage
 
  > mill test
 
- > mill runBackground
+ > mill test.runBackground
 
  > curl http://localhost:8080
- ...<h1>Hello, World!</h1>...
+ ...<h1>todos</h1>...
 
  > mill clean runBackground
 
