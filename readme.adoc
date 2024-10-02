@@ -336,7 +336,7 @@ Changes since 0.12.0-RC2
   to run parallel by default {link-pr}/3617[#3617]
 
 * Lots of added docs for Building Kotlin with Mill:
-** Kotlin Build Examples and Linting {link-pr}/3555[#3555],
+** Kotlin Build Examples and Linting {link-pr}/3555[#3555], with KtLint and Detekt support
 ** Kotlin Module Configuration {link-pr}/3585[#3585]
 ** Publishing and Testing Kotlin with Mill {link-pr}/3589[#3589]
 ** Using Mill to build a Ktor web server  {link-pr}/3621[#3621]
