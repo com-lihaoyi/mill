@@ -101,4 +101,8 @@ object Util {
   def millProperty(key: String): Option[String] =
     Option(sys.props(key)) // System property has priority
       .orElse(Option(LongMillProps.getProperty(key)))
+
+  def leftPad(s: String, targetLength: Int, char: Char) = {
+    char.toString * (targetLength - s.length) + s
+  }
 }
