@@ -16,18 +16,21 @@ import java.io.PrintStream
 // - https://github.com/com-lihaoyi/mill/issues/528
 // - https://github.com/com-lihaoyi/mill/issues/2650
 
-object AssemblyTests extends TestSuite {
+object AssemblyTestUtils {
 
   object TestCase extends TestBaseModule {
     trait Setup extends ScalaModule {
       def scalaVersion = "2.13.11"
+
       def sources = Task.Sources(T.workspace / "src")
+
       def ivyDeps = super.ivyDeps() ++ Agg(
         ivy"com.lihaoyi::scalatags:0.8.2",
         ivy"com.lihaoyi::mainargs:0.4.0",
         ivy"org.apache.avro:avro:1.11.1"
       )
     }
+
     trait ExtraDeps extends ScalaModule {
       def ivyDeps = super.ivyDeps() ++ Agg(
         ivy"dev.zio::zio:2.0.15",
@@ -42,6 +45,7 @@ object AssemblyTests extends TestSuite {
       object small extends Setup {
         override def prependShellScript: T[String] = ""
       }
+
       object large extends Setup with ExtraDeps {
         override def prependShellScript: T[String] = ""
       }
@@ -49,13 +53,13 @@ object AssemblyTests extends TestSuite {
 
     object exe extends Module {
       object small extends Setup
+
       object large extends Setup with ExtraDeps
     }
 
   }
 
   val sources = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "assembly"
-
   def runAssembly(file: os.Path, wd: os.Path, checkExe: Boolean = false): Unit = {
     println(s"File size: ${os.stat(file).size}")
     Jvm.runSubprocess(
@@ -71,21 +75,13 @@ object AssemblyTests extends TestSuite {
       )
     }
   }
+}
+
+object AssemblyExeTests extends TestSuite{
+  import AssemblyTestUtils._
 
   def tests: Tests = Tests {
     test("Assembly") {
-      test("noExe") {
-        test("small") - UnitTester(TestCase, sourceRoot = sources).scoped { eval =>
-          val Right(result) = eval(TestCase.noExe.small.assembly)
-          runAssembly(result.value.path, TestCase.millSourcePath)
-
-        }
-        test("large") - UnitTester(TestCase, sourceRoot = sources).scoped { eval =>
-          val Right(result) = eval(TestCase.noExe.large.assembly)
-          runAssembly(result.value.path, TestCase.millSourcePath)
-
-        }
-      }
       test("exe") {
         test("small") - UnitTester(TestCase, sourceRoot = sources).scoped { eval =>
           val Right(result) = eval(TestCase.exe.small.assembly)
@@ -109,6 +105,26 @@ object AssemblyTests extends TestSuite {
               |  def prependShellScript = ""
               |""".stripMargin
           assert(msg == expectedMsg)
+
+        }
+      }
+    }
+  }
+}
+object AssemblyNoExeTests extends TestSuite{
+  import AssemblyTestUtils._
+
+  def tests: Tests = Tests {
+    test("Assembly") {
+      test("noExe") {
+        test("small") - UnitTester(TestCase, sourceRoot = sources).scoped { eval =>
+          val Right(result) = eval(TestCase.noExe.small.assembly)
+          runAssembly(result.value.path, TestCase.millSourcePath)
+
+        }
+        test("large") - UnitTester(TestCase, sourceRoot = sources).scoped { eval =>
+          val Right(result) = eval(TestCase.noExe.large.assembly)
+          runAssembly(result.value.path, TestCase.millSourcePath)
 
         }
       }

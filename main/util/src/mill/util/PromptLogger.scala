@@ -138,6 +138,7 @@ private[mill] class PromptLogger(
     else {
       pauseNoticed = false
       paused = true
+      promptUpdaterThread.interrupt()
       try {
         // After the prompt gets paused, wait until the `promptUpdaterThread` marks
         // `pauseNoticed = true`, so we can be sure it's done printing out prompt updates for
