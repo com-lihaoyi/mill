@@ -86,23 +86,8 @@ private[scalalib] object TestModuleUtil {
         "\nRun discoveredTestClasses to see available tests"
     )
 
-    val filteredClassLists0 = testClassLists.map(_.filter(globFilter)).filter(_.nonEmpty)
+    val filteredClassLists = testClassLists.map(_.filter(globFilter)).filter(_.nonEmpty)
 
-    val discoveredTests = Jvm.inprocess(
-      (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
-      classLoaderOverrideSbtTesting = true,
-      isolated = true,
-      closeContextClassLoaderWhenDone = false,
-      TestRunnerUtils.getTestTasks0(
-        Framework.framework(testFramework),
-        testClasspath.map(_.path),
-        args,
-        cls => globFilter(cls.getName),
-        _
-      )
-    ).toSet
-
-    val filteredClassLists = filteredClassLists0.map(_.filter(discoveredTests)).filter(_.nonEmpty)
     if (selectors.nonEmpty && filteredClassLists.isEmpty) throw doesNotMatchError
 
     val subprocessResult: Either[String, (String, Seq[TestResult])] = filteredClassLists match {
@@ -136,6 +121,7 @@ private[scalalib] object TestModuleUtil {
     subprocessResult match {
       case Left(errMsg) => Result.Failure(errMsg)
       case Right((doneMsg, results)) =>
+        if (results.isEmpty && selectors.nonEmpty) throw doesNotMatchError
         try handleResults(doneMsg, results, T.ctx(), testReportXml)
         catch {
           case e: Throwable => Result.Failure("Test reporting failed: " + e)
