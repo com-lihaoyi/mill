@@ -91,7 +91,7 @@ private[mill] class PromptLogger(
   }
 
   def ticker(s: String): Unit = ()
-  override def setPromptDetail(key: Seq[String], s: String): Unit = {
+  override def setPromptDetail(key: Seq[String], s: String): Unit = synchronized {
     state.updateDetail(key, s)
   }
 
