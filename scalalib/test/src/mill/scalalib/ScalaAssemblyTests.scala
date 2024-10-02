@@ -20,7 +20,7 @@ object ScalaAssemblyTests extends TestSuite with ScalaAssemblyTestUtils {
             result.evalCount > 0
           )
           val jarFile = new JarFile(result.value.path.toIO)
-          try{
+          try {
             val entries = jarEntries(jarFile)
 
             val mainPresent = entries.contains("Main.class")
@@ -29,7 +29,7 @@ object ScalaAssemblyTests extends TestSuite with ScalaAssemblyTestUtils {
 
             val mainClass = jarMainClass(jarFile)
             assert(mainClass.contains("Main"))
-          }finally jarFile.close()
+          } finally jarFile.close()
       }
 
       test("run") - UnitTester(HelloWorldTests.HelloWorldWithMain, resourcePath).scoped { eval =>
@@ -52,4 +52,3 @@ object ScalaAssemblyTests extends TestSuite with ScalaAssemblyTestUtils {
   }
 
 }
-
