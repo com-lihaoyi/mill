@@ -32,6 +32,10 @@ object TestRunnerScalatestTests extends TestSuite {
         Seq("mill.scalalib.ScalaTestSpec", "--", "-l", "tagged"),
         2
       )
+      test("specific") - tester.testOnly(
+        Seq("mill.scalalib.ScalaTestSpec", "--", "-z", "should have size 0"),
+        1
+      )
       test("includeAndExclude") - tester.testOnly0 { (eval, mod) =>
         val Left(Result.Failure(msg, _)) =
           eval.apply(mod.scalatest.testOnly(
