@@ -77,7 +77,7 @@ object AssemblyTestUtils {
   }
 }
 
-object AssemblyExeTests extends TestSuite{
+object AssemblyExeTests extends TestSuite {
   import AssemblyTestUtils._
 
   def tests: Tests = Tests {
@@ -111,7 +111,7 @@ object AssemblyExeTests extends TestSuite{
     }
   }
 }
-object AssemblyNoExeTests extends TestSuite{
+object AssemblyNoExeTests extends TestSuite {
   import AssemblyTestUtils._
 
   def tests: Tests = Tests {
