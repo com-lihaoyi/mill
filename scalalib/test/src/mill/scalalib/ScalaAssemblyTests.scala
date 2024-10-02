@@ -7,7 +7,7 @@ import utest._
 import java.util.jar.JarFile
 import scala.util.Using
 import HelloWorldTests._
-object ScalaAssemblyTests extends TestSuite {
+trait ScalaAssemblyTestUtils {
 
   val akkaHttpDeps = Agg(ivy"com.typesafe.akka::akka-http:10.0.13")
 
@@ -104,6 +104,9 @@ object ScalaAssemblyTests extends TestSuite {
   val helloWorldMultiResourcePath =
     os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-multi"
 
+}
+object ScalaAssemblyTests extends TestSuite with ScalaAssemblyTestUtils {
+
   def tests: Tests = Tests {
 
     test("assembly") {
@@ -146,8 +149,7 @@ object ScalaAssemblyTests extends TestSuite {
 
 }
 
-object ScalaAssemblyAppendTests extends TestSuite {
-  import ScalaAssemblyTests._
+object ScalaAssemblyAppendTests extends TestSuite with ScalaAssemblyTestUtils {
   def tests: Tests = Tests {
     def checkAppend[M <: mill.testkit.TestBaseModule](module: M, target: Target[PathRef]) =
       UnitTester(module, resourcePath).scoped { eval =>
@@ -240,8 +242,7 @@ object ScalaAssemblyAppendTests extends TestSuite {
 
   }
 }
-object ScalaAssemblyExcludeTests extends TestSuite {
-  import ScalaAssemblyTests._
+object ScalaAssemblyExcludeTests extends TestSuite with ScalaAssemblyTestUtils {
   def tests: Tests = Tests {
     def checkExclude[M <: mill.testkit.TestBaseModule](
         module: M,

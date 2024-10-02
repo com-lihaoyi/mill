@@ -77,7 +77,7 @@ trait AssemblyTestUtils {
   }
 }
 
-object AssemblyExeTests extends TestSuite with AssemblyTestUtils{
+object AssemblyExeTests extends TestSuite with AssemblyTestUtils {
 
   def tests: Tests = Tests {
     test("Assembly") {
