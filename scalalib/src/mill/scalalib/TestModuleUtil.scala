@@ -99,7 +99,7 @@ private[scalalib] object TestModuleUtil {
         val futures = multipleTestClassLists.zipWithIndex.map { case (testClassList, i) =>
           val groupLabel = testClassList match {
             case Seq(single) => single
-            case multiple => collapseTestClassNames(multiple).mkString(", ") + s" (${multiple.length} suites)"
+            case multiple => collapseTestClassNames(multiple).mkString(", ") + s", ${multiple.length} suites"
           }
 
           T.fork.async(T.dest / groupLabel, "" + i, groupLabel) {
@@ -121,7 +121,11 @@ private[scalalib] object TestModuleUtil {
     subprocessResult match {
       case Left(errMsg) => Result.Failure(errMsg)
       case Right((doneMsg, results)) =>
-        if (results.isEmpty && selectors.nonEmpty) throw doesNotMatchError
+        // We throw an error if no tests are found and either `selectors` or `args` are
+        // passed in. This indicates that a user was trying to specify a test to run, v.s.
+        // the common case where no args are passed and the user just wants to "run
+        // everything" and doesn't mind if some modules' "everything" is empty.
+        if (results.isEmpty && (selectors.nonEmpty || args.nonEmpty)) throw doesNotMatchError
         try handleResults(doneMsg, results, T.ctx(), testReportXml)
         catch {
           case e: Throwable => Result.Failure("Test reporting failed: " + e)

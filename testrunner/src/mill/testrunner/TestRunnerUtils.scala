@@ -121,7 +121,13 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
         // https://stackoverflow.com/a/17468590
         .filter { case (c, f) => !c.isMemberClass }
 
-      val tasks = runner.tasks(
+      // Some test frameworks throw an error here if they cannot find any tests, but
+      // Mill with `testForkGrouping` may break up a test module into multiple groups
+      // some of which may correctly be empty, since Mill cannot reason about the `args`
+      // that the test framework may use to filter the test classes. So we just swallow
+      // the exception here and leave it to Mill to report an error if all of the test
+      // groups all reported empty results
+      val tasks = try runner.tasks(
         for ((cls, fingerprint) <- testClasses.iterator.toArray if classFilter(cls))
           yield new TaskDef(
             cls.getName.stripSuffix("$"),
@@ -129,7 +135,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
             false,
             Array(new SuiteSelector)
           )
-      )
+      ) catch{case e: Exception => Array.empty[Task]}
 
       val taskQueue = tasks.to(mutable.Queue)
       while (taskQueue.nonEmpty) {
@@ -156,7 +162,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
       runner.done()
     }
 
-    if (doneMessage != null && doneMessage.nonEmpty) {
+    if (doneMessage != null && doneMessage.trim.nonEmpty) {
       if (doneMessage.endsWith("\n"))
         ctx.log.outputStream.print(doneMessage)
       else
