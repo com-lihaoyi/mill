@@ -14,7 +14,7 @@ class DoneMessageFailureFramework extends Framework {
     def done() = "test failure done message"
     def remoteArgs() = Array.empty
     def tasks(taskDefs: Array[TaskDef]) = Array(new Task {
-      def taskDef(): TaskDef = null
+      def taskDef(): TaskDef = taskDefs.head
       def execute(
           eventHandler: EventHandler,
           loggers: Array[Logger]
