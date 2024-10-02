@@ -99,7 +99,8 @@ private[scalalib] object TestModuleUtil {
         val futures = multipleTestClassLists.zipWithIndex.map { case (testClassList, i) =>
           val groupLabel = testClassList match {
             case Seq(single) => single
-            case multiple => collapseTestClassNames(multiple).mkString(", ") + s", ${multiple.length} suites"
+            case multiple =>
+              collapseTestClassNames(multiple).mkString(", ") + s", ${multiple.length} suites"
           }
 
           T.fork.async(T.dest / groupLabel, "" + i, groupLabel) {
@@ -299,14 +300,14 @@ private[scalalib] object TestModuleUtil {
    */
   def collapseTestClassNames(names0: Seq[String]): Seq[String] = {
     val names = names0.sorted
-    Seq(names.head) ++ names.sliding(2).map{
+    Seq(names.head) ++ names.sliding(2).map {
       case Seq(prev, next) =>
         val prevSegments = prev.split('.')
         val nextSegments = next.split('.')
 
         nextSegments
           .zipWithIndex
-          .map{case (s, i) => if (prevSegments.lift(i).contains(s)) s.head else s}
+          .map { case (s, i) => if (prevSegments.lift(i).contains(s)) s.head else s }
           .mkString(".")
     }
   }

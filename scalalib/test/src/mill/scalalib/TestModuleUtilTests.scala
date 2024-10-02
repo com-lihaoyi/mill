@@ -293,7 +293,7 @@ object TestModuleUtilTests extends TestSuite {
       )
     }
 
-    test("collapseTestClassNames"){
+    test("collapseTestClassNames") {
       val res = TestModuleUtil.collapseTestClassNames(
         Seq(
           "mill.javalib.palantirformat.PalantirFormatModuleTest",
