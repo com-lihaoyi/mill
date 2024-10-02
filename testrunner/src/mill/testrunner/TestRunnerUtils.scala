@@ -99,38 +99,37 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
     }.map { f => (cls, f) }
   }
 
-  def getTestTasks(framework: Framework,
-                   args: Seq[String],
-                   classFilter: Class[_] => Boolean,
-                   cl: ClassLoader,
-                   testClassfilePath: Loose.Agg[Path]) = {
+  def runTestFramework0(
+      frameworkInstances: ClassLoader => Framework,
+      testClassfilePath: Loose.Agg[Path],
+      args: Seq[String],
+      classFilter: Class[_] => Boolean,
+      cl: ClassLoader,
+      testReporter: TestReporter
+  )(implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[TestResult]) = {
 
-    val runner = framework.runner(args.toArray, Array[String](), cl)
-    val testClasses = discoverTests(cl, framework, testClassfilePath)
-      // I think this is a bug in sbt-junit-interface. AFAICT, JUnit is not
-      // meant to pick up non-static inner classes as test suites, and doing
-      // so makes the jimfs test suite fail
-      //
-      // https://stackoverflow.com/a/17468590
-      .filter { case (c, f) => !c.isMemberClass }
-
-    val tasks = runner.tasks(
-      for ((cls, fingerprint) <- testClasses.iterator.toArray if classFilter(cls))
-        yield new TaskDef(
-          cls.getName.stripSuffix("$"),
-          fingerprint,
-          false,
-          Array(new SuiteSelector)
-        )
-    )
-
-    (runner, tasks)
-  }
-
-  def runTasks(tasks: Seq[Task], testReporter: TestReporter, runner: Runner)
-              (implicit ctx: Ctx.Log with Ctx.Home) = {
+    val framework = frameworkInstances(cl)
     val events = new ConcurrentLinkedQueue[Event]()
+
     val doneMessage = {
+      val runner = framework.runner(args.toArray, Array[String](), cl)
+      val testClasses = discoverTests(cl, framework, testClassfilePath)
+        // I think this is a bug in sbt-junit-interface. AFAICT, JUnit is not
+        // meant to pick up non-static inner classes as test suites, and doing
+        // so makes the jimfs test suite fail
+        //
+        // https://stackoverflow.com/a/17468590
+        .filter { case (c, f) => !c.isMemberClass }
+
+      val tasks = runner.tasks(
+        for ((cls, fingerprint) <- testClasses.iterator.toArray if classFilter(cls))
+          yield new TaskDef(
+            cls.getName.stripSuffix("$"),
+            fingerprint,
+            false,
+            Array(new SuiteSelector)
+          )
+      )
 
       val taskQueue = tasks.to(mutable.Queue)
       while (taskQueue.nonEmpty) {
@@ -184,38 +183,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
       )
     }
 
-    (doneMessage, results)
-  }
-
-  def runTestFramework0(
-      frameworkInstances: ClassLoader => Framework,
-      testClassfilePath: Loose.Agg[Path],
-      args: Seq[String],
-      classFilter: Class[_] => Boolean,
-      cl: ClassLoader,
-      testReporter: TestReporter
-  )(implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[TestResult]) = {
-
-    val framework = frameworkInstances(cl)
-
-
-    val (runner, tasks) = getTestTasks(framework, args, classFilter, cl, testClassfilePath)
-
-    val (doneMessage, results) = runTasks(tasks, testReporter, runner)
-
     (doneMessage, results.toSeq)
-  }
-
-  def getTestTasks0(
-      frameworkInstances: ClassLoader => Framework,
-      testClassfilePath: Loose.Agg[Path],
-      args: Seq[String],
-      classFilter: Class[_] => Boolean,
-      cl: ClassLoader,
-  ): Array[String] = {
-    val framework = frameworkInstances(cl)
-    val (runner, tasks) = getTestTasks(framework, args, classFilter, cl, testClassfilePath)
-    tasks.map(_.taskDef().fullyQualifiedName())
   }
 
   def globFilter(selectors: Seq[String]): String => Boolean = {
