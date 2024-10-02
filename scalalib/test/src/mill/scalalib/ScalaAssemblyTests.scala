@@ -118,14 +118,16 @@ object ScalaAssemblyTests extends TestSuite with ScalaAssemblyTestUtils {
             result.evalCount > 0
           )
           val jarFile = new JarFile(result.value.path.toIO)
-          val entries = jarEntries(jarFile)
+          try{
+            val entries = jarEntries(jarFile)
 
-          val mainPresent = entries.contains("Main.class")
-          assert(mainPresent)
-          assert(entries.exists(s => s.contains("scala/Predef.class")))
+            val mainPresent = entries.contains("Main.class")
+            assert(mainPresent)
+            assert(entries.exists(s => s.contains("scala/Predef.class")))
 
-          val mainClass = jarMainClass(jarFile)
-          assert(mainClass.contains("Main"))
+            val mainClass = jarMainClass(jarFile)
+            assert(mainClass.contains("Main"))
+          }finally jarFile.close()
       }
 
       test("run") - UnitTester(HelloWorldTests.HelloWorldWithMain, resourcePath).scoped { eval =>
