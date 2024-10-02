@@ -2,7 +2,7 @@ package mill.scalalib
 
 import mill.api.{Ctx, PathRef, Result}
 import mill.main.client.EnvVars
-import mill.testrunner.{TestArgs, TestResult, TestRunnerUtils}
+import mill.testrunner.{Framework, TestArgs, TestResult, TestRunnerUtils}
 import mill.util.Jvm
 import mill.{Agg, T}
 import sbt.testing.Status
@@ -86,8 +86,23 @@ private[scalalib] object TestModuleUtil {
         "\nRun discoveredTestClasses to see available tests"
     )
 
-    val filteredClassLists = testClassLists.map(_.filter(globFilter)).filter(_.nonEmpty)
+    val filteredClassLists0 = testClassLists.map(_.filter(globFilter)).filter(_.nonEmpty)
 
+    val discoveredTests = Jvm.inprocess(
+      (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
+      classLoaderOverrideSbtTesting = true,
+      isolated = true,
+      closeContextClassLoaderWhenDone = false,
+      TestRunnerUtils.getTestTasks0(
+        Framework.framework(testFramework),
+        testClasspath.map(_.path),
+        args,
+        cls => globFilter(cls.getName),
+        _
+      )
+    ).toSet
+
+    val filteredClassLists = filteredClassLists0.map(_.filter(discoveredTests)).filter(_.nonEmpty)
     if (selectors.nonEmpty && filteredClassLists.isEmpty) throw doesNotMatchError
 
     val subprocessResult: Either[String, (String, Seq[TestResult])] = filteredClassLists match {
