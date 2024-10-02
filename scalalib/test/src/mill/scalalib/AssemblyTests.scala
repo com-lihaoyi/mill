@@ -16,7 +16,7 @@ import java.io.PrintStream
 // - https://github.com/com-lihaoyi/mill/issues/528
 // - https://github.com/com-lihaoyi/mill/issues/2650
 
-object AssemblyTestUtils {
+trait AssemblyTestUtils {
 
   object TestCase extends TestBaseModule {
     trait Setup extends ScalaModule {
@@ -77,8 +77,7 @@ object AssemblyTestUtils {
   }
 }
 
-object AssemblyExeTests extends TestSuite {
-  import AssemblyTestUtils._
+object AssemblyExeTests extends TestSuite with AssemblyTestUtils{
 
   def tests: Tests = Tests {
     test("Assembly") {
@@ -111,8 +110,7 @@ object AssemblyExeTests extends TestSuite {
     }
   }
 }
-object AssemblyNoExeTests extends TestSuite {
-  import AssemblyTestUtils._
+object AssemblyNoExeTests extends TestSuite with AssemblyTestUtils {
 
   def tests: Tests = Tests {
     test("Assembly") {
