@@ -91,7 +91,7 @@ private[mill] class PromptLogger(
   }
 
   def ticker(s: String): Unit = ()
-  override def setPromptDetail(key: Seq[String], s: String): Unit = {
+  override def setPromptDetail(key: Seq[String], s: String): Unit = synchronized {
     state.updateDetail(key, s)
   }
 
@@ -138,6 +138,7 @@ private[mill] class PromptLogger(
     else {
       pauseNoticed = false
       paused = true
+      promptUpdaterThread.interrupt()
       try {
         // After the prompt gets paused, wait until the `promptUpdaterThread` marks
         // `pauseNoticed = true`, so we can be sure it's done printing out prompt updates for

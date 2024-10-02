@@ -42,7 +42,7 @@ private[scalalib] object TestModuleUtil {
       EnvVars.MILL_WORKSPACE_ROOT -> T.workspace.toString
     )
 
-    def runTestSubprocess(selectors2: Seq[String], base: os.Path) = {
+    def runTestRunnerSubprocess(selectors2: Seq[String], base: os.Path) = {
       val outputPath = base / "out.json"
       val testArgs = TestArgs(
         framework = testFramework,
@@ -93,20 +93,23 @@ private[scalalib] object TestModuleUtil {
     val subprocessResult: Either[String, (String, Seq[TestResult])] = filteredClassLists match {
       // When no tests at all are discovered, run at least one test JVM
       // process to go through the test framework setup/teardown logic
-      case Nil => runTestSubprocess(Nil, T.dest)
-      case Seq(singleTestClassList) => runTestSubprocess(singleTestClassList, T.dest)
+      case Nil => runTestRunnerSubprocess(Nil, T.dest)
+      case Seq(singleTestClassList) => runTestRunnerSubprocess(singleTestClassList, T.dest)
       case multipleTestClassLists =>
-        val hasMultiClassGroup = multipleTestClassLists.exists(_.length > 1)
         val futures = multipleTestClassLists.zipWithIndex.map { case (testClassList, i) =>
-          val groupLabel = testClassList match {
-            case Seq(single) =>
-              if (hasMultiClassGroup) s"group-$i-$single"
-              else single
-            case multiple => s"group-$i"
+          val groupPromptMessage = testClassList match {
+            case Seq(single) => single
+            case multiple =>
+              collapseTestClassNames(multiple).mkString(", ") + s", ${multiple.length} suites"
           }
 
-          T.fork.async(T.dest / groupLabel, "" + i, groupLabel) {
-            (groupLabel, runTestSubprocess(testClassList, T.dest / groupLabel))
+          val folderName = testClassList match {
+            case Seq(single) => single
+            case multiple => s"group-$i-${multiple.head}"
+          }
+
+          T.fork.async(T.dest / folderName, "" + i, groupPromptMessage) {
+            (folderName, runTestRunnerSubprocess(testClassList, T.dest / folderName))
           }
         }
 
@@ -293,6 +296,24 @@ private[scalalib] object TestModuleUtil {
       case FailureStatus => Some(<failure message="No Exception or message provided"/>)
       case s if SkippedStates.contains(s) => Some(<skipped/>)
       case _ => None
+    }
+  }
+
+  /**
+   * Shorten the long list of fully qualified class names by truncating
+   * repetitive segments so we can see more stuff on a single line
+   */
+  def collapseTestClassNames(names0: Seq[String]): Seq[String] = {
+    val names = names0.sorted
+    Seq(names.head) ++ names.sliding(2).map {
+      case Seq(prev, next) =>
+        val prevSegments = prev.split('.')
+        val nextSegments = next.split('.')
+
+        nextSegments
+          .zipWithIndex
+          .map { case (s, i) => if (prevSegments.lift(i).contains(s)) s.head else s }
+          .mkString(".")
     }
   }
 }
