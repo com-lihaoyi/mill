@@ -99,7 +99,7 @@ private[scalalib] object TestModuleUtil {
         val futures = multipleTestClassLists.zipWithIndex.map { case (testClassList, i) =>
           val groupLabel = testClassList match {
             case Seq(single) => single
-            case multiple => multiple.mkString(", ") + s" (${multiple.length} suites)"
+            case multiple => collapseTestClassNames(multiple).mkString(", ") + s" (${multiple.length} suites)"
           }
 
           T.fork.async(T.dest / groupLabel, "" + i, groupLabel) {
@@ -290,6 +290,24 @@ private[scalalib] object TestModuleUtil {
       case FailureStatus => Some(<failure message="No Exception or message provided"/>)
       case s if SkippedStates.contains(s) => Some(<skipped/>)
       case _ => None
+    }
+  }
+
+  /**
+   * Shorten the long list of fully qualified class names by truncating
+   * repetitive segments so we can see more stuff on a single line
+   */
+  def collapseTestClassNames(names0: Seq[String]): Seq[String] = {
+    val names = names0.sorted
+    Seq(names.head) ++ names.sliding(2).map{
+      case Seq(prev, next) =>
+        val prevSegments = prev.split('.')
+        val nextSegments = next.split('.')
+
+        nextSegments
+          .zipWithIndex
+          .map{case (s, i) => if (prevSegments.lift(i).contains(s)) s.head else s}
+          .mkString(".")
     }
   }
 }
