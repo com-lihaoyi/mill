@@ -15,6 +15,7 @@ object foo extends ScalaModule {
     def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
   }
 }
+
 /** See Also: foo/test/src/HelloTests.scala */
 /** See Also: foo/test/src/WorldTests.scala */
 
