@@ -306,6 +306,100 @@ endif::[]
 :link-milestone: {link-github}/milestone
 // find-replace-regex: https://github.com/com-lihaoyi/mill/pull/(\d*) -> {link-pr}/$1[#$1]
 
+[#main]
+=== main
+
+Changes since 0.12.0-RC2
+
+* `-j`/`--jobs` now allows computed values of the form `-j 0.5C` (half as many jobs as cores) or
+  `-j C-2` (two less jobs than cores) to allow for automatic scaling based on the number of cores available
+  {link-pr}/3554[#3554]
+
+
+* Fix `testOnly` handling of ScalaTest tagged tests {link-pr}/3557[#3557]
+
+* Make ./mill without any arguments point you towards --help, flesh out --help into a cheat sheet {link-pr}/3556[#3556]
+
+* Use `Task` instead of `T` when constructing targets and other tasks {link-pr}/3565[#3565]. The new syntax
+  (given below) is intended to be more idiomatic Scala and less idiosyncratic. The old syntax will continue
+  to work for backwards compatibility, but using the new syntax is recommended
+** `T {...}` ->  `Task {...}`
+** `T.command {...}` ->  `Task.Command {...}`
+** `T.input {...}` ->  `Task.Input {...}`
+** `T.source {...}` ->  `Task.Source {...}`
+** `T.sources {...}` ->  `Task.Sources {...}`
+** `T.persistent {...}` ->  `Task(persistent = true) {...}`
+** `T.task {...}` ->  `Task.Anon {...}`
+
+* Introduced `Task.Command(exclusive = true)` to allow explicit annotation of which
+  commands need to run without parallelism, allowing `.test` and other commands
+  to run parallel by default {link-pr}/3617[#3617]
+
+* Lots of added docs for Building Kotlin with Mill:
+** Kotlin Build Examples and Linting {link-pr}/3555[#3555], with KtLint and Detekt support
+** Kotlin Module Configuration {link-pr}/3585[#3585]
+** Publishing and Testing Kotlin with Mill {link-pr}/3589[#3589]
+** Using Mill to build a Ktor web server  {link-pr}/3621[#3621]
+
+* Additional support for Kotlin tools and frameworks
+** KtFmt support  {link-pr}/3620[#3620]
+** Kover support  {link-pr}/3624[#3624]
+
+* Show Worker tasks in `resolve`/`show`/`inspect` {link-pr}/3580[#3580]
+
+* `mill clean` now terminates Worker tasks {link-pr}/3579[#3579]
+
+* Overhaul of the terminal "ticker" UI for displaying task progress to better support
+  parallel builds {link-pr}/3577[#3577]
+** Mill now shows all active tasks and their duration at the bottom of your terminal
+** Stream task logs are now prefixed with the task index on the left and the task
+   name above, so you can attribute each line of logs to the task that generated it
+
+```
+...
+[3861/4712] main.client.publishLocalCached
+[3861] Publishing Artifact(com.lihaoyi,mill-main-client,0.12.0-RC2-67-a566d8-DIRTY875bcbb1) to ivy repo /Users/lihaoyi/.ivy2/local
+[3868/4712] runner.client.publishLocalCached
+[3868] Publishing Artifact(com.lihaoyi,mill-runner-client,0.12.0-RC2-67-a566d8-DIRTY875bcbb1) to ivy repo /Users/lihaoyi/.ivy2/local
+  [3869/4712] ======================================= installLocalCache ============================================== 4s
+[3676] scalajslib.worker-api.docJar 1s
+[3688] scalanativelib.worker-api.docJar 1s
+[3706] contrib.playlib.worker[2.9].docJar 1s
+[3707] contrib.playlib.worker[2.6].docJar 1s
+... and 3 more threads
+```
+
+* Add API for tasks to spawn concurrent and parallel futures via `Task.fork.{async,await}` {link-pr}/3478[#3478]
+
+* Allow large test modules with many classes to be broken up to use multiple concurrent JVMs
+  by overriding `def testForkGrouping` {link-pr}/3478[#3478]
+
+* Use coursier thread pool to run coursier-related tasks to avoid deadlocks {link-pr}/3614[#3614]
+
+* `inspect` now shows useful information when used on modules, not just tasks {link-pr}/3532[#3532]
+
+```
+$ ./mill inspect dist0
+dist0(build.mill:745)
+    Version of [[dist]] meant for local integration testing within the Mill
+    repo. Looks mostly the same as [[dist]], except it does not have a reference
+    to itself in its [[testTransitiveDeps]], to avoid a circular dependency.
+
+Inherited Modules: MillPublishJavaModule
+
+Module Dependencies: runner, idea
+
+Default Task: dist0.run
+
+Tasks: dist0.fix, dist0.testTransitiveDeps
+```
+
+* `mill init` now supports creating a project based on examples from Mill's documentation {link-pr}/3583[#3583],
+  and unpacks the example into the current folder rather than a subfolder {link-pr}/3626[#3626]
+
+* `MILL_TEST_RESOURCE_FOLDER` has been renamed to `MILL_TEST_RESOURCE_DIR` for consistency with other
+environment variable names {link-pr}/3637[#3637]
+
 [#0-12-0-RC2]
 === 0.12.0-RC2 - 2024-09-16
 
