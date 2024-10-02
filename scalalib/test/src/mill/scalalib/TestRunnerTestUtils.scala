@@ -54,6 +54,7 @@ object TestRunnerTestUtils {
     }
     object doneMessageFailure extends DoneMessage {
       def testFramework = "mill.scalalib.DoneMessageFailureFramework"
+      override def discoveredTestClasses = Seq("hello.World")
     }
     object doneMessageNull extends DoneMessage {
       def testFramework = "mill.scalalib.DoneMessageNullFramework"

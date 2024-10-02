@@ -153,6 +153,7 @@ private[scalalib] object TestModuleUtil {
     subprocessResult match {
       case Left(errMsg) => Result.Failure(errMsg)
       case Right((doneMsg, results)) =>
+        if (results.isEmpty && selectors.nonEmpty) throw doesNotMatchError
         try handleResults(doneMsg, results, T.ctx(), testReportXml)
         catch {
           case e: Throwable => Result.Failure("Test reporting failed: " + e)
