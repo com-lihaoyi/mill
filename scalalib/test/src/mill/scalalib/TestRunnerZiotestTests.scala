@@ -1,8 +1,16 @@
 package mill.scalalib
 
+import mill.api.Result
 import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
+import mill.{Agg, T, Task}
+import os.Path
 import sbt.testing.Status
 import utest._
+
+import java.io.{ByteArrayOutputStream, PrintStream}
+import scala.xml.{Elem, NodeSeq, XML}
+
 
 object TestRunnerZiotestTests extends TestSuite {
   import TestRunnerTestUtils._
