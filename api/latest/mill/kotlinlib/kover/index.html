@@ -8,7 +8,7 @@ mix the <a href="KoverModule.html" name="mill.kotlinlib.kover.KoverModule" id="m
 <span class="kw">object</span> foo <span class="kw">extends</span> KotlinModule <span class="kw">with</span> KoverModule {
   <span class="kw">def</span> kotlinVersion = <span class="lit">"2.0.20"</span>
 
-  <span class="kw">object</span> test <span class="kw">extends</span> KotlinModuleTests <span class="kw">with</span> KoverTests
+  <span class="kw">object</span> test <span class="kw">extends</span> KotlinTests <span class="kw">with</span> KoverTests
 }</pre><p>In addition to the normal tasks available to your Kotlin module, Kover
 Module introduce a few new tasks and changes the behavior of an existing one.</p><p>- ./mill foo.test               # tests your project and collects metrics on code coverage
 - ./mill foo.kover.htmlReport   # uses the metrics collected by a previous test run to generate a coverage report in html format

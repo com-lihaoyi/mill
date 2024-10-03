@@ -404,9 +404,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-74-c8eddd</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-77-e0a2c9</button>
   <div class="version-menu">
-    <a class="version is-current" href="module-config.html">0.12.0-RC2-74-c8eddd</a>
+    <a class="version is-current" href="module-config.html">0.12.0-RC2-77-e0a2c9</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
@@ -990,7 +990,7 @@ object foo extends KotlinModule {
 
   def kotlinVersion = &quot;1.9.24&quot;
 
-  object test extends KotlinModuleTests with TestModule.Junit5 {
+  object test extends KotlinTests with TestModule.Junit5 {
     def otherFiles = T.source(millSourcePath / &quot;other-files&quot;)
 
     def forkEnv = super.forkEnv() ++ Map(
@@ -1187,7 +1187,7 @@ object foo extends KotlinModule {
     s&quot;-Xplugin=${processors().head.path}&quot;
   )
 
-  object test extends KotlinModuleTests with TestModule.Junit5 {
+  object test extends KotlinTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;
     )
@@ -1578,7 +1578,7 @@ object `package` extends RootModule with KotlinModule {
 
   def forkEnv = Map(&quot;HELLO_WORLD_BINARY&quot; -&gt; nativeCompiled().path.toString)
 
-  object test extends KotlinModuleTests with TestModule.Junit5 {
+  object test extends KotlinTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;
     )

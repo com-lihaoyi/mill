@@ -404,9 +404,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-74-c8eddd</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-77-e0a2c9</button>
   <div class="version-menu">
-    <a class="version is-current" href="testing.html">0.12.0-RC2-74-c8eddd</a>
+    <a class="version is-current" href="testing.html">0.12.0-RC2-77-e0a2c9</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
@@ -450,7 +450,7 @@ object foo extends KotlinModule {
 
   def kotlinVersion = &quot;1.9.24&quot;
 
-  object test extends KotlinModuleTests {
+  object test extends KotlinTests {
     def testFramework = &quot;com.github.sbt.junit.jupiter.api.JupiterFramework&quot;
     def ivyDeps = Agg(
       ivy&quot;com.github.sbt.junit:jupiter-interface:0.11.4&quot;,
@@ -529,7 +529,7 @@ Compiling 1 ... source...
 
   def kotlinVersion = &quot;1.9.24&quot;
 
-  object test extends KotlinModuleTests with TestModule.Junit5 {
+  object test extends KotlinTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;,
       ivy&quot;org.mockito.kotlin:mockito-kotlin:5.4.0&quot;
@@ -679,7 +679,7 @@ object qux extends KotlinModule {
 
   def moduleDeps = Seq(baz)
 
-  object test extends KotlinModuleTests with TestModule.Junit5 {
+  object test extends KotlinTests with TestModule.Junit5 {
     def moduleDeps = super.moduleDeps ++ Seq(baz.test)
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;,
@@ -692,7 +692,7 @@ object baz extends KotlinModule {
 
   def kotlinVersion = &quot;1.9.24&quot;
 
-  object test extends KotlinModuleTests with TestModule.Junit5 {
+  object test extends KotlinTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;,
       ivy&quot;com.google.guava:guava:33.3.0-jre&quot;
@@ -739,12 +739,12 @@ object qux extends KotlinModule {
 
   def kotlinVersion = &quot;1.9.24&quot;
 
-  object test extends KotlinModuleTests with TestModule.Junit5 {
+  object test extends KotlinTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;
     )
   }
-  object integration extends KotlinModuleTests with TestModule.Junit5 {
+  object integration extends KotlinTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;
     )
@@ -793,7 +793,7 @@ object foo extends KotlinModule {
 
   def kotlinVersion = &quot;1.9.24&quot;
 
-  object test extends KotlinModuleTests {
+  object test extends KotlinTests {
     def testFramework = &quot;com.github.sbt.junit.jupiter.api.JupiterFramework&quot;
     def ivyDeps = Agg(
       ivy&quot;com.github.sbt.junit:jupiter-interface:0.11.4&quot;,
