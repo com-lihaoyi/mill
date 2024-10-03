@@ -35,7 +35,7 @@ import java.util.Locale
  * object foo extends KotlinModule with KoverModule {
  *   def kotlinVersion = "2.0.20"
  *
- *   object test extends KotlinModuleTests with KoverTests
+ *   object test extends KotlinTests with KoverTests
  * }
  * }}}
  *

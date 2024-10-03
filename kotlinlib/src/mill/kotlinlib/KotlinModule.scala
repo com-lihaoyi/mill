@@ -329,7 +329,7 @@ trait KotlinModule extends JavaModule { outer =>
   /**
    * A test sub-module linked to its parent module best suited for unit-tests.
    */
-  trait KotlinModuleTests extends JavaModuleTests with KotlinModule {
+  trait KotlinTests extends JavaModuleTests with KotlinModule {
     override def kotlinVersion: T[String] = Task { outer.kotlinVersion() }
     override def kotlinCompilerVersion: T[String] = Task { outer.kotlinCompilerVersion() }
     override def kotlincOptions: T[Seq[String]] = Task { outer.kotlincOptions() }

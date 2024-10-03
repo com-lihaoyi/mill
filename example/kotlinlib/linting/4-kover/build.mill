@@ -19,11 +19,11 @@ object `package` extends RootModule with KotlinModule with KoverModule {
 
   override def koverVersion = "0.8.3"
 
-  object test extends KotlinModuleTests with KotestTests with KoverTests
+  object test extends KotlinTests with KotestTests with KoverTests
 
   object bar extends KotlinModule with KoverModule {
     def kotlinVersion = "1.9.24"
-    object test extends KotlinModuleTests with KotestTests with KoverTests
+    object test extends KotlinTests with KotestTests with KoverTests
   }
 }
 
