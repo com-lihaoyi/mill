@@ -53,6 +53,11 @@ fun Application.configureRoutes(repository: TodoItemRepository) {
             val todos = repository.findAll()
             call.respond(ThymeleafContent("index", modelContent(todos, ListFilter.COMPLETED)))
         }
+        get("/completed/delete") {
+            repository.findAll().filter { it.completed }
+                .forEach { repository.deleteById(it.id) }
+            call.respondRedirect("/")
+        }
         post("/save") {
             val title = call.receiveParameters().getOrFail("title")
             repository.save(TodoItem(UUID.randomUUID(), title))

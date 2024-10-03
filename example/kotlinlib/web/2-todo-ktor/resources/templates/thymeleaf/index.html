@@ -71,8 +71,8 @@
                    th:classappend="${todoFilter == 'COMPLETED'?'selected':''}">Completed</a>
             </li>
         </ul>
-        <form th:action="@{~/completed}" th:method="delete"
-              th:if="${completedItemCount > 0}">
+        <form th:action="@{~/completed/delete}"
+              th:if="${numberOfCompletedItems > 0}">
             <button class="clear-completed">Clear completed</button>
         </form>
     </footer>
@@ -80,6 +80,5 @@
 <footer class="info">
     <p>Double-click to edit a todo</p>
 </footer>
-<script th:src="@{~/webjars/todomvc-common/base.js}"></script>
 </body>
 </html>
