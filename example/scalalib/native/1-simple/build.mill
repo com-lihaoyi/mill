@@ -1,6 +1,6 @@
 //// SNIPPET:BUILD
 package build
-import mill._, scalalib._, scalanative._
+import mill._, scalalib._, scalanativelib._
 
 object `package` extends RootModule with ScalaNativeModule {
   def scalaVersion = "2.13.11"
