@@ -122,6 +122,7 @@ private[scalalib] object TestModuleUtil {
       case Nil => runTestRunnerSubprocess(Nil, T.dest)
       case Seq(singleTestClassList) => runTestRunnerSubprocess(singleTestClassList, T.dest)
       case multipleTestClassLists =>
+        val maxLength = multipleTestClassLists.length.toString.length
         val futures = multipleTestClassLists.zipWithIndex.map { case (testClassList, i) =>
           val groupPromptMessage = testClassList match {
             case Seq(single) => single
@@ -129,12 +130,14 @@ private[scalalib] object TestModuleUtil {
               collapseTestClassNames(multiple).mkString(", ") + s", ${multiple.length} suites"
           }
 
+          val paddedIndex = mill.util.Util.leftPad(i.toString, maxLength, '0')
           val folderName = testClassList match {
             case Seq(single) => single
-            case multiple => s"group-$i-${multiple.head}"
+            case multiple =>
+              s"group-$paddedIndex-${multiple.head}"
           }
 
-          T.fork.async(T.dest / folderName, "" + i, groupPromptMessage) {
+          T.fork.async(T.dest / folderName, paddedIndex, groupPromptMessage) {
             (folderName, runTestRunnerSubprocess(testClassList, T.dest / folderName))
           }
         }
