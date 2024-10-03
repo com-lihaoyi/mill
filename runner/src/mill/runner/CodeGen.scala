@@ -161,6 +161,12 @@ object CodeGen {
         newScriptCode = objectData.name.applyTo(newScriptCode, wrapperObjectName)
         newScriptCode = objectData.obj.applyTo(newScriptCode, "abstract class")
 
+        val millDiscover =
+          if (segments.nonEmpty) ""
+          else
+            """@_root_.scala.annotation.nowarn
+              |  override lazy val millDiscover: _root_.mill.define.Discover = _root_.mill.define.Discover[this.type]""".stripMargin
+
         s"""$pkgLine
            |$aliasImports
            |$prelude
@@ -168,8 +174,7 @@ object CodeGen {
            |$newScriptCode
            |object $wrapperObjectName extends $wrapperObjectName {
            |  $childAliases
-           |  @_root_.scala.annotation.nowarn
-           |  override lazy val millDiscover: _root_.mill.define.Discover = _root_.mill.define.Discover[this.type]
+           |  $millDiscover
            |}""".stripMargin
       case None =>
         s"""$pkgLine
@@ -216,16 +221,20 @@ object CodeGen {
         s"extends _root_.mill.runner.MillBuildRootModule() "
       }
     } else {
-
       s"extends _root_.mill.main.RootModule.Subfolder "
     }
+
+    val millDiscover =
+      if (segments.nonEmpty) ""
+      else
+        """@_root_.scala.annotation.nowarn
+          |  override lazy val millDiscover: _root_.mill.define.Discover = _root_.mill.define.Discover[this.type]""".stripMargin
 
     // User code needs to be put in a separate class for proper submodule
     // object initialization due to https://github.com/scala/scala3/issues/21444
     s"""object $wrapperObjectName extends $wrapperObjectName{
        |  $childAliases
-       |  @_root_.scala.annotation.nowarn
-       |  override lazy val millDiscover: _root_.mill.define.Discover = _root_.mill.define.Discover[this.type]
+       |  $millDiscover
        |}
        |abstract class $wrapperObjectName $extendsClause {""".stripMargin
 
