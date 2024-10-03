@@ -1,0 +1,48 @@
+= Android Build Examples
+:page-aliases: android_app_examples.adoc
+
+++++
+<script>
+gtag('config', 'AW-16649289906');
+</script>
+++++
+
+This page provides examples of using Mill as a build tool for Android applications. 
+Each example highlights a specific aspect of Mill, allowing you to configure, test, and build Android apps efficiently. 
+By the end, you will understand how Mill can manage Android project structures, compile modules, and handle packaging.
+
+For detailed information, refer to Mill's https://com-lihaoyi.github.io/mill[documentation],
+and the https://developer.android.com/studio[Android developer guide].
+
+The following APIs are relevant to this documentation:
+
+* {mill-doc-url}/api/latest/mill/scalalib/AndroidSdkModule.html[`mill.scalalib.AndroidSdkModule`]
+* {mill-doc-url}/api/latest/mill/javalib/android/AndroidAppModule.html[`mill.scalalib.AndroidAppModule`]
+* {mill-doc-url}/api/latest/mill/scalalib/JavaModule.html[`mill.scalalib.JavaModule`]
+
+== Simple Android Hello World Application
+
+include::partial$example/javalib/android/1-hello-world.adoc[]
+
+Curious about what's happening behind the scenes, 
+here is some information for `AndroidSdkModule` and `AndroidAppModule`
+
+`AndroidSdkModule`:
+
+* This installs Android SDK Tool.
+
+`AndroidAppModule`:
+
+* 1. Compile Java code into `.class` files.
+* 2. Package the `.class` files into a JAR file.
+* 3. Convert the JAR into DEX format for Android.
+* 4. Package DEX files and resources into an APK.
+* 5. Optimize the APK using zipalign
+* 6. Sign the APK for distribution.
+
+Users can Perform Manual Testing to insure Proper Functioning of the Application and Automatic 
+Testing Procedure is still under Observance once Approved, will be shared.
+
+Mill Build Tool already have Advantages over the other Build Tools and 
+having the support for Android Application with Mill Build Tool Provdies Efficieny and 
+Optimisation to Android Application Creation Process.

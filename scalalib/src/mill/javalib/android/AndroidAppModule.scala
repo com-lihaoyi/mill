@@ -12,15 +12,21 @@ import mill.util.Jvm
  * and [[JavaModule]] for Java related tasks.
  *
  * This trait outlines the steps necessary to build an Android application:
+ *
  * 1. Compile Java code into `.class` files.
+ *
  * 2. Package the `.class` files into a JAR file.
+ *
  * 3. Convert the JAR into DEX format for Android.
+ *
  * 4. Package DEX files and resources into an APK.
+ *
  * 5. Optimize the APK using zipalign.
+ *
  * 6. Sign the APK for distribution.
  *
- * For detailed information, refer to Mill's [documentation](https://com-lihaoyi.github.io/mill),
- * and the [Android developer guide](https://developer.android.com/studio).
+ * For detailed information, refer to Mill's Documentation [[https://com-lihaoyi.github.io/mill]],
+ * and the Android Dcoumentation [[https://developer.android.com/studio]].
  */
 trait AndroidAppModule extends AndroidSdkModule with JavaModule {
 
@@ -47,7 +53,9 @@ trait AndroidAppModule extends AndroidSdkModule with JavaModule {
    * Step 1: Compile Java source files to `.class` files.
    *
    * This method:
+   *
    * - Ensures the Android SDK is installed.
+   *
    * - Compiles all `.java` files in `src/main/java` to `.class` files stored in `obj/` directory.
    *
    * @return A `PathRef` to the directory containing the compiled `.class` files.
@@ -77,6 +85,7 @@ trait AndroidAppModule extends AndroidSdkModule with JavaModule {
    * Step 2: Package `.class` files into a JAR file.
    *
    * This method:
+   *
    * - Converts the compiled `.class` files into a JAR file using the `d8` tool.
    *
    * @return A `PathRef` to the generated JAR file.
@@ -105,6 +114,7 @@ trait AndroidAppModule extends AndroidSdkModule with JavaModule {
    * Step 3: Convert the JAR file into a DEX file.
    *
    * This method:
+   *
    * - Uses the `d8` tool to convert the JAR file into DEX format, required for Android apps.
    *
    * @return A `PathRef` to the generated DEX file.
@@ -128,6 +138,7 @@ trait AndroidAppModule extends AndroidSdkModule with JavaModule {
    * Step 4: Package the DEX file into an unsigned APK.
    *
    * This method:
+   *
    * - Uses the `aapt` tool to create an APK file that includes the DEX file and resources.
    *
    * @return A `PathRef` to the unsigned APK file.
@@ -159,6 +170,7 @@ trait AndroidAppModule extends AndroidSdkModule with JavaModule {
    * Step 5: Optimize the APK using zipalign.
    *
    * This method:
+   *
    * - Takes the unsigned APK and optimizes it for better performance on Android devices.
    *
    * @return A `PathRef` to the aligned APK file.
@@ -187,6 +199,7 @@ trait AndroidAppModule extends AndroidSdkModule with JavaModule {
    * Step 6: Sign the APK using a keystore.
    *
    * This method:
+   *
    * - Signs the aligned APK with a keystore. If the keystore does not exist, it generates one.
    *
    * @return A `PathRef` to the signed APK file.
@@ -223,6 +236,7 @@ trait AndroidAppModule extends AndroidSdkModule with JavaModule {
    * Creates a keystore for signing APKs if it doesn't already exist.
    *
    * This method:
+   *
    * - Generates a keystore file using the `keytool` command.
    *
    * @return A `PathRef` to the keystore file.

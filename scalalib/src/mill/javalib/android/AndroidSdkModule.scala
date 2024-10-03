@@ -12,7 +12,8 @@ import mill.define._
  * It simplifies the process of configuring the Android development environment,
  * making it easier to build and package Android applications.
  *
- * For more, refer to the [Android SDK documentation](https://developer.android.com/studio).
+ * For detailed information, refer to Mill's Documentation [[https://com-lihaoyi.github.io/mill]],
+ * and the Android Dcoumentation [[https://developer.android.com/studio]].
  */
 trait AndroidSdkModule extends Module {
 
@@ -129,11 +130,12 @@ trait AndroidSdkModule extends Module {
    *
    * This method:
    * - Downloads the SDK command-line tools from the specified URL.
-   * - Extracts the downloaded zip file into the specified SDK directory.
-   * - Accepts the SDK licenses required for use.
-   * - Installs essential components such as platform-tools, build-tools and platforms.
    *
-   * @throws Exception if any step fails during installation.
+   * - Extracts the downloaded zip file into the specified SDK directory.
+   *
+   * - Accepts the SDK licenses required for use.
+   *
+   * - Installs essential components such as platform-tools, build-tools and platforms.
    *
    * @see [[SdkUrl]]
    * @see [[toolsDirectory]]

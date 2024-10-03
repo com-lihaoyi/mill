@@ -1,5 +1,11 @@
+// This section demonstrates how to set up a basic Android app structure 
+// with `AndroidSdkModule.scala` and `AndroidAppModule.scala`, utilizing traits for scalability.
+
+// Basically, `AndroidAppModule` extends `AndroidSdkModule` so we need to call only AndroidAppModule this will 
+// insure that all tasks are automatically done for AndroidSdkModule, making user expeience easy
+
 // This Example demonstrates a simple "Hello World" 
-// Android application built using the [Mill build tool](https://www.lihaoyi.com/mill/).
+// Android application built using the https://www.lihaoyi.com/mill[Mill build tool].
 
 //// SNIPPET:BUILD
 package build
@@ -7,7 +13,6 @@ package build
 import mill._
 import mill.javalib.android.AndroidAppModule
 
-// Defines an Android app build module using Mill, extending AndroidAppModule.
 object App extends AndroidAppModule {
 
   // Default project root to be one level up from the current millSourcePath
@@ -28,9 +33,12 @@ object App extends AndroidAppModule {
 
 // This is a basic Mill build for creating Simple `Hello-World` Android Application 
 // which extends `AndroidAppModule` for all Andorid Application related tasks, 
-// here we can alter the default values of `projectRoot` 
-// (Which Contains All Files required for Android Application Creation) and 
+// here we can alter the default values: 
+// 
+// `projectRoot`(Which Contains All Files required for Android Application Creation).
+//
 // `appName` (responsible For Final Application Name). 
+//
 // User can Change these values according to their need and the Project Folder Structure 
 // for this would look something like this:
 //
@@ -50,14 +58,7 @@ object App extends AndroidAppModule {
 // 
 //// SNIPPET:Modules
 //
-// This example project uses `AndroidAppModule` and this Module further depends on two Modules 
-// `AndroidSdkModule`(For Installing Andorid SDK and Tools Required to create Android Application) 
-// and `JavaModule` (For Using Java Commands for Compiling, Creating Jars and common java tasks) 
+// This example project uses `AndroidAppModule` and this Module further depends on two Modules:
+// * `AndroidSdkModule`(For Installing Andorid SDK and Tools Required to create Android Application) 
+// * `JavaModule` (For Using Java Commands for Compiling, Creating Jars and common java tasks) 
 // all the code works in a flow from installing Android SDK to creating Android Application.
-
-// Users can Perform Manual Testing to insure Proper Functioning of the Application and Automatic 
-// Testing Procedure is still under Observance once Approved, will be shared.
-
-// Mill Build Tool already have Advantages over the other Build Tools and 
-// having the support for Android Application with Mill Build Tool Provdies Efficieny and 
-// Optimisation to Android Application Creation Process.
