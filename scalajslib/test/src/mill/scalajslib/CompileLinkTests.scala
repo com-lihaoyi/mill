@@ -74,11 +74,11 @@ object CompileLinkTests extends TestSuite {
   val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-js-world"
 
   def testRun(
-               scalaVersion: String,
-               scalaJSVersion: String,
-               optimize: Boolean,
-               legacy: Boolean
-             ): Unit = UnitTester(HelloJSWorld, millSourcePath).scoped { eval =>
+      scalaVersion: String,
+      scalaJSVersion: String,
+      optimize: Boolean,
+      legacy: Boolean
+  ): Unit = UnitTester(HelloJSWorld, millSourcePath).scoped { eval =>
     val module = HelloJSWorld.build(scalaVersion, scalaJSVersion)
     val jsFile =
       if (legacy) {
@@ -101,7 +101,6 @@ object CompileLinkTests extends TestSuite {
       _.str == jsFile.toNIO.getFileName.toString
     )) // sourceMap references jsFile
   }
-
 
   def tests: Tests = Tests {
     test("compile") - UnitTester(HelloJSWorld, millSourcePath).scoped { eval =>

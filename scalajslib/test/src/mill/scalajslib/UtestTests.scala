@@ -17,7 +17,7 @@ import scala.jdk.CollectionConverters._
 object UtestTests extends TestSuite {
   import CompileLinkTests._
   def runTests(testTask: define.NamedTask[(String, Seq[TestResult])])
-  : Map[String, Map[String, TestResult]] =
+      : Map[String, Map[String, TestResult]] =
     UnitTester(HelloJSWorld, millSourcePath).scoped { eval =>
       val Left(Result.Failure(_, Some(res))) = eval(testTask)
 

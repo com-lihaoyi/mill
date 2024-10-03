@@ -8,7 +8,6 @@ object ScalatestTests extends TestSuite {
   import UtestTests._
   def tests: Tests = Tests {
 
-
     test("scalatest") {
       testAllMatrix(
         (scala, scalaJS) => checkScalaTest(scala, scalaJS, cached = false),
@@ -22,7 +21,6 @@ object ScalatestTests extends TestSuite {
         skipScala = ZincWorkerUtil.isScala3
       )
     }
-
 
   }
 }

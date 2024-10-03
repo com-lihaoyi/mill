@@ -75,5 +75,4 @@ object JarPublishRunTests extends TestSuite {
     }
   }
 
-
 }
