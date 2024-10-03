@@ -1,4 +1,5 @@
 package foo
+import scala.scalanative.unsafe._
 
 object Main {
   def main(args: Array[String]): Unit = {
@@ -16,3 +17,4 @@ object HelloWorld {
   // Name and signature of C function
   def printString(str: CString): Unit = extern
 }
+
