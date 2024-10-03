@@ -17,7 +17,7 @@ import utest._
 
 import scala.jdk.CollectionConverters._
 
-object HelloNativeWorldTests extends TestSuite {
+object CompileRunTests extends TestSuite {
   trait HelloNativeWorldModule
       extends ScalaModule
       with ScalaNativeModule
@@ -131,74 +131,6 @@ object HelloNativeWorldTests extends TestSuite {
         assert(entries.contains("hello/Main$.nir"))
       }
     }
-    test("publish") {
-      def testArtifactId(
-          scalaVersion: String,
-          scalaNativeVersion: String,
-          mode: ReleaseMode,
-          artifactId: String
-      ): Unit = UnitTester(HelloNativeWorld, millSourcePath).scoped { eval =>
-        val Right(result) = eval(
-          HelloNativeWorld.build(
-            scalaVersion,
-            scalaNativeVersion,
-            mode: ReleaseMode
-          ).artifactMetadata
-        )
-        assert(result.value.id == artifactId)
-      }
-    }
-
-    def runTests(testTask: define.NamedTask[(String, Seq[TestResult])])
-        : Map[String, Map[String, TestResult]] =
-      UnitTester(HelloNativeWorld, millSourcePath).scoped { eval =>
-        val Left(Result.Failure(_, Some(res))) = eval(testTask)
-
-        val (doneMsg, testResults) = res
-        testResults
-          .groupBy(_.fullyQualifiedName)
-          .view
-          .mapValues(_.map(e => e.selector -> e).toMap)
-          .toMap
-      }
-
-    def checkUtest(
-        scalaVersion: String,
-        scalaNativeVersion: String,
-        mode: ReleaseMode,
-        cached: Boolean
-    ) = {
-      val resultMap = runTests(
-        if (!cached) HelloNativeWorld.build(scalaVersion, scalaNativeVersion, mode).test.test()
-        else HelloNativeWorld.build(scalaVersion, scalaNativeVersion, mode).test.testCached
-      )
-
-      val mainTests = resultMap("hellotest.MainTests")
-      val argParserTests = resultMap("hellotest.ArgsParserTests")
-
-      assert(
-        mainTests.size == 3,
-        mainTests("hellotest.MainTests.vmName.containNative").status == "Success",
-        mainTests("hellotest.MainTests.vmName.containScala").status == "Success",
-        argParserTests.size == 2,
-        argParserTests("hellotest.ArgsParserTests.one").status == "Success",
-        argParserTests("hellotest.ArgsParserTests.two").status == "Failure"
-      )
-    }
-
-    test("test") - {
-      val cached = false
-
-      testAllMatrix((scala, scalaNative, releaseMode) =>
-        checkUtest(scala, scalaNative, releaseMode, cached)
-      )
-    }
-    test("testCached") {
-      val cached = true
-      testAllMatrix((scala, scalaNative, releaseMode) =>
-        checkUtest(scala, scalaNative, releaseMode, cached)
-      )
-    }
 
     def checkRun(scalaVersion: String, scalaNativeVersion: String, mode: ReleaseMode): Unit =
       UnitTester(HelloNativeWorld, millSourcePath).scoped { eval =>
@@ -218,19 +150,6 @@ object HelloNativeWorldTests extends TestSuite {
       testAllMatrix((scala, scalaNative, releaseMode) => checkRun(scala, scalaNative, releaseMode))
     }
 
-    def checkInheritedTargets[A](target: ScalaNativeModule => T[A], expected: A) =
-      UnitTester(HelloNativeWorld, millSourcePath).scoped { eval =>
-        val Right(mainResult) = eval(target(HelloNativeWorld.inherited))
-        val Right(testResult) = eval(target(HelloNativeWorld.inherited.test))
-        assert(mainResult.value == expected)
-        assert(testResult.value == expected)
-      }
-    test("test-scalacOptions") {
-      checkInheritedTargets(_.scalacOptions, Seq("-deprecation"))
-    }
-    test("test-scalaOrganization") {
-      checkInheritedTargets(_.scalaOrganization, "org.example")
-    }
   }
 
   def compileClassfiles(scalaVersion: String, scalaNativeVersion: String) = {
