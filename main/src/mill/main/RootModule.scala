@@ -60,9 +60,7 @@ object RootModule {
           fileName = millFile0,
           enclosing = Caller(null)
         )
-      ) with Module {
-    def millDiscover: Discover
-  }
+      ) with Module {}
 
   @deprecated
   abstract class Foreign(foreign0: Option[Segments])(implicit
