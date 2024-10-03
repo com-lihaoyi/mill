@@ -21,7 +21,7 @@ object bar extends MyModule {
     ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0"
   )
 
-  object test extends KotlinModuleTests with TestModule.Junit5 {
+  object test extends KotlinTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
     )
