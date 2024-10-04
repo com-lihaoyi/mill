@@ -73,7 +73,7 @@ include::partial$example/kotlinlib/module/13-assembly-config.adoc[]
 
 include::partial$example/kotlinlib/module/14-repository-config.adoc[]
 
-=== Maven Central: Blocked!
+=== Working without access to Maven Central
 
 Under some circumstances (e.g. corporate firewalls), you may not have access maven central. The typical symptom will be error messages which look like this;
 

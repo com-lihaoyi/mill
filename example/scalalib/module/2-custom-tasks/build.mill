@@ -57,10 +57,10 @@ object `package` extends RootModule with ScalaModule {
 // depending on existing Tasks e.g. `foo.sources` via the `foo.sources()`
 // syntax to extract their current value, as shown in `lineCount` above. The
 // return-type of a Task has to be JSON-serializable (using
-// https://github.com/lihaoyi/upickle[uPickle]) and the Task is cached when
-// first run until its inputs change (in this case, if someone edits the
-// `foo.sources` files which live in `foo/src`. Cached Tasks cannot take
-// parameters.
+// https://github.com/lihaoyi/upickle[uPickle], one of Mill's <<Bundled Libraries>>)
+// and the Task is cached when first run until its inputs change (in this case, if
+// someone edits the `foo.sources` files which live in `foo/src`. Cached Tasks
+// cannot take parameters.
 //
 // Note that depending on a task requires use of parentheses after the task
 // name, e.g. `ivyDeps()`, `sources()` and `lineCount()`. This converts the
