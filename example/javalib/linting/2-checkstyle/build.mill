@@ -33,15 +33,14 @@ Audit done.
 Audit done.
 */
 
-// Performs quality checks on Java source files using https://checkstyle.org[Checkstyle] and generates reports from these checks.
+// `CheckstyleModule` Performs quality checks on Java source files using
+// https://checkstyle.org[Checkstyle] and generates reports from these checks.
 //
 // To use this plugin in a Java/Scala module,
 //
 // 1. Extend `mill.contrib.checkstyle.CheckstyleModule`.
 // 2. Define a https://checkstyle.org/config.html[configuration] file `checkstyle-config.xml`.
 // 3. Run the `checkstyle` command.
-//
-// === checkstyle
 //
 // - flags
 // [source,sh]

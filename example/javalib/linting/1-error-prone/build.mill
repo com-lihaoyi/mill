@@ -46,7 +46,7 @@ object `package` extends RootModule with JavaModule with ErrorProneModule {
 // }
 // ----
 //
-// == Configuration
+// === Configuration
 //
 // The following configuration options exist:
 //
