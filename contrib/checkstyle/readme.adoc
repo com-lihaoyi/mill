@@ -65,7 +65,7 @@ object foo extends Module {
 
   trait MyModule extends JavaModule with CheckstyleModule {
 
-    override def checkstyleConfig = T {
+    override def checkstyleConfig = Task {
       api.PathRef(T.workspace / "checkstyle-config.xml")
     }
   }
@@ -116,7 +116,7 @@ import mill.scalalib._
 
 object foo extends JavaModule with CheckstyleXsltModule {
 
-    override def checkstyleXsltReports = T {
+    override def checkstyleXsltReports = Task {
       Set(
         CheckstyleXsltReport(
           PathRef(millSourcePath / "checkstyle-no-frames.xml"),

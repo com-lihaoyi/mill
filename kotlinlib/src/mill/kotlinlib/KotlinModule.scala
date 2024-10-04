@@ -182,14 +182,14 @@ trait KotlinModule extends JavaModule { outer =>
   /**
    * Dokka version.
    */
-  def dokkaVersion: T[String] = T {
+  def dokkaVersion: T[String] = Task {
     Versions.dokkaVersion
   }
 
   /**
    * Classpath for running Dokka.
    */
-  private def dokkaCliClasspath: T[Loose.Agg[PathRef]] = T {
+  private def dokkaCliClasspath: T[Loose.Agg[PathRef]] = Task {
     defaultResolver().resolveDeps(
       Agg(
         ivy"org.jetbrains.dokka:dokka-cli:${dokkaVersion()}"
@@ -197,7 +197,7 @@ trait KotlinModule extends JavaModule { outer =>
     )
   }
 
-  private def dokkaPluginsClasspath: T[Loose.Agg[PathRef]] = T {
+  private def dokkaPluginsClasspath: T[Loose.Agg[PathRef]] = Task {
     defaultResolver().resolveDeps(
       Agg(
         ivy"org.jetbrains.dokka:dokka-base:${dokkaVersion()}",

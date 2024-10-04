@@ -590,7 +590,7 @@ import com.github.carueda.mill.JBuildInfo
 import mill.T
 
 object project extends JBuildInfo {
-  def buildInfoMembers: T[Map[String, String]] = T {
+  def buildInfoMembers: T[Map[String, String]] = Task {
     Map(
       "name" -> "some name",
       "version" -> "x.y.z"

@@ -40,13 +40,12 @@ object bar extends MyModule {
 // foo/
 //     src/
 //         Foo.scala
-//     resources/
-//         ...
 // bar/
 //     src/
 //         Bar.scala
-//     resources/
-//         ...
+//     test/
+//         src/
+//             BarTests.scala
 // out/
 //     foo/
 //         compile.json
@@ -56,12 +55,18 @@ object bar extends MyModule {
 //         compile.json
 //         compile.dest/
 //         ...
+//         test/
+//             compile.json
+//             compile.dest/
+//             ...
 // ----
 //
 //// SNIPPET:END
 // Typically, both source code and output files in Mill follow the module
 // hierarchy, so e.g. input to the `foo` module lives in `foo/src/` and
-// compiled output files live in `out/foo/compile.dest`.
+// compiled output files live in `out/foo/compile.dest`. You can use
+// `mill resolve` to list out what tasks you can run, e.g. `mill resolve __.run`
+// below which lists out all the `run` tasks:
 
 /** Usage
 
@@ -105,11 +110,11 @@ Bar.value: <h1>world</h1>
 // If you need to feed a `+` as argument to your target, you can mask it by
 // preceding it with a backslash (`\`).
 //
-// === Examples
+// === Mill Query Syntax Examples
 //
 // `+mill foo._.compile+`:: Runs `compile` for all direct sub-modules of `foo`
 // `+mill foo.__.test+` :: Runs `test` for all sub-modules of `foo`
 // `+mill {foo,bar}.__.testCached+` :: Runs `testCached` for all sub-modules of `foo` and `bar`
 // `+mill __.compile + foo.__.test+` :: Runs all `compile` targets and all tests under `foo`.
 //
-//
+// For more details on the query syntax, check out the documentation for <<Target Query Syntax>>

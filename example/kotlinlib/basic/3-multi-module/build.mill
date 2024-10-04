@@ -34,16 +34,13 @@ object bar extends MyModule {
 // build.mill
 // foo/
 //     src/
-//         foo/
-//             Foo.java
-//     resources/
-//         ...
+//         foo/Foo.kt
 // bar/
 //     src/
-//         bar/
-//             Bar.java
-//     resources/
-//         ...
+//         bar/Bar.kt
+//     test/
+//         src/
+//             bar/BarTests.kt
 // out/
 //     foo/
 //         compile.json
@@ -53,5 +50,9 @@ object bar extends MyModule {
 //         compile.json
 //         compile.dest/
 //         ...
+//         test/
+//             compile.json
+//             compile.dest/
+//             ...
 // ----
 //

@@ -8,7 +8,7 @@ trait LineCountJavaModule extends mill.javalib.JavaModule{
   /** Name of the file containing the line count that we create in the resource path */
   def lineCountResourceFileName: T[String]
 
-  /** Total number of lines in module's source files */
+  /** Total number of lines in module source files */
   def lineCount = T{
     allSourceFiles().map(f => os.read.lines(f.path).size).sum
   }

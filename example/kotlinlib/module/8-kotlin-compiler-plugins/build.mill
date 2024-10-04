@@ -15,7 +15,7 @@ object foo extends KotlinModule {
     ivy"org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3"
   )
 
-  def processors = T {
+  def processors = Task {
     defaultResolver().resolveDeps(
       Agg(
         ivy"org.jetbrains.kotlin:kotlin-serialization-compiler-plugin:1.9.24"

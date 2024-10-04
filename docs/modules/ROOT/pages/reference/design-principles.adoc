@@ -4,11 +4,11 @@
 
 The following external resources give more of a flavor of the architecture behind
 Mill:
-
-* https://www.lihaoyi.com/post/SoWhatsSoSpecialAboutTheMillScalaBuildTool.html[So, What's So Special About The Mill Scala Build Tool?]
+- https://www.youtube.com/watch?v=UsXgCeU-ovI[Video: A Deep Dive into the Mill Build Tool]
+- https://www.lihaoyi.com/post/SoWhatsSoSpecialAboutTheMillScalaBuildTool.html[Blog Post: What's So Special About The Mill Scala Build Tool?]
 * https://www.youtube.com/watch?v=j6uThGxx-18[Video: Mill a Build Tool based on Pure Functional Programming]
-* http://www.lihaoyi.com/post/SowhatswrongwithSBT.html[Blog Post: So, what's wrong with SBT?]
 * http://www.lihaoyi.com/post/BuildToolsasPureFunctionalPrograms.html[Blog Post: Build Tools as Pure Functional Programs]
+* http://www.lihaoyi.com/post/SowhatswrongwithSBT.html[Blog Post: So, what's wrong with SBT?]
 
 == Principles
 
@@ -33,7 +33,7 @@ the same as referencing a target in Scala code, `Foo.bar.baz`
 
 Everything that you can run from the command line lives in an object hierarchy
 in your `build.mill` file. Different parts of the hierarchy can have different
-``Target``s available: just add a new `def foo = T {...}` somewhere and you'll be
+``Target``s available: just add a new `def foo = Task {...}` somewhere and you'll be
 able to run it.
 
 Cross builds, using the `Cross` data structure, are just another kind of node in
@@ -43,7 +43,7 @@ run something via `mill core.cross[a].printIt` while from code you use
 
 === Caching by default
 
-Every `Target` in a build, defined by `def foo = T {...}`, is cached by default.
+Every `Target` in a build, defined by `def foo = Task {...}`, is cached by default.
 Currently this is done using a `foo.json` file in the `out/` folder. The
 `Target` is also provided a `foo.dest/` path on the filesystem dedicated to it, for
 it to store output files etc.
@@ -318,10 +318,10 @@ you already had:
 
 [source,scala]
 ----
-def b = T { ... }
-def c = T { ... }
-def d = T { ... }
-def a = T { f(b(), c(), d()) }
+def b = Task { ... }
+def c = Task { ... }
+def d = Task { ... }
+def a = Task { f(b(), c(), d()) }
 ----
 
 Thus, if you are familiar with how data flows through a normal Scala program,

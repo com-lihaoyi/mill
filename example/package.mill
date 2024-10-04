@@ -172,11 +172,11 @@ object `package` extends RootModule with Module {
     /**
      * Parses a `build.mill` for specific comments and return the split-by-type content
      */
-    def parsed: T[Seq[(String, String)]] = T {
+    def parsed: T[Seq[(String, String)]] = Task {
       mill.testkit.ExampleParser(testRepoRoot().path)
     }
 
-    def rendered = T {
+    def rendered = Task {
       var seenCode = false
       val examplePath = millSourcePath.subRelativeTo(T.workspace)
       os.write(
@@ -238,7 +238,7 @@ object `package` extends RootModule with Module {
     val (repoPath, repoHash) = repoInfo(crossValue)
     def repoSlug = repoPath.split("/").last
 
-    def testRepoRoot = T {
+    def testRepoRoot = Task {
       shared.downloadTestRepo(repoPath, repoHash, T.dest)
       val wrapperFolder = T.dest / s"$repoSlug-$repoHash"
 

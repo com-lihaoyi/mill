@@ -8,7 +8,7 @@ object `package` extends RootModule with KotlinModule {
 
   def mainClass = Some("foo.FooKt")
 
-  /** Total number of lines in module's source files */
+  /** Total number of lines in module source files */
   def lineCount = T{
     allSourceFiles().map(f => os.read.lines(f.path).size).sum
   }

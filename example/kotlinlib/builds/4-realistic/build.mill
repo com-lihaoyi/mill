@@ -30,7 +30,7 @@ object foo extends MyModule {
 
   def mainClass = Some("foo.FooKt")
 
-  def generatedSources = T {
+  def generatedSources = Task {
     os.write(
       T.dest / "Version.kt",
       s"""
