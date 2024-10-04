@@ -20,7 +20,8 @@ object ScalaValidatedPathRefTests extends TestSuite {
     def checkedPathRef: T[PathRef] = Task { mkDirWithFile().withRevalidateOnce }
     def checkedSeqPathRef: T[Seq[PathRef]] = Task { Seq(mkDirWithFile()).map(_.withRevalidateOnce) }
     def checkedAggPathRef: T[Agg[PathRef]] = Task { Agg(mkDirWithFile()).map(_.withRevalidateOnce) }
-    def checkedTuplePathRef: T[Tuple1[PathRef]] = Task { Tuple1(mkDirWithFile().withRevalidateOnce) }
+    def checkedTuplePathRef: T[Tuple1[PathRef]] =
+      Task { Tuple1(mkDirWithFile().withRevalidateOnce) }
   }
 
   def tests: Tests = Tests {

@@ -375,7 +375,7 @@ A git version plugin for mill.
 
 Project home: https://github.com/joan38/mill-git
 
-_build.sc_:
+_build.mill_:
 
 [source,scala]
 ----
@@ -472,7 +472,7 @@ Add a new test sub-project, e.g. `itest`.
 
 [source,scala]
 ----
-// build.sc
+// build.mill
 import $ivy.`de.tototec::de.tobiasroeser.mill.integrationtest_mill0.9:0.4.0`
 import de.tobiasroeser.mill.integrationtest._
 
@@ -500,14 +500,14 @@ Your project should now look similar to this:
 +-- it/
     +-- src/
         +-- 01-first-test/
-        |   +-- build.sc
+        |   +-- build.mill
         |   +-- src/
         |
         +-- 02-second-test/
-            +-- build.sc
+            +-- build.mill
 ----
 
-As the buildfiles `build.sc` in your test cases typically want to access the locally built plugin(s),
+As the buildfiles `build.mill` in your test cases typically want to access the locally built plugin(s),
 the plugins publishes all plugins referenced under `pluginsUnderTest` to a temporary ivy repository, just before the test is executed.
 The mill version used in the integration test then used that temporary ivy repository.
 
@@ -516,7 +516,7 @@ you can use the following line instead, which ensures you will use the correct l
 
 [source,scala]
 ----
-// build.sc
+// build.mill
 import $exec.plugins
 ----
 
@@ -543,7 +543,7 @@ JBake home: https://jbake.org
 
 [source,scala]
 ----
-// build.sc
+// build.mill
 import mill._
 import $ivy.`de.tototec::de.tobiasroeser.mill.jbake:0.1.0`
 import de.tobiasroeser.mill.jbake._
@@ -584,7 +584,7 @@ the desired information via the `buildInfoMembers` method:
 
 [source,scala]
 ----
-// build.sc
+// build.mill
 import $ivy.`com.github.carueda::jbuildinfo:0.1.2`
 import com.github.carueda.mill.JBuildInfo
 import mill.T
@@ -719,7 +719,7 @@ https://github.com/spotify/missinglink[missinglink] check for Mill, ported from 
 
 Project home: https://github.com/hoangmaihuy/mill-missinglink
 
-_build.sc_:
+_build.mill_:
 [source,scala]
 ----
 import $ivy.`io.github.hoangmaihuy::mill-missinglink::<latest-version>`
@@ -831,7 +831,7 @@ Project home: https://github.com/lefou/mill-publishM2
 Just mix-in the `PublishM2Module` into your project.
 `PublishM2Module` already extends mill's built-in `PublishModule`.
 
-File: `build.sc`
+File: `build.mill`
 
 [source,scala]
 ----
@@ -903,7 +903,7 @@ https://github.com/scala-tsi/scala-tsi[scala-tsi] support for Mill
 
 Project home: https://github.com/hoangmaihuy/mill-scala-tsi
 
-_build.sc_:
+_build.mill_:
 
 [source,scala]
 ----
@@ -950,7 +950,7 @@ https://scalacenter.github.io/scalafix/[Scalafix] support for mill.
 
 Project home: https://github.com/joan38/mill-scalafix
 
-_build.sc_:
+_build.mill_:
 
 [source,scala]
 ----
@@ -1084,7 +1084,7 @@ Project home: https://github.com/hoangmaihuy/mill-universal-packager
 
 [source,scala,subs="attributes,verbatim"]
 ----
-// build.sc
+// build.mill
 import $ivy.`io.github.hoangmaihuy::mill-universal-packager::<latest-version>`
 
 import io.github.hoangmaihuy.mill.packager.archetypes.JavaAppPackagingModule
