@@ -194,7 +194,7 @@ trait MainModule extends BaseModule0 {
   /**
    * Displays metadata about the given task without actually running it.
    */
-  def inspect(evaluator: Evaluator, targets: String*): Command[String] =
+  def inspect(evaluator: Evaluator, tasks: String*): Command[String] =
     Task.Command(exclusive = true) {
       def resolveParents(c: Class[_]): Seq[Class[_]] = {
         Seq(c) ++ Option(c.getSuperclass).toSeq.flatMap(resolveParents) ++ c.getInterfaces.flatMap(
@@ -337,7 +337,7 @@ trait MainModule extends BaseModule0 {
         }
       }
 
-      MainModule.resolveTasks(evaluator, targets, SelectMode.Multi, resolveToModuleTasks = true) {
+      MainModule.resolveTasks(evaluator, tasks, SelectMode.Multi, resolveToModuleTasks = true) {
         tasks =>
           val output = (for {
             task <- tasks

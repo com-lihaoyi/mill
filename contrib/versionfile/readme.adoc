@@ -4,8 +4,8 @@
 
 This plugin provides helpers for updating a version file and committing the changes to git.
 
-*Note: You can still make manual changes to the version file in-between execution of the targets provided by the module.*
-*Each target operates on the version file as is at the time of execution.*
+*Note: You can still make manual changes to the version file in-between execution of the tasks provided by the module.*
+*Each task operates on the version file as is at the time of execution.*
 
 == Quickstart
 
@@ -83,7 +83,7 @@ In this example, it would look for the file `version` in the same directory as t
 
 == Set release version
 
-The `setReleaseVersion` target removes the `-SNAPSHOT` identifier from the version,
+The `setReleaseVersion` task removes the `-SNAPSHOT` identifier from the version,
 then overwrites the previous content in the version file with this new version.
 
 === Example
@@ -99,7 +99,7 @@ This will update the version file to contain `0.1.0`.
 
 == Set next version
 
-The `setNextVersion` target bumps the version and changes it to a snapshot version,
+The `setNextVersion` task bumps the version and changes it to a snapshot version,
 then overwrites the previous content in the version file with this new version.
 
 === Parameters

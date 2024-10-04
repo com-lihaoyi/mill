@@ -54,6 +54,11 @@ object bar extends ScalaModule {
 // NOTE: Compile-time dependencies are translated to `provided`-scoped
 // dependencies when publish to Maven or Ivy-Repositories.
 //
+// Both `compileIvyDeps` and `runIvyDeps` are non-transitive: a module does not
+// automatically aggregate them from its upstream dependencies. They must be
+// defined in every module that they are required in, either explicitly or via
+// a `trait` that the module inherits from.
+//
 //// SNIPPET:SCALASTEWARD
 // === Keeping up-to-date with Scala Steward
 //

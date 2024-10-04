@@ -14,7 +14,7 @@ object `package` extends RootModule {
       case m: build.MillStableScalaModule => m
       case m: JavaModule if m eq build.kotlinlib => m
     }
-    def unidocSourceUrl = T {
+    def unidocSourceUrl = Task {
       val sha = VcsVersion.vcsState().currentRevision
       Some(s"${build.Settings.projectUrl}/blob/$sha")
     }
@@ -57,7 +57,7 @@ object `package` extends RootModule {
 
   def source0 = T.source(millSourcePath)
   def projectReadme = T.source(T.workspace / "readme.adoc")
-  def source = T {
+  def source = Task {
     os.copy(source0().path, T.dest, mergeFolders = true)
 
     val pagesWd = T.dest / "modules" / "ROOT" / "pages"
@@ -98,7 +98,7 @@ object `package` extends RootModule {
   /**
    * The doc root ready to be build by antora for the current branch.
    */
-  def devAntoraSources: T[PathRef] = T {
+  def devAntoraSources: T[PathRef] = Task {
     val dest = T.dest
     os.copy(source().path, dest, mergeFolders = true)
     sanitizeAntoraYml(dest, "master", build.millVersion(), build.millLastTag())
@@ -182,7 +182,7 @@ object `package` extends RootModule {
        |""".stripMargin
   }
 
-  def oldDocSources = T {
+  def oldDocSources = Task {
     for (oldVersion <- build.Settings.docTags) yield {
       val checkout = T.dest / oldVersion
       os.proc("git", "clone", T.workspace / ".git", checkout).call(stdout = os.Inherit)
@@ -194,17 +194,17 @@ object `package` extends RootModule {
     }
   }
 
-  def githubPages: T[PathRef] = T {
+  def githubPages: T[PathRef] = Task {
     generatePages(authorMode = false)().apply(oldDocSources().map(_.path))
   }
 
-  def localPages = T {
+  def localPages = Task {
     val pages = generatePages(authorMode = true)().apply(oldDocSources().map(_.path))
     T.log.outputStream.println(
       s"You can browse the local pages at: ${(pages.path / "index.html").toNIO.toUri()}"
     )
   }
-  def fastPages = T {
+  def fastPages = Task {
     val pages = generatePages(authorMode = true)().apply(Nil)
     T.log.outputStream.println(
       s"You can browse the local pages at: ${(pages.path / "index.html").toNIO.toUri()}"

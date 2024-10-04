@@ -130,7 +130,7 @@ object main extends JavaModule {
 
 == Compile-only dependencies (`provided` scope)
 
-If you want to use a dependency only at compile time, you can declare it with the `compileIvyDeps` target.
+If you want to use a dependency only at compile time, you can declare it with the `compileIvyDeps` task.
 
 .Example
 [source,scala]
@@ -142,12 +142,12 @@ def compileIvyDeps = Agg(
 
 When Mill generated file to interact with package manager like `pom.xml` for Maven repositories, such compile-only dependencies are mapped to the `provided` scope.
 
-Please note, that dependencies with `provided` scope will never be resolved transitively. Hence, the name "provided", as the target runtime needs to "provide" them, if they are needed.
+Please note, that dependencies with `provided` scope will never be resolved transitively. Hence, the name "provided", as the task runtime needs to "provide" them, if they are needed.
 
 
 == Runtime dependencies
 
-If you want to declare dependencies to be used at runtime (but not at compile time), you can use the `runIvyDeps` targets.
+If you want to declare dependencies to be used at runtime (but not at compile time), you can use the `runIvyDeps` tasks.
 
 .Example
 [source,scala]

@@ -17,7 +17,7 @@ object `package` extends RootModule with ScalaModule {
 
 // This is a basic Mill build for a single `ScalaModule`, with two
 // third-party dependencies and a test suite using the uTest framework. As a
-// single-module project, it `extends RootModule` to mark `object foo` as the
+// single-module project, it `extends RootModule` to mark ``object `package``` as the
 // top-level module in the build. This lets us directly perform operations
 // `./mill compile` or `./mill run` without needing to prefix it as
 // `foo.compile` or `foo.run`.
@@ -32,6 +32,28 @@ object `package` extends RootModule with ScalaModule {
 // The source code for this module lives in the `src/` folder.
 // Output for this module (compiled files, resolved dependency lists, ...)
 // lives in `out/`.
+
+//// SNIPPET:TREE
+// ----
+// build.mill
+// src/
+//     Foo.scala
+// resources/
+//     ...
+// test/
+//     src/
+//         FooTests.scala
+// out/
+//     compile.json
+//     compile.dest/
+//     ...
+//     test/
+//         compile.json
+//         compile.dest/
+//         ...
+// ----
+//
+//// SNIPPET:END
 //
 //// SNIPPET:DEPENDENCIES
 //
@@ -39,8 +61,7 @@ object `package` extends RootModule with ScalaModule {
 // argument parsing, Scalatags for HTML generation - and uses them to wrap a
 // given input string in HTML templates with proper escaping.
 //
-// You can run `assembly` to generate a standalone executable jar, which then
-// can be run from the command line or deployed to be run elsewhere.
+// Typical usage of a `ScalaModule` is shown below:
 
 /** Usage
 

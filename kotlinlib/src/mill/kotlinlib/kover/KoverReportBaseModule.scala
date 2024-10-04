@@ -21,14 +21,14 @@ trait KoverReportBaseModule extends CoursierModule {
     Success[String](T.env.getOrElse("KOVER_VERSION", Versions.koverVersion))
   }
 
-  def koverCliDep: Target[Agg[Dep]] = T {
+  def koverCliDep: Target[Agg[Dep]] = Task {
     Agg(ivy"org.jetbrains.kotlinx:kover-cli:${koverVersion()}")
   }
 
   /**
    * Classpath for running Kover.
    */
-  def koverCliClasspath: T[Loose.Agg[PathRef]] = T {
+  def koverCliClasspath: T[Loose.Agg[PathRef]] = Task {
     defaultResolver().resolveDeps(koverCliDep())
   }
 }

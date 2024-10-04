@@ -23,6 +23,7 @@ gtag('config', 'AW-16649289906');
 
 :language: Scala
 :language-small: scala
+:language-ext: scala
 
 include::partial$Intro_to_Mill_Header.adoc[]
 

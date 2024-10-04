@@ -75,7 +75,7 @@ object `package` extends RootModule with MockitoModule{
     libraries.junitJupiterParams
   )
 
-  def resources = T{
+  def resources = Task {
     val subpath = os.SubPath("org/mockito/internal/creation/bytebuddy/inject/")
     os.copy(
       compile().classes.path / subpath / "MockMethodDispatcher.class",

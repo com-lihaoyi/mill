@@ -8,7 +8,7 @@ object `package` extends RootModule with KotlinModule {
 
   def mainClass = Some("foo.FooKt")
 
-  def unmanagedClasspath = T {
+  def unmanagedClasspath = Task {
     os.write(
       T.dest / "fastjavaio.jar",
       requests.get.stream(

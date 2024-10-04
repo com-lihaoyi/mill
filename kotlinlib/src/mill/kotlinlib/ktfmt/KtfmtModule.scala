@@ -14,7 +14,7 @@ trait KtfmtBaseModule extends JavaModule {
   /**
    * Classpath for running Ktfmt.
    */
-  def ktfmtClasspath: T[Loose.Agg[PathRef]] = T {
+  def ktfmtClasspath: T[Loose.Agg[PathRef]] = Task {
     defaultResolver().resolveDeps(
       Agg(ivy"com.facebook:ktfmt:${ktfmtVersion()}")
     )
@@ -23,7 +23,7 @@ trait KtfmtBaseModule extends JavaModule {
   /**
    * Ktfmt version.
    */
-  def ktfmtVersion: T[String] = T {
+  def ktfmtVersion: T[String] = Task {
     Versions.ktfmtVersion
   }
 
@@ -31,7 +31,7 @@ trait KtfmtBaseModule extends JavaModule {
    * Additional arguments for Ktfmt. Check
    * [[https://github.com/facebook/ktfmt/blob/main/core/src/main/java/com/facebook/ktfmt/cli/ParsedArgs.kt#L51 available options]].
    */
-  def ktfmtOptions: T[Seq[String]] = T {
+  def ktfmtOptions: T[Seq[String]] = Task {
     Seq.empty[String]
   }
 }

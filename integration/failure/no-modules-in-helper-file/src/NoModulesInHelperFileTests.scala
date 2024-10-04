@@ -11,7 +11,7 @@ object NoModulesInHelperFileTests extends UtestIntegrationTestSuite {
       val res = eval(("resolve", "_"))
       assert(res.isSuccess == false)
       assert(
-        res.err.contains("Modules, Targets and Commands can only be defined within a mill Module")
+        res.err.contains("Modules and Tasks can only be defined within a mill Module")
       )
       assert(res.err.contains("object foo extends Module"))
     }

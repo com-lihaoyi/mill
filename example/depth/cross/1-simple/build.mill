@@ -43,7 +43,7 @@ trait FooModule extends Cross.Module[String] {
 // filesystem.
 //
 // This example defines three copies of `FooModule`: `"2.10"`, `"2.11"` and
-// `"2.12"`, each of which has their own `suffix` target. You can then run
+// `"2.12"`, each of which has their own `suffix` task. You can then run
 // them as shown below. Note that by default, `sources` returns `foo` for every
 // cross module, assuming you want to build the same sources for each. This can
 // be overridden.

@@ -37,6 +37,8 @@ include::partial$Intro_Maven_Gradle_Comparison.adoc[]
 
 include::partial$Intro_to_Mill_BlogVideo.adoc[]
 
+
+
 == Simple Java Module
 
 include::partial$example/javalib/basic/1-simple.adoc[]

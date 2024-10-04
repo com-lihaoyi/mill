@@ -6,7 +6,7 @@ import scala.annotation.compileTimeOnly
 
 /**
  * Used to mark a module in your `build.mill` as a top-level module, so it's
- * targets and commands can be run directly e.g. via `mill run` rather than
+ * tasks can be run directly e.g. via `mill run` rather than
  * prefixed by the module name `mill foo.run`.
  *
  * Only one top-level module may be defined in your `build.mill`, and it must be

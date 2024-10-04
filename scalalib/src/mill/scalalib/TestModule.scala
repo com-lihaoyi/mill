@@ -96,7 +96,7 @@ trait TestModule
    * sequentially, but can be overriden to split them into separate groups that run
    * in parallel.
    */
-  def testForkGrouping: T[Seq[Seq[String]]] = T {
+  def testForkGrouping: T[Seq[Seq[String]]] = Task {
     Seq(discoveredTestClasses())
   }
 

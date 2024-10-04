@@ -38,9 +38,9 @@ object core extends JavaModule {
   }
 
   /**
-   * Core Target Docz!
+   * Core Task Docz!
    */
-  def target = Task {
+  def task = Task {
     import collection.JavaConverters._
     println(this.getClass.getClassLoader.getResources("scalac-plugin.xml").asScala.toList)
     "Hello!"
@@ -51,10 +51,10 @@ object core2 extends JavaModule
 
 object MyJavaTaskModule extends JavaModule {
   override def moduleDeps: Seq[JavaModule] = Seq(core, core2)
-  def lineCount = T {
+  def lineCount = Task {
     allSourceFiles().map(f => os.read.lines(f.path).size).sum
   }
-  def target = Task {
+  def task = Task {
     import collection.JavaConverters._
     println(this.getClass.getClassLoader.getResources("scalac-plugin.xml").asScala.toList)
     "Hello!"
