@@ -10,7 +10,7 @@ object MacroErrorTests extends TestSuite {
 
     test("errors") {
       val expectedMsg =
-        "T{} members must be defs defined in a Cacher class/trait/object body"
+        "Task{} members must be defs defined in a Cacher class/trait/object body"
 
       val err = compileError("object Foo extends TestBaseModule{ val x = Task {1} }")
       assert(err.msg == expectedMsg)
@@ -80,16 +80,16 @@ object MacroErrorTests extends TestSuite {
       }
     }
     test("badTmacro") {
-      // Make sure we can reference values from outside the T{...} block as part
+      // Make sure we can reference values from outside the Task{...} block as part
       // of our `Target#apply()` calls, but we cannot reference any values that
-      // come from inside the T{...} block
+      // come from inside the Task{...} block
       test("pos") {
         val e = compileError("""
           val a = Task { 1 }
           val arr = Array(a)
           val b = {
             val c = 0
-            T{
+            Task{
               arr(c)()
             }
           }
@@ -101,12 +101,12 @@ object MacroErrorTests extends TestSuite {
       test("neg") {
 
         val expectedMsg =
-          "Target#apply() call cannot use `value n` defined within the T{...} block"
+          "Target#apply() call cannot use `value n` defined within the Task{...} block"
         val err = compileError("""new Module{
           def a = Task { 1 }
           val arr = Array(a)
           def b = {
-            T{
+            Task{
               val n = 0
               arr(n)()
             }
@@ -117,12 +117,12 @@ object MacroErrorTests extends TestSuite {
       test("neg2") {
 
         val expectedMsg =
-          "Target#apply() call cannot use `value x` defined within the T{...} block"
+          "Target#apply() call cannot use `value x` defined within the Task{...} block"
         val err = compileError("""new Module{
           def a = Task { 1 }
           val arr = Array(a)
           def b = {
-            T{
+            Task{
               arr.map{x => x()}
             }
           }

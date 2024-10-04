@@ -28,7 +28,7 @@ object CodeSigNestedTests extends UtestIntegrationTestSuite {
       val cached = eval("outer.inner.qux")
       assert(cached.out == "")
 
-      // Changing the body of a T{...} block directly invalidates that task,
+      // Changing the body of a Task{...} block directly invalidates that task,
       // but not downstream tasks unless the return value changes
       modifyFile(workspacePath / "build.mill", _.replace("running foo", "running foo2"))
       val mangledFoo = eval("outer.inner.qux")
@@ -60,7 +60,7 @@ object CodeSigNestedTests extends UtestIntegrationTestSuite {
           Set("running qux2", "running helperQux")
       )
 
-      // Changing the body of some helper method that gets called by a T{...}
+      // Changing the body of some helper method that gets called by a Task{...}
       // block also invalidates the respective tasks, and downstream tasks if necessary
 
       modifyFile(workspacePath / "build.mill", _.replace(" 1 ", " 6 "))

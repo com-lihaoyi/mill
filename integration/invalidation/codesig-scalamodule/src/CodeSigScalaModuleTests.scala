@@ -36,7 +36,7 @@ object CodeSigScalaModuleTests extends UtestIntegrationTestSuite {
           )
       )
 
-      // Changing the body of a T{...} block directly invalidates that task
+      // Changing the body of a Task{...} block directly invalidates that task
       // and any downstream tasks
       modifyFile(workspacePath / "build.mill", _.replace("Foo running...", "FOO RUNNING"))
       val mangledFoo = eval("foo.run")

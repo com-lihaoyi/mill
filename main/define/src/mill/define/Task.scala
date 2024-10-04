@@ -79,7 +79,7 @@ object Task extends TaskBase {
    * [[InputImpl]]s are useful when you want to capture some input to the Mill
    * build graph that comes from outside: maybe from an environment variable, a
    * JVM system property, the hash returned by `git rev-parse HEAD`. Reading
-   * these external mutable variables inside a `T{...}` [[TargetImpl]] will
+   * these external mutable variables inside a `Task{...}` [[TargetImpl]] will
    * incorrectly cache them forever. Reading them inside a `Task.Input{...}`
    * will re-compute them every time, and only if the value changes would it
    * continue to invalidate downstream [[TargetImpl]]s
@@ -147,7 +147,7 @@ object Task extends TaskBase {
    * Creates an anonymous `Task`. These depend on other tasks and
    * be-depended-upon by other tasks, but cannot be run directly from the
    * command line and do not perform any caching. Typically used as helpers to
-   * implement `T{...}` targets.
+   * implement `Task{...}` targets.
    */
   def Anon[T](t: Result[T]): Task[T] = macro Applicative.impl[Task, T, mill.api.Ctx]
 
@@ -229,7 +229,7 @@ object Task extends TaskBase {
 }
 
 /**
- * Represents a task that can be referenced by its path segments. `T{...}`
+ * Represents a task that can be referenced by its path segments. `Task{...}`
  * targets, `Task.Input`, `Task.Worker`, etc. but not including anonymous
  * `Task.Anon` or `T.traverse` etc. instances
  */
