@@ -1,46 +1,55 @@
-// This section demonstrates how to set up a basic Android app structure 
-// with `AndroidSdkModule.scala` and `AndroidAppModule.scala`, utilizing traits for scalability.
-
-// Basically, `AndroidAppModule` extends `AndroidSdkModule` so we need to call only AndroidAppModule this will 
-// insure that all tasks are automatically done for AndroidSdkModule, making user expeience easy
-
-// This Example demonstrates a simple "Hello World" 
-// Android application built using the https://www.lihaoyi.com/mill[Mill build tool].
+// This section sets up a basic Android project using Mill. 
+// We utilize `AndroidAppModule` and `AndroidSdkModule` to streamline the process of 
+// building an Android application with minimal configuration.
+//
+// By extending `AndroidAppModule`, we inherit all Android-related tasks such as 
+// resource generation, APK building, DEX conversion, and APK signing. 
+// Additionally, `AndroidSdkModule` is embedded, making SDK management seamless.
 
 //// SNIPPET:BUILD
 package build
 
 import mill._
-import mill.javalib.android.AndroidAppModule
+import mill.javalib.android.{AndroidAppModule, AndroidSdkModule}
 
-object App extends AndroidAppModule {
+object `package` extends RootModule with AndroidAppModule {
 
-  // Default project root to be one level up from the current millSourcePath
-  def projectRoot: T[os.Path] = T {
-    os.Path(millSourcePath.toString.replace("App", ""))
-  }
-  // The name of the Android application, default is "HelloWorld".
-  def appName: T[String] = T { "HelloWorld" }
+  // Create and configure an Android SDK module to manage Android SDK paths and tools.
+  object sdkModule extends AndroidSdkModule
+
+  // Override the `androidSdkModule` to link to our custom `sdkModule`, which provides 
+  // Android SDK toolchain (e.g., `aapt`, `d8`, `zipalign`, `apksigner`).
+  override def androidSdkModule: AndroidSdkModule = sdkModule
+
+  // Define the Android application name. Defaults to "HelloWorld", but can be customized 
+  // by overriding this value in the project.
+  def androidAppName: T[String] = T { "HelloWorld" }
 }
 
 ////SNIPPET:END
 
+
 /** Usage
 
-> ./mill App.createApp
+> ./mill androidApp
 
 */
 
-// This is a basic Mill build for creating Simple `Hello-World` Android Application 
-// which extends `AndroidAppModule` for all Andorid Application related tasks, 
-// here we can alter the default values: 
+// This command triggers the build process, which installs the Android Setup, compiles the Java 
+// code, generates Android resources, converts Java bytecode to DEX format, packages everything 
+// into an APK, optimizes the APK using `zipalign`, and finally signs it.
+//
+// This Mill build configuration is designed to build a simple "Hello World" Android application. 
+// By extending `AndroidAppModule`, we leverage its predefined Android build tasks, ensuring that 
+// all necessary steps (resource generation, APK creation, and signing) are executed automatically.
+//
+// ### Customizable Fields:
 // 
-// `projectRoot`(Which Contains All Files required for Android Application Creation).
-//
-// `appName` (responsible For Final Application Name). 
-//
-// User can Change these values according to their need and the Project Folder Structure 
-// for this would look something like this:
+// - **`androidAppName`**: This defines the name of the final APK file. By default, it's set to 
+//   "HelloWorld.apk", but you can modify this value based on your project requirements.
+// 
+// ### Project Structure:
+// The project follows the standard Android app layout. Below is a typical project folder structure:
 //
 // ----
 // .
@@ -53,12 +62,20 @@ object App extends AndroidAppModule {
 //                 └── helloworld
 //                     └── app
 //                         └── MainActivity.java
-// 
 // ----
-// 
-//// SNIPPET:Modules
 //
-// This example project uses `AndroidAppModule` and this Module further depends on two Modules:
-// * `AndroidSdkModule`(For Installing Andorid SDK and Tools Required to create Android Application) 
-// * `JavaModule` (For Using Java Commands for Compiling, Creating Jars and common java tasks) 
-// all the code works in a flow from installing Android SDK to creating Android Application.
+// ### Mill Modules Overview:
+//
+// This project relies on three main modules:
+//
+// 1. **`AndroidSdkModule`**: This module manages all Android SDK interactions, including 
+//    tools like `aapt` for resource packaging, `d8` for bytecode conversion, and `apksigner` for signing APKs.
+// 
+// 2. **`JavaModule`**: This provides Java compilation tasks, including class file generation 
+//    and creating JAR files, which are later converted to DEX format for Android.
+//
+// 3. **`AndroidAppModule`**: This module provides the step-by-step workflow for building an Android app. 
+//    It handles everything from compiling the code to generating a signed APK for distribution.
+// 
+// The combination of these modules allows us to automate the entire build process, 
+// from compiling Java code to producing a signed APK ready for distribution.

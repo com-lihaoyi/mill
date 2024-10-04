@@ -3,248 +3,305 @@ package mill.javalib.android
 import mill._
 import mill.api.PathRef
 import mill.scalalib.JavaModule
-import mill.javalib.android.AndroidSdkModule
-import mill.util.Jvm
 
 /**
- * Trait for building Android applications using Mill,
- * this extends [[AndroidSdkModule]] for Android SDK related tasks,
- * and [[JavaModule]] for Java related tasks.
+ * Trait for building Android applications using the Mill build tool.
  *
- * This trait outlines the steps necessary to build an Android application:
+ * This trait defines all the necessary steps for building an Android app from Java sources,
+ * integrating both Android-specific tasks and generic Java tasks by extending the
+ * [[AndroidSdkModule]] (for Android SDK interactions) and [[JavaModule]] (for standard Java tasks).
  *
- * 1. Compile Java code into `.class` files.
+ * It provides a structured way to handle various steps in the Android app build process,
+ * including compiling Java sources, creating DEX files, generating resources, packaging
+ * APKs, optimizing, and signing APKs.
  *
- * 2. Package the `.class` files into a JAR file.
+ * The overall build process includes:
  *
- * 3. Convert the JAR into DEX format for Android.
+ * 1. Compilation: Compiles the Java source code into `.class` files.
  *
- * 4. Package DEX files and resources into an APK.
+ * 2. Packaging: Packages the compiled `.class` files into a JAR file.
  *
- * 5. Optimize the APK using zipalign.
+ * 3. Conversion to DEX: Converts the JAR file into DEX format (Android's runtime format).
  *
- * 6. Sign the APK for distribution.
+ * 4. APK Creation: Packages the DEX files and other resources into an APK.
  *
- * For detailed information, refer to Mill's Documentation [[https://com-lihaoyi.github.io/mill]],
- * and the Android Dcoumentation [[https://developer.android.com/studio]].
+ * 5. Optimization: Optimizes the APK for better performance using zipalign.
+ *
+ * 6. Signing: Signs the APK with a digital signature for distribution.
+ *
+ * By following these steps, developers can automate their Android application build
+ * workflow using Mill and the Android SDK.
+ *
+ * Resources for further reading:
+ *
+ * [[https://com-lihaoyi.github.io/mill Mill Documentation]]
+ *
+ * [[https://developer.android.com/studio Android Studio Documentation]]
  */
-trait AndroidAppModule extends AndroidSdkModule with JavaModule {
+trait AndroidAppModule extends JavaModule {
 
   /**
-   * Path where the Project related Files will live.
+   * Abstract method to provide access to the Android SDK configuration.
    *
-   * @return A `PathRef` representing project directory.
+   * The `AndroidSdkModule` provides access to important SDK tools such as `aapt` (for packaging resources),
+   * `d8` (for compiling to DEX), `zipalign` (for APK optimization), and `apksigner` (for APK signing).
+   *
+   * This method must be implemented by the concrete class to specify the SDK paths.
+   *
+   * @return The Android SDK module that is used across the project.
    */
-  def projectRoot: T[os.Path] = T {
-    os.Path(millSourcePath.toString.replace(
-      "App",
-      ""
-    )) // Get the parent directory of millSourcePath
+  def androidSdkModule: AndroidSdkModule
+
+  /**
+   * Defines the name of the Android application.
+   *
+   * The name is used as part of the APK file name (e.g., `HelloWorld.apk`), and also
+   * helps distinguish different builds. It defaults to "HelloWorld", but can be
+   * overridden for custom app names.
+   *
+   * @return The name of the Android application as a String.
+   */
+  def androidAppName: T[String] = Task { "HelloWorld" }
+
+  /**
+   * Generates the Android resources (such as layouts, strings, and other assets) needed for the application.
+   *
+   * This method uses the Android `aapt` tool to compile resources specified in the project's `AndroidManifest.xml`
+   * and any additional resource directories. It creates the necessary R.java files and other compiled resources
+   * for Android. These generated resources are crucial for the app to function correctly on Android devices.
+   *
+   * For more details on the aapt tool, refer to:
+   * [[https://developer.android.com/tools/aapt2 aapt Documentation]]
+   *
+   * @return A `PathRef` pointing to the directory where the generated resources are stored.
+   */
+  def androidResources: T[PathRef] = Task {
+    val genDir: os.Path = T.dest // Directory to store generated resources.
+
+    os.call(Seq(
+      androidSdkModule.aaptPath().path.toString, // Call aapt tool
+      "package",
+      "-f",
+      "-m",
+      "-J",
+      genDir.toString, // Generate R.java files
+      "-M",
+      (millSourcePath / "src/main/AndroidManifest.xml").toString, // Use AndroidManifest.xml
+      "-I",
+      androidSdkModule.androidJarPath().path.toString // Include Android SDK JAR
+    ))
+
+    PathRef(genDir)
   }
 
   /**
-   * App Name for the Application default is HelloWorld.
+   * Adds the Android SDK JAR file to the classpath during the compilation process.
    *
-   * @return A string representing the platform version.
+   * This method makes sure that the Android framework classes (like `android.view.View`)
+   * are available when compiling the Java sources.
+   *
+   * For more Information please check: JavaModule [[unmanagedClasspath]]
+   *
+   * @return A collection of paths that make up the unmanaged classpath, which includes the Android JAR.
    */
-  def appName: T[String] = T { "HelloWorld" }
-
-  /**
-   * Step 1: Compile Java source files to `.class` files.
-   *
-   * This method:
-   *
-   * - Ensures the Android SDK is installed.
-   *
-   * - Compiles all `.java` files in `src/main/java` to `.class` files stored in `obj/` directory.
-   *
-   * @return A `PathRef` to the directory containing the compiled `.class` files.
-   *
-   * @see [[createJar]]
-   */
-  def compileJava: T[PathRef] = T {
-    installAndroidSdk() // Step 1: Install the Android SDK if not already done.
-    val outputDir = T.dest / "obj" // Directory to store compiled class files.
-
-    os.call(
-      Seq(
-        Jvm.jdkTool("javac"), // Use the Java compiler
-        "-classpath",
-        androidJarPath().path.toString, // Include Android framework classes
-        "-d",
-        outputDir.toString // Specify output directory for class files
-      ) ++ os.walk(projectRoot() / "src/main/java").filter(_.ext == "java").map(
-        _.toString
-      ) // Get all Java source files
-    )
-
-    PathRef(outputDir) // Return the path to compiled class files.
+  def unmanagedClasspath: T[Agg[PathRef]] = Task {
+    Agg(androidSdkModule.androidJarPath())
   }
 
   /**
-   * Step 2: Package `.class` files into a JAR file.
+   * Combines standard Java source directories with additional sources generated by
+   * the Android resource generation step.
    *
-   * This method:
+   * This method ensures that generated files like `R.java` (which contain references to resources)
+   * are included in the source set and compiled correctly.
    *
-   * - Converts the compiled `.class` files into a JAR file using the `d8` tool.
+   * For more Information please check: JavaModule [[generatedSources]]
    *
-   * @return A `PathRef` to the generated JAR file.
-   *
-   * @see [[compileJava]]
-   * @see [[createDex]]
+   * @return A sequence of source paths including both regular sources and generated ones.
    */
-  def createJar: T[PathRef] = T {
-    val jarFile = T.dest / "my_classes.jar" // Specify output JAR file name.
+  def generatedSources: T[Seq[PathRef]] = Task {
+    super.generatedSources() ++ Seq(androidResources())
+  }
+
+  /**
+   * Packages the compiled Java `.class` files into a JAR file using the D8 tool.
+   *
+   * The D8 compiler is used here to package and optimize the Java bytecode into a format
+   * suitable for Android (DEX). D8 converts the Java `.class` files into a jar file which is
+   * suitable for DEX (Dalvik Executable) format and is required for Android runtime.
+   *
+   * Why use D8 instead of standard JAR packaging:
+   *
+   * D8 Compiler: Converts Java bytecode into jar(with DEX support) files, optimized for Android.
+   *
+   *   - Provides performance optimizations for Android devices, such as desugaring,
+   *     which enables newer Java language features.
+   *
+   *   - Results in smaller APK sizes, leading to faster and more efficient apps.
+   *
+   * Standard JAR Command: Simply packages `.class` files without applying Android-specific
+   * optimizations. It lacks the performance and size benefits provided by D8.
+   *
+   * Conclusion: Using D8 for creating JARs ensures smaller, faster applications optimized
+   * for the Android ecosystem.
+   *
+   * For more details on the d8 tool, refer to:
+   * [[https://developer.android.com/tools/d8 d8 Documentation]]
+   *
+   * @return A `PathRef` pointing to the generated JAR file.
+   */
+  def androidJar: T[PathRef] = Task {
+    val jarFile: os.Path = T.dest / "my_classes.jar"
 
     os.call(
       Seq(
-        d8Path().path.toString, // Path to the D8 tool
+        androidSdkModule.d8Path().path.toString, // Call d8 tool
         "--output",
         jarFile.toString, // Output JAR file
-        "--no-desugaring" // Do not apply desugaring
-      ) ++ os.walk(compileJava().path).filter(_.ext == "class").map(
+        "--no-desugaring" // Disable desugaring
+      ) ++ os.walk(compile().classes.path).filter(_.ext == "class").map(
         _.toString
-      ) // Get compiled class files from compileJava
+      ) // Get class files
     )
 
-    PathRef(jarFile) // Return the path to the created JAR file.
+    PathRef(jarFile)
   }
 
   /**
-   * Step 3: Convert the JAR file into a DEX file.
+   * Converts the generated JAR file into a DEX file using the `d8` tool.
    *
-   * This method:
+   * DEX (Dalvik Executable) files are the binary format for Android applications. This method
+   * takes the JAR file created in the previous step and converts it into one or more DEX files.
    *
-   * - Uses the `d8` tool to convert the JAR file into DEX format, required for Android apps.
+   * This step is crucial because Android devices do not execute `.class` files directly;
+   * they require the code to be in DEX format.
    *
-   * @return A `PathRef` to the generated DEX file.
-   *
-   * @see [[createJar]]
+   * @return A `PathRef` pointing to the folder containing the generated DEX files.
    */
-  def createDex: T[PathRef] = T {
-    val dexOutputDir = T.dest // Directory to store DEX files.
+  def androidDex: T[PathRef] = Task {
+    val dexOutputDir: os.Path = T.dest
 
     os.call(
-      Seq(d8Path().path.toString, "--output", dexOutputDir.toString) ++ Seq(
-        createJar().path.toString, // Use the JAR file from createJar
-        androidJarPath().path.toString // Include Android framework classes
-      )
+      Seq(androidSdkModule.d8Path().path.toString, "--output", dexOutputDir.toString) ++
+        Seq(
+          androidJar().path.toString, // Use the JAR file from the previous step
+          androidSdkModule.androidJarPath().path.toString // Include Android framework classes
+        )
     )
 
-    PathRef(dexOutputDir) // Return the path to the generated DEX file.
+    PathRef(dexOutputDir)
   }
 
   /**
-   * Step 4: Package the DEX file into an unsigned APK.
+   * Packages the DEX files and Android resources into an unsigned APK using the `aapt` tool.
    *
-   * This method:
+   * The `aapt` tool takes the DEX files (compiled code) and resources (such as layouts and assets),
+   * and packages them into an APK (Android Package) file. This APK file is unsigned and requires
+   * further processing to be distributed.
    *
-   * - Uses the `aapt` tool to create an APK file that includes the DEX file and resources.
-   *
-   * @return A `PathRef` to the unsigned APK file.
-   *
-   * @see [[createDex]]
+   * @return A `PathRef` pointing to the unsigned APK file.
    */
-  def createApk: T[PathRef] = T {
-    val unsignedApk =
-      T.dest / s"${appName().toString}.unsigned.apk" // Specify output APK file name.
+  def androidApk: T[PathRef] = Task {
+    val unsignedApk: os.Path = T.dest / s"${androidAppName().toString}.unsigned.apk"
 
     os.call(
       Seq(
-        aaptPath().path.toString,
-        "package", // Command to package APK
-        "-f", // Force overwrite
+        androidSdkModule.aaptPath().path.toString,
+        "package",
+        "-f",
         "-M",
-        (projectRoot() / "src/main/AndroidManifest.xml").toString, // Path to the AndroidManifest.xml
+        (millSourcePath / "src/main/AndroidManifest.xml").toString, // Path to AndroidManifest.xml
         "-I",
-        androidJarPath().path.toString, // Include Android framework resources
+        androidSdkModule.androidJarPath().path.toString, // Include Android JAR
         "-F",
-        unsignedApk.toString // Specify output APK file
-      ) ++ Seq(createDex().path.toString) // Include the DEX file from createDex
+        unsignedApk.toString // Output APK
+      ) ++ Seq(androidDex().path.toString) // Include DEX files
     )
 
-    PathRef(unsignedApk) // Return the path to the unsigned APK.
+    PathRef(unsignedApk)
   }
 
   /**
-   * Step 5: Optimize the APK using zipalign.
+   * Optimizes the APK using the `zipalign` tool for better performance.
    *
-   * This method:
+   * The `zipalign` tool ensures that all uncompressed data in the APK is aligned on a 4-byte boundary.
+   * This is required for better performance on Android devices. This step is done after the APK
+   * is created but before it is signed.
    *
-   * - Takes the unsigned APK and optimizes it for better performance on Android devices.
+   * For more details on the zipalign tool, refer to:
+   * [[https://developer.android.com/tools/zipalign zipalign Documentation]]
    *
-   * @return A `PathRef` to the aligned APK file.
-   *
-   * @see [[createApk]]
+   * @return A `PathRef` pointing to the aligned APK file.
    */
-  def alignApk: T[PathRef] = T {
-    val alignedApk =
-      T.dest / s"${appName().toString}.aligned.apk" // Specify output aligned APK file name.
+  def androidAlignApk: T[PathRef] = Task {
+    val alignedApk: os.Path = T.dest / s"${androidAppName().toString}.aligned.apk"
 
     os.call(
       Seq(
-        zipalignPath().path.toString, // Path to the zipalign tool
+        androidSdkModule.zipalignPath().path.toString, // Call zipalign tool
         "-f",
         "-p",
-        "4", // Force overwrite and align with a page size of 4
-        createApk().path.toString, // Use the unsigned APK from createApk
-        alignedApk.toString // Specify output aligned APK file
+        "4", // Force overwrite, align with 4-byte boundary
+        androidApk().path.toString, // Use the unsigned APK
+        alignedApk.toString // Output aligned APK
       )
     )
 
-    PathRef(alignedApk) // Return the path to the aligned APK.
+    PathRef(alignedApk)
   }
 
   /**
-   * Step 6: Sign the APK using a keystore.
+   * Signs the APK using a keystore to generate a final, distributable APK.
    *
-   * This method:
+   * The signing step is mandatory to distribute Android applications. It adds a cryptographic
+   * signature to the APK, verifying its authenticity. This method uses the `apksigner` tool
+   * along with a keystore file to sign the APK.
    *
-   * - Signs the aligned APK with a keystore. If the keystore does not exist, it generates one.
+   * If no keystore is available, a new one is generated using the `keytool` utility.
    *
-   * @return A `PathRef` to the signed APK file.
+   * For more details on the apksigner tool, refer to:
+   * [[https://developer.android.com/tools/apksigner apksigner Documentation]]
    *
-   * @see [[alignApk]]
-   * @see [[createKeystore]]
+   * @return A `PathRef` pointing to the signed APK.
    */
-  def createApp: T[PathRef] = T {
-    val signedApk =
-      projectRoot() / s"${appName().toString}.apk" // Specify output signed APK file name.
+  def androidApp: T[PathRef] = Task {
+    val signedApk: os.Path = millSourcePath / s"${androidAppName().toString}.apk"
 
     os.call(
       Seq(
-        apksignerPath().path.toString,
-        "sign", // Command to sign APK
+        androidSdkModule.apksignerPath().path.toString,
+        "sign", // Call apksigner tool
         "--ks",
-        createKeystore().path.toString, // Use the keystore from createKeystore
+        androidKeystore().path.toString, // Path to keystore
         "--ks-key-alias",
-        "androidkey", // Alias for the key
+        "androidkey", // Key alias
         "--ks-pass",
         "pass:android", // Keystore password
         "--key-pass",
         "pass:android", // Key password
         "--out",
-        signedApk.toString, // Specify output signed APK file
-        alignApk().path.toString // Use the aligned APK from alignApk
+        signedApk.toString, // Output signed APK
+        androidAlignApk().path.toString // Use aligned APK
       )
     )
 
-    PathRef(signedApk) // Return the path to the signed APK.
+    PathRef(signedApk)
   }
 
   /**
-   * Creates a keystore for signing APKs if it doesn't already exist.
+   * Generates a new keystore file if it does not exist.
    *
-   * This method:
+   * A keystore is required to sign the APK for distribution. This method checks if a keystore
+   * exists, and if not, generates a new one using the `keytool` utility. The keystore holds
+   * the cryptographic keys used to sign the APK.
    *
-   * - Generates a keystore file using the `keytool` command.
+   * For more details on the keytool utility, refer to:
+   * [[https://docs.oracle.com/javase/8/docs/technotes/tools/windows/keytool.html keytool Documentation]]
    *
-   * @return A `PathRef` to the keystore file.
-   *
-   * @see [[createApp]]
+   * @return A `PathRef` pointing to the keystore file.
    */
-  def createKeystore: T[PathRef] = T {
-    val keystoreFile = T.dest / "keystore.jks" // Specify keystore file name.
+  def androidKeystore: T[PathRef] = Task {
+    val keystoreFile: os.Path = T.dest / "keystore.jks"
 
     if (!os.exists(keystoreFile)) {
       os.call(
@@ -254,23 +311,23 @@ trait AndroidAppModule extends AndroidSdkModule with JavaModule {
           "-keystore",
           keystoreFile.toString, // Generate keystore
           "-alias",
-          "androidkey", // Key alias
+          "androidkey", // Alias for key in the keystore
           "-dname",
-          "CN=MILL, OU=MILL, O=MILL, L=MILL, S=MILL, C=IN", // Distinguished name
+          "CN=MILL, OU=MILL, O=MILL, L=MILL, S=MILL, C=IN", // Key details
           "-validity",
-          "10000", // Validity period in days
+          "10000", // Valid for 10,000 days
           "-keyalg",
-          "RSA", // Key algorithm
+          "RSA",
           "-keysize",
-          "2048", // Key size
+          "2048", // RSA encryption, 2048-bit key
           "-storepass",
-          "android", // Keystore password
+          "android",
           "-keypass",
-          "android" // Key password
+          "android" // Passwords
         )
       )
     }
 
-    PathRef(keystoreFile) // Return the path to the keystore file.
+    PathRef(keystoreFile)
   }
 }

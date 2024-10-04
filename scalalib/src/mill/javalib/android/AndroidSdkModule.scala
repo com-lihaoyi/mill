@@ -1,175 +1,124 @@
 package mill.javalib.android
 
 import mill._
-import mill.define._
 
 /**
- * Trait for managing the Android SDK in a Mill build.
+ * Trait for managing the Android SDK in a Mill build system.
  *
- * This trait provides methods for downloading and setting up the Android SDK,
- * build tools, and other resources required for Android development.
+ * This trait offers utility methods for automating the download, installation,
+ * and configuration of the Android SDK, build tools, and other essential
+ * components necessary for Android development. It facilitates setting up
+ * an Android development environment, streamlining the process of building,
+ * compiling, and packaging Android applications in a Mill project.
  *
- * It simplifies the process of configuring the Android development environment,
- * making it easier to build and package Android applications.
+ * The trait handles tasks such as fetching the Android SDK, managing versions
+ * of the build tools, providing paths to necessary executables, and setting up
+ * resources required for compiling, optimizing, and signing Android apps.
  *
- * For detailed information, refer to Mill's Documentation [[https://com-lihaoyi.github.io/mill]],
- * and the Android Dcoumentation [[https://developer.android.com/studio]].
+ * For more information, refer to Mill's [[https://com-lihaoyi.github.io/mill documentation]],
+ * and the official Android [[https://developer.android.com/studio documentation]].
  */
 trait AndroidSdkModule extends Module {
 
   /**
-   * URL to download the Android SDK command-line tools.
-   *
-   * @return A string representing the URL for the SDK tools.
+   * Provides the URL to download the Android SDK command-line tools.
    */
-  def SdkUrl: T[String] = T {
+  def sdkUrl: T[String] = Task {
     "https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip"
   }
 
   /**
-   * Version of Android build tools.
-   *
-   * @return A string representing the version of the build tools.
+   * Specifies the version of the Android build tools to be used.
    */
-  def BuildToolsVersion: T[String] = T { "35.0.0" }
+  def buildToolsVersion: T[String] = Task { "35.0.0" }
 
   /**
-   * Version of Android platform (e.g., Android API level).
-   *
-   * @return A string representing the platform version.
+   * Specifies the Android platform version (e.g., Android API level).
    */
-  def PlatformVersion: T[String] = T { "android-35" }
+  def platformsVersion: T[String] = Task { "android-35" }
 
   /**
-   * Directory name for the Android command-line tools.
-   *
-   * @return A string representing the directory name for the tools.
+   * Provides the path to the `android.jar` file, necessary for compiling Android apps.
    */
-  def ToolsDirName: T[String] = T { "cmdline-tools" }
+  def androidJarPath: T[PathRef] = Task {
+    PathRef(installAndroidSdk().path / "platforms" / platformsVersion().toString / "android.jar")
+  }
 
   /**
-   * Name of the zip file containing the SDK tools.
-   *
-   * @return A string representing the zip file name.
-   */
-  def ZipFileName: T[String] = T { "commandlinetools.zip" }
-
-  /**
-   * Path where the Android SDK will be installed.
-   *
-   * @return A `PathRef` representing the SDK installation directory.
-   */
-  def sdkDirectory: T[PathRef] = T { PathRef(millSourcePath / "android-sdk") }
-
-  /**
-   * Path to the Android SDK command-line tools directory.
-   *
-   * @return A `PathRef` representing the command-line tools directory.
-   */
-  def toolsDirectory: T[PathRef] = T { PathRef(sdkDirectory().path / ToolsDirName().toString) }
-
-  /**
-   * Path to the Android build tools based on the selected version.
-   *
-   * @return A `PathRef` representing the build tools directory.
-   *
-   * @see [[BuildToolsVersion]]
+   * Provides path to the Android build tools for the selected version.
    */
   def buildToolsPath: T[PathRef] =
-    T { PathRef(sdkDirectory().path / "build-tools" / BuildToolsVersion().toString) }
+    Task { PathRef(installAndroidSdk().path / "build-tools" / buildToolsVersion().toString) }
 
   /**
-   * Path to `android.jar`, required for compiling Android apps.
-   *
-   * @return A `PathRef` representing the path to `android.jar`.
-   *
-   * @see [[PlatformVersion]]
+   * Provides path to D8 Dex compiler, used for converting Java bytecode into Dalvik bytecode.
    */
-  def androidJarPath: T[PathRef] =
-    T { PathRef(sdkDirectory().path / "platforms" / PlatformVersion().toString / "android.jar") }
+  def d8Path: T[PathRef] = Task {
+    PathRef(buildToolsPath().path / "d8")
+  }
 
   /**
-   * Path to the D8 Dex compiler, used to convert Java bytecode to Dalvik bytecode.
-   *
-   * @return A `PathRef` representing the path to the D8 compiler.
-   *
-   * @see [[buildToolsPath]]
+   * Provides the path to AAPT, used for resource handling and APK packaging.
    */
-  def d8Path: T[PathRef] = T { PathRef(buildToolsPath().path / "d8") }
+  def aaptPath: T[PathRef] = Task {
+    PathRef(buildToolsPath().path / "aapt")
+  }
 
   /**
-   * Path to the Android Asset Packaging Tool (AAPT) for handling resources and packaging APKs.
-   *
-   * @return A `PathRef` representing the path to the AAPT tool.
-   *
-   * @see [[buildToolsPath]]
+   * Provides the path to the Zipalign tool, which optimizes APK files by aligning their data.
    */
-  def aaptPath: T[PathRef] = T { PathRef(buildToolsPath().path / "aapt") }
+  def zipalignPath: T[PathRef] = Task {
+    PathRef(buildToolsPath().path / "zipalign")
+  }
 
   /**
-   * Path to Zipalign, used to optimize APKs.
-   *
-   * @return A `PathRef` representing the path to the zipalign tool.
-   *
-   * @see [[buildToolsPath]]
+   * Provides the path to the APK signer tool, used to digitally sign APKs.
    */
-  def zipalignPath: T[PathRef] = T { PathRef(buildToolsPath().path / "zipalign") }
+  def apksignerPath: T[PathRef] = Task {
+    PathRef(buildToolsPath().path / "apksigner")
+  }
 
   /**
-   * Path to the APK signer tool, used to sign APKs.
+   * Installs the Android SDK by performing the following actions:
    *
-   * @return A `PathRef` representing the path to the APK signer tool.
-   *
-   * @see [[buildToolsPath]]
-   */
-  def apksignerPath: T[PathRef] = T { PathRef(buildToolsPath().path / "apksigner") }
-
-  /**
-   * Installs the Android SDK by downloading the tools, extracting them,
-   * accepting licenses, and installing necessary components like platform and build tools.
-   *
-   * This method:
    * - Downloads the SDK command-line tools from the specified URL.
    *
-   * - Extracts the downloaded zip file into the specified SDK directory.
+   * - Extracts the downloaded zip file into the SDK directory.
    *
-   * - Accepts the SDK licenses required for use.
+   * - Accepts the required SDK licenses.
    *
-   * - Installs essential components such as platform-tools, build-tools and platforms.
+   * - Installs essential SDK components such as platform-tools, build-tools, and Android platforms.
    *
-   * @see [[SdkUrl]]
-   * @see [[toolsDirectory]]
-   * @see [[sdkDirectory]]
-   * @see [[BuildToolsVersion]]
-   * @see [[PlatformVersion]]
+   * For more details on the sdkmanager tool, refer to:
+   * [[https://developer.android.com/tools/sdkmanager sdkmanager Documentation]]
+   *
+   * @return A task containing a `PathRef` pointing to the installed SDK directory.
    */
-  def installAndroidSdk: T[Unit] = T {
-    val zipFilePath: os.Path = sdkDirectory().path / ZipFileName().toString
-    val sdkManagerPath: os.Path = toolsDirectory().path / "bin" / "sdkmanager"
-
-    // Create SDK directory if it doesn't exist
-    os.makeDir.all(sdkDirectory().path)
+  def installAndroidSdk: T[PathRef] = Task {
+    val zipFilePath: os.Path = T.dest / "commandlinetools.zip"
+    val sdkManagerPath: os.Path = T.dest / "cmdline-tools/bin/sdkmanager"
 
     // Download SDK command-line tools
-    os.write(zipFilePath, requests.get(SdkUrl().toString).bytes)
+    os.write(zipFilePath, requests.get(sdkUrl().toString).bytes)
 
-    // Extract the zip into the SDK directory
-    os.call(Seq("unzip", zipFilePath.toString, "-d", sdkDirectory().path.toString))
+    // Extract the downloaded SDK tools into the destination directory
+    os.call(Seq("unzip", zipFilePath.toString, "-d", T.dest.toString))
 
-    // Accept SDK licenses
+    // Automatically accept the SDK licenses
     os.call(Seq(
       "bash",
       "-c",
-      s"yes | $sdkManagerPath --licenses --sdk_root=${sdkDirectory().path}"
+      s"yes | $sdkManagerPath --licenses --sdk_root=${T.dest}"
     ))
 
-    // Install platform-tools, build-tools, and platform
+    // Install platform-tools, build-tools, and the Android platform
     os.call(Seq(
       sdkManagerPath.toString,
-      s"--sdk_root=${sdkDirectory().path}",
+      s"--sdk_root=${T.dest}",
       "platform-tools",
-      s"build-tools;${BuildToolsVersion().toString}",
-      s"platforms;${PlatformVersion().toString}"
+      s"build-tools;${buildToolsVersion().toString}",
+      s"platforms;${platformsVersion().toString}"
     ))
+    PathRef(T.dest)
   }
 }
