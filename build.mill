@@ -965,7 +965,7 @@ def examplePathsWithArtifactName:Task[Seq[(os.Path,String)]] = T.task{
 }
 
 
-def exampleZips: T[Seq[PathRef]] = T{
+def exampleZips: T[Seq[PathRef]] = Task {
   examplePathsWithArtifactName().map{ case (examplePath, exampleStr) =>
     os.copy(examplePath, T.dest / exampleStr, createFolders = true)
     os.write(T.dest / exampleStr / ".mill-version", millLastTag())

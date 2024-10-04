@@ -57,11 +57,11 @@ arg: helloworld
 
 */
 
-def upstreamTarget = T{
+def upstreamTarget = Task {
   "HELLO"
 }
 
-def targetCallingCommand = T{
+def targetCallingCommand = Task {
   commandTakingTask(upstreamTarget)()
 }
 

@@ -15,7 +15,7 @@ def data = Task.Source(millSourcePath / "data")
 
 def compressWorker = Task.Worker{ new CompressWorker(Task.dest) }
 
-def compressedData = T{
+def compressedData = Task {
   println("Evaluating compressedData")
   for(p <- os.list(data().path)){
     os.write(

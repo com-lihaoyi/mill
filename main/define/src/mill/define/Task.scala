@@ -332,7 +332,7 @@ object Target extends TaskBase {
 
   /**
    * A target is the most common [[Task]] a user would encounter, commonly
-   * defined using the `def foo = T{...}` syntax. [[TargetImpl]]s require that their
+   * defined using the `def foo = Task {...}` syntax. [[TargetImpl]]s require that their
    * return type is JSON serializable. In return they automatically caches their
    * return value to disk, only re-computing if upstream [[Task]]s change
    */

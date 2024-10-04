@@ -194,7 +194,7 @@ def largeFile = Task {
     .maxBy(os.read.lines(_).size)
 }
 
-def hugeFileName = T{
+def hugeFileName = Task {
   if (lineCount() > 999) largeFile().last
   else "<no-huge-file>"
 }
@@ -234,7 +234,7 @@ object ClassFileData {
   implicit val rw: upickle.default.ReadWriter[ClassFileData] = upickle.default.macroRW
 }
 
-def summarizeClassFileStats = T{
+def summarizeClassFileStats = Task {
   val files = os.walk(classFiles().path)
   ClassFileData(
     totalFileSize = files.map(os.size(_)).sum,
@@ -357,7 +357,7 @@ foo.txt resource: My Example Text
 
 trait Foo extends Module {
   def sourceRoots = Task.Sources(millSourcePath / "src")
-  def sourceContents = T{
+  def sourceContents = Task {
     sourceRoots()
       .flatMap(pref => os.walk(pref.path))
       .filter(_.ext == "txt")

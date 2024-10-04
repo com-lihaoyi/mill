@@ -4,12 +4,12 @@ import mill._, javalib._
 
 object `package` extends RootModule with JavaModule {
   /** Total number of lines in module source files */
-  def lineCount = T{
+  def lineCount = Task {
     allSourceFiles().map(f => os.read.lines(f.path).size).sum
   }
 
   /** Generate resources using lineCount of sources */
-  override def resources = T{
+  override def resources = Task {
     os.write(Task.dest / "line-count.txt", "" + lineCount())
     Seq(PathRef(Task.dest))
   }

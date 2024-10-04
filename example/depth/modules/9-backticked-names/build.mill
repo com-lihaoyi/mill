@@ -3,13 +3,13 @@ import mill._
 import mill.scalalib._
 
 object `hyphenated-module` extends Module {
-  def `hyphenated-target` = T{
+  def `hyphenated-target` = Task {
     println("hyphenated target in a hyphenated module.")
   }
 }
 
 object unhyphenatedModule extends Module {
-  def unhyphenated_target = T{
+  def unhyphenated_target = Task {
     println("unhyphenated target in an unhyphenated module.")
   }
 }

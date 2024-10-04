@@ -19,9 +19,9 @@
 
 import mill._
 
-def taskInt = T{ 123 }
-def taskBoolean = T{ true }
-def taskString = T{ "hello " + taskInt() + " world " + taskBoolean() }
+def taskInt = Task { 123 }
+def taskBoolean = Task { true }
+def taskString = Task { "hello " + taskInt() + " world " + taskBoolean() }
 
 
 /** Usage
@@ -43,9 +43,9 @@ true
 ]
 */
 
-def taskTuple = T{ (taskInt(), taskBoolean(), taskString())}
-def taskSeq = T{ Seq(taskInt(), taskInt() * 2, taskInt() * 3)}
-def taskMap = T{ Map("int" -> taskInt().toString, "boolean" -> taskBoolean().toString) }
+def taskTuple = Task { (taskInt(), taskBoolean(), taskString())}
+def taskSeq = Task { Seq(taskInt(), taskInt() * 2, taskInt() * 3)}
+def taskMap = Task { Map("int" -> taskInt().toString, "boolean" -> taskBoolean().toString) }
 
 
 /** Usage
@@ -68,7 +68,7 @@ def taskMap = T{ Map("int" -> taskInt().toString, "boolean" -> taskBoolean().toS
 //
 // ``os.Path``s from OS-Lib are also serializable as strings.
 
-def taskPath = T{
+def taskPath = Task {
   os.write(os.pwd / "file.txt", "hello")
   os.pwd / "file.txt"
 }
@@ -86,7 +86,7 @@ def taskPath = T{
 // to invalidate downstream tasks depending on the contents of a file or folder, you
 // should return a `PathRef`:
 
-def taskPathRef = T{
+def taskPathRef = Task {
   os.write(os.pwd / "file.txt", "hello")
   PathRef(os.pwd / "file.txt")
 }

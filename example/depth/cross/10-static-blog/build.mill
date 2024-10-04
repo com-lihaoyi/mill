@@ -27,7 +27,7 @@ val posts = interp.watchValue {
 object post extends Cross[PostModule](posts)
 trait PostModule extends Cross.Module[String]{
   def source = Task.Source(millSourcePath / crossValue)
-  def render = T{
+  def render = Task {
     val doc = Parser.builder().build().parse(os.read(source().path))
     val title = mdNameToTitle(crossValue)
     val rendered = doctype("html")(
@@ -56,7 +56,7 @@ def renderIndexEntry(mdName: String) = {
   h2(a(mdNameToTitle(mdName), href := ("post/" + mdNameToHtml(mdName))))
 }
 
-def index = T{
+def index = Task {
   val rendered = doctype("html")(
     html(body(h1("Blog"), postsInput().map(renderIndexEntry)))
   )

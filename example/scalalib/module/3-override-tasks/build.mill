@@ -5,7 +5,7 @@ import mill._, scalalib._
 object foo extends ScalaModule {
   def scalaVersion = "2.13.8"
 
-  def sources = T{
+  def sources = Task {
     os.write(
       Task.dest / "Foo.scala",
       """package foo
@@ -48,7 +48,7 @@ object foo extends ScalaModule {
 object foo2 extends ScalaModule {
   def scalaVersion = "2.13.8"
 
-  def generatedSources = T{
+  def generatedSources = Task {
     os.write(Task.dest / "Foo.scala", """...""")
     Seq(PathRef(Task.dest))
   }
@@ -57,7 +57,7 @@ object foo2 extends ScalaModule {
 object foo3 extends ScalaModule {
   def scalaVersion = "2.13.8"
 
-  def sources = T{
+  def sources = Task {
     os.write(Task.dest / "Foo.scala", """...""")
     super.sources() ++ Seq(PathRef(Task.dest))
   }

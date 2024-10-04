@@ -12,7 +12,7 @@ object MacroErrorTests extends TestSuite {
       val expectedMsg =
         "T{} members must be defs defined in a Cacher class/trait/object body"
 
-      val err = compileError("object Foo extends TestBaseModule{ val x = T{1} }")
+      val err = compileError("object Foo extends TestBaseModule{ val x = Task {1} }")
       assert(err.msg == expectedMsg)
     }
 
@@ -33,7 +33,7 @@ object MacroErrorTests extends TestSuite {
       test("target") {
         val e = compileError("""
           object foo extends TestBaseModule{
-            def x() = T{1}
+            def x() = Task {1}
           }
           mill.define.Discover[foo.type]
         """)
@@ -85,7 +85,7 @@ object MacroErrorTests extends TestSuite {
       // come from inside the T{...} block
       test("pos") {
         val e = compileError("""
-          val a = T{ 1 }
+          val a = Task { 1 }
           val arr = Array(a)
           val b = {
             val c = 0
@@ -103,7 +103,7 @@ object MacroErrorTests extends TestSuite {
         val expectedMsg =
           "Target#apply() call cannot use `value n` defined within the T{...} block"
         val err = compileError("""new Module{
-          def a = T{ 1 }
+          def a = Task { 1 }
           val arr = Array(a)
           def b = {
             T{
@@ -119,7 +119,7 @@ object MacroErrorTests extends TestSuite {
         val expectedMsg =
           "Target#apply() call cannot use `value x` defined within the T{...} block"
         val err = compileError("""new Module{
-          def a = T{ 1 }
+          def a = Task { 1 }
           val arr = Array(a)
           def b = {
             T{
@@ -132,10 +132,10 @@ object MacroErrorTests extends TestSuite {
       test("neg3") {
         val borkedCachedDiamond1 = utest.compileError("""
           object borkedCachedDiamond1 {
-            def up = T{ TestUtil.test() }
-            def left = T{ TestUtil.test(up) }
-            def right = T{ TestUtil.test(up) }
-            def down = T{ TestUtil.test(left, right) }
+            def up = Task { TestUtil.test() }
+            def left = Task { TestUtil.test(up) }
+            def right = Task { TestUtil.test(up) }
+            def down = Task { TestUtil.test(left, right) }
           }
         """)
         assert(borkedCachedDiamond1.msg.contains(
