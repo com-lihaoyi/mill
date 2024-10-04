@@ -14,7 +14,7 @@ object HelloBsp extends HelloBspModule {
   def moduleDeps: Seq[JavaModule] = Seq(build.proj1)
   // Explicitly depends on proj2
   def compileModuleDeps: Seq[JavaModule] = Seq(build.proj2)
-  // Implicitly depends on proj3 via a target
+  // Implicitly depends on proj3 via a task
   override def unmanagedClasspath: T[Agg[PathRef]] = Agg(build.proj3.jar())
 }
 

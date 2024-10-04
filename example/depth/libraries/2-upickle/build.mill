@@ -1,5 +1,5 @@
-// Mill uses uPickle to cache target output to disk as JSON, and to output JSON
-// for third-party tools to consume. The output of every Mill target must be JSON
+// Mill uses uPickle to cache task output to disk as JSON, and to output JSON
+// for third-party tools to consume. The output of every Mill task must be JSON
 // serializable via uPickle.
 //
 // The uPickle serialized return of every Mill task is used for multiple purposes:

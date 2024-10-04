@@ -1,5 +1,5 @@
 // This example shows some of the common tasks you may want to override on a
-// `ScalaModule`: specifying the `mainClass`, adding additional
+// `{language}Module`: specifying the `mainClass`, adding additional
 // sources/resources, generating resources, and setting compilation/run
 // options.
 

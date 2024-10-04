@@ -3,14 +3,14 @@ import mill._
 import mill.scalalib._
 
 object `hyphenated-module` extends Module {
-  def `hyphenated-target` = Task {
-    println("hyphenated target in a hyphenated module.")
+  def `hyphenated-task` = Task {
+    println("hyphenated task in a hyphenated module.")
   }
 }
 
 object unhyphenatedModule extends Module {
-  def unhyphenated_target = Task {
-    println("unhyphenated target in an unhyphenated module.")
+  def unhyphenated_task = Task {
+    println("unhyphenated task in an unhyphenated module.")
   }
 }
 
@@ -27,10 +27,10 @@ object unhyphenatedModule extends Module {
 
 /** Usage
 
-> ./mill hyphenated-module.hyphenated-target
-hyphenated target in a hyphenated module.
+> ./mill hyphenated-module.hyphenated-task
+hyphenated task in a hyphenated module.
 
-> ./mill unhyphenatedModule.unhyphenated_target
-unhyphenated target in an unhyphenated module.
+> ./mill unhyphenatedModule.unhyphenated_task
+unhyphenated task in an unhyphenated module.
 
 */

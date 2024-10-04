@@ -63,7 +63,7 @@ object qux extends MyModule {
 //   code, so it can be printed at runtime
 //
 // Note that for multi-module builds like this, using queries to run tasks on
-// multiple targets at once can be very convenient:
+// multiple modules at once can be very convenient:
 //
 // ----
 // __.test

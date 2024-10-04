@@ -1,5 +1,5 @@
-// Targets in cross-modules can use one another the same way they are used from
-// external targets:
+// Tasks in cross-modules can use one another the same way they are used from
+// external tasks:
 package build
 import mill._
 

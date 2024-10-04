@@ -55,19 +55,19 @@ trait DiyJavaModule extends Module{
 //
 // Some notable things to call out:
 //
-// * `def moduleDeps` is not a Target. This is necessary because targets cannot
+// * `def moduleDeps` is not a Task. This is necessary because tasks cannot
 //   change the shape of the task graph during evaluation, whereas `moduleDeps`
 //   defines  module dependencies that determine the shape of the graph.
 //
 // * Using `Task.traverse` to recursively gather the upstream classpath. This is
 //   necessary to convert the `Seq[T[V]]` into a `T[Seq[V]]` that we can work
-//   with inside our targets
+//   with inside our tasks
 //
 // * We use the `millSourcePath` together with `Task.workspace` to infer a default
 //   name for the jar of each module. Users can override it if they want, but
 //   having a default is very convenient
 //
-// * `def cpFlag` is not a task or target, it's just a normal helper method.
+// * `def cpFlag` is not a task or task, it's just a normal helper method.
 //
 // Below, the inherit `DiyJavaModule` in three ``object``s: `foo`, `bar`, and `qux`:
 
@@ -153,7 +153,7 @@ Bar.value: 271828
 
 */
 
-// Like any other ``Target``s, the compilation and packaging of the Java code
+// Like any other ``Task``s, the compilation and packaging of the Java code
 // is incremental: if you change a file in `foo/src/` and run `qux.assembly`,
 // `foo.compile` and `qux.compile` will be re-computed, but `bar.compile` will
 // not as it does not transitively depend on `foo.sources`. We did not need to

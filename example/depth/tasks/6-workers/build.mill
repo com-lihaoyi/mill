@@ -1,6 +1,6 @@
 // Mill workers defined using `Task.Worker` are long-lived in-memory objects that
 // can persistent across multiple evaluations. These are similar to persistent
-// targets in that they let you cache things, but the fact that they let you
+// tasks in that they let you cache things, but the fact that they let you
 // cache the worker object in-memory allows for greater performance and
 // flexibility: you are no longer limited to caching only serializable data
 // and paying the cost of serializing it to disk every evaluation. This example

@@ -36,16 +36,16 @@ object DocAnnotationsTests extends UtestIntegrationTestSuite {
         )
       )
 
-      assert(eval(("inspect", "core.target")).isSuccess)
-      val target = out("inspect").json.str
+      assert(eval(("inspect", "core.task")).isSuccess)
+      val task = out("inspect").json.str
       assert(
         globMatches(
-          """core.target(build.mill:...)
-            |    Core Target Docz!
+          """core.task(build.mill:...)
+            |    Core Task Docz!
             |
             |Inputs:
             |""",
-          target
+          task
         )
       )
 
@@ -56,7 +56,7 @@ object DocAnnotationsTests extends UtestIntegrationTestSuite {
           """inspect(MainModule.scala:...)
             |    Displays metadata about the given task without actually running it.
             |
-            |    targets <str>...
+            |    tasks <str>...
             |
             |Inputs:
             |""".stripMargin,
@@ -98,7 +98,7 @@ object DocAnnotationsTests extends UtestIntegrationTestSuite {
             |
             |    --inverse                Invert the tree representation, so that the root is on the bottom val
             |                             inverse (will be forced when used with whatDependsOn)
-            |    --what-depends-on <str>  Possible list of modules (org:artifact) to target in the tree in order
+            |    --what-depends-on <str>  Possible list of modules (org:artifact) to task in the tree in order
             |                             to see where a dependency stems from.
             |    --with-compile           Include the compile-time only dependencies (`compileIvyDeps`, provided
             |                             scope) into the tree.
@@ -156,7 +156,7 @@ object DocAnnotationsTests extends UtestIntegrationTestSuite {
             |
             |Default Task: core.run
             |
-            |Tasks: core.target
+            |Tasks: core.task
             |""",
           coreInspect
         )
@@ -174,7 +174,7 @@ object DocAnnotationsTests extends UtestIntegrationTestSuite {
             |
             |Default Task: MyJavaTaskModule.run
             |
-            |Tasks: MyJavaTaskModule.lineCount, MyJavaTaskModule.target
+            |Tasks: MyJavaTaskModule.lineCount, MyJavaTaskModule.task
             |""",
           jtmInspect
         )
