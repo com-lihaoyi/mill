@@ -404,9 +404,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC2-77-e0a2c9</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3</button>
   <div class="version-menu">
-    <a class="version is-current" href="large-builds.html">0.12.0-RC2-77-e0a2c9</a>
+    <a class="version is-current" href="large-builds.html">0.12.0-RC3</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
@@ -429,7 +429,7 @@
 <h2 id="_multi_file_builds"><a class="anchor" href="#_multi_file_builds"></a>Multi-file Builds</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-depth-large-10-multi-file-builds.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/depth/large/10-multi-file-builds">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC3/0.12.0-RC3-example-depth-large-10-multi-file-builds.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/depth/large/10-multi-file-builds">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import $packages._
@@ -442,7 +442,7 @@ trait MyModule extends ScalaModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/package.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/depth/large/10-multi-file-builds/foo/package.mill">browse</a>)</div>
+<div class="title">foo/package.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/depth/large/10-multi-file-builds/foo/package.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build.foo
 import mill._, scalalib._
@@ -454,7 +454,7 @@ object `package` extends RootModule with build.MyModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">bar/qux/package.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/depth/large/10-multi-file-builds/bar/qux/package.mill">browse</a>)</div>
+<div class="title">bar/qux/package.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/depth/large/10-multi-file-builds/bar/qux/package.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build.bar.qux
 import mill._, scalalib._
@@ -521,7 +521,7 @@ though <code>bar/package.mill</code> is empty</p>
 <h2 id="_helper_files"><a class="anchor" href="#_helper_files"></a>Helper Files</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-depth-large-11-helper-files.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/depth/large/11-helper-files">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC3/0.12.0-RC3-example-depth-large-11-helper-files.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/depth/large/11-helper-files">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import $packages._
@@ -538,7 +538,7 @@ object `package` extends RootModule with MyModule{
 </div>
 </div>
 <div class="listingblock">
-<div class="title">util.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/depth/large/11-helper-files/util.mill">browse</a>)</div>
+<div class="title">util.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/depth/large/11-helper-files/util.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -551,7 +551,7 @@ trait MyModule extends ScalaModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/package.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/depth/large/11-helper-files/foo/package.mill">browse</a>)</div>
+<div class="title">foo/package.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/depth/large/11-helper-files/foo/package.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build.foo
 import mill._, scalalib._
@@ -566,7 +566,7 @@ object `package` extends RootModule with build_.util.MyModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/versions.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/depth/large/11-helper-files/foo/versions.mill">browse</a>)</div>
+<div class="title">foo/versions.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/depth/large/11-helper-files/foo/versions.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build.foo
 
@@ -616,7 +616,7 @@ Foo Env build.foo.versions.myProjectVersion: 0.0.1</code></pre>
 <h2 id="_legacy_sc_extension"><a class="anchor" href="#_legacy_sc_extension"></a>Legacy <code>.sc</code> extension</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC2/0.12.0-RC2-example-depth-large-12-helper-files-sc.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/depth/large/12-helper-files-sc">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC3/0.12.0-RC3-example-depth-large-12-helper-files-sc.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/depth/large/12-helper-files-sc">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 import $packages._
@@ -632,7 +632,7 @@ object `package` extends RootModule with MyModule{
 </div>
 </div>
 <div class="listingblock">
-<div class="title">util.sc (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/depth/large/12-helper-files-sc/util.sc">browse</a>)</div>
+<div class="title">util.sc (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/depth/large/12-helper-files-sc/util.sc">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
@@ -644,7 +644,7 @@ trait MyModule extends ScalaModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/package.sc (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/depth/large/12-helper-files-sc/foo/package.sc">browse</a>)</div>
+<div class="title">foo/package.sc (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/depth/large/12-helper-files-sc/foo/package.sc">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 import $file.^.util
@@ -658,7 +658,7 @@ object `package` extends RootModule with build_.util.MyModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/versions.sc (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC2//example/depth/large/12-helper-files-sc/foo/versions.sc">browse</a>)</div>
+<div class="title">foo/versions.sc (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/depth/large/12-helper-files-sc/foo/versions.sc">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def myProjectVersion = &quot;0.0.1&quot;</code></pre>
 </div>
