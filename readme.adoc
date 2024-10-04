@@ -306,8 +306,8 @@ endif::[]
 :link-milestone: {link-github}/milestone
 // find-replace-regex: https://github.com/com-lihaoyi/mill/pull/(\d*) -> {link-pr}/$1[#$1]
 
-[#main]
-=== main
+[#0-12-0-RC3]
+=== 0.12.0-RC3
 
 Changes since 0.12.0-RC2
 
