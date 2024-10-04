@@ -302,14 +302,6 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../contrib/errorprone.html">Mill ErrorProne Plugin</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../contrib/checkstyle.html">Checkstyle</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../contrib/flyway.html">Flyway</a>
   </li>
 
@@ -404,9 +396,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-1-86606f</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-2-661613</button>
   <div class="version-menu">
-    <a class="version is-current" href="linting.html">0.12.0-RC3-1-86606f</a>
+    <a class="version is-current" href="linting.html">0.12.0-RC3-2-661613</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
@@ -440,17 +432,15 @@ codebases using the Mill build tool</p>
 <h2 id="_linting_with_errorprone"><a class="anchor" href="#_linting_with_errorprone"></a>Linting with ErrorProne</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>When adding the <a href="../contrib/errorprone.html" class="xref page"><code>ErrorPromeModule</code></a> to your <code>JavaModule</code>,
+<p>When adding the <code>ErrorPromeModule</code> to your <code>JavaModule</code>,
 the <code>error-prone</code> compiler plugin automatically detects various kind of programming errors.</p>
 </div>
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC3/0.12.0-RC3-example-javalib-linting-1-error-prone.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/javalib/linting/1-error-prone">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, javalib._
-import mill.contrib.errorprone._
+import mill._, javalib._, errorprone._
 
-import $ivy.`com.lihaoyi::mill-contrib-errorprone:`
 
 object `package` extends RootModule with JavaModule with ErrorProneModule {
   def errorProneOptions = Seq(&quot;-XepAllErrorsAsWarnings&quot;)
@@ -493,7 +483,43 @@ public class ShortSet {
 </div>
 </div>
 <div class="paragraph">
-<p>Find more details on the <a href="../contrib/errorprone.html" class="xref page">ErrorProne plugin page</a>.</p>
+<p><a href="https://errorprone.info/index">Error Prone</a> augments the Java compiler’s type checker and detect common mistakes at compile time.</p>
+</div>
+<div class="paragraph">
+<p>You just need to mix the <code>ErrorProneModule</code> into your <code>JavaModule</code> and it will automatically run with every compilation.</p>
+</div>
+<div class="listingblock">
+<div class="title"><code>build.mill.scala</code>: Enable <code>ErrorProne</code> in a module</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, scalalib._
+
+import $ivy.`com.lihaoyi::mill-contrib-errorprone:`
+import mill.contrib.errorprone.ErrorProneModule
+
+object foo extends JavaModule with ErrorProneModule {
+}</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_configuration"><a class="anchor" href="#_configuration"></a>Configuration</h3>
+<div class="paragraph">
+<p>The following configuration options exist:</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>def errorProneVersion: T[String]</code></dt>
+<dd>
+<p>The <code>error-prone</code> version to use. Defaults to <a id="BuildInfo.errorProneVersion"></a>, the version used to build and test the module.
+Find the latest at <a href="https://mvnrepository.com/artifact/com.google.errorprone/error_prone_core">mvnrepository.com</a></p>
+</dd>
+<dt class="hdlist1"><code>def errorProneOptions: T[Seq[String]]</code></dt>
+<dd>
+<p> Options directly given to the <code>error-prone</code> processor.
+Those are documented as &quot;flags&quot; at <a href="https://errorprone.info/docs/flags" class="bare">https://errorprone.info/docs/flags</a></p>
+</dd>
+</dl>
+</div>
 </div>
 </div>
 </div>
@@ -504,10 +530,7 @@ public class ShortSet {
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC3/0.12.0-RC3-example-javalib-linting-2-checkstyle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/javalib/linting/2-checkstyle">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, javalib._
-import $ivy.`com.lihaoyi::mill-contrib-checkstyle:`
-
-import mill.contrib.checkstyle._
+import mill._, javalib._, checkstyle._
 
 object `package` extends RootModule with CheckstyleModule {
   def checkstyleVersion = &quot;9.3&quot;
@@ -540,6 +563,171 @@ Audit done.
 
 &gt; ./mill checkstyle # after fixing the violations, checkstyle no longer errors
 Audit done.</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>CheckstyleModule</code> Performs quality checks on Java source files using
+<a href="https://checkstyle.org">Checkstyle</a> and generates reports from these checks.</p>
+</div>
+<div class="paragraph">
+<p>To use this plugin in a Java/Scala module,</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Extend <code>mill.contrib.checkstyle.CheckstyleModule</code>.</p>
+</li>
+<li>
+<p>Define a <a href="https://checkstyle.org/config.html">configuration</a> file <code>checkstyle-config.xml</code>.</p>
+</li>
+<li>
+<p>Run the <code>checkstyle</code> command.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>flags</p>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>// if an exception should be raised when violations are found
+checkstyle --check
+
+// if Checkstyle output report should be written to System.out
+checkstyle --stdout</pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>sources (optional)</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>// incorrect paths will cause a command failure
+// checkstyle a/b
+
+// you can specify paths relative to millSourcePath
+checkstyle src/a/b
+
+// process a single file
+checkstyle src/a/B.java
+
+// process multiple sources
+checkstyle src/a/b src/c/d src/e/F.java
+
+// process with flags
+checkstyle --check --stdout src/a/b src/c/d
+
+// process all module sources
+checkstyle</pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_shared_configuration"><a class="anchor" href="#_shared_configuration"></a>Shared configuration</h3>
+<div class="paragraph">
+<p>To share <code>checkstyle-config.xml</code> across modules, adapt the following example.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+import mill.contrib.checkstyle.CheckstyleModule
+import mill.scalalib._
+
+object foo extends Module {
+
+  object bar extends MyModule
+  object baz extends Module {
+    object fizz extends MyModule
+    object buzz extends MyModule
+  }
+
+  trait MyModule extends JavaModule with CheckstyleModule {
+
+    override def checkstyleConfig = Task {
+      api.PathRef(T.workspace / &quot;checkstyle-config.xml&quot;)
+    }
+  }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_limitations"><a class="anchor" href="#_limitations"></a>Limitations</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Version <code>6.3</code> or above is required for <code>plain</code> and <code>xml</code> formats.</p>
+</li>
+<li>
+<p>Setting <code>checkstyleOptions</code> might cause failures with legacy versions.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_checkstylexsltmodule"><a class="anchor" href="#_checkstylexsltmodule"></a>CheckstyleXsltModule</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This plugin extends the <code>mill.contrib.checkstyle.CheckstyleModule</code> with the ability to generate reports by applying <a href="https://www.w3.org/TR/xslt/">XSL Transformations</a> on a Checkstyle output report.</p>
+</div>
+<div class="sect2">
+<h3 id="_auto_detect_xsl_transformations"><a class="anchor" href="#_auto_detect_xsl_transformations"></a>Auto detect XSL Transformations</h3>
+<div class="paragraph">
+<p>XSLT files are detected automatically provided a prescribed directory structure is followed.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">/**
+ * checkstyle-xslt
+ *  ├─ html
+ *  │   ├─ xslt0.xml
+ *  │   └─ xslt1.xml
+ *  └─ pdf
+ *      ├─ xslt1.xml
+ *      └─ xslt2.xml
+ *
+ * html/xslt0.xml -&gt; xslt0.html
+ * html/xslt1.xml -&gt; xslt1.html
+ * pdf/xslt1.xml  -&gt; xslt1.pdf
+ * pdf/xslt2.xml  -&gt; xslt2.pdf
+ */</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_specify_xsl_transformations_manually"><a class="anchor" href="#_specify_xsl_transformations_manually"></a>Specify XSL Transformations manually</h3>
+<div class="paragraph">
+<p>For a custom setup, adapt the following example.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+import mill.api.PathRef
+import mill.contrib.checkstyle.CheckstyleXsltModule
+import mill.contrib.checkstyle.CheckstyleXsltReport
+import mill.scalalib._
+
+object foo extends JavaModule with CheckstyleXsltModule {
+
+    override def checkstyleXsltReports = Task {
+      Set(
+        CheckstyleXsltReport(
+          PathRef(millSourcePath / &quot;checkstyle-no-frames.xml&quot;),
+          PathRef(T.dest / &quot;checkstyle-no-frames.html&quot;),
+        )
+      )
+  }
+}</code></pre>
+</div>
 </div>
 </div>
 </div>
