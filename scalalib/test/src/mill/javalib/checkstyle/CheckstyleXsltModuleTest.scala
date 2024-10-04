@@ -1,6 +1,6 @@
-package mill
-package contrib.checkstyle
+package mill.javalib.checkstyle
 
+import mill._
 import mainargs.Leftover
 import mill.scalalib.{JavaModule, ScalaModule}
 import mill.testkit.{TestBaseModule, UnitTester}
@@ -10,7 +10,7 @@ object CheckstyleXsltModuleTest extends TestSuite {
 
   def tests: Tests = Tests {
 
-    val resources: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
+    val resources: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "checkstyle"
 
     test("checkstyle generates XSLT output reports") {
 

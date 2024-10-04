@@ -1,6 +1,6 @@
-package mill
-package contrib.checkstyle
+package mill.javalib.checkstyle
 
+import mill._
 import mill.api.{Loose, PathRef}
 import mill.scalalib.{DepSyntax, JavaModule}
 import mill.util.Jvm
