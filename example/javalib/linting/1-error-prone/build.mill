@@ -1,4 +1,4 @@
-// When adding the xref:contrib/errorprone.adoc[`ErrorPromeModule`] to your `JavaModule`,
+// When adding the `ErrorPromeModule` to your `JavaModule`,
 // the `error-prone` compiler plugin automatically detects various kind of programming errors.
 
 
