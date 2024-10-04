@@ -129,8 +129,8 @@ mill --debug mill.bsp.BSP/install
 
 A common issue for poor performance can be a mismatch of the JVMs.
 In such a case the Mill BSP server started by a BSP client like Metals is using a _different_ JVM than `mill` is using when started from the command line.
-In such a scenario, every Mill invocation using the other JVM will inadvertently invalidate Mills  target caches.
-This effectively leads to full reevaluation of all invoked Mill targets and appears as "bad performance".
+In such a scenario, every Mill invocation using the other JVM will inadvertently invalidate Mills task caches.
+This effectively leads to full reevaluation of all invoked Mill tasks and appears as "bad performance".
 
 To detect if this is the case,
 

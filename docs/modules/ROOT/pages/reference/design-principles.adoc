@@ -28,12 +28,12 @@ dependency graph of ``Task``s.
 
 === Builds are hierarchical
 
-The syntax for running targets from the command line `mill Foo.bar.baz` is
-the same as referencing a target in Scala code, `Foo.bar.baz`
+The syntax for running tasks from the command line `mill Foo.bar.baz` is
+the same as referencing a task in Scala code, `Foo.bar.baz`
 
 Everything that you can run from the command line lives in an object hierarchy
 in your `build.mill` file. Different parts of the hierarchy can have different
-``Target``s available: just add a new `def foo = Task {...}` somewhere and you'll be
+``Task``s available: just add a new `def foo = Task {...}` somewhere and you'll be
 able to run it.
 
 Cross builds, using the `Cross` data structure, are just another kind of node in
@@ -43,33 +43,33 @@ run something via `mill core.cross[a].printIt` while from code you use
 
 === Caching by default
 
-Every `Target` in a build, defined by `def foo = Task {...}`, is cached by default.
+Every `Task` in a build, defined by `def foo = Task {...}`, is cached by default.
 Currently this is done using a `foo.json` file in the `out/` folder. The
-`Target` is also provided a `foo.dest/` path on the filesystem dedicated to it, for
+`Task` is also provided a `foo.dest/` path on the filesystem dedicated to it, for
 it to store output files etc.
 
-This happens whether you want it to or not. Every `Target` is cached, not just
+This happens whether you want it to or not. Every `Task` is cached, not just
 the "slow" ones like `compile` or `assembly`.
 
-Caching is keyed on the `.hashCode` of the returned value. For ``Target``s
+Caching is keyed on the `.hashCode` of the returned value. For ``Task``s
 returning the contents of a file/folder on disk, they return `PathRef` instances
 whose hashcode is based on the hash of the disk contents. Serialization of the
 returned values is done using uPickle.
 
 === Functional Purity
 
-Mill relies heavily on build targets being "pure": they only depend on their
-input targets, and their only output is their return value. They do not
+Mill relies heavily on build tasks being "pure": they only depend on their
+input tasks, and their only output is their return value. They do not
 scribble all over the filesystem, reading and writing from random places. That
 is what allows us to be aggressive about caching and parallelizing the
-evaluation of build targets during a build.
+evaluation of build tasks during a build.
 
 Many kinds of build steps do require files on disk, and for that Mill provides
-the `T.dest` folder. This is a folder on disk dedicated to each build target,
+the `T.dest` folder. This is a folder on disk dedicated to each build task,
 so that it can read and write things to it without worrying about conflicts
-with other targets that have their own `T.dest` folders. In effect, this makes
-even file output "pure": we can know precisely where a target's output files
-live when we need to invalidate them, and it allows multiple targets all
+with other tasks that have their own `T.dest` folders. In effect, this makes
+even file output "pure": we can know precisely where a task's output files
+live when we need to invalidate them, and it allows multiple tasks all
 reading and writing to the filesystem to do so safely even when in parallel.
 
 === Short-lived build processes
@@ -79,11 +79,11 @@ long-lived daemon/console. That means we must minimize the startup time of the
 process, and that a new process must be able to re-construct the in-memory data
 structures where a previous process left off, in order to continue the build.
 
-Re-construction is done via the hierarchical nature of the build: each `Target`
+Re-construction is done via the hierarchical nature of the build: each `Task`
 `foo.bar.baz` has a fixed position in the build hierarchy, and thus a fixed
 position on disk `out/foo/bar/baz.json`. When the old process dies and a
-new process starts, there will be a new instance of `Target` with the same
-implementation code and same position in the build hierarchy: this new `Target`
+new process starts, there will be a new instance of `Task` with the same
+implementation code and same position in the build hierarchy: this new `Task`
 can then load the `out/foo/bar/baz.json` file and pick up where the
 previous process left off.
 
@@ -100,7 +100,7 @@ good is a core ongoing requirement.
 dependency graph before we start executing ``Task``s. This lets us perform all
 sorts of useful operations on the graph before running it:
 
-* Given a Target the user wants to run, pre-compute and display what targets
+* Given a Task the user wants to run, pre-compute and display what tasks
  will be evaluated ("dry run"), without running them
 
 * Automatically parallelize different parts of the dependency graph that do not
@@ -111,8 +111,8 @@ sorts of useful operations on the graph before running it:
 
 * Query the graph, e.g. "why does this thing depend on that other thing?"
 
-* Avoid running tasks "halfway": if a Target's upstream Targets fail, we can
- skip the Target completely rather than running halfway and then bailing out
+* Avoid running tasks "halfway": if a Task's upstream Tasks fail, we can
+ skip the Task completely rather than running halfway and then bailing out
  with an exception
 
 In order to avoid making people using `.map` and `.zip` all over the place when
@@ -216,10 +216,10 @@ digraph G {
 
 The module hierarchy is the graph of objects, starting from the root of the
 `build.mill` file, that extend `mill.Module`. At the leaves of the hierarchy are
-the ``Target``s you can run.
+the ``Task``s you can run.
 
-A ``Target``'s position in the module hierarchy tells you many things. For
-example, a `Target` at position `core.test.compile` would:
+A ``Task``'s position in the module hierarchy tells you many things. For
+example, a `Task` at position `core.test.compile` would:
 
 * Cache output metadata at `out/core/test/compile.json`
 
@@ -229,12 +229,12 @@ example, a `Target` at position `core.test.compile` would:
 
 * Be runnable from the command-line via `mill core.test.compile`
 
-* Be referenced programmatically (from other ``Target``s) via `core.test.compile`
+* Be referenced programmatically (from other ``Task``s) via `core.test.compile`
 
-From the position of any `Target` within the object hierarchy, you immediately
+From the position of any `Task` within the object hierarchy, you immediately
 know how to run it, find its output files, find any caches, or refer to it from
-other ``Target``s. You know up-front where the ``Target``s data "lives" on disk, and
-are sure that it will never clash with any other ``Target``s data.
+other ``Task``s. You know up-front where the ``Task``s data "lives" on disk, and
+are sure that it will never clash with any other ``Task``s data.
 
 === The Call Graph
 
@@ -276,21 +276,21 @@ digraph G {
 }
 ....
 
-The Scala call graph of "which target references which other target" is core to
+The Scala call graph of "which task references which other task" is core to
 how Mill operates. This graph is reified via the `T {...}` macro to make it
 available to the Mill execution engine at runtime. The call graph tells you:
 
-* Which ``Target``s depend on which other ``Target``s
+* Which ``Task``s depend on which other ``Task``s
 
-* For a given `Target` to be built, what other ``Target``s need to be run and in
+* For a given `Task` to be built, what other ``Task``s need to be run and in
  what order
 
-* Which ``Target``s can be evaluated in parallel
+* Which ``Task``s can be evaluated in parallel
 
-* What source files need to be watched when using `--watch` on a given target (by
+* What source files need to be watched when using `--watch` on a given task (by
  tracing the call graph up to the ``Source``s)
 
-* What a given `Target` makes available for other ``Target``s to depend on (via
+* What a given `Task` makes available for other ``Task``s to depend on (via
  its return value)
 
 * Defining your own task that depends on others is as simple as `def foo =
@@ -309,11 +309,11 @@ val a = f(b, c, d)
 
 you are telling everyone that the value `a` depends on the values of `b` `c` and
 `d`, processed by `f`. A build tool needs exactly the same data structure:
-knowing what `Target` depends on what other ``Target``s, and what processing it
+knowing what `Task` depends on what other ``Task``s, and what processing it
 does on its inputs!
 
 With Mill, you can take the Scala call graph, wrap everything in the `T {...}`
-macro, and get a `Target`-dependency graph that matches exactly the call-graph
+macro, and get a `Task`-dependency graph that matches exactly the call-graph
 you already had:
 
 [source,scala]
@@ -340,7 +340,7 @@ and over.
 In Mill, inheriting from traits is the primary way for re-using common parts of
 a build:
 
-* Scala "project"s with multiple related ``Target``s within them, are just a
+* Scala "project"s with multiple related ``Task``s within them, are just a
  `Trait` you instantiate
 
 * Replacing the default ``Target``s within a project, making them do new

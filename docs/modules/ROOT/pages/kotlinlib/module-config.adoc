@@ -78,7 +78,7 @@ include::partial$example/kotlinlib/module/14-repository-config.adoc[]
 Under some circumstances (e.g. corporate firewalls), you may not have access maven central. The typical symptom will be error messages which look like this;
 
 ----
-1 targets failed
+1 tasks failed
 mill.scalalib.ZincWorkerModule.classpath
 Resolution failed for 1 modules:
 --------------------------------------------

@@ -335,7 +335,7 @@ Found undeclared dependencies: (add these to ivyDeps)
 Found unimported dependencies: (remove these from ivyDeps)
     ivy"org.typelevel::cats-effect:3.3.6",
 
-1 targets failed
+1 tasks failed
 main.checkExplicitDeps Found 1 undeclared dependencies, 1 unimported dependencies
 ----
 
@@ -367,7 +367,7 @@ object g8 extends G8Module {
 }
 ----
 
-The most common target you'd then use is `mill g8.validate`.
+The most common task you'd then use is `mill g8.validate`.
 
 == Git
 
@@ -821,7 +821,7 @@ Project home: https://github.com/sake92/mill-powershell-completion
 
 == PublishM2
 
-_Since Mill `0.6.1-27-f265a4` there is a built-in `publishM2Local` target in `PublishModule`._
+_Since Mill `0.6.1-27-f265a4` there is a built-in `publishM2Local` task in `PublishModule`._
 
 Mill plugin to publish artifacts into a local Maven repository.
 
@@ -970,7 +970,7 @@ object project extends ScalaModule with ScalafixModule {
 /project/project/src/MyClass.scala:12:11: error: [DisableSyntax.var] mutable state should be avoided
   private var hashLength = 7
           ^^^
-1 targets failed
+1 tasks failed
 project.fix A Scalafix linter error was reported
 ----
 

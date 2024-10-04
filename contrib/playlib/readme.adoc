@@ -168,7 +168,7 @@ object core extends PlayApiModule {
 
 == Commands equivalence
 
-Mill commands are targets on a named build. For example if your build is called `core`:
+Mill commands are tasks on a named build. For example if your build is called `core`:
 
 * compile: `core.compile`
 * run: _NOT Implemented yet_. It can be approximated with `mill -w core.runBackground` but this
