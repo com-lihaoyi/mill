@@ -18,7 +18,7 @@ import scala.annotation.implicitNotFound
  * @param enclosingCls
  * @param crossValues
  */
-@implicitNotFound("Modules, Targets and Commands can only be defined within a mill Module")
+@implicitNotFound("Modules and Tasks can only be defined within a mill Module")
 trait Ctx {
   def enclosing: String
   def lineNum: Int

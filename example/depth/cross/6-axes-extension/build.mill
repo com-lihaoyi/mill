@@ -16,7 +16,7 @@ trait FooModule2 extends Cross.Module2[String, Int] {
 
 object foo3 extends Cross[FooModule3](("a", 1, true), ("b", 2, false))
 trait FooModule3 extends FooModule2 with Cross.Module3[String, Int, Boolean] {
-  def param3 = T{ "Param Value: " + crossValue3 }
+  def param3 = Task { "Param Value: " + crossValue3 }
 }
 
 // Starting from an existing cross module with `Cross.Module{N-1}`,

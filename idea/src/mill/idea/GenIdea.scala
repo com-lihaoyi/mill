@@ -7,8 +7,8 @@ import mill.eval.Evaluator
 
 import scala.util.control.NonFatal
 
-object GenIdea extends ExternalModule {
-
+object GenIdea extends ExternalModule with mill.define.TaskModule {
+  def defaultCommandName() = "idea"
   def idea(allBootstrapEvaluators: Evaluator.AllBootstrapEvaluators): Command[Unit] = Task.Command {
     try {
       Result.Success(GenIdeaImpl(

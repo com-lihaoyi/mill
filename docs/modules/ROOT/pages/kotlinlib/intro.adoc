@@ -23,6 +23,7 @@ gtag('config', 'AW-16649289906');
 
 :language: Kotlin
 :language-small: kotlin
+:language-ext: kt
 
 include::partial$Intro_to_Mill_Header.adoc[]
 

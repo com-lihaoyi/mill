@@ -1,3 +1,6 @@
+// This is an example of how use Mill to compile C code together with your Java
+// code using JNI.
+
 package build
 import mill._, javalib._, util.Jvm
 
@@ -12,7 +15,7 @@ object `package` extends RootModule with JavaModule {
   }
 
   // Compile C
-  def nativeCompiled = T{
+  def nativeCompiled = Task {
     val cSourceFiles = nativeSources().map(_.path).flatMap(os.walk(_)).filter(_.ext == "c")
     val output = "libhelloworld.so"
     os.proc(
@@ -36,8 +39,7 @@ object `package` extends RootModule with JavaModule {
   }
 }
 
-// This is an example of how use Mill to compile C code together with your Java
-// code using JNI. There are three main steps: defining the C source folder,
+// There are three main steps: defining the C source folder,
 // generating the header files using `javac`, and then compiling the C code
 // using `clang`. After that we have the `libhelloworld.so` on disk ready to use,
 // and in this example we use an environment variable to pass the path of that

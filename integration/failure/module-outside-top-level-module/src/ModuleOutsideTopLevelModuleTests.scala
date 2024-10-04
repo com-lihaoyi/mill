@@ -12,7 +12,7 @@ object ModuleOutsideTopLevelModuleTests extends UtestIntegrationTestSuite {
       assert(!res.isSuccess)
       assert(
         res.err.contains(
-          "Modules, Targets and Commands can only be defined within a mill Module"
+          "Modules and Tasks can only be defined within a mill Module"
         )
       )
       assert(

@@ -31,9 +31,9 @@ object `package` extends RootModule with KotlinModule with KoverModule {
 // Kover module. The root module extends the `KoverModule` and
 // specifies the version of Kover version to use here: `0.8.3`. This
 // version can be changed if there is a newer one. Now you can call the
-// Kover targets to produce coverage reports.
+// Kover tasks to produce coverage reports.
 // The sub test module extends `KoverTests` to transform the
-// execution of the various testXXX targets to use Kover and produce
+// execution of the various testXXX tasks to use Kover and produce
 // coverage data.
 // This lets us perform the coverage operations but before that you
 // must first run the test.

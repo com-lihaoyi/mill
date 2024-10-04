@@ -25,10 +25,10 @@ object foo extends Module {
 //   foo -> "foo.bar"  [style=dashed]
 // }
 // ....
-// You would be able to run the two targets via `mill foo.bar` or `mill
+// You would be able to run the two tasks via `mill foo.bar` or `mill
 // foo.qux.baz`. You can use `mill show foo.bar` or `mill show foo.baz.qux` to
-// make Mill echo out the string value being returned by each Target. The two
-// targets will store their output metadata and files at
+// make Mill echo out the string value being returned by each Task. The two
+// tasks will store their output metadata and files at
 // `./out/foo/bar.{json,dest}` and `./out/foo/baz/qux.{json,dest}`
 // respectively.
 
@@ -132,7 +132,7 @@ object foo2 extends FooModule {
 
 trait MyModule extends Module{
   def sources = Task.Source(millSourcePath / "sources")
-  def target = Task { "hello " + os.list(sources().path).map(os.read(_)).mkString(" ") }
+  def task = Task { "hello " + os.list(sources().path).map(os.read(_)).mkString(" ") }
 }
 
 object outer extends MyModule {
@@ -146,14 +146,14 @@ object outer extends MyModule {
 //   "root-module" [style=dashed]
 //   outer [style=dashed]
 //
-//   "outer.sources" -> "outer.target" [constraint=false]
-//   "outer.inner.sources" -> "outer.inner.target" [constraint=false]
+//   "outer.sources" -> "outer.task" [constraint=false]
+//   "outer.inner.sources" -> "outer.inner.task" [constraint=false]
 //   "outer.inner" [style=dashed]
 //   "root-module" -> outer -> "outer.inner"  [style=dashed]
 //   "outer.inner" -> "outer.inner.sources"  [style=dashed]
-//   "outer.inner" -> "outer.inner.target"  [style=dashed]
+//   "outer.inner" -> "outer.inner.task"  [style=dashed]
 //   outer -> "outer.sources"  [style=dashed]
-//   outer -> "outer.target"  [style=dashed]
+//   outer -> "outer.task"  [style=dashed]
 // }
 // ....
 
@@ -165,10 +165,10 @@ object outer extends MyModule {
 
 /** Usage
 
-> ./mill show outer.target
+> ./mill show outer.task
 "hello contents of file inside outer/sources/"
 
-> ./mill show outer.inner.target
+> ./mill show outer.inner.task
 "hello contents of file inside outer/inner/sources/"
 
 */
@@ -192,10 +192,10 @@ object outer2 extends MyModule {
 
 /** Usage
 
-> ./mill show outer2.target
+> ./mill show outer2.task
 "hello contents of file inside outer2/nested/sources/"
 
-> ./mill show outer2.inner.target
+> ./mill show outer2.inner.task
 "hello contents of file inside outer2/nested/inner/sources/"
 
 */
@@ -212,10 +212,10 @@ object outer2 extends MyModule {
 
 /** Usage
 
-> cat ./out/outer2/target.json
+> cat ./out/outer2/task.json
 ..."value": "hello contents of file inside outer2/nested/sources/"...
 
-> cat ./out/outer2/inner/target.json
+> cat ./out/outer2/inner/task.json
 ..."value": "hello contents of file inside outer2/nested/inner/sources/"...
 
 */

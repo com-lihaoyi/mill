@@ -1,6 +1,6 @@
-package mill.contrib.errorprone
+package mill.javalib.errorprone
 
-import mill.{T, Task}
+import mill.T
 import mill.scalalib.JavaModule
 import mill.testkit.{TestBaseModule, UnitTester}
 import os.Path
@@ -16,7 +16,7 @@ object ErrorProneTests extends TestSuite {
     ))
   }
 
-  val testModuleSourcesPath: Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "simple"
+  val testModuleSourcesPath: Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "errorprone"
 
   def tests = Tests {
     test("reference") {

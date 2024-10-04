@@ -47,7 +47,7 @@ object `package` extends RootModule {
           Map("MILL_INTEGRATION_SERVER_MODE" -> (mode == "local" || mode == "server").toString) ++
           testReleaseEnv()
 
-      def forkArgs = T { super.forkArgs() ++ build.dist.forkArgs() }
+      def forkArgs = Task { super.forkArgs() ++ build.dist.forkArgs() }
 
       def testReleaseEnv =
         if (mode == "local")

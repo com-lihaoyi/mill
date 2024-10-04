@@ -11,7 +11,7 @@ import org.commonmark.renderer.html.HtmlRenderer
 // Next, we use `os.list` and `interp.watchValue` on the `post/` folder to
 // build a `Cross[PostModule]` whose entries depend no the markdown files we
 // find in that folder. Each post has a `source` pointing at the markdown file,
-// and a `render` target that parses the file's markdown and generates a HTML
+// and a `render` task that parses the file's markdown and generates a HTML
 // output file
 
 import mill._
@@ -27,7 +27,7 @@ val posts = interp.watchValue {
 object post extends Cross[PostModule](posts)
 trait PostModule extends Cross.Module[String]{
   def source = Task.Source(millSourcePath / crossValue)
-  def render = T{
+  def render = Task {
     val doc = Parser.builder().build().parse(os.read(source().path))
     val title = mdNameToTitle(crossValue)
     val rendered = doctype("html")(
@@ -56,7 +56,7 @@ def renderIndexEntry(mdName: String) = {
   h2(a(mdNameToTitle(mdName), href := ("post/" + mdNameToHtml(mdName))))
 }
 
-def index = T{
+def index = Task {
   val rendered = doctype("html")(
     html(body(h1("Blog"), postsInput().map(renderIndexEntry)))
   )
@@ -65,7 +65,7 @@ def index = T{
 }
 
 // Lastly we copy the individual post HTML files and the `index.html` file
-// into a single target's `.dest` folder, and return it:
+// into a single task's `.dest` folder, and return it:
 
 def dist = Task {
   for (post <- Task.traverse(post.crossModules)(_.render)()) {
@@ -117,7 +117,7 @@ def dist = Task {
 */
 
 // All caching, incremental re-computation, and parallelism is done using the
-// Mill target graph. For this simple example, the graph is as follows
+// Mill task graph. For this simple example, the graph is as follows
 //
 // [graphviz]
 // ....

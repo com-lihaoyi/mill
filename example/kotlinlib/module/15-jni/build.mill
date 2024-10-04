@@ -11,7 +11,7 @@ object `package` extends RootModule with KotlinModule {
   def nativeSources = T.sources(millSourcePath / "native-src")
 
   // Compile C
-  def nativeCompiled = T{
+  def nativeCompiled = Task {
     val cSourceFiles = nativeSources().map(_.path).flatMap(os.walk(_)).filter(_.ext == "c")
     val output = "libhelloworld.so"
     os.proc(

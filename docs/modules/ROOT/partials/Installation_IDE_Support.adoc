@@ -5,15 +5,16 @@
 </script>
 ++++
 
+
+The best method of installing Mill is to install a <<_bootstrap_scripts,bootstrap script>>.
+This script can determine the best version to be used by a project (e.g. by
+reading a `.mill-version` or `.config/mill-version` file or a `MILL_VERSION` environment variable) and will use this exact Mill version.
+If the determined Mill version is not installed locally, it will be downloaded automatically.
+
 For all the examples in this documentation, there is a `download` link that provides
 a zip file containing the full example ready to use. These examples come with a `./mill`
 script you can use to immediately begin working with the project, needing only a JVM installed
 globally
-
-The best method of installing Mill is to just install a <<_bootstrap_scripts,bootstrap script>>.
-This script can determine the best version to be used by a project (e.g. by
-reading a `.mill-version` or `.config/mill-version` file or a `MILL_VERSION` environment variable) and will use this exact Mill version.
-If the determined Mill version is not installed locally, it will be downloaded automatically.
 
 == IDE Support
 
@@ -27,18 +28,23 @@ https://build-server-protocol.github.io/[Build Server Protocol]
 To use Mill with IntelliJ, first ensure you have the free
 https://plugins.jetbrains.com/plugin/1347-scala[IntelliJ Scala Plugin]
 installed. This is necessary as Mill build files are written in Scala,
-even if you are using it to build a Java project.
+even if you are using it to build a Java or Kotlin project.
 
 Once you have the plugin installed, you can use IntelliJ to open any project
-containing a Mill `build.sc` file, and IntelliJ will automatically load the
+containing a Mill `build.mill` file, and IntelliJ will automatically load the
 Mill build. This will provide support both for your application code,
-as well as the code in the `build.sc`:
+as well as the code in the `build.mill`:
 
 image::IntellijApp.png[]
 
 image::IntellijBuild.png[]
 
-If you make changes to your Mill `build.sc`, you can ask Intellij to load
+If IntelliJ does not highlight the `.mill` files correctly, you can explicitly enable
+it by adding `*.mill` to the `Scala` file type:
+
+image::IntellijFileTypeConfig.png[]
+
+If you make changes to your Mill `build.mill`, you can ask Intellij to load
 those updates by opening the "BSP" tab and clicking the "Refresh" button
 
 image::IntellijRefresh.png[]
@@ -54,7 +60,7 @@ To generate IntelliJ IDEA project files into `.idea/`, run:
 
 [source,bash]
 ----
-./mill mill.idea.GenIdea/idea
+./mill mill.idea.GenIdea/
 ----
 
 This will generate the XML files IntelliJ uses to configure your project
@@ -76,8 +82,8 @@ This will generate the XML files IntelliJ uses to configure your project
 ```
 
 After the files are generated, you can open the folder in IntelliJ to load the project
-into your IDE. If you make changes to your Mill `build.sc`, you can update the project config
-those updates by running `./mill mill.idea.GenIdea/idea` again.
+into your IDE. If you make changes to your Mill `build.mill`, you can update the project config
+those updates by running `./mill mill.idea.GenIdea/` again.
 
 === VSCode
 
@@ -87,9 +93,9 @@ installed. This is necessary as Mill build files are written in Scala,
 even if you are using it to build a Java project.
 
 Once you have the language server installed, you can ask VSCode to open any folder
-containing a Mill `build.sc` file, and VSCode will ask you to import your
+containing a Mill `build.mill` file, and VSCode will ask you to import your
 Mill build. This will provide support both for your application code,
-as well as the code in the `build.sc`:
+as well as the code in the `build.mill`:
 
 image::VSCodeApp.png[]
 
@@ -123,8 +129,8 @@ mill --debug mill.bsp.BSP/install
 
 A common issue for poor performance can be a mismatch of the JVMs.
 In such a case the Mill BSP server started by a BSP client like Metals is using a _different_ JVM than `mill` is using when started from the command line.
-In such a scenario, every Mill invocation using the other JVM will inadvertently invalidate Mills  target caches.
-This effectively leads to full reevaluation of all invoked Mill targets and appears as "bad performance".
+In such a scenario, every Mill invocation using the other JVM will inadvertently invalidate Mills task caches.
+This effectively leads to full reevaluation of all invoked Mill tasks and appears as "bad performance".
 
 To detect if this is the case,
 

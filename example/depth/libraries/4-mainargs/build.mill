@@ -41,8 +41,8 @@ def commandTakingPath(path: os.Path) = Task.Command{
 //
 // Mill allows commands to take ``Task[T]``s as parameters anywhere they can
 // take an unboxed `T`. This can be handy later on if you want to call the
-// command as part of another target, while passing it the value of an upstream
-// target:
+// command as part of another task, while passing it the value of an upstream
+// task:
 
 def commandTakingTask(str: Task[String]) = Task.Command{
   val result = "arg: " + str()
@@ -57,18 +57,18 @@ arg: helloworld
 
 */
 
-def upstreamTarget = T{
+def upstreamTask = Task {
   "HELLO"
 }
 
-def targetCallingCommand = T{
-  commandTakingTask(upstreamTarget)()
+def taskCallingCommand = Task {
+  commandTakingTask(upstreamTask)()
 }
 
 
 /** Usage
 
-> ./mill show targetCallingCommand
+> ./mill show taskCallingCommand
 "arg: HELLO"
 
 */
@@ -82,15 +82,15 @@ def targetCallingCommand = T{
 // You can define a command that takes in the current `Evaluator` as an argument,
 // which you can use to inspect the entire build, or run arbitrary tasks.
 // For example, here is a `customPlanCommand` command which uses this
-// to traverse the module tree to find the targets specified by the `targets` strings,
+// to traverse the module tree to find the tasks specified by the `tasks` strings,
 // and plan out what would be necessary to run them
 import mill.eval.{Evaluator, Terminal}
 import mill.resolve.{Resolve, SelectMode}
 
-def customPlanCommand(evaluator: Evaluator, targets: String*) = Task.Command {
+def customPlanCommand(evaluator: Evaluator, tasks: String*) = Task.Command {
   Resolve.Tasks.resolve(
     evaluator.rootModule,
-    targets,
+    tasks,
     SelectMode.Multi
   ) match{
     case Left(err) => Left(err)
@@ -107,15 +107,15 @@ def customPlanCommand(evaluator: Evaluator, targets: String*) = Task.Command {
 }
 
 // We can call our `customPlanCommand` from the command line and pass it the
-// `targetCallingCommand` we saw earlier, and it prints out the list of tasks
-// it needs to run in the order necessary to reach `targetCallingCommand
+// `taskCallingCommand` we saw earlier, and it prints out the list of tasks
+// it needs to run in the order necessary to reach `taskCallingCommand
 
 /** Usage
 
-> ./mill customPlanCommand targetCallingCommand
-upstreamTarget
+> ./mill customPlanCommand taskCallingCommand
+upstreamTask
 commandTakingTask
-targetCallingCommand
+taskCallingCommand
 
 */
 

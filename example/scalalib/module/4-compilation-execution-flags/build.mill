@@ -11,6 +11,14 @@ object `package` extends RootModule with ScalaModule{
 
 // You can pass flags to the Scala compiler via `scalacOptions`.
 
+
+/** Usage
+
+> ./mill run
+hello WORLD
+
+*/
+
 //// SNIPPET:END
 
 // By default,
@@ -35,10 +43,3 @@ object `package` extends RootModule with ScalaModule{
 // mill foo.run arg1 arg2 arg3
 // mill foo.runLocal arg1 arg2 arg3
 // ----
-
-/** Usage
-
-> ./mill run
-hello WORLD
-
-*/

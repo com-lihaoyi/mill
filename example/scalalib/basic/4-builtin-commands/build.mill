@@ -164,8 +164,9 @@ Inputs:
 // `show` is also useful for interacting with Mill from external tools, since the
 // JSON it outputs is structured and easily parsed and manipulated.
 //
-// When `show` is used with multiple targets, its output will slightly change to a
-// JSON array, containing all the results of the given targets.
+// When `show` is used with multiple task, its output will slightly change to a
+// JSON dictionary, with the keys being the task names and the values being the
+// JSON results of the given task.
 
 /** Usage
 
@@ -185,7 +186,7 @@ Inputs:
 // == showNamed
 
 // Same as `show`, but the output will always be structured in a JSON
-// dictionary, whether there is one or more targets in the selection
+// dictionary, whether there is one or more task in the selection
 
 /** Usage
 

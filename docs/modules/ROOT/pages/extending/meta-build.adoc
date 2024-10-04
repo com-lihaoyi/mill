@@ -24,8 +24,8 @@ $ mill --meta-level 1 mill.scalalib.scalafmt.ScalafmtModule/reformatAll sources
 ----
 
 * `--meta-level 1` selects the first meta-build. Without any customization, this is the only built-in meta-build.
-* `mill.scalalib.scalafmt.ScalafmtModule/reformatAll` is a generic task to format scala source files with Scalafmt. It requires the targets that refer to the source files as argument
-* `sources` this selects the `sources` targets of the meta-build, which at least contains the `build.mill`.
+* `mill.scalalib.scalafmt.ScalafmtModule/reformatAll` is a generic task to format scala source files with Scalafmt. It requires the tasks that refer to the source files as argument
+* `sources` this selects the `sources` tasks of the meta-build, which at least contains the `build.mill`.
 
 == Finding plugin updates
 

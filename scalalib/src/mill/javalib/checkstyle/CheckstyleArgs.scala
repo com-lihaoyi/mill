@@ -1,4 +1,4 @@
-package mill.contrib.checkstyle
+package mill.javalib.checkstyle
 
 import mainargs.{Leftover, ParserForClass, main}
 

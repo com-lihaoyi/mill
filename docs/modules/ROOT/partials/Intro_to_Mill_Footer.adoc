@@ -39,10 +39,10 @@ Example: Use up to 4 parallel threads to compile all modules:
 
 [source,bash]
 ----
-mill -j 4 __.compile
+mill -j4 __.compile
 ----
 
-To disable parallel execution use `--jobs 1`.
+To disable parallel execution use `-j1`.
 
 `mill` generates an output file in `out/mill-chrome-profile.json` that can be
 loaded into the Chrome browser's `chrome://tracing` page for visualization.
@@ -51,8 +51,9 @@ taking the most time:
 
 image::ChromeTracing.png[ChromeTracing.png]
 
-Please note that the maximal possible parallelism depends on your project.
-Tasks that depend on each other can't be processed in parallel.
+Note that the maximal possible parallelism depends both on the number of cores
+available as well as the task and module structure of your project, as tasks that
+depend on one another other cannot be processed in parallel
 
 == Command-line usage
 
@@ -119,4 +120,6 @@ options:
 Please see the documentation at https://mill-build.org for more details
 ----
 
-All _options_ must be given before the first target.
+Note that options and flags given before the `task` name are _passed to Mill_, while
+options and flags after the `task` name are _passed to the task_. This mirrors how
+most command line script or task runners work (e.g. `python <python-args> script.py <script-args>`)

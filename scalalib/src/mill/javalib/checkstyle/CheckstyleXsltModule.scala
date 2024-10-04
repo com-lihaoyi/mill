@@ -1,6 +1,6 @@
-package mill
-package contrib.checkstyle
+package mill.javalib.checkstyle
 
+import mill._
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.stream.{StreamResult, StreamSource}
 

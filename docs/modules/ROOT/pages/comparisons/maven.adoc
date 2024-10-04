@@ -409,7 +409,7 @@ import $ivy.`ant:ant-optional:1.5.3-1`
 object common extends NettyModule{
   ...
   def script = Task.Source(millSourcePath / "src" / "main" / "script")
-  def generatedSources0 = T{
+  def generatedSources0 = Task {
     val shell = new groovy.lang.GroovyShell()
     val context = new java.util.HashMap[String, Object]
 
@@ -426,7 +426,7 @@ object common extends NettyModule{
     (PathRef(T.dest / "src"), PathRef(T.dest / "testsrc"))
   }
 
-  def generatedSources = T{ Seq(generatedSources0()._1)}
+  def generatedSources = Task { Seq(generatedSources0()._1)}
 }
 ```
 
@@ -526,14 +526,14 @@ In contrast, the Mill configuration for this logic is as follows:
 ```scala
 def makefile = Task.Source(millSourcePath / "Makefile")
 def cSources = Task.Source(millSourcePath / "src" / "main" / "c")
-def cHeaders = T{
+def cHeaders = Task {
   for(p <- os.walk(cSources().path) if p.ext == "h"){
     os.copy(p, T.dest / p.relativeTo(cSources().path), createFolders = true)
   }
   PathRef(T.dest)
 }
 
-def make = T{
+def make = Task {
   os.copy(makefile().path, T.dest / "Makefile")
   os.copy(cSources().path, T.dest / "src" / "main" / "c", createFolders = true)
 
