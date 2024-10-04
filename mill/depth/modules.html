@@ -227,7 +227,7 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="query-syntax.html">Target Query Syntax</a>
+    <a class="nav-link" href="query-syntax.html">Task Query Syntax</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -405,9 +405,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-1-86606f</button>
   <div class="version-menu">
-    <a class="version is-current" href="modules.html">0.12.0-RC3</a>
+    <a class="version is-current" href="modules.html">0.12.0-RC3-1-86606f</a>
     <a class="version" href="../0.11.12/Modules.html">0.11.12</a>
     <a class="version" href="../0.11.11/Modules.html">0.11.11</a>
     <a class="version" href="../0.11.10/Modules.html">0.11.10</a>
@@ -475,10 +475,10 @@ object foo extends Module {
 </div>
 </div>
 <div class="paragraph">
-<p>You would be able to run the two targets via <code>mill foo.bar</code> or <code>mill
+<p>You would be able to run the two tasks via <code>mill foo.bar</code> or <code>mill
 foo.qux.baz</code>. You can use <code>mill show foo.bar</code> or <code>mill show foo.baz.qux</code> to
-make Mill echo out the string value being returned by each Target. The two
-targets will store their output metadata and files at
+make Mill echo out the string value being returned by each Task. The two
+tasks will store their output metadata and files at
 <code>./out/foo/bar.{json,dest}</code> and <code>./out/foo/baz/qux.{json,dest}</code>
 respectively.</p>
 </div>
@@ -582,7 +582,7 @@ module expects its input files to be on disk.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">trait MyModule extends Module{
   def sources = Task.Source(millSourcePath / &quot;sources&quot;)
-  def target = Task { &quot;hello &quot; + os.list(sources().path).map(os.read(_)).mkString(&quot; &quot;) }
+  def task = Task { &quot;hello &quot; + os.list(sources().path).map(os.read(_)).mkString(&quot; &quot;) }
 }
 
 object outer extends MyModule {
@@ -592,7 +592,7 @@ object outer extends MyModule {
 </div>
 <div class="imageblock kroki">
 <div class="content">
-<img src="../_images/diag-6e3f83f95dfc260a5fa1b830a23f8238128b65a7.svg" alt="Diagram" />
+<img src="../_images/diag-ef844862f76d8fe3f2438e9adec4d7171c445d6a.svg" alt="Diagram" />
 </div>
 </div>
 <div class="ulist">
@@ -609,10 +609,10 @@ object outer extends MyModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show outer.target
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show outer.task
 &quot;hello contents of file inside outer/sources/&quot;
 
-&gt; ./mill show outer.inner.target
+&gt; ./mill show outer.inner.task
 &quot;hello contents of file inside outer/inner/sources/&quot;</code></pre>
 </div>
 </div>
@@ -641,10 +641,10 @@ assumed to be in <code>millSourcePath / &quot;resources&quot;</code>.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show outer2.target
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show outer2.task
 &quot;hello contents of file inside outer2/nested/sources/&quot;
 
-&gt; ./mill show outer2.inner.target
+&gt; ./mill show outer2.inner.task
 &quot;hello contents of file inside outer2/nested/inner/sources/&quot;</code></pre>
 </div>
 </div>
@@ -662,10 +662,10 @@ the <code>out/</code> folder and cannot be changed, e.g. even with the overridde
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; cat ./out/outer2/target.json
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; cat ./out/outer2/task.json
 ...&quot;value&quot;: &quot;hello contents of file inside outer2/nested/sources/&quot;...
 
-&gt; cat ./out/outer2/inner/target.json
+&gt; cat ./out/outer2/inner/task.json
 ...&quot;value&quot;: &quot;hello contents of file inside outer2/nested/inner/sources/&quot;...</code></pre>
 </div>
 </div>
@@ -697,7 +697,7 @@ trait DiyJavaModule extends Module{
   def moduleDeps: Seq[DiyJavaModule] = Nil
   def mainClass: T[Option[String]] = None
 
-  def upstream: T[Seq[PathRef]] = T{ Task.traverse(moduleDeps)(_.classPath)().flatten }
+  def upstream: T[Seq[PathRef]] = Task { Task.traverse(moduleDeps)(_.classPath)().flatten }
   def sources = Task.Source(millSourcePath / &quot;src&quot;)
 
   def compile = Task {
@@ -707,7 +707,7 @@ trait DiyJavaModule extends Module{
     PathRef(Task.dest)
   }
 
-  def classPath = T{ Seq(compile()) ++ upstream() }
+  def classPath = Task { Seq(compile()) ++ upstream() }
 
   def assembly = Task {
     for(cp &lt;- classPath()) os.copy(cp.path, Task.dest, mergeFolders = true)
@@ -737,14 +737,14 @@ needs to be inherited by a concrete <code>object</code> before it can be used.</
 <div class="ulist">
 <ul>
 <li>
-<p><code>def moduleDeps</code> is not a Target. This is necessary because targets cannot
+<p><code>def moduleDeps</code> is not a Task. This is necessary because tasks cannot
 change the shape of the task graph during evaluation, whereas <code>moduleDeps</code>
 defines  module dependencies that determine the shape of the graph.</p>
 </li>
 <li>
 <p>Using <code>Task.traverse</code> to recursively gather the upstream classpath. This is
 necessary to convert the <code>Seq[T[V]]</code> into a <code>T[Seq[V]]</code> that we can work
-with inside our targets</p>
+with inside our tasks</p>
 </li>
 <li>
 <p>We use the <code>millSourcePath</code> together with <code>Task.workspace</code> to infer a default
@@ -752,7 +752,7 @@ name for the jar of each module. Users can override it if they want, but
 having a default is very convenient</p>
 </li>
 <li>
-<p><code>def cpFlag</code> is not a task or target, it’s just a normal helper method.</p>
+<p><code>def cpFlag</code> is not a task or task, it’s just a normal helper method.</p>
 </li>
 </ul>
 </div>
@@ -813,7 +813,7 @@ Bar.value: 271828</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Like any other <code>Target</code>s, the compilation and packaging of the Java code
+<p>Like any other <code>Task</code>s, the compilation and packaging of the Java code
 is incremental: if you change a file in <code>foo/src/</code> and run <code>qux.assembly</code>,
 <code>foo.compile</code> and <code>qux.compile</code> will be re-computed, but <code>bar.compile</code> will
 not as it does not transitively depend on <code>foo.sources</code>. We did not need to
@@ -840,14 +840,14 @@ import mill._
 import mill.scalalib._
 
 object `hyphenated-module` extends Module {
-  def `hyphenated-target` = T{
-    println(&quot;hyphenated target in a hyphenated module.&quot;)
+  def `hyphenated-task` = Task {
+    println(&quot;hyphenated task in a hyphenated module.&quot;)
   }
 }
 
 object unhyphenatedModule extends Module {
-  def unhyphenated_target = T{
-    println(&quot;unhyphenated target in an unhyphenated module.&quot;)
+  def unhyphenated_task = Task {
+    println(&quot;unhyphenated task in an unhyphenated module.&quot;)
   }
 }</code></pre>
 </div>
@@ -877,11 +877,11 @@ surrounded by back-ticks (<code>`</code>).</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill hyphenated-module.hyphenated-target
-hyphenated target in a hyphenated module.
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill hyphenated-module.hyphenated-task
+hyphenated task in a hyphenated module.
 
-&gt; ./mill unhyphenatedModule.unhyphenated_target
-unhyphenated target in an unhyphenated module.</code></pre>
+&gt; ./mill unhyphenatedModule.unhyphenated_task
+unhyphenated task in an unhyphenated module.</code></pre>
 </div>
 </div>
 </div>
@@ -899,7 +899,7 @@ shared between all builds which use that library:</p>
 import mill._
 
 object Bar extends mill.define.ExternalModule {
-  def baz = T { 1 }
+  def baz = Task { 1 }
   def qux() = Task.Command { println(baz() + 1) }
 
   lazy val millDiscover = mill.define.Discover[this.type]
@@ -908,7 +908,7 @@ object Bar extends mill.define.ExternalModule {
 </div>
 <div class="paragraph">
 <p>In the above example, <code>Bar</code> is an <code>ExternalModule</code> living within the <code>foo</code>
-Java package, containing the <code>baz</code> target and <code>qux</code> command. Those can be run
+Java package, containing the <code>baz</code> task and <code>qux</code> command. Those can be run
 from the command line via:</p>
 </div>
 <div class="listingblock">

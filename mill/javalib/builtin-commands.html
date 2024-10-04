@@ -227,7 +227,7 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../depth/query-syntax.html">Target Query Syntax</a>
+    <a class="nav-link" href="../depth/query-syntax.html">Task Query Syntax</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -405,9 +405,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-1-86606f</button>
   <div class="version-menu">
-    <a class="version is-current" href="builtin-commands.html">0.12.0-RC3</a>
+    <a class="version is-current" href="builtin-commands.html">0.12.0-RC3-1-86606f</a>
     <a class="version" href="../0.11.12/Java_Builtin_Commands.html">0.11.12</a>
     <a class="version" href="../0.11.11/Java_Builtin_Commands.html">0.11.11</a>
     <a class="version" href="../0.11.10/Java_Builtin_Commands.html">0.11.10</a>
@@ -619,8 +619,9 @@ file produced by the compilation:</p>
 JSON it outputs is structured and easily parsed and manipulated.</p>
 </div>
 <div class="paragraph">
-<p>When <code>show</code> is used with multiple targets, its output will slightly change to a
-JSON array, containing all the results of the given targets.</p>
+<p>When <code>show</code> is used with multiple task, its output will slightly change to a
+JSON dictionary, with the keys being the task names and the values being the
+JSON results of the given task.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -643,7 +644,7 @@ JSON array, containing all the results of the given targets.</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Same as <code>show</code>, but the output will always be structured in a JSON
-dictionary, whether there is one or more targets in the selection</p>
+dictionary, whether there is one or more task in the selection</p>
 </div>
 <div class="listingblock">
 <div class="content">

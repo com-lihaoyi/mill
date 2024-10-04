@@ -227,7 +227,7 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="query-syntax.html">Target Query Syntax</a>
+    <a class="nav-link" href="query-syntax.html">Task Query Syntax</a>
   </li>
 
   <li class="nav-item is-current-page" data-depth="1">
@@ -405,9 +405,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-1-86606f</button>
   <div class="version-menu">
-    <a class="version is-current" href="tasks.html">0.12.0-RC3</a>
+    <a class="version is-current" href="tasks.html">0.12.0-RC3-1-86606f</a>
     <a class="version" href="../0.11.12/Tasks.html">0.11.12</a>
     <a class="version" href="../0.11.11/Tasks.html">0.11.11</a>
     <a class="version" href="../0.11.10/Tasks.html">0.11.10</a>
@@ -434,13 +434,13 @@ orders and caches work it needs to do, and exists independently of any support
 for building Scala.</p>
 </div>
 <div class="paragraph">
-<p>Mill target graphs are primarily built using methods and macros defined on
-<code>mill.define.Target</code>, aliased as <code>T</code> for conciseness:</p>
+<p>Mill task graphs are primarily built using methods and macros defined on
+<code>mill.define.Task</code>, aliased as <code>T</code> for conciseness:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://mill-build.org/api/latest/mill/define/Target$.html">mill.define.Target</a></p>
+<p><a href="https://mill-build.org/api/latest/mill/define/Task$.html">mill.define.Task</a></p>
 </li>
 </ul>
 </div>
@@ -575,7 +575,7 @@ and the arrows representing the <em>data-flow</em> between them:</p>
 <p>This example does not use any of Mill’s builtin support for building Java or
 Scala projects, and instead builds a pipeline &quot;from scratch&quot; using Mill
 tasks and <code>javac</code>/<code>jar</code>/<code>java</code> subprocesses. We define <code>Task.Source</code> folders,
-plain <code>T{…​}</code> targets that depend on them, and a <code>Task.Command</code>.</p>
+plain <code>T{…​}</code> tasks that depend on them, and a <code>Task.Command</code>.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -592,7 +592,7 @@ My Example Text</code></pre>
 </div>
 <div class="paragraph">
 <p>When you first evaluate <code>assembly</code> (e.g. via <code>mill assembly</code> at the command
-line), it will evaluate all the defined targets: <code>mainClass</code>, <code>sources</code>,
+line), it will evaluate all the defined tasks: <code>mainClass</code>, <code>sources</code>,
 <code>compile</code>, and <code>assembly</code>.</p>
 </div>
 <div class="paragraph">
@@ -639,7 +639,7 @@ and use the cached output of <code>compile</code> (green)</p>
 <p><a href="#_sources">Sources</a>, defined using <code>Task.Sources {…​}</code></p>
 </li>
 <li>
-<p><a href="#_targets">Targets</a>, defined using <code>Task {…​}</code></p>
+<p><a href="#_tasks">[_tasks]</a>, defined using <code>Task {…​}</code></p>
 </li>
 <li>
 <p><a href="#_commands">Commands</a>, defined using <code>Task.Command {…​}</code></p>
@@ -668,7 +668,7 @@ tree under that path.</p>
 </div>
 <div class="paragraph">
 <p><code>Task.Source</code> and <code>Task.Sources</code> are most common inputs in any Mill build:
-they watch source files and folders and cause downstream targets to
+they watch source files and folders and cause downstream tasks to
 re-compute if a change is detected.</p>
 </div>
 </div>
@@ -697,7 +697,7 @@ def lineCount: T[Int] = Task {
 </div>
 <div class="paragraph">
 <p><code>Target</code>s are defined using the <code>def foo = Task {…​}</code> syntax, and dependencies
-on other targets are defined using <code>foo()</code> to extract the value from them.
+on other tasks are defined using <code>foo()</code> to extract the value from them.
 Apart from the <code>foo()</code> calls, the <code>Task {…​}</code> block contains arbitrary code that
 does some work and returns a result.</p>
 </div>
@@ -717,7 +717,7 @@ documentation for more details:</p>
 <div class="paragraph">
 <p>If a target’s inputs change but its output does not, e.g. someone changes a
 comment within the source files that doesn’t affect the classfiles, then
-downstream targets do not re-evaluate. This is determined using the
+downstream tasks do not re-evaluate. This is determined using the
 <code>.hashCode</code> of the Target’s return value.</p>
 </div>
 <div class="listingblock">
@@ -781,11 +781,11 @@ external tools. See the uPickle library documentation for more details:</p>
 <div class="sect3">
 <h4 id="_task_dest"><a class="anchor" href="#_task_dest"></a>Task.dest</h4>
 <div class="paragraph">
-<p>Each target, e.g. <code>classFiles</code>, is assigned a <a href="https://mill-build.org/api/latest/mill/api/Ctx.html#dest:os.Path">Task.dest</a>
+<p>Each task, e.g. <code>classFiles</code>, is assigned a <a href="https://mill-build.org/api/latest/mill/api/Ctx.html#dest:os.Path">Task.dest</a>
 folder e.g. <code>out/classFiles.dest/</code> on disk as scratch space &amp; to store its
 output files , and its returned metadata is automatically JSON-serialized
 and stored at <code>out/classFiles.json</code>. If you want to return a file or a set
-of files as the result of a <code>Target</code>, write them to disk within your <code>Task.dest</code>
+of files as the result of a <code>Task</code>, write them to disk within your <code>Task.dest</code>
 folder and return a <code>PathRef()</code> that referencing the files or folders
 you want to return:</p>
 </div>
@@ -837,12 +837,12 @@ you truly need the Mill project root folder, you can access it via <code>Task.wo
 </div>
 </div>
 <div class="sect3">
-<h4 id="_dependent_targets"><a class="anchor" href="#_dependent_targets"></a>Dependent Targets</h4>
+<h4 id="_dependent_tasks"><a class="anchor" href="#_dependent_tasks"></a>Dependent Tasks</h4>
 <div class="paragraph">
-<p>Targets can depend on other targets via the <code>foo()</code> syntax.
-The graph of inter-dependent targets is evaluated in topological order; that
-means that the body of a target will not even begin to evaluate if one of its
-upstream dependencies has failed. Similar, even if the upstream targets is
+<p>Tasks can depend on other tasks via the <code>foo()</code> syntax.
+The graph of inter-dependent tasks is evaluated in topological order; that
+means that the body of a task will not even begin to evaluate if one of its
+upstream dependencies has failed. Similar, even if the upstream tasks is
 not used in one branch of an <code>if</code> condition, it will get computed regardless
 before the <code>if</code> condition is even considered.</p>
 </div>
@@ -861,7 +861,7 @@ in <code>def largeFile</code> running even though the <code>largeFile()</code> b
     .maxBy(os.read.lines(_).size)
 }
 
-def hugeFileName = T{
+def hugeFileName = Task {
   if (lineCount() &gt; 999) largeFile().last
   else &quot;&lt;no-huge-file&gt;&quot;
 }</code></pre>
@@ -900,7 +900,7 @@ object ClassFileData {
   implicit val rw: upickle.default.ReadWriter[ClassFileData] = upickle.default.macroRW
 }
 
-def summarizeClassFileStats = T{
+def summarizeClassFileStats = Task {
   val files = os.walk(classFiles().path)
   ClassFileData(
     totalFileSize = files.map(os.size(_)).sum,
@@ -954,7 +954,7 @@ A command with no parameter is defined as <code>def myCommand() = Task.Command {
 It is a compile error if <code>()</code> is missing.</p>
 </div>
 <div class="paragraph">
-<p>Targets can take command line params, parsed by the <a href="https://github.com/com-lihaoyi/mainargs">MainArgs</a>
+<p>Tasks can take command line params, parsed by the <a href="https://github.com/com-lihaoyi/mainargs">MainArgs</a>
 library. Thus the signature <code>def run(mainClass: String, args: String*)</code> takes
 params of the form <code>--main-class &lt;str&gt; &lt;arg1&gt; &lt;arg2&gt; …​ &lt;argn&gt;</code>:</p>
 </div>
@@ -1007,7 +1007,7 @@ dependency has failed.</p>
 </div>
 <div class="paragraph">
 <p>Commands are assigned the same scratch/output folder <code>out/run.dest/</code> as
-Targets are, and its returned metadata stored at the same <code>out/run.json</code>
+Tasks are, and its returned metadata stored at the same <code>out/run.json</code>
 path for consumption by external tools.</p>
 </div>
 <div class="paragraph">
@@ -1019,13 +1019,13 @@ path for consumption by external tools.</p>
 <div class="paragraph">
 <p>Tasks can be overriden, with the overriden task callable via <code>super</code>.
 You can also override a task with a different type of task, e.g. below
-we override <code>sourceRoots</code> which is a <code>Task.Sources</code> with a <code>T{}</code> target:</p>
+we override <code>sourceRoots</code> which is a <code>Task.Sources</code> with a <code>Task{}</code> target:</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">trait Foo extends Module {
   def sourceRoots = Task.Sources(millSourcePath / &quot;src&quot;)
-  def sourceContents = T{
+  def sourceContents = Task {
     sourceRoots()
       .flatMap(pref =&gt; os.walk(pref.path))
       .filter(_.ext == &quot;txt&quot;)
@@ -1085,18 +1085,18 @@ def printFileData(fileName: String) = Task.Command {
 <div class="paragraph">
 <p>You can define anonymous tasks using the <code>Task.Anon {…​}</code> syntax. These are
 not runnable from the command-line, but can be used to share common code you
-find yourself repeating in <code>Target</code>s and <code>Command</code>s.</p>
+find yourself repeating in <code>Task</code>s and <code>Command</code>s.</p>
 </div>
 <div class="paragraph">
 <p>Anonymous task’s output does not need to be JSON-serializable, their output is
 not cached, and they can be defined with or without arguments.
 Unlike <a href="#_targets">Targets</a> or <a href="#_commands">Commands</a>, anonymous tasks can be defined
 anywhere and passed around any way you want, until you finally make use of them
-within a downstream target or command.</p>
+within a downstream task or command.</p>
 </div>
 <div class="paragraph">
 <p>While an anonymous task <code>foo</code>'s own output is not cached, if it is used in a
-downstream target <code>baz</code> and the upstream target <code>bar</code> hasn’t changed,
+downstream task <code>baz</code> and the upstream task <code>bar</code> hasn’t changed,
 <code>baz</code>'s cached output will be used and <code>foo</code>'s evaluation will be skipped
 altogether.</p>
 </div>
@@ -1143,7 +1143,7 @@ even if the external <code>git</code> status changes:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def gitStatusTarget = Task {
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def gitStatusTask = Task {
   &quot;v-&quot; +
   os.proc(&quot;git&quot;, &quot;log&quot;, &quot;-1&quot;, &quot;--pretty=format:%h-%B &quot;)
     .call(cwd = Task.workspace)
@@ -1158,20 +1158,20 @@ even if the external <code>git</code> status changes:</p>
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; git init .
 &gt; git commit --allow-empty -m &quot;Initial-Commit&quot;
 
-&gt; ./mill show gitStatusTarget
+&gt; ./mill show gitStatusTask
 &quot;v-...-Initial-Commit&quot;
 
 &gt; git commit --allow-empty -m &quot;Second-Commit&quot;
 
-&gt; ./mill show gitStatusTarget # Mill didn't pick up the git change!
+&gt; ./mill show gitStatusTask # Mill didn't pick up the git change!
 &quot;v-...-Initial-Commit&quot;</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p><code>gitStatusTarget</code> will not know that <code>git rev-parse</code> can change, and will
+<p><code>gitStatusTask</code> will not know that <code>git rev-parse</code> can change, and will
 not know to re-evaluate when your <code>git log</code> <em>does</em> change. This means
-<code>gitStatusTarget</code> will continue to use any previously cached value, and
-<code>gitStatusTarget</code>'s output will  be out of date!</p>
+<code>gitStatusTask</code> will continue to use any previously cached value, and
+<code>gitStatusTask</code>'s output will  be out of date!</p>
 </div>
 <div class="paragraph">
 <p>To fix this, you can wrap your <code>git log</code> in a <code>Task.Input</code>:</p>
@@ -1185,23 +1185,23 @@ not know to re-evaluate when your <code>git log</code> <em>does</em> change. Thi
     .text()
     .trim()
 }
-def gitStatusTarget2 = Task { &quot;v-&quot; + gitStatusInput() }</code></pre>
+def gitStatusTask2 = Task { &quot;v-&quot; + gitStatusInput() }</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>This makes <code>gitStatusInput</code> to always re-evaluate every build, and only if
-the output of <code>gitStatusInput</code> changes will <code>gitStatusTarget2</code> re-compute</p>
+the output of <code>gitStatusInput</code> changes will <code>gitStatusTask2</code> re-compute</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; git commit --allow-empty -m &quot;Initial-Commit&quot;
 
-&gt; ./mill show gitStatusTarget2
+&gt; ./mill show gitStatusTask2
 &quot;v-...-Initial-Commit&quot;
 
 &gt; git commit --allow-empty -m &quot;Second-Commit&quot;
 
-&gt; ./mill show gitStatusTarget2 # Mill picked up git change
+&gt; ./mill show gitStatusTask2 # Mill picked up git change
 &quot;v-...-Second-Commit&quot;</code></pre>
 </div>
 </div>
@@ -1209,22 +1209,22 @@ the output of <code>gitStatusInput</code> changes will <code>gitStatusTarget2</c
 <p>Note that because <code>Task.Input</code>s re-evaluate every time, you should ensure that the
 code you put in <code>Task.Input</code> runs quickly. Ideally it should just be a simple check
 &quot;did anything change?&quot; and any heavy-lifting should be delegated to downstream
-targets where it can be cached if possible.</p>
+tasks where it can be cached if possible.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_persistent_targets"><a class="anchor" href="#_persistent_targets"></a>Persistent Targets</h3>
+<h3 id="_persistent_tasks"><a class="anchor" href="#_persistent_tasks"></a>Persistent Tasks</h3>
 <div class="paragraph">
-<p>Persistent targets defined using <code>Task.Persistent</code> are similar to normal
+<p>Persistent targets defined using <code>Task(Persistent = True)</code> are similar to normal
 <code>Target</code>s, except their <code>Task.dest</code> folder is not cleared before every
 evaluation. This makes them useful for caching things on disk in a more
 fine-grained manner than Mill’s own Target-level caching.</p>
 </div>
 <div class="paragraph">
-<p>Below is a semi-realistic example of using a <code>Task.Persistent</code> target:</p>
+<p>Below is a semi-realistic example of using a <code>Task(Persistent = True)</code> target:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC3/0.12.0-RC3-example-depth-tasks-5-persistent-targets.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/depth/tasks/5-persistent-targets">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC3/0.12.0-RC3-example-depth-tasks-5-persistent-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/depth/tasks/5-persistent-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -1266,17 +1266,17 @@ def compressBytes(input: Array[Byte]) = {
 </div>
 </div>
 <div class="paragraph">
-<p>In this example, we implement a <code>compressedData</code> target that takes a folder
+<p>In this example, we implement a <code>compressedData</code> task that takes a folder
 of files in <code>inputData</code> and compresses them, while maintaining a cache of
 compressed contents for each file. That means that if the <code>inputData</code> folder
 is modified, but some files remain unchanged, those files would not be
 unnecessarily re-compressed when <code>compressedData</code> evaluates.</p>
 </div>
 <div class="paragraph">
-<p>Since persistent targets have long-lived state on disk that lives beyond a
+<p>Since persistent tasks have long-lived state on disk that lives beyond a
 single evaluation, this raises the possibility of the disk contents getting
 into a bad state and causing all future evaluations to fail. It is left up
-to the person implementing the <code>Task.Persistent</code> to ensure their implementation
+to the person implementing the <code>Task(Persistent = True)</code> to ensure their implementation
 is eventually consistent. You can also use <code>mill clean</code> to manually purge
 the disk contents to start fresh.</p>
 </div>
@@ -1313,7 +1313,7 @@ Compressing: world.txt</code></pre>
 <div class="paragraph">
 <p>Mill workers defined using <code>Task.Worker</code> are long-lived in-memory objects that
 can persistent across multiple evaluations. These are similar to persistent
-targets in that they let you cache things, but the fact that they let you
+tasks in that they let you cache things, but the fact that they let you
 cache the worker object in-memory allows for greater performance and
 flexibility: you are no longer limited to caching only serializable data
 and paying the cost of serializing it to disk every evaluation. This example
@@ -1332,7 +1332,7 @@ def data = Task.Source(millSourcePath / &quot;data&quot;)
 
 def compressWorker = Task.Worker{ new CompressWorker(Task.dest) }
 
-def compressedData = T{
+def compressedData = Task {
   println(&quot;Evaluating compressedData&quot;)
   for(p &lt;- os.list(data().path)){
     os.write(
@@ -1474,7 +1474,7 @@ object foo extends ScalaModule {
   def moduleDeps = Seq(bar)
   def ivyDeps = Agg(ivy&quot;com.lihaoyi::mainargs:0.4.0&quot;)
 
-  def sources = T{
+  def sources = Task {
     bar.runner().run(args = super.sources())
     Seq(PathRef(Task.dest))
   }
@@ -1609,7 +1609,7 @@ run async futures on <code>T.fork</code> whenever possible.</p>
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="query-syntax.html">Target Query Syntax</a></span>
+  <span class="prev"><a href="query-syntax.html">Task Query Syntax</a></span>
   <span class="next"><a href="modules.html">Modules</a></span>
 </nav>
 </article>

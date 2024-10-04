@@ -227,7 +227,7 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../depth/query-syntax.html">Target Query Syntax</a>
+    <a class="nav-link" href="../depth/query-syntax.html">Task Query Syntax</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -406,9 +406,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-1-86606f</button>
   <div class="version-menu">
-    <a class="version is-current" href="versionfile.html">0.12.0-RC3</a>
+    <a class="version is-current" href="versionfile.html">0.12.0-RC3-1-86606f</a>
     <a class="version" href="../0.11.12/contrib/versionfile.html">0.11.12</a>
     <a class="version" href="../0.11.11/contrib/versionfile.html">0.11.11</a>
     <a class="version" href="../0.11.10/contrib/versionfile.html">0.11.10</a>
@@ -433,8 +433,8 @@
 <p>This plugin provides helpers for updating a version file and committing the changes to git.</p>
 </div>
 <div class="paragraph">
-<p><strong>Note: You can still make manual changes to the version file in-between execution of the targets provided by the module.</strong>
-<strong>Each target operates on the version file as is at the time of execution.</strong></p>
+<p><strong>Note: You can still make manual changes to the version file in-between execution of the tasks provided by the module.</strong>
+<strong>Each task operates on the version file as is at the time of execution.</strong></p>
 </div>
 </div>
 </div>
@@ -531,7 +531,7 @@ object versionFile extends VersionFileModule {
 <h2 id="_set_release_version"><a class="anchor" href="#_set_release_version"></a>Set release version</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The <code>setReleaseVersion</code> target removes the <code>-SNAPSHOT</code> identifier from the version,
+<p>The <code>setReleaseVersion</code> task removes the <code>-SNAPSHOT</code> identifier from the version,
 then overwrites the previous content in the version file with this new version.</p>
 </div>
 <div class="sect2">
@@ -554,7 +554,7 @@ then overwrites the previous content in the version file with this new version.<
 <h2 id="_set_next_version"><a class="anchor" href="#_set_next_version"></a>Set next version</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The <code>setNextVersion</code> target bumps the version and changes it to a snapshot version,
+<p>The <code>setNextVersion</code> task bumps the version and changes it to a snapshot version,
 then overwrites the previous content in the version file with this new version.</p>
 </div>
 <div class="sect2">

@@ -226,7 +226,7 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../depth/query-syntax.html">Target Query Syntax</a>
+    <a class="nav-link" href="../depth/query-syntax.html">Task Query Syntax</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -404,9 +404,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-1-86606f</button>
   <div class="version-menu">
-    <a class="version is-current" href="module-config.html">0.12.0-RC3</a>
+    <a class="version is-current" href="module-config.html">0.12.0-RC3-1-86606f</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
@@ -451,7 +451,7 @@ for <code>KotlinModule</code>.</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>This example shows some of the common tasks you may want to override on a
-<code>ScalaModule</code>: specifying the <code>mainClass</code>, adding additional
+<code>{language}Module</code>: specifying the <code>mainClass</code>, adding additional
 sources/resources, generating resources, and setting compilation/run
 options.</p>
 </div>
@@ -483,7 +483,7 @@ object `package` extends RootModule with KotlinModule {
   }
 
   // Generate sources at build time
-  def generatedSources: T[Seq[PathRef]] = T {
+  def generatedSources: T[Seq[PathRef]] = Task {
     for(name &lt;- Seq(&quot;A&quot;, &quot;B&quot;, &quot;C&quot;)) os.write(
       T.dest / s&quot;Foo$name.kt&quot;,
       s&quot;&quot;&quot;
@@ -584,7 +584,7 @@ my.custom.property: my-prop-value</code></pre>
 <h2 id="_custom_tasks"><a class="anchor" href="#_custom_tasks"></a>Custom Tasks</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>This example shows how to define target that depend on other tasks:</p>
+<p>This example shows how to define task that depend on other tasks:</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
@@ -614,7 +614,7 @@ object `package` extends RootModule with KotlinModule {
 
   def ivyDeps = Agg(ivy&quot;com.github.ajalt.clikt:clikt-jvm:4.4.0&quot;)
 
-  def generatedSources: T[Seq[PathRef]] = T {
+  def generatedSources: T[Seq[PathRef]] = Task {
     val prettyIvyDeps = for(ivyDep &lt;- ivyDeps()) yield {
       val org = ivyDep.dep.module.organization.value
       val name = ivyDep.dep.module.name.value
@@ -636,7 +636,7 @@ object MyDeps {
     Seq(PathRef(T.dest))
   }
 
-  def lineCount: T[Int] = T {
+  def lineCount: T[Int] = Task {
     sources()
       .flatMap(pathRef =&gt; os.walk(pathRef.path))
       .filter(_.ext == &quot;kt&quot;)
@@ -651,14 +651,14 @@ object MyDeps {
 </div>
 </div>
 <div class="paragraph">
-<p>Mill lets you define new cached Targets using the <code>Task {…​}</code> syntax,
-depending on existing Targets e.g. <code>foo.sources</code> via the <code>foo.sources()</code>
+<p>Mill lets you define new cached Tasks using the <code>Task {…​}</code> syntax,
+depending on existing Tasks e.g. <code>foo.sources</code> via the <code>foo.sources()</code>
 syntax to extract their current value, as shown in <code>lineCount</code> above. The
-return-type of a Target has to be JSON-serializable (using
-<a href="https://github.com/lihaoyi/upickle">uPickle</a>) and the Target is cached when
-first run until its inputs change (in this case, if someone edits the
-<code>foo.sources</code> files which live in <code>foo/src</code>. Cached Targets cannot take
-parameters.</p>
+return-type of a Task has to be JSON-serializable (using
+<a href="https://github.com/lihaoyi/upickle">uPickle</a>, one of Mill’s <a href="#Bundled Libraries">[Bundled Libraries]</a>)
+and the Task is cached when first run until its inputs change (in this case, if
+someone edits the <code>foo.sources</code> files which live in <code>foo/src</code>. Cached Tasks
+cannot take parameters.</p>
 </div>
 <div class="paragraph">
 <p>Note that depending on a task requires use of parentheses after the task
@@ -684,21 +684,21 @@ my.line.count: 17
 </div>
 </div>
 <div class="paragraph">
-<p>Custom targets and commands can contain arbitrary code. Whether you want to
+<p>Custom tasks and commands can contain arbitrary code. Whether you want to
 download files using <code>requests.get</code>, shell-out to Webpack
 to compile some Javascript, generate sources to feed into a compiler, or
 create some custom jar/zip assembly with the files you want , all of these
-can simply be custom targets with your code running in the <code>Task {…​}</code> block.</p>
+can simply be custom tasks with your code running in the <code>Task {…​}</code> block.</p>
 </div>
 <div class="paragraph">
-<p>You can create arbitrarily long chains of dependent targets, and Mill will
-handle the re-evaluation and caching of the targets' output for you.
+<p>You can create arbitrarily long chains of dependent tasks, and Mill will
+handle the re-evaluation and caching of the tasks' output for you.
 Mill also provides you a <code>Task.dest</code> folder for you to use as scratch space or
 to store files you want to return: all files a task creates should live
 within <code>Task.dest</code>, and any files you want to modify should be copied into
 <code>Task.dest</code> before being modified. That ensures that the files belonging to a
-particular target all live in one place, avoiding file-name conflicts and
-letting Mill automatically invalidate the files when the target’s inputs
+particular task all live in one place, avoiding file-name conflicts and
+letting Mill automatically invalidate the files when the task’s inputs
 change.</p>
 </div>
 </div>
@@ -718,7 +718,7 @@ object foo extends KotlinModule {
 
   def mainClass = Some(&quot;foo.FooKt&quot;)
 
-  def sources = T{
+  def sources = Task {
     os.write(
       T.dest / &quot;Foo.kt&quot;,
       &quot;&quot;&quot;package foo
@@ -729,7 +729,7 @@ fun main() = println(&quot;Hello World&quot;)
     Seq(PathRef(T.dest))
   }
 
-  def compile = T {
+  def compile = Task {
     println(&quot;Compiling...&quot;)
     super.compile()
   }
@@ -742,11 +742,11 @@ fun main() = println(&quot;Hello World&quot;)
 </div>
 </div>
 <div class="paragraph">
-<p>You can re-define targets and commands to override them, and use <code>super</code> if you
+<p>You can re-define tasks and commands to override them, and use <code>super</code> if you
 want to refer to the originally defined task. The above example shows how to
 override <code>compile</code> and <code>run</code> to add additional logging messages, and we
 override <code>sources</code> which was <code>Task.Sources</code> for the <code>src/</code> folder with a plain
-<code>T{…​}</code> target that generates the  necessary source files on-the-fly.</p>
+<code>T{…​}</code> task that generates the  necessary source files on-the-fly.</p>
 </div>
 <div class="paragraph">
 <p>Note that this example <strong>replaces</strong> your <code>src/</code> folder with the generated
@@ -760,7 +760,7 @@ include the original source folder:</p>
 
   def kotlinVersion = &quot;1.9.24&quot;
 
-  def generatedSources = T{
+  def generatedSources = Task {
     os.write(T.dest / &quot;Foo.kt&quot;, &quot;&quot;&quot;...&quot;&quot;&quot;)
     Seq(PathRef(T.dest))
   }
@@ -770,7 +770,7 @@ object foo3 extends KotlinModule {
 
   def kotlinVersion = &quot;1.9.24&quot;
 
-  def sources = T{
+  def sources = Task {
     os.write(T.dest / &quot;Foo.kt&quot;, &quot;&quot;&quot;...&quot;&quot;&quot;)
     super.sources() ++ Seq(PathRef(T.dest))
   }
@@ -813,6 +813,20 @@ object `package` extends RootModule with KotlinModule {
 </div>
 </div>
 <div class="paragraph">
+<p>You can pass flags to the Kotlin compiler via <code>kotlincOptions</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run
+hello WORLD
+
+&gt; echo 'fun deprecatedMain(){Thread.currentThread().stop()}' &gt;&gt; src/foo/Foo.kt
+
+&gt; ./mill run
+error: .../src/foo/Foo.kt:...: warning: 'stop(): Unit' is deprecated. Deprecated in Java</code></pre>
+</div>
+</div>
+<div class="paragraph">
 <p>By default,
 <code>run</code> runs the compiled code in a subprocess, and you can pass in JVM flags
 via <code>forkArgs</code> or environment-variables via <code>forkEnv</code>.</p>
@@ -837,12 +851,6 @@ them after the <code>foo.run</code>/<code>foo.runLocal</code>:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill foo.run arg1 arg2 arg3
 mill foo.runLocal arg1 arg2 arg3</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run
-hello WORLD</code></pre>
 </div>
 </div>
 </div>
@@ -890,7 +898,7 @@ dependencies</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>Please consult the <a href="../depth/library-deps.html" class="xref page">Library Dependencies in Mill</a> section for even more details.</p>
+<p>Please consult the <a href="#Library Dependencies in Mill">[Library Dependencies in Mill]</a> section for even more details.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -974,6 +982,12 @@ dependencies when publish to Maven or Ivy-Repositories.
 </td>
 </tr>
 </tbody></table>
+</div>
+<div class="paragraph">
+<p>Both <code>compileIvyDeps</code> and <code>runIvyDeps</code> are non-transitive: a module does not
+automatically aggregate them from its upstream dependencies. They must be
+defined in every module that they are required in, either explicitly or via
+a <code>trait</code> that the module inherits from.</p>
 </div>
 </div>
 </div>
@@ -1175,7 +1189,7 @@ object foo extends KotlinModule {
     ivy&quot;org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3&quot;
   )
 
-  def processors = T {
+  def processors = Task {
     defaultResolver().resolveDeps(
       Agg(
         ivy&quot;org.jetbrains.kotlin:kotlin-serialization-compiler-plugin:1.9.24&quot;
@@ -1256,7 +1270,7 @@ object `package` extends RootModule with KotlinModule {
 
   def mainClass = Some(&quot;foo.FooKt&quot;)
 
-  def unmanagedClasspath = T {
+  def unmanagedClasspath = Task {
     if (!os.exists(millSourcePath / &quot;lib&quot;)) Agg()
     else Agg.from(os.list(millSourcePath / &quot;lib&quot;).map(PathRef(_)))
   }
@@ -1323,7 +1337,7 @@ object `package` extends RootModule with KotlinModule {
 
   def mainClass = Some(&quot;foo.FooKt&quot;)
 
-  def unmanagedClasspath = T {
+  def unmanagedClasspath = Task {
     os.write(
       T.dest / &quot;fastjavaio.jar&quot;,
       requests.get.stream(
@@ -1337,10 +1351,10 @@ object `package` extends RootModule with KotlinModule {
 </div>
 <div class="paragraph">
 <p>You can also override <code>unmanagedClasspath</code> to point it at jars that you want to
-download from arbitrary URLs. Note that targets like <code>unmanagedClasspath</code> are
+download from arbitrary URLs. Note that tasks like <code>unmanagedClasspath</code> are
 cached, so your jar is downloaded only once and re-used indefinitely after that.
 <code>requests.get</code> comes from the <a href="https://github.com/com-lihaoyi/requests-scala">Requests-Scala</a>
-library, which is bundled with Mill</p>
+library, one of Mill’s <a href="#Bundled Libraries">[Bundled Libraries]</a>.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1509,13 +1523,13 @@ object bar extends KotlinModule {
 </div>
 </div>
 <div class="sect2">
-<h3 id="_maven_central_blocked"><a class="anchor" href="#_maven_central_blocked"></a>Maven Central: Blocked!</h3>
+<h3 id="_working_without_access_to_maven_central"><a class="anchor" href="#_working_without_access_to_maven_central"></a>Working without access to Maven Central</h3>
 <div class="paragraph">
 <p>Under some circumstances (e.g. corporate firewalls), you may not have access maven central. The typical symptom will be error messages which look like this;</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>1 targets failed
+<pre>1 tasks failed
 mill.scalalib.ZincWorkerModule.classpath
 Resolution failed for 1 modules:
 --------------------------------------------
@@ -1560,7 +1574,7 @@ object `package` extends RootModule with KotlinModule {
   def nativeSources = T.sources(millSourcePath / &quot;native-src&quot;)
 
   // Compile C
-  def nativeCompiled = T{
+  def nativeCompiled = Task {
     val cSourceFiles = nativeSources().map(_.path).flatMap(os.walk(_)).filter(_.ext == &quot;c&quot;)
     val output = &quot;libhelloworld.so&quot;
     os.proc(

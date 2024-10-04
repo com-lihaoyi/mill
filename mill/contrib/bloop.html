@@ -227,7 +227,7 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../depth/query-syntax.html">Target Query Syntax</a>
+    <a class="nav-link" href="../depth/query-syntax.html">Task Query Syntax</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -406,9 +406,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-1-86606f</button>
   <div class="version-menu">
-    <a class="version is-current" href="bloop.html">0.12.0-RC3</a>
+    <a class="version is-current" href="bloop.html">0.12.0-RC3-1-86606f</a>
     <a class="version" href="../0.11.12/contrib/bloop.html">0.11.12</a>
     <a class="version" href="../0.11.11/contrib/bloop.html">0.11.11</a>
     <a class="version" href="../0.11.10/contrib/bloop.html">0.11.10</a>
@@ -472,7 +472,7 @@ import mill.scalalib._
 import mill.contrib.bloop.Bloop
 
 object MyModule extends ScalaModule with Bloop.Module {
-  def myTask = T { bloop.config() }
+  def myTask = Task { bloop.config() }
 }</code></pre>
 </div>
 </div>

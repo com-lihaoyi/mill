@@ -226,7 +226,7 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../depth/query-syntax.html">Target Query Syntax</a>
+    <a class="nav-link" href="../depth/query-syntax.html">Task Query Syntax</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -404,9 +404,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-1-86606f</button>
   <div class="version-menu">
-    <a class="version is-current" href="writing-plugins.html">0.12.0-RC3</a>
+    <a class="version is-current" href="writing-plugins.html">0.12.0-RC3-1-86606f</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
@@ -457,7 +457,7 @@ object myplugin extends ScalaModule with PublishModule {
     object millExecutable extends JavaModule{
       def ivyDeps = Agg(ivy&quot;com.lihaoyi:mill-dist:$millVersion&quot;)
       def mainClass = Some(&quot;mill.runner.client.MillClientMain&quot;)
-      def resources = T{
+      def resources = Task {
         val p = Task.dest / &quot;mill/local-test-overrides&quot; / s&quot;com.lihaoyi-${myplugin.artifactId()}&quot;
         os.write(p, myplugin.localClasspath().map(_.path).mkString(&quot;\n&quot;), createFolders = true)
         Seq(PathRef(Task.dest))
@@ -545,13 +545,13 @@ trait LineCountJavaModule extends mill.javalib.JavaModule{
   /** Name of the file containing the line count that we create in the resource path */
   def lineCountResourceFileName: T[String]
 
-  /** Total number of lines in module's source files */
-  def lineCount = T{
+  /** Total number of lines in module source files */
+  def lineCount = Task {
     allSourceFiles().map(f =&gt; os.read.lines(f.path).size).sum
   }
 
   /** Generate resources using lineCount of sources */
-  override def resources = T{
+  override def resources = Task {
     os.write(Task.dest / lineCountResourceFileName(), &quot;&quot; + lineCount())
     super.resources() ++ Seq(PathRef(Task.dest))
   }

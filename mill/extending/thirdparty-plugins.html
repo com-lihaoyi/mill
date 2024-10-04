@@ -227,7 +227,7 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../depth/query-syntax.html">Target Query Syntax</a>
+    <a class="nav-link" href="../depth/query-syntax.html">Task Query Syntax</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -405,9 +405,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-1-86606f</button>
   <div class="version-menu">
-    <a class="version is-current" href="thirdparty-plugins.html">0.12.0-RC3</a>
+    <a class="version is-current" href="thirdparty-plugins.html">0.12.0-RC3-1-86606f</a>
     <a class="version" href="../0.11.12/Thirdparty_Plugins.html">0.11.12</a>
     <a class="version" href="../0.11.11/Thirdparty_Plugins.html">0.11.11</a>
     <a class="version" href="../0.11.10/Thirdparty_Plugins.html">0.11.10</a>
@@ -846,7 +846,7 @@ Found undeclared dependencies: (add these to ivyDeps)
 Found unimported dependencies: (remove these from ivyDeps)
     ivy&quot;org.typelevel::cats-effect:3.3.6&quot;,
 
-1 targets failed
+1 tasks failed
 main.checkExplicitDeps Found 1 undeclared dependencies, 1 unimported dependencies</code></pre>
 </div>
 </div>
@@ -888,7 +888,7 @@ object g8 extends G8Module {
 </div>
 </div>
 <div class="paragraph">
-<p>The most common target you’d then use is <code>mill g8.validate</code>.</p>
+<p>The most common task you’d then use is <code>mill g8.validate</code>.</p>
 </div>
 </div>
 </div>
@@ -902,7 +902,7 @@ object g8 extends G8Module {
 <p>Project home: <a href="https://github.com/joan38/mill-git" class="bare">https://github.com/joan38/mill-git</a></p>
 </div>
 <div class="paragraph">
-<p><em>build.sc</em>:</p>
+<p><em>build.mill</em>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1013,7 +1013,7 @@ object demo extends ScalaModule with PublishModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// build.sc
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// build.mill
 import $ivy.`de.tototec::de.tobiasroeser.mill.integrationtest_mill0.9:0.4.0`
 import de.tobiasroeser.mill.integrationtest._
 
@@ -1042,15 +1042,15 @@ object itest extends MillIntegrationTestModule {
 +-- it/
     +-- src/
         +-- 01-first-test/
-        |   +-- build.sc
+        |   +-- build.mill
         |   +-- src/
         |
         +-- 02-second-test/
-            +-- build.sc</code></pre>
+            +-- build.mill</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>As the buildfiles <code>build.sc</code> in your test cases typically want to access the locally built plugin(s),
+<p>As the buildfiles <code>build.mill</code> in your test cases typically want to access the locally built plugin(s),
 the plugins publishes all plugins referenced under <code>pluginsUnderTest</code> to a temporary ivy repository, just before the test is executed.
 The mill version used in the integration test then used that temporary ivy repository.</p>
 </div>
@@ -1060,7 +1060,7 @@ you can use the following line instead, which ensures you will use the correct l
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// build.sc
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// build.mill
 import $exec.plugins</code></pre>
 </div>
 </div>
@@ -1097,7 +1097,7 @@ import $exec.plugins</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// build.sc
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// build.mill
 import mill._
 import $ivy.`de.tototec::de.tobiasroeser.mill.jbake:0.1.0`
 import de.tobiasroeser.mill.jbake._
@@ -1146,13 +1146,13 @@ the desired information via the <code>buildInfoMembers</code> method:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// build.sc
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// build.mill
 import $ivy.`com.github.carueda::jbuildinfo:0.1.2`
 import com.github.carueda.mill.JBuildInfo
 import mill.T
 
 object project extends JBuildInfo {
-  def buildInfoMembers: T[Map[String, String]] = T {
+  def buildInfoMembers: T[Map[String, String]] = Task {
     Map(
       &quot;name&quot; -&gt; &quot;some name&quot;,
       &quot;version&quot; -&gt; &quot;x.y.z&quot;
@@ -1329,7 +1329,7 @@ Binary compatibility check passed.</code></pre>
 <p>Project home: <a href="https://github.com/hoangmaihuy/mill-missinglink" class="bare">https://github.com/hoangmaihuy/mill-missinglink</a></p>
 </div>
 <div class="paragraph">
-<p><em>build.sc</em>:</p>
+<p><em>build.mill</em>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1426,7 +1426,7 @@ object project extends ScalaModule with OsgiBundleModule {
 
   def bundleSymbolicName = &quot;com.example.project&quot;
 
-  def osgiHeaders = T{ super.osgiHeaders().copy(
+  def osgiHeaders = Task { super.osgiHeaders().copy(
     `Export-Package`   = Seq(&quot;com.example.api&quot;),
     `Bundle-Activator` = Some(&quot;com.example.internal.Activator&quot;)
   )}
@@ -1453,7 +1453,7 @@ object project extends ScalaModule with OsgiBundleModule {
 <h2 id="_publishm2"><a class="anchor" href="#_publishm2"></a>PublishM2</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p><em>Since Mill <code>0.6.1-27-f265a4</code> there is a built-in <code>publishM2Local</code> target in <code>PublishModule</code>.</em></p>
+<p><em>Since Mill <code>0.6.1-27-f265a4</code> there is a built-in <code>publishM2Local</code> task in <code>PublishModule</code>.</em></p>
 </div>
 <div class="paragraph">
 <p>Mill plugin to publish artifacts into a local Maven repository.</p>
@@ -1466,7 +1466,7 @@ object project extends ScalaModule with OsgiBundleModule {
 <code>PublishM2Module</code> already extends mill’s built-in <code>PublishModule</code>.</p>
 </div>
 <div class="paragraph">
-<p>File: <code>build.sc</code></p>
+<p>File: <code>build.mill</code></p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1558,7 +1558,7 @@ object main extends ScalaJSModule with ScalablyTyped {
 <p>Project home: <a href="https://github.com/hoangmaihuy/mill-scala-tsi" class="bare">https://github.com/hoangmaihuy/mill-scala-tsi</a></p>
 </div>
 <div class="paragraph">
-<p><em>build.sc</em>:</p>
+<p><em>build.mill</em>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1616,7 +1616,7 @@ override def typescriptGenerationImports = Seq(&quot;mymodel._&quot;, &quot;MyTy
 <p>Project home: <a href="https://github.com/joan38/mill-scalafix" class="bare">https://github.com/joan38/mill-scalafix</a></p>
 </div>
 <div class="paragraph">
-<p><em>build.sc</em>:</p>
+<p><em>build.mill</em>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1636,7 +1636,7 @@ object project extends ScalaModule with ScalafixModule {
 /project/project/src/MyClass.scala:12:11: error: [DisableSyntax.var] mutable state should be avoided
   private var hashLength = 7
           ^^^
-1 targets failed
+1 tasks failed
 project.fix A Scalafix linter error was reported</code></pre>
 </div>
 </div>
@@ -1782,7 +1782,7 @@ $ ./mill root.squeryGenerate</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// build.sc
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// build.mill
 import $ivy.`io.github.hoangmaihuy::mill-universal-packager::&lt;latest-version&gt;`
 
 import io.github.hoangmaihuy.mill.packager.archetypes.JavaAppPackagingModule

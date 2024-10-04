@@ -3,8 +3,7 @@
 <html lang="en"><head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Target Query Syntax :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.11.12/Target_Query_Syntax.html" />
+    <title>Task Query Syntax :: The Mill Build Tool</title>
     <link rel="prev" href="out-dir.html" />
     <link rel="next" href="tasks.html" />
     <meta name="generator" content="Antora 3.1.9" />
@@ -227,7 +226,7 @@
   </li>
 
   <li class="nav-item is-current-page" data-depth="1">
-    <a class="nav-link" href="query-syntax.html">Target Query Syntax</a>
+    <a class="nav-link" href="query-syntax.html">Task Query Syntax</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -401,16 +400,16 @@
   <ul>
     <li><a href="../index.html">Mill Documentation</a></li>
     <li>Mill In Depth</li>
-    <li><a href="query-syntax.html">Target Query Syntax</a></li>
+    <li><a href="query-syntax.html">Task Query Syntax</a></li>
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-1-86606f</button>
   <div class="version-menu">
-    <a class="version is-current" href="query-syntax.html">0.12.0-RC3</a>
-    <a class="version" href="../0.11.12/Target_Query_Syntax.html">0.11.12</a>
-    <a class="version" href="../0.11.11/Target_Query_Syntax.html">0.11.11</a>
-    <a class="version" href="../0.11.10/Target_Query_Syntax.html">0.11.10</a>
+    <a class="version is-current" href="query-syntax.html">0.12.0-RC3-1-86606f</a>
+    <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
+    <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
+    <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
     <a class="version is-missing" href="../0.11.0-M7/index.html">0.11.0-M7</a>
     <a class="version is-missing" href="../0.10.15/index.html">0.10.15</a>
     <a class="version is-missing" href="../0.10.12/index.html">0.10.12</a>
@@ -425,20 +424,20 @@
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">Target Query Syntax</h1>
+<h1 class="page">Task Query Syntax</h1>
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>When interacting with Mill from the CLI, you often need to select targets or modules.
-In most places, where Mill accepts a target, it really accepts a target selector query, which is the name of a target in its simplest form, but it can also contain wildcards, type pattern and other special syntax, making it a powerful tool to select specific targets.</p>
+<p>When interacting with Mill from the CLI, you often need to select tasks or modules.
+In most places, where Mill accepts a task, it really accepts a task selector query, which is the name of a task in its simplest form, but it can also contain wildcards, type pattern and other special syntax, making it a powerful tool to select specific tasks.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_selecting_dedicated_targets"><a class="anchor" href="#_selecting_dedicated_targets"></a>Selecting dedicated targets</h2>
+<h2 id="_selecting_dedicated_tasks"><a class="anchor" href="#_selecting_dedicated_tasks"></a>Selecting dedicated tasks</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>When invoking Mill, the simplest way to run a target is to give it with a fully qualified names.</p>
+<p>When invoking Mill, the simplest way to run a task is to give it with a fully qualified names.</p>
 </div>
 <div class="paragraph">
 <p>Examples:</p>
@@ -452,9 +451,9 @@ In most places, where Mill accepts a target, it really accepts a target selector
 </div>
 <div class="sidebarblock">
 <div class="content">
-<div class="title">Understanding target paths and path segments</div>
+<div class="title">Understanding task paths and path segments</div>
 <div class="paragraph">
-<p>Each Mill module and target has a unique path.
+<p>Each Mill module and task has a unique path.
 Each part of the path is called <em>segment</em>.
 Segments are separated with a dot (<code>.</code>).
 They look like regular Scala class name qualifiers.</p>
@@ -463,7 +462,7 @@ They look like regular Scala class name qualifiers.</p>
 <p>There are two kind of segments: <em>label segments</em> and <em>cross segments</em>.</p>
 </div>
 <div class="paragraph">
-<p><em>Label segments</em> are the components of a target path and have the same restriction as Scala identifiers.
+<p><em>Label segments</em> are the components of a task path and have the same restriction as Scala identifiers.
 They must start with a letter and may contain letters, numbers and a limited set of special characters <code>-</code> (dash), <code>_</code> (underscore).
 They are used to denote Mill modules, tasks, but in the case of <a href="modules.html#external-modules" class="xref page">external modules</a> their Scala package names.</p>
 </div>
@@ -488,15 +487,15 @@ When combined with <a href="#type-filters">qualified type filter</a> which conta
 </div>
 </div>
 <div class="sect1">
-<h2 id="select-multiple-targets"><a class="anchor" href="#select-multiple-targets"></a>Selecting multiple targets</h2>
+<h2 id="select-multiple-tasks"><a class="anchor" href="#select-multiple-tasks"></a>Selecting multiple tasks</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>If you want to select more than one target, you have multiple options:</p>
+<p>If you want to select more than one task, you have multiple options:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="#enumerations">Use target enumerations</a></p>
+<p><a href="#enumerations">Use task enumerations</a></p>
 </li>
 <li>
 <p><a href="#wildcards">Use wildcard selections</a></p>
@@ -505,12 +504,12 @@ When combined with <a href="#type-filters">qualified type filter</a> which conta
 <p><a href="#type-filters">Specify type filters on wildcard selections</a></p>
 </li>
 <li>
-<p><a href="#add-target-selector">Use <code>+</code> to use more than one target selector</a></p>
+<p><a href="#add-task-selector">Use <code>+</code> to use more than one task selector</a></p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>You can also combine these techniques to properly select your targets</p>
+<p>You can also combine these techniques to properly select your tasks</p>
 </div>
 </div>
 </div>
@@ -527,7 +526,7 @@ Inside the curly braces you can place two or more selector paths, separated with
 <div class="ulist">
 <ul>
 <li>
-<p><code>{foo,bar}</code> simple enumerates two targets, <code>foo</code> and <code>bar</code></p>
+<p><code>{foo,bar}</code> simple enumerates two tasks, <code>foo</code> and <code>bar</code></p>
 </li>
 <li>
 <p><code>foo.{compile,run}</code> expands to <code>foo.compile</code> and <code>foo.run</code></p>
@@ -577,10 +576,10 @@ In particular, it can represent an empty segment.</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>With wildcards, you can get explicit control over the position of a target in the build tree.</p>
+<p>With wildcards, you can get explicit control over the position of a task in the build tree.</p>
 </div>
 <div class="paragraph">
-<p>E.g. the filter <code>_._._.jar</code> will match all jar targets, that are on the third-level of the build tree.</p>
+<p>E.g. the filter <code>_._._.jar</code> will match all jar tasks, that are on the third-level of the build tree.</p>
 </div>
 </div>
 </div>
@@ -597,7 +596,7 @@ For module paths this means, the represented module needs to be an instance of t
 </div>
 <div class="paragraph">
 <p>The type is matched by its name and optionally by its enclosing types and packages, separated by a <code>.</code> sign.
-Since this is also used to separate target path segments, a type selector segment containing a <code>.</code> needs to be enclosed in parentheses.
+Since this is also used to separate task path segments, a type selector segment containing a <code>.</code> needs to be enclosed in parentheses.
 A fully qualified type can be denoted with the <code>_root_</code> package.</p>
 </div>
 <div class="listingblock">
@@ -631,8 +630,8 @@ A fully qualified type can be denoted with the <code>_root_</code> package.</p>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-Type filter are currently only supported for module selections, but not for target selections.
-That means, you can’t filter based on the result type of a target.
+Type filter are currently only supported for module selections, but not for task selections.
+That means, you can’t filter based on the result type of a task.
 </td>
 </tr>
 </tbody></table>
@@ -640,19 +639,19 @@ That means, you can’t filter based on the result type of a target.
 </div>
 </div>
 <div class="sect1">
-<h2 id="add-target-selector"><a class="anchor" href="#add-target-selector"></a>Start a new target selector with <code>+</code></h2>
+<h2 id="add-task-selector"><a class="anchor" href="#add-task-selector"></a>Start a new task selector with <code>+</code></h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>On the Mill CLI you can also start a complete new target selector with the <code>+</code> sign.</p>
+<p>On the Mill CLI you can also start a complete new task selector with the <code>+</code> sign.</p>
 </div>
 <div class="paragraph">
-<p>There is a subtile difference between the expansion of <a href="#enumerations">enumerations</a>, <a href="#wildcards">wildcards</a> and <a href="#type-filters">wildcards with type filters</a> in contrast to the  <a href="#add-target-selector">start of a new selector with <code>+</code></a>.</p>
+<p>There is a subtile difference between the expansion of <a href="#enumerations">enumerations</a>, <a href="#wildcards">wildcards</a> and <a href="#type-filters">wildcards with type filters</a> in contrast to the  <a href="#add-task-selector">start of a new selector with <code>+</code></a>.</p>
 </div>
 <div class="paragraph">
-<p>For all the former versions, Mill parses them into a complex but single target selector path and subsequent parameters are used for all resolved targets.</p>
+<p>For all the former versions, Mill parses them into a complex but single task selector path and subsequent parameters are used for all resolved tasks.</p>
 </div>
 <div class="paragraph">
-<p>Whereas the <code>+</code> start a completely new selector path to which you can also provide a different parameter list. This is important when using <a href="tasks.html#commands" class="xref page">command targets</a> which can accept their own parameters. The <code>JavaModule.run</code> command is an example.</p>
+<p>Whereas the <code>+</code> start a completely new selector path to which you can also provide a different parameter list. This is important when using <a href="tasks.html#commands" class="xref page">command tasks</a> which can accept their own parameters. The <code>JavaModule.run</code> command is an example.</p>
 </div>
 <div class="listingblock">
 <div class="content">

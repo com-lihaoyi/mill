@@ -227,7 +227,7 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="query-syntax.html">Target Query Syntax</a>
+    <a class="nav-link" href="query-syntax.html">Task Query Syntax</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -405,9 +405,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-1-86606f</button>
   <div class="version-menu">
-    <a class="version is-current" href="library-deps.html">0.12.0-RC3</a>
+    <a class="version is-current" href="library-deps.html">0.12.0-RC3-1-86606f</a>
     <a class="version" href="../0.11.12/Library_Dependencies.html">0.11.12</a>
     <a class="version" href="../0.11.11/Library_Dependencies.html">0.11.11</a>
     <a class="version" href="../0.11.10/Library_Dependencies.html">0.11.10</a>
@@ -613,7 +613,7 @@ There is no special test scope in Mill.</p>
 <h2 id="_compile_only_dependencies_provided_scope"><a class="anchor" href="#_compile_only_dependencies_provided_scope"></a>Compile-only dependencies (<code>provided</code> scope)</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>If you want to use a dependency only at compile time, you can declare it with the <code>compileIvyDeps</code> target.</p>
+<p>If you want to use a dependency only at compile time, you can declare it with the <code>compileIvyDeps</code> task.</p>
 </div>
 <div class="listingblock">
 <div class="title">Example</div>
@@ -627,7 +627,7 @@ There is no special test scope in Mill.</p>
 <p>When Mill generated file to interact with package manager like <code>pom.xml</code> for Maven repositories, such compile-only dependencies are mapped to the <code>provided</code> scope.</p>
 </div>
 <div class="paragraph">
-<p>Please note, that dependencies with <code>provided</code> scope will never be resolved transitively. Hence, the name &quot;provided&quot;, as the target runtime needs to &quot;provide&quot; them, if they are needed.</p>
+<p>Please note, that dependencies with <code>provided</code> scope will never be resolved transitively. Hence, the name &quot;provided&quot;, as the task runtime needs to &quot;provide&quot; them, if they are needed.</p>
 </div>
 </div>
 </div>
@@ -635,7 +635,7 @@ There is no special test scope in Mill.</p>
 <h2 id="_runtime_dependencies"><a class="anchor" href="#_runtime_dependencies"></a>Runtime dependencies</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>If you want to declare dependencies to be used at runtime (but not at compile time), you can use the <code>runIvyDeps</code> targets.</p>
+<p>If you want to declare dependencies to be used at runtime (but not at compile time), you can use the <code>runIvyDeps</code> tasks.</p>
 </div>
 <div class="listingblock">
 <div class="title">Example</div>

@@ -227,7 +227,7 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../depth/query-syntax.html">Target Query Syntax</a>
+    <a class="nav-link" href="../depth/query-syntax.html">Task Query Syntax</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -405,9 +405,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-1-86606f</button>
   <div class="version-menu">
-    <a class="version is-current" href="design-principles.html">0.12.0-RC3</a>
+    <a class="version is-current" href="design-principles.html">0.12.0-RC3-1-86606f</a>
     <a class="version" href="../0.11.12/Mill_Design_Principles.html">0.11.12</a>
     <a class="version" href="../0.11.11/Mill_Design_Principles.html">0.11.11</a>
     <a class="version" href="../0.11.10/Mill_Design_Principles.html">0.11.10</a>
@@ -430,23 +430,12 @@
 <div class="sectionbody">
 <div class="paragraph">
 <p>The following external resources give more of a flavor of the architecture behind
-Mill:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><a href="https://www.lihaoyi.com/post/SoWhatsSoSpecialAboutTheMillScalaBuildTool.html">So, What’s So Special About The Mill Scala Build Tool?</a></p>
-</li>
-<li>
-<p><a href="https://www.youtube.com/watch?v=j6uThGxx-18">Video: Mill a Build Tool based on Pure Functional Programming</a></p>
-</li>
-<li>
-<p><a href="http://www.lihaoyi.com/post/SowhatswrongwithSBT.html">Blog Post: So, what’s wrong with SBT?</a></p>
-</li>
-<li>
-<p><a href="http://www.lihaoyi.com/post/BuildToolsasPureFunctionalPrograms.html">Blog Post: Build Tools as Pure Functional Programs</a></p>
-</li>
-</ul>
+Mill:
+- <a href="https://www.youtube.com/watch?v=UsXgCeU-ovI">Video: A Deep Dive into the Mill Build Tool</a>
+- <a href="https://www.lihaoyi.com/post/SoWhatsSoSpecialAboutTheMillScalaBuildTool.html">Blog Post: What’s So Special About The Mill Scala Build Tool?</a>
+* <a href="https://www.youtube.com/watch?v=j6uThGxx-18">Video: Mill a Build Tool based on Pure Functional Programming</a>
+* <a href="http://www.lihaoyi.com/post/BuildToolsasPureFunctionalPrograms.html">Blog Post: Build Tools as Pure Functional Programs</a>
+* <a href="http://www.lihaoyi.com/post/SowhatswrongwithSBT.html">Blog Post: So, what’s wrong with SBT?</a></p>
 </div>
 </div>
 </div>
@@ -473,13 +462,13 @@ dependency graph of <code>Task</code>s.</p>
 <div class="sect2">
 <h3 id="_builds_are_hierarchical"><a class="anchor" href="#_builds_are_hierarchical"></a>Builds are hierarchical</h3>
 <div class="paragraph">
-<p>The syntax for running targets from the command line <code>mill Foo.bar.baz</code> is
-the same as referencing a target in Scala code, <code>Foo.bar.baz</code></p>
+<p>The syntax for running tasks from the command line <code>mill Foo.bar.baz</code> is
+the same as referencing a task in Scala code, <code>Foo.bar.baz</code></p>
 </div>
 <div class="paragraph">
 <p>Everything that you can run from the command line lives in an object hierarchy
 in your <code>build.mill</code> file. Different parts of the hierarchy can have different
-<code>Target</code>s available: just add a new <code>def foo = T {…​}</code> somewhere and you’ll be
+<code>Task</code>s available: just add a new <code>def foo = Task {…​}</code> somewhere and you’ll be
 able to run it.</p>
 </div>
 <div class="paragraph">
@@ -492,17 +481,17 @@ run something via <code>mill core.cross[a].printIt</code> while from code you us
 <div class="sect2">
 <h3 id="_caching_by_default"><a class="anchor" href="#_caching_by_default"></a>Caching by default</h3>
 <div class="paragraph">
-<p>Every <code>Target</code> in a build, defined by <code>def foo = T {…​}</code>, is cached by default.
+<p>Every <code>Task</code> in a build, defined by <code>def foo = Task {…​}</code>, is cached by default.
 Currently this is done using a <code>foo.json</code> file in the <code>out/</code> folder. The
-<code>Target</code> is also provided a <code>foo.dest/</code> path on the filesystem dedicated to it, for
+<code>Task</code> is also provided a <code>foo.dest/</code> path on the filesystem dedicated to it, for
 it to store output files etc.</p>
 </div>
 <div class="paragraph">
-<p>This happens whether you want it to or not. Every <code>Target</code> is cached, not just
+<p>This happens whether you want it to or not. Every <code>Task</code> is cached, not just
 the &quot;slow&quot; ones like <code>compile</code> or <code>assembly</code>.</p>
 </div>
 <div class="paragraph">
-<p>Caching is keyed on the <code>.hashCode</code> of the returned value. For <code>Target</code>s
+<p>Caching is keyed on the <code>.hashCode</code> of the returned value. For <code>Task</code>s
 returning the contents of a file/folder on disk, they return <code>PathRef</code> instances
 whose hashcode is based on the hash of the disk contents. Serialization of the
 returned values is done using uPickle.</p>
@@ -511,19 +500,19 @@ returned values is done using uPickle.</p>
 <div class="sect2">
 <h3 id="_functional_purity"><a class="anchor" href="#_functional_purity"></a>Functional Purity</h3>
 <div class="paragraph">
-<p>Mill relies heavily on build targets being &quot;pure&quot;: they only depend on their
-input targets, and their only output is their return value. They do not
+<p>Mill relies heavily on build tasks being &quot;pure&quot;: they only depend on their
+input tasks, and their only output is their return value. They do not
 scribble all over the filesystem, reading and writing from random places. That
 is what allows us to be aggressive about caching and parallelizing the
-evaluation of build targets during a build.</p>
+evaluation of build tasks during a build.</p>
 </div>
 <div class="paragraph">
 <p>Many kinds of build steps do require files on disk, and for that Mill provides
-the <code>T.dest</code> folder. This is a folder on disk dedicated to each build target,
+the <code>T.dest</code> folder. This is a folder on disk dedicated to each build task,
 so that it can read and write things to it without worrying about conflicts
-with other targets that have their own <code>T.dest</code> folders. In effect, this makes
-even file output &quot;pure&quot;: we can know precisely where a target’s output files
-live when we need to invalidate them, and it allows multiple targets all
+with other tasks that have their own <code>T.dest</code> folders. In effect, this makes
+even file output &quot;pure&quot;: we can know precisely where a task’s output files
+live when we need to invalidate them, and it allows multiple tasks all
 reading and writing to the filesystem to do so safely even when in parallel.</p>
 </div>
 </div>
@@ -536,11 +525,11 @@ process, and that a new process must be able to re-construct the in-memory data
 structures where a previous process left off, in order to continue the build.</p>
 </div>
 <div class="paragraph">
-<p>Re-construction is done via the hierarchical nature of the build: each <code>Target</code>
+<p>Re-construction is done via the hierarchical nature of the build: each <code>Task</code>
 <code>foo.bar.baz</code> has a fixed position in the build hierarchy, and thus a fixed
 position on disk <code>out/foo/bar/baz.json</code>. When the old process dies and a
-new process starts, there will be a new instance of <code>Target</code> with the same
-implementation code and same position in the build hierarchy: this new <code>Target</code>
+new process starts, there will be a new instance of <code>Task</code> with the same
+implementation code and same position in the build hierarchy: this new <code>Task</code>
 can then load the <code>out/foo/bar/baz.json</code> file and pick up where the
 previous process left off.</p>
 </div>
@@ -563,7 +552,7 @@ sorts of useful operations on the graph before running it:</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Given a Target the user wants to run, pre-compute and display what targets
+<p>Given a Task the user wants to run, pre-compute and display what tasks
 will be evaluated (&quot;dry run&quot;), without running them</p>
 </li>
 <li>
@@ -578,8 +567,8 @@ machines like Bazel/Pants can</p>
 <p>Query the graph, e.g. &quot;why does this thing depend on that other thing?&quot;</p>
 </li>
 <li>
-<p>Avoid running tasks &quot;halfway&quot;: if a Target’s upstream Targets fail, we can
-skip the Target completely rather than running halfway and then bailing out
+<p>Avoid running tasks &quot;halfway&quot;: if a Task’s upstream Tasks fail, we can
+skip the Task completely rather than running halfway and then bailing out
 with an exception</p>
 </li>
 </ul>
@@ -722,11 +711,11 @@ build-related questions listed above.</p>
 <div class="paragraph">
 <p>The module hierarchy is the graph of objects, starting from the root of the
 <code>build.mill</code> file, that extend <code>mill.Module</code>. At the leaves of the hierarchy are
-the <code>Target</code>s you can run.</p>
+the <code>Task</code>s you can run.</p>
 </div>
 <div class="paragraph">
-<p>A <code>Target</code>'s position in the module hierarchy tells you many things. For
-example, a <code>Target</code> at position <code>core.test.compile</code> would:</p>
+<p>A <code>Task</code>'s position in the module hierarchy tells you many things. For
+example, a <code>Task</code> at position <code>core.test.compile</code> would:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -743,15 +732,15 @@ example, a <code>Target</code> at position <code>core.test.compile</code> would:
 <p>Be runnable from the command-line via <code>mill core.test.compile</code></p>
 </li>
 <li>
-<p>Be referenced programmatically (from other <code>Target</code>s) via <code>core.test.compile</code></p>
+<p>Be referenced programmatically (from other <code>Task</code>s) via <code>core.test.compile</code></p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>From the position of any <code>Target</code> within the object hierarchy, you immediately
+<p>From the position of any <code>Task</code> within the object hierarchy, you immediately
 know how to run it, find its output files, find any caches, or refer to it from
-other <code>Target</code>s. You know up-front where the <code>Target</code>s data &quot;lives&quot; on disk, and
-are sure that it will never clash with any other <code>Target</code>s data.</p>
+other <code>Task</code>s. You know up-front where the <code>Task</code>s data &quot;lives&quot; on disk, and
+are sure that it will never clash with any other <code>Task</code>s data.</p>
 </div>
 </div>
 <div class="sect2">
@@ -762,28 +751,28 @@ are sure that it will never clash with any other <code>Target</code>s data.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>The Scala call graph of &quot;which target references which other target&quot; is core to
+<p>The Scala call graph of &quot;which task references which other task&quot; is core to
 how Mill operates. This graph is reified via the <code>T {…​}</code> macro to make it
 available to the Mill execution engine at runtime. The call graph tells you:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>Which <code>Target</code>s depend on which other <code>Target</code>s</p>
+<p>Which <code>Task</code>s depend on which other <code>Task</code>s</p>
 </li>
 <li>
-<p>For a given <code>Target</code> to be built, what other <code>Target</code>s need to be run and in
+<p>For a given <code>Task</code> to be built, what other <code>Task</code>s need to be run and in
 what order</p>
 </li>
 <li>
-<p>Which <code>Target</code>s can be evaluated in parallel</p>
+<p>Which <code>Task</code>s can be evaluated in parallel</p>
 </li>
 <li>
-<p>What source files need to be watched when using <code>--watch</code> on a given target (by
+<p>What source files need to be watched when using <code>--watch</code> on a given task (by
 tracing the call graph up to the <code>Source</code>s)</p>
 </li>
 <li>
-<p>What a given <code>Target</code> makes available for other <code>Target</code>s to depend on (via
+<p>What a given <code>Task</code> makes available for other <code>Task</code>s to depend on (via
 its return value)</p>
 </li>
 <li>
@@ -807,20 +796,20 @@ val a = f(b, c, d)</code></pre>
 <div class="paragraph">
 <p>you are telling everyone that the value <code>a</code> depends on the values of <code>b</code> <code>c</code> and
 <code>d</code>, processed by <code>f</code>. A build tool needs exactly the same data structure:
-knowing what <code>Target</code> depends on what other <code>Target</code>s, and what processing it
+knowing what <code>Task</code> depends on what other <code>Task</code>s, and what processing it
 does on its inputs!</p>
 </div>
 <div class="paragraph">
 <p>With Mill, you can take the Scala call graph, wrap everything in the <code>T {…​}</code>
-macro, and get a <code>Target</code>-dependency graph that matches exactly the call-graph
+macro, and get a <code>Task</code>-dependency graph that matches exactly the call-graph
 you already had:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def b = T { ... }
-def c = T { ... }
-def d = T { ... }
-def a = T { f(b(), c(), d()) }</code></pre>
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def b = Task { ... }
+def c = Task { ... }
+def d = Task { ... }
+def a = Task { f(b(), c(), d()) }</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -846,7 +835,7 @@ a build:</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Scala &quot;project&quot;s with multiple related <code>Target</code>s within them, are just a
+<p>Scala &quot;project&quot;s with multiple related <code>Task</code>s within them, are just a
 <code>Trait</code> you instantiate</p>
 </li>
 <li>

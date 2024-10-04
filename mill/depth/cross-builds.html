@@ -227,7 +227,7 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="query-syntax.html">Target Query Syntax</a>
+    <a class="nav-link" href="query-syntax.html">Task Query Syntax</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -405,9 +405,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-1-86606f</button>
   <div class="version-menu">
-    <a class="version is-current" href="cross-builds.html">0.12.0-RC3</a>
+    <a class="version is-current" href="cross-builds.html">0.12.0-RC3-1-86606f</a>
     <a class="version" href="../0.11.12/Cross_Builds.html">0.11.12</a>
     <a class="version" href="../0.11.11/Cross_Builds.html">0.11.11</a>
     <a class="version" href="../0.11.10/Cross_Builds.html">0.11.10</a>
@@ -471,7 +471,7 @@ filesystem.</p>
 </div>
 <div class="paragraph">
 <p>This example defines three copies of <code>FooModule</code>: <code>&quot;2.10&quot;</code>, <code>&quot;2.11&quot;</code> and
-<code>&quot;2.12&quot;</code>, each of which has their own <code>suffix</code> target. You can then run
+<code>&quot;2.12&quot;</code>, each of which has their own <code>suffix</code> task. You can then run
 them as shown below. Note that by default, <code>sources</code> returns <code>foo</code> for every
 cross module, assuming you want to build the same sources for each. This can
 be overridden.</p>
@@ -608,10 +608,10 @@ can do so by overriding <code>millSourcePath</code> as shown above.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_using_cross_modules_from_outside_targets"><a class="anchor" href="#_using_cross_modules_from_outside_targets"></a>Using Cross Modules from Outside Targets</h2>
+<h2 id="_using_cross_modules_from_outside_tasks"><a class="anchor" href="#_using_cross_modules_from_outside_tasks"></a>Using Cross Modules from Outside Tasks</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>You can refer to targets defined in cross-modules as follows:</p>
+<p>You can refer to tasks defined in cross-modules as follows:</p>
 </div>
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC3/0.12.0-RC3-example-depth-cross-3-outside-dependency.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/depth/cross/3-outside-dependency">browse</a>)</div>
@@ -637,7 +637,7 @@ def qux = Task { s&quot;hello ${foo(&quot;2.10&quot;).suffix()} world ${foo(&quo
 <div class="paragraph">
 <p>Here, <code>def bar</code> uses <code>foo(&quot;2.10&quot;)</code> to reference the <code>&quot;2.10&quot;</code> instance of
 <code>FooModule</code>. You can refer to whatever versions of the cross-module you want,
-even using multiple versions of the cross-module in the same target as we do
+even using multiple versions of the cross-module in the same task as we do
 in <code>def qux</code>.</p>
 </div>
 <div class="listingblock">
@@ -658,8 +658,8 @@ in <code>def qux</code>.</p>
 <h2 id="_using_cross_modules_from_other_cross_modules"><a class="anchor" href="#_using_cross_modules_from_other_cross_modules"></a>Using Cross Modules from other Cross Modules</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Targets in cross-modules can use one another the same way they are used from
-external targets:</p>
+<p>Tasks in cross-modules can use one another the same way they are used from
+external tasks:</p>
 </div>
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC3/0.12.0-RC3-example-depth-cross-4-cross-dependencies.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/depth/cross/4-cross-dependencies">browse</a>)</div>
@@ -798,7 +798,7 @@ trait FooModule2 extends Cross.Module2[String, Int] {
 
 object foo3 extends Cross[FooModule3]((&quot;a&quot;, 1, true), (&quot;b&quot;, 2, false))
 trait FooModule3 extends FooModule2 with Cross.Module3[String, Int, Boolean] {
-  def param3 = T{ &quot;Param Value: &quot; + crossValue3 }
+  def param3 = Task { &quot;Param Value: &quot; + crossValue3 }
 }</code></pre>
 </div>
 </div>
@@ -940,7 +940,7 @@ cross-modules, which would let you use a shorthand <code>foo()</code> syntax whe
 referring to other cross-modules with an identical set of cross values.</p>
 </div>
 <div class="paragraph">
-<p>While the example <code>resolver</code> simply looks up the target <code>Cross</code> value for
+<p>While the example <code>resolver</code> simply looks up the task <code>Cross</code> value for
 the cross-module instance with the same <code>crossVersion</code>, you can make the
 resolver arbitrarily complex. E.g. the <code>resolver</code> for
 <code>mill.scalalib.CrossScalaModule</code> looks for a cross-module instance whose
@@ -976,7 +976,7 @@ mill show &quot;foo[2.10].suffix&quot;</code></pre>
 </tbody></table>
 </div>
 <div class="paragraph">
-<p>The <code>suffix</code> targets will have the corresponding output paths for their
+<p>The <code>suffix</code> tasks will have the corresponding output paths for their
 metadata and files:</p>
 </div>
 <div class="listingblock">
@@ -1056,8 +1056,8 @@ Hello World New</code></pre>
 <div class="paragraph">
 <p>Note that because the inputs to the <code>Cross</code> constructor affects the number
 of cross-modules that are generated, it has to be a raw value e.g.
-<code>List[T]</code> and not a target <code>T[List[T]]</code>. That also means that the list of
-cross-modules cannot depend on the output of any targets.</p>
+<code>List[T]</code> and not a task <code>T[List[T]]</code>. That also means that the list of
+cross-modules cannot depend on the output of any tasks.</p>
 </div>
 </div>
 </div>
@@ -1084,7 +1084,7 @@ import org.commonmark.renderer.html.HtmlRenderer</code></pre>
 <p>Next, we use <code>os.list</code> and <code>interp.watchValue</code> on the <code>post/</code> folder to
 build a <code>Cross[PostModule]</code> whose entries depend no the markdown files we
 find in that folder. Each post has a <code>source</code> pointing at the markdown file,
-and a <code>render</code> target that parses the file’s markdown and generates a HTML
+and a <code>render</code> task that parses the file’s markdown and generates a HTML
 output file</p>
 </div>
 <div class="listingblock">
@@ -1102,7 +1102,7 @@ val posts = interp.watchValue {
 object post extends Cross[PostModule](posts)
 trait PostModule extends Cross.Module[String]{
   def source = Task.Source(millSourcePath / crossValue)
-  def render = T{
+  def render = Task {
     val doc = Parser.builder().build().parse(os.read(source().path))
     val title = mdNameToTitle(crossValue)
     val rendered = doctype(&quot;html&quot;)(
@@ -1135,7 +1135,7 @@ def renderIndexEntry(mdName: String) = {
   h2(a(mdNameToTitle(mdName), href := (&quot;post/&quot; + mdNameToHtml(mdName))))
 }
 
-def index = T{
+def index = Task {
   val rendered = doctype(&quot;html&quot;)(
     html(body(h1(&quot;Blog&quot;), postsInput().map(renderIndexEntry)))
   )
@@ -1146,7 +1146,7 @@ def index = T{
 </div>
 <div class="paragraph">
 <p>Lastly we copy the individual post HTML files and the <code>index.html</code> file
-into a single target’s <code>.dest</code> folder, and return it:</p>
+into a single task’s <code>.dest</code> folder, and return it:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1210,7 +1210,7 @@ enough posts that the build is becoming noticeably slow.</p>
 </div>
 <div class="paragraph">
 <p>All caching, incremental re-computation, and parallelism is done using the
-Mill target graph. For this simple example, the graph is as follows</p>
+Mill task graph. For this simple example, the graph is as follows</p>
 </div>
 <div class="imageblock kroki">
 <div class="content">

@@ -227,7 +227,7 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../depth/query-syntax.html">Target Query Syntax</a>
+    <a class="nav-link" href="../depth/query-syntax.html">Task Query Syntax</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -405,9 +405,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-1-86606f</button>
   <div class="version-menu">
-    <a class="version is-current" href="installation-ide.html">0.12.0-RC3</a>
+    <a class="version is-current" href="installation-ide.html">0.12.0-RC3-1-86606f</a>
     <a class="version" href="../0.11.12/Java_Installation_IDE_Support.html">0.11.12</a>
     <a class="version" href="../0.11.11/Java_Installation_IDE_Support.html">0.11.11</a>
     <a class="version" href="../0.11.10/Java_Installation_IDE_Support.html">0.11.10</a>
@@ -433,16 +433,16 @@
   gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
 </script>
 <div class="paragraph">
+<p>The best method of installing Mill is to install a <a href="#_bootstrap_scripts">bootstrap script</a>.
+This script can determine the best version to be used by a project (e.g. by
+reading a <code>.mill-version</code> or <code>.config/mill-version</code> file or a <code>MILL_VERSION</code> environment variable) and will use this exact Mill version.
+If the determined Mill version is not installed locally, it will be downloaded automatically.</p>
+</div>
+<div class="paragraph">
 <p>For all the examples in this documentation, there is a <code>download</code> link that provides
 a zip file containing the full example ready to use. These examples come with a <code>./mill</code>
 script you can use to immediately begin working with the project, needing only a JVM installed
 globally</p>
-</div>
-<div class="paragraph">
-<p>The best method of installing Mill is to just install a <a href="#_bootstrap_scripts">bootstrap script</a>.
-This script can determine the best version to be used by a project (e.g. by
-reading a <code>.mill-version</code> or <code>.config/mill-version</code> file or a <code>MILL_VERSION</code> environment variable) and will use this exact Mill version.
-If the determined Mill version is not installed locally, it will be downloaded automatically.</p>
 </div>
 </div>
 </div>
@@ -459,13 +459,13 @@ If the determined Mill version is not installed locally, it will be downloaded a
 <p>To use Mill with IntelliJ, first ensure you have the free
 <a href="https://plugins.jetbrains.com/plugin/1347-scala">IntelliJ Scala Plugin</a>
 installed. This is necessary as Mill build files are written in Scala,
-even if you are using it to build a Java project.</p>
+even if you are using it to build a Java or Kotlin project.</p>
 </div>
 <div class="paragraph">
 <p>Once you have the plugin installed, you can use IntelliJ to open any project
-containing a Mill <code>build.sc</code> file, and IntelliJ will automatically load the
+containing a Mill <code>build.mill</code> file, and IntelliJ will automatically load the
 Mill build. This will provide support both for your application code,
-as well as the code in the <code>build.sc</code>:</p>
+as well as the code in the <code>build.mill</code>:</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -478,7 +478,16 @@ as well as the code in the <code>build.sc</code>:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>If you make changes to your Mill <code>build.sc</code>, you can ask Intellij to load
+<p>If IntelliJ does not highlight the <code>.mill</code> files correctly, you can explicitly enable
+it by adding <code>*.mill</code> to the <code>Scala</code> file type:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/IntellijFileTypeConfig.png" alt="IntellijFileTypeConfig" />
+</div>
+</div>
+<div class="paragraph">
+<p>If you make changes to your Mill <code>build.mill</code>, you can ask Intellij to load
 those updates by opening the &quot;BSP&quot; tab and clicking the &quot;Refresh&quot; button</p>
 </div>
 <div class="imageblock">
@@ -499,7 +508,7 @@ which are currently not specifically configured over BSP.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">./mill mill.idea.GenIdea/idea</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">./mill mill.idea.GenIdea/</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -524,8 +533,8 @@ which are currently not specifically configured over BSP.</p>
 </div>
 <div class="paragraph">
 <p>After the files are generated, you can open the folder in IntelliJ to load the project
-into your IDE. If you make changes to your Mill <code>build.sc</code>, you can update the project config
-those updates by running <code>./mill mill.idea.GenIdea/idea</code> again.</p>
+into your IDE. If you make changes to your Mill <code>build.mill</code>, you can update the project config
+those updates by running <code>./mill mill.idea.GenIdea/</code> again.</p>
 </div>
 </div>
 </div>
@@ -539,9 +548,9 @@ even if you are using it to build a Java project.</p>
 </div>
 <div class="paragraph">
 <p>Once you have the language server installed, you can ask VSCode to open any folder
-containing a Mill <code>build.sc</code> file, and VSCode will ask you to import your
+containing a Mill <code>build.mill</code> file, and VSCode will ask you to import your
 Mill build. This will provide support both for your application code,
-as well as the code in the <code>build.sc</code>:</p>
+as well as the code in the <code>build.mill</code>:</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -591,8 +600,8 @@ output accompanied by additional BSP client-server communication details.</p>
 <div class="paragraph">
 <p>A common issue for poor performance can be a mismatch of the JVMs.
 In such a case the Mill BSP server started by a BSP client like Metals is using a <em>different</em> JVM than <code>mill</code> is using when started from the command line.
-In such a scenario, every Mill invocation using the other JVM will inadvertently invalidate Mills  target caches.
-This effectively leads to full reevaluation of all invoked Mill targets and appears as &quot;bad performance&quot;.</p>
+In such a scenario, every Mill invocation using the other JVM will inadvertently invalidate Mills task caches.
+This effectively leads to full reevaluation of all invoked Mill tasks and appears as &quot;bad performance&quot;.</p>
 </div>
 <div class="paragraph">
 <p>To detect if this is the case,</p>

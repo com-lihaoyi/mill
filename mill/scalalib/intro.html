@@ -227,7 +227,7 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../depth/query-syntax.html">Target Query Syntax</a>
+    <a class="nav-link" href="../depth/query-syntax.html">Task Query Syntax</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -404,9 +404,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-1-86606f</button>
   <div class="version-menu">
-    <a class="version is-current" href="intro.html">0.12.0-RC3</a>
+    <a class="version is-current" href="intro.html">0.12.0-RC3-1-86606f</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
     <a class="version" href="../0.11.10/Intro_to_Mill_for_Scala.html">0.11.10</a>
@@ -432,11 +432,11 @@ gtag('config', 'AW-16649289906');
 </script>
 <div class="imageblock kroki">
 <div class="content">
-<img src="../_images/diag-3ff5a305aff668011393021c899ab984759060e9.svg" alt="Diagram" />
+<img src="../_images/diag-54fa9a1d5409f92f97b05cbf0bf364309df7e554.svg" alt="Diagram" />
 </div>
 </div>
 <div class="paragraph">
-<p><a href="https://github.com/com-lihaoyi/mill">Mill</a> is a fast multi-language build tool that supports Scala, making your
+<p><a href="https://github.com/com-lihaoyi/mill">Mill</a> is a fast multi-language JVM build tool that supports Scala, making your
 common development workflows <a href="../comparisons/maven.html" class="xref page">5-10x faster to Maven</a>, or
 <a href="../comparisons/gradle.html" class="xref page">2-4x faster than Gradle</a>, with
 <a href="#comparisons/sbt">an easier experience than SBT</a>.
@@ -454,7 +454,7 @@ the logic necessary to build your project, while providing tools to let you iden
 and resolve bottlenecks in your build</p>
 </li>
 <li>
-<p><strong>Maintainability</strong>: Mill config and custom logic is written in
+<p><strong>No More YAML</strong>: Mill config and custom logic is written in
 <a href="#_custom_build_logic">custom build logic</a> in concise type-checked code,
 rather than shell scripts, XML or YAML. This lets IDEs
 (<a href="installation-ide.html#_intellij" class="xref page">IntelliJ</a> or
@@ -528,17 +528,12 @@ out the following blog posts:</p>
 </div>
 <div class="paragraph">
 <p>If you’re interested in the fundamental ideas behind Mill, rather than the user-facing
-benefits discussed above, the following presentation
-and companion blog post is a good introduction into what the Mill build tool is
-all about:</p>
+benefits discussed above, check out the section on Mill Design Principles:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://www.youtube.com/watch?v=UsXgCeU-ovI&amp;list=PLLMLOC3WM2r6ZFhFfVH74W-sl8LfWtOEc&amp;index=15">Video: A Deep Dive into the Mill Build Tool</a></p>
-</li>
-<li>
-<p><a href="https://www.lihaoyi.com/post/SoWhatsSoSpecialAboutTheMillScalaBuildTool.html">Blog Post: What’s So Special About The Mill Scala Build Tool?</a></p>
+<p><a href="#Mill Design Principles">[Mill Design Principles]</a></p>
 </li>
 </ul>
 </div>
@@ -587,7 +582,7 @@ object `package` extends RootModule with ScalaModule {
 <div class="paragraph">
 <p>This is a basic Mill build for a single <code>ScalaModule</code>, with two
 third-party dependencies and a test suite using the uTest framework. As a
-single-module project, it <code>extends RootModule</code> to mark <code>object foo</code> as the
+single-module project, it <code>extends RootModule</code> to mark <code>object <code>package</code></code> as the
 top-level module in the build. This lets us directly perform operations
 <code>./mill compile</code> or <code>./mill run</code> without needing to prefix it as
 <code>foo.compile</code> or <code>foo.run</code>.</p>
@@ -603,14 +598,33 @@ care of any further dependencies that need to be downloaded.</p>
 Output for this module (compiled files, resolved dependency lists, …​)
 lives in <code>out/</code>.</p>
 </div>
+<div class="listingblock">
+<div class="content">
+<pre>build.mill
+src/
+    Foo.scala
+resources/
+    ...
+test/
+    src/
+        FooTests.scala
+out/
+    compile.json
+    compile.dest/
+    ...
+    test/
+        compile.json
+        compile.dest/
+        ...</pre>
+</div>
+</div>
 <div class="paragraph">
 <p>This example project uses two third-party dependencies - MainArgs for CLI
 argument parsing, Scalatags for HTML generation - and uses them to wrap a
 given input string in HTML templates with proper escaping.</p>
 </div>
 <div class="paragraph">
-<p>You can run <code>assembly</code> to generate a standalone executable jar, which then
-can be run from the command line or deployed to be run elsewhere.</p>
+<p>Typical usage of a <code>ScalaModule</code> is shown below:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -722,13 +736,13 @@ import mill._, scalalib._
 object `package` extends RootModule with ScalaModule {
   def scalaVersion = &quot;2.13.11&quot;
 
-  /** Total number of lines in module's source files */
-  def lineCount = T{
+  /** Total number of lines in module source files */
+  def lineCount = Task {
     allSourceFiles().map(f =&gt; os.read.lines(f.path).size).sum
   }
 
   /** Generate resources using lineCount of sources */
-  override def resources = T{
+  override def resources = Task {
     os.write(Task.dest / &quot;line-count.txt&quot;, &quot;&quot; + lineCount())
     Seq(PathRef(Task.dest))
   }
@@ -737,9 +751,9 @@ object `package` extends RootModule with ScalaModule {
 </div>
 <div class="paragraph">
 <p>The addition of <code>lineCount</code> and <code>resources</code> overrides the previous <code>resource</code>
-folder provided by <code>JavaModule</code> (labelled <code>resource.super</code> below), replacing
-it with the destination folder of the new <code>resources</code> target, which is wired
-up <code>lineCount</code>:</p>
+folder provided by <code>ScalaModule</code> (labelled <code>resource.super</code> below), replacing
+it with the destination folder of the new <code>resources</code> task, which is wired
+up to <code>lineCount</code>:</p>
 </div>
 <div class="imageblock kroki">
 <div class="content">
@@ -757,18 +771,18 @@ Line Count: 17
 
 &gt; mill inspect lineCount
 lineCount(build.mill:...)
-    Total number of lines in module's source files
+    Total number of lines in module source files
 Inputs:
     allSourceFiles</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Above, <code>def lineCount</code> is a new build target we define, which makes use of
-<code>allSourceFiles</code> (an existing target) and is in-turn used in our override of
-<code>resources</code> (also an existing target). <code>os.read.lines</code> and <code>os.write come
+<p>Above, <code>def lineCount</code> is a new build task we define, which makes use of
+<code>allSourceFiles</code> (an existing task) and is in-turn used in our override of
+<code>resources</code> (also an existing task). <code>os.read.lines</code> and <code>os.write</code> come
 from the <a href="https://github.com/com-lihaoyi/os-lib">OS-Lib</a> library, which is
-bundled with Mill. This generated file can then be
-loaded and used at runtime, as see in the output of `mill run</code></p>
+one of Mill’s <a href="#Bundled Libraries">[Bundled Libraries]</a>. This generated file can then be
+loaded and used at runtime, as see in the output of <code>mill run</code></p>
 </div>
 <div class="paragraph">
 <p>While this is a toy example, it shows how easy it is to customize your Mill
@@ -781,11 +795,11 @@ programmers - object-orienting overrides - rather than ad-hoc
 monkey-patching or mutation common in other build tools. You never have
 &quot;spooky action at a distance&quot; affecting your build / graph definition, and
 your IDE can always help you find the final override of any particular build
-target as well as where any overriden implementations may be defined.</p>
+task as well as where any overriden implementations may be defined.</p>
 </div>
 <div class="paragraph">
-<p>Unlike normal methods, custom user-defined targets in Mill benefit from all
-the same things that built-in targets do: automatic caching, parallelism
+<p>Unlike normal methods, custom user-defined tasks in Mill benefit from all
+the same things that built-in tasks do: automatic caching, parallelism
 (with the <code>-j</code>/<code>--jobs</code> flag), inspectability (via <code>show</code>/<code>inspect</code>), and so on.</p>
 </div>
 <div class="paragraph">
@@ -844,13 +858,12 @@ configuration such as <code>ivyDeps</code> specific to a particular module.</p>
 foo/
     src/
         Foo.scala
-    resources/
-        ...
 bar/
     src/
         Bar.scala
-    resources/
-        ...
+    test/
+        src/
+            BarTests.scala
 out/
     foo/
         compile.json
@@ -859,13 +872,19 @@ out/
     bar/
         compile.json
         compile.dest/
-        ...</pre>
+        ...
+        test/
+            compile.json
+            compile.dest/
+            ...</pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Typically, both source code and output files in Mill follow the module
 hierarchy, so e.g. input to the <code>foo</code> module lives in <code>foo/src/</code> and
-compiled output files live in <code>out/foo/compile.dest</code>.</p>
+compiled output files live in <code>out/foo/compile.dest</code>. You can use
+<code>mill resolve</code> to list out what tasks you can run, e.g. <code>mill resolve __.run</code>
+below which lists out all the <code>run</code> tasks:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -892,10 +911,10 @@ order, and recompiled as necessary when source code in each module changes.</p>
 </div>
 <div class="paragraph">
 <p>You can use wildcards and brace-expansion to select
-multiple targets at once or to shorten the path to deeply nested targets. If
-you provide optional target arguments and your wildcard or brace-expansion is
-resolved to multiple targets, the arguments will be applied to each of the
-targets.</p>
+multiple tasks at once or to shorten the path to deeply nested tasks. If
+you provide optional task arguments and your wildcard or brace-expansion is
+resolved to multiple tasks, the arguments will be applied to each of the
+tasks.</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">Table 1. Wildcards and brace-expansion</caption>
@@ -910,25 +929,25 @@ targets.</p>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>_</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">matches a single segment of the target path</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">matches a single segment of the task path</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>__</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">matches arbitrary segments of the target path</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">matches arbitrary segments of the task path</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>{a,b}</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">is equal to specifying two targets <code>a</code> and <code>b</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">is equal to specifying two tasks <code>a</code> and <code>b</code></p></td>
 </tr>
 </tbody>
 </table>
 <div class="paragraph">
-<p>You can use the <code>` symbol to add another target with optional arguments.
-If you need to feed a `</code> as argument to your target, you can mask it by
+<p>You can use the <code>` symbol to add another task with optional arguments.
+If you need to feed a `</code> as argument to your task, you can mask it by
 preceding it with a backslash (<code>\</code>).</p>
 </div>
 <div class="sect2">
-<h3 id="_examples"><a class="anchor" href="#_examples"></a>Examples</h3>
+<h3 id="_mill_query_syntax_examples"><a class="anchor" href="#_mill_query_syntax_examples"></a>Mill Query Syntax Examples</h3>
 <div class="dlist">
 <dl>
 <dt class="hdlist1"><code>mill foo._.compile</code></dt>
@@ -945,9 +964,12 @@ preceding it with a backslash (<code>\</code>).</p>
 </dd>
 <dt class="hdlist1"><code>mill __.compile + foo.__.test</code> </dt>
 <dd>
-<p>Runs all <code>compile</code> targets and all tests under <code>foo</code>.</p>
+<p>Runs all <code>compile</code> tasks and all tests under <code>foo</code>.</p>
 </dd>
 </dl>
+</div>
+<div class="paragraph">
+<p>For more details on the query syntax, check out the documentation for <a href="#Task Query Syntax">[Task Query Syntax]</a></p>
 </div>
 </div>
 </div>
@@ -1001,11 +1023,11 @@ wish to run</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill -j 4 __.compile</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill -j4 __.compile</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>To disable parallel execution use <code>--jobs 1</code>.</p>
+<p>To disable parallel execution use <code>-j1</code>.</p>
 </div>
 <div class="paragraph">
 <p><code>mill</code> generates an output file in <code>out/mill-chrome-profile.json</code> that can be
@@ -1019,8 +1041,9 @@ taking the most time:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>Please note that the maximal possible parallelism depends on your project.
-Tasks that depend on each other can’t be processed in parallel.</p>
+<p>Note that the maximal possible parallelism depends both on the number of cores
+available as well as the task and module structure of your project, as tasks that
+depend on one another other cannot be processed in parallel</p>
 </div>
 </div>
 </div>
@@ -1034,7 +1057,7 @@ a complete list of options and a cheat-sheet of how to work with tasks:</p>
 <div class="listingblock">
 <div class="title">Output of <code>mill --help</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.12.0-RC3
+<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.12.0-RC3-1-86606f
 Usage: mill [options] task [task-options] [+ task ...]
 
 task cheat sheet:
@@ -1092,7 +1115,9 @@ Please see the documentation at https://mill-build.org for more details</code></
 </div>
 </div>
 <div class="paragraph">
-<p>All <em>options</em> must be given before the first target.</p>
+<p>Note that options and flags given before the <code>task</code> name are <em>passed to Mill</em>, while
+options and flags after the <code>task</code> name are <em>passed to the task</em>. This mirrors how
+most command line script or task runners work (e.g. <code>python &lt;python-args&gt; script.py &lt;script-args&gt;</code>)</p>
 </div>
 </div>
 </div>

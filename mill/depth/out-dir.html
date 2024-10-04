@@ -227,7 +227,7 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="query-syntax.html">Target Query Syntax</a>
+    <a class="nav-link" href="query-syntax.html">Task Query Syntax</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -405,9 +405,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-1-86606f</button>
   <div class="version-menu">
-    <a class="version is-current" href="out-dir.html">0.12.0-RC3</a>
+    <a class="version is-current" href="out-dir.html">0.12.0-RC3-1-86606f</a>
     <a class="version" href="../0.11.12/Out_Dir.html">0.11.12</a>
     <a class="version" href="../0.11.11/Out_Dir.html">0.11.11</a>
     <a class="version" href="../0.11.10/Out_Dir.html">0.11.10</a>
@@ -487,26 +487,26 @@ It holds some files needed to manage Mill’s longer running server instances (<
 <table>
 <tbody><tr>
 <td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>The <code>main</code> directory contains all files associated with target and submodules of the <code>main</code> module.</td>
+<td>The <code>main</code> directory contains all files associated with tasks and submodules of the <code>main</code> module.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>The <code>compile</code> target has tried to access its scratch space via <code>T.dest</code>. Here you will find the actual compile results.</td>
+<td>The <code>compile</code> task has tried to access its scratch space via <code>T.dest</code>. Here you will find the actual compile results.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="3"></i><b>3</b></td>
-<td>Two targets printed something out while they ran. You can find these outputs in the <code>*.log</code> files.</td>
+<td>Two tasks printed something out while they ran. You can find these outputs in the <code>*.log</code> files.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="4"></i><b>4</b></td>
-<td>Three targets are overridden but re-use the result of their <code>super</code>-targets in some way. You can find these result under the <code>*.super/</code> path.</td>
+<td>Three tasks are overridden but re-use the result of their <code>super</code>-tasks in some way. You can find these result under the <code>*.super/</code> path.</td>
 </tr>
 </tbody></table>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_target_metadata_and_cached_files"><a class="anchor" href="#_target_metadata_and_cached_files"></a>Target Metadata and Cached Files</h2>
+<h2 id="_task_metadata_and_cached_files"><a class="anchor" href="#_task_metadata_and_cached_files"></a>Task Metadata and Cached Files</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Each named task (<code>Target</code> or <code>Command</code>) that is run has a representation in the <code>out/</code> directory structure.</p>
@@ -515,15 +515,15 @@ It holds some files needed to manage Mill’s longer running server instances (<
 <p>The <em>module</em> structure is reflected in the directories, so that each module of your project has a uniquely associated subdirectory under the <code>out/</code> directory.</p>
 </div>
 <div class="paragraph">
-<p>Each <em>target</em> is associated with one or multiple files and directories under its module directory.
-The following files can be found for a target <code>foo</code>:</p>
+<p>Each <em>task</em> is associated with one or multiple files and directories under its module directory.
+The following files can be found for a task <code>foo</code>:</p>
 </div>
 <div class="dlist">
 <dl>
 <dt class="hdlist1"><code>foo.json</code></dt>
 <dd>
 <p>  the cache-key and JSON-serialized return-value of the
-<code>Target</code>/<code>Command</code>.
+<code>Task</code>/<code>Command</code>.
 The return-value can also be retrieved via <code>mill show foo.compile</code>.
 Binary blobs are typically not included in <code>foo.json</code>, and instead stored as separate binary files in <code>foo.dest/</code> which are then referenced
 by <code>foo.json</code> via <code>PathRef</code> references.</p>
@@ -541,7 +541,7 @@ conflicting with another <code>Task</code>, but can name files within <code>foo.
 </dd>
 <dt class="hdlist1"><code>foo.super/</code></dt>
 <dd>
-<p>optional, holds target metadata for overridden targets, so whenever you use a <code>super.foo()</code> in your <code>foo</code> target, you will find the metadata of the inherited task(s) under this directory.</p>
+<p>optional, holds task metadata for overridden tasks, so whenever you use a <code>super.foo()</code> in your <code>foo</code> task, you will find the metadata of the inherited task(s) under this directory.</p>
 </dd>
 </dl>
 </div>
@@ -562,7 +562,7 @@ rebuilt, e.g. by deleting the <code>out/main/</code> or <code>out/main/compile.*
 </td>
 <td class="content">
 <div class="paragraph">
-<p>Cleaning some target state by manually deleting files under <code>out/</code> may be convenient, but you need to be careful to always delete the <code>foo.json</code> file whenever you delete a <code>foo.dest/</code> or <code>foo.super/</code>. Otherwise, you risk running into hard to diagnose issues later.</p>
+<p>Cleaning some task state by manually deleting files under <code>out/</code> may be convenient, but you need to be careful to always delete the <code>foo.json</code> file whenever you delete a <code>foo.dest/</code> or <code>foo.super/</code>. Otherwise, you risk running into hard to diagnose issues later.</p>
 </div>
 <div class="paragraph">
 <p>Instead, you should always give the <code>clean</code> command a try before manually deleting some file under <code>out/</code>.</p>
@@ -643,7 +643,7 @@ via the <code>MILL_OUTPUT_DIR</code> environment variable.</p>
 </div>
 <nav class="pagination">
   <span class="prev"><a href="library-deps.html">Library Dependencies in Mill</a></span>
-  <span class="next"><a href="query-syntax.html">Target Query Syntax</a></span>
+  <span class="next"><a href="query-syntax.html">Task Query Syntax</a></span>
 </nav>
 </article>
   </div>

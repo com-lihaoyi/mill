@@ -226,7 +226,7 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../depth/query-syntax.html">Target Query Syntax</a>
+    <a class="nav-link" href="../depth/query-syntax.html">Task Query Syntax</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -404,9 +404,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-1-86606f</button>
   <div class="version-menu">
-    <a class="version is-current" href="testing.html">0.12.0-RC3</a>
+    <a class="version is-current" href="testing.html">0.12.0-RC3-1-86606f</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
@@ -476,7 +476,11 @@ compiling 1 ... source...
 ...foo.FooTests...hello ...
 ...foo.FooTests...world ...
 
-&gt; mill foo.test
+&gt; mill foo.test # same as above, `.test` is the default task for the `test` module
+...foo.FooTests...hello ...
+...foo.FooTests...world ...
+
+&gt; mill foo.test.testOnly foo.FooTests # explicitly select the test class you wish to run
 ...foo.FooTests...hello ...
 ...foo.FooTests...world ...</code></pre>
 </div>
@@ -532,7 +536,7 @@ compiling 1 ... source...
 </div>
 <div class="paragraph">
 <p>You can also select multiple test suites in one command using Mill’s
-<a href="../depth/query-syntax.html" class="xref page">Target Query Syntax</a></p>
+<a href="../depth/query-syntax.html" class="xref page">Task Query Syntax</a></p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -830,10 +834,25 @@ without the others mixed in</p>
 each test class to its own group, running in its own JVM. This comes with some overhead
 on a per-JVM basis, so if your test classes are numerous and small you may want to assign
 multiple test classes per group. You can also configure <code>testForkGrouping</code> to choose which
-test classes you want to run together and which to run alone: e.g. if some test classes
+test classes you want to run together and which to run alone:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>If some test classes
 are much slower than others, you may want to put the slow test classes each in its own
 group to reduce latency, while grouping multiple fast test classes together to reduce the
 per-group overhead of spinning up a separate JVM.</p>
+</li>
+<li>
+<p>Some test classes may have global JVM-wide or filesystem side effects that means they
+have to run alone, while other test classes may be better-behaved and OK to run in a group</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In general, <code>testForkGrouping</code> leaves it up to you how you want to group your tests for
+execution, based on the unique constraints of your test suite.</p>
 </div>
 </div>
 </div>

@@ -227,7 +227,7 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="query-syntax.html">Target Query Syntax</a>
+    <a class="nav-link" href="query-syntax.html">Task Query Syntax</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -405,9 +405,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-1-86606f</button>
   <div class="version-menu">
-    <a class="version is-current" href="bundled-libraries.html">0.12.0-RC3</a>
+    <a class="version is-current" href="bundled-libraries.html">0.12.0-RC3-1-86606f</a>
     <a class="version" href="../0.11.12/External_References.html">0.11.12</a>
     <a class="version" href="../0.11.11/External_References.html">0.11.11</a>
     <a class="version" href="../0.11.10/External_References.html">0.11.10</a>
@@ -464,17 +464,17 @@ interference between tasks:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
-def task1 = T{
+def task1 = Task {
   os.write(os.pwd / &quot;file.txt&quot;, &quot;hello&quot;)
   PathRef(os.pwd / &quot;file.txt&quot;)
 }
 
-def task2 = T{
+def task2 = Task {
   os.call((&quot;bash&quot;, &quot;-c&quot;, &quot;echo 'world' &gt;&gt; file.txt&quot;))
   PathRef(os.pwd / &quot;file.txt&quot;)
 }
 
-def command = T{
+def command = Task {
   println(task1().path)
   println(os.read(task1().path))
   println(task2().path)
@@ -517,8 +517,8 @@ world</code></pre>
 </dl>
 </div>
 <div class="paragraph">
-<p>Mill uses uPickle to cache target output to disk as JSON, and to output JSON
-for third-party tools to consume. The output of every Mill target must be JSON
+<p>Mill uses uPickle to cache task output to disk as JSON, and to output JSON
+for third-party tools to consume. The output of every Mill task must be JSON
 serializable via uPickle.</p>
 </div>
 <div class="paragraph">
@@ -550,9 +550,9 @@ collections types (<code>Seq</code>s, <code>List</code>s, <code>Tuple</code>s, e
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
-def taskInt = T{ 123 }
-def taskBoolean = T{ true }
-def taskString = T{ &quot;hello &quot; + taskInt() + &quot; world &quot; + taskBoolean() }</code></pre>
+def taskInt = Task { 123 }
+def taskBoolean = Task { true }
+def taskString = Task { &quot;hello &quot; + taskInt() + &quot; world &quot; + taskBoolean() }</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -576,9 +576,9 @@ true
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def taskTuple = T{ (taskInt(), taskBoolean(), taskString())}
-def taskSeq = T{ Seq(taskInt(), taskInt() * 2, taskInt() * 3)}
-def taskMap = T{ Map(&quot;int&quot; -&gt; taskInt().toString, &quot;boolean&quot; -&gt; taskBoolean().toString) }</code></pre>
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def taskTuple = Task { (taskInt(), taskBoolean(), taskString())}
+def taskSeq = Task { Seq(taskInt(), taskInt() * 2, taskInt() * 3)}
+def taskMap = Task { Map(&quot;int&quot; -&gt; taskInt().toString, &quot;boolean&quot; -&gt; taskBoolean().toString) }</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -605,7 +605,7 @@ def taskMap = T{ Map(&quot;int&quot; -&gt; taskInt().toString, &quot;boolean&quo
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def taskPath = T{
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def taskPath = Task {
   os.write(os.pwd / &quot;file.txt&quot;, &quot;hello&quot;)
   os.pwd / &quot;file.txt&quot;
 }</code></pre>
@@ -626,7 +626,7 @@ should return a <code>PathRef</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def taskPathRef = T{
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def taskPathRef = Task {
   os.write(os.pwd / &quot;file.txt&quot;, &quot;hello&quot;)
   PathRef(os.pwd / &quot;file.txt&quot;)
 }</code></pre>
@@ -683,7 +683,7 @@ compile the Remote APIs source code as part of our build:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
-def remoteApisZip = T{
+def remoteApisZip = Task {
   println(&quot;downloading bazel-remote-apis sources...&quot;)
   os.write(
     Task.dest / &quot;source.zip&quot;,
@@ -692,7 +692,7 @@ def remoteApisZip = T{
   PathRef(Task.dest / &quot;source.zip&quot;)
 }
 
-def bazel = T{
+def bazel = Task {
   println(&quot;downloading bazel...&quot;)
   val fileName =
     if (System.getProperty(&quot;os.name&quot;) == &quot;Mac OS X&quot;) &quot;bazel-5.4.1-darwin-arm64&quot;
@@ -706,7 +706,7 @@ def bazel = T{
   PathRef(Task.dest / &quot;bazel&quot;)
 }
 
-def compiledRemoteApis = T{
+def compiledRemoteApis = Task {
   val javaBuildTarget = &quot;build/bazel/remote/execution/v2:remote_execution_java_proto&quot;
   os.call((&quot;unzip&quot;, remoteApisZip().path, &quot;-d&quot;, Task.dest))
   os.call((bazel().path, &quot;build&quot;, javaBuildTarget), cwd = Task.dest / &quot;remote-apis-2.2.0&quot;)
@@ -859,8 +859,8 @@ supports parsing OS-Lib <code>os.Path</code>s from the command line:</p>
 <div class="paragraph">
 <p>Mill allows commands to take <code>Task[T]</code>s as parameters anywhere they can
 take an unboxed <code>T</code>. This can be handy later on if you want to call the
-command as part of another target, while passing it the value of an upstream
-target:</p>
+command as part of another task, while passing it the value of an upstream
+task:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -879,18 +879,18 @@ arg: helloworld</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def upstreamTarget = T{
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def upstreamTask = Task {
   &quot;HELLO&quot;
 }
 
-def targetCallingCommand = T{
-  commandTakingTask(upstreamTarget)()
+def taskCallingCommand = Task {
+  commandTakingTask(upstreamTask)()
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show targetCallingCommand
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show taskCallingCommand
 &quot;arg: HELLO&quot;</code></pre>
 </div>
 </div>
@@ -905,7 +905,7 @@ See <a href="https://github.com/com-lihaoyi/mill/issues/502">issue #502</a> for 
 <p>You can define a command that takes in the current <code>Evaluator</code> as an argument,
 which you can use to inspect the entire build, or run arbitrary tasks.
 For example, here is a <code>customPlanCommand</code> command which uses this
-to traverse the module tree to find the targets specified by the <code>targets</code> strings,
+to traverse the module tree to find the tasks specified by the <code>tasks</code> strings,
 and plan out what would be necessary to run them</p>
 </div>
 <div class="listingblock">
@@ -913,10 +913,10 @@ and plan out what would be necessary to run them</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.eval.{Evaluator, Terminal}
 import mill.resolve.{Resolve, SelectMode}
 
-def customPlanCommand(evaluator: Evaluator, targets: String*) = Task.Command {
+def customPlanCommand(evaluator: Evaluator, tasks: String*) = Task.Command {
   Resolve.Tasks.resolve(
     evaluator.rootModule,
-    targets,
+    tasks,
     SelectMode.Multi
   ) match{
     case Left(err) =&gt; Left(err)
@@ -935,15 +935,15 @@ def customPlanCommand(evaluator: Evaluator, targets: String*) = Task.Command {
 </div>
 <div class="paragraph">
 <p>We can call our <code>customPlanCommand</code> from the command line and pass it the
-<code>targetCallingCommand</code> we saw earlier, and it prints out the list of tasks
-it needs to run in the order necessary to reach `targetCallingCommand</p>
+<code>taskCallingCommand</code> we saw earlier, and it prints out the list of tasks
+it needs to run in the order necessary to reach `taskCallingCommand</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill customPlanCommand targetCallingCommand
-upstreamTarget
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill customPlanCommand taskCallingCommand
+upstreamTask
 commandTakingTask
-targetCallingCommand</code></pre>
+taskCallingCommand</code></pre>
 </div>
 </div>
 <div class="paragraph">
