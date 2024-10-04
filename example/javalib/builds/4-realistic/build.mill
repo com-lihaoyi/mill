@@ -46,7 +46,7 @@ object qux extends MyModule
 
 // A semi-realistic build setup, combining all the individual Mill concepts:
 //
-// - Three `JavaModule`s that depend on each other
+// - Three ``JavaModule``s that depend on each other
 //
 // - With unit testing and publishing set up
 //
