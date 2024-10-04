@@ -93,12 +93,12 @@ object DocAnnotationsTests extends UtestIntegrationTestSuite {
 
       assert(
         globMatches(
-          """core.ivyDepsTree(JavaModule.scala:...)
+          """core.ivyDepsTree(JavaModule.scala:884)
             |    Command to print the transitive dependency tree to STDOUT.
             |
             |    --inverse                Invert the tree representation, so that the root is on the bottom val
             |                             inverse (will be forced when used with whatDependsOn)
-            |    --what-depends-on <str>  Possible list of modules (org:artifact) to task in the tree in order
+            |    --what-depends-on <str>  Possible list of modules (org:artifact) to target in the tree in order
             |                             to see where a dependency stems from.
             |    --with-compile           Include the compile-time only dependencies (`compileIvyDeps`, provided
             |                             scope) into the tree.
