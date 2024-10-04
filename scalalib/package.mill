@@ -70,7 +70,8 @@ object `package` extends RootModule with build.MillStableScalaModule {
           s"${d.dep.module.organization.value}:${d.dep.module.name.value}:${d.version}"
         },
         "Dependency to jupiter-interface"
-      )
+      ),
+      BuildInfo.Value("errorProneVersion", build.Deps.RuntimeDeps.errorProneCore.version)
     )
   }
 
