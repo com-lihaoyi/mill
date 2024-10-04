@@ -26,7 +26,7 @@ object `package` extends RootModule with KotlinModule {
       ivy"ch.qos.logback:logback-classic:1.4.14"
   )
 
-  object test extends KotlinModuleTests with TestModule.Junit5 {
+  object test extends KotlinTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1",
       ivy"io.ktor:ktor-server-test-host-jvm:2.3.12"
