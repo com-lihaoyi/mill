@@ -37,8 +37,6 @@ import $ivy.`com.lihaoyi::mill-contrib-bloop:`
 * xref:contrib/buildinfo.adoc[]
 * xref:contrib/codeartifact.adoc[]
 * xref:contrib/docker.adoc[]
-* xref:contrib/errorprone.adoc[]
-* xref:contrib/checkstyle.adoc[]
 * xref:contrib/flyway.adoc[]
 * xref:contrib/gitlab.adoc[]
 * xref:contrib/jmh.adoc[]
@@ -54,4 +52,4 @@ import $ivy.`com.lihaoyi::mill-contrib-bloop:`
 
 == Importing Contrib Modules
 
-include::partial$example/extending/imports/6-contrib-import.adoc[]
+include::partial$example/extending/imports/3-contrib-import.adoc[]

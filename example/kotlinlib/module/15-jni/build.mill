@@ -11,7 +11,7 @@ object `package` extends RootModule with KotlinModule {
   def nativeSources = T.sources(millSourcePath / "native-src")
 
   // Compile C
-  def nativeCompiled = T{
+  def nativeCompiled = Task {
     val cSourceFiles = nativeSources().map(_.path).flatMap(os.walk(_)).filter(_.ext == "c")
     val output = "libhelloworld.so"
     os.proc(
@@ -29,7 +29,7 @@ object `package` extends RootModule with KotlinModule {
 
   def forkEnv = Map("HELLO_WORLD_BINARY" -> nativeCompiled().path.toString)
 
-  object test extends KotlinModuleTests with TestModule.Junit5 {
+  object test extends KotlinTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
     )

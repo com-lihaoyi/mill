@@ -15,7 +15,7 @@
 
 import mill._
 
-def remoteApisZip = T{
+def remoteApisZip = Task {
   println("downloading bazel-remote-apis sources...")
   os.write(
     Task.dest / "source.zip",
@@ -24,7 +24,7 @@ def remoteApisZip = T{
   PathRef(Task.dest / "source.zip")
 }
 
-def bazel = T{
+def bazel = Task {
   println("downloading bazel...")
   val fileName =
     if (System.getProperty("os.name") == "Mac OS X") "bazel-5.4.1-darwin-arm64"
@@ -38,7 +38,7 @@ def bazel = T{
   PathRef(Task.dest / "bazel")
 }
 
-def compiledRemoteApis = T{
+def compiledRemoteApis = Task {
   val javaBuildTarget = "build/bazel/remote/execution/v2:remote_execution_java_proto"
   os.call(("unzip", remoteApisZip().path, "-d", Task.dest))
   os.call((bazel().path, "build", javaBuildTarget), cwd = Task.dest / "remote-apis-2.2.0")

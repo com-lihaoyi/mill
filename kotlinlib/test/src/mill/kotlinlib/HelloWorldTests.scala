@@ -19,7 +19,7 @@ object HelloWorldTests extends TestSuite {
       def kotlinVersion = crossValue
       override def mainClass = Some("hello.HelloKt")
 
-      object test extends KotlinModuleTests with TestModule.Junit4 {
+      object test extends KotlinTests with TestModule.Junit4 {
         override def ivyDeps = super.ivyDeps() ++ Agg(
           ivy"org.jetbrains.kotlin:kotlin-test-junit:${this.kotlinVersion()}"
         )

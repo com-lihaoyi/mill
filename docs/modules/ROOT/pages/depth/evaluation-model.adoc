@@ -1,7 +1,7 @@
 = The Mill Evaluation Model
 :page-aliases: The_Mill_Evaluation_Model.adoc
 
-Evaluating a Mill target typically goes through the following phases:
+Evaluating a Mill task typically goes through the following phases:
 
 1. *Compilation*: Mill compiles the `build.mill` to classfiles, following the
 <<_the_mill_bootstrapping_process>> to eventually produce a `RootModule` object
@@ -73,8 +73,8 @@ the overall workflow remains fast even for large projects:
     * xref:depth/tasks.adoc#_targets[Target]s only re-evaluate if their input ``Task``s
      change.
 
-    * xref:depth/tasks.adoc#_persistent_targets[Task.Persistent]s preserve the `T.dest` folder on disk between runs,
-      allowing for finer-grained caching than Mill's default target-by-target
+    * xref:depth/tasks.adoc#_persistent_tasks[Task.Persistent]s preserve the `T.dest` folder on disk between runs,
+      allowing for finer-grained caching than Mill's default task-by-task
       caching and invalidation
 
     * xref:depth/tasks.adoc#_workers[Task.Worker]s are kept in-memory between runs where possible, and only

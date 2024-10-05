@@ -18,7 +18,7 @@ def myInput = Task.Input {
 // that target does not have any `Task` inputs and so will never re-compute
 // even if the external `git` status changes:
 
-def gitStatusTarget = Task {
+def gitStatusTask = Task {
   "v-" +
   os.proc("git", "log", "-1", "--pretty=format:%h-%B ")
     .call(cwd = Task.workspace)
@@ -32,20 +32,20 @@ def gitStatusTarget = Task {
 > git init .
 > git commit --allow-empty -m "Initial-Commit"
 
-> ./mill show gitStatusTarget
+> ./mill show gitStatusTask
 "v-...-Initial-Commit"
 
 > git commit --allow-empty -m "Second-Commit"
 
-> ./mill show gitStatusTarget # Mill didn't pick up the git change!
+> ./mill show gitStatusTask # Mill didn't pick up the git change!
 "v-...-Initial-Commit"
 
 */
 
-// `gitStatusTarget` will not know that `git rev-parse` can change, and will
+// `gitStatusTask` will not know that `git rev-parse` can change, and will
 // not know to re-evaluate when your `git log` _does_ change. This means
-// `gitStatusTarget` will continue to use any previously cached value, and
-// ``gitStatusTarget``'s output will  be out of date!
+// `gitStatusTask` will continue to use any previously cached value, and
+// ``gitStatusTask``'s output will  be out of date!
 
 // To fix this, you can wrap your `git log` in a `Task.Input`:
 
@@ -56,21 +56,21 @@ def gitStatusInput = Task.Input {
     .text()
     .trim()
 }
-def gitStatusTarget2 = Task { "v-" + gitStatusInput() }
+def gitStatusTask2 = Task { "v-" + gitStatusInput() }
 
 // This makes `gitStatusInput` to always re-evaluate every build, and only if
-// the output of `gitStatusInput` changes will `gitStatusTarget2` re-compute
+// the output of `gitStatusInput` changes will `gitStatusTask2` re-compute
 
 /** Usage
 
 > git commit --allow-empty -m "Initial-Commit"
 
-> ./mill show gitStatusTarget2
+> ./mill show gitStatusTask2
 "v-...-Initial-Commit"
 
 > git commit --allow-empty -m "Second-Commit"
 
-> ./mill show gitStatusTarget2 # Mill picked up git change
+> ./mill show gitStatusTask2 # Mill picked up git change
 "v-...-Second-Commit"
 
 */
@@ -78,4 +78,4 @@ def gitStatusTarget2 = Task { "v-" + gitStatusInput() }
 // Note that because ``Task.Input``s re-evaluate every time, you should ensure that the
 // code you put in `Task.Input` runs quickly. Ideally it should just be a simple check
 // "did anything change?" and any heavy-lifting should be delegated to downstream
-// targets where it can be cached if possible.
+// tasks where it can be cached if possible.

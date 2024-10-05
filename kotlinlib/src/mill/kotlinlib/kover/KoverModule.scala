@@ -35,7 +35,7 @@ import java.util.Locale
  * object foo extends KotlinModule with KoverModule {
  *   def kotlinVersion = "2.0.20"
  *
- *   object test extends KotlinModuleTests with KoverTests
+ *   object test extends KotlinTests with KoverTests
  * }
  * }}}
  *
@@ -88,12 +88,12 @@ trait KoverModule extends KotlinModule { outer =>
 
   trait KoverTests extends TestModule {
 
-    private def koverAgentDep: T[Agg[Dep]] = T {
+    private def koverAgentDep: T[Agg[Dep]] = Task {
       Agg(ivy"org.jetbrains.kotlinx:kover-jvm-agent:${koverVersion()}")
     }
 
     /** The Kover Agent is used at test-runtime. */
-    private def koverAgentJar: T[PathRef] = T {
+    private def koverAgentJar: T[PathRef] = Task {
       val jars = defaultResolver().resolveDeps(koverAgentDep())
       jars.iterator.next()
     }

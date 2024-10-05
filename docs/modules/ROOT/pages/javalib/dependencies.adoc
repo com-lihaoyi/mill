@@ -1,0 +1,32 @@
+= Java Library Dependencies
+
+++++
+<script>
+gtag('config', 'AW-16649289906');
+</script>
+++++
+
+This page goes into more detail about configuring third party dependencies
+for `JavaModule`.
+
+== Adding Ivy Dependencies
+
+include::partial$example/javalib/dependencies/1-ivy-deps.adoc[]
+
+== Runtime and Compile-time Dependencies
+
+include::partial$example/javalib/dependencies/2-run-compile-deps.adoc[]
+
+
+== Unmanaged Jars
+
+include::partial$example/javalib/dependencies/3-unmanaged-jars.adoc[]
+
+== Downloading Non-Maven Jars
+
+include::partial$example/javalib/dependencies/4-downloading-non-maven-jars.adoc[]
+
+== Repository Config
+
+include::partial$example/javalib/dependencies/5-repository-config.adoc[]
+

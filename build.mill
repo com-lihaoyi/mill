@@ -152,7 +152,7 @@ object Deps {
   val osLib = ivy"com.lihaoyi::os-lib:0.10.7"
   val pprint = ivy"com.lihaoyi::pprint:0.9.0"
   val mainargs = ivy"com.lihaoyi::mainargs:0.7.4"
-  val millModuledefsVersion = "0.11.0-M2"
+  val millModuledefsVersion = "0.11.0"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = ivy"${millModuledefsString}"
   val millModuledefsPlugin =
@@ -244,15 +244,15 @@ object Deps {
   }
 }
 
-def millVersion: T[String] = T { VcsVersion.vcsState().format() }
+def millVersion: T[String] = Task { VcsVersion.vcsState().format() }
 
-def millLastTag: T[String] = T {
+def millLastTag: T[String] = Task {
   VcsVersion.vcsState().lastTag.getOrElse(
     sys.error("No (last) git tag found. Your git history seems incomplete!")
   )
 }
 
-def millBinPlatform: T[String] = T {
+def millBinPlatform: T[String] = Task {
   // val tag = millLastTag()
   // if (tag.contains("-M")) tag
   // else {
@@ -320,14 +320,14 @@ val bridgeVersion = "0.0.1"
 trait MillJavaModule extends JavaModule {
 
   // Test setup
-  def testDep = T { (s"com.lihaoyi-${artifactId()}", testDepPaths().map(_.path).mkString("\n")) }
+  def testDep = Task { (s"com.lihaoyi-${artifactId()}", testDepPaths().map(_.path).mkString("\n")) }
 
   // Workaround for Zinc/JNA bug
   // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
-  def testArgs: T[Seq[String]] = T { Seq("-Djna.nosys=true") }
-  def testDepPaths = T { upstreamAssemblyClasspath() ++ Seq(compile().classes) ++ resources() }
+  def testArgs: T[Seq[String]] = Task { Seq("-Djna.nosys=true") }
+  def testDepPaths = Task { upstreamAssemblyClasspath() ++ Seq(compile().classes) ++ resources() }
 
-  def testTransitiveDeps: T[Map[String, String]] = T {
+  def testTransitiveDeps: T[Map[String, String]] = Task {
     val upstream = T.traverse(moduleDeps ++ compileModuleDeps) {
       case m: MillJavaModule => m.testTransitiveDeps.map(Some(_))
       case _ => T.task(None)
@@ -429,12 +429,12 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
     def moduleDeps = outer.testModuleDeps
     def ivyDeps = super.ivyDeps() ++ outer.testIvyDeps()
     def forkEnv = super.forkEnv() ++ outer.forkEnv()
-//    override def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
+    override def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
   }
 }
 
 trait MillBaseTestsModule extends TestModule {
-  def forkArgs = T {
+  def forkArgs = Task {
     Seq(
       s"-DMILL_SCALA_2_13_VERSION=${Deps.scalaVersion}",
       s"-DMILL_SCALA_2_12_VERSION=${Deps.workerScalaVersion212}",
@@ -554,7 +554,7 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
   )
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
 
-  def mimaPreviousArtifacts: T[Agg[Dep]] = T {
+  def mimaPreviousArtifacts: T[Agg[Dep]] = Task {
     Agg.from(
       Settings.mimaBaseVersions
         .filter(v => !skipPreviousVersions().contains(v))
@@ -591,14 +591,14 @@ trait BridgeModule extends MillPublishJavaModule with CrossScalaModule {
     ivy"org.scala-sbt::compiler-bridge:${Deps.zinc.version}".exclude("*" -> "*")
   )
 
-  def compilerBridgeSourceJars: T[Agg[PathRef]] = T {
+  def compilerBridgeSourceJars: T[Agg[PathRef]] = Task {
     resolveDeps(
       T.task { compilerBridgeIvyDeps().map(bindDependency()) },
       sources = true
     )()
   }
 
-  def generatedSources = T {
+  def generatedSources = Task {
     compilerBridgeSourceJars().foreach { jar =>
       mill.api.IO.unpackZip(jar.path, os.rel)
     }
@@ -758,8 +758,6 @@ object dist0 extends MillPublishJavaModule {
     build.contrib.jmh.testDep(),
     build.contrib.playlib.testDep(),
     build.contrib.playlib.worker("2.8").testDep(),
-    build.contrib.errorprone.testDep(),
-    build.contrib.checkstyle.testDep(),
     build.bsp.worker.testDep(),
     build.testkit.testDep()
   )
@@ -775,7 +773,7 @@ object dist extends MillPublishJavaModule {
 
   def genTask(m: ScalaModule) = T.task { Seq(m.jar(), m.sourceJar()) ++ m.runClasspath() }
 
-  def forkArgs: T[Seq[String]] = T {
+  def forkArgs: T[Seq[String]] = Task {
     val genIdeaArgs =
       genTask(build.main.define)() ++
         genTask(build.main.eval)() ++
@@ -793,7 +791,7 @@ object dist extends MillPublishJavaModule {
       )
   }
 
-  def launcher = T {
+  def launcher = Task {
     val isWin = scala.util.Properties.isWin
     val outputPath = T.dest / (if (isWin) "run.bat" else "run")
 
@@ -803,7 +801,7 @@ object dist extends MillPublishJavaModule {
     PathRef(outputPath)
   }
 
-  def extraPublish: T[Seq[PublishInfo]] = T {
+  def extraPublish: T[Seq[PublishInfo]] = Task {
     Seq(PublishInfo(file = assembly(), classifier = Some("assembly"), ivyConfig = "compile"))
   }
 
@@ -817,7 +815,7 @@ object dist extends MillPublishJavaModule {
     case m: PublishModule if (m ne this) && (m ne dist) => m
   }
 
-  def rawAssembly = T {
+  def rawAssembly = Task {
     val version = millVersion()
     val devRunClasspath = runClasspath().map(_.path)
     val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
@@ -838,14 +836,14 @@ object dist extends MillPublishJavaModule {
     )
     PathRef(T.dest / filename)
   }
-  def assembly = T {
+  def assembly = Task {
     T.traverse(allPublishModules)(m => m.publishLocalCached)()
     val raw = rawAssembly().path
     os.copy(raw, T.dest / raw.last)
     PathRef(T.dest / raw.last)
   }
 
-  def prependShellScript = T {
+  def prependShellScript = Task {
     val (millArgs, otherArgs) =
       forkArgs().partition(arg => arg.startsWith("-DMILL") && !arg.startsWith("-DMILL_VERSION"))
     // Pass Mill options via file, due to small max args limit in Windows
@@ -865,7 +863,7 @@ object dist extends MillPublishJavaModule {
     )
   }
 
-  def pathingJar = T {
+  def pathingJar = Task {
     // see http://todayguesswhat.blogspot.com/2011/03/jar-manifestmf-class-path-referencing.html
     // for more detailed explanation
     val isWin = scala.util.Properties.isWin
@@ -936,7 +934,7 @@ def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Pat
 
 def millBootstrap = T.sources(T.workspace / "mill")
 
-def bootstrapLauncher = T {
+def bootstrapLauncher = Task {
   val outputPath = T.dest / "mill"
   val millBootstrapGrepPrefix = "(\n *DEFAULT_MILL_VERSION=)"
   val millDownloadUrlPrefix = "(\n *MILL_DOWNLOAD_URL=)"
@@ -965,7 +963,7 @@ def examplePathsWithArtifactName:Task[Seq[(os.Path,String)]] = T.task{
 }
 
 
-def exampleZips: T[Seq[PathRef]] = T{
+def exampleZips: T[Seq[PathRef]] = Task {
   examplePathsWithArtifactName().map{ case (examplePath, exampleStr) =>
     os.copy(examplePath, T.dest / exampleStr, createFolders = true)
     os.write(T.dest / exampleStr / ".mill-version", millLastTag())

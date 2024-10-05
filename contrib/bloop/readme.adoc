@@ -33,7 +33,7 @@ import mill.scalalib._
 import mill.contrib.bloop.Bloop
 
 object MyModule extends ScalaModule with Bloop.Module {
-  def myTask = T { bloop.config() }
+  def myTask = Task { bloop.config() }
 }
 ----
 

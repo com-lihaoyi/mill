@@ -39,6 +39,65 @@ def ivyDeps = Agg(
 )
 ----
 
+
+== Test dependencies (there is no `test` scope)
+
+One difference between Mill and other build tools like sbt or Maven is the fact, that tests are ordinary submodules on their own.
+For convenience, most modules already come with a pre-configured trait for a test submodule,
+which already inherits all dependencies of their parent module.
+If you need additional test dependencies, you simply add them by overriding `def ivyDeps`, as you would do with normal library dependencies.
+
+When migrating a sbt project and seeing a dependency like this: `"ch.qos.logback" % "logback-classic" % "1.2.3" % "test"`,
+simply add it to the test module's `ivyDeps` as ordinary dependency.
+There is no special test scope in Mill.
+
+.Example
+[source,scala]
+----
+object main extends JavaModule {
+  object test extends JavaModuleTests {
+    def ivyDeps = Agg(
+      ivy"org.qos.logback:logback-classic:1.2.3"
+    )
+  }
+}
+----
+
+== Compile-only dependencies (`provided` scope)
+
+If you want to use a dependency only at compile time, you can declare it with the `compileIvyDeps` task.
+
+.Example
+[source,scala]
+----
+def compileIvyDeps = Agg(
+  ivy"org.slf4j:slf4j-api:1.7.25"
+)
+----
+
+When Mill generated file to interact with package manager like `pom.xml` for Maven repositories, such compile-only dependencies are mapped to the `provided` scope.
+
+Please note, that dependencies with `provided` scope will never be resolved transitively. Hence, the name "provided", as the task runtime needs to "provide" them, if they are needed.
+
+
+== Runtime dependencies
+
+If you want to declare dependencies to be used at runtime (but not at compile time), you can use the `runIvyDeps` tasks.
+
+.Example
+[source,scala]
+----
+def runIvyDeps = Agg(
+  ivy"ch.qos.logback:logback-classic:1.2.0"
+)
+----
+
+It is also possible to use a higher version of the same library dependencies already defined in `ivyDeps`, to ensure you compile against a minimal API version, but actually run with the latest available version.
+
+== Searching For Dependency Updates
+
+include::partial$example/depth/dependencies/1-search-updates.adoc[]
+
 == Scala dependencies
 
 Scala major releases up until version `2.13` are binary incompatible.
@@ -104,60 +163,6 @@ In the early development of Scala 3, the Scala 3 compiler was called "Dotty". La
 
 The dotty compiler itself is an implementation of the http://lampwww.epfl.ch/~amin/dot/fool.pdf[Dependent Object Types (DOT) calculus], which is the new basis of Scala 3. It also enhances the type system to a next level and allows features like union-types and intersection-types.
 --
-
-== Test dependencies (there is no `test` scope)
-
-One difference between Mill and other build tools like sbt or Maven is the fact, that tests are ordinary submodules on their own.
-For convenience, most modules already come with a pre-configured trait for a test submodule,
-which already inherits all dependencies of their parent module.
-If you need additional test dependencies, you simply add them by overriding `def ivyDeps`, as you would do with normal library dependencies.
-
-When migrating a sbt project and seeing a dependency like this: `"ch.qos.logback" % "logback-classic" % "1.2.3" % "test"`,
-simply add it to the test module's `ivyDeps` as ordinary dependency.
-There is no special test scope in Mill.
-
-.Example
-[source,scala]
-----
-object main extends JavaModule {
-  object test extends JavaModuleTests {
-    def ivyDeps = Agg(
-      ivy"org.qos.logback:logback-classic:1.2.3"
-    )
-  }
-}
-----
-
-== Compile-only dependencies (`provided` scope)
-
-If you want to use a dependency only at compile time, you can declare it with the `compileIvyDeps` target.
-
-.Example
-[source,scala]
-----
-def compileIvyDeps = Agg(
-  ivy"org.slf4j:slf4j-api:1.7.25"
-)
-----
-
-When Mill generated file to interact with package manager like `pom.xml` for Maven repositories, such compile-only dependencies are mapped to the `provided` scope.
-
-Please note, that dependencies with `provided` scope will never be resolved transitively. Hence, the name "provided", as the target runtime needs to "provide" them, if they are needed.
-
-
-== Runtime dependencies
-
-If you want to declare dependencies to be used at runtime (but not at compile time), you can use the `runIvyDeps` targets.
-
-.Example
-[source,scala]
-----
-def runIvyDeps = Agg(
-  ivy"ch.qos.logback:logback-classic:1.2.0"
-)
-----
-
-It is also possible to use a higher version of the same library dependencies already defined in `ivyDeps`, to ensure you compile against a minimal API version, but actually run with the latest available version.
 
 == Detecting transitive dependencies
 
@@ -288,3 +293,4 @@ To the already required Scala version, there comes the Scala Native version.
 
 You can use two colons (`::`) between `name` and `version` to define a Scala Native dependency.
 Your module needs to `extends ScalaNativeModule` to accept Scala Native dependencies.
+

@@ -104,12 +104,11 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       for (terminal <- terminals) {
         val deps = interGroupDeps(terminal)
         futures(terminal) = Future.sequence(deps.map(futures)).map { upstreamValues =>
-          val countMsg = count
-            .getAndIncrement()
-            .toString
-            .reverse
-            .padTo(terminals.size.toString.length, '0')
-            .reverse
+          val countMsg = mill.util.Util.leftPad(
+            count.getAndIncrement().toString,
+            terminals.length.toString.length,
+            '0'
+          )
 
           val verboseKeySuffix = s"/${terminals0.size}"
           logger.setPromptLeftHeader(s"$countMsg$verboseKeySuffix")

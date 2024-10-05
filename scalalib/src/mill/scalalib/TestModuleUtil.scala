@@ -2,7 +2,7 @@ package mill.scalalib
 
 import mill.api.{Ctx, PathRef, Result}
 import mill.main.client.EnvVars
-import mill.testrunner.{TestArgs, TestResult, TestRunnerUtils}
+import mill.testrunner.{Framework, TestArgs, TestResult, TestRunnerUtils}
 import mill.util.Jvm
 import mill.{Agg, T}
 import sbt.testing.Status
@@ -86,8 +86,34 @@ private[scalalib] object TestModuleUtil {
         "\nRun discoveredTestClasses to see available tests"
     )
 
-    val filteredClassLists = testClassLists.map(_.filter(globFilter)).filter(_.nonEmpty)
+    val filteredClassLists0 = testClassLists.map(_.filter(globFilter)).filter(_.nonEmpty)
 
+    val filteredClassLists =
+      if (filteredClassLists0.size == 1) filteredClassLists0
+      else {
+        // If test grouping is enabled and multiple test groups are detected, we need to
+        // run test discovery via the test framework's own argument parsing and filtering
+        // logic once in memory before we potentially fork off multiple test groups that will
+        // each do the same thing and then run tests. This duplication is necessary so we can
+        // skip test groups that we know will be empty, which is important because even an empty
+        // test group requires spawning a JVM which can take 1+ seconds to realize there are no
+        // tests to run and shut down
+        val discoveredTests = Jvm.inprocess(
+          (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
+          classLoaderOverrideSbtTesting = true,
+          isolated = true,
+          closeContextClassLoaderWhenDone = false,
+          TestRunnerUtils.getTestTasks0(
+            Framework.framework(testFramework),
+            testClasspath.map(_.path),
+            args,
+            cls => globFilter(cls.getName),
+            _
+          )
+        ).toSet
+
+        filteredClassLists0.map(_.filter(discoveredTests)).filter(_.nonEmpty)
+      }
     if (selectors.nonEmpty && filteredClassLists.isEmpty) throw doesNotMatchError
 
     val subprocessResult: Either[String, (String, Seq[TestResult])] = filteredClassLists match {
@@ -96,6 +122,7 @@ private[scalalib] object TestModuleUtil {
       case Nil => runTestRunnerSubprocess(Nil, T.dest)
       case Seq(singleTestClassList) => runTestRunnerSubprocess(singleTestClassList, T.dest)
       case multipleTestClassLists =>
+        val maxLength = multipleTestClassLists.length.toString.length
         val futures = multipleTestClassLists.zipWithIndex.map { case (testClassList, i) =>
           val groupPromptMessage = testClassList match {
             case Seq(single) => single
@@ -103,12 +130,14 @@ private[scalalib] object TestModuleUtil {
               collapseTestClassNames(multiple).mkString(", ") + s", ${multiple.length} suites"
           }
 
+          val paddedIndex = mill.util.Util.leftPad(i.toString, maxLength, '0')
           val folderName = testClassList match {
             case Seq(single) => single
-            case multiple => s"group-$i-${multiple.head}"
+            case multiple =>
+              s"group-$paddedIndex-${multiple.head}"
           }
 
-          T.fork.async(T.dest / folderName, "" + i, groupPromptMessage) {
+          T.fork.async(T.dest / folderName, paddedIndex, groupPromptMessage) {
             (folderName, runTestRunnerSubprocess(testClassList, T.dest / folderName))
           }
         }

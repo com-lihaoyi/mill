@@ -7,8 +7,6 @@
 // application code, but instead are utilities that help you understand and work
 // with your Mill build.
 //
-// == Example `build.mill`
-//
 // The following examples will be assuming the `build.mill` file given below:
 
 //// SNIPPET:BUILD
@@ -83,6 +81,9 @@ foo.artifactName
 
 */
 
+// See the documentation for <<Task Query Syntax>> for more details what you
+// can pass to `resolve`
+
 // == inspect
 
 // `inspect` is a more verbose version of <<_resolve>>. In addition to printing
@@ -114,7 +115,9 @@ Inputs:
 // Most people would not be interested in e.g. viewing the metadata related to
 // incremental compilation: they just want to compile their code! However, if you
 // want to inspect the build to debug problems, you can make Mill show you the
-// metadata output for a task using the `show` command:
+// metadata output for a task using the `show` command. e.g. if it seems source
+// files are not getting picked up, you can `show foo.sources` to see where Mill
+// is looking for the `foo` module's source files:
 
 /** Usage
 
@@ -144,28 +147,14 @@ Inputs:
 }
 */
 
-// `show` is generally useful as a debugging tool, to see what is going on in your build:
-
-/** Usage
-
-> mill show foo.sources
-[
-  ".../foo/src"
-]
-
-> mill show foo.compileClasspath
-[
-  ...
-  ".../foo/compile-resources"
-]
-
-*/
 
 // `show` is also useful for interacting with Mill from external tools, since the
-// JSON it outputs is structured and easily parsed and manipulated.
+// JSON it outputs is structured and easily parsed and manipulated. You can easily
+// pipe the `show` output into a python script or `jq` to manipulate it further.
 //
-// When `show` is used with multiple targets, its output will slightly change to a
-// JSON array, containing all the results of the given targets.
+// When `show` is used with multiple task, its output will slightly change to a
+// JSON dictionary, with the keys being the task names and the values being the
+// JSON results of the given task.
 
 /** Usage
 
@@ -185,9 +174,16 @@ Inputs:
 // == showNamed
 
 // Same as `show`, but the output will always be structured in a JSON
-// dictionary, whether there is one or more targets in the selection
+// dictionary, whether there is one or more task in the selection
 
 /** Usage
+
+> mill showNamed 'foo.sources'
+{
+  "foo.sources": [
+    ".../foo/src"
+  ]
+}
 
 > mill showNamed 'foo.{sources,compileClasspath}'
 {
@@ -201,6 +197,11 @@ Inputs:
 }
 
 */
+
+// This can make it easier to programmatically work with the output of running
+// one-or-more tasks via Mill wildcard queries, since the `{"<task-name>": <output>}`
+// structure remains the same regardless of how many values the query returns.
+
 
 // == path
 
@@ -250,6 +251,10 @@ foo.compileClasspath
 
 */
 
+// Note that due to parallelism, the given order is only the order that the tasks
+// will be _started_: the order in which tasks _complete_ may be different since
+// the tasks will run in parallel taking varying amounts of time.
+
 // == clean
 
 // `clean` deletes all the cached outputs of previously executed tasks.
@@ -261,7 +266,7 @@ foo.compileClasspath
 */
 
 // `clean` without arguments cleans the entire project.
-// It also accepts arguments to clean entire modules, or specific tasks.
+// It also accepts arguments to clean specific modules, or specific tasks.
 
 /** Usage
 
@@ -276,28 +281,7 @@ foo.compileClasspath
 
 */
 
-// == Search for dependency updates
 
-// Mill can search for updated versions of your project's dependencies, if
-// available from your project's configured repositories. Note that it uses
-// heuristics based on common versioning schemes, so it may not work as expected for
-// dependencies with particularly weird version numbers.
-
-/** Usage
-
-> mill mill.scalalib.Dependency/showUpdates
-
-> mill mill.scalalib.Dependency/showUpdates --allowPreRelease true # also show pre-release versions
-
-*/
-
-// Current limitations:
-//
-// * Only works for `JavaModule` modules (including ``ScalaModule``s,
-// ``CrossScalaModule``s, etc.) and Maven repositories.
-// * Always applies to all modules in the build.
-// * Doesn't apply to `$ivy` dependencies used in the build definition itself.
-//
 // == visualize
 //
 /** Usage
@@ -311,7 +295,7 @@ foo.compileClasspath
 ]
 */
 //
-// `mill show visualize` takes a subset of the Mill build graph (e.g. `+core._+`
+// `mill visualize` takes a subset of the Mill build graph (e.g. `+core._+`
 // is every task directly under the `core` module) and draws out their
 // relationships in `.svg` and `.png` form for you to inspect. It also generates
 // `.txt`, `.dot` and `.json` for easy processing by downstream tools.
@@ -326,7 +310,7 @@ foo.compileClasspath
 // == visualizePlan
 //
 /** Usage
-> mill show visualizePlan foo.run
+> mill visualizePlan foo.run
 [
   ".../out/visualizePlan.dest/out.txt",
   ".../out/visualizePlan.dest/out.dot",
@@ -336,7 +320,7 @@ foo.compileClasspath
 ]
 */
 //
-// `mill show visualizePlan` is similar to `mill show visualize` except that it
+// `mill visualizePlan` is similar to `mill visualize` except that it
 // shows a graph of the entire build plan, including tasks not directly resolved
 // by the query. Tasks directly resolved are shown with a solid border, and
 // dependencies are shown with a dotted border.
@@ -344,30 +328,6 @@ foo.compileClasspath
 // The above command generates the following diagram (right-click open in new tab to see full sized):
 //
 // image::VisualizePlanJava.svg[VisualizePlanJava.svg]
-//
-// == Running Mill with custom JVM options
-//
-// It's possible to pass JVM options to the Mill launcher. To do this you need to
-// create a `.mill-jvm-opts` file in your project's root. This file should contain
-// JVM options, one per line.
-//
-// For example, if your build requires a lot of memory and bigger stack size, your
-// `.mill-jvm-opts` could look like this:
-//
-// ----
-// -Xss10m
-// -Xmx10G
-// ----
-//
-// The file name for passing JVM options to the Mill launcher is configurable. If
-// for some reason you don't want to use `.mill-jvm-opts` file name, add
-// `MILL_JVM_OPTS_PATH` environment variable with any other file name.
-//
-//
-// ---
-//
-// Come by our https://discord.gg/MNAXQMAr[Discord Channel]
-// if you want to ask questions or say hi!
 //
 //
 // == init

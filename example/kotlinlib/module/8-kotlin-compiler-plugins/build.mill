@@ -15,7 +15,7 @@ object foo extends KotlinModule {
     ivy"org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3"
   )
 
-  def processors = T {
+  def processors = Task {
     defaultResolver().resolveDeps(
       Agg(
         ivy"org.jetbrains.kotlin:kotlin-serialization-compiler-plugin:1.9.24"
@@ -27,7 +27,7 @@ object foo extends KotlinModule {
     s"-Xplugin=${processors().head.path}"
   )
 
-  object test extends KotlinModuleTests with TestModule.Junit5 {
+  object test extends KotlinTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
     )

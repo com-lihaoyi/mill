@@ -29,18 +29,18 @@ object KoverModuleTests extends TestSuite {
 
     object foo extends KotlinModule with KoverModule {
       def kotlinVersion = KoverModuleTests.kotlinVersion
-      object test extends KotlinModuleTests with module.KotestTestModule with KoverTests
+      object test extends KotlinTests with module.KotestTestModule with KoverTests
     }
 
     object bar extends KotlinModule with KoverModule {
       def kotlinVersion = KoverModuleTests.kotlinVersion
-      object test extends KotlinModuleTests with module.KotestTestModule with KoverTests
+      object test extends KotlinTests with module.KotestTestModule with KoverTests
     }
 
     // module not instrumented with Kover
     object qux extends KotlinModule {
       def kotlinVersion = KoverModuleTests.kotlinVersion
-      object test extends KotlinModuleTests with module.KotestTestModule
+      object test extends KotlinTests with module.KotestTestModule
     }
   }
 

@@ -58,7 +58,7 @@ trait DetektModule extends KotlinModule {
   /**
    * Classpath for running Dekekt.
    */
-  def detektClasspath: T[Loose.Agg[PathRef]] = T {
+  def detektClasspath: T[Loose.Agg[PathRef]] = Task {
     defaultResolver().resolveDeps(
       Agg(ivy"io.gitlab.arturbosch.detekt:detekt-cli:${detektVersion()}")
     )
@@ -67,21 +67,21 @@ trait DetektModule extends KotlinModule {
   /**
    * Detekt configuration file. Defaults to `detekt-config.yml`.
    */
-  def detektConfig: T[PathRef] = T {
+  def detektConfig: T[PathRef] = Task {
     PathRef(T.workspace / "detekt-config.yml")
   }
 
   /**
    * Detekt version.
    */
-  def detektVersion: T[String] = T {
+  def detektVersion: T[String] = Task {
     Versions.detektVersion
   }
 
   /**
    * Additional arguments for Detekt. Check [[https://detekt.dev/docs/gettingstarted/cli/ available options]].
    */
-  def detektOptions: T[Seq[String]] = T {
+  def detektOptions: T[Seq[String]] = Task {
     Seq.empty[String]
   }
 }

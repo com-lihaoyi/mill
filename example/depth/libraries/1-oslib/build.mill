@@ -9,17 +9,17 @@
 
 import mill._
 
-def task1 = T{
+def task1 = Task {
   os.write(os.pwd / "file.txt", "hello")
   PathRef(os.pwd / "file.txt")
 }
 
-def task2 = T{
+def task2 = Task {
   os.call(("bash", "-c", "echo 'world' >> file.txt"))
   PathRef(os.pwd / "file.txt")
 }
 
-def command = T{
+def command = Task {
   println(task1().path)
   println(os.read(task1().path))
   println(task2().path)
