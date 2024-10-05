@@ -32,7 +32,7 @@ object foo extends ScalaModule {
 
 //// SNIPPET:END
 
-// You can re-define tasks and commands to override them, and use `super` if you
+// You can re-define tasks to override them, and use `super` if you
 // want to refer to the originally defined task. The above example shows how to
 // override `compile` and `run` to add additional logging messages, and we
 // override `sources` which was `Task.Sources` for the `src/` folder with a plain

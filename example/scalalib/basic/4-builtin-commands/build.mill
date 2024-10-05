@@ -81,6 +81,9 @@ foo.artifactName
 
 */
 
+// See the documentation for <<Task Query Syntax>> for more details what you
+// can pass to `resolve`
+
 // == inspect
 
 // `inspect` is a more verbose version of <<_resolve>>. In addition to printing
@@ -112,7 +115,9 @@ Inputs:
 // Most people would not be interested in e.g. viewing the metadata related to
 // incremental compilation: they just want to compile their code! However, if you
 // want to inspect the build to debug problems, you can make Mill show you the
-// metadata output for a task using the `show` command:
+// metadata output for a task using the `show` command. e.g. if it seems source
+// files are not getting picked up, you can `show foo.sources` to see where Mill
+// is looking for the `foo` module's source files:
 
 /** Usage
 
@@ -142,25 +147,10 @@ Inputs:
 }
 */
 
-// `show` is generally useful as a debugging tool, to see what is going on in your build:
-
-/** Usage
-
-> mill show foo.sources
-[
-  ".../foo/src"
-]
-
-> mill show foo.compileClasspath
-[
-  ...
-  ".../foo/compile-resources"
-]
-
-*/
 
 // `show` is also useful for interacting with Mill from external tools, since the
-// JSON it outputs is structured and easily parsed and manipulated.
+// JSON it outputs is structured and easily parsed and manipulated. You can easily
+// pipe the `show` output into a python script or `jq` to manipulate it further.
 //
 // When `show` is used with multiple task, its output will slightly change to a
 // JSON dictionary, with the keys being the task names and the values being the
@@ -188,6 +178,13 @@ Inputs:
 
 /** Usage
 
+> mill showNamed 'foo.sources'
+{
+  "foo.sources": [
+    ".../foo/src"
+  ]
+}
+
 > mill showNamed 'foo.{sources,compileClasspath}'
 {
   "foo.sources": [
@@ -200,6 +197,11 @@ Inputs:
 }
 
 */
+
+// This can make it easier to programmatically work with the output of running
+// one-or-more tasks via Mill wildcard queries, since the `{"<task-name>": <output>}`
+// structure remains the same regardless of how many values the query returns.
+
 
 // == path
 
@@ -249,6 +251,10 @@ foo.compileClasspath
 
 */
 
+// Note that due to parallelism, the given order is only the order that the tasks
+// will be _started_: the order in which tasks _complete_ may be different since
+// the tasks will run in parallel taking varying amounts of time.
+
 // == clean
 
 // `clean` deletes all the cached outputs of previously executed tasks.
@@ -260,7 +266,7 @@ foo.compileClasspath
 */
 
 // `clean` without arguments cleans the entire project.
-// It also accepts arguments to clean entire modules, or specific tasks.
+// It also accepts arguments to clean specific modules, or specific tasks.
 
 /** Usage
 
@@ -289,7 +295,7 @@ foo.compileClasspath
 ]
 */
 //
-// `mill show visualize` takes a subset of the Mill build graph (e.g. `+core._+`
+// `mill visualize` takes a subset of the Mill build graph (e.g. `+core._+`
 // is every task directly under the `core` module) and draws out their
 // relationships in `.svg` and `.png` form for you to inspect. It also generates
 // `.txt`, `.dot` and `.json` for easy processing by downstream tools.
@@ -304,7 +310,7 @@ foo.compileClasspath
 // == visualizePlan
 //
 /** Usage
-> mill show visualizePlan foo.run
+> mill visualizePlan foo.run
 [
   ".../out/visualizePlan.dest/out.txt",
   ".../out/visualizePlan.dest/out.dot",
@@ -314,7 +320,7 @@ foo.compileClasspath
 ]
 */
 //
-// `mill show visualizePlan` is similar to `mill show visualize` except that it
+// `mill visualizePlan` is similar to `mill visualize` except that it
 // shows a graph of the entire build plan, including tasks not directly resolved
 // by the query. Tasks directly resolved are shown with a solid border, and
 // dependencies are shown with a dotted border.

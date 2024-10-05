@@ -53,6 +53,27 @@ object `package` extends RootModule with ScalaModule {
 
 //// SNIPPET:END
 
+// The above build defines the customizations to the Mill task graph shown below,
+// with the boxes representing tasks defined or overriden above and the un-boxed
+// labels representing existing Mill tasks:
+//
+// [graphviz]
+// ....
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0]
+//   lineCount -> printLineCount
+//   sources -> lineCount -> forkArgs -> "..." -> run
+//
+//   ivyDeps -> generatedSources -> compile -> "..."
+//   sources [color=white]
+//   run [color=white]
+//
+//   compile [color=white]
+//   "..." [color=white]
+// }
+// ....
+//
 // Mill lets you define new cached Tasks using the `Task {...}` syntax,
 // depending on existing Tasks e.g. `foo.sources` via the `foo.sources()`
 // syntax to extract their current value, as shown in `lineCount` above. The
@@ -87,7 +108,7 @@ my.line.count: 14
 
 //// SNIPPET:END
 
-// Custom tasks and commands can contain arbitrary code. Whether you want to
+// Custom tasks can contain arbitrary code. Whether you want to
 // download files using `requests.get`, shell-out to Webpack
 // to compile some Javascript, generate sources to feed into a compiler, or
 // create some custom jar/zip assembly with the files you want , all of these
