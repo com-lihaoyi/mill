@@ -48,12 +48,12 @@ real-world project compares to using SBT.
 
 [cols="1,1,1,1"]
 |===
-| Benchmark | Cold SBT | Hot SBT | Mill
+| Benchmark | Cold SBT | Hot SBT (rounded) | Mill
 
-| <<Parallel Clean Compile All>> | 28.7s | 12s | 10.4s
-| <<Clean Compile Single-Module>> | 10.1s | 1s | 0.96s
-| <<Incremental Compile Single-Module>> | 6.2s | 0s | 0.48s
-| <<No-Op Compile Single-Module>> | 4.2s | 0s | 0.40s
+| <<Parallel Clean Compile All>> | 28.7s | ≈ 12s | 10.4s
+| <<Clean Compile Single-Module>> | 10.1s | ≈ 1s | 0.96s
+| <<Incremental Compile Single-Module>> | 6.2s | ≈ 0s | 0.48s
+| <<No-Op Compile Single-Module>> | 4.2s | ≈ 0s | 0.40s
 |===
 
 SBT can be used in two modes, either "cold" run directly from the command line, or "hot"
