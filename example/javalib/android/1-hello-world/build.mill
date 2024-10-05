@@ -15,15 +15,8 @@ import mill.javalib.android.{AndroidAppModule, AndroidSdkModule}
 object `package` extends RootModule with AndroidAppModule {
 
   // Create and configure an Android SDK module to manage Android SDK paths and tools.
-  object sdkModule extends AndroidSdkModule
+  object androidSdkModule extends AndroidSdkModule
 
-  // Override the `androidSdkModule` to link to our custom `sdkModule`, which provides 
-  // Android SDK toolchain (e.g., `aapt`, `d8`, `zipalign`, `apksigner`).
-  override def androidSdkModule: AndroidSdkModule = sdkModule
-
-  // Define the Android application name. Defaults to "HelloWorld", but can be customized 
-  // by overriding this value in the project.
-  def androidAppName: T[String] = T { "HelloWorld" }
 }
 
 ////SNIPPET:END
@@ -31,7 +24,7 @@ object `package` extends RootModule with AndroidAppModule {
 
 /** Usage
 
-> ./mill androidApp
+> ./mill androidApk
 
 */
 
@@ -42,11 +35,6 @@ object `package` extends RootModule with AndroidAppModule {
 // This Mill build configuration is designed to build a simple "Hello World" Android application. 
 // By extending `AndroidAppModule`, we leverage its predefined Android build tasks, ensuring that 
 // all necessary steps (resource generation, APK creation, and signing) are executed automatically.
-//
-// ### Customizable Fields:
-// 
-// - **`androidAppName`**: This defines the name of the final APK file. By default, it's set to 
-//   "HelloWorld.apk", but you can modify this value based on your project requirements.
 // 
 // ### Project Structure:
 // The project follows the standard Android app layout. Below is a typical project folder structure:

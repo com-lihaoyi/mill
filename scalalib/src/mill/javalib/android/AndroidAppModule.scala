@@ -53,17 +53,6 @@ trait AndroidAppModule extends JavaModule {
   def androidSdkModule: AndroidSdkModule
 
   /**
-   * Defines the name of the Android application.
-   *
-   * The name is used as part of the APK file name (e.g., `HelloWorld.apk`), and also
-   * helps distinguish different builds. It defaults to "HelloWorld", but can be
-   * overridden for custom app names.
-   *
-   * @return The name of the Android application as a String.
-   */
-  def androidAppName: T[String] = Task { "HelloWorld" }
-
-  /**
    * Generates the Android resources (such as layouts, strings, and other assets) needed for the application.
    *
    * This method uses the Android `aapt` tool to compile resources specified in the project's `AndroidManifest.xml`
@@ -151,7 +140,7 @@ trait AndroidAppModule extends JavaModule {
    * @return A `PathRef` pointing to the generated JAR file.
    */
   def androidJar: T[PathRef] = Task {
-    val jarFile: os.Path = T.dest / "my_classes.jar"
+    val jarFile: os.Path = T.dest / "app.jar"
 
     os.call(
       Seq(
@@ -201,8 +190,8 @@ trait AndroidAppModule extends JavaModule {
    *
    * @return A `PathRef` pointing to the unsigned APK file.
    */
-  def androidApk: T[PathRef] = Task {
-    val unsignedApk: os.Path = T.dest / s"${androidAppName().toString}.unsigned.apk"
+  def androidUnsignedApk: T[PathRef] = Task {
+    val unsignedApk: os.Path = T.dest / "app.unsigned.apk"
 
     os.call(
       Seq(
@@ -233,8 +222,8 @@ trait AndroidAppModule extends JavaModule {
    *
    * @return A `PathRef` pointing to the aligned APK file.
    */
-  def androidAlignApk: T[PathRef] = Task {
-    val alignedApk: os.Path = T.dest / s"${androidAppName().toString}.aligned.apk"
+  def androidAlignedUnsignedApk: T[PathRef] = Task {
+    val alignedApk: os.Path = T.dest / "app.aligned.apk"
 
     os.call(
       Seq(
@@ -242,7 +231,7 @@ trait AndroidAppModule extends JavaModule {
         "-f",
         "-p",
         "4", // Force overwrite, align with 4-byte boundary
-        androidApk().path.toString, // Use the unsigned APK
+        androidUnsignedApk().path.toString, // Use the unsigned APK
         alignedApk.toString // Output aligned APK
       )
     )
@@ -264,8 +253,8 @@ trait AndroidAppModule extends JavaModule {
    *
    * @return A `PathRef` pointing to the signed APK.
    */
-  def androidApp: T[PathRef] = Task {
-    val signedApk: os.Path = millSourcePath / s"${androidAppName().toString}.apk"
+  def androidApk: T[PathRef] = Task {
+    val signedApk: os.Path = T.dest / "app.apk"
 
     os.call(
       Seq(
@@ -281,7 +270,7 @@ trait AndroidAppModule extends JavaModule {
         "pass:android", // Key password
         "--out",
         signedApk.toString, // Output signed APK
-        androidAlignApk().path.toString // Use aligned APK
+        androidAlignedUnsignedApk().path.toString // Use aligned APK
       )
     )
 
