@@ -32,7 +32,7 @@ fun modelContent(
     return mapOf(
         "item" to TodoItemFormData(),
         "todoItems" to items,
-        "totalItemCount" to items.size,
+        "totalItemCount" to todos.size,
         "activeItemCount" to activeItemCount,
         "numberOfCompletedItems" to numberOfCompletedItems,
         "filter" to filter.name
