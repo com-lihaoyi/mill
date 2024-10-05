@@ -30,11 +30,11 @@ trait AndroidAppModule extends JavaModule {
    */
   def androidSdkModule: ModuleRef[AndroidSdkModule]
 
-
   /**
    * An XML file containing configuration and metadata about your android application
    */
   def androidManifest: Task[PathRef] = Task.Source(millSourcePath / "AndroidManifest.xml")
+
   /**
    * Generates the Android resources (such as layouts, strings, and other assets) needed
    * for the application.
