@@ -48,7 +48,7 @@ that your build server like Jenkins or Github Actions has the correct version of
 present to build, compile or test your code.
 
 If you do not have an existing project, you can download a bootstrap script and
-run xref:{language}lib/builtin-commands.adoc#_init[`./mill init`] on
+run xref:{language-small}lib/builtin-commands.adoc#_init[`./mill init`] on
 to list out the various example projects and select one to download and unpack into your current
 working directory.
 

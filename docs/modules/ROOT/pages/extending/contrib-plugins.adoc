@@ -52,4 +52,4 @@ import $ivy.`com.lihaoyi::mill-contrib-bloop:`
 
 == Importing Contrib Modules
 
-include::partial$example/extending/imports/6-contrib-import.adoc[]
+include::partial$example/extending/imports/3-contrib-import.adoc[]
