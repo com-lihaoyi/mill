@@ -12,11 +12,14 @@ package build
 import mill._
 import mill.javalib.android.{AndroidAppModule, AndroidSdkModule}
 
-object `package` extends RootModule with AndroidAppModule {
+// Create and configure an Android SDK module to manage Android SDK paths and tools.
+object androidSdkModule0 extends AndroidSdkModule{
+  def buildToolsVersion = "35.0.0"
+}
 
-  // Create and configure an Android SDK module to manage Android SDK paths and tools.
-  object androidSdkModule extends AndroidSdkModule
-
+// Actual android application
+object app extends RootModule with AndroidAppModule {
+  def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
 }
 
 ////SNIPPET:END

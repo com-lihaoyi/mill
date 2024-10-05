@@ -27,12 +27,12 @@ trait AndroidSdkModule extends Module {
   /**
    * Specifies the version of the Android build tools to be used.
    */
-  def buildToolsVersion: T[String] = Task { "35.0.0" }
+  def buildToolsVersion: T[String]
 
   /**
    * Specifies the Android platform version (e.g., Android API level).
    */
-  def platformsVersion: T[String] = Task { "android-35" }
+  def platformsVersion: T[String] = Task { "android-" + buildToolsVersion().split('.').head }
 
   /**
    * Provides the path to the `android.jar` file, necessary for compiling Android apps.
