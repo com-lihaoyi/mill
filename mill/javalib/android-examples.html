@@ -423,9 +423,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-12-4d5976</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-13-070e90</button>
   <div class="version-menu">
-    <a class="version is-current" href="android-examples.html">0.12.0-RC3-12-4d5976</a>
+    <a class="version is-current" href="android-examples.html">0.12.0-RC3-13-070e90</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
@@ -496,19 +496,33 @@ Additionally, <code>AndroidSdkModule</code> is embedded, making SDK management s
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
 import mill._
-import mill.javalib.android.{AndroidAppModule, AndroidSdkModule}
-
-object `package` extends RootModule with AndroidAppModule {
-
-  // Create and configure an Android SDK module to manage Android SDK paths and tools.
-  object androidSdkModule extends AndroidSdkModule
-
+import mill.javalib.android.{AndroidAppModule, AndroidSdkModule}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Create and configure an Android SDK module to manage Android SDK paths and tools.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object androidSdkModule0 extends AndroidSdkModule{
+  def buildToolsVersion = &quot;35.0.0&quot;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Actual android application</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object app extends AndroidAppModule {
+  def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill androidApk</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show app.androidApk
+&quot;.../out/app/androidApk.dest/app.apk&quot;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -530,14 +544,10 @@ all necessary steps (resource generation, APK creation, and signing) are execute
 <div class="content">
 <pre>.
 ├── build.mill
-└── src
-    └── main
-        ├── AndroidManifest.xml
-        └── java
-            └── com
-                └── helloworld
-                    └── app
-                        └── MainActivity.java</pre>
+├── AndroidManifest.xml
+└── src/main/java
+    └── com/helloworld/app
+        └── MainActivity.java</pre>
 </div>
 </div>
 <div class="paragraph">
