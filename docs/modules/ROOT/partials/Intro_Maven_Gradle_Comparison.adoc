@@ -42,7 +42,7 @@ xref:comparisons/gradle.adoc[Compared to Gradle]:
   tool, and more time focusing on the things that really matter to your project.
 
 * **Mill enforces best practices by default**. All Mill tasks are cached by default, even
-  custom tasks. All Mill tasks write their output to disk xref:depth/out-dir.adoc[a
+  custom tasks. All Mill tasks write their output to disk xref:fundamentals/out-dir.adoc[a
   standard place]. All task inter-dependencies are automatically captured, without
   needing manual annotation. All Mill builds are incremental, not just tasks but also
   xref:depth/evaluation-model.adoc#_caching_at_each_layer_of_the_evaluation_model[configuration
