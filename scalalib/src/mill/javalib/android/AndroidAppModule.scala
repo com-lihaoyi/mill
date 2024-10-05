@@ -2,6 +2,7 @@ package mill.javalib.android
 
 import mill._
 import mill.api.PathRef
+import mill.define.ModuleRef
 import mill.scalalib.JavaModule
 
 /**
@@ -27,7 +28,12 @@ trait AndroidAppModule extends JavaModule {
    *
    * @return The Android SDK module that is used across the project.
    */
-  def androidSdkModule: AndroidSdkModule
+  def androidSdkModule: ModuleRef[AndroidSdkModule]
+
+  /**
+   * An XML file containing configuration and metadata about your android application
+   */
+  def androidManifest: Task[PathRef] = Task.Source(millSourcePath / "AndroidManifest.xml")
 
   /**
    * Generates the Android resources (such as layouts, strings, and other assets) needed
@@ -45,16 +51,16 @@ trait AndroidAppModule extends JavaModule {
     val genDir: os.Path = T.dest // Directory to store generated resources.
 
     os.call(Seq(
-      androidSdkModule.aaptPath().path.toString, // Call aapt tool
+      androidSdkModule().aaptPath().path.toString, // Call aapt tool
       "package",
       "-f",
       "-m",
       "-J",
       genDir.toString, // Generate R.java files
       "-M",
-      (millSourcePath / "src/main/AndroidManifest.xml").toString, // Use AndroidManifest.xml
+      androidManifest().path.toString, // Use AndroidManifest.xml
       "-I",
-      androidSdkModule.androidJarPath().path.toString // Include Android SDK JAR
+      androidSdkModule().androidJarPath().path.toString // Include Android SDK JAR
     ))
 
     PathRef(genDir)
@@ -64,7 +70,7 @@ trait AndroidAppModule extends JavaModule {
    * Adds the Android SDK JAR file to the classpath during the compilation process.
    */
   def unmanagedClasspath: T[Agg[PathRef]] = Task {
-    Agg(androidSdkModule.androidJarPath())
+    Agg(androidSdkModule().androidJarPath())
   }
 
   /**
@@ -93,7 +99,7 @@ trait AndroidAppModule extends JavaModule {
 
     os.call(
       Seq(
-        androidSdkModule.d8Path().path.toString, // Call d8 tool
+        androidSdkModule().d8Path().path.toString, // Call d8 tool
         "--output",
         jarFile.toString, // Output JAR file
         "--no-desugaring" // Disable desugaring
@@ -112,10 +118,10 @@ trait AndroidAppModule extends JavaModule {
     val dexOutputDir: os.Path = T.dest
 
     os.call(
-      Seq(androidSdkModule.d8Path().path.toString, "--output", dexOutputDir.toString) ++
+      Seq(androidSdkModule().d8Path().path.toString, "--output", dexOutputDir.toString) ++
         Seq(
           androidJar().path.toString, // Use the JAR file from the previous step
-          androidSdkModule.androidJarPath().path.toString // Include Android framework classes
+          androidSdkModule().androidJarPath().path.toString // Include Android framework classes
         )
     )
 
@@ -134,13 +140,13 @@ trait AndroidAppModule extends JavaModule {
 
     os.call(
       Seq(
-        androidSdkModule.aaptPath().path.toString,
+        androidSdkModule().aaptPath().path.toString,
         "package",
         "-f",
         "-M",
-        (millSourcePath / "src/main/AndroidManifest.xml").toString, // Path to AndroidManifest.xml
+        androidManifest().path.toString, // Path to AndroidManifest.xml
         "-I",
-        androidSdkModule.androidJarPath().path.toString, // Include Android JAR
+        androidSdkModule().androidJarPath().path.toString, // Include Android JAR
         "-F",
         unsignedApk.toString // Output APK
       ) ++ Seq(androidDex().path.toString) // Include DEX files
@@ -160,7 +166,7 @@ trait AndroidAppModule extends JavaModule {
 
     os.call(
       Seq(
-        androidSdkModule.zipalignPath().path.toString, // Call zipalign tool
+        androidSdkModule().zipalignPath().path.toString, // Call zipalign tool
         "-f",
         "-p",
         "4", // Force overwrite, align with 4-byte boundary
@@ -189,7 +195,7 @@ trait AndroidAppModule extends JavaModule {
 
     os.call(
       Seq(
-        androidSdkModule.apksignerPath().path.toString,
+        androidSdkModule().apksignerPath().path.toString,
         "sign", // Call apksigner tool
         "--ks",
         androidKeystore().path.toString, // Path to keystore
@@ -218,7 +224,7 @@ trait AndroidAppModule extends JavaModule {
    * For more details on the keytool utility, refer to:
    * [[https://docs.oracle.com/javase/8/docs/technotes/tools/windows/keytool.html keytool Documentation]]
    */
-  def androidKeystore: T[PathRef] = Task {
+  def androidKeystore: T[PathRef] = Task(persistent = true) {
     val keystoreFile: os.Path = T.dest / "keystore.jks"
 
     if (!os.exists(keystoreFile)) {

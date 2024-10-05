@@ -12,11 +12,14 @@ package build
 import mill._
 import mill.javalib.android.{AndroidAppModule, AndroidSdkModule}
 
-object `package` extends RootModule with AndroidAppModule {
+// Create and configure an Android SDK module to manage Android SDK paths and tools.
+object androidSdkModule0 extends AndroidSdkModule{
+  def buildToolsVersion = "35.0.0"
+}
 
-  // Create and configure an Android SDK module to manage Android SDK paths and tools.
-  object androidSdkModule extends AndroidSdkModule
-
+// Actual android application
+object app extends AndroidAppModule {
+  def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
 }
 
 ////SNIPPET:END
@@ -24,7 +27,8 @@ object `package` extends RootModule with AndroidAppModule {
 
 /** Usage
 
-> ./mill androidApk
+> ./mill show app.androidApk
+".../out/app/androidApk.dest/app.apk"
 
 */
 
@@ -42,13 +46,9 @@ object `package` extends RootModule with AndroidAppModule {
 // ----
 // .
 // ├── build.mill
-// └── src
-//     └── main
-//         ├── AndroidManifest.xml
-//         └── java
-//             └── com
-//                 └── helloworld
-//                     └── app
-//                         └── MainActivity.java
+// ├── AndroidManifest.xml
+// └── src/main/java
+//     └── com/helloworld/app
+//         └── MainActivity.java
 // ----
 //
