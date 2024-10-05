@@ -6,12 +6,12 @@ object Main {
     print("Running HelloWorld function\n")
     val input = c"Hello, World!!\n"
     val reversed = HelloWorld.reverseString(input)
-    print(c"Reversed: %s", reversed)
-    print("Done...\n")
+    println(c"Reversed: %s", reversed)
+    println("Done...")
   }
 }
 
-// Define the external module, the C library containing our function "printString"
+// Define the external module, the C library containing our function "reverseString"
 @extern
 @link("HelloWorld")
 // Arbitrary object name

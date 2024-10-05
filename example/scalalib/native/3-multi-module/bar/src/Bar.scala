@@ -1,12 +1,21 @@
 package bar
 import scalatags.Text.all._
-object Bar {
-  def generateHtml(text: String) = {
-    val value = h1(text)
-    value.toString
-  }
+import scala.scalanative.unsafe._
 
-  def main(args: Array[String]) = {
-    println("Bar.value: " + generateHtml(args(0)))
+object Bar {
+  def main(args: Array[String]): Unit = {
+    println("Running HelloWorld function")
+    val result = HelloWorldBar.generateHtml(args(0))
+    println(("Bar value:" + result)
+    println("Done...)
   }
+}
+
+// Define the external module, the C library containing our function "generateHtml"
+@extern
+@link("HelloWorldBar")
+// Arbitrary object name
+object HelloWorldBar {
+  // Name and signature of C function
+  def generateHtml(str: CString): CString = extern
 }
