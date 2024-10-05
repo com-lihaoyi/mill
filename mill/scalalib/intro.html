@@ -231,47 +231,35 @@
 
   <li class="nav-item is-active" data-depth="0">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Mill In Depth</span>
+    <span class="nav-text">Mill Fundamentals</span>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../depth/library-deps.html">Library Dependencies in Mill</a>
+    <a class="nav-link" href="../fundamentals/library-deps.html">Library Dependencies in Mill</a>
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../depth/out-dir.html">The Output Directory</a>
+    <a class="nav-link" href="../fundamentals/out-dir.html">The Output Directory</a>
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../depth/query-syntax.html">Task Query Syntax</a>
+    <a class="nav-link" href="../fundamentals/query-syntax.html">Task Query Syntax</a>
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../depth/tasks.html">Tasks</a>
+    <a class="nav-link" href="../fundamentals/tasks.html">Tasks</a>
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../depth/modules.html">Modules</a>
+    <a class="nav-link" href="../fundamentals/modules.html">Modules</a>
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../depth/cross-builds.html">Cross Builds</a>
+    <a class="nav-link" href="../fundamentals/cross-builds.html">Cross Builds</a>
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../depth/large-builds.html">Structuring Large Builds</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../depth/sandboxing.html">Mill Sandboxing</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../depth/bundled-libraries.html">Bundled Libraries</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
+    <a class="nav-link" href="../fundamentals/bundled-libraries.html">Bundled Libraries</a>
   </li>
 </ul>
   </li>
@@ -380,12 +368,31 @@
 
   <li class="nav-item is-active" data-depth="0">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Reference</span>
+    <span class="nav-text">Mill In Depth</span>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../reference/design-principles.html">Mill Design Principles</a>
+    <a class="nav-link" href="../depth/large-builds.html">Structuring Large Builds</a>
   </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../depth/sandboxing.html">Mill Sandboxing</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Reference</span>
+<ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="https://mill-build.org/api/latest/mill/index.html">Mill Scaladoc</a>
@@ -412,9 +419,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-6-98487d</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-7-f3fa90</button>
   <div class="version-menu">
-    <a class="version is-current" href="intro.html">0.12.0-RC3-6-98487d</a>
+    <a class="version is-current" href="intro.html">0.12.0-RC3-7-f3fa90</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
     <a class="version" href="../0.11.10/Intro_to_Mill_for_Scala.html">0.11.10</a>
@@ -454,7 +461,7 @@ even as it grows from a small project to a large codebase or monorepo with hundr
 <div class="ulist">
 <ul>
 <li>
-<p><strong>Performance</strong>: Mill’s <a href="../depth/tasks.html" class="xref page">build graph</a> automatically
+<p><strong>Performance</strong>: Mill’s <a href="../fundamentals/tasks.html" class="xref page">build graph</a> automatically
 <a href="../depth/evaluation-model.html#_caching_at_each_layer_of_the_evaluation_model" class="xref page">caches</a>
 and <a href="#_parallel_task_execution">parallelizes</a> build
 tasks, keeping your workflows fast and responsive. Mill adds minimal overhead over
@@ -472,8 +479,8 @@ any application codebase.</p>
 </li>
 <li>
 <p><strong>Flexibility</strong>: Mill’s custom tasks and modules allow anything from
-<a href="../depth/tasks.html#primitive-tasks" class="xref page">adding simple build steps</a>, up to
-<a href="../depth/modules.html#_use_case_diy_java_modules" class="xref page">entire language toolchains</a>.
+<a href="../fundamentals/tasks.html#primitive-tasks" class="xref page">adding simple build steps</a>, up to
+<a href="../fundamentals/modules.html#_use_case_diy_java_modules" class="xref page">entire language toolchains</a>.
 You can <a href="../extending/import-ivy.html" class="xref page">import any JVM library as part of your build</a>,
 use Mill’s rich ecosystem of <a href="../extending/thirdparty-plugins.html" class="xref page">Third-Party Mill Plugins</a>,
 or <a href="../extending/writing-plugins.html" class="xref page">write plugins yourself</a> and publish them
@@ -811,7 +818,7 @@ task as well as where any overriden implementations may be defined.</p>
 <div class="paragraph">
 <p>Unlike normal methods, custom user-defined tasks in Mill benefit from all
 the same things that built-in tasks do: automatic caching (in the
-<a href="../depth/out-dir.html" class="xref page"><code>out/</code> folder</a>), parallelism (with the <code>-j</code>/<code>--jobs</code>
+<a href="../fundamentals/out-dir.html" class="xref page"><code>out/</code> folder</a>), parallelism (with the <code>-j</code>/<code>--jobs</code>
 flag), inspectability (via <code>show</code>/<code>inspect</code>), and so on.
 While these things may not matter for such a simple example that runs
 quickly, they ensure that custom build logic remains performant and
@@ -1055,7 +1062,7 @@ a complete list of options and a cheat-sheet of how to work with tasks:</p>
 <div class="listingblock">
 <div class="title">Output of <code>mill --help</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.12.0-RC3-6-98487d
+<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.12.0-RC3-7-f3fa90
 Usage: mill [options] task [task-options] [+ task ...]
 
 task cheat sheet:

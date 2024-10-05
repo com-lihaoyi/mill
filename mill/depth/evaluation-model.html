@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>The Mill Evaluation Model :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/0.11.12/The_Mill_Evaluation_Model.html" />
-    <link rel="prev" href="bundled-libraries.html" />
-    <link rel="next" href="../extending/import-ivy.html" />
+    <link rel="prev" href="sandboxing.html" />
+    <link rel="next" href="design-principles.html" />
     <meta name="generator" content="Antora 3.1.9" />
     <link rel="stylesheet" href="../../_/css/site.css" />
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
@@ -231,47 +231,35 @@
 
   <li class="nav-item is-active" data-depth="0">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Mill In Depth</span>
+    <span class="nav-text">Mill Fundamentals</span>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="library-deps.html">Library Dependencies in Mill</a>
+    <a class="nav-link" href="../fundamentals/library-deps.html">Library Dependencies in Mill</a>
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="out-dir.html">The Output Directory</a>
+    <a class="nav-link" href="../fundamentals/out-dir.html">The Output Directory</a>
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="query-syntax.html">Task Query Syntax</a>
+    <a class="nav-link" href="../fundamentals/query-syntax.html">Task Query Syntax</a>
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="tasks.html">Tasks</a>
+    <a class="nav-link" href="../fundamentals/tasks.html">Tasks</a>
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="modules.html">Modules</a>
+    <a class="nav-link" href="../fundamentals/modules.html">Modules</a>
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="cross-builds.html">Cross Builds</a>
+    <a class="nav-link" href="../fundamentals/cross-builds.html">Cross Builds</a>
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="large-builds.html">Structuring Large Builds</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="sandboxing.html">Mill Sandboxing</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="bundled-libraries.html">Bundled Libraries</a>
-  </li>
-
-  <li class="nav-item is-current-page" data-depth="1">
-    <a class="nav-link" href="evaluation-model.html">The Mill Evaluation Model</a>
+    <a class="nav-link" href="../fundamentals/bundled-libraries.html">Bundled Libraries</a>
   </li>
 </ul>
   </li>
@@ -380,12 +368,31 @@
 
   <li class="nav-item is-active" data-depth="0">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Reference</span>
+    <span class="nav-text">Mill In Depth</span>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../reference/design-principles.html">Mill Design Principles</a>
+    <a class="nav-link" href="large-builds.html">Structuring Large Builds</a>
   </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="sandboxing.html">Mill Sandboxing</a>
+  </li>
+
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="evaluation-model.html">The Mill Evaluation Model</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="design-principles.html">Mill Design Principles</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Reference</span>
+<ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="https://mill-build.org/api/latest/mill/index.html">Mill Scaladoc</a>
@@ -413,9 +420,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-6-98487d</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-7-f3fa90</button>
   <div class="version-menu">
-    <a class="version is-current" href="evaluation-model.html">0.12.0-RC3-6-98487d</a>
+    <a class="version is-current" href="evaluation-model.html">0.12.0-RC3-7-f3fa90</a>
     <a class="version" href="../0.11.12/The_Mill_Evaluation_Model.html">0.11.12</a>
     <a class="version" href="../0.11.11/The_Mill_Evaluation_Model.html">0.11.11</a>
     <a class="version" href="../0.11.10/The_Mill_Evaluation_Model.html">0.11.10</a>
@@ -446,9 +453,9 @@
 <a href="#_the_mill_bootstrapping_process">The Mill Bootstrapping Process</a> to eventually produce a <code>RootModule</code> object</p>
 </li>
 <li>
-<p><strong>Resolution</strong>: Mill resolves the list of <a href="tasks.html" class="xref page">Tasks</a> given from the command line,
+<p><strong>Resolution</strong>: Mill resolves the list of <a href="../fundamentals/tasks.html" class="xref page">Tasks</a> given from the command line,
 e.g. <code>resolve <em></em></code> or <code>foo.compile</code> or <code>{bar,qux}._.test</code>, to a list of
-concrete <code>Task</code> objects nested on <a href="modules.html" class="xref page">Modules</a> within the <code>RootModule</code> along
+concrete <code>Task</code> objects nested on <a href="../fundamentals/modules.html" class="xref page">Modules</a> within the <code>RootModule</code> along
 with their transitive dependencies</p>
 <div class="ulist">
 <ul>
@@ -555,16 +562,16 @@ previously-instantiated modules are simply-re-used</p>
 <p><code>Task</code>s are evaluated in dependency order</p>
 </li>
 <li>
-<p><a href="tasks.html#_targets" class="xref page">Target</a>s only re-evaluate if their input <code>Task</code>s
+<p><a href="../fundamentals/tasks.html#_targets" class="xref page">Target</a>s only re-evaluate if their input <code>Task</code>s
 change.</p>
 </li>
 <li>
-<p><a href="tasks.html#_persistent_tasks" class="xref page">Task.Persistent</a>s preserve the <code>T.dest</code> folder on disk between runs,
+<p><a href="../fundamentals/tasks.html#_persistent_tasks" class="xref page">Task.Persistent</a>s preserve the <code>T.dest</code> folder on disk between runs,
 allowing for finer-grained caching than Mill’s default task-by-task
 caching and invalidation</p>
 </li>
 <li>
-<p><a href="tasks.html#_workers" class="xref page">Task.Worker</a>s are kept in-memory between runs where possible, and only
+<p><a href="../fundamentals/tasks.html#_workers" class="xref page">Task.Worker</a>s are kept in-memory between runs where possible, and only
 invalidated if their input <code>Task</code>s change as well.</p>
 </li>
 <li>
@@ -675,8 +682,8 @@ and example for meta-builds.</p>
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="bundled-libraries.html">Bundled Libraries</a></span>
-  <span class="next"><a href="../extending/import-ivy.html">import $ivy</a></span>
+  <span class="prev"><a href="sandboxing.html">Mill Sandboxing</a></span>
+  <span class="next"><a href="design-principles.html">Mill Design Principles</a></span>
 </nav>
 </article>
   </div>
