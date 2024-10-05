@@ -253,6 +253,9 @@ abstract class MillBuildRootModule()(implicit
   override def scalacPluginClasspath: T[Agg[PathRef]] =
     super.scalacPluginClasspath() ++ lineNumberPluginClasspath()
 
+  override protected def semanticDbPluginClasspath: T[Agg[PathRef]] =
+    super.semanticDbPluginClasspath() ++ lineNumberPluginClasspath()
+
   def lineNumberPluginClasspath: T[Agg[PathRef]] = Task {
     millProjectModule("mill-runner-linenumbers", repositoriesTask())
   }
