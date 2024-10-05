@@ -71,21 +71,22 @@ trait KotlinJSModule extends KotlinModule { outer =>
       Task.Anon {
         val transitiveModuleArtifactPath =
           (if (m.isInstanceOf[KotlinJSModule]) {
-             m.asInstanceOf[KotlinJSModule].kotlinCompileKlibTask()()
-           } else m.compile()).classes
+             m.asInstanceOf[KotlinJSModule].createKlib(T.dest, m.compile().classes)
+           } else m.compile().classes)
         m.localCompileClasspath() ++ Agg(transitiveModuleArtifactPath)
       }
     )().flatten
   }
 
   /**
-   * Compiles all the sources.
+   * Compiles all the sources to the IR representation.
    */
   override def compile: T[CompilationResult] = Task {
     kotlinJsCompile(
-      outputMode = binaryKindToOutputMode(kotlinJSBinaryKind()),
+      outputMode = OutputMode.KlibDir,
+      irClasspath = None,
       allKotlinSourceFiles = allKotlinSourceFiles(),
-      compileClasspath = compileClasspath(),
+      librariesClasspath = compileClasspath(),
       callMain = callMain(),
       moduleKind = moduleKind(),
       produceSourceMaps = kotlinJSSourceMap(),
@@ -111,10 +112,10 @@ trait KotlinJSModule extends KotlinModule { outer =>
 
     val moduleKind = this.moduleKind()
 
-    val compilationResult = compile().classes
+    val linkResult = linkBinary().classes
     if (
       moduleKind == ModuleKind.NoModule
-      && compilationResult.path.toIO.listFiles().count(_.getName.endsWith(".js")) > 1
+      && linkResult.path.toIO.listFiles().count(_.getName.endsWith(".js")) > 1
     ) {
       T.log.info("No module type is selected for the executable, but multiple .js files found in the output folder." +
         " This will probably lead to the dependency resolution failure.")
@@ -124,7 +125,7 @@ trait KotlinJSModule extends KotlinModule { outer =>
       case Some(RunTarget.Node) => Jvm.runSubprocess(
           commandArgs = Seq(
             "node",
-            (compilationResult.path / s"${moduleName()}.${moduleKind.extension}").toIO.getAbsolutePath
+            (linkResult.path / s"${moduleName()}.${moduleKind.extension}").toIO.getAbsolutePath
           ) ++ args().value,
           envArgs = T.env,
           workingDir = T.dest
@@ -156,9 +157,10 @@ trait KotlinJSModule extends KotlinModule { outer =>
       extraKotlinArgs: Seq[String] = Seq.empty[String]
   ): Task[CompilationResult] = Task.Anon {
     kotlinJsCompile(
-      outputMode = binaryKindToOutputMode(kotlinJSBinaryKind()),
+      outputMode = OutputMode.KlibDir,
       allKotlinSourceFiles = allKotlinSourceFiles(),
-      compileClasspath = compileClasspath(),
+      irClasspath = None,
+      librariesClasspath = compileClasspath(),
       callMain = callMain(),
       moduleKind = moduleKind(),
       produceSourceMaps = kotlinJSSourceMap(),
@@ -173,15 +175,15 @@ trait KotlinJSModule extends KotlinModule { outer =>
     )
   }
 
-  // endregion
-
-  // region private
-
-  private def kotlinCompileKlibTask(): Task[CompilationResult] = Task.Anon {
+  /**
+   * Creates final executable.
+   */
+  def linkBinary: T[CompilationResult] = Task {
     kotlinJsCompile(
-      outputMode = OutputMode.KlibFile,
-      allKotlinSourceFiles = allKotlinSourceFiles(),
-      compileClasspath = compileClasspath(),
+      outputMode = binaryKindToOutputMode(kotlinJSBinaryKind()),
+      irClasspath = Some(compile().classes),
+      allKotlinSourceFiles = Seq.empty,
+      librariesClasspath = compileClasspath(),
       callMain = callMain(),
       moduleKind = moduleKind(),
       produceSourceMaps = kotlinJSSourceMap(),
@@ -196,10 +198,26 @@ trait KotlinJSModule extends KotlinModule { outer =>
     )
   }
 
+  // endregion
+
+  // region private
+
+  private def createKlib(destFolder: os.Path, irPathRef: PathRef): PathRef = {
+    val outputPath = destFolder / s"${moduleName()}.klib"
+    Jvm.createJar(
+      outputPath,
+      Agg(irPathRef.path),
+      mill.api.JarManifest.MillDefault,
+      fileFilter = (_, _) => true
+    )
+    PathRef(outputPath)
+  }
+
   private[kotlinlib] def kotlinJsCompile(
       outputMode: OutputMode,
       allKotlinSourceFiles: Seq[PathRef],
-      compileClasspath: Agg[PathRef],
+      irClasspath: Option[PathRef],
+      librariesClasspath: Agg[PathRef],
       callMain: Boolean,
       moduleKind: ModuleKind,
       produceSourceMaps: Boolean,
@@ -226,18 +244,21 @@ trait KotlinJSModule extends KotlinModule { outer =>
       return Result.Aborted
     }
 
-    val kotlinSourceFiles = allKotlinSourceFiles.map(_.path)
+    val inputFiles = irClasspath match {
+      case Some(x) => Seq(s"-Xinclude=${x.path.toIO.getAbsolutePath}")
+      case None => allKotlinSourceFiles.map(_.path.toIO.getAbsolutePath)
+    }
 
     // TODO: Cannot support Kotlin 2+, because it doesn't publish .jar anymore, but .klib files only. Coursier is not
     //  able to work with that (unlike Gradle, which can leverage .module metadata).
     // https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-js/2.0.20/
-    val compileCp = compileClasspath.map(_.path)
+    val librariesCp = librariesClasspath.map(_.path)
       .filter(os.exists)
       .filter(isKotlinJsLibrary)
 
     val innerCompilerArgs = Seq.newBuilder[String]
     // classpath
-    innerCompilerArgs ++= Seq("-libraries", compileCp.iterator.mkString(File.pathSeparator))
+    innerCompilerArgs ++= Seq("-libraries", librariesCp.iterator.mkString(File.pathSeparator))
     innerCompilerArgs ++= Seq("-main", if (callMain) "call" else "noCall")
     innerCompilerArgs += "-meta-info"
     if (moduleKind != ModuleKind.NoModule) {
@@ -310,13 +331,17 @@ trait KotlinJSModule extends KotlinModule { outer =>
       innerCompilerArgs.result(),
       extraKotlinArgs,
       // parameters
-      kotlinSourceFiles.map(_.toIO.getAbsolutePath())
+      inputFiles
     ).flatten
 
     val compileDestination = os.Path(outputArgs.last)
-    T.log.info(
-      s"Compiling ${kotlinSourceFiles.size} Kotlin sources to $compileDestination ..."
-    )
+    if (irClasspath.isEmpty) {
+      T.log.info(
+        s"Compiling ${allKotlinSourceFiles.size} Kotlin sources to $compileDestination ..."
+      )
+    } else {
+      T.log.info(s"Linking IR to $compileDestination")
+    }
     val workerResult = worker.compile(KotlinWorkerTarget.Js, compilerArgs: _*)
 
     val analysisFile = T.dest / "kotlin.analysis.dummy"
@@ -330,9 +355,6 @@ trait KotlinJSModule extends KotlinModule { outer =>
       case OutputMode.Js => compileDestination
     }
 
-    // TODO Kotlin Gradle plugin is using 2 passes to produce the final result: the first one to produce IR
-    //  (klib directory with IR) and second one to link (produce js file, if needed). Probably it is more
-    //  incremental-friendly. For now, for the simplicity, we will use a single pass which included everything.
     workerResult match {
       case Result.Success(_) =>
         CompilationResult(analysisFile, PathRef(artifactLocation))
