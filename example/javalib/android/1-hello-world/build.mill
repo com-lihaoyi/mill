@@ -18,7 +18,7 @@ object androidSdkModule0 extends AndroidSdkModule{
 }
 
 // Actual android application
-object app extends RootModule with AndroidAppModule {
+object app extends AndroidAppModule {
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
 }
 
@@ -27,7 +27,8 @@ object app extends RootModule with AndroidAppModule {
 
 /** Usage
 
-> ./mill androidApk
+> ./mill show app.androidApk
+".../out/app/androidApk.dest/app.apk"
 
 */
 
