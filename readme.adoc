@@ -2339,7 +2339,7 @@ Try it out!
 [#0-2-3]
 === 0.2.3 - 2018-06-03
 
-* Added the {link-current-doc-site}/#visualize[mill show visualize]
+* Added the {link-current-doc-site}/#visualize[mill visualize]
 command, making it easy to visualize the relationships between various tasks and modules in your Mill build.
 
 * Improve Intellij support ({link-pr}/351[351]):
