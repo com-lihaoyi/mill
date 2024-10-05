@@ -1,0 +1,57 @@
+//// SNIPPET:BUILD
+package build
+import mill._, scalalib._, scalanativelib._
+
+trait MyModule extends ScalaNativeModule {
+  def scalaVersion = "2.13.11"
+  def scalaNativeVersion = "0.5.5"
+  object test extends ScalaNativeTests {
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
+    def testFramework = "utest.runner.Framework"
+  }
+}
+
+object foo extends MyModule {
+  def moduleDeps = Seq(bar)
+  def ivyDeps = Agg(ivy"com.lihaoyi::mainargs:0.4.0")
+}
+
+object bar extends MyModule {
+  def ivyDeps = Agg(ivy"com.lihaoyi::scalatags:0.8.2")
+}
+//// SNIPPET:END
+
+// This example contains a simple Mill build with two modules, `foo` and `bar`.
+// We don't mark either module as top-level using `extends RootModule`, so
+// running tasks needs to use the module name as the prefix e.g. `foo.run` or
+// `bar.run`. You can define multiple modules the same way you define a single
+// module, using `def moduleDeps` to define the relationship between them.
+//
+// Note that we split out the `test` submodule configuration common to both
+// modules into a separate `trait MyModule`. This lets us avoid the need to
+// copy-paste common settings, while still letting us define any per-module
+// configuration such as `ivyDeps` specific to a particular module.
+//
+// The above builds expect the following project layout:
+//
+//// SNIPPET:TREE
+//
+// ----
+// build.mill
+// bar/
+//     native-src/
+//         HelloWorldBar.c
+//     src/
+//         Bar.scala
+//     test/
+//         src/
+//             BarTests.scala
+// foo/
+//     native-src/
+           HelloWorldFoo.c
+//     src/
+//         Foo.scala
+//
+//
+//
+//// SNIPPET:END
