@@ -423,9 +423,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-11-6c4261</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-12-4d5976</button>
   <div class="version-menu">
-    <a class="version is-current" href="sbt.html">0.12.0-RC3-11-6c4261</a>
+    <a class="version is-current" href="sbt.html">0.12.0-RC3-12-4d5976</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
@@ -522,7 +522,7 @@ real-world project compares to using SBT.</p>
 <tr>
 <th class="tableblock halign-left valign-top">Benchmark</th>
 <th class="tableblock halign-left valign-top">Cold SBT</th>
-<th class="tableblock halign-left valign-top">Hot SBT</th>
+<th class="tableblock halign-left valign-top">Hot SBT (rounded)</th>
 <th class="tableblock halign-left valign-top">Mill</th>
 </tr>
 </thead>
@@ -530,25 +530,25 @@ real-world project compares to using SBT.</p>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_parallel_clean_compile_all">Parallel Clean Compile All</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">28.7s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">12s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">&asymp; 12s</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">10.4s</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_clean_compile_single_module">Clean Compile Single-Module</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">10.1s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">1s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">&asymp; 1s</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">0.96s</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_incremental_compile_single_module">Incremental Compile Single-Module</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">6.2s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">0s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">&asymp; 0s</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">0.48s</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_no_op_compile_single_module">No-Op Compile Single-Module</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">4.2s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">0s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">&asymp; 0s</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">0.40s</p></td>
 </tr>
 </tbody>
