@@ -52,18 +52,3 @@ object `package` extends RootModule with AndroidAppModule {
 //                         └── MainActivity.java
 // ----
 //
-// ### Mill Modules Overview:
-//
-// This project relies on three main modules:
-//
-// 1. **`AndroidSdkModule`**: This module manages all Android SDK interactions, including 
-//    tools like `aapt` for resource packaging, `d8` for bytecode conversion, and `apksigner` for signing APKs.
-// 
-// 2. **`JavaModule`**: This provides Java compilation tasks, including class file generation 
-//    and creating JAR files, which are later converted to DEX format for Android.
-//
-// 3. **`AndroidAppModule`**: This module provides the step-by-step workflow for building an Android app. 
-//    It handles everything from compiling the code to generating a signed APK for distribution.
-// 
-// The combination of these modules allows us to automate the entire build process, 
-// from compiling Java code to producing a signed APK ready for distribution.
