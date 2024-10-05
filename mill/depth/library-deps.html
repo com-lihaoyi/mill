@@ -99,7 +99,7 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../javalib/build-examples.html">Java Build Examples</a>
+    <a class="nav-link" href="../javalib/dependencies.html">Java Library Dependencies</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -112,6 +112,10 @@
 
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="../javalib/publishing.html">Publishing Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../javalib/build-examples.html">Java Build Examples</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -138,7 +142,7 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../scalalib/build-examples.html">Scala Build Examples</a>
+    <a class="nav-link" href="../scalalib/dependencies.html">Scala Library Dependencies</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -151,6 +155,10 @@
 
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="../scalalib/publishing.html">Publishing Scala Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../scalalib/build-examples.html">Scala Build Examples</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -177,7 +185,7 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../kotlinlib/build-examples.html">Kotlin Build Examples</a>
+    <a class="nav-link" href="../kotlinlib/dependencies.html">Kotlin Library Dependencies</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -190,6 +198,10 @@
 
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="../kotlinlib/publishing.html">Publishing Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../kotlinlib/build-examples.html">Kotlin Build Examples</a>
   </li>
 </ul>
   </li>
@@ -266,7 +278,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../extending/import-ivy.html">import $file and import $ivy</a>
+    <a class="nav-link" href="../extending/import-ivy.html">import $ivy</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -397,9 +409,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-3-2add28</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-4-d43417</button>
   <div class="version-menu">
-    <a class="version is-current" href="library-deps.html">0.12.0-RC3-3-2add28</a>
+    <a class="version is-current" href="library-deps.html">0.12.0-RC3-4-d43417</a>
     <a class="version" href="../0.11.12/Library_Dependencies.html">0.11.12</a>
     <a class="version" href="../0.11.11/Library_Dependencies.html">0.11.11</a>
     <a class="version" href="../0.11.10/Library_Dependencies.html">0.11.10</a>
@@ -467,6 +479,140 @@ When a different form is used, e.g. some double-colons are used between the part
   ivy&quot;org.slf4j:slf4j-api:1.7.25&quot;
 )</code></pre>
 </div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_test_dependencies_there_is_no_test_scope"><a class="anchor" href="#_test_dependencies_there_is_no_test_scope"></a>Test dependencies (there is no <code>test</code> scope)</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>One difference between Mill and other build tools like sbt or Maven is the fact, that tests are ordinary submodules on their own.
+For convenience, most modules already come with a pre-configured trait for a test submodule,
+which already inherits all dependencies of their parent module.
+If you need additional test dependencies, you simply add them by overriding <code>def ivyDeps</code>, as you would do with normal library dependencies.</p>
+</div>
+<div class="paragraph">
+<p>When migrating a sbt project and seeing a dependency like this: <code>&quot;ch.qos.logback&quot; % &quot;logback-classic&quot; % &quot;1.2.3&quot; % &quot;test&quot;</code>,
+simply add it to the test module’s <code>ivyDeps</code> as ordinary dependency.
+There is no special test scope in Mill.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object main extends JavaModule {
+  object test extends JavaModuleTests {
+    def ivyDeps = Agg(
+      ivy&quot;org.qos.logback:logback-classic:1.2.3&quot;
+    )
+  }
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_compile_only_dependencies_provided_scope"><a class="anchor" href="#_compile_only_dependencies_provided_scope"></a>Compile-only dependencies (<code>provided</code> scope)</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If you want to use a dependency only at compile time, you can declare it with the <code>compileIvyDeps</code> task.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def compileIvyDeps = Agg(
+  ivy&quot;org.slf4j:slf4j-api:1.7.25&quot;
+)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When Mill generated file to interact with package manager like <code>pom.xml</code> for Maven repositories, such compile-only dependencies are mapped to the <code>provided</code> scope.</p>
+</div>
+<div class="paragraph">
+<p>Please note, that dependencies with <code>provided</code> scope will never be resolved transitively. Hence, the name &quot;provided&quot;, as the task runtime needs to &quot;provide&quot; them, if they are needed.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_runtime_dependencies"><a class="anchor" href="#_runtime_dependencies"></a>Runtime dependencies</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If you want to declare dependencies to be used at runtime (but not at compile time), you can use the <code>runIvyDeps</code> tasks.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def runIvyDeps = Agg(
+  ivy&quot;ch.qos.logback:logback-classic:1.2.0&quot;
+)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It is also possible to use a higher version of the same library dependencies already defined in <code>ivyDeps</code>, to ensure you compile against a minimal API version, but actually run with the latest available version.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_searching_for_dependency_updates"><a class="anchor" href="#_searching_for_dependency_updates"></a>Searching For Dependency Updates</h2>
+<div class="sectionbody">
+
+</div>
+</div>
+<div class="sect1">
+<h2 id="_search_for_dependency_updates"><a class="anchor" href="#_search_for_dependency_updates"></a>Search for dependency updates</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill can search for updated versions of your project’s dependencies, if
+available from your project’s configured repositories. Note that it uses
+heuristics based on common versioning schemes, so it may not work as expected for
+dependencies with particularly weird version numbers. For example, given the following
+build:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC3/0.12.0-RC3-example-depth-dependencies-1-search-updates.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/depth/dependencies/1-search-updates">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, scalalib._
+
+trait MyModule extends ScalaModule {
+  def scalaVersion = &quot;2.13.11&quot;
+}
+
+object foo extends MyModule {
+  def moduleDeps = Seq(bar)
+  def ivyDeps = Agg(ivy&quot;com.lihaoyi::mainargs:0.4.0&quot;)
+}
+
+object bar extends MyModule {
+  def ivyDeps = Agg(ivy&quot;com.lihaoyi::scalatags:0.8.2&quot;)
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can run</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill mill.scalalib.Dependency/showUpdates
+
+&gt; mill mill.scalalib.Dependency/showUpdates --allowPreRelease true # also show pre-release versions</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Current limitations:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Only works for <code>JavaModule</code> modules (including <code>ScalaModule</code>s,
+<code>CrossScalaModule</code>s, etc.) and Maven repositories.</p>
+</li>
+<li>
+<p>Always applies to all modules in the build.</p>
+</li>
+<li>
+<p>Doesn’t apply to <code>$ivy</code> dependencies used in the build definition itself.</p>
+</li>
+</ul>
 </div>
 </div>
 </div>
@@ -570,75 +716,6 @@ def ivyDeps = Agg(
 </tr>
 </tbody></table>
 </div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_test_dependencies_there_is_no_test_scope"><a class="anchor" href="#_test_dependencies_there_is_no_test_scope"></a>Test dependencies (there is no <code>test</code> scope)</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>One difference between Mill and other build tools like sbt or Maven is the fact, that tests are ordinary submodules on their own.
-For convenience, most modules already come with a pre-configured trait for a test submodule,
-which already inherits all dependencies of their parent module.
-If you need additional test dependencies, you simply add them by overriding <code>def ivyDeps</code>, as you would do with normal library dependencies.</p>
-</div>
-<div class="paragraph">
-<p>When migrating a sbt project and seeing a dependency like this: <code>&quot;ch.qos.logback&quot; % &quot;logback-classic&quot; % &quot;1.2.3&quot; % &quot;test&quot;</code>,
-simply add it to the test module’s <code>ivyDeps</code> as ordinary dependency.
-There is no special test scope in Mill.</p>
-</div>
-<div class="listingblock">
-<div class="title">Example</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object main extends JavaModule {
-  object test extends JavaModuleTests {
-    def ivyDeps = Agg(
-      ivy&quot;org.qos.logback:logback-classic:1.2.3&quot;
-    )
-  }
-}</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_compile_only_dependencies_provided_scope"><a class="anchor" href="#_compile_only_dependencies_provided_scope"></a>Compile-only dependencies (<code>provided</code> scope)</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>If you want to use a dependency only at compile time, you can declare it with the <code>compileIvyDeps</code> task.</p>
-</div>
-<div class="listingblock">
-<div class="title">Example</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def compileIvyDeps = Agg(
-  ivy&quot;org.slf4j:slf4j-api:1.7.25&quot;
-)</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>When Mill generated file to interact with package manager like <code>pom.xml</code> for Maven repositories, such compile-only dependencies are mapped to the <code>provided</code> scope.</p>
-</div>
-<div class="paragraph">
-<p>Please note, that dependencies with <code>provided</code> scope will never be resolved transitively. Hence, the name &quot;provided&quot;, as the task runtime needs to &quot;provide&quot; them, if they are needed.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_runtime_dependencies"><a class="anchor" href="#_runtime_dependencies"></a>Runtime dependencies</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>If you want to declare dependencies to be used at runtime (but not at compile time), you can use the <code>runIvyDeps</code> tasks.</p>
-</div>
-<div class="listingblock">
-<div class="title">Example</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def runIvyDeps = Agg(
-  ivy&quot;ch.qos.logback:logback-classic:1.2.0&quot;
-)</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>It is also possible to use a higher version of the same library dependencies already defined in <code>ivyDeps</code>, to ensure you compile against a minimal API version, but actually run with the latest available version.</p>
 </div>
 </div>
 </div>

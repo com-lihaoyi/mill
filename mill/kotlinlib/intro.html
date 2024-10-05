@@ -98,7 +98,7 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../javalib/build-examples.html">Java Build Examples</a>
+    <a class="nav-link" href="../javalib/dependencies.html">Java Library Dependencies</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -111,6 +111,10 @@
 
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="../javalib/publishing.html">Publishing Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../javalib/build-examples.html">Java Build Examples</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -137,7 +141,7 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../scalalib/build-examples.html">Scala Build Examples</a>
+    <a class="nav-link" href="../scalalib/dependencies.html">Scala Library Dependencies</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -150,6 +154,10 @@
 
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="../scalalib/publishing.html">Publishing Scala Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../scalalib/build-examples.html">Scala Build Examples</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -176,7 +184,7 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="build-examples.html">Kotlin Build Examples</a>
+    <a class="nav-link" href="dependencies.html">Kotlin Library Dependencies</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -189,6 +197,10 @@
 
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="publishing.html">Publishing Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="build-examples.html">Kotlin Build Examples</a>
   </li>
 </ul>
   </li>
@@ -265,7 +277,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../extending/import-ivy.html">import $file and import $ivy</a>
+    <a class="nav-link" href="../extending/import-ivy.html">import $ivy</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -395,9 +407,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-3-2add28</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-4-d43417</button>
   <div class="version-menu">
-    <a class="version is-current" href="intro.html">0.12.0-RC3-3-2add28</a>
+    <a class="version is-current" href="intro.html">0.12.0-RC3-4-d43417</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
@@ -423,14 +435,14 @@ gtag('config', 'AW-16649289906');
 </script>
 <div class="imageblock kroki">
 <div class="content">
-<img src="../_images/diag-60e431480698113b0e7f81ac8fef0e15702a640f.svg" alt="Diagram" />
+<img src="../_images/diag-e04cf20b203e5c8137e82a14c187e36c9486a828.svg" alt="Diagram" />
 </div>
 </div>
 <div class="paragraph">
 <p><a href="https://github.com/com-lihaoyi/mill">Mill</a> is a fast multi-language JVM build tool that supports Kotlin, making your
 common development workflows <a href="../comparisons/maven.html" class="xref page">5-10x faster to Maven</a>, or
-<a href="../comparisons/gradle.html" class="xref page">2-4x faster than Gradle</a>, with
-<a href="#comparisons/sbt">an easier experience than SBT</a>.
+<a href="../comparisons/gradle.html" class="xref page">2-4x faster than Gradle</a>, and
+<a href="#comparisons/sbt">easier to use than SBT</a>.
 Mill aims to make your JVM project’s build process performant, maintainable, and flexible
 even as it grows from a small project to a large codebase or monorepo with hundreds of modules:</p>
 </div>
@@ -446,18 +458,21 @@ and resolve bottlenecks in your build</p>
 </li>
 <li>
 <p><strong>Beyond YAML and Bash</strong>: Mill config and custom logic is written in
-<a href="#_custom_build_logic">custom build logic</a> in concise type-checked code,
+<a href="#_custom_build_logic">concise type-checked code</a>,
 rather than shell scripts, XML or YAML. This lets IDEs
 (<a href="installation-ide.html#_intellij" class="xref page">IntelliJ</a> or
 <a href="installation-ide.html#_vscode" class="xref page">VSCode</a>)
-&quot;jump-to-definition&quot; to navigate around your build as easily as any application codebase.</p>
+understand and navigate around and refactor your build as easily as
+any application codebase.</p>
 </li>
 <li>
 <p><strong>Flexibility</strong>: Mill’s custom tasks and modules allow anything from
-<a href="../depth/tasks.html#primitive-tasks" class="xref page">adding simple pipelines</a>, up to
+<a href="../depth/tasks.html#primitive-tasks" class="xref page">adding simple build steps</a>, up to
 <a href="../depth/modules.html#_use_case_diy_java_modules" class="xref page">entire language toolchains</a>.
-This means Mill can be easily customized to fit exactly what you need without being beholden
-to third-party plugins which may not work well together or be well maintained.</p>
+You can <a href="../extending/import-ivy.html" class="xref page">import any JVM library as part of your build</a>,
+use Mill’s rich ecosystem of <a href="../extending/thirdparty-plugins.html" class="xref page">Third-Party Mill Plugins</a>,
+or <a href="../extending/writing-plugins.html" class="xref page">write plugins yourself</a> and publish them
+on Maven Central for others to use.</p>
 </li>
 </ul>
 </div>
@@ -826,11 +841,10 @@ task as well as where any overriden implementations may be defined.</p>
 </div>
 <div class="paragraph">
 <p>Unlike normal methods, custom user-defined tasks in Mill benefit from all
-the same things that built-in tasks do: automatic caching, parallelism
-(with the <code>-j</code>/<code>--jobs</code> flag), inspectability (via <code>show</code>/<code>inspect</code>), and so on.</p>
-</div>
-<div class="paragraph">
-<p>While these things may not matter for such a simple example that runs
+the same things that built-in tasks do: automatic caching (in the
+<a href="../depth/out-dir.html" class="xref page"><code>out/</code> folder</a>), parallelism (with the <code>-j</code>/<code>--jobs</code>
+flag), inspectability (via <code>show</code>/<code>inspect</code>), and so on.
+While these things may not matter for such a simple example that runs
 quickly, they ensure that custom build logic remains performant and
 maintainable even as the complexity of your project grows.</p>
 </div>
@@ -846,9 +860,13 @@ maintainable even as the complexity of your project grows.</p>
 import mill._, kotlinlib._
 
 trait MyModule extends KotlinModule {
-
   def kotlinVersion = &quot;1.9.24&quot;
 
+  object test extends KotlinTests with TestModule.Junit5 {
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;
+    )
+  }
 }
 
 object foo extends MyModule {
@@ -864,12 +882,6 @@ object bar extends MyModule {
   def ivyDeps = Agg(
     ivy&quot;org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0&quot;
   )
-
-  object test extends KotlinTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;
-    )
-  }
 }</code></pre>
 </div>
 </div>
@@ -983,31 +995,19 @@ tasks.</p>
 If you need to feed a `</code> as argument to your task, you can mask it by
 preceding it with a backslash (<code>\</code>).</p>
 </div>
-<div class="sect2">
-<h3 id="_mill_query_syntax_examples"><a class="anchor" href="#_mill_query_syntax_examples"></a>Mill Query Syntax Examples</h3>
-<div class="dlist">
-<dl>
-<dt class="hdlist1"><code>mill foo._.compile</code></dt>
-<dd>
-<p>Runs <code>compile</code> for all direct sub-modules of <code>foo</code></p>
-</dd>
-<dt class="hdlist1"><code>mill foo.__.test</code> </dt>
-<dd>
-<p>Runs <code>test</code> for all sub-modules of <code>foo</code></p>
-</dd>
-<dt class="hdlist1"><code>mill {foo,bar}.__.testCached</code> </dt>
-<dd>
-<p>Runs <code>testCached</code> for all sub-modules of <code>foo</code> and <code>bar</code></p>
-</dd>
-<dt class="hdlist1"><code>mill __.compile + foo.__.test</code> </dt>
-<dd>
-<p>Runs all <code>compile</code> tasks and all tests under <code>foo</code>.</p>
-</dd>
-</dl>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo._.compile # Runs `compile` for all direct sub-modules of `foo`
+
+&gt; mill foo.__.test # Runs `test` for all transitive sub-modules of `foo`
+
+&gt; mill {foo,bar}.__.testCached # Runs `testCached` for all sub-modules of `foo` and `bar`
+
+&gt; mill __.compile + foo.__.test # Runs all `compile` tasks and all tests under `foo`.</code></pre>
+</div>
 </div>
 <div class="paragraph">
 <p>For more details on the query syntax, check out the documentation for <a href="#Task Query Syntax">[Task Query Syntax]</a></p>
-</div>
 </div>
 </div>
 </div>
@@ -1085,7 +1085,7 @@ depend on one another other cannot be processed in parallel</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_command_line_usage"><a class="anchor" href="#_command_line_usage"></a>Command-line usage</h2>
+<h2 id="_mill_cheat_sheet"><a class="anchor" href="#_mill_cheat_sheet"></a>Mill Cheat Sheet</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Mill is a command-line tool and supports various options. Run <code>mill --help</code> for
@@ -1094,7 +1094,7 @@ a complete list of options and a cheat-sheet of how to work with tasks:</p>
 <div class="listingblock">
 <div class="title">Output of <code>mill --help</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.12.0-RC3-3-2add28
+<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.12.0-RC3-4-d43417
 Usage: mill [options] task [task-options] [+ task ...]
 
 task cheat sheet:

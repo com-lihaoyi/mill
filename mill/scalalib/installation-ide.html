@@ -99,7 +99,7 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../javalib/build-examples.html">Java Build Examples</a>
+    <a class="nav-link" href="../javalib/dependencies.html">Java Library Dependencies</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -112,6 +112,10 @@
 
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="../javalib/publishing.html">Publishing Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../javalib/build-examples.html">Java Build Examples</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -138,7 +142,7 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="build-examples.html">Scala Build Examples</a>
+    <a class="nav-link" href="dependencies.html">Scala Library Dependencies</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -151,6 +155,10 @@
 
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="publishing.html">Publishing Scala Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="build-examples.html">Scala Build Examples</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -177,7 +185,7 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../kotlinlib/build-examples.html">Kotlin Build Examples</a>
+    <a class="nav-link" href="../kotlinlib/dependencies.html">Kotlin Library Dependencies</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -190,6 +198,10 @@
 
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="../kotlinlib/publishing.html">Publishing Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../kotlinlib/build-examples.html">Kotlin Build Examples</a>
   </li>
 </ul>
   </li>
@@ -266,7 +278,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../extending/import-ivy.html">import $file and import $ivy</a>
+    <a class="nav-link" href="../extending/import-ivy.html">import $ivy</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -397,9 +409,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-3-2add28</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-4-d43417</button>
   <div class="version-menu">
-    <a class="version is-current" href="installation-ide.html">0.12.0-RC3-3-2add28</a>
+    <a class="version is-current" href="installation-ide.html">0.12.0-RC3-4-d43417</a>
     <a class="version" href="../0.11.12/Scala_Installation_IDE_Support.html">0.11.12</a>
     <a class="version" href="../0.11.11/Scala_Installation_IDE_Support.html">0.11.11</a>
     <a class="version" href="../0.11.10/Scala_Installation_IDE_Support.html">0.11.10</a>
@@ -425,7 +437,8 @@
   gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
 </script>
 <div class="paragraph">
-<p>The best method of installing Mill is to install a <a href="#_bootstrap_scripts">bootstrap script</a>.
+<p>The standard method of installing Mill is to install a <a href="#_bootstrap_scripts">bootstrap script</a>,
+similar to <code>./gradlew</code> or <code>./mvnw</code> in other build tools.
 This script can determine the best version to be used by a project (e.g. by
 reading a <code>.mill-version</code> or <code>.config/mill-version</code> file or a <code>MILL_VERSION</code> environment variable) and will use this exact Mill version.
 If the determined Mill version is not installed locally, it will be downloaded automatically.</p>
@@ -434,7 +447,89 @@ If the determined Mill version is not installed locally, it will be downloaded a
 <p>For all the examples in this documentation, there is a <code>download</code> link that provides
 a zip file containing the full example ready to use. These examples come with a <code>./mill</code>
 script you can use to immediately begin working with the project, needing only a JVM installed
-globally</p>
+globally.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_bootstrap_scripts"><a class="anchor" href="#_bootstrap_scripts"></a>Bootstrap Scripts</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Although the Mill example projects come with their own <code>./mill</code> bootstrap script,
+you can also download it manually:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -L https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC3/0.12.0-RC3 &gt; mill &amp;&amp; chmod +x mill
+echo 0.12.0-RC3 &gt; .mill-version</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Downloading a <code>mill</code> bootstrap script to the root of your project repository helps make it easier for
+new contributors to build your project, as they don’t have to install Mill before they can start.
+Anyone who wants to work with the project can simply use the <code>./mill</code> script directly.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">./mill --version
+./mill __.compile # double underscore</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In general, bootstrap scripts are the recommended way of installing Mill.
+Similar to <code>./gradlew</code> or <code>./mvnw</code>, the <code>./mill</code> bootstrap script
+reduces the chance of errors due to the installed version of Mill
+being incompatible with the version expected by your build.
+In-project bootstrap scripts are also useful for running Mill in CI/CD, ensuring
+that your build server like Jenkins or Github Actions has the correct version of Mill
+present to build, compile or test your code.</p>
+</div>
+<div class="paragraph">
+<p>If you do not have an existing project, you can download a bootstrap script and
+run <a href="builtin-commands.html#_init" class="xref page"><code>./mill init</code></a> on
+to list out the various example projects and select one to download and unpack into your current
+working directory.</p>
+</div>
+<div class="sect2">
+<h3 id="_millw"><a class="anchor" href="#_millw"></a><code>millw</code></h3>
+<div class="paragraph">
+<p>You can also use <a href="https://github.com/lefou/millw">lefou/millw</a> as a drop-in replacement for <code>mill</code>.
+This script is a bit more advanced, and supports running on all major platforms including MS Windows.</p>
+</div>
+<div class="paragraph">
+<p>The script supports to following sources when determining the best Mill version to use:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>MILL_VERSION</code> environment variable</p>
+</li>
+<li>
+<p><code>.mill-version</code> file in the project directory</p>
+</li>
+<li>
+<p><code>.config/mill-version</code> file in the project directory</p>
+</li>
+<li>
+<p>if non was defined so far, it can also check for the latest available version online</p>
+</li>
+<li>
+<p><code>DEFAULT_MILL_VERSION</code> environment variable</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Using a system-wide installed <code>millw</code> is probably the robustest way to use Mill on any operating system.
+It also preserves support of rather old Mill versions next to recent ones, so that updating it or switching to <code>millw</code> initially should be a no-brainer.</p>
+</div>
+<div class="paragraph">
+<p>You can also install it on Homebrew via <a href="https://github.com/lefou/homebrew-millw">homebrew-millw</a>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">brew install lefou/millw/millw</code></pre>
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -642,82 +737,6 @@ It should contain all env variables (particularly <code>JAVA_HOME</code>) used b
 </div>
 </div>
 <div class="sect1">
-<h2 id="_bootstrap_scripts"><a class="anchor" href="#_bootstrap_scripts"></a>Bootstrap Scripts</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Although the Mill example projects come with their own <code>./mill</code> bootstrap script,
-you can also download it manually:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -L https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC3/0.12.0-RC3 &gt; mill &amp;&amp; chmod +x mill
-echo 0.12.0-RC3 &gt; .mill-version</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Downloading a <code>mill</code> bootstrap script to the root of your project repository helps make it easier for
-new contributors to build your project, as they don’t have to install Mill before they can start.
-Anyone who wants to work with the project can simply use the <code>./mill</code> script directly.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">./mill --version
-./mill __.compile # double underscore</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>In general, bootstrap scripts are the recommended way of installing Mill.
-Similar to <code>./gradlew</code> or <code>./mvnw</code>, the <code>./mill</code> bootstrap script
-reduces the chance of errors due to the installed version of Mill
-being incompatible with the version expected by your build.
-In-project bootstrap scripts are also useful for running Mill in CI/CD, ensuring
-that your build server like Jenkins or Github Actions has the correct version of Mill
-present to build, compile or test your code.</p>
-</div>
-<div class="sect2">
-<h3 id="_millw"><a class="anchor" href="#_millw"></a><code>millw</code></h3>
-<div class="paragraph">
-<p>You can also use <a href="https://github.com/lefou/millw">lefou/millw</a> as a drop-in replacement for <code>mill</code>.
-This script is a bit more advanced, and supports running on all major platforms including MS Windows.</p>
-</div>
-<div class="paragraph">
-<p>The script supports to following sources when determining the best Mill version to use:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>MILL_VERSION</code> environment variable</p>
-</li>
-<li>
-<p><code>.mill-version</code> file in the project directory</p>
-</li>
-<li>
-<p><code>.config/mill-version</code> file in the project directory</p>
-</li>
-<li>
-<p>if non was defined so far, it can also check for the latest available version online</p>
-</li>
-<li>
-<p><code>DEFAULT_MILL_VERSION</code> environment variable</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>Using a system-wide installed <code>millw</code> is probably the robustest way to use Mill on any operating system.
-It also preserves support of rather old Mill versions next to recent ones, so that updating it or switching to <code>millw</code> initially should be a no-brainer.</p>
-</div>
-<div class="paragraph">
-<p>You can also install it on Homebrew via <a href="https://github.com/lefou/homebrew-millw">homebrew-millw</a>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">brew install lefou/millw/millw</code></pre>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
 <h2 id="_updating_mill"><a class="anchor" href="#_updating_mill"></a>Updating Mill</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -746,6 +765,36 @@ in a <code>MILL_VERSION</code> environment variable, e.g.</p>
 <div class="paragraph">
 <p>to override the Mill version manually. This takes precedence over the version
 specified in <code>./mill</code>, <code>.config/mill-version</code> or <code>.mill-version</code></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_running_mill_with_custom_jvm_options"><a class="anchor" href="#_running_mill_with_custom_jvm_options"></a>Running Mill with custom JVM options</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>It’s possible to pass JVM options to the Mill launcher. To do this you need to
+create a <code>.mill-jvm-opts</code> file in your project’s root. This file should contain
+JVM options, one per line.</p>
+</div>
+<div class="paragraph">
+<p>For example, if your build requires a lot of memory and bigger stack size, your
+<code>.mill-jvm-opts</code> could look like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>-Xss10m
+-Xmx10G</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The file name for passing JVM options to the Mill launcher is configurable. If
+for some reason you don’t want to use <code>.mill-jvm-opts</code> file name, add
+<code>MILL_JVM_OPTS_PATH</code> environment variable with any other file name.</p>
+</div>
+<hr />
+<div class="paragraph">
+<p>Come by our <a href="https://discord.gg/MNAXQMAr">Discord Channel</a>
+if you want to ask questions or say hi!</p>
 </div>
 </div>
 </div>
