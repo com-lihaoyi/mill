@@ -55,7 +55,7 @@ Note that the maximal possible parallelism depends both on the number of cores
 available as well as the task and module structure of your project, as tasks that
 depend on one another other cannot be processed in parallel
 
-== Command-line usage
+== Mill Cheat Sheet
 
 Mill is a command-line tool and supports various options. Run `mill --help` for
 a complete list of options and a cheat-sheet of how to work with tasks:
