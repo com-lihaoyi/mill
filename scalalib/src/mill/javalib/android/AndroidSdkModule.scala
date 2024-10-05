@@ -11,13 +11,10 @@ import mill._
  * an Android development environment, streamlining the process of building,
  * compiling, and packaging Android applications in a Mill project.
  *
- * The trait handles tasks such as fetching the Android SDK, managing versions
- * of the build tools, providing paths to necessary executables, and setting up
- * resources required for compiling, optimizing, and signing Android apps.
- *
- * For more information, refer to Mill's [[https://com-lihaoyi.github.io/mill documentation]],
- * and the official Android [[https://developer.android.com/studio documentation]].
+ * For more information, refer to the official Android
+ * [[https://developer.android.com/studio documentation]].
  */
+@mill.api.experimental
 trait AndroidSdkModule extends Module {
 
   /**
