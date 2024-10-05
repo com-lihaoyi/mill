@@ -21,16 +21,22 @@ object `package` extends RootModule with KotlinModule {
   }
 }
 
+/** See Also: src/com/example/HelloKtor.kt */
+/** See Also: test/src/com/example/HelloKtorTest.kt */
+
 // This example demonstrates how to set up a simple webserver 
-// serving a single "<h1>Hello, World!</h1>" web page using Kotlin and Ktor
+// serving a single "<h1>Hello, World!</h1>" web page using Kotlin and Ktor.
+// It includes one module which is the Ktor webserver/app, and one test module
+// using kotest
 
 /** Usage
 
 > mill test
+Test com.example.HelloKtorTest finished, took...
 
 > mill runBackground
 
-> curl http://localhost:8080
+> curl http://localhost:8090
 ...<h1>Hello, World!</h1>...
 
 > mill clean runBackground
