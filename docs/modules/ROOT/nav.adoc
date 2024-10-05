@@ -34,6 +34,7 @@
 * xref:kotlinlib/linting.adoc[]
 * xref:kotlinlib/publishing.adoc[]
 * xref:kotlinlib/build-examples.adoc[]
+* xref:kotlinlib/web-examples.adoc[]
 
 .Build Tool Comparisons
 * xref:comparisons/maven.adoc[]
