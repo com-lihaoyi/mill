@@ -7,8 +7,6 @@
 // application code, but instead are utilities that help you understand and work
 // with your Mill build.
 //
-// == Example `build.mill`
-//
 // The following examples will be assuming the `build.mill` file given below:
 
 //// SNIPPET:BUILD
@@ -277,28 +275,7 @@ foo.compileClasspath
 
 */
 
-// == Search for dependency updates
 
-// Mill can search for updated versions of your project's dependencies, if
-// available from your project's configured repositories. Note that it uses
-// heuristics based on common versioning schemes, so it may not work as expected for
-// dependencies with particularly weird version numbers.
-
-/** Usage
-
-> mill mill.scalalib.Dependency/showUpdates
-
-> mill mill.scalalib.Dependency/showUpdates --allowPreRelease true # also show pre-release versions
-
-*/
-
-// Current limitations:
-//
-// * Only works for `JavaModule` modules (including ``ScalaModule``s,
-// ``CrossScalaModule``s, etc.) and Maven repositories.
-// * Always applies to all modules in the build.
-// * Doesn't apply to `$ivy` dependencies used in the build definition itself.
-//
 // == visualize
 //
 /** Usage
