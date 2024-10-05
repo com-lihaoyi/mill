@@ -1,0 +1,69 @@
+// This section sets up a basic Android project using Mill. 
+// We utilize `AndroidAppModule` and `AndroidSdkModule` to streamline the process of 
+// building an Android application with minimal configuration.
+//
+// By extending `AndroidAppModule`, we inherit all Android-related tasks such as 
+// resource generation, APK building, DEX conversion, and APK signing. 
+// Additionally, `AndroidSdkModule` is embedded, making SDK management seamless.
+
+//// SNIPPET:BUILD
+package build
+
+import mill._
+import mill.javalib.android.{AndroidAppModule, AndroidSdkModule}
+
+object `package` extends RootModule with AndroidAppModule {
+
+  // Create and configure an Android SDK module to manage Android SDK paths and tools.
+  object androidSdkModule extends AndroidSdkModule
+
+}
+
+////SNIPPET:END
+
+
+/** Usage
+
+> ./mill androidApk
+
+*/
+
+// This command triggers the build process, which installs the Android Setup, compiles the Java 
+// code, generates Android resources, converts Java bytecode to DEX format, packages everything 
+// into an APK, optimizes the APK using `zipalign`, and finally signs it.
+//
+// This Mill build configuration is designed to build a simple "Hello World" Android application. 
+// By extending `AndroidAppModule`, we leverage its predefined Android build tasks, ensuring that 
+// all necessary steps (resource generation, APK creation, and signing) are executed automatically.
+// 
+// ### Project Structure:
+// The project follows the standard Android app layout. Below is a typical project folder structure:
+//
+// ----
+// .
+// ├── build.mill
+// └── src
+//     └── main
+//         ├── AndroidManifest.xml
+//         └── java
+//             └── com
+//                 └── helloworld
+//                     └── app
+//                         └── MainActivity.java
+// ----
+//
+// ### Mill Modules Overview:
+//
+// This project relies on three main modules:
+//
+// 1. **`AndroidSdkModule`**: This module manages all Android SDK interactions, including 
+//    tools like `aapt` for resource packaging, `d8` for bytecode conversion, and `apksigner` for signing APKs.
+// 
+// 2. **`JavaModule`**: This provides Java compilation tasks, including class file generation 
+//    and creating JAR files, which are later converted to DEX format for Android.
+//
+// 3. **`AndroidAppModule`**: This module provides the step-by-step workflow for building an Android app. 
+//    It handles everything from compiling the code to generating a signed APK for distribution.
+// 
+// The combination of these modules allows us to automate the entire build process, 
+// from compiling Java code to producing a signed APK ready for distribution.

@@ -6,6 +6,7 @@
 .xref:javalib/intro.adoc[]
 * xref:javalib/installation-ide.adoc[]
 * xref:javalib/builtin-commands.adoc[]
+* xref:javalib/android-examples.adoc[]
 * xref:javalib/module-config.adoc[]
 * xref:javalib/dependencies.adoc[]
 * xref:javalib/testing.adoc[]

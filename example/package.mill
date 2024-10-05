@@ -28,6 +28,7 @@ object `package` extends RootModule with Module {
     .collect { case m: ExampleCrossModule => m }
 
   object javalib extends Module {
+    object android extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "android"))
     object basic extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "basic"))
     object module extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "module"))
     object dependencies extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "dependencies"))
