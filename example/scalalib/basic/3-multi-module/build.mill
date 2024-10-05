@@ -112,7 +112,7 @@ Bar.value: <h1>world</h1>
 //
 
 /** Usage
-> mill foo._.copile # Runs `compile` for all direct sub-modules of `foo`
+> mill foo._.compile # Runs `compile` for all direct sub-modules of `foo`
 
 > mill foo.__.test # Runs `test` for all transitive sub-modules of `foo`
 
