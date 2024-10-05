@@ -3,9 +3,9 @@
 <html lang="en"><head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Android Build Examples :: The Mill Build Tool</title>
-    <link rel="prev" href="builtin-commands.html" />
-    <link rel="next" href="module-config.html" />
+    <title>(Experimental) Android Builds :: The Mill Build Tool</title>
+    <link rel="prev" href="web-examples.html" />
+    <link rel="next" href="../scalalib/intro.html" />
     <meta name="generator" content="Antora 3.1.9" />
     <link rel="stylesheet" href="../../_/css/site.css" />
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
@@ -93,10 +93,6 @@
     <a class="nav-link" href="builtin-commands.html">Built-in Commands</a>
   </li>
 
-  <li class="nav-item is-current-page" data-depth="1">
-    <a class="nav-link" href="android-examples.html">Android Build Examples</a>
-  </li>
-
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="module-config.html">Java Module Configuration</a>
   </li>
@@ -123,6 +119,10 @@
 
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="web-examples.html">Java Web Examples</a>
+  </li>
+
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="android-examples.html">(Experimental) Android Builds</a>
   </li>
 </ul>
   </li>
@@ -419,13 +419,13 @@
   <ul>
     <li><a href="../index.html">Mill Documentation</a></li>
     <li><a href="intro.html">Building Java Projects with Mill</a></li>
-    <li><a href="android-examples.html">Android Build Examples</a></li>
+    <li><a href="android-examples.html">(Experimental) Android Builds</a></li>
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-9-a94606</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-10-5c3380</button>
   <div class="version-menu">
-    <a class="version is-current" href="android-examples.html">0.12.0-RC3-9-a94606</a>
+    <a class="version is-current" href="android-examples.html">0.12.0-RC3-10-5c3380</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
@@ -443,20 +443,16 @@
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">Android Build Examples</h1>
+<h1 class="page">(Experimental) Android Builds</h1>
 <div id="preamble">
 <div class="sectionbody">
 <script>
 gtag('config', 'AW-16649289906');
 </script>
 <div class="paragraph">
-<p>This page provides examples of using Mill as a build tool for Android applications.
-Each example highlights a specific aspect of Mill, allowing you to configure, test, and build Android apps efficiently.
-By the end of this guide, you will understand how Mill can manage Android project structures, compile modules, and handle APK packaging.</p>
-</div>
-<div class="paragraph">
-<p>For detailed information, refer to Mill’s <a href="https://com-lihaoyi.github.io/mill">official documentation</a>,
-and the <a href="https://developer.android.com/studio">Android Developer Guide</a>.</p>
+<p>This page provides an example of using Mill as a build tool for Android applications.
+This workflow is still pretty rough and nowhere near production ready, but can serve as
+a starting point for further experimentation and development.</p>
 </div>
 </div>
 </div>
@@ -544,34 +540,10 @@ all necessary steps (resource generation, APK creation, and signing) are execute
                         └── MainActivity.java</pre>
 </div>
 </div>
-</div>
-<div class="sect2">
-<h3 id="_mill_modules_overview"><a class="anchor" href="#_mill_modules_overview"></a>Mill Modules Overview:</h3>
 <div class="paragraph">
-<p>This project relies on three main modules:</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p><strong><code>AndroidSdkModule</code></strong>: This module manages all Android SDK interactions, including
-tools like <code>aapt</code> for resource packaging, <code>d8</code> for bytecode conversion, and <code>apksigner</code> for signing APKs.</p>
-</li>
-<li>
-<p><strong><code>JavaModule</code></strong>: This provides Java compilation tasks, including class file generation
-and creating JAR files, which are later converted to DEX format for Android.</p>
-</li>
-<li>
-<p><strong><code>AndroidAppModule</code></strong>: This module provides the step-by-step workflow for building an Android app.
-It handles everything from compiling the code to generating a signed APK for distribution.</p>
-</li>
-</ol>
-</div>
-<div class="paragraph">
-<p>The combination of these modules allows us to automate the entire build process,
-from compiling Java code to producing a signed APK ready for distribution.</p>
-</div>
-<div class="paragraph">
-<p>This example demonstrates how to create a basic &quot;Hello World&quot; Android application using the Mill build tool. It outlines the minimum setup required to compile Java code, package it into an APK, and run the app on an Android device.</p>
+<p>This example demonstrates how to create a basic &quot;Hello World&quot; Android application
+using the Mill build tool. It outlines the minimum setup required to compile Java code,
+package it into an APK, and run the app on an Android device.</p>
 </div>
 </div>
 </div>
@@ -580,7 +552,8 @@ from compiling Java code to producing a signed APK ready for distribution.</p>
 <h2 id="_understanding_androidsdkmodule_and_androidappmodule"><a class="anchor" href="#_understanding_androidsdkmodule_and_androidappmodule"></a>Understanding <code>AndroidSdkModule</code> and <code>AndroidAppModule</code></h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The two main modules you need to understand when building Android apps with Mill are <code>AndroidSdkModule</code> and <code>AndroidAppModule</code>.</p>
+<p>The two main modules you need to understand when building Android apps with Mill
+are <code>AndroidSdkModule</code> and <code>AndroidAppModule</code>.</p>
 </div>
 <div class="paragraph">
 <p><code>AndroidSdkModule</code>:</p>
@@ -588,13 +561,16 @@ from compiling Java code to producing a signed APK ready for distribution.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>This module manages the installation and configuration of the Android SDK, which includes tools like <code>aapt</code>, <code>d8</code>, <code>zipalign</code>, and <code>apksigner</code>. These tools are crucial for compiling, packaging, and signing Android applications.</p>
+<p>This module manages the installation and configuration of the Android SDK, which includes
+tools like <code>aapt</code>, <code>d8</code>, <code>zipalign</code>, and <code>apksigner</code>. These tools are used
+for compiling, packaging, and signing Android applications.</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
 <p><code>AndroidAppModule</code>:
-This module provides the step-by-step workflow for building an Android app. It handles everything from compiling the code to generating a signed APK for distribution.</p>
+This module provides the step-by-step workflow for building an Android app. It handles
+everything from compiling the code to generating a signed APK for distribution.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
@@ -620,41 +596,9 @@ This module provides the step-by-step workflow for building an Android app. It h
 </div>
 </div>
 </div>
-<div class="sect1">
-<h2 id="_testing_your_application"><a class="anchor" href="#_testing_your_application"></a>Testing Your Application</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>You can perform manual testing on your Android APK to ensure it functions as expected. The Mill team is working on automating testing procedures for Android applications, which will be shared in future updates.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_why_use_mill_for_android_development"><a class="anchor" href="#_why_use_mill_for_android_development"></a>Why Use Mill for Android Development?</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Mill provides several advantages over other build tools, including:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><strong>Efficiency</strong>: Mill’s build process is fast and optimized for minimal configuration, which speeds up the Android app creation process.</p>
-</li>
-<li>
-<p><strong>Modularity</strong>: Mill allows you to easily extend and customize your builds by leveraging its modular design.</p>
-</li>
-<li>
-<p><strong>Scalability</strong>: Mill can scale well for larger projects while maintaining simplicity in configuration.</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>By using Mill, you can streamline your Android app development, saving time and reducing complexity.</p>
-</div>
-</div>
-</div>
 <nav class="pagination">
-  <span class="prev"><a href="builtin-commands.html">Built-in Commands</a></span>
-  <span class="next"><a href="module-config.html">Java Module Configuration</a></span>
+  <span class="prev"><a href="web-examples.html">Java Web Examples</a></span>
+  <span class="next"><a href="../scalalib/intro.html">Building Scala Projects with Mill</a></span>
 </nav>
 </article>
   </div>
