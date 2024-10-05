@@ -115,4 +115,4 @@ This is very useful if Mill is being unexpectedly slow, and you want to find out
 
 == Using another location than the `out/` directory
 
-include::partial$example/depth/out-dir/1-custom-out.adoc[]
+include::partial$example/fundamentals/out-dir/1-custom-out.adoc[]

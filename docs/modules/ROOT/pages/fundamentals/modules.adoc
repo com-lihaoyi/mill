@@ -12,15 +12,15 @@ Mill's comes with built in modules such as `mill.scalalib.ScalaModule` and
 `mill.scalalib.CrossSbtModule`, but you can also define your own modules to do
 things that are not built-in to Mill.
 
-include::partial$example/depth/modules/7-modules.adoc[]
+include::partial$example/fundamentals/modules/7-modules.adoc[]
 
 == Use Case: DIY Java Modules
 
-include::partial$example/depth/modules/8-diy-java-modules.adoc[]
+include::partial$example/fundamentals/modules/8-diy-java-modules.adoc[]
 
 == Backticked Names
 
-include::partial$example/depth/modules/9-backticked-names.adoc[]
+include::partial$example/fundamentals/modules/9-backticked-names.adoc[]
 
 
 == External Modules

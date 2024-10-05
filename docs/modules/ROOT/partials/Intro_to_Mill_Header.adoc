@@ -33,7 +33,7 @@ xref:comparisons/sbt[easier to use than SBT].
 Mill aims to make your JVM project's build process performant, maintainable, and flexible
 even as it grows from a small project to a large codebase or monorepo with hundreds of modules:
 
-* *Performance*: Mill's xref:depth/tasks.adoc[build graph] automatically
+* *Performance*: Mill's xref:fundamentals/tasks.adoc[build graph] automatically
   xref:depth/evaluation-model.adoc#_caching_at_each_layer_of_the_evaluation_model[caches]
   and xref:#_parallel_task_execution[parallelizes] build
   tasks, keeping your workflows fast and responsive. Mill adds minimal overhead over
@@ -49,8 +49,8 @@ even as it grows from a small project to a large codebase or monorepo with hundr
   any application codebase.
 
 * *Flexibility*: Mill's custom tasks and modules allow anything from
-  xref:depth/tasks.adoc#primitive-tasks[adding simple build steps], up to
-  xref:depth/modules.adoc#_use_case_diy_java_modules[entire language toolchains].
+  xref:fundamentals/tasks.adoc#primitive-tasks[adding simple build steps], up to
+  xref:fundamentals/modules.adoc#_use_case_diy_java_modules[entire language toolchains].
   You can xref:extending/import-ivy.adoc[import any JVM library as part of your build],
   use Mill's rich ecosystem of xref:extending/thirdparty-plugins.adoc[Third-Party Mill Plugins],
   or xref:extending/writing-plugins.adoc[write plugins yourself] and publish them
