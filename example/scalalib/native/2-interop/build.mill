@@ -20,7 +20,7 @@ object `package` extends RootModule with ScalaNativeModule {
     os.proc(
       "gcc", "-m64", "-shared",
       "-c", cSourceFiles, 
-      "-o", T.dest.toString+output
+      "-o", T.dest.toString + "/output"
     )
     .call()
 
