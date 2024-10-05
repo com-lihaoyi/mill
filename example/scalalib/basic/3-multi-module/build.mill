@@ -110,11 +110,15 @@ Bar.value: <h1>world</h1>
 // If you need to feed a `+` as argument to your task, you can mask it by
 // preceding it with a backslash (`\`).
 //
-// === Mill Query Syntax Examples
-//
-// `+mill foo._.compile+`:: Runs `compile` for all direct sub-modules of `foo`
-// `+mill foo.__.test+` :: Runs `test` for all sub-modules of `foo`
-// `+mill {foo,bar}.__.testCached+` :: Runs `testCached` for all sub-modules of `foo` and `bar`
-// `+mill __.compile + foo.__.test+` :: Runs all `compile` tasks and all tests under `foo`.
-//
+
+/** Usage
+> mill foo._.copile # Runs `compile` for all direct sub-modules of `foo`
+
+> mill foo.__.test # Runs `test` for all transitive sub-modules of `foo`
+
+> mill {foo,bar}.__.testCached # Runs `testCached` for all sub-modules of `foo` and `bar`
+
+> mill __.compile + foo.__.test # Runs all `compile` tasks and all tests under `foo`.
+*/
+
 // For more details on the query syntax, check out the documentation for <<Task Query Syntax>>
