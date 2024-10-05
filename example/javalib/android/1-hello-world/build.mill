@@ -45,13 +45,9 @@ object app extends RootModule with AndroidAppModule {
 // ----
 // .
 // ├── build.mill
-// └── src
-//     └── main
-//         ├── AndroidManifest.xml
-//         └── java
-//             └── com
-//                 └── helloworld
-//                     └── app
-//                         └── MainActivity.java
+// ├── AndroidManifest.xml
+// └── src/main/java
+//     └── com/helloworld/app
+//         └── MainActivity.java
 // ----
 //
