@@ -6,9 +6,9 @@ Evaluating a Mill task typically goes through the following phases:
 1. *Compilation*: Mill compiles the `build.mill` to classfiles, following the
 <<_the_mill_bootstrapping_process>> to eventually produce a `RootModule` object
 
-2. *Resolution*: Mill resolves the list of xref:depth/tasks.adoc[] given from the command line,
+2. *Resolution*: Mill resolves the list of xref:fundamentals/tasks.adoc[] given from the command line,
    e.g. `resolve _` or `foo.compile` or `{bar,qux}.__.test`, to a list of
-   concrete `Task` objects nested on xref:depth/modules.adoc[] within the `RootModule` along
+   concrete `Task` objects nested on xref:fundamentals/modules.adoc[] within the `RootModule` along
    with their transitive dependencies
 
     * In the process, the relevant Mill ``Module``s  are lazily instantiated
@@ -70,14 +70,14 @@ the overall workflow remains fast even for large projects:
 
     * ``Task``s are evaluated in dependency order
 
-    * xref:depth/tasks.adoc#_targets[Target]s only re-evaluate if their input ``Task``s
+    * xref:fundamentals/tasks.adoc#_targets[Target]s only re-evaluate if their input ``Task``s
      change.
 
-    * xref:depth/tasks.adoc#_persistent_tasks[Task.Persistent]s preserve the `T.dest` folder on disk between runs,
+    * xref:fundamentals/tasks.adoc#_persistent_tasks[Task.Persistent]s preserve the `T.dest` folder on disk between runs,
       allowing for finer-grained caching than Mill's default task-by-task
       caching and invalidation
 
-    * xref:depth/tasks.adoc#_workers[Task.Worker]s are kept in-memory between runs where possible, and only
+    * xref:fundamentals/tasks.adoc#_workers[Task.Worker]s are kept in-memory between runs where possible, and only
       invalidated if their input ``Task``s change as well.
 
     * ``Task``s in general are invalidated if the code they depend on changes,

@@ -96,7 +96,7 @@ It is also possible to use a higher version of the same library dependencies alr
 
 == Searching For Dependency Updates
 
-include::partial$example/depth/dependencies/1-search-updates.adoc[]
+include::partial$example/fundamentals/dependencies/1-search-updates.adoc[]
 
 == Scala dependencies
 
