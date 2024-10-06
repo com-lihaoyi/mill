@@ -8,10 +8,10 @@ object HelloWorldTest extends TestSuite {
     test("reverseString should reverse a C string correctly") {
       val expected = c"!dlrow olleH"
 
-      val reversed = HelloWorld.reverseString(c"Hello World!")
+      val result = HelloWorld.reverseString(c"Hello World!")
 
       // Check if the reversed string matches the expected result
-      assert(reversed == expected)
+      assert(result == expected)
       result
     }
   }
