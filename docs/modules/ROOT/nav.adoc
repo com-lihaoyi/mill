@@ -36,6 +36,7 @@
 * xref:kotlinlib/publishing.adoc[]
 * xref:kotlinlib/build-examples.adoc[]
 * xref:kotlinlib/web-examples.adoc[]
+* xref:kotlinlib/android-examples.adoc[]
 
 .Build Tool Comparisons
 * xref:comparisons/maven.adoc[]
