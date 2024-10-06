@@ -230,19 +230,22 @@ trait KotlinJSModule extends KotlinModule { outer =>
       extraKotlinArgs: Seq[String],
       worker: KotlinWorker
   )(implicit ctx: mill.api.Ctx): Result[CompilationResult] = {
-    val kotlinVersionSegments = kotlinVersion.split("\\.")
-    if (
-      kotlinVersionSegments(0).toInt == 2 || (
-        kotlinVersionSegments(0).toInt == 1
-          && (kotlinVersionSegments(1).toInt <= 7
-            || (kotlinVersionSegments(1).toInt == 8 && kotlinVersionSegments(2).toInt < 20))
-      )
-    ) {
+    val versionAllowed = kotlinVersion.split("\\.").map(_.toInt) match {
+      case Array(1, 8, z) => z >= 20
+      case Array(1, y, _) => y >= 9
+      case Array(2, _, _) => false
+      case _ => false
+    }
+    if (!versionAllowed) {
       // have to put this restriction, because for older versions some compiler options either didn't exist or
       // had different names. It is possible to go to the lower version supported with a certain effort.
       ctx.log.error("Minimum supported Kotlin version for JS target is 1.8.20, maximum is 1.9.25")
       return Result.Aborted
     }
+
+    // compiler options references:
+    // * https://kotlinlang.org/docs/compiler-reference.html#kotlin-js-compiler-options
+    // * https://github.com/JetBrains/kotlin/blob/v1.9.25/compiler/cli/cli-common/src/org/jetbrains/kotlin/cli/common/arguments/K2JSCompilerArguments.kt
 
     val inputFiles = irClasspath match {
       case Some(x) => Seq(s"-Xinclude=${x.path.toIO.getAbsolutePath}")
