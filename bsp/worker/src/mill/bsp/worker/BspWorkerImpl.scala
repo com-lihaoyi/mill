@@ -97,6 +97,7 @@ private class BspWorkerImpl() extends BspWorker {
         listening.get()
         streams.err.println("Shutting down executor")
         executor.shutdown()
+        streams.err.println("Executor shut down")
       }).start()
 
       Right(bspServerHandle)
