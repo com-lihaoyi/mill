@@ -1,6 +1,6 @@
 package mill.api
 
-import java.io.{InputStream, PrintStream}
+import java.io.{Closeable, InputStream, PrintStream}
 
 /**
  * The standard logging interface of the Mill build tool.
@@ -24,7 +24,7 @@ import java.io.{InputStream, PrintStream}
  * but when `show` is used both are forwarded to stderr and stdout is only
  * used to display the final `show` output for easy piping.
  */
-trait Logger {
+trait Logger extends Closeable {
   def colored: Boolean
 
   def systemStreams: SystemStreams

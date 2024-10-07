@@ -13,6 +13,7 @@ import mill.util.{PromptLogger, PrintLogger, Colors}
 
 import java.lang.reflect.InvocationTargetException
 import scala.util.control.NonFatal
+import scala.util.Using
 
 @internal
 object MillMain {
@@ -235,7 +236,8 @@ object MillMain {
                         colored = colored,
                         colors = colors
                       )
-                      try new MillBuildBootstrap(
+                      Using.resource(logger) { _ =>
+                        new MillBuildBootstrap(
                           projectRoot = WorkspaceRoot.workspaceRoot,
                           output = os.Path(OutFiles.out, WorkspaceRoot.workspaceRoot),
                           home = config.home,
@@ -252,8 +254,6 @@ object MillMain {
                           config.allowPositional.value,
                           systemExit = systemExit
                         ).evaluate()
-                      finally {
-                        logger.close()
                       }
                     },
                     colors = colors
