@@ -145,7 +145,8 @@ object IntegrationTester {
     override def close(): Unit = {
       if (clientServerMode) {
         // try to stop the server
-        os.call(
+        System.err.println("Shutting down Mill server")
+        val res = os.call(
           cmd = (millExecutable, "shutdown"),
           cwd = workspacePath,
           stdin = os.Inherit,
@@ -154,6 +155,7 @@ object IntegrationTester {
           env = millTestSuiteEnv,
           check = false
         )
+        System.err.println(s"Shut down Mill server (exit code ${res.exitCode})")
       }
 
       removeServerIdFile()
