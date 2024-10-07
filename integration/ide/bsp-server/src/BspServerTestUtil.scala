@@ -71,7 +71,12 @@ object BspServerTestUtil {
         System.err.println(jsonStr)
         Predef.assert(
           false,
-          if (exists) s"Error: value differs from snapshot in $snapshotPath"
+          if (exists)
+            s"""Error: value differs from snapshot in $snapshotPath
+               |
+               |You might want to set BspServerTestUtil.updateSnapshots to true,
+               |run this test again, and commit the updated test data files.
+               |""".stripMargin
           else s"Error: no snapshot found at $snapshotPath"
         )
       }
