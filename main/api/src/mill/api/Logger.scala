@@ -1,6 +1,6 @@
 package mill.api
 
-import java.io.{Closeable, InputStream, PrintStream}
+import java.io.{InputStream, PrintStream}
 
 import mill.main.client.lock.{Lock, Locked}
 
@@ -26,7 +26,7 @@ import mill.main.client.lock.{Lock, Locked}
  * but when `show` is used both are forwarded to stderr and stdout is only
  * used to display the final `show` output for easy piping.
  */
-trait Logger extends Closeable {
+trait Logger extends AutoCloseable {
   def colored: Boolean
 
   def systemStreams: SystemStreams
