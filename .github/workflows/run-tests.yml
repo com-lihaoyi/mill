@@ -64,6 +64,15 @@ jobs:
           - java-version: 17
             millargs: "contrib.__.testCached"
 
+          - java-version: 21
+            millargs: "'{main,scalalib,testrunner,bsp,testkit}.__.testCached'"
+          - java-version: 21
+            millargs: "'{scalajslib,scalanativelib,kotlinlib}.__.testCached'"
+          - java-version: 23
+            millargs: "'{main,scalalib,testrunner,bsp,testkit}.__.testCached'"
+          - java-version: 23
+            millargs: "'{scalajslib,scalanativelib,kotlinlib}.__.testCached'"
+
           - java-version: 17
             millargs: "'example.javalib.__.local.testCached'"
           - java-version: 17
