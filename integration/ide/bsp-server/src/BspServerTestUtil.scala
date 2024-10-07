@@ -124,18 +124,12 @@ object BspServerTestUtil {
     val contentsJson = ujson.read(contents)
     val bspCommand = contentsJson("argv").arr.map(_.str)
     val stderr = new ByteArrayOutputStream
-    var printed = 0
     val proc = os.proc(bspCommand).spawn(
       cwd = workspacePath,
       stderr =
         if (outputOnErrorOnly)
           os.ProcessOutput { (bytes, len) =>
             stderr.write(bytes, 0, len)
-            val outputOpt = scala.util.Try(new String(stderr.toByteArray))
-            for (output <- outputOpt if output.length > printed) {
-              System.err.print(output.drop(printed))
-              printed = output.length()
-            }
           }
         else os.Inherit,
       env = millTestSuiteEnv
