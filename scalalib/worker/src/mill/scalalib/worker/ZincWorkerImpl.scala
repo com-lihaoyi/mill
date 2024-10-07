@@ -208,7 +208,7 @@ class ZincWorkerImpl(
         .partition(a => a.ext == "scala" || a.ext == "java")
 
     resources.foreach { res =>
-      val dest = compileDest / res.relativeTo(sourceFolder.path)
+      val dest = compileDest / res.relativeTo(sourceFolder)
       os.move(res, dest, replaceExisting = true, createFolders = true)
     }
 
