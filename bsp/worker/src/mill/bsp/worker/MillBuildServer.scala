@@ -17,7 +17,7 @@ import mill.scalalib.{JavaModule, SemanticDbJavaModule, TestModule}
 
 import java.io.PrintStream
 import java.util.concurrent.CompletableFuture
-import scala.concurrent.Promise
+import scala.concurrent.{ExecutionContext, Promise}
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
 import scala.util.chaining.scalaUtilChainingOps
@@ -49,20 +49,19 @@ private class MillBuildServer(
     val pool = poolOpt.getOrElse {
       poolOptLock.synchronized {
         poolOpt.getOrElse {
-          Executors.newCachedThreadPool(
-            new ThreadFactory {
-              val counter = new AtomicInteger
-              def newThread(runnable: Runnable): Thread = {
-                val t = new Thread(runnable, s"mill-bsp-${counter.incrementAndGet()}")
-                t.setDaemon(true)
-                t
-              }
+          val factory: ThreadFactory = new ThreadFactory {
+            val counter = new AtomicInteger
+            def newThread(runnable: Runnable): Thread = {
+              val t = new Thread(runnable, s"mill-bsp-${counter.incrementAndGet()}")
+              t.setDaemon(true)
+              t
             }
-          )
+          }
+          Executors.newCachedThreadPool(factory)
         }
       }
     }
-    scala.concurrent.ExecutionContext.fromExecutorService(pool)
+    ExecutionContext.fromExecutorService(pool)
   }
 
   override def close(): Unit =
