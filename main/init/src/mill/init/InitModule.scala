@@ -81,7 +81,7 @@ trait InitModule extends Module {
             os.perms.set(T.workspace / "mill", "rwxrwxrwx")
 
             (
-              Seq(unpackPath.path.toString()),
+              Seq(unpackPath.toString()),
               s"Example download and unpacked to [${T.workspace}]; " +
                 "See `build.mill` for an explanation of this example and instructions on how to use it"
             )

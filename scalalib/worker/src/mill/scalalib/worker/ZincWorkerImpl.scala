@@ -204,7 +204,7 @@ class ZincWorkerImpl(
     )(ctx0)
 
     val (sources, resources) =
-      os.walk(sourceFolder.path).filter(os.isFile)
+      os.walk(sourceFolder).filter(os.isFile)
         .partition(a => a.ext == "scala" || a.ext == "java")
 
     resources.foreach { res =>
