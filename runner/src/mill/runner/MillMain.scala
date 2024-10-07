@@ -243,7 +243,10 @@ object MillMain {
                       )
                       Using.resources(
                         logger,
-                        logger.waitForLock(outLock)
+                        logger.waitForLock(
+                          outLock,
+                          waitingAllowed = !config.noWaitForBuildLock.value
+                        )
                       ) { (_, _) =>
                         new MillBuildBootstrap(
                           projectRoot = WorkspaceRoot.workspaceRoot,

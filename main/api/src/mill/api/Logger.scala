@@ -82,13 +82,16 @@ trait Logger extends Closeable {
     finally removePromptLine()
   }
 
-  def waitForLock(lock: Lock): Locked = {
+  def waitForLock(lock: Lock, waitingAllowed: Boolean): Locked = {
     val tryLocked = lock.tryLock()
     if (tryLocked.isLocked())
       tryLocked
-    else {
+    else if (waitingAllowed) {
       info("Another Mill process is running tasks, waiting for it to be done...")
       lock.lock()
+    } else {
+      error("Cannot proceed, another Mill process is running tasks")
+      throw new Exception("Cannot acquire lock on Mill output directory")
     }
   }
 }

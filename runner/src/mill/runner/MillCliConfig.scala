@@ -136,7 +136,13 @@ case class MillCliConfig(
       doc =
         """Evaluate tasks / commands without acquiring an exclusive lock on the Mill output directory"""
     )
-    noBuildLock: Flag = Flag()
+    noBuildLock: Flag = Flag(),
+    @arg(
+      hidden = true,
+      doc =
+        """Do not wait for an exclusive lock on the Mill output directory to evaluate tasks / commands. Fail if waiting for a lock is needed."""
+    )
+    noWaitForBuildLock: Flag = Flag()
 )
 
 import mainargs.ParserForClass
