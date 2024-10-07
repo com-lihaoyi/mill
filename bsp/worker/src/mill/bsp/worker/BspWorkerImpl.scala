@@ -8,8 +8,7 @@ import mill.api.SystemStreams
 import org.eclipse.lsp4j.jsonrpc.Launcher
 
 import java.io.{PrintStream, PrintWriter}
-import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.{Executors, ThreadFactory}
+import java.util.concurrent.Executors
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, CancellationException, Promise}
 
@@ -33,16 +32,7 @@ private class BspWorkerImpl() extends BspWorker {
         canReload = canReload
       ) with MillJvmBuildServer with MillJavaBuildServer with MillScalaBuildServer
 
-    val executor = Executors.newCachedThreadPool(
-      new ThreadFactory {
-        val counter = new AtomicInteger
-        def newThread(runnable: Runnable): Thread = {
-          val t = new Thread(runnable, s"mill-bsp-jsonrpc-${counter.incrementAndGet()}")
-          t.setDaemon(true)
-          t
-        }
-      }
-    )
+    val executor = Executors.newCachedThreadPool()
 
     var shutdownRequestedBeforeExit = false
 
