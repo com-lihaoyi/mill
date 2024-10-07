@@ -12,7 +12,12 @@ It covers setting up a basic backend server with a variety of server frameworks
 == Ktor Hello World App
 
 include::partial$example/kotlinlib/web/1-hello-ktor.adoc[]
+
 == Ktor TodoMvc App
 
 include::partial$example/kotlinlib/web/2-todo-ktor.adoc[]
+
+== (Work In Progress) Simple KotlinJS Module
+
+include::partial$example/kotlinlib/web/3-hello-kotlinjs.adoc[]
 
