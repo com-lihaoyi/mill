@@ -99,22 +99,7 @@ private class BspWorkerImpl() extends BspWorker {
         streams.err.println("Shutting down executor")
         executor.shutdown()
         streams.err.println("Executor shut down")
-        import scala.jdk.CollectionConverters._
-        Thread.getAllStackTraces()
-          .asScala
-          .iterator
-          .filter(!_._1.isDaemon())
-          .toVector
-          .sortBy(_._1.getId)
-          .foreach {
-            case (thread, stackTrace) =>
-              thread.getState
-              System.err.println(s"$thread (${thread.getState})")
-              for (elem <- stackTrace)
-                System.err.println(s"  $elem")
-              System.err.println()
-          }
-      }, "bsp-worker-close").start()
+      }).start()
 
       Right(bspServerHandle)
     } catch {
