@@ -5,4 +5,16 @@ import mill.scalalib._
 
 object `package` extends RootModule with ScalaModule {
   def scalaVersion = scala.util.Properties.versionNumberString
+
+  def hello = Task {
+    "Hello from hello task"
+  }
+
+  def blockWhileExists(path: os.Path) = Task.Command[String] {
+    if (!os.exists(path))
+      os.write(path, Array.emptyByteArray)
+    while (os.exists(path))
+      Thread.sleep(100L)
+    "Blocking command done"
+  }
 }
