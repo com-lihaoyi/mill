@@ -4,7 +4,7 @@ import mill._
 import mill.api.PathRef
 import mill.define.ModuleRef
 import mill.kotlinlib.KotlinModule
-import mill.javalib.android.{AndroidSdkModule,AndroidAppModule}
+import mill.javalib.android.{AndroidSdkModule, AndroidAppModule}
 
 /**
  * Trait for building Android applications using the Mill build tool.
@@ -32,25 +32,24 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule {
    */
   def androidSdkModule: ModuleRef[AndroidSdkModule]
 
- 
   /**
    * Packages the compiled Kotlin `.class` files into a JAR file using the D8 tool.
    *
    * The D8 compiler is used here to package and optimize the Kotlin bytecode into a format
    * suitable for Android (DEX). D8 converts the Kotlin `.class` files into a jar file which is
    * suitable for DEX (Dalvik Executable) format and is required for Android runtime.
-   * 
-   * This Redefines the parent androidJar Task for Kotlin Specific Compilation.
    *
-   * For more details on the d8 tool, refer to:
+   * This redefines the parent androidJar task for Kotlin-specific compilation.
+   *
+   * For more details on the D8 tool, refer to:
    * [[https://developer.android.com/tools/d8 d8 Documentation]]
    */
-  def androidJar: T[PathRef] = Task {
+  def androidJar: T[PathRef] = T.task {
     val jarFile: os.Path = T.dest / "app.jar"
 
     os.call(
       Seq(
-        androidSdkModule().d8Path().path.toString, // Call d8 tool
+        androidSdkModule().d8Path().path.toString, // Call D8 tool
         "--output",
         jarFile.toString, // Output JAR file
         "--no-desugaring" // Disable desugaring
