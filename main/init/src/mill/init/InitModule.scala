@@ -1,7 +1,6 @@
 package mill.init
 
 import mainargs.{Flag, arg}
-import mill.api.IO
 import mill.define.{Discover, ExternalModule}
 import mill.{Command, Module, T}
 
