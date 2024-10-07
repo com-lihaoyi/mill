@@ -169,8 +169,9 @@ object BspServerTestUtil {
         )
       ).get()
 
-      val value = f(buildServer, initRes)
-      buildServer.buildShutdown().get()
+      val value =
+        try f(buildServer, initRes)
+        finally buildServer.buildShutdown().get()
       success = true
       value
     } finally {
