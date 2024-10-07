@@ -1,5 +1,6 @@
-// KotlinJS support on Mill is still Work In Progress (WIP). It does not support
-// Kotlin 2.x with KMP KLIB files, Node.js/Webpack test runners and reporting, etc.
+// KotlinJS support on Mill is still Work In Progress (WIP). As of time of writing it
+// does not support third-party dependencies, Kotlin 2.x with KMP KLIB files, Node.js/Webpack
+// test runners and reporting, etc.
 //
 // The example below demonstrates only the minimal compilation, running, and testing of a single KotlinJS
 // module. For more details in fully developing KotlinJS support, see the following ticket:
