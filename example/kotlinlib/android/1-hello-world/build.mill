@@ -1,8 +1,8 @@
 // This section sets up a basic Android project using Mill. 
-// We utilize `AndroidAppModule` and `AndroidSdkModule` to streamline the process of 
+// We utilize `AndroidAppKotlinModule` and `AndroidSdkModule` to streamline the process of 
 // building an Android application with minimal configuration.
 //
-// By extending `AndroidAppModule`, we inherit all Android-related tasks such as 
+// By extending `AndroidAppKotlinModule`, we inherit all Android-related tasks such as 
 // resource generation, APK building, DEX conversion, and APK signing. 
 // Additionally, `AndroidSdkModule` is embedded, making SDK management seamless.
 
@@ -11,7 +11,7 @@ package build
 
 import mill._
 import kotlinlib._
-import mill.kotlinlib.android.AndroidAppModule
+import mill.kotlinlib.android.AndroidAppKotlinModule
 import mill.javalib.android.AndroidSdkModule
 
 // Create and configure an Android SDK module to manage Android SDK paths and tools.
@@ -20,7 +20,7 @@ object androidSdkModule0 extends AndroidSdkModule{
 }
 
 // Actual android application
-object app extends AndroidAppModule {
+object app extends AndroidAppKotlinModule {
   
   def kotlinVersion = "2.0.0"
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
@@ -41,7 +41,7 @@ object app extends AndroidAppModule {
 // into an APK, optimizes the APK using `zipalign`, and finally signs it.
 //
 // This Mill build configuration is designed to build a simple "Hello World" Android application. 
-// By extending `AndroidAppModule`, we leverage its predefined Android build tasks, ensuring that 
+// By extending `AndroidAppKotlinModule`, we leverage its predefined Android build tasks, ensuring that 
 // all necessary steps (resource generation, APK creation, and signing) are executed automatically.
 // 
 // ### Project Structure:
@@ -51,7 +51,7 @@ object app extends AndroidAppModule {
 // .
 // ├── build.mill
 // ├── AndroidManifest.xml
-// └── src/main/kotlin
+// └── app/src/main/kotlin
 //     └── com/helloworld/app
 //         └── MainActivity.kt
 // ----
