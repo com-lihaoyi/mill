@@ -7,6 +7,7 @@ import mill.api.BuildInfo
 import mill.bsp.Constants
 import org.eclipse.{lsp4j => l}
 
+import java.io.ByteArrayOutputStream
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{ExecutorService, Executors, ThreadFactory}
 
@@ -119,9 +120,15 @@ object BspServerTestUtil {
 
     val contentsJson = ujson.read(contents)
     val bspCommand = contentsJson("argv").arr.map(_.str)
+    val stderr = new ByteArrayOutputStream
     val proc = os.proc(bspCommand).spawn(
       cwd = workspacePath,
-      stderr = if (outputOnErrorOnly) os.Pipe else os.Inherit,
+      stderr =
+        if (outputOnErrorOnly)
+          os.ProcessOutput { (bytes, len) =>
+            stderr.write(bytes, 0, len)
+          }
+        else os.Inherit,
       env = millTestSuiteEnv
     )
 
@@ -167,7 +174,7 @@ object BspServerTestUtil {
 
       if (!success && outputOnErrorOnly) {
         System.err.println(" == BSP server output ==")
-        System.err.write(proc.stderr.bytes)
+        System.err.write(stderr.toByteArray)
         System.err.println(" == end of BSP server output ==")
       }
     }
