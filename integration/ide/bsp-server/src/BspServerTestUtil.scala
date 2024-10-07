@@ -58,21 +58,24 @@ object BspServerTestUtil {
       )
     }
 
-    if (!expectedValueOpt.contains(value))
+    if (!expectedValueOpt.contains(value)) {
+      lazy val jsonStr = gson.toJson(
+        value,
+        implicitly[ClassTag[T]].runtimeClass
+      )
       if (updateSnapshots) {
         System.err.println(if (exists) s"Updating $snapshotPath" else s"Writing $snapshotPath")
-        val jsonStr = gson.toJson(
-          value,
-          implicitly[ClassTag[T]].runtimeClass
-        )
         os.write.over(snapshotPath, normalizeLocalValues(jsonStr), createFolders = true)
-      } else
+      } else {
+        System.err.println("Expected JSON:")
+        System.err.println(jsonStr)
         Predef.assert(
           false,
-          if (exists) s"Error: value differs from snapshot at $snapshotPath"
+          if (exists) s"Error: value differs from snapshot in $snapshotPath"
           else s"Error: no snapshot found at $snapshotPath"
         )
-    else if (updateSnapshots) {
+      }
+    } else if (updateSnapshots) {
       // Snapshot on disk might need to be updated anyway, if normalizedLocalValues changed
       // and new strings should be replaced
       val obtainedJsonStr = normalizeLocalValues(
