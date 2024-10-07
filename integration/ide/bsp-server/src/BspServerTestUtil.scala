@@ -170,6 +170,7 @@ object BspServerTestUtil {
       ).get()
 
       val value = f(buildServer, initRes)
+      buildServer.buildShutdown().get()
       success = true
       value
     } finally {
