@@ -6,11 +6,13 @@ import mill.api._
 import mill.define._
 import mill.eval.Evaluator.TaskResult
 import mill.main.client.OutFiles._
+import mill.main.client.lock.Lock
 import mill.util._
 
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import scala.collection.mutable
 import scala.concurrent._
+import scala.util.Using
 
 /**
  * Core logic of evaluating tasks, without any user-facing helper methods
@@ -18,6 +20,8 @@ import scala.concurrent._
 private[mill] trait EvaluatorCore extends GroupEvaluator {
 
   def baseLogger: ColorLogger
+  def outPathLockOpt: Option[Lock]
+  def delayedOutPathLockOpt: Option[Lock]
 
   /**
    * @param goals The tasks that need to be evaluated
@@ -31,8 +35,6 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       logger: ColorLogger = baseLogger,
       serialCommandExec: Boolean = false
   ): Evaluator.Results = {
-    os.makeDir.all(outPath)
-
     PathRef.validatedPaths.withValue(new PathRef.ValidatedPaths()) {
       val ec =
         if (effectiveThreadCount == 1) ExecutionContexts.RunNow
@@ -42,7 +44,19 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
         if (effectiveThreadCount == 1) ""
         else s"#${if (effectiveThreadCount > 9) f"$threadId%02d" else threadId} "
 
-      try evaluate0(goals, logger, reporter, testReporter, ec, contextLoggerMsg, serialCommandExec)
+      try
+        Using.resource(logger.waitForLock(outPathLockOpt.getOrElse(Lock.dummy()))) { _ =>
+          os.makeDir.all(outPath)
+          evaluate0(
+            goals,
+            logger,
+            reporter,
+            testReporter,
+            ec,
+            contextLoggerMsg,
+            serialCommandExec
+          )
+        }
       finally ec.close()
     }
   }

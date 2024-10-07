@@ -6,11 +6,14 @@ import mill.main.client.CodeGenConstants._
 import mill.api.{PathRef, SystemStreams, Val, internal}
 import mill.eval.Evaluator
 import mill.main.RunScript
+import mill.main.client.lock.Lock
 import mill.resolve.SelectMode
 import mill.define.{BaseModule, Discover, Segments}
 import mill.main.client.OutFiles.{millBuild, millRunnerState}
 
 import java.net.URLClassLoader
+
+import scala.util.Using
 
 /**
  * Logic around bootstrapping Mill, creating a [[MillBuildRootModule.BootstrapModule]]
@@ -31,6 +34,8 @@ import java.net.URLClassLoader
 class MillBuildBootstrap(
     projectRoot: os.Path,
     output: os.Path,
+    outputLockOpt: Option[Lock],
+    delayedOutputLockOpt: Option[Lock],
     home: os.Path,
     keepGoing: Boolean,
     imports: Seq[String],
@@ -308,7 +313,13 @@ class MillBuildBootstrap(
     assert(nestedState.frames.forall(_.evaluator.isDefined))
 
     val (evaled, evalWatched, moduleWatches) = Evaluator.allBootstrapEvaluators.withValue(
-      Evaluator.AllBootstrapEvaluators(Seq(evaluator) ++ nestedState.frames.flatMap(_.evaluator))
+      Evaluator.AllBootstrapEvaluators(
+        (Seq(evaluator) ++ nestedState.frames.flatMap(_.evaluator)).map { ev =>
+          ev
+            .withOutPathLockOpt(ev.delayedOutPathLockOpt)
+            .withDelayedOutPathLockOpt(None)
+        }
+      )
     ) {
       evaluateWithWatches(rootModule, evaluator, targetsAndParams)
     }
@@ -344,6 +355,8 @@ class MillBuildBootstrap(
       home,
       projectRoot,
       recOut(output, depth),
+      outputLockOpt,
+      delayedOutputLockOpt,
       recOut(output, depth),
       rootModule,
       new PrefixLogger(logger, Nil, tickerContext = bootLogPrefix),

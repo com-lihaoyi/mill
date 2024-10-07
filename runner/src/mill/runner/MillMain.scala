@@ -212,9 +212,10 @@ object MillMain {
                     .getOrElse(config.leftoverArgs.value.toList)
 
                 val out = os.Path(OutFiles.out, WorkspaceRoot.workspaceRoot)
-                val outLock =
-                  if (config.noBuildLock.value || bspContext.isDefined) Lock.dummy()
-                  else Lock.file((out / OutFiles.millLock).toString)
+                val outLockOpt =
+                  if (config.noBuildLock.value) None
+                  else Some(Lock.file((out / OutFiles.millLock).toString))
+                val delayLock = bspContext.nonEmpty
                 var repeatForBsp = true
                 var loopRes: (Boolean, RunnerState) = (false, RunnerState.empty)
                 while (repeatForBsp) {
@@ -244,13 +245,15 @@ object MillMain {
                       Using.resources(
                         logger,
                         logger.waitForLock(
-                          outLock,
+                          outLockOpt.filter(_ => !delayLock).getOrElse(Lock.dummy()),
                           waitingAllowed = !config.noWaitForBuildLock.value
                         )
                       ) { (_, _) =>
                         new MillBuildBootstrap(
                           projectRoot = WorkspaceRoot.workspaceRoot,
                           output = out,
+                          outputLockOpt = None,
+                          delayedOutputLockOpt = if (delayLock) outLockOpt else None,
                           home = config.home,
                           keepGoing = config.keepGoing.value,
                           imports = config.imports,
