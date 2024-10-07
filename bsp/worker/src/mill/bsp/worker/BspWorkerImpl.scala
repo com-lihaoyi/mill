@@ -32,7 +32,16 @@ private class BspWorkerImpl() extends BspWorker {
         canReload = canReload
       ) with MillJvmBuildServer with MillJavaBuildServer with MillScalaBuildServer
 
-    val executor = Executors.newCachedThreadPool()
+    val executor = Executors.newCachedThreadPool(
+      new ThreadFactory {
+        val counter = new AtomicInteger
+        def newThread(runnable: Runnable): Thread = {
+          val t = new Thread(runnable, s"mill-bsp-jsonrpc-${counter.incrementAndGet()}")
+          t.setDaemon(true)
+          t
+        }
+      }
+    )
 
     var shutdownRequestedBeforeExit = false
 
