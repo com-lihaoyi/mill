@@ -44,7 +44,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule {
    * For more details on the D8 tool, refer to:
    * [[https://developer.android.com/tools/d8 d8 Documentation]]
    */
-  def androidJar: T[PathRef] = T.task {
+  def androidJar: T[PathRef] = Task {
     val jarFile: os.Path = T.dest / "app.jar"
 
     os.call(
