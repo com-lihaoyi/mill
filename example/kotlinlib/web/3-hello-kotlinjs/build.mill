@@ -1,0 +1,42 @@
+// KotlinJS support on Mill is still Work In Progress (WIP). It does not support
+// Kotlin 2.x with KMP KLIB files, Node.js/Webpack test runners and reporting, etc.
+//
+// The example below demonstrates only the minimal compilation, running, and testing of a single KotlinJS
+// module. For more details in fully developing KotlinJS support, see the following ticket:
+//
+// * https://github.com/com-lihaoyi/mill/issues/3611
+
+package build
+import mill._, kotlinlib._, kotlinlib.js._
+
+object foo extends KotlinJSModule {
+  def moduleKind = ModuleKind.ESModule
+  def kotlinVersion = "1.9.25"
+  def kotlinJSRunTarget = Some(RunTarget.Node)
+  object test extends KotlinJSModule with KotlinJSKotlinXTests
+}
+
+
+/** Usage
+
+> mill foo.run
+Compiling 1 Kotlin sources to .../out/foo/compile.dest/classes...
+Hello, world
+stringifiedJsObject: ["hello","world","!"]
+
+> mill foo.test # Test is incorrect, `foo.test`` fails
+Compiling 1 Kotlin sources to .../out/foo/test/compile.dest/classes...
+Linking IR to .../out/foo/test/linkBinary.dest/binaries
+produce executable: .../out/foo/test/linkBinary.dest/binaries
+...
+error: AssertionError: Expected <Hello, world>, actual <Not hello, world>.
+
+> cat out/foo/test/linkBinary.dest/binaries/test.js # Generated javascript on disk
+...assertEquals_0(getString(), 'Not hello, world');...
+...
+
+> sed -i.bak 's/Not hello, world/Hello, world/g' foo/test/src/foo/HelloTests.kt
+
+> mill foo.test # passes after fixing test
+
+*/
