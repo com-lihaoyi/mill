@@ -54,7 +54,7 @@ trait InitModule extends Module {
             val extractedDirName = zipName.stripSuffix(".zip")
             val downloaded = os.temp(requests.get(url))
             println(s"Unpacking example...")
-            val unpackPath = IO.unpackZip(downloaded, os.rel)
+            val unpackPath = os.unzip(downloaded, T.dest)
             val extractedPath = T.dest / extractedDirName
             val conflicting = for {
               p <- os.walk(extractedPath)
