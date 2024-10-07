@@ -5,35 +5,21 @@ import mill._, scalalib._, scalanativelib._
 object `package` extends RootModule with ScalaNativeModule {
   def scalaVersion = "2.13.11"
   def scalaNativeVersion = "0.5.5"
-  def nativeLinkingOptions = Seq("-L" + millSourcePath + "/output")
 
-  // Additional source folder to put C sources
-  def nativeSources = T.sources(millSourcePath / "native-src")
-
-
-
-  // Compile C
-  def nativeCompiled = T {
-    val cSourceFiles = nativeSources().map(_.path).flatMap(os.walk(_)).filter(_.ext == "c")
-    val output = "libhelloworld.so"
-
-    os.proc(
-      "gcc", "-m64", "-shared",
-      "-c", cSourceFiles, 
-      "-o", T.dest.toString + "/output"
-    )
-    .call()
-
-
-    PathRef(T.dest / output)
-  }
-
-
-
+ 
   object test extends ScalaNativeTests {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
     def testFramework = "utest.runner.Framework"
+
   }
+
+  def nativeLinkingOptions = Seq("-L" + millSourcePath.toString + "/target")
+  os.makeDir(millSourcePath / "target")
+  os.proc("gcc", "-m64", "-shared",
+    "-c", millSourcePath.toString + "/native-src/HelloWorld.c",
+    "-o", millSourcePath.toString + "/target/libHelloWorld.so"
+  ).call(stdout = os.Inherit)
+
 }
 
 //// SNIPPET:END

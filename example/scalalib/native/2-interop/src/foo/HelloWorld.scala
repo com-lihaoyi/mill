@@ -1,12 +1,11 @@
 package foo
+import scala.scalanative.libc._
 import scala.scalanative.unsafe._
 
 object Main {
   def main(args: Array[String]): Unit = {
-    print("Running HelloWorld function\n")
-    val input = c"Hello, World!!\n"
-    val reversed = HelloWorld.reverseString(input)
-    println(c"Reversed: %s", reversed)
+    println("Running HelloWorld function")
+    stdio.printf(c"Reversed: %s\n", HelloWorld.reverseString(c"Hello, World!"))
     println("Done...")
   }
 }
@@ -19,3 +18,4 @@ object HelloWorld {
   // Name and signature of C function
   def reverseString(str: CString): CString = extern
 }
+

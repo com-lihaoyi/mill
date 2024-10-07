@@ -1,20 +1,18 @@
 package foo
-
-import scala.scalanative.unsafe._
 import scala.scalanative.libc._
-import scalatags.Text.all._
-import mainargs.{main, ParserForMethods}
-
+import scala.scalanative.unsafe._
 
 object Foo {
+  
   def generateHtml(text: CString) = {
-    h1(text).toCString
+    stdio.printf(c"<h1>%s</h1>\n", text)
   }
 
-  @main
-  def main(text: CString) = {
-   stdio.printf(generateHtml(text))
+  def main(args: Array[String]): Unit = {
+    implicit val z: Zone = Zone.open
+    val text = args(0)
+    generateHtml(toCString(text))
+    z.close()
   }
-
-  def main(args: Array[String]): Unit = ParserForMethods(this).runOrExit(args)
 }
+
