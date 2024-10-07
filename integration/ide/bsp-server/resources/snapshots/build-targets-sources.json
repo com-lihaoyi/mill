@@ -35,11 +35,6 @@
           "generated": false
         },
         {
-          "uri": "file:///workspace/build.mill",
-          "kind": 1,
-          "generated": false
-        },
-        {
           "uri": "file:///workspace/out/mill-build/generateScriptSources.dest",
           "kind": 2,
           "generated": true
