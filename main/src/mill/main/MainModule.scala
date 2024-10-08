@@ -51,17 +51,15 @@ object MainModule {
   )(f: Seq[(Any, Option[(RunScript.TaskName, ujson.Value)])] => ujson.Value)
       : Result[ujson.Value] = {
 
-    log.withPromptUnpaused{
-      RunScript.evaluateTasksNamed(
-        // When using `show`, redirect all stdout of the evaluated tasks so the
-        // printed JSON is the only thing printed to stdout.
-        evaluator.withBaseLogger(
-          evaluator.baseLogger.withOutStream(evaluator.baseLogger.errorStream)
-        ),
-        targets,
-        Separated
-      )
-    } match {
+    RunScript.evaluateTasksNamed(
+      // When using `show`, redirect all stdout of the evaluated tasks so the
+      // printed JSON is the only thing printed to stdout.
+      evaluator.withBaseLogger(
+        evaluator.baseLogger.withOutStream(evaluator.baseLogger.errorStream)
+      ),
+      targets,
+      Separated
+    ) match {
       case Left(err) => Result.Failure(err)
       case Right((watched, Left(err))) =>
         watched.foreach(watch0)
