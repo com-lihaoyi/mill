@@ -1,24 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Untitled :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.11.12/example/cross/10-static-blog.html">
-    <meta name="generator" content="Antora 3.1.9">
-    <link rel="stylesheet" href="../../../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.11.12/example/cross/10-static-blog.html" />
+    <meta name="generator" content="Antora 3.1.9" />
+    <link rel="stylesheet" href="../../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
+<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon" />
+  
+  </head><body class="article">
+  
 <header class="header">
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -309,7 +310,7 @@
 <div class="page-versions">
   <button class="version-menu-toggle" title="Show other versions of page">0.11.12</button>
   <div class="version-menu">
-    <a class="version is-missing" href="../../../index.html">0.12.0-RC3-20-561a00</a>
+    <a class="version is-missing" href="../../../index.html">0.12.0-RC3-21-8b063c</a>
     <a class="version is-current" href="10-static-blog.html">0.11.12</a>
     <a class="version" href="../../../0.11.11/example/cross/10-static-blog.html">0.11.11</a>
     <a class="version" href="../../../0.11.10/example/cross/10-static-blog.html">0.11.10</a>
@@ -346,19 +347,19 @@ import org.commonmark.renderer.html.HtmlRenderer</code></pre>
 <p>Next, we use <code>os.list</code> and <code>interp.watchValue</code> on the <code>post/</code> folder to
 build a <code>Cross[PostModule]</code> whose entries depend no the markdown files we
 find in that folder. Each post has a <code>source</code> pointing at the markdown file,
-and a <code>render</code> target that parses the file&#8217;s markdown and generates a HTML
+and a <code>render</code> target that parses the file’s markdown and generates a HTML
 output file</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
-def mdNameToHtml(s: String) = s.toLowerCase.replace(".md", ".html")
+def mdNameToHtml(s: String) = s.toLowerCase.replace(&quot;.md&quot;, &quot;.html&quot;)
 def mdNameToTitle(s: String) =
-  s.split('-').drop(1).mkString(" ").stripSuffix(".md")
+  s.split('-').drop(1).mkString(&quot; &quot;).stripSuffix(&quot;.md&quot;)
 
 val posts = interp.watchValue {
-  os.list(millSourcePath / "post").map(_.last).sorted
+  os.list(millSourcePath / &quot;post&quot;).map(_.last).sorted
 }
 
 object post extends Cross[PostModule](posts)
@@ -367,10 +368,10 @@ trait PostModule extends Cross.Module[String]{
   def render = T{
     val doc = Parser.builder().build().parse(os.read(source().path))
     val title = mdNameToTitle(crossValue)
-    val rendered = doctype("html")(
+    val rendered = doctype(&quot;html&quot;)(
       html(
         body(
-          h1(a("Blog", href := "../index.html"), " / ", title),
+          h1(a(&quot;Blog&quot;, href := &quot;../index.html&quot;), &quot; / &quot;, title),
           raw(HtmlRenderer.builder().build().render(doc))
         )
       )
@@ -386,7 +387,7 @@ trait PostModule extends Cross.Module[String]{
 <p>The last page we need to generate is the index page, listing out the various
 blog posts and providing links so we can navigate into them. To do this, we
 need to wrap the <code>posts</code> value in a <code>T.input</code>, as it can change depending on
-what <code>os.list</code> finds on disk. After that, it&#8217;s straightforward to render the
+what <code>os.list</code> finds on disk. After that, it’s straightforward to render the
 <code>index.html</code> file we want:</p>
 </div>
 <div class="listingblock">
@@ -394,29 +395,29 @@ what <code>os.list</code> finds on disk. After that, it&#8217;s straightforward 
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def postsInput = T.input{ posts }
 
 def renderIndexEntry(mdName: String) = {
-  h2(a(mdNameToTitle(mdName), href := ("post/" + mdNameToHtml(mdName))))
+  h2(a(mdNameToTitle(mdName), href := (&quot;post/&quot; + mdNameToHtml(mdName))))
 }
 
 def index = T{
-  val rendered = doctype("html")(
-    html(body(h1("Blog"), postsInput().map(renderIndexEntry)))
+  val rendered = doctype(&quot;html&quot;)(
+    html(body(h1(&quot;Blog&quot;), postsInput().map(renderIndexEntry)))
   )
-  os.write(T.dest / "index.html", rendered)
-  PathRef(T.dest / "index.html")
+  os.write(T.dest / &quot;index.html&quot;, rendered)
+  PathRef(T.dest / &quot;index.html&quot;)
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Lastly we copy the individual post HTML files and the <code>index.html</code> file
-into a single target&#8217;s <code>.dest</code> folder, and return it:</p>
+into a single target’s <code>.dest</code> folder, and return it:</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def dist = T {
   for (post &lt;- T.traverse(post.crossModules)(_.render)()) {
-    os.copy(post.path, T.dest / "post" / post.path.last, createFolders = true)
+    os.copy(post.path, T.dest / &quot;post&quot; / post.path.last, createFolders = true)
   }
-  os.copy(index().path, T.dest / "index.html")
+  os.copy(index().path, T.dest / &quot;index.html&quot;)
   PathRef(T.dest)
 }</code></pre>
 </div>
@@ -430,9 +431,9 @@ into a single target&#8217;s <code>.dest</code> folder, and return it:</p>
 
 &gt; cat out/dist.dest/index.html                    # root index page
 ...
-...&lt;a href="post/1-my-first-post.html"&gt;My First Post&lt;/a&gt;...
-...&lt;a href="post/2-my-second-post.html"&gt;My Second Post&lt;/a&gt;...
-...&lt;a href="post/3-my-third-post.html"&gt;My Third Post&lt;/a&gt;...
+...&lt;a href=&quot;post/1-my-first-post.html&quot;&gt;My First Post&lt;/a&gt;...
+...&lt;a href=&quot;post/2-my-second-post.html&quot;&gt;My Second Post&lt;/a&gt;...
+...&lt;a href=&quot;post/3-my-third-post.html&quot;&gt;My Third Post&lt;/a&gt;...
 
 &gt; cat out/dist.dest/post/1-my-first-post.html     # blog post page
 ...
@@ -441,12 +442,12 @@ into a single target&#8217;s <code>.dest</code> folder, and return it:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../../_images/BlogIndex.png" alt="BlogIndex.png">
+<img src="../../_images/BlogIndex.png" alt="BlogIndex.png" />
 </div>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../../_images/BlogPost.png" alt="BlogPost.png">
+<img src="../../_images/BlogPost.png" alt="BlogPost.png" />
 </div>
 </div>
 <div class="paragraph">
@@ -462,8 +463,8 @@ enough posts that the build is becoming noticeably slow.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show "post[1-My-First-Post.md].render"
-".../out/post/1-My-First-Post.md/render.dest/1-my-first-post.html"
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show &quot;post[1-My-First-Post.md].render&quot;
+&quot;.../out/post/1-My-First-Post.md/render.dest/1-my-first-post.html&quot;
 
 &gt; cat out/post/1-My-First-Post.md/render.dest/1-my-first-post.html
 ...
@@ -476,7 +477,7 @@ Mill target graph. For this simple example, the graph is as follows</p>
 </div>
 <div class="imageblock kroki">
 <div class="content">
-<img src="../../_images/diag-794b9a1556f8a3eb8f454f74f21a62df1b2b2480.svg" alt="Diagram">
+<img src="../../_images/diag-794b9a1556f8a3eb8f454f74f21a62df1b2b2480.svg" alt="Diagram" />
 </div>
 </div>
 <div class="paragraph">
@@ -495,9 +496,9 @@ some extensions and fun exercises to further familiarize yourself with Mill</p>
 </main>
 </div>
 <script id="site-script" src="../../../../_/js/site.js" data-ui-root-path="../../../../_"></script>
-<script async src="../../../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../../../_/js/vendor/highlight.js"></script>
 <script src="../../../../_/js/vendor/lunr.js"></script>
 <script src="../../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../../.." data-snippet-length="100" data-stylesheet="../../../../_/css/search.css"></script>
-<script async src="../../../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../../../search-index.js"></script>
+  
+</body></html>
