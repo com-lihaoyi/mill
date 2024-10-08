@@ -131,12 +131,11 @@ private[mill] class PromptLogger(
     synchronized {
       if (enableTicker) promptLineState.refreshPrompt(ending = true)
       streamManager.close()
+      runningState.stop()
     }
 
-    runningState.stop()
-
     // Needs to be outside the lock so we don't deadlock with `promptUpdaterThread`
-    // trying to take the lock one last time before exiting
+    // trying to take the lock one last time to check running/paused status before exiting
     promptUpdaterThread.join()
   }
 
