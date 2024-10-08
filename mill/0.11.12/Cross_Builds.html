@@ -1,26 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Cross Builds :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.11.12/Cross_Builds.html">
-    <link rel="prev" href="Modules.html">
-    <link rel="next" href="Target_Query_Syntax.html">
-    <meta name="generator" content="Antora 3.1.9">
-    <link rel="stylesheet" href="../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.11.12/Cross_Builds.html" />
+    <link rel="prev" href="Modules.html" />
+    <link rel="next" href="Target_Query_Syntax.html" />
+    <meta name="generator" content="Antora 3.1.9" />
+    <link rel="stylesheet" href="../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
+  
+  </head><body class="article">
+  
 <header class="header">
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -316,7 +317,7 @@
 <div class="page-versions">
   <button class="version-menu-toggle" title="Show other versions of page">0.11.12</button>
   <div class="version-menu">
-    <a class="version" href="../fundamentals/cross-builds.html">0.12.0-RC3-18-017b86</a>
+    <a class="version" href="../fundamentals/cross-builds.html">0.12.0-RC3-19-2e6a7d</a>
     <a class="version is-current" href="Cross_Builds.html">0.11.12</a>
     <a class="version" href="../0.11.11/Cross_Builds.html">0.11.11</a>
     <a class="version" href="../0.11.10/Cross_Builds.html">0.11.10</a>
@@ -357,17 +358,17 @@ config and building it across a variety of source folders.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
-object foo extends Cross[FooModule]("2.10", "2.11", "2.12")
+object foo extends Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
 trait FooModule extends Cross.Module[String] {
-  def suffix = T { "_" + crossValue }
-  def bigSuffix = T { "[[[" + suffix() + "]]]" }
+  def suffix = T { &quot;_&quot; + crossValue }
+  def bigSuffix = T { &quot;[[[&quot; + suffix() + &quot;]]]&quot; }
   def sources = T.sources(millSourcePath)
 }</code></pre>
 </div>
 </div>
 <div class="imageblock kroki">
 <div class="content">
-<img src="_images/diag-21db9300f401465772ff4e288fd7051efa6416b4.svg" alt="Diagram">
+<img src="_images/diag-21db9300f401465772ff4e288fd7051efa6416b4.svg" alt="Diagram" />
 </div>
 </div>
 <div class="paragraph">
@@ -378,8 +379,8 @@ language or library, or creating modules to represent folders on the
 filesystem.</p>
 </div>
 <div class="paragraph">
-<p>This example defines three copies of <code>FooModule</code>: <code>"2.10"</code>, <code>"2.11"</code> and
-<code>"2.12"</code>, each of which has their own <code>suffix</code> target. You can then run
+<p>This example defines three copies of <code>FooModule</code>: <code>&quot;2.10&quot;</code>, <code>&quot;2.11&quot;</code> and
+<code>&quot;2.12&quot;</code>, each of which has their own <code>suffix</code> target. You can then run
 them as shown below. Note that by default, <code>sources</code> returns <code>foo</code> for every
 cross module, assuming you want to build the same sources for each. This can
 be overridden.</p>
@@ -387,25 +388,25 @@ be overridden.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo[2.10].suffix
-"_2.10"
+&quot;_2.10&quot;
 
 &gt; mill show foo[2.10].bigSuffix
-"[[[_2.10]]]"
+&quot;[[[_2.10]]]&quot;
 
 &gt; mill show foo[2.10].sources
 [
-  ".../foo"
+  &quot;.../foo&quot;
 ]
 
 &gt; mill show foo[2.12].suffix
-"_2.12"
+&quot;_2.12&quot;
 
 &gt; mill show foo[2.12].bigSuffix
-"[[[_2.12]]]"
+&quot;[[[_2.12]]]&quot;
 
 &gt; mill show foo[2.12].sources
 [
-  ".../foo"
+  &quot;.../foo&quot;
 ]</code></pre>
 </div>
 </div>
@@ -419,14 +420,14 @@ be overridden.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
-object foo extends Cross[FooModule]("2.10", "2.11", "2.12")
+object foo extends Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
 
 trait FooModule extends Cross.Module[String] {
-  def suffix = T { "_" + crossValue }
+  def suffix = T { &quot;_&quot; + crossValue }
 }
 
-object bar extends Cross[FooModule]("2.10", "2.11", "2.12") {
-  def defaultCrossSegments = Seq("2.12")
+object bar extends Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;) {
+  def defaultCrossSegments = Seq(&quot;2.12&quot;)
 }</code></pre>
 </div>
 </div>
@@ -437,13 +438,13 @@ By default, this is the first cross value specified.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo[2.10].suffix
-"_2.10"
+&quot;_2.10&quot;
 
 &gt; mill show foo[].suffix
-"_2.10"
+&quot;_2.10&quot;
 
 &gt; mill show bar[].suffix
-"_2.12"</code></pre>
+&quot;_2.12&quot;</code></pre>
 </div>
 </div>
 </div>
@@ -460,7 +461,7 @@ parameters to it as follows:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
-object foo extends Cross[FooModule]("2.10", "2.11", "2.12")
+object foo extends Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
 trait FooModule extends Cross.Module[String] {
   def millSourcePath = super.millSourcePath / crossValue
   def sources = T.sources(millSourcePath)
@@ -478,23 +479,23 @@ can do so by overriding <code>millSourcePath</code> as shown above.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo[2.10].sources
 [
-  ".../foo/2.10"
+  &quot;.../foo/2.10&quot;
 ]
 
 &gt; mill show foo[2.11].sources
 [
-  ".../foo/2.11"
+  &quot;.../foo/2.11&quot;
 ]
 
 &gt; mill show foo[2.12].sources
 [
-  ".../foo/2.12"
+  &quot;.../foo/2.12&quot;
 ]</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
 <table>
-<tr>
+<tbody><tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
@@ -509,7 +510,7 @@ can do so by overriding <code>millSourcePath</code> as shown above.</p>
 </div>
 </td>
 </tr>
-</table>
+</tbody></table>
 </div>
 </div>
 </div>
@@ -524,23 +525,23 @@ can do so by overriding <code>millSourcePath</code> as shown above.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
-object foo extends Cross[FooModule]("2.10", "2.11", "2.12")
+object foo extends Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
 trait FooModule extends Cross.Module[String] {
-  def suffix = T { "_" + crossValue }
+  def suffix = T { &quot;_&quot; + crossValue }
 }
 
-def bar = T { s"hello ${foo("2.10").suffix()}" }
+def bar = T { s&quot;hello ${foo(&quot;2.10&quot;).suffix()}&quot; }
 
-def qux = T { s"hello ${foo("2.10").suffix()} world ${foo("2.12").suffix()}" }</code></pre>
+def qux = T { s&quot;hello ${foo(&quot;2.10&quot;).suffix()} world ${foo(&quot;2.12&quot;).suffix()}&quot; }</code></pre>
 </div>
 </div>
 <div class="imageblock kroki">
 <div class="content">
-<img src="_images/diag-176652cac02b3af811d352bf783b5e07302cfb9b.svg" alt="Diagram">
+<img src="_images/diag-176652cac02b3af811d352bf783b5e07302cfb9b.svg" alt="Diagram" />
 </div>
 </div>
 <div class="paragraph">
-<p>Here, <code>def bar</code> uses <code>foo("2.10")</code> to reference the <code>"2.10"</code> instance of
+<p>Here, <code>def bar</code> uses <code>foo(&quot;2.10&quot;)</code> to reference the <code>&quot;2.10&quot;</code> instance of
 <code>FooModule</code>. You can refer to whatever versions of the cross-module you want,
 even using multiple versions of the cross-module in the same target as we do
 in <code>def qux</code>.</p>
@@ -548,13 +549,13 @@ in <code>def qux</code>.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo[2.10].suffix
-"_2.10"
+&quot;_2.10&quot;
 
 &gt; mill show bar
-"hello _2.10"
+&quot;hello _2.10&quot;
 
 &gt; mill show qux
-"hello _2.10 world _2.12"</code></pre>
+&quot;hello _2.10 world _2.12&quot;</code></pre>
 </div>
 </div>
 </div>
@@ -571,43 +572,43 @@ external targets:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
-object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
+object foo extends mill.Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
 trait FooModule extends Cross.Module[String] {
-  def suffix = T { "_" + crossValue }
+  def suffix = T { &quot;_&quot; + crossValue }
 }
 
-object bar extends mill.Cross[BarModule]("2.10", "2.11", "2.12")
+object bar extends mill.Cross[BarModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
 trait BarModule extends Cross.Module[String] {
-  def bigSuffix = T { "[[[" + foo(crossValue).suffix() + "]]]" }
+  def bigSuffix = T { &quot;[[[&quot; + foo(crossValue).suffix() + &quot;]]]&quot; }
 }</code></pre>
 </div>
 </div>
 <div class="imageblock kroki">
 <div class="content">
-<img src="_images/diag-b5d6e00cb65f00c90ae9ab76be9104af7dc15fd1.svg" alt="Diagram">
+<img src="_images/diag-b5d6e00cb65f00c90ae9ab76be9104af7dc15fd1.svg" alt="Diagram" />
 </div>
 </div>
 <div class="paragraph">
-<p>Rather than pssing in a literal <code>"2.10"</code> to the <code>foo</code> cross module, we pass
+<p>Rather than pssing in a literal <code>&quot;2.10&quot;</code> to the <code>foo</code> cross module, we pass
 in the <code>crossValue</code> property that is available within every <code>Cross.Module</code>.
 This ensures that each version of <code>bar</code> depends on the corresponding version
-of <code>foo</code>: <code>bar("2.10")</code> depends on <code>foo("2.10")</code>, <code>bar("2.11")</code> depends on
-<code>foo("2.11")</code>, etc.</p>
+of <code>foo</code>: <code>bar(&quot;2.10&quot;)</code> depends on <code>foo(&quot;2.10&quot;)</code>, <code>bar(&quot;2.11&quot;)</code> depends on
+<code>foo(&quot;2.11&quot;)</code>, etc.</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill showNamed foo[__].suffix
 {
-  "foo[2.10].suffix": "_2.10",
-  "foo[2.11].suffix": "_2.11",
-  "foo[2.12].suffix": "_2.12"
+  &quot;foo[2.10].suffix&quot;: &quot;_2.10&quot;,
+  &quot;foo[2.11].suffix&quot;: &quot;_2.11&quot;,
+  &quot;foo[2.12].suffix&quot;: &quot;_2.12&quot;
 }
 
 &gt; mill showNamed bar[__].bigSuffix
 {
-  "bar[2.10].bigSuffix": "[[[_2.10]]]",
-  "bar[2.11].bigSuffix": "[[[_2.11]]]",
-  "bar[2.12].bigSuffix": "[[[_2.12]]]"
+  &quot;bar[2.10].bigSuffix&quot;: &quot;[[[_2.10]]]&quot;,
+  &quot;bar[2.11].bigSuffix&quot;: &quot;[[[_2.11]]]&quot;,
+  &quot;bar[2.12].bigSuffix&quot;: &quot;[[[_2.12]]]&quot;
 }</code></pre>
 </div>
 </div>
@@ -626,23 +627,23 @@ trait:</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
 val crossMatrix = for {
-  crossVersion &lt;- Seq("2.10", "2.11", "2.12")
-  platform &lt;- Seq("jvm", "js", "native")
-  if !(platform == "native" &amp;&amp; crossVersion != "2.12")
+  crossVersion &lt;- Seq(&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
+  platform &lt;- Seq(&quot;jvm&quot;, &quot;js&quot;, &quot;native&quot;)
+  if !(platform == &quot;native&quot; &amp;&amp; crossVersion != &quot;2.12&quot;)
 } yield (crossVersion, platform)
 
 object foo extends mill.Cross[FooModule](crossMatrix)
 trait FooModule extends Cross.Module2[String, String] {
   val (crossVersion, platform) = (crossValue, crossValue2)
-  def suffix = T { "_" + crossVersion + "_" + platform }
+  def suffix = T { &quot;_&quot; + crossVersion + &quot;_&quot; + platform }
 }
 
-def bar = T { s"hello ${foo("2.10", "jvm").suffix()}" }</code></pre>
+def bar = T { s&quot;hello ${foo(&quot;2.10&quot;, &quot;jvm&quot;).suffix()}&quot; }</code></pre>
 </div>
 </div>
 <div class="imageblock kroki">
 <div class="content">
-<img src="_images/diag-ad26e199cd1b3fe5a441dddc6fab529da21b643d.svg" alt="Diagram">
+<img src="_images/diag-ad26e199cd1b3fe5a441dddc6fab529da21b643d.svg" alt="Diagram" />
 </div>
 </div>
 <div class="paragraph">
@@ -659,17 +660,17 @@ above.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo[2.10,jvm].suffix
-"_2.10_jvm"
+&quot;_2.10_jvm&quot;
 
 &gt; mill showNamed foo[__].suffix
 {
-  "foo[2.10,jvm].suffix": "_2.10_jvm",
-  "foo[2.10,js].suffix": "_2.10_js",
-  "foo[2.11,jvm].suffix": "_2.11_jvm",
-  "foo[2.11,js].suffix": "_2.11_js",
-  "foo[2.12,jvm].suffix": "_2.12_jvm",
-  "foo[2.12,js].suffix": "_2.12_js",
-  "foo[2.12,native].suffix": "_2.12_native"
+  &quot;foo[2.10,jvm].suffix&quot;: &quot;_2.10_jvm&quot;,
+  &quot;foo[2.10,js].suffix&quot;: &quot;_2.10_js&quot;,
+  &quot;foo[2.11,jvm].suffix&quot;: &quot;_2.11_jvm&quot;,
+  &quot;foo[2.11,js].suffix&quot;: &quot;_2.11_js&quot;,
+  &quot;foo[2.12,jvm].suffix&quot;: &quot;_2.12_jvm&quot;,
+  &quot;foo[2.12,js].suffix&quot;: &quot;_2.12_js&quot;,
+  &quot;foo[2.12,native].suffix&quot;: &quot;_2.12_native&quot;
 }</code></pre>
 </div>
 </div>
@@ -687,20 +688,20 @@ axes as shown:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
-object foo extends Cross[FooModule]("a", "b")
+object foo extends Cross[FooModule](&quot;a&quot;, &quot;b&quot;)
 trait FooModule extends Cross.Module[String] {
-  def param1 = T { "Param Value: " + crossValue }
+  def param1 = T { &quot;Param Value: &quot; + crossValue }
 }
 
-object foo2 extends Cross[FooModule2](("a", 1), ("b", 2))
+object foo2 extends Cross[FooModule2]((&quot;a&quot;, 1), (&quot;b&quot;, 2))
 trait FooModule2 extends Cross.Module2[String, Int] {
-  def param1 = T { "Param Value: " + crossValue }
-  def param2 = T { "Param Value: " + crossValue2 }
+  def param1 = T { &quot;Param Value: &quot; + crossValue }
+  def param2 = T { &quot;Param Value: &quot; + crossValue2 }
 }
 
-object foo3 extends Cross[FooModule3](("a", 1, true), ("b", 2, false))
+object foo3 extends Cross[FooModule3]((&quot;a&quot;, 1, true), (&quot;b&quot;, 2, false))
 trait FooModule3 extends FooModule2 with Cross.Module3[String, Int, Boolean] {
-  def param3 = T{ "Param Value: " + crossValue3 }
+  def param3 = T{ &quot;Param Value: &quot; + crossValue3 }
 }</code></pre>
 </div>
 </div>
@@ -715,7 +716,7 @@ corresponding <code>Cross.ArgN</code> trait. Providing tuples of the wrong arity
 <code>Cross[]</code> constructor is a compile error.</p>
 </div>
 <div class="paragraph">
-<p>The Cross module&#8217;s axes can take any type <code>T</code> with <code>Cross.ToSegments[T]</code>
+<p>The Cross module’s axes can take any type <code>T</code> with <code>Cross.ToSegments[T]</code>
 defined. There are default implementations for strings, chars, numbers,
 booleans, and lists; the example above demonstrates cross axes of type
 <code>String</code>, <code>Int</code>, and <code>Boolean</code>. You can define additional <code>ToPathSegments</code>
@@ -724,26 +725,26 @@ for your own user-defined types that you wish to use in a Cross module</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo[a].param1
-"Param Value: a"
+&quot;Param Value: a&quot;
 
 &gt; mill show foo[b].param1
-"Param Value: b"
+&quot;Param Value: b&quot;
 
 &gt; mill show foo2[a,1].param1
-"Param Value: a"
+&quot;Param Value: a&quot;
 
 &gt; mill show foo2[b,2].param2
-"Param Value: 2"
+&quot;Param Value: 2&quot;
 
 &gt; mill show foo3[b,2,false].param3
-"Param Value: false"
+&quot;Param Value: false&quot;
 
 &gt; sed -i 's/, true//g' build.sc
 
 &gt; sed -i 's/, false//g' build.sc
 
 &gt; mill show foo3[b,2,false].param3
-error: ...object foo3 extends Cross[FooModule3](("a", 1), ("b", 2))
+error: ...object foo3 extends Cross[FooModule3]((&quot;a&quot;, 1), (&quot;b&quot;, 2))
 error: ...                                      ^
 error: ...value _3 is not a member of (String, Int)</code></pre>
 </div>
@@ -761,25 +762,25 @@ error: ...value _3 is not a member of (String, Int)</code></pre>
 trait MyModule extends Module{
   def crossValue: String
   def name: T[String]
-  def param = T { name() + " Param Value: " + crossValue }
+  def param = T { name() + &quot; Param Value: &quot; + crossValue }
 }
 
-object foo extends Cross[FooModule]("a", "b")
+object foo extends Cross[FooModule](&quot;a&quot;, &quot;b&quot;)
 trait FooModule extends Cross.Module[String] {
   object bar extends MyModule with CrossValue{
-    def name = "Bar"
+    def name = &quot;Bar&quot;
   }
   object qux extends MyModule with CrossValue{
-    def name = "Qux"
+    def name = &quot;Qux&quot;
   }
 }
 
-def baz = T { s"hello ${foo("a").bar.param()}" }</code></pre>
+def baz = T { s&quot;hello ${foo(&quot;a&quot;).bar.param()}&quot; }</code></pre>
 </div>
 </div>
 <div class="imageblock kroki">
 <div class="content">
-<img src="_images/diag-acf9df9e2f8f5b8bef63d8551ad041ee4534881e.svg" alt="Diagram">
+<img src="_images/diag-acf9df9e2f8f5b8bef63d8551ad041ee4534881e.svg" alt="Diagram" />
 </div>
 </div>
 <div class="paragraph">
@@ -798,13 +799,13 @@ modules that take multiple inputs.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo[a].bar.param
-"Bar Param Value: a"
+&quot;Bar Param Value: a&quot;
 
 &gt; mill show foo[b].qux.param
-"Qux Param Value: b"
+&quot;Qux Param Value: b&quot;
 
 &gt; mill show baz
-"hello Bar Param Value: a"</code></pre>
+&quot;hello Bar Param Value: a&quot;</code></pre>
 </div>
 </div>
 </div>
@@ -823,14 +824,14 @@ trait MyModule extends Cross.Module[String] {
   }
 }
 
-object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
+object foo extends mill.Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
 trait FooModule extends MyModule {
-  def suffix = T { "_" + crossValue }
+  def suffix = T { &quot;_&quot; + crossValue }
 }
 
-object bar extends mill.Cross[BarModule]("2.10", "2.11", "2.12")
+object bar extends mill.Cross[BarModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
 trait BarModule extends MyModule {
-  def bigSuffix = T { "[[[" + foo().suffix() + "]]]" }
+  def bigSuffix = T { &quot;[[[&quot; + foo().suffix() + &quot;]]]&quot; }
 }</code></pre>
 </div>
 </div>
@@ -851,12 +852,12 @@ with the current cross-module.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show bar[2.10].bigSuffix
 ...
-"[[[_2.10]]]"</code></pre>
+&quot;[[[_2.10]]]&quot;</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
 <table>
-<tr>
+<tbody><tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
@@ -868,12 +869,12 @@ with the current cross-module.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-zsh hljs" data-lang="zsh">mill show foo\[2.10\].suffix
 mill show 'foo[2.10].suffix'
-mill show "foo[2.10].suffix"</code></pre>
+mill show &quot;foo[2.10].suffix&quot;</code></pre>
 </div>
 </div>
 </td>
 </tr>
-</table>
+</tbody></table>
 </div>
 <div class="paragraph">
 <p>The <code>suffix</code> targets will have the corresponding output paths for their
@@ -904,12 +905,12 @@ metadata and files:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
-val moduleNames = interp.watchValue(os.list(millSourcePath / "modules").map(_.last))
+val moduleNames = interp.watchValue(os.list(millSourcePath / &quot;modules&quot;).map(_.last))
 
 object modules extends Cross[FolderModule](moduleNames)
 trait FolderModule extends ScalaModule with Cross.Module[String]{
   def millSourcePath = super.millSourcePath / crossValue
-  def scalaVersion = "2.13.8"
+  def scalaVersion = &quot;2.13.8&quot;
 }</code></pre>
 </div>
 </div>
@@ -982,19 +983,19 @@ import org.commonmark.renderer.html.HtmlRenderer</code></pre>
 <p>Next, we use <code>os.list</code> and <code>interp.watchValue</code> on the <code>post/</code> folder to
 build a <code>Cross[PostModule]</code> whose entries depend no the markdown files we
 find in that folder. Each post has a <code>source</code> pointing at the markdown file,
-and a <code>render</code> target that parses the file&#8217;s markdown and generates a HTML
+and a <code>render</code> target that parses the file’s markdown and generates a HTML
 output file</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
-def mdNameToHtml(s: String) = s.toLowerCase.replace(".md", ".html")
+def mdNameToHtml(s: String) = s.toLowerCase.replace(&quot;.md&quot;, &quot;.html&quot;)
 def mdNameToTitle(s: String) =
-  s.split('-').drop(1).mkString(" ").stripSuffix(".md")
+  s.split('-').drop(1).mkString(&quot; &quot;).stripSuffix(&quot;.md&quot;)
 
 val posts = interp.watchValue {
-  os.list(millSourcePath / "post").map(_.last).sorted
+  os.list(millSourcePath / &quot;post&quot;).map(_.last).sorted
 }
 
 object post extends Cross[PostModule](posts)
@@ -1003,10 +1004,10 @@ trait PostModule extends Cross.Module[String]{
   def render = T{
     val doc = Parser.builder().build().parse(os.read(source().path))
     val title = mdNameToTitle(crossValue)
-    val rendered = doctype("html")(
+    val rendered = doctype(&quot;html&quot;)(
       html(
         body(
-          h1(a("Blog", href := "../index.html"), " / ", title),
+          h1(a(&quot;Blog&quot;, href := &quot;../index.html&quot;), &quot; / &quot;, title),
           raw(HtmlRenderer.builder().build().render(doc))
         )
       )
@@ -1022,7 +1023,7 @@ trait PostModule extends Cross.Module[String]{
 <p>The last page we need to generate is the index page, listing out the various
 blog posts and providing links so we can navigate into them. To do this, we
 need to wrap the <code>posts</code> value in a <code>T.input</code>, as it can change depending on
-what <code>os.list</code> finds on disk. After that, it&#8217;s straightforward to render the
+what <code>os.list</code> finds on disk. After that, it’s straightforward to render the
 <code>index.html</code> file we want:</p>
 </div>
 <div class="listingblock">
@@ -1030,29 +1031,29 @@ what <code>os.list</code> finds on disk. After that, it&#8217;s straightforward 
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def postsInput = T.input{ posts }
 
 def renderIndexEntry(mdName: String) = {
-  h2(a(mdNameToTitle(mdName), href := ("post/" + mdNameToHtml(mdName))))
+  h2(a(mdNameToTitle(mdName), href := (&quot;post/&quot; + mdNameToHtml(mdName))))
 }
 
 def index = T{
-  val rendered = doctype("html")(
-    html(body(h1("Blog"), postsInput().map(renderIndexEntry)))
+  val rendered = doctype(&quot;html&quot;)(
+    html(body(h1(&quot;Blog&quot;), postsInput().map(renderIndexEntry)))
   )
-  os.write(T.dest / "index.html", rendered)
-  PathRef(T.dest / "index.html")
+  os.write(T.dest / &quot;index.html&quot;, rendered)
+  PathRef(T.dest / &quot;index.html&quot;)
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Lastly we copy the individual post HTML files and the <code>index.html</code> file
-into a single target&#8217;s <code>.dest</code> folder, and return it:</p>
+into a single target’s <code>.dest</code> folder, and return it:</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def dist = T {
   for (post &lt;- T.traverse(post.crossModules)(_.render)()) {
-    os.copy(post.path, T.dest / "post" / post.path.last, createFolders = true)
+    os.copy(post.path, T.dest / &quot;post&quot; / post.path.last, createFolders = true)
   }
-  os.copy(index().path, T.dest / "index.html")
+  os.copy(index().path, T.dest / &quot;index.html&quot;)
   PathRef(T.dest)
 }</code></pre>
 </div>
@@ -1066,9 +1067,9 @@ into a single target&#8217;s <code>.dest</code> folder, and return it:</p>
 
 &gt; cat out/dist.dest/index.html                    # root index page
 ...
-...&lt;a href="post/1-my-first-post.html"&gt;My First Post&lt;/a&gt;...
-...&lt;a href="post/2-my-second-post.html"&gt;My Second Post&lt;/a&gt;...
-...&lt;a href="post/3-my-third-post.html"&gt;My Third Post&lt;/a&gt;...
+...&lt;a href=&quot;post/1-my-first-post.html&quot;&gt;My First Post&lt;/a&gt;...
+...&lt;a href=&quot;post/2-my-second-post.html&quot;&gt;My Second Post&lt;/a&gt;...
+...&lt;a href=&quot;post/3-my-third-post.html&quot;&gt;My Third Post&lt;/a&gt;...
 
 &gt; cat out/dist.dest/post/1-my-first-post.html     # blog post page
 ...
@@ -1077,12 +1078,12 @@ into a single target&#8217;s <code>.dest</code> folder, and return it:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="_images/BlogIndex.png" alt="BlogIndex.png">
+<img src="_images/BlogIndex.png" alt="BlogIndex.png" />
 </div>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="_images/BlogPost.png" alt="BlogPost.png">
+<img src="_images/BlogPost.png" alt="BlogPost.png" />
 </div>
 </div>
 <div class="paragraph">
@@ -1098,8 +1099,8 @@ enough posts that the build is becoming noticeably slow.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show "post[1-My-First-Post.md].render"
-".../out/post/1-My-First-Post.md/render.dest/1-my-first-post.html"
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show &quot;post[1-My-First-Post.md].render&quot;
+&quot;.../out/post/1-My-First-Post.md/render.dest/1-my-first-post.html&quot;
 
 &gt; cat out/post/1-My-First-Post.md/render.dest/1-my-first-post.html
 ...
@@ -1112,7 +1113,7 @@ Mill target graph. For this simple example, the graph is as follows</p>
 </div>
 <div class="imageblock kroki">
 <div class="content">
-<img src="_images/diag-794b9a1556f8a3eb8f454f74f21a62df1b2b2480.svg" alt="Diagram">
+<img src="_images/diag-794b9a1556f8a3eb8f454f74f21a62df1b2b2480.svg" alt="Diagram" />
 </div>
 </div>
 <div class="paragraph">
@@ -1137,9 +1138,9 @@ some extensions and fun exercises to further familiarize yourself with Mill</p>
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async src="../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async src="../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../search-index.js"></script>
+  
+</body></html>

@@ -1,24 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Untitled :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.11.12/example/web/3-scalajs-module.html">
-    <meta name="generator" content="Antora 3.1.9">
-    <link rel="stylesheet" href="../../../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.11.12/example/web/3-scalajs-module.html" />
+    <meta name="generator" content="Antora 3.1.9" />
+    <link rel="stylesheet" href="../../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
+<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon" />
+  
+  </head><body class="article">
+  
 <header class="header">
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -309,7 +310,7 @@
 <div class="page-versions">
   <button class="version-menu-toggle" title="Show other versions of page">0.11.11</button>
   <div class="version-menu">
-    <a class="version is-missing" href="../../../index.html">0.12.0-RC3-18-017b86</a>
+    <a class="version is-missing" href="../../../index.html">0.12.0-RC3-19-2e6a7d</a>
     <a class="version" href="../../../0.11.12/example/web/3-scalajs-module.html">0.11.12</a>
     <a class="version is-current" href="3-scalajs-module.html">0.11.11</a>
     <a class="version" href="../../../0.11.10/example/web/3-scalajs-module.html">0.11.10</a>
@@ -333,12 +334,12 @@
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._, scalajslib._
 
 object foo extends ScalaJSModule {
-  def scalaVersion = "2.13.8"
-  def scalaJSVersion = "1.13.0"
-  def ivyDeps = Agg(ivy"com.lihaoyi::scalatags::0.12.0")
+  def scalaVersion = &quot;2.13.8&quot;
+  def scalaJSVersion = &quot;1.13.0&quot;
+  def ivyDeps = Agg(ivy&quot;com.lihaoyi::scalatags::0.12.0&quot;)
   object test extends ScalaJSTests {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.7.11")
-    def testFramework = "utest.runner.Framework"
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest::0.7.11&quot;)
+    def testFramework = &quot;utest.runner.Framework&quot;
   }
 }</code></pre>
 </div>
@@ -352,7 +353,7 @@ object foo extends ScalaJSModule {
 <p>By default, Scala.js code gets access to the <code>scala.scalajs.js</code> package,
 which contains the core JS APIs like <code>js.JSON</code>, <code>js.Date</code>, etc. <code>ivyDeps</code> of
 Scala.js-compatible dependencies can be given, which need two colons (<code>::</code>)
-on the right to indicate it&#8217;s a Scala.js dependency. These can be both Scala
+on the right to indicate it’s a Scala.js dependency. These can be both Scala
 libraries compiled to JS, or facades for Javascript libraries. If running in
 the browser, you can use the <a href="https://github.com/scala-js/scala-js-dom" class="bare">https://github.com/scala-js/scala-js-dom</a> facade
 to access the browser DOM APIs.</p>
@@ -368,7 +369,7 @@ distribute or deploy with your web application</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.run
 &lt;h1&gt;Hello World&lt;/h1&gt;
-stringifiedJsObject: ["hello","world","!"]
+stringifiedJsObject: [&quot;hello&quot;,&quot;world&quot;,&quot;!&quot;]
 
 &gt; ./mill foo.test
 + foo.FooTests.hello...
@@ -376,13 +377,13 @@ stringifiedJsObject: ["hello","world","!"]
 &gt; ./mill show foo.fullLinkJS # mac/linux
 {
 ...
-..."jsFileName": "main.js",
-  "dest": ".../out/foo/fullLinkJS.dest"
+...&quot;jsFileName&quot;: &quot;main.js&quot;,
+  &quot;dest&quot;: &quot;.../out/foo/fullLinkJS.dest&quot;
 }
 
 &gt; node out/foo/fullLinkJS.dest/main.js # mac/linux
 &lt;h1&gt;Hello World&lt;/h1&gt;
-stringifiedJsObject: ["hello","world","!"]</code></pre>
+stringifiedJsObject: [&quot;hello&quot;,&quot;world&quot;,&quot;!&quot;]</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -394,9 +395,9 @@ runtime to be installed on your machine.</p>
 </main>
 </div>
 <script id="site-script" src="../../../../_/js/site.js" data-ui-root-path="../../../../_"></script>
-<script async src="../../../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../../../_/js/vendor/highlight.js"></script>
 <script src="../../../../_/js/vendor/lunr.js"></script>
 <script src="../../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../../.." data-snippet-length="100" data-stylesheet="../../../../_/css/search.css"></script>
-<script async src="../../../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../../../search-index.js"></script>
+  
+</body></html>
