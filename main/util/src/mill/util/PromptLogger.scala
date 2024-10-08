@@ -69,13 +69,14 @@ private[mill] class PromptLogger(
         try Thread.sleep(promptUpdateInterval)
         catch { case e: InterruptedException => /*do nothing*/ }
 
+        readTerminalDims(terminfoPath).foreach(termDimensions = _)
+
         synchronized {
           runningState.synchronized{
             if (!runningState.paused) {
               // Double check the lock so if this was closed during the
               // `Thread.sleep`, we skip refreshing the prompt this loop
               if (!runningState.stopped) {
-                readTerminalDims(terminfoPath).foreach(termDimensions = _)
                 refreshPrompt()
               }
             }
