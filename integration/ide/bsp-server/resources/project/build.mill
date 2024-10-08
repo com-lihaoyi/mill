@@ -1,0 +1,10 @@
+package build
+
+import mill._
+import mill.scalalib._
+
+object `hello-java` extends JavaModule
+
+object `hello-scala` extends ScalaModule {
+  def scalaVersion = Option(System.getenv("TEST_SCALA_2_13_VERSION")).getOrElse(???)
+}
