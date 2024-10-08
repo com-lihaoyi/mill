@@ -197,18 +197,18 @@ class ZincWorkerImpl(
     os.makeDir.all(workingDir)
     os.makeDir.all(compileDest)
 
-    val sourceFolder = mill.api.IO.unpackZip(compilerBridgeSourcesJar)(workingDir)
+    val sourceFolder = os.unzip(compilerBridgeSourcesJar, workingDir / "unpacked")
     val classloader = mill.api.ClassLoader.create(
       compilerClasspath.iterator.map(_.path.toIO.toURI.toURL).toSeq,
       null
     )(ctx0)
 
     val (sources, resources) =
-      os.walk(sourceFolder.path).filter(os.isFile)
+      os.walk(sourceFolder).filter(os.isFile)
         .partition(a => a.ext == "scala" || a.ext == "java")
 
     resources.foreach { res =>
-      val dest = compileDest / res.relativeTo(sourceFolder.path)
+      val dest = compileDest / res.relativeTo(sourceFolder)
       os.move(res, dest, replaceExisting = true, createFolders = true)
     }
 

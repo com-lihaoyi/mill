@@ -1,7 +1,6 @@
 package mill.init
 
 import mainargs.{Flag, arg}
-import mill.api.IO
 import mill.define.{Discover, ExternalModule}
 import mill.{Command, Module, T}
 
@@ -54,7 +53,7 @@ trait InitModule extends Module {
             val extractedDirName = zipName.stripSuffix(".zip")
             val downloaded = os.temp(requests.get(url))
             println(s"Unpacking example...")
-            val unpackPath = IO.unpackZip(downloaded, os.rel)
+            val unpackPath = os.unzip(downloaded, T.dest)
             val extractedPath = T.dest / extractedDirName
             val conflicting = for {
               p <- os.walk(extractedPath)
@@ -81,7 +80,7 @@ trait InitModule extends Module {
             os.perms.set(T.workspace / "mill", "rwxrwxrwx")
 
             (
-              Seq(unpackPath.path.toString()),
+              Seq(unpackPath.toString()),
               s"Example download and unpacked to [${T.workspace}]; " +
                 "See `build.mill` for an explanation of this example and instructions on how to use it"
             )
