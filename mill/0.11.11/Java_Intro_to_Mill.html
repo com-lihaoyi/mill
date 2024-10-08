@@ -1,27 +1,26 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Introduction to Mill for Java :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.11.12/Java_Intro_to_Mill.html" />
-    <link rel="prev" href="index.html" />
-    <link rel="next" href="Java_Installation_IDE_Support.html" />
-    <meta name="generator" content="Antora 3.1.9" />
-    <link rel="stylesheet" href="../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.11.12/Java_Intro_to_Mill.html">
+    <link rel="prev" href="index.html">
+    <link rel="next" href="Java_Installation_IDE_Support.html">
+    <meta name="generator" content="Antora 3.1.9">
+    <link rel="stylesheet" href="../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
-  
-  </head><body class="article">
-  
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
 <header class="header">
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -317,7 +316,7 @@
 <div class="page-versions">
   <button class="version-menu-toggle" title="Show other versions of page">0.11.11</button>
   <div class="version-menu">
-    <a class="version" href="../javalib/intro.html">0.12.0-RC3-19-2e6a7d</a>
+    <a class="version" href="../javalib/intro.html">0.12.0-RC3-20-561a00</a>
     <a class="version" href="../0.11.12/Java_Intro_to_Mill.html">0.11.12</a>
     <a class="version is-current" href="Java_Intro_to_Mill.html">0.11.11</a>
     <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
@@ -343,19 +342,19 @@ gtag('config', 'AW-16649289906');
 </script>
 <div class="imageblock kroki">
 <div class="content">
-<img src="_images/diag-a30230756b21f6c102a0c66e1b0e18334404fb0b.svg" alt="Diagram" />
+<img src="_images/diag-a30230756b21f6c102a0c66e1b0e18334404fb0b.svg" alt="Diagram">
 </div>
 </div>
 <div class="paragraph">
 <p><a href="https://github.com/com-lihaoyi/mill">Mill</a> is a fast JVM build tool that supports Java, speeding
 up common development workflows by 5-10x <a href="Java_Case_Study_Netty.html" class="xref page">compared to Maven</a> or SBT.
-Mill aims to make your JVM project’s build process performant, maintainable, and flexible
+Mill aims to make your JVM project&#8217;s build process performant, maintainable, and flexible
 even as it grows from a small project to a large codebase or monorepo with hundreds of modules:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p><strong>Performance</strong>: Mill’s <a href="Tasks.html" class="xref page">build graph</a> automatically
+<p><strong>Performance</strong>: Mill&#8217;s <a href="Tasks.html" class="xref page">build graph</a> automatically
 <a href="The_Mill_Evaluation_Model.html#_caching_at_each_layer_of_the_evaluation_model" class="xref page">caches</a>
 and <a href="#_parallel_task_execution">parallelizes</a> build
 tasks, minimizing the amount of work that needs to be done and keeping your workflows
@@ -366,13 +365,13 @@ fast and responsive.</p>
 to trace the data-flow, and its IDE support
 (via <a href="Java_Installation_IDE_Support.html#_intellij" class="xref page">IntelliJ</a> or
 <a href="Java_Installation_IDE_Support.html#_vscode" class="xref page">VSCode</a>)
-lets you &quot;<strong>jump-to-definition</strong>&quot; around your build
+lets you "<strong>jump-to-definition</strong>" around your build
 as easily as any application codebase.</p>
 </li>
 <li>
 <p><strong>Flexibility</strong>: Mill custom logic is written in <a href="#_custom_build_logic">custom build logic</a>
 in type-checked code, rather than
-error-prone shell scripts, verbose AntRun XML, or complicated external plugins. Mill’s
+error-prone shell scripts, verbose AntRun XML, or complicated external plugins. Mill&#8217;s
 custom tasks and modules allow anything from
 <a href="Tasks.html#primitive-tasks" class="xref page">adding simple pipelines</a>, up to
 <a href="Modules.html#_use_case_diy_java_modules" class="xref page">adding entire language toolchains</a>,
@@ -402,8 +401,8 @@ them difficult to improve upon incrementally.</p>
 <div class="ulist">
 <ul>
 <li>
-<p><strong>Mill follows Maven’s innovation of good built-in defaults</strong>: Mill’s built-in
-<code>JavaModule</code>s follow Maven’s &quot;convention over configuration&quot; style. Small mill
+<p><strong>Mill follows Maven&#8217;s innovation of good built-in defaults</strong>: Mill&#8217;s built-in
+<code>JavaModule</code>s follow Maven&#8217;s "convention over configuration" style. Small mill
 projects require minimal effort to get started, and larger Mill projects have a consistent
 structure building on these defaults.</p>
 </li>
@@ -430,7 +429,7 @@ few seconds in Mill.</p>
 <div class="ulist">
 <ul>
 <li>
-<p><strong>Mill follows Gradle’s conciseness</strong>: Rather than pages and pages of verbose XML, every
+<p><strong>Mill follows Gradle&#8217;s conciseness</strong>: Rather than pages and pages of verbose XML, every
 line in a Mill build is meaningful. e.g. adding a dependency is 1 line in
 Mill, like it is in Gradle, and unlike the 5 line <code>&lt;dependency&gt;</code> declaration you find in Maven.
 Skimming and understanding a 100-line Mill <code>build.sc</code> file is
@@ -439,7 +438,7 @@ often much easier than skimming the equivalent 500-line Maven <code>pom.xml</cod
 <li>
 <p><strong>Mill builds are more easily understandable</strong>: While the impact of a Gradle config change can
 be hard to determine at a glance, the impact of a Mill config change is localized,
-only affecting downstream tasks. Your IDE can navigate Mill’s
+only affecting downstream tasks. Your IDE can navigate Mill&#8217;s
 <a href="Tasks.html" class="xref page">task graph</a> and <a href="Modules.html" class="xref page">module tree</a> just as easily as it can
 navigate the method call graph in a normal Java program, something impossible in tools like
 Maven or Gradle.</p>
@@ -459,11 +458,11 @@ easiest thing to do is almost always the right thing to do.</p>
 </div>
 <div class="paragraph">
 <p>Mill build files are written in Scala, but you do not need to have prior experience
-in Scala to read or write them. Like Gradle Groovy or Maven XML, it’s easy to learn
+in Scala to read or write them. Like Gradle Groovy or Maven XML, it&#8217;s easy to learn
 enough Scala for Mill without needing to become an expert in the language.</p>
 </div>
 <div class="paragraph">
-<p>If you’re interested in the fundamental ideas behind Mill, rather than the user-facing
+<p>If you&#8217;re interested in the fundamental ideas behind Mill, rather than the user-facing
 benefits discussed above, the following presentation
 and companion blog post is a good introduction into what the Mill build tool is
 all about:</p>
@@ -474,7 +473,7 @@ all about:</p>
 <p><a href="https://www.youtube.com/watch?v=UsXgCeU-ovI&amp;list=PLLMLOC3WM2r6ZFhFfVH74W-sl8LfWtOEc&amp;index=15">Video: A Deep Dive into the Mill Build Tool</a></p>
 </li>
 <li>
-<p><a href="https://www.lihaoyi.com/post/SoWhatsSoSpecialAboutTheMillScalaBuildTool.html">Blog Post: What’s So Special About The Mill Scala Build Tool?</a></p>
+<p><a href="https://www.lihaoyi.com/post/SoWhatsSoSpecialAboutTheMillScalaBuildTool.html">Blog Post: What&#8217;s So Special About The Mill Scala Build Tool?</a></p>
 </li>
 </ul>
 </div>
@@ -496,13 +495,13 @@ Mill build tool works.</p>
 
 object foo extends RootModule with JavaModule {
   def ivyDeps = Agg(
-    ivy&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;,
-    ivy&quot;org.apache.commons:commons-text:1.12.0&quot;
+    ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
+    ivy"org.apache.commons:commons-text:1.12.0"
   )
 
   object test extends JavaTests with TestModule.Junit4{
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy&quot;com.google.guava:guava:33.2.1-jre&quot;
+      ivy"com.google.guava:guava:33.2.1-jre"
     )
   }
 }</code></pre>
@@ -524,7 +523,7 @@ care of any further dependencies that need to be downloaded.</p>
 </div>
 <div class="paragraph">
 <p>The source code for this module lives in the <code>src/</code> folder.
-Output for this module (compiled files, resolved dependency lists, …​)
+Output for this module (compiled files, resolved dependency lists, &#8230;&#8203;)
 lives in <code>out/</code>.</p>
 </div>
 <div class="paragraph">
@@ -581,7 +580,7 @@ Test run foo.FooTest finished: 0 failed, 0 ignored, 2 total, ...
 &gt; ./mill assembly # bundle classfiles and libraries into a jar for deployment
 
 &gt; ./mill show assembly # show the output of the assembly task
-&quot;.../out/assembly.dest/out.jar&quot;
+".../out/assembly.dest/out.jar"
 
 &gt; java -jar ./out/assembly.dest/out.jar --text hello
 &lt;h1&gt;hello&lt;/h1&gt;
@@ -618,7 +617,7 @@ $ mill -i repl       # start an Ammonite Scala REPL within your project</code></
 <div class="paragraph">
 <p>You can run <code>mill resolve __</code> to see a full list of the different tasks that
 are available, <code>mill resolve _</code> to see the tasks within <code>foo</code>,
-<code>mill inspect compile</code> to inspect a task’s doc-comment documentation or what
+<code>mill inspect compile</code> to inspect a task&#8217;s doc-comment documentation or what
 it depends on, or <code>mill show foo.scalaVersion</code> to show the output of any task.</p>
 </div>
 <div class="paragraph">
@@ -645,7 +644,7 @@ object foo extends RootModule with JavaModule {
 
   /** Generate resources using lineCount of sources */
   override def resources = T{
-    os.write(T.dest / &quot;line-count.txt&quot;, &quot;&quot; + lineCount())
+    os.write(T.dest / "line-count.txt", "" + lineCount())
     Seq(PathRef(T.dest))
   }
 }</code></pre>
@@ -659,7 +658,7 @@ up <code>lineCount</code>:</p>
 </div>
 <div class="imageblock kroki">
 <div class="content">
-<img src="_images/diag-743c1e819012811a3e27a135f22c79d6d86a3afd.svg" alt="Diagram" />
+<img src="_images/diag-743c1e819012811a3e27a135f22c79d6d86a3afd.svg" alt="Diagram">
 </div>
 </div>
 <div class="listingblock">
@@ -695,7 +694,7 @@ most real-world projects.</p>
 <p>This customization is done in a principled fashion familiar to most
 programmers - object-orienting overrides - rather than ad-hoc
 monkey-patching or mutation common in other build tools. You never have
-&quot;spooky action at a distance&quot; affecting your build / graph definition, and
+"spooky action at a distance" affecting your build / graph definition, and
 your IDE can always help you find the final override of any particular build
 target as well as where any overriden implementations may be defined.</p>
 </div>
@@ -726,21 +725,21 @@ trait MyModule extends JavaModule{
 object foo extends MyModule{
   def moduleDeps = Seq(bar)
   def ivyDeps = Agg(
-    ivy&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;,
+    ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
   )
 }
 
 object bar extends MyModule{
   def ivyDeps = Agg(
-    ivy&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;,
-    ivy&quot;org.apache.commons:commons-text:1.12.0&quot;
+    ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
+    ivy"org.apache.commons:commons-text:1.12.0"
   )
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>This example contains a simple Mill build with two modules, <code>foo</code> and <code>bar</code>.
-We don’t mark either module as top-level using <code>extends RootModule</code>, so
+We don&#8217;t mark either module as top-level using <code>extends RootModule</code>, so
 running tasks needs to use the module name as the prefix e.g. <code>foo.run</code> or
 <code>bar.run</code>. You can define multiple modules the same way you define a single
 module, using <code>def moduleDeps</code> to define the relationship between them.</p>
@@ -805,7 +804,7 @@ Bar.value: &lt;h1&gt;world&lt;/h1&gt;
 </div>
 </div>
 <div class="paragraph">
-<p>Mill’s evaluator will ensure that the modules are compiled in the right
+<p>Mill&#8217;s evaluator will ensure that the modules are compiled in the right
 order, and recompiled as necessary when source code in each module changes.</p>
 </div>
 <div class="paragraph">
@@ -818,8 +817,8 @@ targets.</p>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">Table 1. Wildcards and brace-expansion</caption>
 <colgroup>
-<col style="width: 50%;" />
-<col style="width: 50%;" />
+<col style="width: 50%;">
+<col style="width: 50%;">
 </colgroup>
 <tbody>
 <tr>
@@ -874,7 +873,7 @@ preceding it with a backslash (<code>\</code>).</p>
 <h2 id="_watch_and_re_evaluate"><a class="anchor" href="#_watch_and_re_evaluate"></a>Watch and Re-evaluate</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>You can use the <code>--watch</code> flag to make Mill watch a task’s inputs,
+<p>You can use the <code>--watch</code> flag to make Mill watch a task&#8217;s inputs,
 re-evaluating the task as necessary when the inputs
 change:</p>
 </div>
@@ -887,8 +886,8 @@ $ mill -w foo.run</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Mill’s <code>--watch</code> flag watches both the files you are building using Mill, as
-well as Mill’s own <code>build.sc</code> file and anything it imports, so any changes to
+<p>Mill&#8217;s <code>--watch</code> flag watches both the files you are building using Mill, as
+well as Mill&#8217;s own <code>build.sc</code> file and anything it imports, so any changes to
 your <code>build.sc</code> will automatically get picked up.</p>
 </div>
 <div class="paragraph">
@@ -930,18 +929,18 @@ To disable parallel execution use <code>--jobs 1</code>. This is currently the d
 </div>
 <div class="paragraph">
 <p><code>mill -j</code> generates an output file in <code>out/mill-chrome-profile.json</code> that can be
-loaded into the Chrome browser’s <code>chrome://tracing</code> page for visualization.
-This can make it much easier to analyze your parallel runs to find out what’s
+loaded into the Chrome browser&#8217;s <code>chrome://tracing</code> page for visualization.
+This can make it much easier to analyze your parallel runs to find out what&#8217;s
 taking the most time:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="_images/ChromeTracing.png" alt="ChromeTracing.png" />
+<img src="_images/ChromeTracing.png" alt="ChromeTracing.png">
 </div>
 </div>
 <div class="paragraph">
 <p>Please note that the maximal possible parallelism depends on your project.
-Tasks that depend on each other can’t be processed in parallel.</p>
+Tasks that depend on each other can&#8217;t be processed in parallel.</p>
 </div>
 </div>
 </div>
@@ -1015,9 +1014,9 @@ usage: mill [options] [[target [target-options]] [+ [target ...]]]
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async="async" src="../../_/js/vendor/highlight.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async="async" src="../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../search-index.js"></script>
+  </body>
+</html>
