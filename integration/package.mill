@@ -75,7 +75,8 @@ object `package` extends RootModule {
   trait IntegrationCrossModule extends build.MillScalaModule with IntegrationTestModule {
     override def moduleDeps = super[IntegrationTestModule].moduleDeps
     def forkEnv = super.forkEnv() ++ Seq(
-      "MILL_PROJECT_ROOT" -> T.workspace.toString
+      "MILL_PROJECT_ROOT" -> T.workspace.toString,
+      "TEST_SCALA_2_13_VERSION" -> build.Deps.testScala213Version
     )
   }
   trait IdeIntegrationCrossModule extends IntegrationCrossModule {
