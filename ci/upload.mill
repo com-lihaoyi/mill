@@ -35,7 +35,7 @@ def apply(
       "Authorization" -> s"token $authKey"
     ),
     data = os.read.bytes(uploadedFile)
-    )
+  )
 
   println(res.text())
   val longUrl = ujson.read(res)("browser_download_url").str
