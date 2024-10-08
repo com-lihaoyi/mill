@@ -56,7 +56,8 @@ private[mill] class PromptLogger(
       // Clear the prompt so the code in `t` has a blank terminal to work with
       systemStreams0.err.write(AnsiNav.clearScreen(0).getBytes)
       systemStreams0.err.flush()
-    }
+    },
+    this
   )
 
   val promptUpdaterThread = new Thread(
@@ -156,21 +157,26 @@ private[mill] object PromptLogger {
    */
   class RunningState(enableTicker: Boolean,
                      promptUpdaterThreadInterrupt: () => Unit,
-                     clearOnPause: () => Unit) {
+                     clearOnPause: () => Unit,
+                     // Share the same synchronized lock as the parent PromptLogger, to simplify
+                     // reasoning about concurrency since it's not performance critical
+                     synchronizer: PromptLogger) {
     @volatile private var stopped0 = false
     @volatile private var paused0 = false
     def stopped = stopped0
     def paused = paused0
-    def stop(): Unit = synchronized {
+    def stop(): Unit = synchronizer.synchronized {
       stopped0 = true
       promptUpdaterThreadInterrupt()
     }
 
-    def setPaused(prevPaused: Boolean, nextPaused: Boolean): Unit = synchronized {
+    def setPaused(prevPaused: Boolean, nextPaused: Boolean): Unit = synchronizer.synchronized {
       if (prevPaused != nextPaused) {
         paused0 = nextPaused
-        promptUpdaterThreadInterrupt()
-        clearOnPause()
+        if (nextPaused) {
+          promptUpdaterThreadInterrupt()
+          clearOnPause()
+        }
       }
     }
 

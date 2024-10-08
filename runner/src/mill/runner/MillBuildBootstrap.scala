@@ -8,6 +8,7 @@ import mill.eval.Evaluator
 import mill.main.RunScript
 import mill.resolve.SelectMode
 import mill.define.{BaseModule, Discover, Segments}
+import mill.main.client.DebugLog
 import mill.main.client.OutFiles.{millBuild, millRunnerState}
 
 import java.net.URLClassLoader
@@ -43,7 +44,8 @@ class MillBuildBootstrap(
     needBuildSc: Boolean,
     requestedMetaLevel: Option[Int],
     allowPositionalCommandArgs: Boolean,
-    systemExit: Int => Nothing
+    systemExit: Int => Nothing,
+    streams0: SystemStreams
 ) {
   import MillBuildBootstrap._
 
@@ -357,7 +359,7 @@ class MillBuildBootstrap(
       disableCallgraph = disableCallgraph,
       allowPositionalCommandArgs = allowPositionalCommandArgs,
       systemExit = systemExit,
-      exclusiveSystemStreams = SystemStreams.original
+      exclusiveSystemStreams = streams0
     )
   }
 
