@@ -134,6 +134,8 @@ private[mill] class PromptLogger(
   def systemStreams = streamManager.systemStreams
 
   def waitForPauseNoticed() = {
+    paused = true
+    promptUpdaterThread.interrupt()
     // After the prompt gets paused, wait until the `promptUpdaterThread` marks
     // `pauseNoticed = true`, so we can be sure it's done printing out prompt updates for
     // now and we can proceed with running `t` without any last updates slipping through
@@ -148,8 +150,7 @@ private[mill] class PromptLogger(
     else {
       val prevPaused = paused
       pauseNoticed = false
-      paused = true
-      promptUpdaterThread.interrupt()
+
       try {
         if (!prevPaused) waitForPauseNoticed()
         t
@@ -167,7 +168,6 @@ private[mill] class PromptLogger(
       try {
         t
       } finally {
-        paused = prevPaused
         if (prevPaused) waitForPauseNoticed()
       }
     }
