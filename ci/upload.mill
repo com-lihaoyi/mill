@@ -34,7 +34,7 @@ def apply(
       "Content-Type" -> "application/octet-stream",
       "Authorization" -> s"token $authKey"
     ),
-    data = os.read.bytes(uploadedFile)
+    data = os.read.stream(uploadedFile)
   )
 
   println(res.text())
