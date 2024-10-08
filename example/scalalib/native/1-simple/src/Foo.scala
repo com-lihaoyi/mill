@@ -1,18 +1,20 @@
 package foo
 import scala.scalanative.libc._
 import scala.scalanative.unsafe._
+import fansi._
 
 object Foo {
   
-  def generateHtml(text: CString) = {
-    stdio.printf(c"<h1>%s</h1>\n", text)
+  def generateHtml(text: String) = {
+    val colored = fansi.Color.Green(text)
+    println(colored)
+    implicit val z: Zone = Zone.open
+    stdio.printf(c"<h1>%s</h1>\n", toCString(text))
+    z.close()
   }
 
   def main(args: Array[String]): Unit = {
-    implicit val z: Zone = Zone.open
     val text = args(0)
-    generateHtml(toCString(text))
-    z.close()
+    generateHtml(text)
   }
 }
-
