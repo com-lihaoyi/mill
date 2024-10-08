@@ -72,13 +72,11 @@ private[mill] class PromptLogger(
 
         readTerminalDims(terminfoPath).foreach(termDimensions = _)
 
-        synchronized {
-          if (!runningState.paused) {
-            // Double check the lock so if this was closed during the
-            // `Thread.sleep`, we skip refreshing the prompt this loop
-            if (!runningState.stopped) {
-              refreshPrompt()
-            }
+        if (!runningState.paused && !runningState.stopped) synchronized {
+          // Double check the lock so if this was closed during the
+          // `Thread.sleep`, we skip refreshing the prompt this loop
+          if (!runningState.paused && !runningState.stopped) {
+            refreshPrompt()
           }
         }
       },
