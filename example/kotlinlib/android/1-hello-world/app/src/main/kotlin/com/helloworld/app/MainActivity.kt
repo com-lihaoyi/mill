@@ -14,7 +14,7 @@ class MainActivity : Activity() {
         val textView = TextView(this)
 
         // Set the text to "Hello, World!"
-        textView.text = "Hello, World!"
+        textView.text = "Hello, World Kotlin!"
 
         // Set text size
         textView.textSize = 32f
