@@ -135,6 +135,7 @@ private[mill] class PromptLogger(
 
   def waitForPauseNoticed() = {
     paused = true
+    pauseNoticed = false
     promptUpdaterThread.interrupt()
     // After the prompt gets paused, wait until the `promptUpdaterThread` marks
     // `pauseNoticed = true`, so we can be sure it's done printing out prompt updates for
@@ -145,33 +146,25 @@ private[mill] class PromptLogger(
     systemStreams0.err.flush()
   }
 
-  private[mill] override def withPromptPaused[T](t: => T): T = {
+  private def withPromptPaused0[T](targetPaused: Boolean, t: => T): T = {
     if (!enableTicker) t
     else {
       val prevPaused = paused
-      pauseNoticed = false
 
-      try {
-        if (!prevPaused) waitForPauseNoticed()
+      paused = targetPaused
+
+      try{
+        if (!prevPaused && targetPaused) waitForPauseNoticed()
         t
-      } finally paused = prevPaused
-    }
-  }
-
-  private[mill] override def withPromptUnpaused[T](t: => T): T = {
-
-    if (!enableTicker) t
-    else {
-      val prevPaused = paused
-      paused = false
-      promptUpdaterThread.interrupt()
-      try {
-        t
-      } finally {
-        if (prevPaused) waitForPauseNoticed()
+      }finally{
+        if (prevPaused && !targetPaused) waitForPauseNoticed()
+        paused = prevPaused
       }
     }
   }
+
+  private[mill] override def withPromptPaused[T](t: => T): T = withPromptPaused0(true, t)
+  private[mill] override def withPromptUnpaused[T](t: => T): T = withPromptPaused0(false, t)
 }
 
 private[mill] object PromptLogger {
