@@ -2,6 +2,8 @@ package mill.api
 
 import java.io.{InputStream, PrintStream}
 
+import mill.main.client.lock.{Lock, Locked}
+
 /**
  * The standard logging interface of the Mill build tool.
  *
@@ -24,7 +26,7 @@ import java.io.{InputStream, PrintStream}
  * but when `show` is used both are forwarded to stderr and stdout is only
  * used to display the final `show` output for easy piping.
  */
-trait Logger {
+trait Logger extends AutoCloseable {
   def colored: Boolean
 
   def systemStreams: SystemStreams
@@ -78,5 +80,18 @@ trait Logger {
     setPromptLine()
     try t
     finally removePromptLine()
+  }
+
+  def waitForLock(lock: Lock, waitingAllowed: Boolean): Locked = {
+    val tryLocked = lock.tryLock()
+    if (tryLocked.isLocked())
+      tryLocked
+    else if (waitingAllowed) {
+      info("Another Mill process is running tasks, waiting for it to be done...")
+      lock.lock()
+    } else {
+      error("Cannot proceed, another Mill process is running tasks")
+      throw new Exception("Cannot acquire lock on Mill output directory")
+    }
   }
 }
