@@ -1,25 +1,24 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Untitled :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.11.12/example/tasks/7-modules.html" />
-    <meta name="generator" content="Antora 3.1.9" />
-    <link rel="stylesheet" href="../../../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.11.12/example/tasks/7-modules.html">
+    <meta name="generator" content="Antora 3.1.9">
+    <link rel="stylesheet" href="../../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon" />
-  
-  </head><body class="article">
-  
+<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
 <header class="header">
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -310,7 +309,7 @@
 <div class="page-versions">
   <button class="version-menu-toggle" title="Show other versions of page">0.11.12</button>
   <div class="version-menu">
-    <a class="version is-missing" href="../../../index.html">0.12.0-RC3-21-8b063c</a>
+    <a class="version is-missing" href="../../../index.html">0.12.0-RC3-22-fe73de</a>
     <a class="version is-current" href="7-modules.html">0.11.12</a>
     <a class="version" href="../../../0.11.11/example/tasks/7-modules.html">0.11.11</a>
     <a class="version" href="../../../0.11.10/example/tasks/7-modules.html">0.11.10</a>
@@ -342,16 +341,16 @@ for the following <code>build.sc</code>:</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
 object foo extends Module {
-  def bar = T { &quot;hello&quot; }
+  def bar = T { "hello" }
   object qux extends Module {
-    def baz = T { &quot;world&quot; }
+    def baz = T { "world" }
   }
 }</code></pre>
 </div>
 </div>
 <div class="imageblock kroki">
 <div class="content">
-<img src="../../_images/diag-b45447bbbd9347291a36ca913d434ca34f2d72ee.svg" alt="Diagram" />
+<img src="../../_images/diag-b45447bbbd9347291a36ca913d434ca34f2d72ee.svg" alt="Diagram">
 </div>
 </div>
 <div class="paragraph">
@@ -368,16 +367,16 @@ respectively.</p>
 &gt; ./mill foo.qux.baz
 
 &gt; ./mill show foo.bar
-&quot;hello&quot;
+"hello"
 
 &gt; ./mill show foo.qux.baz
-&quot;world&quot;
+"world"
 
 &gt; cat ./out/foo/bar.json # task output path follows module hierarchy
-...&quot;value&quot;: &quot;hello&quot;...
+..."value": "hello"...
 
 &gt; cat ./out/foo/qux/baz.json
-...&quot;value&quot;: &quot;world&quot;...</code></pre>
+..."value": "world"...</code></pre>
 </div>
 </div>
 </div>
@@ -395,16 +394,16 @@ with additional <code>def</code>s, etc.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">trait FooModule extends Module {
   def bar: T[String] // required override
-  def qux = T { bar() + &quot; world&quot; }
+  def qux = T { bar() + " world" }
 }
 
 object foo1 extends FooModule{
-  def bar = &quot;hello&quot;
+  def bar = "hello"
   def qux = super.qux().toUpperCase // refer to overriden value via super
 }
 object foo2 extends FooModule {
-  def bar = &quot;hi&quot;
-  def baz = T { qux() + &quot; I am Cow&quot; } // add a new `def`
+  def bar = "hi"
+  def baz = T { qux() + " I am Cow" } // add a new `def`
 }</code></pre>
 </div>
 </div>
@@ -415,33 +414,33 @@ the task graph</p>
 </div>
 <div class="imageblock kroki">
 <div class="content">
-<img src="../../_images/diag-d99e660829ed10842b49b2f288f55460cd409530.svg" alt="Diagram" />
+<img src="../../_images/diag-d99e660829ed10842b49b2f288f55460cd409530.svg" alt="Diagram">
 </div>
 </div>
 <div class="paragraph">
-<p>Note that the <code>override</code> keyword is optional in mill, as is <code>T{…​}</code> wrapper.</p>
+<p>Note that the <code>override</code> keyword is optional in mill, as is <code>T{&#8230;&#8203;}</code> wrapper.</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo1.bar
-&quot;hello&quot;
+"hello"
 
 &gt; ./mill show foo1.qux
-&quot;HELLO WORLD&quot;
+"HELLO WORLD"
 
 &gt; ./mill show foo2.bar
-&quot;hi&quot;
+"hi"
 
 &gt; ./mill show foo2.qux
-&quot;hi world&quot;
+"hi world"
 
 &gt; ./mill show foo2.baz
-&quot;hi world I am Cow&quot;</code></pre>
+"hi world I am Cow"</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>The built-in <code>mill.scalalib</code> package uses this to define <code>ScalaModule</code>,
-<code>SbtModule</code> and <code>TestScalaModule</code>, etc. which contain a set of &quot;standard&quot;
+<code>SbtModule</code> and <code>TestScalaModule</code>, etc. which contain a set of "standard"
 operations such as <code>compile</code>, <code>jar</code> or <code>assembly</code> that you may expect from a
 typical Scala module.</p>
 </div>
@@ -461,8 +460,8 @@ module expects its input files to be on disk.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">trait MyModule extends Module{
-  def sources = T.source(millSourcePath / &quot;sources&quot;)
-  def target = T { &quot;hello &quot; + os.list(sources().path).map(os.read(_)).mkString(&quot; &quot;) }
+  def sources = T.source(millSourcePath / "sources")
+  def target = T { "hello " + os.list(sources().path).map(os.read(_)).mkString(" ") }
 }
 
 object outer extends MyModule {
@@ -472,7 +471,7 @@ object outer extends MyModule {
 </div>
 <div class="imageblock kroki">
 <div class="content">
-<img src="../../_images/diag-6e3f83f95dfc260a5fa1b830a23f8238128b65a7.svg" alt="Diagram" />
+<img src="../../_images/diag-6e3f83f95dfc260a5fa1b830a23f8238128b65a7.svg" alt="Diagram">
 </div>
 </div>
 <div class="ulist">
@@ -490,10 +489,10 @@ object outer extends MyModule {
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show outer.target
-&quot;hello contents of file inside outer/sources/&quot;
+"hello contents of file inside outer/sources/"
 
 &gt; ./mill show outer.inner.target
-&quot;hello contents of file inside outer/inner/sources/&quot;</code></pre>
+"hello contents of file inside outer/inner/sources/"</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -505,8 +504,8 @@ be the same.</p>
 </div>
 <div class="paragraph">
 <p>E.g. for <code>mill.scalalib.ScalaModule</code>, the Scala source code is assumed by
-default to be in <code>millSourcePath / &quot;src&quot;</code> while resources are automatically
-assumed to be in <code>millSourcePath / &quot;resources&quot;</code>.</p>
+default to be in <code>millSourcePath / "src"</code> while resources are automatically
+assumed to be in <code>millSourcePath / "resources"</code>.</p>
 </div>
 <div class="paragraph">
 <p>You can override <code>millSourcePath</code>:</p>
@@ -514,7 +513,7 @@ assumed to be in <code>millSourcePath / &quot;resources&quot;</code>.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object outer2 extends MyModule {
-  def millSourcePath = super.millSourcePath / &quot;nested&quot;
+  def millSourcePath = super.millSourcePath / "nested"
   object inner extends MyModule
 }</code></pre>
 </div>
@@ -522,19 +521,19 @@ assumed to be in <code>millSourcePath / &quot;resources&quot;</code>.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show outer2.target
-&quot;hello contents of file inside outer2/nested/sources/&quot;
+"hello contents of file inside outer2/nested/sources/"
 
 &gt; ./mill show outer2.inner.target
-&quot;hello contents of file inside outer2/nested/inner/sources/&quot;</code></pre>
+"hello contents of file inside outer2/nested/inner/sources/"</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Any overrides propagate down to the module’s children: in the above example,
+<p>Any overrides propagate down to the module&#8217;s children: in the above example,
 <code>outer2</code> would have its <code>millSourcePath</code> be <code>outer2/nested/</code> while
 <code>outer.inner</code> would have its <code>millSourcePath</code> be <code>outer2/nested/inner/</code>.</p>
 </div>
 <div class="paragraph">
-<p>Note that <code>millSourcePath</code> is meant to be used for a module’s input source
+<p>Note that <code>millSourcePath</code> is meant to be used for a module&#8217;s input source
 files: source code, config files, library binaries, etc. Output is always in
 the <code>out/</code> folder and cannot be changed, e.g. even with the overridden
 <code>millSourcePath</code> the output paths are still the default <code>./out/outer2</code> and
@@ -543,10 +542,10 @@ the <code>out/</code> folder and cannot be changed, e.g. even with the overridde
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; cat ./out/outer2/target.json
-...&quot;value&quot;: &quot;hello contents of file inside outer2/nested/sources/&quot;...
+..."value": "hello contents of file inside outer2/nested/sources/"...
 
 &gt; cat ./out/outer2/inner/target.json
-...&quot;value&quot;: &quot;hello contents of file inside outer2/nested/inner/sources/&quot;...</code></pre>
+..."value": "hello contents of file inside outer2/nested/inner/sources/"...</code></pre>
 </div>
 </div>
 </div>
@@ -556,9 +555,9 @@ the <code>out/</code> folder and cannot be changed, e.g. even with the overridde
 </main>
 </div>
 <script id="site-script" src="../../../../_/js/site.js" data-ui-root-path="../../../../_"></script>
-<script async="async" src="../../../../_/js/vendor/highlight.js"></script>
+<script async src="../../../../_/js/vendor/highlight.js"></script>
 <script src="../../../../_/js/vendor/lunr.js"></script>
 <script src="../../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../../.." data-snippet-length="100" data-stylesheet="../../../../_/css/search.css"></script>
-<script async="async" src="../../../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../../../search-index.js"></script>
+  </body>
+</html>

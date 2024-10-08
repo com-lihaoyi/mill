@@ -1,25 +1,24 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Untitled :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.11.12/example/cross/4-cross-dependencies.html" />
-    <meta name="generator" content="Antora 3.1.9" />
-    <link rel="stylesheet" href="../../../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.11.12/example/cross/4-cross-dependencies.html">
+    <meta name="generator" content="Antora 3.1.9">
+    <link rel="stylesheet" href="../../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon" />
-  
-  </head><body class="article">
-  
+<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
 <header class="header">
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -310,7 +309,7 @@
 <div class="page-versions">
   <button class="version-menu-toggle" title="Show other versions of page">0.11.12</button>
   <div class="version-menu">
-    <a class="version is-missing" href="../../../index.html">0.12.0-RC3-21-8b063c</a>
+    <a class="version is-missing" href="../../../index.html">0.12.0-RC3-22-fe73de</a>
     <a class="version is-current" href="4-cross-dependencies.html">0.11.12</a>
     <a class="version" href="../../../0.11.11/example/cross/4-cross-dependencies.html">0.11.11</a>
     <a class="version" href="../../../0.11.10/example/cross/4-cross-dependencies.html">0.11.10</a>
@@ -337,43 +336,43 @@ external targets:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
-object foo extends mill.Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
+object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
 trait FooModule extends Cross.Module[String] {
-  def suffix = T { &quot;_&quot; + crossValue }
+  def suffix = T { "_" + crossValue }
 }
 
-object bar extends mill.Cross[BarModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
+object bar extends mill.Cross[BarModule]("2.10", "2.11", "2.12")
 trait BarModule extends Cross.Module[String] {
-  def bigSuffix = T { &quot;[[[&quot; + foo(crossValue).suffix() + &quot;]]]&quot; }
+  def bigSuffix = T { "[[[" + foo(crossValue).suffix() + "]]]" }
 }</code></pre>
 </div>
 </div>
 <div class="imageblock kroki">
 <div class="content">
-<img src="../../_images/diag-b5d6e00cb65f00c90ae9ab76be9104af7dc15fd1.svg" alt="Diagram" />
+<img src="../../_images/diag-b5d6e00cb65f00c90ae9ab76be9104af7dc15fd1.svg" alt="Diagram">
 </div>
 </div>
 <div class="paragraph">
-<p>Rather than pssing in a literal <code>&quot;2.10&quot;</code> to the <code>foo</code> cross module, we pass
+<p>Rather than pssing in a literal <code>"2.10"</code> to the <code>foo</code> cross module, we pass
 in the <code>crossValue</code> property that is available within every <code>Cross.Module</code>.
 This ensures that each version of <code>bar</code> depends on the corresponding version
-of <code>foo</code>: <code>bar(&quot;2.10&quot;)</code> depends on <code>foo(&quot;2.10&quot;)</code>, <code>bar(&quot;2.11&quot;)</code> depends on
-<code>foo(&quot;2.11&quot;)</code>, etc.</p>
+of <code>foo</code>: <code>bar("2.10")</code> depends on <code>foo("2.10")</code>, <code>bar("2.11")</code> depends on
+<code>foo("2.11")</code>, etc.</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill showNamed foo[__].suffix
 {
-  &quot;foo[2.10].suffix&quot;: &quot;_2.10&quot;,
-  &quot;foo[2.11].suffix&quot;: &quot;_2.11&quot;,
-  &quot;foo[2.12].suffix&quot;: &quot;_2.12&quot;
+  "foo[2.10].suffix": "_2.10",
+  "foo[2.11].suffix": "_2.11",
+  "foo[2.12].suffix": "_2.12"
 }
 
 &gt; mill showNamed bar[__].bigSuffix
 {
-  &quot;bar[2.10].bigSuffix&quot;: &quot;[[[_2.10]]]&quot;,
-  &quot;bar[2.11].bigSuffix&quot;: &quot;[[[_2.11]]]&quot;,
-  &quot;bar[2.12].bigSuffix&quot;: &quot;[[[_2.12]]]&quot;
+  "bar[2.10].bigSuffix": "[[[_2.10]]]",
+  "bar[2.11].bigSuffix": "[[[_2.11]]]",
+  "bar[2.12].bigSuffix": "[[[_2.12]]]"
 }</code></pre>
 </div>
 </div>
@@ -382,9 +381,9 @@ of <code>foo</code>: <code>bar(&quot;2.10&quot;)</code> depends on <code>foo(&qu
 </main>
 </div>
 <script id="site-script" src="../../../../_/js/site.js" data-ui-root-path="../../../../_"></script>
-<script async="async" src="../../../../_/js/vendor/highlight.js"></script>
+<script async src="../../../../_/js/vendor/highlight.js"></script>
 <script src="../../../../_/js/vendor/lunr.js"></script>
 <script src="../../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../../.." data-snippet-length="100" data-stylesheet="../../../../_/css/search.css"></script>
-<script async="async" src="../../../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../../../search-index.js"></script>
+  </body>
+</html>
