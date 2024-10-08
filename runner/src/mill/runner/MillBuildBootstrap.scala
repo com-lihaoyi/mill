@@ -8,7 +8,6 @@ import mill.eval.Evaluator
 import mill.main.RunScript
 import mill.resolve.SelectMode
 import mill.define.{BaseModule, Discover, Segments}
-import mill.main.client.DebugLog
 import mill.main.client.OutFiles.{millBuild, millRunnerState}
 
 import java.net.URLClassLoader

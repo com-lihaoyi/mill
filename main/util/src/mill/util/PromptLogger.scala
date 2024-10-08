@@ -34,31 +34,31 @@ private[mill] class PromptLogger(
   readTerminalDims(terminfoPath).foreach(termDimensions = _)
 
   private object promptLineState extends PromptLineState(
-    titleText,
-    systemStreams0,
-    currentTimeMillis(),
-    () => termDimensions,
-    currentTimeMillis,
-    infoColor
-  )
+        titleText,
+        systemStreams0,
+        currentTimeMillis(),
+        () => termDimensions,
+        currentTimeMillis,
+        infoColor
+      )
 
   private object streamManager extends StreamManager(
-    enableTicker,
-    systemStreams0,
-    () => promptLineState.currentPromptBytes,
-    interactive = () => termDimensions._1.nonEmpty
-  )
+        enableTicker,
+        systemStreams0,
+        () => promptLineState.writeCurrentPrompt(),
+        interactive = () => termDimensions._1.nonEmpty
+      )
 
   private object runningState extends RunningState(
-    enableTicker,
-    () => promptUpdaterThread.interrupt(),
-    clearOnPause = () => {
-      // Clear the prompt so the code in `t` has a blank terminal to work with
-      systemStreams0.err.write(AnsiNav.clearScreen(0).getBytes)
-      systemStreams0.err.flush()
-    },
-    this
-  )
+        enableTicker,
+        () => promptUpdaterThread.interrupt(),
+        clearOnPause = () => {
+          // Clear the prompt so the code in `t` has a blank terminal to work with
+          systemStreams0.err.write(AnsiNav.clearScreen(0).getBytes)
+          systemStreams0.err.flush()
+        },
+        this
+      )
 
   val promptUpdaterThread = new Thread(
     () =>
@@ -92,7 +92,8 @@ private[mill] class PromptLogger(
 
   def error(s: String): Unit = synchronized { systemStreams.err.println(s) }
 
-  override def setPromptLeftHeader(s: String): Unit = synchronized { promptLineState.updateGlobal(s) }
+  override def setPromptLeftHeader(s: String): Unit =
+    synchronized { promptLineState.updateGlobal(s) }
   override def clearPromptStatuses(): Unit = synchronized { promptLineState.clearStatuses() }
   override def removePromptLine(key: Seq[String]): Unit = synchronized {
     promptLineState.updateCurrent(key, None)
@@ -139,25 +140,30 @@ private[mill] class PromptLogger(
     promptUpdaterThread.join()
   }
 
-  def systemStreams = streamManager.systemStreams
+  def systemStreams = streamManager.proxySystemStreams
 
-  private[mill] override def withPromptPaused[T](t: => T): T = runningState.withPromptPaused0(true, t)
-  private[mill] override def withPromptUnpaused[T](t: => T): T = runningState.withPromptPaused0(false, t)
+  private[mill] override def withPromptPaused[T](t: => T): T =
+    runningState.withPromptPaused0(true, t)
+  private[mill] override def withPromptUnpaused[T](t: => T): T =
+    runningState.withPromptPaused0(false, t)
 }
 
 private[mill] object PromptLogger {
+
   /**
    * Manages the paused/unpaused/stopped state of the prompt logger. Encapsulate in a separate
    * class because it has to maintain some invariants and ensure book-keeping is properly done
    * when the paused state change, e.g. interrupting the prompt updater thread, waiting for
    * `pauseNoticed` to fire and clearing the screen when the ticker is paused.
    */
-  class RunningState(enableTicker: Boolean,
-                     promptUpdaterThreadInterrupt: () => Unit,
-                     clearOnPause: () => Unit,
-                     // Share the same synchronized lock as the parent PromptLogger, to simplify
-                     // reasoning about concurrency since it's not performance critical
-                     synchronizer: PromptLogger) {
+  class RunningState(
+      enableTicker: Boolean,
+      promptUpdaterThreadInterrupt: () => Unit,
+      clearOnPause: () => Unit,
+      // Share the same synchronized lock as the parent PromptLogger, to simplify
+      // reasoning about concurrency since it's not performance critical
+      synchronizer: PromptLogger
+  ) {
     @volatile private var stopped0 = false
     @volatile private var paused0 = false
     def stopped = stopped0
@@ -181,10 +187,10 @@ private[mill] object PromptLogger {
       if (!enableTicker) t
       else {
         val outerPaused = paused0
-        try{
+        try {
           setPaused(outerPaused, innerPaused)
           t
-        }finally setPaused(innerPaused, outerPaused)
+        } finally setPaused(innerPaused, outerPaused)
       }
     }
   }
@@ -197,7 +203,7 @@ private[mill] object PromptLogger {
   private class StreamManager(
       enableTicker: Boolean,
       systemStreams0: SystemStreams,
-      currentPromptBytes: () => Array[Byte],
+      writeCurrentPrompt: () => Unit,
       interactive: () => Boolean
   ) {
 
@@ -208,7 +214,7 @@ private[mill] object PromptLogger {
     val pipe = new PipeStreams()
     val proxyOut = new ProxyStream.Output(pipe.output, ProxyStream.OUT)
     val proxyErr: ProxyStream.Output = new ProxyStream.Output(pipe.output, ProxyStream.ERR)
-    val systemStreams = new SystemStreams(
+    val proxySystemStreams = new SystemStreams(
       new PrintStream(proxyOut),
       new PrintStream(proxyErr),
       systemStreams0.in
@@ -228,9 +234,7 @@ private[mill] object PromptLogger {
         // every small write when most such prompts will get immediately over-written
         // by subsequent writes
         if (enableTicker && src.available() == 0) {
-          if (interactive()) {
-            systemStreams0.err.write(currentPromptBytes())
-          }
+          if (interactive()) writeCurrentPrompt()
           pumperState = PumperState.prompt
         }
       }
@@ -294,8 +298,9 @@ private[mill] object PromptLogger {
     // Pre-compute the prelude and current prompt as byte arrays so that
     // writing them out is fast, since they get written out very frequently
 
-    @volatile var currentPromptBytes: Array[Byte] = Array[Byte]()
+    @volatile private var currentPromptBytes: Array[Byte] = Array[Byte]()
 
+    def writeCurrentPrompt(): Unit = systemStreams0.err.write(currentPromptBytes)
     private def updatePromptBytes(ending: Boolean = false) = {
       val now = currentTimeMillis()
       for (k <- statuses.keySet) {
@@ -392,7 +397,7 @@ private[mill] object PromptLogger {
       if (consoleDims()._1.nonEmpty || statusesHashCode != lastRenderedPromptHash) {
         lastRenderedPromptHash = statusesHashCode
         updatePromptBytes(ending)
-        systemStreams0.err.write(currentPromptBytes)
+        writeCurrentPrompt()
       }
     }
   }
