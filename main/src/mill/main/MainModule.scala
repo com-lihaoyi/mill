@@ -59,7 +59,8 @@ object MainModule {
       ),
       targets,
       Separated
-    ) match {
+    )
+   match {
       case Left(err) => Result.Failure(err)
       case Right((watched, Left(err))) =>
         watched.foreach(watch0)

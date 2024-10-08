@@ -37,6 +37,7 @@ class ProxyLogger(logger: Logger) extends Logger {
   private[mill] override def removePromptLine(): Unit = logger.removePromptLine()
   private[mill] override def setPromptLeftHeader(s: String): Unit = logger.setPromptLeftHeader(s)
   private[mill] override def withPromptPaused[T](t: => T): T = logger.withPromptPaused(t)
+  private[mill] override def withPromptUnpaused[T](t: => T): T = logger.withPromptUnpaused(t)
 
   override def enableTicker = logger.enableTicker
 }

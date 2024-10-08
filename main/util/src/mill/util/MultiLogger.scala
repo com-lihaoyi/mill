@@ -82,6 +82,9 @@ class MultiLogger(
   private[mill] override def withPromptPaused[T](t: => T): T = {
     logger1.withPromptPaused(logger2.withPromptPaused(t))
   }
+  private[mill] override def withPromptUnpaused[T](t: => T): T = {
+    logger1.withPromptUnpaused(logger2.withPromptUnpaused(t))
+  }
 
   override def enableTicker: Boolean = logger1.enableTicker || logger2.enableTicker
 

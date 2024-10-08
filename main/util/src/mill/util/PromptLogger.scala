@@ -133,23 +133,43 @@ private[mill] class PromptLogger(
 
   def systemStreams = streamManager.systemStreams
 
+  def waitForPauseNoticed() = {
+    // After the prompt gets paused, wait until the `promptUpdaterThread` marks
+    // `pauseNoticed = true`, so we can be sure it's done printing out prompt updates for
+    // now and we can proceed with running `t` without any last updates slipping through
+    while (!pauseNoticed) Thread.sleep(2)
+    // Clear the prompt so the code in `t` has a blank terminal to work with
+    systemStreams0.err.write(AnsiNav.clearScreen(0).getBytes)
+    systemStreams0.err.flush()
+  }
+
   private[mill] override def withPromptPaused[T](t: => T): T = {
     if (!enableTicker) t
     else {
+      val prevPaused = paused
       pauseNoticed = false
       paused = true
       promptUpdaterThread.interrupt()
       try {
-        // After the prompt gets paused, wait until the `promptUpdaterThread` marks
-        // `pauseNoticed = true`, so we can be sure it's done printing out prompt updates for
-        // now and we can proceed with running `t` without any last updates slipping through
-        while (!pauseNoticed) Thread.sleep(2)
-        // Clear the prompt so the code in `t` has a blank terminal to work with
-        systemStreams0.err.write(AnsiNav.clearScreen(0).getBytes)
-        systemStreams0.err.flush()
+        if (!prevPaused) waitForPauseNoticed()
         t
+      } finally paused = prevPaused
+    }
+  }
 
-      } finally paused = false
+  private[mill] override def withPromptUnpaused[T](t: => T): T = {
+
+    if (!enableTicker) t
+    else {
+      val prevPaused = paused
+      paused = false
+      promptUpdaterThread.interrupt()
+      try {
+        t
+      } finally {
+        paused = prevPaused
+        if (prevPaused) waitForPauseNoticed()
+      }
     }
   }
 }
