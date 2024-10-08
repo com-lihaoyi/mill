@@ -4,19 +4,27 @@ import mill.testkit.UtestIntegrationTestSuite
 import utest._
 
 import java.io.ByteArrayOutputStream
-import java.util.concurrent.CountDownLatch
+import java.util.concurrent.{CountDownLatch, Executors}
 
-import scala.concurrent.Await
 import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
+
+  private val pool = Executors.newCachedThreadPool()
+  private val ec = ExecutionContext.fromExecutorService(pool)
+
+  override def utestAfterAll(): Unit = {
+    pool.shutdown()
+  }
 
   def tests: Tests = Tests {
     test("basic") - integrationTest { tester =>
       import tester._
       val signalFile = workspacePath / "do-wait"
       System.err.println("Spawning blocking task")
-      val blocksFuture = evalAsync(("show", "blockWhileExists", "--path", signalFile), check = true)
+      val blocksFuture =
+        Future(eval(("show", "blockWhileExists", "--path", signalFile), check = true))(ec)
       while (!os.exists(signalFile) && !blocksFuture.isCompleted)
         Thread.sleep(100L)
       if (os.exists(signalFile))
@@ -43,20 +51,22 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
       val lock = new CountDownLatch(1)
       val stderr = new ByteArrayOutputStream
       var success = false
-      val futureWaitingRes = evalAsync(
-        testCommand,
-        stderr = os.ProcessOutput {
-          val expectedMessage =
-            "Another Mill process is running tasks, waiting for it to be done..."
+      val futureWaitingRes = Future {
+        eval(
+          testCommand,
+          stderr = os.ProcessOutput {
+            val expectedMessage =
+              "Another Mill process is running tasks, waiting for it to be done..."
 
-          (bytes, len) =>
-            stderr.write(bytes, 0, len)
-            val output = new String(stderr.toByteArray)
-            if (output.contains(expectedMessage))
-              lock.countDown()
-        },
-        check = true
-      )
+            (bytes, len) =>
+              stderr.write(bytes, 0, len)
+              val output = new String(stderr.toByteArray)
+              if (output.contains(expectedMessage))
+                lock.countDown()
+          },
+          check = true
+        )
+      }(ec)
       try {
         lock.await()
         success = true

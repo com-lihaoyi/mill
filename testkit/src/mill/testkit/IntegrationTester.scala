@@ -5,11 +5,6 @@ import mill.eval.Evaluator
 import mill.resolve.SelectMode
 import ujson.Value
 
-import java.util.concurrent.atomic.AtomicInteger
-
-import scala.concurrent.{Future, Promise}
-import scala.util.Try
-
 /**
  * Helper meant for executing Mill integration tests, which runs Mill in a subprocess
  * against a folder with a `build.mill` and project files. Provides APIs such as [[eval]]
@@ -94,49 +89,6 @@ object IntegrationTester {
         fansi.Str(res0.out.text(), errorMode = fansi.ErrorMode.Strip).plainText.trim,
         fansi.Str(res0.err.text(), errorMode = fansi.ErrorMode.Strip).plainText.trim
       )
-    }
-
-    private val evalAsyncCounter = new AtomicInteger
-    def evalAsync(
-        cmd: os.Shellable,
-        env: Map[String, String] = millTestSuiteEnv,
-        cwd: os.Path = workspacePath,
-        stdin: os.ProcessInput = os.Pipe,
-        stdout: os.ProcessOutput = os.Pipe,
-        stderr: os.ProcessOutput = os.Pipe,
-        mergeErrIntoOut: Boolean = false,
-        timeout: Long = -1,
-        check: Boolean = false,
-        propagateEnv: Boolean = true,
-        timeoutGracePeriod: Long = 100
-    ): Future[IntegrationTester.EvalResult] = {
-
-      val promise = Promise[IntegrationTester.EvalResult]()
-
-      val thread = new Thread(s"mill-test-background-eval-${evalAsyncCounter.incrementAndGet()}") {
-        setDaemon(true)
-        override def run(): Unit =
-          promise.complete {
-            Try {
-              eval(
-                cmd = cmd,
-                env = env,
-                cwd = cwd,
-                stdin = stdin,
-                stdout = stdout,
-                stderr = stderr,
-                mergeErrIntoOut = mergeErrIntoOut,
-                timeout = timeout,
-                check = check,
-                propagateEnv = propagateEnv,
-                timeoutGracePeriod = timeoutGracePeriod
-              )
-            }
-          }
-      }
-      thread.start()
-
-      promise.future
     }
 
     def millTestSuiteEnv: Map[String, String] = Map("MILL_TEST_SUITE" -> this.getClass().toString())
