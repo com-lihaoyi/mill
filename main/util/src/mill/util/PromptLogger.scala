@@ -33,7 +33,7 @@ private[mill] class PromptLogger(
 
   readTerminalDims(terminfoPath).foreach(termDimensions = _)
 
-  private val state = new State(
+  private object promptLineState extends PromptLineState(
     titleText,
     systemStreams0,
     currentTimeMillis(),
@@ -42,57 +42,65 @@ private[mill] class PromptLogger(
     infoColor
   )
 
-  private val streamManager = new StreamManager(
+  private object streamManager extends StreamManager(
     enableTicker,
     systemStreams0,
-    () => state.currentPromptBytes,
+    () => promptLineState.currentPromptBytes,
     interactive = () => termDimensions._1.nonEmpty
   )
 
-  @volatile var stopped = false
-  @volatile var paused = false
-  @volatile var pauseNoticed = false
-
-  val promptUpdaterThread = new Thread(() =>
-    while (!stopped) {
-      val promptUpdateInterval =
-        if (termDimensions._1.isDefined) promptUpdateIntervalMillis
-        else nonInteractivePromptUpdateIntervalMillis
-
-      try Thread.sleep(promptUpdateInterval)
-      catch { case e: InterruptedException => /*do nothing*/ }
-
-      if (!paused) {
-        synchronized {
-          // Double check the lock so if this was closed during the
-          // `Thread.sleep`, we skip refreshing the prompt this loop
-          if (!stopped) {
-            readTerminalDims(terminfoPath).foreach(termDimensions = _)
-            refreshPrompt()
-          }
-        }
-      } else {
-        pauseNoticed = true
-      }
+  private object runningState extends RunningState(
+    enableTicker,
+    () => promptUpdaterThread.interrupt(),
+    clearOnPause = () => {
+      // Clear the prompt so the code in `t` has a blank terminal to work with
+      systemStreams0.err.write(AnsiNav.clearScreen(0).getBytes)
+      systemStreams0.err.flush()
     }
   )
 
-  def refreshPrompt(): Unit = state.refreshPrompt()
+  val promptUpdaterThread = new Thread(
+    () =>
+      while (!runningState.stopped) {
+        val promptUpdateInterval =
+          if (termDimensions._1.isDefined) promptUpdateIntervalMillis
+          else nonInteractivePromptUpdateIntervalMillis
+
+        try Thread.sleep(promptUpdateInterval)
+        catch { case e: InterruptedException => /*do nothing*/ }
+
+        synchronized {
+          runningState.synchronized{
+            if (!runningState.paused) {
+              // Double check the lock so if this was closed during the
+              // `Thread.sleep`, we skip refreshing the prompt this loop
+              if (!runningState.stopped) {
+                readTerminalDims(terminfoPath).foreach(termDimensions = _)
+                refreshPrompt()
+              }
+            }
+          }
+        }
+      },
+    "prompt-logger-updater-thread"
+  )
+
+  def refreshPrompt(): Unit = promptLineState.refreshPrompt()
   if (enableTicker && autoUpdate) promptUpdaterThread.start()
 
   def info(s: String): Unit = synchronized { systemStreams.err.println(s) }
 
   def error(s: String): Unit = synchronized { systemStreams.err.println(s) }
 
-  override def setPromptLeftHeader(s: String): Unit = synchronized { state.updateGlobal(s) }
-  override def clearPromptStatuses(): Unit = synchronized { state.clearStatuses() }
+  override def setPromptLeftHeader(s: String): Unit = synchronized { promptLineState.updateGlobal(s) }
+  override def clearPromptStatuses(): Unit = synchronized { promptLineState.clearStatuses() }
   override def removePromptLine(key: Seq[String]): Unit = synchronized {
-    state.updateCurrent(key, None)
+    promptLineState.updateCurrent(key, None)
   }
 
   def ticker(s: String): Unit = ()
   override def setPromptDetail(key: Seq[String], s: String): Unit = synchronized {
-    state.updateDetail(key, s)
+    promptLineState.updateDetail(key, s)
   }
 
   override def reportKey(key: Seq[String]): Unit = synchronized {
@@ -111,7 +119,7 @@ private[mill] class PromptLogger(
   private val reportedIdentifiers = collection.mutable.Set.empty[Seq[String]]
   override def setPromptLine(key: Seq[String], verboseKeySuffix: String, message: String): Unit =
     synchronized {
-      state.updateCurrent(key, Some(s"[${key.mkString("-")}] $message"))
+      promptLineState.updateCurrent(key, Some(s"[${key.mkString("-")}] $message"))
       seenIdentifiers(key) = (verboseKeySuffix, message)
     }
 
@@ -121,54 +129,67 @@ private[mill] class PromptLogger(
 
   override def close(): Unit = {
     synchronized {
-      if (enableTicker) state.refreshPrompt(ending = true)
+      if (enableTicker) promptLineState.refreshPrompt(ending = true)
       streamManager.close()
-      stopped = true
     }
+
+    runningState.stop()
+
     // Needs to be outside the lock so we don't deadlock with `promptUpdaterThread`
     // trying to take the lock one last time before exiting
-    promptUpdaterThread.interrupt()
     promptUpdaterThread.join()
   }
 
   def systemStreams = streamManager.systemStreams
 
-  def waitForPauseNoticed() = {
-    paused = true
-    pauseNoticed = false
-    promptUpdaterThread.interrupt()
-    // After the prompt gets paused, wait until the `promptUpdaterThread` marks
-    // `pauseNoticed = true`, so we can be sure it's done printing out prompt updates for
-    // now and we can proceed with running `t` without any last updates slipping through
-    while (!pauseNoticed) Thread.sleep(2)
-    // Clear the prompt so the code in `t` has a blank terminal to work with
-    systemStreams0.err.write(AnsiNav.clearScreen(0).getBytes)
-    systemStreams0.err.flush()
-  }
+  private[mill] override def withPromptPaused[T](t: => T): T = runningState.withPromptPaused0(true, t)
+  private[mill] override def withPromptUnpaused[T](t: => T): T = runningState.withPromptPaused0(false, t)
+}
 
-  private def withPromptPaused0[T](targetPaused: Boolean, t: => T): T = {
-    if (!enableTicker) t
-    else {
-      val prevPaused = paused
+private[mill] object PromptLogger {
+  /**
+   * Manages the paused/unpaused/stopped state of the prompt logger. Encapsulate in a separate
+   * class because it has to maintain some invariants and ensure book-keeping is properly done
+   * when the paused state change, e.g. interrupting the prompt updater thread, waiting for
+   * `pauseNoticed` to fire and clearing the screen when the ticker is paused.
+   */
+  class RunningState(enableTicker: Boolean,
+                     promptUpdaterThreadInterrupt: () => Unit,
+                     clearOnPause: () => Unit) {
+    @volatile private var stopped0 = false
+    @volatile private var paused0 = false
+    def stopped = stopped0
+    def paused = paused0
+    def stop(): Unit = synchronized {
+      stopped0 = true
+      promptUpdaterThreadInterrupt()
+    }
 
-      paused = targetPaused
+    def setPaused(prevPaused: Boolean, nextPaused: Boolean): Unit = synchronized {
+      if (prevPaused != nextPaused) {
+        paused0 = nextPaused
+        promptUpdaterThreadInterrupt()
+        clearOnPause()
+      }
+    }
 
-      try{
-        if (!prevPaused && targetPaused) waitForPauseNoticed()
-        t
-      }finally{
-        if (prevPaused && !targetPaused) waitForPauseNoticed()
-        paused = prevPaused
+    def withPromptPaused0[T](innerPaused: Boolean, t: => T): T = {
+      if (!enableTicker) t
+      else {
+        val outerPaused = paused0
+        try{
+          setPaused(outerPaused, innerPaused)
+          t
+        }finally setPaused(innerPaused, outerPaused)
       }
     }
   }
 
-  private[mill] override def withPromptPaused[T](t: => T): T = withPromptPaused0(true, t)
-  private[mill] override def withPromptUnpaused[T](t: => T): T = withPromptPaused0(false, t)
-}
-
-private[mill] object PromptLogger {
-
+  /**
+   * Manages the system stream management logic necessary as part of the prompt. Intercepts
+   * both stdout/stderr streams, ensuring the prompt is cleared before any output is printed,
+   * and ensuring the prompt is re-printed after the streams have become quiescent.
+   */
   private class StreamManager(
       enableTicker: Boolean,
       systemStreams0: SystemStreams,
@@ -220,7 +241,7 @@ private[mill] object PromptLogger {
       }
     }
 
-    val pumperThread = new Thread(pumper)
+    val pumperThread = new Thread(pumper, "prompt-logger-stream-pumper-thread")
     pumperThread.start()
 
     def close(): Unit = {
@@ -232,7 +253,13 @@ private[mill] object PromptLogger {
       pumperThread.join()
     }
   }
-  private class State(
+
+  /**
+   * Manages the state and logic necessary to render the status lines making up the prompt.
+   * Needs to maintain state to implement debouncing logic to ensure the prompt changes
+   * "smoothly" even as the underlying statuses may be rapidly changed during evaluation.
+   */
+  private class PromptLineState(
       titleText: String,
       systemStreams0: SystemStreams,
       startTimeMillis: Long,
