@@ -62,6 +62,7 @@ trait Logger extends AutoCloseable {
   private[mill] def removePromptLine(key: Seq[String]): Unit = ()
   private[mill] def removePromptLine(): Unit = ()
   private[mill] def withPromptPaused[T](t: => T): T = t
+  private[mill] def withPromptUnpaused[T](t: => T): T = t
 
   /**
    * @since Mill 0.10.5

@@ -883,7 +883,7 @@ object dist extends MillPublishJavaModule {
     Jvm.createJar(Agg(), JarManifest(manifestEntries))
   }
 
-  def run(args: Task[Args] = T.task(Args())) = T.command {
+  def run(args: Task[Args] = T.task(Args())) = Task.Command(exclusive = true) {
     args().value match {
       case Nil => mill.api.Result.Failure("Need to pass in cwd as first argument to dev.run")
       case wd0 +: rest =>

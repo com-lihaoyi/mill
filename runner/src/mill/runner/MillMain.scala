@@ -263,7 +263,8 @@ object MillMain {
                           needBuildSc = needBuildSc(config),
                           requestedMetaLevel = config.metaLevel,
                           config.allowPositional.value,
-                          systemExit = systemExit
+                          systemExit = systemExit,
+                          streams0 = streams0
                         ).evaluate()
                       }
                     },

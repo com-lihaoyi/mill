@@ -43,7 +43,8 @@ class MillBuildBootstrap(
     needBuildSc: Boolean,
     requestedMetaLevel: Option[Int],
     allowPositionalCommandArgs: Boolean,
-    systemExit: Int => Nothing
+    systemExit: Int => Nothing,
+    streams0: SystemStreams
 ) {
   import MillBuildBootstrap._
 
@@ -357,7 +358,7 @@ class MillBuildBootstrap(
       disableCallgraph = disableCallgraph,
       allowPositionalCommandArgs = allowPositionalCommandArgs,
       systemExit = systemExit,
-      exclusiveSystemStreams = SystemStreams.original
+      exclusiveSystemStreams = streams0
     )
   }
 

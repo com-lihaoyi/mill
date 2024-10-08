@@ -114,6 +114,7 @@ class PrefixLogger(
     )
   }
   private[mill] override def withPromptPaused[T](t: => T): T = logger0.withPromptPaused(t)
+  private[mill] override def withPromptUnpaused[T](t: => T): T = logger0.withPromptUnpaused(t)
 }
 
 object PrefixLogger {
