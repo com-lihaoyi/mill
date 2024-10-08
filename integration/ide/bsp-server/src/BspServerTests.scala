@@ -15,8 +15,32 @@ object BspServerTests extends UtestIntegrationTestSuite {
   override protected def workspaceSourcePath: os.Path =
     super.workspaceSourcePath / "project"
 
-  def tests: Tests = Tests {
-    test("requestSnapshots") - integrationTest { tester =>
+  def substitutions(
+      dependency: coursierapi.Dependency,
+      filter: coursierapi.Dependency => Boolean
+  ): Seq[(String, String)] = {
+    val fetchRes = coursierapi.Fetch.create()
+      .addDependencies(dependency)
+      .fetchResult()
+    fetchRes.getDependencies.asScala
+      .filter(filter)
+      .map { dep =>
+        val organization = dep.getModule.getOrganization
+        val name = dep.getModule.getName
+        val prefix = (organization.split('.') :+ name).mkString("/")
+        def basePath(version: String): String =
+          s"$prefix/$version/$name-$version"
+        basePath(dep.getVersion) -> basePath(s"<$name-version>")
+      }
+      .toSeq
+  }
+
+  def serverTest(
+      clientDisplayName: String = defaultClientDisplayName,
+      clientSupportedLanguages: Seq[String] = defaultClientSupportedLanguages,
+      workspaceBuildTargetsFixtureSuffix: String = ""
+  ): Unit =
+    integrationTest { tester =>
       import tester._
       eval(
         "mill.bsp.BSP/install",
@@ -28,32 +52,36 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
       withBspServer(
         workspacePath,
-        millTestSuiteEnv
+        millTestSuiteEnv,
+        clientDisplayName = clientDisplayName,
+        clientSupportedLanguages = clientSupportedLanguages
       ) { (buildServer, initRes) =>
         val scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
-        val scalaTransitiveSubstitutions = {
-          val scalaFetchRes = coursierapi.Fetch.create()
-            .addDependencies(coursierapi.Dependency.of(
-              "org.scala-lang",
-              "scala-compiler",
-              scalaVersion
-            ))
-            .fetchResult()
-          scalaFetchRes.getDependencies.asScala
-            .filter(dep => dep.getModule.getOrganization != "org.scala-lang")
-            .map { dep =>
-              val organization = dep.getModule.getOrganization
-              val name = dep.getModule.getName
-              val prefix = (organization.split('.') :+ name).mkString("/")
-              def basePath(version: String): String =
-                s"$prefix/$version/$name-$version"
-              basePath(dep.getVersion) -> basePath(s"<$name-version>")
-            }
-        }
+        val scalaTransitiveSubstitutions = substitutions(
+          coursierapi.Dependency.of(
+            "org.scala-lang",
+            "scala-compiler",
+            scalaVersion
+          ),
+          _.getModule.getOrganization != "org.scala-lang"
+        )
 
-        val normalizedLocalValues =
-          normalizeLocalValuesForTesting(workspacePath) ++ scalaTransitiveSubstitutions ++ Seq(
-            scalaVersion -> "<scala-version>"
+        val kotlinVersion = sys.props.getOrElse("TEST_KOTLIN_VERSION", ???)
+        val kotlinTransitiveSubstitutions = substitutions(
+          coursierapi.Dependency.of(
+            "org.jetbrains.kotlin",
+            "kotlin-stdlib",
+            kotlinVersion
+          ),
+          _.getModule.getOrganization != "org.jetbrains.kotlin"
+        )
+
+        val normalizedLocalValues = normalizeLocalValuesForTesting(workspacePath) ++
+          scalaTransitiveSubstitutions ++
+          kotlinTransitiveSubstitutions ++
+          Seq(
+            scalaVersion -> "<scala-version>",
+            kotlinVersion -> "<kotlin-version>"
           )
 
         compareWithGsonSnapshot(
@@ -68,7 +96,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
         val buildTargets = buildServer.workspaceBuildTargets().get()
         compareWithGsonSnapshot(
           buildTargets,
-          snapshotsPath / "workspace-build-targets.json",
+          snapshotsPath / s"workspace-build-targets$workspaceBuildTargetsFixtureSuffix.json",
           normalizedLocalValues = normalizedLocalValues
         )
 
@@ -160,5 +188,16 @@ object BspServerTests extends UtestIntegrationTestSuite {
         )
       }
     }
+
+  def tests: Tests = Tests {
+    test("requestSnapshots") - serverTest()
+    test("intellijRequestSnapshots") - serverTest(
+      clientDisplayName = "IntelliJ-BSP"
+    )
+    test("intellijScalaRequestSnapshots") - serverTest(
+      clientDisplayName = "IntelliJ-BSP",
+      clientSupportedLanguages = Seq("java", "scala"),
+      workspaceBuildTargetsFixtureSuffix = "-intellij-scala"
+    )
   }
 }

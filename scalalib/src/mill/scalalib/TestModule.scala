@@ -219,8 +219,11 @@ trait TestModule
     TestModule.handleResults(doneMsg, results, T.ctx(), testReportXml())
   }
 
-  override def bspBuildTarget: BspBuildTarget = {
-    val parent = super.bspBuildTarget
+  def bspBuildTarget(
+      clientDisplayName: String,
+      clientSupportedLanguages: Seq[String]
+  ): BspBuildTarget = {
+    val parent = super.bspBuildTarget(clientDisplayName, clientSupportedLanguages)
     parent.copy(
       canTest = true,
       tags = Seq(BspModule.Tag.Test)

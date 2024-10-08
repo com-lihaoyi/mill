@@ -282,7 +282,10 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   }
 
   @internal
-  override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = Task.Anon {
+  override def bspBuildTargetData(
+      clientDisplayName: String,
+      clientSupportedLanguages: Seq[String]
+  ): Task[Option[(String, AnyRef)]] = Task.Anon {
     Some((
       ScalaBuildTarget.dataKind,
       ScalaBuildTarget(

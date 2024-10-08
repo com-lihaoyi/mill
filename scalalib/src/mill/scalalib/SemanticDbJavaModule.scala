@@ -18,7 +18,10 @@ trait SemanticDbJavaModule extends CoursierModule {
   def zincIncrementalCompilation: T[Boolean]
   def allSourceFiles: T[Seq[PathRef]]
   def compile: T[mill.scalalib.api.CompilationResult]
-  def bspBuildTarget: BspBuildTarget
+  def bspBuildTarget(
+      clientDisplayName: String,
+      clientSupportedLanguages: Seq[String]
+  ): BspBuildTarget
   def javacOptions: T[Seq[String]]
   def mandatoryJavacOptions: T[Seq[String]]
   def compileClasspath: T[Agg[PathRef]]

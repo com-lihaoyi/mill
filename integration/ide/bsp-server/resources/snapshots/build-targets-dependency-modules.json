@@ -8,6 +8,17 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/hello-kotlin"
+      },
+      "modules": [
+        {
+          "name": "org.jetbrains.kotlin:kotlin-stdlib",
+          "version": "<kotlin-version>"
+        }
+      ]
+    },
+    {
+      "target": {
         "uri": "file:///workspace/hello-scala"
       },
       "modules": [

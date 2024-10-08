@@ -8,6 +8,12 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/hello-kotlin"
+      },
+      "outputPaths": []
+    },
+    {
+      "target": {
         "uri": "file:///workspace/hello-scala"
       },
       "outputPaths": []

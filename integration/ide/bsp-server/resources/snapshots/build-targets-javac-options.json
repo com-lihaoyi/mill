@@ -12,6 +12,18 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/hello-kotlin"
+      },
+      "options": [],
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/<kotlin-version>/kotlin-stdlib-<kotlin-version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/jetbrains/annotations/<annotations-version>/annotations-<annotations-version>.jar",
+        "file:///workspace/hello-kotlin/compile-resources"
+      ],
+      "classDirectory": "file:///workspace/out/hello-kotlin/compile.dest/classes"
+    },
+    {
+      "target": {
         "uri": "file:///workspace/hello-scala"
       },
       "options": [],

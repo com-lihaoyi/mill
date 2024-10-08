@@ -1050,20 +1050,27 @@ trait JavaModule
   }
 
   @internal
-  override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
+  def bspBuildTarget(
+      clientDisplayName: String,
+      clientSupportedLanguages: Seq[String]
+  ): BspBuildTarget = super.bspBuildTarget(clientDisplayName, clientSupportedLanguages).copy(
     languageIds = Seq(BspModule.LanguageId.Java),
     canCompile = true,
     canRun = true
   )
 
   @internal
-  override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = Task.Anon {
-    Some((
-      JvmBuildTarget.dataKind,
-      JvmBuildTarget(
-        javaHome = Option(System.getProperty("java.home")).map(p => BspUri(os.Path(p))),
-        javaVersion = Option(System.getProperty("java.version"))
-      )
-    ))
+  def jvmBuildTarget: JvmBuildTarget =
+    JvmBuildTarget(
+      javaHome = Option(System.getProperty("java.home")).map(p => BspUri(os.Path(p))),
+      javaVersion = Option(System.getProperty("java.version"))
+    )
+
+  @internal
+  override def bspBuildTargetData(
+      clientDisplayName: String,
+      clientSupportedLanguages: Seq[String]
+  ): Task[Option[(String, AnyRef)]] = Task.Anon {
+    Some((JvmBuildTarget.dataKind, jvmBuildTarget))
   }
 }

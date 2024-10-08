@@ -6,19 +6,22 @@
     "compileProvider": {
       "languageIds": [
         "java",
-        "scala"
+        "scala",
+        "kotlin"
       ]
     },
     "testProvider": {
       "languageIds": [
         "java",
-        "scala"
+        "scala",
+        "kotlin"
       ]
     },
     "runProvider": {
       "languageIds": [
         "java",
-        "scala"
+        "scala",
+        "kotlin"
       ]
     },
     "debugProvider": {

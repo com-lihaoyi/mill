@@ -8,14 +8,7 @@ import mill.util.Jvm.createJar
 import mill.api.Loose.Agg
 import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerUtil}
 import mainargs.Flag
-import mill.scalalib.bsp.{
-  BspBuildTarget,
-  BspModule,
-  BspUri,
-  JvmBuildTarget,
-  ScalaBuildTarget,
-  ScalaPlatform
-}
+import mill.scalalib.bsp.{BspBuildTarget, BspModule, ScalaBuildTarget, ScalaPlatform}
 import mill.scalalib.dependency.versions.{ValidVersion, Version}
 
 import scala.reflect.internal.util.ScalaClassLoader
@@ -580,14 +573,20 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   }
 
   @internal
-  override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
+  def bspBuildTarget(
+      clientDisplayName: String,
+      clientSupportedLanguages: Seq[String]
+  ): BspBuildTarget = super.bspBuildTarget(clientDisplayName, clientSupportedLanguages).copy(
     languageIds = Seq(BspModule.LanguageId.Java, BspModule.LanguageId.Scala),
     canCompile = true,
     canRun = true
   )
 
   @internal
-  override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = Task.Anon {
+  override def bspBuildTargetData(
+      clientDisplayName: String,
+      clientSupportedLanguages: Seq[String]
+  ): Task[Option[(String, AnyRef)]] = Task.Anon {
     Some((
       "scala",
       ScalaBuildTarget(
@@ -596,17 +595,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         scalaBinaryVersion = ZincWorkerUtil.scalaBinaryVersion(scalaVersion()),
         platform = ScalaPlatform.JVM,
         jars = scalaCompilerClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq,
-        // this is what we want to use, but can't due to a resulting binary incompatibility
-        //        jvmBuildTarget = super.bspBuildTargetData().flatMap {
-        //          case (JvmBuildTarget.dataKind, bt: JvmBuildTarget) => Some(bt)
-        //          case _ => None
-        //        }
-        jvmBuildTarget = Some(
-          JvmBuildTarget(
-            javaHome = Option(System.getProperty("java.home")).map(p => BspUri(os.Path(p))),
-            javaVersion = Option(System.getProperty("java.version"))
-          )
-        )
+        jvmBuildTarget = Some(jvmBuildTarget)
       )
     ))
   }

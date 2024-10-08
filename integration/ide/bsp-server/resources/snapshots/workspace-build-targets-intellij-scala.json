@@ -47,22 +47,10 @@
         "canRun": true,
         "canDebug": false
       },
-      "dataKind": "kotlin",
+      "dataKind": "jvm",
       "data": {
-        "languageVersion": "<kotlin-version>",
-        "apiVersion": "<kotlin-version>",
-        "kotlincOptions": [
-          "-no-stdlib",
-          "-language-version",
-          "1.9",
-          "-api-version",
-          "1.9"
-        ],
-        "associates": [],
-        "jvmBuildTarget": {
-          "javaHome": "file:///java-home/",
-          "javaVersion": "<java-version>"
-        }
+        "javaHome": "file:///java-home/",
+        "javaVersion": "<java-version>"
       }
     },
     {

@@ -5,6 +5,7 @@ import ch.epfl.scala.bsp4j.{
   BuildTarget,
   BuildTargetCapabilities,
   BuildTargetIdentifier,
+  InitializeBuildParams,
   OutputPathItem,
   OutputPathItemKind,
   StatusCode,
@@ -33,11 +34,15 @@ private object Utils {
   def getBspLoggedReporterPool(
       originId: String,
       bspIdsByModule: Map[BspModule, BuildTargetIdentifier],
+      clientParams: InitializeBuildParams,
       client: BuildClient
   ): Int => Option[CompileProblemReporter] = { moduleHashCode: Int =>
     bspIdsByModule.find(_._1.hashCode == moduleHashCode).map {
       case (module: JavaModule, targetId) =>
-        val buildTarget = module.bspBuildTarget
+        val buildTarget = module.bspBuildTarget(
+          clientParams.getDisplayName,
+          clientParams.getCapabilities.getLanguageIds.asScala.toSeq
+        )
         val taskId = new TaskId(module.compile.hashCode.toString)
         new BspCompileProblemReporter(
           client,
