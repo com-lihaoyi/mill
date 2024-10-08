@@ -18,7 +18,13 @@ object BspServerTests extends UtestIntegrationTestSuite {
   def tests: Tests = Tests {
     test("requestSnapshots") - integrationTest { tester =>
       import tester._
-      eval("mill.bsp.BSP/install", stdout = os.Inherit, stderr = os.Inherit, check = true)
+      eval(
+        "mill.bsp.BSP/install",
+        stdout = os.Inherit,
+        stderr = os.Inherit,
+        check = true,
+        env = Map("MILL_MAIN_CLI" -> tester.millExecutable.toString)
+      )
 
       withBspServer(
         workspacePath,
