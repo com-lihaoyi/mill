@@ -82,7 +82,7 @@ trait Logger extends AutoCloseable {
     finally removePromptLine()
   }
 
-  def waitForLock(lock: Lock, waitingAllowed: Boolean): Locked = {
+  def waitForLock(lock: Lock, waitingAllowed: Boolean = true): Locked = {
     val tryLocked = lock.tryLock()
     if (tryLocked.isLocked())
       tryLocked
