@@ -116,7 +116,7 @@ class PrefixLogger(
       message: String
   ): Logger = {
     new PrefixLogger(
-      logger0,
+      this,
       Seq(subKeySuffix),
       tickerContext,
       outStream0,
