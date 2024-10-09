@@ -32,6 +32,15 @@ trait CoursierModule extends mill.Module {
     Lib.depToDependencyJava(_: Dep)
   }
 
+  def resolveJavaHome(id: String): Task[PathRef] = Task.Anon {
+    val path = mill.util.Jvm.resolveJavaHome(
+      id=id,
+      coursierCacheCustomizer = coursierCacheCustomizer(),
+      ctx = Some(implicitly[mill.api.Ctx.Log])
+    ).getOrThrow
+    PathRef(path, quick = true)
+  }
+
   def defaultResolver: Task[CoursierModule.Resolver] = Task.Anon {
     new CoursierModule.Resolver(
       repositories = repositoriesTask(),

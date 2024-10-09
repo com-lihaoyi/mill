@@ -5,7 +5,7 @@ import mill.api.Result
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import utest._
-import utest.framework.TestPath
+import mill.define.ModuleRef
 
 object HelloJavaTests extends TestSuite {
 
@@ -25,6 +25,21 @@ object HelloJavaTests extends TestSuite {
       }
     }
   }
+
+  object HelloJavaJavaHomeOverride extends TestBaseModule {
+    object ZincWorkerOverride extends ZincWorkerModule with CoursierModule {
+      override def javaHome: T[Option[PathRef]] = Task {
+        Some(resolveJavaHome("graalvm-community:23.0.0")())
+      }
+    }
+
+    object core extends JavaModule {
+      override def zincWorker: ModuleRef[ZincWorkerModule] = ModuleRef(ZincWorkerOverride)
+      override def docJarUseArgsFile = false
+      object test extends JavaTests with TestModule.Junit4
+    }
+  }
+
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-java"
 
   def testEval() = UnitTester(HelloJava, resourcePath)
@@ -47,6 +62,23 @@ object HelloJavaTests extends TestSuite {
         !os.walk(result3.value.classes.path).exists(_.last == "Core.class")
       )
     }
+
+    test("javaHome") {
+      val eval = UnitTester(HelloJavaJavaHomeOverride, resourcePath)
+
+      val Right(result) = eval.apply(HelloJavaJavaHomeOverride.core.compile)
+
+      val coreClassFile = os.walk(result.value.classes.path).find(_.last == "Core.class")
+
+      assert(
+        coreClassFile.isDefined,
+
+        // The first eight bytes are magic numbers followed by two bytes for major version and two bytes for minor version
+        // We are overriding to java 23 which corresponds to class file version 67
+        os.read.bytes(coreClassFile.get, 4, 4).toSeq == Seq[Byte](0, 0, 0, 67),
+      )
+    }
+
     test("semanticDbData") {
       val expectedFile1 =
         os.rel / "META-INF/semanticdb/core/src/Core.java.semanticdb"
