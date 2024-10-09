@@ -58,8 +58,8 @@ class PrefixLogger(
   )
 
   private[mill] override val unprefixedSystemStreams = new SystemStreams(
-    logger0.unprefixedSystemStreams.out,
-    logger0.unprefixedSystemStreams.err,
+    outStream0.getOrElse(logger0.unprefixedSystemStreams.out),
+    errStream0.getOrElse(logger0.unprefixedSystemStreams.err),
     logger0.unprefixedSystemStreams.in
   )
 

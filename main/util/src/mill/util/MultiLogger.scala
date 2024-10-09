@@ -108,6 +108,16 @@ class MultiLogger(
   override def infoColor: Attrs = logger1.infoColor ++ logger2.infoColor
   override def errorColor: Attrs = logger1.errorColor ++ logger2.errorColor
   private[mill] override def logPrefixKey = logger1.logPrefixKey ++ logger2.logPrefixKey
+
+  override def withOutStream(outStream: PrintStream): ColorLogger = {
+    new MultiLogger(
+      colored,
+      logger1.withOutStream(outStream),
+      logger2.withOutStream(outStream),
+      inStream0,
+      debugEnabled
+    )
+  }
 }
 
 class MultiStream(stream1: OutputStream, stream2: OutputStream)
