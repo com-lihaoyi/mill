@@ -424,27 +424,35 @@ object MillMain {
       targetsAndParams: Seq[String],
       streams: SystemStreams
   )(t: => T): T = {
-    val outLock =
-      if (noBuildLock) Lock.dummy()
-      else Lock.file((out / OutFiles.millLock).toString)
+    if (noBuildLock) t
+    else {
+      val outLock = Lock.file((out / OutFiles.millLock).toString)
 
-    def activeTaskString = try{ os.read(out / OutFiles.millActiveCommand) }catch{case e => "<unknown>"}
-    Using.resource {
-      val tryLocked = outLock.tryLock()
-      if (tryLocked.isLocked()) tryLocked
-      else if (noWaitForBuildLock) {
-        throw new Exception(s"Another Mill process is running '$activeTaskString'")
-      } else {
+      def activeTaskString =
+        try {
+          os.read(out / OutFiles.millActiveCommand)
+        } catch {
+          case e => "<unknown>"
+        }
 
-        streams.err.println(
-          s"Another Mill process is running '$activeTaskString', waiting for it to be done..."
-        )
-        outLock.lock()
+      def activeTaskPrefix = s"Another Mill process is running '$activeTaskString',"
+      Using.resource {
+        val tryLocked = outLock.tryLock()
+        if (tryLocked.isLocked()) tryLocked
+        else if (noWaitForBuildLock) {
+          throw new Exception(s"$activeTaskPrefix failing")
+        } else {
+
+          streams.err.println(
+            s"$activeTaskPrefix waiting for it to be done..."
+          )
+          outLock.lock()
+        }
+      } { _ =>
+        os.write.over(out / OutFiles.millActiveCommand, targetsAndParams.mkString(" "))
+        try t
+        finally os.remove.all(out / OutFiles.millActiveCommand)
       }
-    } { _ =>
-      os.write.over(out / OutFiles.millActiveCommand, targetsAndParams.mkString(" "))
-      try t
-      finally 0// os.remove.all(out / OutFiles.millActiveCommand)
     }
   }
 

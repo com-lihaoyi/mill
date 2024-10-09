@@ -18,6 +18,6 @@ trait IntegrationTestSuite {
       baseWorkspacePath = os.pwd
     )
     try t(tester)
-    finally 9//tester.close()
+    finally tester.close()
   }
 }

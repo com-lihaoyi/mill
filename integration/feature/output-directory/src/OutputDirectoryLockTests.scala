@@ -24,12 +24,12 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
       import tester._
       val signalFile = workspacePath / "do-wait"
       // Kick off blocking task in background
-      Future{
+      Future {
         eval(("show", "blockWhileExists", "--path", signalFile), check = true)
       }
 
       // Wait for blocking task to write signal file, to indicate it has begun
-      eventually{ os.exists(signalFile) }
+      eventually { os.exists(signalFile) }
 
       val testCommand: os.Shellable = ("show", "hello")
       val testMessage = "Hello from hello task"
@@ -40,8 +40,13 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
 
       // --no-wait-for-build-lock causes commands fail due to background blocker
       val noWaitRes = eval(("--no-wait-for-build-lock", testCommand))
-      assert(noWaitRes.err.contains("Another Mill process is running 'show hello'"))
-
+      assert(
+        noWaitRes
+          .err
+          .contains(
+            s"Another Mill process is running 'show blockWhileExists --path $signalFile', failing"
+          )
+      )
 
       // By default, we wait until the background blocking task completes
       val waitingLogFile = workspacePath / "waitingLogFile"
@@ -55,7 +60,12 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
       }
 
       // Ensure we see the waiting message
-      eventually{ os.read(waitingLogFile).contains("waiting for it to be done...") }
+      eventually {
+        os.read(waitingLogFile)
+          .contains(
+            s"Another Mill process is running 'show blockWhileExists --path $signalFile', waiting for it to be done..."
+          )
+      }
 
       // Even after task starts waiting on blocking task, it is not complete
       assert(!futureWaitingRes.isCompleted)
