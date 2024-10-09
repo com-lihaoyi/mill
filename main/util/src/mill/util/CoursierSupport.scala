@@ -40,6 +40,7 @@ trait CoursierSupport {
       deps: IterableOnce[Dependency],
       force: IterableOnce[Dependency],
       sources: Boolean = false,
+      artifactTypes: Option[Set[Type]] = None,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
       ctx: Option[mill.api.Ctx.Log] = None,
@@ -86,6 +87,7 @@ trait CoursierSupport {
           if (sources) Set(Classifier("sources"))
           else Set.empty
         )
+        .withArtifactTypesOpt(artifactTypes)
         .eitherResult()
 
       artifactsResultOrError match {

@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import coursier.cache.FileCache
-import coursier.{Dependency, Repository, Resolve}
+import coursier.{Dependency, Repository, Resolve, Type}
 import coursier.core.Resolution
 import mill.define.Task
 import mill.api.PathRef
@@ -50,12 +50,17 @@ trait CoursierModule extends mill.Module {
    * @param sources If `true`, resolve source dependencies instead of binary dependencies (JARs).
    * @return The [[PathRef]]s to the resolved files.
    */
-  def resolveDeps(deps: Task[Agg[BoundDep]], sources: Boolean = false): Task[Agg[PathRef]] =
+  def resolveDeps(
+      deps: Task[Agg[BoundDep]],
+      sources: Boolean = false,
+      artifactTypes: Option[Set[Type]] = None
+  ): Task[Agg[PathRef]] =
     Task.Anon {
       Lib.resolveDependencies(
         repositories = repositoriesTask(),
         deps = deps(),
         sources = sources,
+        artifactTypes = artifactTypes,
         mapDependencies = Some(mapDependencies()),
         customizer = resolutionCustomizer(),
         coursierCacheCustomizer = coursierCacheCustomizer(),
@@ -134,12 +139,14 @@ object CoursierModule {
 
     def resolveDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
-        sources: Boolean = false
+        sources: Boolean = false,
+        artifactTypes: Seq[coursier.Type] = null
     ): Agg[PathRef] = {
       Lib.resolveDependencies(
         repositories = repositories,
         deps = deps.map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind)),
         sources = sources,
+        artifactTypes = artifactTypes,
         mapDependencies = mapDependencies,
         customizer = customizer,
         coursierCacheCustomizer = coursierCacheCustomizer,

@@ -2,7 +2,7 @@ package mill
 package scalalib
 
 import coursier.util.Task
-import coursier.{Dependency, Repository, Resolution}
+import coursier.{Dependency, Repository, Resolution, Type}
 import mill.api.{Ctx, Loose, PathRef, Result}
 import mill.main.BuildInfo
 import mill.main.client.EnvVars
@@ -84,6 +84,7 @@ object Lib {
       repositories: Seq[Repository],
       deps: IterableOnce[BoundDep],
       sources: Boolean = false,
+      artifactTypes: Option[Seq[Type]] = None,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
       ctx: Option[Ctx.Log] = None,
@@ -97,6 +98,7 @@ object Lib {
       deps = depSeq.map(_.dep),
       force = depSeq.filter(_.force).map(_.dep),
       sources = sources,
+      artifactTypes = artifactTypes,
       mapDependencies = mapDependencies,
       customizer = customizer,
       ctx = ctx,
