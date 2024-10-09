@@ -16,7 +16,8 @@ object GraphvizTools {
   def main(args: Array[String]): Unit = {
     val executor = Executors.newFixedThreadPool(Runtime.getRuntime.availableProcessors())
 
-    val threadLocalJsEngines = new java.util.concurrent.ConcurrentHashMap[Thread, V8JavascriptEngine]()
+    val threadLocalJsEngines =
+      new java.util.concurrent.ConcurrentHashMap[Thread, V8JavascriptEngine]()
     Graphviz.useEngine(
       new AbstractJsGraphvizEngine(
         true,
@@ -33,8 +34,6 @@ object GraphvizTools {
           val Array(src, dest0, commaSepExtensions) = arg.split(";")
           val extensions = commaSepExtensions.split(',')
           val dest = os.Path(dest0)
-
-
 
           val gv = Graphviz.fromFile(new java.io.File(src)).totalMemory(128 * 1024 * 1024)
 
