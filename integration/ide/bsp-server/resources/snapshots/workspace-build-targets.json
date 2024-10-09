@@ -28,6 +28,33 @@
     },
     {
       "id": {
+        "uri": "file:///workspace/hello-kotlin"
+      },
+      "displayName": "hello-kotlin",
+      "baseDirectory": "file:///workspace/hello-kotlin",
+      "tags": [
+        "library",
+        "application"
+      ],
+      "languageIds": [
+        "java",
+        "kotlin"
+      ],
+      "dependencies": [],
+      "capabilities": {
+        "canCompile": true,
+        "canTest": false,
+        "canRun": true,
+        "canDebug": false
+      },
+      "dataKind": "jvm",
+      "data": {
+        "javaHome": "file:///java-home/",
+        "javaVersion": "<java-version>"
+      }
+    },
+    {
+      "id": {
         "uri": "file:///workspace/hello-scala"
       },
       "displayName": "hello-scala",

@@ -15,6 +15,26 @@ object BspServerTests extends UtestIntegrationTestSuite {
   override protected def workspaceSourcePath: os.Path =
     super.workspaceSourcePath / "project"
 
+  def transitiveDependenciesSubstitutions(
+      dependency: coursierapi.Dependency,
+      filter: coursierapi.Dependency => Boolean
+  ): Seq[(String, String)] = {
+    val fetchRes = coursierapi.Fetch.create()
+      .addDependencies(dependency)
+      .fetchResult()
+    fetchRes.getDependencies.asScala
+      .filter(filter)
+      .map { dep =>
+        val organization = dep.getModule.getOrganization
+        val name = dep.getModule.getName
+        val prefix = (organization.split('.') :+ name).mkString("/")
+        def basePath(version: String): String =
+          s"$prefix/$version/$name-$version"
+        basePath(dep.getVersion) -> basePath(s"<$name-version>")
+      }
+      .toSeq
+  }
+
   def tests: Tests = Tests {
     test("requestSnapshots") - integrationTest { tester =>
       import tester._
@@ -31,29 +51,31 @@ object BspServerTests extends UtestIntegrationTestSuite {
         millTestSuiteEnv
       ) { (buildServer, initRes) =>
         val scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
-        val scalaTransitiveSubstitutions = {
-          val scalaFetchRes = coursierapi.Fetch.create()
-            .addDependencies(coursierapi.Dependency.of(
-              "org.scala-lang",
-              "scala-compiler",
-              scalaVersion
-            ))
-            .fetchResult()
-          scalaFetchRes.getDependencies.asScala
-            .filter(dep => dep.getModule.getOrganization != "org.scala-lang")
-            .map { dep =>
-              val organization = dep.getModule.getOrganization
-              val name = dep.getModule.getName
-              val prefix = (organization.split('.') :+ name).mkString("/")
-              def basePath(version: String): String =
-                s"$prefix/$version/$name-$version"
-              basePath(dep.getVersion) -> basePath(s"<$name-version>")
-            }
-        }
+        val scalaTransitiveSubstitutions = transitiveDependenciesSubstitutions(
+          coursierapi.Dependency.of(
+            "org.scala-lang",
+            "scala-compiler",
+            scalaVersion
+          ),
+          _.getModule.getOrganization != "org.scala-lang"
+        )
 
-        val normalizedLocalValues =
-          normalizeLocalValuesForTesting(workspacePath) ++ scalaTransitiveSubstitutions ++ Seq(
-            scalaVersion -> "<scala-version>"
+        val kotlinVersion = sys.props.getOrElse("TEST_KOTLIN_VERSION", ???)
+        val kotlinTransitiveSubstitutions = transitiveDependenciesSubstitutions(
+          coursierapi.Dependency.of(
+            "org.jetbrains.kotlin",
+            "kotlin-stdlib",
+            kotlinVersion
+          ),
+          _.getModule.getOrganization != "org.jetbrains.kotlin"
+        )
+
+        val normalizedLocalValues = normalizeLocalValuesForTesting(workspacePath) ++
+          scalaTransitiveSubstitutions ++
+          kotlinTransitiveSubstitutions ++
+          Seq(
+            scalaVersion -> "<scala-version>",
+            kotlinVersion -> "<kotlin-version>"
           )
 
         compareWithGsonSnapshot(
