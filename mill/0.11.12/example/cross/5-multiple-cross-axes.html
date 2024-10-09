@@ -1,24 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Untitled :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.11.12/example/cross/5-multiple-cross-axes.html">
-    <meta name="generator" content="Antora 3.1.9">
-    <link rel="stylesheet" href="../../../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.11.12/example/cross/5-multiple-cross-axes.html" />
+    <meta name="generator" content="Antora 3.1.9" />
+    <link rel="stylesheet" href="../../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
+<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon" />
+  
+  </head><body class="article">
+  
 <header class="header">
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -309,7 +310,7 @@
 <div class="page-versions">
   <button class="version-menu-toggle" title="Show other versions of page">0.11.12</button>
   <div class="version-menu">
-    <a class="version is-missing" href="../../../index.html">0.12.0-RC3-26-d3afbf</a>
+    <a class="version is-missing" href="../../../index.html">0.12.0-RC3-31-9b84ae</a>
     <a class="version is-current" href="5-multiple-cross-axes.html">0.11.12</a>
     <a class="version" href="../../../0.11.11/example/cross/5-multiple-cross-axes.html">0.11.11</a>
     <a class="version" href="../../../0.11.10/example/cross/5-multiple-cross-axes.html">0.11.10</a>
@@ -337,23 +338,68 @@ trait:</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
 val crossMatrix = for {
-  crossVersion &lt;- Seq("2.10", "2.11", "2.12")
-  platform &lt;- Seq("jvm", "js", "native")
-  if !(platform == "native" &amp;&amp; crossVersion != "2.12")
+  crossVersion &lt;- Seq(&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
+  platform &lt;- Seq(&quot;jvm&quot;, &quot;js&quot;, &quot;native&quot;)
+  if !(platform == &quot;native&quot; &amp;&amp; crossVersion != &quot;2.12&quot;)
 } yield (crossVersion, platform)
 
 object foo extends mill.Cross[FooModule](crossMatrix)
 trait FooModule extends Cross.Module2[String, String] {
   val (crossVersion, platform) = (crossValue, crossValue2)
-  def suffix = T { "_" + crossVersion + "_" + platform }
+  def suffix = T { &quot;_&quot; + crossVersion + &quot;_&quot; + platform }
 }
 
-def bar = T { s"hello ${foo("2.10", "jvm").suffix()}" }</code></pre>
+def bar = T { s&quot;hello ${foo(&quot;2.10&quot;, &quot;jvm&quot;).suffix()}&quot; }</code></pre>
 </div>
 </div>
-<div class="imageblock kroki">
+<div class="literalblock">
 <div class="content">
-<img src="../../_images/diag-ad26e199cd1b3fe5a441dddc6fab529da21b643d.svg" alt="Diagram">
+<pre> digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+
+  subgraph cluster_6 {
+    label=&quot;foo[2.12,native]&quot;
+    style=dashed
+    &quot;foo[2.12,native].suffix&quot;
+  }
+
+  subgraph cluster_3 {
+    label=&quot;foo[2.10,js]&quot;
+    style=dashed
+    &quot;foo[2.10,js].suffix&quot;
+  }
+  subgraph cluster_4 {
+    label=&quot;foo[2.11,js]&quot;
+    style=dashed
+    &quot;foo[2.11,js].suffix&quot; -&gt; &quot;foo[2.10,js].suffix&quot; [style=invis]
+  }
+  subgraph cluster_5 {
+    label=&quot;foo[2.12,js]&quot;
+    style=dashed
+    &quot;foo[2.12,js].suffix&quot; -&gt; &quot;foo[2.11,js].suffix&quot; [style=invis]
+  }
+
+  subgraph cluster_0 {
+
+    label=&quot;foo[2.10,jvm]&quot;
+    style=dashed
+    &quot;foo[2.10,jvm].suffix&quot;
+
+  }
+  subgraph cluster_1 {
+    label=&quot;foo[2.11,jvm]&quot;
+    style=dashed
+    &quot;foo[2.11,jvm].suffix&quot; -&gt; &quot;foo[2.10,jvm].suffix&quot; [style=invis]
+  }
+  subgraph cluster_2 {
+    label=&quot;foo[2.12,jvm]&quot;
+    style=dashed
+    &quot;foo[2.12,jvm].suffix&quot; -&gt; &quot;foo[2.11,jvm].suffix&quot; [style=invis]
+  }
+
+  &quot;foo[2.10,jvm].suffix&quot; -&gt; bar
+}</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -370,17 +416,17 @@ above.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo[2.10,jvm].suffix
-"_2.10_jvm"
+&quot;_2.10_jvm&quot;
 
 &gt; mill showNamed foo[__].suffix
 {
-  "foo[2.10,jvm].suffix": "_2.10_jvm",
-  "foo[2.10,js].suffix": "_2.10_js",
-  "foo[2.11,jvm].suffix": "_2.11_jvm",
-  "foo[2.11,js].suffix": "_2.11_js",
-  "foo[2.12,jvm].suffix": "_2.12_jvm",
-  "foo[2.12,js].suffix": "_2.12_js",
-  "foo[2.12,native].suffix": "_2.12_native"
+  &quot;foo[2.10,jvm].suffix&quot;: &quot;_2.10_jvm&quot;,
+  &quot;foo[2.10,js].suffix&quot;: &quot;_2.10_js&quot;,
+  &quot;foo[2.11,jvm].suffix&quot;: &quot;_2.11_jvm&quot;,
+  &quot;foo[2.11,js].suffix&quot;: &quot;_2.11_js&quot;,
+  &quot;foo[2.12,jvm].suffix&quot;: &quot;_2.12_jvm&quot;,
+  &quot;foo[2.12,js].suffix&quot;: &quot;_2.12_js&quot;,
+  &quot;foo[2.12,native].suffix&quot;: &quot;_2.12_native&quot;
 }</code></pre>
 </div>
 </div>
@@ -389,9 +435,9 @@ above.</p>
 </main>
 </div>
 <script id="site-script" src="../../../../_/js/site.js" data-ui-root-path="../../../../_"></script>
-<script async src="../../../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../../../_/js/vendor/highlight.js"></script>
 <script src="../../../../_/js/vendor/lunr.js"></script>
 <script src="../../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../../.." data-snippet-length="100" data-stylesheet="../../../../_/css/search.css"></script>
-<script async src="../../../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../../../search-index.js"></script>
+  
+</body></html>

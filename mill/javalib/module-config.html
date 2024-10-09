@@ -428,9 +428,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-26-d3afbf</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-31-9b84ae</button>
   <div class="version-menu">
-    <a class="version is-current" href="module-config.html">0.12.0-RC3-26-d3afbf</a>
+    <a class="version is-current" href="module-config.html">0.12.0-RC3-31-9b84ae</a>
     <a class="version" href="../0.11.12/Java_Module_Config.html">0.11.12</a>
     <a class="version" href="../0.11.11/Java_Module_Config.html">0.11.11</a>
     <a class="version" href="../0.11.10/Java_Module_Config.html">0.11.10</a>
@@ -671,11 +671,114 @@ public class MyDeps {
 with the boxes representing tasks defined or overriden above and the un-boxed
 labels representing existing Mill tasks:</p>
 </div>
-<div class="imageblock kroki">
-<div class="content">
-<img src="../_images/diag-ba52ec79989afd3d87ea716a7c741279342d9b47.svg" alt="Diagram" />
-</div>
-</div>
+<svg width="493px" height="119px" viewBox="0.00 0.00 492.87 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 488.87,-114.8 488.87,4 -4,4"></polygon>
+<!-- ivyDeps -->
+<g id="node1" class="node">
+<title>ivyDeps</title>
+<polygon fill="none" stroke="black" points="62.49,-110.7 0.17,-110.7 0.17,-86.1 62.49,-86.1 62.49,-110.7"></polygon>
+<text text-anchor="middle" x="31.33" y="-94.2" font-family="Times,serif" font-size="14.00">ivyDeps</text>
+</g>
+<!-- generatedSources -->
+<g id="node2" class="node">
+<title>generatedSources</title>
+<polygon fill="none" stroke="black" points="213.25,-110.7 98.79,-110.7 98.79,-86.1 213.25,-86.1 213.25,-110.7"></polygon>
+<text text-anchor="middle" x="156.02" y="-94.2" font-family="Times,serif" font-size="14.00">generatedSources</text>
+</g>
+<!-- ivyDeps&#45;&gt;generatedSources -->
+<g id="edge1" class="edge">
+<title>ivyDeps-&gt;generatedSources</title>
+<path fill="none" stroke="black" d="M62.66,-98.4C70.6,-98.4 79.48,-98.4 88.51,-98.4"></path>
+<polygon fill="black" stroke="black" points="88.73,-101.9 98.73,-98.4 88.73,-94.9 88.73,-101.9"></polygon>
+</g>
+<!-- compile -->
+<g id="node3" class="node">
+<title>compile</title>
+<polygon fill="none" stroke="white" points="331.15,-110.7 269.95,-110.7 269.95,-86.1 331.15,-86.1 331.15,-110.7"></polygon>
+<text text-anchor="middle" x="300.55" y="-94.2" font-family="Times,serif" font-size="14.00">compile</text>
+</g>
+<!-- generatedSources&#45;&gt;compile -->
+<g id="edge2" class="edge">
+<title>generatedSources-&gt;compile</title>
+<path fill="none" stroke="black" d="M213.35,-98.4C228.88,-98.4 245.4,-98.4 259.77,-98.4"></path>
+<polygon fill="black" stroke="black" points="259.82,-101.9 269.82,-98.4 259.82,-94.9 259.82,-101.9"></polygon>
+</g>
+<!-- ... -->
+<g id="node4" class="node">
+<title>...</title>
+<polygon fill="none" stroke="white" points="414.46,-88.7 387.45,-88.7 387.45,-64.1 414.46,-64.1 414.46,-88.7"></polygon>
+<text text-anchor="middle" x="400.96" y="-72.2" font-family="Times,serif" font-size="14.00">...</text>
+</g>
+<!-- compile&#45;&gt;... -->
+<g id="edge3" class="edge">
+<title>compile-&gt;...</title>
+<path fill="none" stroke="black" d="M331.34,-91.74C346.25,-88.41 363.99,-84.44 377.7,-81.38"></path>
+<polygon fill="black" stroke="black" points="378.7,-84.74 387.7,-79.14 377.17,-77.91 378.7,-84.74"></polygon>
+</g>
+<!-- run -->
+<g id="node8" class="node">
+<title>run</title>
+<polygon fill="none" stroke="white" points="484.7,-88.7 450.38,-88.7 450.38,-64.1 484.7,-64.1 484.7,-88.7"></polygon>
+<text text-anchor="middle" x="467.54" y="-72.2" font-family="Times,serif" font-size="14.00">run</text>
+</g>
+<!-- ...&#45;&gt;run -->
+<g id="edge7" class="edge">
+<title>...-&gt;run</title>
+<path fill="none" stroke="black" d="M414.41,-76.4C421.6,-76.4 430.94,-76.4 439.72,-76.4"></path>
+<polygon fill="black" stroke="black" points="439.97,-79.9 449.97,-76.4 439.97,-72.9 439.97,-79.9"></polygon>
+</g>
+<!-- sources -->
+<g id="node5" class="node">
+<title>sources</title>
+<polygon fill="none" stroke="white" points="60.31,-46.7 2.35,-46.7 2.35,-22.1 60.31,-22.1 60.31,-46.7"></polygon>
+<text text-anchor="middle" x="31.33" y="-30.2" font-family="Times,serif" font-size="14.00">sources</text>
+</g>
+<!-- lineCount -->
+<g id="node6" class="node">
+<title>lineCount</title>
+<polygon fill="none" stroke="black" points="191.74,-46.7 120.3,-46.7 120.3,-22.1 191.74,-22.1 191.74,-46.7"></polygon>
+<text text-anchor="middle" x="156.02" y="-30.2" font-family="Times,serif" font-size="14.00">lineCount</text>
+</g>
+<!-- sources&#45;&gt;lineCount -->
+<g id="edge4" class="edge">
+<title>sources-&gt;lineCount</title>
+<path fill="none" stroke="black" d="M60.48,-34.4C75.12,-34.4 93.38,-34.4 109.94,-34.4"></path>
+<polygon fill="black" stroke="black" points="109.98,-37.9 119.98,-34.4 109.98,-30.9 109.98,-37.9"></polygon>
+</g>
+<!-- forkArgs -->
+<g id="node7" class="node">
+<title>forkArgs</title>
+<polygon fill="none" stroke="black" points="333.58,-67.7 267.51,-67.7 267.51,-43.1 333.58,-43.1 333.58,-67.7"></polygon>
+<text text-anchor="middle" x="300.55" y="-51.2" font-family="Times,serif" font-size="14.00">forkArgs</text>
+</g>
+<!-- lineCount&#45;&gt;forkArgs -->
+<g id="edge5" class="edge">
+<title>lineCount-&gt;forkArgs</title>
+<path fill="none" stroke="black" d="M191.89,-39.54C211.63,-42.45 236.46,-46.1 257.3,-49.18"></path>
+<polygon fill="black" stroke="black" points="257.07,-52.68 267.48,-50.67 258.09,-45.75 257.07,-52.68"></polygon>
+</g>
+<!-- printLineCount -->
+<g id="node9" class="node">
+<title>printLineCount</title>
+<polygon fill="none" stroke="black" points="351.87,-24.7 249.22,-24.7 249.22,-0.1 351.87,-0.1 351.87,-24.7"></polygon>
+<text text-anchor="middle" x="300.55" y="-8.2" font-family="Times,serif" font-size="14.00">printLineCount</text>
+</g>
+<!-- lineCount&#45;&gt;printLineCount -->
+<g id="edge8" class="edge">
+<title>lineCount-&gt;printLineCount</title>
+<path fill="none" stroke="black" d="M191.89,-29.02C206.15,-26.82 223.07,-24.2 239.23,-21.71"></path>
+<polygon fill="black" stroke="black" points="239.81,-25.16 249.16,-20.18 238.74,-18.24 239.81,-25.16"></polygon>
+</g>
+<!-- forkArgs&#45;&gt;... -->
+<g id="edge6" class="edge">
+<title>forkArgs-&gt;...</title>
+<path fill="none" stroke="black" d="M333.77,-62.28C348.14,-65.34 364.7,-68.88 377.67,-71.64"></path>
+<polygon fill="black" stroke="black" points="377.07,-75.09 387.58,-73.76 378.53,-68.25 377.07,-75.09"></polygon>
+</g>
+</g>
+</svg>
 <div class="paragraph">
 <p>Mill lets you define new cached Tasks using the <code>Task {…​}</code> syntax,
 depending on existing Tasks e.g. <code>foo.sources</code> via the <code>foo.sources()</code>

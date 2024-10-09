@@ -1,24 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Untitled :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.11.12/example/tasks/2-primary-tasks.html">
-    <meta name="generator" content="Antora 3.1.9">
-    <link rel="stylesheet" href="../../../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.11.12/example/tasks/2-primary-tasks.html" />
+    <meta name="generator" content="Antora 3.1.9" />
+    <link rel="stylesheet" href="../../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
+<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon" />
+  
+  </head><body class="article">
+  
 <header class="header">
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -309,7 +310,7 @@
 <div class="page-versions">
   <button class="version-menu-toggle" title="Show other versions of page">0.11.11</button>
   <div class="version-menu">
-    <a class="version is-missing" href="../../../index.html">0.12.0-RC3-26-d3afbf</a>
+    <a class="version is-missing" href="../../../index.html">0.12.0-RC3-31-9b84ae</a>
     <a class="version" href="../../../0.11.12/example/tasks/2-primary-tasks.html">0.11.12</a>
     <a class="version is-current" href="2-primary-tasks.html">0.11.11</a>
     <a class="version" href="../../../0.11.10/example/tasks/2-primary-tasks.html">0.11.10</a>
@@ -333,13 +334,13 @@
 <div class="ulist">
 <ul>
 <li>
-<p><a href="#_sources">Sources</a>, defined using <code>T.sources {&#8230;&#8203;}</code></p>
+<p><a href="#_sources">Sources</a>, defined using <code>T.sources {…​}</code></p>
 </li>
 <li>
-<p><a href="#_targets">Targets</a>, defined using <code>T {&#8230;&#8203;}</code></p>
+<p><a href="#_targets">Targets</a>, defined using <code>T {…​}</code></p>
 </li>
 <li>
-<p><a href="#_commands">Commands</a>, defined using <code>T.command {&#8230;&#8203;}</code></p>
+<p><a href="#_commands">Commands</a>, defined using <code>T.command {…​}</code></p>
 </li>
 </ul>
 </div>
@@ -350,12 +351,12 @@
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.{Module, T, _}
 
-def sources = T.source { millSourcePath / "src" }
-def resources = T.source { millSourcePath / "resources" }</code></pre>
+def sources = T.source { millSourcePath / &quot;src&quot; }
+def resources = T.source { millSourcePath / &quot;resources&quot; }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p><code>Source</code>s are defined using <code>T.source{&#8230;&#8203;}</code> taking one <code>os.Path</code>, or <code>T.sources{&#8230;&#8203;}</code>,
+<p><code>Source</code>s are defined using <code>T.source{…​}</code> taking one <code>os.Path</code>, or <code>T.sources{…​}</code>,
 taking multiple <code>os.Path</code>s as arguments. A <code>Source</code>'s':
 its build signature/<code>hashCode</code> depends not just on the path
 it refers to (e.g. <code>foo/bar/baz</code>) but also the MD5 hash of the filesystem
@@ -373,34 +374,39 @@ re-compute if a change is detected.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def allSources = T {
   os.walk(sources().path)
-    .filter(_.ext == "java")
+    .filter(_.ext == &quot;java&quot;)
     .map(PathRef(_))
 }
 
 def lineCount: T[Int] = T {
-  println("Computing line count")
+  println(&quot;Computing line count&quot;)
   allSources()
     .map(p =&gt; os.read.lines(p.path).size)
     .sum
 }</code></pre>
 </div>
 </div>
-<div class="imageblock kroki">
+<div class="literalblock">
 <div class="content">
-<img src="../../_images/diag-33a0725be37eddc6658f9d8c1d80f8735c88f881.svg" alt="Diagram">
+<pre>digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+  sources -&gt; allSources -&gt; lineCount
+  sources [color=white]
+}</pre>
 </div>
 </div>
 <div class="paragraph">
-<p><code>Target</code>s are defined using the <code>def foo = T {&#8230;&#8203;}</code> syntax, and dependencies
+<p><code>Target</code>s are defined using the <code>def foo = T {…​}</code> syntax, and dependencies
 on other targets are defined using <code>foo()</code> to extract the value from them.
-Apart from the <code>foo()</code> calls, the <code>T {&#8230;&#8203;}</code> block contains arbitrary code that
+Apart from the <code>foo()</code> calls, the <code>T {…​}</code> block contains arbitrary code that
 does some work and returns a result.</p>
 </div>
 <div class="paragraph">
-<p>If a target&#8217;s inputs change but its output does not, e.g. someone changes a
-comment within the source files that doesn&#8217;t affect the classfiles, then
+<p>If a target’s inputs change but its output does not, e.g. someone changes a
+comment within the source files that doesn’t affect the classfiles, then
 downstream targets do not re-evaluate. This is determined using the
-<code>.hashCode</code> of the Target&#8217;s return value.</p>
+<code>.hashCode</code> of the Target’s return value.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -430,28 +436,35 @@ you want to return:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def classFiles = T {
-  println("Generating classfiles")
+  println(&quot;Generating classfiles&quot;)
 
-  os.proc("javac", allSources().map(_.path), "-d", T.dest)
+  os.proc(&quot;javac&quot;, allSources().map(_.path), &quot;-d&quot;, T.dest)
     .call(cwd = T.dest)
 
   PathRef(T.dest)
 }
 
 def jar = T {
-  println("Generating jar")
+  println(&quot;Generating jar&quot;)
   os.copy(classFiles().path, T.dest, mergeFolders = true)
   os.copy(resources().path, T.dest, mergeFolders = true)
 
-  os.proc("jar", "-cfe", T.dest / "foo.jar", "foo.Foo", ".").call(cwd = T.dest)
+  os.proc(&quot;jar&quot;, &quot;-cfe&quot;, T.dest / &quot;foo.jar&quot;, &quot;foo.Foo&quot;, &quot;.&quot;).call(cwd = T.dest)
 
-  PathRef(T.dest / "foo.jar")
+  PathRef(T.dest / &quot;foo.jar&quot;)
 }</code></pre>
 </div>
 </div>
-<div class="imageblock kroki">
+<div class="literalblock">
 <div class="content">
-<img src="../../_images/diag-df1a84c313e8b66679e19b33303e6f9bfa93e69b.svg" alt="Diagram">
+<pre>digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+  allSources -&gt; classFiles -&gt; jar
+  resources -&gt; jar
+  allSources [color=white]
+  resources [color=white]
+}</pre>
 </div>
 </div>
 <div class="listingblock">
@@ -461,7 +474,7 @@ Generating classfiles
 Generating jar
 
 &gt; ./mill show jar
-".../out/jar.dest/foo.jar"</code></pre>
+&quot;.../out/jar.dest/foo.jar&quot;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -480,22 +493,27 @@ in <code>def largeFile</code> running even though the <code>largeFile()</code> b
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def largeFile = T {
-  println("Finding Largest File")
+  println(&quot;Finding Largest File&quot;)
   allSources()
     .map(_.path)
-    .filter(_.ext == "java")
+    .filter(_.ext == &quot;java&quot;)
     .maxBy(os.read.lines(_).size)
 }
 
 def hugeFileName = T{
   if (lineCount() &gt; 999) largeFile().last
-  else "&lt;no-huge-file&gt;"
+  else &quot;&lt;no-huge-file&gt;&quot;
 }</code></pre>
 </div>
 </div>
-<div class="imageblock kroki">
+<div class="literalblock">
 <div class="content">
-<img src="../../_images/diag-51dc4c55a8a863d078baaddc299357e759363bd4.svg" alt="Diagram">
+<pre>digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+  allSources -&gt; largeFile-&gt; hugeFileName
+  allSources [color=white]
+}</pre>
 </div>
 </div>
 <div class="listingblock">
@@ -505,7 +523,7 @@ def hugeFileName = T{
 
 &gt; ./mill show hugeFileName # This still runs `largestFile` even though `lineCount() &lt; 999`
 Finding Largest File
-"&lt;no-huge-file&gt;"</code></pre>
+&quot;&lt;no-huge-file&gt;&quot;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -532,17 +550,22 @@ def summarizeClassFileStats = T{
 }</code></pre>
 </div>
 </div>
-<div class="imageblock kroki">
+<div class="literalblock">
 <div class="content">
-<img src="../../_images/diag-92644512b00b3ff050cbcf980292a049ec819fa5.svg" alt="Diagram">
+<pre>digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+  classFiles -&gt; summarizedClassFileStats
+  classFiles [color=white]
+}</pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show summarizeClassFileStats
 {
-  "totalFileSize": ...,
-  "largestFile": "..."
+  &quot;totalFileSize&quot;: ...,
+  &quot;largestFile&quot;: &quot;...&quot;
 }</code></pre>
 </div>
 </div>
@@ -553,26 +576,33 @@ def summarizeClassFileStats = T{
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def run(args: String*) = T.command {
   os.proc(
-      "java",
-      "-cp", s"${classFiles().path}:${resources().path}",
-      "foo.Foo",
+      &quot;java&quot;,
+      &quot;-cp&quot;, s&quot;${classFiles().path}:${resources().path}&quot;,
+      &quot;foo.Foo&quot;,
       args
     )
     .call(stdout = os.Inherit)
 }</code></pre>
 </div>
 </div>
-<div class="imageblock kroki">
+<div class="literalblock">
 <div class="content">
-<img src="../../_images/diag-435d38aa16feb53ce9c5c3696bfc41c46d8d8cae.svg" alt="Diagram">
+<pre>digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+  classFiles -&gt; run
+  resources -&gt; run
+  classFiles [color=white]
+  resources [color=white]
+}</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Defined using <code>T.command {&#8230;&#8203;}</code> syntax, <code>Command</code>s can run arbitrary code, with
+<p>Defined using <code>T.command {…​}</code> syntax, <code>Command</code>s can run arbitrary code, with
 dependencies declared using the same <code>foo()</code> syntax (e.g. <code>classFiles()</code> above).
 Commands can be parametrized, but their output is not cached, so they will
 re-evaluate every time even if none of their inputs have changed.
-A command with no parameter is defined as <code>def myCommand() = T.command {&#8230;&#8203;}</code>.
+A command with no parameter is defined as <code>def myCommand() = T.command {…​}</code>.
 It is a compile error if <code>()</code> is missing.</p>
 </div>
 <div class="paragraph">
@@ -599,35 +629,40 @@ definition:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">trait Foo extends Module {
-  def sourceRoots = T.sources(millSourcePath / "src")
+  def sourceRoots = T.sources(millSourcePath / &quot;src&quot;)
   def sourceContents = T{
     sourceRoots()
       .flatMap(pref =&gt; os.walk(pref.path))
-      .filter(_.ext == "txt")
+      .filter(_.ext == &quot;txt&quot;)
       .sorted
       .map(os.read(_))
   }
 }
 
 trait Bar extends Foo {
-  def additionalSources = T.sources(millSourcePath / "src2")
+  def additionalSources = T.sources(millSourcePath / &quot;src2&quot;)
   def sourceRoots = T { super.sourceRoots() ++ additionalSources() }
 }
 
 object bar extends Bar</code></pre>
 </div>
 </div>
-<div class="imageblock kroki">
+<div class="literalblock">
 <div class="content">
-<img src="../../_images/diag-33412e17b2bcfe88a8e185a846ec073a5f9cdc41.svg" alt="Diagram">
+<pre>digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+  &quot;bar.sourceRoots.super&quot; -&gt; &quot;bar.sourceRoots&quot; -&gt; &quot;bar.sourceContents&quot;
+  &quot;bar.additionalSources&quot; -&gt; &quot;bar.sourceRoots&quot;
+}</pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show bar.sourceContents # includes both source folders
 [
-  "File Data From src/",
-  "File Data From src2/"
+  &quot;File Data From src/&quot;,
+  &quot;File Data From src2/&quot;
 ]</code></pre>
 </div>
 </div>
@@ -637,9 +672,9 @@ object bar extends Bar</code></pre>
 </main>
 </div>
 <script id="site-script" src="../../../../_/js/site.js" data-ui-root-path="../../../../_"></script>
-<script async src="../../../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../../../_/js/vendor/highlight.js"></script>
 <script src="../../../../_/js/vendor/lunr.js"></script>
 <script src="../../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../../.." data-snippet-length="100" data-stylesheet="../../../../_/css/search.css"></script>
-<script async src="../../../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../../../search-index.js"></script>
+  
+</body></html>
