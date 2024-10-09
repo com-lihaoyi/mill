@@ -90,19 +90,31 @@ object `package` extends RootModule {
       createFolders = true
     )
 
-    Graphviz.useEngine(new AbstractJsGraphvizEngine(true, () => new mill.main.graphviz.V8JavascriptEngine()) {})
+    expandDiagramsInDirectoryAdocFile(T.dest, mill.main.VisualizeModule.classpath().map(_.path))
 
+    PathRef(T.dest)
+  }
+
+  def expandDiagramsInDirectoryAdocFile(dest: os.Path,
+                                        visualizeClassPath: Agg[os.Path])
+                                       (implicit ctx: mill.api.Ctx) = {
+
+    // Walk all files to render graphviz templates ourselves because the only Antora graphviz
+    // plugin (Kroki) relies on an online web service that is super slow and flaky
     def walkAllFiles(inputs: Map[(os.Path, Int), String]): Map[(os.Path, Int), String] = {
       val output = collection.mutable.Map.empty[(os.Path, Int), String]
-      for (p <- os.walk(T.dest) if p.ext == "adoc"){
+      for (p <- os.walk(dest) if p.ext == "adoc"){
         val outputLines = collection.mutable.ArrayDeque.empty[String]
         val graphvizLines = collection.mutable.ArrayDeque.empty[String]
         var isGraphViz = false
+        var isGraphViz0 = false
 
         for((line, i) <- os.read.lines(p).zipWithIndex){
           line match{
+            case "[graphviz]" => isGraphViz0 = true
+            case "...." if isGraphViz0 => isGraphViz0 = false; isGraphViz = true
             case "```graphviz" => isGraphViz = true
-            case "```" if isGraphViz =>
+            case "```" | "...." if isGraphViz =>
               isGraphViz = false
               if (inputs.isEmpty) output((p, i)) = graphvizLines.mkString("\n")
               else {
@@ -125,12 +137,16 @@ object `package` extends RootModule {
     val diagrams = walkAllFiles(Map())
     // Batch the rendering so later it can be done in one call to a single subprocess,
     // minimizing per-subprocess overhead needed to spawn them over and over
-    val renderedDiagrams = diagrams
-      .map{case (k, s) => (k, Graphviz.fromString(s).render(Format.SVG).toString)}
+    val orderedDiagrams = diagrams.toSeq.map{case ((p, i), s) => (p, i, os.temp(s), os.temp.dir())}
 
-    walkAllFiles(renderedDiagrams)
+    mill.util.Jvm.runSubprocess(
+      "mill.main.graphviz.GraphvizTools",
+      visualizeClassPath,
+      mainArgs = orderedDiagrams.map{case (p, i, src, dest) => s"$src;$dest;svg"}
+    )
 
-    PathRef(T.dest)
+    walkAllFiles(orderedDiagrams.map{case (p, i, src, dest) => ((p, i), os.read(dest / "out.svg"))}.toMap)
+
   }
 
   def supplementalFiles = T.source(millSourcePath / "supplemental-ui")
@@ -226,6 +242,7 @@ object `package` extends RootModule {
       os.proc("git", "checkout", oldVersion).call(cwd = checkout, stdout = os.Inherit)
       val outputFolder = checkout / "out" / "docs" / "source.dest"
       os.proc("./mill", "-i", "docs.source").call(cwd = checkout, stdout = os.Inherit)
+      expandDiagramsInDirectoryAdocFile(outputFolder, mill.main.VisualizeModule.classpath().map(_.path))
       sanitizeAntoraYml(outputFolder, oldVersion, oldVersion, oldVersion)
       PathRef(outputFolder)
     }
