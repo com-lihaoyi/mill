@@ -517,7 +517,7 @@ trait MainModule extends BaseModule0 {
     }
 
   private type VizWorker = (
-      LinkedBlockingQueue[(scala.Seq[_], scala.Seq[_], os.Path)],
+      LinkedBlockingQueue[(scala.Seq[NamedTask[Any]], scala.Seq[NamedTask[Any]], os.Path)],
       LinkedBlockingQueue[Result[scala.Seq[PathRef]]]
   )
 

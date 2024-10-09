@@ -1,8 +1,9 @@
 package build.docs
 import mill.util.Jvm
 import mill._, scalalib._
-import build.contrib
 import de.tobiasroeser.mill.vcs.version.VcsVersion
+import guru.nidi.graphviz.engine.AbstractJsGraphvizEngine
+import guru.nidi.graphviz.engine.{Format, Graphviz}
 
 /** Generates the mill documentation with Antora. */
 object `package` extends RootModule {
@@ -32,7 +33,6 @@ object `package` extends RootModule {
         "@antora/site-generator-default@3.1.9",
         "gitlab:antora/xref-validator",
         "@antora/lunr-extension@v1.0.0-alpha.6",
-        "asciidoctor-kroki@0.18.1"
       ),
       envArgs = Map(),
       workingDir = npmDir
@@ -89,6 +89,46 @@ object `package` extends RootModule {
       pagesWd / "contrib" / s"${name}.adoc",
       createFolders = true
     )
+
+    Graphviz.useEngine(new AbstractJsGraphvizEngine(true, () => new mill.main.graphviz.V8JavascriptEngine()) {})
+
+    def walkAllFiles(inputs: Map[(os.Path, Int), String]): Map[(os.Path, Int), String] = {
+      val output = collection.mutable.Map.empty[(os.Path, Int), String]
+      for (p <- os.walk(T.dest) if p.ext == "adoc"){
+        val outputLines = collection.mutable.ArrayDeque.empty[String]
+        val graphvizLines = collection.mutable.ArrayDeque.empty[String]
+        var isGraphViz = false
+
+        for((line, i) <- os.read.lines(p).zipWithIndex){
+          line match{
+            case "```graphviz" => isGraphViz = true
+            case "```" if isGraphViz =>
+              isGraphViz = false
+              if (inputs.isEmpty) output((p, i)) = graphvizLines.mkString("\n")
+              else {
+                outputLines.append("++++")
+                outputLines.append(inputs((p, i)))
+                outputLines.append("++++")
+              }
+
+              graphvizLines.clear()
+            case _ =>
+              if (isGraphViz) graphvizLines.append(line)
+              else outputLines.append(line)
+          }
+        }
+        if (inputs.nonEmpty) os.write.over(p, outputLines.mkString("\n"))
+      }
+      output.toMap
+    }
+
+    val diagrams = walkAllFiles(Map())
+    // Batch the rendering so later it can be done in one call to a single subprocess,
+    // minimizing per-subprocess overhead needed to spawn them over and over
+    val renderedDiagrams = diagrams
+      .map{case (k, s) => (k, Graphviz.fromString(s).render(Format.SVG).toString)}
+
+    walkAllFiles(renderedDiagrams)
 
     PathRef(T.dest)
   }
@@ -167,9 +207,6 @@ object `package` extends RootModule {
        |    utest-github-url: https://github.com/com-lihaoyi/utest
        |    upickle-github-url: https://github.com/com-lihaoyi/upickle
        |    mill-scip-version: ${build.Deps.DocDeps.millScip.dep.version}
-       |    kroki-fetch-diagram: true
-       |  extensions:
-       |  - asciidoctor-kroki
        |antora:
        |  extensions:
        |  - require: '@antora/lunr-extension'

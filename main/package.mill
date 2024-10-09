@@ -14,7 +14,9 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
     build.Deps.coursierInterface,
     build.Deps.mainargs,
     build.Deps.requests,
-    build.Deps.logback
+    build.Deps.logback,
+    build.Deps.jgraphtCore,
+    ivy"guru.nidi:graphviz-java-min-deps:0.18.1"
   )
 
   def compileIvyDeps = Agg(build.Deps.scalaReflect(scalaVersion()))
