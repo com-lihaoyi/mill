@@ -337,9 +337,9 @@ class MillBuildBootstrap(
       depth: Int
   ): Evaluator = {
 
-    val bootLogPrefix =
-      if (depth == 0) ""
-      else "[" + (Seq.fill(depth - 1)(millBuild) ++ Seq("build.mill")).mkString("/") + "] "
+    val bootLogPrefix: Seq[String] =
+      if (depth == 0) Nil
+      else Seq((Seq.fill(depth - 1)(millBuild) ++ Seq("build.mill")).mkString("/"))
 
     mill.eval.EvaluatorImpl(
       home,
@@ -347,7 +347,7 @@ class MillBuildBootstrap(
       recOut(output, depth),
       recOut(output, depth),
       rootModule,
-      new PrefixLogger(logger, Nil, tickerContext = bootLogPrefix),
+      new PrefixLogger(logger, bootLogPrefix),
       classLoaderSigHash = millClassloaderSigHash,
       classLoaderIdentityHash = millClassloaderIdentityHash,
       workerCache = workerCache.to(collection.mutable.Map),

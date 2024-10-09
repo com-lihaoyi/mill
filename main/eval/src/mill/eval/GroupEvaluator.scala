@@ -12,7 +12,6 @@ import scala.collection.mutable
 import scala.reflect.NameTransformer.encode
 import scala.util.control.NonFatal
 import scala.util.hashing.MurmurHash3
-import scala.util.DynamicVariable
 
 /**
  * Logic around evaluating a single group, which is a collection of [[Task]]s
@@ -188,22 +187,20 @@ private[mill] trait GroupEvaluator {
               if (labelled.task.flushDest) os.remove.all(paths.dest)
 
               val (newResults, newEvaluated) =
-                GroupEvaluator.dynamicTickerPrefix.withValue(s"[$countMsg] $targetLabel > ") {
-                  evaluateGroup(
-                    group,
-                    results,
-                    inputsHash,
-                    paths = Some(paths),
-                    maybeTargetLabel = targetLabel,
-                    counterMsg = countMsg,
-                    verboseKeySuffix = verboseKeySuffix,
-                    zincProblemReporter,
-                    testReporter,
-                    logger,
-                    executionContext,
-                    exclusive
-                  )
-                }
+                evaluateGroup(
+                  group,
+                  results,
+                  inputsHash,
+                  paths = Some(paths),
+                  maybeTargetLabel = targetLabel,
+                  counterMsg = countMsg,
+                  verboseKeySuffix = verboseKeySuffix,
+                  zincProblemReporter,
+                  testReporter,
+                  logger,
+                  executionContext,
+                  exclusive
+                )
 
               newResults(labelled.task) match {
                 case TaskResult(Result.Failure(_, Some((v, _))), _) =>
@@ -496,7 +493,6 @@ private[mill] trait GroupEvaluator {
 }
 
 private[mill] object GroupEvaluator {
-  val dynamicTickerPrefix = new DynamicVariable("")
 
   case class Results(
       newResults: Map[Task[_], TaskResult[(Val, Int)]],

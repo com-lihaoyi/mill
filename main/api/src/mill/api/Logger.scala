@@ -25,8 +25,11 @@ import java.io.{InputStream, PrintStream}
  * used to display the final `show` output for easy piping.
  */
 trait Logger extends AutoCloseable {
+  def infoColor: fansi.Attrs = fansi.Attrs.Empty
+  def errorColor: fansi.Attrs = fansi.Attrs.Empty
   def colored: Boolean
 
+  private[mill] def unprefixedSystemStreams: SystemStreams = systemStreams
   def systemStreams: SystemStreams
 
   def errorStream: PrintStream = systemStreams.err
