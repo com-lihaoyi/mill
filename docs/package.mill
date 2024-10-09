@@ -102,7 +102,7 @@ object `package` extends RootModule {
 
         for((line, i) <- os.read.lines(p).zipWithIndex){
           line match{
-            case "[graphviz]" => isGraphViz = true
+            case "[graphviz]" => isGraphViz0 = true
             case "...." if isGraphViz0 => isGraphViz0 = false; isGraphViz = true
             case "```graphviz" => isGraphViz0 = true
             case "```" | "...." if isGraphViz =>
