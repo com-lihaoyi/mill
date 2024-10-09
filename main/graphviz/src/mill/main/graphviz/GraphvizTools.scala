@@ -7,21 +7,33 @@ import guru.nidi.graphviz.engine.{AbstractJavascriptEngine, AbstractJsGraphvizEn
 import org.slf4j.LoggerFactory
 import org.slf4j.Logger
 
+import java.util.concurrent.Executors
+import scala.concurrent.{Await, ExecutionContext, Future, duration}
+
 object GraphvizTools {
 
   def main(args: Array[String]): Unit = {
-    val Array(src, dest0, commaSepExtensions) = args
-    val extensions = commaSepExtensions.split(',')
-    val dest = os.Path(dest0)
-    import guru.nidi.graphviz.engine.{Format, Graphviz}
+    val executor = Executors.newFixedThreadPool(Runtime.getRuntime.availableProcessors())
 
-    Graphviz.useEngine(new AbstractJsGraphvizEngine(true, () => new V8JavascriptEngine()) {})
-    val gv = Graphviz.fromFile(new java.io.File(src)).totalMemory(128 * 1024 * 1024)
+    try {
+      implicit val ec: ExecutionContext = ExecutionContext.fromExecutor(executor)
+      val futures = for (arg <- args.toSeq) yield Future {
+        val Array(src, dest0, commaSepExtensions) = arg.split(";")
+        val extensions = commaSepExtensions.split(',')
+        val dest = os.Path(dest0)
+        import guru.nidi.graphviz.engine.{Format, Graphviz}
 
-    val outputs = extensions
-      .map(ext => Format.values().find(_.fileExtension == ext).head -> s"out.$ext")
+        Graphviz.useEngine(new AbstractJsGraphvizEngine(true, () => new V8JavascriptEngine()) {})
+        val gv = Graphviz.fromFile(new java.io.File(src)).totalMemory(128 * 1024 * 1024)
 
-    for ((fmt, name) <- outputs) gv.render(fmt).toFile((dest / name).toIO)
+        val outputs = extensions
+          .map(ext => Format.values().find(_.fileExtension == ext).head -> s"out.$ext")
+
+        for ((fmt, name) <- outputs) gv.render(fmt).toFile((dest / name).toIO)
+      }
+
+      Await.result(Future.sequence(futures), duration.Duration.Inf)
+    }finally executor.shutdown()
   }
 }
 

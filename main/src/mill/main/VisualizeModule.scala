@@ -99,11 +99,7 @@ trait VisualizeModule extends mill.define.TaskModule {
           mill.util.Jvm.runSubprocess(
             "mill.main.graphviz.GraphvizTools",
             classpath().map(_.path),
-            mainArgs = Seq(
-              os.temp(g.toString).toString,
-              dest.toString,
-              "txt,dot,json,png,svg"
-            )
+            mainArgs = Seq(s"${os.temp(g.toString)};$dest;txt,dot,json,png,svg")
           )
 
           os.list(dest).sorted.map(PathRef(_))
