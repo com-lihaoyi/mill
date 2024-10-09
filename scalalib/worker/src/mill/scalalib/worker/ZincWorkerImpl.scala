@@ -62,7 +62,8 @@ class ZincWorkerImpl(
     compilerJarNameGrep: (Agg[PathRef], String) => PathRef,
     compilerCache: KeyedLockedCache[Compilers],
     compileToJar: Boolean,
-    zincLogDebug: Boolean
+    zincLogDebug: Boolean,
+    javaHome: Option[PathRef]
 ) extends ZincWorkerApi with AutoCloseable {
   private val zincLogLevel = if (zincLogDebug) sbt.util.Level.Debug else sbt.util.Level.Info
   private[this] val ic = new sbt.internal.inc.IncrementalCompilerImpl()
@@ -113,12 +114,13 @@ class ZincWorkerImpl(
   }
 
   private def getLocalOrCreateJavaTools(javacRuntimeOptions: Seq[String]): JavaTools = {
+    val javaHome = this.javaHome.map(_.path.toNIO)
     val (javaCompiler, javaDoc) =
       // Local java compilers don't accept -J flags so when we put this together if we detect
       // any javacOptions starting with -J we ensure we have a non-local Java compiler which
       // can handle them.
-      if (javacRuntimeOptions.exists(filterJavacRuntimeOptions)) {
-        (javac.JavaCompiler.fork(None), javac.Javadoc.fork(None))
+      if (javacRuntimeOptions.exists(filterJavacRuntimeOptions) || javaHome.isDefined) {
+        (javac.JavaCompiler.fork(javaHome), javac.Javadoc.fork(javaHome))
 
       } else {
         val compiler = javac.JavaCompiler.local.getOrElse(javac.JavaCompiler.fork(None))

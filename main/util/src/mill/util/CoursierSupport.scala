@@ -5,6 +5,7 @@ import coursier.error.FetchError.DownloadingArtifacts
 import coursier.error.ResolutionError.CantDownloadModule
 import coursier.params.ResolutionParams
 import coursier.parse.RepositoryParser
+import coursier.jvm.{JvmCache, JvmIndex, JavaHome}
 import coursier.util.Task
 import coursier.{Artifacts, Classifier, Dependency, Repository, Resolution, Resolve, Type}
 import mill.api.Loose.Agg
@@ -12,6 +13,8 @@ import mill.api.{Ctx, PathRef, Result}
 
 import scala.collection.mutable
 import scala.util.chaining.scalaUtilChainingOps
+import coursier.cache.ArchiveCache
+import scala.util.control.NonFatal
 
 trait CoursierSupport {
   import CoursierSupport._
@@ -162,6 +165,33 @@ trait CoursierSupport {
       coursierCacheCustomizer
     )
     (deps0, res.getOrThrow)
+  }
+
+  /**
+   * Resolve java home using Coursier.
+   *
+   * The id string has format "$DISTRIBUTION:$VERSION". e.g. graalvm-community:23.0.0
+   */
+  def resolveJavaHome(
+    id: String,
+    ctx: Option[mill.api.Ctx.Log] = None,
+    coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None
+  ): Result[os.Path] = {
+    val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
+    val jvmCache = JvmCache()
+      .withArchiveCache(
+        ArchiveCache().withCache(coursierCache0)
+      )
+      .withIndex(JvmIndex.load())
+    val javaHome = JavaHome()
+      .withCache(jvmCache)
+    try {
+      val file = javaHome.get(id).unsafeRun()(coursierCache0.ec)
+      Result.Success(os.Path(file))
+    } catch {
+      case NonFatal(error) =>
+        Result.Exception(error, new Result.OuterStack((new Exception).getStackTrace))
+    }
   }
 
   def resolveDependenciesMetadataSafe(

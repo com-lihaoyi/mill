@@ -1071,14 +1071,18 @@ trait JavaModule
   )
 
   @internal
-  def bspJvmBuildTarget: JvmBuildTarget =
+  def bspJvmBuildTarget: Task[JvmBuildTarget] = Task.Anon {
     JvmBuildTarget(
-      javaHome = Option(System.getProperty("java.home")).map(p => BspUri(os.Path(p))),
+      javaHome = zincWorker()
+        .javaHome()
+        .map(p => BspUri(p.path))
+        .orElse(Option(System.getProperty("java.home")).map(p => BspUri(os.Path(p)))),
       javaVersion = Option(System.getProperty("java.version"))
     )
+  }
 
   @internal
   override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = Task.Anon {
-    Some((JvmBuildTarget.dataKind, bspJvmBuildTarget))
+    Some((JvmBuildTarget.dataKind, bspJvmBuildTarget()))
   }
 }

@@ -44,6 +44,10 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
 
   def zincLogDebug: T[Boolean] = Task.Input(T.ctx().log.debugEnabled)
 
+  def javaHome: T[Option[PathRef]] = Task {
+    None
+  }
+
   def worker: Worker[ZincWorkerApi] = Task.Worker {
     val jobs = T.ctx() match {
       case j: Ctx.Jobs => j.jobs
@@ -66,7 +70,8 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
       classOf[(Agg[PathRef], String) => PathRef], // compilerJarNameGrep
       classOf[KeyedLockedCache[_]], // compilerCache
       classOf[Boolean], // compileToJar
-      classOf[Boolean] // zincLogDebug
+      classOf[Boolean], // zincLogDebug
+      classOf[Option[PathRef]], // javaHome
     )
       .newInstance(
         Left((
@@ -83,7 +88,8 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
         ZincWorkerUtil.grepJar(_, "scala-compiler", _, sources = false),
         new FixSizedCache(jobs),
         java.lang.Boolean.FALSE,
-        java.lang.Boolean.valueOf(zincLogDebug())
+        java.lang.Boolean.valueOf(zincLogDebug()),
+        javaHome()
       )
     instance.asInstanceOf[ZincWorkerApi]
   }
