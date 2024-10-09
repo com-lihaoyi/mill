@@ -5,12 +5,12 @@ import java.util.Locale
 import scala.jdk.CollectionConverters._
 import scala.util.Properties
 import mill.java9rtexport.Export
-import mill.api.{MillException, SystemStreams, WorkspaceRoot, internal}
+import mill.api.{Logger, MillException, SystemStreams, WorkspaceRoot, internal}
 import mill.bsp.{BspContext, BspServerResult}
 import mill.main.BuildInfo
 import mill.main.client.{OutFiles, ServerFiles}
 import mill.main.client.lock.Lock
-import mill.util.{PromptLogger, PrintLogger, Colors}
+import mill.util.{Colors, PrintLogger, PromptLogger}
 
 import java.lang.reflect.InvocationTargetException
 import scala.util.control.NonFatal
@@ -212,9 +212,7 @@ object MillMain {
                     .getOrElse(config.leftoverArgs.value.toList)
 
                 val out = os.Path(OutFiles.out, WorkspaceRoot.workspaceRoot)
-                val outLock =
-                  if (config.noBuildLock.value || bspContext.isDefined) Lock.dummy()
-                  else Lock.file((out / OutFiles.millLock).toString)
+
                 var repeatForBsp = true
                 var loopRes: (Boolean, RunnerState) = (false, RunnerState.empty)
                 while (repeatForBsp) {
@@ -241,31 +239,33 @@ object MillMain {
                         colored = colored,
                         colors = colors
                       )
-                      Using.resources(
-                        logger,
-                        logger.waitForLock(
-                          outLock,
-                          waitingAllowed = !config.noWaitForBuildLock.value
-                        )
-                      ) { (_, _) =>
-                        new MillBuildBootstrap(
-                          projectRoot = WorkspaceRoot.workspaceRoot,
-                          output = out,
-                          home = config.home,
-                          keepGoing = config.keepGoing.value,
-                          imports = config.imports,
-                          env = env,
-                          threadCount = threadCount,
-                          targetsAndParams = targetsAndParams,
-                          prevRunnerState = prevState.getOrElse(stateCache),
-                          logger = logger,
-                          disableCallgraph = config.disableCallgraph.value,
-                          needBuildSc = needBuildSc(config),
-                          requestedMetaLevel = config.metaLevel,
-                          config.allowPositional.value,
-                          systemExit = systemExit,
-                          streams0 = streams0
-                        ).evaluate()
+                      Using.resource(logger) { _ =>
+                        withOutLock(
+                          config.noBuildLock.value || bspContext.isDefined,
+                          config.noWaitForBuildLock.value,
+                          logger,
+                          out,
+                          targetsAndParams
+                        ) {
+                          try new MillBuildBootstrap(
+                              projectRoot = WorkspaceRoot.workspaceRoot,
+                              output = out,
+                              home = config.home,
+                              keepGoing = config.keepGoing.value,
+                              imports = config.imports,
+                              env = env,
+                              threadCount = threadCount,
+                              targetsAndParams = targetsAndParams,
+                              prevRunnerState = prevState.getOrElse(stateCache),
+                              logger = logger,
+                              disableCallgraph = config.disableCallgraph.value,
+                              needBuildSc = needBuildSc(config),
+                              requestedMetaLevel = config.metaLevel,
+                              config.allowPositional.value,
+                              systemExit = systemExit,
+                              streams0 = streams0
+                            ).evaluate()
+                        }
                       }
                     },
                     colors = colors
@@ -416,4 +416,33 @@ object MillMain {
     for (k <- systemPropertiesToUnset) System.clearProperty(k)
     for ((k, v) <- desiredProps) System.setProperty(k, v)
   }
+
+  def withOutLock[T](
+      noBuildLock: Boolean,
+      noWaitForBuildLock: Boolean,
+      logger: Logger,
+      out: os.Path,
+      targetsAndParams: Seq[String]
+  )(t: => T): T = {
+    val outLock =
+      if (noBuildLock) Lock.dummy()
+      else Lock.file((out / OutFiles.millLock).toString)
+
+    val taskString = targetsAndParams.mkString(" ")
+    Using.resource {
+      val tryLocked = outLock.tryLock()
+      if (tryLocked.isLocked()) tryLocked
+      else if (noWaitForBuildLock) {
+        throw new Exception(s"Another Mill process is running '$taskString'")
+      } else {
+        logger.info(s"Another Mill process is running '$taskString', waiting for it to be done...")
+        outLock.lock()
+      }
+    } { _ =>
+      os.write(out / OutFiles.millActiveCommand, taskString)
+      try t
+      finally os.remove.all(out / OutFiles.millActiveCommand)
+    }
+  }
+
 }
