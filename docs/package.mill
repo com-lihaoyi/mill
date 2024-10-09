@@ -113,7 +113,7 @@ object `package` extends RootModule {
           line match{
             case "[graphviz]" => isGraphViz0 = true
             case "...." if isGraphViz0 => isGraphViz0 = false; isGraphViz = true
-            case "```graphviz" => isGraphViz0 = true
+            case "```graphviz" => isGraphViz = true
             case "```" | "...." if isGraphViz =>
               isGraphViz = false
               if (inputs.isEmpty) output((p, i)) = graphvizLines.mkString("\n")
