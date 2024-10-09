@@ -19,6 +19,12 @@ class MultiLogger(
     inStream0
   )
 
+  private[mill] override lazy val unprefixedSystemStreams: SystemStreams = new SystemStreams(
+    new MultiStream(logger1.unprefixedSystemStreams.out, logger2.unprefixedSystemStreams.out),
+    new MultiStream(logger1.unprefixedSystemStreams.err, logger2.unprefixedSystemStreams.err),
+    inStream0
+  )
+
   def info(s: String): Unit = {
     logger1.info(s)
     logger2.info(s)
@@ -101,6 +107,7 @@ class MultiLogger(
 
   override def infoColor: Attrs = logger1.infoColor ++ logger2.infoColor
   override def errorColor: Attrs = logger1.errorColor ++ logger2.errorColor
+  private[mill] override def logPrefixKey = logger1.logPrefixKey ++ logger1.logPrefixKey
 }
 
 class MultiStream(stream1: OutputStream, stream2: OutputStream)

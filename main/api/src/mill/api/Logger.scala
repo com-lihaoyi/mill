@@ -30,6 +30,7 @@ trait Logger extends AutoCloseable {
   def errorColor: fansi.Attrs = fansi.Attrs.Empty
   def colored: Boolean
 
+  private[mill] def unprefixedSystemStreams: SystemStreams = systemStreams
   def systemStreams: SystemStreams
 
   def errorStream: PrintStream = systemStreams.err
@@ -98,4 +99,5 @@ trait Logger extends AutoCloseable {
   }
 
   def withOutStream(outStream: PrintStream): Logger = this
+  private[mill] def logPrefixKey: Seq[String] = Nil
 }
