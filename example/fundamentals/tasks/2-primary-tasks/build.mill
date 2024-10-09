@@ -38,15 +38,14 @@ def lineCount: T[Int] = Task {
     .sum
 }
 
-// [graphviz]
-// ....
+// ```graphviz
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
 //   sources -> allSources -> lineCount
 //   sources [color=white]
 // }
-// ....
+// ```
 //
 // ``Target``s are defined using the `def foo = Task {...}` syntax, and dependencies
 // on other tasks are defined using `foo()` to extract the value from them.
@@ -142,8 +141,7 @@ def jar = Task {
   PathRef(Task.dest / "foo.jar")
 }
 
-// [graphviz]
-// ....
+// ```graphviz
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -152,7 +150,7 @@ def jar = Task {
 //   allSources [color=white]
 //   resources [color=white]
 // }
-// ....
+// ```
 
 /** Usage
 
@@ -199,15 +197,14 @@ def hugeFileName = Task {
   else "<no-huge-file>"
 }
 
-// [graphviz]
-// ....
+// ```graphviz
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
 //   allSources -> largeFile-> hugeFileName
 //   allSources [color=white]
 // }
-// ....
+// ```
 
 /** Usage
 
@@ -242,15 +239,14 @@ def summarizeClassFileStats = Task {
   )
 }
 
-// [graphviz]
-// ....
+// ```graphviz
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
 //   classFiles -> summarizedClassFileStats
 //   classFiles [color=white]
 // }
-// ....
+// ```
 
 /** Usage
 
@@ -276,8 +272,7 @@ def run(mainClass: String, args: String*) = Task.Command {
     .call(stdout = os.Inherit)
 }
 
-// [graphviz]
-// ....
+// ```graphviz
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -286,7 +281,7 @@ def run(mainClass: String, args: String*) = Task.Command {
 //   classFiles [color=white]
 //   resources [color=white]
 // }
-// ....
+// ```
 
 // Defined using `Task.Command {...}` syntax, ``Command``s can run arbitrary code, with
 // dependencies declared using the same `foo()` syntax (e.g. `classFiles()` above).
@@ -373,15 +368,14 @@ trait Bar extends Foo {
 
 object bar extends Bar
 
-// [graphviz]
-// ....
+// ```graphviz
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
 //   "bar.sourceRoots.super" -> "bar.sourceRoots" -> "bar.sourceContents"
 //   "bar.additionalSources" -> "bar.sourceRoots"
 // }
-// ....
+// ```
 /** Usage
 
 > ./mill show bar.sourceContents # includes both source folders
