@@ -310,7 +310,7 @@
 <div class="page-versions">
   <button class="version-menu-toggle" title="Show other versions of page">0.11.12</button>
   <div class="version-menu">
-    <a class="version is-missing" href="../../../index.html">0.12.0-RC3-33-45161b</a>
+    <a class="version is-missing" href="../../../index.html">0.12.0-RC3-34-bbec01</a>
     <a class="version is-current" href="1-task-graph.html">0.11.12</a>
     <a class="version" href="../../../0.11.11/example/tasks/1-task-graph.html">0.11.11</a>
     <a class="version" href="../../../0.11.10/example/tasks/1-task-graph.html">0.11.10</a>
@@ -362,17 +362,66 @@ def assembly = T {
 <p>This code defines the following task graph, with the boxes being the tasks
 and the arrows representing the <em>data-flow</em> between them:</p>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>digraph G {
-  rankdir=LR
-  node [shape=box width=0 height=0 style=filled fillcolor=white]
-  sources -&gt; compile -&gt; assembly
-  resources -&gt; assembly
-  mainClass -&gt; assembly
-}</pre>
-</div>
-</div>
+<svg width="280px" height="119px" viewBox="0.00 0.00 280.41 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 276.41,-114.8 276.41,4 -4,4"></polygon>
+<!-- sources -->
+<g id="node1" class="node">
+<title>sources</title>
+<polygon fill="white" stroke="black" points="57.97,-110.7 0.01,-110.7 0.01,-86.1 57.97,-86.1 57.97,-110.7"></polygon>
+<text text-anchor="middle" x="28.99" y="-94.2" font-family="Times,serif" font-size="14.00">sources</text>
+</g>
+<!-- compile -->
+<g id="node2" class="node">
+<title>compile</title>
+<polygon fill="white" stroke="black" points="161.74,-110.7 100.54,-110.7 100.54,-86.1 161.74,-86.1 161.74,-110.7"></polygon>
+<text text-anchor="middle" x="131.14" y="-94.2" font-family="Times,serif" font-size="14.00">compile</text>
+</g>
+<!-- sources&#45;&gt;compile -->
+<g id="edge1" class="edge">
+<title>sources-&gt;compile</title>
+<path fill="none" stroke="black" d="M58.15,-98.4C68.15,-98.4 79.6,-98.4 90.38,-98.4"></path>
+<polygon fill="black" stroke="black" points="90.44,-101.9 100.44,-98.4 90.44,-94.9 90.44,-101.9"></polygon>
+</g>
+<!-- assembly -->
+<g id="node3" class="node">
+<title>assembly</title>
+<polygon fill="white" stroke="black" points="272.46,-67.7 204.26,-67.7 204.26,-43.1 272.46,-43.1 272.46,-67.7"></polygon>
+<text text-anchor="middle" x="238.36" y="-51.2" font-family="Times,serif" font-size="14.00">assembly</text>
+</g>
+<!-- compile&#45;&gt;assembly -->
+<g id="edge2" class="edge">
+<title>compile-&gt;assembly</title>
+<path fill="none" stroke="black" d="M161.73,-86.31C172.86,-81.76 185.69,-76.51 197.6,-71.65"></path>
+<polygon fill="black" stroke="black" points="198.96,-74.87 206.89,-67.85 196.31,-68.39 198.96,-74.87"></polygon>
+</g>
+<!-- resources -->
+<g id="node4" class="node">
+<title>resources</title>
+<polygon fill="white" stroke="black" points="165.5,-67.7 96.79,-67.7 96.79,-43.1 165.5,-43.1 165.5,-67.7"></polygon>
+<text text-anchor="middle" x="131.14" y="-51.2" font-family="Times,serif" font-size="14.00">resources</text>
+</g>
+<!-- resources&#45;&gt;assembly -->
+<g id="edge3" class="edge">
+<title>resources-&gt;assembly</title>
+<path fill="none" stroke="black" d="M165.72,-55.4C174.73,-55.4 184.6,-55.4 194.06,-55.4"></path>
+<polygon fill="black" stroke="black" points="194.09,-58.9 204.09,-55.4 194.09,-51.9 194.09,-58.9"></polygon>
+</g>
+<!-- mainClass -->
+<g id="node5" class="node">
+<title>mainClass</title>
+<polygon fill="white" stroke="black" points="168.47,-24.7 93.81,-24.7 93.81,-0.1 168.47,-0.1 168.47,-24.7"></polygon>
+<text text-anchor="middle" x="131.14" y="-8.2" font-family="Times,serif" font-size="14.00">mainClass</text>
+</g>
+<!-- mainClass&#45;&gt;assembly -->
+<g id="edge4" class="edge">
+<title>mainClass-&gt;assembly</title>
+<path fill="none" stroke="black" d="M162.29,-24.72C173.3,-29.22 185.92,-34.38 197.63,-39.17"></path>
+<polygon fill="black" stroke="black" points="196.62,-42.53 207.2,-43.08 199.27,-36.05 196.62,-42.53"></polygon>
+</g>
+</g>
+</svg>
 <div class="paragraph">
 <p>This example does not use any of Mill’s builtin support for building Java or
 Scala projects, and instead builds a pipeline &quot;from scratch&quot; using Mill
@@ -409,22 +458,66 @@ necessary, depending on what input sources changed:</p>
 </li>
 </ul>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>digraph G {
-  rankdir=LR
-  node [shape=box width=0 height=0 style=filled fillcolor=white]
-  sources -&gt; compile -&gt; assembly
-  resources -&gt; assembly
-  mainClass -&gt; assembly
-  assembly [fillcolor=lightpink]
-  sources [fillcolor=lightpink]
-  compile [fillcolor=lightpink]
-  resources [fillcolor=lightgreen]
-  mainClass [fillcolor=lightgreen]
-}</pre>
-</div>
-</div>
+<svg width="280px" height="119px" viewBox="0.00 0.00 280.41 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 276.41,-114.8 276.41,4 -4,4"></polygon>
+<!-- sources -->
+<g id="node1" class="node">
+<title>sources</title>
+<polygon fill="lightpink" stroke="black" points="57.97,-110.7 0.01,-110.7 0.01,-86.1 57.97,-86.1 57.97,-110.7"></polygon>
+<text text-anchor="middle" x="28.99" y="-94.2" font-family="Times,serif" font-size="14.00">sources</text>
+</g>
+<!-- compile -->
+<g id="node2" class="node">
+<title>compile</title>
+<polygon fill="lightpink" stroke="black" points="161.74,-110.7 100.54,-110.7 100.54,-86.1 161.74,-86.1 161.74,-110.7"></polygon>
+<text text-anchor="middle" x="131.14" y="-94.2" font-family="Times,serif" font-size="14.00">compile</text>
+</g>
+<!-- sources&#45;&gt;compile -->
+<g id="edge1" class="edge">
+<title>sources-&gt;compile</title>
+<path fill="none" stroke="black" d="M58.15,-98.4C68.15,-98.4 79.6,-98.4 90.38,-98.4"></path>
+<polygon fill="black" stroke="black" points="90.44,-101.9 100.44,-98.4 90.44,-94.9 90.44,-101.9"></polygon>
+</g>
+<!-- assembly -->
+<g id="node3" class="node">
+<title>assembly</title>
+<polygon fill="lightpink" stroke="black" points="272.46,-67.7 204.26,-67.7 204.26,-43.1 272.46,-43.1 272.46,-67.7"></polygon>
+<text text-anchor="middle" x="238.36" y="-51.2" font-family="Times,serif" font-size="14.00">assembly</text>
+</g>
+<!-- compile&#45;&gt;assembly -->
+<g id="edge2" class="edge">
+<title>compile-&gt;assembly</title>
+<path fill="none" stroke="black" d="M161.73,-86.31C172.86,-81.76 185.69,-76.51 197.6,-71.65"></path>
+<polygon fill="black" stroke="black" points="198.96,-74.87 206.89,-67.85 196.31,-68.39 198.96,-74.87"></polygon>
+</g>
+<!-- resources -->
+<g id="node4" class="node">
+<title>resources</title>
+<polygon fill="lightgreen" stroke="black" points="165.5,-67.7 96.79,-67.7 96.79,-43.1 165.5,-43.1 165.5,-67.7"></polygon>
+<text text-anchor="middle" x="131.14" y="-51.2" font-family="Times,serif" font-size="14.00">resources</text>
+</g>
+<!-- resources&#45;&gt;assembly -->
+<g id="edge3" class="edge">
+<title>resources-&gt;assembly</title>
+<path fill="none" stroke="black" d="M165.72,-55.4C174.73,-55.4 184.6,-55.4 194.06,-55.4"></path>
+<polygon fill="black" stroke="black" points="194.09,-58.9 204.09,-55.4 194.09,-51.9 194.09,-58.9"></polygon>
+</g>
+<!-- mainClass -->
+<g id="node5" class="node">
+<title>mainClass</title>
+<polygon fill="lightgreen" stroke="black" points="168.47,-24.7 93.81,-24.7 93.81,-0.1 168.47,-0.1 168.47,-24.7"></polygon>
+<text text-anchor="middle" x="131.14" y="-8.2" font-family="Times,serif" font-size="14.00">mainClass</text>
+</g>
+<!-- mainClass&#45;&gt;assembly -->
+<g id="edge4" class="edge">
+<title>mainClass-&gt;assembly</title>
+<path fill="none" stroke="black" d="M162.29,-24.72C173.3,-29.22 185.92,-34.38 197.63,-39.17"></path>
+<polygon fill="black" stroke="black" points="196.62,-42.53 207.2,-43.08 199.27,-36.05 196.62,-42.53"></polygon>
+</g>
+</g>
+</svg>
 <div class="ulist">
 <ul>
 <li>
@@ -433,22 +526,66 @@ and use the cached output of <code>compile</code> (green)</p>
 </li>
 </ul>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>digraph G {
-  rankdir=LR
-  node [shape=box width=0 height=0 style=filled fillcolor=white]
-  sources -&gt; compile -&gt; assembly
-  resources -&gt; assembly
-  mainClass -&gt; assembly
-  assembly [fillcolor=lightpink]
-  resources [fillcolor=lightpink]
-  compile [fillcolor=lightgreen]
-  sources [fillcolor=lightgreen]
-  mainClass [fillcolor=lightgreen]
-}</pre>
-</div>
-</div>
+<svg width="280px" height="119px" viewBox="0.00 0.00 280.41 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 276.41,-114.8 276.41,4 -4,4"></polygon>
+<!-- sources -->
+<g id="node1" class="node">
+<title>sources</title>
+<polygon fill="lightgreen" stroke="black" points="57.97,-110.7 0.01,-110.7 0.01,-86.1 57.97,-86.1 57.97,-110.7"></polygon>
+<text text-anchor="middle" x="28.99" y="-94.2" font-family="Times,serif" font-size="14.00">sources</text>
+</g>
+<!-- compile -->
+<g id="node2" class="node">
+<title>compile</title>
+<polygon fill="lightgreen" stroke="black" points="161.74,-110.7 100.54,-110.7 100.54,-86.1 161.74,-86.1 161.74,-110.7"></polygon>
+<text text-anchor="middle" x="131.14" y="-94.2" font-family="Times,serif" font-size="14.00">compile</text>
+</g>
+<!-- sources&#45;&gt;compile -->
+<g id="edge1" class="edge">
+<title>sources-&gt;compile</title>
+<path fill="none" stroke="black" d="M58.15,-98.4C68.15,-98.4 79.6,-98.4 90.38,-98.4"></path>
+<polygon fill="black" stroke="black" points="90.44,-101.9 100.44,-98.4 90.44,-94.9 90.44,-101.9"></polygon>
+</g>
+<!-- assembly -->
+<g id="node3" class="node">
+<title>assembly</title>
+<polygon fill="lightpink" stroke="black" points="272.46,-67.7 204.26,-67.7 204.26,-43.1 272.46,-43.1 272.46,-67.7"></polygon>
+<text text-anchor="middle" x="238.36" y="-51.2" font-family="Times,serif" font-size="14.00">assembly</text>
+</g>
+<!-- compile&#45;&gt;assembly -->
+<g id="edge2" class="edge">
+<title>compile-&gt;assembly</title>
+<path fill="none" stroke="black" d="M161.73,-86.31C172.86,-81.76 185.69,-76.51 197.6,-71.65"></path>
+<polygon fill="black" stroke="black" points="198.96,-74.87 206.89,-67.85 196.31,-68.39 198.96,-74.87"></polygon>
+</g>
+<!-- resources -->
+<g id="node4" class="node">
+<title>resources</title>
+<polygon fill="lightpink" stroke="black" points="165.5,-67.7 96.79,-67.7 96.79,-43.1 165.5,-43.1 165.5,-67.7"></polygon>
+<text text-anchor="middle" x="131.14" y="-51.2" font-family="Times,serif" font-size="14.00">resources</text>
+</g>
+<!-- resources&#45;&gt;assembly -->
+<g id="edge3" class="edge">
+<title>resources-&gt;assembly</title>
+<path fill="none" stroke="black" d="M165.72,-55.4C174.73,-55.4 184.6,-55.4 194.06,-55.4"></path>
+<polygon fill="black" stroke="black" points="194.09,-58.9 204.09,-55.4 194.09,-51.9 194.09,-58.9"></polygon>
+</g>
+<!-- mainClass -->
+<g id="node5" class="node">
+<title>mainClass</title>
+<polygon fill="lightgreen" stroke="black" points="168.47,-24.7 93.81,-24.7 93.81,-0.1 168.47,-0.1 168.47,-24.7"></polygon>
+<text text-anchor="middle" x="131.14" y="-8.2" font-family="Times,serif" font-size="14.00">mainClass</text>
+</g>
+<!-- mainClass&#45;&gt;assembly -->
+<g id="edge4" class="edge">
+<title>mainClass-&gt;assembly</title>
+<path fill="none" stroke="black" d="M162.29,-24.72C173.3,-29.22 185.92,-34.38 197.63,-39.17"></path>
+<polygon fill="black" stroke="black" points="196.62,-42.53 207.2,-43.08 199.27,-36.05 196.62,-42.53"></polygon>
+</g>
+</g>
+</svg>
 </article>
   </div>
 </main>

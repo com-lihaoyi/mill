@@ -317,7 +317,7 @@
 <div class="page-versions">
   <button class="version-menu-toggle" title="Show other versions of page">0.11.12</button>
   <div class="version-menu">
-    <a class="version is-missing" href="../index.html">0.12.0-RC3-33-45161b</a>
+    <a class="version is-missing" href="../index.html">0.12.0-RC3-34-bbec01</a>
     <a class="version is-current" href="Java_Case_Study_Netty.html">0.11.12</a>
     <a class="version" href="../0.11.11/Java_Case_Study_Netty.html">0.11.11</a>
     <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
@@ -1215,17 +1215,54 @@ def make = T{
 }</code></pre>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>digraph G {
-  rankdir=LR
-  node [shape=box width=0 height=0 style=filled fillcolor=white]
-  makefile -&gt; make
-  cSources -&gt; make
-  cSources -&gt; cHeaders
-}</pre>
-</div>
-</div>
+<svg width="179px" height="76px" viewBox="0.00 0.00 178.60 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 174.6,-71.8 174.6,4 -4,4"></polygon>
+<!-- makefile -->
+<g id="node1" class="node">
+<title>makefile</title>
+<polygon fill="white" stroke="black" points="65.74,-67.7 0.79,-67.7 0.79,-43.1 65.74,-43.1 65.74,-67.7"></polygon>
+<text text-anchor="middle" x="33.27" y="-51.2" font-family="Times,serif" font-size="14.00">makefile</text>
+</g>
+<!-- make -->
+<g id="node2" class="node">
+<title>make</title>
+<polygon fill="white" stroke="black" points="159.89,-67.7 113.25,-67.7 113.25,-43.1 159.89,-43.1 159.89,-67.7"></polygon>
+<text text-anchor="middle" x="136.57" y="-51.2" font-family="Times,serif" font-size="14.00">make</text>
+</g>
+<!-- makefile&#45;&gt;make -->
+<g id="edge1" class="edge">
+<title>makefile-&gt;make</title>
+<path fill="none" stroke="black" d="M65.76,-55.4C77.62,-55.4 91.12,-55.4 103.07,-55.4"></path>
+<polygon fill="black" stroke="black" points="103.09,-58.9 113.09,-55.4 103.09,-51.9 103.09,-58.9"></polygon>
+</g>
+<!-- cSources -->
+<g id="node3" class="node">
+<title>cSources</title>
+<polygon fill="white" stroke="black" points="66.3,-24.7 0.23,-24.7 0.23,-0.1 66.3,-0.1 66.3,-24.7"></polygon>
+<text text-anchor="middle" x="33.27" y="-8.2" font-family="Times,serif" font-size="14.00">cSources</text>
+</g>
+<!-- cSources&#45;&gt;make -->
+<g id="edge2" class="edge">
+<title>cSources-&gt;make</title>
+<path fill="none" stroke="black" d="M63.29,-24.72C75.97,-30.1 90.86,-36.42 103.83,-41.93"></path>
+<polygon fill="black" stroke="black" points="102.72,-45.26 113.3,-45.95 105.46,-38.82 102.72,-45.26"></polygon>
+</g>
+<!-- cHeaders -->
+<g id="node4" class="node">
+<title>cHeaders</title>
+<polygon fill="white" stroke="black" points="170.64,-24.7 102.5,-24.7 102.5,-0.1 170.64,-0.1 170.64,-24.7"></polygon>
+<text text-anchor="middle" x="136.57" y="-8.2" font-family="Times,serif" font-size="14.00">cHeaders</text>
+</g>
+<!-- cSources&#45;&gt;cHeaders -->
+<g id="edge3" class="edge">
+<title>cSources-&gt;cHeaders</title>
+<path fill="none" stroke="black" d="M66.32,-12.4C74.57,-12.4 83.58,-12.4 92.3,-12.4"></path>
+<polygon fill="black" stroke="black" points="92.33,-15.9 102.33,-12.4 92.33,-8.9 92.33,-15.9"></polygon>
+</g>
+</g>
+</svg>
 <div class="paragraph">
 <p>In Mill, we define the <code>makefile</code>, <code>cSources</code>, <code>cHeaders</code>, and <code>make</code> tasks. The bulk
 of the logic is in <code>def make</code>, which prepares the <code>makefile</code> and C sources,

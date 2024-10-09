@@ -317,7 +317,7 @@
 <div class="page-versions">
   <button class="version-menu-toggle" title="Show other versions of page">0.11.12</button>
   <div class="version-menu">
-    <a class="version" href="../fundamentals/cross-builds.html">0.12.0-RC3-33-45161b</a>
+    <a class="version" href="../fundamentals/cross-builds.html">0.12.0-RC3-34-bbec01</a>
     <a class="version is-current" href="Cross_Builds.html">0.11.12</a>
     <a class="version" href="../0.11.11/Cross_Builds.html">0.11.11</a>
     <a class="version" href="../0.11.10/Cross_Builds.html">0.11.10</a>
@@ -366,33 +366,99 @@ trait FooModule extends Cross.Module[String] {
 }</code></pre>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>digraph G {
-  rankdir=LR
-  node [shape=box width=0 height=0 style=filled fillcolor=white]
-
-subgraph cluster_2 {
-    label=&quot;foo[2.12]&quot;
-    style=dashed
-    &quot;foo[2.12].suffix&quot; -&gt; &quot;foo[2.12].bigSuffix&quot;
-    &quot;foo[2.12].sources&quot;
-  }
-  subgraph cluster_1 {
-    label=&quot;foo[2.11]&quot;
-    style=dashed
-    &quot;foo[2.11].suffix&quot; -&gt; &quot;foo[2.11].bigSuffix&quot;
-    &quot;foo[2.11].sources&quot;
-  }
-  subgraph cluster_0 {
-    label=&quot;foo[2.10]&quot;
-    style=dashed
-    &quot;foo[2.10].suffix&quot; -&gt; &quot;foo[2.10].bigSuffix&quot;
-    &quot;foo[2.10].sources&quot;
-  }
-}</pre>
-</div>
-</div>
+<svg width="315px" height="364px" viewBox="0.00 0.00 314.83 364.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 360.0)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-360 310.83,-360 310.83,4 -4,4"></polygon>
+<g id="clust1" class="cluster">
+<title>cluster_2</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-116 298.83,-116 298.83,-8 8,-8"></polygon>
+<text text-anchor="middle" x="153.41" y="-99.4" font-family="Times,serif" font-size="14.00">foo[2.12]</text>
+</g>
+<g id="clust3" class="cluster">
+<title>cluster_0</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-240 8,-348 298.83,-348 298.83,-240 8,-240"></polygon>
+<text text-anchor="middle" x="153.41" y="-331.4" font-family="Times,serif" font-size="14.00">foo[2.10]</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_1</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-232 298.83,-232 298.83,-124 8,-124"></polygon>
+<text text-anchor="middle" x="153.41" y="-215.4" font-family="Times,serif" font-size="14.00">foo[2.11]</text>
+</g>
+<!-- foo[2.12].suffix -->
+<g id="node1" class="node">
+<title>foo[2.12].suffix</title>
+<polygon fill="white" stroke="black" points="125.12,-83.3 20.84,-83.3 20.84,-58.7 125.12,-58.7 125.12,-83.3"></polygon>
+<text text-anchor="middle" x="72.98" y="-66.8" font-family="Times,serif" font-size="14.00">foo[2.12].suffix</text>
+</g>
+<!-- foo[2.12].bigSuffix -->
+<g id="node2" class="node">
+<title>foo[2.12].bigSuffix</title>
+<polygon fill="white" stroke="black" points="290.76,-83.3 166.03,-83.3 166.03,-58.7 290.76,-58.7 290.76,-83.3"></polygon>
+<text text-anchor="middle" x="228.39" y="-66.8" font-family="Times,serif" font-size="14.00">foo[2.12].bigSuffix</text>
+</g>
+<!-- foo[2.12].suffix&#45;&gt;foo[2.12].bigSuffix -->
+<g id="edge1" class="edge">
+<title>foo[2.12].suffix-&gt;foo[2.12].bigSuffix</title>
+<path fill="none" stroke="black" d="M125.49,-71C135.22,-71 145.56,-71 155.77,-71"></path>
+<polygon fill="black" stroke="black" points="155.92,-74.5 165.92,-71 155.92,-67.5 155.92,-74.5"></polygon>
+</g>
+<!-- foo[2.12].sources -->
+<g id="node3" class="node">
+<title>foo[2.12].sources</title>
+<polygon fill="white" stroke="black" points="129.94,-40.3 16.02,-40.3 16.02,-15.7 129.94,-15.7 129.94,-40.3"></polygon>
+<text text-anchor="middle" x="72.98" y="-23.8" font-family="Times,serif" font-size="14.00">foo[2.12].sources</text>
+</g>
+<!-- foo[2.11].suffix -->
+<g id="node4" class="node">
+<title>foo[2.11].suffix</title>
+<polygon fill="white" stroke="black" points="125.12,-199.3 20.84,-199.3 20.84,-174.7 125.12,-174.7 125.12,-199.3"></polygon>
+<text text-anchor="middle" x="72.98" y="-182.8" font-family="Times,serif" font-size="14.00">foo[2.11].suffix</text>
+</g>
+<!-- foo[2.11].bigSuffix -->
+<g id="node5" class="node">
+<title>foo[2.11].bigSuffix</title>
+<polygon fill="white" stroke="black" points="290.76,-199.3 166.03,-199.3 166.03,-174.7 290.76,-174.7 290.76,-199.3"></polygon>
+<text text-anchor="middle" x="228.39" y="-182.8" font-family="Times,serif" font-size="14.00">foo[2.11].bigSuffix</text>
+</g>
+<!-- foo[2.11].suffix&#45;&gt;foo[2.11].bigSuffix -->
+<g id="edge2" class="edge">
+<title>foo[2.11].suffix-&gt;foo[2.11].bigSuffix</title>
+<path fill="none" stroke="black" d="M125.49,-187C135.22,-187 145.56,-187 155.77,-187"></path>
+<polygon fill="black" stroke="black" points="155.92,-190.5 165.92,-187 155.92,-183.5 155.92,-190.5"></polygon>
+</g>
+<!-- foo[2.11].sources -->
+<g id="node6" class="node">
+<title>foo[2.11].sources</title>
+<polygon fill="white" stroke="black" points="129.94,-156.3 16.02,-156.3 16.02,-131.7 129.94,-131.7 129.94,-156.3"></polygon>
+<text text-anchor="middle" x="72.98" y="-139.8" font-family="Times,serif" font-size="14.00">foo[2.11].sources</text>
+</g>
+<!-- foo[2.10].suffix -->
+<g id="node7" class="node">
+<title>foo[2.10].suffix</title>
+<polygon fill="white" stroke="black" points="125.12,-315.3 20.84,-315.3 20.84,-290.7 125.12,-290.7 125.12,-315.3"></polygon>
+<text text-anchor="middle" x="72.98" y="-298.8" font-family="Times,serif" font-size="14.00">foo[2.10].suffix</text>
+</g>
+<!-- foo[2.10].bigSuffix -->
+<g id="node8" class="node">
+<title>foo[2.10].bigSuffix</title>
+<polygon fill="white" stroke="black" points="290.76,-315.3 166.03,-315.3 166.03,-290.7 290.76,-290.7 290.76,-315.3"></polygon>
+<text text-anchor="middle" x="228.39" y="-298.8" font-family="Times,serif" font-size="14.00">foo[2.10].bigSuffix</text>
+</g>
+<!-- foo[2.10].suffix&#45;&gt;foo[2.10].bigSuffix -->
+<g id="edge3" class="edge">
+<title>foo[2.10].suffix-&gt;foo[2.10].bigSuffix</title>
+<path fill="none" stroke="black" d="M125.49,-303C135.22,-303 145.56,-303 155.77,-303"></path>
+<polygon fill="black" stroke="black" points="155.92,-306.5 165.92,-303 155.92,-299.5 155.92,-306.5"></polygon>
+</g>
+<!-- foo[2.10].sources -->
+<g id="node9" class="node">
+<title>foo[2.10].sources</title>
+<polygon fill="white" stroke="black" points="129.94,-272.3 16.02,-272.3 16.02,-247.7 129.94,-247.7 129.94,-272.3"></polygon>
+<text text-anchor="middle" x="72.98" y="-255.8" font-family="Times,serif" font-size="14.00">foo[2.10].sources</text>
+</g>
+</g>
+</svg>
 <div class="paragraph">
 <p>Cross modules defined using the <code>Cross[T]</code> class allow you to define
 multiple copies of the same module, differing only in some input key. This
@@ -557,33 +623,76 @@ def bar = T { s&quot;hello ${foo(&quot;2.10&quot;).suffix()}&quot; }
 def qux = T { s&quot;hello ${foo(&quot;2.10&quot;).suffix()} world ${foo(&quot;2.12&quot;).suffix()}&quot; }</code></pre>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>digraph G {
-  rankdir=LR
-  node [shape=box width=0 height=0 style=filled fillcolor=white]
-  subgraph cluster_2 {
-    label=&quot;foo[2.12]&quot;
-    style=dashed
-    &quot;foo[2.12].suffix&quot;
-  }
-  subgraph cluster_1 {
-    label=&quot;foo[2.11]&quot;
-    style=dashed
-    &quot;foo[2.11].suffix&quot;
-  }
-  subgraph cluster_0 {
-    label=&quot;foo[2.10]&quot;
-    style=dashed
-    &quot;foo[2.10].suffix&quot;
-  }
-  &quot;foo[2.12].suffix&quot; -&gt; &quot;qux&quot; [constraint=false]
-  &quot;foo[2.11].suffix&quot; -&gt; &quot;qux&quot; [style=invis]
-  &quot;foo[2.10].suffix&quot; -&gt; &quot;qux&quot;
-  &quot;foo[2.10].suffix&quot; -&gt; &quot;bar&quot;
-}</pre>
-</div>
-</div>
+<svg width="202px" height="235px" viewBox="0.00 0.00 201.64 235.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 231.0)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-231 197.64,-231 197.64,4 -4,4"></polygon>
+<g id="clust1" class="cluster">
+<title>cluster_2</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-154 8,-219 128.64,-219 128.64,-154 8,-154"></polygon>
+<text text-anchor="middle" x="68.32" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.12]</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_1</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-81 8,-146 128.64,-146 128.64,-81 8,-81"></polygon>
+<text text-anchor="middle" x="68.32" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.11]</text>
+</g>
+<g id="clust3" class="cluster">
+<title>cluster_0</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-73 128.64,-73 128.64,-8 8,-8"></polygon>
+<text text-anchor="middle" x="68.32" y="-56.4" font-family="Times,serif" font-size="14.00">foo[2.10]</text>
+</g>
+<!-- foo[2.12].suffix -->
+<g id="node1" class="node">
+<title>foo[2.12].suffix</title>
+<polygon fill="white" stroke="black" points="120.46,-186.3 16.18,-186.3 16.18,-161.7 120.46,-161.7 120.46,-186.3"></polygon>
+<text text-anchor="middle" x="68.32" y="-169.8" font-family="Times,serif" font-size="14.00">foo[2.12].suffix</text>
+</g>
+<!-- qux -->
+<g id="node4" class="node">
+<title>qux</title>
+<polygon fill="white" stroke="black" points="193.64,-98.3 156.64,-98.3 156.64,-73.7 193.64,-73.7 193.64,-98.3"></polygon>
+<text text-anchor="middle" x="175.14" y="-81.8" font-family="Times,serif" font-size="14.00">qux</text>
+</g>
+<!-- foo[2.12].suffix&#45;&gt;qux -->
+<g id="edge1" class="edge">
+<title>foo[2.12].suffix-&gt;qux</title>
+<path fill="none" stroke="black" d="M109.03,-161.62C115.95,-158.46 122.8,-154.61 128.64,-150 143.24,-138.46 155.21,-121.03 163.2,-107.28"></path>
+<polygon fill="black" stroke="black" points="166.3,-108.9 168.08,-98.46 160.17,-105.51 166.3,-108.9"></polygon>
+</g>
+<!-- foo[2.11].suffix -->
+<g id="node2" class="node">
+<title>foo[2.11].suffix</title>
+<polygon fill="white" stroke="black" points="120.46,-113.3 16.18,-113.3 16.18,-88.7 120.46,-88.7 120.46,-113.3"></polygon>
+<text text-anchor="middle" x="68.32" y="-96.8" font-family="Times,serif" font-size="14.00">foo[2.11].suffix</text>
+</g>
+<!-- foo[2.11].suffix&#45;&gt;qux -->
+<!-- foo[2.10].suffix -->
+<g id="node3" class="node">
+<title>foo[2.10].suffix</title>
+<polygon fill="white" stroke="black" points="120.46,-40.3 16.18,-40.3 16.18,-15.7 120.46,-15.7 120.46,-40.3"></polygon>
+<text text-anchor="middle" x="68.32" y="-23.8" font-family="Times,serif" font-size="14.00">foo[2.10].suffix</text>
+</g>
+<!-- foo[2.10].suffix&#45;&gt;qux -->
+<g id="edge3" class="edge">
+<title>foo[2.10].suffix-&gt;qux</title>
+<path fill="none" stroke="black" d="M91.81,-40.44C108.15,-49.49 130.33,-61.76 147.55,-71.29"></path>
+<polygon fill="black" stroke="black" points="146.1,-74.48 156.54,-76.26 149.49,-68.36 146.1,-74.48"></polygon>
+</g>
+<!-- bar -->
+<g id="node5" class="node">
+<title>bar</title>
+<polygon fill="white" stroke="black" points="192.01,-40.3 158.26,-40.3 158.26,-15.7 192.01,-15.7 192.01,-40.3"></polygon>
+<text text-anchor="middle" x="175.14" y="-23.8" font-family="Times,serif" font-size="14.00">bar</text>
+</g>
+<!-- foo[2.10].suffix&#45;&gt;bar -->
+<g id="edge4" class="edge">
+<title>foo[2.10].suffix-&gt;bar</title>
+<path fill="none" stroke="black" d="M120.5,-28C130.04,-28 139.63,-28 148.02,-28"></path>
+<polygon fill="black" stroke="black" points="148.23,-31.5 158.23,-28 148.23,-24.5 148.23,-31.5"></polygon>
+</g>
+</g>
+</svg>
 <div class="paragraph">
 <p>Here, <code>def bar</code> uses <code>foo(&quot;2.10&quot;)</code> to reference the <code>&quot;2.10&quot;</code> instance of
 <code>FooModule</code>. You can refer to whatever versions of the cross-module you want,
@@ -627,47 +736,96 @@ trait BarModule extends Cross.Module[String] {
 }</code></pre>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>digraph G {
-  rankdir=LR
-  node [shape=box width=0 height=0 style=filled fillcolor=white]
-  subgraph cluster_2 {
-    label=&quot;foo[2.12]&quot;
-    style=dashed
-    &quot;foo[2.12].suffix&quot;
-  }
-  subgraph cluster_1 {
-    label=&quot;foo[2.11]&quot;
-    style=dashed
-    &quot;foo[2.11].suffix&quot;
-  }
-  subgraph cluster_0 {
-    label=&quot;foo[2.10]&quot;
-    style=dashed
-    &quot;foo[2.10].suffix&quot;
-  }
-  subgraph cluster_4 {
-    label=&quot;bar[2.11]&quot;
-    style=dashed
-    &quot;bar[2.11].bigSuffix&quot;
-  }
-  subgraph cluster_5 {
-    label=&quot;bar[2.12]&quot;
-    style=dashed
-    &quot;bar[2.12].bigSuffix&quot;
-  }
-  subgraph cluster_3 {
-    label=&quot;bar[2.10]&quot;
-    style=dashed
-    &quot;bar[2.10].bigSuffix&quot;
-  }
-  &quot;foo[2.10].suffix&quot; -&gt; &quot;bar[2.10].bigSuffix&quot;
-  &quot;foo[2.11].suffix&quot; -&gt; &quot;bar[2.11].bigSuffix&quot;
-  &quot;foo[2.12].suffix&quot; -&gt; &quot;bar[2.12].bigSuffix&quot;
-}</pre>
-</div>
-</div>
+<svg width="305px" height="235px" viewBox="0.00 0.00 304.72 235.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 231.0)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-231 300.72,-231 300.72,4 -4,4"></polygon>
+<g id="clust1" class="cluster">
+<title>cluster_2</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-73 128.64,-73 128.64,-8 8,-8"></polygon>
+<text text-anchor="middle" x="68.32" y="-56.4" font-family="Times,serif" font-size="14.00">foo[2.12]</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_1</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-81 8,-146 128.64,-146 128.64,-81 8,-81"></polygon>
+<text text-anchor="middle" x="68.32" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.11]</text>
+</g>
+<g id="clust3" class="cluster">
+<title>cluster_0</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-154 8,-219 128.64,-219 128.64,-154 8,-154"></polygon>
+<text text-anchor="middle" x="68.32" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.10]</text>
+</g>
+<g id="clust4" class="cluster">
+<title>cluster_4</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="148.64,-81 148.64,-146 288.72,-146 288.72,-81 148.64,-81"></polygon>
+<text text-anchor="middle" x="218.68" y="-129.4" font-family="Times,serif" font-size="14.00">bar[2.11]</text>
+</g>
+<g id="clust5" class="cluster">
+<title>cluster_5</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="148.64,-8 148.64,-73 288.72,-73 288.72,-8 148.64,-8"></polygon>
+<text text-anchor="middle" x="218.68" y="-56.4" font-family="Times,serif" font-size="14.00">bar[2.12]</text>
+</g>
+<g id="clust6" class="cluster">
+<title>cluster_3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="148.64,-154 148.64,-219 288.72,-219 288.72,-154 148.64,-154"></polygon>
+<text text-anchor="middle" x="218.68" y="-202.4" font-family="Times,serif" font-size="14.00">bar[2.10]</text>
+</g>
+<!-- foo[2.12].suffix -->
+<g id="node1" class="node">
+<title>foo[2.12].suffix</title>
+<polygon fill="white" stroke="black" points="120.46,-40.3 16.18,-40.3 16.18,-15.7 120.46,-15.7 120.46,-40.3"></polygon>
+<text text-anchor="middle" x="68.32" y="-23.8" font-family="Times,serif" font-size="14.00">foo[2.12].suffix</text>
+</g>
+<!-- bar[2.12].bigSuffix -->
+<g id="node5" class="node">
+<title>bar[2.12].bigSuffix</title>
+<polygon fill="white" stroke="black" points="280.76,-40.3 156.6,-40.3 156.6,-15.7 280.76,-15.7 280.76,-40.3"></polygon>
+<text text-anchor="middle" x="218.68" y="-23.8" font-family="Times,serif" font-size="14.00">bar[2.12].bigSuffix</text>
+</g>
+<!-- foo[2.12].suffix&#45;&gt;bar[2.12].bigSuffix -->
+<g id="edge3" class="edge">
+<title>foo[2.12].suffix-&gt;bar[2.12].bigSuffix</title>
+<path fill="none" stroke="black" d="M120.79,-28C129.09,-28 137.81,-28 146.48,-28"></path>
+<polygon fill="black" stroke="black" points="146.6,-31.5 156.6,-28 146.6,-24.5 146.6,-31.5"></polygon>
+</g>
+<!-- foo[2.11].suffix -->
+<g id="node2" class="node">
+<title>foo[2.11].suffix</title>
+<polygon fill="white" stroke="black" points="120.46,-113.3 16.18,-113.3 16.18,-88.7 120.46,-88.7 120.46,-113.3"></polygon>
+<text text-anchor="middle" x="68.32" y="-96.8" font-family="Times,serif" font-size="14.00">foo[2.11].suffix</text>
+</g>
+<!-- bar[2.11].bigSuffix -->
+<g id="node4" class="node">
+<title>bar[2.11].bigSuffix</title>
+<polygon fill="white" stroke="black" points="280.76,-113.3 156.6,-113.3 156.6,-88.7 280.76,-88.7 280.76,-113.3"></polygon>
+<text text-anchor="middle" x="218.68" y="-96.8" font-family="Times,serif" font-size="14.00">bar[2.11].bigSuffix</text>
+</g>
+<!-- foo[2.11].suffix&#45;&gt;bar[2.11].bigSuffix -->
+<g id="edge2" class="edge">
+<title>foo[2.11].suffix-&gt;bar[2.11].bigSuffix</title>
+<path fill="none" stroke="black" d="M120.79,-101C129.09,-101 137.81,-101 146.48,-101"></path>
+<polygon fill="black" stroke="black" points="146.6,-104.5 156.6,-101 146.6,-97.5 146.6,-104.5"></polygon>
+</g>
+<!-- foo[2.10].suffix -->
+<g id="node3" class="node">
+<title>foo[2.10].suffix</title>
+<polygon fill="white" stroke="black" points="120.46,-186.3 16.18,-186.3 16.18,-161.7 120.46,-161.7 120.46,-186.3"></polygon>
+<text text-anchor="middle" x="68.32" y="-169.8" font-family="Times,serif" font-size="14.00">foo[2.10].suffix</text>
+</g>
+<!-- bar[2.10].bigSuffix -->
+<g id="node6" class="node">
+<title>bar[2.10].bigSuffix</title>
+<polygon fill="white" stroke="black" points="280.76,-186.3 156.6,-186.3 156.6,-161.7 280.76,-161.7 280.76,-186.3"></polygon>
+<text text-anchor="middle" x="218.68" y="-169.8" font-family="Times,serif" font-size="14.00">bar[2.10].bigSuffix</text>
+</g>
+<!-- foo[2.10].suffix&#45;&gt;bar[2.10].bigSuffix -->
+<g id="edge1" class="edge">
+<title>foo[2.10].suffix-&gt;bar[2.10].bigSuffix</title>
+<path fill="none" stroke="black" d="M120.79,-174C129.09,-174 137.81,-174 146.48,-174"></path>
+<polygon fill="black" stroke="black" points="146.6,-177.5 156.6,-174 146.6,-170.5 146.6,-177.5"></polygon>
+</g>
+</g>
+</svg>
 <div class="paragraph">
 <p>Rather than pssing in a literal <code>&quot;2.10&quot;</code> to the <code>foo</code> cross module, we pass
 in the <code>crossValue</code> property that is available within every <code>Cross.Module</code>.
@@ -721,56 +879,95 @@ trait FooModule extends Cross.Module2[String, String] {
 def bar = T { s&quot;hello ${foo(&quot;2.10&quot;, &quot;jvm&quot;).suffix()}&quot; }</code></pre>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre> digraph G {
-  rankdir=LR
-  node [shape=box width=0 height=0 style=filled fillcolor=white]
-
-  subgraph cluster_6 {
-    label=&quot;foo[2.12,native]&quot;
-    style=dashed
-    &quot;foo[2.12,native].suffix&quot;
-  }
-
-  subgraph cluster_3 {
-    label=&quot;foo[2.10,js]&quot;
-    style=dashed
-    &quot;foo[2.10,js].suffix&quot;
-  }
-  subgraph cluster_4 {
-    label=&quot;foo[2.11,js]&quot;
-    style=dashed
-    &quot;foo[2.11,js].suffix&quot; -&gt; &quot;foo[2.10,js].suffix&quot; [style=invis]
-  }
-  subgraph cluster_5 {
-    label=&quot;foo[2.12,js]&quot;
-    style=dashed
-    &quot;foo[2.12,js].suffix&quot; -&gt; &quot;foo[2.11,js].suffix&quot; [style=invis]
-  }
-
-  subgraph cluster_0 {
-
-    label=&quot;foo[2.10,jvm]&quot;
-    style=dashed
-    &quot;foo[2.10,jvm].suffix&quot;
-
-  }
-  subgraph cluster_1 {
-    label=&quot;foo[2.11,jvm]&quot;
-    style=dashed
-    &quot;foo[2.11,jvm].suffix&quot; -&gt; &quot;foo[2.10,jvm].suffix&quot; [style=invis]
-  }
-  subgraph cluster_2 {
-    label=&quot;foo[2.12,jvm]&quot;
-    style=dashed
-    &quot;foo[2.12,jvm].suffix&quot; -&gt; &quot;foo[2.11,jvm].suffix&quot; [style=invis]
-  }
-
-  &quot;foo[2.10,jvm].suffix&quot; -&gt; bar
-}</pre>
-</div>
-</div>
+<svg width="568px" height="235px" viewBox="0.00 0.00 568.06 235.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 231.0)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-231 564.06,-231 564.06,4 -4,4"></polygon>
+<g id="clust4" class="cluster">
+<title>cluster_5</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="20.44,-81 20.44,-146 326.04,-146 326.04,-81 20.44,-81"></polygon>
+<text text-anchor="middle" x="173.24" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.12,js]</text>
+</g>
+<g id="clust3" class="cluster">
+<title>cluster_4</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="358.49,-81 358.49,-146 491.96,-146 491.96,-81 358.49,-81"></polygon>
+<text text-anchor="middle" x="425.23" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.11,js]</text>
+</g>
+<g id="clust6" class="cluster">
+<title>cluster_1</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="186.35,-154 186.35,-219 498.19,-219 498.19,-154 186.35,-154"></polygon>
+<text text-anchor="middle" x="342.27" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.11,jvm]</text>
+</g>
+<g id="clust7" class="cluster">
+<title>cluster_2</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="14.21,-154 14.21,-219 160.13,-219 160.13,-154 14.21,-154"></polygon>
+<text text-anchor="middle" x="87.17" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.12,jvm]</text>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_6</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-73 166.35,-73 166.35,-8 8,-8"></polygon>
+<text text-anchor="middle" x="87.17" y="-56.4" font-family="Times,serif" font-size="14.00">foo[2.12,native]</text>
+</g>
+<!-- foo[2.12,native].suffix -->
+<g id="node1" class="node">
+<title>foo[2.12,native].suffix</title>
+<polygon fill="white" stroke="black" points="158.52,-40.3 15.83,-40.3 15.83,-15.7 158.52,-15.7 158.52,-40.3"></polygon>
+<text text-anchor="middle" x="87.17" y="-23.8" font-family="Times,serif" font-size="14.00">foo[2.12,native].suffix</text>
+</g>
+<!-- foo[2.10,js].suffix -->
+<g id="node2" class="node">
+<title>foo[2.10,js].suffix</title>
+<polygon fill="white" stroke="black" points="484.2,-113.3 366.25,-113.3 366.25,-88.7 484.2,-88.7 484.2,-113.3"></polygon>
+<text text-anchor="middle" x="425.23" y="-96.8" font-family="Times,serif" font-size="14.00">foo[2.10,js].suffix</text>
+</g>
+<!-- foo[2.11,js].suffix -->
+<g id="node3" class="node">
+<title>foo[2.11,js].suffix</title>
+<polygon fill="white" stroke="black" points="318.28,-113.3 200.33,-113.3 200.33,-88.7 318.28,-88.7 318.28,-113.3"></polygon>
+<text text-anchor="middle" x="259.31" y="-96.8" font-family="Times,serif" font-size="14.00">foo[2.11,js].suffix</text>
+</g>
+<!-- foo[2.11,js].suffix&#45;&gt;foo[2.10,js].suffix -->
+<!-- foo[2.12,js].suffix -->
+<g id="node4" class="node">
+<title>foo[2.12,js].suffix</title>
+<polygon fill="white" stroke="black" points="146.15,-113.3 28.2,-113.3 28.2,-88.7 146.15,-88.7 146.15,-113.3"></polygon>
+<text text-anchor="middle" x="87.17" y="-96.8" font-family="Times,serif" font-size="14.00">foo[2.12,js].suffix</text>
+</g>
+<!-- foo[2.12,js].suffix&#45;&gt;foo[2.11,js].suffix -->
+<!-- foo[2.10,jvm].suffix -->
+<g id="node5" class="node">
+<title>foo[2.10,jvm].suffix</title>
+<polygon fill="white" stroke="black" points="490.15,-186.3 360.31,-186.3 360.31,-161.7 490.15,-161.7 490.15,-186.3"></polygon>
+<text text-anchor="middle" x="425.23" y="-169.8" font-family="Times,serif" font-size="14.00">foo[2.10,jvm].suffix</text>
+</g>
+<!-- bar -->
+<g id="node8" class="node">
+<title>bar</title>
+<polygon fill="white" stroke="black" points="560,-186.3 526.25,-186.3 526.25,-161.7 560,-161.7 560,-186.3"></polygon>
+<text text-anchor="middle" x="543.12" y="-169.8" font-family="Times,serif" font-size="14.00">bar</text>
+</g>
+<!-- foo[2.10,jvm].suffix&#45;&gt;bar -->
+<g id="edge5" class="edge">
+<title>foo[2.10,jvm].suffix-&gt;bar</title>
+<path fill="none" stroke="black" d="M490.28,-174C499.24,-174 508.01,-174 515.72,-174"></path>
+<polygon fill="black" stroke="black" points="515.8,-177.5 525.8,-174 515.8,-170.5 515.8,-177.5"></polygon>
+</g>
+<!-- foo[2.11,jvm].suffix -->
+<g id="node6" class="node">
+<title>foo[2.11,jvm].suffix</title>
+<polygon fill="white" stroke="black" points="324.23,-186.3 194.39,-186.3 194.39,-161.7 324.23,-161.7 324.23,-186.3"></polygon>
+<text text-anchor="middle" x="259.31" y="-169.8" font-family="Times,serif" font-size="14.00">foo[2.11,jvm].suffix</text>
+</g>
+<!-- foo[2.11,jvm].suffix&#45;&gt;foo[2.10,jvm].suffix -->
+<!-- foo[2.12,jvm].suffix -->
+<g id="node7" class="node">
+<title>foo[2.12,jvm].suffix</title>
+<polygon fill="white" stroke="black" points="152.09,-186.3 22.25,-186.3 22.25,-161.7 152.09,-161.7 152.09,-186.3"></polygon>
+<text text-anchor="middle" x="87.17" y="-169.8" font-family="Times,serif" font-size="14.00">foo[2.12,jvm].suffix</text>
+</g>
+<!-- foo[2.12,jvm].suffix&#45;&gt;foo[2.11,jvm].suffix -->
+</g>
+</svg>
 <div class="paragraph">
 <p>This example shows off using a for-loop to generate a list of
 cross-key-tuples, as a <code>Seq[(String, String)]</code> that we then pass it into the
@@ -903,34 +1100,141 @@ trait FooModule extends Cross.Module[String] {
 def baz = T { s&quot;hello ${foo(&quot;a&quot;).bar.param()}&quot; }</code></pre>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>digraph G {
-  node [shape=box width=0 height=0 style=filled fillcolor=white]
-  &quot;root-module&quot; [style=dashed]
-  foo [style=dashed]
-  &quot;foo[a]&quot; [style=dashed]
-  &quot;foo[b]&quot; [style=dashed]
-  &quot;foo[a].bar&quot; [style=dashed]
-  &quot;foo[a].qux&quot; [style=dashed]
-  &quot;foo[b].bar&quot; [style=dashed]
-  &quot;foo[b].qux&quot; [style=dashed]
-  &quot;root-module&quot; -&gt; foo -&gt; &quot;foo[a]&quot; [style=dashed]
-  foo -&gt; &quot;foo[b]&quot;  [style=dashed]
-  &quot;foo[a]&quot; -&gt; &quot;foo[a].bar&quot; [style=dashed]
-  &quot;foo[a]&quot; -&gt; &quot;foo[a].qux&quot; [style=dashed]
-  &quot;foo[b]&quot; -&gt; &quot;foo[b].bar&quot; [style=dashed]
-  &quot;foo[b]&quot; -&gt; &quot;foo[b].qux&quot; [style=dashed]
-  &quot;foo[a].bar&quot; -&gt; &quot;foo[a].bar.name&quot; [style=dashed]
-  &quot;foo[a].bar&quot; -&gt; &quot;foo[a].bar.param&quot; [style=dashed]
-  &quot;foo[a].qux&quot; -&gt; &quot;...&quot; [style=invis]
-  &quot;foo[b].bar&quot; -&gt; &quot;...&quot; [style=invis]
-  &quot;foo[b].qux&quot; -&gt; &quot;...&quot; [style=invis]
-  &quot;...&quot; [color=white]
-  &quot;foo[a].bar.name&quot; -&gt; &quot;foo[a].bar.param&quot; [constraint=false]
-}</pre>
-</div>
-</div>
+<svg width="450px" height="276px" viewBox="0.00 0.00 450.44 276.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 272.0)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-272 446.44,-272 446.44,4 -4,4"></polygon>
+<!-- root&#45;module -->
+<g id="node1" class="node">
+<title>root-module</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="309.4,-267.9 223.99,-267.9 223.99,-243.3 309.4,-243.3 309.4,-267.9"></polygon>
+<text text-anchor="middle" x="266.7" y="-251.4" font-family="Times,serif" font-size="14.00">root-module</text>
+</g>
+<!-- foo -->
+<g id="node2" class="node">
+<title>foo</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="283.86,-207.1 249.53,-207.1 249.53,-182.5 283.86,-182.5 283.86,-207.1"></polygon>
+<text text-anchor="middle" x="266.7" y="-190.6" font-family="Times,serif" font-size="14.00">foo</text>
+</g>
+<!-- root&#45;module&#45;&gt;foo -->
+<g id="edge1" class="edge">
+<title>root-module-&gt;foo</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M266.7,-243.26C266.7,-235.86 266.7,-225.96 266.7,-217.12"></path>
+<polygon fill="black" stroke="black" points="270.2,-217.1 266.7,-207.1 263.2,-217.1 270.2,-217.1"></polygon>
+</g>
+<!-- foo[a] -->
+<g id="node3" class="node">
+<title>foo[a]</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="245.89,-146.3 195.5,-146.3 195.5,-121.7 245.89,-121.7 245.89,-146.3"></polygon>
+<text text-anchor="middle" x="220.7" y="-129.8" font-family="Times,serif" font-size="14.00">foo[a]</text>
+</g>
+<!-- foo&#45;&gt;foo[a] -->
+<g id="edge2" class="edge">
+<title>foo-&gt;foo[a]</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M257.83,-182.46C251.59,-174.49 243.09,-163.63 235.8,-154.3"></path>
+<polygon fill="black" stroke="black" points="238.46,-152.02 229.54,-146.3 232.94,-156.34 238.46,-152.02"></polygon>
+</g>
+<!-- foo[b] -->
+<g id="node4" class="node">
+<title>foo[b]</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="338.18,-146.3 287.21,-146.3 287.21,-121.7 338.18,-121.7 338.18,-146.3"></polygon>
+<text text-anchor="middle" x="312.7" y="-129.8" font-family="Times,serif" font-size="14.00">foo[b]</text>
+</g>
+<!-- foo&#45;&gt;foo[b] -->
+<g id="edge3" class="edge">
+<title>foo-&gt;foo[b]</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M275.56,-182.46C281.8,-174.49 290.3,-163.63 297.59,-154.3"></path>
+<polygon fill="black" stroke="black" points="300.45,-156.34 303.85,-146.3 294.94,-152.02 300.45,-156.34"></polygon>
+</g>
+<!-- foo[a].bar -->
+<g id="node5" class="node">
+<title>foo[a].bar</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="165.27,-85.5 94.12,-85.5 94.12,-60.9 165.27,-60.9 165.27,-85.5"></polygon>
+<text text-anchor="middle" x="129.7" y="-69" font-family="Times,serif" font-size="14.00">foo[a].bar</text>
+</g>
+<!-- foo[a]&#45;&gt;foo[a].bar -->
+<g id="edge4" class="edge">
+<title>foo[a]-&gt;foo[a].bar</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M203.15,-121.66C189.68,-112.96 170.87,-100.81 155.66,-90.98"></path>
+<polygon fill="black" stroke="black" points="157.49,-87.99 147.19,-85.5 153.69,-93.87 157.49,-87.99"></polygon>
+</g>
+<!-- foo[a].qux -->
+<g id="node6" class="node">
+<title>foo[a].qux</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="257.89,-85.5 183.5,-85.5 183.5,-60.9 257.89,-60.9 257.89,-85.5"></polygon>
+<text text-anchor="middle" x="220.7" y="-69" font-family="Times,serif" font-size="14.00">foo[a].qux</text>
+</g>
+<!-- foo[a]&#45;&gt;foo[a].qux -->
+<g id="edge5" class="edge">
+<title>foo[a]-&gt;foo[a].qux</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M220.7,-121.66C220.7,-114.26 220.7,-104.36 220.7,-95.52"></path>
+<polygon fill="black" stroke="black" points="224.2,-95.5 220.7,-85.5 217.2,-95.5 224.2,-95.5"></polygon>
+</g>
+<!-- foo[b].bar -->
+<g id="node7" class="node">
+<title>foo[b].bar</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="349.05,-85.5 276.34,-85.5 276.34,-60.9 349.05,-60.9 349.05,-85.5"></polygon>
+<text text-anchor="middle" x="312.7" y="-69" font-family="Times,serif" font-size="14.00">foo[b].bar</text>
+</g>
+<!-- foo[b]&#45;&gt;foo[b].bar -->
+<g id="edge6" class="edge">
+<title>foo[b]-&gt;foo[b].bar</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M312.7,-121.66C312.7,-114.26 312.7,-104.36 312.7,-95.52"></path>
+<polygon fill="black" stroke="black" points="316.2,-95.5 312.7,-85.5 309.2,-95.5 316.2,-95.5"></polygon>
+</g>
+<!-- foo[b].qux -->
+<g id="node8" class="node">
+<title>foo[b].qux</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="442.68,-85.5 366.71,-85.5 366.71,-60.9 442.68,-60.9 442.68,-85.5"></polygon>
+<text text-anchor="middle" x="404.7" y="-69" font-family="Times,serif" font-size="14.00">foo[b].qux</text>
+</g>
+<!-- foo[b]&#45;&gt;foo[b].qux -->
+<g id="edge7" class="edge">
+<title>foo[b]-&gt;foo[b].qux</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M330.43,-121.66C344.05,-112.96 363.07,-100.81 378.45,-90.98"></path>
+<polygon fill="black" stroke="black" points="380.47,-93.84 387.01,-85.5 376.7,-87.94 380.47,-93.84"></polygon>
+</g>
+<!-- foo[a].bar.name -->
+<g id="node9" class="node">
+<title>foo[a].bar.name</title>
+<polygon fill="white" stroke="black" points="105.59,-24.7 -0.2,-24.7 -0.2,-0.1 105.59,-0.1 105.59,-24.7"></polygon>
+<text text-anchor="middle" x="52.7" y="-8.2" font-family="Times,serif" font-size="14.00">foo[a].bar.name</text>
+</g>
+<!-- foo[a].bar&#45;&gt;foo[a].bar.name -->
+<g id="edge8" class="edge">
+<title>foo[a].bar-&gt;foo[a].bar.name</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M114.85,-60.86C103.77,-52.4 88.43,-40.69 75.76,-31.01"></path>
+<polygon fill="black" stroke="black" points="77.57,-27.99 67.5,-24.7 73.32,-33.55 77.57,-27.99"></polygon>
+</g>
+<!-- foo[a].bar.param -->
+<g id="node10" class="node">
+<title>foo[a].bar.param</title>
+<polygon fill="white" stroke="black" points="233.75,-24.7 123.64,-24.7 123.64,-0.1 233.75,-0.1 233.75,-24.7"></polygon>
+<text text-anchor="middle" x="178.7" y="-8.2" font-family="Times,serif" font-size="14.00">foo[a].bar.param</text>
+</g>
+<!-- foo[a].bar&#45;&gt;foo[a].bar.param -->
+<g id="edge9" class="edge">
+<title>foo[a].bar-&gt;foo[a].bar.param</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M139.14,-60.86C145.85,-52.81 155.03,-41.8 162.85,-32.42"></path>
+<polygon fill="black" stroke="black" points="165.56,-34.63 169.28,-24.7 160.19,-30.14 165.56,-34.63"></polygon>
+</g>
+<!-- ... -->
+<g id="node11" class="node">
+<title>...</title>
+<polygon fill="white" stroke="white" points="326.2,-24.7 299.19,-24.7 299.19,-0.1 326.2,-0.1 326.2,-24.7"></polygon>
+<text text-anchor="middle" x="312.7" y="-8.2" font-family="Times,serif" font-size="14.00">...</text>
+</g>
+<!-- foo[a].qux&#45;&gt;... -->
+<!-- foo[b].bar&#45;&gt;... -->
+<!-- foo[b].qux&#45;&gt;... -->
+<!-- foo[a].bar.name&#45;&gt;foo[a].bar.param -->
+<g id="edge13" class="edge">
+<title>foo[a].bar.name-&gt;foo[a].bar.param</title>
+<path fill="none" stroke="black" d="M105.85,-12.4C108.33,-12.4 110.81,-12.4 113.29,-12.4"></path>
+<polygon fill="black" stroke="black" points="113.49,-15.9 123.49,-12.4 113.49,-8.9 113.49,-15.9"></polygon>
+</g>
+</g>
+</svg>
 <div class="paragraph">
 <p>You can use the <code>CrossValue</code> trait within any <code>Cross.Module</code> to
 propagate the <code>crossValue</code> defined by an enclosing <code>Cross.Module</code> to some
@@ -1259,22 +1563,105 @@ enough posts that the build is becoming noticeably slow.</p>
 <p>All caching, incremental re-computation, and parallelism is done using the
 Mill target graph. For this simple example, the graph is as follows</p>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>digraph G {
-  node [shape=box width=0 height=0]
-  &quot;1 - Foo.md&quot; -&gt; &quot;post[1]\nrender&quot;
-  &quot;2 - Foo.md&quot; -&gt; &quot;post[2]\nrender&quot;
-  &quot;3 - Foo.md&quot; -&gt; &quot;post[3]\nrender&quot;
-
-  &quot;post[1]\nrender&quot; -&gt; &quot;dist&quot;
-  &quot;post[2]\nrender&quot; -&gt; &quot;dist&quot;
-  &quot;post[3]\nrender&quot; -&gt; &quot;dist&quot;
-  &quot;index&quot; -&gt; &quot;dist&quot;
-
-}</pre>
-</div>
-</div>
+<svg width="309px" height="171px" viewBox="0.00 0.00 309.47 171.20" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 167.2)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-167.2 305.47,-167.2 305.47,4 -4,4"></polygon>
+<!-- 1 &#45; Foo.md -->
+<g id="node1" class="node">
+<title>1 - Foo.md</title>
+<polygon fill="none" stroke="black" points="77.75,-163.1 0.08,-163.1 0.08,-138.5 77.75,-138.5 77.75,-163.1"></polygon>
+<text text-anchor="middle" x="38.92" y="-146.6" font-family="Times,serif" font-size="14.00">1 - Foo.md</text>
+</g>
+<!-- post[1]\nrender -->
+<g id="node2" class="node">
+<title>post[1]\nrender</title>
+<polygon fill="none" stroke="black" points="77.57,-102.2 22.26,-102.2 22.26,-61 77.57,-61 77.57,-102.2"></polygon>
+<text text-anchor="middle" x="49.92" y="-85.8" font-family="Times,serif" font-size="14.00">post[1]</text>
+<text text-anchor="middle" x="49.92" y="-69" font-family="Times,serif" font-size="14.00">render</text>
+</g>
+<!-- 1 &#45; Foo.md&#45;&gt;post[1]\nrender -->
+<g id="edge1" class="edge">
+<title>1 - Foo.md-&gt;post[1]\nrender</title>
+<path fill="none" stroke="black" d="M40.78,-138.4C41.96,-131.22 43.54,-121.59 45.05,-112.35"></path>
+<polygon fill="black" stroke="black" points="48.54,-112.67 46.7,-102.23 41.63,-111.54 48.54,-112.67"></polygon>
+</g>
+<!-- dist -->
+<g id="node7" class="node">
+<title>dist</title>
+<polygon fill="none" stroke="black" points="190.14,-24.7 153.69,-24.7 153.69,-0.1 190.14,-0.1 190.14,-24.7"></polygon>
+<text text-anchor="middle" x="171.92" y="-8.2" font-family="Times,serif" font-size="14.00">dist</text>
+</g>
+<!-- post[1]\nrender&#45;&gt;dist -->
+<g id="edge4" class="edge">
+<title>post[1]\nrender-&gt;dist</title>
+<path fill="none" stroke="black" d="M77.6,-65.35C97.75,-54.25 124.9,-39.3 144.89,-28.29"></path>
+<polygon fill="black" stroke="black" points="146.73,-31.27 153.8,-23.38 143.35,-25.14 146.73,-31.27"></polygon>
+</g>
+<!-- 2 &#45; Foo.md -->
+<g id="node3" class="node">
+<title>2 - Foo.md</title>
+<polygon fill="none" stroke="black" points="173.75,-163.1 96.08,-163.1 96.08,-138.5 173.75,-138.5 173.75,-163.1"></polygon>
+<text text-anchor="middle" x="134.92" y="-146.6" font-family="Times,serif" font-size="14.00">2 - Foo.md</text>
+</g>
+<!-- post[2]\nrender -->
+<g id="node4" class="node">
+<title>post[2]\nrender</title>
+<polygon fill="none" stroke="black" points="162.57,-102.2 107.26,-102.2 107.26,-61 162.57,-61 162.57,-102.2"></polygon>
+<text text-anchor="middle" x="134.92" y="-85.8" font-family="Times,serif" font-size="14.00">post[2]</text>
+<text text-anchor="middle" x="134.92" y="-69" font-family="Times,serif" font-size="14.00">render</text>
+</g>
+<!-- 2 &#45; Foo.md&#45;&gt;post[2]\nrender -->
+<g id="edge2" class="edge">
+<title>2 - Foo.md-&gt;post[2]\nrender</title>
+<path fill="none" stroke="black" d="M134.92,-138.4C134.92,-131.22 134.92,-121.59 134.92,-112.35"></path>
+<polygon fill="black" stroke="black" points="138.42,-112.23 134.92,-102.23 131.42,-112.23 138.42,-112.23"></polygon>
+</g>
+<!-- post[2]\nrender&#45;&gt;dist -->
+<g id="edge5" class="edge">
+<title>post[2]\nrender-&gt;dist</title>
+<path fill="none" stroke="black" d="M145.82,-60.8C150.46,-52.36 155.88,-42.52 160.58,-33.99"></path>
+<polygon fill="black" stroke="black" points="163.73,-35.52 165.49,-25.08 157.6,-32.15 163.73,-35.52"></polygon>
+</g>
+<!-- 3 &#45; Foo.md -->
+<g id="node5" class="node">
+<title>3 - Foo.md</title>
+<polygon fill="none" stroke="black" points="269.75,-163.1 192.08,-163.1 192.08,-138.5 269.75,-138.5 269.75,-163.1"></polygon>
+<text text-anchor="middle" x="230.92" y="-146.6" font-family="Times,serif" font-size="14.00">3 - Foo.md</text>
+</g>
+<!-- post[3]\nrender -->
+<g id="node6" class="node">
+<title>post[3]\nrender</title>
+<polygon fill="none" stroke="black" points="236.57,-102.2 181.26,-102.2 181.26,-61 236.57,-61 236.57,-102.2"></polygon>
+<text text-anchor="middle" x="208.92" y="-85.8" font-family="Times,serif" font-size="14.00">post[3]</text>
+<text text-anchor="middle" x="208.92" y="-69" font-family="Times,serif" font-size="14.00">render</text>
+</g>
+<!-- 3 &#45; Foo.md&#45;&gt;post[3]\nrender -->
+<g id="edge3" class="edge">
+<title>3 - Foo.md-&gt;post[3]\nrender</title>
+<path fill="none" stroke="black" d="M227.18,-138.4C224.78,-131.06 221.54,-121.17 218.46,-111.75"></path>
+<polygon fill="black" stroke="black" points="221.78,-110.65 215.34,-102.23 215.13,-112.83 221.78,-110.65"></polygon>
+</g>
+<!-- post[3]\nrender&#45;&gt;dist -->
+<g id="edge6" class="edge">
+<title>post[3]\nrender-&gt;dist</title>
+<path fill="none" stroke="black" d="M198.02,-60.8C193.37,-52.36 187.95,-42.52 183.26,-33.99"></path>
+<polygon fill="black" stroke="black" points="186.24,-32.15 178.35,-25.08 180.1,-35.52 186.24,-32.15"></polygon>
+</g>
+<!-- index -->
+<g id="node8" class="node">
+<title>index</title>
+<polygon fill="none" stroke="black" points="301.52,-93.9 254.31,-93.9 254.31,-69.3 301.52,-69.3 301.52,-93.9"></polygon>
+<text text-anchor="middle" x="277.92" y="-77.4" font-family="Times,serif" font-size="14.00">index</text>
+</g>
+<!-- index&#45;&gt;dist -->
+<g id="edge7" class="edge">
+<title>index-&gt;dist</title>
+<path fill="none" stroke="black" d="M259.94,-69.2C243.11,-58.53 217.76,-42.46 198.58,-30.3"></path>
+<polygon fill="black" stroke="black" points="200.31,-27.25 189.99,-24.86 196.56,-33.17 200.31,-27.25"></polygon>
+</g>
+</g>
+</svg>
 <div class="paragraph">
 <p>This example use case is taken from the following blog post, which contains
 some extensions and fun exercises to further familiarize yourself with Mill</p>

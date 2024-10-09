@@ -310,7 +310,7 @@
 <div class="page-versions">
   <button class="version-menu-toggle" title="Show other versions of page">0.11.11</button>
   <div class="version-menu">
-    <a class="version is-missing" href="../../../index.html">0.12.0-RC3-33-45161b</a>
+    <a class="version is-missing" href="../../../index.html">0.12.0-RC3-34-bbec01</a>
     <a class="version" href="../../../0.11.12/example/basicjava/2-custom-build-logic.html">0.11.12</a>
     <a class="version is-current" href="2-custom-build-logic.html">0.11.11</a>
     <a class="version" href="../../../0.11.10/example/basicjava/2-custom-build-logic.html">0.11.10</a>
@@ -353,20 +353,73 @@ folder provided by <code>JavaModule</code> (labelled <code>resource.super</code>
 it with the destination folder of the new <code>resources</code> target, which is wired
 up <code>lineCount</code>:</p>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>digraph G {
-  rankdir=LR
-  node [shape=box width=0 height=0 style=filled fillcolor=white]
-  allSourceFiles -&gt; lineCount -&gt; resources -&gt; &quot;...&quot; -&gt; run
-  &quot;resources.super&quot; -&gt; &quot;...&quot; [style=invis]
-  &quot;...&quot; [color=white]
-  &quot;resources.super&quot; [style=dashed]
-  allSourceFiles [color=white]
-  run [color=white]
-}</pre>
-</div>
-</div>
+<svg width="483px" height="76px" viewBox="0.00 0.00 483.15 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 479.15,-71.8 479.15,4 -4,4"></polygon>
+<!-- allSourceFiles -->
+<g id="node1" class="node">
+<title>allSourceFiles</title>
+<polygon fill="white" stroke="white" points="96.14,-67.7 -0.05,-67.7 -0.05,-43.1 96.14,-43.1 96.14,-67.7"></polygon>
+<text text-anchor="middle" x="48.05" y="-51.2" font-family="Times,serif" font-size="14.00">allSourceFiles</text>
+</g>
+<!-- lineCount -->
+<g id="node2" class="node">
+<title>lineCount</title>
+<polygon fill="white" stroke="black" points="203.43,-67.7 131.98,-67.7 131.98,-43.1 203.43,-43.1 203.43,-67.7"></polygon>
+<text text-anchor="middle" x="167.7" y="-51.2" font-family="Times,serif" font-size="14.00">lineCount</text>
+</g>
+<!-- allSourceFiles&#45;&gt;lineCount -->
+<g id="edge1" class="edge">
+<title>allSourceFiles-&gt;lineCount</title>
+<path fill="none" stroke="black" d="M96.22,-55.4C104.58,-55.4 113.27,-55.4 121.58,-55.4"></path>
+<polygon fill="black" stroke="black" points="121.83,-58.9 131.83,-55.4 121.83,-51.9 121.83,-58.9"></polygon>
+</g>
+<!-- resources -->
+<g id="node3" class="node">
+<title>resources</title>
+<polygon fill="white" stroke="black" points="325.01,-67.7 256.3,-67.7 256.3,-43.1 325.01,-43.1 325.01,-67.7"></polygon>
+<text text-anchor="middle" x="290.65" y="-51.2" font-family="Times,serif" font-size="14.00">resources</text>
+</g>
+<!-- lineCount&#45;&gt;resources -->
+<g id="edge2" class="edge">
+<title>lineCount-&gt;resources</title>
+<path fill="none" stroke="black" d="M203.36,-55.4C216.6,-55.4 231.87,-55.4 245.85,-55.4"></path>
+<polygon fill="black" stroke="black" points="246.24,-58.9 256.24,-55.4 246.24,-51.9 246.24,-58.9"></polygon>
+</g>
+<!-- ... -->
+<g id="node4" class="node">
+<title>...</title>
+<polygon fill="white" stroke="white" points="404.74,-45.7 377.73,-45.7 377.73,-21.1 404.74,-21.1 404.74,-45.7"></polygon>
+<text text-anchor="middle" x="391.24" y="-29.2" font-family="Times,serif" font-size="14.00">...</text>
+</g>
+<!-- resources&#45;&gt;... -->
+<g id="edge3" class="edge">
+<title>resources-&gt;...</title>
+<path fill="none" stroke="black" d="M325.03,-47.95C339.03,-44.83 354.94,-41.28 367.55,-38.46"></path>
+<polygon fill="black" stroke="black" points="368.64,-41.81 377.64,-36.21 367.12,-34.97 368.64,-41.81"></polygon>
+</g>
+<!-- run -->
+<g id="node5" class="node">
+<title>run</title>
+<polygon fill="white" stroke="white" points="474.98,-45.7 440.66,-45.7 440.66,-21.1 474.98,-21.1 474.98,-45.7"></polygon>
+<text text-anchor="middle" x="457.82" y="-29.2" font-family="Times,serif" font-size="14.00">run</text>
+</g>
+<!-- ...&#45;&gt;run -->
+<g id="edge4" class="edge">
+<title>...-&gt;run</title>
+<path fill="none" stroke="black" d="M404.69,-33.4C411.88,-33.4 421.22,-33.4 430,-33.4"></path>
+<polygon fill="black" stroke="black" points="430.25,-36.9 440.25,-33.4 430.25,-29.9 430.25,-36.9"></polygon>
+</g>
+<!-- resources.super -->
+<g id="node6" class="node">
+<title>resources.super</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="341.83,-24.7 239.48,-24.7 239.48,-0.1 341.83,-0.1 341.83,-24.7"></polygon>
+<text text-anchor="middle" x="290.65" y="-8.2" font-family="Times,serif" font-size="14.00">resources.super</text>
+</g>
+<!-- resources.super&#45;&gt;... -->
+</g>
+</svg>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill run
