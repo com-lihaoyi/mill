@@ -428,13 +428,14 @@ object MillMain {
       if (noBuildLock) Lock.dummy()
       else Lock.file((out / OutFiles.millLock).toString)
 
-    def activeTaskString = os.read(out / OutFiles.millActiveCommand)
+    def activeTaskString = try{ os.read(out / OutFiles.millActiveCommand) }catch{case e => "<unknown>"}
     Using.resource {
       val tryLocked = outLock.tryLock()
       if (tryLocked.isLocked()) tryLocked
       else if (noWaitForBuildLock) {
         throw new Exception(s"Another Mill process is running '$activeTaskString'")
       } else {
+
         streams.err.println(
           s"Another Mill process is running '$activeTaskString', waiting for it to be done..."
         )
@@ -443,7 +444,7 @@ object MillMain {
     } { _ =>
       os.write.over(out / OutFiles.millActiveCommand, targetsAndParams.mkString(" "))
       try t
-      finally os.remove.all(out / OutFiles.millActiveCommand)
+      finally 0// os.remove.all(out / OutFiles.millActiveCommand)
     }
   }
 
