@@ -4,8 +4,7 @@ import mill.testkit.UtestIntegrationTestSuite
 import utest._
 import utest.asserts.{RetryInterval, RetryMax}
 
-import java.io.ByteArrayOutputStream
-import java.util.concurrent.{CountDownLatch, Executors}
+import java.util.concurrent.Executors
 import scala.concurrent.duration.{Duration, DurationInt}
 import scala.concurrent.{Await, ExecutionContext, Future}
 
@@ -17,8 +16,8 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
   override def utestAfterAll(): Unit = {
     pool.shutdown()
   }
-  implicit val retryMax = RetryMax(30000.millis)
-  implicit val retryInterval = RetryInterval(50.millis)
+  implicit val retryMax: RetryMax = RetryMax(30000.millis)
+  implicit val retryInterval: RetryInterval = RetryInterval(50.millis)
   def tests: Tests = Tests {
     test("basic") - integrationTest { tester =>
       import tester._
