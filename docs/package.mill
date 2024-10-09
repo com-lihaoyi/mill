@@ -98,11 +98,14 @@ object `package` extends RootModule {
         val outputLines = collection.mutable.ArrayDeque.empty[String]
         val graphvizLines = collection.mutable.ArrayDeque.empty[String]
         var isGraphViz = false
+        var isGraphViz0 = false
 
         for((line, i) <- os.read.lines(p).zipWithIndex){
           line match{
-            case "```graphviz" => isGraphViz = true
-            case "```" if isGraphViz =>
+            case "[graphviz]" => isGraphViz = true
+            case "...." if isGraphViz0 => isGraphViz0 = false; isGraphViz = true
+            case "```graphviz" => isGraphViz0 = true
+            case "```" | "...." if isGraphViz =>
               isGraphViz = false
               if (inputs.isEmpty) output((p, i)) = graphvizLines.mkString("\n")
               else {
