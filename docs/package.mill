@@ -123,10 +123,11 @@ object `package` extends RootModule {
     }
 
     val diagrams = walkAllFiles(Map())
+    // Batch the rendering so later it can be done in one call to a single subprocess,
+    // minimizing per-subprocess overhead needed to spawn them over and over
     val renderedDiagrams = diagrams
       .map{case (k, s) => (k, Graphviz.fromString(s).render(Format.SVG).toString)}
-    pprint.log(diagrams.mapValues(_.size))
-    pprint.log(renderedDiagrams.mapValues(_.size))
+
     walkAllFiles(renderedDiagrams)
 
     PathRef(T.dest)

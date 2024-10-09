@@ -17,23 +17,24 @@ object GraphvizTools {
 
     try {
       implicit val ec: ExecutionContext = ExecutionContext.fromExecutor(executor)
-      val futures = for (arg <- args.toSeq) yield Future {
-        val Array(src, dest0, commaSepExtensions) = arg.split(";")
-        val extensions = commaSepExtensions.split(',')
-        val dest = os.Path(dest0)
-        import guru.nidi.graphviz.engine.{Format, Graphviz}
+      val futures =
+        for (arg <- args.toSeq) yield Future {
+          val Array(src, dest0, commaSepExtensions) = arg.split(";")
+          val extensions = commaSepExtensions.split(',')
+          val dest = os.Path(dest0)
+          import guru.nidi.graphviz.engine.{Format, Graphviz}
 
-        Graphviz.useEngine(new AbstractJsGraphvizEngine(true, () => new V8JavascriptEngine()) {})
-        val gv = Graphviz.fromFile(new java.io.File(src)).totalMemory(128 * 1024 * 1024)
+          Graphviz.useEngine(new AbstractJsGraphvizEngine(true, () => new V8JavascriptEngine()) {})
+          val gv = Graphviz.fromFile(new java.io.File(src)).totalMemory(128 * 1024 * 1024)
 
-        val outputs = extensions
-          .map(ext => Format.values().find(_.fileExtension == ext).head -> s"out.$ext")
+          val outputs = extensions
+            .map(ext => Format.values().find(_.fileExtension == ext).head -> s"out.$ext")
 
-        for ((fmt, name) <- outputs) gv.render(fmt).toFile((dest / name).toIO)
-      }
+          for ((fmt, name) <- outputs) gv.render(fmt).toFile((dest / name).toIO)
+        }
 
       Await.result(Future.sequence(futures), duration.Duration.Inf)
-    }finally executor.shutdown()
+    } finally executor.shutdown()
   }
 }
 
