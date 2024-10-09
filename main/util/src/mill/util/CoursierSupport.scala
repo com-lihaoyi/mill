@@ -6,7 +6,7 @@ import coursier.error.ResolutionError.CantDownloadModule
 import coursier.params.ResolutionParams
 import coursier.parse.RepositoryParser
 import coursier.util.Task
-import coursier.{Artifacts, Classifier, Dependency, Repository, Resolution, Resolve}
+import coursier.{Artifacts, Classifier, Dependency, Repository, Resolution, Resolve, Type}
 import mill.api.Loose.Agg
 import mill.api.{Ctx, PathRef, Result}
 
@@ -85,6 +85,10 @@ trait CoursierSupport {
         .withClassifiers(
           if (sources) Set(Classifier("sources"))
           else Set.empty
+        )
+        .withArtifactTypesOpt(
+          if (sources) None
+          else Some(coursier.core.Resolution.defaultTypes ++ Seq(Type("klib")))
         )
         .eitherResult()
 
