@@ -1,5 +1,6 @@
 package mill.util
 
+import fansi.Attrs
 import mill.api.{Logger, SystemStreams}
 
 import java.io.{InputStream, OutputStream, PrintStream}
@@ -97,6 +98,9 @@ class MultiLogger(
       debugEnabled
     )
   }
+
+  override def infoColor: Attrs = logger1.infoColor ++ logger2.infoColor
+  override def errorColor: Attrs = logger1.errorColor ++ logger2.errorColor
 }
 
 class MultiStream(stream1: OutputStream, stream2: OutputStream)

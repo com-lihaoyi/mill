@@ -40,4 +40,6 @@ class ProxyLogger(logger: Logger) extends Logger {
   private[mill] override def withPromptUnpaused[T](t: => T): T = logger.withPromptUnpaused(t)
 
   override def enableTicker = logger.enableTicker
+  override def infoColor: fansi.Attrs = logger.infoColor
+  override def errorColor: fansi.Attrs = logger.errorColor
 }
