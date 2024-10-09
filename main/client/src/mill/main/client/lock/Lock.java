@@ -23,9 +23,4 @@ public abstract class Lock implements AutoCloseable {
     public static Lock memory() {
         return new MemoryLock();
     }
-
-    public static Lock dummy() {
-        return new DummyLock();
-    }
-
 }

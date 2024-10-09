@@ -62,4 +62,9 @@ public class OutFiles {
      */
     final public static String millLock = "mill-lock";
 
+    /**
+     * Any active Mill command that is currently run, for debugging purposes
+     */
+    final public static String millActiveCommand = "mill-active-command";
+
 }

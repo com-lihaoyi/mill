@@ -1,7 +1,6 @@
 package mill.api
 
 import java.io.{InputStream, PrintStream}
-import mill.main.client.lock.{Lock, Locked}
 
 /**
  * The standard logging interface of the Mill build tool.
@@ -83,19 +82,6 @@ trait Logger extends AutoCloseable {
     setPromptLine()
     try t
     finally removePromptLine()
-  }
-
-  def waitForLock(lock: Lock, waitingAllowed: Boolean): Locked = {
-    val tryLocked = lock.tryLock()
-    if (tryLocked.isLocked())
-      tryLocked
-    else if (waitingAllowed) {
-      info("Another Mill process is running tasks, waiting for it to be done...")
-      lock.lock()
-    } else {
-      error("Cannot proceed, another Mill process is running tasks")
-      throw new Exception("Cannot acquire lock on Mill output directory")
-    }
   }
 
   def withOutStream(outStream: PrintStream): Logger = this
