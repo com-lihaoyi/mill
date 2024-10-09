@@ -92,29 +92,42 @@ object `package` extends RootModule {
 
     Graphviz.useEngine(new AbstractJsGraphvizEngine(true, () => new mill.main.graphviz.V8JavascriptEngine()) {})
 
-    for (p <- os.walk(T.dest) if p.ext == "adoc"){
-      val outputLines = collection.mutable.ArrayDeque.empty[String]
-      val graphvizLines = collection.mutable.ArrayDeque.empty[String]
-      var isGraphViz = false
+    def walkAllFiles(inputs: Map[(os.Path, Int), String]): Map[(os.Path, Int), String] = {
+      val output = collection.mutable.Map.empty[(os.Path, Int), String]
+      for (p <- os.walk(T.dest) if p.ext == "adoc"){
+        val outputLines = collection.mutable.ArrayDeque.empty[String]
+        val graphvizLines = collection.mutable.ArrayDeque.empty[String]
+        var isGraphViz = false
 
-      for(line <- os.read.lines(p)){
-        line match{
-          case "```graphviz" => isGraphViz = true
-          case "```" if graphvizLines.nonEmpty =>
-            isGraphViz = false
-            outputLines.append("++++")
-            outputLines.append(
-              Graphviz.fromString(graphvizLines.mkString).render(Format.SVG).toString
-            )
-            outputLines.append("++++")
-            graphvizLines.clear()
-          case _ =>
-            if (isGraphViz) graphvizLines.append(line)
-            else outputLines.append(line)
+        for((line, i) <- os.read.lines(p).zipWithIndex){
+          line match{
+            case "```graphviz" => isGraphViz = true
+            case "```" if isGraphViz =>
+              isGraphViz = false
+              if (inputs.isEmpty) output((p, i)) = graphvizLines.mkString("\n")
+              else {
+                outputLines.append("++++")
+                outputLines.append(inputs((p, i)))
+                outputLines.append("++++")
+              }
+
+              graphvizLines.clear()
+            case _ =>
+              if (isGraphViz) graphvizLines.append(line)
+              else outputLines.append(line)
+          }
         }
+        if (inputs.nonEmpty) os.write.over(p, outputLines.mkString("\n"))
       }
-      os.write.over(p, outputLines.mkString("\n"))
+      output.toMap
     }
+
+    val diagrams = walkAllFiles(Map())
+    val renderedDiagrams = diagrams
+      .map{case (k, s) => (k, Graphviz.fromString(s).render(Format.SVG).toString)}
+    pprint.log(diagrams.mapValues(_.size))
+    pprint.log(renderedDiagrams.mapValues(_.size))
+    walkAllFiles(renderedDiagrams)
 
     PathRef(T.dest)
   }
