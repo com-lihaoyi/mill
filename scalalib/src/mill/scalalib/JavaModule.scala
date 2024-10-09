@@ -1057,13 +1057,14 @@ trait JavaModule
   )
 
   @internal
+  def bspJvmBuildTarget: JvmBuildTarget =
+    JvmBuildTarget(
+      javaHome = Option(System.getProperty("java.home")).map(p => BspUri(os.Path(p))),
+      javaVersion = Option(System.getProperty("java.version"))
+    )
+
+  @internal
   override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = Task.Anon {
-    Some((
-      JvmBuildTarget.dataKind,
-      JvmBuildTarget(
-        javaHome = Option(System.getProperty("java.home")).map(p => BspUri(os.Path(p))),
-        javaVersion = Option(System.getProperty("java.version"))
-      )
-    ))
+    Some((JvmBuildTarget.dataKind, bspJvmBuildTarget))
   }
 }
