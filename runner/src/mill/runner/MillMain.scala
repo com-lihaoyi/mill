@@ -226,8 +226,6 @@ object MillMain {
                     evaluate = (prevState: Option[RunnerState]) => {
                       adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
 
-
-
                       withOutLock(
                         config.noBuildLock.value || bspContext.isDefined,
                         config.noWaitForBuildLock.value,
@@ -437,7 +435,9 @@ object MillMain {
       else if (noWaitForBuildLock) {
         throw new Exception(s"Another Mill process is running '$activeTaskString'")
       } else {
-        streams.err.println(s"Another Mill process is running '$activeTaskString', waiting for it to be done...")
+        streams.err.println(
+          s"Another Mill process is running '$activeTaskString', waiting for it to be done..."
+        )
         outLock.lock()
       }
     } { _ =>
