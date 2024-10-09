@@ -21,10 +21,6 @@ trait MyScalaModule extends MyModule with CrossScalaModule {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
     def testFramework = "utest.runner.Framework"
   }
-  override def compile = Task{
-    pprint.log(T.log)
-    super.compile()
-  }
 }
 
 val scalaVersions = Seq("2.13.8", "3.3.3")
