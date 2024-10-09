@@ -1,7 +1,6 @@
 package mill.util
 
 import mill.api.{Logger, SystemStreams}
-import pprint.Util.literalize
 
 import java.io.PrintStream
 
@@ -20,7 +19,8 @@ class PrefixLogger(
 ) extends ColorLogger {
   private[mill] override val logPrefixKey = logger0.logPrefixKey ++ key0
   assert(key0.forall(_.nonEmpty))
-  val linePrefix: String = if (noPrefix || logPrefixKey.isEmpty) "" else s"[${logPrefixKey.mkString("-")}] "
+  val linePrefix: String =
+    if (noPrefix || logPrefixKey.isEmpty) "" else s"[${logPrefixKey.mkString("-")}] "
   override def toString: String =
     s"PrefixLogger($logger0, $key0)"
   def this(logger0: ColorLogger, context: String, tickerContext: String) =
