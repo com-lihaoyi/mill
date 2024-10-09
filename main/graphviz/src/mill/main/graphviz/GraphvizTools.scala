@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory
 import org.slf4j.Logger
 
 import java.util.concurrent.Executors
+import guru.nidi.graphviz.engine.{Format, Graphviz}
 import scala.concurrent.{Await, ExecutionContext, Future, duration}
 
 object GraphvizTools {
@@ -15,6 +16,16 @@ object GraphvizTools {
   def main(args: Array[String]): Unit = {
     val executor = Executors.newFixedThreadPool(Runtime.getRuntime.availableProcessors())
 
+    val threadLocalJsEngines = new java.util.concurrent.ConcurrentHashMap[Thread, V8JavascriptEngine]()
+    Graphviz.useEngine(
+      new AbstractJsGraphvizEngine(
+        true,
+        () => {
+          threadLocalJsEngines.putIfAbsent(Thread.currentThread(), new V8JavascriptEngine())
+          threadLocalJsEngines.get(Thread.currentThread())
+        }
+      ) {}
+    )
     try {
       implicit val ec: ExecutionContext = ExecutionContext.fromExecutor(executor)
       val futures =
@@ -22,9 +33,9 @@ object GraphvizTools {
           val Array(src, dest0, commaSepExtensions) = arg.split(";")
           val extensions = commaSepExtensions.split(',')
           val dest = os.Path(dest0)
-          import guru.nidi.graphviz.engine.{Format, Graphviz}
 
-          Graphviz.useEngine(new AbstractJsGraphvizEngine(true, () => new V8JavascriptEngine()) {})
+
+
           val gv = Graphviz.fromFile(new java.io.File(src)).totalMemory(128 * 1024 * 1024)
 
           val outputs = extensions

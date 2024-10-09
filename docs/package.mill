@@ -127,7 +127,6 @@ object `package` extends RootModule {
     // minimizing per-subprocess overhead needed to spawn them over and over
     val orderedDiagrams = diagrams.toSeq.map{case ((p, i), s) => (p, i, os.temp(s), os.temp.dir())}
 
-    pprint.log(orderedDiagrams)
     mill.util.Jvm.runSubprocess(
       "mill.main.graphviz.GraphvizTools",
       mill.main.VisualizeModule.classpath().map(_.path),
