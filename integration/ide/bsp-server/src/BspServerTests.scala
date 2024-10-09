@@ -15,7 +15,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
   override protected def workspaceSourcePath: os.Path =
     super.workspaceSourcePath / "project"
 
-  def substitutions(
+  def transitiveDependenciesSubstitutions(
       dependency: coursierapi.Dependency,
       filter: coursierapi.Dependency => Boolean
   ): Seq[(String, String)] = {
@@ -51,7 +51,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
         millTestSuiteEnv
       ) { (buildServer, initRes) =>
         val scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
-        val scalaTransitiveSubstitutions = substitutions(
+        val scalaTransitiveSubstitutions = transitiveDependenciesSubstitutions(
           coursierapi.Dependency.of(
             "org.scala-lang",
             "scala-compiler",
@@ -61,7 +61,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
         )
 
         val kotlinVersion = sys.props.getOrElse("TEST_KOTLIN_VERSION", ???)
-        val kotlinTransitiveSubstitutions = substitutions(
+        val kotlinTransitiveSubstitutions = transitiveDependenciesSubstitutions(
           coursierapi.Dependency.of(
             "org.jetbrains.kotlin",
             "kotlin-stdlib",
