@@ -275,17 +275,14 @@ private[mill] object PromptLogger {
 
     private implicit def seqOrdering = new Ordering[Seq[String]] {
       def compare(xs: Seq[String], ys: Seq[String]): Int = {
-        xs.lengthCompare(ys) match {
-          case 0 =>
-            val iter = xs.iterator.zip(ys)
-            while (iter.nonEmpty) {
-              val (x, y) = iter.next()
-              if (x > y) return 1
-              else if (y > x) return -1
-            }
-            return 0
-          case n => n
+        val iter = xs.iterator.zip(ys)
+        while (iter.nonEmpty) {
+          val (x, y) = iter.next()
+          if (x > y) return 1
+          else if (y > x) return -1
         }
+
+        return xs.lengthCompare(ys)
       }
     }
     private val statuses = collection.mutable.SortedMap.empty[Seq[String], Status]

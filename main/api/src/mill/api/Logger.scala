@@ -1,7 +1,6 @@
 package mill.api
 
 import java.io.{InputStream, PrintStream}
-
 import mill.main.client.lock.{Lock, Locked}
 
 /**
@@ -27,8 +26,11 @@ import mill.main.client.lock.{Lock, Locked}
  * used to display the final `show` output for easy piping.
  */
 trait Logger extends AutoCloseable {
+  def infoColor: fansi.Attrs = fansi.Attrs.Empty
+  def errorColor: fansi.Attrs = fansi.Attrs.Empty
   def colored: Boolean
 
+  private[mill] def unprefixedSystemStreams: SystemStreams = systemStreams
   def systemStreams: SystemStreams
 
   def errorStream: PrintStream = systemStreams.err
@@ -95,4 +97,7 @@ trait Logger extends AutoCloseable {
       throw new Exception("Cannot acquire lock on Mill output directory")
     }
   }
+
+  def withOutStream(outStream: PrintStream): Logger = this
+  private[mill] def logPrefixKey: Seq[String] = Nil
 }
