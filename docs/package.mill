@@ -91,7 +91,7 @@ object `package` extends RootModule {
     )
 
     expandDiagramsInDirectoryAdocFile(T.dest, mill.main.VisualizeModule.classpath().map(_.path))
-    
+
     PathRef(T.dest)
   }
 
