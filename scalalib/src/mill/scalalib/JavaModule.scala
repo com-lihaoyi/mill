@@ -159,7 +159,7 @@ trait JavaModule
    * Default artifact types to fetch and put in the classpath. Add extra types
    * here if you'd like fancy artifact extensions to be fetched.
    */
-  def artifactsTypes: T[Set[Type]] = Task { coursier.core.Resolution.defaultTypes }
+  def artifactTypes: T[Set[Type]] = Task { coursier.core.Resolution.defaultTypes }
 
   /**
    * Options to pass to the java compiler
@@ -559,7 +559,7 @@ trait JavaModule
   def resolvedRunIvyDeps: T[Agg[PathRef]] = Task {
     defaultResolver().resolveDeps(
       runIvyDeps().map(bindDependency()) ++ transitiveIvyDeps(),
-      artifactsTypes = Some(artifactsTypes())
+      artifactTypes = Some(artifactTypes())
     )
   }
 

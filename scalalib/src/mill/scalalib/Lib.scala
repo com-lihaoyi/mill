@@ -84,7 +84,7 @@ object Lib {
       repositories: Seq[Repository],
       deps: IterableOnce[BoundDep],
       sources: Boolean = false,
-      artifactTypes: Option[Seq[Type]] = None,
+      artifactTypes: Option[Set[Type]] = None,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
       ctx: Option[Ctx.Log] = None,

@@ -127,8 +127,8 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
     val bridgeJar = resolveDependencies(
       repositories,
       Seq(bridgeDep.bindDep("", "", "")),
-      useSources,
-      Some(overrideScalaLibrary(scalaVersion, scalaOrganization))
+      sources = useSources,
+      mapDependencies = Some(overrideScalaLibrary(scalaVersion, scalaOrganization))
     ).map(deps =>
       ZincWorkerUtil.grepJar(deps, bridgeName, bridgeVersion, useSources)
     )

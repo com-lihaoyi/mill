@@ -140,7 +140,7 @@ object CoursierModule {
     def resolveDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean = false,
-        artifactTypes: Seq[coursier.Type] = null
+        artifactTypes: Option[Set[coursier.Type]] = None
     ): Agg[PathRef] = {
       Lib.resolveDependencies(
         repositories = repositories,
