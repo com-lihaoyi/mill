@@ -18,6 +18,7 @@ class PrefixLogger(
     // above the output of every command that gets run so we can see who the output belongs to
     noPrefix: Boolean = false
 ) extends ColorLogger {
+  assert(key.forall(_.nonEmpty))
   val linePrefix: String = if (noPrefix || key.isEmpty) "" else s"[${key.mkString("-")}] "
   override def toString: String =
     s"PrefixLogger($logger0, ${literalize(linePrefix)}, ${literalize(tickerContext)})"
@@ -34,8 +35,8 @@ class PrefixLogger(
 
   override def colored = logger0.colored
 
-  def infoColor = logger0.infoColor
-  def errorColor = logger0.errorColor
+  override def infoColor = logger0.infoColor
+  override def errorColor = logger0.errorColor
 
   val systemStreams = new SystemStreams(
     out = outStream0.getOrElse(
@@ -69,14 +70,16 @@ class PrefixLogger(
   override def setPromptDetail(key: Seq[String], s: String): Unit = logger0.setPromptDetail(key, s)
 
   private[mill] override def setPromptLine(
-      key: Seq[String],
+      callKey: Seq[String],
       verboseKeySuffix: String,
       message: String
-  ): Unit =
-    logger0.setPromptLine(key, verboseKeySuffix, message)
+  ): Unit = {
+
+    logger0.setPromptLine(key ++ callKey, verboseKeySuffix, message)
+  }
 
   private[mill] override def setPromptLine(): Unit =
-    setPromptLine(key, verboseKeySuffix, message)
+    setPromptLine(Nil, verboseKeySuffix, message)
 
   override def debug(s: String): Unit = {
     if (debugEnabled) reportKey(key)
@@ -86,15 +89,17 @@ class PrefixLogger(
 
   override def withOutStream(outStream: PrintStream): PrefixLogger = new PrefixLogger(
     logger0.withOutStream(outStream),
-    Seq(infoColor(linePrefix).toString()),
+    key,
     infoColor(tickerContext).toString(),
     outStream0 = Some(outStream),
     errStream0 = Some(systemStreams.err)
   )
-  private[mill] override def reportKey(key: Seq[String]): Unit = logger0.reportKey(key)
-  private[mill] override def removePromptLine(key: Seq[String]): Unit =
-    logger0.removePromptLine(key)
-  private[mill] override def removePromptLine(): Unit = removePromptLine(key)
+
+  private[mill] override def reportKey(callKey: Seq[String]): Unit =
+    logger0.reportKey(key ++ callKey)
+  private[mill] override def removePromptLine(callKey: Seq[String]): Unit =
+    logger0.removePromptLine(key ++ callKey)
+  private[mill] override def removePromptLine(): Unit = removePromptLine(Nil)
   private[mill] override def setPromptLeftHeader(s: String): Unit = logger0.setPromptLeftHeader(s)
   override def enableTicker = logger0.enableTicker
 

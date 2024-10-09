@@ -10,7 +10,7 @@ class MultiLogger(
     val logger2: Logger,
     val inStream0: InputStream,
     override val debugEnabled: Boolean
-) extends Logger {
+) extends ColorLogger {
   override def toString: String = s"MultiLogger($logger1, $logger2)"
   lazy val systemStreams = new SystemStreams(
     new MultiStream(logger1.systemStreams.out, logger2.systemStreams.out),

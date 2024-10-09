@@ -55,7 +55,8 @@ object MainModule {
       // When using `show`, redirect all stdout of the evaluated tasks so the
       // printed JSON is the only thing printed to stdout.
       evaluator.withBaseLogger(
-        evaluator.baseLogger.withOutStream(evaluator.baseLogger.errorStream)
+        log.withOutStream(evaluator.baseLogger.errorStream)
+          .asInstanceOf[mill.util.ColorLogger]
       ),
       targets,
       Separated
