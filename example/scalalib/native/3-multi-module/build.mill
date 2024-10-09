@@ -5,6 +5,7 @@ import mill._, scalalib._, scalanativelib._
 trait MyModule extends ScalaNativeModule {
   def scalaVersion = "2.13.11"
   def scalaNativeVersion = "0.5.5"
+  
   object test extends ScalaNativeTests {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
     def testFramework = "utest.runner.Framework"
@@ -14,10 +15,32 @@ trait MyModule extends ScalaNativeModule {
 object foo extends MyModule {
   def moduleDeps = Seq(bar)
   def ivyDeps = Agg(ivy"com.lihaoyi::mainargs:0.4.0")
+
+  os.proc("mkdir", millSourcePath.toString + "/target").call(stdout = os.Inherit)
+
+  def nativeLinkingOptions = Seq("-L" + millSourcePath.toString + "/target")
+
+  os.proc(
+    "gcc", "-m64", "-shared", "-fPIC", 
+    millSourcePath.toString + "/native-src/HelloWorldFoo.c", millSourcePath.toString + "/native-src/htm.c",
+    "-o", millSourcePath.toString + "/target/libHelloWorldFoo.so"
+  ).call(stdout = os.Inherit)
+
 }
 
 object bar extends MyModule {
   def ivyDeps = Agg(ivy"com.lihaoyi::scalatags:0.8.2")
+
+  os.proc("mkdir", millSourcePath.toString + "/target").call(stdout = os.Inherit)
+
+  def nativeLinkingOptions = Seq("-L" + millSourcePath.toString + "/target")
+
+  os.proc(
+    "gcc", "-m64", "-shared", "-fPIC", 
+    millSourcePath.toString + "/native-src/HelloWorldBar.c", millSourcePath.toString + "/native-src/htm.c",
+    "-o", millSourcePath.toString + "/target/libHelloWorldBar.so")
+  .call(stdout = os.Inherit)
+
 }
 //// SNIPPET:END
 

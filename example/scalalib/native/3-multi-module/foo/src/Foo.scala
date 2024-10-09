@@ -1,13 +1,21 @@
 package foo
+
+import scala.scalanative.libc._
 import scala.scalanative.unsafe._
 import mainargs.{main, ParserForMethods, arg}
 
 object Foo {
   @main
-  def main(@arg(name = "foo-text") fooText: CString,
-           @arg(name = "bar-text") barText: CString): Unit = {
-    println("Foo.value: " + HelloWorldFoo.generateHtml(fooText))
-    println("Bar.value: " + bar.Bar.generateHtml(barText))
+  def main(@arg(name = "foo-text") fooText: String,
+           @arg(name = "bar-text") barText: String): Unit = {
+
+    implicit val z: Zone = Zone.open
+    val cFooText = toCString(fooText)
+    val cBarText = toCString(barText)
+    z.close
+
+    stdio.printf("Foo.value: %s\n", HelloWorldFoo.generateHtml(cFooText))
+    stdio.printf("Bar.value: %s\n", bar.Bar.generateHtml(cBarText))
   }
 
   def main(args: Array[String]): Unit = ParserForMethods(this).runOrExit(args)

@@ -1,13 +1,17 @@
 package bar
-import scalatags.Text.all._
+
+import scala.scalanative.libc._
 import scala.scalanative.unsafe._
 
 object Bar {
   def main(args: Array[String]): Unit = {
     println("Running HelloWorld function")
-    val result = HelloWorldBar.generateHtml(args(0))
-    println(("Bar value:" + result)
-    println("Done...)
+    implitct val z: Zone = Zone.open
+    val input = toCString(ags(0))
+    val result = HelloWorldBar.generateHtml(input)
+    stdio.printf(c"Bar value: %s", input)
+    z.close()
+    stdio.printf("Done...")
   }
 }
 

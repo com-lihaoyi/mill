@@ -1,21 +1,23 @@
 package foo
 
+import scala.scalanative.libc._
 import scala.scalanative.unsafe._
+import fansi._
 
-object Bar {
-  def main(args: Array[String]): Unit = {
-    println("Running HelloWorld function")
-    val result = HelloWorld.generateHtml(c"Hello")
-    println(("Bar value:" + result)
-    println("Done...)
+object Foo {
+
+  def generateHtml(text: String): CString = {
+    val colored = Console.RED + "<h1>" + text + "</h1>" + Console.RESET + "\n"
+
+    implicit val z: Zone = Zone.open
+    val cResult = toCString(colored)
+    z.close()
+    cResult
   }
-}
+  
+  val value = generateHtml("Hello")
 
-// Define the external module, the C library containing our function "generateHtml"
-@extern
-@link("HelloWorld")
-// Arbitrary object name
-object HelloWorld {
-  // Name and signature of C function
-  def generateHtml(str: CString): CString = extern
+  def main(args: Array[String]): Unit = {
+    stdio.printf(c"Foo.value: %s", Foo.value)
+  }
 }
