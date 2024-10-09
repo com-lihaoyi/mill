@@ -226,27 +226,29 @@ object MillMain {
                     evaluate = (prevState: Option[RunnerState]) => {
                       adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
 
-                      val logger = getLogger(
-                        streams,
-                        config,
-                        mainInteractive,
-                        enableTicker =
-                          config.ticker
-                            .orElse(config.enableTicker)
-                            .orElse(Option.when(config.disableTicker.value)(false)),
-                        printLoggerState,
-                        serverDir,
-                        colored = colored,
-                        colors = colors
-                      )
-                      Using.resource(logger) { _ =>
-                        withOutLock(
-                          config.noBuildLock.value || bspContext.isDefined,
-                          config.noWaitForBuildLock.value,
-                          logger,
-                          out,
-                          targetsAndParams
-                        ) {
+
+
+                      withOutLock(
+                        config.noBuildLock.value || bspContext.isDefined,
+                        config.noWaitForBuildLock.value,
+                        out,
+                        targetsAndParams,
+                        streams
+                      ) {
+                        val logger = getLogger(
+                          streams,
+                          config,
+                          mainInteractive,
+                          enableTicker =
+                            config.ticker
+                              .orElse(config.enableTicker)
+                              .orElse(Option.when(config.disableTicker.value)(false)),
+                          printLoggerState,
+                          serverDir,
+                          colored = colored,
+                          colors = colors
+                        )
+                        Using.resource(logger) { _ =>
                           try new MillBuildBootstrap(
                               projectRoot = WorkspaceRoot.workspaceRoot,
                               output = out,
@@ -420,26 +422,26 @@ object MillMain {
   def withOutLock[T](
       noBuildLock: Boolean,
       noWaitForBuildLock: Boolean,
-      logger: Logger,
       out: os.Path,
-      targetsAndParams: Seq[String]
+      targetsAndParams: Seq[String],
+      streams: SystemStreams
   )(t: => T): T = {
     val outLock =
       if (noBuildLock) Lock.dummy()
       else Lock.file((out / OutFiles.millLock).toString)
 
-    val taskString = targetsAndParams.mkString(" ")
+    def activeTaskString = os.read(out / OutFiles.millActiveCommand)
     Using.resource {
       val tryLocked = outLock.tryLock()
       if (tryLocked.isLocked()) tryLocked
       else if (noWaitForBuildLock) {
-        throw new Exception(s"Another Mill process is running '$taskString'")
+        throw new Exception(s"Another Mill process is running '$activeTaskString'")
       } else {
-        logger.info(s"Another Mill process is running '$taskString', waiting for it to be done...")
+        streams.err.println(s"Another Mill process is running '$activeTaskString', waiting for it to be done...")
         outLock.lock()
       }
     } { _ =>
-      os.write(out / OutFiles.millActiveCommand, taskString)
+      os.write.over(out / OutFiles.millActiveCommand, targetsAndParams.mkString(" "))
       try t
       finally os.remove.all(out / OutFiles.millActiveCommand)
     }
