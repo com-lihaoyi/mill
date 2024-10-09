@@ -7,7 +7,7 @@ import coursier.maven.MavenRepository
 import mill.define.{Discover, ExternalModule, Target, NamedTask}
 import mill.util.Util.millProjectModule
 import mill.api.{Loose, Result, PathRef}
-import mill.define.{Task, Worker}
+import mill.define.Worker
 import org.jgrapht.graph.{DefaultEdge, SimpleDirectedGraph}
 import guru.nidi.graphviz.attribute.Rank.RankDir
 import guru.nidi.graphviz.attribute.{Rank, Shape, Style}
@@ -49,7 +49,6 @@ trait VisualizeModule extends mill.define.TaskModule {
           val (sortedGroups, transitive) = mill.eval.Plan.plan(rs)
 
           val goalSet = rs.toSet
-          import guru.nidi.graphviz.engine.{Format, Graphviz}
           import guru.nidi.graphviz.model.Factory._
           val edgesIterator =
             for ((k, vs) <- sortedGroups.items())
@@ -100,10 +99,14 @@ trait VisualizeModule extends mill.define.TaskModule {
           mill.util.Jvm.runSubprocess(
             "mill.main.graphviz.GraphvizTools",
             classpath().map(_.path),
-            mainArgs = Seq(os.temp(g.toString).toString, Task.dest.toString)
+            mainArgs = Seq(
+              os.temp(g.toString).toString,
+              dest.toString,
+              "txt,dot,json,png,svg"
+            )
           )
 
-          os.list(Task.dest).map(PathRef(_))
+          os.list(dest).sorted.map(PathRef(_))
         }
         out.put(res)
       }

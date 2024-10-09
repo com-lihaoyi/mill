@@ -10,25 +10,18 @@ import org.slf4j.Logger
 object GraphvizTools {
 
   def main(args: Array[String]): Unit = {
-    val Array(src, dest0) = args
-
+    val Array(src, dest0, commaSepExtensions) = args
+    val extensions = commaSepExtensions.split(',')
     val dest = os.Path(dest0)
     import guru.nidi.graphviz.engine.{Format, Graphviz}
 
     Graphviz.useEngine(new AbstractJsGraphvizEngine(true, () => new V8JavascriptEngine()) {})
     val gv = Graphviz.fromFile(new java.io.File(src)).totalMemory(128 * 1024 * 1024)
-    val outputs = Seq(
-      Format.PLAIN -> "out.txt",
-      Format.XDOT -> "out.dot",
-      Format.JSON -> "out.json",
-      Format.PNG -> "out.png",
-      Format.SVG -> "out.svg"
-    )
 
-    for ((fmt, name) <- outputs) {
-      gv.render(fmt).toFile((dest / name).toIO)
-    }
-    outputs.map(x => mill.PathRef(dest / x._2))
+    val outputs = extensions
+      .map(ext => Format.values().find(_.fileExtension == ext).head -> s"out.$ext")
+
+    for ((fmt, name) <- outputs) gv.render(fmt).toFile((dest / name).toIO)
   }
 }
 

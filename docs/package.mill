@@ -97,7 +97,7 @@ object `package` extends RootModule {
       val graphvizLines = collection.mutable.ArrayDeque.empty[String]
       var isGraphViz = false
 
-      for((line, i) <- os.read.lines(p).zipWithIndex){
+      for(line <- os.read.lines(p)){
         line match{
           case "```graphviz" => isGraphViz = true
           case "```" if graphvizLines.nonEmpty =>
