@@ -206,7 +206,7 @@ object MillMain {
                 val maybeScalaCompilerWorker = ScalaCompilerWorker.bootstrapWorker(config.home)
                 if (maybeScalaCompilerWorker.isLeft) {
                   val err = maybeScalaCompilerWorker.left.get
-                  logger.error(err)
+                  streams.err.println(err)
                   (false, stateCache)
                 } else {
                   val scalaCompilerWorker = maybeScalaCompilerWorker.right.get
