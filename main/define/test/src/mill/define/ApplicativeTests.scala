@@ -6,21 +6,9 @@ import utest._
 import scala.annotation.compileTimeOnly
 import scala.language.implicitConversions
 
-object ApplicativeTests extends TestSuite {
+object ApplicativeTests extends TestSuite with ApplicativeTestsBase {
   implicit def optionToOpt[T](o: Option[T]): Opt[T] = new Opt(o)
-  class Opt[+T](val self: Option[T]) extends Applicative.Applyable[Option, T]
-  object Opt extends Applicative.Applyer[Opt, Option, Applicative.Id, String] {
 
-    val injectedCtx = "helloooo"
-    inline def apply[T](inline t: T): Option[T] =
-      ${ Applicative.impl[Option, Opt, Applicative.Id, T, String]('this, 't) }
-
-    def traverseCtx[I, R](xs: Seq[Opt[I]])(f: (IndexedSeq[I], String) => Applicative.Id[R])
-        : Option[R] = {
-      if (xs.exists(_.self.isEmpty)) None
-      else Some(f(xs.map(_.self.get).toVector, injectedCtx))
-    }
-  }
   class Counter {
     var value = 0
     def apply() = {
