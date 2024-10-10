@@ -19,6 +19,14 @@ trait ApplicativeTestsBase {
 }
 
 object ApplicativeTestsBase {
-  def applyImpl[Opt[+_]: Type, T: Type](t: Expr[T])(caller: Expr[Applicative.Applyer[Opt, Option, Applicative.Id, String]])(using Quotes): Expr[Option[T]] =
-    Applicative.impl[Option, Opt, Applicative.Id, T, String]((args, fn) => '{ $caller.traverseCtx($args)($fn) }, t)
+  def applyImpl[Opt[+_]: Type, T: Type](t: Expr[T])(caller: Expr[Applicative.Applyer[
+    Opt,
+    Option,
+    Applicative.Id,
+    String
+  ]])(using Quotes): Expr[Option[T]] =
+    Applicative.impl[Option, Opt, Applicative.Id, T, String](
+      (args, fn) => '{ $caller.traverseCtx($args)($fn) },
+      t
+    )
 }

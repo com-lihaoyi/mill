@@ -42,7 +42,10 @@ object Applicative {
 
   def impl[M[_]: Type, W[_]: Type, Z[_]: Type, T: Type, Ctx: Type](using
       Quotes
-  )(traverseCtx: (Expr[Seq[W[Any]]], Expr[(IndexedSeq[Any], Ctx) => Z[T]]) => Expr[M[T]], t: Expr[Z[T]]): Expr[M[T]] = {
+  )(
+      traverseCtx: (Expr[Seq[W[Any]]], Expr[(IndexedSeq[Any], Ctx) => Z[T]]) => Expr[M[T]],
+      t: Expr[Z[T]]
+  ): Expr[M[T]] = {
     import quotes.reflect.*
 
     val targetApplySym = TypeRepr.of[Applyable[Nothing, ?]].typeSymbol.methodMember("apply").head

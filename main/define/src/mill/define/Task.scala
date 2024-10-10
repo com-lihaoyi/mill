@@ -416,9 +416,9 @@ object Target extends TaskBase {
 
     private def traverseCtxExpr[R: Type](caller: Expr[TraverseCtxHolder])(
         args: Expr[Seq[Task[Any]]],
-        fn: Expr[(IndexedSeq[Any], mill.api.Ctx) => Result[R]])(using Quotes): Expr[Task[R]] =
+        fn: Expr[(IndexedSeq[Any], mill.api.Ctx) => Result[R]]
+    )(using Quotes): Expr[Task[R]] =
       '{ $caller.traverseCtx[Any, R]($args)($fn) }
-
 
     def anonTaskImpl[T: Type](t: Expr[Result[T]])(
         caller: Expr[TraverseCtxHolder]
@@ -434,7 +434,10 @@ object Target extends TaskBase {
       val taskIsPrivate = isPrivateTargetOption()
 
       val lhs =
-        Applicative.impl[Task, Task, Result, T, mill.api.Ctx](traverseCtxExpr(caller), '{ Result.create($t) })
+        Applicative.impl[Task, Task, Result, T, mill.api.Ctx](
+          traverseCtxExpr(caller),
+          '{ Result.create($t) }
+        )
 
       mill.moduledefs.Cacher.impl0[Target[T]](
         '{
@@ -479,18 +482,20 @@ object Target extends TaskBase {
 
       mill.moduledefs.Cacher.impl0[Target[T]](
         '{
-          if $caller.persistent then new PersistentImpl[T](
-            $lhs,
-            $ctx,
-            $rw,
-            $taskIsPrivate
-          )
-          else new TargetImpl[T](
-            $lhs,
-            $ctx,
-            $rw,
-            $taskIsPrivate
-          )
+          if $caller.persistent then
+            new PersistentImpl[T](
+              $lhs,
+              $ctx,
+              $rw,
+              $taskIsPrivate
+            )
+          else
+            new TargetImpl[T](
+              $lhs,
+              $ctx,
+              $rw,
+              $taskIsPrivate
+            )
         }
       )
     }
@@ -548,7 +553,10 @@ object Target extends TaskBase {
     ): Expr[Target[Seq[PathRef]]] = {
       val taskIsPrivate = isPrivateTargetOption()
 
-      val lhs = Applicative.impl[Task, Task, Result, Seq[PathRef], mill.api.Ctx](traverseCtxExpr(caller), values)
+      val lhs = Applicative.impl[Task, Task, Result, Seq[PathRef], mill.api.Ctx](
+        traverseCtxExpr(caller),
+        values
+      )
 
       mill.moduledefs.Cacher.impl0[SourcesImpl](
         '{
@@ -594,7 +602,8 @@ object Target extends TaskBase {
     ): Expr[Target[PathRef]] = {
       val taskIsPrivate = isPrivateTargetOption()
 
-      val lhs = Applicative.impl[Task, Task, Result, PathRef, mill.api.Ctx](traverseCtxExpr(caller), value)
+      val lhs =
+        Applicative.impl[Task, Task, Result, PathRef, mill.api.Ctx](traverseCtxExpr(caller), value)
       mill.moduledefs.Cacher.impl0[Target[PathRef]](
         '{
           new SourceImpl(
@@ -612,7 +621,8 @@ object Target extends TaskBase {
         caller: Expr[TraverseCtxHolder]
     ): Expr[Target[T]] = {
       val taskIsPrivate = isPrivateTargetOption()
-      val lhs = Applicative.impl[Task, Task, Result, T, mill.api.Ctx](traverseCtxExpr(caller), value)
+      val lhs =
+        Applicative.impl[Task, Task, Result, T, mill.api.Ctx](traverseCtxExpr(caller), value)
 
       mill.moduledefs.Cacher.impl0[InputImpl[T]](
         '{
