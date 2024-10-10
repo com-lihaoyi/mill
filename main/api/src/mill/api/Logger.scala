@@ -58,7 +58,7 @@ trait Logger extends AutoCloseable {
   ): Unit =
     ticker(s"${key.mkString("-")} $message")
   private[mill] def setPromptLine(): Unit = ()
-  private[mill] def setPromptLeftHeader(s: String): Unit = ()
+  private[mill] def setPromptHeaderPrefix(s: String): Unit = ()
   private[mill] def clearPromptStatuses(): Unit = ()
   private[mill] def removePromptLine(key: Seq[String]): Unit = ()
   private[mill] def removePromptLine(): Unit = ()

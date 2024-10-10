@@ -88,16 +88,16 @@ private[mill] class PromptLogger(
 
   def error(s: String): Unit = synchronized { systemStreams.err.println(s) }
 
-  override def setPromptLeftHeader(s: String): Unit =
-    synchronized { promptLineState.updateGlobal(s) }
+  override def setPromptHeaderPrefix(s: String): Unit =
+    synchronized { promptLineState.setHeaderPrefix(s) }
   override def clearPromptStatuses(): Unit = synchronized { promptLineState.clearStatuses() }
   override def removePromptLine(key: Seq[String]): Unit = synchronized {
-    promptLineState.updateCurrent(key, None)
+    promptLineState.setCurrent(key, None)
   }
 
   def ticker(s: String): Unit = ()
   override def setPromptDetail(key: Seq[String], s: String): Unit = synchronized {
-    promptLineState.updateDetail(key, s)
+    promptLineState.setDetail(key, s)
   }
 
   override def reportKey(key: Seq[String]): Unit = synchronized {
@@ -116,7 +116,7 @@ private[mill] class PromptLogger(
   private val reportedIdentifiers = collection.mutable.Set.empty[Seq[String]]
   override def setPromptLine(key: Seq[String], verboseKeySuffix: String, message: String): Unit =
     synchronized {
-      promptLineState.updateCurrent(key, Some(s"[${key.mkString("-")}] $message"))
+      promptLineState.setCurrent(key, Some(s"[${key.mkString("-")}] $message"))
       seenIdentifiers(key) = (verboseKeySuffix, message)
     }
 
@@ -317,13 +317,13 @@ private[mill] object PromptLogger {
     }
 
     def clearStatuses(): Unit = synchronized { statuses.clear() }
-    def updateGlobal(s: String): Unit = synchronized { headerPrefix = s }
+    def setHeaderPrefix(s: String): Unit = synchronized { headerPrefix = s }
 
-    def updateDetail(key: Seq[String], detail: String): Unit = synchronized {
+    def setDetail(key: Seq[String], detail: String): Unit = synchronized {
       statuses.updateWith(key)(_.map(se => se.copy(next = se.next.map(_.copy(detail = detail)))))
     }
 
-    def updateCurrent(key: Seq[String], sOpt: Option[String]): Unit = synchronized {
+    def setCurrent(key: Seq[String], sOpt: Option[String]): Unit = synchronized {
 
       val now = currentTimeMillis()
       def stillTransitioning(status: Status) = {
@@ -332,7 +332,7 @@ private[mill] object PromptLogger {
       val sOptEntry = sOpt.map(StatusEntry(_, now, ""))
       statuses.updateWith(key) {
         case None =>
-          statuses.find { case (k, v) => v.next.isEmpty && stillTransitioning(v) } match {
+          statuses.find { case (k, v) => v.next.isEmpty } match {
             case Some((reusableKey, reusableValue)) =>
               statuses.remove(reusableKey)
               Some(reusableValue.copy(next = sOptEntry))

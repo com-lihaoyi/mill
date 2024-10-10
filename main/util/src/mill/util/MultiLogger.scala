@@ -81,9 +81,9 @@ class MultiLogger(
     logger1.removePromptLine()
     logger2.removePromptLine()
   }
-  private[mill] override def setPromptLeftHeader(s: String): Unit = {
-    logger1.setPromptLeftHeader(s)
-    logger2.setPromptLeftHeader(s)
+  private[mill] override def setPromptHeaderPrefix(s: String): Unit = {
+    logger1.setPromptHeaderPrefix(s)
+    logger2.setPromptHeaderPrefix(s)
   }
 
   private[mill] override def withPromptPaused[T](t: => T): T = {
