@@ -283,11 +283,10 @@ object MillMain {
                       repeatForBsp =
                         BspContext.bspServerHandle.lastResult == Some(
                           BspServerResult.ReloadWorkspace
-
                         )
-                        streams.err.println(
-                          s"`$bspCmd` returned with ${BspContext.bspServerHandle.lastResult}"
-                        )
+                      streams.err.println(
+                        s"`$bspCmd` returned with ${BspContext.bspServerHandle.lastResult}"
+                      )
                     }
 
                     loopRes = (isSuccess, evalStateOpt)
