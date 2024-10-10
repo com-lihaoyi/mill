@@ -144,8 +144,17 @@ object Discover {
         // by wrapping the `overridesRoutes` in a lambda function we kind of work around
         // the problem of generating a *huge* macro method body that finally exceeds the
         // JVM's maximum allowed method size
+
+        val lhs = discoveredModuleType match{
+          case tt: ThisType => q"classOf[${tt.sym}]"
+          case tr: TypeRef => q"classOf[${tr.pre}]"
+          case _ => q"classOf[$discoveredModuleType]"
+        }
+        println()
+        pprint.log(discoveredModuleType)
+        pprint.log(lhs)
         val overridesLambda = q"(() => $overridesRoutes)()"
-        val lhs = q"classOf[${discoveredModuleType.typeSymbol.asClass}]"
+
         q"$lhs -> $overridesLambda"
       }
 
