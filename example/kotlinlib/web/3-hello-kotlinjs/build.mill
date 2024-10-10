@@ -1,9 +1,9 @@
 // KotlinJS support on Mill is still Work In Progress (WIP). As of time of writing it
-// does not support third-party dependencies, Kotlin 2.x with KMP KLIB files, Node.js/Webpack
-// test runners and reporting, etc.
+// Node.js/Webpack test runners and reporting, etc.
 //
-// The example below demonstrates only the minimal compilation, running, and testing of a single KotlinJS
-// module. For more details in fully developing KotlinJS support, see the following ticket:
+// The example below demonstrates only the minimal compilation, running, and testing of
+// a single KotlinJS module using a single third-party dependency. For more details in
+// fully developing KotlinJS support, see the following ticket:
 //
 // * https://github.com/com-lihaoyi/mill/issues/3611
 
@@ -14,6 +14,9 @@ object foo extends KotlinJSModule {
   def moduleKind = ModuleKind.ESModule
   def kotlinVersion = "1.9.25"
   def kotlinJSRunTarget = Some(RunTarget.Node)
+  def ivyDeps = Agg(
+    ivy"org.jetbrains.kotlinx:kotlinx-html-js:0.11.0",
+  )
   object test extends KotlinJSModule with KotlinJSKotlinXTests
 }
 
@@ -22,7 +25,7 @@ object foo extends KotlinJSModule {
 
 > mill foo.run
 Compiling 1 Kotlin sources to .../out/foo/compile.dest/classes...
-Hello, world
+<h1>Hello World</h1>
 stringifiedJsObject: ["hello","world","!"]
 
 > mill foo.test # Test is incorrect, `foo.test`` fails
@@ -30,13 +33,13 @@ Compiling 1 Kotlin sources to .../out/foo/test/compile.dest/classes...
 Linking IR to .../out/foo/test/linkBinary.dest/binaries
 produce executable: .../out/foo/test/linkBinary.dest/binaries
 ...
-error: AssertionError: Expected <Hello, world>, actual <Not hello, world>.
+error: AssertionError: Expected <<h1>Hello World</h1>>, actual <<h1>Hello World Wrong</h1>>.
 
 > cat out/foo/test/linkBinary.dest/binaries/test.js # Generated javascript on disk
-...assertEquals_0(getString(), 'Not hello, world');...
+...assertEquals_0(..., '<h1>Hello World Wrong<\/h1>');...
 ...
 
-> sed -i.bak 's/Not hello, world/Hello, world/g' foo/test/src/foo/HelloTests.kt
+> sed -i.bak 's/Hello World Wrong/Hello World/g' foo/test/src/foo/HelloTests.kt
 
 > mill foo.test # passes after fixing test
 
