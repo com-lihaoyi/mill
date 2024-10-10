@@ -140,7 +140,7 @@ case class MillCliConfig(
     @arg(
       hidden = true,
       doc =
-        """Do not wait for an exclusive lock on the Mill output directory to evaluate tasks / commands. Fail if waiting for a lock is needed."""
+        """Do not wait for an exclusive lock on the Mill output directory to evaluate tasks / commands."""
     )
     noWaitForBuildLock: Flag = Flag()
 )
