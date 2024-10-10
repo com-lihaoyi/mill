@@ -76,7 +76,7 @@ object HelloJavaTests extends TestSuite {
 
         // The first eight bytes are magic numbers followed by two bytes for major version and two bytes for minor version
         // We are overriding to java 23 which corresponds to class file version 67
-        os.read.bytes(coreClassFile.get, 4, 4).toSeq == Seq[Byte](0, 0, 0, 67),
+        os.read.bytes(coreClassFile.get, 4, 4).toSeq == Seq[Byte](0, 0, 0, 67)
       )
     }
 

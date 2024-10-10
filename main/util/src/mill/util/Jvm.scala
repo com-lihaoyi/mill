@@ -216,6 +216,29 @@ object Jvm extends CoursierSupport {
       runSubprocess(args, envArgs, workingDir)
   }
 
+  // bincompat shim
+  def runSubprocessWithBackgroundOutputs(
+      mainClass: String,
+      classPath: Agg[os.Path],
+      jvmArgs: Seq[String],
+      envArgs: Map[String, String],
+      mainArgs: Seq[String],
+      workingDir: os.Path,
+      backgroundOutputs: Option[Tuple2[ProcessOutput, ProcessOutput]],
+      useCpPassingJar: Boolean
+  )(implicit ctx: Ctx): Unit =
+    runSubprocessWithBackgroundOutputs(
+      mainClass,
+      classPath,
+      jvmArgs,
+      envArgs,
+      mainArgs,
+      workingDir,
+      backgroundOutputs,
+      useCpPassingJar,
+      None
+    )(ctx)
+
   /**
    * Runs a generic subprocess and waits for it to terminate.
    */
