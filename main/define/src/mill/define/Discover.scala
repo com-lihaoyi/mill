@@ -141,7 +141,7 @@ object Discover {
         }
         if overridesRoutes._1.nonEmpty || overridesRoutes._2.nonEmpty || overridesRoutes._3.nonEmpty
       } yield {
-        val lhs0 = discoveredModuleType match{
+        val lhs0 = discoveredModuleType match {
           // Explicitly do not de-alias type refs, so type aliases to deprecated
           // types do not result in spurious deprecation warnings appearing
           case tr: TypeRef => tr.pre

@@ -232,7 +232,7 @@ object CodeGen {
 
   }
 
-  def discoverSnippet(segments: Seq[String]) = {
+  def discoverSnippet(segments: Seq[String]): String = {
     if (segments.nonEmpty) ""
     else
       """override lazy val millDiscover: _root_.mill.define.Discover = _root_.mill.define.Discover[this.type]
