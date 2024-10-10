@@ -4,7 +4,6 @@ import mill.api.{CompileProblemReporter, DummyTestReporter, Result, TestReporter
 import mill.api.Strict.Agg
 import mill.define.{BaseModule, Segments, Task}
 import mill.eval.Evaluator.{Results, formatFailing}
-import mill.main.client.lock.Lock
 import mill.util.{ColorLogger, MultiBiMap}
 
 import scala.annotation.nowarn
@@ -32,27 +31,21 @@ trait Evaluator {
     }
   def disableCallgraphInvalidation: Boolean = false
 
-  /** Optional lock on the output directory */
-  def outPathLockOpt: Option[Lock]
+  /**
+   */
+  def outLock: Boolean
 
   /**
-   * Optional lock on the output directory, to be used by Evaluators
-   * created from this one (passed to commands expecting an Evaluator
-   * or an Evaluator.AllBootstrapEvaluators), but not this Evaluator
    */
-  def delayedOutPathLockOpt: Option[Lock]
+  def delayedOutLock: Boolean
 
   /**
-   * Same Evaluator as this one, with the optional lock on the output directory
-   * set to the passed argument
    */
-  def withOutPathLockOpt(lockOpt: Option[Lock]): Evaluator
+  def withOutLock(outLock: Boolean): Evaluator
 
   /**
-   * Same Evaluator as this one, with the optional lock on the output directory
-   * to be used by Evaluators created from this one, set to the passed argument
    */
-  def withDelayedOutPathLockOpt(lockOpt: Option[Lock]): Evaluator
+  def withDelayedOutLock(delayedOutLock: Boolean): Evaluator
 
   @deprecated(
     "Binary compatibility shim. Use overload with parameter serialCommandExec=false instead",

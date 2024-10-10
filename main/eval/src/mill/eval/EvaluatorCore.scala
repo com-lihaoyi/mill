@@ -6,13 +6,11 @@ import mill.api._
 import mill.define._
 import mill.eval.Evaluator.TaskResult
 import mill.main.client.OutFiles._
-import mill.main.client.lock.Lock
 import mill.util._
 
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import scala.collection.mutable
 import scala.concurrent._
-import scala.util.Using
 
 /**
  * Core logic of evaluating tasks, without any user-facing helper methods
@@ -20,8 +18,8 @@ import scala.util.Using
 private[mill] trait EvaluatorCore extends GroupEvaluator {
 
   def baseLogger: ColorLogger
-  def outPathLockOpt: Option[Lock]
-  def delayedOutPathLockOpt: Option[Lock]
+  def outLock: Boolean
+  def delayedOutLock: Boolean
 
   /**
    * @param goals The tasks that need to be evaluated
@@ -45,7 +43,16 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
         else s"#${if (effectiveThreadCount > 9) f"$threadId%02d" else threadId} "
 
       try
-        Using.resource(logger.waitForLock(outPathLockOpt.getOrElse(Lock.dummy()))) { _ =>
+        OutLock.withLock(
+          noBuildLock = !outLock,
+          noWaitForBuildLock = false, // ???
+          out = outPath,
+          targetsAndParams = goals.toSeq.map {
+            case n: NamedTask[_] => n.label
+            case t => t.toString
+          },
+          streams = logger.systemStreams
+        ) {
           os.makeDir.all(outPath)
           evaluate0(
             goals,

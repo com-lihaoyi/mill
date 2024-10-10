@@ -23,8 +23,8 @@ object RunScript {
     val resolved =
       mill.eval.Evaluator.currentEvaluator.withValue(
         evaluator
-          .withOutPathLockOpt(evaluator.delayedOutPathLockOpt)
-          .withDelayedOutPathLockOpt(None)
+          .withOutLock(evaluator.delayedOutLock)
+          .withDelayedOutLock(false)
       ) {
         Resolve.Tasks.resolve(
           evaluator.rootModule,

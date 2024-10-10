@@ -6,14 +6,11 @@ import mill.main.client.CodeGenConstants._
 import mill.api.{PathRef, SystemStreams, Val, internal}
 import mill.eval.Evaluator
 import mill.main.RunScript
-import mill.main.client.lock.Lock
 import mill.resolve.SelectMode
 import mill.define.{BaseModule, Discover, Segments}
 import mill.main.client.OutFiles.{millBuild, millRunnerState}
 
 import java.net.URLClassLoader
-
-import scala.util.Using
 
 /**
  * Logic around bootstrapping Mill, creating a [[MillBuildRootModule.BootstrapModule]]
@@ -34,8 +31,7 @@ import scala.util.Using
 class MillBuildBootstrap(
     projectRoot: os.Path,
     output: os.Path,
-    outputLockOpt: Option[Lock],
-    delayedOutputLockOpt: Option[Lock],
+    delayedOutLock: Boolean,
     home: os.Path,
     keepGoing: Boolean,
     imports: Seq[String],
@@ -317,8 +313,8 @@ class MillBuildBootstrap(
       Evaluator.AllBootstrapEvaluators(
         (Seq(evaluator) ++ nestedState.frames.flatMap(_.evaluator)).map { ev =>
           ev
-            .withOutPathLockOpt(ev.delayedOutPathLockOpt)
-            .withDelayedOutPathLockOpt(None)
+            .withOutLock(ev.delayedOutLock)
+            .withDelayedOutLock(false)
         }
       )
     ) {
@@ -356,8 +352,8 @@ class MillBuildBootstrap(
       home,
       projectRoot,
       recOut(output, depth),
-      outputLockOpt,
-      delayedOutputLockOpt,
+      false,
+      delayedOutLock,
       recOut(output, depth),
       rootModule,
       new PrefixLogger(logger, bootLogPrefix),

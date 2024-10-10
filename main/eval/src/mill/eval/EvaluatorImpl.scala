@@ -3,7 +3,6 @@ package mill.eval
 import mill.api.{CompileProblemReporter, Strict, SystemStreams, TestReporter, Val}
 import mill.api.Strict.Agg
 import mill.define._
-import mill.main.client.lock.Lock
 import mill.util._
 
 import scala.collection.mutable
@@ -18,8 +17,8 @@ private[mill] case class EvaluatorImpl(
     home: os.Path,
     workspace: os.Path,
     outPath: os.Path,
-    outPathLockOpt: Option[Lock],
-    delayedOutPathLockOpt: Option[Lock],
+    outLock: Boolean,
+    delayedOutLock: Boolean,
     externalOutPath: os.Path,
     override val rootModule: mill.define.BaseModule,
     baseLogger: ColorLogger,
@@ -46,10 +45,10 @@ private[mill] case class EvaluatorImpl(
   override def withFailFast(newFailFast: Boolean): Evaluator =
     this.copy(failFast = newFailFast)
 
-  override def withOutPathLockOpt(lockOpt: Option[Lock]): Evaluator =
-    copy(outPathLockOpt = lockOpt)
-  override def withDelayedOutPathLockOpt(lockOpt: Option[Lock]): Evaluator =
-    copy(delayedOutPathLockOpt = lockOpt)
+  override def withOutLock(outLock: Boolean): Evaluator =
+    copy(outLock = outLock)
+  override def withDelayedOutLock(delayedOutLock: Boolean): Evaluator =
+    copy(delayedOutLock = delayedOutLock)
 
   override def plan(goals: Agg[Task[_]]): (MultiBiMap[Terminal, Task[_]], Agg[Task[_]]) = {
     Plan.plan(goals)
