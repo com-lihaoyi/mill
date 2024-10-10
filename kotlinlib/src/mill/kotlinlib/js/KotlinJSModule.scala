@@ -453,45 +453,45 @@ trait KotlinJSModule extends KotlinModule { outer =>
 sealed trait ModuleKind { def extension: String }
 
 object ModuleKind {
-  object NoModule extends ModuleKind { val extension = "js" }
+  case object NoModule extends ModuleKind { val extension = "js" }
   implicit val rwNoModule: RW[NoModule.type] = macroRW
-  object UMDModule extends ModuleKind { val extension = "js" }
+  case object UMDModule extends ModuleKind { val extension = "js" }
   implicit val rwUMDModule: RW[UMDModule.type] = macroRW
-  object CommonJSModule extends ModuleKind { val extension = "js" }
+  case object CommonJSModule extends ModuleKind { val extension = "js" }
   implicit val rwCommonJSModule: RW[CommonJSModule.type] = macroRW
-  object AMDModule extends ModuleKind { val extension = "js" }
+  case object AMDModule extends ModuleKind { val extension = "js" }
   implicit val rwAMDModule: RW[AMDModule.type] = macroRW
-  object ESModule extends ModuleKind { val extension = "mjs" }
+  case object ESModule extends ModuleKind { val extension = "mjs" }
   implicit val rwESModule: RW[ESModule.type] = macroRW
-  object PlainModule extends ModuleKind { val extension = "js" }
+  case object PlainModule extends ModuleKind { val extension = "js" }
   implicit val rwPlainModule: RW[PlainModule.type] = macroRW
 }
 
 sealed trait SourceMapEmbedSourcesKind
 object SourceMapEmbedSourcesKind {
-  object Always extends SourceMapEmbedSourcesKind
+  case object Always extends SourceMapEmbedSourcesKind
   implicit val rwAlways: RW[Always.type] = macroRW
-  object Never extends SourceMapEmbedSourcesKind
+  case object Never extends SourceMapEmbedSourcesKind
   implicit val rwNever: RW[Never.type] = macroRW
-  object Inlining extends SourceMapEmbedSourcesKind
+  case object Inlining extends SourceMapEmbedSourcesKind
   implicit val rwInlining: RW[Inlining.type] = macroRW
 }
 
 sealed trait SourceMapNamesPolicy
 object SourceMapNamesPolicy {
-  object SimpleNames extends SourceMapNamesPolicy
+  case object SimpleNames extends SourceMapNamesPolicy
   implicit val rwSimpleNames: RW[SimpleNames.type] = macroRW
-  object FullyQualifiedNames extends SourceMapNamesPolicy
+  case object FullyQualifiedNames extends SourceMapNamesPolicy
   implicit val rwFullyQualifiedNames: RW[FullyQualifiedNames.type] = macroRW
-  object No extends SourceMapNamesPolicy
+  case object No extends SourceMapNamesPolicy
   implicit val rwNo: RW[No.type] = macroRW
 }
 
 sealed trait BinaryKind
 object BinaryKind {
-  object Library extends BinaryKind
+  case object Library extends BinaryKind
   implicit val rwLibrary: RW[Library.type] = macroRW
-  object Executable extends BinaryKind
+  case object Executable extends BinaryKind
   implicit val rwExecutable: RW[Executable.type] = macroRW
   implicit val rw: RW[BinaryKind] = macroRW
 }
@@ -499,14 +499,14 @@ object BinaryKind {
 sealed trait RunTarget
 object RunTarget {
   // TODO rely on the node version installed in the env or fetch a specific one?
-  object Node extends RunTarget
+  case object Node extends RunTarget
   implicit val rwNode: RW[Node.type] = macroRW
   implicit val rw: RW[RunTarget] = macroRW
 }
 
 private[kotlinlib] sealed trait OutputMode
 private[kotlinlib] object OutputMode {
-  object Js extends OutputMode
-  object KlibDir extends OutputMode
-  object KlibFile extends OutputMode
+  case object Js extends OutputMode
+  case object KlibDir extends OutputMode
+  case object KlibFile extends OutputMode
 }
