@@ -169,16 +169,15 @@ object Discover {
             yield m.name.toString
           )
         }
-        if overridesRoutes._1.nonEmpty || overridesRoutes._2.nonEmpty
+        if overridesRoutes._1.nonEmpty || overridesRoutes._2.nonEmpty || overridesRoutes._3.nonEmpty
       } yield {
-        val (names, mainDataExprs) = overridesRoutes
-        val mainDatas = Expr.ofList(mainDataExprs)
+        val (names, mainDataExprs, taskNames) = overridesRoutes
         // by wrapping the `overridesRoutes` in a lambda function we kind of work around
         // the problem of generating a *huge* macro method body that finally exceeds the
         // JVM's maximum allowed method size
         val overridesLambda = '{
-          def pair() = (${ Expr(names) }, $mainDatas)
-          pair()
+          def triple() = (${ Expr(names) }, ${ Expr.ofList(mainDataExprs) }, ${ Expr(taskNames) })
+          triple()
         }
         val lhs =
           Ref(defn.Predef_classOf).appliedToType(discoveredModuleType.widen).asExprOf[Class[?]]
