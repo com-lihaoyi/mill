@@ -9,6 +9,7 @@ import mill.define.{ExternalModule, Discover}
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.api.ZincWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
 import mill.scalalib.api.{ZincWorkerApi, ZincWorkerUtil, Versions}
+import mill.util.Jvm
 import mill.util.Util.millProjectModule
 
 /**
@@ -16,6 +17,30 @@ import mill.util.Util.millProjectModule
  */
 object ZincWorkerModule extends ExternalModule with ZincWorkerModule with CoursierModule {
   lazy val millDiscover = Discover[this.type]
+
+  trait ZincWorkerModuleForJvm extends ZincWorkerModule with CoursierModule
+      with Cross.Module[String] {
+    override def javaHome: T[Option[PathRef]] = Task {
+      Some(resolveJavaHome(crossValue)())
+    }
+  }
+
+  private val jvmIds = (new Interp).watchValue {
+    Jvm
+      .jvmIndex()
+      .asSuccess
+      // JvmIndex.available() returns a Map[String, Map[String, String]]
+      // The first key is the distribution, the second key is the version,
+      // and the inner-most value is the URL
+      .map(_.value.available().getOrElse(Map.empty))
+      .getOrElse(Map.empty)
+      .flatMap { case (distribution, versions) =>
+        versions.map(version => s"$distribution:${version._1}")
+      }
+      .toSeq
+  }
+
+  object ForJvm extends Cross[ZincWorkerModuleForJvm](jvmIds)
 }
 
 /**
@@ -45,6 +70,16 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
 
   def zincLogDebug: T[Boolean] = Task.Input(T.ctx().log.debugEnabled)
 
+  /**
+   * Optional custom Java Home for the ZincWorker to use
+   *
+   * If this value is None, then the ZincWorker uses the same Java used to run
+   * the current mill instance.
+   */
+  def javaHome: T[Option[PathRef]] = Task {
+    None
+  }
+
   def worker: Worker[ZincWorkerApi] = Task.Worker {
     val jobs = T.ctx() match {
       case j: Ctx.Jobs => j.jobs
@@ -67,7 +102,8 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
       classOf[(Agg[PathRef], String) => PathRef], // compilerJarNameGrep
       classOf[KeyedLockedCache[_]], // compilerCache
       classOf[Boolean], // compileToJar
-      classOf[Boolean] // zincLogDebug
+      classOf[Boolean], // zincLogDebug
+      classOf[Option[PathRef]] // javaHome
     )
       .newInstance(
         Left((
@@ -84,7 +120,8 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
         ZincWorkerUtil.grepJar(_, "scala-compiler", _, sources = false),
         new FixSizedCache(jobs),
         java.lang.Boolean.FALSE,
-        java.lang.Boolean.valueOf(zincLogDebug())
+        java.lang.Boolean.valueOf(zincLogDebug()),
+        javaHome()
       )
     instance.asInstanceOf[ZincWorkerApi]
   }

@@ -1,5 +1,6 @@
 package build
 import mill._, javalib._
+import mill.define.ModuleRef
 
 object libraries{
 
@@ -37,6 +38,8 @@ object libraries{
 }
 
 trait MockitoModule extends MavenModule{
+  override def zincWorker = ModuleRef(ZincWorkerModule.ForJvm("temurin:1.11.0.24"))
+  def javacOptions = Seq("-encoding", "UTF-8")
   def testModuleDeps: Seq[JavaModule] = Nil
   def testIvyDeps: T[Agg[Dep]] = Agg.empty[Dep]
   def testRuntimeIvyDeps: T[Agg[Dep]] = Agg.empty[Dep]
