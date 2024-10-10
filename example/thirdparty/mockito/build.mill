@@ -1,6 +1,6 @@
 package build
-import mill.define.{Discover, ExternalModule, ModuleRef}
 import mill._, javalib._
+import mill.define.ModuleRef
 
 object libraries{
 
