@@ -28,7 +28,8 @@ private[scalalib] object TestModuleUtil {
       forkEnv: Map[String, String],
       testSandboxWorkingDir: Boolean,
       forkWorkingDir: os.Path,
-      testReportXml: Option[String]
+      testReportXml: Option[String],
+      javaHome: Option[os.Path]
   )(implicit ctx: mill.api.Ctx) = {
 
     val (jvmArgs, props: Map[String, String]) = loadArgsAndProps(useArgsFile, forkArgs)
@@ -72,7 +73,8 @@ private[scalalib] object TestModuleUtil {
         envArgs = forkEnv ++ resourceEnv,
         mainArgs = Seq(testRunnerClasspathArg, argsFile.toString),
         workingDir = if (testSandboxWorkingDir) sandbox else forkWorkingDir,
-        useCpPassingJar = useArgsFile
+        useCpPassingJar = useArgsFile,
+        javaHome = javaHome
       )
 
       if (!os.exists(outputPath)) Left(s"Test reporting Failed: ${outputPath} does not exist")

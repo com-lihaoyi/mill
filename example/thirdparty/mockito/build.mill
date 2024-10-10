@@ -1,4 +1,5 @@
 package build
+import mill.define.{Discover, ExternalModule, ModuleRef}
 import mill._, javalib._
 
 object libraries{
@@ -36,7 +37,16 @@ object libraries{
   val groovy = ivy"org.codehaus.groovy:groovy:3.0.22"
 }
 
+object ZincWorkerModule11 extends ExternalModule with ZincWorkerModule with CoursierModule {
+  lazy val millDiscover = Discover[this.type]
+  override def javaHome = Task {
+    Some(resolveJavaHome("temurin:1.11.0.24")())
+  }
+}
+
 trait MockitoModule extends MavenModule{
+  override def zincWorker = ModuleRef(ZincWorkerModule11)
+  def javacOptions = Seq("-encoding", "UTF-8")
   def testModuleDeps: Seq[JavaModule] = Nil
   def testIvyDeps: T[Agg[Dep]] = Agg.empty[Dep]
   def testRuntimeIvyDeps: T[Agg[Dep]] = Agg.empty[Dep]

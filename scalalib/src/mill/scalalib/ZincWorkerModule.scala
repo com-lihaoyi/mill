@@ -44,6 +44,12 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
 
   def zincLogDebug: T[Boolean] = Task.Input(T.ctx().log.debugEnabled)
 
+  /**
+   * Optional custom Java Home for the ZincWorker to use
+   *
+   * If this value is None, then the ZincWorker uses the same Java used to run
+   * the current mill instance.
+   */
   def javaHome: T[Option[PathRef]] = Task {
     None
   }

@@ -135,7 +135,8 @@ trait RunModule extends WithZincWorker {
       runClasspath().map(_.path),
       forkArgs(),
       forkEnv(),
-      runUseArgsFile()
+      runUseArgsFile(),
+      zincWorker().javaHome().map(_.path)
     )
   }
 
@@ -194,7 +195,7 @@ trait RunModule extends WithZincWorker {
           Seq(procId.toString, procTombstone.toString, token, finalMainClass) ++ args,
           workingDir = forkWorkingDir,
           backgroundOutputs,
-          useCpPassingJar = runUseArgsFile
+          useCpPassingJar = runUseArgsFile,
         )(ctx)
       )
     catch {
@@ -257,7 +258,8 @@ object RunModule {
       runClasspath: Seq[os.Path],
       forkArgs0: Seq[String],
       forkEnv0: Map[String, String],
-      useCpPassingJar0: Boolean
+      useCpPassingJar0: Boolean,
+      javaHome: Option[os.Path]
   ) extends Runner {
 
     def run(
@@ -283,7 +285,8 @@ object RunModule {
           case Some(b) => b
           case None => useCpPassingJar0
         },
-        runBackgroundLogToConsole = runBackgroundLogToConsole
+        runBackgroundLogToConsole = runBackgroundLogToConsole,
+        javaHome
       )
     }
   }
