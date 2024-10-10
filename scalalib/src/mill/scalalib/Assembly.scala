@@ -229,7 +229,8 @@ object Assembly {
     Using.resource(os.zip.open(rawJar)) { zipRoot =>
       val manifestPath = zipRoot / os.SubPath(JarFile.MANIFEST_NAME)
       os.makeDir.all(manifestPath / os.up)
-      Using.resource(os.write.outputStream(manifestPath,
+      Using.resource(os.write.outputStream(
+        manifestPath,
         openOptions = Seq(
           StandardOpenOption.TRUNCATE_EXISTING,
           StandardOpenOption.CREATE
@@ -250,14 +251,14 @@ object Assembly {
                     Seq(new ByteArrayInputStream(entry.separator.getBytes), inputStream())
                   )
                 val cleaned = if (os.exists(path)) separated else separated.drop(1)
-                Using.resource(new SequenceInputStream(Collections.enumeration(cleaned.asJava))){ concatenated =>
-
-                  addedEntryCount += 1
-                  writeEntry(path, concatenated, append = true)
+                Using.resource(new SequenceInputStream(Collections.enumeration(cleaned.asJava))) {
+                  concatenated =>
+                    addedEntryCount += 1
+                    writeEntry(path, concatenated, append = true)
                 }
               case entry: WriteOnceEntry =>
                 addedEntryCount += 1
-                Using.resource(entry.inputStream()){ stream =>
+                Using.resource(entry.inputStream()) { stream =>
                   writeEntry(path, stream, append = false)
                 }
             }
@@ -303,7 +304,7 @@ object Assembly {
       if (append) Seq(StandardOpenOption.APPEND, StandardOpenOption.CREATE)
       else Seq(StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)
 
-    Using.resource(os.write.outputStream(p, openOptions = options)){ outputStream =>
+    Using.resource(os.write.outputStream(p, openOptions = options)) { outputStream =>
       IO.stream(inputStream, outputStream)
     }
   }
