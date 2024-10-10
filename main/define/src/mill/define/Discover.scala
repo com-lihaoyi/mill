@@ -150,9 +150,7 @@ object Discover {
           case tr: TypeRef => q"classOf[${tr.pre}]"
           case _ => q"classOf[$discoveredModuleType]"
         }
-        println()
-        pprint.log(discoveredModuleType)
-        pprint.log(lhs)
+
         val overridesLambda = q"(() => $overridesRoutes)()"
 
         q"$lhs -> $overridesLambda"
