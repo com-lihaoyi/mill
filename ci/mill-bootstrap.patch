@@ -29,7 +29,7 @@ index 3db8a792a7b..72489d50d56 100644
    }
 
 -  def githubPagesPlaybookText(authorMode: Boolean) = T.task { extraSources: Seq[os.Path] =>
-+  def githubPagesPlaybookText(authorMode: Boolean) = T.Anon { (extraSources: Seq[os.Path]) =>
++  def githubPagesPlaybookText(authorMode: Boolean) = Task.Anon { (extraSources: Seq[os.Path]) =>
      val taggedSources = for (path <- extraSources) yield {
        s"""    - url: ${build.baseDir}
           |      start_path: ${path.relativeTo(build.baseDir)}
