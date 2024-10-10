@@ -653,7 +653,7 @@ object Target extends TaskBase {
       }
     }
 
-    def serialCommandImpl[T: Type](using Quotes)(t: Expr[T])(
+    def serialCommandImpl[T: Type](using Quotes)(t: Expr[Result[T]])(
         w: Expr[W[T]],
         ctx: Expr[mill.define.Ctx],
         cls: Expr[EnclosingClass],
