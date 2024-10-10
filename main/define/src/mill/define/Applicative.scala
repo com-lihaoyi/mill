@@ -6,8 +6,6 @@ import scala.annotation.compileTimeOnly
 
 import scala.quoted.*
 
-import TaskBase.TraverseCtxHolder
-
 /**
  * A generic Applicative-functor macro: translates calls to
  *
@@ -42,19 +40,19 @@ object Applicative {
     def traverseCtx[I, R](xs: Seq[W[I]])(f: (IndexedSeq[I], Ctx) => Z[R]): T[R]
   }
 
-  def impl[M[_]: Type, Q[_]: Type, Z[_]: Type, T: Type, Ctx: Type](using
+  def impl[M[_]: Type, W[_]: Type, Z[_]: Type, T: Type, Ctx: Type](using
       Quotes
-  )(caller: Expr[TraverseCtxHolder], t: Expr[Z[T]]): Expr[M[T]] = {
+  )(caller: Expr[Any], t: Expr[Z[T]]): Expr[M[T]] = {
     import quotes.reflect.*
     impl0(using quotes)(caller.asTerm, t.asTerm)(using
       Type.of[M],
-      Type.of[Q],
+      Type.of[W],
       Type.of[Z],
       Type.of[T],
       Type.of[Ctx]
     )
   }
-  def impl0[M[_]: Type, Q[_]: Type, Z[_]: Type, T: Type, Ctx: Type](using
+  def impl0[M[_]: Type, W[_]: Type, Z[_]: Type, T: Type, Ctx: Type](using
       Quotes
   )(caller: quotes.reflect.Tree, t: quotes.reflect.Tree): Expr[M[T]] = {
     import quotes.reflect.*
@@ -82,10 +80,15 @@ object Applicative {
 
     var hasErrors = false
 
+    def macroError(msg: String, pos: Position): Unit = {
+      hasErrors = true
+      report.error(msg, pos)
+    }
+
     def transformed(
         itemsRef: Expr[IndexedSeq[Any]],
         ctxRef: Expr[Ctx]
-    ): (Expr[Z[T]], Expr[List[Q[Any]]]) = {
+    ): (Expr[Z[T]], Expr[Seq[W[Any]]]) = {
       val exprs = collection.mutable.Buffer.empty[Tree]
       val treeMap = new TreeMap {
 
@@ -97,8 +100,7 @@ object Applicative {
             visitAllTrees(t) { x =>
               val sym = x.symbol
               if (sym != Symbol.noSymbol && defs(sym) && !localDefs(sym)) {
-                hasErrors = true
-                report.error(
+                macroError(
                   "Target#apply() call cannot use `" + x.symbol + "` defined within the Task{...} block",
                   x.pos
                 )
@@ -131,14 +133,105 @@ object Applicative {
       }
 
       val newBody = treeMap.transformTree(t)(Symbol.spliceOwner).asExprOf[Z[T]]
-      val exprsList = Expr.ofList(exprs.toList.map(_.asExprOf[Q[Any]]))
+      val exprsList = Expr.ofList(exprs.toList.map(_.asExprOf[W[Any]]))
       (newBody, exprsList)
     }
 
-    val callerExpr = caller.asExprOf[TraverseCtxHolder]
+    /** TraverseCtx is now not a static base type, so we have to resolve it via reflection.
+     *  An alternative would be to extract traverseCtx to a generic base trait,
+     *  or pass in a function that accepts the traverseCtx arguments.
+    */
+    def traverseCtxExpr(apps: Expr[Seq[W[Any]]], fn: Expr[(IndexedSeq[Any], Ctx) => Z[T]]): Option[Expr[M[T]]] =
+      def defaultError(err: String): Option[Expr[M[T]]] =
+        macroError(err, caller.pos)
+        None
+
+      def finalResultType(tpe: TypeRepr): TypeRepr = tpe match
+        case tpe: LambdaType => finalResultType(tpe.resType)
+        case tpe: ByNameType => tpe.underlying
+        case _ => tpe
+
+      def lookup(caller0: This, pre: TypeRepr, cls: Symbol): Option[Expr[M[T]]] =
+        // traverseCtx[I, R](xs: Seq[Task[I]])(f: (IndexedSeq[I], mill.api.Ctx) => Result[R]): Task[R]
+        val bufErrors = List.newBuilder[(String, Position)]
+        def bufError(msg: String, pos: Position): Unit = bufErrors += ((msg, pos))
+        val candidate = cls.methodMember("traverseCtx").find(m =>
+          bufErrors.clear()
+          val mTpe = pre.memberType(m)
+          m.paramSymss match
+            case List(List(i, r), List(xs), List(f)) if i.isType && r.isType && xs.isTerm && f.isTerm =>
+              def subParams(tpe: TypeRepr): TypeRepr = {
+                // paramSymss types will have Symbol references to type parameters,
+                // so we need to substitute them with the actual types
+                tpe.substituteTypes(List(i, r), List(TypeRepr.of[Any], TypeRepr.of[T]))
+              }
+              def applyParams(tpe: TypeRepr): TypeRepr = {
+                // mTpe however is computed differently, so doesn't have symbol references, but ParamRefs,
+                // so we need a different substitution
+                tpe.appliedTo(List(TypeRepr.of[Any], TypeRepr.of[T]))
+              }
+              def conformsParam[Compare: Type](other: Symbol, sub: Boolean = false): Boolean = {
+                val cmp = TypeRepr.of[Compare]
+                val otherTpe = {
+                  val base = mTpe.memberType(other)
+                  if sub then subParams(base) else base
+                }
+                val res = otherTpe match
+                  case TypeBounds(_, hi) => cmp <:< hi
+                  case _ => cmp <:< otherTpe
+                if !res then
+                  val what = s"Parameter ${other.name}: ${otherTpe.show} of ${caller.show}.traverseCtx"
+                  bufError(s"$what does not match expected type ${cmp.show}",
+                    other.pos.orElse(m.pos).getOrElse(caller0.pos))
+                res
+              }
+              def conformsRes[Compare: Type]: Boolean = {
+                val cmp = TypeRepr.of[Compare]
+                val resTpe = finalResultType(applyParams(mTpe))
+                val res = resTpe <:< cmp
+                if !res then
+                  val what = s"Result type ${resTpe.show} of ${caller.show}.traverseCtx"
+                  bufError(s"$what does not match expected type ${cmp.show}",
+                    m.pos.getOrElse(caller0.pos))
+                res
+              }
+              conformsParam[Any](i)
+              && conformsParam[T](r)
+              && conformsParam[Seq[W[Any]]](xs, sub = true)
+              && conformsParam[(IndexedSeq[Any], Ctx) => Z[T]](f, sub = true)
+              && conformsRes[M[T]]
+            case _ =>
+              bufError(s"${caller.show}.traverseCtx method did not have expected parameters", caller.pos)
+              false
+        )
+        candidate.map(m =>
+          caller0.select(m) // this.traverseCtx
+            .appliedToTypes(List(TypeRepr.of[Any], TypeRepr.of[T])) // ...[Any, T]
+            .appliedTo(apps.asTerm) // ...(apps)
+            .appliedTo(fn.asTerm) // ...(fn)
+            .asExprOf[M[T]]
+        ).orElse {
+          bufErrors.result().foreach(macroError)
+          defaultError(s"Could not find a method `traverseCtx` in prefix ${caller.show}")
+        }
+
+      def extractCaller(tree: Tree): Option[This] = tree match
+        case t: This => Some(t)
+        case Inlined(_, _, t) => extractCaller(t)
+        case Block(_, expr) => extractCaller(expr)
+        case _ => None
+
+      extractCaller(caller) match
+        case Some(t: This) => t.tpe match
+          case pre @ ThisType(ref) => ref.classSymbol match
+            case Some(cls) => lookup(t, pre, cls)
+            case None => defaultError("Could not resolve class of `this`")
+          case _ => defaultError("Unexpected type of `this`, not a `ThisType`")
+        case _ => defaultError(s"Expected a `this` reference, found ${caller.show}")
+    end traverseCtxExpr
 
     val (callback, exprsList) = {
-      var exprsExpr: Expr[List[Q[Any]]] | Null = null
+      var exprsExpr: Expr[Seq[W[Any]]] | Null = null
       val cb = '{ (items: IndexedSeq[Any], ctx: Ctx) =>
         ${
           val (body, exprs) = transformed('items, 'ctx)
@@ -149,13 +242,16 @@ object Applicative {
       (cb, exprsExpr.nn)
     }
 
-    if hasErrors then
+    val calledTraverse = traverseCtxExpr(exprsList, callback)
+
+    if hasErrors || calledTraverse.isEmpty then
       '{ throw new RuntimeException("stub implementation - macro expansion had errors") }
     else
       // TODO: make caller Expr[C] (C is generic param), and look up the method with quotes.reflect, checking types,
       // then it can be generic.
       // or, probably pass the traverseCtx method call as a Expr[<function>]
-      '{ ${ callerExpr }.traverseCtx[Any, T]($exprsList.asInstanceOf[Seq[mill.define.Task[Any]]])($callback.asInstanceOf[(IndexedSeq[Any], mill.api.Ctx) => mill.api.Result[T]]).asInstanceOf[M[T]] }
+      //${ callerExpr }.traverseCtx[Any, T]($exprsList.asInstanceOf[Seq[mill.define.Task[Any]]])($callback.asInstanceOf[(IndexedSeq[Any], mill.api.Ctx) => mill.api.Result[T]]).asInstanceOf[M[T]] }
+      calledTraverse.get
   }
 
 }
