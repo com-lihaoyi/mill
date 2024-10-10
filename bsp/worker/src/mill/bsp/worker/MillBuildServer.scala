@@ -14,6 +14,7 @@ import mill.main.MainModule
 import mill.runner.MillBuildRootModule
 import mill.scalalib.bsp.{BspModule, JvmBuildTarget, ScalaBuildTarget}
 import mill.scalalib.{JavaModule, SemanticDbJavaModule, TestModule}
+import mill.given
 
 import java.io.PrintStream
 import java.util.concurrent.CompletableFuture
@@ -632,7 +633,7 @@ private class MillBuildServer(
       State
   ) => V): CompletableFuture[V] = {
     val prefix = hint.split(" ").head
-    completable(hint) { state: State =>
+    completable(hint) { (state: State) =>
       val ids = state.filterNonSynthetic(targetIds(state).asJava).asScala
       val tasksSeq = ids.flatMap { id =>
         val (m, ev) = state.bspModulesById(id)

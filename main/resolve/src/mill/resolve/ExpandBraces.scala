@@ -10,7 +10,7 @@ private object ExpandBraces {
     case class Expand(values: List[List[Fragment]]) extends Fragment
   }
 
-  def expandRec(frags: List[Fragment]): List[List[String]] = frags match {
+  private[ExpandBraces] def expandRec(frags: List[Fragment]): List[List[String]] = frags match {
     case Nil => List(List())
     case head :: tail =>
       val tailStrings = expandRec(tail)
@@ -30,7 +30,7 @@ private object ExpandBraces {
   }
 
   def expandBraces(selectorString: String): Either[String, Seq[String]] = {
-    parse(selectorString, parser(_)) match {
+    parse(selectorString, parser(using _)) match {
       case f: Parsed.Failure => Left(s"Parsing exception ${f.msg}")
       case Parsed.Success(fragmentLists, _) =>
         Right(expandRec(fragmentLists.toList).map(_.mkString))

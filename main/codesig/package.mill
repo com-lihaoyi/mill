@@ -47,7 +47,8 @@ object `package` extends RootModule with build.MillPublishScalaModule {
           build.Deps.mainargs,
           build.Deps.requests,
           build.Deps.osLib,
-          build.Deps.upickle
+          build.Deps.upickle,
+          build.Deps.sourcecode
         )
       }
     }

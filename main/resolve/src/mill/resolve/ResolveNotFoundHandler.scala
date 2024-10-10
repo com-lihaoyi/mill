@@ -42,7 +42,7 @@ private object ResolveNotFoundHandler {
     val search = revSelectorsSoFar.render
 
     val lastSearchOpt = for {
-      Segment.Label(s) <- Option(lastSegment)
+      case Segment.Label(s) <- Option(lastSegment)
       if s != "_" && s != "__"
       possibility <- findMostSimilar(s, allPossibleNames)
     } yield "__." + possibility
@@ -71,13 +71,13 @@ private object ResolveNotFoundHandler {
   }
 
   def errorMsgLabel(
-      given: String,
+      `given`: String,
       possibleMembers: Set[String],
       prefixSegments: Segments,
       fullSegments: Segments,
       allPossibleNames: Set[String]
   ): String = {
-    val suggestion = findMostSimilar(given, possibleMembers) match {
+    val suggestion = findMostSimilar(`given`, possibleMembers) match {
       case None => hintListLabel(prefixSegments, fullSegments.value.last, allPossibleNames)
       case Some(similar) =>
         " Did you mean " +

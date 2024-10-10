@@ -18,7 +18,10 @@ object OutputPatternsTests extends TestSuite {
       override def scalaJSOutputPatterns = OutputPatterns.fromJSFile("%s.mjs")
     }
 
-    override lazy val millDiscover = Discover[this.type]
+    override lazy val millDiscover = {
+      import mill.main.TokenReaders.given
+      Discover[this.type]
+    }
   }
 
   val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-js-world"

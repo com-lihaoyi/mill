@@ -11,7 +11,10 @@ import mainargs.Flag
 import mill.scalalib.bsp.{BspBuildTarget, BspModule, ScalaBuildTarget, ScalaPlatform}
 import mill.scalalib.dependency.versions.{ValidVersion, Version}
 
+// this import requires scala-reflect library to be on the classpath
+// it was duplicated to scala3-compiler, but is that too powerful to add as a dependency?
 import scala.reflect.internal.util.ScalaClassLoader
+
 import scala.util.Using
 
 /**
@@ -56,7 +59,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   def scalaVersion: T[String]
 
   override def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = Task.Anon {
-    super.mapDependencies().andThen { d: coursier.Dependency =>
+    super.mapDependencies().andThen { (d: coursier.Dependency) =>
       val artifacts =
         if (ZincWorkerUtil.isDotty(scalaVersion()))
           Set("dotty-library", "dotty-compiler")

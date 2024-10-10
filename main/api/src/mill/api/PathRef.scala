@@ -1,10 +1,13 @@
 package mill.api
 
+import scala.language.implicitConversions
+
 import java.nio.{file => jnio}
 import java.security.{DigestOutputStream, MessageDigest}
 import java.util.concurrent.ConcurrentHashMap
 import scala.util.{DynamicVariable, Using}
 import upickle.default.{ReadWriter => RW}
+import scala.annotation.nowarn
 
 /**
  * A wrapper around `os.Path` that calculates it's hashcode based
@@ -69,7 +72,7 @@ object PathRef {
           if (pathRef.sig != changedSig) {
             throw new PathRefValidationException(pathRef)
           }
-          map.put(mapKey(pathRef), pathRef)
+          val _ = map.put(mapKey(pathRef), pathRef)
       }
     }
     def clear(): Unit = map.clear()
@@ -197,6 +200,7 @@ object PathRef {
   )
 
   // scalafix:off; we want to hide the unapply method
+  @nowarn("msg=unused")
   private def unapply(pathRef: PathRef): Option[(os.Path, Boolean, Int, Revalidate)] = {
     Some((pathRef.path, pathRef.quick, pathRef.sig, pathRef.revalidate))
   }

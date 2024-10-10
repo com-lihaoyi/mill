@@ -2,13 +2,18 @@ package mill.contrib.scoverage
 
 import mill.{Agg, Task}
 import mill.api.{ClassLoader, Ctx, PathRef}
-import mill.contrib.scoverage.api.ScoverageReportWorkerApi
+import mill.contrib.scoverage.api.ScoverageReportWorkerApi2
 import mill.define.{Discover, ExternalModule, Worker}
 
-class ScoverageReportWorker extends AutoCloseable {
-  private[this] var scoverageClCache = Option.empty[(Long, ClassLoader)]
+import ScoverageReportWorker.ScoverageReportWorkerApiBridge
+import ScoverageReportWorkerApi2.ReportType
+import ScoverageReportWorkerApi2.Logger as ApiLogger
+import ScoverageReportWorkerApi2.Ctx as ApiCtx
 
-  def bridge(classpath: Agg[PathRef])(implicit ctx: Ctx): ScoverageReportWorkerApi = {
+class ScoverageReportWorker extends AutoCloseable {
+  private var scoverageClCache = Option.empty[(Long, ClassLoader)]
+
+  def bridge(classpath: Agg[PathRef])(implicit ctx: Ctx): ScoverageReportWorkerApiBridge = {
 
     val classloaderSig = classpath.hashCode
     val cl = scoverageClCache match {
@@ -24,11 +29,43 @@ class ScoverageReportWorker extends AutoCloseable {
         cl
     }
 
-    cl
-      .loadClass("mill.contrib.scoverage.worker.ScoverageReportWorkerImpl")
-      .getDeclaredConstructor()
-      .newInstance()
-      .asInstanceOf[api.ScoverageReportWorkerApi]
+    val worker =
+      cl
+        .loadClass("mill.contrib.scoverage.worker.ScoverageReportWorkerImpl")
+        .getDeclaredConstructor()
+        .newInstance()
+        .asInstanceOf[api.ScoverageReportWorkerApi2]
+
+    def ctx0(using ctx: Ctx): ApiCtx = {
+      val logger = new ApiLogger {
+        def info(msg: String): Unit = ctx.log.info(msg)
+        def error(msg: String): Unit = ctx.log.error(msg)
+        def debug(msg: String): Unit = ctx.log.debug(msg)
+      }
+      new {
+        def log() = logger
+        def dest() = ctx.dest.toNIO
+      }
+    }
+
+    new ScoverageReportWorkerApiBridge {
+      override def report(
+          reportType: ReportType,
+          sources: Seq[os.Path],
+          dataDirs: Seq[os.Path],
+          sourceRoot: os.Path
+      )(implicit
+          ctx: Ctx
+      ): Unit = {
+        worker.report(
+          reportType,
+          sources.map(_.toNIO).toArray,
+          dataDirs.map(_.toNIO).toArray,
+          sourceRoot.toNIO,
+          ctx0
+        )
+      }
+    }
   }
 
   override def close(): Unit = {
@@ -37,6 +74,18 @@ class ScoverageReportWorker extends AutoCloseable {
 }
 
 object ScoverageReportWorker extends ExternalModule {
+  import ScoverageReportWorkerApi2.ReportType
+
+  trait ScoverageReportWorkerApiBridge {
+    def report(
+        reportType: ReportType,
+        sources: Seq[os.Path],
+        dataDirs: Seq[os.Path],
+        sourceRoot: os.Path
+    )(implicit
+        ctx: Ctx
+    ): Unit
+  }
 
   def scoverageReportWorker: Worker[ScoverageReportWorker] =
     Task.Worker { new ScoverageReportWorker() }

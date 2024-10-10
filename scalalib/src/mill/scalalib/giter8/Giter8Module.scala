@@ -16,11 +16,22 @@ trait Giter8Module extends CoursierModule {
 
   def init(args: String*): Command[Unit] = Task.Command {
     T.log.info("Creating a new project...")
-    val giter8Dependencies = defaultResolver().resolveDeps {
-      val scalaBinVersion = ZincWorkerUtil.scalaBinaryVersion(BuildInfo.scalaVersion)
-      Loose.Agg(ivy"org.foundweekends.giter8:giter8_${scalaBinVersion}:0.14.0"
-        .bindDep("", "", ""))
-    }
+
+    val giter8Dependencies =
+      try {
+        defaultResolver().resolveDeps {
+          val scalaBinVersion = {
+            val bv = ZincWorkerUtil.scalaBinaryVersion(BuildInfo.scalaVersion)
+            if (bv == "3") "2.13" else bv
+          }
+          Loose.Agg(ivy"org.foundweekends.giter8:giter8_${scalaBinVersion}:0.14.0"
+            .bindDep("", "", ""))
+        }
+      } catch {
+        case e: Exception =>
+          T.log.error("Failed to resolve giter8 dependencies\n" + e.getMessage)
+          throw e
+      }
 
     Jvm.runSubprocess(
       "giter8.Giter8",

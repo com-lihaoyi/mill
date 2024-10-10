@@ -9,17 +9,7 @@ object ThingsOutsideTopLevelModuleTests extends UtestIntegrationTestSuite {
     test("success") - integrationTest { tester =>
       import tester._
       val res = eval(("resolve", "_"))
-      assert(!res.isSuccess)
-      assert(
-        res.err.contains(
-          "expected class or object definition"
-        )
-      )
-      assert(
-        res.err.contains(
-          "def invalidTask"
-        )
-      )
+      assert(res.isSuccess)
     }
   }
 }

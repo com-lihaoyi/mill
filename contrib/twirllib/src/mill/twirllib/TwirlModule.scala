@@ -20,7 +20,9 @@ trait TwirlModule extends mill.Module { twirlModule =>
    */
   def twirlScalaVersion: T[String] = Task {
     twirlVersion() match {
-      case s"1.$minor.$_" if minor.toIntOption.exists(_ < 4) => BuildInfo.workerScalaVersion212
+      case s"1.$minor.$_" if minor.toIntOption.exists(_ < 6) =>
+        if minor.toIntOption.exists(_ < 4) then BuildInfo.workerScalaVersion212
+        else BuildInfo.workerScalaVersion213
       case _ => BuildInfo.scalaVersion
     }
   }
@@ -33,7 +35,7 @@ trait TwirlModule extends mill.Module { twirlModule =>
    * Replicate the logic from twirl build,
    *      see: https://github.com/playframework/twirl/blob/2.0.1/build.sbt#L12-L17
    */
-  private def scalaParserCombinatorsVersion: T[String] = twirlScalaVersion.map {
+  private def scalaParserCombinatorsVersion: Task[String] = twirlScalaVersion.map {
     case v if v.startsWith("2.") => "1.1.2"
     case _ => "2.3.0"
   }
@@ -57,7 +59,7 @@ trait TwirlModule extends mill.Module { twirlModule =>
    * @since Mill after 0.10.5
    */
   trait TwirlResolver extends CoursierModule {
-    override def resolveCoursierDependency: Task[Dep => Dependency] = Task.Anon { d: Dep =>
+    override def resolveCoursierDependency: Task[Dep => Dependency] = Task.Anon { (d: Dep) =>
       Lib.depToDependency(d, twirlScalaVersion())
     }
 

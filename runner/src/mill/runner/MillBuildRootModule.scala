@@ -6,15 +6,18 @@ import mill.api.{PathRef, Result, internal}
 import mill.define.{Discover, Task}
 import mill.scalalib.{BoundDep, Dep, DepSyntax, Lib, ScalaModule}
 import mill.util.CoursierSupport
-import mill.util.Util.millProjectModule
 import mill.scalalib.api.Versions
+import mill.scalalib.api.ZincWorkerUtil
 import mill.main.client.OutFiles._
 import mill.main.client.CodeGenConstants.buildFileExtensions
 import mill.main.{BuildInfo, RootModule}
+import mill.runner.worker.ScalaCompilerWorker
+import mill.runner.worker.api.ScalaCompilerWorkerApi
 
 import scala.collection.immutable.SortedMap
 import scala.util.Try
 import mill.define.Target
+import mill.runner.worker.api.MillScalaParser
 
 /**
  * Mill module for pre-processing a Mill `build.mill` and related files and then
@@ -26,8 +29,9 @@ import mill.define.Target
 @internal
 abstract class MillBuildRootModule()(implicit
     baseModuleInfo: RootModule.Info,
-    millBuildRootModuleInfo: MillBuildRootModule.Info
-) extends RootModule() with ScalaModule {
+    millBuildRootModuleInfo: MillBuildRootModule.Info,
+    scalaCompilerResolver: ScalaCompilerWorker.Resolver
+) extends RootModule() with ScalaModule /*with WithScalaCompilerWorker*/ {
   override def bspDisplayName0: String = millBuildRootModuleInfo
     .projectRoot
     .relativeTo(millBuildRootModuleInfo.topLevelProjectRoot)
@@ -45,7 +49,7 @@ abstract class MillBuildRootModule()(implicit
    * @see [[generateScriptSources]]
    */
   def scriptSources: Target[Seq[PathRef]] = Task.Sources {
-    MillBuildRootModule.parseBuildFiles(millBuildRootModuleInfo)
+    MillBuildRootModule.parseBuildFiles(compilerWorker(), millBuildRootModuleInfo)
       .seenScripts
       .keys.map(PathRef(_))
       .toSeq
@@ -53,7 +57,11 @@ abstract class MillBuildRootModule()(implicit
 
   def parseBuildFiles: T[FileImportGraph] = Task {
     scriptSources()
-    MillBuildRootModule.parseBuildFiles(millBuildRootModuleInfo)
+    MillBuildRootModule.parseBuildFiles(compilerWorker(), millBuildRootModuleInfo)
+  }
+
+  private[runner] def compilerWorker: Worker[ScalaCompilerWorkerApi] = Task.Worker {
+    scalaCompilerResolver.resolve()
   }
 
   override def repositoriesTask: Task[Seq[Repository]] = {
@@ -121,8 +129,11 @@ abstract class MillBuildRootModule()(implicit
         parsed.seenScripts,
         T.dest,
         millBuildRootModuleInfo.enclosingClasspath,
+        scalaCompilerResolver.classpath,
         millBuildRootModuleInfo.topLevelProjectRoot,
-        millBuildRootModuleInfo.output
+        millBuildRootModuleInfo.output,
+        ZincWorkerUtil.isScala3(scalaVersion()),
+        compilerWorker()
       )
       Result.Success(Seq(PathRef(T.dest)))
     }
@@ -138,14 +149,14 @@ abstract class MillBuildRootModule()(implicit
         upstreamClasspath = compileClasspath().toSeq.map(_.path),
         ignoreCall = { (callSiteOpt, calledSig) =>
           // We can ignore all calls to methods that look like Targets when traversing
-          // the call graph. We can fo this because we assume `def` Targets are pure,
+          // the call graph. We can do this because we assume `def` Targets are pure,
           // and so any changes in their behavior will be picked up by the runtime build
           // graph evaluator without needing to be accounted for in the post-compile
           // bytecode callgraph analysis.
-          def isSimpleTarget =
-            (calledSig.desc.ret.pretty == classOf[mill.define.Target[_]].getName ||
-              calledSig.desc.ret.pretty == classOf[mill.define.Worker[_]].getName) &&
-              calledSig.desc.args.isEmpty
+          def isSimpleTarget(desc: mill.codesig.JvmModel.Desc) =
+            (desc.ret.pretty == classOf[mill.define.Target[_]].getName ||
+              desc.ret.pretty == classOf[mill.define.Worker[_]].getName) &&
+              desc.args.isEmpty
 
           // We avoid ignoring method calls that are simple trait forwarders, because
           // we need the trait forwarders calls to be counted in order to wire up the
@@ -154,11 +165,24 @@ abstract class MillBuildRootModule()(implicit
           // somewhere else (e.g. `trait MyModuleTrait{ def myTarget }`). Only that one
           // step is necessary, after that the runtime build graph invalidation logic can
           // take over
-          def isForwarderCallsite =
-            callSiteOpt.nonEmpty &&
-              callSiteOpt.get.sig.name == (calledSig.name + "$") &&
-              callSiteOpt.get.sig.static &&
-              callSiteOpt.get.sig.desc.args.size == 1
+          def isForwarderCallsiteOrLambda =
+            callSiteOpt.nonEmpty && {
+              val callSiteSig = callSiteOpt.get.sig
+
+              (callSiteSig.name == (calledSig.name + "$") &&
+                callSiteSig.static &&
+                callSiteSig.desc.args.size == 1)
+              || (
+                // In Scala 3, lambdas are implemented by private instance methods,
+                // not static methods, so they fall through the crack of "isSimpleTarget".
+                // Here make the assumption that a zero-arg lambda called from a simpleTarget,
+                // should in fact be tracked. e.g. see `integration.invalidation[codesig-hello]`,
+                // where the body of the `def foo` target is a zero-arg lambda i.e. the argument
+                // of `Cacher.cachedTarget`.
+                // To be more precise I think ideally we should capture more information in the signature
+                isSimpleTarget(callSiteSig.desc) && calledSig.name.contains("$anonfun")
+              )
+            }
 
           // We ignore Commands for the same reason as we ignore Targets, and also because
           // their implementations get gathered up all the via the `Discover` macro, but this
@@ -168,7 +192,7 @@ abstract class MillBuildRootModule()(implicit
           def isCommand =
             calledSig.desc.ret.pretty == classOf[mill.define.Command[_]].getName
 
-          (isSimpleTarget && !isForwarderCallsite) || isCommand
+          (isSimpleTarget(calledSig.desc) && !isForwarderCallsiteOrLambda) || isCommand
         },
         logger = new mill.codesig.Logger(Option.when(debugEnabled)(T.dest / "current")),
         prevTransitiveCallGraphHashesOpt = () =>
@@ -207,7 +231,7 @@ abstract class MillBuildRootModule()(implicit
   override def allSourceFiles: T[Seq[PathRef]] = Task {
     val candidates = Lib.findSourceFiles(allSources(), Seq("scala", "java") ++ buildFileExtensions)
     // We need to unlist those files, which we replaced by generating wrapper scripts
-    val filesToExclude = Lib.findSourceFiles(scriptSources(), buildFileExtensions)
+    val filesToExclude = Lib.findSourceFiles(scriptSources(), buildFileExtensions.toIndexedSeq)
     candidates.filterNot(filesToExclude.contains).map(PathRef(_))
   }
 
@@ -221,17 +245,19 @@ abstract class MillBuildRootModule()(implicit
    * We exclude them to avoid incompatible or duplicate artifacts on the classpath.
    */
   protected def resolveDepsExclusions: T[Seq[(String, String)]] = Task {
-    Lib.millAssemblyEmbeddedDeps.toSeq.map(d =>
-      (d.dep.module.organization.value, d.dep.module.name.value)
-    )
+    Lib.millAssemblyEmbeddedDeps.toSeq.flatMap({ d =>
+      val isScala3 = ZincWorkerUtil.isScala3(scalaVersion())
+      if isScala3 && d.dep.module.name.value == "scala-library" then None
+      else Some((d.dep.module.organization.value, d.dep.module.name.value))
+    })
   }
 
-  override def bindDependency: Task[Dep => BoundDep] = Task.Anon { dep: Dep =>
-    super.bindDependency().apply(dep).exclude(resolveDepsExclusions(): _*)
+  override def bindDependency: Task[Dep => BoundDep] = Task.Anon { (dep: Dep) =>
+    super.bindDependency.apply().apply(dep).exclude(resolveDepsExclusions(): _*)
   }
 
   override def unmanagedClasspath: T[Agg[PathRef]] = Task {
-    enclosingClasspath() ++ lineNumberPluginClasspath()
+    enclosingClasspath()
   }
 
   override def scalacPluginIvyDeps: T[Agg[Dep]] = Agg(
@@ -241,12 +267,7 @@ abstract class MillBuildRootModule()(implicit
   override def scalacOptions: T[Seq[String]] = Task {
     super.scalacOptions() ++
       Seq(
-        "-Xplugin:" + lineNumberPluginClasspath().map(_.path).mkString(","),
-        "-deprecation",
-        // Make sure we abort of the plugin is not found, to ensure any
-        // classpath/plugin-discovery issues are surfaced early rather than
-        // after hours of debugging
-        "-Xplugin-require:mill-linenumber-plugin"
+        "-deprecation"
       )
   }
 
@@ -257,7 +278,8 @@ abstract class MillBuildRootModule()(implicit
     super.semanticDbPluginClasspath() ++ lineNumberPluginClasspath()
 
   def lineNumberPluginClasspath: T[Agg[PathRef]] = Task {
-    millProjectModule("mill-runner-linenumbers", repositoriesTask())
+    // millProjectModule("mill-runner-linenumbers", repositoriesTask())
+    Agg.empty
   }
 
   /** Used in BSP IntelliJ, which can only work with directories */
@@ -270,7 +292,8 @@ object MillBuildRootModule {
       topLevelProjectRoot0: os.Path,
       projectRoot: os.Path,
       output: os.Path,
-      enclosingClasspath: Seq[os.Path]
+      enclosingClasspath: Seq[os.Path],
+      scalaCompilerWorker: ScalaCompilerWorker.ResolvedWorker
   )(implicit baseModuleInfo: RootModule.Info) extends MillBuildRootModule()(
         implicitly,
         MillBuildRootModule.Info(
@@ -278,7 +301,8 @@ object MillBuildRootModule {
           projectRoot,
           output,
           topLevelProjectRoot0
-        )
+        ),
+        scalaCompilerWorker.constResolver
       ) {
 
     override lazy val millDiscover: Discover = baseModuleInfo.discover
@@ -291,8 +315,12 @@ object MillBuildRootModule {
       topLevelProjectRoot: os.Path
   )
 
-  def parseBuildFiles(millBuildRootModuleInfo: MillBuildRootModule.Info): FileImportGraph = {
+  def parseBuildFiles(
+      parser: MillScalaParser,
+      millBuildRootModuleInfo: MillBuildRootModule.Info
+  ): FileImportGraph = {
     FileImportGraph.parseBuildFiles(
+      parser,
       millBuildRootModuleInfo.topLevelProjectRoot,
       millBuildRootModuleInfo.projectRoot / os.up,
       millBuildRootModuleInfo.output
@@ -301,6 +329,7 @@ object MillBuildRootModule {
 
   class MillMiscInfo(
       enclosingClasspath: Seq[String],
+      compilerWorkerClasspath: Seq[String],
       projectRoot: String,
       output: String,
       topLevelProjectRoot: String,
@@ -312,6 +341,12 @@ object MillBuildRootModule {
       os.Path(output),
       os.Path(topLevelProjectRoot)
     )
+    implicit lazy val millRunnerScalaCompilerWorker: ScalaCompilerWorker.Resolver = {
+      ScalaCompilerWorker.Resolver(
+        compilerWorkerClasspath.map(os.Path(_)),
+        (home, cp) => ScalaCompilerWorker.reflect(cp)(using home)
+      )
+    }
     implicit lazy val millBaseModuleInfo: RootModule.Info = RootModule.Info(
       millBuildRootModuleInfo.projectRoot,
       null

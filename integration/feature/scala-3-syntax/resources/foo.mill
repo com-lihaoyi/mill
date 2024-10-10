@@ -1,0 +1,5 @@
+package build
+
+class Box[T]
+
+given Box[Int]()
