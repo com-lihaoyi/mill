@@ -90,6 +90,8 @@ class UnitTester(
     mill.api.Ctx.defaultHome,
     module.millSourcePath,
     outPath,
+    false,
+    false,
     outPath,
     module,
     logger,
