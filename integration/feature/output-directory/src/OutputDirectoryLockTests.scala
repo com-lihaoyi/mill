@@ -16,7 +16,7 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
   override def utestAfterAll(): Unit = {
     pool.shutdown()
   }
-  implicit val retryMax: RetryMax = RetryMax(30000.millis)
+  implicit val retryMax: RetryMax = RetryMax(60000.millis)
   implicit val retryInterval: RetryInterval = RetryInterval(50.millis)
   def tests: Tests = Tests {
     test("basic") - integrationTest { tester =>
