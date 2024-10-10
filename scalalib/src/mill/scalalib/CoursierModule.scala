@@ -34,7 +34,7 @@ trait CoursierModule extends mill.Module {
 
   def resolveJavaHome(id: String): Task[PathRef] = Task.Anon {
     val path = mill.util.Jvm.resolveJavaHome(
-      id=id,
+      id = id,
       coursierCacheCustomizer = coursierCacheCustomizer(),
       ctx = Some(implicitly[mill.api.Ctx.Log])
     ).getOrThrow

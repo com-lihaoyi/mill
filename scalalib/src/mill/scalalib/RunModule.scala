@@ -195,7 +195,7 @@ trait RunModule extends WithZincWorker {
           Seq(procId.toString, procTombstone.toString, token, finalMainClass) ++ args,
           workingDir = forkWorkingDir,
           backgroundOutputs,
-          useCpPassingJar = runUseArgsFile,
+          useCpPassingJar = runUseArgsFile
         )(ctx)
       )
     catch {

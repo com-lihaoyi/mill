@@ -168,8 +168,8 @@ trait CoursierSupport {
   }
 
   def jvmIndex(
-    ctx: Option[mill.api.Ctx.Log] = None,
-    coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None
+      ctx: Option[mill.api.Ctx.Log] = None,
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None
   ): Result[JvmIndex] = {
     val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
     JvmIndex.load().unsafeRun()(coursierCache0.ec)
@@ -181,9 +181,9 @@ trait CoursierSupport {
    * The id string has format "$DISTRIBUTION:$VERSION". e.g. graalvm-community:23.0.0
    */
   def resolveJavaHome(
-    id: String,
-    ctx: Option[mill.api.Ctx.Log] = None,
-    coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None
+      id: String,
+      ctx: Option[mill.api.Ctx.Log] = None,
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None
   ): Result[os.Path] = {
     val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
     val jvmCache = JvmCache()

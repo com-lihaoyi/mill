@@ -17,7 +17,8 @@ import mill.util.Util.millProjectModule
 object ZincWorkerModule extends ExternalModule with ZincWorkerModule with CoursierModule {
   lazy val millDiscover = Discover[this.type]
 
-  trait ZincWorkerModuleForJvm extends ZincWorkerModule with CoursierModule with Cross.Module[String] {
+  trait ZincWorkerModuleForJvm extends ZincWorkerModule with CoursierModule
+      with Cross.Module[String] {
     override def javaHome: T[Option[PathRef]] = Task {
       Some(resolveJavaHome(crossValue)())
     }
@@ -101,7 +102,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
       classOf[KeyedLockedCache[_]], // compilerCache
       classOf[Boolean], // compileToJar
       classOf[Boolean], // zincLogDebug
-      classOf[Option[PathRef]], // javaHome
+      classOf[Option[PathRef]] // javaHome
     )
       .newInstance(
         Left((
