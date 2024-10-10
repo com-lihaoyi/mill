@@ -1,5 +1,6 @@
-//> using scala 3.5.0-RC6
-//> using options -language:experimental.namedTuples
+//> using scala 3.6.1-RC1-bin-20241009-cd3bd1d-NIGHTLY
+
+// NamedTuples part of the language now :)
 
 val cls = (
   name = "JarManifest",
