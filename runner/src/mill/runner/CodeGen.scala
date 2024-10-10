@@ -7,6 +7,8 @@ import pprint.Util.literalize
 
 import mill.runner.worker.api.MillScalaParser
 
+import scala.collection.mutable
+
 object CodeGen {
 
   def generateWrappedSources(
