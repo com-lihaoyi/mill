@@ -151,9 +151,11 @@ private object PromptLoggerUtil {
 
   // Wrap the prompt in the necessary clear-screens/newlines/move-cursors
   // according to whether it is interactive or ending
-  def renderPromptWrapped(currentPromptLines: Seq[String],
-                          interactive: Boolean,
-                          ending: Boolean) = {
+  def renderPromptWrapped(
+      currentPromptLines: Seq[String],
+      interactive: Boolean,
+      ending: Boolean
+  ) = {
     if (!interactive) currentPromptLines.mkString("\n") + "\n"
     else {
       // For the ending prompt, leave the cursor at the bottom on a new line rather than

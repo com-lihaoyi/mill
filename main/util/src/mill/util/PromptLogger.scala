@@ -309,7 +309,7 @@ private[mill] object PromptLogger {
         statuses.toSeq.map { case (k, v) => (k.mkString("-"), v) },
         interactive = interactive,
         infoColor = infoColor,
-        ending = ending,
+        ending = ending
       )
 
       currentPromptBytes = renderPromptWrapped(currentPromptLines, interactive, ending).getBytes
