@@ -1,5 +1,5 @@
 diff --git a/build.mill b/build.mill
-index 0e9750e29bb..d446662b226 100644
+index 043cbeac02f..a39437b6c13 100644
 --- a/build.mill
 +++ b/build.mill
 @@ -252,12 +252,13 @@ object Deps {
@@ -36,10 +36,10 @@ index 0e9750e29bb..d446662b226 100644
      )
    }
 diff --git a/docs/package.mill b/docs/package.mill
-index 3db8a792a7b..feaebfb3c48 100644
+index b870a130a85..a4d75a8ada6 100644
 --- a/docs/package.mill
 +++ b/docs/package.mill
-@@ -170,7 +170,7 @@ object `package` extends RootModule {
+@@ -186,7 +186,7 @@ object `package` extends RootModule {
      os.write.over(dest / "antora.yml", (lines ++ newLines).mkString("\n"))
    }
 
@@ -48,7 +48,7 @@ index 3db8a792a7b..feaebfb3c48 100644
      val taggedSources = for (path <- extraSources) yield {
        s"""    - url: ${build.baseDir}
           |      start_path: ${path.relativeTo(build.baseDir)}
-@@ -232,23 +232,23 @@ object `package` extends RootModule {
+@@ -249,23 +249,23 @@ object `package` extends RootModule {
    }
 
    def githubPages: T[PathRef] = Task {
@@ -76,7 +76,7 @@ index 3db8a792a7b..feaebfb3c48 100644
      T.log.errorStream.println("Creating Antora playbook ...")
      // dependency to sources
      source()
-@@ -257,7 +257,7 @@ object `package` extends RootModule {
+@@ -274,7 +274,7 @@ object `package` extends RootModule {
      val siteDir = docSite / "site"
      os.write(
        target = playbook,
