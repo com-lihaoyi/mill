@@ -152,7 +152,10 @@ object Applicative {
     if hasErrors then
       '{ throw new RuntimeException("stub implementation - macro expansion had errors") }
     else
-      '{ ${ callerExpr }.traverseCtx[Any, T]($exprsList)($callback).asInstanceOf[M[T]] }
+      // TODO: make caller Expr[C] (C is generic param), and look up the method with quotes.reflect, checking types,
+      // then it can be generic.
+      // or, probably pass the traverseCtx method call as a Expr[<function>]
+      '{ ${ callerExpr }.traverseCtx[Any, T]($exprsList.asInstanceOf[Seq[mill.define.Task[Any]]])($callback.asInstanceOf[(IndexedSeq[Any], mill.api.Ctx) => mill.api.Result[T]]).asInstanceOf[M[T]] }
   }
 
 }
