@@ -1,5 +1,5 @@
 diff --git a/build.mill b/build.mill
-index 0c898366020..3499cd36e2f 100644
+index 0e9750e29bb..d446662b226 100644
 --- a/build.mill
 +++ b/build.mill
 @@ -252,12 +252,13 @@ object Deps {
@@ -20,8 +20,23 @@ index 0c898366020..3499cd36e2f 100644
  }
 
  def millBinPlatform: T[String] = Task {
+@@ -1052,10 +1053,13 @@ def uploadToGithub(authKey: String) = T.command {
+   ))
+
+   if (releaseTag == label) {
++    val jsonBlob = ujson.Obj("tag_name" -> releaseTag, "name" -> releaseTag)
+     // TODO: check if the tag already exists (e.g. because we created it manually) and do not fail
+     requests.post(
+       s"https://api.github.com/repos/${Settings.githubOrg}/${Settings.githubRepo}/releases",
+-      data = ujson.Obj("tag_name" -> releaseTag, "name" -> releaseTag),
++      // Scala 3.5.0 bug - without these parens, the `data =` is spliced in the conversion, causing a type error.
++      // hard to replicate!
++      data = (jsonBlob: requests.RequestBlob),
+       headers = Seq("Authorization" -> ("token " + authKey))
+     )
+   }
 diff --git a/docs/package.mill b/docs/package.mill
-index 3db8a792a7b..72489d50d56 100644
+index 3db8a792a7b..feaebfb3c48 100644
 --- a/docs/package.mill
 +++ b/docs/package.mill
 @@ -170,7 +170,7 @@ object `package` extends RootModule {
