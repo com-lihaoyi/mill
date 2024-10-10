@@ -111,7 +111,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
           )
 
           val verboseKeySuffix = s"/${terminals0.size}"
-          logger.setPromptLeftHeader(s"$countMsg$verboseKeySuffix")
+          logger.setPromptHeaderPrefix(s"$countMsg$verboseKeySuffix")
           if (failed.get()) None
           else {
             val upstreamResults = upstreamValues
