@@ -427,9 +427,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-40-463547</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-41-365635</button>
   <div class="version-menu">
-    <a class="version is-current" href="web-examples.html">0.12.0-RC3-40-463547</a>
+    <a class="version is-current" href="web-examples.html">0.12.0-RC3-41-365635</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
@@ -643,12 +643,12 @@ this example also demonstrates:</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>KotlinJS support on Mill is still Work In Progress (WIP). As of time of writing it
-does not support third-party dependencies, Kotlin 2.x with KMP KLIB files, Node.js/Webpack
-test runners and reporting, etc.</p>
+Node.js/Webpack test runners and reporting, etc.</p>
 </div>
 <div class="paragraph">
-<p>The example below demonstrates only the minimal compilation, running, and testing of a single KotlinJS
-module. For more details in fully developing KotlinJS support, see the following ticket:</p>
+<p>The example below demonstrates only the minimal compilation, running, and testing of
+a single KotlinJS module using a single third-party dependency. For more details in
+fully developing KotlinJS support, see the following ticket:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -667,6 +667,9 @@ object foo extends KotlinJSModule {
   def moduleKind = ModuleKind.ESModule
   def kotlinVersion = &quot;1.9.25&quot;
   def kotlinJSRunTarget = Some(RunTarget.Node)
+  def ivyDeps = Agg(
+    ivy&quot;org.jetbrains.kotlinx:kotlinx-html-js:0.11.0&quot;,
+  )
   object test extends KotlinJSModule with KotlinJSKotlinXTests
 }</code></pre>
 </div>
@@ -675,7 +678,7 @@ object foo extends KotlinJSModule {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.run
 Compiling 1 Kotlin sources to .../out/foo/compile.dest/classes...
-Hello, world
+&lt;h1&gt;Hello World&lt;/h1&gt;
 stringifiedJsObject: [&quot;hello&quot;,&quot;world&quot;,&quot;!&quot;]
 
 &gt; mill foo.test # Test is incorrect, `foo.test`` fails
@@ -683,13 +686,13 @@ Compiling 1 Kotlin sources to .../out/foo/test/compile.dest/classes...
 Linking IR to .../out/foo/test/linkBinary.dest/binaries
 produce executable: .../out/foo/test/linkBinary.dest/binaries
 ...
-error: AssertionError: Expected &lt;Hello, world&gt;, actual &lt;Not hello, world&gt;.
+error: AssertionError: Expected &lt;&lt;h1&gt;Hello World&lt;/h1&gt;&gt;, actual &lt;&lt;h1&gt;Hello World Wrong&lt;/h1&gt;&gt;.
 
 &gt; cat out/foo/test/linkBinary.dest/binaries/test.js # Generated javascript on disk
-...assertEquals_0(getString(), 'Not hello, world');...
+...assertEquals_0(..., '&lt;h1&gt;Hello World Wrong&lt;\/h1&gt;');...
 ...
 
-&gt; sed -i.bak 's/Not hello, world/Hello, world/g' foo/test/src/foo/HelloTests.kt
+&gt; sed -i.bak 's/Hello World Wrong/Hello World/g' foo/test/src/foo/HelloTests.kt
 
 &gt; mill foo.test # passes after fixing test</code></pre>
 </div>
