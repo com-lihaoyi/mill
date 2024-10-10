@@ -146,8 +146,12 @@ object Discover {
         // JVM's maximum allowed method size
 
         val lhs = discoveredModuleType match{
-          case tt: ThisType => q"classOf[${tt.sym}]"
+          // Explicitly do not de-alias type refs, so type aliases to deprecated
+          // types do not result in spurious deprecation warnings appearing
           case tr: TypeRef => q"classOf[${tr.pre}]"
+          // Singleton value types need to be extracted this way for some reason
+          case tt: ThisType => q"classOf[${tt.sym}]"
+          // Other types are fine
           case _ => q"classOf[$discoveredModuleType]"
         }
 
