@@ -149,6 +149,28 @@ private object PromptLoggerUtil {
     header :: body ::: footer
   }
 
+  // Wrap the prompt in the necessary clear-screens/newlines/move-cursors
+  // according to whether it is interactive or ending
+  def renderPromptWrapped(
+      currentPromptLines: Seq[String],
+      interactive: Boolean,
+      ending: Boolean
+  ): String = {
+    if (!interactive) currentPromptLines.mkString("\n") + "\n"
+    else {
+      // For the ending prompt, leave the cursor at the bottom on a new line rather than
+      // scrolling back left/up. We do not want further output to overwrite the header as
+      // it will no longer re-render
+      val backUp =
+        if (ending) "\n"
+        else AnsiNav.left(9999) + AnsiNav.up(currentPromptLines.length - 1)
+
+      AnsiNav.clearScreen(0) +
+        currentPromptLines.mkString("\n") +
+        backUp
+    }
+  }
+
   def renderHeader(
       headerPrefix0: String,
       titleText0: String,
@@ -203,5 +225,18 @@ private object PromptLoggerUtil {
       else index -= 1
     }
     ???
+  }
+
+  private[mill] val seqStringOrdering = new Ordering[Seq[String]] {
+    def compare(xs: Seq[String], ys: Seq[String]): Int = {
+      val iter = xs.iterator.zip(ys)
+      while (iter.nonEmpty) {
+        val (x, y) = iter.next()
+        if (x > y) return 1
+        else if (y > x) return -1
+      }
+
+      return xs.lengthCompare(ys)
+    }
   }
 }
