@@ -200,7 +200,8 @@ trait TestModule
         forkEnv(),
         testSandboxWorkingDir(),
         forkWorkingDir(),
-        testReportXml()
+        testReportXml(),
+        zincWorker().javaHome().map(_.path)
       )
     }
 

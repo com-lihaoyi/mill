@@ -25,11 +25,12 @@ object Jvm extends CoursierSupport {
       mainArgs: Seq[String] = Seq.empty,
       workingDir: os.Path = null,
       streamOut: Boolean = true,
-      check: Boolean = true
+      check: Boolean = true,
+      javaHome: Option[os.Path] = None
   )(implicit ctx: Ctx): CommandResult = {
 
     val commandArgs =
-      Vector(javaExe) ++
+      Vector(javaExe(javaHome)) ++
         jvmArgs ++
         Vector("-cp", classPath.iterator.mkString(java.io.File.pathSeparator), mainClass) ++
         mainArgs
@@ -65,9 +66,10 @@ object Jvm extends CoursierSupport {
   /**
    * Resolves a tool to a path under the currently used JDK (if known).
    */
-  def jdkTool(toolName: String): String = {
-    sys.props
-      .get("java.home")
+  def jdkTool(toolName: String, javaHome: Option[os.Path]): String = {
+    javaHome
+      .map(_.toString())
+      .orElse(sys.props.get("java.home"))
       .map(h =>
         if (isWin) new File(h, s"bin\\${toolName}.exe")
         else new File(h, s"bin/${toolName}")
@@ -77,7 +79,11 @@ object Jvm extends CoursierSupport {
 
   }
 
-  def javaExe: String = jdkTool("java")
+  def jdkTool(toolName: String): String = jdkTool(toolName, None)
+
+  def javaExe(javaHome: Option[os.Path]): String = jdkTool("java", javaHome)
+
+  def javaExe: String = javaExe(None)
 
   def defaultBackgroundOutputs(outputDir: os.Path): Option[(ProcessOutput, ProcessOutput)] =
     Some((outputDir / "stdout.log", outputDir / "stderr.log"))
@@ -107,7 +113,8 @@ object Jvm extends CoursierSupport {
       workingDir: os.Path = null,
       background: Boolean = false,
       useCpPassingJar: Boolean = false,
-      runBackgroundLogToConsole: Boolean = false
+      runBackgroundLogToConsole: Boolean = false,
+      javaHome: Option[os.Path] = None
   )(implicit ctx: Ctx): Unit = {
     runSubprocessWithBackgroundOutputs(
       mainClass,
@@ -119,7 +126,8 @@ object Jvm extends CoursierSupport {
       if (!background) None
       else if (runBackgroundLogToConsole) Some((os.Inherit, os.Inherit))
       else Jvm.defaultBackgroundOutputs(ctx.dest),
-      useCpPassingJar
+      useCpPassingJar,
+      javaHome
     )
   }
 
@@ -169,7 +177,8 @@ object Jvm extends CoursierSupport {
       mainArgs: Seq[String] = Seq.empty,
       workingDir: os.Path = null,
       backgroundOutputs: Option[Tuple2[ProcessOutput, ProcessOutput]] = None,
-      useCpPassingJar: Boolean = false
+      useCpPassingJar: Boolean = false,
+      javaHome: Option[os.Path] = None
   )(implicit ctx: Ctx): Unit = {
 
     val cp =
@@ -193,7 +202,7 @@ object Jvm extends CoursierSupport {
       Seq(mainClass)
     } else Seq.empty
     val args =
-      Vector(javaExe) ++
+      Vector(javaExe(javaHome)) ++
         jvmArgs ++
         cpArgument ++
         mainClassArgument ++
