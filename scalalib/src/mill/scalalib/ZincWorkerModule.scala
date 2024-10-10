@@ -8,6 +8,7 @@ import mill.define.{ExternalModule, Discover}
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.api.ZincWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
 import mill.scalalib.api.{ZincWorkerApi, ZincWorkerUtil, Versions}
+import mill.util.Jvm
 import mill.util.Util.millProjectModule
 
 /**
@@ -15,6 +16,29 @@ import mill.util.Util.millProjectModule
  */
 object ZincWorkerModule extends ExternalModule with ZincWorkerModule with CoursierModule {
   lazy val millDiscover = Discover[this.type]
+
+  trait ZincWorkerModuleForJvm extends ZincWorkerModule with CoursierModule with Cross.Module[String] {
+    override def javaHome: T[Option[PathRef]] = Task {
+      Some(resolveJavaHome(crossValue)())
+    }
+  }
+
+  private val jvmIds = (new Interp).watchValue {
+    Jvm
+      .jvmIndex()
+      .asSuccess
+      // JvmIndex.available() returns a Map[String, Map[String, String]]
+      // The first key is the distribution, the second key is the version,
+      // and the inner-most value is the URL
+      .map(_.value.available().getOrElse(Map.empty))
+      .getOrElse(Map.empty)
+      .flatMap { case (distribution, versions) =>
+        versions.map(version => s"$distribution:${version._1}")
+      }
+      .toSeq
+  }
+
+  object ForJvm extends Cross[ZincWorkerModuleForJvm](jvmIds)
 }
 
 /**

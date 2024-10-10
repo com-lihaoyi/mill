@@ -34,7 +34,8 @@ object HelloJavaTests extends TestSuite {
     }
 
     object core extends JavaModule {
-      override def zincWorker: ModuleRef[ZincWorkerModule] = ModuleRef(ZincWorkerOverride)
+      override def zincWorker: ModuleRef[ZincWorkerModule] =
+        ModuleRef(ZincWorkerModule.ForJvm("graalvm-community:23.0.0"))
       override def docJarUseArgsFile = false
       object test extends JavaTests with TestModule.Junit4
     }
