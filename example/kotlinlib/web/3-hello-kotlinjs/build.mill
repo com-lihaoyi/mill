@@ -17,7 +17,11 @@ object foo extends KotlinJSModule {
   def ivyDeps = Agg(
     ivy"org.jetbrains.kotlinx:kotlinx-html-js:0.11.0",
   )
-  object test extends KotlinJSModule with KotlinJSKotlinXTests
+  object test extends KotlinJSTests{
+    def ivyDeps = Agg(
+      ivy"io.kotest:kotest-framework-engine-js:5.9.1",
+    )
+  }
 }
 
 

@@ -438,13 +438,14 @@ trait KotlinJSModule extends KotlinModule { outer =>
       run()()
       ("", Seq.empty[TestResult])
     }
+
+    override def kotlinJSRunTarget: T[Option[RunTarget]] = Some(RunTarget.Node)
   }
 
   trait KotlinJSKotlinXTests extends KotlinJSTests {
     override def ivyDeps = Agg(
       ivy"org.jetbrains.kotlin:kotlin-test-js:${kotlinVersion()}"
     )
-    override def kotlinJSRunTarget: T[Option[RunTarget]] = Some(RunTarget.Node)
   }
 
   // endregion
