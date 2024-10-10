@@ -84,13 +84,13 @@ object Lib {
       repositories: Seq[Repository],
       deps: IterableOnce[BoundDep],
       sources: Boolean = false,
-      artifactTypes: Option[Set[Type]] = None,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
       ctx: Option[Ctx.Log] = None,
       coursierCacheCustomizer: Option[
         coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
-      ] = None
+      ] = None,
+      artifactTypes: Option[Set[Type]] = None
   ): Result[Agg[PathRef]] = {
     val depSeq = deps.iterator.toSeq
     mill.util.Jvm.resolveDependencies(
@@ -105,6 +105,29 @@ object Lib {
       coursierCacheCustomizer = coursierCacheCustomizer
     ).map(_.map(_.withRevalidateOnce))
   }
+
+  @deprecated("Use the override accepting artifactTypes", "Mill after 0.12.0-RC3")
+  def resolveDependencies(
+      repositories: Seq[Repository],
+      deps: IterableOnce[BoundDep],
+      sources: Boolean,
+      mapDependencies: Option[Dependency => Dependency],
+      customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
+      ctx: Option[Ctx.Log],
+      coursierCacheCustomizer: Option[
+        coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
+      ]
+  ): Result[Agg[PathRef]] =
+    resolveDependencies(
+      repositories,
+      deps,
+      sources,
+      mapDependencies,
+      customizer,
+      ctx,
+      coursierCacheCustomizer,
+      None
+    )
 
   def scalaCompilerIvyDeps(scalaOrganization: String, scalaVersion: String): Loose.Agg[Dep] =
     if (ZincWorkerUtil.isDotty(scalaVersion))

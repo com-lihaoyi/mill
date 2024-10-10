@@ -40,12 +40,12 @@ trait CoursierSupport {
       deps: IterableOnce[Dependency],
       force: IterableOnce[Dependency],
       sources: Boolean = false,
-      artifactTypes: Option[Set[Type]] = None,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
       ctx: Option[mill.api.Ctx.Log] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
-      resolveFilter: os.Path => Boolean = _ => true
+      resolveFilter: os.Path => Boolean = _ => true,
+      artifactTypes: Option[Set[Type]] = None
   ): Result[Agg[PathRef]] = {
     def isLocalTestDep(dep: Dependency): Option[Seq[PathRef]] = {
       val org = dep.module.organization.value
@@ -113,6 +113,30 @@ trait CoursierSupport {
       }
     }
   }
+
+  @deprecated("Use the override accepting artifactTypes", "Mill after 0.12.0-RC3")
+  def resolveDependencies(
+      repositories: Seq[Repository],
+      deps: IterableOnce[Dependency],
+      force: IterableOnce[Dependency],
+      sources: Boolean,
+      mapDependencies: Option[Dependency => Dependency],
+      customizer: Option[Resolution => Resolution],
+      ctx: Option[mill.api.Ctx.Log],
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]],
+      resolveFilter: os.Path => Boolean
+  ): Result[Agg[PathRef]] =
+    resolveDependencies(
+      repositories,
+      deps,
+      force,
+      sources,
+      mapDependencies,
+      customizer,
+      ctx,
+      coursierCacheCustomizer,
+      resolveFilter
+    )
 
   @deprecated(
     "Prefer resolveDependenciesMetadataSafe instead, which returns a Result instead of throwing exceptions",

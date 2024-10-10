@@ -48,6 +48,7 @@ trait CoursierModule extends mill.Module {
    *
    * @param deps    The dependencies to resolve.
    * @param sources If `true`, resolve source dependencies instead of binary dependencies (JARs).
+   * @param artifactTypes If non-empty, pull the passed artifact types rather than the default ones from coursier
    * @return The [[PathRef]]s to the resolved files.
    */
   def resolveDeps(
@@ -67,6 +68,13 @@ trait CoursierModule extends mill.Module {
         ctx = Some(implicitly[mill.api.Ctx.Log])
       )
     }
+
+  @deprecated("Use the override accepting artifactTypes", "Mill after 0.12.0-RC3")
+  def resolveDeps(
+      deps: Task[Agg[BoundDep]],
+      sources: Boolean
+  ): Task[Agg[PathRef]] =
+    resolveDeps(deps, sources, None)
 
   /**
    * Map dependencies before resolving them.
@@ -153,6 +161,13 @@ object CoursierModule {
         ctx = ctx
       ).getOrThrow
     }
+
+    @deprecated("Use the override accepting artifactTypes", "Mill after 0.12.0-RC3")
+    def resolveDeps[T: CoursierModule.Resolvable](
+        deps: IterableOnce[T],
+        sources: Boolean
+    ): Agg[PathRef] =
+      resolveDeps(deps, sources, None)
   }
 
   sealed trait Resolvable[T] {
