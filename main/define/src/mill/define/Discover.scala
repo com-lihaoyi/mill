@@ -101,10 +101,10 @@ object Discover {
       def filterDefs(methods: List[Symbol]): List[Symbol] =
         methods.filterNot(m =>
           m.isSuperAccessor
-          || m.hasAnnotation(deprecatedSym)
-          || m.flags.is(
-            Flags.Synthetic | Flags.Invisible | Flags.Private | Flags.Protected
-          )
+            || m.hasAnnotation(deprecatedSym)
+            || m.flags.is(
+              Flags.Synthetic | Flags.Invisible | Flags.Private | Flags.Protected
+            )
         )
 
       // Make sure we sort the types and methods to keep the output deterministic;
