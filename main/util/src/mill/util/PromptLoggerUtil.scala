@@ -155,7 +155,7 @@ private object PromptLoggerUtil {
       currentPromptLines: Seq[String],
       interactive: Boolean,
       ending: Boolean
-  ) = {
+  ): String = {
     if (!interactive) currentPromptLines.mkString("\n") + "\n"
     else {
       // For the ending prompt, leave the cursor at the bottom on a new line rather than
