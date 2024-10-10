@@ -120,7 +120,7 @@ object Deps {
   val asmTree = ivy"org.ow2.asm:asm-tree:9.7"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
 
-  val coursier = ivy"io.get-coursier::coursier:2.1.13"
+  val coursier = ivy"io.get-coursier::coursier:2.1.14"
   val coursierInterface = ivy"io.get-coursier:interface:1.0.19"
 
   val cask = ivy"com.lihaoyi::cask:0.9.4"
@@ -449,7 +449,8 @@ trait MillBaseTestsModule extends TestModule {
       s"-DTEST_SCALATEST_VERSION=${Deps.TestDeps.scalaTest.dep.version}",
       s"-DTEST_TEST_INTERFACE_VERSION=${Deps.sbtTestInterface.dep.version}",
       s"-DTEST_ZIOTEST_VERSION=${Deps.TestDeps.zioTest.dep.version}",
-      s"-DTEST_ZINC_VERSION=${Deps.zinc.dep.version}"
+      s"-DTEST_ZINC_VERSION=${Deps.zinc.dep.version}",
+      s"-DTEST_KOTLIN_VERSION=${Deps.kotlinCompiler.dep.version}"
     )
   }
 
@@ -883,7 +884,7 @@ object dist extends MillPublishJavaModule {
     Jvm.createJar(Agg(), JarManifest(manifestEntries))
   }
 
-  def run(args: Task[Args] = T.task(Args())) = T.command {
+  def run(args: Task[Args] = T.task(Args())) = Task.Command(exclusive = true) {
     args().value match {
       case Nil => mill.api.Result.Failure("Need to pass in cwd as first argument to dev.run")
       case wd0 +: rest =>

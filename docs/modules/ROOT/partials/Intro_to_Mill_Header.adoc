@@ -1,5 +1,4 @@
-[graphviz]
-....
+```graphviz
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -24,7 +23,7 @@ digraph G {
     "bar.mainClass" -> "bar.assembly"
   }
 }
-....
+```
 
 {mill-github-url}[Mill] is a fast multi-language JVM build tool that supports {language}, making your
 common development workflows xref:comparisons/maven.adoc[5-10x faster to Maven], or

@@ -5,10 +5,11 @@
 package mill
 package kotlinlib
 
-import mill.api.{Loose, PathRef, Result}
+import mill.api.{Loose, PathRef, Result, internal}
 import mill.define.{Command, ModuleRef, Task}
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
 import mill.scalalib.api.{CompilationResult, ZincWorkerApi}
+import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.scalalib.{JavaModule, Lib, ZincWorkerModule}
 import mill.util.Jvm
 import mill.util.Util.millProjectModule
@@ -313,6 +314,13 @@ trait KotlinModule extends JavaModule { outer =>
   }
 
   private[kotlinlib] def internalReportOldProblems: Task[Boolean] = zincReportCachedProblems
+
+  @internal
+  override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
+    languageIds = Seq(BspModule.LanguageId.Java, BspModule.LanguageId.Kotlin),
+    canCompile = true,
+    canRun = true
+  )
 
   /**
    * A test sub-module linked to its parent module best suited for unit-tests.

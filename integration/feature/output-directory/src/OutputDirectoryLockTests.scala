@@ -2,91 +2,78 @@ package mill.integration
 
 import mill.testkit.UtestIntegrationTestSuite
 import utest._
+import utest.asserts.{RetryInterval, RetryMax}
 
-import java.io.ByteArrayOutputStream
-import java.util.concurrent.{CountDownLatch, Executors}
-
-import scala.concurrent.duration.Duration
+import java.util.concurrent.Executors
+import scala.concurrent.duration.{Duration, DurationInt}
 import scala.concurrent.{Await, ExecutionContext, Future}
 
 object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
 
   private val pool = Executors.newCachedThreadPool()
-  private val ec = ExecutionContext.fromExecutorService(pool)
+  private implicit val ec = ExecutionContext.fromExecutorService(pool)
 
   override def utestAfterAll(): Unit = {
     pool.shutdown()
   }
-
+  implicit val retryMax: RetryMax = RetryMax(60000.millis)
+  implicit val retryInterval: RetryInterval = RetryInterval(50.millis)
   def tests: Tests = Tests {
     test("basic") - integrationTest { tester =>
       import tester._
       val signalFile = workspacePath / "do-wait"
-      System.err.println("Spawning blocking task")
-      val blocksFuture =
-        Future(eval(("show", "blockWhileExists", "--path", signalFile), check = true))(ec)
-      while (!os.exists(signalFile) && !blocksFuture.isCompleted)
-        Thread.sleep(100L)
-      if (os.exists(signalFile))
-        System.err.println("Blocking task is running")
-      else {
-        System.err.println("Failed to run blocking task")
-        Predef.assert(blocksFuture.isCompleted)
-        blocksFuture.value.get.get
+      // Kick off blocking task in background
+      Future {
+        eval(("show", "blockWhileExists", "--path", signalFile), check = true)
       }
+
+      // Wait for blocking task to write signal file, to indicate it has begun
+      eventually { os.exists(signalFile) }
 
       val testCommand: os.Shellable = ("show", "hello")
       val testMessage = "Hello from hello task"
 
-      System.err.println("Evaluating task without lock")
+      // --no-build-lock allows commands to complete despite background blocker
       val noLockRes = eval(("--no-build-lock", testCommand), check = true)
       assert(noLockRes.out.contains(testMessage))
 
-      System.err.println("Evaluating task without waiting for lock (should fail)")
+      // --no-wait-for-build-lock causes commands fail due to background blocker
       val noWaitRes = eval(("--no-wait-for-build-lock", testCommand))
-      assert(noWaitRes.err.contains("Cannot proceed, another Mill process is running tasks"))
+      assert(
+        noWaitRes
+          .err
+          .contains(
+            s"Another Mill process is running 'show blockWhileExists --path $signalFile', failing"
+          )
+      )
 
-      System.err.println("Evaluating task waiting for the lock")
-
-      val lock = new CountDownLatch(1)
-      val stderr = new ByteArrayOutputStream
-      var success = false
+      // By default, we wait until the background blocking task completes
+      val waitingLogFile = workspacePath / "waitingLogFile"
+      val waitingCompleteFile = workspacePath / "waitingCompleteFile"
       val futureWaitingRes = Future {
         eval(
-          testCommand,
-          stderr = os.ProcessOutput {
-            val expectedMessage =
-              "Another Mill process is running tasks, waiting for it to be done..."
-
-            (bytes, len) =>
-              stderr.write(bytes, 0, len)
-              val output = new String(stderr.toByteArray)
-              if (output.contains(expectedMessage))
-                lock.countDown()
-          },
+          ("show", "writeMarker", "--path", waitingCompleteFile),
+          stderr = waitingLogFile,
           check = true
         )
-      }(ec)
-      try {
-        lock.await()
-        success = true
-      } finally {
-        if (!success) {
-          System.err.println("Waiting task output:")
-          System.err.write(stderr.toByteArray)
-        }
       }
 
-      System.err.println("Task is waiting for the lock, unblocking it")
+      // Ensure we see the waiting message
+      eventually {
+        os.read(waitingLogFile)
+          .contains(
+            s"Another Mill process is running 'show blockWhileExists --path $signalFile', waiting for it to be done..."
+          )
+      }
+
+      // Even after task starts waiting on blocking task, it is not complete
+      assert(!futureWaitingRes.isCompleted)
+      assert(!os.exists(waitingCompleteFile))
+      // Terminate blocking task, make sure waiting task now completes
       os.remove(signalFile)
-
-      System.err.println("Blocking task should exit")
-      val blockingRes = Await.result(blocksFuture, Duration.Inf)
-      assert(blockingRes.out.contains("Blocking command done"))
-
-      System.err.println("Waiting task should be free to proceed")
       val waitingRes = Await.result(futureWaitingRes, Duration.Inf)
-      assert(waitingRes.out.contains(testMessage))
+      assert(os.exists(waitingCompleteFile))
+      assert(waitingRes.out == "\"Write marker done\"")
     }
   }
 }

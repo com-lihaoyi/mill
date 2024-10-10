@@ -167,7 +167,7 @@ object BspServerTestUtil {
           BuildInfo.millVersion,
           b.Bsp4j.PROTOCOL_VERSION,
           workspacePath.toNIO.toUri.toASCIIString,
-          new b.BuildClientCapabilities(List("java", "scala").asJava)
+          new b.BuildClientCapabilities(List("java", "scala", "kotlin").asJava)
         )
       ).get()
 

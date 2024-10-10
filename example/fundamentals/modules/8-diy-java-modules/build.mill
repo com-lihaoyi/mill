@@ -34,8 +34,7 @@ trait DiyJavaModule extends Module{
 // edges (dashed) are not connected; that is because `DiyJavaModule` is abstract, and
 // needs to be inherited by a concrete `object` before it can be used.
 
-// [graphviz]
-// ....
+// ```graphviz
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -51,7 +50,7 @@ trait DiyJavaModule extends Module{
 //     "sources" -> "compile" -> "classPath" -> "assembly"
 //   }
 // }
-// ....
+// ```
 //
 // Some notable things to call out:
 //
@@ -87,8 +86,7 @@ object qux extends DiyJavaModule {
 // duplicated three times - once per module - with the tasks wired up between the modules
 // according to our overrides for `moduleDeps`
 
-// [graphviz]
-// ....
+// ```graphviz
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -123,7 +121,7 @@ object qux extends DiyJavaModule {
 //     "qux.sources" -> "qux.compile" -> "qux.classPath" -> "qux.assembly"
 //   }
 // }
-// ....
+// ```
 //
 // This simple set of `DiyJavaModule` can be used as follows:
 

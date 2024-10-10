@@ -1,11 +1,11 @@
 package mill
 package scalalib
 
-import coursier.Repository
 import coursier.core.Resolution
 import coursier.parse.JavaOrScalaModule
 import coursier.parse.ModuleParser
 import coursier.util.ModuleMatcher
+import coursier.{Repository, Type}
 import mainargs.{Flag, arg}
 import mill.Agg
 import mill.api.{Ctx, JarManifest, MillException, PathRef, Result, internal}
@@ -154,6 +154,12 @@ trait JavaModule
    * code has already been compiled.
    */
   def runIvyDeps: T[Agg[Dep]] = Task { Agg.empty[Dep] }
+
+  /**
+   * Default artifact types to fetch and put in the classpath. Add extra types
+   * here if you'd like fancy artifact extensions to be fetched.
+   */
+  def artifactTypes: T[Set[Type]] = Task { coursier.core.Resolution.defaultTypes }
 
   /**
    * Options to pass to the java compiler
@@ -551,7 +557,10 @@ trait JavaModule
   }
 
   def resolvedRunIvyDeps: T[Agg[PathRef]] = Task {
-    defaultResolver().resolveDeps(runIvyDeps().map(bindDependency()) ++ transitiveIvyDeps())
+    defaultResolver().resolveDeps(
+      runIvyDeps().map(bindDependency()) ++ transitiveIvyDeps(),
+      artifactTypes = Some(artifactTypes())
+    )
   }
 
   /**
@@ -1057,13 +1066,14 @@ trait JavaModule
   )
 
   @internal
+  def bspJvmBuildTarget: JvmBuildTarget =
+    JvmBuildTarget(
+      javaHome = Option(System.getProperty("java.home")).map(p => BspUri(os.Path(p))),
+      javaVersion = Option(System.getProperty("java.version"))
+    )
+
+  @internal
   override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = Task.Anon {
-    Some((
-      JvmBuildTarget.dataKind,
-      JvmBuildTarget(
-        javaHome = Option(System.getProperty("java.home")).map(p => BspUri(os.Path(p))),
-        javaVersion = Option(System.getProperty("java.version"))
-      )
-    ))
+    Some((JvmBuildTarget.dataKind, bspJvmBuildTarget))
   }
 }

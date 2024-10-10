@@ -48,7 +48,8 @@ class MillBuildBootstrap(
     needBuildSc: Boolean,
     requestedMetaLevel: Option[Int],
     allowPositionalCommandArgs: Boolean,
-    systemExit: Int => Nothing
+    systemExit: Int => Nothing,
+    streams0: SystemStreams
 ) {
   import MillBuildBootstrap._
 
@@ -347,9 +348,9 @@ class MillBuildBootstrap(
       depth: Int
   ): Evaluator = {
 
-    val bootLogPrefix =
-      if (depth == 0) ""
-      else "[" + (Seq.fill(depth - 1)(millBuild) ++ Seq("build.mill")).mkString("/") + "] "
+    val bootLogPrefix: Seq[String] =
+      if (depth == 0) Nil
+      else Seq((Seq.fill(depth - 1)(millBuild) ++ Seq("build.mill")).mkString("/"))
 
     mill.eval.EvaluatorImpl(
       home,
@@ -359,7 +360,7 @@ class MillBuildBootstrap(
       delayedOutputLockOpt,
       recOut(output, depth),
       rootModule,
-      new PrefixLogger(logger, Nil, tickerContext = bootLogPrefix),
+      new PrefixLogger(logger, bootLogPrefix),
       classLoaderSigHash = millClassloaderSigHash,
       classLoaderIdentityHash = millClassloaderIdentityHash,
       workerCache = workerCache.to(collection.mutable.Map),
@@ -370,7 +371,7 @@ class MillBuildBootstrap(
       disableCallgraph = disableCallgraph,
       allowPositionalCommandArgs = allowPositionalCommandArgs,
       systemExit = systemExit,
-      exclusiveSystemStreams = SystemStreams.original
+      exclusiveSystemStreams = streams0
     )
   }
 

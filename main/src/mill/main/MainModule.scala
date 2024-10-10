@@ -51,12 +51,14 @@ object MainModule {
   )(f: Seq[(Any, Option[(RunScript.TaskName, ujson.Value)])] => ujson.Value)
       : Result[ujson.Value] = {
 
+    // When using `show`, redirect all stdout of the evaluated tasks so the
+    // printed JSON is the only thing printed to stdout.
+    val redirectLogger = log
+      .withOutStream(evaluator.baseLogger.errorStream)
+      .asInstanceOf[mill.util.ColorLogger]
+
     RunScript.evaluateTasksNamed(
-      // When using `show`, redirect all stdout of the evaluated tasks so the
-      // printed JSON is the only thing printed to stdout.
-      evaluator.withBaseLogger(
-        evaluator.baseLogger.withOutStream(evaluator.baseLogger.errorStream)
-      ),
+      evaluator.withBaseLogger(redirectLogger),
       targets,
       Separated
     ) match {
@@ -517,7 +519,7 @@ trait MainModule extends BaseModule0 {
     }
 
   private type VizWorker = (
-      LinkedBlockingQueue[(scala.Seq[_], scala.Seq[_], os.Path)],
+      LinkedBlockingQueue[(scala.Seq[NamedTask[Any]], scala.Seq[NamedTask[Any]], os.Path)],
       LinkedBlockingQueue[Result[scala.Seq[PathRef]]]
   )
 
