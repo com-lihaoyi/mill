@@ -104,7 +104,7 @@ trait CoursierSupport {
             Agg.from(
               res.files
                 .map(os.Path(_))
-                .filter(path => path.ext == "jar" && resolveFilter(path))
+                .filter(resolveFilter)
                 .map(PathRef(_, quick = true))
             ) ++ localTestDeps.flatten
           )
