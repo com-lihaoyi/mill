@@ -273,19 +273,8 @@ private[mill] object PromptLogger {
   ) {
     private var lastRenderedPromptHash = 0
 
-    private implicit def seqOrdering = new Ordering[Seq[String]] {
-      def compare(xs: Seq[String], ys: Seq[String]): Int = {
-        val iter = xs.iterator.zip(ys)
-        while (iter.nonEmpty) {
-          val (x, y) = iter.next()
-          if (x > y) return 1
-          else if (y > x) return -1
-        }
-
-        return xs.lengthCompare(ys)
-      }
-    }
-    private val statuses = collection.mutable.SortedMap.empty[Seq[String], Status]
+    private val statuses = collection.mutable.SortedMap
+      .empty[Seq[String], Status](PromptLoggerUtil.seqStringOrdering)
 
     private var headerPrefix = ""
     // Pre-compute the prelude and current prompt as byte arrays so that
@@ -308,6 +297,7 @@ private[mill] object PromptLogger {
       if (ending) statuses.clear()
 
       val (termWidth0, termHeight0) = consoleDims()
+      val interactive = consoleDims()._1.nonEmpty
       // don't show prompt for non-interactive terminal
       val currentPromptLines = renderPrompt(
         termWidth0.getOrElse(defaultTermWidth),
@@ -317,27 +307,12 @@ private[mill] object PromptLogger {
         s"[$headerPrefix]",
         titleText,
         statuses.toSeq.map { case (k, v) => (k.mkString("-"), v) },
-        interactive = consoleDims()._1.nonEmpty,
+        interactive = interactive,
         infoColor = infoColor,
-        ending = ending
+        ending = ending,
       )
 
-      val currentPromptStr =
-        if (termWidth0.isEmpty) currentPromptLines.mkString("\n") + "\n"
-        else {
-          // For the ending prompt, leave the cursor at the bottom on a new line rather than
-          // scrolling back left/up. We do not want further output to overwrite the header as
-          // it will no longer re-render
-          val backUp =
-            if (ending) "\n"
-            else AnsiNav.left(9999) + AnsiNav.up(currentPromptLines.length - 1)
-
-          AnsiNav.clearScreen(0) +
-            currentPromptLines.mkString("\n") +
-            backUp
-        }
-
-      currentPromptBytes = currentPromptStr.getBytes
+      currentPromptBytes = renderPromptWrapped(currentPromptLines, interactive, ending).getBytes
 
     }
 
@@ -369,13 +344,7 @@ private[mill] object PromptLogger {
             // If still performing a transition, do not update the `prevTransitionTime`
             // since we do not want to delay the transition that is already in progress
             if (stillTransitioning(existing)) existing.copy(next = sOptEntry)
-            else {
-              existing.copy(
-                next = sOptEntry,
-                beginTransitionTime = now,
-                prev = existing.next
-              )
-            }
+            else existing.copy(next = sOptEntry, beginTransitionTime = now, prev = existing.next)
           )
       }
     }
