@@ -21,6 +21,7 @@ object app extends AndroidAppKotlinModule {
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
   def mainClass = Some("app.MainActivityKt")
 
+
   override def mandatoryIvyDeps: T[Agg[Dep]] = Task {
     super.mandatoryIvyDeps() ++ Agg(
       // Jetpack Compose dependencies
