@@ -110,9 +110,13 @@ object ResolveDepsTests extends TestSuite {
     test("pomArtifactType") {
       val sources = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "pomArtifactType"
       UnitTester(TestCase, sourceRoot = sources).scoped { eval =>
-        val Right(result) = eval(TestCase.pomStuff.compileClasspath)
-        val cp = result.value.toSeq.map(_.path)
-        assert(cp.exists(_.lastOpt.contains("hadoop-yarn-server-3.4.0.pom")))
+        val Right(compileResult) = eval(TestCase.pomStuff.compileClasspath)
+        val compileCp = compileResult.value.toSeq.map(_.path)
+        assert(compileCp.exists(_.lastOpt.contains("hadoop-yarn-server-3.4.0.pom")))
+
+        val Right(runResult) = eval(TestCase.pomStuff.runClasspath)
+        val runCp = runResult.value.toSeq.map(_.path)
+        assert(runCp.exists(_.lastOpt.contains("hadoop-yarn-server-3.4.0.pom")))
       }
     }
   }
