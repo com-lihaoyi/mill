@@ -4,6 +4,7 @@ import coursier.maven.MavenRepository
 import mill.api.Result.{Failure, Success}
 import mill.api.{PathRef, Result}
 import mill.api.Loose.Agg
+import mill.testkit.{UnitTester, TestBaseModule}
 import utest._
 
 object ResolveDepsTests extends TestSuite {
@@ -28,6 +29,21 @@ object ResolveDepsTests extends TestSuite {
       assert(upickle.default.read[Dep](upickle.default.write(dep)) == dep)
     }
   }
+
+  object TestCase extends TestBaseModule {
+    object pomStuff extends JavaModule {
+      def ivyDeps = Agg(
+        // Dependency whose packaging is "pom", as it's meant to be used
+        // as a "parent dependency" by other dependencies, rather than be pulled
+        // as we do here. We do it anyway, to check that pulling the "pom" artifact
+        // type brings that dependency POM file in the class path. We need a dependency
+        // that has a "pom" packaging for that.
+        ivy"org.apache.hadoop:hadoop-yarn-server:3.4.0"
+      )
+      def artifactTypes = super.artifactTypes() + coursier.Type("pom")
+    }
+  }
+
   val tests = Tests {
     test("resolveValidDeps") {
       val deps = Agg(ivy"com.lihaoyi::pprint:0.5.3")
@@ -94,6 +110,19 @@ object ResolveDepsTests extends TestSuite {
       assertRoundTrip(deps, simplified = true)
       val Failure(errMsg, _) = evalDeps(deps)
       assert(errMsg.contains("fake"))
+    }
+
+    test("pomArtifactType") {
+      val sources = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "pomArtifactType"
+      UnitTester(TestCase, sourceRoot = sources).scoped { eval =>
+        val Right(compileResult) = eval(TestCase.pomStuff.compileClasspath)
+        val compileCp = compileResult.value.toSeq.map(_.path)
+        assert(compileCp.exists(_.lastOpt.contains("hadoop-yarn-server-3.4.0.pom")))
+
+        val Right(runResult) = eval(TestCase.pomStuff.runClasspath)
+        val runCp = runResult.value.toSeq.map(_.path)
+        assert(runCp.exists(_.lastOpt.contains("hadoop-yarn-server-3.4.0.pom")))
+      }
     }
   }
 }
