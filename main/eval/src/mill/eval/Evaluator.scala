@@ -91,6 +91,10 @@ object Evaluator {
   // the TargetScopt#read call, which does not accept additional parameters.
   // Until we migrate our CLI parsing off of Scopt (so we can pass the BaseModule
   // in directly) we are forced to pass it in via a ThreadLocal
+  private[mill] val defaultCurrentEvaluatorSafe = () => {
+    sys.error("No evaluator available here; Evaluator is only available in exclusive commands")
+  }
+  val currentEvaluatorSafe = new DynamicVariable[() => mill.eval.Evaluator](defaultCurrentEvaluatorSafe)
   val currentEvaluator = new DynamicVariable[mill.eval.Evaluator](null)
   val allBootstrapEvaluators = new DynamicVariable[AllBootstrapEvaluators](null)
 
