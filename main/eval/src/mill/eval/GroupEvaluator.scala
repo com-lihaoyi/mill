@@ -18,6 +18,7 @@ import scala.util.hashing.MurmurHash3
  * with a single [[Terminal]].
  */
 private[mill] trait GroupEvaluator {
+  def withEvaluator[T](exclusive: Boolean)(t: => T): T
   def home: os.Path
   def workspace: os.Path
   def outPath: os.Path
@@ -296,10 +297,11 @@ private[mill] trait GroupEvaluator {
 
               os.dynamicPwdFunction.withValue(destFunc) {
                 SystemStreams.withStreams(streams) {
-                  if (exclusive) {
+                  if (!exclusive) t
+                  else {
                     logger.reportKey(Seq(counterMsg))
-                    logger.withPromptPaused { t }
-                  } else t
+                    withEvaluator(exclusive) { logger.withPromptPaused { t } }
+                  }
                 }
               }
             }

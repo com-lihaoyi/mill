@@ -64,6 +64,10 @@ private[mill] case class EvaluatorImpl(
   override def evalOrThrow(exceptionFactory: Evaluator.Results => Throwable)
       : Evaluator.EvalOrThrow =
     new EvalOrThrow(this, exceptionFactory)
+
+  override def withEvaluator[T](exclusive: Boolean)(t: => T): T = {
+    mill.eval.Evaluator.currentEvaluator.withValue(if (exclusive) this else null) { t }
+  }
 }
 
 private[mill] object EvaluatorImpl {
