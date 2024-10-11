@@ -36,7 +36,8 @@ object ResolveDepsTests extends TestSuite {
         // Dependency whose packaging is "pom", as it's meant to be used
         // as a "parent dependency" by other dependencies, rather than be pulled
         // as we do here. We do it anyway, to check that pulling the "pom" artifact
-        // type brings that dependency POM file in the class path.
+        // type brings that dependency POM file in the class path. We need a dependency
+        // that has a "pom" packaging for that.
         ivy"org.apache.hadoop:hadoop-yarn-server:3.4.0"
       )
       def artifactTypes = super.artifactTypes() + coursier.Type("pom")
