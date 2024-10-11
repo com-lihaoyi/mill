@@ -33,6 +33,10 @@ object ResolveDepsTests extends TestSuite {
   object TestCase extends TestBaseModule {
     object pomStuff extends JavaModule {
       def ivyDeps = Agg(
+        // Dependency whose packaging is "pom", as it's meant to be used
+        // as a "parent dependency" by other dependencies, rather than be pulled
+        // as we do here. We do it anyway, to check that pulling the "pom" artifact
+        // type brings that dependency POM file in the class path.
         ivy"org.apache.hadoop:hadoop-yarn-server:3.4.0"
       )
       def artifactTypes = super.artifactTypes() + coursier.Type("pom")
