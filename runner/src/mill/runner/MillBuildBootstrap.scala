@@ -31,7 +31,6 @@ import java.net.URLClassLoader
 class MillBuildBootstrap(
     projectRoot: os.Path,
     output: os.Path,
-    delayedOutLock: Boolean,
     home: os.Path,
     keepGoing: Boolean,
     imports: Seq[String],
@@ -310,13 +309,7 @@ class MillBuildBootstrap(
     assert(nestedState.frames.forall(_.evaluator.isDefined))
 
     val (evaled, evalWatched, moduleWatches) = Evaluator.allBootstrapEvaluators.withValue(
-      Evaluator.AllBootstrapEvaluators(
-        (Seq(evaluator) ++ nestedState.frames.flatMap(_.evaluator)).map { ev =>
-          ev
-            .withOutLock(ev.delayedOutLock)
-            .withDelayedOutLock(false)
-        }
-      )
+      Evaluator.AllBootstrapEvaluators(Seq(evaluator) ++ nestedState.frames.flatMap(_.evaluator))
     ) {
       evaluateWithWatches(rootModule, evaluator, targetsAndParams)
     }
@@ -352,8 +345,6 @@ class MillBuildBootstrap(
       home,
       projectRoot,
       recOut(output, depth),
-      false,
-      delayedOutLock,
       recOut(output, depth),
       rootModule,
       new PrefixLogger(logger, bootLogPrefix),

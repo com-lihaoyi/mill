@@ -17,8 +17,6 @@ private[mill] case class EvaluatorImpl(
     home: os.Path,
     workspace: os.Path,
     outPath: os.Path,
-    outLock: Boolean,
-    delayedOutLock: Boolean,
     externalOutPath: os.Path,
     override val rootModule: mill.define.BaseModule,
     baseLogger: ColorLogger,
@@ -44,11 +42,6 @@ private[mill] case class EvaluatorImpl(
 
   override def withFailFast(newFailFast: Boolean): Evaluator =
     this.copy(failFast = newFailFast)
-
-  override def withOutLock(outLock: Boolean): Evaluator =
-    copy(outLock = outLock)
-  override def withDelayedOutLock(delayedOutLock: Boolean): Evaluator =
-    copy(delayedOutLock = delayedOutLock)
 
   override def plan(goals: Agg[Task[_]]): (MultiBiMap[Terminal, Task[_]], Agg[Task[_]]) = {
     Plan.plan(goals)

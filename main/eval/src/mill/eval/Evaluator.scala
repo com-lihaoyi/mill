@@ -31,22 +31,6 @@ trait Evaluator {
     }
   def disableCallgraphInvalidation: Boolean = false
 
-  /**
-   */
-  def outLock: Boolean
-
-  /**
-   */
-  def delayedOutLock: Boolean
-
-  /**
-   */
-  def withOutLock(outLock: Boolean): Evaluator
-
-  /**
-   */
-  def withDelayedOutLock(delayedOutLock: Boolean): Evaluator
-
   @deprecated(
     "Binary compatibility shim. Use overload with parameter serialCommandExec=false instead",
     "Mill 0.12.0-RC1"

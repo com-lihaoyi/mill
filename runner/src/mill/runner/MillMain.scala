@@ -7,7 +7,6 @@ import scala.util.Properties
 import mill.java9rtexport.Export
 import mill.api.{MillException, SystemStreams, WorkspaceRoot, internal}
 import mill.bsp.{BspContext, BspServerResult}
-import mill.eval.OutLock
 import mill.main.BuildInfo
 import mill.main.client.{OutFiles, ServerFiles}
 import mill.main.client.lock.Lock
@@ -214,8 +213,6 @@ object MillMain {
 
                 val out = os.Path(OutFiles.out, WorkspaceRoot.workspaceRoot)
 
-                val delayLock = bspContext.isDefined
-
                 var repeatForBsp = true
                 var loopRes: (Boolean, RunnerState) = (false, RunnerState.empty)
                 while (repeatForBsp) {
@@ -229,8 +226,8 @@ object MillMain {
                     evaluate = (prevState: Option[RunnerState]) => {
                       adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
 
-                      OutLock.withLock(
-                        config.noBuildLock.value || delayLock,
+                      withOutLock(
+                        config.noBuildLock.value || bspContext.isDefined,
                         config.noWaitForBuildLock.value,
                         out,
                         targetsAndParams,
@@ -253,7 +250,6 @@ object MillMain {
                           try new MillBuildBootstrap(
                               projectRoot = WorkspaceRoot.workspaceRoot,
                               output = out,
-                              delayedOutLock = delayLock,
                               home = config.home,
                               keepGoing = config.keepGoing.value,
                               imports = config.imports,
@@ -420,4 +416,44 @@ object MillMain {
     for (k <- systemPropertiesToUnset) System.clearProperty(k)
     for ((k, v) <- desiredProps) System.setProperty(k, v)
   }
+
+  def withOutLock[T](
+      noBuildLock: Boolean,
+      noWaitForBuildLock: Boolean,
+      out: os.Path,
+      targetsAndParams: Seq[String],
+      streams: SystemStreams
+  )(t: => T): T = {
+    if (noBuildLock) t
+    else {
+      val outLock = Lock.file((out / OutFiles.millLock).toString)
+
+      def activeTaskString =
+        try {
+          os.read(out / OutFiles.millActiveCommand)
+        } catch {
+          case e => "<unknown>"
+        }
+
+      def activeTaskPrefix = s"Another Mill process is running '$activeTaskString',"
+      Using.resource {
+        val tryLocked = outLock.tryLock()
+        if (tryLocked.isLocked()) tryLocked
+        else if (noWaitForBuildLock) {
+          throw new Exception(s"$activeTaskPrefix failing")
+        } else {
+
+          streams.err.println(
+            s"$activeTaskPrefix waiting for it to be done..."
+          )
+          outLock.lock()
+        }
+      } { _ =>
+        os.write.over(out / OutFiles.millActiveCommand, targetsAndParams.mkString(" "))
+        try t
+        finally os.remove.all(out / OutFiles.millActiveCommand)
+      }
+    }
+  }
+
 }

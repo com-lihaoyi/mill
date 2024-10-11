@@ -18,8 +18,6 @@ import scala.concurrent._
 private[mill] trait EvaluatorCore extends GroupEvaluator {
 
   def baseLogger: ColorLogger
-  def outLock: Boolean
-  def delayedOutLock: Boolean
 
   /**
    * @param goals The tasks that need to be evaluated
@@ -33,6 +31,8 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       logger: ColorLogger = baseLogger,
       serialCommandExec: Boolean = false
   ): Evaluator.Results = {
+    os.makeDir.all(outPath)
+
     PathRef.validatedPaths.withValue(new PathRef.ValidatedPaths()) {
       val ec =
         if (effectiveThreadCount == 1) ExecutionContexts.RunNow
@@ -42,28 +42,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
         if (effectiveThreadCount == 1) ""
         else s"#${if (effectiveThreadCount > 9) f"$threadId%02d" else threadId} "
 
-      try
-        OutLock.withLock(
-          noBuildLock = !outLock,
-          noWaitForBuildLock = false, // ???
-          out = outPath,
-          targetsAndParams = goals.toSeq.map {
-            case n: NamedTask[_] => n.label
-            case t => t.toString
-          },
-          streams = logger.systemStreams
-        ) {
-          os.makeDir.all(outPath)
-          evaluate0(
-            goals,
-            logger,
-            reporter,
-            testReporter,
-            ec,
-            contextLoggerMsg,
-            serialCommandExec
-          )
-        }
+      try evaluate0(goals, logger, reporter, testReporter, ec, contextLoggerMsg, serialCommandExec)
       finally ec.close()
     }
   }
