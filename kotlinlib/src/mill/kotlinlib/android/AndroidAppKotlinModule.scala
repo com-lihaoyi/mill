@@ -2,9 +2,6 @@ package mill.kotlinlib.android
 
 import mill.kotlinlib.KotlinModule
 import mill.javalib.android.AndroidAppModule
-import mill._
-import coursier.Type
-import upickle.default.ReadWriter
 
 /**
  * Trait for building Android applications using the Mill build tool.
@@ -21,22 +18,4 @@ import upickle.default.ReadWriter
  * [[https://developer.android.com/studio Android Studio Documentation]]
  */
 @mill.api.experimental
-trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule {
-
-  // Implicit ReadWriter for coursier.Type
-  implicit val coursierTypeRW: ReadWriter[Type] = upickle.default.readwriter[String].bimap(
-    t => t.value, // Convert coursier.Type to a String
-    Type(_) // Convert String back to coursier.Type
-  )
-
-  // Implicit ReadWriter for Set[coursier.Type]
-  implicit val coursierTypeSetRW: ReadWriter[Set[Type]] =
-    upickle.default.readwriter[Set[String]].bimap(
-      set => set.map(_.value), // Serialize Set[coursier.Type] to Set[String]
-      set => set.map(Type(_)) // Deserialize Set[String] to Set[coursier.Type]
-    )
-
-  // artifactTypes to add "aar" type to the Set of artifact types
-  def artifactTypes: T[Set[Type]] =
-    Task { super.artifactTypes() + coursier.Type("aar") }
-}
+trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule {}
