@@ -6,12 +6,12 @@ import scala.scalanative.unsafe._
 object Bar {
   def main(args: Array[String]): Unit = {
     println("Running HelloWorld function")
-    implitct val z: Zone = Zone.open
-    val input = toCString(ags(0))
-    val result = HelloWorldBar.generateHtml(input)
-    stdio.printf(c"Bar value: %s", input)
+    implicit val z: Zone = Zone.open
+    val result = toCString(args(0))
+    HelloWorldBar.generateHtml(result)
     z.close()
-    stdio.printf("Done...")
+    stdio.printf(c"Bar value: %s\n", args(0))
+    println("Done...")
   }
 }
 
@@ -23,3 +23,4 @@ object HelloWorldBar {
   // Name and signature of C function
   def generateHtml(str: CString): CString = extern
 }
+

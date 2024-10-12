@@ -14,11 +14,9 @@ trait MyModule extends ScalaNativeModule {
 
 object foo extends MyModule {
   def moduleDeps = Seq(bar)
-  def ivyDeps = Agg(ivy"com.lihaoyi::mainargs::0.4.0")
+  def ivyDeps = Agg(ivy"com.lihaoyi::mainargs::0.7.6")
 
   os.proc("mkdir", millSourcePath.toString + "/target").call(stdout = os.Inherit)
-
-  def nativeLinkingOptions = Seq("-L" + millSourcePath.toString + "/target")
 
   os.proc(
     "gcc", "-m64", "-shared", "-fPIC", 

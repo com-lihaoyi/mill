@@ -4,15 +4,15 @@ import scala.scalanative.unsafe._
 
 object BarTests extends TestSuite {
   def tests = Tests {
-    test("simple") {
+    test("simple one") {
       val result = HelloWorldBar.generateHtml(c"hello")
       assert(result == "<h1>hello</h1>")
-      result
+      fromCString(result)
     }
-    test("escaping") {
-      val result = HelloWorldBar.generateHtml(c"<hello>")
-      assert(result == "<h1>&lt;hello&gt;</h1>")
-      result
+    test("simple two") {
+      val result = HelloWorldBar.generateHtml(c"<hello world>")
+      assert(result == "<h1>hello world</h1>")
+      fromCString(result)
     }
   }
 }

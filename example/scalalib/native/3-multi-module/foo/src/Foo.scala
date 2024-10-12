@@ -14,8 +14,8 @@ object Foo {
     val cBarText = toCString(barText)
     z.close
 
-    stdio.printf("Foo.value: %s\n", HelloWorldFoo.generateHtml(cFooText))
-    stdio.printf("Bar.value: %s\n", bar.Bar.generateHtml(cBarText))
+    stdio.printf(c"Foo.value: %s\n", HelloWorldFoo.generateHtml(cFooText))
+    stdio.printf(c"Bar.value: %s\n", bar.HelloWorldBar.generateHtml(cBarText))
   }
 
   def main(args: Array[String]): Unit = ParserForMethods(this).runOrExit(args)
