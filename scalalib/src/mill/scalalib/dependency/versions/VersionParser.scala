@@ -27,5 +27,5 @@ private[dependency] object VersionParser {
     }
 
   def parse(text: String): Parsed[(Seq[Long], Seq[String], Seq[String])] =
-    fastparse.parse(text, versionParser(_))
+    fastparse.parse(text, versionParser(using _))
 }

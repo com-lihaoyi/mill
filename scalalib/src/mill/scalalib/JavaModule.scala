@@ -258,8 +258,10 @@ trait JavaModule
       else compileModuleDepsChecked
     val deps = (normalDeps ++ compileDeps).distinct
     val asString =
-      s"${if (recursive) "Recursive module"
-        else "Module"} dependencies of ${millModuleSegments.render}:\n\t${deps
+      s"${
+          if (recursive) "Recursive module"
+          else "Module"
+        } dependencies of ${millModuleSegments.render}:\n\t${deps
           .map { dep =>
             dep.millModuleSegments.render ++
               (if (compileModuleDepsChecked.contains(dep) || !normalDeps.contains(dep)) " (compile)"

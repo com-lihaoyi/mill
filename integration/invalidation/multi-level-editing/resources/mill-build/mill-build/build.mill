@@ -8,7 +8,7 @@ object `package` extends MillBuildRootModule {
       Task.dest / "MetaConstant.scala",
       """package constant
         |object MetaConstant{
-        |  def scalatagsVersion = "0.8.2"
+        |  def scalatagsVersion = "0.13.1"
         |}
         |""".stripMargin
     )

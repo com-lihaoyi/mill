@@ -57,7 +57,7 @@ trait InitModule extends Module {
             val extractedPath = T.dest / extractedDirName
             val conflicting = for {
               p <- os.walk(extractedPath)
-              val rel = p.relativeTo(extractedPath)
+              rel = p.relativeTo(extractedPath)
               if os.exists(T.workspace / rel)
             } yield rel
 
@@ -97,7 +97,8 @@ trait InitModule extends Module {
   private def usingExamples[T](fun: Seq[(ExampleId, ExampleUrl)] => T): Try[T] =
     Using(getClass.getClassLoader.getResourceAsStream("exampleList.txt")) { exampleList =>
       val reader = upickle.default.reader[Seq[(ExampleId, ExampleUrl)]]
-      val exampleNames: Seq[(ExampleId, ExampleUrl)] = upickle.default.read(exampleList)(reader)
+      val exampleNames: Seq[(ExampleId, ExampleUrl)] =
+        upickle.default.read(exampleList)(using reader)
       fun(exampleNames)
     }
 }

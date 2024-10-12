@@ -132,9 +132,9 @@ object SystemStreams {
   def setTopLevelSystemStreamProxy(): Unit = {
     // Make sure to initialize `Console` to cache references to the original
     // `System.{in,out,err}` streams before we redirect them
-    Console.out
-    Console.err
-    Console.in
+    val _ = Console.out
+    val _ = Console.err
+    val _ = Console.in
     System.setIn(ThreadLocalStreams.In)
     System.setOut(ThreadLocalStreams.Out)
     System.setErr(ThreadLocalStreams.Err)
