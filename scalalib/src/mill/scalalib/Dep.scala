@@ -172,11 +172,11 @@ object Dep {
     (dep: Dep) =>
       unparse(dep) match {
         case Some(s) => ujson.Str(s)
-        case None => upickle.default.writeJs[Dep](dep)(rw0)
+        case None => upickle.default.writeJs[Dep](dep)(using rw0)
       },
     {
       case s: ujson.Str => parse(s.value)
-      case v: ujson.Value => upickle.default.read[Dep](v)(rw0)
+      case v: ujson.Value => upickle.default.read[Dep](v)(using rw0)
     }
   )
 
@@ -279,7 +279,7 @@ object BoundDep {
     upickle.default.readwriter[ujson.Value].bimap[BoundDep](
       bdep => {
         Dep.unparse(Dep(bdep.dep, CrossVersion.Constant("", false), bdep.force)) match {
-          case None => upickle.default.writeJs(bdep)(jsonify0)
+          case None => upickle.default.writeJs(bdep)(using jsonify0)
           case Some(s) => ujson.Str(s)
         }
       },
@@ -287,7 +287,7 @@ object BoundDep {
         case ujson.Str(s) =>
           val dep = Dep.parse(s)
           BoundDep(dep.dep, dep.force)
-        case v => upickle.default.read[BoundDep](v)(jsonify0)
+        case v => upickle.default.read[BoundDep](v)(using jsonify0)
       }
     )
 }
