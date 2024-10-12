@@ -122,14 +122,17 @@ trait KotlinJSModule extends KotlinModule { outer =>
     }
 
     kotlinJSRunTarget() match {
-      case Some(RunTarget.Node) => Jvm.runSubprocess(
+      case Some(RunTarget.Node) => {
+        val testBinaryPath = (linkResult.path / s"${moduleName()}.${moduleKind.extension}")
+          .toIO.getAbsolutePath
+        Jvm.runSubprocess(
           commandArgs = Seq(
-            "node",
-            (linkResult.path / s"${moduleName()}.${moduleKind.extension}").toIO.getAbsolutePath
-          ) ++ args().value,
+            "node"
+          ) ++ args().value ++ Seq(testBinaryPath),
           envArgs = T.env,
           workingDir = T.dest
         )
+      }
       case Some(x) =>
         T.log.error(s"Run target $x is not supported")
       case None =>
@@ -379,16 +382,21 @@ trait KotlinJSModule extends KotlinModule { outer =>
 
   // these 2 exist to ignore values added to the display name in case of the cross-modules
   // we already have cross-modules in the paths, so we don't need them here
-  private def moduleName() = millModuleSegments.value
-    .filter(_.isInstanceOf[Segment.Label])
-    .map(_.asInstanceOf[Segment.Label])
-    .last
-    .value
+  private def moduleName() = {
+    val labelSegments = millModuleSegments.value
+      .collect { case label: Segment.Label => label }
+    if (labelSegments.nonEmpty) {
+      labelSegments.last.value
+    } else "root"
+  }
 
-  private def fullModuleName() = millModuleSegments.value
-    .filter(_.isInstanceOf[Segment.Label])
-    .map(_.asInstanceOf[Segment.Label].value)
-    .mkString("-")
+  private def fullModuleName() = {
+    val labelSegments = millModuleSegments.value
+      .collect { case label: Segment.Label => label }
+    if (labelSegments.nonEmpty) {
+      labelSegments.mkString("-")
+    } else "root"
+  }
 
   // **NOTE**: This logic may (and probably is) be incomplete
   private def isKotlinJsLibrary(path: os.Path)(implicit ctx: mill.api.Ctx): Boolean = {
@@ -417,7 +425,44 @@ trait KotlinJSModule extends KotlinModule { outer =>
 
   // region Tests module
 
+  /**
+   * Generic trait to run tests for Kotlin/JS which doesn't specify test
+   * framework. For the particular implementation see [[KotlinTestPackageTests]] or [[KotestTests]].
+   */
   trait KotlinJSTests extends KotlinTests with KotlinJSModule {
+
+    // region private
+
+    // TODO may be optimized if there is a single folder for all modules
+    // but may be problematic if modules use different NPM packages versions
+    private def nodeModulesDir = Task(persistent = true) {
+      PathRef(T.dest)
+    }
+
+    // NB: for the packages below it is important to use specific version
+    // otherwise with random versions there is a possibility to have conflict
+    // between the versions of the shared transitive deps
+    private def mochaModule = Task {
+      val workingDir = nodeModulesDir().path
+      Jvm.runSubprocess(
+        commandArgs = Seq("npm", "install", "mocha@10.2.0"),
+        envArgs = T.env,
+        workingDir = workingDir
+      )
+      PathRef(workingDir / "node_modules" / "mocha" / "bin" / "mocha.js")
+    }
+
+    private def sourceMapSupportModule = Task {
+      val workingDir = nodeModulesDir().path
+      Jvm.runSubprocess(
+        commandArgs = Seq("npm", "install", "source-map-support@0.5.21"),
+        envArgs = T.env,
+        workingDir = nodeModulesDir().path
+      )
+      PathRef(workingDir / "node_modules" / "source-map-support" / "register.js")
+    }
+
+    // endregion
 
     override def testFramework = ""
 
@@ -435,16 +480,53 @@ trait KotlinJSModule extends KotlinModule { outer =>
         globSelectors: Task[Seq[String]]
     ): Task[(String, Seq[TestResult])] = Task.Anon {
       // This is a terrible hack, but it works
-      run()()
+      run(Task.Anon {
+        Args(args() ++ Seq(
+          // TODO this is valid only for the NodeJS target. Once browser support is
+          //  added, need to have different argument handling
+          "--require",
+          sourceMapSupportModule().path.toString(),
+          mochaModule().path.toString()
+        ))
+      })()
       ("", Seq.empty[TestResult])
     }
+
+    override def kotlinJSRunTarget: T[Option[RunTarget]] = Some(RunTarget.Node)
   }
 
-  trait KotlinJSKotlinXTests extends KotlinJSTests {
+  /**
+   * Run tests for Kotlin/JS target using `kotlin.test` package.
+   */
+  trait KotlinTestPackageTests extends KotlinJSTests {
     override def ivyDeps = Agg(
       ivy"org.jetbrains.kotlin:kotlin-test-js:${kotlinVersion()}"
     )
-    override def kotlinJSRunTarget: T[Option[RunTarget]] = Some(RunTarget.Node)
+  }
+
+  /**
+   * Run tests for Kotlin/JS target using Kotest framework.
+   */
+  trait KotestTests extends KotlinJSTests {
+
+    def kotestVersion: T[String] = "5.9.1"
+
+    private def kotestProcessor = Task {
+      defaultResolver().resolveDeps(
+        Agg(
+          ivy"io.kotest:kotest-framework-multiplatform-plugin-embeddable-compiler-jvm:${kotestVersion()}"
+        )
+      ).head
+    }
+
+    override def kotlincOptions = super.kotlincOptions() ++ Seq(
+      s"-Xplugin=${kotestProcessor().path}"
+    )
+
+    override def ivyDeps = Agg(
+      ivy"io.kotest:kotest-framework-engine-js:${kotestVersion()}",
+      ivy"io.kotest:kotest-assertions-core-js:${kotestVersion()}"
+    )
   }
 
   // endregion
