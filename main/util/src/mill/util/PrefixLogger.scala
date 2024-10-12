@@ -107,7 +107,8 @@ class PrefixLogger(
   private[mill] override def removePromptLine(callKey: Seq[String]): Unit =
     logger0.removePromptLine(callKey)
   private[mill] override def removePromptLine(): Unit = removePromptLine(logPrefixKey)
-  private[mill] override def setPromptLeftHeader(s: String): Unit = logger0.setPromptLeftHeader(s)
+  private[mill] override def setPromptHeaderPrefix(s: String): Unit =
+    logger0.setPromptHeaderPrefix(s)
   override def enableTicker = logger0.enableTicker
 
   private[mill] override def subLogger(

@@ -161,11 +161,7 @@ object CodeGen {
         newScriptCode = objectData.name.applyTo(newScriptCode, wrapperObjectName)
         newScriptCode = objectData.obj.applyTo(newScriptCode, "abstract class")
 
-        val millDiscover =
-          if (segments.nonEmpty) ""
-          else
-            """@_root_.scala.annotation.nowarn
-              |  override lazy val millDiscover: _root_.mill.define.Discover = _root_.mill.define.Discover[this.type]""".stripMargin
+        val millDiscover = discoverSnippet(segments)
 
         s"""$pkgLine
            |$aliasImports
@@ -224,11 +220,7 @@ object CodeGen {
       s"extends _root_.mill.main.RootModule.Subfolder "
     }
 
-    val millDiscover =
-      if (segments.nonEmpty) ""
-      else
-        """@_root_.scala.annotation.nowarn
-          |  override lazy val millDiscover: _root_.mill.define.Discover = _root_.mill.define.Discover[this.type]""".stripMargin
+    val millDiscover = discoverSnippet(segments)
 
     // User code needs to be put in a separate class for proper submodule
     // object initialization due to https://github.com/scala/scala3/issues/21444
@@ -237,6 +229,14 @@ object CodeGen {
        |  $millDiscover
        |}
        |abstract class $wrapperObjectName $extendsClause {""".stripMargin
+
+  }
+
+  def discoverSnippet(segments: Seq[String]): String = {
+    if (segments.nonEmpty) ""
+    else
+      """override lazy val millDiscover: _root_.mill.define.Discover = _root_.mill.define.Discover[this.type]
+        |""".stripMargin
 
   }
 

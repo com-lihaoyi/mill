@@ -547,7 +547,10 @@ trait JavaModule
    * Resolved dependencies based on [[transitiveIvyDeps]] and [[transitiveCompileIvyDeps]].
    */
   def resolvedIvyDeps: T[Agg[PathRef]] = Task {
-    defaultResolver().resolveDeps(transitiveCompileIvyDeps() ++ transitiveIvyDeps())
+    defaultResolver().resolveDeps(
+      transitiveCompileIvyDeps() ++ transitiveIvyDeps(),
+      artifactTypes = Some(artifactTypes())
+    )
   }
 
   /**
@@ -560,7 +563,8 @@ trait JavaModule
 
   def resolvedRunIvyDeps: T[Agg[PathRef]] = Task {
     defaultResolver().resolveDeps(
-      runIvyDeps().map(bindDependency()) ++ transitiveIvyDeps()
+      runIvyDeps().map(bindDependency()) ++ transitiveIvyDeps(),
+      artifactTypes = Some(artifactTypes())
     )
   }
 

@@ -59,7 +59,7 @@ object PromptLoggerTests extends TestSuite {
 
         val (baos, promptLogger, prefixLogger) = setup(() => now, os.temp())
 
-        promptLogger.setPromptLeftHeader("123/456")
+        promptLogger.setPromptHeaderPrefix("123/456")
         promptLogger.setPromptLine(Seq("1"), "/456", "my-task")
 
         now += 10000
@@ -108,7 +108,7 @@ object PromptLoggerTests extends TestSuite {
         var now = 0L
         val (baos, promptLogger, prefixLogger) = setup(() => now, os.temp("80 40"))
 
-        promptLogger.setPromptLeftHeader("123/456")
+        promptLogger.setPromptHeaderPrefix("123/456")
         promptLogger.refreshPrompt()
         check(promptLogger, baos)(
           "  [123/456] ========================== TITLE =================================="
@@ -278,7 +278,7 @@ object PromptLoggerTests extends TestSuite {
         @volatile var now = 0L
         val (baos, promptLogger, prefixLogger) = setup(() => now, os.temp("80 40"))
 
-        promptLogger.setPromptLeftHeader("123/456")
+        promptLogger.setPromptHeaderPrefix("123/456")
         promptLogger.refreshPrompt()
         check(promptLogger, baos)(
           "  [123/456] ========================== TITLE =================================="
@@ -329,7 +329,7 @@ object PromptLoggerTests extends TestSuite {
         @volatile var now = 0L
         val (baos, promptLogger, prefixLogger) = setup(() => now, os.temp("80 40"))
 
-        promptLogger.setPromptLeftHeader("123/456")
+        promptLogger.setPromptHeaderPrefix("123/456")
         promptLogger.refreshPrompt()
 
         promptLogger.setPromptLine(Seq("1"), "/456", "my-task")

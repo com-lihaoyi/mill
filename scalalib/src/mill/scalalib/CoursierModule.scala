@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import coursier.cache.FileCache
-import coursier.{Dependency, Repository, Resolve}
+import coursier.{Dependency, Repository, Resolve, Type}
 import coursier.core.Resolution
 import mill.define.Task
 import mill.api.PathRef
@@ -48,20 +48,33 @@ trait CoursierModule extends mill.Module {
    *
    * @param deps    The dependencies to resolve.
    * @param sources If `true`, resolve source dependencies instead of binary dependencies (JARs).
+   * @param artifactTypes If non-empty, pull the passed artifact types rather than the default ones from coursier
    * @return The [[PathRef]]s to the resolved files.
    */
-  def resolveDeps(deps: Task[Agg[BoundDep]], sources: Boolean = false): Task[Agg[PathRef]] =
+  def resolveDeps(
+      deps: Task[Agg[BoundDep]],
+      sources: Boolean = false,
+      artifactTypes: Option[Set[Type]] = None
+  ): Task[Agg[PathRef]] =
     Task.Anon {
       Lib.resolveDependencies(
         repositories = repositoriesTask(),
         deps = deps(),
         sources = sources,
+        artifactTypes = artifactTypes,
         mapDependencies = Some(mapDependencies()),
         customizer = resolutionCustomizer(),
         coursierCacheCustomizer = coursierCacheCustomizer(),
         ctx = Some(implicitly[mill.api.Ctx.Log])
       )
     }
+
+  @deprecated("Use the override accepting artifactTypes", "Mill after 0.12.0-RC3")
+  def resolveDeps(
+      deps: Task[Agg[BoundDep]],
+      sources: Boolean
+  ): Task[Agg[PathRef]] =
+    resolveDeps(deps, sources, None)
 
   /**
    * Map dependencies before resolving them.
@@ -134,18 +147,27 @@ object CoursierModule {
 
     def resolveDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
-        sources: Boolean = false
+        sources: Boolean = false,
+        artifactTypes: Option[Set[coursier.Type]] = None
     ): Agg[PathRef] = {
       Lib.resolveDependencies(
         repositories = repositories,
         deps = deps.map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind)),
         sources = sources,
+        artifactTypes = artifactTypes,
         mapDependencies = mapDependencies,
         customizer = customizer,
         coursierCacheCustomizer = coursierCacheCustomizer,
         ctx = ctx
       ).getOrThrow
     }
+
+    @deprecated("Use the override accepting artifactTypes", "Mill after 0.12.0-RC3")
+    def resolveDeps[T: CoursierModule.Resolvable](
+        deps: IterableOnce[T],
+        sources: Boolean
+    ): Agg[PathRef] =
+      resolveDeps(deps, sources, None)
   }
 
   sealed trait Resolvable[T] {
