@@ -100,7 +100,15 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
 
   object util extends build.MillStableScalaModule {
     def moduleDeps = Seq(api, client)
-    def ivyDeps = Agg(build.Deps.coursier, build.Deps.coursierJvm, build.Deps.jline)
+    def ivyDeps = Agg(
+      build.Deps.coursier,
+      build.Deps.coursierJvm.exclude(
+        "com.github.alexarchambault" -> "argonaut-shapeless_6.3",
+        "com.chuusai" -> "shapeless",
+        "io.argonaut" -> "argonaut",
+      ),
+      build.Deps.jline
+    )
   }
 
   object define extends build.MillStableScalaModule {
