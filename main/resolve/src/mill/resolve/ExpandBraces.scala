@@ -10,7 +10,7 @@ private object ExpandBraces {
     case class Expand(values: List[List[Fragment]]) extends Fragment
   }
 
-  private[ExpandBraces] def expandRec(frags: List[Fragment]): List[List[String]] = frags match {
+  def expandRec(frags: List[Fragment]): List[List[String]] = frags match {
     case Nil => List(List())
     case head :: tail =>
       val tailStrings = expandRec(tail)

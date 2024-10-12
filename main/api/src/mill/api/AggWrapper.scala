@@ -33,11 +33,11 @@ private[mill] sealed class AggWrapper(strictUniqueness: Boolean) {
     def map[T](f: V => T): Agg[T]
     def filter(f: V => Boolean): Agg[V]
 
-    override def collect[T](f: PartialFunction[V, T]): Agg[T] = super.collect(f)
-    override def zipWithIndex: Agg[(V, Int)] = super.zipWithIndex
+    def collect[T](f: PartialFunction[V, T]): Agg[T]
+    def zipWithIndex: Agg[(V, Int)]
     def reverse: Agg[V]
     def zip[T](other: Agg[T]): Agg[(V, T)]
-    // def ++[T >: V](other: IterableOnce[T]): Agg[T] // error overriding final method ++ in trait IterableOps
+    def ++[T >: V](other: IterableOnce[T]): Agg[T]
     def length: Int
     def isEmpty: Boolean
     def foreach[U](f: V => U): Unit
