@@ -15,7 +15,7 @@ import java.util.concurrent.{ConcurrentHashMap, Semaphore}
 class FixSizedCache[T](perKeySize: Int) extends KeyedLockedCache[T] {
 
   // Cache Key -> (Semaphore, Array of cached elements)
-  private[this] val keyToCache: ConcurrentHashMap[Long, (Semaphore, Array[(Boolean, Option[T])])] =
+  private val keyToCache: ConcurrentHashMap[Long, (Semaphore, Array[(Boolean, Option[T])])] =
     new ConcurrentHashMap
 
   override def withCachedValue[V](key: Long)(f: => T)(f2: T => V): V = {
