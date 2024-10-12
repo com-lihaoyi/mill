@@ -7,7 +7,7 @@ import fansi._
 object Foo2 {
 
   def generateHtml(text: String): CString = {
-    val colored = Console.RED + "<h1>" + text + "</h1>" + Console.RESET + "\n"
+    val colored = Console.RED + "<h1>" + text + "</h1>" + Console.RESET
 
     implicit val z: Zone = Zone.open
     val cResult = toCString(colored)
@@ -18,15 +18,31 @@ object Foo2 {
   val value = generateHtml("hello2")
 
   def main(args: Array[String]): Unit = {
-    stdio.printf("Foo2.value: %s", Foo2.value)
-    stdio.printf("Foo.value: %s", Foo.value)
+    stdio.printf(c"Foo2.value: %s\n", Foo2.value)
+    stdio.fflush(null)
+    stdio.printf(c"Foo.value: %s\n", Foo.value)
+    stdio.fflush(null)
 
-    stdio.printf("FooA.value: %s", FooA.value)
-    stdio.printf("FooB.value: %s", FooB.value)
-    stdio.printf("FooC.value: %s", FooC.value)
+    implicit val z: Zone = Zone.open
+    val cFooA = toCString(FooA.value)
+    val cFooB = toCString(FooB.value)
+    val cFooC = toCString(FooC.value)
+    z.close
 
-    println("MyResource: " + os.read(os.resource / "MyResource.txt"))
-    println("MyOtherResource: " + os.read(os.resource / "MyOtherResource.txt"))
+    stdio.printf(c"FooA.value: %s\n", cFooA)
+    stdio.fflush(null)
+    stdio.printf(c"FooB.value: %s\n", cFooB)
+    stdio.fflush(null)
+    stdio.printf(c"FooC.value: %s\n", cFooC)
+    stdio.fflush(null)
+
+    val myResource = os.read(os.pwd / "resources" / "MyResource.txt")
+    val myOtherResource = os.read(os.pwd / "common-resources" / "MyOtherResource.txt")
+
+    println("MyResource: " + myResource)
+    println("MyOtherResource: " + myOtherResource)
+
   }
   
 }
+

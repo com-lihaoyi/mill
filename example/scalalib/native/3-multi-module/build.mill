@@ -7,14 +7,14 @@ trait MyModule extends ScalaNativeModule {
   def scalaNativeVersion = "0.5.5"
   
   object test extends ScalaNativeTests {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.8.4")
     def testFramework = "utest.runner.Framework"
   }
 }
 
 object foo extends MyModule {
   def moduleDeps = Seq(bar)
-  def ivyDeps = Agg(ivy"com.lihaoyi::mainargs:0.4.0")
+  def ivyDeps = Agg(ivy"com.lihaoyi::mainargs::0.4.0")
 
   os.proc("mkdir", millSourcePath.toString + "/target").call(stdout = os.Inherit)
 
@@ -23,13 +23,11 @@ object foo extends MyModule {
   os.proc(
     "gcc", "-m64", "-shared", "-fPIC", 
     millSourcePath.toString + "/native-src/HelloWorldFoo.c", millSourcePath.toString + "/native-src/htm.c",
-    "-o", millSourcePath.toString + "/target/libHelloWorldFoo.so"
-  ).call(stdout = os.Inherit)
-
+    "-o", millSourcePath.toString + "/target/libHelloWorldFoo.so")
+  .call(stdout = os.Inherit)
 }
 
 object bar extends MyModule {
-  def ivyDeps = Agg(ivy"com.lihaoyi::scalatags:0.8.2")
 
   os.proc("mkdir", millSourcePath.toString + "/target").call(stdout = os.Inherit)
 
@@ -40,7 +38,7 @@ object bar extends MyModule {
     millSourcePath.toString + "/native-src/HelloWorldBar.c", millSourcePath.toString + "/native-src/htm.c",
     "-o", millSourcePath.toString + "/target/libHelloWorldBar.so")
   .call(stdout = os.Inherit)
-
+  
 }
 //// SNIPPET:END
 
@@ -71,10 +69,11 @@ object bar extends MyModule {
 //             BarTests.scala
 // foo/
 //     native-src/
-           HelloWorldFoo.c
+//         HelloWorldFoo.c
 //     src/
 //         Foo.scala
 //
 //
 //
 //// SNIPPET:END
+

@@ -8,7 +8,8 @@ object `package` extends RootModule with ScalaNativeModule {
 
   // You can have arbitrary numbers of third-party dependencies
   def ivyDeps = Agg(
-    ivy"com.lihaoyi::fansi::0.5.0"
+    ivy"com.lihaoyi::fansi::0.5.0",
+    ivy"com.lihaoyi::mainargs:0.7.6"
   )
 
   object test extends ScalaNativeTests {
@@ -74,23 +75,24 @@ compiling 1 Scala source to...
 > ./mill run # run the main method, if any
 error: Missing argument: --text <str>
 
-> ./mill run
-Hello World Ansi (colored in Green)
+> ./mill run --text hello
+<h1>hello</h1> (colored in Red)
 > ./mill test
 ...
-+ foo.FooTests...simple ...  <h1>hello</h1>
-+ foo.FooTests...escaping ...  <h1>&lt;hello&gt;</h1>
-
+-------------------------------- Running Tests --------------------------------
++ foo.FooTests.simple one 0ms  <h1>hello</h1>
++ foo.FooTests.simple two 0ms  <h1>hello world</h1>
+Tests: 2, Passed: 2, Failed: 0
 > ./mill assembly # bundle classfiles and libraries into a jar for deployment
 
 > ./mill show assembly # show the output of the assembly task
 ".../out/assembly.dest/out.jar"
 
 > java -jar ./out/assembly.dest/out.jar
-Hello World Ansi (colored in Green)
+<h1>hello</h1> (colored in Red)
 
 > ./out/assembly.dest/out.jar # mac/linux
-Hello World Ansi (colored in Green)
+<h1>hello</h1> (colored in Red)
 
 */
 

@@ -2,6 +2,7 @@ package foo
 
 import scala.scalanative.libc._
 import scala.scalanative.unsafe._
+import mainargs.{main, ParserForMethods}
 import fansi._
 
 object Foo {
@@ -15,9 +16,10 @@ object Foo {
     cResult
   }
 
-  def main(args: Array[String]): Unit = {
-    val text = args(0)
-    stdio.printf(generateHtml(text))  // Now printing the result
+  @main
+  def main(text: String) = {
+    stdio.printf(generateHtml(text))
   }
-}
 
+  def main(args: Array[String]): Unit = ParserForMethods(this).runOrExit(args)
+}

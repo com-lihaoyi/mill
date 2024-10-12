@@ -13,12 +13,23 @@ object `package` extends RootModule with ScalaNativeModule {
 
   // You can have arbitrary numbers of third-party dependencies
   def ivyDeps = Agg(
-    ivy"com.lihaoyi::fansi::0.5.0"
+    ivy"com.lihaoyi::fansi::0.5.0",
+    ivy"com.lihaoyi::os-lib::0.11.1"
   )
 
   // Choose a main class to use for `.run` if there are multiple present
-  //def mainClass: T[Option[String]] = Some("foo.Foo2")
+  def mainClass: T[Option[String]] = Some("foo.Foo2")
   
+  // Add (or replace) source folders for the module to use
+  def sources = T.sources{
+    super.sources() ++ Seq(PathRef(millSourcePath / "custom-src"))
+  }
+
+  // Add (or replace) resource folders for the module to use
+  def resources = T.sources{
+    super.resources() ++ Seq(PathRef(millSourcePath / "custom-resources"))
+  }
+
   // Generate sources at build time
   def generatedSources: T[Seq[PathRef]] = T {
     for(name <- Seq("A", "B", "C")) os.write(
@@ -107,3 +118,4 @@ error:                       ^
 error: ...Implicit injection of + is deprecated. Convert to String to call +...
 
 */
+

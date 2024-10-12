@@ -6,15 +6,16 @@ object `package` extends RootModule with ScalaNativeModule {
   def scalaVersion = "2.13.11"
   def scalaNativeVersion = "0.5.5"
 
- 
   object test extends ScalaNativeTests {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.8.4")
     def testFramework = "utest.runner.Framework"
 
   }
 
+  def nativeLinking = true
   def nativeLinkingOptions = Seq("-L" + millSourcePath.toString + "/target")
-  os.makeDir(millSourcePath / "target")
+  
+  os.proc("mkdir", millSourcePath.toString + "/target").call(stdout = os.Inherit)
   os.proc("gcc", "-m64", "-shared",
     "-c", millSourcePath.toString + "/native-src/HelloWorld.c",
     "-o", millSourcePath.toString + "/target/libHelloWorld.so"

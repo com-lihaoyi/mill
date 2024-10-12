@@ -7,7 +7,7 @@ import fansi._
 object Foo {
 
   def generateHtml(text: String): CString = {
-    val colored = Console.RED + "<h1>" + text + "</h1>" + Console.RESET + "\n"
+    val colored = Console.RED + "<h1>" + text + "</h1>" + Console.RESET
 
     implicit val z: Zone = Zone.open
     val cResult = toCString(colored)
@@ -15,9 +15,10 @@ object Foo {
     cResult
   }
   
-  val value = generateHtml("Hello")
+  val value = generateHtml("hello")
 
   def main(args: Array[String]): Unit = {
-    stdio.printf(c"Foo.value: %s", Foo.value)
+    stdio.printf(c"Foo.value: %s\n", Foo.value)
   }
 }
+
