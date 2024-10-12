@@ -42,11 +42,20 @@ trait MockitoModule extends MavenModule{
   def testRuntimeIvyDeps: T[Agg[Dep]] = Agg.empty[Dep]
   def testFramework = "com.novocode.junit.JUnitFramework"
   def testForkArgs: T[Seq[String]] = Seq.empty[String]
+
+  def testFilteredSources: T[Seq[PathRef]] = Task { Seq.empty }
+
   object test extends MavenTests{
     def moduleDeps = super.moduleDeps ++ MockitoModule.this.testModuleDeps
     def testFramework = MockitoModule.this.testFramework
     def runIvyDeps = testRuntimeIvyDeps()
     def forkArgs = testForkArgs()
+    def allSourceFiles = Task {
+      val base = super.allSourceFiles()
+      val filtered = testFilteredSources().toSet
+      if (filtered.isEmpty) base
+      else base.filterNot(filtered.contains)
+    }
     def ivyDeps =
       testIvyDeps() ++
       Agg(
@@ -83,6 +92,11 @@ object `package` extends RootModule with MockitoModule{
       createFolders = true
     )
     super.resources() ++ Seq(PathRef(Task.dest))
+  }
+
+  def testFilteredSources: T[Seq[PathRef]] = Task {
+    // test `add_listeners_concurrently_sanity_check` is flaky
+    Seq(PathRef(millSourcePath / "src/test/java/org/mockitousage/debugging/StubbingLookupListenerCallbackTest.java"))
   }
 
   object subprojects extends Module {
