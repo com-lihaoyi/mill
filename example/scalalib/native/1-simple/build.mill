@@ -9,11 +9,11 @@ object `package` extends RootModule with ScalaNativeModule {
   // You can have arbitrary numbers of third-party dependencies
   def ivyDeps = Agg(
     ivy"com.lihaoyi::fansi::0.5.0",
-    ivy"com.lihaoyi::mainargs:0.7.6"
+    ivy"com.lihaoyi::mainargs::0.7.6"
   )
 
   object test extends ScalaNativeTests {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.8.4")
     def testFramework = "utest.runner.Framework"
   }
 }
