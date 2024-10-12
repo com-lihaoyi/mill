@@ -11,7 +11,7 @@ import scala.concurrent.{Await, ExecutionContext, Future}
 object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
 
   private val pool = Executors.newCachedThreadPool()
-  private implicit val ec = ExecutionContext.fromExecutorService(pool)
+  private implicit val ec: ExecutionContext = ExecutionContext.fromExecutorService(pool)
 
   override def utestAfterAll(): Unit = {
     pool.shutdown()

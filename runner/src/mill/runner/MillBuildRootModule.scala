@@ -226,7 +226,7 @@ abstract class MillBuildRootModule()(implicit
     )
   }
 
-  override def bindDependency: Task[Dep => BoundDep] = Task.Anon { dep: Dep =>
+  override def bindDependency: Task[Dep => BoundDep] = Task.Anon { (dep: Dep) =>
     super.bindDependency().apply(dep).exclude(resolveDepsExclusions(): _*)
   }
 
