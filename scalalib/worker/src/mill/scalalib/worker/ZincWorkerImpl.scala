@@ -42,7 +42,6 @@ import xsbti.compile.{
 import xsbti.{PathBasedFile, VirtualFile}
 
 import java.io.{File, PrintWriter}
-import java.nio.charset.StandardCharsets
 import java.util.Optional
 import scala.annotation.tailrec
 import scala.collection.mutable
@@ -145,7 +144,7 @@ class ZincWorkerImpl(
       compilerClasspath,
       scalacPluginClasspath,
       Seq()
-    ) { (compilers: Compilers) =>
+    ) { compilers: Compilers =>
       if (ZincWorkerUtil.isDotty(scalaVersion) || ZincWorkerUtil.isScala3Milestone(scalaVersion)) {
         // dotty 0.x and scala 3 milestones use the dotty-doc tool
         val dottydocClass =
@@ -389,7 +388,7 @@ class ZincWorkerImpl(
       compilerClasspath = compilerClasspath,
       scalacPluginClasspath = scalacPluginClasspath,
       javacOptions = javacOptions
-    ) { (compilers: Compilers) =>
+    ) { compilers: Compilers =>
       compileInternal(
         upstreamCompileOutput = upstreamCompileOutput,
         sources = sources,
@@ -496,8 +495,6 @@ class ZincWorkerImpl(
       auxiliaryClassFileExtensions: Seq[String],
       zincCache: os.SubPath = os.sub / "zinc"
   )(implicit ctx: ZincWorkerApi.Ctx): Result[CompilationResult] = {
-    import ZincWorkerImpl.{ForwardingReporter, TransformingReporter, PositionMapper}
-
     os.makeDir.all(ctx.dest)
 
     val classesDir =
@@ -528,21 +525,30 @@ class ZincWorkerImpl(
     val loggerId = Thread.currentThread().getId.toString
     val logger = SbtLoggerUtils.createLogger(loggerId, consoleAppender, zincLogLevel)
 
-    def mkNewReporter(mapper: (xsbti.Position => xsbti.Position)) = reporter match {
-      case None =>
-        new ManagedLoggedReporter(10, logger) with RecordingReporter
-          with TransformingReporter {
-          def color: Boolean = ctx.log.colored
-          def optPositionMapper = mapper
-        }
-      case Some(forwarder0) =>
-        new ManagedLoggedReporter(10, logger)
-          with ForwardingReporter
-          with RecordingReporter
-          with TransformingReporter {
-          def forwarder = forwarder0
-          def color: Boolean = ctx.log.colored
-          def optPositionMapper = mapper
+    val newReporter = reporter match {
+      case None => new ManagedLoggedReporter(10, logger) with RecordingReporter
+      case Some(forwarder) =>
+        new ManagedLoggedReporter(10, logger) with RecordingReporter {
+
+          override def logError(problem: xsbti.Problem): Unit = {
+            forwarder.logError(new ZincProblem(problem))
+            super.logError(problem)
+          }
+
+          override def logWarning(problem: xsbti.Problem): Unit = {
+            forwarder.logWarning(new ZincProblem(problem))
+            super.logWarning(problem)
+          }
+
+          override def logInfo(problem: xsbti.Problem): Unit = {
+            forwarder.logInfo(new ZincProblem(problem))
+            super.logInfo(problem)
+          }
+
+          override def printSummary(): Unit = {
+            forwarder.printSummary()
+            super.printSummary()
+          }
         }
     }
     val analysisMap0 = upstreamCompileOutput.map(c => c.classes.path -> c.analysisFile).toMap
@@ -573,10 +579,6 @@ class ZincWorkerImpl(
 
     val incOptions = IncOptions.of().withAuxiliaryClassFiles(
       auxiliaryClassFileExtensions.map(new AuxiliaryClassFileExtension(_)).toArray
-    )
-
-    val newReporter = mkNewReporter(
-      PositionMapper.create(virtualSources)
     )
 
     val inputs = ic.inputs(
@@ -671,367 +673,6 @@ class ZincWorkerImpl(
 }
 
 object ZincWorkerImpl {
-
-  /**
-   * TODO: copied from mill.scalalib.Assembly
-   */
-  private object Streamable {
-    def bytes(is: java.io.InputStream): Array[Byte] = {
-      val out = new java.io.ByteArrayOutputStream
-      mill.api.IO.stream(is, out)
-      out.close()
-      out.toByteArray
-    }
-  }
-
-  private def intValue(oi: java.util.Optional[Integer], default: Int): Int = {
-    if (oi.isPresent) oi.get().intValue()
-    else default
-  }
-
-  private object PositionMapper {
-    import sbt.util.InterfaceUtil
-
-    private val userCodeStartMarker = "//MILL_USER_CODE_START_MARKER"
-    private val splicedCodeStartMarker = "//MILL_SPLICED_CODE_START_MARKER"
-    private val splicedCodeEndMarker = "//MILL_SPLICED_CODE_END_MARKER"
-
-    /** Transforms positions of problems if coming from a build file. */
-    private def lookup(buildSources: Map[String, xsbti.Position => xsbti.Position])(
-        oldPos: xsbti.Position
-    ): xsbti.Position = {
-      val src = oldPos.sourcePath()
-      if (src.isPresent) {
-        buildSources.get(src.get()) match {
-          case Some(f) => f(oldPos)
-          case _ => oldPos
-        }
-      } else {
-        oldPos
-      }
-    }
-
-    def create(sources: Array[VirtualFile]): (xsbti.Position => xsbti.Position) = {
-      val buildSources0 = {
-        def isBuild(vf: VirtualFile) =
-          mill.main.client.CodeGenConstants.buildFileExtensions.exists(ex =>
-            vf.id().endsWith(s".$ex")
-          )
-
-        sources.collect({
-          case vf if isBuild(vf) =>
-            val str = new String(Streamable.bytes(vf.input()), StandardCharsets.UTF_8)
-
-            val lines = str.linesWithSeparators.toVector
-            val adjustedFile = lines
-              .collectFirst { case s"//MILL_ORIGINAL_FILE_PATH=$rest" => rest.trim }
-              .getOrElse(sys.error(vf.id()))
-
-            vf.id() -> remap(lines, adjustedFile)
-        })
-      }
-
-      if (buildSources0.nonEmpty) lookup(buildSources0.toMap) else null
-    }
-
-    private def remap(
-        lines: Vector[String],
-        adjustedFile: String
-    ): xsbti.Position => xsbti.Position = {
-      val markerLine = lines.indexWhere(_.startsWith(userCodeStartMarker))
-      val splicedMarkerStartLine = lines.indexWhere(_.startsWith(splicedCodeStartMarker))
-      val splicedMarkerLine = lines.indexWhere(_.startsWith(splicedCodeEndMarker))
-      val existsSplicedMarker = splicedMarkerStartLine >= 0 && splicedMarkerLine >= 0
-      val splicedMarkerLineDiff = markerLine + (splicedMarkerLine - splicedMarkerStartLine + 1) + 1
-
-      val topWrapperLen = lines.take(markerLine + 1).map(_.length).sum
-      val splicedMarkerLen =
-        if (existsSplicedMarker) lines.take(splicedMarkerLine + 1).map(_.length).sum
-        else -1
-
-      val originPath = Some(adjustedFile)
-      val originFile = Some(java.nio.file.Paths.get(adjustedFile).toFile)
-
-      def userCode(offset: java.util.Optional[Integer]): Boolean =
-        intValue(offset, -1) > topWrapperLen
-
-      def postSplice(offset: Int): Boolean =
-        existsSplicedMarker && offset > splicedMarkerLen
-
-      def inner(pos0: xsbti.Position): xsbti.Position = {
-        if (userCode(pos0.startOffset()) || userCode(pos0.offset())) {
-          val Array(line, offset, startOffset, endOffset, startLine, endLine) =
-            Array(
-              pos0.line(),
-              pos0.offset(),
-              pos0.startOffset(),
-              pos0.endOffset(),
-              pos0.startLine(),
-              pos0.endLine()
-            )
-              .map(intValue(_, 1) - 1)
-
-          val (baseLine, baseOffset) =
-            if (postSplice(startOffset) || postSplice(offset))
-              (splicedMarkerLineDiff, splicedMarkerLen)
-            else
-              (markerLine, topWrapperLen)
-
-          InterfaceUtil.position(
-            line0 = Some(line - baseLine),
-            content = pos0.lineContent(),
-            offset0 = Some(offset - baseOffset),
-            pointer0 = InterfaceUtil.jo2o(pos0.pointer()),
-            pointerSpace0 = InterfaceUtil.jo2o(pos0.pointerSpace()),
-            sourcePath0 = originPath,
-            sourceFile0 = originFile,
-            startOffset0 = Some(startOffset - baseOffset),
-            endOffset0 = Some(endOffset - baseOffset),
-            startLine0 = Some(startLine - baseLine),
-            startColumn0 = InterfaceUtil.jo2o(pos0.startColumn()),
-            endLine0 = Some(endLine - baseLine),
-            endColumn0 = InterfaceUtil.jo2o(pos0.endColumn())
-          )
-        } else {
-          pos0
-        }
-      }
-
-      inner
-    }
-  }
-
-  private trait ForwardingReporter extends ManagedLoggedReporter {
-    def forwarder: CompileProblemReporter
-    override def logError(problem: xsbti.Problem): Unit = {
-      forwarder.logError(new ZincProblem(problem))
-      super.logError(problem)
-    }
-
-    override def logWarning(problem: xsbti.Problem): Unit = {
-      forwarder.logWarning(new ZincProblem(problem))
-      super.logWarning(problem)
-    }
-
-    override def logInfo(problem: xsbti.Problem): Unit = {
-      forwarder.logInfo(new ZincProblem(problem))
-      super.logInfo(problem)
-    }
-
-    override def printSummary(): Unit = {
-      forwarder.printSummary()
-      super.printSummary()
-    }
-  }
-
-  private trait TransformingReporter extends xsbti.Reporter {
-    def color: Boolean
-    def optPositionMapper: (xsbti.Position => xsbti.Position)
-
-    // Overriding this is necessary because for some reason the LoggedReporter doesn't transform positions
-    // of Actions and DiagnosticRelatedInformation
-    abstract override def log(problem0: xsbti.Problem): Unit = {
-      val localMapper = optPositionMapper
-      val problem = {
-        if (localMapper == null) problem0
-        else TransformingReporter.transformProblem(color, problem0, localMapper)
-      }
-      super.log(problem)
-    }
-  }
-
-  private object TransformingReporter {
-
-    import scala.jdk.CollectionConverters._
-    import sbt.util.InterfaceUtil
-
-    /** implements a transformation that returns the same object if the mapper has no effect. */
-    private def transformProblem(
-        color: Boolean,
-        problem0: xsbti.Problem,
-        mapper: xsbti.Position => xsbti.Position
-    ): xsbti.Problem = {
-      val pos0 = problem0.position()
-      val related0 = problem0.diagnosticRelatedInformation()
-      val actions0 = problem0.actions()
-      val pos = mapper(pos0)
-      val related = transformRelateds(related0, mapper)
-      val actions = transformActions(actions0, mapper)
-      val posIsNew = pos ne pos0
-      if (posIsNew || (related ne related0) || (actions ne actions0)) {
-        val rendered = {
-          // if we transformed the position, then we must re-render the message
-          if (posIsNew) Some(dottyStyleMessage(color, problem0, pos))
-          else InterfaceUtil.jo2o(problem0.rendered())
-        }
-        InterfaceUtil.problem(
-          cat = problem0.category(),
-          pos = pos,
-          msg = problem0.message(),
-          sev = problem0.severity(),
-          rendered = rendered,
-          diagnosticCode = InterfaceUtil.jo2o(problem0.diagnosticCode()),
-          diagnosticRelatedInformation = anyToList(related),
-          actions = anyToList(actions)
-        )
-      }else
-        problem0
-    }
-
-    private type JOrSList[T] = AnyRef
-
-    private def anyToList[T](ts: JOrSList[T]): List[T] = ts match {
-      case ts: List[T] => ts
-      case ts: java.util.List[T] => ts.asScala.toList
-    }
-
-    /** Render the message in the style of dotty */
-    private def dottyStyleMessage(
-        color: Boolean,
-        problem0: xsbti.Problem,
-        pos: xsbti.Position
-    ): String = {
-      val base = problem0.message()
-      val severity = problem0.severity()
-
-      def shade(msg: String) =
-        if (color)
-          severity match {
-            case xsbti.Severity.Error => Console.RED + msg + Console.RESET
-            case xsbti.Severity.Warn => Console.YELLOW + msg + Console.RESET
-            case xsbti.Severity.Info => Console.BLUE + msg + Console.RESET
-          }
-        else msg
-
-      val normCode = {
-        problem0.diagnosticCode().filter(_.code() != "-1").map({ inner =>
-          val prefix = s"[E${inner.code()}] "
-          inner.explanation().map(e =>
-            s"$prefix$e: "
-          ).orElse(prefix)
-        }).orElse("")
-      }
-
-      val optPath = InterfaceUtil.jo2o(pos.sourcePath()).map { path =>
-        val line0 = intValue(pos.line(), -1)
-        val pointer0 = intValue(pos.pointer(), -1)
-        if (line0 >= 0 && pointer0 >= 0)
-          s"$path:$line0:${pointer0 + 1}"
-        else
-          path
-      }
-
-      val normHeader = optPath.map(path =>
-        s"${shade(s"-- $normCode$path")}\n"
-      ).getOrElse("")
-
-      val optSnippet = {
-        val snip = pos.lineContent()
-        val space = pos.pointerSpace().orElse("")
-        val pointer = intValue(pos.pointer(), -99)
-        val endCol = intValue(pos.endColumn(), pointer + 1)
-        if (snip.nonEmpty && space.nonEmpty && pointer >= 0 && endCol >= 0) {
-          val arrowCount = math.max(1, math.min(endCol - pointer, snip.length - space.length))
-          Some(
-            s"""$snip
-               |$space${"^" * arrowCount}""".stripMargin
-          )
-        }else
-          None
-      }
-
-      val content = optSnippet match {
-        case Some(snippet) =>
-          val initial = {
-            s"""$snippet
-               |$base
-               |""".stripMargin
-          }
-          val snippetLine = intValue(pos.line(), -1)
-          if (snippetLine >= 0) {
-            // add margin with line number
-            val lines = initial.linesWithSeparators.toVector
-            val pre = snippetLine.toString
-            val rest0 = " " * pre.length
-            val rest = pre +: Vector.fill(lines.size - 1)(rest0)
-            rest.lazyZip(lines).map((pre, line) => shade(s"$pre │") + line).mkString
-          } else {
-            initial
-          }
-        case None =>
-          base
-      }
-
-      normHeader + content
-    }
-
-    /** Implements a transformation that returns the same list if the mapper has no effect */
-    private def transformActions(
-        actions0: java.util.List[xsbti.Action],
-        mapper: xsbti.Position => xsbti.Position
-    ): JOrSList[xsbti.Action] = {
-      if (actions0.iterator().asScala.exists(a =>
-          a.edit().changes().iterator().asScala.exists(e =>
-            mapper(e.position()) ne e.position()
-          )
-        )
-      ) {
-        actions0.iterator().asScala.map(transformAction(_, mapper)).toList
-      } else {
-        actions0
-      }
-    }
-
-    /** Implements a transformation that returns the same list if the mapper has no effect */
-    private def transformRelateds(
-        related0: java.util.List[xsbti.DiagnosticRelatedInformation],
-        mapper: xsbti.Position => xsbti.Position
-    ): JOrSList[xsbti.DiagnosticRelatedInformation] = {
-
-      if (related0.iterator().asScala.exists(r => mapper(r.position()) ne r.position()))
-        related0.iterator().asScala.map(transformRelated(_, mapper)).toList
-      else
-        related0
-    }
-
-    private def transformRelated(
-        related0: xsbti.DiagnosticRelatedInformation,
-        mapper: xsbti.Position => xsbti.Position
-    ): xsbti.DiagnosticRelatedInformation = {
-      InterfaceUtil.diagnosticRelatedInformation(mapper(related0.position()), related0.message())
-    }
-
-    private def transformAction(
-        action0: xsbti.Action,
-        mapper: xsbti.Position => xsbti.Position
-    ): xsbti.Action = {
-      InterfaceUtil.action(
-        title = action0.title(),
-        description = InterfaceUtil.jo2o(action0.description()),
-        edit = transformEdit(action0.edit(), mapper)
-      )
-    }
-
-    private def transformEdit(
-        edit0: xsbti.WorkspaceEdit,
-        mapper: xsbti.Position => xsbti.Position
-    ): xsbti.WorkspaceEdit = {
-      InterfaceUtil.workspaceEdit(
-        edit0.changes().iterator().asScala.map(transformTEdit(_, mapper)).toList
-      )
-    }
-
-    private def transformTEdit(
-        edit0: xsbti.TextEdit,
-        mapper: xsbti.Position => xsbti.Position
-    ): xsbti.TextEdit = {
-      InterfaceUtil.textEdit(
-        position = mapper(edit0.position()),
-        newText = edit0.newText()
-      )
-    }
-  }
-
   // copied from ModuleUtils
   private def recursive[T <: String](start: T, deps: T => Seq[T]): Seq[T] = {
 

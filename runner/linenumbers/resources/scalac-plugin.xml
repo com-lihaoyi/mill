@@ -1,0 +1,4 @@
+<plugin>
+    <name>mill-linenumber-plugin</name>
+    <classname>mill.linenumbers.LineNumberPlugin</classname>
+</plugin>
