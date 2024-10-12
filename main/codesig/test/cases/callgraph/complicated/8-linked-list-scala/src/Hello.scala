@@ -9,7 +9,7 @@ object Hello {
     def head: A
     def tail: TestList[A]
 
-    def foreach[U](f: A => U) {
+    def foreach[U](f: A => U): Unit = {
       var these = this
       while (!these.isEmpty) {
         f(these.head)
@@ -21,7 +21,7 @@ object Hello {
   object TestNil extends TestList[Nothing] {
     def isEmpty = true
     def head = throw new Exception()
-    def tail = throw new Exception()
+    override def tail: Nothing = throw new Exception()
   }
 
   class TestCons[B](val head: B, val tl: TestList[B]) extends TestList[B] {

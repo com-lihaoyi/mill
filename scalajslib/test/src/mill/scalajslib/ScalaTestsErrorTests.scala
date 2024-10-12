@@ -16,7 +16,10 @@ object ScalaTestsErrorTests extends TestSuite {
         override def hierarchyChecks(): Unit = {}
       }
     }
-    override lazy val millDiscover = Discover[this.type]
+    override lazy val millDiscover = {
+      import mill.main.TokenReaders.given
+      Discover[this.type]
+    }
   }
 
   def tests: Tests = Tests {

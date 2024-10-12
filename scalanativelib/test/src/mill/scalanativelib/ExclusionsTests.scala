@@ -1,5 +1,6 @@
 package mill.scalanativelib
 
+import mill.given
 import mill.Agg
 import mill.scalalib._
 import mill.define.Discover

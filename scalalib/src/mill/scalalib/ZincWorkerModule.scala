@@ -2,7 +2,6 @@ package mill.scalalib
 
 import coursier.Repository
 import mainargs.Flag
-import mill.Agg
 import mill._
 import mill.api.{Ctx, FixSizedCache, KeyedLockedCache, PathRef, Result}
 import mill.define.{ExternalModule, Discover}

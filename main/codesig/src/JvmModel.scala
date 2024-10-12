@@ -139,7 +139,7 @@ object JvmModel {
 
     sealed class Prim(val pretty: String) extends JType
 
-    object Prim extends {
+    object Prim {
       def read(s: String): Prim = all(s(0))
 
       val all: Map[Char, Prim] = Map(
