@@ -43,7 +43,7 @@ trait MockitoModule extends MavenModule{
   def testFramework = "com.novocode.junit.JUnitFramework"
   def testForkArgs: T[Seq[String]] = Seq.empty[String]
 
-  def testFilteredSources: T[Seq[PathRef]] = Task { Seq.empty }
+  def testFilteredSources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
 
   object test extends MavenTests{
     def moduleDeps = super.moduleDeps ++ MockitoModule.this.testModuleDeps
