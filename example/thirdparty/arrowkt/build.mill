@@ -5,16 +5,16 @@ object Dependencies {
   val kotlinVersion = "1.9.10"
 
   // Compile dependencies
-  val arrowCore = ivy"io.arrow-kt:arrow-core:1.2.0"
-  val arrowFxCoroutines = ivy"io.arrow-kt:arrow-fx-coroutines:1.2.0"
-  val arrowResilience = ivy"io.arrow-kt:arrow-resilience:1.2.0"
-  val arrowFxStm = ivy"io.arrow-kt:arrow-fx-stm:1.2.0"
+  val arrowCore = ivy"io.arrow-kt:arrow-core:1.2.4"
+  val arrowFxCoroutines = ivy"io.arrow-kt:arrow-fx-coroutines:1.2.4"
+  val arrowResilience = ivy"io.arrow-kt:arrow-resilience:1.2.4"
+  val arrowFxStm = ivy"io.arrow-kt:arrow-fx-stm:1.2.4"
   val arrowCollectors = ivy"io.arrow-kt:arrow-collectors:1.2.0"
 
   // Test dependencies
-  val kotlinTest = ivy"org.jetbrains.kotlin:kotlin-test:1.9.10"
-  val kotest = ivy"io.kotest:kotest-runner-junit5:5.6.1"
-  val mockk = ivy"io.mockk:mockk:1.13.0"
+  val kotlinTest = ivy"org.jetbrains.kotlin:kotlin-test:2.0.21"
+  val kotest = ivy"io.kotest:kotest-runner-junit5:5.9.1"
+  val mockk = ivy"io.mockk:mockk:1.13.13"
 
   val compileDeps = Seq(arrowCore, arrowFxCoroutines, arrowResilience, arrowFxStm, arrowCollectors)
   val testDeps = Seq(kotlinTest, kotest, mockk)
