@@ -1,0 +1,26 @@
+= Scala Native Examples
+:page-aliases: Scala_Native_Examples.adoc
+
+++++
+<script>
+gtag('config', 'AW-16649289906');
+</script>
+++++
+
+This page contains examples of using Mill as a build tool for Scala-Native projects. It covers setting up simple projects, interoperability with C code, multi-module setups, and common configuration overrides.
+
+== Simple Hello World Example
+
+include::partial$example/scalalib/native/1-simple.adoc[]
+
+== Interoperability with C
+
+include::partial$example/scalalib/native/2-interop.adoc[]
+
+== Multi-Module Project
+
+include::partial$example/scalalib/native/3-multi-module.adoc[]
+
+== Common Configuration Overrides
+
+include::partial$example/scalalib/native/4-common-config.adoc[]
