@@ -103,9 +103,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
     def ivyDeps = Agg(
       build.Deps.coursier,
       build.Deps.coursierJvm.exclude(
-        "com.github.alexarchambault" -> "argonaut-shapeless_6.3",
-        "com.chuusai" -> "shapeless",
-        "io.argonaut" -> "argonaut",
+        "com.github.alexarchambault" -> "argonaut-shapeless_6.3_2.13",
       ),
       build.Deps.jline
     )
