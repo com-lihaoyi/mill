@@ -26,16 +26,20 @@ object HelloJavaTests extends TestSuite {
     }
   }
 
-  object HelloJavaJavaHomeOverride extends TestBaseModule {
-    object ZincWorkerOverride extends ZincWorkerModule with CoursierModule {
-      override def javaHome: T[Option[PathRef]] = Task {
-        Some(resolveJavaHome("graalvm-community:23.0.0")())
-      }
-    }
+  object HelloJavaJavaHome23Override extends TestBaseModule {
+    object ZincWorkerJava23 extends ZincWorkerModule.ForJvm("graalvm-community:23.0.0")
 
     object core extends JavaModule {
-      override def zincWorker: ModuleRef[ZincWorkerModule] =
-        ModuleRef(ZincWorkerModule.ForJvm("graalvm-community:23.0.0"))
+      override def zincWorker: ModuleRef[ZincWorkerModule] = ModuleRef(ZincWorkerJava23)
+      override def docJarUseArgsFile = false
+      object test extends JavaTests with TestModule.Junit4
+    }
+  }
+
+  object HelloJavaJavaHome11Override extends TestBaseModule {
+    object ZincWorkerJava11 extends ZincWorkerModule.ForJvm("temurin:1.11.0.24")
+    object core extends JavaModule {
+      override def zincWorker: ModuleRef[ZincWorkerModule] = ModuleRef(ZincWorkerJava11)
       override def docJarUseArgsFile = false
       object test extends JavaTests with TestModule.Junit4
     }
@@ -65,19 +69,36 @@ object HelloJavaTests extends TestSuite {
     }
 
     test("javaHome") {
-      val eval = UnitTester(HelloJavaJavaHomeOverride, resourcePath)
+      test("23") {
+        val eval = UnitTester(HelloJavaJavaHome23Override, resourcePath)
 
-      val Right(result) = eval.apply(HelloJavaJavaHomeOverride.core.compile)
+        val Right(result) = eval.apply(HelloJavaJavaHome23Override.core.compile)
 
-      val coreClassFile = os.walk(result.value.classes.path).find(_.last == "Core.class")
+        val coreClassFile = os.walk(result.value.classes.path).find(_.last == "Core.class")
 
-      assert(
-        coreClassFile.isDefined,
+        assert(
+          coreClassFile.isDefined,
 
-        // The first eight bytes are magic numbers followed by two bytes for major version and two bytes for minor version
-        // We are overriding to java 23 which corresponds to class file version 67
-        os.read.bytes(coreClassFile.get, 4, 4).toSeq == Seq[Byte](0, 0, 0, 67)
-      )
+          // The first eight bytes are magic numbers followed by two bytes for major version and two bytes for minor version
+          // We are overriding to java 23 which corresponds to class file version 67
+          os.read.bytes(coreClassFile.get, 4, 4).toSeq == Seq[Byte](0, 0, 0, 67)
+        )
+      }
+      test("11") {
+        val eval = UnitTester(HelloJavaJavaHome11Override, resourcePath)
+
+        val Right(result) = eval.apply(HelloJavaJavaHome11Override.core.compile)
+
+        val coreClassFile = os.walk(result.value.classes.path).find(_.last == "Core.class")
+
+        assert(
+          coreClassFile.isDefined,
+
+          // The first eight bytes are magic numbers followed by two bytes for major version and two bytes for minor version
+          // We are overriding to java 11 which corresponds to class file version 55
+          os.read.bytes(coreClassFile.get, 4, 4).toSeq == Seq[Byte](0, 0, 0, 55)
+        )
+      }
     }
 
     test("semanticDbData") {
