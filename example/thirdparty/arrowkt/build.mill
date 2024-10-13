@@ -1,54 +1,72 @@
-package build
-import mill._, scalalib._
+import mill._
+import mill.scalalib._
 
 object Dependencies {
+  val kotlinVersion = "1.9.10"
+
   // Compile dependencies
-  private val arrowCore      = ivy"io.arrow-kt:arrow-core:1.2.0"
-  private val arrowFx        = ivy"io.arrow-kt:arrow-fx:1.2.0"
-  private val arrowSyntax    = ivy"io.arrow-kt:arrow-syntax:1.2.0"
-  private val arrowOptics    = ivy"io.arrow-kt:arrow-optics:1.2.0"
-  private val kotlinStdlib   = ivy"org.jetbrains.kotlin:kotlin-stdlib:1.9.10"
+  val arrowCore = ivy"io.arrow-kt:arrow-core:1.2.0"
+  val arrowFxCoroutines = ivy"io.arrow-kt:arrow-fx-coroutines:1.2.0"
+  val arrowResilience = ivy"io.arrow-kt:arrow-resilience:1.2.0"
+  val arrowFxStm = ivy"io.arrow-kt:arrow-fx-stm:1.2.0"
+  val arrowCollectors = ivy"io.arrow-kt:arrow-collectors:1.2.0"
 
   // Test dependencies
-  private val kotlinTest     = ivy"org.jetbrains.kotlin:kotlin-test:1.9.10"
-  private val kotest         = ivy"io.kotest:kotest-runner-junit5:5.6.1"
-  private val mockk          = ivy"io.mockk:mockk:1.13.0"
+  val kotlinTest = ivy"org.jetbrains.kotlin:kotlin-test:1.9.10"
+  val kotest = ivy"io.kotest:kotest-runner-junit5:5.6.1"
+  val mockk = ivy"io.mockk:mockk:1.13.0"
 
-  val compileDeps = Seq(arrowCore, arrowFx, arrowSyntax, arrowOptics, kotlinStdlib)
-  val testDeps    = Seq(kotlinTest, kotest, mockk)
+  val compileDeps = Seq(arrowCore, arrowFxCoroutines, arrowResilience, arrowFxStm, arrowCollectors)
+  val testDeps = Seq(kotlinTest, kotest, mockk)
 }
 
-trait ArrowModule extends JavaModule {
-  def kotlinVersion = "1.9.10"
+trait KotlinModule extends JavaModule {
+  def kotlinVersion = Dependencies.kotlinVersion
 
+  // Compile dependencies for Kotlin
   override def compileIvyDeps = Agg.from(Dependencies.compileDeps)
 
-  object test extends Tests {
-    def ivyDeps = Agg.from(Dependencies.testDeps)
+  // Test dependencies for Kotlin (use JUnit or another test framework)
+  def testIvyDeps = Agg.from(Dependencies.testDeps)
+
+  // Custom test task for Kotlin
+  override def test() = T {
+    val testDeps = resolveDeps(testIvyDeps)()
+    val testCp = runClasspath() ++ testDeps
+    zincWorker.worker().runTests(
+      testCp.map(_.path),
+      Agg(compile().classes.path),
+      forkArgs = ForkArgs()
+    )
   }
 }
 
-object `arrow-core-app` extends ArrowModule {
+object `arrow-core-app` extends KotlinModule {
   def moduleDeps = Seq(`arrow-core-lib`, `arrow-fx-lib`)
 }
 
-object `arrow-core-lib` extends ArrowModule {
-  def ivyDeps = Agg.from(Dependencies.arrowCore)
+object `arrow-core-lib` extends KotlinModule {
+  def ivyDeps = Agg(Dependencies.arrowCore)
 }
 
-object `arrow-fx-lib` extends ArrowModule {
-  def ivyDeps = Agg.from(Dependencies.arrowFx)
+object `arrow-fx-lib` extends KotlinModule {
+  def ivyDeps = Agg(Dependencies.arrowFxCoroutines)
 }
 
-object `arrow-optics-lib` extends ArrowModule {
-  def ivyDeps = Agg.from(Dependencies.arrowOptics)
+object `arrow-resilience-lib` extends KotlinModule {
+  def ivyDeps = Agg(Dependencies.arrowResilience)
 }
 
-object `arrow-syntax-lib` extends ArrowModule {
-  def ivyDeps = Agg.from(Dependencies.arrowSyntax)
+object `arrow-fx-stm-lib` extends KotlinModule {
+  def ivyDeps = Agg(Dependencies.arrowFxStm)
 }
 
-object `arrow-samples` extends ArrowModule {
-  def moduleDeps = Seq(`arrow-core-app`)
+object `arrow-collectors-lib` extends KotlinModule {
+  def ivyDeps = Agg(Dependencies.arrowCollectors)
+}
+
+object `arrow-samples` extends KotlinModule {
+  def moduleDeps = Seq(`arrow-core-app`, `arrow-resilience-lib`, `arrow-fx-stm-lib`, `arrow-collectors-lib`)
   def ivyDeps = Agg[Dep]()
 }
+
