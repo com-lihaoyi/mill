@@ -1,0 +1,54 @@
+package build
+import mill._, scalalib._
+
+object Dependencies {
+  // Compile dependencies
+  private val arrowCore      = ivy"io.arrow-kt:arrow-core:1.2.0"
+  private val arrowFx        = ivy"io.arrow-kt:arrow-fx:1.2.0"
+  private val arrowSyntax    = ivy"io.arrow-kt:arrow-syntax:1.2.0"
+  private val arrowOptics    = ivy"io.arrow-kt:arrow-optics:1.2.0"
+  private val kotlinStdlib   = ivy"org.jetbrains.kotlin:kotlin-stdlib:1.9.10"
+
+  // Test dependencies
+  private val kotlinTest     = ivy"org.jetbrains.kotlin:kotlin-test:1.9.10"
+  private val kotest         = ivy"io.kotest:kotest-runner-junit5:5.6.1"
+  private val mockk          = ivy"io.mockk:mockk:1.13.0"
+
+  val compileDeps = Seq(arrowCore, arrowFx, arrowSyntax, arrowOptics, kotlinStdlib)
+  val testDeps    = Seq(kotlinTest, kotest, mockk)
+}
+
+trait ArrowModule extends JavaModule {
+  def kotlinVersion = "1.9.10"
+
+  override def compileIvyDeps = Agg.from(Dependencies.compileDeps)
+
+  object test extends Tests {
+    def ivyDeps = Agg.from(Dependencies.testDeps)
+  }
+}
+
+object `arrow-core-app` extends ArrowModule {
+  def moduleDeps = Seq(`arrow-core-lib`, `arrow-fx-lib`)
+}
+
+object `arrow-core-lib` extends ArrowModule {
+  def ivyDeps = Agg.from(Dependencies.arrowCore)
+}
+
+object `arrow-fx-lib` extends ArrowModule {
+  def ivyDeps = Agg.from(Dependencies.arrowFx)
+}
+
+object `arrow-optics-lib` extends ArrowModule {
+  def ivyDeps = Agg.from(Dependencies.arrowOptics)
+}
+
+object `arrow-syntax-lib` extends ArrowModule {
+  def ivyDeps = Agg.from(Dependencies.arrowSyntax)
+}
+
+object `arrow-samples` extends ArrowModule {
+  def moduleDeps = Seq(`arrow-core-app`)
+  def ivyDeps = Agg[Dep]()
+}
