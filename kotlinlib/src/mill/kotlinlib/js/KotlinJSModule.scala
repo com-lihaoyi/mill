@@ -389,13 +389,9 @@ trait KotlinJSModule extends KotlinModule { outer =>
       case segments => segments
     }
   }
-  private def moduleName() = {
-    fullModuleNameSegments().head
-  }
 
-  private def fullModuleName() = {
-    fullModuleNameSegments().mkString("-")
-  }
+  private def moduleName() = fullModuleNameSegments().last
+  private def fullModuleName() = fullModuleNameSegments().mkString("-")
 
   // **NOTE**: This logic may (and probably is) be incomplete
   private def isKotlinJsLibrary(path: os.Path)(implicit ctx: mill.api.Ctx): Boolean = {
