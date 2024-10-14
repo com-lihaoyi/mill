@@ -95,19 +95,19 @@ containing a Mill `build.mill` file, and IntelliJ will automatically load the
 Mill build. This will provide support both for your application code,
 as well as the code in the `build.mill`:
 
-image::IntellijApp.png[]
+image::basic/IntellijApp.png[]
 
-image::IntellijBuild.png[]
+image::basic/IntellijBuild.png[]
 
 If IntelliJ does not highlight the `.mill` files correctly, you can explicitly enable
 it by adding `*.mill` to the `Scala` file type:
 
-image::IntellijFileTypeConfig.png[]
+image::basic/IntellijFileTypeConfig.png[]
 
 If you make changes to your Mill `build.mill`, you can ask Intellij to load
 those updates by opening the "BSP" tab and clicking the "Refresh" button
 
-image::IntellijRefresh.png[]
+image::basic/IntellijRefresh.png[]
 
 ==== IntelliJ IDEA XML Support
 
@@ -157,14 +157,14 @@ containing a Mill `build.mill` file, and VSCode will ask you to import your
 Mill build. This will provide support both for your application code,
 as well as the code in the `build.mill`:
 
-image::VSCodeApp.png[]
+image::basic/VSCodeApp.png[]
 
-image::VSCodeBuild.png[]
+image::basic/VSCodeBuild.png[]
 
 If you make changes to your Mill `build.sc`, you can ask VSCode to load
 those updates by opening the "BSP" tab and clicking the "Refresh" button
 
-image::VSCodeRefresh.png[]
+image::basic/VSCodeRefresh.png[]
 
 === Debugging IDE issues
 

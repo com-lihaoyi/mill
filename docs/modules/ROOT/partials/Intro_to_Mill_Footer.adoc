@@ -49,7 +49,7 @@ loaded into the Chrome browser's `chrome://tracing` page for visualization.
 This can make it much easier to analyze your parallel runs to find out what's
 taking the most time:
 
-image::ChromeTracing.png[ChromeTracing.png]
+image::basic/ChromeTracing.png[ChromeTracing.png]
 
 Note that the maximal possible parallelism depends both on the number of cores
 available as well as the task and module structure of your project, as tasks that

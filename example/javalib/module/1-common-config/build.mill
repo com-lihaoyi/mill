@@ -50,7 +50,7 @@ object `package` extends RootModule with JavaModule {
 > mill visualizePlan run
 */
 //
-// image::VisualizePlanJava.svg[VisualizePlanJava.svg]
+// image::basic/VisualizePlanJava.svg[VisualizePlanJava.svg]
 //
 // (right-click open in new tab to see full sized)
 //
