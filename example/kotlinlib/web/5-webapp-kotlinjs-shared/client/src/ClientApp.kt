@@ -19,7 +19,7 @@ object ClientApp {
     private var state = "all"
 
     private val todoApp: Element
-        get() = checkNotNull(document.getElementsByClassName("todoApp")[0])
+        get() = checkNotNull(document.getElementsByClassName("todoapp")[0])
 
     private fun postFetchUpdate(url: String) {
         window
@@ -35,7 +35,7 @@ object ClientApp {
 
     private fun bindEvent(cls: String, url: String, endState: String? = null) {
         document.getElementsByClassName(cls)[0]
-            ?.addEventListener("mousedown", {
+            ?.addEventListener("click", {
                 postFetchUpdate(url)
                 if (endState != null) state = endState
             }
@@ -45,7 +45,7 @@ object ClientApp {
     private fun bindIndexedEvent(cls: String, block: (String) -> String) {
         for (elem in document.getElementsByClassName(cls).asList()) {
             elem.addEventListener(
-                "mousedown",
+                "click",
                 { postFetchUpdate(block(elem.getAttribute("data-todo-index")!!)) }
             )
         }

@@ -16,7 +16,7 @@ fun FlowContent.renderBody(todos: List<Todo>, state: String) {
     }
     div {
         header(classes = "header") {
-            h1("todos")
+            h1 { +"todos" }
             input(classes = "new-todo") {
                 placeholder = "What needs to be done?"
             }

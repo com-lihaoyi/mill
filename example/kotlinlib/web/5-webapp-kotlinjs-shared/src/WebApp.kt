@@ -40,7 +40,7 @@ object WebApp {
     }
 
     fun toggleAll(state: String) {
-        val next = todos.any { it.checked }
+        val next = todos.any { !it.checked }
         for (item in todos.withIndex()) {
             todos[item.index] = item.value.copy(checked = next)
         }
@@ -54,7 +54,7 @@ object WebApp {
             link(rel = "stylesheet", href = "/static/index.css")
         }
         body {
-            section(classes = "todoApp") {
+            section(classes = "todoapp") {
                 renderBody(todos, "all")
             }
             footer(classes = "info") {
@@ -115,7 +115,7 @@ object WebApp {
 
     @JvmStatic
     fun main(args: Array<String>) {
-        embeddedServer(Netty, port = 8083, host = "0.0.0.0") {
+        embeddedServer(Netty, port = 8093, host = "0.0.0.0") {
             install(ContentNegotiation) {
                 json()
             }
