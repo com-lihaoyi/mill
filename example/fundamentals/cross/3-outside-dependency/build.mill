@@ -1,4 +1,6 @@
-// You can refer to tasks defined in cross-modules as follows:
+// You can refer to tasks defined in cross-modules using the `foo("2.10")` syntax,
+// as given below:
+
 package build
 import mill._
 

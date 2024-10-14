@@ -1,6 +1,6 @@
 // This example demonstrates how to write and test Mill plugin, and publish it to
 // Sonatype's Maven Central so it can be used by other developers over the internet
-// via xref:extending/import-ivy.adoc[import $ivy].
+// via xref:extending/import-ivy-plugins.adoc[import $ivy].
 
 // == Project Configuration
 package build
@@ -10,13 +10,18 @@ import mill.main.BuildInfo.millVersion
 object myplugin extends ScalaModule with PublishModule {
   def scalaVersion = "2.13.8"
 
+  // Set the `platformSuffix` so the name indicates what Mill binary version it is compiled for
+  def platformSuffix = "_mill" + mill.main.BuildInfo.millBinPlatform
+
+  // Depend on `mill-dist` so we can compile against Mill APIs
   def ivyDeps = Agg(ivy"com.lihaoyi:mill-dist:$millVersion")
 
-  // Testing Config
+  // Testing Config, with necessary setup for unit/integration/example tests
   object test extends ScalaTests with TestModule.Utest{
     def ivyDeps = Agg(ivy"com.lihaoyi::mill-testkit:$millVersion")
     def forkEnv = Map("MILL_EXECUTABLE_PATH" -> millExecutable.assembly().path.toString)
 
+    // Create a Mill executable configured for testing our plugin
     object millExecutable extends JavaModule{
       def ivyDeps = Agg(ivy"com.lihaoyi:mill-dist:$millVersion")
       def mainClass = Some("mill.runner.client.MillClientMain")
@@ -184,7 +189,7 @@ compiling 1 Scala source...
 > sed -i.bak 's/0.0.1/0.0.2/g' build.mill
 
 > ./mill myplugin.publishLocal
-Publishing Artifact(com.lihaoyi,myplugin_2.13,0.0.2) to ivy repo...
+Publishing Artifact(com.lihaoyi,myplugin_mill0.11_2.13,0.0.2) to ivy repo...
 
 */
 // Mill plugins are JVM libraries like any other library written in Java or Scala. Thus they

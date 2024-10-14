@@ -66,9 +66,9 @@ is what allows us to be aggressive about caching and parallelizing the
 evaluation of build tasks during a build.
 
 Many kinds of build steps do require files on disk, and for that Mill provides
-the `T.dest` folder. This is a folder on disk dedicated to each build task,
+the `Task.dest` folder. This is a folder on disk dedicated to each build task,
 so that it can read and write things to it without worrying about conflicts
-with other tasks that have their own `T.dest` folders. In effect, this makes
+with other tasks that have their own `Task.dest` folders. In effect, this makes
 even file output "pure": we can know precisely where a task's output files
 live when we need to invalidate them, and it allows multiple tasks all
 reading and writing to the filesystem to do so safely even when in parallel.

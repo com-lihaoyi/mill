@@ -13,13 +13,13 @@ def myInput = Task.Input {
 // arbitrary block of code.
 //
 // Inputs can be used to force re-evaluation of some external property that may
-// affect your build. For example, if I have a <<_targets, Target>> `bar` that
+// affect your build. For example, if I have a <<_cached_task, cached task>> `bar` that
 // calls out to `git` to compute the latest commit hash and message directly,
 // that target does not have any `Task` inputs and so will never re-compute
 // even if the external `git` status changes:
 
 def gitStatusTask = Task {
-  "v-" +
+  "version-" +
   os.proc("git", "log", "-1", "--pretty=format:%h-%B ")
     .call(cwd = Task.workspace)
     .out
@@ -33,12 +33,12 @@ def gitStatusTask = Task {
 > git commit --allow-empty -m "Initial-Commit"
 
 > ./mill show gitStatusTask
-"v-...-Initial-Commit"
+"version-...-Initial-Commit"
 
 > git commit --allow-empty -m "Second-Commit"
 
 > ./mill show gitStatusTask # Mill didn't pick up the git change!
-"v-...-Initial-Commit"
+"version-...-Initial-Commit"
 
 */
 
@@ -56,7 +56,7 @@ def gitStatusInput = Task.Input {
     .text()
     .trim()
 }
-def gitStatusTask2 = Task { "v-" + gitStatusInput() }
+def gitStatusTask2 = Task { "version-" + gitStatusInput() }
 
 // This makes `gitStatusInput` to always re-evaluate every build, and only if
 // the output of `gitStatusInput` changes will `gitStatusTask2` re-compute
@@ -66,12 +66,12 @@ def gitStatusTask2 = Task { "v-" + gitStatusInput() }
 > git commit --allow-empty -m "Initial-Commit"
 
 > ./mill show gitStatusTask2
-"v-...-Initial-Commit"
+"version-...-Initial-Commit"
 
 > git commit --allow-empty -m "Second-Commit"
 
 > ./mill show gitStatusTask2 # Mill picked up git change
-"v-...-Second-Commit"
+"version-...-Second-Commit"
 
 */
 

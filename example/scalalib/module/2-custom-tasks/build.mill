@@ -114,7 +114,7 @@ my.line.count: 14
 // create some custom jar/zip assembly with the files you want , all of these
 // can simply be custom tasks with your code running in the `Task {...}` block.
 // You can also import arbitrary Java or Scala libraries from Maven Central via
-// xref:extending/import-ivy.adoc[import $ivy] to use in your build.
+// xref:extending/import-ivy-plugins.adoc[import $ivy] to use in your build.
 //
 // You can create arbitrarily long chains of dependent tasks, and Mill will
 // handle the re-evaluation and caching of the tasks' output for you.
