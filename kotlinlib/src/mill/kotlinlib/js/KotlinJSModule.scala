@@ -384,7 +384,7 @@ trait KotlinJSModule extends KotlinModule { outer =>
   // we already have cross-modules in the paths, so we don't need them here
   private def fullModuleNameSegments() = {
     millModuleSegments.value
-      .collect { case label: Segment.Label => label.value } match{
+      .collect { case label: Segment.Label => label.value } match {
       case Nil => Seq("root")
       case segments => segments
     }
