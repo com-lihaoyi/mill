@@ -193,9 +193,8 @@ trait KotlinModule extends JavaModule { outer =>
       Agg(
         ivy"org.jetbrains.dokka:dokka-base:${dokkaVersion()}",
         ivy"org.jetbrains.dokka:analysis-kotlin-descriptors:${dokkaVersion()}",
-        // TODO: use versions defined in Mill build instead
-        ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:0.8.0",
-        ivy"org.freemarker:freemarker:2.3.31"
+        Dep.parse(Versions.kotlinxHtmlJvmDep),
+        Dep.parse(Versions.freemarkerDep)
       )
     )
   }
