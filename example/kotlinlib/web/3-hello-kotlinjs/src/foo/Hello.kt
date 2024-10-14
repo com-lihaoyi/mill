@@ -12,5 +12,5 @@ fun main() {
 }
 
 fun hello(): String {
-    return createHTML().h1 { +"Hello World" }.toString()
+    return createHTML(prettyPrint = false).h1 { text("Hello World") }.toString()
 }
