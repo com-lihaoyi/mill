@@ -6,7 +6,7 @@
 package mill
 package kotlinlib
 
-import mill.api.{Loose, PathRef, Result, internal}
+import mill.api.{PathRef, Result, internal}
 import mill.define.{Command, ModuleRef, Task}
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
 import mill.scalalib.api.{CompilationResult, ZincWorkerApi}
@@ -179,7 +179,7 @@ trait KotlinModule extends JavaModule { outer =>
   /**
    * Classpath for running Dokka.
    */
-  private def dokkaCliClasspath: T[Loose.Agg[PathRef]] = Task {
+  private def dokkaCliClasspath: T[Agg[PathRef]] = Task {
     defaultResolver().resolveDeps(
       Agg(
         ivy"org.jetbrains.dokka:dokka-cli:${dokkaVersion()}"
@@ -187,11 +187,12 @@ trait KotlinModule extends JavaModule { outer =>
     )
   }
 
-  private def dokkaPluginsClasspath: T[Loose.Agg[PathRef]] = Task {
+  private def dokkaPluginsClasspath: T[Agg[PathRef]] = Task {
     defaultResolver().resolveDeps(
       Agg(
         ivy"org.jetbrains.dokka:dokka-base:${dokkaVersion()}",
         ivy"org.jetbrains.dokka:analysis-kotlin-descriptors:${dokkaVersion()}",
+        // TODO: use versions defined in Mill build instead
         ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:0.8.0",
         ivy"org.freemarker:freemarker:2.3.31"
       )
@@ -251,7 +252,7 @@ trait KotlinModule extends JavaModule { outer =>
           kotlincOptions(),
           extraKotlinArgs,
           // parameters
-          (kotlinSourceFiles ++ javaSourceFiles).map(_.toIO.getAbsolutePath())
+          (kotlinSourceFiles ++ javaSourceFiles).map(_.toString())
         ).flatten
 
         val workerResult = kotlinWorkerTask().compile(KotlinWorkerTarget.Jvm, compilerArgs)
