@@ -41,7 +41,7 @@ object ClientApp{
     bindIndexedEvent("toggle", index => s"/toggle/$state/$index")
     bindEvent("toggle-all", s"/toggle-all/$state", None)
     bindEvent("todo-all", s"/list/all", Some("all"))
-    bindEvent("todo-active", s"/list/all", Some("active"))
+    bindEvent("todo-active", s"/list/active", Some("active"))
     bindEvent("todo-completed", s"/list/completed", Some("completed"))
     bindEvent("clear-completed", s"/clear-completed/$state", None)
 

@@ -411,7 +411,12 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
       "-P:acyclic:force",
       "-feature",
       "-Xlint:unused",
-      "-Xlint:adapted-args"
+      "-Xlint:adapted-args",
+      "-Xsource:3",
+      "-Wconf:msg=inferred type changes:silent",
+      "-Wconf:msg=case companions no longer extend FunctionN:silent",
+      "-Wconf:msg=access modifiers for:silent",
+      "-Wconf:msg=found in a package prefix of the required type:silent"
     )
 
   def scalacPluginIvyDeps =

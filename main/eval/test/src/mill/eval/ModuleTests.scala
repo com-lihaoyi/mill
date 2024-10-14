@@ -9,7 +9,7 @@ import mill.define.Discover
 import utest._
 
 object TestExternalModule extends mill.define.ExternalModule with mill.define.TaskModule {
-  def defaultCommandName = "x"
+  def defaultCommandName() = "x"
   def x = Task { 13 }
   object inner extends mill.Module {
     def y = Task { 17 }

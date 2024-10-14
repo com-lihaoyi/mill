@@ -61,7 +61,7 @@ object `package` extends RootModule with ScalaModule {
 > mill visualizePlan run
 */
 //
-// image::VisualizePlanScala.svg[VisualizePlanScala.svg]
+// image::basic/VisualizePlanScala.svg[VisualizePlanScala.svg]
 //
 // (right-click open in new tab to see full sized)
 //

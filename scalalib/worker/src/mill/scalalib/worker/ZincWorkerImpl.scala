@@ -144,7 +144,7 @@ class ZincWorkerImpl(
       compilerClasspath,
       scalacPluginClasspath,
       Seq()
-    ) { compilers: Compilers =>
+    ) { (compilers: Compilers) =>
       if (ZincWorkerUtil.isDotty(scalaVersion) || ZincWorkerUtil.isScala3Milestone(scalaVersion)) {
         // dotty 0.x and scala 3 milestones use the dotty-doc tool
         val dottydocClass =
@@ -388,7 +388,7 @@ class ZincWorkerImpl(
       compilerClasspath = compilerClasspath,
       scalacPluginClasspath = scalacPluginClasspath,
       javacOptions = javacOptions
-    ) { compilers: Compilers =>
+    ) { (compilers: Compilers) =>
       compileInternal(
         upstreamCompileOutput = upstreamCompileOutput,
         sources = sources,
