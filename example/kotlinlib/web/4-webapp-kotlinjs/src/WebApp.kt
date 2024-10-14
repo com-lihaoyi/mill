@@ -84,13 +84,17 @@ object WebApp {
           filteredTodos.forEach { (index, todo) ->
             li(classes = if (todo.checked) "completed" else "") {
               div(classes = "view") {
-                input(classes = "toggle", type = InputType.checkBox) {
-                  checked = todo.checked
-                  attributes["data-todo-index"] = index.toString()
+                form {
+                  input(classes = "toggle", type = InputType.checkBox) {
+                    checked = todo.checked
+                    attributes["data-todo-index"] = index.toString()
+                  }
+                  label { +todo.text }
                 }
-                label { +todo.text }
-                button(classes = "destroy") {
-                  attributes["data-todo-index"] = index.toString()
+                form {
+                  button(classes = "destroy") {
+                    attributes["data-todo-index"] = index.toString()
+                  }
                 }
               }
               input(classes = "edit") {

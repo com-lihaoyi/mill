@@ -14,7 +14,7 @@ object ClientApp {
   private var state = "all"
 
   private val todoApp: Element
-    get() = checkNotNull(document.getElementsByClassName("todoApp")[0])
+    get() = checkNotNull(document.getElementsByClassName("todoapp")[0])
 
   private fun postFetchUpdate(url: String) {
     window
