@@ -64,7 +64,7 @@ Inputs:
 // `allSourceFiles` (an existing task) and is in-turn used in our override of
 // `resources` (also an existing task). `os.read.lines` and `os.write` come
 // from the https://github.com/com-lihaoyi/os-lib[OS-Lib] library, which is
-// one of Mill's <<Bundled Libraries>>. This generated file can then be
+// one of Mill's xref:fundamentals/bundled-libraries.adoc[Bundled Libraries]. This generated file can then be
 // loaded and used at runtime, as see in the output of `mill run`
 //
 // While this is a toy example, it shows how easy it is to customize your Mill

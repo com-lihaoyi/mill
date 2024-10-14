@@ -315,9 +315,21 @@ foo.compileClasspath
 //
 /** Usage
 > mill visualize __.compile
+
+> cat out/visualize.dest/out.dot
+digraph "example1" {
+graph ["rankdir"="LR"]
+"bar.compile" ["style"="solid","shape"="box"]
+"bar.test.compile" ["style"="solid","shape"="box"]
+"foo.compile" ["style"="solid","shape"="box"]
+"foo.test.compile" ["style"="solid","shape"="box"]
+"bar.compile" -> "foo.compile"
+"bar.compile" -> "bar.test.compile"
+"foo.compile" -> "foo.test.compile"
+}
 */
 
-
+// image::basic/VisualizeCompiles.svg[VisualizeCompiles.svg]
 //
 //
 //
