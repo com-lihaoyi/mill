@@ -735,11 +735,16 @@ object ZincWorkerImpl {
       val splicedMarkerStartLine = lines.indexWhere(_.startsWith(splicedCodeStartMarker))
       val splicedMarkerLine = lines.indexWhere(_.startsWith(splicedCodeEndMarker))
       val existsSplicedMarker = splicedMarkerStartLine >= 0 && splicedMarkerLine >= 0
-      val splicedMarkerLineDiff = markerLine + (splicedMarkerLine - splicedMarkerStartLine + 1) + 1
+      val splicedMarkerLineDiff = markerLine + (splicedMarkerLine - splicedMarkerStartLine + 1)
 
       val topWrapperLen = lines.take(markerLine + 1).map(_.length).sum
-      val splicedMarkerLen =
-        if existsSplicedMarker then lines.take(splicedMarkerLine + 1).map(_.length).sum
+      val (splicedMarkerStartLen, splicedMarkerLen) =
+        if existsSplicedMarker then
+          lines.take(splicedMarkerStartLine + 1).map(_.length).sum
+            -> lines.take(splicedMarkerLine + 1).map(_.length).sum
+        else (-1, -1)
+      val splicedMarkerDiff =
+        if existsSplicedMarker then topWrapperLen + (splicedMarkerStartLen - splicedMarkerLen + 1)
         else -1
 
       val originPath = Some(adjustedFile)
@@ -766,7 +771,7 @@ object ZincWorkerImpl {
 
           val (baseLine, baseOffset) =
             if postSplice(startOffset) || postSplice(offset) then
-              (splicedMarkerLineDiff, splicedMarkerLen)
+              (splicedMarkerLineDiff, splicedMarkerDiff)
             else
               (markerLine, topWrapperLen)
 
