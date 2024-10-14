@@ -599,7 +599,7 @@ and associated test suites, but how do these different modules depend on each ot
 Mill, you can run `./mill visualize __.compile`, and it will show you how the
 `compile` task of each module depends on the others:
 
-image::NettyCompileGraph.svg[]
+image::comparisons/NettyCompileGraph.svg[]
 
 Apart from the static dependency graph, another thing of interest may be the performance
 profile and timeline: where the time is spent when you actually compile everything. With
@@ -607,7 +607,7 @@ Mill, when you run a compilation using `./mill -j 10 __.compile`, you automatica
 `out/mill-chrome-profile.json` file that you can load into your `chrome://tracing` page and
 visualize where your build is spending time and where the performance bottlenecks are:
 
-image::NettyCompileProfile.png[]
+image::comparisons/NettyCompileProfile.png[]
 
 If you want to inspect the tree of third-party dependencies used by any module, the
 built in `ivyDepsTree` command lets you do that easily:
