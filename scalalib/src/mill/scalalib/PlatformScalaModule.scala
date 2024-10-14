@@ -14,25 +14,10 @@ import os.Path
  * built against and not something that should affect the filesystem path or
  * artifact name
  */
-trait PlatformScalaModule extends ScalaModule {
-  override def millSourcePath: Path = super.millSourcePath / os.up
-
+trait PlatformScalaModule extends PlatformModuleBase with ScalaModule {
   /**
    * The platform suffix of this [[PlatformScalaModule]]. Useful if you want to
    * further customize the source paths or artifact names.
    */
-  def platformScalaSuffix: String = millModuleSegments
-    .value
-    .collect { case l: mill.define.Segment.Label => l.value }
-    .last
-
-  override def sources: T[Seq[PathRef]] = Task.Sources {
-    super.sources().flatMap { source =>
-      val platformPath =
-        PathRef(source.path / _root_.os.up / s"${source.path.last}-${platformScalaSuffix}")
-      Seq(source, platformPath)
-    }
-  }
-
-  override def artifactNameParts: T[Seq[String]] = super.artifactNameParts().dropRight(1)
+  def platformScalaSuffix: String = platformCrossSuffix
 }

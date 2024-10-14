@@ -45,10 +45,10 @@ trait VisualizeModule extends mill.define.TaskModule {
     val visualizeThread = new java.lang.Thread(() =>
       while (true) {
         val res = Result.Success {
-          val (targets, rs, dest) = in.take()
-          val (sortedGroups, transitive) = mill.eval.Plan.plan(rs)
+          val (tasks, transitiveTasks, dest) = in.take()
+          val (sortedGroups, _) = mill.eval.Plan.plan(transitiveTasks)
 
-          val goalSet = rs.toSet
+          val goalSet = transitiveTasks.toSet
           import guru.nidi.graphviz.model.Factory._
           val edgesIterator =
             for ((k, vs) <- sortedGroups.items())
@@ -77,7 +77,7 @@ trait VisualizeModule extends mill.define.TaskModule {
           val nodes = indexToTask.map(t =>
             node(sortedGroups.lookupValue(t).render)
               .`with` {
-                if (targets.contains(t)) Style.SOLID
+                if (tasks.contains(t)) Style.SOLID
                 else Style.DASHED
               }
               .`with`(Shape.BOX)

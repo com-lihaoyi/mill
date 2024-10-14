@@ -19,7 +19,7 @@ xref:comparisons/maven.adoc[Compared to Maven]:
   grow beyond just compiling a single language: needing custom
   code generation, linting workflows, tool integrations, output artifacts, or support for
   additional languages. Mill makes doing this yourself easy, so you are not beholden
-  to third-party plugins that may not exist or interact well with each other.
+  to third-party plugins that may not meet your exact needs or interact well with each other.
 
 * **Mill automatically caches and parallelizes your build**: Not just the
   built-in tasks that Mill ships with, but also any custom tasks or modules.

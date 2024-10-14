@@ -11,6 +11,6 @@ object `package` extends RootModule with JavaModule {
   /** Generate resources using lineCount of sources */
   override def resources = Task {
     os.write(Task.dest / "line-count.txt", "" + lineCount())
-    Seq(PathRef(Task.dest))
+    super.resources() ++ Seq(PathRef(Task.dest))
   }
 }
