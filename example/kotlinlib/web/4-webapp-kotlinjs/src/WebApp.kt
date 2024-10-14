@@ -61,7 +61,9 @@ object WebApp {
     }
     div {
       header(classes = "header") {
-        h1("todos")
+        h1{
+          +"todos"
+        }
         input(classes = "new-todo") {
           placeholder = "What needs to be done?"
         }
@@ -129,7 +131,7 @@ object WebApp {
       link(rel = "stylesheet", href = "/static/index.css")
     }
     body {
-      section(classes = "todoApp") {
+      section(classes = "todoapp") {
         renderBody("all")
       }
       footer(classes = "info") {
@@ -197,7 +199,7 @@ object WebApp {
 
   @JvmStatic
   fun main(args: Array<String>) {
-    embeddedServer(Netty, port = 8082, host = "0.0.0.0") {
+    embeddedServer(Netty, port = 8092, host = "0.0.0.0") {
       configureRoutes(this)
     }.start(wait = true)
   }

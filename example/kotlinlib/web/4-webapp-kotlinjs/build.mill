@@ -62,11 +62,11 @@ object `package` extends RootModule with KotlinModule {
 
 > ./mill runBackground
 
-> curl http://localhost:8082
+> curl http://localhost:8092
 ...What needs to be done...
 ...
 
-> curl http://localhost:8082/static/client.js
+> curl http://localhost:8092/static/client.js
 ...bindEvent(this, 'todo-all', '/list/all', 'all')...
 ...
 
