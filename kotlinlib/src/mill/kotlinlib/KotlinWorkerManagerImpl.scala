@@ -19,7 +19,7 @@ class KotlinWorkerManagerImpl(ctx: Ctx) extends KotlinWorkerManager with AutoClo
     val toolsCp = toolsClasspath.distinct
     val (worker, count) = workerCache.get(toolsCp) match {
       case Some((w, count)) =>
-        ctx.log.debug(s"Reusing existing AspectjWorker for classpath: ${toolsCp}")
+        ctx.log.debug(s"Reusing existing KotlinWorker for classpath: ${toolsCp}")
         w -> count
       case None =>
         ctx.log.debug(s"Creating Classloader with classpath: [${toolsCp}]")
