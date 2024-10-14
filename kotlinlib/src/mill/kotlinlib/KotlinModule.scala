@@ -241,7 +241,7 @@ trait KotlinModule extends JavaModule { outer =>
         )
         val compilerArgs: Seq[String] = Seq(
           // destdir
-          Seq("-d", classes.toIO.getAbsolutePath()),
+          Seq("-d", classes.toString()),
           // classpath
           when(compileCp.iterator.nonEmpty)(
             "-classpath",
@@ -253,7 +253,7 @@ trait KotlinModule extends JavaModule { outer =>
           (kotlinSourceFiles ++ javaSourceFiles).map(_.toIO.getAbsolutePath())
         ).flatten
 
-        val workerResult = kotlinWorkerTask().compile(KotlinWorkerTarget.Jvm, compilerArgs: _*)
+        val workerResult = kotlinWorkerTask().compile(KotlinWorkerTarget.Jvm, compilerArgs)
 
         val analysisFile = dest / "kotlin.analysis.dummy"
         os.write(target = analysisFile, data = "", createFolders = true)
@@ -325,11 +325,10 @@ trait KotlinModule extends JavaModule { outer =>
   /**
    * A test sub-module linked to its parent module best suited for unit-tests.
    */
-  trait KotlinTests extends JavaModuleTests with KotlinModule {
+  trait KotlinTests extends JavaTests with KotlinModule {
     override def kotlinVersion: T[String] = Task { outer.kotlinVersion() }
     override def kotlinCompilerVersion: T[String] = Task { outer.kotlinCompilerVersion() }
     override def kotlincOptions: T[Seq[String]] = Task { outer.kotlincOptions() }
-    override def defaultCommandName(): String = super.defaultCommandName()
   }
 
 }

@@ -8,7 +8,7 @@ import mill.api.{Ctx, Result}
 
 trait KotlinWorker {
 
-  def compile(target: KotlinWorkerTarget, args: String*)(implicit ctx: Ctx): Result[Unit]
+  def compile(target: KotlinWorkerTarget, args: Seq[String])(implicit ctx: Ctx): Result[Unit]
 
 }
 
