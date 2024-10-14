@@ -13,10 +13,11 @@ import mill.{PathRef, T, Task}
  * built against and not something that should affect the filesystem path or
  * artifact name
  */
-trait PlatformScalaModule extends/* PlatformModuleBase with*/ ScalaModule {
+trait PlatformScalaModule extends /* PlatformModuleBase with*/ ScalaModule {
   // Cannot move stuff to PlatformModuleBase due to bincompat concerns
 
   override def millSourcePath: os.Path = super.millSourcePath / os.up
+
   /**
    * The platform suffix of this [[PlatformScalaModule]]. Useful if you want to
    * further customize the source paths or artifact names.
