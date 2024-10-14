@@ -310,7 +310,7 @@
 <div class="page-versions">
   <button class="version-menu-toggle" title="Show other versions of page">0.11.11</button>
   <div class="version-menu">
-    <a class="version is-missing" href="../../../index.html">0.12.0-RC3-55-43dc23</a>
+    <a class="version is-missing" href="../../../index.html">0.12.0-RC3-56-fc0337</a>
     <a class="version" href="../../../0.11.12/example/cross/3-outside-dependency.html">0.11.12</a>
     <a class="version is-current" href="3-outside-dependency.html">0.11.11</a>
     <a class="version" href="../../../0.11.10/example/cross/3-outside-dependency.html">0.11.10</a>
@@ -346,6 +346,7 @@ def bar = T { s&quot;hello ${foo(&quot;2.10&quot;).suffix()}&quot; }
 def qux = T { s&quot;hello ${foo(&quot;2.10&quot;).suffix()} world ${foo(&quot;2.12&quot;).suffix()}&quot; }</code></pre>
 </div>
 </div>
+<center>
 <svg width="202px" height="235px" viewBox="0.00 0.00 201.64 235.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 231.0)">
 <title>G</title>
@@ -416,6 +417,8 @@ def qux = T { s&quot;hello ${foo(&quot;2.10&quot;).suffix()} world ${foo(&quot;2
 </g>
 </g>
 </svg>
+
+</center>
 <div class="paragraph">
 <p>Here, <code>def bar</code> uses <code>foo(&quot;2.10&quot;)</code> to reference the <code>&quot;2.10&quot;</code> instance of
 <code>FooModule</code>. You can refer to whatever versions of the cross-module you want,

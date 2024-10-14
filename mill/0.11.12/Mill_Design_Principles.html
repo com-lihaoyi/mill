@@ -317,7 +317,7 @@
 <div class="page-versions">
   <button class="version-menu-toggle" title="Show other versions of page">0.11.12</button>
   <div class="version-menu">
-    <a class="version" href="../depth/design-principles.html">0.12.0-RC3-55-43dc23</a>
+    <a class="version" href="../depth/design-principles.html">0.12.0-RC3-56-fc0337</a>
     <a class="version is-current" href="Mill_Design_Principles.html">0.11.12</a>
     <a class="version" href="../0.11.11/Mill_Design_Principles.html">0.11.11</a>
     <a class="version" href="../0.11.10/Mill_Design_Principles.html">0.11.10</a>
@@ -624,6 +624,7 @@ build-related questions listed above.</p>
 </div>
 <div class="sect2">
 <h3 id="_the_object_hierarchy"><a class="anchor" href="#_the_object_hierarchy"></a>The Object Hierarchy</h3>
+<center>
 <svg width="404px" height="154px" viewBox="0.00 0.00 403.81 154.40" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 150.4)">
 <title>G</title>
@@ -719,6 +720,8 @@ build-related questions listed above.</p>
 </g>
 </g>
 </svg>
+
+</center>
 <div class="paragraph">
 <p>The module hierarchy is the graph of objects, starting from the root of the
 <code>build.sc</code> file, that extend <code>mill.Module</code>. At the leaves of the hierarchy are
@@ -756,6 +759,7 @@ are sure that it will never clash with any other <code>Target</code>s data.</p>
 </div>
 <div class="sect2">
 <h3 id="_the_call_graph"><a class="anchor" href="#_the_call_graph"></a>The Call Graph</h3>
+<center>
 <svg width="847px" height="364px" viewBox="0.00 0.00 847.08 364.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 360.0)">
 <title>G</title>
@@ -962,6 +966,8 @@ are sure that it will never clash with any other <code>Target</code>s data.</p>
 </g>
 </g>
 </svg>
+
+</center>
 <div class="paragraph">
 <p>The Scala call graph of &quot;which target references which other target&quot; is core to
 how Mill operates. This graph is reified via the <code>T {…​}</code> macro to make it

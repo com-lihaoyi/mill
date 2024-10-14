@@ -277,11 +277,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../extending/import-ivy.html">import $ivy</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../extending/using-plugins.html">Using Plugins</a>
+    <a class="nav-link" href="../extending/import-ivy-plugins.html">Import Libraries and Plugins</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -427,9 +423,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-55-43dc23</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-56-fc0337</button>
   <div class="version-menu">
-    <a class="version is-current" href="linting.html">0.12.0-RC3-55-43dc23</a>
+    <a class="version is-current" href="linting.html">0.12.0-RC3-56-fc0337</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
@@ -472,11 +468,14 @@ import kotlinlib.KotlinModule
 import kotlinlib.detekt.DetektModule
 
 object `package` extends RootModule with KotlinModule with DetektModule {
-
   def kotlinVersion = &quot;1.9.24&quot;
-
 }</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>This example shows how to use the <a href="https://github.com/detekt/detekt">Detekt</a>
+static code analyzer for linting a <code>KotlinModule</code>, by mixing in the trait
+<code>DetektModule</code> and calling the <code>detekt</code> task:</p>
 </div>
 <div class="listingblock">
 <div class="title">src/example/Foo.kt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/kotlinlib/linting/1-detekt/src/example/Foo.kt">browse</a>)</div>
@@ -528,13 +527,17 @@ import kotlinlib.KotlinModule
 import kotlinlib.ktlint.KtlintModule
 
 object `package` extends RootModule with KotlinModule with KtlintModule {
-
   def kotlinVersion = &quot;1.9.24&quot;
 
   def ktlintConfig = Some(PathRef(T.workspace / &quot;.editorconfig&quot;))
-
 }</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>This example shows how to use the <a href="https://github.com/pinterest/ktlint">KtLint</a>
+linter on a <code>KotlinModule</code>, by mixing in the trait <code>KtlintModule</code> and calling the
+<code>ktlint</code> task. <code>ktlint</code> also supports autoformatting to automatically resolve
+code formatting violations, via the <code>--format</code> flag shown below:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -542,6 +545,7 @@ object `package` extends RootModule with KotlinModule with KtlintModule {
 error: ...src/example/FooWrong.kt:6:28: Missing newline before &quot;)&quot; (standard:parameter-list-wrapping)...
 ...src/example/FooWrong.kt:6:28: Newline expected before closing parenthesis (standard:function-signature)...
 ...src/example/FooWrong.kt:6:28: Missing trailing comma before &quot;)&quot; (standard:trailing-comma-on-declaration-site)...
+
 &gt; ./mill ktlint --format true
 
 &gt; ./mill ktlint # after fixing the violations, ktlint no longer errors</code></pre>
@@ -564,18 +568,23 @@ import kotlinlib.KotlinModule
 import kotlinlib.ktfmt.KtfmtModule
 
 object `package` extends RootModule with KotlinModule with KtfmtModule {
-
   def kotlinVersion = &quot;1.9.24&quot;
-
 }</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>This example demonstrates how to use the <a href="https://github.com/facebook/ktfmt">KtFmt</a>
+autoformatter from Facebook both to enforce and apply formatting to your <code>KotlinModule</code>
+source files. You can configure a non-default version of KtFmt by overriding <code>def ktfmtVersion</code></p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill ktfmt --format=false # run ktfmt to produce a list of files which should be formatter
 ...src/example/FooWrong.kt...
+
 &gt; ./mill ktfmt # running without arguments will format all files
 Done formatting ...src/example/FooWrong.kt
+
 &gt; ./mill ktfmt # after fixing the violations, ktfmt no longer prints any file
 
 &gt; ./mill mill.kotlinlib.ktfmt.KtfmtModule/ __.sources   # alternatively, use external module to check/format</code></pre>

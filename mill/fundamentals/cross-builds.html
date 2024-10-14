@@ -278,11 +278,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../extending/import-ivy.html">import $ivy</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../extending/using-plugins.html">Using Plugins</a>
+    <a class="nav-link" href="../extending/import-ivy-plugins.html">Import Libraries and Plugins</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -428,9 +424,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-55-43dc23</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-56-fc0337</button>
   <div class="version-menu">
-    <a class="version is-current" href="cross-builds.html">0.12.0-RC3-55-43dc23</a>
+    <a class="version is-current" href="cross-builds.html">0.12.0-RC3-56-fc0337</a>
     <a class="version" href="../0.11.12/Cross_Builds.html">0.11.12</a>
     <a class="version" href="../0.11.11/Cross_Builds.html">0.11.11</a>
     <a class="version" href="../0.11.10/Cross_Builds.html">0.11.10</a>
@@ -480,6 +476,7 @@ trait FooModule extends Cross.Module[String] {
 }</code></pre>
 </div>
 </div>
+<center>
 <svg width="315px" height="364px" viewBox="0.00 0.00 314.83 364.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 360.0)">
 <title>G</title>
@@ -573,6 +570,8 @@ trait FooModule extends Cross.Module[String] {
 </g>
 </g>
 </svg>
+
+</center>
 <div class="paragraph">
 <p>Cross modules defined using the <code>Cross[T]</code> class allow you to define
 multiple copies of the same module, differing only in some input key. This
@@ -615,7 +614,7 @@ be overridden.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_default_cross_modules"><a class="anchor" href="#_default_cross_modules"></a>Default Cross Modules</h2>
+<h2 id="_cross_modules_defaults"><a class="anchor" href="#_cross_modules_defaults"></a>Cross Modules Defaults</h2>
 <div class="sectionbody">
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC3/0.12.0-RC3-example-fundamentals-cross-11-default-cross-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/fundamentals/cross/11-default-cross-module">browse</a>)</div>
@@ -636,17 +635,18 @@ object bar extends Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.
 </div>
 <div class="paragraph">
 <p>For convenience, you can omit the selector for the default cross segment.
-By default, this is the first cross value specified.</p>
+By default, this is the first cross value specified, but you can override
+it by specifying <code>def defaultCrossSegments</code></p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo[2.10].suffix
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo[2.10].suffix # explicit cross value given
 &quot;_2.10&quot;
 
-&gt; mill show foo[].suffix
+&gt; mill show foo[].suffix # no cross value given, defaults to first cross value
 &quot;_2.10&quot;
 
-&gt; mill show bar[].suffix
+&gt; mill show bar[].suffix # no cross value given, defaults to overriden `defaultCrossSegments`
 &quot;_2.12&quot;</code></pre>
 </div>
 </div>
@@ -722,7 +722,8 @@ can do so by overriding <code>millSourcePath</code> as shown above.</p>
 <h2 id="_using_cross_modules_from_outside_tasks"><a class="anchor" href="#_using_cross_modules_from_outside_tasks"></a>Using Cross Modules from Outside Tasks</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>You can refer to tasks defined in cross-modules as follows:</p>
+<p>You can refer to tasks defined in cross-modules using the <code>foo(&quot;2.10&quot;)</code> syntax,
+as given below:</p>
 </div>
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC3/0.12.0-RC3-example-fundamentals-cross-3-outside-dependency.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/fundamentals/cross/3-outside-dependency">browse</a>)</div>
@@ -740,24 +741,25 @@ def bar = Task { s&quot;hello ${foo(&quot;2.10&quot;).suffix()}&quot; }
 def qux = Task { s&quot;hello ${foo(&quot;2.10&quot;).suffix()} world ${foo(&quot;2.12&quot;).suffix()}&quot; }</code></pre>
 </div>
 </div>
+<center>
 <svg width="202px" height="235px" viewBox="0.00 0.00 201.64 235.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 231.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-231 197.64,-231 197.64,4 -4,4"></polygon>
-<g id="clust1" class="cluster">
-<title>cluster_2</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-154 8,-219 128.64,-219 128.64,-154 8,-154"></polygon>
-<text text-anchor="middle" x="68.32" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.12]</text>
+<g id="clust3" class="cluster">
+<title>cluster_0</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-73 128.64,-73 128.64,-8 8,-8"></polygon>
+<text text-anchor="middle" x="68.32" y="-56.4" font-family="Times,serif" font-size="14.00">foo[2.10]</text>
 </g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-81 8,-146 128.64,-146 128.64,-81 8,-81"></polygon>
 <text text-anchor="middle" x="68.32" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.11]</text>
 </g>
-<g id="clust3" class="cluster">
-<title>cluster_0</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-73 128.64,-73 128.64,-8 8,-8"></polygon>
-<text text-anchor="middle" x="68.32" y="-56.4" font-family="Times,serif" font-size="14.00">foo[2.10]</text>
+<g id="clust1" class="cluster">
+<title>cluster_2</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-154 8,-219 128.64,-219 128.64,-154 8,-154"></polygon>
+<text text-anchor="middle" x="68.32" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.12]</text>
 </g>
 <!-- foo[2.12].suffix -->
 <g id="node1" class="node">
@@ -810,6 +812,8 @@ def qux = Task { s&quot;hello ${foo(&quot;2.10&quot;).suffix()} world ${foo(&quo
 </g>
 </g>
 </svg>
+
+</center>
 <div class="paragraph">
 <p>Here, <code>def bar</code> uses <code>foo(&quot;2.10&quot;)</code> to reference the <code>&quot;2.10&quot;</code> instance of
 <code>FooModule</code>. You can refer to whatever versions of the cross-module you want,
@@ -854,14 +858,15 @@ trait BarModule extends Cross.Module[String] {
 }</code></pre>
 </div>
 </div>
+<center>
 <svg width="305px" height="235px" viewBox="0.00 0.00 304.72 235.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 231.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-231 300.72,-231 300.72,4 -4,4"></polygon>
-<g id="clust3" class="cluster">
-<title>cluster_0</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-154 8,-219 128.64,-219 128.64,-154 8,-154"></polygon>
-<text text-anchor="middle" x="68.32" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.10]</text>
+<g id="clust4" class="cluster">
+<title>cluster_4</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="148.64,-81 148.64,-146 288.72,-146 288.72,-81 148.64,-81"></polygon>
+<text text-anchor="middle" x="218.68" y="-129.4" font-family="Times,serif" font-size="14.00">bar[2.11]</text>
 </g>
 <g id="clust1" class="cluster">
 <title>cluster_2</title>
@@ -873,20 +878,20 @@ trait BarModule extends Cross.Module[String] {
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-81 8,-146 128.64,-146 128.64,-81 8,-81"></polygon>
 <text text-anchor="middle" x="68.32" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.11]</text>
 </g>
-<g id="clust6" class="cluster">
-<title>cluster_3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="148.64,-154 148.64,-219 288.72,-219 288.72,-154 148.64,-154"></polygon>
-<text text-anchor="middle" x="218.68" y="-202.4" font-family="Times,serif" font-size="14.00">bar[2.10]</text>
-</g>
-<g id="clust4" class="cluster">
-<title>cluster_4</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="148.64,-81 148.64,-146 288.72,-146 288.72,-81 148.64,-81"></polygon>
-<text text-anchor="middle" x="218.68" y="-129.4" font-family="Times,serif" font-size="14.00">bar[2.11]</text>
+<g id="clust3" class="cluster">
+<title>cluster_0</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-154 8,-219 128.64,-219 128.64,-154 8,-154"></polygon>
+<text text-anchor="middle" x="68.32" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.10]</text>
 </g>
 <g id="clust5" class="cluster">
 <title>cluster_5</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="148.64,-8 148.64,-73 288.72,-73 288.72,-8 148.64,-8"></polygon>
 <text text-anchor="middle" x="218.68" y="-56.4" font-family="Times,serif" font-size="14.00">bar[2.12]</text>
+</g>
+<g id="clust6" class="cluster">
+<title>cluster_3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="148.64,-154 148.64,-219 288.72,-219 288.72,-154 148.64,-154"></polygon>
+<text text-anchor="middle" x="218.68" y="-202.4" font-family="Times,serif" font-size="14.00">bar[2.10]</text>
 </g>
 <!-- foo[2.12].suffix -->
 <g id="node1" class="node">
@@ -944,8 +949,10 @@ trait BarModule extends Cross.Module[String] {
 </g>
 </g>
 </svg>
+
+</center>
 <div class="paragraph">
-<p>Rather than pssing in a literal <code>&quot;2.10&quot;</code> to the <code>foo</code> cross module, we pass
+<p>Rather than passing in a literal <code>&quot;2.10&quot;</code> to the <code>foo</code> cross module, we pass
 in the <code>crossValue</code> property that is available within every <code>Cross.Module</code>.
 This ensures that each version of <code>bar</code> depends on the corresponding version
 of <code>foo</code>: <code>bar(&quot;2.10&quot;)</code> depends on <code>foo(&quot;2.10&quot;)</code>, <code>bar(&quot;2.11&quot;)</code> depends on
@@ -998,39 +1005,40 @@ trait FooModule extends Cross.Module2[String, String] {
 def bar = Task { s&quot;hello ${foo(&quot;2.10&quot;, &quot;jvm&quot;).suffix()}&quot; }</code></pre>
 </div>
 </div>
+<center>
 <svg width="568px" height="235px" viewBox="0.00 0.00 568.06 235.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 231.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-231 564.06,-231 564.06,4 -4,4"></polygon>
-<g id="clust1" class="cluster">
-<title>cluster_6</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-73 166.35,-73 166.35,-8 8,-8"></polygon>
-<text text-anchor="middle" x="87.17" y="-56.4" font-family="Times,serif" font-size="14.00">foo[2.12,native]</text>
-</g>
-<g id="clust2" class="cluster">
-<title>cluster_3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="358.49,-81 358.49,-146 491.96,-146 491.96,-81 358.49,-81"></polygon>
-<text text-anchor="middle" x="425.23" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.10,js]</text>
+<g id="clust5" class="cluster">
+<title>cluster_0</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="352.27,-154 352.27,-219 498.19,-219 498.19,-154 352.27,-154"></polygon>
+<text text-anchor="middle" x="425.23" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.10,jvm]</text>
 </g>
 <g id="clust6" class="cluster">
 <title>cluster_1</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="186.35,-154 186.35,-219 498.19,-219 498.19,-154 186.35,-154"></polygon>
-<text text-anchor="middle" x="342.27" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.11,jvm]</text>
-</g>
-<g id="clust3" class="cluster">
-<title>cluster_4</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="192.57,-81 192.57,-146 326.04,-146 326.04,-81 192.57,-81"></polygon>
-<text text-anchor="middle" x="259.31" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.11,js]</text>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="186.35,-154 186.35,-219 332.27,-219 332.27,-154 186.35,-154"></polygon>
+<text text-anchor="middle" x="259.31" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.11,jvm]</text>
 </g>
 <g id="clust7" class="cluster">
 <title>cluster_2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="14.21,-154 14.21,-219 160.13,-219 160.13,-154 14.21,-154"></polygon>
 <text text-anchor="middle" x="87.17" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.12,jvm]</text>
 </g>
+<g id="clust2" class="cluster">
+<title>cluster_3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="358.49,-81 358.49,-146 491.96,-146 491.96,-81 358.49,-81"></polygon>
+<text text-anchor="middle" x="425.23" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.10,js]</text>
+</g>
 <g id="clust4" class="cluster">
 <title>cluster_5</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="20.44,-81 20.44,-146 153.91,-146 153.91,-81 20.44,-81"></polygon>
-<text text-anchor="middle" x="87.17" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.12,js]</text>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="20.44,-81 20.44,-146 326.04,-146 326.04,-81 20.44,-81"></polygon>
+<text text-anchor="middle" x="173.24" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.12,js]</text>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_6</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-73 166.35,-73 166.35,-8 8,-8"></polygon>
+<text text-anchor="middle" x="87.17" y="-56.4" font-family="Times,serif" font-size="14.00">foo[2.12,native]</text>
 </g>
 <!-- foo[2.12,native].suffix -->
 <g id="node1" class="node">
@@ -1092,6 +1100,8 @@ def bar = Task { s&quot;hello ${foo(&quot;2.10&quot;, &quot;jvm&quot;).suffix()}
 <!-- foo[2.12,jvm].suffix&#45;&gt;foo[2.11,jvm].suffix -->
 </g>
 </svg>
+
+</center>
 <div class="paragraph">
 <p>This example shows off using a for-loop to generate a list of
 cross-key-tuples, as a <code>Seq[(String, String)]</code> that we then pass it into the
@@ -1226,6 +1236,7 @@ trait FooModule extends Cross.Module[String] {
 def baz = Task { s&quot;hello ${foo(&quot;a&quot;).bar.param()}&quot; }</code></pre>
 </div>
 </div>
+<center>
 <svg width="450px" height="276px" viewBox="0.00 0.00 450.44 276.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 272.0)">
 <title>G</title>
@@ -1361,18 +1372,20 @@ def baz = Task { s&quot;hello ${foo(&quot;a&quot;).bar.param()}&quot; }</code></
 </g>
 </g>
 </svg>
+
+</center>
 <div class="paragraph">
 <p>You can use the <code>CrossValue</code> trait within any <code>Cross.Module</code> to
 propagate the <code>crossValue</code> defined by an enclosing <code>Cross.Module</code> to some
 nested module. In this case, we use it to bind <code>crossValue</code> so it can be
-used in <code>def param</code>. This lets you reduce verbosity by defining the <code>Cross</code>
-once for a group of modules rather than once for every single module  in
-that group. There are corresponding <code>InnerCrossModuleN</code> traits for cross
-modules that take multiple inputs.</p>
+used in <code>def param</code>.</p>
 </div>
 <div class="paragraph">
-<p>You can reference the modules and tasks defined within such a
-<code>CrossValue</code> as is done in <code>def qux</code> above</p>
+<p>This lets you reduce verbosity by defining the <code>Cross</code>
+once for a group of modules rather than once for every single module  in
+that group. In the example above, we define the cross module once for
+<code>object foo extends Cross</code>, and then the nested modules <code>bar</code> and <code>qux</code>
+get automatically duplicated once for each <code>crossValue = &quot;a&quot;</code> and <code>crossValue = &quot;b&quot;</code></p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1546,8 +1559,8 @@ cross-modules cannot depend on the output of any tasks.</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>The following example demonstrates a use case: using cross modules to
-turn files on disk into blog posts. To begin with, we import two third-party
-libraries - Commonmark and Scalatags - to deal with Markdown parsing and
+turn files on disk into blog posts. To begin with, we <a href="../extending/import-ivy-plugins.html" class="xref page">import $ivy</a>
+two third-party libraries - Commonmark and Scalatags - to deal with Markdown parsing and
 HTML generation respectively:</p>
 </div>
 <div class="listingblock">
@@ -1692,6 +1705,7 @@ enough posts that the build is becoming noticeably slow.</p>
 <p>All caching, incremental re-computation, and parallelism is done using the
 Mill task graph. For this simple example, the graph is as follows</p>
 </div>
+<center>
 <svg width="309px" height="171px" viewBox="0.00 0.00 309.47 171.20" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 167.2)">
 <title>G</title>
@@ -1791,6 +1805,8 @@ Mill task graph. For this simple example, the graph is as follows</p>
 </g>
 </g>
 </svg>
+
+</center>
 <div class="paragraph">
 <p>This example use case is taken from the following blog post, which contains
 some extensions and fun exercises to further familiarize yourself with Mill</p>

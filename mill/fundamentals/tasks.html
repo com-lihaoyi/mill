@@ -278,11 +278,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../extending/import-ivy.html">import $ivy</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../extending/using-plugins.html">Using Plugins</a>
+    <a class="nav-link" href="../extending/import-ivy-plugins.html">Import Libraries and Plugins</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -428,9 +424,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-55-43dc23</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-56-fc0337</button>
   <div class="version-menu">
-    <a class="version is-current" href="tasks.html">0.12.0-RC3-55-43dc23</a>
+    <a class="version is-current" href="tasks.html">0.12.0-RC3-56-fc0337</a>
     <a class="version" href="../0.11.12/Tasks.html">0.11.12</a>
     <a class="version" href="../0.11.11/Tasks.html">0.11.11</a>
     <a class="version" href="../0.11.10/Tasks.html">0.11.10</a>
@@ -454,7 +450,7 @@
 <div class="paragraph">
 <p>One of Mill’s core abstractions is its <em>Task Graph</em>: this is how Mill defines,
 orders and caches work it needs to do, and exists independently of any support
-for building Scala.</p>
+for building Java, Kotlin, or Scala.</p>
 </div>
 <div class="paragraph">
 <p>Mill task graphs are primarily built using methods and macros defined on
@@ -493,7 +489,7 @@ different Task types:</p>
 <th class="tableblock halign-left valign-top">Command</th>
 <th class="tableblock halign-left valign-top">Source/Input</th>
 <th class="tableblock halign-left valign-top">Anonymous Task</th>
-<th class="tableblock halign-left valign-top">Persistent Target</th>
+<th class="tableblock halign-left valign-top">Persistent Task</th>
 <th class="tableblock halign-left valign-top">Worker</th>
 </tr>
 </thead>
@@ -555,7 +551,9 @@ different Task types:</p>
 </tbody>
 </table>
 <div class="paragraph">
-<p>The following is a simple self-contained example using Mill to compile Java:</p>
+<p>The following is a simple self-contained example using Mill to compile Java,
+making use of the <code>Task.Source</code> and <code>Task</code> types to define a simple build graph
+with some input source files and intermediate build steps:</p>
 </div>
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC3/0.12.0-RC3-example-fundamentals-tasks-1-task-graph.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/fundamentals/tasks/1-task-graph">browse</a>)</div>
@@ -589,6 +587,7 @@ def assembly = Task {
 <p>This code defines the following task graph, with the boxes being the tasks
 and the arrows representing the <em>data-flow</em> between them:</p>
 </div>
+<center>
 <svg width="280px" height="119px" viewBox="0.00 0.00 280.41 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
 <title>G</title>
@@ -649,6 +648,8 @@ and the arrows representing the <em>data-flow</em> between them:</p>
 </g>
 </g>
 </svg>
+
+</center>
 <div class="paragraph">
 <p>This example does not use any of Mill’s builtin support for building Java or
 Scala projects, and instead builds a pipeline &quot;from scratch&quot; using Mill
@@ -685,6 +686,7 @@ necessary, depending on what input sources changed:</p>
 </li>
 </ul>
 </div>
+<center>
 <svg width="280px" height="119px" viewBox="0.00 0.00 280.41 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
 <title>G</title>
@@ -745,6 +747,8 @@ necessary, depending on what input sources changed:</p>
 </g>
 </g>
 </svg>
+
+</center>
 <div class="ulist">
 <ul>
 <li>
@@ -753,6 +757,7 @@ and use the cached output of <code>compile</code> (green)</p>
 </li>
 </ul>
 </div>
+<center>
 <svg width="280px" height="119px" viewBox="0.00 0.00 280.41 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
 <title>G</title>
@@ -813,6 +818,8 @@ and use the cached output of <code>compile</code> (green)</p>
 </g>
 </g>
 </svg>
+
+</center>
 </div>
 </div>
 <div class="sect1">
@@ -861,7 +868,7 @@ re-compute if a change is detected.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_targets"><a class="anchor" href="#_targets"></a>Targets</h3>
+<h3 id="_cached_tasks"><a class="anchor" href="#_cached_tasks"></a>Cached Tasks</h3>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def allSources = Task {
@@ -878,6 +885,7 @@ def lineCount: T[Int] = Task {
 }</code></pre>
 </div>
 </div>
+<center>
 <svg width="284px" height="33px" viewBox="0.00 0.00 283.51 32.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 28.8)">
 <title>G</title>
@@ -914,8 +922,10 @@ def lineCount: T[Int] = Task {
 </g>
 </g>
 </svg>
+
+</center>
 <div class="paragraph">
-<p><code>Target</code>s are defined using the <code>def foo = Task {…​}</code> syntax, and dependencies
+<p><code>Cached Tasks</code>s are defined using the <code>def foo = Task {…​}</code> syntax, and dependencies
 on other tasks are defined using <code>foo()</code> to extract the value from them.
 Apart from the <code>foo()</code> calls, the <code>Task {…​}</code> block contains arbitrary code that
 does some work and returns a result.</p>
@@ -934,10 +944,10 @@ documentation for more details:</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>If a target’s inputs change but its output does not, e.g. someone changes a
+<p>If a cached task’s inputs change but its output does not, e.g. someone changes a
 comment within the source files that doesn’t affect the classfiles, then
 downstream tasks do not re-evaluate. This is determined using the
-<code>.hashCode</code> of the Target’s return value.</p>
+<code>.hashCode</code> of the cached task’s return value.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -950,7 +960,7 @@ Computing line count
 </div>
 </div>
 <div class="paragraph">
-<p>Furthermore, when code changes occur, targets only invalidate if the code change
+<p>Furthermore, when code changes occur, cached tasks only invalidate if the code change
 may directly or indirectly affect it. e.g. adding a comment to <code>lineCount</code> will
 not cause it to recompute:</p>
 </div>
@@ -965,7 +975,7 @@ not cause it to recompute:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>But changing the code of the target or any upstream helper method will cause the
+<p>But changing the code of the cached task or any upstream helper method will cause the
 old value to be invalidated and a new value re-computed (with a new <code>println</code>)
 next time it is invoked:</p>
 </div>
@@ -980,13 +990,13 @@ next time it is invoked:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>For more information on how the bytecode analysis necessary for invalidating targets
+<p>For more information on how the bytecode analysis necessary for invalidating cached tasks
 based on code-changes work, see <a href="https://github.com/com-lihaoyi/mill/pull/2417">PR#2417</a>
 that implemented it.</p>
 </div>
 <div class="paragraph">
-<p>The return-value of targets has to be JSON-serializable via
-<a href="https://github.com/com-lihaoyi/upickle">uPickle</a>. You can run targets directly from the command
+<p>The return-value of cached tasks has to be JSON-serializable via
+<a href="https://github.com/com-lihaoyi/upickle">uPickle</a>. You can run cached tasks directly from the command
 line, or use <code>show</code> if you want to see the JSON content or pipe it to
 external tools. See the uPickle library documentation for more details:</p>
 </div>
@@ -1030,6 +1040,7 @@ def jar = Task {
 }</code></pre>
 </div>
 </div>
+<center>
 <svg width="256px" height="76px" viewBox="0.00 0.00 255.51 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
 <title>G</title>
@@ -1078,6 +1089,8 @@ def jar = Task {
 </g>
 </g>
 </svg>
+
+</center>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill jar
@@ -1088,14 +1101,23 @@ Generating jar
 &quot;.../out/jar.dest/foo.jar&quot;</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p><strong>Note that <code>os.pwd</code> of the Mill process is set to an empty <code>sandbox/</code> folder by default.</strong>
+<div class="admonitionblock note">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<strong><code>os.pwd</code> of the Mill process is set to an empty <code>sandbox/</code> folder by default.</strong>
 This is to stop you from accidentally reading and writing files to the base repository root,
 which would cause problems with Mill’s caches not invalidating properly or files from different
 tasks colliding and causing issues.
 You should never use <code>os.pwd</code> or rely on the process working directory, and always explicitly
 use <code>Task.dest</code> or the <code>.path</code> of upstream <code>PathRef</code>s when accessing files. In the rare case where
-you truly need the Mill project root folder, you can access it via <code>Task.workspace</code></p>
+you truly need the Mill project root folder, you can access it via <code>Task.workspace</code>
+</td>
+</tr>
+</tbody></table>
 </div>
 </div>
 <div class="sect3">
@@ -1129,6 +1151,7 @@ def hugeFileName = Task {
 }</code></pre>
 </div>
 </div>
+<center>
 <svg width="318px" height="33px" viewBox="0.00 0.00 318.49 32.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 28.8)">
 <title>G</title>
@@ -1165,6 +1188,8 @@ def hugeFileName = Task {
 </g>
 </g>
 </svg>
+
+</center>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show lineCount
@@ -1202,6 +1227,7 @@ def summarizeClassFileStats = Task {
 }</code></pre>
 </div>
 </div>
+<center>
 <svg width="278px" height="33px" viewBox="0.00 0.00 278.19 32.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 28.8)">
 <title>G</title>
@@ -1226,6 +1252,8 @@ def summarizeClassFileStats = Task {
 </g>
 </g>
 </svg>
+
+</center>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show summarizeClassFileStats
@@ -1234,6 +1262,10 @@ def summarizeClassFileStats = Task {
   &quot;largestFile&quot;: &quot;...&quot;
 }</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>For more details on how to use uPickle, check out the
+<a href="https://github.com/com-lihaoyi/upickle">uPickle library documentation</a></p>
 </div>
 </div>
 </div>
@@ -1252,6 +1284,7 @@ def summarizeClassFileStats = Task {
 }</code></pre>
 </div>
 </div>
+<center>
 <svg width="149px" height="76px" viewBox="0.00 0.00 149.09 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
 <title>G</title>
@@ -1288,6 +1321,8 @@ def summarizeClassFileStats = Task {
 </g>
 </g>
 </svg>
+
+</center>
 <div class="paragraph">
 <p>Defined using <code>Task.Command {…​}</code> syntax, <code>Command</code>s can run arbitrary code, with
 dependencies declared using the same <code>foo()</code> syntax (e.g. <code>classFiles()</code> above).
@@ -1319,14 +1354,15 @@ See the mainargs documentation for more details:</p>
 <div class="ulist">
 <ul>
 <li>
-<p>[MainArgs Library Documentation](<a href="https://github.com/com-lihaoyi/mainargs">MainArgs</a>)</p>
+<p><a href="https://github.com/com-lihaoyi/mainargs">MainArgs Library Documentation</a></p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
 <p>By default, all command parameters need to be named, except for variadic parameters
-of type <code>T*</code> or <code>mainargs.Leftover[T]</code>. You can use the flag <code>--allow-positional-command-args</code>
-to allow arbitrary arguments to be passed positionally, as shown below:</p>
+of type <code>T*</code> or <code>mainargs.Leftover[T]</code>, or those marked as <code>@arg(positional = true)</code>.
+You can use also the flag <code>--allow-positional-command-args</code> to globally allow
+arguments to be passed positionally, as shown below:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1344,7 +1380,7 @@ foo.txt resource: My Example Text</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Like <a href="#_targets">Targets</a>, a command only evaluates after all its upstream
+<p>Like <a href="#_cached_tasks">Cached Tasks</a>, a command only evaluates after all its upstream
 dependencies have completed, and will not begin to run if any upstream
 dependency has failed.</p>
 </div>
@@ -1362,7 +1398,8 @@ path for consumption by external tools.</p>
 <div class="paragraph">
 <p>Tasks can be overriden, with the overriden task callable via <code>super</code>.
 You can also override a task with a different type of task, e.g. below
-we override <code>sourceRoots</code> which is a <code>Task.Sources</code> with a <code>Task{}</code> target:</p>
+we override <code>sourceRoots</code> which is a <code>Task.Sources</code> with a cached <code>Task{}</code>
+that depends on the original via <code>super</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1385,6 +1422,7 @@ trait Bar extends Foo {
 object bar extends Bar</code></pre>
 </div>
 </div>
+<center>
 <svg width="451px" height="76px" viewBox="0.00 0.00 450.67 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
 <title>G</title>
@@ -1433,6 +1471,8 @@ object bar extends Bar</code></pre>
 </g>
 </g>
 </svg>
+
+</center>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show bar.sourceContents # includes both source folders
@@ -1476,7 +1516,7 @@ find yourself repeating in <code>Task</code>s and <code>Command</code>s.</p>
 <div class="paragraph">
 <p>Anonymous task’s output does not need to be JSON-serializable, their output is
 not cached, and they can be defined with or without arguments.
-Unlike <a href="#_targets">Targets</a> or <a href="#_commands">Commands</a>, anonymous tasks can be defined
+Unlike <a href="#_cached_tasks">Cached Tasks</a> or <a href="#_commands">Commands</a>, anonymous tasks can be defined
 anywhere and passed around any way you want, until you finally make use of them
 within a downstream task or command.</p>
 </div>
@@ -1522,7 +1562,7 @@ arbitrary block of code.</p>
 </div>
 <div class="paragraph">
 <p>Inputs can be used to force re-evaluation of some external property that may
-affect your build. For example, if I have a <a href="#_targets">Target</a> <code>bar</code> that
+affect your build. For example, if I have a <a href="#_cached_task">cached task</a> <code>bar</code> that
 calls out to <code>git</code> to compute the latest commit hash and message directly,
 that target does not have any <code>Task</code> inputs and so will never re-compute
 even if the external <code>git</code> status changes:</p>
@@ -1530,7 +1570,7 @@ even if the external <code>git</code> status changes:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def gitStatusTask = Task {
-  &quot;v-&quot; +
+  &quot;version-&quot; +
   os.proc(&quot;git&quot;, &quot;log&quot;, &quot;-1&quot;, &quot;--pretty=format:%h-%B &quot;)
     .call(cwd = Task.workspace)
     .out
@@ -1545,12 +1585,12 @@ even if the external <code>git</code> status changes:</p>
 &gt; git commit --allow-empty -m &quot;Initial-Commit&quot;
 
 &gt; ./mill show gitStatusTask
-&quot;v-...-Initial-Commit&quot;
+&quot;version-...-Initial-Commit&quot;
 
 &gt; git commit --allow-empty -m &quot;Second-Commit&quot;
 
 &gt; ./mill show gitStatusTask # Mill didn't pick up the git change!
-&quot;v-...-Initial-Commit&quot;</code></pre>
+&quot;version-...-Initial-Commit&quot;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1571,7 +1611,7 @@ not know to re-evaluate when your <code>git log</code> <em>does</em> change. Thi
     .text()
     .trim()
 }
-def gitStatusTask2 = Task { &quot;v-&quot; + gitStatusInput() }</code></pre>
+def gitStatusTask2 = Task { &quot;version-&quot; + gitStatusInput() }</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1583,12 +1623,12 @@ the output of <code>gitStatusInput</code> changes will <code>gitStatusTask2</cod
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; git commit --allow-empty -m &quot;Initial-Commit&quot;
 
 &gt; ./mill show gitStatusTask2
-&quot;v-...-Initial-Commit&quot;
+&quot;version-...-Initial-Commit&quot;
 
 &gt; git commit --allow-empty -m &quot;Second-Commit&quot;
 
 &gt; ./mill show gitStatusTask2 # Mill picked up git change
-&quot;v-...-Second-Commit&quot;</code></pre>
+&quot;version-...-Second-Commit&quot;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1601,13 +1641,18 @@ tasks where it can be cached if possible.</p>
 <div class="sect2">
 <h3 id="_persistent_tasks"><a class="anchor" href="#_persistent_tasks"></a>Persistent Tasks</h3>
 <div class="paragraph">
-<p>Persistent targets defined using <code>Task(Persistent = True)</code> are similar to normal
+<p>Persistent targets defined using <code>Task(persistent = true)</code> are similar to normal
 <code>Target</code>s, except their <code>Task.dest</code> folder is not cleared before every
 evaluation. This makes them useful for caching things on disk in a more
-fine-grained manner than Mill’s own Target-level caching.</p>
+fine-grained manner than Mill’s own Task-level caching: the task can
+maintain a cache of one or more files on disk, and decide itself which files
+(or parts of which files!) need to invalidate, rather than having all generated
+files wiped out every time (which is the default behavior for normal Tasks).</p>
 </div>
 <div class="paragraph">
-<p>Below is a semi-realistic example of using a <code>Task(Persistent = True)</code> target:</p>
+<p>Below is a semi-realistic example of using <code>Task(persistent = true)</code> to compress
+files in an input folder, and re-use previously-compressed files if a file in the
+input folder did not change:</p>
 </div>
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC3/0.12.0-RC3-example-fundamentals-tasks-5-persistent-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/fundamentals/tasks/5-persistent-tasks">browse</a>)</div>
@@ -1662,7 +1707,7 @@ unnecessarily re-compressed when <code>compressedData</code> evaluates.</p>
 <p>Since persistent tasks have long-lived state on disk that lives beyond a
 single evaluation, this raises the possibility of the disk contents getting
 into a bad state and causing all future evaluations to fail. It is left up
-to the person implementing the <code>Task(Persistent = True)</code> to ensure their implementation
+to user of <code>Task(persistent = true)</code> to ensure their implementation
 is eventually consistent. You can also use <code>mill clean</code> to manually purge
 the disk contents to start fresh.</p>
 </div>

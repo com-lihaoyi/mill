@@ -277,11 +277,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="import-ivy.html">import $ivy</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="using-plugins.html">Using Plugins</a>
+    <a class="nav-link" href="import-ivy-plugins.html">Import Libraries and Plugins</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -427,9 +423,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-55-43dc23</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-56-fc0337</button>
   <div class="version-menu">
-    <a class="version is-current" href="writing-plugins.html">0.12.0-RC3-55-43dc23</a>
+    <a class="version is-current" href="writing-plugins.html">0.12.0-RC3-56-fc0337</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
@@ -453,7 +449,7 @@
 <div class="paragraph">
 <p>This example demonstrates how to write and test Mill plugin, and publish it to
 Sonatype’s Maven Central so it can be used by other developers over the internet
-via <a href="import-ivy.html" class="xref page">import $ivy</a>.</p>
+via <a href="import-ivy-plugins.html" class="xref page">import $ivy</a>.</p>
 </div>
 </div>
 </div>
@@ -470,13 +466,18 @@ import mill.main.BuildInfo.millVersion
 object myplugin extends ScalaModule with PublishModule {
   def scalaVersion = &quot;2.13.8&quot;
 
+  // Set the `platformSuffix` so the name indicates what Mill version it is compiled for
+  def platformSuffix = &quot;_mill&quot; + mill.main.BuildInfo.millBinPlatform
+
+  // Depend on `mill-dist` so we can compile against Mill APIs
   def ivyDeps = Agg(ivy&quot;com.lihaoyi:mill-dist:$millVersion&quot;)
 
-  // Testing Config
+  // Testing Config, with necessary setup for unit/integration/example tests
   object test extends ScalaTests with TestModule.Utest{
     def ivyDeps = Agg(ivy&quot;com.lihaoyi::mill-testkit:$millVersion&quot;)
     def forkEnv = Map(&quot;MILL_EXECUTABLE_PATH&quot; -&gt; millExecutable.assembly().path.toString)
 
+    // Create a Mill executable configured for testing our plugin
     object millExecutable extends JavaModule{
       def ivyDeps = Agg(ivy&quot;com.lihaoyi:mill-dist:$millVersion&quot;)
       def mainClass = Some(&quot;mill.runner.client.MillClientMain&quot;)
@@ -517,6 +518,11 @@ It looks like any other Scala project, except for a few things to take note:</p>
 <div class="ulist">
 <ul>
 <li>
+<p>We set the <code>platformSuffix</code> to indicate which Mill binary API version
+they are compiled against (to ensure that improper usage raises an easy to understand
+error)</p>
+</li>
+<li>
 <p>A dependency on <code>com.lihaoyi:mill-dist:$millVersion</code></p>
 </li>
 <li>
@@ -534,6 +540,11 @@ classfiles for testing.</p>
 <div class="sect1">
 <h2 id="_plugin_implementation"><a class="anchor" href="#_plugin_implementation"></a>Plugin Implementation</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>Although Mill plugins can contain arbitrary code, the most common
+way that plugins interact with your project is by providing <code>trait</code>s for
+your modules to inherit from.</p>
+</div>
 <div class="paragraph">
 <p>Like any other <code>trait</code>, a Mill plugin’s traits modules allow you to:</p>
 </div>
@@ -791,7 +802,7 @@ public class Foo {
 <div class="title">myplugin/test/resources/integration-test-project/build.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/extending/plugins/7-writing-mill-plugins/myplugin/test/resources/integration-test-project/build.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import $ivy.`com.lihaoyi::myplugin:0.0.1`
+import $ivy.`com.lihaoyi::myplugin::0.0.1`
 import mill._, myplugin._
 
 object `package` extends RootModule with LineCountJavaModule{
@@ -866,7 +877,7 @@ public class Foo {
 <div class="title">myplugin/test/resources/example-test-project/build.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/extending/plugins/7-writing-mill-plugins/myplugin/test/resources/example-test-project/build.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import $ivy.`com.lihaoyi::myplugin:0.0.1`
+import $ivy.`com.lihaoyi::myplugin::0.0.1`
 import mill._, myplugin._
 
 object `package` extends RootModule with LineCountJavaModule{
@@ -939,15 +950,16 @@ what output they should expect.</p>
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; sed -i.bak 's/0.0.1/0.0.2/g' build.mill
 
 &gt; ./mill myplugin.publishLocal
-Publishing Artifact(com.lihaoyi,myplugin_2.13,0.0.2) to ivy repo...</code></pre>
+Publishing Artifact(com.lihaoyi,myplugin_mill0.11_2.13,0.0.2) to ivy repo...</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Mill plugins are JVM libraries like any other library written in Java or Scala. Thus they
 are published the same way: by extending <code>PublishModule</code> and defining the module’s <code>publishVersion</code>
-and <code>pomSettings</code>. Once done, you can publish the plugin locally via <code>publishLocal</code> below,
-or to Maven Central via `mill.scalalib.public.PublishModule/`for other developers to
-use.</p>
+and <code>pomSettings</code>. Once done, you can publish the plugin locally via <code>publishLocal</code>,
+or to Maven Central via <code>mill.scalalib.public.PublishModule/</code> for other developers to
+use. For more details on publishing Mill projects, see the documentation for
+<a href="../scalalib/publishing.html" class="xref page">Publishing Scala Projects</a></p>
 </div>
 </div>
 </div>

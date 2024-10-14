@@ -310,7 +310,7 @@
 <div class="page-versions">
   <button class="version-menu-toggle" title="Show other versions of page">0.11.12</button>
   <div class="version-menu">
-    <a class="version is-missing" href="../../../index.html">0.12.0-RC3-55-43dc23</a>
+    <a class="version is-missing" href="../../../index.html">0.12.0-RC3-56-fc0337</a>
     <a class="version is-current" href="7-inner-cross-module.html">0.11.12</a>
     <a class="version" href="../../../0.11.11/example/cross/7-inner-cross-module.html">0.11.11</a>
     <a class="version" href="../../../0.11.10/example/cross/7-inner-cross-module.html">0.11.10</a>
@@ -352,6 +352,7 @@ trait FooModule extends Cross.Module[String] {
 def baz = T { s&quot;hello ${foo(&quot;a&quot;).bar.param()}&quot; }</code></pre>
 </div>
 </div>
+<center>
 <svg width="450px" height="276px" viewBox="0.00 0.00 450.44 276.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 272.0)">
 <title>G</title>
@@ -487,6 +488,8 @@ def baz = T { s&quot;hello ${foo(&quot;a&quot;).bar.param()}&quot; }</code></pre
 </g>
 </g>
 </svg>
+
+</center>
 <div class="paragraph">
 <p>You can use the <code>CrossValue</code> trait within any <code>Cross.Module</code> to
 propagate the <code>crossValue</code> defined by an enclosing <code>Cross.Module</code> to some

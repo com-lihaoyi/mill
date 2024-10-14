@@ -277,11 +277,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../extending/import-ivy.html">import $ivy</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../extending/using-plugins.html">Using Plugins</a>
+    <a class="nav-link" href="../extending/import-ivy-plugins.html">Import Libraries and Plugins</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -426,9 +422,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-55-43dc23</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-56-fc0337</button>
   <div class="version-menu">
-    <a class="version is-current" href="intro.html">0.12.0-RC3-55-43dc23</a>
+    <a class="version is-current" href="intro.html">0.12.0-RC3-56-fc0337</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
@@ -452,6 +448,23 @@
 <script>
 gtag('config', 'AW-16649289906');
 </script>
+<div class="admonitionblock note">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<strong>Kotlin support in Mill is experimental</strong>! A lot of stuff works, which is
+documented under this section, but a lot of stuff doesn’t. In particular,
+support for Android, KotlinJS and Kotlin-Multi-Platform is still in its infancy.
+The API is not yet stable and may evolve. Try it out but please be aware of its
+limitations!
+</td>
+</tr>
+</tbody></table>
+</div>
+<center>
 <svg width="755px" height="248px" viewBox="0.00 0.00 755.33 248.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 244.0)">
 <title>G</title>
@@ -587,6 +600,8 @@ gtag('config', 'AW-16649289906');
 </g>
 </g>
 </svg>
+
+</center>
 <div class="paragraph">
 <p><a href="https://github.com/com-lihaoyi/mill">Mill</a> is a fast multi-language JVM build tool that supports Kotlin, making your
 common development workflows <a href="../comparisons/maven.html" class="xref page">5-10x faster to Maven</a>, or
@@ -618,10 +633,10 @@ any application codebase.</p>
 <p><strong>Flexibility</strong>: Mill’s custom tasks and modules allow anything from
 <a href="../fundamentals/tasks.html#primitive-tasks" class="xref page">adding simple build steps</a>, up to
 <a href="../fundamentals/modules.html#_use_case_diy_java_modules" class="xref page">entire language toolchains</a>.
-You can <a href="../extending/import-ivy.html" class="xref page">import any JVM library as part of your build</a>,
+You can <a href="../extending/import-ivy-plugins.html" class="xref page">import any JVM library as part of your build</a>,
 use Mill’s rich ecosystem of <a href="../extending/thirdparty-plugins.html" class="xref page">Third-Party Mill Plugins</a>,
-or <a href="../extending/writing-plugins.html" class="xref page">write plugins yourself</a> and publish them
-on Maven Central for others to use.</p>
+or <a href="../extending/writing-plugins.html" class="xref page">write plugins yourself</a> and
+<a href="../extending/writing-plugins.html#_publishing" class="xref page">publish them on Maven Central</a> for others to use.</p>
 </li>
 </ul>
 </div>
@@ -650,7 +665,7 @@ structure building on these defaults.</p>
 grow beyond just compiling a single language: needing custom
 code generation, linting workflows, tool integrations, output artifacts, or support for
 additional languages. Mill makes doing this yourself easy, so you are not beholden
-to third-party plugins that may not exist or interact well with each other.</p>
+to third-party plugins that may not meet your exact needs or interact well with each other.</p>
 </li>
 <li>
 <p><strong>Mill automatically caches and parallelizes your build</strong>: Not just the
@@ -709,7 +724,7 @@ benefits discussed above, check out the section on Mill Design Principles:</p>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="#Mill Design Principles">[Mill Design Principles]</a></p>
+<p><a href="../depth/design-principles.html" class="xref page">Mill Design Principles</a></p>
 </li>
 </ul>
 </div>
@@ -892,7 +907,7 @@ are available, <code>mill resolve _</code> to see the tasks within <code>foo</co
 it depends on, or <code>mill show foo.scalaVersion</code> to show the output of any task.</p>
 </div>
 <div class="paragraph">
-<p>The most common <strong>tasks</strong> that Mill can run are cached <strong>targets</strong>, such as
+<p>The most common <strong>tasks</strong> that Mill can run are cached tasks, such as
 <code>compile</code>, and un-cached <strong>commands</strong> such as <code>foo.run</code>. Targets do not
 re-evaluate unless one of their inputs changes, whereas commands re-run every
 time.</p>
@@ -929,7 +944,7 @@ object `package` extends RootModule with KotlinModule {
   /** Generate resources using lineCount of sources */
   override def resources = Task {
     os.write(Task.dest / &quot;line-count.txt&quot;, &quot;&quot; + lineCount())
-    Seq(PathRef(Task.dest))
+    super.resources() ++ Seq(PathRef(Task.dest))
   }
 
   object test extends KotlinTests with TestModule.Junit5 {
@@ -946,10 +961,11 @@ folder provided by <code>KotlinModule</code> (labelled <code>resource.super</cod
 it with the destination folder of the new <code>resources</code> task, which is wired
 up to <code>lineCount</code>:</p>
 </div>
-<svg width="483px" height="76px" viewBox="0.00 0.00 483.15 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<center>
+<svg width="481px" height="76px" viewBox="0.00 0.00 480.78 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 479.15,-71.8 479.15,4 -4,4"></polygon>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 476.78,-71.8 476.78,4 -4,4"></polygon>
 <!-- allSourceFiles -->
 <g id="node1" class="node">
 <title>allSourceFiles</title>
@@ -959,60 +975,67 @@ up to <code>lineCount</code>:</p>
 <!-- lineCount -->
 <g id="node2" class="node">
 <title>lineCount</title>
-<polygon fill="white" stroke="black" points="203.43,-67.7 131.98,-67.7 131.98,-43.1 203.43,-43.1 203.43,-67.7"></polygon>
-<text text-anchor="middle" x="167.7" y="-51.2" font-family="Times,serif" font-size="14.00">lineCount</text>
+<polygon fill="white" stroke="black" points="219.15,-67.7 147.7,-67.7 147.7,-43.1 219.15,-43.1 219.15,-67.7"></polygon>
+<text text-anchor="middle" x="183.43" y="-51.2" font-family="Times,serif" font-size="14.00">lineCount</text>
 </g>
 <!-- allSourceFiles&#45;&gt;lineCount -->
 <g id="edge1" class="edge">
 <title>allSourceFiles-&gt;lineCount</title>
-<path fill="none" stroke="black" d="M96.22,-55.4C104.58,-55.4 113.27,-55.4 121.58,-55.4"></path>
-<polygon fill="black" stroke="black" points="121.83,-58.9 131.83,-55.4 121.83,-51.9 121.83,-58.9"></polygon>
+<path fill="none" stroke="black" d="M96.45,-55.4C109.8,-55.4 124.28,-55.4 137.49,-55.4"></path>
+<polygon fill="black" stroke="black" points="137.76,-58.9 147.76,-55.4 137.76,-51.9 137.76,-58.9"></polygon>
 </g>
 <!-- resources -->
 <g id="node3" class="node">
 <title>resources</title>
-<polygon fill="white" stroke="black" points="325.01,-67.7 256.3,-67.7 256.3,-43.1 325.01,-43.1 325.01,-67.7"></polygon>
-<text text-anchor="middle" x="290.65" y="-51.2" font-family="Times,serif" font-size="14.00">resources</text>
+<polygon fill="white" stroke="black" points="339.55,-45.7 270.84,-45.7 270.84,-21.1 339.55,-21.1 339.55,-45.7"></polygon>
+<text text-anchor="middle" x="305.19" y="-29.2" font-family="Times,serif" font-size="14.00">resources</text>
 </g>
 <!-- lineCount&#45;&gt;resources -->
 <g id="edge2" class="edge">
 <title>lineCount-&gt;resources</title>
-<path fill="none" stroke="black" d="M203.36,-55.4C216.6,-55.4 231.87,-55.4 245.85,-55.4"></path>
-<polygon fill="black" stroke="black" points="246.24,-58.9 256.24,-55.4 246.24,-51.9 246.24,-58.9"></polygon>
+<path fill="none" stroke="black" d="M219.07,-49.04C231.95,-46.67 246.74,-43.95 260.34,-41.46"></path>
+<polygon fill="black" stroke="black" points="261.25,-44.85 270.46,-39.6 259.99,-37.96 261.25,-44.85"></polygon>
 </g>
 <!-- ... -->
 <g id="node4" class="node">
 <title>...</title>
-<polygon fill="white" stroke="white" points="404.74,-45.7 377.73,-45.7 377.73,-21.1 404.74,-21.1 404.74,-45.7"></polygon>
-<text text-anchor="middle" x="391.24" y="-29.2" font-family="Times,serif" font-size="14.00">...</text>
+<polygon fill="white" stroke="white" points="402.37,-45.7 375.36,-45.7 375.36,-21.1 402.37,-21.1 402.37,-45.7"></polygon>
+<text text-anchor="middle" x="388.87" y="-29.2" font-family="Times,serif" font-size="14.00">...</text>
 </g>
 <!-- resources&#45;&gt;... -->
 <g id="edge3" class="edge">
 <title>resources-&gt;...</title>
-<path fill="none" stroke="black" d="M325.03,-47.95C339.03,-44.83 354.94,-41.28 367.55,-38.46"></path>
-<polygon fill="black" stroke="black" points="368.64,-41.81 377.64,-36.21 367.12,-34.97 368.64,-41.81"></polygon>
+<path fill="none" stroke="black" d="M339.89,-33.4C348.37,-33.4 357.27,-33.4 365.08,-33.4"></path>
+<polygon fill="black" stroke="black" points="365.22,-36.9 375.22,-33.4 365.22,-29.9 365.22,-36.9"></polygon>
 </g>
 <!-- run -->
 <g id="node5" class="node">
 <title>run</title>
-<polygon fill="white" stroke="white" points="474.98,-45.7 440.66,-45.7 440.66,-21.1 474.98,-21.1 474.98,-45.7"></polygon>
-<text text-anchor="middle" x="457.82" y="-29.2" font-family="Times,serif" font-size="14.00">run</text>
+<polygon fill="white" stroke="white" points="472.61,-45.7 438.29,-45.7 438.29,-21.1 472.61,-21.1 472.61,-45.7"></polygon>
+<text text-anchor="middle" x="455.45" y="-29.2" font-family="Times,serif" font-size="14.00">run</text>
 </g>
 <!-- ...&#45;&gt;run -->
 <g id="edge4" class="edge">
 <title>...-&gt;run</title>
-<path fill="none" stroke="black" d="M404.69,-33.4C411.88,-33.4 421.22,-33.4 430,-33.4"></path>
-<polygon fill="black" stroke="black" points="430.25,-36.9 440.25,-33.4 430.25,-29.9 430.25,-36.9"></polygon>
+<path fill="none" stroke="black" d="M402.32,-33.4C409.51,-33.4 418.85,-33.4 427.63,-33.4"></path>
+<polygon fill="black" stroke="black" points="427.88,-36.9 437.88,-33.4 427.88,-29.9 427.88,-36.9"></polygon>
 </g>
 <!-- resources.super -->
 <g id="node6" class="node">
 <title>resources.super</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="341.83,-24.7 239.48,-24.7 239.48,-0.1 341.83,-0.1 341.83,-24.7"></polygon>
-<text text-anchor="middle" x="290.65" y="-8.2" font-family="Times,serif" font-size="14.00">resources.super</text>
+<polygon fill="white" stroke="white" points="234.6,-24.7 132.25,-24.7 132.25,-0.1 234.6,-0.1 234.6,-24.7"></polygon>
+<text text-anchor="middle" x="183.43" y="-8.2" font-family="Times,serif" font-size="14.00">resources.super</text>
 </g>
-<!-- resources.super&#45;&gt;... -->
+<!-- resources.super&#45;&gt;resources -->
+<g id="edge5" class="edge">
+<title>resources.super-&gt;resources</title>
+<path fill="none" stroke="black" d="M234.87,-21.25C243.51,-22.76 252.41,-24.32 260.84,-25.8"></path>
+<polygon fill="black" stroke="black" points="260.38,-29.27 270.84,-27.55 261.59,-22.38 260.38,-29.27"></polygon>
+</g>
 </g>
 </svg>
+
+</center>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill run
@@ -1034,7 +1057,7 @@ Inputs:
 <code>allSourceFiles</code> (an existing task) and is in-turn used in our override of
 <code>resources</code> (also an existing task). <code>os.read.lines</code> and <code>os.write</code> come
 from the <a href="https://github.com/com-lihaoyi/os-lib">OS-Lib</a> library, which is
-one of Mill’s <a href="#Bundled Libraries">[Bundled Libraries]</a>. This generated file can then be
+one of Mill’s <a href="../fundamentals/bundled-libraries.html" class="xref page">Bundled Libraries</a>. This generated file can then be
 loaded and used at runtime, as see in the output of <code>mill run</code></p>
 </div>
 <div class="paragraph">
@@ -1044,7 +1067,7 @@ most real-world projects.</p>
 </div>
 <div class="paragraph">
 <p>This customization is done in a principled fashion familiar to most
-programmers - object-orienting overrides - rather than ad-hoc
+programmers - <code>override</code> and <code>super</code> - rather than ad-hoc
 monkey-patching or mutation common in other build tools. You never have
 &quot;spooky action at a distance&quot; affecting your build / graph definition, and
 your IDE can always help you find the final override of any particular build
@@ -1101,13 +1124,17 @@ object bar extends MyModule {
 We don’t mark either module as top-level using <code>extends RootModule</code>, so
 running tasks needs to use the module name as the prefix e.g. <code>foo.run</code> or
 <code>bar.run</code>. You can define multiple modules the same way you define a single
-module, using <code>def moduleDeps</code> to define the relationship between them.</p>
+module, using <code>def moduleDeps</code> to define the relationship between them. Modules
+can also be nested within each other, as <code>foo.test</code> and <code>bar.test</code> are nested
+within <code>foo</code> and <code>bar</code> respectively</p>
 </div>
 <div class="paragraph">
 <p>Note that we split out the <code>test</code> submodule configuration common to both
 modules into a separate <code>trait MyModule</code>. This lets us avoid the need to
 copy-paste common settings, while still letting us define any per-module
-configuration such as <code>ivyDeps</code> specific to a particular module.</p>
+configuration such as <code>ivyDeps</code> specific to a particular module. This is a
+common pattern within Mill builds to avoid the need to copy-paste common
+configuration</p>
 </div>
 <div class="paragraph">
 <p>The above builds expect the following project layout:</p>
@@ -1167,7 +1194,10 @@ Bar.value: &lt;h1&gt;world&lt;/h1&gt;
 </div>
 <div class="paragraph">
 <p>Mill’s evaluator will ensure that the modules are compiled in the right
-order, and recompiled as necessary when source code in each module changes.</p>
+order, and recompiled as necessary when source code in each module changes.
+The unique path on disk that Mill automatically assigns each task also ensures
+you do not need to worry about choosing a path on disk to cache outputs, or
+filesystem collisions if multiple tasks write to the same path.</p>
 </div>
 <div class="paragraph">
 <p>You can use wildcards and brace-expansion to select
@@ -1202,8 +1232,8 @@ tasks.</p>
 </tbody>
 </table>
 <div class="paragraph">
-<p>You can use the <code>` symbol to add another task with optional arguments.
-If you need to feed a `</code> as argument to your task, you can mask it by
+<p>You can use the + symbol to add another task with optional arguments.
+If you need to feed a + as argument to your task, you can mask it by
 preceding it with a backslash (<code>\</code>).</p>
 </div>
 <div class="listingblock">
@@ -1218,7 +1248,14 @@ preceding it with a backslash (<code>\</code>).</p>
 </div>
 </div>
 <div class="paragraph">
-<p>For more details on the query syntax, check out the documentation for <a href="#Task Query Syntax">[Task Query Syntax]</a></p>
+<p>For more details on the query syntax, check out the query syntax documentation:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="../fundamentals/query-syntax.html" class="xref page">Task Query Syntax</a></p>
+</li>
+</ul>
 </div>
 </div>
 </div>
@@ -1305,7 +1342,7 @@ a complete list of options and a cheat-sheet of how to work with tasks:</p>
 <div class="listingblock">
 <div class="title">Output of <code>mill --help</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.12.0-RC3-55-43dc23
+<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.12.0-RC3-56-fc0337
 Usage: mill [options] task [task-options] [+ task ...]
 
 task cheat sheet:

@@ -317,7 +317,7 @@
 <div class="page-versions">
   <button class="version-menu-toggle" title="Show other versions of page">0.11.12</button>
   <div class="version-menu">
-    <a class="version" href="../fundamentals/cross-builds.html">0.12.0-RC3-55-43dc23</a>
+    <a class="version" href="../fundamentals/cross-builds.html">0.12.0-RC3-56-fc0337</a>
     <a class="version is-current" href="Cross_Builds.html">0.11.12</a>
     <a class="version" href="../0.11.11/Cross_Builds.html">0.11.11</a>
     <a class="version" href="../0.11.10/Cross_Builds.html">0.11.10</a>
@@ -366,19 +366,20 @@ trait FooModule extends Cross.Module[String] {
 }</code></pre>
 </div>
 </div>
+<center>
 <svg width="315px" height="364px" viewBox="0.00 0.00 314.83 364.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 360.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-360 310.83,-360 310.83,4 -4,4"></polygon>
-<g id="clust1" class="cluster">
-<title>cluster_2</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-116 298.83,-116 298.83,-8 8,-8"></polygon>
-<text text-anchor="middle" x="153.41" y="-99.4" font-family="Times,serif" font-size="14.00">foo[2.12]</text>
-</g>
 <g id="clust3" class="cluster">
 <title>cluster_0</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-240 8,-348 298.83,-348 298.83,-240 8,-240"></polygon>
 <text text-anchor="middle" x="153.41" y="-331.4" font-family="Times,serif" font-size="14.00">foo[2.10]</text>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_2</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-116 298.83,-116 298.83,-8 8,-8"></polygon>
+<text text-anchor="middle" x="153.41" y="-99.4" font-family="Times,serif" font-size="14.00">foo[2.12]</text>
 </g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
@@ -459,6 +460,8 @@ trait FooModule extends Cross.Module[String] {
 </g>
 </g>
 </svg>
+
+</center>
 <div class="paragraph">
 <p>Cross modules defined using the <code>Cross[T]</code> class allow you to define
 multiple copies of the same module, differing only in some input key. This
@@ -623,6 +626,7 @@ def bar = T { s&quot;hello ${foo(&quot;2.10&quot;).suffix()}&quot; }
 def qux = T { s&quot;hello ${foo(&quot;2.10&quot;).suffix()} world ${foo(&quot;2.12&quot;).suffix()}&quot; }</code></pre>
 </div>
 </div>
+<center>
 <svg width="202px" height="235px" viewBox="0.00 0.00 201.64 235.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 231.0)">
 <title>G</title>
@@ -693,6 +697,8 @@ def qux = T { s&quot;hello ${foo(&quot;2.10&quot;).suffix()} world ${foo(&quot;2
 </g>
 </g>
 </svg>
+
+</center>
 <div class="paragraph">
 <p>Here, <code>def bar</code> uses <code>foo(&quot;2.10&quot;)</code> to reference the <code>&quot;2.10&quot;</code> instance of
 <code>FooModule</code>. You can refer to whatever versions of the cross-module you want,
@@ -736,6 +742,7 @@ trait BarModule extends Cross.Module[String] {
 }</code></pre>
 </div>
 </div>
+<center>
 <svg width="305px" height="235px" viewBox="0.00 0.00 304.72 235.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 231.0)">
 <title>G</title>
@@ -826,6 +833,8 @@ trait BarModule extends Cross.Module[String] {
 </g>
 </g>
 </svg>
+
+</center>
 <div class="paragraph">
 <p>Rather than pssing in a literal <code>&quot;2.10&quot;</code> to the <code>foo</code> cross module, we pass
 in the <code>crossValue</code> property that is available within every <code>Cross.Module</code>.
@@ -879,44 +888,35 @@ trait FooModule extends Cross.Module2[String, String] {
 def bar = T { s&quot;hello ${foo(&quot;2.10&quot;, &quot;jvm&quot;).suffix()}&quot; }</code></pre>
 </div>
 </div>
+<center>
 <svg width="568px" height="235px" viewBox="0.00 0.00 568.06 235.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 231.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-231 564.06,-231 564.06,4 -4,4"></polygon>
-<g id="clust1" class="cluster">
-<title>cluster_6</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-73 166.35,-73 166.35,-8 8,-8"></polygon>
-<text text-anchor="middle" x="87.17" y="-56.4" font-family="Times,serif" font-size="14.00">foo[2.12,native]</text>
-</g>
-<g id="clust2" class="cluster">
-<title>cluster_3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="358.49,-81 358.49,-146 491.96,-146 491.96,-81 358.49,-81"></polygon>
-<text text-anchor="middle" x="425.23" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.10,js]</text>
-</g>
-<g id="clust3" class="cluster">
-<title>cluster_4</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="192.57,-81 192.57,-146 326.04,-146 326.04,-81 192.57,-81"></polygon>
-<text text-anchor="middle" x="259.31" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.11,js]</text>
-</g>
 <g id="clust4" class="cluster">
 <title>cluster_5</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="20.44,-81 20.44,-146 153.91,-146 153.91,-81 20.44,-81"></polygon>
-<text text-anchor="middle" x="87.17" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.12,js]</text>
-</g>
-<g id="clust5" class="cluster">
-<title>cluster_0</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="352.27,-154 352.27,-219 498.19,-219 498.19,-154 352.27,-154"></polygon>
-<text text-anchor="middle" x="425.23" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.10,jvm]</text>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="20.44,-81 20.44,-146 326.04,-146 326.04,-81 20.44,-81"></polygon>
+<text text-anchor="middle" x="173.24" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.12,js]</text>
 </g>
 <g id="clust6" class="cluster">
 <title>cluster_1</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="186.35,-154 186.35,-219 332.27,-219 332.27,-154 186.35,-154"></polygon>
-<text text-anchor="middle" x="259.31" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.11,jvm]</text>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="186.35,-154 186.35,-219 498.19,-219 498.19,-154 186.35,-154"></polygon>
+<text text-anchor="middle" x="342.27" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.11,jvm]</text>
 </g>
 <g id="clust7" class="cluster">
 <title>cluster_2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="14.21,-154 14.21,-219 160.13,-219 160.13,-154 14.21,-154"></polygon>
 <text text-anchor="middle" x="87.17" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.12,jvm]</text>
+</g>
+<g id="clust3" class="cluster">
+<title>cluster_4</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="358.49,-81 358.49,-146 491.96,-146 491.96,-81 358.49,-81"></polygon>
+<text text-anchor="middle" x="425.23" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.11,js]</text>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_6</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-73 166.35,-73 166.35,-8 8,-8"></polygon>
+<text text-anchor="middle" x="87.17" y="-56.4" font-family="Times,serif" font-size="14.00">foo[2.12,native]</text>
 </g>
 <!-- foo[2.12,native].suffix -->
 <g id="node1" class="node">
@@ -978,6 +978,8 @@ def bar = T { s&quot;hello ${foo(&quot;2.10&quot;, &quot;jvm&quot;).suffix()}&qu
 <!-- foo[2.12,jvm].suffix&#45;&gt;foo[2.11,jvm].suffix -->
 </g>
 </svg>
+
+</center>
 <div class="paragraph">
 <p>This example shows off using a for-loop to generate a list of
 cross-key-tuples, as a <code>Seq[(String, String)]</code> that we then pass it into the
@@ -1110,6 +1112,7 @@ trait FooModule extends Cross.Module[String] {
 def baz = T { s&quot;hello ${foo(&quot;a&quot;).bar.param()}&quot; }</code></pre>
 </div>
 </div>
+<center>
 <svg width="450px" height="276px" viewBox="0.00 0.00 450.44 276.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 272.0)">
 <title>G</title>
@@ -1245,6 +1248,8 @@ def baz = T { s&quot;hello ${foo(&quot;a&quot;).bar.param()}&quot; }</code></pre
 </g>
 </g>
 </svg>
+
+</center>
 <div class="paragraph">
 <p>You can use the <code>CrossValue</code> trait within any <code>Cross.Module</code> to
 propagate the <code>crossValue</code> defined by an enclosing <code>Cross.Module</code> to some
@@ -1573,6 +1578,7 @@ enough posts that the build is becoming noticeably slow.</p>
 <p>All caching, incremental re-computation, and parallelism is done using the
 Mill target graph. For this simple example, the graph is as follows</p>
 </div>
+<center>
 <svg width="309px" height="171px" viewBox="0.00 0.00 309.47 171.20" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 167.2)">
 <title>G</title>
@@ -1672,6 +1678,8 @@ Mill target graph. For this simple example, the graph is as follows</p>
 </g>
 </g>
 </svg>
+
+</center>
 <div class="paragraph">
 <p>This example use case is taken from the following blog post, which contains
 some extensions and fun exercises to further familiarize yourself with Mill</p>

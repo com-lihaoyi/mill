@@ -277,11 +277,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../extending/import-ivy.html">import $ivy</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../extending/using-plugins.html">Using Plugins</a>
+    <a class="nav-link" href="../extending/import-ivy-plugins.html">Import Libraries and Plugins</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -427,9 +423,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-55-43dc23</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-56-fc0337</button>
   <div class="version-menu">
-    <a class="version is-current" href="linting.html">0.12.0-RC3-55-43dc23</a>
+    <a class="version is-current" href="linting.html">0.12.0-RC3-56-fc0337</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
@@ -463,7 +459,7 @@ codebases using the Mill build tool</p>
 <h2 id="_linting_with_errorprone"><a class="anchor" href="#_linting_with_errorprone"></a>Linting with ErrorProne</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>When adding the <code>ErrorPromeModule</code> to your <code>JavaModule</code>,
+<p>When adding the <code>ErrorProneModule</code> to your <code>JavaModule</code>,
 the <code>error-prone</code> compiler plugin automatically detects various kind of programming errors.</p>
 </div>
 <div class="listingblock">
@@ -471,7 +467,6 @@ the <code>error-prone</code> compiler plugin automatically detects various kind 
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._, errorprone._
-
 
 object `package` extends RootModule with JavaModule with ErrorProneModule {
   def errorProneOptions = Seq(&quot;-XepAllErrorsAsWarnings&quot;)
@@ -702,16 +697,13 @@ object foo extends Module {
 </ul>
 </div>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_checkstylexsltmodule"><a class="anchor" href="#_checkstylexsltmodule"></a>CheckstyleXsltModule</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_checkstylexsltmodule"><a class="anchor" href="#_checkstylexsltmodule"></a>CheckstyleXsltModule</h3>
 <div class="paragraph">
 <p>This plugin extends the <code>mill.contrib.checkstyle.CheckstyleModule</code> with the ability to generate reports by applying <a href="https://www.w3.org/TR/xslt/">XSL Transformations</a> on a Checkstyle output report.</p>
 </div>
-<div class="sect2">
-<h3 id="_auto_detect_xsl_transformations"><a class="anchor" href="#_auto_detect_xsl_transformations"></a>Auto detect XSL Transformations</h3>
+<div class="sect3">
+<h4 id="_auto_detect_xsl_transformations"><a class="anchor" href="#_auto_detect_xsl_transformations"></a>Auto detect XSL Transformations</h4>
 <div class="paragraph">
 <p>XSLT files are detected automatically provided a prescribed directory structure is followed.</p>
 </div>
@@ -734,8 +726,8 @@ object foo extends Module {
 </div>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_specify_xsl_transformations_manually"><a class="anchor" href="#_specify_xsl_transformations_manually"></a>Specify XSL Transformations manually</h3>
+<div class="sect3">
+<h4 id="_specify_xsl_transformations_manually"><a class="anchor" href="#_specify_xsl_transformations_manually"></a>Specify XSL Transformations manually</h4>
 <div class="paragraph">
 <p>For a custom setup, adapt the following example.</p>
 </div>
@@ -758,6 +750,7 @@ object foo extends JavaModule with CheckstyleXsltModule {
       )
   }
 }</code></pre>
+</div>
 </div>
 </div>
 </div>
@@ -799,18 +792,18 @@ object `package` extends RootModule with PalantirFormatModule</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill palantirformat --check                                         # check should fail initially
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill palantirformat --check    # check should fail initially
 ...checking format in java sources ...
 ...src/A.java
 error: ...palantirformat aborted due to format error(s) (or invalid plugin settings/palantirformat options)
 
-&gt; ./mill palantirformat                                                 # format all Java source files
+&gt; ./mill palantirformat    # format all Java source files
 ...formatting java sources ...
 
-&gt; ./mill palantirformat --check                                         # check should succeed now
+&gt; ./mill palantirformat --check    # check should succeed now
 ...checking format in java sources ...
 
-&gt; ./mill mill.javalib.palantirformat.PalantirFormatModule/ __.sources   # alternatively, use external module to check/format
+&gt; ./mill mill.javalib.palantirformat.PalantirFormatModule/ # alternatively, use external module to check/format
 ...formatting java sources ...</code></pre>
 </div>
 </div>

@@ -277,11 +277,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../extending/import-ivy.html">import $ivy</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../extending/using-plugins.html">Using Plugins</a>
+    <a class="nav-link" href="../extending/import-ivy-plugins.html">Import Libraries and Plugins</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -427,9 +423,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-55-43dc23</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-56-fc0337</button>
   <div class="version-menu">
-    <a class="version is-current" href="large-builds.html">0.12.0-RC3-55-43dc23</a>
+    <a class="version is-current" href="large-builds.html">0.12.0-RC3-56-fc0337</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
@@ -448,9 +444,36 @@
 </aside>
 <article class="doc">
 <h1 class="page">Structuring Large Builds</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section walks through Mill features and techniques used for managing large builds.
+While Mill works great for small single-module projects, it is also able to work
+effectively with large projects with hundreds of modules. Mill’s own build for the
+<a href="https://github.com/com-lihaoyi/mill">com-lihaoyi/mill</a> project has ~400 modules, and
+other proprietary projects may have many more.</p>
+</div>
+<div class="paragraph">
+<p>Mill modules are cheap: having more modules does not significantly impact performance
+or resource usage, so you are encouraged to break up your project into modules to manage
+the layering of your codebase or benefit from parallelism.</p>
+</div>
+</div>
+</div>
 <div class="sect1">
 <h2 id="_multi_file_builds"><a class="anchor" href="#_multi_file_builds"></a>Multi-file Builds</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>Mill allows you to break up your <code>build.mill</code> file into smaller files by defining the
+build-related logic for any particular subfolder as a <code>package.mill</code> file in that subfolder.
+This can be very useful to keep large Mill builds maintainable, as each folder’s build logic
+gets co-located with the files that need to be built, and speeds up compilation of the
+build logic since each <code>build.mill</code> or <code>package.mill</code> file can be compiled independently when
+it is modified without re-compiling all the others.</p>
+</div>
+<div class="paragraph">
+<p>Usage of sub-folder <code>package.mill</code> files is enabled by the magic import <code>import $packages._</code></p>
+</div>
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC3/0.12.0-RC3-example-depth-large-10-multi-file-builds.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/depth/large/10-multi-file-builds">browse</a>)</div>
 <div class="content">
@@ -486,17 +509,6 @@ object mymodule extends build.MyModule {
   def ivyDeps = Agg(ivy&quot;com.lihaoyi::scalatags:0.8.2&quot;)
 }</code></pre>
 </div>
-</div>
-<div class="paragraph">
-<p>Mill allows you to break up your <code>build.mill</code> file into smaller files by defining the
-build-related logic for any particular subfolder as a <code>package.mill</code> file in that subfolder.
-This can be very useful to keep large Mill builds maintainable, as each folder’s build logic
-gets co-located with the files that need to be built, and speeds up compilation of the
-build logic since each <code>build.mill</code> or <code>package.mill</code> file can be compiled independently when
-it is modified without re-compiling all the others.</p>
-</div>
-<div class="paragraph">
-<p>Usage of sub-folder <code>package.mill</code> files is enabled by the magic import <code>import $packages._</code></p>
 </div>
 <div class="paragraph">
 <p>In this example, the root <code>build.mill</code> only contains the <code>trait MyModule</code>, but it is
@@ -543,6 +555,11 @@ though <code>bar/package.mill</code> is empty</p>
 <div class="sect1">
 <h2 id="_helper_files"><a class="anchor" href="#_helper_files"></a>Helper Files</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>Apart from having <code>package</code> files in subfolders to define modules, Mill
+also allows you to have helper code in any <code>*.mill</code> file in the same folder
+as your <code>build.mill</code> or a <code>package.mill</code>.</p>
+</div>
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC3/0.12.0-RC3-example-depth-large-11-helper-files.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/depth/large/11-helper-files">browse</a>)</div>
 <div class="content">
@@ -597,11 +614,6 @@ def myProjectVersion = &quot;0.0.1&quot;</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Apart from having <code>package</code> files in subfolders to define modules, Mill
-also allows you to have helper code in any <code>*.mill</code> file in the same folder
-as your <code>build.mill</code> or a <code>package.mill</code>.</p>
-</div>
-<div class="paragraph">
 <p>Different helper scripts and <code>build.mill</code>/<code>package</code> files can all refer to
 each other using the <code>build</code> object, which marks the root object of your build.
 In this example:</p>
@@ -638,6 +650,13 @@ Foo Env build.foo.versions.myProjectVersion: 0.0.1</code></pre>
 <div class="sect1">
 <h2 id="_legacy_sc_extension"><a class="anchor" href="#_legacy_sc_extension"></a>Legacy <code>.sc</code> extension</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>To ease the migration from Mill 0.11.x, the older <code>.sc</code> file extension is also supported
+for Mill build files, and the <code>package</code> declaration is optional in such files. Note that
+this means that IDE support using <code>.sc</code> files will not be as good as IDE support using the
+current <code>.mill</code> extension with <code>package</code> declaration, so you should use <code>.mill</code> whenever
+possible</p>
+</div>
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC3/0.12.0-RC3-example-depth-large-12-helper-files-sc.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/depth/large/12-helper-files-sc">browse</a>)</div>
 <div class="content">
@@ -647,10 +666,12 @@ import $file.foo.versions
 import $file.util, util.MyModule
 
 object `package` extends RootModule with MyModule{
-  def forkEnv = Map(
-    &quot;MY_SCALA_VERSION&quot; -&gt; build.scalaVersion(),
-    &quot;MY_PROJECT_VERSION&quot; -&gt; versions.myProjectVersion,
-  )
+  def forkEnv = T{
+    Map(
+      &quot;MY_SCALA_VERSION&quot; -&gt; build.scalaVersion(),
+      &quot;MY_PROJECT_VERSION&quot; -&gt; versions.myProjectVersion,
+    )
+  }
 }</code></pre>
 </div>
 </div>
@@ -685,13 +706,6 @@ object `package` extends RootModule with build_.util.MyModule {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def myProjectVersion = &quot;0.0.1&quot;</code></pre>
 </div>
-</div>
-<div class="paragraph">
-<p>To ease the migration from Mill 0.11.x, the older <code>.sc</code> file extension is also supported
-for Mill build files, and the <code>package</code> declaration is optional in such files. Note that
-this means that IDE support using <code>.sc</code> files will not be as good as IDE support using the
-current <code>.mill</code> extension with <code>package</code> declaration, so you should use <code>.mill</code> whenever
-possible</p>
 </div>
 <div class="listingblock">
 <div class="content">

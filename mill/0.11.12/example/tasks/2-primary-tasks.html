@@ -310,7 +310,7 @@
 <div class="page-versions">
   <button class="version-menu-toggle" title="Show other versions of page">0.11.12</button>
   <div class="version-menu">
-    <a class="version is-missing" href="../../../index.html">0.12.0-RC3-55-43dc23</a>
+    <a class="version is-missing" href="../../../index.html">0.12.0-RC3-56-fc0337</a>
     <a class="version is-current" href="2-primary-tasks.html">0.11.12</a>
     <a class="version" href="../../../0.11.11/example/tasks/2-primary-tasks.html">0.11.11</a>
     <a class="version" href="../../../0.11.10/example/tasks/2-primary-tasks.html">0.11.10</a>
@@ -386,6 +386,7 @@ def lineCount: T[Int] = T {
 }</code></pre>
 </div>
 </div>
+<center>
 <svg width="284px" height="33px" viewBox="0.00 0.00 283.51 32.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 28.8)">
 <title>G</title>
@@ -422,6 +423,8 @@ def lineCount: T[Int] = T {
 </g>
 </g>
 </svg>
+
+</center>
 <div class="paragraph">
 <p><code>Target</code>s are defined using the <code>def foo = T {…​}</code> syntax, and dependencies
 on other targets are defined using <code>foo()</code> to extract the value from them.
@@ -481,6 +484,7 @@ def jar = T {
 }</code></pre>
 </div>
 </div>
+<center>
 <svg width="256px" height="76px" viewBox="0.00 0.00 255.51 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
 <title>G</title>
@@ -529,6 +533,8 @@ def jar = T {
 </g>
 </g>
 </svg>
+
+</center>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill jar
@@ -568,6 +574,7 @@ def hugeFileName = T{
 }</code></pre>
 </div>
 </div>
+<center>
 <svg width="318px" height="33px" viewBox="0.00 0.00 318.49 32.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 28.8)">
 <title>G</title>
@@ -604,6 +611,8 @@ def hugeFileName = T{
 </g>
 </g>
 </svg>
+
+</center>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show lineCount
@@ -638,6 +647,7 @@ def summarizeClassFileStats = T{
 }</code></pre>
 </div>
 </div>
+<center>
 <svg width="278px" height="33px" viewBox="0.00 0.00 278.19 32.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 28.8)">
 <title>G</title>
@@ -662,6 +672,8 @@ def summarizeClassFileStats = T{
 </g>
 </g>
 </svg>
+
+</center>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show summarizeClassFileStats
@@ -687,6 +699,7 @@ def summarizeClassFileStats = T{
 }</code></pre>
 </div>
 </div>
+<center>
 <svg width="149px" height="76px" viewBox="0.00 0.00 149.09 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
 <title>G</title>
@@ -723,6 +736,8 @@ def summarizeClassFileStats = T{
 </g>
 </g>
 </svg>
+
+</center>
 <div class="paragraph">
 <p>Defined using <code>T.command {…​}</code> syntax, <code>Command</code>s can run arbitrary code, with
 dependencies declared using the same <code>foo()</code> syntax (e.g. <code>classFiles()</code> above).
@@ -773,6 +788,7 @@ trait Bar extends Foo {
 object bar extends Bar</code></pre>
 </div>
 </div>
+<center>
 <svg width="451px" height="76px" viewBox="0.00 0.00 450.67 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
 <title>G</title>
@@ -821,6 +837,8 @@ object bar extends Bar</code></pre>
 </g>
 </g>
 </svg>
+
+</center>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show bar.sourceContents # includes both source folders

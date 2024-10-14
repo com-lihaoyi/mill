@@ -317,7 +317,7 @@
 <div class="page-versions">
   <button class="version-menu-toggle" title="Show other versions of page">0.11.12</button>
   <div class="version-menu">
-    <a class="version" href="../fundamentals/modules.html">0.12.0-RC3-55-43dc23</a>
+    <a class="version" href="../fundamentals/modules.html">0.12.0-RC3-56-fc0337</a>
     <a class="version is-current" href="Modules.html">0.11.12</a>
     <a class="version" href="../0.11.11/Modules.html">0.11.11</a>
     <a class="version" href="../0.11.10/Modules.html">0.11.10</a>
@@ -381,6 +381,7 @@ object foo extends Module {
 }</code></pre>
 </div>
 </div>
+<center>
 <svg width="153px" height="215px" viewBox="0.00 0.00 153.06 215.20" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 211.2)">
 <title>G</title>
@@ -441,6 +442,8 @@ object foo extends Module {
 </g>
 </g>
 </svg>
+
+</center>
 <div class="paragraph">
 <p>You would be able to run the two targets via <code>mill foo.bar</code> or <code>mill
 foo.qux.baz</code>. You can use <code>mill show foo.bar</code> or <code>mill show foo.baz.qux</code> to
@@ -500,6 +503,7 @@ object foo2 extends FooModule {
 arrows representing the module tree, and the solid boxes and arrows representing
 the task graph</p>
 </div>
+<center>
 <svg width="522px" height="154px" viewBox="0.00 0.00 521.81 154.40" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 150.4)">
 <title>G</title>
@@ -631,6 +635,8 @@ the task graph</p>
 </g>
 </g>
 </svg>
+
+</center>
 <div class="paragraph">
 <p>Note that the <code>override</code> keyword is optional in mill, as is <code>T{…​}</code> wrapper.</p>
 </div>
@@ -683,6 +689,7 @@ object outer extends MyModule {
 }</code></pre>
 </div>
 </div>
+<center>
 <svg width="376px" height="215px" viewBox="0.00 0.00 376.32 215.20" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 211.2)">
 <title>G</title>
@@ -779,6 +786,8 @@ object outer extends MyModule {
 </g>
 </g>
 </svg>
+
+</center>
 <div class="ulist">
 <ul>
 <li>
@@ -901,6 +910,7 @@ trait DiyJavaModule extends Module{
 edges (dashed) are not connected; that is because <code>DiyJavaModule</code> is abstract, and
 needs to be inherited by a concrete <code>object</code> before it can be used.</p>
 </div>
+<center>
 <svg width="410px" height="132px" viewBox="0.00 0.00 409.51 132.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 128.0)">
 <title>G</title>
@@ -982,6 +992,8 @@ needs to be inherited by a concrete <code>object</code> before it can be used.</
 </g>
 </g>
 </svg>
+
+</center>
 <div class="paragraph">
 <p>Some notable things to call out:</p>
 </div>
@@ -1030,6 +1042,7 @@ object qux extends DiyJavaModule {
 duplicated three times - once per module - with the tasks wired up between the modules
 according to our overrides for <code>moduleDeps</code></p>
 </div>
+<center>
 <svg width="847px" height="364px" viewBox="0.00 0.00 847.08 364.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 360.0)">
 <title>G</title>
@@ -1236,6 +1249,8 @@ according to our overrides for <code>moduleDeps</code></p>
 </g>
 </g>
 </svg>
+
+</center>
 <div class="paragraph">
 <p>This simple set of <code>DiyJavaModule</code> can be used as follows:</p>
 </div>

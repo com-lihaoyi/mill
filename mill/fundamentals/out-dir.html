@@ -278,11 +278,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../extending/import-ivy.html">import $ivy</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../extending/using-plugins.html">Using Plugins</a>
+    <a class="nav-link" href="../extending/import-ivy-plugins.html">Import Libraries and Plugins</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -428,9 +424,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-55-43dc23</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-56-fc0337</button>
   <div class="version-menu">
-    <a class="version is-current" href="out-dir.html">0.12.0-RC3-55-43dc23</a>
+    <a class="version is-current" href="out-dir.html">0.12.0-RC3-56-fc0337</a>
     <a class="version" href="../0.11.12/Out_Dir.html">0.11.12</a>
     <a class="version" href="../0.11.11/Out_Dir.html">0.11.11</a>
     <a class="version" href="../0.11.10/Out_Dir.html">0.11.10</a>
@@ -514,7 +510,7 @@ It holds some files needed to manage Mill’s longer running server instances (<
 </tr>
 <tr>
 <td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>The <code>compile</code> task has tried to access its scratch space via <code>T.dest</code>. Here you will find the actual compile results.</td>
+<td>The <code>compile</code> task has tried to access its scratch space via <code>Task.dest</code>. Here you will find the actual compile results.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="3"></i><b>3</b></td>
@@ -555,7 +551,7 @@ by <code>foo.json</code> via <code>PathRef</code> references.</p>
 <dd>
 <p>  optional, a path for the <code>Task</code> to use either as a scratch space, or to place generated files that are returned
 using <code>PathRef</code> references.
-A <code>Task</code> should only output files within its own given <code>foo.dest/</code> folder (available as <code>T.dest</code>) to avoid
+A <code>Task</code> should only output files within its own given <code>foo.dest/</code> folder (available as <code>Task.dest</code>) to avoid
 conflicting with another <code>Task</code>, but can name files within <code>foo.dest/</code>  arbitrarily.</p>
 </dd>
 <dt class="hdlist1"><code>foo.log</code></dt>
@@ -626,8 +622,9 @@ This is very useful if Mill is being unexpectedly slow, and you want to find out
 <div class="sectionbody">
 <div class="paragraph">
 <p>The default location for Mill’s output directory is <code>out/</code> under the project workspace.
-A task <code>printDest</code> of a module <code>foo</code> will have a default scratch space folder
-<code>out/foo/printDest.dest/</code>:</p>
+If you’d rather use another location than <code>out/</code>, that lives
+in a faster or a writable filesystem for example, you can change the output directory
+via the <code>MILL_OUTPUT_DIR</code> environment variable.</p>
 </div>
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC3/0.12.0-RC3-example-fundamentals-out-dir-1-custom-out.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/fundamentals/out-dir/1-custom-out">browse</a>)</div>
@@ -642,18 +639,6 @@ object foo extends Module {
   }
 }</code></pre>
 </div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.printDest
-...
-.../out/foo/printDest.dest</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>If you’d rather use another location than <code>out/</code>, that lives
-in a faster or a writable filesystem for example, you can change the output directory
-via the <code>MILL_OUTPUT_DIR</code> environment variable.</p>
 </div>
 <div class="listingblock">
 <div class="content">

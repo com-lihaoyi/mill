@@ -278,11 +278,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../extending/import-ivy.html">import $ivy</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../extending/using-plugins.html">Using Plugins</a>
+    <a class="nav-link" href="../extending/import-ivy-plugins.html">Import Libraries and Plugins</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -428,9 +424,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-55-43dc23</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-56-fc0337</button>
   <div class="version-menu">
-    <a class="version is-current" href="modules.html">0.12.0-RC3-55-43dc23</a>
+    <a class="version is-current" href="modules.html">0.12.0-RC3-56-fc0337</a>
     <a class="version" href="../0.11.12/Modules.html">0.11.12</a>
     <a class="version" href="../0.11.11/Modules.html">0.11.11</a>
     <a class="version" href="../0.11.10/Modules.html">0.11.10</a>
@@ -451,6 +447,9 @@
 <h1 class="page">Modules</h1>
 <div id="preamble">
 <div class="sectionbody">
+<div class="paragraph">
+<p><code>mill.Module</code> serves two main purposes:</p>
+</div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
@@ -492,6 +491,7 @@ object foo extends Module {
 }</code></pre>
 </div>
 </div>
+<center>
 <svg width="153px" height="215px" viewBox="0.00 0.00 153.06 215.20" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 211.2)">
 <title>G</title>
@@ -552,6 +552,8 @@ object foo extends Module {
 </g>
 </g>
 </svg>
+
+</center>
 <div class="paragraph">
 <p>You would be able to run the two tasks via <code>mill foo.bar</code> or <code>mill
 foo.qux.baz</code>. You can use <code>mill show foo.bar</code> or <code>mill show foo.baz.qux</code> to
@@ -611,6 +613,7 @@ object foo2 extends FooModule {
 arrows representing the module tree, and the solid boxes and arrows representing
 the task graph</p>
 </div>
+<center>
 <svg width="522px" height="154px" viewBox="0.00 0.00 521.81 154.40" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 150.4)">
 <title>G</title>
@@ -742,6 +745,8 @@ the task graph</p>
 </g>
 </g>
 </svg>
+
+</center>
 <div class="paragraph">
 <p>Note that the <code>override</code> keyword is optional in mill, as is <code>T{…​}</code> wrapper.</p>
 </div>
@@ -794,6 +799,7 @@ object outer extends MyModule {
 }</code></pre>
 </div>
 </div>
+<center>
 <svg width="361px" height="215px" viewBox="0.00 0.00 360.66 215.20" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 211.2)">
 <title>G</title>
@@ -890,6 +896,8 @@ object outer extends MyModule {
 </g>
 </g>
 </svg>
+
+</center>
 <div class="ulist">
 <ul>
 <li>
@@ -912,11 +920,11 @@ object outer extends MyModule {
 </div>
 </div>
 <div class="paragraph">
-<p>You can use <code>millSourcePath</code> to automatically set the source folders of your
-modules to match the build structure. You are not forced to rigidly use
-<code>millSourcePath</code> to define the source folders of all your code, but it can simplify
-the common case where you probably want your build-layout and on-disk-layout to
-be the same.</p>
+<p>You should use <code>millSourcePath</code> to set the source folders of your
+modules to match the build structure. In almost every case, a module’s source files
+live at some relative path within the module’s folder, and using <code>millSourcePath</code>
+ensures that the relative path to the module’s source files remains the same
+regardless of where your module lives in the build hierarchy.</p>
 </div>
 <div class="paragraph">
 <p>E.g. for <code>mill.scalalib.ScalaModule</code>, the Scala source code is assumed by
@@ -924,7 +932,7 @@ default to be in <code>millSourcePath / &quot;src&quot;</code> while resources a
 assumed to be in <code>millSourcePath / &quot;resources&quot;</code>.</p>
 </div>
 <div class="paragraph">
-<p>You can override <code>millSourcePath</code>:</p>
+<p>You can also override <code>millSourcePath</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -964,13 +972,22 @@ the <code>out/</code> folder and cannot be changed, e.g. even with the overridde
 ...&quot;value&quot;: &quot;hello contents of file inside outer2/nested/inner/sources/&quot;...</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p><strong>Note that <code>os.pwd</code> of the Mill process is set to an empty <code>sandbox/</code> folder by default.</strong>
+<div class="admonitionblock note">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<strong><code>os.pwd</code> of the Mill process is set to an empty <code>sandbox/</code> folder by default.</strong>
 When defining a module’s source files, you should always use <code>millSourcePath</code> to ensure the
 paths defined are relative to the module’s root folder, so the module logic can continue
 to work even if moved into a different subfolder. In the rare case where you need the
 Mill project root path, and you truly know what you are doing, you can call
-g`mill.api.WorkspaceRoot.workspaceRoot`.</p>
+g`mill.api.WorkspaceRoot.workspaceRoot`.
+</td>
+</tr>
+</tbody></table>
 </div>
 </div>
 </div>
@@ -1021,6 +1038,7 @@ trait DiyJavaModule extends Module{
 edges (dashed) are not connected; that is because <code>DiyJavaModule</code> is abstract, and
 needs to be inherited by a concrete <code>object</code> before it can be used.</p>
 </div>
+<center>
 <svg width="410px" height="132px" viewBox="0.00 0.00 409.51 132.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 128.0)">
 <title>G</title>
@@ -1102,6 +1120,8 @@ needs to be inherited by a concrete <code>object</code> before it can be used.</
 </g>
 </g>
 </svg>
+
+</center>
 <div class="paragraph">
 <p>Some notable things to call out:</p>
 </div>
@@ -1150,14 +1170,10 @@ object qux extends DiyJavaModule {
 duplicated three times - once per module - with the tasks wired up between the modules
 according to our overrides for <code>moduleDeps</code></p>
 </div>
-<svg width="847px" height="364px" viewBox="0.00 0.00 847.08 364.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 360.0)">
+<center>
+<svg width="847px" height="321px" viewBox="0.00 0.00 847.08 321.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 317.0)">
 <title>G</title>
-<g id="clust1" class="cluster">
-<title>cluster_0</title>
-<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-240 8,-348 567.65,-348 567.65,-240 8,-240"></polygon>
-<text text-anchor="middle" x="287.82" y="-331.4" font-family="Times,serif" font-size="14.00">foo.bar</text>
-</g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
 <polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="157.76,-124 157.76,-232 698.19,-232 698.19,-124 157.76,-124"></polygon>
@@ -1167,6 +1183,11 @@ according to our overrides for <code>moduleDeps</code></p>
 <title>cluster_2</title>
 <polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="303.84,-8 303.84,-116 831.08,-116 831.08,-8 303.84,-8"></polygon>
 <text text-anchor="middle" x="567.46" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_0</title>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-240 8,-305 567.65,-305 567.65,-240 8,-240"></polygon>
+<text text-anchor="middle" x="287.82" y="-288.4" font-family="Times,serif" font-size="14.00">foo.bar</text>
 </g>
 <!-- foo.bar.sources -->
 <g id="node1" class="node">
@@ -1189,26 +1210,26 @@ according to our overrides for <code>moduleDeps</code></p>
 <!-- foo.bar.classPath -->
 <g id="node3" class="node">
 <title>foo.bar.classPath</title>
-<polygon fill="white" stroke="black" points="408.72,-272.3 297.45,-272.3 297.45,-247.7 408.72,-247.7 408.72,-272.3"></polygon>
-<text text-anchor="middle" x="353.08" y="-255.8" font-family="Times,serif" font-size="14.00">foo.bar.classPath</text>
+<polygon fill="white" stroke="black" points="408.72,-199.3 297.45,-199.3 297.45,-174.7 408.72,-174.7 408.72,-199.3"></polygon>
+<text text-anchor="middle" x="353.08" y="-182.8" font-family="Times,serif" font-size="14.00">foo.bar.classPath</text>
 </g>
 <!-- foo.bar.compile&#45;&gt;foo.bar.classPath -->
 <g id="edge2" class="edge">
 <title>foo.bar.compile-&gt;foo.bar.classPath</title>
-<path fill="none" stroke="black" d="M258.04,-260C267.5,-260 277.49,-260 287.28,-260"></path>
-<polygon fill="black" stroke="black" points="287.39,-263.5 297.39,-260 287.39,-256.5 287.39,-263.5"></polygon>
+<path fill="none" stroke="black" d="M233.84,-247.64C241.71,-243.96 250.3,-239.88 258.15,-236 278.93,-225.73 302.02,-213.69 320.1,-204.12"></path>
+<polygon fill="black" stroke="black" points="321.87,-207.14 329.06,-199.36 318.59,-200.96 321.87,-207.14"></polygon>
 </g>
 <!-- foo.bar.assembly -->
 <g id="node4" class="node">
 <title>foo.bar.assembly</title>
-<polygon fill="white" stroke="black" points="559.47,-293.3 448.2,-293.3 448.2,-268.7 559.47,-268.7 559.47,-293.3"></polygon>
-<text text-anchor="middle" x="503.83" y="-276.8" font-family="Times,serif" font-size="14.00">foo.bar.assembly</text>
+<polygon fill="white" stroke="black" points="559.47,-272.3 448.2,-272.3 448.2,-247.7 559.47,-247.7 559.47,-272.3"></polygon>
+<text text-anchor="middle" x="503.83" y="-255.8" font-family="Times,serif" font-size="14.00">foo.bar.assembly</text>
 </g>
 <!-- foo.bar.classPath&#45;&gt;foo.bar.assembly -->
 <g id="edge3" class="edge">
 <title>foo.bar.classPath-&gt;foo.bar.assembly</title>
-<path fill="none" stroke="black" d="M409.05,-267.76C418.51,-269.1 428.42,-270.49 438.11,-271.86"></path>
-<polygon fill="black" stroke="black" points="437.7,-275.34 448.09,-273.27 438.68,-268.41 437.7,-275.34"></polygon>
+<path fill="none" stroke="black" d="M376.64,-199.32C395.53,-209.5 423.3,-224.16 448.01,-236 453.3,-238.53 458.91,-241.11 464.45,-243.59"></path>
+<polygon fill="black" stroke="black" points="463.08,-246.82 473.65,-247.66 465.92,-240.41 463.08,-246.82"></polygon>
 </g>
 <!-- foo.compile -->
 <g id="node6" class="node">
@@ -1219,8 +1240,8 @@ according to our overrides for <code>moduleDeps</code></p>
 <!-- foo.bar.classPath&#45;&gt;foo.compile -->
 <g id="edge5" class="edge">
 <title>foo.bar.classPath-&gt;foo.compile</title>
-<path fill="none" stroke="black" d="M353.08,-247.49C353.08,-220.65 353.08,-193.81 353.08,-166.97"></path>
-<polygon fill="black" stroke="black" points="356.58,-166.69 353.08,-156.69 349.58,-166.69 356.58,-166.69"></polygon>
+<path fill="none" stroke="black" d="M353.08,-174.58C353.08,-171.93 353.08,-169.29 353.08,-166.64"></path>
+<polygon fill="black" stroke="black" points="356.58,-166.43 353.08,-156.43 349.58,-166.43 356.58,-166.43"></polygon>
 </g>
 <!-- foo.classPath -->
 <g id="node7" class="node">
@@ -1231,20 +1252,20 @@ according to our overrides for <code>moduleDeps</code></p>
 <!-- foo.bar.classPath&#45;&gt;foo.classPath -->
 <g id="edge6" class="edge">
 <title>foo.bar.classPath-&gt;foo.classPath</title>
-<path fill="none" stroke="black" d="M394.61,-247.57C400.9,-244.46 406.97,-240.65 412.01,-236 437.75,-212.3 422.15,-189.56 448.01,-166 449.71,-164.46 451.52,-163.02 453.43,-161.67"></path>
-<polygon fill="black" stroke="black" points="455.47,-164.53 462.23,-156.37 451.86,-158.53 455.47,-164.53"></polygon>
+<path fill="none" stroke="black" d="M396.71,-174.68C413.36,-169.86 432.62,-164.3 450.13,-159.24"></path>
+<polygon fill="black" stroke="black" points="451.57,-162.46 460.2,-156.32 449.62,-155.74 451.57,-162.46"></polygon>
 </g>
 <!-- foo.bar.mainClass -->
 <g id="node5" class="node">
 <title>foo.bar.mainClass</title>
-<polygon fill="white" stroke="black" points="411.95,-315.3 294.22,-315.3 294.22,-290.7 411.95,-290.7 411.95,-315.3"></polygon>
-<text text-anchor="middle" x="353.08" y="-298.8" font-family="Times,serif" font-size="14.00">foo.bar.mainClass</text>
+<polygon fill="white" stroke="black" points="411.95,-272.3 294.22,-272.3 294.22,-247.7 411.95,-247.7 411.95,-272.3"></polygon>
+<text text-anchor="middle" x="353.08" y="-255.8" font-family="Times,serif" font-size="14.00">foo.bar.mainClass</text>
 </g>
 <!-- foo.bar.mainClass&#45;&gt;foo.bar.assembly -->
 <g id="edge4" class="edge">
 <title>foo.bar.mainClass-&gt;foo.bar.assembly</title>
-<path fill="none" stroke="black" d="M412.02,-294.43C420.46,-293.18 429.2,-291.89 437.78,-290.62"></path>
-<polygon fill="black" stroke="black" points="438.35,-294.07 447.73,-289.15 437.33,-287.15 438.35,-294.07"></polygon>
+<path fill="none" stroke="black" d="M412.02,-260C420.37,-260 429.01,-260 437.5,-260"></path>
+<polygon fill="black" stroke="black" points="437.73,-263.5 447.73,-260 437.73,-256.5 437.73,-263.5"></polygon>
 </g>
 <!-- foo.compile&#45;&gt;foo.classPath -->
 <g id="edge8" class="edge">
@@ -1273,8 +1294,10 @@ according to our overrides for <code>moduleDeps</code></p>
 <!-- foo.classPath&#45;&gt;qux.compile -->
 <g id="edge12" class="edge">
 <title>foo.classPath-&gt;qux.compile</title>
-<path fill="none" stroke="black" d="M503.83,-131.49C503.83,-104.65 503.83,-77.81 503.83,-50.97"></path>
-<polygon fill="black" stroke="black" points="507.33,-50.69 503.83,-40.69 500.33,-50.69 507.33,-50.69"></polygon>
+<path fill="none" stroke="black" d="M491.48,-131.49C467.56,-103.94 465.37,-76.39 484.9,-48.85"></path>
+<polygon fill="black" stroke="black" points="487.89,-50.71 491.32,-40.69 482.39,-46.38 487.89,-50.71"></polygon>
+<path fill="none" stroke="black" d="M516.19,-131.49C540.1,-103.94 542.29,-76.39 522.76,-48.85"></path>
+<polygon fill="black" stroke="black" points="525.27,-46.38 516.34,-40.69 519.77,-50.71 525.27,-46.38"></polygon>
 </g>
 <!-- qux.classPath -->
 <g id="node14" class="node">
@@ -1356,6 +1379,8 @@ according to our overrides for <code>moduleDeps</code></p>
 </g>
 </g>
 </svg>
+
+</center>
 <div class="paragraph">
 <p>This simple set of <code>DiyJavaModule</code> can be used as follows:</p>
 </div>
