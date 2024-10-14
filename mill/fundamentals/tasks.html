@@ -424,9 +424,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-56-fc0337</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-57-5d0c8b</button>
   <div class="version-menu">
-    <a class="version is-current" href="tasks.html">0.12.0-RC3-56-fc0337</a>
+    <a class="version is-current" href="tasks.html">0.12.0-RC3-57-5d0c8b</a>
     <a class="version" href="../0.11.12/Tasks.html">0.11.12</a>
     <a class="version" href="../0.11.11/Tasks.html">0.11.11</a>
     <a class="version" href="../0.11.10/Tasks.html">0.11.10</a>
@@ -834,7 +834,7 @@ and use the cached output of <code>compile</code> (green)</p>
 <p><a href="#_sources">Sources</a>, defined using <code>Task.Sources {…​}</code></p>
 </li>
 <li>
-<p><a href="#_tasks">[_tasks]</a>, defined using <code>Task {…​}</code></p>
+<p><a href="#_cached_tasks">Cached Tasks</a>, defined using <code>Task {…​}</code></p>
 </li>
 <li>
 <p><a href="#_commands">Commands</a>, defined using <code>Task.Command {…​}</code></p>
@@ -1562,7 +1562,7 @@ arbitrary block of code.</p>
 </div>
 <div class="paragraph">
 <p>Inputs can be used to force re-evaluation of some external property that may
-affect your build. For example, if I have a <a href="#_cached_task">cached task</a> <code>bar</code> that
+affect your build. For example, if I have a <a href="#_cached_tasks">cached task</a> <code>bar</code> that
 calls out to <code>git</code> to compute the latest commit hash and message directly,
 that target does not have any <code>Task</code> inputs and so will never re-compute
 even if the external <code>git</code> status changes:</p>
