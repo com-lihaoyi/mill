@@ -45,7 +45,7 @@ object WebApp {
   }
 
   private fun FlowContent.toggleAll(state: String) {
-    val next = todos.any { it.checked }
+    val next = todos.any { !it.checked }
     for (item in todos.withIndex()) {
       todos[item.index] = item.value.copy(checked = next)
     }

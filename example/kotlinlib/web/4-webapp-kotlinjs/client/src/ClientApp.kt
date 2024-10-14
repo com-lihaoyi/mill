@@ -28,7 +28,7 @@ object ClientApp {
 
   private fun bindEvent(cls: String, url: String, endState: String? = null) {
     document.getElementsByClassName(cls)[0]
-      ?.addEventListener("mousedown", {
+      ?.addEventListener("click", {
         postFetchUpdate(url)
         if (endState != null) state = endState
       }
@@ -38,7 +38,7 @@ object ClientApp {
   private fun bindIndexedEvent(cls: String, block: (String) -> String) {
     for (elem in document.getElementsByClassName(cls).asList()) {
       elem.addEventListener(
-        "mousedown",
+        "click",
         { postFetchUpdate(block(elem.getAttribute("data-todo-index")!!)) }
       )
     }
