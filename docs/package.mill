@@ -368,14 +368,45 @@ object `package` extends RootModule {
       )
     }
   }
+
   def checkBrokenLinks() = Task.Command{
-    if (brokenLinks().nonEmpty){
-      throw new Exception("Broken Links: " + upickle.default.write(brokenLinks(), indent = 2))
+    if (brokenLocalLinks().nonEmpty){
+      throw new Exception("Broken Links: " + upickle.default.write(brokenLocalLinks(), indent = 2))
     }
   }
-  def brokenLinks: T[Map[os.Path, Seq[(String, String)]]] = Task{
+  def brokenRemoteLinks: T[Map[os.Path, Seq[(String, String, Int)]]] = Task{
+    val allLinks = allLinksAndAnchors()
+      .flatMap { case (path, remoteLinks, localLinks, ids) => remoteLinks }
+      .map(_._2)
+      .distinct
+      .toSeq
+
+    // Try to fetch all the links serially. It isn't worth trying to parallelize it
+    // because if we go too fast the remote websites tend to rate limit us anyway
+    val linksToStatusCodes = allLinks.zipWithIndex
+      .map{ case (link, i) =>
+        println(s"Checking link $link $i/${allLinks.length}")
+        (link, requests.get(link, check = false).statusCode)
+      }
+      .toMap
+
+
+    allLinksAndAnchors()
+      .map{case (path, remoteLinks, localLinks, ids) =>
+        (
+          path,
+          remoteLinks.collect{case (e, l) if !linksToStatusCodes(l).toString.startsWith("2") =>
+            (e, l, linksToStatusCodes(l))
+          }
+        )
+      }
+      .filter(_._2.nonEmpty)
+      .toMap
+  }
+
+  def brokenLocalLinks: T[Map[os.Path, Seq[(String, String)]]] = Task{
     val allLinksAndAnchors0 = allLinksAndAnchors()
-    val pathsToIds = allLinksAndAnchors()
+    val pathsToIds = allLinksAndAnchors0
       .map{case (path, remoteLinks, localLinks, ids) => (path, ids)}
       .toMap
 
