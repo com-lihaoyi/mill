@@ -427,9 +427,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-51-2831d9</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-52-91ff5f</button>
   <div class="version-menu">
-    <a class="version is-current" href="web-examples.html">0.12.0-RC3-51-2831d9</a>
+    <a class="version is-current" href="web-examples.html">0.12.0-RC3-52-91ff5f</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
@@ -642,13 +642,13 @@ this example also demonstrates:</p>
 <h2 id="_work_in_progress_simple_kotlinjs_module"><a class="anchor" href="#_work_in_progress_simple_kotlinjs_module"></a>(Work In Progress) Simple KotlinJS Module</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>KotlinJS support on Mill is still Work In Progress (WIP). As of time of writing it
-Node.js/Webpack test runners and reporting, etc.</p>
+<p>Kotlin/JS support on Mill is still Work In Progress (WIP). As of time of writing it
+supports Node.js, but lacks support of Browser, Webpack, test runners, reporting, etc.</p>
 </div>
 <div class="paragraph">
 <p>The example below demonstrates only the minimal compilation, running, and testing of
-a single KotlinJS module using a single third-party dependency. For more details in
-fully developing KotlinJS support, see the following ticket:</p>
+a single Kotlin/JS module using a single third-party dependency. For more details in
+fully developing Kotlin/JS support, see the following ticket:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -663,38 +663,39 @@ fully developing KotlinJS support, see the following ticket:</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._, kotlinlib.js._
 
-object foo extends KotlinJSModule {
+object `package` extends RootModule with KotlinJSModule {
   def moduleKind = ModuleKind.ESModule
   def kotlinVersion = &quot;1.9.25&quot;
   def kotlinJSRunTarget = Some(RunTarget.Node)
   def ivyDeps = Agg(
     ivy&quot;org.jetbrains.kotlinx:kotlinx-html-js:0.11.0&quot;,
   )
-  object test extends KotlinJSModule with KotlinJSKotlinXTests
+  object test extends KotlinJSModule with KotestTests
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.run
-Compiling 1 Kotlin sources to .../out/foo/compile.dest/classes...
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill run
+Compiling 1 Kotlin sources to .../out/compile.dest/classes...
 &lt;h1&gt;Hello World&lt;/h1&gt;
 stringifiedJsObject: [&quot;hello&quot;,&quot;world&quot;,&quot;!&quot;]
 
-&gt; mill foo.test # Test is incorrect, `foo.test`` fails
-Compiling 1 Kotlin sources to .../out/foo/test/compile.dest/classes...
-Linking IR to .../out/foo/test/linkBinary.dest/binaries
-produce executable: .../out/foo/test/linkBinary.dest/binaries
+&gt; mill test # Test is incorrect, `test` fails
+Compiling 1 Kotlin sources to .../out/test/compile.dest/classes...
+Linking IR to .../out/test/linkBinary.dest/binaries
+produce executable: .../out/test/linkBinary.dest/binaries
 ...
-error: AssertionError: Expected &lt;&lt;h1&gt;Hello World&lt;/h1&gt;&gt;, actual &lt;&lt;h1&gt;Hello World Wrong&lt;/h1&gt;&gt;.
-
-&gt; cat out/foo/test/linkBinary.dest/binaries/test.js # Generated javascript on disk
-...assertEquals_0(..., '&lt;h1&gt;Hello World Wrong&lt;\/h1&gt;');...
+error: ...AssertionFailedError: expected:&lt;&quot;&lt;h1&gt;Hello World Wrong&lt;/h1&gt;&quot;&gt; but was:&lt;&quot;&lt;h1&gt;Hello World&lt;/h1&gt;...
 ...
 
-&gt; sed -i.bak 's/Hello World Wrong/Hello World/g' foo/test/src/foo/HelloTests.kt
+&gt; cat out/test/linkBinary.dest/binaries/test.js # Generated javascript on disk
+...shouldBe(..., '&lt;h1&gt;Hello World Wrong&lt;\/h1&gt;');...
+...
 
-&gt; mill foo.test # passes after fixing test</code></pre>
+&gt; sed -i.bak 's/Hello World Wrong/Hello World/g' test/src/foo/HelloTests.kt
+
+&gt; mill test # passes after fixing test</code></pre>
 </div>
 </div>
 </div>
