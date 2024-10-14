@@ -129,7 +129,7 @@ object core extends PlayApiModule {
 == Play configuration options
 
 The Play modules themselves don't have specific configuration options at this point but the <<_router_configuration_options,router
-module configuration options>> and the <<contrib/twirllib.adoc#_twil_configuration_options>> are applicable.
+module configuration options>> and the <<contrib/twirllib.adoc#_twirl_configuration_options>> are applicable.
 
 == Additional play libraries
 

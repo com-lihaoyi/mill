@@ -369,11 +369,6 @@ object `package` extends RootModule {
     }
   }
 
-  def checkBrokenLinks() = Task.Command{
-    if (brokenLocalLinks().nonEmpty){
-      throw new Exception("Broken Links: " + upickle.default.write(brokenLocalLinks(), indent = 2))
-    }
-  }
   def brokenRemoteLinks: T[Map[os.Path, Seq[(String, String, Int)]]] = Task{
     val allLinks = allLinksAndAnchors()
       .flatMap { case (path, remoteLinks, localLinks, ids) => remoteLinks }
@@ -402,6 +397,16 @@ object `package` extends RootModule {
       }
       .filter(_._2.nonEmpty)
       .toMap
+  }
+
+
+  def checkBrokenLinks() = Task.Command{
+    if (brokenLocalLinks().nonEmpty){
+      throw new Exception("Broken Local Links: " + upickle.default.write(brokenLocalLinks(), indent = 2))
+    }
+    if (brokenRemoteLinks().nonEmpty){
+      throw new Exception("Broken Rmote Links: " + upickle.default.write(brokenRemoteLinks(), indent = 2))
+    }
   }
 
   def brokenLocalLinks: T[Map[os.Path, Seq[(String, String)]]] = Task{
