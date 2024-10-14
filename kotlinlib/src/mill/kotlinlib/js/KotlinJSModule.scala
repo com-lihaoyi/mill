@@ -382,20 +382,19 @@ trait KotlinJSModule extends KotlinModule { outer =>
 
   // these 2 exist to ignore values added to the display name in case of the cross-modules
   // we already have cross-modules in the paths, so we don't need them here
+  private def fullModuleNameSegments() = {
+    millModuleSegments.value
+      .collect { case label: Segment.Label => label.value } match{
+      case Nil => Seq("root")
+      case segments => segments
+    }
+  }
   private def moduleName() = {
-    val labelSegments = millModuleSegments.value
-      .collect { case label: Segment.Label => label }
-    if (labelSegments.nonEmpty) {
-      labelSegments.last.value
-    } else "root"
+    fullModuleNameSegments().head
   }
 
   private def fullModuleName() = {
-    val labelSegments = millModuleSegments.value
-      .collect { case label: Segment.Label => label }
-    if (labelSegments.nonEmpty) {
-      labelSegments.mkString("-")
-    } else "root"
+    fullModuleNameSegments().mkString("-")
   }
 
   // **NOTE**: This logic may (and probably is) be incomplete
