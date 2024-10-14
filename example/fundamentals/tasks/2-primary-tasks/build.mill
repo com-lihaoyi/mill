@@ -1,7 +1,7 @@
 // There are three primary kinds of _Tasks_ that you should care about:
 //
 // * <<_sources>>, defined using `Task.Sources {...}`
-// * <<_tasks>>, defined using `Task {...}`
+// * <<_cached_tasks>>, defined using `Task {...}`
 // * <<_commands>>, defined using `Task.Command {...}`
 
 // === Sources
