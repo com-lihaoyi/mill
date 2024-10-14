@@ -187,7 +187,8 @@ object Deps {
   val requests = ivy"com.lihaoyi::requests:0.9.0"
   val logback = ivy"ch.qos.logback:logback-classic:1.5.7"
   val sonatypeCentralClient = ivy"com.lumidion::sonatype-central-client-requests:0.3.0"
-  val kotlinCompiler = ivy"org.jetbrains.kotlin:kotlin-compiler:1.9.24"
+  val kotlinVersion = "2.0.21"
+  val kotlinCompiler = ivy"org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion"
 
   object RuntimeDeps {
     val errorProneCore = ivy"com.google.errorprone:error_prone_core:2.31.0"

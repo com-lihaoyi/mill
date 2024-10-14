@@ -114,8 +114,8 @@ trait KotlinJSModule extends KotlinModule { outer =>
 
     val linkResult = linkBinary().classes
     if (
-      moduleKind == ModuleKind.NoModule
-      && linkResult.path.toIO.listFiles().count(_.getName.endsWith(".js")) > 1
+      moduleKind == ModuleKind.NoModule &&
+      linkResult.path.toIO.listFiles().count(_.getName.endsWith(".js")) > 1
     ) {
       T.log.info("No module type is selected for the executable, but multiple .js files found in the output folder." +
         " This will probably lead to the dependency resolution failure.")
@@ -236,13 +236,12 @@ trait KotlinJSModule extends KotlinModule { outer =>
     val versionAllowed = kotlinVersion.split("\\.").map(_.toInt) match {
       case Array(1, 8, z) => z >= 20
       case Array(1, y, _) => y >= 9
-      case Array(2, _, _) => false
-      case _ => false
+      case _ => true
     }
     if (!versionAllowed) {
       // have to put this restriction, because for older versions some compiler options either didn't exist or
       // had different names. It is possible to go to the lower version supported with a certain effort.
-      ctx.log.error("Minimum supported Kotlin version for JS target is 1.8.20, maximum is 1.9.25")
+      ctx.log.error("Minimum supported Kotlin version for JS target is 1.8.20.")
       return Result.Aborted
     }
 
@@ -255,9 +254,6 @@ trait KotlinJSModule extends KotlinModule { outer =>
       case None => allKotlinSourceFiles.map(_.path.toIO.getAbsolutePath)
     }
 
-    // TODO: Cannot support Kotlin 2+, because it doesn't publish .jar anymore, but .klib files only. Coursier is not
-    //  able to work with that (unlike Gradle, which can leverage .module metadata).
-    // https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-js/2.0.20/
     val librariesCp = librariesClasspath.map(_.path)
       .filter(os.exists)
       .filter(isKotlinJsLibrary)
