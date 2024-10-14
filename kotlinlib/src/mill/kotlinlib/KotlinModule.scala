@@ -141,6 +141,7 @@ trait KotlinModule extends JavaModule { outer =>
     if (files.nonEmpty) {
       val pluginClasspathOption = Seq(
         "-pluginsClasspath",
+        // `;` separator is used on all platforms!
         dokkaPluginsClasspath().map(_.path).mkString(";")
       )
 
