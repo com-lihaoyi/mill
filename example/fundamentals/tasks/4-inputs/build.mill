@@ -13,7 +13,7 @@ def myInput = Task.Input {
 // arbitrary block of code.
 //
 // Inputs can be used to force re-evaluation of some external property that may
-// affect your build. For example, if I have a <<_cached_task, cached task>> `bar` that
+// affect your build. For example, if I have a xref:#_cached_tasks[cached task] `bar` that
 // calls out to `git` to compute the latest commit hash and message directly,
 // that target does not have any `Task` inputs and so will never re-compute
 // even if the external `git` status changes:

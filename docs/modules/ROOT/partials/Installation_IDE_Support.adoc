@@ -389,7 +389,7 @@ automatically open a pull request to update your Mill version (in
 `.mill-version` or `.config/mill-version` file), whenever there is a newer version available.
 
 TIP: Scala Steward can also
-xref:scalalib/module-config.adoc#_keeping_up_to_date_with_scala_steward[scan your project dependencies]
+xref:scalalib/dependencies.adoc#_keeping_up_to_date_with_scala_steward[scan your project dependencies]
 and keep them up-to-date.
 
 === Development Releases
@@ -401,7 +401,7 @@ https://github.com/com-lihaoyi/mill/releases[available] as binaries named
 `+#.#.#-n-hash+` linked to the latest tag.
 
 The easiest way to use a development release is to use one of the
-<<_bootstrap_scripts>>, which support <<_overriding_mill_versions>> via an
+<<_bootstrap_scripts>>, which support overriding Mill versions via an
 `MILL_VERSION` environment variable or a `.mill-version` or `.config/mill-version` file.
 
 
