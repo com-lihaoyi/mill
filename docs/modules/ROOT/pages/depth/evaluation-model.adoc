@@ -70,10 +70,10 @@ the overall workflow remains fast even for large projects:
 
     * ``Task``s are evaluated in dependency order
 
-    * xref:fundamentals/tasks.adoc#_targets[Target]s only re-evaluate if their input ``Task``s
+    * xref:fundamentals/tasks.adoc#_cached_tasks[Cached Task]s only re-evaluate if their input ``Task``s
      change.
 
-    * xref:fundamentals/tasks.adoc#_persistent_tasks[Task.Persistent]s preserve the `T.dest` folder on disk between runs,
+    * xref:fundamentals/tasks.adoc#_persistent_tasks[Task.Persistent]s preserve the `Task.dest` folder on disk between runs,
       allowing for finer-grained caching than Mill's default task-by-task
       caching and invalidation
 

@@ -17,10 +17,10 @@ object `package` extends RootModule with ScalaModule {
 
 //// SNIPPET:END
 // You can also override `unmanagedClasspath` to point it at jars that you want to
-// download from arbitrary URLs. Note that tasks like `unmanagedClasspath` are
-// cached, so your jar is downloaded only once and re-used indefinitely after that.
+// download from arbitrary URLs.
 // `requests.get` comes from the https://github.com/com-lihaoyi/requests-scala[Requests-Scala]
-// library, one of Mill's <<Bundled Libraries>>.
+// library, one of Mill's xref:fundamentals/bundled-libraries.adoc[Bundled Libraries].
+//
 
 /** Usage
 
@@ -30,3 +30,9 @@ hear me moo
 I weigh twice as much as you
 
 */
+
+// Note that tasks like `unmanagedClasspath` are
+// cached, so your jar is downloaded only once and re-used indefinitely after that.
+// This is usually not a problem, because usually URLs follow the rule that
+// https://www.w3.org/Provider/Style/URI[Cool URIs don't change], and so jars
+// downloaded from the same URL will always contain the same contents.

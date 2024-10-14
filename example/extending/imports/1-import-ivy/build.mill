@@ -27,7 +27,7 @@ object foo extends JavaModule {
 // This is a toy example: we generate a resource `snippet.txt` containing
 // `<div><h1>hello</h1><p>world</p></div>` that the application can read at runtime.
 // However, it demonstrates how you can easily move logic from application code at runtime
-// to build logic at build time, while using the same set of JVM libraries and packages
+// to build logic at build time, while using the same set of Java libraries and packages
 // you are already familiar with. This makes it easy to pre-compute things at build time
 // to reduce runtime latency or application startup times.
 //

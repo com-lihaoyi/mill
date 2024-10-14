@@ -20,7 +20,7 @@ object foo extends ScalaModule {
 //// SNIPPET:END
 
 // You can also declare compile-time-only dependencies with `compileIvyDeps`.
-// These are present in the compile classpath, but will not propagated to the
+// These are present in the compile classpath, but will not propagate to the
 // transitive dependencies.
 
 //// SNIPPET:BUILD2

@@ -329,9 +329,9 @@ trait MillJavaModule extends JavaModule {
   def testDepPaths = Task { upstreamAssemblyClasspath() ++ Seq(compile().classes) ++ resources() }
 
   def testTransitiveDeps: T[Map[String, String]] = Task {
-    val upstream = T.traverse(moduleDeps ++ compileModuleDeps) {
+    val upstream = Task.traverse(moduleDeps ++ compileModuleDeps) {
       case m: MillJavaModule => m.testTransitiveDeps.map(Some(_))
-      case _ => T.task(None)
+      case _ => Task.Anon(None)
     }().flatten.flatten
     val current = Seq(testDep())
     upstream.toMap ++ current
@@ -342,28 +342,28 @@ trait MillJavaModule extends JavaModule {
     if (this == build.main) Seq(build.main)
     else Seq(this, build.main.test)
 
-  def writeLocalTestOverrides = T.task {
+  def writeLocalTestOverrides = Task.Anon {
     for ((k, v) <- testTransitiveDeps()) {
-      os.write(T.dest / "mill" / "local-test-overrides" / k, v, createFolders = true)
+      os.write(Task.dest / "mill" / "local-test-overrides" / k, v, createFolders = true)
     }
-    Seq(PathRef(T.dest))
+    Seq(PathRef(Task.dest))
   }
 
   def runClasspath = super.runClasspath() ++ writeLocalTestOverrides()
 
-  def repositoriesTask = T.task {
+  def repositoriesTask = Task.Anon {
     super.repositoriesTask() ++
       Seq(MavenRepository("https://oss.sonatype.org/content/repositories/releases"))
   }
 
-  def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = T.task {
+  def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = Task.Anon {
     super.mapDependencies().andThen { dep =>
       forcedVersions.find(f =>
         f.dep.module.organization.value == dep.module.organization.value &&
           f.dep.module.name.value == dep.module.name.value
       ).map { forced =>
         val newDep = dep.withVersion(forced.dep.version)
-        T.log.debug(s"Forcing version of ${dep.module} from ${dep.version} to ${newDep.version}")
+        Task.log.debug(s"Forcing version of ${dep.module} from ${dep.version} to ${newDep.version}")
         newDep
       }.getOrElse(dep)
     }
@@ -589,9 +589,9 @@ trait BridgeModule extends MillPublishJavaModule with CrossScalaModule {
     ivy"org.scala-lang:scala-compiler:${crossScalaVersion}"
   )
 
-  def resources = T.sources {
-    os.copy(generatedSources().head.path / "META-INF", T.dest / "META-INF")
-    Seq(PathRef(T.dest))
+  def resources = Task.Sources {
+    os.copy(generatedSources().head.path / "META-INF", Task.dest / "META-INF")
+    Seq(PathRef(Task.dest))
   }
 
   def compilerBridgeIvyDeps: T[Agg[Dep]] = Agg(
@@ -600,7 +600,7 @@ trait BridgeModule extends MillPublishJavaModule with CrossScalaModule {
 
   def compilerBridgeSourceJars: T[Agg[PathRef]] = Task {
     resolveDeps(
-      T.task { compilerBridgeIvyDeps().map(bindDependency()) },
+      Task.Anon { compilerBridgeIvyDeps().map(bindDependency()) },
       sources = true
     )()
   }
@@ -608,10 +608,10 @@ trait BridgeModule extends MillPublishJavaModule with CrossScalaModule {
   def generatedSources = Task {
 
     compilerBridgeSourceJars().foreach { jar =>
-      os.unzip(jar.path, T.dest)
+      os.unzip(jar.path, Task.dest)
     }
 
-    Seq(PathRef(T.dest))
+    Seq(PathRef(Task.dest))
   }
 }
 
@@ -752,7 +752,7 @@ object idea extends MillPublishScalaModule {
  */
 object dist0 extends MillPublishJavaModule {
   // disable scalafix here because it crashes when a module has no sources
-  def fix(args: String*): Command[Unit] = T.command {}
+  def fix(args: String*): Command[Unit] = Task.Command {}
   def moduleDeps = Seq(build.runner, idea)
 
   def testTransitiveDeps = build.runner.testTransitiveDeps() ++ Seq(
@@ -779,7 +779,7 @@ object dist extends MillPublishJavaModule {
     (s"com.lihaoyi-${dist.artifactId()}", dist0.runClasspath().map(_.path).mkString("\n"))
   )
 
-  def genTask(m: ScalaModule) = T.task { Seq(m.jar(), m.sourceJar()) ++ m.runClasspath() }
+  def genTask(m: ScalaModule) = Task.Anon { Seq(m.jar(), m.sourceJar()) ++ m.runClasspath() }
 
   def forkArgs: T[Seq[String]] = Task {
     val genIdeaArgs =
@@ -801,7 +801,7 @@ object dist extends MillPublishJavaModule {
 
   def launcher = Task {
     val isWin = scala.util.Properties.isWin
-    val outputPath = T.dest / (if (isWin) "run.bat" else "run")
+    val outputPath = Task.dest / (if (isWin) "run.bat" else "run")
 
     os.write(outputPath, prependShellScript())
     if (!isWin) os.perms.set(outputPath, "rwxrwxrwx")
@@ -840,22 +840,22 @@ object dist extends MillPublishJavaModule {
         prependShellScript = launcherScript(shellArgs, cmdArgs, Agg("$0"), Agg("%~dpnx0")),
         assemblyRules = assemblyRules
       ).path,
-      T.dest / filename
+      Task.dest / filename
     )
-    PathRef(T.dest / filename)
+    PathRef(Task.dest / filename)
   }
   def assembly = Task {
-    T.traverse(allPublishModules)(m => m.publishLocalCached)()
+    Task.traverse(allPublishModules)(m => m.publishLocalCached)()
     val raw = rawAssembly().path
-    os.copy(raw, T.dest / raw.last)
-    PathRef(T.dest / raw.last)
+    os.copy(raw, Task.dest / raw.last)
+    PathRef(Task.dest / raw.last)
   }
 
   def prependShellScript = Task {
     val (millArgs, otherArgs) =
       forkArgs().partition(arg => arg.startsWith("-DMILL") && !arg.startsWith("-DMILL_VERSION"))
     // Pass Mill options via file, due to small max args limit in Windows
-    val vmOptionsFile = T.dest / "mill.properties"
+    val vmOptionsFile = Task.dest / "mill.properties"
     val millOptionsContent =
       millArgs.map(_.drop(2).replace("\\", "/")).mkString(
         "\r\n"
@@ -890,11 +890,11 @@ object dist extends MillPublishJavaModule {
     Jvm.createJar(Agg(), JarManifest(manifestEntries))
   }
 
-  def run(args: Task[Args] = T.task(Args())) = Task.Command(exclusive = true) {
+  def run(args: Task[Args] = Task.Anon(Args())) = Task.Command(exclusive = true) {
     args().value match {
       case Nil => mill.api.Result.Failure("Need to pass in cwd as first argument to dev.run")
       case wd0 +: rest =>
-        val wd = os.Path(wd0, T.workspace)
+        val wd = os.Path(wd0, Task.workspace)
         os.makeDir.all(wd)
         try {
           Jvm.runSubprocess(
@@ -918,32 +918,32 @@ object dist extends MillPublishJavaModule {
  * @param ivyRepo The local Ivy repository where Mill modules should be published to
  */
 def installLocal(binFile: String = DefaultLocalMillReleasePath, ivyRepo: String = null) =
-  T.command {
-    PathRef(installLocalTask(T.task(binFile), ivyRepo)())
+  Task.Command {
+    PathRef(installLocalTask(Task.Anon(binFile), ivyRepo)())
   }
 
-def installLocalCache() = T.command {
+def installLocalCache() = Task.Command {
   val path = installLocalTask(
-    T.task((os.home / ".cache" / "mill" / "download" / millVersion()).toString())
+    Task.Anon((os.home / ".cache" / "mill" / "download" / millVersion()).toString())
   )()
-  T.log.outputStream.println(path.toString())
+  Task.log.outputStream.println(path.toString())
   PathRef(path)
 }
 
-def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Path] = T.task {
+def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Path] = Task.Anon {
   val millBin = dist.assembly()
-  val targetFile = os.Path(binFile(), T.workspace)
+  val targetFile = os.Path(binFile(), Task.workspace)
   if (os.exists(targetFile))
-    T.log.info(s"Overwriting existing local Mill binary at ${targetFile}")
+    Task.log.info(s"Overwriting existing local Mill binary at ${targetFile}")
   os.copy.over(millBin.path, targetFile, createFolders = true)
-  T.log.info(s"Published ${dist.allPublishModules.size} modules and installed ${targetFile}")
+  Task.log.info(s"Published ${dist.allPublishModules.size} modules and installed ${targetFile}")
   targetFile
 }
 
-def millBootstrap = T.sources(T.workspace / "mill")
+def millBootstrap = Task.Sources(Task.workspace / "mill")
 
 def bootstrapLauncher = Task {
-  val outputPath = T.dest / "mill"
+  val outputPath = Task.dest / "mill"
   val millBootstrapGrepPrefix = "(\n *DEFAULT_MILL_VERSION=)"
   val millDownloadUrlPrefix = "(\n *MILL_DOWNLOAD_URL=)"
 
@@ -959,12 +959,12 @@ def bootstrapLauncher = Task {
   PathRef(outputPath)
 }
 
-def examplePathsWithArtifactName:Task[Seq[(os.Path,String)]] = T.task{
+def examplePathsWithArtifactName:Task[Seq[(os.Path,String)]] = Task.Anon{
   for {
     exampleMod <- build.example.exampleModules
     path = exampleMod.millSourcePath
   } yield {
-    val example = path.subRelativeTo(T.workspace)
+    val example = path.subRelativeTo(Task.workspace)
     val artifactName = millVersion() + "-" + example.segments.mkString("-")
     (path, artifactName)
   }
@@ -973,16 +973,16 @@ def examplePathsWithArtifactName:Task[Seq[(os.Path,String)]] = T.task{
 
 def exampleZips: T[Seq[PathRef]] = Task {
   examplePathsWithArtifactName().map{ case (examplePath, exampleStr) =>
-    os.copy(examplePath, T.dest / exampleStr, createFolders = true)
-    os.write(T.dest / exampleStr / ".mill-version", millLastTag())
-    os.copy(bootstrapLauncher().path, T.dest / exampleStr / "mill")
-    val zip = T.dest / s"$exampleStr.zip"
-    os.proc("zip", "-r", zip, exampleStr).call(cwd = T.dest)
+    os.copy(examplePath, Task.dest / exampleStr, createFolders = true)
+    os.write(Task.dest / exampleStr / ".mill-version", millLastTag())
+    os.copy(bootstrapLauncher().path, Task.dest / exampleStr / "mill")
+    val zip = Task.dest / s"$exampleStr.zip"
+    os.proc("zip", "-r", zip, exampleStr).call(cwd = Task.dest)
     PathRef(zip)
   }
 }
 
-def uploadToGithub(authKey: String) = T.command {
+def uploadToGithub(authKey: String) = Task.Command {
   val vcsState = VcsVersion.vcsState()
   val label = vcsState.format()
   if (label != millVersion()) sys.error("Modified mill version detected, aborting upload")
@@ -1030,8 +1030,8 @@ def validate(): Command[Unit] = {
   val tasks = resolveTasks("__.compile", "__.minaReportBinaryIssues")
   val sources = resolveTasks("__.sources")
 
-  T.command {
-    T.sequence(tasks)()
+  Task.Command {
+    Task.sequence(tasks)()
     mill.scalalib.scalafmt.ScalafmtModule.checkFormatAll(Tasks(sources))()
     build.docs.localPages()
     ()

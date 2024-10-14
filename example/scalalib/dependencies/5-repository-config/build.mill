@@ -1,5 +1,6 @@
-// By default, dependencies are resolved from maven central, but you can add
-// your own resolvers by overriding the `repositoriesTask` task in the module:
+// By default, dependencies are resolved from https://central.sonatype.com/[Maven Central],
+// the standard package repository for JVM languages like Java, Kotlin, or Scala. You
+// can also add your own resolvers by overriding the `repositoriesTask` task in the module:
 
 //// SNIPPET:BUILD1
 package build
@@ -26,9 +27,12 @@ object foo extends ScalaModule {
 
 //// SNIPPET:END
 
-// Mill read https://get-coursier.io/[coursier] config files automatically.
+// Mill uses the https://get-coursier.io/[Coursier] dependency resolver, and reads
+// Coursier config files automatically.
 //
-// It is possible to setup mirror with `mirror.properties`
+// You can configure Coursier to use an alternate download location for Maven Central
+// artifacts via a `mirror.properties` file:
+//
 // [source,properties]
 // ----
 // central.from=https://repo1.maven.org/maven2

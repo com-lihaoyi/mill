@@ -26,9 +26,9 @@ include::partial$example/scalalib/dependencies/2-run-compile-deps.adoc[]
 include::partial$example/scalalib/dependencies/3-unmanaged-jars.adoc[]
 
 
-== Downloading Non-Maven Jars
+== Downloading Unmanaged Jars
 
-include::partial$example/scalalib/dependencies/4-downloading-non-maven-jars.adoc[]
+include::partial$example/scalalib/dependencies/4-downloading-unmanaged-jars.adoc[]
 
 
 == Repository Config
