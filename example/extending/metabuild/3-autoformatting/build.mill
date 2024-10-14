@@ -11,13 +11,13 @@ object foo extends Module   {def task=Task{"2.13.4"}}
 /** Usage
 
 > cat build.mill # build.mill is initially poorly formatted
- object foo extends Module   {def task=Task{"2.13.4"}}
+object foo extends Module   {def task=Task{"2.13.4"}}
 ...
 
 > mill --meta-level 1 mill.scalalib.scalafmt.ScalafmtModule/
 
 > cat build.mill # build.mill is now well formatted
-lolz
+ object foo extends Module { def task = Task { "2.13.4" } }
 ...
 */
 
