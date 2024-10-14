@@ -49,7 +49,7 @@ trait VisualizeModule extends mill.define.TaskModule {
           val (tasks, transitiveTasks, dest) = in.take()
           val transitive = Graph.transitiveTargets(tasks)
           val topoSorted = Graph.topoSorted(transitive)
-          val sortedGroups =  Graph.groupAroundImportantTargets(topoSorted) {
+          val sortedGroups = Graph.groupAroundImportantTargets(topoSorted) {
             case x: NamedTask[Any] if transitiveTasks.contains(x) => x
           }
           val (plannedForRender, _) = mill.eval.Plan.plan(transitiveTasks)

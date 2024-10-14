@@ -1,8 +1,5 @@
 package mill.scalalib
 
-import mill._
-import os.Path
-
 /**
  * A [[ScalaModule]] intended for defining `.jvm`/`.js`/`.native` submodules
  * It supports additional source directories per platform, e.g. `src-jvm/` or
@@ -15,6 +12,7 @@ import os.Path
  * artifact name
  */
 trait PlatformScalaModule extends PlatformModuleBase with ScalaModule {
+
   /**
    * The platform suffix of this [[PlatformScalaModule]]. Useful if you want to
    * further customize the source paths or artifact names.

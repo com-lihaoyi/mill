@@ -531,8 +531,8 @@ trait MainModule extends BaseModule0 {
       planTasks: Option[List[NamedTask[_]]] = None
   ): Result[Seq[PathRef]] = {
     def callVisualizeModule(
-                             tasks: List[NamedTask[Any]],
-                             transitiveTasks: List[NamedTask[Any]]
+        tasks: List[NamedTask[Any]],
+        transitiveTasks: List[NamedTask[Any]]
     ): Result[Seq[PathRef]] = {
       val (in, out) = vizWorker
       in.put((tasks, transitiveTasks, ctx.dest))

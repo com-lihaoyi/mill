@@ -99,7 +99,6 @@ object KtfmtModuleTests extends TestSuite {
       sources: Seq[mill.define.NamedTask[Seq[PathRef]]] = Seq.empty
   ): Seq[os.Path] = {
 
-
     val eval = UnitTester(module, moduleRoot)
 
     eval(module.ktfmt(

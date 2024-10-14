@@ -3,7 +3,6 @@ package mill.scalalib
 import mill._
 import os.Path
 
-
 trait PlatformModuleBase extends JavaModule {
   override def millSourcePath: Path = super.millSourcePath / os.up
 
