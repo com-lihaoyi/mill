@@ -2,9 +2,26 @@ package mill.eval
 
 import java.io.PrintStream
 import java.nio.file.{Files, StandardOpenOption}
+import java.util.concurrent.SynchronousQueue
 
-private class JsonArrayLogger[T: upickle.default.Writer](outPath: os.Path, indent: Int) {
+private class JsonArrayLogger[T: upickle.default.Writer](outPath: os.Path, indent: Int) extends AutoCloseable{
   private var used = false
+
+  val queue = new SynchronousQueue[T]
+  val loggingThread = new Thread(
+    () => try {
+      while(true){
+        log0(queue.take())
+      }
+    } catch{case e: InterruptedException =>
+      traceStream.println()
+      traceStream.println("]")
+      traceStream.close()
+    },
+    "json-array-logger-" + outPath
+  )
+
+  loggingThread.start
 
   val indentStr: String = " " * indent
   private lazy val traceStream = {
@@ -16,7 +33,10 @@ private class JsonArrayLogger[T: upickle.default.Writer](outPath: os.Path, inden
     new PrintStream(Files.newOutputStream(outPath.toNIO, options: _*))
   }
 
-  def log(t: T): Unit = synchronized {
+  def log(t: T): Unit = {
+    queue.put(t)
+  }
+  private def log0(t: T): Unit = {
     if (used) traceStream.println(",")
     else traceStream.println("[")
     used = true
@@ -28,10 +48,9 @@ private class JsonArrayLogger[T: upickle.default.Writer](outPath: os.Path, inden
     traceStream.print(indented)
   }
 
-  def close(): Unit = synchronized {
-    traceStream.println()
-    traceStream.println("]")
-    traceStream.close()
+  def close(): Unit = {
+    loggingThread.interrupt()
+    loggingThread.join()
   }
 }
 
