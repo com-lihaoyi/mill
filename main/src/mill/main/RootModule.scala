@@ -52,7 +52,6 @@ object RootModule {
     )
 
     implicit val millMiscInfo: Info = this
-
   }
 
   object Info {
@@ -62,38 +61,4 @@ object RootModule {
     @compileTimeOnly("RootModule can only be instantiated in a build.mill or package.mill file")
     implicit def dummyInfo: Info = sys.error("implicit RootModule.Info must be provided")
   }
-
-  class SubFolderInfo(val value: os.Path, val millSourcePath0: Seq[String]) {
-    implicit val subFolderInfo: SubFolderInfo = this
-  }
-
-  abstract class Subfolder()(implicit
-      millModuleLine0: sourcecode.Line,
-      millFile0: sourcecode.File,
-      subFolderInfo: SubFolderInfo
-  ) extends Module.BaseClass()(
-        Ctx.make(
-          millModuleEnclosing0 = subFolderInfo.millSourcePath0.mkString("."),
-          millModuleLine0 = millModuleLine0,
-          millModuleBasePath0 = Ctx.BasePath(subFolderInfo.value / os.up),
-          segments0 = Segments.labels(subFolderInfo.millSourcePath0.init: _*),
-          external0 = Ctx.External(false),
-          foreign0 = Ctx.Foreign(None),
-          fileName = millFile0,
-          enclosing = Caller(null)
-        )
-      ) with Module {}
-
-  @deprecated
-  abstract class Foreign(foreign0: Option[Segments])(implicit
-      baseModuleInfo: RootModule.Info,
-      millModuleEnclosing0: sourcecode.Enclosing,
-      millModuleLine0: sourcecode.Line,
-      millFile0: sourcecode.File
-  ) extends BaseModule(baseModuleInfo.projectRoot, foreign0 = foreign0)(
-        millModuleEnclosing0,
-        millModuleLine0,
-        millFile0,
-        Caller(null)
-      ) with mill.main.MainModule
 }
