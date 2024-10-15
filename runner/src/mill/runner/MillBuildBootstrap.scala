@@ -6,7 +6,7 @@ import mill.main.client.CodeGenConstants.*
 import mill.api.{PathRef, SystemStreams, Val, internal}
 import mill.eval.Evaluator
 import mill.resolve.SelectMode
-import mill.define.{BaseModule, Discover, Segments}
+import mill.define.{BaseModule, Segments}
 import mill.main.client.OutFiles.{millBuild, millRunnerState}
 
 import java.net.URLClassLoader

@@ -180,7 +180,7 @@ object CodeGen {
     }
   }
 
-  def subfolderBuildPrelude(scriptFolderPath: os.Path, segments: Seq[String]) = {
+  def subfolderBuildPrelude(scriptFolderPath: os.Path, segments: Seq[String]): String = {
     s"""object MillMiscSubFolderInfo
        |extends mill.main.RootModule.SubFolderInfo(
        |  os.Path(${literalize(scriptFolderPath.toString)}),
@@ -198,7 +198,7 @@ object CodeGen {
   ): String = {
     s"""import _root_.mill.runner.MillBuildRootModule
        |@_root_.scala.annotation.nowarn
-       |object MillMiscInfo extends MillBuildRootModule.MillMiscInfo(
+       |object MillMiscInfo extends mill.main.RootModule.Info(
        |  ${enclosingClasspath.map(p => literalize(p.toString))},
        |  ${literalize(scriptFolderPath.toString)},
        |  ${literalize(output.toString)},

@@ -33,15 +33,17 @@ abstract class RootModule()(implicit
 
 @internal
 object RootModule {
-  class Info(val enclosingClasspath: Seq[os.Path],
-             val projectRoot: os.Path,
-             val output: os.Path,
-             val topLevelProjectRoot: os.Path){
+  class Info(
+      val enclosingClasspath: Seq[os.Path],
+      val projectRoot: os.Path,
+      val output: os.Path,
+      val topLevelProjectRoot: os.Path
+  ) {
     def this(
-      enclosingClasspath0: Seq[String],
-      projectRoot0: String,
-      output0: String,
-      topLevelProjectRoot0: String
+        enclosingClasspath0: Seq[String],
+        projectRoot0: String,
+        output0: String,
+        topLevelProjectRoot0: String
     ) = this(
       enclosingClasspath0.map(os.Path(_)),
       os.Path(projectRoot0),
@@ -61,8 +63,7 @@ object RootModule {
     implicit def dummyInfo: Info = sys.error("implicit RootModule.Info must be provided")
   }
 
-  class SubFolderInfo(val value: os.Path,
-                      val millSourcePath0: Seq[String]){
+  class SubFolderInfo(val value: os.Path, val millSourcePath0: Seq[String]) {
     implicit val subFolderInfo: SubFolderInfo = this
   }
 

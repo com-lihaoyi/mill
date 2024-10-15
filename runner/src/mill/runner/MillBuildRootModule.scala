@@ -25,7 +25,7 @@ import mill.define.Target
  */
 @internal
 abstract class MillBuildRootModule()(implicit
-    rootModuleInfo: RootModule.Info,
+    rootModuleInfo: RootModule.Info
 ) extends RootModule() with ScalaModule {
   override def bspDisplayName0: String = rootModuleInfo
     .projectRoot
