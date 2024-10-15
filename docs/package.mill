@@ -373,17 +373,29 @@ object `package` extends RootModule {
     val allLinks = allLinksAndAnchors()
       .flatMap { case (path, remoteLinks, localLinks, ids) => remoteLinks }
       .map(_._2)
-      .distinct
-      .toSeq
+      .filter{l =>
+        // ignore example links since those are expected to be unresolved until
+        // a stable version is published and artifacts are uploaded to github
+        !l.contains("/example/") &&
+          !l.contains("/releases/download/") &&
+          // Ignore internal repo links in the changelog because there are a lot
+          // of them and they're not very interesting to check and verify.
+          !l.contains("https://github.com/com-lihaoyi/mill/pull/") &&
+          !l.contains("https://github.com/com-lihaoyi/mill/milestone/") &&
+          !l.contains("https://github.com/com-lihaoyi/mill/compare/")
+      }
+      .toSet
 
     // Try to fetch all the links serially. It isn't worth trying to parallelize it
     // because if we go too fast the remote websites tend to rate limit us anyway
-    val linksToStatusCodes = allLinks.zipWithIndex
+    val futures = allLinks.zipWithIndex
       .map{ case (link, i) =>
-        println(s"Checking link $link $i/${allLinks.length}")
-        (link, requests.get(link, check = false).statusCode)
+        val key = s"$i/${allLinks.size}"
+        println(s"Checking link $link $key")
+        Task.ctx().fork.async(T.dest, key, link) { (link, requests.head(link, check = false).statusCode) }
       }
-      .toMap
+
+    val linksToStatusCodes = Task.ctx().fork.awaitAll(futures.toSeq).toMap
 
 
     allLinksAndAnchors()
@@ -392,13 +404,8 @@ object `package` extends RootModule {
           path,
           remoteLinks.collect{
             case (e, l)
-              if !linksToStatusCodes(l).toString.startsWith("2")
-              // ignore example links since those are expected to be unresolved until
-              // a stable version is published and artifacts are uploaded to github
-              && !l.contains("/example/")
-              && !l.contains("/releases/download/")
-              // References to URLs for API calls, not mean to be clickable
-              && !l.contains("https://s01.oss.sonatype.org/")=>
+              if allLinks.contains(l)
+              && !linksToStatusCodes(l).toString.startsWith("2")  =>
                 (e, l, linksToStatusCodes(l))
           }
         )
