@@ -388,7 +388,7 @@ object `package` extends RootModule {
 
     // Try to fetch all the links serially. It isn't worth trying to parallelize it
     // because if we go too fast the remote websites tend to rate limit us anyway
-    val linksToStatusCodes = allLinks.zipWithIndex
+    val linksToStatusCodes = allLinks.toSeq.zipWithIndex
       .map{ case (link, i) =>
         val key = s"$i/${allLinks.size}"
         println(s"Checking link $link $key")
