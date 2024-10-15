@@ -25,17 +25,16 @@ import mill.define.Target
  */
 @internal
 abstract class MillBuildRootModule()(implicit
-    baseModuleInfo: RootModule.Info,
-    millBuildRootModuleInfo: MillBuildRootModule.Info
+    rootModuleInfo: RootModule.Info
 ) extends RootModule() with ScalaModule {
-  override def bspDisplayName0: String = millBuildRootModuleInfo
+  override def bspDisplayName0: String = rootModuleInfo
     .projectRoot
-    .relativeTo(millBuildRootModuleInfo.topLevelProjectRoot)
+    .relativeTo(rootModuleInfo.topLevelProjectRoot)
     .segments
     .++(super.bspDisplayName0.split("/"))
     .mkString("/")
 
-  override def millSourcePath: os.Path = millBuildRootModuleInfo.projectRoot / os.up / millBuild
+  override def millSourcePath: os.Path = rootModuleInfo.projectRoot / os.up / millBuild
   override def intellijModulePath: os.Path = millSourcePath / os.up
 
   override def scalaVersion: T[String] = BuildInfo.scalaVersion
@@ -45,7 +44,7 @@ abstract class MillBuildRootModule()(implicit
    * @see [[generateScriptSources]]
    */
   def scriptSources: Target[Seq[PathRef]] = Task.Sources {
-    MillBuildRootModule.parseBuildFiles(millBuildRootModuleInfo)
+    MillBuildRootModule.parseBuildFiles(rootModuleInfo)
       .seenScripts
       .keys.map(PathRef(_))
       .toSeq
@@ -53,7 +52,7 @@ abstract class MillBuildRootModule()(implicit
 
   def parseBuildFiles: T[FileImportGraph] = Task {
     scriptSources()
-    MillBuildRootModule.parseBuildFiles(millBuildRootModuleInfo)
+    MillBuildRootModule.parseBuildFiles(rootModuleInfo)
   }
 
   override def repositoriesTask: Task[Seq[Repository]] = {
@@ -116,13 +115,13 @@ abstract class MillBuildRootModule()(implicit
     if (parsed.errors.nonEmpty) Result.Failure(parsed.errors.mkString("\n"))
     else {
       CodeGen.generateWrappedSources(
-        millBuildRootModuleInfo.projectRoot / os.up,
+        rootModuleInfo.projectRoot / os.up,
         scriptSources(),
         parsed.seenScripts,
         T.dest,
-        millBuildRootModuleInfo.enclosingClasspath,
-        millBuildRootModuleInfo.topLevelProjectRoot,
-        millBuildRootModuleInfo.output
+        rootModuleInfo.enclosingClasspath,
+        rootModuleInfo.topLevelProjectRoot,
+        rootModuleInfo.output
       )
       Result.Success(Seq(PathRef(T.dest)))
     }
@@ -212,7 +211,7 @@ abstract class MillBuildRootModule()(implicit
   }
 
   def enclosingClasspath: Target[Seq[PathRef]] = Task.Sources {
-    millBuildRootModuleInfo.enclosingClasspath.map(p => mill.api.PathRef(p, quick = true))
+    rootModuleInfo.enclosingClasspath.map(p => mill.api.PathRef(p, quick = true))
   }
 
   /**
@@ -266,22 +265,8 @@ abstract class MillBuildRootModule()(implicit
 
 object MillBuildRootModule {
 
-  class BootstrapModule(
-      topLevelProjectRoot0: os.Path,
-      projectRoot: os.Path,
-      output: os.Path,
-      enclosingClasspath: Seq[os.Path]
-  )(implicit baseModuleInfo: RootModule.Info) extends MillBuildRootModule()(
-        implicitly,
-        MillBuildRootModule.Info(
-          enclosingClasspath,
-          projectRoot,
-          output,
-          topLevelProjectRoot0
-        )
-      ) {
-
-    override lazy val millDiscover: Discover = baseModuleInfo.discover
+  class BootstrapModule()(implicit rootModuleInfo: RootModule.Info) extends MillBuildRootModule() {
+    override lazy val millDiscover: Discover = Discover[this.type]
   }
 
   case class Info(
@@ -291,33 +276,11 @@ object MillBuildRootModule {
       topLevelProjectRoot: os.Path
   )
 
-  def parseBuildFiles(millBuildRootModuleInfo: MillBuildRootModule.Info): FileImportGraph = {
+  def parseBuildFiles(millBuildRootModuleInfo: RootModule.Info): FileImportGraph = {
     FileImportGraph.parseBuildFiles(
       millBuildRootModuleInfo.topLevelProjectRoot,
       millBuildRootModuleInfo.projectRoot / os.up,
       millBuildRootModuleInfo.output
-    )
-  }
-
-  class MillMiscInfo(
-      enclosingClasspath: Seq[String],
-      projectRoot: String,
-      output: String,
-      topLevelProjectRoot: String,
-      segments: Seq[String]
-  ) {
-    implicit lazy val millBuildRootModuleInfo: MillBuildRootModule.Info = MillBuildRootModule.Info(
-      enclosingClasspath.map(os.Path(_)),
-      os.Path(projectRoot),
-      os.Path(output),
-      os.Path(topLevelProjectRoot)
-    )
-    implicit lazy val millBaseModuleInfo: RootModule.Info = RootModule.Info(
-      millBuildRootModuleInfo.projectRoot,
-      null
-    )
-    implicit lazy val subfolderInfo: RootModule.SubFolderInfo = RootModule.SubFolderInfo(
-      segments
     )
   }
 }
