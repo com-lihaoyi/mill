@@ -399,7 +399,7 @@ object `package` extends RootModule {
         val start = System.currentTimeMillis()
         val res = requests.head(link, check = false).statusCode
         val duration = System.currentTimeMillis() - start
-        val remaining = 500 - duration
+        val remaining = 1000 - duration
         if (remaining > 0) Thread.sleep(remaining) // try to avoid being rate limited
         (link, res)
       }
