@@ -390,8 +390,13 @@ object `package` extends RootModule {
       .map{case (path, remoteLinks, localLinks, ids) =>
         (
           path,
-          remoteLinks.collect{case (e, l) if !linksToStatusCodes(l).toString.startsWith("2") =>
-            (e, l, linksToStatusCodes(l))
+          remoteLinks.collect{
+            case (e, l)
+              if !linksToStatusCodes(l).toString.startsWith("2")
+              // ignore example links since those are expected to be unresolved until
+              // a stable version is published and artifacts are uploaded to github
+              && !l.contains("/example/") =>
+                (e, l, linksToStatusCodes(l))
           }
         )
       }
