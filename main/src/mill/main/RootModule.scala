@@ -42,19 +42,21 @@ object RootModule {
     implicit def dummyInfo: Info = sys.error("implicit RootModule.Info must be provided")
   }
 
-  case class SubFolderInfo(value: Seq[String])
+  class SubFolderInfo(val value: os.Path,
+                      val millSourcePath0: Seq[String]){
+    implicit val subFolderInfo: SubFolderInfo = this
+  }
 
   abstract class Subfolder()(implicit
-      baseModuleInfo: RootModule.Info,
       millModuleLine0: sourcecode.Line,
       millFile0: sourcecode.File,
       subFolderInfo: SubFolderInfo
   ) extends Module.BaseClass()(
         Ctx.make(
-          millModuleEnclosing0 = subFolderInfo.value.mkString("."),
+          millModuleEnclosing0 = subFolderInfo.millSourcePath0.mkString("."),
           millModuleLine0 = millModuleLine0,
-          millModuleBasePath0 = Ctx.BasePath(baseModuleInfo.millSourcePath0 / os.up),
-          segments0 = Segments.labels(subFolderInfo.value.init: _*),
+          millModuleBasePath0 = Ctx.BasePath(subFolderInfo.value / os.up),
+          segments0 = Segments.labels(subFolderInfo.millSourcePath0.init: _*),
           external0 = Ctx.External(false),
           foreign0 = Ctx.Foreign(None),
           fileName = millFile0,

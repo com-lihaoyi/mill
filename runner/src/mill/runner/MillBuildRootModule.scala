@@ -303,8 +303,7 @@ object MillBuildRootModule {
       enclosingClasspath: Seq[String],
       projectRoot: String,
       output: String,
-      topLevelProjectRoot: String,
-      segments: Seq[String]
+      topLevelProjectRoot: String
   ) {
     implicit lazy val millBuildRootModuleInfo: MillBuildRootModule.Info = MillBuildRootModule.Info(
       enclosingClasspath.map(os.Path(_)),
@@ -315,9 +314,6 @@ object MillBuildRootModule {
     implicit lazy val millBaseModuleInfo: RootModule.Info = RootModule.Info(
       millBuildRootModuleInfo.projectRoot,
       null
-    )
-    implicit lazy val subfolderInfo: RootModule.SubFolderInfo = RootModule.SubFolderInfo(
-      segments
     )
   }
 }
