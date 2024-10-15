@@ -382,7 +382,11 @@ object `package` extends RootModule {
           // of them and they're not very interesting to check and verify.
           !l.contains("https://github.com/com-lihaoyi/mill/pull/") &&
           !l.contains("https://github.com/com-lihaoyi/mill/milestone/") &&
-          !l.contains("https://github.com/com-lihaoyi/mill/compare/")
+          !l.contains("https://github.com/com-lihaoyi/mill/compare/") &&
+          // Link meant for API configuration, not for clicking
+          !l.contains("https://s01.oss.sonatype.org/service/local") &&
+          // SOmehow this server doesn't respond properly to HEAD requests even though GET works
+          !l.contains("https://marketplace.visualstudio.com/items")
       }
       .toSet
 
@@ -392,8 +396,12 @@ object `package` extends RootModule {
       .map{ case (link, i) =>
         val key = s"$i/${allLinks.size}"
         println(s"Checking link $link $key")
-        Thread.sleep(100) // try to avoid being rate limited
-        (link, requests.head(link, check = false).statusCode)
+        val start = System.currentTimeMillis()
+        val res = requests.head(link, check = false).statusCode
+        val duration = System.currentTimeMillis() - start
+        val remaining = 500 - duration
+        if (remaining > 0) Thread.sleep(remaining) // try to avoid being rate limited
+        (link, res)
       }
       .toMap
 
