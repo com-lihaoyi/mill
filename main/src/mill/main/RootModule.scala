@@ -18,7 +18,7 @@ abstract class RootModule()(implicit
     millModuleEnclosing0: sourcecode.Enclosing,
     millModuleLine0: sourcecode.Line,
     millFile0: sourcecode.File
-) extends mill.define.BaseModule(baseModuleInfo.millSourcePath0)(
+) extends mill.define.BaseModule(baseModuleInfo.projectRoot)(
       millModuleEnclosing0,
       millModuleLine0,
       millFile0,
@@ -33,7 +33,26 @@ abstract class RootModule()(implicit
 
 @internal
 object RootModule {
-  case class Info(millSourcePath0: os.Path, discover: Discover)
+  class Info(val enclosingClasspath: Seq[os.Path],
+             val projectRoot: os.Path,
+             val output: os.Path,
+             val topLevelProjectRoot: os.Path){
+    def this(
+      enclosingClasspath0: Seq[String],
+      projectRoot0: String,
+      output0: String,
+      topLevelProjectRoot0: String
+    ) = this(
+      enclosingClasspath0.map(os.Path(_)),
+      os.Path(projectRoot0),
+      os.Path(output0),
+      os.Path(topLevelProjectRoot0)
+    )
+
+    implicit val millMiscInfo: Info = this
+
+  }
+
   object Info {
     // Dummy `RootModule.Info` available in implicit scope but never actually used.
     // as it is provided by the codegen. Defined for IDEs to think that one is available
@@ -70,7 +89,7 @@ object RootModule {
       millModuleEnclosing0: sourcecode.Enclosing,
       millModuleLine0: sourcecode.Line,
       millFile0: sourcecode.File
-  ) extends BaseModule(baseModuleInfo.millSourcePath0, foreign0 = foreign0)(
+  ) extends BaseModule(baseModuleInfo.projectRoot, foreign0 = foreign0)(
         millModuleEnclosing0,
         millModuleLine0,
         millFile0,
