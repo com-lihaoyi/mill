@@ -20,7 +20,7 @@ object RootModuleCompileErrorTests extends UtestIntegrationTestSuite {
       )
       assert(
         res.err.replace('\\', '/').contains(
-          """foo/package.mill:6:60: not found: type UnknownFooModule"""
+          """foo/package.mill:6:65: not found: type UnknownFooModule"""
         )
       )
       assert(
