@@ -182,7 +182,7 @@ that would make a build tool hard to understand.
 Before you continue, take a moment to think: how would you answer to each of
 those questions using an existing build tool you are familiar with? Different
 tools like http://www.scala-sbt.org/[SBT],
-https://fake.build/legacy-index.html[Fake], https://gradle.org/[Gradle] or
+https://fake.build[Fake], https://gradle.org/[Gradle] or
 https://gruntjs.com/[Grunt] have very different answers.
 
 Mill aims to provide the answer to these questions using as few, as familiar

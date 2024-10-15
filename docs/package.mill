@@ -395,7 +395,10 @@ object `package` extends RootModule {
               if !linksToStatusCodes(l).toString.startsWith("2")
               // ignore example links since those are expected to be unresolved until
               // a stable version is published and artifacts are uploaded to github
-              && !l.contains("/example/") && !l.contains("/releases/download/") =>
+              && !l.contains("/example/")
+              && !l.contains("/releases/download/")
+              // References to URLs for API calls, not mean to be clickable
+              && !l.contains("https://s01.oss.sonatype.org/")=>
                 (e, l, linksToStatusCodes(l))
           }
         )
