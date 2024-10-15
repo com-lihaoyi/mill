@@ -41,7 +41,7 @@ Compared to SBT:
 * **Mill makes customizing the build yourself much easier**: most of what build tools
   do work with files and call subprocesses, and Mill makes doing that yourself easy.
   This means you can always make your Mill build do exactly what you want, and are not
-  beholden to third-party plugins that may not exist, be well maintained, or interact well
+  beholden to third-party plugins that may not meet your exact needs or interact well
   with each other.
 
 * **Mill is much more performant**: SBT has enough overhead that even a dozen

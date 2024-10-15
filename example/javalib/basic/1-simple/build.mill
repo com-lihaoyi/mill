@@ -43,8 +43,8 @@ object `package` extends RootModule with JavaModule {
 //
 //// SNIPPET:DEPENDENCIES
 //
-// This example project uses two third-party dependencies - ArgParse4J for CLI
-// argument parsing, Apache Commons Text for HTML escaping - and uses them to wrap a
+// This example project uses two third-party dependencies - https://argparse4j.github.io/[ArgParse4J] for CLI
+// argument parsing, https://commons.apache.org/proper/commons-text/[Apache Commons Text] for HTML escaping - and uses them to wrap a
 // given input string in HTML templates with proper escaping.
 //
 // Typical usage of a `JavaModule` is shown below

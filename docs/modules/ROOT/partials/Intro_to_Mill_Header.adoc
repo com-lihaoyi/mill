@@ -1,5 +1,4 @@
-[graphviz]
-....
+```graphviz
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -24,12 +23,12 @@ digraph G {
     "bar.mainClass" -> "bar.assembly"
   }
 }
-....
+```
 
 {mill-github-url}[Mill] is a fast multi-language JVM build tool that supports {language}, making your
 common development workflows xref:comparisons/maven.adoc[5-10x faster to Maven], or
 xref:comparisons/gradle.adoc[2-4x faster than Gradle], and
-xref:comparisons/sbt[easier to use than SBT].
+xref:comparisons/sbt.adoc[easier to use than SBT].
 Mill aims to make your JVM project's build process performant, maintainable, and flexible
 even as it grows from a small project to a large codebase or monorepo with hundreds of modules:
 
@@ -51,7 +50,7 @@ even as it grows from a small project to a large codebase or monorepo with hundr
 * *Flexibility*: Mill's custom tasks and modules allow anything from
   xref:fundamentals/tasks.adoc#primitive-tasks[adding simple build steps], up to
   xref:fundamentals/modules.adoc#_use_case_diy_java_modules[entire language toolchains].
-  You can xref:extending/import-ivy.adoc[import any JVM library as part of your build],
+  You can xref:extending/import-ivy-plugins.adoc[import any JVM library as part of your build],
   use Mill's rich ecosystem of xref:extending/thirdparty-plugins.adoc[Third-Party Mill Plugins],
-  or xref:extending/writing-plugins.adoc[write plugins yourself] and publish them
-  on Maven Central for others to use.
+  or xref:extending/writing-plugins.adoc[write plugins yourself] and
+  xref:extending/writing-plugins.adoc#_publishing[publish them on Maven Central] for others to use.

@@ -8,6 +8,12 @@ import mill.api.{Ctx, Result}
 
 trait KotlinWorker {
 
-  def compile(args: String*)(implicit ctx: Ctx): Result[Unit]
+  def compile(target: KotlinWorkerTarget, args: String*)(implicit ctx: Ctx): Result[Unit]
 
+}
+
+sealed class KotlinWorkerTarget
+object KotlinWorkerTarget {
+  case object Jvm extends KotlinWorkerTarget
+  case object Js extends KotlinWorkerTarget
 }

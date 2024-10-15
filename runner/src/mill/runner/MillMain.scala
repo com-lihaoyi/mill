@@ -9,10 +9,12 @@ import mill.api.{MillException, SystemStreams, WorkspaceRoot, internal}
 import mill.bsp.{BspContext, BspServerResult}
 import mill.main.BuildInfo
 import mill.main.client.{OutFiles, ServerFiles}
-import mill.util.{PromptLogger, PrintLogger, Colors}
+import mill.main.client.lock.Lock
+import mill.util.{Colors, PrintLogger, PromptLogger}
 
 import java.lang.reflect.InvocationTargetException
 import scala.util.control.NonFatal
+import scala.util.Using
 
 @internal
 object MillMain {
@@ -209,6 +211,8 @@ object MillMain {
                     .map(_ => Seq(bspCmd))
                     .getOrElse(config.leftoverArgs.value.toList)
 
+                val out = os.Path(OutFiles.out, WorkspaceRoot.workspaceRoot)
+
                 var repeatForBsp = true
                 var loopRes: (Boolean, RunnerState) = (false, RunnerState.empty)
                 while (repeatForBsp) {
@@ -222,38 +226,46 @@ object MillMain {
                     evaluate = (prevState: Option[RunnerState]) => {
                       adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
 
-                      val logger = getLogger(
-                        streams,
-                        config,
-                        mainInteractive,
-                        enableTicker =
-                          config.ticker
-                            .orElse(config.enableTicker)
-                            .orElse(Option.when(config.disableTicker.value)(false)),
-                        printLoggerState,
-                        serverDir,
-                        colored = colored,
-                        colors = colors
-                      )
-                      try new MillBuildBootstrap(
-                          projectRoot = WorkspaceRoot.workspaceRoot,
-                          output = os.Path(OutFiles.out, WorkspaceRoot.workspaceRoot),
-                          home = config.home,
-                          keepGoing = config.keepGoing.value,
-                          imports = config.imports,
-                          env = env,
-                          threadCount = threadCount,
-                          targetsAndParams = targetsAndParams,
-                          prevRunnerState = prevState.getOrElse(stateCache),
-                          logger = logger,
-                          disableCallgraph = config.disableCallgraph.value,
-                          needBuildSc = needBuildSc(config),
-                          requestedMetaLevel = config.metaLevel,
-                          config.allowPositional.value,
-                          systemExit = systemExit
-                        ).evaluate()
-                      finally {
-                        logger.close()
+                      withOutLock(
+                        config.noBuildLock.value || bspContext.isDefined,
+                        config.noWaitForBuildLock.value,
+                        out,
+                        targetsAndParams,
+                        streams
+                      ) {
+                        val logger = getLogger(
+                          streams,
+                          config,
+                          mainInteractive,
+                          enableTicker =
+                            config.ticker
+                              .orElse(config.enableTicker)
+                              .orElse(Option.when(config.disableTicker.value)(false)),
+                          printLoggerState,
+                          serverDir,
+                          colored = colored,
+                          colors = colors
+                        )
+                        Using.resource(logger) { _ =>
+                          try new MillBuildBootstrap(
+                              projectRoot = WorkspaceRoot.workspaceRoot,
+                              output = out,
+                              home = config.home,
+                              keepGoing = config.keepGoing.value,
+                              imports = config.imports,
+                              env = env,
+                              threadCount = threadCount,
+                              targetsAndParams = targetsAndParams,
+                              prevRunnerState = prevState.getOrElse(stateCache),
+                              logger = logger,
+                              disableCallgraph = config.disableCallgraph.value,
+                              needBuildSc = needBuildSc(config),
+                              requestedMetaLevel = config.metaLevel,
+                              config.allowPositional.value,
+                              systemExit = systemExit,
+                              streams0 = streams0
+                            ).evaluate()
+                        }
                       }
                     },
                     colors = colors
@@ -404,4 +416,44 @@ object MillMain {
     for (k <- systemPropertiesToUnset) System.clearProperty(k)
     for ((k, v) <- desiredProps) System.setProperty(k, v)
   }
+
+  def withOutLock[T](
+      noBuildLock: Boolean,
+      noWaitForBuildLock: Boolean,
+      out: os.Path,
+      targetsAndParams: Seq[String],
+      streams: SystemStreams
+  )(t: => T): T = {
+    if (noBuildLock) t
+    else {
+      val outLock = Lock.file((out / OutFiles.millLock).toString)
+
+      def activeTaskString =
+        try {
+          os.read(out / OutFiles.millActiveCommand)
+        } catch {
+          case e => "<unknown>"
+        }
+
+      def activeTaskPrefix = s"Another Mill process is running '$activeTaskString',"
+      Using.resource {
+        val tryLocked = outLock.tryLock()
+        if (tryLocked.isLocked()) tryLocked
+        else if (noWaitForBuildLock) {
+          throw new Exception(s"$activeTaskPrefix failing")
+        } else {
+
+          streams.err.println(
+            s"$activeTaskPrefix waiting for it to be done..."
+          )
+          outLock.lock()
+        }
+      } { _ =>
+        os.write.over(out / OutFiles.millActiveCommand, targetsAndParams.mkString(" "))
+        try t
+        finally os.remove.all(out / OutFiles.millActiveCommand)
+      }
+    }
+  }
+
 }

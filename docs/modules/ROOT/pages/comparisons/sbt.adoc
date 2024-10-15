@@ -187,13 +187,13 @@ IDEs like IntelliJ are nominally able to parse and analyze your SBT files, the a
 provide is often not very useful. For example, consider the inspection and jump-to-definition experience
 of looking into an SBT Task:
 
-image::IntellijGatlingSbtTask1.png[]
-image::IntellijGatlingSbtTask2.png[]
+image::comparisons/IntellijGatlingSbtTask1.png[]
+image::comparisons/IntellijGatlingSbtTask2.png[]
 
 Or an SBT plugin:
 
-image::IntellijGatlingSbtPlugin1.png[]
-image::IntellijGatlingSbtPlugin2.png[]
+image::comparisons/IntellijGatlingSbtPlugin1.png[]
+image::comparisons/IntellijGatlingSbtPlugin2.png[]
 
 In general, although your IDE can make sure the name of the task exists, and the type is correct, it
 is unable to pull up any further information about the task: its documentation, its implementation,
@@ -205,22 +205,22 @@ at all: what it does, where it is assigned, etc.
 In comparison, for Mill, IDEs like Intellij are able to provide much more intelligence. e.g. when
 inspecting a task, it is able to pull up the documentation comment:
 
-image::IntellijGatlingMillTask1.png[]
+image::comparisons/IntellijGatlingMillTask1.png[]
 
 It is able to pull up any overridden implementations of task, directly in the editor:
 
-image::IntellijGatlingMillTask2.png[]
+image::comparisons/IntellijGatlingMillTask2.png[]
 
 And you can easily navigate to the overriden implementations to see where they are defined and
 what you are overriding:
 
-image::IntellijGatlingMillTask3.png[]
+image::comparisons/IntellijGatlingMillTask3.png[]
 
 Mill's equivalent of SBT plugins are just Scala traits, and again you can easily pull up their
 documentation in-line in the editor or jump to their full implementation:
 
-image::IntellijGatlingMillPlugin1.png[]
-image::IntellijGatlingMillPlugin2.png[]
+image::comparisons/IntellijGatlingMillPlugin1.png[]
+image::comparisons/IntellijGatlingMillPlugin2.png[]
 
 In general, navigating around your build in Mill is much more straightforward than
 navigating around your build in SBT. All your normal IDE functionality works perfectly:
@@ -237,7 +237,7 @@ and associated test suites, but how do these different modules depend on each ot
 Mill, you can run `./mill visualize __.compile`, and it will show you how the
 `compile` task of each module depends on the others:
 
-image::GatlingCompileGraph.svg[]
+image::comparisons/GatlingCompileGraph.svg[]
 
 Apart from the static dependency graph, another thing of interest may be the performance
 profile and timeline: where the time is spent when you actually compile everything. With
@@ -245,7 +245,7 @@ Mill, when you run a compilation using `./mill -j 10 __.compile`, you automatica
 `out/mill-chrome-profile.json` file that you can load into your `chrome://tracing` page and
 visualize where your build is spending time and where the performance bottlenecks are:
 
-image::GatlingCompileProfile.png[]
+image::comparisons/GatlingCompileProfile.png[]
 
 If you want to inspect the tree of third-party dependencies used by any module, the
 built in `ivyDepsTree` command lets you do that easily:

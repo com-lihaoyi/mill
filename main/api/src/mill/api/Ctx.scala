@@ -73,7 +73,7 @@ object Ctx {
   }
 
   trait Args {
-    def args: IndexedSeq[_]
+    def args: IndexedSeq[?]
   }
 
   /**
@@ -167,7 +167,7 @@ object Ctx {
  * implementation of a `Task`.
  */
 class Ctx(
-    val args: IndexedSeq[_],
+    val args: IndexedSeq[?],
     dest0: () => os.Path,
     val log: Logger,
     val home: os.Path,
@@ -185,7 +185,7 @@ class Ctx(
     with Ctx.Workspace {
 
   def this(
-      args: IndexedSeq[_],
+      args: IndexedSeq[?],
       dest0: () => os.Path,
       log: Logger,
       home: os.Path,
@@ -194,7 +194,7 @@ class Ctx(
       testReporter: TestReporter,
       workspace: os.Path
   ) = {
-    this(args, dest0, log, home, env, reporter, testReporter, workspace, i => ???, null)
+    this(args, dest0, log, home, env, reporter, testReporter, workspace, _ => ???, null)
   }
   def dest: os.Path = dest0()
   def arg[T](index: Int): T = {

@@ -11,7 +11,7 @@ config and building it across a variety of source folders.
 
 include::partial$example/fundamentals/cross/1-simple.adoc[]
 
-== Default Cross Modules
+== Cross Modules Defaults
 
 include::partial$example/fundamentals/cross/11-default-cross-module.adoc[]
 

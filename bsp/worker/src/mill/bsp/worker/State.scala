@@ -7,13 +7,13 @@ import mill.define.Module
 import mill.eval.Evaluator
 
 private class State(workspaceDir: os.Path, evaluators: Seq[Evaluator], debug: String => Unit) {
-  lazy val bspModulesById: Map[BuildTargetIdentifier, (BspModule, Evaluator)] = {
+  lazy val bspModulesIdList: Seq[(BuildTargetIdentifier, (BspModule, Evaluator))] = {
     val modules: Seq[(Module, Seq[Module], Evaluator)] = evaluators
       .map(ev => (ev.rootModule, JavaModuleUtils.transitiveModules(ev.rootModule), ev))
 
-    val map = modules
-      .flatMap { case (rootModule, otherModules, eval) =>
-        (Seq(rootModule) ++ otherModules).collect {
+    modules
+      .flatMap { case (rootModule, modules, eval) =>
+        modules.collect {
           case m: BspModule =>
             val uri = Utils.sanitizeUri(
               rootModule.millSourcePath /
@@ -24,9 +24,10 @@ private class State(workspaceDir: os.Path, evaluators: Seq[Evaluator], debug: St
             (new BuildTargetIdentifier(uri), (m, eval))
         }
       }
-      .toMap
+  }
+  lazy val bspModulesById: Map[BuildTargetIdentifier, (BspModule, Evaluator)] = {
+    val map = bspModulesIdList.toMap
     debug(s"BspModules: ${map.view.mapValues(_._1.bspDisplayName).toMap}")
-
     map
   }
 

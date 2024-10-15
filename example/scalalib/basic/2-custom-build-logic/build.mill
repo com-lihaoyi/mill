@@ -19,7 +19,7 @@ object `package` extends RootModule with ScalaModule {
   /** Generate resources using lineCount of sources */
   override def resources = Task {
     os.write(Task.dest / "line-count.txt", "" + lineCount())
-    Seq(PathRef(Task.dest))
+    super.resources() ++ Seq(PathRef(Task.dest))
   }
 }
 
@@ -30,19 +30,18 @@ object `package` extends RootModule with ScalaModule {
 // it with the destination folder of the new `resources` task, which is wired
 // up to `lineCount`:
 //
-// [graphviz]
-// ....
+// ```graphviz
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
 //   allSourceFiles -> lineCount -> resources -> "..." -> run
-//   "resources.super" -> "..." [style=invis]
+//   "resources.super" -> "resources"
 //   "..." [color=white]
-//   "resources.super" [style=dashed]
+//   "resources.super" [color=white]
 //   allSourceFiles [color=white]
 //   run [color=white]
 // }
-// ....
+// ```
 
 
 /** Usage
@@ -65,7 +64,7 @@ Inputs:
 // `allSourceFiles` (an existing task) and is in-turn used in our override of
 // `resources` (also an existing task). `os.read.lines` and `os.write` come
 // from the https://github.com/com-lihaoyi/os-lib[OS-Lib] library, which is
-// one of Mill's <<Bundled Libraries>>. This generated file can then be
+// one of Mill's xref:fundamentals/bundled-libraries.adoc[Bundled Libraries]. This generated file can then be
 // loaded and used at runtime, as see in the output of `mill run`
 //
 // While this is a toy example, it shows how easy it is to customize your Mill
@@ -73,7 +72,7 @@ Inputs:
 // most real-world projects.
 //
 // This customization is done in a principled fashion familiar to most
-// programmers - object-orienting overrides - rather than ad-hoc
+// programmers - `override` and `super` - rather than ad-hoc
 // monkey-patching or mutation common in other build tools. You never have
 // "spooky action at a distance" affecting your build / graph definition, and
 // your IDE can always help you find the final override of any particular build

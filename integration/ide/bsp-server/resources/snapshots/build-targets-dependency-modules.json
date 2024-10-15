@@ -1,0 +1,32 @@
+{
+  "items": [
+    {
+      "target": {
+        "uri": "file:///workspace/hello-java"
+      },
+      "modules": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-kotlin"
+      },
+      "modules": [
+        {
+          "name": "org.jetbrains.kotlin:kotlin-stdlib",
+          "version": "<kotlin-version>"
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-scala"
+      },
+      "modules": [
+        {
+          "name": "org.scala-lang:scala-library",
+          "version": "<scala-version>"
+        }
+      ]
+    }
+  ]
+}

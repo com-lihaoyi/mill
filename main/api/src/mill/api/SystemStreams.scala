@@ -19,6 +19,14 @@ class SystemStreams(
 
 object SystemStreams {
 
+  /**
+   * The original system streams of this process, before any redirection.
+   *
+   * NOTE: you should not use this! They do not get captured properly by Mill's stdout/err
+   * redirection, and thus only get picked up from the Mill server log files asynchronously.
+   * That means that the logs may appear out of order, jumbling your logs and screwing up
+   * your terminal
+   */
   val original = new SystemStreams(System.out, System.err, System.in)
 
   /**
@@ -124,9 +132,9 @@ object SystemStreams {
   def setTopLevelSystemStreamProxy(): Unit = {
     // Make sure to initialize `Console` to cache references to the original
     // `System.{in,out,err}` streams before we redirect them
-    Console.out
-    Console.err
-    Console.in
+    val _ = Console.out
+    val _ = Console.err
+    val _ = Console.in
     System.setIn(ThreadLocalStreams.In)
     System.setOut(ThreadLocalStreams.Out)
     System.setErr(ThreadLocalStreams.Err)

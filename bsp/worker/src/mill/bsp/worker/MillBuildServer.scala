@@ -4,7 +4,7 @@ import ch.epfl.scala.bsp4j
 import ch.epfl.scala.bsp4j._
 import com.google.gson.JsonObject
 import mill.api.{DummyTestReporter, Result, Strict}
-import mill.bsp.BspServerResult
+import mill.bsp.{BspServerResult, Constants}
 import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
 import mill.define.Segment.Label
 import mill.define.{Args, Discover, ExternalModule, Task}
@@ -32,6 +32,8 @@ private class MillBuildServer(
     canReload: Boolean
 ) extends ExternalModule
     with BuildServer {
+
+  import MillBuildServer._
 
   lazy val millDiscover: Discover = Discover[this.type]
 
@@ -71,7 +73,7 @@ private class MillBuildServer(
 
       // TODO: scan BspModules and infer their capabilities
 
-      val supportedLangs = Seq("java", "scala").asJava
+      val supportedLangs = Constants.languages.asJava
       val capabilities = new BuildServerCapabilities
 
       capabilities.setBuildTargetChangedProvider(false)
@@ -154,7 +156,7 @@ private class MillBuildServer(
   override def workspaceBuildTargets(): CompletableFuture[WorkspaceBuildTargetsResult] =
     completableTasksWithState(
       "workspaceBuildTargets",
-      targetIds = _.bspModulesById.keySet.toSeq,
+      targetIds = _.bspModulesIdList.map(_._1),
       tasks = { case m: BspModule => m.bspBuildTargetData }
     ) { (ev, state, id, m: BspModule, bspBuildTargetData) =>
       val depsIds = m match {
@@ -173,14 +175,12 @@ private class MillBuildServer(
             bsp4j.ScalaPlatform.forValue(d.platform.number),
             d.jars.asJava
           )
+          for (jvmBuildTarget <- d.jvmBuildTarget)
+            target.setJvmBuildTarget(MillBuildServer.jvmBuildTarget(jvmBuildTarget))
           Some((dataKind, target))
 
         case Some((dataKind, d: JvmBuildTarget)) =>
-          val target = new bsp4j.JvmBuildTarget().tap { it =>
-            d.javaHome.foreach(jh => it.setJavaHome(jh.uri))
-            d.javaVersion.foreach(jv => it.setJavaVersion(jv))
-          }
-          Some((dataKind, target))
+          Some((dataKind, jvmBuildTarget(d)))
 
         case Some((dataKind, d)) =>
           debug(s"Unsupported dataKind=${dataKind} with value=${d}")
@@ -230,8 +230,7 @@ private class MillBuildServer(
       tasks = {
         case module: MillBuildRootModule =>
           Task.Anon {
-            module.scriptSources().map(p => sourceItem(p.path, false)) ++
-              module.sources().map(p => sourceItem(p.path, false)) ++
+            module.sources().map(p => sourceItem(p.path, false)) ++
               module.generatedSources().map(p => sourceItem(p.path, true))
           }
         case module: JavaModule =>
@@ -253,7 +252,7 @@ private class MillBuildServer(
   override def buildTargetInverseSources(p: InverseSourcesParams)
       : CompletableFuture[InverseSourcesResult] = {
     completable(s"buildtargetInverseSources ${p}") { state =>
-      val tasksEvaluators = state.bspModulesById.iterator.collect {
+      val tasksEvaluators = state.bspModulesIdList.iterator.collect {
         case (id, (m: JavaModule, ev)) =>
           Task.Anon {
             val src = m.allSourceFiles()
@@ -264,11 +263,9 @@ private class MillBuildServer(
           } -> ev
       }.toSeq
 
-      val ids = tasksEvaluators
-        .groupMap(_._2)(_._1)
+      val ids = groupList(tasksEvaluators)(_._2)(_._1)
         .flatMap { case (ev, ts) => ev.evalOrThrow()(ts) }
         .flatten
-        .toSeq
 
       new InverseSourcesResult(ids.asJava)
     }
@@ -635,16 +632,15 @@ private class MillBuildServer(
       State
   ) => V): CompletableFuture[V] = {
     val prefix = hint.split(" ").head
-    completable(hint) { state: State =>
+    completable(hint) { (state: State) =>
       val ids = state.filterNonSynthetic(targetIds(state).asJava).asScala
       val tasksSeq = ids.flatMap { id =>
         val (m, ev) = state.bspModulesById(id)
         tasks.lift.apply(m).map(ts => (ts, (ev, id)))
       }
 
-      val evaluated = tasksSeq
-        // group by evaluator (different root module)
-        .groupMap(_._2)(_._1)
+      // group by evaluator (different root module)
+      val evaluated = groupList(tasksSeq.toSeq)(_._2)(_._1)
         .map { case ((ev, id), ts) =>
           val results = ev.evaluate(ts)
           val failures = results.results.collect {
@@ -675,7 +671,7 @@ private class MillBuildServer(
             }
         }
 
-      agg(evaluated.flatten.toSeq.asJava, state)
+      agg(evaluated.flatten.asJava, state)
     }
   }
 
@@ -772,4 +768,24 @@ private class MillBuildServer(
   override def onRunReadStdin(params: ReadParams): Unit = {
     debug("onRunReadStdin is current unsupported")
   }
+}
+
+private object MillBuildServer {
+
+  /**
+   * Same as Iterable.groupMap, but returns a sequence instead of a map, and preserves
+   * the order of appearance of the keys from the input sequence
+   */
+  private def groupList[A, K, B](seq: Seq[A])(key: A => K)(f: A => B): Seq[(K, Seq[B])] = {
+    val keyIndices = seq.map(key).distinct.zipWithIndex.toMap
+    seq.groupMap(key)(f)
+      .toSeq
+      .sortBy { case (k, _) => keyIndices(k) }
+  }
+
+  def jvmBuildTarget(d: JvmBuildTarget): bsp4j.JvmBuildTarget =
+    new bsp4j.JvmBuildTarget().tap { it =>
+      d.javaHome.foreach(jh => it.setJavaHome(jh.uri))
+      d.javaVersion.foreach(jv => it.setJavaVersion(jv))
+    }
 }

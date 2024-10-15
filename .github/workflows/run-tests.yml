@@ -44,7 +44,7 @@ jobs:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
 
-      - run: ./mill -i docs.githubPages
+      - run: ./mill -i docs.githubPages + docs.checkBrokenLinks
 
   linux:
     needs: build-linux

@@ -66,9 +66,9 @@ is what allows us to be aggressive about caching and parallelizing the
 evaluation of build tasks during a build.
 
 Many kinds of build steps do require files on disk, and for that Mill provides
-the `T.dest` folder. This is a folder on disk dedicated to each build task,
+the `Task.dest` folder. This is a folder on disk dedicated to each build task,
 so that it can read and write things to it without worrying about conflicts
-with other tasks that have their own `T.dest` folders. In effect, this makes
+with other tasks that have their own `Task.dest` folders. In effect, this makes
 even file output "pure": we can know precisely where a task's output files
 live when we need to invalidate them, and it allows multiple tasks all
 reading and writing to the filesystem to do so safely even when in parallel.
@@ -182,7 +182,7 @@ that would make a build tool hard to understand.
 Before you continue, take a moment to think: how would you answer to each of
 those questions using an existing build tool you are familiar with? Different
 tools like http://www.scala-sbt.org/[SBT],
-https://fake.build/legacy-index.html[Fake], https://gradle.org/[Gradle] or
+https://fake.build[Fake], https://gradle.org/[Gradle] or
 https://gruntjs.com/[Grunt] have very different answers.
 
 Mill aims to provide the answer to these questions using as few, as familiar
@@ -199,8 +199,7 @@ build-related questions listed above.
 
 === The Object Hierarchy
 
-[graphviz]
-....
+```graphviz
 digraph G {
   node [shape=box width=0 height=0 style=filled fillcolor=white]
   bgcolor=transparent
@@ -213,7 +212,7 @@ digraph G {
   foo2 -> "foo2.qux"  [style=dashed]
   foo2 -> "foo2.baz"  [style=dashed]
 }
-....
+```
 
 The module hierarchy is the graph of objects, starting from the root of the
 `build.mill` file, that extend `mill.Module`. At the leaves of the hierarchy are
@@ -239,8 +238,7 @@ are sure that it will never clash with any other ``Task``s data.
 
 === The Call Graph
 
-[graphviz]
-....
+```graphviz
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -275,7 +273,7 @@ digraph G {
     "qux.sources" -> "qux.compile" -> "qux.classPath" -> "qux.assembly"
   }
 }
-....
+```
 
 The Scala call graph of "which task references which other task" is core to
 how Mill operates. This graph is reified via the `T {...}` macro to make it

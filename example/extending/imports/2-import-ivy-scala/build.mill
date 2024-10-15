@@ -6,7 +6,7 @@
 import mill._, scalalib._
 import $ivy.`com.lihaoyi::scalatags:0.12.0`, scalatags.Text.all._
 
-object foo extends ScalaModule {
+object bar extends ScalaModule {
   def scalaVersion = "2.13.8"
 
   def ivyDeps = Agg(ivy"com.lihaoyi::os-lib:0.10.7")
@@ -25,17 +25,17 @@ object foo extends ScalaModule {
 
 /** Usage
 
-> mill foo.compile
+> mill bar.compile
 compiling 1 Scala source...
 ...
 
-> mill foo.run
+> mill bar.run
 generated snippet.txt resource: <div><h1>hello</h1><p>world</p></div>
 
-> mill show foo.assembly
-".../out/foo/assembly.dest/out.jar"
+> mill show bar.assembly
+".../out/bar/assembly.dest/out.jar"
 
-> ./out/foo/assembly.dest/out.jar # mac/linux
+> ./out/bar/assembly.dest/out.jar # mac/linux
 generated snippet.txt resource: <div><h1>hello</h1><p>world</p></div>
 
 */

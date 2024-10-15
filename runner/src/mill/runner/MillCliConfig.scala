@@ -130,7 +130,19 @@ case class MillCliConfig(
         status at the command line and falls back to the legacy ticker
       """
     )
-    disablePrompt: Flag = Flag()
+    disablePrompt: Flag = Flag(),
+    @arg(
+      hidden = true,
+      doc =
+        """Evaluate tasks / commands without acquiring an exclusive lock on the Mill output directory"""
+    )
+    noBuildLock: Flag = Flag(),
+    @arg(
+      hidden = true,
+      doc =
+        """Do not wait for an exclusive lock on the Mill output directory to evaluate tasks / commands."""
+    )
+    noWaitForBuildLock: Flag = Flag()
 )
 
 import mainargs.ParserForClass

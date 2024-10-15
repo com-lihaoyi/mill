@@ -1,6 +1,6 @@
 package mill.util
 
-import mill.api.Logger
+import mill.api.{Logger, SystemStreams}
 
 import java.io.PrintStream
 
@@ -35,8 +35,14 @@ class ProxyLogger(logger: Logger) extends Logger {
   override def rawOutputStream: PrintStream = logger.rawOutputStream
   private[mill] override def removePromptLine(key: Seq[String]): Unit = logger.removePromptLine(key)
   private[mill] override def removePromptLine(): Unit = logger.removePromptLine()
-  private[mill] override def setPromptLeftHeader(s: String): Unit = logger.setPromptLeftHeader(s)
+  private[mill] override def setPromptHeaderPrefix(s: String): Unit =
+    logger.setPromptHeaderPrefix(s)
   private[mill] override def withPromptPaused[T](t: => T): T = logger.withPromptPaused(t)
+  private[mill] override def withPromptUnpaused[T](t: => T): T = logger.withPromptUnpaused(t)
 
   override def enableTicker = logger.enableTicker
+  override def infoColor: fansi.Attrs = logger.infoColor
+  override def errorColor: fansi.Attrs = logger.errorColor
+  private[mill] override def logPrefixKey: Seq[String] = logger.logPrefixKey
+  private[mill] override def unprefixedSystemStreams: SystemStreams = logger.unprefixedSystemStreams
 }

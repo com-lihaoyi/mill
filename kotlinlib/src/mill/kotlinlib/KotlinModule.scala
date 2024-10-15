@@ -5,10 +5,11 @@
 package mill
 package kotlinlib
 
-import mill.api.{Loose, PathRef, Result}
+import mill.api.{Loose, PathRef, Result, internal}
 import mill.define.{Command, ModuleRef, Task}
-import mill.kotlinlib.worker.api.KotlinWorker
+import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
 import mill.scalalib.api.{CompilationResult, ZincWorkerApi}
+import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.scalalib.{JavaModule, Lib, ZincWorkerModule}
 import mill.util.Jvm
 import mill.util.Util.millProjectModule
@@ -92,11 +93,6 @@ trait KotlinModule extends JavaModule { outer =>
    */
   def kotlinCompilerIvyDeps: T[Agg[Dep]] = Task {
     Agg(ivy"org.jetbrains.kotlin:kotlin-compiler:${kotlinCompilerVersion()}") ++
-//      (
-//        if (Seq("1.0.", "1.1.", "1.2").exists(prefix => kotlinVersion().startsWith(prefix)))
-//          Agg(ivy"org.jetbrains.kotlin:kotlin-runtime:${kotlinCompilerVersion()}")
-//        else Seq()
-//      ) ++
       (
         if (
           !Seq("1.0.", "1.1.", "1.2.0", "1.2.1", "1.2.2", "1.2.3", "1.2.4").exists(prefix =>
@@ -106,14 +102,7 @@ trait KotlinModule extends JavaModule { outer =>
           Agg(ivy"org.jetbrains.kotlin:kotlin-scripting-compiler:${kotlinCompilerVersion()}")
         else Seq()
       )
-//    ivy"org.jetbrains.kotlin:kotlin-scripting-compiler-impl:${kotlinCompilerVersion()}",
-//    ivy"org.jetbrains.kotlin:kotlin-scripting-common:${kotlinCompilerVersion()}",
   }
-
-//  @Deprecated("Use kotlinWorkerTask instead, as this does not need to be cached as Worker")
-//  def kotlinWorker: Worker[KotlinWorker] = Task.Worker {
-//    kotlinWorkerTask()
-//  }
 
   def kotlinWorkerTask: Task[KotlinWorker] = Task.Anon {
     kotlinWorkerRef().kotlinWorkerManager().get(kotlinCompilerClasspath())
@@ -264,7 +253,7 @@ trait KotlinModule extends JavaModule { outer =>
           (kotlinSourceFiles ++ javaSourceFiles).map(_.toIO.getAbsolutePath())
         ).flatten
 
-        val workerResult = kotlinWorkerTask().compile(compilerArgs: _*)
+        val workerResult = kotlinWorkerTask().compile(KotlinWorkerTarget.Jvm, compilerArgs: _*)
 
         val analysisFile = dest / "kotlin.analysis.dummy"
         os.write(target = analysisFile, data = "", createFolders = true)
@@ -325,6 +314,13 @@ trait KotlinModule extends JavaModule { outer =>
   }
 
   private[kotlinlib] def internalReportOldProblems: Task[Boolean] = zincReportCachedProblems
+
+  @internal
+  override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
+    languageIds = Seq(BspModule.LanguageId.Java, BspModule.LanguageId.Kotlin),
+    canCompile = true,
+    canRun = true
+  )
 
   /**
    * A test sub-module linked to its parent module best suited for unit-tests.
