@@ -1,5 +1,5 @@
 = Library Dependencies in Mill
-:link-coursier: https://github.com/coursier/coursier
+:link-coursier: https://github.com/coursier/coursie
 :link-coursier-doc: https://get-coursier.io/docs/overview
 :page-aliases: Library_Dependencies.adoc
 
