@@ -368,14 +368,72 @@ object `package` extends RootModule {
       )
     }
   }
+
+  def brokenRemoteLinks: T[Map[os.Path, Seq[(String, String, Int)]]] = Task{
+    val allLinks = allLinksAndAnchors()
+      .flatMap { case (path, remoteLinks, localLinks, ids) => remoteLinks }
+      .map(_._2)
+      .filter{l =>
+        // ignore example links since those are expected to be unresolved until
+        // a stable version is published and artifacts are uploaded to github
+        !l.contains("/example/") &&
+          !l.contains("/releases/download/") &&
+          // Ignore internal repo links in the changelog because there are a lot
+          // of them and they're not very interesting to check and verify.
+          !l.contains("https://github.com/com-lihaoyi/mill/pull/") &&
+          !l.contains("https://github.com/com-lihaoyi/mill/milestone/") &&
+          !l.contains("https://github.com/com-lihaoyi/mill/compare/") &&
+          // Link meant for API configuration, not for clicking
+          !l.contains("https://s01.oss.sonatype.org/service/local") &&
+          // SOmehow this server doesn't respond properly to HEAD requests even though GET works
+          !l.contains("https://marketplace.visualstudio.com/items")
+      }
+      .toSet
+
+    // Try to fetch all the links serially. It isn't worth trying to parallelize it
+    // because if we go too fast the remote websites tend to rate limit us anyway
+    val linksToStatusCodes = allLinks.toSeq.zipWithIndex
+      .map{ case (link, i) =>
+        val key = s"$i/${allLinks.size}"
+        println(s"Checking link $link $key")
+        val start = System.currentTimeMillis()
+        val res = requests.head(link, check = false).statusCode
+        val duration = System.currentTimeMillis() - start
+        val remaining = 1000 - duration
+        if (remaining > 0) Thread.sleep(remaining) // try to avoid being rate limited
+        (link, res)
+      }
+      .toMap
+
+    allLinksAndAnchors()
+      .map{case (path, remoteLinks, localLinks, ids) =>
+        (
+          path,
+          remoteLinks.collect{
+            case (e, l)
+              if allLinks.contains(l)
+              && !linksToStatusCodes(l).toString.startsWith("2")  =>
+                (e, l, linksToStatusCodes(l))
+          }
+        )
+      }
+      .filter(_._2.nonEmpty)
+      .toMap
+  }
+
+
   def checkBrokenLinks() = Task.Command{
-    if (brokenLinks().nonEmpty){
-      throw new Exception("Broken Links: " + upickle.default.write(brokenLinks(), indent = 2))
+    if (brokenLocalLinks().nonEmpty){
+      throw new Exception("Broken Local Links: " + upickle.default.write(brokenLocalLinks(), indent = 2))
+    }
+    if (brokenRemoteLinks().nonEmpty){
+      throw new Exception("Broken Rmote Links: " + upickle.default.write(brokenRemoteLinks(), indent = 2))
     }
   }
-  def brokenLinks: T[Map[os.Path, Seq[(String, String)]]] = Task{
+
+  def brokenLocalLinks: T[Map[os.Path, Seq[(String, String)]]] = Task{
     val allLinksAndAnchors0 = allLinksAndAnchors()
-    val pathsToIds = allLinksAndAnchors()
+    val pathsToIds = allLinksAndAnchors0
       .map{case (path, remoteLinks, localLinks, ids) => (path, ids)}
       .toMap
 

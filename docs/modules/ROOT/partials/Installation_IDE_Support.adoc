@@ -274,7 +274,7 @@ CAUTION: Some of the installations via package managers install a fixed version 
 
 === OS X
 
-Installation via https://github.com/Homebrew/homebrew-core/blob/master/Formula/mill.rb[homebrew]:
+Installation via https://github.com/Homebrew/homebrew-core/blob/master/Formula/m/mill.rb[homebrew]:
 
 [source,sh]
 ----
