@@ -43,7 +43,7 @@ private[mill] object Reflect {
     //    which messes up the the comparison since all forwarders will have the
     //    same `getDeclaringClass`. To handle these scenarios, also sort by
     //    return type, so we can identify the most specific override
-    res
+    val finalres = res
       .sortWith((m1, m2) =>
         if (m1.getDeclaringClass.equals(m2.getDeclaringClass)) false
         else m1.getDeclaringClass.isAssignableFrom(m2.getDeclaringClass)
@@ -55,8 +55,46 @@ private[mill] object Reflect {
       .distinctBy(_.getName)
       .sortBy(_.getName)
       .toIndexedSeq
+
+    val newres = reflectNew(outer, inner, filter, noParams)
+    assert(newres == finalres)
+    finalres
   }
 
+  def reflectNew(
+               outer: Class[_],
+               inner: Class[_],
+               filter: String => Boolean,
+               noParams: Boolean
+             ): Seq[java.lang.reflect.Method] = {
+    outer.getMethods
+      .filter { m =>
+        val n = decode(m.getName)
+        filter(n) &&
+          isLegalIdentifier(n) &&
+          (!noParams || m.getParameterCount == 0) &&
+          (m.getModifiers & Modifier.STATIC) == 0 &&
+          inner.isAssignableFrom(m.getReturnType)
+      }
+      .sortWith((m1, m2) =>
+        // There can be multiple methods of the same name on a class if a sub-class
+        // overrides a super-class method and narrows the return type.
+        //
+        // 1. Make sure we sort the methods by their declaring class from lowest to
+        //    highest in the the type hierarchy, and use `distinctBy` to only keep
+        //    the lowest version, before we finally sort them by name
+        //
+        // 2. Sometimes traits also generate synthetic forwarders for overrides,
+        //    which messes up the the comparison since all forwarders will have the
+        //    same `getDeclaringClass`. To handle these scenarios, also sort by
+        //    return type, so we can identify the most specific override
+        if (m1.getReturnType.isAssignableFrom(m2.getReturnType)) false
+        else if (m1.getDeclaringClass.equals(m2.getDeclaringClass)) true
+        else !m1.getDeclaringClass.isAssignableFrom(m2.getDeclaringClass)
+      )
+      .distinctBy(_.getName)
+      .sortBy(_.getName)
+  }
   // For some reason, this fails to pick up concrete `object`s nested directly within
   // another top-level concrete `object`. This is fine for now, since Mill's Ammonite
   // script/REPL runner always wraps user code in a wrapper object/trait
