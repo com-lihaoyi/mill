@@ -152,7 +152,7 @@ object DocAnnotationsTests extends UtestIntegrationTestSuite {
           """core(build.mill:...)
             |    The Core Module Docz!
             |
-            |Inherited Modules: JavaModule
+            |Inherited Modules: ...JavaModule...
             |
             |Default Task: core.run
             |
@@ -168,7 +168,7 @@ object DocAnnotationsTests extends UtestIntegrationTestSuite {
         globMatches(
           """MyJavaTaskModule(build.mill:...)
             |
-            |Inherited Modules: JavaModule
+            |Inherited Modules: ...JavaModule...
             |
             |Module Dependencies: core, core2
             |

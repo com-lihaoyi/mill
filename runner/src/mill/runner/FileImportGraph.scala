@@ -3,6 +3,7 @@ package mill.runner
 import mill.api.internal
 import mill.main.client.CodeGenConstants._
 import mill.main.client.OutFiles._
+import mill.runner.worker.api.{MillScalaParser, ImportTree}
 
 import scala.reflect.NameTransformer.encode
 import scala.collection.mutable
@@ -44,6 +45,7 @@ object FileImportGraph {
    * instantiate the [[MillRootModule]]
    */
   def parseBuildFiles(
+      parser: MillScalaParser,
       topLevelProjectRoot: os.Path,
       projectRoot: os.Path,
       output: os.Path
@@ -59,7 +61,7 @@ object FileImportGraph {
       val readFileEither = scala.util.Try {
         val content = if (useDummy) "" else os.read(s)
         val fileName = s.relativeTo(topLevelProjectRoot).toString
-        for (splitted <- Parsers.splitScript(content, fileName))
+        for (splitted <- parser.splitScript(content, fileName))
           yield {
             val (pkgs, stmts) = splitted
             val importSegments = pkgs.mkString(".")
@@ -104,7 +106,7 @@ object FileImportGraph {
           val fileImports = mutable.Set.empty[os.Path]
           // we don't expect any new imports when using an empty dummy
           val transformedStmts = mutable.Buffer.empty[String]
-          for ((stmt0, importTrees) <- Parsers.parseImportHooksWithIndices(stmts)) {
+          for ((stmt0, importTrees) <- parser.parseImportHooksWithIndices(stmts)) {
             walkStmt(s, stmt0, importTrees, fileImports, transformedStmts)
           }
           seenScripts(s) = transformedStmts.mkString

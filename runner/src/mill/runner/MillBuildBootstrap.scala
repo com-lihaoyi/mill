@@ -1,5 +1,6 @@
 package mill.runner
 
+import mill.given
 import mill.util.{ColorLogger, PrefixLogger, Watchable}
 import mill.main.BuildInfo
 import mill.main.client.CodeGenConstants._
@@ -9,6 +10,8 @@ import mill.main.RunScript
 import mill.resolve.SelectMode
 import mill.define.{BaseModule, Discover, Segments}
 import mill.main.client.OutFiles.{millBuild, millRunnerState}
+import mill.runner.worker.api.MillScalaParser
+import mill.runner.worker.ScalaCompilerWorker
 
 import java.net.URLClassLoader
 
@@ -44,15 +47,20 @@ class MillBuildBootstrap(
     requestedMetaLevel: Option[Int],
     allowPositionalCommandArgs: Boolean,
     systemExit: Int => Nothing,
-    streams0: SystemStreams
-) {
+    streams0: SystemStreams,
+    scalaCompilerWorker: ScalaCompilerWorker.ResolvedWorker
+) { outer =>
   import MillBuildBootstrap._
 
   val millBootClasspath: Seq[os.Path] = prepareMillBootClasspath(output)
   val millBootClasspathPathRefs: Seq[PathRef] = millBootClasspath.map(PathRef(_, quick = true))
 
+  def parserBridge: MillScalaParser = {
+    scalaCompilerWorker.worker
+  }
+
   def evaluate(): Watching.Result[RunnerState] = CliImports.withValue(imports) {
-    val runnerState = evaluateRec(0)
+    val runnerState = evaluateRec(0)(using parserBridge)
 
     for ((frame, depth) <- runnerState.frames.zipWithIndex) {
       os.write.over(
@@ -69,7 +77,7 @@ class MillBuildBootstrap(
     )
   }
 
-  def evaluateRec(depth: Int): RunnerState = {
+  def evaluateRec(depth: Int)(using parser: MillScalaParser): RunnerState = {
     // println(s"+evaluateRec($depth) " + recRoot(projectRoot, depth))
     val prevFrameOpt = prevRunnerState.frames.lift(depth)
     val prevOuterFrameOpt = prevRunnerState.frames.lift(depth - 1)
@@ -103,6 +111,7 @@ class MillBuildBootstrap(
         }
       } else {
         val parsedScriptFiles = FileImportGraph.parseBuildFiles(
+          parser,
           projectRoot,
           recRoot(projectRoot, depth) / os.up,
           output
@@ -115,7 +124,8 @@ class MillBuildBootstrap(
               projectRoot,
               recRoot(projectRoot, depth),
               output,
-              millBootClasspath
+              millBootClasspath,
+              scalaCompilerWorker
             )(
               mill.main.RootModule.Info(
                 recRoot(projectRoot, depth),

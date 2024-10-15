@@ -1,8 +1,12 @@
 package mill.scalalib
 
 import upickle.default.{ReadWriter => RW}
+import mill.api.Mirrors
+import mill.api.Mirrors.autoMirror
 
 trait JsonFormatters {
+  import JsonFormatters.mirrors.given
+
   implicit lazy val publicationFormat: RW[coursier.core.Publication] = upickle.default.macroRW
   implicit lazy val extensionFormat: RW[coursier.core.Extension] = upickle.default.macroRW
 
@@ -24,4 +28,32 @@ trait JsonFormatters {
   implicit lazy val classifierFormat: RW[coursier.core.Classifier] = upickle.default.macroRW
 
 }
-object JsonFormatters extends JsonFormatters
+object JsonFormatters extends JsonFormatters {
+  private[JsonFormatters] object mirrors {
+    given Root_coursier_Publication: Mirrors.Root[coursier.core.Publication] =
+      Mirrors.autoRoot[coursier.core.Publication]
+    given Root_coursier_Extension: Mirrors.Root[coursier.core.Extension] =
+      Mirrors.autoRoot[coursier.core.Extension]
+    given Root_coursier_Module: Mirrors.Root[coursier.core.Module] =
+      Mirrors.autoRoot[coursier.core.Module]
+    given Root_coursier_Dependency: Mirrors.Root[coursier.core.Dependency] =
+      Mirrors.autoRoot[coursier.core.Dependency]
+    given Root_coursier_MinimizedExclusions: Mirrors.Root[coursier.core.MinimizedExclusions] =
+      Mirrors.autoRoot[coursier.core.MinimizedExclusions]
+    given Root_coursier_MinimizedExclusions_ExcludeSpecific
+        : Mirrors.Root[coursier.core.MinimizedExclusions.ExcludeSpecific] =
+      Mirrors.autoRoot[coursier.core.MinimizedExclusions.ExcludeSpecific]
+    given Root_coursier_core_Attributes: Mirrors.Root[coursier.core.Attributes] =
+      Mirrors.autoRoot[coursier.core.Attributes]
+    given Root_coursier_Organization: Mirrors.Root[coursier.core.Organization] =
+      Mirrors.autoRoot[coursier.core.Organization]
+    given Root_coursier_ModuleName: Mirrors.Root[coursier.core.ModuleName] =
+      Mirrors.autoRoot[coursier.core.ModuleName]
+    given Root_coursier_Configuration: Mirrors.Root[coursier.core.Configuration] =
+      Mirrors.autoRoot[coursier.core.Configuration]
+    given Root_coursier_Type: Mirrors.Root[coursier.core.Type] =
+      Mirrors.autoRoot[coursier.core.Type]
+    given Root_coursier_Classifier: Mirrors.Root[coursier.core.Classifier] =
+      Mirrors.autoRoot[coursier.core.Classifier]
+  }
+}

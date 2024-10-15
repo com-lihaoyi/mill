@@ -79,7 +79,7 @@ object Util {
       repositories: Seq[Repository],
       resolveFilter: os.Path => Boolean = _ => true,
       // this should correspond to the mill runtime Scala version
-      artifactSuffix: String = "_2.13"
+      artifactSuffix: String = "_3"
   ): Result[Agg[PathRef]] = {
 
     mill.util.Jvm.resolveDependencies(
