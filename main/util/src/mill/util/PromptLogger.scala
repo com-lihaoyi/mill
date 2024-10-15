@@ -233,9 +233,8 @@ private[mill] object PromptLogger {
         // by subsequent writes
         if (enableTicker && src.available() == 0) {
           // Do not print the prompt when it is paused. Ideally stream redirecting would
-          // prevent any writes from coming to this stream when paused, but code may store
-          // the original streams and continue to write to them, so we need to make sure
-          // we handle that case correctly.
+          // prevent any writes from coming to this stream when paused, somehow writes
+          // sometimes continue to come in, so just handle them gracefully.
           if (interactive() && !paused()) writeCurrentPrompt()
           pumperState = PumperState.prompt
         }
