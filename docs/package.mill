@@ -395,7 +395,7 @@ object `package` extends RootModule {
               if !linksToStatusCodes(l).toString.startsWith("2")
               // ignore example links since those are expected to be unresolved until
               // a stable version is published and artifacts are uploaded to github
-              && !l.contains("/example/") =>
+              && !l.contains("/example/") && !l.contains("/releases/download/") =>
                 (e, l, linksToStatusCodes(l))
           }
         )
