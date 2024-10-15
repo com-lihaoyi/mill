@@ -388,15 +388,14 @@ object `package` extends RootModule {
 
     // Try to fetch all the links serially. It isn't worth trying to parallelize it
     // because if we go too fast the remote websites tend to rate limit us anyway
-    val futures = allLinks.zipWithIndex
+    val linksToStatusCodes = allLinks.zipWithIndex
       .map{ case (link, i) =>
         val key = s"$i/${allLinks.size}"
         println(s"Checking link $link $key")
-        Task.ctx().fork.async(T.dest, key, link) { (link, requests.head(link, check = false).statusCode) }
+        Thread.sleep(10) // try to avoid being rate limited
+        (link, requests.head(link, check = false).statusCode)
       }
-
-    val linksToStatusCodes = Task.ctx().fork.awaitAll(futures.toSeq).toMap
-
+      .toMap
 
     allLinksAndAnchors()
       .map{case (path, remoteLinks, localLinks, ids) =>
