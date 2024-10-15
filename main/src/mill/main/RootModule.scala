@@ -1,7 +1,7 @@
 package mill.main
 
 import mill.api.internal
-import mill.define.{BaseModule, Ctx, Caller, Discover, Module, Segments}
+import mill.define.{Caller, Discover}
 import scala.annotation.compileTimeOnly
 
 /**

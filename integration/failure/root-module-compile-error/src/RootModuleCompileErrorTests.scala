@@ -25,7 +25,7 @@ object RootModuleCompileErrorTests extends UtestIntegrationTestSuite {
       )
       assert(
         res.err.contains(
-          """abstract class package_  extends RootModule.Subfolder with UnknownFooModule {"""
+          """abstract class package_  extends Subfolder with UnknownFooModule {"""
         )
       )
 

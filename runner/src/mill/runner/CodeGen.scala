@@ -150,7 +150,7 @@ object CodeGen {
       o.name.text == "`package`" && (o.parent.text == "RootModule" || o.parent.text == "MillBuildRootModule")
     ) match {
       case Some(objectData) =>
-        val newParent = if (segments.isEmpty) expectedParent else s"RootModule.Subfolder"
+        val newParent = if (segments.isEmpty) expectedParent else s"mill.main.SubfolderModule"
 
         var newScriptCode = scriptCode
         newScriptCode = objectData.parent.applyTo(newScriptCode, newParent)
@@ -182,7 +182,7 @@ object CodeGen {
 
   def subfolderBuildPrelude(scriptFolderPath: os.Path, segments: Seq[String]): String = {
     s"""object MillMiscSubFolderInfo
-       |extends mill.main.RootModule.SubFolderInfo(
+       |extends mill.main.SubfolderModule.Info(
        |  os.Path(${literalize(scriptFolderPath.toString)}),
        |  _root_.scala.Seq(${segments.map(pprint.Util.literalize(_)).mkString(", ")})
        |)
@@ -214,15 +214,11 @@ object CodeGen {
       millTopLevelProjectRoot: os.Path,
       childAliases: String
   ): String = {
-    val extendsClause = if (segments.isEmpty) {
-      if (millTopLevelProjectRoot == scriptFolderPath) {
+    val extendsClause =
+      if (segments.nonEmpty) s"extends _root_.mill.main.SubfolderModule "
+      else if (millTopLevelProjectRoot == scriptFolderPath)
         s"extends _root_.mill.main.RootModule() "
-      } else {
-        s"extends _root_.mill.runner.MillBuildRootModule() "
-      }
-    } else {
-      s"extends _root_.mill.main.RootModule.Subfolder "
-    }
+      else s"extends _root_.mill.runner.MillBuildRootModule() "
 
     val millDiscover = discoverSnippet(segments)
 
