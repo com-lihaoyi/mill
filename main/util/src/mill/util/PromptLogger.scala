@@ -46,7 +46,8 @@ private[mill] class PromptLogger(
         enableTicker,
         systemStreams0,
         () => promptLineState.writeCurrentPrompt(),
-        interactive = () => termDimensions._1.nonEmpty
+        interactive = () => termDimensions._1.nonEmpty,
+        paused = () => runningState.paused
       )
 
   private object runningState extends RunningState(
@@ -57,7 +58,7 @@ private[mill] class PromptLogger(
           systemStreams0.err.write(AnsiNav.clearScreen(0).getBytes)
           systemStreams0.err.flush()
         },
-        this
+        synchronizer = this
       )
 
   val promptUpdaterThread = new Thread(
@@ -149,8 +150,8 @@ private[mill] object PromptLogger {
   /**
    * Manages the paused/unpaused/stopped state of the prompt logger. Encapsulate in a separate
    * class because it has to maintain some invariants and ensure book-keeping is properly done
-   * when the paused state change, e.g. interrupting the prompt updater thread, waiting for
-   * `pauseNoticed` to fire and clearing the screen when the ticker is paused.
+   * when the paused state change, e.g. interrupting the prompt updater thread and clearing
+   * the screen when the ticker is paused.
    */
   class RunningState(
       enableTicker: Boolean,
@@ -158,7 +159,7 @@ private[mill] object PromptLogger {
       clearOnPause: () => Unit,
       // Share the same synchronized lock as the parent PromptLogger, to simplify
       // reasoning about concurrency since it's not performance critical
-      synchronizer: PromptLogger
+      synchronizer: AnyRef
   ) {
     @volatile private var stopped0 = false
     @volatile private var paused0 = false
@@ -200,7 +201,8 @@ private[mill] object PromptLogger {
       enableTicker: Boolean,
       systemStreams0: SystemStreams,
       writeCurrentPrompt: () => Unit,
-      interactive: () => Boolean
+      interactive: () => Boolean,
+      paused: () => Boolean
   ) {
 
     // We force both stdout and stderr streams into a single `Piped*Stream` pair via
@@ -230,7 +232,10 @@ private[mill] object PromptLogger {
         // every small write when most such prompts will get immediately over-written
         // by subsequent writes
         if (enableTicker && src.available() == 0) {
-          if (interactive()) writeCurrentPrompt()
+          // Do not print the prompt when it is paused. Ideally stream redirecting would
+          // prevent any writes from coming to this stream when paused, somehow writes
+          // sometimes continue to come in, so just handle them gracefully.
+          if (interactive() && !paused()) writeCurrentPrompt()
           pumperState = PumperState.prompt
         }
       }
