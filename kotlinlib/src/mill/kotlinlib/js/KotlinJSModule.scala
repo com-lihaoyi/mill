@@ -344,7 +344,7 @@ trait KotlinJSModule extends KotlinModule { outer =>
     } else {
       T.log.info(s"Linking IR to $compileDestination")
     }
-    val workerResult = worker.compile(KotlinWorkerTarget.Js, compilerArgs: _*)
+    val workerResult = worker.compile(KotlinWorkerTarget.Js, compilerArgs)
 
     val analysisFile = T.dest / "kotlin.analysis.dummy"
     if (!os.exists(analysisFile)) {
