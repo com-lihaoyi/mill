@@ -32,9 +32,9 @@ object ZincBuildCompilationTests extends UtestIntegrationTestSuite {
         _.replace("running helperFoo", "running helperFoo2")
       )
       val mangledHelperFoo = eval(("dummy"))
-      // TODO: why is this compiling both sources when we only changed
-      // one file and did not change any public type signatures?
-      assert(mangledHelperFoo.err.contains("compiling 1 Scala source"))
+      // This should only compile 1 source but it seems there's an upstream bug in Zinc
+      // https://github.com/sbt/zinc/issues/1461
+      assert(mangledHelperFoo.err.contains("compiling 2 Scala source"))
 
     }
   }
