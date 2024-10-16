@@ -99,8 +99,10 @@ private[mill] class PromptLogger(
 
   def error(s: String): Unit = systemStreams.err.println(s)
 
-  override def setPromptHeaderPrefix(s: String): Unit =
-    synchronized { promptLineState.setHeaderPrefix(s) }
+  override def setPromptHeaderPrefix(s: String): Unit = synchronized {
+    promptLineState.setHeaderPrefix(s)
+  }
+
   override def clearPromptStatuses(): Unit = synchronized { promptLineState.clearStatuses() }
   override def removePromptLine(key: Seq[String]): Unit = synchronized {
     promptLineState.setCurrent(key, None)
