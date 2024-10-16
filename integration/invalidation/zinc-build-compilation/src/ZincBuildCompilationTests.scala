@@ -4,7 +4,6 @@ import mill.testkit.UtestIntegrationTestSuite
 
 import utest._
 
-
 object ZincBuildCompilationTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test("simple") - integrationTest { tester =>
