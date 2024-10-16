@@ -80,7 +80,6 @@ object CodeSigSubfolderTests extends UtestIntegrationTestSuite {
         "running helperFoo2"
       ))
 
-
       assert(mangledValFooUsedInBar.err.contains("compiling 1 Scala source"))
 
       val cached4 = eval("foo")
