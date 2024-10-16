@@ -2,7 +2,13 @@ package mill.util
 
 import mill.api.SystemStreams
 import mill.main.client.ProxyStream
-import mill.util.PromptLoggerUtil.{Status, clearScreenToEndBytes, defaultTermHeight, defaultTermWidth, renderPrompt}
+import mill.util.PromptLoggerUtil.{
+  Status,
+  clearScreenToEndBytes,
+  defaultTermHeight,
+  defaultTermWidth,
+  renderPrompt
+}
 import pprint.Util.literalize
 
 import java.io._
@@ -80,9 +86,9 @@ private[mill] class PromptLogger(
   def refreshPrompt(): Unit = promptLineState.refreshPrompt()
   if (enableTicker && autoUpdate) promptUpdaterThread.start()
 
-  def info(s: String): Unit = synchronized { systemStreams.err.println(s) }
+  def info(s: String): Unit = systemStreams.err.println(s)
 
-  def error(s: String): Unit = synchronized { systemStreams.err.println(s) }
+  def error(s: String): Unit = systemStreams.err.println(s)
 
   override def setPromptHeaderPrefix(s: String): Unit =
     synchronized { promptLineState.setHeaderPrefix(s) }

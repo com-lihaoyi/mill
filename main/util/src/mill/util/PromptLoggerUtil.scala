@@ -54,7 +54,8 @@ private object PromptLoggerUtil {
   // Not sure why the up and \n is necessary, but without it if I run `new Exception().printStackTrace()`
   // the `\t` used before each line of the stack trace get all messed up and seems to bring the cursor
   // a non-deterministic distance to the right, even though the bytes being printed seem correct
-  private[mill] val clearScreenToEndBytes: Array[Byte] = (AnsiNav.clearScreen(0) + AnsiNav.up(1) + "\n").getBytes
+  private[mill] val clearScreenToEndBytes: Array[Byte] =
+    (AnsiNav.clearScreen(0) + AnsiNav.up(1) + "\n").getBytes
 
   private def renderSecondsSuffix(millis: Long) = (millis / 1000).toInt match {
     case 0 => ""
