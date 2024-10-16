@@ -102,10 +102,15 @@ public class ProxyStream{
         private InputStream src;
         private OutputStream destOut;
         private OutputStream destErr;
-        public Pumper(InputStream src, OutputStream destOut, OutputStream destErr){
+        private Object synchronizer;
+        public Pumper(InputStream src, OutputStream destOut, OutputStream destErr, Object synchronizer){
             this.src = src;
             this.destOut = destOut;
             this.destErr = destErr;
+            this.synchronizer = synchronizer;
+        }
+        public Pumper(InputStream src, OutputStream destOut, OutputStream destErr){
+            this(src, destOut, destErr, new Object());
         }
 
         public void preRead(InputStream src){}
@@ -142,9 +147,11 @@ public class ProxyStream{
 
                         if (delta != -1) {
                             this.preWrite(buffer, offset);
-                            switch(stream){
-                                case ProxyStream.OUT: destOut.write(buffer, 0, offset); break;
-                                case ProxyStream.ERR: destErr.write(buffer, 0, offset); break;
+                            synchronized (synchronizer) {
+                                switch(stream){
+                                    case ProxyStream.OUT: destOut.write(buffer, 0, offset); break;
+                                    case ProxyStream.ERR: destErr.write(buffer, 0, offset); break;
+                                }
                             }
                         }
                     }
@@ -158,14 +165,18 @@ public class ProxyStream{
             }
 
             try {
-                destOut.flush();
-                destErr.flush();
+                synchronized (synchronizer) {
+                    destOut.flush();
+                    destErr.flush();
+                }
             } catch(IOException e) {}
         }
 
         public void flush() throws IOException {
-            destOut.flush();
-            destErr.flush();
+            synchronized (synchronizer) {
+                destOut.flush();
+                destErr.flush();
+            }
         }
     }
 }

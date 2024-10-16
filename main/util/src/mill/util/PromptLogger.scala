@@ -14,6 +14,15 @@ import pprint.Util.literalize
 import java.io._
 import PromptLoggerUtil._
 
+/**
+ * Gnarly multithreaded stateful code to handle the terminal prompt and log prefixer
+ * that Mill shows to tell the user what is running.
+ *
+ * Most operations that update mutable state *or* writes to parent [[systemStreams0]] is
+ * synchronized under the [[PromptLogger]] object. Notably, child writes to
+ * [[systemStreams]] are *not* synchronized, and instead goes into a [[PipeStreams]]
+ * buffer to be read out and handled asynchronously.
+ */
 private[mill] class PromptLogger(
     override val colored: Boolean,
     override val enableTicker: Boolean,
@@ -102,13 +111,17 @@ private[mill] class PromptLogger(
     promptLineState.setDetail(key, s)
   }
 
-  override def reportKey(key: Seq[String]): Unit = synchronized {
-    if (!reportedIdentifiers(key)) {
-      reportedIdentifiers.add(key)
-      for ((verboseKeySuffix, message) <- seenIdentifiers.get(key)) {
-        if (enableTicker) {
-          systemStreams.err.println(infoColor(s"[${key.mkString("-")}$verboseKeySuffix] $message"))
-        }
+  override def reportKey(key: Seq[String]): Unit = {
+    val res = synchronized{
+      if (reportedIdentifiers(key)) None
+      else {
+        reportedIdentifiers.add(key)
+        seenIdentifiers.get(key)
+      }
+    }
+    for ((verboseKeySuffix, message) <- res) {
+      if (enableTicker) {
+        systemStreams.err.println(infoColor(s"[${key.mkString("-")}$verboseKeySuffix] $message"))
       }
     }
   }
@@ -122,7 +135,7 @@ private[mill] class PromptLogger(
       seenIdentifiers(key) = (verboseKeySuffix, message)
     }
 
-  def debug(s: String): Unit = synchronized { if (debugEnabled) systemStreams.err.println(s) }
+  def debug(s: String): Unit = if (debugEnabled) systemStreams.err.println(s)
 
   override def rawOutputStream: PrintStream = systemStreams0.out
 
@@ -230,7 +243,7 @@ private[mill] object PromptLogger {
 
       // Make sure we synchronize everywhere
       override def preRead(src: InputStream): Unit = synchronizer.synchronized {
-        // Only bother printing the propmt after the streams have become quiescent
+        // Only bother printing the prompt after the streams have become quiescent
         // and there is no more stuff to print. This helps us printing the prompt on
         // every small write when most such prompts will get immediately over-written
         // by subsequent writes
