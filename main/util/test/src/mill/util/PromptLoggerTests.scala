@@ -123,6 +123,8 @@ object PromptLoggerTests extends TestSuite {
         // First time we log with the prefix `[1]`, make sure we print out the title line
         // `[1/456] my-task` so the viewer knows what `[1]` refers to
         check(promptLogger, baos)(
+          // Leading newline because we don't have an actual terminal prompt for the initial
+          // "up" movement to cancel out the initial "\n"
           "",
           "[1/456] my-task",
           "[1] HELLO",
