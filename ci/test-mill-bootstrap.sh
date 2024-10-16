@@ -18,6 +18,8 @@ git stash pop "$(git stash list | grep "preserve mill-release" | head -n1 | sed 
 # Prepare local build
 ci/prepare-mill-bootstrap.sh
 
+rm -rf out
+
 # Run tests
 target/mill-release -i "__.compile"
 target/mill-release -i "example.scalalib.basic[1-simple].server.test"
