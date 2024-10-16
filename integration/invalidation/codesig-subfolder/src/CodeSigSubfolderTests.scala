@@ -46,8 +46,8 @@ object CodeSigSubfolderTests extends UtestIntegrationTestSuite {
       // Changing stuff in subfolder/package.mill does not invalidate unrelated tasks in build.mill
       val cached3 = eval("foo")
       assert(cached3.out == "")
-      // TODO: why is this compiling both sources when we only changed
-      // one file and did not change any public type signatures?
+      // This should only compile 1 source but it seems there's an upstream bug in Zinc
+      // https://github.com/sbt/zinc/issues/1461
       assert(cached3.err.contains("compiling 2 Scala sources"))
 
       modifyFile(
@@ -56,8 +56,8 @@ object CodeSigSubfolderTests extends UtestIntegrationTestSuite {
       )
       val mangledHelperFoo = eval("foo")
       assert(mangledHelperFoo.out.linesIterator.toSeq == Seq("running foo2", "running helperFoo2"))
-      // TODO: why is this compiling both sources when we only changed
-      // one file and did not change any public type signatures?
+      // This should only compile 1 source but it seems there's an upstream bug in Zinc
+      // https://github.com/sbt/zinc/issues/1461
       assert(mangledHelperFoo.err.contains("compiling 2 Scala sources"))
 
       // Make sure changing `val`s, which only affects the Module constructor and
@@ -68,8 +68,8 @@ object CodeSigSubfolderTests extends UtestIntegrationTestSuite {
       )
       val mangledValFoo = eval("foo")
       assert(mangledValFoo.out.linesIterator.toSeq == Seq("running foo2", "running helperFoo2"))
-      // TODO: why is this compiling both sources when we only changed
-      // one file and did not change any public type signatures?
+      // This should only compile 1 source but it seems there's an upstream bug in Zinc
+      // https://github.com/sbt/zinc/issues/1461
       assert(mangledValFoo.err.contains("compiling 2 Scala sources"))
 
       // Even modifying `val`s that do not affect the task invalidates it, because
@@ -85,8 +85,8 @@ object CodeSigSubfolderTests extends UtestIntegrationTestSuite {
         "running helperFoo2"
       ))
 
-      // TODO: why is this compiling both sources when we only changed
-      // one file and did not change any public type signatures?
+      // This should only compile 1 source but it seems there's an upstream bug in Zinc
+      // https://github.com/sbt/zinc/issues/1461
       assert(mangledValFooUsedInBar.err.contains("compiling 2 Scala sources"))
 
       val cached4 = eval("foo")

@@ -4,7 +4,6 @@ import mill.testkit.UtestIntegrationTestSuite
 
 import utest._
 
-
 object ZincBuildCompilationTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test("simple") - integrationTest { tester =>
@@ -32,10 +31,8 @@ object ZincBuildCompilationTests extends UtestIntegrationTestSuite {
         _.replace("running helperFoo", "running helperFoo2")
       )
       val mangledHelperFoo = eval(("dummy"))
-      // TODO: why is this compiling both sources when we only changed
-      // one file and did not change any public type signatures?
-      assert(mangledHelperFoo.err.contains("compiling 1 Scala source"))
 
+      assert(mangledHelperFoo.err.contains("compiling 1 Scala source"))
     }
   }
 }
