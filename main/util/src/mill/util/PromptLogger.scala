@@ -2,17 +2,11 @@ package mill.util
 
 import mill.api.SystemStreams
 import mill.main.client.ProxyStream
-import mill.util.PromptLoggerUtil.{
-  Status,
-  clearScreenToEndBytes,
-  defaultTermHeight,
-  defaultTermWidth,
-  renderPrompt
-}
+import mill.util.PromptLoggerUtil.{Status, clearScreenToEndBytes, defaultTermHeight, defaultTermWidth, renderPrompt}
 import pprint.Util.literalize
 
-import java.io._
-import PromptLoggerUtil._
+import java.io.*
+import PromptLoggerUtil.*
 
 private[mill] class PromptLogger(
     override val colored: Boolean,
@@ -47,7 +41,8 @@ private[mill] class PromptLogger(
         systemStreams0,
         () => promptLineState.writeCurrentPrompt(),
         interactive = () => termDimensions._1.nonEmpty,
-        paused = () => runningState.paused
+        paused = () => runningState.paused,
+        synchronizer = this
       )
 
   private object runningState extends RunningState(
@@ -202,7 +197,8 @@ private[mill] object PromptLogger {
       systemStreams0: SystemStreams,
       writeCurrentPrompt: () => Unit,
       interactive: () => Boolean,
-      paused: () => Boolean
+      paused: () => Boolean,
+      synchronizer: AnyRef
   ) {
 
     // We force both stdout and stderr streams into a single `Piped*Stream` pair via
@@ -225,8 +221,9 @@ private[mill] object PromptLogger {
       object PumperState extends Enumeration {
         val init, prompt, cleared = Value
       }
-      var pumperState = PumperState.init
-      override def preRead(src: InputStream): Unit = {
+
+      // Make sure we synchronize everywhere
+      override def preRead(src: InputStream): Unit = synchronizer.synchronized {
         // Only bother printing the propmt after the streams have become quiescent
         // and there is no more stuff to print. This helps us printing the prompt on
         // every small write when most such prompts will get immediately over-written
@@ -236,17 +233,14 @@ private[mill] object PromptLogger {
           // prevent any writes from coming to this stream when paused, somehow writes
           // sometimes continue to come in, so just handle them gracefully.
           if (interactive() && !paused()) writeCurrentPrompt()
-          pumperState = PumperState.prompt
         }
       }
 
-      override def preWrite(): Unit = {
+      override def preWrite(buf: Array[Byte], end: Int): Unit = synchronizer.synchronized {
         // Before any write, make sure we clear the terminal of any prompt that was
         // written earlier and not yet cleared, so the following output can be written
         // to a clean section of the terminal
-        if (interactive() && pumperState != PumperState.cleared)
-          systemStreams0.err.write(clearScreenToEndBytes)
-        pumperState = PumperState.cleared
+        if (interactive()) systemStreams0.err.write(clearScreenToEndBytes)
       }
     }
 

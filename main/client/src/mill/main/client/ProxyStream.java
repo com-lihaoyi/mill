@@ -110,7 +110,7 @@ public class ProxyStream{
 
         public void preRead(InputStream src){}
 
-        public void preWrite(){}
+        public void preWrite(byte[] buffer, int length){}
 
         public void run() {
 
@@ -141,7 +141,7 @@ public class ProxyStream{
                         }
 
                         if (delta != -1) {
-                            this.preWrite();
+                            this.preWrite(buffer, offset);
                             switch(stream){
                                 case ProxyStream.OUT: destOut.write(buffer, 0, offset); break;
                                 case ProxyStream.ERR: destErr.write(buffer, 0, offset); break;
