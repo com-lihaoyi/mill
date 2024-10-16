@@ -10,10 +10,12 @@ import mill.scalalib.api.CompilationResult
 import mill.testrunner.TestResult
 import mill.util.Jvm
 import mill.{Agg, Args, T}
+import sbt.testing.Status
 import upickle.default.{macroRW, ReadWriter => RW}
 
-import java.io.File
+import java.io.{File, FileNotFoundException}
 import java.util.zip.ZipFile
+import scala.xml.XML
 
 /**
  * This module is very experimental. Don't use it, it is still under the development, APIs can change.
@@ -105,40 +107,15 @@ trait KotlinJSModule extends KotlinModule { outer =>
     Task.Command { run(args)() }
 
   override def run(args: Task[Args] = Task.Anon(Args())): Command[Unit] = Task.Command {
-    val binaryKind = kotlinJSBinaryKind()
-    if (binaryKind.isEmpty || binaryKind.get != BinaryKind.Executable) {
-      T.log.error("Run action is only allowed for the executable binary")
-    }
-
-    val moduleKind = this.moduleKind()
-
-    val linkResult = linkBinary().classes
-    if (
-      moduleKind == ModuleKind.NoModule &&
-      linkResult.path.toIO.listFiles().count(_.getName.endsWith(".js")) > 1
-    ) {
-      T.log.info("No module type is selected for the executable, but multiple .js files found in the output folder." +
-        " This will probably lead to the dependency resolution failure.")
-    }
-
-    kotlinJSRunTarget() match {
-      case Some(RunTarget.Node) => {
-        val testBinaryPath = (linkResult.path / s"${moduleName()}.${moduleKind.extension}")
-          .toIO.getAbsolutePath
-        Jvm.runSubprocess(
-          commandArgs = Seq(
-            "node"
-          ) ++ args().value ++ Seq(testBinaryPath),
-          envArgs = T.env,
-          workingDir = T.dest
-        )
-      }
-      case Some(x) =>
-        T.log.error(s"Run target $x is not supported")
-      case None =>
-        throw new IllegalArgumentException("Executable binary should have a run target selected.")
-    }
-
+    runJsBinary(
+      args = args(),
+      binaryKind = kotlinJSBinaryKind(),
+      moduleKind = moduleKind(),
+      binaryDir = linkBinary().classes.path,
+      runTarget = kotlinJSRunTarget(),
+      envArgs = T.env,
+      workingDir = T.dest
+    ).map(_ => ()).getOrThrow
   }
 
   override def runMainLocal(
@@ -152,6 +129,45 @@ trait KotlinJSModule extends KotlinModule { outer =>
     Task.Command[Unit] {
       mill.api.Result.Failure("runMain is not supported in Kotlin/JS.")
     }
+
+  protected[js] def runJsBinary(
+      args: Args = Args(),
+      binaryKind: Option[BinaryKind],
+      moduleKind: ModuleKind,
+      binaryDir: os.Path,
+      runTarget: Option[RunTarget],
+      envArgs: Map[String, String] = Map.empty[String, String],
+      workingDir: os.Path
+  )(implicit ctx: mill.api.Ctx): Result[Int] = {
+    if (binaryKind.isEmpty || binaryKind.get != BinaryKind.Executable) {
+      return Result.Failure("Run action is only allowed for the executable binary")
+    }
+
+    if (
+      moduleKind == ModuleKind.NoModule &&
+      binaryDir.toIO.listFiles().count(_.getName.endsWith(".js")) > 1
+    ) {
+      T.log.info("No module type is selected for the executable, but multiple .js files found in the output folder." +
+        " This will probably lead to the dependency resolution failure.")
+    }
+
+    runTarget match {
+      case Some(RunTarget.Node) =>
+        val binaryPath = (binaryDir / s"${moduleName()}.${moduleKind.extension}")
+          .toIO.getAbsolutePath
+        Jvm.runSubprocessWithResult(
+          commandArgs = Seq(
+            "node"
+          ) ++ args.value ++ Seq(binaryPath),
+          envArgs = envArgs,
+          workingDir = workingDir
+        )
+      case Some(x) =>
+        Result.Failure(s"Run target $x is not supported")
+      case None =>
+        Result.Failure("Executable binary should have a run target selected.")
+    }
+  }
 
   /**
    * The actual Kotlin compile task (used by [[compile]] and [[kotlincHelp]]).
@@ -386,8 +402,8 @@ trait KotlinJSModule extends KotlinModule { outer =>
     }
   }
 
-  private def moduleName() = fullModuleNameSegments().last
-  private def fullModuleName() = fullModuleNameSegments().mkString("-")
+  protected[js] def moduleName(): String = fullModuleNameSegments().last
+  protected[js] def fullModuleName(): String = fullModuleNameSegments().mkString("-")
 
   // **NOTE**: This logic may (and probably is) be incomplete
   private def isKotlinJsLibrary(path: os.Path)(implicit ctx: mill.api.Ctx): Boolean = {
@@ -422,6 +438,8 @@ trait KotlinJSModule extends KotlinModule { outer =>
    */
   trait KotlinJSTests extends KotlinTests with KotlinJSModule {
 
+    private val defaultXmlReportName = "test-report.xml"
+
     // region private
 
     // TODO may be optimized if there is a single folder for all modules
@@ -448,7 +466,7 @@ trait KotlinJSModule extends KotlinModule { outer =>
       Jvm.runSubprocess(
         commandArgs = Seq("npm", "install", "source-map-support@0.5.21"),
         envArgs = T.env,
-        workingDir = nodeModulesDir().path
+        workingDir = workingDir
       )
       PathRef(workingDir / "node_modules" / "source-map-support" / "register.js")
     }
@@ -457,7 +475,9 @@ trait KotlinJSModule extends KotlinModule { outer =>
 
     override def testFramework = ""
 
-    override def kotlinJSBinaryKind: T[Option[BinaryKind]] = Some(BinaryKind.Executable)
+    override def kotlinJSRunTarget: T[Option[RunTarget]] = outer.kotlinJSRunTarget()
+
+    override def moduleKind: T[ModuleKind] = ModuleKind.PlainModule
 
     override def splitPerModule = false
 
@@ -470,20 +490,136 @@ trait KotlinJSModule extends KotlinModule { outer =>
         args: Task[Seq[String]],
         globSelectors: Task[Seq[String]]
     ): Task[(String, Seq[TestResult])] = Task.Anon {
-      // This is a terrible hack, but it works
-      run(Task.Anon {
-        Args(args() ++ Seq(
+      runJsBinary(
+        // TODO add runner to be able to use test selector
+        args = Args(args() ++ Seq(
           // TODO this is valid only for the NodeJS target. Once browser support is
           //  added, need to have different argument handling
           "--require",
           sourceMapSupportModule().path.toString(),
-          mochaModule().path.toString()
-        ))
-      })()
-      ("", Seq.empty[TestResult])
+          mochaModule().path.toString(),
+          "--reporter",
+          "xunit",
+          "--reporter-option",
+          s"output=${testReportXml().getOrElse(defaultXmlReportName)}"
+        )),
+        binaryKind = Some(BinaryKind.Executable),
+        moduleKind = moduleKind(),
+        binaryDir = linkBinary().classes.path,
+        runTarget = kotlinJSRunTarget(),
+        envArgs = T.env,
+        workingDir = T.dest
+      )
+
+      // we don't care about the result returned above (because node will return exit code = 1 when tests fail), what
+      // matters is if test results file exists
+      val xmlReportName = testReportXml().getOrElse(defaultXmlReportName)
+      val xmlReportPath = T.dest / xmlReportName
+      val testResults = parseTestResults(xmlReportPath)
+      val totalCount = testResults.length
+      val passedCount = testResults.count(_.status == Status.Success.name())
+      val failedCount = testResults.count(_.status == Status.Failure.name())
+      val skippedCount = testResults.count(_.status == Status.Skipped.name())
+      val doneMessage =
+        s"""
+           |Tests: $totalCount, Passed: $passedCount, Failed: $failedCount, Skipped: $skippedCount
+           |
+           |Full report is available at $xmlReportPath
+           |""".stripMargin
+
+      if (failedCount != 0) {
+        val failedTests = testResults
+          .filter(_.status == Status.Failure.name())
+          .map(result =>
+            if (result.exceptionName.isEmpty && result.exceptionMsg.isEmpty) {
+              s"${result.fullyQualifiedName} - ${result.selector}"
+            } else {
+              s"${result.fullyQualifiedName} - ${result.selector}: ${result.exceptionName.getOrElse("<>")}:" +
+                s" ${result.exceptionMsg.getOrElse("<>")}"
+            }
+          )
+        val failureMessage =
+          s"""
+             |Tests failed:
+             |
+             |${failedTests.mkString("\n")}
+             |
+             |""".stripMargin
+        Result.Failure(failureMessage, Some((doneMessage, testResults)))
+      } else {
+        Result.Success((doneMessage, testResults))
+      }
     }
 
-    override def kotlinJSRunTarget: T[Option[RunTarget]] = Some(RunTarget.Node)
+    private def parseTestResults(path: os.Path): Seq[TestResult] = {
+      if (!os.exists(path)) {
+        throw new FileNotFoundException(s"Test results file $path wasn't found")
+      }
+      val xml = XML.loadFile(path.toIO)
+      (xml \ "testcase")
+        .map { node =>
+          val (testStatus, exceptionName, exceptionMessage, exceptionTrace) =
+            if (node.child.exists(_.label == "failure")) {
+              val content = (node \ "failure")
+                .head
+                .child
+                .filter(_.isAtom)
+                .text
+              val lines = content.split("\n")
+              val exceptionMessage = lines.head
+              val exceptionType = lines(1).splitAt(lines(1).indexOf(":"))._1
+              val trace = parseTrace(lines.drop(2))
+              (Status.Failure, Some(exceptionType), Some(exceptionMessage), Some(trace))
+            } else if (node.child.exists(_.label == "skipped")) {
+              (Status.Skipped, None, None, None)
+            } else {
+              (Status.Success, None, None, None)
+            }
+
+          TestResult(
+            fullyQualifiedName = node \@ "classname",
+            selector = node \@ "name",
+            // probably in milliseconds?
+            duration = ((node \@ "time").toDouble * 1000).toLong,
+            status = testStatus.name(),
+            exceptionName = exceptionName,
+            exceptionMsg = exceptionMessage,
+            exceptionTrace = exceptionTrace
+          )
+        }
+    }
+
+    private def parseTrace(trace: Seq[String]): Seq[StackTraceElement] = {
+      trace.map { line =>
+        // there are some lines with methods like this: $interceptCOROUTINE$97.l [as test_1], no idea what is this.
+        val strippedLine = line.trim.stripPrefix("at ")
+        val (symbol, location) = strippedLine.splitAt(strippedLine.lastIndexOf("("))
+        // symbol can be like that HelloTests$_init_$lambda$slambda_wolooq_1.protoOf.doResume_5yljmg_k$
+        // assume that everything past first dot is a method name, and everything before - some synthetic class name
+        // this may be completely wrong though, but at least location will be right
+        val (declaringClass, method) = if (symbol.contains(".")) {
+          symbol.splitAt(symbol.indexOf("."))
+        } else {
+          ("", symbol)
+        }
+        // can be what we expect in case if line is pure-JVM:
+        // src/internal/JSDispatcher.kt:127:25
+        // but can also be something like:
+        // node:internal/process/task_queues:77:11
+        // drop closing ), then after split drop position on the line
+        val locationElements = location.dropRight(1).split(":").dropRight(1)
+        if (locationElements.length >= 2) {
+          new StackTraceElement(
+            declaringClass,
+            method,
+            locationElements(locationElements.length - 2),
+            locationElements.last.toInt
+          )
+        } else {
+          new StackTraceElement(declaringClass, method, "<unknown>", 0)
+        }
+      }
+    }
   }
 
   /**
