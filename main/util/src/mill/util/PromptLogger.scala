@@ -259,7 +259,7 @@ private[mill] object PromptLogger {
         // Before any write, make sure we clear the terminal of any prompt that was
         // written earlier and not yet cleared, so the following output can be written
         // to a clean section of the terminal
-        if (interactive()) systemStreams0.err.write(clearScreenToEndBytes)
+        if (interactive() && !paused()) systemStreams0.err.write(clearScreenToEndBytes)
       }
     }
 
