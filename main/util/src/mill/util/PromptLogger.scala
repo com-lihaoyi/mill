@@ -5,8 +5,8 @@ import mill.main.client.ProxyStream
 import mill.util.PromptLoggerUtil.{Status, clearScreenToEndBytes, defaultTermHeight, defaultTermWidth, renderPrompt}
 import pprint.Util.literalize
 
-import java.io.*
-import PromptLoggerUtil.*
+import java.io._
+import PromptLoggerUtil._
 
 private[mill] class PromptLogger(
     override val colored: Boolean,

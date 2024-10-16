@@ -123,6 +123,7 @@ object PromptLoggerTests extends TestSuite {
         // First time we log with the prefix `[1]`, make sure we print out the title line
         // `[1/456] my-task` so the viewer knows what `[1]` refers to
         check(promptLogger, baos)(
+          "",
           "[1/456] my-task",
           "[1] HELLO",
           "  [123/456] ========================== TITLE ============================== 10s",
@@ -134,6 +135,7 @@ object PromptLoggerTests extends TestSuite {
         // re-rendered below the latest prefixed output. Subsequent log line with `[1]`
         // prefix does not re-render title line `[1/456] ...`
         check(promptLogger, baos)(
+          "",
           "[1/456] my-task",
           "[1] HELLO",
           "[1] WORLD",
@@ -159,6 +161,7 @@ object PromptLoggerTests extends TestSuite {
         // my-task-new does not appear yet because it is too new
         promptLogger.refreshPrompt()
         check(promptLogger, baos)(
+          "",
           "[1/456] my-task",
           "[1] HELLO",
           "[1] WORLD",
@@ -179,6 +182,7 @@ object PromptLoggerTests extends TestSuite {
         // my-task-new appears by now, but my-task-short-lived has already ended and never appears
         promptLogger.refreshPrompt()
         check(promptLogger, baos)(
+          "",
           "[1/456] my-task",
           "[1] HELLO",
           "[1] WORLD",
@@ -200,6 +204,7 @@ object PromptLoggerTests extends TestSuite {
         // Even after ending my-task, it remains on the ticker for a moment before being removed
         promptLogger.refreshPrompt()
         check(promptLogger, baos)(
+          "",
           "[1/456] my-task",
           "[1] HELLO",
           "[1] WORLD",
@@ -220,6 +225,7 @@ object PromptLoggerTests extends TestSuite {
         // moment to preserve the height of the prompt
         promptLogger.refreshPrompt()
         check(promptLogger, baos)(
+          "",
           "[1/456] my-task",
           "[1] HELLO",
           "[1] WORLD",
@@ -239,6 +245,7 @@ object PromptLoggerTests extends TestSuite {
         // Only after more time does the prompt shrink back
         promptLogger.refreshPrompt()
         check(promptLogger, baos)(
+          "",
           "[1/456] my-task",
           "[1] HELLO",
           "[1] WORLD",
@@ -254,6 +261,7 @@ object PromptLoggerTests extends TestSuite {
         now += 10000
         promptLogger.close()
         check(promptLogger, baos)(
+          "",
           "[1/456] my-task",
           "[1] HELLO",
           "[1] WORLD",
