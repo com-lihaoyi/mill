@@ -66,7 +66,7 @@ private[mill] class PromptLogger(
         synchronizer = this
       )
 
-  refreshPrompt()
+  if (enableTicker) refreshPrompt()
 
   val promptUpdaterThread = new Thread(
     () =>
