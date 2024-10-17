@@ -23,6 +23,7 @@ object `package` extends RootModule with ScalaNativeModule {
       "-o", millSourcePath.toString + "/target/libHelloWorld.so"
     ).call(stdout = os.Inherit)
 
+    PathRef(T.dest / "target/libHelloWorld.so")    
   }
 }
 
