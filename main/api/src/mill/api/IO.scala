@@ -1,5 +1,7 @@
 package mill.api
 
+import java.nio.file.Files
+
 /**
  * Misc IO utilities, eventually probably should be pushed upstream into
  * ammonite-ops
@@ -29,7 +31,7 @@ object IO extends StreamSupport {
           if (!entry.isDirectory) {
             val entryDest = ctx.dest / dest / os.SubPath(entry.getName)
             os.makeDir.all(entryDest / os.up)
-            val fileOut = new java.io.FileOutputStream(entryDest.toString)
+            val fileOut = Files.newOutputStream(entryDest.toNIO)
             IO.stream(zipStream, fileOut)
             fileOut.close()
           }

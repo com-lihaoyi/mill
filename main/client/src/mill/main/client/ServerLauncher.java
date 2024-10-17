@@ -8,7 +8,6 @@ import org.newsclub.net.unix.AFUNIXSocket;
 import org.newsclub.net.unix.AFUNIXSocketAddress;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -126,7 +125,8 @@ public abstract class ServerLauncher {
         ) {
             stdoutTailer.start();
             stderrTailer.start();
-            try (FileOutputStream f = new FileOutputStream(serverDir + "/" + ServerFiles.runArgs)) {
+            String serverPath = serverDir + "/" + ServerFiles.runArgs;
+            try (OutputStream f = Files.newOutputStream(Paths.get(serverPath))) {
                 f.write(System.console() != null ? 1 : 0);
                 Util.writeString(f, BuildInfo.millVersion);
                 Util.writeArgs(args, f);

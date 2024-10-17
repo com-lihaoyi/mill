@@ -1,5 +1,7 @@
 package mill.util
 
+import java.nio.file.Files
+import java.nio.file.Paths
 import coursier.Repository
 import mill.api.Loose.Agg
 import mill.api.{BuildInfo, Ctx, IO, PathRef, Result}
@@ -19,7 +21,7 @@ object Util {
   {
     val millOptionsPath = sys.props("MILL_OPTIONS_PATH")
     if (millOptionsPath != null)
-      LongMillProps.load(new java.io.FileInputStream(millOptionsPath))
+      LongMillProps.load(Files.newInputStream(Paths.get(millOptionsPath)))
   }
 
   def cleanupScaladoc(v: String): Array[String] = {
@@ -45,19 +47,13 @@ object Util {
       ctx: Ctx.Dest
   ): PathRef = {
     val out = ctx.dest / dest
-
     val website = new java.net.URI(url).toURL
-    val rbc = java.nio.channels.Channels.newChannel(website.openStream)
+    val websiteInputStream = website.openStream
     try {
-      val fos = new java.io.FileOutputStream(out.toIO)
-      try {
-        fos.getChannel.transferFrom(rbc, 0, java.lang.Long.MAX_VALUE)
-        PathRef(out)
-      } finally {
-        fos.close()
-      }
+      Files.copy(websiteInputStream, out.toNIO)
+      PathRef(out)
     } finally {
-      rbc.close()
+      websiteInputStream.close()
     }
   }
 
