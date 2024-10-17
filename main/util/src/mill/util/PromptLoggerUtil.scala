@@ -51,7 +51,12 @@ private object PromptLoggerUtil {
       prev: Option[StatusEntry]
   )
 
-  private[mill] val clearScreenToEndBytes: Array[Byte] = AnsiNav.clearScreen(0).getBytes
+  /**
+   * Starting a line with `clearScreen` mucks up tab stops in iTerm, so make sure we navigate `up`
+   * and down via `\n` to have a "fresh" line. This only should get called to clear the prompt, so
+   * the cursor is already at the left-most column, which '\n' will not change.
+   */
+  private[mill] val clearScreenToEndBytes: Array[Byte] = (AnsiNav.clearScreen(0) + AnsiNav.up(1) + "\n").getBytes
 
   private def renderSecondsSuffix(millis: Long) = (millis / 1000).toInt match {
     case 0 => ""
@@ -161,13 +166,9 @@ private object PromptLoggerUtil {
       // For the ending prompt, leave the cursor at the bottom on a new line rather than
       // scrolling back left/up. We do not want further output to overwrite the header as
       // it will no longer re-render
-      val backUp =
-        if (ending) "\n"
-        else AnsiNav.left(9999) + AnsiNav.up(currentPromptLines.length - 1)
+      val backUp = if (ending) "" else AnsiNav.up(currentPromptLines.length)
 
-      AnsiNav.clearScreen(0) +
-        currentPromptLines.mkString("\n") +
-        backUp
+      AnsiNav.clearScreen(0) + currentPromptLines.mkString("\n") + backUp + "\n"
     }
   }
 

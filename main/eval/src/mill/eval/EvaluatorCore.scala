@@ -194,6 +194,10 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
           }
         }
       }
+
+      // Make sure we wait for all tasks from this batch to finish before starting the next
+      // one, so we don't mix up exclusive and non-exclusive tasks running at the same time
+      terminals.map(t => (t, Await.result(futures(t), duration.Duration.Inf)))
     }
 
     val tasks0 = terminals0.filter {
@@ -216,18 +220,13 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
     // Run all non-command tasks according to the threads
     // given but run the commands in linear order
-    evaluateTerminals(
-      tasks,
-      ec,
-      exclusive = false
-    )
+    val nonExclusiveResults = evaluateTerminals(tasks, ec, exclusive = false)
 
-    evaluateTerminals(leafExclusiveCommands, ec, exclusive = true)
+    val exclusiveResults = evaluateTerminals(leafExclusiveCommands, ec, exclusive = true)
 
     logger.clearPromptStatuses()
-    val finishedOptsMap = terminals0
-      .map(t => (t, Await.result(futures(t), duration.Duration.Inf)))
-      .toMap
+
+    val finishedOptsMap = (nonExclusiveResults ++ exclusiveResults).toMap
 
     val results0: Vector[(Task[_], TaskResult[(Val, Int)])] = terminals0
       .flatMap { t =>

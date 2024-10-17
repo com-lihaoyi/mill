@@ -25,6 +25,12 @@ def assembly = Task {
   PathRef(Task.dest / s"assembly.jar")
 }
 
+
+def task() = Task.Command {
+  for(i <- Range(0, 10)) System.err.println("\t" + i )
+}
+
+
 // This code defines the following task graph, with the boxes being the tasks
 // and the arrows representing the _data-flow_ between them:
 //
