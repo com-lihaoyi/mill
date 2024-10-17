@@ -46,7 +46,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           .map(java.util.regex.Pattern.quote)
           .mkString("[\\d]+")
 
-      assert(expectedErrorRegex.r.matches(res.err))
+      assert(expectedErrorRegex.r.matches(res.err.replace('\\', '/')))
     }
   }
 }
