@@ -26,9 +26,7 @@ trait InitModule extends Module {
    */
   def init(
       @mainargs.arg(doc = "build base module (with shared settings) name")
-      baseModule: String = "BaseMavenModule",
-      @mainargs.arg(doc = "build root module (in a multi module project) name")
-      rootModule: String = "root"
+      baseModule: String = "BaseMavenModule"
   ): Command[Unit] = Task.Command {
 
     T.log.info("analyzing Maven project ...")
@@ -133,17 +131,15 @@ trait InitModule extends Module {
            |import mill._
            |import mill.javalib._
            |import mill.javalib.publish._
-           |
            |${
-            if (isRoot)
-              s"""$baseModuleSource
-                 |
-                 |${
-                  if (modules.size > 1) s"object $rootModule extends $baseModule"
-                  else s"object `package` extends RootModule with $baseModule"
-                }""".stripMargin
+            if (isRoot) s"""${if (modules.size > 1) s"import $$packages._" else ""}
+                           |
+                           |$baseModuleSource
+                           |
+                           |object `package` extends RootModule with $baseModule""".stripMargin
             else
-              s"""object `package` extends RootModule with build.$baseModule""".stripMargin
+              s"""
+                 |object `package` extends RootModule with build.$baseModule""".stripMargin
           }""".stripMargin
 
       val source = model.getPackaging match {
