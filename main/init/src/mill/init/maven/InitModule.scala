@@ -79,7 +79,7 @@ trait InitModule extends Module {
         case dep if dep.getGroupId == "junit" => "TestModule.Junit4"
         case dep if dep.getGroupId == "org.junit.jupiter" => "TestModule.Junit5"
       }
-      val testFrameworkDeps = testModule.collect {
+      val testFrameworkIvyDeps = testModule.collect {
         case "TestModule.Junit4" => "ivy\"com.novocode:junit-interface:0.11\""
         case "TestModule.Junit5" => "ivy\"com.github.sbt.junit:jupiter-interface:0.13.0\""
       }.toSeq
@@ -88,11 +88,11 @@ trait InitModule extends Module {
            |
            |    override def defaultCommandName() = "test"
            |${
-            if (testFrameworkDeps.isEmpty) ""
+            if (testFrameworkIvyDeps.isEmpty) ""
             else
               s"""
                  |    override def ivyDeps = super.ivyDeps() ++ ${
-                  break.cs.indent(3, "Agg(", testFrameworkDeps, ")")
+                  break.cs.indent(3, "Agg(", testFrameworkIvyDeps, ")")
                 }""".stripMargin
           }
            |  }""".stripMargin
