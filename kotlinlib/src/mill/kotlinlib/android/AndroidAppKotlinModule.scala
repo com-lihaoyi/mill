@@ -39,39 +39,37 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule {
   def artifactTypes: T[Set[Type]] =
     T { super.artifactTypes() + coursier.Type("aar") }
 
-  // Task to recompile AARs into JARs (without circular dependency)
+  // Task to extract JARs from AARs
   def recompileAARs: T[Seq[PathRef]] = Task {
     // Get all .aar files from the original compileClasspath
     val aarFiles = super.compileClasspath().map(_.path).filter(_.ext == "aar").toSeq
 
-    // Convert each .aar file into a .jar file
+    // Extract classes.jar from each .aar file
     val newJarFiles = aarFiles.map { aarFile =>
-      val extractDir = aarFile / os.up / "ext" // Destination 'ext' folder next to the .aar file
-      os.makeDir.all(extractDir) // Ensure the destination directory exists
+      // Destination for extraction
+      val extractDir = T.dest / aarFile.baseName
 
       // Unzip the .aar file
       os.call(Seq("unzip", aarFile.toString, "-d", extractDir.toString))
 
-      // Create a .jar file from the extracted contents
-      val jarFile = aarFile / os.up / s"${aarFile.baseName}.jar" // Target .jar file
-      os.call(Seq("jar", "-cf", jarFile.toString, "-C", extractDir.toString, "."))
-
-      // Clean up the extracted folder
-      os.remove.all(extractDir)
-
-      // Return the PathRef to the newly created .jar file
-      PathRef(jarFile)
+      // Return the PathRef to classes.jar file
+      PathRef(extractDir / "classes.jar")
     }
 
     newJarFiles
   }
 
-  // Task to update the compile classpath by including the new .jar files
+  /**
+   * Updates the compile classpath to include classes `.jar` files.
+   * here we are also removing `.aar` coz they are not worthy after extraction
+   */
   def updatedCompileClasspath: T[Agg[PathRef]] = Task {
-    // Return the updated classpath with only .jar files
     super.compileClasspath().filter(_.path.ext == "jar") ++ Agg.from(recompileAARs())
   }
 
-  // Override the compile classpath if you want it to include the recompiled AARs by default
+  /**
+   * Overrides the classpath to include files as `.jar`.
+   */
   override def compileClasspath: T[Agg[PathRef]] = updatedCompileClasspath()
+
 }
