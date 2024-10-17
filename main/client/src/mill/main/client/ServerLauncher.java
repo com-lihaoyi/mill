@@ -9,6 +9,7 @@ import org.newsclub.net.unix.AFUNIXSocketAddress;
 
 import java.io.File;
 import java.io.InputStream;
+import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.Socket;
