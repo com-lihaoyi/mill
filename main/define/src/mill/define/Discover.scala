@@ -141,15 +141,7 @@ object Discover {
         }
         if overridesRoutes._1.nonEmpty || overridesRoutes._2.nonEmpty || overridesRoutes._3.nonEmpty
       } yield {
-        val lhs0 = discoveredModuleType match {
-          // Explicitly do not de-alias type refs, so type aliases to deprecated
-          // types do not result in spurious deprecation warnings appearing
-          case tr: TypeRef => tr
-          // Other types are fine
-          case _ => discoveredModuleType.typeSymbol.asClass.toType
-        }
-
-        val lhs = q"classOf[$lhs0]"
+        val lhs = q"classOf[${discoveredModuleType.typeSymbol.asClass.toType}]"
 
         // by wrapping the `overridesRoutes` in a lambda function we kind of work around
         // the problem of generating a *huge* macro method body that finally exceeds the
