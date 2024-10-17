@@ -1,10 +1,10 @@
 package mill.api
 
-import mill.api.Loose.Agg
-
-import java.io.{BufferedOutputStream, FileOutputStream}
+import java.io.BufferedOutputStream
+import java.nio.file.Files
 import java.util.jar.{JarEntry, JarOutputStream, Manifest}
 import scala.collection.mutable
+import mill.api.Loose.Agg
 
 @experimental
 trait JarOps {
@@ -76,7 +76,7 @@ trait JarOps {
     val _ = seen.add(os.sub / "META-INF/MANIFEST.MF")
 
     val jarStream = new JarOutputStream(
-      new BufferedOutputStream(new FileOutputStream(jar.toIO)),
+      new BufferedOutputStream(Files.newOutputStream(jar.toNIO)),
       manifest
     )
 

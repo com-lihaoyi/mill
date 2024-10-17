@@ -145,7 +145,7 @@ public class MillProcessLauncher {
 
             // read MILL_CLASSPATH from file MILL_OPTIONS_PATH
             Properties millProps = new Properties();
-            try (FileInputStream is = new FileInputStream(millOptionsPath)) {
+            try (FileInputStream is = new Files.newInputStream(Paths.get(millOptionsPath))) {
                 millProps.load(is);
             } catch (IOException e) {
                 throw new RuntimeException("Could not load '" + millOptionsPath + "'", e);

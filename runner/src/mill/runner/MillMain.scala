@@ -1,6 +1,7 @@
 package mill.runner
 
-import java.io.{FileOutputStream, PipedInputStream, PrintStream}
+import java.io.{PipedInputStream, PrintStream}
+import java.nio.file.Files
 import java.util.Locale
 import scala.jdk.CollectionConverters._
 import scala.util.Properties
@@ -15,6 +16,7 @@ import mill.util.{Colors, PrintLogger, PromptLogger}
 import java.lang.reflect.InvocationTargetException
 import scala.util.control.NonFatal
 import scala.util.Using
+import java.nio.file.StandardOpenOption
 
 @internal
 object MillMain {
@@ -45,7 +47,7 @@ object MillMain {
         // and all Mill output (stdout and stderr) goes to a dedicated file
         val stderrFile = WorkspaceRoot.workspaceRoot / ".bsp/mill-bsp.stderr"
         os.makeDir.all(stderrFile / os.up)
-        val errFile = new PrintStream(new FileOutputStream(stderrFile.toIO, true))
+        val errFile = new PrintStream(Files.newOutputStream(stderrFile.toNIO, StandardOpenOption.APPEND))
         val errTee = new TeePrintStream(initialSystemStreams.err, errFile)
         val msg = s"Mill in BSP mode, version ${BuildInfo.millVersion}, ${new java.util.Date()}"
         errTee.println(msg)

@@ -10,7 +10,7 @@ import mill.api.Logger
 import mill.scalalib.publish.Artifact
 import mill.scalalib.publish.SonatypeHelpers.getArtifactMappings
 
-import java.io.FileOutputStream
+import java.nio.file.Files
 import java.util.jar.JarOutputStream
 import java.util.zip.ZipEntry
 
@@ -110,8 +110,8 @@ class SonatypeCentralPublisher(
       wd: os.Path
   )(func: JarOutputStream => Unit): java.io.File = {
     val zipFile =
-      (wd / s"$fileNameWithoutExtension.zip").toIO
-    val fileOutputStream = new FileOutputStream(zipFile)
+      (wd / s"$fileNameWithoutExtension.zip").toNIO
+    val fileOutputStream = Files.newOutputStream(zipFile)
     val jarOutputStream = new JarOutputStream(fileOutputStream)
     try {
       func(jarOutputStream)

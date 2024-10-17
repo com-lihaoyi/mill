@@ -19,7 +19,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
     if (os.isDir(base)) {
       os.walk.stream(base).filter(_.ext == "class").map(_.relativeTo(base).toString)
     } else {
-      val zip = new ZipInputStream(new FileInputStream(base.toIO))
+      val zip = new ZipInputStream(Files.newInputStream(base.toNIO))
       geny.Generator.selfClosing(
         (
           Iterator.continually(zip.getNextEntry)
