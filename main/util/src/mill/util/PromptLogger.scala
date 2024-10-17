@@ -412,6 +412,7 @@ private[mill] object PromptLogger {
       // in log files and printing large numbers of identical prompts is spammy and useless
       lazy val statusesHashCode = statuses.hashCode
       if (consoleDims()._1.nonEmpty || statusesHashCode != lastRenderedPromptHash) {
+        lastRenderedPromptHash = statusesHashCode
         updatePromptBytes(ending)
       }
     }
