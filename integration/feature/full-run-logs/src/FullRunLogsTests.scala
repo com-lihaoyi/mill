@@ -15,7 +15,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       res.isSuccess ==> true
       assert(res.out == "<h1>hello</h1>")
       assert(
-        res.err ==
+        res.err.replace('\\', '/') ==
           s"""[build.mill] [info] compiling 1 Scala source to ${tester.workspacePath}/out/mill-build/compile.dest/classes ...
              |[build.mill] [info] done compiling
              |[info] compiling 1 Java source to ${tester.workspacePath}/out/compile.dest/classes ...
