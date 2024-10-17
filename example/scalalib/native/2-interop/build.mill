@@ -1,0 +1,34 @@
+//// SNIPPET:BUILD
+package build
+import mill._, scalalib._, scalanativelib._
+
+object `package` extends RootModule with ScalaNativeModule {
+  def scalaVersion = "2.13.11"
+  def scalaNativeVersion = "0.5.5"
+
+  object test extends ScalaNativeTests {
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.8.4")
+    def testFramework = "utest.runner.Framework"
+  }
+  
+  def nativeLinking = true
+  def nativeLinkingOptions = Seq("-L" + millSourcePath.toString + "/target")
+
+  // Compiled C
+  def nativeCompiled = T {
+    os.makeDir.all(millSourcePath / "target")
+
+    os.proc("gcc", "-m64", "-shared",
+      "-c", millSourcePath.toString + "/native-src/HelloWorld.c",
+      "-o", millSourcePath.toString + "/target/libHelloWorld.so"
+    ).call(stdout = os.Inherit)
+
+    PathRef(T.dest / "target/libHelloWorld.so")    
+  }
+}
+
+//// SNIPPET:END
+//
+//// SNIPPET:DEPENDENCIES
+//
+//// SNIPPET:END
