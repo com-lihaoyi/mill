@@ -44,7 +44,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           .stripMargin
           .split('?')
           .map(java.util.regex.Pattern.quote)
-          .mkString(".")
+          .mkString("[\\d]+")
 
       assert(expectedErrorRegex.r.matches(res.err))
     }
