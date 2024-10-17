@@ -146,8 +146,8 @@ public class ProxyStream{
                         }
 
                         if (delta != -1) {
-                            this.preWrite(buffer, offset);
                             synchronized (synchronizer) {
+                                this.preWrite(buffer, offset);
                                 switch(stream){
                                     case ProxyStream.OUT: destOut.write(buffer, 0, offset); break;
                                     case ProxyStream.ERR: destErr.write(buffer, 0, offset); break;

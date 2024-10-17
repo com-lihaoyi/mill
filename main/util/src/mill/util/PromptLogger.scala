@@ -146,9 +146,9 @@ private[mill] class PromptLogger(
   override def close(): Unit = {
     synchronized {
       if (enableTicker) promptLineState.refreshPrompt(ending = true)
-      streamManager.close()
       runningState.stop()
     }
+    streamManager.close()
 
     // Needs to be outside the lock so we don't deadlock with `promptUpdaterThread`
     // trying to take the lock one last time to check running/paused status before exiting
@@ -245,7 +245,7 @@ private[mill] object PromptLogger {
     def setPromptState(): Unit = pumperState = PumperState.prompt
     private var pumperState: PumperState.Value = PumperState.init
 
-    object pumper extends ProxyStream.Pumper(pipe.input, systemStreams0.out, systemStreams0.err) {
+    object pumper extends ProxyStream.Pumper(pipe.input, systemStreams0.out, systemStreams0.err, synchronizer) {
       // Make sure we synchronize everywhere
       override def preRead(src: InputStream): Unit = synchronizer.synchronized {
         // Only bother printing the prompt after the streams have become quiescent
@@ -261,7 +261,7 @@ private[mill] object PromptLogger {
         }
       }
 
-      override def preWrite(buf: Array[Byte], end: Int): Unit = synchronizer.synchronized {
+      override def preWrite(buf: Array[Byte], end: Int): Unit = {
         // Before any write, make sure we clear the terminal of any prompt that was
         // written earlier and not yet cleared, so the following output can be written
         // to a clean section of the terminal
