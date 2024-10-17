@@ -6,26 +6,47 @@ import utest._
 // Run simple commands on a simple build and check their entire output,
 // ensuring we don't get spurious warnings or logging messages slipping in
 object FullRunLogsTests extends UtestIntegrationTestSuite {
-  def globMatches(expected: String, line: String): Boolean = {
-    StringContext
-      .glob(expected.split("\\.\\.\\.", -1).toIndexedSeq, line)
-      .nonEmpty
-  }
 
   def tests: Tests = Tests {
-    test("milltest") - integrationTest { tester =>
+    test("noticker") - integrationTest { tester =>
       import tester._
 
-      val res = eval(("run", "--text", "hello"))
+      val res = eval(("--ticker", "false", "run", "--text", "hello"))
       res.isSuccess ==> true
       assert(res.out == "<h1>hello</h1>")
       assert(
         res.err ==
-        s"""[build.mill] [info] compiling 1 Scala source to /Users/lihaoyi/Github/mill/out/integration/feature/full-run/local/test.dest/sandbox/run-1/out/mill-build/compile.dest/classes ...
+        s"""[build.mill] [info] compiling 1 Scala source to ${tester.workspacePath}/out/mill-build/compile.dest/classes ...
            |[build.mill] [info] done compiling
-           |[info] compiling 1 Java source to /Users/lihaoyi/Github/mill/out/integration/feature/full-run/local/test.dest/sandbox/run-1/out/compile.dest/classes ...
+           |[info] compiling 1 Java source to ${tester.workspacePath}/out/compile.dest/classes ...
            |[info] done compiling""".stripMargin
       )
+    }
+    test("ticker") - integrationTest { tester =>
+      import tester._
+
+      val res = eval(("--ticker", "true", "run", "--text", "hello"))
+      res.isSuccess ==> true
+      assert(res.out == "[46] <h1>hello</h1>")
+
+      val expectedErrorRegex =
+        s"""==================================================== run --text hello ================================================
+           |======================================================================================================================
+           |[build.mill-56/60] compile
+           |[build.mill-56] [info] compiling 1 Scala source to ${tester.workspacePath}/out/mill-build/compile.dest/classes ...
+           |[build.mill-56] [info] done compiling
+           |[40/46] compile
+           |[40] [info] compiling 1 Java source to ${tester.workspacePath}/out/compile.dest/classes ...
+           |[40] [info] done compiling
+           |[46/46] run
+           |[46/46] ============================================ run --text hello ============================================= ?s
+           |======================================================================================================================"""
+        .stripMargin
+        .split('?')
+        .map(java.util.regex.Pattern.quote)
+        .mkString(".")
+
+      assert(expectedErrorRegex.r.matches(res.err))
     }
   }
 }
