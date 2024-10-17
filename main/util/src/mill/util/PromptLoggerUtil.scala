@@ -167,9 +167,11 @@ private object PromptLoggerUtil {
       // For the ending prompt, leave the cursor at the bottom on a new line rather than
       // scrolling back left/up. We do not want further output to overwrite the header as
       // it will no longer re-render
-      val backUp = if (ending) "" else AnsiNav.up(currentPromptLines.length)
+      val backUp =
+        if (ending) "\n"
+        else AnsiNav.left(9999) + AnsiNav.up(currentPromptLines.length - 1)
 
-      AnsiNav.clearScreen(0) + currentPromptLines.mkString("\n") + backUp + "\n"
+      AnsiNav.clearScreen(0) + currentPromptLines.mkString("\n") + backUp
     }
   }
 
