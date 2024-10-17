@@ -39,13 +39,13 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
            |[40] [info] compiling 1 Java source to ${tester.workspacePath}/out/compile.dest/classes ...
            |[40] [info] done compiling
            |[46/46] run
-           |[46/46] ============================================ run --text hello =============================================? <digits>s
+           |[46/46] ============================================ run --text hello =============================================<digits>s
            |======================================================================================================================"""
           .stripMargin
           .replace('\\', '/')
           .split("<digits>")
           .map(java.util.regex.Pattern.quote)
-          .mkString("[\\d]+")
+          .mkString(" ?[\\d]+")
 
       assert(expectedErrorRegex.r.matches(res.err.replace('\\', '/')))
     }
