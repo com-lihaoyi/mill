@@ -49,7 +49,25 @@ trait ZincWorkerApi {
       incrementalCompilation = true
     )
 
+  def compileMixed(
+      upstreamCompileOutput: Seq[CompilationResult],
+      sources: Agg[os.Path],
+      compileClasspath: Agg[os.Path],
+      javacOptions: Seq[String],
+      scalaVersion: String,
+      scalaOrganization: String,
+      scalacOptions: Seq[String],
+      compilerClasspath: Agg[PathRef],
+      scalacPluginClasspath: Agg[PathRef],
+      reporter: Option[CompileProblemReporter],
+      reportCachedProblems: Boolean,
+      incrementalCompilation: Boolean,
+      auxiliaryClassFileExtensions: Seq[String],
+      usePipeling: Boolean
+  )(implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult] = ???
+
   /** Compile a mixed Scala/Java or Scala-only project */
+  @deprecated("Use override with `usePipelining` parameter", "Mill 0.11.8")
   def compileMixed(
       upstreamCompileOutput: Seq[CompilationResult],
       sources: Agg[os.Path],
@@ -78,7 +96,8 @@ trait ZincWorkerApi {
       reporter = reporter,
       reportCachedProblems = reportCachedProblems,
       incrementalCompilation = incrementalCompilation,
-      auxiliaryClassFileExtensions = auxiliaryClassFileExtensions
+      auxiliaryClassFileExtensions = auxiliaryClassFileExtensions,
+      usePipeling = false
     )
 
   /** Compile a mixed Scala/Java or Scala-only project */
@@ -109,7 +128,8 @@ trait ZincWorkerApi {
       reporter = reporter,
       reportCachedProblems = reportCachedProblems,
       incrementalCompilation = true,
-      auxiliaryClassFileExtensions = Seq.empty[String]
+      auxiliaryClassFileExtensions = Seq.empty[String],
+      usePipeling = false
     )
 
   /** Compile a mixed Scala/Java or Scala-only project */
@@ -141,7 +161,8 @@ trait ZincWorkerApi {
       reporter = reporter,
       reportCachedProblems = reportCachedProblems,
       incrementalCompilation = incrementalCompilation,
-      auxiliaryClassFileExtensions = Seq.empty[String]
+      auxiliaryClassFileExtensions = Seq.empty[String],
+      usePipeling = false
     )
 
   /**
