@@ -42,6 +42,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
            |[46/46] ============================================ run --text hello ============================================= ?s
            |======================================================================================================================"""
           .stripMargin
+          .replace('\\', '/')
           .split('?')
           .map(java.util.regex.Pattern.quote)
           .mkString("[\\d]+")
