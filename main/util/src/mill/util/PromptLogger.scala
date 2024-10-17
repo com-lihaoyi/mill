@@ -66,6 +66,9 @@ private[mill] class PromptLogger(
         synchronizer = this
       )
 
+
+  refreshPrompt()
+
   val promptUpdaterThread = new Thread(
     () =>
       while (!runningState.stopped) {
@@ -141,10 +144,13 @@ private[mill] class PromptLogger(
 
   override def close(): Unit = {
     synchronized {
-      if (enableTicker) promptLineState.updatePrompt(ending = true)
-      runningState.stop()
+      if (enableTicker) refreshPrompt(ending = true)
     }
     streamManager.close()
+    synchronized {
+      runningState.stop()
+    }
+
 
     // Needs to be outside the lock so we don't deadlock with `promptUpdaterThread`
     // trying to take the lock one last time to check running/paused status before exiting
@@ -235,9 +241,11 @@ private[mill] object PromptLogger {
 
     def awaitPumperEmpty(): Unit = { while (pipe.input.available() != 0) Thread.sleep(2) }
 
-    private var promptShown = false
+    private var promptShown = true
 
-    def writeCurrentPrompt(): Unit = systemStreams0.err.write(getCurrentPrompt())
+    def writeCurrentPrompt(): Unit = {
+      systemStreams0.err.write(getCurrentPrompt())
+    }
 
     def refreshPrompt(): Unit = if (promptShown) writeCurrentPrompt()
 
@@ -268,8 +276,6 @@ private[mill] object PromptLogger {
           // prevent any writes from coming to this stream when paused, somehow writes
           // sometimes continue to come in, so just handle them gracefully.
           interactive() && !paused() &&
-          // ???
-          !promptShown &&
           // Only print the prompt when the last character that was written is a newline,
           // to ensure we don't cut off lines halfway
           lastCharWritten == '\n'
@@ -317,6 +323,7 @@ private[mill] object PromptLogger {
       currentTimeMillis: () => Long,
       infoColor: fansi.Attrs
   ) {
+    private var lastRenderedPromptHash = 0
 
     private val statuses = collection.mutable.SortedMap
       .empty[Seq[String], Status](PromptLoggerUtil.seqStringOrdering)
@@ -399,8 +406,8 @@ private[mill] object PromptLogger {
       // For non-interactive jobs, we only want to print the new prompt if the contents
       // differs from the previous prompt, since the prompts do not overwrite each other
       // in log files and printing large numbers of identical prompts is spammy and useless
-
-      if (consoleDims()._1.nonEmpty) {
+      lazy val statusesHashCode = statuses.hashCode
+      if (consoleDims()._1.nonEmpty || statusesHashCode != lastRenderedPromptHash) {
         updatePromptBytes(ending)
       }
     }

@@ -78,6 +78,8 @@ object PromptLoggerTests extends TestSuite {
         promptLogger.close()
 
         check(promptLogger, baos, width = 999 /*log file has no line wrapping*/ )(
+          "[] ======================================================= TITLE =====================================================",
+          "======================================================================================================================",
           // Make sure that the first time a prefix is reported,
           // we print the verbose prefix along with the ticker string
           "[1/456] my-task",
