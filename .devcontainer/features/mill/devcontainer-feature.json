@@ -1,0 +1,10 @@
+{
+  "id": "mill",
+  "version": "1.0.0",
+  "name": "Mill, Coursier, Metals",
+  "description": "Some OSS scala utils",
+  "installsAfter":  [
+    "ghcr.io/devcontainers/features/java:1"
+  ],
+  "options": {}
+}
