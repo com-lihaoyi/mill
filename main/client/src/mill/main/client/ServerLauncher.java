@@ -126,7 +126,7 @@ public abstract class ServerLauncher {
             stdoutTailer.start();
             stderrTailer.start();
             String serverPath = serverDir + "/" + ServerFiles.runArgs;
-            try (FileOutputStream f = Files.newOutputStream(serverPath)) {
+            try (FileOutputStream f = Files.newOutputStream(Paths.get(serverPath))) {
                 f.write(System.console() != null ? 1 : 0);
                 Util.writeString(f, BuildInfo.millVersion);
                 Util.writeArgs(args, f);
