@@ -1,7 +1,6 @@
 package mill.kotlinlib.ktfmt
 
 import mill._
-import mainargs.Leftover
 import mill.api.{Loose, PathRef}
 import mill.define.{Discover, ExternalModule}
 import mill.kotlinlib.{DepSyntax, Versions}
@@ -49,13 +48,12 @@ trait KtfmtModule extends KtfmtBaseModule {
    */
   def ktfmt(
       @mainargs.arg ktfmtArgs: KtfmtArgs,
-      @mainargs.arg(positional = true) sources: Leftover[String]
+      @mainargs.arg(positional = true) sources: Tasks[Seq[PathRef]] =
+        Tasks.resolveMainDefault("__.sources")
   ): Command[Unit] = Task.Command {
-    val _sources = if (sources.value.isEmpty) {
+    val _sources: Seq[PathRef] = if (sources.value.isEmpty) {
       this.sources()
-    } else {
-      sources.value.iterator.map(rel => PathRef(millSourcePath / os.RelPath(rel)))
-    }
+    } else T.sequence(sources.value)().flatten
     KtfmtModule.ktfmtAction(
       ktfmtArgs.style,
       ktfmtArgs.format,

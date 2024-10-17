@@ -1,7 +1,6 @@
 package mill.kotlinlib
 
-import mill._
-import os.Path
+import mill.scalalib.PlatformModuleBase
 
 /**
  * A [[KotlinModule]] intended for defining `.jvm`/`.js`/etc. submodules
@@ -13,25 +12,4 @@ import os.Path
  * built against and not something that should affect the filesystem path or
  * artifact name
  */
-trait PlatformKotlinModule extends KotlinModule {
-  override def millSourcePath: Path = super.millSourcePath / os.up
-
-  /**
-   * The platform suffix of this [[PlatformKotlinModule]]. Useful if you want to
-   * further customize the source paths or artifact names.
-   */
-  def platformKotlinSuffix: String = millModuleSegments
-    .value
-    .collect { case l: mill.define.Segment.Label => l.value }
-    .last
-
-  override def sources: T[Seq[PathRef]] = Task.Sources {
-    super.sources().flatMap { source =>
-      val platformPath =
-        PathRef(source.path / _root_.os.up / s"${source.path.last}-$platformKotlinSuffix")
-      Seq(source, platformPath)
-    }
-  }
-
-  override def artifactNameParts: T[Seq[String]] = super.artifactNameParts().dropRight(1)
-}
+trait PlatformKotlinModule extends PlatformModuleBase with KotlinModule

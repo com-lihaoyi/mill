@@ -171,17 +171,17 @@ object outer extends MyModule {
 
 */
 
-// You can use `millSourcePath` to automatically set the source folders of your
-// modules to match the build structure. You are not forced to rigidly use
-// `millSourcePath` to define the source folders of all your code, but it can simplify
-// the common case where you probably want your build-layout and on-disk-layout to
-// be the same.
+// You should use `millSourcePath` to set the source folders of your
+// modules to match the build structure. In almost every case, a module's source files
+// live at some relative path within the module's folder, and using `millSourcePath`
+// ensures that the relative path to the module's source files remains the same
+// regardless of where your module lives in the build hierarchy.
 //
 // E.g. for `mill.scalalib.ScalaModule`, the Scala source code is assumed by
 // default to be in `millSourcePath / "src"` while resources are automatically
 // assumed to be in `millSourcePath / "resources"`.
 //
-// You can override `millSourcePath`:
+// You can also override `millSourcePath`:
 
 object outer2 extends MyModule {
   def millSourcePath = super.millSourcePath / "nested"
@@ -218,7 +218,7 @@ object outer2 extends MyModule {
 
 */
 
-// *Note that `os.pwd` of the Mill process is set to an empty `sandbox/` folder by default.*
+// NOTE: *`os.pwd` of the Mill process is set to an empty `sandbox/` folder by default.*
 // When defining a module's source files, you should always use `millSourcePath` to ensure the
 // paths defined are relative to the module's root folder, so the module logic can continue
 // to work even if moved into a different subfolder. In the rare case where you need the

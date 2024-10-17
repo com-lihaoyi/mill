@@ -10,6 +10,7 @@ object `package` extends MillBuildRootModule {
     // TODO: implement empty version for ivy deps as we do in import parser
     ivy"com.lihaoyi::mill-contrib-buildinfo:${mill.api.BuildInfo.millVersion}",
     ivy"com.goyeau::mill-scalafix::0.4.1",
-    ivy"com.lihaoyi::mill-main-graphviz:${mill.api.BuildInfo.millVersion}"
+    ivy"com.lihaoyi::mill-main-graphviz:${mill.api.BuildInfo.millVersion}",
+    ivy"org.jsoup:jsoup:1.12.1"
   )
 }

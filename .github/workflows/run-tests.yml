@@ -44,7 +44,7 @@ jobs:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
 
-      - run: ./mill -i docs.githubPages
+      - run: ./mill -i docs.githubPages + docs.checkBrokenLinks
 
   linux:
     needs: build-linux
@@ -79,7 +79,7 @@ jobs:
 
             # Most of these integration tests should not depend on which mode they
             # are run in, so just run them in `local`
-          - java-version: '11'
+          - java-version: '17'
             millargs: "'integration.{failure,feature,ide}.__.local.testCached'"
 
             # These invalidation tests need to be exercised in both execution modes

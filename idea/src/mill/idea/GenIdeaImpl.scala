@@ -501,15 +501,16 @@ case class GenIdeaImpl(
           resourcesPathRefs: Seq[PathRef],
           generatedSourcePathRefs: Seq[PathRef],
           allSourcesPathRefs: Seq[PathRef]
-        ) = evaluator.evaluate(
-          Agg(
-            mod.resources,
-            mod.generatedSources,
-            mod.allSources
-          )
-        )
-          .values
-          .map(_.value)
+        ) = evaluator.evalOrThrow(
+          exceptionFactory = r =>
+            GenIdeaException(
+              s"Could not evaluate sources/resouces of module `${mod}`: ${Evaluator.formatFailing(r)}"
+            )
+        )(Seq(
+          mod.resources,
+          mod.generatedSources,
+          mod.allSources
+        ))
 
         val generatedSourcePaths = generatedSourcePathRefs.map(_.path)
         val normalSourcePaths = (allSourcesPathRefs

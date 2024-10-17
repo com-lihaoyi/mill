@@ -25,6 +25,13 @@ gtag('config', 'AW-16649289906');
 :language-small: kotlin
 :language-ext: kt
 
+NOTE: *Kotlin support in Mill is experimental*! A lot of stuff works, which is
+documented under this section, but a lot of stuff doesn't. In particular,
+support for Android, KotlinJS and Kotlin-Multi-Platform is still in its infancy.
+The API is not yet stable and may evolve. Try it out but please be aware of its
+limitations!
+
+
 include::partial$Intro_to_Mill_Header.adoc[]
 
 
