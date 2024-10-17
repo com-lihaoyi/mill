@@ -146,7 +146,11 @@ private[mill] class PromptLogger(
     synchronized {
       if (enableTicker) refreshPrompt(ending = true)
     }
+
+    // Has to be outside the synchronized block so it can allow the pumper thread
+    // to continue pumping out the last data in the streams and terminate
     streamManager.close()
+
     synchronized {
       runningState.stop()
     }
