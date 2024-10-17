@@ -14,6 +14,15 @@ import pprint.Util.literalize
 import java.io._
 import PromptLoggerUtil._
 
+/**
+ * Gnarly multithreaded stateful code to handle the terminal prompt and log prefixer
+ * that Mill shows to tell the user what is running.
+ *
+ * Most operations that update mutable state *or* writes to parent [[systemStreams0]] is
+ * synchronized under the [[PromptLogger]] object. Notably, child writes to
+ * [[systemStreams]] are *not* synchronized, and instead goes into a [[PipeStreams]]
+ * buffer to be read out and handled asynchronously.
+ */
 private[mill] class PromptLogger(
     override val colored: Boolean,
     override val enableTicker: Boolean,
@@ -35,7 +44,6 @@ private[mill] class PromptLogger(
 
   private object promptLineState extends PromptLineState(
         titleText,
-        systemStreams0,
         currentTimeMillis(),
         () => termDimensions,
         currentTimeMillis,
@@ -45,21 +53,20 @@ private[mill] class PromptLogger(
   private object streamManager extends StreamManager(
         enableTicker,
         systemStreams0,
-        () => promptLineState.writeCurrentPrompt(),
+        () => promptLineState.getCurrentPrompt(),
         interactive = () => termDimensions._1.nonEmpty,
-        paused = () => runningState.paused
+        paused = () => runningState.paused,
+        synchronizer = this
       )
 
   private object runningState extends RunningState(
         enableTicker,
         () => promptUpdaterThread.interrupt(),
-        clearOnPause = () => {
-          // Clear the prompt so the code in `t` has a blank terminal to work with
-          systemStreams0.err.write(AnsiNav.clearScreen(0).getBytes)
-          systemStreams0.err.flush()
-        },
+        clearOnPause = () => streamManager.clearOnPause(),
         synchronizer = this
       )
+
+  if (enableTicker) refreshPrompt()
 
   val promptUpdaterThread = new Thread(
     () =>
@@ -74,23 +81,27 @@ private[mill] class PromptLogger(
         readTerminalDims(terminfoPath).foreach(termDimensions = _)
 
         synchronized {
-          if (!runningState.paused && !runningState.stopped) {
-            refreshPrompt()
-          }
+          if (!runningState.paused && !runningState.stopped) refreshPrompt()
         }
       },
     "prompt-logger-updater-thread"
   )
 
-  def refreshPrompt(): Unit = promptLineState.refreshPrompt()
+  def refreshPrompt(ending: Boolean = false): Unit = synchronized {
+    promptLineState.updatePrompt(ending)
+    streamManager.refreshPrompt()
+  }
+
   if (enableTicker && autoUpdate) promptUpdaterThread.start()
 
-  def info(s: String): Unit = synchronized { systemStreams.err.println(s) }
+  def info(s: String): Unit = systemStreams.err.println(s)
 
-  def error(s: String): Unit = synchronized { systemStreams.err.println(s) }
+  def error(s: String): Unit = systemStreams.err.println(s)
 
-  override def setPromptHeaderPrefix(s: String): Unit =
-    synchronized { promptLineState.setHeaderPrefix(s) }
+  override def setPromptHeaderPrefix(s: String): Unit = synchronized {
+    promptLineState.setHeaderPrefix(s)
+  }
+
   override def clearPromptStatuses(): Unit = synchronized { promptLineState.clearStatuses() }
   override def removePromptLine(key: Seq[String]): Unit = synchronized {
     promptLineState.setCurrent(key, None)
@@ -101,13 +112,18 @@ private[mill] class PromptLogger(
     promptLineState.setDetail(key, s)
   }
 
-  override def reportKey(key: Seq[String]): Unit = synchronized {
-    if (!reportedIdentifiers(key)) {
-      reportedIdentifiers.add(key)
-      for ((verboseKeySuffix, message) <- seenIdentifiers.get(key)) {
-        if (enableTicker) {
-          systemStreams.err.println(infoColor(s"[${key.mkString("-")}$verboseKeySuffix] $message"))
-        }
+  override def reportKey(key: Seq[String]): Unit = {
+    val res = synchronized {
+      if (reportedIdentifiers(key)) None
+      else {
+        reportedIdentifiers.add(key)
+        seenIdentifiers.get(key)
+      }
+    }
+    for ((verboseKeySuffix, message) <- res) {
+      if (enableTicker) {
+        systemStreams.err.println(infoColor(s"[${key.mkString("-")}$verboseKeySuffix] $message"))
+        streamManager.awaitPumperEmpty()
       }
     }
   }
@@ -121,14 +137,20 @@ private[mill] class PromptLogger(
       seenIdentifiers(key) = (verboseKeySuffix, message)
     }
 
-  def debug(s: String): Unit = synchronized { if (debugEnabled) systemStreams.err.println(s) }
+  def debug(s: String): Unit = if (debugEnabled) systemStreams.err.println(s)
 
   override def rawOutputStream: PrintStream = systemStreams0.out
 
   override def close(): Unit = {
     synchronized {
-      if (enableTicker) promptLineState.refreshPrompt(ending = true)
-      streamManager.close()
+      if (enableTicker) refreshPrompt(ending = true)
+    }
+
+    // Has to be outside the synchronized block so it can allow the pumper thread
+    // to continue pumping out the last data in the streams and terminate
+    streamManager.close()
+
+    synchronized {
       runningState.stop()
     }
 
@@ -165,7 +187,7 @@ private[mill] object PromptLogger {
     @volatile private var paused0 = false
     def stopped = stopped0
     def paused = paused0
-    def stop(): Unit = synchronizer.synchronized {
+    def stop(): Unit = {
       stopped0 = true
       promptUpdaterThreadInterrupt()
     }
@@ -200,9 +222,10 @@ private[mill] object PromptLogger {
   private class StreamManager(
       enableTicker: Boolean,
       systemStreams0: SystemStreams,
-      writeCurrentPrompt: () => Unit,
+      getCurrentPrompt: () => Array[Byte],
       interactive: () => Boolean,
-      paused: () => Boolean
+      paused: () => Boolean,
+      synchronizer: AnyRef
   ) {
 
     // We force both stdout and stderr streams into a single `Piped*Stream` pair via
@@ -218,35 +241,62 @@ private[mill] object PromptLogger {
       systemStreams0.in
     )
 
-    def awaitPumperEmpty(): Unit = {
-      while (pipe.input.available() != 0) Thread.sleep(2)
+    def awaitPumperEmpty(): Unit = { while (pipe.input.available() != 0) Thread.sleep(2) }
+
+    private var promptShown = true
+
+    def writeCurrentPrompt(): Unit = {
+      systemStreams0.err.write(getCurrentPrompt())
     }
-    object pumper extends ProxyStream.Pumper(pipe.input, systemStreams0.out, systemStreams0.err) {
-      object PumperState extends Enumeration {
-        val init, prompt, cleared = Value
-      }
-      var pumperState = PumperState.init
-      override def preRead(src: InputStream): Unit = {
-        // Only bother printing the propmt after the streams have become quiescent
-        // and there is no more stuff to print. This helps us printing the prompt on
-        // every small write when most such prompts will get immediately over-written
-        // by subsequent writes
-        if (enableTicker && src.available() == 0) {
+
+    def refreshPrompt(): Unit = if (promptShown) writeCurrentPrompt()
+
+    def clearOnPause(): Unit = {
+      // Clear the prompt so the code in `t` has a blank terminal to work with
+      systemStreams0.err.write(PromptLoggerUtil.clearScreenToEndBytes)
+      systemStreams0.err.flush()
+    }
+
+    object pumper extends ProxyStream.Pumper(
+          pipe.input,
+          systemStreams0.out,
+          systemStreams0.err,
+          synchronizer
+        ) {
+      private var lastCharWritten = 0.toChar
+
+      // Make sure we synchronize everywhere
+      override def preRead(src: InputStream): Unit = synchronizer.synchronized {
+
+        if (
+          // Only bother printing the prompt after the streams have become quiescent
+          // and there is no more stuff to print. This helps us printing the prompt on
+          // every small write when most such prompts will get immediately over-written
+          // by subsequent writes
+          enableTicker && src.available() == 0 &&
           // Do not print the prompt when it is paused. Ideally stream redirecting would
           // prevent any writes from coming to this stream when paused, somehow writes
           // sometimes continue to come in, so just handle them gracefully.
-          if (interactive() && !paused()) writeCurrentPrompt()
-          pumperState = PumperState.prompt
+          interactive() && !paused() &&
+          // Only print the prompt when the last character that was written is a newline,
+          // to ensure we don't cut off lines halfway
+          lastCharWritten == '\n'
+        ) {
+          promptShown = true
+          writeCurrentPrompt()
         }
       }
 
-      override def preWrite(): Unit = {
+      override def preWrite(buf: Array[Byte], end: Int): Unit = {
         // Before any write, make sure we clear the terminal of any prompt that was
         // written earlier and not yet cleared, so the following output can be written
         // to a clean section of the terminal
-        if (interactive() && pumperState != PumperState.cleared)
+
+        lastCharWritten = buf(end - 1).toChar
+        if (interactive() && !paused() && promptShown) {
           systemStreams0.err.write(clearScreenToEndBytes)
-        pumperState = PumperState.cleared
+          promptShown = false
+        }
       }
     }
 
@@ -270,7 +320,6 @@ private[mill] object PromptLogger {
    */
   private class PromptLineState(
       titleText: String,
-      systemStreams0: SystemStreams,
       startTimeMillis: Long,
       consoleDims: () => (Option[Int], Option[Int]),
       currentTimeMillis: () => Long,
@@ -287,7 +336,8 @@ private[mill] object PromptLogger {
 
     @volatile private var currentPromptBytes: Array[Byte] = Array[Byte]()
 
-    def writeCurrentPrompt(): Unit = systemStreams0.err.write(currentPromptBytes)
+    def getCurrentPrompt() = currentPromptBytes
+
     private def updatePromptBytes(ending: Boolean = false) = {
       val now = currentTimeMillis()
       for (k <- statuses.keySet) {
@@ -309,7 +359,7 @@ private[mill] object PromptLogger {
         termHeight0.getOrElse(defaultTermHeight),
         now,
         startTimeMillis,
-        s"[$headerPrefix]",
+        if (headerPrefix.isEmpty) "" else s"[$headerPrefix]",
         titleText,
         statuses.toSeq.map { case (k, v) => (k.mkString("-"), v) },
         interactive = interactive,
@@ -321,14 +371,14 @@ private[mill] object PromptLogger {
 
     }
 
-    def clearStatuses(): Unit = synchronized { statuses.clear() }
-    def setHeaderPrefix(s: String): Unit = synchronized { headerPrefix = s }
+    def clearStatuses(): Unit = { statuses.clear() }
+    def setHeaderPrefix(s: String): Unit = { headerPrefix = s }
 
-    def setDetail(key: Seq[String], detail: String): Unit = synchronized {
+    def setDetail(key: Seq[String], detail: String): Unit = {
       statuses.updateWith(key)(_.map(se => se.copy(next = se.next.map(_.copy(detail = detail)))))
     }
 
-    def setCurrent(key: Seq[String], sOpt: Option[String]): Unit = synchronized {
+    def setCurrent(key: Seq[String], sOpt: Option[String]): Unit = {
 
       val now = currentTimeMillis()
       def stillTransitioning(status: Status) = {
@@ -354,17 +404,14 @@ private[mill] object PromptLogger {
       }
     }
 
-    def refreshPrompt(ending: Boolean = false): Unit = synchronized {
-
+    def updatePrompt(ending: Boolean = false): Unit = {
       // For non-interactive jobs, we only want to print the new prompt if the contents
       // differs from the previous prompt, since the prompts do not overwrite each other
       // in log files and printing large numbers of identical prompts is spammy and useless
-
       lazy val statusesHashCode = statuses.hashCode
       if (consoleDims()._1.nonEmpty || statusesHashCode != lastRenderedPromptHash) {
         lastRenderedPromptHash = statusesHashCode
         updatePromptBytes(ending)
-        writeCurrentPrompt()
       }
     }
   }

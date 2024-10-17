@@ -51,7 +51,13 @@ private object PromptLoggerUtil {
       prev: Option[StatusEntry]
   )
 
-  private[mill] val clearScreenToEndBytes: Array[Byte] = AnsiNav.clearScreen(0).getBytes
+  /**
+   * Starting a line with `clearScreen` mucks up tab stops in iTerm, so make sure we navigate `up`
+   * and down via `\n` to have a "fresh" line. This only should get called to clear the prompt, so
+   * the cursor is already at the left-most column, which '\n' will not change.
+   */
+  private[mill] val clearScreenToEndBytes: Array[Byte] =
+    (AnsiNav.clearScreen(0) + AnsiNav.up(1) + "\n").getBytes
 
   private def renderSecondsSuffix(millis: Long) = (millis / 1000).toInt match {
     case 0 => ""
@@ -165,9 +171,7 @@ private object PromptLoggerUtil {
         if (ending) "\n"
         else AnsiNav.left(9999) + AnsiNav.up(currentPromptLines.length - 1)
 
-      AnsiNav.clearScreen(0) +
-        currentPromptLines.mkString("\n") +
-        backUp
+      AnsiNav.clearScreen(0) + currentPromptLines.mkString("\n") + backUp
     }
   }
 
@@ -179,7 +183,8 @@ private object PromptLoggerUtil {
       ending: Boolean = false,
       interactive: Boolean = true
   ): String = {
-    val headerPrefixStr = if (!interactive || ending) s"$headerPrefix0 " else s"  $headerPrefix0 "
+    val headerPrefix = if (headerPrefix0.isEmpty) "" else s"$headerPrefix0 "
+    val headerPrefixStr = if (!interactive || ending) headerPrefix else s"  $headerPrefix"
     val headerSuffixStr = headerSuffix0
     val titleText = s" $titleText0 "
     // -12 just to ensure we always have some ==== divider on each side of the title
