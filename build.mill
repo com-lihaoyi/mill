@@ -55,12 +55,12 @@ object Deps {
   // The Scala version to use
   // When updating, run "Publish Bridges" Github Actions for the new version
   // and then add to it `bridgeScalaVersions`
-  val scalaVersion = "2.13.14"
-  val scala2Version = "2.13.14"
+  val scalaVersion = "2.13.13"
+  val scala2Version = "2.13.13"
   // The Scala 2.12.x version to use for some workers
   val workerScalaVersion212 = "2.12.19"
 
-  val testScala213Version = "2.13.14"
+  val testScala213Version = "2.13.13"
   // Scala Native 4.2 will not get releases for new Scala version
   val testScala213VersionForScalaNative42 = "2.13.8"
   val testScala212Version = "2.12.6"
@@ -179,7 +179,7 @@ object Deps {
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.1"
   val upickle = ivy"com.lihaoyi::upickle:3.3.1"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.5"
-  val zinc = ivy"org.scala-sbt::zinc:1.10.2"
+  val zinc = ivy"org.scala-sbt::zinc:1.9.6"
   // keep in sync with doc/antora/antory.yml
   val bsp4j = ivy"ch.epfl.scala:bsp4j:2.2.0-M2"
   val fansi = ivy"com.lihaoyi::fansi:0.5.0"
@@ -416,7 +416,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
       "-feature",
       "-Xlint:unused",
       "-Xlint:adapted-args",
-      "-Xsource:3",
+//      "-Xsource:3",
       "-Wconf:msg=inferred type changes:silent",
       "-Wconf:msg=case companions no longer extend FunctionN:silent",
       "-Wconf:msg=access modifiers for:silent",
