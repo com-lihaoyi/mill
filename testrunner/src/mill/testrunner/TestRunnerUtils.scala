@@ -3,8 +3,7 @@ package mill.testrunner
 import mill.api.{Ctx, Loose, TestReporter, internal}
 import os.Path
 import sbt.testing._
-
-import java.io.FileInputStream
+
 import java.nio.file.Files
 import java.lang.annotation.Annotation
 import java.lang.reflect.Modifier
