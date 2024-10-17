@@ -4,8 +4,6 @@ import mill.testkit.{TestBaseModule, UnitTester}
 import mill.{Cross, T}
 import utest.{TestSuite, Tests, assert, test}
 
-import scala.util.Random
-
 object KotlinJSLinkTests extends TestSuite {
 
   private val kotlinVersion = "1.9.25"
