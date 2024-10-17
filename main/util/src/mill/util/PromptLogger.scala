@@ -11,8 +11,8 @@ import mill.util.PromptLoggerUtil.{
 }
 import pprint.Util.literalize
 
-import java.io.*
-import PromptLoggerUtil.*
+import java.io._
+import PromptLoggerUtil._
 
 /**
  * Gnarly multithreaded stateful code to handle the terminal prompt and log prefixer
