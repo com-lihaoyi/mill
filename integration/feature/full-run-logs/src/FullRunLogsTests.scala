@@ -16,10 +16,10 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       assert(res.out == "<h1>hello</h1>")
       assert(
         res.err.replace('\\', '/') ==
-          s"""[build.mill] [info] compiling 1 Scala source to ${tester.workspacePath}/out/mill-build/compile.dest/classes ...
+          s"""[build.mill] [info] compiling 1 Scala source to ${tester.workspacePath.replace('\\', '/')}/out/mill-build/compile.dest/classes ...
              |[build.mill] [info] done compiling
-             |[info] compiling 1 Java source to ${tester.workspacePath}/out/compile.dest/classes ...
-             |[info] done compiling""".stripMargin
+             |[info] compiling 1 Java source to ${tester.workspacePath.replace('\\', '/')}/out/compile.dest/classes ...
+             |[info] done compiling""".stripMargin.replaceAll("(\r\n)|\r", "\n")
       )
     }
     test("ticker") - integrationTest { tester =>
@@ -42,6 +42,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
            |[46/46] ============================================ run --text hello ============================================<seconds-digits>s
            |======================================================================================================================"""
           .stripMargin
+          .replaceAll("(\r\n)|\r", "\n")
           .replace('\\', '/')
           .split("<seconds-digits>")
           .map(java.util.regex.Pattern.quote)
