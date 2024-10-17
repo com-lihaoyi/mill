@@ -47,19 +47,13 @@ object Util {
       ctx: Ctx.Dest
   ): PathRef = {
     val out = ctx.dest / dest
-
     val website = new java.net.URI(url).toURL
-    val rbc = java.nio.channels.Channels.newChannel(website.openStream)
+    val websiteInputStream = website.openStream
     try {
-      val fos = Files.newOutputStream(out.toNIO)
-      try {
-        fos.getChannel.transferFrom(rbc, 0, java.lang.Long.MAX_VALUE)
-        PathRef(out)
-      } finally {
-        fos.close()
-      }
+      Files.copy(websiteInputStream, out.toNIO)
+      PathRef(out)
     } finally {
-      rbc.close()
+      websiteInputStream.close()
     }
   }
 
