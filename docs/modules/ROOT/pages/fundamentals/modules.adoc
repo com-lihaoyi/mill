@@ -62,3 +62,5 @@ needing to define your own `Task.Command` in your `build.mill` file
 == Aliasing External Modules
 
 include::partial$example/fundamentals/modules/10-external-module-aliases.adoc[]
+
+== Abstract Modules References
