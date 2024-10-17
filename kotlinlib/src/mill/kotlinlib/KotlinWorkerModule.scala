@@ -1,7 +1,8 @@
 /*
- * Copyright 2020-Present Original lefou/mill-kotlin repository contributors.
+ * Original code copied from https://github.com/lefou/mill-kotlin
+ * Original code published under the Apache License Version 2
+ * Original Copyright 2020-2024 Tobias Roeser
  */
-
 package mill.kotlinlib
 
 import mill.{T, Task}

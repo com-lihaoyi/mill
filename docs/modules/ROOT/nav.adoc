@@ -61,8 +61,7 @@
 // either section above, it is probably an important enough topic it is worth
 // breaking out on its own
 .Extending Mill
-* xref:extending/import-ivy.adoc[]
-* xref:extending/using-plugins.adoc[]
+* xref:extending/import-ivy-plugins.adoc[]
 * xref:extending/contrib-plugins.adoc[]
 // See also the list in Contrib_Plugins.adoc
 ** xref:contrib/artifactory.adoc[]

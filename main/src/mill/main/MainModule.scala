@@ -83,7 +83,6 @@ object MainModule {
 trait MainModule extends BaseModule0 {
 
   object interp extends Interp
-//  implicit def millDiscover: mill.define.Discover[_]
 
   /**
    * Show the mill version.
@@ -531,11 +530,11 @@ trait MainModule extends BaseModule0 {
       planTasks: Option[List[NamedTask[_]]] = None
   ): Result[Seq[PathRef]] = {
     def callVisualizeModule(
-        rs: List[NamedTask[Any]],
-        allRs: List[NamedTask[Any]]
+        tasks: List[NamedTask[Any]],
+        transitiveTasks: List[NamedTask[Any]]
     ): Result[Seq[PathRef]] = {
       val (in, out) = vizWorker
-      in.put((rs, allRs, ctx.dest))
+      in.put((tasks, transitiveTasks, ctx.dest))
       val res = out.take()
       res.map { v =>
         println(upickle.default.write(v.map(_.path.toString()), indent = 2))
@@ -550,9 +549,7 @@ trait MainModule extends BaseModule0 {
     ) match {
       case Left(err) => Result.Failure(err)
       case Right(rs) => planTasks match {
-          case Some(allRs) => {
-            callVisualizeModule(rs, allRs)
-          }
+          case Some(allRs) => callVisualizeModule(rs, allRs)
           case None => callVisualizeModule(rs, rs)
         }
     }

@@ -5,7 +5,7 @@ The Plugins in this section are developed/maintained outside the mill git tree.
 This list is most likely not complete.
 If you wrote a Mill plugin or find that one is missing in this list, please open a {mill-github-url}/pulls[pull request] and add that plugin with a short description (in alphabetical order).
 
-For details about including plugins in your `build.mill` read xref:extending/using-plugins.adoc[Using Mill Plugins].
+For details about including plugins in your `build.mill` read xref:extending/import-ivy-plugins.adoc[Using Mill Plugins].
 
 CAUTION: Besides the documentation provided here, we urge you to consult the respective linked plugin documentation pages.
 The usage examples given here are most probably incomplete and sometimes outdated!
@@ -571,8 +571,8 @@ bash> mill site.jbakeServe
 
 == JBuildInfo
 
-This is a https://www.lihaoyi.com/mill/[mill] module similar to
-https://www.lihaoyi.com/mill/page/contrib-modules.html#buildinfo[BuildInfo]
+This is a Mill module similar to
+xref:contrib/buildinfo.adoc[BuildInfo]
 but for Java.
 It will generate a Java class containing information from your build.
 

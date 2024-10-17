@@ -10,10 +10,7 @@ object KotlinJSKotlinVersionsTests extends TestSuite {
 
   private val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "kotlin-js"
   private val kotlinLowestVersion = "1.8.20"
-  // TODO: Cannot support Kotlin 2+, because it doesn't publish .jar anymore, but .klib files only. Coursier is not
-  //  able to work with that (unlike Gradle, which can leverage .module metadata).
-  // https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-js/2.0.20/
-  private val kotlinHighestVersion = "1.9.25"
+  private val kotlinHighestVersion = mill.kotlinlib.Versions.kotlinVersion
   private val kotlinVersions = Seq(kotlinLowestVersion, kotlinHighestVersion)
 
   trait KotlinJSCrossModule extends KotlinJSModule with Cross.Module[String] {
@@ -21,13 +18,26 @@ object KotlinJSKotlinVersionsTests extends TestSuite {
   }
 
   trait KotlinJSFooCrossModule extends KotlinJSCrossModule {
-    override def moduleDeps = Seq(module.bar(crossValue))
+    override def moduleDeps = Seq(module.bar(crossValue), module.qux(crossValue))
+  }
+
+  trait KotlinJSQuxCrossModule extends KotlinJSCrossModule {
+    override def ivyDeps = {
+      // 0.10+ cannot be built with Kotlin 1.8 (it was built with Kotlin 1.9.10 itself). ABI incompatibility?
+      val kotlinxHtmlVersion = crossValue.split("\\.").map(_.toInt) match {
+        case Array(1, 8, _) => "0.9.1"
+        case _ => "0.11.0"
+      }
+      super.ivyDeps() ++ Agg(
+        ivy"org.jetbrains.kotlinx:kotlinx-html-js:$kotlinxHtmlVersion"
+      )
+    }
   }
 
   object module extends TestBaseModule {
-
-    object bar extends Cross[KotlinJSCrossModule](kotlinVersions)
     object foo extends Cross[KotlinJSFooCrossModule](kotlinVersions)
+    object bar extends Cross[KotlinJSCrossModule](kotlinVersions)
+    object qux extends Cross[KotlinJSQuxCrossModule](kotlinVersions)
   }
 
   private def testEval() = UnitTester(module, resourcePath)

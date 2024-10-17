@@ -146,7 +146,7 @@ error: Missing argument: --text <str>
 // `mill inspect compile` to inspect a task's doc-comment documentation or what
 // it depends on, or `mill show foo.scalaVersion` to show the output of any task.
 //
-// The most common *tasks* that Mill can run are cached *targets*, such as
+// The most common *tasks* that Mill can run are cached tasks, such as
 // `compile`, and un-cached *commands* such as `foo.run`. Targets do not
 // re-evaluate unless one of their inputs changes, whereas commands re-run every
 // time.

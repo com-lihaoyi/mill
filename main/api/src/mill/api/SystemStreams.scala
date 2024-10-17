@@ -1,7 +1,7 @@
 package mill.api
 
 import java.io.{InputStream, OutputStream, PrintStream}
-import mill.main.client.InputPumper
+import mill.main.client.{DebugLog, InputPumper}
 
 import scala.util.DynamicVariable
 
@@ -175,4 +175,44 @@ object SystemStreams {
       override def transferTo(out: OutputStream): Long = delegate().transferTo(out)
     }
   }
+  private def debugPrintln(s: String) =
+    DebugLog.println(pprint.apply(s.toCharArray, width = 999).toString)
+  private[mill] class DebugDelegateStream(delegate0: SystemStreams) extends SystemStreams(
+        new PrintStream(new ThreadLocalStreams.ProxyOutputStream {
+          override def delegate(): OutputStream = delegate0.out
+
+          override def write(b: Array[Byte], off: Int, len: Int): Unit = {
+            debugPrintln(new String(b, off, len))
+            super.write(b, off, len)
+          }
+
+          override def write(b: Array[Byte]): Unit = {
+            debugPrintln(new String(b))
+            super.write(b)
+          }
+
+          override def write(b: Int): Unit = {
+            debugPrintln(new String(Array(b.toByte)))
+            super.write(b)
+          }
+        }),
+        new PrintStream(new ThreadLocalStreams.ProxyOutputStream {
+          override def delegate(): OutputStream = delegate0.err
+          override def write(b: Array[Byte], off: Int, len: Int): Unit = {
+            debugPrintln(new String(b, off, len))
+            super.write(b, off, len)
+          }
+
+          override def write(b: Array[Byte]): Unit = {
+            debugPrintln(new String(b))
+            super.write(b)
+          }
+
+          override def write(b: Int): Unit = {
+            debugPrintln(new String(Array(b.toByte)))
+            super.write(b)
+          }
+        }),
+        delegate0.in
+      )
 }

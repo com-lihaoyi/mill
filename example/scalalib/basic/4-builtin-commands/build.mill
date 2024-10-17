@@ -15,6 +15,7 @@ import mill._, scalalib._
 
 trait MyModule extends ScalaModule {
   def scalaVersion = "2.13.11"
+  object test extends ScalaTests with TestModule.Utest
 }
 
 object foo extends MyModule {
@@ -81,7 +82,7 @@ foo.artifactName
 
 */
 
-// See the documentation for <<Task Query Syntax>> for more details what you
+// See the documentation for xref:fundamentals/query-syntax.adoc[Task Query Syntax] for more details what you
 // can pass to `resolve`
 
 // == inspect
@@ -305,7 +306,32 @@ foo.compileClasspath
 // image::basic/VisualizeJava.svg[VisualizeJava.svg]
 //
 // `visualize` can be very handy for trying to understand the dependency graph of
-// tasks within your Mill build.
+// tasks within your Mill build: who depends on what? Who do I need to override to affect
+// a particular task? Which tasks depend on another and need to run sequentially, and which
+// do not and can be run in parallel?
+//
+// The above example shows the outcome of using `visualize` on multiple tasks within a single
+// module, but you can also use `visualize` on a single task in multiple modules to see how they are related:
+//
+/** Usage
+> mill visualize __.compile
+
+> cat out/visualize.dest/out.dot
+digraph "example1" {
+graph ["rankdir"="LR"]
+"bar.compile" ["style"="solid","shape"="box"]
+"bar.test.compile" ["style"="solid","shape"="box"]
+"foo.compile" ["style"="solid","shape"="box"]
+"foo.test.compile" ["style"="solid","shape"="box"]
+"bar.compile" -> "foo.compile"
+"bar.compile" -> "bar.test.compile"
+"foo.compile" -> "foo.test.compile"
+}
+*/
+
+// image::basic/VisualizeCompiles.svg[VisualizeCompiles.svg]
+//
+//
 //
 // == visualizePlan
 //

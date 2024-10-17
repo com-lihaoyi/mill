@@ -1,11 +1,12 @@
 /*
- * Copyright 2020-Present Original lefou/mill-kotlin repository contributors.
+ * Original code copied from https://github.com/lefou/mill-kotlin
+ * Original code published under the Apache License Version 2
+ * Original Copyright 2020-2024 Tobias Roeser
  */
-
 package mill
 package kotlinlib
 
-import mill.api.{Loose, PathRef, Result, internal}
+import mill.api.{PathRef, Result, internal}
 import mill.define.{Command, ModuleRef, Task}
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
 import mill.scalalib.api.{CompilationResult, ZincWorkerApi}
@@ -140,6 +141,7 @@ trait KotlinModule extends JavaModule { outer =>
     if (files.nonEmpty) {
       val pluginClasspathOption = Seq(
         "-pluginsClasspath",
+        // `;` separator is used on all platforms!
         dokkaPluginsClasspath().map(_.path).mkString(";")
       )
 
@@ -178,7 +180,7 @@ trait KotlinModule extends JavaModule { outer =>
   /**
    * Classpath for running Dokka.
    */
-  private def dokkaCliClasspath: T[Loose.Agg[PathRef]] = Task {
+  private def dokkaCliClasspath: T[Agg[PathRef]] = Task {
     defaultResolver().resolveDeps(
       Agg(
         ivy"org.jetbrains.dokka:dokka-cli:${dokkaVersion()}"
@@ -186,13 +188,13 @@ trait KotlinModule extends JavaModule { outer =>
     )
   }
 
-  private def dokkaPluginsClasspath: T[Loose.Agg[PathRef]] = Task {
+  private def dokkaPluginsClasspath: T[Agg[PathRef]] = Task {
     defaultResolver().resolveDeps(
       Agg(
         ivy"org.jetbrains.dokka:dokka-base:${dokkaVersion()}",
         ivy"org.jetbrains.dokka:analysis-kotlin-descriptors:${dokkaVersion()}",
-        ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:0.8.0",
-        ivy"org.freemarker:freemarker:2.3.31"
+        Dep.parse(Versions.kotlinxHtmlJvmDep),
+        Dep.parse(Versions.freemarkerDep)
       )
     )
   }
@@ -241,7 +243,7 @@ trait KotlinModule extends JavaModule { outer =>
         )
         val compilerArgs: Seq[String] = Seq(
           // destdir
-          Seq("-d", classes.toIO.getAbsolutePath()),
+          Seq("-d", classes.toString()),
           // classpath
           when(compileCp.iterator.nonEmpty)(
             "-classpath",
@@ -250,10 +252,10 @@ trait KotlinModule extends JavaModule { outer =>
           kotlincOptions(),
           extraKotlinArgs,
           // parameters
-          (kotlinSourceFiles ++ javaSourceFiles).map(_.toIO.getAbsolutePath())
+          (kotlinSourceFiles ++ javaSourceFiles).map(_.toString())
         ).flatten
 
-        val workerResult = kotlinWorkerTask().compile(KotlinWorkerTarget.Jvm, compilerArgs: _*)
+        val workerResult = kotlinWorkerTask().compile(KotlinWorkerTarget.Jvm, compilerArgs)
 
         val analysisFile = dest / "kotlin.analysis.dummy"
         os.write(target = analysisFile, data = "", createFolders = true)
@@ -325,11 +327,10 @@ trait KotlinModule extends JavaModule { outer =>
   /**
    * A test sub-module linked to its parent module best suited for unit-tests.
    */
-  trait KotlinTests extends JavaModuleTests with KotlinModule {
+  trait KotlinTests extends JavaTests with KotlinModule {
     override def kotlinVersion: T[String] = Task { outer.kotlinVersion() }
     override def kotlinCompilerVersion: T[String] = Task { outer.kotlinCompilerVersion() }
     override def kotlincOptions: T[Seq[String]] = Task { outer.kotlincOptions() }
-    override def defaultCommandName(): String = super.defaultCommandName()
   }
 
 }

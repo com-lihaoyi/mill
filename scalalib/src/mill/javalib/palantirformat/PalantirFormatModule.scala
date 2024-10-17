@@ -97,7 +97,8 @@ object PalantirFormatModule extends ExternalModule with PalantirFormatBaseModule
    */
   def formatAll(
       check: mainargs.Flag = mainargs.Flag(value = false),
-      @mainargs.arg(positional = true) sources: Tasks[Seq[PathRef]]
+      @mainargs.arg(positional = true) sources: Tasks[Seq[PathRef]] =
+        Tasks.resolveMainDefault("__.sources")
   ): Command[Unit] = Task.Command {
 
     val _sources = T.sequence(sources.value)().iterator.flatten

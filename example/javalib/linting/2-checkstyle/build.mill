@@ -107,11 +107,11 @@ Audit done.
 // - Version `6.3` or above is required for `plain` and `xml` formats.
 // - Setting `checkstyleOptions` might cause failures with legacy versions.
 //
-// == CheckstyleXsltModule
+// === CheckstyleXsltModule
 //
 // This plugin extends the `mill.contrib.checkstyle.CheckstyleModule` with the ability to generate reports by applying https://www.w3.org/TR/xslt/[XSL Transformations] on a Checkstyle output report.
 //
-// === Auto detect XSL Transformations
+// ==== Auto detect XSL Transformations
 //
 // XSLT files are detected automatically provided a prescribed directory structure is followed.
 // [source,scala]
@@ -132,7 +132,7 @@ Audit done.
 //  */
 // ----
 //
-// === Specify XSL Transformations manually
+// ==== Specify XSL Transformations manually
 //
 // For a custom setup, adapt the following example.
 // [source,scala]

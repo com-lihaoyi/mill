@@ -1,4 +1,6 @@
-// The following is a simple self-contained example using Mill to compile Java:
+// The following is a simple self-contained example using Mill to compile Java,
+// making use of the `Task.Source` and `Task` types to define a simple build graph
+// with some input source files and intermediate build steps:
 package build
 import mill._
 
