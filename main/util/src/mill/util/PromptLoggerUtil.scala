@@ -183,7 +183,8 @@ private object PromptLoggerUtil {
       ending: Boolean = false,
       interactive: Boolean = true
   ): String = {
-    val headerPrefixStr = if (!interactive || ending) s"$headerPrefix0 " else s"  $headerPrefix0 "
+    val headerPrefix = if (headerPrefix0.isEmpty) "" else s"$headerPrefix0 "
+    val headerPrefixStr = if (!interactive || ending) headerPrefix else s"  $headerPrefix"
     val headerSuffixStr = headerSuffix0
     val titleText = s" $titleText0 "
     // -12 just to ensure we always have some ==== divider on each side of the title
