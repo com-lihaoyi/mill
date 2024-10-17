@@ -261,7 +261,7 @@ for some reason you don't want to use `.mill-jvm-opts` file name, add
 
 ---
 
-Come by our https://discord.gg/MNAXQMAr[Discord Channel]
+Come by our https://discord.gg/xJCYRVMS[Discord Channel]
 if you want to ask questions or say hi!
 
 
