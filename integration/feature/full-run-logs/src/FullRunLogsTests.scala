@@ -16,10 +16,10 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       assert(res.out == "<h1>hello</h1>")
       assert(
         res.err ==
-        s"""[build.mill] [info] compiling 1 Scala source to ${tester.workspacePath}/out/mill-build/compile.dest/classes ...
-           |[build.mill] [info] done compiling
-           |[info] compiling 1 Java source to ${tester.workspacePath}/out/compile.dest/classes ...
-           |[info] done compiling""".stripMargin
+          s"""[build.mill] [info] compiling 1 Scala source to ${tester.workspacePath}/out/mill-build/compile.dest/classes ...
+             |[build.mill] [info] done compiling
+             |[info] compiling 1 Java source to ${tester.workspacePath}/out/compile.dest/classes ...
+             |[info] done compiling""".stripMargin
       )
     }
     test("ticker") - integrationTest { tester =>
@@ -41,10 +41,10 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
            |[46/46] run
            |[46/46] ============================================ run --text hello ============================================= ?s
            |======================================================================================================================"""
-        .stripMargin
-        .split('?')
-        .map(java.util.regex.Pattern.quote)
-        .mkString(".")
+          .stripMargin
+          .split('?')
+          .map(java.util.regex.Pattern.quote)
+          .mkString(".")
 
       assert(expectedErrorRegex.r.matches(res.err))
     }
