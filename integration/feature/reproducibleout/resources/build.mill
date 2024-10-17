@@ -1,0 +1,39 @@
+import mill._
+import mill.scalalib._
+
+object root extends ScalaModule {
+  def scalaVersion = "2.13.14"
+
+  object core extends ScalaModule {
+    def scalaVersion = root.scalaVersion()
+
+    def ivyDeps = Agg(
+      ivy"com.lihaoyi::upickle::1.4.3",
+      ivy"com.lihaoyi::os-lib::0.8.1"
+    )
+  }
+
+  object web extends ScalaJSModule {
+    def scalaVersion = root.scalaVersion()
+    def scalaJSVersion = "1.16.0"
+
+    def moduleDeps = Seq(core)
+
+    def ivyDeps = Agg(
+      ivy"org.scala-js::scalajs-dom::1.2.0"
+    )
+  }
+
+  def runBackground = T {
+    web.fastOpt()
+    core.compile()
+  }
+
+  def jar = T {
+    core.jar()
+  }
+
+  def assembly = T {
+    core.assembly()
+  }
+}
