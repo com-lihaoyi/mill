@@ -72,7 +72,7 @@ object InitModuleTests extends TestSuite {
       ) ==> true
 
       buildContents.contains(
-        s"""  override def ivyDeps = Agg(
+        s"""  override def compileIvyDeps = Agg(
            |    ivy"javax.servlet.jsp:jsp-api:2.2",
            |    ivy"javax.servlet:servlet-api:2.5"
            |  )
