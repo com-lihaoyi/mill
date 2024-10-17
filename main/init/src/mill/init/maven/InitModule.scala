@@ -155,7 +155,7 @@ trait InitModule extends Module {
         // this should be limited to jar but having some scaffolding might be useful
         case _ =>
           val javacOptions = plugin.`maven-compiler-plugin`.javacOptions(model)
-          val (moduleDeps, ivyDeps, runIvyDeps, testIvyDeps) = deps(model, modules)
+          val (moduleDeps, ivyDeps, compileIvyDeps, runIvyDeps, testIvyDeps) = deps(model, modules)
           val testSource =
             if (testIvyDeps.isEmpty) ""
             else
@@ -194,6 +194,14 @@ trait InitModule extends Module {
                    |  override def ivyDeps = ${break.cs.indent(2, "Agg(", ivyDeps, ")")}
                    |""".stripMargin
             }${
+              if (compileIvyDeps.isEmpty) ""
+              else
+                s"""
+                   |  override def compileIvyDeps = ${
+                    break.cs.indent(2, "Agg(", compileIvyDeps, ")")
+                  }
+                   |""".stripMargin
+            }${
               if (runIvyDeps.isEmpty) ""
               else
                 s"""
@@ -229,14 +237,16 @@ trait InitModule extends Module {
   private type ModuleDeps = SortedSet[ModuleDep]
   private type InterpIvyDep = String
   private type IvyDeps = SortedSet[InterpIvyDep]
+  private type CompileIvyDeps = SortedSet[InterpIvyDep]
   private type RunIvyDeps = SortedSet[InterpIvyDep]
   private type TestIvyDeps = SortedSet[InterpIvyDep]
 
   private def deps(
       model: Model,
       modules: PartialFunction[ModelId, ModuleDep]
-  ): (ModuleDeps, IvyDeps, RunIvyDeps, TestIvyDeps) = {
-    val (moduleDeps, ivyDeps, runIvyDeps, testIvyDeps) = (
+  ): (ModuleDeps, IvyDeps, CompileIvyDeps, RunIvyDeps, TestIvyDeps) = {
+    val (moduleDeps, ivyDeps, compileIvyDeps, runIvyDeps, testIvyDeps) = (
+      SortedSet.newBuilder[String],
       SortedSet.newBuilder[String],
       SortedSet.newBuilder[String],
       SortedSet.newBuilder[String],
@@ -248,13 +258,19 @@ trait InitModule extends Module {
       if (modules.isDefinedAt(depId)) moduleDeps += modules(depId)
       else dep.getScope match {
         case "compile" => ivyDeps += ivy(dep)
-        case "provided" => ivyDeps += ivy(dep) // add JavaModule.providedIvyDeps?
+        case "provided" => compileIvyDeps += ivy(dep)
         case "runtime" => runIvyDeps += ivy(dep)
         case "test" => testIvyDeps += ivy(dep)
         case _ =>
       }
     }
-    (moduleDeps.result(), ivyDeps.result(), runIvyDeps.result(), testIvyDeps.result())
+    (
+      moduleDeps.result(),
+      ivyDeps.result(),
+      compileIvyDeps.result(),
+      runIvyDeps.result(),
+      testIvyDeps.result()
+    )
   }
 
   private def ivy(dep: Dependency): InterpIvyDep =
