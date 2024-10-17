@@ -2,12 +2,17 @@ package mill.util
 
 import mill.api.SystemStreams
 import mill.main.client.ProxyStream
-import mill.util.PromptLoggerUtil.{Status, clearScreenToEndBytes, defaultTermHeight, defaultTermWidth, renderPrompt}
+import mill.util.PromptLoggerUtil.{
+  Status,
+  clearScreenToEndBytes,
+  defaultTermHeight,
+  defaultTermWidth,
+  renderPrompt
+}
 import pprint.Util.literalize
 
 import java.io.*
 import PromptLoggerUtil.*
-import mill.api.SystemStreams.ThreadLocalStreams
 
 /**
  * Gnarly multithreaded stateful code to handle the terminal prompt and log prefixer
@@ -32,7 +37,6 @@ private[mill] class PromptLogger(
 ) extends ColorLogger with AutoCloseable {
   override def toString: String = s"PromptLogger(${literalize(titleText)})"
   import PromptLogger._
-
 
   private var termDimensions: (Option[Int], Option[Int]) = (None, None)
 
@@ -89,7 +93,7 @@ private[mill] class PromptLogger(
     "prompt-logger-updater-thread"
   )
 
-  def refreshPrompt(): Unit = synchronized{ promptLineState.refreshPrompt() }
+  def refreshPrompt(): Unit = synchronized { promptLineState.refreshPrompt() }
   if (enableTicker && autoUpdate) promptUpdaterThread.start()
 
   def info(s: String): Unit = systemStreams.err.println(s)
@@ -111,7 +115,7 @@ private[mill] class PromptLogger(
   }
 
   override def reportKey(key: Seq[String]): Unit = {
-    val res = synchronized{
+    val res = synchronized {
       if (reportedIdentifiers(key)) None
       else {
         reportedIdentifiers.add(key)
@@ -238,7 +242,7 @@ private[mill] object PromptLogger {
 
     def awaitPumperEmpty(): Unit = { while (pipe.input.available() != 0) Thread.sleep(2) }
 
-    def setPromptState() = pumperState = PumperState.prompt
+    def setPromptState(): Unit = pumperState = PumperState.prompt
     private var pumperState: PumperState.Value = PumperState.init
 
     object pumper extends ProxyStream.Pumper(pipe.input, systemStreams0.out, systemStreams0.err) {

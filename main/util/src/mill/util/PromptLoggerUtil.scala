@@ -56,7 +56,8 @@ private object PromptLoggerUtil {
    * and down via `\n` to have a "fresh" line. This only should get called to clear the prompt, so
    * the cursor is already at the left-most column, which '\n' will not change.
    */
-  private[mill] val clearScreenToEndBytes: Array[Byte] = (AnsiNav.clearScreen(0) + AnsiNav.up(1) + "\n").getBytes
+  private[mill] val clearScreenToEndBytes: Array[Byte] =
+    (AnsiNav.clearScreen(0) + AnsiNav.up(1) + "\n").getBytes
 
   private def renderSecondsSuffix(millis: Long) = (millis / 1000).toInt match {
     case 0 => ""
