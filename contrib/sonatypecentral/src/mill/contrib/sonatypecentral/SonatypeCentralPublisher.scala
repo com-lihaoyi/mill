@@ -110,15 +110,15 @@ class SonatypeCentralPublisher(
       wd: os.Path
   )(func: JarOutputStream => Unit): java.io.File = {
     val zipFile =
-      (wd / s"$fileNameWithoutExtension.zip").toNIO
-    val fileOutputStream = Files.newOutputStream(zipFile)
+      (wd / s"$fileNameWithoutExtension.zip")
+    val fileOutputStream = Files.newOutputStream(zipFile.toNIO)
     val jarOutputStream = new JarOutputStream(fileOutputStream)
     try {
       func(jarOutputStream)
     } finally {
       jarOutputStream.close()
     }
-    zipFile
+    zipFile.toIO
   }
 
   private def zipFilesToJar(
