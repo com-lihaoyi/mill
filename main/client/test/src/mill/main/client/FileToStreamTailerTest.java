@@ -3,9 +3,8 @@ package mill.main.client;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.PrintStream;
-
+import java.nio.file.Files;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -49,7 +48,7 @@ public class FileToStreamTailerTest {
             assertEquals(bas.toString(), "");
 
             try (
-                    PrintStream out = new PrintStream(new FileOutputStream(file));
+                    PrintStream out = new PrintStream(Files.newOutputStream(file.toPath()));
             ) {
                 out.println("log line");
                 assertTrue(file.exists());
@@ -76,7 +75,7 @@ public class FileToStreamTailerTest {
             assertEquals(bas.toString(), "");
 
             try (
-                PrintStream out = new PrintStream(new FileOutputStream(file));
+                PrintStream out = new PrintStream(Files.newOutputStream(file.toPath()));
             ) {
                 out.println("log line");
                 assertTrue(file.exists());
@@ -95,7 +94,7 @@ public class FileToStreamTailerTest {
         assertTrue(file.exists());
 
         try (
-            PrintStream out = new PrintStream(new FileOutputStream(file));
+            PrintStream out = new PrintStream(Files.newOutputStream(file.toPath()));
         ) {
             out.println("old line 1");
             out.println("old line 2");
@@ -130,7 +129,7 @@ public class FileToStreamTailerTest {
             assertEquals(bas.toString(), "");
 
             try (
-                PrintStream out = new PrintStream(new FileOutputStream(file));
+                PrintStream out = new PrintStream(Files.newOutputStream(file.toPath()));
             ) {
                 out.println("log line 1");
                 out.println("log line 2");
@@ -146,7 +145,7 @@ public class FileToStreamTailerTest {
             Thread.sleep(100);
 
             try (
-                PrintStream out = new PrintStream(new FileOutputStream(file));
+                PrintStream out = new PrintStream(Files.newOutputStream(file.toPath()));
             ) {
                 out.println("new line");
                 assertTrue(file.exists());
