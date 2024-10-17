@@ -15,7 +15,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       res.isSuccess ==> true
       assert(res.out == "<h1>hello</h1>")
       assert(
-        res.err.replace('\\', '/') ==
+        res.err.replace('\\', '/').replaceAll("(\r\n)|\r", "\n") ==
           s"""[build.mill] [info] compiling 1 Scala source to ${tester.workspacePath.replace('\\', '/')}/out/mill-build/compile.dest/classes ...
              |[build.mill] [info] done compiling
              |[info] compiling 1 Java source to ${tester.workspacePath.replace('\\', '/')}/out/compile.dest/classes ...
@@ -48,7 +48,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           .map(java.util.regex.Pattern.quote)
           .mkString("=? [\\d]+")
 
-      assert(expectedErrorRegex.r.matches(res.err.replace('\\', '/')))
+      assert(expectedErrorRegex.r.matches(res.err.replace('\\', '/').replaceAll("(\r\n)|\r", "\n")))
     }
   }
 }
