@@ -25,9 +25,9 @@ object PromptLoggerTests extends TestSuite {
     ) {
       // For testing purposes, wait till the system is quiescent before re-printing
       // the prompt, to try and keep the test executions deterministics
-      override def refreshPrompt(): Unit = {
+      override def refreshPrompt(ending: Boolean = false): Unit = {
         streamsAwaitPumperEmpty()
-        super.refreshPrompt()
+        super.refreshPrompt(ending)
       }
     }
     val prefixLogger = new PrefixLogger(promptLogger, Seq("1"))
