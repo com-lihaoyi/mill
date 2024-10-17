@@ -58,3 +58,7 @@ that is shared by the entire build: for example,
 service & cache that is shared between all ``ScalaModule``s, and
 `mill.scalalib.GenIdea/idea` lets you generate IntelliJ projects without
 needing to define your own `Task.Command` in your `build.mill` file
+
+== Aliasing External Modules
+
+include::partial$example/fundamentals/modules/10-external-module-aliases.adoc[]
