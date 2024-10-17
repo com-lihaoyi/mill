@@ -66,7 +66,6 @@ private[mill] class PromptLogger(
         synchronizer = this
       )
 
-
   refreshPrompt()
 
   val promptUpdaterThread = new Thread(
@@ -154,7 +153,6 @@ private[mill] class PromptLogger(
     synchronized {
       runningState.stop()
     }
-
 
     // Needs to be outside the lock so we don't deadlock with `promptUpdaterThread`
     // trying to take the lock one last time to check running/paused status before exiting
