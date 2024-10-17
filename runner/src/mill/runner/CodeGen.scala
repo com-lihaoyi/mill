@@ -235,7 +235,7 @@ object CodeGen {
   def discoverSnippet(segments: Seq[String]): String = {
     if (segments.nonEmpty) ""
     else
-      """@scala.annotation.nowarn override lazy val millDiscover: _root_.mill.define.Discover = _root_.mill.define.Discover[this.type]
+      """override lazy val millDiscover: _root_.mill.define.Discover = _root_.mill.define.Discover[this.type]
         |""".stripMargin
 
   }
