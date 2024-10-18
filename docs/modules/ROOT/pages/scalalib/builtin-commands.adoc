@@ -5,4 +5,4 @@
 :language-small: scala
 
 
-include::partial$example/scalalib/basic/4-builtin-commands.adoc[]
+include::partial$example/scalalib/basic/5-builtin-commands.adoc[]
