@@ -58,3 +58,8 @@ object Foo {
   }
 }
 */
+
+// If entering the long fully-qualified module name `mill.scalalib.scalafmt.ScalafmtModule/`
+// is tedious, you can add
+// an xref:fundamentals/modules.adoc#_aliasing_external_modules[External Module Alias]
+// to give it a shorter name that's easier to type

@@ -1,9 +1,19 @@
+// `CheckstyleModule` Performs quality checks on Java source files using
+// https://checkstyle.org[Checkstyle] and generates reports from these checks.
+
 package build
 import mill._, javalib._, checkstyle._
 
 object `package` extends RootModule with CheckstyleModule {
   def checkstyleVersion = "9.3"
 }
+
+
+// To use this plugin in a Java/Scala module,
+//
+// 1. Extend `mill.contrib.checkstyle.CheckstyleModule`.
+// 2. Define a https://checkstyle.org/config.html[configuration] file `checkstyle-config.xml`.
+// 3. Run the `checkstyle` command.
 
 /** Usage
 
@@ -33,16 +43,8 @@ Audit done.
 Audit done.
 */
 
-// `CheckstyleModule` Performs quality checks on Java source files using
-// https://checkstyle.org[Checkstyle] and generates reports from these checks.
 //
-// To use this plugin in a Java/Scala module,
-//
-// 1. Extend `mill.contrib.checkstyle.CheckstyleModule`.
-// 2. Define a https://checkstyle.org/config.html[configuration] file `checkstyle-config.xml`.
-// 3. Run the `checkstyle` command.
-//
-// - flags
+// === Checkstyle Flags
 // [source,sh]
 // ----
 //
@@ -53,7 +55,7 @@ Audit done.
 // checkstyle --stdout
 // ----
 //
-// - sources (optional)
+// === Checkstyle Sources (optional)
 // [source,sh]
 // ----
 // // incorrect paths will cause a command failure
@@ -75,7 +77,7 @@ Audit done.
 // checkstyle
 // ----
 //
-// === Shared configuration
+// === Shared Checkstyle Configuration
 //
 // To share `checkstyle-config.xml` across modules, adapt the following example.
 // [source,scala]

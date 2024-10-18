@@ -65,7 +65,7 @@ foo.artifactName
 
 */
 
-// You can also use the special wildcards `+_+` as a placeholder for a single segment
+// You can also use the wildcards `+_+` as a placeholder for a single segment
 // and `+__+` as a placeholder for many segments.
 // Lists within curly braces (`{`, `}`) are also supported.
 
@@ -310,7 +310,9 @@ foo.compileClasspath
 // a particular task? Which tasks depend on another and need to run sequentially, and which
 // do not and can be run in parallel?
 //
-// The above command generates the following diagram (right-click open in new tab to see full sized):
+// The above command visualizes all the tasks within the `foo` module, and
+// generates the following diagram to show you how they are related to one another
+// (right-click open in new tab to see full sized):
 //
 // image::basic/VisualizeJava.svg[VisualizeJava.svg]
 //
@@ -335,7 +337,10 @@ graph ["rankdir"="LR"]
 
 // image::basic/VisualizeCompiles.svg[VisualizeCompiles.svg]
 //
-//
+// NOTE: `visualize` does a https://en.wikipedia.org/wiki/Transitive_reduction[Transitive Reduction]
+// of the graph when rendering it. This removes redundant edges and simplifies the graph
+// so it's easier to visualize while preserving the overall structure of the graph, but
+// it does mean that there will be some duplicate edges that are not shown.
 //
 // == visualizePlan
 //
@@ -395,4 +400,12 @@ kotlinlib/web/1-hello-ktor
 // The `init` command generates a project based on a Mill example project or
 // a Giter8 template. You can use it to quickly generate a starter project.
 // There are lots of templates out there for many frameworks and tools!
+//
+// The typical usage of `init` is to download a
+// xref:{language-small}lib/installation-ide.adoc#_bootstrap_scripts[bootstrap script]
+// into an empty folder and run `./mill init` to download and unpack one of the example
+// projects closest to what you want into the empty folder. Even though the example
+// project isn't going to be everything that you need, at least it'll get most of the
+// tedious boilerplate set up, so you can hit the group running working on the things
+// that are unique to your particular project.
 
