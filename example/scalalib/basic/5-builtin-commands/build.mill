@@ -301,14 +301,14 @@ foo.compileClasspath
 // relationships in `.svg` and `.png` form for you to inspect. It also generates
 // `.txt`, `.dot` and `.json` for easy processing by downstream tools.
 //
-// The above command generates the following diagram (right-click open in new tab to see full sized):
-//
-// image::basic/VisualizeJava.svg[VisualizeJava.svg]
-//
 // `visualize` can be very handy for trying to understand the dependency graph of
 // tasks within your Mill build: who depends on what? Who do I need to override to affect
 // a particular task? Which tasks depend on another and need to run sequentially, and which
 // do not and can be run in parallel?
+//
+// The above command generates the following diagram (right-click open in new tab to see full sized):
+//
+// image::basic/VisualizeJava.svg[VisualizeJava.svg]
 //
 // The above example shows the outcome of using `visualize` on multiple tasks within a single
 // module, but you can also use `visualize` on a single task in multiple modules to see how they are related:
