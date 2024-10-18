@@ -1,0 +1,45 @@
+//// SNIPPET:BUILD
+package build
+
+import mill._
+import kotlinlib._
+import coursier.maven.MavenRepository
+import mill.kotlinlib.android.AndroidAppKotlinModule
+import mill.javalib.android.AndroidSdkModule
+
+val maven_google = Seq(
+  MavenRepository("https://maven.google.com/"),
+  MavenRepository("https://repo1.maven.org/maven2")
+)
+
+object androidSdkModule0 extends AndroidSdkModule {
+  def buildToolsVersion = "35.0.0"
+}
+
+object app extends AndroidAppKotlinModule {
+  def kotlinVersion = "2.0.20"
+  def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+
+  override def mandatoryIvyDeps: T[Agg[Dep]] = Task {
+    super.mandatoryIvyDeps() ++ Agg(
+      // Jetpack Compose dependencies
+      ivy"androidx.compose.compiler:compiler:1.5.15",
+      ivy"androidx.activity:activity:1.8.2",
+      ivy"androidx.activity:activity-compose:1.8.2",
+      ivy"androidx.compose.runtime:runtime:1.3.1",
+      ivy"androidx.compose.material3:material3:1.0.1"
+    )
+  }
+
+  def repositoriesTask = T.task { super.repositoriesTask() ++ maven_google }
+
+}
+
+////SNIPPET:END
+
+/** Usage
+
+> ./mill show app.androidApk
+".../out/app/androidApk.dest/app.apk"
+
+*/
