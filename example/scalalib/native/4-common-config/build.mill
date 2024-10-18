@@ -1,0 +1,28 @@
+// This example shows some of the common tasks you may want to override on a
+// `{language}Module`: specifying the `releaseMode`, `nativeLinkStubs`
+// and `nativeIncrementalCompilation`.
+
+
+
+//// SNIPPET:BUILD
+package build
+import mill._, scalalib._, scalanativelib._, scalanativelib.api._
+
+object `package` extends RootModule with ScalaNativeModule {
+  def scalaVersion = "2.13.11"
+  def scalaNativeVersion = "0.5.5"
+
+  // You can have arbitrary numbers of third-party dependencies
+  def ivyDeps = Agg(
+    ivy"com.lihaoyi::fansi::0.5.0"
+  )
+
+  // Set the releaseMode to ReleaseFast.
+  override def releaseMode: T[ReleaseMode] = T { ReleaseMode.ReleaseFast }
+
+  // Set linking of `@stub` methods to true.
+  override def nativeLinkStubs: T[Boolean] = T { true }
+
+  // Set incremental compilation to true
+  override def nativeIncrementalCompilation: T[Boolean] = T { true }
+}
