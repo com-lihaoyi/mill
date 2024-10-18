@@ -423,9 +423,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-77-79958e</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-78-50eb24</button>
   <div class="version-menu">
-    <a class="version is-current" href="intro.html">0.12.0-RC3-77-79958e</a>
+    <a class="version is-current" href="intro.html">0.12.0-RC3-78-50eb24</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
     <a class="version" href="../0.11.10/Intro_to_Mill_for_Scala.html">0.11.10</a>
@@ -1283,7 +1283,7 @@ a complete list of options and a cheat-sheet of how to work with tasks:</p>
 <div class="listingblock">
 <div class="title">Output of <code>mill --help</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.12.0-RC3-77-79958e
+<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.12.0-RC3-78-50eb24
 Usage: mill [options] task [task-options] [+ task ...]
 
 task cheat sheet:
@@ -1344,6 +1344,107 @@ Please see the documentation at https://mill-build.org for more details</code></
 <p>Note that options and flags given before the <code>task</code> name are <em>passed to Mill</em>, while
 options and flags after the <code>task</code> name are <em>passed to the task</em>. This mirrors how
 most command line script or task runners work (e.g. <code>python &lt;python-args&gt; script.py &lt;script-args&gt;</code>)</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_sbt_compatible_modules"><a class="anchor" href="#_sbt_compatible_modules"></a>SBT-Compatible Modules</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill’s default folder layout of <code>foo/src/</code> and <code>foo/test/src</code> differs from that
+of SBT’s <code>foo/src/main/scala/</code> and <code>foo/src/test/scala/</code>. If you are
+migrating an existing codebase from SBT, you can use Mill’s <code>SbtModule</code> and
+<code>SbtTests</code> as shown below to preserve filesystem compatibility with an existing
+SBT build:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC3/0.12.0-RC3-example-scalalib-basic-4-compat-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/scalalib/basic/4-compat-modules">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, scalalib._
+
+object foo extends SbtModule {
+  def scalaVersion = &quot;2.13.8&quot;
+  object test extends SbtTests {
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
+    def testFramework = &quot;utest.runner.Framework&quot;
+  }
+}
+
+
+object bar extends Cross[BarModule](&quot;2.12.17&quot;, &quot;2.13.8&quot;)
+trait BarModule extends CrossSbtModule {
+  object test extends CrossSbtTests {
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
+    def testFramework = &quot;utest.runner.Framework&quot;
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>SbtModule</code>/<code>CrossSbtModule</code> are variants of <code>ScalaModule</code>/<code>CrossScalaModule</code>
+that use the more verbose folder layout of SBT, Maven, and other tools:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>foo/src/main/scala</code></p>
+</li>
+<li>
+<p><code>foo/src/main/scala-2.12</code></p>
+</li>
+<li>
+<p><code>foo/src/main/scala-2.13</code></p>
+</li>
+<li>
+<p><code>foo/src/test/scala</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Rather than Mill’s</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>foo/src</code></p>
+</li>
+<li>
+<p><code>foo/src-2.12</code></p>
+</li>
+<li>
+<p><code>foo/src-2.13</code></p>
+</li>
+<li>
+<p><code>foo/test/src</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This is especially useful if you are migrating from SBT to Mill (or vice
+versa), during which a particular module may be built using both SBT and
+Mill at the same time</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.compile
+compiling 1 Scala source...
+
+&gt; mill foo.test.compile
+compiling 1 Scala source...
+
+&gt; mill foo.test.test
++ foo.FooTests...hello ...
+
+&gt; mill foo.test
++ foo.FooTests.hello ...
+
+&gt; mill bar[2.13.8].run
+Bar.value: Hello World Scala library version 2.13.8...
+
+&gt; mill bar[2.12.17].run
+Bar.value: Hello World Scala library version 2.12.17...</code></pre>
+</div>
 </div>
 </div>
 </div>
