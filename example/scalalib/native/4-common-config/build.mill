@@ -1,11 +1,12 @@
 // This example shows some of the common tasks you may want to override on a
-// `{language}Module`: specifying the `mainClass`, adding additional
-// sources/resources, generating resources, and setting compilation/run
-// options.
+// `{language}Module`: specifying the `releaseMode`, `nativeLinkStubs`
+// and `nativeIncrementalCompilation`.
+
+
 
 //// SNIPPET:BUILD
 package build
-import mill._, scalalib._, scalanativelib._
+import mill._, scalalib._, scalanativelib._, scalanativelib.api._
 
 object `package` extends RootModule with ScalaNativeModule {
   def scalaVersion = "2.13.11"
@@ -13,109 +14,15 @@ object `package` extends RootModule with ScalaNativeModule {
 
   // You can have arbitrary numbers of third-party dependencies
   def ivyDeps = Agg(
-    ivy"com.lihaoyi::fansi::0.5.0",
-    ivy"com.lihaoyi::os-lib::0.11.1"
+    ivy"com.lihaoyi::fansi::0.5.0"
   )
 
-  // Choose a main class to use for `.run` if there are multiple present
-  def mainClass: T[Option[String]] = Some("foo.Foo2")
-  
-  // Add (or replace) source folders for the module to use
-  def sources = T.sources{
-    super.sources() ++ Seq(PathRef(millSourcePath / "custom-src"))
-  }
+  // Set the releaseMode to ReleaseFast.
+  override def releaseMode: T[ReleaseMode] = T { ReleaseMode.ReleaseFast }
 
-  // Add (or replace) resource folders for the module to use
-  def resources = T.sources{
-    super.resources() ++ Seq(PathRef(millSourcePath / "custom-resources"))
-  }
+  // Set linking of `@stub` methods to true.
+  override def nativeLinkStubs: T[Boolean] = T { true }
 
-  // Generate sources at build time
-  def generatedSources: T[Seq[PathRef]] = T {
-    for(name <- Seq("A", "B", "C")) os.write(
-      T.dest / s"Foo$name.scala",
-      s"""
-         |package foo
-         |object Foo$name {
-         |  val value = "hello $name"
-         |}
-      """.stripMargin
-    )
-
-    Seq(PathRef(T.dest))
-  }
+  // Set incremental compilation to true
+  override def nativeIncrementalCompilation: T[Boolean] = T { true }
 }
-
-
-// If you want to better understand how the various upstream tasks feed into
-// a task of interest, such as `run`, you can visualize their relationships via
-/** Usage
-> mill visualizePlan run
-*/
-//
-// image::VisualizePlanScala.svg[VisualizePlanScala.svg]
-//
-// (right-click open in new tab to see full sized)
-//
-//// SNIPPET:END
-//
-//
-// Note the use of `millSourcePath`, `Task.dest`, and `PathRef` when preforming
-// various filesystem operations:
-//
-// 1. `millSourcePath` refers to the base path of the module. For the root
-//    module, this is the root of the repo, and for inner modules it would be
-//    the module path e.g. for module `foo.bar.qux` the `millSourcePath` would
-//    be `foo/bar/qux`. This can also be overriden if necessary
-//
-// 2. `Task.dest` refers to the destination folder for a task in the `out/`
-//    folder. This is unique to each task, and can act as both a scratch space
-//    for temporary computations as well as a place to put "output" files,
-//    without worrying about filesystem conflicts with other tasks
-//
-// 3. `PathRef` is a way to return the *contents* of a file or folder, rather
-//    than just its path as a string. This ensures that downstream tasks
-//    properly invalidate when the contents changes even when the path stays
-//    the same
-
-/** Usage
-
-> mill run
-Foo2.value: <h1>hello2</h1>
-Foo.value: <h1>hello</h1>
-FooA.value: hello A
-FooB.value: hello B
-FooC.value: hello C
-MyResource: My Resource Contents
-MyOtherResource: My Other Resource Contents
-my.custom.property: my-prop-value
-MY_CUSTOM_ENV: my-env-value
-
-> mill show assembly
-".../out/assembly.dest/out.jar"
-
-> ./out/assembly.dest/out.jar # mac/linux
-Foo2.value: <h1>hello2</h1>
-Foo.value: <h1>hello</h1>
-FooA.value: hello A
-FooB.value: hello B
-FooC.value: hello C
-MyResource: My Resource Contents
-MyOtherResource: My Other Resource Contents
-my.custom.property: my-prop-value
-
-*/
-
-//// SNIPPET:FATAL_WARNINGS
-
-/** Usage
-
-> sed -i.bak 's/Foo2 {/Foo2 { println(this + "hello")/g' custom-src/Foo2.scala
-
-> mill compile # demonstrate -deprecation/-Xfatal-warnings flags
-error: object Foo2 { println(this + "hello")
-error:                       ^
-error: ...Implicit injection of + is deprecated. Convert to String to call +...
-
-*/
-
