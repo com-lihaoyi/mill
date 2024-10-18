@@ -351,13 +351,13 @@ we saw with Maven, but due to Mill's minimal overhead, in the end the command
 finishes in less than half a second.
 
 
-== Extensibility
+== Extensibility & IDE Experience
 
 Even though Maven is designed to be declarative, in many real-world codebases you end
 up needing to run ad-hoc scripts and logic. This section will explore two such scenarios,
 so you can see how Mill differs from Maven in the handling of these requirements.
 
-=== Groovy
+=== JVM Libraries: Groovy
 
 The Maven build for the `common/` subproject
 uses a Groovy script for code generation. This is configured via:
@@ -453,7 +453,7 @@ Mill gives you the full power of the JVM ecosystem to use in your build: any Jav
 on Maven central is just an `import $ivy` away, and can be used with the full IDE support
 and tooling experience you are used to in the JVM ecosystem.
 
-=== Calling Make
+=== Subprocesses: Make
 
 The Maven build for the `transport-native-unix-common/` subproject needs to call
 `make` in order to compile its C code to modules that can be loaded into Java applications
