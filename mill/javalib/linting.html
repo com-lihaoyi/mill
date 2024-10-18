@@ -423,9 +423,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-78-50eb24</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-79-9a25cf</button>
   <div class="version-menu">
-    <a class="version is-current" href="linting.html">0.12.0-RC3-78-50eb24</a>
+    <a class="version is-current" href="linting.html">0.12.0-RC3-79-9a25cf</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
@@ -459,8 +459,10 @@ codebases using the Mill build tool</p>
 <h2 id="_linting_with_errorprone"><a class="anchor" href="#_linting_with_errorprone"></a>Linting with ErrorProne</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>When adding the <code>ErrorProneModule</code> to your <code>JavaModule</code>,
-the <code>error-prone</code> compiler plugin automatically detects various kind of programming errors.</p>
+<p><a href="https://errorprone.info/index">Error Prone</a> augments the Java compiler’s type
+checker and detect common mistakes at compile time. Mill supports ErrorProne via
+<code>ErrorProneModule</code>: mix <code>ErrorProneModule</code> into your <code>JavaModule</code> and it will
+automatically run with every compilation.</p>
 </div>
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC3/0.12.0-RC3-example-javalib-linting-1-error-prone.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/javalib/linting/1-error-prone">browse</a>)</div>
@@ -493,6 +495,10 @@ public class ShortSet {
 }</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>When adding the <code>ErrorProneModule</code> to your <code>JavaModule</code>,
+the <code>error-prone</code> compiler plugin automatically detects various kind of programming errors.</p>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show errorProneOptions
@@ -507,12 +513,6 @@ public class ShortSet {
 [warn] 1 warning
 [warn]               ^</code></pre>
 </div>
-</div>
-<div class="paragraph">
-<p><a href="https://errorprone.info/index">Error Prone</a> augments the Java compiler’s type checker and detect common mistakes at compile time.</p>
-</div>
-<div class="paragraph">
-<p>You just need to mix the <code>ErrorProneModule</code> into your <code>JavaModule</code> and it will automatically run with every compilation.</p>
 </div>
 <div class="listingblock">
 <div class="title"><code>build.mill.scala</code>: Enable <code>ErrorProne</code> in a module</div>
@@ -552,6 +552,10 @@ Those are documented as &quot;flags&quot; at <a href="https://errorprone.info/do
 <div class="sect1">
 <h2 id="_linting_with_checkstyle"><a class="anchor" href="#_linting_with_checkstyle"></a>Linting with Checkstyle</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p><code>CheckstyleModule</code> Performs quality checks on Java source files using
+<a href="https://checkstyle.org">Checkstyle</a> and generates reports from these checks.</p>
+</div>
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC3/0.12.0-RC3-example-javalib-linting-2-checkstyle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/javalib/linting/2-checkstyle">browse</a>)</div>
 <div class="content">
@@ -562,6 +566,22 @@ object `package` extends RootModule with CheckstyleModule {
   def checkstyleVersion = &quot;9.3&quot;
 }</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>To use this plugin in a Java/Scala module,</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Extend <code>mill.contrib.checkstyle.CheckstyleModule</code>.</p>
+</li>
+<li>
+<p>Define a <a href="https://checkstyle.org/config.html">configuration</a> file <code>checkstyle-config.xml</code>.</p>
+</li>
+<li>
+<p>Run the <code>checkstyle</code> command.</p>
+</li>
+</ol>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -591,52 +611,23 @@ Audit done.
 Audit done.</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p><code>CheckstyleModule</code> Performs quality checks on Java source files using
-<a href="https://checkstyle.org">Checkstyle</a> and generates reports from these checks.</p>
-</div>
-<div class="paragraph">
-<p>To use this plugin in a Java/Scala module,</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Extend <code>mill.contrib.checkstyle.CheckstyleModule</code>.</p>
-</li>
-<li>
-<p>Define a <a href="https://checkstyle.org/config.html">configuration</a> file <code>checkstyle-config.xml</code>.</p>
-</li>
-<li>
-<p>Run the <code>checkstyle</code> command.</p>
-<div class="ulist">
-<ul>
-<li>
-<p>flags</p>
-</li>
-</ul>
-</div>
-</li>
-</ol>
-</div>
+<div class="sect2">
+<h3 id="_checkstyle_flags"><a class="anchor" href="#_checkstyle_flags"></a>Checkstyle Flags</h3>
 <div class="listingblock">
 <div class="content">
-<pre>// if an exception should be raised when violations are found
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">// if an exception should be raised when violations are found
 checkstyle --check
 
 // if Checkstyle output report should be written to System.out
-checkstyle --stdout</pre>
+checkstyle --stdout</code></pre>
 </div>
 </div>
-<div class="ulist">
-<ul>
-<li>
-<p>sources (optional)</p>
-</li>
-</ul>
 </div>
+<div class="sect2">
+<h3 id="_checkstyle_sources_optional"><a class="anchor" href="#_checkstyle_sources_optional"></a>Checkstyle Sources (optional)</h3>
 <div class="listingblock">
 <div class="content">
-<pre>// incorrect paths will cause a command failure
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">// incorrect paths will cause a command failure
 // checkstyle a/b
 
 // you can specify paths relative to millSourcePath
@@ -652,11 +643,12 @@ checkstyle src/a/b src/c/d src/e/F.java
 checkstyle --check --stdout src/a/b src/c/d
 
 // process all module sources
-checkstyle</pre>
+checkstyle</code></pre>
+</div>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_shared_configuration"><a class="anchor" href="#_shared_configuration"></a>Shared configuration</h3>
+<h3 id="_shared_checkstyle_configuration"><a class="anchor" href="#_shared_checkstyle_configuration"></a>Shared Checkstyle Configuration</h3>
 <div class="paragraph">
 <p>To share <code>checkstyle-config.xml</code> across modules, adapt the following example.</p>
 </div>
@@ -761,12 +753,7 @@ object foo extends JavaModule with CheckstyleXsltModule {
 <div class="sectionbody">
 <div class="paragraph">
 <p>Mill supports auto-formatting Java code via the
-<a href="https://github.com/palantir/palantir-java-format">Palantir Java Format</a> project. This can
-be used on a per-module basis by inheriting from <code>PalantirFormatModule</code> and running the
-<code>palanatirformat</code> command on that module, or on a global basis by running
-<code>mill.javalib.palantirformat.PalantirFormatModule/</code>. You can also use <code>--check</code> if you wish
-to error if the code is not formatted, which is useful in CI validation jobs to ensure
-code is formatted before merging.</p>
+<a href="https://github.com/palantir/palantir-java-format">Palantir Java Format</a> project.</p>
 </div>
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC3/0.12.0-RC3-example-javalib-linting-3-palantirformat.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/javalib/linting/3-palantirformat">browse</a>)</div>
@@ -790,6 +777,12 @@ object `package` extends RootModule with PalantirFormatModule</code></pre>
 }</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>Palantir Java Format can  be used on a per-module basis by inheriting from
+<code>PalantirFormatModule</code> and running the <code>palanatirformat</code> command on that module
+You can also use <code>--check</code> if you wish  to error if the code is not formatted,
+which is useful in CI validation jobs to ensure code is formatted before merging.</p>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill palantirformat --check    # check should fail initially
@@ -801,11 +794,24 @@ error: ...palantirformat aborted due to format error(s) (or invalid plugin setti
 ...formatting java sources ...
 
 &gt; ./mill palantirformat --check    # check should succeed now
-...checking format in java sources ...
-
-&gt; ./mill mill.javalib.palantirformat.PalantirFormatModule/ # alternatively, use external module to check/format
+...checking format in java sources ...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also use Palantir Java Format globally on all <code>JavaModule`s in your build by running
+`mill.javalib.palantirformat.PalantirFormatModule/</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill mill.javalib.palantirformat.PalantirFormatModule/ # alternatively, use external module to check/format
 ...formatting java sources ...</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>If entering the long fully-qualified module name
+<code>mill.javalib.palantirformat.PalantirFormatModule/</code> is tedious, you can add
+an <a href="../fundamentals/modules.html#_aliasing_external_modules" class="xref page">External Module Alias</a>
+to give it a shorter name that’s easier to type</p>
 </div>
 </div>
 </div>

@@ -423,9 +423,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-78-50eb24</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-79-9a25cf</button>
   <div class="version-menu">
-    <a class="version is-current" href="module-config.html">0.12.0-RC3-78-50eb24</a>
+    <a class="version is-current" href="module-config.html">0.12.0-RC3-79-9a25cf</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
@@ -632,7 +632,7 @@ hello WORLD
 &gt; echo 'fun deprecatedMain(){Thread.currentThread().stop()}' &gt;&gt; src/foo/Foo.kt
 
 &gt; ./mill run
-error: .../src/foo/Foo.kt:...: warning: 'stop(): Unit' is deprecated. Deprecated in Java</code></pre>
+error: .../src/foo/Foo.kt... warning: 'stop(): Unit' is deprecated. Deprecated in Java</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -830,9 +830,10 @@ to the current working directory do not accidentally interfere with each others
 files, especially when running in parallel.</p>
 </div>
 <div class="paragraph">
-<p>The test process runs in a <code>sandbox/</code> folder, not in your project root folder, to
-prevent you from accidentally accessing files without explicitly passing them. If
-you have legacy tests that need to run in the project root folder to work, you
+<p>Mill runs test processes in a <a href="../depth/sandboxing.html" class="xref page">sandbox/ folder</a>, not in your project root folder, to
+prevent you from accidentally accessing files without explicitly passing them. Thus
+you cannot just read resources off disk via <code>new FileInputStream(&quot;foo/resources/test-file-a.txt&quot;)</code>.
+If you have legacy tests that need to run in the project root folder to work, you
 can configure your test suite with <code>def testSandboxWorkingDir = false</code> to disable
 the sandbox and make the tests run in the project root.</p>
 </div>

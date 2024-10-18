@@ -424,9 +424,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-78-50eb24</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-79-9a25cf</button>
   <div class="version-menu">
-    <a class="version is-current" href="installation-ide.html">0.12.0-RC3-78-50eb24</a>
+    <a class="version is-current" href="installation-ide.html">0.12.0-RC3-79-9a25cf</a>
     <a class="version" href="../0.11.12/Scala_Installation_IDE_Support.html">0.11.12</a>
     <a class="version" href="../0.11.11/Scala_Installation_IDE_Support.html">0.11.11</a>
     <a class="version" href="../0.11.10/Scala_Installation_IDE_Support.html">0.11.10</a>
@@ -452,10 +452,10 @@
   gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
 </script>
 <div class="paragraph">
-<p>The standard method of installing Mill is to install a <a href="#_bootstrap_scripts">bootstrap script</a>,
+<p>The standard method of installing Mill is to install a <code>./mill</code> <a href="#_bootstrap_scripts">bootstrap script</a>,
 similar to <code>./gradlew</code> or <code>./mvnw</code> in other build tools.
 This script can determine the best version to be used by a project (e.g. by
-reading a <code>.mill-version</code> or <code>.config/mill-version</code> file or a <code>MILL_VERSION</code> environment variable) and will use this exact Mill version.
+reading a <code>.mill-version</code>) and will use this exact Mill version.
 If the determined Mill version is not installed locally, it will be downloaded automatically.</p>
 </div>
 <div class="paragraph">
@@ -500,50 +500,20 @@ that your build server like Jenkins or Github Actions has the correct version of
 present to build, compile or test your code.</p>
 </div>
 <div class="paragraph">
-<p>If you do not have an existing project, you can download a bootstrap script and
-run <a href="builtin-commands.html#_init" class="xref page"><code>./mill init</code></a> on
-to list out the various example projects and select one to download and unpack into your current
-working directory.</p>
+<p>If you are starting a new project using a Mill bootstrap script, you can use the
+<a href="builtin-commands.html#_init" class="xref page">mill init</a> to initialize the project
+folder with one of the Mill example projects. There are a wide range of example projects,
+from hello-world to multi-module libraries to client-server web applications, and you can
+pick one most similar to what you are doing so you can hit the ground running working.</p>
 </div>
 <div class="sect2">
-<h3 id="_millw"><a class="anchor" href="#_millw"></a><code>millw</code></h3>
+<h3 id="_windows"><a class="anchor" href="#_windows"></a>Windows</h3>
 <div class="paragraph">
-<p>You can also use <a href="https://github.com/lefou/millw">lefou/millw</a> as a drop-in replacement for <code>mill</code>.
-This script is a bit more advanced, and supports running on all major platforms including MS Windows.</p>
-</div>
-<div class="paragraph">
-<p>The script supports to following sources when determining the best Mill version to use:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>MILL_VERSION</code> environment variable</p>
-</li>
-<li>
-<p><code>.mill-version</code> file in the project directory</p>
-</li>
-<li>
-<p><code>.config/mill-version</code> file in the project directory</p>
-</li>
-<li>
-<p>if non was defined so far, it can also check for the latest available version online</p>
-</li>
-<li>
-<p><code>DEFAULT_MILL_VERSION</code> environment variable</p>
-</li>
-</ul>
+<p>If you are running on Windows, you should use <a href="https://github.com/lefou/millw">lefou/millw</a>
+as a drop-in replacement for <code>./mill</code> that supports running on all major platforms including MS Windows.</p>
 </div>
 <div class="paragraph">
-<p>Using a system-wide installed <code>millw</code> is probably the robustest way to use Mill on any operating system.
-It also preserves support of rather old Mill versions next to recent ones, so that updating it or switching to <code>millw</code> initially should be a no-brainer.</p>
-</div>
-<div class="paragraph">
-<p>You can also install it on Homebrew via <a href="https://github.com/lefou/homebrew-millw">homebrew-millw</a>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">brew install lefou/millw/millw</code></pre>
-</div>
+<p><code>./millw</code> will likely be merged into <code>./mill</code> in the near future.</p>
 </div>
 </div>
 </div>
@@ -566,7 +536,16 @@ even if you are using it to build a Java or Kotlin project.</p>
 <div class="paragraph">
 <p>Once you have the plugin installed, you can use IntelliJ to open any project
 containing a Mill <code>build.mill</code> file, and IntelliJ will automatically load the
-Mill build. This will provide support both for your application code,
+Mill build. If you have multiple build systems installed, Intellij may give you
+choice which build system configuration to use for the import, which case select <code>BSP</code>:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/basic/IntellijSelectBsp.png" alt="IntellijSelectBsp" />
+</div>
+</div>
+<div class="paragraph">
+<p>This will provide support both for your application code,
 as well as the code in the <code>build.mill</code>:</p>
 </div>
 <div class="imageblock">
@@ -602,7 +581,7 @@ those updates by opening the &quot;BSP&quot; tab and clicking the &quot;Refresh&
 <div class="paragraph">
 <p>Apart from using the Build Server Protocol, you can also generate IDEA project
 files directly with Mill. This is probably the preferred way if you work on
-polyglot projects and need support for other languages like Kotlin or AspectJ,
+polyglot projects and need support for frameworks like AspectJ,
 which are currently not specifically configured over BSP.</p>
 </div>
 <div class="paragraph">
@@ -648,6 +627,18 @@ those updates by running <code>./mill mill.idea.GenIdea/</code> again.</p>
 installed. This is necessary as Mill build files are written in Scala,
 even if you are using it to build a Java project.</p>
 </div>
+<div class="admonitionblock note">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Mill in VSCode only supports Java and Scala. Kotlin users should use IntelliJ
+</td>
+</tr>
+</tbody></table>
+</div>
 <div class="paragraph">
 <p>Once you have the language server installed, you can ask VSCode to open any folder
 containing a Mill <code>build.mill</code> file, and VSCode will ask you to import your
@@ -665,7 +656,7 @@ as well as the code in the <code>build.mill</code>:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>If you make changes to your Mill <code>build.sc</code>, you can ask VSCode to load
+<p>If you make changes to your Mill <code>build.mill</code>, you can ask VSCode to load
 those updates by opening the &quot;BSP&quot; tab and clicking the &quot;Refresh&quot; button</p>
 </div>
 <div class="imageblock">
@@ -677,76 +668,11 @@ those updates by opening the &quot;BSP&quot; tab and clicking the &quot;Refresh&
 <div class="sect2">
 <h3 id="_debugging_ide_issues"><a class="anchor" href="#_debugging_ide_issues"></a>Debugging IDE issues</h3>
 <div class="paragraph">
-<p>In case things go wrong, it can be sometimes hard to find the cause.
-BSP is just a protocol, and as such, issues on the server side (the Mill BSP
-server) might not well propagated to the BSP client (your IDE).</p>
-</div>
-<div class="paragraph">
-<p>For that reason Mill BSP server is writing a log file under
+<p>Mill’s BSP IDE integration writes to a log file under
 <code>.bsp/mill-bsp.stderr</code>, where you can find various information about what’s
-going on. Its content should look familiar, as it contains regular Mill
-output accompanied by additional BSP client-server communication details.</p>
-</div>
-<div class="paragraph">
-<p>You can increase the verbosity of that log file, when you run Mill with
-<code>--debug</code> at installation time (of the BSP discovery file).</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill --debug mill.bsp.BSP/install</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_bsp_gotchas_mismatching_jvm_versions"><a class="anchor" href="#_bsp_gotchas_mismatching_jvm_versions"></a>BSP Gotchas: Mismatching JVM versions</h3>
-<div class="paragraph">
-<p>A common issue for poor performance can be a mismatch of the JVMs.
-In such a case the Mill BSP server started by a BSP client like Metals is using a <em>different</em> JVM than <code>mill</code> is using when started from the command line.
-In such a scenario, every Mill invocation using the other JVM will inadvertently invalidate Mills task caches.
-This effectively leads to full reevaluation of all invoked Mill tasks and appears as &quot;bad performance&quot;.</p>
-</div>
-<div class="paragraph">
-<p>To detect if this is the case,</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>import the project in the BSP client.</p>
-</li>
-<li>
-<p>Wait until the BSP import process has finished.</p>
-</li>
-<li>
-<p>Then run <code>mill __.compile</code> in the terminal.</p>
-</li>
-<li>
-<p>Now watch the IDE, to see if the compile command invoked in the terminal has triggered compilation on the build server.</p>
-</li>
-</ol>
-</div>
-<div class="paragraph">
-<p>If this happens, you’re using different JVMs.
-Unfortunately, this is rather difficult to &quot;defend&quot; programmatically in Mill itself.
-It is an explicit design goal of Mill, that it should work in different environments.
-It is evident and likely unintentional that you have two conflicting local environments.</p>
-</div>
-<div class="paragraph">
-<p>To fix this it’s required to find where this difference stems from.
-As a starting point,</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>Find out which JVM is used for Mill on the CLi. <code>mill --version</code> reports its JVM.</p>
-</li>
-<li>
-<p>Search the <code>.bsp/mill-bsp.stderr</code> file for a line starting with <code>&quot;Updating Evaluator&quot;</code>.
-It should contain all env variables (particularly <code>JAVA_HOME</code>) used by the BSP server.</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>Once you found and fixed that and the environments are the same, <code>clean</code> and restarting BSP should work as expected.</p>
+going on. It contains regular Mill output accompanied by additional BSP
+client-server communication details. This can be useful to look at if your
+IDE fails to import your Mill project</p>
 </div>
 </div>
 </div>
@@ -806,19 +732,40 @@ JVM options, one per line.</p>
 for some reason you don’t want to use <code>.mill-jvm-opts</code> file name, add
 <code>MILL_JVM_OPTS_PATH</code> environment variable with any other file name.</p>
 </div>
-<hr />
-<div class="paragraph">
-<p>Come by our <a href="https://discord.gg/xJCYRVMS">Discord Channel</a>
-if you want to ask questions or say hi!</p>
+<div class="admonitionblock note">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<code>.mill-jvm-opts</code> is for passing JVM options to the JVM running Mill itself.
+If you want to pass JVM options to the project that Mill is building and running,
+see the section on
+<a href="../javalib/module-config.html#_compilation_execution_flags" class="xref page">Compilation and Execution Flags</a>.
+</td>
+</tr>
+</tbody></table>
 </div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_other_installation_methods"><a class="anchor" href="#_other_installation_methods"></a>Other installation methods</h2>
 <div class="sectionbody">
-<div class="paragraph">
-<p>Of course, you can also use the package manager of your operating system or distribution.
-Please keep in mind, that all those solutions listed below are maintained outside of Mill and may not have the same features as the <a href="#_bootstrap_scripts">bootstrap scripts</a>.</p>
+<div class="admonitionblock caution">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+The installation methods listed below are maintained outside of Mill and may not have
+the same features as the <a href="#_bootstrap_scripts">bootstrap scripts</a>. You can try using them,
+but the officially supported way to use Mill is via the bootstrap script above, so the Mill
+maintainers may be unable to help you if you have issues with some alternate installation method.
+</td>
+</tr>
+</tbody></table>
 </div>
 <div class="admonitionblock caution">
 <table>
@@ -827,7 +774,8 @@ Please keep in mind, that all those solutions listed below are maintained outsid
 <i class="fa icon-caution" title="Caution"></i>
 </td>
 <td class="content">
-Some of the installations via package managers install a fixed version of Mill and do not support project-specific selection of the preferred Mill version. If you want to use the <code>MILL_VERSION</code> environment variable or need support for <code>.mill-version</code> or <code>.config/mill-version</code> files to control the actual used Mill version, please use a <a href="#_bootstrap_scripts">Bootstrap script</a> instead.
+Some of the installations via package managers install a fixed version of Mill and
+do not support project-specific selection of the preferred Mill version. If you want to use the <code>MILL_VERSION</code> environment variable or need support for <code>.mill-version</code> or <code>.config/mill-version</code> files to control the actual used Mill version, please use a <a href="#_bootstrap_scripts">Bootstrap script</a> instead.
 </td>
 </tr>
 </tbody></table>
@@ -874,7 +822,7 @@ Some of the installations via package managers install a fixed version of Mill a
 </div>
 </div>
 <div class="sect2">
-<h3 id="_windows"><a class="anchor" href="#_windows"></a>Windows</h3>
+<h3 id="_windows_2"><a class="anchor" href="#_windows_2"></a>Windows</h3>
 <div class="paragraph">
 <p>To get started, download Mill from
 <a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC3/0.12.0-RC3-assembly">Github releases</a>, and save it as <code>mill.bat</code>.</p>
@@ -965,8 +913,11 @@ asdf global mill latest
 </div>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_automatic_mill_updates"><a class="anchor" href="#_automatic_mill_updates"></a>Automatic Mill updates</h3>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_automatic_mill_updates"><a class="anchor" href="#_automatic_mill_updates"></a>Automatic Mill updates</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>If your project is hosted on GitHub, GitLab, or Bitbucket, you can use
 <a href="https://github.com/scala-steward-org/scala-steward">Scala Steward</a> to
@@ -988,8 +939,10 @@ and keep them up-to-date.
 </tbody></table>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_development_releases"><a class="anchor" href="#_development_releases"></a>Development Releases</h3>
+</div>
+<div class="sect1">
+<h2 id="_development_releases"><a class="anchor" href="#_development_releases"></a>Development Releases</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>In case you want to try out the latest features and improvements that are
 currently in the main branch, unstable versions of Mill
@@ -1001,7 +954,6 @@ are
 <p>The easiest way to use a development release is to use one of the
 <a href="#_bootstrap_scripts">Bootstrap Scripts</a>, which support overriding Mill versions via an
 <code>MILL_VERSION</code> environment variable or a <code>.mill-version</code> or <code>.config/mill-version</code> file.</p>
-</div>
 </div>
 </div>
 </div>
