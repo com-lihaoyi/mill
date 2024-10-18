@@ -85,8 +85,6 @@ object `package` extends RootModule with Module {
 
   trait ExampleCrossModuleKotlin extends ExampleCrossModuleJava {
     override def lineTransform(line: String) = this.millModuleSegments.parts.last match {
-      case "4-builtin-commands" =>
-        line.replace("compile.dest/zinc", "compile.dest/kotlin.analysis.dummy")
       case "1-test-suite" => line
         .replace("mill bar.test bar.BarTests.hello", "kotest_filter_tests='hello' kotest_filter_specs='bar.BarTests' ./mill bar.test")
         .replace("compiling 1 ... source...", "Compiling 1 ... source...")
