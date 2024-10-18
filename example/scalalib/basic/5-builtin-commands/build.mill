@@ -54,6 +54,7 @@ visualizePlan
 
 > mill resolve _.compile
 foo.compile
+bar.compile
 
 > mill resolve foo._
 foo.allSourceFiles
@@ -97,10 +98,13 @@ foo.artifactName
 > mill inspect foo.run
 foo.run(RunModule...)
     Runs this module's code in a subprocess and waits for it to finish
+    args <str>...
 Inputs:
     foo.finalMainClass
+    foo.finalMainClassOpt
     foo.runClasspath
     foo.forkArgs
+    foo.forkEnv
     foo.forkWorkingDir
     foo.runUseArgsFile
 
