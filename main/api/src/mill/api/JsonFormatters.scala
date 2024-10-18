@@ -2,6 +2,7 @@ package mill.api
 
 import os.Path
 import upickle.default.{ReadWriter => RW}
+import mill.api.WorkspaceRoot
 
 import scala.reflect.ClassTag
 import scala.util.matching.Regex
@@ -26,8 +27,13 @@ trait JsonFormatters {
 
   implicit val pathReadWrite: RW[os.Path] = upickle.default.readwriter[String]
     .bimap[os.Path](
-      _.toString,
-      os.Path(_)
+      path => PathRef.normalizePath(path, isTest = path.toString().contains("/Users/testuser")),
+      pathString => {
+        val isTest = pathString.contains("/Users/testuser") || pathString.contains(
+          "$WORKSPACE"
+        ) || pathString.contains("$COURSIER_CACHE") || pathString.contains("$HOME")
+        PathRef.denormalizePath(pathString, isTest)
+      }
     )
 
   implicit val regexReadWrite: RW[Regex] = upickle.default.readwriter[String]
