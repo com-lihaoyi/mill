@@ -13,6 +13,7 @@ import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerApi, ZincWorker
 import sbt.internal.inc.{
   Analysis,
   CompileFailed,
+  FileAnalysisStore,
   FreshCompilerCache,
   ManagedLoggedReporter,
   MappedFileConverter,
@@ -22,13 +23,10 @@ import sbt.internal.inc.{
   javac
 }
 import sbt.internal.inc.classpath.ClasspathUtil
-import sbt.internal.inc.consistent.ConsistentFileAnalysisStore
 import sbt.internal.util.{ConsoleAppender, ConsoleOut}
 import sbt.mill.SbtLoggerUtils
-import xsbti.compile.analysis.ReadWriteMappers
 import xsbti.compile.{
   AnalysisContents,
-  AnalysisStore,
   AuxiliaryClassFileExtension,
   ClasspathOptions,
   CompileAnalysis,
@@ -333,7 +331,7 @@ class ZincWorkerImpl(
   def discoverMainClasses(compilationResult: CompilationResult): Seq[String] = {
     def toScala[A](o: Optional[A]): Option[A] = if (o.isPresent) Some(o.get) else None
 
-    toScala(fileAnalysisStore(compilationResult.analysisFile).get())
+    toScala(FileAnalysisStore.binary(compilationResult.analysisFile.toIO).get())
       .map(_.getAnalysis)
       .flatMap {
         case analysis: Analysis =>
@@ -474,14 +472,6 @@ class ZincWorkerImpl(
     }(f)
   }
 
-  private def fileAnalysisStore(path: os.Path): AnalysisStore =
-    ConsistentFileAnalysisStore.binary(
-      file = path.toIO,
-      mappers = ReadWriteMappers.getEmptyMappers(),
-      // No need to utilize more that 8 cores to serialize a small file
-      parallelism = math.min(Runtime.getRuntime.availableProcessors(), 8)
-    )
-
   private def compileInternal(
       upstreamCompileOutput: Seq[CompilationResult],
       sources: Agg[os.Path],
@@ -493,7 +483,7 @@ class ZincWorkerImpl(
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean,
       auxiliaryClassFileExtensions: Seq[String],
-      zincCache: os.SubPath = os.sub / "zinc"
+      zincFile: os.SubPath = os.sub / "zinc"
   )(implicit ctx: ZincWorkerApi.Ctx): Result[CompilationResult] = {
     os.makeDir.all(ctx.dest)
 
@@ -559,14 +549,14 @@ class ZincWorkerImpl(
         case _ => None
       }
       analysisFile match {
-        case Some(zincPath) => fileAnalysisStore(zincPath).get().map(_.getAnalysis)
+        case Some(zincPath) => FileAnalysisStore.binary(zincPath.toIO).get().map(_.getAnalysis)
         case None => Optional.empty[CompileAnalysis]
       }
     }
 
     val lookup = MockedLookup(analysisMap)
 
-    val store = fileAnalysisStore(ctx.dest / zincCache)
+    val store = FileAnalysisStore.binary((ctx.dest / zincFile).toIO)
 
     // Fix jdk classes marked as binary dependencies, see https://github.com/com-lihaoyi/mill/pull/1904
     val converter = MappedFileConverter.empty
@@ -595,7 +585,7 @@ class ZincWorkerImpl(
       setup = ic.setup(
         lookup = lookup,
         skip = false,
-        cacheFile = zincCache.toNIO,
+        cacheFile = zincFile.toNIO,
         cache = new FreshCompilerCache,
         incOptions = incOptions,
         reporter = newReporter,
@@ -639,7 +629,7 @@ class ZincWorkerImpl(
           newResult.setup()
         )
       )
-      Result.Success(CompilationResult((ctx.dest / zincCache), PathRef(classesDir)))
+      Result.Success(CompilationResult((ctx.dest / zincFile), PathRef(classesDir)))
     } catch {
       case e: CompileFailed =>
         Result.Failure(e.toString)
