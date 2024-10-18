@@ -5,13 +5,13 @@ import utest._
 
 object MillInitMavenTests extends UtestIntegrationTestSuite {
 
-  def downloadExtractTo(workspace: os.Path, zipUrl: String, zipContentDir: String): Unit = {
+  private def downloadExtractTo(workspace: os.Path, zipUrl: String, zipContentDir: String): Unit = {
     val zipFile = os.temp(requests.get(zipUrl))
     val contentDir = os.unzip(zipFile, os.temp.dir()) / zipContentDir
     os.list(contentDir).foreach(os.move.into(_, workspace))
   }
 
-  def tests = Tests {
+  def tests: Tests = Tests {
 
     test("Mill init imports a Maven project") - integrationTest { tester =>
       import tester._
@@ -19,7 +19,7 @@ object MillInitMavenTests extends UtestIntegrationTestSuite {
       downloadExtractTo(
         workspacePath,
         // - uses Junit5
-        // - specifies --release javac option
+        // - uses --release javac option
         "https://github.com/fusesource/jansi/archive/refs/tags/jansi-2.4.1.zip",
         "jansi-jansi-2.4.1"
       )
@@ -31,7 +31,7 @@ object MillInitMavenTests extends UtestIntegrationTestSuite {
       Seq(
         "compile",
         "test",
-        "publish"
+        "publishLocal"
       ).forall(resolveRes.out.contains) ==> true
 
       val compileRes = eval("compile")
@@ -54,9 +54,10 @@ object MillInitMavenTests extends UtestIntegrationTestSuite {
 
       downloadExtractTo(
         workspacePath,
-        // - uses Junit4
-        "https://github.com/super-csv/super-csv/archive/refs/tags/v2.4.0.zip",
-        "super-csv-2.4.0"
+        // - uses unsupported test framework
+        // - uses hyphens in module names
+        "https://github.com/avaje/avaje-config/archive/refs/tags/4.0.zip",
+        "avaje-config-4.0"
       )
 
       val initRes = eval("init")
@@ -65,13 +66,16 @@ object MillInitMavenTests extends UtestIntegrationTestSuite {
       val resolveRes = eval(("resolve", "_"))
       resolveRes.isSuccess ==> true
       Seq(
-        "super-csv",
-        "super-csv-benchmark",
-        "super-csv-distribution",
-        "super-csv-dozer",
-        "super-csv-java8",
-        "super-csv-joda"
+        "avaje-config",
+        "avaje-aws-appconfig",
+        "avaje-dynamic-logback"
       ).forall(resolveRes.out.contains) ==> true
+
+      val compileRes = eval("avaje-config.compile")
+      // probably a JPMS issue but we only care about package task resolution
+      compileRes.err.contains(
+        "src/main/java/module-info.java:5:31: module not found: io.avaje.lang"
+      ) ==> true
     }
   }
 }

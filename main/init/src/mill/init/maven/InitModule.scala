@@ -132,15 +132,24 @@ trait InitModule extends Module {
            |import mill.javalib._
            |import mill.javalib.publish._
            |${
-            if (isRoot) s"""${if (modules.size > 1) s"import $$packages._" else ""}
-                           |
-                           |$baseModuleSource
-                           |
-                           |object `package` extends RootModule with $baseModule""".stripMargin
+            if (isRoot)
+              // a magic import is needed to "lift" child modules to the root task namespace
+              s"""${
+                  if (modules.size > 1)
+                    s"""
+                       |${"// required to lift child packages to the root task namespace"}
+                       |import $$packages._""".stripMargin
+                  else ""
+                }
+                 |
+                 |$baseModuleSource""".stripMargin
             else
               s"""
-                 |object `package` extends RootModule with build.$baseModule""".stripMargin
-          }""".stripMargin
+                 |${"// required to access base package in root build file"}
+                 |import $$file.$baseModule""".stripMargin
+          }
+           |
+           |object `package` extends RootModule with $baseModule""".stripMargin
 
       val source = model.getPackaging match {
         case "pom" =>
