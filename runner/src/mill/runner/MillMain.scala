@@ -12,6 +12,7 @@ import mill.bsp.{BspContext, BspServerResult}
 import mill.main.BuildInfo
 import mill.main.client.{OutFiles, ServerFiles}
 import mill.main.client.lock.Lock
+import mill.runner.worker.ScalaCompilerWorker
 import mill.util.{Colors, PrintLogger, PromptLogger}
 
 import java.lang.reflect.InvocationTargetException
@@ -205,52 +206,59 @@ object MillMain {
                   }
                 }
 
-                val bspContext =
-                  if (bspMode) Some(new BspContext(streams, bspLog, config.home)) else None
+                val maybeScalaCompilerWorker = ScalaCompilerWorker.bootstrapWorker(config.home)
+                if (maybeScalaCompilerWorker.isLeft) {
+                  val err = maybeScalaCompilerWorker.left.get
+                  streams.err.println(err)
+                  (false, stateCache)
+                } else {
+                  val scalaCompilerWorker = maybeScalaCompilerWorker.right.get
+                  val bspContext =
+                    if (bspMode) Some(new BspContext(streams, bspLog, config.home)) else None
 
-                val bspCmd = "mill.bsp.BSP/startSession"
-                val targetsAndParams =
-                  bspContext
-                    .map(_ => Seq(bspCmd))
-                    .getOrElse(config.leftoverArgs.value.toList)
+                  val bspCmd = "mill.bsp.BSP/startSession"
+                  val targetsAndParams =
+                    bspContext
+                      .map(_ => Seq(bspCmd))
+                      .getOrElse(config.leftoverArgs.value.toList)
 
-                val out = os.Path(OutFiles.out, WorkspaceRoot.workspaceRoot)
+                  val out = os.Path(OutFiles.out, WorkspaceRoot.workspaceRoot)
 
-                var repeatForBsp = true
-                var loopRes: (Boolean, RunnerState) = (false, RunnerState.empty)
-                while (repeatForBsp) {
-                  repeatForBsp = false
+                  var repeatForBsp = true
+                  var loopRes: (Boolean, RunnerState) = (false, RunnerState.empty)
+                  while (repeatForBsp) {
+                    repeatForBsp = false
 
-                  val (isSuccess, evalStateOpt) = Watching.watchLoop(
-                    ringBell = config.ringBell.value,
-                    watch = config.watch.value,
-                    streams = streams,
-                    setIdle = setIdle,
-                    evaluate = (prevState: Option[RunnerState]) => {
-                      adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
+                    val (isSuccess, evalStateOpt) = Watching.watchLoop(
+                      ringBell = config.ringBell.value,
+                      watch = config.watch.value,
+                      streams = streams,
+                      setIdle = setIdle,
+                      evaluate = (prevState: Option[RunnerState]) => {
+                        adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
 
-                      withOutLock(
-                        config.noBuildLock.value || bspContext.isDefined,
-                        config.noWaitForBuildLock.value,
-                        out,
-                        targetsAndParams,
-                        streams
-                      ) {
-                        val logger = getLogger(
-                          streams,
-                          config,
-                          mainInteractive,
-                          enableTicker =
-                            config.ticker
-                              .orElse(config.enableTicker)
-                              .orElse(Option.when(config.disableTicker.value)(false)),
-                          printLoggerState,
-                          serverDir,
-                          colored = colored,
-                          colors = colors
-                        )
-                        Using.resource(logger) { _ =>
-                          try new MillBuildBootstrap(
+                        withOutLock(
+                          config.noBuildLock.value || bspContext.isDefined,
+                          config.noWaitForBuildLock.value,
+                          out,
+                          targetsAndParams,
+                          streams
+                        ) {
+                          val logger = getLogger(
+                            streams,
+                            config,
+                            mainInteractive,
+                            enableTicker =
+                              config.ticker
+                                .orElse(config.enableTicker)
+                                .orElse(Option.when(config.disableTicker.value)(false)),
+                            printLoggerState,
+                            serverDir,
+                            colored = colored,
+                            colors = colors
+                          )
+                          Using.resource(logger) { _ =>
+                            new MillBuildBootstrap(
                               projectRoot = WorkspaceRoot.workspaceRoot,
                               output = out,
                               home = config.home,
@@ -266,34 +274,36 @@ object MillMain {
                               requestedMetaLevel = config.metaLevel,
                               config.allowPositional.value,
                               systemExit = systemExit,
-                              streams0 = streams0
+                              streams0 = streams0,
+                              scalaCompilerWorker = scalaCompilerWorker
                             ).evaluate()
+                          }
                         }
-                      }
-                    },
-                    colors = colors
-                  )
-                  bspContext.foreach { ctx =>
-                    repeatForBsp =
-                      BspContext.bspServerHandle.lastResult == Some(
-                        BspServerResult.ReloadWorkspace
-                      )
-                    streams.err.println(
-                      s"`$bspCmd` returned with ${BspContext.bspServerHandle.lastResult}"
+                      },
+                      colors = colors
                     )
+                    bspContext.foreach { ctx =>
+                      repeatForBsp =
+                        BspContext.bspServerHandle.lastResult == Some(
+                          BspServerResult.ReloadWorkspace
+                        )
+                      streams.err.println(
+                        s"`$bspCmd` returned with ${BspContext.bspServerHandle.lastResult}"
+                      )
+                    }
+
+                    loopRes = (isSuccess, evalStateOpt)
+                  } // while repeatForBsp
+                  bspContext.foreach { ctx =>
+                    streams.err.println(
+                      s"Exiting BSP runner loop. Stopping BSP server. Last result: ${BspContext.bspServerHandle.lastResult}"
+                    )
+                    BspContext.bspServerHandle.stop()
                   }
 
-                  loopRes = (isSuccess, evalStateOpt)
-                } // while repeatForBsp
-                bspContext.foreach { ctx =>
-                  streams.err.println(
-                    s"Exiting BSP runner loop. Stopping BSP server. Last result: ${BspContext.bspServerHandle.lastResult}"
-                  )
-                  BspContext.bspServerHandle.stop()
+                  // return with evaluation result
+                  loopRes
                 }
-
-                // return with evaluation result
-                loopRes
               }
             }
 
