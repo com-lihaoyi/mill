@@ -1,4 +1,10 @@
 //// SNIPPET:ALL
+// Mill's default folder layout of `foo/src/` and `foo/test/src` differs from that
+// of Maven or Gradle's `foo/src/main/kotlin/` and `foo/src/test/kotlin/`. If you are
+// migrating an existing codebase, you can use Mill's `KotlinMavenModule` and
+// `KotlinMavenTests` as shown below to preserve filesystem compatibility with an existing
+// Maven or Gradle build:
+
 package build
 import mill._, kotlinlib._
 
@@ -6,7 +12,7 @@ object foo extends KotlinModule with KotlinMavenModule {
 
   def kotlinVersion = "1.9.24"
 
-  object test extends KotlinMavenModuleTests with TestModule.Junit5 {
+  object test extends KotlinMavenTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
     )

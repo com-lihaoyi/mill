@@ -1,4 +1,10 @@
 //// SNIPPET:ALL
+// Mill's default folder layout of `foo/src/` and `foo/test/src` differs from that
+// of SBT's `foo/src/main/scala/` and `foo/src/test/scala/`. If you are
+// migrating an existing codebase from SBT, you can use Mill's `SbtModule` and
+// `SbtTests` as shown below to preserve filesystem compatibility with an existing
+// SBT build:
+
 package build
 import mill._, scalalib._
 

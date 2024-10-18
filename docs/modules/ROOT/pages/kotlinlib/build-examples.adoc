@@ -16,10 +16,6 @@ example projects.
 
 include::partial$example/kotlinlib/builds/1-nested-modules.adoc[]
 
-== Maven-Compatible Modules
-
-include::partial$example/kotlinlib/builds/2-compat-modules.adoc[]
-
 
 == Realistic Kotlin Example Project
 

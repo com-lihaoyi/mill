@@ -1,4 +1,10 @@
 //// SNIPPET:ALL
+// Mill's default folder layout of `foo/src/` and `foo/test/src` differs from that
+// of Maven or Gradle's `foo/src/main/java/` and `foo/src/test/java/`. If you are
+// migrating an existing codebase, you can use Mill's `MavenModule` and
+// `MavenTests` as shown below to preserve filesystem compatibility with an existing
+// Maven or Gradle build:
+
 package build
 import mill._, javalib._
 

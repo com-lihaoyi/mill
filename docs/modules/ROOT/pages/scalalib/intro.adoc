@@ -85,3 +85,9 @@ include::partial$example/scalalib/basic/2-custom-build-logic.adoc[]
 include::partial$example/scalalib/basic/3-multi-module.adoc[]
 
 include::partial$Intro_to_Mill_Footer.adoc[]
+
+
+== SBT-Compatible Modules
+
+include::partial$example/scalalib/basic/4-compat-modules.adoc[]
+

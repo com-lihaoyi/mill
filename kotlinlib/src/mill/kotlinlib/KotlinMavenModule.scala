@@ -15,7 +15,7 @@ trait KotlinMavenModule extends KotlinModule with MavenModule {
     millSourcePath / "src/main/resources"
   }
 
-  trait KotlinMavenModuleTests extends KotlinTests with MavenTests {
+  trait KotlinMavenTests extends KotlinTests with MavenTests {
     override def intellijModulePath: os.Path = millSourcePath / "src/test"
 
     override def sources = T.sources(
