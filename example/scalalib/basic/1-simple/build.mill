@@ -53,6 +53,12 @@ object `package` extends RootModule with ScalaModule {
 //         ...
 // ----
 //
+// NOTE: The default Mill source folder layout `foo/src/` differs from that of SBT's
+// `foo/src/main/scala`.
+// If you wish to use the SBT source folder layout, e.g. for migrating
+// an existing codebase, you should use
+// xref:#_sbt_compatible_modules[SBT-Compatible Modules]
+//
 //// SNIPPET:END
 //
 //// SNIPPET:DEPENDENCIES
@@ -147,6 +153,7 @@ error: Missing argument: --text <str>
 // it depends on, or `mill show foo.scalaVersion` to show the output of any task.
 //
 // The most common *tasks* that Mill can run are cached tasks, such as
-// `compile`, and un-cached *commands* such as `foo.run`. Targets do not
+// `compile`, and un-cached *commands* such as `foo.run`. Cached tasks do not
 // re-evaluate unless one of their inputs changes, whereas commands re-run every
-// time.
+// time. See the documentation for xref:fundamentals/tasks.adoc[Tasks] for
+// details on the different task types.
