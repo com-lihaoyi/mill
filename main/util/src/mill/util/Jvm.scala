@@ -316,10 +316,16 @@ object Jvm extends CoursierSupport {
     method
   }
 
-  def runInprocess[T](classPath: Agg[os.Path])
-                     (body: ClassLoader => T)
-                     (implicit ctx: mill.api.Ctx.Home): T = {
-    inprocess(classPath, classLoaderOverrideSbtTesting=false, isolated=true, closeContextClassLoaderWhenDone=true, body)
+  def runInprocess[T](classPath: Agg[os.Path])(body: ClassLoader => T)(implicit
+      ctx: mill.api.Ctx.Home
+  ): T = {
+    inprocess(
+      classPath,
+      classLoaderOverrideSbtTesting = false,
+      isolated = true,
+      closeContextClassLoaderWhenDone = true,
+      body
+    )
   }
   def inprocess[T](
       classPath: Agg[os.Path],
