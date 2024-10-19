@@ -9,8 +9,8 @@ it comes with limitations as the JVM library it imports is global to your build:
 
 2. The library can only have one version across the entire build. This can be an issue if
    you need to have multiple versions of the library used in different parts of your build.
-   e.g. different parts of a large Kotlin codebase may use different versions of the Kotlin
-   compiler, and so the Kotlin compiler cannot be included via `import $ivy` because the
+   e.g. different parts of a large Groovy codebase may use different versions of the Groovy
+   interpreter, and so the Groovy interpreter cannot be included via `import $ivy` because the
    different versions would collide.
 
 3. The library cannot be built as part of your main build. While it is possible to build
@@ -24,14 +24,10 @@ In scenarios where these limitations cause issues, Mill provides other ways to r
 JVM code apart from `import $ivy`.
 
 
-== Running Dynamic JVM Code in a Subprocess
+== Subprocesses
 
 include::partial$example/extending/jvmcode/1-subprocess.adoc[]
 
-== Running Dynamic JVM Code in an in-process Classloader
+== In-process Isolated Classloaders
 
 include::partial$example/extending/jvmcode/2-inprocess.adoc[]
-
-== Running Dynamic JVM Code in a long-lived worker
-
-include::partial$example/extending/jvmcode/3-worker.adoc[]
