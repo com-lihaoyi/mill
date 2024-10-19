@@ -82,6 +82,7 @@
 ** xref:contrib/twirllib.adoc[]
 ** xref:contrib/versionfile.adoc[]
 * xref:extending/thirdparty-plugins.adoc[]
+* xref:extending/running-jvm-code.adoc[]
 * xref:extending/writing-plugins.adoc[]
 * xref:extending/meta-build.adoc[]
 
