@@ -1,9 +1,9 @@
 package mill.javalib.android
 
 import mill._
+import mill.scalalib._
 import mill.api.PathRef
 import mill.define.ModuleRef
-import mill.scalalib.JavaModule
 
 /**
  * Trait for building Android applications using the Mill build tool.
@@ -34,6 +34,38 @@ trait AndroidAppModule extends JavaModule {
    * An XML file containing configuration and metadata about your android application
    */
   def androidManifest: Task[PathRef] = Task.Source(millSourcePath / "AndroidManifest.xml")
+
+  /**
+   * Adds the "aar" type to the set of artifact types handled by this module.
+   *
+   * @return A task that yields an updated set of artifact types including "aar".
+   */
+  def artifactTypes: T[Set[coursier.Type]] = Task { super.artifactTypes() + coursier.Type("aar") }
+
+  /**
+   * Task to extract `classes.jar` files from AAR files in the classpath.
+   *
+   * @return A sequence of `PathRef` pointing to the extracted JAR files.
+   */
+  def androidUnpackArchives: T[Seq[PathRef]] = Task {
+    val aarFiles = super.compileClasspath().map(_.path).filter(_.ext == "aar").toSeq
+
+    aarFiles.map { aarFile =>
+      val extractDir = T.dest / aarFile.baseName
+      os.unzip(aarFile, extractDir)
+      PathRef(extractDir / "classes.jar")
+    }
+  }
+
+  /**
+   * Overrides the compile classpath to replace `.aar` files with the extracted
+   * `.jar` files.
+   *
+   * @return The updated classpath with `.jar` files only.
+   */
+  override def compileClasspath: T[Agg[PathRef]] = Task {
+    super.compileClasspath().filter(_.path.ext == "jar") ++ Agg.from(androidUnpackArchives())
+  }
 
   /**
    * Generates the Android resources (such as layouts, strings, and other assets) needed
