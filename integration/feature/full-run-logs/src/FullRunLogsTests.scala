@@ -32,9 +32,9 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       val expectedErrorRegex =
         s"""==================================================== run --text hello ================================================
            |======================================================================================================================
-           |[build.mill-56/60] compile
-           |[build.mill-56] [info] compiling 1 Scala source to ${tester.workspacePath}/out/mill-build/compile.dest/classes ...
-           |[build.mill-56] [info] done compiling
+           |[build.mill-57/61] compile
+           |[build.mill-57] [info] compiling 1 Scala source to ${tester.workspacePath}/out/mill-build/compile.dest/classes ...
+           |[build.mill-57] [info] done compiling
            |[40/46] compile
            |[40] [info] compiling 1 Java source to ${tester.workspacePath}/out/compile.dest/classes ...
            |[40] [info] done compiling
@@ -48,7 +48,8 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           .map(java.util.regex.Pattern.quote)
           .mkString("=? [\\d]+")
 
-      assert(expectedErrorRegex.r.matches(res.err.replace('\\', '/').replaceAll("(\r\n)|\r", "\n")))
+      val normErr = res.err.replace('\\', '/').replaceAll("(\r\n)|\r", "\n")
+      assert(expectedErrorRegex.r.matches(normErr))
     }
   }
 }

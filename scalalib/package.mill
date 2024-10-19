@@ -18,7 +18,16 @@ import mill.T
 import mill.define.Cross
 object `package` extends RootModule with build.MillStableScalaModule {
   def moduleDeps = Seq(build.main, build.scalalib.api, build.testrunner)
-  def ivyDeps = Agg(build.Deps.scalafmtDynamic, build.Deps.scalaXml)
+  def ivyDeps = {
+    Agg(build.Deps.scalafmtDynamic, build.Deps.scalaXml) ++ {
+        // despite compiling with Scala 3, we need to include scala-reflect
+        // for the scala.reflect.internal.util.ScalaClassLoader
+        // used in ScalaModule.scalacHelp,
+        // (also transitively included by com.eed3si9n.jarjarabrams:jarjar-abrams-core)
+        // perhaps the class can be copied here?
+        Agg(build.Deps.scalaReflect(scalaVersion()))
+      }
+  }
   def testIvyDeps = super.testIvyDeps() ++ Agg(build.Deps.TestDeps.scalaCheck)
   def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(worker.testDep())
 
@@ -77,7 +86,7 @@ object `package` extends RootModule with build.MillStableScalaModule {
 
   object worker extends build.MillPublishScalaModule with BuildInfo {
     def moduleDeps = Seq(api)
-    def ivyDeps = Agg(build.Deps.zinc, build.Deps.log4j2Core, build.Deps.scalap(scalaVersion()))
+    def ivyDeps = Agg(build.Deps.zinc, build.Deps.log4j2Core, build.Deps.scalap(scalapVersion()))
     def buildInfoPackageName = "mill.scalalib.worker"
     def buildInfoObjectName = "Versions"
     def buildInfoMembers = Seq(
