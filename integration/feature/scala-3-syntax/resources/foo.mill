@@ -1,5 +1,6 @@
 package build
 
-class Box[T]
+class Box[T](name: String):
+  override def toString = s"Box[$name]"
 
-given Box[Int]()
+given Box[Int]("Int")

@@ -192,7 +192,7 @@ object MacroErrorTests extends TestSuite {
       """
       )
       assert(error.msg.contains(
-        "Could not summon ToSegments[segArg.type]"
+        "Could not summon ToSegments[sun.misc.Unsafe]"
       ))
     }
   }

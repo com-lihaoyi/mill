@@ -8,7 +8,7 @@ import $file.foo.{given Box[Int]}
 object `package` extends RootModule:
 
   def someTopLevelCommand(): Command[Unit] = Task.Command:
-    println(s"Hello, world! ${summon[Box[Int]]}")
+    println(s"Hello, world! ${summon[Box[Int]]} ${build.sub.subTask()}")
   end someTopLevelCommand
 
   given Cross.ToSegments[DayValue](d => List(d.toString))
@@ -17,13 +17,12 @@ object `package` extends RootModule:
     def shortName = "day"
     def read(strs: Seq[String]) =
       try
-        Right(DayValue.withName(strs.head))
+        Right(DayValue.valueOf(strs.head))
       catch
         case _: Exception => Left("not a day")
 
-  type DayValue = DayValue.Value
-  object DayValue extends Enumeration:
-    val Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday = Value
+  enum DayValue:
+    case Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday
 
   object day extends Cross[DayModule](DayValue.values.toSeq)
 
@@ -34,9 +33,9 @@ object `package` extends RootModule:
   trait DayModule extends Cross.Module[DayValue]:
     def myDay: DayValue = crossValue
 
-    def day(): Command[Unit] = Task.Command:
+    def today(): Command[Unit] = Task.Command:
       println(s"Today is $myDay")
-    end day
+    end today
   end DayModule
 
 end `package`

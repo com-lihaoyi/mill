@@ -16,3 +16,6 @@ object SomeObject
 
 // top-level case class
 case class SomeCaseClass()
+
+def subTask: Task[Int] = Task:
+  42

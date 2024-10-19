@@ -116,9 +116,11 @@ object CrossMacros {
     }
 
     def mkSegmentsCall[T: Type](t: Expr[T]): Expr[List[String]] = {
+      import quotes.reflect.*
+
       val summonCall = Expr.summon[ToSegments[T]].getOrElse(
         report.errorAndAbort(
-          s"Could not summon ToSegments[${Type.show[T]}]",
+          s"Could not summon ToSegments[${TypeRepr.of[T].widen.show}]",
           Position.ofMacroExpansion
         )
       )
