@@ -22,11 +22,6 @@ trait JsonFormatters {
   implicit lazy val configurationFormat: RW[coursier.core.Configuration] = upickle.default.macroRW
   implicit lazy val typeFormat: RW[coursier.core.Type] = upickle.default.macroRW
   implicit lazy val classifierFormat: RW[coursier.core.Classifier] = upickle.default.macroRW
-  implicit lazy val coursierTypeSetRW: RW[Set[coursier.core.Type]] =
-    upickle.default.readwriter[Set[String]].bimap(
-      _.map(_.value),
-      _.map(coursier.core.Type(_))
-    )
 
 }
 object JsonFormatters extends JsonFormatters
