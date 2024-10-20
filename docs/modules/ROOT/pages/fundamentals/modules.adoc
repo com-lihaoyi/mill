@@ -64,3 +64,5 @@ needing to define your own `Task.Command` in your `build.mill` file
 include::partial$example/fundamentals/modules/10-external-module-aliases.adoc[]
 
 == Abstract Modules References
+
+include::partial$example/fundamentals/modules/11-abstract-module-ref.adoc[]

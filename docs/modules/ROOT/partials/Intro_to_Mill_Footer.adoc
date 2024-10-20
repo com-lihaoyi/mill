@@ -22,18 +22,15 @@ forcefully terminating the previous process even though it may be still alive:
 
 [source,bash]
 ----
-$ mill -w foo.compile
 $ mill -w foo.runBackground
 ----
 
 
 == Parallel Task Execution
 
-By default, mill will evaluate all tasks in parallel, with the number of concurrent
-tasks equal to the number of cores on your machine.
-
-You can use the `--jobs` (`-j`) to configure explicitly how many concurrent tasks you
-wish to run
+By default, Mill will evaluate all tasks in parallel, with the number of concurrent
+tasks equal to the number of cores on your machine. You can use the `--jobs` (`-j`) to configure
+explicitly how many concurrent tasks you wish to run. To disable parallel execution use `-j1`.
 
 Example: Use up to 4 parallel threads to compile all modules:
 
@@ -42,9 +39,9 @@ Example: Use up to 4 parallel threads to compile all modules:
 mill -j4 __.compile
 ----
 
-To disable parallel execution use `-j1`.
 
-`mill` generates an output file in `out/mill-chrome-profile.json` that can be
+
+Every `mill` run generates an output file in `out/mill-chrome-profile.json` that can be
 loaded into the Chrome browser's `chrome://tracing` page for visualization.
 This can make it much easier to analyze your parallel runs to find out what's
 taking the most time:

@@ -150,7 +150,7 @@ object Deps {
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.3"
   val commonsIO = ivy"commons-io:commons-io:2.16.1"
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.23.1"
-  val osLib = ivy"com.lihaoyi::os-lib:0.11.1"
+  val osLib = ivy"com.lihaoyi::os-lib:0.11.2"
   val pprint = ivy"com.lihaoyi::pprint:0.9.0"
   val mainargs = ivy"com.lihaoyi::mainargs:0.7.6"
   val millModuledefsVersion = "0.11.1"
@@ -179,7 +179,7 @@ object Deps {
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.1"
   val upickle = ivy"com.lihaoyi::upickle:3.3.1"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.5"
-  val zinc = ivy"org.scala-sbt::zinc:1.10.2"
+  val zinc = ivy"org.scala-sbt::zinc:1.10.3"
   // keep in sync with doc/antora/antory.yml
   val bsp4j = ivy"ch.epfl.scala:bsp4j:2.2.0-M2"
   val fansi = ivy"com.lihaoyi::fansi:0.5.0"

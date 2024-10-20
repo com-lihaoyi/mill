@@ -16,11 +16,6 @@ example projects.
 include::partial$example/scalalib/builds/1-nested-modules.adoc[]
 
 
-== SBT-Compatible Modules
-
-include::partial$example/scalalib/builds/2-compat-modules.adoc[]
-
-
 == Cross-Scala-Version Modules
 
 include::partial$example/scalalib/builds/3-cross-scala-version.adoc[]

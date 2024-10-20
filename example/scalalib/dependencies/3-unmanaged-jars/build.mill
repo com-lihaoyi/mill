@@ -1,3 +1,11 @@
+// In most scenarios you should rely on `ivyDeps`/`moduleDeps` and let Mill manage
+// the compilation/downloading/caching of classpath jars for you, as Mill will
+// automatically pull in transitive dependencies which are generally needed for things
+// to work, and avoids including different versions of the same classfiles or jar which
+// can cause confusion. But in the rare case you receive a jar or folder-full-of-classfiles
+// from somewhere and need to include it in your project, `unmanagedClasspath` is the
+// way to do it.
+
 //// SNIPPET:BUILD
 package build
 import mill._, scalalib._
@@ -24,9 +32,3 @@ Key: age, Value: 30
 
 */
 
-// in most scenarios you should rely on `ivyDeps`/`moduleDeps` and let Mill manage
-// the compilation/downloading/caching of classpath jars for you, as Mill will
-// automatically pull in transitive dependencies which are generally needed for things
-// to work. But in the rare case you receive a jar or folder-full-of-classfiles
-// from somewhere and need to include it in your project, `unmanagedClasspath` is the
-// way to do it.
