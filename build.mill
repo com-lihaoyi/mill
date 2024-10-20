@@ -149,7 +149,7 @@ object Deps {
 
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.3"
   val commonsIO = ivy"commons-io:commons-io:2.16.1"
-  val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.23.1"
+  val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.24.1"
   val osLib = ivy"com.lihaoyi::os-lib:0.11.2"
   val pprint = ivy"com.lihaoyi::pprint:0.9.0"
   val mainargs = ivy"com.lihaoyi::mainargs:0.7.6"
@@ -199,7 +199,7 @@ object Deps {
     val dokkaBase = ivy"org.jetbrains.dokka:dokka-base:$dokkaVersion"
     val dokkaCli = ivy"org.jetbrains.dokka:dokka-cli:$dokkaVersion"
     val errorProneCore = ivy"com.google.errorprone:error_prone_core:2.31.0"
-    val freemarker = ivy"org.freemarker:freemarker:2.3.31"
+    val freemarker = ivy"org.freemarker:freemarker:2.3.33"
     val jupiterInterface = ivy"com.github.sbt.junit:jupiter-interface:0.11.4"
     val kotlinxHtmlJvm = ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:0.8.0"
     val koverCli = ivy"org.jetbrains.kotlinx:kover-cli:$koverVersion"
@@ -225,12 +225,12 @@ object Deps {
 
   /** Used to manage transitive versions. */
   val transitiveDeps = Seq(
-    ivy"org.apache.ant:ant:1.10.14",
+    ivy"org.apache.ant:ant:1.10.15",
     ivy"commons-io:commons-io:2.16.1",
     ivy"com.google.code.gson:gson:2.11.0",
     ivy"com.google.protobuf:protobuf-java:4.28.2",
     ivy"com.google.guava:guava:33.3.0-jre",
-    ivy"org.yaml:snakeyaml:2.2",
+    ivy"org.yaml:snakeyaml:2.3",
     ivy"org.apache.commons:commons-compress:1.26.2"
   )
 
