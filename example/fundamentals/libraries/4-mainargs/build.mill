@@ -87,7 +87,7 @@ def taskCallingCommand = Task {
 import mill.eval.{Evaluator, Terminal}
 import mill.resolve.{Resolve, SelectMode}
 
-def customPlanCommand(evaluator: Evaluator, tasks: String*) = Task.Command {
+def customPlanCommand(evaluator: Evaluator, tasks: String*) = Task.Command(exclusive = true) {
   Resolve.Tasks.resolve(
     evaluator.rootModule,
     tasks,
