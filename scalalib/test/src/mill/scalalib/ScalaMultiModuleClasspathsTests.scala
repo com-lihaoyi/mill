@@ -198,16 +198,6 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
           "org/portable-scala/portable-scala-reflect_2.13/1.1.3/portable-scala-reflect_2.13-1.1.3.jar",
           "org/scala-lang/scala-reflect/2.13.12/scala-reflect-2.13.12.jar",
           //
-          "ModCompile/bar/compile-resources",
-          "ModCompile/bar/unmanaged",
-          "ModCompile/bar/resources",
-          "out/ModCompile/bar/compile.dest/classes",
-          //
-          "ModCompile/foo/compile-resources",
-          "ModCompile/foo/unmanaged",
-          "ModCompile/foo/resources",
-          "out/ModCompile/foo/compile.dest/classes",
-          //
           "ModCompile/qux/compile-resources",
           "ModCompile/qux/unmanaged",
           "ModCompile/qux/resources",
