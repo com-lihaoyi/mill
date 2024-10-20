@@ -1,5 +1,5 @@
 = Scala Native Examples
-:page-aliases: native-examples.adoc
+:page-aliases: Scala_Native_Examples.adoc
 
 ++++
 <script>
