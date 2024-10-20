@@ -59,7 +59,17 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
         def moduleDeps = Seq(bar)
       }
     }
-    object RuntimeMod extends Module {
+
+    object ModRun extends Module {
+      object foo extends FooModule
+      object bar extends BarModule {
+        def moduleDeps = Seq(foo)
+      }
+      object qux extends QuxModule {
+        def runModuleDeps = Seq(bar)
+      }
+    }
+    object RunMod extends Module {
       object foo extends FooModule
       object bar extends BarModule {
         def runModuleDeps = Seq(foo)
@@ -287,14 +297,10 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
         )
       )
     }
-    test("runMod") - UnitTester(MultiModuleClasspaths, resourcePath).scoped { eval =>
-      // Both the `runClasspath` and `compileClasspath` should not have `foo` on the
-      // classpath, nor should it have the versions of libraries pulled in by `foo`
-      // (e.g. `sourcecode-0.2.4`), because it is a `compileModuleDep` of an upstream
-      // module and thus it is not transitive
+    test("modRun") - UnitTester(MultiModuleClasspaths, resourcePath).scoped { eval =>
       check(
         eval,
-        MultiModuleClasspaths.RuntimeMod.qux,
+        MultiModuleClasspaths.ModRun.qux,
         expectedRunClasspath = List(
           "com/lihaoyi/utest_2.13/0.8.4/utest_2.13-0.8.4.jar",
           "com/lihaoyi/sourcecode_2.13/0.2.2/sourcecode_2.13-0.2.2.jar",
@@ -302,18 +308,58 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
           "org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
           "org/portable-scala/portable-scala-reflect_2.13/1.1.3/portable-scala-reflect_2.13-1.1.3.jar",
           "org/scala-lang/scala-reflect/2.13.12/scala-reflect-2.13.12.jar",
-          "RuntimeMod/bar/compile-resources",
-          "RuntimeMod/bar/unmanaged",
-          "RuntimeMod/bar/resources",
-          "out/RuntimeMod/bar/compile.dest/classes",
-          "RuntimeMod/foo/compile-resources",
-          "RuntimeMod/foo/unmanaged",
-          "RuntimeMod/foo/resources",
-          "out/RuntimeMod/foo/compile.dest/classes",
-          "RuntimeMod/qux/compile-resources",
-          "RuntimeMod/qux/unmanaged",
-          "RuntimeMod/qux/resources",
-          "out/RuntimeMod/qux/compile.dest/classes"
+          "ModRun/bar/compile-resources",
+          "ModRun/bar/unmanaged",
+          "ModRun/bar/resources",
+          "out/ModRun/bar/compile.dest/classes",
+          "ModRun/foo/compile-resources",
+          "ModRun/foo/unmanaged",
+          "ModRun/foo/resources",
+          "out/ModRun/foo/compile.dest/classes",
+          "ModRun/qux/compile-resources",
+          "ModRun/qux/unmanaged",
+          "ModRun/qux/resources",
+          "out/ModRun/qux/compile.dest/classes"
+        ),
+        expectedCompileClasspath = List(
+          "com/lihaoyi/geny_2.13/0.4.0/geny_2.13-0.4.0.jar",
+          "com/lihaoyi/sourcecode_2.13/0.2.0/sourcecode_2.13-0.2.0.jar",
+          "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
+          "ModRun/qux/compile-resources",
+          "ModRun/qux/unmanaged"
+        ),
+        expectedLocalClasspath = List(
+          "ModRun/qux/compile-resources",
+          "ModRun/qux/unmanaged",
+          "ModRun/qux/resources",
+          "out/ModRun/qux/compile.dest/classes"
+        )
+      )
+    }
+
+    test("runMod") - UnitTester(MultiModuleClasspaths, resourcePath).scoped { eval =>
+      check(
+        eval,
+        MultiModuleClasspaths.RunMod.qux,
+        expectedRunClasspath = List(
+          "com/lihaoyi/utest_2.13/0.8.4/utest_2.13-0.8.4.jar",
+          "com/lihaoyi/sourcecode_2.13/0.2.2/sourcecode_2.13-0.2.2.jar",
+          "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
+          "org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
+          "org/portable-scala/portable-scala-reflect_2.13/1.1.3/portable-scala-reflect_2.13-1.1.3.jar",
+          "org/scala-lang/scala-reflect/2.13.12/scala-reflect-2.13.12.jar",
+          "RunMod/bar/compile-resources",
+          "RunMod/bar/unmanaged",
+          "RunMod/bar/resources",
+          "out/RunMod/bar/compile.dest/classes",
+          "RunMod/foo/compile-resources",
+          "RunMod/foo/unmanaged",
+          "RunMod/foo/resources",
+          "out/RunMod/foo/compile.dest/classes",
+          "RunMod/qux/compile-resources",
+          "RunMod/qux/unmanaged",
+          "RunMod/qux/resources",
+          "out/RunMod/qux/compile.dest/classes"
         ),
         expectedCompileClasspath = List(
           "com/lihaoyi/geny_2.13/0.4.0/geny_2.13-0.4.0.jar",
@@ -321,17 +367,17 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
           "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
           // `bar` ends up here because it's a normal `moduleDep`, but not `foo` because
           // it's a `runtimeModuleDep
-          "RuntimeMod/bar/compile-resources",
-          "RuntimeMod/bar/unmanaged",
-          "out/RuntimeMod/bar/compile.dest/classes",
-          "RuntimeMod/qux/compile-resources",
-          "RuntimeMod/qux/unmanaged"
+          "RunMod/bar/compile-resources",
+          "RunMod/bar/unmanaged",
+          "out/RunMod/bar/compile.dest/classes",
+          "RunMod/qux/compile-resources",
+          "RunMod/qux/unmanaged"
         ),
         expectedLocalClasspath = List(
-          "RuntimeMod/qux/compile-resources",
-          "RuntimeMod/qux/unmanaged",
-          "RuntimeMod/qux/resources",
-          "out/RuntimeMod/qux/compile.dest/classes"
+          "RunMod/qux/compile-resources",
+          "RunMod/qux/unmanaged",
+          "RunMod/qux/resources",
+          "out/RunMod/qux/compile.dest/classes"
         )
       )
     }
