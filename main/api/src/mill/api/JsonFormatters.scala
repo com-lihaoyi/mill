@@ -21,7 +21,7 @@ object JsonFormatters extends JsonFormatters {
 trait JsonFormatters {
 
   /**
-   * Additional [[mainargs.TokensReader]] instance to teach it how to read Ammonite paths
+   * Additional [[mainargs.TokensReader]] instance to teach it how to read Ammonite paths.
    */
   implicit def PathTokensReader: mainargs.TokensReader[os.Path] = JsonFormatters.PathTokensReader0
 
