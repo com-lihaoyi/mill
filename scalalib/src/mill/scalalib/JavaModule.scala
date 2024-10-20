@@ -253,13 +253,13 @@ trait JavaModule
    * Like `recursiveModuleDeps` but also include the module itself,
    * basically the modules whose classpath are needed at runtime
    */
-  def transitiveModuleDeps: Seq[JavaModule] = Seq(this) ++ recursiveModuleDeps
+  def transitiveModuleDeps: Seq[JavaModule] = recursiveModuleDeps ++ Seq(this)
 
   /**
    * Like `recursiveModuleDeps` but also include the module itself,
    * basically the modules whose classpath are needed at runtime
    */
-  def transitiveRunModuleDeps: Seq[JavaModule] = Seq(this) ++ recursiveRunModuleDeps
+  def transitiveRunModuleDeps: Seq[JavaModule] = recursiveRunModuleDeps ++ Seq(this)
 
   /**
    * All direct and indirect module dependencies of this module, including

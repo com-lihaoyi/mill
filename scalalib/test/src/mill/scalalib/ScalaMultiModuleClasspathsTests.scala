@@ -143,15 +143,15 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
           "org/portable-scala/portable-scala-reflect_2.13/1.1.3/portable-scala-reflect_2.13-1.1.3.jar",
           "org/scala-lang/scala-reflect/2.13.12/scala-reflect-2.13.12.jar",
           //
-          "ModMod/bar/compile-resources",
-          "ModMod/bar/unmanaged",
-          "ModMod/bar/resources",
-          "out/ModMod/bar/compile.dest/classes",
-          //
           "ModMod/foo/compile-resources",
           "ModMod/foo/unmanaged",
           "ModMod/foo/resources",
           "out/ModMod/foo/compile.dest/classes",
+          //
+          "ModMod/bar/compile-resources",
+          "ModMod/bar/unmanaged",
+          "ModMod/bar/resources",
+          "out/ModMod/bar/compile.dest/classes",
           //
           "ModMod/qux/compile-resources",
           "ModMod/qux/unmanaged",
@@ -167,13 +167,13 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
           //
           "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
           //
-          "ModMod/bar/compile-resources",
-          "ModMod/bar/unmanaged",
-          "out/ModMod/bar/compile.dest/classes",
-          //
           "ModMod/foo/compile-resources",
           "ModMod/foo/unmanaged",
           "out/ModMod/foo/compile.dest/classes",
+          //
+          "ModMod/bar/compile-resources",
+          "ModMod/bar/unmanaged",
+          "out/ModMod/bar/compile.dest/classes",
           //
           "ModMod/qux/compile-resources",
           "ModMod/qux/unmanaged"
@@ -223,13 +223,13 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
           //
           "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
           //
-          "ModCompile/bar/compile-resources",
-          "ModCompile/bar/unmanaged",
-          "out/ModCompile/bar/compile.dest/classes",
-          //
           "ModCompile/foo/compile-resources",
           "ModCompile/foo/unmanaged",
           "out/ModCompile/foo/compile.dest/classes",
+          //
+          "ModCompile/bar/compile-resources",
+          "ModCompile/bar/unmanaged",
+          "out/ModCompile/bar/compile.dest/classes",
           //
           "ModCompile/qux/compile-resources",
           "ModCompile/qux/unmanaged"
@@ -308,14 +308,17 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
           "org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
           "org/portable-scala/portable-scala-reflect_2.13/1.1.3/portable-scala-reflect_2.13-1.1.3.jar",
           "org/scala-lang/scala-reflect/2.13.12/scala-reflect-2.13.12.jar",
-          "ModRun/bar/compile-resources",
-          "ModRun/bar/unmanaged",
-          "ModRun/bar/resources",
-          "out/ModRun/bar/compile.dest/classes",
+          //
           "ModRun/foo/compile-resources",
           "ModRun/foo/unmanaged",
           "ModRun/foo/resources",
           "out/ModRun/foo/compile.dest/classes",
+          //
+          "ModRun/bar/compile-resources",
+          "ModRun/bar/unmanaged",
+          "ModRun/bar/resources",
+          "out/ModRun/bar/compile.dest/classes",
+          //
           "ModRun/qux/compile-resources",
           "ModRun/qux/unmanaged",
           "ModRun/qux/resources",
@@ -348,14 +351,17 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
           "org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
           "org/portable-scala/portable-scala-reflect_2.13/1.1.3/portable-scala-reflect_2.13-1.1.3.jar",
           "org/scala-lang/scala-reflect/2.13.12/scala-reflect-2.13.12.jar",
-          "RunMod/bar/compile-resources",
-          "RunMod/bar/unmanaged",
-          "RunMod/bar/resources",
-          "out/RunMod/bar/compile.dest/classes",
+          //
           "RunMod/foo/compile-resources",
           "RunMod/foo/unmanaged",
           "RunMod/foo/resources",
           "out/RunMod/foo/compile.dest/classes",
+          //
+          "RunMod/bar/compile-resources",
+          "RunMod/bar/unmanaged",
+          "RunMod/bar/resources",
+          "out/RunMod/bar/compile.dest/classes",
+          //
           "RunMod/qux/compile-resources",
           "RunMod/qux/unmanaged",
           "RunMod/qux/resources",
@@ -370,6 +376,7 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
           "RunMod/bar/compile-resources",
           "RunMod/bar/unmanaged",
           "out/RunMod/bar/compile.dest/classes",
+          //
           "RunMod/qux/compile-resources",
           "RunMod/qux/unmanaged"
         ),
