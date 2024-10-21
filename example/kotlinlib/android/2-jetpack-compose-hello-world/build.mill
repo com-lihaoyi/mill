@@ -1,3 +1,12 @@
+// This build configuration file defines an Android application using Mill,
+// Kotlin, and Jetpack Compose. It manages dependencies through Maven repositories
+// and specifies the necessary configurations for the Android SDK and Kotlin versions.
+
+// The main components include:
+// - Maven repositories for dependency resolution
+// - Android SDK configuration, including the build tools version
+// - Android application module with required dependencies for Jetpack Compose
+
 //// SNIPPET:BUILD
 package build
 
@@ -43,3 +52,40 @@ object app extends AndroidAppKotlinModule {
 ".../out/app/androidApk.dest/app.apk"
 
 */
+
+// To build the Android APK, you can use this command
+// This command will output the path to the generated APK file
+// This path indicates where the built APK can be found after executing the build process.
+//
+//
+// Detailed Code Explanation
+// 1. **Maven Repositories**: 
+//    - `val maven_google`: This sequence defines the Maven repositories from which dependencies will be resolved.
+//      - Google Maven repository is essential for Android libraries.
+//      - Maven Central repository provides additional libraries.
+//
+// 2. **Android SDK Module**: 
+//    - `object androidSdkModule0`: Defines an Android SDK module.
+//      - `def buildToolsVersion`: Specifies the version of the Android build tools to be used during the build process.
+//
+// 3. **Android Application Module**: 
+//    - `object app`: Defines the main Android application module.
+//      - `def kotlinVersion`: Specifies the version of Kotlin used in the application.
+//      - `def androidSdkModule`: Links to the previously defined Android SDK module.
+//      - `override def mandatoryIvyDeps`: Overrides the default dependencies to include necessary Jetpack Compose libraries.
+//      - `def repositoriesTask`: Combines the default repositories with custom Maven repositories for dependency resolution.
+//
+// Directory Structure:
+// The project structure is as follows:
+// 
+// example/kotlinlib/android/2-jetpack-compose-hello-world
+// ├── app
+// │   ├── AndroidManifest.xml       // Manifest file for the application
+// │   └── src
+// │       └── main
+// │           └── java
+// │               └── com
+// │                   └── helloworld
+// │                       └── app
+// │                           └── MainActivity.kt  // Main activity of the application
+// └── build.mill                     // Mill build configuration file

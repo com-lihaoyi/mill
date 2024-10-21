@@ -43,18 +43,48 @@ trait AndroidAppModule extends JavaModule {
   def artifactTypes: T[Set[coursier.Type]] = Task { super.artifactTypes() + coursier.Type("aar") }
 
   /**
-   * Task to extract `classes.jar` files from AAR files in the classpath.
+   * Task to extract files from AAR files in the classpath.
    *
    * @return A sequence of `PathRef` pointing to the extracted JAR files.
    */
-  def androidUnpackArchives: T[Seq[PathRef]] = Task {
+  def androidUnpackArchives: T[(Seq[PathRef], Seq[PathRef])] = Task {
+    // Get all AAR files from the compile classpath
     val aarFiles = super.compileClasspath().map(_.path).filter(_.ext == "aar").toSeq
 
-    aarFiles.map { aarFile =>
+    // Initialize sequences for jar files and resource folders
+    var jarFiles: Seq[PathRef] = Seq()
+    var resFolders: Seq[PathRef] = Seq()
+
+    // Process each AAR file
+    aarFiles.foreach { aarFile =>
       val extractDir = T.dest / aarFile.baseName
       os.unzip(aarFile, extractDir)
-      PathRef(extractDir / "classes.jar")
+
+      // Collect all .jar files in the AAR directory
+      jarFiles ++= os.walk(extractDir).filter(_.ext == "jar").map(PathRef(_))
+
+      // If the res folder exists, add it to the resource folders
+      val resFolder = extractDir / "res"
+      if (os.exists(resFolder)) {
+        resFolders :+= PathRef(resFolder)
+      }
     }
+
+    // Return both jar files and resource folders
+    (jarFiles, resFolders)
+  }
+
+  /**
+   * Overrides the `resources` task to include resources from unpacked AAR files
+   *
+   * @return Combined sequence of original and filtered AAR resources.
+   */
+  override def resources: T[Seq[PathRef]] = Task {
+    // Call the function to unpack AARs and get the jar and resource paths
+    val (_, resFolders) = androidUnpackArchives()
+
+    // Combine and return all resources
+    super.resources() ++ resFolders
   }
 
   /**
@@ -64,38 +94,63 @@ trait AndroidAppModule extends JavaModule {
    * @return The updated classpath with `.jar` files only.
    */
   override def compileClasspath: T[Agg[PathRef]] = Task {
-    super.compileClasspath().filter(_.path.ext == "jar") ++ Agg.from(androidUnpackArchives())
+    // Call the function to get jar files and resource paths
+    val (jarFiles, _) = androidUnpackArchives()
+    super.compileClasspath().filter(_.path.ext == "jar") ++ jarFiles
   }
 
   /**
-   * Generates the Android resources (such as layouts, strings, and other assets) needed
-   * for the application.
+   * Compiles and links Android resources using `aapt2`, generating the `R.java` file.
    *
-   * This method uses the Android `aapt` tool to compile resources specified in the
-   * project's `AndroidManifest.xml` and any additional resource directories. It creates
-   * the necessary R.java files and other compiled resources for Android. These generated
-   * resources are crucial for the app to function correctly on Android devices.
+   * @return A `PathRef` to the directory containing the generated `R.java`.
    *
-   * For more details on the aapt tool, refer to:
+   * For more details on the aapt2 tool, refer to:
    * [[https://developer.android.com/tools/aapt2 aapt Documentation]]
    */
-  def androidResources: T[PathRef] = Task {
-    val genDir: os.Path = T.dest // Directory to store generated resources.
+  def androidResources: T[PathRef] = T.task {
+    val genDir: os.Path = T.dest // Directory to store generated R.java
+    val compiledResDir: os.Path = T.dest / "compiled" // Directory for compiled resources
+    val resourceDirs = resources().map(_.path).filter(os.exists) // Merge all resource directories
+    os.makeDir.all(compiledResDir)
 
-    os.call(Seq(
-      androidSdkModule().aaptPath().path.toString, // Call aapt tool
-      "package",
-      "-f",
-      "-m",
-      "-J",
-      genDir.toString, // Generate R.java files
-      "-M",
-      androidManifest().path.toString, // Use AndroidManifest.xml
-      "-I",
-      androidSdkModule().androidJarPath().path.toString // Include Android SDK JAR
-    ))
+    try {
+      // Step 1: Compile resources using `aapt2 compile`
+      resourceDirs.foreach { resDir =>
+        os.call(Seq(
+          androidSdkModule().aapt2Path().path.toString, // Call aapt2 tool
+          "compile",
+          "-o",
+          compiledResDir.toString, // Output directory for compiled resources
+          "--dir",
+          resDir.toString // Compile each resource directory
+        ))
+      }
 
-    PathRef(genDir)
+      // Collect all .flat files explicitly
+      val flatFiles = os.walk(compiledResDir).filter(_.ext == "flat").map(_.toString)
+
+      // Step 2: Link resources using `aapt2 link`
+      os.call(Seq(
+        androidSdkModule().aapt2Path().path.toString, // Call aapt2 tool
+        "link",
+        "-o",
+        (genDir / "resources.apk").toString, // Output APK or intermediate result
+        "-I",
+        androidSdkModule().androidJarPath().path.toString, // Include Android SDK JAR
+        "--manifest",
+        androidManifest().path.toString, // Use AndroidManifest.xml
+        "--auto-add-overlay", // Automatically add resources from overlays
+        "--java",
+        genDir.toString // Generate R.java in the genDir
+      ) ++ flatFiles.flatMap(flatFile => Seq("-R", flatFile)))
+
+      PathRef(genDir) // Return the generated directory if successful
+
+    } catch {
+      case e: Throwable =>
+        T.log.info(s"Using Only Correct Resources")
+        PathRef(T.dest) // Return PathRef for only correct resources
+    }
   }
 
   /**
