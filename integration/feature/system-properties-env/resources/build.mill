@@ -1,0 +1,5 @@
+import mill._
+import collection.JavaConverters._
+def properties = Task.Input { System.getProperties.asScala.get("my-prop") }
+
+def environment = Task.Input { Task.env.get("MY_ENV") }
