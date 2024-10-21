@@ -30,7 +30,8 @@ class LinePrefixOutputStream(
     if (isNewLine && linePrefixNonEmpty) {
       isNewLine = false
       buffer.write(linePrefixBytes)
-      if (linePrefixNonEmpty) buffer.write(fansi.Attrs.emitAnsiCodes(0, endOfLastLineColor).getBytes())
+      if (linePrefixNonEmpty)
+        buffer.write(fansi.Attrs.emitAnsiCodes(0, endOfLastLineColor).getBytes())
     }
   }
 
@@ -39,7 +40,7 @@ class LinePrefixOutputStream(
 
     if (linePrefixNonEmpty) {
       val s = fansi.Str.apply(buffer.toString, errorMode = fansi.ErrorMode.Sanitize)
-      endOfLastLineColor = s.getColor(s.length-1)
+      endOfLastLineColor = s.getColor(s.length - 1)
     }
     out.synchronized { buffer.writeTo(out) }
     buffer.reset()
