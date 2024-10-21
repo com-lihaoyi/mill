@@ -6,7 +6,7 @@ import mill.eval.EvaluatorPaths
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.{TestSuite, Tests, test}
 
-object KotlinJSNodeRunTests extends TestSuite {
+object KotlinJsNodeRunTests extends TestSuite {
 
   private val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "kotlin-js"
   private val kotlinVersion = "1.9.25"
@@ -19,9 +19,9 @@ object KotlinJSNodeRunTests extends TestSuite {
       modules <- Seq("no", "plain", "es", "amd", "commonjs", "umd")
     } yield (splits, modules)
 
-    trait KotlinJsModuleKindCross extends KotlinJSModule with Cross.Module2[Boolean, String] {
+    trait KotlinJsModuleKindCross extends KotlinJsModule with Cross.Module2[Boolean, String] {
 
-      def kotlinVersion = KotlinJSNodeRunTests.kotlinVersion
+      def kotlinVersion = KotlinJsNodeRunTests.kotlinVersion
 
       override def moduleKind = crossValue2 match {
         case "no" => ModuleKind.NoModule
@@ -37,8 +37,8 @@ object KotlinJSNodeRunTests extends TestSuite {
       override def kotlinJSRunTarget = Some(RunTarget.Node)
     }
 
-    object bar extends KotlinJSModule {
-      def kotlinVersion = KotlinJSNodeRunTests.kotlinVersion
+    object bar extends KotlinJsModule {
+      def kotlinVersion = KotlinJsNodeRunTests.kotlinVersion
     }
 
     object foo extends Cross[KotlinJsModuleKindCross](matrix)

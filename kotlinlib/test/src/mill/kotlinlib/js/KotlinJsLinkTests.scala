@@ -6,14 +6,14 @@ import utest.{TestSuite, Tests, assert, test}
 
 import scala.util.Random
 
-object KotlinJSLinkTests extends TestSuite {
+object KotlinJsLinkTests extends TestSuite {
 
   private val kotlinVersion = "1.9.25"
 
   private val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "kotlin-js"
 
-  trait KotlinJSCrossModule extends KotlinJSModule with Cross.Module[Boolean] {
-    override def kotlinVersion = KotlinJSLinkTests.kotlinVersion
+  trait KotlinJsCrossModule extends KotlinJsModule with Cross.Module[Boolean] {
+    override def kotlinVersion = KotlinJsLinkTests.kotlinVersion
     override def splitPerModule: T[Boolean] = crossValue
     override def kotlinJSBinaryKind: T[Option[BinaryKind]] = Some(BinaryKind.Executable)
     override def moduleDeps = Seq(module.bar)
@@ -21,11 +21,11 @@ object KotlinJSLinkTests extends TestSuite {
 
   object module extends TestBaseModule {
 
-    object bar extends KotlinJSModule {
-      def kotlinVersion = KotlinJSLinkTests.kotlinVersion
+    object bar extends KotlinJsModule {
+      def kotlinVersion = KotlinJsLinkTests.kotlinVersion
     }
 
-    object foo extends Cross[KotlinJSCrossModule](Seq(true, false))
+    object foo extends Cross[KotlinJsCrossModule](Seq(true, false))
   }
 
   private def testEval() = UnitTester(module, resourcePath)

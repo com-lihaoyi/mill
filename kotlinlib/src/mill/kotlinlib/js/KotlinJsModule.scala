@@ -18,7 +18,7 @@ import java.util.zip.ZipFile
 /**
  * This module is very experimental. Don't use it, it is still under the development, APIs can change.
  */
-trait KotlinJSModule extends KotlinModule { outer =>
+trait KotlinJsModule extends KotlinModule { outer =>
 
   // region Kotlin/JS configuration
 
@@ -70,8 +70,8 @@ trait KotlinJSModule extends KotlinModule { outer =>
     T.traverse(transitiveModuleCompileModuleDeps)(m =>
       Task.Anon {
         val transitiveModuleArtifactPath =
-          (if (m.isInstanceOf[KotlinJSModule]) {
-             m.asInstanceOf[KotlinJSModule].createKlib(T.dest, m.compile().classes)
+          (if (m.isInstanceOf[KotlinJsModule]) {
+             m.asInstanceOf[KotlinJsModule].createKlib(T.dest, m.compile().classes)
            } else m.compile().classes)
         m.localCompileClasspath() ++ Agg(transitiveModuleArtifactPath)
       }
@@ -420,7 +420,7 @@ trait KotlinJSModule extends KotlinModule { outer =>
    * Generic trait to run tests for Kotlin/JS which doesn't specify test
    * framework. For the particular implementation see [[KotlinTestPackageTests]] or [[KotestTests]].
    */
-  trait KotlinJSTests extends KotlinTests with KotlinJSModule {
+  trait KotlinJsTests extends KotlinTests with KotlinJsModule {
 
     // region private
 
@@ -489,7 +489,7 @@ trait KotlinJSModule extends KotlinModule { outer =>
   /**
    * Run tests for Kotlin/JS target using `kotlin.test` package.
    */
-  trait KotlinTestPackageTests extends KotlinJSTests {
+  trait KotlinTestPackageTests extends KotlinJsTests {
     override def ivyDeps = Agg(
       ivy"org.jetbrains.kotlin:kotlin-test-js:${kotlinVersion()}"
     )
@@ -498,7 +498,7 @@ trait KotlinJSModule extends KotlinModule { outer =>
   /**
    * Run tests for Kotlin/JS target using Kotest framework.
    */
-  trait KotestTests extends KotlinJSTests {
+  trait KotestTests extends KotlinJsTests {
 
     def kotestVersion: T[String] = "5.9.1"
 
