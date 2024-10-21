@@ -79,7 +79,7 @@ Contents of groovy-generated.html is <html><body><h1>Hello!</h1><p>Bar Groovy!</
 // xref:fundamentals/tasks.adoc#_autoclosable_workers[Autocloseable Worker] automatically.
 
 // NOTE: As mentioned in documentation for xref:fundamentals/tasks.adoc#_workers[Worker Tasks],
-// the classloader contained within `groovyWorker` above is _initialized_ in a single-thread,
-// but it may be _used_ concurrently in a multi-threaded environment. Practically, that means
+// the classloader contained within `groovyWorker` above is *initialized* in a single-thread,
+// but it may be *used* concurrently in a multi-threaded environment. Practically, that means
 // that the classes and methods you are invoking within the classloader do not make use of
 // un-synchronized global mutable variables.
