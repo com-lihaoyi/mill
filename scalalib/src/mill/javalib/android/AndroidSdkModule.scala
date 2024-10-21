@@ -62,6 +62,13 @@ trait AndroidSdkModule extends Module {
   }
 
   /**
+   * Provides the path to AAPT2, used for resource handling and APK packaging.
+   */
+  def aapt2Path: T[PathRef] = Task {
+    PathRef(buildToolsPath().path / "aapt2")
+  }
+
+  /**
    * Provides the path to the Zipalign tool, which optimizes APK files by aligning their data.
    */
   def zipalignPath: T[PathRef] = Task {

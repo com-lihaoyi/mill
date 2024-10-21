@@ -27,6 +27,14 @@ This example demonstrates how to create a basic "Hello World" Android applicatio
 using the Mill build tool. It outlines the minimum setup required to compile Kotlin code,
 package it into an APK, and run the app on an Android device.
 
+== Kotlin Android Jetpack Compose Application
+
+include::partial$example/kotlinlib/android/2-jetpack-compose-hello-world.adoc[]
+
+This example demonstrates how to create a basic "Hello World" Jetpack Compose Android application
+using the Mill build tool. It outlines the minimum setup required to compile Kotlin code, 
+Compiling Jetpack Compose Libraries, package it into an APK, and run the app on an Android device.
+
 == Understanding `AndroidSdkModule` and `AndroidAppKotlinModule`
 
 The two main modules you need to understand when building Android apps with Mill
