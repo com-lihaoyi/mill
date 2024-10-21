@@ -12,9 +12,53 @@ object foo extends JavaModule {
     )
     def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
   }
+  object testng extends JavaTests with TestModule.TestNg {
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy"org.testng:testng:7.10.2"
+    )
+    def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
+  }
 }
 
 /** See Also: foo/test/src/foo/HelloTests.java */
 /** See Also: foo/test/src/foo/WorldTests.java */
 
+/** Usage
+
+> mill foo.test
+
+> find out/foo/test/test.dest
+...
+out/foo/test/test.dest/foo.HelloTests.log
+out/foo/test/test.dest/foo.HelloTests/sandbox
+out/foo/test/test.dest/foo.WorldTests.log
+out/foo/test/test.dest/foo.WorldTests/sandbox
+out/foo/test/test.dest/test-report.xml
+
+> mill show foo.testng.discoveredTestClasses
+[
+  "foo.HelloTests",
+  "foo.WorldTests"
+]
+
+> mill show foo.testng.testForkGrouping
+[
+  [
+    "foo.HelloTests"
+  ],
+  [
+    "foo.WorldTests"
+  ]
+]
+
+> mill show foo.testng.test
+...
+..."fullyQualifiedName": "foo.HelloTests",
+...
+..."fullyQualifiedName": "foo.WorldTests",
+...
+
+*/
+
 //// SNIPPET:END
+
