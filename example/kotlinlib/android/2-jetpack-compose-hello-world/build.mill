@@ -59,7 +59,7 @@ object app extends AndroidAppKotlinModule {
 // This path indicates where the built APK can be found after executing the build process.
 //
 //
-// Detailed Code Explanation
+// **Detailed Code Explanation**
 //
 // 1. **Maven Repositories**: 
 //      - `val maven_google`: This sequence defines the Maven repositories from which dependencies will be resolved.
@@ -82,7 +82,7 @@ object app extends AndroidAppKotlinModule {
 // The project structure is as follows:
 // 
 // ----
-// example/kotlinlib/android/2-jetpack-compose-hello-world
+// 2-jetpack-compose-hello-world
 // ├── app
 // │   ├── AndroidManifest.xml       // Manifest file for the application
 // │   └── src
