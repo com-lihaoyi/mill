@@ -316,7 +316,7 @@ object Jvm extends CoursierSupport {
     method
   }
 
-  def runInprocess[T](classPath: Agg[os.Path])(body: ClassLoader => T)(implicit
+  def runClassloader[T](classPath: Agg[os.Path])(body: ClassLoader => T)(implicit
       ctx: mill.api.Ctx.Home
   ): T = {
     inprocess(
