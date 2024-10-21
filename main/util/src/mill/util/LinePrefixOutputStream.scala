@@ -40,7 +40,7 @@ class LinePrefixOutputStream(
 
     if (linePrefixNonEmpty) {
       val bufferString = buffer.toString
-      if (bufferString.length > 0){
+      if (bufferString.length > 0) {
         val s = fansi.Str.apply(bufferString, errorMode = fansi.ErrorMode.Sanitize)
         endOfLastLineColor = s.getColor(s.length - 1)
       }
