@@ -33,7 +33,7 @@ object `package` extends RootModule with KotlinModule {
     )
   }
 
-  object client extends KotlinJSModule {
+  object client extends KotlinJsModule {
     def kotlinVersion = "1.9.24"
 
     override def splitPerModule = false
