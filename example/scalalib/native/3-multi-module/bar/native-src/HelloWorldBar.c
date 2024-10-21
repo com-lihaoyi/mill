@@ -1,7 +1,8 @@
-#include "htmc.h"
-#include <stdio.h>
+#include <string.h>
+#include "bar.h"
 
-
-char* generateHtml(const char* text) {
-    return htmc(h1(text));
+// Function to count the length of a string
+int stringLength(const char* str) {
+    return strlen(str);
 }
+

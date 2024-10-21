@@ -12,10 +12,10 @@ object Foo {
     implicit val z: Zone = Zone.open
     val cFooText = toCString(fooText)
     val cBarText = toCString(barText)
-    z.close
+    z.close()
 
-    stdio.printf(c"Foo.value: %s\n", HelloWorldFoo.generateHtml(cFooText))
-    stdio.printf(c"Bar.value: %s\n", bar.HelloWorldBar.generateHtml(cBarText))
+    stdio.printf(c"Foo.value: The vowel density of '%s' is %d\n", cFooText, HelloWorldFoo.vowelDensity(cFooText))
+    stdio.printf(c"Bar.value: The string length of '%s' is %d\n", cBarText, bar.HelloWorldBar.stringLength(cBarText))
   }
 
   def main(args: Array[String]): Unit = ParserForMethods(this).runOrExit(args)
@@ -26,5 +26,6 @@ object Foo {
 // Arbitrary object name
 object HelloWorldFoo {
   // Name and signature of C function
-  def generateHtml(str: CString): CString = extern
+  def vowelDensity(str: CString): CInt = extern
 }
+

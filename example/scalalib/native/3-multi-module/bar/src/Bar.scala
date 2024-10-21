@@ -8,9 +8,9 @@ object Bar {
     println("Running HelloWorld function")
     implicit val z: Zone = Zone.open
     val result = toCString(args(0))
-    HelloWorldBar.generateHtml(result)
+    val barValue = HelloWorldBar.stringLength(result)
     z.close()
-    stdio.printf(c"Bar value: %s\n", args(0))
+    stdio.printf(c"Bar value: Argument length is %i\n", barValue)
     println("Done...")
   }
 }
@@ -21,6 +21,6 @@ object Bar {
 // Arbitrary object name
 object HelloWorldBar {
   // Name and signature of C function
-  def generateHtml(str: CString): CString = extern
+  def stringLength(str: CString): CInt = extern
 }
 

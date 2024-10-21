@@ -5,38 +5,50 @@ import mill._, scalalib._, scalanativelib._
 trait MyModule extends ScalaNativeModule {
   def scalaVersion = "2.13.11"
   def scalaNativeVersion = "0.5.5"
-  
+
   object test extends ScalaNativeTests {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.8.4")
     def testFramework = "utest.runner.Framework"
   }
+
+  def nativeLinkingOptions = Seq("-L" + millSourcePath.toString + "/target")
 }
 
 object foo extends MyModule {
   def moduleDeps = Seq(bar)
+
   def ivyDeps = Agg(ivy"com.lihaoyi::mainargs::0.7.6")
 
-  os.proc("mkdir", millSourcePath.toString + "/target").call(stdout = os.Inherit)
+  // Compile C
+  def nativeCompiled = T {
+    os.makeDir.all(millSourcePath / "target")
 
-  os.proc(
-    "gcc", "-m64", "-shared", "-fPIC", 
-    millSourcePath.toString + "/native-src/HelloWorldFoo.c", millSourcePath.toString + "/native-src/htm.c",
-    "-o", millSourcePath.toString + "/target/libHelloWorldFoo.so")
-  .call(stdout = os.Inherit)
+    os.proc(
+      "gcc", "-m64", "-shared", "-fPIC",
+      "-I", "/workspaces/milling-two/sunday-work/mill/example/scalalib/native/3-multi/bar/native-src",
+      millSourcePath.toString + "/native-src/HelloWorldFoo.c", 
+      "-o", millSourcePath.toString + "/target/libHelloWorldFoo.so")
+    .call(stdout = os.Inherit)
+
+    PathRef(T.dest / "target/libHelloWorldFoo.so")
+  }
 }
 
 object bar extends MyModule {
 
-  os.proc("mkdir", millSourcePath.toString + "/target").call(stdout = os.Inherit)
+  // Compile C
+  def nativeCompiled = T {
+    os.makeDir.all(millSourcePath / "target")
 
-  def nativeLinkingOptions = Seq("-L" + millSourcePath.toString + "/target")
+    os.proc(
+      "gcc", "-m64", "-shared", "-fPIC", 
+      millSourcePath.toString + "/native-src/HelloWorldBar.c",
+      "-o", millSourcePath.toString + "/target/libHelloWorldBar.so")
+    .call(stdout = os.Inherit)
 
-  os.proc(
-    "gcc", "-m64", "-shared", "-fPIC", 
-    millSourcePath.toString + "/native-src/HelloWorldBar.c", millSourcePath.toString + "/native-src/htm.c",
-    "-o", millSourcePath.toString + "/target/libHelloWorldBar.so")
-  .call(stdout = os.Inherit)
-  
+    PathRef(T.dest / "target/libHelloWorldBar.so")
+  }
+
 }
 //// SNIPPET:END
 
@@ -59,6 +71,7 @@ object bar extends MyModule {
 // build.mill
 // bar/
 //     native-src/
+//         bar.h
 //         HelloWorldBar.c
 //     src/
 //         Bar.scala
@@ -71,7 +84,8 @@ object bar extends MyModule {
 //     src/
 //         Foo.scala
 //
-//
+// ----
 //
 //// SNIPPET:END
+
 

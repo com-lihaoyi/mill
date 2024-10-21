@@ -10,7 +10,6 @@ object `package` extends RootModule with ScalaNativeModule {
     def testFramework = "utest.runner.Framework"
   }
   
-  def nativeLinking = true
   def nativeLinkingOptions = Seq("-L" + millSourcePath.toString + "/target")
 
   // Compiled C
