@@ -481,7 +481,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         )
       }
       val bind = bindDependency()
-      runIvyDeps().map(bind) ++ transitiveIvyDeps() ++
+      transitiveRunIvyDeps() ++ transitiveIvyDeps() ++
         Agg(ivy"com.lihaoyi:::ammonite:${ammVersion}").map(bind)
     }
   }
