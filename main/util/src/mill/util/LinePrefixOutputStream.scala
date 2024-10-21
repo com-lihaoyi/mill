@@ -20,16 +20,20 @@ class LinePrefixOutputStream(
   private[this] val linePrefixNonEmpty = linePrefixBytes.length != 0
   private[this] var isNewLine = true
   val buffer = new ByteArrayOutputStream()
+  var endOfLastLineColor: Long = 0
   override def write(b: Array[Byte]): Unit = write(b, 0, b.length)
   private[this] def writeLinePrefixIfNecessary(): Unit = {
     if (isNewLine && linePrefixNonEmpty) {
       isNewLine = false
       buffer.write(linePrefixBytes)
+      buffer.write(fansi.Attrs.emitAnsiCodes(0, endOfLastLineColor).getBytes())
     }
   }
 
   def writeOutBuffer(): Unit = {
     if (buffer.size() > 0) reportPrefix()
+    val s = fansi.Str.apply(buffer.toString, errorMode = fansi.ErrorMode.Sanitize)
+    endOfLastLineColor = s.getColor(s.length-1)
     out.synchronized { buffer.writeTo(out) }
     buffer.reset()
   }
