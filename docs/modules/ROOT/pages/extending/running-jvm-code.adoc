@@ -30,4 +30,8 @@ include::partial$example/extending/jvmcode/1-subprocess.adoc[]
 
 == In-process Isolated Classloaders
 
-include::partial$example/extending/jvmcode/2-inprocess.adoc[]
+include::partial$example/extending/jvmcode/2-classloader.adoc[]
+
+== Classloader Worker Tasks
+
+include::partial$example/extending/jvmcode/3-worker.adoc[]
