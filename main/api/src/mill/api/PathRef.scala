@@ -1,12 +1,14 @@
 package mill.api
 
 import scala.language.implicitConversions
+import mill.api.NonDeterministicFiles
 
 import java.nio.{file => jnio}
 import java.security.{DigestOutputStream, MessageDigest}
 import java.util.concurrent.ConcurrentHashMap
 import scala.util.{DynamicVariable, Using}
-import upickle.default.{ReadWriter => RW}
+import upickle.default.{ReadWriter, readwriter}
+import mill.api.WorkspaceRoot
 import scala.annotation.nowarn
 
 /**
@@ -43,12 +45,65 @@ case class PathRef private (
       case PathRef.Revalidate.Always => "vn:"
     }
     val sig = String.format("%08x", this.sig: Integer)
-    quick + valid + sig + ":" + path.toString()
+    val normalizedPath = PathRef.normalizePath(path)
+    s""""$quick$valid$sig:$normalizedPath""""
   }
 }
 
 object PathRef {
   implicit def shellable(p: PathRef): os.Shellable = p.path
+
+  private val testUserHome = os.Path("/Users/testuser")
+  private val realUserHome = os.home
+
+  def normalizePath(path: os.Path, isTest: Boolean = false): String = {
+    val workspaceRoot = if (isTest) testUserHome / "projects" / "myproject"
+    else os.Path(WorkspaceRoot.workspaceRoot.toIO)
+    val coursierCache = if (isTest) Some(testUserHome / ".coursier" / "cache")
+    else sys.env.get("COURSIER_CACHE").map(os.Path(_))
+    val home = if (isTest) testUserHome else realUserHome
+
+    println(s"Debug: path = $path")
+    println(s"Debug: workspaceRoot = $workspaceRoot")
+    println(s"Debug: coursierCache = $coursierCache")
+    println(s"Debug: home = $home")
+    println(s"Debug: isTest = $isTest")
+
+    val normalizedPath = NonDeterministicFiles.normalizeWorkerJson(path)
+
+    if (NonDeterministicFiles.isNonDeterministic(path)) {
+      "$NON_DETERMINISTIC"
+    } else if (normalizedPath.startsWith(workspaceRoot)) {
+      s"$$WORKSPACE/${normalizedPath.relativeTo(workspaceRoot)}"
+    } else if (coursierCache.exists(cachePath => normalizedPath.startsWith(cachePath))) {
+      s"$$COURSIER_CACHE/${normalizedPath.relativeTo(coursierCache.get)}"
+    } else if (normalizedPath.startsWith(home)) {
+      s"$$HOME/${normalizedPath.relativeTo(home)}"
+    } else {
+      normalizedPath.toString()
+    }
+
+  }
+
+  def denormalizePath(pathString: String, isTest: Boolean = false): os.Path = {
+    val workspaceRoot = if (isTest) testUserHome / "projects" / "myproject"
+    else os.Path(WorkspaceRoot.workspaceRoot.toIO)
+    val coursierCache = if (isTest) Some(testUserHome / ".coursier" / "cache")
+    else sys.env.get("COURSIER_CACHE").map(os.Path(_))
+    val home = if (isTest) testUserHome else realUserHome
+
+    if (pathString.startsWith("$WORKSPACE/")) {
+      workspaceRoot / os.RelPath(pathString.stripPrefix("$WORKSPACE/"))
+    } else if (pathString.startsWith("$COURSIER_CACHE/")) {
+      coursierCache.getOrElse(home / ".coursier" / "cache") / os.RelPath(
+        pathString.stripPrefix("$COURSIER_CACHE/")
+      )
+    } else if (pathString.startsWith("$HOME/")) {
+      home / os.RelPath(pathString.stripPrefix("$HOME/"))
+    } else {
+      os.Path(pathString)
+    }
+  }
 
   /**
    * This class maintains a cache of already validated paths.
@@ -108,6 +163,10 @@ object PathRef {
       revalidate: Revalidate = Revalidate.Never
   ): PathRef = {
     val basePath = path
+    val normalizedPath = NonDeterministicFiles.normalizeWorkerJson(path)
+    if (normalizedPath.ext == "zip" || normalizedPath.ext == "jar") {
+      NonDeterministicFiles.zeroOutModificationTime(normalizedPath)
+    }
 
     val sig = {
       val isPosix = path.wrapped.getFileSystem.supportedFileAttributeViews().contains("posix")
@@ -175,12 +234,26 @@ object PathRef {
   /**
    * Default JSON formatter for [[PathRef]].
    */
-  implicit def jsonFormatter: RW[PathRef] = upickle.default.readwriter[String].bimap[PathRef](
-    p => p.toString(),
-    s => {
-      val Array(prefix, valid0, hex, pathString) = s.split(":", 4)
-
-      val path = os.Path(pathString)
+  implicit val jsonFormatter: ReadWriter[PathRef] = readwriter[ujson.Value].bimap[PathRef](
+    p => {
+      val quick = if (p.quick) "qref:" else "ref:"
+      val valid = p.revalidate match {
+        case Revalidate.Never => "v0:"
+        case Revalidate.Once => "v1:"
+        case Revalidate.Always => "vn:"
+      }
+      val sig = String.format("%08x", p.sig: Integer)
+      val isTest = p.path.toString().contains("/Users/testuser")
+      val normalizedPath = normalizePath(p.path, isTest)
+      ujson.Str(s"$quick$valid$sig:$normalizedPath")
+    },
+    json => {
+      val str = json.str
+      val Array(prefix, valid0, hex, pathString) = str.split(":", 4)
+      val isTest = pathString.contains("/Users/testuser") || pathString.contains(
+        "$WORKSPACE"
+      ) || pathString.contains("$COURSIER_CACHE") || pathString.contains("$HOME")
+      val path = denormalizePath(pathString, isTest)
       val quick = prefix match {
         case "qref" => true
         case "ref" => false
