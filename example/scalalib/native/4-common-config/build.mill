@@ -1,0 +1,71 @@
+// This example shows some of the common tasks you may want to override on a
+// `{language}Module`: specifying the `releaseMode`, `nativeLinkStubs`
+// `nativeIncrementalCompilation, `nativeLinkingOptions` and `nativeWorkdir`.
+
+
+//// SNIPPET:BUILD
+package build
+import mill._, scalalib._, scalanativelib._, scalanativelib.api._
+
+object `package` extends RootModule with ScalaNativeModule {
+  def scalaVersion = "2.13.11"
+  def scalaNativeVersion = "0.5.5"
+
+  // You can have arbitrary numbers of third-party dependencies
+  def ivyDeps = Agg(
+    ivy"com.lihaoyi::fansi::0.5.0"
+  )
+
+  // Set the releaseMode to ReleaseFast.
+  def releaseMode: T[ReleaseMode] = T { ReleaseMode.ReleaseFast }
+
+  // Set linking of `@stub` methods to true.
+  def nativeLinkStubs: T[Boolean] = T { true }
+
+  // Set incremental compilation to true
+  def nativeIncrementalCompilation: T[Boolean] = T { true }
+
+  // Set nativeLinkingOptions path to a directory named `target`.
+  def nativeLinkingOptions = Seq("-L" + millSourcePath.toString + "/target")
+
+  // Set nativeWorkdir directory to `newDir`
+  def nativeWorkdir = T { T.dest / "newDir" }
+}
+//// SNIPPET:END
+
+//
+
+/** Usage
+
+> ./mill run
+...
+#2 [info] done compiling
+[89/1] run 
+Foo.value: <h1>Hello</h1>
+
+> ./mill show releaseMode
+...
+#1 [info] done compiling
+[1/1] show 
+"mill.scalanativelib.api.ReleaseMode.ReleaseFast"
+
+> ./mill show nativeLinkStubs
+[1/1] show 
+true
+
+> ./mill show nativeIncrementalCompilation
+[1/1] show 
+true
+
+> ./mill show nativeLinkingOptions
+#2 [info] done compiling
+#1 [1/1] show > [1/1] nativeLinkingOptions 
+[
+  "-L/.../mill/example/scalalib/native/4-common-config/target"
+]
+
+> ./mill show nativeWorkdir
+[1/1] show 
+"/.../mill/example/scalalib/native/4-common-config/out/nativeWorkdir.dest/newDir"
+
+*/
