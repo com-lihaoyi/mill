@@ -27,26 +27,26 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
 
       val res = eval(("--ticker", "true", "run", "--text", "hello"))
       res.isSuccess ==> true
-      assert(res.out == "[46] <h1>hello</h1>")
+      assert("\\[\\d+\\] <h1>hello</h1>".r.matches(res.out))
 
       val expectedErrorRegex =
         s"""==================================================== run --text hello ================================================
            |======================================================================================================================
-           |[build.mill-56/60] compile
-           |[build.mill-56] [info] compiling 1 Scala source to ${tester.workspacePath}/out/mill-build/compile.dest/classes ...
-           |[build.mill-56] [info] done compiling
-           |[40/46] compile
-           |[40] [info] compiling 1 Java source to ${tester.workspacePath}/out/compile.dest/classes ...
-           |[40] [info] done compiling
-           |[46/46] run
-           |[46/46] ============================================ run --text hello ============================================<seconds-digits>s
+           |[build.mill-<digits>/<digits>] compile
+           |[build.mill-<digits>] [info] compiling 1 Scala source to ${tester.workspacePath}/out/mill-build/compile.dest/classes ...
+           |[build.mill-<digits>] [info] done compiling
+           |[<digits>/<digits>] compile
+           |[<digits>] [info] compiling 1 Java source to ${tester.workspacePath}/out/compile.dest/classes ...
+           |[<digits>] [info] done compiling
+           |[<digits>/<digits>] run
+           |[<digits>/<digits>] ============================================ run --text hello ============================================<digits>s
            |======================================================================================================================"""
           .stripMargin
           .replaceAll("(\r\n)|\r", "\n")
           .replace('\\', '/')
-          .split("<seconds-digits>")
+          .split("<digits>")
           .map(java.util.regex.Pattern.quote)
-          .mkString("=? [\\d]+")
+          .mkString("=? ?[\\d]+")
 
       assert(expectedErrorRegex.r.matches(res.err.replace('\\', '/').replaceAll("(\r\n)|\r", "\n")))
     }
