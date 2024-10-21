@@ -427,9 +427,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-100-4a074b</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-101-c0b6f1</button>
   <div class="version-menu">
-    <a class="version is-current" href="running-jvm-code.html">0.12.0-RC3-100-4a074b</a>
+    <a class="version is-current" href="running-jvm-code.html">0.12.0-RC3-101-c0b6f1</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
@@ -577,7 +577,7 @@ a subprocess, but instead of using <code>Jvm.runSubprocess</code> we use <code>J
 load the Groovy interpreter classpath files into an in-memory in-process classloader.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC3/0.12.0-RC3-example-extending-jvmcode-2-inprocess.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/extending/jvmcode/2-inprocess">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC3/0.12.0-RC3-example-extending-jvmcode-2-classloader.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/extending/jvmcode/2-classloader">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -591,7 +591,7 @@ object foo extends JavaModule {
   def groovyScript = Task.Source(millSourcePath / &quot;generate.groovy&quot;)
 
   def groovyGeneratedResources = Task{
-    Jvm.runInprocess(classPath = groovyClasspath().map(_.path)){ classLoader =&gt;
+    Jvm.runClassloader(classPath = groovyClasspath().map(_.path)){ classLoader =&gt;
       classLoader
         .loadClass(&quot;groovy.ui.GroovyMain&quot;)
         .getMethod(&quot;main&quot;, classOf[Array[String]])
@@ -613,7 +613,7 @@ object foo extends JavaModule {
 </div>
 </div>
 <div class="paragraph">
-<p>Note that unlike <code>Jvm.runSubprocess</code>, <code>Jvm.runInprocess</code> does not take a <code>workingDir</code>
+<p>Note that unlike <code>Jvm.runSubprocess</code>, <code>Jvm.runClassloader</code> does not take a <code>workingDir</code>
 on <code>mainArgs</code>: it instead provides you an in-memory <code>classLoader</code> that contains the
 classpath you gave it. From there, you can use <code>.loadClass</code> and <code>.getMethod</code> to fish out
 the classes and methods you want, and <code>.invoke</code> to call them.</p>
@@ -625,11 +625,118 @@ Contents of groovy-generated.html is &lt;html&gt;&lt;body&gt;&lt;h1&gt;Hello!&lt
 </div>
 </div>
 <div class="paragraph">
-<p><code>Jvm.runInprocess</code> has significantly less overhead than <code>Jvm.runSubprocess</code>: both in terms
+<p><code>Jvm.runClassloader</code> has significantly less overhead than <code>Jvm.runSubprocess</code>: both in terms
 of wall-clock time and in terms of memory footprint. However, it does have somewhat less
 isolation, as the code is running inside your JVM and cannot be configured to have a separate
 working directory, environment variables, and other process-global configs. Which one is
 better to use differs on a case-by-case basis.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_classloader_worker_tasks"><a class="anchor" href="#_classloader_worker_tasks"></a>Classloader Worker Tasks</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Althought running JVM bytecode via a one-off isolated classloader has less overhead
+than running it in a subprocess, the fact that the classloader needs to be created
+each time adds overhead: newly-created classloaders contain code that is not yet
+optimized by the JVM. When performance matters, you can put the classloader in a
+<code>Task.Worker</code> to keep it around, allowing the code internally to be optimized and
+stay optimized without being thrown away each time</p>
+</div>
+<div class="paragraph">
+<p>This example is similar to the earlier example running the Groovy interpreter in
+a subprocess, but instead of using <code>Jvm.runSubprocess</code> we use <code>Jvm.inprocess</code> to
+load the Groovy interpreter classpath files into an in-memory in-process classloader:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC3/0.12.0-RC3-example-extending-jvmcode-3-worker.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/extending/jvmcode/3-worker">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, javalib._
+import mill.util.Jvm
+
+object coursierModule extends CoursierModule
+
+def groovyClasspath: Task[Agg[PathRef]] = Task{
+  coursierModule.defaultResolver().resolveDeps(Agg(ivy&quot;org.codehaus.groovy:groovy:3.0.9&quot;))
+}
+
+def groovyWorker: Worker[java.net.URLClassLoader] = Task.Worker{
+  mill.api.ClassLoader.create(groovyClasspath().map(_.path.toIO.toURL).toSeq, parent = null)
+}
+
+trait GroovyGenerateJavaModule extends JavaModule {
+  def groovyScript = Task.Source(millSourcePath / &quot;generate.groovy&quot;)
+
+  def groovyGeneratedResources = Task{
+    val oldCl = Thread.currentThread().getContextClassLoader
+    Thread.currentThread().setContextClassLoader(groovyWorker())
+    try {
+      groovyWorker()
+        .loadClass(&quot;groovy.ui.GroovyMain&quot;)
+        .getMethod(&quot;main&quot;, classOf[Array[String]])
+        .invoke(
+          null,
+          Array[String](
+            groovyScript().path.toString,
+            groovyGenerateArg(),
+            (Task.dest / &quot;groovy-generated.html&quot;).toString
+          )
+        )
+    } finally Thread.currentThread().setContextClassLoader(oldCl)
+    PathRef(Task.dest)
+  }
+
+  def groovyGenerateArg: T[String]
+  def resources = super.resources() ++ Seq(groovyGeneratedResources())
+}
+
+object foo extends GroovyGenerateJavaModule{
+  def groovyGenerateArg = &quot;Foo Groovy!&quot;
+}
+object bar extends GroovyGenerateJavaModule{
+  def groovyGenerateArg = &quot;Bar Groovy!&quot;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Here we have two modules <code>foo</code> and <code>bar</code>, each of which makes use of <code>groovyWorker</code>
+to evaluate a groovy script to generate some resources. In this case, we invoke the <code>main</code>
+method of <code>groovy.ui.GroovyMain</code>, which also happens to require us to set the
+<code>ContextClassLoader</code> to work.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.run
+Contents of groovy-generated.html is &lt;html&gt;&lt;body&gt;&lt;h1&gt;Hello!&lt;/h1&gt;&lt;p&gt;Foo Groovy!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
+
+&gt; ./mill bar.run
+Contents of groovy-generated.html is &lt;html&gt;&lt;body&gt;&lt;h1&gt;Hello!&lt;/h1&gt;&lt;p&gt;Bar Groovy!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Because the <code>URLClassLoader</code> within <code>groovyWorker</code> is long-lived, the code within the
+classloader can be optimized by the JVM runtime, and would have less overhead than if
+run in separate classloaders via <code>Jvm.runClassloader</code>. And because <code>URLClassLoader</code>
+already extends <code>AutoCloseable</code>, <code>groovyWorker</code> gets treated as an
+<a href="../fundamentals/tasks.html#_autoclosable_workers" class="xref page">Autocloseable Worker</a> automatically.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+As mentioned in documentation for <a href="../fundamentals/tasks.html#_workers" class="xref page">Worker Tasks</a>,
+the classloader contained within <code>groovyWorker</code> above is <strong>initialized</strong> in a single-thread,
+but it may be <strong>used</strong> concurrently in a multi-threaded environment. Practically, that means
+that the classes and methods you are invoking within the classloader do not make use of
+un-synchronized global mutable variables.
+</td>
+</tr>
+</tbody></table>
 </div>
 </div>
 </div>

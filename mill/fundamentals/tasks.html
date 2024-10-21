@@ -428,9 +428,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-100-4a074b</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-101-c0b6f1</button>
   <div class="version-menu">
-    <a class="version is-current" href="tasks.html">0.12.0-RC3-100-4a074b</a>
+    <a class="version is-current" href="tasks.html">0.12.0-RC3-101-c0b6f1</a>
     <a class="version" href="../0.11.12/Tasks.html">0.11.12</a>
     <a class="version" href="../0.11.11/Tasks.html">0.11.11</a>
     <a class="version" href="../0.11.10/Tasks.html">0.11.10</a>
@@ -1893,6 +1893,22 @@ which perform their own in-memory caching</p>
 also avoiding classloading cost every time the code is executed</p>
 </li>
 </ol>
+</div>
+<div class="admonitionblock note">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The <em>initialization</em> of a <code>Task.Worker’s value is single threaded,
+but <em>usage</em> of the worker’s value may be done concurrently. The user of
+`Task.Worker</code> is responsible for ensuring it’s value is safe to use in a
+multi-threaded environment via techniques like locks, atomics, or concurrent data
+structures
+</td>
+</tr>
+</tbody></table>
 </div>
 <div class="paragraph">
 <p>Workers live as long as the Mill process. By default, consecutive <code>mill</code>
