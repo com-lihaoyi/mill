@@ -1,17 +1,109 @@
 package mill.util
 
 import mill.api.Loose.Agg
-import mill.api._
-import os.{ProcessOutput, SubProcess}
+import mill.api.*
+import os.{CommandResult, Path, Pipe, ProcessInput, ProcessOutput, Shellable, SubProcess}
 
-import java.io._
+import java.io.*
 import java.lang.reflect.Modifier
 import java.nio.file.attribute.PosixFilePermission
 import java.nio.file.Files
 import scala.util.Properties.isWin
-import os.CommandResult
 
 object Jvm extends CoursierSupport {
+  def spawnSubprocess(mainClass: String,
+                      classPath: Iterable[os.Path],
+                      jvmArgs: Seq[String],
+                      mainArgs: Seq[String],
+                      env: Map[String, String] = null,
+                      cwd: Path = null,
+                      stdin: ProcessInput = Pipe,
+                      stdout: ProcessOutput = Pipe,
+                      stderr: ProcessOutput = os.Inherit,
+                      mergeErrIntoOut: Boolean = false,
+                      propagateEnv: Boolean = true,
+                      useCpPassingJar: Boolean = false): os.SubProcess = {
+
+    val commandArgs = jvmCommandArgs(javaExe, mainClass, jvmArgs, classPath, mainArgs, useCpPassingJar)
+    os.spawn(commandArgs, env, cwd, stdin, stdout, stderr,  mergeErrIntoOut,  propagateEnv)
+  }
+
+  def callSubprocess(mainClass: String,
+                     classPath: Iterable[os.Path],
+                     jvmArgs: Seq[String],
+                     mainArgs: Seq[String],
+                     env: Map[String, String] = null,
+                     cwd: Path = null,
+                     stdin: ProcessInput = Pipe,
+                     stdout: ProcessOutput = Pipe,
+                     stderr: ProcessOutput = os.Inherit,
+                     mergeErrIntoOut: Boolean = false,
+                     timeout: Long = -1,
+                     check: Boolean = true,
+                     propagateEnv: Boolean = true,
+                     timeoutGracePeriod: Long = 100,
+                     useCpPassingJar: Boolean = false): os.CommandResult = {
+
+    val commandArgs = jvmCommandArgs(javaExe, mainClass, jvmArgs, classPath, mainArgs, useCpPassingJar)
+
+    os.call(
+      commandArgs,
+      env,
+      cwd,
+      stdin,
+      stdout,
+      stderr,
+      mergeErrIntoOut,
+      timeout,
+      check,
+      propagateEnv,
+      timeoutGracePeriod
+    )
+  }
+
+  def spawnClassloader(classPath: Iterable[os.Path],
+                       sharedPrefixes: Seq[String],
+                       isolated: Boolean = true): java.net.URLClassLoader = {
+    mill.api.ClassLoader.create(
+      classPath.iterator.map(_.toNIO.toUri.toURL).toVector,
+      if (isolated) null else getClass.getClassLoader,
+      sharedPrefixes = sharedPrefixes
+    )()
+  }
+
+  def callClassloader[T](classPath: Iterable[os.Path],
+                         sharedPrefixes: Seq[String],
+                         isolated: Boolean = true)(f: ClassLoader => T): T = {
+    val oldClassloader = Thread.currentThread().getContextClassLoader
+    val newClassloader = spawnClassloader(classPath, sharedPrefixes, isolated)
+    Thread.currentThread().setContextClassLoader(newClassloader)
+    try {
+      f(newClassloader)
+    } finally {
+      Thread.currentThread().setContextClassLoader(oldClassloader)
+      newClassloader.close()
+    }
+  }
+
+
+  private def jvmCommandArgs(javaExe: String,
+                             mainClass: String,
+                             jvmArgs: Seq[String],
+                             classPath: Agg[os.Path],
+                             mainArgs: Seq[String],
+                             useCpPassingJar: Boolean): Vector[String] = {
+    val classPath2 =
+      if (useCpPassingJar && !classPath.iterator.isEmpty) {
+        val passingJar = os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)
+        createClasspathPassingJar(passingJar, classPath)
+        Agg(passingJar)
+      } else classPath
+
+    Vector(javaExe) ++
+      jvmArgs ++
+      Vector("-cp", classPath2.iterator.mkString(java.io.File.pathSeparator), mainClass) ++
+      mainArgs
+  }
 
   /**
    * Runs a JVM subprocess with the given configuration and returns a
@@ -20,19 +112,16 @@ object Jvm extends CoursierSupport {
   def callSubprocess(
       mainClass: String,
       classPath: Agg[os.Path],
-      jvmArgs: Seq[String] = Seq.empty,
-      envArgs: Map[String, String] = Map.empty,
-      mainArgs: Seq[String] = Seq.empty,
-      workingDir: os.Path = null,
-      streamOut: Boolean = true,
-      check: Boolean = true
+      jvmArgs: Seq[String],
+      envArgs: Map[String, String],
+      mainArgs: Seq[String],
+      workingDir: os.Path,
+      streamOut: Boolean,
+      check: Boolean
   )(implicit ctx: Ctx): CommandResult = {
 
-    val commandArgs =
-      Vector(javaExe) ++
-        jvmArgs ++
-        Vector("-cp", classPath.iterator.mkString(java.io.File.pathSeparator), mainClass) ++
-        mainArgs
+    val commandArgs = jvmCommandArgs(javaExe, mainClass, jvmArgs, classPath, mainArgs, false)
+
 
     val workingDir1 = Option(workingDir).getOrElse(ctx.dest)
     os.makeDir.all(workingDir1)
@@ -142,7 +231,8 @@ object Jvm extends CoursierSupport {
       mainArgs,
       workingDir,
       background,
-      useCpPassingJar
+      useCpPassingJar,
+      runBackgroundLogToConsole = false
     )
 
   /**
@@ -253,7 +343,7 @@ object Jvm extends CoursierSupport {
       commandArgs: Seq[String],
       envArgs: Map[String, String],
       workingDir: os.Path,
-      background: Boolean = false
+      background: Boolean
   ): SubProcess = {
     // XXX: workingDir is perhaps not the best choice for outputs, but absent a Ctx, we have
     //      no other place to choose.
@@ -316,17 +406,6 @@ object Jvm extends CoursierSupport {
     method
   }
 
-  def runInprocess[T](classPath: Agg[os.Path])(body: ClassLoader => T)(implicit
-      ctx: mill.api.Ctx.Home
-  ): T = {
-    inprocess(
-      classPath,
-      classLoaderOverrideSbtTesting = false,
-      isolated = true,
-      closeContextClassLoaderWhenDone = true,
-      body
-    )
-  }
   def inprocess[T](
       classPath: Agg[os.Path],
       classLoaderOverrideSbtTesting: Boolean,
@@ -334,30 +413,8 @@ object Jvm extends CoursierSupport {
       closeContextClassLoaderWhenDone: Boolean,
       body: ClassLoader => T
   )(implicit ctx: mill.api.Ctx.Home): T = {
-    val urls = classPath.map(_.toIO.toURI.toURL)
-    val cl =
-      if (classLoaderOverrideSbtTesting) {
-        mill.api.ClassLoader.create(
-          urls.iterator.toVector,
-          null,
-          sharedPrefixes = Seq("sbt.testing.")
-        )
-      } else if (isolated) {
-        mill.api.ClassLoader.create(urls.iterator.toVector, null)
-      } else {
-        mill.api.ClassLoader.create(urls.iterator.toVector, getClass.getClassLoader)
-      }
-
-    val oldCl = Thread.currentThread().getContextClassLoader
-    Thread.currentThread().setContextClassLoader(cl)
-    try {
-      body(cl)
-    } finally {
-      if (closeContextClassLoaderWhenDone) {
-        Thread.currentThread().setContextClassLoader(oldCl)
-        cl.close()
-      }
-    }
+    val sharedPrefixes = if (classLoaderOverrideSbtTesting) Seq("sbt.testing.") else Nil
+    callClassloader(classPath.toSeq, sharedPrefixes, isolated)(body)
   }
 
   def createManifest(mainClass: Option[String]): mill.api.JarManifest = {

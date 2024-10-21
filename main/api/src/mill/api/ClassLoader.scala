@@ -21,7 +21,7 @@ object ClassLoader {
       sharedLoader: java.lang.ClassLoader = getClass.getClassLoader,
       sharedPrefixes: Seq[String] = Seq(),
       logger: Option[mill.api.Logger] = None
-  )(implicit ctx: Ctx.Home): URLClassLoader = {
+  )(implicit ctx: Ctx.Home = null): URLClassLoader = {
     new URLClassLoader(
       makeUrls(urls).toArray,
       refinePlatformParent(parent)
