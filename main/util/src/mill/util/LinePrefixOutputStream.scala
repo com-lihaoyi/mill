@@ -39,8 +39,11 @@ class LinePrefixOutputStream(
     if (buffer.size() > 0) reportPrefix()
 
     if (linePrefixNonEmpty) {
-      val s = fansi.Str.apply(buffer.toString, errorMode = fansi.ErrorMode.Sanitize)
-      endOfLastLineColor = s.getColor(s.length - 1)
+      val bufferString = buffer.toString
+      if (bufferString.length > 0){
+        val s = fansi.Str.apply(buffer.toString, errorMode = fansi.ErrorMode.Sanitize)
+        endOfLastLineColor = s.getColor(s.length - 1)
+      }
     }
     out.synchronized { buffer.writeTo(out) }
     buffer.reset()
