@@ -7,7 +7,7 @@ def myInput = T.input {
     .trim()
 }
 
-// A generalization of <<_sources>>, ``T.Input``s are tasks that re-evaluate
+// A generalization of <<_sources>>, ``T.input``s are tasks that re-evaluate
 // _every time_ (unlike <<_anonymous_tasks>>), containing an
 // arbitrary block of code.
 //
