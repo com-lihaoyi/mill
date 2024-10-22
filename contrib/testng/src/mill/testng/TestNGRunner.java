@@ -67,7 +67,13 @@ public class TestNGRunner implements Runner {
             cliArgs.testClass = String.join(",", names);
         }
         if (taskDefs.length == 0) return new Task[]{};
-        else return new Task[]{new TestNGTask(taskDefs[0], testClassLoader, cliArgs)};
+        else {
+            Task[] returnTasks = new Task[taskDefs.length];
+            for(int i = 0; i < taskDefs.length; i += 1){
+                returnTasks[i] = new TestNGTask(taskDefs[i], testClassLoader, cliArgs);
+            }
+            return returnTasks;
+        }
     }
 
     public String done() { return null; }
