@@ -49,11 +49,11 @@
 // language-specific sections, but here we go into a deeper language-agnostic
 // discussion of what these Mill features ar and how they work
 .Mill Fundamentals
-* xref:fundamentals/library-deps.adoc[]
-* xref:fundamentals/out-dir.adoc[]
-* xref:fundamentals/query-syntax.adoc[]
 * xref:fundamentals/tasks.adoc[]
 * xref:fundamentals/modules.adoc[]
+* xref:fundamentals/out-dir.adoc[]
+* xref:fundamentals/query-syntax.adoc[]
+* xref:fundamentals/library-deps.adoc[]
 * xref:fundamentals/cross-builds.adoc[]
 * xref:fundamentals/bundled-libraries.adoc[]
 
