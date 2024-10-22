@@ -1,6 +1,9 @@
 // This example is similar to the earlier example running the Groovy interpreter in
-// a subprocess, but instead of using `Jvm.runSubprocess` we use `Jvm.inprocess` to
-// load the Groovy interpreter classpath files into an in-memory in-process classloader.
+// a subprocess, but:
+//
+// * We use `Jvm.inprocess` to
+//   load the Groovy interpreter classpath files into an in-memory in-process classloader,
+// * `loadClass`/`getMethod`/`invoke` to call methods on those classes using Java reflection
 
 package build
 import mill._, javalib._
