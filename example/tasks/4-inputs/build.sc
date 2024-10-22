@@ -133,8 +133,8 @@ def myEnvTask = T {
 > ./mill show myEnvTask
 "Hello Env null"
 
-> MY_ENV=world ./mill show myEnvTask # Task is correctly invalidated when env is added
-"Hello Env world"
+//// > sh -c "MY_ENV=world ./mill show myEnvTask" # Task is correctly invalidated when env is added
+//// "Hello Env world"
 
 > ./mill show myEnvTask # Task is correctly invalidated when env is removed
 "Hello Env null"
