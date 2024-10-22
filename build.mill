@@ -19,7 +19,7 @@ import mill.define.Cross
 import scala.util.matching.Regex
 
 // plugins and dependencies
-import $meta._e
+import $meta._
 import $file.ci.shared
 import $file.ci.upload
 import $packages._
