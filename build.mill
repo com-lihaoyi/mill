@@ -137,9 +137,9 @@ object Deps {
 
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.4.0" // 1.5.0+ dont support JDK8
   val javet = Seq(
-    ivy"com.caoccao.javet:javet:3.1.6",
-    ivy"com.caoccao.javet:javet-linux-arm64:3.1.6",
-    ivy"com.caoccao.javet:javet-macos:3.1.6"
+    ivy"com.caoccao.javet:javet:3.1.8",
+    ivy"com.caoccao.javet:javet-linux-arm64:3.1.8",
+    ivy"com.caoccao.javet:javet-macos:3.1.8"
   )
 
   val jline = ivy"org.jline:jline:3.26.3"
