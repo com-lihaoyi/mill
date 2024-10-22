@@ -131,7 +131,7 @@ object Deps {
   val graphvizJava = Seq(
     ivy"guru.nidi:graphviz-java-min-deps:0.18.1",
     ivy"org.webjars.npm:viz.js-graphviz-java:2.1.3",
-    ivy"org.apache.xmlgraphics:batik-rasterizer:1.17"
+    ivy"org.apache.xmlgraphics:batik-rasterizer:1.18"
   )
   val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.10.1"
 
