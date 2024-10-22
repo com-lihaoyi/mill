@@ -21,7 +21,14 @@ trait Evaluator {
   def outPath: os.Path
   def externalOutPath: os.Path
   def pathsResolver: EvaluatorPathsResolver
+  // TODO In 0.13.0, workerCache should have the type of mutableWorkerCache,
+  // while the latter should be removed
   def workerCache: collection.Map[Segments, (Int, Val)]
+  private[mill] final def mutableWorkerCache: collection.mutable.Map[Segments, (Int, Val)] =
+    workerCache match {
+      case mut: collection.mutable.Map[Segments, (Int, Val)] => mut
+      case _ => sys.error("Evaluator#workerCache must be a mutable map")
+    }
   def disableCallgraphInvalidation: Boolean = false
 
   @deprecated(

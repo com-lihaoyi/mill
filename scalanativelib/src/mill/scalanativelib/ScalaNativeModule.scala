@@ -4,7 +4,7 @@ package scalanativelib
 import mainargs.Flag
 import mill.api.Loose.Agg
 import mill.api.{Result, internal}
-import mill.define.{Command, Target, Task}
+import mill.define.{Command, Task}
 import mill.util.Jvm
 import mill.util.Util.millProjectModule
 import mill.scalalib.api.ZincWorkerUtil
@@ -34,17 +34,17 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   type ScalaNativeModuleTests = ScalaNativeTests
   trait ScalaNativeTests extends ScalaTests with TestScalaNativeModule {
     override def scalaNativeVersion = outer.scalaNativeVersion()
-    override def releaseMode = T { outer.releaseMode() }
-    override def logLevel: Target[NativeLogLevel] = outer.logLevel()
+    override def releaseMode: T[ReleaseMode] = Task { outer.releaseMode() }
+    override def logLevel: T[NativeLogLevel] = outer.logLevel()
   }
 
   def scalaNativeBinaryVersion =
-    T { ZincWorkerUtil.scalaNativeBinaryVersion(scalaNativeVersion()) }
+    Task { ZincWorkerUtil.scalaNativeBinaryVersion(scalaNativeVersion()) }
 
   def scalaNativeWorkerVersion =
-    T { ZincWorkerUtil.scalaNativeWorkerVersion(scalaNativeVersion()) }
+    Task { ZincWorkerUtil.scalaNativeWorkerVersion(scalaNativeVersion()) }
 
-  def scalaNativeWorkerClasspath = T {
+  def scalaNativeWorkerClasspath = Task {
     millProjectModule(
       s"mill-scalanativelib-worker-${scalaNativeWorkerVersion()}",
       repositoriesTask(),
@@ -52,7 +52,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     )
   }
 
-  def toolsIvyDeps = T {
+  def toolsIvyDeps = Task {
     scalaNativeVersion() match {
       case v @ ("0.4.0" | "0.4.1") =>
         Result.Failure(s"Scala Native $v is not supported. Please update to 0.4.2+")
@@ -67,7 +67,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     }
   }
 
-  def nativeIvyDeps: T[Agg[Dep]] = T {
+  def nativeIvyDeps: T[Agg[Dep]] = Task {
     val scalaVersionSpecific = {
       val version =
         if (scalaNativeVersion().startsWith("0.4")) scalaNativeVersion()
@@ -85,7 +85,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     ) ++ scalaVersionSpecific
   }
 
-  override def scalaLibraryIvyDeps = T {
+  override def scalaLibraryIvyDeps: T[Agg[Dep]] = Task {
     super.scalaLibraryIvyDeps().map(dep =>
       dep.copy(cross = dep.cross match {
         case c: CrossVersion.Constant => c.copy(platformed = false)
@@ -96,11 +96,11 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   }
 
   /** Adds [[nativeIvyDeps]] as mandatory dependencies. */
-  override def mandatoryIvyDeps = T {
+  override def mandatoryIvyDeps = Task {
     super.mandatoryIvyDeps() ++ nativeIvyDeps()
   }
 
-  def bridgeFullClassPath: T[Agg[PathRef]] = T {
+  def bridgeFullClassPath: T[Agg[PathRef]] = Task {
     Lib.resolveDependencies(
       repositoriesTask(),
       toolsIvyDeps().map(Lib.depToBoundDep(_, mill.main.BuildInfo.scalaVersion, "")),
@@ -108,17 +108,17 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     ).map(t => (scalaNativeWorkerClasspath() ++ t))
   }
 
-  private[scalanativelib] def scalaNativeBridge = T.task {
+  private[scalanativelib] def scalaNativeBridge = Task.Anon {
     ScalaNativeWorkerExternalModule.scalaNativeWorker().bridge(bridgeFullClassPath())
   }
 
-  override def scalacPluginIvyDeps: T[Agg[Dep]] = T {
+  override def scalacPluginIvyDeps: T[Agg[Dep]] = Task {
     super.scalacPluginIvyDeps() ++ Agg(
       ivy"org.scala-native:::nscplugin:${scalaNativeVersion()}"
     )
   }
 
-  def logLevel: Target[NativeLogLevel] = T { NativeLogLevel.Info }
+  def logLevel: T[NativeLogLevel] = Task { NativeLogLevel.Info }
 
   private def readEnvVariable[T](
       env: Map[String, String],
@@ -139,55 +139,55 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     }
   }
 
-  protected def releaseModeInput: Target[Option[ReleaseMode]] = T.input {
+  protected def releaseModeInput: T[Option[ReleaseMode]] = Task.Input {
     readEnvVariable[ReleaseMode](T.env, "SCALANATIVE_MODE", ReleaseMode.values, _.value)
   }
 
-  def releaseMode: Target[ReleaseMode] = T {
+  def releaseMode: T[ReleaseMode] = Task {
     releaseModeInput().getOrElse(ReleaseMode.Debug)
   }
 
-  def nativeWorkdir = T { T.dest }
+  def nativeWorkdir = Task { T.dest }
 
   // Location of the clang compiler
-  def nativeClang = T {
+  def nativeClang = Task {
     os.Path(
       scalaNativeBridge().discoverClang()
     )
   }
 
   // Location of the clang++ compiler
-  def nativeClangPP = T {
+  def nativeClangPP = Task {
     os.Path(
       scalaNativeBridge().discoverClangPP()
     )
   }
 
   // GC choice, either "none", "boehm", "immix" or "commix"
-  protected def nativeGCInput: Target[Option[String]] = T.input {
+  protected def nativeGCInput: T[Option[String]] = Task.Input {
     T.env.get("SCALANATIVE_GC")
   }
 
-  def nativeGC = T {
+  def nativeGC = Task {
     nativeGCInput().getOrElse(
       scalaNativeBridge().defaultGarbageCollector()
     )
   }
 
-  def nativeTarget: Target[Option[String]] = T { None }
+  def nativeTarget: T[Option[String]] = Task { None }
 
   // Options that are passed to clang during compilation
-  def nativeCompileOptions = T {
+  def nativeCompileOptions = Task {
     scalaNativeBridge().discoverCompileOptions()
   }
 
   // Options that are passed to clang during linking
-  def nativeLinkingOptions = T {
+  def nativeLinkingOptions = Task {
     scalaNativeBridge().discoverLinkingOptions()
   }
 
   // Whether to link `@stub` methods, or ignore them
-  def nativeLinkStubs = T { false }
+  def nativeLinkStubs: T[Boolean] = Task { false }
 
   /**
    * Shall the resource files be embedded in the resulting binary file? Allows
@@ -195,32 +195,32 @@ trait ScalaNativeModule extends ScalaModule { outer =>
    *  not embed files with certain extensions, including ".c", ".h", ".scala"
    *  and ".class".
    */
-  def nativeEmbedResources = T { false }
+  def nativeEmbedResources: T[Boolean] = Task { false }
 
   /** Shall we use the incremental compilation? */
-  def nativeIncrementalCompilation = T { false }
+  def nativeIncrementalCompilation: T[Boolean] = Task { false }
 
   /** Shall linker dump intermediate NIR after every phase? */
-  def nativeDump = T { false }
+  def nativeDump: T[Boolean] = Task { false }
 
   // The LTO mode to use used during a release build
-  protected def nativeLTOInput: Target[Option[LTO]] = T.input {
+  protected def nativeLTOInput: T[Option[LTO]] = Task.Input {
     readEnvVariable[LTO](T.env, "SCALANATIVE_LTO", LTO.values, _.value)
   }
 
-  def nativeLTO: Target[LTO] = T { nativeLTOInput().getOrElse(LTO.None) }
+  def nativeLTO: T[LTO] = Task { nativeLTOInput().getOrElse(LTO.None) }
 
   // Shall we optimize the resulting NIR code?
-  protected def nativeOptimizeInput: Target[Option[Boolean]] = T.input {
+  protected def nativeOptimizeInput: T[Option[Boolean]] = Task.Input {
     readEnvVariable[Boolean](T.env, "SCALANATIVE_OPTIMIZE", Seq(true, false), _.toString)
   }
 
-  def nativeOptimize: Target[Boolean] = T { nativeOptimizeInput().getOrElse(true) }
+  def nativeOptimize: T[Boolean] = Task { nativeOptimizeInput().getOrElse(true) }
 
   /** Build target for current compilation */
-  def nativeBuildTarget: Target[BuildTarget] = T { BuildTarget.Application }
+  def nativeBuildTarget: T[BuildTarget] = Task { BuildTarget.Application }
 
-  private def nativeConfig: Task[NativeConfig] = T.task {
+  private def nativeConfig: Task[NativeConfig] = Task.Anon {
     val classpath = runClasspath().map(_.path).filter(_.toIO.exists).toList
 
     scalaNativeBridge().config(
@@ -265,7 +265,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     }
 
   // Generates native binary
-  def nativeLink = T {
+  def nativeLink = Task {
     os.Path(scalaNativeBridge().nativeLink(
       nativeConfig().config,
       T.dest.toIO
@@ -273,7 +273,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   }
 
   // Runs the native binary
-  override def run(args: Task[Args] = T.task(Args())) = T.command {
+  override def run(args: Task[Args] = Task.Anon(Args())) = Task.Command {
     Jvm.runSubprocess(
       commandArgs = Vector(nativeLink().toString) ++ args().value,
       envArgs = forkEnv(),
@@ -282,7 +282,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   }
 
   @internal
-  override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = T.task {
+  override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = Task.Anon {
     Some((
       ScalaBuildTarget.dataKind,
       ScalaBuildTarget(
@@ -296,7 +296,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     ))
   }
 
-  override def transitiveIvyDeps: T[Agg[BoundDep]] = T {
+  override def transitiveIvyDeps: T[Agg[BoundDep]] = Task {
 
     // Exclude cross published version dependencies leading to conflicts in Scala 3 vs 2.13
     // When using Scala 3 exclude Scala 2.13 standard native libraries,
@@ -331,7 +331,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
         bridgeFullClassPath
       )
       else Seq()
-    T.command {
+    Task.Command {
       super.prepareOffline(all)()
       T.sequence(tasks)()
       ()
@@ -345,15 +345,20 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
 trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
   override def resources: T[Seq[PathRef]] = super[ScalaNativeModule].resources
-  override def testLocal(args: String*) = T.command { test(args: _*) }
+  override def testLocal(args: String*): Command[(String, Seq[TestResult])] =
+    Task.Command { test(args: _*)() }
   override protected def testTask(
       args: Task[Seq[String]],
       globSeletors: Task[Seq[String]]
-  ): Task[(String, Seq[TestResult])] = T.task {
+  ): Task[(String, Seq[TestResult])] = Task.Anon {
 
     val (close, framework) = scalaNativeBridge().getFramework(
       nativeLink().toIO,
-      forkEnv() ++ Map(EnvVars.MILL_TEST_RESOURCE_FOLDER -> resources().map(_.path).mkString(";")),
+      forkEnv() ++
+        Map(
+          EnvVars.MILL_TEST_RESOURCE_DIR -> resources().map(_.path).mkString(";"),
+          EnvVars.MILL_WORKSPACE_ROOT -> T.workspace.toString
+        ),
       toWorkerApi(logLevel()),
       testFramework()
     )
@@ -364,7 +369,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
       Agg(compile().classes.path),
       args(),
       T.testReporter,
-      TestRunnerUtils.globFilter(globSeletors())
+      cls => TestRunnerUtils.globFilter(globSeletors())(cls.getName)
     )
     val res = TestModule.handleResults(doneMsg, results, T.ctx(), testReportXml())
     // Hack to try and let the Scala Native subprocess finish streaming it's stdout

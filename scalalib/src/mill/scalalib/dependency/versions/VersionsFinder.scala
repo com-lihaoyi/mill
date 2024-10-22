@@ -40,7 +40,7 @@ private[dependency] object VersionsFinder {
   private def resolveDeps(progress: Progress)(
       javaModule: JavaModule
   ): Task[ResolvedDependencies] =
-    T.task {
+    Task.Anon {
       T.log.ticker(s"Resolving dependencies [${progress.next()}/${progress.count}]: ${javaModule}")
 
       val bindDependency = javaModule.bindDependency()
@@ -54,22 +54,25 @@ private[dependency] object VersionsFinder {
 
       val metadataLoaders = repos.flatMap(MetadataLoaderFactory(_))
 
-      val (dependencies, _) =
-        Lib.resolveDependenciesMetadata(
-          repositories = repos,
-          deps = (deps ++ compileIvyDeps ++ runIvyDeps).map(bindDependency),
-          mapDependencies = Some(mapDeps),
-          customizer = custom,
-          coursierCacheCustomizer = cacheCustom,
-          ctx = Some(T.log)
-        )
-
-      (javaModule, metadataLoaders, dependencies)
+      val dependencies = (deps ++ compileIvyDeps ++ runIvyDeps)
+        .map(bindDependency)
+        .iterator
+        .toSeq
+      Lib.resolveDependenciesMetadataSafe(
+        repositories = repos,
+        deps = dependencies,
+        mapDependencies = Some(mapDeps),
+        customizer = custom,
+        coursierCacheCustomizer = cacheCustom,
+        ctx = Some(T.log)
+      ).map { _ =>
+        (javaModule, metadataLoaders, dependencies.map(_.dep))
+      }
     }
 
   private def resolveVersions(progres: Progress)(
       resolvedDependencies: ResolvedDependencies
-  ): Task[ModuleDependenciesVersions] = T.task {
+  ): Task[ModuleDependenciesVersions] = Task.Anon {
     val (javaModule, metadataLoaders, dependencies) = resolvedDependencies
 
     val versions = dependencies.map { dependency =>

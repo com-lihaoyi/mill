@@ -26,7 +26,7 @@ object ClassLoader {
       makeUrls(urls).toArray,
       refinePlatformParent(parent)
     ) {
-      override def findClass(name: String): Class[_] = {
+      override def findClass(name: String): Class[?] = {
         if (sharedPrefixes.exists(name.startsWith)) {
           logger.foreach(
             _.debug(s"About to load class [${name}] from shared classloader [${sharedLoader}]")

@@ -24,7 +24,8 @@ object Jvm extends CoursierSupport {
       envArgs: Map[String, String] = Map.empty,
       mainArgs: Seq[String] = Seq.empty,
       workingDir: os.Path = null,
-      streamOut: Boolean = true
+      streamOut: Boolean = true,
+      check: Boolean = true
   )(implicit ctx: Ctx): CommandResult = {
 
     val commandArgs =
@@ -36,7 +37,29 @@ object Jvm extends CoursierSupport {
     val workingDir1 = Option(workingDir).getOrElse(ctx.dest)
     os.makeDir.all(workingDir1)
 
-    os.proc(commandArgs).call(cwd = workingDir1, env = envArgs)
+    os.proc(commandArgs)
+      .call(
+        cwd = workingDir1,
+        env = envArgs,
+        check = check,
+        stdout = if (streamOut) os.Inherit else os.Pipe
+      )
+  }
+
+  /**
+   * Runs a JVM subprocess with the given configuration and returns a
+   * [[os.CommandResult]] with it's aggregated output and error streams
+   */
+  def callSubprocess(
+      mainClass: String,
+      classPath: Agg[os.Path],
+      jvmArgs: Seq[String],
+      envArgs: Map[String, String],
+      mainArgs: Seq[String],
+      workingDir: os.Path,
+      streamOut: Boolean
+  )(implicit ctx: Ctx): CommandResult = {
+    callSubprocess(mainClass, classPath, jvmArgs, envArgs, mainArgs, workingDir, streamOut, true)
   }
 
   /**
@@ -64,7 +87,7 @@ object Jvm extends CoursierSupport {
    * it's stdout and stderr to the console.
    * @param mainClass The main class to run
    * @param classPath The classpath
-   * @param JvmArgs Arguments given to the forked JVM
+   * @param jvmArgs Arguments given to the forked JVM
    * @param envArgs Environment variables used when starting the forked JVM
    * @param workingDir The working directory to be used by the forked JVM
    * @param background `true` if the forked JVM should be spawned in background
@@ -127,7 +150,7 @@ object Jvm extends CoursierSupport {
    * it's stdout and stderr to the console.
    * @param mainClass The main class to run
    * @param classPath The classpath
-   * @param JvmArgs Arguments given to the forked JVM
+   * @param jvmArgs Arguments given to the forked JVM
    * @param envArgs Environment variables used when starting the forked JVM
    * @param workingDir The working directory to be used by the forked JVM
    * @param backgroundOutputs If the subprocess should run in the background, a Tuple of ProcessOutputs containing out and err respectively. Specify None for nonbackground processes.
@@ -163,10 +186,17 @@ object Jvm extends CoursierSupport {
         classPath
       }
 
+    val cpArgument = if (cp.nonEmpty) {
+      Vector("-cp", cp.iterator.mkString(java.io.File.pathSeparator))
+    } else Seq.empty
+    val mainClassArgument = if (mainClass.nonEmpty) {
+      Seq(mainClass)
+    } else Seq.empty
     val args =
       Vector(javaExe) ++
         jvmArgs ++
-        Vector("-cp", cp.iterator.mkString(java.io.File.pathSeparator), mainClass) ++
+        cpArgument ++
+        mainClassArgument ++
         mainArgs
 
     ctx.log.debug(s"Run subprocess with args: ${args.map(a => s"'${a}'").mkString(" ")}")
@@ -286,6 +316,17 @@ object Jvm extends CoursierSupport {
     method
   }
 
+  def runClassloader[T](classPath: Agg[os.Path])(body: ClassLoader => T)(implicit
+      ctx: mill.api.Ctx.Home
+  ): T = {
+    inprocess(
+      classPath,
+      classLoaderOverrideSbtTesting = false,
+      isolated = true,
+      closeContextClassLoaderWhenDone = true,
+      body
+    )
+  }
   def inprocess[T](
       classPath: Agg[os.Path],
       classLoaderOverrideSbtTesting: Boolean,

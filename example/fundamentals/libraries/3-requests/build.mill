@@ -1,0 +1,117 @@
+// Mill bundles Requests-Scala for you to use to make HTTP requests.
+// `Requests-Scala` lets you integrate your build with the world beyond your local
+// filesystem.
+//
+// Requests-Scala is mostly used in Mill for downloading files as part of your
+// build. These can either be data files or executables, and in either case they
+// are downloaded once and cached for later use.
+//
+// === Downloading Compilers and Source Code
+//
+// In the example below, we download the
+// https://github.com/bazelbuild/remote-apis[Remote APIs] source zip, download a
+// https://github.com/bazelbuild/bazel[Bazel Build Tool] binary, and use Bazel to
+// compile the Remote APIs source code as part of our build:
+
+import mill._
+
+def remoteApisZip = Task {
+  println("downloading bazel-remote-apis sources...")
+  os.write(
+    Task.dest / "source.zip",
+    requests.get("https://github.com/bazelbuild/remote-apis/archive/refs/tags/v2.2.0.zip")
+  )
+  PathRef(Task.dest / "source.zip")
+}
+
+def bazel = Task {
+  println("downloading bazel...")
+  val fileName =
+    if (System.getProperty("os.name") == "Mac OS X") "bazel-5.4.1-darwin-arm64"
+    else "bazel-5.4.1-linux-x86_64"
+
+  os.write(
+    Task.dest / "bazel",
+    requests.get(s"https://github.com/bazelbuild/bazel/releases/download/5.4.1/$fileName")
+  )
+  os.perms.set(Task.dest / "bazel", "rwxrwxrwx")
+  PathRef(Task.dest / "bazel")
+}
+
+def compiledRemoteApis = Task {
+  val javaBuildTarget = "build/bazel/remote/execution/v2:remote_execution_java_proto"
+  os.call(("unzip", remoteApisZip().path, "-d", Task.dest))
+  os.call((bazel().path, "build", javaBuildTarget), cwd = Task.dest / "remote-apis-2.2.0")
+
+  val queried = os.call(
+    (bazel().path, "cquery", javaBuildTarget, "--output=files"),
+    cwd = Task.dest / "remote-apis-2.2.0"
+  )
+
+  queried
+    .out
+    .lines()
+    .map(line => PathRef(Task.dest / "remote-apis-2.2.0" / os.SubPath(line)))
+}
+
+// In the execution example below, we can see the first time we ask for `compiledRemoteApis`,
+// Mill downloads the Bazel build tool, downloads the Remote APIs source code, and then
+// invokes Bazel to compile them:
+
+/** Usage
+
+> ./mill show compiledRemoteApis
+downloading bazel...
+downloading bazel-remote-apis sources...
+Loading: ...
+Analyzing: ...
+...
+INFO: Build completed successfully...
+[
+  "ref:.../bazel-out/...fastbuild/bin/build/bazel/semver/libsemver_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libduration_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libtimestamp_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libwrappers_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_api_http_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libdescriptor_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_api_annotations_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libany_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_rpc_status_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libempty_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_longrunning_operations_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/build/bazel/remote/execution/v2/libremote_execution_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/build/bazel/remote/execution/v2/remote_execution_proto-speed-src.jar"
+]
+*/
+
+// However, in subsequent evaluations of `compiledRemoteApis`, the two downloads and
+// the Bazel invocation are skipped and the earlier output directly and immediately re-used:
+
+/** Usage
+> ./mill show compiledRemoteApis
+[
+  "ref:.../bazel-out/...fastbuild/bin/build/bazel/semver/libsemver_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libduration_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libtimestamp_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libwrappers_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_api_http_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libdescriptor_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_api_annotations_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libany_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_rpc_status_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libempty_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_longrunning_operations_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/build/bazel/remote/execution/v2/libremote_execution_proto-speed.jar",
+  "ref:.../bazel-out/...fastbuild/bin/build/bazel/remote/execution/v2/remote_execution_proto-speed-src.jar"
+]
+
+*/
+
+// The various tasks will only be re-evaluated if there are code changes in your `build.mill`
+// file that affect them.
+//
+// In general, Using `requests.get` to download files as part of your build is only safe
+// as long as the files you download are immutable. Mill cannot know whether the remote
+// HTTP endpoint has been changed or not. However, empirically most URLs you may want
+// to download files from do turn out to be immutable: from package repositories, artifact
+// servers, and so on. So this works out surprisingly well in practice.

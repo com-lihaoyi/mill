@@ -7,22 +7,22 @@ object `package` extends RootModule with ScalaModule {
   def ivyDeps = Agg(
     ivy"com.lihaoyi::cask:0.9.1",
     ivy"com.lihaoyi::scalatags:0.12.0",
-    ivy"com.lihaoyi::os-lib:0.9.1"
+    ivy"com.lihaoyi::os-lib:0.10.7"
   )
 
-  def resources = T {
+  def resources = Task {
     val hashMapping = for {
       resourceRoot <- super.resources()
       path <- os.walk(resourceRoot.path)
       if os.isFile(path)
-    } yield hashFile(path, resourceRoot.path, T.dest)
+    } yield hashFile(path, resourceRoot.path, Task.dest)
 
     os.write(
-      T.dest / "hashed-resource-mapping.json",
+      Task.dest / "hashed-resource-mapping.json",
       upickle.default.write(hashMapping.toMap, indent = 4)
     )
 
-    Seq(PathRef(T.dest))
+    Seq(PathRef(Task.dest))
   }
 
   object test extends ScalaTests {
@@ -53,7 +53,7 @@ object `package` extends RootModule with ScalaModule {
 // deploy (since the HTML will reference new hashed paths that are not yet
 // in the cache).
 //
-// We do this in an overrride of the `resources` target, that loads
+// We do this in an overrride of the `resources` task, that loads
 // `super.resources()`, hashes the files within it using `Arrays.hashCode`, and
 // copies the files to a new hashed path saving the overall mapping to a
 // `hashed-resource-mapping.json`. The webapp then loads the mapping at runtime

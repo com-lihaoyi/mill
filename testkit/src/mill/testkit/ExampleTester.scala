@@ -101,7 +101,8 @@ class ExampleTester(
       check: Boolean = true
   ): Unit = {
     val commandStr = commandStr0 match {
-      case s"mill $rest" => s"./mill $rest"
+      case s"mill $rest" => s"./mill --disable-ticker $rest"
+      case s"./mill $rest" => s"./mill --disable-ticker $rest"
       case s"curl $rest" => s"curl --retry 5 --retry-all-errors $rest"
       case s => s
     }
@@ -159,12 +160,6 @@ class ExampleTester(
         .toVector
 
     val filteredOut = plainTextLines(evalResult.out).mkString("\n")
-
-    if (expectedSnippets.nonEmpty) {
-      for (outLine <- filteredOut.linesIterator) {
-        globMatchesAny(unwrappedExpected, outLine)
-      }
-    }
 
     for (expectedLine <- unwrappedExpected.linesIterator) {
       assert(filteredOut.linesIterator.exists(globMatches(expectedLine, _)))

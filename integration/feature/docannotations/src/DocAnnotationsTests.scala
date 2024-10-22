@@ -1,7 +1,6 @@
 package mill.integration
 
 import mill.testkit.UtestIntegrationTestSuite
-
 import utest._
 
 object DocAnnotationsTests extends UtestIntegrationTestSuite {
@@ -37,16 +36,16 @@ object DocAnnotationsTests extends UtestIntegrationTestSuite {
         )
       )
 
-      assert(eval(("inspect", "core.target")).isSuccess)
-      val target = out("inspect").json.str
+      assert(eval(("inspect", "core.task")).isSuccess)
+      val task = out("inspect").json.str
       assert(
         globMatches(
-          """core.target(build.mill:...)
-            |    Core Target Docz!
+          """core.task(build.mill:...)
+            |    Core Task Docz!
             |
             |Inputs:
             |""",
-          target
+          task
         )
       )
 
@@ -57,7 +56,7 @@ object DocAnnotationsTests extends UtestIntegrationTestSuite {
           """inspect(MainModule.scala:...)
             |    Displays metadata about the given task without actually running it.
             |
-            |    targets <str>...
+            |    tasks <str>...
             |
             |Inputs:
             |""".stripMargin,
@@ -113,10 +112,73 @@ object DocAnnotationsTests extends UtestIntegrationTestSuite {
         )
       )
 
+      assert(eval(("inspect", "core.test.theWorker")).isSuccess)
+      val theWorkerInspect = out("inspect").json.str
+
+      assert(
+        globMatches(
+          """core.test.theWorker(build.mill:...)
+            |    -> The worker <-
+            |
+            |    *The worker*
+            |
+            |Inputs:
+            |""".stripMargin,
+          theWorkerInspect
+        )
+      )
+
       // Make sure both kebab-case and camelCase flags work, even though the
       // docs from `inspect` only show the kebab-case version
       assert(eval(("core.ivyDepsTree", "--withCompile", "--withRuntime")).isSuccess)
       assert(eval(("core.ivyDepsTree", "--with-compile", "--with-runtime")).isSuccess)
+
+      assert(eval(("inspect", "basic")).isSuccess)
+      val basicInspect = out("inspect").json.str
+      assert(
+        globMatches(
+          """basic(build.mill:...)
+            |
+            |Inherited Modules: Module
+            |""",
+          basicInspect
+        )
+      )
+
+      assert(eval(("inspect", "core")).isSuccess)
+      val coreInspect = out("inspect").json.str
+      assert(
+        globMatches(
+          """core(build.mill:...)
+            |    The Core Module Docz!
+            |
+            |Inherited Modules: JavaModule
+            |
+            |Default Task: core.run
+            |
+            |Tasks: core.task
+            |""",
+          coreInspect
+        )
+      )
+
+      assert(eval(("inspect", "MyJavaTaskModule")).isSuccess)
+      val jtmInspect = out("inspect").json.str
+      assert(
+        globMatches(
+          """MyJavaTaskModule(build.mill:...)
+            |
+            |Inherited Modules: JavaModule
+            |
+            |Module Dependencies: core, core2
+            |
+            |Default Task: MyJavaTaskModule.run
+            |
+            |Tasks: MyJavaTaskModule.lineCount, MyJavaTaskModule.task
+            |""",
+          jtmInspect
+        )
+      )
     }
   }
 }

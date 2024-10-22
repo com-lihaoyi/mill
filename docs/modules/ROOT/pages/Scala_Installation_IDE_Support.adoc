@@ -1,4 +1,0 @@
-= Installation and IDE Support
-:page-aliases: Installation.adoc, IDE_Support.adoc
-
-include::partial$Installation_IDE_Support.adoc[]

@@ -1,0 +1,31 @@
+= Linting Java Projects
+:page-aliases: Linting_Java_Projects.adoc
+
+++++
+<script>
+gtag('config', 'AW-16649289906');
+</script>
+++++
+
+This page will discuss common topics around enforcing the code quality of Java
+codebases using the Mill build tool
+
+
+== Linting with ErrorProne
+
+include::partial$example/javalib/linting/1-error-prone.adoc[]
+
+== Linting with Checkstyle
+
+include::partial$example/javalib/linting/2-checkstyle.adoc[]
+
+== AutoFormatting with Palantir Java Format
+
+include::partial$example/javalib/linting/3-palantirformat.adoc[]
+
+== Code Coverage with Jacoco
+
+Mill supports Java code coverage analysis via the mill-jacoco plugin. See the
+plugin repository documentation for more details:
+
+* https://github.com/lefou/mill-jacoco

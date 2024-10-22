@@ -5,33 +5,34 @@ import mill._
 trait VersionFileModule extends Module {
 
   /** The file containing the current version. */
-  def versionFile: T[PathRef] = T.source(millSourcePath / "version")
+  def versionFile: T[PathRef] = Task.Source(millSourcePath / "version")
 
   /** The current version. */
-  def currentVersion: T[Version] = T { Version.of(os.read(versionFile().path).trim) }
+  def currentVersion: T[Version] = Task { Version.of(os.read(versionFile().path).trim) }
 
   /** The release version. */
-  def releaseVersion: T[Version] = T { currentVersion().asRelease }
+  def releaseVersion: T[Version] = Task { currentVersion().asRelease }
 
   /** The next snapshot version. */
-  def nextVersion(bump: String): Task[Version] = T.task { currentVersion().asSnapshot.bump(bump) }
+  def nextVersion(bump: String): Task[Version] =
+    Task.Anon { currentVersion().asSnapshot.bump(bump) }
 
   /** Writes the release version to file. */
-  def setReleaseVersion(): Command[Unit] = T.command {
+  def setReleaseVersion(): Command[Unit] = Task.Command {
     setVersionTask(releaseVersion)()
   }
 
   /** Writes the next snapshot version to file. */
-  def setNextVersion(bump: String): Command[Unit] = T.command {
+  def setNextVersion(bump: String): Command[Unit] = Task.Command {
     setVersionTask(nextVersion(bump))()
   }
 
   /** Writes the given version to file. */
-  def setVersion(version: Task[Version]): Command[Unit] = T.command {
+  def setVersion(version: Task[Version]): Command[Unit] = Task.Command {
     setVersionTask(version)()
   }
 
-  protected def setVersionTask(version: Task[Version]) = T.task {
+  protected def setVersionTask(version: Task[Version]) = Task.Anon {
     T.log.info(generateCommitMessage(version()))
     writeVersionToFile(versionFile(), version())
   }
@@ -43,7 +44,7 @@ trait VersionFileModule extends Module {
     )
 
   /** Procs for tagging current version and committing changes. */
-  def tag = T {
+  def tag = Task {
     Seq(
       os.proc("git", "commit", "-am", generateCommitMessage(currentVersion())),
       os.proc("git", "tag", currentVersion().toString)
@@ -51,7 +52,7 @@ trait VersionFileModule extends Module {
   }
 
   /** Procs for committing changes and pushing. */
-  def push = T {
+  def push = Task {
     Seq(
       os.proc("git", "commit", "-am", generateCommitMessage(currentVersion())),
       os.proc("git", "push", "origin", "master", "--tags")
@@ -82,12 +83,12 @@ trait VersionFileModule extends Module {
 object VersionFileModule extends define.ExternalModule {
 
   /** Executes the given processes. */
-  def exec(procs: mill.main.Tasks[Seq[os.proc]]) = T.command {
+  def exec(procs: mill.main.Tasks[Seq[os.proc]]) = Task.Command {
     for {
       procs <- T.sequence(procs.value)()
       proc <- procs
     } yield proc.call()
   }
 
-  lazy val millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
+  lazy val millDiscover: mill.define.Discover = mill.define.Discover[this.type]
 }

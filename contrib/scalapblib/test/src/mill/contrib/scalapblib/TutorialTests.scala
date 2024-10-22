@@ -34,7 +34,7 @@ object TutorialTests extends TestSuite {
 
   object TutorialWithAdditionalArgs extends TutorialBase {
     object core extends TutorialModule {
-      override def scalaPBAdditionalArgs = T {
+      override def scalaPBAdditionalArgs = Task {
         Seq(
           "--additional-test=..."
         )
@@ -44,21 +44,21 @@ object TutorialTests extends TestSuite {
 
   object TutorialWithSpecificSources extends TutorialBase {
     object core extends TutorialModule {
-      override def scalaPBSources: T[Seq[PathRef]] = T.sources {
-        millSourcePath / "protobuf" / "tutorial" / "Tutorial.proto"
+      override def scalaPBSources: T[Seq[PathRef]] = Task.Sources {
+        millSourcePath / "protobuf/tutorial/Tutorial.proto"
       }
 
       override def scalaPBSearchDeps = true
       override def scalaPBIncludePath = Seq(
-        PathRef(millSourcePath / "protobuf" / "tutorial")
+        PathRef(millSourcePath / "protobuf/tutorial")
       )
     }
   }
 
-  val resourcePath: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER"))
+  val resourcePath: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
 
   def protobufOutPath(eval: UnitTester): os.Path =
-    eval.outPath / "core" / "compileScalaPB.dest" / "com" / "example" / "tutorial"
+    eval.outPath / "core/compileScalaPB.dest/com/example/tutorial"
 
   def compiledSourcefiles: Seq[os.RelPath] = Seq[os.RelPath](
     os.rel / "AddressBook.scala",
@@ -92,7 +92,7 @@ object TutorialTests extends TestSuite {
         val expectedSourcefiles = compiledSourcefiles.map(outPath / _)
 
         assert(
-          result.value.path == eval.outPath / "core" / "compileScalaPB.dest",
+          result.value.path == eval.outPath / "core/compileScalaPB.dest",
           outputFiles.nonEmpty,
           outputFiles.forall(expectedSourcefiles.contains),
           outputFiles.size == 5,
@@ -123,7 +123,7 @@ object TutorialTests extends TestSuite {
         ).map(outPath / _)
 
         assert(
-          result.value.path == eval.outPath / "core" / "compileScalaPB.dest",
+          result.value.path == eval.outPath / "core/compileScalaPB.dest",
           outputFiles.nonEmpty,
           outputFiles.forall(expectedSourcefiles.contains),
           outputFiles.size == 3,

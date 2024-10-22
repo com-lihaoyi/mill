@@ -72,7 +72,7 @@ object RunScript {
         }
 
         watched -> Right(evaluated.values.zip(nameAndJson))
-      case n => watched -> Left(s"$n targets failed\n$errorStr")
+      case n => watched -> Left(s"$n tasks failed\n$errorStr")
     }
   }
 

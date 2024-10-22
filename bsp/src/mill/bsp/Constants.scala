@@ -6,6 +6,6 @@ private[mill] object Constants {
   val bspProtocolVersion = BuildInfo.bsp4jVersion
   val bspWorkerImplClass = "mill.bsp.worker.BspWorkerImpl"
   val bspWorkerBuildInfoClass = "mill.bsp.worker.BuildInfo"
-  val languages: Seq[String] = Seq("scala", "java")
+  val languages: Seq[String] = Seq("java", "scala", "kotlin")
   val serverName = "mill-bsp"
 }

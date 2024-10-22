@@ -1,0 +1,1 @@
+This file should be skipped by the scan in CheckstyleXsltModule.

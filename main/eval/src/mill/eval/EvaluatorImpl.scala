@@ -1,6 +1,6 @@
 package mill.eval
 
-import mill.api.{CompileProblemReporter, Strict, TestReporter, Val}
+import mill.api.{CompileProblemReporter, Strict, SystemStreams, TestReporter, Val}
 import mill.api.Strict.Agg
 import mill.define._
 import mill.util._
@@ -28,9 +28,10 @@ private[mill] case class EvaluatorImpl(
     threadCount: Option[Int] = Some(1),
     scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])] = Map.empty,
     methodCodeHashSignatures: Map[String, Int],
-    override val disableCallgraphInvalidation: Boolean,
+    override val disableCallgraph: Boolean,
     override val allowPositionalCommandArgs: Boolean,
-    val systemExit: Int => Nothing
+    val systemExit: Int => Nothing,
+    val exclusiveSystemStreams: SystemStreams
 ) extends Evaluator with EvaluatorCore {
   import EvaluatorImpl._
 
@@ -55,7 +56,9 @@ private[mill] case class EvaluatorImpl(
   ): Evaluator.Results = {
     // TODO: cleanup once we break bin-compat in Mill 0.13
     // disambiguate override hierarchy
-    super.evaluate(goals, reporter, testReporter, logger, serialCommandExec)
+    logger.withPromptUnpaused {
+      super.evaluate(goals, reporter, testReporter, logger, serialCommandExec)
+    }
   }
 
   override def evalOrThrow(exceptionFactory: Evaluator.Results => Throwable)

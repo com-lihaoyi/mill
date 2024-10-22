@@ -1,14 +1,13 @@
 package mill.runner
 
 import mill.util.{ColorLogger, PrefixLogger, Watchable}
-import mill.main.BuildInfo
-import mill.main.client.CodeGenConstants._
-import mill.api.{PathRef, Val, internal}
+import mill.main.{BuildInfo, RootModule, RunScript}
+import mill.main.client.CodeGenConstants.*
+import mill.api.{PathRef, SystemStreams, Val, internal}
 import mill.eval.Evaluator
-import mill.main.RunScript
 import mill.resolve.SelectMode
-import mill.define.{BaseModule, Discover, Segments}
-import mill.main.client.OutFiles._
+import mill.define.{BaseModule, Segments}
+import mill.main.client.OutFiles.{millBuild, millRunnerState}
 
 import java.net.URLClassLoader
 
@@ -30,6 +29,7 @@ import java.net.URLClassLoader
 @internal
 class MillBuildBootstrap(
     projectRoot: os.Path,
+    output: os.Path,
     home: os.Path,
     keepGoing: Boolean,
     imports: Seq[String],
@@ -38,15 +38,16 @@ class MillBuildBootstrap(
     targetsAndParams: Seq[String],
     prevRunnerState: RunnerState,
     logger: ColorLogger,
-    disableCallgraphInvalidation: Boolean,
+    disableCallgraph: Boolean,
     needBuildSc: Boolean,
     requestedMetaLevel: Option[Int],
     allowPositionalCommandArgs: Boolean,
-    systemExit: Int => Nothing
+    systemExit: Int => Nothing,
+    streams0: SystemStreams
 ) {
   import MillBuildBootstrap._
 
-  val millBootClasspath: Seq[os.Path] = prepareMillBootClasspath(projectRoot / out)
+  val millBootClasspath: Seq[os.Path] = prepareMillBootClasspath(output)
   val millBootClasspathPathRefs: Seq[PathRef] = millBootClasspath.map(PathRef(_, quick = true))
 
   def evaluate(): Watching.Result[RunnerState] = CliImports.withValue(imports) {
@@ -54,7 +55,7 @@ class MillBuildBootstrap(
 
     for ((frame, depth) <- runnerState.frames.zipWithIndex) {
       os.write.over(
-        recOut(projectRoot, depth) / millRunnerState,
+        recOut(output, depth) / millRunnerState,
         upickle.default.write(frame.loggedData, indent = 4),
         createFolders = true
       )
@@ -102,20 +103,19 @@ class MillBuildBootstrap(
       } else {
         val parsedScriptFiles = FileImportGraph.parseBuildFiles(
           projectRoot,
-          recRoot(projectRoot, depth) / os.up
+          recRoot(projectRoot, depth) / os.up,
+          output
         )
 
         if (parsedScriptFiles.millImport) evaluateRec(depth + 1)
         else {
           val bootstrapModule =
-            new MillBuildRootModule.BootstrapModule(
-              projectRoot,
-              recRoot(projectRoot, depth),
-              millBootClasspath
-            )(
-              mill.main.RootModule.Info(
+            new MillBuildRootModule.BootstrapModule()(
+              new RootModule.Info(
+                millBootClasspath,
                 recRoot(projectRoot, depth),
-                Discover[MillBuildRootModule.BootstrapModule]
+                output,
+                projectRoot
               )
             )
           RunnerState(Some(bootstrapModule), Nil, None)
@@ -333,17 +333,17 @@ class MillBuildBootstrap(
       depth: Int
   ): Evaluator = {
 
-    val bootLogPrefix =
-      if (depth == 0) ""
-      else "[" + (Seq.fill(depth - 1)(millBuild) ++ Seq("build.mill")).mkString("/") + "] "
+    val bootLogPrefix: Seq[String] =
+      if (depth == 0) Nil
+      else Seq((Seq.fill(depth - 1)(millBuild) ++ Seq("build.mill")).mkString("/"))
 
     mill.eval.EvaluatorImpl(
       home,
       projectRoot,
-      recOut(projectRoot, depth),
-      recOut(projectRoot, depth),
+      recOut(output, depth),
+      recOut(output, depth),
       rootModule,
-      PrefixLogger(logger, "", tickerContext = bootLogPrefix),
+      new PrefixLogger(logger, bootLogPrefix),
       classLoaderSigHash = millClassloaderSigHash,
       classLoaderIdentityHash = millClassloaderIdentityHash,
       workerCache = workerCache.to(collection.mutable.Map),
@@ -351,9 +351,10 @@ class MillBuildBootstrap(
       failFast = !keepGoing,
       threadCount = threadCount,
       methodCodeHashSignatures = methodCodeHashSignatures,
-      disableCallgraphInvalidation = disableCallgraphInvalidation,
+      disableCallgraph = disableCallgraph,
       allowPositionalCommandArgs = allowPositionalCommandArgs,
-      systemExit = systemExit
+      systemExit = systemExit,
+      exclusiveSystemStreams = streams0
     )
   }
 
@@ -422,8 +423,8 @@ object MillBuildBootstrap {
     projectRoot / Seq.fill(depth)(millBuild)
   }
 
-  def recOut(projectRoot: os.Path, depth: Int): os.Path = {
-    projectRoot / out / Seq.fill(depth)(millBuild)
+  def recOut(output: os.Path, depth: Int): os.Path = {
+    output / Seq.fill(depth)(millBuild)
   }
 
 }

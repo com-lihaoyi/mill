@@ -8,12 +8,12 @@ import org.newsclub.net.unix.AFUNIXSocket;
 import org.newsclub.net.unix.AFUNIXSocketAddress;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.Socket;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -46,12 +46,12 @@ import java.util.function.BiConsumer;
 public abstract class ServerLauncher {
     public static class Result{
         public int exitCode;
-        public String serverDir;
+        public Path serverDir;
     }
     final static int tailerRefreshIntervalMillis = 2;
     final int serverProcessesLimit = 5;
     final int serverInitWaitMillis = 10000;
-    public abstract void initServer(String serverDir, boolean b, Locks locks) throws Exception;
+    public abstract void initServer(Path serverDir, boolean b, Locks locks) throws Exception;
     InputStream stdin;
     PrintStream stdout;
     PrintStream stderr;
@@ -92,12 +92,11 @@ public abstract class ServerLauncher {
         int serverIndex = 0;
         while (serverIndex < serverProcessesLimit) { // Try each possible server process (-1 to -5)
             serverIndex++;
-            final String serverDir = outDir + "/" + millWorker + versionAndJvmHomeEncoding + "-" + serverIndex;
-            java.io.File serverDirFile = new java.io.File(serverDir);
-            serverDirFile.mkdirs();
+            final Path serverDir = Paths.get(outDir, millServer, versionAndJvmHomeEncoding + "-" + serverIndex);
+            Files.createDirectories(serverDir);
 
             try (
-                    Locks locks = memoryLocks != null ? memoryLocks[serverIndex-1] : Locks.files(serverDir);
+                    Locks locks = memoryLocks != null ? memoryLocks[serverIndex-1] : Locks.files(serverDir.toString());
                     TryLocked clientLocked = locks.clientLock.tryLock()
             ) {
                 if (clientLocked.isLocked()) {
@@ -111,7 +110,7 @@ public abstract class ServerLauncher {
         throw new ServerCouldNotBeStarted("Reached max server processes limit: " + serverProcessesLimit);
     }
 
-    int run(String serverDir, boolean setJnaNoSys, Locks locks) throws Exception {
+    int run(Path serverDir, boolean setJnaNoSys, Locks locks) throws Exception {
         try(
                 final FileToStreamTailer stdoutTailer = new FileToStreamTailer(
                         new java.io.File(serverDir + "/" + ServerFiles.stdout),
@@ -126,7 +125,8 @@ public abstract class ServerLauncher {
         ) {
             stdoutTailer.start();
             stderrTailer.start();
-            try (FileOutputStream f = new FileOutputStream(serverDir + "/" + ServerFiles.runArgs)) {
+            String serverPath = serverDir + "/" + ServerFiles.runArgs;
+            try (OutputStream f = Files.newOutputStream(Paths.get(serverPath))) {
                 f.write(System.console() != null ? 1 : 0);
                 Util.writeString(f, BuildInfo.millVersion);
                 Util.writeArgs(args, f);
@@ -139,7 +139,7 @@ public abstract class ServerLauncher {
 
             while (locks.processLock.probe()) Thread.sleep(3);
 
-            String socketName = ServerFiles.pipe(serverDir);
+            String socketName = ServerFiles.pipe(serverDir.toString());
             AFUNIXSocketAddress addr = AFUNIXSocketAddress.of(new File(socketName));
 
             long retryStart = System.currentTimeMillis();

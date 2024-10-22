@@ -1,3 +1,0 @@
-= Installation and IDE Support
-
-include::partial$Installation_IDE_Support.adoc[]

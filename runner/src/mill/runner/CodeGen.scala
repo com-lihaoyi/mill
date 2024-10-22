@@ -15,7 +15,8 @@ object CodeGen {
       allScriptCode: Map[os.Path, String],
       targetDest: os.Path,
       enclosingClasspath: Seq[os.Path],
-      millTopLevelProjectRoot: os.Path
+      millTopLevelProjectRoot: os.Path,
+      output: os.Path
   ): Unit = {
     for (scriptSource <- scriptSources) {
       val scriptPath = scriptSource.path
@@ -94,6 +95,7 @@ object CodeGen {
             projectRoot,
             enclosingClasspath,
             millTopLevelProjectRoot,
+            output,
             scriptPath,
             scriptFolderPath,
             childAliases,
@@ -112,6 +114,7 @@ object CodeGen {
       projectRoot: os.Path,
       enclosingClasspath: Seq[os.Path],
       millTopLevelProjectRoot: os.Path,
+      output: os.Path,
       scriptPath: os.Path,
       scriptFolderPath: os.Path,
       childAliases: String,
@@ -120,12 +123,12 @@ object CodeGen {
       scriptCode: String,
       markerComment: String
   ) = {
-    val prelude = topBuildPrelude(
-      scriptFolderPath,
-      enclosingClasspath,
-      millTopLevelProjectRoot
-    )
     val segments = scriptFolderPath.relativeTo(projectRoot).segments
+
+    val prelude =
+      if (segments.nonEmpty) subfolderBuildPrelude(scriptFolderPath, segments)
+      else topBuildPrelude(scriptFolderPath, enclosingClasspath, millTopLevelProjectRoot, output)
+
     val instrument = new ObjectDataInstrument(scriptCode)
     fastparse.parse(scriptCode, Parsers.CompilationUnit(_), instrument = instrument)
     val objectData = instrument.objectData
@@ -147,17 +150,14 @@ object CodeGen {
       o.name.text == "`package`" && (o.parent.text == "RootModule" || o.parent.text == "MillBuildRootModule")
     ) match {
       case Some(objectData) =>
-        val newParent = // Use whitespace to try and make sure stuff to the right has the same column offset
-          if (segments.isEmpty) expectedParent
-          else {
-            val segmentsStr = segments.map(pprint.Util.literalize(_)).mkString(", ")
-            s"RootModule.Subfolder($segmentsStr)"
-          }
+        val newParent = if (segments.isEmpty) expectedParent else s"mill.main.SubfolderModule"
 
         var newScriptCode = scriptCode
-        newScriptCode = objectData.obj.applyTo(newScriptCode, "class")
-        newScriptCode = objectData.name.applyTo(newScriptCode, wrapperObjectName)
         newScriptCode = objectData.parent.applyTo(newScriptCode, newParent)
+        newScriptCode = objectData.name.applyTo(newScriptCode, wrapperObjectName)
+        newScriptCode = objectData.obj.applyTo(newScriptCode, "abstract class")
+
+        val millDiscover = discoverSnippet(segments)
 
         s"""$pkgLine
            |$aliasImports
@@ -166,6 +166,7 @@ object CodeGen {
            |$newScriptCode
            |object $wrapperObjectName extends $wrapperObjectName {
            |  $childAliases
+           |  $millDiscover
            |}""".stripMargin
       case None =>
         s"""$pkgLine
@@ -179,46 +180,63 @@ object CodeGen {
     }
   }
 
+  def subfolderBuildPrelude(scriptFolderPath: os.Path, segments: Seq[String]): String = {
+    s"""object MillMiscSubFolderInfo
+       |extends mill.main.SubfolderModule.Info(
+       |  os.Path(${literalize(scriptFolderPath.toString)}),
+       |  _root_.scala.Seq(${segments.map(pprint.Util.literalize(_)).mkString(", ")})
+       |)
+       |import MillMiscSubFolderInfo._
+       |""".stripMargin
+  }
+
   def topBuildPrelude(
       scriptFolderPath: os.Path,
       enclosingClasspath: Seq[os.Path],
-      millTopLevelProjectRoot: os.Path
+      millTopLevelProjectRoot: os.Path,
+      output: os.Path
   ): String = {
     s"""import _root_.mill.runner.MillBuildRootModule
        |@_root_.scala.annotation.nowarn
-       |object MillMiscInfo extends MillBuildRootModule.MillMiscInfo(
+       |object MillMiscInfo extends mill.main.RootModule.Info(
        |  ${enclosingClasspath.map(p => literalize(p.toString))},
        |  ${literalize(scriptFolderPath.toString)},
-       |  ${literalize(millTopLevelProjectRoot.toString)},
-       |  _root_.mill.define.Discover[$wrapperObjectName.type]
+       |  ${literalize(output.toString)},
+       |  ${literalize(millTopLevelProjectRoot.toString)}
        |)
        |import MillMiscInfo._
        |""".stripMargin
   }
 
   def topBuildHeader(
-      segs: Seq[String],
+      segments: Seq[String],
       scriptFolderPath: os.Path,
       millTopLevelProjectRoot: os.Path,
       childAliases: String
   ): String = {
-    val extendsClause = if (segs.isEmpty) {
-      if (millTopLevelProjectRoot == scriptFolderPath) {
+    val extendsClause =
+      if (segments.nonEmpty) s"extends _root_.mill.main.SubfolderModule "
+      else if (millTopLevelProjectRoot == scriptFolderPath)
         s"extends _root_.mill.main.RootModule() "
-      } else {
-        s"extends _root_.mill.runner.MillBuildRootModule() "
-      }
-    } else {
-      val segsList = segs.map(pprint.Util.literalize(_)).mkString(", ")
-      s"extends _root_.mill.main.RootModule.Subfolder($segsList) "
-    }
+      else s"extends _root_.mill.runner.MillBuildRootModule() "
+
+    val millDiscover = discoverSnippet(segments)
 
     // User code needs to be put in a separate class for proper submodule
     // object initialization due to https://github.com/scala/scala3/issues/21444
     s"""object $wrapperObjectName extends $wrapperObjectName{
        |  $childAliases
+       |  $millDiscover
        |}
-       |class $wrapperObjectName $extendsClause {""".stripMargin
+       |abstract class $wrapperObjectName $extendsClause {""".stripMargin
+
+  }
+
+  def discoverSnippet(segments: Seq[String]): String = {
+    if (segments.nonEmpty) ""
+    else
+      """override lazy val millDiscover: _root_.mill.define.Discover = _root_.mill.define.Discover[this.type]
+        |""".stripMargin
 
   }
 

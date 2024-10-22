@@ -14,9 +14,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 /**
  * Test to make sure that `--watch` works in the following cases:
  *
- * 1. `T.source`
- * 2. `T.sources`
- * 3. `T.input`
+ * 1. `Task.Source`
+ * 2. `Task.Sources`
+ * 3. `Task.Input`
  * 4. `interp.watchValue`
  * 5. Implicitly watched files, like `build.mill`
  */
@@ -114,7 +114,7 @@ object WatchSourceInputTests extends UtestIntegrationTestSuite {
         awaitCompletionMarker(tester, "initialized1")
         expectedOut.append(
           "Setting up build.mill"
-          // These targets do not re-evaluate, because the change to the build
+          // These tasks do not re-evaluate, because the change to the build
           // file was unrelated to them and does not affect their transitive callgraph
           //        "Running qux foo contents edited-foo1 edited-foo2",
           //        "Running qux bar contents edited-bar"
@@ -192,7 +192,7 @@ object WatchSourceInputTests extends UtestIntegrationTestSuite {
           }
         }
       }
-      test("show") - retry(3) {
+      test("show") - /*retry(3) */ {
         integrationTest { tester =>
           if (!Util.isWindows) {
             testWatchInput(tester, true)

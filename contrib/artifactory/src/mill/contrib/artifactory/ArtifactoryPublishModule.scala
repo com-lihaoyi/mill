@@ -27,7 +27,7 @@ trait ArtifactoryPublishModule extends PublishModule {
       artifactorySnapshotUri: String = artifactorySnapshotUri,
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000
-  ): define.Command[Unit] = T.command {
+  ): define.Command[Unit] = Task.Command {
     val PublishModule.PublishData(artifactInfo, artifacts) = publishArtifacts()
     new ArtifactoryPublisher(
       artifactoryUri,
@@ -59,7 +59,7 @@ object ArtifactoryPublishModule extends ExternalModule {
       publishArtifacts: mill.main.Tasks[PublishModule.PublishData],
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000
-  ) = T.command {
+  ) = Task.Command {
 
     val artifacts = T.sequence(publishArtifacts.value)().map {
       case data @ PublishModule.PublishData(_, _) => data.withConcretePath
@@ -76,7 +76,7 @@ object ArtifactoryPublishModule extends ExternalModule {
     )
   }
 
-  private def checkArtifactoryCreds(credentials: String): Task[String] = T.task {
+  private def checkArtifactoryCreds(credentials: String): Task[String] = Task.Anon {
     if (credentials.isEmpty) {
       (for {
         username <- T.env.get("ARTIFACTORY_USERNAME")
@@ -93,5 +93,5 @@ object ArtifactoryPublishModule extends ExternalModule {
     }
   }
 
-  lazy val millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
+  lazy val millDiscover: mill.define.Discover = mill.define.Discover[this.type]
 }

@@ -5,148 +5,17 @@
 </script>
 ++++
 
+
+The standard method of installing Mill is to install a `./mill` <<_bootstrap_scripts,bootstrap script>>,
+similar to `./gradlew` or `./mvnw` in other build tools.
+This script can determine the best version to be used by a project (e.g. by
+reading a `.mill-version`) and will use this exact Mill version.
+If the determined Mill version is not installed locally, it will be downloaded automatically.
+
 For all the examples in this documentation, there is a `download` link that provides
 a zip file containing the full example ready to use. These examples come with a `./mill`
 script you can use to immediately begin working with the project, needing only a JVM installed
-globally
-
-The best method of installing Mill is to just install a <<_bootstrap_scripts,bootstrap script>>.
-This script can determine the best version to be used by a project (e.g. by
-reading a `.mill-version` or `.config/mill-version` file or a `MILL_VERSION` environment variable) and will use this exact Mill version.
-If the determined Mill version is not installed locally, it will be downloaded automatically.
-
-== IDE Support
-
-:link-metals: https://scalameta.org/metals/
-
-Mill supports IntelliJ and VSCode, both via the standard
-https://build-server-protocol.github.io/[Build Server Protocol]
-
-=== IntelliJ
-
-To use Mill with IntelliJ, first ensure you have the free
-https://plugins.jetbrains.com/plugin/1347-scala[IntelliJ Scala Plugin]
-installed. This is necessary as Mill build files are written in Scala,
-even if you are using it to build a Java project.
-
-Once you have the plugin installed, you can use IntelliJ to open any project
-containing a Mill `build.sc` file, and IntelliJ will automatically load the
-Mill build. This will provide support both for your application code,
-as well as the code in the `build.sc`:
-
-image::IntellijApp.png[]
-
-image::IntellijBuild.png[]
-
-If you make changes to your Mill `build.sc`, you can ask Intellij to load
-those updates by opening the "BSP" tab and clicking the "Refresh" button
-
-image::IntellijRefresh.png[]
-
-==== IntelliJ IDEA XML Support
-
-Apart from using the Build Server Protocol, you can also generate IDEA project
-files directly with Mill. This is probably the preferred way if you work on
-polyglot projects and need support for other languages like Kotlin or AspectJ,
-which are currently not specifically configured over BSP.
-
-To generate IntelliJ IDEA project files into `.idea/`, run:
-
-[source,bash]
-----
-./mill mill.idea.GenIdea/idea
-----
-
-This will generate the XML files IntelliJ uses to configure your project
-
-```
-.idea
-.idea/scala_settings.xml
-.idea/mill_modules
-.idea/mill_modules/.iml
-.idea/mill_modules/mill-build.iml
-.idea/mill_modules/test.iml
-.idea/libraries
-.idea/libraries/mill_scalalib_2_13_0_11_10_jar.xml
-...
-.idea/workspace.xml
-.idea/modules.xml
-.idea/scala_compiler.xml
-.idea/misc.xml
-```
-
-After the files are generated, you can open the folder in IntelliJ to load the project
-into your IDE. If you make changes to your Mill `build.sc`, you can update the project config
-those updates by running `./mill mill.idea.GenIdea/idea` again.
-
-=== VSCode
-
-To use Mill with VSCode, first ensure you have the free
-https://marketplace.visualstudio.com/items?itemName=scalameta.metals[Metals VSCode Scala language server]
-installed. This is necessary as Mill build files are written in Scala,
-even if you are using it to build a Java project.
-
-Once you have the language server installed, you can ask VSCode to open any folder
-containing a Mill `build.sc` file, and VSCode will ask you to import your
-Mill build. This will provide support both for your application code,
-as well as the code in the `build.sc`:
-
-image::VSCodeApp.png[]
-
-image::VSCodeBuild.png[]
-
-If you make changes to your Mill `build.sc`, you can ask VSCode to load
-those updates by opening the "BSP" tab and clicking the "Refresh" button
-
-image::VSCodeRefresh.png[]
-
-=== Debugging IDE issues
-
-In case things go wrong, it can be sometimes hard to find the cause.
-BSP is just a protocol, and as such, issues on the server side (the Mill BSP
-server) might not well propagated to the BSP client (your IDE).
-
-For that reason Mill BSP server is writing a log file under
-`.bsp/mill-bsp.stderr`, where you can find various information about what's
-going on. Its content should look familiar, as it contains regular Mill
-output accompanied by additional BSP client-server communication details.
-
-You can increase the verbosity of that log file, when you run Mill with
-`--debug` at installation time (of the BSP discovery file).
-
-[source,bash]
-----
-mill --debug mill.bsp.BSP/install
-----
-
-=== BSP Gotchas: Mismatching JVM versions
-
-A common issue for poor performance can be a mismatch of the JVMs.
-In such a case the Mill BSP server started by a BSP client like Metals is using a _different_ JVM than `mill` is using when started from the command line.
-In such a scenario, every Mill invocation using the other JVM will inadvertently invalidate Mills  target caches.
-This effectively leads to full reevaluation of all invoked Mill targets and appears as "bad performance".
-
-To detect if this is the case,
-
-1. import the project in the BSP client.
-2. Wait until the BSP import process has finished.
-3. Then run `mill __.compile` in the terminal.
-4. Now watch the IDE, to see if the compile command invoked in the terminal has triggered compilation on the build server.
-
-If this happens, you're using different JVMs.
-Unfortunately, this is rather difficult to "defend" programmatically in Mill itself.
-It is an explicit design goal of Mill, that it should work in different environments.
-It is evident and likely unintentional that you have two conflicting local environments.
-
-To fix this it's required to find where this difference stems from.
-As a starting point,
-
-* Find out which JVM is used for Mill on the CLi. `mill --version` reports its JVM.
-
-* Search the `.bsp/mill-bsp.stderr` file for a line starting with `"Updating Evaluator"`.
-It should contain all env variables (particularly `JAVA_HOME`) used by the BSP server.
-
-Once you found and fixed that and the environments are the same, `clean` and restarting BSP should work as expected.
+globally.
 
 [#_bootstrap_scripts]
 == Bootstrap Scripts
@@ -170,6 +39,7 @@ Anyone who wants to work with the project can simply use the `./mill` script dir
 ./mill __.compile # double underscore
 ----
 
+
 In general, bootstrap scripts are the recommended way of installing Mill.
 Similar to `./gradlew` or `./mvnw`, the `./mill` bootstrap script
 reduces the chance of errors due to the installed version of Mill
@@ -178,29 +48,125 @@ In-project bootstrap scripts are also useful for running Mill in CI/CD, ensuring
 that your build server like Jenkins or Github Actions has the correct version of Mill
 present to build, compile or test your code.
 
-=== `millw`
+If you are starting a new project using a Mill bootstrap script, you can use the
+xref:{language-small}lib/builtin-commands.adoc#_init[mill init] to initialize the project
+folder with one of the Mill example projects. There are a wide range of example projects,
+from hello-world to multi-module libraries to client-server web applications, and you can
+pick one most similar to what you are doing so you can hit the ground running working.
 
-You can also use https://github.com/lefou/millw[lefou/millw] as a drop-in replacement for `mill`.
-This script is a bit more advanced, and supports running on all major platforms including MS Windows.
+=== Windows
 
-The script supports to following sources when determining the best Mill version to use:
+If you are running on Windows, you should use https://github.com/lefou/millw[lefou/millw]
+as a drop-in replacement for `./mill` that supports running on all major platforms including MS Windows.
 
-* `MILL_VERSION` environment variable
-* `.mill-version` file in the project directory
-* `.config/mill-version` file in the project directory
-* if non was defined so far, it can also check for the latest available version online
-* `DEFAULT_MILL_VERSION` environment variable
+`./millw` will likely be merged into `./mill` in the near future.
 
-Using a system-wide installed `millw` is probably the robustest way to use Mill on any operating system.
-It also preserves support of rather old Mill versions next to recent ones, so that updating it or switching to `millw` initially should be a no-brainer.
+== IDE Support
 
-You can also install it on Homebrew via https://github.com/lefou/homebrew-millw[homebrew-millw]:
+:link-metals: https://scalameta.org/metals/
 
-[source,sh]
+Mill supports IntelliJ and VSCode, both via the standard
+https://build-server-protocol.github.io/[Build Server Protocol]
+
+=== IntelliJ
+
+To use Mill with IntelliJ, first ensure you have the free
+https://plugins.jetbrains.com/plugin/1347-scala[IntelliJ Scala Plugin]
+installed. This is necessary as Mill build files are written in Scala,
+even if you are using it to build a Java or Kotlin project.
+
+Once you have the plugin installed, you can use IntelliJ to open any project
+containing a Mill `build.mill` file, and IntelliJ will automatically load the
+Mill build. If you have multiple build systems installed, Intellij may give you
+choice which build system configuration to use for the import, which case select `BSP`:
+
+image::basic/IntellijSelectBsp.png[]
+
+
+
+This will provide support both for your application code,
+as well as the code in the `build.mill`:
+
+image::basic/IntellijApp.png[]
+
+image::basic/IntellijBuild.png[]
+
+If IntelliJ does not highlight the `.mill` files correctly, you can explicitly enable
+it by adding `*.mill` to the `Scala` file type:
+
+image::basic/IntellijFileTypeConfig.png[]
+
+If you make changes to your Mill `build.mill`, you can ask Intellij to load
+those updates by opening the "BSP" tab and clicking the "Refresh" button
+
+image::basic/IntellijRefresh.png[]
+
+==== IntelliJ IDEA XML Support
+
+Apart from using the Build Server Protocol, you can also generate IDEA project
+files directly with Mill. This is probably the preferred way if you work on
+polyglot projects and need support for frameworks like AspectJ,
+which are currently not specifically configured over BSP.
+
+To generate IntelliJ IDEA project files into `.idea/`, run:
+
+[source,bash]
 ----
-brew install lefou/millw/millw
+./mill mill.idea.GenIdea/
 ----
 
+This will generate the XML files IntelliJ uses to configure your project
+
+```
+.idea
+.idea/scala_settings.xml
+.idea/mill_modules
+.idea/mill_modules/.iml
+.idea/mill_modules/mill-build.iml
+.idea/mill_modules/test.iml
+.idea/libraries
+.idea/libraries/mill_scalalib_2_13_0_11_10_jar.xml
+...
+.idea/workspace.xml
+.idea/modules.xml
+.idea/scala_compiler.xml
+.idea/misc.xml
+```
+
+After the files are generated, you can open the folder in IntelliJ to load the project
+into your IDE. If you make changes to your Mill `build.mill`, you can update the project config
+those updates by running `./mill mill.idea.GenIdea/` again.
+
+=== VSCode
+
+To use Mill with VSCode, first ensure you have the free
+https://marketplace.visualstudio.com/items?itemName=scalameta.metals[Metals VSCode Scala language server]
+installed. This is necessary as Mill build files are written in Scala,
+even if you are using it to build a Java project.
+
+NOTE: Mill in VSCode only supports Java and Scala. Kotlin users should use IntelliJ
+
+Once you have the language server installed, you can ask VSCode to open any folder
+containing a Mill `build.mill` file, and VSCode will ask you to import your
+Mill build. This will provide support both for your application code,
+as well as the code in the `build.mill`:
+
+image::basic/VSCodeApp.png[]
+
+image::basic/VSCodeBuild.png[]
+
+If you make changes to your Mill `build.mill`, you can ask VSCode to load
+those updates by opening the "BSP" tab and clicking the "Refresh" button
+
+image::basic/VSCodeRefresh.png[]
+
+=== Debugging IDE issues
+
+Mill's BSP IDE integration writes to a log file under
+`.bsp/mill-bsp.stderr`, where you can find various information about what's
+going on. It contains regular Mill output accompanied by additional BSP
+client-server communication details. This can be useful to look at if your
+IDE fails to import your Mill project
 
 == Updating Mill
 
@@ -227,16 +193,43 @@ MILL_VERSION=0.5.0-3-4faefb ./mill __.compile
 to override the Mill version manually. This takes precedence over the version
 specified in `./mill`, `.config/mill-version` or `.mill-version`
 
+
+== Running Mill with custom JVM options
+
+It's possible to pass JVM options to the Mill launcher. To do this you need to
+create a `.mill-jvm-opts` file in your project's root. This file should contain
+JVM options, one per line.
+
+For example, if your build requires a lot of memory and bigger stack size, your
+`.mill-jvm-opts` could look like this:
+
+----
+-Xss10m
+-Xmx10G
+----
+
+The file name for passing JVM options to the Mill launcher is configurable. If
+for some reason you don't want to use `.mill-jvm-opts` file name, add
+`MILL_JVM_OPTS_PATH` environment variable with any other file name.
+
+NOTE: `.mill-jvm-opts` is for passing JVM options to the JVM running Mill itself.
+If you want to pass JVM options to the project that Mill is building and running,
+see the section on
+xref:javalib/module-config.adoc#_compilation_execution_flags[Compilation and Execution Flags].
+
 == Other installation methods
 
-Of course, you can also use the package manager of your operating system or distribution.
-Please keep in mind, that all those solutions listed below are maintained outside of Mill and may not have the same features as the <<_bootstrap_scripts,bootstrap scripts>>.
+CAUTION: The installation methods listed below are maintained outside of Mill and may not have
+the same features as the <<_bootstrap_scripts,bootstrap scripts>>. You can try using them,
+but the officially supported way to use Mill is via the bootstrap script above, so the Mill
+maintainers may be unable to help you if you have issues with some alternate installation method.
 
-CAUTION: Some of the installations via package managers install a fixed version of Mill and do not support project-specific selection of the preferred Mill version. If you want to use the `MILL_VERSION` environment variable or need support for `.mill-version` or `.config/mill-version` files to control the actual used Mill version, please use a <<_bootstrap_scripts,Bootstrap script>> instead.
+CAUTION: Some of the installations via package managers install a fixed version of Mill and
+do not support project-specific selection of the preferred Mill version. If you want to use the `MILL_VERSION` environment variable or need support for `.mill-version` or `.config/mill-version` files to control the actual used Mill version, please use a <<_bootstrap_scripts,Bootstrap script>> instead.
 
 === OS X
 
-Installation via https://github.com/Homebrew/homebrew-core/blob/master/Formula/mill.rb[homebrew]:
+Installation via https://github.com/Homebrew/homebrew-core/blob/master/Formula/m/mill.rb[homebrew]:
 
 [source,sh]
 ----
@@ -343,7 +336,7 @@ asdf global mill latest
 ---
 
 
-=== Automatic Mill updates
+== Automatic Mill updates
 
 If your project is hosted on GitHub, GitLab, or Bitbucket, you can use
 https://github.com/scala-steward-org/scala-steward[Scala Steward] to
@@ -351,10 +344,10 @@ automatically open a pull request to update your Mill version (in
 `.mill-version` or `.config/mill-version` file), whenever there is a newer version available.
 
 TIP: Scala Steward can also
-xref:Scala_Module_Config.adoc#_keeping_up_to_date_with_scala_steward[scan your project dependencies]
+xref:scalalib/dependencies.adoc#_keeping_up_to_date_with_scala_steward[scan your project dependencies]
 and keep them up-to-date.
 
-=== Development Releases
+== Development Releases
 
 In case you want to try out the latest features and improvements that are
 currently in the main branch, unstable versions of Mill
@@ -363,7 +356,7 @@ https://github.com/com-lihaoyi/mill/releases[available] as binaries named
 `+#.#.#-n-hash+` linked to the latest tag.
 
 The easiest way to use a development release is to use one of the
-<<_bootstrap_scripts>>, which support <<_overriding_mill_versions>> via an
+<<_bootstrap_scripts>>, which support overriding Mill versions via an
 `MILL_VERSION` environment variable or a `.mill-version` or `.config/mill-version` file.
 
 

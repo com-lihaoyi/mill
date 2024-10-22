@@ -1,0 +1,25 @@
+//// SNIPPET:BUILD
+package build
+import mill._, kotlinlib._
+
+object foo extends KotlinModule {
+
+  def kotlinVersion = "1.9.24"
+
+  object test extends KotlinTests with TestModule.Junit5 {
+    def otherFiles = T.source(millSourcePath / "other-files")
+
+    def forkEnv = super.forkEnv() ++ Map(
+      "OTHER_FILES_DIR" -> otherFiles().path.toString
+    )
+
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
+    )
+  }
+}
+
+//// SNIPPET:APPLICATIONCODE
+
+/** See Also: foo/src/Foo.kt */
+/** See Also: foo/test/src/FooTests.kt */

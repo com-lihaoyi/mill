@@ -6,7 +6,6 @@ import mill.api._
 import mill.define._
 import mill.eval.Evaluator.TaskResult
 import mill.main.client.OutFiles._
-import mill.main.client.EnvVars
 import mill.util._
 
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
@@ -68,7 +67,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       logger: ColorLogger,
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
-      ec: ExecutionContext with AutoCloseable,
+      ec: mill.api.Ctx.Fork.Impl,
       contextLoggerMsg0: Int => String,
       serialCommandExec: Boolean
   ): Evaluator.Results = {
@@ -90,9 +89,13 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     val (classToTransitiveClasses, allTransitiveClassMethods) =
       precomputeMethodNamesPerClass(sortedGroups)
 
-    def evaluateTerminals(terminals: Seq[Terminal], contextLoggerMsg: Int => String)(implicit
-        ec: ExecutionContext
+    def evaluateTerminals(
+        terminals: Seq[Terminal],
+        forkExecutionContext: mill.api.Ctx.Fork.Impl,
+        exclusive: Boolean
     ) = {
+      implicit val taskExecutionContext =
+        if (exclusive) ExecutionContexts.RunNow else forkExecutionContext
       // We walk the task graph in topological order and schedule the futures
       // to run asynchronously. During this walk, we store the scheduled futures
       // in a dictionary. When scheduling each future, we are guaranteed that the
@@ -101,6 +104,14 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       for (terminal <- terminals) {
         val deps = interGroupDeps(terminal)
         futures(terminal) = Future.sequence(deps.map(futures)).map { upstreamValues =>
+          val countMsg = mill.util.Util.leftPad(
+            count.getAndIncrement().toString,
+            terminals.length.toString.length,
+            '0'
+          )
+
+          val verboseKeySuffix = s"/${terminals0.size}"
+          logger.setPromptHeaderPrefix(s"$countMsg$verboseKeySuffix")
           if (failed.get()) None
           else {
             val upstreamResults = upstreamValues
@@ -109,24 +120,47 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
               .toMap
 
             val startTime = System.nanoTime() / 1000
-            val threadId = threadNumberer.getThreadId(Thread.currentThread())
-            val counterMsg = s"${count.getAndIncrement()}/${terminals.size}"
-            val contextLogger = PrefixLogger(
-              out = logger,
-              context = contextLoggerMsg(threadId),
-              tickerContext = GroupEvaluator.dynamicTickerPrefix.value
+            val targetLabel = terminal match {
+              case Terminal.Task(task) => None
+              case t: Terminal.Labelled[_] => Some(Terminal.printTerm(t))
+            }
+
+            val group = sortedGroups.lookupKey(terminal)
+
+            // should we log progress?
+            val logRun = targetLabel.isDefined && {
+              val inputResults = for {
+                target <- group.indexed.filterNot(upstreamResults.contains)
+                item <- target.inputs.filterNot(group.contains)
+              } yield upstreamResults(item).map(_._1)
+              inputResults.forall(_.result.isInstanceOf[Result.Success[_]])
+            }
+
+            val tickerPrefix = terminal.render.collect {
+              case targetLabel if logRun && logger.enableTicker => targetLabel
+            }
+
+            val contextLogger = new PrefixLogger(
+              logger0 = logger,
+              key0 = if (!logger.enableTicker) Nil else Seq(countMsg),
+              verboseKeySuffix = verboseKeySuffix,
+              message = tickerPrefix,
+              noPrefix = exclusive
             )
 
             val res = evaluateGroupCached(
               terminal = terminal,
               group = sortedGroups.lookupKey(terminal),
               results = upstreamResults,
-              counterMsg = counterMsg,
+              countMsg = countMsg,
+              verboseKeySuffix = verboseKeySuffix,
               zincProblemReporter = reporter,
               testReporter = testReporter,
               logger = contextLogger,
               classToTransitiveClasses,
-              allTransitiveClassMethods
+              allTransitiveClassMethods,
+              forkExecutionContext,
+              exclusive
             )
 
             if (failFast && res.newResults.values.exists(_.result.asSuccess.isEmpty))
@@ -160,6 +194,10 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
           }
         }
       }
+
+      // Make sure we wait for all tasks from this batch to finish before starting the next
+      // one, so we don't mix up exclusive and non-exclusive tasks running at the same time
+      terminals.map(t => (t, Await.result(futures(t), duration.Duration.Inf)))
     }
 
     val tasks0 = terminals0.filter {
@@ -170,25 +208,25 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     val (_, tasksTransitive0) = Plan.plan(Agg.from(tasks0.map(_.task)))
 
     val tasksTransitive = tasksTransitive0.toSet
-    val (tasks, leafCommands) = terminals0.partition {
-      case Terminal.Labelled(t, _) if tasksTransitive.contains(t) => true
+    val (tasks, leafExclusiveCommands) = terminals0.partition {
+      case Terminal.Labelled(t, _) =>
+        if (tasksTransitive.contains(t)) true
+        else t match {
+          case t: Command[_] => !t.exclusive
+          case _ => false
+        }
       case _ => !serialCommandExec
     }
 
     // Run all non-command tasks according to the threads
     // given but run the commands in linear order
-    evaluateTerminals(
-      tasks,
-      // We want to skip the non-deterministic thread prefix in our test suite
-      // since all it would do is clutter the testing logic trying to match on it
-      if (sys.env.contains(EnvVars.MILL_TEST_SUITE)) _ => ""
-      else contextLoggerMsg0
-    )(ec)
-    evaluateTerminals(leafCommands, _ => "")(ExecutionContexts.RunNow)
+    val nonExclusiveResults = evaluateTerminals(tasks, ec, exclusive = false)
 
-    val finishedOptsMap = terminals0
-      .map(t => (t, Await.result(futures(t), duration.Duration.Inf)))
-      .toMap
+    val exclusiveResults = evaluateTerminals(leafExclusiveCommands, ec, exclusive = true)
+
+    logger.clearPromptStatuses()
+
+    val finishedOptsMap = (nonExclusiveResults ++ exclusiveResults).toMap
 
     val results0: Vector[(Task[_], TaskResult[(Val, Int)])] = terminals0
       .flatMap { t =>
@@ -226,10 +264,10 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
         c.getInterfaces.iterator.flatMap(resolveTransitiveParents)
     }
 
-    val classToTransitiveClasses = sortedGroups
+    val classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]] = sortedGroups
       .values()
       .flatten
-      .collect { case namedTask: NamedTask[_] => namedTask.ctx.enclosingCls }
+      .collect { case namedTask: NamedTask[?] => namedTask.ctx.enclosingCls }
       .map(cls => cls -> resolveTransitiveParents(cls).toVector)
       .toMap
 
@@ -238,22 +276,23 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       .flatMap(_._2)
       .toSet
 
-    val allTransitiveClassMethods = allTransitiveClasses
-      .map { cls =>
-        val cMangledName = cls.getName.replace('.', '$')
-        cls -> cls.getDeclaredMethods
-          .flatMap { m =>
-            Seq(
-              m.getName -> m,
-              // Handle scenarios where private method names get mangled when they are
-              // not really JVM-private due to being accessed by Scala nested objects
-              // or classes https://github.com/scala/bug/issues/9306
-              m.getName.stripPrefix(cMangledName + "$$") -> m,
-              m.getName.stripPrefix(cMangledName + "$") -> m
-            )
-          }.toMap
-      }
-      .toMap
+    val allTransitiveClassMethods: Map[Class[?], Map[String, java.lang.reflect.Method]] =
+      allTransitiveClasses
+        .map { cls =>
+          val cMangledName = cls.getName.replace('.', '$')
+          cls -> cls.getDeclaredMethods
+            .flatMap { m =>
+              Seq(
+                m.getName -> m,
+                // Handle scenarios where private method names get mangled when they are
+                // not really JVM-private due to being accessed by Scala nested objects
+                // or classes https://github.com/scala/bug/issues/9306
+                m.getName.stripPrefix(cMangledName + "$$") -> m,
+                m.getName.stripPrefix(cMangledName + "$") -> m
+              )
+            }.toMap
+        }
+        .toMap
 
     (classToTransitiveClasses, allTransitiveClassMethods)
   }

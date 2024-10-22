@@ -1,0 +1,8 @@
+= Built-in Commands
+:page-aliases: Java_Builtin_Commands.adoc
+
+:language: Java
+:language-small: java
+
+
+include::partial$example/javalib/basic/5-builtin-commands.adoc[]

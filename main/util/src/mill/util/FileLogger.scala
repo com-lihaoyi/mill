@@ -11,6 +11,7 @@ class FileLogger(
     override val debugEnabled: Boolean,
     append: Boolean = false
 ) extends Logger {
+  override def toString: String = s"FileLogger($file)"
   private[this] var outputStreamUsed: Boolean = false
 
   lazy val fileStream: PrintStream = {
@@ -52,6 +53,8 @@ class FileLogger(
     if (outputStreamUsed)
       outputStream.close()
   }
-
   override def rawOutputStream: PrintStream = outputStream
+  override def subLogger(path: os.Path, verboseKeySuffix: String, message: String): Logger = {
+    new FileLogger(colored, path, debugEnabled, append)
+  }
 }

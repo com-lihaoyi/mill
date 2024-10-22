@@ -11,8 +11,8 @@ class TestBaseModule(implicit
     millModuleFile0: sourcecode.File
 ) extends mill.define.BaseModule(
       {
-        os.makeDir.all(os.pwd / "out" / "mill-test-base-module")
-        os.temp.dir(os.pwd / "out" / "mill-test-base-module", deleteOnExit = false)
+        os.makeDir.all(os.pwd / "out/mill-test-base-module")
+        os.temp.dir(os.pwd / "out/mill-test-base-module", deleteOnExit = false)
       }
     )(
       millModuleEnclosing0,
@@ -20,5 +20,5 @@ class TestBaseModule(implicit
       millModuleFile0,
       Caller(null)
     ) {
-  lazy val millDiscover: Discover[this.type] = Discover[this.type]
+  lazy val millDiscover: Discover = Discover[this.type]
 }

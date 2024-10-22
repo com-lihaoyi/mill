@@ -32,7 +32,7 @@ import mill.util.PrintLogger
         frameworkInstances = Framework.framework(testArgs.framework),
         testClassfilePath = Agg.from(testArgs.testCp),
         args = testArgs.arguments,
-        classFilter = filter,
+        classFilter = cls => filter(cls.getName),
         cl = classLoader,
         testReporter = DummyTestReporter
       )(ctx)

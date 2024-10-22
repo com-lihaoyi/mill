@@ -15,4 +15,12 @@ public abstract class Lock implements AutoCloseable {
      */
     public abstract boolean probe() throws Exception;
     public void delete() throws Exception {}
+
+    public static Lock file(String path) throws Exception {
+        return new FileLock(path);
+    }
+
+    public static Lock memory() {
+        return new MemoryLock();
+    }
 }

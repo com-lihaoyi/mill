@@ -55,6 +55,7 @@ private[mill] class BspContext(
       override def info(s: String): Unit = streams.err.println(s)
       override def error(s: String): Unit = streams.err.println(s)
       override def ticker(s: String): Unit = streams.err.println(s)
+      override def setPromptDetail(key: Seq[String], s: String): Unit = streams.err.println(s)
       override def debug(s: String): Unit = streams.err.println(s)
 
       override def debugEnabled: Boolean = true

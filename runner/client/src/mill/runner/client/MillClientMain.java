@@ -1,9 +1,9 @@
 package mill.runner.client;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.function.BiConsumer;
 import mill.main.client.ServerLauncher;
-import mill.main.client.ServerFiles;
 import mill.main.client.Util;
 import mill.main.client.lock.Locks;
 import mill.main.client.OutFiles;
@@ -37,7 +37,7 @@ public class MillClientMain {
         } else try {
             // start in client-server mode
             ServerLauncher launcher = new ServerLauncher(System.in, System.out, System.err, System.getenv(), args, null, -1){
-                public void initServer(String serverDir, boolean setJnaNoSys, Locks locks) throws Exception{
+                public void initServer(Path serverDir, boolean setJnaNoSys, Locks locks) throws Exception{
                     MillProcessLauncher.launchMillServer(serverDir, setJnaNoSys);
                 }
             };

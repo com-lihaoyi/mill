@@ -4,13 +4,12 @@ import mill._
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
 
-
 object `package` extends RootModule with build.MillPublishScalaModule with BuildInfo {
   def compileModuleDeps = Seq(build.scalalib)
   def testModuleDeps = super.testModuleDeps ++ compileModuleDeps
   def buildInfoPackageName = "mill.bsp"
 
-  def buildInfoMembers = T {
+  def buildInfoMembers = Task {
     val workerDep = worker.publishSelfDependency()
     Seq(
       BuildInfo.Value(
@@ -23,7 +22,7 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
 
   override lazy val test: MillScalaTests = new Test {}
   trait Test extends MillScalaTests {
-    def forkEnv: T[Map[String, String]] = T {
+    def forkEnv: T[Map[String, String]] = Task {
       // We try to fetch this dependency with coursier in the tests
       worker.publishLocalCached()
       super.forkEnv()
@@ -33,7 +32,12 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
   }
 
   object worker extends build.MillPublishScalaModule {
-    def compileModuleDeps = Seq(build.bsp, build.scalalib, build.testrunner, build.runner) ++ build.scalalib.compileModuleDeps
+    def compileModuleDeps = Seq(
+      build.bsp,
+      build.scalalib,
+      build.testrunner,
+      build.runner
+    ) ++ build.scalalib.compileModuleDeps
     def ivyDeps = Agg(build.Deps.bsp4j, build.Deps.sbtTestInterface)
   }
 }

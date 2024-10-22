@@ -8,8 +8,8 @@ import java.security.MessageDigest
 object SonatypeHelpers {
   // http://central.sonatype.org/pages/working-with-pgp-signatures.html#signing-a-file
 
-  val USERNAME_ENV_VARIABLE_NAME = "SONATYPE_USERNAME"
-  val PASSWORD_ENV_VARIABLE_NAME = "SONATYPE_PASSWORD"
+  val USERNAME_ENV_VARIABLE_NAME = "MILL_SONATYPE_USERNAME"
+  val PASSWORD_ENV_VARIABLE_NAME = "MILL_SONATYPE_PASSWORD"
 
   private[mill] def getArtifactMappings(
       isSigned: Boolean,

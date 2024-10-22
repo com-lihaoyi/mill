@@ -53,6 +53,7 @@ object ResolveTests extends TestSuite {
         module,
         selectorStrings,
         SelectMode.Separated,
+        false,
         false
       )
     }
@@ -62,6 +63,7 @@ object ResolveTests extends TestSuite {
         module,
         selectorStrings,
         SelectMode.Separated,
+        false,
         false
       ).map(_.map(_.render))
     }
@@ -71,7 +73,7 @@ object ResolveTests extends TestSuite {
     x.left.exists(_.contains(s)) &&
       // Make sure the stack traces are truncated and short-ish, and do not
       // contain the entire Mill internal call stack at point of failure
-      x.left.exists(_.linesIterator.size < 20)
+      x.left.exists(_.linesIterator.size < 25)
 
   val tests = Tests {
     val graphs = new mill.util.TestGraphs()

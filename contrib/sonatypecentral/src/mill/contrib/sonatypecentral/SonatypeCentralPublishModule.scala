@@ -13,7 +13,7 @@ import mill.contrib.sonatypecentral.SonatypeCentralPublishModule.{
   getPublishingTypeFromReleaseFlag,
   getSonatypeCredentials
 }
-import mill.scalalib.PublishModule.{defaultGpgArgs, getFinalGpgArgs}
+import mill.scalalib.PublishModule.defaultGpgArgs
 import mill.scalalib.publish.Artifact
 import mill.scalalib.publish.SonatypeHelpers.{
   PASSWORD_ENV_VARIABLE_NAME,
@@ -21,29 +21,32 @@ import mill.scalalib.publish.SonatypeHelpers.{
 }
 
 trait SonatypeCentralPublishModule extends PublishModule {
-  def sonatypeCentralGpgArgs: T[String] = T { defaultGpgArgs.mkString(",") }
+  def sonatypeCentralGpgArgs: T[String] = Task { defaultGpgArgs.mkString(",") }
 
-  def sonatypeCentralConnectTimeout: T[Int] = T { defaultConnectTimeout }
+  def sonatypeCentralConnectTimeout: T[Int] = Task { defaultConnectTimeout }
 
-  def sonatypeCentralReadTimeout: T[Int] = T { defaultReadTimeout }
+  def sonatypeCentralReadTimeout: T[Int] = Task { defaultReadTimeout }
 
-  def sonatypeCentralAwaitTimeout: T[Int] = T { defaultAwaitTimeout }
+  def sonatypeCentralAwaitTimeout: T[Int] = Task { defaultAwaitTimeout }
 
-  def sonatypeCentralShouldRelease: T[Boolean] = T { true }
+  def sonatypeCentralShouldRelease: T[Boolean] = Task { true }
 
   def publishSonatypeCentral(
       username: String = defaultCredentials,
       password: String = defaultCredentials
   ): define.Command[Unit] =
-    T.command {
+    Task.Command {
       val publishData = publishArtifacts()
       val fileMapping = publishData.withConcretePath._1
       val artifact = publishData.meta
       val finalCredentials = getSonatypeCredentials(username, password)()
-
+      PublishModule.pgpImportSecretIfProvided(T.env)
       val publisher = new SonatypeCentralPublisher(
         credentials = finalCredentials,
-        gpgArgs = getFinalGpgArgs(sonatypeCentralGpgArgs()),
+        gpgArgs = sonatypeCentralGpgArgs() match {
+          case "" => PublishModule.defaultGpgArgsForPassphrase(T.env.get("PGP_PASSPHRASE"))
+          case gpgArgs => gpgArgs.split(",").toIndexedSeq
+        },
         connectTimeout = sonatypeCentralConnectTimeout(),
         readTimeout = sonatypeCentralReadTimeout(),
         log = T.log,
@@ -77,7 +80,7 @@ object SonatypeCentralPublishModule extends ExternalModule {
       connectTimeout: Int = defaultConnectTimeout,
       awaitTimeout: Int = defaultAwaitTimeout,
       bundleName: String = ""
-  ): Command[Unit] = T.command {
+  ): Command[Unit] = Task.Command {
 
     val artifacts: Seq[(Seq[(os.Path, String)], Artifact)] =
       T.sequence(publishArtifacts.value)().map {
@@ -86,10 +89,13 @@ object SonatypeCentralPublishModule extends ExternalModule {
 
     val finalBundleName = if (bundleName.isEmpty) None else Some(bundleName)
     val finalCredentials = getSonatypeCredentials(username, password)()
-
+    PublishModule.pgpImportSecretIfProvided(T.env)
     val publisher = new SonatypeCentralPublisher(
       credentials = finalCredentials,
-      gpgArgs = getFinalGpgArgs(gpgArgs),
+      gpgArgs = gpgArgs match {
+        case "" => PublishModule.defaultGpgArgsForPassphrase(T.env.get("PGP_PASSPHRASE"))
+        case gpgArgs => gpgArgs.split(",").toIndexedSeq
+      },
       connectTimeout = connectTimeout,
       readTimeout = readTimeout,
       log = T.log,
@@ -116,7 +122,7 @@ object SonatypeCentralPublishModule extends ExternalModule {
       credentialParameterValue: String,
       credentialName: String,
       envVariableName: String
-  ): Task[String] = T.task {
+  ): Task[String] = Task.Anon {
     if (credentialParameterValue.nonEmpty) {
       Result.Success(credentialParameterValue)
     } else {
@@ -135,7 +141,7 @@ object SonatypeCentralPublishModule extends ExternalModule {
   private def getSonatypeCredentials(
       usernameParameterValue: String,
       passwordParameterValue: String
-  ): Task[SonatypeCredentials] = T.task {
+  ): Task[SonatypeCredentials] = Task.Anon {
     val username =
       getSonatypeCredential(usernameParameterValue, "username", USERNAME_ENV_VARIABLE_NAME)()
     val password =
@@ -143,5 +149,5 @@ object SonatypeCentralPublishModule extends ExternalModule {
     Result.Success(SonatypeCredentials(username, password))
   }
 
-  lazy val millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
+  lazy val millDiscover: mill.define.Discover = mill.define.Discover[this.type]
 }

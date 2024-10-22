@@ -27,7 +27,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
    * Generates bloop configuration files reflecting the build,
    * under pwd/.bloop.
    */
-  def install() = T.command {
+  def install() = Task.Command {
     val res = T.traverse(computeModules)(_.bloop.writeConfigFile())()
     val written = res.map(_._2).map(_.path)
     // Make bloopDir if it doesn't exists
@@ -61,7 +61,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
     def linkerMode: T[Option[BloopConfig.LinkerMode]] = None
 
     object bloop extends MillModule {
-      def config = T {
+      def config = Task {
         new BloopOps(self).bloop.config()
       }
     }
@@ -85,9 +85,9 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
     override def millOuterCtx = jm.millOuterCtx
 
     object bloop extends MillModule {
-      def config = T { outer.bloopConfig(jm) }
+      def config = Task { outer.bloopConfig(jm) }
 
-      def writeConfigFile(): Command[(String, PathRef)] = T.command {
+      def writeConfigFile(): Command[(String, PathRef)] = Task.Command {
         os.makeDir.all(bloopDir)
         val path = bloopConfigPath(jm)
         _root_.bloop.config.write(config(), path.toNIO)
@@ -96,7 +96,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
       }
 
       @deprecated("Use writeConfigFile instead.", "Mill after 0.10.9")
-      def writeConfig: Target[(String, PathRef)] = T {
+      def writeConfig: T[(String, PathRef)] = Task {
         writeConfigFile()()
       }
     }
@@ -138,7 +138,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
    * that does not get invalidated upon sourcefile change. Mainly called
    * from module#sources in bloopInstall
    */
-  def moduleSourceMap = T.input {
+  def moduleSourceMap = Task.Input {
     val sources = T.traverse(computeModules) { m =>
       m.allSources.map { paths =>
         name(m) -> paths.map(_.path)
@@ -161,8 +161,10 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
     def out(m: JavaModule) = bloopDir / "out" / name(m)
     def classes(m: JavaModule) = out(m) / "classes"
 
-    val javaConfig =
-      module.javacOptions.map(opts => Some(Config.Java(options = opts.toList)))
+    val javaConfig = Task.Anon {
+      val opts = module.javacOptions() ++ module.mandatoryJavacOptions()
+      Some(Config.Java(options = opts.toList))
+    }
 
     // //////////////////////////////////////////////////////////////////////////
     // Scalac
@@ -170,7 +172,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
 
     val scalaConfig = module match {
       case s: ScalaModule =>
-        T.task {
+        Task.Anon {
           Some(
             BloopConfig.Scala(
               organization = s.scalaOrganization(),
@@ -183,7 +185,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
             )
           )
         }
-      case _ => T.task(None)
+      case _ => Task.Anon(None)
     }
 
     // //////////////////////////////////////////////////////////////////////////
@@ -192,17 +194,17 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
 
     def jsLinkerMode(m: JavaModule): Task[Config.LinkerMode] =
       (m.asBloop match {
-        case Some(bm) => T.task(bm.linkerMode())
-        case None => T.task(None)
+        case Some(bm) => Task.Anon(bm.linkerMode())
+        case None => Task.Anon(None)
       }).map(_.getOrElse(Config.LinkerMode.Debug))
 
     // //////////////////////////////////////////////////////////////////////////
     //  Classpath
     // //////////////////////////////////////////////////////////////////////////
 
-    val classpath = T.task {
+    val classpath = Task.Anon {
       val transitiveCompileClasspath = T.traverse(module.transitiveModuleCompileModuleDeps)(m =>
-        T.task { m.localCompileClasspath().map(_.path) ++ Agg(classes(m)) }
+        Task.Anon { m.localCompileClasspath().map(_.path) ++ Agg(classes(m)) }
       )().flatten
 
       module.resolvedIvyDeps().map(_.path) ++
@@ -210,20 +212,20 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
         module.localCompileClasspath().map(_.path)
     }
 
-    val runtimeClasspath = T.task {
+    val runtimeClasspath = Task.Anon {
       module.transitiveModuleDeps.map(classes) ++
         module.resolvedRunIvyDeps().map(_.path) ++
         module.unmanagedClasspath().map(_.path)
     }
 
     val compileResources =
-      T.task(module.compileResources().map(_.path.toNIO).toList)
+      Task.Anon(module.compileResources().map(_.path.toNIO).toList)
     val runtimeResources =
-      T.task(compileResources() ++ module.resources().map(_.path.toNIO).toList)
+      Task.Anon(compileResources() ++ module.resources().map(_.path.toNIO).toList)
 
     val platform: Task[BloopConfig.Platform] = module match {
       case m: ScalaJSModule =>
-        T.task {
+        Task.Anon {
           BloopConfig.Platform.Js(
             BloopConfig.JsConfig.empty.copy(
               version = m.scalaJSVersion(),
@@ -244,7 +246,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
           )
         }
       case m: ScalaNativeModule =>
-        T.task {
+        Task.Anon {
           BloopConfig.Platform.Native(
             BloopConfig.NativeConfig.empty.copy(
               version = m.scalaNativeVersion(),
@@ -268,7 +270,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
           )
         }
       case _ =>
-        T.task {
+        Task.Anon {
           BloopConfig.Platform.Jvm(
             BloopConfig.JvmConfig(
               home = T.env.get("JAVA_HOME").map(s => os.Path(s).toNIO),
@@ -296,7 +298,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
 
     val testConfig = module match {
       case m: TestModule =>
-        T.task {
+        Task.Anon {
           Some(
             BloopConfig.Test(
               frameworks = Seq(m.testFramework())
@@ -309,7 +311,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
             )
           )
         }
-      case _ => T.task(None)
+      case _ => Task.Anon(None)
     }
 
     // //////////////////////////////////////////////////////////////////////////
@@ -387,7 +389,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
       gatherTask.unsafeRun()
     }
 
-    val bloopResolution: Task[BloopConfig.Resolution] = T.task {
+    val bloopResolution: Task[BloopConfig.Resolution] = Task.Anon {
       val repos = module.repositoriesTask()
       // same as input of resolvedIvyDeps
       val allIvyDeps = module.transitiveIvyDeps() ++ module.transitiveCompileIvyDeps()
@@ -399,7 +401,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
     //  Tying up
     // //////////////////////////////////////////////////////////////////////////
 
-    val project = T.task {
+    val project = Task.Anon {
       val mSources = moduleSourceMap()
         .get(name(module))
         .toSeq
@@ -434,7 +436,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
       )
     }
 
-    T.task {
+    Task.Anon {
       BloopConfig.File(
         version = BloopConfig.File.LatestVersion,
         project = project()
@@ -442,5 +444,5 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
     }
   }
 
-  lazy val millDiscover: Discover[this.type] = Discover[this.type]
+  lazy val millDiscover: Discover = Discover[this.type]
 }

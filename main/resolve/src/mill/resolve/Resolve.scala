@@ -6,6 +6,7 @@ import mill.define.{
   Command,
   Discover,
   Module,
+  ModuleTask,
   NamedTask,
   Reflect,
   Segments,
@@ -23,7 +24,8 @@ object Resolve {
         args: Seq[String],
         selector: Segments,
         nullCommandDefaults: Boolean,
-        allowPositionalCommandArgs: Boolean
+        allowPositionalCommandArgs: Boolean,
+        resolveToModuleTasks: Boolean
     ) = {
       Right(resolved.map(_.segments))
     }
@@ -38,14 +40,14 @@ object Resolve {
         args: Seq[String],
         selector: Segments,
         nullCommandDefaults: Boolean,
-        allowPositionalCommandArgs: Boolean
+        allowPositionalCommandArgs: Boolean,
+        resolveToModuleTasks: Boolean
     ) = {
       val taskList = resolved.map {
-        case r: Resolved.Target =>
+        case r: Resolved.NamedTask =>
           val instantiated = ResolveCore
             .instantiateModule(rootModule, r.segments.init)
-            .flatMap(instantiateTarget(r, _))
-
+            .flatMap(instantiateNamedTask(r, _))
           instantiated.map(Some(_))
 
         case r: Resolved.Command =>
@@ -61,12 +63,12 @@ object Resolve {
                 allowPositionalCommandArgs
               )
             }
-
           instantiated.map(Some(_))
 
         case r: Resolved.Module =>
           ResolveCore.instantiateModule(rootModule, r.segments).flatMap {
-            case value: TaskModule =>
+            case value if resolveToModuleTasks => Right(Some(ModuleTask(value)))
+            case value: TaskModule if !resolveToModuleTasks =>
               val directChildrenOrErr = ResolveCore.resolveDirectChildren(
                 rootModule,
                 value.getClass,
@@ -76,7 +78,7 @@ object Resolve {
 
               directChildrenOrErr.flatMap(directChildren =>
                 directChildren.head match {
-                  case r: Resolved.Target => instantiateTarget(r, value).map(Some(_))
+                  case r: Resolved.NamedTask => instantiateNamedTask(r, value).map(Some(_))
                   case r: Resolved.Command =>
                     instantiateCommand(
                       rootModule,
@@ -104,13 +106,16 @@ object Resolve {
       items.distinctBy(_.ctx.segments)
   }
 
-  private def instantiateTarget(r: Resolved.Target, p: Module): Either[String, Target[_]] = {
+  private def instantiateNamedTask(
+      r: Resolved.NamedTask,
+      p: Module
+  ): Either[String, NamedTask[_]] = {
     val definition = Reflect
-      .reflect(p.getClass, classOf[Target[_]], _ == r.segments.parts.last, true)
+      .reflect(p.getClass, classOf[NamedTask[_]], _ == r.segments.parts.last, true)
       .head
 
     ResolveCore.catchWrapException(
-      definition.invoke(p).asInstanceOf[Target[_]]
+      definition.invoke(p).asInstanceOf[NamedTask[_]]
     )
   }
 
@@ -126,7 +131,7 @@ object Resolve {
       val invoked = invokeCommand0(
         p,
         r.segments.parts.last,
-        rootModule.millDiscover.asInstanceOf[Discover[mill.define.Module]],
+        rootModule.millDiscover.asInstanceOf[Discover],
         args,
         nullCommandDefaults,
         allowPositionalCommandArgs
@@ -139,12 +144,12 @@ object Resolve {
   private def invokeCommand0(
       target: mill.define.Module,
       name: String,
-      discover: Discover[mill.define.Module],
+      discover: Discover,
       rest: Seq[String],
       nullCommandDefaults: Boolean,
       allowPositionalCommandArgs: Boolean
   ): Iterable[Either[String, Command[_]]] = for {
-    (cls, (names, entryPoints)) <- discover.value
+    (cls, (names, entryPoints, _)) <- discover.value
     if cls.isAssignableFrom(target.getClass)
     ep <- entryPoints
     if ep.name == name
@@ -208,30 +213,34 @@ trait Resolve[T] {
       args: Seq[String],
       segments: Segments,
       nullCommandDefaults: Boolean,
-      allowPositionalCommandArgs: Boolean
+      allowPositionalCommandArgs: Boolean,
+      resolveToModuleTasks: Boolean
   ): Either[String, Seq[T]]
 
   def resolve(
       rootModule: BaseModule,
       scriptArgs: Seq[String],
       selectMode: SelectMode,
-      allowPositionalCommandArgs: Boolean = false
+      allowPositionalCommandArgs: Boolean = false,
+      resolveToModuleTasks: Boolean = false
   ): Either[String, List[T]] = {
-    resolve0(rootModule, scriptArgs, selectMode, allowPositionalCommandArgs)
+    resolve0(rootModule, scriptArgs, selectMode, allowPositionalCommandArgs, resolveToModuleTasks)
   }
+
   def resolve(
       rootModule: BaseModule,
       scriptArgs: Seq[String],
       selectMode: SelectMode
   ): Either[String, List[T]] = {
-    resolve0(rootModule, scriptArgs, selectMode, false)
+    resolve0(rootModule, scriptArgs, selectMode, false, false)
   }
 
   private[mill] def resolve0(
       rootModule: BaseModule,
       scriptArgs: Seq[String],
       selectMode: SelectMode,
-      allowPositionalCommandArgs: Boolean
+      allowPositionalCommandArgs: Boolean,
+      resolveToModuleTasks: Boolean
   ): Either[String, List[T]] = {
     val nullCommandDefaults = selectMode == SelectMode.Multi
     val resolvedGroups = ParseArgs(scriptArgs, selectMode).flatMap { groups =>
@@ -241,9 +250,10 @@ trait Resolve[T] {
             resolveNonEmptyAndHandle(
               args,
               rootModuleSels,
-              sel,
+              sel.getOrElse(Segments()),
               nullCommandDefaults,
-              allowPositionalCommandArgs
+              allowPositionalCommandArgs,
+              resolveToModuleTasks
             )
           }
         }
@@ -265,7 +275,8 @@ trait Resolve[T] {
       rootModule: BaseModule,
       sel: Segments,
       nullCommandDefaults: Boolean,
-      allowPositionalCommandArgs: Boolean
+      allowPositionalCommandArgs: Boolean,
+      resolveToModuleTasks: Boolean
   ): Either[String, Seq[T]] = {
     val rootResolved = ResolveCore.Resolved.Module(Segments(), rootModule.getClass)
     val resolved =
@@ -297,7 +308,8 @@ trait Resolve[T] {
         args,
         sel,
         nullCommandDefaults,
-        allowPositionalCommandArgs
+        allowPositionalCommandArgs,
+        resolveToModuleTasks
       ))
   }
 

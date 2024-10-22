@@ -12,20 +12,20 @@ object HelloJavaTests extends TestSuite {
   object HelloJava extends TestBaseModule {
     object core extends JavaModule {
       override def docJarUseArgsFile = false
-      object test extends JavaModuleTests with TestModule.Junit4
+      object test extends JavaTests with TestModule.Junit4
     }
     object app extends JavaModule {
       override def docJarUseArgsFile = true
       override def moduleDeps = Seq(core)
-      object test extends JavaModuleTests with TestModule.Junit4
-      object testJunit5 extends JavaModuleTests with TestModule.Junit5 {
-        override def ivyDeps: T[Agg[Dep]] = T {
+      object test extends JavaTests with TestModule.Junit4
+      object testJunit5 extends JavaTests with TestModule.Junit5 {
+        override def ivyDeps: T[Agg[Dep]] = Task {
           super.ivyDeps() ++ Agg(ivy"org.junit.jupiter:junit-jupiter-params:5.7.0")
         }
       }
     }
   }
-  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-java"
+  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-java"
 
   def testEval() = UnitTester(HelloJava, resourcePath)
   def tests: Tests = Tests {
@@ -49,7 +49,7 @@ object HelloJavaTests extends TestSuite {
     }
     test("semanticDbData") {
       val expectedFile1 =
-        os.rel / "META-INF" / "semanticdb" / "core" / "src" / "Core.java.semanticdb"
+        os.rel / "META-INF/semanticdb/core/src/Core.java.semanticdb"
 
       test("fromScratch") {
         val eval = testEval()
@@ -57,7 +57,7 @@ object HelloJavaTests extends TestSuite {
 
         val outputFiles =
           os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
-        val dataPath = eval.outPath / "core" / "semanticDbData.dest" / "data"
+        val dataPath = eval.outPath / "core/semanticDbData.dest/data"
 
         assert(
           result.value.path == dataPath,
@@ -74,7 +74,7 @@ object HelloJavaTests extends TestSuite {
         val eval = testEval()
 
         // create a second source file
-        val secondFile = eval.evaluator.workspace / "core" / "src" / "hello" / "Second.java"
+        val secondFile = eval.evaluator.workspace / "core/src/hello/Second.java"
         os.write(
           secondFile,
           """package hello;
@@ -87,7 +87,7 @@ object HelloJavaTests extends TestSuite {
             |""".stripMargin,
           createFolders = true
         )
-        val thirdFile = eval.evaluator.workspace / "core" / "src" / "hello" / "Third.java"
+        val thirdFile = eval.evaluator.workspace / "core/src/hello/Third.java"
         os.write(
           thirdFile,
           """package hello;
@@ -102,14 +102,14 @@ object HelloJavaTests extends TestSuite {
         )
         val Right(result) = eval.apply(HelloJava.core.semanticDbData)
 
-        val dataPath = eval.outPath / "core" / "semanticDbData.dest" / "data"
+        val dataPath = eval.outPath / "core/semanticDbData.dest/data"
         val outputFiles =
           os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
 
         val expectedFile2 =
-          os.rel / "META-INF" / "semanticdb" / "core" / "src" / "hello" / "Second.java.semanticdb"
+          os.rel / "META-INF/semanticdb/core/src/hello/Second.java.semanticdb"
         val expectedFile3 =
-          os.rel / "META-INF" / "semanticdb" / "core" / "src" / "hello" / "Third.java.semanticdb"
+          os.rel / "META-INF/semanticdb/core/src/hello/Third.java.semanticdb"
         assert(
           result.value.path == dataPath,
           outputFiles.nonEmpty,
@@ -184,8 +184,8 @@ object HelloJavaTests extends TestSuite {
     test("failures") {
       val eval = testEval()
 
-      val mainJava = HelloJava.millSourcePath / "app" / "src" / "Main.java"
-      val coreJava = HelloJava.millSourcePath / "core" / "src" / "Core.java"
+      val mainJava = HelloJava.millSourcePath / "app/src/Main.java"
+      val coreJava = HelloJava.millSourcePath / "core/src/Core.java"
 
       val Right(_) = eval.apply(HelloJava.core.compile)
       val Right(_) = eval.apply(HelloJava.app.compile)

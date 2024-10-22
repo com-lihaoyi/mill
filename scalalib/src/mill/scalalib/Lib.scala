@@ -2,7 +2,7 @@ package mill
 package scalalib
 
 import coursier.util.Task
-import coursier.{Dependency, Repository, Resolution}
+import coursier.{Dependency, Repository, Resolution, Type}
 import mill.api.{Ctx, Loose, PathRef, Result}
 import mill.main.BuildInfo
 import mill.main.client.EnvVars
@@ -25,6 +25,10 @@ object Lib {
   def depToBoundDep(dep: Dep, scalaVersion: String, platformSuffix: String = ""): BoundDep =
     BoundDep(depToDependency(dep, scalaVersion, platformSuffix), dep.force)
 
+  @deprecated(
+    "Prefer resolveDependenciesMetadataSafe instead, which returns a Result instead of throwing exceptions",
+    "0.12.0"
+  )
   def resolveDependenciesMetadata(
       repositories: Seq[Repository],
       deps: IterableOnce[BoundDep],
@@ -35,8 +39,30 @@ object Lib {
         coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
       ] = None
   ): (Seq[Dependency], Resolution) = {
+    val deps0 = deps.iterator.toSeq
+    val res = resolveDependenciesMetadataSafe(
+      repositories,
+      deps0,
+      mapDependencies,
+      customizer,
+      ctx,
+      coursierCacheCustomizer
+    )
+    (deps0.map(_.dep), res.getOrThrow)
+  }
+
+  def resolveDependenciesMetadataSafe(
+      repositories: Seq[Repository],
+      deps: IterableOnce[BoundDep],
+      mapDependencies: Option[Dependency => Dependency] = None,
+      customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
+      ctx: Option[Ctx.Log] = None,
+      coursierCacheCustomizer: Option[
+        coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
+      ] = None
+  ): Result[Resolution] = {
     val depSeq = deps.iterator.toSeq
-    mill.util.Jvm.resolveDependenciesMetadata(
+    mill.util.Jvm.resolveDependenciesMetadataSafe(
       repositories = repositories,
       deps = depSeq.map(_.dep),
       force = depSeq.filter(_.force).map(_.dep),
@@ -63,7 +89,8 @@ object Lib {
       ctx: Option[Ctx.Log] = None,
       coursierCacheCustomizer: Option[
         coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
-      ] = None
+      ] = None,
+      artifactTypes: Option[Set[Type]] = None
   ): Result[Agg[PathRef]] = {
     val depSeq = deps.iterator.toSeq
     mill.util.Jvm.resolveDependencies(
@@ -71,12 +98,36 @@ object Lib {
       deps = depSeq.map(_.dep),
       force = depSeq.filter(_.force).map(_.dep),
       sources = sources,
+      artifactTypes = artifactTypes,
       mapDependencies = mapDependencies,
       customizer = customizer,
       ctx = ctx,
       coursierCacheCustomizer = coursierCacheCustomizer
     ).map(_.map(_.withRevalidateOnce))
   }
+
+  @deprecated("Use the override accepting artifactTypes", "Mill after 0.12.0-RC3")
+  def resolveDependencies(
+      repositories: Seq[Repository],
+      deps: IterableOnce[BoundDep],
+      sources: Boolean,
+      mapDependencies: Option[Dependency => Dependency],
+      customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
+      ctx: Option[Ctx.Log],
+      coursierCacheCustomizer: Option[
+        coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
+      ]
+  ): Result[Agg[PathRef]] =
+    resolveDependencies(
+      repositories,
+      deps,
+      sources,
+      mapDependencies,
+      customizer,
+      ctx,
+      coursierCacheCustomizer,
+      None
+    )
 
   def scalaCompilerIvyDeps(scalaOrganization: String, scalaVersion: String): Loose.Agg[Dep] =
     if (ZincWorkerUtil.isDotty(scalaVersion))

@@ -8,7 +8,7 @@ import mill.main.client.lock.Locks
 import scala.util.Try
 
 object MillServerMain {
-  def main(args0: Array[String]): Unit = {
+  def main(args0: Array[String]): Unit = SystemStreams.withTopLevelSystemStreamProxy {
     // Disable SIGINT interrupt signal in the Mill server.
     //
     // This gets passed through from the client to server whenever the user
@@ -69,7 +69,8 @@ class MillServerMain(
         setIdle = setIdle,
         userSpecifiedProperties0 = userSpecifiedProperties,
         initialSystemProperties = initialSystemProperties,
-        systemExit = systemExit
+        systemExit = systemExit,
+        serverDir = serverDir
       )
     catch MillMain.handleMillException(streams.err, stateCache)
   }

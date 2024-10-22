@@ -31,6 +31,7 @@ object CallGraphTests extends TestSuite {
       test("17-scala-lambda") - testExpectedCallGraph()
       test("18-scala-anon-class-lambda") - testExpectedCallGraph()
       test("19-scala-trait-constructor") - testExpectedCallGraph()
+      test("20-array-method") - testExpectedCallGraph()
     }
 
     test("complicated") {

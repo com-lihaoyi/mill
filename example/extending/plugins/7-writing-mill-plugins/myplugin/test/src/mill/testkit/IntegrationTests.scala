@@ -10,7 +10,7 @@ object IntegrationTests extends TestSuite {
 
     test("integration") {
       pprint.log(sys.env("MILL_EXECUTABLE_PATH"))
-      val resourceFolder = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER"))
+      val resourceFolder = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
       val tester = new IntegrationTester(
         clientServerMode = true,
         workspaceSourcePath = resourceFolder / "integration-test-project",
@@ -28,7 +28,7 @@ object IntegrationTests extends TestSuite {
       assert(res2.out.contains("Line Count: 17"))
       assert(tester.out("lineCount").value[Int] == 17)
 
-      tester.modifyFile(tester.workspacePath / "src" / "foo" / "Foo.java", _ + "\n")
+      tester.modifyFile(tester.workspacePath / "src/foo/Foo.java", _ + "\n")
 
       val res3 = tester.eval("run") // Additional newline forces recompile and increases line count
       assert(res3.err.contains("compiling 1 Java source"))

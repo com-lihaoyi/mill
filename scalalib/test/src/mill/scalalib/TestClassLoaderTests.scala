@@ -1,6 +1,6 @@
 package mill.scalalib
 
-import mill.{Agg, T}
+import mill.{Agg, T, Task}
 
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
@@ -12,7 +12,7 @@ object TestClassLoaderTests extends TestSuite {
     def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
 
     object test extends ScalaTests with TestModule.Utest {
-      override def ivyDeps = T {
+      override def ivyDeps = Task {
         super.ivyDeps() ++ Agg(
           ivy"com.lihaoyi::utest:${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}"
         )
@@ -20,7 +20,7 @@ object TestClassLoaderTests extends TestSuite {
     }
   }
 
-  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "classloader-test"
+  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "classloader-test"
 
   override def tests: Tests = Tests {
     test("com.sun classes exist in tests classpath (Java 8 only)") - UnitTester(

@@ -9,7 +9,7 @@ object CodeSigNestedTests extends UtestIntegrationTestSuite {
     test("nested") - integrationTest { tester =>
       import tester._
       // Make sure the code-change invalidation works in more complex cases: multi-step
-      // target graphs, targets inside module objects, targets inside module traits
+      // task graphs, tasks inside module objects, tasks inside module traits
 
       // Check normal behavior for initial run and subsequent fully-cached run
       // with no changes
@@ -28,8 +28,8 @@ object CodeSigNestedTests extends UtestIntegrationTestSuite {
       val cached = eval("outer.inner.qux")
       assert(cached.out == "")
 
-      // Changing the body of a T{...} block directly invalidates that target,
-      // but not downstream targets unless the return value changes
+      // Changing the body of a Task{...} block directly invalidates that task,
+      // but not downstream tasks unless the return value changes
       modifyFile(workspacePath / "build.mill", _.replace("running foo", "running foo2"))
       val mangledFoo = eval("outer.inner.qux")
       assert(
@@ -60,8 +60,8 @@ object CodeSigNestedTests extends UtestIntegrationTestSuite {
           Set("running qux2", "running helperQux")
       )
 
-      // Changing the body of some helper method that gets called by a T{...}
-      // block also invalidates the respective targets, and downstream targets if necessary
+      // Changing the body of some helper method that gets called by a Task{...}
+      // block also invalidates the respective tasks, and downstream tasks if necessary
 
       modifyFile(workspacePath / "build.mill", _.replace(" 1 ", " 6 "))
       val mangledHelperFooValue = eval("outer.inner.qux")
@@ -106,7 +106,7 @@ object CodeSigNestedTests extends UtestIntegrationTestSuite {
       )
 
       // Make sure changing `val`s in varying levels of nested modules conservatively invalidates
-      // all targets in inner modules, regardless of whether they are related or not
+      // all tasks in inner modules, regardless of whether they are related or not
       modifyFile(workspacePath / "build.mill", _.replace("val valueFoo = 0", "val valueFoo = 10"))
       val mangledValFoo = eval("outer.inner.qux")
       assert(
@@ -170,7 +170,7 @@ object CodeSigNestedTests extends UtestIntegrationTestSuite {
         )
       )
 
-      // Adding a newline before one of the target definitions does not invalidate it
+      // Adding a newline before one of the task definitions does not invalidate it
       modifyFile(workspacePath / "build.mill", _.replace("def qux", "\ndef qux"))
       val addedSingleNewline = eval("outer.inner.qux")
       assert(addedSingleNewline.out == "")
@@ -180,7 +180,7 @@ object CodeSigNestedTests extends UtestIntegrationTestSuite {
       assert(addedManyNewlines.out == "")
 
       // Reformatting the entire file, replacing `;`s with `\n`s and spacing out
-      // the target bodies over multiple lines does not cause anything to invalidate
+      // the task bodies over multiple lines does not cause anything to invalidate
       modifyFile(
         workspacePath / "build.mill",
         _.replace("{", "{\n").replace("}", "\n}").replace(";", "\n")

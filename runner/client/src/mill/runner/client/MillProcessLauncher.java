@@ -3,11 +3,15 @@ package mill.runner.client;
 import static mill.main.client.OutFiles.*;
 
 import java.io.File;
-import java.io.FileInputStream;
+import java.io.InputStream;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+
+import org.jline.terminal.TerminalBuilder;
+import org.jline.terminal.Terminal;
 
 import mill.main.client.Util;
 import mill.main.client.ServerFiles;
@@ -17,22 +21,23 @@ public class MillProcessLauncher {
 
     static int launchMillNoServer(String[] args) throws Exception {
         final boolean setJnaNoSys = System.getProperty("jna.nosys") == null;
+        final String sig = String.format("%08x", UUID.randomUUID().hashCode());
+        final Path processDir = Paths.get(".").resolve(out).resolve(millNoServer).resolve(sig);
 
         final List<String> l = new ArrayList<>();
         l.addAll(millLaunchJvmCommand(setJnaNoSys));
         l.add("mill.runner.MillMain");
+        l.add(processDir.toAbsolutePath().toString());
         l.addAll(Arrays.asList(args));
 
         final ProcessBuilder builder = new ProcessBuilder()
             .command(l)
             .inheritIO();
 
-        final String sig = String.format("%08x", UUID.randomUUID().hashCode());
-
         boolean interrupted = false;
-        final String sandbox = out + "/" + millNoServer + "-" + sig;
+
         try {
-            return configureRunMillProcess(builder, sandbox).waitFor();
+            return configureRunMillProcess(builder, processDir).waitFor();
 
         } catch (InterruptedException e) {
             interrupted = true;
@@ -40,7 +45,7 @@ public class MillProcessLauncher {
         } finally {
             if (!interrupted) {
                 // cleanup if process terminated for sure
-                Files.walk(Paths.get(sandbox))
+                Files.walk(processDir)
                     // depth-first
                     .sorted(Comparator.reverseOrder())
                     .forEach(p -> p.toFile().delete());
@@ -48,31 +53,51 @@ public class MillProcessLauncher {
         }
     }
 
-    static void launchMillServer(String serverDir, boolean setJnaNoSys) throws Exception {
+    static void launchMillServer(Path serverDir, boolean setJnaNoSys) throws Exception {
         List<String> l = new ArrayList<>();
         l.addAll(millLaunchJvmCommand(setJnaNoSys));
         l.add("mill.runner.MillServerMain");
-        l.add(new File(serverDir).getCanonicalPath());
-
-        File stdout = new java.io.File(serverDir + "/" + ServerFiles.stdout);
-        File stderr = new java.io.File(serverDir + "/" + ServerFiles.stderr);
+        l.add(serverDir.toFile().getCanonicalPath());
 
         ProcessBuilder builder = new ProcessBuilder()
             .command(l)
-            .redirectOutput(stdout)
-            .redirectError(stderr);
+            .redirectOutput(serverDir.resolve(ServerFiles.stdout).toFile())
+            .redirectError(serverDir.resolve(ServerFiles.stderr).toFile());
 
-        configureRunMillProcess(builder, serverDir + "/" + ServerFiles.sandbox);
+        configureRunMillProcess(builder, serverDir);
     }
 
     static Process configureRunMillProcess(
         ProcessBuilder builder,
-        String serverDir
+        Path serverDir
     ) throws Exception {
+        Terminal term = TerminalBuilder.builder().dumb(true).build();
+        Path sandbox = serverDir.resolve(ServerFiles.sandbox);
+        Files.createDirectories(sandbox);
+        Files.write(
+            serverDir.resolve(ServerFiles.terminfo),
+            (term.getWidth() + " " + term.getHeight()).getBytes()
+        );
+        Thread termInfoPropagatorThread = new Thread(
+            () -> {
+                try {
+
+                    while(true){
+                        Files.write(
+                            serverDir.resolve(ServerFiles.terminfo),
+                            (term.getWidth() + " " + term.getHeight()).getBytes()
+                        );
+
+                        Thread.sleep(100);
+                    }
+                }catch (Exception e){}
+            },
+            "TermInfoPropagatorThread"
+        );
+        termInfoPropagatorThread.start();
         builder.environment().put(EnvVars.MILL_WORKSPACE_ROOT, new File("").getCanonicalPath());
-        File sandbox = new java.io.File(serverDir + "/" + ServerFiles.sandbox);
-        sandbox.mkdirs();
-        builder.directory(sandbox);
+
+        builder.directory(sandbox.toFile());
         return builder.start();
     }
 
@@ -120,7 +145,7 @@ public class MillProcessLauncher {
 
             // read MILL_CLASSPATH from file MILL_OPTIONS_PATH
             Properties millProps = new Properties();
-            try (FileInputStream is = new FileInputStream(millOptionsPath)) {
+            try (InputStream is = Files.newInputStream(Paths.get(millOptionsPath))) {
                 millProps.load(is);
             } catch (IOException e) {
                 throw new RuntimeException("Could not load '" + millOptionsPath + "'", e);

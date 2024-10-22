@@ -92,3 +92,9 @@ object Module {
     }
   }
 }
+
+case class ModuleTask[+T](module: Module) extends NamedTask[T] {
+  override def t: Task[T] = this
+  override def ctx0: Ctx = module.millOuterCtx
+  override def isPrivate: Option[Boolean] = None
+}

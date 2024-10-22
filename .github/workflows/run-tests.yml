@@ -11,8 +11,6 @@ name: Run Tests
 
 on:
   push:
-    branches:
-      - main
   pull_request:
   workflow_dispatch:
 
@@ -46,7 +44,7 @@ jobs:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
 
-      - run: ./mill -i docs.githubPages
+      - run: ./mill -i docs.githubPages + docs.checkBrokenLinks
 
   linux:
     needs: build-linux
@@ -58,11 +56,11 @@ jobs:
           # For most tests, run them arbitrarily on Java 11 or Java 17 on Linux, and
           # on the opposite version on Windows below, so we get decent coverage of
           # each test on each Java version and each operating system
-          # We also try to group tests together to manuaully balance out the runtimes of each jobs
+          # We also try to group tests together to manually balance out the runtimes of each jobs
           - java-version: 17
             millargs: "'{main,scalalib,testrunner,bsp,testkit}.__.testCached'"
           - java-version: '11'
-            millargs: "'{scalajslib,scalanativelib}.__.testCached'"
+            millargs: "'{scalajslib,scalanativelib,kotlinlib}.__.testCached'"
           - java-version: 17
             millargs: "contrib.__.testCached"
 
@@ -70,6 +68,8 @@ jobs:
             millargs: "'example.javalib.__.local.testCached'"
           - java-version: 17
             millargs: "'example.scalalib.__.local.testCached'"
+          - java-version: 17
+            millargs: "'example.kotlinlib.__.local.testCached'"
           - java-version: '11'
             millargs: "'example.thirdparty[{mockito,acyclic,commons-io}].local.testCached'"
           - java-version: 17
@@ -79,7 +79,7 @@ jobs:
 
             # Most of these integration tests should not depend on which mode they
             # are run in, so just run them in `local`
-          - java-version: '11'
+          - java-version: '17'
             millargs: "'integration.{failure,feature,ide}.__.local.testCached'"
 
             # These invalidation tests need to be exercised in both execution modes
@@ -152,4 +152,4 @@ jobs:
     uses: ./.github/workflows/run-mill-action.yml
     with:
       java-version: '11'
-      buildcmd: ./mill -i mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources + __.mimaReportBinaryIssues + __.fix --check
+      buildcmd: ./mill -i mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources; ./mill -i __.mimaReportBinaryIssues; ./mill -i __.fix --check

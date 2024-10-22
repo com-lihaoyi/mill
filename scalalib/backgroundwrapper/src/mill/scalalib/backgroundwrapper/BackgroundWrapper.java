@@ -11,9 +11,7 @@ public class BackgroundWrapper {
                 while (true) {
                     try{
                         Thread.sleep(50);
-                        String token = new String(
-                            java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(watched))
-                        );
+                        String token = java.nio.file.Files.readString(java.nio.file.Paths.get(watched));
                         if (!token.equals(expected)) {
                             new java.io.File(tombstone).createNewFile();
                             System.exit(0);

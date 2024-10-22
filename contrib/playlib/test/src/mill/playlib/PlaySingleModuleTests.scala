@@ -1,6 +1,6 @@
 package mill.playlib
 
-import mill.T
+import mill.{T, Task}
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.{TestSuite, Tests, assert, _}
 
@@ -8,12 +8,12 @@ object PlaySingleModuleTests extends TestSuite with PlayTestSuite {
 
   object playsingle extends TestBaseModule with PlayModule with SingleModule {
     override val millSourcePath = os.temp() // workaround problem in `SingleModule`
-    override def playVersion = T { testPlay28 }
-    override def scalaVersion = T { sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???) }
+    override def playVersion = Task { testPlay28 }
+    override def scalaVersion = Task { sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???) }
     object test extends PlayTests
   }
 
-  val resourcePath: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "playsingle"
+  val resourcePath: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "playsingle"
 
   def tests: Tests = Tests {
     test("layout") {
@@ -61,10 +61,10 @@ object PlaySingleModuleTests extends TestSuite with PlayTestSuite {
         os.RelPath("views/html/main$.class"),
         os.RelPath("views/html/main.class")
       ).map(
-        eval.outPath / "compile.dest" / "classes" / _
+        eval.outPath / "compile.dest/classes" / _
       )
       assert(
-        result.value.classes.path == eval.outPath / "compile.dest" / "classes",
+        result.value.classes.path == eval.outPath / "compile.dest/classes",
         outputFiles.nonEmpty,
         outputFiles.forall(expectedClassfiles.contains),
         outputFiles.size == 15,

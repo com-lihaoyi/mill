@@ -1,7 +1,6 @@
 package build
 import mill._
 
-def invalidTarget = 123
-
+def invalidTask = 123
 
 object `package` extends RootModule

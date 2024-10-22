@@ -1,0 +1,36 @@
+package build
+import mill._
+import mill.scalalib._
+
+object `hyphenated-module` extends Module {
+  def `hyphenated-task` = Task {
+    println("hyphenated task in a hyphenated module.")
+  }
+}
+
+object unhyphenatedModule extends Module {
+  def unhyphenated_task = Task {
+    println("unhyphenated task in an unhyphenated module.")
+  }
+}
+
+// Mill modules and tasks may be composed of the following character types:
+//
+// * Alphanumeric (A-Z, a-z, and 0-9)
+// * Underscore (`_`)
+// * Hyphen (`-`)
+//
+// Due to Scala naming restrictions, module and task names with hyphens must be
+// surrounded by back-ticks (```).
+//
+// Using hyphenated names at the command line is unaffected by these restrictions.
+
+/** Usage
+
+> ./mill hyphenated-module.hyphenated-task
+hyphenated task in a hyphenated module.
+
+> ./mill unhyphenatedModule.unhyphenated_task
+unhyphenated task in an unhyphenated module.
+
+*/

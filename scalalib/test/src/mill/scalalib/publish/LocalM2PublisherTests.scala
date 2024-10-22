@@ -12,7 +12,7 @@ object LocalM2PublisherTests extends TestSuite {
     }
 
     def publishAndCheck(repo: os.Path): Unit = {
-      val subrepo = repo / "group" / "org" / "id" / "version"
+      val subrepo = repo / "group/org/id/version"
 
       os.write(repo / "jar", "JAR")
       os.write(repo / "doc", "DOC")
@@ -58,7 +58,7 @@ object LocalM2PublisherTests extends TestSuite {
       val repo = os.temp.dir()
 
       // existing
-      val subrepo = repo / "group" / "org" / "id" / "version"
+      val subrepo = repo / "group/org/id/version"
       os.write(subrepo / "id-version.jar", "OLDJAR", createFolders = true)
       assert(os.read(subrepo / "id-version.jar") == "OLDJAR")
 

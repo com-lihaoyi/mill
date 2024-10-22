@@ -1,0 +1,26 @@
+//// SNIPPET:BUILD1
+package build
+import mill._, kotlinlib._
+
+object foo extends KotlinModule {
+
+  def mainClass = Some("foo.FooKt")
+
+  def kotlinVersion = "1.9.24"
+
+  object test extends KotlinTests {
+    def testFramework = "com.github.sbt.junit.jupiter.api.JupiterFramework"
+    def ivyDeps = Agg(
+      ivy"com.github.sbt.junit:jupiter-interface:0.11.4",
+      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1",
+      ivy"org.mockito.kotlin:mockito-kotlin:5.4.0"
+    )
+
+    def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
+  }
+}
+
+/** See Also: foo/test/src/foo/HelloTests.kt */
+/** See Also: foo/test/src/foo/WorldTests.kt */
+
+//// SNIPPET:END
