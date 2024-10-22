@@ -20,7 +20,7 @@ def groovyClasspath: Task[Agg[PathRef]] = Task{
 }
 
 def groovyWorker: Worker[java.net.URLClassLoader] = Task.Worker{
-  ClassLoader.create(groovyClasspath().map(_.path.toIO.toURL).toSeq, parent = null)
+  mill.api.ClassLoader.create(groovyClasspath().map(_.path.toIO.toURL).toSeq, parent = null)
 }
 
 trait GroovyGenerateJavaModule extends JavaModule {
