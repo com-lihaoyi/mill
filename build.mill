@@ -19,7 +19,7 @@ import mill.define.Cross
 import scala.util.matching.Regex
 
 // plugins and dependencies
-import $meta._
+import $meta._e
 import $file.ci.shared
 import $file.ci.upload
 import $packages._
@@ -122,7 +122,7 @@ object Deps {
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
 
   val coursier = ivy"io.get-coursier::coursier:2.1.14"
-  val coursierInterface = ivy"io.get-coursier:interface:1.0.19"
+  val coursierInterface = ivy"io.get-coursier:interface:1.0.22"
 
   val cask = ivy"com.lihaoyi::cask:0.9.4"
   val castor = ivy"com.lihaoyi::castor:0.3.0"
