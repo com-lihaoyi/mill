@@ -35,27 +35,46 @@ object TestNGTests extends TestSuite {
       }
     }
 
-  }
+    object testng extends JavaTests with TestModule.TestNg {
+      def ivyDeps = super.ivyDeps() ++ Agg(
+        ivy"org.testng:testng:7.10.2"
+      )
+    }
 
+    object testngGrouping extends JavaTests with TestModule.TestNg {
+      def ivyDeps = super.ivyDeps() ++ Agg(
+        ivy"org.testng:testng:7.10.2"
+      )
+      def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
+    }
+  }
   val resourcePath: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "demo"
 
   def tests: Tests = Tests {
-    test("TestNG") {
-      test("demo") - UnitTester(demo, resourcePath).scoped { eval =>
-        val Right(result) = eval.apply(demo.test.testFramework)
-        assert(
-          result.value == "mill.testng.TestNGFramework",
-          result.evalCount > 0
-        )
-      }
-      test("Test case lookup from inherited annotations") - UnitTester(demo, resourcePath).scoped {
-        eval =>
-          val Right(result) = eval.apply(demo.test.test())
-          val tres = result.value.asInstanceOf[(String, Seq[mill.testrunner.TestResult])]
-          assert(
-            tres._2.size == 8
-          )
-      }
+    test("demo") - UnitTester(demo, resourcePath).scoped { eval =>
+      val Right(result) = eval.apply(demo.test.testFramework)
+      assert(
+        result.value == "mill.testng.TestNGFramework",
+        result.evalCount > 0
+      )
+    }
+    test("Test case lookup from inherited annotations") - UnitTester(demo, resourcePath).scoped {
+      eval =>
+        val Right(result) = eval.apply(demo.test.test())
+        val tres = result.value
+        assert(tres._2.size == 8)
+    }
+    test("noGrouping") - UnitTester(demo, resourcePath).scoped {
+      eval =>
+        val Right(result) = eval.apply(demo.testng.test())
+        val tres = result.value._2
+        assert(tres.map(_.fullyQualifiedName).toSet == Set("foo.HelloTests", "foo.WorldTests"))
+    }
+    test("testForkGrouping") - UnitTester(demo, resourcePath).scoped {
+      eval =>
+        val Right(result) = eval.apply(demo.testngGrouping.test())
+        val tres = result.value._2
+        assert(tres.map(_.fullyQualifiedName).toSet == Set("foo.HelloTests", "foo.WorldTests"))
     }
   }
 }
