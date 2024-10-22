@@ -39,6 +39,12 @@ object TestNGTests extends TestSuite {
       def ivyDeps = super.ivyDeps() ++ Agg(
         ivy"org.testng:testng:7.10.2"
       )
+    }
+
+    object testngGrouping extends JavaTests with TestModule.TestNg {
+      def ivyDeps = super.ivyDeps() ++ Agg(
+        ivy"org.testng:testng:7.10.2"
+      )
       def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
     }
   }
@@ -58,11 +64,17 @@ object TestNGTests extends TestSuite {
         val tres = result.value
         assert(tres._2.size == 8)
     }
-    test("testForkGrouping") - UnitTester(demo, resourcePath).scoped {
+    test("noGrouping") - UnitTester(demo, resourcePath).scoped {
       eval =>
         val Right(result) = eval.apply(demo.testng.test())
         val tres = result.value._2
-        assert(tres.map(_.fullyQualifiedName) == Seq("foo.HelloTests", "foo.WorldTests"))
+        assert(tres.map(_.fullyQualifiedName).toSet == Set("foo.HelloTests", "foo.WorldTests"))
+    }
+    test("testForkGrouping") - UnitTester(demo, resourcePath).scoped {
+      eval =>
+        val Right(result) = eval.apply(demo.testngGrouping.test())
+        val tres = result.value._2
+        assert(tres.map(_.fullyQualifiedName).toSet == Set("foo.HelloTests", "foo.WorldTests"))
     }
   }
 }
