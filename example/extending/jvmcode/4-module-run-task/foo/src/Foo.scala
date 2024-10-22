@@ -1,5 +1,4 @@
 package foo
-import mainargs.{main, ParserForMethods, arg}
 object Foo {
   val value = "hello"
 

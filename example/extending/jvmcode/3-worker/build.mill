@@ -6,8 +6,8 @@
 // stay optimized without being thrown away each time
 
 // This example is similar to the earlier example running the Groovy interpreter in
-// a subprocess, but instead of using `Jvm.runSubprocess` we use `Jvm.inprocess` to
-// load the Groovy interpreter classpath files into an in-memory in-process classloader:
+// a subprocess, but instead of using `Jvm.runSubprocess` we use `ClassLoader.create` to
+// load the Groovy interpreter classpath files:
 
 package build
 import mill._, javalib._
