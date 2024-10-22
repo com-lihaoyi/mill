@@ -29,12 +29,12 @@ def gitStatusTask = T {
 /** Usage
 
 > git init .
-> git commit --allow-empty -m "Initial-Commit"
+> git commit --no-gpg-sign --allow-empty -m "Initial-Commit"
 
 > ./mill show gitStatusTask
 "version-...-Initial-Commit"
 
-> git commit --allow-empty -m "Second-Commit"
+> git commit --no-gpg-sign --allow-empty -m "Second-Commit"
 
 > ./mill show gitStatusTask # Mill didn't pick up the git change!
 "version-...-Initial-Commit"
@@ -62,12 +62,12 @@ def gitStatusTask2 = T { "version-" + gitStatusInput() }
 
 /** Usage
 
-> git commit --allow-empty -m "Initial-Commit"
+> git commit --no-gpg-sign --allow-empty -m "Initial-Commit"
 
 > ./mill show gitStatusTask2
 "version-...-Initial-Commit"
 
-> git commit --allow-empty -m "Second-Commit"
+> git commit --no-gpg-sign --allow-empty -m "Second-Commit"
 
 > ./mill show gitStatusTask2 # Mill picked up git change
 "version-...-Second-Commit"
