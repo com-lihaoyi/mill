@@ -242,7 +242,11 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../fundamentals/library-deps.html">Library Dependencies in Mill</a>
+    <a class="nav-link" href="../fundamentals/tasks.html">Tasks</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../fundamentals/modules.html">Modules</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -254,11 +258,7 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../fundamentals/tasks.html">Tasks</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../fundamentals/modules.html">Modules</a>
+    <a class="nav-link" href="../fundamentals/library-deps.html">Library Dependencies in Mill</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -393,6 +393,10 @@
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
   </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../depth/why-scala.html">Why does Mill use Scala?</a>
+  </li>
 </ul>
   </li>
 
@@ -427,9 +431,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-104-a3ec3e</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-105-16452d</button>
   <div class="version-menu">
-    <a class="version is-current" href="running-jvm-code.html">0.12.0-RC3-104-a3ec3e</a>
+    <a class="version is-current" href="running-jvm-code.html">0.12.0-RC3-105-16452d</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
@@ -573,8 +577,18 @@ the build in a subprocess preventing classpath collisions.</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>This example is similar to the earlier example running the Groovy interpreter in
-a subprocess, but instead of using <code>Jvm.runSubprocess</code> we use <code>Jvm.inprocess</code> to
-load the Groovy interpreter classpath files into an in-memory in-process classloader.</p>
+a subprocess, but:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>We use <code>Jvm.inprocess</code> to
+load the Groovy interpreter classpath files into an in-memory in-process classloader,</p>
+</li>
+<li>
+<p><code>loadClass</code>/<code>getMethod</code>/<code>invoke</code> to call methods on those classes using Java reflection</p>
+</li>
+</ul>
 </div>
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC3/0.12.0-RC3-example-extending-jvmcode-2-classloader.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/extending/jvmcode/2-classloader">browse</a>)</div>
@@ -646,8 +660,8 @@ stay optimized without being thrown away each time</p>
 </div>
 <div class="paragraph">
 <p>This example is similar to the earlier example running the Groovy interpreter in
-a subprocess, but instead of using <code>Jvm.runSubprocess</code> we use <code>Jvm.inprocess</code> to
-load the Groovy interpreter classpath files into an in-memory in-process classloader:</p>
+a subprocess, but instead of using <code>Jvm.runSubprocess</code> we use <code>ClassLoader.create</code> to
+load the Groovy interpreter classpath files:</p>
 </div>
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC3/0.12.0-RC3-example-extending-jvmcode-3-worker.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/extending/jvmcode/3-worker">browse</a>)</div>
@@ -737,6 +751,133 @@ un-synchronized global mutable variables.
 </td>
 </tr>
 </tbody></table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_running_a_scalamodule_in_a_subprocess"><a class="anchor" href="#_running_a_scalamodule_in_a_subprocess"></a>Running a ScalaModule in a Subprocess</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This example demonstrates using Mill <code>ScalaModule</code>s as build tasks: rather
+than pulling the code we need off of Maven Central, we instead build the code
+within the <code>bar</code> module as <code>bar/src/Bar.scala</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC3/0.12.0-RC3-example-extending-jvmcode-4-module-run-task.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/extending/jvmcode/4-module-run-task">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, scalalib._
+import mill.util.Jvm
+
+object foo extends ScalaModule {
+  def scalaVersion = &quot;2.13.8&quot;
+  def moduleDeps = Seq(bar)
+
+  def sources = Task {
+    bar.runner().run(args = super.sources())
+    Seq(PathRef(Task.dest))
+  }
+}
+
+object bar extends ScalaModule{
+  def scalaVersion = &quot;2.13.8&quot;
+  def ivyDeps = Agg(ivy&quot;com.lihaoyi::os-lib:0.10.7&quot;)
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this example, we use
+<code>Bar.scala</code> as a source-code pre-processor on the <code>foo</code> module source code:
+we override <code>foo.sources</code>, passing the <code>super.sources()</code> and <code>bar.runClasspath</code>
+to <code>bar.runner().run</code> along with a <code>Task.dest</code>, and returning a <code>PathRef(Task.dest)</code>
+as the new <code>foo.sources</code>. <code>bar</code> also depends on a third party library OS-Lib.
+The <code>runner().run</code> subprocess runs inside the <code>Task.dest</code> folder of the enclosing
+task automatically.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.run
+...
+Foo.value: HELLO</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example does a trivial string-replace of &quot;hello&quot; with &quot;HELLO&quot;, but is
+enough to demonstrate how you can use Mill <code>ScalaModule</code>s to implement your
+own arbitrarily complex transformations. This is useful for build logic that
+may not fit nicely inside a <code>build.mill</code> file, whether due to the sheer lines
+of code or due to dependencies that may conflict with the Mill classpath
+present in <code>build.mill</code></p>
+</div>
+<div class="paragraph">
+<p><code>bar.runner().run</code> by default inherits the <code>mainClass</code>, <code>forkEnv</code>, <code>forkArgs</code>,
+from the owning module <code>bar</code>, and the working directory from the calling task’s
+<code>Task.dest</code>. You can also pass in these parameters explicitly to <code>run()</code> as named
+arguments if you wish to override the defaults.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">trait Runner{
+  def run(args: os.Shellable,
+          mainClass: String = null,
+          forkArgs: Seq[String] = null,
+          forkEnv: Map[String, String] = null,
+          workingDir: os.Path = null,
+          useCpPassingJar: java.lang.Boolean = null)
+         (implicit ctx: Ctx): Unit
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_running_a_javamodule_in_a_classloader"><a class="anchor" href="#_running_a_javamodule_in_a_classloader"></a>Running a JavaModule in a Classloader</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>While the previously example showed how to use the <code>runner().run</code> helpers
+to run a <code>ScalaModule</code>'s code, but you can also use <code>JavaModule</code>s for this
+purpose, with a source code generator written in Java. We also run the
+<code>bar</code> code within an in-memory classloader via <code>Jvm.runClassloader</code> as
+we saw earlier:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC3/0.12.0-RC3-example-extending-jvmcode-5-module-classloader.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/extending/jvmcode/5-module-classloader">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, scalalib._
+import mill.util.Jvm
+
+object foo extends JavaModule {
+  def moduleDeps = Seq(bar)
+
+  def sources = Task {
+    Jvm.runClassloader(classPath = bar.runClasspath().map(_.path)){ classLoader =&gt;
+      classLoader
+        .loadClass(&quot;bar.Bar&quot;)
+        .getMethod(&quot;main&quot;, classOf[Array[String]])
+        .invoke(null, Array(Task.dest.toString) ++ super.sources().map(_.path.toString))
+    }
+    Seq(PathRef(Task.dest))
+  }
+}
+
+object bar extends JavaModule</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As mentioned in the section on
+<a href="#_in_process_isolated_classloaders">In-process Isolated Classloaders</a>,
+this provides less overhead over running <code>bar</code>'s classpath in a subprocess, at
+the expense of the classloader providing weaker isolation than a subprocess.
+Thus we cannot rely on the working directory inside the <code>bar.Bar</code> code to be in the
+right place, and instead we need to pass in the <code>Task.dest</code> path explicitly.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.run
+...
+Foo.value: HELLO</code></pre>
+</div>
 </div>
 </div>
 </div>

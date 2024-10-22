@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Tasks :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/0.11.12/Tasks.html" />
-    <link rel="prev" href="query-syntax.html" />
+    <link rel="prev" href="../comparisons/sbt.html" />
     <link rel="next" href="modules.html" />
     <meta name="generator" content="Antora 3.1.9" />
     <link rel="stylesheet" href="../../_/css/site.css" />
@@ -242,8 +242,12 @@
     <span class="nav-text">Mill Fundamentals</span>
 <ul class="nav-list">
 
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="tasks.html">Tasks</a>
+  </li>
+
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="library-deps.html">Library Dependencies in Mill</a>
+    <a class="nav-link" href="modules.html">Modules</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -254,12 +258,8 @@
     <a class="nav-link" href="query-syntax.html">Task Query Syntax</a>
   </li>
 
-  <li class="nav-item is-current-page" data-depth="1">
-    <a class="nav-link" href="tasks.html">Tasks</a>
-  </li>
-
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="modules.html">Modules</a>
+    <a class="nav-link" href="library-deps.html">Library Dependencies in Mill</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -394,6 +394,10 @@
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
   </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../depth/why-scala.html">Why does Mill use Scala?</a>
+  </li>
 </ul>
   </li>
 
@@ -428,9 +432,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-104-a3ec3e</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-105-16452d</button>
   <div class="version-menu">
-    <a class="version is-current" href="tasks.html">0.12.0-RC3-104-a3ec3e</a>
+    <a class="version is-current" href="tasks.html">0.12.0-RC3-105-16452d</a>
     <a class="version" href="../0.11.12/Tasks.html">0.11.12</a>
     <a class="version" href="../0.11.11/Tasks.html">0.11.11</a>
     <a class="version" href="../0.11.10/Tasks.html">0.11.10</a>
@@ -1982,78 +1986,6 @@ def myWorker = Task.Worker { new MyWorker() }</code></pre>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_using_scalamodule_run_as_a_task"><a class="anchor" href="#_using_scalamodule_run_as_a_task"></a>Using ScalaModule.run as a task</h2>
-<div class="sectionbody">
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0-RC3/0.12.0-RC3-example-fundamentals-tasks-11-module-run-task.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0-RC3//example/fundamentals/tasks/11-module-run-task">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, scalalib._
-import mill.util.Jvm
-
-object foo extends ScalaModule {
-  def scalaVersion = &quot;2.13.8&quot;
-  def moduleDeps = Seq(bar)
-  def ivyDeps = Agg(ivy&quot;com.lihaoyi::mainargs:0.4.0&quot;)
-
-  def sources = Task {
-    bar.runner().run(args = super.sources())
-    Seq(PathRef(Task.dest))
-  }
-}
-
-object bar extends ScalaModule{
-  def scalaVersion = &quot;2.13.8&quot;
-  def ivyDeps = Agg(ivy&quot;com.lihaoyi::os-lib:0.10.7&quot;)
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This example demonstrates using Mill <code>ScalaModule</code>s as build tasks: rather
-than defining the task logic in the <code>build.mill</code>, we instead put the build
-logic within the <code>bar</code> module as <code>bar/src/Bar.scala</code>. In this example, we use
-<code>Bar.scala</code> as a source-code pre-processor on the <code>foo</code> module source code:
-we override <code>foo.sources</code>, passing the <code>super.sources()</code> and <code>bar.runClasspath</code>
-to <code>bar.runner().run</code> along with a <code>Task.dest</code>, and returning a <code>PathRef(Task.dest)</code>
-as the new <code>foo.sources</code>.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.run
-...
-Foo.value: HELLO</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This example does a trivial string-replace of &quot;hello&quot; with &quot;HELLO&quot;, but is
-enough to demonstrate how you can use Mill <code>ScalaModule</code>s to implement your
-own arbitrarily complex transformations. This is useful for build logic that
-may not fit nicely inside a <code>build.mill</code> file, whether due to the sheer lines
-of code or due to dependencies that may conflict with the Mill classpath
-present in <code>build.mill</code></p>
-</div>
-<div class="paragraph">
-<p><code>bar.runner().run</code> by default inherits the <code>mainClass</code>, <code>forkEnv</code>, <code>forkArgs</code>,
-from the owning module <code>bar</code>, and the working directory from the calling task’s
-<code>Task.dest</code>. You can also pass in these parameters explicitly to <code>run()</code> as named
-arguments if you wish to override the defaults</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">trait Runner{
-  def run(args: os.Shellable,
-          mainClass: String = null,
-          forkArgs: Seq[String] = null,
-          forkEnv: Map[String, String] = null,
-          workingDir: os.Path = null,
-          useCpPassingJar: java.lang.Boolean = null)
-         (implicit ctx: Ctx): Unit
-}</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
 <h2 id="_experimental_forking_concurrent_futures_within_tasks"><a class="anchor" href="#_experimental_forking_concurrent_futures_within_tasks"></a>(Experimental) Forking Concurrent Futures within Tasks</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -2131,7 +2063,7 @@ run async futures on <code>T.fork</code> whenever possible.</p>
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="query-syntax.html">Task Query Syntax</a></span>
+  <span class="prev"><a href="../comparisons/sbt.html">Case Study: Mill vs SBT</a></span>
   <span class="next"><a href="modules.html">Modules</a></span>
 </nav>
 </article>
