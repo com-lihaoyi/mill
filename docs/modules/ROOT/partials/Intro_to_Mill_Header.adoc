@@ -11,7 +11,7 @@ digraph G {
 
     "foo.sources" -> "foo.compile" -> "foo.classPath" -> "foo.assembly"
     "foo.mainClass" -> "foo.assembly"
-    "foo.classpath"
+    "foo.classPath"
   }
   subgraph cluster_1 {
     style=dashed
