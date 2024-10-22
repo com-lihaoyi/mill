@@ -26,7 +26,7 @@ object foo extends JavaModule {
 object bar extends JavaModule
 
 // As mentioned in the section on
-// xref:extending/running-jvm-code.adoc#_in_process_isolated_classloaders:[In-process Isolated Classloaders],
+// xref:extending/running-jvm-code.adoc#_in_process_isolated_classloaders[In-process Isolated Classloaders],
 // this provides less overhead over running ``bar``'s classpath in a subprocess, at
 // the expense of the classloader providing weaker isolation than a subprocess.
 // Thus we cannot rely on the working directory inside the `bar.Bar` code to be in the

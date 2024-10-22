@@ -95,6 +95,7 @@
 * xref:depth/sandboxing.adoc[]
 * xref:depth/evaluation-model.adoc[]
 * xref:depth/design-principles.adoc[]
+* xref:depth/why-scala.adoc[]
 
 // Reference pages that a typical user would not typically read top-to-bottom,
 // but may need to look up once in a while, and thus should be written down
