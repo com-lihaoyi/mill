@@ -3,9 +3,20 @@
 This section walks through the process of adding support for a new programming
 language to Mill. We will be adding a small `trait TypeScriptModule` with the
 ability to resolve dependencies, typecheck local code, and optimize a final
-bundle
+bundle.
 
-== Downloading Basic Typescript Tooling
+The TypeScript integration here is not intended for production usage, but is
+instead meant for illustration purposes of the techniques typically used in
+implementing language toolchains.
+
+== Basic TypeScript Pipeline
 
 include::partial$example/extending/newlang/1-hello-typescript.adoc[]
+
+== Re-usable TypeScriptModule
+
+include::partial$example/extending/newlang/2-typescript-modules.adoc[]
+== TypeScriptModule `moduleDeps`
+
+include::partial$example/extending/newlang/3-module-deps.adoc[]
 

@@ -1,7 +1,8 @@
 // This example demonstrates basic integration of https://www.typescriptlang.org/[Typescript]
 // compilation into a Mill build to compile https://nodejs.org/en[Node.js] apps. Mill
 // does not come bundled with a Typescript integration, so here we begin setting
-// one up from first principles using the https://www.npmjs.com/[NPM] command line tool and package repository
+// one up from first principles using the https://www.npmjs.com/[NPM] command line
+// tool and package repository
 
 // === Installing TypeScript
 //
@@ -57,7 +58,6 @@ def compile = Task{
       tscInstall().path / "node_modules/typescript/bin/tsc",
       allSources().map(_.path),
       "--outDir", Task.dest,
-      "--types", "node",
       "--typeRoots", tscInstall().path / "node_modules/@types"
     )
   )

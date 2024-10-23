@@ -27,7 +27,6 @@ trait TypeScriptModule extends Module{
         tscInstall().path / "node_modules/typescript/bin/tsc",
         allSources().map(_.path),
         "--outDir", Task.dest,
-        "--types", "node",
         "--typeRoots", tscInstall().path / "node_modules/@types"
       )
     )
@@ -70,6 +69,36 @@ Hello James Qux
 
 */
 
-// At this point, we have multiple ``TypeScriptModule``s, but they are each independent
-// and do not depend on one another. Next, we will look at how to wire them up using
+// At this point, we have multiple ``TypeScriptModule``s, with `bar` nested inside `foo`,
+// but they are each independent and do not depend on one another.
+
+// ```graphviz
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   subgraph cluster_3 {
+//     style=dashed
+//     label=qux
+//     "qux.tscInstall" -> "qux.compile"
+//     "qux.sources" -> "qux.allSources" -> "qux.compile" -> "qux.run"
+//     "qux.mainFileName" -> "qux.run"
+//   }
+//   subgraph cluster_1 {
+//     subgraph cluster_2 {
+//       style=dashed
+//       label=bar
+//       "bar.tscInstall" -> "bar.compile"
+//       "bar.sources" -> "bar.allSources" -> "bar.compile" -> "bar.run"
+//       "bar.mainFileName" -> "bar.run"
+//     }
+//     style=dashed
+//     label=foo
+//     "foo.tscInstall" -> "foo.compile"
+//     "foo.sources" -> "foo.allSources" -> "foo.compile" -> "foo.run"
+//     "foo.mainFileName" -> "foo.run"
+//   }
+// }
+// ```
+//
+// Next, we will look at how to wire them up using
 // `moduleDeps`.
