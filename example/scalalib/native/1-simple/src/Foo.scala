@@ -3,15 +3,14 @@ package foo
 import scala.scalanative.libc._
 import scala.scalanative.unsafe._
 import mainargs.{main, ParserForMethods}
-import fansi._
 
 object Foo {
   
   def generateHtml(text: String): CString = {
-    val colored = Console.RED + "<h1>" + text + "</h1>" + Console.RESET + "\n"
+    val html = "<h1>" + text + "</h1>\n"
 
     implicit val z: Zone = Zone.open
-    val cResult = toCString(colored)
+    val cResult = toCString(html)
     z.close()
     cResult
   }
@@ -23,3 +22,4 @@ object Foo {
 
   def main(args: Array[String]): Unit = ParserForMethods(this).runOrExit(args)
 }
+

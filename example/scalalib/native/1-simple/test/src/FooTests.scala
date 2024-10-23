@@ -7,15 +7,14 @@ object FooTests extends TestSuite {
   def tests = Tests {
     test("simple one") {
       val result = Foo.generateHtml("hello")
-      val colored = Console.RED + "<h1>hello</h1>" + Console.RESET + "\n"
-      assert(fromCString(result) == colored)
+      assert(fromCString(result) == "<h1>hello</h1>\n")
       fromCString(result)
     }
     test("simple two") {
       val result = Foo.generateHtml("hello world")
-      val colored = Console.RED + "<h1>hello world</h1>" + Console.RESET + "\n"
-      assert(fromCString(result) == colored)
+      assert(fromCString(result) == "<h1>hello world</h1>\n")
       fromCString(result)
     }
   }
 }
+

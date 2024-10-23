@@ -53,6 +53,7 @@ object `package` extends RootModule with Module {
     object publishing extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "publishing"))
     object module extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "module"))
     object web extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "web"))
+    object native extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "native"))
   }
 
   object depth extends Module {
