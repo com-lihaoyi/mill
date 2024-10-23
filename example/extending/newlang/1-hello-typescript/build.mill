@@ -21,8 +21,9 @@ def npmInstall = Task{
 // The `npmInstall` task runs `npm install` to install TypeScript locally, following
 // the https://www.typescriptlang.org/download/[TypeScript installation instructions].
 // The `os.call` above by default runs inside the `npmInstall` task's unique `Task.dest`
-// output directory due to xref:depth/sandboxing.adoc[task sandboxing]. We then return
-// a `PathRef` to the `Task.dest` so downstream tasks can make use of it.
+// output directory due to xref:depth/sandboxing.adoc[task sandboxing]. Note that we
+// use an explicit version on each of the modules to ensure the `Task` is reproducible.
+// We then return a `PathRef` to the `Task.dest` so downstream tasks can make use of it.
 //
 // Note that as written, the `npmInstall` task will never invalidate unless you change its
 // code. This is what we should expect, since `npmInstall` has no upstream tasks it depends
