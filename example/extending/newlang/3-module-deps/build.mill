@@ -71,7 +71,12 @@ trait TypeScriptModule extends Module{
     )
   }
 }
-
+// Note the use of `Task.traverse(moduleDeps)` in order to aggregate the `compile`
+// output of the upstream modules, which is necessary both to configure the `tsc` TypeScript
+// compiler in `compile` and also to set up the `node` working directory in `run`. This
+// is a common pattern when defining language modules, whose module-level dependencies need
+// to be translated into task-level dependencies
+//
 // Again, we can instantiate `TypeScriptModule` three times, but now `foo/src/foo.ts`
 // and `foo/bar/src/bar.ts` export their APIs which are then imported in `qux/src/qux.ts`:
 
