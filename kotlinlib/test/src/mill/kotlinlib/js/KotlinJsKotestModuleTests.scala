@@ -1,9 +1,11 @@
 package mill
 package kotlinlib.js
 
+import mill.api.Result
 import mill.eval.EvaluatorPaths
 import mill.testkit.{TestBaseModule, UnitTester}
-import utest.{assert, TestSuite, Tests, test}
+import sbt.testing.Status
+import utest.{TestSuite, Tests, assert, test}
 
 object KotlinJsKotestModuleTests extends TestSuite {
 
@@ -19,6 +21,7 @@ object KotlinJsKotestModuleTests extends TestSuite {
 
     object foo extends KotlinJsModule {
       def kotlinVersion = KotlinJsKotestModuleTests.kotlinVersion
+      override def kotlinJsRunTarget = Some(RunTarget.Node)
       override def moduleDeps = Seq(module.bar)
 
       object test extends KotlinJsModule with KotestTests {
@@ -36,19 +39,30 @@ object KotlinJsKotestModuleTests extends TestSuite {
       val eval = testEval()
 
       val command = module.foo.test.test()
-      val Left(_) = eval.apply(command)
+      val Left(Result.Failure(failureMessage, Some((doneMessage, testResults)))) =
+        eval.apply(command)
 
-      // temporary, because we are running run() task, it won't be test.log, but run.log
-      val log =
-        os.read(EvaluatorPaths.resolveDestPaths(eval.outPath, command).log / ".." / "run.log")
+      val xmlReport =
+        EvaluatorPaths.resolveDestPaths(eval.outPath, command).dest / "test-report.xml"
+
       assert(
-        log.contains(
-          "AssertionFailedError: expected:<\"Not hello, world\"> but was:<\"Hello, world\">"
-        ),
-        log.contains("1 passing"),
-        log.contains("1 failing"),
-        // verify that source map is applied, otherwise all stack entries will point to .js
-        log.contains("HelloKotestTests.kt:")
+        os.exists(xmlReport),
+        os.read(xmlReport).contains("HelloKotestTests.kt:"),
+        failureMessage == s"""
+                             |Tests failed:
+                             |
+                             |HelloTests - failure: AssertionFailedError: expected:<\"Not hello, world\"> but was:<\"Hello, world\">
+                             |
+                             |""".stripMargin,
+        doneMessage == s"""
+                          |Tests: 2, Passed: 1, Failed: 1, Skipped: 0
+                          |
+                          |Full report is available at $xmlReport
+                          |""".stripMargin,
+        testResults.length == 2,
+        testResults.count(result =>
+          result.status == Status.Failure.name() && result.exceptionTrace.getOrElse(Seq.empty).isEmpty
+        ) == 0
       )
     }
   }

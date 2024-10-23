@@ -1,6 +1,6 @@
 package mill.kotlinlib.ktfmt
 
-import mill.{PathRef, T, Task, api}
+import mill.{PathRef, T, api}
 import mill.kotlinlib.KotlinModule
 import mill.main.Tasks
 import mill.testkit.{TestBaseModule, UnitTester}
