@@ -5,7 +5,7 @@ package js
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.{TestSuite, Tests, assert, test}
 
-object KotlinJSCompileTests extends TestSuite {
+object KotlinJsCompileTests extends TestSuite {
 
   private val kotlinVersion = "1.9.25"
 
@@ -13,12 +13,12 @@ object KotlinJSCompileTests extends TestSuite {
 
   object module extends TestBaseModule {
 
-    object bar extends KotlinJSModule {
-      def kotlinVersion = KotlinJSCompileTests.kotlinVersion
+    object bar extends KotlinJsModule {
+      def kotlinVersion = KotlinJsCompileTests.kotlinVersion
     }
 
-    object foo extends KotlinJSModule {
-      override def kotlinVersion = KotlinJSCompileTests.kotlinVersion
+    object foo extends KotlinJsModule {
+      override def kotlinVersion = KotlinJsCompileTests.kotlinVersion
       override def moduleDeps = Seq(module.bar)
     }
   }

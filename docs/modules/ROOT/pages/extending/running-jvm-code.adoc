@@ -35,3 +35,11 @@ include::partial$example/extending/jvmcode/2-classloader.adoc[]
 == Classloader Worker Tasks
 
 include::partial$example/extending/jvmcode/3-worker.adoc[]
+
+== Running a ScalaModule in a Subprocess
+
+include::partial$example/extending/jvmcode/4-module-run-task.adoc[]
+
+== Running a JavaModule in a Classloader
+
+include::partial$example/extending/jvmcode/5-module-classloader.adoc[]

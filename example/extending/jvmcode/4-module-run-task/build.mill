@@ -1,3 +1,7 @@
+// This example demonstrates using Mill ``ScalaModule``s as build tasks: rather
+// than pulling the code we need off of Maven Central, we instead build the code
+// within the `bar` module as `bar/src/Bar.scala`.
+
 package build
 import mill._, scalalib._
 import mill.util.Jvm
@@ -5,7 +9,6 @@ import mill.util.Jvm
 object foo extends ScalaModule {
   def scalaVersion = "2.13.8"
   def moduleDeps = Seq(bar)
-  def ivyDeps = Agg(ivy"com.lihaoyi::mainargs:0.4.0")
 
   def sources = Task {
     bar.runner().run(args = super.sources())
@@ -18,13 +21,13 @@ object bar extends ScalaModule{
   def ivyDeps = Agg(ivy"com.lihaoyi::os-lib:0.10.7")
 }
 
-// This example demonstrates using Mill ``ScalaModule``s as build tasks: rather
-// than defining the task logic in the `build.mill`, we instead put the build
-// logic within the `bar` module as `bar/src/Bar.scala`. In this example, we use
+// In this example, we use
 // `Bar.scala` as a source-code pre-processor on the `foo` module source code:
 // we override `foo.sources`, passing the `super.sources()` and `bar.runClasspath`
 // to `bar.runner().run` along with a `Task.dest`, and returning a `PathRef(Task.dest)`
-// as the new `foo.sources`.
+// as the new `foo.sources`. `bar` also depends on a third party library OS-Lib.
+// The `runner().run` subprocess runs inside the `Task.dest` folder of the enclosing
+// task automatically.
 
 /** Usage
 
@@ -44,7 +47,7 @@ Foo.value: HELLO
 // `bar.runner().run` by default inherits the `mainClass`, `forkEnv`, `forkArgs`,
 // from the owning module `bar`, and the working directory from the calling task's
 // `Task.dest`. You can also pass in these parameters explicitly to `run()` as named
-// arguments if you wish to override the defaults
+// arguments if you wish to override the defaults.
 //
 // [source,scala]
 // ----

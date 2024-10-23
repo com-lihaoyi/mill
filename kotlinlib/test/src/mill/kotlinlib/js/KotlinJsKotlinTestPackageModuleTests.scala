@@ -6,7 +6,7 @@ import mill.eval.EvaluatorPaths
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.{assert, TestSuite, Tests, test}
 
-object KotlinJSKotlinTestPackageModuleTests extends TestSuite {
+object KotlinJsKotlinTestPackageModuleTests extends TestSuite {
 
   private val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "kotlin-js"
 
@@ -14,15 +14,15 @@ object KotlinJSKotlinTestPackageModuleTests extends TestSuite {
 
   object module extends TestBaseModule {
 
-    object bar extends KotlinJSModule {
-      def kotlinVersion = KotlinJSKotlinTestPackageModuleTests.kotlinVersion
+    object bar extends KotlinJsModule {
+      def kotlinVersion = KotlinJsKotlinTestPackageModuleTests.kotlinVersion
     }
 
-    object foo extends KotlinJSModule {
-      def kotlinVersion = KotlinJSKotlinTestPackageModuleTests.kotlinVersion
+    object foo extends KotlinJsModule {
+      def kotlinVersion = KotlinJsKotlinTestPackageModuleTests.kotlinVersion
       override def moduleDeps = Seq(module.bar)
 
-      object test extends KotlinJSModule with KotlinTestPackageTests {
+      object test extends KotlinJsModule with KotlinTestPackageTests {
         override def allSourceFiles = super.allSourceFiles()
           .filter(!_.path.toString().endsWith("HelloKotestTests.kt"))
       }
