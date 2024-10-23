@@ -148,7 +148,7 @@ object Deps {
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:${jnaVersion}"
 
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.3"
-  val commonsIO = ivy"commons-io:commons-io:2.16.1"
+  val commonsIO = ivy"commons-io:commons-io:2.17.0"
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.24.1"
   val osLib = ivy"com.lihaoyi::os-lib:0.11.3"
   val pprint = ivy"com.lihaoyi::pprint:0.9.0"
@@ -231,7 +231,7 @@ object Deps {
     ivy"com.google.protobuf:protobuf-java:4.28.2",
     ivy"com.google.guava:guava:33.3.1-jre",
     ivy"org.yaml:snakeyaml:2.3",
-    ivy"org.apache.commons:commons-compress:1.26.2"
+    ivy"org.apache.commons:commons-compress:1.27.1"
   )
 
   /** Used in tests. */
