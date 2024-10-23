@@ -1,0 +1,75 @@
+// In this example, we will explore how to take the one-off typescript build pipeline
+// we wrote above, and turn it into a re-usable `TypeScriptModule`.
+//
+// To do this, we take all the code we wrote earlier and surround it with
+// `trait TypeScriptModule extends Module` wrapper:
+
+package build
+import mill._
+
+trait TypeScriptModule extends Module{
+  def tscInstall = Task{
+    os.call(("npm", "install", "--save-dev", "typescript@5.6.3"))
+    os.call(("npm", "install", "--save-dev", "@types/node@22.7.8"))
+    PathRef(Task.dest)
+  }
+
+
+  def sources = Task.Source(millSourcePath / "src")
+  def allSources = Task{
+    os.walk(sources().path).filter(_.ext == "ts").map(PathRef(_))
+  }
+
+
+  def compile = Task{
+    os.call(
+      (
+        tscInstall().path / "node_modules/typescript/bin/tsc",
+        allSources().map(_.path),
+        "--outDir", Task.dest,
+        "--types", "node",
+        "--typeRoots", tscInstall().path / "node_modules/@types"
+      )
+    )
+    PathRef(Task.dest)
+  }
+
+
+  def mainFileName = Task{ s"${millSourcePath.last}.js" }
+  def run(args: mill.define.Args) = Task.Command{
+    os.call(
+      ("node", compile().path / mainFileName(), args.value),
+      stdout = os.Inherit
+    )
+  }
+}
+
+// We can then instantiate the module three times. Module can be adjacent or nested,
+// as shown belo:
+
+object foo extends TypeScriptModule{
+  object bar extends TypeScriptModule
+}
+object qux extends TypeScriptModule
+
+/** See Also: foo/src/foo.ts */
+/** See Also: foo/bar/src/bar.ts */
+/** See Also: qux/src/qux.ts */
+
+// And then invoke the `.run` method on each module from the command line:
+
+/** Usage
+> mill foo.run James
+Hello James Foo
+
+> mill foo.bar.run James
+Hello James Bar
+
+> mill qux.run James
+Hello James Qux
+
+*/
+
+// At this point, we have multiple ``TypeScriptModule``s, but they are each independent
+// and do not depend on one another. Next, we will look at how to wire them up using
+// `moduleDeps`.
