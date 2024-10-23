@@ -11,6 +11,7 @@ digraph G {
 
     "foo.sources" -> "foo.compile" -> "foo.classPath" -> "foo.assembly"
     "foo.mainClass" -> "foo.assembly"
+    "foo.classPath"
   }
   subgraph cluster_1 {
     style=dashed
@@ -27,8 +28,9 @@ digraph G {
 
 {mill-github-url}[Mill] is a fast multi-language JVM build tool that supports {language}, making your
 common development workflows xref:comparisons/maven.adoc[5-10x faster to Maven], or
-xref:comparisons/gradle.adoc[2-4x faster than Gradle], and
-xref:comparisons/sbt.adoc[easier to use than SBT].
+xref:comparisons/gradle.adoc[2-4x faster than Gradle], while providing better IDE support
+than xref:comparisons/maven.adoc#_extensibility_ide_experience[Maven],
+xref:comparisons/gradle.adoc#_ide_experience[Gradle] or xref:comparisons/sbt.adoc#_ide_support[SBT]
 Mill aims to make your JVM project's build process performant, maintainable, and flexible
 even as it grows from a small project to a large codebase or monorepo with hundreds of modules:
 

@@ -190,6 +190,16 @@ trait JavaModule
     moduleDeps
   }
 
+  /**
+   * Same as [[moduleDeps]] but checked to not contain cycles.
+   * Prefer this over using [[moduleDeps]] directly.
+   */
+  final def runModuleDepsChecked: Seq[JavaModule] = {
+    // trigger initialization to check for cycles
+    recRunModuleDeps
+    runModuleDeps
+  }
+
   /** Should only be called from [[moduleDepsChecked]] */
   private lazy val recModuleDeps: Seq[JavaModule] =
     ModuleUtils.recursive[JavaModule](
@@ -198,8 +208,25 @@ trait JavaModule
       _.moduleDeps
     )
 
-  /** The compile-only direct dependencies of this module. */
+  /** Should only be called from [[moduleDepsChecked]] */
+  private lazy val recRunModuleDeps: Seq[JavaModule] =
+    ModuleUtils.recursive[JavaModule](
+      (millModuleSegments ++ Seq(Segment.Label("moduleDeps"))).render,
+      this,
+      m => m.runModuleDeps ++ m.moduleDeps
+    )
+
+  /**
+   *  The compile-only direct dependencies of this module. These are *not*
+   *  transitive, and only take effect in the module that they are declared in.
+   */
   def compileModuleDeps: Seq[JavaModule] = Seq.empty
+
+  /**
+   * The runtime-only direct dependencies of this module. These *are* transitive,
+   * and so get propagated to downstream modules automatically
+   */
+  def runModuleDeps: Seq[JavaModule] = Seq.empty
 
   /** Same as [[compileModuleDeps]] but checked to not contain cycles. */
   final def compileModuleDepsChecked: Seq[JavaModule] = {
@@ -217,16 +244,22 @@ trait JavaModule
     )
 
   /** The direct and indirect dependencies of this module */
-  def recursiveModuleDeps: Seq[JavaModule] = {
-//    moduleDeps.flatMap(_.transitiveModuleDeps).distinct
-    recModuleDeps
-  }
+  def recursiveModuleDeps: Seq[JavaModule] = { recModuleDeps }
+
+  /** The direct and indirect runtime module dependencies of this module */
+  def recursiveRunModuleDeps: Seq[JavaModule] = { recRunModuleDeps }
 
   /**
    * Like `recursiveModuleDeps` but also include the module itself,
    * basically the modules whose classpath are needed at runtime
    */
-  def transitiveModuleDeps: Seq[JavaModule] = Seq(this) ++ recursiveModuleDeps
+  def transitiveModuleDeps: Seq[JavaModule] = recursiveModuleDeps ++ Seq(this)
+
+  /**
+   * Like `recursiveModuleDeps` but also include the module itself,
+   * basically the modules whose classpath are needed at runtime
+   */
+  def transitiveRunModuleDeps: Seq[JavaModule] = recursiveRunModuleDeps ++ Seq(this)
 
   /**
    * All direct and indirect module dependencies of this module, including
@@ -238,6 +271,17 @@ trait JavaModule
    */
   def transitiveModuleCompileModuleDeps: Seq[JavaModule] = {
     (moduleDepsChecked ++ compileModuleDepsChecked).flatMap(_.transitiveModuleDeps).distinct
+  }
+
+  /**
+   * All direct and indirect module dependencies of this module, including
+   * compile-only dependencies: basically the modules whose classpath are needed
+   * at runtime.
+   *
+   * Note that `runModuleDeps` are defined to be transitive
+   */
+  def transitiveModuleRunModuleDeps: Seq[JavaModule] = {
+    (runModuleDepsChecked ++ moduleDepsChecked).flatMap(_.transitiveRunModuleDeps).distinct
   }
 
   /** The compile-only transitive ivy dependencies of this module and all it's upstream compile-only modules. */
@@ -288,6 +332,17 @@ trait JavaModule
   }
 
   /**
+   * The transitive run ivy dependencies of this module and all it's upstream modules.
+   * This is calculated from [[runIvyDeps]], [[mandatoryIvyDeps]] and recursively from [[moduleDeps]].
+   */
+  def transitiveRunIvyDeps: T[Agg[BoundDep]] = Task {
+    runIvyDeps().map(bindDependency()) ++
+      T.traverse(moduleDepsChecked)(_.transitiveRunIvyDeps)().flatten ++
+      T.traverse(runModuleDepsChecked)(_.transitiveIvyDeps)().flatten ++
+      T.traverse(runModuleDepsChecked)(_.transitiveRunIvyDeps)().flatten
+  }
+
+  /**
    * The upstream compilation output of all this module's upstream modules
    */
   def upstreamCompileOutput: T[Seq[CompilationResult]] = Task {
@@ -298,7 +353,7 @@ trait JavaModule
    * The transitive version of `localClasspath`
    */
   def transitiveLocalClasspath: T[Agg[PathRef]] = Task {
-    T.traverse(transitiveModuleCompileModuleDeps)(_.localClasspath)().flatten
+    T.traverse(transitiveModuleRunModuleDeps)(_.localClasspath)().flatten
   }
 
   /**
@@ -493,7 +548,7 @@ trait JavaModule
    * excluding upstream modules and third-party dependencies, but including unmanaged dependencies.
    *
    * This is build from [[localCompileClasspath]] and [[localRunClasspath]]
-   * as the parts available "before compilation" and "after compiliation".
+   * as the parts available "before compilation" and "after compilation".
    *
    * Keep in sync with [[bspLocalClasspath]]
    */
@@ -563,7 +618,7 @@ trait JavaModule
 
   def resolvedRunIvyDeps: T[Agg[PathRef]] = Task {
     defaultResolver().resolveDeps(
-      runIvyDeps().map(bindDependency()) ++ transitiveIvyDeps(),
+      transitiveRunIvyDeps() ++ transitiveIvyDeps(),
       artifactTypes = Some(artifactTypes())
     )
   }
@@ -877,7 +932,7 @@ trait JavaModule
             printDepsTree(
               args.inverse.value,
               Task.Anon {
-                transitiveCompileIvyDeps() ++ runIvyDeps().map(bindDependency())
+                transitiveCompileIvyDeps() ++ transitiveRunIvyDeps()
               },
               validModules
             )()
@@ -890,7 +945,7 @@ trait JavaModule
           Task.Command {
             printDepsTree(
               args.inverse.value,
-              Task.Anon { runIvyDeps().map(bindDependency()) },
+              Task.Anon { transitiveRunIvyDeps() },
               validModules
             )()
           }
@@ -1046,7 +1101,7 @@ trait JavaModule
         },
         Task.Anon {
           defaultResolver().resolveDeps(
-            runIvyDeps().map(bindDependency()) ++ transitiveIvyDeps(),
+            transitiveRunIvyDeps() ++ transitiveIvyDeps(),
             sources = true
           )
         }

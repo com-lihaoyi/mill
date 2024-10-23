@@ -52,11 +52,6 @@ include::partial$example/fundamentals/tasks/5-persistent-tasks.adoc[]
 
 include::partial$example/fundamentals/tasks/6-workers.adoc[]
 
-
-== Using ScalaModule.run as a task
-
-include::partial$example/fundamentals/tasks/11-module-run-task.adoc[]
-
 == (Experimental) Forking Concurrent Futures within Tasks
 
 include::partial$example/fundamentals/tasks/7-forking-futures.adoc[]

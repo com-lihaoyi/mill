@@ -5,4 +5,4 @@
 :language-small: java
 
 
-include::partial$example/javalib/basic/4-builtin-commands.adoc[]
+include::partial$example/javalib/basic/5-builtin-commands.adoc[]
