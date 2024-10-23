@@ -34,7 +34,7 @@ object KotlinJsNodeRunTests extends TestSuite {
 
       override def moduleDeps = Seq(module.bar)
       override def splitPerModule = crossValue
-      override def kotlinJSRunTarget = Some(RunTarget.Node)
+      override def kotlinJsRunTarget = Some(RunTarget.Node)
     }
 
     object bar extends KotlinJsModule {

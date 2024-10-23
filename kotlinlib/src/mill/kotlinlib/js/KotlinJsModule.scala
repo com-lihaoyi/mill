@@ -31,28 +31,28 @@ trait KotlinJsModule extends KotlinModule { outer =>
   def callMain: T[Boolean] = true
 
   /** Binary type (if any) to produce. If [[BinaryKind.Executable]] is selected, then .js file(s) will be produced. */
-  def kotlinJSBinaryKind: T[Option[BinaryKind]] = Some(BinaryKind.Executable)
+  def kotlinJsBinaryKind: T[Option[BinaryKind]] = Some(BinaryKind.Executable)
 
   /** Whether to emit a source map. */
-  def kotlinJSSourceMap: T[Boolean] = true
+  def kotlinJsSourceMap: T[Boolean] = true
 
   /** Whether to embed sources into source map. */
-  def kotlinJSSourceMapEmbedSources: T[SourceMapEmbedSourcesKind] = SourceMapEmbedSourcesKind.Never
+  def kotlinJsSourceMapEmbedSources: T[SourceMapEmbedSourcesKind] = SourceMapEmbedSourcesKind.Never
 
   /** ES target to use. List of the supported ones depends on the Kotlin version. If not provided, default is used. */
-  def kotlinJSESTarget: T[Option[String]] = None
+  def kotlinJsESTarget: T[Option[String]] = None
 
   /**
    * Add variable and function names that you declared in Kotlin code into the source map. See
    *  [[https://kotlinlang.org/docs/compiler-reference.html#source-map-names-policy-simple-names-fully-qualified-names-no Kotlin docs]] for more details
    */
-  def kotlinJSSourceMapNamesPolicy: T[SourceMapNamesPolicy] = SourceMapNamesPolicy.No
+  def kotlinJsSourceMapNamesPolicy: T[SourceMapNamesPolicy] = SourceMapNamesPolicy.No
 
   /** Split generated .js per-module. Effective only if [[BinaryKind.Executable]] is selected. */
   def splitPerModule: T[Boolean] = true
 
   /** Run target for the executable (if [[BinaryKind.Executable]] is set). */
-  def kotlinJSRunTarget: T[Option[RunTarget]] = None
+  def kotlinJsRunTarget: T[Option[RunTarget]] = None
 
   // endregion
 
@@ -91,11 +91,11 @@ trait KotlinJsModule extends KotlinModule { outer =>
       librariesClasspath = compileClasspath(),
       callMain = callMain(),
       moduleKind = moduleKind(),
-      produceSourceMaps = kotlinJSSourceMap(),
-      sourceMapEmbedSourcesKind = kotlinJSSourceMapEmbedSources(),
-      sourceMapNamesPolicy = kotlinJSSourceMapNamesPolicy(),
+      produceSourceMaps = kotlinJsSourceMap(),
+      sourceMapEmbedSourcesKind = kotlinJsSourceMapEmbedSources(),
+      sourceMapNamesPolicy = kotlinJsSourceMapNamesPolicy(),
       splitPerModule = splitPerModule(),
-      esTarget = kotlinJSESTarget(),
+      esTarget = kotlinJsESTarget(),
       kotlinVersion = kotlinVersion(),
       destinationRoot = T.dest,
       extraKotlinArgs = kotlincOptions(),
@@ -109,10 +109,10 @@ trait KotlinJsModule extends KotlinModule { outer =>
   override def run(args: Task[Args] = Task.Anon(Args())): Command[Unit] = Task.Command {
     runJsBinary(
       args = args(),
-      binaryKind = kotlinJSBinaryKind(),
+      binaryKind = kotlinJsBinaryKind(),
       moduleKind = moduleKind(),
       binaryDir = linkBinary().classes.path,
-      runTarget = kotlinJSRunTarget(),
+      runTarget = kotlinJsRunTarget(),
       envArgs = T.env,
       workingDir = T.dest
     ).map(_ => ()).getOrThrow
@@ -182,11 +182,11 @@ trait KotlinJsModule extends KotlinModule { outer =>
       librariesClasspath = compileClasspath(),
       callMain = callMain(),
       moduleKind = moduleKind(),
-      produceSourceMaps = kotlinJSSourceMap(),
-      sourceMapEmbedSourcesKind = kotlinJSSourceMapEmbedSources(),
-      sourceMapNamesPolicy = kotlinJSSourceMapNamesPolicy(),
+      produceSourceMaps = kotlinJsSourceMap(),
+      sourceMapEmbedSourcesKind = kotlinJsSourceMapEmbedSources(),
+      sourceMapNamesPolicy = kotlinJsSourceMapNamesPolicy(),
       splitPerModule = splitPerModule(),
-      esTarget = kotlinJSESTarget(),
+      esTarget = kotlinJsESTarget(),
       kotlinVersion = kotlinVersion(),
       destinationRoot = T.dest,
       extraKotlinArgs = kotlincOptions() ++ extraKotlinArgs,
@@ -199,17 +199,17 @@ trait KotlinJsModule extends KotlinModule { outer =>
    */
   def linkBinary: T[CompilationResult] = Task {
     kotlinJsCompile(
-      outputMode = binaryKindToOutputMode(kotlinJSBinaryKind()),
+      outputMode = binaryKindToOutputMode(kotlinJsBinaryKind()),
       irClasspath = Some(compile().classes),
       allKotlinSourceFiles = Seq.empty,
       librariesClasspath = compileClasspath(),
       callMain = callMain(),
       moduleKind = moduleKind(),
-      produceSourceMaps = kotlinJSSourceMap(),
-      sourceMapEmbedSourcesKind = kotlinJSSourceMapEmbedSources(),
-      sourceMapNamesPolicy = kotlinJSSourceMapNamesPolicy(),
+      produceSourceMaps = kotlinJsSourceMap(),
+      sourceMapEmbedSourcesKind = kotlinJsSourceMapEmbedSources(),
+      sourceMapNamesPolicy = kotlinJsSourceMapNamesPolicy(),
       splitPerModule = splitPerModule(),
-      esTarget = kotlinJSESTarget(),
+      esTarget = kotlinJsESTarget(),
       kotlinVersion = kotlinVersion(),
       destinationRoot = T.dest,
       extraKotlinArgs = kotlincOptions(),
@@ -475,7 +475,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
 
     override def testFramework = ""
 
-    override def kotlinJSRunTarget: T[Option[RunTarget]] = outer.kotlinJSRunTarget()
+    override def kotlinJsRunTarget: T[Option[RunTarget]] = outer.kotlinJsRunTarget()
 
     override def moduleKind: T[ModuleKind] = ModuleKind.PlainModule
 
@@ -506,7 +506,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
         binaryKind = Some(BinaryKind.Executable),
         moduleKind = moduleKind(),
         binaryDir = linkBinary().classes.path,
-        runTarget = kotlinJSRunTarget(),
+        runTarget = kotlinJsRunTarget(),
         envArgs = T.env,
         workingDir = T.dest
       )

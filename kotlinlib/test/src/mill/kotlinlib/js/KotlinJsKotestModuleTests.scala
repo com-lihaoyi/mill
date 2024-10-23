@@ -21,7 +21,7 @@ object KotlinJsKotestModuleTests extends TestSuite {
 
     object foo extends KotlinJsModule {
       def kotlinVersion = KotlinJsKotestModuleTests.kotlinVersion
-      override def kotlinJSRunTarget = Some(RunTarget.Node)
+      override def kotlinJsRunTarget = Some(RunTarget.Node)
       override def moduleDeps = Seq(module.bar)
 
       object test extends KotlinJsModule with KotestTests {
