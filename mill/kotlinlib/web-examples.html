@@ -435,9 +435,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-114-ce2198</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-RC3-115-9bae77</button>
   <div class="version-menu">
-    <a class="version is-current" href="web-examples.html">0.12.0-RC3-114-ce2198</a>
+    <a class="version is-current" href="web-examples.html">0.12.0-RC3-115-9bae77</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
@@ -651,7 +651,7 @@ this example also demonstrates:</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Kotlin/JS support on Mill is still Work In Progress (WIP). As of time of writing it
-supports Node.js, but lacks support of Browser, Webpack, test runners, reporting, etc.</p>
+supports Node.js, but lacks support of Browser, Webpack, test runners, etc.</p>
 </div>
 <div class="paragraph">
 <p>The example below demonstrates only the minimal compilation, running, and testing of
@@ -674,7 +674,7 @@ import mill._, kotlinlib._, kotlinlib.js._
 object `package` extends RootModule with KotlinJsModule {
   def moduleKind = ModuleKind.ESModule
   def kotlinVersion = &quot;1.9.25&quot;
-  def kotlinJSRunTarget = Some(RunTarget.Node)
+  def kotlinJsRunTarget = Some(RunTarget.Node)
   def ivyDeps = Agg(
     ivy&quot;org.jetbrains.kotlinx:kotlinx-html-js:0.11.0&quot;,
   )
@@ -694,7 +694,7 @@ Compiling 1 Kotlin sources to .../out/test/compile.dest/classes...
 Linking IR to .../out/test/linkBinary.dest/binaries
 produce executable: .../out/test/linkBinary.dest/binaries
 ...
-error: ...AssertionFailedError: expected:&lt;&quot;&lt;h1&gt;Hello World Wrong&lt;/h1&gt;&quot;&gt; but was:&lt;&quot;&lt;h1&gt;Hello World&lt;/h1&gt;...
+error: ... expected:&lt;&quot;&lt;h1&gt;Hello World Wrong&lt;/h1&gt;&quot;&gt; but was:&lt;&quot;&lt;h1&gt;Hello World&lt;/h1&gt;...
 ...
 
 &gt; cat out/test/linkBinary.dest/binaries/test.js # Generated javascript on disk
