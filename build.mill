@@ -231,7 +231,7 @@ object Deps {
     ivy"com.google.protobuf:protobuf-java:4.28.2",
     ivy"com.google.guava:guava:33.3.1-jre",
     ivy"org.yaml:snakeyaml:2.3",
-    Deps.commonsCompress
+    ivy"org.apache.commons:commons-compress:1.27.1"
   )
 
   /** Used in tests. */
