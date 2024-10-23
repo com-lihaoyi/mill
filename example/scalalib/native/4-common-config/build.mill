@@ -1,5 +1,5 @@
 // This example shows some of the common tasks you may want to override on a
-// `{language}Module`: specifying the `releaseMode`, `nativeLinkStubs`
+// `ScalaNativeModule`: specifying the `releaseMode`, `nativeLinkStubs`
 // `nativeIncrementalCompilation, `nativeLinkingOptions` and `nativeWorkdir`.
 
 
@@ -39,33 +39,21 @@ object `package` extends RootModule with ScalaNativeModule {
 
 > ./mill run
 ...
-#2 [info] done compiling
-[89/1] run 
-Foo.value: <h1>Hello</h1>
+Foo.value: <h1>hello</h1>
 
 > ./mill show releaseMode
-...
-#1 [info] done compiling
-[1/1] show 
 "mill.scalanativelib.api.ReleaseMode.ReleaseFast"
 
 > ./mill show nativeLinkStubs
-[1/1] show 
 true
 
 > ./mill show nativeIncrementalCompilation
-[1/1] show 
 true
 
 > ./mill show nativeLinkingOptions
-#2 [info] done compiling
-#1 [1/1] show > [1/1] nativeLinkingOptions 
-[
-  "-L/.../mill/example/scalalib/native/4-common-config/target"
-]
+...
 
 > ./mill show nativeWorkdir
-[1/1] show 
-"/.../mill/example/scalalib/native/4-common-config/out/nativeWorkdir.dest/newDir"
-
+...
 */
+
