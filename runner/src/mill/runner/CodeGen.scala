@@ -155,7 +155,7 @@ object CodeGen {
         var newScriptCode = scriptCode
         newScriptCode = objectData.parent.applyTo(newScriptCode, newParent)
         newScriptCode = objectData.name.applyTo(newScriptCode, wrapperObjectName)
-        newScriptCode = objectData.obj.applyTo(newScriptCode, "abstract class")
+        newScriptCode = objectData.obj.applyTo(newScriptCode, "trait")
 
         val millDiscover = discoverSnippet(segments)
 
@@ -228,7 +228,7 @@ object CodeGen {
        |  $childAliases
        |  $millDiscover
        |}
-       |abstract class $wrapperObjectName $extendsClause {""".stripMargin
+       |trait $wrapperObjectName $extendsClause {""".stripMargin
 
   }
 
