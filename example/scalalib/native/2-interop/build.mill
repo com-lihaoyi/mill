@@ -47,30 +47,17 @@ object `package` extends RootModule with ScalaNativeModule {
 // ----
 //
 // This example is pretty minimal, but it demonstrates the core principles, and
-// can be extended if necessary to more elaborate use cases. The `native*` tasks
-// can also be extracted out into a `trait1 for re-use if you have multiple
-// `ScalaNativeModule`s that need native C components.
+// can be extended if necessary to more elaborate use cases.
 
 /** Usage
 
 > ./mill nativeCompiled
 ...
-#1 [info] done compiling
-#1 [1/1] nativeCompiled
 
 > ./mill run
-...
-#2 [info] Compiling to native code (4749 ms)
-#2 [info] Linking with [pthread, dl, HelloWorld]
-#2 [info] Linking native code (immix gc, none lto) (117 ms)
-#2 [info] Postprocessing (0 ms)
-#2 [info] Total (11344 ms)
-[90/1] run 
 Running HelloWorld function
 Done...
-Reversed: !dlroW ,olle
-
-> ./mill test
+Reversed: !dlroW ,olleH
 
 
 */
