@@ -8,38 +8,27 @@ package build
 import mill._
 
 trait TypeScriptModule extends Module{
-  def tscInstall = Task{
-    os.call(("npm", "install", "--save-dev", "typescript@5.6.3"))
-    os.call(("npm", "install", "--save-dev", "@types/node@22.7.8"))
+  def npmInstall = Task{
+    os.call(("npm", "install", "--save-dev", "typescript@5.6.3", "@types/node@22.7.8"))
     PathRef(Task.dest)
   }
-
 
   def sources = Task.Source(millSourcePath / "src")
   def allSources = Task{
     os.walk(sources().path).filter(_.ext == "ts").map(PathRef(_))
   }
 
-
   def compile = Task{
-    os.call(
-      (
-        tscInstall().path / "node_modules/typescript/bin/tsc",
-        allSources().map(_.path),
-        "--outDir", Task.dest,
-        "--typeRoots", tscInstall().path / "node_modules/@types"
-      )
-    )
+    val tsc = npmInstall().path / "node_modules/typescript/bin/tsc"
+    val types = npmInstall().path / "node_modules/@types"
+    os.call((tsc, allSources().map(_.path), "--outDir", Task.dest, "--typeRoots", types))
     PathRef(Task.dest)
   }
 
-
   def mainFileName = Task{ s"${millSourcePath.last}.js" }
   def run(args: mill.define.Args) = Task.Command{
-    os.call(
-      ("node", compile().path / mainFileName(), args.value),
-      stdout = os.Inherit
-    )
+    val mainFile = compile().path / mainFileName()
+    os.call(("node", mainFile, args.value), stdout = os.Inherit)
   }
 }
 
@@ -79,7 +68,7 @@ Hello James Qux
 //   subgraph cluster_3 {
 //     style=dashed
 //     label=qux
-//     "qux.tscInstall" -> "qux.compile"
+//     "qux.npmInstall" -> "qux.compile"
 //     "qux.sources" -> "qux.allSources" -> "qux.compile" -> "qux.run"
 //     "qux.mainFileName" -> "qux.run"
 //   }
@@ -87,13 +76,13 @@ Hello James Qux
 //     subgraph cluster_2 {
 //       style=dashed
 //       label=bar
-//       "bar.tscInstall" -> "bar.compile"
+//       "bar.npmInstall" -> "bar.compile"
 //       "bar.sources" -> "bar.allSources" -> "bar.compile" -> "bar.run"
 //       "bar.mainFileName" -> "bar.run"
 //     }
 //     style=dashed
 //     label=foo
-//     "foo.tscInstall" -> "foo.compile"
+//     "foo.npmInstall" -> "foo.compile"
 //     "foo.sources" -> "foo.allSources" -> "foo.compile" -> "foo.run"
 //     "foo.mainFileName" -> "foo.run"
 //   }

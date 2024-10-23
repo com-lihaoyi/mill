@@ -13,20 +13,19 @@
 package build
 import mill._
 
-def tscInstall = Task{
-  os.call(("npm", "install", "--save-dev", "typescript@5.6.3"))
-  os.call(("npm", "install", "--save-dev", "@types/node@22.7.8"))
+def npmInstall = Task{
+  os.call(("npm", "install", "--save-dev", "typescript@5.6.3", "@types/node@22.7.8"))
   PathRef(Task.dest)
 }
 
-// The `tscInstall` task runs `npm install` to install TypeScript locally, following
+// The `npmInstall` task runs `npm install` to install TypeScript locally, following
 // the https://www.typescriptlang.org/download/[TypeScript installation instructions].
-// The `os.call` above by default runs inside the `tscInstall` task's unique `Task.dest`
+// The `os.call` above by default runs inside the `npmInstall` task's unique `Task.dest`
 // output directory due to xref:depth/sandboxing.adoc[task sandboxing]. We then return
 // a `PathRef` to the `Task.dest` so downstream tasks can make use of it.
 //
-// Note that as written, the `tscInstall` task will never invalidate unless you change its
-// code. This is what we should expect, since `tscInstall` has no upstream tasks it depends
+// Note that as written, the `npmInstall` task will never invalidate unless you change its
+// code. This is what we should expect, since `npmInstall` has no upstream tasks it depends
 // on and the versions of `typescript` and `@types/node` are fully specified in the task.
 // This assumes that the `npm` package repository always returns the same artifacts for
 // the given name and version, which is a reasonable assumption for most package repositories.
@@ -49,16 +48,16 @@ def allSources = Task{
 //
 // Next, we define our `compile` task. This is again a relatively straightforward subprocess
 // call invoking the `typescript/bin/tsc` executable within the `node_modules` folder from the
-// upstream `tscInstall` task, passing it the sources, `--outDir`, `--types`, and `--typeRoots`
+// upstream `npmInstall` task, passing it the sources, `--outDir`, `--types`, and `--typeRoots`
 // Again we return a `PathRef` to the `Task.dest` folder we output the compiled JS files to
 
 def compile = Task{
   os.call(
     (
-      tscInstall().path / "node_modules/typescript/bin/tsc",
+      npmInstall().path / "node_modules/typescript/bin/tsc",
       allSources().map(_.path),
       "--outDir", Task.dest,
-      "--typeRoots", tscInstall().path / "node_modules/@types"
+      "--typeRoots", npmInstall().path / "node_modules/@types"
     )
   )
   PathRef(Task.dest)
@@ -69,7 +68,7 @@ def compile = Task{
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
-//   tscInstall -> compile
+//   npmInstall -> compile
 //   sources -> allSources -> compile
 // }
 // ```
@@ -120,7 +119,7 @@ def run(args: mill.define.Args) = Task.Command{
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
-//   tscInstall -> compile
+//   npmInstall -> compile
 //   sources -> allSources -> compile -> run
 //   mainFileName -> run
 //   mainFileName [color=green, penwidth=3]

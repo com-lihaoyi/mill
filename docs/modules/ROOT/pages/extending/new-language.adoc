@@ -16,7 +16,9 @@ include::partial$example/extending/newlang/1-hello-typescript.adoc[]
 == Re-usable TypeScriptModule
 
 include::partial$example/extending/newlang/2-typescript-modules.adoc[]
+
 == TypeScriptModule `moduleDeps`
 
 include::partial$example/extending/newlang/3-module-deps.adoc[]
 
+== NPM dependencies and bundling
