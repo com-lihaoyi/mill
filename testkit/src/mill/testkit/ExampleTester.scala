@@ -161,12 +161,6 @@ class ExampleTester(
 
     val filteredOut = plainTextLines(evalResult.out).mkString("\n")
 
-    if (expectedSnippets.nonEmpty) {
-      for (outLine <- filteredOut.linesIterator) {
-        globMatchesAny(unwrappedExpected, outLine)
-      }
-    }
-
     for (expectedLine <- unwrappedExpected.linesIterator) {
       assert(filteredOut.linesIterator.exists(globMatches(expectedLine, _)))
     }

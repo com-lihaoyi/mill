@@ -414,7 +414,7 @@ object MillMain {
   ): Unit = {
     val currentProps = sys.props
     val desiredProps = initialSystemProperties ++ userSpecifiedProperties
-    val systemPropertiesToUnset = desiredProps.keySet -- currentProps.keySet
+    val systemPropertiesToUnset = currentProps.keySet -- desiredProps.keySet
 
     for (k <- systemPropertiesToUnset) System.clearProperty(k)
     for ((k, v) <- desiredProps) System.setProperty(k, v)
