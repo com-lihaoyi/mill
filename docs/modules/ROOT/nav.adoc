@@ -85,6 +85,7 @@
 * xref:extending/running-jvm-code.adoc[]
 * xref:extending/writing-plugins.adoc[]
 * xref:extending/meta-build.adoc[]
+* xref:extending/new-language.adoc[]
 
 // This section focuses on diving into deeper, more advanced topics for Mill.
 // These are things that most Mill developers would not encounter day to day,
