@@ -38,10 +38,10 @@ object foo extends ScalaModule {
 // override `sources` which was `Task.Sources` for the `src/` folder with a plain
 // `T{...}` task that generates the  necessary source files on-the-fly.
 //
-// Note that this example *replaces* your `src/` folder with the generated
-// sources. If you want to *add* generated sources, you can either override
-// `generatedSources`, or you can override `sources` and use `super` to
-// include the original source folder:
+// NOTE: that this example *replaces* your `src/` folder with the generated
+// sources, as we are overriding the `def sources` task. If you want to *add*
+// generated sources, you can either override `generatedSources`, or you can
+// override `sources` and use `super` to include the original source folder with `super`:
 
 //// SNIPPET:BUILD2
 
