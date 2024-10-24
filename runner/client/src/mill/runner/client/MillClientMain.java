@@ -40,6 +40,9 @@ public class MillClientMain {
                 public void initServer(Path serverDir, boolean setJnaNoSys, Locks locks) throws Exception{
                     MillProcessLauncher.launchMillServer(serverDir, setJnaNoSys);
                 }
+                public void preRun(Path serverDir) throws Exception {
+                    MillProcessLauncher.runTermInfoThread(serverDir);
+                }
             };
             int exitCode = launcher.acquireLocksAndRun(OutFiles.out).exitCode;
             if (exitCode == Util.ExitServerCodeWhenVersionMismatch()) {

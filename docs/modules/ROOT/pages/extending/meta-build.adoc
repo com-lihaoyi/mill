@@ -1,6 +1,8 @@
 = The Mill Meta-Build
 :page-aliases: The_Mill_Meta_Build.adoc
 
+include::partial$gtag-config.adoc[]
+
 The meta-build manages the compilation of the `build.mill`.
 Customizing the meta-build gives you greater control over how exactly your
 `build.mill` evaluates.

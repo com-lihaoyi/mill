@@ -306,8 +306,98 @@ endif::[]
 :link-milestone: {link-github}/milestone
 // find-replace-regex: https://github.com/com-lihaoyi/mill/pull/(\d*) -> {link-pr}/$1[#$1]
 
+
+[#0-12-0]
+=== 0.12.0 - 2024-10-23
+
+The Mill 0.12.0 release focuses on improving the scalability of Mill builds: in terms
+of performance, code organization, adherence to best practices, and community.
+
+Major changes:
+
+1. Mill now runs tasks parallel by default, rather than opt-in. This includes a
+   new parallel-friendly terminal UI, https://mill-build.org/mill/Mill_Sandboxing.html[task
+   and test sandboxing] to guard against race conditions,
+   xref:javalib/testing.adoc#_test_grouping[parallelization of test suites],
+   and other measures optimizing for parallel builds
+
+2. Mill now uses `build.mill` rather than `build.sc` as the primary file extension, to avoid
+   confusion with Scala-CLI or Ammonite scripts, and the `T`/`T.worker`/`T.input` syntax
+   has been deprecated in favor of `Task`/`Task.Worker`/`T.Input` for a more idiomatic style
+
+3. Mill now supports for https://mill-build.org/mill/Structuring_Large_Builds.html[Modularizing Large Builds]
+   into multiple `package.mill` files, to help support large codebases and incremental compilation
+   of the build files.
+
+4. Mill now provides official support for https://mill-build.org/mill/Writing_Mill_Plugins.html[Writing Mill Plugins],
+   with tested workflows and an official testkit to help you write and publish your own Mill
+   plugins for others to use
+
+5. Mill now supports other JVM langauges: https://mill-build.org/mill/javalib/intro.html[Java],
+   experimental support for https://mill-build.org/mill/kotlinlib/intro.html[Kotlin/KotlinJs],
+   and https://mill-build.org/mill/kotlinlib/android-examples.html[even-more-experimental support for Android].
+   This includes IDE integrations, tooling integrations (docs, autoformatters, linters, testing
+   frameworks, etc.)
+
+6. The Mill doc-site at https://mill-build.org/ has undergone a massive overhaul.
+   New comparisons with other build tools of (https://mill-build.org/mill/comparisons/maven.html[Maven],
+   https://mill-build.org/mill/comparisons/gradle.html[Gradle],
+   https://mill-build.org/mill/comparisons/sbt.html[SBT]), documentation for
+   https://mill-build.org/mill/extending/new-language.html[adding new language toolchains]
+   and https://mill-build.org/mill/extending/running-jvm-code.html[running dynamic JVM code],
+   and re-organized the pages for Scala/Java/Kotlin by-use-case to make them more navigable
+
+For a more detailed view of Mill changes since 0.11.12, along with migration instructions,
+see the sections below on:
+
+* <<0-12-0-RC1>>
+* <<0-12-0-RC2>>
+* <<0-12-0-RC3>>
+* <<0-12-0-since-rc2>>
+
+0.12.x is binary compatible with 0.11.x, and so Mill plugins published for Mill 0.11.x can
+continue to be used without updating them. Although binary compatible, Mill 0.12.x does
+have breaking changes listed below with instructions provided on how to either disable the
+breaking change with a flag or adjust your code to accommodate it. You should download the
+latest version of the https://github.com/com-lihaoyi/mill/blob/main/mill[Mill Bootstrap Script]
+if you are upgrading from a prior version.
+
+If you need help upgrading from 0.11.x or hit any issues, please visit the
+https://discord.com/invite/xJCYRVMS[#mill Discord Channel] or
+https://github.com/com-lihaoyi/mill/discussions/3349[0.12.x Github Discussion Thread]. We'd
+love to hear from you on your experience with Mill in general and Mil 0.12.x in particular
+
+* *Example Upgrade PRs*
+
+** The following PRs are example upgrades of Mill from 0.11.x to 0.12.0-RC1 for various
+projects in the `com.lihaoyi` ecosystem.
+
+*** Trivial upgrades that just needed to bump a version: https://github.com/com-lihaoyi/geny/pull/87 ,
+    https://github.com/com-lihaoyi/sourcecode/pull/175, https://github.com/com-lihaoyi/fansi/pull/107,
+    https://github.com/com-lihaoyi/PPrint/pull/141, https://github.com/com-lihaoyi/mainargs/pull/159/files,
+    https://github.com/com-lihaoyi/fastparse/pull/319, https://github.com/com-lihaoyi/scalatags/pull/284
+https://github.com/com-lihaoyi/castor/pull/64, https://github.com/com-lihaoyi/utest/pull/351
+
+*** Less trivial upgrades, needing to make use of `MILL_TEST_RESOURCE_DIR` or other explicit path references to
+    be compatible with test sandboxing: https://github.com/com-lihaoyi/requests-scala/pull/174,
+    https://github.com/com-lihaoyi/upickle/pull/627, https://github.com/com-lihaoyi/os-lib/pull/300,
+    https://github.com/com-lihaoyi/scalasql/pull/30, https://github.com/com-lihaoyi/Ammonite/pull/1575
+
+*** More involved upgrades: https://github.com/com-lihaoyi/cask/pull/143
+
+[#0-12-0-since-rc2]
+==== 0.12.0 Changes since RC3
+
+* Mill now takes a lock on the `out/` folder whenver evaluating it to avoid race conditions on disk.
+  {link-pr}/3599[#3599]. Pass in `--no-build-lock` to disable it at your own risk
+
+* Update Zinc to 0.10.3 to fix issues with over-compilation {link-pr}/3748[#3748]
+
+* `runIvyDeps` is now transitive, as is the newly-introduced `runModuleDeps`,
+  to try and match the semantics of runtime deps in Maven{link-pr}/3774[#3774]
+
 [#0-12-0-RC3]
-=== 0.12.0-RC3
+==== 0.12.0-RC3 - 2024-10-04
 
 Changes since 0.12.0-RC2
 
@@ -318,7 +408,7 @@ Changes since 0.12.0-RC2
 
 * Fix `testOnly` handling of ScalaTest tagged tests {link-pr}/3557[#3557]
 
-* Make ./mill without any arguments point you towards --help, flesh out --help into a cheat sheet {link-pr}/3556[#3556]
+* Make `./mill` without any arguments point you towards --help, flesh out --help into a cheat sheet {link-pr}/3556[#3556]
 
 * Use `Task` instead of `T` when constructing targets and other tasks {link-pr}/3565[#3565]. The new syntax
   (given below) is intended to be more idiomatic Scala and less idiosyncratic. The old syntax will continue
@@ -401,7 +491,7 @@ Tasks: dist0.fix, dist0.testTransitiveDeps
 environment variable names {link-pr}/3637[#3637]
 
 [#0-12-0-RC2]
-=== 0.12.0-RC2 - 2024-09-16
+==== 0.12.0-RC2 - 2024-09-16
 
 Changes since 0.12.0-RC1
 
@@ -444,33 +534,7 @@ Changes since 0.12.0-RC1
 * Move `.mill.sc` alternate file extension to `.mill.scala` {link-pr}/3521[#3521]
 
 [#0-12-0-RC1]
-=== 0.12.0-RC1 - 2024-09-09
-
-The upcoming 0.12.0 release focuses on improving the scalability of Mill builds: in terms
-of performance, code organization, adherence to best practices, and community. RC1 is intended
-to give people a time to try out the major changes so that any issues can be resolved before the
-release of 0.12.0 final (targeting end-September 2024).
-
-Major changes:
-
-1. Mill now runs tasks parallel by default, rather than opt-in. As every computer is multicore these days, and
-   even laptops have 8-12 cores, Mill ensures you make the most of them when building your projects
-
-2. Mill now allows for https://mill-build.org/mill/Structuring_Large_Builds.html[Modularizing Large Builds]
-   into multiple `package.mill` files, to help support large codebases
-
-3. Mill now runs itself, tasks, and tests in https://mill-build.org/mill/Mill_Sandboxing.html[Sandbox Folders]
-   by default to mitigate the risk of filesystem-based race conditions due to parallelism
-
-4. Mill now provides official support for
-   https://mill-build.org/mill/Writing_Mill_Plugins.html[Writing Mill Plugins], with tested
-   workflows and an official testkit to help you write and publish your own Mill plugins for others
-   to use
-
-0.12.x is binary compatible with 0.11.x, and so Mill plugins published for Mill 0.11.x can
-continue to be used without updating them. Although binary compatible, Mill 0.12.x does
-have breaking changes listed below with instructions provided on how to either disable the
-breaking change with a flag or adjust your code to accommodate it.
+==== 0.12.0-RC1 - 2024-09-09
 
 * *Breaking Changes*
 
@@ -570,14 +634,6 @@ on large projects {link-pr}/3388[#3388]
 ** Improvements to `visualize` and `visualizePlan` such that they no longer need to be
 prefixed with `show` and no longer need a separate `graphviz`/`dot` install on Mac-OSX
 {link-pr}/3438[#3438]
-
-* *Example Upgrade PRs*
-
-** The following PRs are example upgrades of Mill from 0.11.x to 0.12.0-RC1 for various projects in the `com.lihaoyi` ecosystem. 
-
-*** Trivial upgrades that just needed to bump a version: https://github.com/com-lihaoyi/geny/pull/87 , https://github.com/com-lihaoyi/sourcecode/pull/175, https://github.com/com-lihaoyi/fansi/pull/107, https://github.com/com-lihaoyi/PPrint/pull/141, https://github.com/com-lihaoyi/mainargs/pull/159/files, https://github.com/com-lihaoyi/fastparse/pull/319, https://github.com/com-lihaoyi/scalatags/pull/284
-
-*** Less trivial upgrades, needing to make use of `MILL_TEST_RESOURCE_DIR` or other explicit path references to be compatible with test sandboxing: https://github.com/com-lihaoyi/requests-scala/pull/174, https://github.com/com-lihaoyi/upickle/pull/627, https://github.com/com-lihaoyi/os-lib/pull/300, https://github.com/com-lihaoyi/scalasql/pull/30
 
 [#0-11-12]
 === 0.11.12 - 2024-08-20

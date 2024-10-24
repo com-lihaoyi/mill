@@ -45,9 +45,10 @@ object Settings {
   val docTags: Seq[String] = Seq(
     "0.11.10",
     "0.11.11",
-    "0.11.12"
+    "0.11.12",
+    "0.12.0"
   )
-  val mimaBaseVersions: Seq[String] = 0.to(12).map("0.11." + _)
+  val mimaBaseVersions: Seq[String] = 0.to(12).map("0.11." + _) ++ Seq("0.12.0")
 }
 
 object Deps {
@@ -142,7 +143,7 @@ object Deps {
     ivy"com.caoccao.javet:javet-macos:4.0.0"
   )
 
-  val jline = ivy"org.jline:jline:3.26.3"
+  val jline = ivy"org.jline:jline:3.27.1"
   val jnaVersion = "5.15.0"
   val jna = ivy"net.java.dev.jna:jna:${jnaVersion}"
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:${jnaVersion}"
@@ -174,9 +175,9 @@ object Deps {
   val scalatags = ivy"com.lihaoyi::scalatags:0.12.0"
   def scalaXml = ivy"org.scala-lang.modules::scala-xml:2.3.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.10.2"
+  val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.11.0"
   val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.10.3"
-  val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.1"
+  val sourcecode = ivy"com.lihaoyi::sourcecode:0.4.2"
   val upickle = ivy"com.lihaoyi::upickle:3.3.1"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.5"
   val zinc = ivy"org.scala-sbt::zinc:1.10.3"

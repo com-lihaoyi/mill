@@ -44,7 +44,9 @@ export MILL_PGP_PASSPHRASE=...
 
 === Publishing
 
-You can publish all eligible modules in your Mill project as follows:
+You can publish all eligible modules in your Mill project using
+the xref:fundamentals/modules.adoc#_default_tasks[default task] of the
+xref:fundamentals/modules.adoc#_external_modules[External Module] `mill.scalalib.PublishModule`:
 
 [source,bash]
 ----

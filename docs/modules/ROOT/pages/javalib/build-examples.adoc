@@ -1,11 +1,7 @@
 = Java Build Examples
 :page-aliases: Java_Build_Examples.adoc
 
-++++
-<script>
-gtag('config', 'AW-16649289906');
-</script>
-++++
+include::partial$gtag-config.adoc[]
 
 On this page, we will explore the Mill build tool via a series of simple Java
 example projects.

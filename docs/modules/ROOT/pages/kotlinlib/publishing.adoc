@@ -1,11 +1,7 @@
 = Publishing Kotlin Projects
 :page-aliases: Publishing_Kotlin_Projects.adoc
 
-++++
-<script>
-gtag('config', 'AW-16649289906');
-</script>
-++++
+include::partial$gtag-config.adoc[]
 
 This page will discuss common topics around publishing your Kotlin projects for others to use
 

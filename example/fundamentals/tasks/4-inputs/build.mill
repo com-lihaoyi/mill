@@ -116,7 +116,7 @@ def myPropertyTask = Task {
 //
 // === Environment Variable Inputs
 //
-// Like system properties, environment variables should be referenced in `Task.Input`s. Unlike
+// Like system properties, environment variables should be referenced in ``Task.Input``s. Unlike
 // system properties, you need to use the special API `Task.env` to access the environment,
 // due to JVM limitations:
 

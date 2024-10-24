@@ -15,11 +15,7 @@
 = (Experimental) Kotlin with Mill
 :page-aliases: Kotlin_Intro_to_Mill.adoc
 
-++++
-<script>
-gtag('config', 'AW-16649289906');
-</script>
-++++
+include::partial$gtag-config.adoc[]
 
 :language: Kotlin
 :language-small: kotlin

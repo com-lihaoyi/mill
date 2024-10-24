@@ -1,11 +1,7 @@
 = Kotlin Module Configuration
 :page-aliases: Kotlin_Module_Config.adoc
 
-++++
-<script>
-gtag('config', 'AW-16649289906');
-</script>
-++++
+include::partial$gtag-config.adoc[]
 
 :language: Kotlin
 :language-small: kotlin

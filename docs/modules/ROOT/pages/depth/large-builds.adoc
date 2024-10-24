@@ -1,5 +1,7 @@
-= Structuring Large Builds
+= Large Builds and Monorepos
 :page-aliases: Structuring_Large_Builds.adoc
+
+include::partial$gtag-config.adoc[]
 
 This section walks through Mill features and techniques used for managing large builds.
 While Mill works great for small single-module projects, it is also able to work

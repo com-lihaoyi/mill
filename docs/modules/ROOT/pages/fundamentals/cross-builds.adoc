@@ -1,6 +1,8 @@
 = Cross Builds
 :page-aliases: Cross_Builds.adoc
 
+include::partial$gtag-config.adoc[]
+
 Cross-building refers to taking the same sources and configuration and building
 it multiple times with minor changes. This could mean taking the same Scala
 codebase and building it across multiple Scala versions, taking the same

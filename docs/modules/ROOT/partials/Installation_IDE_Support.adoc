@@ -1,10 +1,3 @@
-++++
-<!-- Event snippet for Installation Page View conversion page -->
-<script>
-  gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
-</script>
-++++
-
 
 The standard method of installing Mill is to install a `./mill` <<_bootstrap_scripts,bootstrap script>>,
 similar to `./gradlew` or `./mvnw` in other build tools.

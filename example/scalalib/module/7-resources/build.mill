@@ -54,6 +54,7 @@ object foo extends ScalaModule {
 // Example application code demonstrating the techniques above can be seen below:
 
 
+/** See Also: foo/resources/file.txt */
 /** See Also: foo/test/resources/test-file-a.txt */
 /** See Also: foo/test/resources/test-file-b.txt */
 /** See Also: foo/test/other-files/other-file.txt */

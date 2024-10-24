@@ -7,14 +7,10 @@ object `package` extends RootModule with JavaModule {
     ivy"org.springframework.boot:spring-boot-starter-thymeleaf:2.5.4",
     ivy"org.springframework.boot:spring-boot-starter-validation:2.5.4",
     ivy"org.springframework.boot:spring-boot-starter-web:2.5.4",
-
     ivy"javax.xml.bind:jaxb-api:2.3.1",
-
     ivy"org.webjars:webjars-locator:0.41",
     ivy"org.webjars.npm:todomvc-common:1.0.5",
     ivy"org.webjars.npm:todomvc-app-css:2.4.1",
-
-
   )
 
   trait HelloTests extends JavaTests with TestModule.Junit5{

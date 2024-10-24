@@ -1,6 +1,8 @@
 = Installation and IDE Support
 :page-aliases: Java_Installation_IDE_Support.adoc
 
+include::partial$gtag-config.adoc[]
+
 :language: Java
 :language-small: java
 

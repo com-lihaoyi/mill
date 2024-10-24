@@ -26,7 +26,7 @@ object `package` extends RootModule with ScalaModule {
 //// SNIPPET:END
 
 // The addition of `lineCount` and `resources` overrides the previous `resource`
-// folder provided by `{language}Module` (labelled `resource.super` below), replacing
+// folder provided by `{language}Module` (labelled `resources.super` below), replacing
 // it with the destination folder of the new `resources` task, which is wired
 // up to `lineCount`:
 //
