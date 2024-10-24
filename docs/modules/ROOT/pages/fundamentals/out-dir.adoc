@@ -1,6 +1,8 @@
 = The Output Directory
 :page-aliases: Out_Dir.adoc
 
+include::partial$gtag-config.adoc[]
+
 Mill puts all its output in the top-level `out/` folder.
 
 == Structure of the `out/` Directory

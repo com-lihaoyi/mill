@@ -1,11 +1,7 @@
 = Case Study: Mill vs Gradle
 :page-aliases: Case_Study_Mill_vs_Gradle.adoc
 
-++++
-<script>
-gtag('config', 'AW-16649289906');
-</script>
-++++
+include::partial$gtag-config.adoc[]
 
 This page compares using Mill to Gradle, using the https://github.com/mockito/mockito[Mockito Testing Library]
 codebase as the example. Mockito is a medium sized codebase, 100,000 lines of Java split over 22

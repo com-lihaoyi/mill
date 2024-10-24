@@ -1,10 +1,6 @@
 = Kotlin Library Dependencies
 
-++++
-<script>
-gtag('config', 'AW-16649289906');
-</script>
-++++
+include::partial$gtag-config.adoc[]
 
 This page goes into more detail about the various configuration options
 for `KotlinModule`.

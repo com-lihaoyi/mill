@@ -1,11 +1,7 @@
 = Linting Scala Projects
 :page-aliases: Linting_Scala_Projects.adoc
 
-++++
-<script>
-gtag('config', 'AW-16649289906');
-</script>
-++++
+include::partial$gtag-config.adoc[]
 
 This page will discuss common topics around maintaining the code quality of Scala
 codebases using the Mill build tool
