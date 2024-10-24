@@ -12,8 +12,8 @@ public class Baz {
   public static void main(String barText, String quxText, String fooText, String bazText) {
     Foo.main(barText, quxText, fooText);
     Context context = new Context();
-    context.setVariable("text", text);
-    String value = new TemplateEngine().process("""<p th:text="${text}"></p>""", context);
+    context.setVariable("text", bazText);
+    String value = new TemplateEngine().process("<p th:text=\"${text}\"></p>", context);
     System.out.println("Baz.value: " + value);
   }
 

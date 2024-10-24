@@ -12,8 +12,8 @@ public class Foo {
   public static void main(String barText, String quxText, String fooText) {
     Qux.main(barText, quxText);
     Context context = new Context();
-    context.setVariable("text", text);
-    String value new TemplateEngine().process("""<p th:text="${text}"></p>""", context);
+    context.setVariable("text", fooText);
+    String value = new TemplateEngine().process("<p th:text=\"${text}\"></p>", context);
     System.out.println("Foo.value: " + value);
   }
 

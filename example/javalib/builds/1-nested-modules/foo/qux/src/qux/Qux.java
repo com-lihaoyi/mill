@@ -13,7 +13,7 @@ public class Qux {
 
     Context context = new Context();
     context.setVariable("text", "world");
-    String value = new TemplateEngine().process("""<p th:text="${text}"></p>""", context);
+    String value = new TemplateEngine().process("<p th:text=\"${text}\"></p>", context);
 
     System.out.println("Qux.value: " + value);
   }

@@ -10,7 +10,7 @@ public class Bar {
   public static void main(String text){
     Context context = new Context();
     context.setVariable("text", text);
-    String value new TemplateEngine().process("""<h1 th:text="${text}"></h1>""", context);
+    String value = new TemplateEngine().process("<h1 th:text=\"${text}\"></h1>", context);
     System.out.println("Bar.value: " + value);
   }
 

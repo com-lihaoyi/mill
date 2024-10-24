@@ -7,6 +7,6 @@ public class Bar {
     public static String value() {
     Context context = new Context();
     context.setVariable("text", "world");
-    return new TemplateEngine().process("""<p th:text="${text}"></p>""", context);
+    return new TemplateEngine().process("<p th:text=\"${text}\"></p>", context);
   }
 }

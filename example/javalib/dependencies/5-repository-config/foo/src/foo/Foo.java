@@ -22,6 +22,6 @@ public class Foo {
   public static void main(String text) {
     Context context = new Context();
     context.setVariable("text", text);
-    System.out.println(new TemplateEngine().process("""<h1 th:text="${text}"></h1>""", context);)
+    System.out.println(new TemplateEngine().process("<h1 th:text=\"${text}\"></h1>", context));
   }
 }
