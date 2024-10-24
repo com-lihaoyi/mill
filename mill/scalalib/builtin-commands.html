@@ -436,9 +436,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-3-763ef6</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-4-4ef099</button>
   <div class="version-menu">
-    <a class="version is-current" href="builtin-commands.html">0.12.0-3-763ef6</a>
+    <a class="version is-current" href="builtin-commands.html">0.12.0-4-4ef099</a>
     <a class="version" href="../0.11.12/Scala_Builtin_Commands.html">0.11.12</a>
     <a class="version" href="../0.11.11/Scala_Builtin_Commands.html">0.11.11</a>
     <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
@@ -747,10 +747,20 @@ foo.transitiveIvyDeps
 foo.compileClasspath</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p>Note that due to parallelism, the given order is only the order that the tasks
-will be <em>started</em>: the order in which tasks <em>complete</em> may be different since
-the tasks will run in parallel taking varying amounts of time.</p>
+<div class="admonitionblock note">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+due to parallelism, the given order is only one possible toplogical
+order that the tasks will be started. Tasks may be started in different orders
+depending on scheduling considerations, and may finish in a different order
+due to differences in time taken to run
+</td>
+</tr>
+</tbody></table>
 </div>
 </div>
 </div>

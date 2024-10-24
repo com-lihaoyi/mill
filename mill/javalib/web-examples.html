@@ -435,9 +435,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-3-763ef6</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-4-4ef099</button>
   <div class="version-menu">
-    <a class="version is-current" href="web-examples.html">0.12.0-3-763ef6</a>
+    <a class="version is-current" href="web-examples.html">0.12.0-4-4ef099</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
@@ -562,14 +562,10 @@ object `package` extends RootModule with JavaModule {
     ivy&quot;org.springframework.boot:spring-boot-starter-thymeleaf:2.5.4&quot;,
     ivy&quot;org.springframework.boot:spring-boot-starter-validation:2.5.4&quot;,
     ivy&quot;org.springframework.boot:spring-boot-starter-web:2.5.4&quot;,
-
     ivy&quot;javax.xml.bind:jaxb-api:2.3.1&quot;,
-
     ivy&quot;org.webjars:webjars-locator:0.41&quot;,
     ivy&quot;org.webjars.npm:todomvc-common:1.0.5&quot;,
     ivy&quot;org.webjars.npm:todomvc-app-css:2.4.1&quot;,
-
-
   )
 
   trait HelloTests extends JavaTests with TestModule.Junit5{
@@ -656,7 +652,6 @@ object `package` extends RootModule with MicronautModule {
     ivy&quot;io.micronaut.serde:micronaut-serde-jackson:2.10.1&quot;,
     ivy&quot;ch.qos.logback:logback-classic:1.5.3&quot;,
   )
-
 
   object test extends MavenTests with TestModule.Junit5{
     def ivyDeps = super.ivyDeps() ++ Agg(
@@ -753,23 +748,18 @@ object `package` extends RootModule with MicronautModule {
     ivy&quot;io.micronaut.data:micronaut-data-jdbc:4.7.0&quot;,
     ivy&quot;io.micronaut.sql:micronaut-jdbc-hikari:5.6.0&quot;,
     ivy&quot;io.micronaut.validation:micronaut-validation:4.5.0&quot;,
-
     ivy&quot;io.micronaut.views:micronaut-views-htmx:5.2.0&quot;,
     ivy&quot;io.micronaut.views:micronaut-views-thymeleaf:5.2.0&quot;,
-
     ivy&quot;org.webjars.npm:todomvc-common:1.0.5&quot;,
     ivy&quot;org.webjars.npm:todomvc-app-css:2.4.1&quot;,
     ivy&quot;org.webjars.npm:github-com-bigskysoftware-htmx:1.9.10&quot;,
   )
 
-
   object test extends MavenTests with TestModule.Junit5{
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy&quot;com.h2database:h2:2.2.224&quot;,
-
       ivy&quot;io.micronaut:micronaut-http-client:$micronautVersion&quot;,
       ivy&quot;io.micronaut.test:micronaut-test-junit5:4.4.0&quot;,
-
       ivy&quot;org.junit.jupiter:junit-jupiter-api:5.8.1&quot;,
       ivy&quot;org.junit.jupiter:junit-jupiter-engine:5.8.1&quot;
     )

@@ -434,9 +434,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-3-763ef6</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-4-4ef099</button>
   <div class="version-menu">
-    <a class="version is-current" href="intro.html">0.12.0-3-763ef6</a>
+    <a class="version is-current" href="intro.html">0.12.0-4-4ef099</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
@@ -717,7 +717,8 @@ All task inter-dependencies are automatically captured without manual annotation
 considerable effort and expertise to understand your build and set it up in the right way, Mill’s
 <a href="../comparisons/gradle.html#_ide_experience" class="xref page">good IDE experience</a> makes understanding
 your build easier, and its <a href="../comparisons/gradle.html#_extensibility" class="xref page">extensibility model</a>
-makes configuring your build foolproof</p>
+makes configuring your build foolproof, so the easiest thing to do in Mill is usually the
+right thing to do.</p>
 </li>
 </ul>
 </div>
@@ -981,7 +982,7 @@ object `package` extends RootModule with KotlinModule {
 </div>
 <div class="paragraph">
 <p>The addition of <code>lineCount</code> and <code>resources</code> overrides the previous <code>resource</code>
-folder provided by <code>KotlinModule</code> (labelled <code>resource.super</code> below), replacing
+folder provided by <code>KotlinModule</code> (labelled <code>resources.super</code> below), replacing
 it with the destination folder of the new <code>resources</code> task, which is wired
 up to <code>lineCount</code>:</p>
 </div>
@@ -1358,7 +1359,7 @@ a complete list of options and a cheat-sheet of how to work with tasks:</p>
 <div class="listingblock">
 <div class="title">Output of <code>mill --help</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.12.0-3-763ef6
+<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.12.0-4-4ef099
 Usage: mill [options] task [task-options] [+ task ...]
 
 task cheat sheet:

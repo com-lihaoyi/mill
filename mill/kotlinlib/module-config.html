@@ -435,9 +435,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-3-763ef6</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-4-4ef099</button>
   <div class="version-menu">
-    <a class="version is-current" href="module-config.html">0.12.0-3-763ef6</a>
+    <a class="version is-current" href="module-config.html">0.12.0-4-4ef099</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
@@ -743,6 +743,12 @@ provide the folder path as an environment variable that the test can make use of
 <p>Example application code demonstrating the techniques above can be seen below:</p>
 </div>
 <div class="listingblock">
+<div class="title">foo/resources/file.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0//example/kotlinlib/module/7-resources/foo/resources/file.txt">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Hello World Resource File</code></pre>
+</div>
+</div>
+<div class="listingblock">
 <div class="title">foo/test/resources/test-file-a.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0//example/kotlinlib/module/7-resources/foo/test/resources/test-file-a.txt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Test Hello World Resource File A</code></pre>
@@ -996,7 +1002,7 @@ object foo extends KotlinModule {
     Rule.AppendPattern(&quot;.*\\.conf&quot;),
     // all *.temp files will be excluded from a final jar
     Rule.ExcludePattern(&quot;.*\\.temp&quot;),
-    // the `shapeless` package will be shaded under the `shade` package
+    // the `shapeless` package will be relocated under the `shade` package
     Rule.Relocate(&quot;shapeless.**&quot;, &quot;shade.shapless.@1&quot;)
   )
 }
@@ -1042,7 +1048,7 @@ Loaded application.conf from resources:...
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>For <code>generatedSources</code>, we override an the task and make it depend
+<p>For <code>generatedSources</code>, we override the task and make it depend
 directly on <code>ivyDeps</code> to generate its source files. In this example,
 to include the list of dependencies as tuples within a static <code>object</code></p>
 </li>
@@ -1337,11 +1343,20 @@ override <code>compile</code> and <code>run</code> to add additional logging mes
 override <code>sources</code> which was <code>Task.Sources</code> for the <code>src/</code> folder with a plain
 <code>T{…​}</code> task that generates the  necessary source files on-the-fly.</p>
 </div>
-<div class="paragraph">
-<p>Note that this example <strong>replaces</strong> your <code>src/</code> folder with the generated
-sources. If you want to <strong>add</strong> generated sources, you can either override
-<code>generatedSources</code>, or you can override <code>sources</code> and use <code>super</code> to
-include the original source folder:</p>
+<div class="admonitionblock note">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+that this example <strong>replaces</strong> your <code>src/</code> folder with the generated
+sources, as we are overriding the <code>def sources</code> task. If you want to <strong>add</strong>
+generated sources, you can either override <code>generatedSources</code>, or you can
+override <code>sources</code> and use <code>super</code> to include the original source folder with <code>super</code>:
+</td>
+</tr>
+</tbody></table>
 </div>
 <div class="listingblock">
 <div class="content">

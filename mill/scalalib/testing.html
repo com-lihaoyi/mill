@@ -435,9 +435,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-3-763ef6</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-4-4ef099</button>
   <div class="version-menu">
-    <a class="version is-current" href="testing.html">0.12.0-3-763ef6</a>
+    <a class="version is-current" href="testing.html">0.12.0-4-4ef099</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
@@ -582,14 +582,14 @@ compiling 1 ... source...
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.test.test</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.test</code></pre>
 </div>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p><code>foo.test.test</code>: runs tests in a subprocess in an empty <code>sandbox/</code> folder. You can
-also enter just <code>foo.test</code> and it will run <code>foo.test.test</code> as the default task.</p>
+<p><code>foo.test</code>: runs tests in a subprocess in an empty <code>sandbox/</code> folder. This is short
+for <code>foo.test.test</code>, as <code>test</code> is the default task for <code>TestModule</code>s.</p>
 </li>
 </ul>
 </div>
@@ -622,6 +622,10 @@ This can be faster than <code>.test</code>, but is less flexible (e.g. you canno
 and more prone to interference (<code>testLocal</code> runs do not run in <a href="../depth/sandboxing.html" class="xref page">sandbox folders</a>)</p>
 </li>
 </ul>
+</div>
+<div class="paragraph">
+<p>It is common to run tests with <a href="../javalib/intro.html#_watch_and_re_evaluate" class="xref page">-w/--watch</a>
+enabled, so that once you save a file to disk the selected tests get re-run.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -765,8 +769,8 @@ object qux extends ScalaModule {
 </div>
 </div>
 <div class="paragraph">
-<p>These two test modules will expect their sources to be in their respective <code>foo/test</code> and
-<code>foo/integration</code> folder respectively</p>
+<p>These two test modules will expect their sources to be in their respective <code>qux/test</code> and
+<code>qux/integration</code> folder respectively</p>
 </div>
 <div class="listingblock">
 <div class="content">

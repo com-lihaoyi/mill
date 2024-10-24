@@ -435,9 +435,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-3-763ef6</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-4-4ef099</button>
   <div class="version-menu">
-    <a class="version is-current" href="linting.html">0.12.0-3-763ef6</a>
+    <a class="version is-current" href="linting.html">0.12.0-4-4ef099</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
@@ -548,7 +548,7 @@ object foo extends JavaModule with ErrorProneModule {
 <dl>
 <dt class="hdlist1"><code>def errorProneVersion: T[String]</code></dt>
 <dd>
-<p>The <code>error-prone</code> version to use. Defaults to <a id="BuildInfo.errorProneVersion"></a>, the version used to build and test the module.
+<p>The <code>error-prone</code> version to use.
 Find the list of versions and changlog at <a href="https://github.com/google/error-prone/releases" class="bare">https://github.com/google/error-prone/releases</a></p>
 </dd>
 <dt class="hdlist1"><code>def errorProneOptions: T[Seq[String]]</code></dt>
@@ -628,10 +628,10 @@ Audit done.</code></pre>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">// if an exception should be raised when violations are found
-checkstyle --check
+./mill checkstyle --check
 
 // if Checkstyle output report should be written to System.out
-checkstyle --stdout</code></pre>
+./mill checkstyle --stdout</code></pre>
 </div>
 </div>
 </div>
@@ -640,22 +640,22 @@ checkstyle --stdout</code></pre>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">// incorrect paths will cause a command failure
-// checkstyle a/b
+./mill checkstyle a/b
 
 // you can specify paths relative to millSourcePath
-checkstyle src/a/b
+./mill checkstyle src/a/b
 
 // process a single file
-checkstyle src/a/B.java
+./mill checkstyle src/a/B.java
 
 // process multiple sources
-checkstyle src/a/b src/c/d src/e/F.java
+./mill checkstyle src/a/b src/c/d src/e/F.java
 
 // process with flags
-checkstyle --check --stdout src/a/b src/c/d
+./mill checkstyle --check --stdout src/a/b src/c/d
 
 // process all module sources
-checkstyle</code></pre>
+./mill checkstyle</code></pre>
 </div>
 </div>
 </div>
