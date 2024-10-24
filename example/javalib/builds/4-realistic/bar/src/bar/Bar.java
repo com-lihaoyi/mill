@@ -1,9 +1,12 @@
 package bar;
 
-import org.apache.commons.text.StringEscapeUtils;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 public class Bar {
-  public static String value() {
-    return "<p>" + StringEscapeUtils.escapeHtml4("world") + "</p>";
+    public static String value() {
+    Context context = new Context();
+    context.setVariable("text", "world");
+    return new TemplateEngine().process("<p th:text=\"${text}\"></p>", context);
   }
 }

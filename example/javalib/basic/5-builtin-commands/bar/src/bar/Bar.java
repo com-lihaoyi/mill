@@ -1,14 +1,16 @@
 package bar;
 
-import org.apache.commons.text.StringEscapeUtils;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.Namespace;
 
 public class Bar {
-    public static String generateHtml(String text) {
-        String value = "<h1>" + StringEscapeUtils.escapeHtml4("world") + "</h1>";
-        return value;
+    public static String generateHtml(String text){
+        Context context = new Context();
+        context.setVariable("text", text);
+        return new TemplateEngine().process("<h1 th:text=\"${text}\"></h1>", context);
     }
 
     public static void main(String[] args) {

@@ -5,7 +5,7 @@ import mill._, javalib._
 object `package` extends RootModule with JavaModule {
   def ivyDeps = Agg(
     ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
-    ivy"org.apache.commons:commons-text:1.12.0"
+    ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
   )
 
   object test extends JavaTests with TestModule.Junit4{
@@ -50,7 +50,7 @@ object `package` extends RootModule with JavaModule {
 //// SNIPPET:DEPENDENCIES
 //
 // This example project uses two third-party dependencies - https://argparse4j.github.io/[ArgParse4J] for CLI
-// argument parsing, https://commons.apache.org/proper/commons-text/[Apache Commons Text] for HTML escaping - and uses them to wrap a
+// argument parsing, https://www.thymeleaf.org//[Thymeleaf] for HTML rendering - and uses them to wrap a
 // given input string in HTML templates with proper escaping.
 //
 // Typical usage of a `JavaModule` is shown below
