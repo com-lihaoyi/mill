@@ -1,14 +1,13 @@
 package mill.runner.client;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-
-import mill.main.client.*;
+import mill.main.client.ServerLauncher;
+import mill.main.client.Util;
 import mill.main.client.lock.Locks;
-import org.jline.terminal.Terminal;
-import org.jline.terminal.TerminalBuilder;
+import mill.main.client.OutFiles;
+import mill.main.client.ServerCouldNotBeStarted;
 
 /**
  * This is a Java implementation to speed up repetitive starts.
@@ -37,13 +36,9 @@ public class MillClientMain {
             MillNoServerLauncher.runMain(args);
         } else try {
             // start in client-server mode
-
             ServerLauncher launcher = new ServerLauncher(System.in, System.out, System.err, System.getenv(), args, null, -1){
                 public void initServer(Path serverDir, boolean setJnaNoSys, Locks locks) throws Exception{
                     MillProcessLauncher.launchMillServer(serverDir, setJnaNoSys);
-                }
-                public void preRun(Path serverDir) throws Exception {
-                    MillProcessLauncher.runTermInfoThread(serverDir);
                 }
             };
             int exitCode = launcher.acquireLocksAndRun(OutFiles.out).exitCode;
@@ -66,4 +61,5 @@ public class MillClientMain {
             }
         }
     }
+
 }
