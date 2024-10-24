@@ -19,10 +19,10 @@ def assembly = Task {
   for(p <- Seq(compile(), resources())) os.copy(p.path, Task.dest, mergeFolders = true)
 
   val mainFlags = mainClass().toSeq.flatMap(Seq("-e", _))
-  os.proc("jar", "-c", mainFlags, "-f", Task.dest / s"assembly.jar", ".")
+  os.proc("jar", "-c", mainFlags, "-f", Task.dest / "assembly.jar", ".")
     .call(cwd = Task.dest)
 
-  PathRef(Task.dest / s"assembly.jar")
+  PathRef(Task.dest / "assembly.jar")
 }
 
 // This code defines the following task graph, with the boxes being the tasks
