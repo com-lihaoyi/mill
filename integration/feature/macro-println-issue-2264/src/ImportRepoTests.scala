@@ -2,10 +2,10 @@ package mill.integration
 
 import utest._
 
-object ImportRepoTests extends IntegrationTestSuite {
+object ImportRepoTests extends mill.testkit.UtestIntegrationTestSuite {
   val tests = Tests {
-    initWorkspace()
-    test("test") - {
+    test("test") - integrationTest { tester =>
+      import tester._
       println("First run")
       assert(eval("sandbox.run"))
       println("Clean compilation")
