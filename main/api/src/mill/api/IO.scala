@@ -1,6 +1,6 @@
 package mill.api
 
-import java.io.{InputStream, OutputStream}
+import java.nio.file.Files
 
 /**
  * Misc IO utilities, eventually probably should be pushed upstream into
@@ -15,7 +15,10 @@ object IO extends StreamSupport {
    * @param ctx The target context
    * @return The [[PathRef]] to the unpacked folder.
    */
-  def unpackZip(src: os.Path, dest: os.RelPath = os.rel / "unpacked")(implicit
+  def unpackZip(
+      src: os.Path,
+      dest: os.RelPath = os.rel / "unpacked"
+  )(implicit
       ctx: Ctx.Dest
   ): PathRef = {
 
@@ -26,9 +29,9 @@ object IO extends StreamSupport {
         case null => false
         case entry =>
           if (!entry.isDirectory) {
-            val entryDest = ctx.dest / dest / os.RelPath(entry.getName)
+            val entryDest = ctx.dest / dest / os.SubPath(entry.getName)
             os.makeDir.all(entryDest / os.up)
-            val fileOut = new java.io.FileOutputStream(entryDest.toString)
+            val fileOut = Files.newOutputStream(entryDest.toNIO)
             IO.stream(zipStream, fileOut)
             fileOut.close()
           }

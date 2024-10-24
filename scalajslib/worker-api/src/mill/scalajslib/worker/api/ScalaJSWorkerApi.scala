@@ -1,13 +1,13 @@
 package mill.scalajslib.worker.api
 
 import java.io.File
+import java.nio.file.Path
 
 private[scalajslib] trait ScalaJSWorkerApi {
   def link(
-      sources: Array[File],
-      libraries: Array[File],
+      runClasspath: Seq[Path],
       dest: File,
-      main: String,
+      main: Either[String, String],
       forceOutJs: Boolean,
       testBridgeInit: Boolean,
       isFullLinkJS: Boolean,
@@ -16,7 +16,9 @@ private[scalajslib] trait ScalaJSWorkerApi {
       moduleKind: ModuleKind,
       esFeatures: ESFeatures,
       moduleSplitStyle: ModuleSplitStyle,
-      outputPatterns: OutputPatterns
+      outputPatterns: OutputPatterns,
+      minify: Boolean,
+      importMap: Seq[ESModuleImportMapping]
   ): Either[String, Report]
 
   def run(config: JsEnvConfig, report: Report): Unit
@@ -121,3 +123,8 @@ private[scalajslib] final case class OutputPatterns(
     jsFileURI: String,
     sourceMapURI: String
 )
+
+private[scalajslib] sealed trait ESModuleImportMapping
+private[scalajslib] object ESModuleImportMapping {
+  case class Prefix(prefix: String, replacement: String) extends ESModuleImportMapping
+}

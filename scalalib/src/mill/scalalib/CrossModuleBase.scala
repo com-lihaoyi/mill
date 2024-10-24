@@ -1,6 +1,6 @@
 package mill.scalalib
 
-import mill.T
+import mill.{T, Task}
 import mill.define.Cross
 import mill.define.Cross.Resolver
 import mill.scalalib.api.ZincWorkerUtil
@@ -8,21 +8,23 @@ import mill.scalalib.api.ZincWorkerUtil
 trait CrossModuleBase extends ScalaModule with Cross.Module[String] {
   def crossScalaVersion: String = crossValue
 
-  def scalaVersion = T { crossScalaVersion }
+  def scalaVersion = Task { crossScalaVersion }
 
   protected def scalaVersionDirectoryNames: Seq[String] =
     ZincWorkerUtil.matchingVersions(crossScalaVersion)
 
-  def crossWrapperSegments = millModuleSegments.parts
-  override def artifactNameParts =
+  override def crossWrapperSegments: List[String] = millModuleSegments.parts
+
+  override def artifactNameParts: T[Seq[String]] =
     super.artifactNameParts().patch(crossWrapperSegments.size - 1, Nil, 1)
+
   implicit def crossSbtModuleResolver: Resolver[CrossModuleBase] =
     new Resolver[CrossModuleBase] {
       def resolve[V <: CrossModuleBase](c: Cross[V]): V = {
         crossScalaVersion
           .split('.')
           .inits
-          .takeWhile(_.length > 1)
+          .takeWhile(_.length > (if (ZincWorkerUtil.isScala3(crossScalaVersion)) 0 else 1))
           .flatMap(prefix =>
             c.crossModules
               .find(_.crossScalaVersion.split('.').startsWith(prefix))

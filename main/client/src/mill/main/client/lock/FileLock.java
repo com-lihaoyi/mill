@@ -5,8 +5,8 @@ import java.nio.channels.FileChannel;
 
 class FileLock extends Lock {
 
-    private RandomAccessFile raf;
-    private FileChannel chan;
+    final private RandomAccessFile raf;
+    final private FileChannel chan;
 
     public FileLock(String path) throws Exception {
         raf = new RandomAccessFile(path, "rw");
@@ -17,10 +17,8 @@ class FileLock extends Lock {
         return new FileLocked(chan.lock());
     }
 
-    public Locked tryLock() throws Exception {
-        java.nio.channels.FileLock l = chan.tryLock();
-        if (l == null) return null;
-        else return new FileLocked(l);
+    public TryLocked tryLock() throws Exception {
+        return new FileTryLocked(chan.tryLock());
     }
 
     public boolean probe() throws Exception {
@@ -37,4 +35,6 @@ class FileLock extends Lock {
         chan.close();
         raf.close();
     }
+
+    public void delete() throws Exception { close(); }
 }

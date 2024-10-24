@@ -31,6 +31,7 @@ object CallGraphTests extends TestSuite {
       test("17-scala-lambda") - testExpectedCallGraph()
       test("18-scala-anon-class-lambda") - testExpectedCallGraph()
       test("19-scala-trait-constructor") - testExpectedCallGraph()
+      test("20-array-method") - testExpectedCallGraph()
     }
 
     test("complicated") {
@@ -180,7 +181,7 @@ object CallGraphTests extends TestSuite {
               val expectedLines = sourceLines
                 .dropWhile(_ != openTagLine)
                 .drop(1)
-                .takeWhile(_ != "*/")
+                .takeWhile(l => l != "*/" && l != " */")
 
               Some(expectedLines.mkString("\n"))
             case _ => sys.error(s"Only one occurence of line \"$openTagLine\" is expected in file")

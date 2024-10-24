@@ -7,9 +7,10 @@ Twirl templates support.
 To declare a module that needs to compile twirl templates you must extend the `mill.twirllib.TwirlModule` trait when defining your module.
 Also note that twirl templates get compiled into scala code, so you also need to extend `ScalaModule`.
 
-.`build.sc`
+.`build.mill`
 [source,scala]
 ----
+package build
 import mill.scalalib._
 
 import $ivy.`com.lihaoyi::mill-contrib-twirllib:`,  mill.twirllib._
@@ -25,7 +26,7 @@ The following filesystem layout is expected:
 
 [source,text]
 ----
-build.sc
+build.mill
 app/
   views/
     view1.scala.html
@@ -44,16 +45,17 @@ mill app.compileTwirl
 This task will compile `*.scala.html` templates (and others, like `*.scala.txt`) into the `out/app/compileTwirl/dest`
 directory. This directory must be added to the generated sources of the module to be compiled and made accessible from the rest of the code:
 
-.`build.sc`
+.`build.mill`
 [source,scala]
 ----
+package build
 import mill.scalalib._
 
 import $ivy.`com.lihaoyi::mill-contrib-twirllib:`,  mill.twirllib._
 
 object app extends ScalaModule with TwirlModule {
   def twirlVersion = "1.5.1"
-  def generatedSources = T{ Seq(compileTwirl().classes) }
+  def generatedSources = Task { Seq(compileTwirl().classes) }
 }
 ----
 
@@ -85,9 +87,10 @@ Seq(
 
 To add additional imports to all of the twirl templates, override `twirlImports` in your build:
 
-.`build.sc`
+.`build.mill`
 [source,scala]
 ----
+package build
 import mill.scalalib._
 
 import $ivy.`com.lihaoyi::mill-contrib-twirllib:`,  mill.twirllib._
@@ -96,7 +99,7 @@ object app extends ScalaModule with TwirlModule {
   def twirlVersion = "1.5.1"
   def twirlScalaVersion = "2.13.8"
   override def twirlImports = super.twirlImports() ++ Seq("my.additional.stuff._", "my.other.stuff._")
-  def generatedSources = T{ Seq(compileTwirl().classes) }
+  def generatedSources = Task { Seq(compileTwirl().classes) }
 }
 
 // out.template.scala
@@ -109,9 +112,10 @@ object app extends ScalaModule with TwirlModule {
 
 To exclude the default imports, simply override `twirlImports` without calling `super`:
 
-.`build.sc`
+.`build.mill`
 [source,scala]
 ----
+package build
 object app extends ScalaModule with TwirlModule {
   // ...
   override def twirlImports = Seq("my.stuff._")
@@ -128,9 +132,10 @@ By default `html`, `xml`, `js`, and `txt` files will be compiled using the corre
 
 To add additional formats, override `twirlFormats` in your build:
 
-.`build.sc`
+.`build.mill`
 [source,scala]
 ----
+package build
 import mill.scalalib._
 
 import $ivy.`com.lihaoyi::mill-contrib-twirllib:`,  mill.twirllib._
@@ -138,7 +143,7 @@ import $ivy.`com.lihaoyi::mill-contrib-twirllib:`,  mill.twirllib._
 object app extends ScalaModule with TwirlModule {
   def twirlVersion = "1.5.1"
   override def twirlFormats = super.twirlFormats() + Map("svg" -> "play.twirl.api.HtmlFormat")
-  def generatedSources = T{ Seq(compileTwirl().classes) }
+  def generatedSources = Task { Seq(compileTwirl().classes) }
 }
 ----
 

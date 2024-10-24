@@ -24,13 +24,8 @@ Twirl compilation and Akka HTTP server)
 * `PlayApiModule` applies the default Play configuration without `Twirl` templating. This is useful
 if your Play app is a pure API server or if you want to use a different templating engine.
 
-The two helper traits:
+The helper trait:
 
-* `SingleModule` can be useful to configure mill for a single module Play application such as the
-https://github.com/playframework/play-scala-seed.g8[play-scala-seed project]. Mill is
-multi-module by default and requires a bit more configuration to have source, resource, and test
-directories at the top level alongside the `build.sc` file. This trait takes care of that (See
-<<_using_singlemodule>> below).
 * `RouterModule` allows you to use the Play router without the rest of the configuration (see
 <<_using_the_router_module_directly>>.)
 
@@ -40,17 +35,17 @@ In order to use the `PlayModule` for your application, you need to provide the s
 Twirl versions. You also need to define your own test object which extends the provided
 `PlayTests` trait.
 
-.`build.sc`
+.`build.mill`
 [source,scala]
 ----
+package build
 import mill._
 import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
 
 object core extends PlayModule {
-    //config
-    override def scalaVersion= T{"2.13.8"}
-    override def playVersion= T{"2.8.16"}
-    override def twirlVersion= T{"1.5.1"}
+    // config
+    override def scalaVersion = Task { "2.13.12" }
+    override def playVersion = Task { "2.8.20" }
 
     object test extends PlayTests
 }
@@ -61,7 +56,7 @@ Using the above definition, your build will be configured to use the default Pla
 [source,text]
 ----
 .
-├── build.sc
+├── build.mill
 └── core
     ├── app
     │   ├── controllers
@@ -104,22 +99,28 @@ In order to have a working `start` command the following runtime dependency is a
 ----
 ivy"com.typesafe.play::play-akka-http-server:${playVersion()}"
 ----
+or
+----
+ivy"com.typesafe.play::play-pekko-http-server:${playVersion()}"
+----
+depending on the play version
 
 === Using `PlayApiModule`
 
 The `PlayApiModule` trait behaves the same as the `PlayModule` trait but it won't process .scala
-.html files and you don't need to define the `twirlVersion:
+.html files:
 
-.`build.sc`
+.`build.mill`
 [source,scala]
 ----
+package build
 import mill._
-import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`,  mill.playlib._
+import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
 
 object core extends PlayApiModule {
-    //config
-    override def scalaVersion= T{"2.13.8"}
-    override def playVersion= T{"2.8.16"}
+    // config
+    override def scalaVersion = Task { "2.13.12" }
+    override def playVersion = Task { "2.8.20" }
 
     object test extends PlayTests
 }
@@ -127,8 +128,8 @@ object core extends PlayApiModule {
 
 == Play configuration options
 
-The Play modules themselves don't have specific configuration options at this point but the <<router-configuration-options,router
-module configuration options>> and the <<_twirl_configuration_options>> are applicable.
+The Play modules themselves don't have specific configuration options at this point but the <<_router_configuration_options,router
+module configuration options>> and the <<contrib/twirllib.adoc#_twirl_configuration_options>> are applicable.
 
 == Additional play libraries
 
@@ -147,26 +148,27 @@ The following helpers are available to provide additional Play Framework depende
 If you want to add an optional library using the helper you can do so by overriding `ivyDeps`
 like in the following example build:
 
-.`build.sc`
+.`build.mill`
 [source,scala]
 ----
+package build
 import mill._
 import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`, mill.playlib._
 
 object core extends PlayApiModule {
-    //config
-    override def scalaVersion= T{"2.13.8"}
-    override def playVersion= T{"2.8.16"}
+    // config
+    override def scalaVersion = Task { "2.13.12" }
+    override def playVersion = Task { "2.8.20" }
 
     object test extends PlayTests
 
-    override def ivyDeps = T{ super.ivyDeps() ++ Agg(ws(), filters()) }
+    override def ivyDeps = Task { super.ivyDeps() ++ Agg(ws(), filters()) }
 }
 ----
 
 == Commands equivalence
 
-Mill commands are targets on a named build. For example if your build is called `core`:
+Mill commands are tasks on a named build. For example if your build is called `core`:
 
 * compile: `core.compile`
 * run: _NOT Implemented yet_. It can be approximated with `mill -w core.runBackground` but this
@@ -180,25 +182,25 @@ starts a server in _PROD_ mode which:
 command to get a runnable fat jar of the project. The packaging is slightly different but should
 be find for a production deployment.
 
-== Using `SingleModule`
+== Using `RootModule`
 
-The `SingleModule` trait allows you to have the build descriptor at the same level as the source
-code on the filesystem. You can move from there to a multi-module build either by refactoring
+The `RootModule` abstract class allows you to have the build descriptor at the same level as the
+source code on the filesystem. You can move from there to a multi-module build either by refactoring
 your directory layout into multiple subdirectories or by using mill's nested modules feature.
 
 Looking back at the sample build definition in <<_using_playmodule>>:
 
-.`build.sc`
+.`build.mill`
 [source,scala]
 ----
+package build
 import mill._
-import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`, mill.playlib._
+import $ivy.`com.lihaoyi::mill-contrib-playlib:`, mill.playlib._
 
 object core extends PlayModule {
-    //config
-    override def scalaVersion= T{"2.13.8"}
-    override def playVersion= T{"2.8.16"}
-    override def twirlVersion= T{"1.5.1"}
+    // config
+    override def scalaVersion = Task { "2.13.12" }
+    override def playVersion = Task { "2.8.20" }
 
     object test extends PlayTests
 }
@@ -209,7 +211,7 @@ The directory layout was:
 [source,text]
 ----
 .
-├── build.sc
+├── build.mill
 └── core
     ├── app
     │   ├── controllers
@@ -227,19 +229,19 @@ The directory layout was:
         └── controllers
 ----
 
-by mixing in the `SingleModule` trait in your build:
+by extending `RootModule` in your build:
 
-.`build.sc`
+.`build.mill`
 [source,scala]
 ----
+package build
 import mill._
 import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
 
-object core extends PlayModule with SingleModule {
-	//config
-	override def scalaVersion= T{"2.13.8"}
-	override def playVersion= T{"2.8.16"}
-	override def twirlVersion= T{"1.5.1"}
+object build extends RootModule with PlayModule {
+	// config
+	override def scalaVersion = Task { "2.13.12" }
+	override def playVersion = Task { "2.8.20" }
 
 	object test extends PlayTests
 }
@@ -250,22 +252,21 @@ the layout becomes:
 [source,text]
 ----
 .
-└── core
-    ├── build.sc
-    ├── app
-    │   ├── controllers
-    │   └── views
-    ├── conf
-    │   └── application.conf
-    │   └── routes
-    │   └── ...
-    ├── logs
-    ├── public
-    │   ├── images
-    │   ├── javascripts
-    │   └── stylesheets
-    └── test
-        └── controllers
+├── build.mill
+├── app
+│   ├── controllers
+│   └── views
+├── conf
+│   └── application.conf
+│   └── routes
+│   └── ...
+├── logs
+├── public
+│   ├── images
+│   ├── javascripts
+│   └── stylesheets
+└── test
+    └── controllers
 ----
 
 === Using the router module directly
@@ -274,15 +275,16 @@ If you want to use the router module in a project which doesn't use the default 
 can mix-in the `mill.playlib.routesModule` trait directly when defining your module. Your app must
 define `playVersion` and `scalaVersion`.
 
-.`build.sc`
+.`build.mill`
 [source,scala]
 ----
+package build
 import mill._
 import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
 
 object app extends ScalaModule with RouterModule {
-  def playVersion= T{"2.8.16"}
-  def scalaVersion= T{"2.13.8"}
+  def playVersion = Task { "2.8.20" }
+  def scalaVersion = Task { "2.13.12" }
 }
 ----
 
@@ -309,7 +311,7 @@ The following filesystem layout is expected by default:
 ├── app
 │   └── routes
 │       └── routes
-└── build.sc
+└── build.mill
 ----
 
 `RouterModule` adds the `compileRouter` task to the module:
@@ -328,15 +330,16 @@ to have a custom override for `generatedSources` you can get the list of files f
 
 To add additional imports to all of the routes:
 
-.`build.sc`
+.`build.mill`
 [source,scala]
 ----
+package build
 import mill.scalalib._
 
 import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`,  mill.playlib._
 
 object app extends ScalaModule with RouterModule {
-  def playVersion = "2.8.16"
+  def playVersion = "2.8.20"
   override def routesAdditionalImport = Seq("my.additional.stuff._", "my.other.stuff._")
 }
 ----

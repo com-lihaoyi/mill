@@ -9,7 +9,7 @@ import scala.annotation.tailrec
 
 object ParseArgs {
 
-  type TargetsWithParams = (Seq[(Option[Segments], Segments)], Seq[String])
+  type TargetsWithParams = (Seq[(Option[Segments], Option[Segments])], Seq[String])
 
   /** Separator used in multiSelect-mode to separate targets from their args. */
   val MultiArgsSeparator = "--"
@@ -86,23 +86,37 @@ object ParseArgs {
     else Right(())
   }
 
-  def extractSegments(selectorString: String): Either[String, (Option[Segments], Segments)] =
-    parse(selectorString, selector(_)) match {
+  def extractSegments(selectorString: String)
+      : Either[String, (Option[Segments], Option[Segments])] =
+    parse(selectorString, selector(using _)) match {
       case f: Parsed.Failure => Left(s"Parsing exception ${f.msg}")
       case Parsed.Success(selector, _) => Right(selector)
     }
 
-  private def selector[_p: P]: P[(Option[Segments], Segments)] = {
-    def ident2 = P(CharsWhileIn("a-zA-Z0-9_\\-.")).!
-    def segment = P(mill.define.Reflect.ident).map(Segment.Label)
-    def crossSegment = P("[" ~ ident2.rep(1, sep = ",") ~ "]").map(Segment.Cross)
+  private def selector[_p: P]: P[(Option[Segments], Option[Segments])] = {
+    def wildcard = P("__" | "_")
+    def label = mill.define.Reflect.ident
+
+    def typeQualifier(simple: Boolean) = {
+      val maxSegments = if (simple) 0 else Int.MaxValue
+      P(("^" | "!").? ~~ label ~~ ("." ~~ label).rep(max = maxSegments)).!
+    }
+
+    def typePattern(simple: Boolean) = P(wildcard ~~ (":" ~~ typeQualifier(simple)).rep(1)).!
+
+    def segment0(simple: Boolean) = P(typePattern(simple) | label).map(Segment.Label)
+    def segment = P("(" ~ segment0(false) ~ ")" | segment0(true))
+
+    def identCross = P(CharsWhileIn("a-zA-Z0-9_\\-.")).!
+    def crossSegment = P("[" ~ identCross.rep(1, sep = ",") ~ "]").map(Segment.Cross)
     def defaultCrossSegment = P("[]").map(_ => Segment.Cross(Seq()))
+
     def simpleQuery = P(segment ~ ("." ~ segment | crossSegment | defaultCrossSegment).rep).map {
       case (h, rest) => Segments(h +: rest)
     }
 
-    P(simpleQuery ~ ("/" ~/ simpleQuery).? ~ End).map {
-      case (q, None) => (None, q)
+    P(simpleQuery ~ ("/" ~ simpleQuery.?).? ~ End).map {
+      case (q, None) => (None, Some(q))
       case (q, Some(q2)) => (Some(q), q2)
     }
   }

@@ -2,14 +2,13 @@ package mill.define
 
 import mill.api.internal
 
-import scala.language.experimental.macros
 import scala.reflect.ClassTag
 
 /**
  * Represents a namespace within the Mill build hierarchy, containing nested
  * modules or tasks.
  *
- * `Module` is a class meant to be extended by `trait`s *only*, in order to
+ * `Module` is a class meant to be extended by ``trait``s *only*, in order to
  * propagate the implicit parameters forward to the final concrete
  * instantiation site so they can capture the enclosing/line information of
  * the concrete instance.
@@ -68,7 +67,8 @@ object Module {
     }
 
     lazy val modules: Seq[Module] = traverse(Seq(_))
-    lazy val segmentsToModules = modules.map(m => (m.millModuleSegments, m)).toMap
+    lazy val segmentsToModules: Map[Segments, Module] =
+      modules.map(m => (m.millModuleSegments, m)).toMap
 
     lazy val targets: Set[Target[_]] =
       traverse { _.millInternal.reflectAll[Target[_]].toIndexedSeq }.toSet
@@ -85,11 +85,16 @@ object Module {
 
     def reflectAll[T: ClassTag]: Seq[T] = reflect[T](Function.const(true))
 
-    def reflectNestedObjects[T: ClassTag](filter: String => Boolean = Function.const(true)) = {
-      Reflect.reflectNestedObjects0(outer.getClass, filter).map {
-        case (name, m: java.lang.reflect.Method) => m.invoke(outer).asInstanceOf[T]
-        case (name, m: java.lang.reflect.Field) => m.get(outer).asInstanceOf[T]
-      }
+    def reflectNestedObjects[T: ClassTag](filter: String => Boolean = Function.const(true))
+        : Seq[T] = {
+      Reflect.reflectNestedObjects02(outer.getClass, filter)
+        .map { case (name, cls, getter) => getter(outer) }
     }
   }
+}
+
+case class ModuleTask[+T](module: Module) extends NamedTask[T] {
+  override def t: Task[T] = this
+  override def ctx0: Ctx = module.millOuterCtx
+  override def isPrivate: Option[Boolean] = None
 }

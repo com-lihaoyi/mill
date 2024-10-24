@@ -1,13 +1,11 @@
 package mill.util
 
 import java.io._
-import java.nio.file.{Files, StandardOpenOption}
-import scala.util.DynamicVariable
-import mill.api.{Logger, SystemStreams}
+import mill.api.SystemStreams
 
 class PrintLogger(
     override val colored: Boolean,
-    val enableTicker: Boolean,
+    override val enableTicker: Boolean,
     override val infoColor: fansi.Attrs,
     override val errorColor: fansi.Attrs,
     val systemStreams: SystemStreams,
@@ -15,18 +13,19 @@ class PrintLogger(
     val context: String,
     printLoggerState: PrintLogger.State
 ) extends ColorLogger {
-
-  def info(s: String) = synchronized {
+  override def toString: String = s"PrintLogger($colored, $enableTicker)"
+  def info(s: String): Unit = synchronized {
     printLoggerState.value = PrintLogger.State.Newline
     systemStreams.err.println(infoColor(context + s))
   }
 
-  def error(s: String) = synchronized {
+  def error(s: String): Unit = synchronized {
     printLoggerState.value = PrintLogger.State.Newline
     systemStreams.err.println((infoColor(context) ++ errorColor(s)).render)
   }
 
-  def ticker(s: String) = synchronized {
+  override def setPromptDetail(key: Seq[String], s: String): Unit = synchronized { ticker(s) }
+  def ticker(s: String): Unit = synchronized {
     if (enableTicker) {
       printLoggerState.value match {
         case PrintLogger.State.Newline =>
@@ -72,17 +71,19 @@ class PrintLogger(
     printLoggerState
   )
 
-  def debug(s: String) = synchronized {
+  def debug(s: String): Unit = synchronized {
     if (debugEnabled) {
       printLoggerState.value = PrintLogger.State.Newline
       systemStreams.err.println(context + s)
     }
   }
+
+  override def rawOutputStream: PrintStream = systemStreams.out
 }
 
 object PrintLogger {
 
-  def wrapSystemStreams(systemStreams0: SystemStreams, printLoggerState: State) = {
+  def wrapSystemStreams(systemStreams0: SystemStreams, printLoggerState: State): SystemStreams = {
     new SystemStreams(
       new PrintStream(new PrintLogger.StateStream(systemStreams0.out, printLoggerState.value = _)),
       new PrintStream(new PrintLogger.StateStream(systemStreams0.err, printLoggerState.value = _)),

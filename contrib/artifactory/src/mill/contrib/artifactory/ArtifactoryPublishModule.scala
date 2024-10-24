@@ -3,7 +3,6 @@ package mill.contrib.artifactory
 import mill._
 import mill.api.Result
 import scalalib._
-import publish.Artifact
 import mill.contrib.artifactory.ArtifactoryPublishModule.checkArtifactoryCreds
 import mill.define.{ExternalModule, Task}
 
@@ -28,7 +27,7 @@ trait ArtifactoryPublishModule extends PublishModule {
       artifactorySnapshotUri: String = artifactorySnapshotUri,
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000
-  ): define.Command[Unit] = T.command {
+  ): define.Command[Unit] = Task.Command {
     val PublishModule.PublishData(artifactInfo, artifacts) = publishArtifacts()
     new ArtifactoryPublisher(
       artifactoryUri,
@@ -60,10 +59,10 @@ object ArtifactoryPublishModule extends ExternalModule {
       publishArtifacts: mill.main.Tasks[PublishModule.PublishData],
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000
-  ) = T.command {
+  ) = Task.Command {
 
-    val x: Seq[(Seq[(os.Path, String)], Artifact)] = T.sequence(publishArtifacts.value)().map {
-      case PublishModule.PublishData(a, s) => (s.map { case (p, f) => (p.path, f) }, a)
+    val artifacts = T.sequence(publishArtifacts.value)().map {
+      case data @ PublishModule.PublishData(_, _) => data.withConcretePath
     }
     new ArtifactoryPublisher(
       artifactoryUri,
@@ -73,11 +72,11 @@ object ArtifactoryPublishModule extends ExternalModule {
       connectTimeout,
       T.log
     ).publishAll(
-      x: _*
+      artifacts: _*
     )
   }
 
-  private def checkArtifactoryCreds(credentials: String): Task[String] = T.task {
+  private def checkArtifactoryCreds(credentials: String): Task[String] = Task.Anon {
     if (credentials.isEmpty) {
       (for {
         username <- T.env.get("ARTIFACTORY_USERNAME")
@@ -94,5 +93,5 @@ object ArtifactoryPublishModule extends ExternalModule {
     }
   }
 
-  lazy val millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
+  lazy val millDiscover: mill.define.Discover = mill.define.Discover[this.type]
 }

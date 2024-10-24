@@ -36,7 +36,7 @@ trait JmhModule extends JavaModule {
   def ivyDeps = super.ivyDeps() ++ Agg(ivy"org.openjdk.jmh:jmh-core:${jmhCoreVersion()}")
 
   def runJmh(args: String*) =
-    T.command {
+    Task.Command {
       val (_, resources) = generateBenchmarkSources()
       Jvm.runSubprocess(
         "org.openjdk.jmh.Main",
@@ -50,7 +50,7 @@ trait JmhModule extends JavaModule {
   def listJmhBenchmarks(args: String*) = runJmh(("-l" +: args): _*)
 
   def compileGeneratedSources =
-    T {
+    Task {
       val dest = T.ctx().dest
       val (sourcesDir, _) = generateBenchmarkSources()
       val sources = os.walk(sourcesDir).filter(os.isFile)
@@ -70,9 +70,9 @@ trait JmhModule extends JavaModule {
 
   // returns sources and resources directories
   def generateBenchmarkSources =
-    T {
+    Task {
       val dest = T.ctx().dest
-
+      val javacOpts = javacOptions().toSeq
       val sourcesDir = dest / "jmh_sources"
       val resourcesDir = dest / "jmh_resources"
 
@@ -89,18 +89,16 @@ trait JmhModule extends JavaModule {
           sourcesDir.toString,
           resourcesDir.toString,
           "default"
-        )
+        ),
+        jvmArgs = javacOpts
       )
 
       (sourcesDir, resourcesDir)
     }
 
-  def generatorDeps = T {
-    resolveDeps(
-      T.task {
-        val bind = bindDependency()
-        Agg(ivy"org.openjdk.jmh:jmh-generator-bytecode:${jmhGeneratorByteCodeVersion()}").map(bind)
-      }
-    )()
+  def generatorDeps = Task {
+    defaultResolver().resolveDeps(
+      Agg(ivy"org.openjdk.jmh:jmh-generator-bytecode:${jmhGeneratorByteCodeVersion()}")
+    )
   }
 }

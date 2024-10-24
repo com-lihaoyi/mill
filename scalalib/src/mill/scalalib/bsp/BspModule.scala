@@ -10,7 +10,7 @@ trait BspModule extends Module {
 
   def bspDisplayName0: String = ModuleUtils.moduleDisplayName(this)
 
-  def bspDisplayName = bspDisplayName0 match {
+  def bspDisplayName: String = bspDisplayName0 match {
     case "" => "root-module"
     case n => n
   }
@@ -36,7 +36,7 @@ trait BspModule extends Module {
    * - [[ScalaBuildTarget]]
    */
   @internal
-  def bspBuildTargetData: Task[Option[(String, AnyRef)]] = T.task { None }
+  def bspBuildTargetData: Task[Option[(String, AnyRef)]] = Task.Anon { None }
 
 }
 
@@ -46,6 +46,7 @@ object BspModule {
   object LanguageId {
     val Java = "java"
     val Scala = "scala"
+    val Kotlin = "kotlin"
   }
 
   /** Used to define the [[BspBuildTarget.tags]] field. */

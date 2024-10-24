@@ -1,0 +1,35 @@
+# Runs every commit that lands in main, but the default landing page is the last
+# stable published tag. You have to navigate in the UI to find the latest docs for
+# what's in main but not yet released, but it's there for those who want it
+
+name: Publish Docs
+on:
+  push:
+    branches:
+      - main
+
+# Ensure only one job run is publishing docs at any point in time. We can cancel
+# old runs since any newer run renders older ones irrelevant
+concurrency:
+  group: publish-docs
+  cancel-in-progress: true
+
+jobs:
+  publishDocs:
+    if: github.repository == 'com-lihaoyi/mill'
+    runs-on: ubuntu-latest
+    env:
+      REPO_DEPLOY_KEY: ${{ secrets.REPO_DEPLOY_KEY }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+
+      - uses: coursier/cache-action@v6
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: temurin
+
+      - run: ci/publish-docs.sh

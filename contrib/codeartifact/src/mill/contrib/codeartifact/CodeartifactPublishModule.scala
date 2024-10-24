@@ -1,6 +1,8 @@
 package mill.contrib.codeartifact
 
-import mill._, scalalib._, define.ExternalModule, publish.Artifact
+import mill._
+import scalalib._
+import define.ExternalModule
 
 trait CodeartifactPublishModule extends PublishModule {
   def codeartifactUri: String
@@ -15,7 +17,7 @@ trait CodeartifactPublishModule extends PublishModule {
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000
   ): define.Command[Unit] =
-    T.command {
+    Task.Command {
       val PublishModule.PublishData(artifactInfo, artifacts) =
         publishArtifacts()
 
@@ -39,13 +41,10 @@ object CodeartifactPublishModule extends ExternalModule {
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000
   ) =
-    T.command {
-
-      val x: Seq[(Seq[(os.Path, String)], Artifact)] =
-        T.sequence(publishArtifacts.value)().map {
-          case PublishModule.PublishData(a, s) =>
-            (s.map { case (p, f) => (p.path, f) }, a)
-        }
+    Task.Command {
+      val artifacts = T.sequence(publishArtifacts.value)().map {
+        case data @ PublishModule.PublishData(_, _) => data.withConcretePath
+      }
       new CodeartifactPublisher(
         codeartifactUri,
         codeartifactSnapshotUri,
@@ -54,10 +53,10 @@ object CodeartifactPublishModule extends ExternalModule {
         connectTimeout,
         T.log
       ).publishAll(
-        x: _*
+        artifacts: _*
       )
     }
 
-  lazy val millDiscover: mill.define.Discover[this.type] =
+  lazy val millDiscover: mill.define.Discover =
     mill.define.Discover[this.type]
 }

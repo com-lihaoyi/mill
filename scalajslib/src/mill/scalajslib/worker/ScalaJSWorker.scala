@@ -5,7 +5,7 @@ import mill.scalajslib.api
 import mill.scalajslib.worker.{api => workerApi}
 import mill.api.{Ctx, Result, internal}
 import mill.define.{Discover, Worker}
-import mill.{Agg, T}
+import mill.{Agg, Task}
 
 @internal
 private[scalajslib] class ScalaJSWorker extends AutoCloseable {
@@ -147,12 +147,18 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
     )
   }
 
+  private def toWorkerApi(importMap: api.ESModuleImportMapping): workerApi.ESModuleImportMapping = {
+    importMap match {
+      case api.ESModuleImportMapping.Prefix(prefix, replacement) =>
+        workerApi.ESModuleImportMapping.Prefix(prefix, replacement)
+    }
+  }
+
   def link(
       toolsClasspath: Agg[mill.PathRef],
-      sources: Agg[os.Path],
-      libraries: Agg[os.Path],
+      runClasspath: Agg[mill.PathRef],
       dest: File,
-      main: Option[String],
+      main: Either[String, String],
       forceOutJs: Boolean,
       testBridgeInit: Boolean,
       isFullLinkJS: Boolean,
@@ -161,13 +167,14 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
       moduleKind: api.ModuleKind,
       esFeatures: api.ESFeatures,
       moduleSplitStyle: api.ModuleSplitStyle,
-      outputPatterns: api.OutputPatterns
+      outputPatterns: api.OutputPatterns,
+      minify: Boolean,
+      importMap: Seq[api.ESModuleImportMapping]
   )(implicit ctx: Ctx.Home): Result[api.Report] = {
     bridge(toolsClasspath).link(
-      sources = sources.items.map(_.toIO).toArray,
-      libraries = libraries.items.map(_.toIO).toArray,
+      runClasspath = runClasspath.iterator.map(_.path.toNIO).toSeq,
       dest = dest,
-      main = main.orNull,
+      main = main,
       forceOutJs = forceOutJs,
       testBridgeInit = testBridgeInit,
       isFullLinkJS = isFullLinkJS,
@@ -176,7 +183,9 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
       moduleKind = toWorkerApi(moduleKind),
       esFeatures = toWorkerApi(esFeatures),
       moduleSplitStyle = toWorkerApi(moduleSplitStyle),
-      outputPatterns = toWorkerApi(outputPatterns)
+      outputPatterns = toWorkerApi(outputPatterns),
+      minify = minify,
+      importMap = importMap.map(toWorkerApi)
     ) match {
       case Right(report) => Result.Success(fromWorkerApi(report))
       case Left(message) => Result.Failure(message)
@@ -186,8 +195,7 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
   def run(toolsClasspath: Agg[mill.PathRef], config: api.JsEnvConfig, report: api.Report)(
       implicit ctx: Ctx.Home
   ): Unit = {
-    val dest =
-      bridge(toolsClasspath).run(toWorkerApi(config), toWorkerApi(report))
+    bridge(toolsClasspath).run(toWorkerApi(config), toWorkerApi(report))
   }
 
   def getFramework(
@@ -211,6 +219,6 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
 @internal
 private[scalajslib] object ScalaJSWorkerExternalModule extends mill.define.ExternalModule {
 
-  def scalaJSWorker: Worker[ScalaJSWorker] = T.worker { new ScalaJSWorker() }
-  lazy val millDiscover = Discover[this.type]
+  def scalaJSWorker: Worker[ScalaJSWorker] = Task.Worker { new ScalaJSWorker() }
+  lazy val millDiscover: Discover = Discover[this.type]
 }

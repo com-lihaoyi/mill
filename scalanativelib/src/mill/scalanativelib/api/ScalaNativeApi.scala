@@ -4,7 +4,7 @@ import upickle.default._
 
 sealed abstract class LTO(val value: String)
 object LTO {
-  val values = Seq(None, Thin, Full)
+  val values: Seq[LTO] = Seq(None, Thin, Full)
 
   case object None extends LTO("none")
   case object Thin extends LTO("thin")
@@ -18,15 +18,23 @@ object LTO {
 
 sealed abstract class ReleaseMode(val value: String)
 object ReleaseMode {
-  val values = Seq(Debug, ReleaseFast, ReleaseFull)
+  val values: Seq[ReleaseMode] = Seq(Debug, ReleaseFast, ReleaseFull, ReleaseSize)
 
   case object Debug extends ReleaseMode("debug")
   case object ReleaseFast extends ReleaseMode("release-fast")
   case object ReleaseFull extends ReleaseMode("release-full")
 
+  /**
+   * Optimizes output binary size and still have relatively fast runtime performance.
+   *  Equivalent to `-Oz` switch of `clang`.
+   *  Since Scala Native 0.4.10
+   */
+  case object ReleaseSize extends ReleaseMode("release-size")
+
   implicit val rwDebug: ReadWriter[Debug.type] = macroRW[Debug.type]
   implicit val rwReleaseFast: ReadWriter[ReleaseFast.type] = macroRW[ReleaseFast.type]
   implicit val rwReleaseFull: ReadWriter[ReleaseFull.type] = macroRW[ReleaseFull.type]
+  implicit val rwReleaseSize: ReadWriter[ReleaseSize.type] = macroRW[ReleaseSize.type]
   implicit val rw: ReadWriter[ReleaseMode] = macroRW[ReleaseMode]
 }
 
@@ -51,4 +59,22 @@ class NativeConfig(val config: Object)
 object NativeConfig {
   def apply(config: Object): NativeConfig =
     new NativeConfig(config)
+}
+
+sealed trait BuildTarget
+object BuildTarget {
+
+  /** Link code as application */
+  case object Application extends BuildTarget
+
+  /** Link code as shared/dynamic library */
+  case object LibraryDynamic extends BuildTarget
+
+  /** Link code as static library */
+  case object LibraryStatic extends BuildTarget
+
+  implicit val rwApplication: ReadWriter[Application.type] = macroRW[Application.type]
+  implicit val rwLibraryDynamic: ReadWriter[LibraryDynamic.type] = macroRW[LibraryDynamic.type]
+  implicit val rwLibraryStatic: ReadWriter[LibraryStatic.type] = macroRW[LibraryStatic.type]
+  implicit val rw: ReadWriter[BuildTarget] = macroRW[BuildTarget]
 }

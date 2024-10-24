@@ -33,5 +33,6 @@ object VersionScheme {
   case object Strict extends VersionScheme("strict")
   implicit val rwStrict: ReadWriter[Strict.type] = macroRW
 
-  implicit val rwVersionScheme: ReadWriter[VersionScheme.type] = macroRW
+  // edit @bishabosha: why was it `.type`, I assume it is meant to infer a sum type?
+  implicit val rwVersionScheme: ReadWriter[VersionScheme /*.type*/ ] = macroRW
 }

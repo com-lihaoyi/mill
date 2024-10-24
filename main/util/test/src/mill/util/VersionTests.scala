@@ -2,8 +2,6 @@ package mill.util
 
 import utest.{assert, TestSuite, Tests, test}
 
-import scala.math.random
-
 object VersionTests extends TestSuite {
 
   val tests = Tests {

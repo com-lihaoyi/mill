@@ -1,6 +1,7 @@
 package mill.contrib.buildinfo
 
-import mill.{PathRef, T}
+import mill.{T, Task}
+import mill.api.PathRef
 import mill.scalalib.{JavaModule, ScalaModule}
 import mill.scalanativelib.ScalaNativeModule
 import mill.scalajslib.ScalaJSModule
@@ -34,11 +35,11 @@ trait BuildInfo extends JavaModule {
    */
   def buildInfoMembers: T[Seq[BuildInfo.Value]] = Seq.empty[BuildInfo.Value]
 
-  def resources =
+  def resources: T[Seq[PathRef]] =
     if (buildInfoStaticCompiled) super.resources
-    else T.sources { super.resources() ++ Seq(buildInfoResources()) }
+    else Task.Sources { super.resources() ++ Seq(buildInfoResources()) }
 
-  def buildInfoResources = T {
+  def buildInfoResources = Task {
     val p = new java.util.Properties
     for (v <- buildInfoMembers()) p.setProperty(v.key, v.value)
 
@@ -58,11 +59,11 @@ trait BuildInfo extends JavaModule {
 
   private def isScala = this.isInstanceOf[ScalaModule]
 
-  override def generatedSources = T {
+  override def generatedSources = Task {
     super.generatedSources() ++ buildInfoSources()
   }
 
-  def buildInfoSources = T {
+  def buildInfoSources = Task {
     if (buildInfoMembers().isEmpty) Nil
     else {
       val code = if (buildInfoStaticCompiled) BuildInfo.staticCompiledCodegen(
@@ -138,8 +139,8 @@ object BuildInfo {
          |public class $buildInfoObjectName {
          |  $bindingsCode
          |
-         |  public static java.util.Map<String, String> toMap(){
-         |    Map<String, String> map = new HashMap<String, String>();
+         |  public static java.util.Map<java.lang.String, java.lang.String> toMap() {
+         |    java.util.Map<java.lang.String, java.lang.String> map = new java.util.HashMap<java.lang.String, java.lang.String>();
          |    $mapEntries
          |    return map;
          |  }
@@ -160,9 +161,10 @@ object BuildInfo {
         case v =>
           if (isScala)
             s"""${commentStr(v)}val ${v.key} = buildInfoProperties.getProperty("${v.key}")"""
-          else s"""${commentStr(
-              v
-            )}public static final java.lang.String ${v.key} = buildInfoProperties.getProperty("${v.key}");"""
+          else {
+            val propValue = s"""buildInfoProperties.getProperty("${v.key}")"""
+            s"""${commentStr(v)}public static final java.lang.String ${v.key} = $propValue;"""
+          }
       }
       .mkString("\n\n  ")
 
@@ -171,15 +173,19 @@ object BuildInfo {
          |package ${buildInfoPackageName}
          |
          |object $buildInfoObjectName {
-         |  private[this] val buildInfoProperties: java.util.Properties = new java.util.Properties()
+         |  private val buildInfoProperties: java.util.Properties = new java.util.Properties()
          |
-         |  private[this] val buildInfoInputStream = getClass
+         |  {
+         |    val buildInfoInputStream = getClass
          |      .getResourceAsStream("${buildInfoObjectName}.buildinfo.properties")
          |
-         |  try {
-         |    buildInfoProperties.load(buildInfoInputStream)
-         |  } finally {
-         |    buildInfoInputStream.close()
+         |    if(buildInfoInputStream == null)
+         |      throw new RuntimeException("Could not load resource ${buildInfoObjectName}.buildinfo.properties")
+         |    else try {
+         |      buildInfoProperties.load(buildInfoInputStream)
+         |    } finally {
+         |      buildInfoInputStream.close()
+         |    }
          |  }
          |
          |  $bindingsCode
@@ -215,7 +221,7 @@ object BuildInfo {
       """.stripMargin.trim
   }
 
-  def commentStr(v: Value) = {
+  def commentStr(v: Value): String = {
     if (v.comment.isEmpty) ""
     else {
       val lines = v.comment.linesIterator.toVector

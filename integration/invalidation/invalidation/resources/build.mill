@@ -1,0 +1,33 @@
+package build
+import mill._
+import $packages._
+
+def task = Task {
+  build.a.input()
+  build.b.input()
+  build.c.input()
+}
+
+object module extends Module {
+  def task = Task {
+    println("task")
+    build.a.input()
+    build.b.input()
+    build.c.input()
+  }
+}
+
+def taskE = Task {
+  println("taskE")
+  build.e.input()
+}
+
+def taskSymbols = Task {
+  println("taskSymbols")
+  build.`-#!+→&%=~`.input()
+}
+
+def taskSymbolsInFile = Task {
+  println("taskSymbolsInFile")
+  build.`-#+&%`.input()
+}

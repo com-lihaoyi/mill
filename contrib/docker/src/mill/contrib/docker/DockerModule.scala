@@ -20,6 +20,16 @@ trait DockerModule { outer: JavaModule =>
     def pullBaseImage: T[Boolean] = T(baseImage().endsWith(":latest"))
 
     /**
+     * JVM runtime options. Each item of the Seq should consist of an option and its desired value, like
+     * {{{
+     * def jvmOptions = Seq("-Xmx1024M", "-agentlib:jdwp=transport=dt_socket,server=y,address=8000", …)
+     * }}}
+     * For a full list of options consult the official documentation at
+     * [[https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html#overview-of-java-options]]
+     */
+    def jvmOptions: T[Seq[String]] = Seq.empty[String]
+
+    /**
      * TCP Ports the container will listen to at runtime.
      *
      * See also the Docker docs on
@@ -75,16 +85,20 @@ trait DockerModule { outer: JavaModule =>
     def user: T[String] = ""
 
     /**
+     * Optional platform parameter, if set uses buildkit to build for specified platform.
+     *
+     * See also the Docker docs on
+     * [[https://docs.docker.com/reference/cli/docker/buildx/build/#platform]]
+     * for more information.
+     */
+    def platform: T[String] = ""
+
+    /**
      * The name of the executable to use, the default is "docker".
      */
     def executable: T[String] = "docker"
 
-    private def baseImageCacheBuster: T[(Boolean, Double)] = T.input {
-      val pull = pullBaseImage()
-      if (pull) (pull, Math.random()) else (pull, 0d)
-    }
-
-    def dockerfile: T[String] = T {
+    def dockerfile: T[String] = Task {
       val jarName = assembly().path.last
       val labelRhs = labels()
         .map { case (k, v) =>
@@ -111,16 +125,31 @@ trait DockerModule { outer: JavaModule =>
         else volumes().map(v => s"\"$v\"").mkString("VOLUME [", ", ", "]"),
         run().map(c => s"RUN $c").mkString("\n"),
         if (user().isEmpty) "" else s"USER ${user()}"
-      ).filter(_.nonEmpty).mkString(sys.props("line.separator"))
+      ).filter(_.nonEmpty).mkString(sys.props.getOrElse("line.separator", ???))
+
+      val quotedEntryPointArgs = (Seq("java") ++ jvmOptions() ++ Seq("-jar", s"/$jarName"))
+        .map(arg => s"\"$arg\"").mkString(", ")
 
       s"""
          |FROM ${baseImage()}
          |$lines
          |COPY $jarName /$jarName
-         |ENTRYPOINT ["java", "-jar", "/$jarName"]""".stripMargin
+         |ENTRYPOINT [$quotedEntryPointArgs]""".stripMargin
     }
 
-    final def build = T {
+    private def pullAndHash = Task.Input {
+      def imageHash() =
+        os.proc(executable(), "images", "--no-trunc", "--quiet", baseImage())
+          .call(stderr = os.Inherit).out.text().trim
+
+      if (pullBaseImage() || imageHash().isEmpty)
+        os.proc(executable(), "image", "pull", baseImage())
+          .call(stdout = os.Inherit, stderr = os.Inherit)
+
+      (pullBaseImage(), imageHash())
+    }
+
+    final def build = Task {
       val dest = T.dest
 
       val asmPath = outer.assembly().path
@@ -132,19 +161,33 @@ trait DockerModule { outer: JavaModule =>
 
       val tagArgs = tags().flatMap(t => List("-t", t))
 
-      val (pull, _) = baseImageCacheBuster()
+      val (pull, _) = pullAndHash()
       val pullLatestBase = IterableShellable(if (pull) Some("--pull") else None)
 
-      val result = os
-        .proc(executable(), "build", tagArgs, pullLatestBase, dest)
-        .call(stdout = os.Inherit, stderr = os.Inherit)
-
+      val result = if (platform().isEmpty || executable() != "docker") {
+        if (platform().nonEmpty)
+          log.info("Platform parameter is ignored when using non-docker executable")
+        os.proc(executable(), "build", tagArgs, pullLatestBase, dest)
+          .call(stdout = os.Inherit, stderr = os.Inherit)
+      } else {
+        os.proc(
+          executable(),
+          "buildx",
+          "build",
+          tagArgs,
+          pullLatestBase,
+          "--platform",
+          platform(),
+          dest
+        )
+          .call(stdout = os.Inherit, stderr = os.Inherit)
+      }
       log.info(s"Docker build completed ${if (result.exitCode == 0) "successfully"
         else "unsuccessfully"} with ${result.exitCode}")
       tags()
     }
 
-    final def push() = T.command {
+    final def push() = Task.Command {
       val tags = build()
       tags.foreach(t =>
         os.proc(executable(), "push", t).call(stdout = os.Inherit, stderr = os.Inherit)

@@ -7,10 +7,11 @@ import mill.define._
 import mill.eval.Evaluator.TaskResult
 import mill.util._
 
+import java.lang.reflect.Method
 import scala.collection.mutable
-import scala.reflect.NameTransformer.decode
-import scala.util.DynamicVariable
+import scala.reflect.NameTransformer.encode
 import scala.util.control.NonFatal
+import scala.util.hashing.MurmurHash3
 
 /**
  * Logic around evaluating a single group, which is a collection of [[Task]]s
@@ -18,6 +19,7 @@ import scala.util.control.NonFatal
  */
 private[mill] trait GroupEvaluator {
   def home: os.Path
+  def workspace: os.Path
   def outPath: os.Path
   def externalOutPath: os.Path
   def rootModule: mill.define.BaseModule
@@ -29,9 +31,11 @@ private[mill] trait GroupEvaluator {
   def threadCount: Option[Int]
   def scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])]
   def methodCodeHashSignatures: Map[String, Int]
-  def disableCallgraphInvalidation: Boolean
+  def disableCallgraph: Boolean
+  def systemExit: Int => Nothing
+  def exclusiveSystemStreams: SystemStreams
 
-  lazy val constructorHashSignatures = methodCodeHashSignatures
+  lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] = methodCodeHashSignatures
     .toSeq
     .collect { case (method @ s"$prefix#<init>($args)void", hash) => (prefix, method, hash) }
     .groupMap(_._1)(t => (t._2, t._3))
@@ -44,189 +48,185 @@ private[mill] trait GroupEvaluator {
       terminal: Terminal,
       group: Agg[Task[_]],
       results: Map[Task[_], TaskResult[(Val, Int)]],
-      counterMsg: String,
+      countMsg: String,
+      verboseKeySuffix: String,
       zincProblemReporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
-      logger: ColorLogger
+      logger: ColorLogger,
+      classToTransitiveClasses: Map[Class[_], IndexedSeq[Class[_]]],
+      allTransitiveClassMethods: Map[Class[_], Map[String, Method]],
+      executionContext: mill.api.Ctx.Fork.Api,
+      exclusive: Boolean
   ): GroupEvaluator.Results = {
 
-    val externalInputsHash = scala.util.hashing.MurmurHash3.orderedHash(
-      group.items.flatMap(_.inputs).filter(!group.contains(_))
-        .flatMap(results(_).result.asSuccess.map(_.value._2))
-    )
-
-    val sideHashes = scala.util.hashing.MurmurHash3.orderedHash(
-      group.iterator.map(_.sideHash)
-    )
-
-    val scriptsHash = if (disableCallgraphInvalidation) {
-      val possibleScripts = scriptImportGraph.keySet.map(_.toString)
-      val scripts = new Loose.Agg.Mutable[os.Path]()
-      group.iterator.flatMap(t => Iterator(t) ++ t.inputs).foreach {
-        // Filter out the `fileName` as a string before we call `os.Path` on it, because
-        // otherwise linux paths on earlier-compiled artifacts can cause this to crash
-        // when running on Windows with a different file path format
-        case namedTask: NamedTask[_] if possibleScripts.contains(namedTask.ctx.fileName) =>
-          scripts.append(os.Path(namedTask.ctx.fileName))
-        case _ =>
-      }
-
-      val transitiveScripts = Graph.transitiveNodes(scripts)(t =>
-        scriptImportGraph.get(t).map(_._2).getOrElse(Nil)
-      )
-
-      transitiveScripts
-        .iterator
-        // Sometimes tasks are defined in external/upstreadm dependencies,
-        // (e.g. a lot of tasks come from JavaModule.scala) and won't be
-        // present in the scriptImportGraph
-        .map(p => scriptImportGraph.get(p).fold(0)(_._1))
-        .sum
-    } else {
-      group
-        .iterator
-        .collect {
-          case namedTask: NamedTask[_] =>
-            def resolveParents(c: Class[_]): Seq[Class[_]] = {
-              Seq(c) ++
-                Option(c.getSuperclass).toSeq.flatMap(resolveParents) ++
-                c.getInterfaces.flatMap(resolveParents)
-            }
-
-            val transitiveParents = resolveParents(namedTask.ctx.enclosingCls)
-            val methods = for {
-              c <- transitiveParents
-              m <- c.getDeclaredMethods
-              if decode(m.getName) == namedTask.ctx.segment.pathSegments.head
-            } yield m
-
-            val methodClass = methods.head.getDeclaringClass.getName
-            val name = namedTask.ctx.segment.pathSegments.last
-            val expectedName = methodClass + "#" + name + "()mill.define.Target"
-
-            // We not only need to look up the code hash of the Target method being called,
-            // but also the code hash of the constructors required to instantiate the Module
-            // that the Target is being called on. This can be done by walking up the nested
-            // modules and looking at their constructors (they're `object`s and should each
-            // have only one)
-            val allEnclosingModules = Vector.unfold(namedTask.ctx) {
-              case null => None
-              case ctx =>
-                ctx.enclosingModule match {
-                  case null => None
-                  case m: mill.define.Module => Some((m, m.millOuterCtx))
-                  case unknown => sys.error(s"Unknown ctx: $unknown")
-                }
-            }
-
-            val constructorHashes = allEnclosingModules
-              .map(m =>
-                constructorHashSignatures.get(m.getClass.getName) match {
-                  case Some(Seq((singleMethod, hash))) => hash
-                  case Some(multiple) => sys.error(
-                      s"Multiple constructors found for module $m: ${multiple.mkString(",")}"
-                    )
-                  case None => 0
-                }
-              )
-
-            methodCodeHashSignatures.get(expectedName) ++ constructorHashes
-        }
-        .flatten
-        .sum
+    val targetLabel = terminal match {
+      case Terminal.Task(task) => None
+      case t: Terminal.Labelled[_] => Some(Terminal.printTerm(t))
     }
 
-    val inputsHash = externalInputsHash + sideHashes + classLoaderSigHash + scriptsHash
+    logger.withPrompt {
+      val externalInputsHash = MurmurHash3.orderedHash(
+        group.items.flatMap(_.inputs).filter(!group.contains(_))
+          .flatMap(results(_).result.asSuccess.map(_.value._2))
+      )
 
-    terminal match {
-      case Terminal.Task(task) =>
-        val (newResults, newEvaluated) = evaluateGroup(
-          group,
-          results,
-          inputsHash,
-          paths = None,
-          maybeTargetLabel = None,
-          counterMsg = counterMsg,
-          zincProblemReporter,
-          testReporter,
-          logger
-        )
-        GroupEvaluator.Results(newResults, newEvaluated.toSeq, null, inputsHash, -1)
+      val sideHashes = MurmurHash3.orderedHash(group.iterator.map(_.sideHash))
 
-      case labelled: Terminal.Labelled[_] =>
-        val out =
-          if (!labelled.task.ctx.external) outPath
-          else externalOutPath
+      val scriptsHash =
+        if (disableCallgraph) 0
+        else group
+          .iterator
+          .collect {
+            case namedTask: NamedTask[_] =>
+              val encodedTaskName = encode(namedTask.ctx.segment.pathSegments.head)
+              val methodOpt = for {
+                parentCls <- classToTransitiveClasses(namedTask.ctx.enclosingCls).iterator
+                m <- allTransitiveClassMethods(parentCls).get(encodedTaskName)
+              } yield m
 
-        val paths = EvaluatorPaths.resolveDestPaths(
-          out,
-          Terminal.destSegments(labelled)
-        )
+              val methodClass = methodOpt
+                .nextOption()
+                .getOrElse(throw new MillException(
+                  s"Could not detect the parent class of target ${namedTask}. " +
+                    s"Please report this at ${BuildInfo.millReportNewIssueUrl} . "
+                ))
+                .getDeclaringClass.getName
 
-        val cached = loadCachedJson(logger, inputsHash, labelled, paths)
+              val name = namedTask.ctx.segment.pathSegments.last
+              val expectedName = methodClass + "#" + name + "()mill.define.Target"
 
-        val upToDateWorker = loadUpToDateWorker(logger, inputsHash, labelled)
+              // We not only need to look up the code hash of the Target method being called,
+              // but also the code hash of the constructors required to instantiate the Module
+              // that the Target is being called on. This can be done by walking up the nested
+              // modules and looking at their constructors (they're `object`s and should each
+              // have only one)
+              val allEnclosingModules = Vector.unfold(namedTask.ctx) {
+                case null => None
+                case ctx =>
+                  ctx.enclosingModule match {
+                    case null => None
+                    case m: mill.define.Module => Some((m, m.millOuterCtx))
+                    case unknown =>
+                      throw new MillException(s"Unknown ctx of target ${namedTask}: $unknown")
+                  }
+              }
 
-        upToDateWorker.map((_, inputsHash)) orElse cached.flatMap(_._2) match {
-          case Some((v, hashCode)) =>
-            val res = Result.Success((v, hashCode))
-            val newResults: Map[Task[_], TaskResult[(Val, Int)]] =
-              Map(labelled.task -> TaskResult(res, () => res))
+              val constructorHashes = allEnclosingModules
+                .map(m =>
+                  constructorHashSignatures.get(m.getClass.getName) match {
+                    case Some(Seq((singleMethod, hash))) => hash
+                    case Some(multiple) => throw new MillException(
+                        s"Multiple constructors found for module $m: ${multiple.mkString(",")}"
+                      )
+                    case None => 0
+                  }
+                )
 
-            GroupEvaluator.Results(
-              newResults,
-              Nil,
-              cached = true,
-              inputsHash,
-              -1
-            )
+              methodCodeHashSignatures.get(expectedName) ++ constructorHashes
+          }
+          .flatten
+          .sum
 
-          case _ =>
-            // uncached
-            if (labelled.task.flushDest) os.remove.all(paths.dest)
+      val inputsHash = externalInputsHash + sideHashes + classLoaderSigHash + scriptsHash
 
-            val targetLabel = Terminal.printTerm(terminal)
+      terminal match {
+        case Terminal.Task(task) =>
+          val (newResults, newEvaluated) = evaluateGroup(
+            group,
+            results,
+            inputsHash,
+            paths = None,
+            maybeTargetLabel = None,
+            counterMsg = countMsg,
+            verboseKeySuffix = verboseKeySuffix,
+            zincProblemReporter,
+            testReporter,
+            logger,
+            executionContext,
+            exclusive
+          )
+          GroupEvaluator.Results(newResults, newEvaluated.toSeq, null, inputsHash, -1)
 
-            val (newResults, newEvaluated) =
-              GroupEvaluator.dynamicTickerPrefix.withValue(s"[$counterMsg] $targetLabel > ") {
+        case labelled: Terminal.Labelled[_] =>
+          val out =
+            if (!labelled.task.ctx.external) outPath
+            else externalOutPath
+
+          val paths = EvaluatorPaths.resolveDestPaths(
+            out,
+            Terminal.destSegments(labelled)
+          )
+
+          val cached = loadCachedJson(logger, inputsHash, labelled, paths)
+
+          val upToDateWorker = loadUpToDateWorker(
+            logger,
+            inputsHash,
+            labelled,
+            forceDiscard =
+              // worker metadata file removed by user, let's recompute the worker
+              cached.isEmpty
+          )
+
+          upToDateWorker.map((_, inputsHash)) orElse cached.flatMap(_._2) match {
+            case Some((v, hashCode)) =>
+              val res = Result.Success((v, hashCode))
+              val newResults: Map[Task[_], TaskResult[(Val, Int)]] =
+                Map(labelled.task -> TaskResult(res, () => res))
+
+              GroupEvaluator.Results(
+                newResults,
+                Nil,
+                cached = true,
+                inputsHash,
+                -1
+              )
+
+            case _ =>
+              // uncached
+              if (labelled.task.flushDest) os.remove.all(paths.dest)
+
+              val (newResults, newEvaluated) =
                 evaluateGroup(
                   group,
                   results,
                   inputsHash,
                   paths = Some(paths),
-                  maybeTargetLabel = Some(targetLabel),
-                  counterMsg = counterMsg,
+                  maybeTargetLabel = targetLabel,
+                  counterMsg = countMsg,
+                  verboseKeySuffix = verboseKeySuffix,
                   zincProblemReporter,
                   testReporter,
-                  logger
+                  logger,
+                  executionContext,
+                  exclusive
                 )
+
+              newResults(labelled.task) match {
+                case TaskResult(Result.Failure(_, Some((v, _))), _) =>
+                  handleTaskResult(v, v.##, paths.meta, inputsHash, labelled)
+
+                case TaskResult(Result.Success((v, _)), _) =>
+                  handleTaskResult(v, v.##, paths.meta, inputsHash, labelled)
+
+                case _ =>
+                  // Wipe out any cached meta.json file that exists, so
+                  // a following run won't look at the cached metadata file and
+                  // assume it's associated with the possibly-borked state of the
+                  // destPath after an evaluation failure.
+                  os.remove.all(paths.meta)
               }
 
-            newResults(labelled.task) match {
-              case TaskResult(Result.Failure(_, Some((v, _))), _) =>
-                handleTaskResult(v, v.##, paths.meta, inputsHash, labelled)
-
-              case TaskResult(Result.Success((v, _)), _) =>
-                handleTaskResult(v, v.##, paths.meta, inputsHash, labelled)
-
-              case _ =>
-                // Wipe out any cached meta.json file that exists, so
-                // a following run won't look at the cached metadata file and
-                // assume it's associated with the possibly-borked state of the
-                // destPath after an evaluation failure.
-                os.remove.all(paths.meta)
-            }
-
-            GroupEvaluator.Results(
-              newResults,
-              newEvaluated.toSeq,
-              cached = if (labelled.task.isInstanceOf[InputImpl[_]]) null else false,
-              inputsHash,
-              cached.map(_._1).getOrElse(-1)
-            )
-        }
+              GroupEvaluator.Results(
+                newResults,
+                newEvaluated.toSeq,
+                cached = if (labelled.task.isInstanceOf[InputImpl[_]]) null else false,
+                inputsHash,
+                cached.map(_._1).getOrElse(-1)
+              )
+          }
+      }
     }
-
   }
 
   private def evaluateGroup(
@@ -236,77 +236,78 @@ private[mill] trait GroupEvaluator {
       paths: Option[EvaluatorPaths],
       maybeTargetLabel: Option[String],
       counterMsg: String,
+      verboseKeySuffix: String,
       reporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
-      logger: mill.api.Logger
+      logger: mill.api.Logger,
+      executionContext: mill.api.Ctx.Fork.Api,
+      exclusive: Boolean
   ): (Map[Task[_], TaskResult[(Val, Int)]], mutable.Buffer[Task[_]]) = {
 
-    def computeAll(enableTicker: Boolean) = {
+    def computeAll() = {
       val newEvaluated = mutable.Buffer.empty[Task[_]]
       val newResults = mutable.Map.empty[Task[_], Result[(Val, Int)]]
 
       val nonEvaluatedTargets = group.indexed.filterNot(results.contains)
 
-      // should we log progress?
-      val logRun = maybeTargetLabel.isDefined && {
-        val inputResults = for {
-          target <- nonEvaluatedTargets
-          item <- target.inputs.filterNot(group.contains)
-        } yield results(item).map(_._1)
-        inputResults.forall(_.result.isInstanceOf[Result.Success[_]])
-      }
+      val multiLogger = resolveLogger(paths.map(_.log), logger)
 
-      val tickerPrefix = maybeTargetLabel.map { targetLabel =>
-        val prefix = s"[$counterMsg] $targetLabel "
-        if (logRun && enableTicker) logger.ticker(prefix)
-        prefix + "| "
-      }
-
-      val multiLogger = new ProxyLogger(resolveLogger(paths.map(_.log), logger)) {
-        override def ticker(s: String): Unit = {
-          if (enableTicker) super.ticker(tickerPrefix.getOrElse("") + s)
-          else () // do nothing
-        }
-      }
-      // This is used to track the usage of `T.dest` in more than one Task
-      // But it's not really clear what issue we try to prevent here
-      // Vice versa, being able to use T.dest in multiple `T.task`
-      // is rather essential to split up larger tasks into small parts
-      // So I like to disable this detection for now
-      var usedDest = Option.empty[(Task[_], Array[StackTraceElement])]
+      var usedDest = Option.empty[os.Path]
       for (task <- nonEvaluatedTargets) {
         newEvaluated.append(task)
         val targetInputValues = task.inputs
           .map { x => newResults.getOrElse(x, results(x).result) }
           .collect { case Result.Success((v, _)) => v }
 
+        def makeDest() = this.synchronized {
+          paths match {
+            case Some(dest) =>
+              if (usedDest.isEmpty) os.makeDir.all(dest.dest)
+              usedDest = Some(dest.dest)
+              dest.dest
+
+            case None => throw new Exception("No `dest` folder available here")
+          }
+        }
+
         val res = {
           if (targetInputValues.length != task.inputs.length) Result.Skipped
           else {
             val args = new mill.api.Ctx(
               args = targetInputValues.map(_.value).toIndexedSeq,
-              dest0 = () =>
-                paths match {
-                  case Some(dest) =>
-                    if (usedDest.isEmpty) os.makeDir.all(dest.dest)
-                    usedDest = Some((task, new Exception().getStackTrace))
-                    dest.dest
-
-                  case None => throw new Exception("No `dest` folder available here")
-                },
+              dest0 = () => makeDest(),
               log = multiLogger,
               home = home,
               env = env,
               reporter = reporter,
               testReporter = testReporter,
-              workspace = rootModule.millSourcePath
+              workspace = workspace,
+              systemExit = systemExit,
+              fork = executionContext
             ) with mill.api.Ctx.Jobs {
               override def jobs: Int = effectiveThreadCount
             }
 
-            mill.api.SystemStreams.withStreams(multiLogger.systemStreams) {
+            def wrap[T](t: => T): T = {
+
+              val (streams, destFunc) =
+                if (exclusive) (exclusiveSystemStreams, () => workspace)
+                else (multiLogger.systemStreams, () => makeDest())
+
+              os.dynamicPwdFunction.withValue(destFunc) {
+                SystemStreams.withStreams(streams) {
+                  if (exclusive) {
+                    logger.reportKey(Seq(counterMsg))
+                    logger.withPromptPaused { t }
+                  } else t
+                }
+              }
+            }
+
+            wrap {
               try task.evaluate(args).map(Val(_))
               catch {
+                case f: Result.Failing[Val] => f
                 case NonFatal(e) =>
                   Result.Exception(
                     e,
@@ -325,23 +326,24 @@ private[mill] trait GroupEvaluator {
           )
         }
       }
+
       multiLogger.close()
       (newResults, newEvaluated)
     }
 
-    val (newResults, newEvaluated) = computeAll(enableTicker = true)
+    val (newResults, newEvaluated) = computeAll()
 
     if (!failFast) maybeTargetLabel.foreach { targetLabel =>
       val taskFailed = newResults.exists(task => !task._2.isInstanceOf[Success[_]])
       if (taskFailed) {
-        logger.error(s"[${counterMsg}] ${targetLabel} failed")
+        logger.error(s"[$counterMsg] $targetLabel failed")
       }
     }
 
     (
       newResults
         .map { case (k, v) =>
-          val recalc = () => computeAll(enableTicker = false)._1.apply(k)
+          val recalc = () => computeAll()._1.apply(k)
           val taskResult = TaskResult(v, recalc)
           (k, taskResult)
         }
@@ -357,13 +359,13 @@ private[mill] trait GroupEvaluator {
   // re-created - so the worker *class* changes - but the *value* inputs to the
   // worker does not change. This typically happens when the worker class is
   // brought in via `import $ivy`, since the class then comes from the
-  // non-bootstrap classloader which can be re-created when the `build.sc` file
+  // non-bootstrap classloader which can be re-created when the `build.mill` file
   // changes.
   //
   // We do not want to do this for normal targets, because those are always
   // read from disk and re-instantiated every time, so whether the
   // classloader/class is the same or different doesn't matter.
-  def workerCacheHash(inputHash: Int) = inputHash + classLoaderIdentityHash
+  def workerCacheHash(inputHash: Int): Int = inputHash + classLoaderIdentityHash
 
   private def handleTaskResult(
       v: Val,
@@ -372,28 +374,36 @@ private[mill] trait GroupEvaluator {
       inputsHash: Int,
       labelled: Terminal.Labelled[_]
   ): Unit = {
-    labelled.task.asWorker match {
-      case Some(w) =>
-        workerCache.synchronized {
-          workerCache.update(w.ctx.segments, (workerCacheHash(inputsHash), v))
-        }
-      case None =>
-        val terminalResult = labelled
-          .task
-          .writerOpt
-          .asInstanceOf[Option[upickle.default.Writer[Any]]]
-          .map { w => upickle.default.writeJs(v.value)(w) }
+    for (w <- labelled.task.asWorker)
+      workerCache.synchronized {
+        workerCache.update(w.ctx.segments, (workerCacheHash(inputsHash), v))
+      }
 
-        for (json <- terminalResult) {
-          os.write.over(
-            metaPath,
-            upickle.default.stream(
-              Evaluator.Cached(json, hashCode, inputsHash),
-              indent = 4
-            ),
-            createFolders = true
+    val terminalResult = labelled
+      .task
+      .writerOpt
+      .map { w =>
+        upickle.default.writeJs(v.value)(using w.asInstanceOf[upickle.default.Writer[Any]])
+      }
+      .orElse {
+        labelled.task.asWorker.map { w =>
+          ujson.Obj(
+            "worker" -> ujson.Str(labelled.segments.render),
+            "toString" -> ujson.Str(v.value.toString),
+            "inputsHash" -> ujson.Num(inputsHash)
           )
         }
+      }
+
+    for (json <- terminalResult) {
+      os.write.over(
+        metaPath,
+        upickle.default.stream(
+          Evaluator.Cached(json, hashCode, inputsHash),
+          indent = 4
+        ),
+        createFolders = true
+      )
     }
   }
 
@@ -428,7 +438,7 @@ private[mill] trait GroupEvaluator {
         _ <- Option.when(cached.inputsHash == inputsHash)(())
         reader <- labelled.task.readWriterOpt
         parsed <-
-          try Some(upickle.default.read(cached.value)(reader))
+          try Some(upickle.default.read(cached.value)(using reader))
           catch {
             case e: PathRef.PathRefValidationException =>
               logger.debug(
@@ -444,7 +454,8 @@ private[mill] trait GroupEvaluator {
   private def loadUpToDateWorker(
       logger: ColorLogger,
       inputsHash: Int,
-      labelled: Terminal.Labelled[_]
+      labelled: Terminal.Labelled[_],
+      forceDiscard: Boolean
   ): Option[Val] = {
     labelled.task.asWorker
       .flatMap { w =>
@@ -454,7 +465,7 @@ private[mill] trait GroupEvaluator {
       }
       .flatMap {
         case (cachedHash, upToDate)
-            if cachedHash == workerCacheHash(inputsHash) =>
+            if cachedHash == workerCacheHash(inputsHash) && !forceDiscard =>
           Some(upToDate) // worker cached and up-to-date
 
         case (_, Val(obsolete: AutoCloseable)) =>
@@ -482,7 +493,6 @@ private[mill] trait GroupEvaluator {
 }
 
 private[mill] object GroupEvaluator {
-  val dynamicTickerPrefix = new DynamicVariable("")
 
   case class Results(
       newResults: Map[Task[_], TaskResult[(Val, Int)]],

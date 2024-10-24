@@ -1,76 +1,32 @@
 package mill.util
 
-import coursier.cache.ArtifactError
+import coursier.cache.{CacheLogger, FileCache}
+import coursier.error.FetchError.DownloadingArtifacts
+import coursier.error.ResolutionError.CantDownloadModule
+import coursier.params.ResolutionParams
 import coursier.parse.RepositoryParser
-import coursier.util.{Gather, Task}
-import coursier.{Dependency, Repository, Resolution}
-import mill.api.{Ctx, PathRef, Result}
+import coursier.util.Task
+import coursier.{Artifacts, Classifier, Dependency, Repository, Resolution, Resolve, Type}
 import mill.api.Loose.Agg
-import java.io.File
-import java.nio.file.NoSuchFileException
-import scala.annotation.tailrec
+import mill.api.{Ctx, PathRef, Result}
+
 import scala.collection.mutable
-import scala.util.{Failure, Success, Try}
+import scala.util.chaining.scalaUtilChainingOps
 
 trait CoursierSupport {
   import CoursierSupport._
 
-  private val CoursierRetryCount = 5
-  private val CoursierRetryWait = 100
-
-  /**
-   * Somewhat generic way to retry some action and a Workaround for https://github.com/com-lihaoyi/mill/issues/1028
-   *
-   * Specifically build for coursier API interactions, which is known to have some concurrency issues which we handle on a known case basis.
-   *
-   * @param retryCount        The max retry count
-   * @param ctx               The context to use ot show log messages (if defined)
-   * @param errorMsgExtractor A generic way to get the error message of a run of `f`
-   * @param f                 The actual operation to retry, if it results in a known concurrency error
-   * @tparam T The result type of the computation
-   * @return The result of the computation. If the computation was retries and finally succeeded, proviously occured errors will not be included in the result.
-   */
-  @tailrec
-  private def retry[T](
-      retryCount: Int = CoursierRetryCount,
-      ctx: Option[Ctx.Log],
-      errorMsgExtractor: T => Seq[String]
-  )(f: () => T): T = {
-    val tried = Try(f())
-    tried match {
-      case Failure(e: NoSuchFileException)
-          if retryCount > 0 && e.getMessage.contains("__sha1.computed") =>
-        // this one is not detected by coursier itself, so we try-catch handle it
-        // I assume, this happens when another coursier thread already moved or rename dthe temporary file
-        ctx.foreach(_.log.debug(
-          s"Detected a concurrent download issue in coursier. Attempting a retry (${retryCount} left)"
-        ))
-        Thread.sleep(CoursierRetryWait)
-        retry(retryCount - 1, ctx, errorMsgExtractor)(f)
-      case Success(res) if retryCount > 0 =>
-        val errors = errorMsgExtractor(res)
-        if (errors.exists(e => e.contains("concurrent download"))) {
-          ctx.foreach(_.log.debug(
-            s"Detected a concurrent download issue in coursier. Attempting a retry (${retryCount} left)"
-          ))
-          Thread.sleep(CoursierRetryWait)
-          retry(retryCount - 1, ctx, errorMsgExtractor)(f)
-        } else if (errors.exists(e => e.contains("checksum not found"))) {
-          ctx.foreach(_.log.debug(
-            s"Detected a checksum download issue in coursier. Attempting a retry (${retryCount} left)"
-          ))
-          Thread.sleep(CoursierRetryWait)
-          retry(retryCount - 1, ctx, errorMsgExtractor)(f)
-        } else if (errors.exists(e => e.contains("download error"))) {
-          ctx.foreach(_.log.debug(
-            s"Detected a download error by coursier. Attempting a retry (${retryCount} left)"
-          ))
-          Thread.sleep(CoursierRetryWait)
-          retry(retryCount - 1, ctx, errorMsgExtractor)(f)
-        } else res
-      case r => r.get
-    }
-  }
+  private def coursierCache(
+      ctx: Option[mill.api.Ctx.Log],
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]]
+  ) =
+    FileCache[Task]()
+      .pipe { cache =>
+        coursierCacheCustomizer.fold(cache)(c => c.apply(cache))
+      }
+      .pipe { cache =>
+        ctx.fold(cache)(c => cache.withLogger(new TickerResolutionLogger(c)))
+      }
 
   /**
    * Resolve dependencies using Coursier.
@@ -81,25 +37,24 @@ trait CoursierSupport {
    */
   def resolveDependencies(
       repositories: Seq[Repository],
-      deps: IterableOnce[coursier.Dependency],
-      force: IterableOnce[coursier.Dependency],
+      deps: IterableOnce[Dependency],
+      force: IterableOnce[Dependency],
       sources: Boolean = false,
       mapDependencies: Option[Dependency => Dependency] = None,
-      customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
+      customizer: Option[Resolution => Resolution] = None,
       ctx: Option[mill.api.Ctx.Log] = None,
-      coursierCacheCustomizer: Option[
-        coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
-      ] = None,
-      resolveFilter: os.Path => Boolean = _ => true
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
+      resolveFilter: os.Path => Boolean = _ => true,
+      artifactTypes: Option[Set[Type]] = None
   ): Result[Agg[PathRef]] = {
-    def isLocalTestDep(dep: coursier.Dependency): Option[Seq[PathRef]] = {
+    def isLocalTestDep(dep: Dependency): Option[Seq[PathRef]] = {
       val org = dep.module.organization.value
       val name = dep.module.name.value
       val classpathKey = s"$org-$name"
 
       val classpathResourceText =
         try Some(os.read(
-            os.resource(getClass.getClassLoader) / "mill" / "local-test-overrides" / classpathKey
+            os.resource(getClass.getClassLoader) / "mill/local-test-overrides" / classpathKey
           ))
         catch { case e: os.ResourceNotFoundException => None }
 
@@ -113,7 +68,7 @@ trait CoursierSupport {
       }
     )
 
-    val (_, resolution) = resolveDependenciesMetadata(
+    val resolutionRes = resolveDependenciesMetadataSafe(
       repositories,
       remoteDeps,
       force,
@@ -122,141 +77,157 @@ trait CoursierSupport {
       ctx,
       coursierCacheCustomizer
     )
-    val errs = resolution.errors
 
-    if (errs.nonEmpty) {
-      val header =
-        s"""|
-            |Resolution failed for ${errs.length} modules:
-            |--------------------------------------------
-            |""".stripMargin
+    resolutionRes.flatMap { resolution =>
+      val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
 
-      val helpMessage =
-        s"""|
-            |--------------------------------------------
-            |
-            |For additional information on library dependencies, see the docs at
-            |${mill.api.BuildInfo.millDocUrl}/mill/Library_Dependencies.html""".stripMargin
+      val artifactsResultOrError = Artifacts(coursierCache0)
+        .withResolution(resolution)
+        .withClassifiers(
+          if (sources) Set(Classifier("sources"))
+          else Set.empty
+        )
+        .withArtifactTypesOpt(artifactTypes)
+        .eitherResult()
 
-      val errLines = errs.map {
-        case ((module, vsn), errMsgs) => s"  ${module.trim}:$vsn \n\t" + errMsgs.mkString("\n\t")
-      }.mkString("\n")
-      val msg = header + errLines + "\n" + helpMessage + "\n"
-      Result.Failure(msg)
-    } else {
-
-      val coursierCache0 = coursier.cache.FileCache[Task]().noCredentials
-      val coursierCache = coursierCacheCustomizer.getOrElse(
-        identity[coursier.cache.FileCache[Task]](_)
-      ).apply(coursierCache0)
-
-      def load(artifacts: Seq[coursier.util.Artifact]): (Seq[ArtifactError], Seq[File]) = {
-        import scala.concurrent.ExecutionContext.Implicits.global
-        val loadedArtifacts = Gather[Task].gather(
-          for (a <- artifacts)
-            yield coursierCache.file(a).run.map(a.optional -> _)
-        ).unsafeRun()
-
-        val errors = loadedArtifacts.collect {
-          case (false, Left(x)) => x
-          case (true, Left(x)) if !x.notFound => x
-        }
-        val successes = loadedArtifacts.collect { case (_, Right(x)) => x }
-
-        (errors, successes)
-      }
-
-      val sourceOrJar =
-        if (sources) {
-          resolution.artifacts(
-            types = Set(coursier.Type.source, coursier.Type.javaSource),
-            classifiers = Some(Seq(coursier.Classifier("sources")))
+      artifactsResultOrError match {
+        case Left(error: DownloadingArtifacts) =>
+          val errorDetails = error.errors
+            .map(_._2)
+            .map(e => s"${System.lineSeparator()}  ${e.describe}")
+            .mkString
+          Result.Failure(
+            s"Failed to load ${if (sources) "source " else ""}dependencies" + errorDetails
           )
-        } else resolution.artifacts(
-          types = Set(
-            coursier.Type.jar,
-            coursier.Type.testJar,
-            coursier.Type.bundle,
-            coursier.Type("orbit"),
-            coursier.Type("eclipse-plugin"),
-            coursier.Type("maven-plugin")
+        case Left(error) =>
+          Result.Exception(error, new Result.OuterStack((new Exception).getStackTrace))
+        case Right(res) =>
+          Result.Success(
+            Agg.from(
+              res.files
+                .map(os.Path(_))
+                .filter(resolveFilter)
+                .map(PathRef(_, quick = true))
+            ) ++ localTestDeps.flatten
           )
-        )
-
-      val (errors, successes) = retry(
-        ctx = ctx,
-        errorMsgExtractor = (res: (Seq[ArtifactError], Seq[File])) => res._1.map(_.describe)
-      ) {
-        () => load(sourceOrJar)
-      }
-
-      if (errors.isEmpty) {
-        Result.Success(
-          Agg.from(
-            successes.map(os.Path(_)).filter(_.ext == "jar").map(PathRef(_, quick = true))
-          ).filter(x => resolveFilter(x.path)) ++ localTestDeps.flatten
-        )
-      } else {
-        val errorDetails = errors.map(e => s"${System.lineSeparator()}  ${e.describe}").mkString
-        Result.Failure(
-          s"Failed to load ${if (sources) "source " else ""}dependencies" + errorDetails
-        )
       }
     }
   }
 
+  @deprecated("Use the override accepting artifactTypes", "Mill after 0.12.0-RC3")
+  def resolveDependencies(
+      repositories: Seq[Repository],
+      deps: IterableOnce[Dependency],
+      force: IterableOnce[Dependency],
+      sources: Boolean,
+      mapDependencies: Option[Dependency => Dependency],
+      customizer: Option[Resolution => Resolution],
+      ctx: Option[mill.api.Ctx.Log],
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]],
+      resolveFilter: os.Path => Boolean
+  ): Result[Agg[PathRef]] =
+    resolveDependencies(
+      repositories,
+      deps,
+      force,
+      sources,
+      mapDependencies,
+      customizer,
+      ctx,
+      coursierCacheCustomizer,
+      resolveFilter
+    )
+
+  @deprecated(
+    "Prefer resolveDependenciesMetadataSafe instead, which returns a Result instead of throwing exceptions",
+    "0.12.0"
+  )
   def resolveDependenciesMetadata(
       repositories: Seq[Repository],
-      deps: IterableOnce[coursier.Dependency],
-      force: IterableOnce[coursier.Dependency],
+      deps: IterableOnce[Dependency],
+      force: IterableOnce[Dependency],
       mapDependencies: Option[Dependency => Dependency] = None,
-      customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
+      customizer: Option[Resolution => Resolution] = None,
       ctx: Option[mill.api.Ctx.Log] = None,
-      coursierCacheCustomizer: Option[
-        coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
-      ] = None
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None
   ): (Seq[Dependency], Resolution) = {
+    val deps0 = deps.iterator.toSeq
+    val res = resolveDependenciesMetadataSafe(
+      repositories,
+      deps0,
+      force,
+      mapDependencies,
+      customizer,
+      ctx,
+      coursierCacheCustomizer
+    )
+    (deps0, res.getOrThrow)
+  }
 
-    val cachePolicies = coursier.cache.CacheDefaults.cachePolicies
+  def resolveDependenciesMetadataSafe(
+      repositories: Seq[Repository],
+      deps: IterableOnce[Dependency],
+      force: IterableOnce[Dependency],
+      mapDependencies: Option[Dependency => Dependency] = None,
+      customizer: Option[Resolution => Resolution] = None,
+      ctx: Option[mill.api.Ctx.Log] = None,
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None
+  ): Result[Resolution] = {
+
+    val rootDeps = deps.iterator
+      .map(d => mapDependencies.fold(d)(_.apply(d)))
+      .toSeq
 
     val forceVersions = force.iterator
       .map(mapDependencies.getOrElse(identity[Dependency](_)))
       .map { d => d.module -> d.version }
       .toMap
 
-    val start0 = Resolution()
-      .withRootDependencies(
-        deps.iterator.map(mapDependencies.getOrElse(identity[Dependency](_))).toSeq
-      )
-      .withForceVersions(forceVersions)
-      .withMapDependencies(mapDependencies)
+    val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
 
-    val start = customizer.getOrElse(identity[Resolution](_)).apply(start0)
+    val resolutionParams = ResolutionParams()
+      .withForceVersion(forceVersions)
 
-    val resolutionLogger = ctx.map(c => new TickerResolutionLogger(c))
-    val coursierCache0 = resolutionLogger match {
-      case None => coursier.cache.FileCache[Task]().withCachePolicies(cachePolicies)
-      case Some(l) =>
-        coursier.cache.FileCache[Task]()
-          .withCachePolicies(cachePolicies)
-          .withLogger(l)
+    val resolve = Resolve()
+      .withCache(coursierCache0)
+      .withDependencies(rootDeps)
+      .withRepositories(repositories)
+      .withResolutionParams(resolutionParams)
+      .withMapDependenciesOpt(mapDependencies)
+
+    resolve.either() match {
+      case Left(error) =>
+        val cantDownloadErrors = error.errors.collect {
+          case cantDownload: CantDownloadModule => cantDownload
+        }
+        if (error.errors.length == cantDownloadErrors.length) {
+          val header =
+            s"""|
+                |Resolution failed for ${cantDownloadErrors.length} modules:
+                |--------------------------------------------
+                |""".stripMargin
+
+          val helpMessage =
+            s"""|
+                |--------------------------------------------
+                |
+                |For additional information on library dependencies, see the docs at
+                |${mill.api.BuildInfo.millDocUrl}/mill/Library_Dependencies.html""".stripMargin
+
+          val errLines = cantDownloadErrors
+            .map { err =>
+              s"  ${err.module.trim}:${err.version} \n\t" +
+                err.perRepositoryErrors.mkString("\n\t")
+            }
+            .mkString("\n")
+          val msg = header + errLines + "\n" + helpMessage + "\n"
+          Result.Failure(msg)
+        } else
+          Result.Exception(error, new Result.OuterStack((new Exception).getStackTrace))
+      case Right(resolution0) =>
+        val resolution = customizer.fold(resolution0)(_.apply(resolution0))
+        Result.Success(resolution)
     }
-    val coursierCache = coursierCacheCustomizer.getOrElse(
-      identity[coursier.cache.FileCache[Task]](_)
-    ).apply(coursierCache0)
-
-    val fetches = coursierCache.fetchs
-
-    val fetch = coursier.core.ResolutionProcess.fetch(repositories, fetches.head, fetches.tail)
-
-    import scala.concurrent.ExecutionContext.Implicits.global
-
-    val resolution =
-      retry(ctx = ctx, errorMsgExtractor = (r: Resolution) => r.errors.flatMap(_._2)) {
-        () => start.process.run(fetch).unsafeRun()
-      }
-
-    (deps.iterator.to(Seq), resolution)
   }
 
 }
@@ -270,8 +241,7 @@ object CoursierSupport {
    * In practice, this ticker output gets prefixed with the current target for which
    * dependencies are being resolved, using a [[mill.util.ProxyLogger]] subclass.
    */
-  private[CoursierSupport] class TickerResolutionLogger(ctx: Ctx.Log)
-      extends coursier.cache.CacheLogger {
+  private[CoursierSupport] class TickerResolutionLogger(ctx: Ctx.Log) extends CacheLogger {
     private[CoursierSupport] case class DownloadState(var current: Long, var total: Long)
 
     private[CoursierSupport] var downloads = new mutable.TreeMap[String, DownloadState]()

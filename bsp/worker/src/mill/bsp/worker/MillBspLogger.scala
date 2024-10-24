@@ -20,8 +20,8 @@ import mill.util.{ColorLogger, ProxyLogger}
 private class MillBspLogger(client: BuildClient, taskId: Int, logger: Logger)
     extends ProxyLogger(logger)
     with ColorLogger {
-  def infoColor = fansi.Color.Blue
-  def errorColor = fansi.Color.Red
+  override def infoColor = fansi.Color.Blue
+  override def errorColor = fansi.Color.Red
 
   override def ticker(s: String): Unit = {
     try {
@@ -47,7 +47,7 @@ private class MillBspLogger(client: BuildClient, taskId: Int, logger: Logger)
 
   override def info(s: String): Unit = {
     super.info(s)
-    client.onBuildShowMessage(new ShowMessageParams(MessageType.INFORMATION, s))
+    client.onBuildShowMessage(new ShowMessageParams(MessageType.INFO, s))
   }
 
   override def debug(s: String): Unit = {

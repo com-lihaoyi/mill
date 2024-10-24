@@ -2,9 +2,10 @@ package mill.eval
 
 import mill.api.Result.{Aborted, Failing}
 import mill.api.Strict.Agg
-import mill.api.{Ctx, _}
+import mill.api._
 import mill.define._
 import mill.eval.Evaluator.TaskResult
+import mill.main.client.OutFiles._
 import mill.util._
 
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
@@ -27,7 +28,8 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       goals: Agg[Task[_]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
-      logger: ColorLogger = baseLogger
+      logger: ColorLogger = baseLogger,
+      serialCommandExec: Boolean = false
   ): Evaluator.Results = {
     os.makeDir.all(outPath)
 
@@ -38,9 +40,9 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
       def contextLoggerMsg(threadId: Int) =
         if (effectiveThreadCount == 1) ""
-        else s"[#${if (effectiveThreadCount > 9) f"$threadId%02d" else threadId}] "
+        else s"#${if (effectiveThreadCount > 9) f"$threadId%02d" else threadId} "
 
-      try evaluate0(goals, logger, reporter, testReporter, ec, contextLoggerMsg)
+      try evaluate0(goals, logger, reporter, testReporter, ec, contextLoggerMsg, serialCommandExec)
       finally ec.close()
     }
   }
@@ -65,92 +67,168 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       logger: ColorLogger,
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
-      ec: ExecutionContext with AutoCloseable,
-      contextLoggerMsg: Int => String
+      ec: mill.api.Ctx.Fork.Impl,
+      contextLoggerMsg0: Int => String,
+      serialCommandExec: Boolean
   ): Evaluator.Results = {
-    implicit val implicitEc = ec
-
     os.makeDir.all(outPath)
-    val chromeProfileLogger = new ChromeProfileLogger(outPath / "mill-chrome-profile.json")
-    val profileLogger = new ProfileLogger(outPath / "mill-profile.json")
+    val chromeProfileLogger = new ChromeProfileLogger(outPath / millChromeProfile)
+    val profileLogger = new ProfileLogger(outPath / millProfile)
     val threadNumberer = new ThreadNumberer()
     val (sortedGroups, transitive) = Plan.plan(goals)
     val interGroupDeps = findInterGroupDeps(sortedGroups)
-    val terminals = sortedGroups.keys().toVector
+    val terminals0 = sortedGroups.keys().toVector
     val failed = new AtomicBoolean(false)
     val count = new AtomicInteger(1)
 
     val futures = mutable.Map.empty[Terminal, Future[Option[GroupEvaluator.Results]]]
 
-    // We walk the task graph in topological order and schedule the futures
-    // to run asynchronously. During this walk, we store the scheduled futures
-    // in a dictionary. When scheduling each future, we are guaranteed that the
-    // necessary upstream futures will have already been scheduled and stored,
-    // due to the topological order of traversal.
-    for (terminal <- terminals) {
-      val deps = interGroupDeps(terminal)
-      futures(terminal) = Future.sequence(deps.map(futures)).map { upstreamValues =>
-        if (failed.get()) None
-        else {
-          val upstreamResults = upstreamValues
-            .iterator
-            .flatMap(_.iterator.flatMap(_.newResults))
-            .toMap
+    // Prepare a lookup tables up front of all the method names that each class owns,
+    // and the class hierarchy, so during evaluation it is cheap to look up what class
+    // each target belongs to determine of the enclosing class code signature changed.
+    val (classToTransitiveClasses, allTransitiveClassMethods) =
+      precomputeMethodNamesPerClass(sortedGroups)
 
-          val startTime = System.currentTimeMillis()
-          val threadId = threadNumberer.getThreadId(Thread.currentThread())
-          val counterMsg = s"${count.getAndIncrement()}/${terminals.size}"
-          val contextLogger = PrefixLogger(
-            out = logger,
-            context = contextLoggerMsg(threadId),
-            tickerContext = GroupEvaluator.dynamicTickerPrefix.value
+    def evaluateTerminals(
+        terminals: Seq[Terminal],
+        forkExecutionContext: mill.api.Ctx.Fork.Impl,
+        exclusive: Boolean
+    ) = {
+      implicit val taskExecutionContext =
+        if (exclusive) ExecutionContexts.RunNow else forkExecutionContext
+      // We walk the task graph in topological order and schedule the futures
+      // to run asynchronously. During this walk, we store the scheduled futures
+      // in a dictionary. When scheduling each future, we are guaranteed that the
+      // necessary upstream futures will have already been scheduled and stored,
+      // due to the topological order of traversal.
+      for (terminal <- terminals) {
+        val deps = interGroupDeps(terminal)
+        futures(terminal) = Future.sequence(deps.map(futures)).map { upstreamValues =>
+          val countMsg = mill.util.Util.leftPad(
+            count.getAndIncrement().toString,
+            terminals.length.toString.length,
+            '0'
           )
 
-          val res = evaluateGroupCached(
-            terminal = terminal,
-            group = sortedGroups.lookupKey(terminal),
-            results = upstreamResults,
-            counterMsg = counterMsg,
-            zincProblemReporter = reporter,
-            testReporter = testReporter,
-            logger = contextLogger
-          )
+          val verboseKeySuffix = s"/${terminals0.size}"
+          logger.setPromptHeaderPrefix(s"$countMsg$verboseKeySuffix")
+          if (failed.get()) None
+          else {
+            val upstreamResults = upstreamValues
+              .iterator
+              .flatMap(_.iterator.flatMap(_.newResults))
+              .toMap
 
-          if (failFast && res.newResults.values.exists(_.result.asSuccess.isEmpty))
-            failed.set(true)
+            val startTime = System.nanoTime() / 1000
+            val targetLabel = terminal match {
+              case Terminal.Task(task) => None
+              case t: Terminal.Labelled[_] => Some(Terminal.printTerm(t))
+            }
 
-          val endTime = System.currentTimeMillis()
+            val group = sortedGroups.lookupKey(terminal)
 
-          chromeProfileLogger.log(
-            task = Terminal.printTerm(terminal),
-            cat = "job",
-            startTime = startTime,
-            endTime = endTime,
-            threadId = threadNumberer.getThreadId(Thread.currentThread()),
-            cached = res.cached
-          )
+            // should we log progress?
+            val logRun = targetLabel.isDefined && {
+              val inputResults = for {
+                target <- group.indexed.filterNot(upstreamResults.contains)
+                item <- target.inputs.filterNot(group.contains)
+              } yield upstreamResults(item).map(_._1)
+              inputResults.forall(_.result.isInstanceOf[Result.Success[_]])
+            }
 
-          profileLogger.log(
-            ProfileLogger.Timing(
-              terminal.render,
-              (endTime - startTime).toInt,
-              res.cached,
-              deps.map(_.render),
-              res.inputsHash,
-              res.previousInputsHash
+            val tickerPrefix = terminal.render.collect {
+              case targetLabel if logRun && logger.enableTicker => targetLabel
+            }
+
+            val contextLogger = new PrefixLogger(
+              logger0 = logger,
+              key0 = if (!logger.enableTicker) Nil else Seq(countMsg),
+              verboseKeySuffix = verboseKeySuffix,
+              message = tickerPrefix,
+              noPrefix = exclusive
             )
-          )
 
-          Some(res)
+            val res = evaluateGroupCached(
+              terminal = terminal,
+              group = sortedGroups.lookupKey(terminal),
+              results = upstreamResults,
+              countMsg = countMsg,
+              verboseKeySuffix = verboseKeySuffix,
+              zincProblemReporter = reporter,
+              testReporter = testReporter,
+              logger = contextLogger,
+              classToTransitiveClasses,
+              allTransitiveClassMethods,
+              forkExecutionContext,
+              exclusive
+            )
+
+            if (failFast && res.newResults.values.exists(_.result.asSuccess.isEmpty))
+              failed.set(true)
+
+            val endTime = System.nanoTime() / 1000
+
+            val duration = endTime - startTime
+
+            chromeProfileLogger.log(
+              task = Terminal.printTerm(terminal),
+              cat = "job",
+              startTime = startTime,
+              duration = duration,
+              threadId = threadNumberer.getThreadId(Thread.currentThread()),
+              cached = res.cached
+            )
+
+            profileLogger.log(
+              ProfileLogger.Timing(
+                terminal.render,
+                (duration / 1000).toInt,
+                res.cached,
+                deps.map(_.render),
+                res.inputsHash,
+                res.previousInputsHash
+              )
+            )
+
+            Some(res)
+          }
         }
       }
+
+      // Make sure we wait for all tasks from this batch to finish before starting the next
+      // one, so we don't mix up exclusive and non-exclusive tasks running at the same time
+      terminals.map(t => (t, Await.result(futures(t), duration.Duration.Inf)))
     }
 
-    val finishedOptsMap = terminals
-      .map(t => (t, Await.result(futures(t), duration.Duration.Inf)))
-      .toMap
+    val tasks0 = terminals0.filter {
+      case Terminal.Labelled(c: Command[_], _) => false
+      case _ => true
+    }
 
-    val results0: Vector[(Task[_], TaskResult[(Val, Int)])] = terminals
+    val (_, tasksTransitive0) = Plan.plan(Agg.from(tasks0.map(_.task)))
+
+    val tasksTransitive = tasksTransitive0.toSet
+    val (tasks, leafExclusiveCommands) = terminals0.partition {
+      case Terminal.Labelled(t, _) =>
+        if (tasksTransitive.contains(t)) true
+        else t match {
+          case t: Command[_] => !t.exclusive
+          case _ => false
+        }
+      case _ => !serialCommandExec
+    }
+
+    // Run all non-command tasks according to the threads
+    // given but run the commands in linear order
+    val nonExclusiveResults = evaluateTerminals(tasks, ec, exclusive = false)
+
+    val exclusiveResults = evaluateTerminals(leafExclusiveCommands, ec, exclusive = true)
+
+    logger.clearPromptStatuses()
+
+    val finishedOptsMap = (nonExclusiveResults ++ exclusiveResults).toMap
+
+    val results0: Vector[(Task[_], TaskResult[(Val, Int)])] = terminals0
       .flatMap { t =>
         sortedGroups.lookupKey(t).flatMap { t0 =>
           finishedOptsMap(t) match {
@@ -167,11 +245,56 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
     EvaluatorCore.Results(
       goals.indexed.map(results(_).map(_._1).result),
-      finishedOptsMap.map(_._2).flatMap(_.toSeq.flatMap(_.newEvaluated)),
+      // result of flatMap may contain non-distinct entries,
+      // so we manually clean it up before converting to a `Strict.Agg`
+      // see https://github.com/com-lihaoyi/mill/issues/2958
+      Strict.Agg.from(
+        finishedOptsMap.values.flatMap(_.toSeq.flatMap(_.newEvaluated)).iterator.distinct
+      ),
       transitive,
       getFailing(sortedGroups, results),
       results.map { case (k, v) => (k, v.map(_._1)) }
     )
+  }
+
+  private def precomputeMethodNamesPerClass(sortedGroups: MultiBiMap[Terminal, Task[_]]) = {
+    def resolveTransitiveParents(c: Class[_]): Iterator[Class[_]] = {
+      Iterator(c) ++
+        Option(c.getSuperclass).iterator.flatMap(resolveTransitiveParents) ++
+        c.getInterfaces.iterator.flatMap(resolveTransitiveParents)
+    }
+
+    val classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]] = sortedGroups
+      .values()
+      .flatten
+      .collect { case namedTask: NamedTask[?] => namedTask.ctx.enclosingCls }
+      .map(cls => cls -> resolveTransitiveParents(cls).toVector)
+      .toMap
+
+    val allTransitiveClasses = classToTransitiveClasses
+      .iterator
+      .flatMap(_._2)
+      .toSet
+
+    val allTransitiveClassMethods: Map[Class[?], Map[String, java.lang.reflect.Method]] =
+      allTransitiveClasses
+        .map { cls =>
+          val cMangledName = cls.getName.replace('.', '$')
+          cls -> cls.getDeclaredMethods
+            .flatMap { m =>
+              Seq(
+                m.getName -> m,
+                // Handle scenarios where private method names get mangled when they are
+                // not really JVM-private due to being accessed by Scala nested objects
+                // or classes https://github.com/scala/bug/issues/9306
+                m.getName.stripPrefix(cMangledName + "$$") -> m,
+                m.getName.stripPrefix(cMangledName + "$") -> m
+              )
+            }.toMap
+        }
+        .toMap
+
+    (classToTransitiveClasses, allTransitiveClassMethods)
   }
 
   private def findInterGroupDeps(sortedGroups: MultiBiMap[Terminal, Task[_]])

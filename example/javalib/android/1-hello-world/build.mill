@@ -1,0 +1,54 @@
+// This section sets up a basic Android project using Mill. 
+// We utilize `AndroidAppModule` and `AndroidSdkModule` to streamline the process of 
+// building an Android application with minimal configuration.
+//
+// By extending `AndroidAppModule`, we inherit all Android-related tasks such as 
+// resource generation, APK building, DEX conversion, and APK signing. 
+// Additionally, `AndroidSdkModule` is embedded, making SDK management seamless.
+
+//// SNIPPET:BUILD
+package build
+
+import mill._
+import mill.javalib.android.{AndroidAppModule, AndroidSdkModule}
+
+// Create and configure an Android SDK module to manage Android SDK paths and tools.
+object androidSdkModule0 extends AndroidSdkModule{
+  def buildToolsVersion = "35.0.0"
+}
+
+// Actual android application
+object app extends AndroidAppModule {
+  def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+}
+
+////SNIPPET:END
+
+
+/** Usage
+
+> ./mill show app.androidApk
+".../out/app/androidApk.dest/app.apk"
+
+*/
+
+// This command triggers the build process, which installs the Android Setup, compiles the Java 
+// code, generates Android resources, converts Java bytecode to DEX format, packages everything 
+// into an APK, optimizes the APK using `zipalign`, and finally signs it.
+//
+// This Mill build configuration is designed to build a simple "Hello World" Android application. 
+// By extending `AndroidAppModule`, we leverage its predefined Android build tasks, ensuring that 
+// all necessary steps (resource generation, APK creation, and signing) are executed automatically.
+// 
+// ### Project Structure:
+// The project follows the standard Android app layout. Below is a typical project folder structure:
+//
+// ----
+// .
+// ├── build.mill
+// ├── AndroidManifest.xml
+// └── src/main/java
+//     └── com/helloworld/app
+//         └── MainActivity.java
+// ----
+//

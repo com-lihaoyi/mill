@@ -1,0 +1,49 @@
+{
+  "items": [
+    {
+      "target": {
+        "uri": "file:///workspace/hello-java"
+      },
+      "classpath": [
+        "file:///workspace/hello-java/compile-resources",
+        "file:///workspace/hello-java/resources",
+        "file:///workspace/out/hello-java/compile.dest/classes"
+      ],
+      "jvmOptions": [],
+      "workingDirectory": "/workspace",
+      "environmentVariables": {},
+      "mainClasses": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-kotlin"
+      },
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/<kotlin-version>/kotlin-stdlib-<kotlin-version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/jetbrains/annotations/<annotations-version>/annotations-<annotations-version>.jar",
+        "file:///workspace/hello-kotlin/compile-resources",
+        "file:///workspace/hello-kotlin/resources",
+        "file:///workspace/out/hello-kotlin/compile.dest/classes"
+      ],
+      "jvmOptions": [],
+      "workingDirectory": "/workspace",
+      "environmentVariables": {},
+      "mainClasses": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-scala"
+      },
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
+        "file:///workspace/hello-scala/compile-resources",
+        "file:///workspace/hello-scala/resources",
+        "file:///workspace/out/hello-scala/compile.dest/classes"
+      ],
+      "jvmOptions": [],
+      "workingDirectory": "/workspace",
+      "environmentVariables": {},
+      "mainClasses": []
+    }
+  ]
+}

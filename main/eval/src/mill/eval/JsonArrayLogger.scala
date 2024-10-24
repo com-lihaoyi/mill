@@ -6,6 +6,7 @@ import java.nio.file.{Files, StandardOpenOption}
 private class JsonArrayLogger[T: upickle.default.Writer](outPath: os.Path, indent: Int) {
   private var used = false
 
+  val indentStr: String = " " * indent
   private lazy val traceStream = {
     val options = Seq(
       Seq(StandardOpenOption.CREATE, StandardOpenOption.WRITE),
@@ -15,13 +16,13 @@ private class JsonArrayLogger[T: upickle.default.Writer](outPath: os.Path, inden
     new PrintStream(Files.newOutputStream(outPath.toNIO, options: _*))
   }
 
-  def log(t: T) = synchronized {
+  def log(t: T): Unit = synchronized {
     if (used) traceStream.println(",")
     else traceStream.println("[")
     used = true
     val indented = upickle.default.write(t, indent = indent)
       .linesIterator
-      .map(" " * indent + _)
+      .map(indentStr + _)
       .mkString("\n")
 
     traceStream.print(indented)
@@ -59,7 +60,7 @@ private class ChromeProfileLogger(outPath: os.Path)
       task: String,
       cat: String,
       startTime: Long,
-      endTime: Long,
+      duration: Long,
       threadId: Int,
       cached: Boolean
   ): Unit = {
@@ -68,8 +69,8 @@ private class ChromeProfileLogger(outPath: os.Path)
       name = task,
       cat = cat,
       ph = "X",
-      ts = startTime * 1000,
-      dur = (endTime - startTime) * 1000 /*chrome treats the duration as microseconds*/,
+      ts = startTime,
+      dur = duration,
       pid = 1,
       tid = threadId,
       args = if (cached) Seq("cached") else Seq()

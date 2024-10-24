@@ -1,0 +1,21 @@
+// The default location for Mill's output directory is `out/` under the project workspace.
+// If you'd rather use another location than `out/`, that lives
+// in a faster or a writable filesystem for example, you can change the output directory
+// via the `MILL_OUTPUT_DIR` environment variable.
+
+package build
+
+import mill._
+
+object foo extends Module {
+  def printDest = Task {
+    println(T.dest)
+  }
+}
+
+
+/** Usage
+> MILL_OUTPUT_DIR=build-stuff/working-dir ./mill foo.printDest
+...
+.../build-stuff/working-dir/foo/printDest.dest
+*/

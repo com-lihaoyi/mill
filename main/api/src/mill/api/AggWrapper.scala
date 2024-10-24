@@ -61,7 +61,7 @@ private[mill] sealed class AggWrapper(strictUniqueness: Boolean) {
         set
       }
 
-      def newBuilder[V] = new mutable.Builder[V, Mutable[V]] {
+      def newBuilder[V]: mutable.Builder[V, Mutable[V]] = new mutable.Builder[V, Mutable[V]] {
         var mutable = new Agg.Mutable[V]()
         def clear(): Unit = { mutable = new Agg.Mutable[V]() }
         def result(): Mutable[V] = mutable
@@ -85,16 +85,15 @@ private[mill] sealed class AggWrapper(strictUniqueness: Boolean) {
         Mutable.newBuilder[V]
       }
 
-      private[this] val set0 = mutable.LinkedHashSet.empty[V]
+      private val set0 = mutable.LinkedHashSet.empty[V]
 
-      def contains(v: V) = set0.contains(v)
-      def coll = this
+      def contains(v: V): Boolean = set0.contains(v)
+      def coll: Mutable[V] = this
 
-      override def toIterable: Iterable[V] = set0.toIterable
+      override def toIterable: Iterable[V] = set0
       def append(v: V): AnyVal = {
         if (!contains(v)) {
-          set0.add(v)
-
+          return set0.add(v)
         } else if (strictUniqueness) {
           throw new Exception("Duplicated item inserted into OrderedSet: " + v)
         }
@@ -118,7 +117,9 @@ private[mill] sealed class AggWrapper(strictUniqueness: Boolean) {
 
       override def filter(f: V => Boolean): Mutable[V] = {
         val output = new Agg.Mutable[V]
-        for (i <- items) if (f(i)) output.append(i)
+        for (i <- items) if (f(i)) {
+          val _ = output.append(i)
+        }
         output
       }
 
@@ -148,7 +149,7 @@ private[mill] sealed class AggWrapper(strictUniqueness: Boolean) {
       def iterator: Iterator[V] = items
       override def hashCode(): Int = items.map(_.hashCode()).sum
       override def equals(other: Any): Boolean = other match {
-        case s: Agg[_] => items.sameElements(s.items)
+        case s: Agg[?] => items.sameElements(s.items)
         case _ => super.equals(other)
       }
       override def toString: String = items.mkString("Agg(", ", ", ")")

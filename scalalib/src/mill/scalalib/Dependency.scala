@@ -1,10 +1,9 @@
 package mill.scalalib
 
-import mill.T
+import mill.Task
 import mill.define.{Command, Discover, ExternalModule}
 import mill.eval.Evaluator
-import mill.main.EvaluatorTokenReader
-import mill.scalalib.dependency.DependencyUpdatesImpl
+import mill.scalalib.dependency.{DependencyUpdatesImpl, Format}
 import mill.scalalib.dependency.updates.ModuleDependenciesUpdates
 
 object Dependency extends ExternalModule {
@@ -14,7 +13,7 @@ object Dependency extends ExternalModule {
       ev: Evaluator,
       allowPreRelease: Boolean = false
   ): Command[Seq[ModuleDependenciesUpdates]] =
-    T.command {
+    Task.Command {
       DependencyUpdatesImpl(
         ev,
         implicitly,
@@ -25,9 +24,17 @@ object Dependency extends ExternalModule {
     }
 
   /** Show possible dependency updates. */
-  def showUpdates(ev: Evaluator, allowPreRelease: Boolean = false): Command[Unit] = T.command {
-    DependencyUpdatesImpl.showAllUpdates(updates(ev, allowPreRelease)())
+  def showUpdates(
+      ev: Evaluator,
+      allowPreRelease: Boolean = false,
+      format: Format = Format.PerModule
+  ): Command[Unit] = Task.Command {
+    DependencyUpdatesImpl.showAllUpdates(updates(ev, allowPreRelease)(), format)
   }
 
-  lazy val millDiscover: Discover[Dependency.this.type] = Discover[this.type]
+  @deprecated("Use other overload instead", "Mill after 0.11.6")
+  def showUpdates(ev: Evaluator, allowPreRelease: Boolean): Command[Unit] =
+    Dependency.showUpdates(ev, allowPreRelease, Format.PerModule)
+
+  lazy val millDiscover: Discover = Discover[this.type]
 }

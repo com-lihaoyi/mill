@@ -1,7 +1,6 @@
 package mill.bsp
 
-import mill.api.{DummyInputStream, Logger, SystemStreams, internal}
-import mill.eval.Evaluator
+import mill.api.{DummyInputStream, Logger, SystemStreams}
 
 import java.io.PrintStream
 import scala.util.control.NonFatal
@@ -56,13 +55,18 @@ private[mill] class BspContext(
       override def info(s: String): Unit = streams.err.println(s)
       override def error(s: String): Unit = streams.err.println(s)
       override def ticker(s: String): Unit = streams.err.println(s)
+      override def setPromptDetail(key: Seq[String], s: String): Unit = streams.err.println(s)
       override def debug(s: String): Unit = streams.err.println(s)
+
       override def debugEnabled: Boolean = true
+
+      override def rawOutputStream: PrintStream = systemStreams.out
     }
 
-    BspWorker(os.pwd, home, log).flatMap { worker =>
+    BspWorker(mill.api.WorkspaceRoot.workspaceRoot, home, log).flatMap { worker =>
       os.makeDir.all(home / Constants.bspDir)
       worker.startBspServer(
+        mill.api.WorkspaceRoot.workspaceRoot,
         streams,
         logStream.getOrElse(streams.err),
         home / Constants.bspDir,

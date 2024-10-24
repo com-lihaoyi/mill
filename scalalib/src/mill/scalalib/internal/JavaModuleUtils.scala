@@ -1,6 +1,6 @@
 package mill.scalalib.internal
 
-import mill.define.{Module, Segments}
+import mill.define.Module
 import mill.scalalib.JavaModule
 
 @mill.api.internal
@@ -15,7 +15,7 @@ object JavaModuleUtils {
         found
       else {
         val subMods = mod.millModuleDirectChildren ++ (mod match {
-          case jm: JavaModule => jm.moduleDeps ++ jm.compileModuleDeps
+          case jm: JavaModule => jm.moduleDepsChecked ++ jm.compileModuleDepsChecked
           case other => Seq.empty
         })
         subMods.foldLeft(found ++ Seq(mod)) { (all, mod) => loop(mod, all) }

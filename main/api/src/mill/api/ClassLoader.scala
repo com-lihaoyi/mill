@@ -13,7 +13,7 @@ import scala.util.Try
  */
 object ClassLoader {
 
-  def java9OrAbove = !System.getProperty("java.specification.version").startsWith("1.")
+  def java9OrAbove: Boolean = !System.getProperty("java.specification.version").startsWith("1.")
 
   def create(
       urls: Seq[URL],
@@ -26,7 +26,7 @@ object ClassLoader {
       makeUrls(urls).toArray,
       refinePlatformParent(parent)
     ) {
-      override def findClass(name: String): Class[_] = {
+      override def findClass(name: String): Class[?] = {
         if (sharedPrefixes.exists(name.startsWith)) {
           logger.foreach(
             _.debug(s"About to load class [${name}] from shared classloader [${sharedLoader}]")

@@ -13,59 +13,68 @@ import ch.epfl.scala.bsp4j.{
   ScalacOptionsParams,
   ScalacOptionsResult
 }
-import mill.{Agg, T}
+import mill.{Agg, Task}
 import mill.bsp.worker.Utils.sanitizeUri
 import mill.util.Jvm
-import mill.scalalib.{JavaModule, ScalaModule, SemanticDbJavaModule, TestModule}
-import mill.testrunner.{Framework, TestRunner, TestRunnerUtils}
+import mill.scalalib.{JavaModule, ScalaModule, TestModule, UnresolvedPath}
+import mill.testrunner.{Framework, TestRunnerUtils}
 import sbt.testing.Fingerprint
 
 import java.util.concurrent.CompletableFuture
 import scala.jdk.CollectionConverters._
+import scala.util.chaining.scalaUtilChainingOps
 
 private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildServer =>
 
   override def buildTargetScalacOptions(p: ScalacOptionsParams)
       : CompletableFuture[ScalacOptionsResult] =
     completableTasks(
-      hint = s"buildTargetScalacOptions ${p}",
+      hint = s"buildTarget/scalacOptions ${p}",
       targetIds = _ => p.getTargets.asScala.toSeq,
       tasks = {
-        case m: ScalaModule =>
-          val classesPathTask = m match {
-            case sem: SemanticDbJavaModule if clientWantsSemanticDb =>
-              sem.bspCompiledClassesAndSemanticDbFiles
-            case _ => m.bspCompileClassesPath
-          }
-
-          T.task((m.allScalacOptions(), m.bspCompileClasspath(), classesPathTask()))
-
         case m: JavaModule =>
-          val classesPathTask = m match {
-            case sem: SemanticDbJavaModule if clientWantsSemanticDb =>
-              sem.bspCompiledClassesAndSemanticDbFiles
-            case _ => m.bspCompileClassesPath
+          val scalacOptionsTask = m match {
+            case m: ScalaModule => m.allScalacOptions
+            case _ => Task.Anon { Seq.empty[String] }
           }
-          T.task { (Nil, Nil, classesPathTask()) }
+
+          val compileClasspathTask =
+            if (enableJvmCompileClasspathProvider) {
+              // We have a dedicated request for it
+              Task.Anon { Agg.empty[UnresolvedPath] }
+            } else {
+              m.bspCompileClasspath
+            }
+
+          val classesPathTask =
+            if (clientWantsSemanticDb) {
+              m.bspCompiledClassesAndSemanticDbFiles
+            } else {
+              m.bspCompileClassesPath
+            }
+
+          Task.Anon {
+            (scalacOptionsTask(), compileClasspathTask(), classesPathTask())
+          }
       }
     ) {
+      // We ignore all non-JavaModule
       case (
             ev,
             state,
             id,
             m: JavaModule,
-            (allScalacOptions, bspCompileClsaspath, classesPathTask)
+            (allScalacOptions, compileClasspath, classesPathTask)
           ) =>
         val pathResolver = ev.pathsResolver
         new ScalacOptionsItem(
           id,
           allScalacOptions.asJava,
-          bspCompileClsaspath.iterator
+          compileClasspath.iterator
             .map(_.resolve(pathResolver))
             .map(sanitizeUri).toSeq.asJava,
           sanitizeUri(classesPathTask.resolve(pathResolver))
         )
-
     } {
       new ScalacOptionsResult(_)
     }
@@ -73,10 +82,10 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
   override def buildTargetScalaMainClasses(p: ScalaMainClassesParams)
       : CompletableFuture[ScalaMainClassesResult] =
     completableTasks(
-      hint = "buildTargetScalaMainClasses",
+      hint = "buildTarget/scalaMainClasses",
       targetIds = _ => p.getTargets.asScala.toSeq,
       tasks = { case m: JavaModule =>
-        T.task((m.zincWorker().worker(), m.compile(), m.forkArgs(), m.forkEnv()))
+        Task.Anon((m.zincWorker().worker(), m.compile(), m.forkArgs(), m.forkEnv()))
       }
     ) {
       case (ev, state, id, m: JavaModule, (worker, compile, forkArgs, forkEnv)) =>
@@ -99,16 +108,16 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
   override def buildTargetScalaTestClasses(p: ScalaTestClassesParams)
       : CompletableFuture[ScalaTestClassesResult] =
     completableTasks(
-      s"buildTargetScalaTestClasses ${p}",
+      s"buildTarget/scalaTestClasses ${p}",
       targetIds = _ => p.getTargets.asScala.toSeq,
       tasks = {
         case m: TestModule =>
-          T.task(Some(m.runClasspath(), m.testFramework(), m.compile()))
+          Task.Anon(Some((m.runClasspath(), m.testFramework(), m.testClasspath())))
         case _ =>
-          T.task(None)
+          Task.Anon(None)
       }
     ) {
-      case (ev, state, id, m: TestModule, Some((classpath, testFramework, compResult))) =>
+      case (ev, state, id, m: TestModule, Some((classpath, testFramework, testClasspath))) =>
         val (frameworkName, classFingerprint): (String, Agg[(Class[_], Fingerprint)]) =
           Jvm.inprocess(
             classpath.map(_.path),
@@ -120,13 +129,15 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
               val discoveredTests = TestRunnerUtils.discoverTests(
                 cl,
                 framework,
-                Agg(compResult.classes.path)
+                Agg.from(testClasspath.map(_.path))
               )
               (framework.name(), discoveredTests)
             }
           )(new mill.api.Ctx.Home { def home = os.home })
         val classes = Seq.from(classFingerprint.map(classF => classF._1.getName.stripSuffix("$")))
-        new ScalaTestClassesItem(id, classes.asJava, frameworkName)
+        new ScalaTestClassesItem(id, classes.asJava).tap { it =>
+          it.setFramework(frameworkName)
+        }
       case (ev, state, id, _, _) =>
         // Not a test module, so no test classes
         new ScalaTestClassesItem(id, Seq.empty[String].asJava)

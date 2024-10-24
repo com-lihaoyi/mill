@@ -5,6 +5,7 @@ import JvmModel._
 import JType.{Cls => JCls}
 import mill.codesig.LocalSummary.ClassInfo
 import upickle.default.{ReadWriter, macroRW}
+import scala.collection.mutable
 
 case class LocalSummary(items: Map[JCls, ClassInfo]) {
   def get(cls: JCls, m: MethodSig): Option[LocalSummary.MethodInfo] =
@@ -14,7 +15,7 @@ case class LocalSummary(items: Map[JCls, ClassInfo]) {
 
   def mapValuesOnly[T](f: ClassInfo => T): Seq[T] = items.map { case (k, v) => f(v) }.toSeq
 
-  def contains(cls: JCls) = items.contains(cls)
+  def contains(cls: JCls): Boolean = items.contains(cls)
 }
 
 /**
@@ -82,10 +83,15 @@ object LocalSummary {
   }
 
   class MyClassVisitor()(implicit st: SymbolTable) extends ClassVisitor(Opcodes.ASM9) {
-    val classCallGraph = Map.newBuilder[MethodSig, Set[MethodCall]]
-    val classMethodHashes = Map.newBuilder[MethodSig, Int]
-    val classMethodPrivate = Map.newBuilder[MethodSig, Boolean]
-    val classMethodAbstract = Map.newBuilder[MethodSig, Boolean]
+    val classCallGraph
+        : mutable.Builder[(MethodSig, Set[MethodCall]), Map[MethodSig, Set[MethodCall]]] =
+      Map.newBuilder[MethodSig, Set[MethodCall]]
+    val classMethodHashes: mutable.Builder[(MethodSig, Int), Map[MethodSig, Int]] =
+      Map.newBuilder[MethodSig, Int]
+    val classMethodPrivate: mutable.Builder[(MethodSig, Boolean), Map[MethodSig, Boolean]] =
+      Map.newBuilder[MethodSig, Boolean]
+    val classMethodAbstract: mutable.Builder[(MethodSig, Boolean), Map[MethodSig, Boolean]] =
+      Map.newBuilder[MethodSig, Boolean]
     var clsType: JCls = null
     var directSuperClass: Option[JCls] = None
     var directAncestors: Set[JCls] = Set()
@@ -124,28 +130,28 @@ object LocalSummary {
       descriptor: String,
       access: Int
   )(implicit st: SymbolTable) extends MethodVisitor(Opcodes.ASM9) {
-    val outboundCalls = collection.mutable.Set.empty[MethodCall]
-    val labelIndices = collection.mutable.Map.empty[Label, Int]
-    val jumpList = collection.mutable.Buffer.empty[Label]
+    val outboundCalls: mutable.Set[MethodCall] = collection.mutable.Set.empty[MethodCall]
+    val labelIndices: mutable.Map[Label, Int] = collection.mutable.Map.empty[Label, Int]
+    val jumpList: mutable.Buffer[Label] = collection.mutable.Buffer.empty[Label]
 
-    val methodSig = st.MethodSig(
+    val methodSig: MethodSig = st.MethodSig(
       (access & Opcodes.ACC_STATIC) != 0,
       name,
       st.Desc.read(descriptor)
     )
 
-    val insnSigs = collection.mutable.ArrayBuffer.empty[Int]
+    val insnSigs: mutable.ArrayBuffer[Int] = collection.mutable.ArrayBuffer.empty[Int]
 
     var insnHash = 0
 
     def hash(x: Int): Unit = insnHash = scala.util.hashing.MurmurHash3.mix(insnHash, x)
 
-    def completeHash() = {
+    def completeHash(): Unit = {
       insnSigs.append(scala.util.hashing.MurmurHash3.finalizeHash(0, insnHash))
       insnHash = 0
     }
 
-    def clinitCall(desc: String) = JType.read(desc) match {
+    def clinitCall(desc: String): Unit = JType.read(desc) match {
       case descCls: JType.Cls if descCls != currentCls =>
         storeCallEdge(
           st.MethodCall(descCls, InvokeType.Static, "<clinit>", st.Desc.read("()V"))
@@ -265,38 +271,42 @@ object LocalSummary {
         descriptor: String,
         isInterface: Boolean
     ): Unit = {
-      val call = st.MethodCall(
-        JCls.fromSlashed(owner),
-        opcode match {
-          case Opcodes.INVOKESTATIC => InvokeType.Static
-          case Opcodes.INVOKESPECIAL => InvokeType.Special
-          case Opcodes.INVOKEVIRTUAL => InvokeType.Virtual
-          case Opcodes.INVOKEINTERFACE => InvokeType.Virtual
-        },
-        name,
-        st.Desc.read(descriptor)
-      )
+      // Skip analyzing array methods like `.clone()` or `.hashCode()`, since they always
+      // provided by the standard library and do not contribute to the program's call graph
+      if (owner(0) != '[') {
+        val call = st.MethodCall(
+          JCls.fromSlashed(owner),
+          opcode match {
+            case Opcodes.INVOKESTATIC => InvokeType.Static
+            case Opcodes.INVOKESPECIAL => InvokeType.Special
+            case Opcodes.INVOKEVIRTUAL => InvokeType.Virtual
+            case Opcodes.INVOKEINTERFACE => InvokeType.Virtual
+          },
+          name,
+          st.Desc.read(descriptor)
+        )
 
-      // HACK: we skip any constants that get passed to `sourcecode.Line()`,
-      // because we use that extensively in definig Mill targets but it is
-      // generally not something we want to affect the output of a build
-      val sourcecodeLineCall = st.MethodCall(
-        JCls.fromSlashed("sourcecode/Line"),
-        InvokeType.Special,
-        "<init>",
-        st.Desc.read("(I)V")
-      )
-      if (call == sourcecodeLineCall) discardPreviousInsn()
+        // HACK: we skip any constants that get passed to `sourcecode.Line()`,
+        // because we use that extensively in definig Mill targets but it is
+        // generally not something we want to affect the output of a build
+        val sourcecodeLineCall = st.MethodCall(
+          JCls.fromSlashed("sourcecode/Line"),
+          InvokeType.Special,
+          "<init>",
+          st.Desc.read("(I)V")
+        )
+        if (call == sourcecodeLineCall) discardPreviousInsn()
 
-      hash(opcode)
-      hash(name.hashCode)
-      hash(owner.hashCode)
-      hash(descriptor.hashCode)
-      hash(isInterface.hashCode)
+        hash(opcode)
+        hash(name.hashCode)
+        hash(owner.hashCode)
+        hash(descriptor.hashCode)
+        hash(isInterface.hashCode)
 
-      storeCallEdge(call)
-      clinitCall(owner)
-      completeHash()
+        storeCallEdge(call)
+        clinitCall(owner)
+        completeHash()
+      }
     }
 
     override def visitMultiANewArrayInsn(descriptor: String, numDimensions: Int): Unit = {

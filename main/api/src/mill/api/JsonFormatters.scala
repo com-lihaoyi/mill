@@ -1,16 +1,29 @@
 package mill.api
 
+import os.Path
 import upickle.default.{ReadWriter => RW}
 
 import scala.reflect.ClassTag
 import scala.util.matching.Regex
 
-object JsonFormatters extends JsonFormatters
+object JsonFormatters extends JsonFormatters {
+  private object PathTokensReader0 extends mainargs.TokensReader.Simple[os.Path] {
+    def shortName = "path"
+    def read(strs: Seq[String]): Either[String, Path] =
+      Right(os.Path(strs.last, WorkspaceRoot.workspaceRoot))
+  }
+}
 
 /**
  * Defines various default JSON formatters used in mill.
  */
 trait JsonFormatters {
+
+  /**
+   * Additional [[mainargs.TokensReader]] instance to teach it how to read Ammonite paths
+   */
+  implicit def PathTokensReader: mainargs.TokensReader[os.Path] = JsonFormatters.PathTokensReader0
+
   implicit val pathReadWrite: RW[os.Path] = upickle.default.readwriter[String]
     .bimap[os.Path](
       _.toString,
@@ -49,7 +62,7 @@ trait JsonFormatters {
         )
     )
 
-  implicit def enumFormat[T <: java.lang.Enum[_]: ClassTag]: RW[T] =
+  implicit def enumFormat[T <: java.lang.Enum[?]: ClassTag]: RW[T] =
     upickle.default.readwriter[String].bimap(
       _.name(),
       (s: String) =>

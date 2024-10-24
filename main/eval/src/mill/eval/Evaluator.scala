@@ -2,10 +2,11 @@ package mill.eval
 
 import mill.api.{CompileProblemReporter, DummyTestReporter, Result, TestReporter, Val}
 import mill.api.Strict.Agg
-import mill.define.{BaseModule, NamedTask, Segments, Task}
+import mill.define.{BaseModule, Segments, Task}
 import mill.eval.Evaluator.{Results, formatFailing}
 import mill.util.{ColorLogger, MultiBiMap}
 
+import scala.annotation.nowarn
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
 import scala.util.DynamicVariable
@@ -20,18 +21,43 @@ trait Evaluator {
   def outPath: os.Path
   def externalOutPath: os.Path
   def pathsResolver: EvaluatorPathsResolver
+  // TODO In 0.13.0, workerCache should have the type of mutableWorkerCache,
+  // while the latter should be removed
   def workerCache: collection.Map[Segments, (Int, Val)]
+  private[mill] final def mutableWorkerCache: collection.mutable.Map[Segments, (Int, Val)] =
+    workerCache match {
+      case mut: collection.mutable.Map[Segments, (Int, Val)] => mut
+      case _ => sys.error("Evaluator#workerCache must be a mutable map")
+    }
   def disableCallgraphInvalidation: Boolean = false
+
+  @deprecated(
+    "Binary compatibility shim. Use overload with parameter serialCommandExec=false instead",
+    "Mill 0.12.0-RC1"
+  )
+  def evaluate(
+      goals: Agg[Task[_]],
+      reporter: Int => Option[CompileProblemReporter],
+      testReporter: TestReporter,
+      logger: ColorLogger
+  ): Evaluator.Results = evaluate(goals, reporter, testReporter, logger, serialCommandExec = false)
+
   def evaluate(
       goals: Agg[Task[_]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
-      logger: ColorLogger = baseLogger
-  ): Evaluator.Results
+      logger: ColorLogger = baseLogger,
+      serialCommandExec: Boolean = false
+  ): Evaluator.Results = {
+    // TODO: cleanup once we break bin-compat in Mill 0.13
+    // this method should be abstract, but to preserve bin-compat, we default-implement
+    // by delegating to an binary pre-existing overload, by ignoring the new parameters
+    evaluate(goals, reporter, testReporter, logger): @nowarn("cat=deprecation")
+  }
 
   def withBaseLogger(newBaseLogger: ColorLogger): Evaluator
   def withFailFast(newFailFast: Boolean): Evaluator
-
+  def allowPositionalCommandArgs: Boolean = false
   def plan(goals: Agg[Task[_]]): (MultiBiMap[Terminal, Task[_]], Agg[Task[_]])
 
   /**
@@ -55,7 +81,7 @@ object Evaluator {
   }
 
   case class TaskResult[T](result: Result[T], recalc: () => Result[T]) {
-    def map[V](f: T => V) = TaskResult[V](
+    def map[V](f: T => V): TaskResult[V] = TaskResult[V](
       result.map(f),
       () => recalc().map(f)
     )
@@ -79,8 +105,9 @@ object Evaluator {
     (for ((k, fs) <- evaluated.failing.items())
       yield {
         val fss = fs.map {
-          case ex: Result.Exception => ex.toString
           case Result.Failure(t, _) => t
+          case Result.Exception(Result.Failure(t, _), _) => t
+          case ex: Result.Exception => ex.toString
         }
         s"${k.render} ${fss.iterator.mkString(", ")}"
       }).mkString("\n")

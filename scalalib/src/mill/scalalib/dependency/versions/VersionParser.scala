@@ -1,6 +1,7 @@
 package mill.scalalib.dependency.versions
 
-import fastparse._, NoWhitespace._
+import fastparse._
+import fastparse.NoWhitespace._
 
 private[dependency] object VersionParser {
 
@@ -26,5 +27,5 @@ private[dependency] object VersionParser {
     }
 
   def parse(text: String): Parsed[(Seq[Long], Seq[String], Seq[String])] =
-    fastparse.parse(text, versionParser(_))
+    fastparse.parse(text, versionParser(using _))
 }

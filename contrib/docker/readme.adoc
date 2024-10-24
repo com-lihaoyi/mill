@@ -7,9 +7,10 @@ Requires the docker CLI to be installed.
 
 In the simplest configuration just extend `DockerModule` and declare a `DockerConfig` object.
 
-.`build.sc`
+.`build.mill`
 [source,scala]
 ----
+package build
 import mill._, scalalib._
 
 import $ivy.`com.lihaoyi::mill-contrib-docker:$MILL_VERSION`
@@ -53,6 +54,8 @@ object docker extends DockerConfig {
   def volumes = Seq("/v1", "/v2")
   // Environment variables to be set in the container (ENV instructions)
   def envVars = Map("foo" -> "bar", "foobar" -> "barfoo")
+  // JVM runtime options such as heap size settings
+  def jvmOptions = Seq("-Xmx1024M", "-XX:+HeapDumpOnOutOfMemoryError")
   // Add RUN instructions
   def run = Seq(
     "/bin/bash -c 'echo Hello World!'",
@@ -62,7 +65,11 @@ object docker extends DockerConfig {
   def user = "new-user"
   // Optionally override the docker executable to use something else
   def executable = "podman"
+  // If the executable is docker (which is also the default), you can optionally also pass a platform parameter
+  // docker buildx is then used to build multi-platform images
+  def platform = "linux/arm64"
 }
 ----
+
 
 Run mill in interactive mode to see the docker client output, like `mill -i foo.docker.build`.

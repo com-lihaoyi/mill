@@ -1,5 +1,5 @@
 package mill.api
 
 class Lazy[T](t: () => T) {
-  lazy val value = t()
+  lazy val value: T = t()
 }

@@ -3,7 +3,8 @@ package mill.main.client;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -12,8 +13,25 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
+import java.util.LinkedList;
+import java.util.Scanner;
 
 public class Util {
+    // use methods instead of constants to avoid inlining by compiler
+    public static final int ExitClientCodeCannotReadFromExitCodeFile() {
+        return 1;
+    }
+
+    public static final int ExitServerCodeWhenIdle() {
+        return 0;
+    }
+
+    public static final int ExitServerCodeWhenVersionMismatch() {
+        return 101;
+    }
+
+
     public static boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
     public static boolean isJava9OrAbove = !System.getProperty("java.specification.version").startsWith("1.");
     private static Charset utf8 = Charset.forName("UTF-8");
@@ -112,6 +130,29 @@ public class Util {
         md.update(pathBytes);
         byte[] digest = md.digest();
         return Base64.getEncoder().encodeToString(digest);
+    }
+
+    /**
+     * Reads a file, ignoring empty or comment lines
+     *
+     * @return The non-empty lines of the files or an empty list, if the file does not exists
+     */
+    public static List<String> readOptsFileLines(final File file) {
+        final List<String> vmOptions = new LinkedList<>();
+        try (
+                final Scanner sc = new Scanner(file)
+        ) {
+            while (sc.hasNextLine()) {
+                String arg = sc.nextLine();
+                String trimmed = arg.trim();
+                if (!trimmed.isEmpty() && !trimmed.startsWith("#")) {
+                    vmOptions.add(arg);
+                }
+            }
+        } catch (FileNotFoundException e) {
+            // ignored
+        }
+        return vmOptions;
     }
 
 }

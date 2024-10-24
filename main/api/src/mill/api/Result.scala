@@ -1,5 +1,6 @@
 package mill.api
 
+import java.lang.reflect.InvocationTargetException
 import scala.language.implicitConversions
 
 /**
@@ -12,7 +13,11 @@ sealed trait Result[+T] {
   def flatMap[V](f: T => Result[V]): Result[V]
   def asSuccess: Option[Result.Success[T]] = None
   def asFailing: Option[Result.Failing[T]] = None
-
+  def getOrThrow: T = (this: @unchecked) match {
+    case Result.Success(v) => v
+    case f: Result.Failing[?] => throw f
+    // no cases for Skipped or Aborted?
+  }
 }
 
 object Result {
@@ -55,7 +60,7 @@ object Result {
    * A failed task execution.
    * @tparam T The result type of the computed task.
    */
-  sealed trait Failing[+T] extends Result[T] {
+  sealed trait Failing[+T] extends java.lang.Exception with Result[T] {
     def map[V](f: T => V): Failing[V]
     def flatMap[V](f: T => Result[V]): Failing[V]
     override def asFailing: Option[Result.Failing[T]] = Some(this)
@@ -70,8 +75,10 @@ object Result {
    */
   case class Failure[T](msg: String, value: Option[T] = None) extends Failing[T] {
     def map[V](f: T => V): Failure[V] = Result.Failure(msg, value.map(f(_)))
-    def flatMap[V](f: T => Result[V]): Failure[V] =
+    def flatMap[V](f: T => Result[V]): Failure[V] = {
       Failure(msg, value.flatMap(f(_).asSuccess.map(_.value)))
+    }
+    override def toString: String = s"Failure($msg, $value)"
   }
 
   /**
@@ -83,16 +90,21 @@ object Result {
     def map[V](f: Nothing => V): Exception = this
     def flatMap[V](f: Nothing => Result[V]): Exception = this
 
-    override def toString: String = {
+    override def toString(): String = {
       var current = List(throwable)
       while (current.head.getCause != null) {
         current = current.head.getCause :: current
       }
       current.reverse
-        .flatMap(ex =>
-          Seq(ex.toString) ++
-            ex.getStackTrace.dropRight(outerStack.value.length).map("    " + _)
-        )
+        .flatMap { ex =>
+          val elements = ex.getStackTrace.dropRight(outerStack.value.length)
+          val formatted =
+            // for some reason .map without the explicit ArrayOps conversion doesn't work,
+            // and results in `Result[String]` instead of `Array[String]`
+            new scala.collection.ArrayOps(elements).map("    " + _)
+          Seq(ex.toString) ++ formatted
+
+        }
         .mkString("\n")
     }
   }
@@ -102,9 +114,23 @@ object Result {
 
     override def hashCode(): Int = value.hashCode()
 
-    override def equals(obj: scala.Any) = obj match {
+    override def equals(obj: scala.Any): Boolean = obj match {
       case o: OuterStack => value.equals(o.value)
       case _ => false
     }
+  }
+
+  def catchWrapException[T](t: => T): Either[String, T] = {
+    try Right(t)
+    catch {
+      case e: InvocationTargetException =>
+        makeResultException(e.getCause, new java.lang.Exception())
+      case e: Exception => makeResultException(e, new java.lang.Exception())
+    }
+  }
+
+  def makeResultException(e: Throwable, base: java.lang.Exception): Left[String, Nothing] = {
+    val outerStack = new mill.api.Result.OuterStack(base.getStackTrace)
+    Left(mill.api.Result.Exception(e, outerStack).toString)
   }
 }

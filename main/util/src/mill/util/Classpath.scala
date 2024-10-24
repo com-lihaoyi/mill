@@ -1,13 +1,11 @@
 package mill.util
 
+import mill.api.WorkspaceRoot
+
 import java.io.File
 import java.net.URL
-import java.nio.file.{Path, Paths}
-import java.util.zip.{ZipFile, ZipInputStream}
-import mill.java9rtexport.Export
-
 import scala.collection.mutable
-import scala.util.control.NonFatal
+import scala.util.matching.Regex
 
 /**
  * Loads the jars that make up the classpath of the scala-js-fiddle
@@ -15,7 +13,7 @@ import scala.util.control.NonFatal
  * scala-compile and scalajs-tools
  */
 object Classpath {
-  val traceClasspathIssues =
+  val traceClasspathIssues: Boolean =
     sys.props
       .get("ammonite.trace-classpath")
       .exists(_.toLowerCase == "true")
@@ -56,7 +54,7 @@ object Classpath {
     } else {
       if (seenClassLoaders.contains(ClassLoader.getSystemClassLoader)) {
         for (p <- System.getProperty("java.class.path").split(File.pathSeparatorChar)) {
-          val f = os.Path(p, os.pwd)
+          val f = os.Path(p, WorkspaceRoot.workspaceRoot)
           if (os.exists(f)) files.append(f)
         }
       }
@@ -64,7 +62,7 @@ object Classpath {
     files.toVector
   }
 
-  val simpleNameRegex = "[a-zA-Z0-9_]+".r
+  val simpleNameRegex: Regex = "[a-zA-Z0-9_]+".r
 
   def allJars(classloader: ClassLoader): Seq[URL] = {
     allClassloaders(classloader)
@@ -73,7 +71,7 @@ object Classpath {
       .toSeq
   }
 
-  def allClassloaders(classloader: ClassLoader) = {
+  def allClassloaders(classloader: ClassLoader): mutable.Buffer[ClassLoader] = {
     val all = mutable.Buffer.empty[ClassLoader]
     var current = classloader
     while (current != null && current != ClassLoader.getSystemClassLoader) {

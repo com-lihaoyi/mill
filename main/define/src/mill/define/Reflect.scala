@@ -29,7 +29,6 @@ private[mill] object Reflect {
         isLegalIdentifier(n) &&
         (!noParams || m.getParameterCount == 0) &&
         (m.getModifiers & Modifier.STATIC) == 0 &&
-        (m.getModifiers & Modifier.ABSTRACT) == 0 &&
         inner.isAssignableFrom(m.getReturnType)
     } yield m
 
@@ -46,7 +45,8 @@ private[mill] object Reflect {
     //    return type, so we can identify the most specific override
     res
       .sortWith((m1, m2) =>
-        m1.getDeclaringClass.isAssignableFrom(m2.getDeclaringClass)
+        if (m1.getDeclaringClass.equals(m2.getDeclaringClass)) false
+        else m1.getDeclaringClass.isAssignableFrom(m2.getDeclaringClass)
       )
       .sortWith((m1, m2) =>
         m1.getReturnType.isAssignableFrom(m2.getReturnType)
@@ -89,4 +89,17 @@ private[mill] object Reflect {
 
     first ++ second
   }
+
+  def reflectNestedObjects02[T: ClassTag](
+      outerCls: Class[_],
+      filter: String => Boolean = Function.const(true)
+  ): Seq[(String, Class[_], Any => T)] = {
+    reflectNestedObjects0[T](outerCls, filter).map {
+      case (name, m: java.lang.reflect.Method) =>
+        (name, m.getReturnType, (outer: Any) => m.invoke(outer).asInstanceOf[T])
+      case (name, m: java.lang.reflect.Field) =>
+        (name, m.getType, (outer: Any) => m.get(outer).asInstanceOf[T])
+    }
+  }
+
 }

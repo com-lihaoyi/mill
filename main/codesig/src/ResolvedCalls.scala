@@ -113,7 +113,9 @@ object ResolvedCalls {
       val externalSamDefiners = externalSummary
         .directMethods
         .map { case (k, v) => (k, v.collect { case (sig, true) => sig }) }
-        .collect { case (k, Seq(v)) => (k, v) }
+        .collect { case (k, Seq(v)) =>
+          (k, v)
+        } // Scala 3.5.0-RC6 - can not infer MethodSig here
 
       val allSamDefiners = localSamDefiners ++ externalSamDefiners
 
@@ -125,7 +127,7 @@ object ResolvedCalls {
 
       val allSamImplementors = allSamImplementors0
         .groupMap(_._1)(_._2)
-        .mapValues(_.toSet)
+        .view.mapValues(_.toSet)
         .toMap
 
       allSamImplementors
@@ -196,7 +198,7 @@ object ResolvedCalls {
       seen.add(current)
       seenList.append(current)
 
-      for (next <- edges(current)) {
+      for (next <- edges(current).iterator) {
         if (!seen.contains(next)) queued.enqueue(next)
       }
     }

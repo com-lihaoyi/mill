@@ -1,34 +1,31 @@
 package mill.scalajslib.worker
 
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import java.io.File
+import java.nio.file.Path
 import mill.scalajslib.worker.api._
 import mill.scalajslib.worker.jsenv._
 import org.scalajs.ir.ScalaJSVersions
-import org.scalajs.linker.{
-  PathIRContainer,
-  PathIRFile,
-  PathOutputDirectory,
-  PathOutputFile,
-  StandardImpl
-}
+import org.scalajs.linker.{PathIRContainer, PathOutputDirectory, PathOutputFile, StandardImpl}
 import org.scalajs.linker.interface.{
   ESFeatures => ScalaJSESFeatures,
   ESVersion => ScalaJSESVersion,
   ModuleKind => ScalaJSModuleKind,
   OutputPatterns => ScalaJSOutputPatterns,
-  Report => ScalaJSReport,
+  Report => _,
   ModuleSplitStyle => _,
   _
 }
-import org.scalajs.logging.ScalaConsoleLogger
+import org.scalajs.logging.{Level, Logger}
 import org.scalajs.jsenv.{Input, JSEnv, RunConfig}
 import org.scalajs.testing.adapter.TestAdapter
 import org.scalajs.testing.adapter.{TestAdapterInitializer => TAI}
 
 import scala.collection.mutable
 import scala.ref.SoftReference
+
+import com.armanbilge.sjsimportmap.ImportMappedIRFile
 
 class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
   private case class LinkerInput(
@@ -39,6 +36,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       esFeatures: ESFeatures,
       moduleSplitStyle: ModuleSplitStyle,
       outputPatterns: OutputPatterns,
+      minify: Boolean,
       dest: File
   )
   private def minorIsGreaterThanOrEqual(number: Int) = ScalaJSVersions.current match {
@@ -46,15 +44,16 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
     case _ => true
   }
   private object ScalaJSLinker {
-    private val cache = mutable.Map.empty[LinkerInput, SoftReference[Linker]]
-    def reuseOrCreate(input: LinkerInput): Linker = cache.get(input) match {
-      case Some(SoftReference(linker)) => linker
+    private val irFileCache = StandardImpl.irFileCache()
+    private val cache = mutable.Map.empty[LinkerInput, SoftReference[(Linker, IRFileCache.Cache)]]
+    def reuseOrCreate(input: LinkerInput): (Linker, IRFileCache.Cache) = cache.get(input) match {
+      case Some(SoftReference((linker, irFileCacheCache))) => (linker, irFileCacheCache)
       case _ =>
-        val newLinker = createLinker(input)
-        cache.update(input, SoftReference(newLinker))
-        newLinker
+        val newResult = createLinker(input)
+        cache.update(input, SoftReference(newResult))
+        newResult
     }
-    private def createLinker(input: LinkerInput): Linker = {
+    private def createLinker(input: LinkerInput): (Linker, IRFileCache.Cache) = {
       val semantics = input.isFullLinkJS match {
         case true => Semantics.Defaults.optimized
         case false => Semantics.Defaults
@@ -101,7 +100,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
         else withESVersion_1_5_minus(scalaJSESFeatures)
 
       val useClosure = input.isFullLinkJS && input.moduleKind != ModuleKind.ESModule
-      var partialConfig = StandardConfig()
+      val partialConfig = StandardConfig()
         .withOptimizer(input.optimizer)
         .withClosureCompilerIfAvailable(useClosure)
         .withSemantics(semantics)
@@ -150,14 +149,27 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
             )
         else withModuleSplitStyle
 
-      StandardImpl.clearableLinker(withOutputPatterns)
+      val withMinify =
+        if (minorIsGreaterThanOrEqual(16)) withOutputPatterns.withMinify(input.minify)
+        else withOutputPatterns
+
+      val linker = StandardImpl.clearableLinker(withMinify)
+      val irFileCacheCache = irFileCache.newCache
+      (linker, irFileCacheCache)
+    }
+  }
+  private val logger = new Logger {
+    def log(level: Level, message: => String): Unit = {
+      System.err.println(message)
+    }
+    def trace(t: => Throwable): Unit = {
+      t.printStackTrace()
     }
   }
   def link(
-      sources: Array[File],
-      libraries: Array[File],
+      runClasspath: Seq[Path],
       dest: File,
-      main: String,
+      main: Either[String, String],
       forceOutJs: Boolean,
       testBridgeInit: Boolean,
       isFullLinkJS: Boolean,
@@ -166,13 +178,15 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       moduleKind: ModuleKind,
       esFeatures: ESFeatures,
       moduleSplitStyle: ModuleSplitStyle,
-      outputPatterns: OutputPatterns
+      outputPatterns: OutputPatterns,
+      minify: Boolean,
+      importMap: Seq[ESModuleImportMapping]
   ): Either[String, Report] = {
     // On Scala.js 1.2- we want to use the legacy mode either way since
     // the new mode is not supported and in tests we always use legacy = false
     val useLegacy = forceOutJs || !minorIsGreaterThanOrEqual(3)
     import scala.concurrent.ExecutionContext.Implicits.global
-    val linker = ScalaJSLinker.reuseOrCreate(LinkerInput(
+    val (linker, irFileCacheCache) = ScalaJSLinker.reuseOrCreate(LinkerInput(
       isFullLinkJS = isFullLinkJS,
       optimizer = optimizer,
       sourceMap = sourceMap,
@@ -180,25 +194,42 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       esFeatures = esFeatures,
       moduleSplitStyle = moduleSplitStyle,
       outputPatterns = outputPatterns,
+      minify = minify,
       dest = dest
     ))
-    val cache = StandardImpl.irFileCache().newCache
-    val sourceIRsFuture = Future.sequence(sources.toSeq.map(f => PathIRFile(f.toPath())))
-    val irContainersPairs = PathIRContainer.fromClasspath(libraries.toIndexedSeq.map(_.toPath()))
-    val libraryIRsFuture = irContainersPairs.flatMap(pair => cache.cached(pair._1))
-    val logger = new ScalaConsoleLogger
-    val mainInitializer = Option(main).map { cls =>
-      ModuleInitializer.mainMethodWithArgs(cls, "main")
-    }
+    val irContainersAndPathsFuture = PathIRContainer.fromClasspath(runClasspath)
     val testInitializer =
       if (testBridgeInit)
-        Some(ModuleInitializer.mainMethod(TAI.ModuleClassName, TAI.MainMethodName))
-      else None
-    val moduleInitializers = mainInitializer.toList ::: testInitializer.toList
+        ModuleInitializer.mainMethod(TAI.ModuleClassName, TAI.MainMethodName) :: Nil
+      else Nil
+    val moduleInitializers = main match {
+      case Right(main) =>
+        ModuleInitializer.mainMethodWithArgs(main, "main") ::
+          testInitializer
+      case _ =>
+        testInitializer
+    }
 
     val resultFuture = (for {
-      sourceIRs <- sourceIRsFuture
-      libraryIRs <- libraryIRsFuture
+      (irContainers, _) <- irContainersAndPathsFuture
+      irFiles0 <- irFileCacheCache.cached(irContainers)
+      irFiles = if (importMap.isEmpty) {
+        irFiles0
+      } else {
+        if (!minorIsGreaterThanOrEqual(16)) {
+          throw new Exception("scalaJSImportMap is not supported with Scala.js < 1.16.")
+        }
+        val remapFunction = (rawImport: String) => {
+          importMap
+            .collectFirst {
+              case ESModuleImportMapping.Prefix(prefix, replacement)
+                  if rawImport.startsWith(prefix) =>
+                s"$replacement${rawImport.stripPrefix(prefix)}"
+            }
+            .getOrElse(rawImport)
+        }
+        irFiles0.map { ImportMappedIRFile.fromIRFile(_)(remapFunction) }
+      }
       report <-
         if (useLegacy) {
           val jsFileName = "out.js"
@@ -212,7 +243,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
               .withSourceMap(PathOutputFile(sourceMapFile))
               .withSourceMapURI(java.net.URI.create(sourceMapFile.getFileName.toString))
           }
-          linker.link(sourceIRs ++ libraryIRs, moduleInitializers, linkerOutput, logger).map {
+          linker.link(irFiles, moduleInitializers, linkerOutput, logger).map {
             file =>
               Report(
                 publicModules = Seq(Report.Module(
@@ -227,7 +258,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
         } else {
           val linkerOutput = PathOutputDirectory(dest.toPath())
           linker.link(
-            sourceIRs ++ libraryIRs,
+            irFiles,
             moduleInitializers,
             linkerOutput,
             logger
@@ -260,7 +291,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
   def run(config: JsEnvConfig, report: Report): Unit = {
     val env = jsEnv(config)
     val input = jsEnvInput(report)
-    val runConfig0 = RunConfig().withLogger(new ScalaConsoleLogger)
+    val runConfig0 = RunConfig().withLogger(logger)
     val runConfig =
       if (mill.api.SystemStreams.isOriginal()) runConfig0
       else runConfig0
@@ -274,7 +305,12 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
 
           for ((std, dest, name, checkAvailable, runningCheck) <- sources) {
             val t = new Thread(
-              new mill.main.client.InputPumper(std, dest, checkAvailable, () => runningCheck()),
+              new mill.main.client.InputPumper(
+                () => std,
+                () => dest,
+                checkAvailable,
+                () => runningCheck()
+              ),
               name
             )
             t.setDaemon(true)
@@ -291,7 +327,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
   ): (() => Unit, sbt.testing.Framework) = {
     val env = jsEnv(config)
     val input = jsEnvInput(report)
-    val tconfig = TestAdapter.Config().withLogger(new ScalaConsoleLogger)
+    val tconfig = TestAdapter.Config().withLogger(logger)
 
     val adapter = new TestAdapter(env, input, tconfig)
 
@@ -301,7 +337,13 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
         .loadFrameworks(List(List(frameworkName)))
         .flatten
         .headOption
-        .getOrElse(throw new RuntimeException("Failed to get framework"))
+        .getOrElse(throw new RuntimeException(
+          """|Test framework class was not found. Please check that:
+             |- the correct Scala.js dependency of the framework is used (like ivy"group::artifact::version", instead of ivy"group::artifact:version" for JVM Scala. Note the extra : before the version.)
+             |- there are no typos in the framework class name.
+             |- the framework library is on the classpath
+             |""".stripMargin
+        ))
     )
   }
 
@@ -331,22 +373,5 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       case ModuleKind.CommonJSModule => Input.CommonJSModule(path)
     }
     Seq(input)
-  }
-}
-
-// Separating ModuleSplitStyle in a standalone object avoids
-// early classloading which fails in Scala.js versions where
-// the classes don't exist
-object ScalaJSModuleSplitStyle {
-  import org.scalajs.linker.interface.ModuleSplitStyle
-  object SmallModulesFor {
-    def apply(packages: List[String]): ModuleSplitStyle =
-      ModuleSplitStyle.SmallModulesFor(packages)
-  }
-  object FewestModules {
-    def apply(): ModuleSplitStyle = ModuleSplitStyle.FewestModules
-  }
-  object SmallestModules {
-    def apply(): ModuleSplitStyle = ModuleSplitStyle.SmallestModules
   }
 }

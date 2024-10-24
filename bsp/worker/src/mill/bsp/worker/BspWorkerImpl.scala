@@ -15,6 +15,7 @@ import scala.concurrent.{Await, CancellationException, Promise}
 private class BspWorkerImpl() extends BspWorker {
 
   override def startBspServer(
+      topLevelBuildRoot: os.Path,
       streams: SystemStreams,
       logStream: PrintStream,
       logDir: os.Path,
@@ -23,6 +24,7 @@ private class BspWorkerImpl() extends BspWorker {
 
     val millServer =
       new MillBuildServer(
+        topLevelProjectRoot = topLevelBuildRoot,
         bspVersion = Constants.bspProtocolVersion,
         serverVersion = BuildInfo.millVersion,
         serverName = Constants.serverName,

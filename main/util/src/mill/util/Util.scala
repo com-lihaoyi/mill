@@ -1,28 +1,30 @@
 package mill.util
 
+import java.nio.file.Files
+import java.nio.file.Paths
 import coursier.Repository
 import mill.api.Loose.Agg
-import mill.api.{BuildInfo, Ctx, IO, Loose, PathRef, Result}
+import mill.api.{BuildInfo, Ctx, IO, PathRef, Result}
 
 object Util {
 
-  def isInteractive() = System.console() != null
+  def isInteractive(): Boolean = System.console() != null
 
-  val newLine = System.lineSeparator()
+  val newLine: String = System.lineSeparator()
 
-  val windowsPlatform = System.getProperty("os.name").startsWith("Windows")
+  val windowsPlatform: Boolean = System.getProperty("os.name").startsWith("Windows")
 
-  val java9OrAbove = !System.getProperty("java.specification.version").startsWith("1.")
+  val java9OrAbove: Boolean = !System.getProperty("java.specification.version").startsWith("1.")
 
   private val LongMillProps = new java.util.Properties()
 
   {
     val millOptionsPath = sys.props("MILL_OPTIONS_PATH")
     if (millOptionsPath != null)
-      LongMillProps.load(new java.io.FileInputStream(millOptionsPath))
+      LongMillProps.load(Files.newInputStream(Paths.get(millOptionsPath)))
   }
 
-  def cleanupScaladoc(v: String) = {
+  def cleanupScaladoc(v: String): Array[String] = {
     v.linesIterator.map(
       _.dropWhile(_.isWhitespace)
         .stripPrefix("/**")
@@ -45,25 +47,19 @@ object Util {
       ctx: Ctx.Dest
   ): PathRef = {
     val out = ctx.dest / dest
-
     val website = new java.net.URI(url).toURL
-    val rbc = java.nio.channels.Channels.newChannel(website.openStream)
+    val websiteInputStream = website.openStream
     try {
-      val fos = new java.io.FileOutputStream(out.toIO)
-      try {
-        fos.getChannel.transferFrom(rbc, 0, java.lang.Long.MAX_VALUE)
-        PathRef(out)
-      } finally {
-        fos.close()
-      }
+      Files.copy(websiteInputStream, out.toNIO)
+      PathRef(out)
     } finally {
-      rbc.close()
+      websiteInputStream.close()
     }
   }
 
   def downloadUnpackZip(url: String, dest: os.RelPath = os.rel / "unpacked")(implicit
       ctx: Ctx.Dest
-  ) = {
+  ): PathRef = {
 
     val tmpName = if (dest == os.rel / "tmp.zip") "tmp2.zip" else "tmp.zip"
     val downloaded = download(url, os.rel / tmpName)
@@ -95,10 +91,14 @@ object Util {
       ),
       force = Nil,
       resolveFilter = resolveFilter
-    )
+    ).map(_.map(_.withRevalidateOnce))
   }
 
   def millProperty(key: String): Option[String] =
     Option(sys.props(key)) // System property has priority
       .orElse(Option(LongMillProps.getProperty(key)))
+
+  def leftPad(s: String, targetLength: Int, char: Char): String = {
+    char.toString * (targetLength - s.length) + s
+  }
 }

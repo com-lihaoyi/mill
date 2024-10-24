@@ -1,22 +1,15 @@
 package mill.util
 
-import mill.api.BuildInfo
 import mill.api.Loose.Agg
 import mill.api._
-import mill.main.client.InputPumper
-import os.SubProcess
-import upickle.default.{ReadWriter => RW}
+import os.{ProcessOutput, SubProcess}
 
 import java.io._
 import java.lang.reflect.Modifier
-import java.net.URI
 import java.nio.file.attribute.PosixFilePermission
-import java.nio.file.{FileSystems, Files, StandardOpenOption}
-import java.util.Collections
-import java.util.jar.{Attributes, JarFile, Manifest}
-import scala.jdk.CollectionConverters._
+import java.nio.file.Files
 import scala.util.Properties.isWin
-import scala.util.Using
+import os.CommandResult
 
 object Jvm extends CoursierSupport {
 
@@ -31,8 +24,9 @@ object Jvm extends CoursierSupport {
       envArgs: Map[String, String] = Map.empty,
       mainArgs: Seq[String] = Seq.empty,
       workingDir: os.Path = null,
-      streamOut: Boolean = true
-  )(implicit ctx: Ctx) = {
+      streamOut: Boolean = true,
+      check: Boolean = true
+  )(implicit ctx: Ctx): CommandResult = {
 
     val commandArgs =
       Vector(javaExe) ++
@@ -43,7 +37,29 @@ object Jvm extends CoursierSupport {
     val workingDir1 = Option(workingDir).getOrElse(ctx.dest)
     os.makeDir.all(workingDir1)
 
-    os.proc(commandArgs).call(cwd = workingDir1, env = envArgs)
+    os.proc(commandArgs)
+      .call(
+        cwd = workingDir1,
+        env = envArgs,
+        check = check,
+        stdout = if (streamOut) os.Inherit else os.Pipe
+      )
+  }
+
+  /**
+   * Runs a JVM subprocess with the given configuration and returns a
+   * [[os.CommandResult]] with it's aggregated output and error streams
+   */
+  def callSubprocess(
+      mainClass: String,
+      classPath: Agg[os.Path],
+      jvmArgs: Seq[String],
+      envArgs: Map[String, String],
+      mainArgs: Seq[String],
+      workingDir: os.Path,
+      streamOut: Boolean
+  )(implicit ctx: Ctx): CommandResult = {
+    callSubprocess(mainClass, classPath, jvmArgs, envArgs, mainArgs, workingDir, streamOut, true)
   }
 
   /**
@@ -63,12 +79,15 @@ object Jvm extends CoursierSupport {
 
   def javaExe: String = jdkTool("java")
 
+  def defaultBackgroundOutputs(outputDir: os.Path): Option[(ProcessOutput, ProcessOutput)] =
+    Some((outputDir / "stdout.log", outputDir / "stderr.log"))
+
   /**
    * Runs a JVM subprocess with the given configuration and streams
    * it's stdout and stderr to the console.
    * @param mainClass The main class to run
    * @param classPath The classpath
-   * @param JvmArgs Arguments given to the forked JVM
+   * @param jvmArgs Arguments given to the forked JVM
    * @param envArgs Environment variables used when starting the forked JVM
    * @param workingDir The working directory to be used by the forked JVM
    * @param background `true` if the forked JVM should be spawned in background
@@ -87,6 +106,69 @@ object Jvm extends CoursierSupport {
       mainArgs: Seq[String] = Seq.empty,
       workingDir: os.Path = null,
       background: Boolean = false,
+      useCpPassingJar: Boolean = false,
+      runBackgroundLogToConsole: Boolean = false
+  )(implicit ctx: Ctx): Unit = {
+    runSubprocessWithBackgroundOutputs(
+      mainClass,
+      classPath,
+      jvmArgs,
+      envArgs,
+      mainArgs,
+      workingDir,
+      if (!background) None
+      else if (runBackgroundLogToConsole) Some((os.Inherit, os.Inherit))
+      else Jvm.defaultBackgroundOutputs(ctx.dest),
+      useCpPassingJar
+    )
+  }
+
+  // bincompat shim
+  def runSubprocess(
+      mainClass: String,
+      classPath: Agg[os.Path],
+      jvmArgs: Seq[String],
+      envArgs: Map[String, String],
+      mainArgs: Seq[String],
+      workingDir: os.Path,
+      background: Boolean,
+      useCpPassingJar: Boolean
+  )(implicit ctx: Ctx): Unit =
+    runSubprocess(
+      mainClass,
+      classPath,
+      jvmArgs,
+      envArgs,
+      mainArgs,
+      workingDir,
+      background,
+      useCpPassingJar
+    )
+
+  /**
+   * Runs a JVM subprocess with the given configuration and streams
+   * it's stdout and stderr to the console.
+   * @param mainClass The main class to run
+   * @param classPath The classpath
+   * @param jvmArgs Arguments given to the forked JVM
+   * @param envArgs Environment variables used when starting the forked JVM
+   * @param workingDir The working directory to be used by the forked JVM
+   * @param backgroundOutputs If the subprocess should run in the background, a Tuple of ProcessOutputs containing out and err respectively. Specify None for nonbackground processes.
+   * @param useCpPassingJar When `false`, the `-cp` parameter is used to pass the classpath
+   *                        to the forked JVM.
+   *                        When `true`, a temporary empty JAR is created
+   *                        which contains a `Class-Path` manifest entry containing the actual classpath.
+   *                        This might help with long classpaths on OS'es (like Windows)
+   *                        which only supports limited command-line length
+   */
+  def runSubprocessWithBackgroundOutputs(
+      mainClass: String,
+      classPath: Agg[os.Path],
+      jvmArgs: Seq[String] = Seq.empty,
+      envArgs: Map[String, String] = Map.empty,
+      mainArgs: Seq[String] = Seq.empty,
+      workingDir: os.Path = null,
+      backgroundOutputs: Option[Tuple2[ProcessOutput, ProcessOutput]] = None,
       useCpPassingJar: Boolean = false
   )(implicit ctx: Ctx): Unit = {
 
@@ -104,23 +186,56 @@ object Jvm extends CoursierSupport {
         classPath
       }
 
+    val cpArgument = if (cp.nonEmpty) {
+      Vector("-cp", cp.iterator.mkString(java.io.File.pathSeparator))
+    } else Seq.empty
+    val mainClassArgument = if (mainClass.nonEmpty) {
+      Seq(mainClass)
+    } else Seq.empty
     val args =
       Vector(javaExe) ++
         jvmArgs ++
-        Vector("-cp", cp.iterator.mkString(java.io.File.pathSeparator), mainClass) ++
+        cpArgument ++
+        mainClassArgument ++
         mainArgs
 
     ctx.log.debug(s"Run subprocess with args: ${args.map(a => s"'${a}'").mkString(" ")}")
 
-    if (background) spawnSubprocess(args, envArgs, workingDir, background = true)
-    else runSubprocess(args, envArgs, workingDir)
+    if (backgroundOutputs.nonEmpty)
+      spawnSubprocessWithBackgroundOutputs(args, envArgs, workingDir, backgroundOutputs)
+    else
+      runSubprocess(args, envArgs, workingDir)
+  }
+
+  /**
+   * Runs a generic subprocess and waits for it to terminate. If process exited with non-zero code, exception
+   * will be thrown. If you want to manually handle exit code, check [[runSubprocessWithResult]]
+   */
+  def runSubprocess(
+      commandArgs: Seq[String],
+      envArgs: Map[String, String],
+      workingDir: os.Path
+  ): Unit = {
+    runSubprocessWithResult(commandArgs, envArgs, workingDir).getOrThrow
+    ()
   }
 
   /**
    * Runs a generic subprocess and waits for it to terminate.
+   *
+   * @return Result with exit code.
    */
-  def runSubprocess(commandArgs: Seq[String], envArgs: Map[String, String], workingDir: os.Path) = {
-    val process = spawnSubprocess(commandArgs, envArgs, workingDir, background = false)
+  def runSubprocessWithResult(
+      commandArgs: Seq[String],
+      envArgs: Map[String, String],
+      workingDir: os.Path
+  ): Result[Int] = {
+    val process = spawnSubprocessWithBackgroundOutputs(
+      commandArgs,
+      envArgs,
+      workingDir,
+      backgroundOutputs = None
+    )
     val shutdownHook = new Thread("subprocess-shutdown") {
       override def run(): Unit = {
         System.err.println("Host JVM shutdown. Forcefully destroying subprocess ...")
@@ -139,8 +254,11 @@ object Jvm extends CoursierSupport {
     } finally {
       Runtime.getRuntime().removeShutdownHook(shutdownHook)
     }
-    if (process.exitCode() == 0) ()
-    else throw new Exception("Interactive Subprocess Failed (exit code " + process.exitCode() + ")")
+    if (process.exitCode() == 0) Result.Success(process.exitCode())
+    else Result.Failure(
+      "Interactive Subprocess Failed (exit code " + process.exitCode() + ")",
+      Some(process.exitCode())
+    )
   }
 
   /**
@@ -155,46 +273,35 @@ object Jvm extends CoursierSupport {
       workingDir: os.Path,
       background: Boolean = false
   ): SubProcess = {
-    // If System.in is fake, then we pump output manually rather than relying
-    // on `os.Inherit`. That is because `os.Inherit` does not follow changes
-    // to System.in/System.out/System.err, so the subprocess's streams get sent
-    // to the parent process's origin outputs even if we want to direct them
-    // elsewhere
+    // XXX: workingDir is perhaps not the best choice for outputs, but absent a Ctx, we have
+    //      no other place to choose.
+    val backgroundOutputs = if (background) defaultBackgroundOutputs(workingDir) else None
+    spawnSubprocessWithBackgroundOutputs(commandArgs, envArgs, workingDir, backgroundOutputs)
+  }
 
-    if (!SystemStreams.isOriginal()) {
-      val process = os.proc(commandArgs).spawn(
-        cwd = workingDir,
-        env = envArgs,
-        stdin = if (!background) os.Pipe else "",
-        stdout = if (!background) os.Pipe else workingDir / "stdout.log",
-        stderr = if (!background) os.Pipe else workingDir / "stderr.log"
-      )
-
-      val sources = Seq(
-        (process.stdout, System.out, "spawnSubprocess.stdout", false, () => true),
-        (process.stderr, System.err, "spawnSubprocess.stderr", false, () => true),
-        (System.in, process.stdin, "spawnSubprocess.stdin", true, () => process.isAlive())
-      )
-
-      for ((std, dest, name, checkAvailable, runningCheck) <- sources) {
-        val t = new Thread(
-          new InputPumper(std, dest, checkAvailable, () => runningCheck()),
-          name
-        )
-        t.setDaemon(true)
-        t.start()
-      }
-
-      process
-    } else {
-      os.proc(commandArgs).spawn(
-        cwd = workingDir,
-        env = envArgs,
-        stdin = if (!background) os.Inherit else "",
-        stdout = if (!background) os.Inherit else workingDir / "stdout.log",
-        stderr = if (!background) os.Inherit else workingDir / "stderr.log"
-      )
-    }
+  /**
+   * Spawns a generic subprocess, streaming the stdout and stderr to the
+   * console. If the System.out/System.err have been substituted, makes sure
+   * that the subprocess's stdout and stderr streams go to the subtituted
+   * streams.
+   *
+   * If the process should be spawned in the background, destination streams for out and err
+   * respectively must be defined in the backgroundOutputs tuple. Nonbackground process should set
+   * backgroundOutputs to None
+   */
+  def spawnSubprocessWithBackgroundOutputs(
+      commandArgs: Seq[String],
+      envArgs: Map[String, String],
+      workingDir: os.Path,
+      backgroundOutputs: Option[Tuple2[ProcessOutput, ProcessOutput]] = None
+  ): SubProcess = {
+    os.proc(commandArgs).spawn(
+      cwd = workingDir,
+      env = envArgs,
+      stdin = if (backgroundOutputs.isEmpty) os.Inherit else "",
+      stdout = backgroundOutputs.map(_._1).getOrElse(os.Inherit),
+      stderr = backgroundOutputs.map(_._2).getOrElse(os.Inherit)
+    )
   }
 
   def runLocal(
@@ -227,6 +334,17 @@ object Jvm extends CoursierSupport {
     method
   }
 
+  def runClassloader[T](classPath: Agg[os.Path])(body: ClassLoader => T)(implicit
+      ctx: mill.api.Ctx.Home
+  ): T = {
+    inprocess(
+      classPath,
+      classLoaderOverrideSbtTesting = false,
+      isolated = true,
+      closeContextClassLoaderWhenDone = true,
+      body
+    )
+  }
   def inprocess[T](
       classPath: Agg[os.Path],
       classLoaderOverrideSbtTesting: Boolean,

@@ -2,9 +2,7 @@ package mill
 package twirllib
 
 import java.io.File
-import java.lang.reflect.Method
 import java.net.URLClassLoader
-import java.nio.charset.Charset
 
 import mill.api.PathRef
 import mill.scalalib.api.CompilationResult
@@ -105,7 +103,7 @@ class TwirlWorker {
             //   Codec codec,
             //   boolean inclusiveDot
             // )
-            val o = compileMethod.invoke(
+            compileMethod.invoke(
               null,
               source,
               sourceDirectory,

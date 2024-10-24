@@ -1,9 +1,14 @@
 package hello
 
-object Hello{
+object Hello {
+
+  trait MyFunction0[T] {
+    def apply(): T
+  }
+
   def main(): Int = {
 
-    val foo = () => used()
+    val foo: MyFunction0[Int] = () => used()
     foo()
   }
   def used(): Int = 2
@@ -23,7 +28,7 @@ object Hello{
         "hello.Hello$#used()int"
     ]
 }
-*/
+ */
 
 /* expected-transitive-call-graph
 {
@@ -40,4 +45,4 @@ object Hello{
         "hello.Hello$#used()int"
     ]
 }
-*/
+ */

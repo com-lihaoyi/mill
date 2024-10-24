@@ -7,7 +7,7 @@
 set -e
 
 if [ -z "${DEFAULT_MILL_VERSION}" ] ; then
-  DEFAULT_MILL_VERSION=0.11.0
+  DEFAULT_MILL_VERSION=0.11.12
 fi
 
 if [ -z "$MILL_VERSION" ] ; then
@@ -53,7 +53,9 @@ if [ -z "$MILL_MAIN_CLI" ] ; then
 fi
 
 MILL_FIRST_ARG=""
-if [ "$1" = "--bsp" ] || [ "$1" = "-i" ] || [ "$1" = "--interactive" ] || [ "$1" = "--no-server" ] || [ "$1" = "--repl" ] || [ "$1" = "--help" ] ; then
+
+ # first arg is a long flag for "--interactive" or starts with "-i"
+if [ "$1" = "--bsp" ] || [ "${1#"-i"}" != "$1" ] || [ "$1" = "--interactive" ] || [ "$1" = "--no-server" ] || [ "$1" = "--repl" ] || [ "$1" = "--help" ] ; then
   # Need to preserve the first position of those listed options
   MILL_FIRST_ARG=$1
   shift

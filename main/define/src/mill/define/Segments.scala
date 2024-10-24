@@ -9,10 +9,13 @@ package mill.define
  */
 case class Segments private (value: Seq[Segment]) {
 
-  def init = Segments(value.init)
+  def init: Segments = Segments(value.init)
   def ++(other: Segment): Segments = Segments(value ++ Seq(other))
   def ++(other: Seq[Segment]): Segments = Segments(value ++ other)
   def ++(other: Segments): Segments = Segments(value ++ other.value)
+
+  def startsWith(prefix: Segments): Boolean =
+    value.startsWith(prefix.value)
 
   def parts: List[String] = value.toList match {
     case Nil => Nil

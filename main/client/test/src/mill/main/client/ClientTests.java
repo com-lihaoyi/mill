@@ -1,6 +1,5 @@
 package mill.main.client;
 
-import static de.tobiasroeser.lambdatest.Expect.expectEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -12,6 +11,10 @@ import java.io.OutputStream;
 import java.util.*;
 
 public class ClientTests {
+
+    @org.junit.Rule
+    public RetryRule retryRule = new RetryRule(3);
+
     @Test
     public void readWriteInt() throws Exception{
         int[] examples = {
@@ -58,8 +61,8 @@ public class ClientTests {
         Util.writeString(o, example);
         ByteArrayInputStream i = new ByteArrayInputStream(o.toByteArray());
         String s = Util.readString(i);
-        expectEquals(example, s, "String as bytes: ["+example.getBytes()+"] differs from expected: ["+s.getBytes()+"]");
-        expectEquals(i.available(), 0);
+        assertEquals(example, s);
+        assertEquals(i.available(), 0);
     }
 
     public byte[] readSamples(String ...samples) throws Exception{
@@ -115,8 +118,8 @@ public class ClientTests {
                                         int chunkMax) throws Exception{
 
         ByteArrayOutputStream pipe = new ByteArrayOutputStream();
-        OutputStream src1 = new ProxyOutputStream(pipe, 1);
-        OutputStream src2 = new ProxyOutputStream(pipe, -1);
+        OutputStream src1 = new ProxyStream.Output(pipe, ProxyStream.OUT);
+        OutputStream src2 = new ProxyStream.Output(pipe, ProxyStream.ERR);
 
         Random random = new Random(31337);
 
@@ -140,7 +143,7 @@ public class ClientTests {
 
         ByteArrayOutputStream dest1 = new ByteArrayOutputStream();
         ByteArrayOutputStream dest2 = new ByteArrayOutputStream();
-        ProxyStreamPumper pumper = new ProxyStreamPumper(
+        ProxyStream.Pumper pumper = new ProxyStream.Pumper(
                 new ByteArrayInputStream(bytes),
                 dest1, dest2
         );

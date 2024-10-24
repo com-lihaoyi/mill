@@ -11,18 +11,19 @@ extends the `mill.contrib.scoverage.ScoverageModule` trait when defining your
 module. Additionally, you must define a submodule that extends the
 `ScoverageTests` trait that belongs to your instance of `ScoverageModule`.
 
-.`build.sc`
+.`build.mill`
 [source,scala]
 ----
+package build
 import $ivy.`com.lihaoyi::mill-contrib-scoverage:`
 import mill.contrib.scoverage.ScoverageModule
 
 object foo extends ScoverageModule  {
-  def scalaVersion = "2.12.9"
-  def scoverageVersion = "1.4.0"
+  def scalaVersion = "2.13.15"
+  def scoverageVersion = "2.1.1"
 
   object test extends ScoverageTests with TestModule.ScalaTest {
-    def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.8")
+    def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.2.19")
   }
 }
 ----
@@ -32,12 +33,13 @@ modules introduce a few new tasks and changes the behavior of an existing one.
 
 [source,bash]
 ----
-mill foo.scoverage.compile      # compiles your module with test instrumentation
-                                # (you don't have to run this manually, running the test task will force its invocation)
+mill foo.scoverage.compile              # compiles your module with test instrumentation
+                                        # (you don't have to run this manually, running the test task will force its invocation)
 
-mill foo.test                   # tests your project and collects metrics on code coverage
-mill foo.scoverage.htmlReport   # uses the metrics collected by a previous test run to generate a coverage report in html format
-mill foo.scoverage.xmlReport    # uses the metrics collected by a previous test run to generate a coverage report in xml format
+mill foo.test                           # tests your project and collects metrics on code coverage
+mill foo.scoverage.htmlReport           # uses the metrics collected by a previous test run to generate a coverage report in html format
+mill foo.scoverage.xmlReport            # uses the metrics collected by a previous test run to generate a coverage report in xml format
+mill foo.scoverage.xmlCoberturaReport   # uses the metrics collected by a previous test run to generate a coverage report in Cobertura's xml format
 ----
 
 The measurement data is by default available at `out/foo/scoverage/data/dest`,
@@ -64,10 +66,11 @@ This provides you with various reporting functions:
 
 [source,bash]
 ----
-mill __.test                     # run tests for all modules
-mill scoverage.htmlReportAll     # generates report in html format for all modules
-mill scoverage.xmlReportAll      # generates report in xml format for all modules
-mill scoverage.consoleReportAll  # reports to the console for all modules
+mill __.test                                 # run tests for all modules
+mill scoverage.htmlReportAll                 # generates report in html format for all modules
+mill scoverage.xmlReportAll                  # generates report in xml format for all modules
+mill scoverage.xmlCoberturaReportAll         # generates report in Cobertura's xml format for all modules
+mill scoverage.consoleReportAll              # reports to the console for all modules
 ----
 
 The aggregated report will be available at either `out/scoverage/htmlReportAll.dest/`

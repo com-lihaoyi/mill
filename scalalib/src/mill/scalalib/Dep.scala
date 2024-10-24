@@ -5,6 +5,9 @@ import mill.scalalib.CrossVersion._
 import coursier.core.Dependency
 import mill.scalalib.api.ZincWorkerUtil
 
+import scala.annotation.unused
+import coursier.core.Configuration
+
 case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
   require(
     !dep.module.name.value.contains("/") &&
@@ -13,13 +16,13 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
     "Dependency coordinates must not contain `/`s"
   )
 
-  def artifactName(binaryVersion: String, fullVersion: String, platformSuffix: String) = {
+  def artifactName(binaryVersion: String, fullVersion: String, platformSuffix: String): String = {
     val suffix = cross.suffixString(binaryVersion, fullVersion, platformSuffix)
     dep.module.name.value + suffix
   }
   def configure(attributes: coursier.Attributes): Dep = copy(dep = dep.withAttributes(attributes))
   def forceVersion(): Dep = copy(force = true)
-  def exclude(exclusions: (String, String)*) = copy(
+  def exclude(exclusions: (String, String)*): Dep = copy(
     dep = dep.withExclusions(
       dep.exclusions() ++
         exclusions.map { case (k, v) => (coursier.Organization(k), coursier.ModuleName(v)) }
@@ -27,7 +30,7 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
   )
   def excludeOrg(organizations: String*): Dep = exclude(organizations.map(_ -> "*"): _*)
   def excludeName(names: String*): Dep = exclude(names.map("*" -> _): _*)
-  def toDependency(binaryVersion: String, fullVersion: String, platformSuffix: String) =
+  def toDependency(binaryVersion: String, fullVersion: String, platformSuffix: String): Dependency =
     dep.withModule(
       dep.module.withName(
         coursier.ModuleName(artifactName(binaryVersion, fullVersion, platformSuffix))
@@ -98,18 +101,22 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
 
 object Dep {
 
-  val DefaultConfiguration = coursier.core.Configuration("default(compile)")
+  val DefaultConfiguration: Configuration = coursier.core.Configuration("default(compile)")
 
   implicit def parse(signature: String): Dep = {
     val parts = signature.split(';')
     val module = parts.head
+    var exclusions = Seq.empty[(String, String)]
     val attributes = parts.tail.foldLeft(coursier.Attributes()) { (as, s) =>
       s.split('=') match {
         case Array("classifier", v) => as.withClassifier(coursier.Classifier(v))
+        case Array("type", v) => as.withType(coursier.Type(v))
+        case Array("exclude", s"${org}:${name}") => exclusions ++= Seq((org, name)); as
         case Array(k, v) => throw new Exception(s"Unrecognized attribute: [$s]")
         case _ => throw new Exception(s"Unable to parse attribute specifier: [$s]")
       }
     }
+
     (module.split(':') match {
       case Array(a, b, c) => Dep(a, b, c, cross = empty(platformed = false))
       case Array(a, b, "", c) => Dep(a, b, c, cross = empty(platformed = true))
@@ -118,8 +125,61 @@ object Dep {
       case Array(a, "", "", b, c) => Dep(a, b, c, cross = Full(platformed = false))
       case Array(a, "", "", b, "", c) => Dep(a, b, c, cross = Full(platformed = true))
       case _ => throw new Exception(s"Unable to parse signature: [$signature]")
-    }).configure(attributes = attributes)
+    })
+      .exclude(exclusions.sorted: _*)
+      .configure(attributes = attributes)
   }
+
+  @unused private implicit val depFormat: RW[Dependency] = mill.scalalib.JsonFormatters.depFormat
+
+  def unparse(dep: Dep): Option[String] = {
+    val org = dep.dep.module.organization.value
+    val mod = dep.dep.module.name.value
+    val ver = dep.dep.version
+
+    val classifierAttr = dep.dep.attributes.classifier.value match {
+      case "" => ""
+      case s => s";classifier=$s"
+    }
+
+    val typeAttr = dep.dep.attributes.`type`.value match {
+      case "" => ""
+      case s => s";type=$s"
+    }
+
+    val excludeAttr =
+      dep.dep.exclusions().toSeq.sorted.map(e => s";exclude=${e._1.value}:${e._2.value}").mkString
+
+    val attrs = classifierAttr + typeAttr + excludeAttr
+
+    val prospective = dep.cross match {
+      case CrossVersion.Constant("", false) => Some(s"$org:$mod:$ver$attrs")
+      case CrossVersion.Constant("", true) => Some(s"$org:$mod::$ver$attrs")
+      case CrossVersion.Binary(false) => Some(s"$org::$mod:$ver$attrs")
+      case CrossVersion.Binary(true) => Some(s"$org::$mod::$ver$attrs")
+      case CrossVersion.Full(false) => Some(s"$org:::$mod:$ver$attrs")
+      case CrossVersion.Full(true) => Some(s"$org:::$mod::$ver$attrs")
+      case CrossVersion.Constant(v, _) => None
+    }
+
+    prospective.filter(parse(_) == dep)
+  }
+  private val rw0: RW[Dep] = macroRW
+
+  // Use literal JSON strings for common cases so that files
+  // containing serialized dependencies can be easier to skim
+  implicit val rw: RW[Dep] = upickle.default.readwriter[ujson.Value].bimap[Dep](
+    (dep: Dep) =>
+      unparse(dep) match {
+        case Some(s) => ujson.Str(s)
+        case None => upickle.default.writeJs[Dep](dep)(using rw0)
+      },
+    {
+      case s: ujson.Str => parse(s.value)
+      case v: ujson.Value => upickle.default.read[Dep](v)(using rw0)
+    }
+  )
+
   def apply(
       org: String,
       name: String,
@@ -136,8 +196,7 @@ object Dep {
       force
     )
   }
-  private implicit val depFormat: RW[Dependency] = mill.scalalib.JsonFormatters.depFormat
-  implicit def rw: RW[Dep] = macroRW
+
 }
 
 sealed trait CrossVersion {
@@ -181,7 +240,7 @@ object CrossVersion {
     implicit def rw: RW[Full] = macroRW
   }
 
-  def empty(platformed: Boolean) = Constant(value = "", platformed)
+  def empty(platformed: Boolean): Constant = Constant(value = "", platformed)
 
   implicit def rw: RW[CrossVersion] = RW.merge(Constant.rw, Binary.rw, Full.rw)
 }
@@ -199,7 +258,7 @@ case class BoundDep(
 
   def toDep: Dep = Dep(dep = dep, cross = CrossVersion.empty(false), force = force)
 
-  def exclude(exclusions: (String, String)*) = copy(
+  def exclude(exclusions: (String, String)*): BoundDep = copy(
     dep = dep.withExclusions(
       dep.exclusions() ++
         exclusions.map { case (k, v) => (coursier.Organization(k), coursier.ModuleName(v)) }
@@ -208,6 +267,27 @@ case class BoundDep(
 }
 
 object BoundDep {
-  private implicit val depFormat: RW[Dependency] = mill.scalalib.JsonFormatters.depFormat
-  implicit val jsonify: upickle.default.ReadWriter[BoundDep] = upickle.default.macroRW
+  @unused private implicit val depFormat: RW[Dependency] = mill.scalalib.JsonFormatters.depFormat
+  private val jsonify0: upickle.default.ReadWriter[BoundDep] = upickle.default.macroRW
+
+  // Use literal JSON strings for common cases so that files
+  // containing serialized dependencies can be easier to skim
+  //
+  // `BoundDep` is basically a `Dep` with `cross=CrossVersion.Constant("", false)`,
+  // so we can re-use most of `Dep`'s serialization logic
+  implicit val jsonify: upickle.default.ReadWriter[BoundDep] =
+    upickle.default.readwriter[ujson.Value].bimap[BoundDep](
+      bdep => {
+        Dep.unparse(Dep(bdep.dep, CrossVersion.Constant("", false), bdep.force)) match {
+          case None => upickle.default.writeJs(bdep)(using jsonify0)
+          case Some(s) => ujson.Str(s)
+        }
+      },
+      {
+        case ujson.Str(s) =>
+          val dep = Dep.parse(s)
+          BoundDep(dep.dep, dep.force)
+        case v => upickle.default.read[BoundDep](v)(using jsonify0)
+      }
+    )
 }

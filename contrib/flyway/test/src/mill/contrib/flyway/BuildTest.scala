@@ -2,14 +2,16 @@ package mill.contrib.flyway
 
 import mill._
 import mill.scalalib._
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import utest.{TestSuite, Tests, assert, _}
 
 object BuildTest extends TestSuite {
-  object Build extends TestUtil.BaseModule {
+  object Build extends TestBaseModule {
     object build extends FlywayModule {
 
-      override def resources = T.sources(os.pwd / "contrib" / "flyway" / "test" / "resources")
+      val resourceFolder = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
+      override def resources = Task.Sources(resourceFolder)
 
       def h2 = ivy"com.h2database:h2:2.1.214"
 
@@ -19,30 +21,27 @@ object BuildTest extends TestSuite {
   }
 
   def tests = Tests {
-    "clean" - {
-      val eval = new TestEvaluator(Build)
-      val Right((_, count)) = eval(Build.build.flywayClean())
-      assert(count > 0)
+    test("clean") - UnitTester(Build, null).scoped { eval =>
+      val Right(result) = eval(Build.build.flywayClean())
+      assert(result.evalCount > 0)
     }
 
-    "migrate" - {
-      val eval = new TestEvaluator(Build)
-      val Right((res, count)) = eval(Build.build.flywayMigrate())
+    test("migrate") - UnitTester(Build, null).scoped { eval =>
+      val Right(result) = eval(Build.build.flywayMigrate())
       assert(
-        count > 0,
-        res.migrationsExecuted == 1
+        result.evalCount > 0,
+        result.value.migrationsExecuted == 1
       )
-      val Right((resAgain, countAgain)) = eval(Build.build.flywayMigrate())
+      val Right(resultAgain) = eval(Build.build.flywayMigrate())
       assert(
-        countAgain > 0,
-        resAgain.migrationsExecuted == 0
+        resultAgain.evalCount > 0,
+        resultAgain.value.migrationsExecuted == 0
       )
     }
 
-    "info" - {
-      val eval = new TestEvaluator(Build)
-      val Right((_, count)) = eval(Build.build.flywayInfo())
-      assert(count > 0)
+    test("info") - UnitTester(Build, null).scoped { eval =>
+      val Right(result) = eval(Build.build.flywayInfo())
+      assert(result.evalCount > 0)
     }
   }
 }

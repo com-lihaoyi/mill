@@ -6,9 +6,8 @@ import mill.api.{Ctx, IO, PathRef}
 import os.Generator
 
 import java.io.{ByteArrayInputStream, InputStream, SequenceInputStream}
-import java.net.URI
 import java.nio.file.attribute.PosixFilePermission
-import java.nio.file.{FileSystems, Files, StandardOpenOption}
+import java.nio.file.StandardOpenOption
 import java.util.Collections
 import java.util.jar.JarFile
 import java.util.regex.Pattern
@@ -16,7 +15,11 @@ import scala.jdk.CollectionConverters._
 import scala.tools.nsc.io.Streamable
 import scala.util.Using
 
+case class Assembly(pathRef: PathRef, addedEntries: Int)
+
 object Assembly {
+
+  implicit val assemblyJsonRW: upickle.default.ReadWriter[Assembly] = upickle.default.macroRW
 
   val defaultRules: Seq[Rule] = Seq(
     Rule.Append("reference.conf", separator = "\n"),
@@ -133,7 +136,7 @@ object Assembly {
       if (shadeRules.isEmpty)
         (name: String, inputStream: UnopenedInputStream) => Some(name -> inputStream)
       else {
-        val shader = Shader.bytecodeShader(shadeRules, verbose = false)
+        val shader = Shader.bytecodeShader(shadeRules, verbose = false, skipManifest = true)
         (name: String, inputStream: UnopenedInputStream) => {
           val is = inputStream()
           shader(Streamable.bytes(is), name).map {
@@ -195,40 +198,69 @@ object Assembly {
       base: Option[os.Path] = None,
       assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules
   )(implicit ctx: Ctx.Dest with Ctx.Log): PathRef = {
-    val tmp = ctx.dest / "out-tmp.jar"
+    create(
+      destJar = ctx.dest / "out.jar",
+      inputPaths = inputPaths,
+      manifest = manifest,
+      prependShellScript = Option(prependShellScript).filter(_ != ""),
+      base = base,
+      assemblyRules = assemblyRules
+    ).pathRef
+  }
 
-    val baseUri = "jar:" + tmp.toIO.getCanonicalFile.toURI.toASCIIString
-    val hm = base.fold(Map("create" -> "true")) { b =>
-      os.copy(b, tmp)
-      Map.empty
-    }
-    Using.resource(FileSystems.newFileSystem(URI.create(baseUri), hm.asJava)) { zipFs =>
-      val manifestPath = zipFs.getPath(JarFile.MANIFEST_NAME)
-      Files.createDirectories(manifestPath.getParent)
-      val manifestOut = Files.newOutputStream(
+  def create(
+      destJar: os.Path,
+      inputPaths: Agg[os.Path],
+      manifest: mill.api.JarManifest = mill.api.JarManifest.MillDefault,
+      prependShellScript: Option[String] = None,
+      base: Option[os.Path] = None,
+      assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules
+  ): Assembly = {
+    val rawJar = os.temp("out-tmp", deleteOnExit = false)
+    // we create the file later
+    os.remove(rawJar)
+
+    // use the `base` (the upstream assembly) as a start
+    base.foreach(os.copy.over(_, rawJar))
+
+    var addedEntryCount = 0
+
+    // Add more files by copying files to a JAR file system
+    Using.resource(os.zip.open(rawJar)) { zipRoot =>
+      val manifestPath = zipRoot / os.SubPath(JarFile.MANIFEST_NAME)
+      os.makeDir.all(manifestPath / os.up)
+      Using.resource(os.write.outputStream(
         manifestPath,
-        StandardOpenOption.TRUNCATE_EXISTING,
-        StandardOpenOption.CREATE
-      )
-      manifest.build.write(manifestOut)
-      manifestOut.close()
+        openOptions = Seq(
+          StandardOpenOption.TRUNCATE_EXISTING,
+          StandardOpenOption.CREATE
+        )
+      )) { manifestOut =>
+        manifest.build.write(manifestOut)
+      }
 
       val (mappings, resourceCleaner) = Assembly.loadShadedClasspath(inputPaths, assemblyRules)
       try {
         Assembly.groupAssemblyEntries(mappings, assemblyRules).foreach {
           case (mapping, entry) =>
-            val path = zipFs.getPath(mapping).toAbsolutePath
+            val path = zipRoot / os.SubPath(mapping)
             entry match {
               case entry: AppendEntry =>
                 val separated = entry.inputStreams
                   .flatMap(inputStream =>
                     Seq(new ByteArrayInputStream(entry.separator.getBytes), inputStream())
                   )
-                val cleaned = if (Files.exists(path)) separated else separated.drop(1)
-                val concatenated =
-                  new SequenceInputStream(Collections.enumeration(cleaned.asJava))
-                writeEntry(path, concatenated, append = true)
-              case entry: WriteOnceEntry => writeEntry(path, entry.inputStream(), append = false)
+                val cleaned = if (os.exists(path)) separated else separated.drop(1)
+                Using.resource(new SequenceInputStream(Collections.enumeration(cleaned.asJava))) {
+                  concatenated =>
+                    addedEntryCount += 1
+                    writeEntry(path, concatenated, append = true)
+                }
+              case entry: WriteOnceEntry =>
+                addedEntryCount += 1
+                Using.resource(entry.inputStream()) { stream =>
+                  writeEntry(path, stream, append = false)
+                }
             }
         }
       } finally {
@@ -236,37 +268,44 @@ object Assembly {
       }
     }
 
-    val output = ctx.dest / "out.jar"
     // Prepend shell script and make it executable
-    if (prependShellScript.isEmpty) os.move(tmp, output)
-    else {
-      val lineSep = if (!prependShellScript.endsWith("\n")) "\n\r\n" else ""
-      os.write(output, prependShellScript + lineSep)
-      os.write.append(output, os.read.inputStream(tmp))
+    prependShellScript match {
+      case None =>
+        os.move(rawJar, destJar)
+      case Some(prependShellScript) =>
+        val lineSep = if (!prependShellScript.endsWith("\n")) "\n\r\n" else ""
+        val prepend = prependShellScript + lineSep
+        // Write the prepend-part into the final jar file
+        // https://en.wikipedia.org/wiki/Zip_(file_format)#Combination_with_other_file_formats
+        os.write(destJar, prepend)
+        // Append the actual JAR content
+        Using.resource(os.read.inputStream(rawJar)) { is =>
+          os.write.append(destJar, is)
+        }
+        os.remove(rawJar)
 
-      if (!scala.util.Properties.isWin) {
-        os.perms.set(
-          output,
-          os.perms(output)
-            + PosixFilePermission.GROUP_EXECUTE
-            + PosixFilePermission.OWNER_EXECUTE
-            + PosixFilePermission.OTHERS_EXECUTE
-        )
-      }
+        if (!scala.util.Properties.isWin) {
+          os.perms.set(
+            destJar,
+            os.perms(destJar)
+              + PosixFilePermission.GROUP_EXECUTE
+              + PosixFilePermission.OWNER_EXECUTE
+              + PosixFilePermission.OTHERS_EXECUTE
+          )
+        }
     }
 
-    PathRef(output)
+    Assembly(PathRef(destJar), addedEntryCount)
   }
 
-  private def writeEntry(p: java.nio.file.Path, inputStream: InputStream, append: Boolean): Unit = {
-    if (p.getParent != null) Files.createDirectories(p.getParent)
+  private def writeEntry(p: os.Path, inputStream: InputStream, append: Boolean): Unit = {
+    if (p.segmentCount != 0) os.makeDir.all(p / os.up)
     val options =
       if (append) Seq(StandardOpenOption.APPEND, StandardOpenOption.CREATE)
       else Seq(StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)
 
-    val outputStream = java.nio.file.Files.newOutputStream(p, options: _*)
-    IO.stream(inputStream, outputStream)
-    outputStream.close()
-    inputStream.close()
+    Using.resource(os.write.outputStream(p, openOptions = options)) { outputStream =>
+      IO.stream(inputStream, outputStream)
+    }
   }
 }

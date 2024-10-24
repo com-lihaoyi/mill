@@ -3,6 +3,7 @@ import scala.collection.mutable.LinkedHashMap
 import upickle.default.{ReadWriter, readwriter, stringKeyRW}
 
 import scala.annotation.switch
+import scala.collection.immutable.ArraySeq
 
 // This file contains typed data structures representing the types and values
 // found in the JVM bytecode: various kinds of types, method signatures, method
@@ -21,40 +22,41 @@ object JvmModel {
   class SymbolTable {
     abstract class Table[K, V] {
       def create: K => V
-      val lookup = LinkedHashMap.empty[K, V]
+      val lookup: LinkedHashMap[K, V] = LinkedHashMap.empty[K, V]
       def get(k: K): V = lookup.getOrElseUpdate(k, create(k))
     }
 
     object MethodDef extends Table[(JType.Cls, MethodSig), MethodDef] {
-      def create = (new MethodDef(_, _)).tupled
-      def apply(cls: JType.Cls, method: MethodSig) = get((cls, method))
+      def create: ((JType.Cls, MethodSig)) => MethodDef = (new MethodDef(_, _)).tupled
+      def apply(cls: JType.Cls, method: MethodSig): MethodDef = get((cls, method))
     }
 
     object MethodSig extends Table[(Boolean, String, Desc), MethodSig] {
-      def create = (new MethodSig(_, _, _)).tupled
-      def apply(static: Boolean, name: String, desc: Desc) = get((static, name, desc))
+      def create: ((Boolean, String, Desc)) => MethodSig = (new MethodSig(_, _, _)).tupled
+      def apply(static: Boolean, name: String, desc: Desc): MethodSig = get((static, name, desc))
     }
 
     object MethodCall extends Table[(JType.Cls, InvokeType, String, Desc), MethodCall] {
-      def create = (new MethodCall(_, _, _, _)).tupled
-      def apply(cls: JType.Cls, invokeType: InvokeType, name: String, desc: Desc) =
+      def create: ((JType.Cls, InvokeType, String, Desc)) => MethodCall =
+        (new MethodCall(_, _, _, _)).tupled
+      def apply(cls: JType.Cls, invokeType: InvokeType, name: String, desc: Desc): MethodCall =
         get((cls, invokeType, name, desc))
     }
 
     object JCls extends Table[String, JType.Cls] {
-      def create = new JType.Cls(_)
-      def apply(name: String) = get(name)
+      def create: String => JType.Cls = new JType.Cls(_)
+      def apply(name: String): JType.Cls = get(name)
     }
 
     object Desc extends Table[String, Desc] {
-      def create = s => JvmModel.this.Desc.read(s)(SymbolTable.this)
-      def read(name: String) = get(name)
+      def create: String => Desc = s => JvmModel.this.Desc.read(s)(SymbolTable.this)
+      def read(name: String): Desc = get(name)
     }
   }
   class MethodDef private[JvmModel] (val cls: JType.Cls, val sig: MethodSig) {
-    override def toString = cls.pretty + sig.toString
+    override def toString: String = cls.pretty + sig.toString
 
-    val stableHashCode = (cls, sig).hashCode
+    val stableHashCode: Int = (cls, sig).hashCode
     override def hashCode() = stableHashCode
   }
 
@@ -65,9 +67,9 @@ object JvmModel {
   }
 
   class MethodSig private[JvmModel] (val static: Boolean, val name: String, val desc: Desc) {
-    override def toString = (if (static) "." else "#") + name + desc.pretty
+    override def toString: String = (if (static) "." else "#") + name + desc.pretty
 
-    val stableHashCode = (static, name, desc).hashCode
+    val stableHashCode: Int = (static, name, desc).hashCode
     override def hashCode() = stableHashCode
   }
 
@@ -83,7 +85,7 @@ object JvmModel {
       val name: String,
       val desc: Desc
   ) {
-    override def toString = {
+    override def toString: String = {
       val sep = invokeType match {
         case InvokeType.Static => '.'
         case InvokeType.Virtual => '#'
@@ -92,10 +94,10 @@ object JvmModel {
       cls.name + sep + name + desc
     }
 
-    val stableHashCode = (cls, invokeType, name, desc).hashCode
+    val stableHashCode: Int = (cls, invokeType, name, desc).hashCode
     override def hashCode() = stableHashCode
 
-    def toMethodSig(implicit st: SymbolTable) =
+    def toMethodSig(implicit st: SymbolTable): MethodSig =
       st.MethodSig(invokeType == InvokeType.Static, name, desc)
   }
 
@@ -137,8 +139,8 @@ object JvmModel {
 
     sealed class Prim(val pretty: String) extends JType
 
-    object Prim extends {
-      def read(s: String) = all(s(0))
+    object Prim {
+      def read(s: String): Prim = all(s(0))
 
       val all: Map[Char, Prim] = Map(
         'V' -> (V: Prim),
@@ -164,11 +166,11 @@ object JvmModel {
     }
 
     case class Arr(val innerType: JType) extends JType {
-      def pretty = innerType.pretty + "[]"
+      def pretty: String = innerType.pretty + "[]"
     }
 
     object Arr {
-      def read(s: String)(implicit st: SymbolTable) = Arr(JType.read(s.drop(1)))
+      def read(s: String)(implicit st: SymbolTable): Arr = Arr(JType.read(s.drop(1)))
     }
 
     class Cls private[JvmModel] (val name: String) extends JType {
@@ -181,14 +183,14 @@ object JvmModel {
     }
 
     object Cls {
-      def fromSlashed(s: String)(implicit st: SymbolTable) = st.JCls(s.replace('/', '.'))
+      def fromSlashed(s: String)(implicit st: SymbolTable): Cls = st.JCls(s.replace('/', '.'))
 
       implicit def rw(implicit st: SymbolTable): ReadWriter[Cls] =
         stringKeyRW(readwriter[String].bimap(_.name, st.JCls(_)))
 
       implicit val ordering: Ordering[Cls] = Ordering.by(_.name)
 
-      def read(s: String)(implicit st: SymbolTable) = fromSlashed(s)
+      def read(s: String)(implicit st: SymbolTable): Cls = fromSlashed(s)
     }
 
     def read(s: String)(implicit st: SymbolTable): JType = s match {
@@ -222,7 +224,10 @@ object JvmModel {
         args.addOne(JType.read(s.substring(index, split + 1)))
         index = split + 1
       }
-      new Desc(args.result(), JType.read(s.substring(closeParenIndex + 1)))
+      new Desc(
+        ArraySeq.unsafeWrapArray(args.result()),
+        JType.read(s.substring(closeParenIndex + 1))
+      )
     }
 
     implicit val ordering: Ordering[Desc] = Ordering.by(_.pretty)
@@ -232,11 +237,11 @@ object JvmModel {
    * Represents the signature of a method.
    */
   class Desc private[JvmModel] (val args: Seq[JType], val ret: JType) {
-    def pretty = "(" + args.map(_.pretty).mkString(",") + ")" + ret.pretty
+    def pretty: String = "(" + args.map(_.pretty).mkString(",") + ")" + ret.pretty
 
     override def toString = pretty
 
-    val stableHashCode = (args, ret).hashCode
+    val stableHashCode: Int = (args, ret).hashCode
     override def hashCode() = stableHashCode
   }
 }

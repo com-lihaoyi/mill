@@ -4,7 +4,6 @@ import mill._
 import mill.api.Result.{Failure, Success}
 import mill.api.Result
 import mill.define.{Command, ExternalModule, Task}
-import mill.scalalib.publish.Artifact
 import scalalib._
 
 trait GitlabPublishModule extends PublishModule { outer =>
@@ -17,7 +16,7 @@ trait GitlabPublishModule extends PublishModule { outer =>
 
   def gitlabHeaders(
       systemProps: Map[String, String] = sys.props.toMap
-  ): Task[GitlabAuthHeaders] = T.task {
+  ): Task[GitlabAuthHeaders] = Task.Anon {
     val auth = tokenLookup.resolveGitlabToken(T.env, systemProps, T.workspace)
     auth match {
       case Left(msg) =>
@@ -31,7 +30,7 @@ trait GitlabPublishModule extends PublishModule { outer =>
   def publishGitlab(
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000
-  ): define.Command[Unit] = T.command {
+  ): define.Command[Unit] = Task.Command {
 
     val gitlabRepo = publishRepository
 
@@ -59,15 +58,13 @@ object GitlabPublishModule extends ExternalModule {
       publishArtifacts: mill.main.Tasks[PublishModule.PublishData],
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000
-  ): Command[Unit] = T.command {
+  ): Command[Unit] = Task.Command {
     val repo = ProjectRepository(gitlabRoot, projectId)
     val auth = GitlabAuthHeaders.privateToken(personalToken)
 
-    val artifacts: Seq[(Seq[(os.Path, String)], Artifact)] =
-      T.sequence(publishArtifacts.value)().map {
-        case PublishModule.PublishData(a, s) => (s.map { case (p, f) => (p.path, f) }, a)
-      }
-
+    val artifacts = T.sequence(publishArtifacts.value)().map {
+      case data @ PublishModule.PublishData(_, _) => data.withConcretePath
+    }
     val uploader = new GitlabUploader(auth, readTimeout, connectTimeout)
 
     new GitlabPublisher(
@@ -79,5 +76,5 @@ object GitlabPublishModule extends ExternalModule {
     )
   }
 
-  lazy val millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
+  lazy val millDiscover: mill.define.Discover = mill.define.Discover[this.type]
 }

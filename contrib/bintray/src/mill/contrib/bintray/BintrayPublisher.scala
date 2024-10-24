@@ -21,8 +21,8 @@ class BintrayPublisher(
     log
   )
 
-  def publish(publishData: BintrayPublishData) = publishAll(publishData)
-  def publishAll(publishData: BintrayPublishData*) = {
+  def publish(publishData: BintrayPublishData): Unit = publishAll(publishData)
+  def publishAll(publishData: BintrayPublishData*): Unit = {
     val mappings =
       for {
         BintrayPublishData(meta, payload, pkg) <- publishData
@@ -89,7 +89,7 @@ class BintrayPublisher(
         if !response.is2xx
       } yield artifact -> s"Code: ${response.statusCode}, message: ${response.text()}"
 
-    val errorsByArtifact = errors.groupBy(_._1).mapValues(_.map(_._2)).toSeq
+    val errorsByArtifact = errors.groupBy(_._1).view.mapValues(_.map(_._2)).toSeq
 
     if (errorsByArtifact.nonEmpty) {
       throw new RuntimeException(

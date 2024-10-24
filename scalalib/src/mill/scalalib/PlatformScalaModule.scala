@@ -1,5 +1,6 @@
 package mill.scalalib
-import mill._
+
+import mill.{PathRef, T, Task}
 
 /**
  * A [[ScalaModule]] intended for defining `.jvm`/`.js`/`.native` submodules
@@ -12,8 +13,10 @@ import mill._
  * built against and not something that should affect the filesystem path or
  * artifact name
  */
-trait PlatformScalaModule extends ScalaModule {
-  override def millSourcePath = super.millSourcePath / os.up
+trait PlatformScalaModule extends /* PlatformModuleBase with*/ ScalaModule {
+  // Cannot move stuff to PlatformModuleBase due to bincompat concerns
+
+  override def millSourcePath: os.Path = super.millSourcePath / os.up
 
   /**
    * The platform suffix of this [[PlatformScalaModule]]. Useful if you want to
@@ -24,7 +27,7 @@ trait PlatformScalaModule extends ScalaModule {
     .collect { case l: mill.define.Segment.Label => l.value }
     .last
 
-  override def sources = T.sources {
+  override def sources: T[Seq[PathRef]] = Task.Sources {
     super.sources().flatMap { source =>
       val platformPath =
         PathRef(source.path / _root_.os.up / s"${source.path.last}-${platformScalaSuffix}")
@@ -32,5 +35,5 @@ trait PlatformScalaModule extends ScalaModule {
     }
   }
 
-  override def artifactNameParts = super.artifactNameParts().dropRight(1)
+  override def artifactNameParts: T[Seq[String]] = super.artifactNameParts().dropRight(1)
 }

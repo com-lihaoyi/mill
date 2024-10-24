@@ -21,7 +21,12 @@ object RunScript {
     (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]])
   ] = {
     val resolved = mill.eval.Evaluator.currentEvaluator.withValue(evaluator) {
-      Resolve.Tasks.resolve(evaluator.rootModule, scriptArgs, selectMode)
+      Resolve.Tasks.resolve(
+        evaluator.rootModule,
+        scriptArgs,
+        selectMode,
+        evaluator.allowPositionalCommandArgs
+      )
     }
     for (targets <- resolved) yield evaluateNamed(evaluator, Agg.from(targets))
   }
@@ -35,7 +40,7 @@ object RunScript {
       evaluator: Evaluator,
       targets: Agg[Task[Any]]
   ): (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]]) = {
-    val evaluated: Results = evaluator.evaluate(targets)
+    val evaluated: Results = evaluator.evaluate(targets, serialCommandExec = true)
 
     val watched = evaluated.results
       .iterator
@@ -44,9 +49,9 @@ object RunScript {
           ps.map(Watchable.Path(_))
         case (t: SourceImpl, TaskResult(Result.Success(Val(p: PathRef)), _)) =>
           Seq(Watchable.Path(p))
-        case (t: InputImpl[_], TaskResult(_, recalc)) =>
+        case (t: InputImpl[_], TaskResult(result, recalc)) =>
           val pretty = t.ctx0.fileName + ":" + t.ctx0.lineNum
-          Seq(Watchable.Value(() => recalc().hashCode(), recalc().hashCode(), pretty))
+          Seq(Watchable.Value(() => recalc().hashCode(), result.hashCode(), pretty))
       }
       .flatten
       .toSeq
@@ -60,14 +65,14 @@ object RunScript {
             case t: mill.define.NamedTask[_] =>
               val jsonFile = EvaluatorPaths.resolveDestPaths(evaluator.outPath, t).meta
               val metadata = upickle.default.read[Evaluator.Cached](ujson.read(jsonFile.toIO))
-              Some(t.toString, metadata.value)
+              Some((t.toString, metadata.value))
 
             case _ => None
           }
         }
 
         watched -> Right(evaluated.values.zip(nameAndJson))
-      case n => watched -> Left(s"$n targets failed\n$errorStr")
+      case n => watched -> Left(s"$n tasks failed\n$errorStr")
     }
   }
 

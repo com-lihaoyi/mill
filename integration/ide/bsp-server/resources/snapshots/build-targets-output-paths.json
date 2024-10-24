@@ -1,0 +1,51 @@
+{
+  "items": [
+    {
+      "target": {
+        "uri": "file:///workspace/hello-java"
+      },
+      "outputPaths": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-kotlin"
+      },
+      "outputPaths": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-scala"
+      },
+      "outputPaths": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/mill-build"
+      },
+      "outputPaths": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/mill-synthetic-root-target"
+      },
+      "outputPaths": [
+        {
+          "uri": "file:///workspace/.idea/",
+          "kind": 2
+        },
+        {
+          "uri": "file:///workspace/out/",
+          "kind": 2
+        },
+        {
+          "uri": "file:///workspace/.bsp/",
+          "kind": 2
+        },
+        {
+          "uri": "file:///workspace/.bloop/",
+          "kind": 2
+        }
+      ]
+    }
+  ]
+}

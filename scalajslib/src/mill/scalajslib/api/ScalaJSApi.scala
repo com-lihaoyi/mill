@@ -1,7 +1,5 @@
 package mill.scalajslib.api
 
-import java.io.File
-import mill.api.Result
 import upickle.default.{ReadWriter => RW, macroRW}
 
 sealed trait ModuleKind
@@ -254,6 +252,7 @@ object OutputPatterns {
     )
   }
 
+  // scalafix:off; we want to hide the generic apply method
   private def apply(
       jsFile: String,
       sourceMapFile: String,
@@ -267,6 +266,15 @@ object OutputPatterns {
     jsFileURI,
     sourceMapURI
   )
+  // scalalfix:on
 
   implicit val rw: RW[OutputPatterns] = macroRW[OutputPatterns]
+}
+
+sealed trait ESModuleImportMapping
+object ESModuleImportMapping {
+  case class Prefix(prefix: String, replacement: String) extends ESModuleImportMapping
+
+  implicit def rwPrefix: RW[Prefix] = macroRW
+  implicit def rw: RW[ESModuleImportMapping] = macroRW
 }

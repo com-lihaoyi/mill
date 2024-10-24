@@ -1,12 +1,13 @@
 package mill.api
 
+import scala.language.implicitConversions
+
 import java.nio.{file => jnio}
 import java.security.{DigestOutputStream, MessageDigest}
 import java.util.concurrent.ConcurrentHashMap
 import scala.util.{DynamicVariable, Using}
 import upickle.default.{ReadWriter => RW}
-
-import scala.runtime.ScalaRunTime
+import scala.annotation.nowarn
 
 /**
  * A wrapper around `os.Path` that calculates it's hashcode based
@@ -20,7 +21,7 @@ case class PathRef private (
     revalidate: PathRef.Revalidate
 ) {
 
-  def recomputeSig() = PathRef.apply(path, quick).sig
+  def recomputeSig(): Int = PathRef.apply(path, quick).sig
   def validate(): Boolean = recomputeSig() == sig
 
   /* Hide case class specific copy method. */
@@ -47,6 +48,7 @@ case class PathRef private (
 }
 
 object PathRef {
+  implicit def shellable(p: PathRef): os.Shellable = p.path
 
   /**
    * This class maintains a cache of already validated paths.
@@ -70,7 +72,7 @@ object PathRef {
           if (pathRef.sig != changedSig) {
             throw new PathRefValidationException(pathRef)
           }
-          map.put(mapKey(pathRef), pathRef)
+          val _ = map.put(mapKey(pathRef), pathRef)
       }
     }
     def clear(): Unit = map.clear()
@@ -127,28 +129,38 @@ object PathRef {
           val sub = path.subRelativeTo(basePath)
           digest.update(sub.toString().getBytes())
           if (!attrs.isDir) {
-            if (isPosix) {
-              updateWithInt(os.perms(path, followLinks = false).value)
-            }
-            if (quick) {
-              val value = (attrs.mtime, attrs.size).hashCode()
-              updateWithInt(value)
-            } else if (jnio.Files.isReadable(path.toNIO)) {
-              val is =
-                try Some(os.read.inputStream(path))
-                catch {
-                  case _: jnio.FileSystemException =>
-                    // This is known to happen, when we try to digest a socket file.
-                    // We ignore the content of this file for now, as we would do,
-                    // when the file isn't readable.
-                    // See https://github.com/com-lihaoyi/mill/issues/1875
-                    None
-                }
-              is.foreach {
-                Using.resource(_) { is =>
-                  StreamSupport.stream(is, digestOut)
+            try {
+              if (isPosix) {
+                updateWithInt(os.perms(path, followLinks = false).value)
+              }
+              if (quick) {
+                val value = (attrs.mtime, attrs.size).hashCode()
+                updateWithInt(value)
+              } else if (jnio.Files.isReadable(path.toNIO)) {
+                val is =
+                  try Some(os.read.inputStream(path))
+                  catch {
+                    case _: jnio.FileSystemException =>
+                      // This is known to happen, when we try to digest a socket file.
+                      // We ignore the content of this file for now, as we would do,
+                      // when the file isn't readable.
+                      // See https://github.com/com-lihaoyi/mill/issues/1875
+                      None
+                  }
+                is.foreach {
+                  Using.resource(_) { is =>
+                    StreamSupport.stream(is, digestOut)
+                  }
                 }
               }
+            } catch {
+              case e: java.nio.file.NoSuchFileException =>
+              // If file was deleted after we listed the folder but before we operate on it,
+              // `os.perms` or `os.read.inputStream` will crash. In that case, just do nothing,
+              // so next time we calculate the `PathRef` we'll get a different hash signature
+              // (either with the file missing, or with the file present) and invalidate any
+              // caches
+
             }
           }
         }
@@ -181,13 +193,16 @@ object PathRef {
       // Parsing to a long and casting to an int is the only way to make
       // round-trip handling of negative numbers work =(
       val sig = java.lang.Long.parseLong(hex, 16).toInt
-      val pr = PathRef(path, quick, sig, validOrig)
+      val pr = PathRef(path, quick, sig, revalidate = validOrig)
       validatedPaths.value.revalidateIfNeededOrThrow(pr)
       pr
     }
   )
 
-  /* Hide case class generated unapply method. */
-  private def unapply(pathRef: PathRef): Option[(os.Path, Boolean, Int, Revalidate)] =
+  // scalafix:off; we want to hide the unapply method
+  @nowarn("msg=unused")
+  private def unapply(pathRef: PathRef): Option[(os.Path, Boolean, Int, Revalidate)] = {
     Some((pathRef.path, pathRef.quick, pathRef.sig, pathRef.revalidate))
+  }
+  // scalalfix:on
 }

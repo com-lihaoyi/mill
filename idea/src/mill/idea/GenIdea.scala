@@ -1,18 +1,18 @@
 package mill.idea
 
-import mill.T
+import mill.Task
 import mill.api.Result
 import mill.define.{Command, Discover, ExternalModule}
 import mill.eval.Evaluator
 
 import scala.util.control.NonFatal
 
-object GenIdea extends ExternalModule {
-
-  def idea(allBootstrapEvaluators: Evaluator.AllBootstrapEvaluators): Command[Unit] = T.command {
+object GenIdea extends ExternalModule with mill.define.TaskModule {
+  def defaultCommandName() = "idea"
+  def idea(allBootstrapEvaluators: Evaluator.AllBootstrapEvaluators): Command[Unit] = Task.Command {
     try {
       Result.Success(GenIdeaImpl(
-        evaluators = Evaluator.allBootstrapEvaluators.value.value
+        evaluators = allBootstrapEvaluators.value
       ).run())
     } catch {
       case GenIdeaImpl.GenIdeaException(m) => Result.Failure(m)
@@ -21,5 +21,5 @@ object GenIdea extends ExternalModule {
     }
   }
 
-  override lazy val millDiscover = Discover[this.type]
+  override lazy val millDiscover: Discover = Discover[this.type]
 }
