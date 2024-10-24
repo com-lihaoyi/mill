@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
+import mill.main.client.DebugLog;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.terminal.Terminal;
 
@@ -37,7 +38,9 @@ public class MillProcessLauncher {
         boolean interrupted = false;
 
         try {
-            return configureRunMillProcess(builder, processDir).waitFor();
+            Process p = configureRunMillProcess(builder, processDir);
+            MillProcessLauncher.runTermInfoThread(processDir);
+            return p.waitFor();
 
         } catch (InterruptedException e) {
             interrupted = true;
@@ -71,30 +74,9 @@ public class MillProcessLauncher {
         ProcessBuilder builder,
         Path serverDir
     ) throws Exception {
-        Terminal term = TerminalBuilder.builder().dumb(true).build();
+
         Path sandbox = serverDir.resolve(ServerFiles.sandbox);
         Files.createDirectories(sandbox);
-        Files.write(
-            serverDir.resolve(ServerFiles.terminfo),
-            (term.getWidth() + " " + term.getHeight()).getBytes()
-        );
-        Thread termInfoPropagatorThread = new Thread(
-            () -> {
-                try {
-
-                    while(true){
-                        Files.write(
-                            serverDir.resolve(ServerFiles.terminfo),
-                            (term.getWidth() + " " + term.getHeight()).getBytes()
-                        );
-
-                        Thread.sleep(100);
-                    }
-                }catch (Exception e){}
-            },
-            "TermInfoPropagatorThread"
-        );
-        termInfoPropagatorThread.start();
         builder.environment().put(EnvVars.MILL_WORKSPACE_ROOT, new File("").getCanonicalPath());
 
         builder.directory(sandbox.toFile());
@@ -213,5 +195,25 @@ public class MillProcessLauncher {
 
     static List<String> readMillJvmOpts() {
         return Util.readOptsFileLines(millJvmOptsFile());
+    }
+
+    public static void runTermInfoThread(Path serverDir) throws Exception{
+        Terminal term = TerminalBuilder.builder().dumb(true).build();
+        Thread termInfoPropagatorThread = new Thread(
+            () -> {
+                try {
+                    while(true){
+                        Files.write(
+                            serverDir.resolve(ServerFiles.terminfo),
+                            (term.getWidth() + " " + term.getHeight()).getBytes()
+                        );
+
+                        Thread.sleep(100);
+                    }
+                }catch (Exception e){}
+            },
+            "TermInfoPropagatorThread"
+        );
+        termInfoPropagatorThread.start();
     }
 }
