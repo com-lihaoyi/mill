@@ -1,6 +1,8 @@
 = Built-in Commands
 :page-aliases: Scala_Builtin_Commands.adoc,
 
+include::partial$gtag-config.adoc[]
+
 :language: Scala
 :language-small: scala
 

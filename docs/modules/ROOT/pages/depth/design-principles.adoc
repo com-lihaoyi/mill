@@ -1,6 +1,7 @@
 = Mill Design Principles
 :page-aliases: Mill_Internals.adoc, Mill_Design_Principles.adoc
 
+include::partial$gtag-config.adoc[]
 
 The following external resources give more of a flavor of the architecture behind
 Mill:

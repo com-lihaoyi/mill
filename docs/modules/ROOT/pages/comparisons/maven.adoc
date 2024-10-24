@@ -1,11 +1,7 @@
 = Case Study: Mill vs Maven
 :page-aliases: Case_Study_Mill_vs_Maven.adoc
 
-++++
-<script>
-gtag('config', 'AW-16649289906');
-</script>
-++++
+include::partial$gtag-config.adoc[]
 
 This page compares using Mill to Maven, using the https://github.com/netty/netty[Netty Network Server]
 codebase as the example. Netty is a large, old codebase. 500,000 lines of Java, written by

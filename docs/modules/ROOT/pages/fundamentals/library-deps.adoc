@@ -3,6 +3,8 @@
 :link-coursier-doc: https://get-coursier.io/docs/overview
 :page-aliases: Library_Dependencies.adoc
 
+include::partial$gtag-config.adoc[]
+
 Beside the dependencies between Mill modules, most non-trivial source projects have dependencies to other libraries.
 
 Mill uses {link-coursier}[coursier] to resolve and download dependencies.

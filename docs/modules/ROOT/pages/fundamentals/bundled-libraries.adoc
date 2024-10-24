@@ -1,6 +1,8 @@
 = Bundled Libraries
 :page-aliases: External_References.adoc, Bundled_Libraries.adoc
 
+include::partial$gtag-config.adoc[]
+
 Mill comes bundled with a set of external Open Source libraries and projects.
 
 == OS-lib

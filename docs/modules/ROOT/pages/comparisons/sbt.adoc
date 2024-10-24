@@ -1,11 +1,7 @@
 = Case Study: Mill vs SBT
 :page-aliases: Case_Study_Mill_vs_SBT.adoc
 
-++++
-<script>
-gtag('config', 'AW-16649289906');
-</script>
-++++
+include::partial$gtag-config.adoc[]
 
 This page compares using Mill to SBT, using the https://github.com/gatling/gatling[Gatling Load Testing Framework]
 codebase as the example. Gatling is a medium sized codebase, 40,000 lines of Scala split over 21
