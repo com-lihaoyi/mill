@@ -1,0 +1,33 @@
+// Mill modules can extend `TaskModule` and specify a `defaultCommandName`, which
+// allows them to be run directly without needing the task name provided explicitly:
+
+package build
+import mill._, javalib._
+import mill.define.TaskModule
+
+object foo extends TaskModule {
+  override def defaultCommandName() = "foo"
+  def bar = Task.Command { println("Hello Bar") }
+  def qux = Task.Command { println("Hello Qux") }
+}
+
+// In this example, the `foo` module has a `defaultCommandName` of `bar`
+// That means that we can run `foo` and it will run `foo.bar` automatically.
+// running `foo.bar` explicitly is still allowed, as is running other tasks
+// e.g. `foo.qux`
+
+/** Usage
+
+> mill foo # same as running foo.bar
+Hello Bar
+
+> mill foo.bar
+Hello Bar
+
+> mill foo.qux
+Hello Qux
+
+*/
+
+// Default tasks are a convenience that is often used when a module has one "obvious"
+// task to run, e.g. Mill `TestModule`s have `test` as the default command name.

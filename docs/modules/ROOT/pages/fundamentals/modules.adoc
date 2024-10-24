@@ -66,3 +66,7 @@ include::partial$example/fundamentals/modules/10-external-module-aliases.adoc[]
 == Abstract Modules References
 
 include::partial$example/fundamentals/modules/11-abstract-module-ref.adoc[]
+
+== Default Tasks
+
+include::partial$example/fundamentals/modules/12-default-tasks.adoc[]
