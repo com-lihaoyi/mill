@@ -1,0 +1,37 @@
+This example demonstrates how to set up a basic Scala.js project that compiles to WebAssembly.
+
+.build.sc
+[source,scala]
+----
+import mill._, scalalib._, scalajslib._
+
+object helloWorldWasm extends ScalaJSModule {
+  def scalaVersion = "2.13.8"
+  def scalaJSVersion = "1.10.1"
+  
+  def moduleKind = ModuleKind.CommonJSModule
+  
+  def platformSegment = "wasm"
+}
+----
+
+.src/Main.scala
+[source,scala]
+----
+import scala.scalajs.js.annotation._
+
+object Main {
+  def main(args: Array[String]): Unit = {
+    println("Hello from Scala.js WebAssembly!")
+  }
+}
+----
+
+To run this example:
+
+[source,bash]
+----
+mill helloWorldWasm.fastLinkJS
+----
+
+This will compile your Scala.js code to WebAssembly, which can then be used in a web application.
