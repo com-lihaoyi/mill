@@ -1,4 +1,4 @@
-= Structuring Large Builds
+= Large Builds and Monorepos
 :page-aliases: Structuring_Large_Builds.adoc
 
 This section walks through Mill features and techniques used for managing large builds.
