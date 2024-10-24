@@ -18,7 +18,7 @@ digraph G {
     node [shape=box width=0 height=0 style=filled fillcolor=white]
     label = "bar";
 
-    "foo.classPath" -> "bar.compile"
+    "foo.classPath" -> "bar.compile" [constraint=false]
     "foo.classPath" -> "bar.classPath"
     "bar.sources" -> "bar.compile" -> "bar.classPath" -> "bar.assembly"
     "bar.mainClass" -> "bar.assembly"
