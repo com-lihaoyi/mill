@@ -1,0 +1,30 @@
+= Scala Native Examples
+:page-aliases: Scala_Native_Examples.adoc
+
+++++
+<script>
+gtag('config', 'AW-16649289906');
+</script>
+++++
+
+
+This page contains examples of using Mill as a build tool for scala-native applications.
+It covers setting up a basic scala-native application that calls C function within it,
+as well as example of two modules with a scala-native application.
+
+== Simple
+
+include::partial$example/scalalib/native/1-simple.adoc[]
+
+== Interop
+
+include::partial$example/scalalib/native/2-interop.adoc[]
+
+== Multi-Module
+
+include::partial$example/scalalib/native/3-multi-module.adoc[]
+
+== Common Config
+
+include::partial$example/scalalib/native/4-common-config.adoc[]
+

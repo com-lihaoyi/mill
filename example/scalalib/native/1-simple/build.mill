@@ -1,0 +1,56 @@
+//// SNIPPET:BUILD
+package build
+import mill._, scalalib._, scalanativelib._
+
+object `package` extends RootModule with ScalaNativeModule {
+  def scalaVersion = "2.13.11"
+  def scalaNativeVersion = "0.5.5"
+
+  // You can have arbitrary numbers of third-party dependencies
+  def ivyDeps = Agg(
+    ivy"com.lihaoyi::mainargs::0.7.6"
+  )
+
+  object test extends ScalaNativeTests {
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.8.4")
+    def testFramework = "utest.runner.Framework"
+  }
+}
+//// SNIPPET:END
+//
+//
+//// SNIPPET:DEPENDENCIES
+//
+//
+/** Usage
+
+
+> ./mill nativeLink  # Build and link native binary
+...
+Produced 5 LLVM IR files
+
+> ./mill releaseMode # Generate some files in `out` directory about the `releaseMode`. Default releaseMode is set to Debug.
+
+> ./mill nativeOptimize # Generate some files in `out` directory about native optimization. The Default value is true.
+
+> ./mill nativeIncrementalCompilation # Generate config files in `out` directory about native incremental compilation. Default is false.  
+
+> ./mill nativeLinkingOptions # Generate config files in `out` directory about the path in native linking options. Default path is `"-L/usr/local/lib`.
+
+
+*/
+
+//// SNIPPET:END
+
+//
+// You can run `+mill resolve __+` to see a full list of the different tasks that
+// are available, `+mill resolve _+` to see the tasks within `foo`,
+// `mill inspect compile` to inspect a task's doc-comment documentation or what
+// it depends on, or `mill show foo.scalaVersion` to show the output of any task.
+//
+// The most common *tasks* that Mill can run are cached *targets*, such as
+// `compile`, and un-cached *commands* such as `foo.run`. Targets do not
+// re-evaluate unless one of their inputs changes, whereas commands re-run every
+// time.
+
+
