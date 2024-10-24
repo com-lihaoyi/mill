@@ -435,9 +435,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-2-33c8ec</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-3-763ef6</button>
   <div class="version-menu">
-    <a class="version is-current" href="import-ivy-plugins.html">0.12.0-2-33c8ec</a>
+    <a class="version is-current" href="import-ivy-plugins.html">0.12.0-3-763ef6</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
     <a class="version is-missing" href="../0.11.10/index.html">0.11.10</a>
@@ -475,7 +475,7 @@ more sophisticated integrations.</p>
 <h2 id="_importing_java_libraries"><a class="anchor" href="#_importing_java_libraries"></a>Importing Java Libraries</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The following example shows how to import the library <code>org.apache.commons:commons-text:1.12.0</code>
+<p>The following example shows how to import the library <code>org.thymeleaf:thymeleaf:3.1.1.RELEASE</code>
 into your build, so you can use it at build-time to safely generate escaped HTML snippets
 in your resource path for your application to use.</p>
 </div>
@@ -484,19 +484,21 @@ in your resource path for your application to use.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
-import $ivy.`org.apache.commons:commons-text:1.12.0`
-import org.apache.commons.text.StringEscapeUtils
+import $ivy.`org.thymeleaf:thymeleaf:3.1.1.RELEASE`
+import org.thymeleaf.TemplateEngine
+import org.thymeleaf.context.Context
 
 object foo extends JavaModule {
-  def scalaVersion = &quot;2.13.8&quot;
-
   def htmlSnippet = Task {
-    &quot;&lt;div&gt;&lt;h1&gt;&quot; +
-      StringEscapeUtils.escapeHtml4(&quot;hello&quot;) +
-    &quot;&lt;/h1&gt;&lt;p&gt;&quot; +
-      StringEscapeUtils.escapeHtml4(&quot;world&quot;) +
-    &quot;&lt;/p&gt;&lt;/div&gt;&quot;
+    val context = new Context
+    context.setVariable(&quot;heading&quot;, &quot;hello&quot;)
+    context.setVariable(&quot;paragraph&quot;, &quot;world&quot;)
+    new TemplateEngine().process(
+      &quot;&quot;&quot;&lt;div&gt;&lt;h1 th:text=&quot;${heading}&quot;&gt;&lt;/h1&gt;&lt;p th:text=&quot;${paragraph}&quot;&gt;&lt;/p&gt;&lt;/div&gt;&quot;&quot;&quot;,
+      context
+    )
   }
+
   def resources = Task.Sources{
     os.write(Task.dest / &quot;snippet.txt&quot;, htmlSnippet())
     super.resources() ++ Seq(PathRef(Task.dest))
@@ -535,7 +537,7 @@ generated snippet.txt resource: &lt;div&gt;&lt;h1&gt;hello&lt;/h1&gt;&lt;p&gt;wo
 <div class="sectionbody">
 <div class="paragraph">
 <p><code>import $ivy</code> can also be used with Scala libraries. The following example
-replaces <code>org.apache.commons:commons-text:1.12.0</code> above with <code>com.lihaoyi::scalatags:0.12.0</code>,
+replaces <code>org.thymeleaf:thymeleaf:3.1.1.RELEASE</code> above with <code>com.lihaoyi::scalatags:0.12.0</code>,
 a HTML generation library that does the string concatenation/construction internally
 and also escapes the input strings on your behalf:</p>
 </div>
