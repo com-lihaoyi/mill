@@ -136,7 +136,7 @@ object Deps {
   )
   val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.10.1"
 
-  val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.4.0" // 1.5.0+ dont support JDK8
+  val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.5.2"
   val javet = Seq(
     ivy"com.caoccao.javet:javet:4.0.0",
     ivy"com.caoccao.javet:javet-linux-arm64:4.0.0",
