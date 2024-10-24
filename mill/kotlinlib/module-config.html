@@ -437,9 +437,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-8-ee116b</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-9-4cf615</button>
   <div class="version-menu">
-    <a class="version is-current" href="module-config.html">0.12.0-8-ee116b</a>
+    <a class="version is-current" href="module-config.html">0.12.0-9-4cf615</a>
     <a class="version" href="../0.12.0/kotlinlib/module-config.html">0.12.0</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
@@ -499,7 +499,9 @@ for <code>KotlinModule</code>.</p>
 <p>This example shows some of the common tasks you may want to override on a
 <code>KotlinModule</code>: specifying the <code>mainClass</code>, adding additional
 sources/resources, generating resources, and setting compilation/run
-options.</p>
+options. We also define it as a <a href="../fundamentals/modules.html#_rootmodule" class="xref page">RootModule</a>,
+so its sources will live in the top-level <code>src/</code> folder and its tasks can be
+called directly via <code>compile</code> or <code>run</code> without needing a <code>foo.</code> module prefix.</p>
 </div>
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0/0.12.0-example-kotlinlib-module-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0//example/kotlinlib/module/1-common-config">browse</a>)</div>

@@ -436,9 +436,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-8-ee116b</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-9-4cf615</button>
   <div class="version-menu">
-    <a class="version is-current" href="intro.html">0.12.0-8-ee116b</a>
+    <a class="version is-current" href="intro.html">0.12.0-9-4cf615</a>
     <a class="version" href="../0.12.0/scalalib/intro.html">0.12.0</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
@@ -740,7 +740,7 @@ using Mill and its supporting libraries to the fullest:</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
 
-object `package` extends RootModule with ScalaModule {
+object foo extends ScalaModule {
   def scalaVersion = &quot;2.13.11&quot;
   def ivyDeps = Agg(
     ivy&quot;com.lihaoyi::scalatags:0.12.0&quot;,
@@ -756,11 +756,7 @@ object `package` extends RootModule with ScalaModule {
 </div>
 <div class="paragraph">
 <p>This is a basic Mill build for a single <code>ScalaModule</code>, with two
-third-party dependencies and a test suite using the uTest framework. As a
-single-module project, it <code>extends RootModule</code> to mark <code>object <code>package</code></code> as the
-top-level module in the build. This lets us directly perform operations
-<code>./mill compile</code> or <code>./mill run</code> without needing to prefix it as
-<code>foo.compile</code> or <code>foo.run</code>.</p>
+third-party dependencies and a test suite using the uTest framework.</p>
 </div>
 <div class="paragraph">
 <p>You can download this example project using the <strong>download</strong> link above
@@ -779,14 +775,15 @@ lives in <code>out/</code>.</p>
 <div class="listingblock">
 <div class="content">
 <pre>build.mill
-src/
-    Foo.scala
-resources/
-    ...
-test/
+foo/
     src/
-        FooTests.scala
-out/
+        Foo.scala
+    resources/
+        ...
+    test/
+        src/
+            FooTests.scala
+out/foo/
     compile.json
     compile.dest/
     ...
@@ -822,53 +819,47 @@ given input string in HTML templates with proper escaping.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill resolve _ # List what tasks are available to run
-assembly
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill resolve foo._ # List what tasks are available to run
+foo.assembly
 ...
-clean
+foo.compile
 ...
-compile
-...
-run
-...
-show
-...
-inspect
+foo.run
 ...
 
-&gt; ./mill inspect compile # Show documentation and inputs of a task
-compile(ScalaModule.scala:...)
+&gt; ./mill inspect foo.compile # Show documentation and inputs of a task
+foo.compile(ScalaModule.scala:...)
     Compiles the current module to generate compiled classfiles/bytecode.
 Inputs:
-    scalaVersion
-    upstreamCompileOutput
-    allSourceFiles
-    compileClasspath
+    foo.scalaVersion
+    foo.upstreamCompileOutput
+    foo.allSourceFiles
+    foo.compileClasspath
 
-&gt; ./mill compile # compile sources into classfiles
+&gt; ./mill foo.compile # compile sources into classfiles
 ...
 compiling 1 Scala source to...
 
-&gt; ./mill run # run the main method, if any
+&gt; ./mill foo.run # run the main method, if any
 error: Missing argument: --text &lt;str&gt;
 
-&gt; ./mill run --text hello
+&gt; ./mill foo.run --text hello
 &lt;h1&gt;hello&lt;/h1&gt;
 
-&gt; ./mill test
+&gt; ./mill foo.test
 ...
 + foo.FooTests...simple ...  &lt;h1&gt;hello&lt;/h1&gt;
 + foo.FooTests...escaping ...  &lt;h1&gt;&amp;lt;hello&amp;gt;&lt;/h1&gt;
 
-&gt; ./mill assembly # bundle classfiles and libraries into a jar for deployment
+&gt; ./mill foo.assembly # bundle classfiles and libraries into a jar for deployment
 
-&gt; ./mill show assembly # show the output of the assembly task
-&quot;.../out/assembly.dest/out.jar&quot;
+&gt; ./mill show foo.assembly # show the output of the assembly task
+&quot;.../out/foo/assembly.dest/out.jar&quot;
 
-&gt; java -jar ./out/assembly.dest/out.jar --text hello
+&gt; java -jar ./out/foo/assembly.dest/out.jar --text hello
 &lt;h1&gt;hello&lt;/h1&gt;
 
-&gt; ./out/assembly.dest/out.jar --text hello # mac/linux
+&gt; ./out/foo/assembly.dest/out.jar --text hello # mac/linux
 &lt;h1&gt;hello&lt;/h1&gt;</code></pre>
 </div>
 </div>
@@ -1315,7 +1306,7 @@ a complete list of options and a cheat-sheet of how to work with tasks:</p>
 <div class="listingblock">
 <div class="title">Output of <code>mill --help</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.12.0-8-ee116b
+<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.12.0-9-4cf615
 Usage: mill [options] task [task-options] [+ task ...]
 
 task cheat sheet:
