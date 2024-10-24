@@ -436,9 +436,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-7-bbb6fc</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-8-ee116b</button>
   <div class="version-menu">
-    <a class="version is-current" href="intro.html">0.12.0-7-bbb6fc</a>
+    <a class="version is-current" href="intro.html">0.12.0-8-ee116b</a>
     <a class="version" href="../0.12.0/scalalib/intro.html">0.12.0</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
@@ -462,6 +462,18 @@
 <div class="sectionbody">
 <script>
 gtag('config', 'AW-16649289906');
+
+document.addEventListener('DOMContentLoaded', function() {
+const links = document.querySelectorAll('a');
+  links.forEach(link => {
+    if (link.textContent.trim().toLowerCase() === 'download') {
+      link.addEventListener('click', function(event) {
+        console.log("download link clicked")
+        gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
+      });
+    }
+  });
+});
 </script>
 <center>
 <svg width="629px" height="248px" viewBox="0.00 0.00 629.07 248.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -1303,7 +1315,7 @@ a complete list of options and a cheat-sheet of how to work with tasks:</p>
 <div class="listingblock">
 <div class="title">Output of <code>mill --help</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.12.0-7-bbb6fc
+<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.12.0-8-ee116b
 Usage: mill [options] task [task-options] [+ task ...]
 
 task cheat sheet:
