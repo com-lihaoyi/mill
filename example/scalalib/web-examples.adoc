@@ -1,7 +1,0 @@
-== Scala.js WebAssembly Examples
-
-=== Hello World WebAssembly
-
-*   **Description**: A simple "Hello, WebAssembly!" example using Scala.js.
-*   **Code**: link:scalalib/web-examples/hello-world-wasm/build.sc[build.sc]
-*   **Run**: `./mill helloWorldWasm.run`
