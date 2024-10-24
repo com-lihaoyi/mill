@@ -52,6 +52,7 @@ public abstract class ServerLauncher {
     final int serverProcessesLimit = 5;
     final int serverInitWaitMillis = 10000;
     public abstract void initServer(Path serverDir, boolean b, Locks locks) throws Exception;
+    public abstract void preRun(Path serverDir) throws Exception;
     InputStream stdin;
     PrintStream stdout;
     PrintStream stderr;
@@ -101,6 +102,7 @@ public abstract class ServerLauncher {
             ) {
                 if (clientLocked.isLocked()) {
                     Result result = new Result();
+                    preRun(serverDir);
                     result.exitCode = run(serverDir, setJnaNoSys, locks);
                     result.serverDir = serverDir;
                     return result;
