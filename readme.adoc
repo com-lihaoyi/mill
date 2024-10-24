@@ -317,7 +317,7 @@ Major changes:
 
 1. Mill now runs tasks parallel by default, rather than opt-in. This includes a
    new parallel-friendly terminal UI, https://mill-build.org/mill/Mill_Sandboxing.html[task
-   and test gsandboxing] to guard against race conditions,
+   and test sandboxing] to guard against race conditions,
    xref:javalib/testing.adoc#_test_grouping[parallelization of test suites],
    and other measures optimizing for parallel builds
 
