@@ -1,6 +1,7 @@
 package mill.javalib.android
 
 import mill._
+import scala.util.Try
 
 /**
  * Trait for managing the Android SDK in a Mill build system.
@@ -83,46 +84,87 @@ trait AndroidSdkModule extends Module {
   }
 
   /**
-   * Installs the Android SDK by performing the following actions:
+   * Installs the Android SDK by performing the following steps:
    *
-   * - Downloads the SDK command-line tools from the specified URL.
+   * 1. Downloads the SDK command-line tools if not already cached.
    *
-   * - Extracts the downloaded zip file into the SDK directory.
+   * 2. Extracts the downloaded tools into the SDK directory.
    *
-   * - Accepts the required SDK licenses.
+   * 3. Accepts SDK licenses automatically.
    *
-   * - Installs essential SDK components such as platform-tools, build-tools, and Android platforms.
+   * 4. Installs the following components if not already installed:
+   *    - platform-tools
+   *    - build-tools (version specified by `buildToolsVersion`)
+   *    - platforms (version specified by `platformsVersion`)
    *
-   * For more details on the sdkmanager tool, refer to:
-   * [[https://developer.android.com/tools/sdkmanager sdkmanager Documentation]]
+   * 5. Removes the downloaded zip file after extraction.
    *
-   * @return A task containing a `PathRef` pointing to the installed SDK directory.
+   * @return A task returning a `PathRef` pointing to the installed SDK directory.
+   *
+   * @see [[https://developer.android.com/tools/sdkmanager sdkmanager Documentation]]
    */
   def installAndroidSdk: T[PathRef] = Task {
-    val zipFilePath: os.Path = T.dest / "commandlinetools.zip"
-    val sdkManagerPath: os.Path = T.dest / "cmdline-tools/bin/sdkmanager"
+    val sdkCache: os.Path = os.home / ".android-sdk-cache"
+    val zipFilePath: os.Path = sdkCache / "commandlinetools.zip"
+    val sdkManagerPath: os.Path = sdkCache / "cmdline-tools/bin/sdkmanager"
 
-    // Download SDK command-line tools
-    os.write(zipFilePath, requests.get(sdkUrl().toString).bytes)
+    // Helper method to check if a tool is installed
+    def isToolInstalled(toolPath: os.Path): Boolean = os.exists(toolPath)
 
-    // Extract the downloaded SDK tools into the destination directory
-    os.call(Seq("unzip", zipFilePath.toString, "-d", T.dest.toString))
+    // Paths for the tools
+    val platformToolsPath: os.Path = sdkCache / "platform-tools"
+    val buildToolsPath: os.Path = sdkCache / "build-tools" / buildToolsVersion()
+    val platformsPath: os.Path = sdkCache / "platforms" / platformsVersion()
 
-    // Automatically accept the SDK licenses
-    os.call(Seq(
-      "bash",
-      "-c",
-      s"yes | $sdkManagerPath --licenses --sdk_root=${T.dest}"
-    ))
+    // Check if the SDK manager is already cached
+    if (!os.exists(sdkManagerPath)) {
+      // Ensure cache directory exists
+      os.makeDir.all(sdkCache)
+      // Download SDK command-line tools
+      os.write(zipFilePath, requests.get(sdkUrl().toString).bytes)
 
-    // Install platform-tools, build-tools, and the Android platform
-    os.call(Seq(
-      sdkManagerPath.toString,
-      s"--sdk_root=${T.dest}",
-      "platform-tools",
-      s"build-tools;${buildToolsVersion().toString}",
-      s"platforms;${platformsVersion().toString}"
-    ))
-    PathRef(T.dest)
+      // Extract the downloaded SDK tools into the destination directory
+      os.call(Seq("unzip", zipFilePath.toString, "-d", sdkCache.toString))
+
+      // Automatically accept the SDK licenses
+      os.call(Seq(
+        "bash",
+        "-c",
+        s"yes | $sdkManagerPath --licenses --sdk_root=${sdkCache}"
+      ))
+
+      // Clean up the downloaded zip file
+      Try(os.remove(zipFilePath))
+    }
+
+    // Install platform-tools if not already installed
+    if (!isToolInstalled(platformToolsPath)) {
+      os.call(Seq(
+        sdkManagerPath.toString,
+        s"--sdk_root=${sdkCache}",
+        "platform-tools"
+      ))
+    }
+
+    // Install build-tools if not already installed
+    if (!isToolInstalled(buildToolsPath)) {
+      os.call(Seq(
+        sdkManagerPath.toString,
+        s"--sdk_root=${sdkCache}",
+        s"build-tools;${buildToolsVersion().toString}"
+      ))
+    }
+
+    // Install platforms if not already installed
+    if (!isToolInstalled(platformsPath)) {
+      os.call(Seq(
+        sdkManagerPath.toString,
+        s"--sdk_root=${sdkCache}",
+        s"platforms;${platformsVersion().toString}"
+      ))
+    }
+
+    PathRef(sdkCache)
   }
+
 }

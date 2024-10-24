@@ -2,9 +2,10 @@ package com.helloworld.app
 
 import android.app.Activity
 import android.os.Bundle
-import android.widget.TextView
 import android.view.Gravity
+import android.widget.TextView
 import android.view.ViewGroup.LayoutParams
+import android.graphics.Color
 
 class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -13,8 +14,8 @@ class MainActivity : Activity() {
         // Create a new TextView
         val textView = TextView(this)
 
-        // Set the text to "Hello, World!"
-        textView.text = "Hello, World Kotlin!"
+        // Set the text to the string resource
+        textView.text = getString(R.string.hello_world)
 
         // Set text size
         textView.textSize = 32f
@@ -27,6 +28,12 @@ class MainActivity : Activity() {
             LayoutParams.MATCH_PARENT,
             LayoutParams.MATCH_PARENT
         )
+
+        // Set the text color using a resource
+        textView.setTextColor(getColor(R.color.text_green)) // Using hex color code directly
+
+        // Set the background color using a resource
+        textView.setBackgroundColor(getColor(R.color.white)) // Using hex color code directly
 
         // Set the content view to display the TextView
         setContentView(textView)

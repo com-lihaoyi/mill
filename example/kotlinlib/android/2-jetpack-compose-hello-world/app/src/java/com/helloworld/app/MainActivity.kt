@@ -19,7 +19,7 @@ class MainActivity : Activity() {
         val linearLayout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
-            setBackgroundColor(Color.parseColor("#FFFFFF"))
+            setBackgroundColor(getColor(R.color.white)) // Use color from resources
             layoutParams = LayoutParams(
                 LayoutParams.MATCH_PARENT,
                 LayoutParams.MATCH_PARENT
@@ -27,9 +27,9 @@ class MainActivity : Activity() {
         }
 
         val textView = TextView(this).apply {
-            text = "Hello, World!\nJetpack Compose!"
+            text = getString(R.string.hello_world)
             textSize = 32f
-            setTextColor(Color.parseColor("#34A853"))
+            setTextColor(getColor(R.color.text_green)) // Use color from resources
             gravity = Gravity.CENTER
             setPadding(16, 16, 16, 16) 
         }

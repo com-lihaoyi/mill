@@ -79,7 +79,7 @@ trait AndroidAppModule extends JavaModule {
    *
    * @return Combined sequence of original and filtered AAR resources.
    */
-  override def resources: T[Seq[PathRef]] = Task {
+  def resources: T[Seq[PathRef]] = Task {
     // Call the function to unpack AARs and get the jar and resource paths
     val (_, resFolders) = androidUnpackArchives()
 
@@ -107,50 +107,51 @@ trait AndroidAppModule extends JavaModule {
    * For more details on the aapt2 tool, refer to:
    * [[https://developer.android.com/tools/aapt2 aapt Documentation]]
    */
-  def androidResources: T[PathRef] = T.task {
+  def androidResources: T[PathRef] = Task {
     val genDir: os.Path = T.dest // Directory to store generated R.java
     val compiledResDir: os.Path = T.dest / "compiled" // Directory for compiled resources
     val resourceDirs = resources().map(_.path).filter(os.exists) // Merge all resource directories
     os.makeDir.all(compiledResDir)
-
-    try {
-      // Step 1: Compile resources using `aapt2 compile`
-      resourceDirs.foreach { resDir =>
-        os.call(Seq(
-          androidSdkModule().aapt2Path().path.toString, // Call aapt2 tool
-          "compile",
-          "-o",
-          compiledResDir.toString, // Output directory for compiled resources
-          "--dir",
-          resDir.toString // Compile each resource directory
-        ))
-      }
-
-      // Collect all .flat files explicitly
-      val flatFiles = os.walk(compiledResDir).filter(_.ext == "flat").map(_.toString)
-
-      // Step 2: Link resources using `aapt2 link`
+    var count = 0
+    val compiledZips = resourceDirs.map { resDir =>
+      val outputZip = compiledResDir / s"${resDir.last}-${count}.zip"
+      count = count + 1
       os.call(Seq(
         androidSdkModule().aapt2Path().path.toString, // Call aapt2 tool
-        "link",
+        "compile",
+        "--dir",
+        resDir.toString, // Compile each resource directory
         "-o",
-        (genDir / "resources.apk").toString, // Output APK or intermediate result
+        outputZip.toString // Output directory for compiled resources
+      ))
+      outputZip
+    }
+
+    // Filter to find the single "resources" zip and exclude it from the regular zips
+    val ResourceZip = compiledZips.find(_.toString.contains("resources"))
+    val libzips = compiledZips.filterNot(_.toString.contains("resources"))
+
+    val compiledlibs = libzips.flatMap(zip => Seq("-R", zip.toString))
+
+    os.call(
+      Seq(
+        androidSdkModule().aapt2Path().path.toString, // AAPT2  tool path
+        "link",
         "-I",
         androidSdkModule().androidJarPath().path.toString, // Include Android SDK JAR
+        "--auto-add-overlay" // Automatically add resources from overlays
+      ) ++ compiledlibs ++ Seq(
         "--manifest",
         androidManifest().path.toString, // Use AndroidManifest.xml
-        "--auto-add-overlay", // Automatically add resources from overlays
         "--java",
-        genDir.toString // Generate R.java in the genDir
-      ) ++ flatFiles.flatMap(flatFile => Seq("-R", flatFile)))
+        genDir.toString, // Generate R.java in the genDir
+        "-o",
+        s"${genDir / "res.apk"}",
+        ResourceZip.map(_.toString).getOrElse("")
+      )
+    )
 
-      PathRef(genDir) // Return the generated directory if successful
-
-    } catch {
-      case e: Throwable =>
-        T.log.info(s"Using Only Correct Resources")
-        PathRef(T.dest) // Return PathRef for only correct resources
-    }
+    PathRef(genDir)
   }
 
   /**
@@ -211,33 +212,23 @@ trait AndroidAppModule extends JavaModule {
           androidSdkModule().androidJarPath().path.toString // Include Android framework classes
         )
     )
-
     PathRef(dexOutputDir)
   }
 
   /**
-   * Packages the DEX files and Android resources into an unsigned APK using the `aapt` tool.
+   * Packages DEX files and Android resources into an unsigned APK.
    *
-   * The `aapt` tool takes the DEX files (compiled code) and resources (such as layouts and assets),
-   * and packages them into an APK (Android Package) file. This APK file is unsigned and requires
-   * further processing to be distributed.
+   * @return A `PathRef` to the generated unsigned APK file (`app.unsigned.apk`).
    */
   def androidUnsignedApk: T[PathRef] = Task {
     val unsignedApk: os.Path = T.dest / "app.unsigned.apk"
-
-    os.call(
-      Seq(
-        androidSdkModule().aaptPath().path.toString,
-        "package",
-        "-f",
-        "-M",
-        androidManifest().path.toString, // Path to AndroidManifest.xml
-        "-I",
-        androidSdkModule().androidJarPath().path.toString, // Include Android JAR
-        "-F",
-        unsignedApk.toString // Output APK
-      ) ++ Seq(androidDex().path.toString) // Include DEX files
-    )
+    os.copy.over((T.dest / os.up / "androidResources.dest" / "res.apk"), unsignedApk)
+    os.call(Seq(
+      "zip",
+      "-j",
+      unsignedApk.toString,
+      s"${androidDex().path / "classes.dex"}"
+    ))
 
     PathRef(unsignedApk)
   }
