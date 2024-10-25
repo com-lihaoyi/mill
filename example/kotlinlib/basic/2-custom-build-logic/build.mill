@@ -2,7 +2,7 @@
 package build
 import mill._, kotlinlib._
 
-object `package` extends RootModule with KotlinModule {
+object foo extends KotlinModule {
 
   def kotlinVersion = "1.9.24"
 
