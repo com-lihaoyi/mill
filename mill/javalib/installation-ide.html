@@ -437,9 +437,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-15-8c3fc6</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-16-2448e8</button>
   <div class="version-menu">
-    <a class="version is-current" href="installation-ide.html">0.12.0-15-8c3fc6</a>
+    <a class="version is-current" href="installation-ide.html">0.12.0-16-2448e8</a>
     <a class="version" href="../0.12.0/javalib/installation-ide.html">0.12.0</a>
     <a class="version" href="../0.11.12/Java_Installation_IDE_Support.html">0.11.12</a>
     <a class="version" href="../0.11.11/Java_Installation_IDE_Support.html">0.11.11</a>
@@ -769,8 +769,12 @@ as a single token and fail argument parsing)</p>
 <div class="listingblock">
 <div class="content">
 <pre># PWD on mac/linux
--Dmy.jvm.property=$PWD</pre>
+-Dmy.jvm.property=${PWD}</pre>
 </div>
+</div>
+<div class="paragraph">
+<p>Missing environment variables are
+converted to the empty string.</p>
 </div>
 <div class="paragraph">
 <p>The file name <code>.mill-jvm-opts</code> can be overridden via the <code>MILL_JVM_OPTS_PATH</code> environment
@@ -796,7 +800,9 @@ can be done by setting <code>.mill-opts</code> to:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>The file name <code>.mill-opts</code> can be overridden via the <code>MILL_OPTS_PATH</code> environment variable.</p>
+<p>The file name <code>.mill-opts</code> can be overridden via the <code>MILL_OPTS_PATH</code> environment variable.
+You can also pass in flags like <code>--jobs=10</code> explicitly to override the value passed in
+<code>.mill-opts</code>.</p>
 </div>
 <div class="admonitionblock note">
 <table>
