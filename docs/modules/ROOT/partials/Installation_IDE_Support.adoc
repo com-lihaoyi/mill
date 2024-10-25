@@ -211,8 +211,11 @@ as a single token and fail argument parsing)
 _.mill-jvm-opts_
 ----
 # PWD on mac/linux
--Dmy.jvm.property=$PWD
+-Dmy.jvm.property=${PWD}
 ----
+
+Missing environment variables are 
+converted to the empty string.
 
 The file name `.mill-jvm-opts` can be overridden via the `MILL_JVM_OPTS_PATH` environment
 variable.
