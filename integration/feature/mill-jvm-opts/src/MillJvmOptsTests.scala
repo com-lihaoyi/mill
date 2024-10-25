@@ -12,7 +12,7 @@ object MillJvmOptsTests extends UtestIntegrationTestSuite {
       assert(res.isSuccess)
     }
     test("interpolatedEnvVars") - integrationTest { tester =>
-      if (!Util.isWindows) {
+      if (!Util.isWindows) { // PWD does not exist on windows
         import tester._
         val res = eval(("show", "getEnvJvmOpts"))
         val out = res.out
