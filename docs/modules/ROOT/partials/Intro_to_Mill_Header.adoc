@@ -10,7 +10,7 @@ digraph G {
     label = "foo";
 
     "foo.sources" -> "foo.compile" -> "foo.classPath" -> "foo.assembly"
-    "foo.mainClass" -> "foo.assembly"
+    "foo.resources" -> "foo.assembly"
     "foo.classPath"
   }
   subgraph cluster_1 {
@@ -21,18 +21,25 @@ digraph G {
     "foo.classPath" -> "bar.compile" [constraint=false]
     "foo.classPath" -> "bar.classPath"
     "bar.sources" -> "bar.compile" -> "bar.classPath" -> "bar.assembly"
-    "bar.mainClass" -> "bar.assembly"
+    "bar.resources" -> "bar.assembly"
   }
 }
 ```
 
-{mill-github-url}[Mill] is a fast multi-language JVM build tool that supports {language}, making your
-common development workflows xref:comparisons/maven.adoc[5-10x faster to Maven], or
-xref:comparisons/gradle.adoc[2-4x faster than Gradle], while providing better IDE support
-than xref:comparisons/maven.adoc#_extensibility_ide_experience[Maven],
-xref:comparisons/gradle.adoc#_ide_experience[Gradle] or xref:comparisons/sbt.adoc#_ide_support[SBT].
-Mill aims to make your JVM project's build process performant, maintainable, and flexible
-even as it grows from a small project to a large codebase or monorepo with hundreds of modules:
+Mill is a fast, scalable, multi-language JVM build tool that supports
+Java, Scala, and Kotlin:
+
+* Mill builds can compile the same codebase xref:comparisons/maven.adoc[5-10x faster than Maven],
+  or xref:comparisons/gradle.adoc[2-4x faster than Gradle]
+
+* Mill's typed, functional config language provides a richer IDE experience
+  than xref:comparisons/maven.adoc#_extensibility_ide_experience[Maven],
+  xref:comparisons/gradle.adoc#_ide_experience[Gradle] or xref:comparisons/sbt.adoc#_ide_support[SBT].
+
+* Mill scales well from small single-module projects
+  to xref:depth/large-builds.adoc[large monorepos] with hundreds of modules
+
+Mill achieves this via the following:
 
 * *Performance*: Mill's xref:fundamentals/tasks.adoc[build graph] automatically
   xref:depth/evaluation-model.adoc#_caching_at_each_layer_of_the_evaluation_model[caches]
@@ -42,17 +49,17 @@ even as it grows from a small project to a large codebase or monorepo with hundr
   and resolve bottlenecks in your build
 
 * *Maintainability*: Mill goes beyond YAML and Bash, with config and custom logic written in
-  xref:_custom_build_logic[concise type-checked code],
-  rather than shell scripts, XML or YAML. This lets IDEs
+  xref:_custom_build_logic[concise type-checked code]. This catches bugs and
+  config problems at compile time, and lets IDEs
   (xref:{language-small}lib/installation-ide.adoc#_intellij[IntelliJ] or
   xref:{language-small}lib/installation-ide.adoc#_vscode[VSCode])
-  understand and navigate around and refactor your build as easily as
+  understand and navigate around your build as easily as
   any application codebase.
 
-* *Flexibility*: Mill's custom tasks and modules allow anything from adding 
+* *Flexibility*: Mill's tasks and modules allow anything from adding
   xref:fundamentals/tasks.adoc#primitive-tasks[simple build steps], up to
   entire xref:extending/new-language.adoc[language toolchains].
-  You can xref:extending/import-ivy-plugins.adoc[import any JVM library] as part of your build,
+  You can xref:extending/import-ivy-plugins.adoc[import any JVM library] in your build,
   use Mill's rich ecosystem of xref:extending/thirdparty-plugins.adoc[Third-Party Mill Plugins],
   or xref:extending/writing-plugins.adoc[write plugins] yourself and
   xref:extending/writing-plugins.adoc#_publishing[publish them] to Maven Central for others to use.

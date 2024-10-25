@@ -26,7 +26,11 @@ object foo extends ScalaModule {
 // that you have some version of the JVM installed; the `./mill` script takes
 // care of any further dependencies that need to be downloaded. All examples
 // in this documentation site are executable and are continually exercised as 
-// part of Mill's CI workflows.
+// part of Mill's CI workflows, and they range from the simple hello-world
+// projects on this page to more sophisticated
+// xref:{language-small}lib/web-examples.adoc[web build examples] or
+// xref:{language-small}lib/build-examples.adoc#_example_builds_for_real_projects[example
+// builds for real-world projects]
 //
 // The source code for this module lives in the `src/` folder.
 // Output for this module (compiled files, resolved dependency lists, ...)

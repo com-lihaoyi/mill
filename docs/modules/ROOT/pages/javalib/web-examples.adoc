@@ -1,4 +1,4 @@
-= Java Web Examples
+= Java Web Project Examples
 :page-aliases: Java_Web_Examples.adoc
 
 include::partial$gtag-config.adoc[]
