@@ -1,5 +1,5 @@
 // Kotlin/JS support on Mill is still Work In Progress (WIP). As of time of writing it
-// supports Node.js, but lacks support of Browser, Webpack, test runners, reporting, etc.
+// supports Node.js, but lacks support of Browser, Webpack, test runners, etc.
 //
 // The example below demonstrates only the minimal compilation, running, and testing of
 // a single Kotlin/JS module using a single third-party dependency. For more details in
@@ -10,14 +10,14 @@
 package build
 import mill._, kotlinlib._, kotlinlib.js._
 
-object `package` extends RootModule with KotlinJSModule {
+object `package` extends RootModule with KotlinJsModule {
   def moduleKind = ModuleKind.ESModule
   def kotlinVersion = "1.9.25"
-  def kotlinJSRunTarget = Some(RunTarget.Node)
+  def kotlinJsRunTarget = Some(RunTarget.Node)
   def ivyDeps = Agg(
     ivy"org.jetbrains.kotlinx:kotlinx-html-js:0.11.0",
   )
-  object test extends KotlinJSModule with KotestTests
+  object test extends KotlinJsModule with KotestTests
 }
 
 
@@ -33,7 +33,7 @@ Compiling 1 Kotlin sources to .../out/test/compile.dest/classes...
 Linking IR to .../out/test/linkBinary.dest/binaries
 produce executable: .../out/test/linkBinary.dest/binaries
 ...
-error: ...AssertionFailedError: expected:<"<h1>Hello World Wrong</h1>"> but was:<"<h1>Hello World</h1>...
+error: ... expected:<"<h1>Hello World Wrong</h1>"> but was:<"<h1>Hello World</h1>...
 ...
 
 > cat out/test/linkBinary.dest/binaries/test.js # Generated javascript on disk

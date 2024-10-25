@@ -63,6 +63,12 @@ def compressBytes(input: Array[Byte]) = {
 // 2. Classloaders containing plugin code, to avoid classpath conflicts while
 //    also avoiding classloading cost every time the code is executed
 //
+// NOTE: The _initialization_ of a `Task.Worker`'s value is single threaded,
+// but _usage_ of the worker's value may be done concurrently. The user of
+// `Task.Worker` is responsible for ensuring it's value is safe to use in a
+// multi-threaded environment via techniques like locks, atomics, or concurrent data
+// structures
+//
 // Workers live as long as the Mill process. By default, consecutive `mill`
 // commands in the same folder will re-use the same Mill process and workers,
 // unless `--no-server` is passed which will terminate the Mill process and

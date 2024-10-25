@@ -1,6 +1,7 @@
 = Contrib Plugins
 :page-aliases: Contrib_Plugins.adoc, Contrib_Modules.adoc
 
+include::partial$gtag-config.adoc[]
 
 The ((plugins)) in this section are hosted in the Mill git tree and developed / maintained by the community.
 

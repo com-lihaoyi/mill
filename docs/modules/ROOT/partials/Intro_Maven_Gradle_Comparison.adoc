@@ -50,7 +50,8 @@ xref:comparisons/gradle.adoc[Compared to Gradle]:
   considerable effort and expertise to understand your build and set it up in the right way, Mill's
   xref:comparisons/gradle.adoc#_ide_experience[good IDE experience] makes understanding
   your build easier, and its xref:comparisons/gradle.adoc#_extensibility[extensibility model]
-  makes configuring your build foolproof
+  makes configuring your build foolproof, so the easiest thing to do in Mill is usually the
+  right thing to do.
 
 Mill build files are written in Scala, but you do not need to have prior experience
 in Scala to read or write them. Like Gradle Groovy or Maven XML, anyone can learn

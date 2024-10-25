@@ -5,7 +5,7 @@ trait AppKotlinModule extends KotlinModule {
   def kotlinVersion = "1.9.25"
 }
 
-trait AppKotlinJSModule extends AppKotlinModule with KotlinJSModule
+trait AppKotlinJsModule extends AppKotlinModule with KotlinJsModule
 
 object `package` extends RootModule with AppKotlinModule {
 
@@ -63,7 +63,7 @@ object `package` extends RootModule with AppKotlinModule {
         ivy"org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:$kotlinxSerializationVersion",
       )
     }
-    object js extends SharedModule with AppKotlinJSModule {
+    object js extends SharedModule with AppKotlinJsModule {
       def ivyDeps = super.ivyDeps() ++ Agg(
         ivy"org.jetbrains.kotlinx:kotlinx-html-js:$kotlinHtmlVersion",
         ivy"org.jetbrains.kotlinx:kotlinx-serialization-json-js:$kotlinxSerializationVersion",
@@ -71,7 +71,7 @@ object `package` extends RootModule with AppKotlinModule {
     }
   }
 
-  object client extends AppKotlinJSModule {
+  object client extends AppKotlinJsModule {
     def splitPerModule = false
     def moduleDeps = Seq(shared.js)
     def ivyDeps = Agg(

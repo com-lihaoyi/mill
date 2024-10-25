@@ -1,10 +1,6 @@
 = Scala Library Dependencies
 
-++++
-<script>
-gtag('config', 'AW-16649289906');
-</script>
-++++
+include::partial$gtag-config.adoc[]
 
 
 This page goes into more detail about configuring third party dependencies

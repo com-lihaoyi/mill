@@ -1,18 +1,20 @@
 package foo.qux;
 
-import org.apache.commons.text.StringEscapeUtils;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.Namespace;
 import foo.bar.Bar;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 public class Qux {
-
-
   public static void main(String barText, String quxText){
     Bar.main(barText);
 
-    String value = "<p>" + StringEscapeUtils.escapeHtml4(quxText) + "</p>";
+    Context context = new Context();
+    context.setVariable("text", "world");
+    String value = new TemplateEngine().process("<p th:text=\"${text}\"></p>", context);
+
     System.out.println("Qux.value: " + value);
   }
   public static void main(String[] args) throws Exception {

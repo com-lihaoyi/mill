@@ -45,9 +45,10 @@ object Settings {
   val docTags: Seq[String] = Seq(
     "0.11.10",
     "0.11.11",
-    "0.11.12"
+    "0.11.12",
+    "0.12.0"
   )
-  val mimaBaseVersions: Seq[String] = 0.to(12).map("0.11." + _)
+  val mimaBaseVersions: Seq[String] = 0.to(12).map("0.11." + _) ++ Seq("0.12.0")
 }
 
 object Deps {
@@ -55,12 +56,12 @@ object Deps {
   // The Scala version to use
   // When updating, run "Publish Bridges" Github Actions for the new version
   // and then add to it `bridgeScalaVersions`
-  val scalaVersion = "2.13.14"
-  val scala2Version = "2.13.14"
+  val scalaVersion = "2.13.15"
+  val scala2Version = "2.13.15"
   // The Scala 2.12.x version to use for some workers
   val workerScalaVersion212 = "2.12.19"
 
-  val testScala213Version = "2.13.14"
+  val testScala213Version = "2.13.15"
   // Scala Native 4.2 will not get releases for new Scala version
   val testScala213VersionForScalaNative42 = "2.13.8"
   val testScala212Version = "2.12.6"
@@ -68,7 +69,7 @@ object Deps {
   val testScala33Version = "3.3.1"
 
   object Scalajs_1 {
-    val scalaJsVersion = "1.16.0"
+    val scalaJsVersion = "1.17.0"
     val scalajsEnvJsdomNodejs = ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.1.0"
     val scalajsEnvExoegoJsdomNodejs = ivy"net.exoego::scalajs-env-jsdom-nodejs:2.1.0"
     val scalajsEnvNodejs = ivy"org.scala-js::scalajs-env-nodejs:1.4.0"
@@ -80,7 +81,7 @@ object Deps {
   }
 
   object Scalanative_0_5 {
-    val scalanativeVersion = "0.5.4"
+    val scalanativeVersion = "0.5.5"
     val scalanativeTools = ivy"org.scala-native::tools:${scalanativeVersion}"
     val scalanativeUtil = ivy"org.scala-native::util:${scalanativeVersion}"
     val scalanativeNir = ivy"org.scala-native::nir:${scalanativeVersion}"
@@ -116,13 +117,13 @@ object Deps {
   val play =
     Seq(Play_3_0, Play_2_9, Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
 
-  val acyclic = ivy"com.lihaoyi:::acyclic:0.3.12"
+  val acyclic = ivy"com.lihaoyi:::acyclic:0.3.15"
   val ammoniteVersion = "3.0.0-2-6342755f"
   val asmTree = ivy"org.ow2.asm:asm-tree:9.7.1"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
 
   val coursier = ivy"io.get-coursier::coursier:2.1.14"
-  val coursierInterface = ivy"io.get-coursier:interface:1.0.19"
+  val coursierInterface = ivy"io.get-coursier:interface:1.0.22"
 
   val cask = ivy"com.lihaoyi::cask:0.9.4"
   val castor = ivy"com.lihaoyi::castor:0.3.0"
@@ -131,26 +132,26 @@ object Deps {
   val graphvizJava = Seq(
     ivy"guru.nidi:graphviz-java-min-deps:0.18.1",
     ivy"org.webjars.npm:viz.js-graphviz-java:2.1.3",
-    ivy"org.apache.xmlgraphics:batik-rasterizer:1.17"
+    ivy"org.apache.xmlgraphics:batik-rasterizer:1.18"
   )
-  val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.10.0"
+  val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.10.1"
 
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.4.0" // 1.5.0+ dont support JDK8
   val javet = Seq(
-    ivy"com.caoccao.javet:javet:3.1.6",
-    ivy"com.caoccao.javet:javet-linux-arm64:3.1.6",
-    ivy"com.caoccao.javet:javet-macos:3.1.6"
+    ivy"com.caoccao.javet:javet:4.0.0",
+    ivy"com.caoccao.javet:javet-linux-arm64:4.0.0",
+    ivy"com.caoccao.javet:javet-macos:4.0.0"
   )
 
-  val jline = ivy"org.jline:jline:3.26.3"
-  val jnaVersion = "5.14.0"
+  val jline = ivy"org.jline:jline:3.27.1"
+  val jnaVersion = "5.15.0"
   val jna = ivy"net.java.dev.jna:jna:${jnaVersion}"
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:${jnaVersion}"
 
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.3"
-  val commonsIO = ivy"commons-io:commons-io:2.16.1"
-  val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.23.1"
-  val osLib = ivy"com.lihaoyi::os-lib:0.11.2"
+  val commonsIO = ivy"commons-io:commons-io:2.17.0"
+  val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.24.1"
+  val osLib = ivy"com.lihaoyi::os-lib:0.11.3"
   val pprint = ivy"com.lihaoyi::pprint:0.9.0"
   val mainargs = ivy"com.lihaoyi::mainargs:0.7.6"
   val millModuledefsVersion = "0.11.1"
@@ -165,7 +166,7 @@ object Deps {
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.8.3"
   def scalap(scalaVersion: String) = ivy"org.scala-lang:scalap:${scalaVersion}"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
-  val scoverage2Version = "2.1.1"
+  val scoverage2Version = "2.2.1"
   val scalacScoverage2Plugin = ivy"org.scoverage:::scalac-scoverage-plugin:${scoverage2Version}"
   val scalacScoverage2Reporter = ivy"org.scoverage::scalac-scoverage-reporter:${scoverage2Version}"
   val scalacScoverage2Domain = ivy"org.scoverage::scalac-scoverage-domain:${scoverage2Version}"
@@ -174,9 +175,9 @@ object Deps {
   val scalatags = ivy"com.lihaoyi::scalatags:0.12.0"
   def scalaXml = ivy"org.scala-lang.modules::scala-xml:2.3.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.9.9"
+  val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.11.0"
   val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.10.3"
-  val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.1"
+  val sourcecode = ivy"com.lihaoyi::sourcecode:0.4.2"
   val upickle = ivy"com.lihaoyi::upickle:3.3.1"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.5"
   val zinc = ivy"org.scala-sbt::zinc:1.10.3"
@@ -185,7 +186,7 @@ object Deps {
   val fansi = ivy"com.lihaoyi::fansi:0.5.0"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.0"
   val requests = ivy"com.lihaoyi::requests:0.9.0"
-  val logback = ivy"ch.qos.logback:logback-classic:1.5.7"
+  val logback = ivy"ch.qos.logback:logback-classic:1.5.11"
   val sonatypeCentralClient = ivy"com.lumidion::sonatype-central-client-requests:0.3.0"
   val kotlinVersion = "2.0.21"
   val kotlinCompiler = ivy"org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion"
@@ -199,7 +200,7 @@ object Deps {
     val dokkaBase = ivy"org.jetbrains.dokka:dokka-base:$dokkaVersion"
     val dokkaCli = ivy"org.jetbrains.dokka:dokka-cli:$dokkaVersion"
     val errorProneCore = ivy"com.google.errorprone:error_prone_core:2.31.0"
-    val freemarker = ivy"org.freemarker:freemarker:2.3.31"
+    val freemarker = ivy"org.freemarker:freemarker:2.3.33"
     val jupiterInterface = ivy"com.github.sbt.junit:jupiter-interface:0.11.4"
     val kotlinxHtmlJvm = ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:0.8.0"
     val koverCli = ivy"org.jetbrains.kotlinx:kover-cli:$koverVersion"
@@ -225,19 +226,19 @@ object Deps {
 
   /** Used to manage transitive versions. */
   val transitiveDeps = Seq(
-    ivy"org.apache.ant:ant:1.10.14",
+    ivy"org.apache.ant:ant:1.10.15",
     ivy"commons-io:commons-io:2.16.1",
     ivy"com.google.code.gson:gson:2.11.0",
     ivy"com.google.protobuf:protobuf-java:4.28.2",
-    ivy"com.google.guava:guava:33.3.0-jre",
-    ivy"org.yaml:snakeyaml:2.2",
-    ivy"org.apache.commons:commons-compress:1.26.2"
+    ivy"com.google.guava:guava:33.3.1-jre",
+    ivy"org.yaml:snakeyaml:2.3",
+    ivy"org.apache.commons:commons-compress:1.27.1"
   )
 
   /** Used in tests. */
   object TestDeps {
     // tests framework (test)
-    val scalaCheck = ivy"org.scalacheck::scalacheck:1.18.0"
+    val scalaCheck = ivy"org.scalacheck::scalacheck:1.18.1"
     val scalaTest = ivy"org.scalatest::scalatest:3.2.19"
     val utest = ivy"com.lihaoyi::utest:0.8.4"
     val zioTest = ivy"dev.zio::zio-test:2.0.22"
@@ -305,7 +306,8 @@ val bridgeScalaVersions = Seq(
   "2.13.11",
   "2.13.12",
   "2.13.13",
-  "2.13.14"
+  "2.13.14",
+  "2.13.15"
 )
 
 // We limit the number of compiler bridges to compile and publish for local
@@ -640,12 +642,7 @@ def launcherScript(
   Jvm.universalScript(
     shellCommands = {
       val jvmArgsStr = shellJvmArgs.mkString(" ")
-      def java(mainClass: String, passMillJvmOpts: Boolean) = {
-        val millJvmOpts = if (passMillJvmOpts) "$mill_jvm_opts" else ""
-        s"""exec "$$JAVACMD" $jvmArgsStr $$JAVA_OPTS $millJvmOpts -cp "${shellClassPath.mkString(
-            ":"
-          )}" $mainClass "$$@""""
-      }
+      val classpathStr = shellClassPath.mkString(":")
 
       s"""if [ -z "$$JAVA_HOME" ] ; then
          |  JAVACMD="java"
@@ -653,68 +650,19 @@ def launcherScript(
          |  JAVACMD="$$JAVA_HOME/bin/java"
          |fi
          |
-         |mill_jvm_opts=""
-         |init_mill_jvm_opts () {
-         |  if [ -z $$MILL_JVM_OPTS_PATH ] ; then
-         |    mill_jvm_opts_file=".mill-jvm-opts"
-         |  else
-         |    mill_jvm_opts_file=$$MILL_JVM_OPTS_PATH
-         |  fi
-         |
-         |  if [ -f "$$mill_jvm_opts_file" ] ; then
-         |    # We need to append a newline at the end to fix
-         |    # https://github.com/com-lihaoyi/mill/issues/2140
-         |    newline="
-         |"
-         |    mill_jvm_opts="$$(
-         |      echo "$$newline" | cat "$$mill_jvm_opts_file" - | (
-         |        while IFS= read line
-         |        do
-         |          mill_jvm_opts="$${mill_jvm_opts} $$(echo $$line | grep -v "^[[:space:]]*[#]")"
-         |        done
-         |        # we are in a sub-shell, so need to return it explicitly
-         |        echo "$${mill_jvm_opts}"
-         |      )
-         |    )"
-         |    mill_jvm_opts="$${mill_jvm_opts} -Dmill.jvm_opts_applied=true"
-         |  fi
-         |}
-         |
          |# Client-server mode doesn't seem to work on WSL, just disable it for now
          |# https://stackoverflow.com/a/43618657/871202
          |if grep -qEi "(Microsoft|WSL)" /proc/version > /dev/null 2> /dev/null ; then
-         |    init_mill_jvm_opts
          |    if [ -z $$COURSIER_CACHE ] ; then
          |      COURSIER_CACHE=.coursier
          |    fi
-         |    ${java(millMainClass, true)}
-         |else
-         |    if [ "$${1%"-i"*}" != "$$1" ] ; then # first arg starts with "-i"
-         |        init_mill_jvm_opts
-         |        ${java(millMainClass, true)}
-         |    else
-         |        case "$$1" in
-         |          -i | --interactive | --repl | --no-server | --bsp )
-         |            init_mill_jvm_opts
-         |            ${java(millMainClass, true)}
-         |            ;;
-         |          *)
-         |            ${java(millMainClass, false)}
-         |            ;;
-         |        esac
-         |    fi
          |fi
+         |exec "$$JAVACMD" $jvmArgsStr $$JAVA_OPTS -cp "$classpathStr" $millMainClass "$$@"
          |""".stripMargin
     },
     cmdCommands = {
       val jvmArgsStr = cmdJvmArgs.mkString(" ")
-      def java(mainClass: String, passMillJvmOpts: Boolean) = {
-        val millJvmOpts = if (passMillJvmOpts) "!mill_jvm_opts!" else ""
-        s""""%JAVACMD%" $jvmArgsStr %JAVA_OPTS% $millJvmOpts -cp "${cmdClassPath.mkString(
-            ";"
-          )}" $mainClass %*"""
-      }
-
+      val classpathStr = cmdClassPath.mkString(";")
       s"""setlocal EnableDelayedExpansion
          |set "JAVACMD=java.exe"
          |if not "%JAVA_HOME%"=="" set "JAVACMD=%JAVA_HOME%\\bin\\java.exe"
@@ -724,21 +672,8 @@ def launcherScript(
          |if "%1" == "--no-server" set _I_=true
          |if "%1" == "--bsp" set _I_=true
          |
-         |set "mill_jvm_opts="
-         |set "mill_jvm_opts_file=.mill-jvm-opts"
-         |if not "%MILL_JVM_OPTS_PATH%"=="" set "mill_jvm_opts_file=%MILL_JVM_OPTS_PATH%"
+         |"%JAVACMD%" $jvmArgsStr %JAVA_OPTS% -cp "$classpathStr" $millMainClass %*
          |
-         |if defined _I_ (
-         |  if exist %mill_jvm_opts_file% (
-         |    for /f "delims=" %%G in (%mill_jvm_opts_file%) do (
-         |      set line=%%G
-         |      if "!line:~0,2!"=="-X" set "mill_jvm_opts=!mill_jvm_opts! !line!"
-         |    )
-         |  )
-         |  ${java(millMainClass, true)}
-         |) else (
-         |  ${java(millMainClass, false)}
-         |)
          |endlocal
          |""".stripMargin
     }
@@ -770,6 +705,7 @@ object dist0 extends MillPublishJavaModule {
     build.contrib.jmh.testDep(),
     build.contrib.playlib.testDep(),
     build.contrib.playlib.worker("2.8").testDep(),
+    build.contrib.testng.testDep(),
     build.bsp.worker.testDep(),
     build.testkit.testDep()
   )
