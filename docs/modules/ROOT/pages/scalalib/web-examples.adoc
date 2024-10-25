@@ -36,3 +36,86 @@ include::partial$example/scalalib/web/6-cross-version-platform-publishing.adoc[]
 == Publishing Cross-Platform Scala Modules Alternative
 
 include::partial$example/scalalib/web/7-cross-platform-version-publishing.adoc[]
+
+== Scala.js WebAssembly Example
+
+This example demonstrates how to create a simple Scala.js project that compiles to WebAssembly (WASM) using Mill.
+
+=== Project Structure
+
+[source,bash]
+----
+8-scalajs-wasm/
+├── build.mill
+└── wasmhello
+    └── src
+        └── WasmHello.scala
+----
+
+=== Build Definition
+
+[source,scala]
+----
+import mill._, scalalib._, scalajslib._
+
+object wasmhello extends ScalaJSModule {
+  def scalaVersion = "3.3.1"
+  def scalaJSVersion = "1.17.0"
+
+  def moduleKind = ModuleKind.NoModule
+
+  // Enable WASM output
+  def scalaJSUseMainModuleInitializer = true
+  override def scalaJSLinkerConfig = super.scalaJSLinkerConfig().withModuleKind(ModuleKind.NoModule)
+    .withOutputPatterns(org.scalajs.linker.interface.OutputPatterns.wasm)
+
+  def compileWasm = T {
+    val linked = fullLinkJS()
+    val wasmFile = linked.dest / linked.publicModules.head.jsFileName.replaceAll("\\.js$", ".wasm")
+    PathRef(wasmFile)
+  }
+
+  def runWasm = T.command {
+    val wasmFile = compileWasm().path
+    os.proc("wasmtime", wasmFile).call(stdout = os.Inherit)
+  }
+}
+----
+
+=== Scala.js Source
+
+[source,scala]
+----
+import scala.scalajs.js.annotation._
+
+object WasmHello {
+  def main(args: Array[String]): Unit = {
+    println("Hello from Scala.js WASM!")
+  }
+}
+----
+
+=== Compiling and Running
+
+To compile the Scala.js code to WASM:
+
+[source,bash]
+----
+mill wasmhello.compileWasm
+----
+
+To run the compiled WASM file using `wasmtime`:
+
+[source,bash]
+----
+mill wasmhello.runWasm
+----
+
+This will output:
+
+[source]
+----
+Hello from Scala.js WASM!
+----
+
+Note: Make sure you have `wasmtime` installed on your system to run the WASM file.
