@@ -174,6 +174,6 @@ public class Util {
         return result.toString();
     }
 
-    static Pattern envInterpolatorPattern = Pattern.compile("\\$(\\$|[A-Z_][A-Z0-9_]*)");
+    static Pattern envInterpolatorPattern = Pattern.compile("\\$\\{(\\$|[A-Z_][A-Z0-9_]*)\\}");
 
 }

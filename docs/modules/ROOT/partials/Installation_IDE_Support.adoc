@@ -230,6 +230,8 @@ _.mill-opts_
 ----
 
 The file name `.mill-opts` can be overridden via the `MILL_OPTS_PATH` environment variable.
+You can also pass in flags like `--jobs=10` explicitly to override the value passed in
+`.mill-opts`.
 
 NOTE: `.mill-jvm-opts` is for passing JVM options to the JVM running Mill,
 and `.mill-opts` is for passing options to Mill itself. If you want to pass JVM options

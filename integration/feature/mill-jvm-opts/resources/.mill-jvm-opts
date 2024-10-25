@@ -1,5 +1,5 @@
 
 # comment after an empty line
 -Dproperty.properly.set.via.jvm.opts=value-from-file
--Dproperty.with.interpolated.working.dir=value-with-$PWD
+-Dproperty.with.interpolated.working.dir=value-with-${PWD}
 -Xss120m
