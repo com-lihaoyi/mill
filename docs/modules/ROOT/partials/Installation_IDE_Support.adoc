@@ -202,6 +202,10 @@ _.mill-jvm-opts_
 -Xmx10G
 ----
 
+Note that `.mill-jvm-opts` requires each CLI token to be on a separate line, so
+`-Xss10m -Xmx10G` on a single line is not allowed (as it would pass `"-Xss10m -Xmx10G"`
+as a single token and fail argument parsing)
+
 `.mill-jvm-opts` also supports environment variable interpolation, e.g.
 
 _.mill-jvm-opts_
