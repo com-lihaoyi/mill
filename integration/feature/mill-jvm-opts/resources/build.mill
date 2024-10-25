@@ -4,15 +4,26 @@ import java.lang.management.ManagementFactory
 import scala.jdk.CollectionConverters._
 
 def checkJvmOpts() = Task.Command {
-  val prop = System.getProperty("PROPERTY_PROPERLY_SET_VIA_JVM_OPTS")
+  val prop = System.getProperty("property.properly.set.via.jvm.opts")
   if (prop != "value-from-file") sys.error("jvm-opts not correctly applied, value was: " + prop)
   val runtime = ManagementFactory.getRuntimeMXBean()
   val args = runtime.getInputArguments().asScala.toSet
-  if (!args.contains("-DPROPERTY_PROPERLY_SET_VIA_JVM_OPTS=value-from-file")) {
+  if (!args.contains("-Dproperty.properly.set.via.jvm.opts=value-from-file")) {
     sys.error("jvm-opts not correctly applied, args were: " + args.mkString)
   }
   if (!args.contains("-Xss120m")) {
     sys.error("jvm-opts not correctly applied, args were: " + args.mkString)
   }
   ()
+}
+
+def checkEnvJvmOpts() = Task.Command {
+  val prop = System.getProperty("property.with.interpolated.working.dir")
+  assert(prop.startsWith("value-with-"))
+  assert(prop.contains("integration/feature/mill-jvm-opts"))
+}
+
+def checkNonJvmOpts() = Task.Command {
+  System.err.println(Task.ctx().asInstanceOf[mill.api.Ctx.Jobs].jobs)
+  assert(Task.ctx().asInstanceOf[mill.api.Ctx.Jobs].jobs == 17)
 }

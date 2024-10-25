@@ -6,9 +6,20 @@ import utest._
 
 object MillJvmOptsTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
-    test("JVM options from file .mill-jvm-opts are properly read") - integrationTest { tester =>
+    test("simple") - integrationTest { tester =>
       import tester._
-      assert(eval("checkJvmOpts").isSuccess)
+      val res = eval("checkJvmOpts")
+      assert(res.isSuccess)
+    }
+    test("interpolatedEnvVars") - integrationTest { tester =>
+      import tester._
+      val res = eval("checkEnvJvmOpts")
+      assert(res.isSuccess)
+    }
+    test("nonJvmOpts") - integrationTest { tester =>
+      import tester._
+      val res = eval("checkNonJvmOpts")
+      assert(res.isSuccess)
     }
   }
 }
