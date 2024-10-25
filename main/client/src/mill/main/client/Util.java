@@ -165,8 +165,8 @@ public class Util {
             if (match.equals("$")) {
                 matcher.appendReplacement(result, "\\$");
             } else {
-                String envVarValue = env.get(match);
-                matcher.appendReplacement(result, ""+envVarValue);
+                String envVarValue = env.containsKey(match) ? env.get(match) : "";
+                matcher.appendReplacement(result, envVarValue);
             }
         }
 

@@ -210,7 +210,8 @@ as a single token and fail argument parsing)
 
 _.mill-jvm-opts_
 ----
--Dmy.jvm.property=$PWD
+# PWD on mac/linux, CD on windows
+-Dmy.jvm.property=$PWD$CD
 ----
 
 The file name `.mill-jvm-opts` can be overridden via the `MILL_JVM_OPTS_PATH` environment
