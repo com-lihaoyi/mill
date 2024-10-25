@@ -17,13 +17,10 @@ def checkJvmOpts() = Task.Command {
   ()
 }
 
-def checkEnvJvmOpts() = Task.Command {
-  val prop = System.getProperty("property.with.interpolated.working.dir")
-  assert(prop.startsWith("value-with-"))
-  assert(prop.contains("integration/feature/mill-jvm-opts"))
+def getEnvJvmOpts() = Task.Command {
+  System.getProperty("property.with.interpolated.working.dir")
 }
 
-def checkNonJvmOpts() = Task.Command {
-  System.err.println(Task.ctx().asInstanceOf[mill.api.Ctx.Jobs].jobs)
-  assert(Task.ctx().asInstanceOf[mill.api.Ctx.Jobs].jobs == 17)
+def getNonJvmOpts() = Task.Command {
+  Task.ctx().asInstanceOf[mill.api.Ctx.Jobs].jobs
 }
