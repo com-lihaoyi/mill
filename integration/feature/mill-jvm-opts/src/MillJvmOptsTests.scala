@@ -1,7 +1,7 @@
 package mill.integration
 
+import mill.main.client.Util
 import mill.testkit.UtestIntegrationTestSuite
-
 import utest._
 
 object MillJvmOptsTests extends UtestIntegrationTestSuite {
@@ -12,19 +12,23 @@ object MillJvmOptsTests extends UtestIntegrationTestSuite {
       assert(res.isSuccess)
     }
     test("interpolatedEnvVars") - integrationTest { tester =>
-      import tester._
-      val res = eval(("show", "getEnvJvmOpts"))
-      val out = res.out
-      val expected = "\"value-with-" + tester.workspacePath + "\""
-      assert(out == expected)
+      if (!Util.isWindows) {
+        import tester._
+        val res = eval(("show", "getEnvJvmOpts"))
+        val out = res.out
+        val expected = "\"value-with-" + tester.workspacePath + "\""
+        assert(out == expected)
+      }
     }
     test("alternate") - integrationTest { tester =>
-      import tester._
-      val res = eval(
-        ("show", "getEnvJvmOpts"),
-        env = Map("MILL_JVM_OPTS_PATH" -> ".mill-jvm-opts-alternate")
-      )
-      assert(res.out == "\"alternate-value-with-" + tester.workspacePath + "\"")
+      if (!Util.isWindows) {
+        import tester._
+        val res = eval(
+          ("show", "getEnvJvmOpts"),
+          env = Map("MILL_JVM_OPTS_PATH" -> ".mill-jvm-opts-alternate")
+        )
+        assert(res.out == "\"alternate-value-with-" + tester.workspacePath + "\"")
+      }
     }
     test("nonJvmOpts") - integrationTest { tester =>
       import tester._
