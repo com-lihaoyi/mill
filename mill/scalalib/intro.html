@@ -436,9 +436,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-9-4cf615</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-10-1d0d5f</button>
   <div class="version-menu">
-    <a class="version is-current" href="intro.html">0.12.0-9-4cf615</a>
+    <a class="version is-current" href="intro.html">0.12.0-10-1d0d5f</a>
     <a class="version" href="../0.12.0/scalalib/intro.html">0.12.0</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
@@ -919,7 +919,7 @@ in that module</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
 
-object `package` extends RootModule with ScalaModule {
+object foo extends ScalaModule {
   def scalaVersion = &quot;2.13.11&quot;
 
   /** Total number of lines in module source files */
@@ -1018,27 +1018,35 @@ up to <code>lineCount</code>:</p>
 </center>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill run
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.run
 ...
 Line Count: 17
 
-&gt; mill show lineCount
+&gt; mill show foo.lineCount
 17
 
-&gt; mill inspect lineCount
-lineCount(build.mill:...)
+&gt; mill inspect foo.lineCount
+foo.lineCount(build.mill:...)
     Total number of lines in module source files
 Inputs:
-    allSourceFiles</code></pre>
+    foo.allSourceFiles</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Above, <code>def lineCount</code> is a new build task we define, which makes use of
 <code>allSourceFiles</code> (an existing task) and is in-turn used in our override of
-<code>resources</code> (also an existing task). <code>os.read.lines</code> and <code>os.write</code> come
-from the <a href="https://github.com/com-lihaoyi/os-lib">OS-Lib</a> library, which is
-one of Mill’s <a href="../fundamentals/bundled-libraries.html" class="xref page">Bundled Libraries</a>. This generated file can then be
-loaded and used at runtime, as see in the output of <code>mill run</code></p>
+<code>resources</code> (also an existing task). This generated file can then be
+loaded and used at runtime, as see in the output of <code>mill run</code>.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre> `os.read.lines` and `os.write` come
+from the https://github.com/com-lihaoyi/os-lib[OS-Lib] library, which is
+one of Mill's xref:fundamentals/bundled-libraries.adoc[Bundled Libraries].
+You can also import any other library you want from Maven Central using
+xref:extending/import-ivy-plugins.adoc[import $ivy], so you are not limited
+to what is bundled with Mill.</pre>
+</div>
 </div>
 <div class="paragraph">
 <p>If you’re not familiar with what existing tasks are available to override and
@@ -1098,9 +1106,8 @@ object bar extends MyModule {
 </div>
 </div>
 <div class="paragraph">
-<p>This example contains a simple Mill build with two modules, <code>foo</code> and <code>bar</code>.
-We don’t mark either module as top-level using <code>extends RootModule</code>, so
-running tasks needs to use the module name as the prefix e.g. <code>foo.run</code> or
+<p>This example contains a simple Mill build with two modules, <code>foo</code> and <code>bar</code>,
+which you can run tasks on such as <code>foo.run</code> or
 <code>bar.run</code>. You can define multiple modules the same way you define a single
 module, using <code>def moduleDeps</code> to define the relationship between them. Modules
 can also be nested within each other, as <code>foo.test</code> and <code>bar.test</code> are nested
@@ -1306,7 +1313,7 @@ a complete list of options and a cheat-sheet of how to work with tasks:</p>
 <div class="listingblock">
 <div class="title">Output of <code>mill --help</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.12.0-9-4cf615
+<pre class="highlightjs highlight"><code class="language-none hljs">Mill Build Tool, version 0.12.0-10-1d0d5f
 Usage: mill [options] task [task-options] [+ task ...]
 
 task cheat sheet:
