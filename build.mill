@@ -672,7 +672,7 @@ def launcherScript(
          |if "%1" == "--no-server" set _I_=true
          |if "%1" == "--bsp" set _I_=true
          |
-         |%JAVACMD%" $jvmArgsStr %JAVA_OPTS% -cp "$classpathStr" $millMainClass %*
+         |"%JAVACMD%" $jvmArgsStr %JAVA_OPTS% -cp "$classpathStr" $millMainClass %*
          |
          |endlocal
          |""".stripMargin

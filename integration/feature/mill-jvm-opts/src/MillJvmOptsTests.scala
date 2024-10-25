@@ -20,7 +20,10 @@ object MillJvmOptsTests extends UtestIntegrationTestSuite {
     }
     test("alternate") - integrationTest { tester =>
       import tester._
-      val res = eval(("show", "getEnvJvmOpts"), env = Map("MILL_JVM_OPTS_PATH" -> ".mill-jvm-opts-alternate"))
+      val res = eval(
+        ("show", "getEnvJvmOpts"),
+        env = Map("MILL_JVM_OPTS_PATH" -> ".mill-jvm-opts-alternate")
+      )
       assert(res.out == "\"alternate-value-with-" + tester.workspacePath + "\"")
     }
     test("nonJvmOpts") - integrationTest { tester =>
@@ -30,7 +33,8 @@ object MillJvmOptsTests extends UtestIntegrationTestSuite {
     }
     test("nonJvmOptsAlternate") - integrationTest { tester =>
       import tester._
-      val res = eval(("show", "getNonJvmOpts"), env = Map("MILL_OPTS_PATH" -> ".mill-opts-alternate"))
+      val res =
+        eval(("show", "getNonJvmOpts"), env = Map("MILL_OPTS_PATH" -> ".mill-opts-alternate"))
       assert(res.out == "29")
     }
   }
