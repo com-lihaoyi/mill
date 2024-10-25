@@ -21,6 +21,7 @@ public class EnvVars {
 
 
     public static final String MILL_JVM_OPTS_PATH = "MILL_JVM_OPTS_PATH";
+    public static final String MILL_OPTS_PATH = "MILL_OPTS_PATH";
 
 
     /**
