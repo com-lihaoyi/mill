@@ -1,11 +1,7 @@
 = Case Study: Mill vs Gradle
 :page-aliases: Case_Study_Mill_vs_Gradle.adoc
 
-++++
-<script>
-gtag('config', 'AW-16649289906');
-</script>
-++++
+include::partial$gtag-config.adoc[]
 
 This page compares using Mill to Gradle, using the https://github.com/mockito/mockito[Mockito Testing Library]
 codebase as the example. Mockito is a medium sized codebase, 100,000 lines of Java split over 22
@@ -220,7 +216,7 @@ The fundamental problem with tools like Gradle is that the code you write does n
 actually perform the build: rather, you are just setting up some data structure that
 is used to configure the _real_ build engine that runs later. Thus when you explore
 the Gradle build in an IDE, the IDE can only explore the configuration logic (which
-use usually un-interesting) and is unable to explore the actual build logic (which
+is usually un-interesting) and is unable to explore the actual build logic (which
 is what you actually care about!)
 
 In comparison, Mill's `.mill` files are all statically typed, and as a result IntelliJ is easily able to

@@ -1,6 +1,7 @@
 package foo;
 
-import org.apache.commons.text.StringEscapeUtils;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.Namespace;
@@ -10,8 +11,9 @@ public class Foo {
 
   public static void main(String barText, String quxText, String fooText) {
     Qux.main(barText, quxText);
-
-    String value = "<p>" + StringEscapeUtils.escapeHtml4(fooText) + "</p>";
+    Context context = new Context();
+    context.setVariable("text", fooText);
+    String value = new TemplateEngine().process("<p th:text=\"${text}\"></p>", context);
     System.out.println("Foo.value: " + value);
   }
 

@@ -1,11 +1,7 @@
 = Testing Java Projects
 :page-aliases: Testing_Java_Projects.adoc
 
-++++
-<script>
-gtag('config', 'AW-16649289906');
-</script>
-++++
+include::partial$gtag-config.adoc[]
 
 This page will discuss common topics around working with test suites using the Mill build tool
 

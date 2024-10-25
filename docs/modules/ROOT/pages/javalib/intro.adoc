@@ -15,11 +15,7 @@
 = Building Java Projects with Mill
 :page-aliases: index.adoc, Intro_to_Mill.adoc, Intro_to_Mill_for_Java.adoc, Java_Intro_to_Mill.adoc
 
-++++
-<script>
-gtag('config', 'AW-16649289906');
-</script>
-++++
+include::partial$gtag-config.adoc[]
 
 
 :language: Java

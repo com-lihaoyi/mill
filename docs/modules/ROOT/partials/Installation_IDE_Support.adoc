@@ -1,10 +1,3 @@
-++++
-<!-- Event snippet for Installation Page View conversion page -->
-<script>
-  gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
-</script>
-++++
-
 
 The standard method of installing Mill is to install a `./mill` <<_bootstrap_scripts,bootstrap script>>,
 similar to `./gradlew` or `./mvnw` in other build tools.
@@ -203,18 +196,49 @@ JVM options, one per line.
 For example, if your build requires a lot of memory and bigger stack size, your
 `.mill-jvm-opts` could look like this:
 
+_.mill-jvm-opts_
 ----
 -Xss10m
 -Xmx10G
 ----
 
-The file name for passing JVM options to the Mill launcher is configurable. If
-for some reason you don't want to use `.mill-jvm-opts` file name, add
-`MILL_JVM_OPTS_PATH` environment variable with any other file name.
+Note that `.mill-jvm-opts` requires each CLI token to be on a separate line, so
+`-Xss10m -Xmx10G` on a single line is not allowed (as it would pass `"-Xss10m -Xmx10G"`
+as a single token and fail argument parsing)
 
-NOTE: `.mill-jvm-opts` is for passing JVM options to the JVM running Mill itself.
-If you want to pass JVM options to the project that Mill is building and running,
-see the section on
+`.mill-jvm-opts` also supports environment variable interpolation, e.g.
+
+_.mill-jvm-opts_
+----
+# PWD on mac/linux
+-Dmy.jvm.property=${PWD}
+----
+
+Missing environment variables are 
+converted to the empty string.
+
+The file name `.mill-jvm-opts` can be overridden via the `MILL_JVM_OPTS_PATH` environment
+variable.
+
+== Custom Mill Options
+
+Mill also supports the `.mill-opts` file for passing a default set of command line
+options to Mill itself. For example, if your project's tasks are CPU heavy, you
+may want everyone using your project to run only 0.5 concurrent tasks per CPU. This
+can be done by setting `.mill-opts` to:
+
+_.mill-opts_
+----
+--jobs=0.5C
+----
+
+The file name `.mill-opts` can be overridden via the `MILL_OPTS_PATH` environment variable.
+You can also pass in flags like `--jobs=10` explicitly to override the value passed in
+`.mill-opts`.
+
+NOTE: `.mill-jvm-opts` is for passing JVM options to the JVM running Mill,
+and `.mill-opts` is for passing options to Mill itself. If you want to pass JVM options
+to the project that Mill is building and running, see the section on
 xref:javalib/module-config.adoc#_compilation_execution_flags[Compilation and Execution Flags].
 
 == Other installation methods

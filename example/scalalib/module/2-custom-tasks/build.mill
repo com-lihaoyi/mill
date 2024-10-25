@@ -1,6 +1,6 @@
 // This example shows how to define task that depend on other tasks:
 //
-// 1. For `generatedSources`, we override an the task and make it depend
+// 1. For `generatedSources`, we override the task and make it depend
 //    directly on `ivyDeps` to generate its source files. In this example,
 //    to include the list of dependencies as tuples within a static `object`
 //

@@ -1,6 +1,8 @@
 = The Mill Evaluation Model
 :page-aliases: The_Mill_Evaluation_Model.adoc
 
+include::partial$gtag-config.adoc[]
+
 Evaluating a Mill task typically goes through the following phases:
 
 1. *Compilation*: Mill compiles the `build.mill` to classfiles, following the

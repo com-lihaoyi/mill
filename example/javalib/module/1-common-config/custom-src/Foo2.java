@@ -5,14 +5,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Properties;
-import org.apache.commons.text.StringEscapeUtils;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 public class Foo2 {
-  public static final String value = "<h1>" + StringEscapeUtils.escapeHtml4("hello2") + "</h1>";
+  public static final String value(){
+      Context context = new Context();
+      context.setVariable("text", "hello2");
+      return new TemplateEngine().process("<h1 th:text=\"${text}\"></h1>", context);
+  }
 
   public static void main(String[] args) {
-    System.out.println("Foo2.value: " + Foo2.value);
-    System.out.println("Foo.value: " + Foo.value);
+    System.out.println("Foo2.value: " + Foo2.value());
+    System.out.println("Foo.value: " + Foo.value());
 
     System.out.println("FooA.value: " + FooA.value);
     System.out.println("FooB.value: " + FooB.value);

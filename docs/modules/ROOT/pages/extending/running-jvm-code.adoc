@@ -1,5 +1,7 @@
 = Running Dynamic JVM Code
 
+include::partial$gtag-config.adoc[]
+
 While xref:extending/import-ivy-plugins.adoc[import $ivy] is convenient,
 it comes with limitations as the JVM library it imports is global to your build:
 

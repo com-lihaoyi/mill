@@ -82,6 +82,7 @@ object `package` extends RootModule with Module {
     object metabuild extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "metabuild"))
     object plugins extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "plugins"))
     object jvmcode extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "jvmcode"))
+    object newlang extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "newlang"))
   }
 
   trait ExampleCrossModuleKotlin extends ExampleCrossModuleJava {

@@ -12,7 +12,11 @@ object `package` extends RootModule with ScalaModule {
 }
 //// SNIPPET:END
 
-// You can define the `ivyDeps` field to add ivy dependencies to your module.
+// You can define the `ivyDeps` field to add ivy dependencies to your module,
+// named after the https://ant.apache.org/ivy/history/latest-milestone/settings/resolvers.html[Ivy Dependency Resolver]
+// and JVM package repository format. The `Agg` factory function constructs an
+// `Agg[Dep]` collection, which is a collection of `Dep`s without duplicates,
+// a type common in Mill builds.
 //
 // * Single `:` syntax (e.g. `"ivy"org.testng:testng:6.11"`) defines Java
 //   dependencies

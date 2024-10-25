@@ -16,6 +16,8 @@ import java.util.Map;
 import java.util.List;
 import java.util.LinkedList;
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Util {
     // use methods instead of constants to avoid inlining by compiler
@@ -139,14 +141,12 @@ public class Util {
      */
     public static List<String> readOptsFileLines(final File file) {
         final List<String> vmOptions = new LinkedList<>();
-        try (
-                final Scanner sc = new Scanner(file)
-        ) {
+        try (final Scanner sc = new Scanner(file)) {
             while (sc.hasNextLine()) {
                 String arg = sc.nextLine();
                 String trimmed = arg.trim();
                 if (!trimmed.isEmpty() && !trimmed.startsWith("#")) {
-                    vmOptions.add(arg);
+                    vmOptions.add(interpolateEnvVars(arg, System.getenv()));
                 }
             }
         } catch (FileNotFoundException e) {
@@ -154,5 +154,26 @@ public class Util {
         }
         return vmOptions;
     }
+
+    public static String interpolateEnvVars(String input, Map<String, String> env){
+        Matcher matcher = envInterpolatorPattern.matcher(input);
+        // StringBuilder to store the result after replacing
+        StringBuffer result = new StringBuffer();
+
+        while (matcher.find()) {
+            String match = matcher.group(1);
+            if (match.equals("$")) {
+                matcher.appendReplacement(result, "\\$");
+            } else {
+                String envVarValue = env.containsKey(match) ? env.get(match) : "";
+                matcher.appendReplacement(result, envVarValue);
+            }
+        }
+
+        matcher.appendTail(result); // Append the remaining part of the string
+        return result.toString();
+    }
+
+    static Pattern envInterpolatorPattern = Pattern.compile("\\$\\{(\\$|[A-Z_][A-Z0-9_]*)\\}");
 
 }

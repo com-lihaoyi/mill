@@ -1,7 +1,7 @@
 /*
  * Original code copied from https://github.com/lefou/mill-kotlin
  * Original code published under the Apache License Version 2
- * Original Copyright 2020-20 24 Tobias Roeser
+ * Original Copyright 2020-2024 Tobias Roeser
  */
 package mill.kotlinlib
 

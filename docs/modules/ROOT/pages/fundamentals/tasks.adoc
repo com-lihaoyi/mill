@@ -1,6 +1,8 @@
 = Tasks
 :page-aliases: Tasks.adoc
 
+include::partial$gtag-config.adoc[]
+
 One of Mill's core abstractions is its _Task Graph_: this is how Mill defines,
 orders and caches work it needs to do, and exists independently of any support
 for building Java, Kotlin, or Scala.

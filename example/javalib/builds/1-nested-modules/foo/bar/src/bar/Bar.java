@@ -1,13 +1,16 @@
 package foo.bar;
 
-import org.apache.commons.text.StringEscapeUtils;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.Namespace;
 
 public class Bar {
   public static void main(String text){
-    String value = "<h1>" + StringEscapeUtils.escapeHtml4(text) + "</h1>";
+    Context context = new Context();
+    context.setVariable("text", text);
+    String value = new TemplateEngine().process("<h1 th:text=\"${text}\"></h1>", context);
     System.out.println("Bar.value: " + value);
   }
 

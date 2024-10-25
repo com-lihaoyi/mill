@@ -20,9 +20,8 @@ object bar extends MyModule {
 }
 //// SNIPPET:END
 
-// This example contains a simple Mill build with two modules, `foo` and `bar`.
-// We don't mark either module as top-level using `extends RootModule`, so
-// running tasks needs to use the module name as the prefix e.g. `foo.run` or
+// This example contains a simple Mill build with two modules, `foo` and `bar`,
+// which you can run tasks on such as `foo.run` or
 // `bar.run`. You can define multiple modules the same way you define a single
 // module, using `def moduleDeps` to define the relationship between them. Modules
 // can also be nested within each other, as `foo.test` and `bar.test` are nested

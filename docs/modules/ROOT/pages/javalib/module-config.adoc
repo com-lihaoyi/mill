@@ -1,11 +1,7 @@
 = Java Module Configuration
 :page-aliases: Java_Module_Config.adoc
 
-++++
-<script>
-gtag('config', 'AW-16649289906');
-</script>
-++++
+include::partial$gtag-config.adoc[]
 
 :language: Java
 :language-small: java

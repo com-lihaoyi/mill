@@ -45,9 +45,10 @@ object Settings {
   val docTags: Seq[String] = Seq(
     "0.11.10",
     "0.11.11",
-    "0.11.12"
+    "0.11.12",
+    "0.12.0"
   )
-  val mimaBaseVersions: Seq[String] = 0.to(12).map("0.11." + _)
+  val mimaBaseVersions: Seq[String] = 0.to(12).map("0.11." + _) ++ Seq("0.12.0")
 }
 
 object Deps {
@@ -142,7 +143,7 @@ object Deps {
     ivy"com.caoccao.javet:javet-macos:4.0.0"
   )
 
-  val jline = ivy"org.jline:jline:3.26.3"
+  val jline = ivy"org.jline:jline:3.27.1"
   val jnaVersion = "5.15.0"
   val jna = ivy"net.java.dev.jna:jna:${jnaVersion}"
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:${jnaVersion}"
@@ -174,9 +175,9 @@ object Deps {
   val scalatags = ivy"com.lihaoyi::scalatags:0.12.0"
   def scalaXml = ivy"org.scala-lang.modules::scala-xml:2.3.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.10.2"
+  val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.11.0"
   val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.10.3"
-  val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.1"
+  val sourcecode = ivy"com.lihaoyi::sourcecode:0.4.2"
   val upickle = ivy"com.lihaoyi::upickle:3.3.1"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.5"
   val zinc = ivy"org.scala-sbt::zinc:1.10.3"
@@ -649,12 +650,7 @@ def launcherScript(
   Jvm.universalScript(
     shellCommands = {
       val jvmArgsStr = shellJvmArgs.mkString(" ")
-      def java(mainClass: String, passMillJvmOpts: Boolean) = {
-        val millJvmOpts = if (passMillJvmOpts) "$mill_jvm_opts" else ""
-        s"""exec "$$JAVACMD" $jvmArgsStr $$JAVA_OPTS $millJvmOpts -cp "${shellClassPath.mkString(
-            ":"
-          )}" $mainClass "$$@""""
-      }
+      val classpathStr = shellClassPath.mkString(":")
 
       s"""if [ -z "$$JAVA_HOME" ] ; then
          |  JAVACMD="java"
@@ -662,68 +658,19 @@ def launcherScript(
          |  JAVACMD="$$JAVA_HOME/bin/java"
          |fi
          |
-         |mill_jvm_opts=""
-         |init_mill_jvm_opts () {
-         |  if [ -z $$MILL_JVM_OPTS_PATH ] ; then
-         |    mill_jvm_opts_file=".mill-jvm-opts"
-         |  else
-         |    mill_jvm_opts_file=$$MILL_JVM_OPTS_PATH
-         |  fi
-         |
-         |  if [ -f "$$mill_jvm_opts_file" ] ; then
-         |    # We need to append a newline at the end to fix
-         |    # https://github.com/com-lihaoyi/mill/issues/2140
-         |    newline="
-         |"
-         |    mill_jvm_opts="$$(
-         |      echo "$$newline" | cat "$$mill_jvm_opts_file" - | (
-         |        while IFS= read line
-         |        do
-         |          mill_jvm_opts="$${mill_jvm_opts} $$(echo $$line | grep -v "^[[:space:]]*[#]")"
-         |        done
-         |        # we are in a sub-shell, so need to return it explicitly
-         |        echo "$${mill_jvm_opts}"
-         |      )
-         |    )"
-         |    mill_jvm_opts="$${mill_jvm_opts} -Dmill.jvm_opts_applied=true"
-         |  fi
-         |}
-         |
          |# Client-server mode doesn't seem to work on WSL, just disable it for now
          |# https://stackoverflow.com/a/43618657/871202
          |if grep -qEi "(Microsoft|WSL)" /proc/version > /dev/null 2> /dev/null ; then
-         |    init_mill_jvm_opts
          |    if [ -z $$COURSIER_CACHE ] ; then
          |      COURSIER_CACHE=.coursier
          |    fi
-         |    ${java(millMainClass, true)}
-         |else
-         |    if [ "$${1%"-i"*}" != "$$1" ] ; then # first arg starts with "-i"
-         |        init_mill_jvm_opts
-         |        ${java(millMainClass, true)}
-         |    else
-         |        case "$$1" in
-         |          -i | --interactive | --repl | --no-server | --bsp )
-         |            init_mill_jvm_opts
-         |            ${java(millMainClass, true)}
-         |            ;;
-         |          *)
-         |            ${java(millMainClass, false)}
-         |            ;;
-         |        esac
-         |    fi
          |fi
+         |exec "$$JAVACMD" $jvmArgsStr $$JAVA_OPTS -cp "$classpathStr" $millMainClass "$$@"
          |""".stripMargin
     },
     cmdCommands = {
       val jvmArgsStr = cmdJvmArgs.mkString(" ")
-      def java(mainClass: String, passMillJvmOpts: Boolean) = {
-        val millJvmOpts = if (passMillJvmOpts) "!mill_jvm_opts!" else ""
-        s""""%JAVACMD%" $jvmArgsStr %JAVA_OPTS% $millJvmOpts -cp "${cmdClassPath.mkString(
-            ";"
-          )}" $mainClass %*"""
-      }
-
+      val classpathStr = cmdClassPath.mkString(";")
       s"""setlocal EnableDelayedExpansion
          |set "JAVACMD=java.exe"
          |if not "%JAVA_HOME%"=="" set "JAVACMD=%JAVA_HOME%\\bin\\java.exe"
@@ -733,21 +680,8 @@ def launcherScript(
          |if "%1" == "--no-server" set _I_=true
          |if "%1" == "--bsp" set _I_=true
          |
-         |set "mill_jvm_opts="
-         |set "mill_jvm_opts_file=.mill-jvm-opts"
-         |if not "%MILL_JVM_OPTS_PATH%"=="" set "mill_jvm_opts_file=%MILL_JVM_OPTS_PATH%"
+         |"%JAVACMD%" $jvmArgsStr %JAVA_OPTS% -cp "$classpathStr" $millMainClass %*
          |
-         |if defined _I_ (
-         |  if exist %mill_jvm_opts_file% (
-         |    for /f "delims=" %%G in (%mill_jvm_opts_file%) do (
-         |      set line=%%G
-         |      if "!line:~0,2!"=="-X" set "mill_jvm_opts=!mill_jvm_opts! !line!"
-         |    )
-         |  )
-         |  ${java(millMainClass, true)}
-         |) else (
-         |  ${java(millMainClass, false)}
-         |)
          |endlocal
          |""".stripMargin
     }

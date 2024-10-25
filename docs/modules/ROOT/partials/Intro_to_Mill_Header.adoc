@@ -18,7 +18,7 @@ digraph G {
     node [shape=box width=0 height=0 style=filled fillcolor=white]
     label = "bar";
 
-    "foo.classPath" -> "bar.compile"
+    "foo.classPath" -> "bar.compile" [constraint=false]
     "foo.classPath" -> "bar.classPath"
     "bar.sources" -> "bar.compile" -> "bar.classPath" -> "bar.assembly"
     "bar.mainClass" -> "bar.assembly"
@@ -30,7 +30,7 @@ digraph G {
 common development workflows xref:comparisons/maven.adoc[5-10x faster to Maven], or
 xref:comparisons/gradle.adoc[2-4x faster than Gradle], while providing better IDE support
 than xref:comparisons/maven.adoc#_extensibility_ide_experience[Maven],
-xref:comparisons/gradle.adoc#_ide_experience[Gradle] or xref:comparisons/sbt.adoc#_ide_support[SBT]
+xref:comparisons/gradle.adoc#_ide_experience[Gradle] or xref:comparisons/sbt.adoc#_ide_support[SBT].
 Mill aims to make your JVM project's build process performant, maintainable, and flexible
 even as it grows from a small project to a large codebase or monorepo with hundreds of modules:
 
@@ -41,7 +41,7 @@ even as it grows from a small project to a large codebase or monorepo with hundr
   the logic necessary to build your project, while providing tools to let you identify
   and resolve bottlenecks in your build
 
-* *Beyond YAML and Bash*: Mill config and custom logic is written in
+* *Maintainability*: Mill goes beyond YAML and Bash, with config and custom logic written in
   xref:_custom_build_logic[concise type-checked code],
   rather than shell scripts, XML or YAML. This lets IDEs
   (xref:{language-small}lib/installation-ide.adoc#_intellij[IntelliJ] or
@@ -49,10 +49,10 @@ even as it grows from a small project to a large codebase or monorepo with hundr
   understand and navigate around and refactor your build as easily as
   any application codebase.
 
-* *Flexibility*: Mill's custom tasks and modules allow anything from
-  xref:fundamentals/tasks.adoc#primitive-tasks[adding simple build steps], up to
-  xref:fundamentals/modules.adoc#_use_case_diy_java_modules[entire language toolchains].
-  You can xref:extending/import-ivy-plugins.adoc[import any JVM library as part of your build],
+* *Flexibility*: Mill's custom tasks and modules allow anything from adding 
+  xref:fundamentals/tasks.adoc#primitive-tasks[simple build steps], up to
+  entire xref:extending/new-language.adoc[language toolchains].
+  You can xref:extending/import-ivy-plugins.adoc[import any JVM library] as part of your build,
   use Mill's rich ecosystem of xref:extending/thirdparty-plugins.adoc[Third-Party Mill Plugins],
-  or xref:extending/writing-plugins.adoc[write plugins yourself] and
-  xref:extending/writing-plugins.adoc#_publishing[publish them on Maven Central] for others to use.
+  or xref:extending/writing-plugins.adoc[write plugins] yourself and
+  xref:extending/writing-plugins.adoc#_publishing[publish them] to Maven Central for others to use.

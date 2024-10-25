@@ -256,9 +256,10 @@ foo.compileClasspath
 
 */
 
-// Note that due to parallelism, the given order is only the order that the tasks
-// will be _started_: the order in which tasks _complete_ may be different since
-// the tasks will run in parallel taking varying amounts of time.
+// NOTE: due to parallelism, the given order is only one possible toplogical
+// order that the tasks will be started. Tasks may be started in different orders
+// depending on scheduling considerations, and may finish in a different order
+// due to differences in time taken to run
 
 // == clean
 

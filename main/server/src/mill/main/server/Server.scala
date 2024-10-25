@@ -74,7 +74,7 @@ abstract class Server[T](
     os.remove.all(socketPath)
 
     val relFile = socketPath.relativeTo(os.pwd).toNIO.toFile
-    serverLog("listening on socket " + relFile)
+    serverLog("listening on socket " + relFile + " " + os.pwd)
     // Use relative path because otherwise the full path might be too long for the socket API
     val addr = AFUNIXSocketAddress.of(relFile)
     AFUNIXServerSocket.bindOn(addr)
