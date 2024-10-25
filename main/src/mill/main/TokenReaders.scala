@@ -1,7 +1,7 @@
 package mill.main
 
 import mainargs.TokensReader
-import mill.eval.Evaluator
+import mill.eval.{Evaluator, ProxyEvaluator}
 import mill.define.{Args, Target, Task}
 import mill.resolve.{Resolve, SelectMode}
 import mill.resolve.SimpleTaskTokenReader
@@ -29,7 +29,7 @@ object Tasks {
 }
 
 private[mill] class EvaluatorTokenReader[T]() extends mainargs.TokensReader.Constant[Evaluator] {
-  def read(): Either[String, Evaluator] = Right(Evaluator.currentEvaluator.value)
+  def read(): Either[String, Evaluator] = Right(new ProxyEvaluator(Evaluator.currentEvaluatorSafe.value()))
 }
 private[mill] class AllEvaluatorsTokenReader[T]()
     extends mainargs.TokensReader.Constant[Evaluator.AllBootstrapEvaluators] {
