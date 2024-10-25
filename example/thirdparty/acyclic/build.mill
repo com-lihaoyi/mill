@@ -1,6 +1,15 @@
 package build
 import mill._, scalalib._, publish._
 
+// acyclic test suite assumes files are on disk at specific paths relative to `os.pwd`.
+// To avoid changing the test code, we instead copy the necessary files into the `os.pwd`
+// when preparing the resources for test suite execution
+os.copy.over(
+  interp.watch(mill.api.WorkspaceRoot.workspaceRoot / "acyclic"),
+  os.pwd / "acyclic",
+  createFolders = true
+)
+
 object Deps {
   def acyclic = ivy"com.lihaoyi:::acyclic:0.3.6"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:$scalaVersion"

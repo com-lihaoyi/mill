@@ -213,22 +213,6 @@ _.mill-jvm-opts_
 -Dmy.jvm.property=$PWD
 ----
 
-You can use this to override the Mill server working directory, e.g.
-moving it from the bespoke sandbox folder to the workspace root via:
-
-_.mill-jvm-opts_
-----
--Duser.dir=$PWD
-----
-
-
-`.mill-jvm-opts` also supports environment variable interpolation, e.g.
-
-_.mill-jvm-opts_
-----
--Duser.dir=$PWD
-----
-
 The file name `.mill-jvm-opts` can be overridden via the `MILL_JVM_OPTS_PATH` environment
 variable.
 
