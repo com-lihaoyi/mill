@@ -437,9 +437,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-10-1d0d5f</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-11-7e7a54</button>
   <div class="version-menu">
-    <a class="version is-current" href="installation-ide.html">0.12.0-10-1d0d5f</a>
+    <a class="version is-current" href="installation-ide.html">0.12.0-11-7e7a54</a>
     <a class="version" href="../0.12.0/scalalib/installation-ide.html">0.12.0</a>
     <a class="version" href="../0.11.12/Scala_Installation_IDE_Support.html">0.11.12</a>
     <a class="version" href="../0.11.11/Scala_Installation_IDE_Support.html">0.11.11</a>
@@ -746,6 +746,9 @@ JVM options, one per line.</p>
 <p>For example, if your build requires a lot of memory and bigger stack size, your
 <code>.mill-jvm-opts</code> could look like this:</p>
 </div>
+<div class="paragraph">
+<p><em>.mill-jvm-opts</em></p>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre>-Xss10m
@@ -753,9 +756,47 @@ JVM options, one per line.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>The file name for passing JVM options to the Mill launcher is configurable. If
-for some reason you don’t want to use <code>.mill-jvm-opts</code> file name, add
-<code>MILL_JVM_OPTS_PATH</code> environment variable with any other file name.</p>
+<p>Note that <code>.mill-jvm-opts</code> requires each CLI token to be on a separate line, so
+<code>-Xss10m -Xmx10G</code> on a single line is not allowed (as it would pass <code>&quot;-Xss10m -Xmx10G&quot;</code>
+as a single token and fail argument parsing)</p>
+</div>
+<div class="paragraph">
+<p><code>.mill-jvm-opts</code> also supports environment variable interpolation, e.g.</p>
+</div>
+<div class="paragraph">
+<p><em>.mill-jvm-opts</em></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre># PWD on mac/linux
+-Dmy.jvm.property=$PWD</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The file name <code>.mill-jvm-opts</code> can be overridden via the <code>MILL_JVM_OPTS_PATH</code> environment
+variable.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_custom_mill_options"><a class="anchor" href="#_custom_mill_options"></a>Custom Mill Options</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill also supports the <code>.mill-opts</code> file for passing a default set of command line
+options to Mill itself. For example, if your project’s tasks are CPU heavy, you
+may want everyone using your project to run only 0.5 concurrent tasks per CPU. This
+can be done by setting <code>.mill-opts</code> to:</p>
+</div>
+<div class="paragraph">
+<p><em>.mill-opts</em></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>--jobs=0.5C</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The file name <code>.mill-opts</code> can be overridden via the <code>MILL_OPTS_PATH</code> environment variable.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -764,9 +805,9 @@ for some reason you don’t want to use <code>.mill-jvm-opts</code> file name, a
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-<code>.mill-jvm-opts</code> is for passing JVM options to the JVM running Mill itself.
-If you want to pass JVM options to the project that Mill is building and running,
-see the section on
+<code>.mill-jvm-opts</code> is for passing JVM options to the JVM running Mill,
+and <code>.mill-opts</code> is for passing options to Mill itself. If you want to pass JVM options
+to the project that Mill is building and running, see the section on
 <a href="../javalib/module-config.html#_compilation_execution_flags" class="xref page">Compilation and Execution Flags</a>.
 </td>
 </tr>
