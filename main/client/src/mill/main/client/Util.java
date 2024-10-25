@@ -135,18 +135,19 @@ public class Util {
     }
 
     /**
-     * Reads a file, ignoring empty or comment lines
+     * Reads a file, ignoring empty or comment lines, interpolating env variables.
      *
      * @return The non-empty lines of the files or an empty list, if the file does not exists
      */
     public static List<String> readOptsFileLines(final File file) {
         final List<String> vmOptions = new LinkedList<>();
         try (final Scanner sc = new Scanner(file)) {
+            final Map<String, String> env = System.getenv();
             while (sc.hasNextLine()) {
                 String arg = sc.nextLine();
                 String trimmed = arg.trim();
                 if (!trimmed.isEmpty() && !trimmed.startsWith("#")) {
-                    vmOptions.add(interpolateEnvVars(arg, System.getenv()));
+                    vmOptions.add(interpolateEnvVars(arg, env));
                 }
             }
         } catch (FileNotFoundException e) {
@@ -155,7 +156,11 @@ public class Util {
         return vmOptions;
     }
 
-    public static String interpolateEnvVars(String input, Map<String, String> env){
+    /**
+     * Interpolate variables in the form of <code>${VARIABLE}</code> based on the given Map <code>env</code>.
+     * Missing vars will be replaced by the empty string.
+     */
+    public static String interpolateEnvVars(String input, Map<String, String> env) {
         Matcher matcher = envInterpolatorPattern.matcher(input);
         // StringBuilder to store the result after replacing
         StringBuffer result = new StringBuffer();
@@ -174,6 +179,6 @@ public class Util {
         return result.toString();
     }
 
-    static Pattern envInterpolatorPattern = Pattern.compile("\\$\\{(\\$|[A-Z_][A-Z0-9_]*)\\}");
+    private static Pattern envInterpolatorPattern = Pattern.compile("\\$\\{(\\$|[A-Z_][A-Z0-9_]*)\\}");
 
 }
