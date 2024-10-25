@@ -195,7 +195,7 @@ object `package` extends RootModule {
          |""".stripMargin
     }
     s"""site:
-       |  title: The Mill Build Tool
+       |  title: The Mill JVM Build Tool
        |  url: ${if (authorMode) s"${T.dest}/site" else build.Settings.docUrl}
        |  start_page: mill::javalib/intro.adoc
        |  keys:
