@@ -35,6 +35,11 @@ object MillJvmOptsTests extends UtestIntegrationTestSuite {
       val res = eval(("show", "getNonJvmOpts"))
       assert(res.out == "17")
     }
+    test("overrideNonJvmOpts") - integrationTest { tester =>
+      import tester._
+      val res = eval(("--jobs", "19", "show", "getNonJvmOpts"))
+      assert(res.out == "19")
+    }
     test("nonJvmOptsAlternate") - integrationTest { tester =>
       import tester._
       val res =
