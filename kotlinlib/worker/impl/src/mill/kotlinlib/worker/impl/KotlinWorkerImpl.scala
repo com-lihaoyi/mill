@@ -1,7 +1,8 @@
 /*
- * Copyright 2020-Present Original lefou/mill-kotlin repository contributors.
+ * Original code copied from https://github.com/lefou/mill-kotlin
+ * Original code published under the Apache License Version 2
+ * Original Copyright 2020-2024 Tobias Roeser
  */
-
 package mill.kotlinlib.worker.impl
 
 import mill.api.{Ctx, Result}
@@ -11,7 +12,7 @@ import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
 
 class KotlinWorkerImpl extends KotlinWorker {
 
-  def compile(target: KotlinWorkerTarget, args: String*)(implicit ctx: Ctx): Result[Unit] = {
+  def compile(target: KotlinWorkerTarget, args: Seq[String])(implicit ctx: Ctx): Result[Unit] = {
     ctx.log.debug("Using kotlin compiler arguments: " + args.map(v => s"'${v}'").mkString(" "))
 
     val compiler = target match {

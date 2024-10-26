@@ -3,13 +3,14 @@ package mill.runner.client;
 import static mill.main.client.OutFiles.*;
 
 import java.io.File;
-import java.io.FileInputStream;
+import java.io.InputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
+import mill.main.client.DebugLog;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.terminal.Terminal;
 
@@ -28,6 +29,7 @@ public class MillProcessLauncher {
         l.addAll(millLaunchJvmCommand(setJnaNoSys));
         l.add("mill.runner.MillMain");
         l.add(processDir.toAbsolutePath().toString());
+        l.addAll(Util.readOptsFileLines(millOptsFile()));
         l.addAll(Arrays.asList(args));
 
         final ProcessBuilder builder = new ProcessBuilder()
@@ -37,7 +39,9 @@ public class MillProcessLauncher {
         boolean interrupted = false;
 
         try {
-            return configureRunMillProcess(builder, processDir).waitFor();
+            Process p = configureRunMillProcess(builder, processDir);
+            MillProcessLauncher.runTermInfoThread(processDir);
+            return p.waitFor();
 
         } catch (InterruptedException e) {
             interrupted = true;
@@ -71,30 +75,9 @@ public class MillProcessLauncher {
         ProcessBuilder builder,
         Path serverDir
     ) throws Exception {
-        Terminal term = TerminalBuilder.builder().dumb(true).build();
+
         Path sandbox = serverDir.resolve(ServerFiles.sandbox);
         Files.createDirectories(sandbox);
-        Files.write(
-            serverDir.resolve(ServerFiles.terminfo),
-            (term.getWidth() + " " + term.getHeight()).getBytes()
-        );
-        Thread termInfoPropagatorThread = new Thread(
-            () -> {
-                try {
-
-                    while(true){
-                        Files.write(
-                            serverDir.resolve(ServerFiles.terminfo),
-                            (term.getWidth() + " " + term.getHeight()).getBytes()
-                        );
-
-                        Thread.sleep(100);
-                    }
-                }catch (Exception e){}
-            },
-            "TermInfoPropagatorThread"
-        );
-        termInfoPropagatorThread.start();
         builder.environment().put(EnvVars.MILL_WORKSPACE_ROOT, new File("").getCanonicalPath());
 
         builder.directory(sandbox.toFile());
@@ -105,6 +88,14 @@ public class MillProcessLauncher {
         String millJvmOptsPath = System.getenv(EnvVars.MILL_JVM_OPTS_PATH);
         if (millJvmOptsPath == null || millJvmOptsPath.trim().equals("")) {
             millJvmOptsPath = ".mill-jvm-opts";
+        }
+        return new File(millJvmOptsPath).getAbsoluteFile();
+    }
+
+    static File millOptsFile() {
+        String millJvmOptsPath = System.getenv(EnvVars.MILL_OPTS_PATH);
+        if (millJvmOptsPath == null || millJvmOptsPath.trim().equals("")) {
+            millJvmOptsPath = ".mill-opts";
         }
         return new File(millJvmOptsPath).getAbsoluteFile();
     }
@@ -145,7 +136,7 @@ public class MillProcessLauncher {
 
             // read MILL_CLASSPATH from file MILL_OPTIONS_PATH
             Properties millProps = new Properties();
-            try (FileInputStream is = new FileInputStream(millOptionsPath)) {
+            try (InputStream is = Files.newInputStream(Paths.get(millOptionsPath))) {
                 millProps.load(is);
             } catch (IOException e) {
                 throw new RuntimeException("Could not load '" + millOptionsPath + "'", e);
@@ -213,5 +204,25 @@ public class MillProcessLauncher {
 
     static List<String> readMillJvmOpts() {
         return Util.readOptsFileLines(millJvmOptsFile());
+    }
+
+    public static void runTermInfoThread(Path serverDir) throws Exception{
+        Terminal term = TerminalBuilder.builder().dumb(true).build();
+        Thread termInfoPropagatorThread = new Thread(
+            () -> {
+                try {
+                    while(true){
+                        Files.write(
+                            serverDir.resolve(ServerFiles.terminfo),
+                            (term.getWidth() + " " + term.getHeight()).getBytes()
+                        );
+
+                        Thread.sleep(100);
+                    }
+                }catch (Exception e){}
+            },
+            "TermInfoPropagatorThread"
+        );
+        termInfoPropagatorThread.start();
     }
 }

@@ -8,7 +8,6 @@ import org.newsclub.net.unix.AFUNIXSocket;
 import org.newsclub.net.unix.AFUNIXSocketAddress;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -53,6 +52,7 @@ public abstract class ServerLauncher {
     final int serverProcessesLimit = 5;
     final int serverInitWaitMillis = 10000;
     public abstract void initServer(Path serverDir, boolean b, Locks locks) throws Exception;
+    public abstract void preRun(Path serverDir) throws Exception;
     InputStream stdin;
     PrintStream stdout;
     PrintStream stderr;
@@ -102,6 +102,7 @@ public abstract class ServerLauncher {
             ) {
                 if (clientLocked.isLocked()) {
                     Result result = new Result();
+                    preRun(serverDir);
                     result.exitCode = run(serverDir, setJnaNoSys, locks);
                     result.serverDir = serverDir;
                     return result;
@@ -126,7 +127,8 @@ public abstract class ServerLauncher {
         ) {
             stdoutTailer.start();
             stderrTailer.start();
-            try (FileOutputStream f = new FileOutputStream(serverDir + "/" + ServerFiles.runArgs)) {
+            String serverPath = serverDir + "/" + ServerFiles.runArgs;
+            try (OutputStream f = Files.newOutputStream(Paths.get(serverPath))) {
                 f.write(System.console() != null ? 1 : 0);
                 Util.writeString(f, BuildInfo.millVersion);
                 Util.writeArgs(args, f);

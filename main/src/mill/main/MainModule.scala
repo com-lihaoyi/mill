@@ -83,7 +83,6 @@ object MainModule {
 trait MainModule extends BaseModule0 {
 
   object interp extends Interp
-//  implicit def millDiscover: mill.define.Discover[_]
 
   /**
    * Show the mill version.

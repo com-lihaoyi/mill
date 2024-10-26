@@ -15,11 +15,7 @@
 = Building Java Projects with Mill
 :page-aliases: index.adoc, Intro_to_Mill.adoc, Intro_to_Mill_for_Java.adoc, Java_Intro_to_Mill.adoc
 
-++++
-<script>
-gtag('config', 'AW-16649289906');
-</script>
-++++
+include::partial$gtag-config.adoc[]
 
 
 :language: Java
@@ -52,3 +48,7 @@ include::partial$example/javalib/basic/2-custom-build-logic.adoc[]
 include::partial$example/javalib/basic/3-multi-module.adoc[]
 
 include::partial$Intro_to_Mill_Footer.adoc[]
+
+== Maven-Compatible Modules
+
+include::partial$example/javalib/basic/4-compat-modules.adoc[]

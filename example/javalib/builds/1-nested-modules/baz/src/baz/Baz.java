@@ -1,6 +1,7 @@
 package baz;
 
-import org.apache.commons.text.StringEscapeUtils;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.Namespace;
@@ -10,8 +11,9 @@ public class Baz {
 
   public static void main(String barText, String quxText, String fooText, String bazText) {
     Foo.main(barText, quxText, fooText);
-
-    String value = "<p>" + StringEscapeUtils.escapeHtml4(bazText) + "</p>";
+    Context context = new Context();
+    context.setVariable("text", bazText);
+    String value = new TemplateEngine().process("<p th:text=\"${text}\"></p>", context);
     System.out.println("Baz.value: " + value);
   }
 

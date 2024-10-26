@@ -1,11 +1,7 @@
 = Linting Kotlin Projects
 :page-aliases: Linting_Kotlin_Projects.adoc
 
-++++
-<script>
-gtag('config', 'AW-16649289906');
-</script>
-++++
+include::partial$gtag-config.adoc[]
 
 This page will discuss common topics around enforcing the code quality of Kotlin
 codebases using the Mill build tool

@@ -24,10 +24,10 @@ trait DiyJavaModule extends Module{
     for(cp <- classPath()) os.copy(cp.path, Task.dest, mergeFolders = true)
 
     val mainFlags = mainClass().toSeq.flatMap(Seq("-e", _))
-    os.proc("jar", "-c", mainFlags, "-f", Task.dest / s"assembly.jar", ".")
+    os.proc("jar", "-c", mainFlags, "-f", Task.dest / "assembly.jar", ".")
       .call(cwd = Task.dest)
 
-    PathRef(Task.dest / s"assembly.jar")
+    PathRef(Task.dest / "assembly.jar")
   }
 }
 // This defines the following build graph for `DiyJavaModule`. Note that some of the

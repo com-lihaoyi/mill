@@ -1,7 +1,8 @@
 /*
- * Copyright 2020-Present Original lefou/mill-kotlin repository contributors.
+ * Original code copied from https://github.com/lefou/mill-kotlin
+ * Original code published under the Apache License Version 2
+ * Original Copyright 2020-2024 Tobias Roeser
  */
-
 package mill.kotlinlib
 
 import mill.PathRef
@@ -18,7 +19,7 @@ class KotlinWorkerManagerImpl(ctx: Ctx) extends KotlinWorkerManager with AutoClo
     val toolsCp = toolsClasspath.distinct
     val (worker, count) = workerCache.get(toolsCp) match {
       case Some((w, count)) =>
-        ctx.log.debug(s"Reusing existing AspectjWorker for classpath: ${toolsCp}")
+        ctx.log.debug(s"Reusing existing KotlinWorker for classpath: ${toolsCp}")
         w -> count
       case None =>
         ctx.log.debug(s"Creating Classloader with classpath: [${toolsCp}]")

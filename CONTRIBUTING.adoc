@@ -1,6 +1,6 @@
 = Contributing to Mill
 :link-github: https://github.com/com-lihaoyi/mill
-:link-chat: https://discord.gg/MNAXQMAr
+:link-chat: https://discord.gg/xJCYRVMS
 
 Thank you for considering contributing to Mill.
 

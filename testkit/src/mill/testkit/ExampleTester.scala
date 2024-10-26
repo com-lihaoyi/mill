@@ -1,5 +1,6 @@
 package mill.testkit
 import mill.util.Util
+import mill.main.client.EnvVars.MILL_TEST_SUITE
 import utest._
 
 /**
@@ -114,7 +115,7 @@ class ExampleTester(
       stderr = os.Pipe,
       cwd = workspacePath,
       mergeErrIntoOut = true,
-      env = Map("MILL_TEST_SUITE" -> this.getClass().toString()),
+      env = Map(MILL_TEST_SUITE -> this.getClass().toString()),
       check = false
     )
 
@@ -160,12 +161,6 @@ class ExampleTester(
         .toVector
 
     val filteredOut = plainTextLines(evalResult.out).mkString("\n")
-
-    if (expectedSnippets.nonEmpty) {
-      for (outLine <- filteredOut.linesIterator) {
-        globMatchesAny(unwrappedExpected, outLine)
-      }
-    }
 
     for (expectedLine <- unwrappedExpected.linesIterator) {
       assert(filteredOut.linesIterator.exists(globMatches(expectedLine, _)))

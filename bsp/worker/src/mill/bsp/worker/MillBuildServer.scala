@@ -3,17 +3,19 @@ package mill.bsp.worker
 import ch.epfl.scala.bsp4j
 import ch.epfl.scala.bsp4j._
 import com.google.gson.JsonObject
-import mill.api.{DummyTestReporter, Result, Strict}
+import mill.api.Loose.Agg
+import mill.api.{CompileProblemReporter, DummyTestReporter, Result, Strict, TestReporter}
 import mill.bsp.{BspServerResult, Constants}
 import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
 import mill.define.Segment.Label
-import mill.define.{Args, Discover, ExternalModule, Task}
+import mill.define.{Args, Discover, ExternalModule, NamedTask, Task}
 import mill.eval.Evaluator
 import mill.eval.Evaluator.TaskResult
 import mill.main.MainModule
 import mill.runner.MillBuildRootModule
 import mill.scalalib.bsp.{BspModule, JvmBuildTarget, ScalaBuildTarget}
 import mill.scalalib.{JavaModule, SemanticDbJavaModule, TestModule}
+import mill.util.ColorLogger
 
 import java.io.PrintStream
 import java.util.concurrent.CompletableFuture
@@ -393,7 +395,8 @@ private class MillBuildServer(
       val result = compileTasksEvs
         .groupMap(_._2)(_._1)
         .map { case (ev, ts) =>
-          ev.evaluate(
+          evaluate(
+            ev,
             ts,
             Utils.getBspLoggedReporterPool(p.getOriginId, state.bspIdByModule, client),
             DummyTestReporter,
@@ -443,7 +446,8 @@ private class MillBuildServer(
 
       val args = params.getArguments.getOrElse(Seq.empty[String])
       val runTask = module.run(Task.Anon(Args(args)))
-      val runResult = ev.evaluate(
+      val runResult = evaluate(
+        ev,
         Strict.Agg(runTask),
         Utils.getBspLoggedReporterPool(runParams.getOriginId, state.bspIdByModule, client),
         logger = new MillBspLogger(client, runTask.hashCode(), ev.baseLogger)
@@ -508,7 +512,8 @@ private class MillBuildServer(
                   Seq.empty[String]
                 )
 
-              val results = ev.evaluate(
+              val results = evaluate(
+                ev,
                 Strict.Agg(testTask),
                 Utils.getBspLoggedReporterPool(
                   testParams.getOriginId,
@@ -568,7 +573,8 @@ private class MillBuildServer(
             val compileTargetName = (module.millModuleSegments ++ Label("compile")).render
             debug(s"about to clean: ${compileTargetName}")
             val cleanTask = mainModule.clean(ev, Seq(compileTargetName): _*)
-            val cleanResult = ev.evaluate(
+            val cleanResult = evaluate(
+              ev,
               Strict.Agg(cleanTask),
               logger = new MillBspLogger(client, cleanTask.hashCode, ev.baseLogger)
             )
@@ -642,7 +648,7 @@ private class MillBuildServer(
       // group by evaluator (different root module)
       val evaluated = groupList(tasksSeq.toSeq)(_._2)(_._1)
         .map { case ((ev, id), ts) =>
-          val results = ev.evaluate(ts)
+          val results = evaluate(ev, ts)
           val failures = results.results.collect {
             case (_, TaskResult(res: Result.Failing[_], _)) => res
           }
@@ -767,6 +773,34 @@ private class MillBuildServer(
 
   override def onRunReadStdin(params: ReadParams): Unit = {
     debug("onRunReadStdin is current unsupported")
+  }
+
+  private def evaluate(
+      evaluator: Evaluator,
+      goals: Agg[Task[_]],
+      reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
+      testReporter: TestReporter = DummyTestReporter,
+      logger: ColorLogger = null
+  ): Evaluator.Results = {
+    val logger0 = Option(logger).getOrElse(evaluator.baseLogger)
+    mill.runner.MillMain.withOutLock(
+      noBuildLock = false,
+      noWaitForBuildLock = false,
+      out = evaluator.outPath,
+      targetsAndParams = goals.toSeq.map {
+        case n: NamedTask[_] => n.label
+        case t => t.toString
+      },
+      streams = logger0.systemStreams
+    ) {
+      evaluator.evaluate(
+        goals,
+        reporter,
+        testReporter,
+        logger0,
+        serialCommandExec = false
+      )
+    }
   }
 }
 

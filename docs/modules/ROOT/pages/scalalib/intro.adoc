@@ -14,12 +14,7 @@
 = Building Scala Projects with Mill
 :page-aliases: Intro_to_Mill_for_Scala.adoc, Scala_Intro_to_Mill.adoc
 
-++++
-<script>
-gtag('config', 'AW-16649289906');
-</script>
-++++
-
+include::partial$gtag-config.adoc[]
 
 :language: Scala
 :language-small: scala
@@ -29,8 +24,10 @@ include::partial$Intro_to_Mill_Header.adoc[]
 
 Mill is used to build many mainstream Scala projects, such as the
 https://github.com/coursier/coursier[Coursier dependency resolver],
-https://github.com/VirtusLab/scala-cli[Scala-CLI], and the
-https://github.com/com-lihaoyi/Ammonite[Ammonite REPL]
+https://github.com/VirtusLab/scala-cli[Scala-CLI], the
+https://github.com/com-lihaoyi/Ammonite[Ammonite REPL], and the
+https://github.com/SpinalHDL/SpinalHDL[SpinalHDL] and
+https://github.com/chipsalliance/chisel[Chisel] hardware design frameworks.
 
 Mill borrows ideas from other tools like https://maven.apache.org/[Maven],
 https://gradle.org/[Gradle], https://bazel.build/[Bazel], or https://www.scala-sbt.org/[SBT].
@@ -85,3 +82,9 @@ include::partial$example/scalalib/basic/2-custom-build-logic.adoc[]
 include::partial$example/scalalib/basic/3-multi-module.adoc[]
 
 include::partial$Intro_to_Mill_Footer.adoc[]
+
+
+== SBT-Compatible Modules
+
+include::partial$example/scalalib/basic/4-compat-modules.adoc[]
+

@@ -1,11 +1,7 @@
 = Kotlin Build Examples
 :page-aliases: Kotlin_Build_Examples.adoc
 
-++++
-<script>
-gtag('config', 'AW-16649289906');
-</script>
-++++
+include::partial$gtag-config.adoc[]
 
 On this page, we will explore the Mill build tool via a series of simple Kotlin
 example projects.
@@ -16,12 +12,11 @@ example projects.
 
 include::partial$example/kotlinlib/builds/1-nested-modules.adoc[]
 
-== Maven-Compatible Modules
-
-include::partial$example/kotlinlib/builds/2-compat-modules.adoc[]
-
 
 == Realistic Kotlin Example Project
 
 include::partial$example/kotlinlib/builds/4-realistic.adoc[]
 
+== Example Builds for Real Projects
+
+TODO

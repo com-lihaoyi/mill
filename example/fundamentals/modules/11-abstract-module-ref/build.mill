@@ -1,0 +1,38 @@
+// When you define an abstract module, often you are referencing an existing module
+// somewhere in your build. A naive `def upstreamModule: FooModule`
+// would create a module alias, which is often not what you want since the referenced
+// module already has a place in your build hierarchy. In such scenarios, you can use
+// a `ModuleRef(...)` to wrap the abstract module, such that the abstract `def` does
+// not participate in task query resolution:
+
+package build
+import mill._, javalib._
+import mill.define.ModuleRef
+
+object foo extends JavaModule
+object bar extends JavaModule
+
+trait MyTestModule extends JavaModule with TestModule.Junit4{
+  def upstreamModule: ModuleRef[JavaModule]
+
+  def moduleDeps = Seq(upstreamModule())
+}
+
+object footest extends MyTestModule{
+  def upstreamModule = ModuleRef(foo)
+}
+object bartest extends MyTestModule{
+  def upstreamModule = ModuleRef(bar)
+}
+
+
+/** Usage
+
+> mill __.test
+Test foo.FooTests.simple finished, ...
+Test bar.BarTests.simple finished, ...
+...
+
+> mill resolve foo.upstreamModule._ # This fails since it's a `ModuleRef`, not just a `Module`
+error: resolve Cannot resolve foo.upstreamModule...
+*/

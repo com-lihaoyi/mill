@@ -1,6 +1,8 @@
 = Modules
 :page-aliases: Modules.adoc
 
+include::partial$gtag-config.adoc[]
+
 `mill.Module` serves two main purposes:
 
 1. As ``object``s, they serve as namespaces that let you group related ``Task``s
@@ -13,7 +15,11 @@ Mill's comes with built in modules such as `mill.scalalib.ScalaModule` and
 `mill.scalalib.CrossSbtModule`, but you can also define your own modules to do
 things that are not built-in to Mill.
 
-include::partial$example/fundamentals/modules/7-modules.adoc[]
+include::partial$example/fundamentals/modules/6-modules.adoc[]
+
+== RootModule
+
+include::partial$example/fundamentals/modules/7-root-module.adoc[]
 
 == Use Case: DIY Java Modules
 
@@ -58,3 +64,15 @@ that is shared by the entire build: for example,
 service & cache that is shared between all ``ScalaModule``s, and
 `mill.scalalib.GenIdea/idea` lets you generate IntelliJ projects without
 needing to define your own `Task.Command` in your `build.mill` file
+
+== Aliasing External Modules
+
+include::partial$example/fundamentals/modules/10-external-module-aliases.adoc[]
+
+== Abstract Modules References
+
+include::partial$example/fundamentals/modules/11-abstract-module-ref.adoc[]
+
+== Default Tasks
+
+include::partial$example/fundamentals/modules/12-default-tasks.adoc[]

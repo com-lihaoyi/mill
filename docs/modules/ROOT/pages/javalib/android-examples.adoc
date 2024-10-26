@@ -1,11 +1,7 @@
 = (Experimental) Android Builds
 :page-aliases: android_app_examples.adoc
 
-++++
-<script>
-gtag('config', 'AW-16649289906');
-</script>
-++++
+include::partial$gtag-config.adoc[]
 
 This page provides an example of using Mill as a build tool for Android applications.
 This workflow is still pretty rough and nowhere near production ready, but can serve as

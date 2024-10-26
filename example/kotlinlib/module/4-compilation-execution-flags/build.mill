@@ -24,7 +24,7 @@ hello WORLD
 > echo 'fun deprecatedMain(){Thread.currentThread().stop()}' >> src/foo/Foo.kt
 
 > ./mill run
-error: .../src/foo/Foo.kt:...: warning: 'stop(): Unit' is deprecated. Deprecated in Java
+error: .../src/foo/Foo.kt... warning: 'stop(): Unit' is deprecated. Deprecated in Java
 
 */
 

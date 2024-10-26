@@ -49,11 +49,11 @@
 // language-specific sections, but here we go into a deeper language-agnostic
 // discussion of what these Mill features ar and how they work
 .Mill Fundamentals
-* xref:fundamentals/library-deps.adoc[]
-* xref:fundamentals/out-dir.adoc[]
-* xref:fundamentals/query-syntax.adoc[]
 * xref:fundamentals/tasks.adoc[]
 * xref:fundamentals/modules.adoc[]
+* xref:fundamentals/out-dir.adoc[]
+* xref:fundamentals/query-syntax.adoc[]
+* xref:fundamentals/library-deps.adoc[]
 * xref:fundamentals/cross-builds.adoc[]
 * xref:fundamentals/bundled-libraries.adoc[]
 
@@ -82,8 +82,10 @@
 ** xref:contrib/twirllib.adoc[]
 ** xref:contrib/versionfile.adoc[]
 * xref:extending/thirdparty-plugins.adoc[]
+* xref:extending/running-jvm-code.adoc[]
 * xref:extending/writing-plugins.adoc[]
 * xref:extending/meta-build.adoc[]
+* xref:extending/new-language.adoc[]
 
 // This section focuses on diving into deeper, more advanced topics for Mill.
 // These are things that most Mill developers would not encounter day to day,
@@ -94,6 +96,7 @@
 * xref:depth/sandboxing.adoc[]
 * xref:depth/evaluation-model.adoc[]
 * xref:depth/design-principles.adoc[]
+* xref:depth/why-scala.adoc[]
 
 // Reference pages that a typical user would not typically read top-to-bottom,
 // but may need to look up once in a while, and thus should be written down

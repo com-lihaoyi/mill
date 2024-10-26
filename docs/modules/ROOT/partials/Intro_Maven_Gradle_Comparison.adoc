@@ -15,42 +15,44 @@ xref:comparisons/maven.adoc[Compared to Maven]:
   projects require minimal effort to get started, and larger Mill projects have a consistent
   structure building on these defaults.
 
+* **Mill automatically caches and parallelizes your build, offering 3-10x speedups**:
+  Not just the built-in tasks that Mill ships with, but also any custom tasks or modules.
+  This maximizes the snappiness of your command-line build workflows to keep you productive,
+  which especially matters in larger codebases where builds tend to get slow:
+  xref:comparisons/maven.adoc#_performance[a Maven "clean install" workflow
+  taking over a minute might take just a few seconds in Mill].
+
 * **Mill makes customizing the build tool much easier than Maven**. Projects usually
   grow beyond just compiling a single language: needing custom
   code generation, linting workflows, tool integrations, output artifacts, or support for
-  additional languages. Mill makes doing this yourself easy, so you are not beholden
-  to third-party plugins that may not meet your exact needs or interact well with each other.
+  additional languages. Mill's xref:comparisons/maven.adoc#_extensibility_ide_experience[extensibility and IDE experience]
+  makes doing this yourself easy and safe, with type-checked code and
+  xref:depth/sandboxing.adoc[sandboxed tasks]
 
-* **Mill automatically caches and parallelizes your build**: Not just the
-  built-in tasks that Mill ships with, but also any custom tasks or modules.
-  This maximizes performance and snappiness of
-  your command-line build workflows, and especially matters in larger codebases where builds
-  tend to get slow: a Maven `clean install` taking over a minute might take just a 
-  few seconds in Mill.
 
 xref:comparisons/gradle.adoc[Compared to Gradle]:
 
-* **Mill follows Gradle's conciseness**: Rather than pages and pages of verbose XML, every
+* **Mill follows Gradle's conciseness and extensibility**: Rather than pages and pages of verbose XML, every
   line in a Mill build is meaningful. e.g. adding a dependency is 1 line in
   Mill, like it is in Gradle, and unlike the 5 line `<dependency>` declaration you find in Maven.
-  Skimming and understanding a 100-line Mill `build.mill` file is
-  often much easier than skimming the equivalent 500-line Maven `pom.xml`.
+  Like Gradle, end users can easily customize their build to fit their exact needs without
+  needing to go through the process of writing plugins.
 
-* **Mill builds more performant**: Although both Mill and Gradle automatically cache and
-  parallelize your build, Mill does so with much less fixed overhead, resulting in 2-3x
-  speedups in common command-line workflows. This means less time waiting for your build
-  tool, and more time focusing on the things that really matter to your project.
+* **Mill can be xref:comparisons/gradle.adoc#_performance[2-3x faster than Gradle]**:
+  Although both Mill and Gradle automatically cache and parallelize your build, Mill
+  does so with much less fixed overhead. This means less time waiting for your build
+  tool, and more time for the things that really matter to your project.
 
-* **Mill enforces best practices by default**. All Mill tasks are cached by default, even
-  custom tasks. All Mill tasks write their output to disk xref:fundamentals/out-dir.adoc[a
-  standard place]. All task inter-dependencies are automatically captured, without
-  needing manual annotation. All Mill builds are incremental, not just tasks but also
-  xref:depth/evaluation-model.adoc#_caching_at_each_layer_of_the_evaluation_model[configuration
-  and other phases]. Where Gradle requires considerable effort and expertise
-  to maintain your build, Mill automates it so the
-  easiest thing to do is almost always the right thing to do.
+* **Mill enforces best practices by default**.
+  xref:depth/evaluation-model.adoc#_caching_at_each_layer_of_the_evaluation_model[All parts of a Mill build are cached and incremental by default].
+  All Mill tasks write their output to xref:fundamentals/out-dir.adoc[a standard place].
+  All task inter-dependencies are automatically captured without manual annotation. Where Gradle requires
+  considerable effort and expertise to understand your build and set it up in the right way, Mill's
+  xref:comparisons/gradle.adoc#_ide_experience[good IDE experience] makes understanding
+  your build easier, and its xref:comparisons/gradle.adoc#_extensibility[extensibility model]
+  makes configuring your build foolproof, so the easiest thing to do in Mill is usually the
+  right thing to do.
 
 Mill build files are written in Scala, but you do not need to have prior experience
-in Scala to read or write them. Like Gradle Groovy or Maven XML, it's easy to learn
+in Scala to read or write them. Like Gradle Groovy or Maven XML, anyone can learn
 enough Scala for Mill without needing to become an expert in the language.
-

@@ -1,5 +1,5 @@
 // `import $ivy` can also be used with Scala libraries. The following example
-// replaces `org.apache.commons:commons-text:1.12.0` above with `com.lihaoyi::scalatags:0.12.0`,
+// replaces `org.thymeleaf:thymeleaf:3.1.1.RELEASE` above with `com.lihaoyi::scalatags:0.12.0`,
 // a HTML generation library that does the string concatenation/construction internally
 // and also escapes the input strings on your behalf:
 

@@ -1,5 +1,7 @@
 = Installation and IDE Support
 
+include::partial$gtag-config.adoc[]
+
 :language: Kotlin
 :language-small: kotlin
 

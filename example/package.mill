@@ -81,12 +81,12 @@ object `package` extends RootModule with Module {
     object imports extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "imports"))
     object metabuild extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "metabuild"))
     object plugins extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "plugins"))
+    object jvmcode extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "jvmcode"))
+    object newlang extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "newlang"))
   }
 
   trait ExampleCrossModuleKotlin extends ExampleCrossModuleJava {
     override def lineTransform(line: String) = this.millModuleSegments.parts.last match {
-      case "4-builtin-commands" =>
-        line.replace("compile.dest/zinc", "compile.dest/kotlin.analysis.dummy")
       case "1-test-suite" => line
         .replace("mill bar.test bar.BarTests.hello", "kotest_filter_tests='hello' kotest_filter_specs='bar.BarTests' ./mill bar.test")
         .replace("compiling 1 ... source...", "Compiling 1 ... source...")

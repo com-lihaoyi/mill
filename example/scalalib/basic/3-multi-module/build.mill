@@ -20,20 +20,18 @@ object bar extends MyModule {
 }
 //// SNIPPET:END
 
-// This example contains a simple Mill build with two modules, `foo` and `bar`.
-// We don't mark either module as top-level using `extends RootModule`, so
-// running tasks needs to use the module name as the prefix e.g. `foo.run` or
+// This example contains a simple Mill build with two modules, `foo` and `bar`,
+// which you can run tasks on such as `foo.run` or
 // `bar.run`. You can define multiple modules the same way you define a single
 // module, using `def moduleDeps` to define the relationship between them. Modules
 // can also be nested within each other, as `foo.test` and `bar.test` are nested
 // within `foo` and `bar` respectively
 //
 // Note that we split out the `test` submodule configuration common to both
-// modules into a separate `trait MyModule`. This lets us avoid the need to
-// copy-paste common settings, while still letting us define any per-module
-// configuration such as `ivyDeps` specific to a particular module. This is a
-// common pattern within Mill builds to avoid the need to copy-paste common
-// configuration
+// modules into a separate `trait MyModule`. This xref:fundamentals/modules.adoc[Trait Module]
+// lets us avoid the need to copy-paste common settings, while still letting
+// us define any per-module configuration such as `ivyDeps` specific to a
+// particular module. This is a common pattern within Mill builds.
 //
 // The above builds expect the following project layout:
 //
@@ -128,6 +126,6 @@ Bar.value: <h1>world</h1>
 > mill __.compile + foo.__.test # Runs all `compile` tasks and all tests under `foo`.
 */
 
-// For more details on the query syntax, check out the query syntax documentation:
+// For more details on the query syntax, check out the
+// xref:fundamentals/query-syntax.adoc[query syntax documentation]
 
-// - xref:fundamentals/query-syntax.adoc[Task Query Syntax]

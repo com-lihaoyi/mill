@@ -478,6 +478,7 @@ class ZincWorkerImpl(
     ConsistentFileAnalysisStore.binary(
       file = path.toIO,
       mappers = ReadWriteMappers.getEmptyMappers(),
+      sort = true,
       // No need to utilize more that 8 cores to serialize a small file
       parallelism = math.min(Runtime.getRuntime.availableProcessors(), 8)
     )

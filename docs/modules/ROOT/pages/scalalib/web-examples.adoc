@@ -1,11 +1,7 @@
-= Scala Web Examples
+= Scala Web Project Examples
 :page-aliases: Web_Build_Examples.adoc, Scala_Web_Examples.adoc
 
-++++
-<script>
-gtag('config', 'AW-16649289906');
-</script>
-++++
+include::partial$gtag-config.adoc[]
 
 
 This page contains examples of using Mill as a build tool for web-applications.
