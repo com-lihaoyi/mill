@@ -137,7 +137,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
     def ivyDeps = Agg(build.Deps.junixsocket, build.Deps.jline)
 
     object test extends JavaModuleTests with TestModule.Junit4 {
-      def ivyDeps = Agg(build.Deps.junitInterface, build.Deps.commonsIO)
+      def ivyDeps = Agg(build.Deps.junitInterface, build.Deps.commonsIo)
     }
   }
 

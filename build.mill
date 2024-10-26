@@ -149,7 +149,7 @@ object Deps {
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:${jnaVersion}"
 
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.3"
-  val commonsIO = ivy"commons-io:commons-io:2.17.0"
+  val commonsIo = ivy"commons-io:commons-io:2.17.0"
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.24.1"
   val osLib = ivy"com.lihaoyi::os-lib:0.11.3"
   val pprint = ivy"com.lihaoyi::pprint:0.9.0"
@@ -225,9 +225,9 @@ object Deps {
   }
 
   /** Used to manage transitive versions. */
-  val transitiveDeps = Seq(
+  lazy val transitiveDeps = Seq(
     ivy"org.apache.ant:ant:1.10.15",
-    ivy"commons-io:commons-io:2.16.1",
+    Deps.commonsIo,
     ivy"com.google.code.gson:gson:2.11.0",
     ivy"com.google.protobuf:protobuf-java:4.28.2",
     ivy"com.google.guava:guava:33.3.1-jre",
