@@ -3,6 +3,8 @@
 // but we intentionally skim over them and do not go into depth: the focus is
 // on end user goals and how to achieve them.
 
+.xref:index.adoc[]
+
 .xref:javalib/intro.adoc[]
 * xref:javalib/installation-ide.adoc[]
 * xref:javalib/builtin-commands.adoc[]

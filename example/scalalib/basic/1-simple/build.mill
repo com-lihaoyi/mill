@@ -155,3 +155,8 @@ error: Missing argument: --text <str>
 // re-evaluate unless one of their inputs changes, whereas commands re-run every
 // time. See the documentation for xref:fundamentals/tasks.adoc[Tasks] for
 // details on the different task types.
+//
+// Mill build files are xref:depth/why-scala.adoc[written in Scala], but you do not need
+// to have prior experience in Scala to read or write them. Like Gradle Groovy or Maven
+// XML, anyone can learn enough Scala for Mill without needing to become an expert in
+// the language.

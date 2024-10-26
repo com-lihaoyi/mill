@@ -3,6 +3,30 @@
 
 include::partial$gtag-config.adoc[]
 
+Compared to Gradle,
+
+
+* **Mill follows Gradle's conciseness and extensibility**: Rather than pages and pages of verbose XML, every
+line in a Mill build is meaningful. e.g. adding a dependency is 1 line in
+Mill, like it is in Gradle, and unlike the 5 line `<dependency>` declaration you find in Maven.
+Like Gradle, end users can easily customize their build to fit their exact needs without
+needing to go through the process of writing plugins.
+
+* **Mill can be xref:comparisons/gradle.adoc#_performance[2-3x faster than Gradle]**:
+Although both Mill and Gradle automatically cache and parallelize your build, Mill
+does so with much less fixed overhead. This means less time waiting for your build
+tool, and more time for the things that really matter to your project.
+
+* **Mill enforces best practices by default**.
+xref:depth/evaluation-model.adoc#_caching_at_each_layer_of_the_evaluation_model[All parts of a Mill build are cached and incremental by default].
+All Mill tasks write their output to xref:fundamentals/out-dir.adoc[a standard place].
+All task inter-dependencies are automatically captured without manual annotation. Where Gradle requires
+considerable effort and expertise to understand your build and set it up in the right way, Mill's
+xref:comparisons/gradle.adoc#_ide_experience[good IDE experience] makes understanding
+your build easier, and its xref:comparisons/gradle.adoc#_extensibility[extensibility model]
+makes configuring your build foolproof, so the easiest thing to do in Mill is usually the
+right thing to do.
+
 This page compares using Mill to Gradle, using the https://github.com/mockito/mockito[Mockito Testing Library]
 codebase as the example. Mockito is a medium sized codebase, 100,000 lines of Java split over 22
 subprojects. By porting it to Mill, this case study should give you
