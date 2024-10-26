@@ -337,7 +337,11 @@ class MillBuildBootstrap(
 
     val bootLogPrefix: Seq[String] =
       if (depth == 0) Nil
-      else Seq((Seq.fill(depth - 1)(millBuild) ++ Seq(actualBuildFileName.getOrElse("<build>"))).mkString("/"))
+      else Seq(
+        (Seq.fill(depth - 1)(millBuild) ++
+          Seq(actualBuildFileName.getOrElse("<build>")))
+          .mkString("/")
+      )
 
     mill.eval.EvaluatorImpl(
       home,
