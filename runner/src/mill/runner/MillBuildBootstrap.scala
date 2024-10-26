@@ -88,7 +88,7 @@ class MillBuildBootstrap(
         ) state
         else {
           val msg =
-            s"No build file (${rootBuildFileNames.mkString(", ")}) found in $projectRoot. Are you in a Mill project folder?"
+            s"No build file (${rootBuildFileNames.mkString(", ")}) found in $projectRoot. Are you in a Mill project directory?"
           if (needBuildFile) {
             RunnerState(None, Nil, Some(msg), None)
           } else {

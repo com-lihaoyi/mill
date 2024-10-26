@@ -9,7 +9,8 @@ object MissingBuildFileTests extends UtestIntegrationTestSuite {
     test - integrationTest { tester =>
       val res = tester.eval(("resolve", "_"))
       assert(!res.isSuccess)
-      val s"${prefix}build.mill file not found in $msg. Are you in a Mill project folder?" = res.err
+      val s"${prefix}No build file (build.mill, build.mill.scala, build.sc) found in $msg. Are you in a Mill project directory?" =
+        res.err
     }
   }
 }
