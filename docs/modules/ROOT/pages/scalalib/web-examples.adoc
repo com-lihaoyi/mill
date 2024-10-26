@@ -1,4 +1,4 @@
-= Scala Web Examples
+= Scala Web Project Examples
 :page-aliases: Web_Build_Examples.adoc, Scala_Web_Examples.adoc
 
 include::partial$gtag-config.adoc[]

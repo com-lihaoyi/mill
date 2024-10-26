@@ -1,5 +1,6 @@
 package mill.testkit
 import mill.util.Util
+import mill.main.client.EnvVars.MILL_TEST_SUITE
 import utest._
 
 /**
@@ -114,7 +115,7 @@ class ExampleTester(
       stderr = os.Pipe,
       cwd = workspacePath,
       mergeErrIntoOut = true,
-      env = Map("MILL_TEST_SUITE" -> this.getClass().toString()),
+      env = Map(MILL_TEST_SUITE -> this.getClass().toString()),
       check = false
     )
 

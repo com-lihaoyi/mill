@@ -149,7 +149,7 @@ object Deps {
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:${jnaVersion}"
 
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.3"
-  val commonsIO = ivy"commons-io:commons-io:2.17.0"
+  val commonsIo = ivy"commons-io:commons-io:2.17.0"
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.24.1"
   val osLib = ivy"com.lihaoyi::os-lib:0.11.3"
   val pprint = ivy"com.lihaoyi::pprint:0.9.0"
@@ -225,9 +225,9 @@ object Deps {
   }
 
   /** Used to manage transitive versions. */
-  val transitiveDeps = Seq(
+  lazy val transitiveDeps = Seq(
     ivy"org.apache.ant:ant:1.10.15",
-    ivy"commons-io:commons-io:2.16.1",
+    Deps.commonsIo,
     ivy"com.google.code.gson:gson:2.11.0",
     ivy"com.google.protobuf:protobuf-java:4.28.2",
     ivy"com.google.guava:guava:33.3.1-jre",
@@ -642,12 +642,7 @@ def launcherScript(
   Jvm.universalScript(
     shellCommands = {
       val jvmArgsStr = shellJvmArgs.mkString(" ")
-      def java(mainClass: String, passMillJvmOpts: Boolean) = {
-        val millJvmOpts = if (passMillJvmOpts) "$mill_jvm_opts" else ""
-        s"""exec "$$JAVACMD" $jvmArgsStr $$JAVA_OPTS $millJvmOpts -cp "${shellClassPath.mkString(
-            ":"
-          )}" $mainClass "$$@""""
-      }
+      val classpathStr = shellClassPath.mkString(":")
 
       s"""if [ -z "$$JAVA_HOME" ] ; then
          |  JAVACMD="java"
@@ -655,68 +650,19 @@ def launcherScript(
          |  JAVACMD="$$JAVA_HOME/bin/java"
          |fi
          |
-         |mill_jvm_opts=""
-         |init_mill_jvm_opts () {
-         |  if [ -z $$MILL_JVM_OPTS_PATH ] ; then
-         |    mill_jvm_opts_file=".mill-jvm-opts"
-         |  else
-         |    mill_jvm_opts_file=$$MILL_JVM_OPTS_PATH
-         |  fi
-         |
-         |  if [ -f "$$mill_jvm_opts_file" ] ; then
-         |    # We need to append a newline at the end to fix
-         |    # https://github.com/com-lihaoyi/mill/issues/2140
-         |    newline="
-         |"
-         |    mill_jvm_opts="$$(
-         |      echo "$$newline" | cat "$$mill_jvm_opts_file" - | (
-         |        while IFS= read line
-         |        do
-         |          mill_jvm_opts="$${mill_jvm_opts} $$(echo $$line | grep -v "^[[:space:]]*[#]")"
-         |        done
-         |        # we are in a sub-shell, so need to return it explicitly
-         |        echo "$${mill_jvm_opts}"
-         |      )
-         |    )"
-         |    mill_jvm_opts="$${mill_jvm_opts} -Dmill.jvm_opts_applied=true"
-         |  fi
-         |}
-         |
          |# Client-server mode doesn't seem to work on WSL, just disable it for now
          |# https://stackoverflow.com/a/43618657/871202
          |if grep -qEi "(Microsoft|WSL)" /proc/version > /dev/null 2> /dev/null ; then
-         |    init_mill_jvm_opts
          |    if [ -z $$COURSIER_CACHE ] ; then
          |      COURSIER_CACHE=.coursier
          |    fi
-         |    ${java(millMainClass, true)}
-         |else
-         |    if [ "$${1%"-i"*}" != "$$1" ] ; then # first arg starts with "-i"
-         |        init_mill_jvm_opts
-         |        ${java(millMainClass, true)}
-         |    else
-         |        case "$$1" in
-         |          -i | --interactive | --repl | --no-server | --bsp )
-         |            init_mill_jvm_opts
-         |            ${java(millMainClass, true)}
-         |            ;;
-         |          *)
-         |            ${java(millMainClass, false)}
-         |            ;;
-         |        esac
-         |    fi
          |fi
+         |exec "$$JAVACMD" $jvmArgsStr $$JAVA_OPTS -cp "$classpathStr" $millMainClass "$$@"
          |""".stripMargin
     },
     cmdCommands = {
       val jvmArgsStr = cmdJvmArgs.mkString(" ")
-      def java(mainClass: String, passMillJvmOpts: Boolean) = {
-        val millJvmOpts = if (passMillJvmOpts) "!mill_jvm_opts!" else ""
-        s""""%JAVACMD%" $jvmArgsStr %JAVA_OPTS% $millJvmOpts -cp "${cmdClassPath.mkString(
-            ";"
-          )}" $mainClass %*"""
-      }
-
+      val classpathStr = cmdClassPath.mkString(";")
       s"""setlocal EnableDelayedExpansion
          |set "JAVACMD=java.exe"
          |if not "%JAVA_HOME%"=="" set "JAVACMD=%JAVA_HOME%\\bin\\java.exe"
@@ -726,21 +672,8 @@ def launcherScript(
          |if "%1" == "--no-server" set _I_=true
          |if "%1" == "--bsp" set _I_=true
          |
-         |set "mill_jvm_opts="
-         |set "mill_jvm_opts_file=.mill-jvm-opts"
-         |if not "%MILL_JVM_OPTS_PATH%"=="" set "mill_jvm_opts_file=%MILL_JVM_OPTS_PATH%"
+         |"%JAVACMD%" $jvmArgsStr %JAVA_OPTS% -cp "$classpathStr" $millMainClass %*
          |
-         |if defined _I_ (
-         |  if exist %mill_jvm_opts_file% (
-         |    for /f "delims=" %%G in (%mill_jvm_opts_file%) do (
-         |      set line=%%G
-         |      if "!line:~0,2!"=="-X" set "mill_jvm_opts=!mill_jvm_opts! !line!"
-         |    )
-         |  )
-         |  ${java(millMainClass, true)}
-         |) else (
-         |  ${java(millMainClass, false)}
-         |)
          |endlocal
          |""".stripMargin
     }

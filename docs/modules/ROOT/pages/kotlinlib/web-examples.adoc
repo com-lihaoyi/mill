@@ -1,4 +1,4 @@
-= Kotlin Web Examples
+= Kotlin Web Project Examples
 
 include::partial$gtag-config.adoc[]
 

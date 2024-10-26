@@ -1,5 +1,6 @@
 package mill.testkit
 
+import mill.main.client.EnvVars.MILL_TEST_SUITE
 import mill.define.Segments
 import mill.eval.Evaluator
 import mill.resolve.SelectMode
@@ -91,7 +92,7 @@ object IntegrationTester {
       )
     }
 
-    def millTestSuiteEnv: Map[String, String] = Map("MILL_TEST_SUITE" -> this.getClass().toString())
+    def millTestSuiteEnv: Map[String, String] = Map(MILL_TEST_SUITE -> this.getClass().toString())
 
     /**
      * Helpers to read the `.json` metadata files belonging to a particular task
