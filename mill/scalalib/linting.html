@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Linting Scala Projects :: The Mill JVM Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.12.0/scalalib/linting.html" />
+    <link rel="canonical" href="https://mill-build.org/mill/scalalib/linting.html" />
     <link rel="prev" href="testing.html" />
     <link rel="next" href="publishing.html" />
     <meta name="generator" content="Antora 3.1.9" />
@@ -428,6 +428,7 @@
 <main class="article">
 <div class="toolbar" role="navigation">
 <button class="nav-toggle"></button>
+  <a href="../index.html" class="home-link"></a>
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="../index.html">Mill Documentation</a></li>
@@ -436,9 +437,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-23-75de81</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.1</button>
   <div class="version-menu">
-    <a class="version is-current" href="linting.html">0.12.0-23-75de81</a>
+    <a class="version is-current" href="linting.html">0.12.1</a>
     <a class="version" href="../0.12.0/scalalib/linting.html">0.12.0</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
@@ -530,7 +531,7 @@ adding its <code>compileIvyDeps,</code> <code>scalacPluginIvyDeps</code>, and <c
 shown below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0/0.12.0-example-scalalib-linting-3-acyclic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0//example/scalalib/linting/3-acyclic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-scalalib-linting-3-acyclic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/scalalib/linting/3-acyclic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -544,7 +545,7 @@ object `package` extends RootModule with ScalaModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">src/Foo.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0//example/scalalib/linting/3-acyclic/src/Foo.scala">browse</a>)</div>
+<div class="title">src/Foo.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/scalalib/linting/3-acyclic/src/Foo.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
 object Foo{
@@ -556,7 +557,7 @@ object Foo{
 </div>
 </div>
 <div class="listingblock">
-<div class="title">src/Bar.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0//example/scalalib/linting/3-acyclic/src/Bar.scala">browse</a>)</div>
+<div class="title">src/Bar.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/scalalib/linting/3-acyclic/src/Bar.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
 object Bar{
@@ -601,7 +602,7 @@ done compiling</code></pre>
 <h2 id="_autoformatting_with_scalafmt"><a class="anchor" href="#_autoformatting_with_scalafmt"></a>Autoformatting with ScalaFmt</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0/0.12.0-example-scalalib-linting-1-scalafmt.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0//example/scalalib/linting/1-scalafmt">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-scalalib-linting-1-scalafmt.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/scalalib/linting/1-scalafmt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -612,7 +613,7 @@ object `package` extends RootModule with ScalaModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">.scalafmt.conf (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0//example/scalalib/linting/1-scalafmt/.scalafmt.conf">browse</a>)</div>
+<div class="title">.scalafmt.conf (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/scalalib/linting/1-scalafmt/.scalafmt.conf">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala"># Newer versions won't work with Java 8!
 version = &quot;3.7.15&quot;
@@ -685,7 +686,7 @@ to give it a shorter name that’s easier to type</p>
 <h2 id="_code_coverage_with_scoverage"><a class="anchor" href="#_code_coverage_with_scoverage"></a>Code Coverage with Scoverage</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0/0.12.0-example-scalalib-linting-2-contrib-scoverage.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0//example/scalalib/linting/2-contrib-scoverage">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-scalalib-linting-2-contrib-scoverage.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/scalalib/linting/2-contrib-scoverage">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._

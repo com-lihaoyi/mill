@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Running Dynamic JVM Code :: The Mill JVM Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.12.0/extending/running-jvm-code.html" />
+    <link rel="canonical" href="https://mill-build.org/mill/extending/running-jvm-code.html" />
     <link rel="prev" href="thirdparty-plugins.html" />
     <link rel="next" href="writing-plugins.html" />
     <meta name="generator" content="Antora 3.1.9" />
@@ -428,6 +428,7 @@
 <main class="article">
 <div class="toolbar" role="navigation">
 <button class="nav-toggle"></button>
+  <a href="../index.html" class="home-link"></a>
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="../index.html">Mill Documentation</a></li>
@@ -436,9 +437,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-23-75de81</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.1</button>
   <div class="version-menu">
-    <a class="version is-current" href="running-jvm-code.html">0.12.0-23-75de81</a>
+    <a class="version is-current" href="running-jvm-code.html">0.12.1</a>
     <a class="version" href="../0.12.0/extending/running-jvm-code.html">0.12.0</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
@@ -535,7 +536,7 @@ can be used to create any processes, JVM subprocesses are common enough have eno
 idiosyncracies (e.g. classpaths) that Mill provides helper methods specifically for them.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0/0.12.0-example-extending-jvmcode-1-subprocess.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0//example/extending/jvmcode/1-subprocess">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-extending-jvmcode-1-subprocess.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/jvmcode/1-subprocess">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -612,7 +613,7 @@ load the Groovy interpreter classpath files into an in-memory in-process classlo
 </ul>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0/0.12.0-example-extending-jvmcode-2-classloader.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0//example/extending/jvmcode/2-classloader">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-extending-jvmcode-2-classloader.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/jvmcode/2-classloader">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -685,7 +686,7 @@ a subprocess, but instead of using <code>Jvm.runSubprocess</code> we use <code>C
 load the Groovy interpreter classpath files:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0/0.12.0-example-extending-jvmcode-3-worker.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0//example/extending/jvmcode/3-worker">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-extending-jvmcode-3-worker.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/jvmcode/3-worker">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -784,7 +785,7 @@ than pulling the code we need off of Maven Central, we instead build the code
 within the <code>bar</code> module as <code>bar/src/Bar.scala</code>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0/0.12.0-example-extending-jvmcode-4-module-run-task.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0//example/extending/jvmcode/4-module-run-task">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-extending-jvmcode-4-module-run-task.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/jvmcode/4-module-run-task">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -862,7 +863,7 @@ purpose, with a source code generator written in Java. We also run the
 we saw earlier:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0/0.12.0-example-extending-jvmcode-5-module-classloader.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0//example/extending/jvmcode/5-module-classloader">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-extending-jvmcode-5-module-classloader.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/jvmcode/5-module-classloader">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._

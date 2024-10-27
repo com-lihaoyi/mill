@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Support for New Languages :: The Mill JVM Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.12.0/extending/new-language.html" />
+    <link rel="canonical" href="https://mill-build.org/mill/extending/new-language.html" />
     <link rel="prev" href="meta-build.html" />
     <link rel="next" href="../depth/large-builds.html" />
     <meta name="generator" content="Antora 3.1.9" />
@@ -428,6 +428,7 @@
 <main class="article">
 <div class="toolbar" role="navigation">
 <button class="nav-toggle"></button>
+  <a href="../index.html" class="home-link"></a>
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="../index.html">Mill Documentation</a></li>
@@ -436,9 +437,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-23-75de81</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.1</button>
   <div class="version-menu">
-    <a class="version is-current" href="new-language.html">0.12.0-23-75de81</a>
+    <a class="version is-current" href="new-language.html">0.12.1</a>
     <a class="version" href="../0.12.0/extending/new-language.html">0.12.0</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
@@ -505,7 +506,7 @@ tool and package repository</p>
 library necessary for accessing Node.js APIs:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0/0.12.0-example-extending-newlang-1-hello-typescript.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0//example/extending/newlang/1-hello-typescript">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-extending-newlang-1-hello-typescript.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/newlang/1-hello-typescript">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -634,7 +635,7 @@ Again we return a <code>PathRef</code> to the <code>Task.dest</code> folder we o
 the <code>.ts</code> files in out <code>src/</code> folder:</p>
 </div>
 <div class="listingblock">
-<div class="title">src/hello.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0//example/extending/newlang/1-hello-typescript/src/hello.ts">browse</a>)</div>
+<div class="title">src/hello.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/newlang/1-hello-typescript/src/hello.ts">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">interface User {
     firstName: string
@@ -794,7 +795,7 @@ we wrote above, and turn it into a re-usable <code>TypeScriptModule</code>.</p>
 <code>trait TypeScriptModule extends Module</code> wrapper:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0/0.12.0-example-extending-newlang-2-typescript-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0//example/extending/newlang/2-typescript-modules">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-extending-newlang-2-typescript-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/newlang/2-typescript-modules">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -838,7 +839,7 @@ object qux extends TypeScriptModule</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/src/foo.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0//example/extending/newlang/2-typescript-modules/foo/src/foo.ts">browse</a>)</div>
+<div class="title">foo/src/foo.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/newlang/2-typescript-modules/foo/src/foo.ts">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">interface User { firstName: string }
 
@@ -848,7 +849,7 @@ console.log(&quot;Hello &quot; + user.firstName + &quot; Foo&quot;)</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/bar/src/bar.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0//example/extending/newlang/2-typescript-modules/foo/bar/src/bar.ts">browse</a>)</div>
+<div class="title">foo/bar/src/bar.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/newlang/2-typescript-modules/foo/bar/src/bar.ts">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">interface User { firstName: string }
 
@@ -858,7 +859,7 @@ console.log(&quot;Hello &quot; + user.firstName + &quot; Bar&quot;)</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">qux/src/qux.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0//example/extending/newlang/2-typescript-modules/qux/src/qux.ts">browse</a>)</div>
+<div class="title">qux/src/qux.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/newlang/2-typescript-modules/qux/src/qux.ts">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">interface User { firstName: string }
 
@@ -1139,7 +1140,7 @@ use in <code>compile</code>, and <code>compiledJavascript</code> for use in <cod
 </ol>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0/0.12.0-example-extending-newlang-3-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0//example/extending/newlang/3-module-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-extending-newlang-3-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/newlang/3-module-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -1224,7 +1225,7 @@ object qux extends TypeScriptModule{
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/src/foo.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0//example/extending/newlang/3-module-deps/foo/src/foo.ts">browse</a>)</div>
+<div class="title">foo/src/foo.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/newlang/3-module-deps/foo/src/foo.ts">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">interface User {
     firstName: string
@@ -1236,14 +1237,14 @@ export {User}</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/bar/src/bar.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0//example/extending/newlang/3-module-deps/foo/bar/src/bar.ts">browse</a>)</div>
+<div class="title">foo/bar/src/bar.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/newlang/3-module-deps/foo/bar/src/bar.ts">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">const defaultRole = &quot;Professor&quot;
 export {defaultRole}</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">qux/src/qux.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0//example/extending/newlang/3-module-deps/qux/src/qux.ts">browse</a>)</div>
+<div class="title">qux/src/qux.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/newlang/3-module-deps/qux/src/qux.ts">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import {User} from &quot;foo/foo.js&quot;
 import {defaultRole} from &quot;foo/bar/bar.js&quot;
@@ -1275,11 +1276,6 @@ ultimately <code>qux.run</code>):</p>
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 363.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-363 670.01,-363 670.01,4 -4,4"></polygon>
-<g id="clust1" class="cluster">
-<title>cluster_3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="139.53,-8 139.53,-116 658.01,-116 658.01,-8 139.53,-8"></polygon>
-<text text-anchor="middle" x="398.77" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
-</g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-351 537.02,-351 537.02,-124 8,-124"></polygon>
@@ -1289,6 +1285,11 @@ ultimately <code>qux.run</code>):</p>
 <title>cluster_2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="16,-210 16,-318 529.02,-318 529.02,-210 16,-210"></polygon>
 <text text-anchor="middle" x="272.51" y="-301.4" font-family="Times,serif" font-size="14.00">bar</text>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="139.53,-8 139.53,-116 658.01,-116 658.01,-8 139.53,-8"></polygon>
+<text text-anchor="middle" x="398.77" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
 </g>
 <!-- qux.npmInstall -->
 <g id="node1" class="node">
@@ -1533,7 +1534,7 @@ into a <code>def prepareRun</code> task.</p>
 </ol>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0/0.12.0-example-extending-newlang-4-npm-deps-bundle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0//example/extending/newlang/4-npm-deps-bundle">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-extending-newlang-4-npm-deps-bundle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/newlang/4-npm-deps-bundle">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._

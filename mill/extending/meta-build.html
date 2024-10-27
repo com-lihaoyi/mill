@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>The Mill Meta-Build :: The Mill JVM Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.12.0/extending/meta-build.html" />
+    <link rel="canonical" href="https://mill-build.org/mill/extending/meta-build.html" />
     <link rel="prev" href="writing-plugins.html" />
     <link rel="next" href="new-language.html" />
     <meta name="generator" content="Antora 3.1.9" />
@@ -428,6 +428,7 @@
 <main class="article">
 <div class="toolbar" role="navigation">
 <button class="nav-toggle"></button>
+  <a href="../index.html" class="home-link"></a>
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="../index.html">Mill Documentation</a></li>
@@ -436,9 +437,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-23-75de81</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.1</button>
   <div class="version-menu">
-    <a class="version is-current" href="meta-build.html">0.12.0-23-75de81</a>
+    <a class="version is-current" href="meta-build.html">0.12.1</a>
     <a class="version" href="../0.12.0/extending/meta-build.html">0.12.0</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
@@ -545,7 +546,7 @@ de.tototec:de.tobiasroeser.mill.vcs.version_mill0.11_2.13 : 0.3.1-&gt; 0.4.0</pr
 <h2 id="_sharing_libraries_between_build_mill_and_application_code"><a class="anchor" href="#_sharing_libraries_between_build_mill_and_application_code"></a>Sharing Libraries between <code>build.mill</code> and Application Code</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0/0.12.0-example-extending-metabuild-4-meta-build.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0//example/extending/metabuild/4-meta-build">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-extending-metabuild-4-meta-build.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/metabuild/4-meta-build">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import $meta._
@@ -575,7 +576,7 @@ compiled and executed to perform your build. This &quot;meta-build&quot; module 
 <code>mill-build/</code>, and can be enabled via the <code>import $meta._</code> statement above.</p>
 </div>
 <div class="listingblock">
-<div class="title">mill-build/build.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0//example/extending/metabuild/4-meta-build/mill-build/build.mill">browse</a>)</div>
+<div class="title">mill-build/build.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/metabuild/4-meta-build/mill-build/build.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -600,7 +601,7 @@ object DepVersions{
 </div>
 </div>
 <div class="listingblock">
-<div class="title">src/Foo.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0//example/extending/metabuild/4-meta-build/src/Foo.scala">browse</a>)</div>
+<div class="title">src/Foo.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/metabuild/4-meta-build/src/Foo.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
 import scalatags.Text.all._
@@ -678,7 +679,7 @@ cli option.</p>
 <h2 id="_sharing_source_code_between_build_mill_and_application_code"><a class="anchor" href="#_sharing_source_code_between_build_mill_and_application_code"></a>Sharing Source Code between <code>build.mill</code> and Application Code</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.0/0.12.0-example-extending-metabuild-5-meta-shared-sources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.0//example/extending/metabuild/5-meta-shared-sources">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-extending-metabuild-5-meta-shared-sources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/metabuild/5-meta-shared-sources">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import $meta._
@@ -693,7 +694,7 @@ object `package` extends RootModule with ScalaModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">mill-build/build.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0//example/extending/metabuild/5-meta-shared-sources/mill-build/build.mill">browse</a>)</div>
+<div class="title">mill-build/build.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/metabuild/5-meta-shared-sources/mill-build/build.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -702,7 +703,7 @@ object `package` extends MillBuildRootModule</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">mill-build/src/ScalaVersion.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0//example/extending/metabuild/5-meta-shared-sources/mill-build/src/ScalaVersion.scala">browse</a>)</div>
+<div class="title">mill-build/src/ScalaVersion.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/metabuild/5-meta-shared-sources/mill-build/src/ScalaVersion.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package millbuild
 object ScalaVersion{
@@ -711,7 +712,7 @@ object ScalaVersion{
 </div>
 </div>
 <div class="listingblock">
-<div class="title">src/Foo.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.0//example/extending/metabuild/5-meta-shared-sources/src/Foo.scala">browse</a>)</div>
+<div class="title">src/Foo.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/metabuild/5-meta-shared-sources/src/Foo.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
 
