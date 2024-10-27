@@ -92,7 +92,7 @@ build tools, check out these pages:
 
 * xref:comparisons/maven.adoc[Mill vs Maven]
 * xref:comparisons/gradle.adoc[Mill vs Gradle]
-* xref:comparisons/gradle.adoc[Mill vs SBT]
+* xref:comparisons/sbt.adoc[Mill vs SBT]
 
 If you're interested in the fundamental ideas behind Mill, rather than the user-facing
 benefits discussed above, check out the page on xref:depth/design-principles.adoc[Mill Design Principles].
