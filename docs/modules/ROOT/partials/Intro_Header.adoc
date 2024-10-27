@@ -1,0 +1,4 @@
+This page contains a quick introduction to getting start with using
+Mill to build a simple {language} program. The other pages of this doc-site go into
+more depth, with more examples of how to use Mill and more details of how the
+Mill build tool works.
