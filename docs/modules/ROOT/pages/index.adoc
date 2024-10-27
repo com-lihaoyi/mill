@@ -29,9 +29,7 @@ digraph G {
 ```
 
 Mill is a fast, scalable, multi-language build tool that supports Java, Scala,
-and Kotlin. Although the Java compiler is fast and the Java language is easy,
-JVM build tools have a reputation for being sluggish and confusing. Mill aims to let
-your build system take full advantage of the JVM's performance and usability:
+and Kotlin:
 
 * Mill can build the same Java codebase xref:comparisons/maven.adoc[5-10x faster than Maven],
 or xref:comparisons/gradle.adoc[2-4x faster than Gradle]
@@ -42,7 +40,10 @@ helps keep builds clean and understandable
 * Mill scales well from small single-module projects
 to xref:depth/large-builds.adoc[large monorepos] with hundreds of modules
 
-Mill achieves this via the following:
+Although the Java compiler is very fast and the Java language is easy to learn,
+JVM build tools have a reputation for being sluggish and confusing. Mill tries to
+offer a better alternative, letting your build system take full advantage of the
+Java platform's performance and usability:
 
 * *Performance*: Mill's xref:fundamentals/tasks.adoc[build graph] automatically
 xref:depth/evaluation-model.adoc#_caching_at_each_layer_of_the_evaluation_model[caches]
