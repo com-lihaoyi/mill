@@ -28,7 +28,7 @@ digraph G {
 }
 ```
 
-Mill is a fast, scalable, multi-language JVM build tool that supports Java, Scala,
+Mill is a fast, scalable, multi-language build tool that supports Java, Scala,
 and Kotlin. Although the Java compiler is fast and the Java language is easy,
 JVM build tools have a reputation for being sluggish and confusing. Mill aims to
 provide a better alternative:
