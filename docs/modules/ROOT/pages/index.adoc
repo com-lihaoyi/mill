@@ -1,4 +1,4 @@
-= Mill: A Blazing Fast JVM Build Tool
+= Mill: A Fast JVM Build Tool
 
 ```graphviz
 digraph G {
