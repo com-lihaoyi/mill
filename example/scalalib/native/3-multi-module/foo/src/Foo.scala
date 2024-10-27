@@ -22,10 +22,10 @@ object Foo {
 }
 
 @extern
-@link("HelloWorldFoo")
 // Arbitrary object name
 object HelloWorldFoo {
   // Name and signature of C function
   def vowelDensity(str: CString): CInt = extern
 }
+
 

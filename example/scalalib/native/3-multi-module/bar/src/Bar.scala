@@ -17,10 +17,10 @@ object Bar {
 
 // Define the external module, the C library containing our function "generateHtml"
 @extern
-@link("HelloWorldBar")
 // Arbitrary object name
 object HelloWorldBar {
   // Name and signature of C function
   def stringLength(str: CString): CInt = extern
 }
+
 

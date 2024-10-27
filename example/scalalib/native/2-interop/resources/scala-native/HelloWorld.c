@@ -4,7 +4,11 @@
 
 char* reverseString(const char *str) {
   int length = strlen(str);
-  char *reversed = (char*) malloc((length + 1) * sizeof(char));
+  char *reversed = (char*) malloc((length + 1) * sizeof(char)); // +1 for null terminator
+
+  if (reversed == NULL) {
+      return NULL; // handle malloc failure
+  }
 
   for (int i = 0; i < length; i++) {
     reversed[i] = str[length - i - 1];
@@ -13,3 +17,4 @@ char* reverseString(const char *str) {
 
   return reversed;
 }
+

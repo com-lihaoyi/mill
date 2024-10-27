@@ -17,7 +17,7 @@ object `package` extends RootModule with ScalaNativeModule {
     os.makeDir.all(millSourcePath / "target")
 
     os.proc("gcc", "-m64", "-shared",
-      "-c", millSourcePath.toString + "/native-src/HelloWorld.c",
+      "-c", millSourcePath.toString + "/resources/scala-native/HelloWorld.c",
       "-o", millSourcePath.toString + "/target/libHelloWorld.so"
     ).call(stdout = os.Inherit)
 
@@ -37,8 +37,9 @@ object `package` extends RootModule with ScalaNativeModule {
 //	foo/
 //	    HelloWorld.scala
 //
-// native-src/
-//	HelloWorld.c
+// resources/
+//     scala-native/
+//         HelloWorld.c
 //
 // test/
 //     src/
@@ -59,5 +60,8 @@ Running HelloWorld function
 Done...
 Reversed: !dlroW ,olleH
 
+> ./mill test
+Tests: 1, Passed: 1, Failed: 0
 
 */
+

@@ -27,7 +27,7 @@ object `package` extends RootModule with ScalaNativeModule {
 
 > ./mill nativeLink  # Build and link native binary
 ...
-Produced 5 LLVM IR files
+done compiling
 
 > ./mill releaseMode # Generate some files in `out` directory about the `releaseMode`. Default releaseMode is set to Debug.
 

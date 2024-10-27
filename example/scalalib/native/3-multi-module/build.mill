@@ -25,8 +25,8 @@ object foo extends MyModule {
 
     os.proc(
       "gcc", "-m64", "-shared", "-fPIC",
-      "-I", "/workspaces/milling-two/sunday-work/mill/example/scalalib/native/3-multi/bar/native-src",
-      millSourcePath.toString + "/native-src/HelloWorldFoo.c", 
+      "-I", "/workspaces/test/saturday/mill/example/scalalib/native/3-multi-module/bar/resources/scala-native",
+      millSourcePath.toString + "/resources/scala-native/HelloWorldFoo.c", "/workspaces/test/saturday/mill/example/scalalib/native/3-multi-module/bar/resources/scala-native/HelloWorldBar.c",
       "-o", millSourcePath.toString + "/target/libHelloWorldFoo.so")
     .call(stdout = os.Inherit)
 
@@ -37,16 +37,16 @@ object foo extends MyModule {
 object bar extends MyModule {
 
   // Compile C
-  def nativeCompiled = T {
+  def nativeCompiled = Task {
     os.makeDir.all(millSourcePath / "target")
 
     os.proc(
       "gcc", "-m64", "-shared", "-fPIC", 
-      millSourcePath.toString + "/native-src/HelloWorldBar.c",
+      millSourcePath.toString + "/resources/scala-native/HelloWorldBar.c",
       "-o", millSourcePath.toString + "/target/libHelloWorldBar.so")
     .call(stdout = os.Inherit)
 
-    PathRef(T.dest / "target/libHelloWorldBar.so")
+    PathRef(Task.dest / "target/libHelloWorldBar.so")
   }
 
 }
@@ -70,17 +70,19 @@ object bar extends MyModule {
 // ----
 // build.mill
 // bar/
-//     native-src/
-//         bar.h
-//         HelloWorldBar.c
+//     resources/
+//         scala-native/
+//             bar.h
+//             HelloWorldBar.c
 //     src/
 //         Bar.scala
 //     test/
 //         src/
 //             BarTests.scala
 // foo/
-//     native-src/
-//         HelloWorldFoo.c
+//     resources/
+//         scala-native/
+//             HelloWorldFoo.c
 //     src/
 //         Foo.scala
 //
@@ -88,4 +90,21 @@ object bar extends MyModule {
 //
 //// SNIPPET:END
 
+//
 
+/** Usage
+
+
+> ./mill bar.nativeCompiled
+done compiling
+
+> ./mill bar.run hello
+Running HelloWorld function
+Done...
+Bar value: Argument length is 5
+
+> ./mill bar.test
+Tests: 1, Passed: 1, Failed: 0
+
+
+*/

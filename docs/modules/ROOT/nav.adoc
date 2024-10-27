@@ -22,6 +22,7 @@
 * xref:scalalib/linting.adoc[]
 * xref:scalalib/publishing.adoc[]
 * xref:scalalib/web-examples.adoc[]
+* xref:scalalib/native-examples.adoc[]
 
 .xref:kotlinlib/intro.adoc[]
 * xref:kotlinlib/installation-ide.adoc[]
