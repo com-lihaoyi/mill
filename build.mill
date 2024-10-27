@@ -34,19 +34,14 @@ object Settings {
   val docUrl = "https://mill-build.org"
   // the exact branches containing a doc root
   val docBranches = Seq()
-  // the exact tags containing a doc root
+  // the exact tags containing a doc root. Publish docs for 
+  // the last point version in each minor release series
   val legacyDocTags: Seq[String] = Seq(
     "0.9.12",
-    "0.10.0",
-    "0.10.12",
     "0.10.15",
-    "0.11.0-M7"
   )
   val docTags: Seq[String] = Seq(
-    "0.11.10",
-    "0.11.11",
     "0.11.12",
-    "0.12.0",
     "0.12.1"
   )
   val mimaBaseVersions: Seq[String] = 0.to(12).map("0.11." + _) ++ Seq("0.12.0", "0.12.1")
