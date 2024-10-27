@@ -307,6 +307,13 @@ endif::[]
 // find-replace-regex: https://github.com/com-lihaoyi/mill/pull/(\d*) -> {link-pr}/$1[#$1]
 
 
+[#0-12-1]
+=== 0.12.1 - 2024-10-27
+
+* Fix updating of prompt to match terminal width in client-server mode {link-pr}/3833[#3833]
+* Allow `.mill-jvm-opts` to interpolate environment variables, add `.mill-opts` {link-pr}/3841[#3841]
+
+
 [#0-12-0]
 === 0.12.0 - 2024-10-23
 
