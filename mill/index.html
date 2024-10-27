@@ -1,11 +1,714 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html><head><title>Redirect Notice</title></head><body><meta charset="utf-8" />
-<link rel="canonical" href="https://mill-build.org/mill/javalib/intro.html" />
-<script>location="javalib/intro.html"</script>
-<meta http-equiv="refresh" content="0; url=javalib/intro.html" />
-<meta name="robots" content="noindex" />
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Mill: A Fast JVM Build Tool :: The Mill JVM Build Tool</title>
+    <link rel="next" href="javalib/intro.html" />
+    <meta name="generator" content="Antora 3.1.9" />
+    <link rel="stylesheet" href="../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
+<link rel="icon" href="../_/favicon.png" type="image/x-icon" />
+  
+  </head><body class="article">
+  
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" /> The Mill JVM Build Tool</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs" />
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">Source Code (GitHub)</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+        <a class="navbar-item" href="https://discord.gg/xJCYRVMS">Chat</a>
 
-<h1>Redirect Notice</h1>
-<p>The page you requested has been relocated to <a href="javalib/intro.html">https://mill-build.org/mill/javalib/intro.html</a>.</p>
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="mill" data-version="master">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="javalib/intro.html">Building Java Projects with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="javalib/installation-ide.html">Installation and IDE Support</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="javalib/builtin-commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="javalib/module-config.html">Java Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="javalib/dependencies.html">Java Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="javalib/testing.html">Testing Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="javalib/linting.html">Linting Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="javalib/publishing.html">Publishing Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="javalib/build-examples.html">Java Build Examples</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="javalib/web-examples.html">Java Web Project Examples</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="javalib/android-examples.html">(Experimental) Android Builds</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="scalalib/intro.html">Building Scala Projects with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="scalalib/installation-ide.html">Installation and IDE Support</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="scalalib/builtin-commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="scalalib/module-config.html">Scala Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="scalalib/dependencies.html">Scala Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="scalalib/testing.html">Testing Scala Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="scalalib/linting.html">Linting Scala Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="scalalib/publishing.html">Publishing Scala Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="scalalib/build-examples.html">Scala Build Examples</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="scalalib/web-examples.html">Scala Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="kotlinlib/intro.html">(Experimental) Kotlin with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="kotlinlib/installation-ide.html">Installation and IDE Support</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="kotlinlib/builtin-commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="kotlinlib/module-config.html">Kotlin Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="kotlinlib/dependencies.html">Kotlin Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="kotlinlib/testing.html">Testing Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="kotlinlib/linting.html">Linting Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="kotlinlib/publishing.html">Publishing Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="kotlinlib/build-examples.html">Kotlin Build Examples</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="kotlinlib/android-examples.html">(Experimental) Android Builds</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Build Tool Comparisons</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="comparisons/maven.html">Case Study: Mill vs Maven</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="comparisons/gradle.html">Case Study: Mill vs Gradle</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="comparisons/sbt.html">Case Study: Mill vs SBT</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill Fundamentals</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="fundamentals/tasks.html">Tasks</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="fundamentals/modules.html">Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="fundamentals/out-dir.html">The Output Directory</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="fundamentals/query-syntax.html">Task Query Syntax</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="fundamentals/library-deps.html">Library Dependencies in Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="fundamentals/cross-builds.html">Cross Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="fundamentals/bundled-libraries.html">Bundled Libraries</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Extending Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="extending/import-ivy-plugins.html">Import Libraries and Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="extending/contrib-plugins.html">Contrib Plugins</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/artifactory.html">Artifactory</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/bintray.html">Bintray</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/bloop.html">Bloop</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/buildinfo.html">BuildInfo</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/codeartifact.html">Codeartifact</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/docker.html">Docker</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/flyway.html">Flyway</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/gitlab.html">Gitlab</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/jmh.html">JMH</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/playlib.html">Play Framework</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/proguard.html">Proguard</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/scalapblib.html">ScalaPB</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/scoverage.html">Scoverage</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/sonatypecentral.html">Sonatype Central</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/testng.html">TestNG</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/twirllib.html">Twirl</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/versionfile.html">Version file</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="extending/thirdparty-plugins.html">Third-Party Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="extending/running-jvm-code.html">Running Dynamic JVM Code</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="extending/writing-plugins.html">Writing Mill Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="extending/meta-build.html">The Mill Meta-Build</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="extending/new-language.html">Support for New Languages</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="depth/large-builds.html">Large Builds and Monorepos</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="depth/sandboxing.html">Mill Sandboxing</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="depth/evaluation-model.html">The Mill Evaluation Model</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="depth/design-principles.html">Mill Design Principles</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="depth/why-scala.html">Why does Mill use Scala?</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Reference</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill/index.html">Mill Scaladoc</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="reference/changelog.html">Changelog</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="index.html">Mill Documentation</a></li>
+    <li><a href="index.html">Mill: A Fast JVM Build Tool</a></li>
+  </ul>
+</nav>
+<div class="page-versions">
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-23-75de81</button>
+  <div class="version-menu">
+    <a class="version is-current" href="index.html">0.12.0-23-75de81</a>
+    <a class="version is-missing" href="0.12.0/index.html">0.12.0</a>
+    <a class="version is-missing" href="0.11.12/index.html">0.11.12</a>
+    <a class="version is-missing" href="0.11.11/index.html">0.11.11</a>
+    <a class="version is-missing" href="0.11.10/index.html">0.11.10</a>
+    <a class="version is-missing" href="0.11.0-M7/index.html">0.11.0-M7</a>
+    <a class="version is-missing" href="0.10.15/index.html">0.10.15</a>
+    <a class="version is-missing" href="0.10.12/index.html">0.10.12</a>
+    <a class="version is-missing" href="0.10.0/index.html">0.10.0</a>
+    <a class="version is-missing" href="0.9.12/index.html">0.9.12</a>
+  </div>
+</div>
+<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/index.adoc">Edit this Page</a></div>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Mill: A Fast JVM Build Tool</h1>
+<center>
+<svg width="618px" height="248px" viewBox="0.00 0.00 618.15 248.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 244.0)">
+<title>G</title>
+<g id="clust1" class="cluster">
+<title>cluster_0</title>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-232 476.68,-232 476.68,-124 8,-124"></polygon>
+<text text-anchor="middle" x="242.34" y="-215.4" font-family="Times,serif" font-size="14.00">foo</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_1</title>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="126.09,-8 126.09,-116 602.15,-116 602.15,-8 126.09,-8"></polygon>
+<text text-anchor="middle" x="364.12" y="-99.4" font-family="Times,serif" font-size="14.00">bar</text>
+</g>
+<!-- foo.sources -->
+<g id="node1" class="node">
+<title>foo.sources</title>
+<polygon fill="white" stroke="black" points="96.21,-156.3 15.93,-156.3 15.93,-131.7 96.21,-131.7 96.21,-156.3"></polygon>
+<text text-anchor="middle" x="56.07" y="-139.8" font-family="Times,serif" font-size="14.00">foo.sources</text>
+</g>
+<!-- foo.compile -->
+<g id="node2" class="node">
+<title>foo.compile</title>
+<polygon fill="white" stroke="black" points="215.53,-156.3 132.01,-156.3 132.01,-131.7 215.53,-131.7 215.53,-156.3"></polygon>
+<text text-anchor="middle" x="173.77" y="-139.8" font-family="Times,serif" font-size="14.00">foo.compile</text>
+</g>
+<!-- foo.sources&#45;&gt;foo.compile -->
+<g id="edge1" class="edge">
+<title>foo.sources-&gt;foo.compile</title>
+<path fill="none" stroke="black" d="M96.24,-144C104.53,-144 113.4,-144 122.05,-144"></path>
+<polygon fill="black" stroke="black" points="122.06,-147.5 132.06,-144 122.06,-140.5 122.06,-147.5"></polygon>
+</g>
+<!-- foo.classPath -->
+<g id="node3" class="node">
+<title>foo.classPath</title>
+<polygon fill="white" stroke="black" points="342.17,-156.3 251.65,-156.3 251.65,-131.7 342.17,-131.7 342.17,-156.3"></polygon>
+<text text-anchor="middle" x="296.91" y="-139.8" font-family="Times,serif" font-size="14.00">foo.classPath</text>
+</g>
+<!-- foo.compile&#45;&gt;foo.classPath -->
+<g id="edge2" class="edge">
+<title>foo.compile-&gt;foo.classPath</title>
+<path fill="none" stroke="black" d="M215.44,-144C223.74,-144 232.6,-144 241.3,-144"></path>
+<polygon fill="black" stroke="black" points="241.39,-147.5 251.39,-144 241.39,-140.5 241.39,-147.5"></polygon>
+</g>
+<!-- foo.assembly -->
+<g id="node4" class="node">
+<title>foo.assembly</title>
+<polygon fill="white" stroke="black" points="468.81,-177.3 378.29,-177.3 378.29,-152.7 468.81,-152.7 468.81,-177.3"></polygon>
+<text text-anchor="middle" x="423.55" y="-160.8" font-family="Times,serif" font-size="14.00">foo.assembly</text>
+</g>
+<!-- foo.classPath&#45;&gt;foo.assembly -->
+<g id="edge3" class="edge">
+<title>foo.classPath-&gt;foo.assembly</title>
+<path fill="none" stroke="black" d="M342.2,-151.46C350.65,-152.89 359.58,-154.39 368.3,-155.86"></path>
+<polygon fill="black" stroke="black" points="367.95,-159.35 378.4,-157.56 369.12,-152.45 367.95,-159.35"></polygon>
+</g>
+<!-- bar.compile -->
+<g id="node6" class="node">
+<title>bar.compile</title>
+<polygon fill="white" stroke="black" points="338.39,-83.3 255.43,-83.3 255.43,-58.7 338.39,-58.7 338.39,-83.3"></polygon>
+<text text-anchor="middle" x="296.91" y="-66.8" font-family="Times,serif" font-size="14.00">bar.compile</text>
+</g>
+<!-- foo.classPath&#45;&gt;bar.compile -->
+<g id="edge5" class="edge">
+<title>foo.classPath-&gt;bar.compile</title>
+<path fill="none" stroke="black" d="M296.91,-131.25C296.91,-118.7 296.91,-106.16 296.91,-93.61"></path>
+<polygon fill="black" stroke="black" points="300.41,-93.55 296.91,-83.55 293.41,-93.55 300.41,-93.55"></polygon>
+</g>
+<!-- bar.classPath -->
+<g id="node7" class="node">
+<title>bar.classPath</title>
+<polygon fill="white" stroke="black" points="468.52,-83.3 378.57,-83.3 378.57,-58.7 468.52,-58.7 468.52,-83.3"></polygon>
+<text text-anchor="middle" x="423.55" y="-66.8" font-family="Times,serif" font-size="14.00">bar.classPath</text>
+</g>
+<!-- foo.classPath&#45;&gt;bar.classPath -->
+<g id="edge6" class="edge">
+<title>foo.classPath-&gt;bar.classPath</title>
+<path fill="none" stroke="black" d="M321.6,-131.53C328.37,-127.89 335.72,-123.85 342.42,-120 359.91,-109.95 379.21,-98.17 394.48,-88.68"></path>
+<polygon fill="black" stroke="black" points="396.33,-91.65 402.97,-83.38 392.63,-85.71 396.33,-91.65"></polygon>
+</g>
+<!-- foo.resources -->
+<g id="node5" class="node">
+<title>foo.resources</title>
+<polygon fill="white" stroke="black" points="342.42,-199.3 251.39,-199.3 251.39,-174.7 342.42,-174.7 342.42,-199.3"></polygon>
+<text text-anchor="middle" x="296.91" y="-182.8" font-family="Times,serif" font-size="14.00">foo.resources</text>
+</g>
+<!-- foo.resources&#45;&gt;foo.assembly -->
+<g id="edge4" class="edge">
+<title>foo.resources-&gt;foo.assembly</title>
+<path fill="none" stroke="black" d="M342.55,-179.12C350.89,-177.65 359.68,-176.1 368.27,-174.58"></path>
+<polygon fill="black" stroke="black" points="368.97,-178.01 378.21,-172.83 367.76,-171.12 368.97,-178.01"></polygon>
+</g>
+<!-- bar.compile&#45;&gt;bar.classPath -->
+<g id="edge8" class="edge">
+<title>bar.compile-&gt;bar.classPath</title>
+<path fill="none" stroke="black" d="M338.37,-71C347.87,-71 358.14,-71 368.14,-71"></path>
+<polygon fill="black" stroke="black" points="368.41,-74.5 378.41,-71 368.41,-67.5 368.41,-74.5"></polygon>
+</g>
+<!-- bar.assembly -->
+<g id="node9" class="node">
+<title>bar.assembly</title>
+<polygon fill="white" stroke="black" points="594.39,-61.3 504.44,-61.3 504.44,-36.7 594.39,-36.7 594.39,-61.3"></polygon>
+<text text-anchor="middle" x="549.41" y="-44.8" font-family="Times,serif" font-size="14.00">bar.assembly</text>
+</g>
+<!-- bar.classPath&#45;&gt;bar.assembly -->
+<g id="edge9" class="edge">
+<title>bar.classPath-&gt;bar.assembly</title>
+<path fill="none" stroke="black" d="M468.57,-63.18C476.96,-61.69 485.84,-60.11 494.5,-58.57"></path>
+<polygon fill="black" stroke="black" points="495.3,-61.99 504.54,-56.79 494.08,-55.1 495.3,-61.99"></polygon>
+</g>
+<!-- bar.sources -->
+<g id="node8" class="node">
+<title>bar.sources</title>
+<polygon fill="white" stroke="black" points="213.63,-83.3 133.92,-83.3 133.92,-58.7 213.63,-58.7 213.63,-83.3"></polygon>
+<text text-anchor="middle" x="173.77" y="-66.8" font-family="Times,serif" font-size="14.00">bar.sources</text>
+</g>
+<!-- bar.sources&#45;&gt;bar.compile -->
+<g id="edge7" class="edge">
+<title>bar.sources-&gt;bar.compile</title>
+<path fill="none" stroke="black" d="M213.77,-71C223.73,-71 234.58,-71 245.04,-71"></path>
+<polygon fill="black" stroke="black" points="245.32,-74.5 255.32,-71 245.32,-67.5 245.32,-74.5"></polygon>
+</g>
+<!-- bar.resources -->
+<g id="node10" class="node">
+<title>bar.resources</title>
+<polygon fill="white" stroke="black" points="468.78,-40.3 378.32,-40.3 378.32,-15.7 468.78,-15.7 468.78,-40.3"></polygon>
+<text text-anchor="middle" x="423.55" y="-23.8" font-family="Times,serif" font-size="14.00">bar.resources</text>
+</g>
+<!-- bar.resources&#45;&gt;bar.assembly -->
+<g id="edge10" class="edge">
+<title>bar.resources-&gt;bar.assembly</title>
+<path fill="none" stroke="black" d="M468.92,-35.52C477.2,-36.93 485.94,-38.41 494.47,-39.85"></path>
+<polygon fill="black" stroke="black" points="493.91,-43.31 504.35,-41.53 495.08,-36.41 493.91,-43.31"></polygon>
+</g>
+</g>
+</svg>
+
+</center>
+<div class="paragraph">
+<p>Mill is a fast, scalable, multi-language build tool that supports Java, Scala,
+and Kotlin. Although the Java compiler is fast and the Java language is easy,
+JVM build tools have a reputation for being sluggish and confusing. Mill lets
+your build system take full advantage of the JVM’s performance and usability:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Mill can build the same Java codebase <a href="comparisons/maven.html" class="xref page">5-10x faster than Maven</a>,
+or <a href="comparisons/gradle.html" class="xref page">2-4x faster than Gradle</a></p>
+</li>
+<li>
+<p>Mill’s typed config language and immutable <a href="depth/design-principles.html" class="xref page">task graph</a>
+helps keep builds clean and understandable</p>
+</li>
+<li>
+<p>Mill scales well from small single-module projects
+to <a href="depth/large-builds.html" class="xref page">large monorepos</a> with hundreds of modules</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Mill achieves this via the following:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Performance</strong>: Mill’s <a href="fundamentals/tasks.html" class="xref page">build graph</a> automatically
+<a href="depth/evaluation-model.html#_caching_at_each_layer_of_the_evaluation_model" class="xref page">caches</a>
+and <a href="javalib/intro.html#_parallel_task_execution" class="xref page">parallelizes</a> build
+tasks, keeping your workflows fast and responsive. Mill adds minimal overhead over
+the logic necessary to build your project, while providing tools to let you identify
+and resolve bottlenecks in your build</p>
+</li>
+<li>
+<p><strong>Maintainability</strong>: Mill goes beyond YAML and Bash, with config and custom logic written in
+<a href="javalib/intro.html#_custom_build_logic" class="xref page">concise type-checked code</a>,
+and an immutable <a href="depth/design-principles.html" class="xref page">module tree and task graph</a>. This
+catches config issues early, and helps IDEs
+(<a href="javalib/installation-ide.html#_intellij" class="xref page">IntelliJ</a> or
+<a href="javalib/installation-ide.html#_vscode" class="xref page">VSCode</a>)
+understand your Mill build better than any other build system</p>
+</li>
+<li>
+<p><strong>Flexibility</strong>: Mill’s tasks and modules allow anything from adding
+<a href="fundamentals/tasks.html#primitive-tasks" class="xref page">simple build steps</a>, up to
+entire <a href="extending/new-language.html" class="xref page">language toolchains</a>.
+You can <a href="extending/import-ivy-plugins.html" class="xref page">import any JVM library</a> in your build,
+use Mill’s rich ecosystem of <a href="extending/thirdparty-plugins.html" class="xref page">Third-Party Mill Plugins</a>,
+or <a href="extending/writing-plugins.html" class="xref page">write plugins</a> yourself and
+<a href="extending/writing-plugins.html#_publishing" class="xref page">publish them</a> to Maven Central for others to use.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To begin using Mill, check out the introductory documentation for each language:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="javalib/intro.html" class="xref page">Building Java Projects with Mill</a></p>
+</li>
+<li>
+<p><a href="scalalib/intro.html" class="xref page">Building Scala Projects with Mill</a></p>
+</li>
+<li>
+<p><a href="kotlinlib/intro.html" class="xref page">(Experimental) Kotlin with Mill</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Mill is used to build many real-world projects, such as the
+<a href="https://github.com/swaldman/c3p0">C3P0 JDBC Connection Pool</a>,
+<a href="https://github.com/coursier/coursier">Coursier JVM dependency resolver</a>,
+<a href="https://github.com/com-lihaoyi/Ammonite">Ammonite REPL</a>, and the
+<a href="https://github.com/SpinalHDL/SpinalHDL">SpinalHDL</a> and
+<a href="https://github.com/chipsalliance/chisel">Chisel</a> hardware design frameworks.
+Mill can be used for applications built on top of common JVM frameworks like
+<a href="javalib/web-examples.html#_spring_boot_todomvc_app" class="xref page">Spring Boot</a> or
+<a href="javalib/web-examples.html#_micronaut_todomvc_app" class="xref page">Micronaut</a>.</p>
+</div>
+<div class="paragraph">
+<p>Mill borrows ideas from other tools like <a href="https://maven.apache.org/">Maven</a>,
+<a href="https://gradle.org/">Gradle</a>, <a href="https://bazel.build/">Bazel</a>, but tries to learn from the
+strengths of each tool and improve on their weaknesses. For comparisons with existing
+build tools, check out these pages:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="comparisons/maven.html" class="xref page">Mill vs Maven</a></p>
+</li>
+<li>
+<p><a href="comparisons/gradle.html" class="xref page">Mill vs Gradle</a></p>
+</li>
+<li>
+<p><a href="comparisons/gradle.html" class="xref page">Mill vs SBT</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If you’re interested in the fundamental ideas behind Mill, rather than the user-facing
+benefits discussed above, check out the page on <a href="depth/design-principles.html" class="xref page">Mill Design Principles</a>.</p>
+</div>
+<nav class="pagination">
+  <span class="next"><a href="javalib/intro.html">Building Java Projects with Mill</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<script id="site-script" src="../_/js/site.js" data-ui-root-path="../_"></script>
+<script async="async" src="../_/js/vendor/highlight.js"></script>
+<script src="../_/js/vendor/lunr.js"></script>
+<script src="../_/js/search-ui.js" id="search-ui-script" data-site-root-path=".." data-snippet-length="100" data-stylesheet="../_/css/search.css"></script>
+<script async="async" src="../search-index.js"></script>
+  
 </body></html>

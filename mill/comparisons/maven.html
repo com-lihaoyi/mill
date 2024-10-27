@@ -428,7 +428,6 @@
 <main class="article">
 <div class="toolbar" role="navigation">
 <button class="nav-toggle"></button>
-  <a href="../0.12.0/javalib/intro.html" class="home-link"></a>
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="../index.html">Mill Documentation</a></li>
@@ -437,9 +436,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-21-eba201</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.12.0-23-75de81</button>
   <div class="version-menu">
-    <a class="version is-current" href="maven.html">0.12.0-21-eba201</a>
+    <a class="version is-current" href="maven.html">0.12.0-23-75de81</a>
     <a class="version" href="../0.12.0/comparisons/maven.html">0.12.0</a>
     <a class="version is-missing" href="../0.11.12/index.html">0.11.12</a>
     <a class="version is-missing" href="../0.11.11/index.html">0.11.11</a>
@@ -476,6 +475,35 @@ const links = document.querySelectorAll('a');
   });
 });
 </script>
+<div class="paragraph">
+<p>Compared to Maven:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Mill follows Maven’s innovation of good built-in defaults</strong>: Mill’s built-in
+<code>JavaModule</code>s follow Maven’s &quot;convention over configuration&quot; style, so small Mill
+projects require minimal effort to get started, and larger Mill projects have a consistent
+structure building on these defaults.</p>
+</li>
+<li>
+<p><strong>Mill automatically caches and parallelizes your build, offering 3-10x speedups</strong>:
+Not just the built-in tasks that Mill ships with, but also any custom tasks or modules.
+This maximizes the snappiness of your command-line build workflows to keep you productive,
+which especially matters in larger codebases where builds tend to get slow:
+<a href="#_performance">a Maven &quot;clean install&quot; workflow
+  taking over a minute might take just a few seconds in Mill</a>.</p>
+</li>
+<li>
+<p><strong>Mill makes customizing the build tool much easier than Maven</strong>. Projects usually
+grow beyond just compiling a single language: needing custom
+code generation, linting workflows, tool integrations, output artifacts, or support for
+additional languages. Mill’s <a href="#_extensibility_ide_experience">extensibility and IDE experience</a>
+makes doing this yourself easy and safe, with type-checked code and
+<a href="../depth/sandboxing.html" class="xref page">sandboxed tasks</a></p>
+</li>
+</ul>
+</div>
 <div class="paragraph">
 <p>This page compares using Mill to Maven, using the <a href="https://github.com/netty/netty">Netty Network Server</a>
 codebase as the example. Netty is a large, old codebase. 500,000 lines of Java, written by
