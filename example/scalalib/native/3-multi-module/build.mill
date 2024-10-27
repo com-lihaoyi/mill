@@ -96,7 +96,8 @@ object bar extends MyModule {
 
 
 > ./mill bar.nativeCompiled
-done compiling
+...
+compiling 1 Scala source to ...
 
 > ./mill bar.run hello
 Running HelloWorld function
