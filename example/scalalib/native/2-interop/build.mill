@@ -53,8 +53,6 @@ object `package` extends RootModule with ScalaNativeModule {
 /** Usage
 
 > ./mill nativeCompiled
-...
-compiling 1 Scala source to ...
 
 > ./mill run
 Running HelloWorld function
