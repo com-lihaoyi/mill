@@ -6,7 +6,6 @@
 .xref:index.adoc[]
 
 .xref:javalib/intro.adoc[]
-* xref:javalib/installation-ide.adoc[]
 * xref:javalib/builtin-commands.adoc[]
 * xref:javalib/module-config.adoc[]
 * xref:javalib/dependencies.adoc[]
@@ -18,7 +17,6 @@
 * xref:javalib/android-examples.adoc[]
 
 .xref:scalalib/intro.adoc[]
-* xref:scalalib/installation-ide.adoc[]
 * xref:scalalib/builtin-commands.adoc[]
 * xref:scalalib/module-config.adoc[]
 * xref:scalalib/dependencies.adoc[]
@@ -29,14 +27,13 @@
 * xref:scalalib/web-examples.adoc[]
 
 .xref:kotlinlib/intro.adoc[]
-* xref:kotlinlib/installation-ide.adoc[]
 * xref:kotlinlib/builtin-commands.adoc[]
 * xref:kotlinlib/module-config.adoc[]
 * xref:kotlinlib/dependencies.adoc[]
 * xref:kotlinlib/testing.adoc[]
 * xref:kotlinlib/linting.adoc[]
 * xref:kotlinlib/publishing.adoc[]
-* xref:kotlinlib/build-examples.adoc[]
+// * xref:kotlinlib/build-examples.adoc[]
 * xref:kotlinlib/web-examples.adoc[]
 * xref:kotlinlib/android-examples.adoc[]
 
@@ -44,6 +41,11 @@
 * xref:comparisons/maven.adoc[]
 * xref:comparisons/gradle.adoc[]
 * xref:comparisons/sbt.adoc[]
+
+.Mill Installation & CLI Usage
+* xref:install-cli/installation-ide.adoc[]
+* xref:install-cli/flag-configuration.adoc[]
+* xref:install-cli/alternate-installation.adoc[]
 
 // This section gives a tour of the various user-facing features of Mill:
 // library deps, out folder, queries, tasks, etc.. These are things that

@@ -56,8 +56,8 @@ and resolve bottlenecks in your build
 xref:javalib/intro.adoc#_custom_build_logic[concise type-checked code],
 and an immutable xref:depth/design-principles.adoc[module tree and task graph]. This
 catches config issues early, and helps IDEs
-(xref:javalib/installation-ide.adoc#_intellij[IntelliJ] or
-xref:javalib/installation-ide.adoc#_vscode[VSCode])
+(xref:install-cli/installation-ide.adoc#_intellij[IntelliJ] or
+xref:install-cli/installation-ide.adoc#_vscode[VSCode])
 understand your Mill build better than any other build system
 
 * *Flexibility*: Mill's tasks and modules allow anything from adding

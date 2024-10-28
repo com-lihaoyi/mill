@@ -35,8 +35,14 @@ include::partial$example/javalib/basic/2-custom-build-logic.adoc[]
 
 include::partial$example/javalib/basic/3-multi-module.adoc[]
 
-include::partial$Intro_to_Mill_Footer.adoc[]
-
 == Maven-Compatible Modules
 
 include::partial$example/javalib/basic/4-compat-modules.adoc[]
+
+
+== Realistic Java Example Project
+
+include::partial$example/javalib/basic/6-realistic.adoc[]
+
+
+include::partial$Intro_to_Mill_Footer.adoc[]
