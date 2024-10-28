@@ -208,10 +208,10 @@ trait JavaModule
       _.moduleDeps
     )
 
-  /** Should only be called from [[moduleDepsChecked]] */
+  /** Should only be called from [[runModuleDepsChecked]] */
   private lazy val recRunModuleDeps: Seq[JavaModule] =
     ModuleUtils.recursive[JavaModule](
-      (millModuleSegments ++ Seq(Segment.Label("moduleDeps"))).render,
+      (millModuleSegments ++ Seq(Segment.Label("runModuleDeps"))).render,
       this,
       m => m.runModuleDeps ++ m.moduleDeps
     )

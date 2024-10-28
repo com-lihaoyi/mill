@@ -262,7 +262,7 @@ object MillMain {
                               prevRunnerState = prevState.getOrElse(stateCache),
                               logger = logger,
                               disableCallgraph = config.disableCallgraph.value,
-                              needBuildSc = needBuildSc(config),
+                              needBuildFile = needBuildFile(config),
                               requestedMetaLevel = config.metaLevel,
                               config.allowPositional.value,
                               systemExit = systemExit,
@@ -373,7 +373,7 @@ object MillMain {
   /**
    * Determine, whether we need a `build.mill` or not.
    */
-  private def needBuildSc(config: MillCliConfig): Boolean = {
+  private def needBuildFile(config: MillCliConfig): Boolean = {
     // Tasks, for which running Mill without an existing buildfile is allowed.
     val noBuildFileTaskWhitelist = Seq(
       "init",

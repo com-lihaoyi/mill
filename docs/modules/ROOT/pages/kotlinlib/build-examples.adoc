@@ -1,19 +1,5 @@
-= Kotlin Build Examples
+= (TODO) Kotlin Build Examples
 :page-aliases: Kotlin_Build_Examples.adoc
 
 include::partial$gtag-config.adoc[]
-
-On this page, we will explore the Mill build tool via a series of simple Kotlin
-example projects.
-
-
-
-== Nesting Modules
-
-include::partial$example/kotlinlib/builds/1-nested-modules.adoc[]
-
-
-== Realistic Kotlin Example Project
-
-include::partial$example/kotlinlib/builds/4-realistic.adoc[]
 
