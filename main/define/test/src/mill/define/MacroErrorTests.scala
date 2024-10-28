@@ -94,8 +94,9 @@ object MacroErrorTests extends TestSuite {
             }
           }
         """)
+        pprint.log(e)
         assert(e.msg.contains(
-          "Modules and Tasks can only be defined within a mill Module"
+          "Task{} members must be defs defined in a Cacher class/trait/object body"
         ))
       }
       test("neg") {
@@ -139,7 +140,7 @@ object MacroErrorTests extends TestSuite {
           }
         """)
         assert(borkedCachedDiamond1.msg.contains(
-          "Modules and Tasks can only be defined within a mill Module"
+          "Task{} members must be defs defined in a Cacher class/trait/object body"
         ))
       }
     }

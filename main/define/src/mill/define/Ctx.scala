@@ -112,7 +112,7 @@ trait LowPriCtx {
   // as it is provided by the codegen. Defined for IDEs to think that one is available
   // and not show errors in build.mill/package.mill even though they can't see the codegen
   @compileTimeOnly(
-    "implicit Ctx must be provided, can only use this inside an enclosing Mill module"
+    "Modules and Tasks can only be defined within a mill Module"
   )
   implicit def dummyInfo: Ctx = sys.error("implicit Ctx must be provided")
 }
