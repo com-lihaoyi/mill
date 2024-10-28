@@ -171,12 +171,12 @@ abstract class MillBuildRootModule()(implicit
         },
         logger = new mill.codesig.Logger(Option.when(debugEnabled)(T.dest / "current")),
         prevTransitiveCallGraphHashesOpt = () =>
-          Option(os.exists(T.dest / "previous/result.json")).filter(identity)
-            .flatMap(_ =>
+          Option(T.dest / "previous/result.json").filter(os.exists)
+            .flatMap(prev =>
               Try {
                 // This can fail when the previous run was ran by a different Mill version
                 upickle.default.read[Map[String, Int]](
-                  os.read.stream(T.dest / "previous/result.json")
+                  os.read.stream(prev)
                 )
               }.toOption
             )
