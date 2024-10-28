@@ -74,6 +74,11 @@ To begin using Mill, check out the introductory documentation for each language:
 * xref:scalalib/intro.adoc[]
 * xref:kotlinlib/intro.adoc[]
 
+If you prefer a video introduction, see the following tech talk that was presented
+at the Japan Java User Group Fall Conference Oct 2024:
+
+* https://www.youtube.com/watch?v=Dry6wMRN6MI[Video: Better Java Builds with the Mill Build Tool]
+
 
 Mill is used to build many real-world projects, such as the
 https://github.com/swaldman/c3p0[C3P0 JDBC Connection Pool],
