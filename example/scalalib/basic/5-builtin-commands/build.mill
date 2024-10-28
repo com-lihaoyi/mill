@@ -393,7 +393,7 @@ javalib/web/4-hello-micronaut
 javalib/web/5-todo-micronaut
 kotlinlib/basic/1-simple
 ...
-kotlinlib/builds/4-realistic
+kotlinlib/basic/6-realistic
 ...
 kotlinlib/web/1-hello-ktor
 */
