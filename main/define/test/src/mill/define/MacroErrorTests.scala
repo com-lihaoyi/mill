@@ -10,7 +10,7 @@ object MacroErrorTests extends TestSuite {
 
     test("errors") {
       val expectedMsg =
-        "Task{} members must be defs defined in a Cacher class/trait/object body"
+        "Task{} members must be defs defined in a Module class/trait/object body"
 
       val err = compileError("object Foo extends TestBaseModule{ val x = Task {1} }")
       assert(err.msg == expectedMsg)
@@ -99,14 +99,14 @@ object MacroErrorTests extends TestSuite {
       test("neg1") {
         val e = compileError("""def a = Task { 1 }""")
         assert(e.msg.contains(
-          "Task{} members must be defs defined in a Cacher class/trait/object body"
+          "Task{} members must be defs defined in a Module class/trait/object body"
         ))
       }
 
       test("neg2") {
         val e = compileError("object foo extends TestBaseModule{ val a = Task { 1 } }")
         assert(e.msg.contains(
-          "Task{} members must be defs defined in a Cacher class/trait/object body"
+          "Task{} members must be defs defined in a Module class/trait/object body"
         ))
       }
       test("neg3") {
@@ -150,7 +150,7 @@ object MacroErrorTests extends TestSuite {
           }
         """)
         assert(borkedCachedDiamond1.msg.contains(
-          "Task{} members must be defs defined in a Cacher class/trait/object body"
+          "Task{} members must be defs defined in a Module class/trait/object body"
         ))
       }
     }
