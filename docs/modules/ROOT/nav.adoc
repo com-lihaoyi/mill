@@ -42,10 +42,10 @@
 * xref:comparisons/gradle.adoc[]
 * xref:comparisons/sbt.adoc[]
 
-.Mill Installation & CLI Usage
-* xref:install-cli/installation-ide.adoc[]
-* xref:install-cli/flags.adoc[]
-* xref:install-cli/alternate-installation.adoc[]
+.The Mill CLI
+* xref:cli/installation-ide.adoc[]
+* xref:cli/flags.adoc[]
+* xref:cli/alternate-installation.adoc[]
 
 // This section gives a tour of the various user-facing features of Mill:
 // library deps, out folder, queries, tasks, etc.. These are things that

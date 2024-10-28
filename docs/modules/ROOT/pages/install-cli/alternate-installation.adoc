@@ -1,7 +1,7 @@
 = Other installation methods
 
 CAUTION: The installation methods listed below are maintained outside of Mill and may not have
-the same features as the xref:install-cli/installation-ide.adoc#_bootstrap_scripts[bootstrap scripts]. You can try using them,
+the same features as the xref:cli/installation-ide.adoc#_bootstrap_scripts[bootstrap scripts]. You can try using them,
 but the officially supported way to use Mill is via the bootstrap script above, so the Mill
 maintainers may be unable to help you if you have issues with some alternate installation method.
 
@@ -9,7 +9,7 @@ CAUTION: Some of the installations via package managers install a fixed version 
 do not support project-specific selection of the preferred Mill version. If you want to use
 the `MILL_VERSION` environment variable or need support for `.mill-version` or
 `.config/mill-version` files to control the actual used Mill version, please use
-a xref:install-cli/installation-ide.adoc#_bootstrap_scripts[bootstrap script] instead.
+a xref:cli/installation-ide.adoc#_bootstrap_scripts[bootstrap script] instead.
 
 == OS X
 
