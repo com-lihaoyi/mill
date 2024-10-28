@@ -49,7 +49,6 @@ include::partial$example/kotlinlib/basic/4-compat-modules.adoc[]
 
 include::partial$example/kotlinlib/basic/6-realistic.adoc[]
 
-include::partial$Intro_to_Mill_Footer.adoc[]
 
 == History
 

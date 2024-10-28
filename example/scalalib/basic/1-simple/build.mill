@@ -143,6 +143,8 @@ error: Missing argument: --text <str>
 // $ mill -i console    # start a Scala console within your project
 //
 // $ mill -i repl       # start an Ammonite Scala REPL within your project
+//
+// $ mill -w compile    # watch input files and re-compile whenever a file changes
 // ----
 //
 // You can run `+mill resolve __+` to see a full list of the different tasks that

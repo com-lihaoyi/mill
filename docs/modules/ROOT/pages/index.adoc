@@ -47,7 +47,7 @@ Java platform's performance and usability:
 
 * *Performance*: Mill's xref:fundamentals/tasks.adoc[build graph] automatically
 xref:depth/evaluation-model.adoc#_caching_at_each_layer_of_the_evaluation_model[caches]
-and xref:javalib/intro.adoc#_parallel_task_execution[parallelizes] build
+and xref:install-cli/flags.adoc#_jobs_j[parallelizes] build
 tasks, keeping your workflows fast and responsive. Mill adds minimal overhead over
 the logic necessary to build your project, while providing tools to let you identify
 and resolve bottlenecks in your build

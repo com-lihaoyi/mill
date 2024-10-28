@@ -44,7 +44,7 @@
 
 .Mill Installation & CLI Usage
 * xref:install-cli/installation-ide.adoc[]
-* xref:install-cli/flag-configuration.adoc[]
+* xref:install-cli/flags.adoc[]
 * xref:install-cli/alternate-installation.adoc[]
 
 // This section gives a tour of the various user-facing features of Mill:
