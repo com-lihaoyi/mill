@@ -12,6 +12,21 @@ trait MyModule extends ScalaNativeModule {
   }
 
   def nativeLinkingOptions = Seq("-L" + millSourcePath.toString + "/target")
+  def barSource = millSourcePath.toString + "/resources/scala-native"
+
+  // Compile C
+  def nativeCompiled = Task {
+    os.makeDir.all(millSourcePath / "target")
+
+    os.proc(
+      "gcc", "-m64", "-shared", "-fPIC", 
+      millSourcePath.toString + "/resources/scala-native/HelloWorldBar.c",
+      "-o", millSourcePath.toString + "/target/libHelloWorldBar.so")
+    .call(stdout = os.Inherit)
+
+    PathRef(Task.dest / "target/libHelloWorldBar.so")
+  }  
+
 }
 
 object foo extends MyModule {
@@ -25,8 +40,8 @@ object foo extends MyModule {
 
     os.proc(
       "gcc", "-m64", "-shared", "-fPIC",
-      "-I", "/workspaces/test/saturday/mill/example/scalalib/native/3-multi-module/bar/resources/scala-native",
-      millSourcePath.toString + "/resources/scala-native/HelloWorldFoo.c", "/workspaces/test/saturday/mill/example/scalalib/native/3-multi-module/bar/resources/scala-native/HelloWorldBar.c",
+      "-I", barSource,
+      millSourcePath.toString + "/resources/scala-native/HelloWorldFoo.c",
       "-o", millSourcePath.toString + "/target/libHelloWorldFoo.so")
     .call(stdout = os.Inherit)
 
@@ -35,20 +50,7 @@ object foo extends MyModule {
 }
 
 object bar extends MyModule {
-
-  // Compile C
-  def nativeCompiled = Task {
-    os.makeDir.all(millSourcePath / "target")
-
-    os.proc(
-      "gcc", "-m64", "-shared", "-fPIC", 
-      millSourcePath.toString + "/resources/scala-native/HelloWorldBar.c",
-      "-o", millSourcePath.toString + "/target/libHelloWorldBar.so")
-    .call(stdout = os.Inherit)
-
-    PathRef(Task.dest / "target/libHelloWorldBar.so")
-  }
-
+    def bar = "Bar"
 }
 //// SNIPPET:END
 
@@ -82,6 +84,7 @@ object bar extends MyModule {
 // foo/
 //     resources/
 //         scala-native/
+//             bar.h
 //             HelloWorldFoo.c
 //     src/
 //         Foo.scala
@@ -95,10 +98,6 @@ object bar extends MyModule {
 /** Usage
 
 
-> ./mill bar.nativeCompiled
-...
-compiling 1 Scala source to ...
-
 > ./mill bar.run hello
 Running HelloWorld function
 Done...
@@ -107,5 +106,10 @@ Bar value: Argument length is 5
 > ./mill bar.test
 Tests: 1, Passed: 1, Failed: 0
 
+> ./mill foo.nativeCompiled
+
+> ./mill foo.run --bar-text hello --foo-text world
+Foo.value: The vowel density of 'world' is 20
+Bar.value: The string length of 'hello' is 5
 
 */

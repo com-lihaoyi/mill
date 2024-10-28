@@ -15,7 +15,7 @@ object Bar {
   }
 }
 
-// Define the external module, the C library containing our function "generateHtml"
+// Define the external module, the C library containing our function "stringLength"
 @extern
 // Arbitrary object name
 object HelloWorldBar {
