@@ -39,7 +39,7 @@ trait Ctx {
   private[mill] def withEnclosingModule(enclosingModule: Any): Ctx = this
 }
 
-object Ctx extends LowPriCtx{
+object Ctx extends LowPriCtx {
   private case class Impl(
       enclosing: String,
       lineNum: Int,
@@ -77,7 +77,6 @@ object Ctx extends LowPriCtx{
    */
   final case class Foreign(value: Option[Segments])
 
-
   implicit def make(implicit
       millModuleEnclosing0: sourcecode.Enclosing,
       millModuleLine0: sourcecode.Line,
@@ -108,10 +107,12 @@ object Ctx extends LowPriCtx{
   }
 }
 
-trait LowPriCtx{
+trait LowPriCtx {
   // Dummy `Ctx` available in implicit scope but never actually used.
   // as it is provided by the codegen. Defined for IDEs to think that one is available
   // and not show errors in build.mill/package.mill even though they can't see the codegen
-  @compileTimeOnly("implicit Ctx must be provided, can only use this inside an enclosing Mill module")
+  @compileTimeOnly(
+    "implicit Ctx must be provided, can only use this inside an enclosing Mill module"
+  )
   implicit def dummyInfo: Ctx = sys.error("implicit Ctx must be provided")
 }
