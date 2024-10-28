@@ -85,12 +85,12 @@ object MacroErrorTests extends TestSuite {
       // come from inside the Task{...} block
       test("pos") {
         // This hsould compile
-        object foo extends TestBaseModule{
+        object foo extends TestBaseModule {
           def a = Task { 1 }
           val arr = Array(a)
           def b = {
             val c = 0
-            Task{
+            Task {
               arr(c)()
             }
           }
