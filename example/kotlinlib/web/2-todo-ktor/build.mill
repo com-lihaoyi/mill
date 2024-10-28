@@ -1,4 +1,6 @@
-//// SNIPPET:BUILD
+// This example implementing the well known
+// https://todomvc.com/[TodoMVC] example app using Kotlin and Ktor.
+
 package build
 import mill._, kotlinlib._
 
@@ -35,9 +37,7 @@ object `package` extends RootModule with KotlinModule {
 }
 
 
-// This example implementing the well known
-// https://todomvc.com/[TodoMVC] example app using Kotlin and Ktor. Apart from running a webserver,
-// this example also demonstrates:
+// Apart from running a webserver,  this example also demonstrates:
 
 // * Serving HTML templates using Thymeleaf
 // * Serving static Javascript and CSS using Webjars

@@ -108,7 +108,7 @@ object bar extends ScalaModule {
 //   This can be faster than `.test`, but is less flexible (e.g. you cannot pass `forkEnv`)
 //   and more prone to interference (`testLocal` runs do not run in xref:depth/sandboxing.adoc[sandbox folders])
 //
-// It is common to run tests with xref:javalib/intro.adoc#_watch_and_re_evaluate[-w/--watch]
+// It is common to run tests with xref:cli/flags.adoc#_watch_w[-w/--watch]
 // enabled, so that once you save a file to disk the selected tests get re-run.
 //
 // NOTE: Mill runs tests with the working directory set to an empty

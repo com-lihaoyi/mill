@@ -3,20 +3,6 @@
 
 include::partial$gtag-config.adoc[]
 
-On this page, we will explore the Mill build tool via a series of simple Java
-example projects.
-
-
-== Nesting Modules
-
-include::partial$example/javalib/builds/1-nested-modules.adoc[]
-
-
-== Realistic Java Example Project
-
-include::partial$example/javalib/builds/4-realistic.adoc[]
-
-
 == Example Builds for Real Projects
 
 Mill comes bundled with example builds for real-world open-source projects,

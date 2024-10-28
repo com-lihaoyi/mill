@@ -21,7 +21,8 @@ case class FileImportGraph(
     repos: Seq[(String, os.Path)],
     ivyDeps: Set[String],
     errors: Seq[String],
-    metaBuild: Boolean
+    metaBuild: Boolean,
+    buildFile: String
 )
 
 /**
@@ -215,7 +216,8 @@ object FileImportGraph {
       seenRepo.toSeq,
       seenIvy.toSet,
       errors.toSeq,
-      millImport
+      millImport,
+      foundRootBuildFileName
     )
   }
 
