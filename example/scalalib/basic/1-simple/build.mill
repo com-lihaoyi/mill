@@ -29,7 +29,7 @@ object foo extends ScalaModule {
 // part of Mill's CI workflows, and they range from the simple hello-world
 // projects on this page to more sophisticated
 // xref:{language-small}lib/web-examples.adoc[web build examples] or
-// xref:{language-small}lib/build-examples.adoc#_example_builds_for_real_projects[example
+// xref:{language-small}lib/build-examples.adoc[example
 // builds for real-world projects]
 //
 // The source code for this module lives in the `src/` folder.
@@ -143,6 +143,8 @@ error: Missing argument: --text <str>
 // $ mill -i console    # start a Scala console within your project
 //
 // $ mill -i repl       # start an Ammonite Scala REPL within your project
+//
+// $ mill -w compile    # watch input files and re-compile whenever a file changes
 // ----
 //
 // You can run `+mill resolve __+` to see a full list of the different tasks that

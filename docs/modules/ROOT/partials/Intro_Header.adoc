@@ -1,4 +1,9 @@
-This page contains a quick introduction to getting start with using
-Mill to build a simple {language} program. The other pages of this doc-site go into
-more depth, with more examples of how to use Mill and more details of how the
-Mill build tool works.
+This page contains a quick introduction to getting start with using Mill to build
+a simple {language} program. We will walk through a series of Mill builds of increasing
+complexity to show you the key features and usage of the Mill build tool.
+
+The other pages of this section on {language} go into more depth into individual features,
+with more examples of how to use Mill for {language} and more details of how the Mill
+build tool works. They aren't intended to be read comprehensively top-to-bottom, but
+rather looked up when you have a particular interest e.g. in testing, linting,
+publishing, and so on.

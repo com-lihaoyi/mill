@@ -40,11 +40,15 @@ include::partial$example/kotlinlib/basic/2-custom-build-logic.adoc[]
 
 include::partial$example/kotlinlib/basic/3-multi-module.adoc[]
 
-include::partial$Intro_to_Mill_Footer.adoc[]
-
 == Maven-Compatible Modules
 
 include::partial$example/kotlinlib/basic/4-compat-modules.adoc[]
+
+
+== Realistic Kotlin Example Project
+
+include::partial$example/kotlinlib/basic/6-realistic.adoc[]
+
 
 == History
 
