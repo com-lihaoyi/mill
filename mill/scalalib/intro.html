@@ -6,7 +6,7 @@
     <title>Building Scala Projects with Mill :: The Mill JVM Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/0.12.1/scalalib/intro.html" />
     <link rel="prev" href="../javalib/android-examples.html" />
-    <link rel="next" href="installation-ide.html" />
+    <link rel="next" href="builtin-commands.html" />
     <meta name="generator" content="Antora 3.1.9" />
     <link rel="stylesheet" href="../../_/css/site.css" />
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
@@ -87,10 +87,6 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../javalib/installation-ide.html">Installation and IDE Support</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="../javalib/builtin-commands.html">Built-in Commands</a>
   </li>
 
@@ -134,10 +130,6 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="installation-ide.html">Installation and IDE Support</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="builtin-commands.html">Built-in Commands</a>
   </li>
 
@@ -177,10 +169,6 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../kotlinlib/installation-ide.html">Installation and IDE Support</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="../kotlinlib/builtin-commands.html">Built-in Commands</a>
   </li>
 
@@ -202,10 +190,6 @@
 
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="../kotlinlib/publishing.html">Publishing Kotlin Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../kotlinlib/build-examples.html">Kotlin Build Examples</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -233,6 +217,25 @@
 
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs SBT</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">The Mill CLI</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Support</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../cli/flags.html">Mill Command-Line Flags</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../cli/alternate-installation.html">Other installation methods</a>
   </li>
 </ul>
   </li>
@@ -425,14 +428,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.1-6-c2e743</span>
+    <span class="version">0.12.1-7-d8bbe5</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="../0.12.1/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="../index.html">0.12.1-6-c2e743</a>
+          <a href="../index.html">0.12.1-7-d8bbe5</a>
         </li>
         <li class="version is-latest">
           <a href="../0.12.1/index.html">0.12.1</a>
@@ -489,10 +492,16 @@ const links = document.querySelectorAll('a');
 });
 </script>
 <div class="paragraph">
-<p>This page contains a quick introduction to getting start with using
-Mill to build a simple Scala program. The other pages of this doc-site go into
-more depth, with more examples of how to use Mill and more details of how the
-Mill build tool works.</p>
+<p>This page contains a quick introduction to getting start with using Mill to build
+a simple Scala program. We will walk through a series of Mill builds of increasing
+complexity to show you the key features and usage of the Mill build tool.</p>
+</div>
+<div class="paragraph">
+<p>The other pages of this section on Scala go into more depth into individual features,
+with more examples of how to use Mill for Scala and more details of how the Mill
+build tool works. They aren’t intended to be read comprehensively top-to-bottom, but
+rather looked up when you have a particular interest e.g. in testing, linting,
+publishing, and so on.</p>
 </div>
 </div>
 </div>
@@ -533,7 +542,7 @@ in this documentation site are executable and are continually exercised as
 part of Mill’s CI workflows, and they range from the simple hello-world
 projects on this page to more sophisticated
 <a href="web-examples.html" class="xref page">web build examples</a> or
-<a href="build-examples.html#_example_builds_for_real_projects" class="xref page">example
+<a href="build-examples.html" class="xref page">example
 builds for real-world projects</a></p>
 </div>
 <div class="paragraph">
@@ -654,7 +663,9 @@ $ mill jar           # bundle the classfiles into a jar suitable for publishing
 
 $ mill -i console    # start a Scala console within your project
 
-$ mill -i repl       # start an Ammonite Scala REPL within your project</code></pre>
+$ mill -i repl       # start an Ammonite Scala REPL within your project
+
+$ mill -w compile    # watch input files and re-compile whenever a file changes</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -830,7 +841,7 @@ to what is bundled with Mill.</p>
 <div class="paragraph">
 <p>Custom user-defined tasks in Mill benefit from all
 the same things that built-in tasks do: automatic caching (in the
-<a href="../fundamentals/out-dir.html" class="xref page">out/ folder</a>), parallelism (with the <a href="#_parallel_task_execution">-j/--jobs
+<a href="../fundamentals/out-dir.html" class="xref page">out/ folder</a>), parallelism (with the <a href="../cli/flags.html#_jobs_j" class="xref page">-j/--jobs
 flag</a>), inspectability (via <a href="builtin-commands.html#_show" class="xref page">show</a>/<a href="builtin-commands.html#_inspect" class="xref page">inspect</a>), and so on.
 While these things may not matter for such a simple example that runs
 quickly, they ensure that custom build logic remains performant and
@@ -998,72 +1009,6 @@ preceding it with a backslash (<code>\</code>).</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_watch_and_re_evaluate"><a class="anchor" href="#_watch_and_re_evaluate"></a>Watch and Re-evaluate</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>You can use the <code>--watch</code> flag to make Mill watch a task’s inputs,
-re-evaluating the task as necessary when the inputs
-change:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill --watch foo.compile
-$ mill --watch foo.run
-$ mill -w foo.compile
-$ mill -w foo.run</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Mill’s <code>--watch</code> flag watches both the files you are building using Mill, as
-well as Mill’s own <code>build.mill</code> file and anything it imports, so any changes to
-your <code>build.mill</code> will automatically get picked up.</p>
-</div>
-<div class="paragraph">
-<p>For long-running processes like web servers, you can use <code>runBackground</code> to make sure they recompile and restart when code changes,
-forcefully terminating the previous process even though it may be still alive:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill -w foo.runBackground</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_parallel_task_execution"><a class="anchor" href="#_parallel_task_execution"></a>Parallel Task Execution</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>By default, Mill will evaluate all tasks in parallel, with the number of concurrent
-tasks equal to the number of cores on your machine. You can use the <code>--jobs</code> (<code>-j</code>) to configure
-explicitly how many concurrent tasks you wish to run. To disable parallel execution use <code>-j1</code>.</p>
-</div>
-<div class="paragraph">
-<p>Example: Use up to 4 parallel threads to compile all modules:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill -j4 __.compile</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Every <code>mill</code> run generates an output file in <code>out/mill-chrome-profile.json</code> that can be
-loaded into the Chrome browser’s <code>chrome://tracing</code> page for visualization.
-This can make it much easier to analyze your parallel runs to find out what’s
-taking the most time:</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="../_images/basic/ChromeTracing.png" alt="ChromeTracing.png" />
-</div>
-</div>
-<div class="paragraph">
-<p>Note that the maximal possible parallelism depends both on the number of cores
-available as well as the task and module structure of your project, as tasks that
-depend on one another other cannot be processed in parallel</p>
-</div>
-</div>
-</div>
-<div class="sect1">
 <h2 id="_sbt_compatible_modules"><a class="anchor" href="#_sbt_compatible_modules"></a>SBT-Compatible Modules</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -1164,9 +1109,168 @@ Bar.value: Hello World Scala library version 2.12.17...</code></pre>
 </div>
 </div>
 </div>
+<div class="sect1">
+<h2 id="_realistic_scala_example_project"><a class="anchor" href="#_realistic_scala_example_project"></a>Realistic Scala Example Project</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Below, we should a realistic example of a build for a Scala project.
+This example touches on library dependencies, testing, publishing, code generation,
+and other topics covered in more detail in the Scala section of the Mill docs,
+and you can browse each respective page if you want to learn more.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-scalalib-basic-6-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/scalalib/basic/6-realistic">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, scalalib._, publish._
+
+trait MyModule extends PublishModule {
+  def publishVersion = &quot;0.0.1&quot;
+
+  def pomSettings = PomSettings(
+    description = &quot;Hello&quot;,
+    organization = &quot;com.lihaoyi&quot;,
+    url = &quot;https://github.com/lihaoyi/example&quot;,
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github(&quot;lihaoyi&quot;, &quot;example&quot;),
+    developers = Seq(Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;))
+  )
+}
+
+trait MyScalaModule extends MyModule with CrossScalaModule {
+  def ivyDeps = Agg(ivy&quot;com.lihaoyi::scalatags:0.12.0&quot;)
+  object test extends ScalaTests {
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
+    def testFramework = &quot;utest.runner.Framework&quot;
+  }
+}
+
+val scalaVersions = Seq(&quot;2.13.8&quot;, &quot;3.3.3&quot;)
+
+object foo extends Cross[FooModule](scalaVersions)
+trait FooModule extends MyScalaModule {
+  def moduleDeps = Seq(bar(), qux)
+
+  def generatedSources = Task {
+    os.write(
+      Task.dest / &quot;Version.scala&quot;,
+      s&quot;&quot;&quot;
+package foo
+object Version{
+  def value = &quot;${publishVersion()}&quot;
+}
+      &quot;&quot;&quot;.stripMargin
+    )
+    Seq(PathRef(Task.dest))
+  }
+}
+
+object bar extends Cross[BarModule](scalaVersions)
+trait BarModule extends MyScalaModule {
+  def moduleDeps = Seq(qux)
+}
+
+object qux extends JavaModule with MyModule</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A semi-realistic build setup, combining all the individual Mill concepts:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Two <code>CrossScalaModules</code> compiled against two Scala versions, that depend on
+each other as well as on a <code>JavaModule</code></p>
+</li>
+<li>
+<p>With unit testing and publishing set up</p>
+</li>
+<li>
+<p>With version-specific sources</p>
+</li>
+<li>
+<p>With generated sources to include the <code>publishVersion</code> as a string in the
+code, so it can be printed at runtime</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Note that for multi-module builds like this, using using <a href="../fundamentals/query-syntax.html" class="xref page">queries</a> to run tasks on
+multiple modules at once can be very convenient:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>__.test
+__.publishLocal</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Also note that <code>ScalaModule</code>s can depend on <code>JavaModule</code>s, and
+when multiple inter-dependent modules are published they automatically will
+include the inter-module dependencies in the publish metadata.</p>
+</div>
+<div class="paragraph">
+<p>Also note how you can use <code>trait</code>s to bundle together common combinations of
+modules: <code>MyScalaModule</code> not only defines a <code>ScalaModule</code> with some common
+configuration, but it also defines a <code>object test</code> module within it with its
+own configuration. This is a very useful technique for managing the often
+repetitive module structure in a typical project</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill resolve __.run
+bar[2.13.8].run
+bar[2.13.8].test.run
+bar[3.3.3].run
+bar[3.3.3].test.run
+foo[2.13.8].run
+foo[2.13.8].test.run
+foo[3.3.3].run
+foo[3.3.3].test.run
+qux.run
+
+&gt; mill foo[2.13.8].run
+foo version 0.0.1
+Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
+Bar.value: &lt;p&gt;world Specific code for Scala 2.x&lt;/p&gt;
+Qux.value: 31337
+
+&gt; mill bar[3.3.3].test
++ bar.BarTests.test ... &lt;p&gt;world Specific code for Scala 3.x&lt;/p&gt;
+
+&gt; mill qux.run
+Qux.value: 31337
+
+&gt; mill __.compile
+
+&gt; mill __.test
++ bar.BarTests.test ... &lt;p&gt;world Specific code for Scala 2.x&lt;/p&gt;
++ bar.BarTests.test ... &lt;p&gt;world Specific code for Scala 3.x&lt;/p&gt;
++ foo.FooTests.test ... &lt;h1&gt;hello&lt;/h1&gt;
++ foo.FooTests.test ... &lt;h1&gt;hello&lt;/h1&gt;
+
+&gt; mill __.publishLocal
+Publishing Artifact(com.lihaoyi,foo_2.13,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,bar_2.13,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,foo_3,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,bar_3,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,qux,0.0.1) to ivy repo...
+
+&gt; mill show foo[2.13.8].assembly # mac/linux
+&quot;.../out/foo/2.13.8/assembly.dest/out.jar&quot;
+
+&gt; ./out/foo/2.13.8/assembly.dest/out.jar # mac/linux
+foo version 0.0.1
+Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
+Bar.value: &lt;p&gt;world Specific code for Scala 2.x&lt;/p&gt;
+Qux.value: 31337</code></pre>
+</div>
+</div>
+</div>
+</div>
 <nav class="pagination">
   <span class="prev"><a href="../javalib/android-examples.html">(Experimental) Android Builds</a></span>
-  <span class="next"><a href="installation-ide.html">Installation and IDE Support</a></span>
+  <span class="next"><a href="builtin-commands.html">Built-in Commands</a></span>
 </nav>
 </article>
   </div>

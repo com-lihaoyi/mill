@@ -87,10 +87,6 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../javalib/installation-ide.html">Installation and IDE Support</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="../javalib/builtin-commands.html">Built-in Commands</a>
   </li>
 
@@ -134,10 +130,6 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="installation-ide.html">Installation and IDE Support</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="builtin-commands.html">Built-in Commands</a>
   </li>
 
@@ -177,10 +169,6 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../kotlinlib/installation-ide.html">Installation and IDE Support</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="../kotlinlib/builtin-commands.html">Built-in Commands</a>
   </li>
 
@@ -202,10 +190,6 @@
 
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="../kotlinlib/publishing.html">Publishing Kotlin Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../kotlinlib/build-examples.html">Kotlin Build Examples</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -233,6 +217,25 @@
 
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs SBT</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">The Mill CLI</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Support</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../cli/flags.html">Mill Command-Line Flags</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../cli/alternate-installation.html">Other installation methods</a>
   </li>
 </ul>
   </li>
@@ -425,14 +428,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.1-6-c2e743</span>
+    <span class="version">0.12.1-7-d8bbe5</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="../0.12.1/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="../index.html">0.12.1-6-c2e743</a>
+          <a href="../index.html">0.12.1-7-d8bbe5</a>
         </li>
         <li class="version is-latest">
           <a href="../0.12.1/index.html">0.12.1</a>
@@ -768,6 +771,24 @@ contrib plugin documentation for more details:</p>
 <ul>
 <li>
 <p><a href="../contrib/scoverage.html" class="xref page">Scoverage</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_binary_compatibility_enforcement"><a class="anchor" href="#_binary_compatibility_enforcement"></a>Binary Compatibility Enforcement</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If you want to lint against binary compatibility breakages, e.g. when developing
+an upstream library that downstream libraries may compile against, you can use
+the Lightbend Migration Manager (MiMa) tool via the mill-mima plugin. See
+the mill-mima documentation for more details:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/lolgab/mill-mima" class="bare">https://github.com/lolgab/mill-mima</a></p>
 </li>
 </ul>
 </div>

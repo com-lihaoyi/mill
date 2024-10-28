@@ -87,10 +87,6 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../javalib/installation-ide.html">Installation and IDE Support</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="../javalib/builtin-commands.html">Built-in Commands</a>
   </li>
 
@@ -134,10 +130,6 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="installation-ide.html">Installation and IDE Support</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="builtin-commands.html">Built-in Commands</a>
   </li>
 
@@ -177,10 +169,6 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../kotlinlib/installation-ide.html">Installation and IDE Support</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="../kotlinlib/builtin-commands.html">Built-in Commands</a>
   </li>
 
@@ -202,10 +190,6 @@
 
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="../kotlinlib/publishing.html">Publishing Kotlin Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../kotlinlib/build-examples.html">Kotlin Build Examples</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -233,6 +217,25 @@
 
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs SBT</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">The Mill CLI</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Support</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../cli/flags.html">Mill Command-Line Flags</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../cli/alternate-installation.html">Other installation methods</a>
   </li>
 </ul>
   </li>
@@ -425,14 +428,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.1-6-c2e743</span>
+    <span class="version">0.12.1-7-d8bbe5</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="../0.12.1/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="../index.html">0.12.1-6-c2e743</a>
+          <a href="../index.html">0.12.1-7-d8bbe5</a>
         </li>
         <li class="version is-latest">
           <a href="../0.12.1/index.html">0.12.1</a>
@@ -489,308 +492,6 @@ const links = document.querySelectorAll('a');
   });
 });
 </script>
-<div class="paragraph">
-<p>On this page, we will explore the Mill build tool via a series of simple Scala
-example projects.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_nesting_modules"><a class="anchor" href="#_nesting_modules"></a>Nesting Modules</h2>
-<div class="sectionbody">
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-scalalib-builds-1-nested-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/scalalib/builds/1-nested-modules">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, scalalib._
-
-trait MyModule extends ScalaModule {
-  def scalaVersion = &quot;2.13.8&quot;
-  def ivyDeps = Agg(
-    ivy&quot;com.lihaoyi::scalatags:0.8.2&quot;,
-    ivy&quot;com.lihaoyi::mainargs:0.4.0&quot;
-  )
-}
-
-object foo extends MyModule {
-  def moduleDeps = Seq(bar, qux)
-
-  object bar extends MyModule
-  object qux extends MyModule {
-    def moduleDeps = Seq(bar)
-  }
-}
-
-object baz extends MyModule {
-  def moduleDeps = Seq(foo.bar, foo.qux, foo)
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Modules can be nested arbitrarily deeply within each other. The outer module
-can be the same kind of module as the ones within, or it can be a plain
-<code>Module</code> if we just need a wrapper to put the modules in without any tasks
-defined on the wrapper.</p>
-</div>
-<div class="paragraph">
-<p>The outer module can also depend on the inner module (as shown above),
-and vice versa, but not both at the same.</p>
-</div>
-<div class="paragraph">
-<p>Running tasks on the nested modules requires the full module path
-<code>foo.bar.run</code></p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill resolve __.run
-foo.bar.run
-foo.qux.run
-baz.run
-
-&gt; mill foo.run --bar-text hello --qux-text world --foo-text today
-Bar.value: &lt;h1&gt;hello&lt;/h1&gt;
-Qux.value: &lt;p&gt;world&lt;/p&gt;
-Foo.value: &lt;p&gt;today&lt;/p&gt;
-
-&gt; mill baz.run --bar-text hello --qux-text world --foo-text today --baz-text yay
-Bar.value: &lt;h1&gt;hello&lt;/h1&gt;
-Qux.value: &lt;p&gt;world&lt;/p&gt;
-Foo.value: &lt;p&gt;today&lt;/p&gt;
-Baz.value: &lt;p&gt;yay&lt;/p&gt;
-
-&gt; mill foo.qux.run --bar-text hello --qux-text world
-Bar.value: &lt;h1&gt;hello&lt;/h1&gt;
-Qux.value: &lt;p&gt;world&lt;/p&gt;</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_cross_scala_version_modules"><a class="anchor" href="#_cross_scala_version_modules"></a>Cross-Scala-Version Modules</h2>
-<div class="sectionbody">
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-scalalib-builds-3-cross-scala-version.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/scalalib/builds/3-cross-scala-version">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, scalalib._
-
-val scalaVersions = Seq(&quot;2.12.17&quot;, &quot;2.13.8&quot;)
-
-object foo extends Cross[FooModule](scalaVersions)
-trait FooModule extends CrossScalaModule{
-  def moduleDeps = Seq(bar())
-}
-
-object bar extends Cross[BarModule](scalaVersions)
-trait BarModule extends CrossScalaModule</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This is an example of cross-building a module across multiple Scala
-versions. Each module is replaced by a <code>Cross</code> module, which is given a list
-of strings you want the cross-module to be replicated for. You can then
-specify the cross-modules with square brackets when you want to run tasks on
-them.</p>
-</div>
-<div class="paragraph">
-<p><code>CrossScalaModule</code> supports both shared sources within <code>src/</code> as well as
-version specific sources in <code>src-x/</code>, <code>src-x.y/</code>, or <code>src-x.y.z/</code> that
-apply to the cross-module with that version prefix.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill resolve __.run
-foo[2.12.17].run
-foo[2.13.8].run
-bar[2.12.17].run
-bar[2.13.8].run
-
-&gt; mill foo[2.12.17].run
-Foo.value: Hello World Scala library version 2.12.17...
-Bar.value: bar-value
-Specific code for Scala 2.x
-Specific code for Scala 2.12.x
-
-&gt; mill foo[2.13.8].run
-Foo.value: Hello World Scala library version 2.13.8...
-Bar.value: bar-value
-Specific code for Scala 2.x
-Specific code for Scala 2.13.x
-
-&gt; mill bar[2.13.8].run
-Bar.value: bar-value</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p><code>CrossScalaModule</code>s can depend on each other using <code>moduleDeps</code>, but require
-the <code>()</code> suffix in <code>moduleDeps</code> to select the appropriate instance of the
-cross-module to depend on. You can also pass the <code>crossScalaVersion</code>
-explicitly to select the right version of the cross-module:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo2 extends Cross[Foo2Module](scalaVersions)
-trait Foo2Module extends CrossScalaModule{
-  def moduleDeps = Seq(bar(crossScalaVersion))
-}
-
-object bar2 extends Cross[Bar2Module](scalaVersions)
-trait Bar2Module extends CrossScalaModule</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_realistic_scala_example_project"><a class="anchor" href="#_realistic_scala_example_project"></a>Realistic Scala Example Project</h2>
-<div class="sectionbody">
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-scalalib-builds-4-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/scalalib/builds/4-realistic">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, scalalib._, publish._
-
-trait MyModule extends PublishModule {
-  def publishVersion = &quot;0.0.1&quot;
-
-  def pomSettings = PomSettings(
-    description = &quot;Hello&quot;,
-    organization = &quot;com.lihaoyi&quot;,
-    url = &quot;https://github.com/lihaoyi/example&quot;,
-    licenses = Seq(License.MIT),
-    versionControl = VersionControl.github(&quot;lihaoyi&quot;, &quot;example&quot;),
-    developers = Seq(Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;))
-  )
-}
-
-trait MyScalaModule extends MyModule with CrossScalaModule {
-  def ivyDeps = Agg(ivy&quot;com.lihaoyi::scalatags:0.12.0&quot;)
-  object test extends ScalaTests {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
-    def testFramework = &quot;utest.runner.Framework&quot;
-  }
-}
-
-val scalaVersions = Seq(&quot;2.13.8&quot;, &quot;3.3.3&quot;)
-
-object foo extends Cross[FooModule](scalaVersions)
-trait FooModule extends MyScalaModule {
-  def moduleDeps = Seq(bar(), qux)
-
-  def generatedSources = Task {
-    os.write(
-      Task.dest / &quot;Version.scala&quot;,
-      s&quot;&quot;&quot;
-package foo
-object Version{
-  def value = &quot;${publishVersion()}&quot;
-}
-      &quot;&quot;&quot;.stripMargin
-    )
-    Seq(PathRef(Task.dest))
-  }
-}
-
-object bar extends Cross[BarModule](scalaVersions)
-trait BarModule extends MyScalaModule {
-  def moduleDeps = Seq(qux)
-}
-
-object qux extends JavaModule with MyModule</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>A semi-realistic build setup, combining all the individual Mill concepts:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>Two <code>CrossScalaModules</code> compiled against two Scala versions, that depend on
-each other as well as on a <code>JavaModule</code></p>
-</li>
-<li>
-<p>With unit testing and publishing set up</p>
-</li>
-<li>
-<p>With version-specific sources</p>
-</li>
-<li>
-<p>With generated sources to include the <code>publishVersion</code> as a string in the
-code, so it can be printed at runtime</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>Note that for multi-module builds like this, using using <a href="../fundamentals/query-syntax.html" class="xref page">queries</a> to run tasks on
-multiple modules at once can be very convenient:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>__.test
-__.publishLocal</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Also note that <code>ScalaModule</code>s can depend on <code>JavaModule</code>s, and
-when multiple inter-dependent modules are published they automatically will
-include the inter-module dependencies in the publish metadata.</p>
-</div>
-<div class="paragraph">
-<p>Also note how you can use <code>trait</code>s to bundle together common combinations of
-modules: <code>MyScalaModule</code> not only defines a <code>ScalaModule</code> with some common
-configuration, but it also defines a <code>object test</code> module within it with its
-own configuration. This is a very useful technique for managing the often
-repetitive module structure in a typical project</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill resolve __.run
-bar[2.13.8].run
-bar[2.13.8].test.run
-bar[3.3.3].run
-bar[3.3.3].test.run
-foo[2.13.8].run
-foo[2.13.8].test.run
-foo[3.3.3].run
-foo[3.3.3].test.run
-qux.run
-
-&gt; mill foo[2.13.8].run
-foo version 0.0.1
-Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
-Bar.value: &lt;p&gt;world Specific code for Scala 2.x&lt;/p&gt;
-Qux.value: 31337
-
-&gt; mill bar[3.3.3].test
-+ bar.BarTests.test ... &lt;p&gt;world Specific code for Scala 3.x&lt;/p&gt;
-
-&gt; mill qux.run
-Qux.value: 31337
-
-&gt; mill __.compile
-
-&gt; mill __.test
-+ bar.BarTests.test ... &lt;p&gt;world Specific code for Scala 2.x&lt;/p&gt;
-+ bar.BarTests.test ... &lt;p&gt;world Specific code for Scala 3.x&lt;/p&gt;
-+ foo.FooTests.test ... &lt;h1&gt;hello&lt;/h1&gt;
-+ foo.FooTests.test ... &lt;h1&gt;hello&lt;/h1&gt;
-
-&gt; mill __.publishLocal
-Publishing Artifact(com.lihaoyi,foo_2.13,0.0.1) to ivy repo...
-Publishing Artifact(com.lihaoyi,bar_2.13,0.0.1) to ivy repo...
-Publishing Artifact(com.lihaoyi,foo_3,0.0.1) to ivy repo...
-Publishing Artifact(com.lihaoyi,bar_3,0.0.1) to ivy repo...
-Publishing Artifact(com.lihaoyi,qux,0.0.1) to ivy repo...
-
-&gt; mill show foo[2.13.8].assembly # mac/linux
-&quot;.../out/foo/2.13.8/assembly.dest/out.jar&quot;
-
-&gt; ./out/foo/2.13.8/assembly.dest/out.jar # mac/linux
-foo version 0.0.1
-Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
-Bar.value: &lt;p&gt;world Specific code for Scala 2.x&lt;/p&gt;
-Qux.value: 31337</code></pre>
-</div>
-</div>
 </div>
 </div>
 <div class="sect1">

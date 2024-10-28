@@ -86,10 +86,6 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="javalib/installation-ide.html">Installation and IDE Support</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="javalib/builtin-commands.html">Built-in Commands</a>
   </li>
 
@@ -133,10 +129,6 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="scalalib/installation-ide.html">Installation and IDE Support</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="scalalib/builtin-commands.html">Built-in Commands</a>
   </li>
 
@@ -176,10 +168,6 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="kotlinlib/installation-ide.html">Installation and IDE Support</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="kotlinlib/builtin-commands.html">Built-in Commands</a>
   </li>
 
@@ -201,10 +189,6 @@
 
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="kotlinlib/publishing.html">Publishing Kotlin Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="kotlinlib/build-examples.html">Kotlin Build Examples</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -232,6 +216,25 @@
 
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="comparisons/sbt.html">Case Study: Mill vs SBT</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">The Mill CLI</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="cli/installation-ide.html">Installation &amp; IDE Support</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="cli/flags.html">Mill Command-Line Flags</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="cli/alternate-installation.html">Other installation methods</a>
   </li>
 </ul>
   </li>
@@ -424,14 +427,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.1-6-c2e743</span>
+    <span class="version">0.12.1-7-d8bbe5</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="0.12.1/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="index.html">0.12.1-6-c2e743</a>
+          <a href="index.html">0.12.1-7-d8bbe5</a>
         </li>
         <li class="version is-latest">
           <a href="0.12.1/index.html">0.12.1</a>
@@ -639,7 +642,7 @@ Java platform’s performance and usability:</p>
 <li>
 <p><strong>Performance</strong>: Mill’s <a href="fundamentals/tasks.html" class="xref page">build graph</a> automatically
 <a href="depth/evaluation-model.html#_caching_at_each_layer_of_the_evaluation_model" class="xref page">caches</a>
-and <a href="javalib/intro.html#_parallel_task_execution" class="xref page">parallelizes</a> build
+and <a href="cli/flags.html#_jobs_j" class="xref page">parallelizes</a> build
 tasks, keeping your workflows fast and responsive. Mill adds minimal overhead over
 the logic necessary to build your project, while providing tools to let you identify
 and resolve bottlenecks in your build</p>
@@ -649,8 +652,8 @@ and resolve bottlenecks in your build</p>
 <a href="javalib/intro.html#_custom_build_logic" class="xref page">concise type-checked code</a>,
 and an immutable <a href="depth/design-principles.html" class="xref page">module tree and task graph</a>. This
 catches config issues early, and helps IDEs
-(<a href="javalib/installation-ide.html#_intellij" class="xref page">IntelliJ</a> or
-<a href="javalib/installation-ide.html#_vscode" class="xref page">VSCode</a>)
+(<a href="cli/installation-ide.html#_intellij" class="xref page">IntelliJ</a> or
+<a href="cli/installation-ide.html#_vscode" class="xref page">VSCode</a>)
 understand your Mill build better than any other build system</p>
 </li>
 <li>
@@ -677,6 +680,17 @@ or <a href="extending/writing-plugins.html" class="xref page">write plugins</a> 
 </li>
 <li>
 <p><a href="kotlinlib/intro.html" class="xref page">(Experimental) Kotlin with Mill</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If you prefer a video introduction, see the following tech talk that was presented
+at the Japan Java User Group Fall Conference Oct 2024:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://www.youtube.com/watch?v=Dry6wMRN6MI">Video: Better Java Builds with the Mill Build Tool</a></p>
 </li>
 </ul>
 </div>

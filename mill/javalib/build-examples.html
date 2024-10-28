@@ -87,10 +87,6 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="installation-ide.html">Installation and IDE Support</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="builtin-commands.html">Built-in Commands</a>
   </li>
 
@@ -134,10 +130,6 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../scalalib/installation-ide.html">Installation and IDE Support</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="../scalalib/builtin-commands.html">Built-in Commands</a>
   </li>
 
@@ -177,10 +169,6 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../kotlinlib/installation-ide.html">Installation and IDE Support</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="../kotlinlib/builtin-commands.html">Built-in Commands</a>
   </li>
 
@@ -202,10 +190,6 @@
 
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="../kotlinlib/publishing.html">Publishing Kotlin Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../kotlinlib/build-examples.html">Kotlin Build Examples</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -233,6 +217,25 @@
 
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs SBT</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">The Mill CLI</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Support</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../cli/flags.html">Mill Command-Line Flags</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../cli/alternate-installation.html">Other installation methods</a>
   </li>
 </ul>
   </li>
@@ -425,14 +428,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.1-6-c2e743</span>
+    <span class="version">0.12.1-7-d8bbe5</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="../0.12.1/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="../index.html">0.12.1-6-c2e743</a>
+          <a href="../index.html">0.12.1-7-d8bbe5</a>
         </li>
         <li class="version is-latest">
           <a href="../0.12.1/index.html">0.12.1</a>
@@ -489,210 +492,6 @@ const links = document.querySelectorAll('a');
   });
 });
 </script>
-<div class="paragraph">
-<p>On this page, we will explore the Mill build tool via a series of simple Java
-example projects.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_nesting_modules"><a class="anchor" href="#_nesting_modules"></a>Nesting Modules</h2>
-<div class="sectionbody">
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-javalib-builds-1-nested-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/javalib/builds/1-nested-modules">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, javalib._
-
-trait MyModule extends JavaModule {
-  def ivyDeps = Agg(
-    ivy&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;,
-    ivy&quot;org.thymeleaf:thymeleaf:3.1.1.RELEASE&quot;
-  )
-}
-
-object foo extends MyModule {
-  def moduleDeps = Seq(bar, qux)
-
-  object bar extends MyModule
-  object qux extends MyModule {
-    def moduleDeps = Seq(bar)
-  }
-}
-
-object baz extends MyModule {
-  def moduleDeps = Seq(foo.bar, foo.qux, foo)
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Modules can be nested arbitrarily deeply within each other. The outer module
-can be the same kind of module as the ones within, or it can be a plain
-<code>Module</code> if we just need a wrapper to put the modules in without any tasks
-defined on the wrapper.</p>
-</div>
-<div class="paragraph">
-<p>The outer module can also depend on the inner module (as shown above),
-and vice versa, but not both at the same.</p>
-</div>
-<div class="paragraph">
-<p>Running tasks on the nested modules requires the full module path
-<code>foo.bar.run</code></p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill resolve __.run
-foo.bar.run
-foo.qux.run
-baz.run
-
-&gt; mill foo.run --bar-text hello --qux-text world --foo-text today
-Bar.value: &lt;h1&gt;hello&lt;/h1&gt;
-Qux.value: &lt;p&gt;world&lt;/p&gt;
-Foo.value: &lt;p&gt;today&lt;/p&gt;
-
-&gt; mill baz.run --bar-text hello --qux-text world --foo-text today --baz-text yay
-Bar.value: &lt;h1&gt;hello&lt;/h1&gt;
-Qux.value: &lt;p&gt;world&lt;/p&gt;
-Foo.value: &lt;p&gt;today&lt;/p&gt;
-Baz.value: &lt;p&gt;yay&lt;/p&gt;
-
-&gt; mill foo.qux.run --bar-text hello --qux-text world
-Bar.value: &lt;h1&gt;hello&lt;/h1&gt;
-Qux.value: &lt;p&gt;world&lt;/p&gt;</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_realistic_java_example_project"><a class="anchor" href="#_realistic_java_example_project"></a>Realistic Java Example Project</h2>
-<div class="sectionbody">
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-javalib-builds-4-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/javalib/builds/4-realistic">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, javalib._, publish._
-
-trait MyModule extends JavaModule with PublishModule {
-  def publishVersion = &quot;0.0.1&quot;
-
-  def pomSettings = PomSettings(
-    description = &quot;Hello&quot;,
-    organization = &quot;com.lihaoyi&quot;,
-    url = &quot;https://github.com/lihaoyi/example&quot;,
-    licenses = Seq(License.MIT),
-    versionControl = VersionControl.github(&quot;lihaoyi&quot;, &quot;example&quot;),
-    developers = Seq(Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;))
-  )
-
-  def ivyDeps = Agg(ivy&quot;org.thymeleaf:thymeleaf:3.1.1.RELEASE&quot;)
-
-  object test extends JavaTests with TestModule.Junit4
-}
-
-object foo extends MyModule {
-  def moduleDeps = Seq(bar, qux)
-
-  def generatedSources = Task {
-    os.write(
-      Task.dest / &quot;Version.java&quot;,
-      s&quot;&quot;&quot;
-package foo;
-public class Version {
-    public static String value() {
-        return &quot;${publishVersion()}&quot;;
-    }
-}
-      &quot;&quot;&quot;.stripMargin
-    )
-    Seq(PathRef(Task.dest))
-  }
-}
-
-object bar extends MyModule {
-  def moduleDeps = Seq(qux)
-}
-
-object qux extends MyModule</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>A semi-realistic build setup, combining all the individual Mill concepts:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>Three <code>JavaModule</code>s that depend on each other</p>
-</li>
-<li>
-<p>With unit testing and publishing set up</p>
-</li>
-<li>
-<p>With generated sources to include the <code>publishVersion</code> as a string in the
-code, so it can be printed at runtime</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>Note that for multi-module builds like this, using <a href="../fundamentals/query-syntax.html" class="xref page">queries</a> to run tasks on
-multiple modules at once can be very convenient:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>__.test
-__.publishLocal</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Also note how you can use <code>trait</code>s to bundle together common combinations of
-modules: <code>MyModule</code> not only defines a <code>JavaModule</code> with some common
-configuration, but it also defines a <code>object test</code> module within it with its
-own configuration. This is a very useful technique for managing the often
-repetitive module structure in a typical project</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill resolve __.run
-bar.run
-bar.test.run
-foo.run
-foo.test.run
-qux.run
-
-&gt; mill foo.run
-foo version 0.0.1
-Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
-Bar.value: &lt;p&gt;world&lt;/p&gt;
-Qux.value: 31337
-
-&gt; mill bar.test
-...bar.BarTests.test ...
-
-&gt; mill qux.run
-Qux.value: 31337
-
-&gt; mill __.compile
-
-&gt; mill __.test
-...bar.BarTests.test ...
-...foo.FooTests.test ...
-
-&gt; mill __.publishLocal
-Publishing Artifact(com.lihaoyi,foo,0.0.1) to ivy repo...
-Publishing Artifact(com.lihaoyi,bar,0.0.1) to ivy repo...
-Publishing Artifact(com.lihaoyi,qux,0.0.1) to ivy repo...
-...
-
-&gt; mill show foo.assembly # mac/linux
-&quot;.../out/foo/assembly.dest/out.jar&quot;
-
-&gt; ./out/foo/assembly.dest/out.jar # mac/linux
-foo version 0.0.1
-Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
-Bar.value: &lt;p&gt;world&lt;/p&gt;
-Qux.value: 31337</code></pre>
-</div>
-</div>
 </div>
 </div>
 <div class="sect1">
