@@ -171,7 +171,7 @@ abstract class MillBuildRootModule()(implicit
         },
         logger = new mill.codesig.Logger(Option.when(debugEnabled)(T.dest / "current")),
         prevTransitiveCallGraphHashesOpt = () =>
-          Option(os.exists(T.dest / "previous/result.json")).filter(x => x)
+          Option(os.exists(T.dest / "previous/result.json")).filter(identity)
             .flatMap(_ =>
               Try {
                 // This can fail when the previous run was ran by a different Mill version
