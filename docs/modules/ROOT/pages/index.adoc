@@ -99,5 +99,11 @@ build tools, check out these pages:
 * xref:comparisons/gradle.adoc[Mill vs Gradle]
 * xref:comparisons/sbt.adoc[Mill vs SBT]
 
-If you're interested in the fundamental ideas behind Mill, rather than the user-facing
-benefits discussed above, check out the page on xref:depth/design-principles.adoc[Mill Design Principles].
+If you want to contribute to Mill, or are interested in the fundamental ideas behind 
+Mill rather than the user-facing benefits discussed above, check out the page on 
+xref:depth/design-principles.adoc[Mill Design Principles]. In particular, this video
+is a must-watch to help you understand the fundamental concepts behind Mill and why
+they are interesting:
+
+* https://www.youtube.com/watch?v=UsXgCeU-ovI[Video: A Deep Dive into the Mill Build Tool]
+
