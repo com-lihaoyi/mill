@@ -240,31 +240,30 @@ private object ResolveCore {
   }
 
   def resolveTransitiveChildren(
-      rootModule: BaseModule,
-      cls: Class[_],
-      nameOpt: Option[String],
-      segments: Segments,
-      typePattern: Seq[String]
+    rootModule: BaseModule,
+    cls: Class[_],
+    nameOpt: Option[String],
+    segments: Segments,
+    typePattern: Seq[String]
   ): Either[String, Set[Resolved]] = {
-    val direct =
-      resolveDirectChildren(rootModule, cls, nameOpt, segments, typePattern)
-    direct.flatMap { direct =>
-      for {
-        directTraverse <-
-          resolveDirectChildren(rootModule, cls, nameOpt, segments, Nil)
-        indirect0 = directTraverse
-          .collect { case m: Resolved.Module =>
-            resolveTransitiveChildren(
-              rootModule,
-              m.cls,
-              nameOpt,
-              m.segments,
-              typePattern
-            )
-          }
-        indirect <- EitherOps.sequence(indirect0).map(_.flatten)
-      } yield direct ++ indirect
+    val direct = resolveDirectChildren(rootModule, cls, nameOpt, segments, typePattern)
+    val directTraverse = resolveDirectChildren(rootModule, cls, nameOpt, segments, Nil)
+
+    val indirect0 = directTraverse match {
+      case Right(modules) =>
+        modules.flatMap {
+          case m: Resolved.Module =>
+            // TODO: Add cycle detection here
+            Some(resolveTransitiveChildren(rootModule, m.cls, nameOpt, m.segments, typePattern))
+          case _ => None
+        }
+      case Left(err) => Seq(Left(err))
     }
+
+    for {
+      d <- direct
+      i <- EitherOps.sequence(indirect0).map(_.flatten)
+    } yield d ++ i
   }
 
   private def resolveParents(c: Class[_]): Seq[Class[_]] =
@@ -318,21 +317,18 @@ private object ResolveCore {
       }
     } else Right(Nil)
 
-    crossesOrErr.flatMap { crosses =>
-      val filteredCrosses = crosses.filter { c =>
+    for {
+      crosses <- crossesOrErr
+      filteredCrosses = crosses.filter { c =>
         classMatchesTypePred(typePattern)(c.cls)
       }
-
-      resolveDirectChildren0(rootModule, segments, cls, nameOpt, typePattern)
-        .map(
-          _.map {
-            case (Resolved.Module(s, cls), _) => Resolved.Module(segments ++ s, cls)
-            case (Resolved.NamedTask(s), _) => Resolved.NamedTask(segments ++ s)
-            case (Resolved.Command(s), _) => Resolved.Command(segments ++ s)
-          }
-            .toSet
-            .++(filteredCrosses)
-        )
+      direct <- resolveDirectChildren0(rootModule, segments, cls, nameOpt, typePattern)
+    } yield {
+      direct.map {
+        case (Resolved.Module(s, cls), _) => Resolved.Module(segments ++ s, cls)
+        case (Resolved.NamedTask(s), _) => Resolved.NamedTask(segments ++ s)
+        case (Resolved.Command(s), _) => Resolved.Command(segments ++ s)
+      }.toSet ++ filteredCrosses
     }
   }
 
