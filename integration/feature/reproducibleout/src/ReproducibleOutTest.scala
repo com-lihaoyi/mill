@@ -11,53 +11,37 @@ object ReproducibleOutTest extends UtestIntegrationTestSuite {
     test("reproducible out folder") - integrationTest { tester =>
       import tester._
 
-      println("Starting reproducible out folder test")
-
       val srcDir = os.pwd / "example" / "scalalib" / "web" / "5-webapp-scalajs-shared"
-      println(s"Source directory: $srcDir")
-
       val project1 = os.temp.dir()
       val project2 = os.temp.dir()
-      println(s"Project 1 directory: $project1")
-      println(s"Project 2 directory: $project2")
 
       // Copy source to two separate directories
       os.copy(srcDir, project1)
       os.copy(srcDir, project2)
-      println("Copied source to project directories")
 
       // Custom COURSIER_CACHE for project2
       val customCoursierCache = os.temp.dir()
-      println(s"Custom Coursier cache: $customCoursierCache")
 
       // Run Mill commands
       def runCommands(projectDir: Path): Unit = {
-        println(s"Running commands in $projectDir")
         eval(("runBackground"), cwd = projectDir)
         eval(("clean"), cwd = projectDir)
         eval(("runBackground"), cwd = projectDir)
         eval(("jar"), cwd = projectDir)
         eval(("assembly"), cwd = projectDir)
-        println(s"Finished running commands in $projectDir")
       }
 
-      println("Running commands for project 1")
       runCommands(project1)
 
-      println("Running commands for project 2 with custom environment")
       withCustomEnv(customCoursierCache) {
         runCommands(project2)
       }
 
-      println("Comparing out folders")
       compareOutFolders(project1 / "out", project2 / "out")
-
-      println("Finished reproducible out folder test")
     }
   }
 
   def compareOutFolders(dir1: Path, dir2: Path): Unit = {
-    println(s"Comparing folders: $dir1 and $dir2")
     val files1 = os.walk(dir1).filter(os.isFile)
     val files2 = os.walk(dir2).filter(os.isFile)
 
@@ -89,7 +73,6 @@ object ReproducibleOutTest extends UtestIntegrationTestSuite {
   }
 
   def compareZipFiles(file1: Path, file2: Path): Unit = {
-    println(s"Comparing zip files: $file1 and $file2")
     val zin1 = new java.util.zip.ZipFile(file1.toIO)
     val zin2 = new java.util.zip.ZipFile(file2.toIO)
 
@@ -124,8 +107,6 @@ object ReproducibleOutTest extends UtestIntegrationTestSuite {
   }
 
   def withCustomEnv(customCoursierCache: Path)(f: => Unit): Unit = {
-    println(s"Setting up custom environment with Coursier cache: $customCoursierCache")
-
     val originalCoursierCache = sys.env.get("COURSIER_CACHE")
     val originalUserHome = sys.props("user.home")
 

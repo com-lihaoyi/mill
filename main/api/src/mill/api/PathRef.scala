@@ -63,12 +63,6 @@ object PathRef {
     else sys.env.get("COURSIER_CACHE").map(os.Path(_))
     val home = if (isTest) testUserHome else realUserHome
 
-    println(s"Debug: path = $path")
-    println(s"Debug: workspaceRoot = $workspaceRoot")
-    println(s"Debug: coursierCache = $coursierCache")
-    println(s"Debug: home = $home")
-    println(s"Debug: isTest = $isTest")
-
     val normalizedPath = NonDeterministicFiles.normalizeWorkerJson(path)
 
     if (NonDeterministicFiles.isNonDeterministic(path)) {
