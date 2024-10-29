@@ -1,0 +1,7 @@
+package build.`import`
+import mill._, scalalib._
+
+object `package` extends RootModule with ScalaModule {
+  def scalaVersion = "2.13.11"
+}
+

@@ -5,6 +5,7 @@ import mill.main.client.CodeGenConstants._
 import mill.main.client.OutFiles._
 
 import scala.reflect.NameTransformer.encode
+import scala.reflect.runtime
 import scala.collection.mutable
 
 /**
@@ -33,7 +34,8 @@ case class FileImportGraph(
 object FileImportGraph {
   def backtickWrap(s: String): String = s match {
     case s"`$v`" => s
-    case _ => if (encode(s) == s) s else "`" + s + "`"
+    case _ => if (encode(s) == s) runtime.universe.asInstanceOf[runtime.JavaUniverse].quotedName(s)
+      else "`" + s + "`"
   }
 
   import mill.api.JsonFormatters.pathReadWrite
