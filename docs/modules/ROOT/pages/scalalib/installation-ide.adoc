@@ -1,9 +1,0 @@
-= Installation and IDE Support
-:page-aliases: Installation.adoc, IDE_Support.adoc, Scala_Installation_IDE_Support.adoc
-
-include::partial$gtag-config.adoc[]
-
-:language: Scala
-:language-small: scala
-
-include::partial$Installation_IDE_Support.adoc[]

@@ -226,7 +226,7 @@ In case of troubles with caching and/or incremental compilation, you can always 
 
 [source,bash]
 ----
-os.remove.all -rf out/
+rm -rf out/
 ----
 
 == Project Layout
@@ -305,6 +305,13 @@ endif::[]
 :link-issue: {link-github}/issues
 :link-milestone: {link-github}/milestone
 // find-replace-regex: https://github.com/com-lihaoyi/mill/pull/(\d*) -> {link-pr}/$1[#$1]
+
+
+[#0-12-1]
+=== 0.12.1 - 2024-10-27
+
+* Fix updating of prompt to match terminal width in client-server mode {link-pr}/3833[#3833]
+* Allow `.mill-jvm-opts` to interpolate environment variables, add `.mill-opts` {link-pr}/3841[#3841]
 
 
 [#0-12-0]

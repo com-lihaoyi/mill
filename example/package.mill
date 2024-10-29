@@ -35,7 +35,6 @@ object `package` extends RootModule with Module {
     object testing extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "testing"))
     object linting extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "linting"))
     object publishing extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "publishing"))
-    object builds extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "builds"))
     object web extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "web"))
   }
   object kotlinlib extends Module {
@@ -46,7 +45,6 @@ object `package` extends RootModule with Module {
     object testing extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "testing"))
     object linting extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "linting"))
     object publishing extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "publishing"))
-    object builds extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "builds"))
     object web extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "web"))
   }
   object scalalib extends Module {
@@ -56,7 +54,6 @@ object `package` extends RootModule with Module {
     object testing extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "testing"))
     object linting extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "linting"))
     object publishing extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "publishing"))
-    object builds extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "builds"))
     object web extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "web"))
   }
 
@@ -98,8 +95,6 @@ object `package` extends RootModule with Module {
 
     def upstreamCross(s: String) = s match {
       case "basic" => Some(scalalib.basic)
-      case "builds" => Some(scalalib.builds)
-      case "module" => Some(scalalib.module)
       case "testing" => Some(scalalib.testing)
       case "dependencies" => Some(scalalib.dependencies)
       case "web" => Some(scalalib.web)

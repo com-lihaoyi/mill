@@ -1,3 +1,8 @@
+// Below, we should a realistic example of a build for a {language} project.
+// This example touches on library dependencies, testing, publishing, code generation,
+// and other topics covered in more detail in the {language} section of the Mill docs,
+// and you can browse each respective page if you want to learn more.
+//
 //// SNIPPET:ALL
 package build
 import mill._, scalalib._, publish._
