@@ -51,6 +51,11 @@ object `package` extends RootModule with ScalaNativeModule {
 //             HelloWorldTests.scala
 // ----
 //
+// *Note:* C/C++ source files need to be in `resources/scala-native` directory so
+// It can be linked and compiled successfully. More info from Scala Native doc
+// https://scala-native.org/en/stable/user/native.html#using-libraries-with-native-code[here]
+// and also Scala user forum https://users.scala-lang.org/t/how-to-test-scala-native-code-interop-with-c/10314/3?u=c0d33ngr[here]
+//
 // This example is pretty minimal, but it demonstrates the core principles, and
 // can be extended if necessary to more elaborate use cases.
 
