@@ -107,3 +107,7 @@ they are interesting:
 
 * https://www.youtube.com/watch?v=UsXgCeU-ovI[Video: A Deep Dive into the Mill Build Tool]
 
+To engage Mill with the community, you can use the channels below:
+
+* https://github.com/com-lihaoyi/mill/discussions[Mill Github Discussions]
+* https://discord.com/invite/scala[Scala Discord], in the TOOLING#mill channel
