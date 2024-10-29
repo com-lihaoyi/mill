@@ -2,8 +2,10 @@
 
 Mill is a fast build tool for Java, Scala, and Kotlin. Although the Java
 compiler is very fast and the Java language is easy to learn, JVM build tools are
-known to be sluggish and confusing. Mill offers a better alternative: 2-10x faster
+known to be slow and hard to use. Mill tries to offer a better alternative: 2-10x faster
 than Maven or Gradle, better IDE support, and extensibility without needing plugins.
+This results in time savings due to less time waiting for your build tool, as well as less
+time struggling with your build tool, and more time to focus on the actual work you need to do.
 
 At a first glance, Mill looks like any other build tool. You have build files, you configure
 dependencies, you can compile, run, or test your project:
@@ -35,9 +37,10 @@ Test foo.FooTest.testSimple finished, ...
 0 failed, 0 ignored, 2 total, ...
 ```
 
-In general, Mill provides 3 major advantages over other build tools. The comparison pages
+Beyond the basics, Mill provides 3 major advantages over other build tools. The comparison pages
 for the respective build tool go into more detail (for xref:comparisons/maven.adoc[Maven],
-xref:comparisons/gradle.adoc[Gradle], and xref:comparisons/sbt.adoc[SBT])
+xref:comparisons/gradle.adoc[Gradle], and xref:comparisons/sbt.adoc[SBT]), but at a high level
+these advantages are:
 
 1. Performance
     * *Mill offers a 2-10x speedup means less time waiting for your build tool*, meaning
@@ -143,13 +146,99 @@ compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/c
 
 ## Ease of Use
 
+The second area that Mill does well compared to tools like Maven or Gradle is in its ease
+of use.This is not just in superficial things like the build file or command-line syntax,
+but also in how Mill exposes how your build works and what your build is doing so you can
+understand it and confidently make changes. We will consider three cases: the Mill Chrome
+Profile, Mill Visualize, and Mill's IDE support
+
 ### Chrome Profiles
+
+All Mill runs generate some debugging metadata files in `out/mill-*`. One of these
+is `out/mill-chrome-profile.json`, which is a file following the Chrome Profiling format.
+It can be loaded into any Chrome browser's built in `chrome://tracing` UI, to let you
+interactively explore what Mill was doing during its last run. e.g. when performing a
+clean compile on the Netty codebase, the profile ends up looking like this:
+
+image::comparisons/NettyCompileProfile.png[]
+
+The Chrome profile shows what task each Mill thread was executing throughout the run.
+The Chrome profiling UI is interactive, so you can zoom in and out, or click on individual
+tasks to show the exact duration and other metadata.
+
+But the real benefit of the Chrome profile isn't the low-level data it provides, but the
+high-level view: in the profile above, it is clear that for the first ~700ms, Mill is able
+to use all cores on 10 cores on my laptop to do useful work. But after that, utilization is
+much more sparse: `common.compile`, `buffer.compile`, `transport.compile`, `codec.compile`,
+appear to be "long polls" in the build. These 4 tasks wait for one another to run sequentially,
+likely due to dependencies between them, and they take long enough that all the other tasks
+depending on them get held up. For example, when `codec.compile` finishes above, we can see
+a number of downstream tasks immediately start running.
+
+This understanding of your build's performance profile is not just an academic exercise, but
+provides actionable information:
+
+* If I wanted to speed up the Netty clean compile timings,
+  speeding up `common.compile`, `buffer.compile`, `transport.compile`, or `codec.compile` would
+  make the most impact: perhaps some of these modules could be broken up into smaller sub-modules
+  that would compile in parallel!
+
+* On the other hand, time speeding up the various `codec-*.compile` tasks would help not at all:
+  these tasks are already running at a time where the CPUs are mostly idle, and speeding them up
+  would just result in more idle time while waiting for the the "long poll" tasks to complete
+
+Most build tools do provide some way of analyzing build performance, but none of them provide
+it as easily as Mill does: any Mill run generates a profile automatically, and any computer
+with Chrome on it is able to load and let you explore that profile. That is a powerful tool to
+help engineers understand what the build is doing: any engineer who felt a build was slow
+can trivially load it into their Chrome browser to analyze and figure out what.
+
 ### Mill Visualize
+
+Apart from the Mill Chrome Profile, Mill also provides the `./mill visualize` command, which
+is useful to show the logical dependency graph between tasks. For example, we can use
+`./mill visualize __.compile` (double `__` means wildcard) to
+show the dependency graph between the modules of the Netty build below:
+
+image::comparisons/NettyCompileGraph.svg[]
+
+In this graph, we can clearly see that `common.compile`, `buffer.compile`,`transport.compile`,
+and `codec.compile` depend on each other in a linear fashion. This explains why they each must
+wait for the prior task to complete before starting, and cannot run in parallel with one another.
+Furthermore, we can again confirm that many of the `codec-*.compile` tasks depend on `codec.compile`,
+which is in the profile why we saw them waiting for the upstream task to complete before starting.
+
+Although these are things we could have _guessed_ from looking at the Chrome Profile above,
+`./mill visualize` gives you a separate angle from which to look at your build. Together these
+tools can help give greater understanding of what your build is doing and why it is doing that:
+something that can be hard to come by with build tools that are often considered confusing and
+inscrutable.
+
 ### IDE Support
 
 ## Extensibility
 
+Mill allows you to directly write code to configure your build, and even download libraries
+from Maven Central.
+
+Most build tools need plugins to do anything: if you want to Foo you need a
+Foo plugin, if you want to Bar you need a Bar plugin, for any possible Foo or Bar. These could
+be simple tasks - zipping up files, pre-rendering web templates, preparing static assets for
+deployment - but even tasks that would be trivial to implement in a few lines of code need you
+to google for third-party plugins, dig through their Github to see which one is best maintained,
+and hope for the best when you include it in your build.
+
+Mill is different. Although it does have plugins for more advanced integrations, for most
+simple things you can directly write code to achieve what you want, using the bundled
+filesystem, subprocess, and dependency-management libraries. And even if you need third-party
+libraries from Maven Central, you can directly import the "Foo" library and use it programmatically,
+without having to find a "Foo build plugin" wrapper.
+
 ### Simple Custom Tasks
+
+The following Mill build is a minimal Java module `foo`. It contains no custom configuration, and
+so inherits all the defaults from `mill.javalib.JavaModule`: default source folder layout, default
+assembly configuration, default compiler flags, and so on.
 
 ```scala
 package build
@@ -163,7 +252,9 @@ object foo extends JavaModule {
 Compiling 1 Java source...
 ```
 
-
+If you want to add a custom task, this is as simple as defining a method e.g.
+`def lineCount = Task`. The body of which performs the action we want, and
+can depend on other tasks such as `allSourceFiles()` below:
 
 ```scala
 package build
@@ -176,12 +267,24 @@ object foo extends JavaModule {
   }
 }
 ```
+
+Once we define a new task, we can immediately begin using it in our build.
+`lineCount` is not used by any existing `JavaModule` tasks, but we can still
+show its value via the Mill command line to force it to evaluate:
+
 ```bash
 > mill show foo.lineCount
 17
 ```
 
 
+### Overriding Tasks
+
+To wire up `lineCount` into our main `JavaModule` `compile`/`test`/`run` tasks,
+one way is to take the line count value and write it to a file in `def resources`.
+This file can then be read at runtime as a JVM resource. We do that below
+by overriding `def resources` and making it depend on `lineCount`, in addition
+to its existing value `super.resources()`:
 
 ```scala
 package build
@@ -200,14 +303,38 @@ object foo extends JavaModule {
   }
 }
 ```
+
+
+Because `override def resources` overrides the existing `resources` method used
+in the rest of `JavaModule`, the downstream tasks automatically now use the new
+override instead, as that is how overrides work. That means if you call `mill foo.run`,
+it will automatically pick up the new `line-count.txt` file and make it available to
+the application code to use e.g. below, where we just print it out:
+
 ```bash
 > mill foo.run
 Line Count: 17
 ```
 
-
+Most developers do not need to embed the line-count of their codebase in a resource
+file to look up at runtime, but nevertheless this example shows how easy it is to write
+code to perform ad-hoc tasks without needing to pull in and configure some third-party
+plugin. Next, we'll look at a more realistic example, which includes usage of third-party
+libraries in the build.
 
 ### Using Libraries from Maven Central in Tasks
+
+Earlier on we discussed possibly pre-rendering HTML pages in the build so they can be
+served at runtime. The use case for this are obvious: if a page never changes, rendering
+it on every request is wasteful, and even rendering it once and then caching it can impact
+your application startup time. Thus, you may want to move some HTML rendering to build-time,
+but with traditional build tools such a move is sufficiently inconvenient and complicated
+that people do not do it.
+
+With Mill, pre-rendering HTML at build time is really easy, even if you need a third-party
+library. Mill does not ship with a bundled HTML templating engine, but you can use the
+`import $ivy` syntax to include one such as Thymeleaf, which would immediately make the
+Thymeleaf classes available for you to import and use in your build as below:
 
 
 ```scala
@@ -231,6 +358,13 @@ object foo extends JavaModule {
   }
 }
 ```
+
+Once we have run `import $ivy`, we can `import org.thymeleaf.TemplateEngine`,
+`import org.thymeleaf.context.Context`, and replace our `def lineCount` with a `def htmlSnippet`
+task that instead of counting lines uses Thymeleaf to render some HTML. Again, it is inspectable
+from the Mill command line via `show`, and we wire it up into `def resources` so it can be
+inspected and used (in this case just printed out) at runtime by the application:
+
 ```bash
 > mill show foo.htmlSnippet
 "<h1>hello</h1>"
@@ -243,4 +377,31 @@ compiling 1 Java source...
 generated snippet.txt resource: <h1>hello</h1>
 ```
 
+Rendering HTML using the Thymelead templating engine is not rocket science, but what is
+interesting here is what we did _not_ need to do:
+
+* We did not need to find a Thymeleaf-Mill plugin in order to include Thymeleaf in our
+  build
+
+* We did not need to learn a special API or framework for authoring build plugins ourselves
+  to write a plugin to include Thymeleaf in our build
+
+Instead, we could simply import Thymeleaf directly from Maven Central and use it just
+like we would use it in any Java application, complete with full IDE support for
+autocomplete and code navigation, with the same experience you probably are already
+used to for your application code. This makes it an order of magnitude easier for
+non-experts to configure their build to do exactly what they need, rather than be
+limited by what some unmaintained third-party plugin might support. And although
+the configuration is done in the Scala language, the syntax should be relatively
+familiar ("Java without Semicolons" it is sometimes called) and the JVM libraries
+and tools (e.g. IntelliJ, VSCode) are the exact same libraries and tools you are
+already used to.
+
 ## Conclusion
+
+To wrap up, Mill does all the same things that other build tools like Maven or Gradle do,
+but aims to do them better: faster, easier to user, and easier to extend. All together,
+this means both time saved waiting for your build tool to run in day-to-day work, as well
+as time saved when you inevitably need to evolve or adjust your build system to accommodate
+changing requirements. With Mill, you can therefore spend less time waiting for or fighting
+with your build tool, and more time on the actual work you are trying to accomplish.
