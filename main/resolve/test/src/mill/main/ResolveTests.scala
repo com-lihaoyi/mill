@@ -1110,5 +1110,28 @@ object ResolveTests extends TestSuite {
         Right(Set(_.concrete.tests.inner.foo, _.concrete.tests.inner.innerer.bar))
       )
     }
+    test("cyclicModuleRefInitError") {
+      val check = new Checker(cyclicModuleRefInitError)
+      test - check(
+        "__",
+        Left(
+          "blah blah blah." // TODO: complete this
+        )
+      )
+    }
+    test("nonCyclicModules") {
+      val check = new Checker(nonCyclicModules)
+      test - check(
+        "__",
+        Right(Set()) // TODO: complete this
+      )
+    }
+    test("moduleRefWithNonModuleRefChild") {
+      val check = new Checker(moduleRefWithNonModuleRefChild)
+      test - check(
+        "__",
+        Right(Set()) // TODO: complete this
+      )
+    }
   }
 }

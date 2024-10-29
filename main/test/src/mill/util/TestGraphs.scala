@@ -222,6 +222,53 @@ class TestGraphs() {
     override lazy val millDiscover = Discover[this.type]
   }
 
+  object cyclicModuleRefInitError extends TestBaseModule {
+    import mill.Agg
+
+    // See issue: https://github.com/com-lihaoyi/mill/issues/3715
+    trait CommonModule extends TestBaseModule {
+      def moduleDeps: Seq[CommonModule] = Seq.empty
+      def a = myA
+      def b = myB
+    }
+
+    object myA extends A
+    trait A extends CommonModule
+    object myB extends B
+    trait B extends CommonModule {
+      override def moduleDeps = super.moduleDeps ++ Agg(a)
+    }
+  }
+
+  // The module names repeat, but it's not actually cyclic and is meant to confuse the cycle detection.
+  object nonCyclicModules extends TestBaseModule {
+    object A extends TestBaseModule {
+      def b = B
+    }
+    object B extends TestBaseModule {
+      object A extends TestBaseModule {
+        def b = B
+      }
+      def a = A
+
+      object B extends TestBaseModule {
+        object B extends TestBaseModule {}
+        object A extends TestBaseModule {
+          def b = B
+        }
+        def a = A
+      }
+    }
+  }
+
+  // This edge case shouldn't be an error
+  object moduleRefWithNonModuleRefChild extends TestBaseModule {
+    def aRef = A
+    def a = ModuleRef(A)
+
+    object A extends TestBaseModule {}
+  }
+
   object overrideModule extends TestBaseModule {
     trait Base extends Module {
       lazy val inner: BaseInnerModule = new BaseInnerModule {}
