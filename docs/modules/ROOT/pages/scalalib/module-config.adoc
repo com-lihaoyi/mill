@@ -42,6 +42,11 @@ include::partial$example/scalalib/module/11-main-class.adoc[]
 
 include::partial$example/scalalib/module/13-assembly-config.adoc[]
 
+
+== Cross-Scala-Version Modules
+
+include::partial$example/scalalib/module/14-cross-scala-version.adoc[]
+
 == Unidoc
 
 include::partial$example/scalalib/module/15-unidoc.adoc[]
@@ -53,6 +58,9 @@ include::partial$example/scalalib/module/2-custom-tasks.adoc[]
 == Overriding Tasks
 
 include::partial$example/scalalib/module/3-override-tasks.adoc[]
+
+
+
 
 
 == Using the Ammonite Repl / Scala console
