@@ -1,0 +1,193 @@
+= Why Mill?
+
+This page is a summary of why the Mill build tool may be interesting to someone coming from
+other build tools.
+
+At a first glance, Mill looks like any other build tool. You have build files, you configure
+dependencies, you can compile, run, or test your project:
+
+```scala
+// build.mill
+package build
+import mill._, javalib._
+
+object foo extends JavaModule {
+  def ivyDeps = Agg(
+    ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
+    ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
+  )
+
+  object test extends JavaTests with TestModule.Junit4
+}
+```
+```bash
+> /mill foo.compile
+compiling 1 Java source...
+
+> /mill foo.run --text hello
+<h1>hello</h1>
+
+> ./mill foo.test
+Test foo.FooTest.testEscaping finished, ...
+Test foo.FooTest.testSimple finished, ...
+0 failed, 0 ignored, 2 total, ...
+```
+
+Given that, why would you want to use Mill? You likely already have a build tool for your
+JVM project: Maven, Gradle, or SBT. Your existing build tool can already compile, run, and
+test your project. So why look at Mill?
+
+In general, Mill provides 3 major advantages over other build tools. The comparison pages
+for the respective build tool go into more detail (for xref:comparisons/maven.adoc[Maven],
+xref:comparisons/gradle.adoc[Gradle], and xref:comparisons/sbt.adoc[SBT])
+
+1. Performance
+    * *Mill offers a 2-10x speedup means less time waiting for your build tool*, meaning
+      less time waiting for your build and more time doing useful work
+
+2. Ease of Use
+   * *Mill offers better IDE support in IntelliJ and VSCode and rich visualization tools*,
+     to help understand your build and what it is doing
+
+3. Extensibility
+    * *Directly write code or use any Java library from Maven Central in your build*,
+      without being beholden to third party plugins that may not exist or be well maintained.
+
+We will discuss each one in turn:
+
+## Performance
+
+### Maven
+[cols="1,1,1,1"]
+|===
+| Benchmark | Maven | Mill | Speedup
+
+| xref:comparisons/maven.adoc#_sequential_clean_compile_all[] | 2m 31.12s | 0m 22.19s | 6.8x
+| xref:comparisons/maven.adoc#_parallel_clean_compile_all[] | 1m 16.45s | 0m 09.95s | 7.7x
+| xref:comparisons/maven.adoc#_clean_compile_single_module[] | 0m 19.62s | 0m 02.17s | 9.0x
+| xref:comparisons/maven.adoc#_incremental_compile_single_module[] | 0m 21.10s | 0m 00.54s | 39.1x
+| xref:comparisons/maven.adoc#_no_op_compile_single_module[] | 0m 17.34s | 0m 00.47s | 36.9x
+|===
+
+#### Parallel Clean Compile All
+#### Incremental Compile Single-Module
+
+### Gradle
+
+[cols="1,1,1,1"]
+|===
+| Benchmark | Gradle | Mill | Speedup
+
+| xref:comparisons/maven.adoc#_sequential_clean_compile_all[] | 17.6s | 5.40s | 3.3x
+| xref:comparisons/maven.adoc#_parallel_clean_compile_all[] | 12.3s | 3.57s | 3.4x
+| xref:comparisons/maven.adoc#_clean_compile_single_module[] | 4.41s | 1.20s | 3.7x
+| xref:comparisons/maven.adoc#_incremental_compile_single_module[] | 1.37s | 0.51s | 2.7x
+| xref:comparisons/maven.adoc#_no_op_compile_single_module[] | 0.94s | 0.46s | 2.0x
+|===
+
+#### Parallel Clean Compile All
+#### Incremental Compile Single-Module
+
+## Ease of Use
+
+### Chrome Profiles
+### Mill Visualize
+### IDE Support
+
+## Extensibility
+
+### Simple Custom Tasks
+
+```scala
+package build
+import mill._, javalib._
+
+object foo extends JavaModule {
+}
+```
+```bash
+> mill compile
+Compiling 1 Java source...
+```
+
+
+
+```scala
+package build
+import mill._, javalib._
+
+object foo extends JavaModule {
+  /** Total number of lines in module source files */
+  def lineCount = Task {
+    allSourceFiles().map(f => os.read.lines(f.path).size).sum
+  }
+}
+```
+```bash
+> mill show foo.lineCount
+17
+```
+
+
+
+```scala
+package build
+import mill._, javalib._
+
+object foo extends JavaModule {
+  /** Total number of lines in module source files */
+  def lineCount = Task {
+    allSourceFiles().map(f => os.read.lines(f.path).size).sum
+  }
+
+  /** Generate resources using lineCount of sources */
+  override def resources = Task {
+    os.write(Task.dest / "line-count.txt", "" + lineCount())
+    super.resources() ++ Seq(PathRef(Task.dest))
+  }
+}
+```
+```bash
+> mill foo.run
+Line Count: 17
+```
+
+
+
+### Using Libraries from Maven Central in Tasks
+
+
+```scala
+package build
+import mill._, javalib._
+import $ivy.`org.thymeleaf:thymeleaf:3.1.1.RELEASE`
+import org.thymeleaf.TemplateEngine
+import org.thymeleaf.context.Context
+object foo extends JavaModule {
+  def htmlSnippet = Task {
+    val context = new Context()
+    context.setVariable("heading", "hello")
+    new TemplateEngine().process(
+        "<h1 th:text=\"${heading}\"></h1>",
+        context
+    )
+  }
+  def resources = Task.Sources{
+    os.write(Task.dest / "snippet.txt", htmlSnippet())
+    super.resources() ++ Seq(PathRef(Task.dest))
+  }
+}
+```
+```bash
+> mill show foo.htmlSnippet
+"<h1>hello</h1>"
+
+> mill foo.compile
+compiling 1 Java source...
+...
+
+> mill foo.run
+generated snippet.txt resource: <h1>hello</h1>
+```
+
+## Conclusion

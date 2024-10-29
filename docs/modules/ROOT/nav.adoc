@@ -4,6 +4,7 @@
 // on end user goals and how to achieve them.
 
 .xref:index.adoc[]
+.xref:why-mill.adoc[]
 
 .xref:javalib/intro.adoc[]
 * xref:javalib/builtin-commands.adoc[]
