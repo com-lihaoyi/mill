@@ -58,10 +58,8 @@ We will discuss each one in turn:
 ## Performance
 
 ### Maven
-[cols="1,1,1,1"]
 |===
 | Benchmark | Maven | Mill | Speedup
-
 | xref:comparisons/maven.adoc#_sequential_clean_compile_all[] | 2m 31.12s | 0m 22.19s | 6.8x
 | xref:comparisons/maven.adoc#_parallel_clean_compile_all[] | 1m 16.45s | 0m 09.95s | 7.7x
 | xref:comparisons/maven.adoc#_clean_compile_single_module[] | 0m 19.62s | 0m 02.17s | 9.0x
@@ -69,15 +67,45 @@ We will discuss each one in turn:
 | xref:comparisons/maven.adoc#_no_op_compile_single_module[] | 0m 17.34s | 0m 00.47s | 36.9x
 |===
 
+For the purposes of this page, we will focus on two benchmarks
+
 #### Parallel Clean Compile All
+
+|===
+| Benchmark | Maven | Mill | Speedup
+| xref:comparisons/maven.adoc#_parallel_clean_compile_all[] | 1m 16.45s | 0m 09.95s | 7.7x
+|===
+
+```bash
+> time ./mvnw -T 10 -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true clean install
+
+> ./mill clean; time ./mill __.compile
+```
+
 #### Incremental Compile Single-Module
+
+|===
+| Benchmark | Maven | Mill | Speedup
+| xref:comparisons/maven.adoc#_incremental_compile_single_module[] | 0m 21.10s | 0m 00.54s | 39.1x
+|===
+
+```bash
+$ echo "" >> common/src/main/java/io/netty/util/AbstractConstant.java
+$ time ./mvnw -pl common -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
+Compiling 174 source files to /Users/lihaoyi/Github/netty/common/target/classes
+Compiling 60 source files to /Users/lihaoyi/Github/netty/common/target/test-classes
+
+
+$ echo "" >> common/src/main/java/io/netty/util/AbstractConstant.java
+$ time ./mill common.test.compile
+compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
+```
+
 
 ### Gradle
 
-[cols="1,1,1,1"]
 |===
 | Benchmark | Gradle | Mill | Speedup
-
 | xref:comparisons/maven.adoc#_sequential_clean_compile_all[] | 17.6s | 5.40s | 3.3x
 | xref:comparisons/maven.adoc#_parallel_clean_compile_all[] | 12.3s | 3.57s | 3.4x
 | xref:comparisons/maven.adoc#_clean_compile_single_module[] | 4.41s | 1.20s | 3.7x
@@ -85,8 +113,35 @@ We will discuss each one in turn:
 | xref:comparisons/maven.adoc#_no_op_compile_single_module[] | 0.94s | 0.46s | 2.0x
 |===
 
+Again, for the purposes of this page, we will focus on two benchmarks
+
 #### Parallel Clean Compile All
+
+|===
+| Benchmark | Gradle | Mill | Speedup
+| xref:comparisons/maven.adoc#_parallel_clean_compile_all[] | 12.3s | 3.57s | 3.4x
+|===
+
+```bash
+$ ./gradlew clean; time ./gradlew classes testClasses --no-build-cache
+
+$ ./mill clean; time ./mill __.compile
+```
+
 #### Incremental Compile Single-Module
+
+
+|===
+| Benchmark | Gradle | Mill | Speedup
+| xref:comparisons/maven.adoc#_incremental_compile_single_module[] | 1.37s | 0.51s | 2.7x
+|===
+
+```bash
+$ echo "" >> src/main/java/org/mockito/BDDMockito.java; time ./gradlew :classes
+
+$ echo "" >> src/main/java/org/mockito/BDDMockito.java; time ./mill compile
+compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
+```
 
 ## Ease of Use
 
