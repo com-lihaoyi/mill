@@ -1,4 +1,3 @@
-//// SNIPPET:BUILD
 package build
 import mill._, scalalib._, scalanativelib._
 
@@ -16,41 +15,15 @@ object `package` extends RootModule with ScalaNativeModule {
     def testFramework = "utest.runner.Framework"
   }
 }
-//// SNIPPET:END
-//
-//
-//// SNIPPET:DEPENDENCIES
-//
-//
+
+// This example demonstrates a simple Scala program that generates HTML content
+// from user-provided text and prints it to the standard output, utilizing Scala
+// Native for native integration and `mainargs` for command-line argument parsing.
+
 /** Usage
 
-
-> ./mill nativeLink  # Build and link native binary
+> ./mill show nativeLink  # Build and link native binary
 ...
-compiling 1 Scala source to ...
-
-> ./mill releaseMode # Generate some files in `out` directory about the `releaseMode`. Default releaseMode is set to Debug.
-
-> ./mill nativeOptimize # Generate some files in `out` directory about native optimization. The Default value is true.
-
-> ./mill nativeIncrementalCompilation # Generate config files in `out` directory about native incremental compilation. Default is false.  
-
-> ./mill nativeLinkingOptions # Generate config files in `out` directory about the path in native linking options. Default path is `"-L/usr/local/lib`.
-
+done compiling
 
 */
-
-//// SNIPPET:END
-
-//
-// You can run `+mill resolve __+` to see a full list of the different tasks that
-// are available, `+mill resolve _+` to see the tasks within `foo`,
-// `mill inspect compile` to inspect a task's doc-comment documentation or what
-// it depends on, or `mill show foo.scalaVersion` to show the output of any task.
-//
-// The most common *tasks* that Mill can run are cached *targets*, such as
-// `compile`, and un-cached *commands* such as `foo.run`. Targets do not
-// re-evaluate unless one of their inputs changes, whereas commands re-run every
-// time.
-
-

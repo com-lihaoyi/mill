@@ -1,4 +1,3 @@
-//// SNIPPET:BUILD
 package build
 import mill._, scalalib._, scalanativelib._
 
@@ -11,20 +10,24 @@ trait MyModule extends ScalaNativeModule {
     def testFramework = "utest.runner.Framework"
   }
 
-  def nativeLinkingOptions = Seq("-L" + millSourcePath.toString + "/target")
-  def barSource = millSourcePath.toString + "/resources/scala-native"
+  // Additional source folder to put C sources
+  def nativeSources = Task.Sources(millSourcePath / "resources/scala-native")
+
+  def nativeLinkingOptions = Seq("-L" + Task.dest.toString)
+  //def barSource = millSourcePath.toString + "/resources/scala-native"
 
   // Compile C
   def nativeCompiled = Task {
-    os.makeDir.all(millSourcePath / "target")
+    val cSourceFiles = nativeSources().map(_.path).flatMap(os.walk(_)).filter(_.ext == "c")
+    val output = "libHelloWorldBar.so"
 
     os.proc(
       "gcc", "-m64", "-shared", "-fPIC", 
-      millSourcePath.toString + "/resources/scala-native/HelloWorldBar.c",
-      "-o", millSourcePath.toString + "/target/libHelloWorldBar.so")
+      cSourceFiles,
+      "-o", output)
     .call(stdout = os.Inherit)
 
-    PathRef(Task.dest / "target/libHelloWorldBar.so")
+    PathRef(Task.dest / output)
   }  
 
 }
@@ -35,24 +38,22 @@ object foo extends MyModule {
   def ivyDeps = Agg(ivy"com.lihaoyi::mainargs::0.7.6")
 
   // Compile C
-  def nativeCompiled = T {
-    os.makeDir.all(millSourcePath / "target")
+  def nativeCompiled = Task {
+    val cSourceFiles = nativeSources().map(_.path).flatMap(os.walk(_)).filter(_.ext == "c")
+    val output = "libHelloWorldFoo.so"
 
     os.proc(
       "gcc", "-m64", "-shared", "-fPIC",
-      "-I", barSource,
-      millSourcePath.toString + "/resources/scala-native/HelloWorldFoo.c",
-      "-o", millSourcePath.toString + "/target/libHelloWorldFoo.so")
+      cSourceFiles,
+      "-o", output)
     .call(stdout = os.Inherit)
 
-    PathRef(T.dest / "target/libHelloWorldFoo.so")
+    PathRef(T.dest / output)
   }
 }
 
 object bar extends MyModule {
-    def bar = "Bar"
 }
-//// SNIPPET:END
 
 // This example contains a simple Mill build with two modules, `foo` and `bar`.
 // We don't mark either module as top-level using `extends RootModule`, so
@@ -66,8 +67,6 @@ object bar extends MyModule {
 // configuration such as `ivyDeps` specific to a particular module.
 //
 // The above builds expect the following project layout:
-//
-//// SNIPPET:TREE
 //
 // ----
 // build.mill
@@ -91,12 +90,8 @@ object bar extends MyModule {
 //
 // ----
 //
-//// SNIPPET:END
-
-//
 
 /** Usage
-
 
 > ./mill bar.run hello
 Running HelloWorld function

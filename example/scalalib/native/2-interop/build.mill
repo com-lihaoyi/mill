@@ -9,19 +9,23 @@ object `package` extends RootModule with ScalaNativeModule {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.8.4")
     def testFramework = "utest.runner.Framework"
   }
-  
-  def nativeLinkingOptions = Seq("-L" + millSourcePath.toString + "/target")
+
+  // Additional source folder to put C sources
+  def nativeSources = Task.Sources(millSourcePath / "resources/scala-native")
+
+  def nativeLinkingOptions = Seq("-L" + Task.dest.toString)
 
   // Compiled C
-  def nativeCompiled = T {
-    os.makeDir.all(millSourcePath / "target")
-
+  def nativeCompiled = Task {
+    val cSourceFiles = nativeSources().map(_.path).flatMap(os.walk(_)).filter(_.ext == "c")
+    val output = "libHelloWorld.so"
+  
     os.proc("gcc", "-m64", "-shared",
-      "-c", millSourcePath.toString + "/resources/scala-native/HelloWorld.c",
-      "-o", millSourcePath.toString + "/target/libHelloWorld.so"
+      "-c", cSourceFiles,
+      "-o", output
     ).call(stdout = os.Inherit)
 
-    PathRef(T.dest / "target/libHelloWorld.so")    
+    PathRef(Task.dest / output)
   }
 }
 
@@ -53,6 +57,7 @@ object `package` extends RootModule with ScalaNativeModule {
 /** Usage
 
 > ./mill nativeCompiled
+...
 
 > ./mill run
 Running HelloWorld function
@@ -63,4 +68,3 @@ Reversed: !dlroW ,olleH
 Tests: 1, Passed: 1, Failed: 0
 
 */
-

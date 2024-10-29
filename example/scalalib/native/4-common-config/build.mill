@@ -1,9 +1,3 @@
-// This example shows some of the common tasks you may want to override on a
-// `ScalaNativeModule`: specifying the `releaseMode`, `nativeLinkStubs`
-// `nativeIncrementalCompilation, `nativeLinkingOptions` and `nativeWorkdir`.
-
-
-//// SNIPPET:BUILD
 package build
 import mill._, scalalib._, scalanativelib._, scalanativelib.api._
 
@@ -17,23 +11,24 @@ object `package` extends RootModule with ScalaNativeModule {
   )
 
   // Set the releaseMode to ReleaseFast.
-  def releaseMode: T[ReleaseMode] = T { ReleaseMode.ReleaseFast }
+  def releaseMode: T[ReleaseMode] = ReleaseMode.ReleaseFast
 
   // Set linking of `@stub` methods to true.
-  def nativeLinkStubs: T[Boolean] = T { true }
+  def nativeLinkStubs: T[Boolean] = true
 
   // Set incremental compilation to true
-  def nativeIncrementalCompilation: T[Boolean] = T { true }
+  def nativeIncrementalCompilation: T[Boolean] = true
 
   // Set nativeLinkingOptions path to a directory named `target`.
   def nativeLinkingOptions = Seq("-L" + millSourcePath.toString + "/target")
 
   // Set nativeWorkdir directory to `newDir`
-  def nativeWorkdir = T { T.dest / "newDir" }
+  def nativeWorkdir = T.dest / "newDir"
 }
-//// SNIPPET:END
 
-//
+// This example shows some of the common tasks you may want to override on a
+// `ScalaNativeModule`: specifying the `releaseMode`, `nativeLinkStubs`
+// `nativeIncrementalCompilation, `nativeLinkingOptions` and `nativeWorkdir`.
 
 /** Usage
 
@@ -55,5 +50,5 @@ true
 
 > ./mill show nativeWorkdir
 ...
-*/
 
+*/
