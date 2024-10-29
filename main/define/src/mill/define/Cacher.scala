@@ -6,9 +6,10 @@ import scala.reflect.macros.blackbox.Context
 private[mill] trait Cacher extends mill.moduledefs.Cacher {
   private[this] lazy val cacherLazyMap = mutable.Map.empty[sourcecode.Enclosing, Any]
 
-  override protected[this] def cachedTarget[T](t: => T)(implicit c: sourcecode.Enclosing): T = synchronized {
-    cacherLazyMap.getOrElseUpdate(c, t).asInstanceOf[T]
-  }
+  override protected[this] def cachedTarget[T](t: => T)(implicit c: sourcecode.Enclosing): T =
+    synchronized {
+      cacherLazyMap.getOrElseUpdate(c, t).asInstanceOf[T]
+    }
 }
 
 private[mill] object Cacher {
