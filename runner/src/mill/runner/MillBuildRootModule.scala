@@ -193,13 +193,13 @@ abstract class MillBuildRootModule()(implicit
 
   override def sources: T[Seq[PathRef]] = Task {
     scriptSources() ++ {
-      if (parseBuildFiles().millImport) super.sources()
+      if (parseBuildFiles().metaBuild) super.sources()
       else Seq.empty[PathRef]
     }
   }
 
   override def resources: T[Seq[PathRef]] = Task {
-    if (parseBuildFiles().millImport) super.resources()
+    if (parseBuildFiles().metaBuild) super.resources()
     else Seq.empty[PathRef]
   }
 

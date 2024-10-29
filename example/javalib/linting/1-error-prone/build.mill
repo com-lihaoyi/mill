@@ -53,7 +53,7 @@ object `package` extends RootModule with JavaModule with ErrorProneModule {
 // The following configuration options exist:
 //
 // `def errorProneVersion: T[String]`::
-// The `error-prone` version to use. Defaults to [[BuildInfo.errorProneVersion]], the version used to build and test the module.
+// The `error-prone` version to use.
 // Find the list of versions and changlog at https://github.com/google/error-prone/releases
 //
 // `def errorProneOptions: T[Seq[String]]`::

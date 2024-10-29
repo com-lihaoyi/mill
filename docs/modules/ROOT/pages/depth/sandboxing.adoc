@@ -1,6 +1,8 @@
 = Mill Sandboxing
 :page-aliases: Mill_Sandboxing.adoc
 
+include::partial$gtag-config.adoc[]
+
 == Task Sandboxing
 
 include::partial$example/depth/sandbox/1-task.adoc[]

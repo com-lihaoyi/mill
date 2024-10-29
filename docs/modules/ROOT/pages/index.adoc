@@ -1,0 +1,113 @@
+= Mill: A Fast JVM Build Tool
+
+```graphviz
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+  bgcolor=transparent
+  newrank=true;
+  subgraph cluster_0 {
+    style=dashed
+    node [shape=box width=0 height=0 style=filled fillcolor=white]
+    label = "foo";
+
+    "foo.sources" -> "foo.compile" -> "foo.classPath" -> "foo.assembly"
+    "foo.resources" -> "foo.assembly"
+    "foo.classPath"
+  }
+  subgraph cluster_1 {
+    style=dashed
+    node [shape=box width=0 height=0 style=filled fillcolor=white]
+    label = "bar";
+
+    "foo.classPath" -> "bar.compile" [constraint=false]
+    "foo.classPath" -> "bar.classPath"
+    "bar.sources" -> "bar.compile" -> "bar.classPath" -> "bar.assembly"
+    "bar.resources" -> "bar.assembly"
+  }
+}
+```
+
+Mill is a fast, scalable, multi-language build tool that supports Java, Scala,
+and Kotlin:
+
+* Mill can build the same Java codebase xref:comparisons/maven.adoc[5-10x faster than Maven],
+or xref:comparisons/gradle.adoc[2-4x faster than Gradle]
+
+* Mill's typed config language and immutable xref:depth/design-principles.adoc[task graph]
+helps keep builds clean and understandable
+
+* Mill scales well from small single-module projects
+to xref:depth/large-builds.adoc[large monorepos] with hundreds of modules
+
+Although the Java compiler is very fast and the Java language is easy to learn,
+JVM build tools have a reputation for being sluggish and confusing. Mill tries to
+offer a better alternative, letting your build system take full advantage of the
+Java platform's performance and usability:
+
+* *Performance*: Mill's xref:fundamentals/tasks.adoc[build graph] automatically
+xref:depth/evaluation-model.adoc#_caching_at_each_layer_of_the_evaluation_model[caches]
+and xref:cli/flags.adoc#_jobs_j[parallelizes] build
+tasks, keeping your workflows fast and responsive. Mill adds minimal overhead over
+the logic necessary to build your project, while providing tools to let you identify
+and resolve bottlenecks in your build
+
+* *Maintainability*: Mill goes beyond YAML and Bash, with config and custom logic written in
+xref:javalib/intro.adoc#_custom_build_logic[concise type-checked code],
+and an immutable xref:depth/design-principles.adoc[module tree and task graph]. This
+catches config issues early, and helps IDEs
+(xref:cli/installation-ide.adoc#_intellij[IntelliJ] or
+xref:cli/installation-ide.adoc#_vscode[VSCode])
+understand your Mill build better than any other build system
+
+* *Flexibility*: Mill's tasks and modules allow anything from adding
+xref:fundamentals/tasks.adoc#primitive-tasks[simple build steps], up to
+entire xref:extending/new-language.adoc[language toolchains].
+You can xref:extending/import-ivy-plugins.adoc[import any JVM library] in your build,
+use Mill's rich ecosystem of xref:extending/thirdparty-plugins.adoc[Third-Party Mill Plugins],
+or xref:extending/writing-plugins.adoc[write plugins] yourself and
+xref:extending/writing-plugins.adoc#_publishing[publish them] to Maven Central for others to use.
+
+To begin using Mill, check out the introductory documentation for each language:
+
+* xref:javalib/intro.adoc[]
+* xref:scalalib/intro.adoc[]
+* xref:kotlinlib/intro.adoc[]
+
+If you prefer a video introduction, see the following tech talk that was presented
+at the Japan Java User Group Fall Conference Oct 2024:
+
+* https://www.youtube.com/watch?v=Dry6wMRN6MI[Video: Better Java Builds with the Mill Build Tool]
+
+
+Mill is used to build many real-world projects, such as the
+https://github.com/swaldman/c3p0[C3P0 JDBC Connection Pool],
+https://github.com/coursier/coursier[Coursier JVM dependency resolver],
+https://github.com/com-lihaoyi/Ammonite[Ammonite REPL], and the
+https://github.com/SpinalHDL/SpinalHDL[SpinalHDL] and
+https://github.com/chipsalliance/chisel[Chisel] hardware design frameworks.
+Mill can be used for applications built on top of common JVM frameworks like
+xref:javalib/web-examples.adoc#_spring_boot_todomvc_app[Spring Boot] or
+xref:javalib/web-examples.adoc#_micronaut_todomvc_app[Micronaut].
+
+Mill borrows ideas from other tools like https://maven.apache.org/[Maven],
+https://gradle.org/[Gradle], https://bazel.build/[Bazel], but tries to learn from the
+strengths of each tool and improve on their weaknesses. For comparisons with existing
+build tools, check out these pages:
+
+* xref:comparisons/maven.adoc[Mill vs Maven]
+* xref:comparisons/gradle.adoc[Mill vs Gradle]
+* xref:comparisons/sbt.adoc[Mill vs SBT]
+
+If you want to contribute to Mill, or are interested in the fundamental ideas behind 
+Mill rather than the user-facing benefits discussed above, check out the page on 
+xref:depth/design-principles.adoc[Mill Design Principles]. In particular, this video
+is a must-watch to help you understand the fundamental concepts behind Mill and why
+they are interesting:
+
+* https://www.youtube.com/watch?v=UsXgCeU-ovI[Video: A Deep Dive into the Mill Build Tool]
+
+To engage Mill with the community, you can use the channels below:
+
+* https://github.com/com-lihaoyi/mill/discussions[Mill Github Discussions]
+* https://discord.com/invite/scala[Scala Discord], in the TOOLING#mill channel

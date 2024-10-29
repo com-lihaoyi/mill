@@ -13,31 +13,15 @@
 // interested in learning more about the Mill build tool
 
 = Building Java Projects with Mill
-:page-aliases: index.adoc, Intro_to_Mill.adoc, Intro_to_Mill_for_Java.adoc, Java_Intro_to_Mill.adoc
+:page-aliases: Intro_to_Mill.adoc, Intro_to_Mill_for_Java.adoc, Java_Intro_to_Mill.adoc
 
-++++
-<script>
-gtag('config', 'AW-16649289906');
-</script>
-++++
+include::partial$gtag-config.adoc[]
 
 
 :language: Java
 :language-small: java
 
-include::partial$Intro_to_Mill_Header.adoc[]
-
-Mill is used to build some real-world Java projects, such as the
-https://github.com/swaldman/c3p0[C3P0 JDBC Connection Pool], and
-can be used for applications built on top of common Java frameworks like
-xref:javalib/web-examples.adoc#_spring_boot_todomvc_app[Spring Boot] or
-xref:javalib/web-examples.adoc#_micronaut_todomvc_app[Micronaut].
-
-include::partial$Intro_Maven_Gradle_Comparison.adoc[]
-
-include::partial$Intro_to_Mill_BlogVideo.adoc[]
-
-
+include::partial$Intro_Header.adoc[]
 
 == Simple Java Module
 
@@ -51,8 +35,13 @@ include::partial$example/javalib/basic/2-custom-build-logic.adoc[]
 
 include::partial$example/javalib/basic/3-multi-module.adoc[]
 
-include::partial$Intro_to_Mill_Footer.adoc[]
-
 == Maven-Compatible Modules
 
 include::partial$example/javalib/basic/4-compat-modules.adoc[]
+
+
+== Realistic Java Example Project
+
+include::partial$example/javalib/basic/6-realistic.adoc[]
+
+

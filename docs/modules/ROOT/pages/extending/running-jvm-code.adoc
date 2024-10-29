@@ -1,5 +1,7 @@
 = Running Dynamic JVM Code
 
+include::partial$gtag-config.adoc[]
+
 While xref:extending/import-ivy-plugins.adoc[import $ivy] is convenient,
 it comes with limitations as the JVM library it imports is global to your build:
 
@@ -30,4 +32,16 @@ include::partial$example/extending/jvmcode/1-subprocess.adoc[]
 
 == In-process Isolated Classloaders
 
-include::partial$example/extending/jvmcode/2-inprocess.adoc[]
+include::partial$example/extending/jvmcode/2-classloader.adoc[]
+
+== Classloader Worker Tasks
+
+include::partial$example/extending/jvmcode/3-worker.adoc[]
+
+== Running a ScalaModule in a Subprocess
+
+include::partial$example/extending/jvmcode/4-module-run-task.adoc[]
+
+== Running a JavaModule in a Classloader
+
+include::partial$example/extending/jvmcode/5-module-classloader.adoc[]

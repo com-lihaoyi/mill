@@ -1,11 +1,30 @@
 = Case Study: Mill vs Maven
 :page-aliases: Case_Study_Mill_vs_Maven.adoc
 
-++++
-<script>
-gtag('config', 'AW-16649289906');
-</script>
-++++
+include::partial$gtag-config.adoc[]
+
+Compared to Maven:
+
+
+* **Mill follows Maven's innovation of good built-in defaults**: Mill's built-in
+``JavaModule``s follow Maven's "convention over configuration" style, so small Mill
+projects require minimal effort to get started, and larger Mill projects have a consistent
+structure building on these defaults.
+
+* **Mill automatically caches and parallelizes your build, offering 3-10x speedups**:
+Not just the built-in tasks that Mill ships with, but also any custom tasks or modules.
+This maximizes the snappiness of your command-line build workflows to keep you productive,
+which especially matters in larger codebases where builds tend to get slow:
+xref:comparisons/maven.adoc#_performance[a Maven "clean install" workflow
+  taking over a minute might take just a few seconds in Mill].
+
+* **Mill makes customizing the build tool much easier than Maven**. Projects usually
+grow beyond just compiling a single language: needing custom
+code generation, linting workflows, tool integrations, output artifacts, or support for
+additional languages. Mill's xref:comparisons/maven.adoc#_extensibility_ide_experience[extensibility and IDE experience]
+makes doing this yourself easy and safe, with type-checked code and
+xref:depth/sandboxing.adoc[sandboxed tasks]
+
 
 This page compares using Mill to Maven, using the https://github.com/netty/netty[Netty Network Server]
 codebase as the example. Netty is a large, old codebase. 500,000 lines of Java, written by
@@ -115,11 +134,11 @@ Comparing [io.netty:netty-transport-sctp:jar:4.1.112.Final] against [io.netty:ne
 In general, Maven spends much of time working with Jar files: packing them, unpacking them,
 comparing them, etc. None of this is strictly necessary for compiling Java source files to
 classfiles! But if they are not necessary, then why is Maven doing it? It turns out the
-reason comes own to the difference of `mvn compile` vs `mvn install`
+reason comes down to the difference of `mvn compile` vs `mvn install`
 
 ==== Maven Compile vs Install
 
-In general, the reason we have to use `./mvwn install` rather than `./mvnw compile` is that
+In general, the reason we have to use `./mvnw install` rather than `./mvnw compile` is that
 Maven's main mechanism for managing inter-module dependencies is via the local artifact cache
 at `~/.m2/repository`. Although many workflows work with `compile`, some don't, and
 `./mvnw clean compile` on the Netty repository fails with:

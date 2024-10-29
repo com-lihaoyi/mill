@@ -1,6 +1,8 @@
 = Task Query Syntax
 :page-aliases: Task_Query_Syntax.adoc
 
+include::partial$gtag-config.adoc[]
+
 When interacting with Mill from the CLI, you often need to select tasks or modules.
 In most places, where Mill accepts a task, it really accepts a task selector query, which is the name of a task in its simplest form, but it can also contain wildcards, type pattern and other special syntax, making it a powerful tool to select specific tasks.
 

@@ -256,9 +256,10 @@ foo.compileClasspath
 
 */
 
-// Note that due to parallelism, the given order is only the order that the tasks
-// will be _started_: the order in which tasks _complete_ may be different since
-// the tasks will run in parallel taking varying amounts of time.
+// NOTE: due to parallelism, the given order is only one possible toplogical
+// order that the tasks will be started. Tasks may be started in different orders
+// depending on scheduling considerations, and may finish in a different order
+// due to differences in time taken to run
 
 // == clean
 
@@ -383,7 +384,7 @@ scalalib/web/5-webapp-scalajs-shared
 ...
 javalib/basic/1-simple
 ...
-javalib/builds/4-realistic
+javalib/basic/6-realistic
 ...
 javalib/web/1-hello-jetty
 javalib/web/2-hello-spring-boot
@@ -392,7 +393,7 @@ javalib/web/4-hello-micronaut
 javalib/web/5-todo-micronaut
 kotlinlib/basic/1-simple
 ...
-kotlinlib/builds/4-realistic
+kotlinlib/basic/6-realistic
 ...
 kotlinlib/web/1-hello-ktor
 */
@@ -402,7 +403,7 @@ kotlinlib/web/1-hello-ktor
 // There are lots of templates out there for many frameworks and tools!
 //
 // The typical usage of `init` is to download a
-// xref:{language-small}lib/installation-ide.adoc#_bootstrap_scripts[bootstrap script]
+// xref:cli/installation-ide.adoc#_bootstrap_scripts[bootstrap script]
 // into an empty folder and run `./mill init` to download and unpack one of the example
 // projects closest to what you want into the empty folder. Even though the example
 // project isn't going to be everything that you need, at least it'll get most of the

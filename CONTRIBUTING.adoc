@@ -1,6 +1,6 @@
 = Contributing to Mill
 :link-github: https://github.com/com-lihaoyi/mill
-:link-chat: https://discord.gg/xJCYRVMS
+
 
 Thank you for considering contributing to Mill.
 
@@ -16,6 +16,6 @@ Here are some direct links:
 * {link-github}/discussions[Discussion Forum on GitHub] - A place to ask question and discuss all kind of questions around Mill
 * {link-github}/issues[Issue Tracker on GitHub] - Our issue tracker for bugs and features
 * {link-github}/pulls[Pull Requests on GitHub] - All new features and bug fixes find their way into Mill via a pull request. You can also sketch new ideas by creating a draft pull requests.
-{link-chat}[Discord Chat] - You can also join our chat room if you like more direct communication or to just say hello
+
 
 To build docs locally, `mill docs.localPages`. The last line of the command tells you where to browse the generated pages. From there you can follow the breadcrumbs.

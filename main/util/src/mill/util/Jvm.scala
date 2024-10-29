@@ -208,13 +208,28 @@ object Jvm extends CoursierSupport {
   }
 
   /**
-   * Runs a generic subprocess and waits for it to terminate.
+   * Runs a generic subprocess and waits for it to terminate. If process exited with non-zero code, exception
+   * will be thrown. If you want to manually handle exit code, check [[runSubprocessWithResult]]
    */
   def runSubprocess(
       commandArgs: Seq[String],
       envArgs: Map[String, String],
       workingDir: os.Path
   ): Unit = {
+    runSubprocessWithResult(commandArgs, envArgs, workingDir).getOrThrow
+    ()
+  }
+
+  /**
+   * Runs a generic subprocess and waits for it to terminate.
+   *
+   * @return Result with exit code.
+   */
+  def runSubprocessWithResult(
+      commandArgs: Seq[String],
+      envArgs: Map[String, String],
+      workingDir: os.Path
+  ): Result[Int] = {
     val process = spawnSubprocessWithBackgroundOutputs(
       commandArgs,
       envArgs,
@@ -239,8 +254,11 @@ object Jvm extends CoursierSupport {
     } finally {
       Runtime.getRuntime().removeShutdownHook(shutdownHook)
     }
-    if (process.exitCode() == 0) ()
-    else throw new Exception("Interactive Subprocess Failed (exit code " + process.exitCode() + ")")
+    if (process.exitCode() == 0) Result.Success(process.exitCode())
+    else Result.Failure(
+      "Interactive Subprocess Failed (exit code " + process.exitCode() + ")",
+      Some(process.exitCode())
+    )
   }
 
   /**
@@ -316,7 +334,7 @@ object Jvm extends CoursierSupport {
     method
   }
 
-  def runInprocess[T](classPath: Agg[os.Path])(body: ClassLoader => T)(implicit
+  def runClassloader[T](classPath: Agg[os.Path])(body: ClassLoader => T)(implicit
       ctx: mill.api.Ctx.Home
   ): T = {
     inprocess(

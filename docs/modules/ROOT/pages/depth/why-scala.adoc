@@ -1,0 +1,185 @@
+= Why does Mill use Scala?
+
+include::partial$gtag-config.adoc[]
+
+One question that comes up a lot among Mill users is why use Scala as the language
+to configure your build? Why not YAML, XML, TOML, Bash, Groovy, Python, Java, or any of the
+other hundred programming and configuration languages in widespread use today? Scala
+is definitely a niche language, but it also has some unique properties that make it
+especially suitable to be used for configuring the build system of a small or large project.
+
+For the purposes of this page, these reasons largely break down into two groups: those
+related to _Scala the Language_, and those related to Scala's _JVM Runtime_
+
+== Scala Language
+=== Conciseness
+
+A build language has to be concise; although Java and C++ are popular and widely used,
+you rarely see people writing their build logic in Java or C++
+(with https://rife2.com/bld[some exceptions]), and even XML is pretty rare these days
+(with https://maven.apache.org/[Maven] being the notable exception). Programming and Configuration language
+verbosity is a spectrum, and the languages used to configure the build are typically
+in the less-verbose end of the spectrum: https://www.python.org/[Python] (https://bazel.build/[Bazel],
+https://www.pantsbuild.org/[Pants], https://buck.build/[Buck], https://scons.org/[Scons]),
+https://groovy-lang.org/[Groovy] (https://gradle.org/[Gradle]),
+https://www.ruby-lang.org/en/[Ruby] (https://github.com/ruby/rake[Rake]),
+https://toml.io/en/[TOML] (https://doc.rust-lang.org/cargo/guide/[Cargo],
+https://packaging.python.org/en/latest/guides/writing-pyproject-toml/[pyproject.toml]),
+https://yaml.org/[YAML] (too many to count), etc. While some tools go even
+more concise (e.g. Bash, Make, etc.), typically this Python/Groovy/Ruby/TOML/YAML level
+of conciseness is where most build tools end up.
+
+Given that, Scala fits right in: it is neither too verbose (like Java/C++/XML), nor is
+it as terse as the syntaxes of Bash or Make. Mill's bundled libraries like
+https://github.com/com-lihaoyi/requests-scala[Requests-Scala] or
+https://github.com/com-lihaoyi/os-lib[OS-Lib], they would not look out of place in any
+Python or Ruby codebase. Scala's balance between conciseness and verbosity is
+more or less what we want when configuring a build.
+
+=== Static Typing
+
+Scala is a statically typed language. That has many consequences: good performance,
+powerful linting frameworks (e.g. https://scalacenter.github.io/scalafix/[Scalafix]),
+good toolability, and protection against many classes of "dumb bugs".
+
+For a build tool like Mill, perhaps what matters most is:
+_toolability_ and _protection against dumb bugs_.
+
+Most developers using a build tool are
+not build tool experts, and have no desire to become build tool experts. They will
+forever be cargo-culting examples they find online, copy-pasting from other parts of the
+codebase, or blindly fumbling their customizations. It is in this
+context that Mill's static typing really shines: what such "perpetual beginners" need
+most is help understanding/navigating the build logic, and help checking their
+proposed changes for dumb mistakes. And there will be dumb mistakes, because most
+people are not and will never be build-tool experts or enthusiasts
+
+To that end, Mill's static typing gives it a big advantage here. It's IDE support
+is much better xref:comparisons/maven.adoc[compared to Maven] or
+xref:comparisons/maven.adoc[compared to Gradle], and that is largely due to the
+way Scala's static types give the IDE more to work with than more dynamic languages.
+And, while Scala's static typing won't catch every subtle bug, it does do a good job
+at catching the dumb bugs that non-experts will typically make when configuring their
+build system
+
+Almost every programming language these days is statically typed to some degree,
+Python has https://github.com/python/mypy[MyPy], Ruby has https://sorbet.org/[Sorbet],
+Javascript has https://www.typescriptlang.org/[TypeScript], and so on. But
+Scala has static typing built deeply into the core of the language, and so it works
+more smoothly than other languages which have static typing bolted on after-the-fact:
+The syntax is slicker, the IDEs work better, the error reporting is friendlier.
+And that's why Scala's static typing really shines when used in Mill builds even
+for non-experts with no prior background in Scala.
+
+=== Functional and Object-Oriented Features
+
+Scala is perhaps the language that sits most squarely on the fence between functional
+and object-oriented programming:
+
+* It provides functional features from basic first-class functions immutability,
+  all the way to more advanced techniques like Typeclasses
+
+* It also provides object oriented features, again from basic classes and overrides
+  to more advanced mixin trait composition and implicit conversions
+
+Mill makes heavy use of both the functional and object-oriented features of the Scala
+language. As discussed in the section on xref:depth/design-principles.adoc[Mill Design Principles],
+Mill models the _build graph_ using the functional call graph of your methods,
+while Mill models the _module hierarchy_ using the object graph of your modules. And
+this is not just a superficial resemblance, but the semantics deeply match what you would
+expect in a hybrid functional/object-oriented program: Mill supports instantiating modules,
+subclasses, inheritance via `extends`, `override`, `super`,
+and so on.
+
+While these are non-trivial semantics, they are semantics that should be immediately
+familiar to anyone who has ever passed programming 101 in college. You already _know_
+how `override` works or how `super` works in Mill, even if nobody told you! This approach
+of "making your build code feel just like your application code" is the key to Mill's
+approachability to people from varying backgrounds, and to allow the "perpetual non-experts"
+typically modifying a build system to do so in a familiar and intuitive manner even if
+they know nothing about the Scala language.
+
+
+== JVM Runtime
+
+=== Dynamic Classloading
+
+One often-under-appreciated facet of the Java Virtual Machine is its ability to do dynamic
+classloading. This functionality is largely irrelevant in the backend-service space that Java
+is often used in (where the entire codebase is present during deployment), and has largely
+failed as a mechanism for running un-trusted potentially-malicious code in a safe sandbox
+(see https://en.wikipedia.org/wiki/Java_applet[Applets]).
+
+However, in the case of a build system, the need is different: you need to dynamically build,
+load, and run a wide variety of mostly-trusted code. Most build systems do not provide any
+hard security boundaries, and assume the code you get from your source control system is
+not malicious. But build systems need to be pluggable, with the same build system
+potentially being used to manage a wide variety of different tools and frameworks.
+
+It is in this context that the JVM's dynamic classloading shines, and Mill goes all in
+dynamic classloading. Features like xref:extending/import-ivy-plugins.adoc[import $ivy],
+xref:extending/running-jvm-code.adoc[Running Dynamic JVM Code], or the
+xref:extending/meta-build.adoc[Mill Meta-Build] would be difficult-to-impossible in
+less-dynamic platforms like Go, Swift, Rust, or C++. Mill simultaneously takes advantage of
+the Scala language's xref:#_static_typing[Static Typing], while also leaning heavily on the
+JVM's dynamic nature: it uses classloader hierarchies, dynamic class loading and unloading,
+isolated and partially-isolated classloaders, bytecode instrumentation, the whole works.
+It wouldn't be a stretch to say that a build tool like Mill could not be written on top of
+any other platform than the JVM it runs on today.
+
+=== Huge JVM Tooling Ecosystem
+
+The JVM ecosystem is huge, not just for the Java language but also things like Kotlin, Scala,
+Android, and so on. IDEs, debuggers, profilers, heap analyzers, if a software tool exists
+you can bet there is an equivalent or integration with the JVM ecosystem.
+
+From the perspective of IDE support, Mill is able to get (almost) full support for understanding
+and navigating its `build.mill` files, basically for free: IntelliJ already has deep support
+for understanding JVM code, classfiles, classpaths, the Scala language itself, and so on.
+VSCode also works pretty well out-of-the-box with minimal modifications.
+
+Apart from the IDE, the Java ecosystem has perhaps some of the best tooling available of
+any programming ecosystem, both free and proprietary, and Mill makes heavy use of it. If
+a build is stuck, you can use `jstack` to see what it is doing. If a build is slow or running
+out of memory, you can hook it up to https://www.ej-technologies.com/jprofiler[JProfiler]
+or https://www.yourkit.com/[Yourkit] to see what is taking up space.
+
+Lastly there is the wealth of libraries: if something has a programming language integration,
+there probably is one for Java, and Mill can make use of any Java libraries seamlessly
+as part of the build using xref:extending/import-ivy-plugins.adoc[import $ivy] or
+xref:extending/running-jvm-code.adoc[dynamic classloading]. With Mill, the ability to
+directly import _any JVM artifact on the planet_ without needing a purpose-built plugin
+open ups an enormous about of possibilities: anything that can be done in the Java ecosystem
+can be done as part of your Mill build with a
+single xref:extending/import-ivy-plugins.adoc[import $ivy].
+
+=== Built-in Publishing Infrastructure
+
+The last major benefit Mill gets from running on the JVM is the publishing infrastructure:
+primarily Sonatype's https://central.sonatype.com/[Maven Central]. Mill has a rich and
+constantly growing set of xref:extending/thirdparty-plugins.adoc[Third-Party Plugins] that
+are published on Maven Central for people to use, and anyone can easily
+xref:extending/writing-plugins.adoc[write and publish their own]. While Maven Central isn't
+perfect, it does a solid job as a package repository: hosting an enormous catalog of
+artifacts for the Java community to build upon, with nice properties such as
+https://central.sonatype.org/register/namespace/[namespacing],
+https://search.maven.org/[discoverability],
+https://central.sonatype.org/publish/requirements/immutability/[immutability],
+and https://central.sonatype.org/publish/requirements/#sign-files-with-gpgpgp[code signing].
+Apart from Maven Central itself, there is a wealth of other hosted or self-hosted JVM
+package repositories available for you to choose.
+
+Mill makes heavy use of Maven Central and the rest of the Java publishing infrastructure:
+Mill's own artifacts are all published on Maven Central, Mill builds can resolve any
+artifact from Maven Central to use in your build, and anyone can publish their own plugins
+to Maven Central for free. it is easy to
+xref:javalib/dependencies.adoc#_repository_config[configure alternate repositories],
+and Mill provides a wealth of xref:fundamentals/library-deps.adoc[tools and techniques for
+working with JVM dependencies].
+
+Most build tools end up with some half-baked plugin distribution model: downloading source
+code off of Github, ad-hoc package formats or zip files, published artifacts that can be
+sneakily changed or even deleted after the fact, and so on. Mill instead relies on
+the widely-used publishing and distribution system that every JVM project already uses,
+providing a predictable and well-designed publishing and artifact distribution experience
+far beyond what can be provided by most other build tools.

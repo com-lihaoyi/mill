@@ -1,3 +1,8 @@
+// A minimal example of a Kotlin backend server wired up with a Kotlin/JS
+// front-end. The backend code is identical to the <<_ktor_todomvc_app>> example, but
+// we replace the `main.js` client side code with the Javascript output of
+// `ClientApp.kt`.
+
 package build
 
 import mill._, kotlinlib._, kotlinlib.js._
@@ -33,7 +38,7 @@ object `package` extends RootModule with KotlinModule {
     )
   }
 
-  object client extends KotlinJSModule {
+  object client extends KotlinJsModule {
     def kotlinVersion = "1.9.24"
 
     override def splitPerModule = false
@@ -44,10 +49,6 @@ object `package` extends RootModule with KotlinModule {
   }
 }
 
-// A minimal example of a Kotlin backend server wired up with a Kotlin/JS
-// front-end. The backend code is identical to the <<_todomvc_web_app>> example, but
-// we replace the `main.js` client side code with the Javascript output of
-// `ClientApp.kt`.
 //
 // Note that the client-side Kotlin code is the simplest 1-to-1 translation of
 // the original Javascript, using `kotlinx.browser`, as this example is intended to

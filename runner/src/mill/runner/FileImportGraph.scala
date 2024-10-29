@@ -13,7 +13,7 @@ import scala.collection.mutable
  * @param ivyDeps
  * @param importGraphEdges
  * @param errors
- * @param millImport If `true`, a meta-build is enabled
+ * @param metaBuild If `true`, a meta-build is enabled
  */
 @internal
 case class FileImportGraph(
@@ -21,7 +21,8 @@ case class FileImportGraph(
     repos: Seq[(String, os.Path)],
     ivyDeps: Set[String],
     errors: Seq[String],
-    millImport: Boolean
+    metaBuild: Boolean,
+    buildFile: String
 )
 
 /**
@@ -215,7 +216,8 @@ object FileImportGraph {
       seenRepo.toSeq,
       seenIvy.toSet,
       errors.toSeq,
-      millImport
+      millImport,
+      foundRootBuildFileName
     )
   }
 

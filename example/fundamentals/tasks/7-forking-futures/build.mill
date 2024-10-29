@@ -1,5 +1,7 @@
 // Mill provides the `T.fork.async` and `T.fork.await` APIs for spawning async
-// futures within a task and aggregating their results later:
+// futures within a task and aggregating their results later. This API is used by Mill
+// to support xref:javalib/testing.adoc#_test_grouping[parallelizing test classes],
+// but can be used in your own tasks as well:
 
 package build
 
