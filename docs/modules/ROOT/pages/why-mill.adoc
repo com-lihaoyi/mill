@@ -1,7 +1,9 @@
 = Why Mill?
 
-This page is a summary of why the Mill build tool may be interesting to someone coming from
-other build tools.
+Mill is a fast build tool for Java, Scala, and Kotlin. Although the Java
+compiler is very fast and the Java language is easy to learn, JVM build tools are
+known to be sluggish and confusing. Mill offers a better alternative: 2-10x faster
+than Maven or Gradle, better IDE support, and extensibility without needing plugins.
 
 At a first glance, Mill looks like any other build tool. You have build files, you configure
 dependencies, you can compile, run, or test your project:
@@ -33,10 +35,6 @@ Test foo.FooTest.testSimple finished, ...
 0 failed, 0 ignored, 2 total, ...
 ```
 
-Given that, why would you want to use Mill? You likely already have a build tool for your
-JVM project: Maven, Gradle, or SBT. Your existing build tool can already compile, run, and
-test your project. So why look at Mill?
-
 In general, Mill provides 3 major advantages over other build tools. The comparison pages
 for the respective build tool go into more detail (for xref:comparisons/maven.adoc[Maven],
 xref:comparisons/gradle.adoc[Gradle], and xref:comparisons/sbt.adoc[SBT])
@@ -60,11 +58,11 @@ We will discuss each one in turn:
 ### Maven
 |===
 | Benchmark | Maven | Mill | Speedup
-| xref:comparisons/maven.adoc#_sequential_clean_compile_all[] | 2m 31.12s | 0m 22.19s | 6.8x
-| xref:comparisons/maven.adoc#_parallel_clean_compile_all[] | 1m 16.45s | 0m 09.95s | 7.7x
-| xref:comparisons/maven.adoc#_clean_compile_single_module[] | 0m 19.62s | 0m 02.17s | 9.0x
-| xref:comparisons/maven.adoc#_incremental_compile_single_module[] | 0m 21.10s | 0m 00.54s | 39.1x
-| xref:comparisons/maven.adoc#_no_op_compile_single_module[] | 0m 17.34s | 0m 00.47s | 36.9x
+| xref:comparisons/maven.adoc#_sequential_clean_compile_all[Sequential Clean Compile All] | 2m 31.12s | 0m 22.19s | 6.8x
+| xref:comparisons/maven.adoc#_parallel_clean_compile_all[Parallel Clean Compile All] | 1m 16.45s | 0m 09.95s | 7.7x
+| xref:comparisons/maven.adoc#_clean_compile_single_module[Clean Compile Single Module] | 0m 19.62s | 0m 02.17s | 9.0x
+| xref:comparisons/maven.adoc#_incremental_compile_single_module[Incremental Compile Single Module] | 0m 21.10s | 0m 00.54s | 39.1x
+| xref:comparisons/maven.adoc#_no_op_compile_single_module[No-Op Compile Single Module] | 0m 17.34s | 0m 00.47s | 36.9x
 |===
 
 For the purposes of this page, we will focus on two benchmarks
@@ -73,7 +71,7 @@ For the purposes of this page, we will focus on two benchmarks
 
 |===
 | Benchmark | Maven | Mill | Speedup
-| xref:comparisons/maven.adoc#_parallel_clean_compile_all[] | 1m 16.45s | 0m 09.95s | 7.7x
+| xref:comparisons/maven.adoc#_parallel_clean_compile_all[Parallel Clean Compile All] | 1m 16.45s | 0m 09.95s | 7.7x
 |===
 
 ```bash
@@ -86,7 +84,7 @@ For the purposes of this page, we will focus on two benchmarks
 
 |===
 | Benchmark | Maven | Mill | Speedup
-| xref:comparisons/maven.adoc#_incremental_compile_single_module[] | 0m 21.10s | 0m 00.54s | 39.1x
+| xref:comparisons/maven.adoc#_incremental_compile_single_module[Incremental Compile Single Module] | 0m 21.10s | 0m 00.54s | 39.1x
 |===
 
 ```bash
@@ -106,11 +104,11 @@ compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/c
 
 |===
 | Benchmark | Gradle | Mill | Speedup
-| xref:comparisons/maven.adoc#_sequential_clean_compile_all[] | 17.6s | 5.40s | 3.3x
-| xref:comparisons/maven.adoc#_parallel_clean_compile_all[] | 12.3s | 3.57s | 3.4x
-| xref:comparisons/maven.adoc#_clean_compile_single_module[] | 4.41s | 1.20s | 3.7x
-| xref:comparisons/maven.adoc#_incremental_compile_single_module[] | 1.37s | 0.51s | 2.7x
-| xref:comparisons/maven.adoc#_no_op_compile_single_module[] | 0.94s | 0.46s | 2.0x
+| xref:comparisons/maven.adoc#_sequential_clean_compile_all[Sequential Clean Compile All] | 17.6s | 5.40s | 3.3x
+| xref:comparisons/maven.adoc#_parallel_clean_compile_all[Parallel Clean Compile All] | 12.3s | 3.57s | 3.4x
+| xref:comparisons/maven.adoc#_clean_compile_single_module[Clean Compile Single Module] | 4.41s | 1.20s | 3.7x
+| xref:comparisons/maven.adoc#_incremental_compile_single_module[Incremental Compile Single Module] | 1.37s | 0.51s | 2.7x
+| xref:comparisons/maven.adoc#_no_op_compile_single_module[No-Op Compile Single Module] | 0.94s | 0.46s | 2.0x
 |===
 
 Again, for the purposes of this page, we will focus on two benchmarks
@@ -119,7 +117,7 @@ Again, for the purposes of this page, we will focus on two benchmarks
 
 |===
 | Benchmark | Gradle | Mill | Speedup
-| xref:comparisons/maven.adoc#_parallel_clean_compile_all[] | 12.3s | 3.57s | 3.4x
+| xref:comparisons/maven.adoc#_parallel_clean_compile_all[Parallel Clean Compile All] | 12.3s | 3.57s | 3.4x
 |===
 
 ```bash
@@ -133,7 +131,7 @@ $ ./mill clean; time ./mill __.compile
 
 |===
 | Benchmark | Gradle | Mill | Speedup
-| xref:comparisons/maven.adoc#_incremental_compile_single_module[] | 1.37s | 0.51s | 2.7x
+| xref:comparisons/maven.adoc#_incremental_compile_single_module[Incremental Compile Single Module] | 1.37s | 0.51s | 2.7x
 |===
 
 ```bash
