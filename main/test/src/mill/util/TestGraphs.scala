@@ -685,6 +685,21 @@ object TestGraphs {
     }
   }
 
+  object CyclicModuleRefInitError2 extends TestBaseModule {
+    // The cycle is in the child
+    def A = CyclicModuleRefInitError
+  }
+
+  object CyclicModuleRefInitError3 extends TestBaseModule {
+    // The cycle is in directly here
+    object A extends Module {
+      def b = B
+    }
+    object B extends Module {
+      def a = A
+    }
+  }
+
   // The module names repeat, but it's not actually cyclic and is meant to confuse the cycle detection.
   object NonCyclicModules extends TestBaseModule {
     def foo = Task { "foo" }
