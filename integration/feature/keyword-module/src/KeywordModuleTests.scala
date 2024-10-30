@@ -9,7 +9,11 @@ object KeywordModuleTest extends UtestIntegrationTestSuite {
     test("test") - integrationTest { tester =>
       import tester._
 
+      assert(eval("for.task").isSuccess)
+      assert(eval("if.task").isSuccess)
       assert(eval("import.task").isSuccess)
+      assert(eval("null.task").isSuccess)
+      assert(eval("this.task").isSuccess)
     }
   }
 }
