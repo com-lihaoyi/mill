@@ -70,15 +70,23 @@ xref:extending/writing-plugins.adoc#_publishing[publish them] to Maven Central f
 
 To begin using Mill, check out the introductory documentation for each language:
 
-* xref:javalib/intro.adoc[]
-* xref:scalalib/intro.adoc[]
-* xref:kotlinlib/intro.adoc[]
 
-If you prefer a video introduction, see the following tech talk that was presented
-at the Japan Java User Group Fall Conference Oct 2024:
+[cols="1a,1a,1a"]
+|===
+| xref:javalib/intro.adoc[image:index/iconscout-java.svg[java,32] Java with Mill]
+| xref:scalalib/intro.adoc[image:index/iconscout-scala.svg[scala,20] Scala with Mill]
+| xref:kotlinlib/intro.adoc[image:index/iconscout-kotlin.svg[kotlin,32] Kotlin with Mill]
+|===
 
-* https://www.youtube.com/watch?v=Dry6wMRN6MI[Video: Better Java Builds with the Mill Build Tool]
 
+For a quick introduction of why you may care about Mill, see the following page:
+
+* xref:why-mill.adoc[]
+
+Or if you prefer a video introduction:
+
+* https://www.youtube.com/watch?v=Dry6wMRN6MI[Video: Better Java Builds with the Mill Build Tool],
+  Japan Java User Group Fall Conference Oct 2024
 
 Mill is used to build many real-world projects, such as the
 https://github.com/swaldman/c3p0[C3P0 JDBC Connection Pool],
@@ -95,9 +103,15 @@ https://gradle.org/[Gradle], https://bazel.build/[Bazel], but tries to learn fro
 strengths of each tool and improve on their weaknesses. For comparisons with existing
 build tools, check out these pages:
 
-* xref:comparisons/maven.adoc[Mill vs Maven]
-* xref:comparisons/gradle.adoc[Mill vs Gradle]
-* xref:comparisons/sbt.adoc[Mill vs SBT]
+
+[cols="1a,1a,1a"]
+|===
+| xref:comparisons/maven.adoc[image:index/maven.png[maven,24] Mill vs Maven]
+| xref:comparisons/gradle.adoc[image:index/gradle.svg[gradle,32] Mill vs Gradle]
+| xref:comparisons/sbt.adoc[image:index/sbt.png[sbt,32] Mill vs SBT]
+|===
+
+
 
 If you want to contribute to Mill, or are interested in the fundamental ideas behind 
 Mill rather than the user-facing benefits discussed above, check out the page on 
