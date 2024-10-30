@@ -2,9 +2,8 @@ package build
 import mill._
 
 trait PythonModule extends Module{
-  def installPython = Task{
-    os.call(("apt", "update"))
-    os.call(("apt", "install", "python3"))
+  def checkPythonInstall = Task{
+    os.call(("python3", "--version"))
     PathRef(Task.dest)
   }
 
