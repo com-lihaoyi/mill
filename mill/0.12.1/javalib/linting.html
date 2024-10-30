@@ -1,26 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Linting Java Projects :: The Mill JVM Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.12.1/javalib/linting.html">
-    <link rel="prev" href="testing.html">
-    <link rel="next" href="publishing.html">
-    <meta name="generator" content="Antora 3.1.9">
-    <link rel="stylesheet" href="../../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.12.1/javalib/linting.html" />
+    <link rel="prev" href="testing.html" />
+    <link rel="next" href="publishing.html" />
+    <meta name="generator" content="Antora 3.1.9" />
+    <link rel="stylesheet" href="../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
+  
+  </head><body class="article">
+  
 <header class="header">
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill JVM Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill JVM Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -101,27 +102,27 @@
     <a class="nav-link" href="dependencies.html">Java Library Dependencies</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="testing.html">Testing Java Projects</a>
   </li>
 
-  <li class="nav-item is-current-page" data-depth="1">
+  <li class="nav-item is-current-page is-active" data-depth="1">
     <a class="nav-link" href="linting.html">Linting Java Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="publishing.html">Publishing Java Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="build-examples.html">Java Build Examples</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="web-examples.html">Java Web Project Examples</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="android-examples.html">(Experimental) Android Builds</a>
   </li>
 </ul>
@@ -148,23 +149,23 @@
     <a class="nav-link" href="../scalalib/dependencies.html">Scala Library Dependencies</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../scalalib/testing.html">Testing Scala Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../scalalib/linting.html">Linting Scala Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../scalalib/publishing.html">Publishing Scala Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../scalalib/build-examples.html">Scala Build Examples</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../scalalib/web-examples.html">Scala Web Project Examples</a>
   </li>
 </ul>
@@ -191,33 +192,33 @@
     <a class="nav-link" href="../kotlinlib/dependencies.html">Kotlin Library Dependencies</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../kotlinlib/testing.html">Testing Kotlin Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../kotlinlib/linting.html">Linting Kotlin Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../kotlinlib/publishing.html">Publishing Kotlin Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../kotlinlib/build-examples.html">Kotlin Build Examples</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../kotlinlib/android-examples.html">(Experimental) Android Builds</a>
   </li>
 </ul>
   </li>
 
-  <li class="nav-item is-active" data-depth="0">
+  <li class="nav-item" data-depth="0">
     <button class="nav-item-toggle"></button>
     <span class="nav-text">Build Tool Comparisons</span>
 <ul class="nav-list">
@@ -257,15 +258,15 @@
     <a class="nav-link" href="../fundamentals/query-syntax.html">Task Query Syntax</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../fundamentals/library-deps.html">Library Dependencies in Mill</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../fundamentals/cross-builds.html">Cross Builds</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../fundamentals/bundled-libraries.html">Bundled Libraries</a>
   </li>
 </ul>
@@ -301,55 +302,55 @@
     <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../contrib/docker.html">Docker</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../contrib/flyway.html">Flyway</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../contrib/gitlab.html">Gitlab</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../contrib/jmh.html">JMH</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../contrib/playlib.html">Play Framework</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../contrib/proguard.html">Proguard</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../contrib/scalapblib.html">ScalaPB</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../contrib/scoverage.html">Scoverage</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../contrib/testng.html">TestNG</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../contrib/twirllib.html">Twirl</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../contrib/versionfile.html">Version file</a>
   </li>
 </ul>
@@ -363,15 +364,15 @@
     <a class="nav-link" href="../extending/running-jvm-code.html">Running Dynamic JVM Code</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../extending/writing-plugins.html">Writing Mill Plugins</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../extending/meta-build.html">The Mill Meta-Build</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../extending/new-language.html">Support for New Languages</a>
   </li>
 </ul>
@@ -398,7 +399,7 @@
     <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../depth/why-scala.html">Why does Mill use Scala?</a>
   </li>
 </ul>
@@ -431,7 +432,7 @@
       <div class="title"><a href="../index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version">
-          <a href="../../index.html">0.12.1-13-24e56e</a>
+          <a href="../../index.html">0.12.1-14-30c005</a>
         </li>
         <li class="version is-current is-latest">
           <a href="../index.html">0.12.1</a>
@@ -498,7 +499,7 @@ codebases using the Mill build tool</p>
 <h2 id="_linting_with_errorprone"><a class="anchor" href="#_linting_with_errorprone"></a>Linting with ErrorProne</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p><a href="https://errorprone.info/index">Error Prone</a> augments the Java compiler&#8217;s type
+<p><a href="https://errorprone.info/index">Error Prone</a> augments the Java compiler’s type
 checker and detect common mistakes at compile time. Mill supports ErrorProne via
 <code>ErrorProneModule</code>: mix <code>ErrorProneModule</code> into your <code>JavaModule</code> and it will
 automatically run with every compilation.</p>
@@ -510,7 +511,7 @@ automatically run with every compilation.</p>
 import mill._, javalib._, errorprone._
 
 object `package` extends RootModule with JavaModule with ErrorProneModule {
-  def errorProneOptions = Seq("-XepAllErrorsAsWarnings")
+  def errorProneOptions = Seq(&quot;-XepAllErrorsAsWarnings&quot;)
 }</code></pre>
 </div>
 </div>
@@ -542,7 +543,7 @@ the <code>error-prone</code> compiler plugin automatically detects various kind 
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show errorProneOptions
 [
-  "-XepAllErrorsAsWarnings"
+  &quot;-XepAllErrorsAsWarnings&quot;
 ]
 
 &gt; ./mill compile
@@ -581,7 +582,7 @@ Find the list of versions and changlog at <a href="https://github.com/google/err
 <dt class="hdlist1"><code>def errorProneOptions: T[Seq[String]]</code></dt>
 <dd>
 <p> Options directly given to the <code>error-prone</code> processor.
-Those are documented as "flags" at <a href="https://errorprone.info/docs/flags" class="bare">https://errorprone.info/docs/flags</a></p>
+Those are documented as &quot;flags&quot; at <a href="https://errorprone.info/docs/flags" class="bare">https://errorprone.info/docs/flags</a></p>
 </dd>
 </dl>
 </div>
@@ -602,7 +603,7 @@ Those are documented as "flags" at <a href="https://errorprone.info/docs/flags" 
 import mill._, javalib._, checkstyle._
 
 object `package` extends RootModule with CheckstyleModule {
-  def checkstyleVersion = "9.3"
+  def checkstyleVersion = &quot;9.3&quot;
 }</code></pre>
 </div>
 </div>
@@ -708,7 +709,7 @@ object foo extends Module {
   trait MyModule extends JavaModule with CheckstyleModule {
 
     override def checkstyleConfig = Task {
-      api.PathRef(T.workspace / "checkstyle-config.xml")
+      api.PathRef(T.workspace / &quot;checkstyle-config.xml&quot;)
     }
   }
 }</code></pre>
@@ -775,8 +776,8 @@ object foo extends JavaModule with CheckstyleXsltModule {
     override def checkstyleXsltReports = Task {
       Set(
         CheckstyleXsltReport(
-          PathRef(millSourcePath / "checkstyle-no-frames.xml"),
-          PathRef(T.dest / "checkstyle-no-frames.html"),
+          PathRef(millSourcePath / &quot;checkstyle-no-frames.xml&quot;),
+          PathRef(T.dest / &quot;checkstyle-no-frames.html&quot;),
         )
       )
   }
@@ -811,7 +812,7 @@ object `package` extends RootModule with PalantirFormatModule</code></pre>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">public class A {
 
     public static void main(String[] args) {
-    System.out.println("hello"); // indentation should be fixed
+    System.out.println(&quot;hello&quot;); // indentation should be fixed
     }
 }</code></pre>
 </div>
@@ -850,7 +851,7 @@ error: ...palantirformat aborted due to format error(s) (or invalid plugin setti
 <p>If entering the long fully-qualified module name
 <code>mill.javalib.palantirformat.PalantirFormatModule/</code> is tedious, you can add
 an <a href="../fundamentals/modules.html#_aliasing_external_modules" class="xref page">External Module Alias</a>
-to give it a shorter name that&#8217;s easier to type</p>
+to give it a shorter name that’s easier to type</p>
 </div>
 </div>
 </div>
@@ -879,9 +880,9 @@ plugin repository documentation for more details:</p>
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async src="../../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async src="../../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../../search-index.js"></script>
+  
+</body></html>

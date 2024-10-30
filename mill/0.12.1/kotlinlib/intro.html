@@ -1,26 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>(Experimental) Kotlin with Mill :: The Mill JVM Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.12.1/kotlinlib/intro.html">
-    <link rel="prev" href="../scalalib/web-examples.html">
-    <link rel="next" href="installation-ide.html">
-    <meta name="generator" content="Antora 3.1.9">
-    <link rel="stylesheet" href="../../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.12.1/kotlinlib/intro.html" />
+    <link rel="prev" href="../scalalib/web-examples.html" />
+    <link rel="next" href="installation-ide.html" />
+    <meta name="generator" content="Antora 3.1.9" />
+    <link rel="stylesheet" href="../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
+  
+  </head><body class="article">
+  
 <header class="header">
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill JVM Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill JVM Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -101,27 +102,27 @@
     <a class="nav-link" href="../javalib/dependencies.html">Java Library Dependencies</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../javalib/testing.html">Testing Java Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../javalib/linting.html">Linting Java Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../javalib/publishing.html">Publishing Java Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../javalib/build-examples.html">Java Build Examples</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../javalib/web-examples.html">Java Web Project Examples</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../javalib/android-examples.html">(Experimental) Android Builds</a>
   </li>
 </ul>
@@ -148,23 +149,23 @@
     <a class="nav-link" href="../scalalib/dependencies.html">Scala Library Dependencies</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../scalalib/testing.html">Testing Scala Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../scalalib/linting.html">Linting Scala Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../scalalib/publishing.html">Publishing Scala Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../scalalib/build-examples.html">Scala Build Examples</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../scalalib/web-examples.html">Scala Web Project Examples</a>
   </li>
 </ul>
@@ -191,33 +192,33 @@
     <a class="nav-link" href="dependencies.html">Kotlin Library Dependencies</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="testing.html">Testing Kotlin Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="linting.html">Linting Kotlin Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="publishing.html">Publishing Kotlin Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="build-examples.html">Kotlin Build Examples</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="web-examples.html">Kotlin Web Project Examples</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="android-examples.html">(Experimental) Android Builds</a>
   </li>
 </ul>
   </li>
 
-  <li class="nav-item is-active" data-depth="0">
+  <li class="nav-item" data-depth="0">
     <button class="nav-item-toggle"></button>
     <span class="nav-text">Build Tool Comparisons</span>
 <ul class="nav-list">
@@ -257,15 +258,15 @@
     <a class="nav-link" href="../fundamentals/query-syntax.html">Task Query Syntax</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../fundamentals/library-deps.html">Library Dependencies in Mill</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../fundamentals/cross-builds.html">Cross Builds</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../fundamentals/bundled-libraries.html">Bundled Libraries</a>
   </li>
 </ul>
@@ -301,55 +302,55 @@
     <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../contrib/docker.html">Docker</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../contrib/flyway.html">Flyway</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../contrib/gitlab.html">Gitlab</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../contrib/jmh.html">JMH</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../contrib/playlib.html">Play Framework</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../contrib/proguard.html">Proguard</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../contrib/scalapblib.html">ScalaPB</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../contrib/scoverage.html">Scoverage</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../contrib/testng.html">TestNG</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../contrib/twirllib.html">Twirl</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../contrib/versionfile.html">Version file</a>
   </li>
 </ul>
@@ -363,15 +364,15 @@
     <a class="nav-link" href="../extending/running-jvm-code.html">Running Dynamic JVM Code</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../extending/writing-plugins.html">Writing Mill Plugins</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../extending/meta-build.html">The Mill Meta-Build</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../extending/new-language.html">Support for New Languages</a>
   </li>
 </ul>
@@ -398,7 +399,7 @@
     <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../depth/why-scala.html">Why does Mill use Scala?</a>
   </li>
 </ul>
@@ -431,7 +432,7 @@
       <div class="title"><a href="../index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version">
-          <a href="../../index.html">0.12.1-13-24e56e</a>
+          <a href="../../index.html">0.12.1-14-30c005</a>
         </li>
         <li class="version is-current is-latest">
           <a href="../index.html">0.12.1</a>
@@ -495,19 +496,19 @@ Mill build tool works.</p>
 </div>
 <div class="admonitionblock note">
 <table>
-<tr>
+<tbody><tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
 <strong>Kotlin support in Mill is experimental</strong>! A lot of stuff works, which is
-documented under this section, but a lot of stuff doesn&#8217;t. In particular,
+documented under this section, but a lot of stuff doesn’t. In particular,
 support for Android, KotlinJS and Kotlin-Multi-Platform is still in its infancy.
 The API is not yet stable and may evolve. Try it out but please be aware of its
 limitations!
 </td>
 </tr>
-</table>
+</tbody></table>
 </div>
 </div>
 </div>
@@ -522,18 +523,18 @@ import mill._, kotlinlib._
 
 object foo extends KotlinModule {
 
-  def kotlinVersion = "1.9.24"
+  def kotlinVersion = &quot;1.9.24&quot;
 
-  def mainClass = Some("foo.FooKt")
+  def mainClass = Some(&quot;foo.FooKt&quot;)
 
   def ivyDeps = Agg(
-    ivy"com.github.ajalt.clikt:clikt-jvm:4.4.0",
-    ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0"
+    ivy&quot;com.github.ajalt.clikt:clikt-jvm:4.4.0&quot;,
+    ivy&quot;org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0&quot;
   )
 
   object test extends KotlinTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
+      ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;
     )
   }
 }</code></pre>
@@ -550,7 +551,7 @@ of the example (including supporting files) via the <strong>browse</strong> link
 that you have some version of the JVM installed; the <code>./mill</code> script takes
 care of any further dependencies that need to be downloaded. All examples
 in this documentation site are executable and are continually exercised as
-part of Mill&#8217;s CI workflows, and they range from the simple hello-world
+part of Mill’s CI workflows, and they range from the simple hello-world
 projects on this page to more sophisticated
 <a href="web-examples.html" class="xref page">web build examples</a> or
 <a href="build-examples.html#_example_builds_for_real_projects" class="xref page">example
@@ -558,7 +559,7 @@ builds for real-world projects</a></p>
 </div>
 <div class="paragraph">
 <p>The source code for this module lives in the <code>src/</code> folder.
-Output for this module (compiled files, resolved dependency lists, &#8230;&#8203;)
+Output for this module (compiled files, resolved dependency lists, …​)
 lives in <code>out/</code>.</p>
 </div>
 <div class="listingblock">
@@ -584,18 +585,18 @@ out/foo/
 </div>
 <div class="admonitionblock note">
 <table>
-<tr>
+<tbody><tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-The default Mill source folder layout <code>foo/src/</code> differs from that of Maven/Gradle&#8217;s
+The default Mill source folder layout <code>foo/src/</code> differs from that of Maven/Gradle’s
 <code>foo/src/main/kotlin</code>. If you wish to use the Maven source folder layout, e.g. for migrating
 an existing codebase, you should use
 <a href="#_maven_compatible_modules">Maven-Compatible Modules</a>
 </td>
 </tr>
-</table>
+</tbody></table>
 </div>
 <div class="paragraph">
 <p>This example project uses two third-party dependencies - Clikt for CLI
@@ -654,7 +655,7 @@ Test run finished: 0 failed, 0 ignored, 2 total, ...
 &gt; ./mill foo.assembly # bundle classfiles and libraries into a jar for deployment
 
 &gt; ./mill show foo.assembly # show the output of the assembly task
-".../out/foo/assembly.dest/out.jar"
+&quot;.../out/foo/assembly.dest/out.jar&quot;
 
 &gt; java -jar ./out/foo/assembly.dest/out.jar --text hello
 &lt;h1&gt;hello&lt;/h1&gt;
@@ -691,7 +692,7 @@ $ mill -i repl       # start an Ammonite Scala REPL within your project</code></
 <div class="paragraph">
 <p>You can run <code>mill resolve __</code> to see a full list of the different tasks that
 are available, <code>mill resolve _</code> to see the tasks within <code>foo</code>,
-<code>mill inspect compile</code> to inspect a task&#8217;s doc-comment documentation or what
+<code>mill inspect compile</code> to inspect a task’s doc-comment documentation or what
 it depends on, or <code>mill show foo.scalaVersion</code> to show the output of any task.</p>
 </div>
 <div class="paragraph">
@@ -727,9 +728,9 @@ import mill._, kotlinlib._
 
 object foo extends KotlinModule {
 
-  def kotlinVersion = "1.9.24"
+  def kotlinVersion = &quot;1.9.24&quot;
 
-  def mainClass = Some("foo.FooKt")
+  def mainClass = Some(&quot;foo.FooKt&quot;)
 
   /** Total number of lines in module source files */
   def lineCount = Task {
@@ -738,13 +739,13 @@ object foo extends KotlinModule {
 
   /** Generate resources using lineCount of sources */
   override def resources = Task {
-    os.write(Task.dest / "line-count.txt", "" + lineCount())
+    os.write(Task.dest / &quot;line-count.txt&quot;, &quot;&quot; + lineCount())
     super.resources() ++ Seq(PathRef(Task.dest))
   }
 
   object test extends KotlinTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
+      ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;
     )
   }
 }</code></pre>
@@ -757,76 +758,75 @@ it with the destination folder of the new <code>resources</code> task, which is 
 up to <code>lineCount</code>:</p>
 </div>
 <center>
-<svg width="481px" height="76px"
- viewBox="0.00 0.00 480.78 75.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="481px" height="76px" viewBox="0.00 0.00 480.78 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 476.78,-71.8 476.78,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 476.78,-71.8 476.78,4 -4,4"></polygon>
 <!-- allSourceFiles -->
 <g id="node1" class="node">
 <title>allSourceFiles</title>
-<polygon fill="white" stroke="white" points="96.14,-67.7 -0.05,-67.7 -0.05,-43.1 96.14,-43.1 96.14,-67.7"/>
+<polygon fill="white" stroke="white" points="96.14,-67.7 -0.05,-67.7 -0.05,-43.1 96.14,-43.1 96.14,-67.7"></polygon>
 <text text-anchor="middle" x="48.05" y="-51.2" font-family="Times,serif" font-size="14.00">allSourceFiles</text>
 </g>
 <!-- lineCount -->
 <g id="node2" class="node">
 <title>lineCount</title>
-<polygon fill="white" stroke="black" points="219.15,-67.7 147.7,-67.7 147.7,-43.1 219.15,-43.1 219.15,-67.7"/>
+<polygon fill="white" stroke="black" points="219.15,-67.7 147.7,-67.7 147.7,-43.1 219.15,-43.1 219.15,-67.7"></polygon>
 <text text-anchor="middle" x="183.43" y="-51.2" font-family="Times,serif" font-size="14.00">lineCount</text>
 </g>
 <!-- allSourceFiles&#45;&gt;lineCount -->
 <g id="edge1" class="edge">
-<title>allSourceFiles&#45;&gt;lineCount</title>
-<path fill="none" stroke="black" d="M96.45,-55.4C109.8,-55.4 124.28,-55.4 137.49,-55.4"/>
-<polygon fill="black" stroke="black" points="137.76,-58.9 147.76,-55.4 137.76,-51.9 137.76,-58.9"/>
+<title>allSourceFiles-&gt;lineCount</title>
+<path fill="none" stroke="black" d="M96.45,-55.4C109.8,-55.4 124.28,-55.4 137.49,-55.4"></path>
+<polygon fill="black" stroke="black" points="137.76,-58.9 147.76,-55.4 137.76,-51.9 137.76,-58.9"></polygon>
 </g>
 <!-- resources -->
 <g id="node3" class="node">
 <title>resources</title>
-<polygon fill="white" stroke="black" points="339.55,-45.7 270.84,-45.7 270.84,-21.1 339.55,-21.1 339.55,-45.7"/>
+<polygon fill="white" stroke="black" points="339.55,-45.7 270.84,-45.7 270.84,-21.1 339.55,-21.1 339.55,-45.7"></polygon>
 <text text-anchor="middle" x="305.19" y="-29.2" font-family="Times,serif" font-size="14.00">resources</text>
 </g>
 <!-- lineCount&#45;&gt;resources -->
 <g id="edge2" class="edge">
-<title>lineCount&#45;&gt;resources</title>
-<path fill="none" stroke="black" d="M219.07,-49.04C231.95,-46.67 246.74,-43.95 260.34,-41.46"/>
-<polygon fill="black" stroke="black" points="261.25,-44.85 270.46,-39.6 259.99,-37.96 261.25,-44.85"/>
+<title>lineCount-&gt;resources</title>
+<path fill="none" stroke="black" d="M219.07,-49.04C231.95,-46.67 246.74,-43.95 260.34,-41.46"></path>
+<polygon fill="black" stroke="black" points="261.25,-44.85 270.46,-39.6 259.99,-37.96 261.25,-44.85"></polygon>
 </g>
 <!-- ... -->
 <g id="node4" class="node">
 <title>...</title>
-<polygon fill="white" stroke="white" points="402.37,-45.7 375.36,-45.7 375.36,-21.1 402.37,-21.1 402.37,-45.7"/>
+<polygon fill="white" stroke="white" points="402.37,-45.7 375.36,-45.7 375.36,-21.1 402.37,-21.1 402.37,-45.7"></polygon>
 <text text-anchor="middle" x="388.87" y="-29.2" font-family="Times,serif" font-size="14.00">...</text>
 </g>
 <!-- resources&#45;&gt;... -->
 <g id="edge3" class="edge">
-<title>resources&#45;&gt;...</title>
-<path fill="none" stroke="black" d="M339.89,-33.4C348.37,-33.4 357.27,-33.4 365.08,-33.4"/>
-<polygon fill="black" stroke="black" points="365.22,-36.9 375.22,-33.4 365.22,-29.9 365.22,-36.9"/>
+<title>resources-&gt;...</title>
+<path fill="none" stroke="black" d="M339.89,-33.4C348.37,-33.4 357.27,-33.4 365.08,-33.4"></path>
+<polygon fill="black" stroke="black" points="365.22,-36.9 375.22,-33.4 365.22,-29.9 365.22,-36.9"></polygon>
 </g>
 <!-- run -->
 <g id="node5" class="node">
 <title>run</title>
-<polygon fill="white" stroke="white" points="472.61,-45.7 438.29,-45.7 438.29,-21.1 472.61,-21.1 472.61,-45.7"/>
+<polygon fill="white" stroke="white" points="472.61,-45.7 438.29,-45.7 438.29,-21.1 472.61,-21.1 472.61,-45.7"></polygon>
 <text text-anchor="middle" x="455.45" y="-29.2" font-family="Times,serif" font-size="14.00">run</text>
 </g>
 <!-- ...&#45;&gt;run -->
 <g id="edge4" class="edge">
-<title>...&#45;&gt;run</title>
-<path fill="none" stroke="black" d="M402.32,-33.4C409.51,-33.4 418.85,-33.4 427.63,-33.4"/>
-<polygon fill="black" stroke="black" points="427.88,-36.9 437.88,-33.4 427.88,-29.9 427.88,-36.9"/>
+<title>...-&gt;run</title>
+<path fill="none" stroke="black" d="M402.32,-33.4C409.51,-33.4 418.85,-33.4 427.63,-33.4"></path>
+<polygon fill="black" stroke="black" points="427.88,-36.9 437.88,-33.4 427.88,-29.9 427.88,-36.9"></polygon>
 </g>
 <!-- resources.super -->
 <g id="node6" class="node">
 <title>resources.super</title>
-<polygon fill="white" stroke="white" points="234.6,-24.7 132.25,-24.7 132.25,-0.1 234.6,-0.1 234.6,-24.7"/>
+<polygon fill="white" stroke="white" points="234.6,-24.7 132.25,-24.7 132.25,-0.1 234.6,-0.1 234.6,-24.7"></polygon>
 <text text-anchor="middle" x="183.43" y="-8.2" font-family="Times,serif" font-size="14.00">resources.super</text>
 </g>
 <!-- resources.super&#45;&gt;resources -->
 <g id="edge5" class="edge">
-<title>resources.super&#45;&gt;resources</title>
-<path fill="none" stroke="black" d="M234.87,-21.25C243.51,-22.76 252.41,-24.32 260.84,-25.8"/>
-<polygon fill="black" stroke="black" points="260.38,-29.27 270.84,-27.55 261.59,-22.38 260.38,-29.27"/>
+<title>resources.super-&gt;resources</title>
+<path fill="none" stroke="black" d="M234.87,-21.25C243.51,-22.76 252.41,-24.32 260.84,-25.8"></path>
+<polygon fill="black" stroke="black" points="260.38,-29.27 270.84,-27.55 261.59,-22.38 260.38,-29.27"></polygon>
 </g>
 </g>
 </svg>
@@ -856,14 +856,14 @@ This generated file can then be loaded and used at runtime, as see in the output
 of <code>mill run</code>.</p>
 </div>
 <div class="paragraph">
-<p>If you&#8217;re not familiar with what tasks you can <code>override</code> or how they are related,
+<p>If you’re not familiar with what tasks you can <code>override</code> or how they are related,
 you can explore the existing tasks via autocomplete in your IDE, or use the
 <a href="builtin-commands.html#_visualize" class="xref page">mill visualize</a>.</p>
 </div>
 <div class="paragraph">
 <p><code>os.read.lines</code> and <code>os.write</code> come
 from the <a href="https://github.com/com-lihaoyi/os-lib">OS-Lib</a> library, which is
-one of Mill&#8217;s <a href="../fundamentals/bundled-libraries.html" class="xref page">Bundled Libraries</a>.
+one of Mill’s <a href="../fundamentals/bundled-libraries.html" class="xref page">Bundled Libraries</a>.
 You can also import any other library you want from Maven Central using
 <a href="../extending/import-ivy-plugins.html" class="xref page">import $ivy</a>, so you are not limited
 to what is bundled with Mill.</p>
@@ -889,27 +889,27 @@ maintainable even as the complexity of your project grows.</p>
 import mill._, kotlinlib._
 
 trait MyModule extends KotlinModule {
-  def kotlinVersion = "1.9.24"
+  def kotlinVersion = &quot;1.9.24&quot;
 
   object test extends KotlinTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
+      ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;
     )
   }
 }
 
 object foo extends MyModule {
-  def mainClass = Some("foo.FooKt")
+  def mainClass = Some(&quot;foo.FooKt&quot;)
   def moduleDeps = Seq(bar)
   def ivyDeps = Agg(
-    ivy"com.github.ajalt.clikt:clikt-jvm:4.4.0"
+    ivy&quot;com.github.ajalt.clikt:clikt-jvm:4.4.0&quot;
   )
 }
 
 object bar extends MyModule {
-  def mainClass = Some("bar.BarKt")
+  def mainClass = Some(&quot;bar.BarKt&quot;)
   def ivyDeps = Agg(
-    ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0"
+    ivy&quot;org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0&quot;
   )
 }</code></pre>
 </div>
@@ -986,7 +986,7 @@ Bar.value: &lt;h1&gt;world&lt;/h1&gt;
 </div>
 </div>
 <div class="paragraph">
-<p>Mill&#8217;s evaluator will ensure that the modules are compiled in the right
+<p>Mill’s evaluator will ensure that the modules are compiled in the right
 order, and recompiled as necessary when source code in each module changes.
 The unique path on disk that Mill automatically assigns each task also ensures
 you do not need to worry about choosing a path on disk to cache outputs, or
@@ -1002,8 +1002,8 @@ tasks.</p>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">Table 1. Wildcards and brace-expansion</caption>
 <colgroup>
-<col style="width: 50%;">
-<col style="width: 50%;">
+<col style="width: 50%;" />
+<col style="width: 50%;" />
 </colgroup>
 <tbody>
 <tr>
@@ -1050,7 +1050,7 @@ preceding it with a backslash (<code>\</code>).</p>
 <h2 id="_watch_and_re_evaluate"><a class="anchor" href="#_watch_and_re_evaluate"></a>Watch and Re-evaluate</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>You can use the <code>--watch</code> flag to make Mill watch a task&#8217;s inputs,
+<p>You can use the <code>--watch</code> flag to make Mill watch a task’s inputs,
 re-evaluating the task as necessary when the inputs
 change:</p>
 </div>
@@ -1063,8 +1063,8 @@ $ mill -w foo.run</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Mill&#8217;s <code>--watch</code> flag watches both the files you are building using Mill, as
-well as Mill&#8217;s own <code>build.mill</code> file and anything it imports, so any changes to
+<p>Mill’s <code>--watch</code> flag watches both the files you are building using Mill, as
+well as Mill’s own <code>build.mill</code> file and anything it imports, so any changes to
 your <code>build.mill</code> will automatically get picked up.</p>
 </div>
 <div class="paragraph">
@@ -1096,13 +1096,13 @@ explicitly how many concurrent tasks you wish to run. To disable parallel execut
 </div>
 <div class="paragraph">
 <p>Every <code>mill</code> run generates an output file in <code>out/mill-chrome-profile.json</code> that can be
-loaded into the Chrome browser&#8217;s <code>chrome://tracing</code> page for visualization.
-This can make it much easier to analyze your parallel runs to find out what&#8217;s
+loaded into the Chrome browser’s <code>chrome://tracing</code> page for visualization.
+This can make it much easier to analyze your parallel runs to find out what’s
 taking the most time:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/basic/ChromeTracing.png" alt="ChromeTracing.png">
+<img src="../_images/basic/ChromeTracing.png" alt="ChromeTracing.png" />
 </div>
 </div>
 <div class="paragraph">
@@ -1116,9 +1116,9 @@ depend on one another other cannot be processed in parallel</p>
 <h2 id="_maven_compatible_modules"><a class="anchor" href="#_maven_compatible_modules"></a>Maven-Compatible Modules</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill&#8217;s default folder layout of <code>foo/src/</code> and <code>foo/test/src</code> differs from that
-of Maven or Gradle&#8217;s <code>foo/src/main/kotlin/</code> and <code>foo/src/test/kotlin/</code>. If you are
-migrating an existing codebase, you can use Mill&#8217;s <code>KotlinMavenModule</code> and
+<p>Mill’s default folder layout of <code>foo/src/</code> and <code>foo/test/src</code> differs from that
+of Maven or Gradle’s <code>foo/src/main/kotlin/</code> and <code>foo/src/test/kotlin/</code>. If you are
+migrating an existing codebase, you can use Mill’s <code>KotlinMavenModule</code> and
 <code>KotlinMavenTests</code> as shown below to preserve filesystem compatibility with an existing
 Maven or Gradle build:</p>
 </div>
@@ -1130,11 +1130,11 @@ import mill._, kotlinlib._
 
 object foo extends KotlinModule with KotlinMavenModule {
 
-  def kotlinVersion = "1.9.24"
+  def kotlinVersion = &quot;1.9.24&quot;
 
   object test extends KotlinMavenTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
+      ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;
     )
   }
 }</code></pre>
@@ -1161,7 +1161,7 @@ that uses the more verbose folder layout of Maven, SBT, and other tools:</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>Rather than Mill&#8217;s</p>
+<p>Rather than Mill’s</p>
 </div>
 <div class="ulist">
 <ul>
@@ -1199,7 +1199,7 @@ Compiling 1 Kotlin source...
 <h2 id="_history"><a class="anchor" href="#_history"></a>History</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill&#8217;s Kotlin support originated as the third-party plugin
+<p>Mill’s Kotlin support originated as the third-party plugin
 <a href="https://github.com/lefou/mill-kotlin">lefou/mill-kotlin</a>, which was later included with
 the main Mill codebase under its
 <a href="https://github.com/lefou/mill-kotlin/blob/main/LICENSE">Apache 2.0 License</a>.</p>
@@ -1215,9 +1215,9 @@ the main Mill codebase under its
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async src="../../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async src="../../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../../search-index.js"></script>
+  
+</body></html>

@@ -1,26 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Using Plugins :: The Mill JVM Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.12.1/extending/import-ivy-plugins.html">
-    <link rel="prev" href="Extending_Mill.html">
-    <link rel="next" href="Mill_Internals.html">
-    <meta name="generator" content="Antora 3.1.9">
-    <link rel="stylesheet" href="../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.12.1/extending/import-ivy-plugins.html" />
+    <link rel="prev" href="Extending_Mill.html" />
+    <link rel="next" href="Mill_Internals.html" />
+    <meta name="generator" content="Antora 3.1.9" />
+    <link rel="stylesheet" href="../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
+  
+  </head><body class="article">
+  
 <header class="header">
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill JVM Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill JVM Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -99,51 +100,51 @@
     <a class="nav-link" href="IDE_Support.html">IDE Support</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="Out_Dir.html">The Output Directory</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="Configuration.html">Configuring your Project</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="Library_Dependencies.html">Library Dependencies in Mill</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="Common_Project_Layouts.html">Common Project Layouts</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="Tasks.html">Tasks</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="Task_Context_API.html">Task Context API</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="Modules.html">Modules</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="Cross_Builds.html">Cross Builds</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="Extending_Mill.html">Extending Mill</a>
   </li>
 
-  <li class="nav-item is-current-page" data-depth="1">
+  <li class="nav-item is-current-page is-active" data-depth="1">
     <a class="nav-link" href="Using_Plugins.html">Using Plugins</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="Mill_Internals.html">Mill Internals</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
     <a class="nav-link" href="Contrib_Plugins.html">Contrib Plugins</a>
 <ul class="nav-list">
@@ -164,61 +165,61 @@
     <a class="nav-link" href="Plugin_BuildInfo.html">BuildInfo</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="Plugin_BSP.html">BSP - Build Server Protocol</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="Plugin_Codeartifact.html">Codeartifact</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="Plugin_Docker.html">Docker</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="Plugin_Flyway.html">Flyway</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="Plugin_Gitlab.html">Gitlab</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="Plugin_Play.html">Play Framework</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="Plugin_Proguard.html">Proguard</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="Plugin_ScalaPB.html">ScalaPB</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="Plugin_Scoverage.html">Scoverage</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="TestNG_TestFramework.html">TestNG</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="Plugin_Twirl.html">Twirl</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="Plugin_VersionFile.html">Version file</a>
   </li>
 </ul>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="Thirdparty_Plugins.html">Third-Party Plugins</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
     <a class="nav-link" href="External_References.html">External References</a>
 <ul class="nav-list">
@@ -251,7 +252,7 @@
       <div class="title"><a href="../0.12.1/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version">
-          <a href="../index.html">0.12.1-13-24e56e</a>
+          <a href="../index.html">0.12.1-14-30c005</a>
         </li>
         <li class="version is-latest">
           <a href="../0.12.1/index.html">0.12.1</a>
@@ -299,7 +300,7 @@
 <p>There exist a large number of Mill plugins, Many of them are available on GitHub and via Mavel Central. We also have a list of plugins, which is most likely not complete, but it might be a good start if you are looking for plugins: <a href="Thirdparty_Plugins.html" class="xref page">Third-Party Plugins</a>.</p>
 </div>
 <div class="paragraph">
-<p>Some plugin contributions are also hosted in Mill&#8217;s own git tree as <a href="Contrib_Plugins.html" class="xref page">Contrib Plugins</a>.</p>
+<p>Some plugin contributions are also hosted in Mill’s own git tree as <a href="Contrib_Plugins.html" class="xref page">Contrib Plugins</a>.</p>
 </div>
 <div class="paragraph">
 <p>Mill plugins are typically bound to a specific version range of Mill.
@@ -321,7 +322,7 @@ import $ivy.`&lt;group&gt;:::&lt;plugin&gt;::&lt;version&gt;` <i class="conum" d
 </div>
 <div class="colist arabic">
 <table>
-<tr>
+<tbody><tr>
 <td><i class="conum" data-value="1"></i><b>1</b></td>
 <td>This is equivalent to
 <div class="listingblock">
@@ -339,7 +340,7 @@ import $ivy.`&lt;group&gt;:::&lt;plugin&gt;::&lt;version&gt;` <i class="conum" d
 </div>
 </div></td>
 </tr>
-</table>
+</tbody></table>
 </div>
 </div>
 </div>
@@ -365,7 +366,7 @@ This is typical required for Mill contrib modules, which are developed in the Mi
 <div class="paragraph">
 <p>There is the even more convenient option to leave the version completely empty.
 Mill will substitute it with its current version.
-But don&#8217;t forget to provide the trailing colon!</p>
+But don’t forget to provide the trailing colon!</p>
 </div>
 <div class="listingblock">
 <div class="title">Example: Use <code>mill-contrib-bloop</code> plugin matching the current Mill version</div>
@@ -396,7 +397,7 @@ But don&#8217;t forget to provide the trailing colon!</p>
 </div>
 <div class="admonitionblock tip">
 <table>
-<tr>
+<tbody><tr>
 <td class="icon">
 <i class="fa icon-tip" title="Tip"></i>
 </td>
@@ -404,7 +405,7 @@ But don&#8217;t forget to provide the trailing colon!</p>
 If you want to publish re-usable libraries that <em>other</em> people can use in their builds, simply publish your code as a library to maven central.
 </td>
 </tr>
-</table>
+</tbody></table>
 </div>
 </div>
 </div>
@@ -417,9 +418,9 @@ If you want to publish re-usable libraries that <em>other</em> people can use in
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async src="../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async src="../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../search-index.js"></script>
+  
+</body></html>

@@ -1,26 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Extending Mill :: The Mill JVM Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.11.12/Extending_Mill.html">
-    <link rel="prev" href="Cross_Builds.html">
-    <link rel="next" href="Using_Plugins.html">
-    <meta name="generator" content="Antora 3.1.9">
-    <link rel="stylesheet" href="../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.11.12/Extending_Mill.html" />
+    <link rel="prev" href="Cross_Builds.html" />
+    <link rel="next" href="Using_Plugins.html" />
+    <meta name="generator" content="Antora 3.1.9" />
+    <link rel="stylesheet" href="../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
+  
+  </head><body class="article">
+  
 <header class="header">
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill JVM Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill JVM Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -99,51 +100,51 @@
     <a class="nav-link" href="IDE_Support.html">IDE Support</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="Out_Dir.html">The Output Directory</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="Configuration.html">Configuring your Project</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="Library_Dependencies.html">Library Dependencies in Mill</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="Common_Project_Layouts.html">Common Project Layouts</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="Tasks.html">Tasks</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="Task_Context_API.html">Task Context API</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="Modules.html">Modules</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="Cross_Builds.html">Cross Builds</a>
   </li>
 
-  <li class="nav-item is-current-page" data-depth="1">
+  <li class="nav-item is-current-page is-active" data-depth="1">
     <a class="nav-link" href="Extending_Mill.html">Extending Mill</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="Using_Plugins.html">Using Plugins</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="Mill_Internals.html">Mill Internals</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
     <a class="nav-link" href="Contrib_Plugins.html">Contrib Plugins</a>
 <ul class="nav-list">
@@ -164,61 +165,61 @@
     <a class="nav-link" href="Plugin_BuildInfo.html">BuildInfo</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="Plugin_BSP.html">BSP - Build Server Protocol</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="Plugin_Codeartifact.html">Codeartifact</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="Plugin_Docker.html">Docker</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="Plugin_Flyway.html">Flyway</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="Plugin_Gitlab.html">Gitlab</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="Plugin_Play.html">Play Framework</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="Plugin_Proguard.html">Proguard</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="Plugin_ScalaPB.html">ScalaPB</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="Plugin_Scoverage.html">Scoverage</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="TestNG_TestFramework.html">TestNG</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="Plugin_Twirl.html">Twirl</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="Plugin_VersionFile.html">Version file</a>
   </li>
 </ul>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="Thirdparty_Plugins.html">Third-Party Plugins</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
     <a class="nav-link" href="External_References.html">External References</a>
 <ul class="nav-list">
@@ -251,7 +252,7 @@
       <div class="title"><a href="../0.12.1/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version">
-          <a href="../index.html">0.12.1-13-24e56e</a>
+          <a href="../index.html">0.12.1-14-30c005</a>
         </li>
         <li class="version is-latest">
           <a href="../0.12.1/index.html">0.12.1</a>
@@ -312,7 +313,7 @@ def bar(x: Int, s: String) = T.command { ... }</code></pre>
 </div>
 <div class="paragraph">
 <p>These can depend on other Targets, contain arbitrary code, and be placed top-level or within any module.
-If you have something you just want to <em>do</em> that isn&#8217;t covered by the built-in <code>ScalaModule</code>s/<code>ScalaJSModule</code>s, simply write a custom Target (for cached computations) or Command (for un-cached actions) and you&#8217;re done.</p>
+If you have something you just want to <em>do</em> that isn’t covered by the built-in <code>ScalaModule</code>s/<code>ScalaJSModule</code>s, simply write a custom Target (for cached computations) or Command (for un-cached actions) and you’re done.</p>
 </div>
 <div class="paragraph">
 <p>For subprocess/filesystem operations, you can use the
@@ -329,7 +330,7 @@ Each target gets its own
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def doWebpackStuff(sources: Seq[PathRef]): PathRef = ???
 
-def javascriptSources = T.sources { millSourcePath / "js" }
+def javascriptSources = T.sources { millSourcePath / &quot;js&quot; }
 def compiledJavascript = T { doWebpackStuff(javascriptSources()) }
 object foo extends ScalaModule {
   def runClasspath = T { super.runClasspath() ++ compiledJavascript() }
@@ -364,13 +365,13 @@ def deployFoo(credentials: String) = T.command {
 <p>In such a case, you can use a <code>Worker</code>. Workers keep their state between multiple runs. Workers are created with the <code>T.worker</code> macro.</p>
 </div>
 <div class="listingblock">
-<div class="title">Example: Keep a webpack process running so webpack&#8217;s own internal caches are hot and compilation is fast</div>
+<div class="title">Example: Keep a webpack process running so webpack’s own internal caches are hot and compilation is fast</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def webpackWorker = T.worker {
   // Spawn a process using java.lang.Process and return it
 }
 
-def javascriptSources = T.sources { millSourcePath / "js" }
+def javascriptSources = T.sources { millSourcePath / &quot;js&quot; }
 
 def doWebpackStuff(webpackProcess: Process, sources: Seq[PathRef]): PathRef =
   ???
@@ -391,8 +392,8 @@ def compiledJavascript = T {
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">trait FooModule extends mill.Module {
-  def bar = T { "hello" }
-  def baz = T { "world" }
+  def bar = T { &quot;hello&quot; }
+  def baz = T { &quot;world&quot; }
 }</code></pre>
 </div>
 </div>
@@ -405,7 +406,7 @@ inheriting from <code>mill.Module</code>, and then use that <code>trait</code> a
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo1 extends FooModule
 object foo2 extends FooModule {
-  def qux = T { "I am Cow" }
+  def qux = T { &quot;I am Cow&quot; }
 }</code></pre>
 </div>
 </div>
@@ -415,9 +416,9 @@ object foo2 extends FooModule {
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">trait FooModule extends ScalaModule {
-  def scalaVersion = "2.11.11"
+  def scalaVersion = &quot;2.11.11&quot;
   object test extends Tests with TestModule.ScalaTest {
-    def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.4")
+    def ivyDeps = Agg(ivy&quot;org.scalatest::scalatest:3.0.4&quot;)
   }
 }</code></pre>
 </div>
@@ -448,7 +449,7 @@ def printFoo() = T.command { println(foo.fooValue()) }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Mill&#8217;s <code>import $file</code> syntax supports the full functionality of
+<p>Mill’s <code>import $file</code> syntax supports the full functionality of
 <a href="https://ammonite.io/#ScalaScripts">Ammonite Scripts</a></p>
 </div>
 </div>
@@ -469,8 +470,8 @@ def generatedHtml = T {
   html(
     head(),
     body(
-      h1("Hello"),
-      p("World")
+      h1(&quot;Hello&quot;),
+      p(&quot;World&quot;)
     )
   ).render
 }</code></pre>
@@ -478,7 +479,7 @@ def generatedHtml = T {
 </div>
 <div class="colist arabic">
 <table>
-<tr>
+<tbody><tr>
 <td><i class="conum" data-value="1"></i><b>1</b></td>
 <td>Import the scalatags library from Mavel Central repository.</td>
 </tr>
@@ -486,7 +487,7 @@ def generatedHtml = T {
 <td><i class="conum" data-value="2"></i><b>2</b></td>
 <td>Creates the <code>generatedHtml</code> target which is used here to generate a simple Hello World HTML document. It can be used however you would like: written to a file, further processed, etc.</td>
 </tr>
-</table>
+</tbody></table>
 </div>
 <div class="paragraph">
 <p>Please also read the section <a href="Using_Plugins.html" class="xref page">Using Plugins</a>.</p>
@@ -537,9 +538,9 @@ If you want a way to run Mill commands and programmatically manipulate the tasks
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async src="../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async src="../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../search-index.js"></script>
+  
+</body></html>

@@ -1,26 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Gitlab :: The Mill JVM Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.12.1/contrib/gitlab.html">
-    <link rel="prev" href="Plugin_Flyway.html">
-    <link rel="next" href="Plugin_Play.html">
-    <meta name="generator" content="Antora 3.1.9">
-    <link rel="stylesheet" href="../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.12.1/contrib/gitlab.html" />
+    <link rel="prev" href="Plugin_Flyway.html" />
+    <link rel="next" href="Plugin_Play.html" />
+    <meta name="generator" content="Antora 3.1.9" />
+    <link rel="stylesheet" href="../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
+  
+  </head><body class="article">
+  
 <header class="header">
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill JVM Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill JVM Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -99,51 +100,51 @@
     <a class="nav-link" href="IDE_Support.html">IDE Support</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="Out_Dir.html">The Output Directory</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="Configuration.html">Configuring your Project</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="Library_Dependencies.html">Library Dependencies in Mill</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="Common_Project_Layouts.html">Common Project Layouts</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="Tasks.html">Tasks</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="Task_Context_API.html">Task Context API</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="Modules.html">Modules</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="Cross_Builds.html">Cross Builds</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="Extending_Mill.html">Extending Mill</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="Using_Plugins.html">Using Plugins</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="Mill_Internals.html">Mill Internals</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
     <a class="nav-link" href="Contrib_Plugins.html">Contrib Plugins</a>
 <ul class="nav-list">
@@ -164,61 +165,61 @@
     <a class="nav-link" href="Plugin_BuildInfo.html">BuildInfo</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="Plugin_BSP.html">BSP - Build Server Protocol</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="Plugin_Codeartifact.html">Codeartifact</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="Plugin_Docker.html">Docker</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="Plugin_Flyway.html">Flyway</a>
   </li>
 
-  <li class="nav-item is-current-page" data-depth="2">
+  <li class="nav-item is-current-page is-active" data-depth="2">
     <a class="nav-link" href="Plugin_Gitlab.html">Gitlab</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="Plugin_Play.html">Play Framework</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="Plugin_Proguard.html">Proguard</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="Plugin_ScalaPB.html">ScalaPB</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="Plugin_Scoverage.html">Scoverage</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="TestNG_TestFramework.html">TestNG</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="Plugin_Twirl.html">Twirl</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="Plugin_VersionFile.html">Version file</a>
   </li>
 </ul>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="Thirdparty_Plugins.html">Third-Party Plugins</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
     <a class="nav-link" href="External_References.html">External References</a>
 <ul class="nav-list">
@@ -251,7 +252,7 @@
       <div class="title"><a href="../0.12.1/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version">
-          <a href="../index.html">0.12.1-13-24e56e</a>
+          <a href="../index.html">0.12.1-14-30c005</a>
         </li>
         <li class="version is-latest">
           <a href="../0.12.1/index.html">0.12.1</a>
@@ -319,12 +320,12 @@ import mill.contrib.gitlab._
 
 object lib extends ScalaModule with GitlabPublishModule {
   // PublishModule requirements:
-  override def publishVersion = "0.0.1"
+  override def publishVersion = &quot;0.0.1&quot;
   override def pomSettings = ??? // PomSettings(...)
 
   // GitlabPublishModule requirements
   // 42 is the project id in your gitlab
-  override def publishRepository = ProjectRepository("https://gitlab.local", 42)
+  override def publishRepository = ProjectRepository(&quot;https://gitlab.local&quot;, 42)
 }</code></pre>
 </div>
 </div>
@@ -398,8 +399,8 @@ example:</p>
 <div class="title"><code>build.sc</code></div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">override def tokenLookup: GitlabTokenLookup = new GitlabTokenLookup {
-  override def personalTokenEnv = "MY_TOKEN"
-  override def deployTokenFile: os.Path = os.root/"etc"/"tokens"/"gitlab-deploy-token"
+  override def personalTokenEnv = &quot;MY_TOKEN&quot;
+  override def deployTokenFile: os.Path = os.root/&quot;etc&quot;/&quot;tokens&quot;/&quot;gitlab-deploy-token&quot;
 }</code></pre>
 </div>
 </div>
@@ -420,21 +421,21 @@ places to search from.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">override tokenLookup: GitlabTokenLookup = new GitlabTokenLookup {
   // Just to add to default sequence set: super.tokenSearchOrder ++ Seq(...
   override def tokenSearchOrder: Seq[GitlabToken] = Seq(
-    Personal(Env("MY_PRIVATE_TOKEN")),
-    Personal(Property("gitlab.private-token")),
-    Deploy(File(os.root/"etc"/"gitlab-deploy-token")),
+    Personal(Env(&quot;MY_PRIVATE_TOKEN&quot;)),
+    Personal(Property(&quot;gitlab.private-token&quot;)),
+    Deploy(File(os.root/&quot;etc&quot;/&quot;gitlab-deploy-token&quot;)),
     Deploy(Custom(myCustomTokenSource)),
-    CustomHeader("my-header", Custom(myCustomTokenSource))
+    CustomHeader(&quot;my-header&quot;, Custom(myCustomTokenSource))
   )
 
-  def myCustomTokenSource(): Either[String, String] = Right("foo")
+  def myCustomTokenSource(): Either[String, String] = Right(&quot;foo&quot;)
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>There are two things happening here. First Gitlab needs right kind of token for right
-header.<code>Personal</code> creates "Private-Token" header, <code>Deploy</code> produces "Deploy-Token" and
-<code>CIJob</code> creates "Job-Token". Finally, any custom header can be set with <code>CustomHeader</code>.</p>
+header.<code>Personal</code> creates &quot;Private-Token&quot; header, <code>Deploy</code> produces &quot;Deploy-Token&quot; and
+<code>CIJob</code> creates &quot;Job-Token&quot;. Finally, any custom header can be set with <code>CustomHeader</code>.</p>
 </div>
 <div class="paragraph">
 <p>Secondly after token type plugin needs information where to load token from. There are
@@ -452,7 +453,7 @@ four possibilities</p>
 <p><code>File</code>: From file (content is trimmed, usually at least \n at the end is present)</p>
 </li>
 <li>
-<p><code>Custom</code>: Any <code>() &#8658; Either[String, String]</code> function</p>
+<p><code>Custom</code>: Any <code>() ⇒ Either[String, String]</code> function</p>
 </li>
 </ol>
 </div>
@@ -479,8 +480,8 @@ If for some reason you need to set multiple headers this is currently the only w
 
     GitlabAuthHeaders(
       accessHeader ++ Seq(
-        "header1" -&gt; "value1",
-        "header2" -&gt; "value2"
+        &quot;header1&quot; -&gt; &quot;value1&quot;,
+        &quot;header2&quot; -&gt; &quot;value2&quot;
       ))
   }
 }</code></pre>
@@ -508,8 +509,8 @@ are not ready increase version number just yet).</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// DON'T DO THIS
 def repositoriesTask = T.task {
   super.repositoriesTask() ++ Seq(
-    MavenRepository("https://gitlab.local/api/v4/projects/42/packages/maven",
-      Some(Authentication(Seq(("Private-Token", "&lt;&lt;private-token&gt;&gt;"))))))
+    MavenRepository(&quot;https://gitlab.local/api/v4/projects/42/packages/maven&quot;,
+      Some(Authentication(Seq((&quot;Private-Token&quot;, &quot;&lt;&lt;private-token&gt;&gt;&quot;))))))
 }</code></pre>
 </div>
 </div>
@@ -524,7 +525,7 @@ provides trait <code>GitlabMavenRepository</code> to ease that.</p>
   // Customize if needed, omit if unnecessary
   // override def tokenLookup: GitlabTokenLookup = new GitlabTokenLookup {}
   // Needed. Can also be ProjectRepository or InstanceRepository
-  def repository = GroupRepository("https://gitlab.local", "MY_GITLAB_GROUP")
+  def repository = GroupRepository(&quot;https://gitlab.local&quot;, &quot;MY_GITLAB_GROUP&quot;)
 }
 
 //
@@ -561,7 +562,7 @@ and that is why <code>GitlabPublishModule</code> requires a <code>GitlabProjectR
 <div class="ulist">
 <ul>
 <li>
-<p>Some maven / gitlab feature I&#8217;m missing?</p>
+<p>Some maven / gitlab feature I’m missing?</p>
 </li>
 <li>
 <p>Tuning GitlabMavenRepository.</p>
@@ -580,13 +581,13 @@ and that is why <code>GitlabPublishModule</code> requires a <code>GitlabProjectR
 <p>More configuration, timeouts etc</p>
 </li>
 <li>
-<p>Some other common token source / type I&#8217;ve overlooked</p>
+<p>Some other common token source / type I’ve overlooked</p>
 </li>
 <li>
 <p>Container registry support with docker module</p>
 </li>
 <li>
-<p>Other Gitlab auth methods? (deploy keys?, &#8230;&#8203;)</p>
+<p>Other Gitlab auth methods? (deploy keys?, …​)</p>
 </li>
 <li>
 <p>Tested with Gitlab 15.2.2. Older versions might not work</p>
@@ -634,9 +635,9 @@ modules source code</p>
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async src="../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async src="../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../search-index.js"></script>
+  
+</body></html>

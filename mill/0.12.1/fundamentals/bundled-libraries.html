@@ -1,26 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Bundled Libraries :: The Mill JVM Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.12.1/fundamentals/bundled-libraries.html">
-    <link rel="prev" href="cross-builds.html">
-    <link rel="next" href="../extending/import-ivy-plugins.html">
-    <meta name="generator" content="Antora 3.1.9">
-    <link rel="stylesheet" href="../../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.12.1/fundamentals/bundled-libraries.html" />
+    <link rel="prev" href="cross-builds.html" />
+    <link rel="next" href="../extending/import-ivy-plugins.html" />
+    <meta name="generator" content="Antora 3.1.9" />
+    <link rel="stylesheet" href="../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
+  
+  </head><body class="article">
+  
 <header class="header">
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill JVM Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill JVM Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -101,27 +102,27 @@
     <a class="nav-link" href="../javalib/dependencies.html">Java Library Dependencies</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../javalib/testing.html">Testing Java Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../javalib/linting.html">Linting Java Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../javalib/publishing.html">Publishing Java Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../javalib/build-examples.html">Java Build Examples</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../javalib/web-examples.html">Java Web Project Examples</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../javalib/android-examples.html">(Experimental) Android Builds</a>
   </li>
 </ul>
@@ -148,23 +149,23 @@
     <a class="nav-link" href="../scalalib/dependencies.html">Scala Library Dependencies</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../scalalib/testing.html">Testing Scala Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../scalalib/linting.html">Linting Scala Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../scalalib/publishing.html">Publishing Scala Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../scalalib/build-examples.html">Scala Build Examples</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../scalalib/web-examples.html">Scala Web Project Examples</a>
   </li>
 </ul>
@@ -191,33 +192,33 @@
     <a class="nav-link" href="../kotlinlib/dependencies.html">Kotlin Library Dependencies</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../kotlinlib/testing.html">Testing Kotlin Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../kotlinlib/linting.html">Linting Kotlin Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../kotlinlib/publishing.html">Publishing Kotlin Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../kotlinlib/build-examples.html">Kotlin Build Examples</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../kotlinlib/android-examples.html">(Experimental) Android Builds</a>
   </li>
 </ul>
   </li>
 
-  <li class="nav-item is-active" data-depth="0">
+  <li class="nav-item" data-depth="0">
     <button class="nav-item-toggle"></button>
     <span class="nav-text">Build Tool Comparisons</span>
 <ul class="nav-list">
@@ -257,15 +258,15 @@
     <a class="nav-link" href="query-syntax.html">Task Query Syntax</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="library-deps.html">Library Dependencies in Mill</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="cross-builds.html">Cross Builds</a>
   </li>
 
-  <li class="nav-item is-current-page" data-depth="1">
+  <li class="nav-item is-current-page is-active" data-depth="1">
     <a class="nav-link" href="bundled-libraries.html">Bundled Libraries</a>
   </li>
 </ul>
@@ -301,55 +302,55 @@
     <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../contrib/docker.html">Docker</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../contrib/flyway.html">Flyway</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../contrib/gitlab.html">Gitlab</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../contrib/jmh.html">JMH</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../contrib/playlib.html">Play Framework</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../contrib/proguard.html">Proguard</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../contrib/scalapblib.html">ScalaPB</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../contrib/scoverage.html">Scoverage</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../contrib/testng.html">TestNG</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../contrib/twirllib.html">Twirl</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../contrib/versionfile.html">Version file</a>
   </li>
 </ul>
@@ -363,15 +364,15 @@
     <a class="nav-link" href="../extending/running-jvm-code.html">Running Dynamic JVM Code</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../extending/writing-plugins.html">Writing Mill Plugins</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../extending/meta-build.html">The Mill Meta-Build</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../extending/new-language.html">Support for New Languages</a>
   </li>
 </ul>
@@ -398,7 +399,7 @@
     <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../depth/why-scala.html">Why does Mill use Scala?</a>
   </li>
 </ul>
@@ -431,7 +432,7 @@
       <div class="title"><a href="../index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version">
-          <a href="../../index.html">0.12.1-13-24e56e</a>
+          <a href="../../index.html">0.12.1-14-30c005</a>
         </li>
         <li class="version is-current is-latest">
           <a href="../index.html">0.12.1</a>
@@ -514,8 +515,8 @@ const links = document.querySelectorAll('a');
 <div class="sect2">
 <h3 id="_sandbox_working_directories"><a class="anchor" href="#_sandbox_working_directories"></a>Sandbox Working Directories</h3>
 <div class="paragraph">
-<p>One thing to note about Mill&#8217;s usage of OS-Lib is that Mill sets the <code>os.pwd</code>
-and for filesystem operations and subprocesses to each task&#8217;s <code>.dest</code> folder,
+<p>One thing to note about Mill’s usage of OS-Lib is that Mill sets the <code>os.pwd</code>
+and for filesystem operations and subprocesses to each task’s <code>.dest</code> folder,
 as part of its <a href="../depth/sandboxing.html" class="xref page">Mill Sandboxing</a> efforts to prevent accidental
 interference between tasks:</p>
 </div>
@@ -525,13 +526,13 @@ interference between tasks:</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
 def task1 = Task {
-  os.write(os.pwd / "file.txt", "hello")
-  PathRef(os.pwd / "file.txt")
+  os.write(os.pwd / &quot;file.txt&quot;, &quot;hello&quot;)
+  PathRef(os.pwd / &quot;file.txt&quot;)
 }
 
 def task2 = Task {
-  os.call(("bash", "-c", "echo 'world' &gt;&gt; file.txt"))
-  PathRef(os.pwd / "file.txt")
+  os.call((&quot;bash&quot;, &quot;-c&quot;, &quot;echo 'world' &gt;&gt; file.txt&quot;))
+  PathRef(os.pwd / &quot;file.txt&quot;)
 }
 
 def command = Task {
@@ -543,10 +544,10 @@ def command = Task {
 </div>
 </div>
 <div class="paragraph">
-<p>Thus although both <code>task1</code> and <code>task2</code> above write to <code>os.pwd / "file.txt"</code> -
+<p>Thus although both <code>task1</code> and <code>task2</code> above write to <code>os.pwd / &quot;file.txt&quot;</code> -
 one via <code>os.write</code> and one via a Bash subprocess - each task gets its own
 working directory that prevents the files from colliding on disk. Thus the final
-<code>command</code> can depend on both tasks and read each task&#8217;s <code>file.txt</code> separately
+<code>command</code> can depend on both tasks and read each task’s <code>file.txt</code> separately
 without conflict</p>
 </div>
 <div class="listingblock">
@@ -612,7 +613,7 @@ collections types (<code>Seq</code>s, <code>List</code>s, <code>Tuple</code>s, e
 
 def taskInt = Task { 123 }
 def taskBoolean = Task { true }
-def taskString = Task { "hello " + taskInt() + " world " + taskBoolean() }</code></pre>
+def taskString = Task { &quot;hello &quot; + taskInt() + &quot; world &quot; + taskBoolean() }</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -624,13 +625,13 @@ def taskString = Task { "hello " + taskInt() + " world " + taskBoolean() }</code
 true
 
 &gt; ./mill show taskString
-"hello 123 world true"
+&quot;hello 123 world true&quot;
 
 &gt; ./mill show taskTuple
 [
   123,
   true,
-  "hello 123 world true"
+  &quot;hello 123 world true&quot;
 ]</code></pre>
 </div>
 </div>
@@ -638,7 +639,7 @@ true
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def taskTuple = Task { (taskInt(), taskBoolean(), taskString())}
 def taskSeq = Task { Seq(taskInt(), taskInt() * 2, taskInt() * 3)}
-def taskMap = Task { Map("int" -&gt; taskInt().toString, "boolean" -&gt; taskBoolean().toString) }</code></pre>
+def taskMap = Task { Map(&quot;int&quot; -&gt; taskInt().toString, &quot;boolean&quot; -&gt; taskBoolean().toString) }</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -652,8 +653,8 @@ def taskMap = Task { Map("int" -&gt; taskInt().toString, "boolean" -&gt; taskBoo
 
 &gt; ./mill show taskMap
 {
-  "int": "123",
-  "boolean": "true"
+  &quot;int&quot;: &quot;123&quot;,
+  &quot;boolean&quot;: &quot;true&quot;
 }</code></pre>
 </div>
 </div>
@@ -666,15 +667,15 @@ def taskMap = Task { Map("int" -&gt; taskInt().toString, "boolean" -&gt; taskBoo
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def taskPath = Task {
-  os.write(os.pwd / "file.txt", "hello")
-  os.pwd / "file.txt"
+  os.write(os.pwd / &quot;file.txt&quot;, &quot;hello&quot;)
+  os.pwd / &quot;file.txt&quot;
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show taskPath
-".../out/taskPath.dest/file.txt"</code></pre>
+&quot;.../out/taskPath.dest/file.txt&quot;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -687,15 +688,15 @@ should return a <code>PathRef</code>:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def taskPathRef = Task {
-  os.write(os.pwd / "file.txt", "hello")
-  PathRef(os.pwd / "file.txt")
+  os.write(os.pwd / &quot;file.txt&quot;, &quot;hello&quot;)
+  PathRef(os.pwd / &quot;file.txt&quot;)
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show taskPathRef
-"ref.../out/taskPathRef.dest/file.txt"</code></pre>
+&quot;ref.../out/taskPathRef.dest/file.txt&quot;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -744,42 +745,42 @@ compile the Remote APIs source code as part of our build:</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
 def remoteApisZip = Task {
-  println("downloading bazel-remote-apis sources...")
+  println(&quot;downloading bazel-remote-apis sources...&quot;)
   os.write(
-    Task.dest / "source.zip",
-    requests.get("https://github.com/bazelbuild/remote-apis/archive/refs/tags/v2.2.0.zip")
+    Task.dest / &quot;source.zip&quot;,
+    requests.get(&quot;https://github.com/bazelbuild/remote-apis/archive/refs/tags/v2.2.0.zip&quot;)
   )
-  PathRef(Task.dest / "source.zip")
+  PathRef(Task.dest / &quot;source.zip&quot;)
 }
 
 def bazel = Task {
-  println("downloading bazel...")
+  println(&quot;downloading bazel...&quot;)
   val fileName =
-    if (System.getProperty("os.name") == "Mac OS X") "bazel-5.4.1-darwin-arm64"
-    else "bazel-5.4.1-linux-x86_64"
+    if (System.getProperty(&quot;os.name&quot;) == &quot;Mac OS X&quot;) &quot;bazel-5.4.1-darwin-arm64&quot;
+    else &quot;bazel-5.4.1-linux-x86_64&quot;
 
   os.write(
-    Task.dest / "bazel",
-    requests.get(s"https://github.com/bazelbuild/bazel/releases/download/5.4.1/$fileName")
+    Task.dest / &quot;bazel&quot;,
+    requests.get(s&quot;https://github.com/bazelbuild/bazel/releases/download/5.4.1/$fileName&quot;)
   )
-  os.perms.set(Task.dest / "bazel", "rwxrwxrwx")
-  PathRef(Task.dest / "bazel")
+  os.perms.set(Task.dest / &quot;bazel&quot;, &quot;rwxrwxrwx&quot;)
+  PathRef(Task.dest / &quot;bazel&quot;)
 }
 
 def compiledRemoteApis = Task {
-  val javaBuildTarget = "build/bazel/remote/execution/v2:remote_execution_java_proto"
-  os.call(("unzip", remoteApisZip().path, "-d", Task.dest))
-  os.call((bazel().path, "build", javaBuildTarget), cwd = Task.dest / "remote-apis-2.2.0")
+  val javaBuildTarget = &quot;build/bazel/remote/execution/v2:remote_execution_java_proto&quot;
+  os.call((&quot;unzip&quot;, remoteApisZip().path, &quot;-d&quot;, Task.dest))
+  os.call((bazel().path, &quot;build&quot;, javaBuildTarget), cwd = Task.dest / &quot;remote-apis-2.2.0&quot;)
 
   val queried = os.call(
-    (bazel().path, "cquery", javaBuildTarget, "--output=files"),
-    cwd = Task.dest / "remote-apis-2.2.0"
+    (bazel().path, &quot;cquery&quot;, javaBuildTarget, &quot;--output=files&quot;),
+    cwd = Task.dest / &quot;remote-apis-2.2.0&quot;
   )
 
   queried
     .out
     .lines()
-    .map(line =&gt; PathRef(Task.dest / "remote-apis-2.2.0" / os.SubPath(line)))
+    .map(line =&gt; PathRef(Task.dest / &quot;remote-apis-2.2.0&quot; / os.SubPath(line)))
 }</code></pre>
 </div>
 </div>
@@ -798,19 +799,19 @@ Analyzing: ...
 ...
 INFO: Build completed successfully...
 [
-  "ref:.../bazel-out/...fastbuild/bin/build/bazel/semver/libsemver_proto-speed.jar",
-  "ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libduration_proto-speed.jar",
-  "ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libtimestamp_proto-speed.jar",
-  "ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libwrappers_proto-speed.jar",
-  "ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_api_http_proto-speed.jar",
-  "ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libdescriptor_proto-speed.jar",
-  "ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_api_annotations_proto-speed.jar",
-  "ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libany_proto-speed.jar",
-  "ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_rpc_status_proto-speed.jar",
-  "ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libempty_proto-speed.jar",
-  "ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_longrunning_operations_proto-speed.jar",
-  "ref:.../bazel-out/...fastbuild/bin/build/bazel/remote/execution/v2/libremote_execution_proto-speed.jar",
-  "ref:.../bazel-out/...fastbuild/bin/build/bazel/remote/execution/v2/remote_execution_proto-speed-src.jar"
+  &quot;ref:.../bazel-out/...fastbuild/bin/build/bazel/semver/libsemver_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libduration_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libtimestamp_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libwrappers_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_api_http_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libdescriptor_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_api_annotations_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libany_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_rpc_status_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libempty_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_longrunning_operations_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/build/bazel/remote/execution/v2/libremote_execution_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/build/bazel/remote/execution/v2/remote_execution_proto-speed-src.jar&quot;
 ]</code></pre>
 </div>
 </div>
@@ -822,19 +823,19 @@ the Bazel invocation are skipped and the earlier output directly and immediately
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show compiledRemoteApis
 [
-  "ref:.../bazel-out/...fastbuild/bin/build/bazel/semver/libsemver_proto-speed.jar",
-  "ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libduration_proto-speed.jar",
-  "ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libtimestamp_proto-speed.jar",
-  "ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libwrappers_proto-speed.jar",
-  "ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_api_http_proto-speed.jar",
-  "ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libdescriptor_proto-speed.jar",
-  "ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_api_annotations_proto-speed.jar",
-  "ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libany_proto-speed.jar",
-  "ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_rpc_status_proto-speed.jar",
-  "ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libempty_proto-speed.jar",
-  "ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_longrunning_operations_proto-speed.jar",
-  "ref:.../bazel-out/...fastbuild/bin/build/bazel/remote/execution/v2/libremote_execution_proto-speed.jar",
-  "ref:.../bazel-out/...fastbuild/bin/build/bazel/remote/execution/v2/remote_execution_proto-speed-src.jar"
+  &quot;ref:.../bazel-out/...fastbuild/bin/build/bazel/semver/libsemver_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libduration_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libtimestamp_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libwrappers_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_api_http_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libdescriptor_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_api_annotations_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libany_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_rpc_status_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libempty_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_longrunning_operations_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/build/bazel/remote/execution/v2/libremote_execution_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/build/bazel/remote/execution/v2/remote_execution_proto-speed-src.jar&quot;
 ]</code></pre>
 </div>
 </div>
@@ -877,7 +878,7 @@ are run from the command line.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
 def commandSimple(str: String, i: Int, bool: Boolean = true) = Task.Command{
-  println(s"$str $i $bool")
+  println(s&quot;$str $i $bool&quot;)
 }</code></pre>
 </div>
 </div>
@@ -925,7 +926,7 @@ task:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def commandTakingTask(str: Task[String]) = Task.Command{
-  val result = "arg: " + str()
+  val result = &quot;arg: &quot; + str()
   println(result)
   result
 }</code></pre>
@@ -940,7 +941,7 @@ arg: helloworld</code></pre>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def upstreamTask = Task {
-  "HELLO"
+  &quot;HELLO&quot;
 }
 
 def taskCallingCommand = Task {
@@ -951,7 +952,7 @@ def taskCallingCommand = Task {
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show taskCallingCommand
-"arg: HELLO"</code></pre>
+&quot;arg: HELLO&quot;</code></pre>
 </div>
 </div>
 </div>
@@ -1048,9 +1049,9 @@ Java, etc.)</p>
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async src="../../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async src="../../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../../search-index.js"></script>
+  
+</body></html>

@@ -1,26 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Play Framework :: The Mill JVM Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.12.1/contrib/playlib.html">
-    <link rel="prev" href="jmh.html">
-    <link rel="next" href="proguard.html">
-    <meta name="generator" content="Antora 3.1.9">
-    <link rel="stylesheet" href="../../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.12.1/contrib/playlib.html" />
+    <link rel="prev" href="jmh.html" />
+    <link rel="next" href="proguard.html" />
+    <meta name="generator" content="Antora 3.1.9" />
+    <link rel="stylesheet" href="../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
+  
+  </head><body class="article">
+  
 <header class="header">
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill JVM Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill JVM Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -101,27 +102,27 @@
     <a class="nav-link" href="../javalib/dependencies.html">Java Library Dependencies</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../javalib/testing.html">Testing Java Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../javalib/linting.html">Linting Java Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../javalib/publishing.html">Publishing Java Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../javalib/build-examples.html">Java Build Examples</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../javalib/web-examples.html">Java Web Project Examples</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../javalib/android-examples.html">(Experimental) Android Builds</a>
   </li>
 </ul>
@@ -148,23 +149,23 @@
     <a class="nav-link" href="../scalalib/dependencies.html">Scala Library Dependencies</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../scalalib/testing.html">Testing Scala Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../scalalib/linting.html">Linting Scala Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../scalalib/publishing.html">Publishing Scala Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../scalalib/build-examples.html">Scala Build Examples</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../scalalib/web-examples.html">Scala Web Project Examples</a>
   </li>
 </ul>
@@ -191,33 +192,33 @@
     <a class="nav-link" href="../kotlinlib/dependencies.html">Kotlin Library Dependencies</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../kotlinlib/testing.html">Testing Kotlin Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../kotlinlib/linting.html">Linting Kotlin Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../kotlinlib/publishing.html">Publishing Kotlin Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../kotlinlib/build-examples.html">Kotlin Build Examples</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../kotlinlib/android-examples.html">(Experimental) Android Builds</a>
   </li>
 </ul>
   </li>
 
-  <li class="nav-item is-active" data-depth="0">
+  <li class="nav-item" data-depth="0">
     <button class="nav-item-toggle"></button>
     <span class="nav-text">Build Tool Comparisons</span>
 <ul class="nav-list">
@@ -257,15 +258,15 @@
     <a class="nav-link" href="../fundamentals/query-syntax.html">Task Query Syntax</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../fundamentals/library-deps.html">Library Dependencies in Mill</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../fundamentals/cross-builds.html">Cross Builds</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../fundamentals/bundled-libraries.html">Bundled Libraries</a>
   </li>
 </ul>
@@ -301,55 +302,55 @@
     <a class="nav-link" href="buildinfo.html">BuildInfo</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="codeartifact.html">Codeartifact</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="docker.html">Docker</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="flyway.html">Flyway</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="gitlab.html">Gitlab</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="jmh.html">JMH</a>
   </li>
 
-  <li class="nav-item is-current-page" data-depth="2">
+  <li class="nav-item is-current-page is-active" data-depth="2">
     <a class="nav-link" href="playlib.html">Play Framework</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="proguard.html">Proguard</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="scalapblib.html">ScalaPB</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="scoverage.html">Scoverage</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="sonatypecentral.html">Sonatype Central</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="testng.html">TestNG</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="twirllib.html">Twirl</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="versionfile.html">Version file</a>
   </li>
 </ul>
@@ -363,15 +364,15 @@
     <a class="nav-link" href="../extending/running-jvm-code.html">Running Dynamic JVM Code</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../extending/writing-plugins.html">Writing Mill Plugins</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../extending/meta-build.html">The Mill Meta-Build</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../extending/new-language.html">Support for New Languages</a>
   </li>
 </ul>
@@ -398,7 +399,7 @@
     <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../depth/why-scala.html">Why does Mill use Scala?</a>
   </li>
 </ul>
@@ -431,7 +432,7 @@
       <div class="title"><a href="../index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version">
-          <a href="../../index.html">0.12.1-13-24e56e</a>
+          <a href="../../index.html">0.12.1-14-30c005</a>
         </li>
         <li class="version is-current is-latest">
           <a href="../index.html">0.12.1</a>
@@ -554,8 +555,8 @@ import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
 
 object core extends PlayModule {
     // config
-    override def scalaVersion = Task { "2.13.12" }
-    override def playVersion = Task { "2.8.20" }
+    override def scalaVersion = Task { &quot;2.13.12&quot; }
+    override def playVersion = Task { &quot;2.8.20&quot; }
 
     object test extends PlayTests
 }</code></pre>
@@ -570,17 +571,17 @@ object core extends PlayModule {
 ├── build.mill
 └── core
     ├── app
-    │   ├── controllers
-    │   └── views
+    │&nbsp;&nbsp; ├── controllers
+    │&nbsp;&nbsp; └── views
     ├── conf
-    │   └── application.conf
-    │   └── routes
-    │   └── ...
+    │&nbsp;&nbsp; └── application.conf
+    │&nbsp;&nbsp; └── routes
+    │&nbsp;&nbsp; └── ...
     ├── logs
     ├── public
-    │   ├── images
-    │   ├── javascripts
-    │   └── stylesheets
+    │&nbsp;&nbsp; ├── images
+    │&nbsp;&nbsp; ├── javascripts
+    │&nbsp;&nbsp; └── stylesheets
     └── test
         └── controllers</code></pre>
 </div>
@@ -591,10 +592,10 @@ object core extends PlayModule {
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Agg(
-  ivy"com.typesafe.play::play:${playVersion()}",
-  ivy"com.typesafe.play::play-guice:${playVersion()}",
-  ivy"com.typesafe.play::play-server:${playVersion()}",
-  ivy"com.typesafe.play::play-logback:${playVersion()}"
+  ivy&quot;com.typesafe.play::play:${playVersion()}&quot;,
+  ivy&quot;com.typesafe.play::play-guice:${playVersion()}&quot;,
+  ivy&quot;com.typesafe.play::play-server:${playVersion()}&quot;,
+  ivy&quot;com.typesafe.play::play-logback:${playVersion()}&quot;
 )</code></pre>
 </div>
 </div>
@@ -604,7 +605,7 @@ added (the actual version depends on the version of Play you are pulling <code>2
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">ivy"org.scalatestplus.play::scalatestplus-play::5.1.0"</code></pre>
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">ivy&quot;org.scalatestplus.play::scalatestplus-play::5.1.0&quot;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -612,7 +613,7 @@ added (the actual version depends on the version of Play you are pulling <code>2
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>ivy"com.typesafe.play::play-akka-http-server:${playVersion()}"</pre>
+<pre>ivy&quot;com.typesafe.play::play-akka-http-server:${playVersion()}&quot;</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -620,7 +621,7 @@ added (the actual version depends on the version of Play you are pulling <code>2
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>ivy"com.typesafe.play::play-pekko-http-server:${playVersion()}"</pre>
+<pre>ivy&quot;com.typesafe.play::play-pekko-http-server:${playVersion()}&quot;</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -629,7 +630,7 @@ added (the actual version depends on the version of Play you are pulling <code>2
 <div class="sect2">
 <h3 id="_using_playapimodule"><a class="anchor" href="#_using_playapimodule"></a>Using <code>PlayApiModule</code></h3>
 <div class="paragraph">
-<p>The <code>PlayApiModule</code> trait behaves the same as the <code>PlayModule</code> trait but it won&#8217;t process .scala
+<p>The <code>PlayApiModule</code> trait behaves the same as the <code>PlayModule</code> trait but it won’t process .scala
 .html files:</p>
 </div>
 <div class="listingblock">
@@ -641,8 +642,8 @@ import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
 
 object core extends PlayApiModule {
     // config
-    override def scalaVersion = Task { "2.13.12" }
-    override def playVersion = Task { "2.8.20" }
+    override def scalaVersion = Task { &quot;2.13.12&quot; }
+    override def playVersion = Task { &quot;2.8.20&quot; }
 
     object test extends PlayTests
 }</code></pre>
@@ -655,7 +656,7 @@ object core extends PlayApiModule {
 <h2 id="_play_configuration_options"><a class="anchor" href="#_play_configuration_options"></a>Play configuration options</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The Play modules themselves don&#8217;t have specific configuration options at this point but the <a href="#_router_configuration_options">router
+<p>The Play modules themselves don’t have specific configuration options at this point but the <a href="#_router_configuration_options">router
 module configuration options</a> and the <a href="twirllib.html#_twirl_configuration_options" class="xref page">contrib/twirllib.adoc#_twirl_configuration_options</a> are applicable.</p>
 </div>
 </div>
@@ -710,8 +711,8 @@ import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`, mill.playlib._
 
 object core extends PlayApiModule {
     // config
-    override def scalaVersion = Task { "2.13.12" }
-    override def playVersion = Task { "2.8.20" }
+    override def scalaVersion = Task { &quot;2.13.12&quot; }
+    override def playVersion = Task { &quot;2.8.20&quot; }
 
     object test extends PlayTests
 
@@ -737,7 +738,7 @@ object core extends PlayApiModule {
 starts a server in <em>PROD</em> mode which:</p>
 </li>
 <li>
-<p>doesn&#8217;t do any kind of classloading magic (meaning potentially slower restarts)</p>
+<p>doesn’t do any kind of classloading magic (meaning potentially slower restarts)</p>
 </li>
 <li>
 <p>returns less detailed error messages (no source code extract and line numbers)</p>
@@ -766,7 +767,7 @@ be find for a production deployment.</p>
 <div class="paragraph">
 <p>The <code>RootModule</code> abstract class allows you to have the build descriptor at the same level as the
 source code on the filesystem. You can move from there to a multi-module build either by refactoring
-your directory layout into multiple subdirectories or by using mill&#8217;s nested modules feature.</p>
+your directory layout into multiple subdirectories or by using mill’s nested modules feature.</p>
 </div>
 <div class="paragraph">
 <p>Looking back at the sample build definition in <a href="#_using_playmodule">Using <code>PlayModule</code></a>:</p>
@@ -780,8 +781,8 @@ import $ivy.`com.lihaoyi::mill-contrib-playlib:`, mill.playlib._
 
 object core extends PlayModule {
     // config
-    override def scalaVersion = Task { "2.13.12" }
-    override def playVersion = Task { "2.8.20" }
+    override def scalaVersion = Task { &quot;2.13.12&quot; }
+    override def playVersion = Task { &quot;2.8.20&quot; }
 
     object test extends PlayTests
 }</code></pre>
@@ -796,17 +797,17 @@ object core extends PlayModule {
 ├── build.mill
 └── core
     ├── app
-    │   ├── controllers
-    │   └── views
+    │&nbsp;&nbsp; ├── controllers
+    │&nbsp;&nbsp; └── views
     ├── conf
-    │   └── application.conf
-    │   └── routes
-    │   └── ...
+    │&nbsp;&nbsp; └── application.conf
+    │&nbsp;&nbsp; └── routes
+    │&nbsp;&nbsp; └── ...
     ├── logs
     ├── public
-    │   ├── images
-    │   ├── javascripts
-    │   └── stylesheets
+    │&nbsp;&nbsp; ├── images
+    │&nbsp;&nbsp; ├── javascripts
+    │&nbsp;&nbsp; └── stylesheets
     └── test
         └── controllers</code></pre>
 </div>
@@ -822,11 +823,11 @@ import mill._
 import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
 
 object build extends RootModule with PlayModule {
-	// config
-	override def scalaVersion = Task { "2.13.12" }
-	override def playVersion = Task { "2.8.20" }
+ // config
+ override def scalaVersion = Task { &quot;2.13.12&quot; }
+ override def playVersion = Task { &quot;2.8.20&quot; }
 
-	object test extends PlayTests
+ object test extends PlayTests
 }</code></pre>
 </div>
 </div>
@@ -838,17 +839,17 @@ object build extends RootModule with PlayModule {
 <pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">.
 ├── build.mill
 ├── app
-│   ├── controllers
-│   └── views
+│&nbsp;&nbsp; ├── controllers
+│&nbsp;&nbsp; └── views
 ├── conf
-│   └── application.conf
-│   └── routes
-│   └── ...
+│&nbsp;&nbsp; └── application.conf
+│&nbsp;&nbsp; └── routes
+│&nbsp;&nbsp; └── ...
 ├── logs
 ├── public
-│   ├── images
-│   ├── javascripts
-│   └── stylesheets
+│&nbsp;&nbsp; ├── images
+│&nbsp;&nbsp; ├── javascripts
+│&nbsp;&nbsp; └── stylesheets
 └── test
     └── controllers</code></pre>
 </div>
@@ -856,7 +857,7 @@ object build extends RootModule with PlayModule {
 <div class="sect2">
 <h3 id="_using_the_router_module_directly"><a class="anchor" href="#_using_the_router_module_directly"></a>Using the router module directly</h3>
 <div class="paragraph">
-<p>If you want to use the router module in a project which doesn&#8217;t use the default Play layout, you
+<p>If you want to use the router module in a project which doesn’t use the default Play layout, you
 can mix-in the <code>mill.playlib.routesModule</code> trait directly when defining your module. Your app must
 define <code>playVersion</code> and <code>scalaVersion</code>.</p>
 </div>
@@ -868,8 +869,8 @@ import mill._
 import $ivy.`com.lihaoyi::mill-contrib-playlib:`,  mill.playlib._
 
 object app extends ScalaModule with RouterModule {
-  def playVersion = Task { "2.8.20" }
-  def scalaVersion = Task { "2.13.12" }
+  def playVersion = Task { &quot;2.8.20&quot; }
+  def scalaVersion = Task { &quot;2.13.12&quot; }
 }</code></pre>
 </div>
 </div>
@@ -888,7 +889,7 @@ object app extends ScalaModule with RouterModule {
 </li>
 <li>
 <p><code>def routesAdditionalImport: Seq[String]</code> - Additional imports to use in the generated routers.
-(Defaults to <code>Seq("controllers.Assets.Asset", "play.libs.F")</code></p>
+(Defaults to <code>Seq(&quot;controllers.Assets.Asset&quot;, &quot;play.libs.F&quot;)</code></p>
 </li>
 <li>
 <p><code>def generateForwardsRouter: Boolean = true</code> - Enables the forward router generation.</p>
@@ -915,8 +916,8 @@ compiler type, one of RouteCompilerType.InjectedGenerator or RouteCompilerType.S
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">.
 ├── app
-│   └── routes
-│       └── routes
+│&nbsp;&nbsp; └── routes
+│&nbsp;&nbsp;     └── routes
 └── build.mill</code></pre>
 </div>
 </div>
@@ -949,8 +950,8 @@ import mill.scalalib._
 import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`,  mill.playlib._
 
 object app extends ScalaModule with RouterModule {
-  def playVersion = "2.8.20"
-  override def routesAdditionalImport = Seq("my.additional.stuff._", "my.other.stuff._")
+  def playVersion = &quot;2.8.20&quot;
+  override def routesAdditionalImport = Seq(&quot;my.additional.stuff._&quot;, &quot;my.other.stuff._&quot;)
 }</code></pre>
 </div>
 </div>
@@ -967,9 +968,9 @@ object app extends ScalaModule with RouterModule {
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async src="../../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async src="../../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../../search-index.js"></script>
+  
+</body></html>

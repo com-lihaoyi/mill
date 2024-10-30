@@ -1,26 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>ScalaPB :: The Mill JVM Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.12.1/contrib/scalapblib.html">
-    <link rel="prev" href="proguard.html">
-    <link rel="next" href="scoverage.html">
-    <meta name="generator" content="Antora 3.1.9">
-    <link rel="stylesheet" href="../../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.12.1/contrib/scalapblib.html" />
+    <link rel="prev" href="proguard.html" />
+    <link rel="next" href="scoverage.html" />
+    <meta name="generator" content="Antora 3.1.9" />
+    <link rel="stylesheet" href="../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
+  
+  </head><body class="article">
+  
 <header class="header">
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill JVM Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill JVM Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -101,27 +102,27 @@
     <a class="nav-link" href="../javalib/dependencies.html">Java Library Dependencies</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../javalib/testing.html">Testing Java Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../javalib/linting.html">Linting Java Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../javalib/publishing.html">Publishing Java Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../javalib/build-examples.html">Java Build Examples</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../javalib/web-examples.html">Java Web Project Examples</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../javalib/android-examples.html">(Experimental) Android Builds</a>
   </li>
 </ul>
@@ -148,23 +149,23 @@
     <a class="nav-link" href="../scalalib/dependencies.html">Scala Library Dependencies</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../scalalib/testing.html">Testing Scala Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../scalalib/linting.html">Linting Scala Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../scalalib/publishing.html">Publishing Scala Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../scalalib/build-examples.html">Scala Build Examples</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../scalalib/web-examples.html">Scala Web Project Examples</a>
   </li>
 </ul>
@@ -191,33 +192,33 @@
     <a class="nav-link" href="../kotlinlib/dependencies.html">Kotlin Library Dependencies</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../kotlinlib/testing.html">Testing Kotlin Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../kotlinlib/linting.html">Linting Kotlin Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../kotlinlib/publishing.html">Publishing Kotlin Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../kotlinlib/build-examples.html">Kotlin Build Examples</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../kotlinlib/android-examples.html">(Experimental) Android Builds</a>
   </li>
 </ul>
   </li>
 
-  <li class="nav-item is-active" data-depth="0">
+  <li class="nav-item" data-depth="0">
     <button class="nav-item-toggle"></button>
     <span class="nav-text">Build Tool Comparisons</span>
 <ul class="nav-list">
@@ -257,15 +258,15 @@
     <a class="nav-link" href="../fundamentals/query-syntax.html">Task Query Syntax</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../fundamentals/library-deps.html">Library Dependencies in Mill</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../fundamentals/cross-builds.html">Cross Builds</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../fundamentals/bundled-libraries.html">Bundled Libraries</a>
   </li>
 </ul>
@@ -301,55 +302,55 @@
     <a class="nav-link" href="buildinfo.html">BuildInfo</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="codeartifact.html">Codeartifact</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="docker.html">Docker</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="flyway.html">Flyway</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="gitlab.html">Gitlab</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="jmh.html">JMH</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="playlib.html">Play Framework</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="proguard.html">Proguard</a>
   </li>
 
-  <li class="nav-item is-current-page" data-depth="2">
+  <li class="nav-item is-current-page is-active" data-depth="2">
     <a class="nav-link" href="scalapblib.html">ScalaPB</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="scoverage.html">Scoverage</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="sonatypecentral.html">Sonatype Central</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="testng.html">TestNG</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="twirllib.html">Twirl</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="versionfile.html">Version file</a>
   </li>
 </ul>
@@ -363,15 +364,15 @@
     <a class="nav-link" href="../extending/running-jvm-code.html">Running Dynamic JVM Code</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../extending/writing-plugins.html">Writing Mill Plugins</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../extending/meta-build.html">The Mill Meta-Build</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../extending/new-language.html">Support for New Languages</a>
   </li>
 </ul>
@@ -398,7 +399,7 @@
     <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="../depth/why-scala.html">Why does Mill use Scala?</a>
   </li>
 </ul>
@@ -431,7 +432,7 @@
       <div class="title"><a href="../index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version">
-          <a href="../../index.html">0.12.1-13-24e56e</a>
+          <a href="../../index.html">0.12.1-14-30c005</a>
         </li>
         <li class="version is-current is-latest">
           <a href="../index.html">0.12.1</a>
@@ -481,7 +482,7 @@
 <p>To declare a module that uses ScalaPB you can extend the <code>mill.contrib.scalapblib.ScalaPBModule</code> trait when defining your module.</p>
 </div>
 <div class="paragraph">
-<p>This creates a Scala module which compiles <code>.proto</code> files in the <code>protobuf</code> folder of the module with ScalaPB and adds the resulting <code>.scala</code> sources to your module&#8217;s <code>generatedSources</code>.</p>
+<p>This creates a Scala module which compiles <code>.proto</code> files in the <code>protobuf</code> folder of the module with ScalaPB and adds the resulting <code>.scala</code> sources to your module’s <code>generatedSources</code>.</p>
 </div>
 <div class="listingblock">
 <div class="title"><code>build.mill</code></div>
@@ -491,8 +492,8 @@ import $ivy.`com.lihaoyi::mill-contrib-scalapblib:`
 import contrib.scalapblib._
 
 object example extends ScalaPBModule {
-  def scalaVersion = "2.12.6"
-  def scalaPBVersion = "0.7.4"
+  def scalaVersion = &quot;2.12.6&quot;
+  def scalaPBVersion = &quot;0.7.4&quot;
 }</code></pre>
 </div>
 </div>
@@ -516,7 +517,7 @@ example/
 <div class="ulist">
 <ul>
 <li>
-<p>scalaPBVersion (mandatory) - The ScalaPB version <code>String</code> e.g. <code>"0.7.4"</code></p>
+<p>scalaPBVersion (mandatory) - The ScalaPB version <code>String</code> e.g. <code>&quot;0.7.4&quot;</code></p>
 </li>
 <li>
 <p>scalaPBFlatPackage - A <code>Boolean</code> option which determines whether the <code>.proto</code> file name should be appended as the final segment of the package name in the generated sources.</p>
@@ -542,7 +543,7 @@ example/
 </ul>
 </div>
 <div class="paragraph">
-<p>If you&#8217;d like to configure the <a href="https://scalapb.github.io/docs/scalapbc#passing-generator-parameters">options</a> that are passed to the ScalaPB compiler directly, you can override the <code>scalaPBOptions</code> task, for example:</p>
+<p>If you’d like to configure the <a href="https://scalapb.github.io/docs/scalapbc#passing-generator-parameters">options</a> that are passed to the ScalaPB compiler directly, you can override the <code>scalaPBOptions</code> task, for example:</p>
 </div>
 <div class="listingblock">
 <div class="title"><code>build.mill</code></div>
@@ -552,14 +553,14 @@ import $ivy.`com.lihaoyi::mill-contrib-scalapblib:`
 import contrib.scalapblib._
 
 object example extends ScalaPBModule {
-  def scalaVersion = "2.12.6"
-  def scalaPBVersion = "0.7.4"
-  override def scalaPBOptions = "flat_package,java_conversions"
+  def scalaVersion = &quot;2.12.6&quot;
+  def scalaPBVersion = &quot;0.7.4&quot;
+  override def scalaPBOptions = &quot;flat_package,java_conversions&quot;
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>If you&#8217;d like to pass additional arguments to the ScalaPB compiler directly, you can override the <code>scalaPBAdditionalArgs</code> task, for example:</p>
+<p>If you’d like to pass additional arguments to the ScalaPB compiler directly, you can override the <code>scalaPBAdditionalArgs</code> task, for example:</p>
 </div>
 <div class="listingblock">
 <div class="title"><code>build.mill</code></div>
@@ -569,10 +570,10 @@ import $ivy.`com.lihaoyi::mill-contrib-scalapblib:$MILL_VERSION`
 import contrib.scalapblib._
 
 object example extends ScalaPBModule {
-  def scalaVersion = "2.12.6"
-  def scalaPBVersion = "0.7.4"
+  def scalaVersion = &quot;2.12.6&quot;
+  def scalaPBVersion = &quot;0.7.4&quot;
   override def scalaPBAdditionalArgs =
-    Seq(s"--zio_out=${Task.dest.toIO.getCanonicalPath}")
+    Seq(s&quot;--zio_out=${Task.dest.toIO.getCanonicalPath}&quot;)
 }</code></pre>
 </div>
 </div>
@@ -587,9 +588,9 @@ object example extends ScalaPBModule {
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async src="../../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async src="../../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../../search-index.js"></script>
+  
+</body></html>
