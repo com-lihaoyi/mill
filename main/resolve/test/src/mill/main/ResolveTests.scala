@@ -1131,6 +1131,13 @@ object ResolveTests extends TestSuite {
         isShortError(_, "Cyclic module reference detected")
       )
     }
+    test("crossedCyclicModuleRefInitError") {
+      val check = new Checker(TestGraphs.CrossedCyclicModuleRefInitError)
+      test - check.checkSeq0(
+        Seq("__"),
+        isShortError(_, "Cyclic module reference detected")
+      )
+    }
     test("nonCyclicModules") {
       val check = new Checker(TestGraphs.NonCyclicModules)
       test - check(

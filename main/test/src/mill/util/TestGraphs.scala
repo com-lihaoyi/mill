@@ -700,6 +700,21 @@ object TestGraphs {
     }
   }
 
+  object CrossedCyclicModuleRefInitError extends TestBaseModule {
+    object cross extends mill.Cross[Cross]("210", "211", "212")
+    trait Cross extends Cross.Module[String] {
+      def suffix = Task { crossValue }
+      def c2 = cross2
+    }
+
+    object cross2 extends mill.Cross[Cross2]("210", "211", "212")
+    trait Cross2 extends Cross.Module[String] {
+      override def millSourcePath = super.millSourcePath / crossValue
+      def suffix = Task { crossValue }
+      def c1 = cross
+    }
+  }
+
   // The module names repeat, but it's not actually cyclic and is meant to confuse the cycle detection.
   object NonCyclicModules extends TestBaseModule {
     def foo = Task { "foo" }
