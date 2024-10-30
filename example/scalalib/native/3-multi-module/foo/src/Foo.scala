@@ -9,10 +9,9 @@ object Foo {
   def main(@arg(name = "foo-text") fooText: String,
            @arg(name = "bar-text") barText: String): Unit = {
 
-    implicit val z: Zone = Zone.open
+    implicit val z: Zone = Zone.open()
     val cFooText = toCString(fooText)
     val cBarText = toCString(barText)
-    z.close()
 
     stdio.printf(c"Foo.value: The vowel density of '%s' is %d\n", cFooText, HelloWorldFoo.vowelDensity(cFooText))
     stdio.printf(c"Bar.value: The string length of '%s' is %d\n", cBarText, bar.HelloWorldBar.stringLength(cBarText))

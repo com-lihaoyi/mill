@@ -9,10 +9,10 @@ object Foo {
   def generateHtml(text: String): CString = {
     val html = "<h1>" + text + "</h1>\n"
 
-    implicit val z: Zone = Zone.open
+    implicit val z: Zone = Zone.open()
     val cResult = toCString(html)
-    z.close()
     cResult
+  
   }
 
   @main

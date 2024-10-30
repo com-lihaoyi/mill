@@ -2,58 +2,22 @@ package build
 import mill._, scalalib._, scalanativelib._
 
 trait MyModule extends ScalaNativeModule {
-  def scalaVersion = "2.13.11"
+  def scalaVersion = "3.3.4"
   def scalaNativeVersion = "0.5.5"
 
   object test extends ScalaNativeTests {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.8.4")
     def testFramework = "utest.runner.Framework"
   }
-
-  // Additional source folder to put C sources
-  def nativeSources = Task.Sources(millSourcePath / "resources/scala-native")
-
-  def nativeLinkingOptions = Seq("-L" + Task.dest.toString)
-  //def barSource = millSourcePath.toString + "/resources/scala-native"
-
-  // Compile C
-  def nativeCompiled = Task {
-    val cSourceFiles = nativeSources().map(_.path).flatMap(os.walk(_)).filter(_.ext == "c")
-    val output = "libHelloWorldBar.so"
-
-    os.proc(
-      "gcc", "-m64", "-shared", "-fPIC", 
-      cSourceFiles,
-      "-o", output)
-    .call(stdout = os.Inherit)
-
-    PathRef(Task.dest / output)
-  }  
-
 }
 
 object foo extends MyModule {
   def moduleDeps = Seq(bar)
 
   def ivyDeps = Agg(ivy"com.lihaoyi::mainargs::0.7.6")
-
-  // Compile C
-  def nativeCompiled = Task {
-    val cSourceFiles = nativeSources().map(_.path).flatMap(os.walk(_)).filter(_.ext == "c")
-    val output = "libHelloWorldFoo.so"
-
-    os.proc(
-      "gcc", "-m64", "-shared", "-fPIC",
-      cSourceFiles,
-      "-o", output)
-    .call(stdout = os.Inherit)
-
-    PathRef(T.dest / output)
-  }
 }
 
-object bar extends MyModule {
-}
+object bar extends MyModule
 
 // This example contains a simple Mill build with two modules, `foo` and `bar`.
 // We don't mark either module as top-level using `extends RootModule`, so
@@ -104,8 +68,6 @@ Bar value: Argument length is 5
 
 > ./mill bar.test
 Tests: 1, Passed: 1, Failed: 0
-
-> ./mill foo.nativeCompiled
 
 > ./mill foo.run --bar-text hello --foo-text world
 Foo.value: The vowel density of 'world' is 20

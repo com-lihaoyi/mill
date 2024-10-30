@@ -9,9 +9,8 @@ object Foo {
   def generateHtml(text: String): CString = {
     val colored = Console.RED + "<h1>" + text + "</h1>" + Console.RESET
 
-    implicit val z: Zone = Zone.open
+    implicit val z: Zone = Zone.open()
     val cResult = toCString(colored)
-    z.close()
     cResult
   }
   
