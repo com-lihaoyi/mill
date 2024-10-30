@@ -32,7 +32,7 @@ case class FileImportGraph(
 @internal
 object FileImportGraph {
 
-  val alphaKeywords = Set(
+  val alphaKeywords: Set[String] = Set(
     "abstract",
     "case",
     "catch",
