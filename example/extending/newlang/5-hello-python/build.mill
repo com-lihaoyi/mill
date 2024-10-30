@@ -1,3 +1,13 @@
+// This example demonstrates basic integration of https://www.python.org/[Python]
+// using Mill to run Python code. Mill
+// does not come bundled with a Python integration, so here we begin checking
+// the system if Python 3 is installed.
+
+// === Checking for Python 3
+//
+// First, we need to use the `python3` to check if Python 3 is installed before we
+//  progress forward.
+
 package build
 import mill._
 
@@ -18,3 +28,14 @@ def run(args: mill.define.Args) = Task.Command{
     stdout = os.Inherit
   )
 }
+
+/** Usage
+> mill run James Bond
+Hello James Bond
+
+*/
+
+// So that's a minimal example of implementing a single Python build
+// pipeline locally. Next, we will look at turning it into a `PythonModule` that
+// can be re-used
+

@@ -1,9 +1,16 @@
+// In this example, we will explore how to take the one-off python build pipeline
+// we wrote above, and turn it into a re-usable `PythonModule`.
+//
+// To do this, we take all the code we wrote earlier and surround it with
+// `trait PythonModule extends Module` wrapper:
+
 package build
 import mill._
 
 trait PythonModule extends Module{
-  def checkPythonInstall = Task{
-    os.call(("python3", "--version"))
+  def installPython = Task{
+    os.call(("apt", "update"))
+    os.call(("apt", "install", "python3"))
     PathRef(Task.dest)
   }
 
@@ -19,7 +26,32 @@ trait PythonModule extends Module{
   }
 }
 
+// We can then instantiate the module three times. Module can be adjacent or nested,
+// as shown below:
+
 object foo extends PythonModule{
   object bar extends PythonModule
 }
 object qux extends PythonModule
+
+/** See Also: foo/src/foo.ts */
+/** See Also: foo/bar/src/bar.ts */
+/** See Also: qux/src/qux.ts */
+
+// And then invoke the `.run` method on each module from the command line:
+
+/** Usage
+> mill foo.run James
+Hello James Foo
+
+> mill foo.bar.run James
+Hello James Bar
+
+> mill qux.run James
+Hello James Qux
+
+*/
+
+// At this point, we have multiple ``PythonModule``s, with `bar` nested inside `foo`,
+// but they are each independent and do not depend on one another.
+
