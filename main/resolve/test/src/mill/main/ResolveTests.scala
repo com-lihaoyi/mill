@@ -1111,24 +1111,24 @@ object ResolveTests extends TestSuite {
       )
     }
     test("cyclicModuleRefInitError") {
-      val check = new Checker(cyclicModuleRefInitError)
+      val check = new Checker(TestGraphs.CyclicModuleRefInitError)
       test - check.checkSeq0(
         Seq("__"),
         isShortError(_, "Cyclic module reference detected")
       )
     }
     test("nonCyclicModules") {
-      val check = new Checker(nonCyclicModules)
+      val check = new Checker(TestGraphs.NonCyclicModules)
       test - check(
         "__",
-        Right(Set()) // TODO: complete this
+        Right(Set(_.foo))
       )
     }
     test("moduleRefWithNonModuleRefChild") {
-      val check = new Checker(moduleRefWithNonModuleRefChild)
+      val check = new Checker(TestGraphs.ModuleRefWithNonModuleRefChild)
       test - check(
         "__",
-        Right(Set()) // TODO: complete this
+        Right(Set(_.foo))
       )
     }
   }
