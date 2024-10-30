@@ -2,7 +2,7 @@ package build
 import mill._, scalalib._, scalanativelib._
 
 object `package` extends RootModule with ScalaNativeModule {
-  def scalaVersion = "2.13.11"
+  def scalaVersion = "3.3.4"
   def scalaNativeVersion = "0.5.5"
 
   // You can have arbitrary numbers of third-party dependencies
@@ -10,7 +10,7 @@ object `package` extends RootModule with ScalaNativeModule {
     ivy"com.lihaoyi::mainargs::0.7.6"
   )
 
-  object test extends ScalaNativeTests {
+  object test extends ScalaNativeTests with TestModule.Utest{
     def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.8.4")
     def testFramework = "utest.runner.Framework"
   }
